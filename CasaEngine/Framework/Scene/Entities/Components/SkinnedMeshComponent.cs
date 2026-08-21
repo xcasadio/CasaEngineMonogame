@@ -84,6 +84,28 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 
     public IReadOnlyList<BoneRotationConstraint> BoneRotationConstraints => _boneRotationConstraints;
 
+    /// <summary>Current playback time, in seconds, of the current animation state (or graph time when a graph is playing).</summary>
+    public float AnimationTimeSeconds => _animationRuntime?.AnimationTimeSeconds ?? 0f;
+
+    /// <summary>Playback speed of the current (and, mid-transition, target) animation state.</summary>
+    public float AnimationPlaybackSpeed
+    {
+        get => _animationRuntime?.AnimationPlaybackSpeed ?? 1f;
+        set
+        {
+            if (_animationRuntime != null)
+            {
+                _animationRuntime.AnimationPlaybackSpeed = value;
+            }
+        }
+    }
+
+    /// <summary>True while an animation state or graph is playing (not paused, not stopped).</summary>
+    public bool IsAnimationPlaying => _animationRuntime?.IsAnimationPlaying == true;
+
+    /// <summary>True while a cross-fade or inertialization transition is in progress.</summary>
+    public bool IsAnimationTransitioning => _animationRuntime?.IsAnimationTransitioning == true;
+
     public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
     public SkinnedMeshComponent()

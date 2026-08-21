@@ -10,9 +10,13 @@ public sealed class AnimationController
     private readonly SkeletonPoseLocal _transitionPose;
     private readonly SkeletonPoseLocal _layerPose;
     private readonly SkeletonPoseLocal _referencePose;
+    private readonly SkeletonPoseLocal _previousOutputPose;
+    private readonly SkeletonPoseLocal _prePreviousOutputPose;
+    private readonly JointInertializationState[] _inertializationStates;
     private readonly List<AnimationLayer> _layers = new();
     private BoneTransform _previousSampledRootTransform = BoneTransform.Identity;
     private bool _hasPreviousSampledRootTransform;
+    private float _lastFrameDeltaSeconds;
 
     private AnimationState _currentState;
     private AnimationState _targetState;
@@ -33,6 +37,33 @@ public sealed class AnimationController
         _transitionPose = skeleton.CreateLocalBindPose();
         _layerPose = skeleton.CreateLocalBindPose();
         _referencePose = skeleton.CreateLocalBindPose();
+        _previousOutputPose = skeleton.CreateLocalBindPose();
+        _prePreviousOutputPose = skeleton.CreateLocalBindPose();
+        _inertializationStates = new JointInertializationState[skeleton.Count];
+    }
+
+    /// <summary>
+    /// Per-joint decay state captured at the start of an <see cref="AnimationTransitionMode.Inertialize"/>
+    /// transition: the translation offset/velocity are tracked per axis, the rotation offset/velocity as a
+    /// single scalar (signed angle) around a fixed axis captured at transition start. All six quintic
+    /// coefficients are precomputed once so evaluating the curve every frame is a handful of multiplies.
+    /// </summary>
+    private struct JointInertializationState
+    {
+        public Vector3 TranslationX0;
+        public Vector3 TranslationV0;
+        public Vector3 TranslationDuration;
+        public Vector3 TranslationCoeffA;
+        public Vector3 TranslationCoeffB;
+        public Vector3 TranslationCoeffC;
+
+        public Vector3 RotationAxis;
+        public float RotationX0;
+        public float RotationV0;
+        public float RotationDuration;
+        public float RotationCoeffA;
+        public float RotationCoeffB;
+        public float RotationCoeffC;
     }
 
     public SkeletonDefinition Skeleton { get; }
@@ -79,6 +110,28 @@ public sealed class AnimationController
 
     public IReadOnlyList<AnimationLayer> Layers => _layers;
 
+    /// <summary>
+    /// Reads or writes the playback speed of the current (and, mid-transition, the target)
+    /// animation state. Returns 1 when no state-based animation is playing (e.g. graph
+    /// playback). Setting it while a transition is in progress applies to both states.
+    /// </summary>
+    public float PlaybackSpeed
+    {
+        get => _currentState?.Speed ?? 1f;
+        set
+        {
+            if (_currentState != null)
+            {
+                _currentState.Speed = value;
+            }
+
+            if (_targetState != null)
+            {
+                _targetState.Speed = value;
+            }
+        }
+    }
+
     public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
     public void Play(AnimationClip clip, bool loop = true, float speed = 1f)
@@ -99,6 +152,7 @@ public sealed class AnimationController
         }
 
         CurrentRootMotionDelta = RootMotionDelta.Identity;
+        CaptureOutputPoseHistory(0f);
     }
 
     public void PlayGraph(IAnimationGraphNode graphRoot)
@@ -121,6 +175,7 @@ public sealed class AnimationController
         }
 
         CurrentRootMotionDelta = RootMotionDelta.Identity;
+        CaptureOutputPoseHistory(0f);
     }
 
     public void CrossFade(AnimationClip clip, float durationSeconds, bool loop = true, float speed = 1f)
@@ -144,6 +199,11 @@ public sealed class AnimationController
         _crossFadeDurationSeconds = durationSeconds;
         _crossFadeElapsedSeconds = 0f;
         _crossFadeSettings = settings;
+
+        if (settings.TransitionMode == AnimationTransitionMode.Inertialize)
+        {
+            BeginInertializedTransition(clip, durationSeconds, settings, loop);
+        }
     }
 
     public void Stop()
@@ -161,6 +221,7 @@ public sealed class AnimationController
         OutputPose.ResetToBindPose();
         ResetRootMotionTrackingFromOutputPose();
         CurrentRootMotionDelta = RootMotionDelta.Identity;
+        CaptureOutputPoseHistory(0f);
     }
 
     public RootMotionDelta ConsumeRootMotionDelta()
@@ -212,6 +273,7 @@ public sealed class AnimationController
         }
 
         CurrentRootMotionDelta = RootMotionDelta.Identity;
+        CaptureOutputPoseHistory(0f);
     }
 
     public void SetLayerAnimation(
@@ -256,6 +318,7 @@ public sealed class AnimationController
             _graphRoot.Evaluate(OutputPose);
             ApplyLayers();
             UpdateRootMotionDelta();
+            CaptureOutputPoseHistory(elapsedSeconds);
             return;
         }
 
@@ -264,50 +327,17 @@ public sealed class AnimationController
             OutputPose.ResetToBindPose();
             ResetRootMotionTrackingFromOutputPose();
             CurrentRootMotionDelta = RootMotionDelta.Identity;
+            CaptureOutputPoseHistory(elapsedSeconds);
             return;
         }
 
-        var previousCurrentTime = _currentState.TimeSeconds;
-        _currentState.Update(elapsedSeconds);
         for (var layerIndex = 0; layerIndex < _layers.Count; layerIndex++)
         {
             _layers[layerIndex].Update(elapsedSeconds);
         }
 
-        if (_targetState == null)
-        {
-            _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, OutputPose, _currentState.Loop);
-            ApplyLayers();
-            DispatchAnimationEvents(_currentState, previousCurrentTime, _currentState.TimeSeconds);
-            UpdateRootMotionDelta();
-            return;
-        }
-
-        _targetState.Update(elapsedSeconds);
-        _crossFadeElapsedSeconds += elapsedSeconds;
-
-        _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, _sourcePose, _currentState.Loop);
-        _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
-
-        var linearBlendWeight = _crossFadeDurationSeconds <= 0f
-            ? 1f
-            : Math.Clamp(_crossFadeElapsedSeconds / _crossFadeDurationSeconds, 0f, 1f);
-        PreserveRootTranslationVelocity(previousCurrentTime, elapsedSeconds, linearBlendWeight);
-        var blendWeight = AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
-
-        AnimationPoseBlender.Blend(_sourcePose, _targetPose, blendWeight, OutputPose);
-        ApplyLayers();
-        DispatchAnimationEvents(_currentState, previousCurrentTime, _currentState.TimeSeconds);
-        UpdateRootMotionDelta();
-
-        if (blendWeight >= 1f)
-        {
-            _currentState = _targetState;
-            _targetState = null;
-            _crossFadeDurationSeconds = 0f;
-            _crossFadeElapsedSeconds = 0f;
-            _crossFadeSettings = AnimationCrossFadeSettings.Default;
-        }
+        EvaluateStateTransition(elapsedSeconds, forced: false);
+        CaptureOutputPoseHistory(elapsedSeconds);
     }
 
     /// <summary>
@@ -333,6 +363,7 @@ public sealed class AnimationController
             _graphRoot.Evaluate(OutputPose);
             ApplyLayers();
             UpdateRootMotionDelta();
+            CaptureOutputPoseHistory(elapsedSeconds);
             return;
         }
 
@@ -341,8 +372,27 @@ public sealed class AnimationController
             return;
         }
 
+        EvaluateStateTransition(elapsedSeconds, forced: true);
+        CaptureOutputPoseHistory(elapsedSeconds);
+    }
+
+    /// <summary>
+    /// Advances the current (and, mid-transition, target) state by <paramref name="elapsedSeconds"/>
+    /// and re-evaluates <see cref="OutputPose"/>. Shared by <see cref="Update"/> and
+    /// <see cref="Advance"/>, which only differ in whether playback respects the paused state
+    /// (<paramref name="forced"/> = false) or always advances (<paramref name="forced"/> = true).
+    /// </summary>
+    private void EvaluateStateTransition(float elapsedSeconds, bool forced)
+    {
         var previousCurrentTime = _currentState.TimeSeconds;
-        _currentState.AdvanceForced(elapsedSeconds);
+        if (forced)
+        {
+            _currentState.AdvanceForced(elapsedSeconds);
+        }
+        else
+        {
+            _currentState.Update(elapsedSeconds);
+        }
 
         if (_targetState == null)
         {
@@ -353,24 +403,44 @@ public sealed class AnimationController
             return;
         }
 
-        _targetState.AdvanceForced(elapsedSeconds);
-        _crossFadeElapsedSeconds += elapsedSeconds;
+        if (forced)
+        {
+            _targetState.AdvanceForced(elapsedSeconds);
+        }
+        else
+        {
+            _targetState.Update(elapsedSeconds);
+        }
 
-        _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, _sourcePose, _currentState.Loop);
-        _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
+        _crossFadeElapsedSeconds += elapsedSeconds;
 
         var linearBlendWeight = _crossFadeDurationSeconds <= 0f
             ? 1f
             : Math.Clamp(_crossFadeElapsedSeconds / _crossFadeDurationSeconds, 0f, 1f);
-        PreserveRootTranslationVelocity(previousCurrentTime, elapsedSeconds, linearBlendWeight);
-        var blendWeight = AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
 
-        AnimationPoseBlender.Blend(_sourcePose, _targetPose, blendWeight, OutputPose);
+        bool transitionComplete;
+        if (_crossFadeSettings.TransitionMode == AnimationTransitionMode.Inertialize)
+        {
+            EvaluateInertializedTransition();
+            transitionComplete = linearBlendWeight >= 1f;
+        }
+        else
+        {
+            _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, _sourcePose, _currentState.Loop);
+            _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
+
+            PreserveRootTranslationVelocity(previousCurrentTime, elapsedSeconds, linearBlendWeight);
+            var blendWeight = AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
+
+            AnimationPoseBlender.Blend(_sourcePose, _targetPose, blendWeight, OutputPose);
+            transitionComplete = blendWeight >= 1f;
+        }
+
         ApplyLayers();
         DispatchAnimationEvents(_currentState, previousCurrentTime, _currentState.TimeSeconds);
         UpdateRootMotionDelta();
 
-        if (blendWeight >= 1f)
+        if (transitionComplete)
         {
             _currentState = _targetState;
             _targetState = null;
@@ -540,6 +610,156 @@ public sealed class AnimationController
                 targetRoot.Rotation,
                 targetRoot.Scale));
         _targetPose.MarkDirtyFrom(RootJointIndex);
+    }
+
+    /// <summary>
+    /// Captures the pose discontinuity at the start of an inertialization transition and
+    /// precomputes the quintic decay coefficients for every joint. The root joint is treated
+    /// like any other joint: its local-space offset is decayed the same way, and the existing
+    /// root-motion extraction (<see cref="UpdateRootMotionDelta"/>) keeps reading whatever
+    /// ends up in <see cref="OutputPose"/> afterwards, exactly as it does for a cross-fade.
+    /// </summary>
+    private void BeginInertializedTransition(AnimationClip targetClip, float durationSeconds, AnimationCrossFadeSettings settings, bool loop)
+    {
+        _sampler.Sample(targetClip, 0f, _targetPose, loop);
+
+        var dt = _lastFrameDeltaSeconds;
+        var maxTranslationOffset = settings.InertializeMaxTranslationOffset;
+        var maxTranslationOffsetVector = new Vector3(maxTranslationOffset, maxTranslationOffset, maxTranslationOffset);
+
+        for (var jointIndex = 0; jointIndex < Skeleton.Count; jointIndex++)
+        {
+            var previousTransform = _previousOutputPose.GetTransform(jointIndex);
+            var prePreviousTransform = _prePreviousOutputPose.GetTransform(jointIndex);
+            var targetTransform = _targetPose.GetTransform(jointIndex);
+
+            var state = new JointInertializationState();
+
+            var translationX0 = Vector3.Clamp(
+                previousTransform.Translation - targetTransform.Translation,
+                -maxTranslationOffsetVector,
+                maxTranslationOffsetVector);
+            var translationV0 = dt > float.Epsilon
+                ? (previousTransform.Translation - prePreviousTransform.Translation) / dt
+                : Vector3.Zero;
+
+            state.TranslationX0 = translationX0;
+            state.TranslationV0 = translationV0;
+            state.TranslationDuration = new Vector3(
+                InertializationMath.ComputeEffectiveDuration(translationX0.X, translationV0.X, durationSeconds),
+                InertializationMath.ComputeEffectiveDuration(translationX0.Y, translationV0.Y, durationSeconds),
+                InertializationMath.ComputeEffectiveDuration(translationX0.Z, translationV0.Z, durationSeconds));
+
+            InertializationMath.ComputeCoefficients(translationX0.X, translationV0.X, state.TranslationDuration.X, out var translationAx, out var translationBx, out var translationCx);
+            InertializationMath.ComputeCoefficients(translationX0.Y, translationV0.Y, state.TranslationDuration.Y, out var translationAy, out var translationBy, out var translationCy);
+            InertializationMath.ComputeCoefficients(translationX0.Z, translationV0.Z, state.TranslationDuration.Z, out var translationAz, out var translationBz, out var translationCz);
+            state.TranslationCoeffA = new Vector3(translationAx, translationAy, translationAz);
+            state.TranslationCoeffB = new Vector3(translationBx, translationBy, translationBz);
+            state.TranslationCoeffC = new Vector3(translationCx, translationCy, translationCz);
+
+            var previousRotation = NormalizeOrIdentity(previousTransform.Rotation);
+            var prePreviousRotation = NormalizeOrIdentity(prePreviousTransform.Rotation);
+            var targetRotation = NormalizeOrIdentity(targetTransform.Rotation);
+
+            var offsetRotation = Quaternion.Normalize(previousRotation * Quaternion.Inverse(targetRotation));
+            ExtractShortestAxisAngle(offsetRotation, out var rotationAxis, out var rotationAngle0);
+
+            var deltaRotation = Quaternion.Normalize(previousRotation * Quaternion.Inverse(prePreviousRotation));
+            ExtractShortestAxisAngle(deltaRotation, out var deltaAxis, out var deltaAngle);
+            var rotationV0 = dt > float.Epsilon
+                ? Vector3.Dot(deltaAxis * deltaAngle, rotationAxis) / dt
+                : 0f;
+
+            state.RotationAxis = rotationAxis;
+            state.RotationX0 = rotationAngle0;
+            state.RotationV0 = rotationV0;
+            state.RotationDuration = InertializationMath.ComputeEffectiveDuration(rotationAngle0, rotationV0, durationSeconds);
+            InertializationMath.ComputeCoefficients(rotationAngle0, rotationV0, state.RotationDuration, out state.RotationCoeffA, out state.RotationCoeffB, out state.RotationCoeffC);
+
+            _inertializationStates[jointIndex] = state;
+        }
+    }
+
+    /// <summary>
+    /// Evaluates the inertialization decay for every joint and writes the result directly into
+    /// <see cref="OutputPose"/>: the target clip plays back unmodified, and the captured
+    /// per-joint translation/rotation offset is decayed towards zero and added on top. Scale
+    /// channels are not inertialized; the target scale is used as-is.
+    /// </summary>
+    private void EvaluateInertializedTransition()
+    {
+        _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
+
+        var t = _crossFadeElapsedSeconds;
+
+        for (var jointIndex = 0; jointIndex < Skeleton.Count; jointIndex++)
+        {
+            var state = _inertializationStates[jointIndex];
+            var targetTransform = _targetPose.GetTransform(jointIndex);
+
+            var translationOffset = new Vector3(
+                InertializationMath.Evaluate(t, state.TranslationX0.X, state.TranslationV0.X, state.TranslationDuration.X, state.TranslationCoeffA.X, state.TranslationCoeffB.X, state.TranslationCoeffC.X),
+                InertializationMath.Evaluate(t, state.TranslationX0.Y, state.TranslationV0.Y, state.TranslationDuration.Y, state.TranslationCoeffA.Y, state.TranslationCoeffB.Y, state.TranslationCoeffC.Y),
+                InertializationMath.Evaluate(t, state.TranslationX0.Z, state.TranslationV0.Z, state.TranslationDuration.Z, state.TranslationCoeffA.Z, state.TranslationCoeffB.Z, state.TranslationCoeffC.Z));
+
+            var rotationAngle = InertializationMath.Evaluate(t, state.RotationX0, state.RotationV0, state.RotationDuration, state.RotationCoeffA, state.RotationCoeffB, state.RotationCoeffC);
+
+            var outputRotation = targetTransform.Rotation;
+            if (MathF.Abs(rotationAngle) > 1e-6f && state.RotationAxis.LengthSquared() > float.Epsilon)
+            {
+                var rotationOffset = Quaternion.CreateFromAxisAngle(state.RotationAxis, rotationAngle);
+                outputRotation = Quaternion.Normalize(rotationOffset * targetTransform.Rotation);
+            }
+
+            OutputPose.SetTransformDirect(
+                jointIndex,
+                new BoneTransform(targetTransform.Translation + translationOffset, outputRotation, targetTransform.Scale));
+        }
+
+        OutputPose.MarkDirtyFrom(0);
+    }
+
+    /// <summary>
+    /// Snapshots <see cref="OutputPose"/> into the P-1/P-2 history buffers used to estimate
+    /// velocity when starting an inertialization transition, and records the frame duration
+    /// (P-2 to P-1) used for that estimate. Called once per frame at the end of every
+    /// <see cref="Update"/>/<see cref="Advance"/> call (and, with a zero duration, whenever
+    /// <see cref="OutputPose"/> is set discontinuously by <see cref="Play"/>, <see cref="PlayGraph"/>,
+    /// <see cref="Stop"/> or <see cref="Seek"/>) so it is never allocated per-frame.
+    /// </summary>
+    private void CaptureOutputPoseHistory(float elapsedSeconds)
+    {
+        _prePreviousOutputPose.CopyFrom(_previousOutputPose);
+        _previousOutputPose.CopyFrom(OutputPose);
+        _lastFrameDeltaSeconds = elapsedSeconds;
+    }
+
+    private static Quaternion NormalizeOrIdentity(Quaternion rotation)
+    {
+        return rotation.LengthSquared() <= float.Epsilon ? Quaternion.Identity : Quaternion.Normalize(rotation);
+    }
+
+    /// <summary>
+    /// Decomposes a rotation into an axis and a shortest-path angle in [0, pi]. Because a
+    /// quaternion double-covers SO(3), negating it when W is negative picks the equivalent
+    /// rotation with the smaller angle (e.g. a 350-degree offset becomes -10 degrees around the
+    /// opposite axis instead of decaying the long way around).
+    /// </summary>
+    private static void ExtractShortestAxisAngle(Quaternion rotation, out Vector3 axis, out float angle)
+    {
+        var normalized = NormalizeOrIdentity(rotation);
+        if (normalized.W < 0f)
+        {
+            normalized = new Quaternion(-normalized.X, -normalized.Y, -normalized.Z, -normalized.W);
+        }
+
+        var clampedW = Math.Clamp(normalized.W, -1f, 1f);
+        angle = 2f * MathF.Acos(clampedW);
+
+        var sinHalfAngle = MathF.Sqrt(Math.Max(1f - clampedW * clampedW, 0f));
+        axis = sinHalfAngle > 1e-6f
+            ? new Vector3(normalized.X, normalized.Y, normalized.Z) / sinHalfAngle
+            : Vector3.UnitX;
     }
 
     private static void ApplyLayerPose(AnimationLayer layer, SkeletonPoseLocal layerPose, SkeletonPoseLocal basePose, SkeletonPoseLocal referencePose)

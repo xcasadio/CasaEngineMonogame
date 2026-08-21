@@ -335,6 +335,218 @@ public class AnimationControllerTests
         Assert.Equal(new Vector3(2f, 0f, 0f), controller.OutputPose.GetTransform(0).Translation);
     }
 
+    [Fact]
+    public void Inertialize_FirstUpdateAfterTransitionStart_HasNoPop()
+    {
+        var skeleton = CreateThreeJointSkeleton();
+        var movingClip = CreateThreeJointLinearClip(skeleton, "Move", velocityPerSecond: 4f, durationSeconds: 4f);
+        var idleClip = CreateThreeJointStationaryClip(skeleton, "Idle", translation: new Vector3(100f, 50f, -30f));
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(movingClip, loop: false);
+        controller.Update(0.5f);
+        controller.Update(0.5f);
+
+        var previousTranslations = new Vector3[skeleton.Count];
+        for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
+        {
+            previousTranslations[jointIndex] = controller.OutputPose.GetTransform(jointIndex).Translation;
+        }
+
+        controller.CrossFade(
+            idleClip,
+            1f,
+            new AnimationCrossFadeSettings { TransitionMode = AnimationTransitionMode.Inertialize },
+            loop: false);
+        controller.Update(1e-5f);
+
+        for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
+        {
+            var newTranslation = controller.OutputPose.GetTransform(jointIndex).Translation;
+            Assert.True(
+                Vector3.Distance(previousTranslations[jointIndex], newTranslation) < 1e-3f,
+                $"Joint {jointIndex} popped: {previousTranslations[jointIndex]} -> {newTranslation}");
+        }
+    }
+
+    [Fact]
+    public void Inertialize_FirstFrameVelocity_MatchesSourceVelocity()
+    {
+        var skeleton = CreateThreeJointSkeleton();
+        const float velocityPerSecond = 4f;
+        var movingClip = CreateThreeJointLinearClip(skeleton, "Move", velocityPerSecond, durationSeconds: 4f);
+        var idleClip = CreateThreeJointStationaryClip(skeleton, "Idle", translation: new Vector3(100f, 50f, -30f));
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(movingClip, loop: false);
+        controller.Update(0.5f);
+        controller.Update(0.5f);
+
+        var previousTranslation = controller.OutputPose.GetTransform(0).Translation;
+
+        controller.CrossFade(
+            idleClip,
+            1f,
+            new AnimationCrossFadeSettings { TransitionMode = AnimationTransitionMode.Inertialize },
+            loop: false);
+
+        const float dt = 1e-3f;
+        controller.Update(dt);
+        var newTranslation = controller.OutputPose.GetTransform(0).Translation;
+        var measuredVelocity = (newTranslation - previousTranslation) / dt;
+
+        Assert.Equal(velocityPerSecond, measuredVelocity.X, tolerance: 0.05f);
+    }
+
+    [Fact]
+    public void Inertialize_AtTransitionEnd_ConvergesExactlyOnTarget_AndStaysThere()
+    {
+        var skeleton = CreateThreeJointSkeleton();
+        var movingClip = CreateThreeJointLinearClip(skeleton, "Move", velocityPerSecond: 4f, durationSeconds: 4f);
+        var targetTranslation = new Vector3(100f, 50f, -30f);
+        var idleClip = CreateThreeJointStationaryClip(skeleton, "Idle", translation: targetTranslation);
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(movingClip, loop: false);
+        controller.Update(0.5f);
+        controller.Update(0.5f);
+
+        controller.CrossFade(
+            idleClip,
+            1f,
+            new AnimationCrossFadeSettings { TransitionMode = AnimationTransitionMode.Inertialize },
+            loop: false);
+        controller.Update(1f);
+
+        Assert.False(controller.IsCrossFading);
+        for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
+        {
+            Assert.True(Vector3.Distance(targetTranslation, controller.OutputPose.GetTransform(jointIndex).Translation) < 1e-4f);
+        }
+
+        controller.Update(0.25f);
+        Assert.True(Vector3.Distance(targetTranslation, controller.OutputPose.GetTransform(0).Translation) < 1e-4f);
+    }
+
+    [Fact]
+    public void Inertialize_RotationOffset_DecaysThroughShortestPath()
+    {
+        var skeleton = CreateSkeleton();
+        var longWayRotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.ToRadians(350f));
+        var sourceClip = CreateRotationClip(skeleton, "Source", longWayRotation);
+        var targetClip = CreateRotationClip(skeleton, "Target", Quaternion.Identity);
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(sourceClip, loop: false);
+        controller.Update(0.1f);
+        controller.Update(0.1f);
+
+        controller.CrossFade(
+            targetClip,
+            1f,
+            new AnimationCrossFadeSettings { TransitionMode = AnimationTransitionMode.Inertialize },
+            loop: false);
+
+        controller.Update(0.25f);
+        AssertShortestPathAngle(controller.OutputPose.GetTransform(0).Rotation);
+
+        controller.Update(0.25f);
+        AssertShortestPathAngle(controller.OutputPose.GetTransform(0).Rotation);
+
+        static void AssertShortestPathAngle(Quaternion rotation)
+        {
+            var normalized = Quaternion.Normalize(rotation);
+            var clampedW = Math.Clamp(MathF.Abs(normalized.W), -1f, 1f);
+            var angleDegrees = MathHelper.ToDegrees(2f * MathF.Acos(clampedW));
+
+            // The offset started at -10 degrees (the short way around from 350). If the decay
+            // took the long way (350 degrees), the intermediate angle would spike towards 350;
+            // taking the short way it must never exceed the initial 10-degree offset (plus a
+            // small margin for the quintic's non-monotonic tail).
+            Assert.True(angleDegrees < 15f, $"Rotation offset took the long way around: {angleDegrees} degrees.");
+        }
+    }
+
+    private static SkeletonDefinition CreateThreeJointSkeleton()
+    {
+        return new SkeletonDefinition(
+            new[]
+            {
+                new SkeletonJointDefinition("Root", -1, BoneTransform.Identity, Matrix.Identity),
+                new SkeletonJointDefinition(
+                    "Middle",
+                    0,
+                    new BoneTransform(new Vector3(0f, 1f, 0f), Quaternion.Identity, Vector3.One),
+                    Matrix.Identity),
+                new SkeletonJointDefinition(
+                    "Tip",
+                    1,
+                    new BoneTransform(new Vector3(0f, 1f, 0f), Quaternion.Identity, Vector3.One),
+                    Matrix.Identity),
+            });
+    }
+
+    private static AnimationClip CreateThreeJointLinearClip(SkeletonDefinition skeleton, string name, float velocityPerSecond, float durationSeconds)
+    {
+        var tracks = new JointAnimationTrack[skeleton.Count];
+        for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
+        {
+            tracks[jointIndex] = new JointAnimationTrack(
+                jointIndex,
+                new Vector3AnimationTrack(
+                    new[]
+                    {
+                        new AnimationKeyframe<Vector3>(0f, Vector3.Zero),
+                        new AnimationKeyframe<Vector3>(durationSeconds, new Vector3(velocityPerSecond * durationSeconds, 0f, 0f)),
+                    }),
+                null,
+                null);
+        }
+
+        return new AnimationClip(name, skeleton, tracks, durationSeconds);
+    }
+
+    private static AnimationClip CreateThreeJointStationaryClip(SkeletonDefinition skeleton, string name, Vector3 translation)
+    {
+        var tracks = new JointAnimationTrack[skeleton.Count];
+        for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
+        {
+            tracks[jointIndex] = new JointAnimationTrack(
+                jointIndex,
+                new Vector3AnimationTrack(
+                    new[]
+                    {
+                        new AnimationKeyframe<Vector3>(0f, translation),
+                        new AnimationKeyframe<Vector3>(1f, translation),
+                    }),
+                null,
+                null);
+        }
+
+        return new AnimationClip(name, skeleton, tracks, 1f);
+    }
+
+    private static AnimationClip CreateRotationClip(SkeletonDefinition skeleton, string name, Quaternion rotation)
+    {
+        return new AnimationClip(
+            name,
+            skeleton,
+            new[]
+            {
+                new JointAnimationTrack(
+                    0,
+                    null,
+                    new QuaternionAnimationTrack(
+                        new[]
+                        {
+                            new AnimationKeyframe<Quaternion>(0f, rotation),
+                            new AnimationKeyframe<Quaternion>(1f, rotation),
+                        }),
+                    null),
+            },
+            1f);
+    }
+
     private static SkeletonDefinition CreateSkeleton()
     {
         return new SkeletonDefinition(

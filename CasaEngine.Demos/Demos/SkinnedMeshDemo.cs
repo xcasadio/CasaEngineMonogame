@@ -1,5 +1,7 @@
+using CasaEngine.Core.Logging;
 ﻿using System;
 using System.Collections.Generic;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Rendering;
@@ -17,6 +19,7 @@ public class SkinnedMeshDemo : Demo
     private readonly List<SkinnedMeshComponent> _skinnedMeshComponents = new();
     private float _animationSwitchTimer;
     private int _nextAnimationIndex = 1;
+    private bool _useInertializeTransition;
 
     public override string Title => "Skinned mesh demo";
     public override string Description => "Displays animated skinned meshes with forward shadows. Left column shows a skinned caster shadowing a receiver, center keeps the caster but disables ReceiveShadows on the receiver, and right disables CastShadows on the caster. The left caster also uses a per-component Material override (tinted orange) to exercise SkinnedMeshComponent.Material instead of the renderer's default material.";
@@ -85,6 +88,7 @@ public class SkinnedMeshDemo : Demo
         _skinnedMeshComponents.Clear();
         _animationSwitchTimer = 0f;
         _nextAnimationIndex = 1;
+        _useInertializeTransition = false;
 
         var skinnedMesh = game.AssetContentManager.LoadFromFile<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
@@ -128,9 +132,18 @@ public class SkinnedMeshDemo : Demo
             _nextAnimationIndex = 0;
         }
 
+        // Alternates transition modes every cycle so both the smooth pose cross-fade and the
+        // pop-free inertialization ("offset decay") transition are exercised in this demo.
+        _useInertializeTransition = !_useInertializeTransition;
+        var transitionSettings = new AnimationCrossFadeSettings
+        {
+            TransitionMode = _useInertializeTransition ? AnimationTransitionMode.Inertialize : AnimationTransitionMode.CrossFade,
+        };
+        Logs.WriteInfo($"SkinnedMeshDemo: transitioning to animation {_nextAnimationIndex} using {transitionSettings.TransitionMode} mode.");
+
         for (var componentIndex = 0; componentIndex < _skinnedMeshComponents.Count; componentIndex++)
         {
-            _skinnedMeshComponents[componentIndex].CrossFadeToAnimation(_nextAnimationIndex, 0.35f);
+            _skinnedMeshComponents[componentIndex].CrossFadeToAnimation(_nextAnimationIndex, 0.35f, transitionSettings);
         }
 
         _nextAnimationIndex++;
@@ -148,6 +161,7 @@ public class SkinnedMeshDemo : Demo
         _skinnedMeshComponents.Clear();
         _animationSwitchTimer = 0f;
         _nextAnimationIndex = 1;
+        _useInertializeTransition = false;
     }
 
     private void CreateShadowValidationColumn(

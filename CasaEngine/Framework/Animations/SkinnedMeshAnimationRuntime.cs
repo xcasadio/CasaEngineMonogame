@@ -86,6 +86,22 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
         set => AnimationController.RootMotionMode = value;
     }
 
+    /// <summary>Current playback time, in seconds, of the current animation state (or graph time when a graph is playing).</summary>
+    public float AnimationTimeSeconds => AnimationController.CurrentTimeSeconds;
+
+    /// <summary>Playback speed of the current (and, mid-transition, target) animation state.</summary>
+    public float AnimationPlaybackSpeed
+    {
+        get => AnimationController.PlaybackSpeed;
+        set => AnimationController.PlaybackSpeed = value;
+    }
+
+    /// <summary>True while an animation state or graph is playing (not paused, not stopped).</summary>
+    public bool IsAnimationPlaying => AnimationController.IsPlaying;
+
+    /// <summary>True while a cross-fade or inertialization transition is in progress.</summary>
+    public bool IsAnimationTransitioning => AnimationController.IsCrossFading;
+
     public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
     public event Action<SkeletonPoseLocal, SkeletonPoseModel> PosePostProcessing;
