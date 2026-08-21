@@ -873,6 +873,23 @@ public class RiggedModel : IAssetable
         public VertexBuffer VertexBuffer { get; private set; }
         public IndexBuffer IndexBuffer { get; private set; }
         public bool HasVertexColors { get; set; }
+
+        /// <summary>
+        /// glTF <c>material.doubleSided</c>: the renderer must disable back-face culling for this mesh.
+        /// </summary>
+        public bool IsDoubleSided { get; set; }
+
+        /// <summary>
+        /// glTF <c>alphaMode = MASK</c> cutoff in [0,1]; negative when the material is opaque/blended
+        /// (no alpha test). Default -1.
+        /// </summary>
+        public float AlphaCutoff { get; set; } = -1f;
+
+        /// <summary>
+        /// True when the glTF base-color sampler requests NEAREST filtering (pixel-art / PSX textures);
+        /// the renderer should then sample with a point filter instead of its default anisotropic one.
+        /// </summary>
+        public bool UseNearestFiltering { get; set; }
         public string NameOfMesh = "";
         public int NumberOfIndices => Indices.Length;
 

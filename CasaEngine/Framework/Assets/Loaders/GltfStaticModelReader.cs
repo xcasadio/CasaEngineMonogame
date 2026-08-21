@@ -263,14 +263,18 @@ public sealed class GltfStaticModelReader
         }
 
         var normals = primitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
-        if (normals != null)
+        bool hasNormals = normals != null && normals.Count == vertexCount;
+        if (hasNormals)
         {
-            int count = Math.Min(normals.Count, vertexCount);
-            for (int k = 0; k < count; k++)
+            for (int k = 0; k < vertexCount; k++)
             {
-                var n = normals[k];
+                var n = normals![k];
                 vertices[k].Normal = new Vector3(n.X, n.Y, n.Z);
             }
+        }
+        else if (vertexCount > 0)
+        {
+            GenerateSmoothNormals(vertices, primitive, gltfMeshName);
         }
 
         var uvs = primitive.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
@@ -303,6 +307,42 @@ public sealed class GltfStaticModelReader
         }
 
         return modelMesh;
+    }
+
+    /// <summary>
+    /// Generates smooth, area-weighted vertex normals for a primitive that ships without a
+    /// NORMAL accessor (common in PSX-style glTF exports). Normals are accumulated in the same
+    /// space as the positions from the glTF triangle order BEFORE this reader's winding
+    /// reversal, so a spec-compliant CCW triangle yields an outward-facing normal.
+    /// </summary>
+    private static void GenerateSmoothNormals(VertexPositionNormalTexture[] vertices, MeshPrimitive primitive, string meshName)
+    {
+        var accumulated = new Vector3[vertices.Length];
+
+        foreach (var triangle in primitive.GetTriangleIndices())
+        {
+            if (triangle.A >= vertices.Length || triangle.B >= vertices.Length || triangle.C >= vertices.Length)
+            {
+                continue;
+            }
+
+            var a = vertices[triangle.A].Position;
+            var b = vertices[triangle.B].Position;
+            var c = vertices[triangle.C].Position;
+            var faceNormal = Vector3.Cross(b - a, c - a);
+
+            accumulated[triangle.A] += faceNormal;
+            accumulated[triangle.B] += faceNormal;
+            accumulated[triangle.C] += faceNormal;
+        }
+
+        for (int k = 0; k < vertices.Length; k++)
+        {
+            var n = accumulated[k];
+            vertices[k].Normal = n.LengthSquared() > 1e-12f ? Vector3.Normalize(n) : Vector3.Up;
+        }
+
+        Logs.WriteInfo($"glTF mesh \"{meshName}\" has no NORMAL attribute; generated smooth vertex normals.");
     }
 
     private static StaticModelNode BuildNode(
