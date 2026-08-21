@@ -24,6 +24,9 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         RasterizerState = RasterizerState.CullCounterClockwise,
         SamplerState = SamplerState.AnisotropicClamp,
         DiffuseColor = Color.White,
+        // Environment/scene ambient applies fully by default so skinned meshes are not
+        // black on faces turned away from the directional lights (see skinEffect.fx ambient term).
+        AmbientColor = Vector3.One,
         EmissiveColor = Vector3.Zero,
         SpecularColor = new Vector3(0.3f, 0.3f, 0.3f),
         SpecularPower = 16.0f,
@@ -55,7 +58,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         ISkinnedMeshPoseProvider poseProvider,
         SkinningModeSelection skinningModeSelection,
         bool castShadows = true,
-        bool receiveShadows = true)
+        bool receiveShadows = true,
+        LitDiffuseMaterial material = null)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(poseProvider);
@@ -68,6 +72,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             World = world,
             CastShadows = castShadows,
             ReceiveShadows = receiveShadows,
+            Material = material,
         });
     }
 
@@ -187,6 +192,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 meshInfo.PoseProvider,
                 effectiveSkinningMode,
                 meshInfo.ReceiveShadows,
+                meshInfo.Material,
                 in context);
         }
 
@@ -252,6 +258,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         ISkinnedMeshPoseProvider poseProvider,
         SkinningMode skinningMode,
         bool receiveShadows,
+        LitDiffuseMaterial materialOverride,
         in RenderContext context)
     {
         for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
@@ -263,7 +270,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, skinningMode, receiveShadows, in context);
+            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, skinningMode, receiveShadows, materialOverride, in context);
         }
     }
 
@@ -296,6 +303,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         ISkinnedMeshPoseProvider poseProvider,
         SkinningMode skinningMode,
         bool receiveShadows,
+        LitDiffuseMaterial materialOverride,
         in RenderContext context)
     {
         var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
@@ -311,22 +319,48 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             return;
         }
 
-        _defaultMaterial.BasColor = texture;
+        var material = materialOverride ?? _defaultMaterial;
 
-        var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
-        var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features, skinningMode);
+        // The mesh texture must win only when the material carries none of its own.
+        // We temporarily set/restore BasColor instead of mutating it permanently so that
+        // a user-provided material (materialOverride) is never left holding a stray
+        // reference to this mesh's texture.
+        var originalBasColor = material.BasColor;
+        if (originalBasColor == null)
+        {
+            material.BasColor = texture;
+        }
+
+        // glTF-authored per-mesh overrides (double-sided / nearest filtering / alpha cutoff).
+        RasterizerState rasterizerOverride = mesh.IsDoubleSided ? RasterizerState.CullNone : null;
+        SamplerState samplerOverride = mesh.UseNearestFiltering ? SamplerState.PointClamp : null;
+
+        var features = RenderFeatureResolver.ResolveSkinned(material, mesh);
+        var effectiveShader = EffectiveShaderResolver.Resolve(material, features, skinningMode);
         var resolvedShader = _shaderSelector!.Resolve(effectiveShader.ShaderId, features);
         var meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
 
-        _stateCache.Apply(context.Device, _defaultMaterial, context.Stats);
+        _stateCache.Apply(context.Device, material, rasterizerOverride, samplerOverride, context.Stats);
 
         if (!resolvedShader.TechniqueSelectedBySelector)
         {
-            _defaultMaterial.SelectTechnique(resolvedShader.Shader, in context, features);
+            material.SelectTechnique(resolvedShader.Shader, in context, features);
         }
 
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
-        _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
+        material.Bind(resolvedShader.Shader, in context, meshWorld);
+
+        if (originalBasColor == null)
+        {
+            material.BasColor = originalBasColor;
+        }
+
+        // Per-mesh alpha cutoff wins over whatever the material bound above (0 = disabled).
+        if (mesh.AlphaCutoff >= 0f)
+        {
+            resolvedShader.Shader.SetParameter(ShaderParameterNames.AlphaCutoff, mesh.AlphaCutoff);
+        }
+
         resolvedShader.Shader.SetParameter(ShaderParameterNames.ReceiveShadows, receiveShadows ? 1.0f : 0.0f);
 
         if (skinningMode == SkinningMode.DualQuaternion && resolvedShader.Shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
@@ -426,5 +460,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         public Matrix World { get; set; }
         public bool CastShadows { get; set; } = true;
         public bool ReceiveShadows { get; set; } = true;
+
+        /// <summary>Per-component material override; null uses the renderer's default material.</summary>
+        public LitDiffuseMaterial Material { get; set; }
     }
 }

@@ -126,7 +126,9 @@ BEGIN_CONSTANTS
     float4 SpotLight7SpecularColorAndOuterConeCos;
 
     float3 EyePosition _vs(c28) _ps(c30) _cb(c28);
+    float AlphaCutoff _ps(c31) _cb(c28.w);
     float3 AmbientColor _cb(c29);
+    float3 MaterialAmbientColor _ps(c33) _cb(c35);
     float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
@@ -165,10 +167,22 @@ END_CONSTANTS
 
 float3 ComputeSkinnedAmbientContribution(float3 baseColor, float3 worldNormal)
 {
-    float3 globalAmbientColor = HasEnvironmentCubeTexture > 0.5f
-        ? SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor
-        : AmbientColor;
-    return baseColor * DiffuseColor.rgb * globalAmbientColor;
+    // Same formula as LitForward.fx's ComputeBaseAmbientTerm: environment (or flat)
+    // ambient color modulated by the material's own ambient tint.
+    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+        ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
+        : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
+    return baseColor * DiffuseColor.rgb * ambientTerm;
+}
+
+
+void ApplySkinnedAlphaTest(float alpha)
+{
+    // Same convention as LitForward.fx's ApplyAlphaTest: AlphaCutoff <= 0 disables the test.
+    if (AlphaCutoff > 0.0f)
+    {
+        clip(alpha - AlphaCutoff);
+    }
 }
 
 
@@ -353,6 +367,7 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 {
     float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    ApplySkinnedAlphaTest(texelColor.a);
 
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
@@ -360,7 +375,9 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
-    color.rgb *= lightResult.Diffuse;
+    float3 directDiffuse = max(lightResult.Diffuse - EmissiveColor, 0.0f);
+    float3 ambientContribution = ComputeSkinnedAmbientContribution(color.rgb, worldNormal);
+    color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
     AddSpecular(color, lightResult.Specular);
 
     return color;

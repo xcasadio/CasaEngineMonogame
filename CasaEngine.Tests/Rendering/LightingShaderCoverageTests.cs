@@ -143,6 +143,29 @@ public class LightingShaderCoverageTests
         Assert.Contains("VertexShaderRiggedModelShadowDepthDualQuaternion", skinnedSource);
     }
 
+    [Fact]
+    public void SkinnedLightingShader_ConvergesAmbientAndAlphaTestWithLitForward()
+    {
+        string skinnedSource = LoadShaderSource("skinEffect.fx");
+
+        // Ambient term uses the same AmbientColor/MaterialAmbientColor/EnvironmentAmbientColor
+        // formula as LitForward.fx's ComputeBaseAmbientTerm, instead of ignoring the
+        // material's own ambient tint.
+        Assert.Contains("float3 MaterialAmbientColor", skinnedSource);
+        Assert.Contains(
+            "ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)",
+            skinnedSource);
+        Assert.Contains("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor)", skinnedSource);
+        Assert.Contains("ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor)", skinnedSource);
+
+        // Alpha test uses the same AlphaCutoff parameter/convention as LitForward.fx
+        // (disabled when <= 0), applied in the lit pixel shader shared by both skinned techniques.
+        Assert.Contains("float AlphaCutoff", skinnedSource);
+        Assert.Contains("if (AlphaCutoff > 0.0f)", skinnedSource);
+        Assert.Contains("clip(alpha - AlphaCutoff)", skinnedSource);
+        Assert.Contains("ApplySkinnedAlphaTest(texelColor.a)", skinnedSource);
+    }
+
     private static string LoadShaderSource(string shaderFileName)
     {
         string shaderPath = Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", shaderFileName);

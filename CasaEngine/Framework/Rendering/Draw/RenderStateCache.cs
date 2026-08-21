@@ -20,19 +20,38 @@ public sealed class RenderStateCache
     /// Returns <c>true</c> if any state actually changed.
     /// </summary>
     public bool Apply(GraphicsDevice device, in RenderItem item, RenderStats stats = null)
-        => Apply(device, item.Material, item.CompiledMaterial, stats);
+        => Apply(device, item.Material, item.CompiledMaterial, null, null, stats);
 
     public bool Apply(GraphicsDevice device, MaterialBase material, RenderStats stats = null)
-        => Apply(device, material, null, stats);
+        => Apply(device, material, null, null, null, stats);
 
-    private bool Apply(GraphicsDevice device, MaterialBase material, CompiledMaterial compiledMaterial, RenderStats stats)
+    /// <summary>
+    /// Applies the material's render states, optionally overriding the rasterizer and/or
+    /// sampler state (e.g. per-mesh double-sided / nearest-filtering flags) without mutating
+    /// the material itself. Pass <c>null</c> for an override to keep the material's own state.
+    /// </summary>
+    public bool Apply(
+        GraphicsDevice device,
+        MaterialBase material,
+        RasterizerState rasterizerOverride,
+        SamplerState samplerOverride,
+        RenderStats stats = null)
+        => Apply(device, material, null, rasterizerOverride, samplerOverride, stats);
+
+    private bool Apply(
+        GraphicsDevice device,
+        MaterialBase material,
+        CompiledMaterial compiledMaterial,
+        RasterizerState rasterizerOverride,
+        SamplerState samplerOverride,
+        RenderStats stats)
     {
         bool changed = false;
 
         var blend     = compiledMaterial?.BlendState        ?? material.BlendState        ?? BlendState.Opaque;
         var depth     = compiledMaterial?.DepthStencilState ?? material.DepthStencilState ?? DepthStencilState.Default;
-        var raster    = compiledMaterial?.RasterizerState   ?? material.RasterizerState   ?? RasterizerState.CullCounterClockwise;
-        var sampler   = compiledMaterial?.SamplerState      ?? material.SamplerState      ?? SamplerState.AnisotropicClamp;
+        var raster    = rasterizerOverride ?? compiledMaterial?.RasterizerState ?? material.RasterizerState ?? RasterizerState.CullCounterClockwise;
+        var sampler   = samplerOverride    ?? compiledMaterial?.SamplerState    ?? material.SamplerState    ?? SamplerState.AnisotropicClamp;
 
         if (!ReferenceEquals(blend, _currentBlend))
         {

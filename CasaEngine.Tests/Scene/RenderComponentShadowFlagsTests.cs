@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -44,6 +45,28 @@ public class RenderComponentShadowFlagsTests
 
         Assert.False(component.CastShadows);
         Assert.False(component.ReceiveShadows);
+    }
+
+    [Fact]
+    public void SkinnedMeshComponent_MaterialOverride_DefaultsToNull()
+    {
+        var component = new SkinnedMeshComponent();
+
+        Assert.Null(component.Material);
+    }
+
+    [Fact]
+    public void SkinnedMeshComponent_Clone_CopiesMaterialOverrideReference()
+    {
+        var material = new LitDiffuseMaterial { DiffuseColor = Microsoft.Xna.Framework.Color.Red };
+        var component = new SkinnedMeshComponent
+        {
+            Material = material,
+        };
+
+        var clone = component.Clone();
+
+        Assert.Same(material, clone.Material);
     }
 
     private static JObject CreateSceneComponentNode()

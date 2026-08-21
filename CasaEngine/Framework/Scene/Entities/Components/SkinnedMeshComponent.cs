@@ -3,6 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
@@ -60,6 +61,13 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         set => _skinningModeSelection = value;
     }
 
+    /// <summary>
+    /// Optional per-component material override. When null, the renderer draws this
+    /// component's meshes with its own default skinned material.
+    /// Not serialized; set at runtime/authoring time (e.g. from a sample or tool).
+    /// </summary>
+    public LitDiffuseMaterial Material { get; set; }
+
     public SkeletonDefinition SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
 
     public SkeletonPoseModel CurrentModelPose => _animationRuntime?.ModelPose;
@@ -87,6 +95,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     {
         _rootMotionMode = other._rootMotionMode;
         _skinningModeSelection = other._skinningModeSelection;
+        Material = other.Material;
 
         for (var constraintIndex = 0; constraintIndex < other._twoBoneIkConstraints.Count; constraintIndex++)
         {
@@ -153,7 +162,8 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
             poseProvider,
             SkinningModeSelection,
             CastShadows,
-            ReceiveShadows);
+            ReceiveShadows,
+            Material);
     }
 
     public override BoundingBox GetBoundingBox()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
@@ -18,7 +19,7 @@ public class SkinnedMeshDemo : Demo
     private int _nextAnimationIndex = 1;
 
     public override string Title => "Skinned mesh demo";
-    public override string Description => "Displays animated skinned meshes with forward shadows. Left column shows a skinned caster shadowing a receiver, center keeps the caster but disables ReceiveShadows on the receiver, and right disables CastShadows on the caster.";
+    public override string Description => "Displays animated skinned meshes with forward shadows. Left column shows a skinned caster shadowing a receiver, center keeps the caster but disables ReceiveShadows on the receiver, and right disables CastShadows on the caster. The left caster also uses a per-component Material override (tinted orange) to exercise SkinnedMeshComponent.Material instead of the renderer's default material.";
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
@@ -88,7 +89,17 @@ public class SkinnedMeshDemo : Demo
         var skinnedMesh = game.AssetContentManager.LoadFromFile<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
 
-        CreateShadowValidationColumn(world, skinnedMesh, "ReceiveShadow", -9.0f, casterCastShadows: true, receiverReceiveShadows: true);
+        // Exercises the per-component material override path (SkinnedMeshComponent.Material):
+        // a tinted material replaces the renderer's default skinned material for this one caster.
+        var tintedCasterMaterial = new LitDiffuseMaterial
+        {
+            DiffuseColor = new Color(255, 150, 60),
+            AmbientColor = Vector3.One,
+            SpecularColor = new Vector3(0.3f, 0.3f, 0.3f),
+            SpecularPower = 16.0f,
+        };
+
+        CreateShadowValidationColumn(world, skinnedMesh, "ReceiveShadow", -9.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial);
         CreateShadowValidationColumn(world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
         CreateShadowValidationColumn(world, skinnedMesh, "NoCastShadow", 9.0f, casterCastShadows: false, receiverReceiveShadows: true);
     }
@@ -145,7 +156,8 @@ public class SkinnedMeshDemo : Demo
         string columnName,
         float centerX,
         bool casterCastShadows,
-        bool receiverReceiveShadows)
+        bool receiverReceiveShadows,
+        LitDiffuseMaterial casterMaterialOverride = null)
     {
         CreateSkinnedMeshEntity(
             world,
@@ -155,7 +167,8 @@ public class SkinnedMeshDemo : Demo
             SkinningModeSelection.LinearBlend,
             castShadows: casterCastShadows,
             receiveShadows: true,
-            uniformScale: 0.11f);
+            uniformScale: 0.11f,
+            materialOverride: casterMaterialOverride);
 
         CreateSkinnedMeshEntity(
             world,
@@ -176,7 +189,8 @@ public class SkinnedMeshDemo : Demo
         SkinningModeSelection skinningModeSelection,
         bool castShadows,
         bool receiveShadows,
-        float uniformScale = 0.1f)
+        float uniformScale = 0.1f,
+        LitDiffuseMaterial materialOverride = null)
     {
         var entity = new Entity { Name = entityName };
         var skinnedMeshComponent = new SkinnedMeshComponent
@@ -185,6 +199,7 @@ public class SkinnedMeshDemo : Demo
             SkinningModeSelection = skinningModeSelection,
             CastShadows = castShadows,
             ReceiveShadows = receiveShadows,
+            Material = materialOverride,
         };
 
         entity.RootComponent = skinnedMeshComponent;
