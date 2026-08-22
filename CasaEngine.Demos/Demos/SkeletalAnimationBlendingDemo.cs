@@ -217,15 +217,48 @@ public class SkeletalAnimationBlendingDemo : Demo
             new FootLockSettings(),
             FootLockFoot.FromAnkleName(skeleton, "mixamorig:LeftFoot"),
             FootLockFoot.FromAnkleName(skeleton, "mixamorig:RightFoot"));
+
+        // The component drives the controller from inside the runtime's pose post-processing, on
+        // the pure animated pose (CurrentModelPose read after Update would be the IK-solved one),
+        // and solves the resulting constraints in the same frame. Off until the checkbox enables it.
+        _skinnedMeshComponent!.AttachFootLock(_footLockController, FillFootContacts);
+        _skinnedMeshComponent.FootLockApplyConstraints = _footLockEnabled;
+    }
+
+    /// <summary>
+    /// Contact heuristic for the Mixamo walk: a foot is planted while its (animated) ankle is within
+    /// <see cref="FootContactHeightThreshold"/> of the ground. Called by the component while
+    /// <see cref="SkinnedMeshComponent.CurrentModelPose"/> still holds this frame's animated pose.
+    /// </summary>
+    private void FillFootContacts(Span<bool> contacts)
+    {
+        var pose = _skinnedMeshComponent?.CurrentModelPose;
+        if (pose == null || _footLockController == null)
+        {
+            return;
+        }
+
+        var entityWorld = _skinnedMeshComponent!.WorldMatrixWithScale;
+        for (var footIndex = 0; footIndex < _footLockController.FeetCount; footIndex++)
+        {
+            var ankleWorldY = Vector3.Transform(
+                pose.GetTransform(_footLockController.Feet[footIndex].EndJointIndex).Translation,
+                entityWorld).Y;
+            contacts[footIndex] = ankleWorldY <= FootContactHeightThreshold;
+        }
     }
 
     private void SetFootLockEnabled(bool enabled)
     {
         _footLockEnabled = enabled;
+        if (_skinnedMeshComponent != null)
+        {
+            _skinnedMeshComponent.FootLockApplyConstraints = enabled;
+        }
+
         if (!enabled)
         {
             _footLockDistanceTraveled = 0f;
-            _skinnedMeshComponent?.ClearTwoBoneIkConstraints();
             if (_skinnedMeshComponent != null)
             {
                 _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, 0f);
@@ -233,9 +266,10 @@ public class SkeletalAnimationBlendingDemo : Demo
         }
     }
 
+    /// <summary>Treadmill: moves the character forward at a constant speed and wraps it back, carrying the foot-lock pins along with the teleport.</summary>
     private void UpdateFootLock(float dt)
     {
-        if (_footLockController == null || _skinnedMeshComponent?.CurrentModelPose == null)
+        if (_footLockController == null || _skinnedMeshComponent == null)
         {
             return;
         }
@@ -244,23 +278,10 @@ public class SkeletalAnimationBlendingDemo : Demo
         if (_footLockDistanceTraveled > FootLockWrapDistance)
         {
             _footLockDistanceTraveled -= FootLockWrapDistance;
+            _footLockController.TranslateLockedPositions(new Vector3(0f, 0f, -FootLockWrapDistance));
         }
 
         _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, _footLockDistanceTraveled);
-
-        var pose = _skinnedMeshComponent.CurrentModelPose;
-        var entityWorld = _skinnedMeshComponent.WorldMatrixWithScale;
-        Span<bool> contacts = stackalloc bool[2];
-        for (var footIndex = 0; footIndex < _footLockController.FeetCount; footIndex++)
-        {
-            var ankleWorldY = Vector3.Transform(
-                pose.GetTransform(_footLockController.Feet[footIndex].EndJointIndex).Translation,
-                entityWorld).Y;
-            contacts[footIndex] = ankleWorldY <= FootContactHeightThreshold;
-        }
-
-        _footLockController.Update(dt, pose, entityWorld, contacts);
-        _skinnedMeshComponent.ApplyFootLock(_footLockController);
     }
 
     private void BuildBlendGraph()

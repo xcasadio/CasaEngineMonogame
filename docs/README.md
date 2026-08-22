@@ -9,6 +9,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 - [animation-blend-demo.md](engine/animation-blend-demo.md) — démo de blend d'animations squelettiques.
 - [animation-ik-demo.md](engine/animation-ik-demo.md) — démo d'IK.
+- [animation-foot-lock.md](engine/animation-foot-lock.md) — foot-lock (épinglage des pieds via IK deux-os) : usage `AttachFootLock`, réglages, limites.
 - [animation-motion-matching.md](engine/animation-motion-matching.md) — périmètre du motion matching dans CasaEngine.
 - [animation-deformer-support-policy.md](engine/animation-deformer-support-policy.md) — politique de support des déformeurs.
 

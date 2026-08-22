@@ -23,6 +23,12 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     private readonly List<BoneRotationConstraint> _boneRotationConstraints = new();
     private RootMotionMode _rootMotionMode = RootMotionMode.Observe;
     private SkinningModeSelection _skinningModeSelection = SkinningModeSelection.RiggedModelDefault;
+    private FootLockController _footLockController;
+    private FootLockContactsProvider _footLockContactsProvider;
+    private bool[] _footLockContacts = Array.Empty<bool>();
+    private int _footLockFirstConstraintIndex;
+    private float _footLockPendingDeltaSeconds;
+    private bool _footLockApplyConstraints = true;
 
     public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
     public SkinnedMesh SkinnedMesh
@@ -79,6 +85,20 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     public IReadOnlyList<MorphClip> MorphClips => _animationRuntime?.MorphClips ?? SkinnedMesh?.RiggedModel?.MorphClips ?? Array.Empty<MorphClip>();
 
     public IReadOnlyList<TwoBoneIkConstraint> TwoBoneIkConstraints => _twoBoneIkConstraints;
+
+    /// <summary>The controller attached with <see cref="AttachFootLock"/>, or null.</summary>
+    public FootLockController FootLockController => _footLockController;
+
+    /// <summary>
+    /// When true (default), the attached foot lock's two-bone IK constraints are solved every
+    /// frame. When false, the controller keeps tracking contacts/slide (its state and metrics stay
+    /// live, e.g. for an A/B readout) but no constraint is pushed and the slots it owns are cleared.
+    /// </summary>
+    public bool FootLockApplyConstraints
+    {
+        get => _footLockApplyConstraints;
+        set => _footLockApplyConstraints = value;
+    }
 
     public IReadOnlyList<LookAtConstraint> LookAtConstraints => _lookAtConstraints;
 
@@ -160,6 +180,10 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     public override void Update(float elapsedTime)
     {
         EnsureAnimationRuntime();
+        // Consumed (and zeroed) by the foot-lock update inside the pose post-processing of this
+        // runtime update; any extra pose refresh in the same frame (PlayAnimation, SeekAnimation...)
+        // therefore advances the lock blends by 0 s.
+        _footLockPendingDeltaSeconds = elapsedTime;
         _animationRuntime?.Update(elapsedTime);
 
         base.Update(elapsedTime);
@@ -376,6 +400,8 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     /// pushes the resulting per-foot two-bone IK constraints, starting at
     /// <paramref name="firstConstraintIndex"/>. Call <see cref="FootLockController.Update"/> first
     /// (see its call-order contract) with this frame's animated pose before calling this method.
+    /// Prefer <see cref="AttachFootLock"/>, which honours that contract automatically: after
+    /// <see cref="Update"/>, <see cref="CurrentModelPose"/> already holds the post-IK pose.
     /// </summary>
     public void ApplyFootLock(FootLockController controller, int firstConstraintIndex = 0)
     {
@@ -392,6 +418,97 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         for (var footIndex = 0; footIndex < constraints.Length; footIndex++)
         {
             SetTwoBoneIkConstraint(firstConstraintIndex + footIndex, constraints[footIndex]);
+        }
+    }
+
+    /// <summary>
+    /// Attaches a <see cref="Animations.FootLockController"/> driven by this component. From then
+    /// on, every time the animation runtime refreshes its pose, the component honours the
+    /// controller's call-order contract itself: inside the runtime's pose post-processing — when
+    /// <see cref="CurrentModelPose"/> still holds the pure animated pose, before any constraint is
+    /// solved — it asks <paramref name="contactsProvider"/> for this frame's contact flags, calls
+    /// <see cref="FootLockController.Update"/> with that pose, this component's
+    /// <see cref="SceneComponent.WorldMatrixWithScale"/> and the elapsed time given to
+    /// <see cref="Update"/>, then writes the resulting constraints to the slots starting at
+    /// <paramref name="firstConstraintIndex"/> so they are solved in the same frame.
+    /// <para/>
+    /// This is the recommended way to run a foot lock on a component: reading
+    /// <see cref="CurrentModelPose"/> after <see cref="Update"/> yields the post-IK pose, and
+    /// feeding that back into <see cref="FootLockController.Update"/> makes the lock chase its own
+    /// output (slide measured at ~0, vertical target frozen at the pinned height).
+    /// </summary>
+    public void AttachFootLock(FootLockController controller, FootLockContactsProvider contactsProvider, int firstConstraintIndex = 0)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+        ArgumentNullException.ThrowIfNull(contactsProvider);
+
+        if (firstConstraintIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstConstraintIndex));
+        }
+
+        DetachFootLock();
+
+        _footLockController = controller;
+        _footLockContactsProvider = contactsProvider;
+        _footLockFirstConstraintIndex = firstConstraintIndex;
+        if (_footLockContacts.Length != controller.FeetCount)
+        {
+            _footLockContacts = new bool[controller.FeetCount];
+        }
+    }
+
+    /// <summary>Detaches the foot lock attached with <see cref="AttachFootLock"/> and clears the constraint slots it owned. No-op when none is attached.</summary>
+    public void DetachFootLock()
+    {
+        if (_footLockController == null)
+        {
+            return;
+        }
+
+        ClearFootLockConstraints();
+        _footLockController = null;
+        _footLockContactsProvider = null;
+    }
+
+    private void UpdateAttachedFootLock(SkeletonPoseModel animatedModelPose)
+    {
+        var controller = _footLockController;
+        if (controller == null)
+        {
+            return;
+        }
+
+        var deltaSeconds = _footLockPendingDeltaSeconds;
+        _footLockPendingDeltaSeconds = 0f;
+
+        Array.Clear(_footLockContacts);
+        _footLockContactsProvider(_footLockContacts);
+
+        var entityWorld = WorldMatrixWithScale;
+        controller.Update(deltaSeconds, animatedModelPose, entityWorld, _footLockContacts);
+
+        if (!_footLockApplyConstraints)
+        {
+            ClearFootLockConstraints();
+            return;
+        }
+
+        Span<TwoBoneIkConstraint> constraints = stackalloc TwoBoneIkConstraint[controller.FeetCount];
+        controller.FillConstraints(entityWorld, constraints);
+
+        for (var footIndex = 0; footIndex < constraints.Length; footIndex++)
+        {
+            SetTwoBoneIkConstraint(_footLockFirstConstraintIndex + footIndex, constraints[footIndex]);
+        }
+    }
+
+    private void ClearFootLockConstraints()
+    {
+        var feetCount = _footLockController?.FeetCount ?? 0;
+        for (var footIndex = 0; footIndex < feetCount; footIndex++)
+        {
+            ClearTwoBoneIkConstraint(_footLockFirstConstraintIndex + footIndex);
         }
     }
 
@@ -524,6 +641,10 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 
     private void OnAnimationRuntimePosePostProcessing(SkeletonPoseLocal localPose, SkeletonPoseModel modelPose)
     {
+        // modelPose is the pure animated pose here (constraints have not run yet): exactly what the
+        // foot lock must observe. Its constraints are written before the solve loop below.
+        UpdateAttachedFootLock(modelPose);
+
         for (var constraintIndex = 0; constraintIndex < _twoBoneIkConstraints.Count; constraintIndex++)
         {
             var constraint = _twoBoneIkConstraints[constraintIndex];

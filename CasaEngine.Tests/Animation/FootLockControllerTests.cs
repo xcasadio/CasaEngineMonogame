@@ -211,6 +211,287 @@ public class FootLockControllerTests
     }
 
     [Fact]
+    public void Update_WhenContactStartsWithAnkleAboveMaxLockHeight_KeepsContactPendingUntilAnkleComesDown()
+    {
+        // Bind ankle sits at Y = -LegSegmentLength: treat that as the resting (ground) height.
+        var settings = new FootLockSettings { GroundHeight = -LegSegmentLength, MaxLockHeight = 10f, BlendInSeconds = 0f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        const float dt = 1f / 60f;
+        var entityWorld = Matrix.Identity;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        // Ankle lifted 25 units above its resting height (> MaxLockHeight) while a contact is
+        // reported (the Run -> Stunned case: the target clip says "planted" but the blended pose
+        // still has the foot mid-swing): the lock must not engage in the air.
+        BobAnkleAlongY(localPose, 25f);
+        modelPose.UpdateFromLocalPose(localPose);
+        for (var frame = 0; frame < 5; frame++)
+        {
+            controller.Update(dt, modelPose, entityWorld, contacts);
+            var pending = controller.GetFootState(0);
+            Assert.False(pending.IsLocked);
+            Assert.Equal(0f, pending.Weight);
+        }
+
+        // The contact then drops out while still in the air: no falling edge, nothing to release.
+        contacts[0] = false;
+        controller.Update(dt, modelPose, entityWorld, contacts);
+        Assert.False(controller.GetFootState(0).IsLocked);
+
+        // Contact again, ankle back within MaxLockHeight of the ground: this is the rising edge,
+        // and the pin lands at the current animated position (not the mid-air one).
+        contacts[0] = true;
+        BobAnkleAlongY(localPose, -20f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(dt, modelPose, entityWorld, contacts);
+
+        var locked = controller.GetFootState(0);
+        Assert.True(locked.IsLocked);
+        Assert.Equal(1f, locked.Weight, 3);
+        AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, locked.LockedWorldPosition, 1e-3f);
+    }
+
+    [Fact]
+    public void Update_WhenAnkleLiftsAfterLockingWithMaxLockHeight_KeepsTheLock()
+    {
+        var settings = new FootLockSettings { GroundHeight = -LegSegmentLength, MaxLockHeight = 10f, BlendInSeconds = 0f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        const float dt = 1f / 60f;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        Assert.True(controller.GetFootState(0).IsLocked);
+
+        // The height check only gates the rising edge: a planted foot bobbing above MaxLockHeight
+        // stays locked (release is still driven by the falling edge / MaxLockDistance only).
+        BobAnkleAlongY(localPose, 25f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+
+        var state = controller.GetFootState(0);
+        Assert.True(state.IsLocked);
+        Assert.Equal(1f, state.Weight, 3);
+    }
+
+    [Fact]
+    public void Release_RePinsAtCurrentPositionWhenContactContinuesAndBlendsOutOtherwise()
+    {
+        var settings = new FootLockSettings { BlendInSeconds = 0f, BlendOutSeconds = 0.1f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        const float dt = 1f / 60f;
+        var entityWorld = Matrix.Identity;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(dt, modelPose, entityWorld, contacts);
+        var originalPin = controller.GetFootState(0).LockedWorldPosition;
+
+        // The animation drifts a little (a clip change lands the foot somewhere else), then the
+        // caller releases because the contact source changed.
+        SlideAnkleAlongZ(localPose, -8f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(dt, modelPose, entityWorld, contacts);
+        controller.Release();
+
+        // Contact still reported by the new source: the foot re-pins where it is now, with the
+        // weight carried over (no pop), instead of being dragged back to the old pin.
+        controller.Update(dt, modelPose, entityWorld, contacts);
+        var rePinned = controller.GetFootState(0);
+        Assert.True(rePinned.IsLocked);
+        Assert.Equal(1f, rePinned.Weight, 3);
+        AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, rePinned.LockedWorldPosition, 1e-3f);
+        Assert.True(Vector3.Distance(originalPin, rePinned.LockedWorldPosition) > 7f);
+
+        // Release again, this time with no contact from the new source: plain blend-out to unlocked.
+        controller.Release();
+        contacts[0] = false;
+        var previousWeight = 2f;
+        for (var frame = 0; frame < 12; frame++)
+        {
+            controller.Update(dt, modelPose, entityWorld, contacts);
+            var weight = controller.GetFootState(0).Weight;
+            Assert.True(weight <= previousWeight + 1e-6f);
+            previousWeight = weight;
+        }
+
+        Assert.False(controller.GetFootState(0).IsLocked);
+        Assert.Equal(0f, controller.GetFootState(0).Weight);
+    }
+
+    [Fact]
+    public void Reset_ClearsLockAndContactHistoryImmediately()
+    {
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, new FootLockSettings { BlendInSeconds = 0f }, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+        Assert.True(controller.GetFootState(0).IsLocked);
+
+        controller.Reset();
+
+        var cleared = controller.GetFootState(0);
+        Assert.False(cleared.IsLocked);
+        Assert.Equal(0f, cleared.Weight);
+        Assert.Equal(0f, cleared.SlideDistance);
+
+        // Contact history is gone too: the very next contact frame is a rising edge again.
+        SlideAnkleAlongZ(localPose, -5f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+        var relocked = controller.GetFootState(0);
+        Assert.True(relocked.IsLocked);
+        AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, relocked.LockedWorldPosition, 1e-3f);
+    }
+
+    [Fact]
+    public void Update_AfterDriftRelease_RePinsOnceTheFootComesToRestWhileContactStaysTrue()
+    {
+        var settings = new FootLockSettings { MaxLockDistance = 10f, BlendInSeconds = 0.05f, BlendOutSeconds = 0.05f, RelockMaxSpeed = 30f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        const float dt = 1f / 60f;
+        var entityWorld = Matrix.Identity;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(dt, modelPose, entityWorld, contacts);
+        var firstPin = controller.GetFootState(0).LockedWorldPosition;
+
+        // A transition drags the planted foot away at 300 units/s (5 per frame) while the clip keeps
+        // reporting contact: the lock releases and, the foot still moving, must not re-pin.
+        var sawUnlocked = false;
+        for (var frame = 1; frame <= 12; frame++)
+        {
+            SlideAnkleAlongZ(localPose, -5f * frame);
+            modelPose.UpdateFromLocalPose(localPose);
+            controller.Update(dt, modelPose, entityWorld, contacts);
+            sawUnlocked |= !controller.GetFootState(0).IsLocked;
+        }
+
+        Assert.True(sawUnlocked);
+        Assert.False(controller.GetFootState(0).IsLocked);
+
+        // The foot then comes to rest (60 units away): the still-true contact re-pins it there.
+        for (var frame = 0; frame < 10; frame++)
+        {
+            controller.Update(dt, modelPose, entityWorld, contacts);
+        }
+
+        var state = controller.GetFootState(0);
+        Assert.True(state.IsLocked);
+        Assert.Equal(1f, state.Weight, 3);
+        AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, state.LockedWorldPosition, 1e-3f);
+        Assert.True(Vector3.Distance(firstPin, state.LockedWorldPosition) > 50f);
+    }
+
+    [Fact]
+    public void Update_AfterDriftRelease_WithoutRelockSpeed_StaysFreeUntilTheNextRisingEdge()
+    {
+        var settings = new FootLockSettings { MaxLockDistance = 10f, BlendInSeconds = 0f, BlendOutSeconds = 0f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        const float dt = 1f / 60f;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        SlideAnkleAlongZ(localPose, -25f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        Assert.False(controller.GetFootState(0).IsLocked);
+
+        // Foot at rest, contact still true: no re-pin without RelockMaxSpeed...
+        for (var frame = 0; frame < 10; frame++)
+        {
+            controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        }
+
+        Assert.False(controller.GetFootState(0).IsLocked);
+
+        // ...until a real rising edge.
+        contacts[0] = false;
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        contacts[0] = true;
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        Assert.True(controller.GetFootState(0).IsLocked);
+    }
+
+    [Fact]
+    public void TranslateLockedPositions_MovesThePinWithATeleportedEntity()
+    {
+        var settings = new FootLockSettings { BlendInSeconds = 0f, MaxLockDistance = 10f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        const float dt = 1f / 60f;
+        Span<bool> contacts = stackalloc bool[1] { true };
+
+        controller.Update(dt, modelPose, Matrix.Identity, contacts);
+        var pinBefore = controller.GetFootState(0).LockedWorldPosition;
+
+        // Teleport the entity 6 units along -Z (a treadmill wrap) and shift the pins along.
+        var teleport = new Vector3(0f, 0f, -600f);
+        controller.TranslateLockedPositions(teleport);
+        controller.Update(dt, modelPose, Matrix.CreateTranslation(teleport), contacts);
+
+        var state = controller.GetFootState(0);
+        Assert.True(state.IsLocked);
+        Assert.Equal(1f, state.Weight, 3);
+        AssertVectorNear(pinBefore + teleport, state.LockedWorldPosition, 1e-3f);
+        Assert.InRange(state.SlideDistance, 0f, 1e-3f);
+
+        // The constraint expressed in the entity's model space is unchanged by the teleport.
+        var constraint = controller.GetConstraint(0, Matrix.CreateTranslation(teleport));
+        AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, constraint.TargetPosition, 1e-3f);
+    }
+
+    [Fact]
+    public void Validate_RejectsNonPositiveOrNaNMaxLockHeightAndNaNGroundHeight()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FootLockSettings { RelockMaxSpeed = -1f }.Validate());
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FootLockSettings { MaxLockHeight = 0f }.Validate());
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FootLockSettings { MaxLockHeight = -1f }.Validate());
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FootLockSettings { MaxLockHeight = float.NaN }.Validate());
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FootLockSettings { GroundHeight = float.NaN }.Validate());
+        new FootLockSettings { MaxLockHeight = float.PositiveInfinity, GroundHeight = -12f }.Validate();
+        new FootLockSettings { MaxLockHeight = 15f }.Validate();
+    }
+
+    [Fact]
     public void FromAnkle_ResolvesChainAndThrowsWithoutTwoAncestors()
     {
         var skeleton = CreateLegSkeleton();

@@ -9,7 +9,11 @@ namespace CasaEngine.Framework.Animations;
 /// locomotion clips (e.g. PSX-era mocap) played on a moving entity, where the stance foot would
 /// otherwise slide.
 /// <para/>
-/// Call order contract, once per frame, for each <see cref="SkinnedMeshComponent"/> this
+/// The simplest way to honour the contract below is
+/// <c>SkinnedMeshComponent.AttachFootLock(controller, contactsProvider)</c>: the component then
+/// updates this controller from inside the runtime's pose post-processing (pure animated pose,
+/// before any constraint runs) and solves its constraints in the same frame. Manual call order
+/// contract otherwise, once per frame, for each <see cref="SkinnedMeshComponent"/> this
 /// controller drives:
 /// <list type="number">
 /// <item><description>
@@ -33,6 +37,9 @@ public sealed class FootLockController
         public bool PreviousContact;
         public bool IsLocked;
         public bool Unlocking;
+        // Released for drift while the contact stayed true: re-pin once the animated ankle has
+        // come to rest in world space (see FootLockSettings.RelockMaxSpeed).
+        public bool AwaitingRest;
         public float Weight;
         public Vector3 LockedWorldPosition;
         public Vector3 AnimatedWorldPosition;
@@ -116,6 +123,7 @@ public sealed class FootLockController
             var kneeModelPosition = animatedModelPose.GetTransform(foot.MidJointIndex).Translation;
             var ankleModelPosition = animatedModelPose.GetTransform(foot.EndJointIndex).Translation;
             var animatedWorldPosition = Vector3.Transform(ankleModelPosition, entityWorld);
+            var previousAnimatedWorldPosition = state.AnimatedWorldPosition;
 
             state.AnimatedHipModelPosition = hipModelPosition;
             state.AnimatedKneeModelPosition = kneeModelPosition;
@@ -123,8 +131,33 @@ public sealed class FootLockController
             state.AnimatedWorldPosition = animatedWorldPosition;
 
             var contact = contacts[footIndex];
-            var risingEdge = contact && !state.PreviousContact;
             var fallingEdge = !contact && state.PreviousContact;
+
+            // A contact starts the lock on its rising edge, or - after a drift release that left the
+            // contact flag true (a transition dragging the planted foot to the target clip's
+            // stance) - once the animated ankle has come to rest in world space again.
+            var risingEdge = contact && !state.PreviousContact;
+            if (state.AwaitingRest)
+            {
+                if (!contact)
+                {
+                    state.AwaitingRest = false;
+                }
+                else if (dt > 0f && Vector3.Distance(animatedWorldPosition, previousAnimatedWorldPosition) <= _settings.RelockMaxSpeed * dt)
+                {
+                    risingEdge = true;
+                }
+            }
+
+            if (risingEdge && ankleModelPosition.Y > _settings.GroundHeight + _settings.MaxLockHeight)
+            {
+                // Contact reported while the animated ankle is still in the air (e.g. a target clip's
+                // first-frame contact read while the blended pose still follows the source clip's
+                // swing): pinning here would freeze the foot mid-air, so keep the contact pending.
+                // PreviousContact stays false, which makes the next near-ground frame the rising edge.
+                risingEdge = false;
+                contact = state.AwaitingRest;
+            }
 
             if (risingEdge)
             {
@@ -132,6 +165,7 @@ public sealed class FootLockController
                 // quick off/on contact toggle that happened mid blend-out.
                 state.IsLocked = true;
                 state.Unlocking = false;
+                state.AwaitingRest = false;
                 state.LockedWorldPosition = animatedWorldPosition;
             }
 
@@ -156,6 +190,7 @@ public sealed class FootLockController
                         state.IsLocked = false;
                         state.Unlocking = false;
                         state.SlideDistance = 0f;
+                        state.AwaitingRest = contact && _settings.RelockMaxSpeed > 0f;
                     }
                 }
                 else
@@ -172,6 +207,50 @@ public sealed class FootLockController
             }
 
             state.PreviousContact = contact;
+        }
+    }
+
+    /// <summary>
+    /// Forgets every foot's contact history and starts blending out any active lock, without a
+    /// weight discontinuity. Call it when the contact flags fed to <see cref="Update"/> change
+    /// source (clip change, transition start): the next <see cref="Update"/> re-evaluates them from
+    /// scratch, so a foot still reported in contact (and near the ground, see
+    /// <see cref="FootLockSettings.MaxLockHeight"/>) re-pins at its current animated position
+    /// instead of being dragged toward the pin inherited from the previous clip.
+    /// </summary>
+    public void Release()
+    {
+        for (var footIndex = 0; footIndex < _states.Length; footIndex++)
+        {
+            ref var state = ref _states[footIndex];
+            state.PreviousContact = false;
+            state.AwaitingRest = false;
+            if (state.IsLocked)
+            {
+                state.Unlocking = true;
+            }
+        }
+    }
+
+    /// <summary>Clears every foot's state immediately (no blend-out): nothing is locked and no contact history remains.</summary>
+    public void Reset()
+    {
+        Array.Clear(_states);
+    }
+
+    /// <summary>
+    /// Moves every foot's locked (and last sampled) world position by <paramref name="worldDelta"/>.
+    /// Call it when the entity is teleported rather than moved (wrap-around of a treadmill preview,
+    /// respawn, streaming origin shift...) so the pins travel with it instead of staying behind and
+    /// releasing through <see cref="FootLockSettings.MaxLockDistance"/>.
+    /// </summary>
+    public void TranslateLockedPositions(Vector3 worldDelta)
+    {
+        for (var footIndex = 0; footIndex < _states.Length; footIndex++)
+        {
+            ref var state = ref _states[footIndex];
+            state.LockedWorldPosition += worldDelta;
+            state.AnimatedWorldPosition += worldDelta;
         }
     }
 
