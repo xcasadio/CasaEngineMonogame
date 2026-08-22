@@ -185,12 +185,39 @@ est intégralement verte (161 tests), Bullet restant dans le dépôt (non utilis
 - `SleepThreshold` → `BodyActivityDescription(sleepThreshold)` des dynamiques.
 - Nouveau test : monde `Planar2d`, 5 boîtes dynamiques empilées sous gravité, 300 pas de 1/60 :
   `|Z| < 1e-3` pour chaque corps, et la pile reste debout (Y croissants).
+- **Reports de la vérification de la tranche 1** (verdict du 2026-08-23, dispositions `DEFER` vers
+  cette tranche) :
+  - Inertie des **compounds dynamiques** : `BepuPhysicsEngine.cs` attribue toute la masse à la
+    forme de la première fixture (`inertiaShape = fixtures[0].Shape`, `BepuShapeCache.ComputeInertia`)
+    au lieu de `CompoundBuilder` comme l'imposait le point 4 de la tranche 1. Corriger : inertie
+    composite (enfants + offsets) sans recentrer la pose du corps (la pose reste celle de l'entité ;
+    si `CompoundBuilder` recentre, compenser l'offset du centre de masse ou calculer le tenseur
+    manuellement). Test : un corps dynamique de deux boîtes décalées a un tenseur ≠ celui d'une
+    seule boîte, et ne tourne pas comme une boîte unique sous une impulsion excentrée.
+  - `AngularFactor` : `BepuPhysicsEngine.cs:211-224` n'annule que la diagonale de
+    `InverseInertiaTensor` ; annuler aussi les termes hors diagonale des axes verrouillés (`XY`,
+    `XZ`, `YZ`), devenu nécessaire avec l'inertie composite ci-dessus.
+  - Sommeil : tout corps est créé avec `BodyActivityDescription(-1)` en tranche 1 ; avec
+    `SleepThreshold` réel sur les dynamiques, **les cinématiques (ghosts) doivent rester à `-1`**.
+    Test : un dynamique endormi posé sur un static est réveillé par `RefreshBodyAabb` de ce static
+    après déplacement (`Statics.ApplyDescription`), et retombe ; et un dynamique immobile finit
+    endormi (`Bodies[handle].Awake == false`) après N pas.
+  - Note (pas de changement) : `BepuContactBuffer` est une liste unique, pas par `workerIndex` —
+    correct tant que `Simulation.Create` n'a pas de `IThreadDispatcher` ; à revoir si
+    `PhysicsEngineFlags.MultiThreaded` est branché un jour (hors migration).
 - Doc : paragraphe « Backend Bepu (2026-08) » dans `collision-2d-3d-architecture.md` §1 : ce qui
   change (échelle cuite, capteur par callback, tags de compound en contact, `LinearFactor` par
   intégrateur) ; mettre à jour les mentions Bullet des lignes 217, 246, 343, 418.
 
-**Acceptation** : suite `CasaEngine.Tests` (complète) au niveau de HEAD (les 18 échecs préexistants
-hors physique, s'ils existent encore, sont documentés, pas introduits) ; `rg additional_damping Projects` → 0.
+**Budget et condition d'arrêt** : mêmes règles que la tranche 1 (cinq passes de réglage après le
+premier build vert ; tout test qui exigerait un fichier hors périmètre arrête la tranche et est
+reporté ; jamais de `Skip`, jamais d'assertion supprimée). Ne pas toucher `IPhysicsWorld`,
+`PhysicsBody`, `PhysicsQueryShape`, `TileMapComponent`, ni retirer Bullet.
+
+**Acceptation** : suite `CasaEngine.Tests.Physics` verte (163 tests existants + les nouveaux) ; suite
+`CasaEngine.Tests` complète au niveau de HEAD `e18b2282` (les échecs préexistants hors physique,
+s'il y en a, sont listés, pas introduits) ; `rg "additional_damping|rolling_friction|local_inertia|sleeping_threshold" Projects CasaEngine CasaEngine.EditorServices` → 0 ;
+build de `CasaEngine`, `CasaEngine.Editor.MonoGame.sln`, `CasaEngine.Demos`, `CasaEngine.Tests` vert.
 
 ## Tranche 3 — Debug draw Bepu et tuiles trigger en static capteur ⏳
 
@@ -236,7 +263,7 @@ build complet ; suite complète `CasaEngine.Tests` au niveau de HEAD.
 
 | Tranche | Statut | Commit(s) | Vérification |
 | --- | --- | --- | --- |
-| 1 — Backend Bepu | ✅ | 9f39c582 (socle+corps+formes+requêtes+contacts, écrit et validé comme un tout — voir note ci-dessous) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 161/161 dès la première tentative ; `dotnet build` sur CasaEngine/CasaEngine.Editor/CasaEngine.Demos/CasaEngine.Tests → vert ; `rg "BulletSharp\|BulletPhysicsEngine" CasaEngine --glob "*.cs"` → uniquement `BulletPhysicsEngine.cs` |
+| 1 — Backend Bepu | ✅ | 9f39c582 (socle+corps+formes+requêtes+contacts, écrit et validé comme un tout — voir note ci-dessous), 9f9a0e3e (garde `IsDisposed` : corps disposé après le monde, régression relevée par le verifier, + `PhysicsWorldDisposalTests`) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 161/161 dès la première tentative, 163/163 après le correctif de disposal ; verifier indépendant 2026-08-23 : REFUTED sur le disposal tardif (corrigé), le reste CONFIRMED (tables de handles, pose/bounds, 0 B/frame mesuré, refcount des formes, règle capteur) ; `dotnet build` sur CasaEngine/CasaEngine.Editor/CasaEngine.Demos/CasaEngine.Tests → vert ; `rg "BulletSharp\|BulletPhysicsEngine" CasaEngine --glob "*.cs"` → uniquement `BulletPhysicsEngine.cs` |
 | 2 — PhysicsDefinition / CCD / test Planar2d | ⏳ | | |
 | 3 — Debug draw / tuiles trigger | ⏳ | | |
 | 4 — Retrait de Bullet | ⏳ | | |
