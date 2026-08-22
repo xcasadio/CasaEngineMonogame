@@ -50,7 +50,9 @@ measured at ~0, vertical target frozen at the pinned height). Attached, the comp
 - `BlendInSeconds` / `BlendOutSeconds`: weight ramps on contact rising/falling edges.
 - `MaxLockDistance` (entity world units): drift of the animated ankle from the pin beyond which the
   lock blends out.
-- `LockVertical`: `false` (default) pins X/Z only, Y follows the animation.
+- `LockVertical`: `false` (default) pins X/Z only, Y follows the animation. `FootLockFootState.SlideDistance`
+  (and the `MaxLockDistance` release) measure the drift on the enforced axes only, so a foot bobbing
+  vertically during a stance is neither slide nor a release. `IsReleasing` flags the blend-out.
 - `GroundHeight` / `MaxLockHeight` (model units, compared to the animated ankle's model-space Y): a
   contact rising edge only engages the lock while the ankle is within `MaxLockHeight` of
   `GroundHeight`; a contact reported higher (a target clip's first-frame contact read while the

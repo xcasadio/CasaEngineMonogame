@@ -132,22 +132,26 @@ public class FootLockControllerTests
         }
 
         Assert.True(controller.GetFootState(0).IsLocked);
+        Assert.False(controller.GetFootState(0).IsReleasing);
         Assert.Equal(1f, controller.GetFootState(0).Weight, 3);
 
         // Blend-out: falling edge, weight must fall monotonically to 0, then IsLocked becomes false.
+        // IsReleasing flags the whole blend-out (still locked, weight dropping) and nothing else.
         contacts[0] = false;
         previousWeight = 2f;
         var framesForBlendOut = (int)MathF.Ceiling(settings.BlendOutSeconds / dt) + 5;
         for (var frame = 0; frame < framesForBlendOut; frame++)
         {
             controller.Update(dt, modelPose, entityWorld, contacts);
-            var weight = controller.GetFootState(0).Weight;
-            Assert.True(weight <= previousWeight + 1e-6f);
-            previousWeight = weight;
+            var state = controller.GetFootState(0);
+            Assert.True(state.Weight <= previousWeight + 1e-6f);
+            Assert.Equal(state.IsLocked, state.IsReleasing);
+            previousWeight = state.Weight;
         }
 
         var finalState = controller.GetFootState(0);
         Assert.False(finalState.IsLocked);
+        Assert.False(finalState.IsReleasing);
         Assert.Equal(0f, finalState.Weight);
     }
 
@@ -254,6 +258,42 @@ public class FootLockControllerTests
         Assert.True(locked.IsLocked);
         Assert.Equal(1f, locked.Weight, 3);
         AssertVectorNear(modelPose.GetTransform(AnkleIndex).Translation, locked.LockedWorldPosition, 1e-3f);
+    }
+
+    [Fact]
+    public void Update_WhenLockVerticalIsOff_VerticalBobIsNeitherSlideNorARelease()
+    {
+        var settings = new FootLockSettings { MaxLockDistance = 5f, BlendInSeconds = 0f };
+        var skeleton = CreateLegSkeleton();
+        var foot = FootLockFoot.FromAnkle(skeleton, AnkleIndex);
+        var controller = new FootLockController(skeleton, settings, foot);
+
+        var localPose = skeleton.CreateLocalBindPose();
+        var modelPose = new SkeletonPoseModel(skeleton);
+        modelPose.UpdateFromLocalPose(localPose);
+        Span<bool> contacts = stackalloc bool[1] { true };
+        controller.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+
+        // The ankle rises 12 units (more than MaxLockDistance) without moving on the ground plane.
+        BobAnkleAlongY(localPose, 12f);
+        modelPose.UpdateFromLocalPose(localPose);
+        controller.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+
+        var state = controller.GetFootState(0);
+        Assert.True(state.IsLocked);
+        Assert.False(state.IsReleasing);
+        Assert.Equal(0f, state.SlideDistance, 3);
+
+        // With LockVertical on, the same bob is a real drift.
+        var vertical = new FootLockController(skeleton, settings with { LockVertical = true }, foot);
+        localPose = skeleton.CreateLocalBindPose();
+        modelPose.UpdateFromLocalPose(localPose);
+        vertical.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+        BobAnkleAlongY(localPose, 12f);
+        modelPose.UpdateFromLocalPose(localPose);
+        vertical.Update(1f / 60f, modelPose, Matrix.Identity, contacts);
+        Assert.Equal(12f, vertical.GetFootState(0).SlideDistance, 2);
+        Assert.True(vertical.GetFootState(0).IsReleasing);
     }
 
     [Fact]

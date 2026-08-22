@@ -89,7 +89,10 @@ public sealed class FootLockController
     {
         ValidateFootIndex(footIndex);
         ref var state = ref _states[footIndex];
-        return new FootLockFootState(state.IsLocked, state.Weight, state.LockedWorldPosition, state.AnimatedWorldPosition, state.SlideDistance);
+        return new FootLockFootState(state.IsLocked, state.Weight, state.LockedWorldPosition, state.AnimatedWorldPosition, state.SlideDistance)
+        {
+            IsReleasing = state.IsLocked && state.Unlocking,
+        };
     }
 
     /// <summary>
@@ -171,7 +174,16 @@ public sealed class FootLockController
 
             if (state.IsLocked)
             {
-                state.SlideDistance = Vector3.Distance(animatedWorldPosition, state.LockedWorldPosition);
+                // Measure the drift on the axes the lock actually enforces: with LockVertical off
+                // the foot's animated bob (PSX feet rise a few units during a stance) is neither
+                // slide nor a reason to release.
+                var drift = animatedWorldPosition - state.LockedWorldPosition;
+                if (!_settings.LockVertical)
+                {
+                    drift.Y = 0f;
+                }
+
+                state.SlideDistance = drift.Length();
 
                 if (fallingEdge || state.SlideDistance > _settings.MaxLockDistance)
                 {
