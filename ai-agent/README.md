@@ -35,6 +35,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 | [gameplay-mode-implementation-plan.md](tasks/gameplay-mode-implementation-plan.md) | GameplayMode | Tâches 6 et 15 ⚠️ (validations finales V1/V2 bloquées). |
 | [static-model-import-tasks.md](tasks/static-model-import-tasks.md) | Import de modèles 3D statiques | Task 6.2 : tester l'import via l'éditeur. |
 | [character-controller-tasks.md](tasks/character-controller-tasks.md) | Character Controller | V3.3 (locomotion avancée) ⚠️ bloquée. |
+| [bepu-physics-migration-tasks.md](tasks/bepu-physics-migration-tasks.md) | Migration physique BulletSharp → bepuphysics2 2.5.0-beta.29 (branche `bepu-physics`) | Les 4 tranches sont ✅. Reste : smoke visuel manuel de l'overlay debug physique (TileMapDemo/éditeur) 🧪, et merge de la branche. |
 
 ### Points d'attention
 
