@@ -70,6 +70,10 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
     internal BodyHandle? BodyHandleOrNull => _bodyHandle;
     internal StaticHandle? StaticHandleOrNull => _staticHandle;
 
+    /// <summary>Test hook: whether Bepu currently considers this body awake. Only meaningful for a
+    /// body inserted as a body (dynamic or kinematic); a static or a removed body reports awake.</summary>
+    internal bool IsAwake => !_bodyHandle.HasValue || _engine.Simulation.Bodies[_bodyHandle.Value].Awake;
+
     public BepuBodyBackend(
         BepuPhysicsEngine engine,
         BepuMobility mobility,

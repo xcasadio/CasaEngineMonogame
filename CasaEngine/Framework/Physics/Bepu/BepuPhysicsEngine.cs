@@ -33,6 +33,11 @@ public sealed class BepuPhysicsEngine
     private float _accumulator;
     private bool _disposed;
 
+    /// <summary>Continuity assigned to dynamic collidables; statics and kinematic ghosts stay
+    /// <see cref="ContinuousDetection.Passive"/> regardless (they are either immobile or teleported,
+    /// never swept). Driven by <see cref="PhysicsEngineFlags.ContinuousCollisionDetection"/>.</summary>
+    private readonly ContinuousDetection _dynamicContinuity;
+
     /// <summary>True once the simulation has been torn down: bodies disposed afterwards must not touch it.</summary>
     internal bool IsDisposed => _disposed;
 
@@ -64,6 +69,9 @@ public sealed class BepuPhysicsEngine
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;
         _collisionProfiles = configuration.CollisionProfiles;
+        _dynamicContinuity = configuration.Flags.HasFlag(PhysicsEngineFlags.ContinuousCollisionDetection)
+            ? ContinuousDetection.Continuous(1e-3f, 1e-3f)
+            : ContinuousDetection.Passive;
 
         CollidableData = new CollidableProperty<BepuCollidableData>();
         var narrowPhaseCallbacks = new BepuNarrowPhaseCallbacks
@@ -114,14 +122,14 @@ public sealed class BepuPhysicsEngine
     {
         var shapeIndex = _shapeCache.GetOrAdd(shape, localScale);
         var inertiaShape = physicsDefinition.Mass != 0f ? shape : null;
-        return CreateRigidBody(shapeIndex, isCompound: false, null, new[] { fixtureTag }, null, inertiaShape, localScale, ref worldMatrix, userObject, physicsDefinition, collisionProfileId);
+        return CreateRigidBody(shapeIndex, isCompound: false, null, new[] { fixtureTag }, null, inertiaShape, null, localScale, ref worldMatrix, userObject, physicsDefinition, collisionProfileId);
     }
 
     public PhysicsBody AddRigidBody(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId, bool useExternalViewManagement)
     {
         var built = BuildFixtureShape(fixtures, localScale);
-        var inertiaShape = physicsDefinition.Mass != 0f ? fixtures[0].Shape : null;
-        return CreateRigidBody(built.ShapeIndex, built.IsCompound, built.LocalTransforms, built.Tags, built.CompoundChildren, inertiaShape, localScale, ref worldMatrix, userObject, physicsDefinition, collisionProfileId);
+        var inertiaShape = built.IsCompound ? null : fixtures[0].Shape;
+        return CreateRigidBody(built.ShapeIndex, built.IsCompound, built.LocalTransforms, built.Tags, built.CompoundChildren, inertiaShape, built.CompoundShape, localScale, ref worldMatrix, userObject, physicsDefinition, collisionProfileId);
     }
 
     public void AddCollisionObject(PhysicsBody physicsBody)
@@ -181,7 +189,7 @@ public sealed class BepuPhysicsEngine
         return new PhysicsBody(backend, collisionProfile);
     }
 
-    private PhysicsBody CreateRigidBody(TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren, Shape3d inertiaShape, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId)
+    private PhysicsBody CreateRigidBody(TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren, Shape3d inertiaShape, Compound? compoundForInertia, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId)
     {
         var collisionProfile = _collisionProfiles.GetResolved(collisionProfileId);
         bool isDynamic = physicsDefinition.Mass != 0f;
@@ -204,27 +212,17 @@ public sealed class BepuPhysicsEngine
             linearFactor: physicsDefinition.LinearFactor,
             friction: physicsDefinition.Friction)
         {
-            Activity = new BodyActivityDescription(-1f)
+            Activity = new BodyActivityDescription(isDynamic ? physicsDefinition.SleepThreshold : -1f),
+            Continuity = isDynamic ? _dynamicContinuity : ContinuousDetection.Passive
         };
 
         if (isDynamic)
         {
-            var inertia = BepuShapeCache.ComputeInertia(inertiaShape, localScale, physicsDefinition.Mass);
+            var inertia = compoundForInertia.HasValue
+                ? ComputeCompoundInertia(compoundForInertia.Value, compoundChildren.Length, physicsDefinition.Mass)
+                : BepuShapeCache.ComputeInertia(inertiaShape, localScale, physicsDefinition.Mass);
 
-            if (physicsDefinition.AngularFactor.X == 0f)
-            {
-                inertia.InverseInertiaTensor.XX = 0f;
-            }
-
-            if (physicsDefinition.AngularFactor.Y == 0f)
-            {
-                inertia.InverseInertiaTensor.YY = 0f;
-            }
-
-            if (physicsDefinition.AngularFactor.Z == 0f)
-            {
-                inertia.InverseInertiaTensor.ZZ = 0f;
-            }
+            LockInverseInertiaAxes(ref inertia, physicsDefinition.AngularFactor);
 
             backend.Inertia = inertia;
         }
@@ -234,15 +232,66 @@ public sealed class BepuPhysicsEngine
         return physicsBody;
     }
 
+    /// <summary>
+    /// Composite inertia of a dynamic compound: each child contributes its own shape's inertia at an
+    /// equal share of the total mass (fixtures carry no per-child density), rotated and offset by its
+    /// local pose via <see cref="Compound.ComputeInertia(Span{float}, Shapes)"/>. That overload computes
+    /// the tensor about the compound's own origin — i.e. the body's pose — without recentering to the
+    /// combined center of mass, which is required here: the body pose must stay the entity transform.
+    /// </summary>
+    private BodyInertia ComputeCompoundInertia(Compound compound, int childCount, float totalMass)
+    {
+        var masses = new float[childCount];
+        float perChildMass = totalMass / childCount;
+        for (int i = 0; i < childCount; i++)
+        {
+            masses[i] = perChildMass;
+        }
+
+        return compound.ComputeInertia(masses, Simulation.Shapes);
+    }
+
+    /// <summary>
+    /// AngularFactor: zeroes the row/column of <see cref="BodyInertia.InverseInertiaTensor"/> for every
+    /// locked axis, not only its diagonal term. A single axis-aligned shape at the origin has no
+    /// off-diagonal terms to begin with, but a compound's composite tensor does (parallel-axis cross
+    /// terms from offset children), so leaving them non-zero would let the solver apply torque around a
+    /// "locked" axis through those cross terms.
+    /// </summary>
+    private static void LockInverseInertiaAxes(ref BodyInertia inertia, Vector3 angularFactor)
+    {
+        if (angularFactor.X == 0f)
+        {
+            inertia.InverseInertiaTensor.XX = 0f;
+            inertia.InverseInertiaTensor.YX = 0f;
+            inertia.InverseInertiaTensor.ZX = 0f;
+        }
+
+        if (angularFactor.Y == 0f)
+        {
+            inertia.InverseInertiaTensor.YY = 0f;
+            inertia.InverseInertiaTensor.YX = 0f;
+            inertia.InverseInertiaTensor.ZY = 0f;
+        }
+
+        if (angularFactor.Z == 0f)
+        {
+            inertia.InverseInertiaTensor.ZZ = 0f;
+            inertia.InverseInertiaTensor.ZX = 0f;
+            inertia.InverseInertiaTensor.ZY = 0f;
+        }
+    }
+
     private readonly struct FixtureShapeResult
     {
-        public FixtureShapeResult(TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren)
+        public FixtureShapeResult(TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren, Compound? compoundShape = null)
         {
             ShapeIndex = shapeIndex;
             IsCompound = isCompound;
             LocalTransforms = localTransforms;
             Tags = tags;
             CompoundChildren = compoundChildren;
+            CompoundShape = compoundShape;
         }
 
         public TypedIndex ShapeIndex { get; }
@@ -250,6 +299,10 @@ public sealed class BepuPhysicsEngine
         public Matrix[] LocalTransforms { get; }
         public string[] Tags { get; }
         public TypedIndex[] CompoundChildren { get; }
+
+        /// <summary>The compound value itself (for a compound result), needed to compute a composite
+        /// inertia tensor without going back through the shape registry.</summary>
+        public Compound? CompoundShape { get; }
     }
 
     private FixtureShapeResult BuildFixtureShape(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale)
@@ -285,8 +338,9 @@ public sealed class BepuPhysicsEngine
             children[i] = new CompoundChild(localPose, childShapeIndex);
         }
 
-        var compoundIndex = Simulation.Shapes.Add(new Compound(children));
-        return new FixtureShapeResult(compoundIndex, isCompound: true, localTransforms, tags, childShapeIndices);
+        var compound = new Compound(children);
+        var compoundIndex = Simulation.Shapes.Add(compound);
+        return new FixtureShapeResult(compoundIndex, isCompound: true, localTransforms, tags, childShapeIndices, compound);
     }
 
     // ----- Queries -------------------------------------------------------------------------
