@@ -504,18 +504,12 @@ internal static class EditorEntityJsonSerializer
     {
         node.Add("physics_type", definition.PhysicsType.ConvertToString());
         node.Add("collision_profile", definition.ProfileName);
-        node.Add("additional_angular_damping_factor", definition.AdditionalAngularDampingFactor);
-        node.Add("additional_angular_damping_threshold_sqr", definition.AdditionalAngularDampingThresholdSqr);
-        node.Add("additional_damping", definition.AdditionalDamping);
-        node.Add("additional_damping_factor", definition.AdditionalDampingFactor);
-        node.Add("additional_linear_damping_threshold_sqr", definition.AdditionalLinearDampingThresholdSqr);
         node.Add("angular_damping", definition.AngularDamping);
 
         var angularFactorNode = new JObject();
         definition.AngularFactor.Save(angularFactorNode);
         node.Add("angular_factor", angularFactorNode);
 
-        node.Add("angular_sleeping_threshold", definition.AngularSleepingThreshold);
         node.Add("friction", definition.Friction);
         node.Add("linear_damping", definition.LinearDamping);
 
@@ -523,15 +517,9 @@ internal static class EditorEntityJsonSerializer
         definition.LinearFactor.Save(linearFactorNode);
         node.Add("linear_factor", linearFactorNode);
 
-        node.Add("linear_sleeping_threshold", definition.LinearSleepingThreshold);
-
-        var localInertiaNode = new JObject();
-        definition.LocalInertia.Save(localInertiaNode);
-        node.Add("local_inertia", localInertiaNode);
-
+        node.Add("sleep_threshold", definition.SleepThreshold);
         node.Add("mass", definition.Mass);
         node.Add("restitution", definition.Restitution);
-        node.Add("rolling_friction", definition.RollingFriction);
         node.Add("apply_gravity", definition.ApplyGravity);
 
         if (definition.DebugColor is Color debugColor)

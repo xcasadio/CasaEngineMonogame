@@ -75,7 +75,7 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
         rowIndex = AddNumericDefinitionRow(grid, rowIndex, "Mass", PhysicsComponent.PhysicsDefinition, () => PhysicsComponent.PhysicsDefinition.Mass, value => PhysicsComponent.PhysicsDefinition.Mass = value, 0.1f, 0f);
         rowIndex = AddNumericDefinitionRow(grid, rowIndex, "Friction", PhysicsComponent.PhysicsDefinition, () => PhysicsComponent.PhysicsDefinition.Friction, value => PhysicsComponent.PhysicsDefinition.Friction = value, 0.05f, 0f);
         rowIndex = AddNumericDefinitionRow(grid, rowIndex, "Restitution", PhysicsComponent.PhysicsDefinition, () => PhysicsComponent.PhysicsDefinition.Restitution, value => PhysicsComponent.PhysicsDefinition.Restitution = value, 0.05f, 0f);
-        rowIndex = AddNumericDefinitionRow(grid, rowIndex, "Rolling Friction", PhysicsComponent.PhysicsDefinition, () => PhysicsComponent.PhysicsDefinition.RollingFriction, value => PhysicsComponent.PhysicsDefinition.RollingFriction = value, 0.05f, 0f);
+        rowIndex = AddNumericDefinitionRow(grid, rowIndex, "Sleep Threshold", PhysicsComponent.PhysicsDefinition, () => PhysicsComponent.PhysicsDefinition.SleepThreshold, value => PhysicsComponent.PhysicsDefinition.SleepThreshold = value, 0.01f, -1f);
 
         var applyGravityCheckBox = new MGCheckBox(Window)
         {

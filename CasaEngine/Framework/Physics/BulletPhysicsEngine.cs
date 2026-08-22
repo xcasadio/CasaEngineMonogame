@@ -242,18 +242,13 @@ public class BulletPhysicsEngine
     {
         var nativeShape = bodyShape.Shape;
         using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, null, nativeShape);
-        rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
-        rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
-        rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;
-        rbInfo.AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
-        rbInfo.AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
         rbInfo.AngularDamping = physicsDefinition.AngularDamping;
-        rbInfo.AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
         rbInfo.Friction = physicsDefinition.Friction;
         rbInfo.LinearDamping = physicsDefinition.LinearDamping;
-        rbInfo.LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
         rbInfo.Restitution = physicsDefinition.Restitution;
-        rbInfo.RollingFriction = physicsDefinition.RollingFriction;
+        // Bullet-specific tuning fields (AdditionalDamping*, RollingFriction, sleeping thresholds)
+        // were removed from PhysicsDefinition when the engine moved to Bepu (SleepThreshold);
+        // this unused Bullet backend keeps its own construction-info defaults for them.
 
         bool isDynamic = physicsDefinition.Mass != 0.0f;
         if (isDynamic)
