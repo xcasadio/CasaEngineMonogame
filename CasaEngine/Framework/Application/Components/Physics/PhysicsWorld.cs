@@ -2,6 +2,7 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Physics;
+using CasaEngine.Framework.Physics.Bepu;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -10,7 +11,7 @@ namespace CasaEngine.Framework.Application.Components.Physics;
 public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
 {
     private readonly bool _useExternalViewManagement;
-    private readonly BulletPhysicsEngine _physicsEngine;
+    private readonly BepuPhysicsEngine _physicsEngine;
 
     public int CollisionObjectCount => _physicsEngine.CollisionObjectCount;
 
@@ -20,7 +21,7 @@ public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
     {
         _useExternalViewManagement = useExternalViewManagement;
         SpacePolicy = spacePolicy ?? GameSettings.PhysicsEngineSettings.SpacePolicy;
-        _physicsEngine = new BulletPhysicsEngine(GameSettings.PhysicsEngineSettings);
+        _physicsEngine = new BepuPhysicsEngine(GameSettings.PhysicsEngineSettings);
     }
 
     public void Update(float elapsedTime)
