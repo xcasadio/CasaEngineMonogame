@@ -30,7 +30,7 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
   - load font from true type font ([FontStashSharp](https://github.com/FontStashSharp/FontStashSharp))
 
 ## 3rd parties
-* Physics : BulletSharp
+* Physics : [bepuphysics2](https://github.com/bepu/bepuphysics2) (2.5.0-beta.29)
 * Models & animations: AssimpNET
 
 ## Getting started (Windows)

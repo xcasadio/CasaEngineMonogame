@@ -313,8 +313,10 @@ public class BepuDynamicsTests
 
         var compoundFixtures = new[]
         {
-            new ColliderFixture(new Box()) { LocalPosition = new Vector3(1f, 0f, 0f) },
-            new ColliderFixture(new Box()) { LocalPosition = new Vector3(-1f, 0f, 0f) },
+            //Off-axis children: the parallel-axis terms of the composite tensor are non-zero, so the
+            //cross terms only vanish if the locked axes really are masked.
+            new ColliderFixture(new Box()) { LocalPosition = new Vector3(1f, 1f, 0f) },
+            new ColliderFixture(new Box()) { LocalPosition = new Vector3(-1f, 0f, 1f) },
         };
 
         var compoundDefinition = new PhysicsDefinition
@@ -336,9 +338,12 @@ public class BepuDynamicsTests
         var compoundBackend = Assert.IsType<BepuBodyBackend>(compoundBox.Backend);
         var inverseInertiaTensor = compoundBackend.Inertia.InverseInertiaTensor;
 
+        Assert.Equal(0f, inverseInertiaTensor.XX);
+        Assert.Equal(0f, inverseInertiaTensor.YY);
         Assert.Equal(0f, inverseInertiaTensor.YX);
         Assert.Equal(0f, inverseInertiaTensor.ZX);
         Assert.Equal(0f, inverseInertiaTensor.ZY);
+        Assert.NotEqual(0f, inverseInertiaTensor.ZZ);
     }
 
     private sealed class TestCollideableComponent : ICollideableComponent
