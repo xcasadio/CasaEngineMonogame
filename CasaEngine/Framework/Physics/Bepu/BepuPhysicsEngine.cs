@@ -58,6 +58,9 @@ public sealed class BepuPhysicsEngine
 
     internal CollidableProperty<BepuCollidableData> CollidableData { get; }
 
+    /// <summary>Named collision profiles of the project, for the debug renderer's color fallback.</summary>
+    internal CollisionProfileTable CollisionProfiles => _collisionProfiles;
+
     public int MaxSubSteps { get; set; }
 
     public float FixedTimeStep { get; set; }
@@ -109,13 +112,13 @@ public sealed class BepuPhysicsEngine
     public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, Shape3d shape, Vector3 localScale, int collisionProfileId, string fixtureTag = null, Color? color = null)
     {
         var shapeIndex = _shapeCache.GetOrAdd(shape, localScale);
-        return CreateGhostObjectInternal(worldMatrix, collideableComponent, shapeIndex, isCompound: false, null, new[] { fixtureTag }, null, collisionProfileId);
+        return CreateGhostObjectInternal(worldMatrix, collideableComponent, shapeIndex, isCompound: false, null, new[] { fixtureTag }, null, collisionProfileId, color);
     }
 
     public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, int collisionProfileId, Color? color = null)
     {
         var built = BuildFixtureShape(fixtures, localScale);
-        return CreateGhostObjectInternal(worldMatrix, collideableComponent, built.ShapeIndex, built.IsCompound, built.LocalTransforms, built.Tags, built.CompoundChildren, collisionProfileId);
+        return CreateGhostObjectInternal(worldMatrix, collideableComponent, built.ShapeIndex, built.IsCompound, built.LocalTransforms, built.Tags, built.CompoundChildren, collisionProfileId, color);
     }
 
     public PhysicsBody AddRigidBody(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId, bool useExternalViewManagement, string fixtureTag = null)
@@ -159,10 +162,10 @@ public sealed class BepuPhysicsEngine
 
     public void DrawDebugWorld(IPhysicsDebugDrawer debugDrawer)
     {
-        // Bepu has no built-in debug draw; the Bepu debug renderer is added in a later slice.
+        BepuPhysicsDebugRenderer.Draw(this, debugDrawer);
     }
 
-    private PhysicsBody CreateGhostObjectInternal(Matrix worldMatrix, ICollideableComponent collideableComponent, TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren, int collisionProfileId)
+    private PhysicsBody CreateGhostObjectInternal(Matrix worldMatrix, ICollideableComponent collideableComponent, TypedIndex shapeIndex, bool isCompound, Matrix[] localTransforms, string[] tags, TypedIndex[] compoundChildren, int collisionProfileId, Color? color = null)
     {
         var collisionProfile = _collisionProfiles.GetResolved(collisionProfileId);
         var backend = new BepuBodyBackend(
@@ -181,7 +184,8 @@ public sealed class BepuPhysicsEngine
             linearDamping: 0f,
             angularDamping: 0f,
             linearFactor: Vector3.One,
-            friction: 0f)
+            friction: 0f,
+            debugColor: color)
         {
             Activity = new BodyActivityDescription(-1f)
         };
@@ -210,7 +214,8 @@ public sealed class BepuPhysicsEngine
             linearDamping: physicsDefinition.LinearDamping,
             angularDamping: physicsDefinition.AngularDamping,
             linearFactor: physicsDefinition.LinearFactor,
-            friction: physicsDefinition.Friction)
+            friction: physicsDefinition.Friction,
+            debugColor: physicsDefinition.DebugColor)
         {
             Activity = new BodyActivityDescription(isDynamic ? physicsDefinition.SleepThreshold : -1f),
             Continuity = isDynamic ? _dynamicContinuity : ContinuousDetection.Passive
@@ -613,6 +618,19 @@ public sealed class BepuPhysicsEngine
         }
     }
 
+    /// <summary>Backend registered for a body handle, or null if the handle is stale/unregistered.
+    /// Used by the debug renderer, which walks raw body sets (handles), not collidable references.</summary>
+    internal BepuBodyBackend GetBodyBackend(BodyHandle handle)
+    {
+        return handle.Value >= 0 && handle.Value < _bodyBackends.Count ? _bodyBackends[handle.Value] : null;
+    }
+
+    /// <summary>Backend registered for a static handle, or null if the handle is stale/unregistered.</summary>
+    internal BepuBodyBackend GetStaticBackend(StaticHandle handle)
+    {
+        return handle.Value >= 0 && handle.Value < _staticBackends.Count ? _staticBackends[handle.Value] : null;
+    }
+
     internal BepuBodyBackend ResolveBackend(CollidableReference reference)
     {
         if (reference.Mobility == CollidableMobility.Static)
@@ -625,7 +643,10 @@ public sealed class BepuPhysicsEngine
         return bodyIndex >= 0 && bodyIndex < _bodyBackends.Count ? _bodyBackends[bodyIndex] : null;
     }
 
-    private Vector3 GetPosition(CollidableReference reference)
+    /// <summary>Contacts recorded during the last <see cref="Update"/> step, for the debug renderer.</summary>
+    internal BepuContactBuffer ContactBuffer => _contactBuffer;
+
+    internal Vector3 GetPosition(CollidableReference reference)
     {
         return reference.Mobility == CollidableMobility.Static
             ? Simulation.Statics[reference.StaticHandle].Pose.Position

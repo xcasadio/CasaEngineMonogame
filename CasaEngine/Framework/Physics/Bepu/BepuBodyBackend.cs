@@ -67,6 +67,10 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
 
     public bool HasContactResponse => !_isSensor;
 
+    /// <summary>Explicit debug color given at creation (the <c>color</c>/<see cref="PhysicsDefinition.DebugColor"/>
+    /// parameter); null falls back to the collision profile's color, then to a mobility/state default.</summary>
+    public Color? DebugColor { get; }
+
     internal BodyHandle? BodyHandleOrNull => _bodyHandle;
     internal StaticHandle? StaticHandleOrNull => _staticHandle;
 
@@ -90,7 +94,8 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
         float linearDamping,
         float angularDamping,
         Vector3 linearFactor,
-        float friction)
+        float friction,
+        Color? debugColor = null)
     {
         _engine = engine;
         Mobility = mobility;
@@ -108,6 +113,7 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
         _angularDamping = angularDamping;
         _linearFactor = linearFactor;
         _friction = friction;
+        DebugColor = debugColor;
     }
 
     public Matrix GetFixtureLocalTransform(int index)
