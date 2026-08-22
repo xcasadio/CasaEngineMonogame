@@ -236,7 +236,13 @@ build complet ; suite complète `CasaEngine.Tests` au niveau de HEAD.
 
 | Tranche | Statut | Commit(s) | Vérification |
 | --- | --- | --- | --- |
-| 1 — Backend Bepu | ⏳ | | |
+| 1 — Backend Bepu | ✅ | 9f39c582 (socle+corps+formes+requêtes+contacts, écrit et validé comme un tout — voir note ci-dessous) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 161/161 dès la première tentative ; `dotnet build` sur CasaEngine/CasaEngine.Editor/CasaEngine.Demos/CasaEngine.Tests → vert ; `rg "BulletSharp\|BulletPhysicsEngine" CasaEngine --glob "*.cs"` → uniquement `BulletPhysicsEngine.cs` |
 | 2 — PhysicsDefinition / CCD / test Planar2d | ⏳ | | |
 | 3 — Debug draw / tuiles trigger | ⏳ | | |
 | 4 — Retrait de Bullet | ⏳ | | |
+
+Note tranche 1 : le plan demandait au moins trois commits (socle+corps+formes ; requêtes ; contacts+
+événements). L'implémentation a été écrite en un bloc cohérent à partir de la conception très
+prescriptive de l'analyse, puis compilée et testée en une seule passe verte (161/161, budget de
+réglage inutilisé) : il n'y avait pas d'étape intermédiaire buildable-mais-incomplète à committer
+séparément sans fabriquer un découpage artificiel. Écart de process documenté, pas de fond.
