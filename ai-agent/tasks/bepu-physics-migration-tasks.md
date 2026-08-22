@@ -52,9 +52,13 @@ est intégralement verte (161 tests), Bullet restant dans le dépôt (non utilis
    `Simulation.Timestep` lève si `dt <= 0` : garder le garde.
 3. Données par collidable : une `CollidableProperty<BepuCollidableData>` (struct non managée :
    `GroupBit`, `BroadphaseMask`, `IsSensor`, `ApplyGravity`, `LinearDamping`, `AngularDamping`,
-   `LinearFactor`) pour corps **et** statics ; et une table managée (`List<BepuBodyBackend>`
-   indexée par `BodyHandle.Value` / `StaticHandle.Value`) pour `UserObject` (l'`ICollideableComponent`
-   ou l'objet passé par l'appelant) et les tags de fixtures `string[]`.
+   `LinearFactor`) pour corps **et** statics (`CollidableProperty` indexe déjà séparément les deux
+   espaces de handles) ; et **deux tables managées disjointes** — `List<BepuBodyBackend>` indexée
+   par `BodyHandle.Value` et `List<BepuBodyBackend>` indexée par `StaticHandle.Value` — pour
+   `UserObject` (l'`ICollideableComponent` ou l'objet passé par l'appelant) et les tags de fixtures
+   `string[]`. Les espaces d'id `BodyHandle` et `StaticHandle` démarrent tous deux à 0 : toute
+   résolution depuis une `CollidableReference` est dispatchée sur `reference.Mobility`
+   (`Static` → table statics, sinon → table corps) ; une fusion des deux tables est une faute.
 4. Mobilité : `PhysicsType.Static`/`AddStaticObject` → `Simulation.Statics` (y compris en
    `useExternalViewManagement` : le déplacement passe par `Statics.ApplyDescription`, qui réveille
    les dynamiques en contact) ; `AddGhostObject`/`CreateGhostObject` → `BodyDescription.CreateKinematic`
@@ -65,8 +69,16 @@ est intégralement verte (161 tests), Bullet restant dans le dépôt (non utilis
    `Bodies.Add`/`Statics.Add` si absent ; `RemoveCollisionObject`/`RemoveRigidBody` = retrait + handle
    nul (les deux méthodes acceptent n'importe quel corps, `PhysicsBaseComponent.DestroyPhysicsObject`
    choisit par `IsRigidBody`). `WorldTransform` set hors simulation met à jour la description ; en
-   simulation : `Pose` + `Awake = true` (corps) ou `Statics.ApplyDescription` (static).
-   `RefreshAabb` → `Bodies.UpdateBounds` / `Statics.UpdateBounds`. `Dispose` retire de la simulation
+   simulation, le set **n'écrit que la pose, jamais les bounds du broad phase** (contrat Bullet
+   encodé par `PhysicsBroadphaseAabbTests` : un corps déplacé n'est pas trouvé par un sweep tant que
+   `RefreshBodyAabb` n'a pas été appelé) : corps → `Bodies[handle].Pose = pose` puis `Awake = true` ;
+   static → `Statics[handle].Pose = pose` (écriture par référence, sans `ApplyDescription`).
+   `RefreshAabb` est l'unique rafraîchissement des bounds : corps → `Bodies.UpdateBounds(handle)` ;
+   static → `Statics.ApplyDescription(handle, Statics.GetDescription(handle))`, qui met à jour les
+   bounds **et** réveille les dynamiques endormis qui reposaient sur l'ancienne ou la nouvelle
+   position (filtre par défaut `StaticsShouldntAwakenKinematics`). Tous les appelants du moteur
+   enchaînent `WorldTransform = …` puis `RefreshBodyAabb` (`PhysicsBaseComponent.ApplyPhysicsWorldTransform`,
+   `AnimatedSpriteComponent.UpdateActiveCollisionBodyTransforms`). `Dispose` retire de la simulation
    et libère les formes. `IsRigidBody` = créé par `AddRigidBody`/`AddStaticObject` (comme Bullet).
    `HasContactResponse = !IsSensor`.
 6. Formes : `Box(size * scale)`, `Sphere(radius * max(scale))`, `Capsule(radius * max(sx, sz), length * sy)`,
@@ -134,6 +146,19 @@ est intégralement verte (161 tests), Bullet restant dans le dépôt (non utilis
 - `rg "BulletSharp|BulletPhysicsEngine" CasaEngine --glob "*.cs"` ne retourne plus que
   `Framework/Physics/BulletPhysicsEngine.cs` lui-même.
 - Commits : au moins trois (socle+corps+formes ; requêtes ; contacts+événements), chacun buildable.
+
+**Budget et condition d'arrêt** :
+- Budget : au plus **cinq** passes de réglage « tests rouges → correction → relance de la suite
+  physique » après le premier build vert. Une passe = une cause identifiée et corrigée dans le
+  périmètre ; relancer la suite sans changement n'est pas une passe.
+- Arrêt : tout test physique qui ne peut devenir vert **sans** un fichier hors périmètre ou
+  **sans** une adaptation au-delà des deux autorisées ((a) ordre A/B, (b) `precision: 3 → 2`)
+  **arrête la tranche** : il est reporté (nom du test, assertion, cause suspectée, fichier
+  qu'il aurait fallu toucher) et n'est jamais corrigé en élargissant le périmètre ni en
+  marquant le test `Skip`. Idem si le budget est épuisé. Dans ce cas, committer l'état buildable
+  atteint, remplir le tableau de suivi avec ⚠️ et la liste des tests rouges, et rendre la main.
+- Interdits absolus, même pour faire passer un test : `[Fact(Skip = …)]`, suppression d'assertion,
+  modification d'`IPhysicsWorld`/`PhysicsBody`/`PhysicsQueryShape`/`PhysicsDefinition`.
 
 ## Tranche 2 — `PhysicsDefinition` nettoyé, CCD, sommeil, test Planar2d ⏳
 
