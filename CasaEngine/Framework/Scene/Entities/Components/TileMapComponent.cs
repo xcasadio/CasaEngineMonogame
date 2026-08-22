@@ -994,7 +994,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, LocalScale, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
+            //A trigger tile is a static sensor: the Trigger profile blocks nothing (IsSensor), so the
+            //narrow phase still records contacts without adding constraints, same as the former ghost.
+            var physicsDefinition = new PhysicsDefinition { Friction = 0f, PhysicsType = PhysicsType.Static, ProfileName = CollisionProfileNames.Trigger };
+            collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
+                physicsDefinition, GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(physicsDefinition));
         }
         else
         {
@@ -1048,7 +1052,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, LocalScale, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
+            //A trigger tile is a static sensor: the Trigger profile blocks nothing (IsSensor), so the
+            //narrow phase still records contacts without adding constraints, same as the former ghost.
+            var physicsDefinition = new PhysicsDefinition { Friction = 0f, PhysicsType = PhysicsType.Static, ProfileName = CollisionProfileNames.Trigger };
+            collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
+                physicsDefinition, GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(physicsDefinition));
         }
         else
         {
