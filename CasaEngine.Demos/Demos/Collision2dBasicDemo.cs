@@ -73,7 +73,6 @@ public class Collision2dBasicDemo : Demo
 
         if (isDynamic)
         {
-            //boxShape.CalculateLocalInertia(mass, out localInertia);
         }
 
         Vector3 x = new Vector3(-ARRAY_SIZE_X, 8f, 0f);

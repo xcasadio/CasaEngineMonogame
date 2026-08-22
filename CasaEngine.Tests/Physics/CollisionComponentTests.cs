@@ -196,8 +196,8 @@ public class CollisionComponentTests
     }
 
     /// <summary>
-    /// The vendored BulletSharp does not fill LocalShapeInfo for compound children during a convex sweep,
-    /// so a query hitting a compound body cannot name the fixture it touched.
+    /// The Bepu backend does not report the compound child hit by a sweep, so a query hitting a
+    /// compound body cannot name the fixture it touched.
     /// </summary>
     [Fact]
     public void ShapeSweep_ReportsNoTag_WhenItHitsACompoundBody()

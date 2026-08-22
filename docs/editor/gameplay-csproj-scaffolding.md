@@ -213,8 +213,9 @@ Prérequis à instruire avant de lancer la phase :
    (`MGUI.Core`, `MGUI.Shared`, `MGUI.FontStashSharp`) en packages, avec leurs
    dépendances (`MonoGame.Framework.DesktopGL`, `BepuPhysics`, `Newtonsoft.Json`,
    `SharpGLTF`, `YarnSpinner`) déclarées.
-2. **Natifs** : `BulletSharp.dll` (DLL locale `ThirdParties/`) à empaqueter en
-   `runtimes/win-x64/native` ou équivalent.
+2. **Natifs** : aucun — le backend physique (`BepuPhysics`) est entièrement managé,
+   plus de DLL native locale à empaqueter (l'ancienne dépendance `BulletSharp.dll`
+   a été retirée).
 3. **Content moteur** (shaders `CasaEngine.Shaders`) : décider comment il est livré —
    il accompagne l'éditeur/runtime, pas la compilation du gameplay, donc
    vraisemblablement hors package gameplay.

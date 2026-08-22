@@ -29,7 +29,7 @@ public class CollisionProfilesTests
         Assert.Equal(worldStatic.BlockMask, worldStatic.BroadphaseMask);
         Assert.False(worldStatic.IsSensor);
 
-        //Static against static stays filtered out, like the Bullet defaults it replaces.
+        //Static against static stays filtered out.
         Assert.Equal(
             CollisionResponse.Ignore,
             Profiles.GetProfile(CollisionProfileIds.WorldStatic).GetResponse(CollisionChannels.WorldStatic));

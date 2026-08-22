@@ -31,7 +31,7 @@ public class PhysicsEngineSettings
         table.AddChannel(CollisionProfileNames.AttackVolume);
         table.AddChannel(CollisionProfileNames.DamageableVolume);
 
-        //Static bodies block everything but each other, mirroring how Bullet filters static against static.
+        //Static bodies block everything but each other; two statics never collide with one another.
         table.AddProfile(new CollisionProfile(CollisionProfileNames.WorldStatic, CollisionChannels.WorldStatic)
             .SetResponseToAllChannels(CollisionResponse.Block)
             .SetResponse(CollisionChannels.WorldStatic, CollisionResponse.Ignore));

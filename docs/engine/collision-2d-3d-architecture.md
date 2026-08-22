@@ -47,6 +47,8 @@ Cette section décrit uniquement ce qui est observable dans le dépôt au moment
 > `IPoseIntegratorCallbacks.IntegrateVelocity` ; les champs `PhysicsDefinition` propres à Bullet
 > (`AdditionalDamping*`, `RollingFriction`, `LocalInertia`, les deux seuils de sommeil séparés) sont
 > supprimés, remplacés par un unique `SleepThreshold`.
+>
+> Suite : `PhysicsDefinition.Load` lit `physics_type` sans garde (défaut préexistant, hors migration).
 
 ### Trois vocabulaires de formes, aucun pivot
 
