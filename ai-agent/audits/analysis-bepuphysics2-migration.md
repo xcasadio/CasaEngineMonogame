@@ -90,9 +90,12 @@ Membres **publics de `BulletPhysicsEngine` sans aucun appelant** (à ne pas port
 [PhysicsDefinition.cs](../../CasaEngine/Engine/Physics/PhysicsDefinition.cs) porte 13 champs copiés
 de `RigidBodyConstructionInfo` : `AdditionalDamping*` (5 champs), `RollingFriction`,
 `LinearSleepingThreshold`/`AngularSleepingThreshold`, `LocalInertia`, `LinearFactor`/`AngularFactor`.
-Ils sont lus par `Load(JObject)` (clés `additional_damping`, `rolling_friction`, …). **Aucun asset du
-dépôt ne sérialise `physics_definition`** (`rg` sur `Projects/`, `CasaEngine.Demos/` : 0 fichier) —
-la définition est toujours construite en code. Les démos et projets qui touchent la physique :
+Ils sont lus par `Load(JObject)` (clés `additional_damping`, `rolling_friction`, …) et écrits par
+[EditorEntityJsonSerializer.SavePhysicsDefinition](../../CasaEngine.EditorServices/EditorEntityJsonSerializer.cs)
+(ligne 503). **Six assets de `Projects/` sérialisent `physics_definition`** avec toutes ces clés :
+`SampleProject/Entities/Box.entity`, `SampleProject/DefaultWorld.world`,
+`RPGDemo/Entities/{weapon_rock,character_octopus,character_link}.entity`, `RPGDemo/DefaultWorld.world`.
+Les démos C# construisent la définition en code. Les démos et projets qui touchent la physique :
 `Collision2dBasicDemo`, `Collision3dBasicDemo`, `TileMapDemo`, `TopDownElevationDemo`,
 `CutsceneMoveToDemo`, `CutsceneNavigateToDemo`, `PlayerComponent`, et `CasaEngine.RPGDemo`
 (`Character.cs`, `ScriptPlayer*.cs`, `ScriptEnemyWeapon.cs`, qui lisent `Collision.ContactPoint`).
@@ -196,8 +199,10 @@ Faits vérifiés (NuGet + sources au tag) :
    `SpringSettings` donnent un rebond différent. Les valeurs par défaut du moteur (`Restitution = 0`)
    rendent ce point indolore aujourd'hui.
 7. **Champs Bullet de `PhysicsDefinition`.** `AdditionalDamping*`, `RollingFriction`, `LocalInertia`
-   n'ont plus d'effet. Avec la posture projet (pas de compatibilité d'assets, et aucun asset ne les
-   sérialise), les **supprimer** avec leurs clés JSON ; `Load` ne doit plus les exiger. `Linear/
+   n'ont plus d'effet. Avec la posture projet (pas de compatibilité d'assets), les **supprimer**
+   avec leurs clés JSON dans `Load` et dans `EditorEntityJsonSerializer.SavePhysicsDefinition`, et
+   nettoyer les six assets de `Projects/` qui les portent (les clés inconnues sont ignorées au
+   chargement, le nettoyage est cosmétique mais évite des assets trompeurs). `Linear/
    AngularSleepingThreshold` fusionnent en un seuil. C'est la seule rupture d'API publique.
 8. **Précision des tests.** Les sweeps Bepu sont itératifs (avancement conservatif) ; les assertions
    `precision: 3` sur `result.Point` (`CollisionComponentTests`, `PhysicsShapeSweepTests`) peuvent
