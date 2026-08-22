@@ -1,6 +1,7 @@
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -40,6 +41,27 @@ public class PhysicsWorldDisposalTests
         physicsWorldContext.RemoveRigidBody(dynamicBody);
         staticBody.Dispose();
         dynamicBody.Dispose();
+    }
+
+    [Fact]
+    public void DisposingAGhostAfterTheWorld_DoesNotThrow()
+    {
+        var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: false);
+        Matrix worldMatrix = Matrix.Identity;
+        var component = new CollisionComponent();
+        component.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
+
+        var ghost = physicsWorldContext.AddGhostObject(
+            new Box { Size = Vector3.One },
+            Vector3.One,
+            ref worldMatrix,
+            component,
+            CollisionProfileIds.Trigger);
+
+        physicsWorldContext.Dispose();
+
+        physicsWorldContext.RemoveCollisionObject(ghost);
+        ghost.Dispose();
     }
 
     [Fact]
