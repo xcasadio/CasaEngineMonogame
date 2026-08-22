@@ -86,8 +86,32 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
         set => AnimationController.RootMotionMode = value;
     }
 
-    /// <summary>Current playback time, in seconds, of the current animation state (or graph time when a graph is playing).</summary>
-    public float AnimationTimeSeconds => AnimationController.CurrentTimeSeconds;
+    /// <summary>
+    /// Current playback time, in seconds, within the current animation clip (wrapped into
+    /// [0, duration) for a looping state), or the graph time when a graph is playing.
+    /// </summary>
+    public float AnimationTimeSeconds
+    {
+        get
+        {
+            var state = AnimationController.CurrentState;
+            if (state == null)
+            {
+                return AnimationController.CurrentTimeSeconds;
+            }
+
+            // A looping state accumulates time without wrapping (the sampler applies the modulo);
+            // report the time within the clip so callers can map it to a frame.
+            float duration = state.Clip.DurationSeconds;
+            if (!state.Loop || duration <= 0f)
+            {
+                return state.TimeSeconds;
+            }
+
+            float wrapped = state.TimeSeconds % duration;
+            return wrapped < 0f ? wrapped + duration : wrapped;
+        }
+    }
 
     /// <summary>Playback speed of the current (and, mid-transition, target) animation state.</summary>
     public float AnimationPlaybackSpeed

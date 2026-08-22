@@ -36,6 +36,9 @@ internal sealed class BlendingControlsScreen : UIScreenBase
     public event Action<bool>? ShowModelChanged;
     public event Action<bool>? ShowSkeletonChanged;
 
+    // ---- Foot Lock ----
+    public event Action<bool>? FootLockChanged;
+
     // ---- Activation / Deactivation ----
     public event Action? DeactivateAllRequested;
     public event Action? ActivateAllRequested;
@@ -81,6 +84,7 @@ internal sealed class BlendingControlsScreen : UIScreenBase
         var outer = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 4 };
 
         outer.TryAddChild(BuildVisibilityFolder());
+        outer.TryAddChild(BuildFootLockFolder());
         outer.TryAddChild(BuildActivationFolder());
         outer.TryAddChild(BuildPausingFolder());
         outer.TryAddChild(BuildCrossfadingFolder());
@@ -99,6 +103,13 @@ internal sealed class BlendingControlsScreen : UIScreenBase
         content.TryAddChild(NewCheckBox("show model", true, isChecked => ShowModelChanged?.Invoke(isChecked)));
         content.TryAddChild(NewCheckBox("show skeleton", false, isChecked => ShowSkeletonChanged?.Invoke(isChecked)));
         return NewFolder("Visibility", content);
+    }
+
+    private MGExpander BuildFootLockFolder()
+    {
+        var content = NewFolderContent();
+        content.TryAddChild(NewCheckBox("foot lock", false, isChecked => FootLockChanged?.Invoke(isChecked)));
+        return NewFolder("Foot Lock", content);
     }
 
     private MGExpander BuildActivationFolder()

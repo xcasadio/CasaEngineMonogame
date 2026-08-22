@@ -371,6 +371,30 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         _twoBoneIkConstraints.Clear();
     }
 
+    /// <summary>
+    /// Solves <paramref name="controller"/> against this component's current world matrix and
+    /// pushes the resulting per-foot two-bone IK constraints, starting at
+    /// <paramref name="firstConstraintIndex"/>. Call <see cref="FootLockController.Update"/> first
+    /// (see its call-order contract) with this frame's animated pose before calling this method.
+    /// </summary>
+    public void ApplyFootLock(FootLockController controller, int firstConstraintIndex = 0)
+    {
+        ArgumentNullException.ThrowIfNull(controller);
+
+        if (firstConstraintIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstConstraintIndex));
+        }
+
+        Span<TwoBoneIkConstraint> constraints = stackalloc TwoBoneIkConstraint[controller.FeetCount];
+        controller.FillConstraints(WorldMatrixWithScale, constraints);
+
+        for (var footIndex = 0; footIndex < constraints.Length; footIndex++)
+        {
+            SetTwoBoneIkConstraint(firstConstraintIndex + footIndex, constraints[footIndex]);
+        }
+    }
+
     public void SetLookAtConstraint(int constraintIndex, LookAtConstraint constraint)
     {
         if (constraintIndex < 0)

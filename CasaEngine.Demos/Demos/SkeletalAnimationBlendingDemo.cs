@@ -69,6 +69,16 @@ public class SkeletalAnimationBlendingDemo : Demo
     // Visibility state.
     private bool _showSkeleton;
 
+    // Foot lock demo: the soldier walks forward at a constant speed (wrapping back to the
+    // start) while its feet stay pinned to the ground via FootLockController, showcasing the
+    // fix for in-place-authored locomotion clips played on a moving entity.
+    private const float FootLockSpeed = 1.2f;
+    private const float FootLockWrapDistance = 6f;
+    private const float FootContactHeightThreshold = 0.05f;
+    private FootLockController? _footLockController;
+    private bool _footLockEnabled;
+    private float _footLockDistanceTraveled;
+
     public override string Title => "Skeletal animation blending";
 
     public override string Description =>
@@ -141,6 +151,7 @@ public class SkeletalAnimationBlendingDemo : Demo
 
             _controlsScreen.ShowModelChanged += ShowModel;
             _controlsScreen.ShowSkeletonChanged += visible => _showSkeleton = visible;
+            _controlsScreen.FootLockChanged += SetFootLockEnabled;
 
             _controlsScreen.DeactivateAllRequested += DeactivateAll;
             _controlsScreen.ActivateAllRequested += ActivateAll;
@@ -186,8 +197,70 @@ public class SkeletalAnimationBlendingDemo : Demo
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
 
         BuildBlendGraph();
+        TryCreateFootLockController();
 
         world.AddEntity(_characterEntity);
+    }
+
+    private void TryCreateFootLockController()
+    {
+        var skeleton = _skinnedMeshComponent?.SkeletonDefinition;
+        if (skeleton == null
+            || !skeleton.TryGetJointIndex("mixamorig:LeftFoot", out _)
+            || !skeleton.TryGetJointIndex("mixamorig:RightFoot", out _))
+        {
+            return;
+        }
+
+        _footLockController = new FootLockController(
+            skeleton,
+            new FootLockSettings(),
+            FootLockFoot.FromAnkleName(skeleton, "mixamorig:LeftFoot"),
+            FootLockFoot.FromAnkleName(skeleton, "mixamorig:RightFoot"));
+    }
+
+    private void SetFootLockEnabled(bool enabled)
+    {
+        _footLockEnabled = enabled;
+        if (!enabled)
+        {
+            _footLockDistanceTraveled = 0f;
+            _skinnedMeshComponent?.ClearTwoBoneIkConstraints();
+            if (_skinnedMeshComponent != null)
+            {
+                _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, 0f);
+            }
+        }
+    }
+
+    private void UpdateFootLock(float dt)
+    {
+        if (_footLockController == null || _skinnedMeshComponent?.CurrentModelPose == null)
+        {
+            return;
+        }
+
+        _footLockDistanceTraveled += FootLockSpeed * dt;
+        if (_footLockDistanceTraveled > FootLockWrapDistance)
+        {
+            _footLockDistanceTraveled -= FootLockWrapDistance;
+        }
+
+        _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, _footLockDistanceTraveled);
+
+        var pose = _skinnedMeshComponent.CurrentModelPose;
+        var entityWorld = _skinnedMeshComponent.WorldMatrixWithScale;
+        Span<bool> contacts = stackalloc bool[2];
+        for (var footIndex = 0; footIndex < _footLockController.FeetCount; footIndex++)
+        {
+            var ankleWorldY = Vector3.Transform(
+                pose.GetTransform(_footLockController.Feet[footIndex].EndJointIndex).Translation,
+                entityWorld).Y;
+            contacts[footIndex] = ankleWorldY <= FootContactHeightThreshold;
+        }
+
+        _footLockController.Update(dt, pose, entityWorld, contacts);
+        _skinnedMeshComponent.ApplyFootLock(_footLockController);
     }
 
     private void BuildBlendGraph()
@@ -242,6 +315,11 @@ public class SkeletalAnimationBlendingDemo : Demo
 
         ApplyWeightsAndSpeed();
         UpdateCrossFadeControls();
+
+        if (_footLockEnabled)
+        {
+            UpdateFootLock((float)gameTime.ElapsedGameTime.TotalSeconds);
+        }
 
         if (_showSkeleton)
         {
@@ -398,6 +476,9 @@ public class SkeletalAnimationBlendingDemo : Demo
         _crossFading = false;
         _paused = false;
         _showSkeleton = false;
+        _footLockController = null;
+        _footLockEnabled = false;
+        _footLockDistanceTraveled = 0f;
     }
 
     private CasaEngine.Framework.UI.IUIViewRuntime? GetUIView()
