@@ -219,7 +219,7 @@ reporté ; jamais de `Skip`, jamais d'assertion supprimée). Ne pas toucher `IPh
 s'il y en a, sont listés, pas introduits) ; `rg "additional_damping|rolling_friction|local_inertia|sleeping_threshold" Projects CasaEngine CasaEngine.EditorServices` → 0 ;
 build de `CasaEngine`, `CasaEngine.Editor.MonoGame.sln`, `CasaEngine.Demos`, `CasaEngine.Tests` vert.
 
-## Tranche 3 — Debug draw Bepu et tuiles trigger en static capteur ⏳
+## Tranche 3 — Debug draw Bepu et tuiles trigger en static capteur ✅
 
 **Périmètre** : nouveau `CasaEngine/Framework/Physics/Bepu/BepuPhysicsDebugRenderer.cs`, méthode
 `DrawDebugWorld` du backend, `CasaEngine/Engine/Physics/PhysicsDebugDrawModes.cs`,
@@ -265,7 +265,7 @@ build complet ; suite complète `CasaEngine.Tests` au niveau de HEAD.
 | --- | --- | --- | --- |
 | 1 — Backend Bepu | ✅ | 9f39c582 (socle+corps+formes+requêtes+contacts, écrit et validé comme un tout — voir note ci-dessous), 9f9a0e3e (garde `IsDisposed` : corps disposé après le monde, régression relevée par le verifier, + `PhysicsWorldDisposalTests`) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 161/161 dès la première tentative, 163/163 après le correctif de disposal ; verifier indépendant 2026-08-23 : REFUTED sur le disposal tardif (corrigé), le reste CONFIRMED (tables de handles, pose/bounds, 0 B/frame mesuré, refcount des formes, règle capteur) ; `dotnet build` sur CasaEngine/CasaEngine.Editor/CasaEngine.Demos/CasaEngine.Tests → vert ; `rg "BulletSharp\|BulletPhysicsEngine" CasaEngine --glob "*.cs"` → uniquement `BulletPhysicsEngine.cs` |
 | 2 — PhysicsDefinition / CCD / test Planar2d | ✅ | 6358a8ae (PhysicsDefinition nettoyé + SleepThreshold + serializer + 6 assets + tests de (dé)sérialisation), 723c537e (sommeil réel des dynamiques, CCD, inertie composite des compounds, AngularFactor hors-diagonale + 4 tests de dynamique), doc (ce commit) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 170/170 (163 existants + 3 sérialisation + 4 dynamique) ; `dotnet test` complet → voir rapport final de la tranche ; `dotnet build` sur CasaEngine/CasaEngine.Editor.MonoGame.sln/CasaEngine.Demos/CasaEngine.Tests → vert ; `rg "additional_damping\|rolling_friction\|local_inertia\|sleeping_threshold" Projects CasaEngine CasaEngine.EditorServices CasaEngine.Editor` → 0 |
-| 3 — Debug draw / tuiles trigger | ⏳ | | |
+| 3 — Debug draw / tuiles trigger | ✅ | 2b23ea8f (`PhysicsDebugDrawModes` réduit, `BepuPhysicsDebugRenderer` : bodies actifs+dormants et statics, box/sphère/capsule/cylindre/compound récursif, AABB recalculée via `ComputeBounds`, contacts du dernier step, couleur DebugColor→profil→défaut, `BepuDebugDrawTests`), 1f59a3ce (tuiles trigger : `AddGhostObject(..., Trigger)` → `AddStaticObject(..., PhysicsDefinition { PhysicsType = Static, ProfileName = Trigger })` dans les deux surcharges de `CreateCollisionObject`) | `dotnet test --filter FullyQualifiedName~CasaEngine.Tests.Physics` → 173/173 (171 existants + 2 `BepuDebugDrawTests`) ; `dotnet test --filter FullyQualifiedName~TileMap` → 79/79 ; `dotnet build` sur CasaEngine/CasaEngine.Editor.MonoGame.sln/CasaEngine.Demos/CasaEngine.Tests → vert ; smoke visuel manuel de l'overlay (éditeur/TileMapDemo) **non exécuté** — hors de portée d'un agent sans session interactive, documenté comme tel plutôt que revendiqué |
 | 4 — Retrait de Bullet | ⏳ | | |
 
 Note tranche 1 : le plan demandait au moins trois commits (socle+corps+formes ; requêtes ; contacts+
