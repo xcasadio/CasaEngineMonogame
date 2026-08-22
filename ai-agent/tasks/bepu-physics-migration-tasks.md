@@ -254,8 +254,28 @@ l'overlay physique (smoke manuel documenté dans le commit) ; suite physique ver
 254, 331) et `docs/editor/gameplay-csproj-scaffolding.md:214` ; commentaire de
 `CollisionComponentTests.cs:199` ; mémoire/README `ai-agent` (statut de ce plan).
 
-**Acceptation** : `rg -i "bullet" . --glob "*.cs" --glob "*.csproj" --glob "*.props"` → 0 ;
-build complet ; suite complète `CasaEngine.Tests` au niveau de HEAD.
+**Compléments reportés des vérifications des tranches 2 et 3** (dispositions `DEFER` → ici) :
+- Deux tests complémentaires dans `CasaEngine.Tests/Physics/BepuDynamicsTests.cs` : (a) avec
+  `PhysicsEngineFlags.ContinuousCollisionDetection` levé puis retiré, un dynamique a
+  `Continuity.Mode == Continuous` / `Passive` et un ghost reste `Passive` dans les deux cas ;
+  (b) un compound dynamique de deux boîtes décalées avec `AngularFactor = (0, 0, 1)` a ses termes
+  hors diagonale `YX`/`ZX`/`ZY` nuls (hook `internal` existant ou à ajouter à `BepuBodyBackend`).
+- `PhysicsDefinition.Load` : `physics_type` est le seul champ lu sans garde (`NullReferenceException`
+  si absent) — défaut **préexistant**, hors migration ; le garder tel quel, mais le noter en
+  « suite » dans la doc de migration (§1 de `collision-2d-3d-architecture.md`).
+- Le smoke visuel de l'overlay debug (`TileMapDemo`, éditeur) n'a pas été exécuté par les agents
+  (pas de session graphique) : rester en 🧪 dans le suivi, à valider par l'utilisateur.
+- Nettoyer `Collision2dBasicDemo.cs:76` (ligne commentée référençant un champ supprimé) si elle
+  existe encore.
+- `PhysicsEngineFlags` : `SoftBodySupport` et `UseHardwareWhenPossible` n'ont plus de sens avec Bepu
+  et n'ont aucun consommateur (`rg` pour vérifier) : les supprimer ; garder `CollisionsOnly` (non
+  implémenté, à documenter) et `MultiThreaded` (réservé).
+
+**Acceptation** : `rg -i "bullet" . --glob "*.cs" --glob "*.csproj" --glob "*.props"` → 0 (hors
+`ai-agent/` et `docs/` où l'historique reste légitime) ; `ThirdParties/BulletSharp/` absent ;
+build de `CasaEngine`, `CasaEngine.Editor.MonoGame.sln`, `CasaEngine.Demos`, `CasaEngine.Tests` ;
+suite physique verte (173 + 2 nouveaux) ; suite complète `CasaEngine.Tests` avec les mêmes 18 échecs
+préexistants (noms identiques à la baseline `e18b2282`), aucun nouveau.
 
 ---
 
