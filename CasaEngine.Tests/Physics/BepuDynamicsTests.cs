@@ -1,7 +1,12 @@
+using System.Collections.Generic;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Physics.Bepu;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -233,6 +238,116 @@ public class BepuDynamicsTests
 
         Assert.True(compoundAngularSpeed < singleAngularSpeed,
             $"compound should spin slower about Y than the single box: compound={compoundAngularSpeed}, single={singleAngularSpeed}");
+    }
+
+    [Fact]
+    public void ContinuousCollisionDetectionFlag_DrivesDynamicContinuity_GhostStaysPassive()
+    {
+        var originalFlags = GameSettings.PhysicsEngineSettings.Flags;
+        try
+        {
+            GameSettings.PhysicsEngineSettings.Flags = PhysicsEngineFlags.ContinuousCollisionDetection;
+            using (var physicsWorldContext = new PhysicsWorld(false))
+            {
+                var dynamicDefinition = new PhysicsDefinition { PhysicsType = PhysicsType.Dynamic, Mass = 1f };
+                Matrix dynamicMatrix = Matrix.Identity;
+                using var dynamicBody = physicsWorldContext.AddRigidBody(
+                    new Box(),
+                    Vector3.One,
+                    ref dynamicMatrix,
+                    new object(),
+                    dynamicDefinition,
+                    CollisionProfileIds.WorldDynamic);
+                var dynamicBackend = Assert.IsType<BepuBodyBackend>(dynamicBody.Backend);
+                Assert.Equal(BepuPhysics.Collidables.ContinuousDetectionMode.Continuous, dynamicBackend.Continuity.Mode);
+
+                var ghostComponent = new TestCollideableComponent();
+                Matrix ghostMatrix = Matrix.Identity;
+                using var ghostBody = physicsWorldContext.AddGhostObject(
+                    new Box(),
+                    Vector3.One,
+                    ref ghostMatrix,
+                    ghostComponent,
+                    CollisionProfileIds.Trigger);
+                var ghostBackend = Assert.IsType<BepuBodyBackend>(ghostBody.Backend);
+                Assert.Equal(BepuPhysics.Collidables.ContinuousDetectionMode.Passive, ghostBackend.Continuity.Mode);
+            }
+
+            GameSettings.PhysicsEngineSettings.Flags = PhysicsEngineFlags.None;
+            using (var physicsWorldContext = new PhysicsWorld(false))
+            {
+                var dynamicDefinition = new PhysicsDefinition { PhysicsType = PhysicsType.Dynamic, Mass = 1f };
+                Matrix dynamicMatrix = Matrix.Identity;
+                using var dynamicBody = physicsWorldContext.AddRigidBody(
+                    new Box(),
+                    Vector3.One,
+                    ref dynamicMatrix,
+                    new object(),
+                    dynamicDefinition,
+                    CollisionProfileIds.WorldDynamic);
+                var dynamicBackend = Assert.IsType<BepuBodyBackend>(dynamicBody.Backend);
+                Assert.Equal(BepuPhysics.Collidables.ContinuousDetectionMode.Passive, dynamicBackend.Continuity.Mode);
+
+                var ghostComponent = new TestCollideableComponent();
+                Matrix ghostMatrix = Matrix.Identity;
+                using var ghostBody = physicsWorldContext.AddGhostObject(
+                    new Box(),
+                    Vector3.One,
+                    ref ghostMatrix,
+                    ghostComponent,
+                    CollisionProfileIds.Trigger);
+                var ghostBackend = Assert.IsType<BepuBodyBackend>(ghostBody.Backend);
+                Assert.Equal(BepuPhysics.Collidables.ContinuousDetectionMode.Passive, ghostBackend.Continuity.Mode);
+            }
+        }
+        finally
+        {
+            GameSettings.PhysicsEngineSettings.Flags = originalFlags;
+        }
+    }
+
+    [Fact]
+    public void DynamicCompound_WithZOnlyAngularFactor_HasZeroOffDiagonalInverseInertiaTerms()
+    {
+        using var physicsWorldContext = new PhysicsWorld(false);
+
+        var compoundFixtures = new[]
+        {
+            new ColliderFixture(new Box()) { LocalPosition = new Vector3(1f, 0f, 0f) },
+            new ColliderFixture(new Box()) { LocalPosition = new Vector3(-1f, 0f, 0f) },
+        };
+
+        var compoundDefinition = new PhysicsDefinition
+        {
+            PhysicsType = PhysicsType.Dynamic,
+            Mass = 2f,
+            ApplyGravity = false,
+            AngularFactor = new Vector3(0f, 0f, 1f),
+        };
+        Matrix compoundMatrix = Matrix.Identity;
+        using var compoundBox = physicsWorldContext.AddRigidBody(
+            compoundFixtures,
+            Vector3.One,
+            ref compoundMatrix,
+            new object(),
+            compoundDefinition,
+            CollisionProfileIds.WorldDynamic);
+
+        var compoundBackend = Assert.IsType<BepuBodyBackend>(compoundBox.Backend);
+        var inverseInertiaTensor = compoundBackend.Inertia.InverseInertiaTensor;
+
+        Assert.Equal(0f, inverseInertiaTensor.YX);
+        Assert.Equal(0f, inverseInertiaTensor.ZX);
+        Assert.Equal(0f, inverseInertiaTensor.ZY);
+    }
+
+    private sealed class TestCollideableComponent : ICollideableComponent
+    {
+        public Entity Owner { get; } = new();
+
+        public PhysicsType PhysicsType => PhysicsType.Kinetic;
+
+        public HashSet<Collision> Collisions { get; } = [];
     }
 
     private static float ExtractYAngularSpeed(Matrix after, Matrix before)
