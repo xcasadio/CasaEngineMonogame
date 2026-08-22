@@ -33,6 +33,9 @@ public sealed class BepuPhysicsEngine
     private float _accumulator;
     private bool _disposed;
 
+    /// <summary>True once the simulation has been torn down: bodies disposed afterwards must not touch it.</summary>
+    internal bool IsDisposed => _disposed;
+
     // Collision bookkeeping: mirrors the Bullet backend's algorithm, simplified because a
     // (component, component) pair is now the collidable pair itself (no native-pointer identity
     // to reconcile: a compound body is a single Bepu handle regardless of its fixture count).

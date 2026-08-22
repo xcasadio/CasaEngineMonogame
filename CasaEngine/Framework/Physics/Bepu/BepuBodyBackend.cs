@@ -275,6 +275,15 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
 
     public void RemoveFromSimulation()
     {
+        //A disposed engine has already torn its simulation down: the handles are dead, there is
+        //nothing left to remove (a component may dispose its bodies after its world went away).
+        if (_engine.IsDisposed)
+        {
+            _staticHandle = null;
+            _bodyHandle = null;
+            return;
+        }
+
         if (_staticHandle.HasValue)
         {
             Pose = _engine.Simulation.Statics[_staticHandle.Value].Pose;
@@ -311,7 +320,12 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
         }
 
         RemoveFromSimulation();
-        _engine.ReleaseBodyShape(this);
+
+        if (!_engine.IsDisposed)
+        {
+            _engine.ReleaseBodyShape(this);
+        }
+
         _disposed = true;
     }
 }
