@@ -61,6 +61,7 @@ public class AuthoringAssetJsonSerializerTests
             Name = "Run",
             SkeletonAssetId = Guid.NewGuid(),
             DurationSeconds = 1.25f,
+            LoopPeriodSeconds = 1.3f,
         };
 
         var rootTrack = new AnimationJointTrackAsset
@@ -87,6 +88,12 @@ public class AuthoringAssetJsonSerializerTests
         Assert.Equal(clipAsset.Name, loadedClipAsset.Name);
         Assert.Equal(clipAsset.SkeletonAssetId, loadedClipAsset.SkeletonAssetId);
         Assert.Equal(clipAsset.DurationSeconds, loadedClipAsset.DurationSeconds);
+        Assert.Equal(1.3f, loadedClipAsset.LoopPeriodSeconds);
+        // Older documents have no loop period: it reads back as 0 (= duration at clip creation).
+        document.Remove("loop_period_seconds");
+        var legacyClipAsset = new AnimationClipAsset();
+        legacyClipAsset.Load(document);
+        Assert.Equal(0f, legacyClipAsset.LoopPeriodSeconds);
         Assert.Single(loadedClipAsset.JointTracks);
         Assert.Equal("root", loadedClipAsset.JointTracks[0].JointName);
         Assert.Equal(2, loadedClipAsset.JointTracks[0].TranslationKeyframes.Count);

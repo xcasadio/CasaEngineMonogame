@@ -817,7 +817,7 @@ public sealed class AnimationController
             return;
         }
 
-        var durationSeconds = state.Clip.DurationSeconds;
+        var durationSeconds = state.Clip.LoopPeriodSeconds; // one cycle of a looping state
         if (!state.Loop || durationSeconds <= 0f)
         {
             DispatchAnimationEventsInRange(eventTrack, previousTimeSeconds, currentTimeSeconds);

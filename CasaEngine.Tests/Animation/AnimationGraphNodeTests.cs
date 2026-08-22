@@ -23,6 +23,24 @@ public class AnimationGraphNodeTests
     }
 
     [Fact]
+    public void AnimationClipNode_Advance_WrapsOnTheLoopPeriodNotTheDuration()
+    {
+        var skeleton = CreateSkeleton();
+        var clip = CreateClip(skeleton, "Move", Vector3.Zero, new Vector3(10f, 0f, 0f)).WithLoopPeriod(1.25f);
+        var node = new AnimationClipNode(clip, loop: true);
+
+        node.Advance(1.125f);
+        Assert.Equal(1.125f, node.TimeSeconds, 4); // past the last key, still inside the cycle
+
+        var outputPose = skeleton.CreateLocalBindPose();
+        node.Evaluate(outputPose);
+        Assert.Equal(5f, outputPose.GetTransform(0).Translation.X, 3); // walking back to the first key
+
+        node.Advance(0.25f);
+        Assert.Equal(0.125f, node.TimeSeconds, 4);
+    }
+
+    [Fact]
     public void LinearBlendAnimationNode_Evaluate_BlendsChildren()
     {
         var skeleton = CreateSkeleton();

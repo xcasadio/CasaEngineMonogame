@@ -43,7 +43,8 @@ public static class RetargetProcessor
             retargetProfile.TargetSkeleton,
             jointTracks,
             sourceClip.DurationSeconds,
-            CopyEventTrack(sourceClip.EventTrack));
+            CopyEventTrack(sourceClip.EventTrack),
+            sourceClip.LoopPeriodSeconds);
     }
 
     private static Vector3AnimationTrack RetargetTranslationTrack(

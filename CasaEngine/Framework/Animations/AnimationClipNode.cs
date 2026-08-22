@@ -28,12 +28,12 @@ public sealed class AnimationClipNode : IAnimationGraphRuntimeNode
         }
 
         var nextTimeSeconds = TimeSeconds + (elapsedSeconds * Speed);
-        if (Loop && Clip.DurationSeconds > float.Epsilon)
+        if (Loop && Clip.LoopPeriodSeconds > float.Epsilon)
         {
-            nextTimeSeconds %= Clip.DurationSeconds;
+            nextTimeSeconds %= Clip.LoopPeriodSeconds;
             if (nextTimeSeconds < 0f)
             {
-                nextTimeSeconds += Clip.DurationSeconds;
+                nextTimeSeconds += Clip.LoopPeriodSeconds;
             }
         }
         else

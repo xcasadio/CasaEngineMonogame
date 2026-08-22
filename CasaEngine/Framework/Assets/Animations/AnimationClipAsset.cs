@@ -10,6 +10,9 @@ public sealed class AnimationClipAsset : ObjectBase
 
     public float DurationSeconds { get; set; }
 
+    /// <summary>Loop cycle length; 0 (default, and when absent from older assets) means <see cref="DurationSeconds"/>.</summary>
+    public float LoopPeriodSeconds { get; set; }
+
     public List<AnimationJointTrackAsset> JointTracks { get; } = new();
 
     public List<AnimationEventAsset> Events { get; } = new();
@@ -49,6 +52,10 @@ public static class AnimationClipAssetJsonSerializer
         node["name"] = animationClipAsset.Name;
         node["skeleton_asset_id"] = animationClipAsset.SkeletonAssetId.ToString();
         node["duration_seconds"] = animationClipAsset.DurationSeconds;
+        if (animationClipAsset.LoopPeriodSeconds > 0f)
+        {
+            node["loop_period_seconds"] = animationClipAsset.LoopPeriodSeconds;
+        }
 
         var jointTracksNode = new JArray();
         for (var index = 0; index < animationClipAsset.JointTracks.Count; index++)
@@ -74,6 +81,7 @@ public static class AnimationClipAssetJsonSerializer
 
         animationClipAsset.SkeletonAssetId = node["skeleton_asset_id"]?.GetGuid() ?? Guid.Empty;
         animationClipAsset.DurationSeconds = node["duration_seconds"]?.Value<float>() ?? 0f;
+        animationClipAsset.LoopPeriodSeconds = node["loop_period_seconds"]?.Value<float>() ?? 0f;
 
         animationClipAsset.JointTracks.Clear();
         if (node["joint_tracks"] is JArray jointTracksNode)

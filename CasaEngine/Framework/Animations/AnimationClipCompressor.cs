@@ -33,7 +33,7 @@ public static class AnimationClipCompressor
             compressedTracks.Add(new JointAnimationTrack(jointIndex, translationTrack, rotationTrack, scaleTrack));
         }
 
-        return new AnimationClip(clip.Name, clip.Skeleton, compressedTracks, clip.DurationSeconds, clip.EventTrack);
+        return new AnimationClip(clip.Name, clip.Skeleton, compressedTracks, clip.DurationSeconds, clip.EventTrack, clip.LoopPeriodSeconds);
     }
 
     private static Vector3AnimationTrack CompressVector3Track(Vector3AnimationTrack track, Vector3 bindValue, float tolerance)

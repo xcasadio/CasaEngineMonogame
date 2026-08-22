@@ -34,6 +34,7 @@ public static class AnimationAssetDataConverter
         {
             SkeletonAssetId = skeletonAssetId,
             DurationSeconds = animationClip.DurationSeconds,
+            LoopPeriodSeconds = animationClip.LoopPeriodSeconds > animationClip.DurationSeconds ? animationClip.LoopPeriodSeconds : 0f,
         };
 
         for (var jointIndex = 0; jointIndex < animationClip.Skeleton.Count; jointIndex++)
@@ -127,7 +128,7 @@ public static class AnimationAssetDataConverter
         var clipName = string.IsNullOrWhiteSpace(animationClipAsset.Name)
             ? "AnimationClip"
             : animationClipAsset.Name;
-        return new AnimationClip(clipName, skeletonDefinition, jointTracks, animationClipAsset.DurationSeconds, eventTrack);
+        return new AnimationClip(clipName, skeletonDefinition, jointTracks, animationClipAsset.DurationSeconds, eventTrack, animationClipAsset.LoopPeriodSeconds);
     }
 
     private static void CopyVector3Track(Vector3AnimationTrack sourceTrack, List<Vector3AnimationKeyframeAsset> destinationKeyframes)

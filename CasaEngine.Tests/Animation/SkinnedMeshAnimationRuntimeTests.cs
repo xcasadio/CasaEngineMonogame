@@ -59,6 +59,27 @@ public class SkinnedMeshAnimationRuntimeTests
     }
 
     [Fact]
+    public void AnimationTimeSeconds_WrapsOnTheLoopPeriod_ForALoopingState()
+    {
+        var riggedModel = CreateRiggedModel();
+        var skeleton = CreateSkeleton();
+        riggedModel.OverrideRuntimeAnimationAssets(
+            skeleton,
+            new[] { CreateClip(skeleton, "Move", Vector3.Zero, new Vector3(8f, 0f, 0f)).WithLoopPeriod(1.25f) });
+
+        var runtime = new SkinnedMeshAnimationRuntime(riggedModel);
+        runtime.PlayAnimation(0);
+        runtime.Update(1.125f);
+
+        Assert.Equal(1.125f, runtime.AnimationTimeSeconds, 4);
+        // 1 s -> x = 8, 1.25 s -> back to x = 0: halfway through the extra interval.
+        Assert.Equal(4f, runtime.LocalPose.GetTransform(0).Translation.X, 3);
+
+        runtime.Update(0.25f);
+        Assert.Equal(0.125f, runtime.AnimationTimeSeconds, 4);
+    }
+
+    [Fact]
     public void BeginAnimation_CreatesLegacyRuntimeOnDemand()
     {
         var riggedModel = CreateRiggedModel();

@@ -101,8 +101,8 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
             }
 
             // A looping state accumulates time without wrapping (the sampler applies the modulo);
-            // report the time within the clip so callers can map it to a frame.
-            float duration = state.Clip.DurationSeconds;
+            // report the time within the cycle so callers can map it to a frame.
+            float duration = state.Clip.LoopPeriodSeconds;
             if (!state.Loop || duration <= 0f)
             {
                 return state.TimeSeconds;

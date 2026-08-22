@@ -15,7 +15,10 @@ public sealed class AnimationClipSampler
         }
 
         var skeleton = destination.Skeleton;
-        var evaluationTime = NormalizeClipTime(timeSeconds, clip.DurationSeconds, loop);
+        // Looped, the clip repeats every LoopPeriodSeconds; the track samplers interpolate from
+        // the last keyframe back to the first over whatever that period adds past the last key.
+        var periodSeconds = loop ? clip.LoopPeriodSeconds : clip.DurationSeconds;
+        var evaluationTime = NormalizeClipTime(timeSeconds, periodSeconds, loop);
 
         for (var jointIndex = 0; jointIndex < skeleton.Count; jointIndex++)
         {
@@ -28,9 +31,9 @@ public sealed class AnimationClipSampler
             }
 
             var sampledTransform = new BoneTransform(
-                SampleVector3Track(jointTrack.TranslationTrack, evaluationTime, clip.DurationSeconds, loop, bindTransform.Translation),
-                SampleQuaternionTrack(jointTrack.RotationTrack, evaluationTime, clip.DurationSeconds, loop, bindTransform.Rotation),
-                SampleVector3Track(jointTrack.ScaleTrack, evaluationTime, clip.DurationSeconds, loop, bindTransform.Scale));
+                SampleVector3Track(jointTrack.TranslationTrack, evaluationTime, periodSeconds, loop, bindTransform.Translation),
+                SampleQuaternionTrack(jointTrack.RotationTrack, evaluationTime, periodSeconds, loop, bindTransform.Rotation),
+                SampleVector3Track(jointTrack.ScaleTrack, evaluationTime, periodSeconds, loop, bindTransform.Scale));
 
             destination.SetTransformDirect(jointIndex, sampledTransform);
         }
