@@ -53,6 +53,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 - [editor-runtime-separation-audit-report.md](audits/editor-runtime-separation-audit-report.md) — audit de la séparation éditeur/runtime.
 - [runtime-editor-separation-reliquats-audit.md](audits/runtime-editor-separation-reliquats-audit.md) — reliquats de séparation runtime/éditeur (dernière passe).
 - [analysis-possession-gameplay-framework.md](audits/analysis-possession-gameplay-framework.md) — état de la possession (Pawn/Controller/PlayerController) et comparaison Unreal/Unity/Godot.
+- [analysis-bepuphysics2-migration.md](audits/analysis-bepuphysics2-migration.md) — migration du backend physique BulletSharp → bepuphysics2 2.5.0-beta.29 : surface consommée, correspondance concept par concept, risques sémantiques, plan en 6 tranches.
 
 ### Rendu et materials
 
