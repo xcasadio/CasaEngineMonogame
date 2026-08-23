@@ -118,20 +118,23 @@ public class CharacterControllerFieldAwareMoverTests
     }
 
     /// <summary>
-    /// E3.c-bis acceptance: a box fixture 15 px deep, centred in a 16-px cell via a 0.5 local-position
-    /// offset (matching the original's <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c> collision box, as
-    /// Alundra's G2 fixture does on each horizontal axis), lands its far corner exactly on the boundary
-    /// with the neighbour cell. Without the far-corner epsilon that neighbour cell would be sampled too;
-    /// raising it well above step height would then block grounding even though the fixture's own cell
-    /// is flat.
+    /// E3.c-bis acceptance (C4 variant): a box fixture 15 px deep, centred in a 16-px cell via a 0.5
+    /// local-position offset (matching the original's <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c>
+    /// collision box, as Alundra's G2 fixture does on each horizontal axis), lands its far corner
+    /// exactly on the boundary with the neighbour cell. The neighbour cell is raised to 5, inside the
+    /// C4 probe window (probe origin 24, well above 5) so it is a candidate ground either way: without
+    /// the far-corner epsilon that corner samples the neighbour cell and the pawn grounds at its height
+    /// (5); with the epsilon it stays in its own cell and grounds at 0. A neighbour far above the probe
+    /// window (as in an earlier version of this test) would be rejected by the window check with or
+    /// without the epsilon and would not discriminate the two behaviours.
     /// </summary>
     [Fact]
-    public void FootprintFarCorner_OnCellBoundary_SamplesOnlyItsOwnCell()
+    public void FootprintFarCorner_OnCellBoundary_GroundsInItsOwnCell_NotTheRaisedNeighbour()
     {
         const int width = 4;
         const int depth = 4;
         var heights = new float[width * depth];
-        heights[1 * width + 2] = 100f; // cell (x=2, y=1): the h1-far neighbour of cell (1, 1).
+        heights[1 * width + 2] = 5f; // cell (x=2, y=1): the h1-far neighbour of cell (1, 1).
         var field = new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, up: Vector3.UnitZ);
 
         var entity = CreateEntityWithRoot();
@@ -160,6 +163,50 @@ public class CharacterControllerFieldAwareMoverTests
 
         AssertPosition(new Vector3(24f, 24f, 0f), entity.RootComponent!.Position);
         Assert.True(component.IsGrounded);
+    }
+
+    /// <summary>
+    /// E3.c-bis acceptance (C5 variant): same boundary-straddling fixture as above, already grounded at
+    /// the centre of its own cell, with the h1-far neighbour raised to 100 (above step height, so it
+    /// blocks if sampled). A pure h2 move (parallel to the h1 boundary, h1 displacement 0) still probes
+    /// all 4 footprint corners at the candidate position, including the h1-far one - which sits on the
+    /// h1 boundary regardless of the h2 move. Without the far-corner epsilon that corner samples the
+    /// raised neighbour and blocks the h2 move entirely (position unchanged); with the epsilon it stays
+    /// in the pawn's own (flat) cell and the move is allowed.
+    /// </summary>
+    [Fact]
+    public void FootprintFarCorner_OnCellBoundary_DoesNotBlockAMoveOnTheOtherAxis()
+    {
+        const int width = 4;
+        const int depth = 4;
+        var heights = new float[width * depth];
+        heights[1 * width + 2] = 100f; // cell (x=2, y=1): the h1-far neighbour of cell (1, 1).
+        var field = new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, up: Vector3.UnitZ);
+
+        var entity = CreateEntityWithRoot();
+        var world = CreateWorld(new PhysicsWorld(useExternalViewManagement: false, spacePolicy: new TopDownElevationSimulationSpacePolicy()));
+        world.CollisionField = field;
+        SetWorld(entity, world);
+
+        var collisionComponent = new CollisionComponent();
+        collisionComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(15f, 15f, 32f) })
+        {
+            LocalPosition = new Vector3(0.5f, 0.5f, 16f),
+        });
+        entity.AddComponent(collisionComponent);
+        AttachToRoot(entity, collisionComponent);
+
+        var component = new TestCharacterControllerComponent();
+        ConfigureFieldAwareSettings(component.Settings);
+        entity.AddComponent(component);
+
+        // Already grounded at the centre of cell (1, 1); its h1-far corner sits on the boundary with
+        // the raised cell (2, 1) regardless of any h2 (Y) displacement.
+        entity.RootComponent!.Position = new Vector3(24f, 24f, 0f);
+
+        component.Move(new Vector3(0f, 1f, 0f));
+
+        AssertPosition(new Vector3(24f, 25f, 0f), entity.RootComponent!.Position);
     }
 
     [Fact]
