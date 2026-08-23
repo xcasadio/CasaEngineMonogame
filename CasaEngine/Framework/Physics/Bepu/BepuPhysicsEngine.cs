@@ -843,7 +843,13 @@ public sealed class BepuPhysicsEngine
         {
             foreach (var collision in pendingRemoval)
             {
-                _collisions.Remove(collision);
+                //A nested teardown (OnHitEnded re-entering ClearCollisionDataFrom) may already have
+                //ended this collision: end it once.
+                if (!_collisions.Remove(collision))
+                {
+                    continue;
+                }
+
                 collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
                 collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
                 collision.ColliderA.Collisions.Remove(collision);
