@@ -78,6 +78,17 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
     /// body inserted as a body (dynamic or kinematic); a static or a removed body reports awake.</summary>
     internal bool IsAwake => !_bodyHandle.HasValue || _engine.Simulation.Bodies[_bodyHandle.Value].Awake;
 
+    /// <summary>
+    /// True for a dynamic body whose <c>LinearFactor</c> locks at least one axis. The pose integrator
+    /// only masks the velocity it integrates; the solver may still push along a locked axis within a
+    /// step, so the engine re-clamps such bodies after every step (<see cref="EnforceLinearLock"/>).
+    /// </summary>
+    internal bool HasLinearLock => Mobility == BepuMobility.Dynamic
+        && (_linearFactor.X == 0f || _linearFactor.Y == 0f || _linearFactor.Z == 0f);
+
+    /// <summary>Position the locked axes are held at: the pose the body was given by gameplay.</summary>
+    private System.Numerics.Vector3 _lockedPosition;
+
     public BepuBodyBackend(
         BepuPhysicsEngine engine,
         BepuMobility mobility,
@@ -162,6 +173,7 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
         set
         {
             Pose = value.ToRigidPose();
+            _lockedPosition = Pose.Position;
 
             if (_staticHandle.HasValue)
             {
@@ -278,8 +290,44 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
                 ? BodyDescription.CreateDynamic(Pose, Inertia, collidable, Activity)
                 : BodyDescription.CreateKinematic(Pose, collidable, Activity);
             _bodyHandle = _engine.Simulation.Bodies.Add(description);
+            _lockedPosition = Pose.Position;
             _engine.RegisterBody(_bodyHandle.Value, this);
             WriteCollidableData(ref _engine.CollidableData.Allocate(_bodyHandle.Value));
+        }
+    }
+
+    /// <summary>
+    /// Clamps the locked axes back to their held position and zeroes their velocity, after a step.
+    /// Mirrors Bullet's linear factor, which masked the solver's velocity deltas so a locked axis never
+    /// moved; Bepu exposes no such hook, hence the post-step correction.
+    /// </summary>
+    internal void EnforceLinearLock()
+    {
+        if (!_bodyHandle.HasValue)
+        {
+            return;
+        }
+
+        var bodyReference = _engine.Simulation.Bodies[_bodyHandle.Value];
+        ref var position = ref bodyReference.Pose.Position;
+        ref var linearVelocity = ref bodyReference.Velocity.Linear;
+
+        if (_linearFactor.X == 0f)
+        {
+            position.X = _lockedPosition.X;
+            linearVelocity.X = 0f;
+        }
+
+        if (_linearFactor.Y == 0f)
+        {
+            position.Y = _lockedPosition.Y;
+            linearVelocity.Y = 0f;
+        }
+
+        if (_linearFactor.Z == 0f)
+        {
+            position.Z = _lockedPosition.Z;
+            linearVelocity.Z = 0f;
         }
     }
 

@@ -13,9 +13,14 @@ public class PhysicsDefinition
     public float LinearDamping { get; set; } = 0f;
     public Vector3 LinearFactor { get; set; } = Vector3.One;
 
-    /// Bepu sleep threshold: squared velocity below which a dynamic body is allowed to sleep.
+    /// Squared velocity (linear² + angular²) below which a dynamic body is allowed to sleep once it
+    /// stayed under it for <see cref="SleepDelaySeconds"/>. The default mirrors the former Bullet
+    /// deactivation (0.8 units/s): a slow roller settles instead of creeping forever.
     /// A negative value means the body never sleeps.
-    public float SleepThreshold { get; set; } = 0.01f;
+    public float SleepThreshold { get; set; } = 0.64f;
+
+    /// Seconds a body must stay under <see cref="SleepThreshold"/> before it may sleep (Bullet used 2 s).
+    public const float SleepDelaySeconds = 2f;
 
     public float Mass { get; set; } = 0f;
 

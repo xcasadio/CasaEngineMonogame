@@ -78,6 +78,63 @@ public class BepuDynamicsTests
         }
     }
 
+    /// <summary>
+    /// Boxes spawned overlapping by the same amount along X and along the locked Z axis: the solver is
+    /// free to separate them along Z. The pose integrator alone cannot prevent that drift (it only masks
+    /// the velocity it integrates); the post-step clamp must hold the locked axis.
+    /// </summary>
+    [Fact]
+    public void OverlappingBoxes_WithLockedZ_AreNeverPushedAlongZ()
+    {
+        using var physicsWorldContext = new PhysicsWorld(false);
+
+        Matrix groundMatrix = Matrix.Identity;
+        using var ground = physicsWorldContext.AddStaticObject(
+            new Box { Size = new Vector3(150f, 1f, 1f) },
+            Vector3.One,
+            ref groundMatrix,
+            new object(),
+            new PhysicsDefinition { PhysicsType = PhysicsType.Static },
+            CollisionProfileIds.WorldStatic);
+
+        var boxes = new PhysicsBody[5];
+        for (int i = 0; i < boxes.Length; i++)
+        {
+            //2x2x1 boxes one unit apart: neighbours overlap by 1 on X and by their whole depth on Z.
+            Matrix boxMatrix = Matrix.CreateTranslation(3f + i, 8f, 0f);
+            boxes[i] = physicsWorldContext.AddRigidBody(
+                new Box { Size = new Vector3(2f, 2f, 1f) },
+                Vector3.One,
+                ref boxMatrix,
+                new object(),
+                new PhysicsDefinition
+                {
+                    PhysicsType = PhysicsType.Dynamic,
+                    Mass = 1f,
+                    LinearFactor = new Vector3(1f, 1f, 0f),
+                    AngularFactor = new Vector3(0f, 0f, 1f),
+                },
+                CollisionProfileIds.WorldDynamic);
+        }
+
+        for (int step = 0; step < 600; step++)
+        {
+            physicsWorldContext.Update(1f / 60f);
+        }
+
+        for (int i = 0; i < boxes.Length; i++)
+        {
+            var translation = boxes[i].WorldTransform.Translation;
+            Assert.True(Math.Abs(translation.Z) < 1e-4f, $"box {i} drifted on Z: {translation.Z}");
+            Assert.True(translation.Y > 0f, $"box {i} fell past the ground: {translation.Y}");
+        }
+
+        foreach (var box in boxes)
+        {
+            box.Dispose();
+        }
+    }
+
     [Fact]
     public void StillDynamicBody_FallsAsleepAfterEnoughSteps()
     {
@@ -103,7 +160,8 @@ public class BepuDynamicsTests
         var backend = Assert.IsType<BepuBodyBackend>(body.Backend);
         Assert.True(backend.IsAwake);
 
-        for (int step = 0; step < 120; step++)
+        //The body must stay under the threshold for PhysicsDefinition.SleepDelaySeconds (2 s) first.
+        for (int step = 0; step < 180; step++)
         {
             physicsWorldContext.Update(1f / 60f);
         }

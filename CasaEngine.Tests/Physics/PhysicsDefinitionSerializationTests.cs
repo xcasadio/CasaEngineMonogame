@@ -56,7 +56,7 @@ public class PhysicsDefinitionSerializationTests
         Assert.Null(definition.DebugColor);
 
         // sleep_threshold is absent from this legacy node: falls back to the default.
-        Assert.Equal(0.01f, definition.SleepThreshold);
+        Assert.Equal(new PhysicsDefinition().SleepThreshold, definition.SleepThreshold);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class PhysicsDefinitionSerializationTests
         Assert.Equal(0.5f, definition.Friction);
         Assert.Equal(0f, definition.LinearDamping);
         Assert.Equal(Vector3.One, definition.LinearFactor);
-        Assert.Equal(0.01f, definition.SleepThreshold);
+        Assert.Equal(new PhysicsDefinition().SleepThreshold, definition.SleepThreshold);
         Assert.Equal(0f, definition.Mass);
         Assert.Equal(0f, definition.Restitution);
         Assert.True(definition.ApplyGravity);

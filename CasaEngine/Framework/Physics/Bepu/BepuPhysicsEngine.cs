@@ -28,6 +28,9 @@ public sealed class BepuPhysicsEngine
     private readonly List<BepuBodyBackend> _bodyBackends = new();
     private readonly List<BepuBodyBackend> _staticBackends = new();
 
+    /// <summary>Inserted dynamic bodies with a locked linear axis, re-clamped after every step.</summary>
+    private readonly List<BepuBodyBackend> _linearLockedBodies = new();
+
     private int _insertedBodyCount;
     private int _insertedStaticCount;
     private float _accumulator;
@@ -217,7 +220,7 @@ public sealed class BepuPhysicsEngine
             friction: physicsDefinition.Friction,
             debugColor: physicsDefinition.DebugColor)
         {
-            Activity = new BodyActivityDescription(isDynamic ? physicsDefinition.SleepThreshold : -1f),
+            Activity = isDynamic ? CreateDynamicActivity(physicsDefinition.SleepThreshold) : new BodyActivityDescription(-1f),
             Continuity = isDynamic ? _dynamicContinuity : ContinuousDetection.Passive
         };
 
@@ -574,6 +577,17 @@ public sealed class BepuPhysicsEngine
         }
     }
 
+    /// <summary>
+    /// Sleep settings of a dynamic body: the threshold of its definition, held for
+    /// <see cref="PhysicsDefinition.SleepDelaySeconds"/> worth of fixed steps (capped by Bepu's byte counter).
+    /// </summary>
+    private BodyActivityDescription CreateDynamicActivity(float sleepThreshold)
+    {
+        float stepsUnderThreshold = FixedTimeStep > 0f ? PhysicsDefinition.SleepDelaySeconds / FixedTimeStep : 32f;
+        byte minimumStepCount = (byte)Math.Clamp((int)MathF.Round(stepsUnderThreshold), 1, byte.MaxValue);
+        return new BodyActivityDescription(sleepThreshold, minimumStepCount);
+    }
+
     // ----- Registration / resolution ---------------------------------------------------------
 
     internal void RegisterBody(BodyHandle handle, BepuBodyBackend backend)
@@ -581,16 +595,40 @@ public sealed class BepuPhysicsEngine
         EnsureCapacity(_bodyBackends, handle.Value);
         _bodyBackends[handle.Value] = backend;
         _insertedBodyCount++;
+
+        if (backend.HasLinearLock)
+        {
+            _linearLockedBodies.Add(backend);
+        }
     }
 
     internal void UnregisterBody(BodyHandle handle)
     {
         if (handle.Value < _bodyBackends.Count)
         {
+            var backend = _bodyBackends[handle.Value];
+            if (backend != null && backend.HasLinearLock)
+            {
+                _linearLockedBodies.Remove(backend);
+            }
+
             _bodyBackends[handle.Value] = null;
         }
 
         _insertedBodyCount--;
+    }
+
+    /// <summary>
+    /// Post-step half of the linear factor: the pose integrator masks the velocity it integrates, but the
+    /// solver can still push a body along a locked axis inside the step (contact normals are free to
+    /// point along it). Clamp the locked axes back so a planar world never drifts, as Bullet guaranteed.
+    /// </summary>
+    private void EnforceLinearLocks()
+    {
+        for (int i = 0; i < _linearLockedBodies.Count; i++)
+        {
+            _linearLockedBodies[i].EnforceLinearLock();
+        }
     }
 
     internal void RegisterStatic(StaticHandle handle, BepuBodyBackend backend)
@@ -704,6 +742,7 @@ public sealed class BepuPhysicsEngine
         {
             _contactBuffer.Clear();
             Simulation.Timestep(deltaTime);
+            EnforceLinearLocks();
             return;
         }
 
@@ -722,6 +761,7 @@ public sealed class BepuPhysicsEngine
         {
             _contactBuffer.Clear();
             Simulation.Timestep(FixedTimeStep);
+            EnforceLinearLocks();
         }
     }
 
