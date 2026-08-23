@@ -43,9 +43,15 @@ et le code supprimé par `089c2e4c`, qui passait `spriteData.Origin` = `hotspot`
    - charger le sprite ; `hotspot = {x, y}` ; `collisions[]` (clés : `collision_profile`, `shape_type`
      (`Rectangle` ou `Circle`), `location {x, y}`, `orientation`, `w`, `h` ou `radius`) ;
    - émettre un keyframe `{ "time_seconds": t, "fixtures": [...] }` avec, par volume :
-     - `Rectangle` → `shape = { "shape_type": "Box", "w": w, "h": h, "l": 1.0 }`,
+     - **tout `shape` est un `Shape3d : ObjectBase`** : son nœud porte obligatoirement `"id"` (GUID)
+       et `"name"` (`"Object <id>"`, la forme qu'écrit `EditorJsonSaveHelper.SaveObjectBase`, cf.
+       `Projects/RPGDemo/Entities/character_link.entity` lignes 72-77), **avant** `shape_type` ;
+       `ObjectBase.Load` lève sans eux. L'id est déterministe : UUID v5 (`uuid.uuid5`) sur la chaîne
+       `"<id du sprite>:<index du volume>"` avec un namespace fixe (par ex. `uuid.NAMESPACE_URL`),
+       pour que le script soit idempotent (fichier identique à la relance) ;
+     - `Rectangle` → `shape = { "id": …, "name": "Object …", "shape_type": "Box", "w": w, "h": h, "l": 1.0 }`,
        `local_position = { "x": location.x - hotspot.x + w/2, "y": -(location.y - hotspot.y + h/2), "z": 0.0 }` ;
-     - `Circle` → `shape = { "shape_type": "Sphere", "radius": r }`,
+     - `Circle` → `shape = { "id": …, "name": "Object …", "shape_type": "Sphere", "radius": r }`,
        `local_position = { "x": location.x - hotspot.x + r, "y": -(location.y - hotspot.y + r), "z": 0.0 }` ;
      - `local_rotation = { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }` (l'`orientation` des volumes
        est 0 partout : le script **échoue** avec un message si elle ne l'est pas, pas de conversion
@@ -54,7 +60,11 @@ et le code supprimé par `089c2e4c`, qui passait `spriteData.Origin` = `hotspot`
    - un sprite sans volume produit un keyframe avec `"fixtures": []` (sémantique Step : rien d'actif
      jusqu'au keyframe suivant — c'est voulu, une frame sans hitbox ne touche rien).
 3. Les keyframes sont triés par `time_seconds` ; deux keyframes au même temps (deux pistes Sprite) sont
-   fusionnés (fixtures concaténées). Clé `collision_keyframes` insérée **après** `tracks` ; le reste du
+   fusionnés (fixtures concaténées). **Non-objectif explicite** : une animation sans piste `Sprite`
+   (sprites fournis par `parts[].default_sprite_id`, offsets `parts[].default_position`) n'est pas
+   migrée et ne reçoit pas de clé `collision_keyframes` — c'est le cas de
+   `swordman_composed_demo.anim2d` (pistes `Position`/`DrawOrder` seulement) ; le script la liste
+   dans son résumé comme « ignorée : pas de piste Sprite ». Donc **63** animations migrées sur 64. Clé `collision_keyframes` insérée **après** `tracks` ; le reste du
    fichier est réécrit à l'identique (indentation 2 espaces, même ordre de clés, même fin de ligne que
    l'original — vérifier avec `git diff` que seules les lignes `collision_keyframes` s'ajoutent).
 4. `--swap-profiles` : dans les `.sprite` listés, remplace `collision_profile` `DamageableVolume` →
@@ -70,13 +80,17 @@ Le schéma cible est celui que lit `Animation2dCollisionKeyframeData.Load` →
 
 **Test `RpgDemoCollisionKeyframesTests`** (xunit, style de `MigratedCollisionAssetTests`) :
 - `EveryAnimation_HasOneCollisionKeyframePerSpriteKeyframe` : pour chaque `.anim2d` de
-  `Projects/RPGDemo/TileSets`, charger via `Animation2dData.Load(JObject)` (chemin runtime réel) et
+  `Projects/RPGDemo/TileSets` **qui a une piste `Sprite`** (63 ; `Assert.Equal(63, …)` sur le nombre de
+  fichiers retenus), charger via `Animation2dData.Load(JObject)` (chemin runtime réel) et
   vérifier `CollisionKeyframes.Count == nombre de sprite_keyframes distincts par temps`, chaque fixture
   ayant une `Shape` non nulle (`Box` ou `Sphere`) et un `ProfileName` connu de
   `GameSettings.PhysicsEngineSettings.CollisionProfiles`.
 - `SwordAttackAnimations_CarryAttackVolumes` : pour chaque `baton_attack*.anim2d`, au moins un keyframe
-  a une fixture `AttackVolume` ; pour `player_*` (anims de Link), au moins une fixture
-  `DamageableVolume` ; pour l'octopus, `DamageableVolume`.
+  a une fixture `AttackVolume` ; pour les animations de Link — fichiers **`swordman_*.anim2d`** (les
+  sprites s'appellent `player_*`, les animations `swordman_*`), hors `swordman_composed_demo` — au
+  moins une fixture `DamageableVolume` ; pour `octopus_*.anim2d`, `DamageableVolume`. Chaque glob doit
+  correspondre à **au moins un fichier** (`Assert.NotEmpty` sur la liste) : un test qui itère sur un
+  ensemble vide ne prouve rien.
 - `SwordKeyframe_PlacesTheVolumeLikeTheSpriteHelperDid` : cas concret calculé à la main à partir de
   `sword_29.sprite` (hotspot `(-15, 17)`, volume `location (16, 8)`, `w 34`, `h 7`) → la fixture du
   keyframe qui référence ce sprite a `LocalPosition == (16 - (-15) + 17, -(8 - 17 + 3.5), 0) = (48, 5.5, 0)`
@@ -95,9 +109,11 @@ reporté (le moteur n'est pas dans le périmètre) ; jamais de `Skip`, jamais d'
 
 **Acceptation** :
 - `python Tools/migrate-sprite-collisions-to-keyframes.py Projects/RPGDemo --dry-run` affiche
-  64 animations, nombre de keyframes émis, nombre de fixtures, 0 erreur ;
-- `git diff --stat` : 64 `.anim2d` + les `.sprite` épée/player modifiés, rien d'autre ;
-- `rg -c "collision_keyframes" Projects/RPGDemo/TileSets/*.anim2d` → 64 ;
+  63 animations migrées + 1 ignorée (`swordman_composed_demo`), nombre de keyframes émis, nombre de
+  fixtures, 0 erreur ; une seconde exécution réelle ne change aucun fichier (`git status` propre
+  après la première) ;
+- `git diff --stat` : 63 `.anim2d` + les `.sprite` épée/player modifiés, rien d'autre ;
+- `rg -l "collision_keyframes" Projects/RPGDemo/TileSets/*.anim2d | wc -l` → 63 ;
 - `jq -e .` valide sur chaque fichier réécrit ;
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter "FullyQualifiedName~RpgDemoCollisionKeyframes"` vert ;
 - suite physique (`--filter FullyQualifiedName~CasaEngine.Tests.Physics`) : 178 + nouveaux, 0 échec ;
