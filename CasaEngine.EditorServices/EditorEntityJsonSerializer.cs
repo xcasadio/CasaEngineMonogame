@@ -212,6 +212,10 @@ internal static class EditorEntityJsonSerializer
                 SaveCollisionComponent(collisionComponent, node);
                 return;
 
+            case CharacterControllerComponent characterControllerComponent:
+                SaveCharacterControllerComponent(characterControllerComponent, node);
+                return;
+
             case LightComponent lightComponent:
                 SaveLightComponent(lightComponent, node);
                 return;
@@ -421,6 +425,44 @@ internal static class EditorEntityJsonSerializer
     {
         SavePhysicsBaseComponent(component, node);
         node.AddArray("fixtures", component.Fixtures, SaveColliderFixture);
+    }
+
+    /// <summary>
+    /// E3.d.0: <see cref="CharacterControllerComponent"/> is an <see cref="EntityComponent"/> (not a
+    /// <see cref="SceneComponent"/>), so without this case it fell into the generic
+    /// <c>default:</c> branch, which only saves <c>ObjectBase</c> + <c>type</c> - its settings and
+    /// control mode were silently dropped on every save even though <see cref="CharacterControllerComponent.Load"/>
+    /// reads both back. Keys mirror exactly what <see cref="CharacterControllerSettings.Load"/> reads.
+    /// </summary>
+    private static void SaveCharacterControllerComponent(CharacterControllerComponent component, JObject node)
+    {
+        SaveEntityComponent(component, node);
+
+        var settings = component.Settings;
+        var settingsNode = new JObject();
+        settingsNode.Add("radius", settings.Radius);
+        settingsNode.Add("height", settings.Height);
+        settingsNode.Add("skin_width", settings.SkinWidth);
+        settingsNode.Add("max_horizontal_speed", settings.MaxHorizontalSpeed);
+        settingsNode.Add("acceleration", settings.Acceleration);
+        settingsNode.Add("deceleration", settings.Deceleration);
+        settingsNode.Add("gravity", settings.Gravity);
+        settingsNode.Add("jump_speed", settings.JumpSpeed);
+        settingsNode.Add("coyote_time_seconds", settings.CoyoteTimeSeconds);
+        settingsNode.Add("jump_buffer_seconds", settings.JumpBufferSeconds);
+        settingsNode.Add("dash_speed", settings.DashSpeed);
+        settingsNode.Add("dash_duration_seconds", settings.DashDurationSeconds);
+        settingsNode.Add("dash_cooldown_seconds", settings.DashCooldownSeconds);
+        settingsNode.Add("max_slope_angle", settings.MaxSlopeAngle);
+        settingsNode.Add("ground_snap_distance", settings.GroundSnapDistance);
+        settingsNode.Add("step_height", settings.StepHeight);
+        settingsNode.Add("collision_profile", settings.ProfileName);
+        settingsNode.Add("hit_triggers", settings.HitTriggers);
+        settingsNode.Add("walkability_mask", settings.WalkabilityMask);
+        settingsNode.Add("max_fall_speed", settings.MaxFallSpeed);
+        node.Add("settings", settingsNode);
+
+        node.Add("control_mode", component.ControlMode.ToString());
     }
 
     internal static void SaveColliderFixture(ColliderFixture fixture, JObject node)
