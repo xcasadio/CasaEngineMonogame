@@ -37,5 +37,91 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "f124bae7-d80a-5aef-9445-3c72ae8898e0",
+            "name": "Object f124bae7-d80a-5aef-9445-3c72ae8898e0",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_22"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.15,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "c6f83140-5706-5bcf-aff1-d1d2e189b0f3",
+            "name": "Object c6f83140-5706-5bcf-aff1-d1d2e189b0f3",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_23"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.3,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "c6f83140-5706-5bcf-aff1-d1d2e189b0f3",
+            "name": "Object c6f83140-5706-5bcf-aff1-d1d2e189b0f3",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_23"
+        }
+      ]
+    }
   ]
 }

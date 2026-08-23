@@ -45,5 +45,147 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "15b65d7c-6803-5b93-8641-6227a2dfb137",
+            "name": "Object 15b65d7c-6803-5b93-8641-6227a2dfb137",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_52"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.03,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "187a73f2-e422-5aed-8c56-14817574504a",
+            "name": "Object 187a73f2-e422-5aed-8c56-14817574504a",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_53"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.06,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "e65facc1-84c8-5e1e-8f81-5aa1eb0f6815",
+            "name": "Object e65facc1-84c8-5e1e-8f81-5aa1eb0f6815",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_54"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.09,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "0665cbd5-2c5c-5c6a-9df8-eba98585c8f0",
+            "name": "Object 0665cbd5-2c5c-5c6a-9df8-eba98585c8f0",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_55"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.12,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "0665cbd5-2c5c-5c6a-9df8-eba98585c8f0",
+            "name": "Object 0665cbd5-2c5c-5c6a-9df8-eba98585c8f0",
+            "shape_type": "Box",
+            "w": 28.0,
+            "h": 36.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 0.0,
+            "y": 11.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "player_55"
+        }
+      ]
+    }
   ]
 }

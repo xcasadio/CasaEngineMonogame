@@ -57,5 +57,369 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "a62b0619-7735-5a6b-8b42-4f03326650d5",
+            "name": "Object a62b0619-7735-5a6b-8b42-4f03326650d5",
+            "shape_type": "Box",
+            "w": 34.0,
+            "h": 7.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 43.0,
+            "y": 6.5,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_7"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.03,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "2f3038df-47dd-5752-a894-30be7fea02cf",
+            "name": "Object 2f3038df-47dd-5752-a894-30be7fea02cf",
+            "shape_type": "Box",
+            "w": 10.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 23.0,
+            "y": 23.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_8"
+        },
+        {
+          "shape": {
+            "id": "ff671ab3-a67b-5368-89d7-e640bddefd4c",
+            "name": "Object ff671ab3-a67b-5368-89d7-e640bddefd4c",
+            "shape_type": "Box",
+            "w": 10.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 31.0,
+            "y": 31.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_8"
+        },
+        {
+          "shape": {
+            "id": "c758ece4-afe1-5c06-81be-3dee59e548b2",
+            "name": "Object c758ece4-afe1-5c06-81be-3dee59e548b2",
+            "shape_type": "Box",
+            "w": 10.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 37.0,
+            "y": 38.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_8"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.06,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "6f6e5be9-dd88-50ae-8a90-abdab774673e",
+            "name": "Object 6f6e5be9-dd88-50ae-8a90-abdab774673e",
+            "shape_type": "Box",
+            "w": 8.0,
+            "h": 18.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -1.0,
+            "y": 31.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_9"
+        },
+        {
+          "shape": {
+            "id": "8a759f34-e594-5273-953b-09785ce815a8",
+            "name": "Object 8a759f34-e594-5273-953b-09785ce815a8",
+            "shape_type": "Box",
+            "w": 8.0,
+            "h": 18.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 7.0,
+            "y": 45.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_9"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.09,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "e9c18727-7c65-5702-b308-afd33d2ee45f",
+            "name": "Object e9c18727-7c65-5702-b308-afd33d2ee45f",
+            "shape_type": "Box",
+            "w": 7.0,
+            "h": 34.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -8.5,
+            "y": 44.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_10"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.12,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "8bfa1987-820d-5a93-8950-70a4f62e64a7",
+            "name": "Object 8bfa1987-820d-5a93-8950-70a4f62e64a7",
+            "shape_type": "Box",
+            "w": 9.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -18.5,
+            "y": 19.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_11"
+        },
+        {
+          "shape": {
+            "id": "6b371873-35e4-55ba-a841-7d4f5668a9c9",
+            "name": "Object 6b371873-35e4-55ba-a841-7d4f5668a9c9",
+            "shape_type": "Box",
+            "w": 10.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -26.0,
+            "y": 26.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_11"
+        },
+        {
+          "shape": {
+            "id": "dd0957e1-eb91-53f8-a2f2-0bf91e642d49",
+            "name": "Object dd0957e1-eb91-53f8-a2f2-0bf91e642d49",
+            "shape_type": "Box",
+            "w": 10.0,
+            "h": 10.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -34.0,
+            "y": 34.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_11"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.15,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "5683523f-e3dc-59bf-b6c8-8dcf03359c9a",
+            "name": "Object 5683523f-e3dc-59bf-b6c8-8dcf03359c9a",
+            "shape_type": "Box",
+            "w": 8.0,
+            "h": 18.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -38.0,
+            "y": 10.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_12"
+        },
+        {
+          "shape": {
+            "id": "3ef8194a-b058-589f-82d4-98c9b3276597",
+            "name": "Object 3ef8194a-b058-589f-82d4-98c9b3276597",
+            "shape_type": "Box",
+            "w": 18.0,
+            "h": 8.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -47.0,
+            "y": 22.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_12"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.18,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "4ece1938-a829-5fd5-852f-10a5055bd0b5",
+            "name": "Object 4ece1938-a829-5fd5-852f-10a5055bd0b5",
+            "shape_type": "Box",
+            "w": 34.0,
+            "h": 7.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -47.0,
+            "y": 5.5,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_13"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.21,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "4ece1938-a829-5fd5-852f-10a5055bd0b5",
+            "name": "Object 4ece1938-a829-5fd5-852f-10a5055bd0b5",
+            "shape_type": "Box",
+            "w": 34.0,
+            "h": 7.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -47.0,
+            "y": 5.5,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "AttackVolume",
+          "tag": "sword_13"
+        }
+      ]
+    }
   ]
 }

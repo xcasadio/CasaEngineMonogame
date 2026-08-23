@@ -37,5 +37,91 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "90b147be-04a7-5faf-819b-ffacabd83346",
+            "name": "Object 90b147be-04a7-5faf-819b-ffacabd83346",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -2.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_2"
+        }
+      ]
+    },
+    {
+      "time_seconds": 1.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "93ce93a6-8667-5283-9cb6-81d26b54fd10",
+            "name": "Object 93ce93a6-8667-5283-9cb6-81d26b54fd10",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -2.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_3"
+        }
+      ]
+    },
+    {
+      "time_seconds": 2.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "93ce93a6-8667-5283-9cb6-81d26b54fd10",
+            "name": "Object 93ce93a6-8667-5283-9cb6-81d26b54fd10",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -2.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_3"
+        }
+      ]
+    }
   ]
 }

@@ -37,5 +37,19 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": []
+    },
+    {
+      "time_seconds": 0.15,
+      "fixtures": []
+    },
+    {
+      "time_seconds": 0.3,
+      "fixtures": []
+    }
   ]
 }
