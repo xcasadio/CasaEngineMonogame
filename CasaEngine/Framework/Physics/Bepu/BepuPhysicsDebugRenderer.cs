@@ -466,7 +466,7 @@ internal static class BepuPhysicsDebugRenderer
                 continue;
             }
 
-            Vector3 point = engine.GetPosition(record.A) + record.Offset;
+            Vector3 point = record.PositionA + record.Offset;
             Vector3 normal = record.Normal;
             debugDrawer.DrawContactPoint(ref point, ref normal, record.Depth, 0, ContactColor);
         }

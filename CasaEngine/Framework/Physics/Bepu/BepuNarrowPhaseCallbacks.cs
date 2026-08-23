@@ -14,8 +14,16 @@ internal struct BepuNarrowPhaseCallbacks : INarrowPhaseCallbacks
     public CollidableProperty<BepuCollidableData> CollidableData;
     public BepuContactBuffer ContactBuffer;
 
+    /// <summary>Owning engine, used to resolve a collidable's managed backend at manifold-report time
+    /// (while the pair is still guaranteed alive), so <see cref="ContactRecord"/> never needs to touch
+    /// the simulation again afterwards. Assigned before <see cref="Simulation.Create"/>.</summary>
+    public BepuPhysicsEngine Engine;
+
+    private Simulation _simulation;
+
     public void Initialize(Simulation simulation)
     {
+        _simulation = simulation;
         CollidableData.Initialize(simulation);
     }
 
@@ -52,19 +60,28 @@ internal struct BepuNarrowPhaseCallbacks : INarrowPhaseCallbacks
             // manifolds, use coefficient * sum). Premultiply by the count to keep Coulomb semantics.
             pairMaterial.FrictionCoefficient *= manifold.Count;
 
-            for (int i = 0; i < manifold.Count; i++)
+            var backendA = Engine.ResolveBackend(pair.A);
+            var backendB = Engine.ResolveBackend(pair.B);
+
+            if (backendA != null && backendB != null)
             {
-                manifold.GetContact(i, out var offset, out var normal, out var depth, out _);
-                ContactBuffer.Records.Add(new ContactRecord
+                var positionA = GetPosition(pair.A);
+
+                for (int i = 0; i < manifold.Count; i++)
                 {
-                    A = pair.A,
-                    B = pair.B,
-                    ChildA = -1,
-                    ChildB = -1,
-                    Offset = offset,
-                    Normal = normal,
-                    Depth = depth
-                });
+                    manifold.GetContact(i, out var offset, out var normal, out var depth, out _);
+                    ContactBuffer.Records.Add(new ContactRecord
+                    {
+                        BackendA = backendA,
+                        BackendB = backendB,
+                        ChildA = -1,
+                        ChildB = -1,
+                        PositionA = positionA,
+                        Offset = offset,
+                        Normal = normal,
+                        Depth = depth
+                    });
+                }
             }
         }
 
@@ -73,22 +90,40 @@ internal struct BepuNarrowPhaseCallbacks : INarrowPhaseCallbacks
 
     public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold)
     {
-        for (int i = 0; i < manifold.Count; i++)
+        var backendA = Engine.ResolveBackend(pair.A);
+        var backendB = Engine.ResolveBackend(pair.B);
+
+        if (backendA != null && backendB != null)
         {
-            manifold.GetContact(i, out var offset, out var normal, out var depth, out _);
-            ContactBuffer.Records.Add(new ContactRecord
+            var positionA = GetPosition(pair.A);
+
+            for (int i = 0; i < manifold.Count; i++)
             {
-                A = pair.A,
-                B = pair.B,
-                ChildA = childIndexA,
-                ChildB = childIndexB,
-                Offset = offset,
-                Normal = normal,
-                Depth = depth
-            });
+                manifold.GetContact(i, out var offset, out var normal, out var depth, out _);
+                ContactBuffer.Records.Add(new ContactRecord
+                {
+                    BackendA = backendA,
+                    BackendB = backendB,
+                    ChildA = childIndexA,
+                    ChildB = childIndexB,
+                    PositionA = positionA,
+                    Offset = offset,
+                    Normal = normal,
+                    Depth = depth
+                });
+            }
         }
 
         return ComputeMaterial(pair.A, pair.B, out _);
+    }
+
+    /// <summary>Position of a collidable's pose, read while the pair is still guaranteed alive (inside
+    /// the narrow phase callback, before any gameplay code can remove it).</summary>
+    private System.Numerics.Vector3 GetPosition(CollidableReference reference)
+    {
+        return reference.Mobility == CollidableMobility.Static
+            ? _simulation.Statics[reference.StaticHandle].Pose.Position
+            : _simulation.Bodies[reference.BodyHandle].Pose.Position;
     }
 
     private bool ComputeMaterial(CollidableReference a, CollidableReference b, out PairMaterialProperties pairMaterial)

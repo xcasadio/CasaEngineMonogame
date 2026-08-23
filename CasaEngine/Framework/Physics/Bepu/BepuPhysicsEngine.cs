@@ -83,7 +83,8 @@ public sealed class BepuPhysicsEngine
         var narrowPhaseCallbacks = new BepuNarrowPhaseCallbacks
         {
             CollidableData = CollidableData,
-            ContactBuffer = _contactBuffer
+            ContactBuffer = _contactBuffer,
+            Engine = this
         };
         var poseIntegratorCallbacks = new BepuPoseIntegratorCallbacks
         {
@@ -684,13 +685,6 @@ public sealed class BepuPhysicsEngine
     /// <summary>Contacts recorded during the last <see cref="Update"/> step, for the debug renderer.</summary>
     internal BepuContactBuffer ContactBuffer => _contactBuffer;
 
-    internal Vector3 GetPosition(CollidableReference reference)
-    {
-        return reference.Mobility == CollidableMobility.Static
-            ? Simulation.Statics[reference.StaticHandle].Pose.Position
-            : Simulation.Bodies[reference.BodyHandle].Pose.Position;
-    }
-
     internal void ReleaseBodyShape(BepuBodyBackend backend)
     {
         if (backend.IsCompound)
@@ -784,10 +778,7 @@ public sealed class BepuPhysicsEngine
                 continue;
             }
 
-            var backendA = ResolveBackend(record.A);
-            var backendB = ResolveBackend(record.B);
-
-            if (backendA?.UserObject is not ICollideableComponent componentA || backendB?.UserObject is not ICollideableComponent componentB)
+            if (record.BackendA?.UserObject is not ICollideableComponent componentA || record.BackendB?.UserObject is not ICollideableComponent componentB)
             {
                 continue;
             }
@@ -797,7 +788,7 @@ public sealed class BepuPhysicsEngine
                 continue;
             }
 
-            var contactWorldPoint = GetPosition(record.A) + record.Offset;
+            var contactWorldPoint = record.PositionA + record.Offset;
             _currentTouching.Add(new Collision(componentA, componentB, contactWorldPoint));
         }
 
@@ -893,10 +884,7 @@ public sealed class BepuPhysicsEngine
 
         foreach (var record in _contactBuffer.Records)
         {
-            var backendA = ResolveBackend(record.A);
-            var backendB = ResolveBackend(record.B);
-
-            if (backendA?.UserObject is not ICollideableComponent componentA || backendB?.UserObject is not ICollideableComponent componentB)
+            if (record.BackendA?.UserObject is not ICollideableComponent componentA || record.BackendB?.UserObject is not ICollideableComponent componentB)
             {
                 continue;
             }
@@ -909,7 +897,7 @@ public sealed class BepuPhysicsEngine
                 continue;
             }
 
-            var positionOnA = GetPosition(record.A) + record.Offset;
+            var positionOnA = record.PositionA + record.Offset;
             var positionOnB = positionOnA - record.Normal * record.Depth;
 
             buffer.Add(new ContactPoint
@@ -920,8 +908,8 @@ public sealed class BepuPhysicsEngine
                 Normal = record.Normal,
                 PositionOnA = positionOnA,
                 PositionOnB = positionOnB,
-                FixtureTagA = backendA.ResolveFixtureTag(record.ChildA),
-                FixtureTagB = backendB.ResolveFixtureTag(record.ChildB)
+                FixtureTagA = record.BackendA.ResolveFixtureTag(record.ChildA),
+                FixtureTagB = record.BackendB.ResolveFixtureTag(record.ChildB)
             });
         }
 
