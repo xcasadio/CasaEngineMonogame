@@ -16,17 +16,6 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private const float MinMoveDistanceSquared = 0.000001f;
     private const float MinSweepShapeSize = 0.001f;
 
-    /// <summary>
-    /// E3.c-bis: the original defines an entity's collision box as
-    /// <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c> (decompiled <c>EntityManager.SetEntityDimensions</c>,
-    /// where <c>Width = (size &lt;&lt; 16) - 1</c> in 16.16 fixed point) - the far edge on each axis is
-    /// exclusive by one 16.16 unit. Without this, a footprint corner computed as
-    /// <c>centre + half-extent</c> lands exactly on the boundary of the next grid cell: a 15-px-deep box
-    /// centred in a 16-px row would sample the neighbouring row instead of staying in its own. Applying
-    /// this epsilon to the far corner on each horizontal axis reproduces the original's exclusive bound.
-    /// </summary>
-    private const float FootprintFarCornerEpsilon = 1f / 65536f;
-
     private CharacterControllerSettings _settings = new();
     private Vector2 _moveIntent;
     private bool _jumpRequested;
@@ -789,27 +778,47 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         public bool IsCapsule { get; }
 
-        public void GetCorners(Span<(float H1, float H2)> corners)
+        /// <summary>
+        /// E3.c-bis: the original defines an entity's collision box as
+        /// <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c> (decompiled <c>EntityManager.SetEntityDimensions</c>,
+        /// where <c>Width = (size &lt;&lt; 16) - 1</c> in 16.16 fixed point) - the far edge on each axis is
+        /// exclusive by exactly one 16.16 fixed-point unit, at ANY magnitude, because fixed-point
+        /// spacing is constant. Float32 spacing is not constant: it grows with magnitude (its ULP), so a
+        /// fixed subtraction like <c>size - 1/65536f</c> is only exclusive near zero - at Alundra's real
+        /// map coordinates (up to roughly 928 px) the float32 ULP is about 6.1e-5, larger than
+        /// <c>1/65536f</c> (about 1.53e-5), and <c>928f - 1/65536f</c> rounds straight back to <c>928f</c>:
+        /// the far edge silently becomes inclusive again. The faithful float translation of "one
+        /// representable unit below the boundary" is one ULP below, via <see cref="MathF.BitDecrement"/> -
+        /// and it must be applied to the FINAL far-corner coordinate, i.e. <c>centre + half-extent</c>,
+        /// not to the half-extent before the addition: decrementing the half-extent first can be
+        /// completely absorbed by the rounding of the later addition (the very same failure mode this
+        /// fix exists to avoid), whereas decrementing the already-rounded sum always yields the exact
+        /// float below it. This stays exclusive at any magnitude. Near corners (negative half-extent)
+        /// are unchanged.
+        /// </summary>
+        public void GetCorners(Vector3 center, Vector3 h1, Vector3 h2, Span<(float H1, float H2)> corners)
         {
-            // E3.c-bis: the far corner on each horizontal axis (the positive half-extent side) is
-            // pulled in by FootprintFarCornerEpsilon so the far edge is exclusive, matching the
-            // original's [min, max) collision box. Near corners (negative half-extent) are unchanged.
-            var farH1 = HalfExtentH1 - FootprintFarCornerEpsilon;
-            var farH2 = HalfExtentH2 - FootprintFarCornerEpsilon;
+            var centerH1 = Vector3.Dot(center, h1);
+            var centerH2 = Vector3.Dot(center, h2);
+
+            var nearH1 = centerH1 - HalfExtentH1;
+            var nearH2 = centerH2 - HalfExtentH2;
+            var farH1 = MathF.BitDecrement(centerH1 + HalfExtentH1);
+            var farH2 = MathF.BitDecrement(centerH2 + HalfExtentH2);
 
             if (IsCapsule)
             {
-                corners[0] = (farH1, 0f);
-                corners[1] = (-HalfExtentH1, 0f);
-                corners[2] = (0f, farH2);
-                corners[3] = (0f, -HalfExtentH2);
+                corners[0] = (farH1, centerH2);
+                corners[1] = (nearH1, centerH2);
+                corners[2] = (centerH1, farH2);
+                corners[3] = (centerH1, nearH2);
             }
             else
             {
                 corners[0] = (farH1, farH2);
-                corners[1] = (farH1, -HalfExtentH2);
-                corners[2] = (-HalfExtentH1, farH2);
-                corners[3] = (-HalfExtentH1, -HalfExtentH2);
+                corners[1] = (farH1, nearH2);
+                corners[2] = (nearH1, farH2);
+                corners[3] = (nearH1, nearH2);
             }
         }
     }
@@ -983,13 +992,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 h2)
     {
         Span<(float H1, float H2)> corners = stackalloc (float, float)[4];
-        footprint.GetCorners(corners);
+        footprint.GetCorners(candidateFootHorizontalCenter, h1, h2, corners);
 
         var probeUpCoordinate = footUpCoordinate + _settings.StepHeight;
 
         for (var i = 0; i < corners.Length; i++)
         {
-            var cornerPosition = candidateFootHorizontalCenter + h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
+            var cornerPosition = h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
 
             if (!field.TrySampleGround(cornerPosition, float.MaxValue, _settings.WalkabilityMask, out var sample))
             {
@@ -1200,14 +1209,14 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         out float maxGroundHeight)
     {
         Span<(float H1, float H2)> corners = stackalloc (float, float)[4];
-        footprint.GetCorners(corners);
+        footprint.GetCorners(footprint.FootHorizontalCenter, h1, h2, corners);
 
         maxGroundHeight = 0f;
         var found = false;
 
         for (var i = 0; i < corners.Length; i++)
         {
-            var cornerPosition = footprint.FootHorizontalCenter + h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
+            var cornerPosition = h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
 
             if (!field.TrySampleGround(cornerPosition, maxDropDistance, _settings.WalkabilityMask, out var sample))
             {

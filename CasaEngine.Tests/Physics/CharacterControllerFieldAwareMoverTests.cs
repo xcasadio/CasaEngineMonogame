@@ -209,6 +209,53 @@ public class CharacterControllerFieldAwareMoverTests
         AssertPosition(new Vector3(24f, 25f, 0f), entity.RootComponent!.Position);
     }
 
+    /// <summary>
+    /// E3.c-bis / float-ULP regression: same shape as
+    /// <see cref="FootprintFarCorner_OnCellBoundary_GroundsInItsOwnCell_NotTheRaisedNeighbour"/> but at
+    /// real Alundra map magnitude (root row 57, coordinates around 920-928 px) instead of near-zero test
+    /// coordinates. At this magnitude float32's ULP (~6.1e-5 at 928f) is larger than <c>1/65536f</c>
+    /// (~1.53e-5): a fixed <c>1/65536f</c> subtraction silently rounds back to the exact boundary and the
+    /// far corner becomes inclusive again, sampling the raised neighbour row. <see cref="MathF.BitDecrement"/>
+    /// does not have this failure mode at any magnitude. Uses Alundra's real G2 fixture shape (21x15x32,
+    /// local_position (0.5, 0.5, 16)).
+    /// </summary>
+    [Fact]
+    public void FootprintFarCorner_AtRealMapMagnitude_GroundsInItsOwnRow_NotTheRaisedNeighbourRow()
+    {
+        const int width = 40;
+        const int depth = 64;
+        var heights = new float[width * depth];
+        heights[58 * width + 27] = 15f; // cell (col 27, row 58): the h2-far neighbour of cell (27, 57).
+        var field = new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, up: Vector3.UnitZ);
+
+        var entity = CreateEntityWithRoot();
+        var world = CreateWorld(new PhysicsWorld(useExternalViewManagement: false, spacePolicy: new TopDownElevationSimulationSpacePolicy()));
+        world.CollisionField = field;
+        SetWorld(entity, world);
+
+        var collisionComponent = new CollisionComponent();
+        collisionComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(21f, 15f, 32f) })
+        {
+            LocalPosition = new Vector3(0.5f, 0.5f, 16f),
+        });
+        entity.AddComponent(collisionComponent);
+        AttachToRoot(entity, collisionComponent);
+
+        var component = new TestCharacterControllerComponent();
+        ConfigureFieldAwareSettings(component.Settings);
+        entity.AddComponent(component);
+
+        // Cell (27, 57) spans y in [912, 928); its centre is (444, 920). The fixture's far corner on Y
+        // lands at 920 + 0.5 + 7.5 = 928.0, exactly the boundary with the raised cell (27, 58).
+        entity.RootComponent!.Position = new Vector3(444f, 920f, 8f);
+        component.SetVelocityForTest(new Vector3(0f, 0f, -800f));
+
+        component.Update(Tick);
+
+        AssertPosition(new Vector3(444f, 920f, 0f), entity.RootComponent!.Position);
+        Assert.True(component.IsGrounded);
+    }
+
     [Fact]
     public void Update_CrossesGroundWithinOneStep_AndLands()
     {
