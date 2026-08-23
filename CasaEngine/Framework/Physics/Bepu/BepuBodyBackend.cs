@@ -154,6 +154,19 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
 
     public bool IsInSimulation => _bodyHandle.HasValue || _staticHandle.HasValue;
 
+    /// <summary>
+    /// Wakes a body the gameplay just acted on (pose, velocity, impulse). Bepu's sleeper runs at the
+    /// start of the next step and would put a body that was already a sleep candidate back to sleep with
+    /// its new velocity stored, since candidacy is only re-evaluated later in the step: reset it too.
+    /// </summary>
+    private static void WakeAfterGameplayChange(BodyReference bodyReference)
+    {
+        bodyReference.Awake = true;
+        ref var activity = ref bodyReference.Activity;
+        activity.SleepCandidate = false;
+        activity.TimestepsUnderThresholdCount = 0;
+    }
+
     public Matrix WorldTransform
     {
         get
@@ -185,7 +198,7 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
             {
                 var bodyReference = _engine.Simulation.Bodies[_bodyHandle.Value];
                 bodyReference.Pose = Pose;
-                bodyReference.Awake = true;
+                WakeAfterGameplayChange(bodyReference);
             }
         }
     }
@@ -208,7 +221,9 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
                 return;
             }
 
-            _engine.Simulation.Bodies[_bodyHandle.Value].Velocity.Linear = value.ToNumerics();
+            var bodyReference = _engine.Simulation.Bodies[_bodyHandle.Value];
+            bodyReference.Velocity.Linear = value.ToNumerics();
+            WakeAfterGameplayChange(bodyReference);
         }
     }
 
@@ -249,7 +264,7 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
             velocity.Linear.Z = 0f;
         }
 
-        bodyReference.Awake = true;
+        WakeAfterGameplayChange(bodyReference);
     }
 
     /// <summary>

@@ -46,6 +46,12 @@ internal struct BepuNarrowPhaseCallbacks : INarrowPhaseCallbacks
         // generic overload then only receives the aggregated non-convex manifold for material/return.
         if (manifold.Convex)
         {
+            // Bepu bounds the tangent friction of a convex manifold by coefficient * (sum of normal
+            // impulses / contact count), i.e. the average normal force; a box resting on four contacts
+            // would slide as if its friction were a quarter of the authored value (Bullet, and nonconvex
+            // manifolds, use coefficient * sum). Premultiply by the count to keep Coulomb semantics.
+            pairMaterial.FrictionCoefficient *= manifold.Count;
+
             for (int i = 0; i < manifold.Count; i++)
             {
                 manifold.GetContact(i, out var offset, out var normal, out var depth, out _);

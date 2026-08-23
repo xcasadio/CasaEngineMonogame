@@ -135,6 +135,99 @@ public class BepuDynamicsTests
         }
     }
 
+    /// <summary>
+    /// Coulomb friction: a unit box launched at 5 units/s on a ground, both sides at friction 0.5
+    /// (pair coefficient 0.25, Bullet's product rule), stops after v² / (2 µ g) ≈ 5.07 units.
+    /// Bepu bounds convex-manifold friction by the average normal impulse, which the backend compensates;
+    /// without that compensation the box would slide four times as far.
+    /// </summary>
+    [Fact]
+    public void BoxLaunchedOnGround_StopsAtTheCoulombDistance()
+    {
+        using var physicsWorldContext = new PhysicsWorld(false);
+
+        Matrix groundMatrix = Matrix.CreateTranslation(0f, -0.5f, 0f);
+        using var ground = physicsWorldContext.AddStaticObject(
+            new Box { Size = new Vector3(100f, 1f, 10f) },
+            Vector3.One,
+            ref groundMatrix,
+            new object(),
+            new PhysicsDefinition { PhysicsType = PhysicsType.Static, Friction = 0.5f },
+            CollisionProfileIds.WorldStatic);
+
+        Matrix boxMatrix = Matrix.CreateTranslation(0f, 0.5f, 0f);
+        using var box = physicsWorldContext.AddRigidBody(
+            new Box(),
+            Vector3.One,
+            ref boxMatrix,
+            new object(),
+            new PhysicsDefinition { PhysicsType = PhysicsType.Dynamic, Mass = 1f, Friction = 0.5f },
+            CollisionProfileIds.WorldDynamic);
+
+        for (int step = 0; step < 30; step++)
+        {
+            physicsWorldContext.Update(1f / 60f);
+        }
+
+        float startX = box.WorldTransform.Translation.X;
+        box.LinearVelocity = new Vector3(5f, 0f, 0f);
+
+        for (int step = 0; step < 300; step++)
+        {
+            physicsWorldContext.Update(1f / 60f);
+        }
+
+        float gravity = Math.Abs(GameSettings.PhysicsEngineSettings.Gravity.Y);
+        float expectedDistance = 25f / (2f * 0.25f * gravity);
+        float travelled = box.WorldTransform.Translation.X - startX;
+
+        Assert.True(Math.Abs(travelled - expectedDistance) < expectedDistance * 0.15f,
+            $"box travelled {travelled} units, Coulomb friction predicts {expectedDistance}");
+        Assert.True(box.LinearVelocity.Length() < 0.05f, $"box is still moving at {box.LinearVelocity.Length()} units/s");
+    }
+
+    /// <summary>
+    /// Gameplay pushes a body that has been resting long enough to be a sleep candidate: Bepu's sleeper
+    /// runs at the start of the next step and would store the new velocity in a sleeping body unless the
+    /// candidacy is reset along with the wake-up.
+    /// </summary>
+    [Fact]
+    public void VelocitySetOnARestingBody_MovesIt()
+    {
+        using var physicsWorldContext = new PhysicsWorld(false);
+
+        Matrix groundMatrix = Matrix.CreateTranslation(0f, -0.5f, 0f);
+        using var ground = physicsWorldContext.AddStaticObject(
+            new Box { Size = new Vector3(100f, 1f, 10f) },
+            Vector3.One,
+            ref groundMatrix,
+            new object(),
+            new PhysicsDefinition { PhysicsType = PhysicsType.Static },
+            CollisionProfileIds.WorldStatic);
+
+        Matrix boxMatrix = Matrix.CreateTranslation(0f, 0.5f, 0f);
+        using var box = physicsWorldContext.AddRigidBody(
+            new Box(),
+            Vector3.One,
+            ref boxMatrix,
+            new object(),
+            new PhysicsDefinition { PhysicsType = PhysicsType.Dynamic, Mass = 1f },
+            CollisionProfileIds.WorldDynamic);
+
+        //Exactly the sleep delay: the body is a sleep candidate but still awake.
+        int sleepDelaySteps = (int)MathF.Round(PhysicsDefinition.SleepDelaySeconds * 60f);
+        for (int step = 0; step < sleepDelaySteps; step++)
+        {
+            physicsWorldContext.Update(1f / 60f);
+        }
+
+        float startX = box.WorldTransform.Translation.X;
+        box.LinearVelocity = new Vector3(5f, 0f, 0f);
+        physicsWorldContext.Update(1f / 60f);
+
+        Assert.True(box.WorldTransform.Translation.X > startX + 0.05f, "the pushed body did not move");
+    }
+
     [Fact]
     public void StillDynamicBody_FallsAsleepAfterEnoughSteps()
     {
