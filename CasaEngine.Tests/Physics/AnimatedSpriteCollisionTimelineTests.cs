@@ -155,6 +155,47 @@ public class AnimatedSpriteCollisionTimelineTests
         component.Detach();
     }
 
+    /// <summary>
+    /// Regression for the ghost hitbox left behind when a weapon entity is disabled right after its
+    /// "Once" swing animation reaches its last collision keyframe (e.g. MeleeWeapon.UnAttachWeapon):
+    /// a disabled owner must never keep re-creating/owning active collision bodies, even though the
+    /// entity keeps being ticked (IsEnabled does not gate Entity.Update).
+    /// </summary>
+    [Fact]
+    public void DisabledOwner_KeepsNoActiveCollisionBodies_EvenWhenUpdated()
+    {
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
+
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.CollisionKeyframes.Add(BuildKeyframe(0.2f, new ColliderFixture(new Box()) { Tag = "swing" }));
+
+        var component = CreateAnimatedSprite(physicsWorldContext, animation, out _);
+
+        //Play past the end of the "Once" animation: it stays parked on its last collision keyframe.
+        component.Update(0.25f);
+        Assert.Single(GetActiveCollisionBodies(component));
+
+        component.Owner.IsEnabled = false;
+        Assert.Null(GetActiveCollisionBodiesOrNull(component));
+
+        var countBeforeUpdates = physicsWorldContext.CollisionObjectCount;
+        for (int i = 0; i < 5; i++)
+        {
+            component.Update(1f / 60f);
+        }
+
+        //This is exactly the frame sequence that used to recreate the last keyframe's bodies.
+        var bodiesAfterUpdatesWhileDisabled = GetActiveCollisionBodiesOrNull(component);
+        Assert.True(bodiesAfterUpdatesWhileDisabled == null || bodiesAfterUpdatesWhileDisabled.Count == 0);
+        Assert.Equal(countBeforeUpdates, physicsWorldContext.CollisionObjectCount);
+
+        //Symmetric path: re-enabling brings the current keyframe's bodies back.
+        component.Owner.IsEnabled = true;
+        Assert.Single(GetActiveCollisionBodies(component));
+
+        component.Detach();
+    }
+
     [Fact]
     public void UpdateCurrentSprite_TracksTheDrawnSpriteAndDirtiesTheBoundingBox()
     {
