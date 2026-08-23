@@ -67,6 +67,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     };
 
     private List<PhysicsBody> _collisionObjects = new();
+
+    /// <summary>
+    /// Tracks the <see cref="TileCollisionManager"/> that backs each body created by
+    /// <see cref="CreateCollisionObject(int, Rectangle, TileCollisionType)"/>/<see cref="CreateCollisionObject(int, int, int, Collision2d, TileCollisionType)"/>,
+    /// so <see cref="RemoveCollisionObject"/> can detach the manager and clear the physics world's
+    /// collision bookkeeping for it (not for this component) when the body is destroyed.
+    /// </summary>
+    private readonly Dictionary<PhysicsBody, TileCollisionManager> _collisionManagersByBody = new();
     private readonly List<AutoTile> _autoTiles = new();
     private readonly List<AnimatedTile> _animatedTiles = new();
     private readonly List<AutoTile> _dirtyAutoTiles = new();
@@ -1008,6 +1016,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         _collisionObjects.Add(collisionObject);
+        _collisionManagersByBody[collisionObject] = tileCollisionManager;
         return collisionObject;
     }
 
@@ -1066,6 +1075,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         _collisionObjects.Add(collisionObject);
+        _collisionManagersByBody[collisionObject] = tileCollisionManager;
         return collisionObject;
     }
 
@@ -1725,7 +1735,19 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return;
         }
 
-        _physicsWorldContext.ClearCollisionDataFrom(this);
+        // The physics collider for a tile body is its per-body TileCollisionManager, not this component
+        // (see CreateCollisionObject) - clear the world's collision bookkeeping for that actual collider,
+        // and detach it so any collision still queued for dispatch this frame answers safely instead of
+        // touching a cell that may have been rebuilt/removed already.
+        if (_collisionManagersByBody.Remove(collisionObject, out var tileCollisionManager))
+        {
+            tileCollisionManager.Detach();
+            _physicsWorldContext.ClearCollisionDataFrom(tileCollisionManager);
+        }
+        else
+        {
+            _physicsWorldContext.ClearCollisionDataFrom(this);
+        }
 
         if (collisionObject.IsRigidBody)
         {

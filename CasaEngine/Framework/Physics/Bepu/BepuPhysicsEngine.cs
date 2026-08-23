@@ -51,6 +51,8 @@ public sealed class BepuPhysicsEngine
     private readonly HashSet<Collision> _outdatedCollisions = new();
     private readonly HashSet<Collision> _currentTouching = new();
     private readonly List<Collision> _pendingRemoval = new();
+    private readonly Stack<List<Collision>> _pendingRemovalPool = new();
+    private int _clearCollisionDataDepth;
     private readonly Stack<HashSet<ContactPoint>> _contactsPool = new();
     private readonly Dictionary<Collision, HashSet<ContactPoint>> _contactsUpToDate = new();
     private readonly List<Collision> _markedAsNewColl = new();
@@ -816,24 +818,47 @@ public sealed class BepuPhysicsEngine
 
     internal void ClearCollisionDataOf(ICollideableComponent component)
     {
-        _pendingRemoval.Clear();
+        // A handler invoked from the removal loop below (OnHitEnded) may itself remove another
+        // component's collisions - e.g. a tilemap chunk rebuild triggered from inside a collision
+        // callback. That nested call must not touch the outer call's in-flight list: the outer loop is
+        // still enumerating it. Only the outermost (non-reentrant) call reuses the shared _pendingRemoval
+        // field; a reentrant call borrows a buffer from a small pool instead, so the hot, non-reentrant
+        // path stays allocation-free.
+        var pendingRemoval = _clearCollisionDataDepth == 0
+            ? _pendingRemoval
+            : _pendingRemovalPool.Count > 0 ? _pendingRemovalPool.Pop() : new List<Collision>();
+        pendingRemoval.Clear();
 
         foreach (var collision in _collisions)
         {
             if (ReferenceEquals(collision.ColliderA, component) || ReferenceEquals(collision.ColliderB, component))
             {
-                _pendingRemoval.Add(collision);
+                pendingRemoval.Add(collision);
                 EndedFromComponentRemoval.Add(collision);
             }
         }
 
-        foreach (var collision in _pendingRemoval)
+        _clearCollisionDataDepth++;
+        try
         {
-            _collisions.Remove(collision);
-            collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
-            collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
-            collision.ColliderA.Collisions.Remove(collision);
-            collision.ColliderB.Collisions.Remove(collision);
+            foreach (var collision in pendingRemoval)
+            {
+                _collisions.Remove(collision);
+                collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
+                collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
+                collision.ColliderA.Collisions.Remove(collision);
+                collision.ColliderB.Collisions.Remove(collision);
+            }
+        }
+        finally
+        {
+            _clearCollisionDataDepth--;
+        }
+
+        if (!ReferenceEquals(pendingRemoval, _pendingRemoval))
+        {
+            pendingRemoval.Clear();
+            _pendingRemovalPool.Push(pendingRemoval);
         }
     }
 
@@ -849,6 +874,16 @@ public sealed class BepuPhysicsEngine
 
         foreach (var collision in _markedAsNewColl)
         {
+            // A previous iteration of this same loop may have triggered (through OnHit) a component
+            // removal that already ended this collision via ClearCollisionDataOf - e.g. two cutters
+            // hitting the same breakable tile in one frame: the first hit removes the tile and detaches
+            // its manager, so the second cutter's collision with that manager must not be dispatched as a
+            // fresh hit (nor OnHitEnded'ed twice: ClearCollisionDataOf already did it).
+            if (EndedFromComponentRemoval.Contains(collision))
+            {
+                continue;
+            }
+
             collision.ColliderA.Collisions.Add(collision);
             collision.ColliderB.Collisions.Add(collision);
             collision.ColliderA.Owner.GameplayProxy?.OnHit(collision);
@@ -857,6 +892,11 @@ public sealed class BepuPhysicsEngine
 
         foreach (var collision in _markedAsDeprecatedColl)
         {
+            if (EndedFromComponentRemoval.Contains(collision))
+            {
+                continue;
+            }
+
             collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
             collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
             collision.ColliderA.Collisions.Remove(collision);
