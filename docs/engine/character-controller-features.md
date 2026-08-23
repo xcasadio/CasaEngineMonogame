@@ -6,7 +6,7 @@ Ce document affine le besoin pour ajouter un `CharacterController` moderne dans 
 
 Le but n'est pas de remplacer la physique, l'animation, l'input ou les cutscenes. Le `CharacterController` doit devenir la couche gameplay qui transforme une intention de mouvement en deplacement resolu dans le monde.
 
-Le document cible d'abord un controleur 3D a capsule, car le moteur contient deja un `CapsuleCollisionComponent` base sur `BulletSharp.CapsuleShape`. Un controleur 2D devra etre traite separement.
+Le document cible d'abord un controleur 3D a capsule, car le moteur contient deja un `CapsuleCollisionComponent` base sur `BepuPhysics.Collidables.Capsule`. Un controleur 2D devra etre traite separement.
 
 ## Critique du brouillon initial
 
@@ -78,7 +78,7 @@ Implication : les cutscenes pourront piloter le controleur via une API publique 
 
 ### Debug
 
-- `PhysicsDebugViewRendererComponent` existe pour le debug physique Bullet.
+- `PhysicsDebugViewRendererComponent` existe pour le debug physique (backend Bepu).
 - Aucun debug draw dedie au character controller n'a ete constate.
 
 Implication : la V1 doit au minimum exposer des donnees de debug. Le rendu specifique de la capsule, des sweeps, des normales et du sol peut etre une tache separee.
@@ -251,7 +251,7 @@ Limites connues de cette V1 :
 - pas de depenetration initiale dediee au controller ; l'API multi-hit existe, mais la recuperation d'un depart deja en collision reste a traiter ;
 - pas de crouch ; le portage par plateforme mobile reste limite a l'heritage de la vitesse lineaire du sol, sans suivi de rotation ni attache ;
 - pas de rendu debug specifique au character controller ; les donnees sont exposees pour l'inspecteur, les tests ou un futur overlay ;
-- les tests du solveur controller utilisent un `IPhysicsWorldContext` controle pour verifier les cas sol, mur et pente ; les tests Bullet natifs couvrent separement les sweeps convexes publics.
+- les tests du solveur controller utilisent un `IPhysicsWorldContext` controle pour verifier les cas sol, mur et pente ; les tests physiques natifs couvrent separement les sweeps convexes publics.
 
 ## Animation
 
@@ -328,7 +328,7 @@ politique** avant de pouvoir consommer un champ ; adapter le champ n'est pas la 
 ### 2. `rootComponent.Position` est le CENTRE de la capsule
 
 La forme de requete est translatee par la position brute de la racine (:903-913) et la
-`CapsuleShape` Bullet est centree sur son origine (`BulletPhysicsEngine.cs`:375). Aucun helper
+`Capsule` Bepu est centree sur son origine (`BepuShapeCache.cs`). Aucun helper
 pied / demi-hauteur n'existe, ni sur le composant ni dans les settings. Un appelant de champ
 choisit lui-meme sa position d'echantillonnage et possede ce decalage centre/pied : c'est
 exactement la convention que l'integration doit fixer.

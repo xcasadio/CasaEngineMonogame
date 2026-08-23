@@ -31,10 +31,4 @@
     <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="BulletSharp">
-      <HintPath>..\ThirdParties\BulletSharp\BulletSharp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

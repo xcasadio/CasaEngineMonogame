@@ -55,3 +55,7 @@ Projects/RPGDemo/*.pdb
 
 # Test results
 CasaEngine.Tests/TestResults/
+
+# Local verification builds (dotnet build -p:BaseOutputPath=artifacts/verify-build/) #
+######################################################################################
+CasaEngine/artifacts/

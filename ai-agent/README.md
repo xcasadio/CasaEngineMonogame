@@ -35,6 +35,8 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 | [gameplay-mode-implementation-plan.md](tasks/gameplay-mode-implementation-plan.md) | GameplayMode | Tâches 6 et 15 ⚠️ (validations finales V1/V2 bloquées). |
 | [static-model-import-tasks.md](tasks/static-model-import-tasks.md) | Import de modèles 3D statiques | Task 6.2 : tester l'import via l'éditeur. |
 | [character-controller-tasks.md](tasks/character-controller-tasks.md) | Character Controller | V3.3 (locomotion avancée) ⚠️ bloquée. |
+| [bepu-physics-migration-tasks.md](tasks/bepu-physics-migration-tasks.md) | Migration physique BulletSharp → bepuphysics2 2.5.0-beta.29 (branche `bepu-physics`) | Les 4 tranches sont ✅. Reste : smoke visuel manuel de l'overlay debug physique (TileMapDemo/éditeur) 🧪, et merge de la branche. |
+| [rpgdemo-collision-keyframes-migration.md](tasks/rpgdemo-collision-keyframes-migration.md) | Migration RPGDemo des volumes de sprite (`.sprite` `collisions`) vers `collision_keyframes` d'animation (branche `bepu-physics`) | Script + assets migrés ✅, test ✅. Reste : validation visuelle manuelle in-game 🧪 (attaque à l'épée, herbe, octopus). |
 
 ### Points d'attention
 
@@ -53,6 +55,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 - [editor-runtime-separation-audit-report.md](audits/editor-runtime-separation-audit-report.md) — audit de la séparation éditeur/runtime.
 - [runtime-editor-separation-reliquats-audit.md](audits/runtime-editor-separation-reliquats-audit.md) — reliquats de séparation runtime/éditeur (dernière passe).
 - [analysis-possession-gameplay-framework.md](audits/analysis-possession-gameplay-framework.md) — état de la possession (Pawn/Controller/PlayerController) et comparaison Unreal/Unity/Godot.
+- [analysis-bepuphysics2-migration.md](audits/analysis-bepuphysics2-migration.md) — migration du backend physique BulletSharp → bepuphysics2 2.5.0-beta.29 : surface consommée, correspondance concept par concept, risques sémantiques, plan en 6 tranches.
 
 ### Rendu et materials
 

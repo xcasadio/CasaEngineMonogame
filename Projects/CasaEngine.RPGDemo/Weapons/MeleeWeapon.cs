@@ -32,7 +32,5 @@ public class MeleeWeapon : Weapon
     {
         Entity.IsEnabled = false;
         Entity.IsVisible = false;
-
-        //collision from the last frame is not removed !!
     }
 }

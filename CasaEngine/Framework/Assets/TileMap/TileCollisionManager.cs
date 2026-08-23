@@ -26,15 +26,56 @@ public class TileCollisionManager : ICollideableComponent
 
     public HashSet<Collision> Collisions { get; } = new();
 
+    /// <summary>
+    /// False once the physics body backing this manager has been removed (chunk rebuild, tile removal, ...).
+    /// A detached manager still exists in flight (e.g. queued in a collision-dispatch batch) but no longer
+    /// owns a live cell: <see cref="GetTileData"/> answers null instead of touching stale/rebuilt map data.
+    /// </summary>
+    public bool IsAttached { get; private set; } = true;
+
+    /// <summary>
+    /// Marks this manager as no longer backed by a physics body. Called by <see cref="TileMapComponent"/>
+    /// when the body is removed (chunk rebuild, tile replacement, component teardown).
+    /// </summary>
+    internal void Detach()
+    {
+        IsAttached = false;
+    }
+
     public void RemoveTile()
     {
+        if (!IsAttached)
+        {
+            return;
+        }
+
+        var tileId = _tileMapComponent.TileMapData.Layers[_layer].tiles[_x + _y * _tileMapComponent.TileMapData.MapSize.Width];
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            return;
+        }
+
         _tileMapComponent.RemoveTile(_layer, _x, _y);
     }
 
+    /// <summary>
+    /// Returns the tile data for the cell this manager was created for, or null when the manager is
+    /// detached, the cell is empty, or the tile id is unknown to the tileset. Never throws.
+    /// </summary>
     public TileData GetTileData()
     {
-        int tileId = _tileMapComponent.TileMapData.Layers[_layer].tiles[_x + _y * _tileMapComponent.TileMapData.MapSize.Width];
-        var tileData = _tileMapComponent.TileSetData.GetTileData(tileId);
+        if (!IsAttached)
+        {
+            return null;
+        }
+
+        var tileId = _tileMapComponent.TileMapData.Layers[_layer].tiles[_x + _y * _tileMapComponent.TileMapData.MapSize.Width];
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            return null;
+        }
+
+        _tileMapComponent.TileSetData.TryGetTileData(tileId, out var tileData);
         return tileData;
     }
 }

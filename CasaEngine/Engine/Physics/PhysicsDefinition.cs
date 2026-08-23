@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Serialization;
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -7,23 +7,24 @@ namespace CasaEngine.Engine.Physics;
 public class PhysicsDefinition
 {
     public PhysicsType PhysicsType { get; set; }
-    public float AdditionalAngularDampingFactor { get; set; } = 0.01f;
-    public float AdditionalAngularDampingThresholdSqr { get; set; } = 0.01f;
-    public bool AdditionalDamping { get; set; } = false;
-    public float AdditionalDampingFactor { get; set; } = 0.005f;
-    public float AdditionalLinearDampingThresholdSqr { get; set; } = 0.01f;
     public float AngularDamping { get; set; } = 0f;
     public Vector3 AngularFactor { get; set; } = Vector3.One;
-    public float AngularSleepingThreshold { get; set; } = 1f;
     public float Friction { get; set; } = 0.5f;
     public float LinearDamping { get; set; } = 0f;
     public Vector3 LinearFactor { get; set; } = Vector3.One;
-    public float LinearSleepingThreshold { get; set; } = 0.8f;
-    public Vector3 LocalInertia { get; set; }
+
+    /// Squared velocity (linear² + angular²) below which a dynamic body is allowed to sleep once it
+    /// stayed under it for <see cref="SleepDelaySeconds"/>. The default mirrors the former Bullet
+    /// deactivation (0.8 units/s): a slow roller settles instead of creeping forever.
+    /// A negative value means the body never sleeps.
+    public float SleepThreshold { get; set; } = 0.64f;
+
+    /// Seconds a body must stay under <see cref="SleepThreshold"/> before it may sleep (Bullet used 2 s).
+    public const float SleepDelaySeconds = 2f;
+
     public float Mass { get; set; } = 0f;
 
     public float Restitution { get; set; } = 0f;
-    public float RollingFriction { get; set; } = 0f;
     public bool ApplyGravity { get; set; } = true;
     public Color? DebugColor { get; set; }
 
@@ -38,22 +39,14 @@ public class PhysicsDefinition
     public PhysicsDefinition(PhysicsDefinition other)
     {
         PhysicsType = other.PhysicsType;
-        AdditionalAngularDampingFactor = other.AdditionalAngularDampingFactor;
-        AdditionalAngularDampingThresholdSqr = other.AdditionalAngularDampingThresholdSqr;
-        AdditionalDamping = other.AdditionalDamping;
-        AdditionalDampingFactor = other.AdditionalDampingFactor;
-        AdditionalLinearDampingThresholdSqr = other.AdditionalLinearDampingThresholdSqr;
         AngularDamping = other.AngularDamping;
         AngularFactor = other.AngularFactor;
-        AngularSleepingThreshold = other.AngularSleepingThreshold;
         Friction = other.Friction;
         LinearDamping = other.LinearDamping;
         LinearFactor = other.LinearFactor;
-        LinearSleepingThreshold = other.LinearSleepingThreshold;
-        LocalInertia = other.LocalInertia;
+        SleepThreshold = other.SleepThreshold;
         Mass = other.Mass;
         Restitution = other.Restitution;
-        RollingFriction = other.RollingFriction;
         ApplyGravity = other.ApplyGravity;
         DebugColor = other.DebugColor;
         ProfileName = other.ProfileName;
@@ -62,29 +55,36 @@ public class PhysicsDefinition
     public void Load(JObject element)
     {
         PhysicsType = element["physics_type"].GetEnum<PhysicsType>();
-        AdditionalAngularDampingFactor = element["additional_angular_damping_factor"].GetSingle();
-        AdditionalAngularDampingThresholdSqr = element["additional_angular_damping_threshold_sqr"].GetSingle();
-        AdditionalDamping = element["additional_damping"].GetBoolean();
-        AdditionalDampingFactor = element["additional_damping_factor"].GetSingle();
-        AdditionalLinearDampingThresholdSqr = element["additional_linear_damping_threshold_sqr"].GetSingle();
-        AngularDamping = element["angular_damping"].GetSingle();
-        AngularFactor = element["angular_factor"].GetVector3();
-        AngularSleepingThreshold = element["angular_sleeping_threshold"].GetSingle();
-        Friction = element["friction"].GetSingle();
-        LinearDamping = element["linear_damping"].GetSingle();
-        LinearFactor = element["linear_factor"].GetVector3();
-        LinearSleepingThreshold = element["linear_sleeping_threshold"].GetSingle();
-        LocalInertia = element["local_inertia"].GetVector3();
-        Mass = element["mass"].GetSingle();
-        Restitution = element["restitution"].GetSingle();
-        RollingFriction = element["rolling_friction"].GetSingle();
-        ApplyGravity = element["apply_gravity"].GetBoolean();
+        AngularDamping = GetSingleOrDefault(element, "angular_damping", AngularDamping);
+        AngularFactor = GetVector3OrDefault(element, "angular_factor", AngularFactor);
+        Friction = GetSingleOrDefault(element, "friction", Friction);
+        LinearDamping = GetSingleOrDefault(element, "linear_damping", LinearDamping);
+        LinearFactor = GetVector3OrDefault(element, "linear_factor", LinearFactor);
+        SleepThreshold = GetSingleOrDefault(element, "sleep_threshold", SleepThreshold);
+        Mass = GetSingleOrDefault(element, "mass", Mass);
+        Restitution = GetSingleOrDefault(element, "restitution", Restitution);
+        ApplyGravity = GetBooleanOrDefault(element, "apply_gravity", ApplyGravity);
         ProfileName = element["collision_profile"]?.Value<string>();
 
         var debugColorElement = element["debug_color"];
-        if (debugColorElement.GetString() != "null")
+        if (debugColorElement is JObject debugColorObject)
         {
-            DebugColor = element["debug_color"].GetColor();
+            DebugColor = debugColorObject.GetColor();
         }
+    }
+
+    private static float GetSingleOrDefault(JObject element, string key, float defaultValue)
+    {
+        return element[key] is { } token ? token.GetSingle() : defaultValue;
+    }
+
+    private static bool GetBooleanOrDefault(JObject element, string key, bool defaultValue)
+    {
+        return element[key] is { } token ? token.GetBoolean() : defaultValue;
+    }
+
+    private static Vector3 GetVector3OrDefault(JObject element, string key, Vector3 defaultValue)
+    {
+        return element[key] is { } token ? token.GetVector3() : defaultValue;
     }
 }

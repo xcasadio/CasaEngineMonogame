@@ -33,6 +33,23 @@ on assigne une politique d'espace au monde.**
 
 Cette section décrit uniquement ce qui est observable dans le dépôt au moment de la rédaction.
 
+> **Backend Bepu (2026-08).** Les mentions de Bullet ci-dessous décrivent l'état du dépôt au moment
+> de la rédaction de ce document ; le backend a depuis été remplacé par bepuphysics2 (voir
+> [analysis-bepuphysics2-migration.md](../../ai-agent/audits/analysis-bepuphysics2-migration.md) et
+> [bepu-physics-migration-tasks.md](../../ai-agent/tasks/bepu-physics-migration-tasks.md)). Ce qui a
+> changé pour les points touchés par ce document : Bepu n'a pas d'échelle de forme, l'échelle locale
+> est cuite dans les dimensions et les offsets de compound à la création ; le capteur n'est plus un
+> flag de corps mais une décision prise dans le callback de narrow-phase
+> (`ConfigureContactManifold` retourne `false`, pas de contrainte) ; les contacts portent
+> l'index d'enfant des deux côtés d'une paire, y compris pour les compounds — une amélioration par
+> rapport au BulletSharp vendorisé qui ne le donnait que côté sweep/raycast, jamais côté contact ;
+> `LinearFactor` n'a pas d'équivalent natif et s'implémente par annulation de vitesse dans
+> `IPoseIntegratorCallbacks.IntegrateVelocity` ; les champs `PhysicsDefinition` propres à Bullet
+> (`AdditionalDamping*`, `RollingFriction`, `LocalInertia`, les deux seuils de sommeil séparés) sont
+> supprimés, remplacés par un unique `SleepThreshold`.
+>
+> Suite : `PhysicsDefinition.Load` lit `physics_type` sans garde (défaut préexistant, hors migration).
+
 ### Trois vocabulaires de formes, aucun pivot
 
 - [Shape2d](../../CasaEngine/Engine/Geometry/Shape2d.cs) (Compound, Polygone,
@@ -214,9 +231,11 @@ public sealed class ColliderFixture
 }
 ```
 
-Contrainte backend assumée : Bullet filtre **par corps**, pas par forme. Le runtime regroupe donc
-les fixtures par profil — une entité qui porte à la fois une hurtbox et une hitbox d'attaque possède
-plusieurs corps. C'est un détail d'implémentation du backend, pas du modèle de données.
+Contrainte backend assumée à la rédaction (Bullet filtre **par corps**, pas par forme) : le runtime
+regroupe donc les fixtures par profil — une entité qui porte à la fois une hurtbox et une hitbox
+d'attaque possède plusieurs corps. C'est un détail d'implémentation du backend, pas du modèle de
+données ; toujours vrai avec Bepu, qui filtre aussi par collidable (corps ou static) via
+`AllowContactGeneration`, pas par enfant de compound.
 
 ### D3 — Canaux, réponses, profils nommés
 
@@ -243,9 +262,13 @@ public sealed class CollisionProfile
   [tilemaps-gestion-profondeur.md](tilemaps-gestion-profondeur.md) réclame déjà avec
   `collision.profile = TreeTrunk`.
 - Mapping backend : canal → bit de groupe ; masque broadphase = canaux dont la réponse ≠ `Ignore`.
-  Règle v1 honnête : Bullet ne sait pas faire `Block` et `Overlap` par paire sur un même corps —
-  un corps dont le profil ne bloque rien est un capteur (`NoContactResponse`) ; le cas mixte se
-  résout en scindant les fixtures en deux corps (cf. D2) ou, plus tard, par callback de contact.
+  Règle v1 honnête à la rédaction : Bullet ne savait pas faire `Block` et `Overlap` par paire sur un
+  même corps — un corps dont le profil ne bloque rien est un capteur (`NoContactResponse`) ; le cas
+  mixte se résout en scindant les fixtures en deux corps (cf. D2). Bepu réalise ce « plus tard, par
+  callback de contact » nativement : le capteur n'est plus un flag de corps mais une décision prise
+  dans `ConfigureContactManifold`, qui retourne `false` (pas de contrainte) quand l'un des deux
+  collidables est capteur — le corps continue d'enregistrer ses contacts et de recevoir ses
+  événements `OnHit`/`OnHitEnded`.
 - **`CollisionHitType` est supprimé** : `Attack`/`Defense` deviennent des canaux de projet
   (`AttackVolume`/`DamageableVolume`) + un `Tag` de fixture. Les couleurs de debug viennent du
   profil. `Collision2d` porte `ProfileName` + `Tag` à la place de l'enum.
@@ -340,8 +363,12 @@ Généralisation du frame data des jeux de combat, valable pour tout genre à m�
   granularité fausse (le sprite est partagé entre animations), sélection fragile
   (`GetPrimarySpriteId`).
 
-Implémentation de l'attribution : les manifolds Bullet exposent l'index de child shape des
-compounds (`ManifoldPoint.Index0/Index1`) — c'est le crochet pour remonter à la fixture.
+Implémentation de l'attribution à la rédaction : les manifolds Bullet exposaient l'index de child
+shape des compounds (`ManifoldPoint.Index0/Index1`) — c'est le crochet pour remonter à la fixture.
+Bepu fait aussi bien pour les contacts : `ConfigureContactManifold` reçoit `childIndexA/childIndexB`
+des deux côtés de la paire, y compris quand les deux collidables sont des compounds (`BepuBodyBackend.
+ResolveFixtureTag`) — une amélioration par rapport au BulletSharp vendorisé, qui ne remplissait
+`LocalShapeInfo` que côté sweep/raycast, jamais côté contact.
 
 ---
 
@@ -415,10 +442,19 @@ B  Fixtures et compounds  ColliderFixture ; corps multi-formes (btCompoundShape)
                           après AddChildShape, enfants non scalés ; et un composant 2D créé à la
                           main doit poser LinearFactor/AngularFactor explicitement tant que la
                           politique Planar2d (phase D) ne fournit pas les défauts de monde.
-                          Limite connue : le BulletSharp vendorisé ne remplit pas LocalShapeInfo
-                          pour les enfants d'un compound lors d'un sweep/raycast — HitResult.Tag
-                          n'est donc renseigné que pour les corps à fixture unique. Les contacts,
-                          eux, portent bien l'enfant touché (ManifoldPoint.Index0/Index1).
+                          Limite connue à la rédaction : le BulletSharp vendorisé ne remplissait pas
+                          LocalShapeInfo pour les enfants d'un compound lors d'un sweep/raycast —
+                          HitResult.Tag n'était donc renseigné que pour les corps à fixture unique ;
+                          les contacts, eux, portaient bien l'enfant touché (ManifoldPoint.Index0/
+                          Index1). Bepu reproduit exactement cette asymétrie (même limite côté
+                          bibliothèque, pas seulement côté binding) : `ISweepHitHandler.AllowTest`
+                          reçoit un `childIndex` mais `OnHit` ne le reporte pas, donc `HitResult.Tag`
+                          reste `null` pour un compound touché par un sweep
+                          (`ShapeSweep_ReportsNoTag_WhenItHitsACompoundBody`), alors que
+                          `ConfigureContactManifold` porte bien `childIndexA/childIndexB` des deux
+                          côtés d'un contact. LocalScaling n'existe plus dans Bepu : l'échelle locale
+                          est cuite dans les dimensions et les offsets de compound à la création
+                          (`BepuShapeCache`), plus dans une propriété de forme posée après coup.
 C  Abaissement            ISimulationSpacePolicy.Lower ; Shape2d perd sa pose (migrée dans
                           Collision2d, qui gagne ProfileName + Tag) ; extrusion paramétrée ;
                           Physics2dHelper, branche Physics2dComponent, CollisionHitType et

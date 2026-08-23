@@ -50,8 +50,10 @@ public class ScriptPlayerWeapon : GameplayProxy
 
         if (tileCollisionManager != null)
         {
+            // GetTileData() returns null when the manager is detached or its cell is already empty
+            // (e.g. another cutter removed the same merged tile rectangle earlier this frame).
             var tileData = tileCollisionManager.GetTileData();
-            if (tileData.IsBreakable)
+            if (tileData?.IsBreakable == true)
             {
                 tileCollisionManager.RemoveTile();
             }

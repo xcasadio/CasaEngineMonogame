@@ -50,8 +50,10 @@ public class ScriptEnemyWeapon : GameplayProxy
 
         if (tileCollisionManager != null) // && weapon IsBreakable ?
         {
+            // GetTileData() returns null when the manager is detached or its cell is already empty
+            // (e.g. another actor already cleared the same merged tile rectangle earlier this frame).
             var tileData = tileCollisionManager.GetTileData();
-            if (tileData.CollisionType == TileCollisionType.Blocked)
+            if (tileData != null && tileData.CollisionType == TileCollisionType.Blocked)
             {
                 Owner.Destroy();
 

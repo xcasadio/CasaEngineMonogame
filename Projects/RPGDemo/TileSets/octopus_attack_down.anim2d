@@ -41,5 +41,119 @@
         }
       ]
     }
+  ],
+  "collision_keyframes": [
+    {
+      "time_seconds": 0.0,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "e015ee30-40f0-5d5f-9e18-fee25b70bab8",
+            "name": "Object e015ee30-40f0-5d5f-9e18-fee25b70bab8",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -2.0,
+            "y": 3.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_14"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.15,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "04d07b14-661c-5aba-bb30-fa0c30ba6baa",
+            "name": "Object 04d07b14-661c-5aba-bb30-fa0c30ba6baa",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": -2.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_16"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.3,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "0551bc48-9ce0-50f0-a4c5-c346840a2244",
+            "name": "Object 0551bc48-9ce0-50f0-a4c5-c346840a2244",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_0"
+        }
+      ]
+    },
+    {
+      "time_seconds": 0.45,
+      "fixtures": [
+        {
+          "shape": {
+            "id": "0551bc48-9ce0-50f0-a4c5-c346840a2244",
+            "name": "Object 0551bc48-9ce0-50f0-a4c5-c346840a2244",
+            "shape_type": "Box",
+            "w": 24.0,
+            "h": 24.0,
+            "l": 1.0
+          },
+          "local_position": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "local_rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          },
+          "collision_profile": "DamageableVolume",
+          "tag": "octopus_0"
+        }
+      ]
+    }
   ]
 }

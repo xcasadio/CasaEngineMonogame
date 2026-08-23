@@ -442,7 +442,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             return;
         }
 
-        var sampler = CreatePhysicsForEachFrame ? _currentCompositionSampler : null;
+        //A disabled owner never owns active collision bodies (same convention as ParticleSystemComponent
+        //and StaticSpriteComponent): Entity.IsEnabled does not gate Entity.Update, so this method still
+        //runs every frame on a disabled owner and must not resurrect the bodies of the last keyframe.
+        var sampler = CreatePhysicsForEachFrame && Owner is { IsEnabled: true } ? _currentCompositionSampler : null;
         int keyframeIndex = sampler?.CurrentCollisionKeyframeIndex ?? -1;
 
         if (ReferenceEquals(sampler, _activeCollisionSampler) && keyframeIndex == _activeCollisionKeyframeIndex)
