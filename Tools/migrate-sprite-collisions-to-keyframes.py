@@ -290,6 +290,7 @@ def build_collision_keyframes_block(animation: dict, sprites_by_id: dict, anim_p
 # ---------------------------------------------------------------------------
 
 TRACKS_KEY_PATTERN = re.compile(r'"tracks"\s*:\s*')
+COLLISION_KEYFRAMES_KEY_PATTERN = re.compile(r'"collision_keyframes"\s*:\s*')
 
 
 def find_matching_bracket(text: str, open_index: int) -> int:
@@ -324,38 +325,54 @@ def find_matching_bracket(text: str, open_index: int) -> int:
 
 
 def insert_collision_keyframes(raw_text: str, keyframes_array_text: str, anim_path: Path) -> str:
-    match = TRACKS_KEY_PATTERN.search(raw_text)
-    if not match:
-        raise MigrationError(f"{anim_path}: no top-level \"tracks\" key found.")
-
-    if len(TRACKS_KEY_PATTERN.findall(raw_text)) != 1:
-        raise MigrationError(f"{anim_path}: expected exactly one \"tracks\" key, found more.")
-
-    value_start = match.end()
-    if raw_text[value_start] != "[":
-        raise MigrationError(f"{anim_path}: \"tracks\" is not a JSON array.")
-
-    tracks_close = find_matching_bracket(raw_text, value_start)
-
-    # After the tracks array must come only whitespace and the final root '}': tracks is
-    # required to be the last top-level property for this straightforward insertion to be safe.
-    tail = raw_text[tracks_close + 1:]
-    tail_stripped = tail.strip()
-    if tail_stripped != "}":
-        raise MigrationError(
-            f"{anim_path}: \"tracks\" is not the last top-level property; "
-            f"refusing to guess where to insert collision_keyframes."
-        )
-
+    """`keyframes_array_text` and `raw_text` are both handled in native '\\n' form here; the
+    single conversion to the file's actual newline convention happens at the very end, so a
+    file already using CRLF never gets its already-CRLF fragments re-converted (which would
+    otherwise double up into CRCRLF)."""
     newline = detect_newline(raw_text)
-    insertion = (
-        ",\n"
-        f"  \"collision_keyframes\": {keyframes_array_text}"
-    )
-    if newline != "\n":
-        insertion = insertion.replace("\n", newline)
+    working_text = raw_text if newline == "\n" else raw_text.replace(newline, "\n")
 
-    return raw_text[:tracks_close + 1] + insertion + tail
+    existing_matches = COLLISION_KEYFRAMES_KEY_PATTERN.findall(working_text)
+    if len(existing_matches) > 1:
+        raise MigrationError(f"{anim_path}: found more than one \"collision_keyframes\" key.")
+
+    if existing_matches:
+        # Re-running the script on an already migrated file: replace the array value in place
+        # so the result is byte-identical to a fresh migration (idempotence).
+        match = COLLISION_KEYFRAMES_KEY_PATTERN.search(working_text)
+        value_start = match.end()
+        if working_text[value_start] != "[":
+            raise MigrationError(f"{anim_path}: \"collision_keyframes\" is not a JSON array.")
+
+        value_close = find_matching_bracket(working_text, value_start)
+        result = working_text[:value_start] + keyframes_array_text + working_text[value_close + 1:]
+    else:
+        match = TRACKS_KEY_PATTERN.search(working_text)
+        if not match:
+            raise MigrationError(f"{anim_path}: no top-level \"tracks\" key found.")
+
+        if len(TRACKS_KEY_PATTERN.findall(working_text)) != 1:
+            raise MigrationError(f"{anim_path}: expected exactly one \"tracks\" key, found more.")
+
+        value_start = match.end()
+        if working_text[value_start] != "[":
+            raise MigrationError(f"{anim_path}: \"tracks\" is not a JSON array.")
+
+        tracks_close = find_matching_bracket(working_text, value_start)
+
+        # After the tracks array must come only whitespace and the final root '}': tracks is
+        # required to be the last top-level property for this straightforward insertion to be safe.
+        tail = working_text[tracks_close + 1:]
+        if tail.strip() != "}":
+            raise MigrationError(
+                f"{anim_path}: \"tracks\" is not the last top-level property; "
+                f"refusing to guess where to insert collision_keyframes."
+            )
+
+        insertion = ",\n" + f"  \"collision_keyframes\": {keyframes_array_text}"
+        result = working_text[:tracks_close + 1] + insertion + tail
+
+    return result if newline == "\n" else result.replace("\n", newline)
 
 
 # ---------------------------------------------------------------------------
