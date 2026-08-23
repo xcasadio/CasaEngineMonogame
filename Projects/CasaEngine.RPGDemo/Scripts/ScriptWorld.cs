@@ -68,12 +68,6 @@ public class ScriptWorld : GameplayProxy
         var scriptPlayer = entity.GameplayProxy as ScriptPlayer;
         _playerCharacter = scriptPlayer.Character;
 
-        var sampleEntity = world.SpawnEntity<Entity>("animation2d_composed_sample");
-        var sampleSprite = sampleEntity.GetComponent<AnimatedSpriteComponent>();
-        sampleSprite.SetCurrentAnimation("swordman_composed_demo", true);
-        sampleSprite.AnimationEventTriggered += (_, animationEvent) =>
-            Logs.WriteTrace($"Animation2D composed sample event: {animationEvent.EventName}");
-
         // Get UI view for this render view.
         if (world.Game.GameManager.ViewManager.GetActiveUIView() == null) return;
 

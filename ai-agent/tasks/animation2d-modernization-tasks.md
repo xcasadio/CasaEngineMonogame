@@ -728,7 +728,7 @@ Validation :
 Validation realisee :
 
 - Ajout de `Projects/RPGDemo/Entities/animation2d_composed_sample.entity` utilisant l'animation composee.
-- Extension de `ScriptWorld.OnBeginPlay()` pour spawner l'entite sample dans `DefaultWorld.world` et tracer l'event 2D `WeaponSwapLayer`.
+- Extension de `ScriptWorld.OnBeginPlay()` pour spawner l'entite sample dans `DefaultWorld.world` et tracer l'event 2D `WeaponSwapLayer`. **Retiré le 2026-08-23** : le sample (Link à l'échelle 2 au milieu de la carte) passait pour un bug en jeu ; l'asset reste dans `Projects/RPGDemo` (cf. `animation2d-composed-sample.md`) et couvert par `Animation2dAuthoringDataTests`.
 - Enregistrement de l'entite sample dans `Projects/RPGDemo/AssetInfos.json`.
 - Ajout de `Projects/RPGDemo/animation2d-composed-sample.md` avec les etapes de lancement et l'event attendu.
 - `jq empty` reussi sur l'entite sample et `AssetInfos.json`.
