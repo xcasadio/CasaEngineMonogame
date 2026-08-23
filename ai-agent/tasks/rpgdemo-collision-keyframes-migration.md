@@ -87,10 +87,13 @@ Le schéma cible est celui que lit `Animation2dCollisionKeyframeData.Load` →
   `GameSettings.PhysicsEngineSettings.CollisionProfiles`.
 - `SwordAttackAnimations_CarryAttackVolumes` : pour chaque `baton_attack*.anim2d`, au moins un keyframe
   a une fixture `AttackVolume` ; pour les animations de Link — fichiers **`swordman_*.anim2d`** (les
-  sprites s'appellent `player_*`, les animations `swordman_*`), hors `swordman_composed_demo` — au
-  moins une fixture `DamageableVolume` ; pour `octopus_*.anim2d`, `DamageableVolume`. Chaque glob doit
-  correspondre à **au moins un fichier** (`Assert.NotEmpty` sur la liste) : un test qui itère sur un
-  ensemble vide ne prouve rien.
+  sprites s'appellent `player_*`, les animations `swordman_*`), **hors** `swordman_composed_demo`
+  (pas de piste Sprite) **et hors `swordman_dead_stand_*` / `swordman_dead_walking_*`** (leurs sprites
+  `player_84`…`player_105` n'ont aucun volume : elles produisent légitimement des keyframes à
+  `fixtures: []`, un mort ne se fait pas toucher) — au moins une fixture `DamageableVolume` ; pour
+  `octopus_*.anim2d`, `DamageableVolume`. Chaque liste doit contenir **au moins un fichier**
+  (`Assert.NotEmpty`) : un test qui itère sur un ensemble vide ne prouve rien. Le test vérifie aussi, en
+  sens inverse, que chaque `swordman_dead_*` n'a **aucune** fixture (le script n'invente pas de volume).
 - `SwordKeyframe_PlacesTheVolumeLikeTheSpriteHelperDid` : cas concret calculé à la main à partir de
   `sword_29.sprite` (hotspot `(-15, 17)`, volume `location (16, 8)`, `w 34`, `h 7`) → la fixture du
   keyframe qui référence ce sprite a `LocalPosition == (16 - (-15) + 17, -(8 - 17 + 3.5), 0) = (48, 5.5, 0)`
