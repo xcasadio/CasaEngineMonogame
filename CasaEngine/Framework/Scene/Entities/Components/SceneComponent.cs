@@ -231,6 +231,20 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         return localBounds.Transform(WorldMatrixWithScale);
     }
 
+    /// <summary>
+    /// Marks this component's bounding box as needing to be recomputed by whatever tracks it (for example
+    /// a world's spatial index, which only inspects the root and entity-level components of an entity,
+    /// see <see cref="CasaEngine.Framework.Scene.Entities.Entity"/>). Additive API for callers that move
+    /// a component's world position without going through its own <see cref="LocalTransform"/> (which
+    /// already sets <see cref="IsBoundingBoxDirty"/> on itself), such as
+    /// <see cref="RenderProjectionComponent"/> marking the entity root dirty when its projected position
+    /// changes.
+    /// </summary>
+    public void MarkBoundingBoxDirty()
+    {
+        IsBoundingBoxDirty = true;
+    }
+
     public void ClearBoundingBoxDirtyRecursive()
     {
         IsBoundingBoxDirty = false;

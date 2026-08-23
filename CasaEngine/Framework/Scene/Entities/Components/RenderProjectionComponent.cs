@@ -23,7 +23,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// land in render space instead of the logical space of the simulation.
 /// </remarks>
 [DisplayName("Render Projection")]
-public class RenderProjectionComponent : SceneComponent
+public class RenderProjectionComponent : SceneComponent, IEntityPolicyDefaultsProvider
 {
     public RenderProjectionComponent()
     {
@@ -73,6 +73,28 @@ public class RenderProjectionComponent : SceneComponent
             ambientMatrix *= Owner.Parent.RootComponent.WorldMatrixNoScale;
         }
 
-        LocalTransform.Position = Vector3.Transform(renderPosition, Matrix.Invert(ambientMatrix));
+        var newLocalPosition = Vector3.Transform(renderPosition, Matrix.Invert(ambientMatrix));
+
+        if (newLocalPosition != LocalTransform.Position)
+        {
+            LocalTransform.Position = newLocalPosition;
+
+            //The world's spatial index only inspects the root and entity-level components of an entity
+            //(Entity.GetBoundingBox), so a projection moving somewhere under the root must mark the root
+            //itself dirty, including on the very first update after the entity was added: the box the
+            //index stored at add time predates any projection.
+            root.MarkBoundingBoxDirty();
+        }
+    }
+
+    /// <summary>
+    /// A render projection derives a world position from its entity root every update, so without physics
+    /// driving it an entity carrying one still needs dynamic index maintenance and a tick every frame -
+    /// otherwise <see cref="UpdateProjection"/> above would never run and the index would never learn the
+    /// projected position moved.
+    /// </summary>
+    public void ApplyEntityPolicyDefaults(Entity owner, ref EntityPolicyDefaultsBuilder defaults)
+    {
+        defaults.Apply(EntityPolicySet.DynamicDefault);
     }
 }

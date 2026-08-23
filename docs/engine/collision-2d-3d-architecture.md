@@ -514,6 +514,32 @@ D  Espace de simulation   politique complète par monde ; pose logique vs pose d
                           mettre à jour ses enfants ; il publie donc toujours la position de la
                           racine de la même frame. Seule contrainte de placement : être un
                           descendant de la racine de l'entité, pas la racine elle-même.
+                          E3.0 (2026-08, plan-e3-collisions.md) : nouveau TransformComponent,
+                          racine inerte concrète (aucun état, aucun visuel propre) enfin
+                          disponible pour porter une pose logique pure — jusque-là aucune
+                          sous-classe concrète de SceneComponent ne convenait. Son GetBoundingBox
+                          renvoie l'union des boîtes de ses descendants dessinables, récursivement,
+                          en excluant les PhysicsBaseComponent (ils vivent dans le monde physique,
+                          pas dans l'espace de rendu) ; repli sur la boîte héritée (petite boîte
+                          autour de lui-même) sans descendant dessinable. Update/Draw ne sont pas
+                          surchargés : la propagation héritée suffit à faire tourner et dessiner
+                          les enfants. API additive `SceneComponent.MarkBoundingBoxDirty()`
+                          (IsBoundingBoxDirty était `protected set`) : l'index spatial d'un monde
+                          n'inspecte que la racine et les composants de niveau entité
+                          (Entity.GetBoundingBox, World.IsBoundingBoxDirty), donc
+                          RenderProjectionComponent.UpdateProjection appelle
+                          `Owner.RootComponent.MarkBoundingBoxDirty()` chaque fois que sa position
+                          projetée change réellement (comparaison avant écriture), y compris au
+                          tout premier update après l'ajout au monde : la boîte indexée à l'ajout
+                          date d'avant toute projection. Sans composant physique, une entité
+                          projetée résout par défaut en `StaticMaterialAnimated` (index statique,
+                          tick conditionnel) : `RenderProjectionComponent` implémente donc
+                          `IEntityPolicyDefaultsProvider` et contribue `EntityPolicySet.DynamicDefault`,
+                          ce qui pousse la politique fusionnée d'une entité
+                          TransformComponent → RenderProjectionComponent → AnimatedSpriteComponent
+                          vers `DynamicIndex` + `EveryFrame` (règle de fusion :
+                          `EntityPolicyDefaultsBuilder.Apply`, EntityPolicies.cs:110-130 ; la
+                          combinaison ne déclenche pas `EntityPolicyResolver.GetSuspectCombinationReason`).
 E  Timelines de fixtures  keyframes de collision sur les assets d'animation ; composant runtime
                           poolé ; chemin par sprite id d'AnimatedSpriteComponent SUPPRIMÉ.
                           FAIT (2026-08). Un asset d'animation 2d porte une liste optionnelle
