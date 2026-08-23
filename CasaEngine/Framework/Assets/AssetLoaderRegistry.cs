@@ -8,6 +8,7 @@ using CasaEngine.Framework.Dialogue.Assets;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI.MGUI;
@@ -44,6 +45,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(Scene.World.World), new AssetLoader<Scene.World.World>());
         assetContentManager.RegisterAssetLoader(typeof(PlayerStartupSettings), new AssetLoader<PlayerStartupSettings>());
         assetContentManager.RegisterAssetLoader(typeof(GameplayModeAsset), new AssetLoader<GameplayModeAsset>());
+        assetContentManager.RegisterAssetLoader(typeof(ButtonsMapping), new AssetLoader<ButtonsMapping>());
         assetContentManager.RegisterAssetLoader(typeof(EnvironmentAsset), new EnvironmentAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
