@@ -293,3 +293,10 @@ Note tranche 1 : le plan demandait au moins trois commits (socle+corps+formes ; 
 prescriptive de l'analyse, puis compilée et testée en une seule passe verte (161/161, budget de
 réglage inutilisé) : il n'y avait pas d'étape intermédiaire buildable-mais-incomplète à committer
 séparément sans fabriquer un découpage artificiel. Écart de process documenté, pas de fond.
+
+## Correctifs post-migration
+
+| Date | Symptôme | Cause | Correctif | Commits |
+| --- | --- | --- | --- | --- |
+| 2026-08-23 | `Collision2dBasicDemo` : des objets tombent à côté du sol | `LinearFactor` appliqué seulement dans l'intégrateur de pose ; le solveur pousse en Z quand deux boîtes se chevauchent autant en X qu'en Z (axe de pénétration à égalité) et la dérive est intégrée avant le masquage suivant. Bullet masquait les deltas de vitesse dans le solveur. | Clamp (position + vitesse) des axes verrouillés après chaque `Simulation.Timestep` (`BepuBodyBackend.EnforceLinearLock`) ; test `OverlappingBoxes_WithLockedZ_AreNeverPushedAlongZ` (rouge sans le clamp). Sommeil par défaut aligné sur Bullet (`SleepThreshold = 0.64`, 2 s). La démo espaçait ses colonnes de 1 pour des boîtes de 2 (chevauchement au spawn, masqué par le *split impulse* de Bullet) : colonnes espacées de `boxSize`. A/B headless contre le backend Bullet de `e18b2282` : comportement équivalent une fois le chevauchement retiré. | `98b1dcb4`, `e78ca3a5` |
+
