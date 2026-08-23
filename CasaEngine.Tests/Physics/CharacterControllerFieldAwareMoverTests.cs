@@ -117,6 +117,51 @@ public class CharacterControllerFieldAwareMoverTests
         Assert.Equal(0f, component.Velocity.Z, precision: 3);
     }
 
+    /// <summary>
+    /// E3.c-bis acceptance: a box fixture 15 px deep, centred in a 16-px cell via a 0.5 local-position
+    /// offset (matching the original's <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c> collision box, as
+    /// Alundra's G2 fixture does on each horizontal axis), lands its far corner exactly on the boundary
+    /// with the neighbour cell. Without the far-corner epsilon that neighbour cell would be sampled too;
+    /// raising it well above step height would then block grounding even though the fixture's own cell
+    /// is flat.
+    /// </summary>
+    [Fact]
+    public void FootprintFarCorner_OnCellBoundary_SamplesOnlyItsOwnCell()
+    {
+        const int width = 4;
+        const int depth = 4;
+        var heights = new float[width * depth];
+        heights[1 * width + 2] = 100f; // cell (x=2, y=1): the h1-far neighbour of cell (1, 1).
+        var field = new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, up: Vector3.UnitZ);
+
+        var entity = CreateEntityWithRoot();
+        var world = CreateWorld(new PhysicsWorld(useExternalViewManagement: false, spacePolicy: new TopDownElevationSimulationSpacePolicy()));
+        world.CollisionField = field;
+        SetWorld(entity, world);
+
+        var collisionComponent = new CollisionComponent();
+        collisionComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(15f, 15f, 32f) })
+        {
+            LocalPosition = new Vector3(0.5f, 0.5f, 16f),
+        });
+        entity.AddComponent(collisionComponent);
+        AttachToRoot(entity, collisionComponent);
+
+        var component = new TestCharacterControllerComponent();
+        ConfigureFieldAwareSettings(component.Settings);
+        entity.AddComponent(component);
+
+        // Cell (1, 1) spans [16, 32) on both axes; its centre is (24, 24). The fixture's far corner on
+        // X lands at 24 + 0.5 + 7.5 = 32.0, exactly the boundary with the raised cell (2, 1).
+        entity.RootComponent!.Position = new Vector3(24f, 24f, 8f);
+        component.SetVelocityForTest(new Vector3(0f, 0f, -800f));
+
+        component.Update(Tick);
+
+        AssertPosition(new Vector3(24f, 24f, 0f), entity.RootComponent!.Position);
+        Assert.True(component.IsGrounded);
+    }
+
     [Fact]
     public void Update_CrossesGroundWithinOneStep_AndLands()
     {

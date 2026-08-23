@@ -16,6 +16,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private const float MinMoveDistanceSquared = 0.000001f;
     private const float MinSweepShapeSize = 0.001f;
 
+    /// <summary>
+    /// E3.c-bis: the original defines an entity's collision box as
+    /// <c>[Pos + Mod, Pos + Mod + size - 1/65536)</c> (decompiled <c>EntityManager.SetEntityDimensions</c>,
+    /// where <c>Width = (size &lt;&lt; 16) - 1</c> in 16.16 fixed point) - the far edge on each axis is
+    /// exclusive by one 16.16 unit. Without this, a footprint corner computed as
+    /// <c>centre + half-extent</c> lands exactly on the boundary of the next grid cell: a 15-px-deep box
+    /// centred in a 16-px row would sample the neighbouring row instead of staying in its own. Applying
+    /// this epsilon to the far corner on each horizontal axis reproduces the original's exclusive bound.
+    /// </summary>
+    private const float FootprintFarCornerEpsilon = 1f / 65536f;
+
     private CharacterControllerSettings _settings = new();
     private Vector2 _moveIntent;
     private bool _jumpRequested;
@@ -780,18 +791,24 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         public void GetCorners(Span<(float H1, float H2)> corners)
         {
+            // E3.c-bis: the far corner on each horizontal axis (the positive half-extent side) is
+            // pulled in by FootprintFarCornerEpsilon so the far edge is exclusive, matching the
+            // original's [min, max) collision box. Near corners (negative half-extent) are unchanged.
+            var farH1 = HalfExtentH1 - FootprintFarCornerEpsilon;
+            var farH2 = HalfExtentH2 - FootprintFarCornerEpsilon;
+
             if (IsCapsule)
             {
-                corners[0] = (HalfExtentH1, 0f);
+                corners[0] = (farH1, 0f);
                 corners[1] = (-HalfExtentH1, 0f);
-                corners[2] = (0f, HalfExtentH2);
+                corners[2] = (0f, farH2);
                 corners[3] = (0f, -HalfExtentH2);
             }
             else
             {
-                corners[0] = (HalfExtentH1, HalfExtentH2);
-                corners[1] = (HalfExtentH1, -HalfExtentH2);
-                corners[2] = (-HalfExtentH1, HalfExtentH2);
+                corners[0] = (farH1, farH2);
+                corners[1] = (farH1, -HalfExtentH2);
+                corners[2] = (-HalfExtentH1, farH2);
                 corners[3] = (-HalfExtentH1, -HalfExtentH2);
             }
         }
