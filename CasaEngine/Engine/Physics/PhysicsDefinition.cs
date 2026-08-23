@@ -54,7 +54,10 @@ public class PhysicsDefinition
 
     public void Load(JObject element)
     {
-        PhysicsType = element["physics_type"].GetEnum<PhysicsType>();
+        //A missing physics_type keeps the definition's current type (Static for a fresh definition), like every other key.
+        PhysicsType = element["physics_type"] is { Type: not JTokenType.Null } physicsTypeToken
+            ? physicsTypeToken.GetEnum<PhysicsType>()
+            : PhysicsType;
         AngularDamping = GetSingleOrDefault(element, "angular_damping", AngularDamping);
         AngularFactor = GetVector3OrDefault(element, "angular_factor", AngularFactor);
         Friction = GetSingleOrDefault(element, "friction", Friction);

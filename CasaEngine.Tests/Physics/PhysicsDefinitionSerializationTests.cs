@@ -60,6 +60,25 @@ public class PhysicsDefinitionSerializationTests
     }
 
     [Fact]
+    public void Load_ToleratesAnEmptyNode_AndKeepsTheCurrentPhysicsType()
+    {
+        var emptyNode = JObject.Parse("{}");
+
+        var fresh = new PhysicsDefinition();
+        fresh.Load(emptyNode);
+        Assert.Equal(PhysicsType.Static, fresh.PhysicsType);
+
+        var dynamic = new PhysicsDefinition { PhysicsType = PhysicsType.Dynamic, Mass = 2f };
+        dynamic.Load(emptyNode);
+        Assert.Equal(PhysicsType.Dynamic, dynamic.PhysicsType);
+        Assert.Equal(2f, dynamic.Mass);
+
+        var nullNode = JObject.Parse("""{ "physics_type": null }""");
+        dynamic.Load(nullNode);
+        Assert.Equal(PhysicsType.Dynamic, dynamic.PhysicsType);
+    }
+
+    [Fact]
     public void Load_ToleratesMinimalNode_WithOnlyPhysicsType()
     {
         var node = JObject.Parse("""{ "physics_type": "Static" }""");
