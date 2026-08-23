@@ -35,6 +35,8 @@ public sealed class CharacterControllerSettings
         StepHeight = other.StepHeight;
         ProfileName = other.ProfileName;
         HitTriggers = other.HitTriggers;
+        WalkabilityMask = other.WalkabilityMask;
+        MaxFallSpeed = other.MaxFallSpeed;
     }
 
     public float Radius { get; set; } = 0.35f;
@@ -73,6 +75,16 @@ public sealed class CharacterControllerSettings
     public string ProfileName { get; set; } = CollisionProfileNames.Pawn;
 
     public bool HitTriggers { get; set; }
+
+    /// <summary>
+    /// Opaque walkability mask a field-backed ground probe is queried with (see
+    /// <see cref="ICollisionField"/>). Default 0 blocks nothing, matching the Alundra field's
+    /// polarity where a class bit set in the mask is what makes a cell non-walkable.
+    /// </summary>
+    public uint WalkabilityMask { get; set; }
+
+    /// <summary>Terminal fall speed. Zero (the default) leaves the fall unbounded.</summary>
+    public float MaxFallSpeed { get; set; }
 
     /// <summary>
     /// Channels the character sweeps against: what its own collision profile blocks.
@@ -116,6 +128,8 @@ public sealed class CharacterControllerSettings
         StepHeight = ReadSingle(element, "step_height", StepHeight);
         ProfileName = element["collision_profile"]?.Value<string>() ?? ProfileName;
         HitTriggers = ReadBoolean(element, "hit_triggers", HitTriggers);
+        WalkabilityMask = ReadUInt32(element, "walkability_mask", WalkabilityMask);
+        MaxFallSpeed = ReadSingle(element, "max_fall_speed", MaxFallSpeed);
 
         Validate();
     }
@@ -181,11 +195,21 @@ public sealed class CharacterControllerSettings
         {
             throw new InvalidOperationException("Character controller collision profile name cannot be empty.");
         }
+
+        if (MaxFallSpeed < 0f)
+        {
+            throw new InvalidOperationException("Character controller max fall speed cannot be negative.");
+        }
     }
 
     private static float ReadSingle(JObject element, string propertyName, float defaultValue)
     {
         return element[propertyName]?.Value<float>() ?? defaultValue;
+    }
+
+    private static uint ReadUInt32(JObject element, string propertyName, uint defaultValue)
+    {
+        return element[propertyName]?.Value<uint>() ?? defaultValue;
     }
 
     private static bool ReadBoolean(JObject element, string propertyName, bool defaultValue)

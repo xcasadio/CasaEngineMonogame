@@ -25,6 +25,13 @@ public class SimulationSpacePolicy
     /// <summary>Depth given to a lowered 2d shape along the axis the simulation does not author.</summary>
     public float ExtrusionDepth { get; set; } = 1f;
 
+    /// <summary>
+    /// Elevation axis of this simulation space. The base policy is Y-up, matching the physics
+    /// backend's native convention; a policy whose logical space runs along a different axis
+    /// (e.g. <see cref="TopDownElevationSimulationSpacePolicy"/>) overrides this.
+    /// </summary>
+    public virtual Vector3 Up => Vector3.Up;
+
     public virtual Shape3d Lower(Shape2d shape)
     {
         ArgumentNullException.ThrowIfNull(shape);
@@ -129,6 +136,9 @@ public sealed class Planar2dSimulationSpacePolicy : SimulationSpacePolicy
 public sealed class TopDownElevationSimulationSpacePolicy : SimulationSpacePolicy
 {
     public override string Name => SimulationSpacePolicyNames.TopDownElevation;
+
+    /// <summary>The logical space elevates along Z; X and Y are the horizontal axes.</summary>
+    public override Vector3 Up => Vector3.UnitZ;
 
     /// <summary>Screen position of a logical position: (X, -(Y - Z), 0).</summary>
     public override Vector3 DeriveRenderPosition(Vector3 logicalPosition)

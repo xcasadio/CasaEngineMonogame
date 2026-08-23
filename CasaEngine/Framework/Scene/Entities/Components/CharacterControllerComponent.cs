@@ -33,6 +33,8 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
     private PhysicsQueryShape _sweepShape;
+    private bool _sweepShapeIsBox;
+    private Vector3 _sweepShapeBoxSize;
     private float _sweepShapeRadius;
     private float _sweepShapeCylinderHeight;
 
@@ -172,6 +174,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             return;
         }
 
+        var up = ResolveUp();
+        var (h1, h2) = ResolveHorizontalAxes(up);
+
         _settings.Validate();
         UpdateTimedState(elapsedTime);
         TryStartDash();
@@ -180,25 +185,27 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var inheritedGroundDisplacement = GetGroundDisplacement(elapsedTime);
         if (IsDashing)
         {
-            ApplyDashVelocity(ref velocity, elapsedTime);
+            ApplyDashVelocity(ref velocity, elapsedTime, up, h1, h2);
         }
         else
         {
-            ApplyHorizontalVelocity(ref velocity, elapsedTime);
+            ApplyHorizontalVelocity(ref velocity, elapsedTime, up, h1, h2);
         }
 
-        ApplyVerticalVelocity(ref velocity, elapsedTime);
+        ApplyVerticalVelocity(ref velocity, elapsedTime, up);
+
+        var footUpBeforeStep = ResolveFootUpCoordinate(rootComponent, up, h1, h2);
 
         var actualGroundDisplacement = Vector3.Zero;
         if (inheritedGroundDisplacement.LengthSquared() > MinMoveDistanceSquared)
         {
-            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement);
+            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement, up, h1, h2);
         }
 
         var requestedDisplacement = velocity * elapsedTime;
         bool appliedRequestedDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared;
         var actualDisplacement = appliedRequestedDisplacement
-            ? MoveWithCollisions(rootComponent, requestedDisplacement)
+            ? MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2)
             : Vector3.Zero;
         _lastRequestedDisplacement = inheritedGroundDisplacement + requestedDisplacement;
         _lastActualDisplacement = actualGroundDisplacement + actualDisplacement;
@@ -208,7 +215,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             velocity = actualDisplacement / elapsedTime;
         }
 
-        UpdateGround(rootComponent, ref velocity);
+        UpdateGround(rootComponent, ref velocity, up, h1, h2, footUpBeforeStep);
 
         Velocity = velocity;
         UpdatePostMovementTimers(elapsedTime);
@@ -238,9 +245,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         var collisionComponent = owner.GetComponent<CollisionComponent>();
-        if (collisionComponent == null || FindCapsuleFixture(collisionComponent) == null)
+        if (collisionComponent == null || !TryFindCharacterFixture(collisionComponent, out _, out _))
         {
-            throw new InvalidOperationException("Character controller requires a CollisionComponent with a capsule fixture on the owner entity.");
+            throw new InvalidOperationException("Character controller requires a CollisionComponent with a box or capsule fixture on the owner entity.");
         }
 
         if (owner.World == null)
@@ -353,7 +360,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         _settings.Validate();
-        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement);
+        var up = ResolveUp();
+        var (h1, h2) = ResolveHorizontalAxes(up);
+        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2);
         _lastRequestedDisplacement = requestedDisplacement;
         _lastActualDisplacement = actualDisplacement;
         return actualDisplacement;
@@ -431,7 +440,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _dashRemainingSeconds = Math.Max(0f, stateSnapshot.DashRemainingSeconds);
         _dashCooldownRemainingSeconds = Math.Max(0f, stateSnapshot.DashCooldownRemainingSeconds);
         _groundInfo = stateSnapshot.IsGrounded
-            ? new CharacterControllerGroundInfo(true, NormalizeGroundNormal(stateSnapshot.GroundNormal), null, Math.Max(0f, stateSnapshot.GroundSlopeAngle))
+            ? new CharacterControllerGroundInfo(true, NormalizeGroundNormal(stateSnapshot.GroundNormal, ResolveUp()), null, Math.Max(0f, stateSnapshot.GroundSlopeAngle))
             : CharacterControllerGroundInfo.None;
         _lastCollisionHit = default;
         _hasStepSupportHit = false;
@@ -529,26 +538,80 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
     }
 
-    private void ApplyHorizontalVelocity(ref Vector3 velocity, float elapsedTime)
+    /// <summary>
+    /// Elevation axis the controller moves along: the owner world's simulation space policy, or
+    /// Y-up when the controller has no world (matches the physics backend's native convention).
+    /// </summary>
+    private Vector3 ResolveUp()
     {
-        var horizontalVelocity = new Vector3(velocity.X, 0f, velocity.Z);
-        var desiredHorizontalVelocity = GetDesiredHorizontalVelocity();
+        return Owner?.World?.PhysicsWorld?.SpacePolicy?.Up ?? Vector3.Up;
+    }
+
+    /// <summary>
+    /// The two horizontal axes for <paramref name="up"/>, in X -&gt; Y -&gt; Z order (skipping
+    /// <paramref name="up"/>'s own axis). For Y-up this is exactly (X, Z), the base's previous
+    /// fixed-axis behaviour.
+    /// </summary>
+    private static (Vector3 H1, Vector3 H2) ResolveHorizontalAxes(Vector3 up)
+    {
+        var upAxis = AxisIndexOf(up);
+        Span<int> horizontal = stackalloc int[2];
+        var count = 0;
+        for (var axis = 0; axis < 3; axis++)
+        {
+            if (axis != upAxis)
+            {
+                horizontal[count++] = axis;
+            }
+        }
+
+        return (AxisVector(horizontal[0]), AxisVector(horizontal[1]));
+    }
+
+    private static int AxisIndexOf(Vector3 up)
+    {
+        if (up == Vector3.UnitX || up == -Vector3.UnitX)
+        {
+            return 0;
+        }
+
+        if (up == Vector3.UnitZ || up == -Vector3.UnitZ)
+        {
+            return 2;
+        }
+
+        // Unknown/non-axis-aligned up: default to Y, matching the base policy and every known
+        // simulation space policy that is not explicitly X or Z up.
+        return 1;
+    }
+
+    private static Vector3 AxisVector(int axis) => axis switch
+    {
+        0 => Vector3.UnitX,
+        2 => Vector3.UnitZ,
+        _ => Vector3.UnitY,
+    };
+
+    private void ApplyHorizontalVelocity(ref Vector3 velocity, float elapsedTime, Vector3 up, Vector3 h1, Vector3 h2)
+    {
+        var verticalComponent = Vector3.Dot(velocity, up);
+        var horizontalVelocity = velocity - up * verticalComponent;
+        var desiredHorizontalVelocity = GetDesiredHorizontalVelocity(h1, h2);
         var horizontalAcceleration = _moveIntent == Vector2.Zero ? _settings.Deceleration : _settings.Acceleration;
 
         horizontalVelocity = MoveTowards(horizontalVelocity, desiredHorizontalVelocity, horizontalAcceleration * elapsedTime);
 
-        velocity.X = horizontalVelocity.X;
-        velocity.Z = horizontalVelocity.Z;
+        velocity = horizontalVelocity + up * verticalComponent;
     }
 
-    private void ApplyDashVelocity(ref Vector3 velocity, float elapsedTime)
+    private void ApplyDashVelocity(ref Vector3 velocity, float elapsedTime, Vector3 up, Vector3 h1, Vector3 h2)
     {
         var dashTime = Math.Min(elapsedTime, _dashRemainingSeconds);
         var dashScale = elapsedTime > 0f ? dashTime / elapsedTime : 0f;
-        var dashVelocity = new Vector3(_dashDirection.X, 0f, -_dashDirection.Y) * _settings.DashSpeed * dashScale;
+        var dashVelocity = (h1 * _dashDirection.X - h2 * _dashDirection.Y) * _settings.DashSpeed * dashScale;
+        var verticalComponent = Vector3.Dot(velocity, up);
 
-        velocity.X = dashVelocity.X;
-        velocity.Z = dashVelocity.Z;
+        velocity = dashVelocity + up * verticalComponent;
         _dashRemainingSeconds = Math.Max(0f, _dashRemainingSeconds - elapsedTime);
         if (_dashRemainingSeconds <= 0f)
         {
@@ -557,29 +620,39 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
     }
 
-    private void ApplyVerticalVelocity(ref Vector3 velocity, float elapsedTime)
+    private void ApplyVerticalVelocity(ref Vector3 velocity, float elapsedTime, Vector3 up)
     {
+        var vertical = Vector3.Dot(velocity, up);
+
         if (HasBufferedJump() && CanStartJump())
         {
-            velocity.Y = _settings.JumpSpeed;
+            vertical = _settings.JumpSpeed;
+            velocity = velocity - up * Vector3.Dot(velocity, up) + up * vertical;
             SetGroundInfo(CharacterControllerGroundInfo.None);
             MarkJumpStarted();
         }
 
         if (IsGrounded)
         {
-            if (velocity.Y < 0f)
+            if (vertical < 0f)
             {
-                velocity.Y = 0f;
+                velocity -= up * vertical;
             }
 
             MovementState = CharacterMovementState.Grounded;
             return;
         }
 
-        velocity.Y -= _settings.Gravity * elapsedTime;
+        vertical -= _settings.Gravity * elapsedTime;
 
-        if (MovementState != CharacterMovementState.Jumping || velocity.Y <= 0f)
+        if (_settings.MaxFallSpeed > 0f && vertical < -_settings.MaxFallSpeed)
+        {
+            vertical = -_settings.MaxFallSpeed;
+        }
+
+        velocity = velocity - up * Vector3.Dot(velocity, up) + up * vertical;
+
+        if (MovementState != CharacterMovementState.Jumping || vertical <= 0f)
         {
             MovementState = CharacterMovementState.Falling;
         }
@@ -657,34 +730,130 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return direction;
     }
 
-    private static Vector3 NormalizeGroundNormal(Vector3 normal)
+    private static Vector3 NormalizeGroundNormal(Vector3 normal, Vector3 up)
     {
         if (normal.LengthSquared() <= 0f)
         {
-            return Vector3.Up;
+            return up;
         }
 
         normal.Normalize();
         return normal;
     }
 
-    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement)
+    /// <summary>Up-coordinate of the character's foot (bottom of its fixture), or the root's own
+    /// up-coordinate when no character fixture can be resolved.</summary>
+    private float ResolveFootUpCoordinate(SceneComponent rootComponent, Vector3 up, Vector3 h1, Vector3 h2)
+    {
+        if (TryResolveCollisionDependencies(out _, out var collisionComponent, out var fixture, out var isCapsule))
+        {
+            ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+            return Vector3.Dot(rootComponent.Position, up) + footUpOffset;
+        }
+
+        return Vector3.Dot(rootComponent.Position, up);
+    }
+
+    /// <summary>
+    /// Horizontal footprint of the character's fixture: a world position whose component along
+    /// <c>up</c> is zero (only its h1/h2 components are meaningful — combine with a probe's own
+    /// up-coordinate to get a full 3d corner), plus the fixture's half-extents on each horizontal
+    /// axis and the fixture kind (box footprint = 4 corners, capsule footprint = 4 radius points).
+    /// </summary>
+    private readonly struct CharacterFootprint
+    {
+        public CharacterFootprint(Vector3 footHorizontalCenter, float halfExtentH1, float halfExtentH2, bool isCapsule)
+        {
+            FootHorizontalCenter = footHorizontalCenter;
+            HalfExtentH1 = halfExtentH1;
+            HalfExtentH2 = halfExtentH2;
+            IsCapsule = isCapsule;
+        }
+
+        public Vector3 FootHorizontalCenter { get; }
+
+        public float HalfExtentH1 { get; }
+
+        public float HalfExtentH2 { get; }
+
+        public bool IsCapsule { get; }
+
+        public void GetCorners(Span<(float H1, float H2)> corners)
+        {
+            if (IsCapsule)
+            {
+                corners[0] = (HalfExtentH1, 0f);
+                corners[1] = (-HalfExtentH1, 0f);
+                corners[2] = (0f, HalfExtentH2);
+                corners[3] = (0f, -HalfExtentH2);
+            }
+            else
+            {
+                corners[0] = (HalfExtentH1, HalfExtentH2);
+                corners[1] = (HalfExtentH1, -HalfExtentH2);
+                corners[2] = (-HalfExtentH1, HalfExtentH2);
+                corners[3] = (-HalfExtentH1, -HalfExtentH2);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolves the character's footprint from its collider fixture, expressed in the root's local
+    /// space (fixture local position composed with the collision component's own offset from the
+    /// root). Capsule: foot = center - Height/2, footprint = 4 points at Radius. Box: foot = center
+    /// - half-extent along up, footprint = the 4 corners of the box (full fixture, not shrunk by
+    /// skin width).
+    /// </summary>
+    private CharacterFootprint ResolveFootprint(
+        SceneComponent rootComponent,
+        CollisionComponent collisionComponent,
+        ColliderFixture fixture,
+        bool isCapsule,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2,
+        out float footUpOffset)
+    {
+        var fixtureOffsetFromRoot = (collisionComponent.Position - rootComponent.Position) + fixture.LocalPosition;
+        var worldFixtureCenter = rootComponent.Position + fixtureOffsetFromRoot;
+        var horizontalCenter = worldFixtureCenter - up * Vector3.Dot(worldFixtureCenter, up);
+
+        if (isCapsule)
+        {
+            var halfHeight = _settings.Height * 0.5f;
+            footUpOffset = Vector3.Dot(fixtureOffsetFromRoot, up) - halfHeight;
+            return new CharacterFootprint(horizontalCenter, _settings.Radius, _settings.Radius, true);
+        }
+
+        var box = (Box)fixture.Shape;
+        var halfSize = box.Size * 0.5f;
+        var halfExtentUp = Math.Abs(Vector3.Dot(halfSize, up));
+        var halfExtentH1 = Math.Abs(Vector3.Dot(halfSize, h1));
+        var halfExtentH2 = Math.Abs(Vector3.Dot(halfSize, h2));
+        footUpOffset = Vector3.Dot(fixtureOffsetFromRoot, up) - halfExtentUp;
+        return new CharacterFootprint(horizontalCenter, halfExtentH1, halfExtentH2, false);
+    }
+
+    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement, Vector3 up, Vector3 h1, Vector3 h2)
     {
         _lastCollisionHit = default;
         _hasStepSupportHit = false;
         _stepSupportHit = default;
 
         if (requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared
-            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent))
+            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent, out var fixture, out var isCapsule))
         {
             rootComponent.Position += requestedDisplacement;
             return requestedDisplacement;
         }
 
         var startPosition = rootComponent.Position;
+        var fieldAdjustedDisplacement = ResolveHorizontalDisplacementAgainstField(
+            rootComponent, collisionComponent, fixture, isCapsule, requestedDisplacement, up, h1, h2);
+
         var currentPosition = startPosition;
-        var remainingDisplacement = requestedDisplacement;
-        var sweepShape = GetSweepShape(physicsWorldContext);
+        var remainingDisplacement = fieldAdjustedDisplacement;
+        var sweepShape = GetSweepShape(physicsWorldContext, fixture, isCapsule);
 
         for (var iteration = 0; iteration < MaxSweepIterations; iteration++)
         {
@@ -702,7 +871,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
             _lastCollisionHit = hitResult;
 
-            if (TryStepMove(physicsWorldContext, collisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, out var steppedPosition, out var stepSupportHit))
+            if (TryStepMove(physicsWorldContext, collisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, up, out var steppedPosition, out var stepSupportHit))
             {
                 currentPosition = steppedPosition;
                 _hasStepSupportHit = true;
@@ -730,6 +899,100 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return currentPosition - startPosition;
     }
 
+    /// <summary>
+    /// C5: resolves the horizontal (h1, h2) part of a requested displacement against
+    /// <see cref="World.CollisionField"/>, axis by axis (h1 then h2). An axis is blocked (its
+    /// displacement set to zero, no partial displacement) when any corner of the footprint at the
+    /// candidate position has no ground, non-walkable ground, or ground higher than foot + step
+    /// height. Passes the displacement through unchanged when no field is installed.
+    /// </summary>
+    private Vector3 ResolveHorizontalDisplacementAgainstField(
+        SceneComponent rootComponent,
+        CollisionComponent collisionComponent,
+        ColliderFixture fixture,
+        bool isCapsule,
+        Vector3 requestedDisplacement,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2)
+    {
+        var field = Owner?.World?.CollisionField;
+        if (field == null)
+        {
+            return requestedDisplacement;
+        }
+
+        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+        var footUpCoordinate = Vector3.Dot(rootComponent.Position, up) + footUpOffset;
+
+        var h1Amount = Vector3.Dot(requestedDisplacement, h1);
+        var h2Amount = Vector3.Dot(requestedDisplacement, h2);
+        var otherComponent = requestedDisplacement - h1 * h1Amount - h2 * h2Amount;
+
+        var footHorizontalCenter = footprint.FootHorizontalCenter;
+
+        if (h1Amount != 0f)
+        {
+            var candidateCenter = footHorizontalCenter + h1 * h1Amount;
+            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            {
+                h1Amount = 0f;
+            }
+            else
+            {
+                footHorizontalCenter = candidateCenter;
+            }
+        }
+
+        if (h2Amount != 0f)
+        {
+            var candidateCenter = footHorizontalCenter + h2 * h2Amount;
+            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            {
+                h2Amount = 0f;
+            }
+        }
+
+        return h1 * h1Amount + h2 * h2Amount + otherComponent;
+    }
+
+    private bool IsHorizontalMoveBlocked(
+        ICollisionField field,
+        in CharacterFootprint footprint,
+        Vector3 candidateFootHorizontalCenter,
+        float footUpCoordinate,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2)
+    {
+        Span<(float H1, float H2)> corners = stackalloc (float, float)[4];
+        footprint.GetCorners(corners);
+
+        var probeUpCoordinate = footUpCoordinate + _settings.StepHeight;
+
+        for (var i = 0; i < corners.Length; i++)
+        {
+            var cornerPosition = candidateFootHorizontalCenter + h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
+
+            if (!field.TrySampleGround(cornerPosition, float.MaxValue, _settings.WalkabilityMask, out var sample))
+            {
+                return true;
+            }
+
+            if (!sample.IsWalkable)
+            {
+                return true;
+            }
+
+            if (sample.GroundHeight > footUpCoordinate + _settings.StepHeight)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool TryStepMove(
         IPhysicsWorld physicsWorldContext,
         CollisionComponent collisionComponent,
@@ -737,6 +1000,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 currentPosition,
         Vector3 remainingDisplacement,
         HitResult blockingHit,
+        Vector3 up,
         out Vector3 steppedPosition,
         out HitResult stepSupportHit)
     {
@@ -748,18 +1012,18 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             return false;
         }
 
-        var horizontalDisplacement = new Vector3(remainingDisplacement.X, 0f, remainingDisplacement.Z);
+        var horizontalDisplacement = remainingDisplacement - up * Vector3.Dot(remainingDisplacement, up);
         if (horizontalDisplacement.LengthSquared() <= MinMoveDistanceSquared)
         {
             return false;
         }
 
-        if (TryGetWalkableGround(blockingHit.Normal, out _))
+        if (TryGetWalkableGround(blockingHit.Normal, up, out _))
         {
             return false;
         }
 
-        var raisedPosition = currentPosition + Vector3.Up * _settings.StepHeight;
+        var raisedPosition = currentPosition + up * _settings.StepHeight;
         if (Sweep(physicsWorldContext, sweepShape, currentPosition, raisedPosition, collisionComponent, out _))
         {
             return false;
@@ -772,53 +1036,71 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         var stepDownDistance = _settings.StepHeight + Math.Max(_settings.GroundSnapDistance, _settings.SkinWidth);
-        var downTarget = forwardPosition - Vector3.Up * stepDownDistance;
+        var downTarget = forwardPosition - up * stepDownDistance;
         if (!Sweep(physicsWorldContext, sweepShape, forwardPosition, downTarget, collisionComponent, out stepSupportHit)
-            || !TryGetWalkableGround(stepSupportHit.Normal, out _))
+            || !TryGetWalkableGround(stepSupportHit.Normal, up, out _))
         {
             stepSupportHit = default;
             return false;
         }
 
         var supportDistance = Math.Max(0f, stepSupportHit.HitFraction * stepDownDistance - _settings.SkinWidth);
-        steppedPosition = forwardPosition - Vector3.Up * supportDistance;
+        steppedPosition = forwardPosition - up * supportDistance;
         return true;
     }
 
-    private void UpdateGround(SceneComponent rootComponent, ref Vector3 velocity)
+    private void UpdateGround(SceneComponent rootComponent, ref Vector3 velocity, Vector3 up, Vector3 h1, Vector3 h2, float footUpBeforeStep)
     {
-        if (_hasStepSupportHit && TryGetWalkableGround(_stepSupportHit.Normal, out var stepSlopeAngle))
+        if (_hasStepSupportHit && TryGetWalkableGround(_stepSupportHit.Normal, up, out var stepSlopeAngle))
         {
             _hasStepSupportHit = false;
             _lastCollisionHit = _stepSupportHit;
-            velocity.Y = 0f;
+            velocity -= up * Vector3.Dot(velocity, up);
             SetGroundInfo(new CharacterControllerGroundInfo(true, _stepSupportHit.Normal, _stepSupportHit.Collider, stepSlopeAngle));
             return;
         }
 
         _hasStepSupportHit = false;
 
-        if (velocity.Y > 0f)
+        if (Vector3.Dot(velocity, up) > 0f)
         {
             SetGroundInfo(CharacterControllerGroundInfo.None);
+            return;
+        }
+
+        var field = Owner?.World?.CollisionField;
+        if (field != null
+            && TryResolveCollisionDependencies(out _, out var fieldCollisionComponent, out var fieldFixture, out var fieldIsCapsule))
+        {
+            if (TryUpdateGroundFromField(rootComponent, ref velocity, up, h1, h2, field, fieldCollisionComponent, fieldFixture, fieldIsCapsule, footUpBeforeStep))
+            {
+                return;
+            }
+
+            SetGroundInfo(CharacterControllerGroundInfo.None);
+            if (MovementState != CharacterMovementState.Jumping || Vector3.Dot(velocity, up) <= 0f)
+            {
+                MovementState = CharacterMovementState.Falling;
+            }
+
             return;
         }
 
         if (_settings.GroundSnapDistance <= 0f
-            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent))
+            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent, out var fixture, out var isCapsule))
         {
             return;
         }
 
-        var sweepShape = GetSweepShape(physicsWorldContext);
+        var sweepShape = GetSweepShape(physicsWorldContext, fixture, isCapsule);
         var startPosition = rootComponent.Position;
-        var targetPosition = startPosition - Vector3.Up * _settings.GroundSnapDistance;
+        var targetPosition = startPosition - up * _settings.GroundSnapDistance;
 
         if (!Sweep(physicsWorldContext, sweepShape, startPosition, targetPosition, collisionComponent, out var hitResult)
-            || !TryGetWalkableGround(hitResult.Normal, out var slopeAngle))
+            || !TryGetWalkableGround(hitResult.Normal, up, out var slopeAngle))
         {
             SetGroundInfo(CharacterControllerGroundInfo.None);
-            if (MovementState != CharacterMovementState.Jumping || velocity.Y <= 0f)
+            if (MovementState != CharacterMovementState.Jumping || Vector3.Dot(velocity, up) <= 0f)
             {
                 MovementState = CharacterMovementState.Falling;
             }
@@ -829,21 +1111,113 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var snapDistance = Math.Max(0f, hitResult.HitFraction * _settings.GroundSnapDistance - _settings.SkinWidth);
         if (snapDistance > 0f)
         {
-            rootComponent.Position -= Vector3.Up * snapDistance;
+            rootComponent.Position -= up * snapDistance;
         }
 
-        if (velocity.Y < 0f)
+        if (Vector3.Dot(velocity, up) < 0f)
         {
-            velocity.Y = 0f;
+            velocity -= up * Vector3.Dot(velocity, up);
         }
 
         SetGroundInfo(new CharacterControllerGroundInfo(true, hitResult.Normal, hitResult.Collider, slopeAngle));
     }
 
-    private bool TryResolveCollisionDependencies(out IPhysicsWorld physicsWorldContext, out CollisionComponent collisionComponent)
+    /// <summary>
+    /// C4: ground exclusively from <see cref="World.CollisionField"/>, replacing the sweep-based
+    /// snap. The probe origin covers the tick's own vertical displacement (so a floor crossed
+    /// entirely within one step is still found), and the ground found is accepted when it falls
+    /// between (foot after step - GroundSnapDistance) and the probe origin.
+    /// </summary>
+    private bool TryUpdateGroundFromField(
+        SceneComponent rootComponent,
+        ref Vector3 velocity,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2,
+        ICollisionField field,
+        CollisionComponent collisionComponent,
+        ColliderFixture fixture,
+        bool isCapsule,
+        float footUpBeforeStep)
+    {
+        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+        var footUpAfterStep = Vector3.Dot(rootComponent.Position, up) + footUpOffset;
+
+        var verticalDelta = Math.Abs(footUpAfterStep - footUpBeforeStep);
+        var origin = footUpBeforeStep + Math.Max(_settings.StepHeight, verticalDelta);
+        var maxDropDistance = (origin - footUpAfterStep) + _settings.GroundSnapDistance;
+
+        if (!TryProbeFieldMaxGroundHeight(field, footprint, origin, up, h1, h2, maxDropDistance, out var groundHeight))
+        {
+            return false;
+        }
+
+        if (groundHeight < footUpAfterStep - _settings.GroundSnapDistance || groundHeight > origin)
+        {
+            return false;
+        }
+
+        var correction = groundHeight - footUpAfterStep;
+        if (correction != 0f)
+        {
+            rootComponent.Position += up * correction;
+        }
+
+        if (Vector3.Dot(velocity, up) < 0f)
+        {
+            velocity -= up * Vector3.Dot(velocity, up);
+        }
+
+        SetGroundInfo(new CharacterControllerGroundInfo(true, up, null, 0f));
+        return true;
+    }
+
+    private bool TryProbeFieldMaxGroundHeight(
+        ICollisionField field,
+        in CharacterFootprint footprint,
+        float probeUpCoordinate,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2,
+        float maxDropDistance,
+        out float maxGroundHeight)
+    {
+        Span<(float H1, float H2)> corners = stackalloc (float, float)[4];
+        footprint.GetCorners(corners);
+
+        maxGroundHeight = 0f;
+        var found = false;
+
+        for (var i = 0; i < corners.Length; i++)
+        {
+            var cornerPosition = footprint.FootHorizontalCenter + h1 * corners[i].H1 + h2 * corners[i].H2 + up * probeUpCoordinate;
+
+            if (!field.TrySampleGround(cornerPosition, maxDropDistance, _settings.WalkabilityMask, out var sample))
+            {
+                continue;
+            }
+
+            if (!found || sample.GroundHeight > maxGroundHeight)
+            {
+                maxGroundHeight = sample.GroundHeight;
+            }
+
+            found = true;
+        }
+
+        return found;
+    }
+
+    private bool TryResolveCollisionDependencies(
+        out IPhysicsWorld physicsWorldContext,
+        out CollisionComponent collisionComponent,
+        out ColliderFixture fixture,
+        out bool isCapsule)
     {
         physicsWorldContext = null;
         collisionComponent = null;
+        fixture = null;
+        isCapsule = false;
 
         var owner = Owner;
         if (owner?.World?.PhysicsWorld == null)
@@ -852,7 +1226,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         collisionComponent = owner.GetComponent<CollisionComponent>();
-        if (collisionComponent == null || FindCapsuleFixture(collisionComponent) == null)
+        if (collisionComponent == null || !TryFindCharacterFixture(collisionComponent, out fixture, out isCapsule))
         {
             collisionComponent = null;
             return false;
@@ -862,31 +1236,76 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return true;
     }
 
-    private static Capsule FindCapsuleFixture(CollisionComponent collisionComponent)
+    /// <summary>Capsule fixture takes priority over a box fixture when the owner's
+    /// <see cref="CollisionComponent"/> carries both.</summary>
+    private static bool TryFindCharacterFixture(CollisionComponent collisionComponent, out ColliderFixture fixture, out bool isCapsule)
     {
         var fixtures = collisionComponent.Fixtures;
+        ColliderFixture boxFixture = null;
+
         for (int i = 0; i < fixtures.Count; i++)
         {
-            if (fixtures[i].Shape is Capsule capsule)
+            if (fixtures[i].Shape is Capsule)
             {
-                return capsule;
+                fixture = fixtures[i];
+                isCapsule = true;
+                return true;
+            }
+
+            if (boxFixture == null && fixtures[i].Shape is Box)
+            {
+                boxFixture = fixtures[i];
             }
         }
 
-        return null;
+        if (boxFixture != null)
+        {
+            fixture = boxFixture;
+            isCapsule = false;
+            return true;
+        }
+
+        fixture = null;
+        isCapsule = false;
+        return false;
     }
 
-    private PhysicsQueryShape GetSweepShape(IPhysicsWorld physicsWorldContext)
+    /// <summary>
+    /// Capsule fixture: unchanged, <see cref="CharacterControllerSettings.Radius"/>/<see cref="CharacterControllerSettings.Height"/>
+    /// shrunk by skin width. Box fixture: the fixture's own size, shrunk by skin width on each face.
+    /// </summary>
+    private PhysicsQueryShape GetSweepShape(IPhysicsWorld physicsWorldContext, ColliderFixture fixture, bool isCapsule)
     {
-        var radius = Math.Max(MinSweepShapeSize, _settings.Radius - _settings.SkinWidth);
-        var cylinderHeight = Math.Max(MinSweepShapeSize, _settings.Height - _settings.Radius * 2f);
+        if (isCapsule)
+        {
+            var radius = Math.Max(MinSweepShapeSize, _settings.Radius - _settings.SkinWidth);
+            var cylinderHeight = Math.Max(MinSweepShapeSize, _settings.Height - _settings.Radius * 2f);
 
-        if (_sweepShape == null || radius != _sweepShapeRadius || cylinderHeight != _sweepShapeCylinderHeight)
+            if (_sweepShape == null || _sweepShapeIsBox || radius != _sweepShapeRadius || cylinderHeight != _sweepShapeCylinderHeight)
+            {
+                _sweepShape?.Dispose();
+                _sweepShape = physicsWorldContext.CreateQueryShape(new Capsule { Radius = radius, Length = cylinderHeight }, Vector3.One);
+                _sweepShapeIsBox = false;
+                _sweepShapeRadius = radius;
+                _sweepShapeCylinderHeight = cylinderHeight;
+            }
+
+            return _sweepShape;
+        }
+
+        var box = (Box)fixture.Shape;
+        var skin = _settings.SkinWidth * 2f;
+        var size = new Vector3(
+            Math.Max(MinSweepShapeSize, box.Size.X - skin),
+            Math.Max(MinSweepShapeSize, box.Size.Y - skin),
+            Math.Max(MinSweepShapeSize, box.Size.Z - skin));
+
+        if (_sweepShape == null || !_sweepShapeIsBox || size != _sweepShapeBoxSize)
         {
             _sweepShape?.Dispose();
-            _sweepShape = physicsWorldContext.CreateQueryShape(new Capsule { Radius = radius, Length = cylinderHeight }, Vector3.One);
-            _sweepShapeRadius = radius;
-            _sweepShapeCylinderHeight = cylinderHeight;
+            _sweepShape = physicsWorldContext.CreateQueryShape(new Box { Size = size }, Vector3.One);
+            _sweepShapeIsBox = true;
+            _sweepShapeBoxSize = size;
         }
 
         return _sweepShape;
@@ -912,7 +1331,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             collisionComponent);
     }
 
-    private bool TryGetWalkableGround(Vector3 normal, out float slopeAngle)
+    private bool TryGetWalkableGround(Vector3 normal, Vector3 up, out float slopeAngle)
     {
         slopeAngle = 90f;
 
@@ -922,7 +1341,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         normal.Normalize();
-        var upDot = MathHelper.Clamp(Vector3.Dot(normal, Vector3.Up), -1f, 1f);
+        var upDot = MathHelper.Clamp(Vector3.Dot(normal, up), -1f, 1f);
         slopeAngle = MathHelper.ToDegrees(MathF.Acos(upDot));
         return slopeAngle <= _settings.MaxSlopeAngle;
     }
@@ -943,9 +1362,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
     }
 
-    private Vector3 GetDesiredHorizontalVelocity()
+    private Vector3 GetDesiredHorizontalVelocity(Vector3 h1, Vector3 h2)
     {
-        return new Vector3(_moveIntent.X, 0f, -_moveIntent.Y) * _settings.MaxHorizontalSpeed;
+        return (h1 * _moveIntent.X - h2 * _moveIntent.Y) * _settings.MaxHorizontalSpeed;
     }
 
     private static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDelta)

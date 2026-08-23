@@ -309,12 +309,26 @@ Une cutscene peut prendre l'autorite, envoyer des intentions ou teleporter le pe
 
 ## Champs de collision : prerequis releves avant integration au mover
 
+**Ferme par E3.c (chantier `docs/plan-e3-collisions.md`) : les trois prerequis ci-dessous sont
+traites.** `SimulationSpacePolicy.Up` (virtuel, `Vector3.Up` par defaut, `Vector3.UnitZ` sous
+`TopDownElevation`) donne au mover sa base `(up, h1, h2)`, resolue une fois par `Update`/`Move` et
+utilisee par toutes les methodes qui codaient X/Z/Y en dur (`ApplyHorizontalVelocity`,
+`GetDesiredHorizontalVelocity`, `ApplyDashVelocity`, `ApplyVerticalVelocity`, `TryStepMove`,
+`UpdateGround`, tous les anciens sites `Vector3.Up`). Un helper pied/empreinte
+(`CharacterControllerComponent.ResolveFootprint`, prive) resout desormais le pied et la demi-etendue
+horizontale depuis la fixture (Box ou Capsule) — voir le prerequis 2 et 3 ci-dessous, qui restent
+comme trace historique de ce qui a motive ce helper. Le mover accepte une fixture **Box ou Capsule**
+(`TryFindCharacterFixture`, capsule prioritaire), et `World.CollisionField` — quand installe —
+remplace le sweep de snap dans `UpdateGround` (voir `collision-2d-3d-architecture.md` D5 pour le
+contrat consommateur). Reste hors scope de E3.c : pentes (`MaxSlopeAngle` toujours Y-agnostique via
+la base), pathfinding, entite-entite, glissade par attribut de tuile.
+
 La phase F du doc [collision-2d-3d-architecture.md](collision-2d-3d-architecture.md) a livre la
 famille de colliders « champs » — `ICollisionField`, `GroundSample`, `HeightGridCollisionField` et
 le slot `World.CollisionField` — mais **sans aucun cablage consommateur**. La resolution du sol par
-champ appartient a ce chantier. Trois constats verifies sur `CharacterControllerComponent` doivent
-etre traites avant, sinon l'integration sera fausse. Ils sont consignes ici pour que le suivi
-demarre informe au lieu de les redecouvrir.
+champ appartient a ce chantier. Trois constats verifies sur `CharacterControllerComponent` avaient
+ete releves avant integration ; ils sont consignes ici pour que le suivi ait demarre informe au lieu
+de les redecouvrir (references de ligne d'origine, avant E3.c) :
 
 ### 1. Prerequis d'axes
 

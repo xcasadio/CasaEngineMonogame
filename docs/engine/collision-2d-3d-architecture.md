@@ -358,8 +358,12 @@ sweeps pour les volumes. `TileCollisionManager` devient un détail d'implémenta
 adossé à la TileMap.
 
 **État de D5** : la famille « champs » existe et est close ; son premier consommateur — la
-résolution du sol du mover — est reporté au chantier character-controller, avec les trois prérequis
-relevés consignés dans son doc.
+résolution du sol et du blocage horizontal du mover — est livré par E3.c
+(`CharacterControllerComponent.UpdateGround`/`MoveWithCollisions`, chantier
+[character-controller-features.md](character-controller-features.md)) : quand `World.CollisionField`
+est installé, il remplace le sweep de snap pour le sol et filtre le déplacement horizontal axe par
+axe (h1 puis h2) contre `IsWalkable`/`GroundHeight`, sous une base `(up, h1, h2)` dérivée de
+`SimulationSpacePolicy.Up` — les trois prérequis relevés dans ce même doc sont donc traités.
 
 ### D6 — Les fixtures sont animables par la timeline
 
@@ -610,17 +614,14 @@ F  Champs et mover        ICollisionField ; intégration au character controller
                           (TileMapLayerData.zOffset est une profondeur de rendu dans le plan XY
                           d'authoring, non appliquée à la collision ; les corps de tuiles sont à
                           z = 0 local). Toutes les données d'un champ viennent de l'appelant.
-                          RESTE À FAIRE — le premier consommateur : la résolution du sol du mover
-                          est reportée au chantier character-controller, qui doit d'abord régler
-                          trois prérequis relevés et consignés dans
-                          character-controller-features.md (axes du mover vs politique projetée,
-                          référence centre-de-capsule de rootComponent.Position, annulation du
-                          SkinWidth dans le snap au sol).
+                          LIVRÉ (E3.c) — le premier consommateur : la résolution du sol et du
+                          blocage horizontal du mover, sous une base (up, h1, h2) dérivée de
+                          SimulationSpacePolicy.Up ; voir character-controller-features.md.
 ```
 
 D5 est donc clos côté famille de colliders : la seconde famille existe (champs à côté des volumes),
 avec un contrat, une implémentation et un porteur par monde. Son premier consommateur — la
-résolution du sol du character mover — est explicitement reporté au chantier
+résolution du sol et du blocage horizontal du character mover — est livré par E3.c, décrit dans
 [character-controller-features.md](character-controller-features.md).
 
 Dépendances : A et B sont fondatrices et indépendantes ; C dépend de B ; E dépend de B (et de D

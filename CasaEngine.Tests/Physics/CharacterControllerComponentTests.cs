@@ -343,6 +343,30 @@ public class CharacterControllerComponentTests
     }
 
     [Fact]
+    public void Move_WithBoxFixture_IsBlockedBySweep_UsingABoxQueryShape()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            HorizontalHit = CreateHit(Vector3.Left, 0.5f),
+        };
+        var entity = CreateEntityWithRoot();
+        SetWorld(entity, CreateWorld(physicsWorldContext));
+        entity.AddComponent(CreateBoxCollision());
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        entity.AddComponent(component);
+
+        Vector3 actualDisplacement = component.Move(new Vector3(1f, 0f, 0f));
+
+        Assert.True(component.LastCollisionHit.Succeeded);
+        Assert.Single(physicsWorldContext.CreatedBoxQueryShapes);
+        Assert.Empty(physicsWorldContext.CreatedQueryShapes);
+        Assert.True(entity.RootComponent!.Position.X > 0f);
+        Assert.True(entity.RootComponent.Position.X < 1f);
+        Assert.Equal(actualDisplacement, component.LastActualDisplacement);
+    }
+
+    [Fact]
     public void InputSnapshot_SaveLoadAndApply_RoundTripsCommands()
     {
         var source = new TestCharacterControllerComponent();
@@ -779,8 +803,11 @@ public class CharacterControllerComponentTests
         public HitResult GroundHit;
         public Func<Matrix, Matrix, HitResult?>? ShapeSweepHandler;
 
-        /// <summary>Dimensions of every query shape this world was asked to build, in creation order.</summary>
+        /// <summary>Dimensions of every capsule query shape this world was asked to build, in creation order.</summary>
         public List<(float Radius, float Length)> CreatedQueryShapes { get; } = [];
+
+        /// <summary>Sizes of every box query shape this world was asked to build, in creation order.</summary>
+        public List<Vector3> CreatedBoxQueryShapes { get; } = [];
 
         public int CollisionObjectCount => 0;
 
@@ -861,6 +888,12 @@ public class CharacterControllerComponentTests
 
         public PhysicsQueryShape CreateQueryShape(Shape3d shape, Vector3 localScale)
         {
+            if (shape is Box box)
+            {
+                CreatedBoxQueryShapes.Add(box.Size);
+                return new PhysicsQueryShape(new FakeQueryShapeBackend());
+            }
+
             var capsule = Assert.IsType<Capsule>(shape);
             CreatedQueryShapes.Add((capsule.Radius, capsule.Length));
             return new PhysicsQueryShape(new FakeQueryShapeBackend());

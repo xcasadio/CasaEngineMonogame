@@ -39,6 +39,8 @@ public class CharacterControllerSettingsTests
             ["dash_cooldown_seconds"] = 0.4f,
             ["collision_profile"] = CollisionProfileNames.WorldDynamic,
             ["hit_triggers"] = true,
+            ["walkability_mask"] = 0x8041u,
+            ["max_fall_speed"] = 800f,
         };
 
         settings.Load(json);
@@ -55,6 +57,43 @@ public class CharacterControllerSettingsTests
         Assert.Equal(30f, settings.Acceleration);
         Assert.Equal(CollisionProfileNames.WorldDynamic, settings.ProfileName);
         Assert.True(settings.HitTriggers);
+        Assert.Equal(0x8041u, settings.WalkabilityMask);
+        Assert.Equal(800f, settings.MaxFallSpeed);
+    }
+
+    [Fact]
+    public void Defaults_WalkabilityMaskAndMaxFallSpeed_AreUnconstrained()
+    {
+        var settings = new CharacterControllerSettings();
+
+        Assert.Equal(0u, settings.WalkabilityMask);
+        Assert.Equal(0f, settings.MaxFallSpeed);
+    }
+
+    [Fact]
+    public void Clone_RoundTrips_WalkabilityMaskAndMaxFallSpeed()
+    {
+        var settings = new CharacterControllerSettings
+        {
+            WalkabilityMask = 0x8041u,
+            MaxFallSpeed = 800f,
+        };
+
+        var cloned = settings.Clone();
+
+        Assert.Equal(settings.WalkabilityMask, cloned.WalkabilityMask);
+        Assert.Equal(settings.MaxFallSpeed, cloned.MaxFallSpeed);
+    }
+
+    [Fact]
+    public void Validate_RejectsNegativeMaxFallSpeed()
+    {
+        var settings = new CharacterControllerSettings
+        {
+            MaxFallSpeed = -1f,
+        };
+
+        Assert.Throws<InvalidOperationException>(settings.Validate);
     }
 
     [Fact]
