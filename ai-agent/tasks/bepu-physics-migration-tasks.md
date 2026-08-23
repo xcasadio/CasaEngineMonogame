@@ -260,9 +260,11 @@ l'overlay physique (smoke manuel documenté dans le commit) ; suite physique ver
   `Continuity.Mode == Continuous` / `Passive` et un ghost reste `Passive` dans les deux cas ;
   (b) un compound dynamique de deux boîtes décalées avec `AngularFactor = (0, 0, 1)` a ses termes
   hors diagonale `YX`/`ZX`/`ZY` nuls (hook `internal` existant ou à ajouter à `BepuBodyBackend`).
-- `PhysicsDefinition.Load` : `physics_type` est le seul champ lu sans garde (`NullReferenceException`
-  si absent) — défaut **préexistant**, hors migration ; le garder tel quel, mais le noter en
-  « suite » dans la doc de migration (§1 de `collision-2d-3d-architecture.md`).
+- `PhysicsDefinition.Load` : `physics_type` était le seul champ lu sans garde — **corrigé le
+  2026-08-23** après le merge (`5e4a7cb9`, un nœud sans `physics_type` garde le type courant, test ajouté).
+- Test `AssimpToGltfConverterTests.Convert_ObjStaticMesh…` signalé flaky une fois par un verifier :
+  non reproductible en 36 passes complètes ; nettoyage du dossier temporaire rendu best-effort
+  (retries) le 2026-08-23, seule étape fragile du test.
 - Le smoke visuel de l'overlay debug (`TileMapDemo`, éditeur) n'a pas été exécuté par les agents
   (pas de session graphique) : rester en 🧪 dans le suivi, à valider par l'utilisateur.
 - Nettoyer `Collision2dBasicDemo.cs:76` (ligne commentée référençant un champ supprimé) si elle
