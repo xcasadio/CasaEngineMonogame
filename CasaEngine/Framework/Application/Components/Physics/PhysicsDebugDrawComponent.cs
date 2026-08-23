@@ -1,3 +1,4 @@
+using System;
 ﻿using CasaEngine.Engine.Physics;
 using Microsoft.Xna.Framework;
 
@@ -19,9 +20,14 @@ public class PhysicsDebugDrawComponent : IPhysicsDebugDrawer
         throw new NotImplementedException();
     }
 
+    /// <summary>Length of the tick drawn along a contact normal when the penetration is smaller than it.</summary>
+    private const float MinContactTickLength = 0.1f;
+
     public void DrawContactPoint(ref Vector3 pointOnB, ref Vector3 normalOnB, float distance, int lifeTime, Color color)
     {
-        _line3dRendererComponent.AddLine(pointOnB, pointOnB + normalOnB, color);
+        //A short tick along the normal, sized by the penetration: a unit-long normal would dwarf small bodies.
+        float length = MathF.Max(MinContactTickLength, MathF.Abs(distance));
+        _line3dRendererComponent.AddLine(pointOnB, pointOnB + normalOnB * length, color);
     }
 
     public void DrawLine(ref Vector3 from, ref Vector3 to, Color color)

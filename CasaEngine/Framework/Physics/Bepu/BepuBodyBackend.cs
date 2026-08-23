@@ -212,7 +212,9 @@ internal sealed class BepuBodyBackend : IPhysicsBodyBackend
                 return Vector3.Zero;
             }
 
-            return _engine.Simulation.Bodies[_bodyHandle.Value].Velocity.Linear;
+            var bodyReference = _engine.Simulation.Bodies[_bodyHandle.Value];
+            //A sleeping body keeps its last velocity in Bepu; it is not moving, report it as such (Bullet zeroed it).
+            return bodyReference.Awake ? bodyReference.Velocity.Linear : Vector3.Zero;
         }
         set
         {

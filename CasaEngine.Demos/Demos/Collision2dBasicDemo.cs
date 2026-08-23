@@ -109,6 +109,8 @@ public class Collision2dBasicDemo : Demo
                         physics2dComponent.Fixtures.Add(new ColliderFixture(new Sphere()));
                         physics2dComponent.Scale = new Vector3(boxSize / 2f, boxSize / 2f, boxSize / 2f);
                         meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new SpherePrimitive(boxSize));
+                        //A rolling sphere meets no rolling resistance: a light angular damping makes it settle.
+                        physics2dComponent.PhysicsDefinition.AngularDamping = 0.3f;
                         break;
                 }
 
