@@ -50,9 +50,43 @@ public class AssimpToGltfConverterTests
         }
         finally
         {
-            if (Directory.Exists(tempDirectory))
+            DeleteTemporaryDirectory(tempDirectory);
+        }
+    }
+
+    /// <summary>
+    /// Best-effort cleanup: on Windows a freshly written file can stay locked for a moment by a
+    /// scanner or by the native exporter, and a cleanup failure must not fail a test whose
+    /// assertions already passed. A few short retries cover the usual delay.
+    /// </summary>
+    private static void DeleteTemporaryDirectory(string directory)
+    {
+        for (int attempt = 0; attempt < 5; attempt++)
+        {
+            try
             {
-                Directory.Delete(tempDirectory, recursive: true);
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, recursive: true);
+                }
+
+                return;
+            }
+            catch (IOException) when (attempt < 4)
+            {
+                Thread.Sleep(50);
+            }
+            catch (UnauthorizedAccessException) when (attempt < 4)
+            {
+                Thread.Sleep(50);
+            }
+            catch (IOException)
+            {
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
             }
         }
     }
