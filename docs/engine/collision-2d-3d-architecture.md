@@ -328,16 +328,29 @@ Forme livrée (phase F, 2026-08) :
 public interface ICollisionField
 {
     bool TrySampleGround(in Vector3 worldPosition, float maxDropDistance, out GroundSample sample);
+
+    // Additive, default implementation — the mask is opaque to the engine; fields that support
+    // per-class walkability override it, the default ignores it and forwards to the method above.
+    bool TrySampleGround(in Vector3 worldPosition, float maxDropDistance, uint walkabilityMask, out GroundSample sample)
+        => TrySampleGround(worldPosition, maxDropDistance, out sample);
 }
 
-// GroundSample : HasGround, GroundHeight (Y monde), Normal, IsWalkable, SurfaceTag.
-// Axes : Y up, X/Z horizontaux — la convention du mover. L'appelant choisit la position
-// d'échantillonnage et possède tout décalage pied/centre.
+// GroundSample : HasGround, GroundHeight (mesurée le long de l'axe haut du champ), Normal,
+// IsWalkable, SurfaceTag.
 ```
 
-Implémentation concrète livrée : `HeightGridCollisionField`, une grille régulière sur le plan XZ
-dont toutes les données (hauteurs, marchabilité, tags de surface) sont fournies par l'appelant.
-Un monde porte au plus un champ (`World.CollisionField`, nullable, non sérialisé).
+**Contrat d'axes (E3.b)** : haut = l'axe d'élévation déclaré par le champ, qui doit coïncider avec
+`SimulationSpacePolicy` du monde ; `GroundHeight` est mesurée le long de cet axe, les deux autres
+axes sont horizontaux. L'appelant choisit la position d'échantillonnage et possède tout décalage
+pied/centre.
+
+Implémentation concrète livrée : `HeightGridCollisionField`, une grille régulière sur les deux axes
+horizontaux dont toutes les données (hauteurs, marchabilité, tags de surface) sont fournies par
+l'appelant. Constructeur additif : paramètre optionnel `Vector3? up` (défaut `null` = `Vector3.Up`,
+comportement Y-up historique inchangé, X/Z horizontaux) ; sous `up = Vector3.UnitZ`
+(`TopDownElevation`), les axes horizontaux deviennent X et Y et la hauteur est lue/retournée sur Z.
+Toute autre valeur que `±UnitX`/`±UnitY`/`±UnitZ` lève `ArgumentException`. Un monde porte au plus
+un champ (`World.CollisionField`, nullable, non sérialisé).
 
 Le consommateur naturel est le character mover du chantier
 [character-controller-features.md](character-controller-features.md) : champs pour le terrain,

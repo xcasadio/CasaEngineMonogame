@@ -285,6 +285,48 @@ public class CollisionFieldTests
     }
 
     [Fact]
+    public void HeightGrid_WithZUpAxis_SamplesTheCellHeightOnZAndReportsAZUpNormal()
+    {
+        // 2 cells along X, 1 along Y, Z is up: cell (x, y) at index y * Width + x.
+        var field = new HeightGridCollisionField(
+            Vector3.Zero,
+            1f,
+            width: 2,
+            depth: 1,
+            heights: new[] { 3f, 7f },
+            up: Vector3.UnitZ);
+
+        Assert.Equal(Vector3.UnitZ, field.Up);
+
+        var found = field.TrySampleGround(new Vector3(1.5f, 0.5f, 7f), 1f, out var sample);
+
+        Assert.True(found);
+        Assert.Equal(7f, sample.GroundHeight, precision: 4);
+        Assert.Equal(Vector3.UnitZ, sample.Normal);
+    }
+
+    [Fact]
+    public void HeightGrid_WithInvalidUpAxis_Throws()
+    {
+        Assert.Throws<ArgumentException>(
+            () => new HeightGridCollisionField(Vector3.Zero, 1f, 1, 1, new[] { 0f }, up: new Vector3(1f, 1f, 0f)));
+    }
+
+    [Fact]
+    public void TrySampleGround_WithMask_DefaultOverload_DelegatesToTheMaskLessMethod()
+    {
+        ICollisionField field = new SquareCollisionField(5f, 2f, isWalkable: true, surfaceTag: "grass");
+
+        var found = field.TrySampleGround(new Vector3(1f, 3f, -4f), 2f, walkabilityMask: 0xFFFF, out var sample);
+
+        Assert.True(found);
+        Assert.True(sample.HasGround);
+        Assert.Equal(2f, sample.GroundHeight, precision: 4);
+        Assert.True(sample.IsWalkable);
+        Assert.Equal("grass", sample.SurfaceTag);
+    }
+
+    [Fact]
     public void World_HasNoCollisionFieldByDefaultAndAcceptsOne()
     {
         var world = new World();
