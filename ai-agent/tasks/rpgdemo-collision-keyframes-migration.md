@@ -128,6 +128,6 @@ reporté (le moteur n'est pas dans le périmètre) ; jamais de `Skip`, jamais d'
 
 | Étape | Statut | Commit(s) | Vérification |
 | --- | --- | --- | --- |
-| Script + assets migrés | ⏳ | | |
-| Test | ⏳ | | |
-| Validation visuelle | 🧪 | | utilisateur |
+| Script + assets migrés | ✅ | `3adef629`, `239e7f06`, `2acbe83c` | `--dry-run` : 63 migrées + 1 ignorée, 0 erreur ; second run réel → `git status` propre ; `git diff --stat` : 207 fichiers (63 `.anim2d` + 144 `.sprite`), rien d'autre ; `rg -l collision_keyframes … \| wc -l` → 63 ; JSON valide sur chaque fichier réécrit |
+| Test | ✅ | `1cc58d0e` | `dotnet test --filter FullyQualifiedName~RpgDemoCollisionKeyframes` : 4/4 verts ; `--filter FullyQualifiedName~CasaEngine.Tests.Physics` : 182/182 verts (178 + 4) ; `dotnet build Projects/CasaEngine.RPGDemo` vert |
+| Validation visuelle | 🧪 | | utilisateur (non faite par l'agent) |
