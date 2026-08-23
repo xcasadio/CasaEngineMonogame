@@ -93,7 +93,8 @@ public class Collision2dBasicDemo : Demo
                 //====
                 meshComponent = new StaticModelComponent();
                 entity.RootComponent = meshComponent;
-                meshComponent.Position = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
+                //Columns one box apart: bodies must not overlap at spawn, the solver would fling them apart.
+                meshComponent.Position = new Vector3(i * boxSize + 3, 8 + j * boxSize, 0);
                 //====
                 CollisionComponent physics2dComponent = new CollisionComponent();
                 switch (j % 2)
