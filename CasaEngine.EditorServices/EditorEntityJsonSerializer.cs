@@ -216,6 +216,10 @@ internal static class EditorEntityJsonSerializer
                 SaveCharacterControllerComponent(characterControllerComponent, node);
                 return;
 
+            case DepthSortable2DComponent depthSortable2DComponent:
+                SaveDepthSortable2DComponent(depthSortable2DComponent, node);
+                return;
+
             case LightComponent lightComponent:
                 SaveLightComponent(lightComponent, node);
                 return;
@@ -410,6 +414,18 @@ internal static class EditorEntityJsonSerializer
         node.Add("cast_shadows", component.CastShadows);
     }
 
+    /// <summary>
+    /// <see cref="StaticModelSubMeshComponent"/> is the one <see cref="PrimitiveComponent"/> subclass
+    /// with no dedicated case in <see cref="SaveComponent"/>: it reaches
+    /// <see cref="SaveSceneComponent"/>, which does not call this, so its own <c>cast_shadows</c> and
+    /// <c>receive_shadows</c> are never written even though <see cref="PrimitiveComponent.Load"/>
+    /// reads both (defaulting to true). That gap is unreachable today, so it is recorded here rather
+    /// than fixed: <see cref="SaveStaticModelComponent"/> skips every generated sub-mesh child
+    /// outright, and a generated sub-mesh resolves its flags from the ancestor
+    /// <see cref="StaticModelComponent"/> (which does write them) instead of from its own. Only a
+    /// manually added, non-generated sub-mesh - the "future use" case the class documents - would
+    /// lose its own flags, and nothing produces one yet.
+    /// </summary>
     private static void SavePrimitiveComponentFlags(PrimitiveComponent component, JObject node)
     {
         node.Add("cast_shadows", component.CastShadows);
@@ -463,6 +479,36 @@ internal static class EditorEntityJsonSerializer
         node.Add("settings", settingsNode);
 
         node.Add("control_mode", component.ControlMode.ToString());
+    }
+
+    /// <summary>
+    /// Same defect as <see cref="SaveCharacterControllerComponent"/>:
+    /// <see cref="DepthSortable2DComponent"/> is an <see cref="EntityComponent"/> rather than a
+    /// <see cref="SceneComponent"/>, so without this case it reached the generic <c>default:</c>
+    /// branch, which writes only <c>ObjectBase</c> + <c>type</c> - every depth-sort setting was
+    /// dropped on save even though <see cref="DepthSortable2DComponent.Load"/> reads them all back.
+    ///
+    /// <c>sort_anchor_x</c>/<c>sort_anchor_y</c> are deliberately not written: Load reads the nested
+    /// <c>sort_anchor</c> object first, then lets that flat pair override it component-wise, each
+    /// defaulting to the value just read. The nested form alone therefore round-trips exactly, and
+    /// writing both would store one anchor twice, with two places to diverge.
+    /// </summary>
+    private static void SaveDepthSortable2DComponent(DepthSortable2DComponent component, JObject node)
+    {
+        SaveEntityComponent(component, node);
+
+        node.Add("render_pass", component.RenderPass.ToString());
+        node.Add("sorting_layer", component.SortingLayer);
+        node.Add("order_in_layer", component.OrderInLayer);
+        node.Add("elevation", component.Elevation);
+
+        var sortAnchorNode = new JObject();
+        component.SortAnchorLocal.Save(sortAnchorNode);
+        node.Add("sort_anchor", sortAnchorNode);
+
+        node.Add("local_sort_offset", component.LocalSortOffset);
+        node.Add("sort_mode", component.SortMode.ToString());
+        node.Add("stable_id", component.StableId);
     }
 
     internal static void SaveColliderFixture(ColliderFixture fixture, JObject node)
