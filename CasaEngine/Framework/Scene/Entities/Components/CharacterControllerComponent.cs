@@ -368,6 +368,29 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return actualDisplacement;
     }
 
+    /// <summary>
+    /// Replaces the vertical component of the controller's velocity (the projection onto the
+    /// resolved up axis, see <see cref="ResolveUp"/>) with <paramref name="velocityAlongUp"/>,
+    /// leaving the two horizontal components strictly unchanged. No-op when <see cref="ControlMode"/>
+    /// is <see cref="CharacterControlMode.Disabled"/> (same gate as <see cref="Move"/>).
+    /// <para>
+    /// Additive API: lets gameplay code apply an arbitrary signed vertical impulse (port target:
+    /// Alundra opcode 0x1B "Fly") without touching ground-state bookkeeping directly. Liftoff for a
+    /// positive impulse still comes from the existing upward-velocity gate at the head of
+    /// <c>UpdateGround</c> on the next <see cref="Update"/>, exactly as it does for a jump.
+    /// </para>
+    /// </summary>
+    public void SetVerticalVelocity(float velocityAlongUp)
+    {
+        if (ControlMode == CharacterControlMode.Disabled)
+        {
+            return;
+        }
+
+        var up = ResolveUp();
+        Velocity = Velocity - up * Vector3.Dot(Velocity, up) + up * velocityAlongUp;
+    }
+
     public CharacterControllerInputSnapshot CaptureInputSnapshot()
     {
         return new CharacterControllerInputSnapshot(
