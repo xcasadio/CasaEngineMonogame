@@ -32,6 +32,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
+    private CharacterControllerContactReport _lastContact;
     private float _externalVerticalDisplacement;
     private PhysicsQueryShape _sweepShape;
     private bool _sweepShapeIsBox;
@@ -61,6 +62,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _hasStepSupportHit = other._hasStepSupportHit;
         _lastRequestedDisplacement = other._lastRequestedDisplacement;
         _lastActualDisplacement = other._lastActualDisplacement;
+        _lastContact = other._lastContact;
         // _externalVerticalDisplacement is intentionally NOT copied: the copy constructor resets
         // the latch to 0, consistent with Stop()/RestoreStateSnapshot also clearing it.
         IsVerticalOwnedExternally = other.IsVerticalOwnedExternally;
@@ -126,6 +128,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     public Vector3 LastActualDisplacement => _lastActualDisplacement;
 
+    /// <summary>
+    /// Per-axis contact report of the last collision resolution: requested vs. resolved
+    /// displacement (projected on up/h1/h2), which axes were curtailed, whether the sweep path
+    /// hit something, and the ground state as of the last <see cref="Update"/>. See
+    /// <see cref="CharacterControllerContactReport"/> for the exact freshness and per-path
+    /// semantics contract - additive and coexists with <see cref="LastRequestedDisplacement"/>,
+    /// <see cref="LastActualDisplacement"/>, <see cref="LastCollisionHit"/> and
+    /// <see cref="GroundCollider"/>, which it decomposes rather than replaces.
+    /// </summary>
+    public CharacterControllerContactReport LastContact => _lastContact;
+
     public Vector2 MoveIntent => _moveIntent;
 
     public CharacterControllerDebugSnapshot DebugSnapshot => new(
@@ -168,6 +181,11 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     public override void Update(float elapsedTime)
     {
         base.Update(elapsedTime);
+
+        // M2 reset contract: the displacement half of the contact report is zeroed at the ENTRY
+        // of every Update, including every early-return path below - the ground half (last
+        // resolved by a previous Update) is preserved.
+        _lastContact = _lastContact.WithDisplacementReset();
 
         if (elapsedTime <= 0f)
         {
@@ -214,10 +232,22 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         var footUpBeforeStep = ResolveFootUpCoordinate(rootComponent, up, h1, h2);
 
+        // M2 composition rule: this step can resolve up to two displacements (inherited ground
+        // displacement, then velocity-driven displacement) - the contact report's curtailed-axis
+        // flags and sweep-hit indicator are the OR of both calls, exactly like
+        // LastRequestedDisplacement/LastActualDisplacement publish their SUM rather than only the
+        // second call.
+        bool h1Curtailed = false;
+        bool h2Curtailed = false;
+        bool sweepHit = false;
+
         var actualGroundDisplacement = Vector3.Zero;
         if (inheritedGroundDisplacement.LengthSquared() > MinMoveDistanceSquared)
         {
-            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement, up, h1, h2);
+            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement, up, h1, h2, out var groundH1Curtailed, out var groundH2Curtailed, out var groundSweepHit);
+            h1Curtailed |= groundH1Curtailed;
+            h2Curtailed |= groundH2Curtailed;
+            sweepHit |= groundSweepHit;
         }
 
         var requestedDisplacement = velocity * elapsedTime;
@@ -230,11 +260,21 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         bool appliedRequestedDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared;
-        var actualDisplacement = appliedRequestedDisplacement
-            ? MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2)
-            : Vector3.Zero;
+        var actualDisplacement = Vector3.Zero;
+        if (appliedRequestedDisplacement)
+        {
+            actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var velocityH1Curtailed, out var velocityH2Curtailed, out var velocitySweepHit);
+            h1Curtailed |= velocityH1Curtailed;
+            h2Curtailed |= velocityH2Curtailed;
+            sweepHit |= velocitySweepHit;
+        }
+
         _lastRequestedDisplacement = inheritedGroundDisplacement + requestedDisplacement;
         _lastActualDisplacement = actualGroundDisplacement + actualDisplacement;
+        _lastContact = _lastContact.WithDisplacement(
+            Vector3.Dot(_lastRequestedDisplacement, up), Vector3.Dot(_lastRequestedDisplacement, h1), Vector3.Dot(_lastRequestedDisplacement, h2),
+            Vector3.Dot(_lastActualDisplacement, up), Vector3.Dot(_lastActualDisplacement, h1), Vector3.Dot(_lastActualDisplacement, h2),
+            h1Curtailed, h2Curtailed, sweepHit);
 
         if (elapsedTime > 0f && appliedRequestedDisplacement)
         {
@@ -366,11 +406,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Velocity = Vector3.Zero;
         _lastRequestedDisplacement = Vector3.Zero;
         _lastActualDisplacement = Vector3.Zero;
+        _lastContact = default;
         _externalVerticalDisplacement = 0f;
     }
 
     public Vector3 Move(Vector3 requestedDisplacement)
     {
+        // M2 reset contract: same as Update - the displacement half is zeroed at entry, on every
+        // early-return path, keeping the ground half (last resolved by Update, unaffected by
+        // Move) unchanged.
+        _lastContact = _lastContact.WithDisplacementReset();
+
         if (ControlMode == CharacterControlMode.Disabled || requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared)
         {
             _lastRequestedDisplacement = requestedDisplacement;
@@ -389,9 +435,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _settings.Validate();
         var up = ResolveUp();
         var (h1, h2) = ResolveHorizontalAxes(up);
-        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2);
+        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var h1Curtailed, out var h2Curtailed, out var sweepHit);
         _lastRequestedDisplacement = requestedDisplacement;
         _lastActualDisplacement = actualDisplacement;
+        _lastContact = _lastContact.WithDisplacement(
+            Vector3.Dot(requestedDisplacement, up), Vector3.Dot(requestedDisplacement, h1), Vector3.Dot(requestedDisplacement, h2),
+            Vector3.Dot(actualDisplacement, up), Vector3.Dot(actualDisplacement, h1), Vector3.Dot(actualDisplacement, h2),
+            h1Curtailed, h2Curtailed, sweepHit);
         return actualDisplacement;
     }
 
@@ -527,6 +577,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _stepSupportHit = default;
         _lastRequestedDisplacement = stateSnapshot.LastRequestedDisplacement;
         _lastActualDisplacement = stateSnapshot.LastActualDisplacement;
+        _lastContact = default;
         _externalVerticalDisplacement = 0f;
     }
 
@@ -602,10 +653,18 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         JumpStarted?.Invoke(this, EventArgs.Empty);
     }
 
-    protected void SetGroundInfo(CharacterControllerGroundInfo groundInfo)
+    /// <summary>
+    /// Sets the resolved ground state. <paramref name="surfaceTag"/> feeds
+    /// <see cref="LastContact"/>'s ground half (<see cref="CharacterControllerContactReport.GroundSurfaceTag"/>);
+    /// it defaults to <c>null</c>, which is correct for every call site except the field-path
+    /// ground resolution (<see cref="TryUpdateGroundFromField"/>), which passes the tag of the
+    /// max-height footprint corner.
+    /// </summary>
+    protected void SetGroundInfo(CharacterControllerGroundInfo groundInfo, string surfaceTag = null)
     {
         var previousGroundInfo = _groundInfo;
         _groundInfo = groundInfo;
+        _lastContact = _lastContact.WithGround(groundInfo.IsGrounded, groundInfo.Normal, surfaceTag, groundInfo.Collider);
 
         if (GroundHasChanged(previousGroundInfo, groundInfo))
         {
@@ -948,11 +1007,22 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return new CharacterFootprint(horizontalCenter, halfExtentH1, halfExtentH2, false);
     }
 
-    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement, Vector3 up, Vector3 h1, Vector3 h2)
+    /// <summary>
+    /// Resolves <paramref name="requestedDisplacement"/> against field and sweep collisions.
+    /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> are authoritative only for
+    /// the field-based horizontal resolution (M2) - they are <c>false</c> whenever no field is
+    /// installed, i.e. on the pure sweep path, which has no per-axis notion of "blocked" and is
+    /// reported instead by <paramref name="sweepHit"/> (whether any sweep iteration hit
+    /// something).
+    /// </summary>
+    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement, Vector3 up, Vector3 h1, Vector3 h2, out bool h1Curtailed, out bool h2Curtailed, out bool sweepHit)
     {
         _lastCollisionHit = default;
         _hasStepSupportHit = false;
         _stepSupportHit = default;
+        h1Curtailed = false;
+        h2Curtailed = false;
+        sweepHit = false;
 
         if (requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared
             || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent, out var fixture, out var isCapsule))
@@ -963,7 +1033,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         var startPosition = rootComponent.Position;
         var fieldAdjustedDisplacement = ResolveHorizontalDisplacementAgainstField(
-            rootComponent, collisionComponent, fixture, isCapsule, requestedDisplacement, up, h1, h2);
+            rootComponent, collisionComponent, fixture, isCapsule, requestedDisplacement, up, h1, h2, out h1Curtailed, out h2Curtailed);
 
         var currentPosition = startPosition;
         var remainingDisplacement = fieldAdjustedDisplacement;
@@ -984,6 +1054,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             }
 
             _lastCollisionHit = hitResult;
+            sweepHit = true;
 
             if (TryStepMove(physicsWorldContext, collisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, up, out var steppedPosition, out var stepSupportHit))
             {
@@ -1019,6 +1090,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     /// displacement set to zero, no partial displacement) when any corner of the footprint at the
     /// candidate position has no ground, non-walkable ground, or ground higher than foot + step
     /// height. Passes the displacement through unchanged when no field is installed.
+    /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> (M2) report exactly those
+    /// blocked-axis decisions, authoritative only here (the field path) - both are <c>false</c>
+    /// when no field is installed.
     /// </summary>
     private Vector3 ResolveHorizontalDisplacementAgainstField(
         SceneComponent rootComponent,
@@ -1028,8 +1102,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 requestedDisplacement,
         Vector3 up,
         Vector3 h1,
-        Vector3 h2)
+        Vector3 h2,
+        out bool h1Curtailed,
+        out bool h2Curtailed)
     {
+        h1Curtailed = false;
+        h2Curtailed = false;
+
         var field = Owner?.World?.CollisionField;
         if (field == null)
         {
@@ -1051,6 +1130,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
             {
                 h1Amount = 0f;
+                h1Curtailed = true;
             }
             else
             {
@@ -1064,6 +1144,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
             {
                 h2Amount = 0f;
+                h2Curtailed = true;
             }
         }
 
@@ -1272,7 +1353,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var origin = footUpBeforeStep + Math.Max(_settings.StepHeight, verticalDelta);
         var maxDropDistance = (origin - footUpAfterStep) + _settings.GroundSnapDistance;
 
-        if (!TryProbeFieldMaxGroundHeight(field, footprint, origin, up, h1, h2, maxDropDistance, out var groundHeight))
+        if (!TryProbeFieldMaxGroundHeight(field, footprint, origin, up, h1, h2, maxDropDistance, out var groundHeight, out var groundSurfaceTag))
         {
             return false;
         }
@@ -1293,10 +1374,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             velocity -= up * Vector3.Dot(velocity, up);
         }
 
-        SetGroundInfo(new CharacterControllerGroundInfo(true, up, null, 0f));
+        SetGroundInfo(new CharacterControllerGroundInfo(true, up, null, 0f), groundSurfaceTag);
         return true;
     }
 
+    /// <summary>
+    /// Probes the 4-corner footprint for the maximum ground height, as before M2.
+    /// <paramref name="maxGroundSurfaceTag"/> (M2) is the <see cref="GroundSample.SurfaceTag"/> of
+    /// whichever corner produced <paramref name="maxGroundHeight"/> - the same explicit
+    /// max-height-corner selection rule used for the height itself, so the two are always
+    /// consistent with each other. The 4 corners may carry different tags.
+    /// </summary>
     private bool TryProbeFieldMaxGroundHeight(
         ICollisionField field,
         in CharacterFootprint footprint,
@@ -1305,12 +1393,14 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 h1,
         Vector3 h2,
         float maxDropDistance,
-        out float maxGroundHeight)
+        out float maxGroundHeight,
+        out string maxGroundSurfaceTag)
     {
         Span<(float H1, float H2)> corners = stackalloc (float, float)[4];
         footprint.GetCorners(footprint.FootHorizontalCenter, h1, h2, corners);
 
         maxGroundHeight = 0f;
+        maxGroundSurfaceTag = null;
         var found = false;
 
         for (var i = 0; i < corners.Length; i++)
@@ -1325,6 +1415,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             if (!found || sample.GroundHeight > maxGroundHeight)
             {
                 maxGroundHeight = sample.GroundHeight;
+                maxGroundSurfaceTag = sample.SurfaceTag;
             }
 
             found = true;

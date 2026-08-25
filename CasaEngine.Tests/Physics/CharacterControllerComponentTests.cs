@@ -729,6 +729,204 @@ public class CharacterControllerComponentTests
         Assert.False(component.IsGrounded);
     }
 
+    // M2 acceptance (docs/plan-moteur-character-motion.md in the parent repository):
+    // CharacterControllerComponent.LastContact.
+
+    [Fact]
+    public void Update_ContactReport_SweepBlockedAxis_ReportsNoCurtailedAxisButAHit()
+    {
+        // (g): the sweep path has no per-axis notion of "blocked" - H1Curtailed/H2Curtailed stay
+        // false even though the move was fully stopped by a sweep hit; SweepHit carries that fact
+        // instead.
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            HorizontalHit = CreateHit(Vector3.Left, 0.1f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 10f;
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(1f);
+
+        Assert.True(component.LastCollisionHit.Succeeded);
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.False(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.True(contact.SweepHit);
+    }
+
+    [Fact]
+    public void Update_ContactReport_GroundHalf_FromSweepPath_UsesHitNormalAndCollider_NoSurfaceTag()
+    {
+        // (c2): sweep-based ground (no CollisionField) - normal and collider come from the hit,
+        // and there is no surface-tag concept on this path.
+        var groundCollider = CreateBoxCollision();
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f, groundCollider),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.True(contact.IsGrounded);
+        Assert.Equal(Vector3.Up, contact.GroundNormal);
+        Assert.Same(groundCollider, contact.GroundCollider);
+        Assert.Null(contact.GroundSurfaceTag);
+    }
+
+    [Fact]
+    public void Update_ContactReport_ComposesInheritedGroundAndVelocityDisplacement_LikeLastRequestedAndActualDisplacement()
+    {
+        // (d): an Update that resolves BOTH an inherited ground displacement and a velocity
+        // displacement publishes their SUM per axis, exactly like LastRequestedDisplacement and
+        // LastActualDisplacement.
+        var groundCollider = CreateBoxCollision();
+        groundCollider.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
+        groundCollider.Velocity = new Vector3(2f, 0f, 0f);
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f, groundCollider),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 100f;
+
+        component.Update(0.1f); // snaps to the moving ground
+        component.SetMoveIntent(new Vector2(1f, 0f));
+        component.Update(1f); // both the inherited ground displacement and the velocity displacement are non-zero
+
+        Assert.True(component.LastRequestedDisplacement.LengthSquared() > 0f);
+        Assert.True(component.LastActualDisplacement.LengthSquared() > 0f);
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.Equal(Vector3.Dot(component.LastRequestedDisplacement, Vector3.Up), contact.RequestedUpAmount, precision: 4);
+        Assert.Equal(Vector3.Dot(component.LastRequestedDisplacement, Vector3.UnitX), contact.RequestedH1Amount, precision: 4);
+        Assert.Equal(Vector3.Dot(component.LastRequestedDisplacement, Vector3.UnitZ), contact.RequestedH2Amount, precision: 4);
+        Assert.Equal(Vector3.Dot(component.LastActualDisplacement, Vector3.Up), contact.ActualUpAmount, precision: 4);
+        Assert.Equal(Vector3.Dot(component.LastActualDisplacement, Vector3.UnitX), contact.ActualH1Amount, precision: 4);
+        Assert.Equal(Vector3.Dot(component.LastActualDisplacement, Vector3.UnitZ), contact.ActualH2Amount, precision: 4);
+    }
+
+    [Fact]
+    public void Update_ContactReport_IsZeroedOnAStepWithNoDisplacement_AfterABlockedStep()
+    {
+        // (e): a step with no displacement right after a blocked step publishes zeros and no
+        // stale flag, never the previous step's state. Uses elapsedTime <= 0 (rather than
+        // ControlMode.Disabled, which also routes through Stop()) to isolate the entry-reset path.
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            HorizontalHit = CreateHit(Vector3.Left, 0.1f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 10f;
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(1f);
+        Assert.True(component.LastContact.SweepHit);
+
+        component.Update(0f);
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.Equal(0f, contact.RequestedUpAmount);
+        Assert.Equal(0f, contact.RequestedH1Amount);
+        Assert.Equal(0f, contact.RequestedH2Amount);
+        Assert.Equal(0f, contact.ActualUpAmount);
+        Assert.Equal(0f, contact.ActualH1Amount);
+        Assert.Equal(0f, contact.ActualH2Amount);
+        Assert.False(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.False(contact.SweepHit);
+    }
+
+    [Fact]
+    public void Stop_Teleport_RestoreStateSnapshot_ClearTheEntireContactReport()
+    {
+        // (f): Stop/Teleport/RestoreStateSnapshot clear the report entirely, including the ground
+        // half - unlike a normal step, which only resets the displacement half.
+        var groundCollider = CreateBoxCollision();
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f, groundCollider),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+        Assert.True(component.LastContact.IsGrounded);
+        component.Stop();
+        AssertContactReportIsCleared(component.LastContact);
+
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Update(0.1f);
+        Assert.True(component.LastContact.IsGrounded);
+        component.Teleport(new Vector3(0f, 1.2f, 0f));
+        AssertContactReportIsCleared(component.LastContact);
+
+        component.Update(0.1f);
+        Assert.True(component.LastContact.IsGrounded);
+        CharacterControllerStateSnapshot snapshot = component.CaptureStateSnapshot();
+        component.RestoreStateSnapshot(snapshot);
+        AssertContactReportIsCleared(component.LastContact);
+    }
+
+    [Fact]
+    public void Move_AfterGroundedUpdate_ContactReport_GroundHalf_MatchesTheLastUpdate()
+    {
+        // (h): Move never refreshes ground state - the ground half after a Move call still
+        // reflects the last Update, even though the displacement half changed.
+        var groundCollider = CreateBoxCollision();
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f, groundCollider),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+        CharacterControllerContactReport groundAfterUpdate = component.LastContact;
+        Assert.True(groundAfterUpdate.IsGrounded);
+
+        component.Move(new Vector3(0.1f, 0f, 0f));
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.Equal(groundAfterUpdate.IsGrounded, contact.IsGrounded);
+        Assert.Equal(groundAfterUpdate.GroundNormal, contact.GroundNormal);
+        Assert.Same(groundAfterUpdate.GroundCollider, contact.GroundCollider);
+        Assert.Equal(groundAfterUpdate.GroundSurfaceTag, contact.GroundSurfaceTag);
+        Assert.Equal(0.1f, contact.RequestedH1Amount, precision: 5);
+    }
+
+    private static void AssertContactReportIsCleared(CharacterControllerContactReport contact)
+    {
+        Assert.False(contact.IsGrounded);
+        Assert.Null(contact.GroundSurfaceTag);
+        Assert.Null(contact.GroundCollider);
+        Assert.Equal(0f, contact.RequestedUpAmount);
+        Assert.Equal(0f, contact.RequestedH1Amount);
+        Assert.Equal(0f, contact.RequestedH2Amount);
+        Assert.Equal(0f, contact.ActualUpAmount);
+        Assert.Equal(0f, contact.ActualH1Amount);
+        Assert.Equal(0f, contact.ActualH2Amount);
+        Assert.False(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.False(contact.SweepHit);
+    }
+
     [Fact]
     public void SweepShape_IsRebuiltOnlyWhenCapsuleDimensionsChange()
     {

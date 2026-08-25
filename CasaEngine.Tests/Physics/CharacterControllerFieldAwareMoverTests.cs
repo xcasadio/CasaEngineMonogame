@@ -86,6 +86,89 @@ public class CharacterControllerFieldAwareMoverTests
         Assert.True(component.IsGrounded);
     }
 
+    // M2 acceptance (docs/plan-moteur-character-motion.md in the parent repository):
+    // CharacterControllerComponent.LastContact, field path.
+
+    [Fact]
+    public void Move_ContactReport_FreeMoveOnTheFieldPath_NoAxisCurtailed_RequestedEqualsActual()
+    {
+        // (a): a free move on the field path curtails no axis, and requested == actual per axis.
+        var (entity, component) = CreatePawn(CreateFlatField());
+        entity.RootComponent!.Position = new Vector3(24f, 24f, 0f);
+
+        component.Move(new Vector3(8f, 0f, 0f));
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.False(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.False(contact.SweepHit);
+        Assert.Equal(8f, contact.RequestedH1Amount, precision: 3);
+        Assert.Equal(8f, contact.ActualH1Amount, precision: 3);
+        Assert.Equal(0f, contact.RequestedH2Amount, precision: 3);
+        Assert.Equal(0f, contact.ActualH2Amount, precision: 3);
+    }
+
+    [Fact]
+    public void Move_ContactReport_FieldBlockedAxis_MarksOnlyThatAxis()
+    {
+        // (b): a move against a cliff taller than step height curtails the h1 axis and no other,
+        // with requested/actual values matching that curtailment.
+        var (entity, component) = CreatePawn(CreateColumnHeightField(32f));
+        entity.RootComponent!.Position = new Vector3(48f, 24f, 0f);
+
+        component.Move(new Vector3(20f, 0f, 0f));
+
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.True(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.Equal(20f, contact.RequestedH1Amount, precision: 3);
+        Assert.Equal(0f, contact.ActualH1Amount, precision: 3);
+        Assert.Equal(0f, contact.RequestedH2Amount, precision: 3);
+        Assert.Equal(0f, contact.ActualH2Amount, precision: 3);
+    }
+
+    /// <summary>
+    /// (c1): field-path ground with the footprint straddling two cells of DIFFERENT surface tags -
+    /// the published tag must be the tag of the MAX-height corner (the same corner that determines
+    /// the resolved ground height), not an arbitrary one. The pawn's box footprint (half-extent 8,
+    /// exactly one cell wide) is offset by 1 unit off the cell centre on h1 only, so its far-h1
+    /// corners land cleanly inside the raised neighbour cell while its near-h1 corners and both h2
+    /// corners stay inside its own cell (h2 stays exactly cell-centred, which the far-edge epsilon
+    /// - see <see cref="CharacterControllerComponent"/>'s footprint corner handling - keeps
+    /// resolved to its own row either way).
+    /// </summary>
+    [Fact]
+    public void Update_ContactReport_FieldGround_WithDifferentTagsUnderFootprint_PublishesTheMaxHeightCornersTag()
+    {
+        const int width = 4;
+        const int depth = 4;
+        var heights = new float[width * depth];
+        var surfaceTags = new string[width * depth];
+        heights[1 * width + 1] = 0f;
+        surfaceTags[1 * width + 1] = "dirt";
+        heights[1 * width + 2] = 5f; // h1-neighbour of cell (1, 1), raised and differently tagged.
+        surfaceTags[1 * width + 2] = "lava";
+        var field = new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, surfaceTags: surfaceTags, up: Vector3.UnitZ);
+
+        var (entity, component) = CreatePawn(field);
+        component.Settings.StepHeight = 10f;
+        component.Settings.GroundSnapDistance = 10f;
+        component.Settings.Gravity = 0f;
+        // Cell (1, 1) spans [16, 32) on both h1 (X) and h2 (Y); its centre is (24, 24). Offsetting
+        // by +1 on h1 only: near-h1 corner at 17 (own cell), far-h1 corners at ~33 (raised
+        // neighbour cell (2, 1)); both h2 corners stay at the row-centred 16/~32, i.e. row 1.
+        entity.RootComponent!.Position = new Vector3(25f, 24f, 5f);
+
+        component.Update(Tick);
+
+        Assert.True(component.IsGrounded);
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.True(contact.IsGrounded);
+        Assert.Equal(Vector3.UnitZ, contact.GroundNormal);
+        Assert.Null(contact.GroundCollider);
+        Assert.Equal("lava", contact.GroundSurfaceTag);
+    }
+
     [Fact]
     public void MoveThenUpdate_BlockedByNonWalkableCells()
     {
