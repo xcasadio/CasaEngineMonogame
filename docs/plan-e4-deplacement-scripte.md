@@ -39,10 +39,23 @@
     verticale n'est plus intégrée tant que le drapeau est posé.
   - Inchangé : résolution de sol pour `IsGrounded`, snap descendant, support, marches sur les ticks
     non montants. Ajout d'API documenté selon `.github/copilot-instructions.md`.
+  - **Durée de vie du latch face aux resets d'état** (blocker plan-verifier) : `Stop` (`:329-343`,
+    donc aussi `Teleport` `:475-481` et `SetControlMode(Disabled)`), le constructeur de copie et
+    `RestoreStateSnapshot` (`:444-473`) remettent la déclaration à **0** — cohérent avec le fait
+    qu'ils effacent déjà tout l'état de mouvement, y compris la vitesse où vivait le `1e-6`. Aucun
+    autre chemin ne la touche : `Update` ne l'efface jamais.
 - **DLL (même livraison, après bump)** : `IsVerticalOwnedExternally = true` au spawn des PNJ
-  scriptés ; `SetVerticalVelocity(FinalForceZ > 0 ? RisingVelocitySignal : 0f)` remplacé par
-  `SetExternalVerticalDisplacement(FinalForceZ / 65536f)` au MÊME site et à la même cadence ;
-  `RisingVelocitySignal` supprimée ; héros inchangé (drapeau false, verticale moteur d'E3-3).
+  scriptés ; `RisingVelocitySignal` et ses trois `SetVerticalVelocity` par tick supprimés
+  (`AlundraEntityScriptProxy.cs:533` branche support trouvé, `:619` branche atterrissage terrain,
+  `:661` branche en mouvement) et remplacés par **exactement UNE déclaration par tick logique**,
+  émise **à la fin d'`EvaluateEntitySupport`**, quelle que soit la branche prise, avec le
+  `FinalForceZ` RÉSOLU du tick (donc 0 après un reset d'atterrissage ou de support) :
+  `SetExternalVerticalDisplacement(FinalForceZ / 65536f)`. Invariant à écrire dans le code : *tout
+  tick logique déclare exactement une fois*. Ce placement en fin de méthode garantit aussi que la
+  déclaration suit tout `PushLogicalPositionToRoot` (`:1237` → `Controller.Teleport` → `Stop`, qui
+  remet la déclaration à 0) : le latch est donc toujours ré-établi par le tick courant. Une écriture
+  scriptée hors tick (0x64/0x65/0x8B) laisse la déclaration à 0 jusqu'au tick suivant — correct
+  (téléport au sol = non montant). Héros inchangé (drapeau false, verticale moteur d'E3-3).
 - **Acceptation** :
   - **Moteur, défaut false** : 12 scénarios d'E3.c et tests `SetVerticalVelocity` (E4.0) inchangés ;
     `CasaEngine.Tests` sans nouvel échec (18 préexistants).
