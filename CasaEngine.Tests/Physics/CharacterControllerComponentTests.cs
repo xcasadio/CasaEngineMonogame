@@ -515,6 +515,60 @@ public class CharacterControllerComponentTests
         Assert.True(component.IsGrounded);
     }
 
+    /// <summary>
+    /// E4.g acceptance (c): a step-support hit from <c>TryStepMove</c> (same fixture as
+    /// <see cref="Update_StepsOntoLowObstacle_WhenStepHeightAllowsIt"/>) must not re-ground the
+    /// pawn on the same <see cref="CharacterControllerComponent.Update"/> when
+    /// <see cref="CharacterControllerComponent.IsVerticalOwnedExternally"/> is true and a rising
+    /// displacement is latched. Fails under a branch order where <c>_hasStepSupportHit</c> is
+    /// evaluated before the external-ownership gate in <c>UpdateGround</c>.
+    /// </summary>
+    [Fact]
+    public void Update_UnderExternalVerticalOwnership_RisingDeclaration_PreventsRegroundViaStepSupportHit()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            ShapeSweepHandler = (from, to) =>
+            {
+                var fromPosition = from.Translation;
+                var toPosition = to.Translation;
+                var delta = toPosition - fromPosition;
+
+                if (delta.Y < -0.0001f)
+                {
+                    return CreateHit(Vector3.Up, 0.5f);
+                }
+
+                if (Math.Abs(delta.Y) <= 0.0001f
+                    && delta.X > 0.0001f
+                    && fromPosition.Y < 0.1f)
+                {
+                    return CreateHit(Vector3.Left, 0.1f);
+                }
+
+                return null;
+            },
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 1f;
+        component.Settings.Acceleration = 10f;
+        component.Settings.StepHeight = 0.25f;
+        component.Settings.GroundSnapDistance = 0.05f;
+        component.SetGroundedForTest();
+        component.SetMoveIntent(new Vector2(1f, 0f));
+        component.IsVerticalOwnedExternally = true;
+        component.SetExternalVerticalDisplacement(1f);
+
+        component.Update(1f);
+
+        // Sanity: the step-support hit was in fact produced (X advanced past the obstacle, as in
+        // Update_StepsOntoLowObstacle_WhenStepHeightAllowsIt), so the only reason IsGrounded can be
+        // false below is the external-ownership gate winning over the step-support branch.
+        Assert.True(entity.RootComponent!.Position.X > 0.9f);
+        Assert.False(component.IsGrounded);
+    }
+
     [Fact]
     public void Update_DoesNotStep_WhenObstacleIsTooHigh()
     {

@@ -32,6 +32,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
+    private float _externalVerticalDisplacement;
     private PhysicsQueryShape _sweepShape;
     private bool _sweepShapeIsBox;
     private Vector3 _sweepShapeBoxSize;
@@ -60,6 +61,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _hasStepSupportHit = other._hasStepSupportHit;
         _lastRequestedDisplacement = other._lastRequestedDisplacement;
         _lastActualDisplacement = other._lastActualDisplacement;
+        // _externalVerticalDisplacement is intentionally NOT copied: the copy constructor resets
+        // the latch to 0, consistent with Stop()/RestoreStateSnapshot also clearing it.
+        IsVerticalOwnedExternally = other.IsVerticalOwnedExternally;
         ControlMode = other.ControlMode;
         MovementState = other.MovementState;
         Velocity = other.Velocity;
@@ -77,6 +81,20 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     }
 
     public CharacterControlMode ControlMode { get; private set; } = CharacterControlMode.Player;
+
+    /// <summary>
+    /// When true, the owner (not the controller) is responsible for this entity's vertical motion
+    /// for every rendered <see cref="Update"/>: gravity, vertical velocity integration and the
+    /// grounded down-clamp in <c>ApplyVerticalVelocity</c> are skipped, the up-axis component is
+    /// excluded from the velocity-driven displacement, and ground resolution in
+    /// <c>UpdateGround</c> treats a positive <see cref="SetExternalVerticalDisplacement"/> latch as
+    /// airborne. Ground resolution for <see cref="IsGrounded"/>, the downward snap, support and
+    /// stairs on non-rising ticks are unaffected. Default <c>false</c>: no behavior change for
+    /// existing users. Port target: lets a scripted-motion owner (e.g. an Alundra NPC driven by its
+    /// own tick-quantized <c>ForceZ</c>) declare vertical displacement without the controller's
+    /// per-render-frame gravity fighting a per-logic-tick value.
+    /// </summary>
+    public bool IsVerticalOwnedExternally { get; set; }
 
     public CharacterMovementState MovementState { get; private set; } = CharacterMovementState.Falling;
 
@@ -203,6 +221,14 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         var requestedDisplacement = velocity * elapsedTime;
+        if (IsVerticalOwnedExternally)
+        {
+            // The up-axis component is excluded so a residual vertical velocity (e.g. after a
+            // step's recomputation below, an external SetVerticalVelocity call, or a restored
+            // snapshot) can never produce engine-side vertical motion while the owner is external.
+            requestedDisplacement -= up * Vector3.Dot(requestedDisplacement, up);
+        }
+
         bool appliedRequestedDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared;
         var actualDisplacement = appliedRequestedDisplacement
             ? MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2)
@@ -340,6 +366,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Velocity = Vector3.Zero;
         _lastRequestedDisplacement = Vector3.Zero;
         _lastActualDisplacement = Vector3.Zero;
+        _externalVerticalDisplacement = 0f;
     }
 
     public Vector3 Move(Vector3 requestedDisplacement)
@@ -379,6 +406,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     /// positive impulse still comes from the existing upward-velocity gate at the head of
     /// <c>UpdateGround</c> on the next <see cref="Update"/>, exactly as it does for a jump.
     /// </para>
+    /// <para>
+    /// While <see cref="IsVerticalOwnedExternally"/> is true, the vertical component set here is
+    /// no longer integrated into displacement by <see cref="Update"/>: it is still stored on
+    /// <see cref="Velocity"/>, but the up-axis component of the velocity-driven displacement is
+    /// excluded, and <c>ApplyVerticalVelocity</c> does not touch it either. Use
+    /// <see cref="SetExternalVerticalDisplacement"/> to drive vertical motion instead.
+    /// </para>
     /// </summary>
     public void SetVerticalVelocity(float velocityAlongUp)
     {
@@ -389,6 +423,29 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         var up = ResolveUp();
         Velocity = Velocity - up * Vector3.Dot(Velocity, up) + up * velocityAlongUp;
+    }
+
+    /// <summary>
+    /// Declares this tick's vertical displacement along the resolved up axis (see
+    /// <see cref="ResolveUp"/>), consumed by <see cref="Update"/> only while
+    /// <see cref="IsVerticalOwnedExternally"/> is true. The value is LATCHED: it persists across
+    /// every subsequent <see cref="Update"/> call - including render frames that carry no matching
+    /// logic tick - until the next call to this method. <see cref="Update"/> never clears it.
+    /// <para>
+    /// <see cref="Stop"/> (and therefore <see cref="Teleport"/> and <see cref="SetControlMode"/>
+    /// with <see cref="CharacterControlMode.Disabled"/>), the copy constructor, and
+    /// <see cref="RestoreStateSnapshot"/> reset the latch to 0 - the same places that already wipe
+    /// the rest of the motion state.
+    /// </para>
+    /// <para>
+    /// Additive API: port target for Alundra's tick-quantized <c>ForceZ</c> for scripted NPCs,
+    /// replacing a symbolic near-zero <c>SetVerticalVelocity</c> signal that only worked around
+    /// <c>UpdateGround</c>'s upward-velocity gate.
+    /// </para>
+    /// </summary>
+    public void SetExternalVerticalDisplacement(float displacementAlongUp)
+    {
+        _externalVerticalDisplacement = displacementAlongUp;
     }
 
     public CharacterControllerInputSnapshot CaptureInputSnapshot()
@@ -470,6 +527,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _stepSupportHit = default;
         _lastRequestedDisplacement = stateSnapshot.LastRequestedDisplacement;
         _lastActualDisplacement = stateSnapshot.LastActualDisplacement;
+        _externalVerticalDisplacement = 0f;
     }
 
     public void Teleport(Vector3 position)
@@ -645,6 +703,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     private void ApplyVerticalVelocity(ref Vector3 velocity, float elapsedTime, Vector3 up)
     {
+        if (IsVerticalOwnedExternally)
+        {
+            // No gravity, no vertical velocity integration, no grounded down-clamp: the owner
+            // drives vertical motion via SetExternalVerticalDisplacement instead.
+            return;
+        }
+
         var vertical = Vector3.Dot(velocity, up);
 
         if (HasBufferedJump() && CanStartJump())
@@ -1100,6 +1165,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     private void UpdateGround(SceneComponent rootComponent, ref Vector3 velocity, Vector3 up, Vector3 h1, Vector3 h2, float footUpBeforeStep)
     {
+        if (IsVerticalOwnedExternally && _externalVerticalDisplacement > 0f)
+        {
+            // A positive latched declaration means airborne. Evaluated before the
+            // _hasStepSupportHit branch below (which would otherwise re-ground and return before
+            // reaching this gate), and _hasStepSupportHit is deliberately left untouched here -
+            // MoveWithCollisions already resets it on every call, and the owner relies on that
+            // branch to keep following stairs on ticks where it does not declare a rise.
+            SetGroundInfo(CharacterControllerGroundInfo.None);
+            return;
+        }
+
         if (_hasStepSupportHit && TryGetWalkableGround(_stepSupportHit.Normal, up, out var stepSlopeAngle))
         {
             _hasStepSupportHit = false;
