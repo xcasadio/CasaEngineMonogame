@@ -11,8 +11,10 @@ namespace CasaEngine.Framework.Scene.CharacterMotion;
 public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionService
 {
     private const float CompletionEpsilon = 0.0001f;
+    private const int DefaultMaxStepsPerFrame = 4;
 
     private readonly GameWorld _world;
+    private float _fixedStepAccumulator;
     private readonly HashSet<Entity> _registeredEntities = [];
     private readonly List<CharacterControllerComponent> _controllers = [];
     private readonly List<NavigationAgentComponent> _navigationAgents = [];
@@ -33,6 +35,38 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
         _world.EntityRemoved += OnEntityRemoved;
         _world.EntitiesClear += OnEntitiesClear;
     }
+
+    /// <summary>
+    /// Fixed-step duration in seconds for character motion integration. <c>0</c> (the default)
+    /// disables fixed-step mode entirely: <see cref="Update"/> then runs exactly today's
+    /// variable-step path, unchanged and at no added cost (see M-1 in
+    /// <c>docs/plan-moteur-character-motion.md</c> in the parent repository - opt-in, default
+    /// unchanged, so no existing consumer regresses). When set to a positive value, <see cref="Update"/>
+    /// accumulates real elapsed time and runs that many whole steps of this duration, carrying the
+    /// remainder forward across frames (never discarding it, except when <see cref="MaxStepsPerFrame"/>
+    /// is hit - see that property).
+    /// </summary>
+    public float FixedTimeStep { get; set; }
+
+    /// <summary>
+    /// Maximum number of fixed steps <see cref="Update"/> will run in a single call once
+    /// <see cref="FixedTimeStep"/> is enabled (ignored while it is <c>0</c>). Defaults to 4. Caps a
+    /// runaway accumulation (e.g. after a debugger pause or a long load) instead of running an
+    /// unbounded number of steps in one frame; the accumulator is reset to zero when the cap is hit,
+    /// so the unrun remainder is dropped rather than carried into future frames (the same
+    /// spiral-of-death guard as <c>AlundraLogicClock.TicksThisFrame</c> in the parent repository).
+    /// </summary>
+    public int MaxStepsPerFrame { get; set; } = DefaultMaxStepsPerFrame;
+
+    /// <summary>
+    /// Cumulative count of fixed steps executed by this system since construction. Only advances
+    /// while <see cref="FixedTimeStep"/> is enabled; stays at <c>0</c> in the default (disabled) mode.
+    /// Exposed purely for testability - it lets a test drive frames until a specific number of fixed
+    /// steps has run, rather than relying on wall-clock duration (which is exactly what a floating-point
+    /// boundary can make ambiguous: see the M1 acceptance notes in
+    /// <c>docs/plan-moteur-character-motion.md</c>).
+    /// </summary>
+    public long ExecutedFixedStepCount { get; private set; }
 
     public ICharacterMotionHandle MoveTo(Entity entity, Vector3 destination, CharacterMoveToOptions options, object owner = null)
     {
@@ -103,6 +137,68 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
             return;
         }
 
+        if (FixedTimeStep <= 0f)
+        {
+            RunStep(elapsedTime);
+            return;
+        }
+
+        // Fixed-step mode (opt-in, M-1): accumulate real time and run whole steps of
+        // FixedTimeStep, carrying the remainder forward - never zeroing it except when
+        // MaxStepsPerFrame is hit below. This is the same accumulate/carry shape as
+        // AlundraLogicClock.TicksThisFrame in the parent repository, applied here to the
+        // character motion system itself instead of to a game-specific script clock.
+        _fixedStepAccumulator += elapsedTime;
+
+        int stepsThisFrame = 0;
+        while (_fixedStepAccumulator >= FixedTimeStep && stepsThisFrame < MaxStepsPerFrame)
+        {
+            _fixedStepAccumulator -= FixedTimeStep;
+            RunStep(FixedTimeStep);
+            stepsThisFrame++;
+            ExecutedFixedStepCount++;
+        }
+
+        if (stepsThisFrame >= MaxStepsPerFrame)
+        {
+            _fixedStepAccumulator = 0f;
+        }
+    }
+
+    // Runs the same sequence as before fixed-step mode existed, once per step, whether that step
+    // is the whole (variable) frame delta in disabled mode or one FixedTimeStep slice in enabled
+    // mode. See this system's per-step-vs-per-frame decision, documented on Update above the
+    // fixed-step loop.
+    //
+    // Per-step-vs-per-frame decision (bounded choice left to the implementor by the plan): every
+    // agent/driver here runs ONCE PER FIXED STEP (one step = one full simulation frame), not once
+    // per real frame. Checked each one against running N times at dt=FixedTimeStep instead of once
+    // at dt=elapsedTime:
+    //  - navigation/steering agents and the managed MoveTo/legacy/navigation drivers only ever
+    //    accumulate `elapsedTime` linearly (arrival tests, timeouts, path progress) - running them
+    //    N times at dt each sums to the same total elapsed time as running once at N*dt, so they are
+    //    insensitive to the split.
+    //  - the navigation agent latches its path request rather than re-issuing it every call, so
+    //    repeated per-step calls do not re-trigger pathfinding.
+    //  - SteeringPhysicsBridgeComponent integrates a physics body; integrating N sub-steps at a
+    //    smaller fixed dt is strictly more accurate than one larger variable step, not less.
+    //  - the root-motion bridge consumes the frame's animation-driven delta on its first call and
+    //    reports zero afterwards, so extra per-step calls within the same frame are harmless no-ops
+    //    for it.
+    // No component inspected depends on being called exactly once per rendered frame with the full
+    // frame delta, so per-step execution (the plan's proposed default) is used, with no per-frame-only
+    // exception carved out.
+    //
+    // P3 deviation (documented and accepted, see the plan's M1 entry): the steering spatial index
+    // (UniformGridSteeringSpatialIndex) is rebuilt once per World.UpdateSequence, and Bepu bodies are
+    // stepped by PhysicsSystemComponent outside World.Update - both happen once per rendered frame,
+    // not once per fixed step. Under fixed-step mode, the extra sub-steps of a frame therefore see a
+    // steering index and physics bodies that are up to one step stale. Accepted because it is opt-in
+    // and has no effect on a world without steering agents or physics-driven ground (e.g. the 389
+    // intro, whose ground comes from an ICollisionField); revisit if a game enables fixed-step mode
+    // together with steering agents or moving rigid platforms.
+    private void RunStep(float elapsedTime)
+    {
         _commands.Clear();
 
         UpdateNavigationAgents(elapsedTime);
