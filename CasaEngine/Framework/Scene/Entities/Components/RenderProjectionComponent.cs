@@ -31,7 +31,19 @@ public class RenderProjectionComponent : SceneComponent, IEntityPolicyDefaultsPr
 
     public RenderProjectionComponent(RenderProjectionComponent other) : base(other)
     {
+        SnapToPixel = other.SnapToPixel;
     }
+
+    /// <summary>
+    /// When set, the derived render position is snapped to the integer pixel grid through
+    /// <see cref="SimulationSpacePolicy.SnapRenderPosition"/> before this component places itself.
+    /// Off by default so no existing behaviour changes; the logical pose and the physics stay
+    /// untouched either way. Meant for entities whose logical pose keeps moving fractionally every
+    /// frame (e.g. a controller-driven mover), where a fractional render position beats the sprite's
+    /// texel grid against the screen's and blurs it at non-unit zoom.
+    /// </summary>
+    [DefaultValue(false)]
+    public bool SnapToPixel { get; set; }
 
     public override RenderProjectionComponent Clone()
     {
@@ -59,6 +71,11 @@ public class RenderProjectionComponent : SceneComponent, IEntityPolicyDefaultsPr
         }
 
         var renderPosition = policy.DeriveRenderPosition(root.WorldMatrixNoScale.Translation);
+
+        if (SnapToPixel)
+        {
+            renderPosition = policy.SnapRenderPosition(renderPosition);
+        }
 
         //Everything WorldMatrixNoScale applies on top of the local matrix of this component.
         var ambientMatrix = Matrix.Identity;

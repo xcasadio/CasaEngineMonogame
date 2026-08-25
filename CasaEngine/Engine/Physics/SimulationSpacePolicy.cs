@@ -65,6 +65,21 @@ public class SimulationSpacePolicy
         return logicalPosition;
     }
 
+    /// <summary>
+    /// Snaps an already-derived render position to the integer pixel grid, following the axis
+    /// convention this policy's <see cref="DeriveRenderPosition"/> uses. The base policy floors all
+    /// three axes; a policy that flips an axis when deriving the render position (e.g.
+    /// <see cref="TopDownElevationSimulationSpacePolicy"/>) overrides this to flip the rounding
+    /// direction on that same axis, so the snap agrees with the axis it owns.
+    /// </summary>
+    public virtual Vector3 SnapRenderPosition(Vector3 renderPosition)
+    {
+        return new Vector3(
+            MathF.Floor(renderPosition.X),
+            MathF.Floor(renderPosition.Y),
+            MathF.Floor(renderPosition.Z));
+    }
+
     /// <summary>Creates the policy a world names. An unknown name is a project data error.</summary>
     public static SimulationSpacePolicy CreateByName(string name)
     {
@@ -144,5 +159,20 @@ public sealed class TopDownElevationSimulationSpacePolicy : SimulationSpacePolic
     public override Vector3 DeriveRenderPosition(Vector3 logicalPosition)
     {
         return new Vector3(logicalPosition.X, -(logicalPosition.Y - logicalPosition.Z), 0f);
+    }
+
+    /// <summary>
+    /// The original engine keeps its positions in 16.16 and truncates only at render time, in its own
+    /// Y-down space: X >> 16 (floor) and (Y - Z) >> 16 (floor). Our render pose is
+    /// (X, -(Y - Z), 0), the negation of that same Y-down row, so matching the original means
+    /// flooring X but taking the ceiling of Y: ceil(renderY) = -floor(-renderY) = -floor(Y - Z).
+    /// Z is untouched (always 0 on a derived render position).
+    /// </summary>
+    public override Vector3 SnapRenderPosition(Vector3 renderPosition)
+    {
+        return new Vector3(
+            MathF.Floor(renderPosition.X),
+            MathF.Ceiling(renderPosition.Y),
+            renderPosition.Z);
     }
 }

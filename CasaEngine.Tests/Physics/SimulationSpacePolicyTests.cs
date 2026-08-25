@@ -270,6 +270,99 @@ public class SimulationSpacePolicyTests
         Assert.Equal(new Vector3(10f, 36f, 16f), projection.WorldMatrixNoScale.Translation);
     }
 
+    /// <summary>
+    /// Default is off: a fractional logical position still renders fractionally, unchanged from before
+    /// E5.b, so nothing that already relies on <see cref="RenderProjectionComponent"/> is disturbed.
+    /// </summary>
+    [Fact]
+    public void RenderProjectionComponent_SnapToPixelOff_KeepsTheFractionalRenderPosition()
+    {
+        using var physicsWorldContext = new PhysicsWorld(true, new TopDownElevationSimulationSpacePolicy());
+        var projection = new RenderProjectionComponent();
+        var root = CreateEntityWithProjection(physicsWorldContext, projection);
+
+        root.LocalTransform.Position = new Vector3(10.7f, 20.3f, 0f);
+        root.Update(0f);
+
+        var renderPosition = projection.WorldMatrixNoScale.Translation;
+        Assert.Equal(10.7f, renderPosition.X, precision: 4);
+        Assert.Equal(-20.3f, renderPosition.Y, precision: 4);
+        Assert.Equal(0f, renderPosition.Z, precision: 4);
+    }
+
+    /// <summary>
+    /// The discriminating case (plan-verifier's fixed convention): floor on X, ceiling on Y. A floor
+    /// applied in render space would give (10, -21, 0) instead, and a round-to-nearest would give
+    /// (11, -20, 0) instead - both were considered and rejected; this is the case that tells them apart
+    /// from the fixed convention, and each is asserted not to match it below.
+    /// </summary>
+    [Fact]
+    public void RenderProjectionComponent_SnapToPixelOn_FloorsXAndCeilsY()
+    {
+        using var physicsWorldContext = new PhysicsWorld(true, new TopDownElevationSimulationSpacePolicy());
+        var projection = new RenderProjectionComponent { SnapToPixel = true };
+        var root = CreateEntityWithProjection(physicsWorldContext, projection);
+
+        root.LocalTransform.Position = new Vector3(10.7f, 20.3f, 0f);
+        root.Update(0f);
+
+        var renderPosition = projection.WorldMatrixNoScale.Translation;
+        Assert.Equal(new Vector3(10f, -20f, 0f), renderPosition);
+
+        //Both rejected conventions fail this case.
+        Assert.NotEqual(new Vector3(10f, -21f, 0f), renderPosition); //floor in render space
+        Assert.NotEqual(new Vector3(11f, -20f, 0f), renderPosition); //round to nearest
+    }
+
+    /// <summary>Elevation enters the row through Y - Z before the snap, not after.</summary>
+    [Fact]
+    public void RenderProjectionComponent_SnapToPixelOn_FoldsElevationBeforeSnapping()
+    {
+        using var physicsWorldContext = new PhysicsWorld(true, new TopDownElevationSimulationSpacePolicy());
+        var projection = new RenderProjectionComponent { SnapToPixel = true };
+        var root = CreateEntityWithProjection(physicsWorldContext, projection);
+
+        //Y - Z = 36.2 - 16.9 = 19.3, negated: -19.3, ceiling: -19.
+        root.LocalTransform.Position = new Vector3(-2.4f, 36.2f, 16.9f);
+        root.Update(0f);
+
+        var renderPosition = projection.WorldMatrixNoScale.Translation;
+        Assert.Equal(new Vector3(-3f, -19f, 0f), renderPosition);
+    }
+
+    /// <summary>
+    /// A slow continuous advance of the logical pose must not oscillate between two integer render
+    /// rows: each step's snapped Y must be monotonically non-increasing, matching the monotonically
+    /// increasing logical Y under the sign flip.
+    /// </summary>
+    [Fact]
+    public void RenderProjectionComponent_SnapToPixelOn_AdvancesMonotonicallyWithoutOscillation()
+    {
+        using var physicsWorldContext = new PhysicsWorld(true, new TopDownElevationSimulationSpacePolicy());
+        var projection = new RenderProjectionComponent { SnapToPixel = true };
+        var root = CreateEntityWithProjection(physicsWorldContext, projection);
+
+        float? previousY = null;
+
+        for (var i = 0; i <= 40; i++)
+        {
+            var logicalY = 20f + i * 0.1f;
+            root.LocalTransform.Position = new Vector3(10f, logicalY, 0f);
+            root.Update(0f);
+
+            var renderY = projection.WorldMatrixNoScale.Translation.Y;
+
+            if (previousY.HasValue)
+            {
+                //A tolerance absorbs the float round-trip through WorldMatrixNoScale's invert/multiply,
+                //not the snap itself: the snapped local position is exactly integral before that.
+                Assert.True(renderY <= previousY.Value + 1e-3f, $"render Y regressed forward from {previousY} to {renderY} at logical Y {logicalY}.");
+            }
+
+            previousY = renderY;
+        }
+    }
+
     private static IEnumerable<ICollideableComponent> CollidingComponents(CollisionComponent component)
     {
         foreach (var collision in component.Collisions)
