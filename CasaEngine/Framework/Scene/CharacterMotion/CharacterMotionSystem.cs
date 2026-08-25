@@ -228,6 +228,8 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
             entity.ComponentRemoved -= OnEntityComponentRemoved;
         }
 
+        _fixedStepAccumulator = 0f;
+
         _registeredEntities.Clear();
         _controllers.Clear();
         _navigationAgents.Clear();

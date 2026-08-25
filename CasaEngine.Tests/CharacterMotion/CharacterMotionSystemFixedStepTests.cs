@@ -117,6 +117,27 @@ public sealed class CharacterMotionSystemFixedStepTests
     }
 
     [Fact]
+    public void Clear_ResetsTheFixedStepAccumulator_SoAPartialFrameAfterReloadDoesNotCarryOverTheRemainder()
+    {
+        // M1.a: Clear() (e.g. on a world reload) must reset the fixed-step accumulator added by
+        // M1, or a pending remainder from the previous world survives into the next one and can
+        // trigger an extra fixed step on its very first frame. Two partial frames (each below one
+        // FixedTimeStep) sum to more than one FixedTimeStep, so without the fix the accumulator
+        // carried across Clear() would make the second partial frame run a step.
+        World world = CreateWorldWithControlledEntity(out _, out _);
+        world.CharacterMotion.FixedTimeStep = FixedTimeStep;
+        float partialDt = FixedTimeStep * 0.6f;
+
+        world.Update(FrameTime.FromElapsedTime(partialDt, 1));
+        Assert.Equal(0, world.CharacterMotion.ExecutedFixedStepCount);
+
+        world.CharacterMotion.Clear();
+
+        world.Update(FrameTime.FromElapsedTime(partialDt, 2));
+        Assert.Equal(0, world.CharacterMotion.ExecutedFixedStepCount);
+    }
+
+    [Fact]
     public void OffMode_TrajectoryDistances_DivergeByAtLeastTheExpectedAmount()
     {
         float distance50 = RunVariableStepForAboutOneSecond(1f / 50f);
