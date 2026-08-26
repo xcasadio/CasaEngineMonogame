@@ -37,6 +37,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 | [character-controller-tasks.md](tasks/character-controller-tasks.md) | Character Controller | V3.3 (locomotion avancée) ⚠️ bloquée. |
 | [bepu-physics-migration-tasks.md](tasks/bepu-physics-migration-tasks.md) | Migration physique BulletSharp → bepuphysics2 2.5.0-beta.29 (branche `bepu-physics`) | Les 4 tranches sont ✅. Reste : smoke visuel manuel de l'overlay debug physique (TileMapDemo/éditeur) 🧪, et merge de la branche. |
 | [rpgdemo-collision-keyframes-migration.md](tasks/rpgdemo-collision-keyframes-migration.md) | Migration RPGDemo des volumes de sprite (`.sprite` `collisions`) vers `collision_keyframes` d'animation (branche `bepu-physics`) | Script + assets migrés ✅, test ✅. Reste : validation visuelle manuelle in-game 🧪 (attaque à l'épée, herbe, octopus). |
+| [audio-system-tasks.md](tasks/audio-system-tasks.md) | Moteur de son V1 : bus de mixage, asset `.sound`, SFX one-shot/loop, streaming WAV des musiques, éditeur (branche `audio-system`) | Plan entier ⏳ (30 tâches, rédigé le 2026-08-26). Analyse et décisions : [analysis-audio-system.md](audits/analysis-audio-system.md). |
 
 ### Points d'attention
 
