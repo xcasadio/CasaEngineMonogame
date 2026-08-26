@@ -266,7 +266,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - V3.3. Rattacher les voix au monde
+### ✅ Done - V3.3. Rattacher les voix au monde
 
 **Objectif** : qu'un changement de monde ne laisse pas de son orphelin (D7).
 

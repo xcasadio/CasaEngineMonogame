@@ -115,6 +115,10 @@ public sealed class World : ObjectBase
         GameplayModeRunner.Stop();
         RuntimeSystems.Clear();
 
+        // Voices started by this world must not survive it: leaving a world silences its sounds,
+        // while voices with another owner (UI, editor preview) keep playing.
+        Game?.AudioSystemComponent?.Service.StopVoicesOwnedBy(this);
+
         foreach (var worldUiComponent in _worldUiComponents)
         {
             worldUiComponent.Dispose();
