@@ -29,6 +29,7 @@ public static class Constants
         public const string Particle = ".particle";
         public const string Cutscene = ".cutscene";
         public const string Dialogue = ".dialogue";
+        public const string Sound = ".sound";
 
         //project
         public const string Project = ".json";

@@ -325,7 +325,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - A4.2. Créer l'asset `.sound`
+### ✅ Done - A4.2. Créer l'asset `.sound`
 
 **Objectif** : le type d'asset son du moteur (D3, D4).
 

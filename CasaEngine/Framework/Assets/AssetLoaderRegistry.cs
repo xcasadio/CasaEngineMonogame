@@ -53,5 +53,6 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(CutsceneAsset), new CutsceneAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(DialogueAsset), new DialogueAssetLoader());
+        assetContentManager.RegisterAssetLoader(typeof(SoundAsset), new SoundAssetLoader());
     }
 }
