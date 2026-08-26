@@ -536,7 +536,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - G7.2. Ajouter les commandes de cutscene audio
+### ✅ Done - G7.2. Ajouter les commandes de cutscene audio
 
 **Objectif** : lever la dette documentée dans `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md`.
 

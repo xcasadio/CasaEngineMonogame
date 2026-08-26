@@ -4,6 +4,9 @@ using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Scripting.Coroutines;
 
 namespace CasaEngine.Framework.Cutscenes;
@@ -72,6 +75,30 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case PlaySoundCutsceneActionData playSoundAction:
+                PlaySound(playSoundAction, world);
+                break;
+
+            case PlayMusicCutsceneActionData playMusicAction:
+                PlayMusic(playMusicAction, world);
+                break;
+
+            case StopMusicCutsceneActionData stopMusicAction:
+                GetAudioService(world)?.Music.StopAll(stopMusicAction.FadeOutSeconds);
+                break;
+
+            case FadeMusicCutsceneActionData fadeMusicAction:
+                AudioService fadeMusicService = GetAudioService(world);
+                if (fadeMusicService != null)
+                {
+                    yield return new FadeMusicBusInstruction(
+                        fadeMusicService.Mixer.GetBus(AudioBusNames.Music),
+                        fadeMusicAction.TargetVolume,
+                        fadeMusicAction.DurationSeconds);
+                }
+
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
@@ -114,6 +141,62 @@ internal static class CutsceneActionCoroutineFactory
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
         }
+    }
+
+    private static AudioService GetAudioService(World world) => world.Game?.AudioSystemComponent?.Service;
+
+    private static SoundAsset LoadSoundAsset(World world, Guid soundAssetId)
+    {
+        if (soundAssetId == Guid.Empty || world.Game == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return world.Game.AssetContentManager.Load<SoundAsset>(soundAssetId);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(new Exception($"Cutscene cannot load sound asset '{soundAssetId}'.", exception));
+            return null;
+        }
+    }
+
+    private static void PlaySound(PlaySoundCutsceneActionData action, World world)
+    {
+        AudioService audioService = GetAudioService(world);
+        SoundAsset asset = LoadSoundAsset(world, action.SoundAssetId);
+
+        if (audioService == null || asset == null)
+        {
+            return;
+        }
+
+        var overrides = new SoundPlaybackOverrides(
+            volume: asset.Volume * action.Volume,
+            busName: action.BusName);
+
+        audioService.PlaySound(asset, overrides, world);
+    }
+
+    private static void PlayMusic(PlayMusicCutsceneActionData action, World world)
+    {
+        AudioService audioService = GetAudioService(world);
+        SoundAsset asset = LoadSoundAsset(world, action.SoundAssetId);
+
+        if (audioService == null || asset == null)
+        {
+            return;
+        }
+
+        if (action.Crossfade)
+        {
+            // Fading the previous tracks out over the same duration is what makes it a crossfade.
+            audioService.Music.StopAll(action.FadeInSeconds);
+        }
+
+        audioService.Music.Play(asset, action.FadeInSeconds, world);
     }
 
     private static bool TryStartNavigateTo(NavigateToCutsceneActionData action, World world, out NavigationAgentComponent navigationAgent, out string failureReason)
@@ -199,6 +282,42 @@ internal static class CutsceneActionCoroutineFactory
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Ramps the Music bus volume with the real frame delta, and completes when it reaches the
+    /// target. Blocking on purpose: the next cutscene action must start on the new level.
+    /// </summary>
+    private sealed class FadeMusicBusInstruction : ICoroutineInstruction
+    {
+        private readonly AudioBus _bus;
+        private readonly float _startVolume;
+        private readonly float _targetVolume;
+        private readonly float _duration;
+        private float _elapsed;
+
+        public FadeMusicBusInstruction(AudioBus bus, float targetVolume, float durationSeconds)
+        {
+            _bus = bus;
+            _startVolume = bus.Volume;
+            _targetVolume = Math.Clamp(targetVolume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+            _duration = durationSeconds;
+        }
+
+        public bool IsCompleted(CoroutineUpdateContext context)
+        {
+            if (_duration <= 0f)
+            {
+                _bus.Volume = _targetVolume;
+                return true;
+            }
+
+            _elapsed += context.DeltaTime;
+            float progress = Math.Clamp(_elapsed / _duration, 0f, 1f);
+            _bus.Volume = _startVolume + ((_targetVolume - _startVolume) * progress);
+
+            return progress >= 1f;
+        }
     }
 
     private sealed class NavigateToCutsceneInstruction : ICoroutineInstruction

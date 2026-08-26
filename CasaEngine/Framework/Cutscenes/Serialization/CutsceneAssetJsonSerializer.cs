@@ -77,6 +77,27 @@ public static class CutsceneAssetJsonSerializer
             case ParallelCutsceneActionData parallelAction:
                 node["actions"] = SaveActions(parallelAction.Actions);
                 break;
+
+            case PlaySoundCutsceneActionData playSoundAction:
+                node["sound_asset_id"] = playSoundAction.SoundAssetId.ToString();
+                node["volume"] = playSoundAction.Volume;
+                node["bus_name"] = playSoundAction.BusName;
+                break;
+
+            case PlayMusicCutsceneActionData playMusicAction:
+                node["sound_asset_id"] = playMusicAction.SoundAssetId.ToString();
+                node["fade_in_seconds"] = playMusicAction.FadeInSeconds;
+                node["crossfade"] = playMusicAction.Crossfade;
+                break;
+
+            case StopMusicCutsceneActionData stopMusicAction:
+                node["fade_out_seconds"] = stopMusicAction.FadeOutSeconds;
+                break;
+
+            case FadeMusicCutsceneActionData fadeMusicAction:
+                node["target_volume"] = fadeMusicAction.TargetVolume;
+                node["duration_seconds"] = fadeMusicAction.DurationSeconds;
+                break;
         }
 
         return node;
@@ -115,6 +136,27 @@ public static class CutsceneAssetJsonSerializer
                 Destination = node["destination"] is { } destinationNode ? destinationNode.GetVector3() : Vector3.Zero,
                 StoppingDistance = node["stopping_distance"]?.GetSingle() ?? 0.1f,
                 TimeoutSeconds = node["timeout_seconds"]?.GetSingle() ?? 0f,
+            },
+            CutsceneActionTypes.PlaySound => new PlaySoundCutsceneActionData
+            {
+                SoundAssetId = node["sound_asset_id"] is { } playSoundIdNode ? playSoundIdNode.GetGuid() : Guid.Empty,
+                Volume = node["volume"]?.GetSingle() ?? 1f,
+                BusName = node["bus_name"]?.GetString() ?? string.Empty,
+            },
+            CutsceneActionTypes.PlayMusic => new PlayMusicCutsceneActionData
+            {
+                SoundAssetId = node["sound_asset_id"] is { } playMusicIdNode ? playMusicIdNode.GetGuid() : Guid.Empty,
+                FadeInSeconds = node["fade_in_seconds"]?.GetSingle() ?? 0f,
+                Crossfade = node["crossfade"]?.GetBoolean() ?? true,
+            },
+            CutsceneActionTypes.StopMusic => new StopMusicCutsceneActionData
+            {
+                FadeOutSeconds = node["fade_out_seconds"]?.GetSingle() ?? 0f,
+            },
+            CutsceneActionTypes.FadeMusic => new FadeMusicCutsceneActionData
+            {
+                TargetVolume = node["target_volume"]?.GetSingle() ?? 0f,
+                DurationSeconds = node["duration_seconds"]?.GetSingle() ?? 0f,
             },
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),

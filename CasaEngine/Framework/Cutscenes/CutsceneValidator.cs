@@ -71,6 +71,52 @@ public static class CutsceneValidator
 
                 break;
 
+            case PlaySoundCutsceneActionData playSoundAction:
+                if (playSoundAction.SoundAssetId == Guid.Empty)
+                {
+                    result.AddError(path, "PlaySound.sound_asset_id is required.");
+                }
+
+                if (playSoundAction.Volume is < 0f or > 1f)
+                {
+                    result.AddError(path, "PlaySound.volume must be between zero and one.");
+                }
+
+                break;
+
+            case PlayMusicCutsceneActionData playMusicAction:
+                if (playMusicAction.SoundAssetId == Guid.Empty)
+                {
+                    result.AddError(path, "PlayMusic.sound_asset_id is required.");
+                }
+
+                if (playMusicAction.FadeInSeconds < 0f)
+                {
+                    result.AddError(path, "PlayMusic.fade_in_seconds must be greater than or equal to zero.");
+                }
+
+                break;
+
+            case StopMusicCutsceneActionData stopMusicAction:
+                if (stopMusicAction.FadeOutSeconds < 0f)
+                {
+                    result.AddError(path, "StopMusic.fade_out_seconds must be greater than or equal to zero.");
+                }
+
+                break;
+
+            case FadeMusicCutsceneActionData fadeMusicAction:
+                if (fadeMusicAction.TargetVolume is < 0f or > 1f)
+                {
+                    result.AddError(path, "FadeMusic.target_volume must be between zero and one.");
+                }
+
+                if (fadeMusicAction.DurationSeconds < 0f)
+                {
+                    result.AddError(path, "FadeMusic.duration_seconds must be greater than or equal to zero.");
+                }
+
+                break;
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;
