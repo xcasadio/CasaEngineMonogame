@@ -172,6 +172,8 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SpriteAssetInspectorPanel> _spriteInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, SoundAssetInspectorPanel> _soundInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _soundInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CutsceneAssetInspectorPanel> _cutsceneInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Animation2dAssetInspectorPanel> _animation2dInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
@@ -2563,6 +2565,14 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
+        if (_soundInspectorPanels.TryGetValue(panel.Id, out var soundInspectorPanel))
+        {
+            // Disposing stops the preview: a closed tab must not keep playing.
+            soundInspectorPanel.Dispose();
+            _soundInspectorPanels.Remove(panel.Id);
+            _soundInspectorPanelTitles.Remove(panel.Id);
+        }
+
         if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
         {
             _cutsceneInspectorPanels.Remove(panel.Id);
@@ -3908,6 +3918,7 @@ public class GameEditor : Game, IObservableUpdate
             new AssetDocumentRoute(Constants.FileNameExtensions.Animation2d, TryOpenAnimation2dAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Sprite, TryOpenSpriteAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Particle, TryOpenParticleAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Sound, TryOpenSoundAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
@@ -4076,6 +4087,62 @@ public class GameEditor : Game, IObservableUpdate
         ActivateDockPanel(panelId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened material asset='{materialAsset.Name}', viewport='{panelId}'");
+        return true;
+    }
+
+    private bool TryOpenSoundAsset(string fullPath)
+    {
+        if (!SoundAssetInspectorPanel.TryLoadAsset(fullPath, out var soundAsset))
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = soundAsset.AssetId != Guid.Empty ? soundAsset.AssetId : soundAsset.Id;
+        var panelId = $"{EditorPanelIds.SoundAssetDocumentPrefix}{documentId:N}";
+        if (!_soundInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
+        {
+            inspectorPanel = new SoundAssetInspectorPanel(_mainWindow, _editorRuntime);
+            _soundInspectorPanels.Add(panelId, inspectorPanel);
+        }
+
+        inspectorPanel.LoadAsset(soundAsset, fullPath);
+
+        var panelTitle = string.IsNullOrWhiteSpace(soundAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : soundAsset.Name;
+        _soundInspectorPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = panelTitle,
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = inspectorPanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = panelTitle;
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened sound asset='{soundAsset.Name}', panel='{panelId}'");
         return true;
     }
 

@@ -1,0 +1,10 @@
+{
+  "world_viewport": {
+    "is_2d_view_mode": false,
+    "target_x": 0.0,
+    "target_y": 0.0,
+    "target_z": 0.0,
+    "zoom_step": 0,
+    "pixel_snap": false
+  }
+}

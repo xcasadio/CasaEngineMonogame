@@ -596,7 +596,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - E8.3. Ajouter l'inspecteur d'asset `.sound`
+### 🧪 Needs testing - E8.3. Ajouter l'inspecteur d'asset `.sound`
 
 **Objectif** : éditer et écouter un `.sound` (D8).
 
@@ -691,3 +691,4 @@ Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser s
 | O7 | Coût des 23,6 Mo de WAV recopiés dans la sortie à chaque build : acceptable, ou faut-il passer la musique en Ogg plus tard ? | P0.2 |
 | O8 | ✅ **Tranché : `EntityComponent`.** La V1 est 2D pure (D5) : un `SceneComponent` trimballerait une transform jamais lue, et la doc de `EntityComponent` vise exactement ce cas (« abstract behaviors », pas de transform). Le passage à `SceneComponent` est le changement à faire le jour où la spatialisation arrive. | G7.1 |
 | O9 | ⚠️ **Bloque le lancement des exécutables, sans rapport avec l'audio.** `MGUI/Directory.Packages.props` épingle `FontStashSharp.MonoGame` en version flottante `1.*` (résolue en 1.5.7 dans le cache NuGet local), alors que le `Directory.Packages.props` racine épingle 1.5.6. `MGUI.FontStashSharp.dll` référence donc 1.5.7 tandis que les applications embarquent 1.5.6 → `FileNotFoundException` au premier rendu d'UI (`UIRoot.CreateFontStashSharpTextEngine`). Correctif candidat : aligner les deux épinglages (et supprimer la version flottante). **Changement de dépendance : nécessite une validation humaine.** | L5.2, M6.4, E8.x |
+| O10 | ℹ️ **Constat sans rapport avec l'audio, relevé pendant E8.3.** Ouvrir `CasaEngine.Demos/Content/DemosGame.json` **dans l'éditeur** plante (`NullReferenceException` dans `GameManager.UpdateWorld`) : `FirstWorldLoaded` vaut `DefaultWorld.world`, qui n'est pas dans l'`AssetInfos.json` des démos. Le runtime des démos ne passe pas par ce chemin (il pose son monde en code), d'où l'absence de symptôme jusqu'ici. L'éditeur démarre normalement sur `Projects/SampleProject`. | — |
