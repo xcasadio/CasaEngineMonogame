@@ -468,7 +468,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - M6.3. Implémenter le lecteur de musique
+### ✅ Done - M6.3. Implémenter le lecteur de musique
 
 **Objectif** : l'API musique du moteur, indépendante du format source.
 

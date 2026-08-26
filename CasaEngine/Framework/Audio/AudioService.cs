@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Streaming;
 
 namespace CasaEngine.Framework.Audio;
 
@@ -27,11 +28,15 @@ public sealed class AudioService : IDisposable
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
+        Music = new MusicPlayer(this);
     }
 
     public IAudioBackend Backend => _backend;
 
     public AudioMixer Mixer { get; }
+
+    /// <summary>Streamed playback: music and ambiences, with fades and crossfade.</summary>
+    public MusicPlayer Music { get; }
 
     /// <summary>
     /// Resolves the audio file a <see cref="SoundAsset"/> points at. Null until the host wires
@@ -409,6 +414,10 @@ public sealed class AudioService : IDisposable
         {
             _appliedMixerVersion = Mixer.Version;
         }
+
+        // After the voices: a fade out that just ended released its voice, and the music player
+        // drops the matching track on the same frame.
+        Music.Update(elapsedSeconds);
     }
 
     public void Dispose()
@@ -418,6 +427,7 @@ public sealed class AudioService : IDisposable
             return;
         }
 
+        Music.Dispose();
         StopAll();
         _isDisposed = true;
         _backend.Dispose();
