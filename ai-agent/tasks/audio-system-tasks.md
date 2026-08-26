@@ -163,7 +163,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - S1.3. Ajouter le backend fake et le harnais de test
+### ✅ Done - S1.3. Ajouter le backend fake et le harnais de test
 
 **Objectif** : rendre toute la logique audio testable en CI sans device.
 
