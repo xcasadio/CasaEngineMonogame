@@ -345,6 +345,72 @@ public sealed class AudioService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Stops every voice except those routed to <paramref name="preservedBusName"/>.
+    /// The editor uses it to end a play session without touching its own preview, which lives on
+    /// the Editor bus.
+    /// </summary>
+    public void StopAllExceptBus(string preservedBusName)
+    {
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (!entry.InUse || IsOnBus(entry, preservedBusName))
+            {
+                continue;
+            }
+
+            _backend.Stop(entry.Handle);
+            ReleaseEntry(entry);
+        }
+    }
+
+    /// <summary>
+    /// Pauses every voice except those routed to <paramref name="preservedBusName"/>, remembering
+    /// which ones were paused so <see cref="ResumeAllExceptBus"/> does not resume a voice the game
+    /// had paused on its own.
+    /// </summary>
+    public void PauseAllExceptBus(string preservedBusName)
+    {
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (!entry.InUse || entry.IsPausedBySystem || IsOnBus(entry, preservedBusName))
+            {
+                continue;
+            }
+
+            if (_backend.GetState(entry.Handle) != AudioVoiceState.Playing)
+            {
+                continue;
+            }
+
+            _backend.Pause(entry.Handle);
+            entry.IsPausedBySystem = true;
+        }
+    }
+
+    /// <summary>Resumes only the voices paused by <see cref="PauseAllExceptBus"/>.</summary>
+    public void ResumeAllExceptBus(string preservedBusName)
+    {
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (!entry.InUse || !entry.IsPausedBySystem || IsOnBus(entry, preservedBusName))
+            {
+                continue;
+            }
+
+            _backend.Resume(entry.Handle);
+            entry.IsPausedBySystem = false;
+        }
+    }
+
+    private static bool IsOnBus(VoiceEntry entry, string busName)
+    {
+        return busName != null && string.Equals(entry.BusName, busName, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Stops every voice, whoever owns it.</summary>
     public void StopAll()
     {
@@ -548,6 +614,7 @@ public sealed class AudioService : IDisposable
         public object Owner;
         public bool InUse;
         public bool IsStreaming;
+        public bool IsPausedBySystem;
 
         public bool IsFading;
         public float FadeStartVolume;
@@ -563,6 +630,7 @@ public sealed class AudioService : IDisposable
             Owner = null;
             InUse = false;
             IsStreaming = false;
+            IsPausedBySystem = false;
             IsFading = false;
             FadeStartVolume = 0f;
             FadeTargetVolume = 0f;

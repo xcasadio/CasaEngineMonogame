@@ -1,5 +1,6 @@
 using System;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.EditorServices.PlayMode;
 using CasaEngine.Framework.Application;
 using World = CasaEngine.Framework.Scene.World.World;
@@ -59,6 +60,9 @@ internal sealed class EditorPlaySessionController : IEditorPlaySessionController
         var game = _gameProvider();
         try
         {
+            // Every game sound dies with the session, including the ones no world owns.
+            // The Editor bus is spared: an asset preview must survive Stop.
+            game?.AudioSystemComponent?.Service.StopAllExceptBus(AudioBusNames.Editor);
             _playWorld?.Clear();
         }
         finally
@@ -85,9 +89,23 @@ internal sealed class EditorPlaySessionController : IEditorPlaySessionController
     public void SetPaused(bool paused)
     {
         var game = _gameProvider();
-        if (game != null)
+        if (game == null)
         {
-            game.GameManager.TimeScale = paused ? 0f : 1f;
+            return;
+        }
+
+        game.GameManager.TimeScale = paused ? 0f : 1f;
+
+        // A time scale of zero freezes the simulation but not the audio hardware: the voices
+        // have to be paused explicitly. The Editor bus keeps playing.
+        var audioService = game.AudioSystemComponent?.Service;
+        if (paused)
+        {
+            audioService?.PauseAllExceptBus(AudioBusNames.Editor);
+        }
+        else
+        {
+            audioService?.ResumeAllExceptBus(AudioBusNames.Editor);
         }
     }
 }

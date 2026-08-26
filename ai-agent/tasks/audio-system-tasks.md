@@ -558,7 +558,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 8 — Éditeur (D8, D12)
 
-### ⏳ Todo - E8.1. Isoler l'audio de l'éditeur et régler le play-in-editor
+### ✅ Done - E8.1. Isoler l'audio de l'éditeur et régler le play-in-editor
 
 **Objectif** : que la preview et les sons du jeu ne se marchent pas dessus (D12).
 
