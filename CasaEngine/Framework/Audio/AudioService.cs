@@ -115,8 +115,11 @@ public sealed class AudioService : IDisposable
 
         if (asset.IsStreaming)
         {
-            _missingClipLog.WriteWarning(
-                $"Audio: sound '{asset.Name}' is marked as streaming and cannot be played as a sound effect.");
+            if (_missingClipLog.ShouldWrite())
+            {
+                _missingClipLog.WriteNow($"Audio: sound '{asset.Name}' is marked as streaming and cannot be played as a sound effect.");
+            }
+
             return AudioVoiceHandle.None;
         }
 
@@ -536,22 +539,32 @@ public sealed class AudioService : IDisposable
     {
         if (asset.AudioFileAssetId == Guid.Empty)
         {
-            _missingClipLog.WriteWarning($"Audio: sound '{asset.Name}' references no audio file.");
+            if (_missingClipLog.ShouldWrite())
+            {
+                _missingClipLog.WriteNow($"Audio: sound '{asset.Name}' references no audio file.");
+            }
+
             return null;
         }
 
         if (ClipProvider == null)
         {
-            _missingClipLog.WriteWarning(
-                $"Audio: no clip provider is wired, sound '{asset.Name}' cannot be played.");
+            if (_missingClipLog.ShouldWrite())
+            {
+                _missingClipLog.WriteNow($"Audio: no clip provider is wired, sound '{asset.Name}' cannot be played.");
+            }
+
             return null;
         }
 
         var clip = ClipProvider.GetClip(asset.AudioFileAssetId);
         if (clip is not { IsDisposed: false })
         {
-            _missingClipLog.WriteWarning(
-                $"Audio: the audio file of sound '{asset.Name}' ({asset.AudioFileAssetId}) could not be loaded.");
+            if (_missingClipLog.ShouldWrite())
+            {
+                _missingClipLog.WriteNow($"Audio: the audio file of sound '{asset.Name}' ({asset.AudioFileAssetId}) could not be loaded.");
+            }
+
             return null;
         }
 

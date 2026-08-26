@@ -637,7 +637,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - Z9.2. Passe performance et allocations
+### ✅ Done - Z9.2. Passe performance et allocations
 
 **Objectif** : vérifier les contraintes hot path de CLAUDE.md.
 

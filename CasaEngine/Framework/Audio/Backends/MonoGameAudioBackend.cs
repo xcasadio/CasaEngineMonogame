@@ -77,8 +77,11 @@ public sealed class MonoGameAudioBackend : IAudioBackend
         var slotIndex = TakeFreeSlot(monoGameClip);
         if (slotIndex < 0)
         {
-            _playLimitLog.WriteWarning(
-                $"Audio: no free voice ({VoiceCapacity} in use), sound refused.");
+            if (_playLimitLog.ShouldWrite())
+            {
+                _playLimitLog.WriteNow($"Audio: no free voice ({VoiceCapacity} in use), sound refused.");
+            }
+
             return AudioVoiceHandle.None;
         }
 
@@ -220,7 +223,11 @@ public sealed class MonoGameAudioBackend : IAudioBackend
         var slotIndex = TakeFreeSlot(null);
         if (slotIndex < 0)
         {
-            _playLimitLog.WriteWarning($"Audio: no free voice ({VoiceCapacity} in use), stream refused.");
+            if (_playLimitLog.ShouldWrite())
+            {
+                _playLimitLog.WriteNow($"Audio: no free voice ({VoiceCapacity} in use), stream refused.");
+            }
+
             return AudioVoiceHandle.None;
         }
 

@@ -168,6 +168,28 @@ public class AudioServicePlaySoundTests
     }
 
     [Fact]
+    public void ABrokenAssetPlayedEveryFrame_DoesNotAllocateOnceTheLogIsThrottled()
+    {
+        var service = CreateService(out _, out _);
+        var broken = new SoundAsset { Name = "dangling", AudioFileAssetId = Guid.NewGuid() };
+
+        // First calls emit the log and JIT the path; after that the throttle must swallow
+        // everything, including building the interpolated message.
+        for (var i = 0; i < 20; i++)
+        {
+            service.PlaySound(broken);
+        }
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < 1000; i++)
+        {
+            service.PlaySound(broken);
+        }
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
+    [Fact]
     public void ALoopingVoice_KeepsPlayingUntilItIsStopped()
     {
         var service = CreateService(out _, out var provider);
