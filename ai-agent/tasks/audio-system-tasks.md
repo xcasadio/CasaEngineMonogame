@@ -223,7 +223,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 3 — Service audio et voix (D7)
 
-### ⏳ Todo - V3.1. Brancher `AudioSystemComponent` dans le moteur
+### ✅ Done - V3.1. Brancher `AudioSystemComponent` dans le moteur
 
 **Objectif** : donner au moteur un point d'entrée audio unique.
 
@@ -689,3 +689,4 @@ Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser s
 | O6 | Comportement quand un `.sound` pointe un fichier absent ou non supporté : retenu = log d'erreur + voix silencieuse, pas d'exception. À confirmer à l'usage. | L5.1 |
 | O7 | Coût des 23,6 Mo de WAV recopiés dans la sortie à chaque build : acceptable, ou faut-il passer la musique en Ogg plus tard ? | P0.2 |
 | O8 | `SoundEmitterComponent` dérive-t-il d'`EntityComponent` ou de `SceneComponent` ? Le choix dépend de l'utilité d'un ancrage dans la scène en 2D. | G7.1 |
+| O9 | ⚠️ **Bloque le lancement des exécutables, sans rapport avec l'audio.** `MGUI/Directory.Packages.props` épingle `FontStashSharp.MonoGame` en version flottante `1.*` (résolue en 1.5.7 dans le cache NuGet local), alors que le `Directory.Packages.props` racine épingle 1.5.6. `MGUI.FontStashSharp.dll` référence donc 1.5.7 tandis que les applications embarquent 1.5.6 → `FileNotFoundException` au premier rendu d'UI (`UIRoot.CreateFontStashSharpTextEngine`). Correctif candidat : aligner les deux épinglages (et supprimer la version flottante). **Changement de dépendance : nécessite une validation humaine.** | L5.2, M6.4, E8.x |

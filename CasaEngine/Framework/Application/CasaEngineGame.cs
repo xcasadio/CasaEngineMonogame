@@ -50,6 +50,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
     public PhysicsSystemComponent PhysicsSystemComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
+    public AudioSystemComponent AudioSystemComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
@@ -349,6 +350,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(this);
         PhysicsSystemComponent = new PhysicsSystemComponent(this);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(this);
+        AudioSystemComponent = new AudioSystemComponent(this);
         FontSystem = new FontSystem();
 
         // Initialize the multi-view render pipeline.

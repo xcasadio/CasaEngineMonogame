@@ -17,7 +17,11 @@ public enum ComponentUpdateOrder
     Physics,
     DebugPhysics,
     Default,
-    CasaEngineEditor
+    CasaEngineEditor,
+
+    // Appended so the existing values keep their order. Updating the audio last in the frame is
+    // harmless: it only tops up streaming buffers and advances volume ramps.
+    Audio
 }
 
 public enum ComponentDrawOrder
