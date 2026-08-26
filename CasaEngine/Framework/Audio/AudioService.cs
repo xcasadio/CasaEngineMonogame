@@ -18,6 +18,7 @@ public sealed class AudioService : IDisposable
     private readonly IAudioBackend _backend;
     private readonly List<VoiceEntry> _voices = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
+    private readonly AudioLogThrottle _missingClipLog = new();
 
     private int _appliedMixerVersion = -1;
     private bool _isDisposed;
@@ -31,6 +32,12 @@ public sealed class AudioService : IDisposable
     public IAudioBackend Backend => _backend;
 
     public AudioMixer Mixer { get; }
+
+    /// <summary>
+    /// Resolves the audio file a <see cref="SoundAsset"/> points at. Null until the host wires
+    /// the asset content manager; playing a sound then logs and stays silent.
+    /// </summary>
+    public IAudioClipProvider ClipProvider { get; set; }
 
     public bool IsAudioAvailable => _backend.IsAvailable;
 
@@ -76,6 +83,48 @@ public sealed class AudioService : IDisposable
         ActiveVoiceCount++;
 
         return handle;
+    }
+
+    /// <summary>
+    /// Plays a <see cref="SoundAsset"/> with its authored volume, pitch, loop flag and bus.
+    /// </summary>
+    /// <remarks>
+    /// A missing audio file, an unresolvable clip or a saturated backend all end the same way:
+    /// a throttled log and <see cref="AudioVoiceHandle.None"/>. Gameplay code never has to guard
+    /// against a broken sound asset.
+    /// Streaming assets are refused here; they go through the music player instead.
+    /// </remarks>
+    public AudioVoiceHandle PlaySound(SoundAsset asset, object owner = null)
+    {
+        return PlaySound(asset, SoundPlaybackOverrides.None, owner);
+    }
+
+    public AudioVoiceHandle PlaySound(SoundAsset asset, in SoundPlaybackOverrides overrides, object owner = null)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+
+        if (_isDisposed)
+        {
+            return AudioVoiceHandle.None;
+        }
+
+        if (asset.IsStreaming)
+        {
+            _missingClipLog.WriteWarning(
+                $"Audio: sound '{asset.Name}' is marked as streaming and cannot be played as a sound effect.");
+            return AudioVoiceHandle.None;
+        }
+
+        var clip = ResolveClip(asset);
+        if (clip == null)
+        {
+            return AudioVoiceHandle.None;
+        }
+
+        var parameters = overrides.ApplyTo(asset.CreateVoiceParameters());
+        var busName = overrides.ResolveBus(asset.BusName);
+
+        return PlayClip(clip, busName, parameters, owner);
     }
 
     /// <summary>Stops a voice and returns it to the backend. A stale handle is ignored.</summary>
@@ -334,6 +383,32 @@ public sealed class AudioService : IDisposable
         _backend.Stop(entry.Handle);
         ReleaseEntry(entry);
         return true;
+    }
+
+    private IAudioClip ResolveClip(SoundAsset asset)
+    {
+        if (asset.AudioFileAssetId == Guid.Empty)
+        {
+            _missingClipLog.WriteWarning($"Audio: sound '{asset.Name}' references no audio file.");
+            return null;
+        }
+
+        if (ClipProvider == null)
+        {
+            _missingClipLog.WriteWarning(
+                $"Audio: no clip provider is wired, sound '{asset.Name}' cannot be played.");
+            return null;
+        }
+
+        var clip = ClipProvider.GetClip(asset.AudioFileAssetId);
+        if (clip is not { IsDisposed: false })
+        {
+            _missingClipLog.WriteWarning(
+                $"Audio: the audio file of sound '{asset.Name}' ({asset.AudioFileAssetId}) could not be loaded.");
+            return null;
+        }
+
+        return clip;
     }
 
     private void ApplyGain(VoiceEntry entry)

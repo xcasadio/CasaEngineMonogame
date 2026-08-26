@@ -172,6 +172,16 @@ public class AssetContentManager
         return AssetCatalog.Get(id);
     }
 
+    /// <summary>
+    /// Full path of an asset file, resolved the same way <see cref="Load{T}(Guid, string, bool)"/>
+    /// does. Needed by the systems that must open the file themselves rather than go through a
+    /// loader, typically audio streaming.
+    /// </summary>
+    public string ResolveAssetFullPath(string relativeFileName)
+    {
+        return ResolveAssetPath(relativeFileName);
+    }
+
     private string ResolveAssetPath(string relativeFileName)
     {
         if (RuntimeContext != null)

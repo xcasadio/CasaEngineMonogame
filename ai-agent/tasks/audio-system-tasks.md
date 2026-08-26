@@ -383,7 +383,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 5 — Lecture des SFX (D5 : 2D uniquement)
 
-### ⏳ Todo - L5.1. Exposer l'API de lecture des sons
+### ✅ Done - L5.1. Exposer l'API de lecture des sons
 
 **Objectif** : jouer un `.sound` en one-shot ou en boucle.
 

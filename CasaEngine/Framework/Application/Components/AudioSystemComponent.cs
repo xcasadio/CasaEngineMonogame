@@ -24,6 +24,11 @@ public class AudioSystemComponent : GameComponent
     {
         Service = new AudioService(backend ?? CreateDefaultBackend());
 
+        if (game is CasaEngineGame casaEngineGame)
+        {
+            Service.ClipProvider = new AssetContentManagerAudioClipProvider(casaEngineGame.AssetContentManager);
+        }
+
         UpdateOrder = (int)ComponentUpdateOrder.Audio;
         game.Components.Add(this);
     }
