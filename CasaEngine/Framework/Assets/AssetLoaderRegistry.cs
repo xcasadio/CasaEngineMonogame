@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Cutscenes;
@@ -26,6 +27,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         assetContentManager.RegisterAssetLoader(typeof(XnaTextureCube), new TextureCubeLoader());
         assetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
+        assetContentManager.RegisterAssetLoader(typeof(IAudioClip), new SoundEffectLoader());
         assetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
         assetContentManager.RegisterAssetLoader(typeof(SkeletonDefinition), new SkeletonDefinitionLoader());
         assetContentManager.RegisterAssetLoader(typeof(AnimationClip), new AnimationClipLoader());

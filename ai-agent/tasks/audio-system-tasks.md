@@ -309,7 +309,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 4 — Assets (D3, D4, D6)
 
-### ⏳ Todo - A4.1. Ajouter le loader de `SoundEffect` (`.wav`)
+### ✅ Done - A4.1. Ajouter le loader de `SoundEffect` (`.wav`)
 
 **Objectif** : charger un WAV via le système d'assets JSON du moteur, pas via MGCB.
 
