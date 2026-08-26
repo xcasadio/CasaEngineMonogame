@@ -44,6 +44,10 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [player-input.md](engine/player-input.md) — façade `PlayerInput` par joueur (gates input enable / routage par vue / capture UI).
 - [gameplay-possession.md](engine/gameplay-possession.md) — possession `Controller`/`Entity` (`Possess`/`UnPossess`, pilotage de `CharacterControlMode`) et multi-joueur local.
 
+### Audio
+
+- [audio-system.md](engine/audio-system.md) — système audio V1 : bus de mixage, asset `.sound`, SFX one-shot/loop, streaming des musiques (fade, crossfade), `SoundEmitterComponent`, actions de cutscene, règles play-in-editor et limites connues.
+
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.

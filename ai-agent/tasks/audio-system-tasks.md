@@ -619,7 +619,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 9 — Clôture
 
-### ⏳ Todo - Z9.1. Écrire la documentation moteur
+### ✅ Done - Z9.1. Écrire la documentation moteur
 
 **Objectif** : documenter la feature comme les autres systèmes du moteur.
 
