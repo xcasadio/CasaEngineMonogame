@@ -91,6 +91,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new WorldSpaceUIDemo());
         _demos.Add(new ViewManagerSandbox());
         _demos.Add(new UIOverlayDemo());
+        _demos.Add(new AudioDemo());
 
         ChangeDemo(ResolveStartupDemoIndex());
     }

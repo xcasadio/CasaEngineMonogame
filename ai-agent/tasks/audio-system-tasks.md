@@ -403,7 +403,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - L5.2. Créer `AudioDemo` (SFX)
+### 🧪 Needs testing - L5.2. Créer `AudioDemo` (SFX)
 
 **Objectif** : première validation à l'oreille.
 

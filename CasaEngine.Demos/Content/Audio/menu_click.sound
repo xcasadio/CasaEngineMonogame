@@ -1,0 +1,10 @@
+{
+  "id": "b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4",
+  "name": "menu_click",
+  "audio_file_asset_id": "3f8c1b52-9a47-4c6e-a0d5-1e7b24c9f018",
+  "volume": 1.0,
+  "pitch": 0.0,
+  "is_looped": false,
+  "bus_name": "Sfx",
+  "is_streaming": false
+}

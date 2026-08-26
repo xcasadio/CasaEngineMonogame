@@ -1163,6 +1163,12 @@
       "name": "racing_game_music_1",
       "file_name": "Audio\\racing_game_music_1.wav",
       "asset_type": "wav"
+    },
+    {
+      "id": "b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4",
+      "name": "menu_click",
+      "file_name": "Audio\\menu_click.sound",
+      "asset_type": "sound"
     }
   ]
 }

@@ -888,3 +888,6 @@
 
 #begin Audio/racing_game_music_1.wav
 /copy:Audio/racing_game_music_1.wav
+
+#begin Audio/menu_click.sound
+/copy:Audio/menu_click.sound
