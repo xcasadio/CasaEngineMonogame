@@ -27,6 +27,27 @@ public class ContentItemTests
         Assert.Equal(ContentItemType.TileMap, item.Type);
     }
 
+    [Theory]
+    [InlineData("D:/Project/audio/click.sound", ".sound")]
+    [InlineData("D:/Project/audio/click.wav", ".wav")]
+    [InlineData("D:/Project/audio/theme.ogg", ".ogg")]
+    public void Constructor_DeducesSoundTypeFromExtension(string path, string expectedExtension)
+    {
+        var item = new ContentItem(path, false);
+
+        Assert.Equal(expectedExtension, item.Extension);
+        Assert.Equal(ContentItemType.Sound, item.Type);
+    }
+
+    [Fact]
+    public void Constructor_DoesNotAdvertiseMp3AsAPlayableSound()
+    {
+        // MonoGame DesktopGL cannot decode mp3, neither as a sound effect nor as music.
+        var item = new ContentItem("D:/Project/audio/theme.mp3", false);
+
+        Assert.Equal(ContentItemType.Unknown, item.Type);
+    }
+
     [Fact]
     public void Constructor_DeducesSpriteTypeFromExtension()
     {

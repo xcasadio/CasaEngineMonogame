@@ -221,8 +221,10 @@ public sealed class ContentItem : INotifyPropertyChanged
         { ".dae",   ContentItemType.Model },
         { ".x",     ContentItemType.Model },
         // Sound
+        // No .mp3: MonoGame DesktopGL cannot decode it, neither as a sound effect nor as
+        // music, so showing one as a playable Sound would be a lie.
+        { ".sound", ContentItemType.Sound },
         { ".wav",   ContentItemType.Sound },
-        { ".mp3",   ContentItemType.Sound },
         { ".ogg",   ContentItemType.Sound },
         // Scripts
         { ".cs",    ContentItemType.Script },

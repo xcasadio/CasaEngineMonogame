@@ -363,7 +363,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - A4.4. Mettre à jour le Content Browser
+### ✅ Done - A4.4. Mettre à jour le Content Browser
 
 **Objectif** : que `.sound` soit reconnu et que `.mp3` cesse d'être annoncé comme jouable (D6).
 
