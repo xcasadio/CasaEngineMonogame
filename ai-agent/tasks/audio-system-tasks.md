@@ -46,7 +46,8 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 | `SoundAsset` | `CasaEngine/Framework/Audio/SoundAsset.cs` |
 | `WavStreamReader`, `WavFormatInfo` | `CasaEngine/Framework/Audio/Streaming/` |
 | `MusicTrackHandle`, `MusicPlayer` | `CasaEngine/Framework/Audio/Streaming/` |
-| `AudioSystemComponent` | `CasaEngine/Framework/Application/Components/` |
+| `AudioService` | `CasaEngine/Framework/Audio/AudioService.cs` — ajouté pendant V3.2 : toute la logique (pool de voix, routage, fades, musique) y vit **sans aucun type MonoGame ni `Game`**, sinon rien n'aurait été testable (D10). |
+| `AudioSystemComponent` | `CasaEngine/Framework/Application/Components/` — enveloppe mince qui pilote `AudioService` depuis la boucle de jeu |
 | `SoundEffectLoader`, `SoundAssetLoader` | `CasaEngine/Framework/Assets/Loaders/` |
 | `SoundEmitterComponent` | `CasaEngine/Framework/Scene/Entities/Components/` |
 | `SoundAssetInspectorPanel` | `CasaEngine.Editor/Controls/` |
@@ -241,7 +242,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - V3.2. Implémenter le pool de voix
+### ✅ Done - V3.2. Implémenter le pool de voix
 
 **Objectif** : borner et recycler les voix, sans allocation par frame.
 

@@ -7,37 +7,35 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.Application.Components;
 
 /// <summary>
-/// Single entry point of the engine audio: it owns the audio backend and the mixing buses.
+/// Drives the engine audio from the game loop.
 /// </summary>
 /// <remarks>
-/// The device and the buses are global to the process (there is only one OpenAL device), which
-/// is why this is a <see cref="GameComponent"/> and not a per-world system. Voices, on the other
-/// hand, are scoped to the world that started them.
-/// A failure to open the audio device never prevents the game from running: the component stays
-/// alive and every playback call becomes a silent no-op.
+/// All the logic lives in <see cref="Audio.AudioService"/>, which knows nothing about MonoGame:
+/// this component only owns the backend lifetime and forwards Update. The device and the buses
+/// are global to the process (a single OpenAL device), which is why this is a GameComponent and
+/// not a per-world system; voices are scoped through their owner instead.
+/// Failing to open the audio device never prevents the game from running: every playback call
+/// then becomes a silent no-op.
 /// </remarks>
 public class AudioSystemComponent : GameComponent
 {
-    private readonly IAudioBackend _backend;
-
     public AudioSystemComponent(Game game, IAudioBackend backend = null)
         : base(game)
     {
-        _backend = backend ?? CreateDefaultBackend();
-        Mixer = AudioBusNames.CreateDefaultMixer();
+        Service = new AudioService(backend ?? CreateDefaultBackend());
 
         UpdateOrder = (int)ComponentUpdateOrder.Audio;
         game.Components.Add(this);
     }
 
+    /// <summary>Playback API: buses, voices, ownership.</summary>
+    public AudioService Service { get; }
+
     /// <summary>The mixing bus tree. Volumes and mutes are set through it.</summary>
-    public AudioMixer Mixer { get; }
+    public AudioMixer Mixer => Service.Mixer;
 
     /// <summary>False when no audio device could be opened; playback is then a silent no-op.</summary>
-    public bool IsAudioAvailable => _backend.IsAvailable;
-
-    /// <summary>Backend in use. Exposed for the systems that build voices on top of it.</summary>
-    public IAudioBackend Backend => _backend;
+    public bool IsAudioAvailable => Service.IsAudioAvailable;
 
     /// <summary>Volume of the master bus, in [0,1].</summary>
     public float MasterVolume
@@ -47,9 +45,15 @@ public class AudioSystemComponent : GameComponent
     }
 
     /// <summary>Stops every voice, whoever owns it.</summary>
-    public virtual void StopAll()
+    public void StopAll()
     {
-        _backend.StopAll();
+        Service.StopAll();
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        Service.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        base.Update(gameTime);
     }
 
     protected override void Dispose(bool disposing)
@@ -58,7 +62,7 @@ public class AudioSystemComponent : GameComponent
         {
             if (disposing)
             {
-                _backend.Dispose();
+                Service.Dispose();
             }
         }
         finally
@@ -75,7 +79,7 @@ public class AudioSystemComponent : GameComponent
         }
         catch (Exception exception)
         {
-            // Creating the backend must never take the game down; the audio is simply lost.
+            // Creating the backend must never take the game down; only the sound is lost.
             Logs.WriteException(new Exception("Audio backend could not be created, the game runs without sound.", exception));
             return new NullAudioBackend();
         }
