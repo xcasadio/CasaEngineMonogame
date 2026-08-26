@@ -125,7 +125,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 1 — Socle backend testable (D10)
 
-### ⏳ Todo - S1.1. Définir les contrats du backend audio
+### ✅ Done - S1.1. Définir les contrats du backend audio
 
 **Objectif** : poser la frontière backend avant toute implémentation, pour que la logique de mixage soit testable sans OpenAL.
 
