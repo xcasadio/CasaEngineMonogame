@@ -102,7 +102,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - P0.3. Supprimer le code audio mort (D9)
+### ✅ Done - P0.3. Supprimer le code audio mort (D9)
 
 **Objectif** : partir d'une base propre, sans deux modèles audio concurrents.
 
