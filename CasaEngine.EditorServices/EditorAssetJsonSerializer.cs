@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.Entities;
@@ -92,6 +93,10 @@ internal static class EditorAssetJsonSerializer
 
             case Texture texture:
                 SaveTexture(texture, rootObject);
+                return true;
+
+            case SoundAsset soundAsset:
+                SaveSoundAsset(soundAsset, rootObject);
                 return true;
 
             default:
@@ -720,6 +725,17 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("custom_properties", propertiesNode);
+    }
+
+    private static void SaveSoundAsset(SoundAsset soundAsset, JObject node)
+    {
+        SaveObjectBase(soundAsset, node);
+        node.Add("audio_file_asset_id", soundAsset.AudioFileAssetId.ToString());
+        node.Add("volume", soundAsset.Volume);
+        node.Add("pitch", soundAsset.Pitch);
+        node.Add("is_looped", soundAsset.IsLooped);
+        node.Add("bus_name", soundAsset.BusName);
+        node.Add("is_streaming", soundAsset.IsStreaming);
     }
 
     private static void SaveTexture(Texture texture, JObject node)

@@ -346,7 +346,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - A4.3. Sérialiser l'asset `.sound` côté éditeur
+### ✅ Done - A4.3. Sérialiser l'asset `.sound` côté éditeur
 
 **Objectif** : pouvoir écrire un `.sound` depuis l'éditeur.
 
