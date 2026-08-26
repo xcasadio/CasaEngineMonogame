@@ -19,6 +19,7 @@ using CasaEngine.EditorServices.Scripting;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Particles;
@@ -1221,6 +1222,7 @@ public class GameEditor : Game, IObservableUpdate
             _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime);
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
+            _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Sound", CreateSoundAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Fire Loop", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.FireLoop));
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Smoke Puff", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SmokePuff));
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Spark Burst", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SparkBurst));
@@ -3430,6 +3432,112 @@ public class GameEditor : Game, IObservableUpdate
     private void OnContentBrowserFileOpened(ContentBrowser.Models.ContentItem item)
     {
         TryOpenEditorAsset(item.FullPath);
+    }
+
+    private void CreateSoundAssetInFolder(ContentItem folderItem)
+    {
+        if (folderItem == null || !folderItem.IsDirectory)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
+        {
+            Logs.WriteWarning("Cannot create sound asset because no project path is configured.");
+            return;
+        }
+
+        if (TryCreateSoundAssetInFolder(folderItem.FullPath, out var fullPath, out var relativePath, out var errorMessage))
+        {
+            _contentBrowserPanel?.Refresh();
+            TryOpenEditorAsset(fullPath);
+            Logs.WriteInfo($"Sound asset created: {relativePath}");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+    }
+
+    private static bool TryCreateSoundAssetInFolder(
+        string folderPath,
+        out string fullPath,
+        out string relativePath,
+        out string errorMessage)
+    {
+        fullPath = string.Empty;
+        relativePath = string.Empty;
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+        {
+            errorMessage = $"Cannot create sound asset because folder '{folderPath}' does not exist.";
+            return false;
+        }
+
+        try
+        {
+            fullPath = CreateUniqueSoundAssetPath(folderPath);
+            relativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+            string assetName = Path.GetFileNameWithoutExtension(fullPath);
+
+            var soundAsset = new SoundAsset
+            {
+                Name = assetName,
+                FileName = relativePath,
+            };
+
+            bool addedToCatalog = false;
+            if (AssetCatalog.GetByFileName(relativePath) == null
+                && AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) == null)
+            {
+                EditorAssetCatalogService.Add(soundAsset);
+                EditorAssetCatalogService.Save();
+                addedToCatalog = true;
+            }
+
+            try
+            {
+                EditorAssetWriterService.SaveAsset(relativePath, soundAsset, EditorAssetSaveSource.SoundEditorPanel);
+            }
+            catch
+            {
+                // Leaving a catalogue entry pointing at a file that was never written would
+                // break every later load of the project.
+                if (addedToCatalog)
+                {
+                    EditorAssetCatalogService.Remove(soundAsset.Id);
+                    EditorAssetCatalogService.Save();
+                }
+
+                throw;
+            }
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            errorMessage = exception.Message;
+            return false;
+        }
+    }
+
+    private static string CreateUniqueSoundAssetPath(string folderPath)
+    {
+        const string baseName = "NewSound";
+
+        string candidate = Path.Combine(folderPath, baseName + Constants.FileNameExtensions.Sound);
+        int suffix = 2;
+        while (File.Exists(candidate))
+        {
+            candidate = Path.Combine(folderPath, $"{baseName}_{suffix}{Constants.FileNameExtensions.Sound}");
+            suffix++;
+        }
+
+        return candidate;
     }
 
     private void CreateParticleAssetInFolder(ContentItem folderItem)

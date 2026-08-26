@@ -578,7 +578,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - E8.2. Ajouter le menu « Create Sound »
+### 🧪 Needs testing - E8.2. Ajouter le menu « Create Sound »
 
 **Objectif** : créer un `.sound` depuis le Content Browser.
 
