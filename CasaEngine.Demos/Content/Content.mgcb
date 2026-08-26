@@ -883,3 +883,8 @@
 #begin TileSets/swordman_walk_up.anim2d
 /copy:TileSets/swordman_walk_up.anim2d
 
+#begin Audio/menu_screenclick.wav
+/copy:Audio/menu_screenclick.wav
+
+#begin Audio/racing_game_music_1.wav
+/copy:Audio/racing_game_music_1.wav

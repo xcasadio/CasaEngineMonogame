@@ -75,7 +75,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - P0.2. Intégrer les fichiers audio de test au projet Demos
+### ✅ Done - P0.2. Intégrer les fichiers audio de test au projet Demos
 
 **Objectif** : rendre les deux WAV fournis chargeables au runtime par le projet de démos.
 

@@ -1151,6 +1151,18 @@
       "name": "soft_particle",
       "file_name": "Textures\\soft_particle.texture",
       "asset_type": "texture"
+    },
+    {
+      "id": "3f8c1b52-9a47-4c6e-a0d5-1e7b24c9f018",
+      "name": "menu_screenclick",
+      "file_name": "Audio\\menu_screenclick.wav",
+      "asset_type": "wav"
+    },
+    {
+      "id": "6b2d47ae-5c31-4f80-9b6a-d84e0c271f93",
+      "name": "racing_game_music_1",
+      "file_name": "Audio\\racing_game_music_1.wav",
+      "asset_type": "wav"
     }
   ]
 }
