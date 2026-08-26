@@ -653,7 +653,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - Z9.3. Validation finale et clôture
+### ✅ Done - Z9.3. Validation finale et clôture
 
 **Objectif** : livrer.
 
@@ -683,12 +683,12 @@ Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser s
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | ✅ **Confirmé le 2026-08-26** par une sonde exécutée sur MonoGame 3.8.4.1 : `DynamicSoundEffectInstance.IsLooped = true` lève bien `InvalidOperationException` (« IsLooped cannot be set true. Submit looped audio data to implement looping. »). `MonoGameAudioBackend` n'applique donc jamais `IsLooped` à une voix de streaming ; la boucle est faite par `WavStreamReader.Rewind()`. | M6.2 |
-| O2 | Taille de buffer et profondeur de file du streaming : valeurs retenues, et marge en millisecondes. À figer et documenter. | M6.2 |
-| O3 | Limite globale de voix (proposition : 64, contre 256 sources OpenAL disponibles). | V3.2 |
-| O4 | Les bus par défaut sont-ils figés dans le moteur, ou déclarables par projet (`ProjectSettings`) ? V1 : figés. | B2.2 |
-| O5 | Persistance des volumes utilisateur (modèle `DisplaySettingsPersistence`) : hors périmètre V1, à confirmer. | — |
-| O6 | Comportement quand un `.sound` pointe un fichier absent ou non supporté : retenu = log d'erreur + voix silencieuse, pas d'exception. À confirmer à l'usage. | L5.1 |
-| O7 | Coût des 23,6 Mo de WAV recopiés dans la sortie à chaque build : acceptable, ou faut-il passer la musique en Ogg plus tard ? | P0.2 |
+| O2 | ✅ **Figé** : buffers de 16 384 octets, 3 en file (`MusicPlayer.DefaultBufferSizeInBytes` / `DefaultQueuedBufferTarget`). À 22 050 Hz stéréo 16 bits cela fait ~186 ms par buffer, ~557 ms de marge contre une frame longue. Documenté dans la classe et dans `docs/engine/audio-system.md`. | M6.2 |
+| O3 | ✅ **Retenu : 64** (`MonoGameAudioBackend.DefaultVoiceCapacity`), contre 256 sources OpenAL, ce qui laisse de la marge pour les voix de streaming. Au-delà, la voix est refusée avec un log throttlé, jamais une exception. | V3.2 |
+| O4 | ✅ **V1 : figés dans le moteur** (`AudioBusNames.CreateDefaultMixer`). Un projet peut créer des bus supplémentaires via `AudioMixer.CreateBus`, mais rien n'est déclaré depuis `ProjectSettings`. | B2.2 |
+| O5 | ⏳ **Hors périmètre V1, confirmé.** Les volumes de bus ne sont pas persistés. Listé dans les limites connues de `docs/engine/audio-system.md`. | — |
+| O6 | ✅ **Retenu et testé** : log throttlé + voix silencieuse, jamais d'exception. Couvert par `AudioServicePlaySoundTests` (fichier absent, provider absent, clip disposé) et par un test d'allocation nulle sur un asset cassé rejoué 1000 fois. | L5.1 |
+| O7 | ⏳ **Accepté en V1.** Les 23,6 Mo sont recopiés à chaque build via `/copy:` de `Content.mgcb`. Le passage de la musique en Ogg (~3-5 Mo) est listé dans les évolutions prévues, une fois le décodeur NVorbis branché. | P0.2 |
 | O8 | ✅ **Tranché : `EntityComponent`.** La V1 est 2D pure (D5) : un `SceneComponent` trimballerait une transform jamais lue, et la doc de `EntityComponent` vise exactement ce cas (« abstract behaviors », pas de transform). Le passage à `SceneComponent` est le changement à faire le jour où la spatialisation arrive. | G7.1 |
-| O9 | ⚠️ **Bloque le lancement des exécutables, sans rapport avec l'audio.** `MGUI/Directory.Packages.props` épingle `FontStashSharp.MonoGame` en version flottante `1.*` (résolue en 1.5.7 dans le cache NuGet local), alors que le `Directory.Packages.props` racine épingle 1.5.6. `MGUI.FontStashSharp.dll` référence donc 1.5.7 tandis que les applications embarquent 1.5.6 → `FileNotFoundException` au premier rendu d'UI (`UIRoot.CreateFontStashSharpTextEngine`). Correctif candidat : aligner les deux épinglages (et supprimer la version flottante). **Changement de dépendance : nécessite une validation humaine.** | L5.2, M6.4, E8.x |
+| O9 | ✅ **Corrigé** (commit `fabf0007`, décision humaine) : la racine passe à 1.5.7, la version que le sous-module MGUI résout déjà via son `1.*`. Le sous-module n'est pas touché — c'est un autre dépôt. Démo et éditeur démarrent. | L5.2, M6.4, E8.x |
 | O10 | ℹ️ **Constat sans rapport avec l'audio, relevé pendant E8.3.** Ouvrir `CasaEngine.Demos/Content/DemosGame.json` **dans l'éditeur** plante (`NullReferenceException` dans `GameManager.UpdateWorld`) : `FirstWorldLoaded` vaut `DefaultWorld.world`, qui n'est pas dans l'`AssetInfos.json` des démos. Le runtime des démos ne passe pas par ce chemin (il pose son monde en code), d'où l'absence de symptôme jusqu'ici. L'éditeur démarre normalement sur `Projects/SampleProject`. | — |
