@@ -180,7 +180,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 2 — Bus de mixage (D1)
 
-### ⏳ Todo - B2.1. Implémenter les bus et le calcul de gain
+### ✅ Done - B2.1. Implémenter les bus et le calcul de gain
 
 **Objectif** : le cœur métier des « channels ».
 
