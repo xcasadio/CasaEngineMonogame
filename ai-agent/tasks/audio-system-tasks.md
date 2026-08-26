@@ -425,7 +425,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ## Phase 6 — Streaming de la musique (D2-bis)
 
-### ⏳ Todo - M6.1. Écrire le lecteur WAV en streaming
+### ✅ Done - M6.1. Écrire le lecteur WAV en streaming
 
 **Objectif** : lire un WAV par blocs, sans le charger entièrement.
 
