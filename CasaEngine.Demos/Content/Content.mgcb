@@ -891,3 +891,9 @@
 
 #begin Audio/menu_click.sound
 /copy:Audio/menu_click.sound
+
+#begin Audio/racing_game_music.sound
+/copy:Audio/racing_game_music.sound
+
+#begin Audio/racing_game_music_pitched.sound
+/copy:Audio/racing_game_music_pitched.sound

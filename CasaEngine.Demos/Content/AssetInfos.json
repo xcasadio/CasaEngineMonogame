@@ -1169,6 +1169,18 @@
       "name": "menu_click",
       "file_name": "Audio\\menu_click.sound",
       "asset_type": "sound"
+    },
+    {
+      "id": "7c9e5d31-4b62-4a08-8e17-2f6ba0c4d5e9",
+      "name": "racing_game_music",
+      "file_name": "Audio\\racing_game_music.sound",
+      "asset_type": "sound"
+    },
+    {
+      "id": "2e60f8a4-9c13-4d75-b3ea-58c7d1904f26",
+      "name": "racing_game_music_pitched",
+      "file_name": "Audio\\racing_game_music_pitched.sound",
+      "asset_type": "sound"
     }
   ]
 }

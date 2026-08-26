@@ -495,7 +495,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - M6.4. Étendre `AudioDemo` à la musique
+### 🧪 Needs testing - M6.4. Étendre `AudioDemo` à la musique
 
 **Objectif** : validation à l'oreille du streaming.
 

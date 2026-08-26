@@ -1,0 +1,10 @@
+{
+  "id": "2e60f8a4-9c13-4d75-b3ea-58c7d1904f26",
+  "name": "racing_game_music_pitched",
+  "audio_file_asset_id": "6b2d47ae-5c31-4f80-9b6a-d84e0c271f93",
+  "volume": 0.8,
+  "pitch": -0.35,
+  "is_looped": true,
+  "bus_name": "Music",
+  "is_streaming": true
+}
