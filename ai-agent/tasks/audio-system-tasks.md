@@ -284,7 +284,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - V3.4. Implémenter les fades
+### ✅ Done - V3.4. Implémenter les fades
 
 **Objectif** : fade in/out réutilisable par les SFX et par la musique.
 

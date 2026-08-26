@@ -141,6 +141,71 @@ public sealed class AudioService : IDisposable
         return TryGetEntry(voice, out var entry) ? entry.BusName : null;
     }
 
+    /// <summary>
+    /// Ramps the voice volume to <paramref name="targetVolume"/> over
+    /// <paramref name="durationSeconds"/>. MonoGame has no native fade, so the ramp is advanced
+    /// by <see cref="Update"/>. A duration of zero applies the target immediately.
+    /// Starting a second fade on the same voice replaces the first one, starting from the volume
+    /// reached so far, so chained fades never jump.
+    /// </summary>
+    public void FadeVoice(
+        AudioVoiceHandle voice,
+        float targetVolume,
+        float durationSeconds,
+        AudioFadeCompletion completion = AudioFadeCompletion.None)
+    {
+        if (!TryGetEntry(voice, out var entry))
+        {
+            return;
+        }
+
+        var target = float.IsNaN(targetVolume)
+            ? entry.BaseParameters.Volume
+            : Math.Clamp(targetVolume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+
+        if (durationSeconds <= 0f || float.IsNaN(durationSeconds))
+        {
+            entry.IsFading = false;
+            entry.BaseParameters = entry.BaseParameters.WithVolume(target);
+            ApplyGain(entry);
+
+            if (completion == AudioFadeCompletion.Stop)
+            {
+                _backend.Stop(entry.Handle);
+                ReleaseEntry(entry);
+            }
+
+            return;
+        }
+
+        entry.IsFading = true;
+        entry.FadeStartVolume = entry.BaseParameters.Volume;
+        entry.FadeTargetVolume = target;
+        entry.FadeDuration = durationSeconds;
+        entry.FadeElapsed = 0f;
+        entry.FadeCompletion = completion;
+    }
+
+    /// <summary>Fades the voice out and releases it once silent.</summary>
+    public void StopWithFade(AudioVoiceHandle voice, float durationSeconds)
+    {
+        FadeVoice(voice, AudioVoiceParameters.MinVolume, durationSeconds, AudioFadeCompletion.Stop);
+    }
+
+    /// <summary>Leaves the voice at the volume reached so far.</summary>
+    public void CancelFade(AudioVoiceHandle voice)
+    {
+        if (TryGetEntry(voice, out var entry))
+        {
+            entry.IsFading = false;
+        }
+    }
+
+    public bool IsFading(AudioVoiceHandle voice)
+    {
+        return TryGetEntry(voice, out var entry) && entry.IsFading;
+    }
+
     /// <summary>Stops every voice started with that owner. Used when a world is cleared.</summary>
     public void StopVoicesOwnedBy(object owner)
     {
@@ -203,6 +268,17 @@ public sealed class AudioService : IDisposable
                 continue;
             }
 
+            if (entry.IsFading)
+            {
+                if (AdvanceFade(entry, elapsedSeconds))
+                {
+                    continue;
+                }
+
+                // The ramp already pushed the current gain to the backend this frame.
+                continue;
+            }
+
             if (mixerChanged)
             {
                 ApplyGain(entry);
@@ -225,6 +301,39 @@ public sealed class AudioService : IDisposable
         StopAll();
         _isDisposed = true;
         _backend.Dispose();
+    }
+
+    /// <summary>
+    /// Advances one volume ramp and applies it. Returns true when the voice was released,
+    /// so the caller must move on to the next entry.
+    /// </summary>
+    private bool AdvanceFade(VoiceEntry entry, float elapsedSeconds)
+    {
+        entry.FadeElapsed += elapsedSeconds;
+
+        var progress = entry.FadeElapsed >= entry.FadeDuration
+            ? 1f
+            : entry.FadeElapsed / entry.FadeDuration;
+
+        var volume = entry.FadeStartVolume + ((entry.FadeTargetVolume - entry.FadeStartVolume) * progress);
+        entry.BaseParameters = entry.BaseParameters.WithVolume(volume);
+        ApplyGain(entry);
+
+        if (progress < 1f)
+        {
+            return false;
+        }
+
+        entry.IsFading = false;
+
+        if (entry.FadeCompletion != AudioFadeCompletion.Stop)
+        {
+            return false;
+        }
+
+        _backend.Stop(entry.Handle);
+        ReleaseEntry(entry);
+        return true;
     }
 
     private void ApplyGain(VoiceEntry entry)
@@ -283,12 +392,25 @@ public sealed class AudioService : IDisposable
         public object Owner;
         public bool InUse;
 
+        public bool IsFading;
+        public float FadeStartVolume;
+        public float FadeTargetVolume;
+        public float FadeDuration;
+        public float FadeElapsed;
+        public AudioFadeCompletion FadeCompletion;
+
         public void Reset()
         {
             Handle = AudioVoiceHandle.None;
             BusName = null;
             Owner = null;
             InUse = false;
+            IsFading = false;
+            FadeStartVolume = 0f;
+            FadeTargetVolume = 0f;
+            FadeDuration = 0f;
+            FadeElapsed = 0f;
+            FadeCompletion = AudioFadeCompletion.None;
         }
     }
 }
