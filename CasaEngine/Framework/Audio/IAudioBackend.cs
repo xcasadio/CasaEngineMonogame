@@ -51,4 +51,30 @@ public interface IAudioBackend : IDisposable
 
     /// <summary>Stops and releases every voice. Used when the game shuts down or leaves play mode.</summary>
     void StopAll();
+
+    // ---- streaming ---------------------------------------------------------
+    // A streamed voice is fed buffer by buffer instead of playing a resident clip. This is how
+    // music is played: the file is decoded on the fly rather than held in memory.
+
+    /// <summary>False when the platform cannot stream; music then stays silent.</summary>
+    bool SupportsStreaming { get; }
+
+    /// <summary>
+    /// Allocates a voice fed by <see cref="SubmitBuffer"/>. The voice does not play until
+    /// <see cref="Start"/> is called, so the caller can queue a few buffers first and avoid an
+    /// immediate underrun.
+    /// </summary>
+    AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters);
+
+    /// <summary>
+    /// Queues 16 bit PCM audio on a streaming voice. The data is copied, so the caller can reuse
+    /// its buffer as soon as the call returns.
+    /// </summary>
+    void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count);
+
+    /// <summary>Number of queued buffers not played yet. Zero means the voice is starving.</summary>
+    int GetPendingBufferCount(AudioVoiceHandle voice);
+
+    /// <summary>Starts a voice that was created but not started yet.</summary>
+    void Start(AudioVoiceHandle voice);
 }

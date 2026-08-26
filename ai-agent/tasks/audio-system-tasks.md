@@ -450,7 +450,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - M6.2. Ajouter la voix de streaming au backend
+### ✅ Done - M6.2. Ajouter la voix de streaming au backend
 
 **Objectif** : alimenter un `DynamicSoundEffectInstance` sans allouer par frame.
 
@@ -682,7 +682,7 @@ Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser s
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | `DynamicSoundEffectInstance.IsLooped` : confirmer que le setter à `true` lève `InvalidOperationException` (sémantique XNA) et le noter. La conception ne dépend pas de la réponse (la boucle est gérée par `WavStreamReader.Rewind()`). | M6.2 |
+| O1 | ✅ **Confirmé le 2026-08-26** par une sonde exécutée sur MonoGame 3.8.4.1 : `DynamicSoundEffectInstance.IsLooped = true` lève bien `InvalidOperationException` (« IsLooped cannot be set true. Submit looped audio data to implement looping. »). `MonoGameAudioBackend` n'applique donc jamais `IsLooped` à une voix de streaming ; la boucle est faite par `WavStreamReader.Rewind()`. | M6.2 |
 | O2 | Taille de buffer et profondeur de file du streaming : valeurs retenues, et marge en millisecondes. À figer et documenter. | M6.2 |
 | O3 | Limite globale de voix (proposition : 64, contre 256 sources OpenAL disponibles). | V3.2 |
 | O4 | Les bus par défaut sont-ils figés dans le moteur, ou déclarables par projet (`ProjectSettings`) ? V1 : figés. | B2.2 |

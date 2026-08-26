@@ -44,6 +44,21 @@ public sealed class NullAudioBackend : IAudioBackend
     {
     }
 
+    public bool SupportsStreaming => false;
+
+    public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
+        => AudioVoiceHandle.None;
+
+    public void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
+    {
+    }
+
+    public int GetPendingBufferCount(AudioVoiceHandle voice) => 0;
+
+    public void Start(AudioVoiceHandle voice)
+    {
+    }
+
     public void Dispose()
     {
     }

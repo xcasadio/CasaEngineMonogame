@@ -127,6 +127,75 @@ public sealed class AudioService : IDisposable
         return PlayClip(clip, busName, parameters, owner);
     }
 
+    /// <summary>
+    /// Allocates a voice fed buffer by buffer instead of playing a resident clip. The voice is
+    /// not started: queue a few buffers first with <see cref="SubmitStreamBuffer"/>, then call
+    /// <see cref="StartVoice"/>, so it does not starve on its first frame.
+    /// </summary>
+    /// <remarks>
+    /// A streaming voice takes part in the buses, the fades and the ownership like any other, but
+    /// it is never recycled by <see cref="Update"/> when it stops: only its feeder knows whether
+    /// the silence means the end of the stream or a temporary underrun.
+    /// </remarks>
+    public AudioVoiceHandle PlayStream(
+        int sampleRate,
+        int channelCount,
+        string busName,
+        in AudioVoiceParameters parameters,
+        object owner = null)
+    {
+        if (_isDisposed || !_backend.SupportsStreaming)
+        {
+            return AudioVoiceHandle.None;
+        }
+
+        var gain = Mixer.GetEffectiveGain(busName);
+        var backendParameters = parameters.WithVolume(parameters.Volume * gain);
+
+        var handle = _backend.CreateStreamingVoice(sampleRate, channelCount, backendParameters);
+        if (!handle.IsValid)
+        {
+            RefusedVoiceCount++;
+            _refusedVoiceLog.WriteWarning("Audio: a stream was refused, no voice left on the backend.");
+            return AudioVoiceHandle.None;
+        }
+
+        var entry = GetOrCreateEntry(handle.Index);
+        entry.Handle = handle;
+        entry.BusName = busName;
+        entry.BaseParameters = parameters;
+        entry.Owner = owner;
+        entry.InUse = true;
+        entry.IsStreaming = true;
+        ActiveVoiceCount++;
+
+        return handle;
+    }
+
+    /// <summary>Queues 16 bit PCM audio on a streaming voice. The data is copied by the backend.</summary>
+    public void SubmitStreamBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
+    {
+        if (TryGetEntry(voice, out var entry) && entry.IsStreaming)
+        {
+            _backend.SubmitBuffer(voice, buffer, offset, count);
+        }
+    }
+
+    /// <summary>Buffers queued and not played yet. Zero means the voice is about to starve.</summary>
+    public int GetPendingBufferCount(AudioVoiceHandle voice)
+    {
+        return TryGetEntry(voice, out _) ? _backend.GetPendingBufferCount(voice) : 0;
+    }
+
+    /// <summary>Starts a voice created but not started yet.</summary>
+    public void StartVoice(AudioVoiceHandle voice)
+    {
+        if (TryGetEntry(voice, out _))
+        {
+            _backend.Start(voice);
+        }
+    }
+
     /// <summary>Stops a voice and returns it to the backend. A stale handle is ignored.</summary>
     public void Stop(AudioVoiceHandle voice)
     {
@@ -311,7 +380,9 @@ public sealed class AudioService : IDisposable
                 continue;
             }
 
-            if (_backend.GetState(entry.Handle) == AudioVoiceState.Stopped)
+            // A silent stream is not necessarily finished: it may just be starving. Only its
+            // feeder can tell, so streaming voices are never recycled here.
+            if (!entry.IsStreaming && _backend.GetState(entry.Handle) == AudioVoiceState.Stopped)
             {
                 ReleaseEntry(entry);
                 continue;
@@ -466,6 +537,7 @@ public sealed class AudioService : IDisposable
         public AudioVoiceParameters BaseParameters;
         public object Owner;
         public bool InUse;
+        public bool IsStreaming;
 
         public bool IsFading;
         public float FadeStartVolume;
@@ -480,6 +552,7 @@ public sealed class AudioService : IDisposable
             BusName = null;
             Owner = null;
             InUse = false;
+            IsStreaming = false;
             IsFading = false;
             FadeStartVolume = 0f;
             FadeTargetVolume = 0f;

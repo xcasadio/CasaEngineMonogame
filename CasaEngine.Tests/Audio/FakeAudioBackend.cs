@@ -129,6 +129,8 @@ public sealed class FakeAudioBackend : IAudioBackend
         slot.State = AudioVoiceState.Stopped;
         slot.InUse = false;
         slot.Clip = null;
+        slot.IsStreaming = false;
+        slot.PendingBuffers = 0;
         slot.Generation++;
     }
 
@@ -149,6 +151,62 @@ public sealed class FakeAudioBackend : IAudioBackend
         }
     }
 
+    public bool SupportsStreaming { get; set; } = true;
+
+    public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
+    {
+        if (IsDisposed || !IsAvailable || !SupportsStreaming || ActiveVoiceCount >= VoiceCapacity)
+        {
+            RefusedPlayCount++;
+            return AudioVoiceHandle.None;
+        }
+
+        var index = FindFreeSlot();
+        if (index < 0)
+        {
+            _slots.Add(new Slot());
+            index = _slots.Count - 1;
+        }
+
+        var slot = _slots[index];
+        slot.InUse = true;
+        slot.Clip = null;
+        slot.Parameters = parameters;
+        slot.State = AudioVoiceState.Stopped;
+        slot.IsStreaming = true;
+        slot.SampleRate = sampleRate;
+        slot.ChannelCount = channelCount;
+        slot.PendingBuffers = 0;
+        slot.SubmittedBytes = 0;
+
+        StreamingVoiceCount++;
+        return new AudioVoiceHandle(index, slot.Generation);
+    }
+
+    public void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
+    {
+        if (!TryGetSlot(voice, out var slot) || !slot.IsStreaming || count <= 0)
+        {
+            return;
+        }
+
+        slot.PendingBuffers++;
+        slot.SubmittedBytes += count;
+    }
+
+    public int GetPendingBufferCount(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) ? slot.PendingBuffers : 0;
+    }
+
+    public void Start(AudioVoiceHandle voice)
+    {
+        if (TryGetSlot(voice, out var slot) && slot.State != AudioVoiceState.Playing)
+        {
+            slot.State = AudioVoiceState.Playing;
+        }
+    }
+
     public void Dispose()
     {
         IsDisposed = true;
@@ -156,6 +214,39 @@ public sealed class FakeAudioBackend : IAudioBackend
     }
 
     // ---- test helpers -------------------------------------------------------
+
+    /// <summary>Number of streaming voices created since construction.</summary>
+    public int StreamingVoiceCount { get; private set; }
+
+    /// <summary>Simulates the hardware consuming queued buffers.</summary>
+    public void ConsumeBuffers(AudioVoiceHandle voice, int count = 1)
+    {
+        if (TryGetSlot(voice, out var slot))
+        {
+            slot.PendingBuffers = Math.Max(0, slot.PendingBuffers - count);
+        }
+    }
+
+    /// <summary>Total bytes submitted on that voice.</summary>
+    public long GetSubmittedBytes(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) ? slot.SubmittedBytes : 0;
+    }
+
+    public bool IsStreamingVoice(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) && slot.IsStreaming;
+    }
+
+    public int GetSampleRate(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) ? slot.SampleRate : 0;
+    }
+
+    public int GetChannelCount(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) ? slot.ChannelCount : 0;
+    }
 
     /// <summary>Simulates a voice reaching the end of its clip, without releasing its slot.</summary>
     public void CompleteVoice(AudioVoiceHandle voice)
@@ -231,5 +322,11 @@ public sealed class FakeAudioBackend : IAudioBackend
         public IAudioClip Clip;
         public AudioVoiceParameters Parameters;
         public AudioVoiceState State;
+
+        public bool IsStreaming;
+        public int SampleRate;
+        public int ChannelCount;
+        public int PendingBuffers;
+        public long SubmittedBytes;
     }
 }

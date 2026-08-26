@@ -87,10 +87,7 @@ public sealed class MonoGameAudioBackend : IAudioBackend
         try
         {
             slot.Bind(monoGameClip);
-            slot.Instance.Volume = parameters.Volume;
-            slot.Instance.Pan = parameters.Pan;
-            slot.Instance.Pitch = parameters.Pitch;
-            slot.Instance.IsLooped = parameters.IsLooped;
+            slot.ApplyParameters(parameters);
             slot.Instance.Play();
         }
         catch (InstancePlayLimitException)
@@ -118,10 +115,7 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             return;
         }
 
-        slot.Instance.Volume = parameters.Volume;
-        slot.Instance.Pan = parameters.Pan;
-        slot.Instance.Pitch = parameters.Pitch;
-        slot.Instance.IsLooped = parameters.IsLooped;
+        slot.ApplyParameters(parameters);
     }
 
     public void SetVolume(AudioVoiceHandle voice, float volume)
@@ -206,6 +200,98 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             }
 
             ReturnSlot(i, disposeInstance: false);
+        }
+    }
+
+    public bool SupportsStreaming => true;
+
+    public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
+    {
+        if (_isDisposed || !IsAvailable)
+        {
+            return AudioVoiceHandle.None;
+        }
+
+        if (channelCount is not (1 or 2))
+        {
+            throw new ArgumentOutOfRangeException(nameof(channelCount), channelCount, "Only mono and stereo are supported.");
+        }
+
+        var slotIndex = TakeFreeSlot(null);
+        if (slotIndex < 0)
+        {
+            _playLimitLog.WriteWarning($"Audio: no free voice ({VoiceCapacity} in use), stream refused.");
+            return AudioVoiceHandle.None;
+        }
+
+        var slot = _slots[slotIndex];
+
+        try
+        {
+            slot.BindStreaming(sampleRate, channelCount);
+            slot.ApplyParameters(parameters);
+        }
+        catch (NoAudioHardwareException exception)
+        {
+            ReturnSlot(slotIndex, disposeInstance: true);
+            DisableAfterHardwareFailure(exception);
+            return AudioVoiceHandle.None;
+        }
+
+        slot.InUse = true;
+        _activeVoiceCount++;
+        return new AudioVoiceHandle(slotIndex, slot.Generation);
+    }
+
+    public void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
+    {
+        ArgumentNullException.ThrowIfNull(buffer);
+
+        if (!TryGetSlot(voice, out var slot) || slot.Instance is not DynamicSoundEffectInstance dynamicInstance)
+        {
+            return;
+        }
+
+        if (count <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            // SubmitBuffer copies the data, so the caller can reuse its array immediately.
+            dynamicInstance.SubmitBuffer(buffer, offset, count);
+        }
+        catch (InstancePlayLimitException)
+        {
+            _playLimitLog.WriteWarning("Audio: OpenAL source limit reached while streaming.");
+        }
+    }
+
+    public int GetPendingBufferCount(AudioVoiceHandle voice)
+    {
+        if (!TryGetSlot(voice, out var slot) || slot.Instance is not DynamicSoundEffectInstance dynamicInstance)
+        {
+            return 0;
+        }
+
+        return dynamicInstance.PendingBufferCount;
+    }
+
+    public void Start(AudioVoiceHandle voice)
+    {
+        if (!TryGetSlot(voice, out var slot) || slot.Instance.State == SoundState.Playing)
+        {
+            return;
+        }
+
+        try
+        {
+            slot.Instance.Play();
+        }
+        catch (InstancePlayLimitException)
+        {
+            _playLimitLog.WriteWarning("Audio: OpenAL source limit reached, stream not started.");
         }
     }
 
@@ -308,7 +394,7 @@ public sealed class MonoGameAudioBackend : IAudioBackend
 
         public void Bind(MonoGameAudioClip clip)
         {
-            if (ReferenceEquals(Clip, clip) && Instance is { IsDisposed: false })
+            if (ReferenceEquals(Clip, clip) && Instance is { IsDisposed: false } and not DynamicSoundEffectInstance)
             {
                 if (Instance.State != SoundState.Stopped)
                 {
@@ -321,6 +407,31 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             DisposeInstance();
             Instance = clip.SoundEffect.CreateInstance();
             Clip = clip;
+        }
+
+        /// <summary>
+        /// A streaming instance is never reused: its sample rate and channel count are fixed at
+        /// creation, and the queued buffers belong to the previous stream.
+        /// </summary>
+        public void BindStreaming(int sampleRate, int channelCount)
+        {
+            DisposeInstance();
+            Instance = new DynamicSoundEffectInstance(sampleRate, (AudioChannels)channelCount);
+            Clip = null;
+        }
+
+        public void ApplyParameters(in AudioVoiceParameters parameters)
+        {
+            Instance.Volume = parameters.Volume;
+            Instance.Pan = parameters.Pan;
+            Instance.Pitch = parameters.Pitch;
+
+            // XNA forbids IsLooped on a dynamic instance: looping a stream is the reader's job,
+            // it rewinds and keeps submitting.
+            if (Instance is not DynamicSoundEffectInstance)
+            {
+                Instance.IsLooped = parameters.IsLooped;
+            }
         }
 
         public void DisposeInstance()
