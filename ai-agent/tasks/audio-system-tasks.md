@@ -146,7 +146,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - S1.2. Implémenter le backend MonoGame
+### ✅ Done - S1.2. Implémenter le backend MonoGame
 
 **Objectif** : implémenter `IAudioBackend` sur `SoundEffect` / `SoundEffectInstance`.
 
