@@ -203,7 +203,7 @@ Toutes les décisions d'architecture (D1 → D13) sont figées dans le §3 de ce
 
 ---
 
-### ⏳ Todo - B2.2. Déclarer les bus par défaut
+### ✅ Done - B2.2. Déclarer les bus par défaut
 
 **Objectif** : fixer la hiérarchie standard du moteur.
 
