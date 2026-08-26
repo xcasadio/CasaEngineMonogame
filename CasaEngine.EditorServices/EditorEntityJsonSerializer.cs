@@ -252,6 +252,10 @@ internal static class EditorEntityJsonSerializer
                 SavePlayerStartComponent(playerStartComponent, node);
                 return;
 
+            case SoundEmitterComponent soundEmitterComponent:
+                SaveSoundEmitterComponent(soundEmitterComponent, node);
+                return;
+
             case SceneComponent sceneComponent:
                 SaveSceneComponent(sceneComponent, node);
                 return;
@@ -367,6 +371,19 @@ internal static class EditorEntityJsonSerializer
     {
         SaveSceneComponent(component, node);
         node.Add("tile_map_data_asset_id", component.TileMapDataAssetId);
+    }
+
+    private static void SaveSoundEmitterComponent(SoundEmitterComponent component, JObject node)
+    {
+        SaveEntityComponent(component, node);
+        node.Add("sound_asset_id", component.SoundAssetId.ToString());
+        node.Add("play_on_start", component.PlayOnStart);
+        node.Add("bus_name", component.BusName);
+        node.Add("volume_override", component.VolumeOverride);
+        node.Add("pitch_override", component.PitchOverride);
+        node.Add("is_looped_override", component.IsLoopedOverride.HasValue
+            ? new JValue(component.IsLoopedOverride.Value)
+            : JValue.CreateNull());
     }
 
     private static void SaveParticleSystemComponent(ParticleSystemComponent component, JObject node)
