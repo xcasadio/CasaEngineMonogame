@@ -41,11 +41,19 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         public readonly int GridY;
 
         /// <summary>
-        /// The tile instance resolved once at <see cref="AddSortedOverlayTile"/> time through the same
-        /// creation path flat layers use. An <see cref="AnimatedTile"/> instance is registered in
+        /// The tile instance resolved at <see cref="AddSortedOverlayTile"/> time through the same creation
+        /// path flat layers use. An <see cref="AnimatedTile"/> instance is registered in
         /// <see cref="_animatedTiles"/> so the component's regular per-frame update advances it exactly
         /// like a flat-layer tile of the same kind; its current source rectangle is then read every draw
         /// via <see cref="Assets.TileMap.Tile.GetCurrentSourceRectangle"/> instead of a static lookup.
+        ///
+        /// SHARED, NOT PER ENTRY: every live entry with the same <see cref="TileReference"/> holds the very
+        /// same instance, handed out by <see cref="_overlayTileCache"/> — that is what keeps an animated
+        /// overlay tile's phase across a rebuild, and what keeps sibling entries of one reference in phase
+        /// with each other, as they are in the original renderer. Never give <see cref="Assets.TileMap.Tile"/>
+        /// per-entry state on the strength of this field: writing through it would corrupt every sibling.
+        /// Everything that legitimately differs between entries — position, sort key, and the texture the
+        /// draw path resolves from <see cref="TileReference"/> — lives on the entry, not on the tile.
         /// </summary>
         public readonly Tile Tile;
         public readonly RenderSortKey2D SortKey;
@@ -82,6 +90,35 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private readonly List<TileSetData> _tileSets = new();
     private readonly List<Texture2D> _tileSetTextures = new();
     private readonly List<SortedOverlayTile> _sortedOverlayTiles = new();
+
+    /// <summary>
+    /// Caches the <see cref="Tile"/> instance created for each distinct <see cref="TileMapTileReference"/>
+    /// ever queued in the sorted overlay, keyed by reference so an overlay rebuild (<see cref="ClearSortedOverlayTiles"/>
+    /// followed by <see cref="AddSortedOverlayTile"/> resubmitting the same references) reuses the same
+    /// instance instead of creating a fresh one — the fix for animated overlay tiles restarting at frame 0
+    /// on every rebuild (see <see cref="CreateOverlayTile"/>). Entries are never evicted except in
+    /// <see cref="InitializeWithWorld"/>, where the overlay itself is already cleared.
+    /// </summary>
+    private readonly Dictionary<TileMapTileReference, CachedOverlayTile> _overlayTileCache = new();
+
+    /// <summary>
+    /// One cached overlay tile instance plus the number of currently live overlay entries referencing it.
+    /// The reference count, not the cache entry's mere existence, drives <see cref="_animatedTiles"/>
+    /// registration: a shared animated instance must be registered exactly once regardless of how many
+    /// overlay entries use it (see <see cref="AddSortedOverlayTile"/>/<see cref="ClearSortedOverlayTiles"/>),
+    /// or it would be updated once per entry and animate that many times too fast.
+    /// </summary>
+    private sealed class CachedOverlayTile
+    {
+        public CachedOverlayTile(Tile tile)
+        {
+            Tile = tile;
+        }
+
+        public readonly Tile Tile;
+        public int RefCount;
+    }
+
     private List<TileMapLayer> Layers { get; } = new();
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
@@ -172,6 +209,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _tileSets.Clear();
         _tileSetTextures.Clear();
         _sortedOverlayTiles.Clear();
+        _overlayTileCache.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
         _physicsWorldContext = Owner.World.PhysicsWorld;
@@ -745,8 +783,24 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         EnsureValidTileReference(tileReference);
 
-        var tile = CreateOverlayTile(tileReference);
-        _sortedOverlayTiles.Add(new SortedOverlayTile(tileReference, gridX, gridY, tile, in sortKey));
+        if (!_overlayTileCache.TryGetValue(tileReference, out var cachedTile))
+        {
+            cachedTile = new CachedOverlayTile(CreateOverlayTile(tileReference));
+            _overlayTileCache.Add(tileReference, cachedTile);
+        }
+
+        cachedTile.RefCount++;
+        if (cachedTile.RefCount == 1 && cachedTile.Tile is AnimatedTile animatedTile)
+        {
+            // First live overlay entry for this reference (either the very first use, or a re-Add after a
+            // Clear brought a previously cached instance's ref count back from 0): register it for the
+            // regular per-frame update. CreateOverlayTile itself never registers an AnimatedTile it creates
+            // — this is the only place that does, so a cache hit re-registers exactly like a cache miss.
+            _animatedTiles.Add(animatedTile);
+            _hasAnimatedTiles = true;
+        }
+
+        _sortedOverlayTiles.Add(new SortedOverlayTile(tileReference, gridX, gridY, cachedTile.Tile, in sortKey));
     }
 
     /// <summary>Removes every tile previously queued with <see cref="AddSortedOverlayTile"/>.</summary>
@@ -757,12 +811,22 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return;
         }
 
-        // Overlay entries hold their own Tile instance (see AddSortedOverlayTile/CreateOverlayTile): an
-        // animated one was registered in _animatedTiles for the regular per-frame update and must be
-        // unregistered here, or it would keep being updated after the overlay entry referencing it is gone.
+        // Overlay entries share their Tile instance with every other live entry of the same reference (see
+        // AddSortedOverlayTile's cache); an animated one was registered in _animatedTiles for the regular
+        // per-frame update and must be unregistered once its last live entry disappears here, or it would
+        // keep being updated after every overlay entry referencing it is gone. The cached instance itself
+        // is NOT dropped (see _overlayTileCache): that is what lets a later resubmit of the same reference
+        // pick up the same instance, phase and all, instead of restarting animation at frame 0.
         for (var index = 0; index < _sortedOverlayTiles.Count; index++)
         {
-            if (_sortedOverlayTiles[index].Tile is AnimatedTile animatedTile)
+            var tileReference = _sortedOverlayTiles[index].TileReference;
+            if (!_overlayTileCache.TryGetValue(tileReference, out var cachedTile))
+            {
+                continue;
+            }
+
+            cachedTile.RefCount--;
+            if (cachedTile.RefCount == 0 && cachedTile.Tile is AnimatedTile animatedTile)
             {
                 _animatedTiles.Remove(animatedTile);
             }
@@ -926,6 +990,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// <see cref="AddSortedOverlayTile"/>), through the same Static/Animated creation the flat-layer path
     /// uses in <see cref="CreateRuntimeTile"/>. Overlay tiles have no grid cell of their own for auto-tile
     /// neighbor resolution, so <see cref="TileType.Auto"/> is not supported here.
+    ///
+    /// Called only on the first use of a reference (see <see cref="_overlayTileCache"/>): does NOT register
+    /// an <see cref="AnimatedTile"/> it creates in <see cref="_animatedTiles"/> — <see cref="AddSortedOverlayTile"/>
+    /// does that for both a cache miss and a cache hit, since a hit skips this method entirely.
     /// </summary>
     private Tile CreateOverlayTile(TileMapTileReference tileReference)
     {
@@ -949,10 +1017,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
             case TileType.Animated:
                 var animatedTileData = tileData as AnimatedTileData ?? throw new InvalidOperationException($"Tile {tileId} is not a valid animated tile.");
-                var animatedTile = new AnimatedTile(texture, tileSetData, animatedTileData);
-                tile = animatedTile;
-                _animatedTiles.Add(animatedTile);
-                _hasAnimatedTiles = true;
+                tile = new AnimatedTile(texture, tileSetData, animatedTileData);
                 break;
 
             default:

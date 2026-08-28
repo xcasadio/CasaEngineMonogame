@@ -191,6 +191,174 @@ public class TileMapComponentSortedOverlayTests
     }
 
     [Fact]
+    public void ClearSortedOverlayTiles_ThenReAdd_SameReference_PreservesPhaseAndInstance()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        var reference = new TileMapTileReference(0, AnimatedTileId);
+        component.AddSortedOverlayTile(reference, 2, 3, in RenderSortKey2D.Default);
+
+        var firstInstance = (AnimatedTile)GetOverlayTile(component, 0);
+        // Advance past frame 0 (100ms) so the instance sits on frame 1 before the rebuild.
+        component.Update(0.101f);
+        Assert.Equal(1, firstInstance.CurrentFrameIndex);
+
+        component.ClearSortedOverlayTiles();
+        component.AddSortedOverlayTile(reference, 2, 3, in RenderSortKey2D.Default);
+
+        var secondInstance = GetOverlayTile(component, 0);
+        Assert.Same(firstInstance, secondInstance);
+        Assert.Equal(1, ((AnimatedTile)secondInstance).CurrentFrameIndex);
+    }
+
+    [Fact]
+    public void AddSortedOverlayTile_SameReferenceTwice_SharesTheSameInstance_DifferentReferenceDoesNot()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        var reference = new TileMapTileReference(0, AnimatedTileId);
+        var otherReference = new TileMapTileReference(0, TileId);
+
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 1, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(otherReference, 2, 0, in RenderSortKey2D.Default);
+
+        var firstEntry = GetOverlayTile(component, 0);
+        var secondEntry = GetOverlayTile(component, 1);
+        var thirdEntry = GetOverlayTile(component, 2);
+
+        Assert.Same(firstEntry, secondEntry);
+        Assert.NotSame(firstEntry, thirdEntry);
+    }
+
+    [Fact]
+    public void SharedAnimatedOverlayInstance_IsRegisteredOnceAndAnimatesAtNominalSpeed()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        var reference = new TileMapTileReference(0, AnimatedTileId);
+
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 1, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 2, 0, in RenderSortKey2D.Default);
+
+        var animatedTiles = GetPrivateField<IList>(component, "_animatedTiles");
+        var sharedInstance = GetOverlayTile(component, 0);
+        Assert.Same(sharedInstance, GetOverlayTile(component, 1));
+        Assert.Same(sharedInstance, GetOverlayTile(component, 2));
+
+        // Registered exactly once despite three live entries sharing it: were it registered three times,
+        // Update below would advance it three times too fast (see the mutation proof in the report).
+        Assert.Equal(1, CountOccurrences(animatedTiles, sharedInstance));
+
+        // Frame 0 lasts 100ms: advancing by 100ms plus a hair should land exactly on frame 1, once — not
+        // three frames further, which is what a triple-registration would produce.
+        component.Update(0.101f);
+        Assert.Equal(1, ((AnimatedTile)sharedInstance).CurrentFrameIndex);
+
+        component.ClearSortedOverlayTiles();
+        Assert.Equal(0, CountOccurrences(animatedTiles, sharedInstance));
+
+        // InitializeWithWorld is where the overlay itself is already cleared (Load-time reset): the cache
+        // must be dropped there too, and nowhere else (see the cache's own doc comment).
+        component.TileMapDataAssetId = Guid.Empty;
+        component.TileMapData = null;
+        component.InitializeWithWorld(component.Owner.World);
+        Assert.Empty(GetPrivateField<IDictionary>(component, "_overlayTileCache"));
+    }
+
+    [Fact]
+    public void HasAnimatedTiles_TrueAfterAdd_FalseAfterClear_WithNoFlatLayerAnimatedTile()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        Assert.False(component.HasAnimatedTiles);
+
+        component.AddSortedOverlayTile(new TileMapTileReference(0, AnimatedTileId), 2, 3, in RenderSortKey2D.Default);
+        Assert.True(component.HasAnimatedTiles);
+
+        component.ClearSortedOverlayTiles();
+        Assert.False(component.HasAnimatedTiles);
+    }
+
+    [Fact]
+    public void TileMapTileReference_EqualityComparer_ResolvesToIEquatable_NoBoxingOnRepeatedLookups()
+    {
+        var comparer = EqualityComparer<TileMapTileReference>.Default;
+        Assert.Equal("GenericEqualityComparer`1", comparer.GetType().Name);
+
+        var component = CreateComponentWithOverlaySupport(out _);
+        var reference = new TileMapTileReference(0, AnimatedTileId);
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.ClearSortedOverlayTiles();
+
+        // Warm-up call outside the measured window (JIT, dictionary bucket growth already settled).
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.ClearSortedOverlayTiles();
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var i = 0; i < 50; i++)
+        {
+            component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+            component.ClearSortedOverlayTiles();
+        }
+        var after = GC.GetAllocatedBytesForCurrentThread();
+
+        // A boxing comparer would allocate on every one of the 100 dictionary lookups (TryGetValue +
+        // decrement) above; the generous ceiling only guards against that class of regression, not exact
+        // allocator behavior.
+        Assert.True(after - before < 2048, $"Expected no measurable allocation from repeated cache hits, but observed {after - before} bytes.");
+    }
+
+    [Fact]
+    public void ClearThenReAdd_FullCycle_ContinuesAnimatingAndReRegistersExactlyOnce()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        var reference = new TileMapTileReference(0, AnimatedTileId);
+        var animatedTiles = GetPrivateField<IList>(component, "_animatedTiles");
+
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 1, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 2, 0, in RenderSortKey2D.Default);
+
+        component.Update(0.101f);
+        var instance = (AnimatedTile)GetOverlayTile(component, 0);
+        Assert.Equal(1, instance.CurrentFrameIndex);
+
+        component.ClearSortedOverlayTiles();
+        Assert.False(component.HasAnimatedTiles);
+
+        component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 1, 0, in RenderSortKey2D.Default);
+        component.AddSortedOverlayTile(reference, 2, 0, in RenderSortKey2D.Default);
+
+        // (a) CurrentFrameIndex continues progressing after the re-Add: it neither resets to 0 (the
+        // original defect) nor is it frozen (the regression the reference count exists to prevent).
+        Assert.Same(instance, GetOverlayTile(component, 0));
+        component.Update(0.051f);
+        Assert.Equal(0, instance.CurrentFrameIndex);
+
+        // (b) HasAnimatedTiles is true again.
+        Assert.True(component.HasAnimatedTiles);
+
+        // (c) present exactly once in _animatedTiles despite three re-Add calls, and speed stays nominal:
+        // advancing by another 100ms should move exactly one frame forward, not three.
+        Assert.Equal(1, CountOccurrences(animatedTiles, instance));
+        component.Update(0.1f);
+        Assert.Equal(1, instance.CurrentFrameIndex);
+    }
+
+    private static int CountOccurrences(IList list, object item)
+    {
+        var count = 0;
+        foreach (var element in list)
+        {
+            if (ReferenceEquals(element, item))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    [Fact]
     public void SavedEntity_NeverContainsSortedOverlayTiles()
     {
         var component = CreateComponentWithOverlaySupport(out _);
