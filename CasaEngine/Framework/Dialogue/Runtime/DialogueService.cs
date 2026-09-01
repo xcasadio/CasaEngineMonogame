@@ -4,12 +4,18 @@ namespace CasaEngine.Framework.Dialogue.Runtime;
 
 public sealed class DialogueService : IDialoguePresenter
 {
+    private static readonly IReadOnlyList<string> NoChoices = Array.Empty<string>();
+
     public DialogueRuntimeState State { get; private set; } = DialogueRuntimeState.Closed;
     public DialogueLine CurrentLine { get; private set; } = DialogueLine.Empty;
-    public bool IsOpen => State == DialogueRuntimeState.Open;
+    public bool IsOpen => State != DialogueRuntimeState.Closed;
+
+    public IReadOnlyList<string> Choices { get; private set; } = NoChoices;
+    public bool HasChoices => Choices.Count > 0;
 
     public event EventHandler<DialogueStateChangedEventArgs> StateChanged;
     public event EventHandler<DialoguePresentationChangedEventArgs> PresentationChanged;
+    public event EventHandler<DialogueChoiceSelectedEventArgs> ChoiceSelected;
 
     public bool TryOpen(string text)
     {
@@ -40,8 +46,54 @@ public sealed class DialogueService : IDialoguePresenter
         }
 
         DialogueRuntimeState previousState = State;
+        State = DialogueRuntimeState.Open;
         CurrentLine = line;
+        Choices = NoChoices;
         RaisePresentationChanged(previousState);
+        return true;
+    }
+
+    public bool ShowChoices(IReadOnlyList<string> labels)
+    {
+        ArgumentNullException.ThrowIfNull(labels);
+
+        if (labels.Count == 0)
+        {
+            throw new ArgumentException("A choice list must contain at least one label.", nameof(labels));
+        }
+
+        DialogueRuntimeState previousState = State;
+
+        // Defensive copy: the caller's list must not be able to mutate our state afterwards,
+        // and a fresh array guarantees no stale references survive across calls.
+        Choices = new List<string>(labels).AsReadOnly();
+        State = DialogueRuntimeState.AwaitingChoice;
+        StateChanged?.Invoke(this, new DialogueStateChangedEventArgs(previousState, State, CurrentLine));
+        RaisePresentationChanged(previousState);
+        return true;
+    }
+
+    public bool SelectChoice(int index)
+    {
+        if (State != DialogueRuntimeState.AwaitingChoice)
+        {
+            return false;
+        }
+
+        if (index < 0 || index >= Choices.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), index, "Index is outside the current choice list.");
+        }
+
+        IReadOnlyList<string> selectedLabels = Choices;
+
+        DialogueRuntimeState previousState = State;
+        Choices = NoChoices;
+        State = DialogueRuntimeState.Open;
+        StateChanged?.Invoke(this, new DialogueStateChangedEventArgs(previousState, State, CurrentLine));
+        RaisePresentationChanged(previousState);
+
+        ChoiceSelected?.Invoke(this, new DialogueChoiceSelectedEventArgs(index, selectedLabels));
         return true;
     }
 
@@ -52,6 +104,7 @@ public sealed class DialogueService : IDialoguePresenter
             return false;
         }
 
+        Choices = NoChoices;
         ChangeState(DialogueRuntimeState.Closed, DialogueLine.Empty);
         return true;
     }

@@ -76,7 +76,11 @@ public sealed class YarnDialogueRunnerTests
         public DialogueLine CurrentLine { get; private set; } = DialogueLine.Empty;
         public bool IsOpen => State == DialogueRuntimeState.Open;
 
+        public IReadOnlyList<string> Choices => Array.Empty<string>();
+        public bool HasChoices => false;
+
         public event EventHandler<DialoguePresentationChangedEventArgs> PresentationChanged;
+        public event EventHandler<DialogueChoiceSelectedEventArgs> ChoiceSelected;
 
         public bool ShowLine(DialogueLine line)
         {
@@ -88,6 +92,10 @@ public sealed class YarnDialogueRunnerTests
             PresentationChanged?.Invoke(this, new DialoguePresentationChangedEventArgs(previousState, State, CurrentLine));
             return true;
         }
+
+        public bool ShowChoices(IReadOnlyList<string> labels) => throw new NotSupportedException("Not used by YarnDialogueRunnerTests.");
+
+        public bool SelectChoice(int index) => throw new NotSupportedException("Not used by YarnDialogueRunnerTests.");
 
         public bool Close()
         {

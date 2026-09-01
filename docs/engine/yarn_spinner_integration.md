@@ -1,5 +1,13 @@
 # Intégration de Yarn Spinner dans CasaEngine
 
+> **Note (E12.a)** : la route directe (bytecode Alundra → `DialogueService`, sans Yarn — Yarn
+> reste prévu pour le chantier E15) a ajouté au mécanisme moteur un état de choix générique et un
+> chemin d'enregistrement de police bitmap, en plus du pipeline ligne-simple déjà en place.
+> L'API réelle (`DialogueService`, `IDialoguePresenter`, `DialogueScreen`) est documentée à jour
+> dans [dialogue-choices-and-bitmap-fonts.md](dialogue-choices-and-bitmap-fonts.md) ; les
+> signatures `DialogueService`/`DialogueStartRequest`/`ShowText` de ce document sont la feuille de
+> route Yarn d'origine, pas l'état actuel du code.
+
 ## Objectif
 
 L'objectif est d'intégrer **Yarn Spinner** dans CasaEngine pour obtenir un système de dialogue moderne, maintenable et extensible.

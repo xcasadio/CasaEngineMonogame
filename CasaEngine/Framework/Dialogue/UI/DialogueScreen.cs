@@ -13,8 +13,11 @@ public sealed class DialogueScreen : UIScreenBase
 {
     private readonly IDialoguePresenter _presenter;
     private readonly Action _requestClose;
+    private readonly string _fontFamily;
     private MGWindow _window;
     private MGTextBlock _lineText;
+    private MGStackPanel _choicesPanel;
+    private readonly List<MGButton> _choiceButtons = new();
     private bool _subscribed;
 
     public DialogueScreen(IDialoguePresenter presenter)
@@ -23,12 +26,23 @@ public sealed class DialogueScreen : UIScreenBase
     }
 
     public DialogueScreen(IDialoguePresenter presenter, Action requestClose)
+        : this(presenter, requestClose, fontFamily: null)
+    {
+    }
+
+    /// <param name="fontFamily">
+    /// Name of a font family previously registered with the desktop's text engine (e.g. via a
+    /// bitmap font registered through <c>FontStashSharpTextEngine.AddStaticFont</c>). When null
+    /// or empty, the screen falls back to the theme's default TTF font family.
+    /// </param>
+    public DialogueScreen(IDialoguePresenter presenter, Action requestClose, string fontFamily)
     {
         ArgumentNullException.ThrowIfNull(presenter);
         ArgumentNullException.ThrowIfNull(requestClose);
 
         _presenter = presenter;
         _requestClose = requestClose;
+        _fontFamily = fontFamily;
     }
 
     public override UILayer Layer => UILayer.Modal;
@@ -63,7 +77,14 @@ public sealed class DialogueScreen : UIScreenBase
         {
             WrapText = true,
         };
+        ApplyFontFamily(_lineText);
         stack.TryAddChild(_lineText);
+
+        _choicesPanel = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 4,
+        };
+        stack.TryAddChild(_choicesPanel);
 
         var closeButton = new MGButton(_window, _ => _requestClose())
         {
@@ -74,7 +95,7 @@ public sealed class DialogueScreen : UIScreenBase
         stack.TryAddChild(closeButton);
 
         _window.SetContent(stack);
-        RefreshLine();
+        RefreshPresentation();
     }
 
     public override void Show()
@@ -85,7 +106,7 @@ public sealed class DialogueScreen : UIScreenBase
             _subscribed = true;
         }
 
-        RefreshLine();
+        RefreshPresentation();
     }
 
     public override void Hide()
@@ -107,7 +128,13 @@ public sealed class DialogueScreen : UIScreenBase
 
     private void OnDialoguePresentationChanged(object sender, DialoguePresentationChangedEventArgs args)
     {
+        RefreshPresentation();
+    }
+
+    private void RefreshPresentation()
+    {
         RefreshLine();
+        RefreshChoices();
     }
 
     private void RefreshLine()
@@ -120,5 +147,50 @@ public sealed class DialogueScreen : UIScreenBase
         DialogueLine line = _presenter.CurrentLine;
         string text = line.Speaker.Length == 0 ? line.Text : $"[b]{line.Speaker}[/b]\n{line.Text}";
         _lineText.SetText(text, MGTextInvalidationMode.ReflowLocal);
+    }
+
+    private void RefreshChoices()
+    {
+        if (_choicesPanel == null)
+        {
+            return;
+        }
+
+        foreach (MGButton button in _choiceButtons)
+        {
+            _choicesPanel.TryRemoveChild(button);
+        }
+
+        _choiceButtons.Clear();
+
+        if (!_presenter.HasChoices)
+        {
+            _choicesPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        IReadOnlyList<string> labels = _presenter.Choices;
+        for (int i = 0; i < labels.Count; i++)
+        {
+            int choiceIndex = i;
+            var button = new MGButton(_window, _ => _presenter.SelectChoice(choiceIndex))
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            MGTextBlock buttonText = button.SetContent(labels[i]);
+            ApplyFontFamily(buttonText);
+            _choiceButtons.Add(button);
+            _choicesPanel.TryAddChild(button);
+        }
+
+        _choicesPanel.Visibility = Visibility.Visible;
+    }
+
+    private void ApplyFontFamily(MGTextBlock textBlock)
+    {
+        if (!string.IsNullOrEmpty(_fontFamily))
+        {
+            textBlock.FontFamily = _fontFamily;
+        }
     }
 }
