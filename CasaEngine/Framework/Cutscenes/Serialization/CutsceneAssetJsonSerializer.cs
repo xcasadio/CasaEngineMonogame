@@ -1,4 +1,5 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -98,6 +99,14 @@ public static class CutsceneAssetJsonSerializer
                 node["target_volume"] = fadeMusicAction.TargetVolume;
                 node["duration_seconds"] = fadeMusicAction.DurationSeconds;
                 break;
+
+            case FadeScreenCutsceneActionData fadeScreenAction:
+                node["r"] = fadeScreenAction.R;
+                node["g"] = fadeScreenAction.G;
+                node["b"] = fadeScreenAction.B;
+                node["duration_seconds"] = fadeScreenAction.DurationSeconds;
+                node["blend_mode"] = fadeScreenAction.BlendMode.ToString();
+                break;
         }
 
         return node;
@@ -158,6 +167,14 @@ public static class CutsceneAssetJsonSerializer
                 TargetVolume = node["target_volume"]?.GetSingle() ?? 0f,
                 DurationSeconds = node["duration_seconds"]?.GetSingle() ?? 0f,
             },
+            CutsceneActionTypes.FadeScreen => new FadeScreenCutsceneActionData
+            {
+                R = node["r"]?.GetByte() ?? 0,
+                G = node["g"]?.GetByte() ?? 0,
+                B = node["b"]?.GetByte() ?? 0,
+                DurationSeconds = node["duration_seconds"]?.GetSingle() ?? 0f,
+                BlendMode = ParseBlendMode(node["blend_mode"]),
+            },
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             _ => new UnknownCutsceneActionData(actionType)
@@ -192,6 +209,14 @@ public static class CutsceneAssetJsonSerializer
                 actions.Add(LoadAction(actionNode));
             }
         }
+    }
+
+    private static SpriteBlendMode ParseBlendMode(JToken node)
+    {
+        var text = node?.GetString();
+        return !string.IsNullOrEmpty(text) && Enum.TryParse<SpriteBlendMode>(text, out var blendMode)
+            ? blendMode
+            : SpriteBlendMode.Additive;
     }
 
     private static JObject SaveVector3(Vector3 value)

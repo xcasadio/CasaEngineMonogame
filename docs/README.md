@@ -48,6 +48,10 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 - [audio-system.md](engine/audio-system.md) — système audio V1 : bus de mixage, asset `.sound`, SFX one-shot/loop, streaming des musiques (fade, crossfade), `SoundEmitterComponent`, actions de cutscene, règles play-in-editor et limites connues.
 
+### Rendu 2D
+
+- [screen-effects.md](engine/screen-effects.md) — fondu/teinte plein écran V1 : `ScreenEffectService` (rampe sans MonoGame), `ScreenEffectComponent` (cran `RenderPass2D.ScreenEffects`, formule de placement caméra-annulée), `SpriteBlendMode.Additive`/`.Subtractive`, action de cutscene `FadeScreen`.
+
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.

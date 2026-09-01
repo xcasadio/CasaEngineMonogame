@@ -117,6 +117,14 @@ public static class CutsceneValidator
                 }
 
                 break;
+
+            case FadeScreenCutsceneActionData fadeScreenAction:
+                if (fadeScreenAction.DurationSeconds < 0f)
+                {
+                    result.AddError(path, "FadeScreen.duration_seconds must be greater than or equal to zero.");
+                }
+
+                break;
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;

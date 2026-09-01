@@ -7,6 +7,7 @@ using CasaEngine.Framework.Scene.World;
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Rendering.ScreenEffects;
 using CasaEngine.Framework.Scripting.Coroutines;
 
 namespace CasaEngine.Framework.Cutscenes;
@@ -99,6 +100,15 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case FadeScreenCutsceneActionData fadeScreenAction:
+                ScreenEffectService fadeScreenService = GetScreenEffectService(world);
+                if (fadeScreenService != null)
+                {
+                    yield return new FadeScreenInstruction(fadeScreenService, fadeScreenAction);
+                }
+
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
@@ -144,6 +154,8 @@ internal static class CutsceneActionCoroutineFactory
     }
 
     private static AudioService GetAudioService(World world) => world.Game?.AudioSystemComponent?.Service;
+
+    private static ScreenEffectService GetScreenEffectService(World world) => world.Game?.ScreenEffectComponent?.Service;
 
     private static SoundAsset LoadSoundAsset(World world, Guid soundAssetId)
     {
@@ -317,6 +329,53 @@ internal static class CutsceneActionCoroutineFactory
             _bus.Volume = _startVolume + ((_targetVolume - _startVolume) * progress);
 
             return progress >= 1f;
+        }
+    }
+
+    /// <summary>
+    /// Starts the service's ramp on its first tick, then waits for <see cref="_duration"/> to
+    /// elapse. Blocking on purpose: the next cutscene action must start once the screen has
+    /// reached the new colour. The ramp itself is advanced by <see cref="ScreenEffectService.Update"/>
+    /// every frame (driven by <c>ScreenEffectComponent</c>), not by this instruction - it only
+    /// decides when to stop yielding, exactly like <see cref="FadeMusicBusInstruction"/> decides from
+    /// its own elapsed time.
+    /// </summary>
+    private sealed class FadeScreenInstruction : ICoroutineInstruction
+    {
+        private readonly ScreenEffectService _service;
+        private readonly byte _fromR;
+        private readonly byte _fromG;
+        private readonly byte _fromB;
+        private readonly FadeScreenCutsceneActionData _action;
+        private readonly float _duration;
+        private bool _started;
+        private float _elapsed;
+
+        public FadeScreenInstruction(ScreenEffectService service, FadeScreenCutsceneActionData action)
+        {
+            _service = service;
+            _fromR = service.R;
+            _fromG = service.G;
+            _fromB = service.B;
+            _action = action;
+            _duration = Math.Max(0f, action.DurationSeconds);
+        }
+
+        public bool IsCompleted(CoroutineUpdateContext context)
+        {
+            if (!_started)
+            {
+                _started = true;
+                _service.StartFade(_fromR, _fromG, _fromB, _action.R, _action.G, _action.B, _duration, _action.BlendMode);
+
+                if (_duration <= 0f)
+                {
+                    return true;
+                }
+            }
+
+            _elapsed += context.DeltaTime;
+            return _elapsed >= _duration;
         }
     }
 

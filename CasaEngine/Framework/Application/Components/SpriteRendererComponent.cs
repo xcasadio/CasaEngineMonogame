@@ -51,6 +51,31 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly Vector3 _vertexBottomLeft;
     private static readonly Comparison<SpriteDisplayData> SpriteDisplayDataComparison = CompareSpriteDisplayData;
 
+    // Cached once, never allocated per run/frame - see GetBlendState's doc. Exact PSX fusion formulas
+    // (screen fade/tint overlay, additive/subtractive backdrop layers): color channel saturates via
+    // One/One, alpha uses Add/Zero/One so the destination alpha is never touched.
+    private static readonly BlendState AdditiveBlendState = new()
+    {
+        ColorBlendFunction = BlendFunction.Add,
+        ColorSourceBlend = Blend.One,
+        ColorDestinationBlend = Blend.One,
+        AlphaBlendFunction = BlendFunction.Add,
+        AlphaSourceBlend = Blend.Zero,
+        AlphaDestinationBlend = Blend.One
+    };
+
+    // ReverseSubtract computes dst - src, which is what the PSX GPU's subtractive mode does.
+    // BlendFunction.Subtract would instead compute src - dst - wrong channel order.
+    private static readonly BlendState SubtractiveBlendState = new()
+    {
+        ColorBlendFunction = BlendFunction.ReverseSubtract,
+        ColorSourceBlend = Blend.One,
+        ColorDestinationBlend = Blend.One,
+        AlphaBlendFunction = BlendFunction.Add,
+        AlphaSourceBlend = Blend.Zero,
+        AlphaDestinationBlend = Blend.One
+    };
+
     public SpriteRendererComponent(Game game) : base(game)
     {
         if (game == null)
@@ -192,6 +217,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         return blendMode switch
         {
             SpriteBlendMode.AlphaBlend => BlendState.NonPremultiplied,
+            SpriteBlendMode.Additive => AdditiveBlendState,
+            SpriteBlendMode.Subtractive => SubtractiveBlendState,
             _ => _blendState
         };
     }
