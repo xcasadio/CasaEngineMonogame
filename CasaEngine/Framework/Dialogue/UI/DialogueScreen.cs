@@ -18,7 +18,17 @@ public sealed class DialogueScreen : UIScreenBase
     private MGTextBlock _lineText;
     private MGStackPanel _choicesPanel;
     private readonly List<MGButton> _choiceButtons = new();
+    private MGButton _closeButton;
     private bool _subscribed;
+
+    /// <summary>
+    /// Whether the window carries its own "Close" button. Default true, so every existing caller keeps
+    /// the behaviour it had. A game whose dialogue boxes are dismissed by a gameplay button (and whose
+    /// own dialogue director owns the open/closed state) sets this to false: an extra UI affordance
+    /// there closes the window behind that director's back, leaving the box logically open and any
+    /// control flags it posted still set. Read once, when the window is built.
+    /// </summary>
+    public bool ShowCloseButton { get; init; } = true;
 
     public DialogueScreen(IDialoguePresenter presenter)
         : this(presenter, static () => { })
@@ -102,13 +112,16 @@ public sealed class DialogueScreen : UIScreenBase
         };
         stack.TryAddChild(_choicesPanel);
 
-        var closeButton = new MGButton(_window, _ => _requestClose())
+        if (ShowCloseButton)
         {
-            HorizontalAlignment = HorizontalAlignment.Right,
-        };
-        closeButton.SetContent("Close");
-        closeButton.Margin = new Thickness(0, 8, 0, 0);
-        stack.TryAddChild(closeButton);
+            _closeButton = new MGButton(_window, _ => _requestClose())
+            {
+                HorizontalAlignment = HorizontalAlignment.Right,
+            };
+            _closeButton.SetContent("Close");
+            _closeButton.Margin = new Thickness(0, 8, 0, 0);
+            stack.TryAddChild(_closeButton);
+        }
 
         _window.SetContent(stack);
         RefreshPresentation();
@@ -178,6 +191,7 @@ public sealed class DialogueScreen : UIScreenBase
 
     internal MGWindow WindowForTests => _window;
     internal IReadOnlyList<MGButton> ChoiceButtonsForTests => _choiceButtons;
+    internal MGButton CloseButtonForTests => _closeButton;
 
     private void RefreshLine()
     {

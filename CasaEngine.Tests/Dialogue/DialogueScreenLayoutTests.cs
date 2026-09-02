@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Dialogue.Runtime;
+﻿using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.Dialogue.UI;
 using MGUI.Core.UI;
 using MGUI.Shared.Assets;
@@ -45,6 +45,46 @@ public class DialogueScreenLayoutTests
             new MouseState(0, 0, 0, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released),
             new KeyboardState()));
         desktop.Update();
+    }
+
+    [Fact]
+    public void ByDefault_TheWindowCarriesItsOwnCloseButton()
+    {
+        var (desktop, runtime) = NewHeadlessDesktop();
+        var service = new DialogueService();
+        var screen = new DialogueScreen(service, static () => { });
+
+        screen.BuildWindow(desktop);
+        desktop.Windows.Add(screen.WindowForTests);
+        screen.Show();
+        service.ShowLine(new DialogueLine("Bonjour."));
+        AdvanceFrame(runtime, desktop, 16);
+
+        Assert.NotNull(screen.CloseButtonForTests);
+    }
+
+    [Fact]
+    public void WithShowCloseButtonFalse_NoCloseButtonIsBuilt_AndTheLineStillLaysOut()
+    {
+        var (desktop, runtime) = NewHeadlessDesktop();
+        var service = new DialogueService();
+
+        // A game whose boxes are dismissed by a gameplay button, and whose own dialogue director owns
+        // the open/closed state, opts out: a UI close affordance would shut the window behind that
+        // director's back and leave the box logically open.
+        var screen = new DialogueScreen(service, static () => { }) { ShowCloseButton = false };
+
+        screen.BuildWindow(desktop);
+        desktop.Windows.Add(screen.WindowForTests);
+        screen.Show();
+        service.ShowLine(new DialogueLine("Bonjour."));
+        AdvanceFrame(runtime, desktop, 16);
+
+        Assert.Null(screen.CloseButtonForTests);
+
+        var window = screen.WindowForTests;
+        Assert.True(window.WindowHeight > 0 && window.WindowWidth > 0,
+            "the window must still lay out without the close button.");
     }
 
     [Fact]
