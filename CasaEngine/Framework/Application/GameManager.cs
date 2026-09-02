@@ -80,6 +80,18 @@ public class GameManager
             }
 
             var assetInfo = AssetCatalog.GetByFileName(_worldToLoad);
+
+            // GetByFileName returns null for an unknown file name (AssetCatalog.GetByFileName), so a
+            // world path that is not in the catalog used to surface as a NullReferenceException on
+            // assetInfo.Id, one frame after whoever asked for the load - with nothing naming the path.
+            // Gameplay code can request a world by name (SetWorldToLoad(string)), so the caller needs
+            // to be told which path failed. Same exception shape EndLoadContent already uses for an
+            // undefined FirstWorldLoaded.
+            if (assetInfo == null)
+            {
+                throw new InvalidOperationException($"World not found in the asset catalog: '{_worldToLoad}'");
+            }
+
             _currentWorld = _game.AssetContentManager.Load<Scene.World.World>(assetInfo.Id, cache: false);
             _worldToLoad = null;
             _isNewWorld = true;
