@@ -70,6 +70,13 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         SpriteEffect = SpriteEffects.None;
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public AnimatedSpriteComponent(Guid id) : base(id)
+    {
+        Color = Color.White;
+        SpriteEffect = SpriteEffects.None;
+    }
+
     public AnimatedSpriteComponent(AnimatedSpriteComponent other) : base(other)
     {
         Color = other.Color;

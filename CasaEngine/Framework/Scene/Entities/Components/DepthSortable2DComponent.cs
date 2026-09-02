@@ -33,6 +33,11 @@ public sealed class DepthSortable2DComponent : EntityComponent
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public DepthSortable2DComponent(Guid id) : base(id)
+    {
+    }
+
     public DepthSortable2DComponent(DepthSortable2DComponent other) : base(other)
     {
         RenderPass = other.RenderPass;

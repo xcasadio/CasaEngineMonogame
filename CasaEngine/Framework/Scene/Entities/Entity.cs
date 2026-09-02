@@ -156,6 +156,11 @@ public class Entity : ObjectBase
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public Entity(Guid id) : base(id)
+    {
+    }
+
     public Entity(Entity entity) : base(entity)
     {
         World = entity.World;

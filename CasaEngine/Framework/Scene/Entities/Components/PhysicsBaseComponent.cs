@@ -70,6 +70,13 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         PhysicsDefinition.PhysicsType = PhysicsType.Static;
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    protected PhysicsBaseComponent(Guid id) : base(id)
+    {
+        PhysicsDefinition = new();
+        PhysicsDefinition.PhysicsType = PhysicsType.Static;
+    }
+
     protected PhysicsBaseComponent(PhysicsBaseComponent other) : base(other)
     {
         _velocity = other._velocity;

@@ -44,6 +44,11 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public CharacterControllerComponent(Guid id) : base(id)
+    {
+    }
+
     public CharacterControllerComponent(CharacterControllerComponent other) : base(other)
     {
         _settings = other._settings.Clone();

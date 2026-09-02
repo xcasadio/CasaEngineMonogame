@@ -6,6 +6,15 @@ namespace CasaEngine.Framework.Assets.Sprites;
 
 public class SpriteData : ObjectBase
 {
+    public SpriteData()
+    {
+    }
+
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public SpriteData(Guid id) : base(id)
+    {
+    }
+
     public Guid SpriteSheetAssetId { get; set; }
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }

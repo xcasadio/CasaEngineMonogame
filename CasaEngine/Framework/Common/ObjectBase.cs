@@ -22,6 +22,18 @@ public class ObjectBase : ISerializable
         Name = "Object " + Id;
     }
 
+    /// <summary>
+    /// Additive constructor letting a caller assign a deterministic <see cref="Id"/> at construction
+    /// (for example a converter deriving stable ids from <c>Ids.For</c>) instead of the random one the
+    /// parameterless constructor generates. Mirrors its default <see cref="Name"/> so nothing
+    /// serializes a null name; <see cref="Load"/> still overrides both afterwards.
+    /// </summary>
+    protected ObjectBase(Guid id)
+    {
+        Id = id;
+        Name = "Object " + Id;
+    }
+
     public ObjectBase(ObjectBase other)
     {
         Id = Guid.NewGuid();

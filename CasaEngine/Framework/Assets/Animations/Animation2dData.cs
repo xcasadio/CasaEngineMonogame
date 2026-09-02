@@ -5,6 +5,15 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2dData : ObjectBase
 {
+    public Animation2dData()
+    {
+    }
+
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public Animation2dData(Guid id) : base(id)
+    {
+    }
+
     public AnimationType AnimationType { get; set; } = AnimationType.Once;
 
     public string EventTrackName { get; set; } = string.Empty;

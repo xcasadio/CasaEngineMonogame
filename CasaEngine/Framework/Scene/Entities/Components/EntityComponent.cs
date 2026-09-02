@@ -22,6 +22,12 @@ public abstract class EntityComponent : ObjectBase
         //Do nothing
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    protected EntityComponent(Guid id) : base(id)
+    {
+        //Do nothing
+    }
+
     protected EntityComponent(EntityComponent other)
     {
         Owner = other.Owner;

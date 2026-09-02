@@ -22,6 +22,12 @@ public class Box : Shape3d, IEquatable<Box>
         Size = Vector3.One;
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public Box(Guid id) : base(id, Shape3dType.Box)
+    {
+        Size = Vector3.One;
+    }
+
     public bool Equals(Box other)
     {
         if (ReferenceEquals(null, other))

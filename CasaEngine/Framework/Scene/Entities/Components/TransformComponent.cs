@@ -21,6 +21,11 @@ public class TransformComponent : SceneComponent
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public TransformComponent(Guid id) : base(id)
+    {
+    }
+
     public TransformComponent(TransformComponent other) : base(other)
     {
     }

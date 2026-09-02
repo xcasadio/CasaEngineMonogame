@@ -260,6 +260,12 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         LocalTransform = new();
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    protected SceneComponent(Guid id) : base(id)
+    {
+        LocalTransform = new();
+    }
+
     private void SetLocalTransform(LocalTransform localTransform)
     {
         ArgumentNullException.ThrowIfNull(localTransform);

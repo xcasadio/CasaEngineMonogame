@@ -18,6 +18,11 @@ public class CollisionComponent : PhysicsBaseComponent
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public CollisionComponent(Guid id) : base(id)
+    {
+    }
+
     public CollisionComponent(CollisionComponent other) : base(other)
     {
         for (int i = 0; i < other.Fixtures.Count; i++)

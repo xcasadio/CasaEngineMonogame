@@ -29,6 +29,11 @@ public class RenderProjectionComponent : SceneComponent, IEntityPolicyDefaultsPr
     {
     }
 
+    /// <summary>Additive constructor for callers assigning a deterministic id (see <see cref="ObjectBase(Guid)"/>).</summary>
+    public RenderProjectionComponent(Guid id) : base(id)
+    {
+    }
+
     public RenderProjectionComponent(RenderProjectionComponent other) : base(other)
     {
         SnapToPixel = other.SnapToPixel;
