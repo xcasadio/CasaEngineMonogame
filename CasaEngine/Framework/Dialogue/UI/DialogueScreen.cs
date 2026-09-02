@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Dialogue.Presentation;
+﻿using CasaEngine.Framework.Dialogue.Presentation;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
@@ -48,15 +48,30 @@ public sealed class DialogueScreen : UIScreenBase
     public override UILayer Layer => UILayer.Modal;
     public override bool IsModal => true;
 
+    /// <summary>Minimum (and initial) window height; the window then GROWS to fit its content -
+    /// a wrapped multi-line text plus visible choice buttons overflowed the previous fixed 150 px
+    /// (user-reported: the second choice button was clipped out of the window).</summary>
+    internal const int MinWindowHeight = 150;
+    private const int TopMargin = 20;
+    private const int BottomMargin = 48;
+
     protected override void OnInitialize(UIRoot root)
     {
-        Rectangle bounds = root.Desktop.ValidScreenBounds;
-        int width = Math.Min(720, Math.Max(320, bounds.Width - 80));
-        int height = 150;
-        int x = bounds.X + (bounds.Width - width) / 2;
-        int y = bounds.Y + Math.Max(20, bounds.Height - height - 48);
+        BuildWindow(root.Desktop);
+    }
 
-        _window = new MGWindow(root.Desktop, x, y, width, height)
+    /// <summary>The whole window construction, at the <see cref="MGDesktop"/> level - internal so the
+    /// headless layout tests can drive the REAL build/refresh/resize path without a graphics-backed
+    /// <see cref="UIRoot"/> (the screen never uses anything else from the root).</summary>
+    internal void BuildWindow(MGDesktop desktop)
+    {
+        Rectangle bounds = desktop.ValidScreenBounds;
+        int width = Math.Min(720, Math.Max(320, bounds.Width - 80));
+        int height = MinWindowHeight;
+        int x = bounds.X + (bounds.Width - width) / 2;
+        int y = bounds.Y + Math.Max(TopMargin, bounds.Height - height - BottomMargin);
+
+        _window = new MGWindow(desktop, x, y, width, height)
         {
             TitleText = "Dialogue",
             IsTopmost = true,
@@ -70,7 +85,8 @@ public sealed class DialogueScreen : UIScreenBase
         {
             Spacing = 8,
             PreferredWidth = width - 36,
-            PreferredHeight = height - 48,
+            // No PreferredHeight: the stack must report its CONTENT height so ResizeToFitContent's
+            // measurement sees the real total (text lines + choice buttons + close button).
         };
 
         _lineText = new MGTextBlock(_window, string.Empty, Color.White, 16)
@@ -135,7 +151,33 @@ public sealed class DialogueScreen : UIScreenBase
     {
         RefreshLine();
         RefreshChoices();
+        ResizeToFitContent();
     }
+
+    /// <summary>Grows (or shrinks back to <see cref="MinWindowHeight"/>) the window so the current
+    /// line and every choice button are inside it, keeping it bottom-anchored.
+    /// <see cref="MGWindow.ApplySizeToContent"/> clamps growth by the room BELOW the current Top, so
+    /// the window is measured from the top of the screen first and re-anchored after.</summary>
+    private void ResizeToFitContent()
+    {
+        if (_window == null)
+        {
+            return;
+        }
+
+        Rectangle bounds = _window.GetDesktop().ValidScreenBounds;
+        _window.Top = bounds.Y + TopMargin;
+        _window.ApplySizeToContent(
+            SizeToContent.Height,
+            MinHeight: MinWindowHeight,
+            MaxHeight: Math.Max(MinWindowHeight, bounds.Height - TopMargin - BottomMargin),
+            UpdateLayoutImmediately: true);
+        _window.Top = Math.Max(bounds.Y + TopMargin, bounds.Bottom - BottomMargin - _window.WindowHeight);
+        _window.ValidateWindowSizeAndPosition();
+    }
+
+    internal MGWindow WindowForTests => _window;
+    internal IReadOnlyList<MGButton> ChoiceButtonsForTests => _choiceButtons;
 
     private void RefreshLine()
     {
