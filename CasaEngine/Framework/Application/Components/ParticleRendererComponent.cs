@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
@@ -27,7 +28,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     private readonly CasaEngineGame _casaEngineGame;
     private VertexPositionColorTexture[] _vertices = new VertexPositionColorTexture[InitialPacketCapacity * 4];
     private int[] _indices = new int[InitialPacketCapacity * 6];
-    private BasicEffect _effect;
+    private Effect _effect;
     private Texture2D _fallbackTexture;
 
     public int PendingPacketCount => _packets.Count;
@@ -54,12 +55,8 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
     protected override void LoadContent()
     {
-        _effect = new BasicEffect(GraphicsDevice)
-        {
-            VertexColorEnabled = true,
-            TextureEnabled = true,
-            LightingEnabled = false,
-        };
+        //  Cloned: the shared Game.Content cache hands out one instance per content name, and this component disposes its own.
+        _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.TexturedPrimitiveContentName).Clone();
         _fallbackTexture = CreateFallbackTexture(GraphicsDevice);
     }
 
@@ -185,9 +182,8 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
             AddStateChanges(stats, 2);
 
-            _effect.World = Matrix.Identity;
-            _effect.View = frame.View;
-            _effect.Projection = frame.Projection;
+            //  Row-vector convention: world * view * projection, with an identity world.
+            _effect.Parameters[ShaderParameterNames.WorldViewProj].SetValue(frame.View * frame.Projection);
 
             int segmentStartPacketIndex = 0;
             while (segmentStartPacketIndex < _packets.Count)
@@ -201,7 +197,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
                 graphicsDevice.BlendState = GetBlendState(segmentPacket.BlendMode);
                 graphicsDevice.DepthStencilState = GetDepthStencilState(segmentPacket.DepthTest, segmentPacket.DepthWrite);
-                _effect.Texture = ResolveTexture(segmentPacket.TextureAssetId);
+                _effect.Parameters[ShaderParameterNames.BasColorTexture].SetValue(ResolveTexture(segmentPacket.TextureAssetId));
                 AddStateChanges(stats, 2);
                 AddTextureBind(stats);
 

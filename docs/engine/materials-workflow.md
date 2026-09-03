@@ -101,7 +101,8 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
   - `ActiveDirectionalLightCount` pilote le sous-ensemble actif sans reconfigurer les shaders ni les materials.
 - Legacy retire:
   - le runtime ne charge plus l'ancien type `Material` ni d'adaptateur de compatibilite legacy.
-  - les utilitaires runtime/debug n'utilisent plus `BasicEffect` MonoGame; ils passent par `DebugPrimitiveColor.fx`, `DebugSolidColor.fx` ou `SpriteBatch.fx` selon le besoin.
+  - les utilitaires runtime/debug n'utilisent plus `BasicEffect` MonoGame; ils passent par `DebugPrimitiveColor.fx`, `DebugSolidColor.fx`, `SpriteBatch.fx` ou `TexturedPrimitive.fx` selon le besoin.
+  - `TexturedPrimitive.fx` couvre le cas `VertexPositionColorTexture` (position + couleur de vertex + texture) que les autres utilitaires ne traitaient pas.
 
 ## Validation manuelle de reference
 
