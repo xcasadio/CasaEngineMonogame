@@ -1,4 +1,4 @@
-using CasaEngine.Core.Logging;
+﻿using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.AI.Messaging;
@@ -172,6 +172,36 @@ public sealed class World : ObjectBase
         GameplayModeRunner.Start(mode, new GameplayContext(this, GameplayModeRunner.Events));
     }
 
+    /// <summary>
+    /// Releases what an entity's components own, for an entity this world is throwing away. Both callers
+    /// of <see cref="ClearEntities"/> discard their entities: tearing the world down, and reloading the
+    /// world asset over itself.
+    ///
+    /// <c>Entity.Destroy</c> only raises flags - it never detaches - so before this, a component holding
+    /// GPU or engine resources kept them for the lifetime of the process. That is what
+    /// <c>TileMapComponent</c> does with its per-chunk vertex and index buffers: they are built lazily on
+    /// the first draw of each world, released only from <c>InitializeWithWorld</c> and <c>Detach</c>, and
+    /// a world switch builds fresh components, so the previous map's buffers became unreachable while
+    /// staying registered on the graphics device. Several map changes in, allocation degrades and the
+    /// tile draw abandons whole chunks - silently, since none of its three bail-out paths logs - which
+    /// shows up as growing black patches over the map. Animated sprites, character controllers and sound
+    /// emitters all override <c>Detach</c> for their own resources too, so this covers the family rather
+    /// than one symptom.
+    ///
+    /// Ordering: this runs while the physics world and the runtime systems are still alive
+    /// (<see cref="Clear"/> disposes them after <see cref="ClearEntities"/>), which is what
+    /// <c>TileMapComponent.Detach</c> needs to remove its collision objects.
+    /// </summary>
+    private static void DetachComponentsOfDiscardedEntity(Entity entity)
+    {
+        // Snapshot: Detach may mutate the entity's own component collection.
+        var components = entity.AttachedComponents.ToArray();
+        for (var index = 0; index < components.Length; index++)
+        {
+            components[index].Detach();
+        }
+    }
+
     public void ClearEntities(bool clearReferences = false)
     {
         foreach (var entity in _entities)
@@ -179,6 +209,7 @@ public sealed class World : ObjectBase
             MessageBus.UnregisterEntity(entity);
             UnsubscribeEntityTree(entity);
             entity.Destroy();
+            DetachComponentsOfDiscardedEntity(entity);
         }
 
         _entities.Clear();

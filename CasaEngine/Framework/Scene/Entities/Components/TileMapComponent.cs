@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using CasaEngine.Core.Logging;
+using System.ComponentModel;
 
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
@@ -1360,6 +1361,13 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
     }
 
+    // Logged at most once per component, per reason: these two bail-outs are how a chunk silently stops
+    // being drawn when its GPU buffers are missing or the batch draw is refused, which is what growing
+    // black patches over a map look like from the outside. Once-only, because this is a per-chunk,
+    // per-frame path.
+    private bool _loggedMissingStaticBatchResources;
+    private bool _loggedStaticBatchDrawRefused;
+
     private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, in Matrix world)
     {
         var currentFrame = Owner.World.CurrentRenderFrame;
@@ -1397,6 +1405,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 || staticBatch.VertexBuffer == null
                 || staticBatch.IndexBuffer == null)
             {
+                if (!_loggedMissingStaticBatchResources)
+                {
+                    _loggedMissingStaticBatchResources = true;
+                    Logs.WriteWarning(
+                        $"TileMapComponent '{Owner?.Name}': a static chunk batch has no usable graphics "
+                        + $"resources (tile set index {staticBatch.TileSetIndex} of {_tileSetTextures.Count}, "
+                        + $"vertex buffer {(staticBatch.VertexBuffer == null ? "null" : "present")}, "
+                        + $"index buffer {(staticBatch.IndexBuffer == null ? "null" : "present")}). "
+                        + "Its tiles will not be drawn. Logged once per component.");
+                }
+
                 return false;
             }
         }
@@ -1419,6 +1438,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     in world,
                     currentFrame.Value))
             {
+                if (!_loggedStaticBatchDrawRefused)
+                {
+                    _loggedStaticBatchDrawRefused = true;
+                    Logs.WriteWarning(
+                        $"TileMapComponent '{Owner?.Name}': the sprite renderer refused a static chunk "
+                        + "batch draw. Its tiles will not be drawn. Logged once per component.");
+                }
+
                 return false;
             }
 
