@@ -219,7 +219,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         if (TileMapDataAssetId != Guid.Empty)
         {
-            TileMapData = Owner.World.Game.AssetContentManager.Load<TileMapData>(TileMapDataAssetId);
+            // The asset manager caches by id and nothing ever unloads, so this hands back the SAME
+            // instance to every world that shows this map - and a running game writes into it. Work on a
+            // copy and leave the loaded asset a pristine template: see
+            // TileMapData.CreateWorldWorkingCopy for the defect this closes (tiles moved out of the base
+            // layers for depth sorting were gone on the next visit, so nobody drew them).
+            TileMapData = Owner.World.Game.AssetContentManager
+                .Load<TileMapData>(TileMapDataAssetId)
+                ?.CreateWorldWorkingCopy();
         }
 
         if (TileMapData == null)

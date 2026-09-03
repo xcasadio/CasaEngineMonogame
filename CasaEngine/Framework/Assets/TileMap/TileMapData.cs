@@ -10,6 +10,44 @@ public class TileMapData : ObjectBase
     public const int EmptyTileId = TileMapLayerData.EmptyTileId;
 
     public Size MapSize { get; set; }
+
+    /// <summary>
+    /// A copy for one world to work on, leaving the loaded asset a pristine template.
+    ///
+    /// The asset manager caches by id and nothing ever unloads, so every world that shows the same map
+    /// used to receive the very same instance - and a running game writes into it. The Alundra port moves
+    /// wall and floor tiles out of the base layers so they can be depth-sorted against sprites, which
+    /// REMOVES them from the layer; on a second visit the tiles were already gone, the placements no
+    /// longer matched, and 1356 tiles of the ship deck were drawn by nobody. Black patches, worse with
+    /// every map change.
+    ///
+    /// Only the per-tile lists of each layer are duplicated: they are the whole of the mutable state.
+    /// Map size, tile set ids, object layers and custom properties are values or read-only data the
+    /// copy shares with the template, so a map change costs a few integer lists rather than a re-parse
+    /// of the whole file.
+    /// </summary>
+    public TileMapData CreateWorldWorkingCopy()
+    {
+        var copy = new TileMapData
+        {
+            MapSize = MapSize,
+        };
+
+        copy.TileSetDataAssetIds.AddRange(TileSetDataAssetIds);
+        copy.ObjectLayers.AddRange(ObjectLayers);
+
+        foreach (var property in CustomProperties)
+        {
+            copy.CustomProperties[property.Key] = property.Value;
+        }
+
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
+        {
+            copy.Layers.Add(Layers[layerIndex].CreateWorldWorkingCopy());
+        }
+
+        return copy;
+    }
     public Guid TileSetDataAssetId
     {
         get => TileSetDataAssetIds.Count > 0 ? TileSetDataAssetIds[0] : Guid.Empty;

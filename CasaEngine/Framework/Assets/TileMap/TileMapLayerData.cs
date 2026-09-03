@@ -14,8 +14,35 @@ public class TileMapLayerData
     public List<int> tileSources = new();
     public List<TileCellFlags> tileFlags = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
-    public TileMapDepthSettings Depth { get; private set; } = TileMapDepthSettings.CreateDefault(TileMapDepthRole.Ground);
+    public TileMapDepthSettings Depth { get; internal set; } = TileMapDepthSettings.CreateDefault(TileMapDepthRole.Ground);
     public float zOffset;
+
+    /// <summary>
+    /// A copy for one world to work on. Only the three per-tile lists are duplicated - they are the sole
+    /// mutable state a running game writes (see <c>TileMapComponent.SetTileReference</c>) - while the
+    /// name, depth settings, z offset and custom properties are values or read-only data shared with the
+    /// template. See <see cref="TileMapData.CreateWorldWorkingCopy"/> for why this exists.
+    /// </summary>
+    internal TileMapLayerData CreateWorldWorkingCopy()
+    {
+        var copy = new TileMapLayerData
+        {
+            Name = Name,
+            zOffset = zOffset,
+            Depth = Depth,
+        };
+
+        copy.tiles.AddRange(tiles);
+        copy.tileSources.AddRange(tileSources);
+        copy.tileFlags.AddRange(tileFlags);
+
+        foreach (var property in CustomProperties)
+        {
+            copy.CustomProperties[property.Key] = property.Value;
+        }
+
+        return copy;
+    }
 
     public void Load(JObject element)
     {
