@@ -9,6 +9,7 @@ using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
@@ -25,6 +26,10 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
     public GraphicsDevice GraphicsDevice => Host.GraphicsDevice;
     public SpriteBatch SpriteBatch { get; }
     public PrimitiveBatch PrimitiveBatch { get; }
+    /// <summary>Shared engine effect used by <see cref="CasaDrawTransaction.DrawTexturedTriangleList"/> (Content/Shaders/TexturedPrimitive.fx):
+    /// unlit, textured, vertex-coloured, driven by a single pre-combined WorldViewProj. Owned like <see cref="PrimitiveBatch"/> (one per runtime).<para/>
+    /// Loaded from this runtime's own <see cref="Content"/>, so it is not shared with any other consumer and needs no clone.</summary>
+    internal Effect TexturedPrimitiveEffect { get; }
     internal CasaRenderTargetPool RenderTargetPool => Services.RenderTargetPool;
     internal CasaBackendAdapterRegistry AdapterRegistry => Services.AdapterRegistry;
 
@@ -90,6 +95,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
         Input = new InputTracker();
 
         ScrollMarker = Content.Load<Texture2D>(Path.Combine("Icons", "ScrollMarker"));
+        TexturedPrimitiveEffect = Content.Load<Effect>(BuiltInShaderCatalog.TexturedPrimitiveContentName);
 
         Host.PreviewUpdate += (_, elapsed) =>
         {

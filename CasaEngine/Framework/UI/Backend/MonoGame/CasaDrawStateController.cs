@@ -113,7 +113,9 @@ internal sealed class CasaDrawStateController
     public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
         => new TemporaryChange<DrawSettings>(CurrentSettings, settings, SetDrawSettings);
 
-    private void ApplyPrimitiveDeviceStates()
+    /// <summary>Pushes the primitive-context device states onto the <see cref="GraphicsDevice"/> without starting a batch.<para/>
+    /// Used both by <see cref="Begin"/> and by draw calls that issue their own GPU call outside of the primitive batch.</summary>
+    public void ApplyPrimitiveDeviceStates()
     {
         GraphicsDevice graphicsDevice = _renderer.GraphicsDevice;
         graphicsDevice.BlendState = CurrentBlendState;

@@ -527,6 +527,11 @@ public class EditorControlTemplateAssetLoadingTests
         {
         }
 
+        public void DrawTexturedTriangleList(Vector2 origin, IUIImageResource texture, IReadOnlyList<Vector2> vertices,
+            IReadOnlyList<Vector2> textureCoordinates, IReadOnlyList<int> indices, Color colorMask)
+        {
+        }
+
         public void FillQuadrilateralLinearClamp(Vector2 origin, Vector2 topLeft, Color topLeftColor, Vector2 topRight, Color topRightColor,
             Vector2 bottomRight, Color bottomRightColor, Vector2 bottomLeft, Color bottomLeftColor)
         {

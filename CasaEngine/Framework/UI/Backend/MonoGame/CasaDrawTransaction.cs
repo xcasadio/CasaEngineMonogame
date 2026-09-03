@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI.Backend.MonoGame.Clipping;
 using CasaEngine.Framework.UI.Backend.MonoGame.Primitives;
 using MGUI.Backend.MonoGame;
@@ -479,6 +480,79 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         PrimitiveBatch.AddVertex(v0 + Origin, c0, PrimitiveType.TriangleList);
         PrimitiveBatch.AddVertex(v1 + Origin, c1, PrimitiveType.TriangleList);
         PrimitiveBatch.AddVertex(v2 + Origin, c2, PrimitiveType.TriangleList);
+    }
+
+    private VertexPositionColorTexture[] TexturedVertexBuffer = Array.Empty<VertexPositionColorTexture>();
+    private short[] TexturedIndexBuffer = Array.Empty<short>();
+
+    /// <summary>Textured triangle-list path: the counterpart of <see cref="FillTriangle"/> for textured paints on rounded geometry.
+    /// Issues its own GPU call through <see cref="CasaDesktopRuntime.TexturedPrimitiveEffect"/> with the same projection and transform as the
+    /// <see cref="DrawContext.Primitives"/> context and the same device states, so it composes with the scissor/stencil clip pipeline and
+    /// honours <see cref="DrawSettings.SamplerType"/> (a Wrap sampler tiles the texture).</summary>
+    public void DrawTexturedTriangleList(Vector2 Origin, IUIImageResource Texture, IReadOnlyList<Vector2> Vertices, IReadOnlyList<Vector2> TextureCoordinates,
+        IReadOnlyList<int> Indices, Color ColorMask)
+    {
+        if (Texture == null || Texture.IsDisposed || Vertices == null || Vertices.Count == 0 || Indices == null || Indices.Count < 3)
+        {
+            return;
+        }
+
+        if (TextureCoordinates == null || TextureCoordinates.Count != Vertices.Count)
+        {
+            throw new ArgumentException($"{nameof(TextureCoordinates)} must contain exactly one entry per vertex.", nameof(TextureCoordinates));
+        }
+
+        if (Vertices.Count > short.MaxValue)
+        {
+            throw new NotSupportedException($"{nameof(DrawTexturedTriangleList)} supports at most {short.MaxValue} vertices per call (16-bit index buffer).");
+        }
+
+        if (CurrentRasterizerState.CullMode != CullMode.None)
+        {
+            string ErrorMessage = $"{nameof(CasaDrawTransaction)}.{nameof(DrawTexturedTriangleList)} does not account for the winding order of the vertices and may not work correctly " +
+                                  $"if the {nameof(RasterizerState)}'s {nameof(CullMode)} is not set to '{nameof(CullMode.None)}'.";
+            throw new NotImplementedException(ErrorMessage);
+        }
+
+        Texture2D texture = Renderer.AdapterRegistry.GetTexture(Texture);
+        int primitiveCount = Indices.Count / 3;
+        int indexCount = primitiveCount * 3;
+
+        if (TexturedVertexBuffer.Length < Vertices.Count)
+        {
+            TexturedVertexBuffer = new VertexPositionColorTexture[Math.Max(Vertices.Count, TexturedVertexBuffer.Length * 2)];
+        }
+
+        if (TexturedIndexBuffer.Length < indexCount)
+        {
+            TexturedIndexBuffer = new short[Math.Max(indexCount, TexturedIndexBuffer.Length * 2)];
+        }
+
+        for (int i = 0; i < Vertices.Count; i++)
+        {
+            Vector2 position = Vertices[i] + Origin;
+            TexturedVertexBuffer[i] = new VertexPositionColorTexture(new Vector3(position.X, position.Y, 0f), ColorMask, TextureCoordinates[i]);
+        }
+
+        for (int i = 0; i < indexCount; i++)
+        {
+            TexturedIndexBuffer[i] = checked((short)Indices[i]);
+        }
+
+        //  Flush whichever batch is open, then draw immediately with the primitive device states; the next call re-begins a batch as needed.
+        EndDraw(CurrentContext);
+        DrawState.ApplyPrimitiveDeviceStates();
+
+        Effect effect = Renderer.TexturedPrimitiveEffect;
+        //  Row-vector convention: world * view * projection, with an identity world - same order as every other engine shader call site.
+        effect.Parameters[ShaderParameterNames.WorldViewProj].SetValue(CurrentSettings.Transform * PrimitiveProjectionMatrix);
+        effect.Parameters[ShaderParameterNames.BasColorTexture].SetValue(texture);
+
+        foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, TexturedVertexBuffer, 0, Vertices.Count, TexturedIndexBuffer, 0, primitiveCount);
+        }
     }
 
     /// <summary>Fills the given quadrilateral using <see cref="SamplerType.LinearClamp"/> to produce gradient color interpolation.</summary>

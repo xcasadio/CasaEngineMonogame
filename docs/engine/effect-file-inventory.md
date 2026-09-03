@@ -10,6 +10,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | `UnlitTexture.fx` | material-facing | `StaticMeshRendererComponent` | unlit material effect for textured or colored draws | medium |
 | `skinEffect.fx` | material-facing | `SkinnedMeshRendererComponent` | skinned mesh effect with its own techniques and lighting bindings | high |
 | `SpriteBatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
+| `TexturedPrimitive.fx` | utility/2D | `CasaDrawTransaction` (CasaEngine MGUI backend) | unlit textured vertex-color triangle lists, for UI textured paints mapped onto rounded box geometry | low |
 | `DebugPrimitiveColor.fx` | debug utility | `Line3dRendererComponent`, `DebugGridComponent`, `DebugAxisComponent`, editor gizmo line/selection path | shared vertex-color debug primitive shader | medium |
 | `DebugSolidColor.fx` | debug utility | editor gizmo solid meshes/quads | shared solid-color debug shader | medium |
 
@@ -17,7 +18,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 
 | File | Included by | Role | Refactor risk |
 | --- | --- | --- | --- |
-| `Macros.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` | shared macros, texture declarations, technique helpers | high |
+| `Macros.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `TexturedPrimitive.fx` | shared macros, texture declarations, technique helpers | high |
 | `Structures.fxh` | `LitForward.fx` | shared vertex/pixel structs used by the lit static effect | medium |
 | `Lighting.fxh` | `LitForward.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
 
@@ -27,10 +28,11 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 - `skinEffect.fx` is still isolated from the main material/shader policy: it is loaded directly by the skinned renderer instead of being resolved through the same path as static materials.
 - `DebugPrimitiveColor.fx` is now the shared replacement for former MonoGame `BasicEffect` usages in debug/runtime overlays.
 - `DebugSolidColor.fx` is currently used by the editor gizmo for solid meshes and translucent quads.
+- `TexturedPrimitive.fx` backs `IUIDrawContext.DrawTexturedTriangleList` in the CasaEngine MGUI backend. Its texture is declared with a bare `DECLARE_TEXTURE(Texture, 0)` on purpose: no sampler state is baked into the effect, so the caller's `GraphicsDevice.SamplerStates[0]` still governs and a Wrap sampler keeps tiling the texture.
 - `axisComponent.fx` and `simple.fx` no longer have direct C# consumers and have been removed from the shipping MGCB content list.
 
 ## Refactor guidance
 
 1. Treat `LitForward.fx`, `skinEffect.fx`, and `Lighting.fxh` as architecture-critical files.
-2. Treat `SpriteBatch.fx`, `DebugPrimitiveColor.fx`, and `DebugSolidColor.fx` as utility shaders that should keep clear, explicit names.
+2. Treat `SpriteBatch.fx`, `TexturedPrimitive.fx`, `DebugPrimitiveColor.fx`, and `DebugSolidColor.fx` as utility shaders that should keep clear, explicit names.
 3. Treat any reintroduction of `axisComponent.fx` or `simple.fx` as an explicit compatibility decision rather than default shipping content.
