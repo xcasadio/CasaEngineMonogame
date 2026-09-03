@@ -92,6 +92,12 @@
 /processorParam:Defines=
 /build:Shaders/SpriteBatch.fx
 
+#begin Shaders/TexturedPrimitive.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/TexturedPrimitive.fx
+
 #begin Shaders/UnlitTexture.fx
 /importer:EffectImporter
 /processor:EffectProcessor

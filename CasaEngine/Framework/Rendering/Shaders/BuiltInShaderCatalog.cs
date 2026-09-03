@@ -13,6 +13,10 @@ public static class BuiltInShaderCatalog
     public const string SkyCubemapContentName = "Shaders\\SkyCubemap";
     public const string SpriteBatchContentName = "Shaders\\SpriteBatch";
     public const string DebugPrimitiveColorContentName = "Shaders\\DebugPrimitiveColor";
+    /// <summary>Content name of the unlit textured vertex-colour effect. Deliberately absent from <see cref="RuntimeShaders"/>:
+    /// that list drives the editor shader-source watcher, and no consumer implements a live rebind for this effect yet,
+    /// so watching it would only report a reload that never happened (same choice as Shaders\DebugSolidColor).</summary>
+    public const string TexturedPrimitiveContentName = "Shaders\\TexturedPrimitive";
 
     private static readonly BuiltInShaderDescriptor[] RuntimeShaderDescriptors =
     [

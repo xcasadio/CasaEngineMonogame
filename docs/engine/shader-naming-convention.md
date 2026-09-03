@@ -8,7 +8,7 @@ This convention keeps material shaders, debug utilities, 2D/blit shaders, and sh
 | --- | --- | --- | --- |
 | Material-facing shaders | PascalCase semantic name | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` | Use names that describe the rendering role, not legacy engine analogies. |
 | Debug/utility shaders | `Debug` prefix + explicit role | `DebugPrimitiveColor.fx`, `DebugSolidColor.fx` | Shared colored-primitive helpers stay outside the material architecture. |
-| 2D/blit utility shaders | PascalCase role name | `SpriteBatch.fx` | Name the rendering function directly rather than the historical file casing. |
+| 2D/blit utility shaders | PascalCase role name | `SpriteBatch.fx`, `TexturedPrimitive.fx` | Name the rendering function directly rather than the historical file casing. |
 | Shared includes | `.fxh` + semantic role | `Macros.fxh`, `Lighting.fxh`, `Structures.fxh` | Favor role-driven names; broader include renames can happen separately when churn is justified. |
 | Legacy/archived shaders | remove from shipping content when unused | `axisComponent.fx`, `simple.fx` | Do not keep dead utility shaders in MGCB unless a compatibility need is explicit. |
 
@@ -17,6 +17,7 @@ This convention keeps material shaders, debug utilities, 2D/blit shaders, and sh
 - `basicEffect.fx` has already been renamed to `LitForward.fx` to avoid confusion with MonoGame `BasicEffect`.
 - Dead legacy utility shaders (`axisComponent.fx`, `simple.fx`) were removed from shipping content once their consumers disappeared.
 - `spritebatch.fx` is now `SpriteBatch.fx` so the active 2D utility shader follows the same explicit naming convention as the other retained utility effects.
+- `TexturedPrimitive.fx` was introduced under the 2D/blit rule rather than the `Debug` prefix: it is a shipping UI rendering path, not a tooling helper.
 
 ## Practical rules
 
