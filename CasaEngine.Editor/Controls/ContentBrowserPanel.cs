@@ -319,7 +319,6 @@ public class ContentBrowserPanel
         _treeView.SelectionChanged += OnFolderSelectionChanged;
         _treeView.KeyboardHandler.Pressed += OnTreeViewKeyPressed;
         _treeView.MouseHandler.RMBReleasedInside += OnTreeViewRightClick;
-        _window.WindowKeyboardHandler.Pressed += OnGlobalKeyPressed;
 
         var treePane = WrapPanelSurface(_treeView, TreeBackgroundColor);
 
@@ -1845,67 +1844,6 @@ public class ContentBrowserPanel
     private void OnFileOperationWarning(string message)
     {
         _pendingOperationWarning = message;
-    }
-
-    private void OnGlobalKeyPressed(object sender, BaseKeyPressedEventArgs e)
-    {
-        if (e.IsHandled || _inlineRenameOverlay.IsOpen)
-        {
-            return;
-        }
-
-        if (e.Tracker.IsControlDown && e.Key == Keys.F)
-        {
-            FocusSearchBox();
-            e.SetHandledBy(_window, true);
-            return;
-        }
-
-        if (e.Tracker.IsAltDown)
-        {
-            switch (e.Key)
-            {
-                case Keys.Left:
-                    GoBack();
-                    e.SetHandledBy(_window, true);
-                    return;
-
-                case Keys.Right:
-                    GoForward();
-                    e.SetHandledBy(_window, true);
-                    return;
-            }
-        }
-
-        switch (e.Key)
-        {
-            case Keys.F5:
-                Refresh();
-                e.SetHandledBy(_window, true);
-                return;
-        }
-
-        if (_window.Desktop.FocusedKeyboardHandler is MGTextBox)
-        {
-            return;
-        }
-
-        if (e.Key == Keys.Back)
-        {
-            GoUp();
-            e.SetHandledBy(_window, true);
-        }
-    }
-
-    private void FocusSearchBox()
-    {
-        if (_searchBox == null)
-        {
-            return;
-        }
-
-        _searchBox.RequestFocus();
-        _searchBox.SelectAll();
     }
 
     private void OnDeleteSelectedItemsRequested()
