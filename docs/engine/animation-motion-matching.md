@@ -118,3 +118,5 @@ Useful files when starting the implementation later:
 ## Decision
 
 Motion matching is worth keeping on the roadmap, but only as a separate R&D stream. The production upgrade path should continue to rely on the current controller, blend spaces, advanced cross-fades, root motion, and IK until a dedicated motion matching prototype proves its value.
+
+Decisions: see [ADR-0026](../decisions/0026-animation-deformer-support-policy-and-motion-matching-rd.md).

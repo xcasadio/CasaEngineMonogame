@@ -3,6 +3,8 @@
 Ce document décrit comment une donnée 2D (tilemap, sprite) arrive à l'écran dans CasaEngine, et
 quel mode choisir selon le rendu voulu.
 
+Decisions: see [ADR-0011](../decisions/0011-tilemap-render-spaces.md).
+
 ## Règle de projection
 
 > Une tilemap est un objet world-space. Son espace d'affichage est décidé exclusivement par la

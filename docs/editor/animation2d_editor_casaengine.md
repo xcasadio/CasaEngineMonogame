@@ -6,7 +6,7 @@ L’objectif est de développer dans CasaEngine un éditeur générique d’anim
 
 Une animation 2D CasaEngine ne doit pas être vue uniquement comme une succession d’images complètes. Elle peut être composée de plusieurs sprites, chacun ayant sa propre position, visibilité, ordre d’affichage et ses propres changements dans le temps.
 
-Ce document décrit une direction produit et des contraintes verrouillées pour le format composé actuel. Les anciennes mentions d’un sous-ensemble V1 mono-sprite/event-only doivent être lues comme de l’historique de conception, pas comme une cible encore supportée dans le dépôt.
+Ce document décrit une direction produit et des contraintes verrouillées pour le format composé actuel. Les anciennes mentions d’un sous-ensemble V1 mono-sprite/event-only doivent être lues comme de l’historique de conception, pas comme une cible encore supportée dans le dépôt : c'est le cas des sections rédigées au présent qui décrivent une V1 « un seul sprite courant » ou « sans composition » (notamment 15, 16.1, 23.2 et 28) ; en cas de conflit avec les décisions verrouillées ci-dessus, ces décisions priment.
 
 Décisions verrouillées :
 
@@ -1225,3 +1225,5 @@ inspector de visualisation
 ```
 
 La composition, les tracks de propriétés et l’authoring complet de timeline sont reportés aux versions suivantes.
+
+Decisions: see [ADR-0015](../decisions/0015-animation2d-editor-v1.md).

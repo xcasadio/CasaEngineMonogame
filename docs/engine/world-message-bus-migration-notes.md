@@ -53,18 +53,14 @@ Le comportement narratif reste proche, mais l'architecture suit les contraintes 
 
 ## Validation bornee
 
-Commandes utiles :
+Commande utile :
 
-- `dotnet build CasaEngineMonogame/CasaEngine/CasaEngine.csproj -c Debug`
-- `dotnet build CasaEngine.AISamples/CasaEngine.AISamples.csproj -c Debug`
-- `dotnet run --project CasaEngine.AISamples/CasaEngine.AISamples.csproj -c Debug -- --validate-fsm-message-routing`
-- `dotnet run --project CasaEngine.AISamples/CasaEngine.AISamples.csproj -c Debug -- --validate-westworld-with-messaging`
+- `dotnet build CasaEngine/CasaEngine.csproj -c Debug`
+
+Note (2026-09-06) : le projet `CasaEngine.AISamples` et ses samples `westworld` cites par les versions precedentes de cette note ne sont plus dans le depot (aucun `.csproj` ni fichier source ne les contient). Les commandes de validation par sample (`--validate-fsm-message-routing`, `--validate-westworld-with-messaging`) et la selection `--sample westworld1` / `--sample westworld-with-messaging` sont donc historiques et ne peuvent plus etre relancees.
 
 ## Selection du sample interactif
 
-Le host `CasaEngine.AISamples` accepte maintenant :
-
-- `dotnet run --project CasaEngine.AISamples/CasaEngine.AISamples.csproj -c Debug -- --sample westworld1`
-- `dotnet run --project CasaEngine.AISamples/CasaEngine.AISamples.csproj -c Debug -- --sample westworld-with-messaging`
+Historique : le host `CasaEngine.AISamples` acceptait `--sample westworld1` et `--sample westworld-with-messaging` ; ce host n'existe plus dans le depot.
 
 Important : le host fixe explicitement `ContentPath` avant l'initialisation pour eviter que `CasaEngineGame` interprete `--sample` comme un chemin de contenu.

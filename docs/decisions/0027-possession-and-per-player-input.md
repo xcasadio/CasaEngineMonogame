@@ -1,0 +1,24 @@
+# ADR-0027: Possession and per-player input
+
+- **Status**: Accepted
+- **Date**: 2026-08-19
+- **Source**: `ai-agent/audits/analysis-possession-gameplay-framework.md:115-130`
+
+## Context
+
+The audit observes that CasaEngine's existing infrastructure (view-based routing, per-component authority, `GameplayProxy` scripts) resembles Unity/Godot much more than Unreal, and that the Pawn/Controller layer is precisely the part that is neither finished, nor used, nor aligned with the rest of the engine (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:115-117`). It recommends against finishing the Unreal-style model, since its value (networking, orchestrated respawn, `AIController`-as-brain) answers needs the engine does not have, and proposes a lighter, component-based design (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:119`).
+
+## Decision
+
+- `PlayerController` is treated as what it already is: a local player session, carrying `Player`/`PlayerIndex`, the view, and the UI — the equivalent of Unity's `PlayerInput`+`InputUser` pair. A conceptual rename (`PlayerSession`, `LocalPlayerContext`) can wait, since it is a public API (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:120`).
+- Possession is defined as a `PlayerController ↔ Entity` link with explicit side effects: `Possess(entity)` sets the link and sets `CharacterControllerComponent.SetControlMode(Player)` when present; `UnPossess()` removes the link and switches back to `AI`/`Disabled`. No `Pawn` class is needed: any `Entity` can be possessed, avoiding a forced inheritance hierarchy (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:121`).
+- Gameplay gets a per-player input entry point: a small facade (on or reachable from `PlayerController`) exposing filtered state — a snapshot of the view assigned via `InputRouter`/`ViewInputContext`, `InputMappingManager` mappings — returning "nothing" when the UI captures the keyboard or when the player's input is disabled, enforcing UI-first arbitration and the input gate (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:122`).
+- The two input-enabled flags are reconciled into a single path: `PlayerController.IsInputEnable` is the source, applied by the input facade; `Pawn.InputEnabled` is removed or deprecated (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:123`).
+- Dead code is cleaned up: the engine `AIController` (empty, duplicated by the real AI building blocks — navigation driver, steering bridge, FSM), the never-assigned `Pawn.Controller` back-reference, and the empty `Player` class (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:124`).
+
+## Consequences
+
+- Points 2–4 (possession link, per-player input facade, single input-enabled flag) are the core of the decision: they connect the existing possession link, `InputRouter`, and `ControlMode` without rewriting them, and `RPGDemo`'s `HumanPlayerController` FSM can migrate to read the facade instead of global managers (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:126`).
+- Local multi-player wiring end to end (looping `InitializePlayerControllers` over `PlayerStart` by index, finishing the `LocalPlayer` `// TODO`) is optional and later; per the audit, it was partially implemented on 2026-08-19 on the spawn/controller side (one `PlayerController` per `PlayerStart` index via `player_index`), with join/leave and device pairing left open (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:125`).
+- Dead-code cleanup was partial: the audit records `AIController` kept (compatibility with `PlayerStartupSettings`, repurposed to carry the AI mode) rather than removed, and `Player` kept as a future base rather than merged into `LocalPlayer`; the `Pawn` class itself was removed on 2026-08-19 after no serialization footprint was found (source: `ai-agent/audits/analysis-possession-gameplay-framework.md:124`).
+- Implementation status observed in code: `Controller.Possess(Entity entity)` and `Controller.UnPossess()` exist in `CasaEngine/Framework/Gameplay/Controller.cs`; `PlayerInput` exists at `CasaEngine/Framework/Input/PlayerInput.cs` and reads `IsInputEnabled => _playerController.IsInputEnable`; `PlayerController.IsInputEnable` exists in `CasaEngine/Framework/Gameplay/PlayerController.cs` as the single input-enabled flag; no `Pawn` class was found under `CasaEngine/` (`fd -i pawn -e cs` only matches unrelated demo/project files), confirming its removal; `AIController` still exists at `CasaEngine/Framework/Gameplay/AIController.cs`, confirming it was kept rather than removed. `Projects/CasaEngine.RPGDemo/Scripts/ScriptSign.cs:78` still carries a `// TODO` noting that disabling input via `playerController.IsInputEnable` is unsafe without a widget to re-enable it, consistent with join/leave and full input-gate wiring being left partial.

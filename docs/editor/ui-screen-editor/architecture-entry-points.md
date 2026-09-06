@@ -31,7 +31,7 @@ Le point de vigilance principal est la séparation des responsabilités :
   - point d'entrée principal pour brancher l'ouverture d'assets UIScreen
 - `CasaEngine.EditorServices/EditorProjectSession.cs`
   - conserve l'état minimal de session, notamment le chemin du projet courant
-- `CasaEngine/Framework/Project/ProjectSettingsHelper.cs`
+- `CasaEngine/Framework/Configuration/Project/ProjectSettingsHelper.cs`
   - charge la configuration projet et initialise le catalogue d'assets
 
 ## 3. Sérialisation et patterns d'authoring existants
@@ -64,16 +64,11 @@ Le point de vigilance principal est la séparation des responsabilités :
   - contrat minimal pour un hôte de vue côté UI
 
 ### Hôtes d'éditeur
-- `CasaEngine.EditorUI/Controls/EngineHost.cs`
-  - pont principal entre l'éditeur et le runtime MonoGame
-  - `RegisterEditorView()` et `UnregisterEditorView()` sont les points d'entrée les plus probables pour une preview UIScreen
-- `CasaEngine.EditorUI/Controls/ViewportControl.cs`
-  - contrôle WPF qui affiche une `RenderView`
-  - utile si la preview screen doit vivre dans un onglet dédié existant
+- Les hôtes WPF `CasaEngine.EditorUI/Controls/EngineHost.cs` et `ViewportControl.cs` cités ici à l'origine n'existent plus : le projet `CasaEngine.EditorUI` a été remplacé par l'éditeur MGUI `CasaEngine.Editor` (constat du 2026-09-06).
 - `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
-  - alternative MGUI déjà intégrée pour héberger une vue et ses overlays
-  - bonne référence si on veut rester côté runtime UI au lieu d'ajouter de nouveaux contrôles WPF
-- `CasaEngine/Framework/Game/Components/Editor/EditorViewContext.cs`
+  - hôte MGUI intégré pour héberger une vue et ses overlays
+  - la référence pour héberger une preview screen côté runtime UI
+- `CasaEngine.Editor/Runtime/EditorViewContext.cs`
   - agrège l'état par vue : `RenderView`, caméra, surface, overlays
   - extension possible pour stocker le contexte de preview screen
 
@@ -90,7 +85,7 @@ Le point de vigilance principal est la séparation des responsabilités :
   - réutilisable pour brancher l'ouverture d'un asset UIScreen depuis le content browser
 
 ### Sauvegarde globale d'éditeur
-- `CasaEngine.Editor/Game1.cs`
+- `CasaEngine.Editor/GameEditor.cs`
   - contient le flux de sauvegarde projet et layout
   - point d'intégration potentiel pour le save global des screens ouverts
 
@@ -151,7 +146,7 @@ Le point de vigilance principal est la séparation des responsabilités :
   - `UIScreenDocument`, `UIScreenNode`, `UIScreenPropertyValue`
   - parser et serializer XAML dédiés à l'édition
   - session d'édition de screen
-- `CasaEngine.Editor` ou `CasaEngine.EditorUI`
+- `CasaEngine.Editor`
   - panneau hiérarchie
   - inspector
   - host de preview
@@ -162,7 +157,7 @@ Le point de vigilance principal est la séparation des responsabilités :
 1. ouvrir un asset UIScreen via `EditorProjectAuthoringService` et `EditorAssetCatalogService`
 2. charger le XAML dans un `UIScreenDocument`
 3. reconstruire une preview via `UIRoot` et `XAMLParser` ou un builder dédié
-4. afficher la preview dans une `RenderView` enregistrée via `EngineHost`
+4. afficher la preview dans une `RenderView` enregistrée via `ViewManager` et hébergée comme dans `WorldViewportPanel` (l'ancien `EngineHost` WPF n'existe plus)
 5. faire converger hiérarchie et inspector sur le document, pas sur les contrôles runtime
 
 ## 9. Résumé des points d'entrée prioritaires
@@ -170,7 +165,7 @@ Le point de vigilance principal est la séparation des responsabilités :
 ### CasaEngine
 - `CasaEngine.EditorServices/EditorProjectAuthoringService.cs`
 - `CasaEngine.EditorServices/EditorAssetCatalogService.cs`
-- `CasaEngine.EditorUI/Controls/EngineHost.cs`
+- `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
 - `CasaEngine/Framework/Rendering/ViewManager.cs`
 - `CasaEngine.Editor/Controls/EntitiesPanel.cs`
 - `CasaEngine.Editor/Controls/ContentBrowserPanel.cs`

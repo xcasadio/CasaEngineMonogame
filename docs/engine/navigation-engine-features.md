@@ -108,7 +108,7 @@ Résultat constaté : 84 tests, 0 échec. Les avertissements de build restants c
 |---|---|---|
 | `NavigationGrid2D` | Non constaté comme type moteur existant. | À créer pour la V1 depuis une couche TileMap explicite `navigation.role=grid`. |
 | `NavigationSystem` dédié | Non constaté comme système moteur existant. | À créer en cohérence avec `World.Update`, `WorldSpatialServices` et les drivers controller existants. |
-| `NavigationAgentComponent` générique | Non constaté comme type distinct ; il existe déjà `SteeringAgentComponent` et un driver controller/navigation. | Ne pas créer avant audit de réutilisation ou décision d'isolation. |
+| `NavigationAgentComponent` générique | Au moment de la note : non constaté comme type distinct ; il existait déjà `SteeringAgentComponent` et un driver controller/navigation. Depuis, le type existe (`CasaEngine/Framework/AI/Navigation/NavigationAgentComponent.cs`, constat du 2026-09-06) et sert notamment à l'action de cutscene `NavigateTo`. | Décision d'origine : ne pas créer avant audit de réutilisation ou décision d'isolation. Le composant a été créé depuis. |
 | Données TileMap de navigation | Pas de schéma moteur historique constaté pour walkable/cost/layers. | Schéma V1 retenu : couche dédiée via `TileMapLayerData.CustomProperties` + propriétés `navigation.*` sur `TileData.CustomProperties`. |
 | Off-mesh links | Pas de type moteur navigation dédié constaté. | À reporter après V1 grille testée. |
 | NavMesh 3D | Pas de système NavMesh runtime constaté. | Hors V1 ; V2/V3 seulement après noyau 2D stable. |
@@ -2090,3 +2090,5 @@ L’animation reflète ou pilote ce mouvement.
 ```
 
 C’est cette séparation qui permet d’avoir un système robuste, extensible et compatible avec le gameplay, la physique, l’animation et les cutscenes.
+
+Decisions: see [ADR-0023](../decisions/0023-navigation-v1-on-tilemap-grids.md).

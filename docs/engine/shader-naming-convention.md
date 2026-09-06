@@ -12,6 +12,8 @@ This convention keeps material shaders, debug utilities, 2D/blit shaders, and sh
 | Shared includes | `.fxh` + semantic role | `Macros.fxh`, `Lighting.fxh`, `Structures.fxh` | Favor role-driven names; broader include renames can happen separately when churn is justified. |
 | Legacy/archived shaders | remove from shipping content when unused | `axisComponent.fx`, `simple.fx` | Do not keep dead utility shaders in MGCB unless a compatibility need is explicit. |
 
+Decisions: see [ADR-0010](../decisions/0010-shader-naming-convention.md).
+
 ## Applied decisions
 
 - `basicEffect.fx` has already been renamed to `LitForward.fx` to avoid confusion with MonoGame `BasicEffect`.

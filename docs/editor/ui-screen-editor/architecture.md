@@ -209,3 +209,5 @@ Décisions reportées :
 - support complet des bindings, styles et resources avancés
 - édition visuelle avancée avec drag and drop complet et resize intelligent
 - composants réutilisables et templates authoring avancés
+
+Decisions: see [ADR-0016](../../decisions/0016-ui-screen-editor-v1.md).

@@ -2,6 +2,7 @@
 
 Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture sont figées dans
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
+Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md) and [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md).
 
 ---
 

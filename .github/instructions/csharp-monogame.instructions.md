@@ -1,18 +1,12 @@
 ---
+name: csharp-monogame
+description: Règles propres aux fichiers C# du dépôt, en complément d'AGENTS.md.
 applyTo: "**/*.cs"
 ---
 
-# Instructions C# / MonoGame (tous fichiers .cs)
+# Instructions — C# / MonoGame (tous fichiers .cs)
 
-## Style
-- Pas de LINQ dans Update/Draw.
-- Préférer des méthodes petites et testables.
-- Exceptions uniquement pour erreurs de programmation (arguments invalides).
+Les règles générales (chemins chauds, état GPU, API publique, style, erreurs, tests) sont dans `AGENTS.md` à la racine. Ce fichier n'ajoute que ce qui est propre au C#.
 
-## Patterns
-- Invalidation : `InvalidateLayout/Measure/Arrange` (ou équivalent) sur changement de props UI.
-- Input : routing clair, capture, focus.
-- Rendering : toujours restaurer l’état GPU.
-
-## Tests
-- Si tu touches des calculs purs (layout, rect intersections, tri z-order), ajouter des tests unitaires si possible.
+- Exceptions uniquement pour les erreurs de programmation (arguments invalides). Les erreurs de données et d'assets se signalent avec du contexte, sans lever à chaque frame.
+- Un calcul pur (layout, intersections de rectangles, tri par z-order) touché par la tâche reçoit un test unitaire dans `CasaEngine.Tests`.

@@ -261,7 +261,6 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, string> _automationEditedFileSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private bool _automationEditedFilesRestored;
 
-    // ── IObservableUpdate (required by CasaGameRenderHost<Game1>) ──────
     public event EventHandler<TimeSpan> PreviewUpdate;
     public event EventHandler<EventArgs> EndUpdate;
 
@@ -330,7 +329,7 @@ public class GameEditor : Game, IObservableUpdate
         backend.Runtime.TextEngine = _fontStashSharpEngine;
 
         _desktop = new MGDesktop(backend.Runtime);
-    _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
+        _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
         _desktop.LoadDefaultResources();
 
         // Register editor logger

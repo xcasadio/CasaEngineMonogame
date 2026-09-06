@@ -5,7 +5,7 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 ## Etat final
 
 - La source de verite authoring est `MaterialAsset` + `MaterialDefinition`; le runtime ne maintient plus de chemin legacy material/shader parallele.
-- `CompiledMaterial` est la representation compilee partagee entre cache, inspection runtime et draw path.
+- `CompiledMaterial` est la representation compilee partagee entre cache, inspection runtime et draw path (etats de rendu, features et shader effectif via `RenderItem.CompiledMaterial`) ; le binding des parametres au draw reste porte par `MaterialBase` (voir `materials-sources-of-truth.md`).
 - Les renderers runtime CasaEngine n'instancient plus `Microsoft.Xna.Framework.Graphics.BasicEffect`; les besoins debug/outillage passent par des effects CasaEngine explicites.
 - Le pipeline forward utilise un plafond fixe de 8 directional lights avec `ActiveDirectionalLightCount`, compatible MonoGame/mgfxc et extensible vers une strategie de culling plus fine plus tard.
 - Les shaders utilitaires actifs sont maintenant separes de l'architecture material et documentes a part via l'inventaire des effects et la convention de nommage.

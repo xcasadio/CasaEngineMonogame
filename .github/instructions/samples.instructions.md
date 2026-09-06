@@ -1,14 +1,15 @@
 ---
-applyTo: "{CasaEngine.Demos/**,CasaEngine.SimpleEditor/**,Projects/**}"
+name: samples
+description: Règles propres aux démos et projets d'exemple.
+applyTo: "{CasaEngine.Demos/**,Projects/**}"
 ---
 
-# Instructions — Samples / Demos / Gameplay
+# Instructions — Samples, démos, gameplay
 
-## Objectifs
-- Samples minimalistes mais “jouables”.
-- Montrer clairement une feature (UI, rendering, physics, gameplay).
+Les règles générales sont dans `AGENTS.md` (§6 : un sample minimal est obligatoire pour toute feature visible non triviale). Ce fichier détaille ce qui est propre aux samples.
 
-## Règles
-- Un sample = une feature principale + README court.
-- Assets : minimiser, réutiliser, documenter le pipeline content.
-- Ajouter un menu de sélection de sample si possible.
+- Un sample est minimaliste mais jouable, et montre clairement une feature principale (UI, rendu, physique, gameplay).
+- Un sample = une feature principale + un README court : objectif, contrôles, comment lancer.
+- Assets : en minimiser le nombre, réutiliser l'existant, documenter le pipeline de contenu.
+- Ajouter le sample au menu de sélection des démos quand il en existe un.
+- Pas de dépendance inutile.

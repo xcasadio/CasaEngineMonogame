@@ -1,11 +1,13 @@
 # Import 3D Static Model — Architecture & Task List
 
+> **Réconciliation avec le code (2026-09-06, chantier ai-guidelines T5.5)** : 25 tâches vérifiées livrées, 1 restante (Task 6.2 : tester l'import via l'éditeur, aucun test d'import FBX réel par l'éditeur trouvé). Références périmées annotées : `CasaEngine.EditorUI/` (projet WPF supprimé), `RiggedModelLoader` et `StaticModelImporter` (supprimés par la migration glTF, ADR-0019), `ContentBrowserControl.ImportAssetFile` et `Import3dFileOptionsWindow` (ont existé, supprimés avec les projets WPF : commit `dc2f4d25` « remove unused projects »), `Framework/Graphics/` (réel : `Framework/Rendering/Models/`). Le plan reste actif tant que la Task 6.2 n'est pas faite.
+
 ## Analyse de l'existant
 
 ### Problème actuel
 - `StaticMesh` ne gère qu'**un seul mesh** (un seul VertexBuffer/IndexBuffer).
 - `StaticMeshComponent` référence un seul `StaticMesh` + un seul `Material`.
-- L'import 3D (`ContentBrowserControl.ImportAssetFile`) crée toujours un `RiggedModel` → `SkinnedMesh`, même pour un modèle sans squelette.
+- L'import 3D (`ContentBrowserControl.ImportAssetFile`) crée toujours un `RiggedModel` → `SkinnedMesh`, même pour un modèle sans squelette. *(Référence périmée — `ContentBrowserControl` est introuvable dans le code actuel ; l'import passe aujourd'hui par `EditorAssetImportService.ImportFile`, `CasaEngine.EditorServices/EditorAssetImportService.cs:23`, appelé depuis `FileOperationService`, `CasaEngine.Editor/ContentBrowser/Services/FileOperationService.cs:423`. Ce constat décrit l'état d'avant ce plan, avant migration glTF.)*
 - Il n'existe pas de concept d'**asset de modèle statique** (équivalent d'un `.fbx` importé en tant qu'asset réutilisable composé de plusieurs meshes avec hiérarchie).
 
 ### Ce qui existe déjà
@@ -21,8 +23,8 @@
 | `SceneComponent` | Base avec hiérarchie Parent/Children + Coordinates (position/rotation/scale) |
 | `PrimitiveComponent` | SceneComponent avec représentation géométrique |
 | `RiggedModel` | Modèle chargé via Assimp avec squelette, meshes, animations |
-| `RiggedModelLoader` | Charge un fichier 3D (FBX, etc.) via Assimp → RiggedModel |
-| `ModelLoader` | IAssetLoader qui utilise RiggedModelLoader |
+| ~~`RiggedModelLoader`~~ | **Supprimé par la migration glTF** (`ai-agent/tasks/gltf-import-migration-tasks.md`, ADR `docs/decisions/0019-gltf-import-migration.md`) — introuvable dans le code (recherche `class RiggedModelLoader` négative). Le runtime charge désormais les modèles riggés via `GltfRiggedModelReader` (`CasaEngine/Framework/Assets/Animations/GltfRiggedModelReader.cs`) |
+| `ModelLoader` | IAssetLoader qui utilise `GltfRiggedModelReader` (`CasaEngine/Framework/Assets/Loaders/ModelLoader.cs`) — utilisait `RiggedModelLoader`/Assimp avant la migration glTF |
 | `ElementFactory` | Crée des objets par nom de type (reflection) + Load JSON |
 | `Constants.FileNameExtensions` | Extensions d'assets (`.model`, `.texture`, etc.) |
 
@@ -57,7 +59,7 @@ Fichier 3D (.fbx/.obj/.gltf)
 
 ### Nouvelles classes (Engine — `CasaEngine/`)
 
-#### 1. `StaticModelMesh` (dans `Framework/Graphics/`)
+#### 1. `StaticModelMesh` (dans `Framework/Graphics/`) *(chemin réel : `CasaEngine/Framework/Rendering/Models/StaticModelMesh.cs`)*
 Un sous-mesh du modèle. Remplace l'usage direct de `StaticMesh` pour les modèles importés.
 
 ```csharp
@@ -82,7 +84,7 @@ public class StaticModelMesh
 }
 ```
 
-#### 2. `StaticModelNode` (dans `Framework/Graphics/`)
+#### 2. `StaticModelNode` (dans `Framework/Graphics/`) *(chemin réel : `CasaEngine/Framework/Rendering/Models/StaticModelNode.cs`)*
 Un nœud de la hiérarchie du modèle (transform + ref optionnelle vers un mesh).
 
 ```csharp
@@ -104,7 +106,7 @@ public class StaticModelNode : ISerializable
 }
 ```
 
-#### 3. `StaticModel` (dans `Framework/Graphics/`)
+#### 3. `StaticModel` (dans `Framework/Graphics/`) *(chemin réel : `CasaEngine/Framework/Rendering/Models/StaticModel.cs`)*
 L'asset principal, hérite de `ObjectBase`. Contient la hiérarchie complète + tous les meshes.
 
 ```csharp
@@ -132,7 +134,7 @@ public class StaticModelLoader : IAssetLoader
 }
 ```
 
-#### 5. `StaticModelImporter` (dans `Framework/Assets/Loaders/`)
+#### 5. `StaticModelImporter` (dans `Framework/Assets/Loaders/`) — ⚠️ **Supprimé par la migration glTF** : cette classe a existé (Task 3.1, implémentée sous `#if EDITOR`) puis a été supprimée lors de la migration décrite dans `ai-agent/tasks/gltf-import-migration-tasks.md` et `docs/decisions/0019-gltf-import-migration.md` (« Deleted `StaticModelImporter.cs`, `RiggedModelLoader.cs`, `AssimpConverter.cs` »). Recherche `class StaticModelImporter` dans le code : négative. Le rôle décrit ici est aujourd'hui tenu par `GltfStaticModelReader` (`CasaEngine/Framework/Assets/Loaders/GltfStaticModelReader.cs:22`) + `AssimpToGltfConverter` (`CasaEngine.EditorServices/Import/AssimpToGltfConverter.cs:18`), orchestrés par `EditorAssetImportService.ImportFile` (`CasaEngine.EditorServices/EditorAssetImportService.cs:23`).
 Utilise Assimp pour convertir un fichier 3D en `StaticModel`. Utilisé **uniquement à l'import** dans l'éditeur.
 
 ```csharp
@@ -174,12 +176,12 @@ public class StaticMeshComponent : PrimitiveComponent
 
 > **Recommandation** : Garder `StaticMeshComponent` inchangé (1 mesh = 1 component), et **ajouter** un processus d'import qui crée une **Entity avec une hiérarchie de SceneComponents** à partir d'un `StaticModel`.
 
-### Modifications éditeur (`CasaEngine.EditorUI/`)
+### Modifications éditeur (`CasaEngine.EditorUI/`) — ⚠️ **Dossier disparu**. Il n'existe pas de projet `CasaEngine.EditorUI` dans le dépôt actuel (recherche `fd -t d "EditorUI"` négative). L'éditeur vit dans `CasaEngine.Editor/` (contrôles/panels, ex. `CasaEngine.Editor/Controls/ContentBrowserPanel.cs`, `CasaEngine.Editor/ContentBrowser/Services/FileOperationService.cs`) et `CasaEngine.EditorServices/` (logique d'import, ex. `EditorAssetImportService.cs`). Les classes `ContentBrowserControl` et `Import3dFileOptionsWindow` citées ci-dessous sont également introuvables telles quelles.
 
-#### 7. Modifier `ContentBrowserControl.ImportAssetFile`
-Ajouter le choix "Static Model" vs "Skinned Model" à l'import. Si static → utiliser `StaticModelImporter`.
+#### 7. Modifier `ContentBrowserControl.ImportAssetFile` *(introuvable — voir note ci-dessus ; l'entrée réelle est `EditorAssetImportService.ImportFile`, `CasaEngine.EditorServices/EditorAssetImportService.cs:23`)*
+Ajouter le choix "Static Model" vs "Skinned Model" à l'import. Si static → utiliser `StaticModelImporter` *(supprimée par la migration glTF — voir §5)*.
 
-#### 8. Modifier `Import3dFileOptionsWindow`
+#### 8. Modifier `Import3dFileOptionsWindow` *(introuvable — aucun fichier de ce nom dans le dépôt ; recherche `fd "Import3dFileOptionsWindow"` négative)*
 Ajouter un choix : type d'import (Static Model / Skinned Model).
 
 #### 9. `Constants.FileNameExtensions`
@@ -191,6 +193,8 @@ Enregistrer l'`IAssetLoader` pour le type `StaticModel` dans l'initialisation du
 ---
 
 ## Diagramme de flux d'import
+
+> ⚠️ **Diagramme périmé** : `Import3dFileOptionsWindow` et `StaticModelImporter` n'existent plus dans le code (voir §5, §7, §8 ci-dessus). Le flux réel (post-migration glTF) n'a plus de choix manuel Static/Skinned : `EditorAssetImportService.ImportFile` (`CasaEngine.EditorServices/EditorAssetImportService.cs:23`) détecte automatiquement un modèle riggé (squelette/animations séparés) via `TryImportSeparatedAnimationAssets`, sinon convertit la source en `.glb` si nécessaire (`AssimpToGltfConverter`) et la lit via `GltfStaticModelReader` pour produire un `.staticModel`.
 
 ```
 Utilisateur drag & drop un .fbx dans le Content Browser
@@ -244,19 +248,19 @@ StaticMeshRendererComponent.Flush()
 
 ### Phase 1 — Core Engine (classes de données)
 
-- [x] ✅ **Task 1.1** : Créer `StaticModelMesh.cs` dans `CasaEngine/Framework/Graphics/`
+- [x] ✅ **Task 1.1** : Créer `StaticModelMesh.cs` dans `CasaEngine/Framework/Graphics/` — ⚠️ chemin périmé, fichier réel : `CasaEngine/Framework/Rendering/Models/StaticModelMesh.cs`
   - ✅ Propriétés : Name, Vertices (VertexPositionNormalTexture[]), Indices (uint[]), PrimitiveType, MaterialIndex, TextureAssetId
   - ✅ VertexBuffer / IndexBuffer (créés dans Initialize)
   - ✅ Méthode `Initialize(GraphicsDevice device)`
   - ✅ Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
   - ✅ Méthode `GetVertices()` pour le calcul de bounding box
 
-- [x] ✅ **Task 1.2** : Créer `StaticModelNode.cs` dans `CasaEngine/Framework/Graphics/`
+- [x] ✅ **Task 1.2** : Créer `StaticModelNode.cs` dans `CasaEngine/Framework/Graphics/` — ⚠️ chemin périmé, fichier réel : `CasaEngine/Framework/Rendering/Models/StaticModelNode.cs`
   - ✅ Propriétés : Name, Position (Vector3), Rotation (Quaternion), Scale (Vector3), MeshIndex (int, -1 si pas de mesh), Children (List\<StaticModelNode\>)
   - ✅ Propriété calculée `LocalTransform` (Matrix)
   - ✅ Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
 
-- [x] ✅ **Task 1.3** : Créer `StaticModel.cs` dans `CasaEngine/Framework/Graphics/`
+- [x] ✅ **Task 1.3** : Créer `StaticModel.cs` dans `CasaEngine/Framework/Graphics/` — ⚠️ chemin périmé, fichier réel : `CasaEngine/Framework/Rendering/Models/StaticModel.cs`
   - ✅ Hérite de `ObjectBase`
   - ✅ Propriétés : RootNode (StaticModelNode), Meshes (List\<StaticModelMesh\>)
   - ✅ Méthode `Initialize(AssetContentManager)` qui initialise chaque mesh
@@ -279,7 +283,7 @@ StaticMeshRendererComponent.Flush()
 
 ### Phase 3 — Importer (Éditeur)
 
-- [x] ✅ **Task 3.1** : Créer `StaticModelImporter.cs` dans `CasaEngine/Framework/Assets/Loaders/` (sous `#if EDITOR`)
+- [x] ✅ **Task 3.1** : Créer `StaticModelImporter.cs` dans `CasaEngine/Framework/Assets/Loaders/` (sous `#if EDITOR`) — ⚠️ **Référence périmée** : cette classe a bien été livrée telle que décrite (Assimp direct), puis **supprimée par la migration glTF** (`ai-agent/tasks/gltf-import-migration-tasks.md`, ADR `docs/decisions/0019-gltf-import-migration.md` : « Deleted `StaticModelImporter.cs` »). Recherche `class StaticModelImporter` : négative. Rôle repris par `GltfStaticModelReader` (`CasaEngine/Framework/Assets/Loaders/GltfStaticModelReader.cs:22`) + `AssimpToGltfConverter` (`CasaEngine.EditorServices/Import/AssimpToGltfConverter.cs:18`).
   - ✅ Utilise `Assimp.AssimpContext` pour charger le fichier 3D
   - ✅ Parcourt `scene.RootNode` récursivement pour construire les `StaticModelNode`
   - ✅ Parcourt `scene.Meshes` pour construire les `StaticModelMesh` (vertices, indices, textures)
@@ -288,12 +292,12 @@ StaticMeshRendererComponent.Flush()
   - ✅ Retourne un `StaticModel` prêt à être sérialisé
   - ✅ PostProcessSteps recommandés : Triangulate, FlipUVs, GenerateNormals, JoinIdenticalVertices
 
-- [x] ✅ **Task 3.2** : Modifier `Import3dFileOptionsWindow.xaml` et `.xaml.cs`
+- [x] ✅ **Task 3.2** : Modifier `Import3dFileOptionsWindow.xaml` et `.xaml.cs` — ⚠️ **Référence périmée** : `Import3dFileOptionsWindow` introuvable dans le code actuel (recherche `fd "Import3dFileOptionsWindow"` négative). L'import ne propose plus de choix manuel Static/Skinned : `EditorAssetImportService.ImportFile` (`CasaEngine.EditorServices/EditorAssetImportService.cs:23`) décide automatiquement selon le contenu du fichier source. Statut réel (livré à l'origine puis remplacé, ou jamais construit sous ce nom) non vérifiable sans historique git — laissé tel quel par prudence.
   - ✅ Ajouter un RadioButton ou ComboBox : "Import as Static Model" / "Import as Skinned Model"
   - ✅ Exposer une propriété `ImportAsStaticModel` (bool)
   - Par défaut, sélectionner "Static" si le modèle n'a pas de squelette (peut être déterminé après)
 
-- [x] ✅ **Task 3.3** : Modifier `ContentBrowserControl.ImportAssetFile`
+- [x] ✅ **Task 3.3** : Modifier `ContentBrowserControl.ImportAssetFile` — ⚠️ **Référence périmée** : `ContentBrowserControl` introuvable ; l'entrée réelle est `FileOperationService` (`CasaEngine.Editor/ContentBrowser/Services/FileOperationService.cs:423`) qui appelle `EditorAssetImportService.ImportFile`, sans branche `ImportAsStaticModel` (voir Task 3.2).
   - ✅ Si `Import3dFileOptionsWindow.ImportAsStaticModel == true` :
     - ✅ Utiliser `StaticModelImporter.Import()`
     - ✅ Sauvegarder le `StaticModel` avec `AssetSaver.SaveAsset()` et extension `.staticModel`
@@ -357,8 +361,8 @@ StaticMeshRendererComponent.Flush()
   - Le rendu est maintenant délégué aux enfants `StaticModelSubMeshComponent` via la propagation `SceneComponent.Draw()` → `Children[i].Draw()`
   - Retirer `AccumulateBounds()` dans `GetBoundingBox()` — le calcul est maintenant fait par les enfants
 
-- [x] ✅ **Task 4.6** : Créer `StaticModelSubMeshComponentViewModel` + UIéditeur
-  - Créer le ViewModel dans `CasaEngine.EditorUI/Controls/EntityControls/ViewModels/`
+- [x] ✅ **Task 4.6** : Créer `StaticModelSubMeshComponentViewModel` + UIéditeur — ⚠️ chemin/nom périmés : `CasaEngine.EditorUI/` n'existe pas ; l'éditeur réel utilise `CasaEngine.Editor/Controls/ComponentEditors/StaticModelSubMeshComponentEditor.cs` (et `StaticModelComponentEditor.cs`), une architecture `ComponentEditor` MGUI, pas un `ViewModel` WPF
+  - Créer le ViewModel dans `CasaEngine.EditorUI/Controls/EntityControls/ViewModels/` *(chemin disparu — voir note ci-dessus)*
   - Enregistrer dans `ComponentViewModelFactory` (case `StaticModelSubMeshComponent`)
   - Afficher le nom du sous-mesh, le nombre de vertices/indices
   - *(Optionnel)* Exposer la visibilité par sous-mesh (toggle enable/disable)
@@ -373,7 +377,7 @@ StaticMeshRendererComponent.Flush()
 
 ### Phase 5 — Éditeur UI
 
-- [x] ✅ **Task 5.1** : Mettre à jour `ContentBrowserControl` pour ouvrir/prévisualiser les `.staticModel`
+- [x] ✅ **Task 5.1** : Mettre à jour `ContentBrowserControl` pour ouvrir/prévisualiser les `.staticModel` — ⚠️ classe périmée : `ContentBrowserControl` introuvable ; l'équivalent réel est `CasaEngine.Editor/Controls/ContentBrowserPanel.cs`
   - ✅ Ajouter le case `.staticModel` dans le switch d'ouverture d'asset
   - Créer un contrôle de preview si nécessaire (ou réutiliser l'existant)
 
@@ -393,12 +397,12 @@ StaticMeshRendererComponent.Flush()
   - ✅ Vérification des transforms (position/rotation/scale de chaque nœud)
   - ✅ Enregistrée dans DemosGame
 
-- [ ] ❌ **Task 6.2** : Tester l'import via l'éditeur
-  - ❌ Import d'un FBX simple (1 mesh)
-  - ❌ Import d'un FBX multi-mesh avec hiérarchie
-  - ❌ Vérifier la sérialisation/désérialisation JSON
-  - ❌ Vérifier que les textures associées sont importées
-  - ❌ Vérifier le rechargement après fermeture/ouverture du projet
+- [ ] ❌ **Task 6.2** : Tester l'import via l'éditeur — statut confirmé toujours non fait : aucun test d'import de bout en bout (FBX réel → `.staticModel` via l'éditeur) trouvé. Les tests existants (`CasaEngine.Tests/Graphics/GltfStaticModelReaderTests.cs`, `CasaEngine.Tests/EditorServices/AssimpToGltfConverterTests.cs`) sont des tests unitaires du lecteur/convertisseur sur des fichiers générés en mémoire, pas un test d'import piloté par l'éditeur avec un FBX réel multi-mesh + textures + rechargement projet. `CasaEngine.Tests/EditorServices/EditorAssetImportServiceTests.cs` ne couvre que l'import Tiled (TMX/TMJ), aucun cas `.fbx`/`.staticModel`.
+  - ❌ Import d'un FBX simple (1 mesh) — confirmé non fait, aucune preuve trouvée
+  - ❌ Import d'un FBX multi-mesh avec hiérarchie — confirmé non fait, aucune preuve trouvée
+  - ❌ Vérifier la sérialisation/désérialisation JSON — confirmé non fait au sens "test d'import éditeur" (existe uniquement en unitaire isolé sur `GltfStaticModelReader`)
+  - ❌ Vérifier que les textures associées sont importées — confirmé non fait, aucune preuve trouvée
+  - ❌ Vérifier le rechargement après fermeture/ouverture du projet — confirmé non fait, aucune preuve trouvée
 
 ### Phase 7 — Dépréciation et suppression de `StaticMeshComponent`
 

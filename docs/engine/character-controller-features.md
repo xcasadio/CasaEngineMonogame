@@ -24,7 +24,7 @@ Le document cible d'abord un controleur 3D a capsule, car le moteur contient dej
 - `Controller` et `PlayerController` existent dans `CasaEngine.Framework.Gameplay` ; la classe `Pawn` a ete supprimee, un controller possede directement une `Entity`.
 - `Controller` possede une reference `Pawn` de type `Entity`, posee via `Possess`/`UnPossess` ; la possession pilote `CharacterControlMode` sur le `CharacterControllerComponent` de l'entite possedee, quand il existe.
 - `PlayerController` porte le `PlayerInput` (facade d'input filtree), l'affectation de vue et l'integration UI.
-- Aucun `CharacterControllerComponent` n'a ete trouve dans le code actuel.
+- Constat d'origine : aucun `CharacterControllerComponent` n'existait dans le code. Il a ete livre depuis (`CharacterControllerComponent : EntityComponent`, voir la section « La V1 ajoute maintenant les pieces suivantes » plus bas).
 
 ### Composants et transforms
 
@@ -309,7 +309,7 @@ Une cutscene peut prendre l'autorite, envoyer des intentions ou teleporter le pe
 
 ## Champs de collision : prerequis releves avant integration au mover
 
-**Ferme par E3.c (chantier `docs/plan-e3-collisions.md`) : les trois prerequis ci-dessous sont
+**Ferme par E3.c (chantier « plan E3 collisions », dont le plan n'est pas conserve dans le depot ; decisions reprises dans les ADR-0003 a ADR-0007) : les trois prerequis ci-dessous sont
 traites.** `SimulationSpacePolicy.Up` (virtuel, `Vector3.Up` par defaut, `Vector3.UnitZ` sous
 `TopDownElevation`) donne au mover sa base `(up, h1, h2)`, resolue une fois par `Update`/`Move` et
 utilisee par toutes les methodes qui codaient X/Z/Y en dur (`ApplyHorizontalVelocity`,
@@ -369,3 +369,5 @@ petite pour tomber dans ces clamps, auquel cas le calcul ci-dessus ne tient plus
 Le bon point de depart pour CasaEngine est un `CharacterControllerComponent` cinematique, base sur les composants existants, pilote par intentions et resolu par la physique.
 
 Le prealable technique est l'exposition propre des requetes de shape sweep/depenetration dans la couche physique. Sans cela, le controller ne pourra pas fournir les garanties attendues d'un moteur moderne : collision stable, slide, pentes, snap au sol et etat fiable pour l'animation et les cutscenes.
+
+Decisions: see [ADR-0025](../decisions/0025-kinematic-character-controller-v1.md).

@@ -16,6 +16,8 @@ objectif : on remplace, on ne double pas ; chaque phase supprime ce qu'elle remp
 invariants seulement : le dépôt compile et les démos/tests passent à chaque phase ; les assets
 régénérables (export Alundra) sont revalidés par un export complet.
 
+Decisions: see [ADR-0003](../decisions/0003-single-3d-simulation.md) to [ADR-0009](../decisions/0009-bepu-backend-replaces-bullet.md).
+
 ## Règle centrale
 
 > Une seule simulation physique, en 3D, pour tous les jeux. La « 2D » d'un jeu est une politique du
@@ -531,7 +533,7 @@ D  Espace de simulation   politique complète par monde ; pose logique vs pose d
                           mettre à jour ses enfants ; il publie donc toujours la position de la
                           racine de la même frame. Seule contrainte de placement : être un
                           descendant de la racine de l'entité, pas la racine elle-même.
-                          E3.0 (2026-08, plan-e3-collisions.md) : nouveau TransformComponent,
+                          E3.0 (2026-08, plan E3 collisions, non conservé dans le dépôt) : nouveau TransformComponent,
                           racine inerte concrète (aucun état, aucun visuel propre) enfin
                           disponible pour porter une pose logique pure — jusque-là aucune
                           sous-classe concrète de SceneComponent ne convenait. Son GetBoundingBox
