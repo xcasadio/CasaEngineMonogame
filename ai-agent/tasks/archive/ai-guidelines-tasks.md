@@ -1,5 +1,7 @@
 # Plan agent IA — Fichiers de guidage des agents IA (AGENTS.md, CLAUDE.md, .github, .claude, ADR)
 
+**[ARCHIVE]** Plan terminé le 2026-09-06 : 27 tâches ✅, vérifications de chargement faites par l'auteur, branche `ai-guidelines` mergée dans `main` à sa demande.
+
 Plan d'exécution du chantier décrit dans [analysis-ai-agent-files.md](../audits/analysis-ai-agent-files.md) (audit du 2026-09-06 : 128 constats confirmés par réfutation croisée, identifiés `[rac-NN]`, `[gh-NN]`, `[plans-NN]`, `[dec-NN]`).
 Les décisions D1 → D13 ci-dessous ont été arbitrées avec l'auteur le 2026-09-06 : **ce plan les applique, il ne les rediscute pas**. Les points P1 → P12 restent à valider à l'approbation du plan.
 
@@ -511,7 +513,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 6 — Clôture
 
-### 🧪 T6.1 — Validation globale et clôture du plan
+### ✅ T6.1 — Validation globale et clôture du plan
 
 - Objectif : prouver les critères de la « Validation globale » et fermer le chantier.
 - Fichiers : ce plan (résultats consignés), `ai-agent/README.md` (tableau).
@@ -519,8 +521,8 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Validation : les critères 3 → 7 sont vérifiés par commande avec sortie consignée ; les critères 1 et 2 sont ✅ ou 🧪 avec la procédure écrite pour l'auteur.
 - Commit : `docs(ai): close the AI-guidelines plan`
 - Note de validation (2026-09-06), critères de la « Validation globale » :
-  1. Chargement Claude Code : 🧪 **à faire par l'auteur** (la session courante ne peut pas être redémarrée). Procédure : ouvrir une nouvelle session Claude Code dans le dépôt sur la branche `ai-guidelines`, taper `/context` et vérifier que `CLAUDE.md` et `AGENTS.md` figurent sous « Memory files » ; lire un fichier de `CasaEngine/Framework/Rendering/` et vérifier que la règle `.claude/rules/rendering.md` est listée. En cas d'absence : `/memory` liste les fichiers attendus.
-  2. Chargement Copilot : 🧪 **à faire par l'auteur** dans VS Code : vérifier que le setting `chat.useAgentsMdFile` est actif et qu'une requête Copilot Chat cite `AGENTS.md` dans ses références.
+  1. Chargement Claude Code : ✅ **vérifié par l'auteur le 2026-09-06** (`/context` liste `CLAUDE.md` et `AGENTS.md`). Procédure utilisée : ouvrir une nouvelle session Claude Code dans le dépôt sur la branche `ai-guidelines`, taper `/context` et vérifier que `CLAUDE.md` et `AGENTS.md` figurent sous « Memory files » ; lire un fichier de `CasaEngine/Framework/Rendering/` et vérifier que la règle `.claude/rules/rendering.md` est listée. En cas d'absence : `/memory` liste les fichiers attendus.
+  2. Chargement Copilot : ✅ **vérifié par l'auteur le 2026-09-06** dans VS Code. Procédure utilisée : vérifier que le setting `chat.useAgentsMdFile` est actif et qu'une requête Copilot Chat cite `AGENTS.md` dans ses références.
   3. Frontmatters : `yq --front-matter=extract` parse sans erreur les 32 fichiers (6 instructions, 6 agents Copilot, 6 règles, 6 agents Claude, 8 skills).
   4. Liens : 104 fichiers `.md` ajoutés ou modifiés par le chantier contrôlés par script ; 10 signalements, tous hors critère : 9 dans `analysis-ai-agent-files.md` sont des citations textuelles de liens d'autres fichiers (preuves de l'audit, relatives à leur fichier d'origine), 1 est le lien de substitution `../audits/<analyse>.md` du modèle de plan. Aucun lien réel mort.
   5. Références périmées : `rg` des chemins et configurations disparus (`CasaEngine.EditorUI`, `CasaEngine.SimpleEditor`, `ThirdParties/`, `DebugEditor`, `Game1.cs`, `#if EDITOR`, `Framework/Game/`, `CasaEngine.AISamples`) dans `AGENTS.md`, `CLAUDE.md`, `.github/`, `.claude/` : aucune ; `BulletSharp`/`Jolt` dans ces mêmes fichiers : aucune ; docs touchées par T5.2 et T5.3 : plus aucune référence active (seules restent des mentions datées au passé).

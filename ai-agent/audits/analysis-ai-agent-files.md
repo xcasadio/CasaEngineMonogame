@@ -2,7 +2,7 @@
 
 Méthode : 4 auditeurs en lecture seule (une surface chacun), puis 2 réfutateurs indépendants par constat (exactitude des citations, validité du raisonnement). Un constat est **confirmé** seulement si aucun des deux ne l'a réfuté. Aucune recommandation n'a été demandée aux agents : uniquement des faits cités (fichier:ligne).
 
-Chaque constat confirmé porte un identifiant stable `[rac-NN]`, `[gh-NN]`, `[plans-NN]` ou `[dec-NN]` (surface + rang), utilisé par le plan `ai-agent/tasks/ai-guidelines-tasks.md`.
+Chaque constat confirmé porte un identifiant stable `[rac-NN]`, `[gh-NN]`, `[plans-NN]` ou `[dec-NN]` (surface + rang), utilisé par le plan `ai-agent/tasks/archive/ai-guidelines-tasks.md` (archivé une fois terminé).
 
 Total : 128 confirmés, 20 réfutés, 2 non conclus (1 seul verdict, non réfutant).
 

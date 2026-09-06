@@ -1,6 +1,6 @@
 # Inventaire des décisions d'architecture existantes (rétro-remplissage ADR)
 
-Relevé du 2026-09-06 pour la tâche T4.3 du plan [ai-guidelines-tasks.md](../tasks/ai-guidelines-tasks.md).
+Relevé du 2026-09-06 pour la tâche T4.3 du plan [ai-guidelines-tasks.md](../tasks/archive/ai-guidelines-tasks.md) (archivé une fois terminé).
 
 Méthode : six sous-agents en lecture seule (modèle haiku, un par thématique) ont lu intégralement les sources listées dans le plan et rendu, pour chaque décision, le texte ou un résumé fidèle, la source `fichier:ligne`, la date quand le document la donne, les doublons, et un statut d'implémentation constaté par `Grep`/`Glob`. **Les statuts et les résumés sont ceux des relevés** : chaque décision est relue à sa source et vérifiée dans le code au moment d'écrire son ADR (tâches T4.4 → T4.9) ; l'ADR fait foi, pas ce relevé.
 

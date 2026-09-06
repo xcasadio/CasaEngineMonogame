@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-09-06
-- **Source**: `ai-agent/tasks/ai-guidelines-tasks.md:14-25,46,47,52,53,74,75,76`
+- **Source**: `ai-agent/tasks/archive/ai-guidelines-tasks.md:14-25,46,47,52,53,74,75,76` (line numbers as of the plan's approval; the plan was archived on completion)
 
 ## Context
 
