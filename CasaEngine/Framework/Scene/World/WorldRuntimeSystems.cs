@@ -18,8 +18,10 @@ public sealed class WorldRuntimeSystems
 
     public void Update(FrameTime frameTime)
     {
-        CharacterMotion.Update(frameTime);
+        // Coroutines issue the motion requests that CharacterMotion consumes, so they must run
+        // first: in the reverse order a request issued on frame N only takes effect on frame N+1.
         CoroutineManager.Update(new CoroutineUpdateContext(frameTime));
+        CharacterMotion.Update(frameTime);
     }
 
     public void Clear()
