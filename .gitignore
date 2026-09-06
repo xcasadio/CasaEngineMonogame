@@ -59,3 +59,6 @@ CasaEngine.Tests/TestResults/
 # Local verification builds (dotnet build -p:BaseOutputPath=artifacts/verify-build/) #
 ######################################################################################
 CasaEngine/artifacts/
+
+# Claude Code personal project settings (shared settings live in .claude/settings.json)
+.claude/settings.local.json

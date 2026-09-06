@@ -325,7 +325,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 3 — Réglages et hooks Claude Code
 
-### ⏳ T3.1 — Créer `.claude/settings.json` partagé
+### ✅ T3.1 — Créer `.claude/settings.json` partagé
 
 - Objectif : permissions communes commitées (D8), refus de push (D3).
 - Fichiers : `.claude/settings.json` (nouveau), `.gitignore` (ajout de `.claude/settings.local.json`, aujourd'hui ignoré seulement par le fichier d'exclusion global de l'auteur).
@@ -336,6 +336,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   4. `env.CLAUDE_CODE_SUBAGENT_MODEL = "sonnet"` (P4 ; doc sous-agents : troisième niveau de l'ordre de résolution du modèle, avant le modèle de la session).
 - Validation : `jq . .claude/settings.json` valide ; `git push --dry-run` lancée par l'agent est refusée par la règle `deny` ; `git check-ignore -v .claude/settings.local.json` cite désormais le `.gitignore` du dépôt.
 - Commit : `chore(claude): add the shared project settings with permission rules`
+- Note de validation (2026-09-06) : `jq` valide le fichier (17 règles `allow`, `deny` = `Bash(git push *)`, `env.CLAUDE_CODE_SUBAGENT_MODEL` = `sonnet`) ; `git push --dry-run origin ai-guidelines` lancée depuis l'outil Bash de la session a été **refusée** par la règle `deny`, prise en compte sans redémarrage ; `git check-ignore -v .claude/settings.local.json` cite `.gitignore:64` ; `.gitignore` conservé en CRLF (fins de ligne du fichier existant). Syntaxe des règles : doc permissions Claude Code (forme `Bash(<préfixe> *)`, évaluation deny → ask → allow).
 
 ### ⏳ T3.2 — Hook : interdire tout commit sur `main`
 
