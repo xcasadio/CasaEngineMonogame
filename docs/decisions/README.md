@@ -41,3 +41,8 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0025](0025-kinematic-character-controller-v1.md) | Kinematic character controller V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0026](0026-animation-deformer-support-policy-and-motion-matching-rd.md) | Animation deformer support policy and motion matching as a separate R&D stream | Accepted | 2026-09-06 (backfill) |
 | [ADR-0027](0027-possession-and-per-player-input.md) | Possession and per-player input | Accepted | 2026-08-19 |
+| [ADR-0028](0028-layering-rule-and-deferred-assembly-split.md) | Core-Engine-Framework layering rule and deferred assembly split | Accepted | 2026-09-06 (backfill) |
+| [ADR-0029](0029-folder-hierarchy-and-namespace-layout.md) | Folder hierarchy and namespace layout | Accepted | 2026-09-06 (backfill) |
+| [ADR-0030](0030-agents-md-single-source-and-tooling-layout.md) | AGENTS.md as the single source of AI agent rules and the tooling layout | Accepted | 2026-09-06 |
+| [ADR-0031](0031-ai-agent-working-rules.md) | AI agent working rules | Accepted | 2026-09-06 |
+| [ADR-0032](0032-language-policy-and-adr-practice.md) | Language policy and ADR practice | Accepted | 2026-09-06 |
