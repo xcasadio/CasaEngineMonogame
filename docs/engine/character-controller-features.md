@@ -309,7 +309,7 @@ Une cutscene peut prendre l'autorite, envoyer des intentions ou teleporter le pe
 
 ## Champs de collision : prerequis releves avant integration au mover
 
-**Ferme par E3.c (chantier `docs/plan-e3-collisions.md`) : les trois prerequis ci-dessous sont
+**Ferme par E3.c (chantier « plan E3 collisions », dont le plan n'est pas conserve dans le depot ; decisions reprises dans les ADR-0003 a ADR-0007) : les trois prerequis ci-dessous sont
 traites.** `SimulationSpacePolicy.Up` (virtuel, `Vector3.Up` par defaut, `Vector3.UnitZ` sous
 `TopDownElevation`) donne au mover sa base `(up, h1, h2)`, resolue une fois par `Update`/`Move` et
 utilisee par toutes les methodes qui codaient X/Z/Y en dur (`ApplyHorizontalVelocity`,

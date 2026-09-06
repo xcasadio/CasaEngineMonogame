@@ -533,7 +533,7 @@ D  Espace de simulation   politique complète par monde ; pose logique vs pose d
                           mettre à jour ses enfants ; il publie donc toujours la position de la
                           racine de la même frame. Seule contrainte de placement : être un
                           descendant de la racine de l'entité, pas la racine elle-même.
-                          E3.0 (2026-08, plan-e3-collisions.md) : nouveau TransformComponent,
+                          E3.0 (2026-08, plan E3 collisions, non conservé dans le dépôt) : nouveau TransformComponent,
                           racine inerte concrète (aucun état, aucun visuel propre) enfin
                           disponible pour porter une pose logique pure — jusque-là aucune
                           sous-classe concrète de SceneComponent ne convenait. Son GetBoundingBox

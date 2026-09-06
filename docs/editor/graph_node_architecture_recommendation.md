@@ -21,7 +21,7 @@ Elements verifies:
 - un controle `MGGraphView` dans `MGUI/MGUI.Core/UI/MGGraphControls.cs`;
 - un modele et des services dans `MGUI/MGUI.Core/UI/Graph/`;
 - un guide V1 dans `MGUI/docs/graph-view-v1-guide.md`;
-- un plan agent detaille dans `MGUI/docs/graph_node_system_agent_plan.md`;
+- un plan de taches dans `MGUI/docs/Tasks/graph-tasks.md` (l'ancien `MGUI/docs/graph_node_system_agent_plan.md` cite ici n'existe plus);
 - un sample `GraphViewDialogue` dans `MGUI/MGUI.Samples/Features/GraphViewDialogue.xaml` et `GraphViewDialogue.xaml.cs`;
 - une couverture de tests dediee dans `MGUI/MGUI.Tests/Graph/`.
 
@@ -293,7 +293,7 @@ Prendre le socle MGUI actuel comme baseline officielle.
 Objectifs:
 
 - ne rien reimplementer dans MGUI sur le perimetre deja livre;
-- s'appuyer sur `graph-view-v1-guide.md` et `graph_node_system_agent_plan.md` comme references d'implementation;
+- s'appuyer sur `MGUI/docs/graph-view-v1-guide.md` et `MGUI/docs/Tasks/graph-tasks.md` comme references d'implementation;
 - verifier que l'integration future CasaEngine consomme les types reels deja exposes.
 
 Livrable:

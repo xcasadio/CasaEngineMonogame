@@ -6,10 +6,10 @@ This note maps the current end-to-end hot reload path for material authoring cha
 
 1. A `.material` file is saved through `EditorAssetWriterService`.
 2. `EditorAssetWriterService.AssetSaved` publishes `EditorAssetSavedEventArgs` with relative path, full path, asset id, and save source.
-3. `CasaEngine.Editor.Game1.OnEditorAssetSaved(...)` filters the event to `.material` files only.
+3. `CasaEngine.Editor.GameEditor.OnEditorAssetSaved(...)` filters the event to `.material` files only.
 4. The editor tries to recover the saved `MaterialAsset` instance directly when the save originated from `MaterialInspectorPanel`.
 5. Matching material inspector panels are refreshed from disk when the save did not originate from that panel itself.
-6. `Game1` resolves the material asset id and forwards the reload request to `_editorRuntime.ReloadMaterialAsset(...)`.
+6. `GameEditor` resolves the material asset id and forwards the reload request to `_editorRuntime.ReloadMaterialAsset(...)`.
 7. `CasaEngineGame.ReloadMaterialAsset(...)` refreshes the dependency graph through `MaterialDependencyIndex` and collects all affected material ids.
 8. Each affected material id invalidates the runtime `MaterialCache` entry.
 9. The authoring cache is updated in place when the saved `MaterialAsset` instance is already available; otherwise `MaterialAuthoringAssetCache` is invalidated for the root asset.
@@ -30,9 +30,9 @@ This note maps the current end-to-end hot reload path for material authoring cha
 | Stage | Main code |
 | --- | --- |
 | Save event emission | `CasaEngine.EditorServices/EditorAssetWriterService.cs` |
-| Editor event handling | `CasaEngine.Editor/Game1.cs` |
-| Runtime cache invalidation | `CasaEngine/Framework/Game/CasaEngineGame.cs` |
-| Static model refresh | `CasaEngine/Framework/Entities/Components/StaticModelComponent.cs` |
+| Editor event handling | `CasaEngine.Editor/GameEditor.cs` |
+| Runtime cache invalidation | `CasaEngine/Framework/Application/CasaEngineGame.cs` |
+| Static model refresh | `CasaEngine/Framework/Scene/Entities/Components/StaticModelComponent.cs` |
 | Preview recompilation | `CasaEngine.Editor/Controls/MaterialPreviewViewport.cs` |
 
 ## Invariants not to break

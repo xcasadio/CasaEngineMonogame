@@ -47,9 +47,9 @@ Usage V1 actuel:
 Implementation concrete:
 - `PreviewEnvironmentFactory.CreateNeutralPreview(...)`
 - `WorldViewportPanel.SetEnvironmentOverride(...)`
-- `Game1.GetOrCreateMaterialViewportPanel(...)`
+- `GameEditor.GetOrCreateMaterialViewportPanel(...)` (`CasaEngine.Editor/GameEditor.cs`)
 
-Le smoke editor existant rapporte maintenant l'etat d'override du material preview dans `ai-agent/material-preview-smoke.txt`.
+Le smoke editor existant rapporte l'etat d'override du material preview dans `editor-material-preview-smoke.txt`, a la racine du depot (derniere capture : 2026-04-05).
 
 ## Authoring editor
 

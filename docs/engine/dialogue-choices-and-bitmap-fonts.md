@@ -115,7 +115,7 @@ enregistré via `AddStaticFont`) ou de laisser le comportement par défaut.
 
 ---
 
-## 3. Ce qui reste hors moteur (rappel D-E12-5)
+## 3. Ce qui reste hors moteur
 
 Toute sémantique Alundra — masques de fermeture (`g_etcAnimationMode`), `Result` du choix,
 résolution des libellés OUI/NON via `etc-index.json`, découpage en pages, codes de contrôle `\`,

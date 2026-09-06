@@ -16,9 +16,9 @@ Le `GameplayMode` ne doit pas devenir un `GameManager` global. Il ne doit pas pr
 
 ## Constats vérifiés dans le dépôt
 
-Ces points décrivent l'état actuel du code au moment de cette note.
+Ces points décrivent l'état du code au moment de cette note, avant la V1. Depuis, `GameMode` a été remplacé par [CasaEngine/Framework/Gameplay/GameplayMode.cs](../../CasaEngine/Framework/Gameplay/GameplayMode.cs) et le runner décrit plus bas (voir [ADR-0024](../decisions/0024-gameplaymode-v1.md)) ; les lignes suivantes sont conservées comme constat d'origine.
 
-- La classe actuelle est [CasaEngine/Framework/Gameplay/GameMode.cs](../../CasaEngine/Framework/Gameplay/GameMode.cs).
+- La classe d'origine était `CasaEngine/Framework/Gameplay/GameMode.cs` (supprimée depuis).
 - Elle reprend une machine à états de match proche d'Unreal : `EnteringMap`, `WaitingToStart`, `InProgress`, `WaitingPostMatch`, `LeavingMap`, `Aborted`.
 - Elle contient beaucoup de code Unreal commenté ou traduit, non relié au moteur CasaEngine.
 - `ReadyToStartMatch()` retourne actuellement `false` par défaut, donc `StartPlay()` ne fait pas passer le match en `InProgress` sans appel manuel à `StartMatch()`.
@@ -34,7 +34,7 @@ Ces points décrivent l'état actuel du code au moment de cette note.
 - `WorldRuntimeSystems` expose déjà `CoroutineManager` et `CutsceneDirector`.
 - Aucun type `Scene` n'a été trouvé dans les recherches ciblées ; le contrat existant à utiliser pour la V1 est donc `World`.
 - `GameScreenManager` mentionne `GameStateChanged` dans sa documentation, mais aucun câblage runtime n'a été trouvé autour de cet événement.
-- `Projects/CasaEngine.RPGDemo/GameModes/RPGActionGameMode.cs` hérite de `GameMode`, mais la recherche ciblée n'a pas montré de référence qui le charge comme mode actif.
+- `Projects/CasaEngine.RPGDemo/GameModes/RPGActionGameMode.cs` héritait de `GameMode` (il hérite désormais de `GameplayMode`), mais la recherche ciblée n'a pas montré de référence qui le charge comme mode actif.
 
 ## Critique de l'actuel `GameMode`
 

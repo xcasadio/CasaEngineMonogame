@@ -3,7 +3,7 @@
 ## Final bootstrap
 
 - Runtime overlay and per-view UI now flow through `UIRoot`, `ViewRenderHost`, `CasaRenderSurfaceAdapter`, and `CasaMonoGameBackendBootstrap` before building `MGDesktop`.
-- The editor shell now boots MGUI through `CasaGameRenderHost<Game1>` and `CasaMonoGameBackendBootstrap` instead of the upstream MonoGame backend bootstrap.
+- The editor shell now boots MGUI through `CasaGameRenderHost<GameEditor>` and `CasaMonoGameBackendBootstrap` instead of the upstream MonoGame backend bootstrap.
 - World-space and offscreen UI use the same `UIRoot` path, with `CasaRenderSurfaceAdapter` exposing the engine render target to MGUI.
 
 ## MainRenderer parity matrix
@@ -18,7 +18,7 @@
 | Draw transaction | `CasaDrawTransaction` | ported |
 | Rectangle / stencil / mask clipping | `CasaClipManager`, `CasaRenderTargetPool` | ported |
 | Runtime bootstrap | `UIRoot` + `CasaMonoGameBackendBootstrap` | adapted |
-| Editor bootstrap | `CasaEngine.Editor/Game1.cs` + `CasaGameRenderHost<Game1>` | adapted |
+| Editor bootstrap | `CasaEngine.Editor/GameEditor.cs` + `CasaGameRenderHost<GameEditor>` | adapted |
 | World-space / offscreen surface | `UIRoot`, `WorldUIComponent`, `CasaRenderSurfaceAdapter` | adapted |
 
 ## Validation executed
