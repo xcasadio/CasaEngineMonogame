@@ -37,15 +37,15 @@ public class MaterialDefinitionEditorRegistryTests
 
         var emissiveColor = GetDescriptor(descriptors, "emissive_color");
         Assert.Equal("Emission", emissiveColor.Category);
-        Assert.Equal("Vector3Editor", emissiveColor.EditorControlHint);
+        Assert.Equal("ColorPicker", emissiveColor.EditorControlHint);
 
     var ambientColor = GetDescriptor(descriptors, "ambient_color");
     Assert.Equal("Emission", ambientColor.Category);
-    Assert.Equal("Vector3Editor", ambientColor.EditorControlHint);
+    Assert.Equal("ColorPicker", ambientColor.EditorControlHint);
 
         var specularColor = GetDescriptor(descriptors, "specular_color");
         Assert.Equal("PBR", specularColor.Category);
-        Assert.Equal("Vector3Editor", specularColor.EditorControlHint);
+        Assert.Equal("ColorPicker", specularColor.EditorControlHint);
 
         var specularPower = GetDescriptor(descriptors, "specular_power");
         Assert.Equal("PBR", specularPower.Category);

@@ -115,8 +115,8 @@ public class EditorAssetWriterServiceTests
 
             string fullPath = Path.Combine(tempDirectory, relativePath);
             var document = JObject.Parse(File.ReadAllText(fullPath));
-            var rootCoordinates = document["root_component"]?["coordinates"];
-            var childCoordinates = document["root_component"]?["children_component"]?[0]?["coordinates"];
+            var rootCoordinates = document["root_component"]?["local_transform"];
+            var childCoordinates = document["root_component"]?["children_component"]?[0]?["local_transform"];
 
             Assert.NotNull(rootCoordinates);
             Assert.NotNull(childCoordinates);

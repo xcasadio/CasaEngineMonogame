@@ -16,9 +16,9 @@ public class LightOverlayTests
     {
         string editorIcons = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "EditorIcons.cs"));
 
-        Assert.Contains("Texture2D? Lightbulb", editorIcons, StringComparison.Ordinal);
-        Assert.Contains("Texture2D? Cone", editorIcons, StringComparison.Ordinal);
-        Assert.Contains("Texture2D? Sun", editorIcons, StringComparison.Ordinal);
+        Assert.Contains("Texture2D Lightbulb", editorIcons, StringComparison.Ordinal);
+        Assert.Contains("Texture2D Cone", editorIcons, StringComparison.Ordinal);
+        Assert.Contains("Texture2D Sun", editorIcons, StringComparison.Ordinal);
         Assert.Contains("Lightbulb    = Try(content, Prefix + \"lightbulb\")", editorIcons, StringComparison.Ordinal);
         Assert.Contains("Cone         = Try(content, Prefix + \"cone\")", editorIcons, StringComparison.Ordinal);
         Assert.Contains("Sun          = Try(content, Prefix + \"sun\")", editorIcons, StringComparison.Ordinal);
