@@ -398,7 +398,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(adr): backfill the audio system decisions`
 - Note de validation (2026-09-06) : deux ADR rédigés en anglais depuis la table D1 → D13 relue à la source (`analysis-audio-system.md:185-204`) : ADR-0001 (runtime : D1, D2/D2-bis, D5, D7, D10, D11) et ADR-0002 (asset et éditeur : D3, D4, D6, D8, D9, D12) ; D13 (branche et commit par tâche) est une règle de processus couverte par l'ADR des règles de travail des agents (T4.9). Statut `Accepted` : les 17 fichiers d'implémentation cités existent (`fd`), les trois fichiers supprimés par D9 sont absents, aucune mention `.mp3` dans le code éditeur. Index mis à jour ; ligne « Decisions: see ADR-0001 and ADR-0002 » ajoutée dans `docs/engine/audio-system.md` ; l'audit n'est pas modifié ; liens markdown des quatre fichiers touchés résolus (script Python).
 
-### ⏳ T4.5 — Rétro-remplir les ADR « collision, physique, Bepu »
+### ✅ T4.5 — Rétro-remplir les ADR « collision, physique, Bepu »
 
 - Objectif : une ADR par décision de collision et de physique.
 - Sources : `docs/engine/collision-2d-3d-architecture.md` (D1 → D6, posture de compatibilité `[dec-14]`), `ai-agent/audits/analysis-bepuphysics2-migration.md` `[dec-10]`.
@@ -406,6 +406,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Étapes : comme T4.4 ; la posture de compatibilité (« on remplace, on ne double pas ») devient une ADR unique référencée par les deux sources.
 - Validation : comme T4.4.
 - Commit : `docs(adr): backfill the collision and physics decisions`
+- Note de validation (2026-09-06) : sept ADR (0003 simulation unique et espace comme politique, 0004 couches Shape/Fixture/Body/World, 0005 canaux et profils, 0006 volumes et champs, 0007 fixtures animées, 0008 posture de compatibilité, 0009 backend bepuphysics2) rédigés par un rédacteur sur modèle sonnet (P4) et relus par la session principale : sources relues aux lignes citées (`collision-2d-3d-architecture.md:12-17, 19, 183, 194, 205, 211, 214, 240, 262, 276, 304, 312, 368, 661-671` ; `analysis-bepuphysics2-migration.md:103, 119, 245-253`), fidèles ; la correction du cylindre (point 4) est exclue comme non-décision ; le point « capteurs statiques pour les tuiles trigger », marqué « partiel » par l'inventaire, est vérifié **implémenté** (`TileMapComponent.cs:1078, 1137`) et consigné ainsi ; écart de nommage `AnimatedColliderComponent` (nom proposé) → `AnimatedSpriteComponent` (réel) consigné dans ADR-0007. Index mis à jour dans l'ordre numérique ; ligne « Decisions: see ADR-0003 to ADR-0009 » ajoutée dans `docs/engine/collision-2d-3d-architecture.md` ; l'audit Bepu n'est pas modifié.
 
 ### ✅ T4.6 — Rétro-remplir les ADR « rendu, materials, shaders, tilemaps, PBR »
 
