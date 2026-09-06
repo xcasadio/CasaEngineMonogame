@@ -511,13 +511,27 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 6 — Clôture
 
-### ⏳ T6.1 — Validation globale et clôture du plan
+### 🧪 T6.1 — Validation globale et clôture du plan
 
 - Objectif : prouver les critères de la « Validation globale » et fermer le chantier.
 - Fichiers : ce plan (résultats consignés), `ai-agent/README.md` (tableau).
 - Étapes : dérouler les critères 1 → 7 ; consigner chaque résultat sous cette tâche (commande, sortie) ; passer en 🧪 les vérifications manuelles laissées à l'auteur (critères 1 et 2 si non exécutables) ; mettre à jour le tableau de `ai-agent/README.md` ; rédiger le rapport de fin (fichiers changés, validations, hypothèses, risques, suite).
 - Validation : les critères 3 → 7 sont vérifiés par commande avec sortie consignée ; les critères 1 et 2 sont ✅ ou 🧪 avec la procédure écrite pour l'auteur.
 - Commit : `docs(ai): close the AI-guidelines plan`
+- Note de validation (2026-09-06), critères de la « Validation globale » :
+  1. Chargement Claude Code : 🧪 **à faire par l'auteur** (la session courante ne peut pas être redémarrée). Procédure : ouvrir une nouvelle session Claude Code dans le dépôt sur la branche `ai-guidelines`, taper `/context` et vérifier que `CLAUDE.md` et `AGENTS.md` figurent sous « Memory files » ; lire un fichier de `CasaEngine/Framework/Rendering/` et vérifier que la règle `.claude/rules/rendering.md` est listée. En cas d'absence : `/memory` liste les fichiers attendus.
+  2. Chargement Copilot : 🧪 **à faire par l'auteur** dans VS Code : vérifier que le setting `chat.useAgentsMdFile` est actif et qu'une requête Copilot Chat cite `AGENTS.md` dans ses références.
+  3. Frontmatters : `yq --front-matter=extract` parse sans erreur les 32 fichiers (6 instructions, 6 agents Copilot, 6 règles, 6 agents Claude, 8 skills).
+  4. Liens : 104 fichiers `.md` ajoutés ou modifiés par le chantier contrôlés par script ; 10 signalements, tous hors critère : 9 dans `analysis-ai-agent-files.md` sont des citations textuelles de liens d'autres fichiers (preuves de l'audit, relatives à leur fichier d'origine), 1 est le lien de substitution `../audits/<analyse>.md` du modèle de plan. Aucun lien réel mort.
+  5. Références périmées : `rg` des chemins et configurations disparus (`CasaEngine.EditorUI`, `CasaEngine.SimpleEditor`, `ThirdParties/`, `DebugEditor`, `Game1.cs`, `#if EDITOR`, `Framework/Game/`, `CasaEngine.AISamples`) dans `AGENTS.md`, `CLAUDE.md`, `.github/`, `.claude/` : aucune ; `BulletSharp`/`Jolt` dans ces mêmes fichiers : aucune ; docs touchées par T5.2 et T5.3 : plus aucune référence active (seules restent des mentions datées au passé).
+  6. Index : `docs/README.md` liste tous les `docs/**/*.md` hors `decisions/` ; `docs/decisions/README.md` liste les 32 ADR ; `ai-agent/README.md` liste tous les audits et plans actifs. 0 manquant.
+  7. Couverture d'`AGENTS.md` : la table de T1.2 n'a que trois lignes « supprimée », toutes motivées (`rtk` désinstallé ×2, `#if EDITOR` périmé) ; le vérificateur indépendant de T1.2 avait confirmé 0 puce perdue.
+- Rapport de fin de chantier :
+  - **Changed files** : 26 commits sur `ai-guidelines` depuis `main` (`cdf0bfbf` → clôture) ; 61 fichiers ajoutés, 46 modifiés, 7 supprimés. Ajoutés : `ai-agent/plan-template.md`, `ai-agent/audits/analysis-ai-agent-files.md`, `ai-agent/audits/analysis-decisions-inventory.md`, ce plan, `.claude/rules/` (6), `.claude/agents/` (6), `.claude/skills/` (8 skills dont `plan` et `adr`), `.claude/settings.json`, `.claude/hooks/block-commit-on-main.ps1`, `docs/decisions/` (README, template, 32 ADR), `docs/engine/animation2d-composed-format-v1.md`. Modifiés : `AGENTS.md` (réécrit, 143 lignes), `CLAUDE.md`, `.github/copilot-instructions.md` (pointeur), `.github/instructions/` (6), `.github/agents/` (6), `.gitignore`, `docs/README.md`, `ai-agent/README.md`, 22 docs de `docs/` (liens ADR, références périmées, contradictions), 2 plans réconciliés. Supprimés : `.github/agents/engine-developer.md`, `.github/skills/` (6, déplacés).
+  - **Validation** : critères 3 → 7 vérifiés par commande (ci-dessus) ; vérificateurs indépendants (contexte neuf) sur le plan (3 revues) et sur la couverture d'`AGENTS.md` (CONFIRMED) ; hook testé sur 10 cas forgés et de bout en bout ; règle `deny` de push constatée active ; critères 1 et 2 laissés 🧪 pour l'auteur.
+  - **Assumptions** : aucune non confirmée par l'auteur ; les points P1 → P12 ont été validés à l'approbation (P4, P5, P8 amendés), O4 (champ `tools` omis) documenté.
+  - **Risks** : les règles par chemin et les agents existent en deux exemplaires (`.github/` et `.claude/`), à modifier ensemble (règle §11 d'`AGENTS.md`) ; le hook ne couvre que les commandes passées par l'outil Bash de Claude Code (Copilot et le terminal de l'auteur ne sont pas contraints) ; les statuts d'implémentation des ADR rétro-remplis reposent sur des relevés vérifiés par échantillon, pas sur une relecture exhaustive de chaque source ; `Core.Parsing`/`Core.Threading` (ADR-0029) restent « not found » ; l'inventaire (`analysis-decisions-inventory.md`) est un relevé, l'ADR fait foi.
+  - **Next useful step** : l'auteur exécute les critères 1 et 2, puis décide du merge de `ai-guidelines` dans `main` (jamais fait par l'agent) ; ensuite, plan séparé de traduction des docs (O2), correction du commentaire de code périmé (O5), et reprise des plans actifs avec les nouvelles règles.
 
 Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser sans demande explicite.
 
