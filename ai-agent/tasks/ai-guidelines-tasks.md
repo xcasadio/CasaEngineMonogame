@@ -141,7 +141,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(ai): add the canonical agent plan template`
 - Note de validation (2026-09-06) : `rg` confirme la présence des 16 sections et rubriques du modèle (une occurrence chacune) et des 5 icônes de la légende ; `ai-agent/README.md` renvoie vers `plan-template.md` ; ce plan a 27 tâches portant chacune les cinq rubriques (`rg -c` : 27 `Objectif`, 27 `Étapes`, 27 `Validation`, 27 `Commit`). Sources des éléments du modèle : règles d'exécution `audio-system-tasks.md:6-16` et `pbr-rendering-implementation-plan.md:34-45` (`[plans-04]` `[plans-05]` `[plans-14]` `[plans-21]`), légende `pbr:47-53`, gabarit de tâche `pbr:59-66` et `:74-75` (P12), points ouverts `audio:679` (`[plans-13]`), build et tests P1, blocage D4, ne rien inventer D13, langue D9, seuil D5.
 
-### ⏳ T1.2 — Réécrire `AGENTS.md` comme source unique des règles
+### ✅ T1.2 — Réécrire `AGENTS.md` comme source unique des règles
 
 - Objectif : un seul fichier de règles, en français, sans doublon ni contradiction, intégrant les décisions D1 → D13 et les arbitrages P1 → P4, **sans perdre aucune règle** de l'ancien `copilot-instructions.md` autrement que volontairement.
 - Fichiers : `AGENTS.md` ; table de correspondance consignée sous cette tâche dans ce plan.
@@ -155,6 +155,83 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   7. Cible : 200 lignes (recommandation de la doc mémoire Claude Code) ; tolérance jusqu'à 250 lignes si les sections nouvelles (workflow, git, ADR) l'exigent, avec le compte final et le motif notés dans la validation ; le contenu par chemin part dans les règles.
 - Validation : la table de correspondance est complète (chaque section source, et chaque puce normative des sections non migrées telles quelles, a une destination ; aucune ligne « supprimée » sans motif ; contrôle énumératif : chaque puce normative de `copilot-instructions.md` est retrouvée dans `AGENTS.md`, dans un fichier de `.github/instructions/` + `.claude/rules/`, ou dans une ligne « supprimée » motivée) ; `rg -c` de chaque règle dédoublonnée renvoie 1 ; aucune des chaînes périmées du critère 5 de la validation globale ; relecture des sections 3 et 4 contre D3 → D5.
 - Commit : `docs(ai): make AGENTS.md the single source of agent rules`
+- Note de validation (2026-09-06) : `wc -l AGENTS.md` = 143 (cible 200) ; `rg` des chaînes périmées du critère 5 et de `rtk` : 0 ; `LINQ` 1 occurrence, « Ne rien inventer » 1 ; vérificateur indépendant (contexte neuf, modèle opus) : **CONFIRMED**, 100 % des puces normatives des deux anciens fichiers retrouvées (≈ 200 reprises, ≈ 55 affectées aux règles par chemin à créer en T2.1/T2.2, ≈ 16 supprimées avec motif, 0 absente, 0 déformée), aucune règle sans source ; ses deux remarques textuelles intégrées (formulation des sous-modules en §1, « code clair plutôt qu'astucieux » en §9.11) et la ligne « Contenu nouveau » de la table complétée. Faits du dépôt cités : les deux solutions listent leurs projets (`rg 'Project\(' *.sln`), `CasaEngine.Tests` n'est dans aucune des deux, `IPhysicsWorld` existe.
+- Table de correspondance (écrite avant la réécriture ; `§n` = section du nouvel `AGENTS.md`, `rules/<nom>` = `.github/instructions/<nom>.instructions.md` + `.claude/rules/<nom>.md`, remplis en T2.1 et T2.2) :
+
+  | Source (`.github/copilot-instructions.md`) | Contenu | Destination |
+  |---|---|---|
+  | l.3 | nature du dépôt | §1 |
+  | l.5-10 | programmeur moteur prudent, 5 puces | §2 puce 2 |
+  | l.14-20 | pas de délégation par défaut, 4 conditions | §8 puce 1 |
+  | l.22-23 | ce qui reste en session principale | §8 puce 2 |
+  | l.25-29 | rôles scout, mech-executor, executor, verifier | §8 puce 3 (P4) |
+  | l.34, 37, 39-42 | Windows, outils rg, fd, jq, yq, ast-grep | §7 |
+  | l.38, 50, 56-63, 67-68 | tout ce qui concerne `rtk` | supprimée : outil désinstallé (`command -v rtk` absent ; `[rac-12]`, `[rac-22]` → `[rac-25]`) |
+  | l.46 | outils déterministes plutôt que deviner | §2 puce 4 |
+  | l.49, 51-54 | usage de rg, fd, jq, yq, ast-grep | §7 |
+  | l.65-66, 69-72 | vérification des outils en début de tâche | §7 (facultative, `[rac-25]`) |
+  | l.74-83 | listages interdits, commandes filtrées | §7 |
+  | l.90-93 | avant de coder : inspecter, patterns, existant, minimum de fichiers | §2 puce 4 |
+  | l.94 | pas de refactor large | §2 puce 3 (fusion `[rac-16]`) |
+  | l.97 | changements bornés à la tâche | §2 puce 3 |
+  | l.98-99 | préserver et ne pas renommer les API publiques | §9.8 (fusion `[rac-13]`) |
+  | l.100 | pas de changement d'architecture en silence | §9.2 puce 3 (fusion `[rac-15]`) |
+  | l.101 | pas de dépendance sans justification | §2 puce 5 (fusion avec `AGENTS.md:31-32`, `[rac-07]`) |
+  | l.102 | code clair plutôt qu'astucieux | §9.11 |
+  | l.105-106 | build et tests après codage | §6 (P1) |
+  | l.107-109 | rapport : fichiers, commandes, risques et hypothèses | §12 (fusion `[rac-19]`) |
+  | l.115-125 | priorités 1 → 7 | §9.1 |
+  | l.131-147 | périmètre : autorisé, interdit, documenter l'amélioration hors tâche | §2 puce 3 (l.142 fusion `[rac-14]`, l.144 fusion `[rac-13]`) |
+  | l.153 | moteur, pas framework générique | §1 puce 1 |
+  | l.155-162 | architecture de moteur, 7 puces | §9.2 puce 1 (l.156 fusion §9.9, l.159 fusion §9.3 `[rac-17]`, l.160 fusion §9.7 `[rac-14]`) |
+  | l.164-173 | pas d'abstraction de service, frontières de backend | §9.2 puce 2 |
+  | l.179-185, 187, 189 | séparation éditeur/runtime | §9.9 |
+  | l.186 | `#if EDITOR` | supprimée : périmée `[rac-34]` |
+  | l.195-200 | API publique, rupture | §9.8 (P2) |
+  | l.201-203 | champs sérialisés stables | §9.7 (fusion `[rac-14]`) |
+  | l.205-206 | doc XML courte | §9.8 |
+  | l.207 | extrait d'usage | §10 puce 1 (fusion `[rac-20]`) |
+  | l.213-223 | liste des chemins chauds | §9.3 |
+  | l.227-245 | allocations interdites et alternatives | §9.3 |
+  | l.250-254 | perf de rendu : Begin/End, états, textures, batching, pas d'allocation | rules/rendering + rappel §9.4 |
+  | l.255 | restaurer l'état du GraphicsDevice | §9.4 puce 1 (formulation canonique, fusion `[rac-06]`) |
+  | l.261-283, 287-297, 302-306, 310-317 | MGUI : layout, input, clipping, temps réel | rules/mgui-framework + rappel §9.5 (l.304 fusion §9.4 `[rac-06]` ; l.313-314 fusion §9.3 `[rac-05]` `[rac-17]`) |
+  | l.323-332 | données, pipeline, backend | §9.4 puce 2 + rules/rendering |
+  | l.335-336 | pas de fuite d'état, restaurer les états | §9.4 puce 1 |
+  | l.337-340, 342-351 | passes explicites, fallback, paramètres material, structures extensibles | rules/rendering |
+  | l.357-370 | physique : propriété du transform, interfaces, debug draw, pas fixe, modification prudente | §9.6 (résumé) + rules/physics (détail) |
+  | l.376-385, 388-391 | assets et sérialisation, importeurs | §9.7 |
+  | l.397-411 | quand tester, validation préférée | §6 puce 2 |
+  | l.413 | ne rien affirmer sans build, test ou lecture du code | §2 puce 1 (fusion D13, `[rac-26]`) |
+  | l.419-433 | documentation : quand, forme | §10 puce 1 |
+  | l.439-442 | git via rtk | supprimée : outil désinstallé |
+  | l.445 | commit seulement sur demande | remplacée par D3 (§4 puce 2, `[rac-01]` `[rac-31]`) |
+  | l.446-449 | commit buildable, message explicite, pas de push, pas de changement étranger | §4 |
+  | l.450 | inspecter le diff (`rtk git diff`) | §4 puce 4 (`git diff`) |
+  | l.452-455 | modifications préexistantes de l'auteur | §4 puce 5 |
+  | l.461-470, 473-474 | style C#, code moteur | §9.11 |
+  | l.475 | pas de réflexion | §9.3 (fusion `[rac-18]`) |
+  | l.476 | pas d'état global mutable | §9.2 puce 3 |
+  | l.477 | ordre d'update explicite | §9.2 puce 1 (fusion `[rac-18]`) |
+  | l.483-491 | gestion des erreurs | §9.10 |
+  | l.497-513 | reverse engineering et portage | §9.12 |
+  | l.519-535 | rapport de fin | §12 |
+
+  | Source (`AGENTS.md` ancien) | Contenu | Destination |
+  |---|---|---|
+  | l.3 | s'applique à tous les agents | §1 (en-tête) |
+  | l.5-11 | domaines de travail | §1 puce 2 |
+  | l.14 | commits fréquents par sous-tâche | §4 puce 2 (D3) |
+  | l.15 | pas de rupture d'API sans compat | §9.8 (P2) |
+  | l.16 | hot path sans allocation ni LINQ | §9.3 (fusion `[rac-05]`) |
+  | l.17 | restaurer l'état du GraphicsDevice | §9.4 (fusion `[rac-06]`) |
+  | l.18 | sample minimal obligatoire | §6 puce 3 (P3) |
+  | l.19-24 | statuts de plan | §3 puce 3 + `ai-agent/plan-template.md` |
+  | l.27 | build avant de terminer | §6 puce 1 (P1, `[rac-36]`) |
+  | l.28 | lancer le sample de la zone | §6 puce 3 |
+  | l.31-32 | dépendances | §2 puce 5 (`[rac-07]`) |
+
+  Contenu nouveau, sans source dans les anciens fichiers : en-tête et §1 puce 3 (D2, D8, P10 ; sous-modules : fait git, et mémoire de session « ne pas toucher MGUI/ et NvgSharp/ lors d'opérations de masse »), §3 (D4, D5, D13), §4 puces 1, 3 et 4 (D3, D11, règle d'exécution du plan « indexer fichier par fichier »), §5 (D9), §6 commande de test (fait du dépôt : `CasaEngine.Tests/CasaEngine.Tests.csproj`, absent des deux solutions), §8 puce 4 (P4), §10 puce 2 (D6), §11 (`ai-agent/README.md` et `docs/README.md`), §11 puce 4 (D8).
 
 ### ⏳ T1.3 — Brancher `CLAUDE.md` et `.github/copilot-instructions.md` sur `AGENTS.md`
 
