@@ -447,3 +447,5 @@ GameplayPhase = phase courante du mode
 ```
 
 L'ancien `GameMode` peut alors être retiré progressivement, mais seulement après migration de ce qu'il portait réellement : la configuration de pawn/controller par défaut et les références asset existantes.
+
+Decisions: see [ADR-0024](../decisions/0024-gameplaymode-v1.md).

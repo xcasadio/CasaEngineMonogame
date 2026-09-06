@@ -2026,3 +2026,5 @@ Pour CasaEngine, la stratégie recommandée est :
 ```
 
 Cette approche permet d’obtenir rapidement un socle de cutscene testable sans inventer de services gameplay ni dupliquer le scheduler de coroutines existant.
+
+Decisions: see [ADR-0020](../decisions/0020-cutscenes-v1-on-the-world-coroutine-manager.md).

@@ -33,3 +33,11 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0017](0017-mgui-backend-extensibility.md) | MGUI backend extensibility, Apos.Shapes and NvgSharp behind CasaEngine contracts | Accepted | 2026-09-06 (backfill) |
 | [ADR-0018](0018-play-in-editor-session-model.md) | Play-in-editor session model | Accepted | 2026-09-06 (backfill) |
 | [ADR-0019](0019-gltf-import-migration.md) | glTF import migration | Accepted | 2026-09-06 (backfill) |
+| [ADR-0020](0020-cutscenes-v1-on-the-world-coroutine-manager.md) | Cutscenes V1 on the World coroutine manager | Accepted | 2026-09-06 (backfill) |
+| [ADR-0021](0021-coroutines-v1.md) | Coroutines V1 | Accepted | 2026-09-06 (backfill) |
+| [ADR-0022](0022-yarn-spinner-dialogue-integration.md) | Yarn Spinner dialogue integration | Accepted | 2026-09-06 (backfill) |
+| [ADR-0023](0023-navigation-v1-on-tilemap-grids.md) | Navigation V1 on tilemap grids | Accepted | 2026-09-06 (backfill) |
+| [ADR-0024](0024-gameplaymode-v1.md) | GameplayMode V1 | Accepted | 2026-09-06 (backfill) |
+| [ADR-0025](0025-kinematic-character-controller-v1.md) | Kinematic character controller V1 | Accepted | 2026-09-06 (backfill) |
+| [ADR-0026](0026-animation-deformer-support-policy-and-motion-matching-rd.md) | Animation deformer support policy and motion matching as a separate R&D stream | Accepted | 2026-09-06 (backfill) |
+| [ADR-0027](0027-possession-and-per-player-input.md) | Possession and per-player input | Accepted | 2026-08-19 |

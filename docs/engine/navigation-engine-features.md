@@ -2090,3 +2090,5 @@ L’animation reflète ou pilote ce mouvement.
 ```
 
 C’est cette séparation qui permet d’avoir un système robuste, extensible et compatible avec le gameplay, la physique, l’animation et les cutscenes.
+
+Decisions: see [ADR-0023](../decisions/0023-navigation-v1-on-tilemap-grids.md).

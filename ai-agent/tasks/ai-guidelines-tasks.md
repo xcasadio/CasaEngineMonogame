@@ -428,7 +428,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(adr): backfill the UI and editor decisions`
 - Note de validation (2026-09-06) : six ADR (0014 timeline générique, 0015 éditeur Animation2D V1, 0016 UI screen editor V1, 0017 backend MGUI extensible, 0018 play-in-editor, 0019 import glTF) rédigés par un rédacteur sur modèle sonnet (P4) et relus par la session principale : sources relues aux lignes citées (`timeline-generic.md:10-30`, `animation2d_editor_casaengine.md:11-18`, `ui-screen-editor/architecture.md:199-208`, `casaengine-mgui-backend-extensibility-tasks.md:15-23`, `play-in-editor-tasks.md:29-50`, `gltf-import-migration-tasks.md:13-28`), fidèles ; fichiers de code cités vérifiés présents (`CasaLegacyShapeRenderer2D.cs`, `IShapeRenderer2D.cs`, `EditorWorldPlaySnapshot.cs`, `ScriptAssemblyHost.cs`, `AssimpToGltfConverter.cs`, `UIScreenDocument.cs`, `TimelineModel.cs`). ADR-0015 consigne la contradiction interne du document Animation2D (`[dec-27]`, traitée en T5.3) ; ADR-0019 enregistre l'option A exécutée en remplacement de l'option B ; écart de nommage du fallback (`DefaultShapeRenderer` dans l'inventaire, `CasaLegacyShapeRenderer2D` réel) consigné dans ADR-0017. Index mis à jour ; lignes « Decisions: see ADR-… » ajoutées en fin des quatre docs sources de `docs/` (fins de ligne respectées) ; audits et plans sources non modifiés.
 
-### ⏳ T4.8 — Rétro-remplir les ADR « gameplay »
+### ✅ T4.8 — Rétro-remplir les ADR « gameplay »
 
 - Objectif : une ADR par décision de gameplay.
 - Sources : `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` `[dec-03]` `[dec-15]`, `docs/engine/coroutines_specifications.md` `[dec-04]`, `docs/engine/yarn_spinner_integration.md` `[dec-16]`, `docs/engine/navigation-engine-features.md`, `docs/engine/gameplay-mode.md`, `docs/engine/character-controller-features.md`, `docs/engine/animation-motion-matching.md`, `docs/engine/animation-deformer-support-policy.md` `[dec-08]` `[dec-09]`, `ai-agent/audits/analysis-possession-gameplay-framework.md` `[dec-10]`.
@@ -436,6 +436,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Étapes : comme T4.4.
 - Validation : comme T4.4.
 - Commit : `docs(adr): backfill the gameplay decisions`
+- Note de validation (2026-09-06) : huit ADR (0020 cutscenes V1, 0021 coroutines V1, 0022 dialogue Yarn, 0023 navigation V1, 0024 GameplayMode V1, 0025 character controller cinématique, 0026 politique des déformeurs et motion matching, 0027 possession et input joueur) rédigés par un rédacteur sur modèle sonnet (P4) et relus par la session principale : sources relues aux lignes citées (`cutscene…coroutine.md:40-54`, `coroutines_specifications.md:1246-1256, 1338-1347`, `yarn_spinner_integration.md:1236-1280`, `navigation-engine-features.md:126-152`, `gameplay-mode.md:427-435`, `character-controller-features.md:86-94`, `animation-deformer-support-policy.md:1-12`, `analysis-possession-gameplay-framework.md:117-126`), fidèles. Divergences consignées dans les ADR : `MoveTo` (commande gameplay) existe en V1 (`CasaEngine/Framework/Cutscenes/MoveToCutsceneActionData.cs`, vérifié), ce qui dépasse la décision « commandes gameplay exclues » ; aucune classe de compilation Yarn trouvée dans le code (compilation à l'import « unverified ») ; nettoyage `AIController` et multi-joueur local partiels (l'audit le dit lui-même). Index mis à jour ; lignes « Decisions: see ADR-… » ajoutées en fin des huit docs sources de `docs/engine/` ; l'audit possession n'est pas modifié.
 
 ### ⏳ T4.9 — Rétro-remplir les ADR « architecture et organisation », dont celles de ce chantier
 
@@ -472,6 +473,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   4. `CasaEngine.AISamples` dans les commandes de validation `[dec-36]` → projet réel ou retrait de la commande.
   5. Identifiant `D-E12-5` `[dec-32]` : remplacer par la référence de l'ADR correspondante créée en phase 4, ou retirer si aucune décision ne correspond (⚠️ si doute).
   6. Toute mention de Bullet, `ThirdParties/` ou `EditorUI` dans ces fichiers est soit une référence à corriger, soit un rappel historique qui doit être daté et au passé.
+  7. Trouvé en T4.8 par le contrôle de liens : `docs/engine/gameplay-mode.md` pointe vers `../../CasaEngine/Framework/Gameplay/GameMode.cs`, fichier absent (remplacé par `GameplayMode`, ADR-0024) ; corriger ou retirer le lien.
 - Validation : liens résolus ; critère 5 de la validation globale sur les fichiers de cette tâche.
 - Commit : `docs: fix stale file references in the engine and editor docs`
 

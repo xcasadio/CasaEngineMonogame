@@ -1418,3 +1418,5 @@ YarnCommandDispatcher
 ```
 
 Cette approche évite de mélanger UI, gameplay, cutscenes et narration, et permet à CasaEngine d'obtenir un système de dialogue moderne, testable et extensible.
+
+Decisions: see [ADR-0022](../decisions/0022-yarn-spinner-dialogue-integration.md).

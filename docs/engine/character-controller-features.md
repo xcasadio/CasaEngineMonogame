@@ -369,3 +369,5 @@ petite pour tomber dans ces clamps, auquel cas le calcul ci-dessus ne tient plus
 Le bon point de depart pour CasaEngine est un `CharacterControllerComponent` cinematique, base sur les composants existants, pilote par intentions et resolu par la physique.
 
 Le prealable technique est l'exposition propre des requetes de shape sweep/depenetration dans la couche physique. Sans cela, le controller ne pourra pas fournir les garanties attendues d'un moteur moderne : collision stable, slide, pentes, snap au sol et etat fiable pour l'animation et les cutscenes.
+
+Decisions: see [ADR-0025](../decisions/0025-kinematic-character-controller-v1.md).

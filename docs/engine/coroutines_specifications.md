@@ -1345,3 +1345,5 @@ La V1 n’implémente qu’une phase :
 ## Debug
 
 La V1 expose une API de debug, mais pas forcément une fenêtre éditeur complète.
+
+Decisions: see [ADR-0021](../decisions/0021-coroutines-v1.md).

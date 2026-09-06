@@ -45,3 +45,5 @@ This note defines which deformation paths the current animation pipeline support
 - Add graph-aware morph blending so blend trees and layered animation can drive morph weights alongside skeletal pose blending.
 - Expand the vertex format and renderer if multiple UV sets or multiple color channels must be morphed at runtime.
 - Revisit bounds inflation when morph-heavy content becomes important for culling or editor framing.
+
+Decisions: see [ADR-0026](../decisions/0026-animation-deformer-support-policy-and-motion-matching-rd.md).
