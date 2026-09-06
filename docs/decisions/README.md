@@ -16,3 +16,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 |---|---|---|---|
 | [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted | 2026-08-26 |
 | [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted | 2026-08-26 |
+| [ADR-0010](0010-shader-naming-convention.md) | Shader naming convention and applied renames | Accepted | 2026-09-06 (backfill) |
+| [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
+| [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
+| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted | 2026-08-09 |

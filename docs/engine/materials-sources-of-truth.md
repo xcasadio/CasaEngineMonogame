@@ -2,6 +2,8 @@
 
 This note freezes the current source-of-truth map for the material and shader pipeline.
 
+Decisions: see [ADR-0012](../decisions/0012-materials-shaders-sources-of-truth.md).
+
 ## Status legend
 
 - `canonical`: data that should be treated as the authoritative source today

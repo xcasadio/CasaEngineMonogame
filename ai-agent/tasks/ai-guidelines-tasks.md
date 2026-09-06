@@ -407,7 +407,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Validation : comme T4.4.
 - Commit : `docs(adr): backfill the collision and physics decisions`
 
-### ⏳ T4.6 — Rétro-remplir les ADR « rendu, materials, shaders, tilemaps, PBR »
+### ✅ T4.6 — Rétro-remplir les ADR « rendu, materials, shaders, tilemaps, PBR »
 
 - Objectif : une ADR par décision de rendu.
 - Sources : `docs/engine/shader-naming-convention.md`, `docs/engine/materials-sources-of-truth.md` `[dec-07]` `[dec-19]`, `docs/engine/rendering-2d-3d-spaces.md`, `ai-agent/audits/analysis-tilemap-render-spaces.md` `[dec-21]`, `ai-agent/tasks/pbr-rendering-implementation-plan.md` (« Decisions verrouillees »).
@@ -415,6 +415,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Étapes : comme T4.4.
 - Validation : comme T4.4.
 - Commit : `docs(adr): backfill the rendering and materials decisions`
+- Note de validation (2026-09-06) : quatre ADR (0010 convention de nommage des shaders, 0011 espaces de rendu des tilemaps, 0012 matrice des sources de vérité materials, 0013 décisions PBR) rédigés en anglais par un rédacteur sur modèle sonnet (P4) dans le dossier de travail, relus par la session principale : sources relues aux lignes citées (`shader-naming-convention.md:17-20`, `rendering-2d-3d-spaces.md:8-11, 31, 240`, `materials-sources-of-truth.md:3, 14-16, 49-54`, `pbr-rendering-implementation-plan.md:25-32`), fidèles ; les « Current gaps » sont bien en Consequences comme non tranchés ; PBR `Accepted` avec « implementation pending » (aucun symbole `lit-pbr`, `LitPbr`, `ColorPipelineSettings` dans le code, toutes les tâches du plan PBR en ⏳). Exécutée avant T4.5 parce que ses brouillons sont arrivés en premier (tâches indépendantes). Index mis à jour ; lignes « Decisions: see ADR-… » ajoutées dans les trois docs sources de `docs/` ; l'audit tilemap et le plan PBR ne sont pas modifiés.
 
 ### ⏳ T4.7 — Rétro-remplir les ADR « UI et éditeur »
 
