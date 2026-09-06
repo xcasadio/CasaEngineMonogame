@@ -27,3 +27,9 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
 | [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted | 2026-08-09 |
+| [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted | 2026-06-13 |
+| [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
+| [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
+| [ADR-0017](0017-mgui-backend-extensibility.md) | MGUI backend extensibility, Apos.Shapes and NvgSharp behind CasaEngine contracts | Accepted | 2026-09-06 (backfill) |
+| [ADR-0018](0018-play-in-editor-session-model.md) | Play-in-editor session model | Accepted | 2026-09-06 (backfill) |
+| [ADR-0019](0019-gltf-import-migration.md) | glTF import migration | Accepted | 2026-09-06 (backfill) |

@@ -2077,3 +2077,5 @@ La première étape importante est de rendre le modèle indépendant de la notio
 La deuxième étape importante est d'ajouter la durée.
 
 La troisième étape importante est de déplacer les règles métier dans des adapters et des policies.
+
+Decisions: see [ADR-0014](../decisions/0014-generic-timeline-base-for-the-editor.md).

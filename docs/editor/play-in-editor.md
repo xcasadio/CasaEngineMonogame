@@ -119,3 +119,5 @@ contexte physique au lieu de faire tomber l'éditeur.
 
 Frame-step, caméra eject, HUD dans le viewport, watcher de sources avec build
 automatique, « play from here », scaffold du csproj gameplay dans `CreateProject`.
+
+Decisions: see [ADR-0018](../decisions/0018-play-in-editor-session-model.md).

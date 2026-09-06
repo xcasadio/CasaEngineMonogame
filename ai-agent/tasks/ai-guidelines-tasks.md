@@ -418,7 +418,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(adr): backfill the rendering and materials decisions`
 - Note de validation (2026-09-06) : quatre ADR (0010 convention de nommage des shaders, 0011 espaces de rendu des tilemaps, 0012 matrice des sources de vérité materials, 0013 décisions PBR) rédigés en anglais par un rédacteur sur modèle sonnet (P4) dans le dossier de travail, relus par la session principale : sources relues aux lignes citées (`shader-naming-convention.md:17-20`, `rendering-2d-3d-spaces.md:8-11, 31, 240`, `materials-sources-of-truth.md:3, 14-16, 49-54`, `pbr-rendering-implementation-plan.md:25-32`), fidèles ; les « Current gaps » sont bien en Consequences comme non tranchés ; PBR `Accepted` avec « implementation pending » (aucun symbole `lit-pbr`, `LitPbr`, `ColorPipelineSettings` dans le code, toutes les tâches du plan PBR en ⏳). Exécutée avant T4.5 parce que ses brouillons sont arrivés en premier (tâches indépendantes). Index mis à jour ; lignes « Decisions: see ADR-… » ajoutées dans les trois docs sources de `docs/` ; l'audit tilemap et le plan PBR ne sont pas modifiés.
 
-### ⏳ T4.7 — Rétro-remplir les ADR « UI et éditeur »
+### ✅ T4.7 — Rétro-remplir les ADR « UI et éditeur »
 
 - Objectif : une ADR par décision d'UI et d'éditeur.
 - Sources : `docs/editor/timeline-generic.md` `[dec-02]`, `docs/editor/animation2d_editor_casaengine.md` `[dec-05]`, `docs/editor/ui-screen-editor/architecture.md` `[dec-06]`, `ai-agent/tasks/casaengine-mgui-backend-extensibility-tasks.md`, `ai-agent/tasks/play-in-editor-tasks.md`, `ai-agent/audits/analysis-play-in-editor.md` `[dec-17]`, `docs/editor/play-in-editor.md`, `ai-agent/tasks/gltf-import-migration-tasks.md`.
@@ -426,6 +426,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Étapes : comme T4.4.
 - Validation : comme T4.4.
 - Commit : `docs(adr): backfill the UI and editor decisions`
+- Note de validation (2026-09-06) : six ADR (0014 timeline générique, 0015 éditeur Animation2D V1, 0016 UI screen editor V1, 0017 backend MGUI extensible, 0018 play-in-editor, 0019 import glTF) rédigés par un rédacteur sur modèle sonnet (P4) et relus par la session principale : sources relues aux lignes citées (`timeline-generic.md:10-30`, `animation2d_editor_casaengine.md:11-18`, `ui-screen-editor/architecture.md:199-208`, `casaengine-mgui-backend-extensibility-tasks.md:15-23`, `play-in-editor-tasks.md:29-50`, `gltf-import-migration-tasks.md:13-28`), fidèles ; fichiers de code cités vérifiés présents (`CasaLegacyShapeRenderer2D.cs`, `IShapeRenderer2D.cs`, `EditorWorldPlaySnapshot.cs`, `ScriptAssemblyHost.cs`, `AssimpToGltfConverter.cs`, `UIScreenDocument.cs`, `TimelineModel.cs`). ADR-0015 consigne la contradiction interne du document Animation2D (`[dec-27]`, traitée en T5.3) ; ADR-0019 enregistre l'option A exécutée en remplacement de l'option B ; écart de nommage du fallback (`DefaultShapeRenderer` dans l'inventaire, `CasaLegacyShapeRenderer2D` réel) consigné dans ADR-0017. Index mis à jour ; lignes « Decisions: see ADR-… » ajoutées en fin des quatre docs sources de `docs/` (fins de ligne respectées) ; audits et plans sources non modifiés.
 
 ### ⏳ T4.8 — Rétro-remplir les ADR « gameplay »
 

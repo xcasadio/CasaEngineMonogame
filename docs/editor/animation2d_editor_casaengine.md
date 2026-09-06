@@ -1225,3 +1225,5 @@ inspector de visualisation
 ```
 
 La composition, les tracks de propriétés et l’authoring complet de timeline sont reportés aux versions suivantes.
+
+Decisions: see [ADR-0015](../decisions/0015-animation2d-editor-v1.md).
