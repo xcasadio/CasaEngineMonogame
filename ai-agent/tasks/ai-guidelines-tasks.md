@@ -376,7 +376,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(ai): add the adr skill`
 - Note de validation (2026-09-06) : `yq` lit `name` et `description` (description entre guillemets à cause du deux-points) ; le skill rappelle D13 (section « Règle absolue : ne rien inventer », source citée obligatoire, audits en lecture seule) ; fichiers cités existants : `docs/decisions/README.md`, `docs/decisions/template.md`, `AGENTS.md` ; procédure conforme à D6 et P5 (numérotation, regroupement par thématique, supersession).
 
-### ⏳ T4.3 — Inventorier les décisions existantes à rétro-remplir
+### ✅ T4.3 — Inventorier les décisions existantes à rétro-remplir
 
 - Objectif : une liste exhaustive et sourcée avant d'écrire les ADR (P5).
 - Fichiers : ce plan (tableau d'inventaire ajouté sous cette tâche).
@@ -386,6 +386,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   3. Noter le nombre total et proposer les regroupements éventuels (P5).
 - Validation : tableau complet ; chaque ligne a une source vérifiable.
 - Commit : `docs(adr): inventory the existing decisions to backfill`
+- Note de validation (2026-09-06) : le tableau détaillé (198 lignes) est consigné dans un nouvel audit, [analysis-decisions-inventory.md](../audits/analysis-decisions-inventory.md), plutôt que sous cette tâche, pour garder ce plan lisible ; l'index `ai-agent/README.md` l'ajoutera en T5.1. Relevé par six sous-agents en lecture seule (modèle haiku, P4), une thématique chacun, avec source `fichier:ligne`, doublons et statut d'implémentation constaté par `Grep`/`Glob` ; ces statuts sont revérifiés à la rédaction de chaque ADR. Comptes : audio 13, collision et physique 19, rendu 30, UI et éditeur 38, gameplay 63, architecture 35. Exclusions motivées : recommandations non tranchées (rendu 18-21), corrections et tâches de refactor (physique 4, architecture 25-35 sauf `IGameplayProxy.Clone()`), décision de processus d'un chantier (audio D13), questions ouvertes. Regroupement par thématique (P5 amendé) : **32 fichiers ADR** prévus pour environ 190 décisions, répartis T4.4 → T4.9 selon le tableau final de l'audit. Doublons entre audits et docs repérés (`[dec-13]` → `[dec-21]`) : une seule ADR par décision, les deux sources citées.
 
 ### ⏳ T4.4 — Rétro-remplir les ADR « audio »
 
