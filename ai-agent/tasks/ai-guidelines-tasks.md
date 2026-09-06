@@ -128,7 +128,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 1 — Socle des règles
 
-### ⏳ T1.1 — Écrire le modèle canonique de plan `ai-agent/plan-template.md`
+### ✅ T1.1 — Écrire le modèle canonique de plan `ai-agent/plan-template.md`
 
 - Objectif : figer le modèle que tout plan d'agent doit suivre (D5, P12), construit à partir des conventions observées dans les 25 plans actifs (audit, surface « plans ») et des choix de P12.
 - Fichiers : `ai-agent/plan-template.md` (nouveau), `ai-agent/README.md` (une phrase de renvoi vers le modèle).
@@ -139,6 +139,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   4. Note en tête du modèle : plan obligatoire dès que le travail demande plus d'un commit (D5) ; questions groupées au moment du plan (D4).
 - Validation : le modèle contient toutes les sections listées ; ce plan lui-même respecte le modèle (chaque tâche a `Objectif`, `Fichiers` ou `Sources`, `Étapes`, `Validation`, `Commit`) ; chaque élément normatif du modèle renvoie à un constat `[plans-NN]`, une ligne d'un plan existant, ou une décision D/P.
 - Commit : `docs(ai): add the canonical agent plan template`
+- Note de validation (2026-09-06) : `rg` confirme la présence des 16 sections et rubriques du modèle (une occurrence chacune) et des 5 icônes de la légende ; `ai-agent/README.md` renvoie vers `plan-template.md` ; ce plan a 27 tâches portant chacune les cinq rubriques (`rg -c` : 27 `Objectif`, 27 `Étapes`, 27 `Validation`, 27 `Commit`). Sources des éléments du modèle : règles d'exécution `audio-system-tasks.md:6-16` et `pbr-rendering-implementation-plan.md:34-45` (`[plans-04]` `[plans-05]` `[plans-14]` `[plans-21]`), légende `pbr:47-53`, gabarit de tâche `pbr:59-66` et `:74-75` (P12), points ouverts `audio:679` (`[plans-13]`), build et tests P1, blocage D4, ne rien inventer D13, langue D9, seuil D5.
 
 ### ⏳ T1.2 — Réécrire `AGENTS.md` comme source unique des règles
 

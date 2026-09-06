@@ -4,7 +4,7 @@ Ce dossier contient le travail des agents IA : audits/analyses (`audits/`) et pl
 La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md).
 
 - `audits/` — rapports d'audit, analyses et checklists de validation. Lecture seule : on ne « termine » pas un audit, on le consulte.
-- `tasks/` — plans avec du travail restant. Chaque fichier utilise la légende ⏳ Todo · 🚧 In progress · 🧪 Needs testing · ✅ Done · ⚠️ Blocked.
+- `tasks/` — plans avec du travail restant. Chaque fichier utilise la légende ⏳ Todo · 🚧 In progress · 🧪 Needs testing · ✅ Done · ⚠️ Blocked. Tout nouveau plan suit le modèle [plan-template.md](plan-template.md).
 - `tasks/archive/` — plans terminés ou abandonnés (marqués `[ARCHIVE]`), conservés pour l'historique.
 
 ## Tâches restantes (`tasks/`)
