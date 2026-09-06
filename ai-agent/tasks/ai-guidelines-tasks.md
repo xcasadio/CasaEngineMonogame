@@ -248,7 +248,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 2 — Règles par chemin, agents et skills
 
-### ⏳ T2.1 — Corriger les instructions par chemin `.github/instructions/*.instructions.md`
+### ✅ T2.1 — Corriger les instructions par chemin `.github/instructions/*.instructions.md`
 
 - Objectif : des règles par chemin exactes, sans doublon avec `AGENTS.md`, aux globs vivants (D7).
 - Fichiers : les 6 fichiers de `.github/instructions/`.
@@ -259,6 +259,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   4. Retirer de chaque fichier les règles déjà dans `AGENTS.md` (`[gh-21]` `[gh-22]` `[gh-26]` `[gh-28]`) ; ne garder que ce qui est propre au chemin. Tracer chaque retrait dans la table de T1.2.
 - Validation : chaque segment de chaque glob `applyTo` matche au moins un fichier (`fd`) ; `yq` parse les frontmatters ; critère 5 de la validation globale sur `.github/instructions/`.
 - Commit : `docs(copilot): fix stale globs and backends in the path instructions`
+- Note de validation (2026-09-06) : `yq --front-matter=extract` lit `name` et `applyTo` des 6 fichiers ; chaque segment de glob matche des fichiers (`fd` : Editor 142, EditorServices 72, GizmoTool 9, MGUI 482, Engine/Physics 13, Framework/Physics 14, Components/Physics 5, CasaEngine.Shaders 20, Content/Shaders 13, Framework/Rendering 118, Framework/Materials 31, Particles/Rendering 3, Demos 356, Projects 1269) ; `rg` des chaînes périmées, de `WPF`, `IBody`, `IShape`, `IConstraint`, `deferred` : aucune. Contenu migré depuis l'ancien `copilot-instructions.md` selon la table de T1.2 : l.250-254, 323-332, 337-351 → `rendering` ; l.261-317 → `mgui-framework` ; l.357-370 → `physics`. Passes de rendu citées vérifiées dans le code (`RenderPipeline`, `ForwardRenderPipeline`, `RenderPass`, `OpaquePass`, `TransparentPass`, `ShadowPass`, `SkyPass`) ; backend Bepu sous `CasaEngine/Framework/Physics/Bepu/`. Globs ajoutés : `CasaEngine/Content/Shaders/**`, `CasaEngine/Framework/Particles/Rendering/**` (dossiers réels). Doublons avec `AGENTS.md` retirés (`[gh-21]` `[gh-22]` `[gh-26]` `[gh-28]`).
 
 ### ⏳ T2.2 — Créer les règles par chemin jumelles `.claude/rules/*.md`
 
