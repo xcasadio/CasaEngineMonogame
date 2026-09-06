@@ -23,9 +23,9 @@ The extensible UI backend keeps a single concrete MonoGame backend owned by Casa
    - Image and render-target bridging uses an explicit CasaEngine adapter registry.
    - No reflection-based property probing is required in the nominal path.
 7. Editor vector overlay canvas
-   - `IEditorVectorCanvas` and `IVectorCanvasSession` isolate advanced editor overlays from MGUI.
-   - `NvgSharp` lives behind that contract in editor code only.
-   - `OverlayViewPipeline` exposes a dedicated vector overlay stage before MGUI composition.
+   - The dedicated `IEditorVectorCanvas` / `IVectorCanvasSession` contract was removed; no vector-canvas abstraction isolates editor overlays from MGUI today.
+   - `OverlayViewPipeline` still exposes a dedicated vector overlay stage that runs before MGUI composition.
+   - `NvgSharp` survives only as a `CasaEngine.Editor` package reference; no `.cs` file calls into it.
 
 ## Boundary rules
 

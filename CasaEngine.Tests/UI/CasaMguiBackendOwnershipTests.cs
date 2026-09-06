@@ -20,11 +20,11 @@ public class CasaMguiBackendOwnershipTests
     public void RuntimeAndEditorBootstrap_Use_CasaOwnedBackendTypes()
     {
         string uiRootText = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "UIRoot.cs"));
-        string editorGameText = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "Game1.cs"));
+        string editorGameText = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "GameEditor.cs"));
 
         Assert.Contains("CasaMonoGameBackendBootstrap.Create", uiRootText, StringComparison.Ordinal);
         Assert.Contains("CasaMonoGameBackendBootstrap.Create", editorGameText, StringComparison.Ordinal);
-        Assert.Contains("CasaGameRenderHost<Game1>", editorGameText, StringComparison.Ordinal);
+        Assert.Contains("CasaGameRenderHost<GameEditor>", editorGameText, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class CasaMguiBackendOwnershipTests
     [Fact]
     public void BackendParityDocument_Lists_MainRendererResponsibilities()
     {
-        string documentation = File.ReadAllText(Path.Combine(RepoRoot, "docs", "casaengine-mgui-backend.md"));
+        string documentation = File.ReadAllText(Path.Combine(RepoRoot, "docs", "engine", "casaengine-mgui-backend.md"));
         string[] expectedRows =
         {
             "| Host / raw input / surface |",
@@ -141,14 +141,13 @@ public class CasaMguiBackendOwnershipTests
     [Fact]
     public void ExtensibilityArchitectureDocument_Lists_TargetLayers_And_ValidationMatrix()
     {
-        string documentation = File.ReadAllText(Path.Combine(RepoRoot, "docs", "casaengine-mgui-backend-extensibility.md"));
+        string documentation = File.ReadAllText(Path.Combine(RepoRoot, "docs", "engine", "casaengine-mgui-backend-extensibility.md"));
 
         string[] expectedFragments =
         {
             "## Target layering",
             "`IShapeRenderer2D`",
-            "`IEditorVectorCanvas`",
-            "`NvgSharp` lives behind that contract in editor code only.",
+            "`OverlayViewPipeline` still exposes a dedicated vector overlay stage that runs before MGUI composition.",
             "## Surface target model",
             "## Validation matrix",
             "`UIOverlayDemo`",
@@ -207,7 +206,7 @@ public class CasaMguiBackendOwnershipTests
     [Fact]
     public void OverlayPipeline_RendersVectorPass_BeforeUiComposition()
     {
-        string pipeline = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "Rendering", "EditorViewPipeline.cs"));
+        string pipeline = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "Runtime", "Rendering", "OverlayViewPipeline.cs"));
 
         int vectorIndex = pipeline.IndexOf("RenderVectorOverlay(graphicsDevice, view, in frame);", StringComparison.Ordinal);
         int uiIndex = pipeline.IndexOf("RenderUIOverlay(graphicsDevice, view, in frame);", StringComparison.Ordinal);
@@ -215,15 +214,6 @@ public class CasaMguiBackendOwnershipTests
         Assert.True(vectorIndex >= 0, "The vector overlay stage should be present in OverlayViewPipeline.");
         Assert.True(uiIndex >= 0, "The UI overlay stage should be present in OverlayViewPipeline.");
         Assert.True(vectorIndex < uiIndex, "The vector overlay stage must execute before UI composition.");
-    }
-
-    [Fact]
-    public void NvgVectorCanvas_SessionDisposal_RestoresStateAndFlushes()
-    {
-        string vectorCanvas = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "Rendering", "Vector", "NvgSharpVectorCanvas.cs"));
-
-        Assert.Contains("_context.RestoreState();", vectorCanvas, StringComparison.Ordinal);
-        Assert.Contains("_context.Flush();", vectorCanvas, StringComparison.Ordinal);
     }
 
     [Fact]
