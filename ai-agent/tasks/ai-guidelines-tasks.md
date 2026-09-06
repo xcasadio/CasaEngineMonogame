@@ -286,7 +286,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(copilot): remove the delivered engine-ui agent and harmonize the agent files`
 - Note de validation (2026-09-06) : `engine-developer.md` supprimé (`git rm`) ; 6 fichiers `*.agent.md` restants, frontmatter `name` (= nom de fichier) + `description` lus par `yq` ; champ `tools` omis (voir O4 : la doc VS Code ne fournit pas la liste complète des identifiants, et la doc GitHub documente l'omission comme « tous les outils ») ; sections uniformes `## Mission`, `## Règles` ou `## Points d'attention`, `## Workflow`, `## Done` ; chaque workflow renvoie au workflow d'`AGENTS.md` (plan, commit par tâche, ne rien inventer) et chaque agent renvoie à son instruction par chemin ; `rg` : plus aucune mention de Neoforce, Bullet, Jolt, DebugEditor, contentReference, WPF, forward/deferred, ni des identifiants d'outils non documentés.
 
-### ⏳ T2.4 — Créer les sous-agents jumeaux `.claude/agents/*.md`
+### ✅ T2.4 — Créer les sous-agents jumeaux `.claude/agents/*.md`
 
 - Objectif : les six agents de domaine disponibles pour Claude Code (D8, P11).
 - Fichiers : `.claude/agents/build-ci.md`, `editor-mgui.md`, `gameplay-samples.md`, `mgui-framework.md`, `physics-integration.md`, `rendering-pipeline.md` (nouveaux).
@@ -296,6 +296,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   3. Le corps commun rappelle D13 (ne rien inventer, s'arrêter et demander) et le workflow d'`AGENTS.md`.
 - Validation : `yq` parse ; les corps sont identiques aux jumeaux hors frontmatter et commentaire.
 - Commit : `docs(claude): add project subagents mirroring the Copilot agents`
+- Note de validation (2026-09-06) : 6 fichiers générés par script déterministe (`mirror_agents.py`, dossier de travail de la session) ; frontmatter `name`, `description`, `tools: Read, Glob, Grep, Edit, Write, Bash` (chaîne séparée par des virgules et noms d'outils relus sur https://code.claude.com/docs/en/sub-agents.md le 2026-09-06), `model: sonnet` explicite (P4) ; corps identiques aux jumeaux Copilot hors frontmatter et commentaire (comparaison Python) ; le corps contient déjà la règle « ne rien inventer » et le renvoi au workflow d'`AGENTS.md` (T2.3).
 
 ### ⏳ T2.5 — Déplacer les skills vers `.claude/skills/` et les corriger
 
