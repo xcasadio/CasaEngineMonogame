@@ -16,83 +16,33 @@ using MGUI.Shared.Rendering.Clipping;
 using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
 using System.Reflection;
-using XamlDocumentSource = MGUI.Core.UI.XAML.XamlDocumentSource;
 using Xunit;
 
 namespace CasaEngine.Tests.UI;
 
 public class EditorControlTemplateAssetLoadingTests
 {
-    private static readonly string RepoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
-    private static readonly string TemplatePath = Path.Combine(RepoRoot, "CasaEngine.Editor", "Content", "UI", "Templates", "CasaEditor.Dark.ControlTemplates.xaml");
-    private static readonly string ThemePath = Path.Combine(RepoRoot, "CasaEngine.Editor", "Content", "UI", "Themes", "CasaEditor.Dark.Theme.xaml");
-
     [Fact]
-    public void EditorControlTemplateAsset_Can_Load_With_BasedOn_Templates()
+    public void EditorTheme_Maps_Editor_Control_Templates()
     {
-        Assert.True(File.Exists(TemplatePath), $"Missing editor control-template asset '{TemplatePath}'.");
+        MGTheme theme = new(MGTheme.BuiltInTheme.Dark, "JetBrainsMono");
 
-        MGResources resources = new(new MGTheme(MGTheme.BuiltInTheme.Dark_Blue, "JetBrainsMono"));
-        MGControlTemplateCatalog.RegisterDefaults(resources);
+        AssertMappedTemplate(theme, MGElementType.Window, "Dark.Window");
+        AssertMappedTemplate(theme, MGElementType.ToolTip, "Dark.ToolTip");
+        AssertMappedTemplate(theme, MGElementType.Overlay, "Dark.Overlay");
+        AssertMappedTemplate(theme, MGElementType.ContextMenu, "Dark.ContextMenu");
+        AssertMappedTemplate(theme, MGElementType.ContextMenuItem, "Dark.ContextMenuItem");
+        AssertMappedTemplate(theme, MGElementType.ListBox, "Dark.ListBox");
+        AssertMappedTemplate(theme, MGElementType.ListView, "Dark.ListView");
+        AssertMappedTemplate(theme, MGElementType.ComboBox, "Dark.ComboBox");
+        AssertMappedTemplate(theme, MGElementType.TreeView, "Dark.TreeView");
+        AssertMappedTemplate(theme, MGElementType.TabControl, "Dark.TabControl");
 
-        IReadOnlyDictionary<string, MGControlTemplate> templates = resources.LoadControlTemplatesFromXaml(XamlDocumentSource.FromFile(TemplatePath));
-
-        string[] expectedTemplates =
-        {
-            "CasaEditor.Window",
-            "CasaEditor.ToolTip",
-            "CasaEditor.Overlay",
-            "CasaEditor.ContextMenu",
-            "CasaEditor.ContextMenuItem",
-            "CasaEditor.ListBox",
-            "CasaEditor.ListView",
-            "CasaEditor.ComboBox",
-            "CasaEditor.TreeView",
-            "CasaEditor.TabControl",
-            "CasaEditor.DockTabItem",
-            "CasaEditor.DockAutoHideDrawer",
-            "CasaEditor.DockAutoHideStrip",
-            "CasaEditor.DockSplitter",
-            "CasaEditor.DockDropIndicators",
-        };
-
-        foreach (string templateName in expectedTemplates)
-        {
-            Assert.True(templates.ContainsKey(templateName), $"Template '{templateName}' was not loaded from the editor asset.");
-            Assert.True(resources.TryGetControlTemplate(templateName, out _), $"Template '{templateName}' was not registered in resources.");
-        }
-    }
-
-    [Fact]
-    public void EditorThemeAsset_Maps_Editor_Control_Templates()
-    {
-        Assert.True(File.Exists(TemplatePath), $"Missing editor control-template asset '{TemplatePath}'.");
-        Assert.True(File.Exists(ThemePath), $"Missing editor theme asset '{ThemePath}'.");
-
-        MGResources resources = new(MGTheme.CreateEmpty("JetBrainsMono"));
-        MGControlTemplateCatalog.RegisterDefaults(resources);
-        resources.LoadControlTemplatesFromXaml(XamlDocumentSource.FromFile(TemplatePath));
-
-        IReadOnlyDictionary<string, MGTheme> themes = resources.LoadThemesFromXaml(XamlDocumentSource.FromFile(ThemePath));
-
-        Assert.True(themes.TryGetValue("CasaEditor.Dark", out MGTheme theme));
-
-        AssertMappedTemplate(theme, MGElementType.Window, "CasaEditor.Window");
-        AssertMappedTemplate(theme, MGElementType.ToolTip, "CasaEditor.ToolTip");
-        AssertMappedTemplate(theme, MGElementType.Overlay, "CasaEditor.Overlay");
-        AssertMappedTemplate(theme, MGElementType.ContextMenu, "CasaEditor.ContextMenu");
-        AssertMappedTemplate(theme, MGElementType.ContextMenuItem, "CasaEditor.ContextMenuItem");
-        AssertMappedTemplate(theme, MGElementType.ListBox, "CasaEditor.ListBox");
-        AssertMappedTemplate(theme, MGElementType.ListView, "CasaEditor.ListView");
-        AssertMappedTemplate(theme, MGElementType.ComboBox, "CasaEditor.ComboBox");
-        AssertMappedTemplate(theme, MGElementType.TreeView, "CasaEditor.TreeView");
-        AssertMappedTemplate(theme, MGElementType.TabControl, "CasaEditor.TabControl");
-
-        AssertMappedTemplate(theme, typeof(MGDockTabItem), "CasaEditor.DockTabItem");
-        AssertMappedTemplate(theme, typeof(MGDockAutoHideDrawer), "CasaEditor.DockAutoHideDrawer");
-        AssertMappedTemplate(theme, typeof(MGDockAutoHideStrip), "CasaEditor.DockAutoHideStrip");
-        AssertMappedTemplate(theme, typeof(MGDockSplitterBar), "CasaEditor.DockSplitter");
-        AssertMappedTemplate(theme, typeof(MGDockDropIndicators), "CasaEditor.DockDropIndicators");
+        AssertMappedTemplate(theme, typeof(MGDockTabItem), "Dark.DockTabItem");
+        AssertMappedTemplate(theme, typeof(MGDockAutoHideDrawer), "Dark.DockAutoHideDrawer");
+        AssertMappedTemplate(theme, typeof(MGDockAutoHideStrip), "Dark.DockAutoHideStrip");
+        AssertMappedTemplate(theme, typeof(MGDockSplitterBar), "Dark.DockSplitter");
+        AssertMappedTemplate(theme, typeof(MGDockDropIndicators), "Dark.DockDropIndicators");
 
         Assert.Equal(18, theme.CheckBoxComponentSize);
         Assert.Equal(CheckIndicatorStyle.FilledSquare, theme.CheckBoxCheckedIndicatorStyle);
@@ -279,61 +229,61 @@ public class EditorControlTemplateAssetLoadingTests
         context.Runtime.ApplyFrame(new UpdateBaseArgs(TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(1), default, default));
         context.Desktop.Update();
 
-        AssertAppliedTemplate(context.Window, "CasaEditor.Window",
+        AssertAppliedTemplate(context.Window, "Dark.Window",
             MGWindow.BorderPartName,
             MGWindow.TitleBarPartName,
             MGWindow.TitleBarTextPartName,
             MGWindow.CloseButtonPartName,
             MGWindow.ResizeGripPartName);
-        AssertAppliedTemplate(toolTip, "CasaEditor.ToolTip",
+        AssertAppliedTemplate(toolTip, "Dark.ToolTip",
             MGWindow.BorderPartName,
             MGWindow.TitleBarPartName,
             MGWindow.TitleBarTextPartName,
             MGWindow.CloseButtonPartName,
             MGWindow.ResizeGripPartName);
-        AssertAppliedTemplate(overlay, "CasaEditor.Overlay",
+        AssertAppliedTemplate(overlay, "Dark.Overlay",
             MGOverlay.BorderPartName,
             MGOverlay.CloseButtonPartName);
-        AssertAppliedTemplate(contextMenu, "CasaEditor.ContextMenu",
+        AssertAppliedTemplate(contextMenu, "Dark.ContextMenu",
             MGContextMenu.ScrollViewerPartName,
             MGContextMenu.ItemsPanelPartName);
-        AssertAppliedTemplate(contextMenuItem, "CasaEditor.ContextMenuItem",
+        AssertAppliedTemplate(contextMenuItem, "Dark.ContextMenuItem",
             MGWrappedContextMenuItem.ContentWrapperPartName,
             MGWrappedContextMenuItem.HeaderPresenterPartName,
             MGWrappedContextMenuItem.SubmenuArrowPartName,
             MGWrappedContextMenuItem.ShortcutTextPartName);
-        AssertAppliedTemplate(listBox, "CasaEditor.ListBox",
+        AssertAppliedTemplate(listBox, "Dark.ListBox",
             MGListBox<string>.OuterBorderPartName,
             MGListBox<string>.TitleBorderPartName,
             MGListBox<string>.TitlePresenterPartName,
             MGListBox<string>.InnerBorderPartName,
             MGListBox<string>.ScrollViewerPartName,
             MGListBox<string>.ItemsPanelPartName);
-        AssertAppliedTemplate(listView, "CasaEditor.ListView",
+        AssertAppliedTemplate(listView, "Dark.ListView",
             MGListView<string>.DockPanelPartName,
             MGListView<string>.HeaderGridPartName,
             MGListView<string>.ScrollViewerPartName,
             MGListView<string>.DataGridPartName);
-        AssertAppliedTemplate(comboBox, "CasaEditor.ComboBox",
+        AssertAppliedTemplate(comboBox, "Dark.ComboBox",
             MGComboBox<string>.BorderPartName,
             MGComboBox<string>.DropdownArrowPartName,
             MGComboBox<string>.DropdownWindowPartName,
             MGComboBox<string>.DropdownItemsPanelPartName,
             MGComboBox<string>.DropdownScrollViewerPartName);
-        AssertAppliedTemplate(treeView, "CasaEditor.TreeView",
+        AssertAppliedTemplate(treeView, "Dark.TreeView",
             MGTreeView.OuterBorderPartName,
             MGTreeView.ScrollViewerPartName,
             MGTreeView.ItemsPanelPartName);
-        AssertAppliedTemplate(tabControl, "CasaEditor.TabControl",
+        AssertAppliedTemplate(tabControl, "Dark.TabControl",
             MGTabControl.BorderPartName,
             MGTabControl.HeadersPanelPartName);
 
-        AssertAppliedTemplate(dockTabItem, "CasaEditor.DockTabItem",
+        AssertAppliedTemplate(dockTabItem, "Dark.DockTabItem",
             MGDockTabItem.SurfacePartName,
             MGDockTabItem.AccentPartName,
             MGDockTabItem.CloseIconPartName,
             MGDockTabItem.PinIconPartName);
-        AssertAppliedTemplate(autoHideDrawer, "CasaEditor.DockAutoHideDrawer",
+        AssertAppliedTemplate(autoHideDrawer, "Dark.DockAutoHideDrawer",
             MGDockAutoHideDrawer.BorderPartName,
             MGDockAutoHideDrawer.HeaderPartName,
             MGDockAutoHideDrawer.TitleLabelPartName,
@@ -342,13 +292,13 @@ public class EditorControlTemplateAssetLoadingTests
             MGDockAutoHideDrawer.PinIconPartName,
             MGDockAutoHideDrawer.CloseIconPartName,
             MGDockAutoHideDrawer.ResizeGripPartName);
-        AssertAppliedTemplate(autoHideStrip, "CasaEditor.DockAutoHideStrip",
+        AssertAppliedTemplate(autoHideStrip, "Dark.DockAutoHideStrip",
             MGDockAutoHideStrip.SeparatorPartName);
-        AssertAppliedTemplate(dockSplitter, "CasaEditor.DockSplitter",
+        AssertAppliedTemplate(dockSplitter, "Dark.DockSplitter",
             MGDockSplitterBar.SurfacePartName,
             MGDockSplitterBar.AccentPartName,
             MGDockSplitterBar.GripPartName);
-        AssertAppliedTemplate(dockDropIndicators, "CasaEditor.DockDropIndicators");
+        AssertAppliedTemplate(dockDropIndicators, "Dark.DockDropIndicators");
     }
 
     private static void AssertMappedTemplate(MGTheme theme, MGElementType elementType, string expectedTemplateName)
@@ -378,16 +328,12 @@ public class EditorControlTemplateAssetLoadingTests
 
     private static EditorThemeTestContext CreateThemeTestContext()
     {
-        Assert.True(File.Exists(TemplatePath), $"Missing editor control-template asset '{TemplatePath}'.");
-        Assert.True(File.Exists(ThemePath), $"Missing editor theme asset '{ThemePath}'.");
-
         EditorThemeTestRuntime runtime = new(new Rectangle(0, 0, 1280, 720));
         MGDesktop desktop = new(runtime);
         desktop.LoadDefaultResources();
-        desktop.Resources.LoadControlTemplatesFromXaml(XamlDocumentSource.FromFile(TemplatePath));
+        MGControlTemplateCatalog.RegisterDefaults(desktop.Resources);
 
-        IReadOnlyDictionary<string, MGTheme> themes = desktop.Resources.LoadThemesFromXaml(XamlDocumentSource.FromFile(ThemePath));
-        desktop.Resources.DefaultTheme = themes["CasaEditor.Dark"];
+        desktop.Resources.DefaultTheme = new MGTheme(MGTheme.BuiltInTheme.Dark, desktop.DefaultFontFamily);
 
         MGWindow window = new(desktop, 16, 16, 640, 480) { Name = "Editor Theme Window" };
         desktop.Windows.Add(window);
