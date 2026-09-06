@@ -36,6 +36,10 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [particle-system-features.md](engine/particle-system-features.md) — spécification fonctionnelle du système de particules.
 - [particle-system-v1-v2-migration.md](engine/particle-system-v1-v2-migration.md) — migration particules V1 → V2.
 
+### Physique et collision
+
+- [collision-2d-3d-architecture.md](engine/collision-2d-3d-architecture.md) — architecture cible de la collision 2D / 2.5D / 3D : une seule simulation 3D, espace de simulation comme politique du monde, couches Shape/Fixture/Body/World, canaux et profils, volumes et champs, backend bepuphysics2 (décisions D1 → D6, ADR-0003 → ADR-0009).
+
 ### Gameplay et scripting
 
 - [gameplay-mode.md](engine/gameplay-mode.md) — concept `GameplayMode` (règles de gameplay par `World`).
@@ -44,6 +48,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [coroutines_specifications.md](engine/coroutines_specifications.md) — spécification du système de coroutines.
 - [cutscene_commandes_sequentielles_async_coroutine.md](engine/cutscene_commandes_sequentielles_async_coroutine.md) — séquences scriptées avec commandes séquentielles async/coroutine.
 - [yarn_spinner_integration.md](engine/yarn_spinner_integration.md) — intégration de Yarn Spinner (dialogues).
+- [dialogue-choices-and-bitmap-fonts.md](engine/dialogue-choices-and-bitmap-fonts.md) — choix de dialogue et police bitmap dans le pipeline de dialogue existant (`DialogueService`, `IDialoguePresenter`, `DialogueScreen`).
 - [world-message-bus-migration-notes.md](engine/world-message-bus-migration-notes.md) — bus de messages scopé au `World` (pattern recommandé).
 - [player-input.md](engine/player-input.md) — façade `PlayerInput` par joueur (gates input enable / routage par vue / capture UI).
 - [gameplay-possession.md](engine/gameplay-possession.md) — possession `Controller`/`Entity` (`Possess`/`UnPossess`, pilotage de `CharacterControlMode`) et multi-joueur local.

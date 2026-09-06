@@ -452,7 +452,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 5 — Index et docs périmées
 
-### ⏳ T5.1 — Remettre les index à jour
+### ✅ T5.1 — Remettre les index à jour
 
 - Objectif : des index complets et datés (D10).
 - Fichiers : `docs/README.md`, `ai-agent/README.md`.
@@ -462,6 +462,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   3. Comparer `fd . ai-agent/tasks -d 1 -e md` et `fd . ai-agent/audits -e md` aux liens des deux index et ajouter tout fichier manquant, au-delà de ceux nommés ci-dessus (critère 6).
 - Validation : critère 6 de la validation globale (comparaison `fd` vs liens) ; aucun lien mort.
 - Commit : `docs: fix the documentation and ai-agent indexes`
+- Note de validation (2026-09-06) : `docs/README.md` indexe désormais `engine/collision-2d-3d-architecture.md` (nouvelle section « Physique et collision ») et `engine/dialogue-choices-and-bitmap-fonts.md` ; `ai-agent/README.md` indexe les quatre audits manquants (`analysis-play-in-editor.md`, `analysis-audio-system.md`, `analysis-ai-agent-files.md`, `analysis-decisions-inventory.md`, sections « Agents IA et décisions », « Éditeur », « Audio ») et ce plan ; la phrase sur la légende nomme les trois plans qui ne la suivent pas `[plans-19]` ; les quatre audits décrivant un état disparu sont marqués « Historique » (occurrences de BulletSharp, ThirdParties, WithEditor, Editor/Editor.csproj, EditorUI vérifiées par `rg` : 6, 11, 35, 5) sans modification des audits. Tableau des tâches : date mise à jour, revue plan par plan par la liste des titres de tâches non ✅ (`rg`), lignes corrigées pour play-in-editor, tilemap-modernization (⚠️ ajouté), tilemap-render-spaces (mergé, 🧪 A3 → E4), animation2d-editor (V1.11 ⚠️), animation2d-modernization (1.1 → 5.2), bepu-physics (mergé le 2026-08-23), rpgdemo (mergé) et audio (mergé, 4 🧪 nommés) ; mentions « branche » retirées pour les chantiers mergés (`git log main` : merges tilemap-render-spaces, commits audio et Bepu présents). Comparaison `fd` vs liens : aucun fichier de `docs/**` (hors `decisions/`, indexé par son README), `ai-agent/audits/*.md` et `ai-agent/tasks/*.md` absent des index ; liens résolus.
 
 ### ⏳ T5.2 — Corriger les références périmées dans `docs/`
 
