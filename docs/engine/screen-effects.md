@@ -76,7 +76,13 @@ Tous les intrants sont fournis par l'appelant — aucun `GraphicsDevice`, aucune
 périphérique, avec une texture explicite en test. La formule de placement est **exactement** celle
 du bloc teinte de `BackdropRenderer.Draw` (dépôt Alundra) : le quad est positionné à
 `cameraPosition - demi-viewport` (avec le flip Y du monde +Y-haut vers l'écran +Y-bas), ce qui annule
-la propre transformation caméra et fait toujours couvrir tout l'écran, où que soit la caméra.
+la propre transformation caméra et fait toujours couvrir tout l'écran, où que soit la caméra. Le quad
+est soumis à `z = cameraPosition.Z` (et non plus une profondeur littérale `0f`) : le fondu suit ainsi
+la profondeur de la caméra exactement comme la teinte des couches défilantes
+(`ScrollingLayerComponent.Submit`, `cameraTarget.Z` — voir [scrolling-layers.md](scrolling-layers.md)
+§4), ce qui reste sans effet observable tant que la caméra garde `Target.Z == 0` (le cas d'Alundra)
+mais évite qu'un fondu se retrouve rejeté en profondeur derrière une couche d'arrière-plan reculée si
+la caméra s'éloignait un jour de z = 0.
 
 `Update` résout la seule source caméra retenue par le plan — `ViewManager.ActiveView.Camera` (casté
 en `Camera2dComponent`, dont `.Target` est la position monde). La taille de vue passée à

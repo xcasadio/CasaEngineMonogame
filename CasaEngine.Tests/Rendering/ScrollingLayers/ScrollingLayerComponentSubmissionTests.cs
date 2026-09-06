@@ -61,7 +61,9 @@ public class ScrollingLayerComponentSubmissionTests
         // Draw doc for the general formula with a real texture).
         Assert.Equal(927f, worldMatrix.Translation.X, 3);
         Assert.Equal(-719f, worldMatrix.Translation.Y, 3);
-        Assert.Equal(0f, worldMatrix.Translation.Z, 3);
+        // The helper layer is Pass = Background (D-E9c-5): it recedes by the configured depth from the
+        // camera target's own Z (here 0), rather than sitting at it.
+        Assert.Equal(-Configuration.BackgroundDepth, worldMatrix.Translation.Z, 3);
 
         Assert.True(component.Service.TryGetLayerState(0, out var state));
         Assert.Equal(0, state.LayerOffsetX);
@@ -115,10 +117,71 @@ public class ScrollingLayerComponentSubmissionTests
     }
 
     [Fact]
-    public void Submit_TranslationZ_IsZeroForBothBackgroundAndEffectsPasses()
+    public void Submit_TranslationZ_BackgroundRecedesByConfiguredDepth_EffectsStaysAtCameraDepth()
     {
         var (component, renderer) = CreateWired();
         component.Service.SetConfiguration(Configuration);
+        var backgroundLayer = MakeOneQuadLayer();
+        backgroundLayer.Pass = RenderPass2D.Background;
+        var effectsLayer = MakeOneQuadLayer();
+        effectsLayer.Pass = RenderPass2D.Effects;
+        component.Service.SetLayers(new[] { backgroundLayer, effectsLayer });
+        component.ResolveTextures(_ => CreateTexture());
+
+        component.Service.SetFrame(0, 0, 0, Vector3.Zero);
+        component.Service.Advance();
+        component.Submit(renderer, component.Service.CameraTarget, Scissor);
+
+        var spriteDatas = GetSpriteDatas(renderer);
+        Assert.Equal(2, spriteDatas.Count);
+        var backgroundZ = (Matrix)GetField(spriteDatas[0], "WorldMatrix");
+        var effectsZ = (Matrix)GetField(spriteDatas[1], "WorldMatrix");
+        Assert.Equal(-Configuration.BackgroundDepth, backgroundZ.Translation.Z, 3);
+        Assert.Equal(0f, effectsZ.Translation.Z, 3);
+    }
+
+    [Fact]
+    public void Submit_TranslationZ_BackgroundRecedesFromTheNonZeroCameraTarget()
+    {
+        var (component, renderer) = CreateWired();
+        component.Service.SetConfiguration(Configuration);
+        var backgroundLayer = MakeOneQuadLayer();
+        backgroundLayer.Pass = RenderPass2D.Background;
+        component.Service.SetLayers(new[] { backgroundLayer });
+        component.ResolveTextures(_ => CreateTexture());
+
+        var target = new Vector3(0f, 0f, 42f);
+        component.Service.SetFrame(0, 0, 0, target);
+        component.Service.Advance();
+        component.Submit(renderer, component.Service.CameraTarget, Scissor);
+
+        var worldMatrix = (Matrix)GetField(GetSpriteDatas(renderer)[0], "WorldMatrix");
+        Assert.Equal(42f - Configuration.BackgroundDepth, worldMatrix.Translation.Z, 3);
+    }
+
+    [Fact]
+    public void Submit_TintTranslationZ_StaysAtCameraDepth_NeverReceded()
+    {
+        var (component, renderer) = CreateWired();
+        component.Service.SetConfiguration(Configuration);
+        component.Service.SetTint(MakeTint());
+        InjectWhiteTexture(component);
+
+        var target = new Vector3(0f, 0f, 42f);
+        component.Service.SetFrame(0, 0, 0, target);
+        component.Service.Advance();
+        component.Submit(renderer, component.Service.CameraTarget, Scissor);
+
+        var worldMatrix = (Matrix)GetField(GetSpriteDatas(renderer)[0], "WorldMatrix");
+        Assert.Equal(42f, worldMatrix.Translation.Z, 3);
+    }
+
+    [Fact]
+    public void Submit_TranslationZ_ZeroConfiguredDepth_ReproducesTheOldEqualDepthBehaviour()
+    {
+        var zeroDepthConfiguration = new ScrollingLayerConfiguration(640, 480, 320, 240, backgroundDepth: 0f);
+        var (component, renderer) = CreateWired();
+        component.Service.SetConfiguration(zeroDepthConfiguration);
         var backgroundLayer = MakeOneQuadLayer();
         backgroundLayer.Pass = RenderPass2D.Background;
         var effectsLayer = MakeOneQuadLayer();

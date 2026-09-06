@@ -179,7 +179,7 @@ public class ScrollingLayerComponent : GameComponent
                     0f,
                     new Vector2(configuration.ViewWidth, configuration.ViewHeight),
                     tint.Value.Color,
-                    0f,
+                    cameraTarget.Z,
                     tint.Value.SortKey,
                     SpriteEffects.None,
                     scissorRectangle,
@@ -210,6 +210,13 @@ public class ScrollingLayerComponent : GameComponent
             var definition = Service.GetLayerDefinition(i);
             var sortKey = new RenderSortKey2D((int)definition.Pass, definition.SortingLayer, definition.OrderInLayer, 0, 0, 0, definition.StableId);
 
+            // D-E9c-5: a Background-pass layer recedes behind the camera target so it loses the depth
+            // test against same-frame tiles at world Z 0 (world Z 0 is nearer the camera than a
+            // negative Z); every other pass stays at the camera's own depth, matching the tint above.
+            var layerZ = definition.Pass == RenderPass2D.Background
+                ? cameraTarget.Z - configuration.BackgroundDepth
+                : cameraTarget.Z;
+
             var startX = ScrollingLayerService.CoveringOriginStart(state.LayerOffsetX, configuration.CanvasWidth);
             var countX = ScrollingLayerService.CoveringOriginCount(configuration.ViewWidth, startX, configuration.CanvasWidth);
             var startY = ScrollingLayerService.CoveringOriginStart(state.LayerOffsetY, configuration.CanvasHeight);
@@ -235,7 +242,7 @@ public class ScrollingLayerComponent : GameComponent
                         0f,
                         Vector2.One,
                         definition.Tint,
-                        0f,
+                        layerZ,
                         sortKey,
                         SpriteEffects.None,
                         scissorRectangle,

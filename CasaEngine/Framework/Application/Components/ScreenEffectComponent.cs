@@ -155,7 +155,7 @@ public class ScreenEffectComponent : GameComponent
             0f,
             new Vector2(viewportWidth, viewportHeight),
             color,
-            0f,
+            cameraPosition.Z,
             sortKey,
             SpriteEffects.None,
             resolvedScissorRectangle,

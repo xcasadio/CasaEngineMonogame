@@ -68,6 +68,26 @@ public class ScreenEffectComponentSubmissionTests
     }
 
     [Fact]
+    public void SubmitOverlay_WithANonZeroCameraDepth_SubmitsTheOverlayAtThatDepth()
+    {
+        // Proves the fade tracks the camera's own depth (docs/engine/screen-effects.md,
+        // docs/engine/scrolling-layers.md §4): with a non-zero cameraPosition.Z, the overlay must be
+        // submitted at that same Z, exactly like ScrollingLayerComponent.Submit's tint quad
+        // (cameraTarget.Z) - not pinned at a literal 0f, which would depth-reject the fade behind a
+        // receded background layer whenever the camera itself sits at a non-zero depth.
+        var renderer = CreateSpriteRenderer();
+        var component = CreateScreenEffectComponent();
+        component.Service.SetOverlay(1, 2, 3, SpriteBlendMode.Additive);
+
+        var cameraPosition = new Vector3(100f, 50f, 42f);
+        component.SubmitOverlay(renderer, cameraPosition, viewportWidth: 320, viewportHeight: 240, overlayTexture: CreateTexture());
+
+        var entry = GetSpriteDatas(renderer)[0]!;
+        var worldMatrix = (Matrix)GetField(entry, "WorldMatrix");
+        Assert.Equal(cameraPosition.Z, worldMatrix.Translation.Z, 3);
+    }
+
+    [Fact]
     public void SubmitOverlay_WhenServiceIsInactive_QueuesNothing()
     {
         var renderer = CreateSpriteRenderer();

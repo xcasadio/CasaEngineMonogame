@@ -53,15 +53,35 @@ allocation par la paire `CoveringOriginStart`/`CoveringOriginCount` (bornes enti
 entiers, au plus 2×2 quads par couche pour une toile 640×480 contre une vue 320×240) — remplace la
 `List<Point>` allouée de l'ancien mécanisme DLL.
 
-## 4. Politique Z et mécanique observée
+## 4. Z policy (revised, plan-e9c-defauts-321.md, D-E9c-5)
 
-Tous les quads (couches et teinte) sont soumis à **z = 0**, exactement comme l'ancien
-`BackdropRenderer` (`:418`, `:467`). Une couche `Ground = false` (fond, passe `Background`) à z = 0,
-flushée après le batch statique des tuiles à égalité de profondeur, ne recouvre pas le sol — mesuré
-sur la carte 321 (nuages visibles uniquement dans le vide au-dessus du sol, jamais devant), pas
-déduit : la mécanique exacte qui fait gagner le sol (état de profondeur du batch statique vs flush
-trié, ou routage des tuiles) n'a pas été élucidée plus loin et n'a pas à l'être — le contrat de ce
-mécanisme est de reproduire le z = 0 d'aujourd'hui, pas de le justifier.
+A `RenderPass2D.Background` layer is submitted at `cameraTarget.Z - configuration.BackgroundDepth`
+(`ScrollingLayerConfiguration.BackgroundDepth`, default 1 - Alundra's camera target Z is 0, so a
+background layer lands at z = -1). Every other pass, and the tint quad, stay at `cameraTarget.Z` - and
+so does the full-screen fade (`ScreenEffectComponent.SubmitOverlay`, `cameraPosition.Z`), the camera's
+own depth being the one value both components read it from.
+
+This corrects the previous policy - z = 0 for every quad, exactly like the retired
+`BackdropRenderer` (`:418`, `:467`) - which the original E9.b measurement (map 321,
+`scratchpad/port-321-before-a/b.png`) had judged correct because it only examined the *empty sky*
+above the arena floor: clouds were visible there and never in front of the floor's lower half, so the
+floor appeared to win the tie unconditionally. Slice E9.c measured further and found map 321's
+topmost bone row (`Render_0`, z_offset 0.0, rows 13-19) is drawn through
+`SpriteRendererComponent.DrawStaticBatch`'s IMMEDIATE static batch during `World.Draw`, i.e. BEFORE
+the sprite queue (backdrop included) is flushed - at equal depth (`LessEqual` + depth write), the
+*later*-drawn quad wins, and the backdrop is queued and flushed after the static batch. So a
+Background layer at z = 0 overpainted that topmost bone row all along, cloud cutting cleanly at the
+row where the bone's silhouette changes - invisible against an empty sky, visible only where a static
+tile shares the same world Z.
+
+The original itself places `Ground = false` layers at `-0x10000000 + order`
+(`GraphicManager.cs:825-826`) - behind every floor, wall and entity, never at equal depth. In this
+engine a smaller world Z is FARTHER from the camera, so receding a Background layer to
+`cameraTarget.Z - BackgroundDepth` makes its depth write lose against both the static tile batch
+(world Z 0, drawn first) and the sorted overlay (also world Z 0, drawn after within the same flush) -
+while still being correctly REJECTED nowhere it shouldn't, since nothing else writes a farther depth.
+The full-screen fade (`RenderPass2D.ScreenEffects`, z = `cameraPosition.Z`, the camera depth) still
+covers everything, as it did before.
 
 ## 5. Ciseaux
 
