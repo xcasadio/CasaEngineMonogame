@@ -67,7 +67,8 @@ de la frame courante.
 
 ```csharp
 public void SubmitOverlay(SpriteRendererComponent renderer, Vector3 cameraPosition,
-    int viewportWidth, int viewportHeight, Texture2D overlayTexture = null)
+    int viewportWidth, int viewportHeight, Texture2D overlayTexture = null,
+    Rectangle? scissorRectangle = null)
 ```
 
 Tous les intrants sont fournis par l'appelant — aucun `GraphicsDevice`, aucune lecture de
@@ -78,8 +79,18 @@ du bloc teinte de `BackdropRenderer.Draw` (dépôt Alundra) : le quad est positi
 la propre transformation caméra et fait toujours couvrir tout l'écran, où que soit la caméra.
 
 `Update` résout la seule source caméra retenue par le plan — `ViewManager.ActiveView.Camera` (casté
-en `Camera2dComponent`, dont `.Target` est la position monde) — et `ScreenSizeWidth`/`Height`, puis
-appelle `SubmitOverlay`.
+en `Camera2dComponent`, dont `.Target` est la position monde). La taille de vue passée à
+`SubmitOverlay` n'est **plus** `ScreenSizeWidth/Height` en pixels par défaut (P3 hérité, plan E9.b
+D-E9b-12) : la couture pure `TryGetCameraViewSize(camera, out width, out height)` — testable sans
+périphérique — calcule `(Viewport.Width / Zoom, Viewport.Height / Zoom)` en **unités monde** quand la
+caméra et son viewport sont valides (320 × 236 côté Alundra), et `Update` ne replie sur
+`ScreenSizeWidth/Height` (pixels) que si elle renvoie faux (caméra nulle, viewport vide) — l'overlay
+ne cesse jamais d'être soumis pour autant. Cette taille n'est donc **plus** en parité avec le bloc
+teinte plein écran des couches défilantes (voir [scrolling-layers.md](scrolling-layers.md), dont la
+configuration porte sa propre taille de vue 320×240 poussée par la DLL) : les deux mécanismes
+résolvent leur taille de vue indépendamment. Le rectangle de ciseaux est résolu par `Update` sous la
+même garde que le pixel 1×1 (`GraphicsDevice.ScissorRectangle`, ou `(0, 0, viewportWidth,
+viewportHeight)` à défaut) et passé en dernier paramètre optionnel de `SubmitOverlay`.
 
 ---
 

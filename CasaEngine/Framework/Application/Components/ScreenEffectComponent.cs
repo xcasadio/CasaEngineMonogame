@@ -53,10 +53,63 @@ public class ScreenEffectComponent : GameComponent
             var camera = _game.GameManager?.ViewManager?.ActiveView?.Camera as Camera2dComponent;
             var cameraPosition = camera?.Target ?? Vector3.Zero;
 
-            SubmitOverlay(_game.SpriteRendererComponent, cameraPosition, _game.ScreenSizeWidth, _game.ScreenSizeHeight);
+            int viewportWidth;
+            int viewportHeight;
+            if (!TryGetCameraViewSize(camera, out viewportWidth, out viewportHeight))
+            {
+                // No active 2d camera (or an unsized viewport, e.g. before the first resize): fall
+                // back to the raw screen size in pixels - the pre-existing behaviour, still correct
+                // as long as the sizes SubmitOverlay receives are pixels on both sides (D-E9b-12).
+                // The fade/tint overlay must never stop being submitted just because the camera view
+                // size could not be resolved.
+                viewportWidth = _game.ScreenSizeWidth;
+                viewportHeight = _game.ScreenSizeHeight;
+            }
+
+            var scissorRectangle = ResolveScissorRectangle(viewportWidth, viewportHeight);
+            SubmitOverlay(_game.SpriteRendererComponent, cameraPosition, viewportWidth, viewportHeight, scissorRectangle: scissorRectangle);
         }
 
         base.Update(gameTime);
+    }
+
+    /// <summary>
+    /// Pure seam (D-E9b-12): the camera's view size in world units - <c>(Viewport.Width / Zoom,
+    /// Viewport.Height / Zoom)</c> - for a non-null <paramref name="camera"/> with a non-empty
+    /// viewport (Alundra: 320x236); <see langword="false"/> for a null camera or an empty viewport
+    /// (e.g. no active view yet). Neither this method nor <see cref="Update"/>'s use of it reads
+    /// <c>_game</c> or any device - testable with a bare <see cref="Camera2dComponent"/> and no game
+    /// at all.
+    /// </summary>
+    internal static bool TryGetCameraViewSize(Camera2dComponent camera, out int width, out int height)
+    {
+        if (camera == null || camera.Viewport.Width <= 0 || camera.Viewport.Height <= 0)
+        {
+            width = 0;
+            height = 0;
+            return false;
+        }
+
+        width = (int)(camera.Viewport.Width / camera.Zoom);
+        height = (int)(camera.Viewport.Height / camera.Zoom);
+        return true;
+    }
+
+    private Rectangle ResolveScissorRectangle(int viewportWidth, int viewportHeight)
+    {
+        GraphicsDevice graphicsDevice;
+        try
+        {
+            // Same guard as GetOrCreatePixelTexture: a headless/partially-constructed Game can throw
+            // from the GraphicsDevice getter itself rather than returning null.
+            graphicsDevice = _game?.GraphicsDevice;
+        }
+        catch (Exception)
+        {
+            graphicsDevice = null;
+        }
+
+        return graphicsDevice?.ScissorRectangle ?? new Rectangle(0, 0, viewportWidth, viewportHeight);
     }
 
     /// <summary>
@@ -74,7 +127,7 @@ public class ScreenEffectComponent : GameComponent
     /// active camera's own view transform and always covers the screen regardless of where the
     /// camera is.
     /// </remarks>
-    public void SubmitOverlay(SpriteRendererComponent renderer, Vector3 cameraPosition, int viewportWidth, int viewportHeight, Texture2D overlayTexture = null)
+    public void SubmitOverlay(SpriteRendererComponent renderer, Vector3 cameraPosition, int viewportWidth, int viewportHeight, Texture2D overlayTexture = null, Rectangle? scissorRectangle = null)
     {
         if (!Service.Active || renderer == null || viewportWidth <= 0 || viewportHeight <= 0)
         {
@@ -92,7 +145,7 @@ public class ScreenEffectComponent : GameComponent
         var worldPosition = new Vector2(cameraPosition.X - halfWidth, cameraPosition.Y + halfHeight);
         var color = new Color(Service.R, Service.G, Service.B);
         var sortKey = new RenderSortKey2D((int)RenderPass2D.ScreenEffects, 0, 0, 0, 0, 0, 0);
-        var fullViewport = new Rectangle(0, 0, viewportWidth, viewportHeight);
+        var resolvedScissorRectangle = scissorRectangle ?? new Rectangle(0, 0, viewportWidth, viewportHeight);
 
         renderer.DrawSprite(
             texture,
@@ -105,7 +158,7 @@ public class ScreenEffectComponent : GameComponent
             0f,
             sortKey,
             SpriteEffects.None,
-            fullViewport,
+            resolvedScissorRectangle,
             Service.Blend);
     }
 

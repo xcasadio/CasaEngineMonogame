@@ -27,7 +27,14 @@ public enum ComponentUpdateOrder
     // Update (which is when the DLL pushes this frame's fade/tint state to the service) - see
     // CasaEngineGame.Update: GameManager.UpdateWorld runs before every GameComponent's Update, so
     // ordering only needs to place this after Audio, not before it.
-    ScreenEffects
+    ScreenEffects,
+
+    // Same reasoning as ScreenEffects: the scrolling-layers overlay is submitted from
+    // ScrollingLayerComponent.Update, after the DLL has pushed this frame's scroll/ticks to the
+    // service from GameManager.UpdateWorld. Relative order against ScreenEffects does not matter
+    // (both only queue sprites into SpriteRendererComponent's sorted list, at different render
+    // passes) - appended last purely to keep existing enum values stable.
+    ScrollingLayers
 }
 
 public enum ComponentDrawOrder
