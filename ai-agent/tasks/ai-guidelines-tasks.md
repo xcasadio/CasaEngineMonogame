@@ -367,13 +367,14 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(adr): add the architecture decision records folder and template`
 - Note de validation (2026-09-06) : `docs/decisions/template.md` (anglais) porte Status, Date, Source, Context, Decision, Consequences (D6) avec les statuts de P5 ; `docs/decisions/README.md` (anglais) énonce les règles (un fichier par décision, regroupement par thématique, nommage `NNNN-short-title.md`, audits en lecture seule, remplacement par supersession) et ouvre le tableau d'index ; `docs/README.md` a une section « Décisions d'architecture » dont les deux liens résolvent ; `AGENTS.md` §10 cite déjà `docs/decisions/template.md` et `docs/decisions/README.md`, cohérents avec les fichiers créés.
 
-### ⏳ T4.2 — Ajouter le skill `adr`
+### ✅ T4.2 — Ajouter le skill `adr`
 
 - Objectif : rendre l'écriture d'une ADR exécutable par les deux outils (D6).
 - Fichiers : `.claude/skills/adr/SKILL.md` (nouveau).
 - Étapes : quand écrire une ADR (toute décision d'architecture, de format d'asset, d'API publique ou de backend, prise pendant un plan ou une discussion) ; lire `docs/decisions/template.md` ; numéroter d'après `docs/decisions/README.md` ; écrire en anglais ; ajouter la ligne d'index ; rappeler D13 (ne pas inventer de contexte : citer la source de la décision).
 - Validation : `yq` parse ; chaque fichier cité par le skill existe (`docs/decisions/template.md`, `docs/decisions/README.md`).
 - Commit : `docs(ai): add the adr skill`
+- Note de validation (2026-09-06) : `yq` lit `name` et `description` (description entre guillemets à cause du deux-points) ; le skill rappelle D13 (section « Règle absolue : ne rien inventer », source citée obligatoire, audits en lecture seule) ; fichiers cités existants : `docs/decisions/README.md`, `docs/decisions/template.md`, `AGENTS.md` ; procédure conforme à D6 et P5 (numérotation, regroupement par thématique, supersession).
 
 ### ⏳ T4.3 — Inventorier les décisions existantes à rétro-remplir
 
