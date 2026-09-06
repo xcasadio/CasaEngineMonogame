@@ -273,7 +273,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(claude): add path-scoped rules mirroring the Copilot instructions`
 - Note de validation (2026-09-06) : 6 fichiers générés par un script déterministe (dossier de travail de la session, `mirror_rules.py`) qui convertit `applyTo` en liste `paths:` et copie le corps tel quel ; `yq --front-matter=extract '.paths | length'` : 1, 3, 1, 3, 5, 2 (aucun fichier sans `paths`) ; comparaison des corps hors frontmatter et hors commentaire de jumelage : identiques pour les 6. Format `paths:` : doc mémoire Claude Code (liste YAML de globs).
 
-### ⏳ T2.3 — Nettoyer et harmoniser les agents Copilot `.github/agents/`
+### ✅ T2.3 — Nettoyer et harmoniser les agents Copilot `.github/agents/`
 
 - Objectif : supprimer l'agent périmé, uniformiser les six autres (D7).
 - Fichiers : suppression de `.github/agents/engine-developer.md` ; édition des 6 `*.agent.md`.
@@ -284,6 +284,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   4. Chaque agent renvoie au workflow d'`AGENTS.md` (plan, commit par tâche, ne rien inventer) au lieu de le reformuler (`[gh-01]` `[gh-02]` `[gh-20]`).
 - Validation : `yq` parse ; `rg -l "Neoforce|Bullet|Jolt|DebugEditor|contentReference" .github/agents` vide ; `fd . .github/agents` renvoie 6 fichiers.
 - Commit : `docs(copilot): remove the delivered engine-ui agent and harmonize the agent files`
+- Note de validation (2026-09-06) : `engine-developer.md` supprimé (`git rm`) ; 6 fichiers `*.agent.md` restants, frontmatter `name` (= nom de fichier) + `description` lus par `yq` ; champ `tools` omis (voir O4 : la doc VS Code ne fournit pas la liste complète des identifiants, et la doc GitHub documente l'omission comme « tous les outils ») ; sections uniformes `## Mission`, `## Règles` ou `## Points d'attention`, `## Workflow`, `## Done` ; chaque workflow renvoie au workflow d'`AGENTS.md` (plan, commit par tâche, ne rien inventer) et chaque agent renvoie à son instruction par chemin ; `rg` : plus aucune mention de Neoforce, Bullet, Jolt, DebugEditor, contentReference, WPF, forward/deferred, ni des identifiants d'outils non documentés.
 
 ### ⏳ T2.4 — Créer les sous-agents jumeaux `.claude/agents/*.md`
 
@@ -510,6 +511,7 @@ Le **merge sur `main` reste une décision humaine** : ne pas merger ni pousser s
 |---|---|---|
 | O1 | Le `CLAUDE.md` global de l'auteur (`~/.claude/CLAUDE.md`, bloc géré par pilotfish) cite un skill `baton-dispatch` introuvable `[rac-35]` ; hors dépôt, signalé seulement. | — |
 | O2 | Traduction des 49 docs françaises de `docs/` : plan séparé ultérieur (D9). | — |
+| O4 | Champ `tools` des agents Copilot : les pages VS Code « Custom agents » et « Tools » (consultées le 2026-09-06) ne donnent pas la liste complète des identifiants d'outils, et aucun identifiant documenté ne couvre l'exécution de commandes. Choix appliqué en T2.3 : omettre `tools`, ce que la doc GitHub documente comme « accès à tous les outils disponibles ». L'auteur peut restreindre plus tard avec des identifiants relevés dans VS Code (`#` dans le chat). | T2.3 |
 | O3 | Le `CLAUDE.md` global de l'auteur borne les questions posées à l'utilisateur (forme `co_discover`, boucle de readiness) `[rac-28]` et ne définit aucun statut de plan `[rac-32]` ; `AGENTS.md` (dépôt) portera D4, D5 et D13 ; hors dépôt, signalé seulement. | — |
 
 ## Hors périmètre
