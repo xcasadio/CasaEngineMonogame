@@ -14,3 +14,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
+| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted | 2026-08-26 |
+| [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted | 2026-08-26 |

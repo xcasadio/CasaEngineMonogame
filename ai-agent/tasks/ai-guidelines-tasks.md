@@ -388,7 +388,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(adr): inventory the existing decisions to backfill`
 - Note de validation (2026-09-06) : le tableau détaillé (198 lignes) est consigné dans un nouvel audit, [analysis-decisions-inventory.md](../audits/analysis-decisions-inventory.md), plutôt que sous cette tâche, pour garder ce plan lisible ; l'index `ai-agent/README.md` l'ajoutera en T5.1. Relevé par six sous-agents en lecture seule (modèle haiku, P4), une thématique chacun, avec source `fichier:ligne`, doublons et statut d'implémentation constaté par `Grep`/`Glob` ; ces statuts sont revérifiés à la rédaction de chaque ADR. Comptes : audio 13, collision et physique 19, rendu 30, UI et éditeur 38, gameplay 63, architecture 35. Exclusions motivées : recommandations non tranchées (rendu 18-21), corrections et tâches de refactor (physique 4, architecture 25-35 sauf `IGameplayProxy.Clone()`), décision de processus d'un chantier (audio D13), questions ouvertes. Regroupement par thématique (P5 amendé) : **32 fichiers ADR** prévus pour environ 190 décisions, répartis T4.4 → T4.9 selon le tableau final de l'audit. Doublons entre audits et docs repérés (`[dec-13]` → `[dec-21]`) : une seule ADR par décision, les deux sources citées.
 
-### ⏳ T4.4 — Rétro-remplir les ADR « audio »
+### ✅ T4.4 — Rétro-remplir les ADR « audio »
 
 - Objectif : une ADR par décision du système audio.
 - Sources : `ai-agent/audits/analysis-audio-system.md` D1 → D13 et D2-bis `[dec-01]` `[dec-18]` ; `docs/engine/audio-system.md`.
@@ -396,6 +396,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Étapes : une ADR par décision (ou par groupe validé en P5), `Source` renseigné, statut `Accepted` si le code l'applique (vérifié en T4.3) ; l'audit n'est pas modifié (D6).
 - Validation : index à jour ; chaque ADR cite sa source ; liens résolus.
 - Commit : `docs(adr): backfill the audio system decisions`
+- Note de validation (2026-09-06) : deux ADR rédigés en anglais depuis la table D1 → D13 relue à la source (`analysis-audio-system.md:185-204`) : ADR-0001 (runtime : D1, D2/D2-bis, D5, D7, D10, D11) et ADR-0002 (asset et éditeur : D3, D4, D6, D8, D9, D12) ; D13 (branche et commit par tâche) est une règle de processus couverte par l'ADR des règles de travail des agents (T4.9). Statut `Accepted` : les 17 fichiers d'implémentation cités existent (`fd`), les trois fichiers supprimés par D9 sont absents, aucune mention `.mp3` dans le code éditeur. Index mis à jour ; ligne « Decisions: see ADR-0001 and ADR-0002 » ajoutée dans `docs/engine/audio-system.md` ; l'audit n'est pas modifié ; liens markdown des quatre fichiers touchés résolus (script Python).
 
 ### ⏳ T4.5 — Rétro-remplir les ADR « collision, physique, Bepu »
 
