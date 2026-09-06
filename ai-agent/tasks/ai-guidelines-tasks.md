@@ -355,7 +355,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
 ## Phase 4 — Architecture Decision Records
 
-### ⏳ T4.1 — Créer `docs/decisions/` : index, modèle, règle
+### ✅ T4.1 — Créer `docs/decisions/` : index, modèle, règle
 
 - Objectif : le socle ADR (D6).
 - Fichiers : `docs/decisions/README.md`, `docs/decisions/template.md` (nouveaux), `docs/README.md` (section « Decisions »), `AGENTS.md` (section 10 : vérifier la cohérence avec le modèle).
@@ -365,6 +365,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   3. `README.md` : tableau `| ADR | Title | Status | Date |`.
 - Validation : liens depuis `docs/README.md` résolus ; modèle conforme à D6.
 - Commit : `docs(adr): add the architecture decision records folder and template`
+- Note de validation (2026-09-06) : `docs/decisions/template.md` (anglais) porte Status, Date, Source, Context, Decision, Consequences (D6) avec les statuts de P5 ; `docs/decisions/README.md` (anglais) énonce les règles (un fichier par décision, regroupement par thématique, nommage `NNNN-short-title.md`, audits en lecture seule, remplacement par supersession) et ouvre le tableau d'index ; `docs/README.md` a une section « Décisions d'architecture » dont les deux liens résolvent ; `AGENTS.md` §10 cite déjà `docs/decisions/template.md` et `docs/decisions/README.md`, cohérents avec les fichiers créés.
 
 ### ⏳ T4.2 — Ajouter le skill `adr`
 

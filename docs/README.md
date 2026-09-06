@@ -3,6 +3,10 @@
 Ce dossier contient uniquement la documentation du moteur (`engine/`) et de l'éditeur (`editor/`).
 Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/README.md).
 
+## Décisions d'architecture (`decisions/`)
+
+- [decisions/README.md](decisions/README.md) — index des Architecture Decision Records (un fichier par décision, en anglais, modèle [decisions/template.md](decisions/template.md)).
+
 ## Moteur (`engine/`)
 
 ### Animation
