@@ -233,7 +233,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 
   Contenu nouveau, sans source dans les anciens fichiers : en-tête et §1 puce 3 (D2, D8, P10 ; sous-modules : fait git, et mémoire de session « ne pas toucher MGUI/ et NvgSharp/ lors d'opérations de masse »), §3 (D4, D5, D13), §4 puces 1, 3 et 4 (D3, D11, règle d'exécution du plan « indexer fichier par fichier »), §5 (D9), §6 commande de test (fait du dépôt : `CasaEngine.Tests/CasaEngine.Tests.csproj`, absent des deux solutions), §8 puce 4 (P4), §10 puce 2 (D6), §11 (`ai-agent/README.md` et `docs/README.md`), §11 puce 4 (D8).
 
-### ⏳ T1.3 — Brancher `CLAUDE.md` et `.github/copilot-instructions.md` sur `AGENTS.md`
+### ✅ T1.3 — Brancher `CLAUDE.md` et `.github/copilot-instructions.md` sur `AGENTS.md`
 
 - Objectif : les deux outils lisent `AGENTS.md` sans duplication de contenu (D2).
 - Fichiers : `CLAUDE.md`, `.github/copilot-instructions.md`.
@@ -242,6 +242,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   2. `.github/copilot-instructions.md` : remplacer les 535 lignes par un pointeur (P9) : « Les règles de ce dépôt sont dans `AGENTS.md` à la racine, lu automatiquement ; les règles par chemin sont dans `.github/instructions/`. » (La phrase sur les skills est ajoutée en T2.5, quand `.claude/skills/` existe.)
 - Validation : `rg -n "^@AGENTS.md" CLAUDE.md` renvoie la ligne 1 ; `wc -l .github/copilot-instructions.md` ≤ 10 ; contrôle du chargement reporté au critère 1 de la validation globale (🧪 si la session ne peut pas être redémarrée).
 - Commit : `docs(ai): point CLAUDE.md and copilot-instructions at AGENTS.md`
+- Note de validation (2026-09-06) : `CLAUDE.md` ligne 1 = `@AGENTS.md` (forme documentée, doc mémoire Claude Code) suivie d'une section « Claude Code » de 5 lignes ; `.github/copilot-instructions.md` réduit à 5 lignes (pointeur, P9), les 535 lignes d'origine ayant été tracées dans la table de T1.2. Le contrôle de chargement effectif (`/context` dans une session neuve) est reporté au critère 1 de la validation globale (T6.1).
 
 ---
 
