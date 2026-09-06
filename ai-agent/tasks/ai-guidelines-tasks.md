@@ -309,7 +309,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(ai): move the skills to .claude/skills read by Copilot and Claude Code`
 - Note de validation (2026-09-06) : 6 `SKILL.md` déplacés par `git mv` (renommages détectés par git), `.github/skills/` supprimé ; frontmatter `name` + `description` lus par `yq` ; contenus corrigés : `physics-backend-adapter` réécrit pour bepuphysics2 et `IPhysicsWorld` (plus de World/Body/Shape génériques), `render-pass-scaffold` sur les classes réelles `RenderPipeline`/`RenderPass`/`OpaquePass`/`TransparentPass`/`ShadowPass`/`SkyPass`, `feature-workflow` renvoie au workflow d'`AGENTS.md` et aux skills `plan` et `adr`, doublons avec `AGENTS.md` et les règles par chemin retirés ; `rg` : plus de Bullet, Jolt, forward/deferred ; `.github/copilot-instructions.md` et `CLAUDE.md` mentionnent `.claude/skills/`.
 
-### ⏳ T2.6 — Ajouter le skill `plan`
+### ✅ T2.6 — Ajouter le skill `plan`
 
 - Objectif : rendre exécutables par les deux outils les deux règles nouvelles de l'auteur : « ne rien inventer, ne rien supposer, demander » (D4, D13) et « plan avec statuts à icônes et un commit par tâche » (D3, D5).
 - Fichiers : `.claude/skills/plan/SKILL.md` (nouveau).
@@ -319,6 +319,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   3. Règle explicite « ne rien inventer » : toute règle ou tout fait du plan provient d'un fichier du dépôt, d'une réponse de l'auteur ou d'une doc officielle citée ; sinon ⚠️ Blocked, question dans « Points ouverts », arrêt (D13, D4).
 - Validation : `yq` parse ; `rg -n "inventer" .claude/skills/plan/SKILL.md` renvoie au moins une ligne ; chaque fichier cité par le skill existe (`ai-agent/plan-template.md`, `ai-agent/README.md`).
 - Commit : `docs(ai): add the plan skill`
+- Note de validation (2026-09-06) : `yq` lit `name` et `description` ; `rg -i inventer` renvoie la section « Règle absolue : ne rien inventer, ne rien supposer, demander » (D13, D4) ; fichiers cités existants : `ai-agent/plan-template.md`, `ai-agent/README.md`, `ai-agent/tasks/archive/`, `AGENTS.md` ; la procédure reprend D3 (commit par tâche, branche dédiée, jamais de push), D4 (questions groupées, arrêt sur ⚠️) et D5 (seuil, mise à jour du plan dans le commit).
 
 ---
 
