@@ -25,5 +25,27 @@
   },
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-commit-on-main.ps1"
+            ],
+            "timeout": 10,
+            "statusMessage": "Vérification de la branche cible (pas de commit sur main, pas de push)"
+          }
+        ]
+      }
+    ]
   }
 }
