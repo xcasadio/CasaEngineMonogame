@@ -17,6 +17,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [animation-foot-lock.md](engine/animation-foot-lock.md) — foot-lock (épinglage des pieds via IK deux-os) : usage `AttachFootLock`, réglages, limites.
 - [animation-motion-matching.md](engine/animation-motion-matching.md) — périmètre du motion matching dans CasaEngine.
 - [animation-deformer-support-policy.md](engine/animation-deformer-support-policy.md) — politique de support des déformeurs.
+- [animation2d-composed-format-v1.md](engine/animation2d-composed-format-v1.md) — format composé `.anim2d` V1 (parts, tracks, events, collision keyframes), règles de chargement et échantillonnage runtime, décrits depuis le code.
 
 ### Rendu, materials et shaders
 

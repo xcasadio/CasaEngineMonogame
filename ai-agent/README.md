@@ -42,7 +42,6 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 
 ### Points d'attention
 
-- `ai-agent/tasks/animation2d-modernization-tasks.md` déclare une documentation ajoutée dans `docs/engine/animation2d-composed-format-v1.md`, mais ce fichier n'existe pas dans le dépôt : la doc du format composé reste à écrire.
 - Les notes de blocage de `cutscene-implementation-plan.md` (erreurs de compilation `CasaEngine.Tests`) datent d'une session précédente : à revérifier avant de reprendre.
 
 ## Audits et analyses (`audits/`)
