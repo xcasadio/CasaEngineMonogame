@@ -24,7 +24,7 @@ Le document cible d'abord un controleur 3D a capsule, car le moteur contient dej
 - `Controller` et `PlayerController` existent dans `CasaEngine.Framework.Gameplay` ; la classe `Pawn` a ete supprimee, un controller possede directement une `Entity`.
 - `Controller` possede une reference `Pawn` de type `Entity`, posee via `Possess`/`UnPossess` ; la possession pilote `CharacterControlMode` sur le `CharacterControllerComponent` de l'entite possedee, quand il existe.
 - `PlayerController` porte le `PlayerInput` (facade d'input filtree), l'affectation de vue et l'integration UI.
-- Aucun `CharacterControllerComponent` n'a ete trouve dans le code actuel.
+- Constat d'origine : aucun `CharacterControllerComponent` n'existait dans le code. Il a ete livre depuis (`CharacterControllerComponent : EntityComponent`, voir la section « La V1 ajoute maintenant les pieces suivantes » plus bas).
 
 ### Composants et transforms
 

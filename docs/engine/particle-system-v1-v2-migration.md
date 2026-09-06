@@ -79,7 +79,7 @@ Hors scope volontaire:
 Limites techniques assumees:
 - les modules V1 sont des proprietes fixes, pas une stack extensible
 - les courbes V1 sont lineaires et normalisees
-- le renderer actuel cible les billboards et `BasicEffect`
+- le renderer actuel cible les billboards et l'effect `TexturedPrimitive.fx` (`BuiltInShaderCatalog.TexturedPrimitiveContentName`) ; il n'utilise plus `BasicEffect` (constat du 2026-09-06)
 - le batching regroupe par texture/blend/depth, pas par material custom
 - le flipbook choisit un seul frame par particule et ne gere pas encore les events de frames
 - les compteurs de profiling sont des snapshots runtime simples, pas un profiler historique complet

@@ -18,7 +18,7 @@ Decisions: see [ADR-0012](../decisions/0012-materials-shaders-sources-of-truth.m
 | `MaterialDefinition` | Material schema: property keys, defaults, editor metadata | `MaterialCompiler`, editor registries | canonical |
 | `MaterialAsset` | Authoring asset: local values, inheritance, render-state hints | `MaterialCompiler`, editor preview, asset save/hot reload | canonical |
 | `MaterialInstanceData` | Authoring per-instance overrides without duplicating the asset | `MaterialInstancePropertyBlockMapper`, `StaticModelComponent` | canonical |
-| `CompiledMaterial` | Runtime snapshot of resolved values, textures, queue, render states, shader id/features | `MaterialCache`, tests, partial runtime inspection | transitional |
+| `CompiledMaterial` | Runtime snapshot of resolved values, textures, queue, render states, shader id/features | `MaterialCache`, tests, partial runtime inspection; since 2026-09 also the draw list: `RenderItem.CompiledMaterial` provides the effective shader id, features, cast-shadows flag and rasterizer state read by `RenderStateCache` and `ShadowPass`, resolved by `StaticMeshRendererComponent` from the `MaterialBase` | transitional |
 | `MaterialBase` | Runtime bindable object that pushes parameters and selects techniques | renderers, `MaterialRuntimeResolver`, static model override resolution | canonical |
 | `MaterialPropertyBlock` | Last-mile per-draw runtime overrides | `StaticMeshRendererComponent`, override mapper | canonical |
 | `MaterialDefinitionRegistry` | Built-in definition lookup by id/runtime/legacy type | `MaterialCompiler`, serializers, editor metadata | canonical |
@@ -50,7 +50,7 @@ Decisions: see [ADR-0012](../decisions/0012-materials-shaders-sources-of-truth.m
 
 ## Current gaps
 
-- `CompiledMaterial` is useful for cache/tests, but the static draw path still relies on `MaterialBase`, resolvers, and property blocks instead of a single compiled descriptor.
+- `CompiledMaterial` is useful for cache/tests, but the static draw path still relies on `MaterialBase`, resolvers, and property blocks instead of a single compiled descriptor. Status check on 2026-09-06: the draw path now carries a `CompiledMaterial` per `RenderItem` for render states, features and the effective shader, while parameter binding still goes through `MaterialBase`; the gap is narrower but not closed.
 - `MaterialBase.GetFeatures()` is transitional because the renderer currently trusts `RenderFeatureResolver`.
 - `ShaderVariantLibrary` and `MaterialBase.SelectTechnique(...)` overlap for technique selection.
 - Reflection state is not fully represented in `CompiledMaterial.Textures` because cubemap handling is still split from the main texture map.
