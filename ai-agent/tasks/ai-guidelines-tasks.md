@@ -298,7 +298,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
 - Commit : `docs(claude): add project subagents mirroring the Copilot agents`
 - Note de validation (2026-09-06) : 6 fichiers générés par script déterministe (`mirror_agents.py`, dossier de travail de la session) ; frontmatter `name`, `description`, `tools: Read, Glob, Grep, Edit, Write, Bash` (chaîne séparée par des virgules et noms d'outils relus sur https://code.claude.com/docs/en/sub-agents.md le 2026-09-06), `model: sonnet` explicite (P4) ; corps identiques aux jumeaux Copilot hors frontmatter et commentaire (comparaison Python) ; le corps contient déjà la règle « ne rien inventer » et le renvoi au workflow d'`AGENTS.md` (T2.3).
 
-### ⏳ T2.5 — Déplacer les skills vers `.claude/skills/` et les corriger
+### ✅ T2.5 — Déplacer les skills vers `.claude/skills/` et les corriger
 
 - Objectif : un seul emplacement de skills, lu par Copilot et Claude Code (P10).
 - Fichiers : `git mv .github/skills/<nom>/SKILL.md .claude/skills/<nom>/SKILL.md` pour les 6 skills ; suppression de `.github/skills/` ; `.github/copilot-instructions.md` (ajout de la phrase sur `.claude/skills/`) ; `CLAUDE.md` (section Claude Code : ligne skills).
@@ -307,6 +307,7 @@ Ce chantier ne modifie aucun fichier C# : pas de build requis. Validation en fin
   2. Corriger le contenu : `physics-backend-adapter` → bepuphysics2 `[gh-09]` ; `render-pass-scaffold` et `shader-variant-workflow` → retirer « forward/deferred » `[gh-14]` ; `feature-workflow` → renvoyer au workflow d'`AGENTS.md` et au modèle de plan (`[gh-01]` `[gh-02]` `[gh-20]`) ; retirer les règles déjà dans `AGENTS.md` (`[gh-21]` → `[gh-28]`).
 - Validation : `fd SKILL.md .claude/skills` renvoie 6 fichiers ; `.github/skills` n'existe plus ; `yq` parse ; le pointeur Copilot et `CLAUDE.md` mentionnent `.claude/skills/`.
 - Commit : `docs(ai): move the skills to .claude/skills read by Copilot and Claude Code`
+- Note de validation (2026-09-06) : 6 `SKILL.md` déplacés par `git mv` (renommages détectés par git), `.github/skills/` supprimé ; frontmatter `name` + `description` lus par `yq` ; contenus corrigés : `physics-backend-adapter` réécrit pour bepuphysics2 et `IPhysicsWorld` (plus de World/Body/Shape génériques), `render-pass-scaffold` sur les classes réelles `RenderPipeline`/`RenderPass`/`OpaquePass`/`TransparentPass`/`ShadowPass`/`SkyPass`, `feature-workflow` renvoie au workflow d'`AGENTS.md` et aux skills `plan` et `adr`, doublons avec `AGENTS.md` et les règles par chemin retirés ; `rg` : plus de Bullet, Jolt, forward/deferred ; `.github/copilot-instructions.md` et `CLAUDE.md` mentionnent `.claude/skills/`.
 
 ### ⏳ T2.6 — Ajouter le skill `plan`
 
