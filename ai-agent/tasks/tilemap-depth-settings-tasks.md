@@ -193,7 +193,16 @@ l'écraser.
 
 ## Phase 1 — Les couches fixes (D1, D6)
 
-### 🚧 T1.1 — `DeriveDepthOffset` et le Z des couches fixes (révision 2, amendée en révision 3)
+### ✅ T1.1 — `DeriveDepthOffset` et le Z des couches fixes (révision 2, amendée en révision 3)
+
+**Validation (2026-09-07)** : `RenderPassDepthOffset.DeriveDepthOffset` ajouté sous
+`CasaEngine/Framework/Rendering/Depth/` ; `TileMapLayerData.HasDepthMetadata` (D7) calculé au chargement
+et transporté par `CreateWorldWorkingCopy` ; les deux chemins de dessin et les deux sites de culling
+(`GetRenderedLayerWorldZRange`, `GetBoundingBox`) passent par le même `GetLayerRenderZOffset`. Suite
+moteur **1599/1599** (1584 + 15 tests neufs) ; `Alundra.Tests` **815/815** inchangé (ses 483 cartes ne
+portent que `depth.role = CollisionOnly`, hors du chemin `KeepsStaticChunking` touché ici). Build des
+deux solutions moteur (`CasaEngine.MonoGame.sln`, `CasaEngine.Editor.MonoGame.sln`) et d'`Alundra.Tests` :
+0 erreur.
 
 - Objectif : la passe de rendu d'une couche fixe qui porte des métadonnées entre dans son Z ; le
   reste — `zOffset`, la plage de culling, l'adressage par index — ne bouge pas ; l'absence de

@@ -18,6 +18,16 @@ public class TileMapLayerData
     public float zOffset;
 
     /// <summary>
+    /// True when at least one key of <see cref="CustomProperties"/> starts with "depth." - the only
+    /// reliable "this layer was authored with depth settings" signal, since <see cref="Depth"/> is a
+    /// value struct with no presence flag and is assigned unconditionally at load: an explicit
+    /// <c>depth.role=Ground</c> and no key at all produce identical <see cref="TileMapDepthSettings"/>.
+    /// Computed once at load (see <see cref="Load"/>) and carried across <see cref="CreateWorldWorkingCopy"/>,
+    /// never recomputed in a draw path.
+    /// </summary>
+    public bool HasDepthMetadata { get; private set; }
+
+    /// <summary>
     /// A copy for one world to work on. Only the three per-tile lists are duplicated - they are the sole
     /// mutable state a running game writes (see <c>TileMapComponent.SetTileReference</c>) - while the
     /// name, depth settings, z offset and custom properties are values or read-only data shared with the
@@ -30,6 +40,7 @@ public class TileMapLayerData
             Name = Name,
             zOffset = zOffset,
             Depth = Depth,
+            HasDepthMetadata = HasDepthMetadata,
         };
 
         copy.tiles.AddRange(tiles);
@@ -54,6 +65,7 @@ public class TileMapLayerData
         tileFlags.Clear();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
         Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.Ground);
+        HasDepthMetadata = ComputeHasDepthMetadata(CustomProperties);
 
         foreach (var tileToken in element["tiles"]!)
         {
@@ -170,6 +182,21 @@ public class TileMapLayerData
         }
 
         return x + y * mapWidth;
+    }
+
+    private const string DepthKeyPrefix = "depth.";
+
+    private static bool ComputeHasDepthMetadata(Dictionary<string, string> customProperties)
+    {
+        foreach (var key in customProperties.Keys)
+        {
+            if (key.StartsWith(DepthKeyPrefix, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void ValidateTileCount(int mapWidth, int mapHeight, int layerIndex)

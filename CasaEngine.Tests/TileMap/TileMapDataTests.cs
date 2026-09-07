@@ -187,6 +187,60 @@ public class TileMapDataTests
         Assert.False(tileMapData.Layers[0].Depth.EmitsSortableObjects);
     }
 
+    // D7: TileMapDepthSettings is a value struct with no presence flag, and Depth is assigned
+    // unconditionally at load - an explicit depth.role=Ground and no key at all produce identical
+    // settings. HasDepthMetadata is the only reliable "this layer was authored with depth settings"
+    // signal, and it must be computed from the raw custom property keys, not from Depth.
+
+    [Fact]
+    public void HasDepthMetadata_NoDepthKeys_IsFalse()
+    {
+        var tileMapData = CreateLoadedTileMap();
+
+        Assert.False(tileMapData.Layers[0].HasDepthMetadata);
+    }
+
+    [Fact]
+    public void HasDepthMetadata_OnlyRoleKey_IsTrue()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Ground", 1, 2, 3, 4);
+        var layer = (JObject)((JArray)document["layers"]!)[0]!;
+        layer["custom_properties"] = new JObject
+        {
+            ["depth.role"] = "Ground",
+        };
+
+        tileMapData.Load(document);
+
+        Assert.True(tileMapData.Layers[0].HasDepthMetadata);
+        // Same settings as the metadata-free default: the flag is what distinguishes them, not Depth.
+        Assert.Equal(TileMapDepthSettings.CreateDefault(TileMapDepthRole.Ground).Role, tileMapData.Layers[0].Depth.Role);
+    }
+
+    [Fact]
+    public void HasDepthMetadata_SurvivesTheWorldWorkingCopy()
+    {
+        var tileSetId = Guid.NewGuid();
+        var withMetadata = new TileMapData();
+        var withMetadataDocument = CreateTileMapJson(tileSetId, "Props", 1, 2, 3, 4);
+        var withMetadataLayer = (JObject)((JArray)withMetadataDocument["layers"]!)[0]!;
+        withMetadataLayer["custom_properties"] = new JObject
+        {
+            ["depth.role"] = "Ground",
+        };
+        withMetadata.Load(withMetadataDocument);
+
+        var withoutMetadata = CreateLoadedTileMap();
+
+        // CreateWorldWorkingCopy never calls Load - the flag must be carried, not recomputed there.
+        Assert.Equal(withMetadata.Layers[0].HasDepthMetadata, withMetadata.CreateWorldWorkingCopy().Layers[0].HasDepthMetadata);
+        Assert.Equal(withoutMetadata.Layers[0].HasDepthMetadata, withoutMetadata.CreateWorldWorkingCopy().Layers[0].HasDepthMetadata);
+        Assert.True(withMetadata.CreateWorldWorkingCopy().Layers[0].HasDepthMetadata);
+        Assert.False(withoutMetadata.CreateWorldWorkingCopy().Layers[0].HasDepthMetadata);
+    }
+
     [Fact]
     public void DepthRoleHelpers_IdentifyObjectSourceLayers()
     {

@@ -317,12 +317,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 -TileMapData.MapSize.Height * TileSetData.TileSize.Height,
                 0f);
 
-            var minZ = TileMapData.Layers.Count > 0 ? TileMapData.Layers[0].zOffset : 0f;
+            var minZ = TileMapData.Layers.Count > 0 ? GetLayerRenderZOffset(TileMapData.Layers[0]) : 0f;
             var maxZ = minZ;
 
             for (var layerIndex = 1; layerIndex < TileMapData.Layers.Count; layerIndex++)
             {
-                var zOffset = TileMapData.Layers[layerIndex].zOffset;
+                var zOffset = GetLayerRenderZOffset(TileMapData.Layers[layerIndex]);
                 if (zOffset < minZ)
                 {
                     minZ = zOffset;
@@ -430,7 +430,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 continue;
             }
 
-            var layerZ = layer.TileMapLayerData.zOffset;
+            var layerZ = GetLayerRenderZOffset(layer.TileMapLayerData);
             var worldZ = translation.Z + layerZ;
             var staticBatchWorld = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
 
@@ -591,7 +591,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 continue;
             }
 
-            var layerZ = layer.TileMapLayerData.zOffset;
+            var layerZ = GetLayerRenderZOffset(layer.TileMapLayerData);
             var staticBatchWorld = Matrix.CreateTranslation(0f, 0f, layerZ) * worldMatrix;
 
             for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
@@ -1640,6 +1640,24 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     }
 
     /// <summary>
+    /// The layer's contribution to world Z, D1: a layer carrying depth metadata (D7) that stays in the
+    /// static chunked draw path folds its render pass into its Z, ahead of <c>zOffset</c>, which keeps
+    /// its current role of separating layers sharing a pass. Every other layer is unchanged, character
+    /// for character, so content with no <c>depth.*</c> key never moves (D6). A layer routed to dynamic
+    /// per-tile sorting (<see cref="TileMapDepthSettings.KeepsStaticChunking"/> false) is left out here:
+    /// it does not draw through this Z at all once it leaves the chunked path.
+    /// </summary>
+    private static float GetLayerRenderZOffset(TileMapLayerData layerData)
+    {
+        if (layerData.HasDepthMetadata && layerData.Depth.KeepsStaticChunking)
+        {
+            return RenderPassDepthOffset.DeriveDepthOffset(layerData.Depth.RenderPass) + layerData.zOffset;
+        }
+
+        return layerData.zOffset;
+    }
+
+    /// <summary>
     /// World space Z range covered by the rendered layers, used as the plane slab the visible tile
     /// range is computed on. The component position is always part of the range so the slab stays
     /// valid when no layer renders tiles.
@@ -1657,7 +1675,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 continue;
             }
 
-            var worldZ = translationZ + layer.TileMapLayerData.zOffset;
+            var worldZ = translationZ + GetLayerRenderZOffset(layer.TileMapLayerData);
 
             if (worldZ < minZ)
             {
