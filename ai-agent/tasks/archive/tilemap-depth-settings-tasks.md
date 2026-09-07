@@ -436,6 +436,44 @@ explicitement pour les couches **sans** clé `depth.*`, et renvoie aux étapes 4
 
 ---
 
+## Clôture — 2026-09-07, vérification indépendante CONFIRMED
+
+Quatre tâches ✅. Suites : moteur **1618 / 1618**, `Alundra.Tests` **815 / 815**, les deux solutions
+à 0 erreur. Acceptation visuelle sur la fixture RPGDemo **confirmée**, à position téléportée contre un
+témoin construit depuis le commit d'avant, et vue en session principale.
+
+**Le vérificateur a construit ses propres preuves** plutôt que de rejouer les tests du dépôt : un
+harnais chargeant les **484 `.tileMap` réels** par `TileMapData.Load` — 2 342 couches, dont 1 859 sans
+clé `depth.*` — et comparant bit à bit (`SingleToInt32Bits`) le Z de rendu, la dalle de culling à
+trois translations et la boîte englobante, ancienne formule contre nouvelle :
+`REGRESSIONS = 0, copyFlagMismatch = 0, zRangeChanged = 0, bboxChanged = 0`. Les 483 cartes du portage
+ne portent qu'un `depth.role = CollisionOnly` sur leur couche `Navigation`, rôle absent de
+`KeepsStaticChunking`, donc lui aussi sur la branche inchangée. **Aucun troisième site** ne dérive un
+Z par couche : `rg zOffset` ne rend que les deux sites de culling et les deux chemins de dessin ; les
+chunks reçoivent leur Z par la matrice monde, rien n'en cuit dans une clé de cache.
+
+**Quatre avis P4, tous reportés :**
+
+- **[V-A1]** `depth.sortAnchor*` n'est pas validé en valeur — narrowing **documenté** de T3.1, pas un
+  défaut ; rien ne consomme `SortAnchor` sur les chemins de tuiles.
+- **[V-A2]** **Une couche sans `name` n'avertit jamais** : `WarnInvalidValue` sort sur un nom nul et
+  `WarnAboutUnrecognizedKeys` est sautée. **La carte des démos a quatre couches sans nom.** Inoffensif
+  aujourd'hui — les couches du portage sont nommées, et les couches sans nom ne portent aucune clé —
+  mais la garantie « avertit une fois au chargement » a ce trou. À reprendre avec la moitié « erreur »
+  de D4 si elle est un jour livrée.
+- **[V-A3]** la dalle de culling d'une couche en tri dynamique est dérivée d'un Z (`zOffset`) auquel
+  elle ne dessine pas (`translation.Z`) — sans effet, la dalle est amorcée à `translationZ` et reste
+  conservative ; un commentaire suffirait.
+- **[V-A4]** le chemin dynamique n'incrémente pas `LastVisitedChunkCount` — diagnostic seulement.
+
+**Ce que le chantier a appris.** Deux tours de relecture ont produit dix blocages, tous fondés, dont
+trois auraient laissé des tests verts et un jeu inchangé : la copie de travail qui n'appelle jamais
+`Load`, le second site de culling qui aurait fait éliminer l'entité entière, et la séquence de dessin
+qui n'ordonne pas les tuiles non statiques. Et la capture « après » identique à l'octet près n'était
+pas la preuve d'un changement inerte, mais celle d'une fixture qui le masquait — par absence de
+recouvrement, puis par un Z = 0,3 périmé sur le pion. **Une image identique se vérifie, elle ne se
+conclut pas.**
+
 ## Points ouverts
 
 - P1 à P5 ci-dessus.
