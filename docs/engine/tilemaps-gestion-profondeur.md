@@ -45,7 +45,9 @@ Comportement observe :
 - les chunks statiques sont envoyes a `SpriteRendererComponent.DrawStaticBatch` ;
 - les tiles dynamiques utilisent le chemin de rendu sprite existant.
 
-Le modele actuel sait donc dessiner des TileMaps avec un ordre par layer et par `z_offset`, mais il ne fournit pas encore un systeme explicite et unifie de profondeur 2D entre TileMap et entities.
+Le modele decrit ci-dessus est celui d'un layer **sans aucune cle `depth.*`** : il reste vrai pour ce contenu, a l'identique, et c'est ce que la non-regression garantit.
+
+Depuis les etapes 4 et 5 (voir « Migration recommandee »), un layer qui **porte** au moins une cle `depth.*` ne dessine plus a `Position.Z + zOffset` seul : sa passe de rendu entre dans son Z (`Position.Z + DeriveDepthOffset(RenderPass) + zOffset`), et un layer en tri dynamique quitte les chunks pour soumettre chaque tile, avec sa propre `RenderSortKey2D`, sur le meme plan que les entities Y-triees. Le systeme explicite et unifie de profondeur 2D entre TileMap et entities existe donc pour ces layers ; l'etape 6 (object layers en entities) reste non faite.
 
 ### Donnees disponibles
 
@@ -129,8 +131,13 @@ GroundDetails
 YSortedWorld
 Foreground
 Effects
+ScreenEffects
 UI
 ```
+
+`RenderPass2D` (`CasaEngine/Framework/Rendering/Depth/RenderPass2D.cs`) porte aujourd'hui `ScreenEffects`
+entre `Effects` et `UI` : l'overlay plein ecran de fade/tint (`ScreenEffectComponent`), au-dessus de
+tout layer monde/effects et sous l'UI.
 
 Les passes fixes restent rapides et peuvent contenir des chunks. La passe `YSortedWorld` contient les entities et les props qui doivent etre tries dynamiquement.
 
@@ -304,10 +311,17 @@ Cette brique est une premiere tranche du modele cible decrit plus haut : elle ne
 ```csharp
 public enum SpriteBlendMode
 {
-    Opaque,      // etat fixe existant : ColorSourceBlend = One, ColorDestinationBlend = Zero
-    AlphaBlend   // BlendState.NonPremultiplied (SourceAlpha / InverseSourceAlpha)
+    Opaque,       // etat fixe existant : ColorSourceBlend = One, ColorDestinationBlend = Zero
+    AlphaBlend,   // BlendState.NonPremultiplied (SourceAlpha / InverseSourceAlpha)
+    Additive,     // blend additif PSX : dst' = dst + src, sature par canal
+    Subtractive   // blend soustractif PSX : dst' = dst - src, sature a zero
 }
 ```
+
+`SpriteBlendMode` (`CasaEngine/Framework/Rendering/Depth/SpriteBlendMode.cs`) porte aussi `Additive`
+(`ColorBlendFunction = Add`, source et destination a `One`, alpha preserve) et `Subtractive`
+(`ColorBlendFunction = ReverseSubtract` — pas `Subtract`, qui calculerait `src - dst` — memes facteurs
+que `Additive`), utilises par l'overlay de fade/tint et par les layers de backdrop marques additifs.
 
 Points cles :
 
@@ -679,6 +693,23 @@ Les valeurs doivent etre parsees avec validation :
 - compatibilite -> `z_offset` reste lu tant que les anciens assets l'utilisent.
 ```
 
+**Livre (moitie warning seulement)** : `TileMapDepthSettings.FromCustomProperties` (surcharge additive
+prenant le nom de layer, appelee par `TileMapLayerData.Load`) emet un `Logs.WriteWarning` une fois par
+(layer, cle) pour : une cle `depth.*` non reconnue (hors des douze cles lues) ; une cle d'enumeration
+reconnue (`role`, `renderPass`, `sortMode`) avec une valeur hors enumeration ; une cle entiere reconnue
+(`orderInLayer`, `elevation`, `localSortOffset`) avec une valeur non entiere ; une cle booleenne
+reconnue (`ySort`, `spawnAsEntity`) avec une valeur non booleenne. Dans chaque cas le defaut actuel
+s'applique, jamais d'echec de chargement. `depth.sortingLayer` est exempte par conception : elle hache
+toute chaine (`GetStableSortingLayerId`), donc aucune valeur n'est invalide pour elle. La signature
+historique sans nom de layer reste et reste silencieuse (utilisee par `TileMapObjectLayerData`, qui n'a
+pas de nom a rapporter).
+
+La moitie "valeur invalide -> erreur d'import" ci-dessus reste **deliberement non livree** : aujourd'hui
+aucune valeur ne peut rendre l'objet inutilisable — chaque lecteur retombe en silence sur son defaut —,
+et faire echouer un chemin de chargement partage par les 483 cartes du portage Alundra et par l'import
+editeur demande une decision sur le mecanisme (exception, ou erreur journalisee avec repli) et sur son
+effet sur le contenu existant, qu'aucun chantier n'a encore prise.
+
 Exemple d'objet Tiled :
 
 ```text
@@ -754,11 +785,17 @@ Collision = depend de l'etat du joueur et de la zone
 
 ## Migration recommandee
 
-### Etape 1 : formaliser les donnees de profondeur
+### Etape 1 : formaliser les donnees de profondeur (fait, partiellement)
 
 Ajouter un modele de donnees pour les champs `depth.*` sans changer le rendu.
 
 Resultat attendu : les assets peuvent exprimer les roles, layers, anchors et elevations de maniere validee.
+
+**Livre** : `TileMapDepthSettings` (`CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs`) parse
+les douze proprietes `depth.*`, avec des defauts par role et — depuis ce chantier — un avertissement de
+chargement sur toute cle non reconnue ou toute valeur qui ne parse pas (voir la section "Donnees Tiled
+et CasaEngine" plus haut pour le detail). **Reste non livre** : la moitie "valeur invalide -> erreur
+d'import", pour la raison donnee dans cette meme section.
 
 ### Etape 2 : introduire la cle de tri 2D
 
@@ -772,23 +809,89 @@ Ajouter un composant de type `DepthSortable2DComponent` ou equivalent.
 
 Resultat attendu : un personnage peut exposer ses pieds comme `SortAnchor` sans dependance a `TileMapComponent`.
 
-### Etape 4 : connecter une queue de rendu 2D au RenderFrame
+### Etape 4 : connecter une queue de rendu 2D au RenderFrame (fait)
 
 Ajouter une queue par vue qui collecte les commandes 2D, trie par `RenderSortKey2D`, puis dispatch vers les renderers existants.
 
 Resultat attendu : TileMap et entities peuvent participer au meme ordre visuel.
 
-### Etape 5 : classer les layers TileMap par role
+**Ce qui est livre n'est pas une nouvelle queue par vue** : c'est le branchement des layers de TileMap
+sur les deux mecanismes de tri qui existaient deja depuis les etapes 2-3 (`RenderSortKey2D`,
+`SpriteRendererComponent`), chacun pour la famille de layer a laquelle il s'applique — voir etape 5 pour
+le detail par famille :
+
+- une layer **qui reste chunkee** (voir etape 5) participe a l'ordre global par son Z monde seul,
+  jamais par une entree dans la liste triee ;
+- une layer `UsesDynamicSort` (`depth.sortMode` pose, ou `depth.ySort = true` — **quel que soit son
+  role**, la demande explicite l'emporte sur le defaut du role) quitte le chemin chunke : chaque tuile
+  visible est soumise a `SpriteRendererComponent.DrawSprite(..., in RenderSortKey2D, ...)`, au Z
+  coplanaire `translation.Z`, avec ses `TileCellFlags` reportes en `SpriteEffects` (mapping identique a
+  `StaticTile`/`AnimatedTile`, ce que l'overlay runtime plus haut ne faisait pas). C'est le meme chemin
+  trie que l'overlay runtime et les entities Y-triees : TileMap et entities y participent bien au meme
+  ordre, mais par ce chemin existant, pas par une queue nouvelle.
+  Sur le chemin tourne `DrawWithWorldMatrix` (rotation appliquee), une telle layer est degradee : elle
+  dessine a plat par le chemin existant, avec un avertissement unique par layer (aucune surcharge
+  `DrawSprite` a cle n'accepte de transformee monde).
+- l'etape 6 (object layers -> entities/props sortables) reste hors perimetre — voir plus bas.
+
+Les deux sites de culling (la plage de Z du dessin, et `GetBoundingBox` qui alimente l'index spatial du
+monde) derivent de la meme fonction que le dessin, pour ne jamais eliminer une layer que le dessin
+place ailleurs.
+
+### Etape 5 : classer les layers TileMap par role (fait)
 
 Mapper les layers existants vers `Ground`, `GroundDetails`, `Foreground` ou `ObjectSource` via metadata.
 
 Resultat attendu : les layers fixes restent chunkes, les objets sortables sortent du chemin chunk statique.
 
-### Etape 6 : convertir les object layers en entities ou props sortables
+**Mecanisme livre.** Une layer **porte des metadonnees de profondeur** si et seulement si au moins une
+cle de `TileMapLayerData.CustomProperties` commence par `depth.` (`HasDepthMetadata`, calcule une fois
+au chargement et transporte par `CreateWorldWorkingCopy` — c'est cette copie de travail, jamais
+rechargee, que le composant dessine). Ce test porte sur la cle brute, pas sur la valeur parsee : les
+`depth.*` sont une structure sans indicateur de presence, donc `depth.role = Ground` explicite et
+absence totale de cle donneraient des reglages identiques si le test portait sur la valeur. Une layer
+sans aucune cle `depth.*` dessine exactement comme avant ce chantier — c'est ce qui protege les 483
+cartes du portage Alundra (une seule propriete, `depth.role = CollisionOnly`, sur une layer de
+navigation qui ne dessine pas de tuiles) et la carte de `CasaEngine.Demos` (aucune cle).
+
+Pour une layer qui porte des metadonnees **et** reste chunkable (`KeepsStaticChunking` : `Background`,
+`Ground`, `GroundDetails`, `Foreground`, `Debug`) **et** n'est pas `UsesDynamicSort`, le Z monde devient :
+
+```text
+worldZ = translation.Z + DeriveDepthOffset(layer.Depth.RenderPass) + layer.zOffset
+```
+
+`DeriveDepthOffset` (`RenderPass2D` -> `float`, `CasaEngine/Framework/Rendering/Depth/RenderPassDepthOffset.cs`)
+est une fonction pure, monotone dans l'ordre declare de `RenderPass2D`, **exactement 0 pour
+`YSortedWorld`** — le plan coplanaire ou dessinent les sprites Y-tries — negative avant, positive apres,
+avec un pas de 1 entre passes voisines : largement au-dessus de tout `zOffset` de contenu existant (tous
+< 1), pour que la passe domine sans perturber l'ordre fin que `zOffset` fournit deja entre layers d'une
+meme passe. `zOffset` garde donc exactement son role actuel de separateur fin ; la passe s'ajoute, elle
+ne le remplace pas. Une layer sans metadonnee, ou dont le role ne reste pas chunkable, ou qui est
+`UsesDynamicSort`, dessine avec `worldZ = translation.Z + layer.zOffset`, inchange au caractere pres.
+
+**`SortingLayer`, `OrderInLayer` et `Elevation` ne sont PAS consommes pour une layer chunkee** dans ce
+chantier — seule la passe (via `DeriveDepthOffset`) et `zOffset` ordonnent une telle layer. Raison,
+etablie en relecture du plan : les tuiles **non statiques** d'une layer chunkee ne sont pas dessinees en
+sequence, elles sont mises en file et videes **apres tous les lots statiques** de la vue ; a Z egal
+elles gagneraient toujours contre un lot statique quel que soit l'ordre de dessin voulu. Seul un Z
+distinct par layer ordonne correctement des lots dessines a des moments differents du flush — et c'est
+deja le role que `zOffset` tient aujourd'hui.
+
+`Layers` **n'est jamais reordonne** : l'index de layer reste une cle d'adressage stable (le portage
+Alundra l'utilise pour retrouver une layer par position). Aucun tableau d'ordre de dessin n'est
+introduit ; le Z fait tout le travail, comme avant ce chantier.
+
+### Etape 6 : convertir les object layers en entities ou props sortables (non fait)
 
 Utiliser `TileMapObjectLayerData` et les proprietes `entity.*` / `depth.*` pour creer des entities ou renderables sortables.
 
 Resultat attendu : arbres, coffres, poteaux et ponts peuvent etre places dans l'editeur TileMap et rendus avec les personnages.
+
+**Toujours hors perimetre.** `TileMapDepthSettings.SpawnAsEntity` et `EmitsSortableObjects` restent des
+champs morts au rendu : aucun code ne convertit un object layer en entity ou en renderable sortable.
+Cette etape n'a pas ete abordee par le chantier des etapes 4-5 et reste a faire dans un chantier
+separe.
 
 ### Etape 7 : gerer elevation et zones speciales
 

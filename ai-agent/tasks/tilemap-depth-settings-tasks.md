@@ -336,7 +336,7 @@ la non-régression à zéro avertissement, et l'unicité.
 
 ## Phase 4 — Preuve et documentation (D5)
 
-### ⏳ T4.1 — Fixture RPGDemo et mise à jour du document
+### ✅ T4.1 — Fixture RPGDemo et mise à jour du document
 
 - Objectif : montrer que la seule carte concernée rend comme attendu, et mettre le document d'accord
   avec le code.
@@ -421,6 +421,18 @@ la non-régression à zéro avertissement, et l'unicité.
      `Additive`/`Subtractive`, `RenderPass2D` a gagné `ScreenEffects`).
 - Validation : capture après cohérente avec les métadonnées de la carte ; document relu.
 - Commit : `docs(engine): tile-map depth migration steps 4 and 5 delivered`
+
+**Fait le 2026-09-07.** Étape 1 du document passée à « fait, partiellement » avec la moitié
+avertissement livrée et la moitié erreur reportée, raison incluse ; étapes 4 et 5 à « fait », en
+décrivant **le mécanisme réellement livré** — pas de nouvelle file par vue, mais la passe repliée dans
+le Z des couches chunkées et la file de sprites existante pour les couches en tri dynamique, avec les
+raisons de ne pas consommer `SortingLayer`/`OrderInLayer`/`Elevation` pour les couches chunkées ;
+étape 6 marquée **non faite** en toutes lettres ; les deux dérives corrigées — `ScreenEffects` dans
+`RenderPass2D`, `Additive`/`Subtractive` dans `SpriteBlendMode`. Une contradiction hors des quatre
+points, signalée par l'exécuteur et non corrigée par lui — la section « État actuel observé » en tête
+décrivait encore l'état d'avant —, a été amendée en session principale : elle vaut désormais
+explicitement pour les couches **sans** clé `depth.*`, et renvoie aux étapes 4 et 5 pour les autres.
+`docs/README.md` inchangé : sa ligne d'index est générique et reste juste.
 
 ---
 
