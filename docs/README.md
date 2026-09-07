@@ -62,6 +62,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 - [screen-effects.md](engine/screen-effects.md) — fondu/teinte plein écran V1 : `ScreenEffectService` (rampe sans MonoGame), `ScreenEffectComponent` (cran `RenderPass2D.ScreenEffects`, formule de placement caméra-annulée), `SpriteBlendMode.Additive`/`.Subtractive`, action de cutscene `FadeScreen`.
 - [scrolling-layers.md](engine/scrolling-layers.md) — mécanisme des couches défilantes V1 : `ScrollingLayerService` (parallaxe/auto-défilement/cadence par tick entier, sans type GPU), `ScrollingLayerComponent` (résolution des textures, ciseaux en paramètre, soumission des quads couvrants), politique Z = 0.
+- [cellular-layers.md](engine/cellular-layers.md) — mécanisme des couches à cellules V1 (le second mode de fond d'Alundra) : `CellularLayerService` (dérive/période/parallaxe par cellule, `WaveX` sans état, cadence V-animation et `WaveTick`, sans type GPU), `CellularLayerComponent` (résolution des planches par `PalDex`, soumission cellule par cellule), mécanisme parallèle à `scrolling-layers.md` et non une extension.
 
 ### UI runtime (MGUI)
 

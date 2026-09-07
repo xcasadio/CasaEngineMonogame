@@ -34,7 +34,13 @@ public enum ComponentUpdateOrder
     // service from GameManager.UpdateWorld. Relative order against ScreenEffects does not matter
     // (both only queue sprites into SpriteRendererComponent's sorted list, at different render
     // passes) - appended last purely to keep existing enum values stable.
-    ScrollingLayers
+    ScrollingLayers,
+
+    // Same reasoning as ScrollingLayers - CellularLayerComponent.Update submits after the DLL has
+    // pushed this frame's camera/ticks to its service from GameManager.UpdateWorld. Relative order
+    // against ScrollingLayers does not matter (parallel sibling mechanisms, never both active on the
+    // same layer) - appended last purely to keep existing enum values stable.
+    CellularLayers
 }
 
 public enum ComponentDrawOrder

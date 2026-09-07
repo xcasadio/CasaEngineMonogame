@@ -53,6 +53,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public AudioSystemComponent AudioSystemComponent { get; private set; }
     public ScreenEffectComponent ScreenEffectComponent { get; private set; }
     public ScrollingLayerComponent ScrollingLayerComponent { get; private set; }
+    public CellularLayerComponent CellularLayerComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
@@ -355,6 +356,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         AudioSystemComponent = new AudioSystemComponent(this);
         ScreenEffectComponent = new ScreenEffectComponent(this);
         ScrollingLayerComponent = new ScrollingLayerComponent(this);
+        CellularLayerComponent = new CellularLayerComponent(this);
         FontSystem = new FontSystem();
 
         // Initialize the multi-view render pipeline.
