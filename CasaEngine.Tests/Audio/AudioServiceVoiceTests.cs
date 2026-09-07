@@ -179,6 +179,26 @@ public class AudioServiceVoiceTests
     }
 
     [Fact]
+    public void SetVoicePan_ChangesPan_AndLeavesTheAppliedVolumeIntactUnderBusGain()
+    {
+        var service = CreateService(out var backend);
+        service.Mixer.GetBus(AudioBusNames.Sfx).Volume = 0.5f;
+        var voice = service.PlayClip(
+            new FakeAudioClip(),
+            AudioBusNames.Sfx,
+            new AudioVoiceParameters(0.8f, 0f, 0f, false));
+
+        service.SetVoicePan(voice, -0.75f);
+
+        var applied = backend.GetParameters(voice);
+        Assert.Equal(-0.75f, applied.Pan, 4);
+        // 0.8 (caller's pre-gain volume) * 0.5 (bus gain) — must stay the gain-applied volume,
+        // not the raw BaseParameters.Volume the mutation "push BaseParameters raw" would send.
+        Assert.Equal(0.4f, applied.Volume, 4);
+        Assert.Equal(0.8f, service.GetVoiceVolume(voice), 4);
+    }
+
+    [Fact]
     public void PlayClip_OnAnUnknownBus_FallsBackToTheMasterGain()
     {
         var service = CreateService(out var backend);

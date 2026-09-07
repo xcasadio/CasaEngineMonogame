@@ -261,6 +261,28 @@ public sealed class AudioService : IDisposable
         return TryGetEntry(voice, out var entry) ? entry.BaseParameters.Volume : 0f;
     }
 
+    /// <summary>
+    /// Sets the pan of an already-playing voice. Pan is otherwise only an initial parameter at
+    /// <see cref="Play"/> time; there is no per-parameter backend setter for it, so this goes
+    /// through <see cref="IAudioBackend.SetParameters"/> — which pushes every parameter, not pan
+    /// alone. Pushing <c>BaseParameters</c> as-is would silently overwrite the gain-applied
+    /// volume the backend currently has (see <see cref="ApplyGain"/>) with the caller's pre-gain
+    /// volume: invisible whenever the bus gain is 1, a real regression otherwise. So this
+    /// reapplies the same gain contract as <see cref="ApplyGain"/> while pushing the full
+    /// parameter set.
+    /// </summary>
+    public void SetVoicePan(AudioVoiceHandle voice, float pan)
+    {
+        if (!TryGetEntry(voice, out var entry))
+        {
+            return;
+        }
+
+        entry.BaseParameters = entry.BaseParameters.WithPan(pan);
+        _backend.SetParameters(entry.Handle, entry.BaseParameters.WithVolume(
+            entry.BaseParameters.Volume * Mixer.GetEffectiveGain(entry.BusName)));
+    }
+
     /// <summary>Bus the voice is routed to, or null for a stale handle.</summary>
     public string GetVoiceBus(AudioVoiceHandle voice)
     {
