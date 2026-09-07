@@ -21,6 +21,21 @@ réordonnancement ; (4) la plage de culling dérivait du seul `zOffset` — T1.1
 (6) T2.1 oubliait les `TileCellFlags` et le chemin tourné — ajoutés ; (7) **la fixture d'acceptation
 n'existait pas au chemin indiqué** — corrigé, `Projects/RPGDemo/…`.
 
+**Révision 3 (2026-09-07) — relecture de clôture, trois blocages de plus, tous dispositionnés.**
+(1) **CORRIGÉ** — `HasDepthMetadata` calculé au chargement aurait été **faux sur toute couche
+rendue** : le composant dessine une copie de travail (`CreateWorldWorkingCopy`) qui n'appelle jamais
+`Load` ; la tranche aurait été inerte en jeu avec des tests verts. Le drapeau traverse la copie et le
+test de Z passe par elle. (2) **CORRIGÉ** — un second site de culling, `GetBoundingBox`, dérive l'étendue
+Z des `zOffset` bruts et alimente l'index spatial du monde ; avec un pas ≥ 1 l'entité entière pouvait
+être éliminée. T1.1 l'aligne. (3) **RÉTRÉCI** — T3.1 n'était pas exécutable : rien n'est invalide
+aujourd'hui, aucun mécanisme d'échec n'était nommé, et le nom de couche n'était pas atteignable. Elle
+ne livre plus que les avertissements, énumérés cas par cas ; la moitié « erreur » de D4 est reportée
+avec sa raison. **C'est le seul point qui touche une décision verrouillée : à confirmer par l'auteur.**
+
+**Plafond atteint** : deux verdicts REVISE consécutifs. Conformément à la règle, chaque blocage est
+dispositionné ci-dessus et le plan **n'est pas resoumis** ; il passe à l'exécution sur T1.1 et T2.1,
+qui ne dépendent pas du point à confirmer.
+
 ## Objectif
 
 `CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs` analyse onze propriétés `depth.*` par
@@ -115,7 +130,7 @@ l'écraser.
 | D1 | **Couches fixes : la passe entre dans le Z, `zOffset` reste le séparateur fin, `Layers` n'est jamais réordonné.** (Révision 2.) Une couche portant des métadonnées `depth.*` (D7) et restant chunkée est dessinée à `translation.Z + DeriveDepthOffset(RenderPass) + zOffset`, avec `DeriveDepthOffset` pure, monotone dans l'ordre des passes, valant **exactement 0 pour `YSortedWorld`**. La passe est donc honorée ; `zOffset` garde son rôle actuel de séparation entre couches d'une même passe — il le tient déjà dans tout le contenu, par pas de 0,1 que le tampon de profondeur résout. **`SortingLayer`, `OrderInLayer` et `Elevation` ne sont PAS consommés pour les couches chunkées dans ce chantier**, et le document le dira. Raison, établie en relecture : les tuiles **non statiques** d'une couche chunkée ne sont pas dessinées en séquence, elles sont mises en file et vidées **après tous les lots** (`TileMapComponent.cs:474-481`, `DefaultViewPipeline.cs:35,42-45`) ; à Z égal elles gagneraient toujours, quelle que soit la séquence. Seul un Z distinct par couche ordonne correctement, et `zOffset` le fournit. `Layers` **n'est jamais réordonné** : l'index de couche est une clé d'adressage publique, utilisée par le portage (`WallPlacementOverlay.cs:264,321`). Aucun tableau d'ordre de dessin n'est nécessaire : le Z fait le travail, comme aujourd'hui. |
 | D2 | **Une couche est triée tuile par tuile si et seulement si `UsesDynamicSort`** — un `depth.sortMode` posé, ou `depth.ySort = true` — **quel que soit son rôle** : la demande explicite de tri prime sur le défaut du rôle, qui ne fournit alors que la passe. (Révision 2 : `UsesDynamicSort` et « rôle `YSortedSource` » ne sont pas synonymes — `depth.role = Ground` avec `depth.ySort = true` satisfaisait les deux prédicats, `TileMapDepthSettings.cs:62,66-70,105-111`.) Une telle couche quitte le chemin chunké et chaque tuile est soumise avec une `RenderSortKey2D` construite depuis la couche et une `SortCoordinate` par tuile selon `SortMode`, **au Z coplanaire `translation.Z`** — le mécanisme d'`AddSortedOverlayTile`, rendu automatique, **plus le report des `TileCellFlags` en `SpriteEffects`** que l'overlay n'avait jamais eu à porter. **Sur le chemin tourné `DrawWithWorldMatrix`**, une telle couche est dessinée à plat par le chemin existant avec un avertissement **unique** : c'est la limite que l'overlay documente déjà, aucune surcharge à clé n'acceptant de transformée monde. |
 | D3 | **L'étape 6 reste hors périmètre.** `SpawnAsEntity` et `EmitsSortableObjects` restent morts ; le document le dira. |
-| D4 | **Le résidu de l'étape 1 entre dans le chantier** : valeur `depth.*` inconnue → avertissement de chargement ; valeur invalide → erreur de chargement, comme le document l'exige (lignes 673-680). |
+| D4 | **Le résidu de l'étape 1 entre dans le chantier, RÉTRÉCI à sa moitié sûre** (révision 3, sous plafond de relecture — **à confirmer par l'auteur**) : toute propriété `depth.*` non comprise → **avertissement** de chargement, une fois, avec le nom de la couche et la clé, et le défaut actuel s'applique. **La moitié « valeur invalide → erreur de chargement » que le document exige (lignes 673-680) est REPORTÉE**, avec sa raison : aujourd'hui aucune valeur ne peut être invalide — chaque lecteur retombe en silence sur son défaut —, et faire échouer un chemin de chargement partagé par les 483 cartes du portage et par l'import éditeur demande une décision sur le mécanisme (exception ou erreur journalisée avec repli) et sur l'effet sur le contenu existant, que ce chantier ne prend pas seul. |
 | D5 | **`Projects/RPGDemo/Maps/map_1_1.tileMap` est la fixture d'acceptation**, seule carte du dépôt qui exerce ces réglages (métadonnées aux lignes 13-18, 356-361, 699-704, 1042-1047 ; chargée par `Projects/RPGDemo/DefaultWorld.world:12-18`, tilemap à Z = 0). Capture avant/après. (Révision 2 : le chemin `Projects/CasaEngine.RPGDemo/…` de la révision 1 **n'existe pas**.) **`CasaEngine.Demos/Content/Maps/map_1_1.tileMap`** — mêmes `zOffset` 0 / 0,1 / 0,2 / 0,8, **aucun** `depth.*` — est la fixture de non-régression de D6. |
 | D6 | **L'absence de métadonnée reproduit exactement l'ordre actuel** — ordre du tableau, `zOffset` — et un test l'épingle sur les valeurs. Le chantier ne rend indéterminé aucun rendu aujourd'hui stable. |
 | D7 | **Le prédicat « porte des métadonnées »** (révision 2 — il n'existait pas) : une couche porte des métadonnées **si et seulement si au moins une clé de `TileMapLayerData.CustomProperties` commence par `depth.`**, calculé **une fois au chargement** et mémorisé sur la couche. `TileMapDepthSettings` est une structure sans indicateur de présence (`:22-123`) et `Depth` est affecté inconditionnellement (`TileMapLayerData.cs:56`) : `depth.role = Ground` explicite et absence totale de clé donnent des réglages **identiques**. Seule la clé brute fait foi. Les 483 cartes Alundra en dépendent : leurs six couches `Render_N` n'ont **aucune** clé `depth.*` et ne tiennent que par leurs `zOffset` distincts. |
@@ -178,7 +193,7 @@ l'écraser.
 
 ## Phase 1 — Les couches fixes (D1, D6)
 
-### ⏳ T1.1 — `DeriveDepthOffset` et le Z des couches fixes (révision 2)
+### 🚧 T1.1 — `DeriveDepthOffset` et le Z des couches fixes (révision 2, amendée en révision 3)
 
 - Objectif : la passe de rendu d'une couche fixe qui porte des métadonnées entre dans son Z ; le
   reste — `zOffset`, la plage de culling, l'adressage par index — ne bouge pas ; l'absence de
@@ -188,9 +203,15 @@ l'écraser.
   sous `CasaEngine/Framework/Rendering/Depth/` ; `CasaEngine.Tests/TileMap/` et
   `CasaEngine.Tests/Rendering/`.
 - Étapes :
-  1. **Le prédicat D7** : `TileMapLayerData` mémorise au chargement `HasDepthMetadata` = « au moins une
-     clé de `CustomProperties` commence par `depth.` ». Calculé une fois, jamais dans `Draw`. Tests :
-     zéro clé → `false` ; `depth.role = Ground` seul → `true`.
+  1. **Le prédicat D7** : `TileMapLayerData` porte `HasDepthMetadata` = « au moins une clé de
+     `CustomProperties` commence par `depth.` ». Calculé au chargement **et transporté (ou recalculé)
+     par `CreateWorldWorkingCopy`** (`TileMapLayerData.cs:26-45`) — c'est cette copie de travail que le
+     composant dessine (`TileMapComponent.cs:227-229`, `:425-435`), et elle n'appelle jamais `Load`.
+     (Révision 3 : sans ça, le drapeau serait faux sur toute couche rendue et la tranche serait inerte
+     en jeu avec des tests verts.) Jamais dans `Draw`. Tests : zéro clé → `false` ;
+     `depth.role = Ground` seul → `true` ; **`template.CreateWorldWorkingCopy().Layers[i].HasDepthMetadata
+     == template.Layers[i].HasDepthMetadata`** ; et le test de Z de l'étape 3 s'exécute **sur une copie
+     de travail**, pas sur une couche fraîchement chargée.
   2. **`DeriveDepthOffset(RenderPass2D)`**, statique pure : monotone dans l'ordre de `RenderPass2D`,
      **0 pour `YSortedWorld`**, négatif avant, positif après, avec un pas ≥ 1 entre passes voisines
      pour dominer tout `zOffset` du contenu (tous < 1). Tests : monotonie sur toute l'énumération ;
@@ -199,11 +220,18 @@ l'écraser.
      couche chunkée, `worldZ = translation.Z + DeriveDepthOffset(layer.Depth.RenderPass) + zOffset` ;
      sinon `worldZ = translation.Z + zOffset`, **inchangé au caractère près**. **`Layers` n'est pas
      réordonné, aucun tableau d'ordre n'est créé** : le Z ordonne, comme aujourd'hui.
-  4. **La plage de culling suit** : `GetRenderedLayerWorldZRange` (`TileMapComponent.cs:1647-1671`),
-     qui alimente `TryGetVisibleTileRange` et `TryGetWorldViewBounds`, applique **la même dérivation**
-     — sinon, sous la caméra 2D perspective (`CameraTargeted2dComponent.cs:97-106`), la dalle ne
-     couvrirait plus les plans dessinés et le culling serait faux. Test : la dalle retournée vaut
-     exactement le min/max des Z réellement utilisés au dessin, sur une carte à métadonnées.
+  4. **Les DEUX sites de culling suivent** (révision 3 : la révision 2 n'en nommait qu'un) :
+     - `GetRenderedLayerWorldZRange` (`TileMapComponent.cs:1647-1671`), qui alimente
+       `TryGetVisibleTileRange` et `TryGetWorldViewBounds`, applique **la même dérivation** — sinon,
+       sous la caméra 2D perspective (`CameraTargeted2dComponent.cs:97-106`), la dalle ne couvrirait
+       plus les plans dessinés.
+     - **`GetBoundingBox`** (`TileMapComponent.cs:320-346`), qui construit l'étendue Z du composant
+       depuis les `zOffset` bruts et alimente **l'index spatial du monde** (`World.cs:500,748`,
+       requêté au dessin `:758-767`) : avec un pas ≥ 1 entre passes, la boîte ne contiendrait plus les
+       plans dessinés et **l'entité tilemap pourrait être éliminée entière**.
+     Tests : la dalle **et** `GetBoundingBox().Min.Z / .Max.Z` valent exactement le min/max des Z
+     réellement utilisés au dessin sur une carte à métadonnées, et leurs valeurs d'aujourd'hui sur une
+     carte sans clé `depth.*`.
   5. **Tests D6 et D7** : la fixture `CasaEngine.Demos/Content/Maps/map_1_1.tileMap` (aucun `depth.*`)
      produit la même séquence de `(worldZ, couche)` qu'avant, épinglée sur les valeurs 0 / 0,1 / 0,2 /
      0,8 ; une couche portant seulement `depth.role = Ground` prend le Z dérivé de la passe.
@@ -248,15 +276,31 @@ l'écraser.
 
 ## Phase 3 — Le résidu de l'étape 1 (D4)
 
-### ⏳ T3.1 — Diagnostics de chargement
+### ⏳ T3.1 — Diagnostics de chargement (révision 3 : **rétrécie**, voir D4 amendée)
 
-- Objectif : une valeur `depth.*` inconnue avertit, une valeur invalide échoue, au chargement.
-- Fichiers : `CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs`, tests.
-- Étapes : distinguer « clé connue, valeur hors énumération » (avertissement `Logs.WriteWarning`,
-  **une fois par couche**, jamais par frame) de « valeur inutilisable » (erreur de chargement avec le
-  nom de la couche et la clé). Tests sur les deux.
+- Objectif : une propriété `depth.*` que le chargeur ne comprend pas **avertit une fois**, avec le nom
+  de la couche et la clé, et le défaut actuel s'applique. **Aucune erreur de chargement dans ce
+  chantier.**
+- Fichiers : `CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs` ;
+  `CasaEngine/Framework/Assets/TileMap/TileMapLayerData.cs` (le seul appelant qui connaît le nom de la
+  couche, `:49,56`) ; tests.
+- Les cas, énumérés — aujourd'hui **rien** n'est invalide, chaque lecteur retombe en silence sur son
+  défaut (`ReadEnum :233-251`, `ReadInt32 :207-211`, `ReadBoolean :213-231`, et `ReadSortingLayer
+  :162-172` hache toute chaîne) :
+  1. **clé `depth.*` non reconnue** — hors des onze clés lues → avertissement ;
+  2. **clé d'énumération reconnue, valeur hors énumération** (`role`, `renderPass`, `sortMode`) →
+     avertissement, défaut ;
+  3. **clé entière reconnue, valeur non entière** (`orderInLayer`, `elevation`, `localSortOffset`)
+     → avertissement, défaut ;
+  4. **clé booléenne reconnue, valeur non booléenne** (`ySort`, `spawnAsEntity`) → avertissement, défaut.
+- Mécanisme : `Logs.WriteWarning` **une fois par (couche, clé)**, au chargement seulement —
+  `FromCustomProperties` n'est appelé qu'au chargement et par la copie de travail, jamais par frame ;
+  le nom de la couche arrive par une **surcharge additive** de `FromCustomProperties` prenant le nom,
+  appelée depuis `TileMapLayerData.cs:56`. L'ancienne signature reste.
+- Tests : un cas de chaque catégorie avertit avec le nom de la couche et la clé, et produit le défaut ;
+  une carte n'ayant que des clés valides charge **sans aucun avertissement** et à l'identique.
 - Validation : suite moteur zéro échec.
-- Commit : `feat(tilemap): diagnose unknown and invalid depth properties at load`
+- Commit : `feat(tilemap): warn once about depth properties the loader does not understand`
 
 ## Phase 4 — Preuve et documentation (D5)
 
@@ -269,6 +313,32 @@ l'écraser.
   1. Lancer `Projects/RPGDemo` (monde `DefaultWorld.world`, carte `map_1_1`) avant T1 (capture) et
      après T2 (capture) ; consigner ce qui a changé et pourquoi c'est attendu d'après ses métadonnées.
      Sur `CasaEngine.Demos/Content/Maps/map_1_1.tileMap`, sans `depth.*` : **rien ne doit changer**.
+
+     **Capture « avant » faite le 2026-09-07, avant toute modification** :
+     `scratchpad/depth-before/map_1_1-before.png` (1024×768, non noire) et `layer-depth-note.md`.
+     Technique : **lecture du back-buffer en processus** (`GraphicsDevice.GetBackBufferData` +
+     `SaveAsPng`), celle de `GameEditor.CaptureAutomationScreenshot` — aucune capture d'écran ni de
+     fenêtre, donc ni image noire ni risque de vie privée. `--play-smoke` ne pouvait pas atteindre la
+     carte : `RPGDemo.json` démarre sur `TitleScreenWorld.world` et aucun drapeau ne choisit un autre
+     monde ; un harnais jetable **hors dépôt** appelle le même `SetWorldToLoad("DefaultWorld.world")`
+     que le bouton « Start Game ». Il est conservé pour la capture « après ».
+
+     **Les quatre couches, mesurées dans le fichier** (tilemap à translation `(0, 700, 0)`, donc Z = 0) :
+
+     | # | `z_offset` | rôle | passe | `orderInLayer` |
+     |---|---|---|---|---|
+     | 1 | 0,0 | Ground | Ground | 0 |
+     | 2 | 0,1 | GroundDetails | GroundDetails | 10 |
+     | 3 | 0,2 | GroundDetails | GroundDetails | 20 |
+     | 4 | 0,8 | Foreground | Foreground | 0 |
+
+     **Ce que D1 va en faire, prédit avant T1.1** : les passes sont ordonnées comme les `zOffset`
+     (Ground < GroundDetails < Foreground), donc l'ordre **entre les quatre couches ne change pas**. Ce
+     qui change est leur position **par rapport au plan des sprites à Z = 0** : Ground et
+     GroundDetails passent en Z négatif — derrière les sprites —, Foreground reste positif — devant.
+     Aujourd'hui les quatre sont à Z ≥ 0, c'est-à-dire au niveau ou devant les sprites. La capture
+     « après » doit donc montrer le joueur **devant** le sol et ses détails, et **derrière** l'avant-plan.
+     Si ce n'est pas ce qu'elle montre, c'est un arrêt.
   2. Dans le document : passer les étapes 4 et 5 à « fait » avec ce qui est réellement livré ; dire
      que l'étape 6 reste ouverte ; corriger les deux dérives constatées (`SpriteBlendMode` a gagné
      `Additive`/`Subtractive`, `RenderPass2D` a gagné `ScreenEffects`).
