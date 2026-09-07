@@ -10,6 +10,17 @@ rediscute pas.**
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son
 statut courant.
 
+**Révision 2 (2026-09-07)** — la révision 1 a été relue et a reçu **sept blocages, tous retenus** :
+(1) D1 supposait qu'à Z égal la séquence de dessin ordonne ; faux pour les tuiles non statiques d'une
+couche chunkée, mises en file et vidées après tous les lots — D1 garde donc `zOffset` comme séparateur
+et renonce à consommer les champs fins pour les couches chunkées ; (2) « porte des métadonnées »
+n'était défini nulle part et `TileMapDepthSettings` n'a pas d'indicateur de présence — D7 le définit
+sur la clé brute ; (3) réordonner `Layers` aurait cassé l'adressage par index du portage — plus aucun
+réordonnancement ; (4) la plage de culling dérivait du seul `zOffset` — T1.1 l'aligne ; (5)
+`UsesDynamicSort` et « rôle `YSortedSource` » se recouvraient — D2 tranche, le tri explicite prime ;
+(6) T2.1 oubliait les `TileCellFlags` et le chemin tourné — ajoutés ; (7) **la fixture d'acceptation
+n'existait pas au chemin indiqué** — corrigé, `Projects/RPGDemo/…`.
+
 ## Objectif
 
 `CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs` analyse onze propriétés `depth.*` par
@@ -75,9 +86,10 @@ et leurs corrections sont intégrées ci-dessous.
   comme `Role` referme la garde avant que les autres champs ne soient lus, **honorer ces réglages ne
   change rien pour le portage**.
 - La carte de `CasaEngine.Demos` **ne porte aucune** propriété `depth.*`.
-- **`Projects/CasaEngine.RPGDemo/Maps/map_1_1.tileMap` est le SEUL contenu du dépôt qui exerce
-  réellement** `renderPass`, `sortingLayer`, `orderInLayer` et `elevation` — sur ses quatre couches,
-  avec des valeurs cohérentes entre elles.
+- **`Projects/RPGDemo/Maps/map_1_1.tileMap` est le SEUL contenu du dépôt qui exerce réellement**
+  `renderPass`, `sortingLayer`, `orderInLayer` et `elevation` — sur ses quatre couches, avec des
+  valeurs cohérentes entre elles. (Révision 2 : la révision 1 écrivait `Projects/CasaEngine.RPGDemo/`,
+  chemin qui **n'existe pas**.)
 
 **Le chantier est donc additif pour tout le contenu existant sauf une carte**, qui est aussi sa
 fixture d'acceptation naturelle.
@@ -100,12 +112,13 @@ l'écraser.
 
 | Réf | Décision |
 |---|---|
-| D1 | **Couches fixes : le Z porte la passe, la séquence porte le reste.** Une couche portant des métadonnées `depth.*` et restant chunkée (`KeepsStaticChunking`) est dessinée à `translation.Z + DeriveDepthOffset(RenderPass)`, fonction pure, monotone dans l'ordre des passes, valant **exactement 0 pour `YSortedWorld`** — le plan coplanaire des sprites triés. `SortingLayer`, `OrderInLayer` et `Elevation` **n'entrent pas dans le Z** : ils ordonnent les couches d'une même passe par **séquence de dessin**, puisque sous `LessEqual` avec écriture le dernier dessiné gagne. Aucun pas de Z fractionnaire : le tampon de profondeur ne les résoudrait pas. |
-| D2 | **Couches en tri dynamique (`UsesDynamicSort`, rôle `YSortedSource`) : la file triée, tuile par tuile.** Elles quittent le chemin chunké et chaque tuile est soumise avec une `RenderSortKey2D` construite depuis la couche (passe, calque, ordre, élévation, décalage local) et une `SortCoordinate` par tuile selon `SortMode`, **au Z coplanaire `translation.Z`** — le mécanisme exact d'`AddSortedOverlayTile`, rendu automatique. C'est la seule catégorie triée par tuile, et le document l'autorise pour elle seule. |
+| D1 | **Couches fixes : la passe entre dans le Z, `zOffset` reste le séparateur fin, `Layers` n'est jamais réordonné.** (Révision 2.) Une couche portant des métadonnées `depth.*` (D7) et restant chunkée est dessinée à `translation.Z + DeriveDepthOffset(RenderPass) + zOffset`, avec `DeriveDepthOffset` pure, monotone dans l'ordre des passes, valant **exactement 0 pour `YSortedWorld`**. La passe est donc honorée ; `zOffset` garde son rôle actuel de séparation entre couches d'une même passe — il le tient déjà dans tout le contenu, par pas de 0,1 que le tampon de profondeur résout. **`SortingLayer`, `OrderInLayer` et `Elevation` ne sont PAS consommés pour les couches chunkées dans ce chantier**, et le document le dira. Raison, établie en relecture : les tuiles **non statiques** d'une couche chunkée ne sont pas dessinées en séquence, elles sont mises en file et vidées **après tous les lots** (`TileMapComponent.cs:474-481`, `DefaultViewPipeline.cs:35,42-45`) ; à Z égal elles gagneraient toujours, quelle que soit la séquence. Seul un Z distinct par couche ordonne correctement, et `zOffset` le fournit. `Layers` **n'est jamais réordonné** : l'index de couche est une clé d'adressage publique, utilisée par le portage (`WallPlacementOverlay.cs:264,321`). Aucun tableau d'ordre de dessin n'est nécessaire : le Z fait le travail, comme aujourd'hui. |
+| D2 | **Une couche est triée tuile par tuile si et seulement si `UsesDynamicSort`** — un `depth.sortMode` posé, ou `depth.ySort = true` — **quel que soit son rôle** : la demande explicite de tri prime sur le défaut du rôle, qui ne fournit alors que la passe. (Révision 2 : `UsesDynamicSort` et « rôle `YSortedSource` » ne sont pas synonymes — `depth.role = Ground` avec `depth.ySort = true` satisfaisait les deux prédicats, `TileMapDepthSettings.cs:62,66-70,105-111`.) Une telle couche quitte le chemin chunké et chaque tuile est soumise avec une `RenderSortKey2D` construite depuis la couche et une `SortCoordinate` par tuile selon `SortMode`, **au Z coplanaire `translation.Z`** — le mécanisme d'`AddSortedOverlayTile`, rendu automatique, **plus le report des `TileCellFlags` en `SpriteEffects`** que l'overlay n'avait jamais eu à porter. **Sur le chemin tourné `DrawWithWorldMatrix`**, une telle couche est dessinée à plat par le chemin existant avec un avertissement **unique** : c'est la limite que l'overlay documente déjà, aucune surcharge à clé n'acceptant de transformée monde. |
 | D3 | **L'étape 6 reste hors périmètre.** `SpawnAsEntity` et `EmitsSortableObjects` restent morts ; le document le dira. |
 | D4 | **Le résidu de l'étape 1 entre dans le chantier** : valeur `depth.*` inconnue → avertissement de chargement ; valeur invalide → erreur de chargement, comme le document l'exige (lignes 673-680). |
-| D5 | **`Projects/CasaEngine.RPGDemo/Maps/map_1_1.tileMap` est la fixture d'acceptation**, seule carte du dépôt qui exerce ces réglages. Capture avant/après. |
-| D6 | **L'absence de métadonnée reproduit exactement l'ordre actuel** — ordre du tableau, `zOffset` — et un test l'épingle. Le chantier ne rend indéterminé aucun rendu aujourd'hui stable. |
+| D5 | **`Projects/RPGDemo/Maps/map_1_1.tileMap` est la fixture d'acceptation**, seule carte du dépôt qui exerce ces réglages (métadonnées aux lignes 13-18, 356-361, 699-704, 1042-1047 ; chargée par `Projects/RPGDemo/DefaultWorld.world:12-18`, tilemap à Z = 0). Capture avant/après. (Révision 2 : le chemin `Projects/CasaEngine.RPGDemo/…` de la révision 1 **n'existe pas**.) **`CasaEngine.Demos/Content/Maps/map_1_1.tileMap`** — mêmes `zOffset` 0 / 0,1 / 0,2 / 0,8, **aucun** `depth.*` — est la fixture de non-régression de D6. |
+| D6 | **L'absence de métadonnée reproduit exactement l'ordre actuel** — ordre du tableau, `zOffset` — et un test l'épingle sur les valeurs. Le chantier ne rend indéterminé aucun rendu aujourd'hui stable. |
+| D7 | **Le prédicat « porte des métadonnées »** (révision 2 — il n'existait pas) : une couche porte des métadonnées **si et seulement si au moins une clé de `TileMapLayerData.CustomProperties` commence par `depth.`**, calculé **une fois au chargement** et mémorisé sur la couche. `TileMapDepthSettings` est une structure sans indicateur de présence (`:22-123`) et `Depth` est affecté inconditionnellement (`TileMapLayerData.cs:56`) : `depth.role = Ground` explicite et absence totale de clé donnent des réglages **identiques**. Seule la clé brute fait foi. Les 483 cartes Alundra en dépendent : leurs six couches `Render_N` n'ont **aucune** clé `depth.*` et ne tiennent que par leurs `zOffset` distincts. |
 
 ## Points à valider — tranchés le 2026-09-07 en D1 → D6, conservés pour l'historique
 
@@ -165,47 +178,73 @@ l'écraser.
 
 ## Phase 1 — Les couches fixes (D1, D6)
 
-### ⏳ T1.1 — `DeriveDepthOffset` et l'ordre des couches fixes
+### ⏳ T1.1 — `DeriveDepthOffset` et le Z des couches fixes (révision 2)
 
-- Objectif : la passe de rendu d'une couche fixe décide de son Z ; ses autres champs décident de sa
-  place dans la séquence de dessin ; l'absence de métadonnée ne change rien.
-- Fichiers : `CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs` ; un nouveau type
-  pur sous `CasaEngine/Framework/Rendering/Depth/` ; `CasaEngine.Tests/TileMap/` et
+- Objectif : la passe de rendu d'une couche fixe qui porte des métadonnées entre dans son Z ; le
+  reste — `zOffset`, la plage de culling, l'adressage par index — ne bouge pas ; l'absence de
+  métadonnée ne change rien.
+- Fichiers : `CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs` ;
+  `CasaEngine/Framework/Assets/TileMap/TileMapLayerData.cs` (le prédicat D7) ; un nouveau type pur
+  sous `CasaEngine/Framework/Rendering/Depth/` ; `CasaEngine.Tests/TileMap/` et
   `CasaEngine.Tests/Rendering/`.
 - Étapes :
-  1. Une fonction pure statique `DeriveDepthOffset(RenderPass2D)` : monotone dans l'ordre de
-     `RenderPass2D`, **0 pour `YSortedWorld`**, négatif avant, positif après. Tests : monotonie sur
-     toute l'énumération, zéro exact pour `YSortedWorld`.
-  2. Dans les deux chemins de dessin (`DrawTileMap` axis-aligned et `DrawWithWorldMatrix`), pour une
-     couche qui **porte** des métadonnées et garde le chunking : `worldZ = translation.Z +
-     DeriveDepthOffset(layer.Depth.RenderPass)`. Pour une couche **sans** métadonnées : `worldZ =
-     translation.Z + zOffset`, **inchangé au caractère près**.
-  3. Ordonner les couches fixes d'une même passe par `(SortingLayer, OrderInLayer, Elevation)` avant
-     de les dessiner, **sans allocation par frame** : l'ordre est calculé une fois au chargement ou à
-     l'invalidation, jamais dans `Draw`.
-  4. Test D6 : une tilemap dont aucune couche n'a de métadonnée produit la même séquence de
-     `(worldZ, couche)` qu'avant — épinglé sur les valeurs, pas sur la forme.
-- Validation : `dotnet test CasaEngine.Tests` zéro échec ; `Alundra.Tests` 815 inchangé.
-- Commit : `feat(tilemap): fixed layers take their depth from the render pass`
+  1. **Le prédicat D7** : `TileMapLayerData` mémorise au chargement `HasDepthMetadata` = « au moins une
+     clé de `CustomProperties` commence par `depth.` ». Calculé une fois, jamais dans `Draw`. Tests :
+     zéro clé → `false` ; `depth.role = Ground` seul → `true`.
+  2. **`DeriveDepthOffset(RenderPass2D)`**, statique pure : monotone dans l'ordre de `RenderPass2D`,
+     **0 pour `YSortedWorld`**, négatif avant, positif après, avec un pas ≥ 1 entre passes voisines
+     pour dominer tout `zOffset` du contenu (tous < 1). Tests : monotonie sur toute l'énumération ;
+     zéro exact pour `YSortedWorld` ; pas minimal.
+  3. **Le Z**, dans les deux chemins (`DrawTileMap` et `DrawWithWorldMatrix`) : si `HasDepthMetadata` et
+     couche chunkée, `worldZ = translation.Z + DeriveDepthOffset(layer.Depth.RenderPass) + zOffset` ;
+     sinon `worldZ = translation.Z + zOffset`, **inchangé au caractère près**. **`Layers` n'est pas
+     réordonné, aucun tableau d'ordre n'est créé** : le Z ordonne, comme aujourd'hui.
+  4. **La plage de culling suit** : `GetRenderedLayerWorldZRange` (`TileMapComponent.cs:1647-1671`),
+     qui alimente `TryGetVisibleTileRange` et `TryGetWorldViewBounds`, applique **la même dérivation**
+     — sinon, sous la caméra 2D perspective (`CameraTargeted2dComponent.cs:97-106`), la dalle ne
+     couvrirait plus les plans dessinés et le culling serait faux. Test : la dalle retournée vaut
+     exactement le min/max des Z réellement utilisés au dessin, sur une carte à métadonnées.
+  5. **Tests D6 et D7** : la fixture `CasaEngine.Demos/Content/Maps/map_1_1.tileMap` (aucun `depth.*`)
+     produit la même séquence de `(worldZ, couche)` qu'avant, épinglée sur les valeurs 0 / 0,1 / 0,2 /
+     0,8 ; une couche portant seulement `depth.role = Ground` prend le Z dérivé de la passe.
+  6. **Test d'adressage** : `GetTileReference(layerIndex, x, y)` rend la même tuile avant et après, sur
+     une carte dont les métadonnées changent les Z.
+- Validation : `dotnet test CasaEngine.Tests` zéro échec ; `Alundra.Tests` 815 inchangé — ses 483
+  cartes n'ont aucune clé `depth.*` sur leurs couches de rendu.
+- Commit : `feat(tilemap): fixed layers fold their render pass into their depth`
 
 ## Phase 2 — Les couches en tri dynamique (D2)
 
-### ⏳ T2.1 — `YSortedSource` par la file triée
+### ⏳ T2.1 — Les couches `UsesDynamicSort` par la file triée (révision 2)
 
-- Objectif : une couche `UsesDynamicSort` quitte le chunking et soumet chaque tuile avec sa clé.
+- Objectif : une couche en tri dynamique quitte le chunking et soumet chaque tuile avec sa clé, ses
+  drapeaux et son Z coplanaire ; sur le chemin tourné elle se dégrade explicitement.
 - Fichiers : `TileMapComponent.cs`, tests.
 - Étapes :
-  1. Pour une telle couche, ne pas appeler `TryDrawStaticChunkBatch` ; itérer les tuiles visibles
-     (réutiliser la plage de culling existante, comme l'overlay) et soumettre chacune par
+  1. **Le prédicat, unique** : `layer.Depth.UsesDynamicSort`. Il **prime** sur le rôle : une couche
+     `depth.role = Ground` avec `depth.ySort = true` prend ce chemin et pas le lot statique. Test :
+     exactement cette couche → `TryDrawStaticChunkBatch` **n'est pas** appelé, les tuiles sont soumises
+     à clé.
+  2. Sur le chemin axis-aligned, pour une telle couche : itérer les tuiles visibles (la plage de culling
+     existante, comme l'overlay) et soumettre chacune par
      `SpriteRendererComponent.DrawSprite(..., in RenderSortKey2D, ...)` avec la **surcharge à ciseaux
      explicite** — jamais `GraphicsDevice.ScissorRectangle` au moment de la mise en file.
-  2. La clé : passe, calque, ordre, élévation, décalage local depuis la couche ; `SortCoordinate` depuis
+  3. La clé : passe, calque, ordre, élévation, décalage local depuis la couche ; `SortCoordinate` depuis
      la tuile selon `SortMode` (`TopDownYUp` : sa ligne écran) ; `StableId` depuis l'index de tuile.
      Z = `translation.Z`, coplanaire.
-  3. Tests : une couche `YSortedSource` avec deux tuiles et un sprite Y-trié entre elles produit
-     l'ordre attendu ; la même couche sans le rôle reste chunkée (le lot statique est bien appelé).
+  4. **Les drapeaux** : reporter les `TileCellFlags` de la tuile (miroir, rotation) en `SpriteEffects`,
+     comme le chemin plat le fait (`:480-481`, `:636-637`) et comme l'overlay **ne le fait pas**
+     (`:553`, `SpriteEffects.None` en dur). Test : une tuile en miroir d'une telle couche est soumise
+     avec l'effet correspondant.
+  5. **Le chemin tourné** (`DrawWithWorldMatrix`) : une telle couche y est dessinée **à plat par le
+     chemin existant**, avec un avertissement `Logs.WriteWarning` émis **une fois par couche** — jamais
+     par frame. Raison : aucune surcharge `DrawSprite` à clé n'accepte de transformée monde
+     (`SpriteRendererComponent.cs:546-612`), et l'overlay documente déjà cette limite. Test : une
+     tilemap tournée avec une telle couche dessine à plat et avertit une fois sur dix frames.
+  6. Test d'ordre : deux tuiles d'une telle couche et un sprite Y-trié entre elles produisent l'ordre
+     attendu.
 - Validation : suite moteur zéro échec.
-- Commit : `feat(tilemap): y-sorted source layers join the sorted sprite queue per tile`
+- Commit : `feat(tilemap): dynamically sorted layers join the sorted sprite queue per tile`
 
 ## Phase 3 — Le résidu de l'étape 1 (D4)
 
@@ -227,8 +266,9 @@ l'écraser.
   avec le code.
 - Fichiers : `docs/engine/tilemaps-gestion-profondeur.md`, `docs/README.md` si besoin.
 - Étapes :
-  1. Lancer `Projects/CasaEngine.RPGDemo` sur `map_1_1` avant T1 (capture) et après T2 (capture) ;
-     consigner ce qui a changé et pourquoi c'est attendu d'après ses métadonnées.
+  1. Lancer `Projects/RPGDemo` (monde `DefaultWorld.world`, carte `map_1_1`) avant T1 (capture) et
+     après T2 (capture) ; consigner ce qui a changé et pourquoi c'est attendu d'après ses métadonnées.
+     Sur `CasaEngine.Demos/Content/Maps/map_1_1.tileMap`, sans `depth.*` : **rien ne doit changer**.
   2. Dans le document : passer les étapes 4 et 5 à « fait » avec ce qui est réellement livré ; dire
      que l'étape 6 reste ouverte ; corriger les deux dérives constatées (`SpriteBlendMode` a gagné
      `Additive`/`Subtractive`, `RenderPass2D` a gagné `ScreenEffects`).
