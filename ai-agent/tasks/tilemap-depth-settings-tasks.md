@@ -252,7 +252,20 @@ deux solutions moteur (`CasaEngine.MonoGame.sln`, `CasaEngine.Editor.MonoGame.sl
 
 ## Phase 2 — Les couches en tri dynamique (D2)
 
-### ⏳ T2.1 — Les couches `UsesDynamicSort` par la file triée (révision 2)
+### ✅ T2.1 — Les couches `UsesDynamicSort` par la file triée (révision 2)
+
+**Validation (2026-09-07)** : le prédicat `layer.Depth.UsesDynamicSort` est testé avant le branchement
+chunké dans `DrawTileMap` (nouvelle méthode `DrawDynamicSortedLayerTiles`) ; le garde de
+`GetLayerRenderZOffset` posé par T1.1 est devenu `HasDepthMetadata && KeepsStaticChunking &&
+!UsesDynamicSort`, ce qui empêche toute couche de prendre les deux chemins à la fois (cas exact du
+blocage 5 de la révision 2 : `depth.role=Ground` + `depth.ySort=true`). Chaque tuile visible est
+soumise via `SpriteRendererComponent.DrawSprite(..., in RenderSortKey2D, ...)` avec la surcharge à
+ciseaux explicite (`Rectangle.Empty`, jamais `GraphicsDevice.ScissorRectangle`), à `translation.Z`
+coplanaire, drapeaux `TileCellFlags` reportés en `SpriteEffects` (même mapping que
+`StaticTile`/`AnimatedTile`). Sur `DrawWithWorldMatrix`, une telle couche est dessinée à plat par le
+chemin inchangé avec un avertissement `Logs.WriteWarning` une fois par couche (`HashSet<int>` par
+composant, vidé dans `InitializeWithWorld`). Suite moteur **1606/1606** (1599 + 7 tests neufs) ;
+`Alundra.Tests` **815/815** inchangé. Build des deux solutions moteur et d'`Alundra.Tests` : 0 erreur.
 
 - Objectif : une couche en tri dynamique quitte le chunking et soumet chaque tuile avec sa clé, ses
   drapeaux et son Z coplanaire ; sur le chemin tourné elle se dégrade explicitement.

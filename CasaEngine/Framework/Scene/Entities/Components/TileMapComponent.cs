@@ -130,6 +130,13 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private BoundingFrustum _cullingFrustum;
     private Vector3[] _frustumCorners;
 
+    /// <summary>
+    /// Indices of the layers that have already logged the "dynamic sort layer met on the rotated draw
+    /// path, drawing flat instead" warning (see <see cref="DrawWithWorldMatrix"/>) — once per layer, not
+    /// once per frame, per engine rule 9.10.
+    /// </summary>
+    private readonly HashSet<int> _warnedDynamicSortRotatedLayers = new();
+
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
     public TileSetData TileSetData { get; set; }
@@ -211,6 +218,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _tileSetTextures.Clear();
         _sortedOverlayTiles.Clear();
         _overlayTileCache.Clear();
+        _warnedDynamicSortRotatedLayers.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
         _physicsWorldContext = Owner.World.PhysicsWorld;
@@ -430,6 +438,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 continue;
             }
 
+            // D2: a layer requesting dynamic per-tile sort leaves the chunked batch entirely - tested
+            // BEFORE the chunked branch below so a layer whose role would also keep static chunking
+            // (KeepsStaticChunking) never takes both paths. See GetLayerRenderZOffset for the matching
+            // exclusion on the Z formula.
+            if (layer.TileMapLayerData.Depth.UsesDynamicSort)
+            {
+                DrawDynamicSortedLayerTiles(layer, mapPosX, mapPosY, tileWidth, tileHeight, translation.Z, scale,
+                    minTileX, maxTileX, minTileY, maxTileY);
+                continue;
+            }
+
             var layerZ = GetLayerRenderZOffset(layer.TileMapLayerData);
             var worldZ = translation.Z + layerZ;
             var staticBatchWorld = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
@@ -556,6 +575,148 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     }
 
     /// <summary>
+    /// Draws every visible tile of a layer whose <see cref="TileMapDepthSettings.UsesDynamicSort"/> is
+    /// true (D2): the layer's static chunks are never built into a batch and never queried here - each
+    /// tile is submitted individually through the keyed sprite path with a <see cref="RenderSortKey2D"/>
+    /// derived from the layer's depth settings and the tile's own grid row, so it interleaves correctly
+    /// with Y-sorted entity sprites and the sorted overlay. Reuses the same visible tile range
+    /// (<paramref name="minTileX"/>.. <paramref name="maxTileY"/>) the chunked branch and
+    /// <see cref="DrawSortedOverlayTiles"/> compute once per draw, instead of visiting chunks.
+    ///
+    /// Z POLICY: every tile is submitted at <paramref name="worldZ"/> - the tile map entity's
+    /// <c>translation.Z</c> - never at <c>DeriveDepthOffset(RenderPass) + zOffset</c> like a chunked
+    /// layer: it must share the same coplanar Z as every other sorted participant so the shared
+    /// <c>LessEqual</c> depth test never overrides the <see cref="RenderSortKey2D"/> ordering (see
+    /// <see cref="DrawSortedOverlayTiles"/>'s own Z policy note).
+    ///
+    /// Axis-aligned path only: <see cref="DrawWithWorldMatrix"/> draws such a layer flat instead and
+    /// warns once, since no keyed <c>DrawSprite</c> overload accepts a world transform.
+    /// </summary>
+    private void DrawDynamicSortedLayerTiles(
+        TileMapLayer layer,
+        float mapPosX,
+        float mapPosY,
+        float tileWidth,
+        float tileHeight,
+        float worldZ,
+        Vector2 scale,
+        int minTileX,
+        int maxTileX,
+        int minTileY,
+        int maxTileY)
+    {
+        if (_spriteRendererComponent == null)
+        {
+            return;
+        }
+
+        var layerData = layer.TileMapLayerData;
+        var depth = layerData.Depth;
+        var mapWidth = TileMapData.MapSize.Width;
+
+        for (var y = minTileY; y <= maxTileY; y++)
+        {
+            var rowOffset = y * mapWidth;
+
+            for (var x = minTileX; x <= maxTileX; x++)
+            {
+                var tileIndex = rowOffset + x;
+                LastVisitedTileCount++;
+
+                if (layerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                {
+                    continue;
+                }
+
+                LastDrawnTileCount++;
+
+                var texture = _tileSetTextures[layerData.GetTileSourceIndex(tileIndex)];
+                var sourceRectangle = layer.Tiles[tileIndex].GetCurrentSourceRectangle();
+                var flags = layerData.GetTileFlags(tileIndex);
+
+                var worldX = mapPosX + tileWidth * x;
+                var worldY = mapPosY - tileHeight * y;
+                var sortKey = BuildDynamicSortedTileKey(in depth, worldY, tileIndex);
+
+                _spriteRendererComponent.DrawSprite(
+                    texture,
+                    sourceRectangle,
+                    Point.Zero,
+                    new Vector2(worldX, worldY),
+                    0.0f,
+                    scale,
+                    Color.White,
+                    worldZ,
+                    in sortKey,
+                    GetTileSpriteEffects(flags),
+                    Rectangle.Empty);
+            }
+        }
+    }
+
+    /// <summary>Same flags-to-effects mapping <see cref="StaticTile"/>/<see cref="AnimatedTile"/> use, exposed
+    /// here because <see cref="DrawDynamicSortedLayerTiles"/> submits its sprite directly instead of going
+    /// through <see cref="Tile.Draw(float,float,float,Vector2,TileCellFlags)"/>.</summary>
+    private static SpriteEffects GetTileSpriteEffects(TileCellFlags flags)
+    {
+        var effects = SpriteEffects.None;
+        if ((flags & TileCellFlags.FlipHorizontal) != 0)
+        {
+            effects |= SpriteEffects.FlipHorizontally;
+        }
+
+        if ((flags & TileCellFlags.FlipVertical) != 0)
+        {
+            effects |= SpriteEffects.FlipVertically;
+        }
+
+        return effects;
+    }
+
+    /// <summary>
+    /// Precision applied to a tile's sort coordinate before rounding to an int, matching
+    /// <see cref="DepthSortable2DComponent"/>'s own (private) sort precision so a tile's coordinate
+    /// compares at the same scale as a Y-sorted entity sprite's.
+    /// </summary>
+    private const float DynamicSortedTileSortPrecision = 100f;
+
+    /// <summary>
+    /// Builds the <see cref="RenderSortKey2D"/> for one tile of a <see cref="TileMapDepthSettings.UsesDynamicSort"/>
+    /// layer, following the same field conventions as <see cref="DepthSortable2DComponent.BuildSortKey(Vector3)"/>:
+    /// pass/layer/order/elevation/local offset come straight from the layer's depth settings, and
+    /// <see cref="RenderSortKey2D.StableId"/> is the tile's own index - unique within the layer, and
+    /// stable across frames since a tile never moves within its layer.
+    /// </summary>
+    private static RenderSortKey2D BuildDynamicSortedTileKey(in TileMapDepthSettings depth, float worldY, int tileIndex)
+    {
+        var sortCoordinate = ComputeDynamicSortedTileSortCoordinate(depth.SortMode, worldY);
+
+        return new RenderSortKey2D(
+            (int)depth.RenderPass,
+            depth.SortingLayer,
+            depth.OrderInLayer,
+            depth.Elevation,
+            sortCoordinate,
+            depth.LocalSortOffset,
+            tileIndex);
+    }
+
+    /// <summary>
+    /// A tile has no anchor rectangle and no render frame handy in this hot loop, so only the two Y
+    /// based modes are told apart, matching <see cref="DepthSortable2DComponent"/>'s
+    /// <c>TopDownYDown</c>/<c>TopDownYUp</c> formulas exactly; every other mode (including
+    /// <c>IsometricAxis</c> and <c>ScreenProjected</c>, neither meaningful for a flat tile grid) falls
+    /// back to the same <c>TopDownYUp</c> formula that component also defaults to.
+    /// </summary>
+    private static int ComputeDynamicSortedTileSortCoordinate(DepthSortMode2D sortMode, float worldY)
+        => sortMode == DepthSortMode2D.TopDownYDown
+            ? RoundDynamicSortedTileCoordinate(worldY)
+            : RoundDynamicSortedTileCoordinate(-worldY);
+
+    private static int RoundDynamicSortedTileCoordinate(float value)
+        => (int)MathF.Round(value * DynamicSortedTileSortPrecision);
+
+    /// <summary>
     /// Draw path used when the component world matrix carries a rotation: tile quads and chunk
     /// geometry stay in tile map local space and are transformed by the full world matrix.
     /// </summary>
@@ -589,6 +750,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             if (!layer.TileMapLayerData.Depth.ShouldRenderTiles)
             {
                 continue;
+            }
+
+            // D2: a dynamic-sort layer has no keyed DrawSprite overload that accepts a world transform
+            // (SpriteRendererComponent.cs, the DrawSprite(...,in Matrix worldTransform) overload never
+            // takes a RenderSortKey2D) - the same limit the sorted overlay already documents. It is drawn
+            // flat by the unchanged path below instead, with a warning logged once per layer, never per
+            // frame (rule 9.10).
+            if (layer.TileMapLayerData.Depth.UsesDynamicSort && _warnedDynamicSortRotatedLayers.Add(layerIndex))
+            {
+                Logs.WriteWarning(
+                    $"TileMapComponent '{Owner?.Name}': layer '{layer.TileMapLayerData.Name}' uses dynamic "
+                    + "depth sort (depth.sortMode/depth.ySort) but the tile map's world matrix carries a "
+                    + "rotation; no keyed sprite draw accepts a world transform, so it is drawn flat "
+                    + "instead. Logged once per layer.");
             }
 
             var layerZ = GetLayerRenderZOffset(layer.TileMapLayerData);
@@ -1644,12 +1819,16 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// static chunked draw path folds its render pass into its Z, ahead of <c>zOffset</c>, which keeps
     /// its current role of separating layers sharing a pass. Every other layer is unchanged, character
     /// for character, so content with no <c>depth.*</c> key never moves (D6). A layer routed to dynamic
-    /// per-tile sorting (<see cref="TileMapDepthSettings.KeepsStaticChunking"/> false) is left out here:
-    /// it does not draw through this Z at all once it leaves the chunked path.
+    /// per-tile sorting (<see cref="TileMapDepthSettings.UsesDynamicSort"/>, D2) is explicitly excluded
+    /// even when its role would otherwise keep static chunking
+    /// (<see cref="TileMapDepthSettings.KeepsStaticChunking"/>) - <c>UsesDynamicSort</c> wins over the
+    /// role (D2), so such a layer never draws through this Z at all once it leaves the chunked path; this
+    /// exclusion is what keeps a layer from being eligible for both the chunked and the per-tile sorted
+    /// path at once.
     /// </summary>
     private static float GetLayerRenderZOffset(TileMapLayerData layerData)
     {
-        if (layerData.HasDepthMetadata && layerData.Depth.KeepsStaticChunking)
+        if (layerData.HasDepthMetadata && layerData.Depth.KeepsStaticChunking && !layerData.Depth.UsesDynamicSort)
         {
             return RenderPassDepthOffset.DeriveDepthOffset(layerData.Depth.RenderPass) + layerData.zOffset;
         }
