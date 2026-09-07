@@ -3,8 +3,9 @@
 Chantier ouvert le 2026-09-07. Origine : découvert en creusant une étape du portage Alundra, mais
 **c'est une dette du moteur**, utile à tous ses projets et sans rapport avec ce portage.
 
-Les décisions D1 → Dn ci-dessous ont été arbitrées avec l'auteur le <à compléter> : **ce plan les
-applique, il ne les rediscute pas.** Les points P1 → Pn attendent son arbitrage.
+Les décisions D1 → D6 ci-dessous ont été arbitrées avec l'auteur le 2026-09-07 — « exécute le plan »,
+lu comme l'approbation des recommandations portées par P1 à P5 : **ce plan les applique, il ne les
+rediscute pas.**
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son
 statut courant.
@@ -99,9 +100,14 @@ l'écraser.
 
 | Réf | Décision |
 |---|---|
-| D1 | _(à remplir après arbitrage des points ci-dessous)_ |
+| D1 | **Couches fixes : le Z porte la passe, la séquence porte le reste.** Une couche portant des métadonnées `depth.*` et restant chunkée (`KeepsStaticChunking`) est dessinée à `translation.Z + DeriveDepthOffset(RenderPass)`, fonction pure, monotone dans l'ordre des passes, valant **exactement 0 pour `YSortedWorld`** — le plan coplanaire des sprites triés. `SortingLayer`, `OrderInLayer` et `Elevation` **n'entrent pas dans le Z** : ils ordonnent les couches d'une même passe par **séquence de dessin**, puisque sous `LessEqual` avec écriture le dernier dessiné gagne. Aucun pas de Z fractionnaire : le tampon de profondeur ne les résoudrait pas. |
+| D2 | **Couches en tri dynamique (`UsesDynamicSort`, rôle `YSortedSource`) : la file triée, tuile par tuile.** Elles quittent le chemin chunké et chaque tuile est soumise avec une `RenderSortKey2D` construite depuis la couche (passe, calque, ordre, élévation, décalage local) et une `SortCoordinate` par tuile selon `SortMode`, **au Z coplanaire `translation.Z`** — le mécanisme exact d'`AddSortedOverlayTile`, rendu automatique. C'est la seule catégorie triée par tuile, et le document l'autorise pour elle seule. |
+| D3 | **L'étape 6 reste hors périmètre.** `SpawnAsEntity` et `EmitsSortableObjects` restent morts ; le document le dira. |
+| D4 | **Le résidu de l'étape 1 entre dans le chantier** : valeur `depth.*` inconnue → avertissement de chargement ; valeur invalide → erreur de chargement, comme le document l'exige (lignes 673-680). |
+| D5 | **`Projects/CasaEngine.RPGDemo/Maps/map_1_1.tileMap` est la fixture d'acceptation**, seule carte du dépôt qui exerce ces réglages. Capture avant/après. |
+| D6 | **L'absence de métadonnée reproduit exactement l'ordre actuel** — ordre du tableau, `zOffset` — et un test l'épingle. Le chantier ne rend indéterminé aucun rendu aujourd'hui stable. |
 
-## Points à valider — je propose, l'auteur tranche
+## Points à valider — tranchés le 2026-09-07 en D1 → D6, conservés pour l'historique
 
 - **P1 — Comment les couches chunkées participent-elles à l'ordre global ?** C'est LA question, et la
   réfutation 2 l'impose. Trois voies : **(a)** dériver un Z scalaire depuis
@@ -157,10 +163,77 @@ l'écraser.
 
 ---
 
-## Phase 0 — À figer après P1-P5
+## Phase 1 — Les couches fixes (D1, D6)
 
-Les tâches ne sont pas écrites tant que P1 n'est pas tranché : leur découpage dépend entièrement de la
-voie retenue pour les couches chunkées.
+### ⏳ T1.1 — `DeriveDepthOffset` et l'ordre des couches fixes
+
+- Objectif : la passe de rendu d'une couche fixe décide de son Z ; ses autres champs décident de sa
+  place dans la séquence de dessin ; l'absence de métadonnée ne change rien.
+- Fichiers : `CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs` ; un nouveau type
+  pur sous `CasaEngine/Framework/Rendering/Depth/` ; `CasaEngine.Tests/TileMap/` et
+  `CasaEngine.Tests/Rendering/`.
+- Étapes :
+  1. Une fonction pure statique `DeriveDepthOffset(RenderPass2D)` : monotone dans l'ordre de
+     `RenderPass2D`, **0 pour `YSortedWorld`**, négatif avant, positif après. Tests : monotonie sur
+     toute l'énumération, zéro exact pour `YSortedWorld`.
+  2. Dans les deux chemins de dessin (`DrawTileMap` axis-aligned et `DrawWithWorldMatrix`), pour une
+     couche qui **porte** des métadonnées et garde le chunking : `worldZ = translation.Z +
+     DeriveDepthOffset(layer.Depth.RenderPass)`. Pour une couche **sans** métadonnées : `worldZ =
+     translation.Z + zOffset`, **inchangé au caractère près**.
+  3. Ordonner les couches fixes d'une même passe par `(SortingLayer, OrderInLayer, Elevation)` avant
+     de les dessiner, **sans allocation par frame** : l'ordre est calculé une fois au chargement ou à
+     l'invalidation, jamais dans `Draw`.
+  4. Test D6 : une tilemap dont aucune couche n'a de métadonnée produit la même séquence de
+     `(worldZ, couche)` qu'avant — épinglé sur les valeurs, pas sur la forme.
+- Validation : `dotnet test CasaEngine.Tests` zéro échec ; `Alundra.Tests` 815 inchangé.
+- Commit : `feat(tilemap): fixed layers take their depth from the render pass`
+
+## Phase 2 — Les couches en tri dynamique (D2)
+
+### ⏳ T2.1 — `YSortedSource` par la file triée
+
+- Objectif : une couche `UsesDynamicSort` quitte le chunking et soumet chaque tuile avec sa clé.
+- Fichiers : `TileMapComponent.cs`, tests.
+- Étapes :
+  1. Pour une telle couche, ne pas appeler `TryDrawStaticChunkBatch` ; itérer les tuiles visibles
+     (réutiliser la plage de culling existante, comme l'overlay) et soumettre chacune par
+     `SpriteRendererComponent.DrawSprite(..., in RenderSortKey2D, ...)` avec la **surcharge à ciseaux
+     explicite** — jamais `GraphicsDevice.ScissorRectangle` au moment de la mise en file.
+  2. La clé : passe, calque, ordre, élévation, décalage local depuis la couche ; `SortCoordinate` depuis
+     la tuile selon `SortMode` (`TopDownYUp` : sa ligne écran) ; `StableId` depuis l'index de tuile.
+     Z = `translation.Z`, coplanaire.
+  3. Tests : une couche `YSortedSource` avec deux tuiles et un sprite Y-trié entre elles produit
+     l'ordre attendu ; la même couche sans le rôle reste chunkée (le lot statique est bien appelé).
+- Validation : suite moteur zéro échec.
+- Commit : `feat(tilemap): y-sorted source layers join the sorted sprite queue per tile`
+
+## Phase 3 — Le résidu de l'étape 1 (D4)
+
+### ⏳ T3.1 — Diagnostics de chargement
+
+- Objectif : une valeur `depth.*` inconnue avertit, une valeur invalide échoue, au chargement.
+- Fichiers : `CasaEngine/Framework/Assets/TileMap/TileMapDepthSettings.cs`, tests.
+- Étapes : distinguer « clé connue, valeur hors énumération » (avertissement `Logs.WriteWarning`,
+  **une fois par couche**, jamais par frame) de « valeur inutilisable » (erreur de chargement avec le
+  nom de la couche et la clé). Tests sur les deux.
+- Validation : suite moteur zéro échec.
+- Commit : `feat(tilemap): diagnose unknown and invalid depth properties at load`
+
+## Phase 4 — Preuve et documentation (D5)
+
+### ⏳ T4.1 — Fixture RPGDemo et mise à jour du document
+
+- Objectif : montrer que la seule carte concernée rend comme attendu, et mettre le document d'accord
+  avec le code.
+- Fichiers : `docs/engine/tilemaps-gestion-profondeur.md`, `docs/README.md` si besoin.
+- Étapes :
+  1. Lancer `Projects/CasaEngine.RPGDemo` sur `map_1_1` avant T1 (capture) et après T2 (capture) ;
+     consigner ce qui a changé et pourquoi c'est attendu d'après ses métadonnées.
+  2. Dans le document : passer les étapes 4 et 5 à « fait » avec ce qui est réellement livré ; dire
+     que l'étape 6 reste ouverte ; corriger les deux dérives constatées (`SpriteBlendMode` a gagné
+     `Additive`/`Subtractive`, `RenderPass2D` a gagné `ScreenEffects`).
+- Validation : capture après cohérente avec les métadonnées de la carte ; document relu.
+- Commit : `docs(engine): tile-map depth migration steps 4 and 5 delivered`
 
 ---
 
