@@ -1,4 +1,5 @@
 using System.Globalization;
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
 
@@ -93,21 +94,42 @@ public readonly struct TileMapDepthSettings
     public static TileMapDepthSettings FromCustomProperties(
         IReadOnlyDictionary<string, string> customProperties,
         TileMapDepthRole defaultRole)
-    {
-        var role = ReadEnum(customProperties, RoleKey, defaultRole);
-        var defaults = CreateDefault(role);
-        var renderPass = ReadEnum(customProperties, RenderPassKey, defaults.RenderPass);
-        var sortingLayer = ReadSortingLayer(customProperties, defaults.SortingLayer);
-        var orderInLayer = ReadInt32(customProperties, OrderInLayerKey, defaults.OrderInLayer);
-        var elevation = ReadInt32(customProperties, ElevationKey, defaults.Elevation);
-        var sortAnchor = ReadSortAnchor(customProperties, defaults.SortAnchor);
-        var localSortOffset = ReadInt32(customProperties, LocalSortOffsetKey, defaults.LocalSortOffset);
-        var sortMode = ReadEnum(customProperties, SortModeKey, defaults.SortMode);
-        var spawnAsEntity = ReadBoolean(customProperties, SpawnAsEntityKey, defaults.SpawnAsEntity);
+        => FromCustomProperties(customProperties, defaultRole, layerName: null);
 
-        if (sortMode == DepthSortMode2D.None && ReadBoolean(customProperties, YSortKey, false))
+    /// <summary>
+    /// Same as <see cref="FromCustomProperties(IReadOnlyDictionary{string,string},TileMapDepthRole)"/>,
+    /// additionally reporting <c>depth.*</c> properties the loader does not understand. T3.1 (D4,
+    /// narrowed): a key outside the recognised set, or a recognised key whose value fails to parse,
+    /// logs one <see cref="Logs.WriteWarning"/> naming <paramref name="layerName"/> and the key and
+    /// falls back to the current default - it never fails the load. <paramref name="layerName"/> is
+    /// <c>null</c> for the legacy overload above, which stays silent since it has no layer name to
+    /// report. <see cref="SortingLayerKey"/> is exempt by design: <see cref="ReadSortingLayer"/> hashes
+    /// any non-integer string, so no string value is ever invalid for it.
+    /// </summary>
+    public static TileMapDepthSettings FromCustomProperties(
+        IReadOnlyDictionary<string, string> customProperties,
+        TileMapDepthRole defaultRole,
+        string layerName)
+    {
+        var role = ReadEnum(customProperties, RoleKey, defaultRole, layerName);
+        var defaults = CreateDefault(role);
+        var renderPass = ReadEnum(customProperties, RenderPassKey, defaults.RenderPass, layerName);
+        var sortingLayer = ReadSortingLayer(customProperties, defaults.SortingLayer);
+        var orderInLayer = ReadInt32(customProperties, OrderInLayerKey, defaults.OrderInLayer, layerName);
+        var elevation = ReadInt32(customProperties, ElevationKey, defaults.Elevation, layerName);
+        var sortAnchor = ReadSortAnchor(customProperties, defaults.SortAnchor);
+        var localSortOffset = ReadInt32(customProperties, LocalSortOffsetKey, defaults.LocalSortOffset, layerName);
+        var sortMode = ReadEnum(customProperties, SortModeKey, defaults.SortMode, layerName);
+        var spawnAsEntity = ReadBoolean(customProperties, SpawnAsEntityKey, defaults.SpawnAsEntity, layerName);
+
+        if (sortMode == DepthSortMode2D.None && ReadBoolean(customProperties, YSortKey, false, layerName))
         {
             sortMode = DepthSortMode2D.TopDownYUp;
+        }
+
+        if (layerName != null)
+        {
+            WarnAboutUnrecognizedKeys(customProperties, layerName);
         }
 
         return new TileMapDepthSettings(
@@ -120,6 +142,39 @@ public readonly struct TileMapDepthSettings
             localSortOffset,
             sortMode,
             spawnAsEntity);
+    }
+
+    /// <summary>The full set of "depth." keys this class reads. Anything else with that prefix warns.</summary>
+    private static readonly HashSet<string> RecognizedKeys = new(StringComparer.Ordinal)
+    {
+        RoleKey, RenderPassKey, SortingLayerKey, OrderInLayerKey, ElevationKey,
+        SortAnchorKey, SortAnchorXKey, SortAnchorYKey, LocalSortOffsetKey, SortModeKey,
+        YSortKey, SpawnAsEntityKey
+    };
+
+    private const string DepthKeyPrefix = "depth.";
+
+    private static void WarnAboutUnrecognizedKeys(IReadOnlyDictionary<string, string> customProperties, string layerName)
+    {
+        foreach (var key in customProperties.Keys)
+        {
+            if (key.StartsWith(DepthKeyPrefix, StringComparison.Ordinal) && !RecognizedKeys.Contains(key))
+            {
+                Logs.WriteWarning(
+                    $"TileMap layer '{layerName}' has an unrecognized depth property '{key}'; it is ignored.");
+            }
+        }
+    }
+
+    private static void WarnInvalidValue(string layerName, string key)
+    {
+        if (layerName == null)
+        {
+            return;
+        }
+
+        Logs.WriteWarning(
+            $"TileMap layer '{layerName}' has an invalid value for depth property '{key}'; the default is used.");
     }
 
     public static int GetStableSortingLayerId(string name)
@@ -204,13 +259,23 @@ public readonly struct TileMapDepthSettings
         return sortAnchor;
     }
 
-    private static int ReadInt32(IReadOnlyDictionary<string, string> customProperties, string key, int defaultValue)
-        => TryGetValue(customProperties, key, out var value)
-           && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
-            ? result
-            : defaultValue;
+    private static int ReadInt32(IReadOnlyDictionary<string, string> customProperties, string key, int defaultValue, string layerName)
+    {
+        if (!TryGetValue(customProperties, key, out var value))
+        {
+            return defaultValue;
+        }
 
-    private static bool ReadBoolean(IReadOnlyDictionary<string, string> customProperties, string key, bool defaultValue)
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+        {
+            return result;
+        }
+
+        WarnInvalidValue(layerName, key);
+        return defaultValue;
+    }
+
+    private static bool ReadBoolean(IReadOnlyDictionary<string, string> customProperties, string key, bool defaultValue, string layerName)
     {
         if (!TryGetValue(customProperties, key, out var value))
         {
@@ -222,15 +287,19 @@ public readonly struct TileMapDepthSettings
             return boolValue;
         }
 
-        return value switch
+        switch (value)
         {
-            "1" => true,
-            "0" => false,
-            _ => defaultValue
-        };
+            case "1":
+                return true;
+            case "0":
+                return false;
+        }
+
+        WarnInvalidValue(layerName, key);
+        return defaultValue;
     }
 
-    private static TEnum ReadEnum<TEnum>(IReadOnlyDictionary<string, string> customProperties, string key, TEnum defaultValue)
+    private static TEnum ReadEnum<TEnum>(IReadOnlyDictionary<string, string> customProperties, string key, TEnum defaultValue, string layerName)
         where TEnum : struct, Enum
     {
         if (!TryGetValue(customProperties, key, out var value))
@@ -240,14 +309,22 @@ public readonly struct TileMapDepthSettings
 
         if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var numericValue))
         {
-            return Enum.IsDefined(typeof(TEnum), numericValue)
-                ? (TEnum)Enum.ToObject(typeof(TEnum), numericValue)
-                : defaultValue;
+            if (Enum.IsDefined(typeof(TEnum), numericValue))
+            {
+                return (TEnum)Enum.ToObject(typeof(TEnum), numericValue);
+            }
+
+            WarnInvalidValue(layerName, key);
+            return defaultValue;
         }
 
-        return Enum.TryParse<TEnum>(value, ignoreCase: true, out var result)
-            ? result
-            : defaultValue;
+        if (Enum.TryParse<TEnum>(value, ignoreCase: true, out var result))
+        {
+            return result;
+        }
+
+        WarnInvalidValue(layerName, key);
+        return defaultValue;
     }
 
     private static bool TryGetValue(IReadOnlyDictionary<string, string> customProperties, string key, out string value)

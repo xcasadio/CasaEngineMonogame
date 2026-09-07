@@ -298,7 +298,7 @@ composant, vidé dans `InitializeWithWorld`). Suite moteur **1606/1606** (1599 +
 
 ## Phase 3 — Le résidu de l'étape 1 (D4)
 
-### ⏳ T3.1 — Diagnostics de chargement (révision 3 : **rétrécie**, voir D4 amendée)
+### ✅ T3.1 — Diagnostics de chargement (révision 3 : **rétrécie**, voir D4 amendée)
 
 - Objectif : une propriété `depth.*` que le chargeur ne comprend pas **avertit une fois**, avec le nom
   de la couche et la clé, et le défaut actuel s'applique. **Aucune erreur de chargement dans ce
@@ -323,6 +323,16 @@ composant, vidé dans `InitializeWithWorld`). Suite moteur **1606/1606** (1599 +
   une carte n'ayant que des clés valides charge **sans aucun avertissement** et à l'identique.
 - Validation : suite moteur zéro échec.
 - Commit : `feat(tilemap): warn once about depth properties the loader does not understand`
+
+**Fait le 2026-09-07.** Moteur **1618 / 1618** (1606 + 12), `Alundra.Tests` **815** inchangé, les deux
+solutions à 0 erreur. Surcharge additive `FromCustomProperties(props, defaultRole, layerName)` ; l'ancienne
+signature délègue avec `layerName: null` et reste **silencieuse** — `TileMapObjectLayerData`, qui ne
+connaît pas de nom, est intouchée. **Douze clés, pas onze** : le plan comptait mal, l'exécuteur a lu
+le code. `depth.sortingLayer` ne prévient jamais, par conception (elle hache toute chaîne) ; le trio
+`sortAnchor*` est reconnu comme clé valide mais hors des quatre cas énumérés, donc non validé en
+valeur. Le « une fois » tient sans état : `FromCustomProperties` n'a aucun appelant par frame (grep),
+et la copie de travail **copie** `Depth` sans le réanalyser. Douze tests, un par cas plus l'exemption,
+la non-régression à zéro avertissement, et l'unicité.
 
 ## Phase 4 — Preuve et documentation (D5)
 
@@ -361,6 +371,51 @@ composant, vidé dans `InitializeWithWorld`). Suite moteur **1606/1606** (1599 +
      Aujourd'hui les quatre sont à Z ≥ 0, c'est-à-dire au niveau ou devant les sprites. La capture
      « après » doit donc montrer le joueur **devant** le sol et ses détails, et **derrière** l'avant-plan.
      Si ce n'est pas ce qu'elle montre, c'est un arrêt.
+
+     **Capture « après » n° 1, le 2026-09-07, sur T1.1 + T2.1 : INCONCLUSIVE.** Même harnais, même
+     technique, même pose. `map_1_1-after.png` est **identique à l'octet près** à l'avant — 0 pixel sur
+     786 432 ne diffère. Non que le changement soit inerte : lecture directe du code, les quatre
+     couches portent `depth.*`, restent chunkées et prennent bien le Z dérivé — Ground **−2,0**,
+     GroundDetails **−0,9 / −0,8**, Foreground **+1,8**, sprites à 0. Mais dans cette frame **aucun
+     sprite ne recouvre une tuile de détail ni d'avant-plan** : le joueur et l'ennemi sont sur de l'herbe
+     nue. Une pose de 20 s a fait marcher l'ennemi droit sur le joueur jusqu'à un « GAME OVER », sans
+     jamais croiser la rangée d'arbres. L'agent n'a touché ni au contenu ni au code de la démo.
+
+     **Reprise unique autorisée** (preuve manquante : un recouvrement ; changement matériel : placer le
+     joueur par l'API publique du monde depuis le harnais hors dépôt, sans éditer la démo). Si elle
+     est encore INCONCLUSIVE, T4.1 passe en 🧪 et la validation visuelle revient à l'auteur, le
+     numérique étant déjà épinglé par les tests de T1.1 et T2.1.
+
+     **Reprise, le 2026-09-07 : CONFIRMED.** Témoin corrigé : non plus l'image « avant » (le joueur a
+     bougé) mais **la même position téléportée rendue par le moteur d'avant T1.1**, via un
+     `git worktree` de `025a29cd` dans le scratchpad, retiré après. Téléport par l'API publique —
+     `RootComponent.Position` puis `PhysicsBaseComponent.SyncTransformFromScene()` (`:342`), sans
+     quoi le corps dynamique réécrit la position à la frame suivante. Deux paires :
+     - **Avant-plan**, joueur sous la canopée (col 5, ligne 7, monde (160, 476)) : **0 pixel** sur
+       786 432. Correct — la canopée était déjà devant (0,8 > 0) et le reste (1,8 > 0).
+     - **Détails de sol**, joueur sur le muret de gravier (col 15, ligne 0, monde (480, 684)) :
+       **463 pixels** en une grappe **exactement sur le corps du joueur**, boîte x∈[466,491],
+       y∈[62,95]. Avant : seule la tête dépasse du muret, le corps est peint dessous. Après : le corps
+       entier devant. (818 autres pixels : l'animation de l'ennemi entre deux exécutions, sans rapport.)
+
+     **Trouvaille, hors chantier mais à ne pas perdre — [T4-a]** : le pion du joueur porte un
+     **Z = 0,3 périmé**, copié depuis le placeholder `Player1 start` de `Projects/RPGDemo/DefaultWorld.world`
+     à l'apparition et jamais retouché (`linear_factor.z = 0`). `AnimatedSpriteComponent.Draw` passe
+     ce Z tel quel au test de profondeur (`:312`). À 0,3, les détails de sol (0,1/0,2 avant, −0,9/−0,8
+     après) sont **derrière le sprite dans les deux moteurs** — c'est pourquoi la capture n° 1 était
+     identique à l'octet près même à la position d'origine, et pourquoi huit positions de détails
+     n'avaient rien montré. Le harnais force Z = 0, **la base documentée du modèle** (« sprites à 0 »),
+     et le dit en commentaire. **Le moteur fait ce que le document prescrit ; c'est le contenu de la
+     démo qui masque le comportement.** Corriger ce 0,3 en 0 dans `DefaultWorld.world` est un
+     changement de contenu, à faire à part si l'auteur le veut ; sinon toute recette visuelle sur cette
+     carte devra forcer Z = 0 comme ici.
+
+     **Vu en session principale** (`depth-after/retry/z0-gravel-before.png` / `-after.png`) : avant,
+     seuls la tête et les épaules dépassent du muret, le corps est peint dessous — la boîte de
+     collision marque l'endroit caché ; après, le corps entier est devant, boîte et cercle posés sur
+     le gravier. Le CONFIRMED n'est pas pris sur parole. (Première lecture faite sur la mauvaise
+     paire, `zoom-details-*-tight.png`, une sonde sur décoration éparse identique des deux côtés —
+     erreur de sélection, corrigée.)
   2. Dans le document : passer les étapes 4 et 5 à « fait » avec ce qui est réellement livré ; dire
      que l'étape 6 reste ouverte ; corriger les deux dérives constatées (`SpriteBlendMode` a gagné
      `Additive`/`Subtractive`, `RenderPass2D` a gagné `ScreenEffects`).

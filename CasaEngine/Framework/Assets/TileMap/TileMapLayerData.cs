@@ -64,7 +64,7 @@ public class TileMapLayerData
         tileSources.Clear();
         tileFlags.Clear();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
-        Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.Ground);
+        Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.Ground, Name);
         HasDepthMetadata = ComputeHasDepthMetadata(CustomProperties);
 
         foreach (var tileToken in element["tiles"]!)
