@@ -110,10 +110,11 @@ bruit**, ne pas les simplifier. `Y0` ne bouge jamais. `CellularLayerService.Comp
 fonction pure qui porte cette formule, testée avec des valeurs calculées à la main pour les deux branches
 de correctif (`CellularLayerServicePureFunctionsTests`).
 
-**Si le `WaveLut` de la carte est vide, l'original arrête tout le reste de la boucle des cellules de
-cette couche pour ce tick — pas seulement la cellule courante.** Transcription littérale, pas une
-simplification : `CellularLayerService.Advance` reproduit cette sortie anticipée
-(`Advance_WaveXCell_WithEmptyWaveLut_SkipsItAndEveryCellAfterItInTheSameLayer`).
+**Si le `WaveLut` de la carte est vide, la cellule `WaveX` est sautée — elle seule.** La garde de
+l'original est un `break` **dans un `case` de `switch`** (`GraphicManager.cs:1190-1193`) : il sort du
+`switch`, pas de la boucle. Une couche qui mêle des cellules `WaveX` à des `Normal` ou des
+`FallRespawn` continue donc d'avancer et de dessiner ces dernières
+(`Advance_WaveXCell_WithEmptyWaveLut_SkipsOnlyItself_AndLaterCellsStillAdvance`).
 
 ## 7. La fenêtre source est animée
 

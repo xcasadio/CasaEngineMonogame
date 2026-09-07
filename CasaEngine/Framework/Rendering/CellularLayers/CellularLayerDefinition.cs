@@ -52,11 +52,11 @@ public struct CellularLayerDefinition
 
     public int BWaveWeight;
 
-    /// <summary>Up to 200 cells (<see cref="CellularLayerService.CellMax"/>), in original draw order -
-    /// order matters: a <see cref="CellularCellType.WaveX"/> cell encountered while the map's
-    /// <c>WaveLut</c> is empty stops processing every cell after it in this layer, this tick
-    /// (docs/plan-e9d-mode-cellulaire.md §1.5 ter - a literal transcription of the original's own
-    /// early exit, not a per-cell skip).</summary>
+    /// <summary>Up to 200 cells (<see cref="CellularLayerService.CellMax"/>), in original draw order.
+    /// A <see cref="CellularCellType.WaveX"/> cell met while the map's <c>WaveLut</c> is empty is
+    /// skipped on its own; every other cell in the layer still advances and draws. The original
+    /// writes that guard as a <c>break</c> inside a <c>switch</c> case, which leaves the switch and
+    /// not the cell loop (GraphicManager.cs:1190-1193).</summary>
     public CellularCellDefinition[] Cells;
 
     /// <summary>One baked 256x256 tile-sheet texture id per <c>PalDex</c> actually used by this
