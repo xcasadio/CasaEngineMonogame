@@ -190,7 +190,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
 - Commit : `chore(tests): align test packages with MGUI`
 - Note de validation (2026-09-13) : `CasaEngine.Tests` résout `Microsoft.NET.Test.Sdk` 18.10.0, `xunit.runner.visualstudio` 4.0.0 et `xunit` 2.9.3, sans avertissement `NU1xxx`. Le résultat est identique à la référence de T1.3 : 1618 tests, 1617 réussis, 1 échec (le même test, O2), 0 ignoré.
 
-### ⏳ T1.5 — Outils dotnet-mgcb en 3.8.5.1 (D4)
+### ✅ T1.5 — Outils dotnet-mgcb en 3.8.5.1 (D4)
 
 - Objectif : les contenus mgcb de la racine sont compilés par l'outil de même version que le runtime MonoGame.
 - Fichiers : `.config/dotnet-tools.json`, `CasaEngine/.config/dotnet-tools.json`, `CasaEngine.Demos/.config/dotnet-tools.json`, `CasaEngine.Editor/.config/dotnet-tools.json`, `CasaEngine.Launcher/.config/dotnet-tools.json`, `CasaEngine.Shaders/.config/dotnet-tools.json`, `Projects/SandBoxGame/.config/dotnet-tools.json`.
@@ -203,6 +203,12 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   - builds à 0 erreur, sans erreur mgcb ;
   - `--play-smoke` sur SampleProject sans exception ni FAIL, avec les effets et les polices recompilés chargés.
 - Commit : `chore(build): update dotnet-mgcb tools to 3.8.5.1`
+- Note de validation (2026-09-13) :
+  - `jq` : 35 entrées en 3.8.5.1 dans les 7 manifestes, et le champ `version` des manifestes est inchangé.
+  - `dotnet tool restore` réussit dans les 7 dossiers. Par réflexion, `mgcb.dll` 3.8.5.1 déclare `quiet` et `rebuild`.
+  - Construites avec `/quiet /rebuild`, les deux solutions compilent à 0 erreur, sans erreur mgcb ni avertissement de version. Des `.xnb` produits par ce build apparaissent dans `CasaEngine` (99), `CasaEngine.Demos` (87), `CasaEngine.Editor` (303), `CasaEngine.Launcher` (87) et `Projects/SandBoxGame` (87).
+  - Correction de l'état vérifié : `CasaEngine.Shaders/Content/Content.mgcb` n'a aucune entrée `/build`, et `CasaEngine.Shaders` ne référence pas `MonoGame.Content.Builder.Task`, dont les cibles lisent les manifestes. Il n'y a rien à y recompiler.
+  - `--play-smoke` sur SampleProject : 15 PASS, 0 FAIL, aucune exception, `git status` de `Projects` inchangé. La capture est identique à celle de T1.2 : monde rendu avec ses effets et ses textures, O1 inchangé.
 
 ### ⏳ T1.6 — Clôture
 
