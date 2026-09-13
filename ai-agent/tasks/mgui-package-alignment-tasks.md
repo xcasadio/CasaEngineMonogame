@@ -179,7 +179,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   - Les deux solutions compilent à 0 erreur, sans `NU1605`, `CS1705` ni `MSB3277`.
   - **Référence de tests** : 1618 tests, 1617 réussis, 1 échec, 0 ignoré. Le seul échec est `CasaEngine.Tests.UI.EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars` : la partie `Accent` d'un `MGDockTabItem` est `Hidden` au lieu de `Collapsed` (ligne 98). Voir O2.
 
-### ⏳ T1.4 — Packages de test alignés sur MGUI (D3)
+### ✅ T1.4 — Packages de test alignés sur MGUI (D3)
 
 - Objectif : `CasaEngine.Tests` tourne avec les versions de test de MGUI.
 - Fichiers : `Directory.Packages.props`.
@@ -188,6 +188,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   2. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj`.
 - Validation : mêmes nombres de tests découverts, réussis, en échec et ignorés que la référence de T1.3, et même liste d'échecs. Si un écart vient des nouvelles versions : ⚠️ Blocked.
 - Commit : `chore(tests): align test packages with MGUI`
+- Note de validation (2026-09-13) : `CasaEngine.Tests` résout `Microsoft.NET.Test.Sdk` 18.10.0, `xunit.runner.visualstudio` 4.0.0 et `xunit` 2.9.3, sans avertissement `NU1xxx`. Le résultat est identique à la référence de T1.3 : 1618 tests, 1617 réussis, 1 échec (le même test, O2), 0 ignoré.
 
 ### ⏳ T1.5 — Outils dotnet-mgcb en 3.8.5.1 (D4)
 
