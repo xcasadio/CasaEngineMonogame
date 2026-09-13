@@ -43,13 +43,22 @@ Source unique des règles pour tous les agents IA qui travaillent dans ce dépô
 - Tests : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` dès qu'une tâche touche du code testé. Ajouter ou mettre à jour des tests quand un projet de test existe pour le système touché, quand la tâche change une logique, corrige un bug, change la sérialisation, ajoute un importeur ou un exporteur, ou change le layout, l'input ou le rendu de façon testable. Validation préférée : tests unitaires pour la logique pure, fichiers golden pour l'import et l'export, petite démo ou écran pour une feature éditeur, build complet pour un changement transverse. Si un test ne peut pas être ajouté, dire pourquoi.
 - Samples : un sample ou une démo minimal est obligatoire pour toute feature visible non triviale. Si un sample existe pour la zone touchée, le lancer au moins une fois avant de rendre la tâche.
 
-## 7. Outils shell
+## 7. Outils shell et Serena
 
 Le dépôt est développé sous Windows. Outils installés : `rg` (recherche de code), `fd` (découverte de fichiers), `jq` (JSON), `yq` (YAML, XML, INI, CSV), `ast-grep` (recherche structurelle C# quand la recherche textuelle est trop bruyante). Leur vérification en début de tâche (`<outil> --version`) est facultative.
 
 - Recherche : `rg "pattern" CasaEngine --glob "*.cs"` ; `rg "pattern" . --glob "!bin/**" --glob "!obj/**"`.
 - Fichiers : `fd "Name" . -e cs` ; `fd . CasaEngine -e cs -d 4`.
 - Jamais de listage récursif large : `dir /s`, `tree /f`, `Get-ChildItem -Recurse` sans filtre.
+
+**Serena (MCP, outils symboliques via serveur de langage).** Disponible dans Claude Code, VS Code, Codex et Claude Desktop pour tous les dépôts.
+
+- Usage : `get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `rename_symbol`, `replace_symbol_body`, `insert_before_symbol` et `insert_after_symbol` pour lire et modifier le code par symbole. `rg` et `fd` restent la référence pour la recherche textuelle et la découverte de fichiers.
+- Début de session : si l'outil `get_current_config` est exposé, vérifier que le projet actif de Serena est le dépôt courant, sinon l'activer avec son chemin via `activate_project`. Dans Claude Code le projet est fixé au lancement du serveur et ces deux outils sont absents.
+- **C/C++ : Serena n'est utilisable que si le code compile et si un `compile_commands.json` complet, flags de standard et chemins d'include compris, existe à la racine du dépôt. Avant tout usage de Serena sur du C/C++, vérifier ces deux conditions, build du §6 compris. Si l'une manque : prévenir explicitement l'auteur, passer la tâche en ⚠️ Blocked avec la question dans « Points ouverts », et s'arrêter. Ne pas utiliser Serena sur ce code, ne pas contourner. Serena ne signale pas elle-même l'absence de base de compilation : ses résultats seraient silencieusement faux ou incomplets.**
+- Les fichiers créés après le démarrage du serveur de langage ne sont pas indexés : redémarrer Serena après création de fichiers sources.
+- `.serena/`, configuration, cache et mémoires Serena, n'est indexé dans un commit que sur demande explicite de l'auteur.
+- Installation et mise à jour de Serena (`uv tool install` / `uv tool upgrade serena-agent`) uniquement depuis un terminal lancé hors de l'app Claude : les écritures sous AppData faites depuis l'app sont virtualisées et invisibles ailleurs.
 
 ## 8. Délégation à des sous-agents
 
