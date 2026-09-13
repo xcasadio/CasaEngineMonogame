@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.Fill_Brushes;
+using MGUI.Core.UI.Brushes.FillBrushes;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework;
 

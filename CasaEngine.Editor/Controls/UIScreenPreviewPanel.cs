@@ -10,7 +10,7 @@ using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.Fill_Brushes;
+using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;

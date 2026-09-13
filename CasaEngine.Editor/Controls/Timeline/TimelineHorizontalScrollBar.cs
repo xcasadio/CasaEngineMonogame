@@ -1,7 +1,7 @@
 using CasaEngine.Editor.Styling;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.Border_Brushes;
-using MGUI.Core.UI.Brushes.Fill_Brushes;
+using MGUI.Core.UI.Brushes.BorderBrushes;
+using MGUI.Core.UI.Brushes.FillBrushes;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 

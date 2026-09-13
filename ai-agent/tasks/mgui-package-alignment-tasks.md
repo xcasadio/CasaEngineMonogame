@@ -163,7 +163,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   - CasaEngine : solution éditeur à 0 erreur ; solution moteur limitée aux 8 erreurs `Fill_Brushes` ; aucun `NU1605`, `CS1705` ni `MSB3277`. Les 10 projets des deux solutions qui utilisent FontStashSharp résolvent `FontStashSharp.MonoGame` 1.5.7, `FontStashSharp.Base` 1.2.7 et `FontStashSharp.Rasterizers.StbTrueTypeSharp` 1.2.7.
   - `--play-smoke` sur SampleProject : 15 PASS, aucune exception, `git status` de `Projects` inchangé, et les captures montrent le monde rendu. Constat hors critères : le Content Browser s'affiche en blocs blancs (O1).
 
-### ⏳ T1.3 — Namespaces de brushes renommés par MGUI (D2)
+### ✅ T1.3 — Namespaces de brushes renommés par MGUI (D2)
 
 - Objectif : plus aucune référence à `MGUI.Core.UI.Brushes.Fill_Brushes` ni `MGUI.Core.UI.Brushes.Border_Brushes` ; les deux solutions et le projet de tests compilent.
 - Fichiers : les 9 fichiers listés dans l'état vérifié ; les 19 fichiers déjà modifiés par l'auteur, indexés tels quels.
@@ -173,6 +173,11 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   3. `rg "Border_Brushes|Fill_Brushes" --glob "!MGUI/**" --glob "!**/bin/**" --glob "!**/obj/**" .` : aucun résultat.
 - Validation : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` s'exécute, et son résultat devient la **référence** des tâches suivantes : nombres de tests réussis, en échec et ignorés, liste des échecs.
 - Commit : `fix(mgui): use the renamed FillBrushes and BorderBrushes namespaces`
+- Note de validation (2026-09-13) :
+  - Les 19 fichiers de l'auteur ne contiennent que le renommage : leurs 70 lignes modifiées sont toutes des `using` de brushes.
+  - Après les 9 remplacements, `rg` ne trouve plus rien hors de `MGUI/` et de `ai-agent/` (ce plan cite les anciens noms).
+  - Les deux solutions compilent à 0 erreur, sans `NU1605`, `CS1705` ni `MSB3277`.
+  - **Référence de tests** : 1618 tests, 1617 réussis, 1 échec, 0 ignoré. Le seul échec est `CasaEngine.Tests.UI.EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars` : la partie `Accent` d'un `MGDockTabItem` est `Hidden` au lieu de `Collapsed` (ligne 98). Voir O2.
 
 ### ⏳ T1.4 — Packages de test alignés sur MGUI (D3)
 
@@ -222,6 +227,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Dans les captures du smoke de T1.2, en édition comme en Play, le panneau Content Browser est dessiné en blocs blancs. Le diagnostic indique pourtant 11 éléments dans le dossier courant, dont 10 réalisés dans la grille, et le log ne contient ni avertissement ni erreur. Cause non attribuée (mise à jour de MGUI, MonoGame 3.8.5.1, MonoGame.Extended 6.1.1 ou autre) : à examiner par l'auteur. Ne bloque pas les tâches suivantes. | Constat de T1.2, hors critères du chantier |
+| O2 | Le test `CasaEngine.Tests.UI.EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars` échoue : la partie `Accent` d'un `MGDockTabItem` vaut `Hidden` au lieu de `Collapsed`. D'après `ai-agent/README.md`, les 1618 tests étaient verts le 2026-09-07. Entre `21187900` et `df22af7`, les commits MGUI `797404e`, `5de0561`, `f74d8d6` et `9c6c908` modifient la partie `Accent` des contrôles de docking, qui passe aux templates structurels. Aucune expérience n'a démontré la cause. La correction touche le thème de l'éditeur ou MGUI, hors des tâches approuvées : décision de l'auteur. | Constat de T1.3 ; objectif « passer ses tests » |
 
 ## Hors périmètre
 
