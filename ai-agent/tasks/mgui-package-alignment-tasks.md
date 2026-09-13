@@ -138,7 +138,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
 - Commit : `fix(build): align MonoGame package versions with MGUI`
 - Note de validation (2026-09-13) : validation ci-dessus obtenue sur MGUI `df22af7`, avant le pull de MGUI. Les logs des deux builds ne contiennent ni `NU1605`, ni `CS1705`, ni `MSB3277`. Sur MGUI `6f39e03`, la solution éditeur compile aussi sans erreur. Commit fait après l'approbation de la révision 2 du plan.
 
-### ⏳ T1.2 — FontStashSharp épinglé en 1.5.7 dans MGUI (D5, D6, D7)
+### ✅ T1.2 — FontStashSharp épinglé en 1.5.7 dans MGUI (D5, D6, D7)
 
 - Objectif : un seul `FontStashSharp.MonoGame`, en 1.5.7, dans tous les projets des deux solutions ; l'éditeur démarre. `develop` de MGUI porte l'épinglage, et CasaEngine référence sa copie posée sur `df22af7`.
 - Fichiers : `MGUI/Directory.Packages.props` (deux commits dans MGUI) ; référence du sous-module `MGUI` ; ce plan.
@@ -157,6 +157,11 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   - solution moteur sans autre erreur que les 8 `Fill_Brushes` de T1.3 ;
   - `--play-smoke` sur `Projects/SampleProject/SampleProject.json` : pas d'exception, pas de FAIL, capture qui montre le monde.
 - Commit : `fix(build): pin FontStashSharp to 1.5.7 through MGUI`
+- Note de validation (2026-09-13) :
+  - MGUI, `develop` avec l'épinglage (`a3ead0f`) : `MGUI.sln` à 0 erreur ; `MGUI.Tests` : 2242 réussis, 0 échec.
+  - MGUI, copie `0f7eb16` sur `casaengine/pin-fontstashsharp` (cherry-pick `-x` de `a3ead0f`) : `MGUI.sln` à 0 erreur ; `MGUI.Tests` : 1995 réussis, 22 échecs. La référence sans épinglage, mesurée dans un worktree temporaire en `df22af7` (FontStashSharp 1.6.0), donne exactement les mêmes 22 échecs : ils sont préexistants, et ces tests passent tous sur `develop` avec l'épinglage.
+  - CasaEngine : solution éditeur à 0 erreur ; solution moteur limitée aux 8 erreurs `Fill_Brushes` ; aucun `NU1605`, `CS1705` ni `MSB3277`. Les 10 projets des deux solutions qui utilisent FontStashSharp résolvent `FontStashSharp.MonoGame` 1.5.7, `FontStashSharp.Base` 1.2.7 et `FontStashSharp.Rasterizers.StbTrueTypeSharp` 1.2.7.
+  - `--play-smoke` sur SampleProject : 15 PASS, aucune exception, `git status` de `Projects` inchangé, et les captures montrent le monde rendu. Constat hors critères : le Content Browser s'affiche en blocs blancs (O1).
 
 ### ⏳ T1.3 — Namespaces de brushes renommés par MGUI (D2)
 
@@ -216,7 +221,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| — | Aucun point ouvert à la rédaction du plan. | — |
+| O1 | Dans les captures du smoke de T1.2, en édition comme en Play, le panneau Content Browser est dessiné en blocs blancs. Le diagnostic indique pourtant 11 éléments dans le dossier courant, dont 10 réalisés dans la grille, et le log ne contient ni avertissement ni erreur. Cause non attribuée (mise à jour de MGUI, MonoGame 3.8.5.1, MonoGame.Extended 6.1.1 ou autre) : à examiner par l'auteur. Ne bloque pas les tâches suivantes. | Constat de T1.2, hors critères du chantier |
 
 ## Hors périmètre
 
