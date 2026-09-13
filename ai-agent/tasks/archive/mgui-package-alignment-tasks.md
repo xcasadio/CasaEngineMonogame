@@ -210,7 +210,7 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   - Correction de l'état vérifié : `CasaEngine.Shaders/Content/Content.mgcb` n'a aucune entrée `/build`, et `CasaEngine.Shaders` ne référence pas `MonoGame.Content.Builder.Task`, dont les cibles lisent les manifestes. Il n'y a rien à y recompiler.
   - `--play-smoke` sur SampleProject : 15 PASS, 0 FAIL, aucune exception, `git status` de `Projects` inchangé. La capture est identique à celle de T1.2 : monde rendu avec ses effets et ses textures, O1 inchangé.
 
-### ⏳ T1.6 — Clôture
+### ✅ T1.6 — Clôture
 
 - Objectif : validation globale, vérification indépendante, plan archivé.
 - Fichiers : ce plan (déplacé dans `ai-agent/tasks/archive/`) et `ai-agent/README.md`.
@@ -224,6 +224,15 @@ CasaEngine reste sur la base MGUI `df22af7`. Le sous-module NvgSharp n'est pas m
   3. Archiver ce plan et mettre à jour sa ligne dans `ai-agent/README.md`.
 - Validation : verdict `CONFIRMED` ; `git status` sans fichier suivi modifié hors des commits du chantier.
 - Commit : `docs(ai-agent): close the MGUI package alignment plan`
+- Note de validation (2026-09-13) :
+  - Validation globale en `2f93fe61` : les deux solutions compilent à 0 erreur, sans `NU1605`, `CS1705` ni `MSB3277`. Les 18 projets résolvent 37 packages, chacun en une seule version. `CasaEngine.Tests` donne 1618 tests, 1617 réussis et 1 échec (O2), comme la référence de T1.3.
+  - Smokes : SampleProject et RPGDemo passent tous deux avec 15 PASS, 0 FAIL et aucune exception ; RPGDemo charge `CasaEngine.RPGDemo.dll` (proxy `ScriptTitleScreenWorld`). Aucun fichier suivi n'a changé. Le smoke RPGDemo a créé deux fichiers non suivis générés par l'éditeur, `Projects/RPGDemo/.casaeditor/viewport.editor.json` et `Projects/CasaEngine.RPGDemo/CasaEngine.EnginePath.props` (machine-local, régénérable) ; ils ont été supprimés à la clôture.
+  - MGUI :
+    - `develop` = `a3ead0f` (parent `6f39e03`) et `casaengine/pin-fontstashsharp` = `0f7eb16` (parent `df22af7`) ;
+    - le gitlink du parent est `0f7eb16`, et aucun des deux commits n'est sur une branche distante ;
+    - un fetch extérieur au chantier a avancé `origin/develop` : `develop` a 1 commit d'avance et 2 de retard. Un `pull --rebase` réécrira `a3ead0f`, sans toucher la copie référencée.
+  - Sous-agent `verifier` : **CONFIRMED** sur les six points (builds sans incrémental, versions, tests, smokes, état de MGUI, périmètre du diff `72394285..2f93fe61`). Sa seule remarque (P4 : plan et index pas encore à jour dans `2f93fe61`) est traitée par ce commit.
+  - O1 et O2 restent ouverts : ils sortent des tâches approuvées et relèvent d'une décision de l'auteur.
 
 ---
 
