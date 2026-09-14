@@ -73,6 +73,35 @@ public class CasaMguiBackendOwnershipTests
     }
 
     [Fact]
+    public void PrimitiveContext_Passes_ResolvedBlendState_To_PrimitiveBatch()
+    {
+        string controllerText = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "CasaDrawStateController.cs"));
+
+        Assert.Matches(new Regex(@"PrimitiveBatch\.Begin\(\s*ref\s+\w+\s*,\s*ref\s+\w+\s*,\s*CurrentBlendState\s*\)", RegexOptions.CultureInvariant), controllerText);
+
+        // Without an explicit blend state, MonoGame.Extended's PrimitiveBatch draws with NonPremultiplied and paints the
+        // ColorWriteDisable stencil clip geometry of rounded borders over their content.
+        Regex twoArgumentBegin = new(@"PrimitiveBatch\w*\.Begin\(\s*ref\s+\w+\s*,\s*ref\s+\w+\s*\)", RegexOptions.CultureInvariant);
+        string[] sourceRoots =
+        {
+            Path.Combine(RepoRoot, "CasaEngine"),
+            Path.Combine(RepoRoot, "CasaEngine.AposShapes"),
+            Path.Combine(RepoRoot, "CasaEngine.Editor"),
+        };
+
+        List<string> violations = new();
+        foreach (string filePath in EnumerateSourceFiles(sourceRoots))
+        {
+            if (twoArgumentBegin.IsMatch(File.ReadAllText(filePath)))
+            {
+                violations.Add(Path.GetRelativePath(RepoRoot, filePath));
+            }
+        }
+
+        Assert.True(violations.Count == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact]
     public void NominalSourcePaths_DoNotReference_UpstreamConcreteBackendTypes()
     {
         string[] sourceRoots =

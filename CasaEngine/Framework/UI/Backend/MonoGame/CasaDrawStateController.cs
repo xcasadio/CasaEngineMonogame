@@ -64,7 +64,9 @@ internal sealed class CasaDrawStateController
                 ApplyPrimitiveDeviceStates();
                 Matrix primitiveProjectionMatrix = _primitiveProjectionMatrix;
                 Matrix primitiveViewMatrix = CurrentSettings.Transform;
-                _renderer.PrimitiveBatch.Begin(ref primitiveProjectionMatrix, ref primitiveViewMatrix);
+                // MonoGame.Extended's PrimitiveBatch draws with the blend state given to Begin (NonPremultiplied when omitted), not the
+                // device state applied above: without it, stencil clip geometry drawn with ColorWriteDisable is painted over the content.
+                _renderer.PrimitiveBatch.Begin(ref primitiveProjectionMatrix, ref primitiveViewMatrix, CurrentBlendState);
                 break;
 
             default:

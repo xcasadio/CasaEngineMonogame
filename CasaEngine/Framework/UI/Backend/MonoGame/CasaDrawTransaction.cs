@@ -77,7 +77,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public ClipDiagnosticsSnapshot ClipDiagnostics => ClipManager.GetDiagnostics();
 
     /// <param name="Settings">See also: <see cref="DrawSettings.Default"/></param>
-    /// <param name="DeferBegin">If true, <see cref="SpriteBatch.Begin(SpriteSortMode, BlendState, SamplerState, DepthStencilState, RasterizerState, Effect, Matrix?)"/> or <see cref="PrimitiveBatch.Begin(ref Matrix, ref Matrix)"/><para/>
+    /// <param name="DeferBegin">If true, <see cref="SpriteBatch.Begin(SpriteSortMode, BlendState, SamplerState, DepthStencilState, RasterizerState, Effect, Matrix?)"/> or <see cref="PrimitiveBatch.Begin(ref Matrix, ref Matrix, BlendState)"/><para/>
     /// will not be invoked until you call a draw-related function within <see cref="CasaDrawTransaction"/>, such as <see cref="DrawTextureTo(Texture2D, Rectangle?, Rectangle)"/></param>
     /// <param name="DefaultContext">Only relevant if <paramref name="DeferBegin"/>==false. The default drawing context to immediately start.</param>
     public CasaDrawTransaction(CasaDesktopRuntime Renderer, DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
