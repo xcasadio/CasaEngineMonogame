@@ -3921,6 +3921,7 @@ public class GameEditor : Game, IObservableUpdate
             new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.World, TryOpenWorldAsset),
         ];
 
         return _assetDocumentRoutes;
@@ -3953,6 +3954,109 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return false;
+    }
+
+    private bool TryOpenWorldAsset(string fullPath)
+    {
+        var gameManager = _editorRuntime?.GameManager;
+        if (gameManager == null || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
+        {
+            return false;
+        }
+
+        string relativePath = NormalizeRelativePath(Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath));
+        var assetInfo = AssetCatalog.GetByFileName(relativePath)
+                        ?? AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        if (assetInfo == null)
+        {
+            Logs.WriteWarning($"Cannot open world '{relativePath}': it is not declared in the asset catalog.");
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        if (_playModeService?.IsPlaySessionActive == true)
+        {
+            // Stopping brings the edit world back, so its unsaved changes still go through the prompt below.
+            StopPlayMode();
+        }
+
+        var currentWorld = gameManager.CurrentWorld;
+        if (!string.IsNullOrWhiteSpace(currentWorld?.FileName)
+            && string.Equals(NormalizeRelativePath(currentWorld.FileName), NormalizeRelativePath(assetInfo.FileName), StringComparison.OrdinalIgnoreCase))
+        {
+            ActivateDockPanel(EditorPanelIds.WorldViewport);
+            return true;
+        }
+
+        var worldHistoryContext = new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
+        if (_editorDirtyState.IsDirty(worldHistoryContext)
+            && !ConfirmSaveBeforeOpeningWorld(worldHistoryContext, Path.GetFileNameWithoutExtension(assetInfo.FileName)))
+        {
+            return false;
+        }
+
+        Framework.Scene.World.World world;
+        try
+        {
+            // Loaded before the current world is cleared: a world that fails to load leaves the editor untouched.
+            world = _editorRuntime.AssetContentManager.Load<Framework.Scene.World.World>(assetInfo.Id, cache: false);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            Logs.WriteWarning($"Cannot open world '{relativePath}': {exception.Message}");
+            return false;
+        }
+
+        // Undo entries and the selection reference entities of the outgoing world.
+        _editorHistory.Clear(worldHistoryContext);
+        _editorDirtyState.MarkSaved(worldHistoryContext);
+        _editorSelection.Clear();
+
+        currentWorld?.Clear();
+        gameManager.SetWorldToLoad(world);
+
+        // Materialize the world right away so the World document binds to it rather than to the cleared one.
+        gameManager.UpdateWorld(new GameTime());
+
+        ActivateDockPanel(EditorPanelIds.WorldViewport);
+        ActivateWorldDocument();
+        RefreshWorldSelectionViews();
+        Logs.WriteInfo($"World opened: {assetInfo.FileName}");
+        return true;
+    }
+
+    private bool ConfirmSaveBeforeOpeningWorld(EditorHistoryContext worldHistoryContext, string worldName)
+    {
+        var answer = System.Windows.Forms.MessageBox.Show(
+            $"The current world has unsaved changes.\n\nSave the project before opening '{worldName}'?",
+            "Open World",
+            System.Windows.Forms.MessageBoxButtons.YesNoCancel,
+            System.Windows.Forms.MessageBoxIcon.Warning);
+
+        if (answer == System.Windows.Forms.DialogResult.No)
+        {
+            return true;
+        }
+
+        if (answer != System.Windows.Forms.DialogResult.Yes)
+        {
+            return false;
+        }
+
+        try
+        {
+            SaveCurrentProject();
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            return false;
+        }
+
+        // SaveCurrentProject only logs a warning when it cannot save: opening would then lose the changes.
+        return !_editorDirtyState.IsDirty(worldHistoryContext);
     }
 
     private bool TryOpenUIScreenAsset(string fullPath)

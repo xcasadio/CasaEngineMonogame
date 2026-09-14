@@ -49,6 +49,14 @@ Le document actif `World` pilote :
 - `Inspector` -> `EntityDetailsPanel`
 - `Toolbox` -> empty state
 
+Il n'existe qu'un document `World`. Double-cliquer un fichier `.world` dans le `Content Browser` charge ce world dans le `World Viewport` à la place du world courant :
+- le fichier doit être déclaré dans le catalogue d'assets du projet, sinon un avertissement est loggué et rien ne change ;
+- une session Play en cours est d'abord stoppée ;
+- si le world courant a des modifications non enregistrées, la boîte `Open World` propose : Oui enregistre le projet puis ouvre, Non ouvre en abandonnant les modifications, Annuler ne fait rien ;
+- rouvrir le world déjà chargé active seulement le `World Viewport` ;
+- l'historique undo/redo et la sélection du world précédent sont vidés ;
+- le world de démarrage du projet (`FirstWorldLoaded`) ne change pas.
+
 ### UIScreen
 
 Le document actif `UIScreen` pilote :
