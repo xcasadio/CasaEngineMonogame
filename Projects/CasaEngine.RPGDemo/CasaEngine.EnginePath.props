@@ -1,0 +1,7 @@
+<!-- Généré par l'éditeur CasaEngine. Machine-local : ne pas committer, ne pas éditer. -->
+<Project>
+  <PropertyGroup>
+    <CasaEnginePath Condition="'$(CASAENGINE_PATH)' != ''">$(CASAENGINE_PATH)</CasaEnginePath>
+    <CasaEnginePath Condition="'$(CasaEnginePath)' == ''">D:\development\repo\CasaEngineMonogame\CasaEngine.Editor\bin\Debug\net9.0-windows\</CasaEnginePath>
+  </PropertyGroup>
+</Project>
