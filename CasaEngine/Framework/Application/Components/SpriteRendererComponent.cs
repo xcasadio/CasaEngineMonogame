@@ -147,8 +147,27 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             return;
         }
 
+        // D4 (screen-effect-above-ui-tasks.md): Draw (below) sets its own DepthStencilState,
+        // RasterizerState, SamplerStates[0] and BlendState unconditionally and never restores them -
+        // only the scissor rectangle is already saved/restored by Draw itself. When Flush is called
+        // from the post-UI overlay hook (DefaultUICompositionService.Compose, right after
+        // Desktop.Draw() left the device in whatever state MGUI's own drawing used), leaving these
+        // states set would leak into whatever runs next. Reading them back is four cheap reference
+        // getters, no allocation, so this runs unconditionally for every caller of Flush.
+        var graphicsDevice = _effect.GraphicsDevice;
+        var previousDepthStencilState = graphicsDevice.DepthStencilState;
+        var previousRasterizerState = graphicsDevice.RasterizerState;
+        var previousSampler0 = graphicsDevice.SamplerStates[0];
+        var previousBlendState = graphicsDevice.BlendState;
+
         UpdateBuffer();
         Draw(frame.View, frame.Projection);
+
+        graphicsDevice.DepthStencilState = previousDepthStencilState;
+        graphicsDevice.RasterizerState = previousRasterizerState;
+        graphicsDevice.SamplerStates[0] = previousSampler0;
+        graphicsDevice.BlendState = previousBlendState;
+
         Clear();
     }
 

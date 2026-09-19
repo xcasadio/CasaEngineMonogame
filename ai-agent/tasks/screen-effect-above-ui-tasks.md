@@ -289,7 +289,7 @@ Voies écartées, pour mémoire, avec la raison :
   `EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`
   préexistant et sans rapport, déjà relevé à T0.1.
 
-### ⏳ T1.2 — L'effet d'écran se dessine depuis le crochet en mode `AboveUI`
+### 🧪 T1.2 — L'effet d'écran se dessine depuis le crochet en mode `AboveUI`
 
 - Objectif : `Layer = AboveUI` déplace le dessin de l'effet après l'interface, `BelowUI` ne change
   rien, et l'appareil est rendu dans l'état où le crochet l'a trouvé.
@@ -318,6 +318,61 @@ Voies écartées, pour mémoire, avec la raison :
      surcouche retirée.
 - Validation : build ; suite verte ; `ScreenEffectComponentViewSizeTests` inchangés et verts.
 - Commit : `feat(screen-effects): draw the overlay above the UI when the layer says so`
+- Note de validation : Étape 1 lue - `SubmitOverlay` (`ScreenEffectComponent.cs:130-163`) et les deux
+  fichiers de tests existants construisent tous deux le composant et le renderer via un jeu headless
+  (`RuntimeHelpers.GetUninitializedObject`), sans jamais appeler `Flush` avec des sprites en file
+  (`_effect` y reste `null`, ce que confirme aussi `SpriteRendererComponentBlendModeTests` : « The
+  device-facing draw loop itself cannot run headless »). Étape 2 : le bloc `BelowUI` de `Update`
+  est resté identique, seule sa garde a gagné `Service.Layer == ScreenEffectLayer.BelowUI &&` en
+  tête - le corps n'a pas bougé d'une ligne, donc `BelowUI` reste le chemin d'aujourd'hui octet pour
+  octet ; `ScreenEffectComponentSubmissionTests` et `ScreenEffectComponentViewSizeTests` (huit tests)
+  restent verts sans modification. Étape 3 : `ScreenEffectComponent` implémente maintenant
+  `IPostUIOverlay` ; `UpdateAboveUIRegistration` (nouvelle méthode privée, appelée en tête d'`Update`)
+  enregistre/désenregistre le composant sur `GameManager.ViewManager.ActiveView` - **O4 tranché ici** :
+  c'est la seule vue que ce composant a jamais lue (déjà utilisée pour la caméra avant ce chantier),
+  donc `AboveUI` s'y enregistre sans introduire de nouvelle dépendance. `Draw` (l'entrée
+  `IPostUIOverlay`) résout la caméra 2D depuis la vue reçue en paramètre (pas `ActiveView` une
+  deuxième fois - c'est la même vue), soumet via `SubmitOverlay` (inchangé, réutilisé tel quel), puis
+  appelle immédiatement `renderer.Flush(in frame, view.RenderStats)`, patron exact de
+  `TileMapSurfaceComponent.cs:206`. Étape 4 (D4) : `SpriteRendererComponent.Flush` lit désormais
+  `DepthStencilState`/`RasterizerState`/`SamplerStates[0]`/`BlendState` avant `Draw` et les restaure
+  après - quatre lectures de référence, aucune allocation ; la `ScissorRectangle` était déjà
+  sauvegardée/restaurée par `Draw` lui-même (`:172,205`), donc non dupliquée. **Aucun
+  `GraphicsDevice` de test n'existe dans la suite** (confirmé : aucun test du dépôt ne construit
+  `new GraphicsDevice(...)`, et `SpriteRendererComponentBlendModeTests` documente explicitement cette
+  limite) : la restauration ne peut pas être figée par un test unitaire ici, exactement le cas que le
+  plan anticipait - notée 🧪, couverte par le smoke de T2.2. Étape 5 : cinq tests ajoutés dans le
+  nouveau fichier `CasaEngine.Tests/Rendering/ScreenEffects/ScreenEffectComponentAboveUIRegistrationTests.cs` :
+  `Update_WhenLayerIsBelowUI_SubmitsOverlayAndRegistersNoOverlay`,
+  `Update_WhenLayerIsAboveUI_DoesNotSubmitAndRegistersOnTheActiveView`,
+  `Update_WhenLayerTogglesBackToBelowUI_UnregistersFromTheView`,
+  `Update_WhenClearedWhileAboveUI_UnregistersFromTheView`,
+  `Draw_WithNoSpriteRendererComponent_DoesNothingAndDoesNotThrow`. Montage : jeu headless réutilisé
+  des tests existants, plus une `GameManager` réelle (`new GameManager(null)`, déjà utilisée telle
+  quelle par `GameManagerWorldLoadTests`) avec une `RenderView` ajoutée (`ViewManager.Add` en fait
+  l'`ActiveView`), câblés sur le jeu headless par réflexion sur les propriétés à setter privé
+  `GameManager`/`SpriteRendererComponent` (même technique que le champ `_components` déjà utilisé par
+  ces tests) ; la vue porte une `Camera2dComponent` dimensionnée (`OnScreenResized(320, 240)`), pas
+  `ArcBallCameraComponent`, pour que `TryGetCameraViewSize` résolve et qu'`Update` ne retombe jamais
+  sur `CasaEngineGame.ScreenSizeWidth/Height` (qui lit `Game.Window`, absent en tête-headless,
+  indépendamment de ce chantier). Le champ privé `_pixelTexture` est préchargé par réflexion pour que
+  le `SubmitOverlay` interne d'`Update` (qui n'a pas de texture explicite, contrairement aux tests de
+  soumission existants) atteigne la file sans toucher un `GraphicsDevice`. **Ce que ces tests
+  prouvent** : le routage `BelowUI`/`AboveUI` dans `Update`, la soumission (ou son absence), et le
+  cycle de vie complet de l'enregistrement (bascule de couche, `Clear()`) - exactement le contenu
+  vérifiable de l'étape 5 sans dispositif GPU. **Ce qu'ils ne prouvent pas** : que le `Draw` de la
+  surcouche soumet réellement puis vide la file via un `Flush` GPU réel (le seul test qui invoque
+  `Draw` le fait sans `SpriteRendererComponent` câblé, pour vérifier qu'il ne lève pas, pas qu'il
+  vide) - même limite que D4 ci-dessus, notée 🧪, couverte par le smoke de T2.2. `dotnet build
+  CasaEngine.MonoGame.sln` : 0 erreur (mêmes avertissements `CS8632` préexistants). `dotnet build
+  CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 erreur. `dotnet build CasaEngine.Editor.MonoGame.sln`
+  (lancé par prudence bien que cette tâche ne touche pas la composition) : 0 erreur. `dotnet test
+  CasaEngine.Tests/CasaEngine.Tests.csproj --no-build` : 1631 tests (1626 de base après T1.1 + 5
+  ajoutés ici), 1630 verts, 1 échec - le même `EditorControlTemplateAssetLoadingTests
+  .EditorThemeAsset_Disables_Docking_Accent_Bars` préexistant et sans rapport, déjà relevé à T0.1 et
+  T1.1. **Statut 🧪, pas ✅** : le code est écrit, buildé et testé jusqu'à la limite d'un dispositif
+  GPU absent de cette suite ; la restauration d'état GPU (D4) et le `Draw`→`Flush` réel de la
+  surcouche restent à observer par le smoke visible de T2.2 (hors périmètre de cette tâche).
 
 ---
 
@@ -393,10 +448,10 @@ Voies écartées, pour mémoire, avec la raison :
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | `RenderStats` : le vidage immédiat depuis le crochet cumule-t-il dans les compteurs de sprites existants, ou faut-il un compteur propre ? Choix local, à justifier dans la note de validation. | T1.2 |
+| O1 | **Tranché à T1.2** : `Flush(in RenderFrame frame, RenderStats stats = null)` n'utilise déjà `stats` nulle part dans son corps, pour tout appelant existant - le paramètre est accepté mais inerte. Le vidage immédiat de la surcouche lui passe `view.RenderStats` exactement comme tout autre appelant (`DefaultViewPipeline.cs:45`, `TileMapSurfaceComponent.cs:206`) : aucune cumulation ne se produit, pas de compteur propre à ajouter. | T1.2 |
 | O2 | **Tranché dans ce plan** : `Clear()` ne remet pas la couche, qui est un réglage de rendu. Si la lecture de `ScreenEffectService.cs` à T0.1 montre que `Clear()` a une sémantique « tout remettre » documentée qui contredit ce choix, passer en ⚠️ et demander. | T0.1 |
 | O3 | **Tranché à T1.1** : `OverlayViewPipeline.cs:144-149` appelle la même expression que `DefaultViewPipeline.cs:53-54` (`view.UICompositionService ?? DefaultUICompositionService.Instance`). Le crochet unique dans `DefaultUICompositionService.Compose` couvre les trois pipelines par construction. | T1.1 |
-| O4 | **Constaté à T1.1** : `ScreenEffectComponent` (`:47-74`) ne cible aujourd'hui aucune vue explicitement — il soumet toujours au `SpriteRendererComponent` du jeu et ne lit `ActiveView` que pour la caméra. Reste à trancher à T1.2 : sur quelle vue s'enregistrer en mode `AboveUI` (vraisemblablement `ActiveView`, à confirmer en lisant comment T1.2 route la soumission). | T1.1, T1.2 |
+| O4 | **Tranché à T1.2** : `AboveUI` s'enregistre sur `GameManager.ViewManager.ActiveView`, la même vue que `Update` lisait déjà pour la caméra avant ce chantier - aucune nouvelle dépendance. | T1.1, T1.2 |
 | O5 | Si le fondu `BelowUI` ne couvre pas tout le viewport dans `TileMapDemo`, le placement du quad a un défaut hors de ce chantier ; à remonter à l'auteur, ne pas corriger ici. | T2.2 |
 
 ## Hors périmètre
