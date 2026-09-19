@@ -427,7 +427,7 @@ Voies écartées, pour mémoire, avec la raison :
   CasaEngine.MonoGame.sln` relancé par prudence : 0 erreur, mêmes avertissements `CS8632`
   préexistants, sans rapport.
 
-### ⏳ T2.2 — Le smoke visible dans la démo `TileMapDemo`
+### 🧪 T2.2 — Le smoke visible dans la démo `TileMapDemo`
 
 - Objectif : quelqu'un peut voir, dans le moteur seul, une interface MGUI s'assombrir avec la
   scène, sur le seul chemin où le placement du quad de l'effet est supporté : une caméra 2D.
@@ -452,6 +452,120 @@ Voies écartées, pour mémoire, avec la raison :
   `AboveUI` l'interface s'assombrit avec la scène, en `BelowUI` elle reste lisible. Tant que cette
   observation n'est pas faite, la tâche reste 🧪. Capture chiffrée en plus si l'étape 4 le permet.
 - Commit : `feat(demos): show the above-UI screen effect in the TileMap demo`
+- Note de validation : **Précondition confirmée avant tout le reste (étape 2), avec preuve
+  chiffrée** - voir plus bas ; pas de blocage O5.
+  **Découverte non prévue par le plan, avant même la précondition** : `TileMapDemo` était
+  **retirée de la liste des démos** de `DemosGame.cs:80` (`//_demos.Add(new TileMapDemo());`,
+  commentée depuis 2026-05-24, commit `9d73f9460`, un passage de séparation moteur/éditeur sans
+  rapport avec cette démo) - elle était donc injoignable depuis le sélecteur de démos. Re-ajoutée
+  (`DemosGame.cs:80-85`, avec une correspondance de titre **exacte** dans
+  `CASAENGINE_START_DEMO="Tile map demo"` pour ne pas retomber sur `TileMap3dDemo`/
+  `TileMapSurfaceScreenDemo` qui contiennent aussi la sous-chaîne « Tile map ») : nettoyage local
+  requis par la tâche (le smoke est inatteignable sans ce ré-ajout), disclosed ici, aucun autre
+  fichier de `DemosGame.cs` touché. **Deuxième découverte, un vrai blocage évité par un
+  contournement local plutôt que par une correction hors périmètre** (voir O6 ci-dessous et dans
+  « Points ouverts ») : lancer la démo telle quelle plante immédiatement sur une
+  `NullReferenceException` dans `PlayerComponent.Update` (`PlayerComponent.cs:76`), parce que
+  `AnimatedSpriteComponent.InitializeWithWorld` (`AnimatedSpriteComponent.cs:138-166`) vide
+  `Animations` et le reconstruit uniquement depuis `_animationAssetIds`, jamais rempli par les
+  appels `AddAnimation(Animation2d)` que `TileMapDemo.Initialize` fait lui-même
+  (`AnimatedSpriteComponent.cs:233-241`) : `CurrentAnimation` reste `null`, et
+  `PlayerComponent.Update` le déréférence sans garde. Bug préexistant, dans un système sans
+  rapport (contrôleur de joueur/animation, pas rendu/UI) : **non corrigé** (interdit sans demande
+  explicite, AGENTS.md §2/§3) ; au lieu de cela, `entity.AddComponent(new PlayerComponent())` est
+  commentée dans `TileMapDemo.cs` (seul fichier de cette tâche), avec une citation complète du bug
+  en commentaire, pour que la démo soit exécutable sans toucher `PlayerComponent.cs` ni
+  `AnimatedSpriteComponent.cs`. La tuile map, la caméra 2D et le smoke ne sont pas affectés ; seul
+  le sprite animé « Link » ne joue plus son animation de marche (il restait de toute façon figé
+  avant ce chantier, puisque le jeu plantait dès la première frame). **Étape 3** : nouvel écran
+  dédié `ScreenEffectSmokeHudScreen`
+  (`CasaEngine.Demos/Demos/TileMapDemo/ScreenEffectSmokeHudScreen.cs`) plutôt qu'une réutilisation
+  telle quelle de `HudScreen` : `HudScreen` pousse des boutons « Open Pause Menu »/« Open Dialogue »
+  qui n'existent pas dans `TileMapDemo` (pas de menu pause, pas de dialogue), donc son contenu ne
+  conviendrait pas même s'il n'a pas de dépendance à la scène 3D - exactement le cas de repli que
+  l'étape 3 du plan prévoyait (« sinon un écran minimal dédié »). La fenêtre est un rectangle
+  **opaque blanc plein** (`Color.White`) avec un texte d'instructions : ce blanc opaque est
+  délibérément le pixel de référence échantillonné par le contrôle chiffré (une couleur
+  translucide comme celle de `HudScreen` compliquerait la lecture du canal). Deux commandes
+  ajoutées dans `TileMapDemo.Update` : touche **1** = fondu vers le noir en `BelowUI`, touche
+  **2** = fondu vers le noir en `AboveUI`, toutes deux `ScreenEffectService.StartFade(255,255,255,
+  0,0,0, 0.6s, SpriteBlendMode.Subtractive)` (le patron exact de `docs/engine/screen-effects.md`
+  §2), puis un petit automate à trois états (`FadeSmokeState`) fait retomber vers blanc après 0.6s
+  et appelle `Clear()` après 0.6s de plus - « durée courte, retour automatique » du plan, sans
+  notion de rampe propre au consommateur (le service ne mémorise rien, conformément à sa doc XML).
+  Une entrée automation-only, `CASAENGINE_TILEMAP_FADE_SMOKE_LAYER` (env var, lue une seule fois
+  dans `InitializeCamera`), démarre le même `StartFadeSmoke` sans appui clavier : nécessaire ici
+  parce que cette session n'a pas de moyen d'injecter des touches dans une fenêtre MonoGame réelle
+  (pas d'accès écran/souris/clavier au process) ; les touches 1/2 restent le chemin interactif
+  normal et appellent la même méthode - aucun comportement différent entre les deux chemins.
+  **Étape 4 : oui, l'automation des démos sait déjà capturer le back-buffer en processus** -
+  `CasaEngine.Demos/DemosGame.cs:256-306`, les variables d'environnement
+  `CASAENGINE_CAPTURE_SCREENSHOT_PATH`/`CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS` existaient déjà
+  (même patron que `GameEditor.CaptureAutomationScreenshot`, back-buffer → `Texture2D` →
+  `SaveAsPng`), simplement jamais combinées jusqu'ici avec `CASAENGINE_TILEMAP_FADE_SMOKE_LAYER`
+  pour capturer un fondu. Capture et contrôle chiffré faits par cette tâche (build
+  `CasaEngine.Demos/CasaEngine.Demos.csproj` puis exécutions réelles, `dotnet run --project
+  CasaEngine.Demos --no-build`, depuis `CasaEngine.Demos/` pour que `Content/DemosGame.json` se
+  résolve) :
+  - **Précondition (étape 2)** : `CASAENGINE_TILEMAP_FADE_SMOKE_LAYER=BelowUI`, delays 550/700/
+    850 ms. Six points échantillonnés (quatre coins, centre, ciel loin du HUD) passent tous de
+    `(100,149,237)` (bleu ciel `CornflowerBlue` de base, mesuré sur un cycle complet à 2000 ms) à
+    `(0,0,87)` à 850 ms, **identiquement aux six points** : le fondu couvre bien tout le
+    viewport, pas seulement une partie. **Précondition confirmée, pas de ⚠️/O5.**
+  - **Contrôle chiffré (étape 4)**, pixel de référence `(20,20)` (intérieur de la fenêtre blanche
+    de `ScreenEffectSmokeHudScreen`) : en `BelowUI` à 550/700/850 ms, ce pixel reste
+    **exactement** `(255,255,255)` à chaque mesure - inchangé, comme prévu (le quad se dessine
+    dans la passe de scène, sous la composition MGUI). En `AboveUI`, aux **mêmes** délais, le même
+    pixel passe à `(158,158,158)`, `(157,157,157)`, `(106,106,106)` : il **s'assombrit avec la
+    scène**. Le pixel de ciel loin du HUD, lui, s'assombrit **de la même quantité dans les deux
+    modes** aux mêmes délais (`(3,52,140)`/`(2,51,139)`/`(0,0,88)` en `AboveUI` contre
+    `(4,53,141)`/`(4,53,141)`/`(0,0,87)` en `BelowUI`, écart de 1 sur 255 - bruit de mesure entre
+    deux exécutions distinctes, pas un écart de comportement) : **preuve numérique directe que
+    c'est le même quad, de la même magnitude, qui change seulement de camp par rapport à la
+    composition UI** - exactement D2/D3, et exactement le contrôle que l'étape 4 du plan
+    demandait (« un pixel d'un élément de l'écran MGUI est plus sombre en `AboveUI` qu'en
+    `BelowUI` »).
+  - Ces mesures ont été faites en pilotant automatiquement `StartFadeSmoke` par
+    `CASAENGINE_TILEMAP_FADE_SMOKE_LAYER` (cette session n'a pas d'accès écran/clavier pour appuyer
+    sur 1/2 elle-même) : c'est une observation automatisée équivalente au plan, **pas**
+    l'observation de l'auteur que la validation de cette tâche exige. Conformément à la règle du
+    plan (« Tant que cette observation n'est pas faite, la tâche reste 🧪 »), **le statut reste
+    🧪**, pour l'observation humaine ci-dessous.
+  - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur (mêmes avertissements `CS8632` préexistants,
+    plus les mêmes avertissements sur les nouveaux fichiers, cohérents avec le reste du projet qui
+    n'est pas en contexte `#nullable enable`). `CasaEngine.Editor.MonoGame.sln` : 0 erreur (lancé
+    par prudence, cette tâche ne touche pas la composition empruntée par l'éditeur).
+    `CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 erreur. `dotnet test --no-build` : 1631 tests
+    (inchangé, cette tâche n'ajoute aucun test - démo uniquement), 1630 verts, 1 échec - le même
+    `EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`
+    préexistant et sans rapport, déjà relevé à T0.1/T1.1/T1.2. Aucune régression.
+
+  **Marche à suivre exacte pour l'observation de l'auteur** :
+  1. Lancer la démo : depuis `CasaEngine.Demos/`, `dotnet run --project CasaEngine.Demos.csproj`
+     (ou lancer l'exécutable buildé), puis naviguer jusqu'à « Tile map demo » avec le panneau de
+     navigation des démos (`F1` pour l'afficher/masquer), **ou** directement au lancement avec la
+     variable d'environnement `CASAENGINE_START_DEMO=Tile map demo`.
+  2. Une fenêtre blanche en haut à gauche affiche « Screen effect above-UI smoke » avec les
+     instructions.
+  3. Appuyer sur **1** : l'écran entier (carte + fenêtre blanche) doit rester net une fraction de
+     seconde puis foncer progressivement vers le noir sur toute sa surface, y compris la fenêtre
+     blanche qui **doit rester blanche** pendant que le reste s'assombrit - c'est `BelowUI`, le
+     comportement par défaut, inchangé pour tout consommateur existant. Après ~1,2 s, tout revient
+     à la normale automatiquement.
+  4. Appuyer sur **2** : la carte fonce vers le noir comme à l'étape 3, mais cette fois la fenêtre
+     blanche **fonce avec elle**, jusqu'à devenir grise puis presque noire au plus fort du fondu -
+     c'est `AboveUI`, la nouvelle couche de ce chantier. Retour automatique après ~1,2 s.
+  5. Ce qu'il doit constater : à l'étape 3 la fenêtre reste lisible (blanche) pendant que la scène
+     s'assombrit ; à l'étape 4 elle s'assombrit avec la scène. C'est exactement le résultat visé
+     par ADR-0033 pour la jauge de vie du portage Alundra pendant un warp.
+  6. Reproduction automatisée sans clavier (celle faite par cette tâche, pour comparaison) : depuis
+     `CasaEngine.Demos/`,
+     `CASAENGINE_START_DEMO="Tile map demo" CASAENGINE_TILEMAP_FADE_SMOKE_LAYER=AboveUI
+     CASAENGINE_CAPTURE_SCREENSHOT_PATH=<chemin>.png CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS=700
+     dotnet run --project CasaEngine.Demos.csproj --no-build` (remplacer `AboveUI` par `BelowUI`
+     pour l'autre mode) sauvegarde une capture à mi-fondu.
+  7. Une fois l'observation faite, l'auteur (ou un exécuteur sur sa demande) passe l'icône à ✅ et
+     ajoute une ligne de confirmation ici.
 
 ---
 
@@ -482,7 +596,8 @@ Voies écartées, pour mémoire, avec la raison :
 | O2 | **Tranché dans ce plan** : `Clear()` ne remet pas la couche, qui est un réglage de rendu. Si la lecture de `ScreenEffectService.cs` à T0.1 montre que `Clear()` a une sémantique « tout remettre » documentée qui contredit ce choix, passer en ⚠️ et demander. | T0.1 |
 | O3 | **Tranché à T1.1** : `OverlayViewPipeline.cs:144-149` appelle la même expression que `DefaultViewPipeline.cs:53-54` (`view.UICompositionService ?? DefaultUICompositionService.Instance`). Le crochet unique dans `DefaultUICompositionService.Compose` couvre les trois pipelines par construction. | T1.1 |
 | O4 | **Tranché à T1.2** : `AboveUI` s'enregistre sur `GameManager.ViewManager.ActiveView`, la même vue que `Update` lisait déjà pour la caméra avant ce chantier - aucune nouvelle dépendance. | T1.1, T1.2 |
-| O5 | Si le fondu `BelowUI` ne couvre pas tout le viewport dans `TileMapDemo`, le placement du quad a un défaut hors de ce chantier ; à remonter à l'auteur, ne pas corriger ici. | T2.2 |
+| O5 | Si le fondu `BelowUI` ne couvre pas tout le viewport dans `TileMapDemo`, le placement du quad a un défaut hors de ce chantier ; à remonter à l'auteur, ne pas corriger ici. **Non déclenché** : précondition confirmée par mesure chiffrée (six points de l'image identiquement assombris), voir la note de validation de T2.2. | T2.2 |
+| O6 | **Découvert à T2.2, non tranché, hors périmètre de ce chantier** : `TileMapDemo` plante sur une `NullReferenceException` (`PlayerComponent.cs:76`) dès qu'on l'exécute, parce qu'`AnimatedSpriteComponent.InitializeWithWorld` (`AnimatedSpriteComponent.cs:138-166`) vide `Animations` et le reconstruit uniquement depuis `_animationAssetIds`, jamais rempli par `AddAnimation(Animation2d)` (`AnimatedSpriteComponent.cs:233-241`), que `TileMapDemo.Initialize` utilise pourtant pour peupler ses animations. Contournée localement dans `TileMapDemo.cs` (le seul fichier de T2.2) en ne créant pas le `PlayerComponent`, sans toucher aux deux fichiers en cause. À trancher par l'auteur : corriger `AnimatedSpriteComponent`/`PlayerComponent` (système sans rapport avec ce chantier), ou laisser `TileMapDemo` sans joueur animé. | T2.2, hors chantier |
 
 ## Hors périmètre
 

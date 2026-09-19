@@ -77,7 +77,12 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new MaterialDemo());
         _demos.Add(new ParticleSystemDemo());
         _demos.Add(new EnvironmentShowcaseDemo());
-        //_demos.Add(new TileMapDemo());
+        // Re-enabled for T2.2 (ai-agent/tasks/screen-effect-above-ui-tasks.md): it was disabled
+        // since 2026-05-24 (commit 9d73f9460, an unrelated runtime/editor separation pass), and its
+        // Camera2dComponent is the only supported camera for the above-UI screen effect quad's
+        // placement formula (ScreenEffectComponent.cs:53-67), so it is also the only demo that can
+        // host that smoke.
+        _demos.Add(new TileMapDemo());
         _demos.Add(new TileMap3dDemo());
         _demos.Add(new TileMapSurfaceScreenDemo());
         _demos.Add(new SkinnedMeshDemo());
