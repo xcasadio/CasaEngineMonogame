@@ -188,7 +188,7 @@ Voies écartées, pour mémoire, avec la raison :
 
 ## Phase 0 — Le socle
 
-### ⏳ T0.1 — Le réglage de couche du service
+### ✅ T0.1 — Le réglage de couche du service
 
 - Objectif : `ScreenEffectService` porte une couche, `BelowUI` par défaut, sans effet sur le rendu
   tant que rien ne la lit.
@@ -205,6 +205,20 @@ Voies écartées, pour mémoire, avec la raison :
      comme avant et **laisse `Layer` intacte**.
 - Validation : build des deux projets ; `dotnet test ... --no-build` vert, tests ajoutés comptés.
 - Commit : `feat(screen-effects): add a layer setting to the screen effect service`
+- Note de validation : `ScreenEffectService.cs` lu en entier avant modification — `Clear()`
+  (`:62-66`) ne remet que `Active = false` et `_isFading = false` ; il ne touche déjà pas à
+  `R`/`G`/`B` ni à `Blend`. Aucune doc XML de `Clear()` n'annonce une sémantique « tout remettre » :
+  rien ne contredit le choix D1/O2 de laisser `Layer` intacte, pas de blocage. `ScreenEffectLayer`
+  ajouté (`ScreenEffectLayer.cs`, nouveau), propriété `Layer` (auto-implémentée, défaut `BelowUI`)
+  ajoutée à `ScreenEffectService.cs:46-53`, doc XML citant D1. Quatre tests ajoutés à
+  `ScreenEffectServiceTests.cs` : défaut `BelowUI`, aller-retour `AboveUI`/`BelowUI`, et `Clear()`
+  qui laisse `Layer = AboveUI` intacte tout en remettant `Active`/`IsFading` à `false`. Build
+  `CasaEngine.MonoGame.sln` : 0 erreur (avertissements `CS8632` préexistants, sans rapport).
+  `CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 erreur. `dotnet test --no-build` : 1622 tests
+  (1618 de base + 4 ajoutés), 1621 verts, 1 échec — `EditorControlTemplateAssetLoadingTests
+  .EditorThemeAsset_Disables_Docking_Accent_Bars` (`Collapsed` attendu, `Hidden` obtenu), confirmé
+  **préexistant et sans rapport** : même échec reproduit après `git stash` de ce changement, sur
+  l'arbre de départ. Rien ne lit encore `Layer` : aucun comportement de rendu ne change.
 
 ---
 

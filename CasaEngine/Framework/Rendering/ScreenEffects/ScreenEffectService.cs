@@ -44,6 +44,16 @@ public sealed class ScreenEffectService
     public bool IsFading => _isFading;
 
     /// <summary>
+    /// Where the overlay draws relative to the composed UI. Defaults to
+    /// <see cref="ScreenEffectLayer.BelowUI"/>, the behaviour every existing consumer already gets,
+    /// so setting this has no effect until something reads it (decision D1 of the above-UI screen
+    /// effect plan). This is a rendering setting, not fade state: <see cref="Clear"/> deliberately
+    /// leaves it untouched, exactly as it already leaves <see cref="R"/>/<see cref="G"/>/
+    /// <see cref="B"/> untouched.
+    /// </summary>
+    public ScreenEffectLayer Layer { get; set; } = ScreenEffectLayer.BelowUI;
+
+    /// <summary>
     /// Sets the overlay colour and blend mode immediately, with no ramp. Cancels any ramp in
     /// progress.
     /// </summary>

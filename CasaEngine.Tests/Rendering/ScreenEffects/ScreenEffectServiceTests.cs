@@ -117,6 +117,40 @@ public class ScreenEffectServiceTests
     }
 
     [Fact]
+    public void Layer_DefaultsToBelowUI()
+    {
+        var service = new ScreenEffectService();
+
+        Assert.Equal(ScreenEffectLayer.BelowUI, service.Layer);
+    }
+
+    [Fact]
+    public void Layer_CanBeSetToAboveUIAndBackToBelowUI()
+    {
+        var service = new ScreenEffectService();
+
+        service.Layer = ScreenEffectLayer.AboveUI;
+        Assert.Equal(ScreenEffectLayer.AboveUI, service.Layer);
+
+        service.Layer = ScreenEffectLayer.BelowUI;
+        Assert.Equal(ScreenEffectLayer.BelowUI, service.Layer);
+    }
+
+    [Fact]
+    public void Clear_LeavesLayerIntactWhileResettingActiveAndFading()
+    {
+        var service = new ScreenEffectService();
+        service.Layer = ScreenEffectLayer.AboveUI;
+        service.StartFade(0, 0, 0, 255, 255, 255, 1f, SpriteBlendMode.Additive);
+
+        service.Clear();
+
+        Assert.Equal(ScreenEffectLayer.AboveUI, service.Layer);
+        Assert.False(service.Active);
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
     public void Update_WithNoFadeInProgress_DoesNotAllocate()
     {
         var service = new ScreenEffectService();
