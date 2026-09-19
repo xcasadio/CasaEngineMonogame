@@ -46,3 +46,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0030](0030-agents-md-single-source-and-tooling-layout.md) | AGENTS.md as the single source of AI agent rules and the tooling layout | Accepted | 2026-09-06 |
 | [ADR-0031](0031-ai-agent-working-rules.md) | AI agent working rules | Accepted | 2026-09-06 |
 | [ADR-0032](0032-language-policy-and-adr-practice.md) | Language policy and ADR practice | Accepted | 2026-09-06 |
+| [ADR-0033](0033-screen-effect-above-ui-layer.md) | Screen effect above-UI layer | Accepted | 2026-09-19 |

@@ -378,7 +378,7 @@ Voies écartées, pour mémoire, avec la raison :
 
 ## Phase 2 — La décision, les textes et le smoke
 
-### ⏳ T2.1 — ADR et documentation
+### ✅ T2.1 — ADR et documentation
 
 - Objectif : la décision est enregistrée et les textes qui disaient « below the UI » disent
   désormais ce qui est vrai.
@@ -396,6 +396,36 @@ Voies écartées, pour mémoire, avec la raison :
 - Validation : relecture ; `rg -n "below the UI" CasaEngine docs` ne rend plus que des mentions
   exactes du cas par défaut.
 - Commit : `docs(rendering): document the above-UI screen effect layer`
+- Note de validation : Skill `adr` suivi (`.claude/skills/adr/SKILL.md`) : `docs/decisions/README.md`
+  et `template.md` lus, numéro suivant `0033` pris (dernier existant `0032`). ADR créé
+  (`docs/decisions/0033-screen-effect-above-ui-layer.md`) : contexte citant le besoin Alundra
+  (`docs/plan-e13-hud.md` du dépôt parent, D-E13-11) et les faits vérifiés du plan (pipelines,
+  `TileMapSurfaceComponent.cs:206`, `RenderPassDepthOffset` switch explicite, limite caméra 2D) ;
+  décision D1-D5 listée en puces ; les deux voies écartées avec leur raison (seconde file/nouvelle
+  passe ; décorateur de composition) reprises telles que le plan les énonce (§« Voies écartées »,
+  lignes 118-124) ; conséquences (contrat `IPostUIOverlay` réutilisable, boucle `for` sans
+  allocation, pipelines/passes inchangés, `Clear()` laisse `Layer` intact, limite caméra 2D
+  préexistante, restauration GPU non testable unitairement). Ligne ajoutée à
+  `docs/decisions/README.md`. `RenderPass2D.cs:12-17` : le commentaire dit maintenant « above every
+  world/effects layer and, by default, below the UI », avec un renvoi à `ScreenEffectService.Layer`/
+  `ScreenEffectLayer.AboveUI` et à l'ADR-0033. `DefaultViewPipeline.cs:7-19` : **déjà mis à jour par
+  T1.1** (note de validation de T1.1, « Doc XML de `DefaultViewPipeline.cs:7-19` mise à jour pour
+  citer les surcouches post-interface ») — vérifié par relecture, le texte actuel dit déjà « the UI
+  itself, then any post-UI overlays registered on the view », aucune modification supplémentaire
+  nécessaire ici. `docs/engine/screen-effects.md` : `:57-60` (devenu `:57-63` après l'ajout) précise
+  désormais que la couche `BelowUI` est la valeur **par défaut**, que `AboveUI` fait s'enregistrer le
+  composant comme `IPostUIOverlay` sur la vue active, dessiné par `DefaultUICompositionService
+  .Compose` après `UIView.Draw()` avec soumission puis vidage immédiat, et cite l'ADR-0033 ; section
+  d'API (`:32-53`) complétée d'un exemple `effects.Layer = ScreenEffectLayer.AboveUI` et d'un rappel
+  que `Clear()` ne touche jamais `Layer`. Vérification finale : `rg -n "below the UI" CasaEngine
+  docs` ne rend plus que deux mentions, toutes deux le cas par défaut exact -
+  `RenderPass2D.cs:15` (« by default, below the UI ») et le contexte historique de
+  `0033-screen-effect-above-ui-layer.md:15` qui décrit le problème *avant* le chantier (« structurally
+  below the UI composition step »), pas une affirmation du comportement actuel inconditionnel.
+  Aucun code de production touché : seuls des commentaires XML, un ADR et deux documents `docs/` ont
+  changé, donc pas de nouveau build/test requis par-delà celui déjà fait à T1.2 ; `dotnet build
+  CasaEngine.MonoGame.sln` relancé par prudence : 0 erreur, mêmes avertissements `CS8632`
+  préexistants, sans rapport.
 
 ### ⏳ T2.2 — Le smoke visible dans la démo `TileMapDemo`
 

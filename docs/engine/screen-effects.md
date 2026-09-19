@@ -42,6 +42,11 @@ effects.StartFade(fromR: 255, fromG: 255, fromB: 255, toR: 0, toG: 0, toB: 0,
 
 // Désactive : plus rien n'est soumis tant que SetOverlay/StartFade n'est pas rappelé.
 effects.Clear();
+
+// Couche : par défaut BelowUI (comportement inchangé). AboveUI dessine le quad après la composition
+// de l'interface MGUI, pour qu'un fondu assombrisse une jauge dessinée en MGUI avec la scène - voir
+// ADR-0033. `Clear()` ne touche jamais à `Layer` : c'est un réglage de rendu, pas un état de fondu.
+effects.Layer = ScreenEffectLayer.AboveUI;
 ```
 
 Sémantique de la rampe, calquée sur `AudioService.FadeVoice` : cible atteinte exactement à la fin de
@@ -57,7 +62,12 @@ supplémentaire, il ne fait que ramper entre les deux valeurs qu'on lui donne.
 ## 3. `ScreenEffectComponent` — le cran de rendu et la formule de placement
 
 `RenderPass2D.ScreenEffects = 750`, entre `Effects` (500) et `UI` (1000) : au-dessus de toute la
-scène/des effets, sous l'UI.
+scène/des effets, sous l'UI **par défaut** (`ScreenEffectService.Layer == ScreenEffectLayer.BelowUI`,
+la valeur par défaut). Quand `Layer == ScreenEffectLayer.AboveUI`, le composant ne soumet plus le
+quad dans son `Update` mais s'enregistre comme surcouche post-interface (`IPostUIOverlay`) sur la vue
+active : `DefaultUICompositionService.Compose` la dessine après `UIView.Draw()`, en soumettant au
+renderer de sprites puis en le vidant immédiatement, sans jamais laisser de file d'une image à
+l'autre (ADR-0033). Aucun pipeline de vue ni aucune passe n'est modifié par ce mode.
 
 Le composant possède le pixel 1×1 (créé paresseusement contre le `GraphicsDevice` réel ; contourné
 sans exception si aucun n'est disponible) et soumet le quad plein viewport dans son propre `Update` —
