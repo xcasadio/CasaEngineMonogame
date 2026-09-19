@@ -4,8 +4,8 @@ Plan d'exécution d'un chantier né du portage Alundra (`docs/plan-e13-hud.md` d
 décision D-E13-11, §6 point 6), mais qui appartient au moteur : il sert tout projet dont un fondu
 doit assombrir l'interface avec la scène.
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur le 2026-09-19 : **ce plan les
-applique, il ne les rediscute pas**. Révision 2 du même jour après relecture adverse, voir le
-journal en fin de fichier.
+applique, il ne les rediscute pas**. Révision 3 du même jour après deux relectures adverses, voir le
+journal en fin de fichier. **Approuvé par l'auteur le 2026-09-19 : exécution en cours.**
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son
 statut courant.
