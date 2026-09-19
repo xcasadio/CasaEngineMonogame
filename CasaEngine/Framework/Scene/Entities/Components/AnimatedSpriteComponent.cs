@@ -32,6 +32,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private int _activeCollisionKeyframeIndex = -1;
 
     private readonly List<Guid> _animationAssetIds = new();
+
+    //Animations handed to AddAnimation instead of being named by an asset id. InitializeWithWorld
+    //rebuilds Animations from scratch for the world the component enters, so it has to re-register
+    //these too: nothing else remembers them, and dropping them left the component with no animation
+    //at all - and so with a null CurrentAnimation - for every caller that builds its sprite in code.
+    private readonly List<Animation2d> _animationsAddedByCode = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
     private readonly List<Guid> _spriteIdsToResolve = new();
@@ -84,6 +90,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         CurrentAnimation = other.CurrentAnimation;
         Animations.AddRange(other.Animations);
         _animationAssetIds.AddRange(other._animationAssetIds);
+        _animationsAddedByCode.AddRange(other._animationsAddedByCode);
     }
 
     public void SetCurrentAnimation(Animation2d anim, bool forceReset)
@@ -150,6 +157,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         Animations.Clear();
         _compositionSamplerByAnimation.Clear();
         _currentCompositionSampler = null;
+        //CurrentAnimation is one of the animations just dropped: keeping it would make the
+        //SetCurrentAnimation below take its same-name shortcut and leave the sampler unbound.
+        CurrentAnimation = null;
         _currentSpriteId = Guid.Empty;
         _spriteById.Clear();
         _spriteDataById.Clear();
@@ -157,11 +167,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         foreach (var assetId in _animationAssetIds)
         {
             var animation2dData = Owner.World.Game.AssetContentManager.Load<Animation2dData>(assetId);
-            var animation2d = new Animation2d(animation2dData);
-            animation2d.Initialize();
-            Animations.Add(animation2d);
-            RegisterCompositionSampler(animation2d);
-            CacheAnimationSprites(animation2dData);
+            RegisterAnimation(new Animation2d(animation2dData));
+        }
+
+        foreach (var animation2d in _animationsAddedByCode)
+        {
+            RegisterAnimation(animation2d);
         }
 
         if (Animations.Count > 0)
@@ -231,6 +242,18 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     }
 
     public void AddAnimation(Animation2d animation2d)
+    {
+        _animationsAddedByCode.Add(animation2d);
+        RegisterAnimation(animation2d);
+    }
+
+    /// <summary>
+    /// Puts one animation in <see cref="Animations"/> with the composition sampler and the sprites it
+    /// needs. Shared by <see cref="AddAnimation"/> and by the rebuild of
+    /// <see cref="InitializeWithWorld"/> so that an animation is registered the same way whether it
+    /// came from an asset id or from code.
+    /// </summary>
+    private void RegisterAnimation(Animation2d animation2d)
     {
         animation2d.Initialize();
         Animations.Add(animation2d);
