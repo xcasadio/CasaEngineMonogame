@@ -83,18 +83,7 @@ public class TileMapDemo : Demo
         physicsComponent.PhysicsDefinition.ApplyGravity = false;
         physicsComponent.PhysicsDefinition.AngularFactor = Vector3.Zero;
 
-        // PlayerComponent is NOT added here (pre-existing, unrelated bug found while running this
-        // demo for T2.2, ai-agent/tasks/screen-effect-above-ui-tasks.md - see "Points ouverts" O6):
-        // AnimatedSpriteComponent.InitializeWithWorld (AnimatedSpriteComponent.cs:138-166) clears
-        // Animations and rebuilds it solely from _animationAssetIds, which the AddAnimation(Animation2d)
-        // calls above (AnimatedSpriteComponent.cs:233-241) never populate, so Animations is empty by
-        // the time PlayerComponent.InitializeWithWorld runs, CurrentAnimation stays null, and
-        // PlayerComponent.Update (PlayerComponent.cs:76) then throws a NullReferenceException on
-        // its first frame - reproduced by running this demo directly. Out of scope for the
-        // above-UI screen effect chantier (an unrelated animation/player-controller bug, not
-        // rendering/UI); left for the author to fix in AnimatedSpriteComponent or PlayerComponent.
-        // The tile map, camera and the screen effect smoke below are unaffected.
-        // entity.AddComponent(new PlayerComponent());
+        entity.AddComponent(new PlayerComponent());
 
         world.AddEntity(entity);
     }
