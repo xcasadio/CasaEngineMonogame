@@ -162,6 +162,44 @@ public sealed class RenderView
     /// </summary>
     public IUIViewRuntime UIView { get; set; }
 
+    // ---- Post-UI overlays ----
+
+    /// <summary>
+    /// Overlays registered on this view, drawn by <see cref="DefaultUICompositionService.Compose"/>
+    /// immediately after <see cref="UIView"/>'s own draw (D2, screen-effect-above-ui-tasks.md T1.1).
+    /// Null until <see cref="RegisterPostUIOverlay"/> is first called.
+    /// </summary>
+    private List<IPostUIOverlay> _postUIOverlays;
+
+    /// <summary>
+    /// Post-UI overlays currently registered on this view, in registration order. Never null: an
+    /// empty, shared array when none are registered, so composing this view never allocates.
+    /// </summary>
+    public IReadOnlyList<IPostUIOverlay> PostUIOverlays => _postUIOverlays ?? (IReadOnlyList<IPostUIOverlay>)Array.Empty<IPostUIOverlay>();
+
+    /// <summary>
+    /// Registers <paramref name="overlay"/> to be drawn after this view's UI composition. A no-op if
+    /// it is already registered. The backing list is a small preallocated one (capacity 4): several
+    /// overlays may target the same view, and nothing here targets a view exclusively.
+    /// </summary>
+    public void RegisterPostUIOverlay(IPostUIOverlay overlay)
+    {
+        ArgumentNullException.ThrowIfNull(overlay);
+        _postUIOverlays ??= new List<IPostUIOverlay>(4);
+        if (!_postUIOverlays.Contains(overlay))
+        {
+            _postUIOverlays.Add(overlay);
+        }
+    }
+
+    /// <summary>
+    /// Removes a previously registered post-UI overlay. A no-op if it was never registered.
+    /// </summary>
+    public void UnregisterPostUIOverlay(IPostUIOverlay overlay)
+    {
+        _postUIOverlays?.Remove(overlay);
+    }
+
     // ---- Debug ----
 
     /// <summary>Optional name for debugging purposes.</summary>

@@ -224,7 +224,7 @@ Voies écartées, pour mémoire, avec la raison :
 
 ## Phase 1 — Le crochet après l'interface
 
-### ⏳ T1.1 — La surcouche post-interface dans la composition
+### ✅ T1.1 — La surcouche post-interface dans la composition
 
 - Objectif : une surcouche enregistrée sur une vue est dessinée par la composition **après**
   `UIView.Draw()`, dans tous les pipelines, sans rien laisser en file.
@@ -252,6 +252,42 @@ Voies écartées, pour mémoire, avec la raison :
      `UIView`, `[Overlay.Draw]` seul ; (b) une surcouche enregistrée puis retirée n'est plus appelée.
 - Validation : build des trois solutions ; suite verte ; les tests nommés dans la note.
 - Commit : `feat(rendering): draw post-UI overlays after the UI composition`
+- Note de validation : Étape 1 vérifiée — `OverlayViewPipeline.cs:144-149` (`RenderUIOverlay`) appelle
+  `(view.UICompositionService ?? DefaultUICompositionService.Instance).Compose(gd, view, in frame)`,
+  exactement la même expression que `DefaultViewPipeline.cs:53-54`. **O3 résolu : pas de blocage**,
+  le crochet posé une seule fois dans `DefaultUICompositionService.Compose` couvre les trois
+  pipelines par construction (l'éditeur et le Play-in-Editor passent tous deux par
+  `OverlayViewPipeline`, qui délègue au même service). Étape 2 — lu `ScreenEffectComponent.cs:47-74`
+  et `ScreenEffectComponentViewSizeTests.cs` : le composant ne cible aujourd'hui **aucune vue
+  explicitement** — il soumet toujours au `SpriteRendererComponent` du jeu et ne lit
+  `GameManager.ViewManager.ActiveView` que pour la caméra 2D, jamais pour choisir une vue de
+  destination. **O4 : rien à inventer**, ce fait est simplement constaté ici pour T1.2 ; T1.1
+  n'avait besoin de trancher que la forme du stockage sur `RenderView`. Forme choisie : une petite
+  liste préallouée (`List<IPostUIOverlay>`, capacité 4, créée à la première inscription) plutôt
+  qu'un emplacement unique, pour ne pas fermer la porte à plusieurs surcouches sur la même vue (la
+  plage 90-93 du plan gardait les deux options ouvertes) ; l'accès en lecture
+  (`RenderView.PostUIOverlays`) renvoie `Array.Empty<IPostUIOverlay>()` tant que rien n'est
+  enregistré, donc composer une vue sans surcouche n'alloue jamais. `IPostUIOverlay` créé
+  (`CasaEngine/Framework/Rendering/IPostUIOverlay.cs`, une méthode `Draw`), enregistrement/retrait
+  ajoutés à `RenderView.cs` (`RegisterPostUIOverlay`/`UnregisterPostUIOverlay`/`PostUIOverlays`),
+  appel ajouté dans `DefaultUICompositionService.Compose` juste après `view.UIView?.Draw()`, boucle
+  `for` explicite (pas de `foreach`/LINQ/closure). Doc XML de `DefaultViewPipeline.cs:7-19` mise à
+  jour pour citer les surcouches post-interface. Quatre tests ajoutés dans le nouveau fichier
+  `CasaEngine.Tests/Rendering/DefaultUICompositionServiceTests.cs`, avec un faux `IUIViewRuntime` et
+  un faux `IPostUIOverlay` qui enregistrent leurs appels dans une liste partagée, et un
+  `RenderView` construit avec un `World` nu, une `ArcBallCameraComponent` et un stub
+  `IRenderSurface` — montage repris de `InputRouterTests.CreateView`, sans démarrer de
+  `GraphicsDevice` réel : `Compose_WithUIViewAndOverlay_DrawsUIViewThenOverlay` (ordre
+  `[UIView.Draw, Overlay.Draw]`), `Compose_WithUIViewAndNoOverlay_DrawsOnlyUIView` (`[UIView.Draw]`
+  seul), `Compose_WithNoUIViewAndAnOverlay_DrawsOnlyTheOverlay` (`[Overlay.Draw]` seul, vue sans
+  `UIView`), `Compose_AfterOverlayIsUnregistered_NoLongerCallsIt` (retrait effectif). Build
+  `CasaEngine.MonoGame.sln` : 0 erreur (mêmes avertissements `CS8632` préexistants, sans rapport).
+  `CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 erreur. `CasaEngine.Editor.MonoGame.sln` : 0
+  erreur, requis puisque cette tâche touche la composition empruntée par l'éditeur (`OverlayViewPipeline`
+  délègue au même `DefaultUICompositionService`). `dotnet test --no-build` : 1626 tests (1622 de
+  base après T0.1 + 4 ajoutés ici), 1625 verts, 1 échec — le même
+  `EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`
+  préexistant et sans rapport, déjà relevé à T0.1.
 
 ### ⏳ T1.2 — L'effet d'écran se dessine depuis le crochet en mode `AboveUI`
 
@@ -359,8 +395,8 @@ Voies écartées, pour mémoire, avec la raison :
 |---|---|---|
 | O1 | `RenderStats` : le vidage immédiat depuis le crochet cumule-t-il dans les compteurs de sprites existants, ou faut-il un compteur propre ? Choix local, à justifier dans la note de validation. | T1.2 |
 | O2 | **Tranché dans ce plan** : `Clear()` ne remet pas la couche, qui est un réglage de rendu. Si la lecture de `ScreenEffectService.cs` à T0.1 montre que `Clear()` a une sémantique « tout remettre » documentée qui contredit ce choix, passer en ⚠️ et demander. | T0.1 |
-| O3 | Si `OverlayViewPipeline.cs:148` n'appelle pas le même service de composition, le crochet doit aussi y être posé ; T1.1 s'arrête et demande. | T1.1 |
-| O4 | Multi-vues : quelle vue reçoit la surcouche ? Suivre ce que `ScreenEffectComponent` fait déjà pour sa soumission ; si aujourd'hui il n'en cible aucune explicitement, le dire et ne rien inventer. | T1.1, T1.2 |
+| O3 | **Tranché à T1.1** : `OverlayViewPipeline.cs:144-149` appelle la même expression que `DefaultViewPipeline.cs:53-54` (`view.UICompositionService ?? DefaultUICompositionService.Instance`). Le crochet unique dans `DefaultUICompositionService.Compose` couvre les trois pipelines par construction. | T1.1 |
+| O4 | **Constaté à T1.1** : `ScreenEffectComponent` (`:47-74`) ne cible aujourd'hui aucune vue explicitement — il soumet toujours au `SpriteRendererComponent` du jeu et ne lit `ActiveView` que pour la caméra. Reste à trancher à T1.2 : sur quelle vue s'enregistrer en mode `AboveUI` (vraisemblablement `ActiveView`, à confirmer en lisant comment T1.2 route la soumission). | T1.1, T1.2 |
 | O5 | Si le fondu `BelowUI` ne couvre pas tout le viewport dans `TileMapDemo`, le placement du quad a un défaut hors de ce chantier ; à remonter à l'auteur, ne pas corriger ici. | T2.2 |
 
 ## Hors périmètre

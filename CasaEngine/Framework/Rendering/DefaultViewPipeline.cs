@@ -11,7 +11,8 @@ namespace CasaEngine.Framework.Rendering;
 /// <list type="number">
 ///   <item>Enqueue world draw commands (<c>World.Draw</c>).</item>
 ///   <item>Flush all registered renderers in order (mesh → skinned → sprite → line).</item>
-///   <item>Compose the per-view UI phase through an <see cref="IUICompositionService"/>.</item>
+///   <item>Compose the per-view UI phase through an <see cref="IUICompositionService"/>: the UI
+///   itself, then any post-UI overlays registered on the view (<see cref="IPostUIOverlay"/>).</item>
 /// </list>
 ///
 /// Surface clearing and render target management are handled by
