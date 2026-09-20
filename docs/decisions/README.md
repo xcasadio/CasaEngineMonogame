@@ -47,3 +47,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0031](0031-ai-agent-working-rules.md) | AI agent working rules | Accepted | 2026-09-06 |
 | [ADR-0032](0032-language-policy-and-adr-practice.md) | Language policy and ADR practice | Accepted | 2026-09-06 |
 | [ADR-0033](0033-screen-effect-above-ui-layer.md) | Screen effect above-UI layer | Accepted | 2026-09-19 |
+| [ADR-0034](0034-screen-effect-alpha-and-depthless-veil.md) | Screen effect alpha channel and a veil that ignores depth | Accepted | 2026-09-20 |

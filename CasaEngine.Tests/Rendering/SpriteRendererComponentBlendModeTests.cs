@@ -69,7 +69,7 @@ public class SpriteRendererComponentBlendModeTests
     [Fact]
     public void KeyedTextureOverload_WithBlendModeAndNoIgnoresDepthArgument_DefaultsToNotIgnoringDepth()
     {
-        // D-effet-ecran-alpha: an ordinary submission (no explicit ignoresDepth argument, as every
+        // ADR-0034: an ordinary submission (no explicit ignoresDepth argument, as every
         // caller other than ScreenEffectComponent.SubmitOverlay uses) must keep testing/writing depth
         // exactly as before that parameter existed.
         var component = CreateComponent(out _);

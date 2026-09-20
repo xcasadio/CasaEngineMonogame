@@ -215,7 +215,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
     /// active camera's own view transform and always covers the screen regardless of where the
     /// camera is.
     ///
-    /// The overlay is submitted with <c>ignoresDepth: true</c> (D-effet-ecran-alpha): a full-screen
+    /// The overlay is submitted with <c>ignoresDepth: true</c> (ADR-0034): a full-screen
     /// veil must darken every pixel regardless of what world sprite already wrote its depth there,
     /// not just the pixels farther from the camera than the nearest opaque sprite.
     /// </remarks>

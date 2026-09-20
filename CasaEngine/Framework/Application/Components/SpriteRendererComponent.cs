@@ -27,7 +27,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public bool HasSortKey;
         public SpriteBlendMode BlendMode;
 
-        // D-effet-ecran-alpha: a full-screen overlay (screen fade/tint) must cover every pixel
+        // ADR-0034: a full-screen overlay (screen fade/tint) must cover every pixel
         // regardless of what has already been drawn at that pixel's depth. Default false so every
         // other caller of DrawSprite keeps testing/writing depth exactly as before this field existed.
         public bool IgnoresDepth;
@@ -185,7 +185,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         // rather than draw opaque: every sorted participant (TileMap sorted overlay + Y-sorted
         // entities) shares a coplanar Z and draws in painter order under LessEqual, so an alpha sprite
         // writing depth cannot clip a later same-Z draw. A sprite flagged IgnoresDepth (a full-screen
-        // overlay, D-effet-ecran-alpha) switches the device to DepthStencilState.None for its run,
+        // overlay, ADR-0034) switches the device to DepthStencilState.None for its run,
         // through the same per-run mechanism used below for BlendState.
         graphicsDevice.DepthStencilState = _depthStencilState;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -207,7 +207,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         // Same per-run pattern as BlendState above: the sorted list is ordered by SortKey/Z only, so
         // a depth-state change costs no more than one DepthStencilState set per contiguous run of
-        // sprites sharing the same IgnoresDepth flag (D-effet-ecran-alpha).
+        // sprites sharing the same IgnoresDepth flag (ADR-0034).
         var currentIgnoresDepth = false;
 
         for (var i = 0; i < _spriteDatas.Count; i++)
@@ -618,7 +618,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     /// Same as <see cref="DrawSprite(Texture2D,Rectangle,Point,Vector2,float,Vector2,Color,float,in RenderSortKey2D,SpriteEffects,Rectangle)"/>
     /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state,
     /// and an optional <paramref name="ignoresDepth"/> for a full-screen overlay that must cover every
-    /// pixel regardless of what has already been drawn at that pixel's depth (D-effet-ecran-alpha).
+    /// pixel regardless of what has already been drawn at that pixel's depth (ADR-0034).
     /// Defaults to <see langword="false"/> so every existing caller keeps testing/writing depth exactly
     /// as before this parameter existed.
     /// </summary>
