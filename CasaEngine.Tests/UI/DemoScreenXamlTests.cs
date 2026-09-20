@@ -70,6 +70,21 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName("btnDialogue", out MGButton _));
     }
 
+    [Fact]
+    public void TheDemoNavigator_DeclaresTheEmptyListItsScreenFills()
+    {
+        // The demo buttons are data -- one per demo -- so the document declares an empty named panel and
+        // DemoInfoScreen fills it. If that panel lost its name the navigator would have no entries at all.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-info.xaml")));
+
+        Assert.True(window.TryGetElementByName("lblTitle", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lstDemos", out MGUI.Core.UI.Containers.MGStackPanel list));
+        Assert.Empty(list.Children);
+    }
+
     private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()

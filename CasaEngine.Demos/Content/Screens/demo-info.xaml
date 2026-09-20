@@ -1,0 +1,32 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="0" Top="0" Width="300" Height="440"
+        TitleText="Demo Navigator"
+        IsUserResizable="False"
+        Padding="8"
+        Background="rgba(0,0,0,200)">
+
+  <!-- Left, Top and Height are placeholders. The screen anchors this window to the top-right corner and
+       caps its height to the viewport at load: in a split-screen demo each viewport is a fraction of the
+       back-buffer, and none of that is knowable here. -->
+
+  <StackPanel Orientation="Vertical" Spacing="6">
+
+    <!-- Title and description are rewritten whenever the active demo changes. -->
+    <TextBlock Name="lblTitle" Text="" />
+    <TextBlock Name="lblDescription" Text="" WrapText="True" />
+
+    <Separator Orientation="Horizontal" Size="1" Margin="0,4,0,4" />
+
+    <TextBlock Name="lblNavigation" Text="[color=gray]Click a demo to switch:[/color]" />
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <!-- One button per demo, added by the screen: this list IS the data, so it cannot be declared. -->
+      <StackPanel Name="lstDemos" Orientation="Vertical" Spacing="2" />
+    </ScrollViewer>
+
+    <TextBlock Name="lblHint"
+               Text="[color=gray][i]Press F1 to hide this panel[/i][/color]"
+               Margin="0,4,0,0" />
+
+  </StackPanel>
+</Window>

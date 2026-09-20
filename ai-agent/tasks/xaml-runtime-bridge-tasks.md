@@ -442,15 +442,53 @@ Trois choses trouvées en chemin :
    que cette liste : une image ne peut pas précéder l'initialisation. La garde était du code mort, et
    `FindControl` rend désormais le champ non nul ou lève.
 
-### ⏳ T2.2 — `DemoInfoScreen`, `BlendingControlsScreen`, `DemoHintOverlay`
+> **Scission de T2.2, décidée le 2026-09-20 après lecture (O3).** Le plan groupait les trois écrans de
+> `DemoUI/` en une tâche. La mesure a montré que `BlendingControlsScreen` est d'un autre ordre : son arbre est
+> **fixe** — sept `MGExpander` aux contrôles écrits en dur, aucune boucle sur des données, donc il part
+> entièrement en XAML — mais il compose une **vingtaine** de contrôles qui ont tous un gestionnaire, via
+> quatre fabriques (`NewFolder`, `NewButton`, `NewCheckBox`, `NewSliderRow`/`AddWeightSlider`) dont les
+> lignes de curseur sont des composites. Le mettre dans le même commit que deux écrans de 239 et 55 lignes
+> ferait un commit qu'on ne peut plus relire. Il devient **T2.3**.
 
-- Objectif : les trois écrans de l'outillage de démo, dont les deux plus gros du lot (239 et 279 lignes).
-- Fichiers : les trois `.cs` de `CasaEngine.Demos/Demos/DemoUI/`, plus leurs fichiers XAML.
-- Étapes : même découpe. `BlendingControlsScreen` construit peut-être ses contrôles depuis une liste de
-  modes : si l'arbre est réellement variable (O3), **seule la coque part en XAML** et les éléments répétés
-  restent construits au code, à l'intérieur d'un conteneur nommé. Le dire dans la note de validation.
-- Validation : build + suite verts ; les démos concernées lancées, contrôles présents et agissants.
-- Commit : `refactor(demos): author the demo tooling screens in XAML`
+### 🧪 T2.2 — `DemoInfoScreen` et `DemoHintOverlay`
+
+- Objectif : les deux écrans d'information de l'outillage de démo.
+- Fichiers : `CasaEngine.Demos/Demos/DemoUI/DemoInfoScreen.cs` et `DemoHintOverlay.cs`, plus leurs XAML.
+- Étapes : même découpe qu'en T1.1. `DemoHintOverlay` est centré en bas de l'écran, donc sa position reste au
+  code ; son `SetVisible` continue de piloter la visibilité de la fenêtre.
+- Validation : build + suite verts ; démos lancées, panneau d'info et rappel F1 présents et agissants.
+- Commit : `refactor(demos): author the demo info screens in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1662 / 1661 verts**, +3, seul échec celui de
+la ligne de base. 🧪 **Reste à faire par l'auteur** : lancer n'importe quelle démo, basculer F1, cliquer une
+entrée de la liste pour changer de démo, et vérifier que le titre et la description suivent.
+
+**O3 visait le mauvais écran, et la mesure l'a retourné.** Le plan soupçonnait `BlendingControlsScreen` de
+construire un arbre variable ; c'est **`DemoInfoScreen`** qui le fait. Sa liste comporte un bouton **par
+démo** : cette liste *est* la donnée. Le XAML déclare donc la coque et un `StackPanel` nommé `lstDemos`
+**vide**, que l'écran remplit — c'est exactement la règle « seule la coque part en XAML » que le plan avait
+écrite, appliquée à l'écran qui la méritait. Un test pince la chose : le panneau existe, porte son nom, et
+sort du document vide.
+
+Le reste de `DemoInfoScreen` suit D7 : sa position est en haut à droite et sa hauteur est plafonnée au
+viewport — les deux dépendent d'une résolution que le document ne connaît pas, surtout en écran partagé où
+chaque vue est une fraction du back-buffer. Le titre et la description partent avec un texte vide dans le
+XAML, puisqu'ils sont réécrits à chaque changement de démo.
+
+### ⏳ T2.3 — `BlendingControlsScreen`
+
+- Objectif : le panneau de réglages du mélange d'animations, le plus gros écran du lot (279 lignes).
+- Fichiers : `CasaEngine.Demos/Demos/DemoUI/BlendingControlsScreen.cs`, plus son XAML.
+- Étapes :
+  1. Transcrire les sept dossiers et leur contenu en XAML, en nommant **chaque** contrôle porteur d'un
+     gestionnaire ou d'un état lu au code : les quatre boutons de transition, les trois curseurs de poids,
+     les cases à cocher, les curseurs de durée et d'échelle de temps.
+  2. Réduire le C# aux abonnements et aux deux méthodes d'état, `SetWeights` et celle qui active ou désactive
+     les boutons de transition ; elles retrouvent leurs contrôles une fois au chargement.
+  3. Les gardes `if (_xxx != null)` de ces deux méthodes tombent : `FindControl` rend un contrôle ou lève.
+- Validation : build + suite verts ; démo lancée, les sept dossiers s'ouvrent, un curseur de poids agit, et
+  les boutons de transition s'activent et se désactivent comme avant.
+- Commit : `refactor(demos): author the blending controls screen in XAML`
 
 ---
 
@@ -542,7 +580,7 @@ par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 | ~~O0~~ | ~~**Quelle extension porte l'enveloppe d'un écran XAML ?**~~ **Tranché le 2026-09-20 : `.uiscreen`, avec ajout de la route manquante. Voir D11 et T0.4.** Pour mémoire, la contradiction mesurée : La contradiction passe entre deux étages de l'éditeur, pas entre le code et les données. La **route de document** est clavetée sur `.screen` (`GameEditor.cs:3914` + `Constants.cs:20`) et reconnaît le format en cherchant `source_xaml_file` (`:5053-5071`), sans aucune route pour `.uiscreen`. Mais la **session d'édition** est testée exclusivement avec des `.uiscreen` (`CasaEngine.Tests/ScreenEditor/UIScreenEditorSessionTests.cs:28,42,76,93,125,137,156,165`), le catalogue aussi (`AssetCatalogTests.cs:19,42,46`, `EditorAssetCatalogServiceTests.cs:57,74`), et le projet d'échantillon livre cinq `.uiscreen` catalogués `"asset_type": "uiscreen"` (`AssetInfos.json:6-7`). Conséquence, que T0.4 corrige : les `.uiscreen` du projet d'échantillon n'étaient pas ouvrables par double-clic dans l'éditeur, faute de route, alors que tout le reste de la chaîne les accepte. | closed |
 | O1 | L'asset chargé par `AssetLoader<UIScreenAsset>` expose-t-il le chemin de son propre fichier ? Si non, la seconde porte de D8 prend ce chemin en paramètre, ce qui est déjà la signature retenue. À confirmer au code en T0.1, sans supposer. | T0.1 |
 | O2 | **Où vit le XAML d'un écran qui appartient au moteur et non à un jeu ?** `DialogueScreen` est utilisable par n'importe quel projet, donc son XAML ne peut pas être l'actif d'un projet particulier. Recommandation : ressource embarquée dans l'assemblage `CasaEngine` comme valeur par défaut, qu'un projet peut remplacer en déclarant sa propre enveloppe. C'est une décision d'architecture : elle appartient à l'auteur. | T4.1 |
-| O3 | `BlendingControlsScreen` construit-il un arbre fixe ou une liste variable de contrôles ? S'il est variable, seule la coque part en XAML. À lire avant de migrer, pas à deviner. | T2.2 |
+| ~~O3~~ | ~~`BlendingControlsScreen` construit-il un arbre fixe ou une liste variable de contrôles ?~~ **Répondu le 2026-09-20 par lecture, et la question visait le mauvais écran.** `BlendingControlsScreen` a un arbre **fixe** (sept `MGExpander` en dur), donc il part entièrement en XAML — mais il est assez gros pour mériter sa propre tâche, T2.3. C'est **`DemoInfoScreen`** qui a la liste variable, un bouton par démo : seule sa coque est déclarée, avec un panneau nommé vide que le code remplit. | closed |
 | O4 | **Que désigne `ResourceFiles` dans une enveloppe d'écran, et relatif à quoi ?** Le champ est désérialisé (`UIScreenAsset.cs:14,24-35`) et écrit par l'éditeur (`EditorAssetJsonSerializer.cs:481`), mais **aucun consommateur n'existe dans le dépôt** et toutes les enveloppes livrées le déclarent vide. Le chantier n'y touche pas (D6). Si l'auteur veut qu'il serve — thèmes ? gabarits de contrôles ? — c'est un ajout à chiffrer séparément. | hors périmètre actuel |
 
 ## Hors périmètre
