@@ -302,7 +302,7 @@ coûte rien et ne peut pas ouvrir un fichier hérité — `TryLoadUIScreenAsset`
 (`GameEditor.cs:5065`) — mais elle laisse s'ouvrir une enveloppe qu'un projet aurait enregistrée sous
 l'ancien nom. Retirer une route est une rupture ; en ajouter une ne l'est pas.
 
-### ⏳ T0.5 — Retrait des quatre écrans hérités
+### 🧪 T0.5 — Retrait des quatre écrans hérités
 
 - Objectif : ne plus laisser traîner un second format d'écran que rien ne lit (D12).
 - Fichiers supprimés : `Projects/RPGDemo/Screens/MainHUD/MainHUD.screen`,
@@ -322,6 +322,42 @@ l'ancien nom. Retirer une route est une rupture ; en ajouter une ne l'est pas.
 - Validation : build + suite verts ; RPGDemo et le projet d'échantillon se chargent sans erreur de catalogue ;
   le HUD de RPGDemo s'affiche toujours, ce qui prouve que sa texture a survécu.
 - Commit : `chore(assets): remove the four dead legacy screen files`
+
+#### Relevé des quatre fichiers avant suppression (2026-09-20)
+
+C'est la contre-épreuve de la phase 3, faite une fois pour toutes. Tout est en coordonnées absolues, dans une
+fenêtre de référence de 800×480 pour l'écran-titre et 684×237 pour le HUD.
+
+| Fichier | Contrôles |
+|---|---|
+| `MainHUD.screen` | `ImageBox` « ImageBox » en (17,345), 52×49, `sprite_id=b039042c-4b9d-4157-8be2-eed2d3c4f3bd` · `ProgressBar` « ProgressBar » en (74,346), 83×11 |
+| `TitleScreen.screen` | `Label` « Rpg Demo » en (288,28), 137×35 · `Button` **ButtonStartGame** « Start Game » en (236,389), 225×36 · `Button` **ButtonExit** « Exit » en (236,431), 227×37 |
+| `GameOverScreen.screen` | `Label` « GAME OVER » en (311,181), 64×63 |
+| `Screen_Test.screen` | **aucun contrôle** |
+
+Ce que la contre-épreuve apprend, et qui servira en phase 3 :
+
+- **Rien n'a été perdu à la réécriture C#, et une chose a été gagnée.** Le HUD hérité n'avait qu'une image et
+  une barre ; `MainHUDScreen` a le portrait, la barre de vie et un cadre. L'écran-titre hérité a deux boutons
+  nommés, `ButtonStartGame` et `ButtonExit` : **ce sont les seuls noms utiles de tout le lot**, et la phase 3
+  devrait les reprendre tels quels dans le XAML, pour que l'intention d'origine reste lisible.
+- **Toutes les couleurs de texte sont à alpha 0** — `textColor=255,255,255,0` partout. Dans l'ancienne boîte à
+  outils, ces libellés étaient donc invisibles tels quels : le format n'a jamais été rendu dans ce projet.
+  Une raison de plus de ne pas transposer ces valeurs.
+- Le `sprite_id` du HUD n'est pas emporté : supprimer l'enveloppe ne touche pas le sprite qu'elle citait.
+  Vérifié — `b039042c-4b9d-4157-8be2-eed2d3c4f3bd` **est** `Screens\MainHUD\link_hud_portrait.sprite`, qui
+  reste au catalogue.
+
+**Validation exécutée le 2026-09-20.** Quatre fichiers supprimés par `git rm`, un chemin à la fois. Les six
+entrées de catalogue retirées : 18 lignes de suppression pure, rien d'autre touché dans les deux
+`AssetInfos.json`, et les deux fichiers restent du JSON valide (`jq -e type`). Plus aucun `.screen` dans
+`Projects/`. **Aucune référence pendante** : les quatre identifiants supprimés ne sont cités nulle part dans
+le dépôt (`.json`, `.world`, `.entity`, `.gameMode`, `.cs`). `Screens/MainHUD/` garde bien ses trois assets
+vivants ; `Screens/TitleScreen/` et `Screens/GameOver/` disparaissent, leur `.screen` étant leur seul fichier.
+Build 0 erreur, suite **1654 / 1653 verts**, inchangée.
+
+🧪 **Reste à faire par l'auteur** : lancer RPGDemo et le projet d'échantillon une fois, pour confirmer qu'aucun
+avertissement de catalogue n'apparaît et que le HUD s'affiche toujours.
 
 ---
 
