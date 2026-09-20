@@ -26,6 +26,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public RenderSortKey2D SortKey;
         public bool HasSortKey;
         public SpriteBlendMode BlendMode;
+
+        // D-effet-ecran-alpha: a full-screen overlay (screen fade/tint) must cover every pixel
+        // regardless of what has already been drawn at that pixel's depth. Default false so every
+        // other caller of DrawSprite keeps testing/writing depth exactly as before this field existed.
+        public bool IgnoresDepth;
     }
 
     private const int NbSprites = 10000;
@@ -175,12 +180,13 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     {
         var graphicsDevice = _effect.GraphicsDevice;
 
-        // DepthStencilState is fixed for the whole sorted-sprite pass (by design, this slice). It is
-        // safe to keep fixed even though sprites may now blend rather than draw opaque: every sorted
-        // participant (TileMap sorted overlay + Y-sorted entities) shares a coplanar Z and draws in
-        // painter order under LessEqual, so an alpha sprite writing depth cannot clip a later same-Z
-        // draw. A future per-sprite depth flag (most likely just DepthWrite on/off) would ride the
-        // exact same per-run mechanism used below for BlendState.
+        // DepthStencilState is the normal depth-tested/written state by default for the sorted-sprite
+        // pass. It is safe to keep fixed for depth-testing sprites even though they may now blend
+        // rather than draw opaque: every sorted participant (TileMap sorted overlay + Y-sorted
+        // entities) shares a coplanar Z and draws in painter order under LessEqual, so an alpha sprite
+        // writing depth cannot clip a later same-Z draw. A sprite flagged IgnoresDepth (a full-screen
+        // overlay, D-effet-ecran-alpha) switches the device to DepthStencilState.None for its run,
+        // through the same per-run mechanism used below for BlendState.
         graphicsDevice.DepthStencilState = _depthStencilState;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
@@ -199,6 +205,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         var currentBlendMode = SpriteBlendMode.Opaque;
         graphicsDevice.BlendState = _blendState;
 
+        // Same per-run pattern as BlendState above: the sorted list is ordered by SortKey/Z only, so
+        // a depth-state change costs no more than one DepthStencilState set per contiguous run of
+        // sprites sharing the same IgnoresDepth flag (D-effet-ecran-alpha).
+        var currentIgnoresDepth = false;
+
         for (var i = 0; i < _spriteDatas.Count; i++)
         {
             var spriteDisplayData = _spriteDatas[i];
@@ -207,6 +218,12 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             {
                 currentBlendMode = spriteDisplayData.BlendMode;
                 graphicsDevice.BlendState = GetBlendState(currentBlendMode);
+            }
+
+            if (spriteDisplayData.IgnoresDepth != currentIgnoresDepth)
+            {
+                currentIgnoresDepth = spriteDisplayData.IgnoresDepth;
+                graphicsDevice.DepthStencilState = currentIgnoresDepth ? DepthStencilState.None : _depthStencilState;
             }
 
             _effect.Parameters["Texture"].SetValue(spriteDisplayData.Texture);
@@ -599,15 +616,19 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     /// <summary>
     /// Same as <see cref="DrawSprite(Texture2D,Rectangle,Point,Vector2,float,Vector2,Color,float,in RenderSortKey2D,SpriteEffects,Rectangle)"/>
-    /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state.
+    /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state,
+    /// and an optional <paramref name="ignoresDepth"/> for a full-screen overlay that must cover every
+    /// pixel regardless of what has already been drawn at that pixel's depth (D-effet-ecran-alpha).
+    /// Defaults to <see langword="false"/> so every existing caller keeps testing/writing depth exactly
+    /// as before this parameter existed.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
-        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle, SpriteBlendMode blendMode)
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle, SpriteBlendMode blendMode, bool ignoresDepth = false)
     {
         DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
             scissorRectangle, drawDebug: false, hasSortKey: true, in sortKey,
-            hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+            hasWorldTransform: false, worldTransform: default, blendMode: blendMode, ignoresDepth: ignoresDepth);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -633,7 +654,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
-        bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque)
+        bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque, bool ignoresDepth = false)
     {
         if (texture2d == null)
         {
@@ -682,6 +703,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             spriteDisplayData.SortKey = sortKey;
             spriteDisplayData.HasSortKey = hasSortKey;
             spriteDisplayData.BlendMode = blendMode;
+            spriteDisplayData.IgnoresDepth = ignoresDepth;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)
