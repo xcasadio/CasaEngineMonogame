@@ -289,7 +289,7 @@ Voies écartées, pour mémoire, avec la raison :
   `EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`
   préexistant et sans rapport, déjà relevé à T0.1.
 
-### 🧪 T1.2 — L'effet d'écran se dessine depuis le crochet en mode `AboveUI`
+### ✅ T1.2 — L'effet d'écran se dessine depuis le crochet en mode `AboveUI`
 
 - Objectif : `Layer = AboveUI` déplace le dessin de l'effet après l'interface, `BelowUI` ne change
   rien, et l'appareil est rendu dans l'état où le crochet l'a trouvé.
@@ -427,7 +427,7 @@ Voies écartées, pour mémoire, avec la raison :
   CasaEngine.MonoGame.sln` relancé par prudence : 0 erreur, mêmes avertissements `CS8632`
   préexistants, sans rapport.
 
-### 🧪 T2.2 — Le smoke visible dans la démo `TileMapDemo`
+### ✅ T2.2 — Le smoke visible dans la démo `TileMapDemo` (validé en jeu par l'auteur le 2026-09-20)
 
 - Objectif : quelqu'un peut voir, dans le moteur seul, une interface MGUI s'assombrir avec la
   scène, sur le seul chemin où le placement du quad de l'effet est supporté : une caméra 2D.
@@ -571,7 +571,7 @@ Voies écartées, pour mémoire, avec la raison :
 
 ## Phase 3 — Clôture
 
-### ⏳ T3.1 — Verifier, archivage, index
+### ✅ T3.1 — Verifier, archivage, index
 
 - Objectif : le chantier est vérifié par un tiers frais, archivé, indexé.
 - Fichiers : ce plan (section de clôture) ; `ai-agent/tasks/archive/` ; `ai-agent/README.md`.
@@ -617,3 +617,30 @@ Voies écartées, pour mémoire, avec la raison :
 | 2026-09-19 | Relecture adverse : **REVISE**, trois P2, tous acceptés. (1) `RenderPassDepthOffset` est un `switch` explicite, pas une dérivation par rang : la nouvelle passe serait tombée à zéro. (2) `OverlayViewPipeline` ne délègue pas au pipeline par défaut : une seconde file y aurait grossi sans borne jusqu'au dépassement de tampon. (3) Aucun contrôle en dépôt ne pouvait révéler un quad émis dans le bon ordre mais invisible ; la règle §6 exige un sample. **Révision 2** : la conception change, crochet de composition et vidage immédiat sur le précédent de `TileMapSurfaceComponent.cs:206`, ce qui supprime la cause des deux premiers blocages ; T2.2 ajoute le smoke dans la démo `UIOverlay` ; D4 impose la restauration des états GPU. |
 | 2026-09-19 | Relecture de clôture : **REVISE**, un P2, accepté. La démo `UIOverlay` a une caméra 3D, or le placement du quad de l'effet n'est valide qu'avec une `Camera2dComponent` (`ScreenEffectComponent.cs:53-67, :123-129`) ; une jauge qui ne s'assombrirait pas y serait indiscernable d'un mauvais ordre. **Révision 3** : le smoke passe dans `TileMapDemo`, seule démo à caméra 2D (`TileMapDemo.cs:98`), avec une précondition, le fondu `BelowUI` couvre le viewport, et un arrêt O5. **Deuxième REVISE consécutif, plafond atteint : disposition en session principale, pas de nouvelle soumission.** Le plan part à l'auteur pour approbation. |
 | 2026-09-19 | O6 résolu hors chantier : `AnimatedSpriteComponent` ne perd plus les animations ajoutées par code, et ne garde plus une `CurrentAnimation` sans échantillonneur après une reconstruction (branche `chantier/fix-animated-sprite-code-animations`, commit `ac56aab0`, fusionnée ici). Le contournement de `TileMapDemo` est retiré : la démo recrée son `PlayerComponent`, et le personnage s'anime, vérifié en exécutant la démo. |
+| 2026-09-20 | **T2.2 validée en jeu par l'auteur : « je teste la demo, c'est OK ».** T1.2, qui restait 🧪 faute d'appareil graphique de test, est close par la même observation : c'est le smoke qui devait la couvrir, le plan le prévoyait. |
+| 2026-09-20 | **Chantier voisin, même sous-système, exécuté sur `chantier/effet-ecran-alpha`** (branche tirée d'`origin/main` à jour, quatre commits : `e9fa401e`, `7a192581`, `0ccf1746`, `350bc3b6`). L'auteur a demandé un fondu moderne après avoir trouvé le rendu « bizarre » en jeu. **Ce chantier n'a pas eu de plan écrit avant exécution, à la demande explicite de l'auteur : dérogation assumée à la règle du §3.** Livré : un canal alpha sur `ScreenEffectService`, additif, surcharges existantes intactes et déléguant avec `a = 255`, si bien que le mode soustractif dont dépend le portage Alundra est inchangé ; la démo qui part et revient à opacité nulle, donc sans saut au noir ni coupure sèche ; et surtout **la correction de la vraie cause du défaut visuel**. |
+| 2026-09-20 | **Le voile ne testait pas seulement la profondeur, il y échouait.** Mesuré par un verifier puis confirmé : le voile était soumis à la profondeur de la caméra (`ScreenEffectComponent.SubmitOverlay`) dans un lot où le test et l'écriture sont actifs (`SpriteRendererComponent:94-96`, `LessEqual`) ; tout sprite dessiné avant lui et plus proche écrivait sa profondeur et faisait **rejeter** le voile sur ses pixels, qui échappaient donc à l'assombrissement. Correction par un basculement de profondeur **par soumission**, exactement le patron déjà en place pour le mode de mélange (`SpriteRendererComponent:199-212`), avec « teste la profondeur » par défaut. Mesure : les cinq points témoins, tous inchangés avant, tous assombris après en `AboveUI`. |
+| 2026-09-20 | **Limite résiduelle, différée, décision d'architecture de l'auteur.** En `BelowUI`, un balayage complet laisse environ 7 000 pixels non assombris hors de la fenêtre d'interface : ils sont dessinés par des systèmes qui passent en **phase 3** de l'image (`CasaEngineGame.Draw`, `Line3d`, `DebugPhysics`…), donc **après** le pipeline où vit le voile. Ce n'est pas le défaut de profondeur, c'est l'ordre des phases, qui préexiste. Décider quelles phases un voile plein écran doit couvrir n'appartient pas à ce chantier. `AboveUI`, qui est le mode dont le portage a besoin, couvre tout. |
+| 2026-09-20 | **T3.1 : verifier frais CONFIRMED, chantier clos.** Trois builds à 0 erreur, suite à 1642 dont l'unique échec préexistant du thème d'éditeur, non-régression prouvée. Le verifier a écrit sa propre sonde hors dépôt plutôt que de relire les tests des exécutants : additivité de l'API confirmée signature par signature, chemin soustractif intact (quad opaque, même mode, même passe), et le sens du drapeau de profondeur vérifié dans les deux sens, une soumission ordinaire ne changeant jamais d'état. **Trois constats disposés en session principale** : le P3 sur l'ADR manquante est **corrigé** (ADR-0034, et sept citations de code qui ne résolvaient vers rien y pointent désormais) ; le P3 sur la divulgation absente de l'historique est **corrigé par ce commit même** ; les trois P4 sont **notés sans action**, dont deux qui méritent l'attention au bump du pointeur de sous-module : ajouter un paramètre optionnel est compatible en source mais pas en binaire, et le voile ignore la profondeur **inconditionnellement**, donc un fondu soustractif assombrit désormais des sprites qu'il épargnait. |
+
+---
+
+## 8. Clôture
+
+**Chantier clos le 2026-09-20**, verifier frais CONFIRMED, validé en jeu par l'auteur.
+
+**Livré** : une couche sur le service d'effet d'écran, `BelowUI` par défaut ; un crochet de surcouche
+post-interface dans la composition, qui couvre les trois pipelines de vue puisque l'éditeur emprunte
+le même service ; le dessin de l'effet depuis ce crochet avec vidage immédiat et restauration des
+états GPU ; l'ADR-0033 et les textes ; un smoke visible dans la démo de tuiles.
+
+**Et, sur la même branche de sous-système, un chantier voisin** né d'une observation de l'auteur en
+jeu : le canal alpha, la démo réalignée sur un fondu moderne, et la correction du défaut de
+profondeur qui empêchait le voile de couvrir l'écran. ADR-0034.
+
+**Reste ouvert, pour l'auteur** : quelles phases de l'image un voile plein écran doit couvrir. La
+couche `AboveUI` couvre ce dont le portage a besoin ; la couche par défaut reste dépassée par les
+composants dessinés en phase 3.
+
+**Consommateur suivant** : la tranche C4.dll du portage (`docs/plan-e13-hud.md` du dépôt parent),
+qui armera `Layer = AboveUI` pour le fondu de warp, après bump du pointeur de sous-module.
