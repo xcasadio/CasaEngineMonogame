@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -17,8 +15,12 @@ namespace CasaEngine.Demos.Demos;
 /// of each demo; a new instance is created on every demo change.
 ///
 /// Toggle visibility with <see cref="SetVisible"/>.
+/// <para/>
+/// Its shell lives in `Content/Screens/demo-info.xaml`, corner and height cap included. The demo buttons do
+/// not: there is one per demo entry, so that list IS the data and is built here, into the named panel the
+/// document declares for it.
 /// </summary>
-internal sealed class DemoInfoScreen : UIScreenBase
+internal sealed class DemoInfoScreen : XamlUIScreenBase
 {
     // ---- Data ----
     private readonly IReadOnlyList<(string Title, string Description)> _demoEntries;
@@ -26,11 +28,10 @@ internal sealed class DemoInfoScreen : UIScreenBase
     private readonly Action<int> _onDemoSelected;
 
     // ---- MGUI elements ----
-    private MGWindow?    _window;
-    private MGTextBlock? _titleLabel;
-    private MGTextBlock? _descLabel;
-    private MGButton[]?  _demoButtons;
-    private bool         _isKeyboardNavigationArmed;
+    private MGTextBlock _titleLabel;
+    private MGTextBlock _descLabel;
+    private MGButton[] _demoButtons;
+    private bool _isKeyboardNavigationArmed;
 
     // ---- IUIScreen ----
     public override UILayer Layer   => UILayer.HUD;
@@ -45,6 +46,7 @@ internal sealed class DemoInfoScreen : UIScreenBase
         IReadOnlyList<(string Title, string Description)> demoEntries,
         int  currentIndex,
         Action<int> onDemoSelected)
+        : base(DemoScreenXaml.Source("demo-info.xaml"))
     {
         _demoEntries     = demoEntries;
         _currentIndex    = currentIndex;
@@ -53,85 +55,35 @@ internal sealed class DemoInfoScreen : UIScreenBase
 
     // ---- Build UI ----
 
-    protected override void OnInitialize(UIRoot root)
+    protected override void OnWindowLoaded(MGWindow window)
     {
-        var bounds = root.Desktop.ValidScreenBounds;
-        int winW = 300;
-        // Cap height to the available viewport so the window is never taller than the screen.
-        // This matters for split-screen demos where each viewport is a fraction of the back-buffer.
-        int winH = Math.Min(440, bounds.Height - 20);
-        int x = bounds.Width - winW - 10;
-        int y = 10;
+        _titleLabel = FindControl<MGTextBlock>("lblTitle");
+        _descLabel = FindControl<MGTextBlock>("lblDescription");
 
-        _window = new MGWindow(root.Desktop, x, y, winW, winH)
-        {
-            TitleText       = "Demo Navigator",
-            IsUserResizable = false,
-        };
-        _window.Padding = new Thickness(8);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(0, 0, 0, 200));
-
-        // ---- Outer vertical stack ----
-        var outer = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 6 };
-
-        // Title of current demo
-        _titleLabel = new MGTextBlock(_window,
-            $"[b][color=white]{Escape(_demoEntries[_currentIndex].Title)}[/color][/b]");
-        outer.TryAddChild(_titleLabel);
-
-        // Description
-        _descLabel = new MGTextBlock(_window,
-            $"[color=lightgray]{Escape(_demoEntries[_currentIndex].Description)}[/color]")
-        {
-            WrapText = true,
-        };
-        outer.TryAddChild(_descLabel);
-
-        // Separator
-        var sep = new MGSeparator(_window, Orientation.Horizontal, 1);
-        sep.Margin = new Thickness(0, 4, 0, 4);
-        outer.TryAddChild(sep);
-
-        // Navigation label
-        var navLabel = new MGTextBlock(_window, "[color=gray]Click a demo to switch:[/color]");
-        outer.TryAddChild(navLabel);
-
-        // Scrollable list of demos
-        var scrollViewer = new MGScrollViewer(_window,
-            MGUI.Core.UI.ScrollBarVisibility.Auto,
-            MGUI.Core.UI.ScrollBarVisibility.Disabled);
-
-        var listStack = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 2 };
+        var listStack = FindControl<MGStackPanel>("lstDemos");
         _demoButtons = new MGButton[_demoEntries.Count];
+
         for (int i = 0; i < _demoEntries.Count; i++)
         {
             int capturedIndex = i;
-            var btn = new MGButton(_window, _ => _onDemoSelected(capturedIndex));
-            btn.Margin = new Thickness(0, 0, 0, 0);
+            var btn = new MGButton(window, _ => _onDemoSelected(capturedIndex));
             btn.Padding = new Thickness(4, 2, 4, 2);
             SetButtonContent(btn, i);
             listStack.TryAddChild(btn);
             _demoButtons[i] = btn;
         }
 
+        ApplyCurrentDemo(_demoEntries[_currentIndex].Title, _demoEntries[_currentIndex].Description);
+
         if (_demoButtons.Length > 0)
         {
-            _window.DefaultFocusElement = _demoButtons[_currentIndex];
+            window.DefaultFocusElement = _demoButtons[_currentIndex];
         }
 
-        scrollViewer.SetContent(listStack);
-        outer.TryAddChild(scrollViewer);
-
-        // F1 hint at the bottom
-        var hint = new MGTextBlock(_window, "[color=gray][i]Press F1 to hide this panel[/i][/color]");
-        hint.Margin = new Thickness(0, 4, 0, 0);
-        outer.TryAddChild(hint);
-
-        _window.SetContent(outer);
-        _window.MouseHandler.MovedInside += (_, _) => ArmKeyboardNavigation();
-        _window.MouseHandler.LMBPressedInside += (_, _) => ArmKeyboardNavigation();
-        _window.MouseHandler.Exited += (_, _) => DisarmKeyboardNavigation();
-        _window.MouseHandler.PressedOutside += (_, _) => DisarmKeyboardNavigation();
+        window.MouseHandler.MovedInside += (_, _) => ArmKeyboardNavigation();
+        window.MouseHandler.LMBPressedInside += (_, _) => ArmKeyboardNavigation();
+        window.MouseHandler.Exited += (_, _) => DisarmKeyboardNavigation();
+        window.MouseHandler.PressedOutside += (_, _) => DisarmKeyboardNavigation();
 
         DisarmKeyboardNavigation();
     }
@@ -144,21 +96,16 @@ internal sealed class DemoInfoScreen : UIScreenBase
     public void UpdateCurrentDemo(int index, string title, string description)
     {
         _currentIndex = index;
-
-        if (_titleLabel != null)
-            _titleLabel.Text = $"[b][color=white]{Escape(title)}[/color][/b]";
-
-        if (_descLabel != null)
-            _descLabel.Text = $"[color=lightgray]{Escape(description)}[/color]";
+        ApplyCurrentDemo(title, description);
 
         if (_demoButtons != null)
         {
             for (int i = 0; i < _demoButtons.Length; i++)
                 SetButtonContent(_demoButtons[i], i);
 
-            if (_window != null)
+            if (Window != null)
             {
-                _window.DefaultFocusElement = _demoButtons[_currentIndex];
+                Window.DefaultFocusElement = _demoButtons[_currentIndex];
             }
         }
     }
@@ -166,9 +113,9 @@ internal sealed class DemoInfoScreen : UIScreenBase
     /// <summary>Shows or hides this screen's window without removing it from the stack.</summary>
     public void SetVisible(bool visible)
     {
-        if (_window != null)
+        if (Window != null)
         {
-            _window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            Window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
 
             if (!visible)
             {
@@ -177,14 +124,16 @@ internal sealed class DemoInfoScreen : UIScreenBase
         }
     }
 
-    // ---- IUIScreen ----
-
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null) yield return _window;
-    }
-
     // ---- Helpers ----
+
+    private void ApplyCurrentDemo(string title, string description)
+    {
+        if (_titleLabel != null)
+            _titleLabel.Text = $"[b][color=white]{Escape(title)}[/color][/b]";
+
+        if (_descLabel != null)
+            _descLabel.Text = $"[color=lightgray]{Escape(description)}[/color]";
+    }
 
     private void SetButtonContent(MGButton btn, int index)
     {
@@ -214,7 +163,7 @@ internal sealed class DemoInfoScreen : UIScreenBase
         }
 
         var focusIndex = Math.Clamp(_currentIndex, 0, _demoButtons.Length - 1);
-        _window!.DefaultFocusElement = _demoButtons[focusIndex];
+        Window.DefaultFocusElement = _demoButtons[focusIndex];
         _demoButtons[focusIndex].Focus(KeyboardFocusSource.Pointer);
     }
 

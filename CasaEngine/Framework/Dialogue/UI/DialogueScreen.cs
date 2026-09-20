@@ -1,20 +1,30 @@
-﻿using CasaEngine.Framework.Dialogue.Presentation;
+﻿using System.Reflection;
+using CasaEngine.Framework.Dialogue.Presentation;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers;
-using MonoGame.Extended;
+using MGUI.Core.UI.XAML;
+using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Dialogue.UI;
 
-public sealed class DialogueScreen : UIScreenBase
+/// <summary>
+/// The framework's dialogue box.
+/// <para/>
+/// Its tree is declared in <c>DialogueScreen.xaml</c>, shipped as an <b>embedded resource</b> of this
+/// assembly rather than as a project asset: the screen belongs to the engine, so it cannot be the asset of
+/// any one game. That is how MGUI ships its own <c>BuiltInThemes.xaml</c>.
+/// </summary>
+public sealed class DialogueScreen : XamlUIScreenBase
 {
+    private const string XamlResourceName = "CasaEngine.Framework.Dialogue.UI.DialogueScreen.xaml";
+
     private readonly IDialoguePresenter _presenter;
     private readonly Action _requestClose;
     private readonly string _fontFamily;
-    private MGWindow _window;
+    private MGStackPanel _contentPanel;
     private MGTextBlock _lineText;
     private MGStackPanel _choicesPanel;
     private readonly List<MGButton> _choiceButtons = new();
@@ -46,6 +56,7 @@ public sealed class DialogueScreen : UIScreenBase
     /// or empty, the screen falls back to the theme's default TTF font family.
     /// </param>
     public DialogueScreen(IDialoguePresenter presenter, Action requestClose, string fontFamily)
+        : base(EmbeddedXaml())
     {
         ArgumentNullException.ThrowIfNull(presenter);
         ArgumentNullException.ThrowIfNull(requestClose);
@@ -65,65 +76,44 @@ public sealed class DialogueScreen : UIScreenBase
     private const int TopMargin = 20;
     private const int BottomMargin = 48;
 
-    protected override void OnInitialize(UIRoot root)
-    {
-        BuildWindow(root.Desktop);
-    }
+    private static XamlDocumentSource EmbeddedXaml()
+        => XamlDocumentSource.FromString(
+            GeneralUtils.ReadEmbeddedResourceAsString(Assembly.GetExecutingAssembly(), XamlResourceName),
+            "DialogueScreen.xaml");
 
-    /// <summary>The whole window construction, at the <see cref="MGDesktop"/> level - internal so the
-    /// headless layout tests can drive the REAL build/refresh/resize path without a graphics-backed
-    /// <see cref="UIRoot"/> (the screen never uses anything else from the root).</summary>
-    internal void BuildWindow(MGDesktop desktop)
+    protected override void OnWindowLoaded(MGWindow window)
     {
-        Rectangle bounds = desktop.ValidScreenBounds;
+        Rectangle bounds = window.Desktop.ValidScreenBounds;
         int width = Math.Min(720, Math.Max(320, bounds.Width - 80));
-        int height = MinWindowHeight;
-        int x = bounds.X + (bounds.Width - width) / 2;
-        int y = bounds.Y + Math.Max(TopMargin, bounds.Height - height - BottomMargin);
 
-        _window = new MGWindow(desktop, x, y, width, height)
-        {
-            TitleText = "Dialogue",
-            IsTopmost = true,
-            IsUserResizable = false,
-        };
-        _window.WindowClosed += (_, _) => _requestClose();
-        _window.Padding = new Thickness(14);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(12, 18, 26, 235));
+        window.WindowWidth = width;
+        window.Left = bounds.X + (bounds.Width - width) / 2;
+        window.Top = bounds.Y + Math.Max(TopMargin, bounds.Height - MinWindowHeight - BottomMargin);
+        window.WindowClosed += (_, _) => _requestClose();
 
-        var stack = new MGStackPanel(_window, Orientation.Vertical)
-        {
-            Spacing = 8,
-            PreferredWidth = width - 36,
-            // No PreferredHeight: the stack must report its CONTENT height so ResizeToFitContent's
-            // measurement sees the real total (text lines + choice buttons + close button).
-        };
+        _contentPanel = FindControl<MGStackPanel>("pnlContent");
+        _contentPanel.PreferredWidth = width - 36;
 
-        _lineText = new MGTextBlock(_window, string.Empty, Color.White, 16)
-        {
-            WrapText = true,
-        };
+        _lineText = FindControl<MGTextBlock>("lblLine");
         ApplyFontFamily(_lineText);
-        stack.TryAddChild(_lineText);
 
-        _choicesPanel = new MGStackPanel(_window, Orientation.Vertical)
-        {
-            Spacing = 4,
-        };
-        stack.TryAddChild(_choicesPanel);
+        _choicesPanel = FindControl<MGStackPanel>("pnlChoices");
+
+        var closeButton = FindControl<MGButton>("btnClose");
 
         if (ShowCloseButton)
         {
-            _closeButton = new MGButton(_window, _ => _requestClose())
-            {
-                HorizontalAlignment = HorizontalAlignment.Right,
-            };
-            _closeButton.SetContent("Close");
-            _closeButton.Margin = new Thickness(0, 8, 0, 0);
-            stack.TryAddChild(_closeButton);
+            _closeButton = closeButton;
+            _closeButton.AddCommandHandler((_, _) => _requestClose());
+        }
+        else
+        {
+            // Taken out of the tree rather than hidden, so it is genuinely not built into the layout and
+            // CloseButtonForTests stays null, as callers that turn it off rely on.
+            _contentPanel.TryRemoveChild(closeButton);
+            _closeButton = null;
         }
 
-        _window.SetContent(stack);
         RefreshPresentation();
     }
 
@@ -147,14 +137,6 @@ public sealed class DialogueScreen : UIScreenBase
         }
     }
 
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null)
-        {
-            yield return _window;
-        }
-    }
-
     private void OnDialoguePresentationChanged(object sender, DialoguePresentationChangedEventArgs args)
     {
         RefreshPresentation();
@@ -173,23 +155,23 @@ public sealed class DialogueScreen : UIScreenBase
     /// the window is measured from the top of the screen first and re-anchored after.</summary>
     private void ResizeToFitContent()
     {
-        if (_window == null)
+        if (Window == null)
         {
             return;
         }
 
-        Rectangle bounds = _window.GetDesktop().ValidScreenBounds;
-        _window.Top = bounds.Y + TopMargin;
-        _window.ApplySizeToContent(
+        Rectangle bounds = Window.GetDesktop().ValidScreenBounds;
+        Window.Top = bounds.Y + TopMargin;
+        Window.ApplySizeToContent(
             SizeToContent.Height,
             MinHeight: MinWindowHeight,
             MaxHeight: Math.Max(MinWindowHeight, bounds.Height - TopMargin - BottomMargin),
             UpdateLayoutImmediately: true);
-        _window.Top = Math.Max(bounds.Y + TopMargin, bounds.Bottom - BottomMargin - _window.WindowHeight);
-        _window.ValidateWindowSizeAndPosition();
+        Window.Top = Math.Max(bounds.Y + TopMargin, bounds.Bottom - BottomMargin - Window.WindowHeight);
+        Window.ValidateWindowSizeAndPosition();
     }
 
-    internal MGWindow WindowForTests => _window;
+    internal MGWindow WindowForTests => Window;
     internal IReadOnlyList<MGButton> ChoiceButtonsForTests => _choiceButtons;
     internal MGButton CloseButtonForTests => _closeButton;
 
@@ -229,7 +211,7 @@ public sealed class DialogueScreen : UIScreenBase
         for (int i = 0; i < labels.Count; i++)
         {
             int choiceIndex = i;
-            var button = new MGButton(_window, _ => _presenter.SelectChoice(choiceIndex))
+            var button = new MGButton(Window, _ => _presenter.SelectChoice(choiceIndex))
             {
                 HorizontalAlignment = HorizontalAlignment.Left,
             };

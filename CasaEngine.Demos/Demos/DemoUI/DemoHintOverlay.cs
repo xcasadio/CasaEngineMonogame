@@ -1,9 +1,5 @@
-using System.Collections.Generic;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
-using MonoGame.Extended;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -11,45 +7,30 @@ namespace CasaEngine.Demos.Demos;
 /// Small bottom-center overlay displayed when the <see cref="DemoInfoScreen"/> window is hidden.
 /// Reminds the player how to bring the demo info panel back.
 /// Toggle visibility with <see cref="SetVisible"/>.
+/// <para/>
+/// Its tree lives in `Content/Screens/demo-hint.xaml`, where it sits included.
 /// </summary>
-internal sealed class DemoHintOverlay : UIScreenBase
+internal sealed class DemoHintOverlay : XamlUIScreenBase
 {
-    private MGWindow? _window;
-
     public override UILayer Layer   => UILayer.HUD;
     public override bool    IsModal => false;
 
-    protected override void OnInitialize(UIRoot root)
+    public DemoHintOverlay()
+        : base(DemoScreenXaml.Source("demo-hint.xaml"))
     {
-        var bounds = root.Desktop.ValidScreenBounds;
-        int winW = 300;
-        int winH = 36;
-        int x = bounds.Width / 2 - winW / 2;
-        int y = bounds.Height - winH - 14;
+    }
 
-        _window = new MGWindow(root.Desktop, x, y, winW, winH)
-        {
-            TitleText         = string.Empty,
-            IsTitleBarVisible = false,
-            IsUserResizable   = false,
-        };
-        _window.Padding = new Thickness(6, 6, 6, 6);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(0, 0, 0, 140));
-
-        var hint = new MGTextBlock(_window,
-            "[color=lightgray][i]Press [b]F1[/b] to show demo info[/i][/color]");
-        _window.SetContent(hint);
+    protected override void OnWindowLoaded(MGWindow window)
+    {
+        // Nothing to wire: the document places it and carries its one line of text.
     }
 
     /// <summary>Shows or hides this overlay's window without removing it from the stack.</summary>
     public void SetVisible(bool visible)
     {
-        if (_window != null)
-            _window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null) yield return _window;
+        if (Window != null)
+        {
+            Window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

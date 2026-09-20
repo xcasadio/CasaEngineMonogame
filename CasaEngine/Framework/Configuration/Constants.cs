@@ -17,6 +17,12 @@ public static class Constants
         public const string Animation2d = ".anim2d";
         public const string TileMap = ".tileMap";
         public const string TileSet = ".tileset";
+        /// <summary>A UI screen: a JSON envelope naming the XAML file that declares its control tree.
+        /// See ADR-0035.</summary>
+        public const string UIScreen = ".uiscreen";
+
+        /// <summary>Legacy screen format from an older widget toolkit -- an entity envelope plus a flat list
+        /// of absolutely positioned widgets. Nothing reads it; a UI screen is <see cref="UIScreen"/>.</summary>
         public const string Screen = ".screen";
         public const string Model = ".model";
         public const string StaticModel = ".staticModel";

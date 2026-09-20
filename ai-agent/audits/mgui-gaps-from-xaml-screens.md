@@ -1,0 +1,239 @@
+# Ce qui manque à MGUI et au moteur, vu depuis la conversion des écrans en XAML
+
+Rapport ouvert le 2026-09-20 pendant le chantier
+[xaml-runtime-bridge-tasks.md](../tasks/xaml-runtime-bridge-tasks.md).
+
+**Pourquoi ce document.** Règle de l'auteur, 2026-09-20 : *« je ne veux pas de workaround, et le projet sert
+aussi à détecter les fonctionnalités manquantes dans MGUI et le moteur CasaEngine »*. Convertir dix écrans
+d'un arbre C# vers un document XAML est un banc d'essai : chaque fois que quelque chose ne peut **pas** être
+déclaré, la limite se voit. Un contournement écrit en silence effacerait l'information ; elle est écrite ici.
+
+**Ce qui entre dans ce document et ce qui n'y entre pas.** Trois cas se ressemblent et ne se valent pas :
+
+1. **Un vrai manque d'API** — le runtime sait faire la chose, mais rien ne permet de la déclarer, ou personne
+   ne sait la faire du tout. **Seuls ceux-là sont listés ci-dessous.**
+2. **Un choix de conception délibéré** — par exemple le fond du HUD de smoke, qui reste en C# parce qu'une
+   autre partie du code lit la même constante et que deux sources de vérité divergeraient. Ce n'est pas un
+   manque, c'est une décision ; elle vit dans le plan.
+3. **Une limite volontaire de la règle XAML** — le code câble les gestionnaires et pousse les données, par
+   décision (ADR-0035, D7). Ce n'est pas un manque non plus.
+
+Chaque entrée dit : ce que le code doit faire, pourquoi il ne peut pas le déclarer (avec la preuve), ce que
+ça coûte aujourd'hui, et à quoi ressemblerait l'API absente.
+
+---
+
+## ~~G1~~ — Un curseur déclaré en XAML ne peut pas afficher sa valeur — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, branche `chantier/declarable-window-size-and-slider-label`, commit `3c48741` :
+> `ShowValueLabel` et `ValueLabelFormat` sont deux propriétés facultatives du DTO `Slider`, sur la forme
+> exacte de `ProgressBar`. Les six curseurs du panneau de mélange déclarent désormais leur étiquette avec
+> leur plage et leur valeur de départ, et le contournement a disparu de
+> `BlendingControlsScreen.BindSlider`. Suite MGUI 2961 verts, +3.
+
+**Priorité : haute.** Six curseurs concernés dans un seul écran, et tout écran de réglages futur le
+rencontrera.
+
+**Ce que le code doit faire.** Chaque curseur du panneau de mélange affiche sa valeur courante, formatée :
+`"F3"` pour le pas, `"F2"` pour les durées et les poids.
+
+**Pourquoi il ne peut pas le déclarer.** `MGSlider.ShowValueLabel` et `MGSlider.ValueLabelFormat` sont
+publiques et pilotent un `ValueLabelElement` interne (`MGUI/MGUI.Core/UI/MGSlider.cs:606-625`). Mais le DTO
+XAML `Slider` (`MGUI/MGUI.Core/UI/XAML/Controls.cs:2654`) **ne les expose ni l'une ni l'autre** : une
+recherche des deux noms dans tout `MGUI/MGUI.Core/UI/XAML/` ne rend rien. Le DTO expose pourtant `Minimum`,
+`Maximum`, `Value`, les ticks, le pouce, les pinceaux — tout sauf l'étiquette de valeur.
+
+**Ce que ça coûte aujourd'hui.** Le format de chaque curseur vit dans
+`BlendingControlsScreen.BindSlider`, à des dizaines de lignes de la plage et de la valeur de départ qu'il
+accompagne. Changer un `"F2"` en `"F3"` demande d'ouvrir le C#, alors que tout le reste du curseur est dans
+le document. C'est exactement la séparation que la règle XAML cherchait à supprimer.
+
+**L'API absente.** Deux propriétés nullables sur le DTO `Slider`, et deux lignes dans son
+`ApplyDerivedSettings` :
+
+```xml
+<Slider Name="sldIdleWeight" Minimum="0" Maximum="1" Value="0"
+        ShowValueLabel="True" ValueLabelFormat="F2" />
+```
+
+**Ce qui rend le manque certain plutôt que discutable.** `ProgressBar`, le contrôle voisin, **expose bien**
+son affichage de valeur en XAML : `ShowValue`, `ValueDisplayFormat` et `NumberFormat` figurent tous trois sur
+son DTO (`MGUI/MGUI.Core/UI/XAML/Controls.cs`, classe `ProgressBar`). Deux contrôles du même genre, l'un
+complet et l'autre non : ce n'est pas un choix de conception, c'est un oubli.
+
+**Coût estimé.** Petit et purement additif : ~10 lignes dans `MGUI.Core`, plus un test. Aucun appelant
+existant n'est touché, puisque les deux propriétés sont facultatives.
+
+---
+
+## ~~G2~~ — Une fenêtre racine ne sait pas se placer par rapport au bureau — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, même branche, commits `8748b72` puis `1bfd401` : `ScreenHorizontalAlignment`,
+> `ScreenVerticalAlignment` et `ScreenMargin` sur `MGWindow` et sur son DTO XAML, réappliqués à chaque tick
+> du bureau. Le plafonnement au viewport **tombe de la sémantique d'alignement** au lieu d'être une seconde
+> fonctionnalité : un élément aligné ne dépasse pas la place dont il dispose, et `MinWidth`/`MinHeight`
+> l'emportent encore. Sept écrans du moteur ont perdu leur arithmétique ; dix tests vérifient qu'ils
+> atterrissent exactement où leur calcul C# les mettait, plafond compris. Suite MGUI 2982 verts, +17.
+>
+> **La syntaxe proposée plus bas était fausse** : `HorizontalAlignment` est déjà pris sur une fenêtre racine,
+> qui refuse tout autre chose que `Stretch` et lève. D'où les noms préfixés.
+>
+> **Et l'inset n'est pas `Margin`**, contrairement à ce que cette entrée disait : sur une fenêtre racine,
+> `Margin` rogne déjà le **contenu**, comme un second padding — mesuré, 260 px de large au lieu de 280. Le
+> réutiliser aurait discrètement resserré chaque fenêtre placée. D'où `ScreenMargin`, qui ne fait que l'inset.
+
+**Priorité : haute.** Quatre des six écrans convertis ont dû calculer leur position en C#, et deux d'entre
+eux aussi leur hauteur.
+
+**Ce que le code doit faire.** Centrer une fenêtre (menu de pause), la poser en bas au centre (rappel F1),
+l'ancrer en haut à droite (navigateur de démos, panneau de mélange), et plafonner sa hauteur au viewport —
+ce dernier point comptant vraiment, car dans une démo en écran partagé chaque vue n'est qu'une fraction du
+back-buffer.
+
+**Pourquoi il ne peut pas le déclarer.** `MGWindow` n'expose que `Left` et `Top`, des entiers absolus
+(`MGUI/MGUI.Core/UI/MGWindow.cs:97` et `:113`). Il n'existe **aucune** notion de placement relatif au
+bureau : pas de `WindowStartupLocation`, pas d'alignement contre `Desktop.ValidScreenBounds`, pas de taille
+exprimée en fraction de l'écran. La seule chose que MGUI fasse avec `ValidScreenBounds` est de **ramener**
+une fenêtre déjà déplacée à l'intérieur de l'écran (`:1904-1926`) — une correction après coup, pas un
+placement. Le DTO XAML `Window` n'a donc rien non plus : `Left`, `Top`, `SizeToContent`, et c'est tout.
+
+**Ce que ça coûte aujourd'hui.** Quatre `OnWindowLoaded` contiennent la même arithmétique, avec les mêmes
+constantes de largeur et de hauteur dupliquées entre le C# et le XAML — puisque centrer demande de connaître
+sa propre taille, déjà écrite dans le document. C'est une duplication qui peut diverger en silence : changer
+`Width` dans le XAML sans changer `WindowWidth` dans le C# décentre la fenêtre sans que rien ne le signale.
+
+**L'API absente.** De quoi exprimer le placement dans le document, par exemple :
+
+```xml
+<Window Width="300" Height="200" HorizontalAlignment="Center" VerticalAlignment="Center" />
+<Window Width="300" Height="36"  HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14" />
+<Window Width="320" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" MaxHeight="Viewport" />
+```
+
+Le dernier point — plafonner une dimension au viewport — est le plus utile et le moins évident : c'est ce
+qui rend un écran correct en vue partagée sans que chaque écran le recalcule.
+
+**Coût estimé.** Moyen. Il faut décider où l'alignement d'une fenêtre racine s'applique (au moment de
+l'attachement au bureau, et à chaque changement de taille du bureau), et ce que devient un `Left`/`Top`
+explicite quand un alignement est déclaré. C'est une vraie petite fonctionnalité, pas deux propriétés.
+
+---
+
+## ~~G3~~ — Une fenêtre ne peut pas déclarer une taille de départ qu'un redimensionnement ultérieur surcharge — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, même branche, commit `f2c2f88` : `ApplySizeToContent` libère la taille préférée
+> des dimensions qu'on lui demande de dimensionner, et **seulement** celles-là — une largeur déclarée
+> survit à une demande en hauteur, et `SizeToContent.Manual` ne libère rien. `DialogueScreen.xaml`
+> déclare de nouveau `Height="150"`, qui se lit, au lieu de l'astuce `MinHeight`. Les cinq
+> `DialogueScreenLayoutTests` passent sans modification. Suite MGUI 2965 verts, +4, et les 2958 tests
+> d'origine confirment que rien ne dépendait de l'ancien comportement.
+
+**Priorité : haute.** Silencieux de bout en bout : rien ne lève, rien n'avertit, et une méthode publique
+devient une opération sans effet. Il a coûté deux tests rouges et une bisection.
+
+**Rectification d'un premier diagnostic.** Ce manque a d'abord été décrit ici comme un oubli — « `Width` et
+`Height` posent aussi la taille préférée ». C'est inexact, et il faut le dire : le DTO `Window` a un modèle
+**délibéré et cohérent**, implémenté dans son `ApplyDerivedSettings` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`) :
+ni `Width` ni `Height` déclarés signifie « s'adapte au contenu dans les deux sens » ; `Width` seul, hauteur
+adaptée ; `Height` seul, largeur adaptée ; les deux, taille fixe ; et `SizeToContent` surcharge tout. Poser
+`PreferredHeight` quand `Height` est déclaré est donc **le contrat**, pas une étourderie.
+
+**Le trou réel, plus étroit.** Il n'existe aucune façon d'exprimer « commence à cette taille, mais grandis
+ensuite ». Et la surcharge censée servir à cela ne fonctionne pas : quand `Height` **et**
+`SizeToContent="Height"` sont tous deux déclarés, `ApplySettings` pose la taille préférée **avant** que
+`ApplyDerivedSettings` n'appelle `ApplySizeToContent`, dont la mesure rend alors la taille préférée. Deux
+déclarations se contredisent, et c'est la moins explicite qui l'emporte, sans un mot.
+
+**Mesuré, pas déduit.** Une fenêtre dont le contenu réclame 155 px :
+
+| Ce qui est déclaré | `WindowHeight` obtenu | `PreferredHeight` |
+|---|---|---|
+| `Height="40" SizeToContent="Height"` | **50** | 40 |
+| `MinHeight="40" SizeToContent="Height"` | **155** | null |
+
+La première ligne est la surcharge défaite : `SizeToContent="Height"` est déclaré, et la fenêtre ne grandit
+pas. La seconde est l'astuce qui marche.
+
+**Ce que le code doit faire.** La boîte de dialogue part de 150 px puis **grandit** pour contenir une ligne
+repliée sur plusieurs rangs plus autant de boutons de choix que le dialogue en offre — un défaut signalé par
+un joueur : le second bouton sortait de la fenêtre.
+
+**Ce que ça coûte aujourd'hui.** `DialogueScreen.xaml` déclare `MinHeight="150"` et aucune `Height`, parce
+que le `Math.Clamp(Height ?? 0, MinHeight ?? 0, ...)` du constructeur atteint 150 par ce biais sans toucher à
+la taille préférée. Ça marche et c'est une **astuce** : rien dans le document ne dit qu'il s'agit d'une
+hauteur de départ, et le prochain qui écrira `Height="150"` par réflexe repassera par le même diagnostic.
+
+**Le correctif**, dans `MGWindow.ApplySizeToContent`, avant la mesure :
+
+```csharp
+if (Value is SizeToContent.Width or SizeToContent.WidthAndHeight)
+    PreferredWidth = null;
+if (Value is SizeToContent.Height or SizeToContent.WidthAndHeight)
+    PreferredHeight = null;
+```
+
+Demander à une fenêtre de se dimensionner sur son contenu dans une direction tout en lui tenant une taille
+préférée dans cette même direction est une contradiction : la demande explicite et postérieure doit gagner.
+
+**Ce que ça ne peut pas casser.** Cette combinaison ne fonctionne pas aujourd'hui — la fenêtre reste
+épinglée — donc rien ne peut en dépendre. Les autres appelants (`MGComboBox` pour sa liste déroulante,
+`MGContextMenu`, `MGDesktop`) construisent leurs fenêtres en code sans taille préférée : les deux lignes n'y
+font rien. `MGWindow` réapplique déjà les réglages mémorisés au changement de mise en page, ce qui reste
+cohérent.
+
+**Ce que ça gagne.** `SizeToContent="Height"` fait enfin ce qu'il annonce ; le `MinHeight` du dialogue
+redevient un `Height="150" SizeToContent="Height"` qui se lit ; et le contournement disparaît.
+
+**Portée à vérifier par la mesure.** Deux autres écrans déclarent `Height` puis plafonnent leur hauteur en
+C# : `DemoInfoScreen` (`Math.Min(440, viewport - 20)`) et `BlendingControlsScreen`
+(`Math.Min(560, viewport - 20)`). L'analyse dit que le plafond l'emporte — `MGElement.UpdateMeasurement`
+termine par un `Clamp` sur la place disponible, et le rectangle de mise en page d'une fenêtre est bâti sur
+`WindowWidth`/`WindowHeight`. **Cette conclusion n'a pas été observée.** Elle se vérifie en lançant une démo
+dans une vue de moins de 460 px de haut.
+
+---
+
+## Ce qui n'est **pas** un manque, et pourquoi
+
+Pour que la liste ci-dessus garde son sens, voici ce que la conversion a laissé en C# **sans** que ce soit
+une limite de MGUI :
+
+- **Les gestionnaires d'événements.** Le code les câble par décision (ADR-0035, D7), pas par impuissance.
+- **Les valeurs poussées à chaque image** — le compteur de temps, le titre de la démo courante. C'est la
+  définition même de la donnée.
+- **Les listes pilotées par les données**, comme le bouton par démo du navigateur. MGUI sait faire des
+  `ListBox` avec `ItemTemplate` ; c'est la règle « pas de binding en ligne » qui fait remplir le panneau au
+  code, et c'est un choix.
+- **Le fond du HUD de smoke.** Une autre partie du code lit la même constante ; deux sources de vérité
+  dériveraient. Décision, pas manque.
+
+---
+
+## ~~G4~~ — La garde de plage du `Slider` XAML lit `MaxHeight` au lieu de `Maximum` — **CORRIGÉ le 2026-09-20**
+
+> **Corrigé dans MGUI**, même branche. Un identifiant, pas une fonctionnalité.
+
+Dans `Slider.ApplyDerivedSettings` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`), la garde qui applique la plage
+lisait `MaxHeight` — une propriété de **mise en page** héritée d'`Element` — là où elle veut dire `Maximum` :
+
+```csharp
+if (Minimum.HasValue || MaxHeight.HasValue)   // devenu : || Maximum.HasValue
+{
+    Slider.SetRange(Minimum ?? Slider.Minimum, Maximum ?? Slider.Maximum);
+}
+```
+
+**Rectification d'une première affirmation.** Ce rapport disait d'abord qu'« un curseur déclarant `Maximum`
+sans `Minimum` voit son maximum ignoré en silence ». **C'est faux, et la mesure l'a montré** : deux tests
+écrits pour attraper ce cas sont passés *avant* le correctif. La raison est une ligne plus haut —
+`CreateElementInstance` fait `new MGSlider(Window, Minimum ?? 0, Maximum ?? 100, ...)`, donc le
+**constructeur** applique déjà la plage, et le `SetRange` de cette garde est redondant sur le chemin de
+chargement. La faute était donc **latente** : du code faux que rien ne révélait.
+
+Elle est corrigée quand même, et le fait qu'elle soit redondante est précisément ce qui rend le correctif
+sûr : au chargement, le comportement est identique au bit près. Seul un éventuel ré-appel d'
+`ApplyDerivedSettings` sur un curseur déjà construit en tirerait une différence — et ce chemin-là serait
+aujourd'hui le seul à perdre un `Maximum` déclaré seul.
+
+Les deux tests restent : ils épinglent qu'une plage déclarée est honorée, ce qui vaut d'être tenu, même s'ils
+ne distinguent pas l'avant de l'après.

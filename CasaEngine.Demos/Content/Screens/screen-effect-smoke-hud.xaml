@@ -1,0 +1,24 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="10" Top="10" Width="320" Height="110"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="8">
+
+  <!-- No Background here on purpose. This window's fill is the reference pixel the smoke samples to tell
+       the BelowUI layer from the AboveUI one, so it comes from ScreenEffectSmokeHudScreen.ReferenceColor,
+       which the check reads. A colour written in both places could drift apart in silence. -->
+
+  <StackPanel Orientation="Vertical" Spacing="4">
+
+    <TextBlock Name="lblTitle" Text="[b][color=black]Screen effect above-UI smoke[/color][/b]" />
+
+    <TextBlock Name="lblBelowUiHint" Text="[color=black]Press 1: alpha fade to black and back, BelowUI (default)[/color]" />
+
+    <TextBlock Name="lblAboveUiHint" Text="[color=black]Press 2: alpha fade to black and back, AboveUI[/color]" />
+
+    <TextBlock Name="lblExpectation"
+               Text="[color=darkgray]In AboveUI this window darkens with the scene.[/color]"
+               Margin="0,4,0,0" />
+
+  </StackPanel>
+</Window>

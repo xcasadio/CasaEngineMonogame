@@ -1,11 +1,6 @@
 using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
-using MGUI.Core.UI.Containers;
-using MonoGame.Extended;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -13,19 +8,21 @@ namespace CasaEngine.Demos.Demos;
 /// MGUI "Controls" panel reproducing the lil-gui panel of the three.js skeletal
 /// animation blending example. The panel only builds the widgets and raises events;
 /// all playback logic lives in <see cref="SkeletalAnimationBlendingDemo"/>.
+/// <para/>
+/// Its tree lives in `Content/Screens/blending-controls.xaml`: seven folders of fixed contents, none of it
+/// data-driven, placed and capped by the document too. What stays here is what every control does, and the
+/// two methods the demo calls back into.
 /// </summary>
-internal sealed class BlendingControlsScreen : UIScreenBase
+internal sealed class BlendingControlsScreen : XamlUIScreenBase
 {
-    private MGWindow? _window;
+    private MGSlider _idleWeightSlider;
+    private MGSlider _walkWeightSlider;
+    private MGSlider _runWeightSlider;
 
-    private MGSlider? _idleWeightSlider;
-    private MGSlider? _walkWeightSlider;
-    private MGSlider? _runWeightSlider;
-
-    private MGButton? _walkToIdleButton;
-    private MGButton? _idleToWalkButton;
-    private MGButton? _walkToRunButton;
-    private MGButton? _runToWalkButton;
+    private MGButton _walkToIdleButton;
+    private MGButton _idleToWalkButton;
+    private MGButton _walkToRunButton;
+    private MGButton _runToWalkButton;
 
     private bool _suppressWeightEvents;
 
@@ -64,114 +61,44 @@ internal sealed class BlendingControlsScreen : UIScreenBase
     // ---- General Speed ----
     public event Action<float>? TimeScaleChanged;
 
-    protected override void OnInitialize(UIRoot root)
+    public BlendingControlsScreen()
+        : base(DemoScreenXaml.Source("blending-controls.xaml"))
     {
-        var bounds = root.Desktop.ValidScreenBounds;
-        int winW = 320;
-        int winH = Math.Min(560, bounds.Height - 20);
-        int x = bounds.Width - winW - 10;
-        int y = 10;
-
-        _window = new MGWindow(root.Desktop, x, y, winW, winH)
-        {
-            TitleText = "Controls",
-            IsUserResizable = false,
-        };
-        _window.Padding = new Thickness(6);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(0, 0, 0, 205));
-
-        var scroll = new MGScrollViewer(_window);
-        var outer = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 4 };
-
-        outer.TryAddChild(BuildVisibilityFolder());
-        outer.TryAddChild(BuildFootLockFolder());
-        outer.TryAddChild(BuildActivationFolder());
-        outer.TryAddChild(BuildPausingFolder());
-        outer.TryAddChild(BuildCrossfadingFolder());
-        outer.TryAddChild(BuildBlendWeightsFolder());
-        outer.TryAddChild(BuildSpeedFolder());
-
-        scroll.SetContent(outer);
-        _window.SetContent(scroll);
     }
 
-    // ---- Folders ----
-
-    private MGExpander BuildVisibilityFolder()
+    protected override void OnWindowLoaded(MGWindow window)
     {
-        var content = NewFolderContent();
-        content.TryAddChild(NewCheckBox("show model", true, isChecked => ShowModelChanged?.Invoke(isChecked)));
-        content.TryAddChild(NewCheckBox("show skeleton", false, isChecked => ShowSkeletonChanged?.Invoke(isChecked)));
-        return NewFolder("Visibility", content);
-    }
+        BindCheckBox("chkShowModel", isChecked => ShowModelChanged?.Invoke(isChecked));
+        BindCheckBox("chkShowSkeleton", isChecked => ShowSkeletonChanged?.Invoke(isChecked));
+        BindCheckBox("chkFootLock", isChecked => FootLockChanged?.Invoke(isChecked));
+        BindCheckBox("chkUseDefaultDuration", isChecked => UseDefaultDurationChanged?.Invoke(isChecked));
 
-    private MGExpander BuildFootLockFolder()
-    {
-        var content = NewFolderContent();
-        content.TryAddChild(NewCheckBox("foot lock", false, isChecked => FootLockChanged?.Invoke(isChecked)));
-        return NewFolder("Foot Lock", content);
-    }
+        BindButton("btnDeactivateAll", () => DeactivateAllRequested?.Invoke());
+        BindButton("btnActivateAll", () => ActivateAllRequested?.Invoke());
+        BindButton("btnPauseContinue", () => PauseContinueRequested?.Invoke());
+        BindButton("btnSingleStep", () => SingleStepRequested?.Invoke());
 
-    private MGExpander BuildActivationFolder()
-    {
-        var content = NewFolderContent();
-        content.TryAddChild(NewButton("deactivate all", () => DeactivateAllRequested?.Invoke()));
-        content.TryAddChild(NewButton("activate all", () => ActivateAllRequested?.Invoke()));
-        return NewFolder("Activation/Deactivation", content);
-    }
+        _walkToIdleButton = BindButton("btnWalkToIdle", () => WalkToIdleRequested?.Invoke());
+        _idleToWalkButton = BindButton("btnIdleToWalk", () => IdleToWalkRequested?.Invoke());
+        _walkToRunButton = BindButton("btnWalkToRun", () => WalkToRunRequested?.Invoke());
+        _runToWalkButton = BindButton("btnRunToWalk", () => RunToWalkRequested?.Invoke());
 
-    private MGExpander BuildPausingFolder()
-    {
-        var content = NewFolderContent();
-        content.TryAddChild(NewButton("pause/continue", () => PauseContinueRequested?.Invoke()));
-        content.TryAddChild(NewButton("make single step", () => SingleStepRequested?.Invoke()));
-        content.TryAddChild(NewSliderRow("modify step size", 0.01f, 0.1f, 0.05f, "F3",
-            value => StepSizeChanged?.Invoke(value)));
-        return NewFolder("Pausing/Stepping", content);
-    }
+        BindSlider("sldStepSize", value => StepSizeChanged?.Invoke(value));
+        BindSlider("sldCustomDuration", value => CustomDurationChanged?.Invoke(value));
+        BindSlider("sldTimeScale", value => TimeScaleChanged?.Invoke(value));
 
-    private MGExpander BuildCrossfadingFolder()
-    {
-        var content = NewFolderContent();
-        _walkToIdleButton = NewButton("from walk to idle", () => WalkToIdleRequested?.Invoke());
-        _idleToWalkButton = NewButton("from idle to walk", () => IdleToWalkRequested?.Invoke());
-        _walkToRunButton = NewButton("from walk to run", () => WalkToRunRequested?.Invoke());
-        _runToWalkButton = NewButton("from run to walk", () => RunToWalkRequested?.Invoke());
-        content.TryAddChild(_walkToIdleButton);
-        content.TryAddChild(_idleToWalkButton);
-        content.TryAddChild(_walkToRunButton);
-        content.TryAddChild(_runToWalkButton);
-        content.TryAddChild(NewCheckBox("use default duration", true,
-            isChecked => UseDefaultDurationChanged?.Invoke(isChecked)));
-        content.TryAddChild(NewSliderRow("set custom duration", 0f, 10f, 3.5f, "F2",
-            value => CustomDurationChanged?.Invoke(value)));
-        return NewFolder("Crossfading", content);
-    }
-
-    private MGExpander BuildBlendWeightsFolder()
-    {
-        var content = NewFolderContent();
-        _idleWeightSlider = AddWeightSlider(content, "modify idle weight", 0f, value =>
+        _idleWeightSlider = BindSlider("sldIdleWeight", value =>
         {
             if (!_suppressWeightEvents) IdleWeightChanged?.Invoke(value);
         });
-        _walkWeightSlider = AddWeightSlider(content, "modify walk weight", 1f, value =>
+        _walkWeightSlider = BindSlider("sldWalkWeight", value =>
         {
             if (!_suppressWeightEvents) WalkWeightChanged?.Invoke(value);
         });
-        _runWeightSlider = AddWeightSlider(content, "modify run weight", 0f, value =>
+        _runWeightSlider = BindSlider("sldRunWeight", value =>
         {
             if (!_suppressWeightEvents) RunWeightChanged?.Invoke(value);
         });
-        return NewFolder("Blend Weights", content);
-    }
-
-    private MGExpander BuildSpeedFolder()
-    {
-        var content = NewFolderContent();
-        content.TryAddChild(NewSliderRow("modify time scale", 0f, 1.5f, 1f, "F2",
-            value => TimeScaleChanged?.Invoke(value)));
-        return NewFolder("General Speed", content);
     }
 
     // ---- External updates ----
@@ -181,9 +108,9 @@ internal sealed class BlendingControlsScreen : UIScreenBase
     public void SetWeightDisplays(float idle, float walk, float run)
     {
         _suppressWeightEvents = true;
-        if (_idleWeightSlider != null) _idleWeightSlider.SetValue(idle);
-        if (_walkWeightSlider != null) _walkWeightSlider.SetValue(walk);
-        if (_runWeightSlider != null) _runWeightSlider.SetValue(run);
+        _idleWeightSlider.SetValue(idle);
+        _walkWeightSlider.SetValue(walk);
+        _runWeightSlider.SetValue(run);
         _suppressWeightEvents = false;
     }
 
@@ -191,89 +118,32 @@ internal sealed class BlendingControlsScreen : UIScreenBase
     /// three.js updateCrossFadeControls).</summary>
     public void SetCrossFadeButtonsEnabled(bool walkToIdle, bool idleToWalk, bool walkToRun, bool runToWalk)
     {
-        if (_walkToIdleButton != null) _walkToIdleButton.IsEnabled = walkToIdle;
-        if (_idleToWalkButton != null) _idleToWalkButton.IsEnabled = idleToWalk;
-        if (_walkToRunButton != null) _walkToRunButton.IsEnabled = walkToRun;
-        if (_runToWalkButton != null) _runToWalkButton.IsEnabled = runToWalk;
+        _walkToIdleButton.IsEnabled = walkToIdle;
+        _idleToWalkButton.IsEnabled = idleToWalk;
+        _walkToRunButton.IsEnabled = walkToRun;
+        _runToWalkButton.IsEnabled = runToWalk;
     }
 
-    // ---- Widget helpers ----
+    // ---- Wiring ----
 
-    private MGExpander NewFolder(string header, MGStackPanel content)
+    private MGButton BindButton(string name, Action onClick)
     {
-        var expander = new MGExpander(_window!)
-        {
-            IsExpanded = true,
-            Header = new MGTextBlock(_window!, $"[b][color=white]{header}[/color][/b]")
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-            },
-        };
-        expander.Margin = new Thickness(0, 0, 0, 2);
-        expander.SetContent(content);
-        return expander;
-    }
-
-    private MGStackPanel NewFolderContent()
-    {
-        return new MGStackPanel(_window!, Orientation.Vertical)
-        {
-            Spacing = 3,
-            Margin = new Thickness(8, 2, 2, 4),
-        };
-    }
-
-    private MGButton NewButton(string label, Action onClick)
-    {
-        var button = new MGButton(_window!, _ => onClick());
-        button.SetContent(new MGTextBlock(_window!, $"[color=yellow]{label}[/color]"));
-        button.HorizontalAlignment = HorizontalAlignment.Stretch;
+        var button = FindControl<MGButton>(name);
+        button.AddCommandHandler((_, _) => onClick());
         return button;
     }
 
-    private MGCheckBox NewCheckBox(string label, bool isChecked, Action<bool> onChanged)
+    private void BindCheckBox(string name, Action<bool> onChanged)
     {
-        var checkBox = new MGCheckBox(_window!, isChecked);
-        checkBox.SetContent(new MGTextBlock(_window!, $"[color=lightgray]{label}[/color]"));
+        var checkBox = FindControl<MGCheckBox>(name);
         checkBox.OnCheckStateChanged += (_, e) => onChanged(e.NewValue ?? false);
-        return checkBox;
     }
 
-    private MGStackPanel NewSliderRow(string label, float min, float max, float value, string format, Action<float> onChanged)
+    /// <summary>Subscribes a slider. Its range, starting value and value label are all in the markup.</summary>
+    private MGSlider BindSlider(string name, Action<float> onChanged)
     {
-        var row = new MGStackPanel(_window!, Orientation.Vertical) { Spacing = 1 };
-        row.TryAddChild(new MGTextBlock(_window!, $"[color=lightgray]{label}[/color]"));
-        var slider = new MGSlider(_window!, min, max, value)
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            MinWidth = 200,
-            ShowValueLabel = true,
-            ValueLabelFormat = format,
-        };
+        var slider = FindControl<MGSlider>(name);
         slider.ValueChanged += (_, e) => onChanged(e.NewValue);
-        row.TryAddChild(slider);
-        return row;
-    }
-
-    private MGSlider AddWeightSlider(MGStackPanel content, string label, float value, Action<float> onChanged)
-    {
-        var row = new MGStackPanel(_window!, Orientation.Vertical) { Spacing = 1 };
-        row.TryAddChild(new MGTextBlock(_window!, $"[color=lightgray]{label}[/color]"));
-        var slider = new MGSlider(_window!, 0f, 1f, value)
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            MinWidth = 200,
-            ShowValueLabel = true,
-            ValueLabelFormat = "F2",
-        };
-        slider.ValueChanged += (_, e) => onChanged(e.NewValue);
-        row.TryAddChild(slider);
-        content.TryAddChild(row);
         return slider;
-    }
-
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null) yield return _window;
     }
 }

@@ -1,0 +1,20 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Width="380" Height="180"
+        ScreenHorizontalAlignment="Center" ScreenVerticalAlignment="Center"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="24"
+        Background="rgba(5,0,0,230)">
+
+  <StackPanel Orientation="Vertical" Spacing="18">
+
+    <TextBlock Name="lblGameOver"
+               Text="[b][color=red]GAME OVER[/color][/b]"
+               HorizontalAlignment="Center" />
+
+    <Button Name="btnReturnToTitle" HorizontalAlignment="Center">
+      <TextBlock Text="[color=lightgray]Return to Title[/color]" />
+    </Button>
+
+  </StackPanel>
+</Window>

@@ -1137,20 +1137,20 @@
       "file_name": "Screens\\MainHUD\\link_hud_portrait.sprite"
     },
     {
-      "id": "d73de0f6-8fd9-4491-9b56-712fa75c1cf7",
-      "file_name": "Screens\\MainHUD\\MainHUD.screen"
+      "id": "9a7c3f18-4e62-4d05-b3a9-2f81c50e7d64",
+      "file_name": "Screens\\MainHUD\\MainHUD.uiscreen"
     },
     {
-      "id": "85745e0e-3f97-4126-9c82-da65d483999a",
-      "file_name": "Screens\\TitleScreen\\TitleScreen.screen"
+      "id": "2c9f41ab-57d0-4e62-9a18-5b6c0d3f8e71",
+      "file_name": "Screens\\TitleScreen\\TitleScreen.uiscreen"
+    },
+    {
+      "id": "6e4b82d5-1a37-4c90-8f25-7d9e0a4b6c13",
+      "file_name": "Screens\\GameOver\\GameOverScreen.uiscreen"
     },
     {
       "id": "faf1033d-2dfc-4d70-bc8b-333e9e6b6d3d",
       "file_name": "TitleScreenWorld.world"
-    },
-    {
-      "id": "37d88f5f-f1d5-4e65-b7a4-edba40da0aaf",
-      "file_name": "Screens\\GameOver\\GameOverScreen.screen"
     },
     {
       "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",

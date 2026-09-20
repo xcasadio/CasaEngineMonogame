@@ -1,0 +1,25 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Width="320" Height="200"
+        ScreenHorizontalAlignment="Center" ScreenVerticalAlignment="Center"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="20"
+        Background="rgba(10,10,30,220)">
+
+  <StackPanel Orientation="Vertical" Spacing="14">
+
+    <TextBlock Name="lblTitle"
+               Text="[b][color=white][b]RPG Demo[/b][/color][/b]"
+               HorizontalAlignment="Center" />
+
+    <!-- Named after the legacy screen's own buttons, so the original intent stays readable. -->
+    <Button Name="ButtonStartGame" Margin="0,20,0,0" HorizontalAlignment="Center">
+      <TextBlock Text="[color=lightgray]Start Game[/color]" />
+    </Button>
+
+    <Button Name="ButtonExit" Margin="0,4,0,0" HorizontalAlignment="Center">
+      <TextBlock Text="[color=lightgray]Exit[/color]" />
+    </Button>
+
+  </StackPanel>
+</Window>

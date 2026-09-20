@@ -12,10 +12,14 @@ Every UI screen is represented by two files:
 
 | File | Purpose |
 |------|---------|
-| `*.screen` | JSON asset descriptor (name, id, source reference) |
+| `*.uiscreen` | JSON asset descriptor (name, id, source reference), catalogue type `uiscreen` |
 | `*.xaml` | MGUI XAML markup defining the visual tree |
 
-The `.screen` file must contain:
+> **Not to be confused with `*.screen`.** That extension belongs to a different, legacy format from an older
+> widget toolkit — an entity envelope plus a flat list of absolutely positioned widgets. No code reads it.
+> See ADR-0035.
+
+The `.uiscreen` file must contain:
 
 ```json
 {
@@ -26,8 +30,11 @@ The `.screen` file must contain:
 ```
 
 The `source_xaml_file` path may be:
-- Relative to the `.screen` file (preferred), or
+- Absolute, or
+- Relative to the `.uiscreen` file (preferred), or
 - Relative to the project root (`EngineEnvironment.ProjectPath`).
+
+Each candidate must exist on disk to be used; when none does, loading fails and names every path it tried.
 
 ---
 
@@ -35,7 +42,7 @@ The `source_xaml_file` path may be:
 
 ### Assets and files
 - Screen asset name: `PascalCase` without spaces (e.g. `MainMenu`, `InventoryHUD`, `PauseMenu`).
-- File names match the asset name plus extension (e.g. `MainMenu.screen`, `MainMenu.xaml`).
+- File names match the asset name plus extension (e.g. `MainMenu.uiscreen`, `MainMenu.xaml`).
 - Store screens under `Content/Screens/` or a sub-folder that mirrors their category.
 
 ### XAML control names
@@ -88,6 +95,40 @@ The `source_xaml_file` path may be:
 
 At runtime, bind dynamic data explicitly in code rather than inline XAML binding syntax (MGUI uses code-behind for most data updates).
 
+### Loading a screen at runtime
+
+Derive from `XamlUIScreenBase` (`CasaEngine/Framework/UI/`). It loads the document, then calls
+`OnWindowLoaded` once so the screen can find its controls and keep them in fields. Never look a control up by
+name from `Update` — that runs every frame.
+
+```csharp
+internal sealed class ScoreScreen : XamlUIScreenBase
+{
+    private MGTextBlock _score;
+
+    public override UILayer Layer => UILayer.HUD;
+
+    public ScoreScreen(UIScreenAsset asset, string assetFilePath)
+        : base(asset, assetFilePath) { }
+
+    protected override void OnWindowLoaded(MGWindow window)
+        => _score = FindControl<MGTextBlock>("lblScore");
+
+    public override void Update(GameTime gameTime)
+        => _score.Text = Game.Score.ToString();
+}
+```
+
+A screen with no catalogued asset passes a `XamlDocumentSource` instead. `FindControl<T>` throws — naming the
+control and the document — when the name is absent or belongs to another kind of control, rather than handing
+back a null that is tripped over later.
+
+The window comes back **unregistered**: `ScreenStack` adds it to the desktop on push and removes it on pop.
+
+Parsing runs in `XamlLoaderMode.Strict`, which is **stricter than the editor's preview** — the preview parses
+in `Compatibility`, where no validation runs. A document the editor previews happily can still be refused at
+runtime, for an unknown element or a name declared twice. See ADR-0035.
+
 At design time (`UIDesignModeContext.IsDesignTime == true`):
 - The preview builder injects placeholder values from `UIScreenMockDataContext`.
 - Name controls meaningfully so the mock system can select relevant placeholder text:
@@ -113,8 +154,8 @@ Place each category in a matching sub-directory under `Content/Screens/`.
 
 ## 8. Editor Workflow
 
-1. Right-click in Content Browser → **New › UIScreen** to create the paired `.screen` + `.xaml` files.
-2. Double-click the `.screen` file to open it in the screen editor.
+1. Right-click in Content Browser → **New › UIScreen** to create the paired `.uiscreen` + `.xaml` files.
+2. Double-click the `.uiscreen` file to open it in the screen editor.
 3. Use the **Toolbox** to drag controls into the hierarchy.
 4. Edit properties in the **Properties** panel.
 5. Adjust visual position with the drag handles in the preview surface.

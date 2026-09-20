@@ -1,0 +1,8 @@
+{
+  "id": "6e4b82d5-1a37-4c90-8f25-7d9e0a4b6c13",
+  "name": "GameOverScreen",
+  "source_xaml_file": "GameOverScreen.xaml",
+  "theme_name": "",
+  "preview_resolution": { "x": 1280, "y": 720 },
+  "resource_files": []
+}
