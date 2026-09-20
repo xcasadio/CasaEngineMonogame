@@ -16,14 +16,23 @@
 #begin AssetInfos.json
 /copy:AssetInfos.json
 
+#begin Audio/menu_click.sound
+/copy:Audio/menu_click.sound
+
+#begin Audio/menu_screenclick.wav
+/copy:Audio/menu_screenclick.wav
+
+#begin Audio/racing_game_music_1.wav
+/copy:Audio/racing_game_music_1.wav
+
+#begin Audio/racing_game_music_pitched.sound
+/copy:Audio/racing_game_music_pitched.sound
+
+#begin Audio/racing_game_music.sound
+/copy:Audio/racing_game_music.sound
+
 #begin checkboard.png
 /copy:checkboard.png
-
-#begin Textures/soft_particle.png
-/copy:Textures/soft_particle.png
-
-#begin Textures/soft_particle.texture
-/copy:Textures/soft_particle.texture
 
 #begin Maps/map_1_1.tileMap
 /copy:Maps/map_1_1.tileMap
@@ -85,17 +94,23 @@
 #begin SkinnedMesh/kid_walk.glb
 /copy:SkinnedMesh/kid_walk.glb
 
-#begin SkinnedMesh/Soldier.glb
-/copy:SkinnedMesh/Soldier.glb
-
 #begin SkinnedMesh/KidBodyNormalMap.png
 /copy:SkinnedMesh/KidBodyNormalMap.png
 
 #begin SkinnedMesh/pants.png
 /copy:SkinnedMesh/pants.png
 
+#begin SkinnedMesh/Soldier.glb
+/copy:SkinnedMesh/Soldier.glb
+
 #begin SkinnedMesh/upBodyC.png
 /copy:SkinnedMesh/upBodyC.png
+
+#begin Textures/soft_particle.png
+/copy:Textures/soft_particle.png
+
+#begin Textures/soft_particle.texture
+/copy:Textures/soft_particle.texture
 
 #begin TileSets/baton_attack_down.anim2d
 /copy:TileSets/baton_attack_down.anim2d
@@ -583,6 +598,42 @@
 #begin TileSets/rock.json
 /copy:TileSets/rock.json
 
+#begin TileSets/smoke_ring_0.sprite
+/copy:TileSets/smoke_ring_0.sprite
+
+#begin TileSets/smoke_ring_1.sprite
+/copy:TileSets/smoke_ring_1.sprite
+
+#begin TileSets/smoke_ring_2.sprite
+/copy:TileSets/smoke_ring_2.sprite
+
+#begin TileSets/smoke_ring_3.sprite
+/copy:TileSets/smoke_ring_3.sprite
+
+#begin TileSets/smoke_ring_4.sprite
+/copy:TileSets/smoke_ring_4.sprite
+
+#begin TileSets/smoke_ring_5.sprite
+/copy:TileSets/smoke_ring_5.sprite
+
+#begin TileSets/smoke_ring_6.sprite
+/copy:TileSets/smoke_ring_6.sprite
+
+#begin TileSets/smoke_ring_7.sprite
+/copy:TileSets/smoke_ring_7.sprite
+
+#begin TileSets/smoke_ring_8.sprite
+/copy:TileSets/smoke_ring_8.sprite
+
+#begin TileSets/smoke_ring.anim2d
+/copy:TileSets/smoke_ring.anim2d
+
+#begin TileSets/smoke_ring.png
+/copy:TileSets/smoke_ring.png
+
+#begin TileSets/smoke_ring.texture
+/copy:TileSets/smoke_ring.texture
+
 #begin TileSets/sword_0.sprite
 /copy:TileSets/sword_0.sprite
 
@@ -883,17 +934,3 @@
 #begin TileSets/swordman_walk_up.anim2d
 /copy:TileSets/swordman_walk_up.anim2d
 
-#begin Audio/menu_screenclick.wav
-/copy:Audio/menu_screenclick.wav
-
-#begin Audio/racing_game_music_1.wav
-/copy:Audio/racing_game_music_1.wav
-
-#begin Audio/menu_click.sound
-/copy:Audio/menu_click.sound
-
-#begin Audio/racing_game_music.sound
-/copy:Audio/racing_game_music.sound
-
-#begin Audio/racing_game_music_pitched.sound
-/copy:Audio/racing_game_music_pitched.sound
