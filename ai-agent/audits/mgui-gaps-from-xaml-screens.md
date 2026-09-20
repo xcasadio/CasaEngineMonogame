@@ -137,6 +137,16 @@ de nouvelles propriétés s'ajoutent à côté. Le second chemin est additif et 
 **Au minimum, et sans rien changer :** que `Width`/`Height` sur un `Window` soient documentés comme fixant
 aussi la taille préférée. Le piège est entièrement silencieux aujourd'hui.
 
+**Sa portée est plus large que le seul cas qui l'a révélé.** Il a été trouvé sur `DialogueScreen`, où il
+neutralisait `ApplySizeToContent`. Mais **deux autres écrans déclarent `Height` en XAML et plafonnent
+ensuite leur hauteur en C#** : `DemoInfoScreen` (`Math.Min(440, viewport - 20)`) et
+`BlendingControlsScreen` (`Math.Min(560, viewport - 20)`). L'analyse dit que le plafond l'emporte —
+`MGElement.UpdateMeasurement` termine par un `Clamp` sur la place disponible, et le rectangle de mise en page
+d'une fenêtre est bâti sur `WindowWidth`/`WindowHeight`, pas sur sa taille préférée. **Cette conclusion est
+analytique, pas observée.** Elle se vérifie en une fois : lancer une démo dans une vue de moins de 460 px de
+haut et regarder si le navigateur de démos est rogné. Tant que ce n'est pas fait, c'est le seul endroit du
+chantier où le raisonnement remplace la mesure.
+
 ---
 
 ## Ce qui n'est **pas** un manque, et pourquoi

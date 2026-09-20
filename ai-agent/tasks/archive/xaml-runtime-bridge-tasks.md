@@ -628,7 +628,7 @@ dialogue, ce sera un constructeur de plus.
 
 ## Phase 5 — Clôture
 
-### ⏳ T5.1 — Vérification et archivage
+### ✅ T5.1 — Vérification et archivage
 
 - Objectif : fermer le chantier avec une preuve, pas avec une impression.
 - Étapes :
@@ -676,3 +676,58 @@ dialogue, ce sera un constructeur de plus.
   contente de ne pas en dépendre.
 - **La syntaxe de binding en ligne dans le XAML.** Écartée par D7 et par le §6 du document de conventions.
 - **`PreviewResolution`.** Reste une donnée d'éditeur (D6).
+
+---
+
+## Clôture du chantier — 2026-09-20
+
+**Verdict de vérification indépendante : `CONFIRMED`**, sur la revendication complète en quatre parties.
+**Aucun constat P0, P1 ni P2.** Sept avis P4.
+
+### Ce qui a été livré
+
+Treize commits sur `chantier/xaml-runtime-bridge`, depuis `main` (`994c4975`), **non poussés**.
+
+- **Le pont** : `UIScreenLoader` (deux portes, `Strict`, erreurs portant le fichier et la position) et
+  `XamlUIScreenBase` (couture `MGDesktop`, `FindControl<T>` qui distingue un nom absent d'un mauvais type).
+- **Les dix écrans du dépôt** déclarent leur arbre en XAML. `grep "new MGWindow("` sur `CasaEngine/`,
+  `CasaEngine.Demos/` et `Projects/` ne rend **plus rien** : aucun code runtime ne construit de fenêtre.
+- **L'éditeur** gagne la route de document `.uiscreen` qui lui manquait, et **les quatre `.screen` hérités**
+  sont relevés puis supprimés.
+- **ADR-0035**, la documentation des conventions corrigée, et
+  [le rapport des manques de MGUI](../audits/mgui-gaps-from-xaml-screens.md).
+
+**Suite : 1687 tests, 1686 verts**, quatre exécutions identiques. Le seul échec est celui de la ligne de
+base. **+54 tests, 0 régression** — recoupé par le vérificateur sans changer de branche : 1687 − 54 = 1633,
+la ligne de base mesurée au début.
+
+### Dispositions des sept avis
+
+| Avis | Disposition |
+|---|---|
+| **A1** — `Width`/`Height` épinglent aussi la taille préférée, et deux écrans en plus du dialogue en dépendent | **FIX partiel.** Le rapport G3 élargi : sa portée dépasse le cas qui l'a révélé. Le vérificateur conclut par analyse que le plafond l'emporte sur ces deux écrans ; **la mesure manque**. Ajouté au smoke : une vue de moins de 460 px de haut. |
+| **A2** — le clic passe de `Command` à `AddCommandHandler` | **REPORTÉ, avec la raison.** Sémantique réellement différente : `Command` est sauté quand le relâchement est déjà traité et sur un bouton à répétition. Aucun bouton migré n'est à répétition et rien ne traite leur relâchement avant, donc le comportement est identique **aujourd'hui**. À savoir si un bouton à répétition apparaît. |
+| **A3** — `TitleText = string.Empty` non repris sur six fenêtres | **REJETÉ, avec preuve.** Les six ont `IsTitleBarVisible="False"` : rien n'est rendu. |
+| **A4** — les boutons du navigateur perdent une `Margin` nulle | **REJETÉ.** `MGElement` a déjà une marge nulle par défaut et aucun thème n'en pose sur un bouton. Le `Padding(4,2,4,2)`, lui, est conservé. |
+| **A5** — `Background` en XAML écrit aussi l'emplacement « focalisé » | **REJETÉ, avec preuve.** Le thème intégré ne définit pas de pinceau focalisé pour un `Window` : il n'y a rien à masquer. |
+| **A6** — gardes nulles retirées dans deux `Update` | **REJETÉ.** Vérifié, pas supposé : `ScreenStack.Push` initialise avant que l'écran puisse être mis à jour. |
+| **A7** — une entrée du catalogue RPGDemo réordonnée | **REJETÉ.** Cosmétique ; l'identifiant du monde est préservé et la résolution par nom est vérifiée. |
+
+### Ce qui reste à faire par l'auteur
+
+Tout est en 🧪 plutôt qu'en ✅ : **aucune de ces vérifications ne passe par la suite de tests.**
+
+1. Double-clic sur un `.uiscreen` du projet d'échantillon dans l'éditeur d'écrans (T0.4).
+2. RPGDemo et le projet d'échantillon se chargent sans avertissement de catalogue (T0.5).
+3. Les six écrans de démo et les trois de RPGDemo, à l'œil : mêmes fonds, mêmes positions, mêmes actions.
+4. **Une vue de moins de 460 px de haut**, pour clore A1 par la mesure.
+
+### Points ouverts reportés
+
+- **O4** — `ResourceFiles` n'a aucun consommateur ; sémantique non inventée, champ hors périmètre.
+- **O6** — la constante `FileNameExtensions.Screen` et sa route ne correspondent plus à rien. Les retirer est
+  une rupture d'API publique : décision de l'auteur.
+- **O7** — cinq copies du harnais headless et trois de `FindRepositoryRoot` dans le projet de tests. Les
+  faire converger est un refactor de fichiers existants, hors périmètre.
+- **Les trois manques de MGUI** (G1, G2, G3) du rapport. Deux contournements documentés vivent dans le code
+  à cause d'eux : les formats des curseurs en C#, et le `MinHeight` du dialogue.
