@@ -148,11 +148,14 @@ première tâche. Rappel permanent : `CasaEngine.Launcher/Program.cs` ne doit ja
 
 ## Validation globale
 
-- `dotnet build CasaEngine.MonoGame.sln` : succès, zéro nouvel avertissement.
-- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : la ligne de base est **verte** depuis le
-  2026-09-06, à un échec préexistant près
-  (`EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`). Tout autre échec
-  est une régression de ce chantier.
+- `dotnet build CasaEngine.MonoGame.sln` : succès, zéro erreur. **Mesuré sur cette branche le 2026-09-20 :
+  0 erreur, 144 avertissements préexistants.** Tout avertissement supplémentaire est à justifier.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` — **ligne de base mesurée sur cette branche le
+  2026-09-20 : 1633 tests, 1632 verts, 1 échec préexistant**
+  (`EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars`, attend `Collapsed`
+  et obtient `Hidden`). Tout autre échec est une régression de ce chantier. Le compte diffère de celui du
+  chantier `effet-ecran-alpha` (1642) parce que cette branche part de `main`, qui n'a pas encore ses tests.
+  Rappel : le `.sln` n'inclut pas `CasaEngine.Tests`, donc builder ce projet avant tout `--no-build`.
 - Smoke manuel : chaque écran migré doit être lancé et comparé à son rendu d'avant. Les démos se lancent
   **depuis `CasaEngine.Demos/`** et non depuis `bin/`, sinon la racine de contenu est incomplète.
 
@@ -160,7 +163,7 @@ première tâche. Rappel permanent : `CasaEngine.Launcher/Program.cs` ne doit ja
 
 ## Phase 0 — Le pont
 
-### ⏳ T0.1 — Le chargeur d'écran XAML runtime
+### ✅ T0.1 — Le chargeur d'écran XAML runtime
 
 - Objectif : une seule classe qui, depuis un `UIScreenAsset` ou un `XamlDocumentSource`, rend un `MGWindow`
   prêt à l'emploi, avec des erreurs qui nomment le fichier fautif.
@@ -184,6 +187,29 @@ première tâche. Rappel permanent : `CasaEngine.Launcher/Program.cs` ne doit ja
   avec le chemin dans le message ; un `Name` dupliqué que `Strict` refuse ; un `ThemeName` inconnu qui ne fait
   pas échouer le chargement. Build + suite complète verts.
 - Commit : `feat(ui): load MGUI screens from XAML at runtime`
+
+**Validation exécutée le 2026-09-20.** `dotnet build CasaEngine.MonoGame.sln` : 0 erreur. Suite complète :
+**1646 tests, 1645 verts**, seul échec l'échec préexistant de la ligne de base. **+13 tests, 0 régression.**
+
+Trois choses que l'exécution a apprises, au-delà du plan :
+
+1. **O1 est répondu, et la réponse impose la signature.** Rien ne renseigne de chemin sur un `UIScreenAsset`
+   au chargement : les trois appelants existants (`UIScreenPreviewPanel.cs:610-621`,
+   `UIScreenEditorSession.cs:153-160`, `GameEditor.cs:5053-5080`) le construisent à la main et posent
+   `FileName` eux-mêmes, et **aucun** ne passe par `AssetContentManager`, bien que le type y soit enregistré.
+   `assetFilePath` est donc un paramètre, pas une lecture de l'asset.
+2. **Le `catch` du chargeur couvre une vraie faille, et ce n'est pas une précaution théorique.** Construire
+   l'arbre et l'attacher sont deux étapes ; `ParseWindowDefinition` est enveloppé par
+   `XamlLoaderDiagnostics.Execute`, mais `Parsed.ToElement(Desktop)` ne l'est pas
+   (`XAMLParser.cs:491-496`). Vérifié par une sonde jetable : pour un nom qu'un `ItemTemplate` clone,
+   `LoadRootWindow` lève un `MGDuplicateElementNameException` **nu**, sans fichier ni position. Le chargeur le
+   redécrit en `XamlLoaderException` portant le diagnostic. Un test dédié le prouve, et il échouerait si le
+   `catch` disparaissait.
+3. **Le harnais headless est partagé, pas recopié.** Le dépôt avait déjà **quatre** copies privées du même
+   bloc de stubs (`DialogueScreenLayoutTests`, `ContentBrowserViewTestHarness`, `GridViewVirtualizationTests`,
+   `EditorControlTemplateAssetLoadingTests`). Ce chantier migre dix écrans : plutôt qu'une cinquième copie
+   privée, `CasaEngine.Tests/UI/HeadlessUiTestHarness.cs` est créé en **fichier neuf**, sans toucher aux
+   quatre existants. Les regrouper serait un refactor hors périmètre, noté en O7.
 
 ### ⏳ T0.2 — Le socle d'écran XAML
 
@@ -393,6 +419,7 @@ par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
+| O7 | **Faut-il regrouper les cinq harnais headless du projet de tests ?** `CasaEngine.Tests` porte désormais cinq blocs de stubs MGUI quasi identiques : les quatre préexistants (`DialogueScreenLayoutTests`, `ContentBrowserViewTestHarness`, `GridViewVirtualizationTests`, `EditorControlTemplateAssetLoadingTests`) plus `HeadlessUiTestHarness`, créé par T0.1 pour que ce chantier n'en ajoute pas dix. Faire converger les quatre premiers vers le nouveau serait un refactor de fichiers hors périmètre : à proposer à l'auteur, pas à décider. | T5.1 |
 | O6 | **La constante `FileNameExtensions.Screen` et sa route survivent-elles à T0.5 ?** Après la suppression des quatre fichiers, la route `.screen` (`GameEditor.cs:3914`) ne correspond plus à rien : elle exige `source_xaml_file`, qu'aucun `.screen` n'a jamais porté. Les retirer serait une rupture d'API publique (`AGENTS.md` §9.8), donc ce chantier ne le fait pas. À signaler à l'auteur à la clôture, comme nettoyage possible. | T5.1 |
 | ~~O5~~ | ~~**Que deviennent les quatre `.screen` hérités ?**~~ **Tranché le 2026-09-20 : supprimés, non convertis. Voir D12 et T0.5.** | closed |
 | ~~O0~~ | ~~**Quelle extension porte l'enveloppe d'un écran XAML ?**~~ **Tranché le 2026-09-20 : `.uiscreen`, avec ajout de la route manquante. Voir D11 et T0.4.** Pour mémoire, la contradiction mesurée : La contradiction passe entre deux étages de l'éditeur, pas entre le code et les données. La **route de document** est clavetée sur `.screen` (`GameEditor.cs:3914` + `Constants.cs:20`) et reconnaît le format en cherchant `source_xaml_file` (`:5053-5071`), sans aucune route pour `.uiscreen`. Mais la **session d'édition** est testée exclusivement avec des `.uiscreen` (`CasaEngine.Tests/ScreenEditor/UIScreenEditorSessionTests.cs:28,42,76,93,125,137,156,165`), le catalogue aussi (`AssetCatalogTests.cs:19,42,46`, `EditorAssetCatalogServiceTests.cs:57,74`), et le projet d'échantillon livre cinq `.uiscreen` catalogués `"asset_type": "uiscreen"` (`AssetInfos.json:6-7`). Conséquence, que T0.4 corrige : les `.uiscreen` du projet d'échantillon n'étaient pas ouvrables par double-clic dans l'éditeur, faute de route, alors que tout le reste de la chaîne les accepte. | closed |
