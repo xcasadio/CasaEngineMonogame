@@ -211,7 +211,7 @@ Trois choses que l'exécution a apprises, au-delà du plan :
    privée, `CasaEngine.Tests/UI/HeadlessUiTestHarness.cs` est créé en **fichier neuf**, sans toucher aux
    quatre existants. Les regrouper serait un refactor hors périmètre, noté en O7.
 
-### ⏳ T0.2 — Le socle d'écran XAML
+### ✅ T0.2 — Le socle d'écran XAML
 
 - Objectif : rendre l'écriture d'un écran XAML aussi courte que le sous-classement actuel, sans que chaque
   écran réécrive le chargement et la recherche par nom — et **testable sans carte graphique** (D10).
@@ -231,6 +231,16 @@ Trois choses que l'exécution a apprises, au-delà du plan :
   `UIRoot`** — contrôles retrouvés par nom, `GetWindows` rendant la fenêtre, nom absent produisant une erreur
   qui cite le nom et le fichier. Build + suite verts.
 - Commit : `feat(ui): add a XAML-backed screen base class`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1654 tests, 1653 verts**, seul échec celui de
+la ligne de base. **+8 tests, 0 régression.**
+
+Un écart au plan, dans le sens du mieux : `TryGetElementByName<T>` rend `false` pour **deux** fautes
+distinctes — un nom absent, et un nom qui désigne un contrôle d'un autre type
+(`MGWindow.cs:1959-1968`, il fait `Result as T` et teste le null). Le plan ne demandait que de signaler le
+nom manquant ; `FindControl<T>` distingue les deux cas et le dit, parce qu'un écran qui cherche un bouton
+là où le XAML a mis un texte n'a pas le même problème qu'un écran dont le nom a disparu. Deux tests
+séparés le prouvent.
 
 ### ⏳ T0.3 — ADR et documentation
 
