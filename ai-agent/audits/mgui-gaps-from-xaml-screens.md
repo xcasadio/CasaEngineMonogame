@@ -99,53 +99,70 @@ explicite quand un alignement est déclaré. C'est une vraie petite fonctionnali
 
 ---
 
-## G3 — Déclarer la taille d'une fenêtre en XAML l'épingle, et empêche tout redimensionnement au contenu
+## G3 — Une fenêtre ne peut pas déclarer une taille de départ qu'un redimensionnement ultérieur surcharge
 
-**Priorité : haute.** Celui-ci ne se voit pas : il ne casse rien à l'analyse, ne lève aucune erreur, et
-transforme simplement `ApplySizeToContent` en opération sans effet. Il a coûté deux tests rouges et une
-bisection pour être trouvé.
+**Priorité : haute.** Silencieux de bout en bout : rien ne lève, rien n'avertit, et une méthode publique
+devient une opération sans effet. Il a coûté deux tests rouges et une bisection.
 
-**Ce que le code doit faire.** La boîte de dialogue part d'une hauteur minimale de 150 px puis **grandit**
-pour contenir une ligne qui se replie sur plusieurs rangs plus autant de boutons de choix que le dialogue en
-offre. C'est un défaut signalé par un joueur : le second bouton de choix sortait de la fenêtre.
+**Rectification d'un premier diagnostic.** Ce manque a d'abord été décrit ici comme un oubli — « `Width` et
+`Height` posent aussi la taille préférée ». C'est inexact, et il faut le dire : le DTO `Window` a un modèle
+**délibéré et cohérent**, implémenté dans son `ApplyDerivedSettings` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`) :
+ni `Width` ni `Height` déclarés signifie « s'adapte au contenu dans les deux sens » ; `Width` seul, hauteur
+adaptée ; `Height` seul, largeur adaptée ; les deux, taille fixe ; et `SizeToContent` surcharge tout. Poser
+`PreferredHeight` quand `Height` est déclaré est donc **le contrat**, pas une étourderie.
 
-**Ce qui se passe.** Sur le DTO XAML `Window`, `Width` et `Height` servent **deux fois**. `ToElement` les
-passe au constructeur de `MGWindow` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`, `Math.Clamp(Height ?? 0, ...)`),
-ce qui est l'effet attendu — mais ce sont aussi les alias de `PreferredWidth` et `PreferredHeight` hérités
-d'`Element` (`MGUI/MGUI.Core/UI/XAML/Element.cs:241` et `:244`), que la passe générale de réglages applique
-également. La fenêtre se retrouve donc avec une hauteur **préférée** que rien n'a demandée, et
-`MGWindow.ApplySizeToContent` la respecte : la fenêtre reste à 150 px quoi que contienne son arbre.
+**Le trou réel, plus étroit.** Il n'existe aucune façon d'exprimer « commence à cette taille, mais grandis
+ensuite ». Et la surcharge censée servir à cela ne fonctionne pas : quand `Height` **et**
+`SizeToContent="Height"` sont tous deux déclarés, `ApplySettings` pose la taille préférée **avant** que
+`ApplyDerivedSettings` n'appelle `ApplySizeToContent`, dont la mesure rend alors la taille préférée. Deux
+déclarations se contredisent, et c'est la moins explicite qui l'emporte, sans un mot.
 
-**Ce que ça coûte aujourd'hui.** Une fenêtre qui doit s'adapter à son contenu ne peut pas déclarer sa taille
-de départ du tout. `DialogueScreen.xaml` déclare `MinHeight="150"` — qui alimente le constructeur via le
-`Clamp` sans toucher à la taille préférée — et sa largeur est posée en C#. C'est une **astuce**, pas une
-expression : rien dans le document ne dit qu'il s'agit d'une hauteur de départ, et le prochain qui écrira
-`Height="150"` par réflexe repassera par le même diagnostic.
+**Mesuré, pas déduit.** Une fenêtre dont le contenu réclame 155 px :
 
-**L'API absente.** De quoi distinguer, sur une fenêtre racine, la taille **initiale** de la taille
-**imposée**. Par exemple un `SizeToContent="Height"` déclaratif qui neutralise la taille préférée
-correspondante, ou des propriétés distinctes :
+| Ce qui est déclaré | `WindowHeight` obtenu | `PreferredHeight` |
+|---|---|---|
+| `Height="40" SizeToContent="Height"` | **50** | 40 |
+| `MinHeight="40" SizeToContent="Height"` | **155** | null |
 
-```xml
-<Window WindowWidth="720" WindowHeight="150" SizeToContent="Height" MinHeight="150" />
+La première ligne est la surcharge défaite : `SizeToContent="Height"` est déclaré, et la fenêtre ne grandit
+pas. La seconde est l'astuce qui marche.
+
+**Ce que le code doit faire.** La boîte de dialogue part de 150 px puis **grandit** pour contenir une ligne
+repliée sur plusieurs rangs plus autant de boutons de choix que le dialogue en offre — un défaut signalé par
+un joueur : le second bouton sortait de la fenêtre.
+
+**Ce que ça coûte aujourd'hui.** `DialogueScreen.xaml` déclare `MinHeight="150"` et aucune `Height`, parce
+que le `Math.Clamp(Height ?? 0, MinHeight ?? 0, ...)` du constructeur atteint 150 par ce biais sans toucher à
+la taille préférée. Ça marche et c'est une **astuce** : rien dans le document ne dit qu'il s'agit d'une
+hauteur de départ, et le prochain qui écrira `Height="150"` par réflexe repassera par le même diagnostic.
+
+**Le correctif**, dans `MGWindow.ApplySizeToContent`, avant la mesure :
+
+```csharp
+if (Value is SizeToContent.Width or SizeToContent.WidthAndHeight)
+    PreferredWidth = null;
+if (Value is SizeToContent.Height or SizeToContent.WidthAndHeight)
+    PreferredHeight = null;
 ```
 
-**Coût estimé.** Petit à moyen, mais il touche une sémantique existante : il faut décider si `Width` sur une
-fenêtre racine doit cesser d'alimenter `PreferredWidth`, ce qui serait un changement de comportement, ou si
-de nouvelles propriétés s'ajoutent à côté. Le second chemin est additif et sans risque.
+Demander à une fenêtre de se dimensionner sur son contenu dans une direction tout en lui tenant une taille
+préférée dans cette même direction est une contradiction : la demande explicite et postérieure doit gagner.
 
-**Au minimum, et sans rien changer :** que `Width`/`Height` sur un `Window` soient documentés comme fixant
-aussi la taille préférée. Le piège est entièrement silencieux aujourd'hui.
+**Ce que ça ne peut pas casser.** Cette combinaison ne fonctionne pas aujourd'hui — la fenêtre reste
+épinglée — donc rien ne peut en dépendre. Les autres appelants (`MGComboBox` pour sa liste déroulante,
+`MGContextMenu`, `MGDesktop`) construisent leurs fenêtres en code sans taille préférée : les deux lignes n'y
+font rien. `MGWindow` réapplique déjà les réglages mémorisés au changement de mise en page, ce qui reste
+cohérent.
 
-**Sa portée est plus large que le seul cas qui l'a révélé.** Il a été trouvé sur `DialogueScreen`, où il
-neutralisait `ApplySizeToContent`. Mais **deux autres écrans déclarent `Height` en XAML et plafonnent
-ensuite leur hauteur en C#** : `DemoInfoScreen` (`Math.Min(440, viewport - 20)`) et
-`BlendingControlsScreen` (`Math.Min(560, viewport - 20)`). L'analyse dit que le plafond l'emporte —
-`MGElement.UpdateMeasurement` termine par un `Clamp` sur la place disponible, et le rectangle de mise en page
-d'une fenêtre est bâti sur `WindowWidth`/`WindowHeight`, pas sur sa taille préférée. **Cette conclusion est
-analytique, pas observée.** Elle se vérifie en une fois : lancer une démo dans une vue de moins de 460 px de
-haut et regarder si le navigateur de démos est rogné. Tant que ce n'est pas fait, c'est le seul endroit du
-chantier où le raisonnement remplace la mesure.
+**Ce que ça gagne.** `SizeToContent="Height"` fait enfin ce qu'il annonce ; le `MinHeight` du dialogue
+redevient un `Height="150" SizeToContent="Height"` qui se lit ; et le contournement disparaît.
+
+**Portée à vérifier par la mesure.** Deux autres écrans déclarent `Height` puis plafonnent leur hauteur en
+C# : `DemoInfoScreen` (`Math.Min(440, viewport - 20)`) et `BlendingControlsScreen`
+(`Math.Min(560, viewport - 20)`). L'analyse dit que le plafond l'emporte — `MGElement.UpdateMeasurement`
+termine par un `Clamp` sur la place disponible, et le rectangle de mise en page d'une fenêtre est bâti sur
+`WindowWidth`/`WindowHeight`. **Cette conclusion n'a pas été observée.** Elle se vérifie en lançant une démo
+dans une vue de moins de 460 px de haut.
 
 ---
 
