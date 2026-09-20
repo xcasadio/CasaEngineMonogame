@@ -57,6 +57,45 @@ supplémentaire, il ne fait que ramper entre les deux valeurs qu'on lui donne.
 
 `Update(elapsedSeconds)` avance la rampe ; sans rampe en cours, c'est un no-op sans allocation.
 
+### 2.1 Alpha channel (`A`, byte)
+
+`ScreenEffectService` also carries an alpha channel, `A` (byte, default `255` — fully opaque, the
+behaviour every existing consumer already gets). Two additive overloads take it explicitly; the
+existing R/G/B-only `SetOverlay`/`StartFade` signatures are unchanged and delegate to the new ones
+with `a = 255`, so no current caller (the cutscene `FadeScreen` action in
+`CasaEngine/Cutscenes/CutsceneActionCoroutineFactory.cs`, `CasaEngine.Demos/Demos/TileMapDemo.cs`,
+and the Alundra port, which depends on `Subtractive`) sees any change in behaviour:
+
+```csharp
+effects.SetOverlay(r: 0, g: 0, b: 0, a: 128, SpriteBlendMode.AlphaBlend);
+
+effects.StartFade(fromR: 0, fromG: 0, fromB: 0, fromA: 0,
+    toR: 0, toG: 0, toB: 0, toA: 255,
+    durationSeconds: 0.5f, SpriteBlendMode.AlphaBlend);
+```
+
+`Update` interpolates `A` exactly like `R`/`G`/`B`. `Clear()` leaves `A` untouched, exactly as it
+already leaves `Layer`/`R`/`G`/`B` untouched: it is a rendering setting the overlay carries between
+activations, not fade state.
+
+There are now two ways to fade the screen:
+
+- **Alpha fade** (`SpriteBlendMode.AlphaBlend`, i.e. `BlendState.NonPremultiplied`): a modern fade
+  toward an arbitrary target colour, blending `lerp(scene, Color(R,G,B), A/255)`.
+  `ScreenEffectComponent.SubmitOverlay` draws the overlay quad with `new Color(Service.R, Service.G,
+  Service.B, Service.A)`
+  (`CasaEngine/Framework/Application/Components/ScreenEffectComponent.cs:234`) over an opaque white
+  1×1 pixel (`:279`), so the sprite
+  shader's non-premultiplied output (`texel * Color`, see `SpriteBlendMode.AlphaBlend`'s doc comment,
+  `CasaEngine/Framework/Rendering/Depth/SpriteBlendMode.cs:14-20`) is exactly `Color`, and
+  `BlendState.NonPremultiplied` (`SourceAlpha`/`InverseSourceAlpha`) blends it against the
+  destination with no premultiplication anywhere on this path.
+- **Additive / subtractive** (`SpriteBlendMode.Additive` / `.Subtractive`, §4): the PSX-accurate
+  colour math where the fade intensity is carried by the colour itself, not by alpha — this only
+  works because these blend states ignore the overlay's alpha for the colour output. The Alundra
+  port depends on `Subtractive` to reproduce the original PlayStation fade and keeps using it
+  unchanged.
+
 ---
 
 ## 3. `ScreenEffectComponent` — le cran de rendu et la formule de placement

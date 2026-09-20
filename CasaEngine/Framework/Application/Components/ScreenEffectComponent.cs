@@ -231,7 +231,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
         var halfWidth = viewportWidth / 2f;
         var halfHeight = viewportHeight / 2f;
         var worldPosition = new Vector2(cameraPosition.X - halfWidth, cameraPosition.Y + halfHeight);
-        var color = new Color(Service.R, Service.G, Service.B);
+        var color = new Color(Service.R, Service.G, Service.B, Service.A);
         var sortKey = new RenderSortKey2D((int)RenderPass2D.ScreenEffects, 0, 0, 0, 0, 0, 0);
         var resolvedScissorRectangle = scissorRectangle ?? new Rectangle(0, 0, viewportWidth, viewportHeight);
 
