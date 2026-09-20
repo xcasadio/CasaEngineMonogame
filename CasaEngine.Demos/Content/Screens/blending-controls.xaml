@@ -1,0 +1,142 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="0" Top="0" Width="320" Height="560"
+        TitleText="Controls"
+        IsUserResizable="False"
+        Padding="6"
+        Background="rgba(0,0,0,205)">
+
+  <!-- Left, Top and Height are placeholders: the screen anchors this to the top-right corner and caps its
+       height to the viewport at load.
+
+       The sliders declare their range and starting value here, but NOT their value label: MGSlider's
+       ShowValueLabel and ValueLabelFormat have no XAML counterpart, so the screen sets them in code. See
+       ai-agent/audits/mgui-gaps-from-xaml-screens.md. -->
+
+  <ScrollViewer>
+    <StackPanel Orientation="Vertical" Spacing="4">
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Visibility[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <CheckBox Name="chkShowModel" IsChecked="True">
+            <TextBlock Text="[color=lightgray]show model[/color]" />
+          </CheckBox>
+          <CheckBox Name="chkShowSkeleton" IsChecked="False">
+            <TextBlock Text="[color=lightgray]show skeleton[/color]" />
+          </CheckBox>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Foot Lock[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <CheckBox Name="chkFootLock" IsChecked="False">
+            <TextBlock Text="[color=lightgray]foot lock[/color]" />
+          </CheckBox>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Activation/Deactivation[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <Button Name="btnDeactivateAll" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]deactivate all[/color]" />
+          </Button>
+          <Button Name="btnActivateAll" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]activate all[/color]" />
+          </Button>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Pausing/Stepping[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <Button Name="btnPauseContinue" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]pause/continue[/color]" />
+          </Button>
+          <Button Name="btnSingleStep" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]make single step[/color]" />
+          </Button>
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]modify step size[/color]" />
+            <Slider Name="sldStepSize" Minimum="0.01" Maximum="0.1" Value="0.05"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Crossfading[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <Button Name="btnWalkToIdle" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]from walk to idle[/color]" />
+          </Button>
+          <Button Name="btnIdleToWalk" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]from idle to walk[/color]" />
+          </Button>
+          <Button Name="btnWalkToRun" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]from walk to run[/color]" />
+          </Button>
+          <Button Name="btnRunToWalk" HorizontalAlignment="Stretch">
+            <TextBlock Text="[color=yellow]from run to walk[/color]" />
+          </Button>
+          <CheckBox Name="chkUseDefaultDuration" IsChecked="True">
+            <TextBlock Text="[color=lightgray]use default duration[/color]" />
+          </CheckBox>
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]set custom duration[/color]" />
+            <Slider Name="sldCustomDuration" Minimum="0" Maximum="10" Value="3.5"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]Blend Weights[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]modify idle weight[/color]" />
+            <Slider Name="sldIdleWeight" Minimum="0" Maximum="1" Value="0"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]modify walk weight[/color]" />
+            <Slider Name="sldWalkWeight" Minimum="0" Maximum="1" Value="1"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]modify run weight[/color]" />
+            <Slider Name="sldRunWeight" Minimum="0" Maximum="1" Value="0"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+        </StackPanel>
+      </Expander>
+
+      <Expander IsExpanded="True" Margin="0,0,0,2">
+        <Expander.Header>
+          <TextBlock Text="[b][color=white]General Speed[/color][/b]" VerticalAlignment="Center" />
+        </Expander.Header>
+        <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
+          <StackPanel Orientation="Vertical" Spacing="1">
+            <TextBlock Text="[color=lightgray]modify time scale[/color]" />
+            <Slider Name="sldTimeScale" Minimum="0" Maximum="1.5" Value="1"
+                    HorizontalAlignment="Stretch" MinWidth="200" />
+          </StackPanel>
+        </StackPanel>
+      </Expander>
+
+    </StackPanel>
+  </ScrollViewer>
+</Window>

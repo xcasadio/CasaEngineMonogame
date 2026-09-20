@@ -51,6 +51,10 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 
 Les audits sont en lecture seule. Ceux marqués « historique » décrivent un état du dépôt qui n'existe plus (backend BulletSharp et `ThirdParties/`, projets `CasaEngine.WithEditor.csproj`, `Editor/Editor.csproj`, `CasaEngine.EditorUI`) : les consulter pour le raisonnement, pas pour l'état courant.
 
+### Manques du moteur et de MGUI
+
+- [mgui-gaps-from-xaml-screens.md](audits/mgui-gaps-from-xaml-screens.md) — ce que MGUI et le moteur ne savent pas encore faire, relevé en convertissant les écrans en XAML. Ouvert le 2026-09-20, **vivant tant que le chantier du pont XAML dure**. Règle de l'auteur : pas de contournement silencieux, un manque se consigne. G1 : un curseur déclaré ne peut pas afficher sa valeur (`ShowValueLabel`/`ValueLabelFormat` absents du DTO XAML). G2 : une fenêtre racine ne sait pas se placer par rapport au bureau, ni plafonner sa taille au viewport.
+
 ### Agents IA et décisions
 
 - [analysis-ai-agent-files.md](audits/analysis-ai-agent-files.md) — audit des fichiers de guidage des agents IA (`AGENTS.md`, `CLAUDE.md`, `.github`, plans, docs) : 128 constats confirmés par réfutation croisée (2026-09-06).

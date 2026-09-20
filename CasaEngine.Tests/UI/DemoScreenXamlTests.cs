@@ -85,6 +85,36 @@ public class DemoScreenXamlTests
         Assert.Empty(list.Children);
     }
 
+    [Theory]
+    [InlineData("chkShowModel")]
+    [InlineData("chkShowSkeleton")]
+    [InlineData("chkFootLock")]
+    [InlineData("chkUseDefaultDuration")]
+    [InlineData("btnDeactivateAll")]
+    [InlineData("btnActivateAll")]
+    [InlineData("btnPauseContinue")]
+    [InlineData("btnSingleStep")]
+    [InlineData("btnWalkToIdle")]
+    [InlineData("btnIdleToWalk")]
+    [InlineData("btnWalkToRun")]
+    [InlineData("btnRunToWalk")]
+    [InlineData("sldStepSize")]
+    [InlineData("sldCustomDuration")]
+    [InlineData("sldTimeScale")]
+    [InlineData("sldIdleWeight")]
+    [InlineData("sldWalkWeight")]
+    [InlineData("sldRunWeight")]
+    public void TheBlendingControls_DeclareEveryControlItsScreenBinds(string controlName)
+    {
+        // Eighteen lookups, every one of them wired to an event the demo listens for. A name dropped in the
+        // markup would throw on the first frame of that demo; here it names itself.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("blending-controls.xaml")));
+
+        Assert.True(window.TryGetElementByName(controlName, out MGElement _), $"'{controlName}' is not declared.");
+    }
+
     private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()

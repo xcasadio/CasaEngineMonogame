@@ -475,7 +475,7 @@ viewport — les deux dépendent d'une résolution que le document ne connaît p
 chaque vue est une fraction du back-buffer. Le titre et la description partent avec un texte vide dans le
 XAML, puisqu'ils sont réécrits à chaque changement de démo.
 
-### ⏳ T2.3 — `BlendingControlsScreen`
+### 🧪 T2.3 — `BlendingControlsScreen`
 
 - Objectif : le panneau de réglages du mélange d'animations, le plus gros écran du lot (279 lignes).
 - Fichiers : `CasaEngine.Demos/Demos/DemoUI/BlendingControlsScreen.cs`, plus son XAML.
@@ -489,6 +489,23 @@ XAML, puisqu'ils sont réécrits à chaque changement de démo.
 - Validation : build + suite verts ; démo lancée, les sept dossiers s'ouvrent, un curseur de poids agit, et
   les boutons de transition s'activent et se désactivent comme avant.
 - Commit : `refactor(demos): author the blending controls screen in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1681 / 1680 verts**, +19, seul échec celui de
+la ligne de base. Les **dix-huit** contrôles nommés sont pincés un par un par une théorie : un nom perdu
+dans le balisage ferait lever cet écran à la première image de la démo, il échoue maintenant en se nommant.
+🧪 **Reste à faire par l'auteur** : lancer la démo de mélange d'animations, ouvrir les sept dossiers, bouger
+un curseur de poids, et vérifier que les quatre boutons de transition s'activent et se désactivent.
+
+**Un manque de MGUI rencontré ici, et signalé plutôt que contourné en silence** (règle de l'auteur du
+2026-09-20) : `MGSlider.ShowValueLabel` et `MGSlider.ValueLabelFormat` sont des propriétés publiques du
+runtime **sans aucune contrepartie dans le DTO XAML** (`MGUI/MGUI.Core/UI/XAML/Controls.cs`, classe
+`Slider` : ni l'une ni l'autre n'y figure). Un curseur déclaré en XAML ne peut donc pas afficher sa valeur.
+Les six curseurs déclarent leur plage et leur valeur de départ dans le document, mais leur format
+(`"F2"`, `"F3"`) est posé au code, loin du curseur qu'il formate. Consigné dans
+[mgui-gaps-from-xaml-screens.md](../audits/mgui-gaps-from-xaml-screens.md), et les deux fichiers y renvoient.
+
+Les gardes `if (_xxx != null)` de `SetWeightDisplays` et `SetCrossFadeButtonsEnabled` sont tombées comme
+prévu : `FindControl` rend un contrôle ou lève.
 
 ---
 
