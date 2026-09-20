@@ -3911,6 +3911,9 @@ public class GameEditor : Game, IObservableUpdate
     {
         _assetDocumentRoutes ??=
         [
+            new AssetDocumentRoute(Constants.FileNameExtensions.UIScreen, TryOpenUIScreenAsset),
+            // The legacy extension stays routed: TryLoadUIScreenAsset requires source_xaml_file, so a real
+            // legacy file is still refused, and an envelope saved under the old name still opens.
             new AssetDocumentRoute(Constants.FileNameExtensions.Screen, TryOpenUIScreenAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.SkeletonAnimation, TryOpenAnimationClipAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Entity, TryOpenEntityAsset),

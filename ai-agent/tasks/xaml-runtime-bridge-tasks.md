@@ -271,7 +271,7 @@ Deux écarts au plan, tous deux des corrections :
    document de conventions, pas au §5 qui traite des ressources. Corrigé partout : ce plan, l'ADR, et les
    renvois.
 
-### ⏳ T0.4 — La route de document manquante
+### 🧪 T0.4 — La route de document manquante
 
 - Objectif : rendre un `.uiscreen` ouvrable dans l'éditeur, ce qui est aujourd'hui impossible faute de route
   (D11). C'est la seule tâche de ce chantier qui touche l'éditeur, et elle est purement additive.
@@ -287,6 +287,20 @@ Deux écarts au plan, tous deux des corrections :
 - Validation : `dotnet build CasaEngine.Editor.MonoGame.sln` vert ; l'un des cinq `.uiscreen` du projet
   d'échantillon s'ouvre dans l'éditeur d'écrans par double-clic, ce qui ne marchait pas avant.
 - Commit : `feat(editor): route uiscreen documents to the screen editor`
+
+**Validation exécutée le 2026-09-20.** `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+`CasaEngine.MonoGame.sln` : 0 erreur. Suite **1654 / 1653 verts**, inchangée.
+
+**Aucun test ajouté, et voici pourquoi** (`AGENTS.md` §6) : la table de routes est construite par
+`GameEditor.GetAssetDocumentRoutes`, une méthode **privée** d'un type d'éditeur qui ne s'instancie pas sans
+fenêtre ni périphérique graphique. La rendre atteignable serait un refactor hors périmètre. La route se
+vérifie donc **à la main** : double-clic sur `Projects/SampleProject/Screens/main-menu.uiscreen` dans
+l'éditeur. 🧪 **Reste à faire par l'auteur.**
+
+Un choix que le plan ne prévoyait pas : la route `.screen` est **conservée** à côté de la nouvelle. Elle ne
+coûte rien et ne peut pas ouvrir un fichier hérité — `TryLoadUIScreenAsset` exige `source_xaml_file`
+(`GameEditor.cs:5065`) — mais elle laisse s'ouvrir une enveloppe qu'un projet aurait enregistrée sous
+l'ancien nom. Retirer une route est une rupture ; en ajouter une ne l'est pas.
 
 ### ⏳ T0.5 — Retrait des quatre écrans hérités
 
