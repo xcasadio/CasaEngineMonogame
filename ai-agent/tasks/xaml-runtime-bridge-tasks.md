@@ -363,7 +363,7 @@ avertissement de catalogue n'apparaît et que le HUD s'affiche toujours.
 
 ## Phase 1 — La preuve
 
-### ⏳ T1.1 — `PauseMenuScreen` en XAML
+### 🧪 T1.1 — `PauseMenuScreen` en XAML
 
 - Objectif : prouver le pont sur un écran interactif, avant d'y engager neuf autres migrations.
 - Pourquoi celui-là : il tient en 64 lignes mais exerce tout ce qui compte — une `MGWindow` racine avec titre
@@ -381,6 +381,31 @@ avertissement de catalogue n'apparaît et que le HUD s'affiche toujours.
 - Validation : build + suite verts ; démo UIOverlay lancée **depuis `CasaEngine.Demos/`**, menu de pause
   ouvert, « Resume » cliqué et reprise effective, fenêtre centrée comme avant.
 - Commit : `refactor(demos): author the pause menu screen in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1656 / 1655 verts**, +2, seul échec celui de
+la ligne de base. 🧪 **Reste à faire par l'auteur** : lancer la démo UIOverlay depuis `CasaEngine.Demos/`,
+ouvrir le menu de pause, cliquer « Resume », et vérifier que la fenêtre est centrée et que le fond sombre
+translucide est le même qu'avant.
+
+Quatre écarts au plan, tous assumés :
+
+1. **Pas d'enveloppe `.uiscreen` pour les écrans de démo.** Le plan en prévoyait une ; elle n'aurait été lue
+   par personne, `CasaEngine.Demos` n'étant pas un projet catalogué. C'est exactement la définition de la
+   donnée morte qu'on vient de supprimer quatre fois en T0.5. Les écrans de démo sont des `.xaml` nus,
+   chargés par la **première porte** de D8.
+2. **Le fichier vit sous `Content/Screens/`, pas `Screens/`**, pour suivre la convention du projet : toutes
+   les données de démo sont sous `Content/` avec un glob `CopyToOutputDirectory=PreserveNewest`
+   (`CasaEngine.Demos.csproj:29-34`). Le glob ajouté est `Content\Screens\**\*.xaml`.
+3. **Résolution ancrée sur `AppContext.BaseDirectory`**, via `DemoScreenXaml` — pas sur
+   `Environment.CurrentDirectory` comme `DemosGame.cs:40`. Le fichier étant copié en sortie, cet ancrage le
+   trouve que la démo soit lancée depuis le dossier du projet ou depuis `bin`, ce qui évite un piège connu.
+4. **La validation manuelle est doublée d'une garde automatique**, ce que le plan ne demandait pas :
+   `CasaEngine.Tests/UI/DemoScreenXamlTests.cs` charge **tous** les `.xaml` livrés sous
+   `CasaEngine.Demos/Content/Screens/` en `Strict`, sur un bureau headless, en reprenant le patron
+   `FindRepositoryRoot` que la suite emploie déjà pour atteindre `CasaEngine.Demos/Content/`
+   (`SoldierGlbRegressionTests.cs:17-19`). Une faute de frappe dans le balisage ne se découvre plus en
+   lançant la démo : elle échoue ici en nommant le fichier et la ligne. La théorie ramasse d'elle-même les
+   écrans des phases suivantes, qui sont donc couverts sans rien écrire de plus.
 
 ---
 
@@ -491,7 +516,7 @@ par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O7 | **Faut-il regrouper les cinq harnais headless du projet de tests ?** `CasaEngine.Tests` porte désormais cinq blocs de stubs MGUI quasi identiques : les quatre préexistants (`DialogueScreenLayoutTests`, `ContentBrowserViewTestHarness`, `GridViewVirtualizationTests`, `EditorControlTemplateAssetLoadingTests`) plus `HeadlessUiTestHarness`, créé par T0.1 pour que ce chantier n'en ajoute pas dix. Faire converger les quatre premiers vers le nouveau serait un refactor de fichiers hors périmètre : à proposer à l'auteur, pas à décider. | T5.1 |
+| O7 | **Faut-il regrouper les helpers dupliqués du projet de tests ?** Deux duplications, toutes deux antérieures à ce chantier et toutes deux aggravées d'une unité par lui. (a) Cinq blocs de stubs MGUI quasi identiques : les quatre préexistants (`DialogueScreenLayoutTests`, `ContentBrowserViewTestHarness`, `GridViewVirtualizationTests`, `EditorControlTemplateAssetLoadingTests`) plus `HeadlessUiTestHarness`, créé par T0.1 pour que ce chantier n'en ajoute pas dix. (b) Trois copies de `FindRepositoryRoot` (`Animation2dAuthoringDataTests:979`, `SoldierGlbRegressionTests`, et `DemoScreenXamlTests` ajouté par T1.1). Faire converger les copies existantes serait un refactor de fichiers hors périmètre : à proposer à l'auteur, pas à décider. | T5.1 |
 | O6 | **La constante `FileNameExtensions.Screen` et sa route survivent-elles à T0.5 ?** Après la suppression des quatre fichiers, la route `.screen` (`GameEditor.cs:3914`) ne correspond plus à rien : elle exige `source_xaml_file`, qu'aucun `.screen` n'a jamais porté. Les retirer serait une rupture d'API publique (`AGENTS.md` §9.8), donc ce chantier ne le fait pas. À signaler à l'auteur à la clôture, comme nettoyage possible. | T5.1 |
 | ~~O5~~ | ~~**Que deviennent les quatre `.screen` hérités ?**~~ **Tranché le 2026-09-20 : supprimés, non convertis. Voir D12 et T0.5.** | closed |
 | ~~O0~~ | ~~**Quelle extension porte l'enveloppe d'un écran XAML ?**~~ **Tranché le 2026-09-20 : `.uiscreen`, avec ajout de la route manquante. Voir D11 et T0.4.** Pour mémoire, la contradiction mesurée : La contradiction passe entre deux étages de l'éditeur, pas entre le code et les données. La **route de document** est clavetée sur `.screen` (`GameEditor.cs:3914` + `Constants.cs:20`) et reconnaît le format en cherchant `source_xaml_file` (`:5053-5071`), sans aucune route pour `.uiscreen`. Mais la **session d'édition** est testée exclusivement avec des `.uiscreen` (`CasaEngine.Tests/ScreenEditor/UIScreenEditorSessionTests.cs:28,42,76,93,125,137,156,165`), le catalogue aussi (`AssetCatalogTests.cs:19,42,46`, `EditorAssetCatalogServiceTests.cs:57,74`), et le projet d'échantillon livre cinq `.uiscreen` catalogués `"asset_type": "uiscreen"` (`AssetInfos.json:6-7`). Conséquence, que T0.4 corrige : les `.uiscreen` du projet d'échantillon n'étaient pas ouvrables par double-clic dans l'éditeur, faute de route, alors que tout le reste de la chaîne les accepte. | closed |

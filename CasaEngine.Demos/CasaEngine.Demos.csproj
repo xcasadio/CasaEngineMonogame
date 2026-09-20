@@ -32,6 +32,9 @@
 	  <None Update="Content\Dialogues\**\*.dialogue">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Content\Screens\**\*.xaml">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Content\SkinnedMesh\kid_idle.model">
