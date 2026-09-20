@@ -8,9 +8,7 @@
   <!-- Left, Top and Height are placeholders: the screen anchors this to the top-right corner and caps its
        height to the viewport at load.
 
-       The sliders declare their range and starting value here, but NOT their value label: MGSlider's
-       ShowValueLabel and ValueLabelFormat have no XAML counterpart, so the screen sets them in code. See
-       ai-agent/audits/mgui-gaps-from-xaml-screens.md. -->
+       The sliders declare their range, their starting value and their value label, all in one place. -->
 
   <ScrollViewer>
     <StackPanel Orientation="Vertical" Spacing="4">
@@ -67,7 +65,7 @@
           </Button>
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]modify step size[/color]" />
-            <Slider Name="sldStepSize" Minimum="0.01" Maximum="0.1" Value="0.05"
+            <Slider Name="sldStepSize" ShowValueLabel="True" ValueLabelFormat="F3" Minimum="0.01" Maximum="0.1" Value="0.05"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
         </StackPanel>
@@ -95,7 +93,7 @@
           </CheckBox>
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]set custom duration[/color]" />
-            <Slider Name="sldCustomDuration" Minimum="0" Maximum="10" Value="3.5"
+            <Slider Name="sldCustomDuration" ShowValueLabel="True" ValueLabelFormat="F2" Minimum="0" Maximum="10" Value="3.5"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
         </StackPanel>
@@ -108,17 +106,17 @@
         <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]modify idle weight[/color]" />
-            <Slider Name="sldIdleWeight" Minimum="0" Maximum="1" Value="0"
+            <Slider Name="sldIdleWeight" ShowValueLabel="True" ValueLabelFormat="F2" Minimum="0" Maximum="1" Value="0"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]modify walk weight[/color]" />
-            <Slider Name="sldWalkWeight" Minimum="0" Maximum="1" Value="1"
+            <Slider Name="sldWalkWeight" ShowValueLabel="True" ValueLabelFormat="F2" Minimum="0" Maximum="1" Value="1"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]modify run weight[/color]" />
-            <Slider Name="sldRunWeight" Minimum="0" Maximum="1" Value="0"
+            <Slider Name="sldRunWeight" ShowValueLabel="True" ValueLabelFormat="F2" Minimum="0" Maximum="1" Value="0"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
         </StackPanel>
@@ -131,7 +129,7 @@
         <StackPanel Orientation="Vertical" Spacing="3" Margin="8,2,2,4">
           <StackPanel Orientation="Vertical" Spacing="1">
             <TextBlock Text="[color=lightgray]modify time scale[/color]" />
-            <Slider Name="sldTimeScale" Minimum="0" Maximum="1.5" Value="1"
+            <Slider Name="sldTimeScale" ShowValueLabel="True" ValueLabelFormat="F2" Minimum="0" Maximum="1.5" Value="1"
                     HorizontalAlignment="Stretch" MinWidth="200" />
           </StackPanel>
         </StackPanel>

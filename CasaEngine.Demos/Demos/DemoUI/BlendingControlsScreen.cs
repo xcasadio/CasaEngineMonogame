@@ -93,19 +93,19 @@ internal sealed class BlendingControlsScreen : XamlUIScreenBase
         _walkToRunButton = BindButton("btnWalkToRun", () => WalkToRunRequested?.Invoke());
         _runToWalkButton = BindButton("btnRunToWalk", () => RunToWalkRequested?.Invoke());
 
-        BindSlider("sldStepSize", "F3", value => StepSizeChanged?.Invoke(value));
-        BindSlider("sldCustomDuration", "F2", value => CustomDurationChanged?.Invoke(value));
-        BindSlider("sldTimeScale", "F2", value => TimeScaleChanged?.Invoke(value));
+        BindSlider("sldStepSize", value => StepSizeChanged?.Invoke(value));
+        BindSlider("sldCustomDuration", value => CustomDurationChanged?.Invoke(value));
+        BindSlider("sldTimeScale", value => TimeScaleChanged?.Invoke(value));
 
-        _idleWeightSlider = BindSlider("sldIdleWeight", "F2", value =>
+        _idleWeightSlider = BindSlider("sldIdleWeight", value =>
         {
             if (!_suppressWeightEvents) IdleWeightChanged?.Invoke(value);
         });
-        _walkWeightSlider = BindSlider("sldWalkWeight", "F2", value =>
+        _walkWeightSlider = BindSlider("sldWalkWeight", value =>
         {
             if (!_suppressWeightEvents) WalkWeightChanged?.Invoke(value);
         });
-        _runWeightSlider = BindSlider("sldRunWeight", "F2", value =>
+        _runWeightSlider = BindSlider("sldRunWeight", value =>
         {
             if (!_suppressWeightEvents) RunWeightChanged?.Invoke(value);
         });
@@ -149,19 +149,10 @@ internal sealed class BlendingControlsScreen : XamlUIScreenBase
         checkBox.OnCheckStateChanged += (_, e) => onChanged(e.NewValue ?? false);
     }
 
-    /// <summary>
-    /// Subscribes a slider and turns its value label on.
-    /// <para/>
-    /// The label belongs in the markup, next to the range and the starting value it goes with, but
-    /// <see cref="MGSlider.ShowValueLabel"/> and <see cref="MGSlider.ValueLabelFormat"/> have no XAML
-    /// counterpart -- see `ai-agent/audits/mgui-gaps-from-xaml-screens.md`. Until they do, the format string
-    /// lives here, away from the slider it formats.
-    /// </summary>
-    private MGSlider BindSlider(string name, string valueLabelFormat, Action<float> onChanged)
+    /// <summary>Subscribes a slider. Its range, starting value and value label are all in the markup.</summary>
+    private MGSlider BindSlider(string name, Action<float> onChanged)
     {
         var slider = FindControl<MGSlider>(name);
-        slider.ShowValueLabel = true;
-        slider.ValueLabelFormat = valueLabelFormat;
         slider.ValueChanged += (_, e) => onChanged(e.NewValue);
         return slider;
     }

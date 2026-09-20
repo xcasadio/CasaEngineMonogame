@@ -23,7 +23,13 @@ Chaque entrée dit : ce que le code doit faire, pourquoi il ne peut pas le décl
 
 ---
 
-## G1 — Un curseur déclaré en XAML ne peut pas afficher sa valeur
+## ~~G1~~ — Un curseur déclaré en XAML ne peut pas afficher sa valeur — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, branche `chantier/declarable-window-size-and-slider-label`, commit `3c48741` :
+> `ShowValueLabel` et `ValueLabelFormat` sont deux propriétés facultatives du DTO `Slider`, sur la forme
+> exacte de `ProgressBar`. Les six curseurs du panneau de mélange déclarent désormais leur étiquette avec
+> leur plage et leur valeur de départ, et le contournement a disparu de
+> `BlendingControlsScreen.BindSlider`. Suite MGUI 2961 verts, +3.
 
 **Priorité : haute.** Six curseurs concernés dans un seul écran, et tout écran de réglages futur le
 rencontrera.
@@ -99,7 +105,14 @@ explicite quand un alignement est déclaré. C'est une vraie petite fonctionnali
 
 ---
 
-## G3 — Une fenêtre ne peut pas déclarer une taille de départ qu'un redimensionnement ultérieur surcharge
+## ~~G3~~ — Une fenêtre ne peut pas déclarer une taille de départ qu'un redimensionnement ultérieur surcharge — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, même branche, commit `f2c2f88` : `ApplySizeToContent` libère la taille préférée
+> des dimensions qu'on lui demande de dimensionner, et **seulement** celles-là — une largeur déclarée
+> survit à une demande en hauteur, et `SizeToContent.Manual` ne libère rien. `DialogueScreen.xaml`
+> déclare de nouveau `Height="150"`, qui se lit, au lieu de l'astuce `MinHeight`. Les cinq
+> `DialogueScreenLayoutTests` passent sans modification. Suite MGUI 2965 verts, +4, et les 2958 tests
+> d'origine confirment que rien ne dépendait de l'ancien comportement.
 
 **Priorité : haute.** Silencieux de bout en bout : rien ne lève, rien n'avertit, et une méthode publique
 devient une opération sans effet. Il a coûté deux tests rouges et une bisection.
@@ -179,3 +192,25 @@ une limite de MGUI :
   code, et c'est un choix.
 - **Le fond du HUD de smoke.** Une autre partie du code lit la même constante ; deux sources de vérité
   dériveraient. Décision, pas manque.
+
+---
+
+## Un défaut préexistant trouvé en chemin, **non corrigé**
+
+Dans `Slider.ApplyDerivedSettings` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`), la garde qui applique la plage
+lit `MaxHeight` là où elle devrait lire `Maximum` :
+
+```csharp
+if (Minimum.HasValue || MaxHeight.HasValue)   // MaxHeight est une propriété de MISE EN PAGE héritée d'Element
+{
+    Slider.SetRange(Minimum ?? Slider.Minimum, Maximum ?? Slider.Maximum);
+}
+```
+
+**Conséquence :** un curseur qui déclare `Maximum` **sans** `Minimum` voit son maximum ignoré en silence. Le
+voisin `ProgressBar` écrit correctement `if (Minimum.HasValue)` puis `if (Maximum.HasValue)`.
+
+**Non corrigé volontairement** : c'est hors du périmètre demandé, et le changer ferait honorer un attribut
+aujourd'hui ignoré, ce qui pourrait déplacer une interface existante. Un mot suffit pour le faire — c'est une
+ligne, plus un test.
+
