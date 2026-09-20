@@ -50,6 +50,11 @@ le document. C'est exactement la séparation que la règle XAML cherchait à sup
         ShowValueLabel="True" ValueLabelFormat="F2" />
 ```
 
+**Ce qui rend le manque certain plutôt que discutable.** `ProgressBar`, le contrôle voisin, **expose bien**
+son affichage de valeur en XAML : `ShowValue`, `ValueDisplayFormat` et `NumberFormat` figurent tous trois sur
+son DTO (`MGUI/MGUI.Core/UI/XAML/Controls.cs`, classe `ProgressBar`). Deux contrôles du même genre, l'un
+complet et l'autre non : ce n'est pas un choix de conception, c'est un oubli.
+
 **Coût estimé.** Petit et purement additif : ~10 lignes dans `MGUI.Core`, plus un test. Aucun appelant
 existant n'est touché, puisque les deux propriétés sont facultatives.
 

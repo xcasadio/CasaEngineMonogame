@@ -552,7 +552,7 @@ Trois points :
 3. **Les identifiants sont neufs**, pas ceux des assets supprimés en T0.5 : rien ne doit pouvoir résoudre
    accidentellement vers l'ancien format.
 
-### ⏳ T3.2 — `MainHUDScreen`
+### 🧪 T3.2 — `MainHUDScreen`
 
 - Objectif : le HUD de RPGDemo, qui lit une texture d'asset héritée (`MainHUD.texture`) en plus de son arbre.
 - Fichiers : `Projects/CasaEngine.RPGDemo/Scripts/Screens/MainHUDScreen.cs`, son enveloppe et son `.xaml`,
@@ -561,6 +561,23 @@ Trois points :
   sur un `MGImage` nommé — c'est précisément le partage prévu par D7, pas un contournement.
 - Validation : build + suite verts ; RPGDemo lancé, HUD identique à son rendu d'avant.
 - Commit : `refactor(rpgdemo): author the main HUD screen in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1687 / 1686 verts**, +2, seul échec celui de
+la ligne de base. 🧪 **Reste à faire par l'auteur** : lancer RPGDemo et vérifier que le portrait et la barre
+de vie sont identiques à avant.
+
+**Un flake observé, et signalé plutôt que tu.** Une exécution a rendu **deux** échecs au lieu d'un ; les
+**trois** exécutions suivantes n'en rendent qu'un, l'échec préexistant. Le second n'a pas pu être nommé :
+la sortie ne l'a pas listé. Cohérent avec le flake connu de la suite. Rien de ce chantier n'y touche, mais
+c'est à garder en tête : un jour où la suite rendra deux échecs, il faudra les nommer avant de conclure.
+
+**La texture du portrait n'est pas un manque de MGUI, contrairement à ce que je craignais.** Un `Image`
+déclaré sans source est légitime — `MGImage.SourceName` accepte null partout (`MGImage.cs:43-66`) — et
+`MGImage.Source` est **settable** après construction (`:81-93`). Le XAML déclare donc la case du portrait,
+son gabarit et sa marge, et l'écran y pose la texture plus le sous-rectangle qui découpe Link dans la
+planche. C'est la règle D7 dans son cas normal : le fichier PNG est lu sur le disque à l'exécution, donc
+c'est une donnée. Quand il manque, la case est simplement repliée — le portrait a toujours été facultatif.
+Un test pince la case vide et les bornes de la barre de vie.
 
 ---
 

@@ -65,6 +65,23 @@ public class ProjectScreenAssetTests
         Assert.True(window.TryGetElementByName("btnReturnToTitle", out MGButton _));
     }
 
+    [Fact]
+    public void TheMainHud_DeclaresAnEmptyPortraitSlotAndItsLifeBar()
+    {
+        // The portrait's texture is a PNG the world loads from disk at run time, so the document declares
+        // the slot and the screen fills it -- or collapses it when the file is missing.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+        var envelopePath = Path.Combine(RpgDemoScreensDirectory(), "MainHUD", "MainHUD.uiscreen");
+
+        var window = UIScreenLoader.Load(desktop, ReadEnvelope(envelopePath), envelopePath);
+
+        Assert.True(window.TryGetElementByName("imgPortrait", out MGImage portrait));
+        Assert.Null(portrait.Source);
+        Assert.True(window.TryGetElementByName("pgbLife", out MGProgressBar lifeBar));
+        Assert.Equal(0f, lifeBar.Minimum);
+        Assert.Equal(100f, lifeBar.Maximum);
+    }
+
     private static UIScreenAsset ReadEnvelope(string envelopePath)
     {
         var asset = new UIScreenAsset();

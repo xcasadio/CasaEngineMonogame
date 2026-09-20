@@ -1,0 +1,8 @@
+{
+  "id": "9a7c3f18-4e62-4d05-b3a9-2f81c50e7d64",
+  "name": "MainHUD",
+  "source_xaml_file": "MainHUD.xaml",
+  "theme_name": "",
+  "preview_resolution": { "x": 1280, "y": 720 },
+  "resource_files": []
+}

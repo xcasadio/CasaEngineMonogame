@@ -1137,6 +1137,10 @@
       "file_name": "Screens\\MainHUD\\link_hud_portrait.sprite"
     },
     {
+      "id": "9a7c3f18-4e62-4d05-b3a9-2f81c50e7d64",
+      "file_name": "Screens\\MainHUD\\MainHUD.uiscreen"
+    },
+    {
       "id": "2c9f41ab-57d0-4e62-9a18-5b6c0d3f8e71",
       "file_name": "Screens\\TitleScreen\\TitleScreen.uiscreen"
     },
