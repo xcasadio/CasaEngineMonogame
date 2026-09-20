@@ -47,10 +47,10 @@ internal sealed class ScreenEffectSmokeHudScreen : UIScreenBase
         var title = new MGTextBlock(_window, "[b][color=black]Screen effect above-UI smoke[/color][/b]");
         stack.TryAddChild(title);
 
-        var hint1 = new MGTextBlock(_window, "[color=black]Press 1: fade to black, BelowUI (default)[/color]");
+        var hint1 = new MGTextBlock(_window, "[color=black]Press 1: alpha fade to black and back, BelowUI (default)[/color]");
         stack.TryAddChild(hint1);
 
-        var hint2 = new MGTextBlock(_window, "[color=black]Press 2: fade to black, AboveUI[/color]");
+        var hint2 = new MGTextBlock(_window, "[color=black]Press 2: alpha fade to black and back, AboveUI[/color]");
         stack.TryAddChild(hint2);
 
         var hint3 = new MGTextBlock(_window, "[color=darkgray]In AboveUI this window darkens with the scene.[/color]");
