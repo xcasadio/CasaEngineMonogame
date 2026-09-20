@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
-using MGUI.Core.UI.Containers;
-using MonoGame.Extended;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
@@ -12,15 +8,17 @@ namespace CasaEngine.Demos.Demos;
 /// <summary>
 /// HUD layer screen: always visible during gameplay.
 /// Shows a small info box (title, elapsed time) and a "Pause" button.
+/// <para/>
+/// Its tree lives in `Content/Screens/ui-overlay-hud.xaml`. What stays here is the elapsed time it rewrites
+/// every frame, and what its two buttons do.
 /// </summary>
-internal sealed class HudScreen : UIScreenBase
+internal sealed class HudScreen : XamlUIScreenBase
 {
     private readonly Action _requestPause;
     private readonly Action _requestDialogue;
 
-    private MGWindow?    _window;
-    private MGTextBlock? _timeLabel;
-    private float        _elapsed;
+    private MGTextBlock _timeLabel;
+    private float _elapsed;
 
     public override UILayer Layer   => UILayer.HUD;
     public override bool    IsModal => false;
@@ -32,61 +30,25 @@ internal sealed class HudScreen : UIScreenBase
     }
 
     public HudScreen(Action requestPause, Action requestDialogue)
+        : base(DemoScreenXaml.Source("ui-overlay-hud.xaml"))
     {
         _requestPause = requestPause;
         _requestDialogue = requestDialogue;
     }
 
-    protected override void OnInitialize(UIRoot root)
+    protected override void OnWindowLoaded(MGWindow window)
     {
-        // Semi-transparent HUD window anchored to the top-left corner.
-        _window = new MGWindow(root.Desktop, 10, 10, 220, 155)
-        {
-            TitleText           = string.Empty,
-            IsTitleBarVisible   = false,
-            IsUserResizable     = false,
-        };
-        _window.Padding = new Thickness(8);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(0, 0, 0, 160));
+        // Found once and kept: Update runs every frame, and a lookup by name there would be a per-frame
+        // dictionary hit for a control that never changes.
+        _timeLabel = FindControl<MGTextBlock>("lblTime");
 
-        var stack = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 4 };
-
-        // Title label
-        var title = new MGTextBlock(_window, "[b][color=white]MGUI UI Demo[/color][/b]");
-        stack.TryAddChild(title);
-
-        // Elapsed time (updated every frame in Update)
-        _timeLabel = new MGTextBlock(_window, "[color=lightgray]Time: 0.0s[/color]");
-        stack.TryAddChild(_timeLabel);
-
-        // Separator hint
-        var hint = new MGTextBlock(_window, "[color=gray]Press F1 to toggle the demo navigator[/color]");
-        hint.Margin = new Thickness(0, 4, 0, 0);
-        stack.TryAddChild(hint);
-
-        // Pause button
-        var pauseBtn = new MGButton(_window, _ => _requestPause());
-        pauseBtn.SetContent("[color=yellow]Open Pause Menu[/color]");
-        pauseBtn.Margin = new Thickness(0, 8, 0, 0);
-        stack.TryAddChild(pauseBtn);
-
-        var dialogueBtn = new MGButton(_window, _ => _requestDialogue());
-        dialogueBtn.SetContent("[color=lightgreen]Open Dialogue[/color]");
-        dialogueBtn.Margin = new Thickness(0, 4, 0, 0);
-        stack.TryAddChild(dialogueBtn);
-
-        _window.SetContent(stack);
+        FindControl<MGButton>("btnPause").AddCommandHandler((_, _) => _requestPause());
+        FindControl<MGButton>("btnDialogue").AddCommandHandler((_, _) => _requestDialogue());
     }
 
     public override void Update(GameTime gameTime)
     {
         _elapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
-        if (_timeLabel != null)
-            _timeLabel.Text = $"[color=lightgray]Time: {_elapsed:F1}s[/color]";
-    }
-
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null) yield return _window;
+        _timeLabel.Text = $"[color=lightgray]Time: {_elapsed:F1}s[/color]";
     }
 }

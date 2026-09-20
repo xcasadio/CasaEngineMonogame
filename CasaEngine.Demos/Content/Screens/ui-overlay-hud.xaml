@@ -1,0 +1,28 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="10" Top="10" Width="220" Height="155"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="8"
+        Background="rgba(0,0,0,160)">
+
+  <StackPanel Orientation="Vertical" Spacing="4">
+
+    <TextBlock Name="lblTitle" Text="[b][color=white]MGUI UI Demo[/color][/b]" />
+
+    <!-- Rewritten every frame by HudScreen.Update. -->
+    <TextBlock Name="lblTime" Text="[color=lightgray]Time: 0.0s[/color]" />
+
+    <TextBlock Name="lblHint"
+               Text="[color=gray]Press F1 to toggle the demo navigator[/color]"
+               Margin="0,4,0,0" />
+
+    <Button Name="btnPause" Margin="0,8,0,0">
+      <TextBlock Text="[color=yellow]Open Pause Menu[/color]" />
+    </Button>
+
+    <Button Name="btnDialogue" Margin="0,4,0,0">
+      <TextBlock Text="[color=lightgreen]Open Dialogue[/color]" />
+    </Button>
+
+  </StackPanel>
+</Window>

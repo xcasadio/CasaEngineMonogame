@@ -411,7 +411,7 @@ Quatre écarts au plan, tous assumés :
 
 ## Phase 2 — Les écrans des démos
 
-### ⏳ T2.1 — `HudScreen` et `ScreenEffectSmokeHudScreen`
+### 🧪 T2.1 — `HudScreen` et `ScreenEffectSmokeHudScreen`
 
 - Objectif : les deux HUD de démo, qui poussent des valeurs à chaque image.
 - Fichiers : `CasaEngine.Demos/Demos/UIOverlay/HudScreen.cs`,
@@ -421,6 +421,26 @@ Quatre écarts au plan, tous assumés :
   (`AGENTS.md` §9.3).
 - Validation : build + suite verts ; les deux démos lancées, valeurs affichées et rafraîchies comme avant.
 - Commit : `refactor(demos): author the HUD screens in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1659 / 1658 verts**, +3, seul échec celui de
+la ligne de base. La théorie de `DemoScreenXamlTests` a ramassé les deux nouveaux `.xaml` **sans rien
+écrire** : c'est ce pour quoi elle avait été faite. 🧪 **Reste à faire par l'auteur** : lancer UIOverlay et
+TileMapDemo, vérifier que le compteur de temps défile et que les deux boutons agissent.
+
+Trois choses trouvées en chemin :
+
+1. **Le fond du HUD de smoke reste en code, et c'est délibéré.** `ScreenEffectSmokeHudScreen.ReferenceColor`
+   est le pixel de référence que le contrôle numérique du smoke échantillonne pour distinguer `BelowUI` de
+   `AboveUI`. L'écrire aussi dans le XAML créerait deux sources de vérité qui pourraient diverger en silence.
+   C'est le seul morceau non déplacé, et les deux fichiers disent pourquoi. Le reste de l'écran est en XAML.
+2. **`ReferenceColor` n'est lu par rien sur cette branche, et son `see cref` est pendant** :
+   `TileMapDemo.ReferencePixelScreenPosition` n'existe pas ici. Les deux vivent probablement sur
+   `chantier/effet-ecran-alpha`, non mergée. **Rien n'a été retiré ni « réparé »** : supprimer un `public
+   static` qu'une autre branche utilise serait une rupture à l'aveugle. Signalé, pas touché.
+3. **La garde `if (_timeLabel != null)` de `Update` a été retirée, après vérification.** `ScreenStack.Push`
+   appelle `Initialize` **avant** d'ajouter l'écran à sa liste (`ScreenStack.cs:63-71`), et `Update` n'itère
+   que cette liste : une image ne peut pas précéder l'initialisation. La garde était du code mort, et
+   `FindControl` rend désormais le champ non nul ou lève.
 
 ### ⏳ T2.2 — `DemoInfoScreen`, `BlendingControlsScreen`, `DemoHintOverlay`
 

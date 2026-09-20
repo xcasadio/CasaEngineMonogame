@@ -56,6 +56,20 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName("btnResume", out MGButton _));
     }
 
+    [Fact]
+    public void TheOverlayHud_DeclaresWhatItsScreenLooksUp()
+    {
+        // lblTime is rewritten every frame, so HudScreen finds it once at load; the two buttons carry its
+        // callbacks. A rename in the markup breaks all three, and must break here rather than in the demo.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("ui-overlay-hud.xaml")));
+
+        Assert.True(window.TryGetElementByName("lblTime", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("btnPause", out MGButton _));
+        Assert.True(window.TryGetElementByName("btnDialogue", out MGButton _));
+    }
+
     private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()
