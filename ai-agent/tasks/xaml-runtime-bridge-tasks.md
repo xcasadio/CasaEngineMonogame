@@ -583,7 +583,7 @@ Un test pince la case vide et les bornes de la barre de vie.
 
 ## Phase 4 — L'écran du framework
 
-### ⏳ T4.1 — `DialogueScreen`
+### 🧪 T4.1 — `DialogueScreen`
 
 - Objectif : le seul écran qui appartient au moteur lui-même et non à un jeu. Placé en dernier parce qu'il
   pose une question que les neuf autres ne posent pas (O2).
@@ -598,6 +598,31 @@ Un test pince la case vide et les bornes de la barre de vie.
 - Validation : build + suite verts, `DialogueScreenLayoutTests` compris ; la démo ou le test de dialogue
   existant rejoué, lignes et choix affichés.
 - Commit : `refactor(dialogue): author the dialogue screen in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1687 / 1686 verts**, seul échec celui de la
+ligne de base. Les **cinq** `DialogueScreenLayoutTests` passent sans avoir été réécrits, `BuildWindow`
+compris : la couture de T0.2 porte exactement le nom et la forme que cet écran avait déjà inventés.
+
+**O2 est répondu par précédent, pas par préférence.** Le plan laissait ouvert l'emplacement du XAML d'un
+écran qui appartient au moteur. La réponse existait déjà **dans la même pile** : MGUI embarque
+`UI/Themes/BuiltInThemes.xaml` et `UI/Templates/BuiltInControlTemplates.xaml` en `EmbeddedResource`
+(`MGUI/MGUI.Core/MGUI.Core.csproj:42-48`) et les lit par
+`GeneralUtils.ReadEmbeddedResourceAsString` (`MGTheme.cs:743`). `DialogueScreen.xaml` fait pareil dans
+l'assemblage `CasaEngine`. **Aucun mécanisme de surcharge par projet n'a été construit** : personne ne l'a
+demandé, et ce serait l'abstraction inutile qu'`AGENTS.md` §9.2 écarte. Le jour où un jeu voudra son propre
+dialogue, ce sera un constructeur de plus.
+
+**Deux pièges rencontrés, dont un qui est un manque de MGUI (G3).**
+
+1. **`--` dans un commentaire XML**, deux fois : dans le `.csproj` puis dans le `.xaml`. Le XML l'interdit.
+   Le second n'a été attrapé que parce que le mode `Strict` valide le document (`ReadForValidation`) : en
+   `Compatibility`, il serait passé plus loin. Une raison de plus pour D4.
+2. **`Width` et `Height` sur un `Window` XAML l'épinglent.** Ils alimentent le constructeur **et** posent
+   `PreferredWidth`/`PreferredHeight`, dont ils sont les alias hérités d'`Element`. Résultat :
+   `ApplySizeToContent` n'a plus d'effet et la boîte reste à 150 px, ce qui a rallumé les deux tests écrits
+   pour le défaut signalé par un joueur — un bouton de choix hors de la fenêtre. Le document déclare donc
+   `MinHeight="150"`, qui alimente le constructeur par le `Clamp` sans toucher à la taille préférée. C'est
+   une astuce, pas une expression : consigné en **G3** du rapport des manques.
 
 ---
 
@@ -630,7 +655,7 @@ Un test pince la case vide et les bornes de la barre de vie.
 | ~~O5~~ | ~~**Que deviennent les quatre `.screen` hérités ?**~~ **Tranché le 2026-09-20 : supprimés, non convertis. Voir D12 et T0.5.** | closed |
 | ~~O0~~ | ~~**Quelle extension porte l'enveloppe d'un écran XAML ?**~~ **Tranché le 2026-09-20 : `.uiscreen`, avec ajout de la route manquante. Voir D11 et T0.4.** Pour mémoire, la contradiction mesurée : La contradiction passe entre deux étages de l'éditeur, pas entre le code et les données. La **route de document** est clavetée sur `.screen` (`GameEditor.cs:3914` + `Constants.cs:20`) et reconnaît le format en cherchant `source_xaml_file` (`:5053-5071`), sans aucune route pour `.uiscreen`. Mais la **session d'édition** est testée exclusivement avec des `.uiscreen` (`CasaEngine.Tests/ScreenEditor/UIScreenEditorSessionTests.cs:28,42,76,93,125,137,156,165`), le catalogue aussi (`AssetCatalogTests.cs:19,42,46`, `EditorAssetCatalogServiceTests.cs:57,74`), et le projet d'échantillon livre cinq `.uiscreen` catalogués `"asset_type": "uiscreen"` (`AssetInfos.json:6-7`). Conséquence, que T0.4 corrige : les `.uiscreen` du projet d'échantillon n'étaient pas ouvrables par double-clic dans l'éditeur, faute de route, alors que tout le reste de la chaîne les accepte. | closed |
 | O1 | L'asset chargé par `AssetLoader<UIScreenAsset>` expose-t-il le chemin de son propre fichier ? Si non, la seconde porte de D8 prend ce chemin en paramètre, ce qui est déjà la signature retenue. À confirmer au code en T0.1, sans supposer. | T0.1 |
-| O2 | **Où vit le XAML d'un écran qui appartient au moteur et non à un jeu ?** `DialogueScreen` est utilisable par n'importe quel projet, donc son XAML ne peut pas être l'actif d'un projet particulier. Recommandation : ressource embarquée dans l'assemblage `CasaEngine` comme valeur par défaut, qu'un projet peut remplacer en déclarant sa propre enveloppe. C'est une décision d'architecture : elle appartient à l'auteur. | T4.1 |
+| ~~O2~~ | ~~**Où vit le XAML d'un écran qui appartient au moteur et non à un jeu ?** `DialogueScreen` est utilisable par n'importe quel projet, donc son XAML ne peut pas être l'actif d'un projet particulier. Recommandation : ressource embarquée dans l'assemblage `CasaEngine`.~~ **Tranché le 2026-09-20 par précédent, pas par préférence : MGUI embarque déjà ses propres `BuiltInThemes.xaml` et `BuiltInControlTemplates.xaml` en `EmbeddedResource` et les lit par `GeneralUtils.ReadEmbeddedResourceAsString`. `DialogueScreen.xaml` fait pareil dans l'assemblage `CasaEngine`. La moitié « surcharge par projet » de la recommandation n'a PAS été construite : personne ne l'a demandée, et ce serait l'abstraction inutile qu'`AGENTS.md` §9.2 écarte.** | closed |
 | ~~O3~~ | ~~`BlendingControlsScreen` construit-il un arbre fixe ou une liste variable de contrôles ?~~ **Répondu le 2026-09-20 par lecture, et la question visait le mauvais écran.** `BlendingControlsScreen` a un arbre **fixe** (sept `MGExpander` en dur), donc il part entièrement en XAML — mais il est assez gros pour mériter sa propre tâche, T2.3. C'est **`DemoInfoScreen`** qui a la liste variable, un bouton par démo : seule sa coque est déclarée, avec un panneau nommé vide que le code remplit. | closed |
 | O4 | **Que désigne `ResourceFiles` dans une enveloppe d'écran, et relatif à quoi ?** Le champ est désérialisé (`UIScreenAsset.cs:14,24-35`) et écrit par l'éditeur (`EditorAssetJsonSerializer.cs:481`), mais **aucun consommateur n'existe dans le dépôt** et toutes les enveloppes livrées le déclarent vide. Le chantier n'y touche pas (D6). Si l'auteur veut qu'il serve — thèmes ? gabarits de contrôles ? — c'est un ajout à chiffrer séparément. | hors périmètre actuel |
 

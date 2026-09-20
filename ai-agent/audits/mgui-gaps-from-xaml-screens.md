@@ -99,6 +99,46 @@ explicite quand un alignement est déclaré. C'est une vraie petite fonctionnali
 
 ---
 
+## G3 — Déclarer la taille d'une fenêtre en XAML l'épingle, et empêche tout redimensionnement au contenu
+
+**Priorité : haute.** Celui-ci ne se voit pas : il ne casse rien à l'analyse, ne lève aucune erreur, et
+transforme simplement `ApplySizeToContent` en opération sans effet. Il a coûté deux tests rouges et une
+bisection pour être trouvé.
+
+**Ce que le code doit faire.** La boîte de dialogue part d'une hauteur minimale de 150 px puis **grandit**
+pour contenir une ligne qui se replie sur plusieurs rangs plus autant de boutons de choix que le dialogue en
+offre. C'est un défaut signalé par un joueur : le second bouton de choix sortait de la fenêtre.
+
+**Ce qui se passe.** Sur le DTO XAML `Window`, `Width` et `Height` servent **deux fois**. `ToElement` les
+passe au constructeur de `MGWindow` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`, `Math.Clamp(Height ?? 0, ...)`),
+ce qui est l'effet attendu — mais ce sont aussi les alias de `PreferredWidth` et `PreferredHeight` hérités
+d'`Element` (`MGUI/MGUI.Core/UI/XAML/Element.cs:241` et `:244`), que la passe générale de réglages applique
+également. La fenêtre se retrouve donc avec une hauteur **préférée** que rien n'a demandée, et
+`MGWindow.ApplySizeToContent` la respecte : la fenêtre reste à 150 px quoi que contienne son arbre.
+
+**Ce que ça coûte aujourd'hui.** Une fenêtre qui doit s'adapter à son contenu ne peut pas déclarer sa taille
+de départ du tout. `DialogueScreen.xaml` déclare `MinHeight="150"` — qui alimente le constructeur via le
+`Clamp` sans toucher à la taille préférée — et sa largeur est posée en C#. C'est une **astuce**, pas une
+expression : rien dans le document ne dit qu'il s'agit d'une hauteur de départ, et le prochain qui écrira
+`Height="150"` par réflexe repassera par le même diagnostic.
+
+**L'API absente.** De quoi distinguer, sur une fenêtre racine, la taille **initiale** de la taille
+**imposée**. Par exemple un `SizeToContent="Height"` déclaratif qui neutralise la taille préférée
+correspondante, ou des propriétés distinctes :
+
+```xml
+<Window WindowWidth="720" WindowHeight="150" SizeToContent="Height" MinHeight="150" />
+```
+
+**Coût estimé.** Petit à moyen, mais il touche une sémantique existante : il faut décider si `Width` sur une
+fenêtre racine doit cesser d'alimenter `PreferredWidth`, ce qui serait un changement de comportement, ou si
+de nouvelles propriétés s'ajoutent à côté. Le second chemin est additif et sans risque.
+
+**Au minimum, et sans rien changer :** que `Width`/`Height` sur un `Window` soient documentés comme fixant
+aussi la taille préférée. Le piège est entièrement silencieux aujourd'hui.
+
+---
+
 ## Ce qui n'est **pas** un manque, et pourquoi
 
 Pour que la liste ci-dessus garde son sens, voici ce que la conversion a laissé en C# **sans** que ce soit

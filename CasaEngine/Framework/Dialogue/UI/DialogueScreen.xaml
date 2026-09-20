@@ -1,0 +1,33 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="0" Top="0" MinHeight="150"
+        TitleText="Dialogue"
+        IsTopmost="True"
+        IsUserResizable="False"
+        Padding="14"
+        Background="rgba(12,18,26,235)">
+
+  <!-- This document is an EMBEDDED RESOURCE of the CasaEngine assembly, the way MGUI ships its own
+       BuiltInThemes.xaml: the dialogue screen belongs to the framework, so it cannot be the asset of any
+       one project.
+
+       Left, Top, Width and Height are placeholders. The window is as wide as the screen allows between 320
+       and 720, centred horizontally, anchored to the bottom, and it GROWS to fit its content: a wrapped
+       line plus however many choice buttons the dialogue offers. None of that is knowable here. -->
+
+  <StackPanel Name="pnlContent" Orientation="Vertical" Spacing="8">
+
+    <!-- No PreferredHeight on the panel: it must report its CONTENT height so the window's resize-to-fit
+         measurement sees the real total. -->
+
+    <TextBlock Name="lblLine" Text="" WrapText="True" FontSize="16" Foreground="White" />
+
+    <StackPanel Name="pnlChoices" Orientation="Vertical" Spacing="4" />
+
+    <!-- Removed from the tree when ShowCloseButton is false, so a game whose own director owns the
+         open/closed state gets no affordance that would close the box behind its back. -->
+    <Button Name="btnClose" HorizontalAlignment="Right" Margin="0,8,0,0">
+      <TextBlock Text="Close" />
+    </Button>
+
+  </StackPanel>
+</Window>

@@ -31,6 +31,12 @@
 	  <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
 	  <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+		<!-- The dialogue screen belongs to the framework, not to any one project, so its XAML ships inside
+		     the assembly, the way MGUI ships BuiltInThemes.xaml. Resource id:
+		     CasaEngine.Framework.Dialogue.UI.DialogueScreen.xaml -->
+		<EmbeddedResource Include="Framework\Dialogue\UI\DialogueScreen.xaml" />
+	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />
