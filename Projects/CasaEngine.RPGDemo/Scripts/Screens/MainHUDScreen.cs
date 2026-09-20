@@ -12,14 +12,11 @@ namespace CasaEngine.RPGDemo.Scripts.Screens;
 /// MGUI in-game HUD: player portrait + life bar (bottom-left).
 /// <para/>
 /// Its tree lives in the project asset `Screens/MainHUD/MainHUD.uiscreen`, which names its XAML. What stays
-/// here is the corner it sits in, the portrait texture -- loaded from disk by the world, and optional -- and
-/// the life bar it rewrites every frame.
+/// here is the portrait texture -- loaded from disk by the world, and optional -- and the life bar it
+/// rewrites every frame. The corner it sits in is declared.
 /// </summary>
 public sealed class MainHUDScreen : XamlUIScreenBase
 {
-    private const int WindowWidth = 230;
-    private const int WindowHeight = 66;
-
     /// <summary>Sub-rectangle that crops Link out of MainHUD.png.</summary>
     private static readonly Rectangle PortraitSourceRect = new(41, 0, 60, 64);
 
@@ -46,10 +43,6 @@ public sealed class MainHUDScreen : XamlUIScreenBase
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        var bounds = window.Desktop.ValidScreenBounds;
-        window.Left = 12;
-        window.Top = bounds.Height - WindowHeight - 12;
-
         var portraitImage = FindControl<MGImage>("imgPortrait");
 
         if (_portrait != null)

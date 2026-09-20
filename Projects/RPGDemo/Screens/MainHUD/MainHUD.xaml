@@ -1,13 +1,12 @@
 <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
-        Left="0" Top="0" Width="230" Height="66"
+        Width="230" Height="66" ScreenMargin="12"
+        ScreenHorizontalAlignment="Left" ScreenVerticalAlignment="Bottom"
         IsTitleBarVisible="False"
         IsUserResizable="False"
         Padding="6"
         Background="rgba(0,0,0,160)">
 
-  <!-- Left and Top are placeholders: the screen anchors this to the bottom-left corner at load.
-
-       imgPortrait is declared with no source. Its texture is a PNG the world loads from disk at run time,
+  <!-- imgPortrait is declared with no source. Its texture is a PNG the world loads from disk at run time,
        and the sub-rectangle that crops Link out of the sheet goes with it, so both are pushed by the screen.
        The image is collapsed when the file is missing, which is the case the portrait has always been
        optional for. -->

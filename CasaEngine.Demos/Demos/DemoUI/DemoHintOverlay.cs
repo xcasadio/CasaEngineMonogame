@@ -8,15 +8,10 @@ namespace CasaEngine.Demos.Demos;
 /// Reminds the player how to bring the demo info panel back.
 /// Toggle visibility with <see cref="SetVisible"/>.
 /// <para/>
-/// Its tree lives in `Content/Screens/demo-hint.xaml`; only where it sits stays here, because that depends
-/// on the resolution.
+/// Its tree lives in `Content/Screens/demo-hint.xaml`, where it sits included.
 /// </summary>
 internal sealed class DemoHintOverlay : XamlUIScreenBase
 {
-    private const int WindowWidth = 300;
-    private const int WindowHeight = 36;
-    private const int BottomMargin = 14;
-
     public override UILayer Layer   => UILayer.HUD;
     public override bool    IsModal => false;
 
@@ -27,9 +22,7 @@ internal sealed class DemoHintOverlay : XamlUIScreenBase
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        var bounds = window.Desktop.ValidScreenBounds;
-        window.Left = bounds.Width / 2 - WindowWidth / 2;
-        window.Top = bounds.Height - WindowHeight - BottomMargin;
+        // Nothing to wire: the document places it and carries its one line of text.
     }
 
     /// <summary>Shows or hides this overlay's window without removing it from the stack.</summary>

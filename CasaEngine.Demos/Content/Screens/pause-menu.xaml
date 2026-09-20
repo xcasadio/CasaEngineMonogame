@@ -1,12 +1,10 @@
 <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
-        Left="0" Top="0" Width="300" Height="200"
+        Width="300" Height="200"
+        ScreenHorizontalAlignment="Center" ScreenVerticalAlignment="Center"
         TitleText="Pause"
         IsUserResizable="False"
         Padding="12"
         Background="rgba(20,20,40,230)">
-
-  <!-- Left and Top are placeholders: the screen centres this window on the desktop at load, because
-       where it goes depends on the resolution and the resolution is not known here. -->
 
   <StackPanel Orientation="Vertical" Spacing="10">
 

@@ -9,13 +9,10 @@ namespace CasaEngine.RPGDemo.Scripts.Screens;
 /// MGUI title screen: "RPG Demo" label + "Start Game" and "Exit" buttons.
 /// <para/>
 /// Its tree lives in the project asset `Screens/TitleScreen/TitleScreen.uiscreen`, which names its XAML.
-/// Only where the window goes, and what the two buttons do, stays here.
+/// Centring included: all that stays here is what the two buttons do.
 /// </summary>
 public sealed class TitleScreen : XamlUIScreenBase
 {
-    private const int WindowWidth = 320;
-    private const int WindowHeight = 200;
-
     private readonly Action _onStartGame;
     private readonly Action _onExit;
 
@@ -38,10 +35,6 @@ public sealed class TitleScreen : XamlUIScreenBase
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        var bounds = window.Desktop.ValidScreenBounds;
-        window.Left = bounds.Width / 2 - WindowWidth / 2;
-        window.Top = bounds.Height / 2 - WindowHeight / 2;
-
         FindControl<MGButton>("ButtonStartGame").AddCommandHandler((_, _) => _onStartGame());
         FindControl<MGButton>("ButtonExit").AddCommandHandler((_, _) => _onExit());
     }

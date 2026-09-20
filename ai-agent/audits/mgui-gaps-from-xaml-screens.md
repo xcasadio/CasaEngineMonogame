@@ -66,7 +66,21 @@ existant n'est touché, puisque les deux propriétés sont facultatives.
 
 ---
 
-## G2 — Une fenêtre racine ne sait pas se placer par rapport au bureau
+## ~~G2~~ — Une fenêtre racine ne sait pas se placer par rapport au bureau — **CORRIGÉ le 2026-09-20**
+
+> **Comblé dans MGUI**, même branche, commits `8748b72` puis `1bfd401` : `ScreenHorizontalAlignment`,
+> `ScreenVerticalAlignment` et `ScreenMargin` sur `MGWindow` et sur son DTO XAML, réappliqués à chaque tick
+> du bureau. Le plafonnement au viewport **tombe de la sémantique d'alignement** au lieu d'être une seconde
+> fonctionnalité : un élément aligné ne dépasse pas la place dont il dispose, et `MinWidth`/`MinHeight`
+> l'emportent encore. Sept écrans du moteur ont perdu leur arithmétique ; dix tests vérifient qu'ils
+> atterrissent exactement où leur calcul C# les mettait, plafond compris. Suite MGUI 2982 verts, +17.
+>
+> **La syntaxe proposée plus bas était fausse** : `HorizontalAlignment` est déjà pris sur une fenêtre racine,
+> qui refuse tout autre chose que `Stretch` et lève. D'où les noms préfixés.
+>
+> **Et l'inset n'est pas `Margin`**, contrairement à ce que cette entrée disait : sur une fenêtre racine,
+> `Margin` rogne déjà le **contenu**, comme un second padding — mesuré, 260 px de large au lieu de 280. Le
+> réutiliser aurait discrètement resserré chaque fenêtre placée. D'où `ScreenMargin`, qui ne fait que l'inset.
 
 **Priorité : haute.** Quatre des six écrans convertis ont dû calculer leur position en C#, et deux d'entre
 eux aussi leur hauteur.

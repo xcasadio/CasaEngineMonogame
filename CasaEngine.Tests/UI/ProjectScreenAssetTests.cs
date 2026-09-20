@@ -82,6 +82,27 @@ public class ProjectScreenAssetTests
         Assert.Equal(100f, lifeBar.Maximum);
     }
 
+    /// <summary>
+    /// The three RPGDemo screens land where their old C# arithmetic put them, on the harness's 640x480 desktop.
+    /// </summary>
+    [Theory]
+    // title screen: centred, 320x200.
+    [InlineData("TitleScreen", "TitleScreen.uiscreen", (640 - 320) / 2, (480 - 200) / 2)]
+    // game over: centred, 380x180.
+    [InlineData("GameOver", "GameOverScreen.uiscreen", (640 - 380) / 2, (480 - 180) / 2)]
+    // HUD: bottom-left corner inset by 12, 230x66.
+    [InlineData("MainHUD", "MainHUD.uiscreen", 12, 480 - 66 - 12)]
+    public void EachScreen_LandsWhereItsOldArithmeticPutIt(string folder, string envelope, int left, int top)
+    {
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+        var envelopePath = Path.Combine(RpgDemoScreensDirectory(), folder, envelope);
+
+        var window = UIScreenLoader.Load(desktop, ReadEnvelope(envelopePath), envelopePath);
+
+        Assert.Equal(left, window.Left);
+        Assert.Equal(top, window.Top);
+    }
+
     private static UIScreenAsset ReadEnvelope(string envelopePath)
     {
         var asset = new UIScreenAsset();

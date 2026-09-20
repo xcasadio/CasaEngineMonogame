@@ -1,11 +1,10 @@
 <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
-        Left="0" Top="0" Width="300" Height="36"
+        Width="300" Height="36" ScreenMargin="0,0,0,14"
+        ScreenHorizontalAlignment="Center" ScreenVerticalAlignment="Bottom"
         IsTitleBarVisible="False"
         IsUserResizable="False"
         Padding="6"
         Background="rgba(0,0,0,140)">
-
-  <!-- Left and Top are placeholders: the screen centres this at the bottom of the desktop at load. -->
 
   <TextBlock Name="lblHint" Text="[color=lightgray][i]Press [b]F1[/b] to show demo info[/i][/color]" />
 </Window>

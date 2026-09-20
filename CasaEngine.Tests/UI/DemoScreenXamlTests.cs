@@ -115,6 +115,62 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName(controlName, out MGElement _), $"'{controlName}' is not declared.");
     }
 
+    /// <summary>
+    /// Every position each demo screen used to compute in C#, now declared, checked against the arithmetic
+    /// it replaced on the harness's 640x480 desktop.
+    /// </summary>
+    [Theory]
+    // pause menu: centred, 300x200.
+    [InlineData("pause-menu.xaml", (640 - 300) / 2, (480 - 200) / 2, 300, 200)]
+    // F1 hint: centred horizontally, 14px above the bottom, 300x36.
+    [InlineData("demo-hint.xaml", (640 - 300) / 2, 480 - 36 - 14, 300, 36)]
+    // demo navigator: top-right corner inset by 10, 300 wide, 440 tall and the view has room for it.
+    [InlineData("demo-info.xaml", 640 - 300 - 10, 10, 300, 440)]
+    // blending controls: same corner, but 560 does NOT fit in 480 -- the height is capped to the space the
+    // margin leaves, which is exactly what Math.Min(560, viewport - 20) used to do.
+    [InlineData("blending-controls.xaml", 640 - 320 - 10, 10, 320, 480 - 20)]
+    public void EachPlacedScreen_LandsWhereItsOldArithmeticPutIt(string fileName, int left, int top, int width, int height)
+    {
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath(fileName)));
+
+        Assert.Equal(left, window.Left);
+        Assert.Equal(top, window.Top);
+        Assert.Equal(width, window.WindowWidth);
+        Assert.Equal(height, window.WindowHeight);
+    }
+
+    [Fact]
+    public void APlacedScreen_KeepsItsFullContentArea()
+    {
+        // The inset from the screen edge must not eat into the window's own content. Margin on a root window
+        // would have done exactly that -- it insets the content, like a second padding -- which is why
+        // placement has its own ScreenMargin. Checked against a screen that declares no inset at all.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var placed = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-info.xaml")));
+        var unplaced = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("pause-menu.xaml")));
+
+        Assert.Equal(default, placed.Margin);
+        Assert.Equal(default, unplaced.Margin);
+    }
+
+    [Theory]
+    [InlineData("ui-overlay-hud.xaml")]
+    [InlineData("screen-effect-smoke-hud.xaml")]
+    public void TheTwoCornerHuds_KeepTheirAbsolutePosition(string fileName)
+    {
+        // These two were always at a fixed offset, so they declare no placement and must not acquire one.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath(fileName)));
+
+        Assert.False(window.HasScreenPlacement);
+        Assert.Equal(10, window.Left);
+        Assert.Equal(10, window.Top);
+    }
+
     private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()

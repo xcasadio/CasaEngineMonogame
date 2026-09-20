@@ -16,14 +16,12 @@ namespace CasaEngine.Demos.Demos;
 ///
 /// Toggle visibility with <see cref="SetVisible"/>.
 /// <para/>
-/// Its shell lives in `Content/Screens/demo-info.xaml`. The demo buttons do not: there is one per demo
-/// entry, so that list IS the data and is built here, into the named panel the document declares for it.
+/// Its shell lives in `Content/Screens/demo-info.xaml`, corner and height cap included. The demo buttons do
+/// not: there is one per demo entry, so that list IS the data and is built here, into the named panel the
+/// document declares for it.
 /// </summary>
 internal sealed class DemoInfoScreen : XamlUIScreenBase
 {
-    private const int WindowWidth = 300;
-    private const int MaxWindowHeight = 440;
-
     // ---- Data ----
     private readonly IReadOnlyList<(string Title, string Description)> _demoEntries;
     private int _currentIndex;
@@ -59,13 +57,6 @@ internal sealed class DemoInfoScreen : XamlUIScreenBase
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        // Anchored to the top-right corner, and never taller than the viewport. Both depend on a resolution
-        // the document cannot know -- in a split-screen demo each viewport is a fraction of the back-buffer.
-        var bounds = window.Desktop.ValidScreenBounds;
-        window.Left = bounds.Width - WindowWidth - 10;
-        window.Top = 10;
-        window.WindowHeight = Math.Min(MaxWindowHeight, bounds.Height - 20);
-
         _titleLabel = FindControl<MGTextBlock>("lblTitle");
         _descLabel = FindControl<MGTextBlock>("lblDescription");
 

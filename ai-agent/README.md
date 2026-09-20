@@ -53,7 +53,7 @@ Les audits sont en lecture seule. Ceux marqués « historique » décrivent un �
 
 ### Manques du moteur et de MGUI
 
-- [mgui-gaps-from-xaml-screens.md](audits/mgui-gaps-from-xaml-screens.md) — ce que MGUI et le moteur ne savent pas encore faire, relevé en convertissant les écrans en XAML. Ouvert le 2026-09-20, **vivant tant que le chantier du pont XAML dure**. Règle de l'auteur : pas de contournement silencieux, un manque se consigne. G1 : un curseur déclaré ne peut pas afficher sa valeur (`ShowValueLabel`/`ValueLabelFormat` absents du DTO XAML). G2 : une fenêtre racine ne sait pas se placer par rapport au bureau, ni plafonner sa taille au viewport.
+- [mgui-gaps-from-xaml-screens.md](audits/mgui-gaps-from-xaml-screens.md) — ce que MGUI et le moteur ne savaient pas faire, relevé en convertissant les écrans en XAML. Ouvert le 2026-09-20. Règle de l'auteur : pas de contournement silencieux, un manque se consigne. **Les trois manques sont corrigés dans MGUI le 2026-09-20** (G1 l'étiquette de valeur d'un curseur, G3 la taille de départ surchargeable, G2 le placement par rapport au bureau), et les contournements ont disparu du moteur. Reste signalé, non corrigé : un défaut préexistant du DTO `Slider`, dont la garde de plage lit `MaxHeight` au lieu de `Maximum`. 
 
 ### Agents IA et décisions
 

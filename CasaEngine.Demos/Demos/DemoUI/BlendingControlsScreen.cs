@@ -10,14 +10,11 @@ namespace CasaEngine.Demos.Demos;
 /// all playback logic lives in <see cref="SkeletalAnimationBlendingDemo"/>.
 /// <para/>
 /// Its tree lives in `Content/Screens/blending-controls.xaml`: seven folders of fixed contents, none of it
-/// data-driven. What stays here is where the window goes, what every control does, and the two methods the
-/// demo calls back into.
+/// data-driven, placed and capped by the document too. What stays here is what every control does, and the
+/// two methods the demo calls back into.
 /// </summary>
 internal sealed class BlendingControlsScreen : XamlUIScreenBase
 {
-    private const int WindowWidth = 320;
-    private const int MaxWindowHeight = 560;
-
     private MGSlider _idleWeightSlider;
     private MGSlider _walkWeightSlider;
     private MGSlider _runWeightSlider;
@@ -71,13 +68,6 @@ internal sealed class BlendingControlsScreen : XamlUIScreenBase
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        // Top-right corner, never taller than the viewport: both depend on a resolution the document
-        // cannot know.
-        var bounds = window.Desktop.ValidScreenBounds;
-        window.Left = bounds.Width - WindowWidth - 10;
-        window.Top = 10;
-        window.WindowHeight = Math.Min(MaxWindowHeight, bounds.Height - 20);
-
         BindCheckBox("chkShowModel", isChecked => ShowModelChanged?.Invoke(isChecked));
         BindCheckBox("chkShowSkeleton", isChecked => ShowSkeletonChanged?.Invoke(isChecked));
         BindCheckBox("chkFootLock", isChecked => FootLockChanged?.Invoke(isChecked));
