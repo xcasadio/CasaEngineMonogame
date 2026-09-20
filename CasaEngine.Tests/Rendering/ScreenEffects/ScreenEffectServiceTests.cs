@@ -151,6 +151,96 @@ public class ScreenEffectServiceTests
     }
 
     [Fact]
+    public void A_DefaultsTo255()
+    {
+        var service = new ScreenEffectService();
+
+        Assert.Equal(255, service.A);
+    }
+
+    [Fact]
+    public void SetOverlay_WithoutAlpha_LeavesAAt255()
+    {
+        var service = new ScreenEffectService();
+
+        service.SetOverlay(10, 20, 30, SpriteBlendMode.Subtractive);
+
+        Assert.Equal(255, service.A);
+    }
+
+    [Fact]
+    public void SetOverlay_WithAlpha_AppliesIt()
+    {
+        var service = new ScreenEffectService();
+
+        service.SetOverlay(10, 20, 30, 128, SpriteBlendMode.AlphaBlend);
+
+        Assert.Equal(10, service.R);
+        Assert.Equal(20, service.G);
+        Assert.Equal(30, service.B);
+        Assert.Equal(128, service.A);
+        Assert.Equal(SpriteBlendMode.AlphaBlend, service.Blend);
+    }
+
+    [Fact]
+    public void StartFade_WithoutAlpha_KeepsAAt255Throughout()
+    {
+        var service = new ScreenEffectService();
+
+        service.StartFade(200, 200, 200, 0, 0, 0, 1f, SpriteBlendMode.Subtractive);
+        Assert.Equal(255, service.A);
+
+        service.Update(0.5f);
+        Assert.Equal(255, service.A);
+
+        service.Update(0.5f);
+        Assert.Equal(255, service.A);
+    }
+
+    [Fact]
+    public void StartFade_WithAlpha_InterpolatesAlphaLikeTheColourChannels()
+    {
+        var service = new ScreenEffectService();
+
+        service.StartFade(0, 0, 0, 0, 0, 0, 0, 255, 1f, SpriteBlendMode.AlphaBlend);
+
+        service.Update(0.5f);
+        Assert.Equal(128, service.A);
+        Assert.True(service.IsFading);
+
+        service.Update(0.5f);
+        Assert.Equal(255, service.A);
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
+    public void StartFadeWithAlpha_ZeroDuration_AppliesTargetAlphaImmediately()
+    {
+        var service = new ScreenEffectService();
+
+        service.StartFade(10, 20, 30, 40, 50, 60, 70, 80, 0f, SpriteBlendMode.AlphaBlend);
+
+        Assert.Equal(50, service.R);
+        Assert.Equal(60, service.G);
+        Assert.Equal(70, service.B);
+        Assert.Equal(80, service.A);
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
+    public void Clear_LeavesAlphaIntactWhileResettingActiveAndFading()
+    {
+        var service = new ScreenEffectService();
+        service.SetOverlay(1, 2, 3, 42, SpriteBlendMode.AlphaBlend);
+
+        service.Clear();
+
+        Assert.Equal(42, service.A);
+        Assert.False(service.Active);
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
     public void Update_WithNoFadeInProgress_DoesNotAllocate()
     {
         var service = new ScreenEffectService();

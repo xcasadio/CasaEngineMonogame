@@ -66,6 +66,35 @@ public class SpriteRendererComponentBlendModeTests
         Assert.Equal(SpriteBlendMode.AlphaBlend, (SpriteBlendMode)GetField(entry, "BlendMode"));
     }
 
+    [Fact]
+    public void KeyedTextureOverload_WithBlendModeAndNoIgnoresDepthArgument_DefaultsToNotIgnoringDepth()
+    {
+        // ADR-0034: an ordinary submission (no explicit ignoresDepth argument, as every
+        // caller other than ScreenEffectComponent.SubmitOverlay uses) must keep testing/writing depth
+        // exactly as before that parameter existed.
+        var component = CreateComponent(out _);
+        var key = new RenderSortKey2D((int)RenderPass2D.YSortedWorld, 0, 0, 0, 0, 0, 0);
+
+        component.DrawSprite(CreateTexture(), SourceRectangle, Point.Zero, Vector2.Zero, 0f,
+            Vector2.One, Color.White, 0f, in key, SpriteEffects.None, Rectangle.Empty, SpriteBlendMode.AlphaBlend);
+
+        var entry = GetSpriteDatas(component)[0]!;
+        Assert.False((bool)GetField(entry, "IgnoresDepth"));
+    }
+
+    [Fact]
+    public void KeyedTextureOverload_WithIgnoresDepthTrue_IsCarriedThroughSubmission()
+    {
+        var component = CreateComponent(out _);
+        var key = new RenderSortKey2D((int)RenderPass2D.YSortedWorld, 0, 0, 0, 0, 0, 0);
+
+        component.DrawSprite(CreateTexture(), SourceRectangle, Point.Zero, Vector2.Zero, 0f,
+            Vector2.One, Color.White, 0f, in key, SpriteEffects.None, Rectangle.Empty, SpriteBlendMode.Additive, ignoresDepth: true);
+
+        var entry = GetSpriteDatas(component)[0]!;
+        Assert.True((bool)GetField(entry, "IgnoresDepth"));
+    }
+
     [Theory]
     [InlineData(false)] // unkeyed legacy overload
     [InlineData(true)]  // keyed overload with no blend mode argument

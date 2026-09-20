@@ -214,6 +214,10 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
     /// flip this engine's 2D world (+Y up) needs against screen space (+Y down), so it cancels the
     /// active camera's own view transform and always covers the screen regardless of where the
     /// camera is.
+    ///
+    /// The overlay is submitted with <c>ignoresDepth: true</c> (ADR-0034): a full-screen
+    /// veil must darken every pixel regardless of what world sprite already wrote its depth there,
+    /// not just the pixels farther from the camera than the nearest opaque sprite.
     /// </remarks>
     public void SubmitOverlay(SpriteRendererComponent renderer, Vector3 cameraPosition, int viewportWidth, int viewportHeight, Texture2D overlayTexture = null, Rectangle? scissorRectangle = null)
     {
@@ -231,7 +235,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
         var halfWidth = viewportWidth / 2f;
         var halfHeight = viewportHeight / 2f;
         var worldPosition = new Vector2(cameraPosition.X - halfWidth, cameraPosition.Y + halfHeight);
-        var color = new Color(Service.R, Service.G, Service.B);
+        var color = new Color(Service.R, Service.G, Service.B, Service.A);
         var sortKey = new RenderSortKey2D((int)RenderPass2D.ScreenEffects, 0, 0, 0, 0, 0, 0);
         var resolvedScissorRectangle = scissorRectangle ?? new Rectangle(0, 0, viewportWidth, viewportHeight);
 
@@ -247,7 +251,8 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
             sortKey,
             SpriteEffects.None,
             resolvedScissorRectangle,
-            Service.Blend);
+            Service.Blend,
+            ignoresDepth: true);
     }
 
     private Texture2D GetOrCreatePixelTexture()

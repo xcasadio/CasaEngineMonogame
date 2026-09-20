@@ -33,7 +33,7 @@ public class TileMapDemo : Demo
     private enum FadeSmokeState { Idle, FadingOut, FadingIn }
 
     public override string Title => "Tile map demo";
-    public override string Description => "Renders a tile map loaded from sprite and 2D animation assets using the CasaEngine tile map system. Press 1/2 for the above-UI screen effect smoke (T2.2): 1 fades to black BelowUI (default, the HUD below stays lit), 2 fades to black AboveUI (the HUD darkens with the scene).";
+    public override string Description => "Renders a tile map loaded from sprite and 2D animation assets using the CasaEngine tile map system. Press 1/2 for the above-UI screen effect smoke (T2.2), a modern alpha fade to black and back (SpriteBlendMode.AlphaBlend): 1 fades BelowUI (default, the HUD below stays lit), 2 fades AboveUI (the HUD darkens with the scene).";
 
     private CasaEngineGame? _game;
     private ScreenEffectSmokeHudScreen? _fadeSmokeScreen;
@@ -175,12 +175,18 @@ public class TileMapDemo : Demo
     // ---- Above-UI screen effect smoke (T2.2) ----
 
     /// <summary>
-    /// Starts the short fade-to-black-and-back demonstrated by keys 1/2: fade out over
-    /// <see cref="FadeSmokeSegmentDuration"/>, hold black an instant, fade back in over the same
-    /// duration, then <see cref="ScreenEffectService.Clear"/> - "durée courte, retour automatique"
-    /// (plan T2.2). <paramref name="layer"/> selects which side of the UI composition the quad
-    /// draws on; <see cref="ScreenEffectLayer.BelowUI"/> is the engine default (nothing changes for
-    /// any other consumer), <see cref="ScreenEffectLayer.AboveUI"/> is what this smoke exists to show.
+    /// Starts the short fade-to-black-and-back demonstrated by keys 1/2, using the modern alpha
+    /// overlay added to <see cref="ScreenEffectService"/> (chantier "effet-ecran-alpha", task 1):
+    /// a black quad in <see cref="SpriteBlendMode.AlphaBlend"/> whose opacity ramps 0 -> 255 over
+    /// <see cref="FadeSmokeSegmentDuration"/> (the scene, and BelowUI, darkens toward black), then
+    /// <see cref="AdvanceFadeSmoke"/> ramps it back 255 -> 0 over the same duration before calling
+    /// <see cref="ScreenEffectService.Clear"/>. Starting and ending at alpha 0 (fully transparent,
+    /// indistinguishable from no overlay) means there is no visible jump at either end: the overlay
+    /// is already invisible when it activates, and still invisible when <see cref="ScreenEffectService.Clear"/>
+    /// deactivates it.
+    /// <paramref name="layer"/> selects which side of the UI composition the quad draws on;
+    /// <see cref="ScreenEffectLayer.BelowUI"/> is the engine default (nothing changes for any other
+    /// consumer), <see cref="ScreenEffectLayer.AboveUI"/> is what this smoke exists to show.
     /// </summary>
     private void StartFadeSmoke(ScreenEffectLayer layer)
     {
@@ -191,7 +197,7 @@ public class TileMapDemo : Demo
         }
 
         service.Layer = layer;
-        service.StartFade(255, 255, 255, 0, 0, 0, FadeSmokeSegmentDuration, SpriteBlendMode.Subtractive);
+        service.StartFade(0, 0, 0, 0, 0, 0, 0, 255, FadeSmokeSegmentDuration, SpriteBlendMode.AlphaBlend);
         _fadeState = FadeSmokeState.FadingOut;
         _fadeStateElapsed = 0f;
     }
@@ -218,7 +224,7 @@ public class TileMapDemo : Demo
 
         if (_fadeState == FadeSmokeState.FadingOut)
         {
-            service.StartFade(0, 0, 0, 255, 255, 255, FadeSmokeSegmentDuration, SpriteBlendMode.Subtractive);
+            service.StartFade(0, 0, 0, 255, 0, 0, 0, 0, FadeSmokeSegmentDuration, SpriteBlendMode.AlphaBlend);
             _fadeState = FadeSmokeState.FadingIn;
             _fadeStateElapsed = 0f;
         }

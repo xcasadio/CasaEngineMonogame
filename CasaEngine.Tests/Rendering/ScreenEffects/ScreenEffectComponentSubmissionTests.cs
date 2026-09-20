@@ -65,6 +65,11 @@ public class ScreenEffectComponentSubmissionTests
 
         var color = (Color)GetField(entry, "Color");
         Assert.Equal(new Color(10, 20, 30), color);
+
+        // ADR-0034: the full-screen veil must cover every pixel regardless of what a world
+        // sprite already wrote to the depth buffer there, so the submission must carry IgnoresDepth.
+        var ignoresDepth = (bool)GetField(entry, "IgnoresDepth");
+        Assert.True(ignoresDepth);
     }
 
     [Fact]

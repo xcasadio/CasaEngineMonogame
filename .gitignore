@@ -62,3 +62,7 @@ CasaEngine/artifacts/
 
 # Claude Code personal project settings (shared settings live in .claude/settings.json)
 .claude/settings.local.json
+
+# Runtime log written by any game/demo launched from its own project folder
+# (Logs.AddLogger(new FileLogger("log.txt")) in DemosGame.Initialize and its siblings).
+log.txt

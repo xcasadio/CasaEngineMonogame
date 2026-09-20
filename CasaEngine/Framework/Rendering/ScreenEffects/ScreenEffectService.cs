@@ -22,9 +22,11 @@ public sealed class ScreenEffectService
     private byte _fadeFromR;
     private byte _fadeFromG;
     private byte _fadeFromB;
+    private byte _fadeFromA;
     private byte _fadeToR;
     private byte _fadeToG;
     private byte _fadeToB;
+    private byte _fadeToA;
     private float _fadeDuration;
     private float _fadeElapsed;
 
@@ -36,6 +38,17 @@ public sealed class ScreenEffectService
     public byte G { get; private set; }
 
     public byte B { get; private set; }
+
+    /// <summary>
+    /// Overlay opacity. Defaults to 255 (fully opaque), the colour-only behaviour every existing
+    /// consumer already gets: an overlay set through the R/G/B-only <see cref="SetOverlay"/> or
+    /// <see cref="StartFade"/> overloads paints the same opaque quad as before this channel existed.
+    /// A modern alpha fade sets this below 255 with <see cref="SpriteBlendMode.AlphaBlend"/> so the
+    /// overlay blends toward the scene instead of only being reachable through
+    /// <see cref="SpriteBlendMode.Additive"/> or <see cref="SpriteBlendMode.Subtractive"/> colour
+    /// math.
+    /// </summary>
+    public byte A { get; private set; } = 255;
 
     /// <summary>Blend mode the overlay quad is drawn with while <see cref="Active"/>.</summary>
     public SpriteBlendMode Blend { get; private set; }
@@ -49,26 +62,39 @@ public sealed class ScreenEffectService
     /// so setting this has no effect until something reads it (decision D1 of the above-UI screen
     /// effect plan). This is a rendering setting, not fade state: <see cref="Clear"/> deliberately
     /// leaves it untouched, exactly as it already leaves <see cref="R"/>/<see cref="G"/>/
-    /// <see cref="B"/> untouched.
+    /// <see cref="B"/>/<see cref="A"/> untouched.
     /// </summary>
     public ScreenEffectLayer Layer { get; set; } = ScreenEffectLayer.BelowUI;
 
     /// <summary>
     /// Sets the overlay colour and blend mode immediately, with no ramp. Cancels any ramp in
-    /// progress.
+    /// progress. Equivalent to <see cref="SetOverlay(byte,byte,byte,byte,SpriteBlendMode)"/> with
+    /// <c>a = 255</c> (fully opaque), so every existing caller keeps its current behaviour.
     /// </summary>
     public void SetOverlay(byte r, byte g, byte b, SpriteBlendMode blend)
+    {
+        SetOverlay(r, g, b, 255, blend);
+    }
+
+    /// <summary>
+    /// Sets the overlay colour, opacity and blend mode immediately, with no ramp. Cancels any ramp
+    /// in progress.
+    /// </summary>
+    public void SetOverlay(byte r, byte g, byte b, byte a, SpriteBlendMode blend)
     {
         R = r;
         G = g;
         B = b;
+        A = a;
         Blend = blend;
         Active = true;
         _isFading = false;
     }
 
     /// <summary>Deactivates the overlay: nothing is submitted until <see cref="SetOverlay"/> or
-    /// <see cref="StartFade"/> is called again.</summary>
+    /// <see cref="StartFade"/> is called again. Like <see cref="Layer"/> and the colour channels,
+    /// <see cref="A"/> is a rendering setting the overlay carries between activations, not fade
+    /// state, so it is deliberately left untouched here.</summary>
     public void Clear()
     {
         Active = false;
@@ -84,8 +110,24 @@ public sealed class ScreenEffectService
     /// service holds no memory of the caller's own colour machine, it only ramps between the two
     /// values it is given (mirrors <see cref="Audio.AudioService.FadeVoice"/>'s ramp semantics: exact
     /// target on arrival, no overshoot on a long frame).
+    /// Equivalent to
+    /// <see cref="StartFade(byte,byte,byte,byte,byte,byte,byte,byte,float,SpriteBlendMode)"/> with
+    /// <c>fromA = toA = 255</c> (fully opaque throughout), so every existing caller keeps its
+    /// current behaviour.
     /// </summary>
     public void StartFade(byte fromR, byte fromG, byte fromB, byte toR, byte toG, byte toB, float durationSeconds, SpriteBlendMode blend)
+    {
+        StartFade(fromR, fromG, fromB, 255, toR, toG, toB, 255, durationSeconds, blend);
+    }
+
+    /// <summary>
+    /// Ramps the overlay colour and opacity from <paramref name="fromR"/>/<paramref name="fromG"/>/
+    /// <paramref name="fromB"/>/<paramref name="fromA"/> to <paramref name="toR"/>/
+    /// <paramref name="toG"/>/<paramref name="toB"/>/<paramref name="toA"/> over
+    /// <paramref name="durationSeconds"/>, advanced by <see cref="Update"/>. Same semantics as the
+    /// R/G/B-only overload, with alpha interpolated exactly like the colour channels.
+    /// </summary>
+    public void StartFade(byte fromR, byte fromG, byte fromB, byte fromA, byte toR, byte toG, byte toB, byte toA, float durationSeconds, SpriteBlendMode blend)
     {
         Blend = blend;
         Active = true;
@@ -95,6 +137,7 @@ public sealed class ScreenEffectService
             R = toR;
             G = toG;
             B = toB;
+            A = toA;
             _isFading = false;
             return;
         }
@@ -102,13 +145,16 @@ public sealed class ScreenEffectService
         R = fromR;
         G = fromG;
         B = fromB;
+        A = fromA;
 
         _fadeFromR = fromR;
         _fadeFromG = fromG;
         _fadeFromB = fromB;
+        _fadeFromA = fromA;
         _fadeToR = toR;
         _fadeToG = toG;
         _fadeToB = toB;
+        _fadeToA = toA;
         _fadeDuration = durationSeconds;
         _fadeElapsed = 0f;
         _isFading = true;
@@ -131,6 +177,7 @@ public sealed class ScreenEffectService
         R = Lerp(_fadeFromR, _fadeToR, progress);
         G = Lerp(_fadeFromG, _fadeToG, progress);
         B = Lerp(_fadeFromB, _fadeToB, progress);
+        A = Lerp(_fadeFromA, _fadeToA, progress);
 
         if (progress >= 1f)
         {
