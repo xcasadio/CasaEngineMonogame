@@ -53,7 +53,7 @@ Les audits sont en lecture seule. Ceux marqués « historique » décrivent un �
 
 ### Manques du moteur et de MGUI
 
-- [mgui-gaps-from-xaml-screens.md](audits/mgui-gaps-from-xaml-screens.md) — ce que MGUI et le moteur ne savaient pas faire, relevé en convertissant les écrans en XAML. Ouvert le 2026-09-20. Règle de l'auteur : pas de contournement silencieux, un manque se consigne. **Les trois manques sont corrigés dans MGUI le 2026-09-20** (G1 l'étiquette de valeur d'un curseur, G3 la taille de départ surchargeable, G2 le placement par rapport au bureau), et les contournements ont disparu du moteur. Reste signalé, non corrigé : un défaut préexistant du DTO `Slider`, dont la garde de plage lit `MaxHeight` au lieu de `Maximum`. 
+- [mgui-gaps-from-xaml-screens.md](audits/mgui-gaps-from-xaml-screens.md) — ce que MGUI et le moteur ne savaient pas faire, relevé en convertissant les écrans en XAML. Ouvert le 2026-09-20. Règle de l'auteur : pas de contournement silencieux, un manque se consigne. **Les trois manques sont corrigés dans MGUI le 2026-09-20** (G1 l'étiquette de valeur d'un curseur, G3 la taille de départ surchargeable, G2 le placement par rapport au bureau), et les contournements ont disparu du moteur. **Quatre au total** : G4 corrige aussi la garde de plage du DTO `Slider`, qui lisait `MaxHeight` au lieu de `Maximum` — faute latente, masquée par le constructeur, mesurée avant d'être affirmée. 
 
 ### Agents IA et décisions
 

@@ -209,22 +209,31 @@ une limite de MGUI :
 
 ---
 
-## Un défaut préexistant trouvé en chemin, **non corrigé**
+## ~~G4~~ — La garde de plage du `Slider` XAML lit `MaxHeight` au lieu de `Maximum` — **CORRIGÉ le 2026-09-20**
+
+> **Corrigé dans MGUI**, même branche. Un identifiant, pas une fonctionnalité.
 
 Dans `Slider.ApplyDerivedSettings` (`MGUI/MGUI.Core/UI/XAML/Controls.cs`), la garde qui applique la plage
-lit `MaxHeight` là où elle devrait lire `Maximum` :
+lisait `MaxHeight` — une propriété de **mise en page** héritée d'`Element` — là où elle veut dire `Maximum` :
 
 ```csharp
-if (Minimum.HasValue || MaxHeight.HasValue)   // MaxHeight est une propriété de MISE EN PAGE héritée d'Element
+if (Minimum.HasValue || MaxHeight.HasValue)   // devenu : || Maximum.HasValue
 {
     Slider.SetRange(Minimum ?? Slider.Minimum, Maximum ?? Slider.Maximum);
 }
 ```
 
-**Conséquence :** un curseur qui déclare `Maximum` **sans** `Minimum` voit son maximum ignoré en silence. Le
-voisin `ProgressBar` écrit correctement `if (Minimum.HasValue)` puis `if (Maximum.HasValue)`.
+**Rectification d'une première affirmation.** Ce rapport disait d'abord qu'« un curseur déclarant `Maximum`
+sans `Minimum` voit son maximum ignoré en silence ». **C'est faux, et la mesure l'a montré** : deux tests
+écrits pour attraper ce cas sont passés *avant* le correctif. La raison est une ligne plus haut —
+`CreateElementInstance` fait `new MGSlider(Window, Minimum ?? 0, Maximum ?? 100, ...)`, donc le
+**constructeur** applique déjà la plage, et le `SetRange` de cette garde est redondant sur le chemin de
+chargement. La faute était donc **latente** : du code faux que rien ne révélait.
 
-**Non corrigé volontairement** : c'est hors du périmètre demandé, et le changer ferait honorer un attribut
-aujourd'hui ignoré, ce qui pourrait déplacer une interface existante. Un mot suffit pour le faire — c'est une
-ligne, plus un test.
+Elle est corrigée quand même, et le fait qu'elle soit redondante est précisément ce qui rend le correctif
+sûr : au chargement, le comportement est identique au bit près. Seul un éventuel ré-appel d'
+`ApplyDerivedSettings` sur un curseur déjà construit en tirerait une différence — et ce chemin-là serait
+aujourd'hui le seul à perdre un `Maximum` déclaré seul.
 
+Les deux tests restent : ils épinglent qu'une plage déclarée est honorée, ce qui vaut d'être tenu, même s'ils
+ne distinguent pas l'avant de l'après.
