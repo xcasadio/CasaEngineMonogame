@@ -18,7 +18,7 @@ puis retrouver ses contrôles par leur nom pour y pousser les données de jeu. E
 Le XAML décrit ce qui est statique : l'arbre, les noms, la mise en page, les styles. Le code pousse ce qui
 change : textes, valeurs, visibilité, positions dépendant de la résolution, abonnements aux événements. Ce
 principe n'est pas inventé ici, il est déjà écrit dans
-[screen-authoring-conventions.md](../../docs/editor/ui-screen-editor/screen-authoring-conventions.md) §5 :
+[screen-authoring-conventions.md](../../docs/editor/ui-screen-editor/screen-authoring-conventions.md) §6 :
 *« At runtime, bind dynamic data explicitly in code rather than inline XAML binding syntax »*. Il n'avait
 simplement jamais d'implémentation runtime.
 
@@ -117,7 +117,7 @@ première tâche. Rappel permanent : `CasaEngine.Launcher/Program.cs` ne doit ja
 | D4 | **Auteur** | Le runtime analyse en `XamlLoaderMode.Strict`, et rapporte une erreur d'asset nommée portant le fichier et la position (`AGENTS.md` §9.10). Un `Name` dupliqué casserait silencieusement la recherche par nom : il doit échouer au chargement. |
 | D5 | Déduite | Le pont ne réutilise aucune partie de `CasaEngine.EditorServices` : ni `UIScreenPreviewBuilder`, ni le marquage des noms, ni les données de maquette, ni `UIScreenValidator`. Frontière `AGENTS.md` §9.9. |
 | D6 | Déduite | `ThemeName` devient actif au chargement, via `MGResources.GetThemeOrDefault`. `PreviewResolution` reste une donnée d'éditeur. **`ResourceFiles` n'est pas touché par ce chantier** : aucun consommateur n'existe dans le dépôt, sa sémantique n'est écrite nulle part, et l'inventer serait contraire à `AGENTS.md` §2 et §9.7. Voir O4. |
-| D7 | Déduite | Le XAML déclare l'arbre statique, les noms et la mise en page. Le code pousse les données, les positions dépendant de la résolution et les abonnements aux événements. Pas de syntaxe de binding en ligne. Repris du §5 du document de conventions, qui l'énonce déjà. |
+| D7 | Déduite | Le XAML déclare l'arbre statique, les noms et la mise en page. Le code pousse les données, les positions dépendant de la résolution et les abonnements aux événements. Pas de syntaxe de binding en ligne. Repris du §6 du document de conventions, qui l'énonce déjà. |
 | D8 | Déduite | Deux portes d'entrée, une seule mécanique : une qui prend un `XamlDocumentSource` (pour un écran sans projet, comme les démos), une qui prend un `UIScreenAsset` et le chemin de son enveloppe (pour un projet catalogué). La seconde appelle la première. |
 | D9 | Déduite | Résolution de `SourceXamlFile`, dans cet ordre, comme le documente déjà `screen-authoring-conventions.md` §1 : relatif à l'enveloppe, puis relatif à `EngineEnvironment.ProjectPath`. Échec explicite si aucun des deux n'existe. |
 | D12 | **Auteur** | Les quatre `.screen` hérités sont **supprimés**, avec leurs entrées de catalogue (T0.5). Ils ne sont pas convertis : la mesure a montré qu'ils sont morts et déjà remplacés. L'historique git les conserve, ce qui rend la suppression réversible et garde la contre-épreuve de la phase 3 possible. La constante `FileNameExtensions.Screen` et sa route ne sont **pas** retirées par ce chantier : c'est une API publique, voir O6. |
@@ -242,7 +242,7 @@ nom manquant ; `FindControl<T>` distingue les deux cas et le dit, parce qu'un é
 là où le XAML a mis un texte n'a pas le même problème qu'un écran dont le nom a disparu. Deux tests
 séparés le prouvent.
 
-### ⏳ T0.3 — ADR et documentation
+### ✅ T0.3 — ADR et documentation
 
 - Objectif : laisser une trace de décision sur le pont lui-même, sans trancher ce qui ne l'est pas.
 - Fichiers : `docs/decisions/0035-xaml-authored-ui-screens.md` (créé), `docs/decisions/README.md`,
@@ -254,10 +254,22 @@ séparés le prouvent.
      d'usage de `XamlUIScreenBase`.
   3. **Extensions (D11) :** corriger le §1 et le §2 du document de conventions — l'enveloppe est `.uiscreen`,
      le type de catalogue `uiscreen`. Nommer `.screen` pour ce qu'il est : un format hérité d'une autre boîte
-     à outils, que rien ne lit (supprimé en T0.5). Ne pas réécrire le reste du document, dont le §5 reste juste.
+     à outils, que rien ne lit (supprimé en T0.5). Ne pas réécrire le reste du document, dont le §6 reste juste.
 - Validation : relecture ; l'index des ADR cite bien 0035 ; plus aucune occurrence décrivant `.screen` comme
   le format XAML (`rg` dans `docs/`).
 - Commit : `docs(ui): record ADR-0035 for XAML-authored screens`
+
+**Validation exécutée le 2026-09-20.** `rg "\.screen" docs/` ne rend plus que des occurrences qui le nomment
+comme format hérité. L'index cite ADR-0035.
+
+Deux écarts au plan, tous deux des corrections :
+
+1. **Le numéro d'ADR n'est pas le suivant libre sur cette branche.** L'index s'arrête à 0033 ici, parce que
+   **ADR-0034 vit sur `chantier/effet-ecran-alpha`, non mergée**. Prendre 0034 aurait créé une collision au
+   merge : ce chantier prend **0035** et laisse le trou, ce que l'ADR dit en tête.
+2. **La citation du principe était fausse.** Le « bind dynamic data explicitly in code » est au **§6** du
+   document de conventions, pas au §5 qui traite des ressources. Corrigé partout : ce plan, l'ADR, et les
+   renvois.
 
 ### ⏳ T0.4 — La route de document manquante
 
@@ -453,5 +465,5 @@ par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 - **`ResourceFiles`.** Aucune sémantique inventée, aucun code écrit (D6, O4).
 - **L'éditeur d'écrans.** Ce chantier ne change ni l'aperçu, ni la sélection, ni `UIScreenValidator`. Il se
   contente de ne pas en dépendre.
-- **La syntaxe de binding en ligne dans le XAML.** Écartée par D7 et par le §5 du document de conventions.
+- **La syntaxe de binding en ligne dans le XAML.** Écartée par D7 et par le §6 du document de conventions.
 - **`PreviewResolution`.** Reste une donnée d'éditeur (D6).
