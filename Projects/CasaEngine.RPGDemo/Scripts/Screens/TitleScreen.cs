@@ -1,73 +1,48 @@
 using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.UI;
+using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
-using MGUI.Core.UI.Brushes.FillBrushes;
-using MGUI.Core.UI.Containers;
-using Microsoft.Xna.Framework;
-using MonoGame.Extended;
 
 namespace CasaEngine.RPGDemo.Scripts.Screens;
 
 /// <summary>
 /// MGUI title screen: "RPG Demo" label + "Start Game" and "Exit" buttons.
-/// Replaces the legacy Neoforce TitleScreen.screen.
+/// <para/>
+/// Its tree lives in the project asset `Screens/TitleScreen/TitleScreen.uiscreen`, which names its XAML.
+/// Only where the window goes, and what the two buttons do, stays here.
 /// </summary>
-public sealed class TitleScreen : UIScreenBase
+public sealed class TitleScreen : XamlUIScreenBase
 {
+    private const int WindowWidth = 320;
+    private const int WindowHeight = 200;
+
     private readonly Action _onStartGame;
     private readonly Action _onExit;
-    private MGWindow? _window;
 
     public override UILayer Layer   => UILayer.Menu;
     public override bool    IsModal => true;
 
     public TitleScreen(Action onStartGame, Action onExit)
+        : this(RpgDemoScreenAssets.Load("TitleScreen"), onStartGame, onExit)
+    {
+    }
+
+    // The envelope and the path it came from belong together, and reading it once means threading them
+    // through a single constructor argument.
+    private TitleScreen((UIScreenAsset Asset, string FilePath) screen, Action onStartGame, Action onExit)
+        : base(screen.Asset, screen.FilePath)
     {
         _onStartGame = onStartGame;
         _onExit      = onExit;
     }
 
-    protected override void OnInitialize(UIRoot root)
+    protected override void OnWindowLoaded(MGWindow window)
     {
-        var bounds = root.Desktop.ValidScreenBounds;
-        int w  = 320;
-        int h  = 200;
-        int cx = bounds.Width  / 2 - w / 2;
-        int cy = bounds.Height / 2 - h / 2;
+        var bounds = window.Desktop.ValidScreenBounds;
+        window.Left = bounds.Width / 2 - WindowWidth / 2;
+        window.Top = bounds.Height / 2 - WindowHeight / 2;
 
-        _window = new MGWindow(root.Desktop, cx, cy, w, h)
-        {
-            TitleText         = string.Empty,
-            IsTitleBarVisible = false,
-            IsUserResizable   = false,
-        };
-        _window.Padding = new Thickness(20);
-        _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(10, 10, 30, 220));
-
-        var stack = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 14 };
-
-        var title = new MGTextBlock(_window, "[b][color=white][b]RPG Demo[/b][/color][/b]");
-        title.HorizontalAlignment = HorizontalAlignment.Center;
-        stack.TryAddChild(title);
-
-        var startBtn = new MGButton(_window, _ => _onStartGame());
-        startBtn.SetContent("[color=lightgray]Start Game[/color]");
-        startBtn.Margin = new Thickness(0, 20, 0, 0);
-        startBtn.HorizontalAlignment = HorizontalAlignment.Center;
-        stack.TryAddChild(startBtn);
-
-        var exitBtn = new MGButton(_window, _ => _onExit());
-        exitBtn.SetContent("[color=lightgray]Exit[/color]");
-        exitBtn.Margin = new Thickness(0, 4, 0, 0);
-        exitBtn.HorizontalAlignment = HorizontalAlignment.Center;
-        stack.TryAddChild(exitBtn);
-
-        _window.SetContent(stack);
-    }
-
-    public override IEnumerable<MGWindow> GetWindows()
-    {
-        if (_window != null) yield return _window;
+        FindControl<MGButton>("ButtonStartGame").AddCommandHandler((_, _) => _onStartGame());
+        FindControl<MGButton>("ButtonExit").AddCommandHandler((_, _) => _onExit());
     }
 }

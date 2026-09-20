@@ -515,7 +515,7 @@ Dégelée par D11 : l'extension est `.uiscreen`, le type de catalogue `uiscreen`
 phase avaient chacun un fichier hérité de même nom, supprimé en T0.5 (D12) après relecture. Le relevé consigné
 par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 
-### ⏳ T3.1 — `TitleScreen` et `GameOverScreen`
+### 🧪 T3.1 — `TitleScreen` et `GameOverScreen`
 
 - Objectif : les deux écrans pleine page de RPGDemo, premiers à passer par la **seconde** porte de D8, celle
   qui prend un `UIScreenAsset` catalogué.
@@ -534,6 +534,23 @@ par T0.5 sert de **contre-épreuve**, jamais de source à convertir.
 - Validation : build + suite verts ; RPGDemo lancé, écran-titre affiché et navigable, écran de fin atteint ;
   et **les deux écrans s'ouvrent dans l'éditeur d'écrans**, ce qui exerce la route ajoutée en T0.4.
 - Commit : `refactor(rpgdemo): author the title and game over screens in XAML`
+
+**Validation exécutée le 2026-09-20.** Build 0 erreur ; suite **1685 / 1684 verts**, +4, seul échec celui de
+la ligne de base. `ProjectScreenAssetTests` exerce pour la première fois la **seconde porte** du chargeur sur
+des fichiers réels : enveloppe lue, `source_xaml_file` résolu relativement à elle, fenêtre obtenue.
+🧪 **Reste à faire par l'auteur** : lancer RPGDemo, vérifier l'écran-titre et ses deux boutons, atteindre
+l'écran de fin ; et ouvrir les deux `.uiscreen` dans l'éditeur d'écrans, ce qui exerce la route de T0.4.
+
+Trois points :
+
+1. **Le catalogue n'a pas besoin de `name` ni d'`asset_type`.** `AssetInfo.Load` déduit le nom du fichier et
+   le type de l'extension (`AssetInfo.cs:77-88` et `:98-105`, qui rend `Path.GetExtension(...).TrimStart('.')`),
+   donc `.uiscreen` donne bien le type `uiscreen`. Les deux entrées suivent la forme minimale que RPGDemo
+   emploie partout, `id` + `file_name`, plutôt que la forme longue du projet d'échantillon.
+2. **Les noms hérités sont repris.** `ButtonStartGame` et `ButtonExit` étaient les noms de l'écran hérité
+   relevés en T0.5 — la seule chose de ce format mort qui valait d'être portée. Un test les pince.
+3. **Les identifiants sont neufs**, pas ceux des assets supprimés en T0.5 : rien ne doit pouvoir résoudre
+   accidentellement vers l'ancien format.
 
 ### ⏳ T3.2 — `MainHUDScreen`
 
