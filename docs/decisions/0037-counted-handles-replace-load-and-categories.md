@@ -26,9 +26,18 @@ The inventory found three kinds of use.
 **Shared assets, used for as long as their user lives.**
 - **Users:** tile sets and sprite sheets, sprite data, sounds, models, animation data, effects, textures.
 - **Where users take and drop them:** components take them in `InitializeWithWorld` and drop them in
-  `Detach`, which the world calls for every entity when it is cleared (`World.ClearEntities`).
-- **The gap:** an entity removed during play through `Entity.Destroy` never has its components detached
-  (`World.Update`, the `ToBeRemoved` path). Whatever they hold is therefore never released.
+  `Detach`. When the world is cleared, `World.ClearEntities` detaches only the components in an entity's
+  component list (`Entity.AttachedComponents`).
+- **What is never detached:**
+  - an entity's root component and the scene components under it (in the Alundra port, the tile map is
+    exactly such a root component);
+  - child entities ;
+  - any component of an entity removed during play through `Entity.Destroy` (`World.Update`, the
+    `ToBeRemoved` path).
+  Whatever those components hold is therefore never released.
+- **`IAssetable` is not `IDisposable`:** it declares its own `Dispose()` without deriving from
+  `IDisposable`, while ADR-0036's collector only disposes `IDisposable` assets. A collected `Texture` or
+  `RiggedModel` would therefore never be disposed.
 
 **Templates.**
 - **Fresh copy per use:** each use needs its own copy — entities (`Load<Entity>` already reads the file on
@@ -67,8 +76,11 @@ The inventory found three kinds of use.
 - **Dependencies are held, not borrowed.** An engine `Texture` holds its `Texture2D` through a handle and
   gives it back on `Dispose`, instead of disposing a shared GPU texture. A `Sprite` holds its `Texture`
   the same way.
-- **The world detaches the components of an entity removed during play**, as it already does when it is
-  cleared, so a destroyed entity gives back what it holds.
+- **A discarded entity is detached as a whole**, whether the world is cleared or the entity is removed during
+  play: its root component (whose `Detach` cascades to the scene components under it), its other
+  components, and its child entities, each once. A destroyed entity thus gives back what it holds.
+- **The collector also disposes `IAssetable` assets.** Shared assets that hold handles on their
+  dependencies (`StaticModel`, `SkinnedMesh`) become `IDisposable` and give them back when they are freed.
 - **Removed, without an `[Obsolete]` step**, on the author's instruction:
   - `Load<T>(Guid, category, cache)` and `Load<T>(JObject)`;
   - `LoadDirectly<T>`;
@@ -90,9 +102,10 @@ The inventory found three kinds of use.
   change. One shared by the next map survives, because the next map acquires it before that change.
 - **ADR-0036's compatibility clause is superseded.** `Load<T>` pinning no longer exists; the rest of
   ADR-0036 stands.
-- **Destroyed entities are detached.** An entity destroyed during play now has its components detached,
-  so its GPU, sound and physics resources are released when it is removed. This is a behaviour change
-  that fixes a leak.
+- **Discarded entities are detached as a whole.** An entity destroyed during play, and the root and child
+  parts of every entity when a world is cleared, now have their components detached. Their GPU, sound and
+  physics resources are therefore released. This is a behaviour change that fixes leaks, among them a tile
+  map placed as a root component.
 - **Looking up by name** becomes a catalog lookup followed by `Acquire`. The default texture becomes a
   game property instead of a name in the cache.
 - **Asset categories disappear.** Per-owner release replaces them: whoever holds a set of assets gives
