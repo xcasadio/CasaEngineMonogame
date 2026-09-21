@@ -320,7 +320,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
 
 ## Phase 2 — Dépendances
 
-### ⏳ T2.1 — `Texture`, `Sprite`, chargeurs de squelette, `SpriteLoader`
+### ✅ T2.1 — `Texture`, `Sprite`, chargeurs de squelette, `SpriteLoader`
 
 - Objectif : P1, P5.
 - Fichiers : `Assets/Textures/Texture.cs`, `Assets/Sprites/Sprite.cs`, `Assets/Sprites/SpriteLoader.cs`
@@ -349,6 +349,22 @@ parent (plan parent `docs/plan-migration-handles.md`).
       rechargés au retour.
 - Validation : builds ; tests.
 - Commit : `refactor(assets): textures and sprites hold what they use through handles`
+- **Fait** :
+  - **`Texture.Load`** prend sa `Texture2D` une seule fois, même rappelé : chaque sprite d'une planche le
+    rappelle sur la même `Texture` partagée. `Dispose` rend ce handle, ou libère une `Texture2D` possédée.
+  - **Perte du périphérique graphique :** la `Texture2D` libérée est relue par `LoadCopy` puis `Replace`, au
+    lieu d'être reprise telle quelle dans le cache.
+  - **`Sprite`** tient sa `Texture` et est `IDisposable`. Tous ses créateurs gardent leurs sprites en cache
+    (vérifié : aucun appel par image). Le remplacement de sprite d'`AnimatedSpriteComponent` (ligne 281,
+    rechargement à chaud) ne libère pas l'ancien : c'est à traiter en T3.1.
+  - **Chargeurs de squelette :** `AnimationClip` et `RetargetProfile` **gardent** leurs squelettes
+    (`AnimationClip.Skeleton`, `RetargetJointMapping`). Ils les tiennent donc par handle et sont `IDisposable`.
+  - **`SpriteLoader`** est supprimé.
+  - **Tests :** les tests des deux chargeurs vérifient qu'un clip libéré laisse son squelette à qui le tient
+    encore, et qu'un profil libéré entraîne ses deux squelettes dans la même collecte (3). Le test de
+    `Sprite` n'est pas écrivable : `Sprite.Create` résout la `Texture2D`, qui exige un périphérique
+    graphique. Il est couvert par la recette M2.
+  - `CasaEngine.Tests` 1751/1752 ; deux solutions et la DLL Alundra compilent.
 
 ---
 

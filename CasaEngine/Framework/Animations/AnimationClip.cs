@@ -1,8 +1,25 @@
 namespace CasaEngine.Framework.Animations;
 
-public sealed class AnimationClip
+public sealed class AnimationClip : IDisposable
 {
     private readonly JointAnimationTrack[] _tracksByJointIndex;
+    private IDisposable _skeletonHold;
+
+    /// <summary>
+    /// ADR-0037: a clip loaded as an asset holds its <see cref="Skeleton"/> through an asset handle, given back
+    /// by <see cref="Dispose"/> when the asset manager frees the clip. A clip built in code holds nothing.
+    /// </summary>
+    internal void HoldSkeleton(IDisposable skeletonHold)
+    {
+        _skeletonHold = skeletonHold;
+    }
+
+    /// <summary>Gives back the hold on the skeleton, if the clip was loaded as an asset. Idempotent.</summary>
+    public void Dispose()
+    {
+        _skeletonHold?.Dispose();
+        _skeletonHold = null;
+    }
 
     public AnimationClip(
         string name,
