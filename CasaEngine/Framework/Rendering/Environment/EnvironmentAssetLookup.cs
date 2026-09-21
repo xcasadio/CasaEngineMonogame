@@ -20,8 +20,7 @@ internal static class EnvironmentAssetLookup
         }
 
         var assetContentManager = view.World.Game.AssetContentManager;
-        var cachedAsset = assetContentManager.GetAsset<T>(assetId);
-        if (cachedAsset is not null)
+        if (AcquiredAssetHandleCache<T>.TryGetCached(assetContentManager, assetId, out var cachedAsset))
         {
             return cachedAsset;
         }
@@ -33,7 +32,9 @@ internal static class EnvironmentAssetLookup
 
         try
         {
-            return assetContentManager.Load<T>(assetId);
+            // Acquired once and held for the whole game (P11): a resolution's cache miss (settings
+            // changed, clear color changed...) must not re-acquire an id it already holds.
+            return AcquiredAssetHandleCache<T>.Acquire(assetContentManager, assetId);
         }
         catch (Exception exception)
         {

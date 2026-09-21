@@ -17,6 +17,11 @@ public sealed class ShaderManager : IDisposable
 
     private readonly AssetContentManager _assetContentManager;
     private readonly Dictionary<Guid, ShaderWrapper> _cache = new();
+
+    // Handles acquired through GetShader (ADR-0037): released in Clear and Dispose. A ShaderWrapper
+    // registered directly through RegisterShader has no handle here — its Effect is not this manager's
+    // to hold, e.g. built-in shaders loaded through the MonoGame ContentManager.
+    private readonly Dictionary<Guid, AssetHandle<Effect>> _handles = new();
     private bool _disposed;
 
     // -----------------------------------------------------------------------
@@ -50,10 +55,10 @@ public sealed class ShaderManager : IDisposable
             return cached;
         }
 
-        Effect effect = null;
+        AssetHandle<Effect> handle;
         try
         {
-            effect = _assetContentManager.Load<Effect>(shaderAssetId);
+            handle = _assetContentManager.Acquire<Effect>(shaderAssetId);
         }
         catch (Exception ex)
         {
@@ -61,13 +66,9 @@ public sealed class ShaderManager : IDisposable
             return null;
         }
 
-        if (effect is null)
-        {
-            return null;
-        }
-
-        var wrapper = new ShaderWrapper(effect);
+        var wrapper = new ShaderWrapper(handle.Asset);
         _cache[shaderAssetId] = wrapper;
+        _handles[shaderAssetId] = handle;
         return wrapper;
     }
 
@@ -85,17 +86,44 @@ public sealed class ShaderManager : IDisposable
         }
 
         _cache[shaderAssetId] = shader;
+
+        // Overwriting an id previously loaded through GetShader: give its handle back, this wrapper's
+        // Effect is not ours to hold.
+        if (_handles.Remove(shaderAssetId, out var previousHandle))
+        {
+            previousHandle.Dispose();
+        }
     }
 
     /// <summary>
-    /// Evicts a single shader from the cache so it will be reloaded next time.
+    /// Evicts a single shader from the cache so it will be reloaded next time, giving back its handle
+    /// if <see cref="GetShader"/> acquired one.
     /// </summary>
-    public void Invalidate(Guid shaderAssetId) => _cache.Remove(shaderAssetId);
+    public void Invalidate(Guid shaderAssetId)
+    {
+        _cache.Remove(shaderAssetId);
+
+        if (_handles.Remove(shaderAssetId, out var handle))
+        {
+            handle.Dispose();
+        }
+    }
 
     /// <summary>
-    /// Clears all cached shaders. Call when the graphics device is reset.
+    /// Clears all cached shaders, giving back every handle acquired through <see cref="GetShader"/>.
+    /// Call when the graphics device is reset.
     /// </summary>
-    public void Clear() => _cache.Clear();
+    public void Clear()
+    {
+        _cache.Clear();
+
+        foreach (var handle in _handles.Values)
+        {
+            handle.Dispose();
+        }
+
+        _handles.Clear();
+    }
 
     // -----------------------------------------------------------------------
     //  IDisposable
@@ -109,8 +137,6 @@ public sealed class ShaderManager : IDisposable
         }
 
         _disposed = true;
-        // ShaderWrapper does not own the Effect (the AssetContentManager does),
-        // so we just drop our references.
-        _cache.Clear();
+        Clear();
     }
 }

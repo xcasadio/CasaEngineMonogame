@@ -650,7 +650,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - `CasaEngine.Tests` 1776/1777, seul échec l'échec préexistant du docking (correction en cours ailleurs,
     `task_704ea6e0`) ; les deux solutions moteur et `Alundra/Alundra.csproj` compilent sans erreur.
 
-### ⏳ T4.2 — Rendu
+### 🧪 T4.2 — Rendu
 
 - Fichiers et détenteurs :
   - `ShaderManager` : les effets sont tenus et rendus dans `Clear` et `Dispose`.
@@ -668,6 +668,75 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - reconstruire une cubemap générée libérée, sous le même id, ne lève pas et rend la nouvelle cubemap.
 - Validation : builds ; tests ; une démo d'environnement relancée (T6.1).
 - Commit : `refactor(rendering): shaders and generated environments are held through handles`
+- **Fait** :
+  - **Deux petites classes internes génériques factorisent la tenue par handle, partagées par les quatre
+    fichiers du plan** (`CasaEngine/Framework/Rendering/Environment/GeneratedAssetHandleCache.cs` et
+    `AcquiredAssetHandleCache.cs`) : chacune tient un `Dictionary<Guid, AssetHandle<T>>` par
+    `AssetContentManager`, via `ConditionalWeakTable`, pour que chaque manager — plusieurs coexistent dans
+    les tests et dans l'éditeur — ait ses propres prises, jamais partagées ni fuitées d'un manager à
+    l'autre. `GeneratedAssetHandleCache<T>.Acquire(manager, id, create, isStale)` couvre le cas D3/P8 des
+    générateurs (`Register` au premier construit, `Replace` sous le même id quand `isStale` dit que
+    l'instance tenue est périmée, la prise du générateur gardée) ; `AcquiredAssetHandleCache<T>.Acquire`
+    couvre le cas P11 d'`EnvironmentAssetLookup` (un seul `Acquire` par id, tenu pour toute la partie).
+    Chacune expose aussi un `TryGetCached` pour que l'appelant évite un travail inutile (résolution de
+    chemin panorama, vérification du catalogue) quand l'entrée tenue est encore valide — comportement du
+    code d'origine préservé à l'identique.
+  - **`ShaderManager`** : `GetShader` acquiert l'`Effect` par `Acquire<Effect>` au lieu de `Load<Effect>`
+    et garde le handle dans `_handles`, rendu dans `Invalidate`, `Clear` et `Dispose` (`Dispose` appelle
+    `Clear`). `RegisterShader`, qui installe un `ShaderWrapper` déjà construit (effets intégrés chargés par
+    le `ContentManager` de MonoGame, hors périmètre), rend aussi l'éventuel handle qu'il écrase, pour ne
+    jamais laisser une prise orpheline si un id change de source. **Non couvert par un crochet de
+    libération explicite ici** : aucun appelant (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`,
+    hors périmètre de T4.2) n'appelle `Dispose`/`Clear` sur son `ShaderManager` aujourd'hui ; comme avant la
+    migration (`Load<Effect>` épinglait déjà pour toujours), l'effet reste tenu pour toute la vie du
+    composant — aucune régression, mais la libération réelle attend que ces composants appellent
+    `ShaderManager.Dispose` un jour, hors périmètre de cette tâche.
+  - **Les trois générateurs** (`PanoramaEnvironmentGenerator`, `PhysicalAtmosphereEnvironmentGenerator`,
+    `ProceduralSkyEnvironmentGenerator`) : `GetOrCreateCubemap` appelle d'abord
+    `GeneratedAssetHandleCache<XnaTextureCube>.TryGetCached` (préserve l'ordre d'origine : pas de
+    résolution du chemin panorama ni de coût de construction quand l'instance tenue est valide), puis
+    `Acquire` avec une fabrique qui construit la cubemap et le prédicat `cubemap.IsDisposed` comme critère
+    de péremption (comportement identique au `GetAsset`/`IsDisposed` d'origine). Effet de bord mineur,
+    documenté ici plutôt que corrigé en douce (hors périmètre du plan) : l'ancien code indexait aussi la
+    cubemap générée par son nom lisible (`AddAsset(id, name, cubemap)`) dans le dictionnaire de
+    l'`AssetContentManager` ; `Register` ne l'indexe par nom que si l'id est dans le catalogue, ce qui n'est
+    jamais le cas d'un id généré — l'index par nom disparaît donc pour ces cubemaps. Rien dans le dépôt ne
+    les cherchait par nom (recherche `rg` vérifiée) ; `cubemap.Name` (le nom GPU/debug MonoGame) est
+    toujours posé par la fabrique, inchangé.
+  - **`EnvironmentAssetLookup`** : `TryLoadAsset<T>` vérifie d'abord `AcquiredAssetHandleCache<T>.TryGetCached`
+    (ordre d'origine préservé : pas de vérification du catalogue quand déjà tenu), sinon vérifie le
+    catalogue puis `Acquire`. Toujours interne, toujours appelé seulement depuis `EnvironmentResolver.Resolve`,
+    lui-même déjà gardé par `ResolvedEnvironmentCache.TryGet` : aucun `Acquire` par image.
+  - **Tests existants** : aucun test existant ne touchait `ShaderManager`, `EnvironmentAssetLookup` ou les
+    trois générateurs au-delà des fonctions pures déjà couvertes par `PanoramaEnvironmentGeneratorTests`,
+    `PhysicalAtmosphereEnvironmentGeneratorTests` et `ProceduralSkyEnvironmentGeneratorTests` (aucune ne
+    touche l'`AssetContentManager` : rien à adapter, tous ces tests passent inchangés).
+  - **Tests nouveaux** (2 fichiers, 8 tests) :
+    `CasaEngine.Tests/Rendering/GeneratedAssetHandleCacheTests.cs` exerce
+    `GeneratedAssetHandleCache<T>` avec un objet généré factice (pas une vraie cubemap : la construire
+    demande un `GraphicsDevice`, indisponible en headless, comme pour les tests précédents de ce plan) —
+    premier `Acquire` construit une fois et tient la prise (`CollectUnreferenced` ne la libère pas) ; un
+    second `Acquire` non périmé ne reconstruit pas ; un `Acquire` sur une instance périmée reconstruit sous
+    le même id, ne lève pas, rend la nouvelle instance et garde la prise (`CollectUnreferenced` toujours
+    à 0) — la preuve demandée par le plan pour P8, à l'échelle de la logique de tenue qui est identique
+    quel que soit `T`. `CasaEngine.Tests/Rendering/EnvironmentAssetLookupHandleTests.cs` exerce
+    `EnvironmentAssetLookup.TryLoadEnvironmentAsset` avec un `EnvironmentAsset` factice (type de données pur,
+    pas de `GraphicsDevice` nécessaire) : deux résolutions du même id ne chargent qu'une fois et la prise
+    du manager (lue par réflexion sur le champ privé `_leases`, même route que les autres tests de ce plan)
+    reste à 1 — la preuve demandée pour P11 ; plus un id absent du catalogue et un id vide. Le catalogue
+    global (`AssetCatalog`) est vidé avant et après chaque test et la classe tourne dans
+    `[Collection(ProjectEnvironmentCollection.Name)]`, comme les autres tests de ce plan qui le touchent.
+  - `CasaEngine.Tests` 1784/1785, seul échec l'échec préexistant du docking
+    (`EditorThemeAsset_Disables_Docking_Accent_Bars`, en cours de correction par ailleurs, tâche séparée
+    `task_704ea6e0`) ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` compilent sans erreur ;
+    `Alundra/Alundra.csproj` compile sans erreur.
+  - **Manque encore, d'où 🧪** : la démo d'environnement relancée que la validation de T4.2 demande. Cet
+    agent ne lance pas d'application graphique sans que la tâche le demande explicitement avec un délai
+    borné ; T6.1 (Phase 6, non commencée) ne liste pas de démo d'environnement dans ses fichiers, donc
+    aucune démo existante n'est identifiée comme couvrant ce point pour l'instant. **Vérification manuelle
+    par l'auteur** : relancer la démo d'environnement (panorama / atmosphère physique / ciel procédural,
+    selon celle qui existe) et confirmer que le fond et l'éclairage sont corrects, y compris après un
+    changement de réglages qui force une reconstruction de cubemap.
 
 ### ⏳ T4.3 — Matériaux
 
