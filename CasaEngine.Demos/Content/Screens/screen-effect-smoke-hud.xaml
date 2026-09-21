@@ -1,5 +1,5 @@
 <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
-        Left="10" Top="10" Width="320" Height="110"
+        Left="10" Top="10" Width="320"
         IsTitleBarVisible="False"
         IsUserResizable="False"
         Padding="8">
@@ -8,6 +8,9 @@
        the BelowUI layer from the AboveUI one, so it comes from ScreenEffectSmokeHudScreen.ReferenceColor,
        which the check reads. A colour written in both places could drift apart in silence. -->
 
+  <!-- No Height on purpose. With only a Width declared the window sizes its height to its content, so every
+       row keeps its room when a hint line wraps wider under the real font. A fixed Height used to cut the
+       last rows off: the content outgrew it with no warning. -->
   <StackPanel Orientation="Vertical" Spacing="4">
 
     <TextBlock Name="lblTitle" Text="[b][color=black]Screen effect above-UI smoke[/color][/b]" />

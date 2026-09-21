@@ -171,6 +171,40 @@ public class DemoScreenXamlTests
         Assert.Equal(10, window.Top);
     }
 
+    [Theory]
+    [InlineData("ui-overlay-hud.xaml", "Press F1 to toggle the demo navigator",
+        new[] { "lblTitle", "lblTime", "lblHint", "btnPause", "btnDialogue" })]
+    [InlineData("screen-effect-smoke-hud.xaml", "Press 1: alpha fade to black and back, BelowUI (default)",
+        new[] { "lblTitle", "lblBelowUiHint", "lblAboveUiHint", "lblExpectation" })]
+    public void TheTwoCornerHuds_GrowWithTheirText(string fileName, string wrappingLine, string[] rowNames)
+    {
+        // Both used to declare a fixed Height that their own text outgrew once its hint lines wrapped, so the
+        // window cut its last rows: "Open Dialogue" shrank to a sliver, and the smoke's expectation line
+        // vanished. This harness measures a character as half the font size, narrower than the real font, so
+        // the shipped text fits here even at the old fixed height; lengthening the line that wraps does what
+        // the real font does. A window whose height follows its content keeps every row inside, whatever the
+        // text becomes. Same check as the dialogue's clipped-choice defect.
+        var markup = File.ReadAllText(ScreenPath(fileName));
+        var lengthened = string.Join(" ", Enumerable.Repeat(wrappingLine, 6));
+        Assert.Contains(wrappingLine, markup);
+        markup = markup.Replace(wrappingLine, lengthened);
+
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop();
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromString(markup, fileName));
+        desktop.Windows.Add(window);
+        HeadlessUiTestHarness.AdvanceFrame(runtime, desktop, 16);
+
+        var windowBounds = new Microsoft.Xna.Framework.Rectangle(window.Left, window.Top, window.WindowWidth, window.WindowHeight);
+        foreach (var name in rowNames)
+        {
+            Assert.True(window.TryGetElementByName(name, out MGElement row), $"'{name}' is not declared.");
+
+            var bounds = row.LayoutBounds;
+            Assert.True(bounds.Width > 0 && bounds.Height > 0, $"'{name}' was not laid out with a real size.");
+            Assert.True(windowBounds.Contains(bounds), $"'{name}' at {bounds} is cut by the window {windowBounds}.");
+        }
+    }
+
     private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()
