@@ -68,4 +68,96 @@ public class WorldEntityTeardownTests
 
         Assert.Equal(1, component.DetachCount);
     }
+
+    // ---- ADR-0037: the whole tree of a discarded entity is detached ----
+
+    private sealed class DetachRecordingSceneComponent : LightComponent
+    {
+        public int DetachCount { get; private set; }
+
+        public override void Detach()
+        {
+            DetachCount++;
+            base.Detach();
+        }
+    }
+
+    private sealed class Tree
+    {
+        public World World;
+        public Entity Entity;
+        public DetachRecordingSceneComponent Root;
+        public DetachRecordingComponent Listed;
+        public DetachRecordingComponent OnChild;
+    }
+
+    /// <summary>A root component that records its detaches - a tile map is placed there in the Alundra port -,
+    /// a component in the entity's list, and a component on a child entity.</summary>
+    private static Tree BuildWorldWithATree()
+    {
+        var tree = new Tree
+        {
+            World = new World { Name = "TreeTeardownWorld" },
+            Root = new DetachRecordingSceneComponent(),
+            Listed = new DetachRecordingComponent(),
+            OnChild = new DetachRecordingComponent(),
+        };
+
+        tree.Entity = new Entity { Name = "Parent", RootComponent = tree.Root };
+        tree.Entity.AddComponent(tree.Listed);
+
+        var child = new Entity { Name = "Child", RootComponent = new LightComponent() };
+        child.AddComponent(tree.OnChild);
+        tree.Entity.AddChild(child);
+
+        EditorWorldEditingService.AddEntityReference(tree.World, new EntityReference
+        {
+            AssetId = Guid.Empty,
+            Entity = tree.Entity,
+        });
+        return tree;
+    }
+
+    private static void AssertEachDetachedOnce(Tree tree)
+    {
+        Assert.Equal(1, tree.Root.DetachCount);
+        Assert.Equal(1, tree.Listed.DetachCount);
+        Assert.Equal(1, tree.OnChild.DetachCount);
+    }
+
+    [Fact]
+    public void ClearEntities_DetachesTheRootComponent_TheListedComponents_AndTheChildEntities_Once()
+    {
+        var tree = BuildWorldWithATree();
+
+        tree.World.ClearEntities();
+
+        AssertEachDetachedOnce(tree);
+    }
+
+    [Fact]
+    public void Clear_DetachesTheRootComponent_TheListedComponents_AndTheChildEntities_Once()
+    {
+        var tree = BuildWorldWithATree();
+
+        tree.World.Clear();
+
+        AssertEachDetachedOnce(tree);
+    }
+
+    [Fact]
+    public void AnEntityDestroyedDuringPlay_IsDetachedWhenTheWorldRemovesIt()
+    {
+        var tree = BuildWorldWithATree();
+
+        tree.Entity.Destroy();
+        tree.World.Update(1f / 60f);
+
+        AssertEachDetachedOnce(tree);
+        Assert.DoesNotContain(tree.Entity, tree.World.Entities);
+
+        // Clearing the world afterwards does not detach them a second time: the entity is gone.
+        tree.World.Clear();
+        AssertEachDetachedOnce(tree);
+    }
 }

@@ -279,7 +279,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - `AssetDictionary` gagne `AddWithoutName` et `ReplaceInstance`, qui repointe aussi les noms désignant
     l'ancienne instance.
 
-### ⏳ T1.2 — Détacher tout l'arbre d'une entité jetée
+### ✅ T1.2 — Détacher tout l'arbre d'une entité jetée
 
 - Objectif : D4. Le crochet de libération dont dépendent les phases 3 à 7 doit atteindre **tous** les
   composants d'une entité jetée.
@@ -306,6 +306,15 @@ parent (plan parent `docs/plan-migration-handles.md`).
   Le test existant du composant non racine reste vert.
 - Validation : builds ; tests.
 - Commit : `fix(world): detach the whole component tree of a discarded entity`
+- **Fait** :
+  - un composant n'est détaché que s'il a encore un propriétaire. Les composants de scène enfants ne vivent
+    que sous la racine (`SceneComponent.AddChildComponent`), et les entités enfants ne sont pas dans la liste
+    du monde (`InternalAddEntities`) : rien n'est donc détaché deux fois ;
+  - au retrait en cours de partie, le détachement suit `NotifyEntityRemovedRecursive`, pour que les
+    auditeurs voient encore l'entité intacte ;
+  - trois tests : `Clear`, `ClearEntities`, et `Destroy` puis `Update` (qui passe sans périphérique) ;
+  - contre-épreuve : sans le détachement de la racine et celui du retrait, les trois échouent ;
+  - `CasaEngine.Tests` 1751/1752 ; deux solutions sans erreur.
 
 ---
 

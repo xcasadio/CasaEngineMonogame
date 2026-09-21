@@ -173,9 +173,16 @@ public sealed class World : ObjectBase
     }
 
     /// <summary>
-    /// Releases what an entity's components own, for an entity this world is throwing away. Both callers
-    /// of <see cref="ClearEntities"/> discard their entities: tearing the world down, and reloading the
-    /// world asset over itself.
+    /// Releases what an entity's components own, for an entity this world is throwing away: every entity when
+    /// the world is cleared (<see cref="ClearEntities"/>, whose callers tear the world down or reload the world
+    /// asset over itself), and an entity removed during play once it was <c>Destroy</c>ed (the removal in
+    /// <see cref="Update(FrameTime)"/>).
+    ///
+    /// The whole tree is detached (ADR-0037): the root component, which is kept apart from the entity's
+    /// component list and whose <c>Detach</c> cascades to the scene components under it; the other
+    /// components; and the child entities, recursively. Each component is detached once: one that is no
+    /// longer attached (no owner) is skipped. Before this, only the component list was detached, so a tile
+    /// map placed as the root component - the Alundra port places it there - never released anything.
     ///
     /// <c>Entity.Destroy</c> only raises flags - it never detaches - so before this, a component holding
     /// GPU or engine resources kept them for the lifetime of the process. That is what
@@ -194,11 +201,27 @@ public sealed class World : ObjectBase
     /// </summary>
     private static void DetachComponentsOfDiscardedEntity(Entity entity)
     {
+        DetachIfAttached(entity.RootComponent);
+
         // Snapshot: Detach may mutate the entity's own component collection.
         var components = entity.AttachedComponents.ToArray();
         for (var index = 0; index < components.Length; index++)
         {
-            components[index].Detach();
+            DetachIfAttached(components[index]);
+        }
+
+        var children = entity.ChildList.ToArray();
+        for (var index = 0; index < children.Length; index++)
+        {
+            DetachComponentsOfDiscardedEntity(children[index]);
+        }
+    }
+
+    private static void DetachIfAttached(EntityComponent component)
+    {
+        if (component?.Owner != null)
+        {
+            component.Detach();
         }
     }
 
@@ -510,6 +533,9 @@ public sealed class World : ObjectBase
             UnsubscribeEntityTree(entity);
             _entities.Remove(entity);
             NotifyEntityRemovedRecursive(entity);
+
+            // ADR-0037: a destroyed entity gives back what its components hold, as it would at world teardown.
+            DetachComponentsOfDiscardedEntity(entity);
         }
 
         SpatialServices.WorldIndex.ApplyPendingMoves();
