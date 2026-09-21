@@ -585,7 +585,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
 
 ## Phase 4 — Services du jeu, rendu et matériaux
 
-### ⏳ T4.1 — Services du jeu
+### ✅ T4.1 — Services du jeu
 
 - Fichiers :
   - `CasaEngineGame` : texture par défaut → `Register` et `DefaultTexture` (P6) ; rechargement à chaud →
@@ -598,6 +598,57 @@ parent (plan parent `docs/plan-migration-handles.md`).
 - Validation : builds ; tests ; `HotReload` couvert par les tests existants s'il y en a, sinon la raison
   est écrite.
 - Commit : `refactor(game): game services hold their assets, hot reload replaces instances`
+- **Fait** :
+  - **`CasaEngineGame`** : `CreateDefaultTexture` range la texture par défaut avec
+    `AssetContentManager.Register(texture.Id, texture)` au lieu d'`AddAsset` sous le nom
+    `Texture.DefaultTextureName`, et garde le handle dans `_defaultTextureHandle`, exposé par la nouvelle
+    propriété publique `DefaultTexture` (P6). Aucun crochet de libération explicite : le jeu la tient pour
+    toute sa vie, comme `AssetContentManagerAudioClipProvider` (T3.3) et sans `Dispose` de `CasaEngineGame`
+    lui-même (aucun n'existe dans ce fichier). Le rechargement à chaud des particules et des sprites
+    (`ResolveParticleAssetForHotReload`/`ResolveSpriteAssetForHotReload`) lit désormais avec
+    `LoadCopy<T>` au lieu de `Load<T>(cache: false)` (remplacement exact, comme en T3.3) ; la mise en cache
+    (`CacheParticleAssetForHotReload`/`CacheSpriteAssetForHotReload`) appelle `AssetContentManager.Replace`
+    au lieu d'`AddAsset`, en gardant le calcul de `AssetId`/`Name`/`FileName` depuis le catalogue inchangé :
+    `Replace` garde les détenteurs déjà en cours de l'ancienne instance, alors qu'`AddAsset` réépinglait une
+    entrée neuve à chaque rechargement.
+  - **`ArrowComponent.InitializeWithWorld`** : `StaticModel.Meshes[0].Texture = world.Game.DefaultTexture`,
+    à la place de `GetAsset<Texture>(Texture.DefaultTextureName)`. `Texture.DefaultTextureName` n'a donc
+    plus aucun appelant (`rg` sans résultat hors sa propre déclaration) ; il est laissé en place, `Texture.cs`
+    n'étant pas dans la liste de fichiers de cette tâche.
+  - **`ScrollingLayerComponent`** et **`CellularLayerComponent`** (mécanisme jumeau, même changement) :
+    `LoadTexture(id)` prend désormais la texture par `Acquire<Texture>` (au lieu de `Load<Texture>`),
+    ajoute le handle à une nouvelle liste `_layerTextureHandles`, puis résout le `Texture2D` comme avant.
+    `ResolveTextures` — appelée uniquement à un changement de `LayersVersion`, jamais par image (doc de la
+    classe) — rend d'abord tous les handles du résolvage précédent (`ReleaseLayerTextureHandles`) avant de
+    reconstruire `_layerFrames`/`_layerSheets` : un id encore utilisé est simplement rendu puis repris,
+    sans fuite ; ce n'est pas un coût de chemin chaud puisque `ResolveTextures` ne tourne pas par image.
+    `ScrollingLayerComponent.Dispose(bool)` rend aussi ces handles (elle avait déjà un `Dispose`, pour
+    `_whiteTexture`) ; `CellularLayerComponent` gagne un `Dispose(bool)` qu'elle n'avait pas, sur le même
+    modèle.
+  - **`ParticleRendererComponent`** : `_textureCache` (`Dictionary<Guid, Texture2D>`) devient
+    `_textureHandles` (`Dictionary<Guid, AssetHandle<Texture>>`) ; `TryLoadTexture` devient
+    `TryAcquireTexture`, qui acquiert par `Acquire<Texture>` et rend le handle si `.Load` échoue (au lieu de
+    laisser fuir une acquisition partielle). `ResolveTexture` lit `handle.Asset.Resource`. Cette table n'a
+    pas de point d'invalidation par entrée (elle grossit pour la partie, comme avant, aucun changement de
+    politique) : `Dispose(bool)`, déjà présent, rend maintenant tous les handles tenus en plus de disposer
+    `_effect`/`_fallbackTexture`.
+  - **Tests** : aucun test nouveau. Les tests existants de `ScrollingLayerComponentSubmissionTests`,
+    `ScrollingLayerComponentLoggingTests` et `CellularLayerComponentSubmissionTests` appellent
+    `ResolveTextures` avec un chargeur synthétique (`_ => CreateTexture()` etc.) qui ne passe jamais par
+    `LoadTexture`/`AssetContentManager` : l'ajout de `ReleaseLayerTextureHandles()` en tête de
+    `ResolveTextures` est donc sans effet observable pour eux (aucun handle n'est jamais pris par ce
+    chemin) — vérifié en relisant chaque test, tous verts sans modification. Aucun test ne couvre
+    `ParticleRendererComponent.ResolveTexture`/`TryAcquireTexture` (`ParticleFlipbookTests` ne teste que
+    `GetFlipbookTextureCoordinates`, une fonction pure). Le round-trip réel des trois composants — comme en
+    T2.1/T3.2 — passe par `Texture.Load` → `Acquire<Texture2D>` → un `Texture2D`, qui exige un
+    `GraphicsDevice` indisponible en headless ; c'est la même limite déjà écrite à ces deux tâches, non
+    contournée ici. Aucun test ne couvre non plus `CasaEngineGame.DefaultTexture`/le rechargement à chaud :
+    `CreateDefaultTexture` construit un `Texture2D(GraphicsDevice, ...)` réel, et
+    `ResolveParticleAssetForHotReload`/`CacheParticleAssetForHotReload` (idem sprite) ne sont pas testés
+    aujourd'hui (aucun fichier de test ne les cite, vérifié par `rg`) — écrire un test headless demanderait
+    soit un `GraphicsDevice`, soit une refonte du chargement au delà du périmètre de cette tâche.
+  - `CasaEngine.Tests` 1776/1777, seul échec l'échec préexistant du docking (correction en cours ailleurs,
+    `task_704ea6e0`) ; les deux solutions moteur et `Alundra/Alundra.csproj` compilent sans erreur.
 
 ### ⏳ T4.2 — Rendu
 

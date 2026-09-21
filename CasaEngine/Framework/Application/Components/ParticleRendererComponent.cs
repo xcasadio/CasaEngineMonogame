@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering;
@@ -24,7 +25,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     };
 
     private readonly List<ParticleRenderPacket> _packets = new(InitialPacketCapacity);
-    private readonly Dictionary<Guid, Texture2D> _textureCache = new();
+    private readonly Dictionary<Guid, AssetHandle<TextureAsset>> _textureHandles = new();
     private readonly CasaEngineGame _casaEngineGame;
     private VertexPositionColorTexture[] _vertices = new VertexPositionColorTexture[InitialPacketCapacity * 4];
     private int[] _indices = new int[InitialPacketCapacity * 6];
@@ -300,25 +301,29 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             return _fallbackTexture!;
         }
 
-        if (!_textureCache.TryGetValue(textureAssetId, out Texture2D texture))
+        if (!_textureHandles.TryGetValue(textureAssetId, out AssetHandle<TextureAsset> handle))
         {
-            texture = TryLoadTexture(textureAssetId);
-            _textureCache[textureAssetId] = texture;
+            handle = TryAcquireTexture(textureAssetId);
+            _textureHandles[textureAssetId] = handle;
         }
 
-        return texture ?? _fallbackTexture!;
+        return handle?.Asset.Resource ?? _fallbackTexture!;
     }
 
-    private Texture2D TryLoadTexture(Guid textureAssetId)
+    // ADR-0037: held for the whole particle system's life (no invalidation path here, same policy the
+    // Texture2D cache followed before), released in Dispose.
+    private AssetHandle<TextureAsset> TryAcquireTexture(Guid textureAssetId)
     {
+        AssetHandle<TextureAsset> handle = null;
         try
         {
-            TextureAsset textureAsset = _casaEngineGame!.AssetContentManager.Load<TextureAsset>(textureAssetId);
-            textureAsset.Load(_casaEngineGame.AssetContentManager);
-            return textureAsset.Resource;
+            handle = _casaEngineGame!.AssetContentManager.Acquire<TextureAsset>(textureAssetId);
+            handle.Asset.Load(_casaEngineGame.AssetContentManager);
+            return handle;
         }
         catch
         {
+            handle?.Dispose();
             return null;
         }
     }
@@ -363,6 +368,11 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         {
             _effect?.Dispose();
             _fallbackTexture?.Dispose();
+            foreach (AssetHandle<TextureAsset> handle in _textureHandles.Values)
+            {
+                handle?.Dispose();
+            }
+            _textureHandles.Clear();
             lock (this)
             {
                 Game.RemoveGameComponent<ParticleRendererComponent>();

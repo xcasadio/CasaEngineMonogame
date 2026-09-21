@@ -74,9 +74,7 @@ public class ArrowComponent : StaticModelComponent
     {
         if (StaticModel?.Meshes.Count > 0)
         {
-            StaticModel.Meshes[0].Texture =
-                world.Game.AssetContentManager.GetAsset<Assets.Textures.Texture>(
-                    Assets.Textures.Texture.DefaultTextureName);
+            StaticModel.Meshes[0].Texture = world.Game.DefaultTexture;
         }
 
         base.InitializeWithWorld(world);

@@ -40,6 +40,13 @@ public class CasaEngineGame : Game, IObservableUpdate
     public AssetContentManager AssetContentManager { get; } = new();
     public FontSystem FontSystem { get; private set; }
 
+    // ADR-0037: the default texture is made at run time and held by the game itself (P6), never by name.
+    private AssetHandle<Texture> _defaultTextureHandle;
+
+    /// <summary>The 128x128 orange placeholder texture, registered once in <see cref="LoadContent"/> and
+    /// held by the game for its whole life. <see cref="ArrowComponent"/> is its only other user.</summary>
+    public Texture DefaultTexture => _defaultTextureHandle.Asset;
+
     /// <summary>The bitmap fonts held for the UI, given to every UI text engine (ADR-0036).</summary>
     public UIFontRegistry UIFonts { get; private set; }
     internal byte[] DefaultFontSystemTtfData { get; private set; } = Array.Empty<byte>();
@@ -464,7 +471,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         var texture2D = new Texture2D(GraphicsDevice, 128, 128, true, SurfaceFormat.Color);
         texture2D.SetData(Enumerable.Repeat(Color.Orange, texture2D.Width * texture2D.Height).ToArray());
         var texture = new Texture(texture2D);
-        AssetContentManager.AddAsset(texture.Id, Texture.DefaultTextureName, texture);
+        _defaultTextureHandle = AssetContentManager.Register(texture.Id, texture);
     }
 
     protected virtual void LoadContentPrivate()
@@ -920,7 +927,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             return authoringParticleAsset;
         }
 
-        return AssetContentManager.Load<ParticleEffectAsset>(particleAssetId, cache: false);
+        return AssetContentManager.LoadCopy<ParticleEffectAsset>(particleAssetId);
     }
 
     private SpriteData ResolveSpriteAssetForHotReload(Guid spriteAssetId, SpriteData authoringSpriteData)
@@ -931,7 +938,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             return authoringSpriteData;
         }
 
-        return AssetContentManager.Load<SpriteData>(spriteAssetId, cache: false);
+        return AssetContentManager.LoadCopy<SpriteData>(spriteAssetId);
     }
 
     private void CacheParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset particleAsset)
@@ -942,12 +949,15 @@ public class CasaEngineGame : Game, IObservableUpdate
             particleAsset.AssetId = assetInfo.Id;
             particleAsset.Name = assetInfo.Name;
             particleAsset.FileName = assetInfo.FileName;
-            AssetContentManager.AddAsset(assetInfo, particleAsset);
-            return;
+        }
+        else
+        {
+            particleAsset.AssetId = particleAssetId;
         }
 
-        particleAsset.AssetId = particleAssetId;
-        AssetContentManager.AddAsset(particleAssetId, particleAsset.Name, particleAsset);
+        // ADR-0037: swap the shared instance in place instead of AddAsset, which used to re-pin a fresh
+        // entry every reload. Replace keeps whoever already holds the previous instance untouched.
+        AssetContentManager.Replace(particleAssetId, particleAsset);
     }
 
     private void CacheSpriteAssetForHotReload(Guid spriteAssetId, SpriteData spriteData)
@@ -958,12 +968,13 @@ public class CasaEngineGame : Game, IObservableUpdate
             spriteData.AssetId = assetInfo.Id;
             spriteData.Name = assetInfo.Name;
             spriteData.FileName = assetInfo.FileName;
-            AssetContentManager.AddAsset(assetInfo, spriteData);
-            return;
+        }
+        else
+        {
+            spriteData.AssetId = spriteAssetId;
         }
 
-        spriteData.AssetId = spriteAssetId;
-        AssetContentManager.AddAsset(spriteAssetId, spriteData.Name, spriteData);
+        AssetContentManager.Replace(spriteAssetId, spriteData);
     }
 
     private int RefreshLoadedParticleSystems(Guid particleAssetId, ParticleEffectAsset particleAsset)
