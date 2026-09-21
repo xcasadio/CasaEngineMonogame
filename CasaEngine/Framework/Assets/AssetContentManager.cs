@@ -153,10 +153,85 @@ public class AssetContentManager
     }
 
     /// <summary>
-    /// Frees every asset of the default category that nobody holds and that is not pinned (ADR-0036):
-    /// disposes it when it is <see cref="IDisposable"/> and drops it from the cache. An asset freed here may
-    /// give back holds on its own dependencies; those are freed in the same call when nobody else holds
-    /// them. Called by the engine at the very start of every world change; a game may also call it.
+    /// Reads a fresh <typeparamref name="T"/> from the asset's file (ADR-0037), for templates that every use
+    /// needs its own copy of: entities, worlds, cutscenes, authoring materials, hot-reload reads. The copy is
+    /// neither cached nor counted: the caller alone owns it.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">No loader for <typeparamref name="T"/>, or an id missing
+    /// from the catalog.</exception>
+    public T LoadCopy<T>(Guid id) where T : class
+    {
+        return LoadNew<T>(id, out _);
+    }
+
+    /// <summary>
+    /// Stores an object made at run time (a generated cubemap, the default texture) under <paramref name="id"/>
+    /// and returns a hold on it (ADR-0037). Its maker holds it, and it is freed like any acquired asset once
+    /// nobody holds it. The object is indexed by the catalog name of <paramref name="id"/> when the id resolves
+    /// in the catalog, and by no name otherwise.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The id is already present, held or not: use
+    /// <see cref="Replace{T}(Guid, T)"/> to swap an instance.</exception>
+    public AssetHandle<T> Register<T>(Guid id, T asset) where T : class
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+
+        var defaultAssets = GetOrCreateCategory(DefaultCategory);
+        if (defaultAssets.Get(id, out _))
+        {
+            throw new InvalidOperationException(
+                $"An asset is already present under '{id}'; use Replace to swap its instance.");
+        }
+
+        var lease = StoreUnpinned(defaultAssets, id, asset);
+        lease.HandleCount++;
+        return new AssetHandle<T>(this, id, asset);
+    }
+
+    /// <summary>
+    /// Swaps the shared instance of <paramref name="id"/> for <paramref name="asset"/> (ADR-0037), for hot
+    /// reload and editor saves. An id already present keeps its holders and its pinning, and its name now
+    /// designates the new instance; later acquisitions return the new instance. Existing handles keep
+    /// returning the instance they were given, and the old instance is not disposed: its users are refreshed
+    /// by whoever replaces it. An absent id is stored as a pending asset that nobody holds yet.
+    /// </summary>
+    public void Replace<T>(Guid id, T asset) where T : class
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+
+        var defaultAssets = GetOrCreateCategory(DefaultCategory);
+        if (defaultAssets.Get(id, out var previous))
+        {
+            defaultAssets.ReplaceInstance(id, previous, asset);
+            return;
+        }
+
+        StoreUnpinned(defaultAssets, id, asset);
+    }
+
+    private AssetLease StoreUnpinned(AssetDictionary defaultAssets, Guid id, object asset)
+    {
+        var name = ResolveAssetInfo(id)?.Name;
+        if (name != null)
+        {
+            defaultAssets.Add(id, name, asset);
+        }
+        else
+        {
+            defaultAssets.AddWithoutName(id, asset);
+        }
+
+        var lease = new AssetLease { Name = name };
+        _leases[id] = lease;
+        return lease;
+    }
+
+    /// <summary>
+    /// Frees every asset of the default category that nobody holds and that is not pinned (ADR-0036): disposes
+    /// it when it is <see cref="IDisposable"/> or <see cref="IAssetable"/> (ADR-0037), once, and drops it from
+    /// the cache. An asset freed here may give back holds on its own dependencies; those are freed in the same
+    /// call when nobody else holds them. Called by the engine at the very start of every world change; a game
+    /// may also call it.
     /// </summary>
     /// <returns>The number of assets freed.</returns>
     public int CollectUnreferenced()
@@ -198,10 +273,7 @@ public class AssetContentManager
                     defaultAssets.RemoveById(id, lease.Name, asset);
 
                     // Disposing may release holds on dependencies: the next pass frees them.
-                    if (asset is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
+                    DisposeFreedAsset(asset);
                 }
 
                 freed++;
@@ -211,6 +283,20 @@ public class AssetContentManager
 
         _collectCandidates.Clear();
         return freed;
+    }
+
+    // IAssetable declares its own Dispose without deriving from IDisposable (IAssetable.cs); a type that
+    // implements both usually satisfies them with one method, so it is called once.
+    private static void DisposeFreedAsset(object asset)
+    {
+        if (asset is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        else if (asset is IAssetable assetable)
+        {
+            assetable.Dispose();
+        }
     }
 
     internal void Release(Guid id)
@@ -495,6 +581,35 @@ public class AssetContentManager
         {
             _assetsById.Remove(id);
             return _assetsByName.Remove(name);
+        }
+
+        public void AddWithoutName(Guid id, object asset)
+        {
+            _assetsById[id] = asset;
+        }
+
+        /// <summary>Points <paramref name="id"/>, and every name that designated <paramref name="previous"/>, at
+        /// <paramref name="replacement"/>.</summary>
+        public void ReplaceInstance(Guid id, object previous, object replacement)
+        {
+            _assetsById[id] = replacement;
+
+            List<string> names = null;
+            foreach (var pair in _assetsByName)
+            {
+                if (ReferenceEquals(pair.Value, previous))
+                {
+                    (names ??= new List<string>()).Add(pair.Key);
+                }
+            }
+
+            if (names != null)
+            {
+                foreach (var name in names)
+                {
+                    _assetsByName[name] = replacement;
+                }
+            }
         }
 
         public IEnumerable<KeyValuePair<Guid, object>> Entries => _assetsById;

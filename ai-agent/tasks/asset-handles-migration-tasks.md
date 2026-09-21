@@ -223,7 +223,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
 
 ## Phase 1 — API et crochet de destruction
 
-### ⏳ T1.1 — `LoadCopy<T>`, `Register<T>`, `Replace<T>`
+### ✅ T1.1 — `LoadCopy<T>`, `Register<T>`, `Replace<T>`
 
 - Objectif : les trois entrées nouvelles de l'ADR-0037, ajoutées à côté de l'existant.
 - Fichiers : `CasaEngine/Framework/Assets/AssetContentManager.cs`,
@@ -273,6 +273,11 @@ parent (plan parent `docs/plan-migration-handles.md`).
     Sans `Acquire`, `CollectUnreferenced` = 1 et `Dispose` est appelé une fois.
 - Validation : builds ; `CasaEngine.Tests` référence + nouveaux.
 - Commit : `feat(assets): LoadCopy, Register and Replace for templates and objects made at run time`
+- **Fait** :
+  - 10 tests, dont les deux cas de libération des `IAssetable` et les trois cas de `Replace` ;
+  - `CasaEngine.Tests` 1748/1749, avec le seul échec préexistant ; deux solutions sans erreur ;
+  - `AssetDictionary` gagne `AddWithoutName` et `ReplaceInstance`, qui repointe aussi les noms désignant
+    l'ancienne instance.
 
 ### ⏳ T1.2 — Détacher tout l'arbre d'une entité jetée
 

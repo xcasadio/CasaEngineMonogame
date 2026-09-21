@@ -208,6 +208,167 @@ public class AssetContentManagerHandleTests
         Assert.Same(held.Asset, manager.GetAsset<Leaf>(LeafId));
     }
 
+    // ---- ADR-0037: LoadCopy, Register, Replace, and the collection of IAssetable assets ----
+
+    private static readonly Guid NotInCatalogId = Guid.Parse("66666666-6666-6666-6666-666666666666");
+
+    private sealed class AssetableOnly : IAssetable
+    {
+        public int DisposeCount;
+
+        public void Dispose() => DisposeCount++;
+
+        public void OnDeviceReset(Microsoft.Xna.Framework.Graphics.GraphicsDevice device, AssetContentManager assetContentManager)
+        {
+        }
+    }
+
+    private sealed class AssetableAndDisposable : IAssetable, IDisposable
+    {
+        public int DisposeCount;
+
+        public void Dispose() => DisposeCount++;
+
+        public void OnDeviceReset(Microsoft.Xna.Framework.Graphics.GraphicsDevice device, AssetContentManager assetContentManager)
+        {
+        }
+    }
+
+    [Fact]
+    public void Collect_DisposesAnIAssetableThatIsNotIDisposable()
+    {
+        var manager = NewManager(out _);
+        var asset = new AssetableOnly();
+        manager.Register(NotInCatalogId, asset).Dispose();
+
+        Assert.Equal(1, manager.CollectUnreferenced());
+        Assert.Equal(1, asset.DisposeCount);
+    }
+
+    [Fact]
+    public void Collect_DisposesAnAssetThatIsBothIAssetableAndIDisposable_Once()
+    {
+        var manager = NewManager(out _);
+        var asset = new AssetableAndDisposable();
+        manager.Register(NotInCatalogId, asset).Dispose();
+
+        Assert.Equal(1, manager.CollectUnreferenced());
+        Assert.Equal(1, asset.DisposeCount);
+    }
+
+    [Fact]
+    public void LoadCopy_ReadsAFreshObjectEachTime_AndCachesNothing()
+    {
+        var manager = NewManager(out var loader);
+
+        var first = manager.LoadCopy<Leaf>(LeafId);
+        var second = manager.LoadCopy<Leaf>(LeafId);
+
+        Assert.NotSame(first, second);
+        Assert.Equal(2, loader.Loads);
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        using var shared = manager.Acquire<Leaf>(LeafId);
+        Assert.NotSame(first, shared.Asset);
+        Assert.Equal(3, loader.Loads);
+    }
+
+    [Fact]
+    public void Register_WithAnIdMissingFromTheCatalog_IsHeld_ThenFreedOnceReleased()
+    {
+        var manager = NewManager(out _);
+        var asset = new Leaf();
+
+        var handle = manager.Register(NotInCatalogId, asset);
+        Assert.Same(asset, handle.Asset);
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        handle.Dispose();
+        Assert.Equal(1, manager.CollectUnreferenced());
+        Assert.Equal(1, asset.DisposeCount);
+    }
+
+    [Fact]
+    public void Register_OnAnIdHeldThroughAcquire_Throws()
+    {
+        var manager = NewManager(out _);
+        using var held = manager.Acquire<Leaf>(LeafId);
+
+        Assert.Throws<InvalidOperationException>(() => manager.Register(LeafId, new Leaf()));
+    }
+
+    [Fact]
+    public void Register_OnAnIdLoadedThroughLoad_Throws()
+    {
+        var manager = NewManager(out _);
+        manager.Load<Leaf>(LeafId);
+
+        Assert.Throws<InvalidOperationException>(() => manager.Register(LeafId, new Leaf()));
+    }
+
+    [Fact]
+    public void Replace_OnAHeldId_KeepsItsHolders_AndLaterAcquisitionsGetTheNewInstance()
+    {
+        var manager = NewManager(out var loader);
+        var firstOld = manager.Acquire<Leaf>(LeafId);
+        var secondOld = manager.Acquire<Leaf>(LeafId);
+        var replacement = new Leaf();
+
+        manager.Replace(LeafId, replacement);
+        var fresh = manager.Acquire<Leaf>(LeafId);
+
+        Assert.Same(replacement, fresh.Asset);
+        Assert.Equal(1, loader.Loads);
+
+        firstOld.Dispose();
+        fresh.Dispose();
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        secondOld.Dispose();
+        Assert.Equal(1, manager.CollectUnreferenced());
+        Assert.Equal(1, replacement.DisposeCount);
+    }
+
+    [Fact]
+    public void Replace_OnAnIdLoadedThroughLoad_StaysPinned()
+    {
+        var manager = NewManager(out _);
+        manager.Load<Leaf>(LeafId);
+        var replacement = new Leaf();
+
+        manager.Replace(LeafId, replacement);
+
+        Assert.Equal(0, manager.CollectUnreferenced());
+        Assert.Equal(0, replacement.DisposeCount);
+        using var held = manager.Acquire<Leaf>(LeafId);
+        Assert.Same(replacement, held.Asset);
+    }
+
+    [Fact]
+    public void Replace_OnAnAbsentId_IsWhatTheNextAcquireGets_WithoutLoading()
+    {
+        var manager = NewManager(out var loader);
+        var replacement = new Leaf();
+
+        manager.Replace(LeafId, replacement);
+        using var held = manager.Acquire<Leaf>(LeafId);
+
+        Assert.Same(replacement, held.Asset);
+        Assert.Equal(0, loader.Loads);
+    }
+
+    [Fact]
+    public void Replace_OnAnAbsentId_NobodyHoldsIt_SoItIsCollected()
+    {
+        var manager = NewManager(out _);
+        var replacement = new Leaf();
+
+        manager.Replace(NotInCatalogId, replacement);
+
+        Assert.Equal(1, manager.CollectUnreferenced());
+        Assert.Equal(1, replacement.DisposeCount);
+    }
+
     [Fact]
     public void AnEntityCannotBeAcquired()
     {
