@@ -90,7 +90,10 @@ public static class EditorParticleSystemComponentService
             return;
         }
 
-        ParticleEffectAsset particleAsset = entity.World.Game.AssetContentManager.Load<ParticleEffectAsset>(particleAssetId);
+        // A fresh, uncounted copy: SetParticleEffectAsset does not take a hold on the instance it is handed
+        // (ADR-0037), and the component acquires its own shared handle on ParticleEffectAssetId the next
+        // time it is (re)initialized with a world.
+        ParticleEffectAsset particleAsset = entity.World.Game.AssetContentManager.LoadCopy<ParticleEffectAsset>(particleAssetId);
         component.SetParticleEffectAsset(particleAsset);
     }
 }

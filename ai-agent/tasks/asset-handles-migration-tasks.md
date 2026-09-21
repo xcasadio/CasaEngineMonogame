@@ -810,6 +810,48 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
   (voir Validation globale). D'où 🧪 à la fin de la tâche, tant qu'elle n'est pas faite.
 - Commit : `refactor(editor): editor panels hold their assets through handles`
 
+**Fait** :
+- `GameEditor.OpenWorldAsset` : `Load<World>(id, cache: false)` → `LoadCopy<World>(id)`.
+- `TileMapEditorPanel.LoadTileSets` : acquiert un `AssetHandle<TileSetData>` et un `AssetHandle<Assets.Textures.Texture>`
+  par tileset, gardés dans deux nouvelles listes ; rendus par `ReleaseTileSets` (appelée avant chaque
+  rechargement et dans `Dispose`).
+- `Animation2dAssetInspectorPanel` : `ResolveSprite` acquiert désormais un `AssetHandle<SpriteData>` par sprite
+  référencé (`_spriteDataHandleById`) ; `TryRefreshReferencedSpriteAsset` lit une copie fraîche non comptée
+  (`LoadCopy<SpriteData>`) quand la donnée n'est pas fournie par le service de rechargement, et rend
+  systématiquement le handle qu'elle détenait déjà pour cet id ; `ReleaseSpriteDataHandles` (nouvelle,
+  appelée par `Dispose` et `RebuildPreviewState`) rend tout.
+- `AnimationClipPreviewPanel` : le clip sélectionné et le clip de comparaison de blend deviennent des
+  `AssetHandle<AnimationClip>` (`_selectedClipHandle`, `_blendReferenceClipHandle`, rendus par
+  `ReleaseClipHandles`) ; le maillage riggé de prévisualisation devient un `AssetHandle<SkinnedMesh>`
+  (`_previewSkinnedMeshHandle`, rendu par `ReleaseSkinnedMeshHandle`, appelée par `ClearPreviewMesh`) — le
+  maillage est assigné directement sur `SkinnedMeshComponent.SkinnedMesh` sans passer par
+  `SkinnedMeshAssetId`, donc le composant ne prend aucun handle lui-même dessus (commentaire du composant) ;
+  ce panneau doit donc porter le sien. Les trois sont rendus dans `Dispose`, et les deux handles de clip au
+  début de chaque `LoadAsset` (y compris sur exception).
+- `SpriteAssetInspectorPanel.CacheLoadedSpriteAsset` et `SpriteSceneThumbnailRenderer.CacheSpriteAsset` :
+  `AddAsset` → `Replace` (ces méthodes remettent l'instance en cours d'édition sous son id, potentiellement
+  plusieurs fois pour le même id ; `Replace` est idempotent et garde les détenteurs existants, contrairement à
+  `Register` qui lève si l'id est déjà présent).
+- `EditorParticleSystemComponentService.ApplyParticleAsset` : `Load<ParticleEffectAsset>` → `LoadCopy` — le
+  commentaire de `ParticleSystemComponent.SetParticleEffectAsset` précise qu'il ne prend pas de handle sur
+  l'instance reçue (elle est supposée non partagée) ; le composant acquiert son propre handle partagé sur
+  `ParticleEffectAssetId` à sa prochaine (ré)initialisation avec un monde.
+- Détenteurs et libération : chaque site tient désormais son ou ses handles et les rend explicitement
+  (`Dispose` des panneaux, ou avant chaque rechargement pour `TileMapEditorPanel`/`Animation2dAssetInspectorPanel`).
+  Aucun test unitaire ajouté : les cinq classes touchées sont des panneaux MGUI ou un service qui construit un
+  `HostedEditorGameAdapter`/`GraphicsDevice`, non instanciables dans `CasaEngine.Tests` sans périphérique
+  graphique (comme les composants 3D de T3.2 et les services de T4.1) ; la preuve reste la recette manuelle de
+  l'éditeur ci-dessous.
+- Builds : `CasaEngine.MonoGame.sln` (0 erreur), `CasaEngine.Editor.MonoGame.sln` (0 erreur).
+- Tests : `CasaEngine.Tests` 1784/1785 (le seul échec est
+  `EditorThemeAsset_Disables_Docking_Accent_Bars`, préexistant et hors périmètre).
+- `Alundra/Alundra.csproj` compile toujours (0 erreur).
+- **Reste à faire avant ✅** : vérification manuelle par l'auteur dans l'éditeur lancé — ouvrir un `.tileMap`
+  (tilesets affichés, changer de carte plusieurs fois), un `.animation2d` (aperçu des sprites, sauvegarder et
+  rouvrir), un `.skeletonAnim` (aperçu du clip et du blend, changer de clip plusieurs fois), un `.sprite`
+  (édition et vignette dans le Content Browser à jour), et ajouter/changer un effet de particules sur une
+  entité dans l'éditeur.
+
 ---
 
 ## Phase 6 — Démos

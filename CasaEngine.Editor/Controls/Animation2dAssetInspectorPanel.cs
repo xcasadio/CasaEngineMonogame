@@ -35,6 +35,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private readonly IWindowInputSource _windowInputSource;
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
+    private readonly Dictionary<Guid, AssetHandle<SpriteData>> _spriteDataHandleById = new();
     private readonly List<Guid> _spriteIdsToResolve = new();
     private readonly List<TimelineDisplayLane> _timelineDisplayLanes = new();
     private readonly List<TimelineDisplayEventItem> _timelineDisplayEvents = new();
@@ -457,11 +458,24 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         _disposed = true;
+        ReleaseSpriteDataHandles();
         _previewViewportPanel?.Dispose();
         _previewWorldDriver.Dispose();
         _previewViewportPanel = null;
         _previewEntity = null;
         _previewSpriteComponent = null;
+    }
+
+    /// <summary>Gives back every sprite data hold taken by <see cref="ResolveSprite"/>, and clears the lookup table.</summary>
+    private void ReleaseSpriteDataHandles()
+    {
+        foreach (var handle in _spriteDataHandleById.Values)
+        {
+            handle.Dispose();
+        }
+
+        _spriteDataHandleById.Clear();
+        _spriteDataById.Clear();
     }
 
     public bool TryRefreshReferencedSpriteAsset(Guid spriteAssetId, SpriteData savedSpriteData = null)
@@ -490,7 +504,15 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return false;
         }
 
-        SpriteData spriteData = savedSpriteData ?? _editorRuntime.AssetContentManager.Load<SpriteData>(spriteAssetId, cache: false);
+        // spriteData is supplied directly by the reload service when available; otherwise a fresh,
+        // uncounted read is enough here since the preview only needs one snapshot of it. Either way, give
+        // back whatever sprite data hold this panel took itself, so it does not keep pinning a stale
+        // instance the manager may have already replaced.
+        SpriteData spriteData = savedSpriteData ?? _editorRuntime.AssetContentManager.LoadCopy<SpriteData>(spriteAssetId);
+        if (_spriteDataHandleById.Remove(spriteAssetId, out var staleHandle))
+        {
+            staleHandle.Dispose();
+        }
         _spriteDataById[spriteAssetId] = spriteData;
 
         if (_previewSpriteComponent != null)
@@ -1592,7 +1614,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     {
         _previewDurationSeconds = 0f;
         _isPreviewLooping = false;
-        _spriteDataById.Clear();
+        ReleaseSpriteDataHandles();
         _spriteIdsToResolve.Clear();
 
         if (_animationData == null)
@@ -1718,8 +1740,9 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
-        var spriteData = _editorRuntime.AssetContentManager.Load<SpriteData>(spriteId);
-        _spriteDataById.Add(spriteId, spriteData);
+        var handle = _editorRuntime.AssetContentManager.Acquire<SpriteData>(spriteId);
+        _spriteDataHandleById[spriteId] = handle;
+        _spriteDataById.Add(spriteId, handle.Asset);
     }
 
     private void RefreshTimelineText()

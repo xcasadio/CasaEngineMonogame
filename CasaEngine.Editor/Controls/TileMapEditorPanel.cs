@@ -95,6 +95,8 @@ internal sealed class TileMapEditorPanel : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly List<TileSetData> _tileSets = new();
     private readonly List<Texture2D> _tileSetTextures = new();
+    private readonly List<AssetHandle<TileSetData>> _tileSetHandles = new();
+    private readonly List<AssetHandle<AssetTexture>> _tileSetTextureHandles = new();
     private readonly List<bool> _layerVisibility = new();
 
     private MGDockPanel _root;
@@ -408,6 +410,7 @@ internal sealed class TileMapEditorPanel : IDisposable
             _viewportHost.MouseHandler.Scrolled -= OnViewportScrolled;
         }
 
+        ReleaseTileSets();
         _renderTarget?.Dispose();
         _whitePixel?.Dispose();
         _spriteBatch?.Dispose();
@@ -456,8 +459,7 @@ internal sealed class TileMapEditorPanel : IDisposable
 
     private void LoadTileSets()
     {
-        _tileSets.Clear();
-        _tileSetTextures.Clear();
+        ReleaseTileSets();
 
         if (_tileMapData == null)
         {
@@ -466,17 +468,39 @@ internal sealed class TileMapEditorPanel : IDisposable
 
         for (var tileSetIndex = 0; tileSetIndex < _tileMapData.TileSetDataAssetIds.Count; tileSetIndex++)
         {
-            var tileSetData = _editorRuntime.AssetContentManager.Load<TileSetData>(_tileMapData.TileSetDataAssetIds[tileSetIndex]);
-            var texture = _editorRuntime.AssetContentManager.Load<AssetTexture>(tileSetData.SpriteSheetAssetId);
-            texture.Load(_editorRuntime.AssetContentManager);
-            if (texture.Resource == null)
+            var tileSetHandle = _editorRuntime.AssetContentManager.Acquire<TileSetData>(_tileMapData.TileSetDataAssetIds[tileSetIndex]);
+            _tileSetHandles.Add(tileSetHandle);
+            var textureHandle = _editorRuntime.AssetContentManager.Acquire<AssetTexture>(tileSetHandle.Asset.SpriteSheetAssetId);
+            _tileSetTextureHandles.Add(textureHandle);
+            textureHandle.Asset.Load(_editorRuntime.AssetContentManager);
+            if (textureHandle.Asset.Resource == null)
             {
-                throw new InvalidOperationException($"TileSet '{tileSetData.Name}' has no loaded texture resource.");
+                throw new InvalidOperationException($"TileSet '{tileSetHandle.Asset.Name}' has no loaded texture resource.");
             }
 
-            _tileSets.Add(tileSetData);
-            _tileSetTextures.Add(texture.Resource);
+            _tileSets.Add(tileSetHandle.Asset);
+            _tileSetTextures.Add(textureHandle.Asset.Resource);
         }
+    }
+
+    private void ReleaseTileSets()
+    {
+        foreach (var textureHandle in _tileSetTextureHandles)
+        {
+            textureHandle.Dispose();
+        }
+
+        _tileSetTextureHandles.Clear();
+
+        foreach (var tileSetHandle in _tileSetHandles)
+        {
+            tileSetHandle.Dispose();
+        }
+
+        _tileSetHandles.Clear();
+
+        _tileSets.Clear();
+        _tileSetTextures.Clear();
     }
 
     private void RebuildLayerVisibility()

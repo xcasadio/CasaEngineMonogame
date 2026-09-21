@@ -286,11 +286,11 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
             spriteAsset.AssetId = assetInfo.Id;
             spriteAsset.Name = assetInfo.Name;
             spriteAsset.FileName = assetInfo.FileName;
-            _editorRuntime.AssetContentManager.AddAsset(assetInfo, spriteAsset);
+            _editorRuntime.AssetContentManager.Replace(assetInfo.Id, spriteAsset);
             return;
         }
 
-        _editorRuntime.AssetContentManager.AddAsset(spriteAssetId, spriteAsset.Name, spriteAsset);
+        _editorRuntime.AssetContentManager.Replace(spriteAssetId, spriteAsset);
     }
 
     private void ConfigureCamera(SpriteData spriteAsset)
