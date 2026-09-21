@@ -66,6 +66,7 @@ public sealed class World : ObjectBase
     private JObject _gameplayProxyState;
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
+    private AssetHandle<PlayerStartupSettings> _playerStartupSettingsHandle;
     public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
     public GameplayModeRunner GameplayModeRunner { get; } = new();
     public GameplayEventBus GameplayEvents => GameplayModeRunner.Events;
@@ -136,19 +137,20 @@ public sealed class World : ObjectBase
         ClearEntities(true);
         CollisionField = null;
         DisposePhysicsWorldContext();
+        ReleasePlayerStartupSettings();
     }
 
     public Entity SpawnEntity<T>(string assetName) where T : Entity
     {
         var assetInfo = AssetCatalog.Get(assetName);
-        var entity = Game.AssetContentManager.Load<Entity>(assetInfo.Id).Clone();
+        var entity = Game.AssetContentManager.LoadCopy<Entity>(assetInfo.Id).Clone();
         AddEntity(entity);
         return entity;
     }
 
     public T SpawnEntity<T>(Guid id) where T : Entity
     {
-        var entity = (T)Game.AssetContentManager.Load<T>(id, cache: false).Clone();
+        var entity = (T)Game.AssetContentManager.LoadCopy<T>(id).Clone();
         AddEntity(entity);
         return entity;
     }
@@ -325,16 +327,34 @@ public sealed class World : ObjectBase
         }
     }
 
-    private void LoadPlayerStartupSettings()
+    /// <summary>
+    /// Acquires the world's player startup settings through a handle held for the world's lifetime
+    /// (ADR-0037) and given back in <see cref="Clear"/>. Any previously held settings are released
+    /// first, so a world reloaded over itself does not leak the earlier handle. Internal so tests can
+    /// drive it without a full game behind the world.
+    /// </summary>
+    internal void LoadPlayerStartupSettings()
     {
+        ReleasePlayerStartupSettings();
+
         if (PlayerStartupSettingsAssetId != Guid.Empty)
         {
-            PlayerStartupSettings = Game.AssetContentManager.Load<PlayerStartupSettings>(PlayerStartupSettingsAssetId);
+            _playerStartupSettingsHandle = Game.AssetContentManager.Acquire<PlayerStartupSettings>(PlayerStartupSettingsAssetId);
+            PlayerStartupSettings = _playerStartupSettingsHandle.Asset;
         }
         else
         {
             PlayerStartupSettings = new PlayerStartupSettings();
         }
+    }
+
+    /// <summary>Gives back the player startup settings handle acquired by <see cref="LoadPlayerStartupSettings"/>,
+    /// if any. Internal so tests can drive it without a full game behind the world.</summary>
+    internal void ReleasePlayerStartupSettings()
+    {
+        _playerStartupSettingsHandle?.Dispose();
+        _playerStartupSettingsHandle = null;
+        PlayerStartupSettings = new PlayerStartupSettings();
     }
 
     private void InitializePlayerControllers()
@@ -468,8 +488,10 @@ public sealed class World : ObjectBase
             return;
         }
 
-        var gameplayModeAsset = Game.AssetContentManager.Load<GameplayModeAsset>(GameplayModeAssetId);
-        GameplayMode mode = gameplayModeAsset.CreateMode();
+        // ADR-0037: only the CreateMode call needs the asset; the created GameplayMode owns whatever it
+        // needs afterwards, so the handle is not held past this method.
+        using var gameplayModeAssetHandle = Game.AssetContentManager.Acquire<GameplayModeAsset>(GameplayModeAssetId);
+        GameplayMode mode = gameplayModeAssetHandle.Asset.CreateMode();
 
         if (mode != null)
         {

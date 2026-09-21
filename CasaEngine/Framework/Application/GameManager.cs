@@ -1,4 +1,5 @@
 
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.UI;
@@ -87,7 +88,11 @@ public class GameManager
             // ADR-0036: a world change starts. Free what nobody holds any more, before the old world is
             // cleared: its holders still hold what they use, so nothing that crosses the change is freed,
             // and whatever they give back while clearing stays pending until the next world change.
-            _assetContentManager?.CollectUnreferenced();
+            int freedAssetCount = _assetContentManager?.CollectUnreferenced() ?? 0;
+
+            // ADR-0037 (P7): visible proof, at Info level, that unreferenced assets are actually freed
+            // across a world change.
+            Logs.WriteInfo($"World change: {freedAssetCount} unreferenced asset(s) freed.");
         }
 
         if (!string.IsNullOrEmpty(_worldToLoad))
@@ -110,7 +115,7 @@ public class GameManager
                 throw new InvalidOperationException($"World not found in the asset catalog: '{_worldToLoad}'");
             }
 
-            _currentWorld = _game.AssetContentManager.Load<Scene.World.World>(assetInfo.Id, cache: false);
+            _currentWorld = _game.AssetContentManager.LoadCopy<Scene.World.World>(assetInfo.Id);
             _worldToLoad = null;
             _isNewWorld = true;
         }

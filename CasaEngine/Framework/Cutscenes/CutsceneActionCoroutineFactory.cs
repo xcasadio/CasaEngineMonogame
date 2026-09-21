@@ -5,6 +5,7 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Rendering.ScreenEffects;
@@ -157,58 +158,66 @@ internal static class CutsceneActionCoroutineFactory
 
     private static ScreenEffectService GetScreenEffectService(World world) => world.Game?.ScreenEffectComponent?.Service;
 
-    private static SoundAsset LoadSoundAsset(World world, Guid soundAssetId)
+    /// <summary>
+    /// Acquires the <see cref="SoundAsset"/> for the duration of the action alone (ADR-0037): the handle
+    /// is given back before this method returns, once <paramref name="useAsset"/> has read from it
+    /// everything <c>AudioService.PlaySound</c> and <c>MusicPlayer.Play</c> need - both only read the
+    /// asset synchronously to start playback, they do not keep it.
+    /// </summary>
+    private static void WithSoundAsset(World world, Guid soundAssetId, Action<SoundAsset> useAsset)
     {
         if (soundAssetId == Guid.Empty || world.Game == null)
         {
-            return null;
+            return;
         }
 
         try
         {
-            return world.Game.AssetContentManager.Load<SoundAsset>(soundAssetId);
+            using var soundAssetHandle = world.Game.AssetContentManager.Acquire<SoundAsset>(soundAssetId);
+            useAsset(soundAssetHandle.Asset);
         }
         catch (Exception exception)
         {
             Logs.WriteException(new Exception($"Cutscene cannot load sound asset '{soundAssetId}'.", exception));
-            return null;
         }
     }
 
     private static void PlaySound(PlaySoundCutsceneActionData action, World world)
     {
         AudioService audioService = GetAudioService(world);
-        SoundAsset asset = LoadSoundAsset(world, action.SoundAssetId);
-
-        if (audioService == null || asset == null)
+        if (audioService == null)
         {
             return;
         }
 
-        var overrides = new SoundPlaybackOverrides(
-            volume: asset.Volume * action.Volume,
-            busName: action.BusName);
+        WithSoundAsset(world, action.SoundAssetId, asset =>
+        {
+            var overrides = new SoundPlaybackOverrides(
+                volume: asset.Volume * action.Volume,
+                busName: action.BusName);
 
-        audioService.PlaySound(asset, overrides, world);
+            audioService.PlaySound(asset, overrides, world);
+        });
     }
 
     private static void PlayMusic(PlayMusicCutsceneActionData action, World world)
     {
         AudioService audioService = GetAudioService(world);
-        SoundAsset asset = LoadSoundAsset(world, action.SoundAssetId);
-
-        if (audioService == null || asset == null)
+        if (audioService == null)
         {
             return;
         }
 
-        if (action.Crossfade)
+        WithSoundAsset(world, action.SoundAssetId, asset =>
         {
-            // Fading the previous tracks out over the same duration is what makes it a crossfade.
-            audioService.Music.StopAll(action.FadeInSeconds);
-        }
+            if (action.Crossfade)
+            {
+                // Fading the previous tracks out over the same duration is what makes it a crossfade.
+                audioService.Music.StopAll(action.FadeInSeconds);
+            }
 
-        audioService.Music.Play(asset, action.FadeInSeconds, world);
+            audioService.Music.Play(asset, action.FadeInSeconds, world);
+        });
     }
 
     private static bool TryStartNavigateTo(NavigateToCutsceneActionData action, World world, out NavigationAgentComponent navigationAgent, out string failureReason)

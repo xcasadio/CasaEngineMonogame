@@ -500,7 +500,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
     (T6.1) reste utile pour confirmer l'absence de régression sur le chemin direct, pas pour couvrir
     l'acquisition par handle elle-même.
 
-### ⏳ T3.3 — Monde, entités, modes de jeu, cinématiques, audio
+### ✅ T3.3 — Monde, entités, modes de jeu, cinématiques, audio
 
 - Fichiers :
   - `World` : `SpawnEntity` → `LoadCopy<Entity>` ; `PlayerStartupSettings` tenu par le monde et rendu dans
@@ -512,6 +512,74 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - tests.
 - Validation : builds ; tests (`GameManagerWorldLoadTests` et tests d'entités adaptés).
 - Commit : `refactor(world): worlds, entities and cutscenes use copies and handles`
+- **Fait** :
+  - **`World`** : `SpawnEntity<T>(string)` et `SpawnEntity<T>(Guid)` lisent leur gabarit avec
+    `LoadCopy<Entity>`/`LoadCopy<T>` (au lieu de `Load<...>(cache: ...)`) puis `.Clone()`, qui reste
+    nécessaire : lui seul donne à l'instance générée un `Id` neuf (constructeur de copie
+    `ObjectBase(ObjectBase)`), `LoadCopy` renvoyant un objet dont l'`Id` est celui de l'asset. Plus aucun
+    gabarit d'entité n'est mis en cache ni épinglé dans le gestionnaire. `PlayerStartupSettings` est
+    maintenant acquis par handle (`_playerStartupSettingsHandle`), gardé pour la vie du monde et rendu
+    par un nouveau `ReleasePlayerStartupSettings()`, appelé depuis `Clear()` et en tête de
+    `LoadPlayerStartupSettings()` (pour ne pas fuir le handle précédent si le contenu est rechargé sur le
+    même monde). `StartGameplayModeAsset` prend le `GameplayModeAsset` dans un `using`, le temps du seul
+    appel à `CreateMode()` : le handle est rendu avant que la méthode ne retourne, le `GameplayMode` créé
+    ne dépendant plus de l'asset ensuite. `LoadPlayerStartupSettings` et `ReleasePlayerStartupSettings`
+    sont passés en `internal`, comme `CreateGameplayProxy`, pour que les tests les pilotent sans jeu
+    complet.
+  - **`EntityReference`** : la branche en ligne (`AssetId == Guid.Empty`) désérialise directement
+    (`new Entity()` puis `Load(noeud)`) au lieu de `assetContentManager.Load<Entity>(JObject)` (P4) ; la
+    branche par référence et `CreateFromAssetInfo` lisent leur gabarit avec `LoadCopy<Entity>` avant
+    `.Clone()`. `AssetContentManager.Load<T>(JObject)` n'a donc plus aucun appelant dans le moteur (attendu
+    pour T8.1, « État vérifié » du plan).
+  - **`GameManager.UpdateWorld`** : le monde à charger vient de `LoadCopy<World>` (au lieu de
+    `Load<World>(cache: false)`, un alias exact). P7 : le nombre d'assets libérés par
+    `CollectUnreferenced()` au début d'un changement de monde est tracé au niveau Info
+    (`Logs.WriteInfo`), avant même la résolution du chemin du nouveau monde — la preuve visible demandée
+    par la recette du plan parent (planche de tuiles libérée 390 → 389).
+  - **`CutsceneActionCoroutineFactory`** : `LoadSoundAsset` devient `WithSoundAsset(world, id, useAsset)`,
+    privée, qui acquiert le `SoundAsset` dans un `using` et n'appelle `useAsset` que pendant que le handle
+    est tenu ; `PlaySound`/`PlayMusic` y passent leur logique en lambda. `AudioService.PlaySound` et
+    `MusicPlayer.Play` ne lisent l'asset que de façon synchrone (volume, bus, `IsStreaming`,
+    `CreateVoiceParameters`...) pour démarrer la lecture, sans le garder : le handle peut donc être rendu
+    dès le retour de l'appel, avant que la coroutine ne continue.
+  - **`AssetContentManagerAudioClipProvider`** (P2) : devient `IDisposable` ; `GetClip` acquiert chaque
+    clip une seule fois par id et garde le handle dans `_clipHandles`, rendu par `Dispose()` — même
+    politique qu'avant (tenu pour toute la partie), mais par handle compté au lieu du `Load<T>` épinglé.
+    `AudioSystemComponent.Dispose(bool)` rend le fournisseur (`(Service.ClipProvider as
+    IDisposable)?.Dispose()`) après avoir disposé le `AudioService`, qui est son propriétaire pour la
+    durée du jeu. La libération par carte de l'audio reste une suite, non traitée ici (point verrouillé
+    P2 du plan).
+  - **Tests** (3 nouveaux fichiers, 9 tests ; 1 test ajouté à un fichier existant) :
+    `CasaEngine.Tests/Application/WorldAssetHandleTests.cs` (`SpawnEntity` relit à chaque appel sans mise
+    en cache ; `LoadPlayerStartupSettings`/`ReleasePlayerStartupSettings` tiennent puis rendent le handle ;
+    un second `LoadPlayerStartupSettings` ne fuit pas le précédent ; `StartGameplayModeAsset` ne tient le
+    handle que le temps de l'appel — ce dernier et les deux premiers pilotés par réflexion sur
+    `World.Game`/méthodes internes, comme `StaticModelComponentAssetHandleTests`) ;
+    `CasaEngine.Tests/Cutscenes/CutsceneActionCoroutineFactorySoundAssetHandleTests.cs`
+    (`WithSoundAsset` tient le handle pendant le callback puis le rend ; un id vide n'appelle jamais le
+    callback, piloté par réflexion sur la méthode privée) ;
+    `CasaEngine.Tests/Audio/AssetContentManagerAudioClipProviderHandleTests.cs` (un même id n'est chargé
+    qu'une fois et rend la même instance ; un id vide ne charge rien ; `Dispose()` rend et dispose chaque
+    clip tenu). `CasaEngine.Tests/Scene/EntityReferenceLoadTests.cs` gagne
+    `Load_InlineEntity_DeserializesDirectlyWithoutTheAssetManager` (la branche P4, avec un
+    `AssetContentManager` sans loader enregistré : la preuve qu'elle ne le touche pas).
+    `CasaEngine.Tests/Application/GameManagerWorldLoadTests.cs` gagne
+    `UpdateWorld_WhenAWorldChangeStarts_TracesTheFreedAssetCountAtInfoLevel` (P7, capture du logger comme
+    `ScrollingLayerComponentLoggingTests`, classe passée dans `ProjectEnvironmentCollection`). Tous
+    buildables et exécutables sans `GraphicsDevice`.
+  - **Non testé, raison écrite ici** : le passage complet de `GameManager.UpdateWorld` par un monde
+    valide (`LoadCopy<World>` puis `CurrentWorld.LoadContent(_game)`) exige un `CasaEngineGame` avec un
+    `PhysicsSystemComponent` réellement construit (`World.Clear` → `DisposePhysicsWorldContext` appelle
+    `Game.PhysicsSystemComponent.ReleaseContext`), indisponible en headless comme dans les tâches
+    précédentes pour le `GraphicsDevice` — c'est pourquoi les tests de `World` ci-dessus pilotent
+    `LoadPlayerStartupSettings`/`ReleasePlayerStartupSettings`/`StartGameplayModeAsset` directement plutôt
+    que par un `Clear()` complet. Le changement de `_currentWorld = Load<World>(cache:false)` en
+    `LoadCopy<World>` est un remplacement exact (`cache:false` ne mettait déjà rien en cache ni ne prenait
+    de bail) : aucune régression possible de ce côté, seule la lecture normale du monde par
+    `LoadContent`/`BeginPlay` reste hors de portée d'un test headless.
+  - `CasaEngine.Tests` 1776/1777, seul échec l'échec préexistant du docking (en cours de correction par
+    ailleurs, tâche séparée `task_704ea6e0`) ; les deux solutions moteur et `Alundra/Alundra.csproj`
+    compilent sans erreur.
 
 ---
 

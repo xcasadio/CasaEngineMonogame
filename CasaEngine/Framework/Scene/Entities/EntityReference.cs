@@ -47,11 +47,15 @@ public class EntityReference
 
         if (AssetId == Guid.Empty)
         {
-            Entity = assetContentManager.Load<Entity>(_nodeToLoad);
+            // ADR-0037: an inline entity has no asset id, so it is deserialized directly instead of
+            // going through the asset manager (P4).
+            var entity = new Entity();
+            entity.Load(_nodeToLoad);
+            Entity = entity;
         }
         else
         {
-            Entity = assetContentManager.Load<Entity>(AssetId).Clone();
+            Entity = assetContentManager.LoadCopy<Entity>(AssetId).Clone();
 
             //the reference name identifies this instance in the world; an empty reference name keeps the asset name
             if (!string.IsNullOrEmpty(Name))
@@ -68,7 +72,7 @@ public class EntityReference
         var entityReference = new EntityReference();
         entityReference.AssetId = assetInfo.Id;
         entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<Entity>(assetInfo.Id).Clone();
+        entityReference.Entity = assetContentManager.LoadCopy<Entity>(assetInfo.Id).Clone();
 
         if (entityReference.Entity.RootComponent != null)
         {

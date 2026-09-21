@@ -41,6 +41,37 @@ public class EntityReferenceLoadTests
         Assert.Equal("AlundraCamera", entityReference.Entity.Name);
     }
 
+    /// <summary>
+    /// ADR-0037 (P4): an inline entity (no asset id) is deserialized directly - <c>new Entity()</c> then
+    /// <c>Load</c> - instead of going through <see cref="AssetContentManager"/>. This is the only path
+    /// that never touches the asset manager at all, so an empty one (no registered loader) is enough.
+    /// </summary>
+    [Fact]
+    public void Load_InlineEntity_DeserializesDirectlyWithoutTheAssetManager()
+    {
+        var inlineEntityId = Guid.NewGuid();
+        var entityNode = new JObject
+        {
+            ["id"] = inlineEntityId,
+            ["name"] = "InlineActor",
+            ["root_component"] = null,
+            ["components"] = new JArray(),
+            ["script_class_name"] = null,
+        };
+        var referenceNode = new JObject
+        {
+            ["asset_id"] = Guid.Empty,
+            ["entity"] = entityNode,
+        };
+
+        var entityReference = new EntityReference();
+        entityReference.Load(referenceNode);
+        entityReference.Load(new AssetContentManager());
+
+        Assert.Equal(inlineEntityId, entityReference.Entity.Id);
+        Assert.Equal("InlineActor", entityReference.Entity.Name);
+    }
+
     private sealed class EntityAssetScope : IDisposable
     {
         private readonly string _projectPath;

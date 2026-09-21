@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
@@ -12,6 +14,7 @@ namespace CasaEngine.Tests.Application;
 /// <see cref="GameManager.UpdateWorld"/>; a path missing from the asset catalog used to surface one
 /// frame later as a NullReferenceException that named nothing.
 /// </summary>
+[Collection(ProjectEnvironmentCollection.Name)]
 public class GameManagerWorldLoadTests
 {
     [Fact]
@@ -100,5 +103,50 @@ public class GameManagerWorldLoadTests
         gameManager.UpdateWorld(new GameTime());
 
         Assert.False(pendingAsset.IsDisposed);
+    }
+
+    private sealed class CapturingLogger : ILogger
+    {
+        public List<string> Infos { get; } = new();
+
+        public void Close() { }
+        public void WriteTrace(string msg) { }
+        public void WriteDebug(string msg) { }
+        public void WriteInfo(string msg) => Infos.Add(msg);
+        public void WriteWarning(string msg) { }
+        public void WriteError(string msg) { }
+    }
+
+    /// <summary>
+    /// ADR-0037 (P7): the number of assets freed at the start of a world change is traced at Info level -
+    /// the visible proof, in the recipe of the plan's parent task, that the map-switch collection runs.
+    /// Uses the engine's own log seam (<see cref="Logs.AddLogger"/>/<see cref="Logs.Close"/>), like
+    /// <c>ScrollingLayerComponentLoggingTests</c>; <see cref="ProjectEnvironmentCollection"/>
+    /// (<c>DisableParallelization = true</c>) keeps this from running concurrently with anything else
+    /// touching that process-global state.
+    /// </summary>
+    [Fact]
+    public void UpdateWorld_WhenAWorldChangeStarts_TracesTheFreedAssetCountAtInfoLevel()
+    {
+        var assets = NewAssets();
+        var released = assets.Acquire<Disposable>(PendingId);
+        released.Dispose();
+
+        var gameManager = new GameManager(null, assets);
+        gameManager.SetWorldToLoad(@"Maps\No Such Zone\No Such Map-4242\No Such Map-4242.world");
+
+        var logger = new CapturingLogger();
+        Logs.AddLogger(logger);
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => gameManager.UpdateWorld(new GameTime()));
+        }
+        finally
+        {
+            Logs.Close();
+        }
+
+        var info = Assert.Single(logger.Infos);
+        Assert.Contains("1", info);
     }
 }
