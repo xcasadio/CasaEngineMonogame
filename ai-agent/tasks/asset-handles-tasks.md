@@ -341,13 +341,13 @@ en jeu est la preuve visible de ce chantier (D9).
     racine de projet que `ResolveAssetPath` ;
   - si une page échoue, les pages déjà prises sont rendues ;
   - 10 tests : analyse, ordre des pages, erreurs, trois résolutions relatives, page absente du catalogue
-    (nom demandé `UI\Texturesont3.png`, message qui nomme le `.fnt` et la page), extension, cycle de vie
+    (nom demandé `UI\Textures\font3.png`, message qui nomme le `.fnt` et la page), extension, cycle de vie
     de `BitmapFont` ;
   - `CasaEngine.Tests` 1730/1731 ; deux solutions sans erreur.
   - **Non testable ici :** la construction de la texture et de la police exige un `GraphicsDevice`, qu'aucun
     test du moteur ne crée. Elle est prouvée par la recette D5.f.
 
-### ⏳ T3.2 — Registre de polices du jeu
+### ✅ T3.2 — Registre de polices du jeu
 
 - Objectif : chaque moteur de texte trouve par référence les polices tenues (D2, D6, P5).
 - Fichiers :
@@ -377,6 +377,14 @@ en jeu est la preuve visible de ce chantier (D9).
   - deux détenteurs : un seul `AddStaticFont` utile, la police reste tenue tant qu'un détenteur reste.
 - Validation : build des deux solutions ; `CasaEngine.Tests` verts.
 - Commit : `feat(ui): a game-level registry that gives held bitmap fonts to every UI text engine`
+- **Fait** :
+  - 8 tests, dont le scénario exact du changement de carte : l'ancien détenteur rend la police, un nouveau
+    moteur de texte s'attache, le nouveau détenteur la reprend. Résultat : même instance, un seul
+    chargement, résolue sur le nouveau moteur, et rien de libéré au changement suivant.
+  - Un moteur de texte nouvellement attaché ne reçoit pas les polices en attente, comme le prévoit P5.
+  - `CasaEngine.Tests` 1738/1739 ; deux solutions sans erreur.
+  - **Non testé ici :** l'attachement par `UIRoot`, qui exige un runtime MonoGame. Il est prouvé par la
+    recette D5.f.
 
 ---
 
