@@ -94,8 +94,10 @@ public class EditorControlTemplateAssetLoadingTests
         dockTabItem.UpdateLayout(new Rectangle(0, 0, 180, 30));
         dockTabGroup.UpdateLayout(new Rectangle(0, 40, 320, 200));
 
+        // MGDockTabItem turns its hover-dependent accent off with Hidden, not Collapsed, so hovering
+        // never invalidates layout; either state keeps the bar from being drawn.
         Assert.True(dockTabItem.TryGetTemplatePart(MGDockTabItem.AccentPartName, out MGElement? tabAccentPart));
-        Assert.Equal(Visibility.Collapsed, tabAccentPart.Visibility);
+        Assert.NotEqual(Visibility.Visible, tabAccentPart.Visibility);
 
         Assert.True(dockTabGroup.TryGetTemplatePart(MGDockTabGroup.AccentPartName, out MGElement? groupAccentPart));
         Assert.Equal(Visibility.Collapsed, groupAccentPart.Visibility);
