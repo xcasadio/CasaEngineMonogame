@@ -13,6 +13,7 @@ namespace CasaEngine.Framework.Application;
 public class GameManager
 {
     private readonly CasaEngineGame _game;
+    private readonly AssetContentManager _assetContentManager;
     private Scene.World.World _currentWorld;
     private string _worldToLoad;
     private bool _isNewWorld;
@@ -45,8 +46,17 @@ public class GameManager
     }
 
     public GameManager(CasaEngineGame game)
+        : this(game, game?.AssetContentManager)
+    {
+    }
+
+    /// <param name="game">The game, or null in tests.</param>
+    /// <param name="assetContentManager">The manager whose unreferenced assets are freed when a world change
+    /// starts (ADR-0036); the game's own for the public constructor.</param>
+    internal GameManager(CasaEngineGame game, AssetContentManager assetContentManager)
     {
         _game = game;
+        _assetContentManager = assetContentManager;
         ScreenManager = new GameScreenManager(ViewManager);
         ViewManager.ViewAdded += _ => SyncPlayerViewAssignments();
         ViewManager.ViewRemoved += _ => SyncPlayerViewAssignments();
@@ -72,6 +82,14 @@ public class GameManager
 
     public void UpdateWorld(GameTime gameTime)
     {
+        if (HasPendingWorldLoad)
+        {
+            // ADR-0036: a world change starts. Free what nobody holds any more, before the old world is
+            // cleared: its holders still hold what they use, so nothing that crosses the change is freed,
+            // and whatever they give back while clearing stays pending until the next world change.
+            _assetContentManager?.CollectUnreferenced();
+        }
+
         if (!string.IsNullOrEmpty(_worldToLoad))
         {
             if (_currentWorld != null)

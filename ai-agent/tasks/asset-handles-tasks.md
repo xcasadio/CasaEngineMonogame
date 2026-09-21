@@ -284,7 +284,7 @@ en jeu est la preuve visible de ce chantier (D9).
     - une candidate reprise pendant la collecte n'est pas libérée.
   - `Acquire<Entity>` lève une exception : une entité s'instancie à chaque usage.
 
-### ⏳ T2.2 — Collecte au début de chaque changement de monde
+### ✅ T2.2 — Collecte au début de chaque changement de monde
 
 - Objectif : D5, P4.
 - Fichiers : `CasaEngine/Framework/Application/GameManager.cs`,
@@ -300,6 +300,14 @@ en jeu est la preuve visible de ce chantier (D9).
   D5.f.
 - Validation : build des deux solutions ; `CasaEngine.Tests` à la référence plus les tests de T2.1–T2.2.
 - Commit : `feat(world): free unreferenced assets when a world change starts`
+- **Fait** :
+  - la condition est `HasPendingWorldLoad`, qui existait déjà et couvre les deux chemins ;
+  - un constructeur interne reçoit le gestionnaire de ressources (le public passe celui du jeu), ce qui rend
+    `GameManager` testable sans `CasaEngineGame` ;
+  - deux tests : une ressource rendue est libérée et une ressource tenue ne l'est pas, avant même la
+    recherche du nouveau monde (chemin absent du catalogue, qui lève ensuite) ; rien n'est libéré sans
+    changement en attente ;
+  - `CasaEngine.Tests` 1720/1721 ; deux solutions sans erreur.
 
 ---
 
