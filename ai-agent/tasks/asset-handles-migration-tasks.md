@@ -856,7 +856,7 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 
 ## Phase 6 — Démos
 
-### ⏳ T6.1 — Démos
+### 🧪 T6.1 — Démos
 
 - Fichiers :
   - `TopDownElevationDemo`, `TileMapSurfaceScreenDemo`, `TileMapDemo`, `TileMap3dDemo` ;
@@ -866,6 +866,44 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
   `CasaEngine.Demos/`. Si la sélection d'une démo ne peut pas être automatisée, la tâche reste 🧪 avec la
   liste pour l'auteur.
 - Commit : `refactor(demos): demos use handles and copies`
+- **Fait** :
+  - **`TopDownElevationDemo`**, **`TileMapSurfaceScreenDemo`**, **`TileMapDemo`**, **`TileMap3dDemo`** :
+    `AssetContentManager.Load<T>(id)` (parfois `cache: false`) → `LoadCopy<T>(id)`. Dans les quatre cas, le
+    résultat est soit affecté directement à `TileMapComponent.TileMapData`/`StaticSpriteComponent` sans
+    passer par l'id d'asset du composant (`TileMapDataAssetId`/`SpriteAssetId` restent vides), donc le
+    composant ne prend lui-même aucun handle sur cet objet (chemin direct déjà décrit par T3.2/l'existant de
+    `TileMapComponent` : le handle n'est acquis que si `TileMapDataAssetId != Guid.Empty`) : la démo en est
+    la seule détentrice, et `LoadCopy` (copie neuve, non mise en cache, non comptée) est le choix exact du
+    plan pour ce cas de gabarit lu directement. `TileMapDemo.LoadSprites`/`LoadAnimations` (boucles qui
+    préchargent tous les `.sprite`/`.animation2d` du catalogue) reçoivent le même traitement : leur résultat
+    de sprite est de toute façon jeté (le seul autre chargeur de sprite, `AnimatedSpriteComponent`,
+    acquiert lui-même chaque `SpriteData` par id à l'ajout de l'animation, `ResolveSprite` /
+    `AssetContentManager.cs:430-433`, déjà migré) et celui des animations est réellement consommé
+    (`animatedSprite.AddAnimation(new Animation2d(animation))`), donc `LoadCopy` couvre les deux sans fuite
+    ni recherche par nom perdue (aucun appelant de `StaticSpriteComponent.LoadSpriteData(string)`/
+    `TryLoadSpriteData` hors sa propre définition, vérifié par `rg`).
+  - **`CutsceneNavigateToDemo`** et **`CutsceneMoveToDemo`** : `Load<CutsceneAsset>(id, cache: false)` →
+    `LoadCopy<CutsceneAsset>(id)`, alias exact demandé par le plan.
+  - **`AudioDemo`** : les trois `SoundAsset` (clic, musique, musique alternative) sont tenus pour toute la
+    durée de la démo (relus à chaque pression de touche dans `Update`, bien après le retour de
+    `Initialize`) — contrairement au `SoundAsset` transitoire de `CutsceneActionCoroutineFactory`
+    (T3.3/`WithSoundAsset`), la démo elle-même est ici la détentrice. `TryLoad` devient `TryAcquire` :
+    `Acquire<SoundAsset>(id)`, avec un nouveau champ `AssetHandle<SoundAsset>?` par son
+    (`_clickSoundHandle`, `_musicHandle`, `_pitchedMusicHandle`), rendu dans `Clean()`
+    (`_xxxHandle?.Dispose()`), qui remet aussi les trois champs `SoundAsset?` à `null`.
+  - Aucun test unitaire ajouté : les sept fichiers sont des démos `CasaEngine.Demos`, qui exigent un
+    `CasaEngineGame`/`GraphicsDevice` réel (comme les composants 3D de T3.2 et les panneaux d'éditeur de la
+    tâche précédente) — non instanciables dans `CasaEngine.Tests` en tête.
+  - `CasaEngine.MonoGame.sln` (0 erreur), `CasaEngine.Editor.MonoGame.sln` (0 erreur), `Alundra/Alundra.csproj`
+    (0 erreur). `CasaEngine.Tests` 1784/1785, seul échec le préexistant
+    `EditorThemeAsset_Disables_Docking_Accent_Bars`.
+  - **Reste à faire avant ✅** : relancer chaque démo touchée depuis `CasaEngine.Demos/` (non automatisable
+    sans lancer une fenêtre interactive, hors périmètre de cette session) : `Top down elevation demo` (le
+    sprite projeté `player_100.sprite` s'affiche toujours à la bonne position), `Tile map surface screen
+    demo` et `Tile map demo` et `Tile map 3d demo` (la carte `map_1_1.tileMap` s'affiche identiquement,
+    tuiles et collisions), `Cutscene NavigateTo demo` et `Cutscene MoveTo demo` (les cutscenes
+    `navigate_to_grid.cutscene`/`move_to_direct.cutscene` se rejouent avec Space/R comme avant), `Audio
+    demo` (Space/L/F/S/P/C jouent toujours le son et la musique).
 
 ---
 

@@ -86,7 +86,7 @@ public class TopDownElevationDemo : Demo
             return;
         }
 
-        game.AssetContentManager.Load<SpriteData>(assetInfo.Id);
+        game.AssetContentManager.LoadCopy<SpriteData>(assetInfo.Id);
 
         var entity = new Entity { Name = "projected_sprite" };
         var logicalAnchor = new CollisionComponent();

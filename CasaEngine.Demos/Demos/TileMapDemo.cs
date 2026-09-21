@@ -48,7 +48,7 @@ public class TileMapDemo : Demo
 
         //============ tileMap ===============
         var assetInfo = AssetCatalog.GetByFileName(@"Maps\map_1_1.tileMap");
-        var tileMapData = game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
+        var tileMapData = game.AssetContentManager.LoadCopy<TileMapData>(assetInfo.Id);
 
         var entity = new Entity { Name = "TileMap" };
         var tileMapComponent = new TileMapComponent();
@@ -95,7 +95,7 @@ public class TileMapDemo : Demo
 
         foreach (var assetInfo in spriteAssetInfos)
         {
-            var spriteData = assetContentManager.Load<SpriteData>(assetInfo.Id);
+            var spriteData = assetContentManager.LoadCopy<SpriteData>(assetInfo.Id);
         }
     }
 
@@ -108,7 +108,7 @@ public class TileMapDemo : Demo
 
         foreach (var assetInfo in animationsAssetInfos)
         {
-            var animation2dData = assetContentManager.Load<Animation2dData>(assetInfo.Id);
+            var animation2dData = assetContentManager.LoadCopy<Animation2dData>(assetInfo.Id);
             animations.Add(animation2dData);
         }
 

@@ -57,7 +57,7 @@ public sealed class TileMapSurfaceScreenDemo : Demo
 
         //============ tile map rendered offscreen only ===============
         var assetInfo = AssetCatalog.GetByFileName(@"Maps\map_1_1.tileMap");
-        var tileMapData = game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
+        var tileMapData = game.AssetContentManager.LoadCopy<TileMapData>(assetInfo.Id);
 
         var tileMapEntity = new Entity { Name = "OffscreenTileMap" };
         var tileMapComponent = new TileMapComponent
