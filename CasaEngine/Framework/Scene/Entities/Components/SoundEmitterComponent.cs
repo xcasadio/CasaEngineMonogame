@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Streaming;
@@ -25,6 +26,10 @@ public class SoundEmitterComponent : EntityComponent
     private string _busName = string.Empty;
 
     private SoundAsset _soundAsset;
+
+    // ADR-0037: the sound asset is shared, held through a counted handle for as long as this emitter
+    // references it, given back in ReleaseSoundAssetHandle (a reload and Detach).
+    private AssetHandle<SoundAsset> _soundAssetHandle;
     private AudioService _audioService;
     private AudioVoiceHandle _voice = AudioVoiceHandle.None;
     private MusicTrackHandle _track = MusicTrackHandle.None;
@@ -172,6 +177,7 @@ public class SoundEmitterComponent : EntityComponent
     public override void Detach()
     {
         Stop();
+        ReleaseSoundAssetHandle();
         base.Detach();
     }
 
@@ -205,6 +211,7 @@ public class SoundEmitterComponent : EntityComponent
 
     private void LoadSoundAsset(World.World world)
     {
+        ReleaseSoundAssetHandle();
         _soundAsset = null;
 
         if (SoundAssetId == Guid.Empty || world?.Game == null)
@@ -214,13 +221,21 @@ public class SoundEmitterComponent : EntityComponent
 
         try
         {
-            _soundAsset = world.Game.AssetContentManager.Load<SoundAsset>(SoundAssetId);
+            _soundAssetHandle = world.Game.AssetContentManager.Acquire<SoundAsset>(SoundAssetId);
+            _soundAsset = _soundAssetHandle.Asset;
         }
         catch (Exception exception)
         {
             Core.Logging.Logs.WriteException(
                 new Exception($"SoundEmitterComponent '{Name}' cannot load sound asset '{SoundAssetId}'.", exception));
         }
+    }
+
+    /// <summary>Gives back the hold this emitter took on its sound asset (ADR-0037).</summary>
+    private void ReleaseSoundAssetHandle()
+    {
+        _soundAssetHandle?.Dispose();
+        _soundAssetHandle = null;
     }
 
     private static float Sanitize(float value, float min, float max, float fallback)

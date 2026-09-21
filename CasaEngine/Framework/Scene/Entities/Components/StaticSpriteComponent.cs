@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
@@ -18,6 +19,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 {
     private Sprite _sprite;
     private SpriteData _spriteData;
+
+    // ADR-0037: the sprite data is a shared asset, held through a counted handle for as long as the
+    // component references it and given back in ReleaseSpriteAssetHandles (InitializeWithWorld's reset,
+    // a reload, and Detach). The Sprite itself is disposed there too: it holds the sheet texture.
+    private AssetHandle<SpriteData> _spriteDataHandle;
     private SpriteRendererComponent _spriteRendererComponent;
     private DepthSortable2DComponent _depthSortable2DComponent;
     private readonly List<(Collision2d, PhysicsBody)> _collisionObjects = new();
@@ -62,15 +68,27 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
         if (SpriteAssetId != Guid.Empty && _spriteData == null)
         {
-            var spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(SpriteAssetId);
-            if (spriteData != null)
-            {
-                _spriteData = spriteData;
-                _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
-                AddCollisions();
-                IsBoundingBoxDirty = true;
-            }
+            _spriteDataHandle = Owner.World.Game.AssetContentManager.Acquire<SpriteData>(SpriteAssetId);
+            _spriteData = _spriteDataHandle.Asset;
+            _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
+            AddCollisions();
+            IsBoundingBoxDirty = true;
         }
+    }
+
+    public override void Detach()
+    {
+        ReleaseSpriteAssetHandles();
+        base.Detach();
+    }
+
+    /// <summary>Gives back the sprite data hold and disposes the sprite (its sheet texture hold with it).</summary>
+    private void ReleaseSpriteAssetHandles()
+    {
+        _sprite?.Dispose();
+        _sprite = null;
+        _spriteDataHandle?.Dispose();
+        _spriteDataHandle = null;
     }
 
     public override StaticSpriteComponent Clone()
@@ -145,15 +163,29 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
     }
 
+    /// <summary>Resolves a sprite data by its catalog name, then holds it through a handle (P6).</summary>
     private void LoadSpriteData(string spriteDataName)
     {
-        _spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
-        if (_spriteData != null && _spriteData.AssetId != Guid.Empty)
+        var assetContentManager = Owner.World.Game.AssetContentManager;
+
+        ReleaseSpriteAssetHandles();
+
+        var assetInfo = AssetCatalog.Get(spriteDataName);
+        if (assetInfo != null)
         {
-            SpriteAssetId = _spriteData.AssetId;
+            _spriteDataHandle = assetContentManager.Acquire<SpriteData>(assetInfo.Id);
+            _spriteData = _spriteDataHandle.Asset;
+            if (_spriteData.AssetId != Guid.Empty)
+            {
+                SpriteAssetId = _spriteData.AssetId;
+            }
+        }
+        else
+        {
+            _spriteData = null;
         }
 
-        _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
+        _sprite = Sprite.Create(_spriteData, assetContentManager);
         RemoveCollisions();
         AddCollisions();
         IsBoundingBoxDirty = true;
@@ -173,6 +205,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             return false;
         }
 
+        // spriteData is supplied directly by the reload service, not resolved through Acquire here: give
+        // back whatever sprite data hold this component took itself, so it does not keep pinning a stale
+        // instance the manager may have already replaced.
+        _spriteDataHandle?.Dispose();
+        _spriteDataHandle = null;
         _spriteData = spriteData;
         if (spriteData.AssetId != Guid.Empty)
         {
@@ -184,6 +221,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         var assetContentManager = Owner?.World?.Game?.AssetContentManager;
         if (assetContentManager != null)
         {
+            _sprite?.Dispose();
             _sprite = Sprite.Create(spriteData, assetContentManager);
         }
 

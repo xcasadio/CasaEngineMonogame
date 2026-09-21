@@ -370,7 +370,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
 
 ## Phase 3 — Composants et monde
 
-### ⏳ T3.1 — Composants 2D et son
+### 🧪 T3.1 — Composants 2D et son
 
 - Objectif : les composants prennent leurs ressources par `Acquire` et les rendent dans `Detach`.
 - Fichiers :
@@ -385,6 +385,56 @@ parent (plan parent `docs/plan-migration-handles.md`).
 - Validation : builds ; tests (un composant de test rendu au `Detach` rend ses handles) ; la carte 389
   d'Alundra ne change pas d'aspect, vérifié dans la recette du plan parent.
 - Commit : `refactor(components): 2D and sound components hold their assets through handles`
+- **Fait** :
+  - **`TileMapComponent`** : `_tileMapDataHandle` (le modèle, tenu pour toute la vie du composant même
+    si seule sa copie de travail — `CreateWorldWorkingCopy()` — est utilisée, comme demandé), et un
+    `AssetHandle<TileSetData>`/`AssetHandle<Texture>` par tileset (`_tileSetHandles`,
+    `_tileSetTextureHandles`). `ReleaseTileMapAssetHandles()` les rend, appelée en tête d'
+    `InitializeWithWorld` (ré-entrance sans `Detach`, comme le fait déjà `DisposeChunkGraphicsResources`)
+    et dans `Detach`.
+  - **`StaticSpriteComponent`** : `_spriteDataHandle` (le `SpriteData`, par id direct ou via
+    `TryLoadSpriteData(string)` → `AssetCatalog.Get(name)` puis `Acquire`, P6) ; le `Sprite` créé est
+    `Dispose`é avant tout remplacement (`LoadSpriteData`, `ReloadSpriteAsset`) et dans un nouveau `Detach`.
+    `ReloadSpriteAsset` reçoit son `SpriteData` déjà résolu par l'appelant (rechargement à chaud) : le
+    handle propre au composant est rendu, pas celui de l'appelant.
+  - **`AnimatedSpriteComponent`** : un `AssetHandle<Animation2dData>` par id d'animation
+    (`_animationDataHandles`), et un `AssetHandle<SpriteData>` par sprite résolu (`_spriteDataHandleById`),
+    à côté du dictionnaire de `Sprite` existant. `ReleaseSpriteHandles`/`ReleaseAnimationDataHandles`
+    rendent tout, appelées en tête d'`InitializeWithWorld` (couvre le cas déjà testé d'une
+    ré-initialisation sans `Detach`) et dans `Detach`. `ReloadSpriteAsset` (rechargement à chaud) dispose
+    l'ancien `Sprite` et rend l'ancien handle de `SpriteData` avant d'utiliser l'instance fournie par
+    l'appelant — le défaut relevé à la clôture de T2.1.
+  - **`ParticleSystemComponent`** : `_particleEffectAssetHandle`, rendu par `ReleaseParticleEffectAssetHandle`
+    dans `Detach`, avant tout rechargement par id, et quand l'appelant fournit directement un
+    `ParticleEffectAsset` (`SetParticleEffectAsset`, `ClearParticleEffectAsset`) — cette instance n'est
+    alors plus tenue par un handle du composant.
+  - **`SoundEmitterComponent`** : `_soundAssetHandle`, rendu par `ReleaseSoundAssetHandle` avant tout
+    rechargement et dans `Detach`.
+  - **Tests** : 9 nouveaux, tous vérifient le rendu du handle via `AssetContentManager.CollectUnreferenced()`
+    d'un gestionnaire construit localement (chargeurs factices, aucune dépendance globale) :
+    - `AnimatedSpriteWorldInitializationTests` (+3) : acquisition par id (pas `Load<T>`), tenue jusqu'à
+      `Detach`, remise à zéro sur une seconde `InitializeWithWorld`, et rendu des sprites/handles au
+      `Detach` ;
+    - `StaticSpriteComponentAssetHandleTests` (+1, nouveau fichier) ;
+    - `ParticleSystemComponentAssetHandleTests` (+3, nouveau fichier) ;
+    - `SoundEmitterComponentAssetHandleTests` (+2, nouveau fichier) ;
+    - `TileMapWorldWorkingCopyTests.TheTileMapComponentTakesItsOwnWorkingCopy` (garde de source existante)
+      adapté : il vérifie désormais `Acquire<TileMapData>(TileMapDataAssetId)` au lieu de l'ancien `Load<T>`.
+  - **Non testé, raison écrite ici (comme pour `Sprite` à la clôture de T2.1)** : le round-trip complet
+    `StaticSpriteComponent`/`AnimatedSpriteComponent` → `Sprite.Create` → `Texture.Load` → `Texture2D`, et
+    la chaîne tileset → texture de `TileMapComponent.LoadTileSets`, exigent un `GraphicsDevice`
+    indisponible en headless. Le rendu du `Sprite` lui-même (son handle de texture) est couvert
+    indirectement : `StaticSpriteComponentAssetHandleTests` et le nouveau test `Detach` d'
+    `AnimatedSpriteWorldInitializationTests` construisent un `Sprite` réel par le même contournement sans
+    périphérique que `SpriteRendererComponentBlendModeTests` (`RuntimeHelpers.GetUninitializedObject` +
+    écriture directe de `_textureHold`), avec un vrai handle `AssetContentManager.Acquire<Texture>`, et
+    vérifient que `Detach` le libère. La chaîne complète reste couverte par la recette M2 du plan parent
+    (planche `.texture`/`.png` de la 389 libérée puis rechargée).
+  - `CasaEngine.Tests` 1760/1761, seul échec l'échec préexistant du docking ; les deux solutions et
+    `Alundra/Alundra.csproj` compilent sans erreur.
+  - **🧪 Needs testing** : vérification manuelle en jeu par l'auteur restant (parcours 389 → 390 → 389,
+    voir « Validation globale » du plan) — aucune démo ni panneau d'éditeur n'a été relancé pour cette
+    tâche.
 
 ### ⏳ T3.2 — Composants 3D
 
