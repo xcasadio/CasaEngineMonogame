@@ -378,7 +378,9 @@ parent (plan parent `docs/plan-migration-handles.md`).
     `CreateWorldWorkingCopy` ; tilesets ; planches ;
   - `StaticSpriteComponent`, y compris `TryLoadSpriteData(string)` par le catalogue (P6), et le `Sprite`
     qu'il crée ;
-  - `AnimatedSpriteComponent`, `ParticleSystemComponent`, `SoundEmitterComponent` ;
+  - `AnimatedSpriteComponent`, `ParticleSystemComponent`, `SoundEmitterComponent`. Un `Sprite` remplacé
+    (rechargement à chaud, `AnimatedSpriteComponent.cs:281`) ou retiré est `Dispose`é ; tous les sprites du
+    composant le sont dans `Detach` ;
   - leurs tests.
 - Validation : builds ; tests (un composant de test rendu au `Detach` rend ses handles) ; la carte 389
   d'Alundra ne change pas d'aspect, vérifié dans la recette du plan parent.
@@ -394,7 +396,8 @@ parent (plan parent `docs/plan-migration-handles.md`).
     devenu `IDisposable` (P10), tient ses handles sur le `RiggedModel`, le `SkeletonDefinition` et les
     `AnimationClip`, et les rend dans son `Dispose`. Le `RiggedModel` est libéré par la collecte au titre
     d'`IAssetable`.
-  - **`ArrowComponent`** : texture par défaut, P6.
+  - `ArrowComponent` est déplacé en T4.1 : il a besoin de `CasaEngineGame.DefaultTexture`, que T4.1 crée
+    (ajustement d'ordre fait à l'exécution).
   - Tests.
 - Validation : builds ; tests ; démos 3D relancées (T6.1).
 - Commit : `refactor(components): 3D components hold their assets through handles`
@@ -421,6 +424,8 @@ parent (plan parent `docs/plan-migration-handles.md`).
 - Fichiers :
   - `CasaEngineGame` : texture par défaut → `Register` et `DefaultTexture` (P6) ; rechargement à chaud →
     `LoadCopy` puis `Replace` ;
+  - `ArrowComponent` : la texture par défaut vient de `CasaEngineGame.DefaultTexture` au lieu de
+    `GetAsset<Texture>(Texture.DefaultTextureName)` (venu de T3.2) ;
   - `ScrollingLayerComponent`, `CellularLayerComponent` et `ParticleRendererComponent` : leurs caches de
     textures tiennent des handles, rendus quand l'entrée change et dans `Dispose` ;
   - tests existants adaptés.
