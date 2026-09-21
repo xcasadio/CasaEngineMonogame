@@ -169,8 +169,12 @@ en jeu est la preuve visible de ce chantier (D9).
 
 ## Validation globale
 
-- **Référence :** avant T1.1, noter le nombre de tests verts de `CasaEngine.Tests` et de `MGUI.Tests` sur
-  cette branche.
+- **Référence :** mesurée le 2026-09-21 avant T1.1, sur cette branche.
+  - `CasaEngine.Tests` : **1707/1708**. Le seul échec est préexistant et stable, hors périmètre :
+    `EditorControlTemplateAssetLoadingTests.EditorThemeAsset_Disables_Docking_Accent_Bars` attend
+    `Collapsed` et obtient `Hidden` (`CasaEngine.Tests/UI/EditorControlTemplateAssetLoadingTests.cs:98`).
+    Il est signalé pour une tâche séparée.
+  - `MGUI.Tests` : **2984/2984**.
 - **Builds :** `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` sans
   erreur.
 - **Tests :** les deux suites au moins aussi vertes que la référence, plus les tests ajoutés. Tout échec est
@@ -202,7 +206,7 @@ en jeu est la preuve visible de ce chantier (D9).
 
 ## Phase 1 — MGUI
 
-### ⏳ T1.1 — `FontStashSharpTextEngine.RemoveStaticFont`
+### ✅ T1.1 — `FontStashSharpTextEngine.RemoveStaticFont`
 
 - Objectif : pouvoir retirer une police statique d'un moteur de texte (D8, G5).
 - Fichiers : `MGUI/MGUI.FontStashSharp/FontStashSharpTextEngine.cs`,
@@ -219,8 +223,11 @@ en jeu est la preuve visible de ce chantier (D9).
      - le cache de résolution ne rend plus l'ancienne police.
 - Validation : `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj`, référence plus les nouveaux tests, verts.
 - Commit (dans MGUI) : `feat(text): remove a static font from the FontStashSharp text engine`
+- **Fait** (MGUI `3075d93`, branche `chantier/asset-handles` depuis `fbd6280`) :
+  - `MGUI.Tests` 2989/2989 (2984 + 5) ;
+  - contre-épreuve : sans l'`InvalidateCache()`, deux des cinq tests échouent.
 
-### ⏳ T1.2 — Référence MGUI
+### ✅ T1.2 — Référence MGUI
 
 - Objectif : enregistrer ici la branche MGUI de T1.1 (D8).
 - Fichiers : `MGUI` (référence de sous-module), ce plan.
@@ -230,6 +237,10 @@ en jeu est la preuve visible de ce chantier (D9).
   2. Builder les deux solutions.
 - Validation : les deux builds sans erreur ; `CasaEngine.Tests` à la référence.
 - Commit : `chore(mgui): point at the text engine that can remove a static font`
+- **Fait** :
+  - `git diff MGUI` : `b8765bc` → `3075d93` ;
+  - `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur ;
+  - `CasaEngine.Tests` à la référence, 1707/1708 avec le même échec préexistant.
 
 ---
 
