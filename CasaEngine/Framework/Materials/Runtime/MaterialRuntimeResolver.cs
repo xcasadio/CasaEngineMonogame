@@ -28,7 +28,7 @@ public static class MaterialRuntimeResolver
             var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
             var materialAsset = authoringMaterialCache != null
                 ? authoringMaterialCache.GetOrLoad(materialAssetId, assetContentManager)
-                : assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
+                : assetContentManager.LoadCopy<MaterialAsset>(materialAssetId);
             material = materialCache != null
                 ? materialCache.GetOrCompileRuntimeMaterial(materialAsset, assetContentManager)
                 : MaterialCompiler.CompileRuntimeMaterial(materialAsset, assetContentManager);

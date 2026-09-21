@@ -738,7 +738,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
     selon celle qui existe) et confirmer que le fond et l'éclairage sont corrects, y compris après un
     changement de réglages qui force une reconstruction de cubemap.
 
-### ⏳ T4.3 — Matériaux
+### 🧪 T4.3 — Matériaux
 
 - Fichiers :
   - `MaterialAuthoringAssetCache`, `MaterialCompiler`, `MaterialRuntimeResolver` et
@@ -747,6 +747,52 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - tests (`MaterialCompilerTests`, `StaticModelMaterialOverrideResolverTests`…) adaptés.
 - Validation : builds ; tests.
 - Commit : `refactor(materials): material reads use copies, compiled materials hold their textures`
+
+**Fait** : les quatre lectures `Load<MaterialAsset>(id, cache: false)` (`MaterialAuthoringAssetCache.GetOrLoad`,
+`MaterialCompiler.BuildEffectiveValues.ResolveParent`, `MaterialRuntimeResolver.TryLoadRuntimeMaterial`,
+`StaticModelMaterialOverrideResolver.ResolveMaterialAsset`) sont devenues `LoadCopy<MaterialAsset>(id)`, un
+alias exact ici (ces quatre points ne relisaient déjà que l'entrée non encore mise en cache par les caches
+d'auteurship au-dessus).
+
+P3 (textures et cubemaps des matériaux compilés) : `MaterialCompiler.CompileBoth` (interne) résout maintenant
+chaque texture par `Acquire<Assets.Textures.Texture>` (au lieu de `Load<Texture>(id)` épinglé) puis
+`texture.Load(...)`, et chaque cubemap de réflexion par `Acquire<XnaTextureCube>` (au lieu de
+`Load<XnaTextureCube>(id)` épinglé), et renvoie la liste des `AssetHandle` acquis (`TextureHolds`) au lieu de
+les laisser pinnés pour toujours. `MaterialCache` (le seul appelant en production de `CompileBoth` via
+`Recompile`/`RecompileRuntimeMaterial`) devient le propriétaire de cette liste par id de matériau : elle est
+rendue quand l'entrée est remplacée (`Recompile`/`RecompileRuntimeMaterial`), retirée (`Invalidate`) ou que le
+cache est vidé (`Clear`) — exactement la politique du point verrouillé P3 du plan. Le compilateur reste
+appelable directement hors `MaterialCache` (éditeur `MaterialPreviewViewport`, `MaterialDemo`, tests) via les
+méthodes publiques `Compile`/`CompileRuntimeMaterial`, qui continuent d'exister et de jeter les holds : ces
+appelants gardent alors leurs textures chargées pour toute la durée du process, un comportement inchangé par
+rapport à l'ancien `Load(cache: true)` (aucune régression), documenté dans le commentaire XML de `CompileBoth`.
+La fabrique intégrée `lit-diffuse` reste enregistrée dans `RuntimeMaterialFactories` (restauration de
+`RegisterRuntimeMaterialFactory` inchangée) ; `CreateRuntimeMaterial` la détecte par référence
+(`ReferenceEquals`) pour lui passer directement la liste de holds sans toucher à la forme publique du délégué
+`RuntimeMaterialFactory`, qu'une fabrique enregistrée par un appelant externe doit continuer de satisfaire.
+
+Deux tests de `StaticModelMaterialOverrideResolverTests` construisaient l'`AssetContentManager` avec
+`AddAsset` (dépôt direct dans le dictionnaire de la catégorie par défaut) : `LoadCopy` ne consulte jamais ce
+dictionnaire (il appelle toujours le loader), contrairement à l'ancien `Load(id, cache: false)` qui renvoyait
+l'entrée déjà présente sans recharger. Adaptés pour enregistrer un `IAssetLoader` de test et un catalogue via
+`EngineRuntimeContext` (même technique que `StaticSpriteComponentAssetHandleTests`), ce qui a aussi révélé et
+corrigé un bug d'ordre d'initialisation de champs statiques introduit pendant l'implémentation (le champ
+`LitDiffuseFactory` était lu par l'initialiseur de `RuntimeMaterialFactories` avant sa propre initialisation,
+d'où un `NotSupportedException` en test ; corrigé en le déclarant avant). Aucun nouveau test de fichier n'a
+été ajouté : les tests existants de `MaterialCompilerTests`, `MaterialRuntimeResolverTests` (déjà sur
+`TestProjectScope`, matériaux d'authoring parents/enfants réels) et les deux tests corrigés de
+`StaticModelMaterialOverrideResolverTests` exercent déjà les quatre conversions `LoadCopy`.
+
+**Non testé, raison écrite ici** : le chemin de libération réel des holds de texture/cubemap de P3
+(`MaterialCache.Recompile`/`Invalidate`/`Clear` disposant `TextureHolds`) n'a pas de test dédié qui acquiert
+une vraie image, car `Texture.Load` et le chargeur de `TextureCube` construisent un `Texture2D`/`TextureCube`
+MonoGame réel, ce qui exige un `GraphicsDevice` indisponible dans ce projet de tests headless (même limite déjà
+documentée pour `Sprite.Create` par T2.1). Les tests existants de `MaterialCacheTests` (matériaux sans texture,
+id `Guid.Empty`) continuent de passer et couvrent la mécanique de remplacement/invalidation/vidage du
+dictionnaire ; la couverture de la libération réelle d'une texture ou d'une cubemap de matériau reste une
+**vérification manuelle par l'auteur** : ouvrir un modèle avec un matériau texturé (et si possible un matériau
+réfléchissant) dans l'éditeur ou une démo, changer de matériau ou recharger à chaud, et confirmer à l'écran
+qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 
 ---
 
