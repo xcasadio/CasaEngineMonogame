@@ -241,7 +241,7 @@ ne distinguent pas l'avant de l'après.
 ## ~~G5~~ — Un moteur de texte ne sait pas retirer une police statique — **CORRIGÉ le 2026-09-21**
 
 > **Corrigé dans MGUI** (`3075d93`, branche `chantier/asset-handles`), pour le chantier
-> [asset-handles-tasks.md](../tasks/asset-handles-tasks.md), ADR-0036.
+> [asset-handles-tasks.md](../tasks/archive/asset-handles-tasks.md), ADR-0036.
 
 **Ce que le code doit faire.** Une police bitmap tenue au niveau du jeu est donnée par référence à chaque
 moteur de texte de l'interface. Quand le gestionnaire de ressources la libère, elle doit quitter les moteurs

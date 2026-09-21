@@ -191,6 +191,26 @@ en jeu est la preuve visible de ce chantier (D9).
     construction de l'écran, `:1207`). Aucune ne se trouve après la ligne
     `AlundraWorldProxy: world 'Ship Klark (inner)-390' object layers`.
 
+**Clôture (2026-09-21).**
+- **Tâches :** toutes les tâches ✅.
+- **Suites :** `CasaEngine.Tests` 1738/1739 (référence 1707/1708, + 31 tests, même échec préexistant hors
+  périmètre) et `MGUI.Tests` 2989/2989 (+ 5). Les deux solutions compilent sans erreur.
+- **Recette D5.f du plan parent :** passée, sur les sept points de sa prédiction.
+  - Un seul `Load asset …\UI\font3.fnt` et un seul `…\UI\Textures\font3.png`, entre l'initialisation de la
+    389 et « inventory screen wired », et aucun après l'initialisation de la 390.
+  - `font3` sur les quatre textes, sur les deux cartes ; les captures le montrent.
+- **Vérification finale :** vérificateur frais **CONFIRMED**. Il a rejoué la recette lui-même, relu la séquence
+  d'un changement de monde et la compatibilité, et n'a trouvé aucun défaut P0 à P2.
+- **Quatre remarques P4, reportées :**
+  - A1 : le journal du harnais lit la famille déclarée, et ce sont les captures qui prouvent le rendu.
+  - A2 : deux polices de même `face` se retirent l'une l'autre à la libération ; ce cas n'existe pas
+    aujourd'hui.
+  - A3 : `Unload("default")` laisse une page de police en attente jusqu'à la collecte suivante ; `Unload`
+    n'est appelé nulle part.
+  - A4 : `Texture.Dispose` libère une `Texture2D` partagée. C'est antérieur à ce chantier et hors du chemin
+    des polices.
+- **Branches :** le merge de `chantier/asset-handles` ici et dans MGUI reste la décision de l'auteur (O2).
+
 ---
 
 ## Phase 0 — Décision
