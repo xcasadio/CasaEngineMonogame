@@ -340,7 +340,25 @@ public class AssetContentManager
             return RuntimeContext.GetAssetPath(relativeFileName);
         }
 
-        return Path.Combine(EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath), relativeFileName);
+        return Path.Combine(ProjectRoot, relativeFileName);
+    }
+
+    private string ProjectRoot => RuntimeContext != null
+        ? RuntimeContext.ProjectPath
+        : EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+
+    /// <summary>
+    /// The catalog entry of a file that an asset file references by a path relative to its own folder, such
+    /// as a font's page texture (ADR-0036). Null when the catalog has no such file.
+    /// </summary>
+    /// <param name="fullFileName">The full path of the referencing asset file, as loaders receive it.</param>
+    /// <param name="relativeFileName">The referenced path, relative to the folder of <paramref name="fullFileName"/>.</param>
+    internal AssetInfo ResolveAssetInfoNextTo(string fullFileName, string relativeFileName)
+    {
+        var catalogFileName = Fonts.BitmapFontDescriptor.CatalogFileNameNextTo(ProjectRoot, fullFileName, relativeFileName);
+        return RuntimeContext?.ResolveAssetInfoByFileName != null
+            ? RuntimeContext.ResolveAssetInfoByFileName(catalogFileName)
+            : AssetCatalog.GetByFileName(catalogFileName);
     }
 
     /// <summary>

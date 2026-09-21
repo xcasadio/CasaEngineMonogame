@@ -313,7 +313,7 @@ en jeu est la preuve visible de ce chantier (D9).
 
 ## Phase 3 — Polices bitmap
 
-### ⏳ T3.1 — Ressource `BitmapFont` et chargeur `.fnt`
+### ✅ T3.1 — Ressource `BitmapFont` et chargeur `.fnt`
 
 - Objectif : un `.fnt` du catalogue devient une ressource du moteur (ADR-0036 ; P6).
 - Fichiers :
@@ -335,6 +335,17 @@ en jeu est la preuve visible de ce chantier (D9).
   D5.f, et cette raison est écrite sous la tâche.
 - Validation : build des deux solutions ; `CasaEngine.Tests` verts.
 - Commit : `feat(assets): load BMFont files as bitmap font assets`
+- **Fait** :
+  - l'analyse est `BitmapFontDescriptor` (interne) ;
+  - la résolution d'une page passe par `AssetContentManager.ResolveAssetInfoNextTo` (interne), avec la même
+    racine de projet que `ResolveAssetPath` ;
+  - si une page échoue, les pages déjà prises sont rendues ;
+  - 10 tests : analyse, ordre des pages, erreurs, trois résolutions relatives, page absente du catalogue
+    (nom demandé `UI\Texturesont3.png`, message qui nomme le `.fnt` et la page), extension, cycle de vie
+    de `BitmapFont` ;
+  - `CasaEngine.Tests` 1730/1731 ; deux solutions sans erreur.
+  - **Non testable ici :** la construction de la texture et de la police exige un `GraphicsDevice`, qu'aucun
+    test du moteur ne crée. Elle est prouvée par la recette D5.f.
 
 ### ⏳ T3.2 — Registre de polices du jeu
 
