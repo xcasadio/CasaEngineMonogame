@@ -960,7 +960,7 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 
 ## Phase 9 — Documentation et clôture
 
-### ⏳ T9.1 — Documentation
+### ✅ T9.1 — Documentation
 
 - Fichiers :
   - `docs/engine/asset-handles-and-bitmap-fonts.md` : la section de compatibilité disparaît, et la doc
@@ -969,6 +969,15 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
   - `ai-agent/README.md`.
 - Validation : relecture des liens.
 - Commit : `docs(engine): document the handle-only asset API`
+- **Fait** :
+  - la doc décrit l'API à handles seule : `Acquire`, `LoadCopy`, `Register`, `Replace`, `LoadFromFile`,
+    la libération par carte, le détachement de tout l'arbre d'une entité jetée, les dépendances tenues
+    (`Texture`, `Sprite`, modèles, clips, profils de reciblage) et la trace
+    `World change: N unreferenced asset(s) freed.` ; la section de compatibilité a disparu ;
+  - limites : `Acquire<Entity>` lève, `Replace` ne redirige pas les handles, audio et environnements
+    tenus pour toute la partie (P2, P11) ;
+  - `docs/README.md` (ligne « Ressources », ADR-0037) et `ai-agent/README.md` mis à jour ;
+  - liens relus : ADR-0036, ADR-0037 et le rapport des manques MGUI (G6) existent.
 
 ---
 
@@ -976,7 +985,7 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | P1 à P11 attendent la validation de l'auteur avec ce plan. | toutes |
+| O1 | ~~P1 à P11 attendent la validation de l'auteur avec ce plan.~~ Validés tels quels par l'auteur le 2026-09-21 (« AUTO »). | toutes |
 | O2 | Ordre des merges : `chantier/asset-handles`, puis `chantier/asset-handles-migration` ; dans le dépôt parent, `chantier/e13d-inventaire` puis `chantier/migration-handles`. Décision de l'auteur. | après la clôture |
 
 ## Hors périmètre
