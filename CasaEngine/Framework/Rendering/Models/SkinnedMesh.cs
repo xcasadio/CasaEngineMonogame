@@ -5,9 +5,17 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Rendering.Models;
 
-public class SkinnedMesh : ObjectBase
+public class SkinnedMesh : ObjectBase, IDisposable
 {
     private readonly List<Guid> _animationClipAssetIds = new();
+
+    // ADR-0037: the rigged model, its skeleton and its animation clips are shared assets, held through
+    // counted handles for as long as this SkinnedMesh references them. Given back in Dispose, called by
+    // the asset manager when it frees this SkinnedMesh (P10). RiggedModel is freed by the collection as an
+    // IAssetable once nobody holds it any more (T1.1).
+    private AssetHandle<RiggedModel> _riggedModelHandle;
+    private AssetHandle<SkeletonDefinition> _skeletonHandle;
+    private readonly List<AssetHandle<AnimationClip>> _animationClipHandles = new();
 
     public RiggedModel RiggedModel { get; private set; }
     public Guid RiggedModelAssetId { get; set; } = Guid.Empty;
@@ -24,12 +32,33 @@ public class SkinnedMesh : ObjectBase
 
         if (RiggedModelAssetId != Guid.Empty)
         {
-            RiggedModel = assetContentManager.Load<RiggedModel>(RiggedModelAssetId);
+            _riggedModelHandle = assetContentManager.Acquire<RiggedModel>(RiggedModelAssetId);
+            RiggedModel = _riggedModelHandle.Asset;
         }
 
         ApplySeparatedAnimationAssets(assetContentManager);
 
         _isInitialized = true;
+    }
+
+    /// <summary>
+    /// Gives back the handles held on the rigged model, its skeleton and its animation clips (ADR-0037).
+    /// The asset manager calls it when it frees this SkinnedMesh (<see cref="IDisposable"/>).
+    /// </summary>
+    public void Dispose()
+    {
+        _riggedModelHandle?.Dispose();
+        _riggedModelHandle = null;
+
+        _skeletonHandle?.Dispose();
+        _skeletonHandle = null;
+
+        for (var index = 0; index < _animationClipHandles.Count; index++)
+        {
+            _animationClipHandles[index].Dispose();
+        }
+
+        _animationClipHandles.Clear();
     }
 
     public override void Load(JObject element)
@@ -66,7 +95,8 @@ public class SkinnedMesh : ObjectBase
             return;
         }
 
-        var skeletonDefinition = assetContentManager.Load<SkeletonDefinition>(SkeletonAssetId);
+        _skeletonHandle = assetContentManager.Acquire<SkeletonDefinition>(SkeletonAssetId);
+        var skeletonDefinition = _skeletonHandle.Asset;
         var animationClips = new List<AnimationClip>();
         var loadedAnimationClipAssetIds = new List<Guid>();
 
@@ -86,7 +116,7 @@ public class SkinnedMesh : ObjectBase
         }
     }
 
-    private static void AddAnimationClipAsset(
+    private void AddAnimationClipAsset(
         AssetContentManager assetContentManager,
         List<AnimationClip> animationClips,
         List<Guid> loadedAnimationClipAssetIds,
@@ -100,8 +130,9 @@ public class SkinnedMesh : ObjectBase
             }
         }
 
-        var animationClip = assetContentManager.Load<AnimationClip>(animationClipAssetId);
-        animationClips.Add(animationClip);
+        var animationClipHandle = assetContentManager.Acquire<AnimationClip>(animationClipAssetId);
+        _animationClipHandles.Add(animationClipHandle);
+        animationClips.Add(animationClipHandle.Asset);
         loadedAnimationClipAssetIds.Add(animationClipAssetId);
     }
 }

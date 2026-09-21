@@ -52,6 +52,11 @@ public class StaticModelMesh
     /// <summary>Runtime texture (loaded via <see cref="LoadTexture"/>).</summary>
     public Assets.Textures.Texture Texture { get; set; }
 
+    // ADR-0037: the legacy fallback texture (used when the mesh has no material) is a shared asset,
+    // held through a counted handle for as long as this mesh references it. The owning StaticModel gives
+    // it back in ReleaseTextureHandle, called from its own Dispose (P10).
+    private Assets.AssetHandle<Assets.Textures.Texture> _textureHandle;
+
     // --- GPU resources (created inside Initialize) ---
     public VertexBuffer VertexBuffer { get; private set; }
     public IndexBuffer IndexBuffer { get; private set; }
@@ -119,9 +124,19 @@ public class StaticModelMesh
         if (textureAssetId != Guid.Empty)
         {
             TextureAssetId = textureAssetId;
-            Texture = assetContentManager.Load<Assets.Textures.Texture>(TextureAssetId);
+            _textureHandle?.Dispose();
+            _textureHandle = assetContentManager.Acquire<Assets.Textures.Texture>(TextureAssetId);
+            Texture = _textureHandle.Asset;
             Texture.Load(assetContentManager);
         }
+    }
+
+    /// <summary>Gives back the texture handle taken by <see cref="LoadTexture"/> (ADR-0037). No-op if none was taken.</summary>
+    public void ReleaseTextureHandle()
+    {
+        _textureHandle?.Dispose();
+        _textureHandle = null;
+        Texture = null;
     }
 
     public void Load(JObject element)

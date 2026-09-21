@@ -436,7 +436,7 @@ parent (plan parent `docs/plan-migration-handles.md`).
     voir « Validation globale » du plan) — aucune démo ni panneau d'éditeur n'a été relancé pour cette
     tâche.
 
-### ⏳ T3.2 — Composants 3D
+### 🧪 T3.2 — Composants 3D
 
 - Fichiers et détenteurs :
   - **`StaticModelComponent`** tient son `StaticModel` par handle, rendu dans `Detach`. Le `StaticModel`,
@@ -451,6 +451,54 @@ parent (plan parent `docs/plan-migration-handles.md`).
   - Tests.
 - Validation : builds ; tests ; démos 3D relancées (T6.1).
 - Commit : `refactor(components): 3D components hold their assets through handles`
+- **Fait** :
+  - **`StaticModelMesh`** (fichier hors de la liste ci-dessus mais nécessaire au détenteur décrit) :
+    `LoadTexture` prend sa texture de repli (utilisée quand le mesh n'a pas de matériau) par
+    `Acquire<Texture>` au lieu de `Load<Texture>`, garde le handle, et un nouveau `ReleaseTextureHandle()`
+    le rend.
+  - **`StaticModel`** devient `IDisposable` : `Dispose()` appelle `ReleaseTextureHandle()` sur chacun de ses
+    `Meshes`.
+  - **`StaticModelComponent`** : `_staticModelHandle`, acquis dans `InitializeWithWorld` seulement quand
+    `StaticModel` est encore nul (comme avant, pour laisser un `StaticModel` assigné directement par code
+    intact), avec libération de l'éventuel handle précédent avant une nouvelle acquisition et libération
+    explicite quand l'id d'asset est vidé (cas de l'éditeur, qui rappelle `InitializeWithWorld` après avoir
+    changé `StaticModelAssetId` sans passer par `Detach`). Nouveau `Detach()` qui rend le handle puis appelle
+    `base.Detach()` (qui cascade déjà aux enfants générés).
+  - **`SkinnedMesh`** devient `IDisposable` : `_riggedModelHandle`, `_skeletonHandle` et
+    `_animationClipHandles` (un par clip séparé), acquis dans `Initialize` (`Acquire<RiggedModel>`,
+    `Acquire<SkeletonDefinition>`, `Acquire<AnimationClip>` par clip, en gardant la déduplication
+    existante) ; `Dispose()` les rend tous. `SetRiggedModel` (démos, tests) reste un chemin sans handle,
+    inchangé.
+  - **`SkinnedMeshComponent`** : `_skinnedMeshHandle`, avec libération systématique de l'éventuel handle
+    précédent en tête d'`InitializeWithWorld` (celle-ci rappelle toujours `Acquire` quand l'id est non vide,
+    sans garde `== null` contrairement à `StaticModelComponent`) puis acquisition si l'id d'asset est non
+    vide. Nouveau `Detach()` qui rend le handle puis appelle `base.Detach()`.
+  - **Tests** (2 nouveaux fichiers, 5 tests) : `StaticModelComponentAssetHandleTests` (acquisition tenue
+    jusqu'à `Detach`, deuxième `InitializeWithWorld` sans fuite, vidage de l'id d'asset qui libère) et
+    `SkinnedMeshComponentAssetHandleTests` (acquisition tenue jusqu'à `Detach`, deuxième
+    `InitializeWithWorld` sans fuite). Les deux utilisent un chargeur factice renvoyant un objet sans
+    `RootNode`/`Meshes` (StaticModel) ou sans `RiggedModelAssetId`/`SkeletonAssetId` (SkinnedMesh) : aucun
+    `GraphicsDevice` n'est donc nécessaire, comme pour `ParticleSystemComponentAssetHandleTests`.
+  - **Non testé, raison écrite ici (même limite que T2.1/T3.1)** : le round-trip complet
+    `StaticModelMesh.LoadTexture` → `Texture.Load` → `Texture2D`, et la chaîne
+    `SkinnedMesh.Initialize` → `RiggedModel.Initialize` (buffers GPU des sous-meshes), exigent un
+    `GraphicsDevice` indisponible en headless. Le rendu du handle de texture lui-même est couvert par la
+    boucle `StaticModel.Dispose()` → `mesh.ReleaseTextureHandle()`, exercée avec de vrais handles
+    `AssetContentManager` dans les deux nouveaux tests de composant (modèle sans meshes, donc sans texture
+    à charger — le mécanisme de libération de `StaticModel` lui-même n'a pas de test dédié séparé de la
+    lecture du code, comme pour le round-trip `Sprite` de T2.1/T3.1). La recette visible du plan parent
+    (parcours 389 → 390 → 389) ne couvre pas de composant 3D : aucune carte du portage Alundra actuel n'en
+    utilise, donc pas de preuve en jeu disponible pour cette tâche.
+  - `CasaEngine.Tests` 1765/1766, seul échec l'échec préexistant du docking ; les deux solutions et
+    `Alundra/Alundra.csproj` compilent sans erreur.
+  - **🧪 Needs testing** : aucune démo 3D relancée pour cette tâche (`T6.1` s'en charge). Vérifié par
+    lecture : aucune démo n'utilise `StaticModelAssetId` ni `SkinnedMeshAssetId` (`rg` sans résultat dans
+    `CasaEngine.Demos`) — toutes assignent `StaticModel`/`SkinnedMesh` directement en code
+    (`StaticModelDemo`, `SkeletalAnimationBlendingDemo`, `AnimationBlendDemo`, `AnimationIkDemo`,
+    `SkinnedMeshDemo`…), le chemin que les deux composants laissent inchangé (aucun handle acquis). Le
+    chemin par id d'asset ajouté ici n'est donc exercé par aucune démo existante ; relancer une démo 3D
+    (T6.1) reste utile pour confirmer l'absence de régression sur le chemin direct, pas pour couvrir
+    l'acquisition par handle elle-même.
 
 ### ⏳ T3.3 — Monde, entités, modes de jeu, cinématiques, audio
 
