@@ -206,6 +206,27 @@ parent (plan parent `docs/plan-migration-handles.md`).
 - **Éditeur :** vérification manuelle par l'auteur des panneaux touchés (tuiles, inspecteurs d'animation 2D
   et de sprite, aperçu des clips, vignettes). Sans elle, les tâches de l'éditeur restent 🧪.
 
+### Résultat (2026-09-22)
+
+- **Builds :** les deux solutions et `Alundra/Alundra.csproj`, 0 erreur.
+- **Tests :**
+  - `CasaEngine.Tests` 1780/1781. Le seul échec est `EditorThemeAsset_Disables_Docking_Accent_Bars`,
+    préexistant et hors périmètre ; sa correction est sur `main` et n'est pas dans cette branche empilée.
+  - `Alundra.Tests` 1050/1050.
+  - `MGUI.Tests` non relancé : MGUI n'a pas changé depuis le chantier précédent (`3075d93`, 2989/2989).
+- **Suppression :** la commande `rg` ne rend plus que des commentaires, le `ContentManager` de MonoGame et des
+  homonymes sans rapport.
+- **Démos :** non relancées dans cette session (T6.1 🧪).
+- **Recette visible :** tenue. C'est la tâche M2 du plan parent (`docs/plan-migration-handles.md`) :
+  - `font3` et les 51 ressources d'UI chargées une seule fois ;
+  - trace « World change » 0 / 0 / 31 ;
+  - `map_389_tileset` rechargée au retour sur la 389, jamais sur la 390 ;
+  - HUD et inventaire affichés sur les trois étapes ; aucun avertissement.
+- **Vérificateur frais, sur le moteur (`dceec487..1e7a4e36`) et la DLL (`542344b..56afc45`) :**
+  **CONFIRMED**, sans constat P0 à P2. Il a reproduit les builds, les suites et la recette en jeu. Ses trois
+  remarques sont reportées (O3 à O5).
+- **Éditeur :** vérification manuelle de l'auteur en attente (T5.1 🧪).
+
 ---
 
 ## Phase 0 — Décision
@@ -987,6 +1008,9 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 |---|---|---|
 | O1 | ~~P1 à P11 attendent la validation de l'auteur avec ce plan.~~ Validés tels quels par l'auteur le 2026-09-21 (« AUTO »). | toutes |
 | O2 | Ordre des merges : `chantier/asset-handles`, puis `chantier/asset-handles-migration` ; dans le dépôt parent, `chantier/e13d-inventaire` puis `chantier/migration-handles`. Décision de l'auteur. | après la clôture |
+| O3 | **Reporté (P3, vérificateur final).** `GeneratedAssetHandleCache.Acquire` : après un `Replace`, le dictionnaire garde l'ancien handle, qui rend toujours l'instance périmée. Chaque appel suivant reconstruirait donc le cubemap, et remplacerait le précédent sans le disposer. Le défaut est introduit par T4.2 (P8), mais inatteignable aujourd'hui : rien dans le moteur ne dispose un cubemap généré. Correctif : ranger dans le dictionnaire un handle sur la nouvelle instance. Test : périmé → reconstruction → troisième appel, qui doit rendre la même instance sans reconstruire. | suivi |
+| O4 | **Reporté (P4).** Des commentaires et `cref` citent encore l'API supprimée : `AlundraHudScreen.cs` (l. 43-44 et 444), `AlundraEntitySpawnFactory.cs:322`, `AlundraWorldProxyTests.cs:21` (dépôt parent) ; `IAudioClip.cs:7`, `CellularLayerComponent.cs:101`, `ScrollingLayerComponent.cs:70` et `ModelLoader.cs:20` (moteur). Documentation seulement ; aucun avertissement de build. | suivi |
+| O5 | **Reporté (P4).** `StaticModelComponent.Detach` rend son handle mais garde `StaticModel`. Un `InitializeWithWorld` ultérieur ne réacquiert donc rien. Aucun chemin de réattachement n'a été observé. | suivi |
 
 ## Hors périmètre
 
