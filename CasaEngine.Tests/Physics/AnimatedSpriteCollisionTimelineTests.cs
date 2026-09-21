@@ -257,14 +257,14 @@ public class AnimatedSpriteCollisionTimelineTests
         var assetContentManager = new AssetContentManager();
 
         var texture2dAssetId = Guid.NewGuid();
-        assetContentManager.AddAsset(texture2dAssetId, "texture2d",
-            RuntimeHelpers.GetUninitializedObject(typeof(Texture2D)));
+        assetContentManager.Register(texture2dAssetId,
+            (Texture2D)RuntimeHelpers.GetUninitializedObject(typeof(Texture2D)));
 
         var texture = new CasaEngine.Framework.Assets.Textures.Texture();
         SetPrivateField(texture, "_texture2dAssetId", texture2dAssetId);
 
         spriteSheetAssetId = Guid.NewGuid();
-        assetContentManager.AddAsset(spriteSheetAssetId, "spritesheet", texture);
+        assetContentManager.Register(spriteSheetAssetId, texture);
         return assetContentManager;
     }
 

@@ -909,17 +909,23 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
 
 ## Phase 7 — Consommateur Alundra (dépôt parent)
 
-### ⏳ T7.1 — DLL Alundra
+### ✅ T7.1 — DLL Alundra
 
 - Objectif : migrer les 7 appels de la DLL, selon le plan parent `docs/plan-migration-handles.md`, avant la
   suppression.
 - Validation et commits : dans le dépôt parent.
+- **Fait**, dans le dépôt parent (tâche M1) :
+  - commits `b63d75b` (référence du moteur au commit de T6.1) et `56afc45` (DLL) ;
+  - modèles d'entités en `LoadCopy` ; tilesets de la grille de navigation pris le temps de la construction ;
+    `ButtonsMapping` en `LoadCopy`, confié au gestionnaire d'entrées ; écrans du HUD et d'inventaire
+    détenteurs de leurs sprites, libérés dans `OnEndPlay` ;
+  - `Alundra.Tests` 1050/1050.
 
 ---
 
 ## Phase 8 — Suppression
 
-### ⏳ T8.1 — Supprimer l'ancienne API
+### ✅ T8.1 — Supprimer l'ancienne API
 
 - Objectif : D5.
 - Fichiers : `AssetContentManager.cs` (tous les membres de D5, les catégories, l'épinglage, l'index par nom
@@ -932,6 +938,23 @@ qu'aucune texture ne reste visuellement bloquée sur l'ancienne image.
   4. Lancer la commande `rg` de la validation globale.
 - Validation : builds ; toutes les suites ; `rg` vide.
 - Commit : `refactor(assets)!: remove Load, AddAsset, GetAsset, Unload and asset categories`
+- **Fait** :
+  - **`AssetContentManager` réécrit sur l'API à handles seule** : un seul dictionnaire par id, un bail par
+    entrée, plus d'épinglage, plus de catégories ni d'index par nom (P9).
+  - `OnDeviceReset` parcourt un instantané du cache, puisqu'un `Texture` qui se rétablit y acquiert et y
+    remplace des entrées.
+  - **Production :** les deux solutions et la DLL Alundra compilaient **sans aucune correction**. Aucun site de
+    production n'avait été oublié par les phases 3 à 7.
+  - **Tests :** 17 sites dans 9 fichiers de tests.
+    - `Load<T>` → `LoadCopy<T>`, ou `Acquire` quand le test vérifie un partage d'instance.
+    - Entité en ligne désérialisée directement (P4).
+    - `AddAsset` → `Register`.
+    - Supprimés : les quatre tests qui ne portaient que sur l'épinglage, `Unload` et `GetAsset`.
+    - Réécrit : « `Register` sur un id chargé par `Load` » devient « sur un id en attente ».
+  - **Suites :** `CasaEngine.Tests` 1780/1781 (1784 − 4 tests supprimés, même échec préexistant) ;
+    `Alundra.Tests` 1050/1050.
+  - La commande `rg` de la validation globale ne rend plus aucun appel, dans le moteur, l'éditeur, les
+    démos, les tests et la DLL (seuls restent des commentaires et le `ContentManager` de MonoGame).
 
 ---
 

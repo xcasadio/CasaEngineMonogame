@@ -103,7 +103,7 @@ public sealed class DialogueAssetJsonSerializerTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            DialogueAsset loaded = assetContentManager.Load<DialogueAsset>(assetId, cache: false);
+            DialogueAsset loaded = assetContentManager.LoadCopy<DialogueAsset>(assetId);
 
             Assert.Equal(assetId, loaded.AssetId);
             Assert.Equal("Greeting", loaded.Name);

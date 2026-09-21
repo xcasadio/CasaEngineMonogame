@@ -229,7 +229,7 @@ public sealed class CutsceneAssetJsonSerializerTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            CutsceneAsset loaded = assetContentManager.Load<CutsceneAsset>(assetId, cache: false);
+            CutsceneAsset loaded = assetContentManager.LoadCopy<CutsceneAsset>(assetId);
 
             Assert.Equal(assetId, loaded.AssetId);
             Assert.Equal("IntroWait", loaded.Name);

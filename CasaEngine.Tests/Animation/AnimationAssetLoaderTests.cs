@@ -111,9 +111,10 @@ public class AnimationAssetLoaderTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            var skeletonDefinition = assetContentManager.Load<SkeletonDefinition>(skeletonAssetId);
-            var animationClip = assetContentManager.Load<AnimationClip>(clipAssetId);
-            var skinnedMesh = assetContentManager.Load<SkinnedMesh>(modelAssetId, cache: false);
+            // Shared instances: the clip must reference the very skeleton the manager hands out.
+            var skeletonDefinition = assetContentManager.Acquire<SkeletonDefinition>(skeletonAssetId).Asset;
+            var animationClip = assetContentManager.Acquire<AnimationClip>(clipAssetId).Asset;
+            var skinnedMesh = assetContentManager.LoadCopy<SkinnedMesh>(modelAssetId);
 
             Assert.Equal(1, skeletonDefinition.Count);
             Assert.Equal("Root", skeletonDefinition.GetJoint(0).Name);

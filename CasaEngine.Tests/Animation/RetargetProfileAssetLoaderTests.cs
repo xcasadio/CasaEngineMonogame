@@ -137,7 +137,7 @@ public class RetargetProfileAssetLoaderTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            var retargetProfile = assetContentManager.Load<RetargetProfile>(retargetProfileAssetId);
+            var retargetProfile = assetContentManager.LoadCopy<RetargetProfile>(retargetProfileAssetId);
 
             Assert.Equal(RetargetReferencePoseMode.BindPose, retargetProfile.ReferencePoseMode);
             Assert.Equal(RetargetAxis.PositiveZ, retargetProfile.SourceForwardAxis);

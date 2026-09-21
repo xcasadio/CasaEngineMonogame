@@ -124,33 +124,6 @@ public class AssetContentManagerHandleTests
     }
 
     [Fact]
-    public void LoadedThroughLoad_IsPinned_EvenWhenEveryHandleIsReleased()
-    {
-        var manager = NewManager(out var loader);
-        var loaded = manager.Load<Leaf>(LeafId);
-        var handle = manager.Acquire<Leaf>(LeafId);
-        Assert.Same(loaded, handle.Asset);
-        handle.Dispose();
-
-        Assert.Equal(0, manager.CollectUnreferenced());
-        Assert.Equal(0, loaded.DisposeCount);
-        Assert.Equal(1, loader.Loads);
-    }
-
-    [Fact]
-    public void AcquiredFirst_ThenLoadedThroughLoad_BecomesPinned()
-    {
-        var manager = NewManager(out _);
-        var handle = manager.Acquire<Leaf>(LeafId);
-        var loaded = manager.Load<Leaf>(LeafId);
-        Assert.Same(handle.Asset, loaded);
-        handle.Dispose();
-
-        Assert.Equal(0, manager.CollectUnreferenced());
-        Assert.Equal(0, loaded.DisposeCount);
-    }
-
-    [Fact]
     public void ADependencyReleasedByAFreedAsset_IsFreedInTheSameCollection()
     {
         var manager = NewManager(out var loader);
@@ -190,22 +163,6 @@ public class AssetContentManagerHandleTests
         Assert.Equal(0, kept.Asset.DisposeCount);
         Assert.True(extra.IsDisposed);
         Assert.Throws<ObjectDisposedException>(() => extra.Asset);
-    }
-
-    [Fact]
-    public void Unload_KeepsAHeldAsset_AndFreesTheOthers()
-    {
-        var manager = NewManager(out _);
-        using var held = manager.Acquire<Leaf>(LeafId);
-        var pending = manager.Acquire<Parent>(ParentId);
-        var pendingChild = pending.Asset.Child;
-        pending.Dispose();
-
-        manager.Unload(AssetContentManager.DefaultCategory);
-
-        Assert.Equal(0, held.Asset.DisposeCount);
-        Assert.True(pendingChild.IsDisposed);
-        Assert.Same(held.Asset, manager.GetAsset<Leaf>(LeafId));
     }
 
     // ---- ADR-0037: LoadCopy, Register, Replace, and the collection of IAssetable assets ----
@@ -298,10 +255,10 @@ public class AssetContentManagerHandleTests
     }
 
     [Fact]
-    public void Register_OnAnIdLoadedThroughLoad_Throws()
+    public void Register_OnAPendingId_Throws()
     {
         var manager = NewManager(out _);
-        manager.Load<Leaf>(LeafId);
+        manager.Acquire<Leaf>(LeafId).Dispose();
 
         Assert.Throws<InvalidOperationException>(() => manager.Register(LeafId, new Leaf()));
     }
@@ -327,21 +284,6 @@ public class AssetContentManagerHandleTests
         secondOld.Dispose();
         Assert.Equal(1, manager.CollectUnreferenced());
         Assert.Equal(1, replacement.DisposeCount);
-    }
-
-    [Fact]
-    public void Replace_OnAnIdLoadedThroughLoad_StaysPinned()
-    {
-        var manager = NewManager(out _);
-        manager.Load<Leaf>(LeafId);
-        var replacement = new Leaf();
-
-        manager.Replace(LeafId, replacement);
-
-        Assert.Equal(0, manager.CollectUnreferenced());
-        Assert.Equal(0, replacement.DisposeCount);
-        using var held = manager.Acquire<Leaf>(LeafId);
-        Assert.Same(replacement, held.Asset);
     }
 
     [Fact]
