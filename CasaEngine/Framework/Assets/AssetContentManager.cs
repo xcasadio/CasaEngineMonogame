@@ -15,6 +15,11 @@ public class AssetContentManager
     private readonly Dictionary<Type, IAssetLoader> _assetLoaderByType = new();
     private readonly Dictionary<string, AssetDictionary> _assetsDictionaryByCategory = new();
 
+    // ADR-0036: who holds each asset of the default category. An entry of the default category with no
+    // lease was put there by Load<T> or AddAsset and is pinned, as every asset was before handles existed.
+    private readonly Dictionary<Guid, AssetLease> _leases = new();
+    private readonly List<Guid> _collectCandidates = new();
+
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public string RootDirectory { get; set; }
@@ -50,6 +55,7 @@ public class AssetContentManager
         }
 
         _assetsDictionaryByCategory[categoryName].Add(id, name, asset);
+        PinIfDefault(id, categoryName);
     }
 
     public T GetAsset<T>(string name, string categoryName = DefaultCategory)
@@ -83,9 +89,159 @@ public class AssetContentManager
 
         if (typeof(T) != typeof(Entity) && categoryAssetList.Get(id, out var asset))
         {
+            if (cache)
+            {
+                PinIfDefault(id, categoryName);
+            }
+
             return (T)asset;
         }
 
+        var newAsset = LoadNew<T>(id, out var assetInfo);
+
+        if (cache)
+        {
+            AddAsset(assetInfo, newAsset, categoryName);
+        }
+
+        return newAsset;
+    }
+
+    /// <summary>
+    /// Takes a counted hold on the asset <paramref name="id"/> (ADR-0036). Every hold on an id shares one
+    /// instance, loaded once: if the asset is already in the default category — held, pending or loaded by
+    /// <see cref="Load{T}(Guid, string, bool)"/> — that instance is returned without loading anything.
+    /// <para/>
+    /// Disposing the returned handle gives the hold back. An asset nobody holds any more stays pending in
+    /// memory and is only freed by <see cref="CollectUnreferenced"/>, which the engine calls when a world
+    /// change starts; acquiring it again before then returns the same instance. An asset that
+    /// <see cref="Load{T}(Guid, string, bool)"/> or <see cref="AddAsset(Guid, string, object, string)"/> also
+    /// put in the default category is pinned and never collected.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">No loader for <typeparamref name="T"/>, an id missing from
+    /// the catalog, or an <see cref="Entity"/> (entities are instantiated per use).</exception>
+    public AssetHandle<T> Acquire<T>(Guid id) where T : class
+    {
+        if (typeof(T) == typeof(Entity))
+        {
+            throw new InvalidOperationException(
+                $"Entity assets are instantiated per use and cannot be shared through a handle (asset '{id}').");
+        }
+
+        var defaultAssets = GetOrCreateCategory(DefaultCategory);
+
+        T asset;
+        if (defaultAssets.Get(id, out var cached))
+        {
+            asset = (T)cached;
+
+            if (!_leases.ContainsKey(id))
+            {
+                // Already there through Load<T> or AddAsset: pinned, as it was before this hold.
+                _leases.Add(id, new AssetLease { Pinned = true });
+            }
+        }
+        else
+        {
+            asset = LoadNew<T>(id, out var assetInfo);
+            defaultAssets.Add(assetInfo.Id, assetInfo.Name, asset);
+            _leases[id] = new AssetLease { Name = assetInfo.Name };
+        }
+
+        _leases[id].HandleCount++;
+        return new AssetHandle<T>(this, id, asset);
+    }
+
+    /// <summary>
+    /// Frees every asset of the default category that nobody holds and that is not pinned (ADR-0036):
+    /// disposes it when it is <see cref="IDisposable"/> and drops it from the cache. An asset freed here may
+    /// give back holds on its own dependencies; those are freed in the same call when nobody else holds
+    /// them. Called by the engine at the very start of every world change; a game may also call it.
+    /// </summary>
+    /// <returns>The number of assets freed.</returns>
+    public int CollectUnreferenced()
+    {
+        if (!_assetsDictionaryByCategory.TryGetValue(DefaultCategory, out var defaultAssets))
+        {
+            return 0;
+        }
+
+        var freed = 0;
+        bool freedThisPass;
+        do
+        {
+            _collectCandidates.Clear();
+            foreach (var pair in _leases)
+            {
+                if (!pair.Value.Pinned && pair.Value.HandleCount == 0)
+                {
+                    _collectCandidates.Add(pair.Key);
+                }
+            }
+
+            freedThisPass = false;
+            for (var i = 0; i < _collectCandidates.Count; i++)
+            {
+                var id = _collectCandidates[i];
+
+                // Freeing an earlier candidate may have acquired this one again.
+                if (!_leases.TryGetValue(id, out var lease) || lease.Pinned || lease.HandleCount > 0)
+                {
+                    continue;
+                }
+
+                _leases.Remove(id);
+                freedThisPass = true;
+
+                if (defaultAssets.Get(id, out var asset))
+                {
+                    defaultAssets.RemoveById(id, lease.Name, asset);
+
+                    // Disposing may release holds on dependencies: the next pass frees them.
+                    if (asset is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+
+                freed++;
+            }
+        }
+        while (freedThisPass);
+
+        _collectCandidates.Clear();
+        return freed;
+    }
+
+    internal void Release(Guid id)
+    {
+        if (_leases.TryGetValue(id, out var lease) && lease.HandleCount > 0)
+        {
+            lease.HandleCount--;
+        }
+    }
+
+    private void PinIfDefault(Guid id, string categoryName)
+    {
+        if (categoryName == DefaultCategory && _leases.TryGetValue(id, out var lease))
+        {
+            lease.Pinned = true;
+        }
+    }
+
+    private AssetDictionary GetOrCreateCategory(string categoryName)
+    {
+        if (!_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
+        {
+            categoryAssetList = new AssetDictionary();
+            _assetsDictionaryByCategory.Add(categoryName, categoryAssetList);
+        }
+
+        return categoryAssetList;
+    }
+
+    private T LoadNew<T>(Guid id, out AssetInfo assetInfo) where T : class
+    {
         var type = typeof(T);
 
         if (!_assetLoaderByType.ContainsKey(type))
@@ -93,7 +249,7 @@ public class AssetContentManager
             throw new InvalidOperationException($"IAssetLoader not found for the type {type.FullName}");
         }
 
-        var assetInfo = ResolveAssetInfo(id);
+        assetInfo = ResolveAssetInfo(id);
 
         if (assetInfo == null)
         {
@@ -109,11 +265,6 @@ public class AssetContentManager
             gameObject.AssetId = id;
             gameObject.Name = assetInfo.Name;
             gameObject.FileName = assetInfo.FileName;
-        }
-
-        if (cache)
-        {
-            AddAsset(assetInfo, newAsset, categoryName);
         }
 
         return newAsset;
@@ -192,10 +343,21 @@ public class AssetContentManager
         return Path.Combine(EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath), relativeFileName);
     }
 
+    /// <summary>
+    /// Disposes every <see cref="IDisposable"/> asset of the category and drops them. In the default category,
+    /// an asset that still has live handles (<see cref="Acquire{T}(Guid)"/>) is kept, with its handles valid
+    /// (ADR-0036).
+    /// </summary>
     public void Unload(string categoryName)
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList) == false)
         {
+            return;
+        }
+
+        if (categoryName == DefaultCategory && HasHeldAsset())
+        {
+            UnloadDefaultCategoryKeepingHeldAssets(categoryAssetList);
             return;
         }
 
@@ -208,6 +370,44 @@ public class AssetContentManager
         }
 
         _assetsDictionaryByCategory.Remove(categoryName);
+
+        if (categoryName == DefaultCategory)
+        {
+            _leases.Clear();
+        }
+    }
+
+    private bool HasHeldAsset()
+    {
+        foreach (var pair in _leases)
+        {
+            if (pair.Value.HandleCount > 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void UnloadDefaultCategoryKeepingHeldAssets(AssetDictionary defaultAssets)
+    {
+        var entries = new List<KeyValuePair<Guid, object>>(defaultAssets.Entries);
+        foreach (var entry in entries)
+        {
+            if (_leases.TryGetValue(entry.Key, out var lease) && lease.HandleCount > 0)
+            {
+                continue;
+            }
+
+            defaultAssets.RemoveById(entry.Key, lease?.Name, entry.Value);
+            _leases.Remove(entry.Key);
+
+            if (entry.Value is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 
     public void UnloadAll()
@@ -279,6 +479,43 @@ public class AssetContentManager
             return _assetsByName.Remove(name);
         }
 
+        public IEnumerable<KeyValuePair<Guid, object>> Entries => _assetsById;
+
+        /// <summary>Removes the entry <paramref name="id"/>, and its name entry only when that name still
+        /// points at this asset: several assets can share a name (e.g. a font's .png, .texture and .fnt).
+        /// With no known name, every name entry pointing at this asset is dropped.</summary>
+        public void RemoveById(Guid id, string name, object asset)
+        {
+            _assetsById.Remove(id);
+
+            if (name != null)
+            {
+                if (_assetsByName.TryGetValue(name, out var named) && ReferenceEquals(named, asset))
+                {
+                    _assetsByName.Remove(name);
+                }
+
+                return;
+            }
+
+            List<string> staleNames = null;
+            foreach (var pair in _assetsByName)
+            {
+                if (ReferenceEquals(pair.Value, asset))
+                {
+                    (staleNames ??= new List<string>()).Add(pair.Key);
+                }
+            }
+
+            if (staleNames != null)
+            {
+                foreach (var staleName in staleNames)
+                {
+                    _assetsByName.Remove(staleName);
+                }
+            }
+        }
+
         public IEnumerator<object> GetEnumerator()
         {
             return _assetsById.Values.GetEnumerator();
@@ -296,6 +533,13 @@ public class AssetContentManager
                 _assetsByName[assetInfo.Name] = assetInfo;
             }
         }
+    }
+
+    private sealed class AssetLease
+    {
+        public string Name;
+        public int HandleCount;
+        public bool Pinned;
     }
 
 }

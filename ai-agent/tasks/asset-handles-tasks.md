@@ -246,7 +246,7 @@ en jeu est la preuve visible de ce chantier (D9).
 
 ## Phase 2 — Ressources comptées
 
-### ⏳ T2.1 — `AssetHandle<T>`, `Acquire<T>`, `CollectUnreferenced`
+### ✅ T2.1 — `AssetHandle<T>`, `Acquire<T>`, `CollectUnreferenced`
 
 - Objectif : une instance par id, des handles comptés, une libération différée (D1, D4, D5 ; P1, P2, P3).
 - Fichiers :
@@ -275,6 +275,14 @@ en jeu est la preuve visible de ce chantier (D9).
   - `Dispose` deux fois ne décrémente qu'une fois.
 - Validation : build des deux solutions ; `CasaEngine.Tests` = référence + nouveaux tests.
 - Commit : `feat(assets): reference-counted asset handles with deferred release`
+- **Fait** :
+  - `CasaEngine.Tests` 1718/1719, soit la référence plus 11 tests, avec le seul échec préexistant ; les deux
+    solutions compilent sans erreur.
+  - Deux cas ajoutés en relisant le code :
+    - une entrée épinglée sans bail, retirée par `Unload`, perd aussi toutes ses entrées de nom (plusieurs
+      ressources partagent un nom, par exemple le `.png`, le `.texture` et le `.fnt` de `font3`) ;
+    - une candidate reprise pendant la collecte n'est pas libérée.
+  - `Acquire<Entity>` lève une exception : une entité s'instancie à chaque usage.
 
 ### ⏳ T2.2 — Collecte au début de chaque changement de monde
 
