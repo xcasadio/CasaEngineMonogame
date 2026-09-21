@@ -390,7 +390,7 @@ en jeu est la preuve visible de ce chantier (D9).
 
 ## Phase 4 — Documentation
 
-### ⏳ T4.1 — Doc moteur et manques MGUI
+### ✅ T4.1 — Doc moteur et manques MGUI
 
 - Objectif : documenter l'API ajoutée (AGENTS.md §10) et consigner G5 et G6 (P8).
 - Fichiers :
@@ -405,6 +405,11 @@ en jeu est la preuve visible de ce chantier (D9).
   2. Ajouter G5 et G6 au format des entrées existantes.
 - Validation : relecture des liens ; aucun code touché.
 - Commit : `docs(engine): document counted asset handles and the UI font registry`
+- **Fait** :
+  - `docs/engine/asset-handles-and-bitmap-fonts.md`, en anglais ;
+  - sa ligne dans l'index `docs/README.md`, sous une nouvelle section « Ressources » ;
+  - le renvoi dans `dialogue-choices-and-bitmap-fonts.md` §2 ;
+  - G5 (corrigé par T1.1) et G6 (consigné) au rapport des manques de MGUI.
 
 ---
 
@@ -414,7 +419,7 @@ en jeu est la preuve visible de ce chantier (D9).
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Les propositions P1 à P8 attendent la validation de l'auteur avec ce plan. | toutes |
+| O1 | ~~Les propositions P1 à P8 attendent la validation de l'auteur avec ce plan.~~ **Validées par l'auteur le 2026-09-21** avec le plan (réponse « AUTO »). | toutes |
 | O2 | Le merge de `chantier/asset-handles`, ici et dans MGUI, reste une décision de l'auteur, comme le merge de la branche MGUI dans `develop`. | après la clôture |
 
 ## Hors périmètre

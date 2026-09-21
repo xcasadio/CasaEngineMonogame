@@ -64,6 +64,10 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [scrolling-layers.md](engine/scrolling-layers.md) — mécanisme des couches défilantes V1 : `ScrollingLayerService` (parallaxe/auto-défilement/cadence par tick entier, sans type GPU), `ScrollingLayerComponent` (résolution des textures, ciseaux en paramètre, soumission des quads couvrants), politique Z = 0.
 - [cellular-layers.md](engine/cellular-layers.md) — mécanisme des couches à cellules V1 (le second mode de fond d'Alundra) : `CellularLayerService` (dérive/période/parallaxe par cellule, `WaveX` sans état, cadence V-animation et `WaveTick`, sans type GPU), `CellularLayerComponent` (résolution des planches par `PalDex`, soumission cellule par cellule), mécanisme parallèle à `scrolling-layers.md` et non une extension.
 
+### Ressources
+
+- [asset-handles-and-bitmap-fonts.md](engine/asset-handles-and-bitmap-fonts.md) — handles comptés sur une instance unique par ressource (`AssetContentManager.Acquire<T>`), libération différée au début de chaque changement de monde (`CollectUnreferenced`), polices bitmap `.fnt` comme ressources et registre de polices du jeu (`CasaEngineGame.UIFonts`) résolu par nom de famille dans le XAML (ADR-0036).
+
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.

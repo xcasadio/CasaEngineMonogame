@@ -237,3 +237,43 @@ aujourd'hui le seul à perdre un `Maximum` déclaré seul.
 
 Les deux tests restent : ils épinglent qu'une plage déclarée est honorée, ce qui vaut d'être tenu, même s'ils
 ne distinguent pas l'avant de l'après.
+
+## ~~G5~~ — Un moteur de texte ne sait pas retirer une police statique — **CORRIGÉ le 2026-09-21**
+
+> **Corrigé dans MGUI** (`3075d93`, branche `chantier/asset-handles`), pour le chantier
+> [asset-handles-tasks.md](../tasks/asset-handles-tasks.md), ADR-0036.
+
+**Ce que le code doit faire.** Une police bitmap tenue au niveau du jeu est donnée par référence à chaque
+moteur de texte de l'interface. Quand le gestionnaire de ressources la libère, elle doit quitter les moteurs
+de texte encore vivants. L'éditeur, par exemple, garde ses vues d'un monde à l'autre : sans retrait, un de ses
+moteurs de texte résoudrait encore la famille vers une police dont la texture a été libérée.
+
+**Pourquoi il ne le pouvait pas.** `FontStashSharpTextEngine.AddStaticFont`
+(`MGUI/MGUI.FontStashSharp/FontStashSharpTextEngine.cs:270`) n'avait pas d'inverse, et `_staticFonts` est
+privé.
+
+**L'API ajoutée.** `bool RemoveStaticFont(string family, CustomFontStyles style)`, symétrique d'`AddStaticFont` :
+elle retire l'entrée, invalide le cache de résolution, et rend `true` si une police a été retirée. Elle ne
+touche pas une résolution déjà rendue à un élément de texte : qui affiche une police la tient. Cinq tests dans
+`MGUI.Tests/Text/FontStashSharpStaticFontRemovalTests.cs`.
+
+## G6 — Un `FontFamily` XAML inconnu est ignoré sans message
+
+> **Consigné, non corrigé** (hors périmètre du chantier asset-handles, ADR-0036).
+
+**Ce que le code doit faire.** Un écran déclare `FontFamily="font3"` sur ses `TextBlock`, et la famille doit
+être connue du moteur de texte au moment où la fenêtre est construite.
+
+**Ce qui se passe quand elle ne l'est pas.** Le DTO XAML applique la famille par `MGTextBlock.TrySetFont`
+(`MGUI/MGUI.Core/UI/XAML/Controls.cs:3268-3275`). Pour une famille inconnue, `ResolveFont` rend une police de
+repli marquée `IsFallback` sans rien signaler (`MGUI/MGUI.FontStashSharp/FontStashSharpTextEngine.cs:535-556`),
+puis `TrySetFont` rend `false` et garde l'ancienne famille (`MGUI/MGUI.Core/UI/MGTextBlock.cs:109-122`). Le
+texte s'affiche alors dans la police par défaut du thème, sans message.
+
+**Ce que ça coûte.** C'est exactement la forme du défaut trouvé en jeu par le portage Alundra (E13.d, D6). Après
+un changement de carte, l'inventaire s'est affiché en police TTF blanche, et rien dans le journal ne le disait :
+la cause n'a été trouvée qu'en lisant le code et en rejouant le parcours avec un harnais.
+
+**À quoi ressemblerait l'API absente.** Un avertissement journalisé, une fois par famille et par moteur de
+texte, quand une famille déclarée en XAML retombe sur la police de repli. Ou un mode strict du chargeur XAML
+(qui existe déjà pour les éléments inconnus) qui en ferait une erreur.

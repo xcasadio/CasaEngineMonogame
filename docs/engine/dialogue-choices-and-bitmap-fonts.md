@@ -105,6 +105,10 @@ StaticSpriteFont font3 = StaticSpriteFont.FromBMFont(fntFileContents, pageName =
 engine.AddStaticFont("font3", CustomFontStyles.Normal, font3);
 ```
 
+> **Depuis l'ADR-0036** : un jeu n'enregistre plus sa police bitmap sur un moteur de texte, qui est
+> reconstruit à chaque monde. Il la tient par `CasaEngineGame.UIFonts.Acquire(idDuFnt)`, et le registre la
+> donne à chaque moteur de texte. Voir [asset-handles-and-bitmap-fonts.md](asset-handles-and-bitmap-fonts.md).
+
 ### `DialogueScreen` sur une police enregistrée
 
 `DialogueScreen` a un constructeur `(presenter, requestClose, fontFamily)` : si `fontFamily` est
