@@ -49,3 +49,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0033](0033-screen-effect-above-ui-layer.md) | Screen effect above-UI layer | Accepted | 2026-09-19 |
 | [ADR-0034](0034-screen-effect-alpha-and-depthless-veil.md) | Screen effect alpha channel and a veil that ignores depth | Accepted | 2026-09-20 |
 | [ADR-0035](0035-xaml-authored-ui-screens.md) | UI screens are authored in XAML and loaded at runtime | Accepted | 2026-09-20 |
+| [ADR-0036](0036-reference-counted-asset-handles-and-bitmap-fonts.md) | Reference-counted asset handles with deferred release, and bitmap fonts as assets | Accepted | 2026-09-21 |

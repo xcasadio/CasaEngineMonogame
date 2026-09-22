@@ -26,6 +26,8 @@ namespace CasaEngine.Framework.UI;
 public sealed class UIRoot : IUIViewRuntime
 {
     private bool _disposed;
+    private readonly UIFontRegistry _fonts;
+    private readonly FontStashSharpTextEngine _textEngine;
 
     /// <summary>The backend runtime that powers this MGUI desktop.</summary>
     public IUIDesktopRuntime Runtime { get; }
@@ -78,8 +80,13 @@ public sealed class UIRoot : IUIViewRuntime
         var backend = CasaMonoGameBackendBootstrap.Create(host, surface: new CasaRenderSurfaceAdapter(surface));
         Runtime     = backend.Runtime;
         Desktop     = new MGDesktop(Runtime);
-        Desktop.TextEngine = CreateFontStashSharpTextEngine(game);
+        _textEngine = CreateFontStashSharpTextEngine(game);
+        Desktop.TextEngine = _textEngine;
         ScreenStack = new ScreenStack(this);
+
+        // ADR-0036: the bitmap fonts the game holds reach this text engine by reference, now and while it lives.
+        _fonts = game.UIFonts;
+        _fonts?.Attach(_textEngine);
     }
 
     private FontStashSharpTextEngine CreateFontStashSharpTextEngine(CasaEngineGame game)
@@ -163,5 +170,6 @@ public sealed class UIRoot : IUIViewRuntime
 
         _disposed = true;
         ScreenStack.Clear();
+        _fonts?.Detach(_textEngine);
     }
 }

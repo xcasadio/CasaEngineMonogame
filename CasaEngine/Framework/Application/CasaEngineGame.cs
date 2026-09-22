@@ -39,6 +39,9 @@ public class CasaEngineGame : Game, IObservableUpdate
     public new event EventHandler<EventArgs> EndUpdate;
     public AssetContentManager AssetContentManager { get; } = new();
     public FontSystem FontSystem { get; private set; }
+
+    /// <summary>The bitmap fonts held for the UI, given to every UI text engine (ADR-0036).</summary>
+    public UIFontRegistry UIFonts { get; private set; }
     internal byte[] DefaultFontSystemTtfData { get; private set; } = Array.Empty<byte>();
     public SpriteBatch SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
@@ -358,6 +361,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         ScrollingLayerComponent = new ScrollingLayerComponent(this);
         CellularLayerComponent = new CellularLayerComponent(this);
         FontSystem = new FontSystem();
+        UIFonts = new UIFontRegistry(AssetContentManager);
 
         // Initialize the multi-view render pipeline.
         // SpriteBatch is passed so that viewport-scoped color clears work correctly on the
