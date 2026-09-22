@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Reflection;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
@@ -28,6 +30,14 @@ public class GeneratedAssetHandleCacheTests
         {
             RuntimeContext = new EngineRuntimeContext(null, Path.GetTempPath(), _ => null),
         };
+    }
+
+    // The manager exposes no hold count; read its private lease to check the cache keeps exactly one.
+    private static int HoldCount(AssetContentManager manager, Guid id)
+    {
+        var leases = (IDictionary)typeof(AssetContentManager).GetField("_leases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(manager)!;
+        var lease = leases[id]!;
+        return (int)lease.GetType().GetField("HandleCount")!.GetValue(lease)!;
     }
 
     [Fact]
@@ -64,13 +74,14 @@ public class GeneratedAssetHandleCacheTests
     }
 
     [Fact]
-    public void Acquire_CachedInstanceIsStale_RebuildsUnderTheSameId_DoesNotThrow_AndReturnsTheNewInstance()
+    public void Acquire_CachedInstanceIsStale_RebuildsUnderTheSameId_DoesNotThrow_AndCachesTheNewInstanceUnderOneHold()
     {
         var manager = NewManager();
         int buildCount = 0;
         Func<GeneratedCubemapStub> build = () => { buildCount++; return new GeneratedCubemapStub { SequenceNumber = buildCount }; };
 
         var first = GeneratedAssetHandleCache<GeneratedCubemapStub>.Acquire(manager, GeneratedId, build, stub => stub.IsDisposed);
+        Assert.Equal(1, HoldCount(manager, GeneratedId));
         first.IsDisposed = true;
 
         var rebuilt = GeneratedAssetHandleCache<GeneratedCubemapStub>.Acquire(manager, GeneratedId, build, stub => stub.IsDisposed);
@@ -78,6 +89,16 @@ public class GeneratedAssetHandleCacheTests
         Assert.Equal(2, buildCount);
         Assert.NotSame(first, rebuilt);
         Assert.Equal(2, rebuilt.SequenceNumber);
+        Assert.Equal(1, HoldCount(manager, GeneratedId));
+
+        // The rebuilt instance is what the cache now holds: a third call neither rebuilds nor replaces it.
+        var third = GeneratedAssetHandleCache<GeneratedCubemapStub>.Acquire(manager, GeneratedId, build, stub => stub.IsDisposed);
+
+        Assert.Same(rebuilt, third);
+        Assert.Equal(2, buildCount);
+        Assert.Equal(1, HoldCount(manager, GeneratedId));
+        Assert.True(GeneratedAssetHandleCache<GeneratedCubemapStub>.TryGetCached(manager, GeneratedId, stub => stub.IsDisposed, out var cached));
+        Assert.Same(rebuilt, cached);
 
         // The generator's hold on the id was kept across the rebuild (P8): still not collected.
         Assert.Equal(0, manager.CollectUnreferenced());
