@@ -88,7 +88,9 @@ public class EditorWorldPlaySnapshotTests
         var references = Assert.IsType<JArray>(snapshot["entity_references"]);
         var entityNode = Assert.IsType<JObject>(Assert.IsType<JObject>(references[0])["entity"]);
 
-        var materialized = new CasaEngine.Framework.Assets.AssetContentManager().Load<Entity>(entityNode);
+        // ADR-0037 (P4): an inline entity is deserialized directly, as EntityReference does.
+        var materialized = new Entity();
+        materialized.Load(entityNode);
 
         Assert.Equal("Hero", materialized.Name);
         Assert.IsType<LightComponent>(materialized.RootComponent);

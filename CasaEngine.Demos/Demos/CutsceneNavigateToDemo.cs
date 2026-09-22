@@ -50,7 +50,7 @@ public sealed class CutsceneNavigateToDemo : Demo
 
         var assetInfo = AssetCatalog.GetByFileName(@"Cutscenes\navigate_to_grid.cutscene")
             ?? throw new InvalidOperationException("Cutscene navigation demo asset is missing from AssetInfos.json.");
-        _cutsceneAsset = game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id, cache: false);
+        _cutsceneAsset = game.AssetContentManager.LoadCopy<CutsceneAsset>(assetInfo.Id);
         _autoPlayPending = true;
     }
 

@@ -137,7 +137,7 @@ public class RetargetProfileAssetLoaderTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            var retargetProfile = assetContentManager.Load<RetargetProfile>(retargetProfileAssetId);
+            var retargetProfile = assetContentManager.LoadCopy<RetargetProfile>(retargetProfileAssetId);
 
             Assert.Equal(RetargetReferencePoseMode.BindPose, retargetProfile.ReferencePoseMode);
             Assert.Equal(RetargetAxis.PositiveZ, retargetProfile.SourceForwardAxis);
@@ -150,6 +150,13 @@ public class RetargetProfileAssetLoaderTests
             Assert.Equal(1, rightHandIndex);
             Assert.True(retargetProfile.TryGetJointMapping(0, out var rootMapping));
             Assert.Equal(0.01f, rootMapping.TranslationScale);
+
+            // ADR-0037: a profile loaded as an asset holds both skeletons, and gives them back when it is freed:
+            // the profile and its two skeletons go in the same collection.
+            var heldAssets = new AssetContentManager();
+            AssetLoaderRegistry.RegisterLoaders(heldAssets);
+            heldAssets.Acquire<RetargetProfile>(retargetProfileAssetId).Dispose();
+            Assert.Equal(3, heldAssets.CollectUnreferenced());
         }
         finally
         {

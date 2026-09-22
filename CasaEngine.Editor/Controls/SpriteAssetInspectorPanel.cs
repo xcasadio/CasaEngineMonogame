@@ -522,11 +522,11 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             _spriteData.AssetId = assetInfo.Id;
             _spriteData.Name = assetInfo.Name;
             _spriteData.FileName = assetInfo.FileName;
-            _editorRuntime.AssetContentManager.AddAsset(assetInfo, _spriteData);
+            _editorRuntime.AssetContentManager.Replace(assetInfo.Id, _spriteData);
             return;
         }
 
-        _editorRuntime.AssetContentManager.AddAsset(spriteAssetId, _spriteData?.Name ?? string.Empty, _spriteData);
+        _editorRuntime.AssetContentManager.Replace(spriteAssetId, _spriteData);
     }
 
     private Guid GetLoadedSpriteAssetId()

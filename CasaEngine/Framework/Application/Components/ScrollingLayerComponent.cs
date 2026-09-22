@@ -1,4 +1,5 @@
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Rendering.ScrollingLayers;
 using Microsoft.Xna.Framework;
@@ -23,6 +24,7 @@ public class ScrollingLayerComponent : GameComponent
 {
     private readonly CasaEngineGame _game;
     private Texture2D[][] _layerFrames = System.Array.Empty<Texture2D[]>();
+    private readonly System.Collections.Generic.List<AssetHandle<CasaEngineTexture>> _layerTextureHandles = new();
     private int _resolvedLayersVersion = -1;
     private Texture2D _whiteTexture;
     private bool _isDisposed;
@@ -80,6 +82,10 @@ public class ScrollingLayerComponent : GameComponent
     /// </summary>
     public void ResolveTextures(System.Func<System.Guid, Texture2D> loader)
     {
+        // ADR-0037: this only runs on a layers-version change (never per frame, see the class doc), so
+        // releasing the previous resolve's handles here and re-acquiring below is not a hot-path cost.
+        ReleaseLayerTextureHandles();
+
         var layerCount = Service.LayerCount;
         var layerFrames = new Texture2D[layerCount][];
 
@@ -136,9 +142,25 @@ public class ScrollingLayerComponent : GameComponent
 
     private Texture2D LoadTexture(System.Guid id)
     {
-        var wrapperTexture = _game?.AssetContentManager.Load<CasaEngineTexture>(id);
-        wrapperTexture?.Load(_game.AssetContentManager);
-        return wrapperTexture?.Resource;
+        if (_game == null)
+        {
+            return null;
+        }
+
+        var handle = _game.AssetContentManager.Acquire<CasaEngineTexture>(id);
+        _layerTextureHandles.Add(handle);
+        handle.Asset.Load(_game.AssetContentManager);
+        return handle.Asset.Resource;
+    }
+
+    private void ReleaseLayerTextureHandles()
+    {
+        for (var i = 0; i < _layerTextureHandles.Count; i++)
+        {
+            _layerTextureHandles[i].Dispose();
+        }
+
+        _layerTextureHandles.Clear();
     }
 
     /// <summary>
@@ -312,6 +334,7 @@ public class ScrollingLayerComponent : GameComponent
             {
                 _whiteTexture?.Dispose();
                 _whiteTexture = null;
+                ReleaseLayerTextureHandles();
                 _isDisposed = true;
             }
         }

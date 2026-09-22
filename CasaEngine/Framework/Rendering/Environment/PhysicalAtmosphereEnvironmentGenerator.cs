@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
@@ -28,12 +29,16 @@ internal static class PhysicalAtmosphereEnvironmentGenerator
         settings.CubemapSize = NormalizeCubemapSize(settings.CubemapSize);
         Guid generatedAssetId = CreateGeneratedCubemapAssetId(settings);
         var assetContentManager = view.World.Game.AssetContentManager;
-        var cachedCubemap = assetContentManager.GetAsset<XnaTextureCube>(generatedAssetId);
-        if (cachedCubemap is { IsDisposed: false })
-        {
-            return cachedCubemap;
-        }
 
+        return GeneratedAssetHandleCache<XnaTextureCube>.Acquire(
+            assetContentManager,
+            generatedAssetId,
+            () => BuildCubemap(assetContentManager, settings),
+            IsCubemapDisposed);
+    }
+
+    private static XnaTextureCube BuildCubemap(AssetContentManager assetContentManager, PhysicalAtmosphereSettings settings)
+    {
         var cubemap = new XnaTextureCube(assetContentManager.GraphicsDevice, settings.CubemapSize, mipMap: false, SurfaceFormat.Vector4);
         for (int faceIndex = 0; faceIndex < Faces.Length; faceIndex++)
         {
@@ -54,11 +59,11 @@ internal static class PhysicalAtmosphereEnvironmentGenerator
             cubemap.SetData(Faces[faceIndex], facePixels);
         }
 
-        string assetName = BuildGeneratedAssetName(settings);
-        cubemap.Name = assetName;
-        assetContentManager.AddAsset(generatedAssetId, assetName, cubemap);
+        cubemap.Name = BuildGeneratedAssetName(settings);
         return cubemap;
     }
+
+    private static bool IsCubemapDisposed(XnaTextureCube cubemap) => cubemap.IsDisposed;
 
     internal static int NormalizeCubemapSize(int requestedCubemapSize)
     {

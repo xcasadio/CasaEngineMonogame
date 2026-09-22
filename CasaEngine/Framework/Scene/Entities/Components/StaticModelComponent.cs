@@ -1,6 +1,7 @@
 using System.ComponentModel;
 
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Models;
 
 using Microsoft.Xna.Framework;
@@ -40,6 +41,11 @@ public class StaticModelComponent : PrimitiveComponent
     /// <summary>Runtime reference to the loaded model.</summary>
     public StaticModel StaticModel { get; set; }
 
+    // ADR-0037: the static model is a shared asset, held through a counted handle for as long as this
+    // component references it. Given back in ReleaseStaticModelHandle (InitializeWithWorld's reset and
+    // Detach). A StaticModel assigned directly by code, without an asset id, has no handle.
+    private AssetHandle<StaticModel> _staticModelHandle;
+
     public List<MaterialSlotOverride> MaterialOverrides { get; } = new();
 
     public StaticModelComponent() { }
@@ -55,6 +61,19 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
     public override StaticModelComponent Clone() => new(this);
+
+    /// <summary>Gives back the hold on <see cref="StaticModel"/>, if one was taken by <see cref="InitializeWithWorld"/> (ADR-0037).</summary>
+    public override void Detach()
+    {
+        ReleaseStaticModelHandle();
+        base.Detach();
+    }
+
+    private void ReleaseStaticModelHandle()
+    {
+        _staticModelHandle?.Dispose();
+        _staticModelHandle = null;
+    }
 
     public IReadOnlyList<StaticModelMaterialSlot> GetMaterialSlots()
     {
@@ -184,9 +203,18 @@ public class StaticModelComponent : PrimitiveComponent
     {
         base.InitializeWithWorld(world);
 
-        if (StaticModelAssetId != Guid.Empty && StaticModel == null)
+        if (StaticModelAssetId != Guid.Empty)
         {
-            StaticModel = world.Game.AssetContentManager.Load<StaticModel>(StaticModelAssetId);
+            if (StaticModel == null)
+            {
+                _staticModelHandle?.Dispose();
+                _staticModelHandle = world.Game.AssetContentManager.Acquire<StaticModel>(StaticModelAssetId);
+                StaticModel = _staticModelHandle.Asset;
+            }
+        }
+        else
+        {
+            ReleaseStaticModelHandle();
         }
 
         StaticModel?.Initialize(world.Game.AssetContentManager);

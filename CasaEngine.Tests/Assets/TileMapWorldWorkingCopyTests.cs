@@ -88,7 +88,9 @@ public class TileMapWorldWorkingCopyTests
         Assert.True(File.Exists(componentPath), $"expected the tile map component at '{componentPath}'.");
 
         string source = File.ReadAllText(componentPath);
-        int loadIndex = source.IndexOf("Load<TileMapData>(TileMapDataAssetId)", StringComparison.Ordinal);
+        // ADR-0037: the component acquires a counted handle instead of Load<T>, but it must still be the
+        // one place that resolves its tile map data, and the working copy handed to CreateWorldWorkingCopy.
+        int loadIndex = source.IndexOf("Acquire<TileMapData>(TileMapDataAssetId)", StringComparison.Ordinal);
 
         Assert.True(loadIndex >= 0, "the component must still be the one place that loads its tile map data.");
         Assert.Contains(

@@ -6,6 +6,7 @@ using CasaEngine.Framework.Application.Components;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
@@ -121,6 +122,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     }
 
     private List<TileMapLayer> Layers { get; } = new();
+
+    // ADR-0037: the map data, its tilesets and their sheet textures are shared assets, held through
+    // counted handles for as long as the component lives and given back in ReleaseTileMapAssetHandles
+    // (InitializeWithWorld's reset, and Detach).
+    private AssetHandle<TileMapData> _tileMapDataHandle;
+    private readonly List<AssetHandle<TileSetData>> _tileSetHandles = new();
+    private readonly List<AssetHandle<Texture>> _tileSetTextureHandles = new();
+
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
@@ -208,6 +217,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         DisposeChunkGraphicsResources();
         RemoveAllCollisionObjects();
+        ReleaseTileMapAssetHandles();
         Layers.Clear();
         _autoTiles.Clear();
         _animatedTiles.Clear();
@@ -227,14 +237,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         if (TileMapDataAssetId != Guid.Empty)
         {
-            // The asset manager caches by id and nothing ever unloads, so this hands back the SAME
-            // instance to every world that shows this map - and a running game writes into it. Work on a
-            // copy and leave the loaded asset a pristine template: see
+            // The asset is shared: several worlds and a running game could write into the very same
+            // instance. Work on a copy and leave the held asset a pristine template: see
             // TileMapData.CreateWorldWorkingCopy for the defect this closes (tiles moved out of the base
-            // layers for depth sorting were gone on the next visit, so nobody drew them).
-            TileMapData = Owner.World.Game.AssetContentManager
-                .Load<TileMapData>(TileMapDataAssetId)
-                ?.CreateWorldWorkingCopy();
+            // layers for depth sorting were gone on the next visit, so nobody drew them). The handle
+            // itself is kept for as long as the component lives (ADR-0037) and given back in
+            // ReleaseTileMapAssetHandles.
+            _tileMapDataHandle = Owner.World.Game.AssetContentManager.Acquire<TileMapData>(TileMapDataAssetId);
+            TileMapData = _tileMapDataHandle.Asset?.CreateWorldWorkingCopy();
         }
 
         if (TileMapData == null)
@@ -1029,7 +1039,32 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         DisposeChunkGraphicsResources();
         RemoveAllCollisionObjects();
+        ReleaseTileMapAssetHandles();
         base.Detach();
+    }
+
+    /// <summary>
+    /// Gives back the counted holds on the map data, its tilesets and their sheet textures (ADR-0037).
+    /// Called at the top of <see cref="InitializeWithWorld"/> before rebuilding (a component can be
+    /// re-initialized without an intervening <see cref="Detach"/>, e.g. from the editor) and from
+    /// <see cref="Detach"/> itself.
+    /// </summary>
+    private void ReleaseTileMapAssetHandles()
+    {
+        _tileMapDataHandle?.Dispose();
+        _tileMapDataHandle = null;
+
+        for (var index = 0; index < _tileSetHandles.Count; index++)
+        {
+            _tileSetHandles[index].Dispose();
+        }
+        _tileSetHandles.Clear();
+
+        for (var index = 0; index < _tileSetTextureHandles.Count; index++)
+        {
+            _tileSetTextureHandles[index].Dispose();
+        }
+        _tileSetTextureHandles.Clear();
     }
 
     private void EnsureTileMapLoaded()
@@ -1071,7 +1106,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         for (var tileSetIndex = 0; tileSetIndex < TileMapData.TileSetDataAssetIds.Count; tileSetIndex++)
         {
-            var tileSetData = Owner.World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetIds[tileSetIndex]);
+            var tileSetHandle = Owner.World.Game.AssetContentManager.Acquire<TileSetData>(TileMapData.TileSetDataAssetIds[tileSetIndex]);
+            _tileSetHandles.Add(tileSetHandle);
+            var tileSetData = tileSetHandle.Asset;
             if (tileSetIndex == 0)
             {
                 TileSetData = tileSetData;
@@ -1081,7 +1118,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 throw new NotSupportedException("TileMap runtime requires every tileset used by a map to have the same tile size.");
             }
 
-            var texture = Owner.World.Game.AssetContentManager.Load<Texture>(tileSetData.SpriteSheetAssetId);
+            var textureHandle = Owner.World.Game.AssetContentManager.Acquire<Texture>(tileSetData.SpriteSheetAssetId);
+            _tileSetTextureHandles.Add(textureHandle);
+            var texture = textureHandle.Asset;
             texture.Load(Owner.World.Game.AssetContentManager);
 
             _tileSets.Add(tileSetData);

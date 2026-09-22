@@ -66,7 +66,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 ### Ressources
 
-- [asset-handles-and-bitmap-fonts.md](engine/asset-handles-and-bitmap-fonts.md) — handles comptés sur une instance unique par ressource (`AssetContentManager.Acquire<T>`), libération différée au début de chaque changement de monde (`CollectUnreferenced`), polices bitmap `.fnt` comme ressources et registre de polices du jeu (`CasaEngineGame.UIFonts`) résolu par nom de famille dans le XAML (ADR-0036).
+- [asset-handles-and-bitmap-fonts.md](engine/asset-handles-and-bitmap-fonts.md) — seule API des ressources : handles comptés sur une instance unique par ressource (`AssetContentManager.Acquire<T>`), copies pour les modèles (`LoadCopy<T>`), objets fabriqués (`Register`, `Replace`), libération différée au début de chaque changement de monde (`CollectUnreferenced`), détachement de tout l'arbre d'une entité jetée ; polices bitmap `.fnt` comme ressources et registre de polices du jeu (`CasaEngineGame.UIFonts`) résolu par nom de famille dans le XAML (ADR-0036, ADR-0037).
 
 ### UI runtime (MGUI)
 

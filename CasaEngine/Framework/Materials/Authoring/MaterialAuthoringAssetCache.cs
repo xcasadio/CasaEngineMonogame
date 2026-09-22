@@ -26,7 +26,7 @@ internal sealed class MaterialAuthoringAssetCache
             return materialAsset;
         }
 
-        materialAsset = assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
+        materialAsset = assetContentManager.LoadCopy<MaterialAsset>(materialAssetId);
         _materialAssets[materialAssetId] = materialAsset;
         return materialAsset;
     }

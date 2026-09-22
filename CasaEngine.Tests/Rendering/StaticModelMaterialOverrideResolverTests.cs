@@ -1,3 +1,5 @@
+using System.Linq;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Models;
 
@@ -10,14 +12,44 @@ namespace CasaEngine.Tests.Rendering;
 
 public class StaticModelMaterialOverrideResolverTests
 {
+    // ADR-0037: a material read outside an authoring cache is a fresh, uncounted LoadCopy<MaterialAsset>, so
+    // the resolver's own catalog and loader stand in for the asset file these tests do not write to disk.
+    private sealed class StubMaterialAssetLoader : IAssetLoader
+    {
+        private readonly IReadOnlyDictionary<Guid, MaterialAsset> _materialAssetsById;
+
+        public StubMaterialAssetLoader(IReadOnlyDictionary<Guid, MaterialAsset> materialAssetsById)
+        {
+            _materialAssetsById = materialAssetsById;
+        }
+
+        public object LoadAsset(string fileName, AssetContentManager assetContentManager)
+            => _materialAssetsById[Guid.Parse(Path.GetFileName(fileName))];
+
+        public bool IsFileSupported(string fileName) => true;
+    }
+
+    private static AssetContentManager CreateAssetContentManager(params MaterialAsset[] materialAssets)
+    {
+        var materialAssetsById = materialAssets.ToDictionary(materialAsset => materialAsset.Id);
+        var assetInfosById = materialAssets.ToDictionary(
+            materialAsset => materialAsset.Id,
+            materialAsset => new AssetInfo(materialAsset.Id) { Name = materialAsset.Name, FileName = materialAsset.Id.ToString() });
+
+        var assetContentManager = new AssetContentManager
+        {
+            RuntimeContext = new EngineRuntimeContext(null, Path.GetTempPath(), id => assetInfosById.GetValueOrDefault(id)),
+        };
+        assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new StubMaterialAssetLoader(materialAssetsById));
+        return assetContentManager;
+    }
+
     [Fact]
     public void ResolveForMesh_UsesOverrideMaterialAssetAndInstanceOverrides()
     {
-        var assetContentManager = new AssetContentManager();
         var defaultMaterialAsset = CreateLitDiffuseMaterialAsset("Default", Color.White);
         var overrideMaterialAsset = CreateLitDiffuseMaterialAsset("Override", Color.LightGray);
-        assetContentManager.AddAsset(defaultMaterialAsset.Id, defaultMaterialAsset.Name, defaultMaterialAsset);
-        assetContentManager.AddAsset(overrideMaterialAsset.Id, overrideMaterialAsset.Name, overrideMaterialAsset);
+        var assetContentManager = CreateAssetContentManager(defaultMaterialAsset, overrideMaterialAsset);
 
         var mesh = new StaticModelMesh
         {
@@ -55,9 +87,8 @@ public class StaticModelMaterialOverrideResolverTests
     [Fact]
     public void ResolveForMesh_UsesDefaultSlotMaterialAssetForInstanceOverrides()
     {
-        var assetContentManager = new AssetContentManager();
         var defaultMaterialAsset = CreateLitDiffuseMaterialAsset("Default", Color.White);
-        assetContentManager.AddAsset(defaultMaterialAsset.Id, defaultMaterialAsset.Name, defaultMaterialAsset);
+        var assetContentManager = CreateAssetContentManager(defaultMaterialAsset);
 
         var mesh = new StaticModelMesh
         {

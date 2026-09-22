@@ -3,6 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
@@ -26,6 +27,12 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     private FootLockController _footLockController;
     private FootLockContactsProvider _footLockContactsProvider;
     private bool[] _footLockContacts = Array.Empty<bool>();
+
+    // ADR-0037: a SkinnedMesh loaded by asset id is a shared asset, held through a counted handle for as
+    // long as this component references it. Given back in ReleaseSkinnedMeshHandle
+    // (InitializeWithWorld's reset and Detach). A SkinnedMesh assigned directly by code, without an asset
+    // id, has no handle here.
+    private AssetHandle<SkinnedMesh> _skinnedMeshHandle;
     private int _footLockFirstConstraintIndex;
     private float _footLockPendingDeltaSeconds;
     private bool _footLockApplyConstraints = true;
@@ -163,13 +170,29 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 
         _skinnedMeshRendererComponent = Owner.World.Game.GetGameComponent<SkinnedMeshRendererComponent>();
 
+        ReleaseSkinnedMeshHandle();
+
         if (SkinnedMeshAssetId != Guid.Empty)
         {
-            SkinnedMesh = world.Game.AssetContentManager.Load<SkinnedMesh>(SkinnedMeshAssetId);
+            _skinnedMeshHandle = world.Game.AssetContentManager.Acquire<SkinnedMesh>(SkinnedMeshAssetId);
+            SkinnedMesh = _skinnedMeshHandle.Asset;
             SkinnedMesh?.Initialize(Owner.World.Game.AssetContentManager);
         }
 
         EnsureAnimationRuntime();
+    }
+
+    /// <summary>Gives back the hold on <see cref="SkinnedMesh"/>, if one was taken by <see cref="InitializeWithWorld"/> (ADR-0037).</summary>
+    public override void Detach()
+    {
+        ReleaseSkinnedMeshHandle();
+        base.Detach();
+    }
+
+    private void ReleaseSkinnedMeshHandle()
+    {
+        _skinnedMeshHandle?.Dispose();
+        _skinnedMeshHandle = null;
     }
 
     public override SkinnedMeshComponent Clone()

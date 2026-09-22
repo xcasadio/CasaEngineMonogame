@@ -120,7 +120,7 @@ public class ParticleEffectAssetJsonSerializerTests
 
     private static void AssertSampleParticleAsset(AssetContentManager assetContentManager, Guid assetId, string expectedName, string expectedEmitterName, int expectedMaxParticles)
     {
-        ParticleEffectAsset asset = assetContentManager.Load<ParticleEffectAsset>(assetId, cache: false);
+        ParticleEffectAsset asset = assetContentManager.LoadCopy<ParticleEffectAsset>(assetId);
 
         Assert.Equal(expectedName, asset.Name);
         Assert.Single(asset.Emitters);

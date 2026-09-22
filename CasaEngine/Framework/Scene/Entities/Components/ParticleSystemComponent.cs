@@ -4,6 +4,7 @@ using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Rendering;
@@ -17,6 +18,12 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class ParticleSystemComponent : SceneComponent
 {
     private ParticleEffectAsset _particleEffectAsset;
+
+    // ADR-0037: the particle effect asset is shared, held through a counted handle for as long as this
+    // component references it (loaded through ParticleEffectAssetId) and given back in
+    // ReleaseParticleEffectAssetHandle. An asset handed directly to SetParticleEffectAsset is not
+    // acquired here: the caller owns it.
+    private AssetHandle<ParticleEffectAsset> _particleEffectAssetHandle;
     private ParticleRuntimeInstance _runtimeInstance;
     private ParticleRendererComponent _particleRendererComponent;
     private readonly List<ParticleRenderPacket> _renderPackets = new(64);
@@ -138,6 +145,12 @@ public class ParticleSystemComponent : SceneComponent
         LoadParticleEffectAsset();
     }
 
+    public override void Detach()
+    {
+        ReleaseParticleEffectAssetHandle();
+        base.Detach();
+    }
+
     public override ParticleSystemComponent Clone()
         => new(this);
 
@@ -252,11 +265,13 @@ public class ParticleSystemComponent : SceneComponent
     public void SetParticleEffectAsset(ParticleEffectAsset particleEffectAsset)
     {
         ArgumentNullException.ThrowIfNull(particleEffectAsset);
+        ReleaseParticleEffectAssetHandle();
         RebuildRuntime(particleEffectAsset);
     }
 
     public void ClearParticleEffectAsset()
     {
+        ReleaseParticleEffectAssetHandle();
         ParticleEffectAssetId = Guid.Empty;
         _particleEffectAsset = null;
         _runtimeInstance = null;
@@ -305,8 +320,16 @@ public class ParticleSystemComponent : SceneComponent
             return;
         }
 
-        ParticleEffectAsset particleEffectAsset = Owner.World.Game.AssetContentManager.Load<ParticleEffectAsset>(ParticleEffectAssetId);
-        RebuildRuntime(particleEffectAsset);
+        ReleaseParticleEffectAssetHandle();
+        _particleEffectAssetHandle = Owner.World.Game.AssetContentManager.Acquire<ParticleEffectAsset>(ParticleEffectAssetId);
+        RebuildRuntime(_particleEffectAssetHandle.Asset);
+    }
+
+    /// <summary>Gives back the hold this component itself took on its particle effect asset (ADR-0037).</summary>
+    private void ReleaseParticleEffectAssetHandle()
+    {
+        _particleEffectAssetHandle?.Dispose();
+        _particleEffectAssetHandle = null;
     }
 
     private bool CanUpdateRuntime()

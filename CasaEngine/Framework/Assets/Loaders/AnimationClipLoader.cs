@@ -23,8 +23,19 @@ public sealed class AnimationClipLoader : IAssetLoader
                 throw new InvalidOperationException($"Animation clip asset '{fileName}' has no skeleton reference.");
             }
 
-            var skeletonDefinition = assetContentManager.Load<SkeletonDefinition>(animationClipAsset.SkeletonAssetId);
-            return AnimationAssetDataConverter.CreateAnimationClip(animationClipAsset, skeletonDefinition);
+            // ADR-0037: the clip keeps its skeleton, so it holds it and gives it back when it is freed.
+            var skeletonHold = assetContentManager.Acquire<SkeletonDefinition>(animationClipAsset.SkeletonAssetId);
+            try
+            {
+                var animationClip = AnimationAssetDataConverter.CreateAnimationClip(animationClipAsset, skeletonHold.Asset);
+                animationClip.HoldSkeleton(skeletonHold);
+                return animationClip;
+            }
+            catch
+            {
+                skeletonHold.Dispose();
+                throw;
+            }
         }
         catch (Exception exception)
         {

@@ -40,6 +40,14 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private readonly List<Animation2d> _animationsAddedByCode = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
+
+    // ADR-0037: sprite data and animation data are shared assets, held through counted handles for as
+    // long as this component references them, and given back in ReleaseSpriteHandles /
+    // ReleaseAnimationDataHandles (InitializeWithWorld's reset and Detach). Each Sprite in _spriteById
+    // holds its own sheet texture handle and is disposed alongside its sprite data handle.
+    private readonly Dictionary<Guid, AssetHandle<SpriteData>> _spriteDataHandleById = new();
+    private readonly List<AssetHandle<Animation2dData>> _animationDataHandles = new();
+
     private readonly List<Guid> _spriteIdsToResolve = new();
     private readonly Dictionary<Animation2d, Animation2dCompositionSampler> _compositionSamplerByAnimation = new();
 
@@ -161,13 +169,14 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         //SetCurrentAnimation below take its same-name shortcut and leave the sampler unbound.
         CurrentAnimation = null;
         _currentSpriteId = Guid.Empty;
-        _spriteById.Clear();
-        _spriteDataById.Clear();
+        ReleaseSpriteHandles();
+        ReleaseAnimationDataHandles();
 
         foreach (var assetId in _animationAssetIds)
         {
-            var animation2dData = Owner.World.Game.AssetContentManager.Load<Animation2dData>(assetId);
-            RegisterAnimation(new Animation2d(animation2dData));
+            var animationDataHandle = Owner.World.Game.AssetContentManager.Acquire<Animation2dData>(assetId);
+            _animationDataHandles.Add(animationDataHandle);
+            RegisterAnimation(new Animation2d(animationDataHandle.Asset));
         }
 
         foreach (var animation2d in _animationsAddedByCode)
@@ -277,7 +286,19 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         bool wasCurrentSprite = _currentSpriteId == spriteAssetId;
 
+        // spriteData is supplied directly by the reload service, not resolved through Acquire here: give
+        // back whatever sprite data hold this component took itself, so it does not keep pinning a stale
+        // instance the manager may have already replaced.
+        if (_spriteDataHandleById.Remove(spriteAssetId, out var staleDataHandle))
+        {
+            staleDataHandle.Dispose();
+        }
         _spriteDataById[spriteAssetId] = spriteData;
+
+        if (_spriteById.Remove(spriteAssetId, out var staleSprite))
+        {
+            staleSprite.Dispose();
+        }
         _spriteById[spriteAssetId] = Sprite.Create(spriteData, _assetContentManager);
 
         IsBoundingBoxDirty = true;
@@ -406,10 +427,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             return sprite;
         }
 
-        SpriteData spriteData;
+        AssetHandle<SpriteData> spriteDataHandle;
         try
         {
-            spriteData = _assetContentManager.Load<SpriteData>(spriteId);
+            spriteDataHandle = _assetContentManager.Acquire<SpriteData>(spriteId);
         }
         catch (InvalidOperationException exception)
         {
@@ -417,15 +438,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             return null;
         }
 
-        if (spriteData == null)
-        {
-            Logs.WriteError($"AnimatedSpriteComponent : the sprite doesn't exist '{spriteId}'");
-            return null;
-        }
-
+        var spriteData = spriteDataHandle.Asset;
         sprite = Sprite.Create(spriteData, _assetContentManager);
         _spriteById.Add(spriteId, sprite);
         _spriteDataById[spriteId] = spriteData;
+        _spriteDataHandleById[spriteId] = spriteDataHandle;
         return sprite;
     }
 
@@ -698,7 +715,36 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public override void Detach()
     {
         DestroyCollisionBodies();
+        ReleaseSpriteHandles();
+        ReleaseAnimationDataHandles();
         base.Detach();
+    }
+
+    /// <summary>Disposes every held sprite (and its sprite data hold), and clears the lookup tables.</summary>
+    private void ReleaseSpriteHandles()
+    {
+        foreach (var sprite in _spriteById.Values)
+        {
+            sprite.Dispose();
+        }
+        _spriteById.Clear();
+
+        foreach (var handle in _spriteDataHandleById.Values)
+        {
+            handle.Dispose();
+        }
+        _spriteDataHandleById.Clear();
+        _spriteDataById.Clear();
+    }
+
+    /// <summary>Gives back every animation data hold taken in <see cref="InitializeWithWorld"/>.</summary>
+    private void ReleaseAnimationDataHandles()
+    {
+        for (var index = 0; index < _animationDataHandles.Count; index++)
+        {
+            _animationDataHandles[index].Dispose();
+        }
+        _animationDataHandles.Clear();
     }
 
     public override BoundingBox GetBoundingBox()

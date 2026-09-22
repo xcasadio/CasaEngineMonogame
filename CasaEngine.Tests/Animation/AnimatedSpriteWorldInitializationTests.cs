@@ -1,7 +1,10 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Xunit;
@@ -58,6 +61,166 @@ public class AnimatedSpriteWorldInitializationTests
         var secondSampler = GetCurrentSampler(component);
         Assert.NotNull(secondSampler);
         Assert.NotSame(firstSampler, secondSampler);
+    }
+
+    // ---- ADR-0037: animation data is acquired through a counted handle, not Load<T> ----
+
+    private static readonly Guid AnimationAssetId = Guid.Parse("77777777-7777-7777-7777-777777777777");
+
+    private sealed class Animation2dDataLoader : CasaEngine.Framework.Assets.IAssetLoader
+    {
+        public int Loads;
+
+        public object LoadAsset(string fileName, AssetContentManager assetContentManager)
+        {
+            Loads++;
+            return CreateAnimationData("loaded_from_asset_id");
+        }
+
+        public bool IsFileSupported(string fileName) => true;
+    }
+
+    private static AssetContentManager NewAssetContentManager(out Animation2dDataLoader loader)
+    {
+        var infos = new Dictionary<Guid, CasaEngine.Framework.Assets.AssetInfo>
+        {
+            [AnimationAssetId] = new CasaEngine.Framework.Assets.AssetInfo(AnimationAssetId) { Name = "walk", FileName = "walk.anim2d" },
+        };
+
+        var manager = new AssetContentManager
+        {
+            RuntimeContext = new CasaEngine.Framework.Application.EngineRuntimeContext(null, Path.GetTempPath(), id => infos.GetValueOrDefault(id)),
+        };
+
+        loader = new Animation2dDataLoader();
+        manager.RegisterAssetLoader(typeof(Animation2dData), loader);
+        return manager;
+    }
+
+    private static void AddAnimationAssetId(AnimatedSpriteComponent component, Guid assetId)
+    {
+        var field = typeof(AnimatedSpriteComponent).GetField("_animationAssetIds", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        ((List<Guid>)field!.GetValue(component)!).Add(assetId);
+    }
+
+    [Fact]
+    public void InitializeWithWorld_AcquiresAnimationDataById_HeldUntilDetach()
+    {
+        var manager = NewAssetContentManager(out var loader);
+        var component = CreateComponentInWorld(manager, out var world);
+        AddAnimationAssetId(component, AnimationAssetId);
+
+        component.InitializeWithWorld(world);
+
+        Assert.Equal(1, loader.Loads);
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        component.Detach();
+
+        Assert.Equal(1, manager.CollectUnreferenced());
+    }
+
+    [Fact]
+    public void SecondInitializeWithWorld_ReleasesThePreviousAnimationDataHandle()
+    {
+        var manager = NewAssetContentManager(out var loader);
+        var component = CreateComponentInWorld(manager, out var world);
+        AddAnimationAssetId(component, AnimationAssetId);
+
+        component.InitializeWithWorld(world);
+        component.InitializeWithWorld(world);
+
+        // The first handle was given back before the second acquire, and nothing collected in between:
+        // the asset is still cached, so the second acquire reuses it instead of reloading it.
+        Assert.Equal(1, loader.Loads);
+        // Only the current (second) acquire is still held.
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        component.Detach();
+        Assert.Equal(1, manager.CollectUnreferenced());
+    }
+
+    [Fact]
+    public void Detach_ReleasesEveryHeldSprite_AndItsSpriteDataHandle()
+    {
+        var spriteDataId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var textureId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var infos = new Dictionary<Guid, AssetInfo>
+        {
+            [spriteDataId] = new AssetInfo(spriteDataId) { Name = "sprite", FileName = "sprite.sprite" },
+            [textureId] = new AssetInfo(textureId) { Name = "sheet", FileName = "sheet.texture" },
+        };
+        var manager = new AssetContentManager
+        {
+            RuntimeContext = new EngineRuntimeContext(null, Path.GetTempPath(), id => infos.GetValueOrDefault(id)),
+        };
+        manager.RegisterAssetLoader(typeof(SpriteData), new SpriteDataLoader());
+        manager.RegisterAssetLoader(typeof(Texture), new TextureLoader());
+
+        var component = CreateComponentInWorld(out _);
+        var spriteDataHandle = manager.Acquire<SpriteData>(spriteDataId);
+        var sprite = CreateSpriteHoldingTexture(manager, textureId);
+        PutSpriteAndHandle(component, spriteDataId, sprite, spriteDataHandle);
+
+        Assert.Equal(0, manager.CollectUnreferenced());
+
+        component.Detach();
+
+        // Both the sprite data hold and the sprite's own texture hold (given back by Sprite.Dispose)
+        // are released.
+        Assert.Equal(2, manager.CollectUnreferenced());
+    }
+
+    private sealed class SpriteDataLoader : IAssetLoader
+    {
+        public object LoadAsset(string fileName, AssetContentManager assetContentManager) => new SpriteData();
+
+        public bool IsFileSupported(string fileName) => true;
+    }
+
+    private sealed class TextureLoader : IAssetLoader
+    {
+        public object LoadAsset(string fileName, AssetContentManager assetContentManager) => new Texture(Guid.NewGuid(), null);
+
+        public bool IsFileSupported(string fileName) => true;
+    }
+
+    /// <summary>A Sprite holding a real texture handle, built without Sprite.Create (no GraphicsDevice
+    /// needed - same technique SpriteRendererComponentBlendModeTests uses).</summary>
+    private static Sprite CreateSpriteHoldingTexture(AssetContentManager manager, Guid textureId)
+    {
+        var textureHandle = manager.Acquire<Texture>(textureId);
+        var sprite = (Sprite)RuntimeHelpers.GetUninitializedObject(typeof(Sprite));
+        var field = typeof(Sprite).GetField("_textureHold", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        field!.SetValue(sprite, textureHandle);
+        return sprite;
+    }
+
+    private static void PutSpriteAndHandle(AnimatedSpriteComponent component, Guid spriteId, Sprite sprite, AssetHandle<SpriteData> handle)
+    {
+        var spriteByIdField = typeof(AnimatedSpriteComponent).GetField("_spriteById", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(spriteByIdField);
+        ((Dictionary<Guid, Sprite>)spriteByIdField!.GetValue(component)!)[spriteId] = sprite;
+
+        var handleByIdField = typeof(AnimatedSpriteComponent).GetField("_spriteDataHandleById", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(handleByIdField);
+        ((Dictionary<Guid, AssetHandle<SpriteData>>)handleByIdField!.GetValue(component)!)[spriteId] = handle;
+    }
+
+    private static AnimatedSpriteComponent CreateComponentInWorld(AssetContentManager assetContentManager, out CasaEngine.Framework.Scene.World.World world)
+    {
+        var component = CreateComponentInWorld(out world);
+        SetBackingField(world.Game, nameof(CasaEngineGame.AssetContentManager), assetContentManager);
+        return component;
+    }
+
+    private static void SetBackingField(object instance, string propertyName, object value)
+    {
+        var field = instance.GetType().GetField($"<{propertyName}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        field!.SetValue(instance, value);
     }
 
     private static Animation2dData CreateAnimationData(string name)

@@ -15,6 +15,12 @@ public sealed class MaterialCompiler
         IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         AssetContentManager assetContentManager);
 
+    // Declared before RuntimeMaterialFactories: static field initializers run in declaration order, and
+    // CreateRuntimeMaterialFactories() below reads this field to seed the "lit-diffuse" entry.
+    private static readonly RuntimeMaterialFactory LitDiffuseFactory =
+        (materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager) =>
+            CreateLitDiffuseMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager, textureHolds: null);
+
     private static readonly object RuntimeMaterialFactoryLock = new();
     private static readonly Dictionary<string, RuntimeMaterialFactory> RuntimeMaterialFactories =
         CreateRuntimeMaterialFactories();
@@ -25,38 +31,59 @@ public sealed class MaterialCompiler
     public MaterialBase CompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
         => CompileBoth(materialAsset, assetContentManager).RuntimeMaterial;
 
-    internal (CompiledMaterial CompiledMaterial, MaterialBase RuntimeMaterial) CompileBoth(
+    /// <summary>
+    /// Compiles <paramref name="materialAsset"/>. Every texture and cubemap it reads is acquired through
+    /// <see cref="AssetContentManager.Acquire{T}"/> and returned as <c>TextureHolds</c> (ADR-0037): the caller
+    /// owns those holds and must dispose them once the compiled material is no longer needed, or on failure
+    /// of this call itself, to avoid leaking the acquired images. A caller that discards them (the public
+    /// <see cref="Compile"/> and <see cref="CompileRuntimeMaterial"/> convenience wrappers) keeps every
+    /// resolved image loaded for as long as the process runs, same as before this asset held a counted handle.
+    /// </summary>
+    internal (CompiledMaterial CompiledMaterial, MaterialBase RuntimeMaterial, IReadOnlyList<IDisposable> TextureHolds) CompileBoth(
         MaterialAsset materialAsset,
         AssetContentManager assetContentManager)
     {
         ArgumentNullException.ThrowIfNull(materialAsset);
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
-        var definition = materialAsset.GetRequiredDefinition();
-        var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
-        var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
-        var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
-        var compiledTextureBindings = BuildCompiledTextureBindings(definition, effectiveValues, resolvedTextures, runtimeMaterial);
+        var textureHolds = new List<IDisposable>();
+        try
+        {
+            var definition = materialAsset.GetRequiredDefinition();
+            var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
+            var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager, textureHolds);
+            var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager, textureHolds);
+            var compiledTextureBindings = BuildCompiledTextureBindings(definition, effectiveValues, resolvedTextures, runtimeMaterial);
 
-        var compiledMaterial = new CompiledMaterial(
-            definitionId: definition.Id,
-            effectiveShader: EffectiveShaderResolver.Resolve(runtimeMaterial),
-            properties: BuildCompiledProperties(definition, effectiveValues),
-            textures: resolvedTextures,
-            textureBindings: compiledTextureBindings,
-            sourceAssetId: materialAsset.Id,
-            name: materialAsset.Name,
-            features: RenderFeatureResolver.ResolveMaterialFeatures(runtimeMaterial),
-            blendState: runtimeMaterial.BlendState,
-            depthStencilState: runtimeMaterial.DepthStencilState,
-            rasterizerState: runtimeMaterial.RasterizerState,
-            samplerState: runtimeMaterial.SamplerState,
-            isTransparent: runtimeMaterial.IsTransparent,
-            queue: runtimeMaterial.Queue,
-            castShadows: runtimeMaterial.CastShadows,
-            receiveShadows: runtimeMaterial.ReceiveShadows);
+            var compiledMaterial = new CompiledMaterial(
+                definitionId: definition.Id,
+                effectiveShader: EffectiveShaderResolver.Resolve(runtimeMaterial),
+                properties: BuildCompiledProperties(definition, effectiveValues),
+                textures: resolvedTextures,
+                textureBindings: compiledTextureBindings,
+                sourceAssetId: materialAsset.Id,
+                name: materialAsset.Name,
+                features: RenderFeatureResolver.ResolveMaterialFeatures(runtimeMaterial),
+                blendState: runtimeMaterial.BlendState,
+                depthStencilState: runtimeMaterial.DepthStencilState,
+                rasterizerState: runtimeMaterial.RasterizerState,
+                samplerState: runtimeMaterial.SamplerState,
+                isTransparent: runtimeMaterial.IsTransparent,
+                queue: runtimeMaterial.Queue,
+                castShadows: runtimeMaterial.CastShadows,
+                receiveShadows: runtimeMaterial.ReceiveShadows);
 
-        return (compiledMaterial, runtimeMaterial);
+            return (compiledMaterial, runtimeMaterial, textureHolds);
+        }
+        catch
+        {
+            foreach (var textureHold in textureHolds)
+            {
+                textureHold.Dispose();
+            }
+
+            throw;
+        }
     }
 
     public static IDisposable RegisterRuntimeMaterialFactory(string definitionId, RuntimeMaterialFactory factory)
@@ -106,7 +133,7 @@ public sealed class MaterialCompiler
             {
                 cachedMaterial = authoringMaterialCache != null
                     ? authoringMaterialCache.GetOrLoad(assetId, assetContentManager)
-                    : assetContentManager.Load<MaterialAsset>(assetId, cache: false);
+                    : assetContentManager.LoadCopy<MaterialAsset>(assetId);
             }
             catch
             {
@@ -136,7 +163,8 @@ public sealed class MaterialCompiler
     private static Dictionary<string, Texture2D> BuildResolvedTextures(
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        AssetContentManager assetContentManager)
+        AssetContentManager assetContentManager,
+        List<IDisposable> textureHolds)
     {
         var textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
 
@@ -155,7 +183,7 @@ public sealed class MaterialCompiler
             }
 
             var textureAssetId = GetTextureId(effectiveValues[propertyDefinition.Key], propertyDefinition.Key);
-            textures.Add(propertyDefinition.Key, ResolveTextureResource(textureAssetId, assetContentManager));
+            textures.Add(propertyDefinition.Key, ResolveTextureResource(textureAssetId, assetContentManager, textureHolds));
         }
 
         return textures;
@@ -221,7 +249,8 @@ public sealed class MaterialCompiler
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
         IReadOnlyDictionary<string, Texture2D> resolvedTextures,
-        AssetContentManager assetContentManager)
+        AssetContentManager assetContentManager,
+        List<IDisposable> textureHolds)
     {
         RuntimeMaterialFactory factory;
         lock (RuntimeMaterialFactoryLock)
@@ -233,13 +262,23 @@ public sealed class MaterialCompiler
             }
         }
 
+        // The built-in factories resolve their own cubemap (not carried by resolvedTextures, a Texture2D
+        // dictionary) through this compiler's texture handles, so they are called directly instead of through
+        // the RuntimeMaterialFactory delegate, whose public shape a registered override must keep matching.
+        // A registered override does not receive textureHolds: it resolves its own textures, exactly as the
+        // built-in factories did before ADR-0037.
+        if (ReferenceEquals(factory, LitDiffuseFactory))
+        {
+            return CreateLitDiffuseMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager, textureHolds);
+        }
+
         return factory(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
     }
 
     private static Dictionary<string, RuntimeMaterialFactory> CreateRuntimeMaterialFactories()
         => new(StringComparer.OrdinalIgnoreCase)
         {
-            ["lit-diffuse"] = CreateLitDiffuseMaterial,
+            ["lit-diffuse"] = LitDiffuseFactory,
             ["unlit-texture"] = CreateUnlitTextureMaterial,
         };
 
@@ -248,7 +287,8 @@ public sealed class MaterialCompiler
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
         IReadOnlyDictionary<string, Texture2D> resolvedTextures,
-        AssetContentManager assetContentManager)
+        AssetContentManager assetContentManager,
+        List<IDisposable> textureHolds)
     {
         var material = new LitDiffuseMaterial();
         ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
@@ -258,7 +298,7 @@ public sealed class MaterialCompiler
         material.NormalMapAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
         material.NormalMap = resolvedTextures["normal_texture"];
         material.ReflectionCubeAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
-        material.ReflectionCube = ResolveTextureCubeResource(material.ReflectionCubeAssetId, assetContentManager);
+        material.ReflectionCube = ResolveTextureCubeResource(material.ReflectionCubeAssetId, assetContentManager, textureHolds);
         material.DiffuseColor = GetColor(effectiveValues["diffuse_color"], "diffuse_color");
         material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
         material.AmbientColor = GetVector3(effectiveValues["ambient_color"], "ambient_color");
@@ -309,26 +349,41 @@ public sealed class MaterialCompiler
         material.SetSamplerStateByName(materialAsset.SamplerStateName);
     }
 
-    private static Texture2D ResolveTextureResource(Guid textureAssetId, AssetContentManager assetContentManager)
+    private static Texture2D ResolveTextureResource(Guid textureAssetId, AssetContentManager assetContentManager, List<IDisposable> textureHolds)
     {
         if (textureAssetId == Guid.Empty)
         {
             return null;
         }
 
+        AssetHandle<Assets.Textures.Texture> textureHandle = null;
         try
         {
-            var texture = assetContentManager.Load<Assets.Textures.Texture>(textureAssetId);
+            textureHandle = assetContentManager.Acquire<Assets.Textures.Texture>(textureAssetId);
+            var texture = textureHandle.Asset;
             texture.Load(assetContentManager);
+            if (textureHolds != null)
+            {
+                textureHolds.Add(textureHandle);
+            }
+            else
+            {
+                // No caller tracks compiled-material texture holds (Compile/CompileRuntimeMaterial called
+                // directly, outside MaterialCache): keep the hold for the life of the process, same as this
+                // texture being pinned before ADR-0037.
+                textureHandle = null;
+            }
+
             return texture.Resource;
         }
         catch
         {
+            textureHandle?.Dispose();
             return null;
         }
     }
 
-    private static XnaTextureCube ResolveTextureCubeResource(Guid textureAssetId, AssetContentManager assetContentManager)
+    private static XnaTextureCube ResolveTextureCubeResource(Guid textureAssetId, AssetContentManager assetContentManager, List<IDisposable> textureHolds)
     {
         if (textureAssetId == Guid.Empty)
         {
@@ -337,7 +392,13 @@ public sealed class MaterialCompiler
 
         try
         {
-            return assetContentManager.Load<XnaTextureCube>(textureAssetId);
+            var textureCubeHandle = assetContentManager.Acquire<XnaTextureCube>(textureAssetId);
+            if (textureHolds != null)
+            {
+                textureHolds.Add(textureCubeHandle);
+            }
+
+            return textureCubeHandle.Asset;
         }
         catch
         {

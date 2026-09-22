@@ -111,9 +111,10 @@ public class AnimationAssetLoaderTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            var skeletonDefinition = assetContentManager.Load<SkeletonDefinition>(skeletonAssetId);
-            var animationClip = assetContentManager.Load<AnimationClip>(clipAssetId);
-            var skinnedMesh = assetContentManager.Load<SkinnedMesh>(modelAssetId, cache: false);
+            // Shared instances: the clip must reference the very skeleton the manager hands out.
+            var skeletonDefinition = assetContentManager.Acquire<SkeletonDefinition>(skeletonAssetId).Asset;
+            var animationClip = assetContentManager.Acquire<AnimationClip>(clipAssetId).Asset;
+            var skinnedMesh = assetContentManager.LoadCopy<SkinnedMesh>(modelAssetId);
 
             Assert.Equal(1, skeletonDefinition.Count);
             Assert.Equal("Root", skeletonDefinition.GetJoint(0).Name);
@@ -126,6 +127,18 @@ public class AnimationAssetLoaderTests
             Assert.Equal(clipAssetId, skinnedMesh.DefaultAnimationClipAssetId);
             Assert.Single(skinnedMesh.AnimationClipAssetIds);
             Assert.Equal(clipAssetId, skinnedMesh.AnimationClipAssetIds[0]);
+
+            // ADR-0037: a clip loaded as an asset holds its skeleton, and gives it back when it is freed.
+            var heldAssets = new AssetContentManager();
+            AssetLoaderRegistry.RegisterLoaders(heldAssets);
+            var clipHold = heldAssets.Acquire<AnimationClip>(clipAssetId);
+            var skeletonHold = heldAssets.Acquire<SkeletonDefinition>(skeletonAssetId);
+            Assert.Same(skeletonHold.Asset, clipHold.Asset.Skeleton);
+
+            clipHold.Dispose();
+            Assert.Equal(1, heldAssets.CollectUnreferenced()); // the clip; the skeleton is still held
+            skeletonHold.Dispose();
+            Assert.Equal(1, heldAssets.CollectUnreferenced()); // now the skeleton
         }
         finally
         {

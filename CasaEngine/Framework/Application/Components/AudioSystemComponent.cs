@@ -68,6 +68,9 @@ public class AudioSystemComponent : GameComponent
             if (disposing)
             {
                 Service.Dispose();
+
+                // ADR-0037: gives back the clip handles the provider held for the whole game.
+                (Service.ClipProvider as IDisposable)?.Dispose();
             }
         }
         finally

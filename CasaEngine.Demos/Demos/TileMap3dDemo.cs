@@ -28,7 +28,7 @@ public class TileMap3dDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         var assetInfo = AssetCatalog.GetByFileName(@"Maps\map_1_1.tileMap");
-        var tileMapData = game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
+        var tileMapData = game.AssetContentManager.LoadCopy<TileMapData>(assetInfo.Id);
 
         //============ ground tile map (rotated -90 degrees around X) ===============
         // A tile map occupies x in [0, MapWidth] and y in [-MapHeight, 0] in its local space (rows grow

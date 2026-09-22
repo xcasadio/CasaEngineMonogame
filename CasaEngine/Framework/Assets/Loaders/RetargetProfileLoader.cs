@@ -28,9 +28,23 @@ public sealed class RetargetProfileLoader : IAssetLoader
                 throw new InvalidOperationException($"Retarget profile asset '{fileName}' has no target skeleton reference.");
             }
 
-            var sourceSkeleton = assetContentManager.Load<SkeletonDefinition>(retargetProfileAsset.SourceSkeletonAssetId);
-            var targetSkeleton = assetContentManager.Load<SkeletonDefinition>(retargetProfileAsset.TargetSkeletonAssetId);
-            return RetargetProfileAssetDataConverter.CreateRetargetProfile(retargetProfileAsset, sourceSkeleton, targetSkeleton);
+            // ADR-0037: the profile keeps both skeletons, so it holds them and gives them back when it is freed.
+            var sourceHold = assetContentManager.Acquire<SkeletonDefinition>(retargetProfileAsset.SourceSkeletonAssetId);
+            AssetHandle<SkeletonDefinition> targetHold = null;
+            try
+            {
+                targetHold = assetContentManager.Acquire<SkeletonDefinition>(retargetProfileAsset.TargetSkeletonAssetId);
+                var retargetProfile = RetargetProfileAssetDataConverter.CreateRetargetProfile(
+                    retargetProfileAsset, sourceHold.Asset, targetHold.Asset);
+                retargetProfile.HoldSkeletons(sourceHold, targetHold);
+                return retargetProfile;
+            }
+            catch
+            {
+                targetHold?.Dispose();
+                sourceHold.Dispose();
+                throw;
+            }
         }
         catch (Exception exception)
         {

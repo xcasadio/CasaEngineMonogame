@@ -80,7 +80,7 @@ internal static class StaticModelMaterialOverrideResolver
                 {
                     cachedMaterialAsset = authoringMaterialCache != null
                         ? authoringMaterialCache.GetOrLoad(materialAssetId, assetContentManager)
-                        : assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
+                        : assetContentManager.LoadCopy<MaterialAsset>(materialAssetId);
                     authoringMaterialCacheMissCount++;
                 }
             }

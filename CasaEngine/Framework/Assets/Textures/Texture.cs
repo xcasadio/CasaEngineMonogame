@@ -12,6 +12,10 @@ public class Texture : ObjectBase, IAssetable
     private Guid _texture2dAssetId = Guid.Empty;
     protected Texture2D Texture2d;
 
+    // ADR-0037: a texture loaded from its asset shares its Texture2D with every other user of that image, so it
+    // holds it through a handle instead of owning it. A texture built on a raw Texture2D owns it.
+    private AssetHandle<Texture2D> _texture2dHold;
+
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public virtual Texture2D Resource
@@ -59,13 +63,23 @@ public class Texture : ObjectBase, IAssetable
         //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new ScreenGui(GraphicsDevice));
     }
 
+    /// <summary>
+    /// Resolves the image of this texture. A shared texture asset is loaded by several users (every sprite of a
+    /// sheet calls this), so the image is acquired once and held until <see cref="Dispose"/> (ADR-0037).
+    /// </summary>
     public void Load(AssetContentManager assetContentManager)
     {
         GraphicsDevice = assetContentManager.GraphicsDevice;
-        Texture2d = assetContentManager.Load<Texture2D>(_texture2dAssetId);
+        _texture2dHold ??= assetContentManager.Acquire<Texture2D>(_texture2dAssetId);
+        Texture2d = _texture2dHold.Asset;
         Resource.Name = FileName;
     }
 
+    /// <summary>
+    /// Gives back the hold on a shared image (ADR-0037), or disposes an image this texture owns, such as the
+    /// default texture built on a raw <see cref="Texture2D"/>. The asset manager calls it when it frees the
+    /// texture (<see cref="IAssetable"/>).
+    /// </summary>
     public void Dispose()
     {
         DisposeManagedResources();
@@ -73,6 +87,14 @@ public class Texture : ObjectBase, IAssetable
 
     protected void DisposeManagedResources()
     {
+        if (_texture2dHold != null)
+        {
+            _texture2dHold.Dispose();
+            _texture2dHold = null;
+            Texture2d = null;
+            return;
+        }
+
         if (Texture2d is { IsDisposed: false })
         {
             Resource?.Dispose();
@@ -98,7 +120,20 @@ public class Texture : ObjectBase, IAssetable
         }
         else if (Texture2d is { IsDisposed: true })
         {
-            Texture2d = assetContentManager.Load<Texture2D>(_texture2dAssetId);
+            // The shared image went with the device. The cache may still hold the disposed instance: the
+            // first texture to notice reads a fresh one and replaces it (the holders are kept); the others
+            // then find it in the cache. This texture's hold moves to the current instance.
+            var current = assetContentManager.Acquire<Texture2D>(_texture2dAssetId);
+            if (current.Asset.IsDisposed)
+            {
+                current.Dispose();
+                assetContentManager.Replace(_texture2dAssetId, assetContentManager.LoadCopy<Texture2D>(_texture2dAssetId));
+                current = assetContentManager.Acquire<Texture2D>(_texture2dAssetId);
+            }
+
+            _texture2dHold?.Dispose();
+            _texture2dHold = current;
+            Texture2d = current.Asset;
         }
 
         GraphicsDevice = device;

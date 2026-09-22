@@ -45,7 +45,7 @@ public sealed class CutsceneMoveToDemo : Demo
 
         var assetInfo = AssetCatalog.GetByFileName(@"Cutscenes\move_to_direct.cutscene")
             ?? throw new InvalidOperationException("Cutscene demo asset is missing from AssetInfos.json.");
-        _cutsceneAsset = game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id, cache: false);
+        _cutsceneAsset = game.AssetContentManager.LoadCopy<CutsceneAsset>(assetInfo.Id);
         _autoPlayPending = true;
     }
 

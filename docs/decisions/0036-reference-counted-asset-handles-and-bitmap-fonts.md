@@ -1,6 +1,6 @@
 # ADR-0036: Reference-counted asset handles with deferred release, and bitmap fonts as assets
 
-- **Status**: Accepted
+- **Status**: Accepted; its compatibility clause (pinning by `Load<T>` and `AddAsset`) is superseded by [ADR-0037](0037-counted-handles-replace-load-and-categories.md)
 - **Date**: 2026-09-21
 - **Source**: this chantier: `ai-agent/tasks/asset-handles-tasks.md`, branch `chantier/asset-handles`. Decided
   with the author on 2026-09-21, after the Alundra port's E13.d in-game check found that the inventory texts

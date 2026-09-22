@@ -69,7 +69,7 @@ public class ButtonsMappingAssetLoaderTests
             var assetContentManager = new AssetContentManager();
             AssetLoaderRegistry.RegisterLoaders(assetContentManager);
 
-            var buttonsMapping = assetContentManager.Load<ButtonsMapping>(assetId);
+            var buttonsMapping = assetContentManager.LoadCopy<ButtonsMapping>(assetId);
 
             Assert.Equal(5, buttonsMapping.Buttons.Count);
             Assert.Contains(buttonsMapping.Buttons, button => button.Name == "MoveRight");

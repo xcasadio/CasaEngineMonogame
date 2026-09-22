@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.Rendering.Models;
 /// Load/Save use the engine JSON format so it integrates with
 /// <see cref="AssetLoader{T}"/> and <see cref="Assets.AssetSaver"/>.
 /// </summary>
-public class StaticModel : ObjectBase
+public class StaticModel : ObjectBase, IDisposable
 {
     public StaticModelNode RootNode { get; set; }
 
@@ -86,6 +86,19 @@ public class StaticModel : ObjectBase
         }
 
         _isInitialized = true;
+    }
+
+    /// <summary>
+    /// Gives back the texture handles held by this model's meshes (ADR-0037, P10): the legacy fallback
+    /// texture used when a mesh has no material. The asset manager calls it when it frees the model
+    /// (<see cref="IDisposable"/>).
+    /// </summary>
+    public void Dispose()
+    {
+        foreach (var mesh in Meshes)
+        {
+            mesh.ReleaseTextureHandle();
+        }
     }
 
     public bool ReferencesAnyMaterialAsset(ISet<Guid> materialAssetIds)

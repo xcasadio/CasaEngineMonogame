@@ -36,8 +36,8 @@ internal static class PanoramaEnvironmentGenerator
         int cubemapSize = NormalizeCubemapSize(requestedCubemapSize);
         var assetContentManager = view.World.Game.AssetContentManager;
         Guid generatedAssetId = CreateGeneratedCubemapAssetId(panoramaAssetId, cubemapSize);
-        var cachedCubemap = assetContentManager.GetAsset<XnaTextureCube>(generatedAssetId);
-        if (cachedCubemap is { IsDisposed: false })
+
+        if (GeneratedAssetHandleCache<XnaTextureCube>.TryGetCached(assetContentManager, generatedAssetId, IsCubemapDisposed, out var cachedCubemap))
         {
             return cachedCubemap;
         }
@@ -50,12 +50,17 @@ internal static class PanoramaEnvironmentGenerator
 
         try
         {
-            var panorama = PanoramaImageData.Load(panoramaPath);
-            var cubemap = CreateCubemap(assetContentManager.GraphicsDevice, panorama, cubemapSize);
-            string generatedAssetName = BuildGeneratedAssetName(panoramaPath, cubemapSize);
-            cubemap.Name = generatedAssetName;
-            assetContentManager.AddAsset(generatedAssetId, generatedAssetName, cubemap);
-            return cubemap;
+            return GeneratedAssetHandleCache<XnaTextureCube>.Acquire(
+                assetContentManager,
+                generatedAssetId,
+                () =>
+                {
+                    var panorama = PanoramaImageData.Load(panoramaPath);
+                    var cubemap = CreateCubemap(assetContentManager.GraphicsDevice, panorama, cubemapSize);
+                    cubemap.Name = BuildGeneratedAssetName(panoramaPath, cubemapSize);
+                    return cubemap;
+                },
+                IsCubemapDisposed);
         }
         catch (Exception exception)
         {
@@ -63,6 +68,8 @@ internal static class PanoramaEnvironmentGenerator
             return null;
         }
     }
+
+    private static bool IsCubemapDisposed(XnaTextureCube cubemap) => cubemap.IsDisposed;
 
     internal static int NormalizeCubemapSize(int requestedCubemapSize)
     {

@@ -45,6 +45,9 @@ public class AudioDemo : Demo
     private const float CrossfadeSeconds = 2f;
 
     private CasaEngineGame? _game;
+    private AssetHandle<SoundAsset>? _clickSoundHandle;
+    private AssetHandle<SoundAsset>? _musicHandle;
+    private AssetHandle<SoundAsset>? _pitchedMusicHandle;
     private SoundAsset? _clickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
@@ -67,16 +70,19 @@ public class AudioDemo : Demo
         _game = game;
         _previousKeyboard = Keyboard.GetState();
 
-        _clickSound = TryLoad(game, ClickSoundAssetId);
-        _music = TryLoad(game, MusicAssetId);
-        _pitchedMusic = TryLoad(game, PitchedMusicAssetId);
+        _clickSoundHandle = TryAcquire(game, ClickSoundAssetId);
+        _clickSound = _clickSoundHandle?.Asset;
+        _musicHandle = TryAcquire(game, MusicAssetId);
+        _music = _musicHandle?.Asset;
+        _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
+        _pitchedMusic = _pitchedMusicHandle?.Asset;
     }
 
-    private static SoundAsset? TryLoad(CasaEngineGame game, Guid assetId)
+    private static AssetHandle<SoundAsset>? TryAcquire(CasaEngineGame game, Guid assetId)
     {
         try
         {
-            return game.AssetContentManager.Load<SoundAsset>(assetId);
+            return game.AssetContentManager.Acquire<SoundAsset>(assetId);
         }
         catch (Exception exception)
         {
@@ -260,6 +266,14 @@ public class AudioDemo : Demo
         _panelBackground = null;
         _font = null;
         _clickSound = null;
+        _music = null;
+        _pitchedMusic = null;
+        _clickSoundHandle?.Dispose();
+        _clickSoundHandle = null;
+        _musicHandle?.Dispose();
+        _musicHandle = null;
+        _pitchedMusicHandle?.Dispose();
+        _pitchedMusicHandle = null;
         _game = null;
     }
 

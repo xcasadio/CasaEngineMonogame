@@ -4003,7 +4003,7 @@ public class GameEditor : Game, IObservableUpdate
         try
         {
             // Loaded before the current world is cleared: a world that fails to load leaves the editor untouched.
-            world = _editorRuntime.AssetContentManager.Load<Framework.Scene.World.World>(assetInfo.Id, cache: false);
+            world = _editorRuntime.AssetContentManager.LoadCopy<Framework.Scene.World.World>(assetInfo.Id);
         }
         catch (Exception exception)
         {

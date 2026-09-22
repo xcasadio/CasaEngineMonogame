@@ -17,10 +17,32 @@ public enum RetargetAxis
     NegativeZ,
 }
 
-public sealed class RetargetProfile
+public sealed class RetargetProfile : IDisposable
 {
     private readonly RetargetJointMapping[] _jointMappings;
     private readonly int[] _mappingIndicesBySourceJointIndex;
+    private IDisposable[] _skeletonHolds = Array.Empty<IDisposable>();
+
+    /// <summary>
+    /// ADR-0037: a profile loaded as an asset holds its source and target skeletons through asset handles,
+    /// given back by <see cref="Dispose"/> when the asset manager frees the profile. A profile built in code
+    /// holds nothing.
+    /// </summary>
+    internal void HoldSkeletons(params IDisposable[] skeletonHolds)
+    {
+        _skeletonHolds = skeletonHolds ?? Array.Empty<IDisposable>();
+    }
+
+    /// <summary>Gives back the holds on the skeletons, if the profile was loaded as an asset. Idempotent.</summary>
+    public void Dispose()
+    {
+        for (var index = 0; index < _skeletonHolds.Length; index++)
+        {
+            _skeletonHolds[index].Dispose();
+        }
+
+        _skeletonHolds = Array.Empty<IDisposable>();
+    }
 
     public RetargetProfile(
         SkeletonDefinition sourceSkeleton,

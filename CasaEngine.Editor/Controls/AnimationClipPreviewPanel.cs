@@ -109,6 +109,9 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private AssetInfo _resolvedPreviewMeshAssetInfo;
     private AnimationClip _selectedClip;
     private AnimationClip _blendReferenceClip;
+    private AssetHandle<AnimationClip> _selectedClipHandle;
+    private AssetHandle<AnimationClip> _blendReferenceClipHandle;
+    private AssetHandle<SkinnedMesh> _previewSkinnedMeshHandle;
     private AnimationClipNode _selectedClipNode;
     private AnimationClipNode _blendReferenceClipNode;
     private LinearBlendAnimationNode _linearBlendNode;
@@ -312,8 +315,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _animationClipAsset = animationClipAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         _resolvedPreviewMeshAssetInfo = null;
-        _selectedClip = null;
-        _blendReferenceClip = null;
+        ReleaseClipHandles();
         _selectedClipNode = null;
         _blendReferenceClipNode = null;
         _linearBlendNode = null;
@@ -332,7 +334,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         try
         {
             Guid clipAssetId = animationClipAsset.AssetId != Guid.Empty ? animationClipAsset.AssetId : animationClipAsset.Id;
-            _selectedClip = _editorRuntime.AssetContentManager.Load<AnimationClip>(clipAssetId);
+            _selectedClipHandle = _editorRuntime.AssetContentManager.Acquire<AnimationClip>(clipAssetId);
+            _selectedClip = _selectedClipHandle.Asset;
             _resolvedPreviewMeshAssetInfo = ResolvePreviewMeshAsset(animationClipAsset);
             if (_resolvedPreviewMeshAssetInfo == null)
             {
@@ -350,8 +353,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         catch (Exception exception)
         {
             Logs.WriteException(exception);
-            _selectedClip = null;
-            _blendReferenceClip = null;
+            ReleaseClipHandles();
             SetStatusMessage($"Preview load failed: {exception.Message}");
         }
 
@@ -424,6 +426,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _renderViewHost = null;
         _surface?.Dispose();
         _surface = null;
+        ReleaseSkinnedMeshHandle();
+        ReleaseClipHandles();
         _previewWorldDriver.Dispose();
 
         _camera = null;
@@ -612,13 +616,19 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
             return;
         }
 
-        var skinnedMesh = _editorRuntime.AssetContentManager.Load<SkinnedMesh>(previewMeshAssetInfo.Id);
+        // The mesh is assigned directly on the component, without going through SkinnedMeshAssetId: the
+        // component takes no handle of its own for it (SkinnedMeshComponent), so this panel keeps the hold
+        // and gives it back in ReleaseSkinnedMeshHandle.
+        _previewSkinnedMeshHandle = _editorRuntime.AssetContentManager.Acquire<SkinnedMesh>(previewMeshAssetInfo.Id);
+        var skinnedMesh = _previewSkinnedMeshHandle.Asset;
         skinnedMesh.Initialize(_editorRuntime.AssetContentManager);
         _skinnedMeshComponent.SkinnedMesh = skinnedMesh;
     }
 
     private void ClearPreviewMesh()
     {
+        ReleaseSkinnedMeshHandle();
+
         if (_skinnedMeshComponent == null)
         {
             return;
@@ -627,6 +637,25 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _skinnedMeshComponent.ClearTwoBoneIkConstraints();
         _skinnedMeshComponent.StopAnimation();
         _skinnedMeshComponent.SkinnedMesh = null;
+    }
+
+    /// <summary>Gives back the clip and blend-reference clip holds taken by <see cref="LoadAsset"/>.</summary>
+    private void ReleaseClipHandles()
+    {
+        _selectedClipHandle?.Dispose();
+        _selectedClipHandle = null;
+        _selectedClip = null;
+
+        _blendReferenceClipHandle?.Dispose();
+        _blendReferenceClipHandle = null;
+        _blendReferenceClip = null;
+    }
+
+    /// <summary>Gives back the preview mesh hold taken by <see cref="LoadCompatibleSkinnedMesh"/>.</summary>
+    private void ReleaseSkinnedMeshHandle()
+    {
+        _previewSkinnedMeshHandle?.Dispose();
+        _previewSkinnedMeshHandle = null;
     }
 
     private AssetInfo ResolvePreviewMeshAsset(AnimationClipAsset animationClipAsset)
@@ -681,7 +710,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         var skinnedMesh = _skinnedMeshComponent.SkinnedMesh;
         if (skinnedMesh.DefaultAnimationClipAssetId != Guid.Empty && skinnedMesh.DefaultAnimationClipAssetId != selectedClipAssetId)
         {
-            return _editorRuntime.AssetContentManager.Load<AnimationClip>(skinnedMesh.DefaultAnimationClipAssetId);
+            _blendReferenceClipHandle = _editorRuntime.AssetContentManager.Acquire<AnimationClip>(skinnedMesh.DefaultAnimationClipAssetId);
+            return _blendReferenceClipHandle.Asset;
         }
 
         for (int clipIndex = 0; clipIndex < skinnedMesh.AnimationClipAssetIds.Count; clipIndex++)
@@ -692,7 +722,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
                 continue;
             }
 
-            return _editorRuntime.AssetContentManager.Load<AnimationClip>(clipAssetId);
+            _blendReferenceClipHandle = _editorRuntime.AssetContentManager.Acquire<AnimationClip>(clipAssetId);
+            return _blendReferenceClipHandle.Asset;
         }
 
         return null;
