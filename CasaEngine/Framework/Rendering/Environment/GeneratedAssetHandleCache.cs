@@ -7,8 +7,11 @@ namespace CasaEngine.Framework.Rendering.Environment;
 /// One held <see cref="AssetHandle{T}"/> per generated-asset id, scoped to the
 /// <see cref="AssetContentManager"/> that produced it (P8, P11): a generator's first build of an id goes
 /// through <see cref="AssetContentManager.Register{T}"/> and keeps the hold for the whole game; a later
-/// call whose cached instance <paramref name="isStale"/> reports stale rebuilds it and swaps it in with
-/// <see cref="AssetContentManager.Replace{T}"/>, keeping the same hold instead of leaking one per rebuild.
+/// call whose cached instance <paramref name="isStale"/> reports stale rebuilds it, swaps it in with
+/// <see cref="AssetContentManager.Replace{T}"/> and moves the single hold onto the new instance, instead of
+/// leaking one per rebuild. The stale instance is not disposed here, as <see cref="AssetContentManager.Replace{T}"/>
+/// does not dispose it either: the generators' <paramref name="isStale"/> is <c>IsDisposed</c>, so it is
+/// already disposed.
 /// Scoping by <see cref="ConditionalWeakTable{TKey,TValue}"/> gives each <see cref="AssetContentManager"/>
 /// — one per game, several coexist in tests and in the editor — its own generated ids, collected together
 /// with it instead of leaking across instances.
@@ -48,6 +51,11 @@ internal static class GeneratedAssetHandleCache<T> where T : class
 
             var replacement = create();
             assetContentManager.Replace(id, replacement);
+
+            // Replace does not retarget existing handles: the old one keeps returning the stale instance.
+            // Hold the new instance before giving the old hold back, so the id keeps exactly one hold.
+            handles[id] = assetContentManager.Acquire<T>(id);
+            existingHandle.Dispose();
             return replacement;
         }
 
