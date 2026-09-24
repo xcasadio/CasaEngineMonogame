@@ -38,7 +38,7 @@ public class ScriptTitleScreenWorld : GameplayProxy
         void OnStartGame() => world.Game.GameManager.SetWorldToLoad("DefaultWorld.world");
         void OnExit()      => world.Game.Exit();
 
-        _titleScreen = new TitleScreen(OnStartGame, OnExit);
+        _titleScreen = new TitleScreen(world.Game.AssetContentManager, OnStartGame, OnExit);
         world.Game.GameManager.ScreenManager.PushScreenToActiveView(_titleScreen);
     }
 
@@ -47,6 +47,7 @@ public class ScriptTitleScreenWorld : GameplayProxy
         if (_titleScreen != null)
         {
             world.Game.GameManager.ScreenManager.RemoveScreenFromActiveView(_titleScreen);
+            _titleScreen.Dispose();
         }
 
         _titleScreen = null;

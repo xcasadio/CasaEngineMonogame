@@ -34,7 +34,7 @@ public class ScriptWorld : GameplayProxy
         if (_playerCharacter.IsDead && !_gameOverShown)
         {
             _gameOverShown = true;
-            _gameOverScreen = new GameOverScreen(() =>
+            _gameOverScreen = new GameOverScreen(_world.Game.AssetContentManager, () =>
             {
                 _world.Game.GameManager.SetWorldToLoad("TitleScreenWorld.world");
             });
@@ -86,7 +86,7 @@ public class ScriptWorld : GameplayProxy
             ? ((float)_playerCharacter.HP / _playerCharacter.HPMax) * 100f
             : 0f;
 
-        _mainHudScreen = new MainHUDScreen(portrait, GetHPPercent);
+        _mainHudScreen = new MainHUDScreen(world.Game.AssetContentManager, portrait, GetHPPercent);
         world.Game.GameManager.ScreenManager.PushScreenToActiveView(_mainHudScreen);
     }
 
@@ -95,11 +95,13 @@ public class ScriptWorld : GameplayProxy
         if (_gameOverScreen != null)
         {
             world.Game.GameManager.ScreenManager.RemoveScreenFromActiveView(_gameOverScreen);
+            _gameOverScreen.Dispose();
         }
 
         if (_mainHudScreen != null)
         {
             world.Game.GameManager.ScreenManager.RemoveScreenFromActiveView(_mainHudScreen);
+            _mainHudScreen.Dispose();
         }
 
         _gameOverScreen = null;

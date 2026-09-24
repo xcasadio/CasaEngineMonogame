@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.XAML;
@@ -18,12 +19,17 @@ namespace CasaEngine.Framework.UI;
 /// so <see cref="OnInitialize"/> does nothing but hand this method the desktop it already holds. Tests drive
 /// <see cref="BuildWindow"/> directly on a headless desktop, the way the dialogue screen's tests already do.
 /// </summary>
-public abstract class XamlUIScreenBase : UIScreenBase
+public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
 {
     private readonly UIScreenAsset _asset;
     private readonly string _assetFilePath;
     private readonly XamlDocumentSource _source;
     private readonly string _themeName;
+
+    // Set only by the constructor that acquires its envelope through the asset manager (ADR-0037,
+    // ADR-0038); null for a screen built from a caller-supplied asset or an embedded document, which own
+    // nothing here to give back.
+    private readonly AssetHandle<UIScreenAsset> _assetHandle;
 
     /// <summary>The window built from the XAML, or null until the screen has been initialized.</summary>
     protected MGWindow Window { get; private set; }
@@ -47,6 +53,40 @@ public abstract class XamlUIScreenBase : UIScreenBase
     {
         _source = source ?? throw new ArgumentNullException(nameof(source));
         _themeName = themeName;
+    }
+
+    /// <summary>
+    /// Builds the screen from a catalogued asset, acquired through <paramref name="assetContentManager"/>
+    /// and held for the screen's lifetime (ADR-0037, ADR-0038). The screen must be disposed to give the
+    /// hold back; <see cref="Dispose"/> does that.
+    /// </summary>
+    /// <param name="assetIdOrName">
+    /// The screen asset's id, or -- when it does not parse as a <see cref="Guid"/> -- its catalogue name.
+    /// Mirrors the resolution <see cref="CasaEngine.Framework.UI.Backend.MonoGame.Assets.CasaUIAssetProvider"/>
+    /// already applies to image sources (ADR-0038).
+    /// </param>
+    /// <exception cref="InvalidOperationException">No screen asset of that id or name is catalogued.</exception>
+    protected XamlUIScreenBase(AssetContentManager assetContentManager, string assetIdOrName)
+    {
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        if (string.IsNullOrWhiteSpace(assetIdOrName))
+        {
+            throw new ArgumentException("A UIScreen asset id or name is required.", nameof(assetIdOrName));
+        }
+
+        var assetInfo = Guid.TryParse(assetIdOrName, out var assetId)
+            ? AssetCatalog.Get(assetId)
+            : AssetCatalog.Get(assetIdOrName);
+
+        if (assetInfo == null)
+        {
+            throw new InvalidOperationException($"No screen asset '{assetIdOrName}' is registered in this project.");
+        }
+
+        _assetHandle = assetContentManager.Acquire<UIScreenAsset>(assetInfo.Id);
+        _asset = _assetHandle.Asset;
+        _assetFilePath = assetContentManager.ResolveAssetFullPath(_asset.FileName);
     }
 
     /// <summary>
@@ -126,5 +166,15 @@ public abstract class XamlUIScreenBase : UIScreenBase
         {
             yield return Window;
         }
+    }
+
+    /// <summary>
+    /// Gives back the hold this screen took on its envelope, when it was built through the asset-manager
+    /// constructor. A screen built from a caller-supplied asset or an embedded document holds nothing here,
+    /// so this is a no-op for it. Idempotent, like <see cref="AssetHandle{T}.Dispose"/>.
+    /// </summary>
+    public virtual void Dispose()
+    {
+        _assetHandle?.Dispose();
     }
 }

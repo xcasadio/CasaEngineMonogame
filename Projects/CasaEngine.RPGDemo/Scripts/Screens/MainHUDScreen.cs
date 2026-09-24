@@ -1,7 +1,7 @@
 using System;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
-using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,7 +13,9 @@ namespace CasaEngine.RPGDemo.Scripts.Screens;
 /// <para/>
 /// Its tree lives in the project asset `Screens/MainHUD/MainHUD.uiscreen`, which names its XAML. What stays
 /// here is the portrait texture -- loaded from disk by the world, and optional -- and the life bar it
-/// rewrites every frame. The corner it sits in is declared.
+/// rewrites every frame. The corner it sits in is declared. The envelope is acquired through
+/// <see cref="AssetContentManager"/> and held for the screen's lifetime (ADR-0038); the owner must dispose
+/// this screen to give it back.
 /// </summary>
 public sealed class MainHUDScreen : XamlUIScreenBase
 {
@@ -27,15 +29,11 @@ public sealed class MainHUDScreen : XamlUIScreenBase
     public override UILayer Layer   => UILayer.HUD;
     public override bool    IsModal => false;
 
+    /// <param name="assetContentManager">Manager the screen acquires its envelope through.</param>
     /// <param name="portrait">Optional portrait texture (loaded from MainHUD.png).</param>
     /// <param name="getHPPercent">Callback returning current HP as a 0–100 percentage.</param>
-    public MainHUDScreen(Texture2D? portrait, Func<float> getHPPercent)
-        : this(RpgDemoScreenAssets.Load("MainHUD"), portrait, getHPPercent)
-    {
-    }
-
-    private MainHUDScreen((UIScreenAsset Asset, string FilePath) screen, Texture2D? portrait, Func<float> getHPPercent)
-        : base(screen.Asset, screen.FilePath)
+    public MainHUDScreen(AssetContentManager assetContentManager, Texture2D? portrait, Func<float> getHPPercent)
+        : base(assetContentManager, "MainHUD")
     {
         _portrait     = portrait;
         _getHPPercent = getHPPercent;

@@ -1,6 +1,6 @@
 using System;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI;
-using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 
 namespace CasaEngine.RPGDemo.Scripts.Screens;
@@ -9,7 +9,9 @@ namespace CasaEngine.RPGDemo.Scripts.Screens;
 /// MGUI title screen: "RPG Demo" label + "Start Game" and "Exit" buttons.
 /// <para/>
 /// Its tree lives in the project asset `Screens/TitleScreen/TitleScreen.uiscreen`, which names its XAML.
-/// Centring included: all that stays here is what the two buttons do.
+/// Centring included: all that stays here is what the two buttons do. The envelope is acquired through
+/// <see cref="AssetContentManager"/> and held for the screen's lifetime (ADR-0038); the owner must dispose
+/// this screen to give it back.
 /// </summary>
 public sealed class TitleScreen : XamlUIScreenBase
 {
@@ -19,15 +21,8 @@ public sealed class TitleScreen : XamlUIScreenBase
     public override UILayer Layer   => UILayer.Menu;
     public override bool    IsModal => true;
 
-    public TitleScreen(Action onStartGame, Action onExit)
-        : this(RpgDemoScreenAssets.Load("TitleScreen"), onStartGame, onExit)
-    {
-    }
-
-    // The envelope and the path it came from belong together, and reading it once means threading them
-    // through a single constructor argument.
-    private TitleScreen((UIScreenAsset Asset, string FilePath) screen, Action onStartGame, Action onExit)
-        : base(screen.Asset, screen.FilePath)
+    public TitleScreen(AssetContentManager assetContentManager, Action onStartGame, Action onExit)
+        : base(assetContentManager, "TitleScreen")
     {
         _onStartGame = onStartGame;
         _onExit      = onExit;

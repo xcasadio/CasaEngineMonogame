@@ -13,6 +13,13 @@ public sealed class UIScreenAsset : ObjectBase
 
     public List<string> ResourceFiles { get; } = new();
 
+    /// <summary>
+    /// Optional design-time data file: a JSON document naming a view-model type and giving it property
+    /// values, used only by the editor preview (ADR-0038). Empty when the envelope names none, and never
+    /// read by the runtime.
+    /// </summary>
+    public string DesignTimeDataFile { get; set; } = string.Empty;
+
     public override void Load(JObject element)
     {
         base.Load(element);
@@ -20,6 +27,7 @@ public sealed class UIScreenAsset : ObjectBase
         SourceXamlFile = element["source_xaml_file"]?.GetString() ?? string.Empty;
         ThemeName = element["theme_name"]?.GetString() ?? string.Empty;
         PreviewResolution = element["preview_resolution"]?.GetPoint() ?? new Point(1920, 1080);
+        DesignTimeDataFile = element["design_time_data_file"]?.GetString() ?? string.Empty;
 
         ResourceFiles.Clear();
         if (element["resource_files"] is JArray resourceFiles)

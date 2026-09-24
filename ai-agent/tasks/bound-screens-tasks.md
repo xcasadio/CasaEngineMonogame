@@ -426,7 +426,7 @@ boîte de dialogue.
   - Limites acceptées : un même asset atteint par GUID et par nom donne deux compositions (aucun chargement en
     double) ; le fournisseur garde les instances créées jusqu'à sa libération, c'est-à-dire au plus un monde.
 
-### ⏳ T3.3 — Écrans acquis par handle, données de conception
+### ✅ T3.3 — Écrans acquis par handle, données de conception
 
 - Objectif : D3, D9, P6 (format), P7 (champ seulement).
 - Fichiers : `CasaEngine/Framework/UI/MGUI/UIScreenAsset.cs`, un chargeur de `.uiscreen` enregistré dans
@@ -442,6 +442,23 @@ boîte de dialogue.
   tient son asset et le rend ; RPGDemo lancé depuis `CasaEngine.Demos/` (mémoire du dépôt : dossier courant
   obligatoire) affiche ses trois écrans comme avant. **Vérificateur frais sur la phase 3.**
 - Commit : `feat(ui): acquire screen assets through the asset manager`
+- **Fait** :
+  - `UIScreenAsset.DesignTimeDataFile`, lu depuis le champ optionnel `design_time_data_file` ;
+    `SaveUIScreenAsset` ne l'écrit que s'il est renseigné, comme les autres champs optionnels du sérialiseur.
+  - Aucun nouveau chargeur n'était nécessaire : `AssetLoader<UIScreenAsset>` était déjà enregistré, et le
+    gestionnaire pose `FileName` sur l'asset chargé. `XamlUIScreenBase` gagne un constructeur
+    `(AssetContentManager, string assetIdOrName)` qui acquiert l'enveloppe par handle et retrouve son chemin
+    complet par `ResolveAssetFullPath` ; `XamlUIScreenBase` devient `IDisposable` (virtuel, idempotent).
+  - RPGDemo : ses trois écrans passent par ce constructeur ; `RpgDemoScreenAssets.cs`, devenu inutile, est
+    supprimé ; `ScriptTitleScreenWorld` et `ScriptWorld` libèrent leurs écrans dans `OnEndPlay`.
+  - Doc : format complet de l'enveloppe dans `docs/editor/ui-screen-editor/screen-authoring-conventions.md`.
+  - `CasaEngine.Tests` 1804/1804 (1797 + 7) ; deux solutions sans erreur.
+  - RPGDemo lancé par un harnais hors dépôt (`CasaEngine.Launcher/Program.cs`, fichier de l'auteur, est codé
+    en dur sur Alundra) : écran titre puis HUD du monde de jeu affichés par le nouveau chemin, aucune exception ;
+    l'écran de fin de partie, qui demande de perdre, est couvert par les tests sans affichage.
+  - **Régression introduite, corrigée dans le parent** : `AlundraInventoryScreen.Dispose()` masquait le
+    nouveau `Dispose` virtuel de la base (CS0114), si bien qu'une libération par une référence de base aurait
+    oublié `font3` et les sprites ; il le redéfinit désormais et appelle la base.
 
 ---
 

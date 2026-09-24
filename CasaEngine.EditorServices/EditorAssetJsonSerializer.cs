@@ -479,6 +479,11 @@ internal static class EditorAssetJsonSerializer
         node.Add("preview_resolution", previewResolutionNode);
 
         node.Add("resource_files", new JArray(uiScreenAsset.ResourceFiles));
+
+        if (!string.IsNullOrWhiteSpace(uiScreenAsset.DesignTimeDataFile))
+        {
+            node.Add("design_time_data_file", uiScreenAsset.DesignTimeDataFile);
+        }
     }
 
     private static void SaveMaterialAsset(MaterialAsset materialAsset, JObject node)

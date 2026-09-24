@@ -29,12 +29,28 @@ The `.uiscreen` file must contain:
 }
 ```
 
+It may also declare these optional fields:
+
+| Field | Purpose |
+|-------|---------|
+| `theme_name` | Name of an `MGTheme` (registered in `MGResources`) applied to the loaded window. An unknown or missing name keeps whatever theme the document itself declares. |
+| `preview_resolution` | `{ "x": <int>, "y": <int> }`, the resolution the editor preview builds the window at. Defaults to 1920×1080. |
+| `resource_files` | List of extra files (resource dictionaries, etc.) the editor loads alongside the XAML. |
+| `design_time_data_file` | Path (same resolution rules as `source_xaml_file`) of a JSON document naming a view-model type and giving it property values. The editor preview instantiates that type from the loaded gameplay assembly, populates it, and uses it as the preview's data context; a missing or invalid file is logged and reported in the preview, which then renders without a data context (ADR-0038). The runtime never reads this field. |
+
+The `.uiscreen` format is additive: an envelope written before a field existed loads with that field at
+its default, and saving it again does not add fields it never had.
+
 The `source_xaml_file` path may be:
 - Absolute, or
 - Relative to the `.uiscreen` file (preferred), or
 - Relative to the project root (`EngineEnvironment.ProjectPath`).
 
 Each candidate must exist on disk to be used; when none does, loading fails and names every path it tried.
+
+> **Decisions: see ADR-0038** (`docs/decisions/0038-game-screens-are-assets-bound-to-view-models.md`) for why
+> screens are catalogued assets, how design-time data is meant to be consumed, and the rest of this chantier's
+> decisions.
 
 ---
 
@@ -108,8 +124,11 @@ internal sealed class ScoreScreen : XamlUIScreenBase
 
     public override UILayer Layer => UILayer.HUD;
 
-    public ScoreScreen(UIScreenAsset asset, string assetFilePath)
-        : base(asset, assetFilePath) { }
+    // Acquires "ScoreScreen" through the asset manager and holds the handle for the screen's lifetime
+    // (ADR-0037, ADR-0038). assetIdOrName may be the asset's id or its catalogue name, resolved the same
+    // way an MGUI Image's SourceName resolves an image (CasaUIAssetProvider).
+    public ScoreScreen(AssetContentManager assetContentManager)
+        : base(assetContentManager, "ScoreScreen") { }
 
     protected override void OnWindowLoaded(MGWindow window)
         => _score = FindControl<MGTextBlock>("lblScore");
@@ -118,6 +137,11 @@ internal sealed class ScoreScreen : XamlUIScreenBase
         => _score.Text = Game.Score.ToString();
 }
 ```
+
+The owner must call `Dispose()` on the screen once it is done with it (typically where it already removes the
+screen from its `ScreenStack`), to give the handle back; a `CollectUnreferenced()` at the next world change
+then frees the envelope if nobody re-acquired it. A screen built once from a caller-supplied `UIScreenAsset` and
+its file path, or from an embedded `XamlDocumentSource`, holds nothing here and disposing it is a no-op.
 
 A screen with no catalogued asset passes a `XamlDocumentSource` instead. `FindControl<T>` throws — naming the
 control and the document — when the name is absent or belongs to another kind of control, rather than handing
