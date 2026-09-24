@@ -1015,7 +1015,7 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 - **Validé par l'auteur le 2026-09-24** : les clics Yes/No/Cancel, Ctrl+S et le veto du sample de docking. Le `*`,
   lui, n'apparaît qu'au prochain redessin de l'onglet : défaut de MGUI traité par T4.7.
 
-### 🚧 T4.7 — Le titre d'un onglet suit son panneau
+### 🧪 T4.7 — Le titre d'un onglet suit son panneau
 
 - Constat de l'auteur (2026-09-24, vérification visuelle de T4.5/T4.6) : le `*` d'un écran modifié n'apparaît sur
   son onglet qu'au prochain redessin (survol, activation). Cause : `GameEditor.UpdateDockPanelTitle`
@@ -1058,6 +1058,18 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
   - A2 (P4, reporté) : une fenêtre flottante autonome (constructeur public) fermée d'un bloc garde ses panneaux
     dans son groupe et reste abonnée au panneau dont elle montrait le titre. L'éditeur ne crée pas de telles
     fenêtres ; à reprendre si un usage apparaît.
+- Vérificateur frais n° 2 (2026-09-24, état final MGUI `9e98a4a`, moteur `62e91913`, parent `1bac792`) :
+  **CONFIRMED**. F1 repris sur le cas d'origine : le tiroir jeté lâche son panneau et son contenu, le nouveau tiroir
+  héberge le même contenu et suit le titre, l'hôte reste cohérent (tiroir fermé, panneau toujours masqué, bande
+  visible). Vrai lancement (run `vf2-t47-final`, DLL MGUI de l'éditeur identique à celle construite) : « HudScreen * »,
+  projet intact. `MGUI.Tests` 3040/3040, `CasaEngine.Tests` 1888/1888, `Alundra.Tests` 1089/1089, `MGUI.Samples` et
+  les deux solutions sans erreur ; mutation du nouveau test reproduite.
+  - A3 (P4, reporté avec A2) : une fenêtre flottante dont le groupe n'a aucun panneau actif suit le panneau de repli
+    (`Panels[0]`) ; si on retire ce panneau directement du groupe, elle le suit encore, `UpdateTitle` n'étant rappelé
+    que sur un changement de panneau actif (`MGFloatingDockWindow.cs:140-147`). Aucun code de production ne vide le
+    panneau actif ; avant la correction, le titre restait déjà figé dans ce cas.
+- **Reste pour ✅** : le coup d'œil de l'auteur sur le `*` après une vraie saisie dans l'inspecteur (les deux captures
+  passent par `--set-screen-property`).
 
 ---
 
