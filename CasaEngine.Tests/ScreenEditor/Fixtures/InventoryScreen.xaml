@@ -1,0 +1,93 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="0" Top="0" Width="320" Height="240"
+        TitleText=""
+        IsTitleBarVisible="False"
+        IsTopmost="True"
+        IsUserResizable="False"
+        Padding="0"
+        Background="rgba(0,0,0,0)">
+
+  <!-- E13.d D5 (docs/plan-e13d-inventaire.md, D-E13D-16, ADR-0001): embedded resource of the
+       Alundra DLL, loaded like the engine own DialogueScreen (DialogueScreen.xaml). This is a
+       full-screen transparent window whose sole content is a Canvas authored in NATIVE pixels
+       (320x240, AlundraDisplay NativeWidth/NativeHeight) - the code (AlundraInventoryScreen)
+       resizes this window to the real screen bounds and applies the whole integer pixel scale
+       ONCE as the canvas own RenderTransform.Scale (engine ADR-0006), so every child below keeps
+       native coordinates and sizes; the code assigns every Image its sprite by asset id (XAML
+       cannot name an asset id) and every element its Canvas.Left/Top from the composer own
+       native positions - only the STRUCTURE (names, draw order) lives here.
+
+       Draw order (back to front, MainInventoryManager.cs:914-922, plan 1.4): the six baked box
+       images (BackgroundUI), the grid icons/digits/names (ForegroundUI), the two selection
+       frames (ForegroundUICursor), the cursor (ForegroundUICursor2). -->
+
+  <Canvas Name="RootCanvas" Width="320" Height="240">
+
+    <!-- Six baked box sprites (D-E13D-13/D3.b) - BackgroundUI. No image for the 0x0 spacer
+         box (index 4 of AlundraInventoryDirector.BoxPosition): nothing to draw there. -->
+    <Image Name="BoxWeapon" />
+    <Image Name="BoxItem" />
+    <Image Name="BoxWeaponName" />
+    <Image Name="BoxItemName" />
+    <Image Name="BoxMoneyFalconKey" />
+    <Image Name="BoxDescription" />
+
+    <!-- 24 grid slot icons (row 0 weapons, rows 1-3 items) - ForegroundUI, centred in their
+         24x32 cell per D-E13D-10. -->
+    <Image Name="IconSlot0" />
+    <Image Name="IconSlot1" />
+    <Image Name="IconSlot2" />
+    <Image Name="IconSlot3" />
+    <Image Name="IconSlot4" />
+    <Image Name="IconSlot5" />
+    <Image Name="IconSlot6" />
+    <Image Name="IconSlot7" />
+    <Image Name="IconSlot8" />
+    <Image Name="IconSlot9" />
+    <Image Name="IconSlot10" />
+    <Image Name="IconSlot11" />
+    <Image Name="IconSlot12" />
+    <Image Name="IconSlot13" />
+    <Image Name="IconSlot14" />
+    <Image Name="IconSlot15" />
+    <Image Name="IconSlot16" />
+    <Image Name="IconSlot17" />
+    <Image Name="IconSlot18" />
+    <Image Name="IconSlot19" />
+    <Image Name="IconSlot20" />
+    <Image Name="IconSlot21" />
+    <Image Name="IconSlot22" />
+    <Image Name="IconSlot23" />
+
+    <!-- The herb slot own count digit (MainInventoryManager.cs:1338-1370) - ForegroundUI. -->
+    <Image Name="HerbCountDigit" />
+
+    <!-- Money (4 digits), falcon (2) and key (2) counters - ForegroundUI. -->
+    <Image Name="MoneyDigit0" />
+    <Image Name="MoneyDigit1" />
+    <Image Name="MoneyDigit2" />
+    <Image Name="MoneyDigit3" />
+    <Image Name="FalconDigit0" />
+    <Image Name="FalconDigit1" />
+    <Image Name="KeyDigit0" />
+    <Image Name="KeyDigit1" />
+
+    <!-- Equipped weapon/item names and the two description lines - ForegroundUI, in the
+         bitmap font font3. The screen holds font3 through the engine's UI font registry from
+         its construction (engine ADR-0036, plan D5.f), so the family is registered on this
+         desktop's text engine before this window is built. -->
+    <TextBlock Name="WeaponNameText" Text="" AllowsInlineFormatting="False" Foreground="White" FontFamily="font3" />
+    <TextBlock Name="ItemNameText" Text="" AllowsInlineFormatting="False" Foreground="White" FontFamily="font3" />
+    <TextBlock Name="DescriptionLine0Text" Text="" AllowsInlineFormatting="False" Foreground="White" FontFamily="font3" />
+    <TextBlock Name="DescriptionLine1Text" Text="" AllowsInlineFormatting="False" Foreground="White" FontFamily="font3" />
+
+    <!-- Selection frames (wind_039) over the equipped weapon and the equipped item -
+         ForegroundUICursor. -->
+    <Image Name="WeaponSelectionFrame" />
+    <Image Name="ItemSelectionFrame" />
+
+    <!-- The cursor (wind_159/182/210/237) - ForegroundUICursor2, always on top. -->
+    <Image Name="CursorImage" />
+
+  </Canvas>
+</Window>

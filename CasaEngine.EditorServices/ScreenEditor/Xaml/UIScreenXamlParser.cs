@@ -12,11 +12,15 @@ public sealed class UIScreenXamlParser
             throw new ArgumentException("XAML content cannot be null or whitespace.", nameof(xaml));
         }
 
-        var document = XDocument.Parse(xaml, LoadOptions.PreserveWhitespace);
+        var document = XDocument.Parse(xaml, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
         if (document.Root == null)
         {
             throw new InvalidOperationException("XAML content must contain a root element.");
         }
+
+        // XDocument does not keep a start tag's own formatting (line breaks between attributes, quote style,
+        // character references): record it, so a save rewrites only the start tags the editor changed.
+        UIScreenXamlSourceWriter.CaptureStartTags(document, xaml);
 
         var screenDocument = new UIScreenDocument
         {

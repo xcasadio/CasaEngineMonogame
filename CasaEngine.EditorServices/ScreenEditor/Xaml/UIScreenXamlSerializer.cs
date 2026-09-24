@@ -39,12 +39,11 @@ public sealed class UIScreenXamlSerializer
         ReconcileElement(rootElement, document.Root!);
         ReconcileResources(document, rootElement);
 
-        // XDocument.ToString() never emits the XML declaration even when Declaration was parsed from the
-        // source, so it is prepended manually -- this is what preserves its presence or absence.
-        var body = xDocument.ToString(SaveOptions.None);
-        var text = xDocument.Declaration != null
-            ? xDocument.Declaration + "\n" + body
-            : body;
+        // Written by UIScreenXamlSourceWriter rather than XDocument.ToString(): that one re-emits every start
+        // tag on one line with double quotes, so the first edit anywhere would reformat every element with
+        // attributes on several lines. The writer keeps each untouched start tag's original text, and the
+        // original XML declaration (or its absence).
+        var text = UIScreenXamlSourceWriter.Write(xDocument);
 
         return NormalizeLineEndings(text, document.OriginalLineEnding);
     }

@@ -31,8 +31,7 @@ public class UIScreenXamlLosslessRoundTripTests
     [Fact]
     public void UnmodifiedSave_OfAlundraInventoryScreen_IsByteIdentical()
     {
-        var sourcePath = FindRepoFile("Alundra", "Screens", "InventoryScreen.xaml");
-        AssertUnmodifiedSaveIsByteIdentical(File.ReadAllBytes(sourcePath));
+        AssertUnmodifiedSaveIsByteIdentical(File.ReadAllBytes(InventoryScreenFixturePath()));
     }
 
     [Fact]
@@ -219,6 +218,73 @@ public class UIScreenXamlLosslessRoundTripTests
     }
 
     [Fact]
+    public void ModifiedSave_OfAlundraInventoryScreen_RewritesOnlyTheEditedStartTag()
+    {
+        var originalBytes = File.ReadAllBytes(InventoryScreenFixturePath());
+        using var fixture = ScreenFixture.Create(originalBytes);
+
+        var session = new UIScreenEditorSession();
+        session.Open(fixture.Asset, fixture.AssetPath);
+
+        var edited = EnumerateNodes(session.Document!.Root!).Last(n => n.ControlType == "TextBlock");
+        edited.SetProperty("Opacity", "0.5");
+        session.MarkDirty();
+        session.Save();
+
+        // Everything but the edited element's start tag -- the root's attributes on eight lines included --
+        // is written back line for line.
+        var originalLines = Encoding.UTF8.GetString(originalBytes).Split('\n');
+        var savedLines = File.ReadAllText(fixture.XamlPath).Split('\n');
+
+        var prefix = 0;
+        while (prefix < originalLines.Length && prefix < savedLines.Length && originalLines[prefix] == savedLines[prefix])
+        {
+            prefix++;
+        }
+
+        var suffix = 0;
+        while (suffix < originalLines.Length - prefix && suffix < savedLines.Length - prefix
+               && originalLines[^(suffix + 1)] == savedLines[^(suffix + 1)])
+        {
+            suffix++;
+        }
+
+        var originalRegion = string.Join("\n", originalLines[prefix..(originalLines.Length - suffix)]);
+        var savedRegion = Assert.Single(savedLines[prefix..(savedLines.Length - suffix)]);
+
+        Assert.Equal(1, originalRegion.Count(c => c == '<'));
+        Assert.Contains($"Name=\"{edited.Name}\"", originalRegion);
+        Assert.Contains($"Name=\"{edited.Name}\"", savedRegion);
+        Assert.Contains("Opacity=\"0.5\"", savedRegion);
+    }
+
+    [Fact]
+    public void ModifiedSave_KeepsTheQuotesAndCharacterReferencesOfUntouchedStartTags()
+    {
+        const string xaml =
+            "<?xml version='1.0' encoding='utf-8'?>\r\n" +
+            "<Window xmlns='clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core'\r\n" +
+            "        Name='Root'>\r\n" +
+            "  <StackPanel>\r\n" +
+            "    <TextBlock Name='Untouched' Text='a&#x0a;b' />\r\n" +
+            "    <TextBlock Name='Edited' Text='x' />\r\n" +
+            "  </StackPanel>\r\n" +
+            "</Window>\r\n";
+        using var fixture = ScreenFixture.Create(new UTF8Encoding(false).GetBytes(xaml));
+
+        var session = new UIScreenEditorSession();
+        session.Open(fixture.Asset, fixture.AssetPath);
+
+        var edited = session.Document!.Root!.Children[0].Children.Single(c => c.Name == "Edited");
+        edited.SetProperty("Text", "y");
+        session.MarkDirty();
+        session.Save();
+
+        var expected = xaml.Replace("<TextBlock Name='Edited' Text='x' />", "<TextBlock Name=\"Edited\" Text=\"y\" />");
+        Assert.Equal(expected, File.ReadAllText(fixture.XamlPath));
+    }
+
+    [Fact]
     public void NewDocumentWithNoSourceText_StillSerializesWithDefaultNamespaces()
     {
         var document = new UIScreenDocument();
@@ -257,6 +323,23 @@ public class UIScreenXamlLosslessRoundTripTests
     private sealed class TitleViewModel
     {
         public string Title { get; set; } = string.Empty;
+    }
+
+    /// <summary>A copy of Alundra's inventory screen (the parent repository's <c>Alundra/Screens/InventoryScreen.xaml</c>
+    /// on 2026-09-24): a real screen with its root attributes on several lines, and comments.</summary>
+    private static string InventoryScreenFixturePath()
+        => FindRepoFile("CasaEngine.Tests", "ScreenEditor", "Fixtures", "InventoryScreen.xaml");
+
+    private static IEnumerable<UIScreenNode> EnumerateNodes(UIScreenNode node)
+    {
+        yield return node;
+        foreach (var child in node.Children)
+        {
+            foreach (var descendant in EnumerateNodes(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     private static string FindRepoFile(params string[] relativeSegments)
