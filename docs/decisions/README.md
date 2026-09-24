@@ -51,3 +51,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0035](0035-xaml-authored-ui-screens.md) | UI screens are authored in XAML and loaded at runtime | Accepted | 2026-09-20 |
 | [ADR-0036](0036-reference-counted-asset-handles-and-bitmap-fonts.md) | Reference-counted asset handles with deferred release, and bitmap fonts as assets | Accepted (compatibility clause superseded by ADR-0037) | 2026-09-21 |
 | [ADR-0037](0037-counted-handles-replace-load-and-categories.md) | Counted handles replace Load and asset categories | Accepted | 2026-09-21 |
+| [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted | 2026-09-24 |
