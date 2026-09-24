@@ -371,7 +371,7 @@ boîte de dialogue.
 
 ## Phase 3 — Moteur : résolution et écrans en assets
 
-### ⏳ T3.1 — Résolution des sprites
+### ✅ T3.1 — Résolution des sprites
 
 - Objectif : D1, P3 côté moteur.
 - Fichiers : `CasaEngine/Framework/UI/Backend/MonoGame/Assets/CasaUIAssetProvider.cs`, la construction du
@@ -384,6 +384,16 @@ boîte de dialogue.
 - Validation : tests : un sprite résolu par GUID et par nom ; les handles rendus à la libération, puis la ressource
   libérée au prochain `CollectUnreferenced` ; un nom inconnu ne résout rien et le signale une fois.
 - Commit : `feat(ui): resolve sprite assets named by UI images`
+- **Fait** (`4d6906ae`) :
+  - `CasaUIAssetProvider` reçoit le gestionnaire de ressources par `CasaMonoGameBackendOptions.AssetContentManager`
+    (que `UIRoot` renseigne), résout un GUID puis un nom de catalogue, accepte les assets de type `sprite`, et
+    passe par `Sprite.Create` : trois handles par sprite (`SpriteData`, `Texture`, son `Texture2D`). Tout échec
+    rend `false` et journalise une seule fois par nom.
+  - Le fournisseur est `IDisposable` ; `UIRoot.Dispose` le libère, et `CollectUnreferenced` libère ensuite ce que
+    plus personne ne tient.
+  - `CasaEngine.Tests` 1788/1788 (1781 + 7), reproduit ; deux solutions et `Alundra.csproj` sans erreur. Le
+    test de bout en bout construit un `MGDesktop` sans `LoadDefaultResources`, qui exige des icônes de contenu
+    absentes du projet de tests.
 
 ### ⏳ T3.2 — Animations 2D comme images animées
 
