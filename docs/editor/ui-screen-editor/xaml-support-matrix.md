@@ -47,6 +47,15 @@ Limites connues de ce mécanisme (acceptées comme risque documenté) :
 > (extrait du `Save` de la session), que `UIScreenEditorSession` et le panneau de preview de l'éditeur
 > (`UIScreenPreviewPanel.TrySaveDocument`) appellent tous les deux.
 
+> **État au 2026-09-24 (T4.5, D17).** Un écran modifié n'est plus jamais perdu en silence : fermer son
+> onglet (croix, « Close Others »/« Close All », l'onglet d'une fenêtre flottante, le tiroir d'auto-hide,
+> ou la fenêtre flottante entière — `MGDockHost.PanelClosing`, côté MGUI) et quitter l'éditeur alors qu'un
+> ou plusieurs écrans restent modifiés (`GameEditor.OnExiting`) proposent tous les deux Yes/No/Cancel avant
+> de fermer/quitter, avec le même enregistrement que « Save » (`TrySaveDocument`/`SaveDirtyScreenDocuments`) ;
+> un échec d'enregistrement annule la fermeture ou la sortie. Sous automatisation, rien n'est demandé : les
+> écrans modifiés abandonnés sont journalisés (`[Automation]`). Décision pure et testée dans
+> `CasaEngine.Editor.History.ModifiedScreenCloseDecision`.
+
 ## Support v1 (base, inchangée)
 
 | Élément | Statut | Notes |

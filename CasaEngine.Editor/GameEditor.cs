@@ -448,6 +448,7 @@ public class GameEditor : Game, IObservableUpdate
             {
                 _dockHost.ActivePanelChanged -= OnDockHostActivePanelChanged;
                 _dockHost.PanelRemoved -= OnDockHostPanelRemoved;
+                _dockHost.PanelClosing -= OnDockHostPanelClosing;
                 _editorContext.ActiveDocumentChanged -= OnActiveDocumentChangedSyncToolPanels;
             }
 
@@ -1282,6 +1283,7 @@ public class GameEditor : Game, IObservableUpdate
         _dockHost.Name = "EditorDockHost";
         _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
         _dockHost.PanelRemoved += OnDockHostPanelRemoved;
+        _dockHost.PanelClosing += OnDockHostPanelClosing;
         _editorContext.ActiveDocumentChanged += OnActiveDocumentChangedSyncToolPanels;
         _rootPanel.TryAddChild(_dockHost, Dock.Top);
         SetupInitialDockLayout();
@@ -2558,6 +2560,144 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return Environment.CurrentDirectory;
+    }
+
+    /// <summary>
+    /// T4.5 (D17): asks whether to save a modified screen document before a USER close removes its
+    /// panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close
+    /// button, "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close,
+    /// and closing a whole floating window; never for <c>RemovePanel</c> or <c>CloseFloatingWindow</c>
+    /// called by application code). Only screen panels are considered; every other kind of panel closes
+    /// unconditionally, exactly as before this event existed.
+    /// </summary>
+    private void OnDockHostPanelClosing(object sender, CancelEventArgs<DockPanelNode> e)
+    {
+        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out var previewPanel))
+        {
+            return;
+        }
+
+        string panelId = e.Data.Id;
+        var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId);
+        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+
+        var result = ModifiedScreenCloseDecision.Decide(
+            isModified: _editorDirtyState.IsDirty(historyContext),
+            isAutomationActive: _automationOptions.HasAutomation,
+            askUser: () => ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
+                $"Save changes to '{title}' before closing?",
+                "Close Screen",
+                System.Windows.Forms.MessageBoxButtons.YesNoCancel,
+                System.Windows.Forms.MessageBoxIcon.Warning)),
+            trySave: () => TrySaveScreenDocument(panelId, previewPanel, historyContext));
+
+        if (!result.ShouldProceed)
+        {
+            e.Cancel = true;
+        }
+    }
+
+    private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(System.Windows.Forms.DialogResult dialogResult)
+        => dialogResult switch
+        {
+            System.Windows.Forms.DialogResult.Yes => ModifiedScreenCloseDecision.Answer.Yes,
+            System.Windows.Forms.DialogResult.No => ModifiedScreenCloseDecision.Answer.No,
+            _ => ModifiedScreenCloseDecision.Answer.Cancel,
+        };
+
+    /// <summary>Saves one screen document, exactly as <see cref="SaveDirtyScreenDocuments"/> does for
+    /// each dirty one, but for a single panel already known to be dirty and already resolved by the
+    /// caller - used by <see cref="OnDockHostPanelClosing"/>'s Yes answer.</summary>
+    private bool TrySaveScreenDocument(string panelId, UIScreenPreviewPanel previewPanel, EditorHistoryContext historyContext)
+    {
+        if (previewPanel.TrySaveDocument(out string errorMessage))
+        {
+            _editorDirtyState.MarkSaved(historyContext);
+            UpdateDockPanelTitle(panelId, GetScreenDocumentTitle(panelId));
+            Logs.WriteInfo($"UI screen saved: {previewPanel.LoadedSourceXamlPath}");
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// T4.5 (D17): asks whether to save every still-modified screen document before the game exits.
+    /// Under automation, nothing is asked - the abandoned screens are logged instead, exactly as the
+    /// author decided for every other unattended path. Neither <see cref="GameEditor"/> nor its base
+    /// <see cref="Game"/> overrode this before T4.5 (verified: no other <c>OnExiting</c> override in the
+    /// repository); MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true
+    /// to cancel closing the game".
+    /// </summary>
+    protected override void OnExiting(object sender, ExitingEventArgs args)
+    {
+        var modifiedScreens = new List<(string PanelId, string Title)>();
+        if (_screenPreviewPanels != null)
+        {
+            foreach (var pair in _screenPreviewPanels)
+            {
+                var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key);
+                if (_editorDirtyState.IsDirty(historyContext))
+                {
+                    string title = _screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen";
+                    modifiedScreens.Add((pair.Key, title));
+                }
+            }
+        }
+
+        if (modifiedScreens.Count == 0)
+        {
+            base.OnExiting(sender, args);
+            return;
+        }
+
+        if (_automationOptions.HasAutomation)
+        {
+            string abandonedTitles = string.Join(", ", modifiedScreens.Select(screen => screen.Title));
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
+            Logs.WriteInfo($"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
+            base.OnExiting(sender, args);
+            return;
+        }
+
+        var result = ModifiedScreenCloseDecision.Decide(
+            isModified: true,
+            isAutomationActive: false,
+            askUser: () =>
+            {
+                string list = string.Join("\n", modifiedScreens.Select(screen => $"- {screen.Title}"));
+                return ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
+                    $"Save changes to the modified screens before quitting?\n\n{list}",
+                    "Quit",
+                    System.Windows.Forms.MessageBoxButtons.YesNoCancel,
+                    System.Windows.Forms.MessageBoxIcon.Warning));
+            },
+            trySave: () =>
+            {
+                SaveDirtyScreenDocuments();
+                bool anyStillModified = modifiedScreens.Any(screen =>
+                    _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, screen.PanelId)));
+                if (anyStillModified)
+                {
+                    Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
+                }
+
+                return !anyStillModified;
+            });
+
+        if (!result.ShouldProceed)
+        {
+            args.Cancel = true;
+            return;
+        }
+
+        base.OnExiting(sender, args);
     }
 
     private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)

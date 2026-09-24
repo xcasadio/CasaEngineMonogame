@@ -909,7 +909,7 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
     `UnauthorizedAccessException` ; une autre exception du sérialiseur sortirait de `SaveCurrentProject`, que le
     menu appelle sans `try`.
 
-### ⏳ T4.5 — Demander avant de perdre un écran modifié (D17)
+### 🚧 T4.5 — Demander avant de perdre un écran modifié (D17)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais), après reconnaissance.
 
@@ -940,6 +940,20 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais), après recon
   les vrais clics Yes/No/Cancel à la fermeture d'un onglet, par File > Exit et par la croix de la fenêtre de
   l'éditeur (seul un lancement réel prouve que `Cancel` arrête ce chemin DesktopGL). Vérificateur frais.
 - Non-objectifs : les autres types de documents, le changement de projet.
+- Note d'exécution (2026-09-24, exécutant, relu par la session principale) :
+  - MGUI `6817691` : `MGDockHost.PanelClosing` et `RaisePanelClosingVetoed` ; branché sur les groupes d'onglets
+    (onglet, Close Others, Close All), le tiroir auto-masqué (sa demande de fermeture, pas les appels
+    programmatiques de `CloseAutoHidePanel`), les deux branches de `MGFloatingDockWindow.OnPanelCloseRequested`, et
+    `WindowClosing` des fenêtres flottantes (abonné et désabonné avec `WindowClosed`) ; `PanelClosingVetoTests`
+    (10 tests sans affichage) ; panneau « Scratchpad » avec une case « Unsaved changes » dans `DockingDemo` ; doc
+    `Docs/controls-architecture.md` ; `MGUI.Tests` 3033/3033 ; `MGUI.Samples` construit.
+  - Moteur : `ModifiedScreenCloseDecision.Decide` (pure : modifié, automatisation, réponse demandée par délégué,
+    enregistrement par délégué) et 7 tests ; `GameEditor.OnDockHostPanelClosing` (boîte « Close Screen ») et
+    `OnExiting` redéfini (boîte « Quit » qui liste les écrans ; sous automatisation, rien n'est demandé et le journal
+    nomme les écrans abandonnés) ; `CasaEngine.Tests` 1883/1883, deux solutions sans erreur.
+  - Mutations : Cancel ignoré sur le chemin des onglets -> exactement les trois tests de ce chemin échouent ; pas
+    d'abonnement à `WindowClosing` -> le test de la fenêtre flottante entière échoue ; un enregistrement raté traité
+    comme « continuer » -> le test de ce cas échoue.
 
 ### ⏳ T4.6 — Ctrl+S (D18)
 
