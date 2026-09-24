@@ -1041,6 +1041,23 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
     à tout changement d'un panneau. Même scénario dans l'éditeur réel (`scratchpad/b6_run.py --no-save`, HUD
     modifié, capture) : avant la correction (run `t45-exit-modified`) l'onglet affiche « HudScreen » sans `*` ;
     après (run `t47-asterisk-fixed`) « HudScreen * ». Projet intact après les deux runs.
+- Vérificateur frais n° 1 (2026-09-24) : **REFUTED** sur un seul point, le reste confirmé (cause, onglets, fenêtre
+  flottante, bandes, capture « HudScreen * » refaite en vrai lancement (run `vf-t47-asterisk`), suites et solutions,
+  mutations, note exacte).
+  - Pourquoi l'hôte ne reconstruisait pas l'onglet : `DockLayoutModel` ne s'abonne qu'aux nœuds présents quand sa
+    racine est affectée ou qu'un groupe flottant est ajouté ; l'éditeur ajoute un document plus tard par
+    `DockOperation.DockAsTab`, donc un changement de titre ne lève jamais `LayoutChanged`. Les panneaux présents dès
+    l'affectation de la racine sont rafraîchis deux fois (texte, puis reconstruction), sans effet visible.
+  - F1 (P2, corrigé) : quand un gabarit de l'hôte remplace le tiroir pendant qu'il est ouvert, l'ancien tiroir restait
+    abonné à son panneau et suivait encore son titre. MGUI `9e98a4a` : `MGDockHost.AttachControlTemplateStructure`
+    remet `ActivePanel` à null sur le tiroir jeté, comme `Detach` pour les bandes. Nouveau test
+    `ReplacingTheHostStructure_DetachesTheOpenDrawer_TheNewDrawerFollowsInstead`, qui échoue sans la correction
+    (vérifié) ; `MGUI.Tests` 3040/3040, `MGUI.Samples` sans erreur.
+  - A1 (P4, corrigé dans le même commit) : le commentaire de `DockTitleFollowTests` disait que le modèle
+    reconstruisait l'arbre à tout changement d'un nœud ; il donne maintenant la raison ci-dessus.
+  - A2 (P4, reporté) : une fenêtre flottante autonome (constructeur public) fermée d'un bloc garde ses panneaux
+    dans son groupe et reste abonnée au panneau dont elle montrait le titre. L'éditeur ne crée pas de telles
+    fenêtres ; à reprendre si un usage apparaît.
 
 ---
 
