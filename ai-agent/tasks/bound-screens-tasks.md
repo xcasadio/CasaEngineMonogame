@@ -574,6 +574,37 @@ boîte de dialogue.
   - `CasaEngine.Tests` 1828/1828 (1822 + 6), mutation vérifiée (écrire l'id au format `N` fait échouer 3 tests) ;
     deux solutions sans erreur ni avertissement dans les fichiers touchés.
   - **Reste en 🧪** : smoke dans l'éditeur, pour la même raison que T4.2 ; reporté en B2 sur le projet Alundra.
+- **Vérificateur frais de la phase 4 (2026-09-24) : REFUTED**, sur le moteur `26e944a7..10ac11cd` et MGUI
+  `3ca2c23..23638b0`. Suites et builds reproduits (moteur 1828/1828 sur 28 lancements sur 29, MGUI 3021/3021).
+  Constats et décisions :
+  - F1 (P2, introduit, **corrigé**) : enregistrer un écran modifié reformatait des éléments non touchés
+    (attributs sur plusieurs lignes fusionnés, guillemets simples et références de caractères réécrits), parce que
+    `XDocument.ToString()` réécrit chaque balise ouvrante. Contraire au contrat de T4.1. Correctif :
+    `UIScreenXamlSourceWriter` relève à l'analyse le texte d'origine de chaque balise ouvrante et la signature
+    de ses attributs, et le réécrit tel quel tant que la signature n'a pas changé ; la déclaration XML
+    d'origine aussi. Deux tests en égalité exacte (écran réel, et guillemets simples avec `&#x0a;`), qui
+    échouent si l'on resynthétise toutes les balises. Sonde du vérificateur rejouée sur 8 fichiers réels : seule
+    la balise de l'élément modifié change. Le test lit maintenant une copie de l'inventaire d'Alundra dans
+    `CasaEngine.Tests/ScreenEditor/Fixtures/`, et non plus le fichier du dépôt parent : il cassait en B2, qui
+    déplace ce fichier, et sur un clone du moteur seul.
+  - F2 (P2, introduit, **corrigé**) : le chargeur des données de conception levait sur un `view_model_type` qui
+    n'est pas une chaîne, et sur un chemin inutilisable ; l'aperçu tombait alors en « Preview unavailable ».
+    Toute erreur de chemin, de lecture ou de forme est désormais rendue en message ; `values` qui n'est pas un
+    objet l'est aussi, au lieu d'être ignoré. Cinq cas de test, dont deux échouent si l'on retire la
+    vérification de type ; sonde du vérificateur rejouée : aucun cas ne lève.
+  - F3 (P3, **reporté**) : un test de T4.2 a échoué une fois sur 29 dans `XAMLParser.LoadRootWindow`, message
+    perdu. Non reproduit : 15 lancements complets verts après les correctifs (1835 tests). Cause plausible, non
+    prouvée : MGUI range tous les bindings dans des collections statiques non thread-safe
+    (`MGUI/MGUI.Core/UI/DataBinding/DataBindingManager.cs:6-9`), et xUnit exécute les classes de test en
+    parallèle.
+  - F4 (P3, **reporté**, O5) : `ForgetHostResolvedTextures` ne rafraîchit pas une image de fenêtre, et son
+    commentaire affirmait le contraire. Commentaire corrigé (MGUI `09d0462`) ; manque consigné en G7 du
+    [rapport des manques](../audits/mgui-gaps-from-xaml-screens.md). Le correctif touche une règle
+    d'architecture de MGUI.
+  - F5 (P4, **reporté**) : un abonné de la racine qui re-résoudrait un nom pendant `RemoveTexture` verrait son
+    ajout effacé de la liste des noms résolus. Latent : aucun abonné de ce genre.
+  - F6 (P4, préexistant, O6) : aucun chemin de l'éditeur n'enregistre un écran ; la garantie de T4.1 ne passe
+    que par `UIScreenEditorSession`, que `GameEditor` n'utilise pas.
 
 ---
 
@@ -626,6 +657,8 @@ boîte de dialogue.
 | O2 | Ordre des merges en fin de programme : MGUI `develop`, moteur `main`, parent `main`. Décision de l'auteur. | clôture |
 | O3 | **Reporté, à arbitrer par l'auteur.** La diffusion de `PropertyChanged` par les événements faibles de WPF (`UseWPF`) alloue environ 192 octets par notification, avant toute mise à jour de binding. Préexistant, hors de D8 (ni réflexion ni boxing). Pistes : un gestionnaire d'événements faibles sans allocation dans MGUI, ou un abonnement direct avec désabonnement explicite à la libération. Le vérificateur de fin de phase 2 recontrôle la mesure. | suite |
 | O4 | **À corriger en B3.** Le fournisseur retire de sa liste une instance d'animation que MGUI libère (remarque A1 de la phase 3) : les cases du HUD changent de source en jeu, entre sprites et animations, et la liste grossirait pendant tout un monde. | B3 |
+| O5 | **À arbitrer par l'auteur.** Une image de fenêtre ne voit pas les textures ajoutées ou retirées à la racine (G7) : après un changement de projet dans l'éditeur, une image encore affichée garderait une texture dont le handle est rendu. Pistes : relayer les événements de texture vers les portées enfants (un troisième événement dans le lien faible que l'ADR-0001 de MGUI veut étroit), ou abonner l'image à la portée qui a fourni sa texture. | suite |
+| O6 | **Question posée à l'auteur le 2026-09-24.** L'éditeur n'enregistre aucun écran : « Save » (`GameEditor.SaveCurrentProject`) ne couvre pas les documents d'écran, et le sérialiseur ne sert qu'au presse-papiers (`GameEditor.cs:1881`). Un choix d'image fait dans l'inspecteur (T4.3) ne peut donc pas être enregistré depuis l'éditeur, et la validation « enregistrement sans modification » de B2 n'est pas atteignable. Préexistant, hors des tâches du plan. | B2 |
 
 ## Hors périmètre
 

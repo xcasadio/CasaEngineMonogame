@@ -68,21 +68,43 @@ public static class UIScreenDesignTimeDataLoader
         {
             return Fail(ex.Message);
         }
+        catch (Exception ex)
+        {
+            // An unusable path (invalid characters, access denied...) is a data error too.
+            return Fail($"Design-time data file '{asset.DesignTimeDataFile}' could not be located: {ex.Message}");
+        }
 
         JObject root;
         try
         {
             root = JObject.Parse(File.ReadAllText(dataFilePath));
         }
-        catch (Exception ex) when (ex is JsonException or IOException)
+        catch (Exception ex)
         {
-            return Fail($"Design-time data file '{dataFilePath}' could not be parsed as JSON: {ex.Message}");
+            return Fail($"Design-time data file '{dataFilePath}' could not be read as a JSON object: {ex.Message}");
         }
 
-        var typeName = root["view_model_type"]?.Value<string>();
+        var typeToken = root["view_model_type"];
+        if (typeToken == null || typeToken.Type == JTokenType.Null)
+        {
+            return Fail($"Design-time data file '{dataFilePath}' is missing 'view_model_type'.");
+        }
+
+        if (typeToken.Type != JTokenType.String)
+        {
+            return Fail($"Design-time data file '{dataFilePath}' has a 'view_model_type' that is not a string ({typeToken.Type}).");
+        }
+
+        var typeName = typeToken.Value<string>();
         if (string.IsNullOrWhiteSpace(typeName))
         {
             return Fail($"Design-time data file '{dataFilePath}' is missing 'view_model_type'.");
+        }
+
+        var valuesToken = root["values"];
+        if (valuesToken != null && valuesToken.Type != JTokenType.Null && valuesToken is not JObject)
+        {
+            return Fail($"Design-time data file '{dataFilePath}' has a 'values' that is not a JSON object ({valuesToken.Type}).");
         }
 
         object instance;

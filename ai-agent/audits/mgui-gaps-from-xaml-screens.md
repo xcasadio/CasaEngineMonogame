@@ -277,3 +277,32 @@ la cause n'a été trouvée qu'en lisant le code et en rejouant le parcours avec
 **À quoi ressemblerait l'API absente.** Un avertissement journalisé, une fois par famille et par moteur de
 texte, quand une famille déclarée en XAML retombe sur la police de repli. Ou un mode strict du chargeur XAML
 (qui existe déjà pour les éléments inconnus) qui en ferait une erreur.
+
+## G7 — Une image d'une fenêtre ne voit pas les textures ajoutées ou retirées à la racine
+
+> **Consigné, non corrigé** (programme bound-screens, constat F4 du vérificateur de la phase 4, 2026-09-24 ;
+> [bound-screens-tasks.md](../tasks/bound-screens-tasks.md), point ouvert O5). Le correctif touche une règle
+> d'architecture de MGUI : décision de l'auteur.
+
+**Ce que le code doit faire.** Quand l'hôte change la source de ses images (l'éditeur qui ouvre un autre
+projet), `MGResources.ForgetHostResolvedTextures` retire de la portée racine les textures résolues par l'hôte.
+Chaque image qui en affichait une doit se rafraîchir, et redemander son nom au nouveau catalogue.
+
+**Pourquoi elle ne le peut pas.** Un `MGImage` s'abonne à `OnTextureAdded`/`OnTextureRemoved` de sa portée la
+plus proche (`MGUI/MGUI.Core/UI/MGImage.cs:66-74`). Or chaque `MGWindow` crée sa propre portée dans son
+constructeur (`MGUI/MGUI.Core/UI/MGWindow.cs:1640`), et une portée enfant ne relaie de sa parente que deux
+événements, par un lien faible volontairement étroit (`MGUI/MGUI.Core/UI/MGResources.cs:124-133`, MGUI
+ADR-0001) : le thème par défaut et les ressources statiques, pas les textures. Une image de fenêtre ne voit
+donc aucune texture ajoutée ou retirée à la racine ; elle garde la texture qu'elle avait jusqu'à ce que son
+`SourceName` change.
+
+**Ce que ça coûte.** Reproduit par le vérificateur hors dépôt : après l'oubli, l'image garde l'ancienne
+texture et ne redemande pas son nom. Dans l'éditeur, le fournisseur rend aussi ses handles au changement de
+projet, et le chargement du premier monde collecte les assets sans référence : une image encore affichée
+pourrait dessiner une texture libérée. Non observé : il faudrait qu'un aperçu de l'ancien projet reste ouvert
+après le changement, ce qui n'a pas été vérifié en session. Les images animées ne sont pas touchées : leur
+image courante devient nulle quand le fournisseur est libéré.
+
+**À quoi ressemblerait l'API absente.** Soit les événements de texture relayés vers les portées enfants par
+le même lien faible (un troisième événement dans un mécanisme que l'ADR-0001 de MGUI veut étroit) ; soit un
+`MGImage` qui s'abonne à la portée qui a réellement fourni sa texture. Les deux sont des décisions de MGUI.

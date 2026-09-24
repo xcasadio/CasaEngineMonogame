@@ -160,6 +160,44 @@ public sealed class UIScreenPreviewBuilderDesignTimeDataTests
         }
     }
 
+    [Theory]
+    [InlineData("""{ "view_model_type": { "x": 1 }, "values": {} }""", "not a string")]
+    [InlineData("""{ "view_model_type": 42 }""", "not a string")]
+    [InlineData("""{ "view_model_type": "TestViewModel", "values": [ 1, 2 ] }""", "not a JSON object")]
+    [InlineData("""[ "view_model_type", "TestViewModel" ]""", "JSON object")]
+    public void Build_WithMalformedDesignTimeData_ReportsAnErrorAndRendersWithoutDataContext(string json, string expectedMessagePart)
+    {
+        var directory = CreateTempDirectory();
+        try
+        {
+            File.WriteAllText(Path.Combine(directory, "screen.designtime.json"), json);
+
+            var assetFilePath = Path.Combine(directory, "screen.uiscreen");
+            var desktop = HeadlessUiTestHarness.NewDesktop().Desktop;
+            var document = new UIScreenXamlParser().Parse(BoundScreenXaml);
+
+            var window = new UIScreenPreviewBuilder().Build(desktop, document, NewAsset("screen.designtime.json"), assetFilePath, out var error);
+
+            Assert.NotNull(error);
+            Assert.Contains(expectedMessagePart, error);
+            Assert.NotNull(window);
+            Assert.Null(window.WindowDataContext);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Load_WithAnUnusablePath_ReportsAnErrorInsteadOfThrowing()
+    {
+        var result = UIScreenDesignTimeDataLoader.Load(NewAsset("bad\0name.json"), Path.Combine(Path.GetTempPath(), "screen.uiscreen"));
+
+        Assert.NotNull(result.ErrorMessage);
+        Assert.Null(result.DataContext);
+    }
+
     private static string CreateTempDirectory()
     {
         var directory = Path.Combine(Path.GetTempPath(), "casaengine-designtime-tests-" + Guid.NewGuid().ToString("N"));
