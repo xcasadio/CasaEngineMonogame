@@ -153,6 +153,32 @@ Parsing runs in `XamlLoaderMode.Strict`, which is **stricter than the editor's p
 in `Compatibility`, where no validation runs. A document the editor previews happily can still be refused at
 runtime, for an unknown element or a name declared twice. See ADR-0035.
 
+### Design-time data file (`design_time_data_file`)
+
+The file is a JSON document of the shape:
+
+```json
+{
+  "view_model_type": "AlundraInventoryViewModel",
+  "values": {
+    "WeaponName": "Poignard",
+    "Slot0": { "SourceName": "hud-heart" }
+  }
+}
+```
+
+- `view_model_type` names the view model's type by its **simple name** (no namespace), the same convention
+  `ElementFactory` uses everywhere else in the engine -- not its fully-qualified name. It must be a public
+  type with a public parameterless constructor, found either in the engine or in the project's loaded
+  gameplay assembly (`ElementFactory.RegisterScriptAssembly`); a name that resolves to more than one type
+  across assemblies picks whichever `ElementFactory`'s cache found first, so keep design-time view model
+  names distinct.
+- `values` is populated onto the instance with `Newtonsoft.Json.JsonConvert.PopulateObject`, so it follows
+  the same property-name matching and nested-object rules as any other Newtonsoft.Json deserialization.
+- The preview builder (`CasaEngine.EditorServices/ScreenEditor/Preview/UIScreenDesignTimeDataLoader.cs`) sets
+  the populated instance as the preview window's `WindowDataContext`, so every `{dataBinding:MGBinding
+  Path=...}` in the markup binds against it exactly as it would against a real game view model.
+
 At design time (`UIDesignModeContext.IsDesignTime == true`):
 - The preview builder injects placeholder values from `UIScreenMockDataContext`.
 - Name controls meaningfully so the mock system can select relevant placeholder text:

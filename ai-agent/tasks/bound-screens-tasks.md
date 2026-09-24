@@ -513,7 +513,7 @@ boîte de dialogue.
   - Fait confirmé : MGUI ne connaît pas la syntaxe attachée `Canvas.Left` en XAML (le vrai analyseur la
     refuse) ; ses coordonnées s'écrivent `CanvasLeft` (voir T1.2).
 
-### ⏳ T4.2 — Aperçu lié et images réelles
+### 🧪 T4.2 — Aperçu lié et images réelles
 
 - Objectif : D9, D1 dans l'éditeur, P7.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Preview/UIScreenPreviewBuilder.cs`,
@@ -530,6 +530,24 @@ boîte de dialogue.
   laisse l'aperçu vide avec un message ; smoke dans l'éditeur sur un écran de RPGDemo doté d'un fichier de
   conception (🧪 si le smoke n'est pas faisable en session).
 - Commit : `feat(screen-editor): preview screens with design-time data and real images`
+- **Fait** :
+  - `UIScreenDesignTimeDataLoader` lit le fichier de conception (résolu comme la source XAML : chemin absolu, sinon relatif au
+    `.uiscreen`, sinon au projet), instancie le type
+    nommé par `ElementFactory` (nom simple du type, pas de nom qualifié) et le remplit par
+    `JsonConvert.PopulateObject` ; il rend un contexte ou un message d'erreur, jamais d'exception.
+    `UIScreenPreviewBuilder` pose le contexte comme `WindowDataContext` de la fenêtre d'aperçu ; le panneau
+    d'aperçu journalise l'erreur et l'ajoute à sa ligne d'état, l'écran s'affichant sans données.
+    `UIScreenEditorSession` expose le même résultat (`DesignTimeDataContext`, `DesignTimeDataError`).
+  - Le fournisseur de l'éditeur reçoit l'`AssetContentManager` du runtime de l'éditeur à chaque présentation
+    d'un projet (`AttachAssetContentManager`) après avoir rendu ses handles (`ReleaseHeldAssets`) ; MGUI oublie
+    les textures résolues par l'hôte et son cache négatif (`MGResources.ForgetHostResolvedTextures`, MGUI
+    `23638b0`), pour qu'un changement de projet redemande chaque nom au nouveau catalogue. L'éditeur libère le
+    fournisseur à sa fermeture.
+  - MGUI.Tests 3021/3021 ; `CasaEngine.Tests` 1822/1822 (1814 + 8 : 5 sur l'aperçu avec données de conception,
+    3 sur le fournisseur) ; deux solutions sans erreur.
+  - **Reste en 🧪** : le smoke dans l'éditeur n'est pas faisable sur RPGDemo. L'automatisation de l'éditeur
+    exige une entité sélectionnable dans le premier monde, et `TitleScreenWorld` n'en a aucune (deux lancements
+    arrêtés au délai). Le smoke est reporté en B2, sur le projet Alundra, dont le premier monde a des entités.
 
 ### ⏳ T4.3 — Choisir une image dans l'inspecteur
 

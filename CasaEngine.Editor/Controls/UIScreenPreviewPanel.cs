@@ -37,6 +37,7 @@ public sealed class UIScreenPreviewPanel
     private IReadOnlyDictionary<DocumentNodeId, MGElement> _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
     private UIScreenSelectionService _selectionService;
     private UIScreenDocument _currentDocument;
+    private UIScreenAsset _currentAsset;
     private readonly object _reloadSync = new();
     private string _loadedAssetFilePath;
     private string _loadedSourceXamlPath;
@@ -300,17 +301,51 @@ public sealed class UIScreenPreviewPanel
 
         try
         {
-            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), _currentDocument, _previewWidth, _previewHeight);
+            var (previewWindow, nodeMap, designTimeDataError) = BuildPreviewWithMapping(_currentDocument, _previewWidth, _previewHeight);
             _nodeMap = nodeMap;
             previewWindow.IsHitTestVisible = false;
             _previewSurface!.SetContent(previewWindow);
             UIDesignModeContext.EnterDesignTime();
+            ReportDesignTimeDataOutcome("Preview refreshed.", designTimeDataError);
         }
         catch (Exception ex)
         {
             _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
             ShowPreviewError("Preview refresh failed", ex.Message, string.Empty);
         }
+    }
+
+    /// <summary>
+    /// Builds a preview for <paramref name="document"/>, passing <see cref="_currentAsset"/> and
+    /// <see cref="_loadedAssetFilePath"/> to <see cref="UIScreenPreviewBuilder"/> so a design-time data file is
+    /// loaded and bound (ADR-0038), when an asset is currently loaded.
+    /// </summary>
+    private (MGWindow Window, IReadOnlyDictionary<DocumentNodeId, MGElement> NodeMap, string DesignTimeDataError) BuildPreviewWithMapping(
+        UIScreenDocument document, int width, int height)
+    {
+        if (_currentAsset == null || string.IsNullOrWhiteSpace(_loadedAssetFilePath))
+        {
+            var (window, map) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document, width, height);
+            return (window, map, null);
+        }
+
+        var (windowWithData, mapWithData) = _previewBuilder.BuildWithMapping(
+            _window.GetDesktop(), document, _currentAsset, _loadedAssetFilePath, out var designTimeDataError, width, height);
+        return (windowWithData, mapWithData, designTimeDataError);
+    }
+
+    /// <summary>Logs and appends a design-time data error (if any) to the status text, without replacing the
+    /// preview surface -- the screen itself still built and rendered, just without a data context.</summary>
+    private void ReportDesignTimeDataOutcome(string baseStatusMessage, string designTimeDataError)
+    {
+        if (string.IsNullOrWhiteSpace(designTimeDataError))
+        {
+            _statusText!.Text = baseStatusMessage;
+            return;
+        }
+
+        Logs.WriteWarning($"UIScreen preview design-time data: {designTimeDataError}");
+        _statusText!.Text = $"{baseStatusMessage} Design-time data: {EscapeMarkup(designTimeDataError)}";
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -388,13 +423,13 @@ public sealed class UIScreenPreviewPanel
 
         try
         {
-            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document, _previewWidth, _previewHeight);
+            var (previewWindow, nodeMap, designTimeDataError) = BuildPreviewWithMapping(document, _previewWidth, _previewHeight);
             _nodeMap = nodeMap;
             _currentDocument = document;
             previewWindow.IsHitTestVisible = false;
             _previewSurface!.SetContent(previewWindow);
-            _statusText!.Text = "Preview rebuilt.";
             UIDesignModeContext.EnterDesignTime();
+            ReportDesignTimeDataOutcome("Preview rebuilt.", designTimeDataError);
             DocumentLoaded?.Invoke(document);
         }
         catch (Exception ex)
@@ -422,22 +457,24 @@ public sealed class UIScreenPreviewPanel
             ConfigureWatchers(assetFilePath, sourceXamlPath);
             _loadedAssetFilePath = assetFilePath;
             _loadedSourceXamlPath = sourceXamlPath;
+            _currentAsset = asset;
 
             var document = _xamlParser.ParseFile(sourceXamlPath);
             _currentDocument = document;
             DocumentLoaded?.Invoke(document);
 
-            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document, _previewWidth, _previewHeight);
+            var (previewWindow, nodeMap, designTimeDataError) = BuildPreviewWithMapping(document, _previewWidth, _previewHeight);
             _nodeMap = nodeMap;
             previewWindow.IsHitTestVisible = false;
 
             _previewSurface!.SetContent(previewWindow);
-            _statusText!.Text = $"Loaded {EscapeMarkup(Path.GetFileName(sourceXamlPath))}";
+            ReportDesignTimeDataOutcome($"Loaded {EscapeMarkup(Path.GetFileName(sourceXamlPath))}", designTimeDataError);
         }
         catch (Exception ex)
         {
             _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
             _currentDocument = null;
+            _currentAsset = null;
             DocumentLoaded?.Invoke(null);
             ShowPreviewError("Preview unavailable", ex.Message, asset.SourceXamlFile);
             _statusText!.Text = "Preview build failed.";

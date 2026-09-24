@@ -30,6 +30,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Framework.UI.Backend.MonoGame;
+using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using CasaEngine.Framework.Input;
 
 using FontStashSharp;
@@ -406,6 +407,11 @@ public class GameEditor : Game, IObservableUpdate
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             _shaderSourceHotReloadService?.Dispose();
+            if (_desktop?.Runtime is IMonoGameDesktopBackend monoGameBackend
+                && monoGameBackend.AssetProvider is CasaUIAssetProvider uiAssetProvider)
+            {
+                uiAssetProvider.Dispose();
+            }
             _editorDirtyState.DirtyStateChanged -= OnDirtyStateChanged;
             if (_dockHost != null)
             {
@@ -903,6 +909,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         ApplyAutomationProjectDirectory();
         EnsureEditorRuntimeInitialized();
+        RefreshUIAssetProviderForProjectChange();
         _shaderSourceHotReloadService ??= new EditorShaderSourceHotReloadService(_editorRuntime);
         _shaderSourceHotReloadService.Reconfigure();
         EnsureShellChromeInitialized();
@@ -992,6 +999,33 @@ public class GameEditor : Game, IObservableUpdate
 
         _editorRuntime.InitializeHost();
         _editorRuntime.LoadContentHost();
+    }
+
+    /// <summary>
+    /// Gives the editor's UI asset provider the editor runtime's <see cref="AssetContentManager"/> so the
+    /// screen preview resolves real images exactly as the game does (ADR-0038, "Design-time data"): the
+    /// backend that owns this provider is built in <see cref="Initialize"/>, well before <see cref="_editorRuntime"/>
+    /// exists (<see cref="EnsureEditorRuntimeInitialized"/>), so the provider starts with none.
+    /// <para/>
+    /// Called every time a project is presented, including switching to a different project within the same
+    /// editor session: <see cref="_editorRuntime"/> and its <see cref="AssetContentManager"/> are created once
+    /// for the editor's lifetime (<see cref="EnsureEditorRuntimeInitialized"/> is a no-op after the first
+    /// call), so without this, an image name resolved -- or failed to resolve -- against one project's catalog
+    /// would stay held or negatively cached for every project opened afterwards. Releasing the provider's holds
+    /// and forgetting MGUI's host-resolved textures and negative cache (<see cref="MGResources.ForgetHostResolvedTextures"/>)
+    /// before re-attaching makes every name ask the (now current) catalog again.
+    /// </summary>
+    private void RefreshUIAssetProviderForProjectChange()
+    {
+        if (_editorRuntime == null || _desktop?.Runtime is not IMonoGameDesktopBackend monoGameBackend
+            || monoGameBackend.AssetProvider is not CasaUIAssetProvider uiAssetProvider)
+        {
+            return;
+        }
+
+        uiAssetProvider.ReleaseHeldAssets();
+        uiAssetProvider.AttachAssetContentManager(_editorRuntime.AssetContentManager);
+        _desktop.Resources.ForgetHostResolvedTextures();
     }
 
     internal EditorPlayModeService PlayModeService

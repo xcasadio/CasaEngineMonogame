@@ -245,6 +245,83 @@ public class CasaUIAssetProviderTests : IDisposable
         Assert.Single(warnings);
     }
 
+    /// <summary>T4.2 (ADR-0038 "Design-time data"): the editor builds its UI backend, and the
+    /// <see cref="CasaUIAssetProvider"/> it creates, before its own <see cref="AssetContentManager"/> exists --
+    /// so the provider starts with none, and resolving anything fails softly until it is attached one.</summary>
+    [Fact]
+    public void TryResolveImage_BeforeAttach_FailsSoftly_AndSucceedsAfterAttach()
+    {
+        RegisterSpriteCatalog();
+        var manager = NewManager(out _);
+        using var provider = NewProvider(null);
+
+        bool beforeAttach = true;
+        var warnings = CaptureWarnings(() =>
+        {
+            beforeAttach = provider.TryResolveImage("hud-heart", out var image, out _);
+            Assert.Null(image);
+        });
+        Assert.False(beforeAttach);
+        Assert.Single(warnings);
+        Assert.Contains("no AssetContentManager", warnings[0]);
+
+        provider.AttachAssetContentManager(manager);
+
+        var afterAttach = provider.TryResolveImage("hud-heart", out var resolvedImage, out var sourceRect);
+        Assert.True(afterAttach);
+        Assert.NotNull(resolvedImage);
+        Assert.Equal(SpriteRect, sourceRect);
+    }
+
+    /// <summary>Attaching clears the provider's "already warned" bookkeeping, so a name that failed before an
+    /// asset manager existed gets a fresh attempt -- and a fresh warning if it fails again -- rather than
+    /// staying silently unresolvable for this provider's lifetime.</summary>
+    [Fact]
+    public void AttachAssetContentManager_ClearsPreviouslyWarnedNames()
+    {
+        var manager = NewManager(out _);
+        using var provider = NewProvider(null);
+
+        CaptureWarnings(() => provider.TryResolveImage("hud-heart", out _, out _));
+
+        provider.AttachAssetContentManager(manager);
+        RegisterSpriteCatalog();
+
+        var warnings = CaptureWarnings(() =>
+        {
+            var resolved = provider.TryResolveImage("hud-heart", out var image, out _);
+            Assert.True(resolved);
+            Assert.NotNull(image);
+        });
+        Assert.Empty(warnings);
+    }
+
+    /// <summary>T4.2: on an editor project change, <see cref="CasaUIAssetProvider.ReleaseHeldAssets"/> gives
+    /// back every handle this provider holds -- same as <see cref="CasaUIAssetProvider.Dispose"/> -- without
+    /// disposing the provider, so it keeps resolving names (typically against a freshly-attached manager)
+    /// afterwards.</summary>
+    [Fact]
+    public void ReleaseHeldAssets_GivesBackHandles_WithoutDisposing_AndStillResolvesAfterwards()
+    {
+        RegisterSpriteCatalog();
+        var manager = NewManager(out _);
+        var provider = NewProvider(manager);
+
+        Assert.True(provider.TryResolveImage("hud-heart", out _, out _));
+        Assert.Equal(0, manager.CollectUnreferenced()); // still held.
+
+        provider.ReleaseHeldAssets();
+        Assert.Equal(3, manager.CollectUnreferenced()); // same release as Dispose (sprite data + sheet handle + Texture2D).
+
+        // Not disposed: resolving the same name again re-acquires it rather than failing.
+        var resolvedAgain = provider.TryResolveImage("hud-heart", out var image, out var sourceRect);
+        Assert.True(resolvedAgain);
+        Assert.NotNull(image);
+        Assert.Equal(SpriteRect, sourceRect);
+
+        provider.Dispose();
+    }
+
     [Fact]
     public void EndToEnd_MGImage_WithSourceNameAsTheSpriteGuid_ResolvesTheSameImageAndRectangle()
     {

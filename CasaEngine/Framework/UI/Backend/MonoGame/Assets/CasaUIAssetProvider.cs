@@ -15,7 +15,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
     private static readonly string SpriteAssetType = Constants.FileNameExtensions.Sprite.TrimStart('.');
     private static readonly string Animation2dAssetType = Constants.FileNameExtensions.Animation2d.TrimStart('.');
 
-    private readonly AssetContentManager _assetContentManager;
+    private AssetContentManager _assetContentManager;
     private readonly HashSet<string> _warnedNames = new();
     private readonly List<AssetHandle<SpriteData>> _heldSpriteData = new();
     private readonly List<Sprite> _heldSprites = new();
@@ -51,6 +51,36 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         Content = content;
         FontManager = fontManager;
         _assetContentManager = assetContentManager;
+    }
+
+    /// <summary>
+    /// Gives this provider the asset manager it resolves <see cref="TryResolveImage"/> and
+    /// <see cref="TryCreateAnimatedImage"/> names through, when none was given to the constructor (ADR-0038,
+    /// "Design-time data"): the editor builds its UI backend before its own <see cref="AssetContentManager"/>
+    /// exists, so the constructor is called with none, and this method attaches it once it does. Also clears
+    /// every name this provider has already warned about, so a name that failed before attachment -- or
+    /// belonged to a previous project -- gets a fresh attempt. Idempotent; safe to call again with the same or
+    /// a different manager (for example on a project change, after <see cref="ReleaseHeldAssets"/>).
+    /// </summary>
+    public void AttachAssetContentManager(AssetContentManager assetContentManager)
+    {
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+        _assetContentManager = assetContentManager;
+        _warnedNames.Clear();
+    }
+
+    /// <summary>
+    /// Gives back every asset handle and cached resolution this provider holds -- the same release
+    /// <see cref="Dispose"/> performs -- without disposing the provider itself, so it can keep resolving names
+    /// against a new <see cref="AssetContentManager"/> (typically <see cref="AttachAssetContentManager"/>
+    /// afterwards). Intended for an editor project change: the previous project's catalog is gone, so nothing
+    /// this provider resolved against it should still be held, and every animated-image instance it created is
+    /// marked disposed since the composition backing it is about to be released. Never throws.
+    /// </summary>
+    public void ReleaseHeldAssets()
+    {
+        ReleaseAllHeldAssets();
+        _warnedNames.Clear();
     }
 
     public IUIImageResource LoadImage(string assetName)
@@ -326,7 +356,15 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         }
 
         _disposed = true;
+        ReleaseAllHeldAssets();
+    }
 
+    /// <summary>Shared release logic for <see cref="Dispose"/> and <see cref="ReleaseHeldAssets"/>: gives back
+    /// every sprite data and sheet texture handle held by <see cref="TryResolveImage"/> and
+    /// <see cref="TryCreateAnimatedImage"/> (its cached animations and their frame sprites), and marks every
+    /// per-image animation instance this provider created as disposed. Idempotent.</summary>
+    private void ReleaseAllHeldAssets()
+    {
         foreach (var sprite in _heldSprites)
         {
             sprite.Dispose();

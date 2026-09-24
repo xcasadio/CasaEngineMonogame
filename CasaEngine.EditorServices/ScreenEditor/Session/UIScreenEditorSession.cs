@@ -26,6 +26,16 @@ public sealed class UIScreenEditorSession
 
     public string? PreviewMarkup { get; private set; }
 
+    /// <summary>The populated view model from the current asset's design-time data file (ADR-0038), or null
+    /// when the asset names none, none is loaded yet, or loading it failed (<see cref="DesignTimeDataError"/>).
+    /// A caller building a live preview window from <see cref="PreviewMarkup"/> against a real
+    /// <see cref="MGUI.Core.UI.MGDesktop"/> sets it as that window's <c>WindowDataContext</c>.</summary>
+    public object? DesignTimeDataContext { get; private set; }
+
+    /// <summary>Why <see cref="DesignTimeDataContext"/> is null, or null when there was nothing to load or
+    /// loading succeeded.</summary>
+    public string? DesignTimeDataError { get; private set; }
+
     public string? LastErrorMessage { get; private set; }
 
     public UIScreenEditorSession()
@@ -146,6 +156,8 @@ public sealed class UIScreenEditorSession
         if (Document == null)
         {
             PreviewMarkup = null;
+            DesignTimeDataContext = null;
+            DesignTimeDataError = null;
             return;
         }
 
@@ -159,6 +171,28 @@ public sealed class UIScreenEditorSession
             PreviewMarkup = null;
             LastErrorMessage = ex.Message;
         }
+
+        RebuildDesignTimeData();
+    }
+
+    /// <summary>
+    /// Loads the current asset's design-time data file (ADR-0038), if any. This session has no
+    /// <see cref="MGUI.Core.UI.MGDesktop"/> of its own -- it only produces preview markup text -- so it cannot
+    /// bind the result into a live window itself; <see cref="DesignTimeDataContext"/> is exposed for a caller
+    /// that builds a real preview window from <see cref="PreviewMarkup"/> to use as that window's data context.
+    /// </summary>
+    private void RebuildDesignTimeData()
+    {
+        if (CurrentAsset == null || string.IsNullOrWhiteSpace(CurrentAssetFilePath))
+        {
+            DesignTimeDataContext = null;
+            DesignTimeDataError = null;
+            return;
+        }
+
+        var result = UIScreenDesignTimeDataLoader.Load(CurrentAsset, CurrentAssetFilePath);
+        DesignTimeDataContext = result.DataContext;
+        DesignTimeDataError = result.ErrorMessage;
     }
 
     private void EnsureAssetFilePath()

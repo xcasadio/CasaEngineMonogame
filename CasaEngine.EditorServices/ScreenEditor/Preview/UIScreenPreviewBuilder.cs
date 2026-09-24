@@ -1,6 +1,7 @@
 using System.Xml.Linq;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
+using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.XAML;
 
@@ -35,6 +36,22 @@ public sealed class UIScreenPreviewBuilder
     }
 
     /// <summary>
+    /// Same as <see cref="Build(MGDesktop, UIScreenDocument, int, int)"/>, but also loads <paramref name="asset"/>'s
+    /// optional design-time data file (ADR-0038, "Design-time data") and, when it names one successfully, sets
+    /// the built window's <see cref="MGWindow.WindowDataContext"/> to the populated view model so every bound
+    /// control in the screen previews with real data. A missing or invalid design-time data file is reported
+    /// through <paramref name="designTimeDataError"/> instead of throwing; the window is still built and
+    /// returned, without a data context.
+    /// </summary>
+    public MGWindow Build(MGDesktop desktop, UIScreenDocument document, UIScreenAsset asset, string assetFilePath,
+        out string designTimeDataError, int width = 1280, int height = 720)
+    {
+        var window = Build(desktop, document, width, height);
+        designTimeDataError = ApplyDesignTimeDataContext(window, asset, assetFilePath);
+        return window;
+    }
+
+    /// <summary>
     /// Builds the preview window and returns a mapping from each
     /// <see cref="DocumentNodeId"/> to the corresponding runtime <see cref="MGElement"/>.
     /// </summary>
@@ -58,6 +75,34 @@ public sealed class UIScreenPreviewBuilder
         }
 
         return (window, map);
+    }
+
+    /// <summary>
+    /// Same as <see cref="BuildWithMapping(MGDesktop, UIScreenDocument, int, int)"/>, but also loads
+    /// <paramref name="asset"/>'s optional design-time data file (ADR-0038, "Design-time data") the same way
+    /// <see cref="Build(MGDesktop, UIScreenDocument, UIScreenAsset, string, out string, int, int)"/> does.
+    /// </summary>
+    public (MGWindow Window, IReadOnlyDictionary<DocumentNodeId, MGElement> NodeMap) BuildWithMapping(
+        MGDesktop desktop, UIScreenDocument document, UIScreenAsset asset, string assetFilePath,
+        out string designTimeDataError, int width = 1280, int height = 720)
+    {
+        var (window, map) = BuildWithMapping(desktop, document, width, height);
+        designTimeDataError = ApplyDesignTimeDataContext(window, asset, assetFilePath);
+        return (window, map);
+    }
+
+    /// <summary>Loads <paramref name="asset"/>'s design-time data file (if any), sets it as <paramref name="window"/>'s
+    /// data context on success, and returns the error message on failure (or null when there was nothing to
+    /// load or loading succeeded).</summary>
+    private static string ApplyDesignTimeDataContext(MGWindow window, UIScreenAsset asset, string assetFilePath)
+    {
+        var result = UIScreenDesignTimeDataLoader.Load(asset, assetFilePath);
+        if (result.DataContext != null)
+        {
+            window.WindowDataContext = result.DataContext;
+        }
+
+        return result.ErrorMessage;
     }
 
     public string CreatePreviewMarkup(UIScreenDocument document, int width = 1280, int height = 720)
