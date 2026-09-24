@@ -121,8 +121,10 @@ public sealed class Animation2dCompositionSampler
             return;
         }
 
-        foreach (var animationEvent in _composition.Events)
+        var events = _composition.Events;
+        for (var index = 0; index < events.Count; index++)
         {
+            var animationEvent = events[index];
             if (animationEvent.TimeSeconds > startExclusive && animationEvent.TimeSeconds <= endInclusive)
             {
                 handler(animationEvent);
@@ -160,8 +162,10 @@ public sealed class Animation2dCompositionSampler
         CurrentCollisionKeyframeIndex = EvaluateCollisionKeyframeIndex(sampleTime);
         RuntimeState.ApplyDefaults(_composition);
 
-        foreach (var track in _composition.Tracks)
+        var tracks = _composition.Tracks;
+        for (var index = 0; index < tracks.Count; index++)
         {
+            var track = tracks[index];
             if (!RuntimeState.TryGetPart(track.TargetPartId, out var part))
             {
                 continue;

@@ -395,7 +395,7 @@ boîte de dialogue.
     test de bout en bout construit un `MGDesktop` sans `LoadDefaultResources`, qui exige des icônes de contenu
     absentes du projet de tests.
 
-### ⏳ T3.2 — Animations 2D comme images animées
+### ✅ T3.2 — Animations 2D comme images animées
 
 - Objectif : D11 côté moteur.
 - Fichiers : le fournisseur de T3.1, une implémentation de l'image animée sur `Animation2dCompositionSampler`,
@@ -408,6 +408,23 @@ boîte de dialogue.
 - Validation : tests : une animation de 4 frames de 200 ms change de frame à moins d'une frame de k × 200 ms ; un
   décalage de 200 ms décale d'une frame ; zéro octet alloué par avance ; handles rendus à la libération.
 - Commit : `feat(ui): play 2D animation assets as animated UI images`
+- **Fait** :
+  - `Animation2dCompositionSampler` : les deux `foreach` à travers une interface (pistes et événements) sont des
+    boucles `for` ; comportement inchangé (tests d'animation et d'`AnimatedSpriteComponent` verts).
+  - `CasaUIAssetProvider.TryCreateAnimatedImage` : type d'asset `anim2d` ; le fournisseur tient l'animation (une
+    composition par nom) et les sprites de ses frames (un cache par id de sprite, ressource d'image créée une fois
+    par sprite) ; chaque appel rend une instance propre qui ne possède qu'un échantillonneur (remarque A3 de la
+    phase 2). Frame courante : la première partie dans l'ordre de dessin ; décalage de dessin = sa position
+    arrondie au pixel ; `Restart` = remise à zéro puis `Seek`. `Dispose` du fournisseur rend tous les handles et
+    marque les instances créées comme libérées.
+  - Correction de la session principale : `TryResolveImage` journalisait « n'est pas un sprite » pour chaque nom
+    d'animation **valide**, puisque MGUI demande d'abord une image statique ; il ne journalise plus que les types
+    qui ne sont ni sprite ni animation. Test de non-régression, vérifié par mutation (échoue avec l'ancien code).
+  - `CasaEngine.Tests` 1797/1797 (1788 + 9) ; frames à k × 200 ms sur plus de 25 cycles ; deux instances
+    décalées de 200 ms restent à une frame ; zéro octet sur 1000 `Advance` et sur 1000 `Update` de
+    l'échantillonneur ; deux solutions et `Alundra.csproj` sans erreur.
+  - Limites acceptées : un même asset atteint par GUID et par nom donne deux compositions (aucun chargement en
+    double) ; le fournisseur garde les instances créées jusqu'à sa libération, c'est-à-dire au plus un monde.
 
 ### ⏳ T3.3 — Écrans acquis par handle, données de conception
 
