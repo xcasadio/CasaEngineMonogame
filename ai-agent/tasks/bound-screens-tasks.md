@@ -653,6 +653,11 @@ boîte de dialogue.
 - Objectif : tranches B1 à B3 du plan parent `docs/plan-bound-screens.md` : écrans en assets versionnés, inventaire
   et HUD liés et animés, recettes en jeu.
 - Validation et commits : dans le dépôt parent.
+- Changement moteur fait pendant B2 (2026-09-24) : `XamlUIScreenBase(AssetContentManager, idOrName)` résout un
+  identifiant par le gestionnaire d'assets lui-même (son contexte, le catalogue du projet en jeu) et ne consulte
+  `AssetCatalog` que pour un nom : les tests de la DLL Alundra donnent à leur gestionnaire un catalogue à eux. Même
+  comportement en jeu (`EngineRuntimeContext` résout par `AssetCatalog.Get`). Un test moteur de plus. Manque G8
+  consigné : le filtrage à la réduction d'une `Image` n'est pas déclarable en XAML.
 
 ---
 

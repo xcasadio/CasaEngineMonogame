@@ -306,3 +306,21 @@ image courante devient nulle quand le fournisseur est libéré.
 **À quoi ressemblerait l'API absente.** Soit les événements de texture relayés vers les portées enfants par
 le même lien faible (un troisième événement dans un mécanisme que l'ADR-0001 de MGUI veut étroit) ; soit un
 `MGImage` qui s'abonne à la portée qui a réellement fourni sa texture. Les deux sont des décisions de MGUI.
+
+## G8 — Une `Image` XAML ne peut pas déclarer son filtrage à la réduction
+
+> **Consigné, non corrigé** (programme bound-screens, tranche B2 du dépôt parent, 2026-09-24).
+
+**Ce que le code doit faire.** L'inventaire d'Alundra dessine ses images en pixels natifs, agrandis d'un facteur
+entier ; chaque `MGImage` y désactive le filtrage linéaire à la réduction, comme celles du HUD.
+
+**Pourquoi il ne peut pas le déclarer.** `MGImage.UseLinearFilteringWhenDownscaling`
+(`MGUI/MGUI.Core/UI/MGImage.cs:244`) n'a pas de pendant dans le DTO XAML `Image`
+(`MGUI/MGUI.Core/UI/XAML/Controls.cs:1264-1312` : `SourceName`, `Source`, `TextureColor`, `Stretch`,
+`AnimationStartOffset`, `IsAnimationPlaying`).
+
+**Ce que ça coûte.** L'écran, dont toute la structure et toutes les valeurs sont désormais déclarées ou liées dans
+son XAML, garde une boucle en C# qui parcourt ses images pour poser ce réglage.
+
+**À quoi ressemblerait l'API absente.** Une propriété `UseLinearFilteringWhenDownscaling` sur le DTO `Image`,
+appliquée dans `ApplyDerivedSettings` comme `Stretch`.

@@ -240,6 +240,47 @@ public class XamlUIScreenBaseTests : IDisposable
         var manager = NewManager(Path.GetTempPath(), out _);
 
         Assert.Throws<InvalidOperationException>(() => new FakeScreen(manager, "NoSuchScreen"));
+        Assert.Throws<InvalidOperationException>(() => new FakeScreen(manager, Guid.NewGuid().ToString()));
+    }
+
+    /// <summary>An id is resolved by the asset manager's own runtime context, not by the global catalogue: a game
+    /// DLL's test gives its manager a catalogue of its own and builds its screen from it.</summary>
+    [Fact]
+    public void AnAssetManagerBackedScreen_ResolvesAnId_ThroughItsManager_WithoutTheGlobalCatalogue()
+    {
+        var root = Directory.CreateTempSubdirectory("xaml-screen-manager-").FullName;
+
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "fake.xaml"), Markup);
+
+            var assetId = Guid.NewGuid();
+            var assetInfo = new AssetInfo(assetId) { Name = "FakeScreen", FileName = "fake.uiscreen" };
+            File.WriteAllText(Path.Combine(root, assetInfo.FileName), $$"""
+                {
+                  "id": "{{assetId}}",
+                  "name": "FakeScreen",
+                  "source_xaml_file": "fake.xaml"
+                }
+                """);
+
+            var manager = new AssetContentManager
+            {
+                RuntimeContext = new EngineRuntimeContext(null, root, id => id == assetId ? assetInfo : null),
+            };
+            manager.RegisterAssetLoader(typeof(UIScreenAsset), new CountingUIScreenLoader());
+
+            Assert.Null(AssetCatalog.Get(assetId));
+            using var screen = new FakeScreen(manager, assetId.ToString());
+            var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+            screen.BuildWindow(desktop);
+
+            Assert.Equal("Hello", screen.Title.Text);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     /// <summary>A loader that parses a <see cref="UIScreenAsset"/> the way <c>AssetLoader&lt;T&gt;</c> does,

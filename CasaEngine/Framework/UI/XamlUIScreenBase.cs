@@ -61,11 +61,12 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
     /// hold back; <see cref="Dispose"/> does that.
     /// </summary>
     /// <param name="assetIdOrName">
-    /// The screen asset's id, or -- when it does not parse as a <see cref="Guid"/> -- its catalogue name.
-    /// Mirrors the resolution <see cref="CasaEngine.Framework.UI.Backend.MonoGame.Assets.CasaUIAssetProvider"/>
-    /// already applies to image sources (ADR-0038).
+    /// The screen asset's id, resolved by <paramref name="assetContentManager"/>, or -- when it does not parse as
+    /// a <see cref="Guid"/> -- its name in <see cref="AssetCatalog"/>. Mirrors the resolution
+    /// <see cref="CasaEngine.Framework.UI.Backend.MonoGame.Assets.CasaUIAssetProvider"/> already applies to
+    /// image sources (ADR-0038).
     /// </param>
-    /// <exception cref="InvalidOperationException">No screen asset of that id or name is catalogued.</exception>
+    /// <exception cref="InvalidOperationException">No screen asset of that id or name can be resolved.</exception>
     protected XamlUIScreenBase(AssetContentManager assetContentManager, string assetIdOrName)
     {
         ArgumentNullException.ThrowIfNull(assetContentManager);
@@ -75,16 +76,17 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
             throw new ArgumentException("A UIScreen asset id or name is required.", nameof(assetIdOrName));
         }
 
-        var assetInfo = Guid.TryParse(assetIdOrName, out var assetId)
-            ? AssetCatalog.Get(assetId)
-            : AssetCatalog.Get(assetIdOrName);
-
-        if (assetInfo == null)
+        // An id is resolved by the asset manager itself (its runtime context: the project's catalogue in a game),
+        // so a manager given its own catalogue -- a test's -- needs nothing from the global one. Only a name is
+        // looked up in the catalogue, the manager having no lookup by name.
+        if (!Guid.TryParse(assetIdOrName, out var assetId))
         {
-            throw new InvalidOperationException($"No screen asset '{assetIdOrName}' is registered in this project.");
+            var assetInfo = AssetCatalog.Get(assetIdOrName)
+                ?? throw new InvalidOperationException($"No screen asset '{assetIdOrName}' is registered in this project.");
+            assetId = assetInfo.Id;
         }
 
-        _assetHandle = assetContentManager.Acquire<UIScreenAsset>(assetInfo.Id);
+        _assetHandle = assetContentManager.Acquire<UIScreenAsset>(assetId);
         _asset = _assetHandle.Asset;
         _assetFilePath = assetContentManager.ResolveAssetFullPath(_asset.FileName);
     }
