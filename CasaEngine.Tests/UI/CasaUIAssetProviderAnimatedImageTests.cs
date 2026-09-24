@@ -320,6 +320,31 @@ public class CasaUIAssetProviderAnimatedImageTests : IDisposable
         Assert.True(((CasaUIAssetProvider.CasaUIAnimatedImage)image2).IsDisposed);
     }
 
+    /// <summary>O4 of the bound screens program: an instance MGUI disposes (its image changed source) leaves the
+    /// provider's list, so an image switching between a sprite and an animation all world long does not grow it.</summary>
+    [Fact]
+    public void Provider_ForgetsAnInstance_OnceItIsDisposed()
+    {
+        RegisterCatalog();
+        var manager = NewManager(out _, out _);
+        var provider = NewProvider(manager);
+
+        for (var i = 0; i < 50; i++)
+        {
+            Assert.True(provider.TryCreateAnimatedImage("walk", out var image));
+            image.Dispose();
+            image.Dispose(); // idempotent
+        }
+
+        Assert.True(provider.TryCreateAnimatedImage("walk", out var kept));
+        Assert.Equal(1, provider.LiveAnimatedImageCount);
+
+        provider.Dispose();
+
+        Assert.Equal(0, provider.LiveAnimatedImageCount);
+        Assert.True(((CasaUIAssetProvider.CasaUIAnimatedImage)kept).IsDisposed);
+    }
+
     [Fact]
     public void Provider_Dispose_IsIdempotent()
     {

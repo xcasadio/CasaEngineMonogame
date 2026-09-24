@@ -30,11 +30,17 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
     /// just keyed by id instead of by name.</summary>
     private readonly Dictionary<Guid, SpriteCacheEntry> _spriteCacheBySpriteId = new();
 
-    /// <summary>Every per-image instance this provider has created, so <see cref="Dispose"/> can mark them
-    /// disposed: MGUI has no element teardown (an <c>MGImage</c> whose animated source is discarded without a
-    /// source change is never disposed by MGUI itself), so an instance that outlives its element is otherwise
-    /// never told to stop.</summary>
+    /// <summary>Every per-image instance this provider has created and MGUI has not disposed yet, so <see cref="Dispose"/>
+    /// can mark them disposed: MGUI has no element teardown (an <c>MGImage</c> whose animated source is discarded
+    /// without a source change is never disposed by MGUI itself), so an instance that outlives its element is
+    /// otherwise never told to stop. An instance MGUI does dispose (its image changed source) leaves the list at
+    /// once, so an image switching source for a whole world does not grow it (open point O4 of the bound screens
+    /// program).</summary>
     private readonly List<CasaUIAnimatedImage> _createdAnimatedImages = new();
+
+    // True while ReleaseAllHeldAssets disposes the instances itself: they must not remove themselves from the list
+    // it is walking.
+    private bool _releasingAnimatedImages;
 
     private bool _disposed;
 
@@ -377,11 +383,13 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         }
         _heldSpriteData.Clear();
 
+        _releasingAnimatedImages = true;
         foreach (var instance in _createdAnimatedImages)
         {
             instance.Dispose();
         }
         _createdAnimatedImages.Clear();
+        _releasingAnimatedImages = false;
 
         foreach (var entry in _spriteCacheBySpriteId.Values)
         {
@@ -503,11 +511,29 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
             return _provider.TryGetCachedSprite(part.SpriteId, out entry);
         }
 
-        /// <summary>Marks this instance disposed. It owns no counted handle (<see cref="CasaUIAssetProvider"/>
-        /// owns the composition and its frame sprites), so nothing else to give back. Idempotent.</summary>
+        /// <summary>Marks this instance disposed and takes it off its provider's list. It owns no counted handle
+        /// (<see cref="CasaUIAssetProvider"/> owns the composition and its frame sprites), so nothing else to give
+        /// back. Idempotent.</summary>
         public void Dispose()
         {
+            if (IsDisposed)
+            {
+                return;
+            }
+
             IsDisposed = true;
+            _provider.ForgetAnimatedImage(this);
+        }
+    }
+
+    /// <summary>How many per-image animation instances are alive (created, not disposed).</summary>
+    internal int LiveAnimatedImageCount => _createdAnimatedImages.Count;
+
+    private void ForgetAnimatedImage(CasaUIAnimatedImage instance)
+    {
+        if (!_releasingAnimatedImages)
+        {
+            _createdAnimatedImages.Remove(instance);
         }
     }
 }
