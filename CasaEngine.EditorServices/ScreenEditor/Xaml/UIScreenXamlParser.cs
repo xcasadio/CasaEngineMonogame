@@ -19,8 +19,9 @@ public sealed class UIScreenXamlParser
         }
 
         // XDocument does not keep a start tag's own formatting (line breaks between attributes, quote style,
-        // character references): record it, so a save rewrites only the start tags the editor changed.
-        UIScreenXamlSourceWriter.CaptureStartTags(document, xaml);
+        // character references) nor a text node's escaping: record them, so a save rewrites only what the
+        // editor changed.
+        UIScreenXamlSourceWriter.CaptureSourceFormatting(document, xaml);
 
         var screenDocument = new UIScreenDocument
         {

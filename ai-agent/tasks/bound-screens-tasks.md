@@ -605,6 +605,27 @@ boîte de dialogue.
     ajout effacé de la liste des noms résolus. Latent : aucun abonné de ce genre.
   - F6 (P4, préexistant, O6) : aucun chemin de l'éditeur n'enregistre un écran ; la garantie de T4.1 ne passe
     que par `UIScreenEditorSession`, que `GameEditor` n'utilise pas.
+- **Relecture de clôture (2026-09-24) : REFUTED** sur `10ac11cd..07171269`. F2 confirmé (33 cas, aucun ne lève) ;
+  F1 confirmé pour les attributs (76 fichiers réels) ; suites vertes. Mais l'exploration demandée a trouvé d'autres
+  écarts au contrat de T4.1, tous introduits par T4.1 (`482393f3`) et antérieurs aux correctifs. Deuxième passe
+  de correction :
+  - C1 (P2, **corrigé**) : le BOM était perdu à l'enregistrement d'un écran modifié : `Encoding.GetBytes` n'écrit
+    jamais le préambule. Le test `UnmodifiedSave_WithByteOrderMark` de T4.1 ne contenait d'ailleurs pas de BOM,
+    pour la même raison : corrigé aussi.
+  - C2 (P2, **corrigé**) : enregistrer après l'ajout d'un nœud levait `The parent is missing`.
+  - C3 (P2, **corrigé**) : supprimer ou réordonner un enfant reformatait tous ses frères. La réconciliation des
+    enfants déplace maintenant des blocs entiers (l'élément avec son indentation et ses commentaires de tête) ;
+    un nœud ajouté s'insère après son frère précédent, indenté comme lui.
+  - C4 (P3, **corrigé**) : le texte des éléments non touchés était ré-échappé (`=&gt;` réécrit). Le texte d'origine
+    de chaque nœud texte est relevé à l'analyse et réécrit tant que sa valeur n'a pas changé.
+  - C5 (P4, **reporté**, préexistant) : le contenu reconstruit d'un élément de propriété porte un `xmlns`
+    redondant, hérité du XML interne que garde le modèle. Documenté, comme la balise fermante toujours réécrite
+    `</nom>`.
+  - Preuves : six tests en égalité exacte (suppression avec et sans commentaire, réordonnancement, ajout en fin et
+    au milieu, BOM) ; mutations : sans le texte d'origine 6 échecs, sans le BOM 1 échec. Sondes de la relecture
+    rejouées : `vf1c` (5 fichiers × 11 opérations) ne montre plus que les lignes de l'élément touché, et `vp4rt`
+    sur 74 fichiers réels ne montre aucune sauvegarde non modifiée qui diffère, aucun BOM perdu, aucune
+    régression de chargement.
 
 ---
 

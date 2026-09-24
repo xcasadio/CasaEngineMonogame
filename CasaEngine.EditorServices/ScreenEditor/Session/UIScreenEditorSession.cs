@@ -124,8 +124,19 @@ public sealed class UIScreenEditorSession
         var hasBom = originalBytes is { Length: >= 3 }
             && originalBytes[0] == 0xEF && originalBytes[1] == 0xBB && originalBytes[2] == 0xBF;
 
-        var encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: hasBom);
-        return encoding.GetBytes(text);
+        // Encoding.GetBytes never writes the preamble, whatever encoderShouldEmitUTF8Identifier says: prepend it.
+        var body = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(text);
+        if (!hasBom)
+        {
+            return body;
+        }
+
+        var bytes = new byte[body.Length + 3];
+        bytes[0] = 0xEF;
+        bytes[1] = 0xBB;
+        bytes[2] = 0xBF;
+        body.CopyTo(bytes, 3);
+        return bytes;
     }
 
     public void UpdateDocument(UIScreenDocument document, bool markDirty = true)

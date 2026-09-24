@@ -25,12 +25,14 @@ inchangé.
 | Garantie | Comportement | Comment |
 |---|---|---|
 | Sauvegarde sans modification | Réécrit le fichier source **identique octet pour octet** (mêmes fins de ligne, même encodage, même présence de BOM). | `UIScreenEditorSession.Save` compare un instantané sémantique du document courant (`UIScreenSemanticSnapshot`, qui ignore volontairement toute la mise en forme) à celui pris juste après le parsing ; s'ils sont égaux, les octets bruts du fichier d'origine (`UIScreenDocument.OriginalBytes`) sont réécrits tels quels, sans repasser par le serializer. |
-| Sauvegarde modifiée | Conserve tout ce que le modèle abstrait ne représente pas : commentaires (avant la racine, entre les enfants, avant une balise fermante), déclarations de namespace et préfixes (éléments et attributs), ordre des attributs (un attribut ajouté va après les autres), éléments de propriété avec leur nom qualifié complet (`Canvas.Left`, `Window.Resources`) à leur position d'origine, valeurs de markup extension verbatim, présence ou absence de la déclaration XML, style de fin de ligne de la source. Seule la mise en forme des régions réellement éditées peut changer. | Le serializer corrige en place l'arbre `XDocument` gardé depuis le parsing (voir ci-dessus) au lieu de le reconstruire. |
-| Suppression d'un nœud | Supprime aussi les commentaires attachés juste avant lui. | `UIScreenXamlSerializer.RemoveWithLeadingComments` : en remontant les nœuds frères qui précèdent l'élément supprimé, chaque commentaire rencontré (et le texte d'espacement pur qui le sépare d'un autre commentaire) est supprimé avec lui ; un simple espacement d'indentation sans commentaire devant n'est pas touché. |
+| Sauvegarde modifiée | Conserve tout ce que le modèle abstrait ne représente pas : commentaires (avant la racine, entre les enfants, avant une balise fermante), déclarations de namespace et préfixes (éléments et attributs), ordre des attributs (un attribut ajouté va après les autres), éléments de propriété avec leur nom qualifié complet (`Canvas.Left`, `Window.Resources`) à leur position d'origine, valeurs de markup extension verbatim, texte d'origine de chaque balise ouvrante non modifiée (attributs sur plusieurs lignes, guillemets simples, références de caractères) et de chaque nœud texte non modifié, déclaration XML d'origine ou son absence, style de fin de ligne et BOM de la source. Seule la mise en forme des régions réellement éditées peut changer. | Le serializer corrige en place l'arbre `XDocument` gardé depuis le parsing (voir ci-dessus) au lieu de le reconstruire, puis `UIScreenXamlSourceWriter` l'écrit : il réutilise le texte relevé au parsing pour chaque balise ouvrante dont les attributs n'ont pas changé et pour chaque nœud texte dont la valeur n'a pas changé. |
+| Suppression d'un nœud | Supprime ses lignes : l'élément, son indentation et les commentaires attachés juste avant lui. | `UIScreenXamlSerializer.RemoveWithLeadingComments` retire le bloc de tête de l'élément (les commentaires et les espacements purs qui le précèdent, jusqu'à l'élément précédent) avec lui. |
+| Ajout et réordonnancement | Un nœud ajouté s'insère après son frère précédent, avec la même indentation ; un enfant réordonné se déplace avec son indentation et ses commentaires de tête. Les autres enfants ne bougent pas. | `ReconcileChildren` déplace des blocs entiers (élément et bloc de tête) d'un emplacement à l'autre, sans détacher les enfants inchangés. |
 
-Limites connues de ce mécanisme (non couvertes par les tests T4.1, acceptées comme risque documenté) :
-- réordonner des enfants existants déplace leurs éléments XML mais ne déplace pas les commentaires qui les
-  précédaient dans le texte d'origine ;
+Limites connues de ce mécanisme (acceptées comme risque documenté) :
+- une balise fermante est toujours réécrite `</nom>` (un espace avant le `>` d'origine est perdu) ;
+- le contenu d'un élément de propriété modifié est reconstruit à partir du XML interne que garde le modèle, qui
+  peut porter une déclaration `xmlns` redondante sur ses éléments ;
 - un nœud ou un élément de propriété ajouté dans l'éditeur (donc sans `SourceElement`) est toujours synthétisé
   comme en v1 (attributs triés, espaces de noms par défaut), sans mise en forme d'origine à préserver ;
 - remplacer la racine du document par un nœud entièrement nouveau (`UIScreenDocument.SetRoot` avec un nœud
@@ -62,7 +64,7 @@ Limites connues de ce mécanisme (non couvertes par les tests T4.1, acceptées c
 | Espaces de noms additionnels dans le document model | Partiel | Les noms locaux sont ceux exposés par `UIScreenNode`/`UIScreenPropertyValue` (pas de préfixe dans les clés) ; le serializer préserve le préfixe réel dans le XML de sortie tant que l'attribut ou l'élément correspondant n'est pas modifié, mais le document model lui-même ne distingue pas deux attributs de même nom local avec des préfixes différents. |
 | Valeurs complexes sérialisées en attribut | Partiel | Conservées comme texte brut, sans normalisation sémantique. |
 | `Window.Resources` | Partiel | Préservé verbatim tant que `UIScreenDocument.Resources` n'a pas changé depuis le parsing (signature comparée à `BaselineResourcesSignature`) ; reconstruit entièrement dès qu'une entrée change, ajoutée ou retirée -- la mise en forme interne de ce bloc n'est alors plus garantie. |
-| Réordonnancement d'enfants | Partiel | Les éléments sont déplacés dans l'arbre XML dans le nouvel ordre, mais un commentaire qui précédait un enfant déplacé reste à sa position textuelle d'origine. |
+| Réordonnancement d'enfants | Supporté | Chaque enfant déplacé emporte son indentation et ses commentaires de tête ; les autres restent en place. |
 
 ## Non supporté en v1
 
@@ -88,4 +90,3 @@ Limites connues de ce mécanisme (non couvertes par les tests T4.1, acceptées c
 - support explicite des styles
 - support de bindings éditables
 - support des templates et composants réutilisables
-- déplacer les commentaires avec le nœud qu'ils précèdent lors d'un réordonnancement

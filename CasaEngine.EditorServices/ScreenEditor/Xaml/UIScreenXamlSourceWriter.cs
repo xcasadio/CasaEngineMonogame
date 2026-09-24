@@ -9,21 +9,22 @@ namespace CasaEngine.EditorServices.ScreenEditor.Xaml;
 /// the editor did not touch (T4.1, engine ADR-0038 "Lossless editor round trip").
 /// <para/>
 /// <see cref="XDocument"/> keeps comments, whitespace nodes, namespace declarations and attribute order, but not
-/// the text of a start tag: its line breaks between attributes, its quote style, or the character references in
-/// its attribute values. So <see cref="CaptureStartTags"/> records, when a screen is parsed, each element's
-/// original start-tag text next to a signature of its attributes; <see cref="Write"/> reuses that text for every
-/// element whose signature is unchanged, and synthesizes a start tag only for an element whose attributes the
-/// editor changed, or which the editor created.
+/// the text of a start tag (its line breaks between attributes, its quote style, the character references in its
+/// attribute values) nor the escaping of a text node. So <see cref="CaptureSourceFormatting"/> records, when a
+/// screen is parsed, each element's original start-tag text next to a signature of its attributes, and each text
+/// node's original text next to its value; <see cref="Write"/> reuses those texts while the signature or the value
+/// is unchanged, and synthesizes only the start tags and text the editor changed or created. End tags are always
+/// written as <c>&lt;/name&gt;</c>.
 /// </summary>
 internal static class UIScreenXamlSourceWriter
 {
     /// <summary>
-    /// Records the original start-tag text of every element of <paramref name="document"/>, and its original XML
-    /// declaration. <paramref name="document"/> must have been parsed from <paramref name="sourceText"/> with
-    /// <see cref="LoadOptions.SetLineInfo"/>; an element whose start tag cannot be located gets no record and is
-    /// always synthesized.
+    /// Records the original start-tag text of every element of <paramref name="document"/>, the original text of
+    /// every text node, and the original XML declaration. <paramref name="document"/> must have been parsed from
+    /// <paramref name="sourceText"/> with <see cref="LoadOptions.SetLineInfo"/>; a node whose text cannot be
+    /// located gets no record and is always synthesized.
     /// </summary>
-    public static void CaptureStartTags(XDocument document, string sourceText)
+    public static void CaptureSourceFormatting(XDocument document, string sourceText)
     {
         // XmlReader counts lines on \n, \r\n and \r alike, and the written text is LF-based until the
         // serializer restores the original line ending, so every offset is taken in an LF-normalized copy.
@@ -39,28 +40,36 @@ internal static class UIScreenXamlSourceWriter
             }
         }
 
-        foreach (var element in document.Descendants())
+        foreach (var node in document.DescendantNodes())
         {
-            var lineInfo = (IXmlLineInfo)element;
+            var lineInfo = (IXmlLineInfo)node;
             if (!lineInfo.HasLineInfo() || lineInfo.LineNumber > lineStarts.Count)
             {
                 continue;
             }
 
-            // The line position of an element is its name, one character after the '<'.
-            var start = lineStarts[lineInfo.LineNumber - 1] + lineInfo.LinePosition - 2;
-            if (start < 0 || start >= text.Length || text[start] != '<')
+            var position = lineStarts[lineInfo.LineNumber - 1] + lineInfo.LinePosition - 1;
+            if (node is XElement element)
             {
-                continue;
-            }
+                // The line position of an element is its name, one character after the '<'.
+                var start = position - 1;
+                if (start < 0 || start >= text.Length || text[start] != '<')
+                {
+                    continue;
+                }
 
-            var end = FindStartTagEnd(text, start);
-            if (end < 0)
+                var end = FindStartTagEnd(text, start);
+                if (end >= 0)
+                {
+                    element.AddAnnotation(new OriginalStartTag(text[start..(end + 1)], ComputeSignature(element)));
+                }
+            }
+            else if (node is XText textNode && node is not XCData && position >= 0 && position <= text.Length)
             {
-                continue;
+                // A text node's line position is its first character; its text runs to the next markup.
+                var end = text.IndexOf('<', position);
+                textNode.AddAnnotation(new OriginalText(text[position..(end < 0 ? text.Length : end)], textNode.Value));
             }
-
-            element.AddAnnotation(new OriginalStartTag(text[start..(end + 1)], ComputeSignature(element)));
         }
     }
 
@@ -94,7 +103,16 @@ internal static class UIScreenXamlSourceWriter
                 builder.Append("<![CDATA[").Append(cdata.Value).Append("]]>");
                 break;
             case XText textNode:
-                AppendEscapedText(builder, textNode.Value);
+                var original = textNode.Annotation<OriginalText>();
+                if (original != null && string.Equals(original.Value, textNode.Value, StringComparison.Ordinal))
+                {
+                    builder.Append(original.Text);
+                }
+                else
+                {
+                    AppendEscapedText(builder, textNode.Value);
+                }
+
                 break;
             case XComment comment:
                 builder.Append("<!--").Append(comment.Value).Append("-->");
@@ -287,4 +305,6 @@ internal static class UIScreenXamlSourceWriter
     private sealed record OriginalStartTag(string Text, string Signature);
 
     private sealed record OriginalDeclaration(string Text);
+
+    private sealed record OriginalText(string Text, string Value);
 }

@@ -170,6 +170,7 @@ public sealed class UIScreenXamlSerializer
     private static void ReconcileChildren(XElement element, UIScreenNode node)
     {
         var desired = new List<XElement>(node.Children.Count);
+        var created = new HashSet<XElement>();
         foreach (var child in node.Children)
         {
             if (child.SourceElement != null && child.SourceElement.Parent == element)
@@ -182,6 +183,7 @@ public sealed class UIScreenXamlSerializer
                 var synthesized = SerializeNode(child, isRoot: false);
                 child.SourceElement = synthesized;
                 desired.Add(synthesized);
+                created.Add(synthesized);
             }
         }
 
@@ -195,6 +197,8 @@ public sealed class UIScreenXamlSerializer
             return;
         }
 
+        // Every change below moves whole blocks -- a child with the indentation and the comments before it
+        // (GetLeadingBlock) -- so the children the editor did not touch keep their own lines.
         foreach (var existing in current)
         {
             if (!desired.Contains(existing))
@@ -203,53 +207,134 @@ public sealed class UIScreenXamlSerializer
             }
         }
 
-        foreach (var target in desired)
+        ReorderKeptChildren(element, desired.Where(child => !created.Contains(child)).ToList());
+
+        for (var index = 0; index < desired.Count; index++)
         {
-            target.Remove(); // no-op for an element that is not currently in any tree
+            if (created.Contains(desired[index]))
+            {
+                InsertCreatedChild(element, desired, index);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Puts the children still in the tree in <paramref name="keptInOrder"/>'s order. Each child moves with its
+    /// leading block into the slot another child's block occupied, so property elements, trailing whitespace
+    /// and every block that did not move stay exactly where they were.
+    /// </summary>
+    private static void ReorderKeptChildren(XElement element, List<XElement> keptInOrder)
+    {
+        var inTree = element.Elements().Where(IsRegularChildElement).ToList();
+        if (inTree.SequenceEqual(keptInOrder))
+        {
+            return;
         }
 
-        foreach (var target in desired)
+        var blocks = new List<List<XNode>>(inTree.Count);
+        var slots = new List<XElement>(inTree.Count);
+        foreach (var child in inTree)
         {
-            element.Add(target);
+            var block = GetLeadingBlock(child);
+            block.Add(child);
+            blocks.Add(block);
+
+            var slot = new XElement("slot");
+            block[0].AddBeforeSelf(slot);
+            slots.Add(slot);
+            foreach (var blockNode in block)
+            {
+                blockNode.Remove();
+            }
         }
+
+        for (var index = 0; index < slots.Count; index++)
+        {
+            var block = blocks[inTree.IndexOf(keptInOrder[index])];
+            slots[index].ReplaceWith(block.Cast<object>().ToArray());
+        }
+    }
+
+    /// <summary>
+    /// Inserts the child the editor created at <paramref name="index"/> of <paramref name="desired"/>: after its
+    /// previous sibling, indented like it, or else before its next sibling's block, or else at the end.
+    /// </summary>
+    private static void InsertCreatedChild(XElement element, List<XElement> desired, int index)
+    {
+        var created = desired[index];
+
+        if (index > 0)
+        {
+            var previous = desired[index - 1];
+            var indentation = GetIndentation(previous);
+            if (indentation != null)
+            {
+                previous.AddAfterSelf(new XText(indentation), created);
+            }
+            else
+            {
+                previous.AddAfterSelf(created);
+            }
+
+            return;
+        }
+
+        var next = desired.Skip(1).FirstOrDefault(child => child.Parent == element);
+        if (next != null)
+        {
+            var nextBlock = GetLeadingBlock(next);
+            var anchor = nextBlock.Count > 0 ? nextBlock[0] : next;
+            var indentation = GetIndentation(next);
+            if (indentation != null)
+            {
+                anchor.AddBeforeSelf(new XText(indentation), created);
+            }
+            else
+            {
+                anchor.AddBeforeSelf(created);
+            }
+
+            return;
+        }
+
+        element.Add(created);
+    }
+
+    /// <summary>The whitespace-only text right before <paramref name="child"/> (its indentation), or null.</summary>
+    private static string? GetIndentation(XElement child)
+        => child.PreviousNode is XText text && text is not XCData && string.IsNullOrWhiteSpace(text.Value)
+            ? text.Value
+            : null;
+
+    /// <summary>
+    /// The comments and whitespace-only text nodes right before <paramref name="child"/>, back to the previous
+    /// element or the start of its parent: its indentation and the comments attached to it, in document order.
+    /// </summary>
+    private static List<XNode> GetLeadingBlock(XElement child)
+    {
+        var block = new List<XNode>();
+        var cursor = child.PreviousNode;
+        while (cursor is XComment || (cursor is XText text && text is not XCData && string.IsNullOrWhiteSpace(text.Value)))
+        {
+            block.Insert(0, cursor);
+            cursor = cursor.PreviousNode;
+        }
+
+        return block;
     }
 
     private static bool IsRegularChildElement(XElement element)
         => !element.Name.LocalName.Contains('.', StringComparison.Ordinal);
 
     /// <summary>
-    /// Removes <paramref name="element"/> together with any XML comments immediately preceding it (T4.1,
-    /// engine ADR-0038 "Lossless editor round trip": deleting a node deletes the comments attached just
-    /// before it). Whitespace-only text nodes sandwiched between those comments are removed with them;
-    /// a plain indentation whitespace node with no comment behind it is left alone.
+    /// Removes <paramref name="element"/> together with its leading block (T4.1, engine ADR-0038 "Lossless
+    /// editor round trip": deleting a node deletes the comments attached just before it): the comments right
+    /// before it and the whitespace around them, including its own indentation, so no blank or
+    /// indentation-only line is left behind.
     /// </summary>
     private static void RemoveWithLeadingComments(XElement element)
     {
-        var toRemove = new List<XNode>();
-        var pendingWhitespace = new List<XNode>();
-        var cursor = element.PreviousNode;
-
-        while (cursor != null)
-        {
-            if (cursor is XComment comment)
-            {
-                toRemove.AddRange(pendingWhitespace);
-                pendingWhitespace.Clear();
-                toRemove.Add(comment);
-                cursor = cursor.PreviousNode;
-            }
-            else if (cursor is XText text && string.IsNullOrWhiteSpace(text.Value))
-            {
-                pendingWhitespace.Add(cursor);
-                cursor = cursor.PreviousNode;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        foreach (var node in toRemove)
+        foreach (var node in GetLeadingBlock(element))
         {
             node.Remove();
         }

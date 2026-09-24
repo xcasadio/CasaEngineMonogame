@@ -52,7 +52,9 @@ public class UIScreenXamlLosslessRoundTripTests
     public void UnmodifiedSave_WithByteOrderMark_IsByteIdentical()
     {
         const string xaml = "<Window xmlns=\"clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core\">\r\n  <TextBlock Text=\"Hello\" />\r\n</Window>\r\n";
-        AssertUnmodifiedSaveIsByteIdentical(new UTF8Encoding(true).GetBytes(xaml));
+        var bytes = WithByteOrderMark(xaml);
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes[..3]);
+        AssertUnmodifiedSaveIsByteIdentical(bytes);
     }
 
     [Fact]
@@ -283,6 +285,118 @@ public class UIScreenXamlLosslessRoundTripTests
         var expected = xaml.Replace("<TextBlock Name='Edited' Text='x' />", "<TextBlock Name=\"Edited\" Text=\"y\" />");
         Assert.Equal(expected, File.ReadAllText(fixture.XamlPath));
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Structural edits touch only the nodes they change (phase 4 closing review)
+    // ─────────────────────────────────────────────────────────────────────
+
+    private const string PanelXaml =
+        "<Window xmlns='clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core'>\r\n" +
+        "  <StackPanel Name='Panel'>\r\n" +
+        "    <!-- first -->\r\n" +
+        "    <TextBlock Name='A'\r\n" +
+        "               Text='a' />\r\n" +
+        "    <TextBlock Name='B' Text='b' />\r\n" +
+        "    <!-- third -->\r\n" +
+        "    <TextBlock Name='C' Text='c' />\r\n" +
+        "    <Button Name='D'>x =&gt; y &#x41;</Button>\r\n" +
+        "  </StackPanel>\r\n" +
+        "</Window>\r\n";
+
+    [Fact]
+    public void ModifiedSave_DeletingAChild_RemovesOnlyItsLines()
+    {
+        var saved = SaveAfterEdit(PanelXaml, panel => panel.RemoveChild(Child(panel, "B")));
+
+        Assert.Equal(PanelXaml.Replace("    <TextBlock Name='B' Text='b' />\r\n", string.Empty), saved);
+    }
+
+    [Fact]
+    public void ModifiedSave_DeletingAChild_RemovesItsLeadingCommentLinesToo()
+    {
+        var saved = SaveAfterEdit(PanelXaml, panel => panel.RemoveChild(Child(panel, "C")));
+
+        Assert.Equal(PanelXaml.Replace("    <!-- third -->\r\n    <TextBlock Name='C' Text='c' />\r\n", string.Empty), saved);
+    }
+
+    [Fact]
+    public void ModifiedSave_ReorderingAChild_MovesItsLinesWithItsComments()
+    {
+        var saved = SaveAfterEdit(PanelXaml, panel => panel.MoveChild(Child(panel, "C"), 0));
+
+        var expected =
+            "<Window xmlns='clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core'>\r\n" +
+            "  <StackPanel Name='Panel'>\r\n" +
+            "    <!-- third -->\r\n" +
+            "    <TextBlock Name='C' Text='c' />\r\n" +
+            "    <!-- first -->\r\n" +
+            "    <TextBlock Name='A'\r\n" +
+            "               Text='a' />\r\n" +
+            "    <TextBlock Name='B' Text='b' />\r\n" +
+            "    <Button Name='D'>x =&gt; y &#x41;</Button>\r\n" +
+            "  </StackPanel>\r\n" +
+            "</Window>\r\n";
+        Assert.Equal(expected, saved);
+    }
+
+    [Theory]
+    [InlineData(4, "    <Button Name='D'>x =&gt; y &#x41;</Button>\r\n")]
+    [InlineData(1, "    <TextBlock Name='A'\r\n               Text='a' />\r\n")]
+    public void ModifiedSave_AddingAChild_InsertsOneLineAfterItsPreviousSibling(int index, string previousSiblingLines)
+    {
+        var saved = SaveAfterEdit(PanelXaml, panel =>
+        {
+            var added = new UIScreenNode("TextBlock") { Name = "E" };
+            added.SetProperty("Text", "e");
+            panel.AddChild(added);
+            panel.MoveChild(added, index);
+        });
+
+        var expected = PanelXaml.Replace(
+            previousSiblingLines,
+            previousSiblingLines + "    <TextBlock Name=\"E\" Text=\"e\" />\r\n");
+        Assert.Equal(expected, saved);
+    }
+
+    [Fact]
+    public void ModifiedSave_KeepsTheByteOrderMark()
+    {
+        using var fixture = ScreenFixture.Create(WithByteOrderMark(PanelXaml));
+
+        var session = new UIScreenEditorSession();
+        session.Open(fixture.Asset, fixture.AssetPath);
+        Child(session.Document!.Root!.Children[0], "B").SetProperty("Text", "changed");
+        session.MarkDirty();
+        session.Save();
+
+        var savedBytes = File.ReadAllBytes(fixture.XamlPath);
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, savedBytes[..3]);
+        Assert.Equal(
+            PanelXaml.Replace("Name='B' Text='b'", "Name=\"B\" Text=\"changed\""),
+            new UTF8Encoding(false).GetString(savedBytes[3..]));
+    }
+
+    private static string SaveAfterEdit(string xaml, Action<UIScreenNode> editPanel)
+    {
+        using var fixture = ScreenFixture.Create(new UTF8Encoding(false).GetBytes(xaml));
+
+        var session = new UIScreenEditorSession();
+        session.Open(fixture.Asset, fixture.AssetPath);
+        editPanel(session.Document!.Root!.Children[0]);
+        session.MarkDirty();
+        session.Save();
+
+        Assert.Null(session.LastErrorMessage);
+        return File.ReadAllText(fixture.XamlPath);
+    }
+
+    private static UIScreenNode Child(UIScreenNode parent, string name)
+        => parent.Children.Single(child => child.Name == name);
+
+    /// <summary>UTF-8 bytes of <paramref name="text"/> behind a byte-order mark. <see cref="Encoding.GetBytes(string)"/>
+    /// never writes the preamble, even for an encoding constructed to emit one.</summary>
+    private static byte[] WithByteOrderMark(string text)
+        => new byte[] { 0xEF, 0xBB, 0xBF }.Concat(new UTF8Encoding(false).GetBytes(text)).ToArray();
 
     [Fact]
     public void NewDocumentWithNoSourceText_StillSerializesWithDefaultNamespaces()
