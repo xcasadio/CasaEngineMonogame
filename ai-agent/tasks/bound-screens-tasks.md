@@ -661,7 +661,7 @@ boîte de dialogue.
 
 ## Phase 5 — Consommateur Alundra (dépôt parent)
 
-### 🧪 T5.1 — Écrans d'Alundra
+### ✅ T5.1 — Écrans d'Alundra
 
 - Objectif : tranches B1 à B3 du plan parent `docs/plan-bound-screens.md` : écrans en assets versionnés, inventaire
   et HUD liés et animés, recettes en jeu.
@@ -675,6 +675,8 @@ boîte de dialogue.
   ne se lie pas en XAML, le HUD la recopie depuis son view-model.
 - B1 fait ; B2 (parent `79c0099`) et B3 (parent `b9f3133`, moteur `e78e14a9`) CONFIRMED par un vérificateur frais.
   Reste en 🧪 : l'enregistrement d'un écran depuis l'éditeur, qui attend la réponse à O6.
+- **Clos le 2026-09-24** : O6 tranché (D13), enregistrement livré par T4.4 et prouvé sur les écrans d'Alundra par
+  B6 (CONFIRMED).
 
 ### ✅ T5.2 — Libérer les bindings d'un écran avec lui
 
@@ -850,7 +852,7 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
   (d') et (e) échouent) ; suites et solutions. Remarque P4 : la doc pouvait se lire « un avertissement par
   élément » et ne disait plus qu'un `btnClose` enfant direct de `pnlContent` en est retiré : corrigée.
 
-### 🚧 T4.4 — « Save » enregistre les écrans modifiés (D13)
+### ✅ T4.4 — « Save » enregistre les écrans modifiés (D13)
 
 - Résultat : File > Save, et l'enregistrement proposé avant d'ouvrir un monde, écrivent sans perte le `.xaml` de
   chaque écran ouvert modifié, effacent sa marque et mettent à jour le titre ; le panneau garde la même instance de
@@ -884,6 +886,28 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
     tous les tests passent (le sérialiseur fidèle suffit à ces cas, le rejeu est une sécurité en plus) ; sans l'appel
     à `SaveDirtyScreenDocuments`, aucun test unitaire n'échoue (`GameEditor` ne se construit pas en test) : la preuve
     de bout en bout est B6.
+- B6 (parent `45de7e4`) : neuf lancements de l'éditeur réel sur le HUD, l'inventaire et le dialogue, chacun protégé
+  par manifeste ; sans modification, fichier intact ; une propriété, exactement cette ligne dans `git diff`, même
+  instance de document ; valeur remise, `git diff` vide.
+- **Vérificateur frais (2026-09-24) : CONFIRMED** sur le moteur `99e66ee0` (avec `96ceb976`) et le parent
+  `45de7e4`, sans constat P0 à P2 : writer déplacé tel quel (aucun test existant modifié) ; gardes de
+  `SaveCurrentProject` et titre sans astérisque constatés ; sondes ajoutées puis retirées, avec le vrai
+  `EditorDirtyStateService`, la vraie pile de commandes et le vrai `FileSystemWatcher` (annuler après un
+  enregistrement remarque l'écran, le second enregistrement réécrit l'original à l'octet ; une modification externe
+  après un enregistrement recharge ; un fichier en lecture seule donne un message sans exception ; deux panneaux
+  modifiés sont écrits, un propre garde sa date) ; mutation de `ShouldReload` reproduite ; `CasaEngine.Tests`
+  1876/1876 (trois passes), deux solutions, `Alundra.Tests` 1089/1089 ; **les neuf lancements de B6 rejoués** (mêmes
+  résultats, aucune alerte, `git status` de `alundra-project` vide). Remarques :
+  - P3 : le manifeste final de B6 avait été pris juste avant le commit qui change le commentaire de
+    `DialogueScreen.xaml` (D14) ; le fichier sur disque est bien la version commitée, et les lancements du
+    vérificateur ont porté sur elle. Référence désormais : `scratchpad/v-b6-manifest.sha256` (état à `45de7e4`) ;
+  - P4 (reportée, sans rapport) : `AudioServiceFadeTests.FadingVoices_DoNotAllocateDuringUpdate` a échoué une fois
+    sur une passe complète (7 888 octets au lieu de 0), vert seul et aux deux passes suivantes ;
+  - P4 (reportée, non reproduite) : si la relecture du fichier juste après une écriture réussie échouait,
+    `TrySaveDocument` signalerait un échec et l'écran resterait modifié ; le prochain enregistrement le réécrirait ;
+  - P4 (reportée, non reproduite) : `TrySaveDocument` ne rattrape que `IOException` et
+    `UnauthorizedAccessException` ; une autre exception du sérialiseur sortirait de `SaveCurrentProject`, que le
+    menu appelle sans `try`.
 
 ### ⏳ T4.5 — Demander avant de perdre un écran modifié (D17)
 
