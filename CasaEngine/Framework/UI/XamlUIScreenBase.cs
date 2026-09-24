@@ -69,6 +69,18 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
     /// <exception cref="InvalidOperationException">No screen asset of that id or name can be resolved.</exception>
     protected XamlUIScreenBase(AssetContentManager assetContentManager, string assetIdOrName)
     {
+        _assetHandle = AcquireScreenAsset(assetContentManager, assetIdOrName, out _assetFilePath);
+        _asset = _assetHandle.Asset;
+    }
+
+    /// <summary>
+    /// Acquires a screen envelope by id or name, the way the asset-manager constructor does, and gives the full path
+    /// of its file (the base its XAML file is resolved from).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">No screen asset of that id or name can be resolved.</exception>
+    internal static AssetHandle<UIScreenAsset> AcquireScreenAsset(
+        AssetContentManager assetContentManager, string assetIdOrName, out string assetFilePath)
+    {
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
         if (string.IsNullOrWhiteSpace(assetIdOrName))
@@ -86,9 +98,9 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
             assetId = assetInfo.Id;
         }
 
-        _assetHandle = assetContentManager.Acquire<UIScreenAsset>(assetId);
-        _asset = _assetHandle.Asset;
-        _assetFilePath = assetContentManager.ResolveAssetFullPath(_asset.FileName);
+        var handle = assetContentManager.Acquire<UIScreenAsset>(assetId);
+        assetFilePath = assetContentManager.ResolveAssetFullPath(handle.Asset.FileName);
+        return handle;
     }
 
     /// <summary>
@@ -103,13 +115,21 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
             throw new ArgumentNullException(nameof(desktop));
         }
 
-        Window = _asset != null
-            ? UIScreenLoader.Load(desktop, _asset, _assetFilePath)
-            : UIScreenLoader.Load(desktop, _source, _themeName);
+        Window = LoadWindow(desktop);
 
         OnWindowLoaded(Window);
         return Window;
     }
+
+    /// <summary>
+    /// Loads the window from the document this screen was built with. A screen whose markup a project may replace
+    /// (<see cref="CasaEngine.Framework.Dialogue.UI.DialogueScreen"/>) overrides it to try its replacement first.
+    /// </summary>
+    /// <exception cref="XamlLoaderException">The document failed to parse, validate, or attach.</exception>
+    protected virtual MGWindow LoadWindow(MGDesktop desktop)
+        => _asset != null
+            ? UIScreenLoader.Load(desktop, _asset, _assetFilePath)
+            : UIScreenLoader.Load(desktop, _source, _themeName);
 
     /// <summary>
     /// Called once, right after the XAML has been loaded. Look the controls up by name here, keep them in

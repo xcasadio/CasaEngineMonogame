@@ -35,6 +35,15 @@ public class ProjectSettings
     [Category("Gameplay")]
     public string GameplayCsprojName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional id or name of a <c>.uiscreen</c> asset whose markup replaces the engine's built-in dialogue box
+    /// (<see cref="CasaEngine.Framework.Dialogue.UI.DialogueScreen"/>). Empty: the built-in markup. When the asset
+    /// cannot be loaded, or does not declare the elements the dialogue screen drives, the screen logs a warning and
+    /// uses the built-in markup.
+    /// </summary>
+    [Category("UI")]
+    public string DialogueScreenAsset { get; set; } = string.Empty;
+
 #if !FINAL
 
     [Category("Debug")]

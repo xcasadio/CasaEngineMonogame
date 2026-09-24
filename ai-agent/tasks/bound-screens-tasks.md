@@ -721,7 +721,7 @@ boîte de dialogue.
 
 ## Phase 6 — Écran de dialogue remplaçable
 
-### ⏳ T6.1 — Remplacer l'écran de dialogue par un asset du projet
+### 🚧 T6.1 — Remplacer l'écran de dialogue par un asset du projet
 
 - Objectif : D12, P8.
 - Fichiers : `CasaEngine/Framework/Dialogue/UI/DialogueScreen.cs`, les réglages du projet (champ optionnel), la doc de
@@ -734,6 +734,31 @@ boîte de dialogue.
   invalide, repli journalisé. **Vérificateur frais.**
 - Commit : `feat(dialogue): let a project replace the dialogue screen markup`
 - Suite : tranche B4 du plan parent.
+- Note d'exécution (2026-09-24) :
+  - réglage `ProjectSettings.DialogueScreenAsset` (catégorie « UI »), identifiant ou nom ; lu s'il est présent,
+    écrit seulement s'il est renseigné : les fichiers de projet existants se chargent sans changement ;
+  - `DialogueScreen` gagne le constructeur `(presenter, requestClose, fontFamily, assetContentManager)`, seul à lire
+    le réglage (par `RuntimeContext.ProjectSettings` du gestionnaire) ; les trois autres gardent le balisage
+    embarqué. L'enveloppe est acquise à la construction et rendue à `Dispose` ;
+  - `XamlUIScreenBase` gagne `protected virtual LoadWindow`, que `DialogueScreen` redéfinit : il charge le
+    remplacement, vérifie le contrat, et sinon rend les bindings de la fenêtre rejetée (G10) puis charge le
+    balisage embarqué ; l'acquisition par identifiant ou nom est partagée (`AcquireScreenAsset`) ;
+  - contrat : `pnlContent` (`StackPanel`), `lblLine` (`TextBlock`), `pnlChoices` (`StackPanel`), `btnClose`
+    (`Button`, enfant direct de `pnlContent`, obligatoire si `ShowCloseButton`, facultatif sinon), documenté dans
+    `docs/engine/dialogue-choices-and-bitmap-fonts.md` (section écrite en français comme le reste du document) ;
+  - **interprétation à signaler à l'auteur** : l'ADR-0038 prévoyait qu'un remplacement privé d'un élément
+    documenté « perd cette partie de l'affichage » ; l'étape 2 de cette tâche demande le repli journalisé sur le
+    balisage embarqué en cas d'échec. Un contrat rompu est traité comme un échec : repli complet, avertissement
+    qui dit pourquoi. L'ADR n'est pas réécrite ;
+  - repli journalisé (`Logs.WriteWarning`, comme `CasaUIAssetProvider`) sur : identifiant ou nom inconnu, fichier
+    absent, enveloppe illisible, XAML invalide, contrat rompu ; toute autre exception est une erreur de
+    programmation et remonte ;
+  - tests : 13 de plus (`DialogueScreenReplacementTests` 10, `DialogueScreenReplacementBindingTests` 1,
+    `ProjectSettingsDialogueScreenTests` 2) ; trois mutations (sans libération des bindings, sans contrôle du
+    contrat, sans lecture du réglage) font chacune échouer les tests qui les visent ; `CasaEngine.Tests`
+    1857/1857, `Alundra.Tests` 1084/1084, les deux solutions sans erreur ;
+  - démo : `UIOverlayDemo` utilise `DialogueScreen` par le constructeur à deux arguments, inchangé ; elle est
+    interactive, sans mode automatique, et n'a pas été lancée ; la tranche B4 exerce le remplacement en jeu.
 
 ---
 

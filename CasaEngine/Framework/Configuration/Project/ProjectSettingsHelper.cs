@@ -26,6 +26,7 @@ public static class ProjectSettingsHelper
         projectSettings.FirstWorldLoaded = rootElement["FirstWorldLoaded"].GetString();
         projectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
         projectSettings.GameplayCsprojName = rootElement["GameplayCsprojName"]?.GetString() ?? string.Empty;
+        projectSettings.DialogueScreenAsset = rootElement["DialogueScreenAsset"]?.GetString() ?? string.Empty;
         projectSettings.ExternalToolsDirectory = rootElement["ExternalToolsDirectory"]?.GetString() ?? projectSettings.ExternalToolsDirectory;
 
 #if !FINAL
@@ -74,6 +75,11 @@ public static class ProjectSettingsHelper
         if (!string.IsNullOrWhiteSpace(settings.GameplayCsprojName))
         {
             rootElement["GameplayCsprojName"] = settings.GameplayCsprojName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(settings.DialogueScreenAsset))
+        {
+            rootElement["DialogueScreenAsset"] = settings.DialogueScreenAsset;
         }
 
 #if !FINAL

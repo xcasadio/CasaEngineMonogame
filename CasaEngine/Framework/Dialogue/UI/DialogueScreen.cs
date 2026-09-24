@@ -1,7 +1,11 @@
 ﻿using System.Reflection;
+using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Dialogue.Presentation;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.UI;
+using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.XAML;
@@ -16,14 +20,34 @@ namespace CasaEngine.Framework.Dialogue.UI;
 /// Its tree is declared in <c>DialogueScreen.xaml</c>, shipped as an <b>embedded resource</b> of this
 /// assembly rather than as a project asset: the screen belongs to the engine, so it cannot be the asset of
 /// any one game. That is how MGUI ships its own <c>BuiltInThemes.xaml</c>.
+/// <para/>
+/// A project may replace that markup with its own <c>.uiscreen</c> asset, named by
+/// <see cref="ProjectSettings.DialogueScreenAsset"/> and read through the asset manager given to the
+/// constructor that takes one. The replacement must declare the elements this screen drives -- a
+/// <c>StackPanel</c> <c>pnlContent</c>, a <c>TextBlock</c> <c>lblLine</c>, a <c>StackPanel</c> <c>pnlChoices</c>,
+/// and a <c>Button</c> <c>btnClose</c> as a direct child of <c>pnlContent</c> (required when
+/// <see cref="ShowCloseButton"/> is true, optional otherwise). When the asset cannot be loaded, fails to parse,
+/// or breaks that contract, the screen logs a warning and uses the embedded markup.
 /// </summary>
 public sealed class DialogueScreen : XamlUIScreenBase
 {
     private const string XamlResourceName = "CasaEngine.Framework.Dialogue.UI.DialogueScreen.xaml";
 
+    private const string ContentPanelName = "pnlContent";
+    private const string LineTextName = "lblLine";
+    private const string ChoicesPanelName = "pnlChoices";
+    private const string CloseButtonName = "btnClose";
+
     private readonly IDialoguePresenter _presenter;
     private readonly Action _requestClose;
     private readonly string _fontFamily;
+
+    // The project's replacement markup (ProjectSettings.DialogueScreenAsset), held from construction to Dispose;
+    // null when the project names none or it could not be acquired.
+    private readonly string _replacementName;
+    private readonly AssetHandle<UIScreenAsset> _replacementHandle;
+    private readonly string _replacementFilePath;
+
     private MGStackPanel _contentPanel;
     private MGTextBlock _lineText;
     private MGStackPanel _choicesPanel;
@@ -66,6 +90,40 @@ public sealed class DialogueScreen : XamlUIScreenBase
         _fontFamily = fontFamily;
     }
 
+    /// <summary>
+    /// Builds the dialogue box from the project's replacement markup when
+    /// <see cref="ProjectSettings.DialogueScreenAsset"/> (read from
+    /// <paramref name="assetContentManager"/>'s runtime context) names one, and from the embedded markup
+    /// otherwise, or when the replacement cannot be used (logged). The replacement is held until
+    /// <see cref="Dispose"/>.
+    /// </summary>
+    /// <param name="fontFamily">As in <see cref="DialogueScreen(IDialoguePresenter, Action, string)"/>.</param>
+    public DialogueScreen(IDialoguePresenter presenter, Action requestClose, string fontFamily, AssetContentManager assetContentManager)
+        : this(presenter, requestClose, fontFamily)
+    {
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        _replacementName = assetContentManager.RuntimeContext?.ProjectSettings?.DialogueScreenAsset;
+        if (string.IsNullOrWhiteSpace(_replacementName))
+        {
+            _replacementName = null;
+            return;
+        }
+
+        try
+        {
+            _replacementHandle = AcquireScreenAsset(assetContentManager, _replacementName, out _replacementFilePath);
+        }
+        catch (Exception ex) when (IsMarkupFailure(ex))
+        {
+            ReportFallback($"it cannot be loaded ({ex.GetType().Name}: {ex.Message})");
+        }
+    }
+
+    /// <summary>The project's replacement markup is in use: it was acquired, and the window built from it kept.
+    /// False before the window is built.</summary>
+    internal bool UsesReplacementMarkupForTests { get; private set; }
+
     public override UILayer Layer => UILayer.Modal;
     public override bool IsModal => true;
 
@@ -91,31 +149,127 @@ public sealed class DialogueScreen : XamlUIScreenBase
         window.Top = bounds.Y + Math.Max(TopMargin, bounds.Height - MinWindowHeight - BottomMargin);
         window.WindowClosed += (_, _) => _requestClose();
 
-        _contentPanel = FindControl<MGStackPanel>("pnlContent");
+        _contentPanel = FindControl<MGStackPanel>(ContentPanelName);
         _contentPanel.PreferredWidth = width - 36;
 
-        _lineText = FindControl<MGTextBlock>("lblLine");
+        _lineText = FindControl<MGTextBlock>(LineTextName);
         ApplyFontFamily(_lineText);
 
-        _choicesPanel = FindControl<MGStackPanel>("pnlChoices");
-
-        var closeButton = FindControl<MGButton>("btnClose");
+        _choicesPanel = FindControl<MGStackPanel>(ChoicesPanelName);
 
         if (ShowCloseButton)
         {
-            _closeButton = closeButton;
+            _closeButton = FindControl<MGButton>(CloseButtonName);
             _closeButton.AddCommandHandler((_, _) => _requestClose());
         }
         else
         {
             // Taken out of the tree rather than hidden, so it is genuinely not built into the layout and
-            // CloseButtonForTests stays null, as callers that turn it off rely on.
-            _contentPanel.TryRemoveChild(closeButton);
+            // CloseButtonForTests stays null, as callers that turn it off rely on. A replacement markup may leave
+            // it out altogether.
+            if (window.TryGetElementByName(CloseButtonName, out MGButton closeButton))
+            {
+                _contentPanel.TryRemoveChild(closeButton);
+            }
+
             _closeButton = null;
         }
 
         RefreshPresentation();
     }
+
+    /// <summary>Tries the project's replacement markup first, and falls back to the embedded markup, with a
+    /// warning, when it fails to load or breaks the element contract (see the class summary).</summary>
+    protected override MGWindow LoadWindow(MGDesktop desktop)
+    {
+        if (_replacementHandle != null)
+        {
+            try
+            {
+                MGWindow window = UIScreenLoader.Load(desktop, _replacementHandle.Asset, _replacementFilePath);
+                string violation = FindContractViolation(window, ShowCloseButton);
+                if (violation == null)
+                {
+                    UsesReplacementMarkupForTests = true;
+                    return window;
+                }
+
+                // The rejected window never reaches the desktop; its bindings must not outlive it (gap G10).
+                window.RemoveDataBindings(IncludeChildren: true);
+                ReportFallback(violation);
+            }
+            catch (Exception ex) when (IsMarkupFailure(ex))
+            {
+                ReportFallback($"it cannot be loaded ({ex.GetType().Name}: {ex.Message})");
+            }
+        }
+
+        UsesReplacementMarkupForTests = false;
+        return base.LoadWindow(desktop);
+    }
+
+    /// <summary>Gives back the project's replacement markup, then what the base class holds.</summary>
+    public override void Dispose()
+    {
+        _replacementHandle?.Dispose();
+        base.Dispose();
+    }
+
+    /// <summary>What is wrong with <paramref name="window"/> as a dialogue box, or null when it declares every
+    /// element the screen drives, with the right types and places.</summary>
+    internal static string FindContractViolation(MGWindow window, bool showCloseButton)
+    {
+        string violation = CheckElement<MGStackPanel>(window, ContentPanelName, "StackPanel", out MGStackPanel contentPanel)
+            ?? CheckElement<MGTextBlock>(window, LineTextName, "TextBlock", out _)
+            ?? CheckElement<MGStackPanel>(window, ChoicesPanelName, "StackPanel", out _);
+        if (violation != null)
+        {
+            return violation;
+        }
+
+        if (!window.TryGetElementByName(CloseButtonName, out MGElement closeButton))
+        {
+            return showCloseButton ? $"it declares no '{CloseButtonName}' (a Button), which a box with a close button needs" : null;
+        }
+
+        if (closeButton is not MGButton)
+        {
+            return $"it declares '{CloseButtonName}' as a {closeButton.GetType().Name}, not a Button";
+        }
+
+        return closeButton.Parent == contentPanel
+            ? null
+            : $"its '{CloseButtonName}' is not a direct child of '{ContentPanelName}'";
+    }
+
+    private static string CheckElement<T>(MGWindow window, string name, string xamlType, out T element) where T : MGElement
+    {
+        element = null;
+        if (!window.TryGetElementByName(name, out MGElement found))
+        {
+            return $"it declares no '{name}' (a {xamlType})";
+        }
+
+        if (found is not T typed)
+        {
+            return $"it declares '{name}' as a {found.GetType().Name}, not a {xamlType}";
+        }
+
+        element = typed;
+        return null;
+    }
+
+    // What a broken or missing replacement can throw: an unresolvable id or name, no source file, an unreadable or
+    // malformed envelope, or markup that fails to parse, validate or attach. Anything else is a programming error
+    // and propagates.
+    private static bool IsMarkupFailure(Exception ex)
+        => ex is InvalidOperationException or IOException or UnauthorizedAccessException
+            or Newtonsoft.Json.JsonException or XamlLoaderException;
+
+    private void ReportFallback(string reason)
+        => Logs.WriteWarning(
+            $"DialogueScreen: the project's dialogue screen '{_replacementName}' (ProjectSettings.DialogueScreenAsset) "
+            + $"is not used: {reason}. The built-in dialogue box is used instead.");
 
     public override void Show()
     {
