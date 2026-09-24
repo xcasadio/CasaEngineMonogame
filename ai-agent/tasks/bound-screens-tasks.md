@@ -326,7 +326,7 @@ boîte de dialogue.
   - Limite reportée : l'ajout d'une texture statique de même nom relance la résolution et remplace l'animation,
     conformément à l'ordre (le statique gagne).
 
-### ⏳ T2.3 — Sample, documentation MGUI et référence dans le moteur
+### 🧪 T2.3 — Sample, documentation MGUI et référence dans le moteur
 
 - Objectif : démontrer et documenter les fonctionnalités ajoutées (règles de MGUI : toute nouvelle fonctionnalité
   est démontrée dans un sample MGUI ; toute API publique ajoutée est documentée), puis les utiliser depuis le moteur.
@@ -338,6 +338,17 @@ boîte de dialogue.
 - Commits : `feat(samples): demonstrate bound canvas coordinates and host-resolved animated images` puis
   `docs(images): document host-resolved and animated image sources` (MGUI) ;
   `chore(submodules): point at MGUI with bound and animated images` (moteur).
+- **Fait** (MGUI `d2cc651`, `446f547`, `3ca2c23`) :
+  - Sample « Bound Images » (`MGUI.Samples/Features/BoundImages.*`, case à cocher dans le Compendium) : une
+    image déplacée par `CanvasLeft`/`CanvasTop`, une image résolue par l'hôte, une image animée avec décalage et
+    lecture liables. Son fournisseur décore celui de l'application (et le runtime, pour être le fournisseur racine)
+    sans changer le reste des ressources du sample.
+  - Doc : `MGUI/Docs/image-sources-and-data-binding.md` (liée depuis le README) ; commentaire périmé de
+    `MGBinding.cs` corrigé ; `Docs/controls-architecture.md` mis à jour sur le stockage typé des coordonnées.
+  - `MGUI.Tests` 3020/3020 ; moteur : les deux solutions et `CasaEngine.Tests` construits sans erreur,
+    `CasaEngine.Tests` 1781/1781 (référence), vérifié par la session principale.
+  - **Reste pour ✅** : la vérification visuelle du sample (cocher « Bound Images » dans l'application
+    `MGUI.Samples`) : l'application n'offre pas d'accès sans intervention humaine.
 
 ---
 
