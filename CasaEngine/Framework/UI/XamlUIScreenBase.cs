@@ -171,12 +171,15 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
     }
 
     /// <summary>
-    /// Gives back the hold this screen took on its envelope, when it was built through the asset-manager
-    /// constructor. A screen built from a caller-supplied asset or an embedded document holds nothing here,
-    /// so this is a no-op for it. Idempotent, like <see cref="AssetHandle{T}.Dispose"/>.
+    /// Takes the window's data bindings out of MGUI's registry, and gives back the hold this screen took on its
+    /// envelope when it was built through the asset-manager constructor. MGUI keeps every binding in a static
+    /// registry until it is removed, and a binding left there keeps its element, the window and the data context
+    /// reachable after the screen is gone. A screen built from a caller-supplied asset or an embedded document holds
+    /// no envelope. Idempotent, like <see cref="AssetHandle{T}.Dispose"/>.
     /// </summary>
     public virtual void Dispose()
     {
+        Window?.RemoveDataBindings(IncludeChildren: true);
         _assetHandle?.Dispose();
     }
 }

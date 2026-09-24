@@ -670,6 +670,41 @@ boîte de dialogue.
 - B1 fait ; B2 (parent `79c0099`) et B3 (parent `b9f3133`, moteur `e78e14a9`) CONFIRMED par un vérificateur frais.
   Reste en 🧪 : l'enregistrement d'un écran depuis l'éditeur, qui attend la réponse à O6.
 
+### 🚧 T5.2 — Libérer les bindings d'un écran avec lui
+
+- Constat (2026-09-24, session principale, après B3) : rien ne retire les bindings d'une fenêtre d'écran quand l'écran
+  est libéré. `XamlUIScreenBase.Dispose` ne rend que le handle de l'enveloppe, et aucun code du moteur n'appelle
+  `RemoveDataBindings` (MGUI le recommande avant de retirer un élément, `MGElement.cs:3592-3606`). Les bindings
+  restent dans le registre statique de MGUI (`DataBindingManager._Bindings` et `_BindingsByTargetObject`) et
+  gardent la fenêtre, ses images et son view-model atteignables. Depuis B2 et B3, l'inventaire (172 chemins) et le
+  HUD (122) d'Alundra sont reconstruits à chaque changement de monde : le registre grossit à chaque changement.
+  Second défaut, dans MGUI : `DataBindingManager.RemoveBindings(target)` libère les bindings et vide
+  `_BindingsByTargetObject`, mais les laisse dans `_Bindings` (`DataBindingManager.cs:70-89`), qui garde donc
+  les éléments atteignables même après un `RemoveDataBindings`.
+- Classement : P2 introduit par le programme (B2, B3), non couvert par leurs vérifications. Correction dans le
+  périmètre approuvé, avant T6.1.
+- Fichiers : MGUI `MGUI.Core/UI/DataBinding/DataBindingManager.cs` et un test ; moteur
+  `CasaEngine/Framework/UI/XamlUIScreenBase.cs` et un test ; parent : un test par écran d'Alundra ; rapport des
+  manques (G10).
+- Étapes :
+  1. MGUI : `RemoveBindings` retire aussi les bindings de `_Bindings`. Test : après `RemoveBindings`, les bindings
+     de l'élément sont libérés et absents de `DataBindingManager.Bindings`.
+  2. Moteur : `XamlUIScreenBase.Dispose` retire les bindings de toute la fenêtre (`RemoveDataBindings(true)`).
+     Test : un écran chargé depuis un asset qui lie, une fois libéré, ne laisse aucun binding sur sa fenêtre.
+  3. Parent : l'inventaire et le HUD libérés ne laissent aucun binding sur leur fenêtre.
+- Validation : builds ; `MGUI.Tests`, `CasaEngine.Tests`, `Alundra.Tests` ; chaque nouveau test échoue sans la
+  correction. **Vérificateur frais** sur l'ensemble (MGUI, moteur, parent).
+- Commits : MGUI `fix(binding): take removed bindings out of the registry` ; moteur
+  `fix(ui): release a screen's bindings when it is disposed` ; parent
+  `test(ui): the Alundra screens leave no binding behind`.
+- Avancement (2026-09-24) :
+  - étape 1 : MGUI `0559e6b`, `MGUI.Tests` 3023/3023 ; les deux nouveaux tests échouaient avant la correction
+    (« Item found in collection ») ;
+  - étape 2 : moteur, `CasaEngine.Tests` 1844/1844 ; le nouveau test échouait avant la correction, après avoir
+    constaté le texte lié et les deux bindings ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`
+    sans erreur ; manque G10 consigné comme corrigé ;
+  - étape 3 et vérification : à suivre.
+
 ---
 
 ## Phase 6 — Écran de dialogue remplaçable

@@ -344,3 +344,26 @@ sur le canevas : une glue en C# dans un écran dont tout le reste est déclaré 
 **À quoi ressemblerait l'API absente.** Des bindings sur les propriétés du DTO `RenderTransform` (translation,
 échelle, rotation), résolus sur l'`UIRenderTransform` de l'élément porteur ; ou des propriétés d'élément liables
 (`RenderTranslationX/Y`) qui y écrivent.
+
+## ~~G10~~ — Les bindings d'un écran libéré restent dans le registre de MGUI — **CORRIGÉ le 2026-09-24**
+
+> **Corrigé** dans MGUI (`0559e6b`) et dans le moteur (tâche T5.2 du programme bound-screens), branches
+> `chantier/bound-screens`.
+
+**Ce que le code doit faire.** Un écran lié (l'inventaire et le HUD d'Alundra depuis les tranches B2 et B3 du dépôt
+parent) est reconstruit à chaque changement de monde, et l'ancien est libéré. Ses bindings doivent partir avec lui.
+
+**Pourquoi ce n'était pas le cas.** Deux défauts cumulés :
+- dans le moteur, `XamlUIScreenBase.Dispose` ne rendait que le handle de l'enveloppe ; rien n'appelait
+  `MGElement.RemoveDataBindings`, que MGUI recommande avant de retirer un élément
+  (`MGUI/MGUI.Core/UI/MGElement.cs:3592-3606`) ;
+- dans MGUI, `DataBindingManager.RemoveBindings(target)` libérait les bindings et retirait l'entrée de l'index par
+  cible, mais les laissait dans la liste `_Bindings` (`MGUI/MGUI.Core/UI/DataBinding/DataBindingManager.cs:70-89`) :
+  même après un `RemoveDataBindings`, la liste gardait chaque élément atteignable.
+
+**Ce que ça coûtait.** Le registre statique grossissait à chaque changement de monde (172 bindings pour
+l'inventaire, 122 pour le HUD) et gardait atteignables les anciennes fenêtres, leurs images et leurs view-models.
+
+**La correction.** `RemoveBindings` retire aussi les bindings de `_Bindings`
+(`MGUI.Tests/Architecture/DataBindingRegistryTests.cs`) ; `XamlUIScreenBase.Dispose` retire les bindings de toute
+sa fenêtre (`CasaEngine.Tests/UI/XamlUIScreenBaseBindingReleaseTests.cs`). Chaque test échoue sans la correction.
