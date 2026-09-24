@@ -84,6 +84,25 @@ public class GameEditor : Game, IObservableUpdate
         public int NextRatioIndex { get; set; }
     }
 
+    /// <summary>A screen panel's dirty state and document instance captured right before
+    /// <c>--save-project</c> automation calls <see cref="SaveCurrentProject"/>, so the delayed log line can
+    /// report whether the save reached it and whether the panel kept its own document instance.</summary>
+    private sealed class AutomationSaveProjectRecord
+    {
+        public AutomationSaveProjectRecord(string panelId, string title, UIScreenDocument documentBeforeSave, bool wasDirtyBeforeSave)
+        {
+            PanelId = panelId;
+            Title = title;
+            DocumentBeforeSave = documentBeforeSave;
+            WasDirtyBeforeSave = wasDirtyBeforeSave;
+        }
+
+        public string PanelId { get; }
+        public string Title { get; }
+        public UIScreenDocument DocumentBeforeSave { get; }
+        public bool WasDirtyBeforeSave { get; }
+    }
+
     private sealed class DockInputDragAutomationState
     {
         public DockInputDragAutomationState(string targetKey, MGDockSplitContainer splitContainer, MouseState[] mouseStates)
@@ -259,6 +278,18 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationMaterialEditAttempted;
     private bool _automationMaterialEdited;
     private TimeSpan _automationMaterialEditedAt;
+    private bool _automationScreenEditAttempted;
+    private bool _automationScreenEdited;
+    private TimeSpan _automationScreenEditedAt;
+    // --save-project (T4.4, D13): unlike the material/particle automation options, this one snapshots and
+    // restores no file -- proving the save reaches disk is exactly its point, so undoing it here would
+    // defeat that. Any real editor launch that uses it is wrapped in its own manifest-based restore by the
+    // caller (B6, main session).
+    private bool _automationSaveProjectAttempted;
+    private int _automationSaveProjectFramesRemaining;
+    private bool _automationSaveProjectLogged;
+    private TimeSpan _automationSaveProjectLoggedAt;
+    private List<AutomationSaveProjectRecord> _automationSaveProjectRecords;
     private readonly Dictionary<string, string> _automationEditedFileSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private bool _automationEditedFilesRestored;
 
@@ -547,6 +578,12 @@ public class GameEditor : Game, IObservableUpdate
         _automationParticleDropped = false;
         _automationMaterialEditAttempted = false;
         _automationMaterialEdited = false;
+        _automationScreenEditAttempted = false;
+        _automationScreenEdited = false;
+        _automationSaveProjectAttempted = false;
+        _automationSaveProjectFramesRemaining = 0;
+        _automationSaveProjectLogged = false;
+        _automationSaveProjectRecords = null;
         _automationDiagnosticsCaptured = false;
         PresentLoadedProject();
         TryOpenStartupAssetIfRequested();
@@ -2226,6 +2263,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         SaveSelectedAnimation2dInspector();
+        SaveDirtyScreenDocuments();
         SaveDirtyMaterialInspectors();
         SaveDirtySpriteInspectors();
         SaveDirtyParticleInspectors();
@@ -4759,6 +4797,31 @@ public class GameEditor : Game, IObservableUpdate
         return false;
     }
 
+    private void SaveDirtyScreenDocuments()
+    {
+        foreach (var pair in _screenPreviewPanels)
+        {
+            var panelId = pair.Key;
+            var previewPanel = pair.Value;
+            var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId);
+            if (!_editorDirtyState.IsDirty(historyContext))
+            {
+                continue;
+            }
+
+            if (previewPanel.TrySaveDocument(out string errorMessage))
+            {
+                _editorDirtyState.MarkSaved(historyContext);
+                UpdateDockPanelTitle(panelId, GetScreenDocumentTitle(panelId));
+                Logs.WriteInfo($"UI screen saved: {previewPanel.LoadedSourceXamlPath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
     private void SaveDirtyMaterialInspectors()
     {
         foreach (var pair in _materialInspectorPanels)
@@ -6192,6 +6255,19 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationScreenEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetScreenPropertyNodeName)
+            && !_automationScreenEditAttempted)
+        {
+            return;
+        }
+
+        TryApplyAutomationSaveProject(totalGameTime);
+        if (_automationOptions.SaveProject && !_automationSaveProjectLogged)
+        {
+            return;
+        }
+
         TimeSpan readyAt = _automationSelectionAppliedAt;
         if (_automationAssetOpened && _automationAssetOpenedAt > readyAt)
         {
@@ -6226,6 +6302,16 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
         {
             readyAt = _automationMaterialEditedAt;
+        }
+
+        if (_automationScreenEdited && _automationScreenEditedAt > readyAt)
+        {
+            readyAt = _automationScreenEditedAt;
+        }
+
+        if (_automationSaveProjectLogged && _automationSaveProjectLoggedAt > readyAt)
+        {
+            readyAt = _automationSaveProjectLoggedAt;
         }
 
         if (_automationParticleEdited && _automationParticleEditedAt > readyAt)
@@ -6904,6 +6990,121 @@ public class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
+    }
+
+    private void TryApplyAutomationScreenEdit(TimeSpan totalGameTime)
+    {
+        if (_automationScreenEditAttempted
+            || string.IsNullOrWhiteSpace(_automationOptions.SetScreenPropertyNodeName)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetScreenPropertyName))
+        {
+            return;
+        }
+
+        if (_editorContext.ActiveDocument?.Kind != EditorDocumentKind.UIScreen
+            || string.IsNullOrWhiteSpace(_editorContext.ActiveDocument.Id)
+            || !_screenPreviewPanels.TryGetValue(_editorContext.ActiveDocument.Id, out var previewPanel))
+        {
+            return;
+        }
+
+        _automationScreenEditAttempted = true;
+
+        var node = previewPanel.CurrentDocument?.Root != null
+            ? FindAutomationScreenNode(previewPanel.CurrentDocument.Root, _automationOptions.SetScreenPropertyNodeName)
+            : null;
+        if (node == null)
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Screen node '{_automationOptions.SetScreenPropertyNodeName}' or property '{_automationOptions.SetScreenPropertyName}' not found.");
+            return;
+        }
+
+        string propertyName = _automationOptions.SetScreenPropertyName;
+        string oldValue = node.TryGetProperty(propertyName, out var existing) ? existing?.SerializedValue : null;
+
+        // Go through the panel's own command stack -- the same path a live inspector edit takes -- so this
+        // edit is undoable and marks the panel's EditorHistoryContext dirty, exactly like a real one.
+        var commandStack = GetOrCreateScreenCommandStack(_editorContext.ActiveDocument.Id);
+        commandStack.Execute(new SetPropertyCommand(node, propertyName, _automationOptions.SetScreenPropertyValue));
+
+        _automationScreenEdited = true;
+        _automationScreenEditedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Updated screen property '{_automationOptions.SetScreenPropertyNodeName}.{propertyName}' from '{oldValue ?? "(none)"}' to '{_automationOptions.SetScreenPropertyValue}'");
+    }
+
+    private static UIScreenNode FindAutomationScreenNode(UIScreenNode node, string name)
+    {
+        if (string.Equals(node.Name, name, StringComparison.Ordinal))
+        {
+            return node;
+        }
+
+        foreach (var child in node.Children)
+        {
+            var found = FindAutomationScreenNode(child, name);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// <c>--save-project</c> automation (T4.4, D13): records each open screen panel's document instance and
+    /// dirty state, calls <see cref="SaveCurrentProject"/> once (together with the other dirty documents it
+    /// already saves), then waits 60 further calls (frames) before logging, per panel, whether it is still
+    /// dirty and whether it kept the same document instance. Unlike the material/particle automation
+    /// options, this one snapshots and restores no file: proving the save reaches disk is exactly its
+    /// point, so undoing it would defeat the option, and any real launch that uses it is expected to run
+    /// under its own external restore (B6, main session).
+    /// </summary>
+    private void TryApplyAutomationSaveProject(TimeSpan totalGameTime)
+    {
+        if (_automationSaveProjectLogged || !_automationOptions.SaveProject)
+        {
+            return;
+        }
+
+        if (!_automationSaveProjectAttempted)
+        {
+            _automationSaveProjectAttempted = true;
+            _automationSaveProjectRecords = new List<AutomationSaveProjectRecord>();
+            foreach (var pair in _screenPreviewPanels)
+            {
+                var context = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key);
+                _automationSaveProjectRecords.Add(new AutomationSaveProjectRecord(
+                    pair.Key,
+                    GetScreenDocumentTitle(pair.Key),
+                    pair.Value.CurrentDocument,
+                    _editorDirtyState.IsDirty(context)));
+            }
+
+            SaveCurrentProject();
+            _automationSaveProjectFramesRemaining = 60;
+            return;
+        }
+
+        if (_automationSaveProjectFramesRemaining > 0)
+        {
+            _automationSaveProjectFramesRemaining--;
+            return;
+        }
+
+        foreach (var record in _automationSaveProjectRecords)
+        {
+            bool sameDocumentInstance = _screenPreviewPanels.TryGetValue(record.PanelId, out var previewPanel)
+                && ReferenceEquals(previewPanel.CurrentDocument, record.DocumentBeforeSave);
+            bool stillDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, record.PanelId));
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Screen '{record.Title}' after save: dirty={stillDirty}, same document instance={sameDocumentInstance}");
+        }
+
+        _automationSaveProjectLogged = true;
+        _automationSaveProjectLoggedAt = totalGameTime;
     }
 
     private void TryApplyAutomationParticleEdit(TimeSpan totalGameTime)

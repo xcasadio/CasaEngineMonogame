@@ -850,7 +850,7 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
   (d') et (e) échouent) ; suites et solutions. Remarque P4 : la doc pouvait se lire « un avertissement par
   élément » et ne disait plus qu'un `btnClose` enfant direct de `pnlContent` en est retiré : corrigée.
 
-### ⏳ T4.4 — « Save » enregistre les écrans modifiés (D13)
+### 🚧 T4.4 — « Save » enregistre les écrans modifiés (D13)
 
 - Résultat : File > Save, et l'enregistrement proposé avant d'ouvrir un monde, écrivent sans perte le `.xaml` de
   chaque écran ouvert modifié, effacent sa marque et mettent à jour le titre ; le panneau garde la même instance de
@@ -864,6 +864,26 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
   doc de la matrice de support (commit `feat(editor): save modified screens with the project`).
 - Validation : tests du writer, de `ShouldReload`, et de `TrySaveDocument` si le panneau se construit sans affichage ;
   suites et solutions ; preuve de bout en bout en B6. **Vérificateur frais sur T4.4 et B6 ensemble.**
+- Note d'exécution (2026-09-24, exécutant, relu par la session principale) :
+  - commit `96ceb976` : `UIScreenDocumentFileWriter.Write(document, chemin, sérialiseur)` extrait de
+    `UIScreenEditorSession.Save`, qui délègue ; tests du writer (valeurs remises à l'origine -> octets identiques ;
+    BOM et commentaires gardés, `OriginalBytes` et `BaselineSemanticSnapshot` à jour, second `Write` identique) ;
+  - `UIScreenPreviewPanel` : `TrySaveDocument`, `LoadedSourceXamlPath`, octets du `.xaml` et du `.uiscreen` gardés au
+    chargement et après chaque enregistrement (`OriginalBytes` est interne à EditorServices, invisible de l'éditeur),
+    `ShouldReload` pur ; `ReloadFromDisk` s'arrête quand le disque est identique ;
+  - `GameEditor.SaveDirtyScreenDocuments`, appelée dans `SaveCurrentProject` avant les autres enregistrements ;
+  - automatisation : `--set-screen-property <Nœud>:<Propriété>=<Valeur>` (commande `SetPropertyCommand` par la
+    pile du panneau actif ; seul un nœud introuvable est refusé, le modèle de document acceptant tout nom de
+    propriété) et `--save-project` (état et instance de document journalisés 60 frames après l'enregistrement,
+    aucune restauration de fichier) ;
+  - tests : `UIScreenPreviewPanelTests` (`ShouldReload`, et un test sans affichage : chargement, modification,
+    `TrySaveDocument`, puis `Update()` pendant que le vrai `FileSystemWatcher` réagit : même instance de document),
+    `EditorAutomationOptionsTests` (deux options, cas malformés) ; `CasaEngine.Tests` 1876/1876, deux solutions sans
+    erreur ; doc de la matrice de support ;
+  - mutations : `ShouldReload` toujours vrai -> deux tests échouent ; sérialisation forcée sans rejeu des octets ->
+    tous les tests passent (le sérialiseur fidèle suffit à ces cas, le rejeu est une sécurité en plus) ; sans l'appel
+    à `SaveDirtyScreenDocuments`, aucun test unitaire n'échoue (`GameEditor` ne se construit pas en test) : la preuve
+    de bout en bout est B6.
 
 ### ⏳ T4.5 — Demander avant de perdre un écran modifié (D17)
 

@@ -41,9 +41,11 @@ Limites connues de ce mécanisme (acceptées comme risque documenté) :
   une ligne, et les commentaires qu'il contenait sont perdus. Le réordonnancement dans le même parent, lui, garde
   tout (tableau ci-dessus).
 
-> **État au 2026-09-24.** Ces garanties valent pour `UIScreenEditorSession.Save`. La commande « Save » de l'éditeur
-> (`GameEditor.SaveCurrentProject`) n'enregistre pas encore les documents d'écran : la question est posée à l'auteur
-> (point ouvert O6 du plan `ai-agent/tasks/bound-screens-tasks.md`).
+> **État au 2026-09-24 (T4.4, D13).** Ces garanties valent aussi pour la commande « Save » de l'éditeur
+> (`GameEditor.SaveCurrentProject`, via `SaveDirtyScreenDocuments`) : chaque document d'écran ouvert et modifié
+> est écrit avec les mêmes garanties que `UIScreenEditorSession.Save`, à travers `UIScreenDocumentFileWriter`
+> (extrait du `Save` de la session), que `UIScreenEditorSession` et le panneau de preview de l'éditeur
+> (`UIScreenPreviewPanel.TrySaveDocument`) appellent tous les deux.
 
 ## Support v1 (base, inchangée)
 

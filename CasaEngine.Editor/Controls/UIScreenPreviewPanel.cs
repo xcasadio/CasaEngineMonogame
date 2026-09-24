@@ -7,6 +7,7 @@ using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
+using CasaEngine.EditorServices.ScreenEditor.Session;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
@@ -26,6 +27,7 @@ public sealed class UIScreenPreviewPanel
 {
     private readonly MGWindow _window;
     private readonly UIScreenXamlParser _xamlParser = new();
+    private readonly UIScreenXamlSerializer _xamlSerializer = new();
     private readonly UIScreenPreviewBuilder _previewBuilder = new();
 
     private MGDockPanel _root;
@@ -41,6 +43,13 @@ public sealed class UIScreenPreviewPanel
     private readonly object _reloadSync = new();
     private string _loadedAssetFilePath;
     private string _loadedSourceXamlPath;
+    // The source XAML's and the .uiscreen asset's own bytes at the time they were last loaded (LoadAsset),
+    // so ShouldReload can tell a change made by someone else on disk apart from a write this panel itself
+    // just performed through TrySaveDocument (T4.4, D13) -- both files are watched, so a save fires the
+    // same watcher event a real external edit would. UIScreenDocument.OriginalBytes is internal to
+    // CasaEngine.EditorServices and not visible here, so the XAML bytes are read and kept separately.
+    private byte[] _loadedXamlBytes;
+    private byte[] _loadedAssetBytes;
     private bool _reloadRequested;
     private string _reloadReason = string.Empty;
     private FileSystemWatcher _assetWatcher;
@@ -236,6 +245,63 @@ public sealed class UIScreenPreviewPanel
 
     /// <summary>The document currently loaded into this panel, or null if nothing is open.</summary>
     public UIScreenDocument CurrentDocument => _currentDocument;
+
+    /// <summary>The source XAML file path this panel's <see cref="CurrentDocument"/> was loaded from, or
+    /// null if nothing is open.</summary>
+    public string LoadedSourceXamlPath => _loadedSourceXamlPath;
+
+    /// <summary>
+    /// Writes <see cref="CurrentDocument"/> back to <see cref="LoadedSourceXamlPath"/> with the same
+    /// lossless-save guarantees as <see cref="EditorServices.ScreenEditor.Session.UIScreenEditorSession.Save"/>
+    /// (T4.4, D13). Returns <c>false</c> with a message naming the problem when there is nothing to save or
+    /// the write itself fails; returns <c>true</c> on success.
+    /// </summary>
+    public bool TrySaveDocument(out string errorMessage)
+    {
+        if (_currentDocument == null || string.IsNullOrWhiteSpace(_loadedSourceXamlPath))
+        {
+            errorMessage = "No UIScreen document is currently loaded.";
+            return false;
+        }
+
+        try
+        {
+            UIScreenDocumentFileWriter.Write(_currentDocument, _loadedSourceXamlPath, _xamlSerializer);
+            // The file on disk now matches this document exactly: keep the panel's own tracked copy in
+            // sync so the watcher event this write fires does not itself look like an external change.
+            _loadedXamlBytes = File.ReadAllBytes(_loadedSourceXamlPath);
+            errorMessage = null;
+            return true;
+        }
+        catch (IOException ex)
+        {
+            errorMessage = $"Failed to save '{_loadedSourceXamlPath}': {ex.Message}";
+            return false;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            errorMessage = $"Failed to save '{_loadedSourceXamlPath}': {ex.Message}";
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Whether a reload from disk should actually happen: false only when all four byte arrays are known
+    /// and both the XAML and the asset bytes on disk are unchanged from what was last loaded. A watcher
+    /// event fires for a save this panel itself just performed through <see cref="TrySaveDocument"/> too
+    /// (it is the same file being watched), so this comparison is what tells that apart from a real
+    /// external change (T4.4, D13): a null in any position (nothing was ever loaded, or the current read
+    /// failed) is treated as "reload" -- the safe default.
+    /// </summary>
+    internal static bool ShouldReload(byte[] xamlOnDisk, byte[] documentBytes, byte[] assetOnDisk, byte[] loadedAssetBytes)
+    {
+        if (xamlOnDisk == null || documentBytes == null || assetOnDisk == null || loadedAssetBytes == null)
+        {
+            return true;
+        }
+
+        return !xamlOnDisk.AsSpan().SequenceEqual(documentBytes) || !assetOnDisk.AsSpan().SequenceEqual(loadedAssetBytes);
+    }
 
     /// <summary>
     /// Returns the screen-space <see cref="Microsoft.Xna.Framework.Rectangle"/> of
@@ -457,9 +523,11 @@ public sealed class UIScreenPreviewPanel
             ConfigureWatchers(assetFilePath, sourceXamlPath);
             _loadedAssetFilePath = assetFilePath;
             _loadedSourceXamlPath = sourceXamlPath;
+            _loadedAssetBytes = File.ReadAllBytes(assetFilePath);
             _currentAsset = asset;
 
             var document = _xamlParser.ParseFile(sourceXamlPath);
+            _loadedXamlBytes = File.ReadAllBytes(sourceXamlPath);
             _currentDocument = document;
             DocumentLoaded?.Invoke(document);
 
@@ -506,6 +574,28 @@ public sealed class UIScreenPreviewPanel
         if (string.IsNullOrWhiteSpace(_loadedAssetFilePath))
         {
             return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_loadedSourceXamlPath))
+        {
+            try
+            {
+                var xamlOnDisk = File.ReadAllBytes(_loadedSourceXamlPath);
+                var assetOnDisk = File.ReadAllBytes(_loadedAssetFilePath);
+                if (!ShouldReload(xamlOnDisk, _loadedXamlBytes, assetOnDisk, _loadedAssetBytes))
+                {
+                    Logs.WriteDebug($"Skipped UI screen preview reload ({reloadReason}): file contents unchanged.");
+                    return;
+                }
+            }
+            catch (IOException)
+            {
+                // Can't tell from here: fall through and reload as usual.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Can't tell from here: fall through and reload as usual.
+            }
         }
 
         try

@@ -22,6 +22,10 @@ public sealed class EditorAutomationOptions
     public bool ParticleUndoRedoSmoke { get; private set; }
     public string SetMaterialPropertyKey { get; private set; }
     public string SetMaterialPropertyValue { get; private set; }
+    public string SetScreenPropertyNodeName { get; private set; }
+    public string SetScreenPropertyName { get; private set; }
+    public string SetScreenPropertyValue { get; private set; }
+    public bool SaveProject { get; private set; }
     public string EntityName { get; private set; }
     public int EntityIndex { get; private set; }
     public string ComponentName { get; private set; }
@@ -48,6 +52,8 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(SetParticlePropertyKey)
         || ParticleUndoRedoSmoke
         || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
+        || !string.IsNullOrWhiteSpace(SetScreenPropertyNodeName)
+        || SaveProject
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
         || PlaySmoke
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
@@ -143,6 +149,28 @@ public sealed class EditorAutomationOptions
 
                 case "--particle-undo-redo-smoke":
                     options.ParticleUndoRedoSmoke = true;
+                    break;
+
+                case "--set-screen-property":
+                    // <NodeName>:<Property>=<Value> -- node name before the first ':', property name
+                    // before the first '=' found after it, value after that '='.
+                    int nodeSeparatorIndex = next.IndexOf(':');
+                    if (nodeSeparatorIndex > 0)
+                    {
+                        int propertySeparatorIndex = next.IndexOf('=', nodeSeparatorIndex + 1);
+                        if (propertySeparatorIndex > nodeSeparatorIndex + 1 && propertySeparatorIndex < next.Length - 1)
+                        {
+                            options.SetScreenPropertyNodeName = next[..nodeSeparatorIndex];
+                            options.SetScreenPropertyName = next[(nodeSeparatorIndex + 1)..propertySeparatorIndex];
+                            options.SetScreenPropertyValue = next[(propertySeparatorIndex + 1)..];
+                        }
+                    }
+
+                    index++;
+                    break;
+
+                case "--save-project":
+                    options.SaveProject = true;
                     break;
 
                 case "--entity-index":

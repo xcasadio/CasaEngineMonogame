@@ -46,4 +46,59 @@ public class EditorAutomationOptionsTests
         Assert.True(options.HasAutomation);
         Assert.Equal(0, options.EntityIndex);
     }
+
+    [Fact]
+    public void Parse_SetScreenProperty_SplitsNodePropertyAndValue()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-screen-property", "Label:Text=Updated",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal("Label", options.SetScreenPropertyNodeName);
+        Assert.Equal("Text", options.SetScreenPropertyName);
+        Assert.Equal("Updated", options.SetScreenPropertyValue);
+    }
+
+    [Fact]
+    public void Parse_SetScreenProperty_ValueContainingEquals_KeepsWholeValue()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-screen-property", "Label:Text=a=b",
+        });
+
+        Assert.Equal("Label", options.SetScreenPropertyNodeName);
+        Assert.Equal("Text", options.SetScreenPropertyName);
+        Assert.Equal("a=b", options.SetScreenPropertyValue);
+    }
+
+    [Theory]
+    [InlineData("LabelText=Updated")]      // no ':'
+    [InlineData("Label:Text")]             // no '=' after the ':'
+    [InlineData(":Text=Updated")]          // empty node name
+    [InlineData("Label:=Updated")]         // empty property name
+    [InlineData("Label:Text=")]            // empty value
+    public void Parse_SetScreenProperty_Malformed_IsIgnored(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-screen-property", value,
+        });
+
+        Assert.Null(options.SetScreenPropertyNodeName);
+        Assert.Null(options.SetScreenPropertyName);
+        Assert.Null(options.SetScreenPropertyValue);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_SaveProject_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--save-project" });
+
+        Assert.True(options.SaveProject);
+        Assert.True(options.HasAutomation);
+    }
 }
