@@ -603,6 +603,17 @@ boîte de dialogue.
     une collection xUnit qui s'exécute seule (`MguiDataBindingCollection`), comme `ProjectEnvironmentCollection` pour
     le catalogue d'assets global. Le registre de MGUI est mono-thread par conception (l'interface tourne sur un
     thread) : ce n'est pas un manque.
+- **Seconde relecture de clôture (2026-09-24) : CONFIRMED** sur `f2bc60bb` (MGUI `09d0462`), sans constat P0 à P2.
+  Aller-retour vérifié sur 74 écrans réels et des cas adverses (ajout, suppression et réordonnancement dans le même
+  parent, premier et dernier enfant, imbrication, plusieurs enregistrements d'affilée, CRLF avec BOM, CDATA) ;
+  chargeur des données de conception sur 37 cas ; test instable absent de 165 lancements ; suites et solutions
+  vertes. **Phase 4 close.** Remarques reportées, toutes antérieures aux correctifs :
+  - A1 (P3) : déplacer un nœud vers un autre parent le resynthétise (une ligne, commentaires internes perdus),
+    `UIScreenXamlSerializer.cs:176` ; la matrice de support ne le dit pas encore : à documenter en T7.1 ;
+  - A2 (P3) : un nœud ajouté à un panneau sans enfant n'a pas sa propre ligne indentée (cosmétique) ;
+  - A3 (P4) : un enregistrement modifié uniformise des fins de ligne mélangées ;
+  - A4 (P4) : un fichier UTF-16 modifié est réécrit en UTF-8 en gardant `encoding="utf-16"`.
+  - Test instable sans rapport : `StaticModelMaterialOverrideResolverTests` (1 échec sur 55), déjà connu.
   - F4 (P3, **reporté**, O5) : `ForgetHostResolvedTextures` ne rafraîchit pas une image de fenêtre, et son
     commentaire affirmait le contraire. Commentaire corrigé (MGUI `09d0462`) ; manque consigné en G7 du
     [rapport des manques](../audits/mgui-gaps-from-xaml-screens.md). Le correctif touche une règle
@@ -637,7 +648,7 @@ boîte de dialogue.
 
 ## Phase 5 — Consommateur Alundra (dépôt parent)
 
-### ⏳ T5.1 — Écrans d'Alundra
+### 🚧 T5.1 — Écrans d'Alundra
 
 - Objectif : tranches B1 à B3 du plan parent `docs/plan-bound-screens.md` : écrans en assets versionnés, inventaire
   et HUD liés et animés, recettes en jeu.
