@@ -349,6 +349,23 @@ boîte de dialogue.
     `CasaEngine.Tests` 1781/1781 (référence), vérifié par la session principale.
   - **Reste pour ✅** : la vérification visuelle du sample (cocher « Bound Images » dans l'application
     `MGUI.Samples`) : l'application n'offre pas d'accès sans intervention humaine.
+- **Vérificateur frais des phases 1 et 2 (2026-09-24) : CONFIRMED**, sans constat P0 à P2, sur MGUI
+  `6ac7a68..3ca2c23` et le moteur `80c11406`. Il a reproduit les suites (MGUI 3020/3020, `CasaEngine.Tests`
+  1781/1781, deux solutions sans erreur), sondé hors dépôt le chemin pilote `Color?` (zéro octet) et les cas de
+  nullabilité, et remesuré O3 : 192 octets par notification, dus en totalité à la diffusion par événements
+  faibles de WPF ; les tests d'allocation mesurent honnêtement la mise à jour elle-même. Remarques reportées :
+  - A1 (P3) : une exception d'un getter source, sur les chemins typés, est capturée et signalée par
+    `HasError`/`LastError` au lieu de se propager : changement de comportement accepté (plus sûr), à connaître ;
+  - A2 (P3) : une image reste abonnée aux événements de texture après que son `SourceName` est repassé à `null`
+    (durée bornée par la portée de sa fenêtre) ;
+  - A3 (P3) : une animation n'est pas libérée quand son image est jetée (MGUI n'a pas de fin de vie d'élément) :
+    traité par conception en T3.2, les handles partagés appartiennent au fournisseur, libéré avec l'interface ;
+  - A4 (P4) : le cache négatif ne redemande jamais un nom (voulu, documenté) ;
+  - A5 (P4) : un chemin pilote typé qui n'écrit rien se déclare réussi (même résultat visible qu'avant) ;
+  - A6 (P4) : le texte de l'ADR-0016 décrit encore les coordonnées comme des métadonnées et la syntaxe
+    `Canvas.Left` ; la doc `image-sources-and-data-binding.md` fait foi ; le commentaire de
+    `MGElement.CanvasRight/Bottom` oublie leurs attributs XAML ;
+  - A7 (P4, non reproduit) : le choix du chemin pourrait lever pour des formes de propriété inhabituelles.
 
 ---
 
