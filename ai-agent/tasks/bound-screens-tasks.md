@@ -909,7 +909,7 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
     `UnauthorizedAccessException` ; une autre exception du sérialiseur sortirait de `SaveCurrentProject`, que le
     menu appelle sans `try`.
 
-### 🚧 T4.5 — Demander avant de perdre un écran modifié (D17)
+### 🧪 T4.5 — Demander avant de perdre un écran modifié (D17)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais), après reconnaissance.
 
@@ -962,7 +962,7 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais), après recon
     `diag.txt` est écrit avant la sortie ; elle reste couverte par la lecture du code et le test du cas
     « automatisation » de `ModifiedScreenCloseDecision`.
 
-### 🚧 T4.6 — Ctrl+S (D18)
+### 🧪 T4.6 — Ctrl+S (D18)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 
@@ -984,6 +984,25 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
   du flux de l'éditeur d'écrans (`screen-authoring-conventions.md`) : File > Save ou Ctrl+S, confirmation à la
   fermeture et à la sortie. L'automatisation de l'éditeur ne sait pas injecter une touche (`EditorAutomationOptions`
   n'a pas d'option de clavier) : l'appui réel sur Ctrl+S reste à l'auteur.
+- **Vérificateur frais sur T4.5 et T4.6 (2026-09-24) : CONFIRMED** sur MGUI `6817691` et le moteur `aaba7d96`,
+  `fdd88804`, sans constat P0 à P2 : tous les appelants de `DockOperation.ClosePanel`, `RemovePanelById`,
+  `NotifyFloatingPanelClosed`, `PanelRemoved` et `TryCloseWindow` passés en revue, aucun chemin utilisateur oublié ;
+  `OnExiting` sans risque sur un éditeur partiellement initialisé ; sortie automatisée avec un écran modifié rejouée
+  (code 0 en 36 s, rien d'écrit), et une sonde temporaire a prouvé que la branche « automatisation » est bien prise
+  (`modified=1 automation=True`, puis retirée) ; **MonoGame DesktopGL 3.8.5.1 décompilé** : la croix de la fenêtre,
+  Alt+F4 et File > Exit passent par `Game.Exit()`, et `Game.Tick` n'arrête rien quand `ExitingEventArgs.Cancel` est
+  vrai ; Ctrl+S sur front de touche, inerte dans une zone de texte ; `CasaEngine.Tests` 1888/1888, `MGUI.Tests`
+  3033/3033, `Alundra.Tests` 1089/1089, deux solutions et `MGUI.Samples`. Remarques P4, reportées :
+  - « Yes » enregistre l'écran même en mode Play (pas la garde de `SaveCurrentProject`) : choix de conception ;
+  - pendant un vol au clic droit, WASDQE ne bouge plus si Ctrl est tenu : effet voulu ;
+  - une fenêtre flottante autonome créée par du code applicatif n'est pas suivie par l'hôte, sa fermeture entière
+    ne lève pas `PanelClosing` : préexistant, l'éditeur n'en crée pas ;
+  - une exception autre qu'`IOException`/`UnauthorizedAccessException` pendant « Yes » à la sortie remonterait hors
+    de `Game.Tick` (même remarque qu'en T4.4) ;
+  - sur une capture automatisée, l'onglet d'un écran modifié s'affichait sans `*` alors que le contexte était bien
+    modifié (confiance basse, relève de T4.4) : à regarder par l'auteur en vrai lancement.
+- **Reste 🧪 pour l'auteur** : les vrais clics Yes/No/Cancel (onglet, File > Exit, croix de la fenêtre), un vrai
+  Ctrl+S, la case « Unsaved changes » du sample de docking de MGUI, et la présence du `*` après une modification.
 
 ---
 
