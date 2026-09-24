@@ -232,19 +232,37 @@ boîte de dialogue.
     par notification (mesure de l'exécuteur, sans binding). Les tests d'allocation mesurent donc la mise à jour
     elle-même en appelant son point d'entrée ; les tests de comportement passent par la vraie diffusion.
 
-### ⏳ T1.2 — Coordonnées de canevas liables
+### ✅ T1.2 — Coordonnées de canevas liables
 
-- Objectif : D7. `Canvas.Left="{MGBinding Path=X}"` suit le view-model en direct.
-- Fichiers : `MGUI.Core/UI/MGElement.cs` (propriétés de coordonnées de canevas qui écrivent les métadonnées par
-  `MGCanvas.SetLeft/SetTop`), `MGUI.Core/UI/Containers/MGCanvas.cs` si nécessaire, la correspondance des chemins de
-  binding XAML (`MGUI.Core/UI/XAML/Element.cs`) ; tests.
+- Objectif : D7. `CanvasLeft="{MGBinding Path=X}"` (la syntaxe XAML de MGUI est `CanvasLeft`/`CanvasTop`,
+  `MGUI.Samples/Controls/Canvas.xaml:31`) suit le view-model en direct, sans allocation.
+- Fichiers : `MGUI.Core/UI/MGElement.cs` (propriétés `CanvasLeft`/`CanvasTop` de type `int?`),
+  `MGUI.Core/UI/Containers/MGCanvas.cs` (stockage typé), la correspondance des chemins de binding XAML
+  (`MGUI.Core/UI/XAML/Element.cs`) si nécessaire ; tests.
 - Étapes :
-  1. Exposer la gauche et le haut de canevas comme propriétés notifiantes qui délèguent aux métadonnées existantes et
-     invalident la mise en page.
-  2. Faire pointer un binding écrit sur `Canvas.Left`/`Canvas.Top` vers ces propriétés.
-- Validation : test : un élément lié se redessine à la nouvelle position quand le view-model change ; les écrans
-  qui écrivent `Canvas.Left` en littéral ne changent pas.
+  1. Stocker les quatre coordonnées de canevas dans des champs typés de l'élément, plus dans
+     `Metadata` (`Dictionary<string, object>`, `MGElement.cs:3270`), qui boxe l'entier à chaque écriture ; l'API
+     statique `MGCanvas.Get/SetLeft…` garde sa forme et son comportement (seul `MGCanvas` lit ces clés).
+  2. Exposer la gauche et le haut comme propriétés notifiantes de type `int?` qui délèguent à ce stockage et
+     invalident la mise en page du canevas parent.
+  3. Faire aboutir un binding écrit sur `CanvasLeft`/`CanvasTop` à ces propriétés.
+- Validation : test : un élément lié se redessine à la nouvelle position quand le view-model change ; zéro octet
+  alloué sur 1000 mises à jour d'une source `int?` (chemin (b) de T1.1) ; les écrans et tests qui écrivent
+  `CanvasLeft` en littéral ou appellent `MGCanvas.SetLeft` ne changent pas.
 - Commit : `feat(canvas): bind canvas coordinates`
+- **Fait** (MGUI `bb23edf`) :
+  - Les quatre coordonnées sont des champs typés de `MGElement`, exposés par `CanvasLeft`, `CanvasTop`,
+    `CanvasRight` et `CanvasBottom` (les deux derniers ajoutés par symétrie : ajout d'API accepté, documenté en
+    T2.3). `MGCanvas.Get/Set…` gardent leur forme et renvoient à ces propriétés ; les clés `Metadata` ont disparu.
+  - `MGUI.Tests` 3008/3008 (3004 + 4), reproduit par la session principale ; un test existant qui lisait
+    `Metadata` par réflexion a été réécrit sur le stockage typé. Zéro octet sur 1000 mises à jour d'une source
+    `int?` et sur 1000 écritures directes.
+  - **Fait appris** : un binding s'écrit `{dataBinding:MGBinding …}` avec `xmlns:dataBinding` déclaré ; la forme
+    sans préfixe lève une `XamlObjectWriterException`. Le commentaire de `MGUI.Core/UI/DataBinding/MGBinding.cs:12-14`,
+    qui promet l'inverse, est périmé : la classe est dans `MGUI.Core.UI.DataBinding`. Les écrans du programme
+    déclarent donc cet espace de noms, que T4.1 doit préserver.
+  - Une fenêtre fraîchement chargée demande deux `Desktop.Update()` pour stabiliser sa mise en page
+    (comportement préexistant, déjà suivi par les tests de MGUI).
 
 ---
 
