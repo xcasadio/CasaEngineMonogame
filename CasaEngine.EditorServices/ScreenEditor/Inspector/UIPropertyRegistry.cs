@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Configuration;
+
 namespace CasaEngine.EditorServices.ScreenEditor.Inspector;
 
 /// <summary>
@@ -30,6 +32,13 @@ public sealed class UIPropertyRegistry
         new("Opacity", "Opacity", "Appearance", typeof(float?), "1"),
         new("IsVisible", "Visible", "Appearance", typeof(bool?), "True"),
         new("IsEnabled", "Enabled", "Appearance", typeof(bool?), "True"),
+    };
+
+    /// <summary>The asset types an <c>Image</c> source can name: a sprite or a 2D animation.</summary>
+    public static readonly IReadOnlyList<string> ImageSourceAssetTypes = new[]
+    {
+        Constants.FileNameExtensions.Sprite.TrimStart('.'),
+        Constants.FileNameExtensions.Animation2d.TrimStart('.'),
     };
 
     private static readonly Dictionary<string, UIPropertyDescriptor[]> ControlSpecificDescriptors
@@ -107,7 +116,12 @@ public sealed class UIPropertyRegistry
         },
         ["Image"] = new[]
         {
-            new UIPropertyDescriptor("Source", "Source", "Image", typeof(string)),
+            // MGUI's XAML names an image by SourceName; CasaEngine resolves that name as a sprite or 2D
+            // animation asset id or name (ADR-0038). Source is a texture handed over by code or binding only.
+            new UIPropertyDescriptor("SourceName", "Source", "Image", typeof(string))
+            {
+                AssetTypes = ImageSourceAssetTypes,
+            },
         },
     };
 

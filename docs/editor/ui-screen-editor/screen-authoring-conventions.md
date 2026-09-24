@@ -208,6 +208,9 @@ Place each category in a matching sub-directory under `Content/Screens/`.
 2. Double-click the `.uiscreen` file to open it in the screen editor.
 3. Use the **Toolbox** to drag controls into the hierarchy.
 4. Edit properties in the **Properties** panel.
+   An `Image`'s **Source** row edits its `SourceName`: type an asset id or name (or a binding), or use the
+   browse button under it to pick a sprite or 2D animation from the catalogue, which writes that asset's id
+   and updates the preview (ADR-0038).
 5. Adjust visual position with the drag handles in the preview surface.
 6. Switch resolution presets (1280×720, 1920×1080, etc.) to verify responsiveness.
 7. Save the XAML file — the preview will hot-reload automatically.

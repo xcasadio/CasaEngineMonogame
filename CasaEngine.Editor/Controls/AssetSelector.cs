@@ -107,6 +107,26 @@ public class AssetSelector : MGStackPanel
         }
     }
 
+    /// <summary>The assets the picker window lists: the whole catalogue, narrowed by <see cref="Filter"/>, sorted by name.</summary>
+    internal List<AssetInfo> GetPickableAssets()
+    {
+        IEnumerable<AssetInfo> assets = AssetCatalog.AssetInfos;
+        if (Filter != null)
+        {
+            assets = assets.Where(Filter);
+        }
+
+        return assets.OrderBy(a => a.Name).ToList();
+    }
+
+    /// <summary>Selects <paramref name="assetInfo"/> the way the picker window's Select button does, raising <see cref="AssetChanged"/>.</summary>
+    internal void SelectAsset(AssetInfo assetInfo)
+    {
+        ArgumentNullException.ThrowIfNull(assetInfo);
+        AssetId = assetInfo.Id;
+        AssetChanged?.Invoke(this, _assetId);
+    }
+
     private void OpenPickerWindow()
     {
         if (_parentWindow?.Desktop == null)
@@ -114,13 +134,7 @@ public class AssetSelector : MGStackPanel
             return;
         }
 
-        IEnumerable<AssetInfo> assets = AssetCatalog.AssetInfos;
-        if (Filter != null)
-        {
-            assets = assets.Where(Filter);
-        }
-
-        var assetList = assets.OrderBy(a => a.Name).ToList();
+        var assetList = GetPickableAssets();
 
         int winWidth  = 420;
         int winHeight = 500;
@@ -143,8 +157,7 @@ public class AssetSelector : MGStackPanel
             var selected = listBox.SelectedValue;
             if (selected != null)
             {
-                AssetId = selected.Id;
-                AssetChanged?.Invoke(this, _assetId);
+                SelectAsset(selected);
             }
             pickerWindow.TryCloseWindow();
         });

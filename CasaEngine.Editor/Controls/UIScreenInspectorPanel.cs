@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.Styling;
+using CasaEngine.Framework.Assets;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Inspector;
@@ -46,6 +47,7 @@ public sealed class UIScreenInspectorPanel
     private string _lastRenderedControlType;
 
     private readonly List<(MGTextBox Editor, UIPropertyDescriptor Descriptor, MGTextBlock ErrorLabel)> _editors = new();
+    private readonly List<(AssetSelector Selector, UIPropertyDescriptor Descriptor)> _assetSelectors = new();
 
     // ─────────────────────────────────────────────────────────────────────
     //  Events
@@ -189,6 +191,7 @@ public sealed class UIScreenInspectorPanel
 
             _propertiesStack.TryRemoveAll();
             _editors.Clear();
+            _assetSelectors.Clear();
             return;
         }
 
@@ -249,12 +252,21 @@ public sealed class UIScreenInspectorPanel
                 }
             }
         }
+
+        foreach (var (selector, desc) in _assetSelectors)
+        {
+            var currentValue = node.Properties.TryGetValue(desc.Name, out var prop)
+                ? prop.SerializedValue ?? string.Empty
+                : desc.DefaultSerializedValue ?? string.Empty;
+            selector.AssetId = ResolveAssetId(currentValue);
+        }
     }
 
     private void FullRebuildInspector(DocumentNodeId nodeId)
     {
         _propertiesStack!.TryRemoveAll();
         _editors.Clear();
+        _assetSelectors.Clear();
         _lastRenderedNodeId = null;
         _lastRenderedControlType = null;
 
@@ -417,6 +429,10 @@ public sealed class UIScreenInspectorPanel
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
 
+        var assetSelector = desc.IsAssetReference
+            ? BuildAssetReferenceSelector(node, desc, editor, errorLabel, currentValue)
+            : null;
+
         editor.TextChanged += (_, args) =>
         {
             if (_suppressEditorEvents)
@@ -434,16 +450,115 @@ public sealed class UIScreenInspectorPanel
                 ApplyPropertyChange(node, desc, editor, serialized);
                 errorLabel.Text = string.Empty;
             }
+
+            if (assetSelector != null)
+            {
+                assetSelector.AssetId = ResolveAssetId(raw);
+            }
         };
 
         _editors.Add((editor, desc, errorLabel));
 
         var col = new MGStackPanel(_window, Orientation.Vertical) { HorizontalAlignment = HorizontalAlignment.Stretch };
         col.TryAddChild(editor);
+        if (assetSelector != null)
+        {
+            col.TryAddChild(assetSelector);
+        }
         col.TryAddChild(errorLabel);
         row.TryAddChild(col, Dock.Left);
 
         return row;
+    }
+
+    /// <summary>
+    /// Builds the asset picker shown under the text box of an asset-reference property
+    /// (<see cref="UIPropertyDescriptor.AssetTypes"/>): it shows the asset the value designates and, when an asset
+    /// is picked, writes that asset's id as the value in one undoable step (ADR-0038, "Images are named by asset").
+    /// The text box stays editable, for an asset name or a binding.
+    /// </summary>
+    private AssetSelector BuildAssetReferenceSelector(UIScreenNode node, UIPropertyDescriptor desc, MGTextBox editor, MGTextBlock errorLabel, string currentValue)
+    {
+        var selector = new AssetSelector(_window)
+        {
+            Filter = desc.AcceptsAsset,
+            AssetId = ResolveAssetId(currentValue),
+        };
+
+        selector.AssetChanged += (_, assetId) =>
+        {
+            var serialized = assetId.ToString("D");
+            FinalizeActiveTextTransaction();
+            SetEditorTextSilently(editor, serialized);
+            ApplyDiscretePropertyChange(node, desc, serialized);
+            errorLabel.Text = string.Empty;
+        };
+
+        _assetSelectors.Add((selector, desc));
+        return selector;
+    }
+
+    /// <summary>The id of the catalogue asset <paramref name="value"/> designates, read the way the UI asset provider
+    /// reads an image name (an id, otherwise an asset name), or <see cref="Guid.Empty"/> when it designates none:
+    /// empty, a binding, or an unknown name.</summary>
+    private static Guid ResolveAssetId(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Guid.Empty;
+        }
+
+        var trimmed = value.Trim();
+        if (Guid.TryParse(trimmed, out var assetId))
+        {
+            return assetId;
+        }
+
+        return AssetCatalog.Get(trimmed)?.Id ?? Guid.Empty;
+    }
+
+    private void SetEditorTextSilently(MGTextBox editor, string text)
+    {
+        if (string.Equals(editor.Text, text, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _suppressEditorEvents = true;
+        try
+        {
+            editor.Text = text;
+        }
+        finally
+        {
+            _suppressEditorEvents = false;
+        }
+    }
+
+    /// <summary>Applies one value change as a single command, outside any text-typing transaction.</summary>
+    private void ApplyDiscretePropertyChange(UIScreenNode node, UIPropertyDescriptor descriptor, string serializedValue)
+    {
+        string currentValue = node.Properties.TryGetValue(descriptor.Name, out var property)
+            ? property.SerializedValue
+            : null;
+        if (string.Equals(currentValue, serializedValue, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (_commandStack != null)
+        {
+            _commandStack.Execute(new SetPropertyCommand(node, descriptor.Name, serializedValue));
+        }
+        else
+        {
+            node.SetProperty(descriptor.Name, serializedValue);
+        }
+
+        if (_document != null)
+        {
+            PropertyModified?.Invoke(_document, node.Id, descriptor.Name, serializedValue);
+        }
     }
 
     private MGTextBlock BuildErrorLabel()

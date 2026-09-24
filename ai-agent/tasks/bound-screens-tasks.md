@@ -549,7 +549,7 @@ boîte de dialogue.
     exige une entité sélectionnable dans le premier monde, et `TitleScreenWorld` n'en a aucune (deux lancements
     arrêtés au délai). Le smoke est reporté en B2, sur le projet Alundra, dont le premier monde a des entités.
 
-### ⏳ T4.3 — Choisir une image dans l'inspecteur
+### 🧪 T4.3 — Choisir une image dans l'inspecteur
 
 - Objectif : rendre la source d'une `Image` éditable sans taper de GUID.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Inspector/UIPropertyRegistry.cs` (descripteur `Source` existant,
@@ -558,6 +558,22 @@ boîte de dialogue.
 - Validation : test : choisir un sprite ou une animation écrit le GUID dans le document et met l'aperçu à jour ;
   smoke dans l'éditeur (🧪 si non faisable en session). **Vérificateur frais sur la phase 4.**
 - Commit : `feat(screen-editor): pick an image source from the asset catalogue`
+- **Fait** :
+  - Le descripteur d'`Image` édite désormais `SourceName`, le nom que lit le XAML de MGUI (l'ancien descripteur
+    `Source` écrivait un attribut qui attend une texture fournie par code ou par binding ; un `Source` présent
+    dans un fichier reste conservé tel quel, il n'a simplement plus de ligne dans l'inspecteur).
+  - `UIPropertyDescriptor.AssetTypes` (ajout, `init`) marque une propriété comme référence d'asset ; pour
+    `SourceName` : `sprite` et `anim2d` (`UIPropertyRegistry.ImageSourceAssetTypes`).
+  - L'inspecteur garde la zone de texte (nom, id ou binding) et ajoute dessous un `AssetSelector` filtré sur ces
+    types, qui affiche l'asset désigné (lu comme le fournisseur : id, sinon nom). Choisir un asset écrit son id
+    (format `D`) en une seule commande annulable, hors transaction de frappe.
+  - L'aperçu applique `SourceName` sans reconstruction (`MGElementPropertyApplier`) ; une valeur de binding
+    renvoie à la reconstruction, seule à savoir l'installer.
+  - `AssetSelector` : la liste du sélecteur et l'action du bouton « Select » passent par deux méthodes internes
+    (`GetPickableAssets`, `SelectAsset`), sans changement de comportement, pour les tests.
+  - `CasaEngine.Tests` 1828/1828 (1822 + 6), mutation vérifiée (écrire l'id au format `N` fait échouer 3 tests) ;
+    deux solutions sans erreur ni avertissement dans les fichiers touchés.
+  - **Reste en 🧪** : smoke dans l'éditeur, pour la même raison que T4.2 ; reporté en B2 sur le projet Alundra.
 
 ---
 

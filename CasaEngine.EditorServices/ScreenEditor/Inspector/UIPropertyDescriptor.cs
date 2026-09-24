@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Assets;
+
 namespace CasaEngine.EditorServices.ScreenEditor.Inspector;
 
 /// <summary>Metadata describing a single editable property in the UI screen inspector.</summary>
@@ -20,6 +22,35 @@ public sealed class UIPropertyDescriptor
 
     /// <summary>When false, the property is shown read-only in the inspector.</summary>
     public bool IsEditable { get; }
+
+    /// <summary>
+    /// Asset types (<see cref="AssetInfo.AssetType"/>, compared case-insensitively) this property may reference,
+    /// or null when the property is not an asset reference. The inspector then offers an asset picker filtered on
+    /// these types, which writes the chosen asset's id as the property value (ADR-0038, "Images are named by asset").
+    /// </summary>
+    public IReadOnlyList<string>? AssetTypes { get; init; }
+
+    /// <summary>True when <see cref="AssetTypes"/> names at least one asset type.</summary>
+    public bool IsAssetReference => AssetTypes is { Count: > 0 };
+
+    /// <summary>True when <paramref name="assetInfo"/> is one of <see cref="AssetTypes"/>.</summary>
+    public bool AcceptsAsset(AssetInfo? assetInfo)
+    {
+        if (assetInfo == null || !IsAssetReference)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < AssetTypes!.Count; i++)
+        {
+            if (string.Equals(AssetTypes[i], assetInfo.AssetType, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public UIPropertyDescriptor(
         string name,

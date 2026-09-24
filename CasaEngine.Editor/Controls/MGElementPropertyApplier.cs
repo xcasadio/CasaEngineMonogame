@@ -105,6 +105,17 @@ internal static class MGElementPropertyApplier
                     return true;
                 }
                 return false;
+
+            // ── Image-specific ────────────────────────────────────────────
+            case "SourceName" when element is MGImage image:
+                // A binding is set up by the XAML loader only: let the caller rebuild the preview.
+                if (value != null && value.TrimStart().StartsWith('{'))
+                {
+                    return false;
+                }
+
+                image.SourceName = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+                return true;
         }
 
         return false;
