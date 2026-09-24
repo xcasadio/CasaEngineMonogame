@@ -355,6 +355,13 @@ boîte de dialogue.
     `CasaEngine.Tests` 1781/1781 (référence), vérifié par la session principale.
   - **Reste pour ✅** : la vérification visuelle du sample (cocher « Bound Images » dans l'application
     `MGUI.Samples`) : l'application n'offre pas d'accès sans intervention humaine.
+  - **Constat de l'auteur, 2026-09-24 (vérification visuelle, après les merges)** : `MGUI.Samples` plantait au
+    démarrage, « Embedded resource was not found: 'MGUI.Samples.Features.BoundImages.xaml' » : le sample avait été
+    ajouté sans que `MGUI.Samples.csproj` embarque son XAML (la liste y est explicite), et le compendium construit
+    tous les samples au lancement. Corrigé dans MGUI `d47c8e1` (entrée `EmbeddedResource`, et
+    `SampleXamlEmbeddingTests`, qui échoue en nommant tout `.xaml` du dossier des samples non embarqué ; vérifié en
+    retirant la correction) ; ressource présente dans l'assembly construit ; l'application lancée 25 s sans
+    exception ; `MGUI.Tests` 3034/3034. La vérification visuelle du sample reste à l'auteur.
 - **Vérificateur frais des phases 1 et 2 (2026-09-24) : CONFIRMED**, sans constat P0 à P2, sur MGUI
   `6ac7a68..3ca2c23` et le moteur `80c11406`. Il a reproduit les suites (MGUI 3020/3020, `CasaEngine.Tests`
   1781/1781, deux solutions sans erreur), sondé hors dépôt le chemin pilote `Color?` (zéro octet) et les cas de
