@@ -131,22 +131,27 @@ L'écran lit ce réglage par le gestionnaire d'assets qu'on lui donne : seul le 
 `(presenter, requestClose, fontFamily, assetContentManager)` le consulte, les autres gardent le balisage embarqué.
 L'enveloppe est tenue de la construction à `Dispose`.
 
-Le balisage de remplacement doit déclarer les éléments que l'écran pilote :
+Le balisage de remplacement déclare les éléments que l'écran pilote :
 
 | Nom | Type XAML | Rôle |
 |---|---|---|
 | `pnlContent` | `StackPanel` | conteneur de la boîte ; sa largeur préférée suit celle de la fenêtre |
 | `lblLine` | `TextBlock` | la ligne (orateur en gras, puis le texte) ; reçoit `fontFamily` |
 | `pnlChoices` | `StackPanel` | reçoit un `Button` par choix ; masqué sans choix |
-| `btnClose` | `Button` | enfant direct de `pnlContent` ; obligatoire si `ShowCloseButton` est vrai, facultatif sinon (retiré de l'arbre) |
+| `btnClose` | `Button` | requis seulement si `ShowCloseButton` est vrai ; enfant direct de `pnlContent` dans le balisage embarqué, mais sa place n'est pas imposée |
 
 Le reste du balisage est libre (fond, marges, éléments décoratifs). La position et la taille de la fenêtre sont
 calculées par l'écran : `Left`, `Top`, la largeur et la hauteur déclarés ne sont que des valeurs de départ. La
 fenêtre prend ensuite la hauteur de son contenu, 150 px au minimum, quelle que soit la hauteur déclarée.
 
-Si l'asset ne se charge pas (identifiant ou nom inconnu, fichier absent, enveloppe illisible, XAML invalide) ou si
-le balisage ne respecte pas ce contrat, l'écran écrit un avertissement qui nomme le réglage et la raison, puis
-utilise le balisage embarqué. Une fenêtre de remplacement rejetée rend ses bindings avant d'être abandonnée.
+Une fois le remplacement chargé, il est **toujours utilisé** (D14) : un élément absent ou mal typé n'est pas un
+motif de rejet, seulement une partie qui ne s'affiche pas (la ligne, les choix, le bouton de fermeture, ou la
+largeur préférée du contenu, selon l'élément qui manque). `btnClose` ne compte que si `ShowCloseButton` est vrai ;
+sinon un `btnClose` déclaré ailleurs qu'en enfant direct de `pnlContent` (ou d'un autre type) est simplement masqué
+(`Visibility="Collapsed"`), sans avertissement. Pour chaque élément absent ou mal typé qui compte, l'écran écrit un
+avertissement par construction de fenêtre, nommant le réglage et chaque problème trouvé. Seul un échec de
+chargement (identifiant ou nom inconnu, fichier absent, enveloppe illisible, XAML invalide) fait retomber l'écran
+sur le balisage embarqué, avec un avertissement qui nomme le réglage et la raison.
 
 ---
 
@@ -184,10 +189,15 @@ police bitmap générique.
   sans jamais la re-rasteriser.
 - `CasaEngine.Tests/Dialogue/DialogueScreenReplacementTests.cs` : sans réglage, le balisage embarqué, sans
   avertissement ; un remplacement valide est utilisé, pilote la ligne et rend son enveloppe à `Dispose` ; un
-  `btnClose` de remplacement est gardé quand la boîte en montre un ; un asset inconnu, un XAML invalide ou un
-  contrat rompu (élément absent, mauvais type, `btnClose` hors de `pnlContent`, `btnClose` absent alors que la
-  boîte en montre un) retombent sur le balisage embarqué avec un avertissement qui dit pourquoi.
-- `CasaEngine.Tests/Dialogue/DialogueScreenReplacementBindingTests.cs` : une fenêtre de remplacement rejetée ne
-  laisse aucun binding dans le registre de MGUI.
+  `btnClose` de remplacement est gardé quand la boîte en montre un ; un asset inconnu ou un XAML invalide retombent
+  sur le balisage embarqué avec un avertissement qui dit pourquoi. Un remplacement qui manque `pnlChoices` est
+  utilisé, la ligne s'affiche, et `ShowChoices` ne crée aucun bouton ; un qui manque `lblLine` est utilisé et
+  `ShowChoices` garnit toujours `pnlChoices` ; un `lblLine` déclaré comme `Button` est utilisé, l'avertissement
+  nommant le type trouvé et celui attendu ; un `btnClose` hors de `pnlContent` (ou l'absence de `pnlContent`
+  lui-même) avec `ShowCloseButton` à faux est utilisé sans avertissement pour `btnClose`, le bouton étant
+  simplement masqué ; un remplacement sans `btnClose` alors que la boîte en montre un est utilisé, avec un
+  avertissement qui le nomme. Dans tous ces cas le remplacement reste utilisé : seul un échec de chargement
+  retombe sur le balisage embarqué. Le retrait des bindings d'une fenêtre en fin de vie (Dispose) est couvert de
+  façon générique par `CasaEngine.Tests/UI/XamlUIScreenBaseBindingReleaseTests.cs`.
 - `CasaEngine.Tests/Configuration/ProjectSettingsDialogueScreenTests.cs` : `DialogueScreenAsset` n'est écrit que
   s'il est renseigné et se relit tel quel ; un fichier sans le champ le laisse vide.

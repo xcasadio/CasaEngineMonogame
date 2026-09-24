@@ -23,11 +23,14 @@ namespace CasaEngine.Framework.Dialogue.UI;
 /// <para/>
 /// A project may replace that markup with its own <c>.uiscreen</c> asset, named by
 /// <see cref="ProjectSettings.DialogueScreenAsset"/> and read through the asset manager given to the
-/// constructor that takes one. The replacement must declare the elements this screen drives -- a
-/// <c>StackPanel</c> <c>pnlContent</c>, a <c>TextBlock</c> <c>lblLine</c>, a <c>StackPanel</c> <c>pnlChoices</c>,
-/// and a <c>Button</c> <c>btnClose</c> as a direct child of <c>pnlContent</c> (required when
-/// <see cref="ShowCloseButton"/> is true, optional otherwise). When the asset cannot be loaded, fails to parse,
-/// or breaks that contract, the screen logs a warning and uses the embedded markup.
+/// constructor that takes one. Once that replacement is loaded it is always used (D14): the elements it drives
+/// -- a <c>StackPanel</c> <c>pnlContent</c>, a <c>TextBlock</c> <c>lblLine</c>, a <c>StackPanel</c>
+/// <c>pnlChoices</c>, and (only when <see cref="ShowCloseButton"/> is true) a <c>Button</c> <c>btnClose</c> --
+/// are looked up tolerantly. A missing or mistyped element is simply not shown: the line, the choices, the close
+/// button, or the content panel's preferred width, whichever depends on it. Each such problem is logged as one
+/// warning per window build, naming the setting and every problem found. Only a load failure (unresolvable id or
+/// name, missing file, unreadable envelope, markup that fails to load) falls back to the embedded markup, which
+/// declares every element and so never has a problem to report.
 /// </summary>
 public sealed class DialogueScreen : XamlUIScreenBase
 {
@@ -149,27 +152,45 @@ public sealed class DialogueScreen : XamlUIScreenBase
         window.Top = bounds.Y + Math.Max(TopMargin, bounds.Height - MinWindowHeight - BottomMargin);
         window.WindowClosed += (_, _) => _requestClose();
 
-        _contentPanel = FindControl<MGStackPanel>(ContentPanelName);
-        _contentPanel.PreferredWidth = width - 36;
+        // Tolerant lookups: a missing or mistyped element (only ever possible from a replacement markup -- the
+        // embedded one declares all four) leaves the matching field null, and the part it drives is simply not
+        // shown. FindContractProblems already logged the reason when this window came from a replacement.
+        _contentPanel = TryFindElement<MGStackPanel>(window, ContentPanelName);
+        if (_contentPanel != null)
+        {
+            _contentPanel.PreferredWidth = width - 36;
+        }
 
-        _lineText = FindControl<MGTextBlock>(LineTextName);
-        ApplyFontFamily(_lineText);
+        _lineText = TryFindElement<MGTextBlock>(window, LineTextName);
+        if (_lineText != null)
+        {
+            ApplyFontFamily(_lineText);
+        }
 
-        _choicesPanel = FindControl<MGStackPanel>(ChoicesPanelName);
+        _choicesPanel = TryFindElement<MGStackPanel>(window, ChoicesPanelName);
 
         if (ShowCloseButton)
         {
-            _closeButton = FindControl<MGButton>(CloseButtonName);
-            _closeButton.AddCommandHandler((_, _) => _requestClose());
+            _closeButton = TryFindElement<MGButton>(window, CloseButtonName);
+            _closeButton?.AddCommandHandler((_, _) => _requestClose());
         }
         else
         {
             // Taken out of the tree rather than hidden, so it is genuinely not built into the layout and
             // CloseButtonForTests stays null, as callers that turn it off rely on. A replacement markup may leave
-            // it out altogether.
-            if (window.TryGetElementByName(CloseButtonName, out MGButton closeButton))
+            // it out altogether, declare it somewhere other than a direct child of pnlContent, or as another type
+            // entirely -- none of that is a contract problem when the box shows no close button, so it is only
+            // ever hidden, never reported.
+            if (window.TryGetElementByName(CloseButtonName, out MGElement closeButton))
             {
-                _contentPanel.TryRemoveChild(closeButton);
+                if (_contentPanel != null && closeButton.Parent == _contentPanel)
+                {
+                    _contentPanel.TryRemoveChild(closeButton);
+                }
+                else
+                {
+                    closeButton.Visibility = Visibility.Collapsed;
+                }
             }
 
             _closeButton = null;
@@ -178,8 +199,15 @@ public sealed class DialogueScreen : XamlUIScreenBase
         RefreshPresentation();
     }
 
+    /// <summary>Looks a control up by name, tolerantly: null when the window declares no such name, or declares
+    /// it as another type. Unlike <see cref="XamlUIScreenBase.FindControl{T}"/>, this never throws -- the caller
+    /// decides what a missing or mistyped element means for the part it drives.</summary>
+    private static T TryFindElement<T>(MGWindow window, string name) where T : MGElement
+        => window.TryGetElementByName(name, out MGElement element) && element is T typed ? typed : null;
+
     /// <summary>Tries the project's replacement markup first, and falls back to the embedded markup, with a
-    /// warning, when it fails to load or breaks the element contract (see the class summary).</summary>
+    /// warning, only when it fails to load (see the class summary). Once loaded, it is always used: any contract
+    /// problem it has is logged, but does not reject it (D14).</summary>
     protected override MGWindow LoadWindow(MGDesktop desktop)
     {
         if (_replacementHandle != null)
@@ -187,16 +215,14 @@ public sealed class DialogueScreen : XamlUIScreenBase
             try
             {
                 MGWindow window = UIScreenLoader.Load(desktop, _replacementHandle.Asset, _replacementFilePath);
-                string violation = FindContractViolation(window, ShowCloseButton);
-                if (violation == null)
+                IReadOnlyList<string> problems = FindContractProblems(window, ShowCloseButton);
+                if (problems.Count > 0)
                 {
-                    UsesReplacementMarkupForTests = true;
-                    return window;
+                    ReportContractProblems(problems);
                 }
 
-                // The rejected window never reaches the desktop; its bindings must not outlive it (gap G10).
-                window.RemoveDataBindings(IncludeChildren: true);
-                ReportFallback(violation);
+                UsesReplacementMarkupForTests = true;
+                return window;
             }
             catch (Exception ex) when (IsMarkupFailure(ex))
             {
@@ -215,48 +241,41 @@ public sealed class DialogueScreen : XamlUIScreenBase
         base.Dispose();
     }
 
-    /// <summary>What is wrong with <paramref name="window"/> as a dialogue box, or null when it declares every
-    /// element the screen drives, with the right types and places.</summary>
-    internal static string FindContractViolation(MGWindow window, bool showCloseButton)
+    /// <summary>Every element the replacement markup is missing, or declares with the wrong type -- empty when it
+    /// declares them all correctly (the embedded markup always does). <c>btnClose</c> only counts when
+    /// <paramref name="showCloseButton"/> is true: a box with no close button has nothing to say about it,
+    /// wherever it is or whatever type it is declared as.</summary>
+    internal static IReadOnlyList<string> FindContractProblems(MGWindow window, bool showCloseButton)
     {
-        string violation = CheckElement<MGStackPanel>(window, ContentPanelName, "StackPanel", out MGStackPanel contentPanel)
-            ?? CheckElement<MGTextBlock>(window, LineTextName, "TextBlock", out _)
-            ?? CheckElement<MGStackPanel>(window, ChoicesPanelName, "StackPanel", out _);
-        if (violation != null)
+        var problems = new List<string>();
+        AddElementProblem<MGStackPanel>(window, ContentPanelName, "StackPanel", problems);
+        AddElementProblem<MGTextBlock>(window, LineTextName, "TextBlock", problems);
+        AddElementProblem<MGStackPanel>(window, ChoicesPanelName, "StackPanel", problems);
+
+        if (showCloseButton)
         {
-            return violation;
+            AddElementProblem<MGButton>(window, CloseButtonName, "Button", problems);
         }
 
-        if (!window.TryGetElementByName(CloseButtonName, out MGElement closeButton))
-        {
-            return showCloseButton ? $"it declares no '{CloseButtonName}' (a Button), which a box with a close button needs" : null;
-        }
-
-        if (closeButton is not MGButton)
-        {
-            return $"it declares '{CloseButtonName}' as a {closeButton.GetType().Name}, not a Button";
-        }
-
-        return closeButton.Parent == contentPanel
-            ? null
-            : $"its '{CloseButtonName}' is not a direct child of '{ContentPanelName}'";
+        return problems;
     }
 
-    private static string CheckElement<T>(MGWindow window, string name, string xamlType, out T element) where T : MGElement
+    /// <summary>Appends a problem for <paramref name="name"/> when the window declares no such element, or
+    /// declares it as something other than <typeparamref name="T"/>. Goes through the untyped
+    /// <see cref="MGWindow.TryGetElementByName(string, out MGElement)"/> plus its own type test, rather than the
+    /// generic overload, so a wrong-type problem can name the actual type found.</summary>
+    private static void AddElementProblem<T>(MGWindow window, string name, string xamlType, List<string> problems) where T : MGElement
     {
-        element = null;
         if (!window.TryGetElementByName(name, out MGElement found))
         {
-            return $"it declares no '{name}' (a {xamlType})";
+            problems.Add($"it declares no '{name}' (a {xamlType})");
+            return;
         }
 
-        if (found is not T typed)
+        if (found is not T)
         {
-            return $"it declares '{name}' as a {found.GetType().Name}, not a {xamlType}";
+            problems.Add($"it declares '{name}' as a {found.GetType().Name}, not a {xamlType}");
         }
-
-        element = typed;
-        return null;
     }
 
     // What a broken or missing replacement can throw: an unresolvable id or name, no source file, an unreadable or
@@ -270,6 +289,13 @@ public sealed class DialogueScreen : XamlUIScreenBase
         => Logs.WriteWarning(
             $"DialogueScreen: the project's dialogue screen '{_replacementName}' (ProjectSettings.DialogueScreenAsset) "
             + $"is not used: {reason}. The built-in dialogue box is used instead.");
+
+    /// <summary>One warning per window build, naming the setting and every contract problem the replacement has
+    /// (D14): the replacement is still used, but those parts are not shown.</summary>
+    private void ReportContractProblems(IReadOnlyList<string> problems)
+        => Logs.WriteWarning(
+            $"DialogueScreen: the project's dialogue screen '{_replacementName}' (ProjectSettings.DialogueScreenAsset) "
+            + $"is used, but {string.Join("; ", problems)}. Those parts are not shown.");
 
     public override void Show()
     {

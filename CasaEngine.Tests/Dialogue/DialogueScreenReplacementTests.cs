@@ -8,6 +8,7 @@ using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Tests.UI;
 using MGUI.Core.UI;
+using MGUI.Shared.Helpers;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -15,10 +16,12 @@ namespace CasaEngine.Tests.Dialogue;
 
 /// <summary>
 /// A project replaces the built-in dialogue box markup by naming a <c>.uiscreen</c> asset in
-/// <see cref="ProjectSettings.DialogueScreenAsset"/> (bound screens program, D12, P8). Without the setting nothing
-/// changes; a valid replacement is used; a replacement that cannot be loaded or breaks the element contract falls
-/// back to the built-in markup with a warning. The warnings are captured through the engine's static log seam, so
-/// this class runs in <see cref="ProjectEnvironmentCollection"/>, like the other classes that capture logs.
+/// <see cref="ProjectSettings.DialogueScreenAsset"/> (bound screens program, D12, P8, D14). Without the setting
+/// nothing changes; once a replacement is loaded it is always used -- only a load failure falls back to the
+/// built-in markup, with a warning. A replacement that is missing or mistypes an element the screen drives is
+/// still used, with a warning per problem and that part simply not shown. The warnings are captured through the
+/// engine's static log seam, so this class runs in <see cref="ProjectEnvironmentCollection"/>, like the other
+/// classes that capture logs.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]
 public sealed class DialogueScreenReplacementTests : IDisposable
@@ -198,37 +201,143 @@ public sealed class DialogueScreenReplacementTests : IDisposable
         Assert.Contains("XamlLoaderException", warning);
     }
 
-    [Theory]
-    [InlineData("<TextBlock Name=\"lblLine\" Text=\"\" WrapText=\"True\" />", "", "declares no 'lblLine'")]
-    [InlineData("<TextBlock Name=\"lblLine\" Text=\"\" WrapText=\"True\" />", "<Button Name=\"lblLine\"><TextBlock Text=\"x\" /></Button>", "'lblLine' as a MGButton")]
-    [InlineData("<StackPanel Name=\"pnlChoices\" Orientation=\"Vertical\" />", "<StackPanel Name=\"pnlChoices\" Orientation=\"Vertical\"><Button Name=\"btnClose\"><TextBlock Text=\"x\" /></Button></StackPanel>", "not a direct child of 'pnlContent'")]
-    public void AReplacementThatBreaksTheContract_FallsBack_AndSaysWhy(string declared, string replacement, string expected)
+    /// <summary>(a) No pnlChoices: the replacement is still used, the line shows, and the presenter's
+    /// ShowChoices creates no button and throws nothing.</summary>
+    [Fact]
+    public void AReplacementWithoutPnlChoices_IsUsed_AndTheLineShows_ButChoicesAreSkipped()
     {
-        var assets = NewAssets(setting: _screenId.ToString(), markup: ValidMarkup.Replace(declared, replacement));
+        var markup = ValidMarkup.Replace("""<StackPanel Name="pnlChoices" Orientation="Vertical" />""", "");
+        var assets = NewAssets(setting: _screenId.ToString(), markup);
+        var service = new DialogueService();
+        DialogueScreen screen = null;
+
+        var warnings = CaptureWarnings(() =>
+            screen = Build(new DialogueScreen(service, static () => { }, null, assets) { ShowCloseButton = false }));
+        screen.Show();
+        service.ShowLine(new DialogueLine("Bonjour."));
+
+        Assert.True(screen.UsesReplacementMarkupForTests);
+        Assert.True(screen.WindowForTests.TryGetElementByName("lblLine", out MGTextBlock line));
+        Assert.Contains("Bonjour.", line.Text);
+
+        service.ShowChoices(new[] { "OUI", "NON" }); // must not throw: pnlChoices is missing
+        Assert.Empty(screen.ChoiceButtonsForTests);
+
+        var warning = Assert.Single(warnings);
+        Assert.Contains("pnlChoices", warning);
+    }
+
+    /// <summary>(b) No lblLine: the replacement is still used, ShowLine throws nothing, and ShowChoices still
+    /// adds its buttons to pnlChoices.</summary>
+    [Fact]
+    public void AReplacementWithoutLblLine_IsUsed_AndChoicesStillShow()
+    {
+        var markup = ValidMarkup.Replace("""<TextBlock Name="lblLine" Text="" WrapText="True" />""", "");
+        var assets = NewAssets(setting: _screenId.ToString(), markup);
+        var service = new DialogueService();
+        DialogueScreen screen = null;
+
+        var warnings = CaptureWarnings(() =>
+            screen = Build(new DialogueScreen(service, static () => { }, null, assets) { ShowCloseButton = false }));
+        screen.Show();
+        service.ShowLine(new DialogueLine("Bonjour.")); // must not throw: no lblLine
+        service.ShowChoices(new[] { "OUI", "NON" });
+
+        Assert.True(screen.UsesReplacementMarkupForTests);
+        Assert.Equal(2, screen.ChoiceButtonsForTests.Count);
+        Assert.True(screen.WindowForTests.TryGetElementByName("pnlChoices", out MGElement choicesPanel));
+        Assert.All(screen.ChoiceButtonsForTests, button => Assert.Same(choicesPanel, button.Parent));
+
+        var warning = Assert.Single(warnings);
+        Assert.Contains("lblLine", warning);
+    }
+
+    /// <summary>(c) lblLine declared as a Button: the replacement is still used, and the warning names both
+    /// the actual type found and the expected one.</summary>
+    [Fact]
+    public void AReplacementWhoseLblLineIsAButton_IsUsed_AndNamesTheActualType()
+    {
+        var markup = ValidMarkup.Replace(
+            """<TextBlock Name="lblLine" Text="" WrapText="True" />""",
+            """<Button Name="lblLine"><TextBlock Text="x" /></Button>""");
+        var assets = NewAssets(setting: _screenId.ToString(), markup);
         DialogueScreen screen = null;
 
         var warnings = CaptureWarnings(() =>
             screen = Build(new DialogueScreen(new DialogueService(), static () => { }, null, assets) { ShowCloseButton = false }));
 
-        Assert.False(screen.UsesReplacementMarkupForTests);
-        Assert.Equal("Dialogue", screen.WindowForTests.TitleText);
-        Assert.False(Declares(screen, "lblMarker"));
+        Assert.True(screen.UsesReplacementMarkupForTests);
         var warning = Assert.Single(warnings);
-        Assert.Contains(expected, warning);
+        Assert.Contains("lblLine", warning);
+        Assert.Contains("MGButton", warning);
+        Assert.Contains("TextBlock", warning);
     }
 
-    /// <summary>A box that shows a close button needs one in the replacement; the built-in markup has it.</summary>
+    /// <summary>(d) btnClose declared inside pnlChoices, not as a direct child of pnlContent, with
+    /// ShowCloseButton false: the replacement is still used, nothing is logged (btnClose is not a contract
+    /// problem when the box shows no close button), and the button is simply hidden.</summary>
     [Fact]
-    public void AReplacementWithoutACloseButton_FallsBack_WhenTheBoxShowsOne()
+    public void ABtnCloseOutsidePnlContent_IsHidden_WhenTheBoxShowsNoCloseButton()
+    {
+        var markup = ValidMarkup.Replace(
+            """<StackPanel Name="pnlChoices" Orientation="Vertical" />""",
+            """<StackPanel Name="pnlChoices" Orientation="Vertical"><Button Name="btnClose"><TextBlock Text="Fermer" /></Button></StackPanel>""");
+        var assets = NewAssets(setting: _screenId.ToString(), markup);
+        DialogueScreen screen = null;
+
+        var warnings = CaptureWarnings(() =>
+            screen = Build(new DialogueScreen(new DialogueService(), static () => { }, null, assets) { ShowCloseButton = false }));
+
+        Assert.True(screen.UsesReplacementMarkupForTests);
+        Assert.Null(screen.CloseButtonForTests);
+        Assert.Empty(warnings);
+        Assert.True(screen.WindowForTests.TryGetElementByName("btnClose", out MGElement closeButton));
+        Assert.Equal(Visibility.Collapsed, closeButton.Visibility);
+    }
+
+    /// <summary>(d') No pnlContent at all (its children sit directly under another panel), but btnClose is
+    /// present, with ShowCloseButton false: the replacement is still used, nothing throws, the button is
+    /// hidden, and one warning names pnlContent.</summary>
+    [Fact]
+    public void AReplacementWithoutPnlContent_IsUsed_AndTheOrphanedCloseButtonIsHidden()
+    {
+        var markup = """
+            <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+                    Left="0" Top="0" Height="150" TitleText="Project dialogue" Padding="14">
+              <StackPanel Name="pnlOuter" Orientation="Vertical" Spacing="8">
+                <TextBlock Name="lblLine" Text="" WrapText="True" />
+                <StackPanel Name="pnlChoices" Orientation="Vertical" />
+                <Button Name="btnClose"><TextBlock Text="Fermer" /></Button>
+              </StackPanel>
+            </Window>
+            """;
+        var assets = NewAssets(setting: _screenId.ToString(), markup);
+        DialogueScreen screen = null;
+
+        var warnings = CaptureWarnings(() =>
+            screen = Build(new DialogueScreen(new DialogueService(), static () => { }, null, assets) { ShowCloseButton = false }));
+
+        Assert.True(screen.UsesReplacementMarkupForTests);
+        Assert.Null(screen.CloseButtonForTests);
+        var warning = Assert.Single(warnings);
+        Assert.Contains("pnlContent", warning);
+        Assert.True(screen.WindowForTests.TryGetElementByName("btnClose", out MGElement closeButton));
+        Assert.Equal(Visibility.Collapsed, closeButton.Visibility);
+    }
+
+    /// <summary>(e) No btnClose with ShowCloseButton true: the replacement is still used, CloseButtonForTests
+    /// stays null, and one warning names btnClose.</summary>
+    [Fact]
+    public void AReplacementWithoutBtnClose_IsUsed_WhenTheBoxShowsOne()
     {
         var assets = NewAssets(setting: _screenId.ToString());
         DialogueScreen screen = null;
 
         var warnings = CaptureWarnings(() => screen = Build(new DialogueScreen(new DialogueService(), static () => { }, null, assets)));
 
-        Assert.False(screen.UsesReplacementMarkupForTests);
-        Assert.NotNull(screen.CloseButtonForTests);
-        Assert.Contains("declares no 'btnClose'", Assert.Single(warnings));
+        Assert.True(screen.UsesReplacementMarkupForTests);
+        Assert.Null(screen.CloseButtonForTests);
+        Assert.Contains("btnClose", Assert.Single(warnings));
     }
 
     [Fact]

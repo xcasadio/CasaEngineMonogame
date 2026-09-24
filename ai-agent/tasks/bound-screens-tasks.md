@@ -98,6 +98,12 @@ boîte de dialogue.
 | D10 | `alundra-project/UI/Screens/` est versionné par une exception en cascade dans `.gitignore` ; le convertisseur y enregistre les écrans au catalogue avec des identifiants stables (2026-09-23). |
 | D11 | Le curseur de l'inventaire, les pastilles de magie et la pièce du HUD deviennent des animations d'asset `.anim2d`, résolues à la volée par l'hôte derrière une interface de MGUI, jouées par l'horloge de l'interface (2026-09-24). |
 | D12 | Le moteur permet à un projet de remplacer l'écran de dialogue par défaut par son propre asset, l'écran embarqué restant le repli ; en fin de programme (2026-09-24). |
+| D13 | « Save » enregistre les changements des écrans dans l'éditeur (réponse à O6, 2026-09-24). |
+| D14 | Un balisage de dialogue de remplacement incomplet reste affiché, sans la partie manquante ; seul un échec de chargement replie sur la boîte embarquée (option B, conforme à la conséquence écrite de l'ADR-0038 ; remplace le repli complet de T6.1, 2026-09-24). |
+| D15 | Pas de fichier de conception pour la boîte de dialogue d'Alundra : rien n'y est lié (écart de B4 validé, 2026-09-24). |
+| D16 | Merges MGUI `develop`, puis moteur `main`, puis parent `main`, après les tâches de la phase 8, sur feu vert explicite de l'auteur (2026-09-24). |
+| D17 | Fermer un écran modifié, ou quitter l'éditeur avec un écran modifié, demande s'il faut enregistrer les changements (2026-09-24). |
+| D18 | Le raccourci Ctrl+S lance le même enregistrement que File > Save (2026-09-24). |
 
 ## Points à valider (propositions de l'agent)
 
@@ -749,7 +755,8 @@ boîte de dialogue.
   - **interprétation à signaler à l'auteur** : l'ADR-0038 prévoyait qu'un remplacement privé d'un élément
     documenté « perd cette partie de l'affichage » ; l'étape 2 de cette tâche demande le repli journalisé sur le
     balisage embarqué en cas d'échec. Un contrat rompu est traité comme un échec : repli complet, avertissement
-    qui dit pourquoi. L'ADR n'est pas réécrite ;
+    qui dit pourquoi. L'ADR n'est pas réécrite ; **tranché par l'auteur le 2026-09-24 : option B (D14), mise en
+    œuvre par T6.2** ;
   - repli journalisé (`Logs.WriteWarning`, comme `CasaUIAssetProvider`) sur : identifiant ou nom inconnu, fichier
     absent, enveloppe illisible, XAML invalide, contrat rompu ; toute autre exception est une erreur de
     programmation et remonte ;
@@ -800,6 +807,70 @@ boîte de dialogue.
 
 ---
 
+## Phase 8 — Suite après les réponses de l'auteur (2026-09-24)
+
+Réponses de l'auteur aux questions de clôture : D13 à D18 ci-dessus. Plan relu par des vérificateurs de plan frais :
+enveloppe READY, T6.2 READY, T4.4 et B6 READY après une révision (le premier passage avait relevé que « Save »
+réécrit aussi le monde, `AssetInfos.json` et `AlundraGame.json` : B6 encadre donc chaque lancement de l'éditeur par
+un manifeste et une restauration). **Approuvé par l'auteur le 2026-09-24, mode AUTO.** T4.5 et T4.6 (D17, D18) sont
+conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4, T4.5, T4.6, puis B6 (plan parent).
+
+### 🚧 T6.2 — Dialogue de remplacement incomplet : affichage partiel (D14)
+
+- Résultat : un balisage de remplacement sans `pnlContent`, `lblLine` ou `pnlChoices`, ou avec l'un d'eux d'un autre
+  type, est gardé ; la partie manquante n'est pas affichée ; un seul avertissement nomme chaque problème (type
+  attendu et type trouvé). `btnClose` ne compte que si la boîte montre un bouton de fermeture ; sinon il est retiré
+  de `pnlContent` s'il en est l'enfant direct, masqué ailleurs. Un échec de chargement replie toujours sur la boîte
+  embarquée.
+- Fichiers : `CasaEngine/Framework/Dialogue/UI/DialogueScreen.cs`, `CasaEngine.Tests/Dialogue/DialogueScreenReplacementTests.cs`,
+  suppression de `DialogueScreenReplacementBindingTests.cs` (plus de fenêtre rejetée), la doc du dialogue.
+- Validation : cas (a) à (e) et (d') du plan relu, mutation (repli réintroduit) qui les fait échouer, suites et
+  solutions, `Alundra.Tests`. **Vérificateur frais.**
+- Commit : `feat(dialogue): keep an incomplete replacement dialogue markup and hide its missing parts`
+- Note d'exécution (2026-09-24, exécutant, relu par la session principale) :
+  - `LoadWindow` garde le repli sur échec de chargement (`IsMarkupFailure`) ; une fois chargé, le remplacement est
+    toujours utilisé ; `FindContractProblems` (remplace `FindContractViolation`) liste chaque problème, par la
+    recherche non typée plus un test de type pour nommer le type trouvé ; `ReportContractProblems` écrit un seul
+    avertissement ; le rejet et son `RemoveDataBindings` disparaissent.
+  - `OnWindowLoaded` : recherches tolérantes (`TryFindElement<T>`), champs nuls sans exception ; avec
+    `ShowCloseButton` faux, un `btnClose` de tout type est retiré de `pnlContent` s'il en est l'enfant direct, masqué
+    sinon, sans jamais déréférencer un `pnlContent` absent.
+  - Tests : `DialogueScreenReplacementTests` réécrit (cas (a) à (e) et (d') du plan relu) ;
+    `DialogueScreenReplacementBindingTests` supprimé (plus de fenêtre rejetée ; la libération au `Dispose` reste
+    couverte par `XamlUIScreenBaseBindingReleaseTests`, verte). Mutation (repli réintroduit dès qu'il y a un
+    problème) : cinq tests échouent, exactement (a), (b), (c), (d') et (e) ; (d) n'a pas de problème de contrat et
+    passe, comme attendu ; code restauré puis suite relancée.
+  - `CasaEngine.Tests` 1858/1858 ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` sans erreur ;
+    `Alundra.Tests` 1089/1089 (dont `AlundraDialogueScreenAssetTests` 5/5). Doc du dialogue réécrite (section du
+    remplacement et liste des tests).
+
+### ⏳ T4.4 — « Save » enregistre les écrans modifiés (D13)
+
+- Résultat : File > Save, et l'enregistrement proposé avant d'ouvrir un monde, écrivent sans perte le `.xaml` de
+  chaque écran ouvert modifié, effacent sa marque et mettent à jour le titre ; le panneau garde la même instance de
+  document (sélection et annulation) et ne se recharge pas depuis sa propre écriture. Mêmes gardes que
+  `SaveCurrentProject` (mode Play, pas de projet).
+- Étapes : `UIScreenDocumentFileWriter` extrait de `UIScreenEditorSession.Save` (commit
+  `refactor(editor): share the lossless screen writer`) ; `UIScreenPreviewPanel.TrySaveDocument`, octets de
+  l'enveloppe gardés au chargement, décision de rechargement pure `ShouldReload` ; `GameEditor.SaveDirtyScreenDocuments`
+  avant `SaveProject` ; automatisation `--set-screen-property <Nœud>:<Propriété>=<Valeur>` et `--save-project`
+  (journal : marque et instance de document 60 frames après l'enregistrement ; aucun fichier restauré à la sortie) ;
+  doc de la matrice de support (commit `feat(editor): save modified screens with the project`).
+- Validation : tests du writer, de `ShouldReload`, et de `TrySaveDocument` si le panneau se construit sans affichage ;
+  suites et solutions ; preuve de bout en bout en B6. **Vérificateur frais sur T4.4 et B6 ensemble.**
+
+### ⏳ T4.5 — Demander avant de perdre un écran modifié (D17)
+
+- À concevoir après reconnaissance (fermeture d'un onglet, sortie de l'éditeur, comportement sous automatisation),
+  relue avant exécution.
+
+### ⏳ T4.6 — Ctrl+S (D18)
+
+- À concevoir après reconnaissance (raccourcis existants, conflit avec la touche S de la caméra du viewport), relue
+  avant exécution.
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
@@ -811,7 +882,7 @@ boîte de dialogue.
 | O3 | **Reporté, à arbitrer par l'auteur.** La diffusion de `PropertyChanged` par les événements faibles de WPF (`UseWPF`) alloue environ 192 octets par notification, avant toute mise à jour de binding. Préexistant, hors de D8 (ni réflexion ni boxing). Pistes : un gestionnaire d'événements faibles sans allocation dans MGUI, ou un abonnement direct avec désabonnement explicite à la libération. Le vérificateur de fin de phase 2 recontrôle la mesure. | suite |
 | O4 | ~~À corriger en B3 : le fournisseur garde toutes les instances d'animation.~~ **Corrigé (B3, 2026-09-24)** : une instance que MGUI libère quitte la liste du fournisseur (`CasaUIAnimatedImage.Dispose`), sauf pendant la libération du fournisseur lui-même ; un test (50 instances créées et libérées, une seule vivante), qui échoue si l'instance ne se retire pas. | B3 |
 | O5 | **À arbitrer par l'auteur.** Une image de fenêtre ne voit pas les textures ajoutées ou retirées à la racine (G7) : après un changement de projet dans l'éditeur, une image encore affichée garderait une texture dont le handle est rendu. Pistes : relayer les événements de texture vers les portées enfants (un troisième événement dans le lien faible que l'ADR-0001 de MGUI veut étroit), ou abonner l'image à la portée qui a fourni sa texture. | suite |
-| O6 | **Question posée à l'auteur le 2026-09-24.** L'éditeur n'enregistre aucun écran : « Save » (`GameEditor.SaveCurrentProject`) ne couvre pas les documents d'écran, et le sérialiseur ne sert qu'au presse-papiers (`GameEditor.cs:1881`). Un choix d'image fait dans l'inspecteur (T4.3) ne peut donc pas être enregistré depuis l'éditeur, et la validation « enregistrement sans modification » de B2 n'est pas atteignable. Préexistant, hors des tâches du plan. | B2 |
+| O6 | ~~Question posée à l'auteur le 2026-09-24.~~ **Répondue le 2026-09-24 : D13 (T4.4).** L'éditeur n'enregistre aucun écran : « Save » (`GameEditor.SaveCurrentProject`) ne couvre pas les documents d'écran, et le sérialiseur ne sert qu'au presse-papiers (`GameEditor.cs:1881`). Un choix d'image fait dans l'inspecteur (T4.3) ne peut donc pas être enregistré depuis l'éditeur, et la validation « enregistrement sans modification » de B2 n'est pas atteignable. Préexistant, hors des tâches du plan. | B2 |
 
 ## Hors périmètre
 
