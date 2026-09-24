@@ -268,7 +268,7 @@ boîte de dialogue.
 
 ## Phase 2 — MGUI : sources d'image résolues par l'hôte, et animées
 
-### ⏳ T2.1 — Noms d'image résolus par l'hôte
+### ✅ T2.1 — Noms d'image résolus par l'hôte
 
 - Objectif : D1, P2, P3.
 - Fichiers : `MGUI.Shared/Assets/IUIAssetProvider.cs`, `MGUI.Core/UI/MGResources.cs`, `MGUI.Core/UI/MGImage.cs`,
@@ -283,6 +283,20 @@ boîte de dialogue.
   fournisseur, une seule résolution par nom ; zéro octet alloué sur 1000 changements de `SourceName` entre noms déjà
   résolus ; tous les tests MGUI verts.
 - Commit : `feat(images): resolve unknown image names through the host`
+- **Fait** (MGUI `27550cd`) :
+  - `IUIAssetProvider.TryResolveImage(string name, out IUIImageResource image, out Rectangle? sourceRect)`, avec
+    une implémentation par défaut qui ne résout rien : `CasaUIAssetProvider` compile sans changement.
+  - `MGResources.TryGetTexture` demande au fournisseur à la racine, met le résultat en cache à la racine, et garde
+    un cache négatif par racine (vidé si le nom est ajouté explicitement ensuite).
+  - `MGImage` s'abonne une seule fois ; deux défauts préexistants corrigés : le gestionnaire comparait le nom de
+    l'élément au lieu de celui de la texture ajoutée, et `UpdateActualSource` contournait le setter
+    d'`ActualSource` (ni notification ni invalidation de mise en page).
+  - `MGUI.Tests` 3012/3012 (3008 + 4), reproduit ; zéro octet sur 1000 changements de `SourceName` entre noms
+    résolus ; test d'architecture renommé `IUIAssetProvider_ExposesImageLoadingAndResolutionOnly`.
+  - **Limite connue, reportée** : `OnTextureAdded` n'est pas relayé entre portées de ressources ; une image dont la
+    résolution a **échoué** n'est pas rafraîchie si la texture est ajoutée plus tard dans une autre portée
+    (comportement préexistant). Le cas du programme, une résolution synchrone qui réussit dès l'affectation de
+    `SourceName`, n'est pas touché.
 
 ### ⏳ T2.2 — Images animées
 
