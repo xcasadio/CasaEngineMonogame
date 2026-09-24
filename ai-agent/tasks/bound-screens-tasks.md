@@ -298,7 +298,7 @@ boîte de dialogue.
     (comportement préexistant). Le cas du programme, une résolution synchrone qui réussit dès l'affectation de
     `SourceName`, n'est pas touché.
 
-### ⏳ T2.2 — Images animées
+### ✅ T2.2 — Images animées
 
 - Objectif : D11, P4.
 - Fichiers : `MGUI.Shared/Assets/` (interface d'image animée, membre du fournisseur qui en crée une par nom),
@@ -313,6 +313,18 @@ boîte de dialogue.
   changement de frame tombe à moins d'une frame de k × 200 ms ; deux images au décalage différent restent décalées ;
   une image repliée n'avance pas ; zéro octet alloué par frame.
 - Commit : `feat(images): play animated image sources`
+- **Fait** (MGUI `a80149e`) :
+  - `IUIAnimatedImage : IDisposable` (`Advance`, `Restart(TimeSpan)`, `CurrentImage`, `CurrentSourceRect`,
+    `CurrentDrawOffset`) dans `MGUI.Shared/Assets/` ; `IUIAssetProvider.TryCreateAnimatedImage`, avec une
+    implémentation par défaut qui ne crée rien.
+  - `MGImage` : ordre de résolution `Source` explicite, puis texture (T2.1), puis animation créée par image ;
+    l'instance précédente est libérée quand la source change ; `UpdateSelf` avance l'animation ; le dessin applique
+    le décalage de la frame ; `AnimationStartOffset` et `IsAnimationPlaying` liables, aussi posables en XAML.
+  - `MGUI.Tests` 3020/3020 (3012 + 8), reproduit. Temps piloté par `GraphTestRuntime.ApplyFrame` ; cycle exact sur
+    plus de 25 tours de 4 × 200 ms ; deux images décalées de 200 ms restent à une frame d'écart ; zéro octet par
+    frame, mesuré sur `UpdateSelf` appelé directement ; décalage de dessin vérifié sur l'enregistreur de dessin.
+  - Limite reportée : l'ajout d'une texture statique de même nom relance la résolution et remplace l'animation,
+    conformément à l'ordre (le statique gagne).
 
 ### ⏳ T2.3 — Sample, documentation MGUI et référence dans le moteur
 
