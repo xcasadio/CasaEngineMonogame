@@ -655,7 +655,7 @@ boîte de dialogue.
 
 ## Phase 5 — Consommateur Alundra (dépôt parent)
 
-### 🚧 T5.1 — Écrans d'Alundra
+### 🧪 T5.1 — Écrans d'Alundra
 
 - Objectif : tranches B1 à B3 du plan parent `docs/plan-bound-screens.md` : écrans en assets versionnés, inventaire
   et HUD liés et animés, recettes en jeu.
@@ -667,6 +667,8 @@ boîte de dialogue.
   consigné : le filtrage à la réduction d'une `Image` n'est pas déclarable en XAML.
 - Pendant B3 (2026-09-24) : O4 corrigé (`afbb3cdc`) ; manque G9 consigné : la translation d'une `RenderTransform`
   ne se lie pas en XAML, le HUD la recopie depuis son view-model.
+- B1 fait ; B2 (parent `79c0099`) et B3 (parent `b9f3133`, moteur `e78e14a9`) CONFIRMED par un vérificateur frais.
+  Reste en 🧪 : l'enregistrement d'un écran depuis l'éditeur, qui attend la réponse à O6.
 
 ---
 
