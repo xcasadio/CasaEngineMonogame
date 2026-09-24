@@ -181,7 +181,7 @@ boîte de dialogue.
 
 ## Phase 1 — MGUI : binding sans allocation
 
-### ⏳ T1.1 — Accesseurs typés compilés
+### ✅ T1.1 — Accesseurs typés compilés
 
 - Objectif : D8, P5. Une mise à jour de binding ne passe plus par la réflexion et ne boxe plus, sauf le chemin (c)
   de P5 (convertisseur, format de chaîne, conversion de type).
@@ -217,6 +217,20 @@ boîte de dialogue.
   - le cache ne grandit pas quand on lie de nouvelles instances d'un même type ;
   - un binding avec convertisseur ou format donne le même résultat qu'avant (chemin (c)).
 - Commit : `perf(binding): push bound values through compiled typed accessors`
+- **Fait** (MGUI `5635823`) :
+  - `TypedAccessorCache` : cache des `PropertyInfo` par type, lecteurs et écrivains compilés par (type, propriété),
+    copie typée par paire ; `DataBinding` choisit son chemin à chaque résolution de la propriété source ;
+    l'écrivain étiqueté et sa source `LocalBinding` sont construits une fois, dans le constructeur ;
+    `UIPilotPropertyResolver` gagne les surcharges typées `Thickness`, `int?`, `Color?`.
+  - Le chemin (b) exige des types déclarés strictement identiques (`int` et `int?` ne le sont pas) ; le sens
+    cible → source reste sur l'ancien chemin, hors du périmètre de D8.
+  - `MGUI.Tests` 3004/3004 (2989 + 15), reproduit par la session principale ; builds du moteur et de l'éditeur
+    sans erreur. Zéro octet mesuré sur 1000 mises à jour pour les huit cibles demandées, contexte de données
+    posé avant ou après la construction du binding.
+  - **Constat hors de D8 (O3)** : MGUI est compilé avec `UseWPF=true` (`MGUI.Core/MGUI.Core.csproj:9-10`) ; la
+    diffusion de `PropertyChanged` passe alors par `PropertyChangedEventManager`, qui alloue environ 192 octets
+    par notification (mesure de l'exécuteur, sans binding). Les tests d'allocation mesurent donc la mise à jour
+    elle-même en appelant son point d'entrée ; les tests de comportement passent par la vraie diffusion.
 
 ### ⏳ T1.2 — Coordonnées de canevas liables
 
@@ -423,8 +437,9 @@ boîte de dialogue.
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | P1 à P9 attendent la validation de l'auteur avec ce plan. | toutes |
+| O1 | ~~P1 à P9 attendent la validation de l'auteur avec ce plan.~~ Validés par l'auteur le 2026-09-24, plan approuvé, exécution en mode AUTO. | toutes |
 | O2 | Ordre des merges en fin de programme : MGUI `develop`, moteur `main`, parent `main`. Décision de l'auteur. | clôture |
+| O3 | **Reporté, à arbitrer par l'auteur.** La diffusion de `PropertyChanged` par les événements faibles de WPF (`UseWPF`) alloue environ 192 octets par notification, avant toute mise à jour de binding. Préexistant, hors de D8 (ni réflexion ni boxing). Pistes : un gestionnaire d'événements faibles sans allocation dans MGUI, ou un abonnement direct avec désabonnement explicite à la libération. Le vérificateur de fin de phase 2 recontrôle la mesure. | suite |
 
 ## Hors périmètre
 
