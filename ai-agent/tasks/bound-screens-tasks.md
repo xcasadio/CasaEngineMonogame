@@ -459,6 +459,14 @@ boîte de dialogue.
   - **Régression introduite, corrigée dans le parent** : `AlundraInventoryScreen.Dispose()` masquait le
     nouveau `Dispose` virtuel de la base (CS0114), si bien qu'une libération par une référence de base aurait
     oublié `font3` et les sprites ; il le redéfinit désormais et appelle la base.
+- **Vérificateur frais de la phase 3 (2026-09-24) : CONFIRMED**, sans constat P0 à P2, sur le moteur
+  `276d36a1..9701916b` et le parent `3613920`. Suites et builds reproduits ; RPGDemo (titre puis HUD) et la
+  recette Alundra (0 / 0 / 31, aucun avertissement) rejoués ; zéro octet sur 5000 avances ; aucune double
+  libération, `CollectUnreferenced` passant avant `world.Clear` au changement de monde. Remarques reportées :
+  - A1 (P3) : le fournisseur garde toutes les instances d'animation créées jusqu'à sa libération, même celles
+    que MGUI a libérées ; une image dont la source alterne entre animations en crée une par changement : voir O4 ;
+  - A2 (P3/P4) : un appel au fournisseur après sa libération acquiert des handles qui ne sont jamais rendus ;
+    aucun chemin du moteur ne le fait.
 
 ---
 
@@ -556,6 +564,7 @@ boîte de dialogue.
 | O1 | ~~P1 à P9 attendent la validation de l'auteur avec ce plan.~~ Validés par l'auteur le 2026-09-24, plan approuvé, exécution en mode AUTO. | toutes |
 | O2 | Ordre des merges en fin de programme : MGUI `develop`, moteur `main`, parent `main`. Décision de l'auteur. | clôture |
 | O3 | **Reporté, à arbitrer par l'auteur.** La diffusion de `PropertyChanged` par les événements faibles de WPF (`UseWPF`) alloue environ 192 octets par notification, avant toute mise à jour de binding. Préexistant, hors de D8 (ni réflexion ni boxing). Pistes : un gestionnaire d'événements faibles sans allocation dans MGUI, ou un abonnement direct avec désabonnement explicite à la libération. Le vérificateur de fin de phase 2 recontrôle la mesure. | suite |
+| O4 | **À corriger en B3.** Le fournisseur retire de sa liste une instance d'animation que MGUI libère (remarque A1 de la phase 3) : les cases du HUD changent de source en jeu, entre sprites et animations, et la liste grossirait pendant tout un monde. | B3 |
 
 ## Hors périmètre
 
