@@ -721,7 +721,7 @@ boîte de dialogue.
 
 ## Phase 6 — Écran de dialogue remplaçable
 
-### 🚧 T6.1 — Remplacer l'écran de dialogue par un asset du projet
+### ✅ T6.1 — Remplacer l'écran de dialogue par un asset du projet
 
 - Objectif : D12, P8.
 - Fichiers : `CasaEngine/Framework/Dialogue/UI/DialogueScreen.cs`, les réglages du projet (champ optionnel), la doc de
@@ -759,6 +759,21 @@ boîte de dialogue.
     1857/1857, `Alundra.Tests` 1084/1084, les deux solutions sans erreur ;
   - démo : `UIOverlayDemo` utilise `DialogueScreen` par le constructeur à deux arguments, inchangé ; elle est
     interactive, sans mode automatique, et n'a pas été lancée ; la tranche B4 exerce le remplacement en jeu.
+- **Vérificateur frais (2026-09-24) : CONFIRMED** sur le moteur `6a4aca3a`, sans constat P0 à P2 : les huit
+  conditions reproduites, dont un ancien fichier de projet chargé sans le champ, les trois anciens constructeurs
+  inchangés, le vrai chargeur d'enveloppes de production, un réglage donné par nom (catalogue global), cinq cas de
+  repli (un seul avertissement chacun), une mutation sur la libération des bindings ; `CasaEngine.Tests`
+  1857/1857, les deux solutions, `Alundra.Tests` 1084/1084 ; l'interprétation « contrat rompu = échec » jugée
+  conforme au texte approuvé et bien signalée. Remarques, reportées :
+  - P3 : un identifiant qui désigne un asset d'un autre type déjà en cache fait lever `InvalidCastException`
+    (`AssetContentManager.Acquire`, cast `(T)cached`) au lieu d'un repli ; comportement déjà présent dans le
+    constructeur de `XamlUIScreenBase` qui prend un gestionnaire ; aucun appelant avant B4 ;
+  - P4 : un identifiant qui désigne un autre asset JSON pas encore chargé serait lu comme une enveloppe d'écran et
+    resterait en cache sous cet identifiant (déduit du code, non reproduit) ;
+  - P4 : avec le vrai chargeur, une enveloppe absente ou malformée écrit aussi une erreur (`AssetLoader.cs:20`) en
+    plus de l'avertissement ; les tests livrés passent par un chargeur de test ;
+  - P4 : la doc laissait croire que la hauteur déclarée servait de minimum ; `ResizeToFitContent` impose 150 px :
+    formulation corrigée.
 
 ---
 

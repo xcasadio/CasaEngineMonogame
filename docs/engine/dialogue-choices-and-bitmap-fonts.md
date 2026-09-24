@@ -140,9 +140,9 @@ Le balisage de remplacement doit déclarer les éléments que l'écran pilote :
 | `pnlChoices` | `StackPanel` | reçoit un `Button` par choix ; masqué sans choix |
 | `btnClose` | `Button` | enfant direct de `pnlContent` ; obligatoire si `ShowCloseButton` est vrai, facultatif sinon (retiré de l'arbre) |
 
-Le reste du balisage est libre (fond, marges, éléments décoratifs). La position et la largeur de la fenêtre sont
-calculées par l'écran : `Left`, `Top` et la largeur déclarés ne sont que des valeurs de départ, et la hauteur est
-la hauteur minimale avant l'ajustement au contenu.
+Le reste du balisage est libre (fond, marges, éléments décoratifs). La position et la taille de la fenêtre sont
+calculées par l'écran : `Left`, `Top`, la largeur et la hauteur déclarés ne sont que des valeurs de départ. La
+fenêtre prend ensuite la hauteur de son contenu, 150 px au minimum, quelle que soit la hauteur déclarée.
 
 Si l'asset ne se charge pas (identifiant ou nom inconnu, fichier absent, enveloppe illisible, XAML invalide) ou si
 le balisage ne respecte pas ce contrat, l'écran écrit un avertissement qui nomme le réglage et la raison, puis
