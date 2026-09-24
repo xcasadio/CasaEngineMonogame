@@ -815,7 +815,7 @@ réécrit aussi le monde, `AssetInfos.json` et `AlundraGame.json` : B6 encadre d
 un manifeste et une restauration). **Approuvé par l'auteur le 2026-09-24, mode AUTO.** T4.5 et T4.6 (D17, D18) sont
 conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4, T4.5, T4.6, puis B6 (plan parent).
 
-### 🚧 T6.2 — Dialogue de remplacement incomplet : affichage partiel (D14)
+### ✅ T6.2 — Dialogue de remplacement incomplet : affichage partiel (D14)
 
 - Résultat : un balisage de remplacement sans `pnlContent`, `lblLine` ou `pnlChoices`, ou avec l'un d'eux d'un autre
   type, est gardé ; la partie manquante n'est pas affichée ; un seul avertissement nomme chaque problème (type
@@ -843,6 +843,12 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
   - `CasaEngine.Tests` 1858/1858 ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` sans erreur ;
     `Alundra.Tests` 1089/1089 (dont `AlundraDialogueScreenAssetTests` 5/5). Doc du dialogue réécrite (section du
     remplacement et liste des tests).
+- **Vérificateur frais (2026-09-24) : CONFIRMED** sur le moteur `b6eacfb6`, sans constat P0 à P2 : cinq conditions
+  reproduites ; sondes ajoutées puis retirées (tous les problèmes à la fois -> un seul avertissement qui les liste ;
+  trois cycles Show/ShowLine/ShowChoices/SelectChoice/Hide sans exception ; `btnClose` en `TextBlock` avec et sans
+  bouton de fermeture ; deux constructions -> deux avertissements) ; mutation reproduite (exactement (a), (b), (c),
+  (d') et (e) échouent) ; suites et solutions. Remarque P4 : la doc pouvait se lire « un avertissement par
+  élément » et ne disait plus qu'un `btnClose` enfant direct de `pnlContent` en est retiré : corrigée.
 
 ### ⏳ T4.4 — « Save » enregistre les écrans modifiés (D13)
 
@@ -861,13 +867,50 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
 
 ### ⏳ T4.5 — Demander avant de perdre un écran modifié (D17)
 
-- À concevoir après reconnaissance (fermeture d'un onglet, sortie de l'éditeur, comportement sous automatisation),
-  relue avant exécution.
+Conception relue READY le 2026-09-24 (vérificateur de plan frais), après reconnaissance.
+
+- Faits : fermer un onglet passe par `MGDockTabGroup.PanelCloseRequested` (aussi « Close Others » et « Close All »,
+  panneau par panneau, `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabGroup.cs:552-624`) puis `MGDockHost`
+  (`MGDockHost.cs:2422-2444`), qui retire le panneau aussitôt ; `GameEditor.OnDockHostPanelRemoved`
+  (`GameEditor.cs:2525-2537`) n'arrive qu'après. Autres chemins : `CloseFloatingPanel` (`MGDockHost.cs:1655`), la
+  branche des fenêtres flottantes sans modèle (`MGFloatingDockWindow.cs:269-276`), `CloseAutoHidePanel`
+  (`MGDockHost.cs:2029`), une fenêtre flottante fermée entière (`OnFloatingWindowClosed`, `MGDockHost.cs:1505-1535`).
+  Aucun n'est annulable. `MGWindow.WindowClosing` l'est (`MGWindow.cs:985-1000`) ; `CancelEventArgs<T>` existe
+  (`MGWindow.cs:19-26`). MonoGame 3.8.5.1 : `Game.OnExiting(object, ExitingEventArgs)` avec `Cancel` (documentation
+  XML du paquet). Précédent de boîte : `ConfirmSaveBeforeOpeningWorld` (`GameEditor.cs:4067-4097`).
+- Étape MGUI : événement public `MGDockHost.PanelClosing` (`EventHandler<CancelEventArgs<DockPanelNode>>`), levé
+  avant tout retrait décidé par l'utilisateur : groupes d'onglets (un panneau refusé reste, les autres se ferment),
+  `CloseFloatingPanel`, branche des fenêtres sans modèle, `CloseAutoHidePanel`, et fermeture d'une fenêtre flottante
+  entière (l'hôte s'abonne à son `WindowClosing` et l'annule si un panneau refuse ; les panneaux déjà traités dans
+  ce passage restent, à documenter). Pas pour les retraits programmatiques (`RemovePanel`, `CloseFloatingWindow`).
+  Tests `MGUI.Tests/Docking`, sample de docking (case « Unsaved changes »), doc du docking. Commit MGUI :
+  `feat(docking): let the host veto a user panel close`.
+- Étape éditeur : `GameEditor` s'abonne à `PanelClosing` ; écran modifié -> boîte « Save changes to '<titre>'
+  before closing? » Yes (enregistrer puis fermer, ou garder ouvert si l'enregistrement échoue) / No (fermer sans
+  enregistrer) / Cancel (garder ouvert). `OnExiting` redéfini : écran modifié -> boîte qui les liste, Yes
+  (`SaveDirtyScreenDocuments`, sortie annulée si un écran reste modifié) / No / Cancel ; `base.OnExiting` seulement
+  si la sortie continue. Sous automatisation, aucune boîte, et le journal nomme les écrans abandonnés. Décision en
+  méthode interne pure, testée dans tous ses cas. Commit moteur : `feat(editor): ask before losing a modified screen`.
+- Validation : `MGUI.Tests` (chaque nouveau test échoue sans l'événement ou sans l'annulation), `CasaEngine.Tests`,
+  deux solutions ; en B6, une sortie automatisée avec un écran modifié ne bloque pas. **Reste 🧪 pour l'auteur** :
+  les vrais clics Yes/No/Cancel à la fermeture d'un onglet, par File > Exit et par la croix de la fenêtre de
+  l'éditeur (seul un lancement réel prouve que `Cancel` arrête ce chemin DesktopGL). Vérificateur frais.
+- Non-objectifs : les autres types de documents, le changement de projet.
 
 ### ⏳ T4.6 — Ctrl+S (D18)
 
-- À concevoir après reconnaissance (raccourcis existants, conflit avec la touche S de la caméra du viewport), relue
-  avant exécution.
+Conception relue READY le 2026-09-24 (vérificateur de plan frais).
+
+- Faits : raccourcis dans `GameEditor.Update` (`GameEditor.cs:5506-5555`, F5, Ctrl+Z/Shift+Z/Y/D/C/X/V) derrière
+  `!IsEditorShellCapturingKeyboard()` ; pas de Ctrl+S. La caméra du viewport recule sur S
+  (`EditorViewportCameraController.cs:270-297`) quand `allowClassicKeys` (`_isRightDragCapturing || isKeyboardFocused`,
+  `:182`), sans regarder Ctrl : Ctrl+S, comme Ctrl+D aujourd'hui, la déplacerait.
+- Étapes : branche Ctrl+S -> `SaveCurrentProject()` dans la même chaîne et derrière la même garde ; la caméra ignore
+  WASDQE tant que Ctrl est enfoncé (flèches et Page Haut/Bas inchangées), avec un test si la décision s'isole ; doc
+  des raccourcis. Commit : `feat(editor): save with Ctrl+S`.
+- Validation : `CasaEngine.Tests`, deux solutions ; l'appui réel sur Ctrl+S (enregistre, astérisque effacée,
+  caméra immobile) revient à l'auteur si l'automatisation ne sait pas injecter de touche (🧪 pour ce point).
+  Vérificateur frais (avec T4.5).
 
 ---
 

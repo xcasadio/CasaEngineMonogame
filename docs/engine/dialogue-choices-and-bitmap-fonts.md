@@ -147,9 +147,9 @@ fenêtre prend ensuite la hauteur de son contenu, 150 px au minimum, quelle que 
 Une fois le remplacement chargé, il est **toujours utilisé** (D14) : un élément absent ou mal typé n'est pas un
 motif de rejet, seulement une partie qui ne s'affiche pas (la ligne, les choix, le bouton de fermeture, ou la
 largeur préférée du contenu, selon l'élément qui manque). `btnClose` ne compte que si `ShowCloseButton` est vrai ;
-sinon un `btnClose` déclaré ailleurs qu'en enfant direct de `pnlContent` (ou d'un autre type) est simplement masqué
-(`Visibility="Collapsed"`), sans avertissement. Pour chaque élément absent ou mal typé qui compte, l'écran écrit un
-avertissement par construction de fenêtre, nommant le réglage et chaque problème trouvé. Seul un échec de
+sinon, sans avertissement, un `btnClose` enfant direct de `pnlContent` en est retiré, et un `btnClose` déclaré
+ailleurs (ou d'un autre type) est masqué (`Visibility="Collapsed"`). À chaque construction de fenêtre, l'écran écrit
+**un seul** avertissement qui nomme le réglage et liste tous les problèmes trouvés. Seul un échec de
 chargement (identifiant ou nom inconnu, fichier absent, enveloppe illisible, XAML invalide) fait retomber l'écran
 sur le balisage embarqué, avec un avertissement qui nomme le réglage et la raison.
 
