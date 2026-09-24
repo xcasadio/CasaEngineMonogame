@@ -77,7 +77,8 @@ public sealed class UIRoot : IUIViewRuntime
     public UIRoot(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext runtimeContext = null)
     {
         var host    = new ViewRenderHost(game, surface, runtimeContext?.WindowInputSource);
-        var backend = CasaMonoGameBackendBootstrap.Create(host, surface: new CasaRenderSurfaceAdapter(surface));
+        var backend = CasaMonoGameBackendBootstrap.Create(host, surface: new CasaRenderSurfaceAdapter(surface),
+            options: new CasaMonoGameBackendOptions { AssetContentManager = game.AssetContentManager });
         Runtime     = backend.Runtime;
         Desktop     = new MGDesktop(Runtime);
         _textEngine = CreateFontStashSharpTextEngine(game);
@@ -171,5 +172,12 @@ public sealed class UIRoot : IUIViewRuntime
         _disposed = true;
         ScreenStack.Clear();
         _fonts?.Detach(_textEngine);
+
+        // The default CasaUIAssetProvider (ADR-0038, ADR-0016) holds sprite asset handles it resolved for
+        // MGUI images; give them back here so a later CollectUnreferenced can free them.
+        if (Runtime.AssetProvider is IDisposable disposableAssetProvider)
+        {
+            disposableAssetProvider.Dispose();
+        }
     }
 }

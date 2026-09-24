@@ -32,11 +32,14 @@ internal static class HeadlessUiTestHarness
     public const int DefaultSurfaceHeight = 480;
 
     /// <summary>Builds a desktop and the runtime behind it, with default resources loaded.</summary>
+    /// <param name="assetProvider">A custom provider (for example one that implements <see cref="IUIAssetProvider.TryResolveImage"/>),
+    /// in place of the harness's own <see cref="HeadlessAssetProvider"/>.</param>
     public static (MGDesktop Desktop, HeadlessRuntime Runtime) NewDesktop(
         int width = DefaultSurfaceWidth,
-        int height = DefaultSurfaceHeight)
+        int height = DefaultSurfaceHeight,
+        IUIAssetProvider assetProvider = null)
     {
-        HeadlessRuntime runtime = new(new Rectangle(0, 0, width, height));
+        HeadlessRuntime runtime = new(new Rectangle(0, 0, width, height), assetProvider);
         MGDesktop desktop = new(runtime);
         desktop.LoadDefaultResources();
         return (desktop, runtime);
@@ -83,10 +86,12 @@ internal static class HeadlessUiTestHarness
             }
         }
 
-        public HeadlessRuntime(Rectangle surfaceBounds)
+        /// <param name="assetProvider">A custom provider (for example one that implements <see cref="IUIAssetProvider.TryResolveImage"/>),
+        /// or null to use the default <see cref="HeadlessAssetProvider"/>.</param>
+        public HeadlessRuntime(Rectangle surfaceBounds, IUIAssetProvider assetProvider = null)
         {
             Surface = new HeadlessSurface(surfaceBounds, new HeadlessRenderTarget(surfaceBounds.Width, surfaceBounds.Height));
-            AssetProvider = new HeadlessAssetProvider();
+            AssetProvider = assetProvider ?? new HeadlessAssetProvider();
             _textEngine = new MeasuringTextEngine(DefaultFontFamily);
         }
 

@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using CasaEngine.Framework.UI.Backend.MonoGame.Primitives;
 using MGUI.Shared.Assets;
@@ -11,6 +12,10 @@ public sealed class CasaMonoGameBackendOptions
         => transaction => CreateOptionalAposShapeRenderer(transaction);
 
     public IUIAssetProvider AssetProvider { get; init; }
+
+    /// <summary>The game's asset manager, so the default <see cref="CasaUIAssetProvider"/> can resolve UI images
+    /// named by a catalogued sprite asset (ADR-0038, ADR-0016). Ignored when <see cref="AssetProvider"/> is set.</summary>
+    public AssetContentManager AssetContentManager { get; init; }
     public ITextMeasurementEngine TextEngine { get; init; }
     public Action<CasaBackendAdapterRegistry> ConfigureAdapters { get; init; }
     public Func<CasaDrawTransaction, IShapeRenderer2D> CreateShapeRenderer { get; init; }

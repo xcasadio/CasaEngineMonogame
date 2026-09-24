@@ -30,7 +30,7 @@ internal sealed class CasaRuntimeBackendServices
 
         Content = new ContentManager(host, "Content");
         FontManager = new FontManager(Content, "Arial");
-        AssetProvider = assetProvider ?? options.AssetProvider ?? new CasaUIAssetProvider(Content, FontManager);
+        AssetProvider = assetProvider ?? options.AssetProvider ?? new CasaUIAssetProvider(Content, FontManager, options.AssetContentManager);
         TextureCache = new CasaTextureCache(graphicsDevice, spriteBatch);
 
         AdapterRegistry = new CasaBackendAdapterRegistry();
