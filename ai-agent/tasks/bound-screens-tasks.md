@@ -597,6 +597,12 @@ boîte de dialogue.
     prouvée : MGUI range tous les bindings dans des collections statiques non thread-safe
     (`MGUI/MGUI.Core/UI/DataBinding/DataBindingManager.cs:6-9`), et xUnit exécute les classes de test en
     parallèle.
+    **Cause prouvée puis corrigée** (deuxième passe) : reproduit une fois sur 30 lancements, avec la pile complète,
+    `Dictionary.Add` concurrent dans `DataBindingManager.AddBinding` (`DataBindingManager.cs:35`). Seules deux classes
+    de `CasaEngine.Tests` créent des bindings, toutes deux ajoutées par ce programme (T4.1, T4.2) : elles rejoignent
+    une collection xUnit qui s'exécute seule (`MguiDataBindingCollection`), comme `ProjectEnvironmentCollection` pour
+    le catalogue d'assets global. Le registre de MGUI est mono-thread par conception (l'interface tourne sur un
+    thread) : ce n'est pas un manque.
   - F4 (P3, **reporté**, O5) : `ForgetHostResolvedTextures` ne rafraîchit pas une image de fenêtre, et son
     commentaire affirmait le contraire. Commentaire corrigé (MGUI `09d0462`) ; manque consigné en G7 du
     [rapport des manques](../audits/mgui-gaps-from-xaml-screens.md). Le correctif touche une règle

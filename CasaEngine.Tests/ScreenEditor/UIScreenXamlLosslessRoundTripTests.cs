@@ -22,6 +22,7 @@ namespace CasaEngine.Tests.ScreenEditor;
 /// still loads through the real MGUI <see cref="XAMLParser"/>.</item>
 /// </list>
 /// </summary>
+[Collection(MguiDataBindingCollection.Name)]
 public class UIScreenXamlLosslessRoundTripTests
 {
     // ─────────────────────────────────────────────────────────────────────

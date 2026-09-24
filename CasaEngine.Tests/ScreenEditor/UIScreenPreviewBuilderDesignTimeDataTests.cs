@@ -14,6 +14,7 @@ namespace CasaEngine.Tests.ScreenEditor;
 /// A missing, invalid, or otherwise unusable design-time data file is reported without throwing, and the
 /// preview still renders (without a data context).
 /// </summary>
+[Collection(MguiDataBindingCollection.Name)]
 public sealed class UIScreenPreviewBuilderDesignTimeDataTests
 {
     private const string WindowXamlHeader =
