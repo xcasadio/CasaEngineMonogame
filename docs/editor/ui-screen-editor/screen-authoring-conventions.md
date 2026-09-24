@@ -105,11 +105,74 @@ Each candidate must exist on disk to be used; when none does, loading fails and 
 - Reference textures by their `Content path` key, not an absolute file path.
 - Fonts: declare the font family name as registered in `FontStashSharp`.
 
+### Image sources: project sprites and 2D animations
+
+An `Image`'s `SourceName` can also name a **sprite** or a **2D animation** (`.anim2d`) of the project, by its asset
+id or its catalogue name; the engine's host (`CasaUIAssetProvider`) resolves it and holds what it loaded until the
+UI root is released (ADR-0038, ADR-0037). A name it cannot resolve is logged once (`cannot resolve UI image`) and
+the image shows nothing. MGUI also asks the host for some of its own optional textures: the title bar's
+`DockClose`, for one, which only `MGDesktop.LoadDefaultResources` registers and the game runtime does not call.
+That logs the same warning once, while MGUI draws the icon itself.
+
+A 2D animation plays on the UI clock, in real time, not on the game's logic ticks:
+
+| Property | Behaviour |
+|---|---|
+| `AnimationStartOffset` (`TimeSpan`) | The point of the timeline to restart at. Changing it restarts the animation there. |
+| `IsAnimationPlaying` (`bool`, default true) | False restarts the animation at `AnimationStartOffset` and holds that frame; true resumes playing from it. |
+
+Both are bindable, so a view model can start an animation in phase with the game (the Alundra HUD restarts its
+magic pips at the frame the original's counter gives). An image that is collapsed or entirely clipped is not
+updated (`MGUI/MGUI.Core/UI/MGElement.cs:3936-3945`): its animation pauses until it shows again.
+
+A frame's part position shifts the image in the element's own pixels, **X to the right and Y downward**
+(`MGImage` translates its destination by it, `MGUI/MGUI.Core/UI/MGImage.cs:495`, from
+`CasaUIAssetProvider.CasaUIAnimatedImage.CurrentDrawOffset`). A world animation's part positions are Y **up**
+(`CasaEngine/Framework/Assets/Animations/Animation2dBoundsCalculator.cs:28-31`): author a UI animation in screen
+pixels. A clip with several parts shows its first part in draw order only.
+
+Not declarable in XAML: an image's filtering when it is scaled down (`UseLinearFilteringWhenDownscaling`, gap G8
+of `ai-agent/audits/mgui-gaps-from-xaml-screens.md`). A pixel-art screen sets it in `OnWindowLoaded`.
+
 ---
 
 ## 6. Bindings (Design-time vs Runtime)
 
-At runtime, bind dynamic data explicitly in code rather than inline XAML binding syntax (MGUI uses code-behind for most data updates).
+### Bound screens
+
+A game screen is bound to an observable view model (ADR-0038). The markup declares a binding on every property
+that changes, `{dataBinding:MGBinding Path=...}` (nested paths such as `IconSlot3.SourceName` work); the screen
+sets its view model as the window's data context once, in `OnWindowLoaded`; the game's code writes the view
+model, never the elements.
+
+```csharp
+protected override void OnWindowLoaded(MGWindow window)
+    => window.WindowDataContext = ViewModel;
+```
+
+```xml
+<Image Name="MoneyDigit0" Stretch="None"
+       SourceName="{dataBinding:MGBinding Path=MoneyDigit0.SourceName}"
+       CanvasLeft="{dataBinding:MGBinding Path=MoneyDigit0.Left}"
+       CanvasTop="{dataBinding:MGBinding Path=MoneyDigit0.Top}"
+       Visibility="{dataBinding:MGBinding Path=MoneyDigit0.Visibility}" />
+```
+
+- **Notify only what changed.** A setter compares before raising `PropertyChanged`; pushing the same state again
+  must notify nothing.
+- **Match the target's type.** A binding whose source property has the same declared type as its target copies
+  the value through compiled, typed accessors, without allocating (MGUI ADR-0016). A converter, a string format or
+  a type conversion takes the general path. An element's canvas coordinates are bindable through its
+  `CanvasLeft` and `CanvasTop` properties, as `int?`.
+- **Not bindable**, so the screen applies them in code from its view model: a `RenderTransform`'s properties (gap
+  G9) and an image's downscale filtering (gap G8).
+- **Dispose the screen.** `XamlUIScreenBase.Dispose` takes the window's bindings out of MGUI's static registry
+  (gap G10). A screen that is rebuilt, for example at every world change, must be disposed, or the registry keeps
+  its previous window and view model reachable.
+- **Tests.** MGUI's binding registry is static and single-threaded: a test class that loads bound XAML or sets a
+  data context joins a serial xUnit collection (`MguiDataBindingCollection` in `CasaEngine.Tests`).
+
+A screen that has little to update may still push values in code, as below.
 
 ### Loading a screen at runtime
 
@@ -148,6 +211,10 @@ control and the document — when the name is absent or belongs to another kind 
 back a null that is tripped over later.
 
 The window comes back **unregistered**: `ScreenStack` adds it to the desktop on push and removes it on pop.
+
+A project can also replace the markup of the engine's **dialogue box** with its own `.uiscreen`, named by the
+project setting `DialogueScreenAsset`; the element names that markup must keep are listed in
+[dialogue-choices-and-bitmap-fonts.md](../../engine/dialogue-choices-and-bitmap-fonts.md).
 
 Parsing runs in `XamlLoaderMode.Strict`, which is **stricter than the editor's preview** — the preview parses
 in `Compatibility`, where no validation runs. A document the editor previews happily can still be refused at

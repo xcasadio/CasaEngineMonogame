@@ -49,7 +49,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [coroutines_specifications.md](engine/coroutines_specifications.md) — spécification du système de coroutines.
 - [cutscene_commandes_sequentielles_async_coroutine.md](engine/cutscene_commandes_sequentielles_async_coroutine.md) — séquences scriptées avec commandes séquentielles async/coroutine.
 - [yarn_spinner_integration.md](engine/yarn_spinner_integration.md) — intégration de Yarn Spinner (dialogues).
-- [dialogue-choices-and-bitmap-fonts.md](engine/dialogue-choices-and-bitmap-fonts.md) — choix de dialogue et police bitmap dans le pipeline de dialogue existant (`DialogueService`, `IDialoguePresenter`, `DialogueScreen`).
+- [dialogue-choices-and-bitmap-fonts.md](engine/dialogue-choices-and-bitmap-fonts.md) — choix de dialogue et police bitmap dans le pipeline de dialogue existant (`DialogueService`, `IDialoguePresenter`, `DialogueScreen`) ; remplacement du balisage de la boîte par un asset du projet (`DialogueScreenAsset`) et son contrat d'éléments.
 - [world-message-bus-migration-notes.md](engine/world-message-bus-migration-notes.md) — bus de messages scopé au `World` (pattern recommandé).
 - [player-input.md](engine/player-input.md) — façade `PlayerInput` par joueur (gates input enable / routage par vue / capture UI).
 - [gameplay-possession.md](engine/gameplay-possession.md) — possession `Controller`/`Entity` (`Possess`/`UnPossess`, pilotage de `CharacterControlMode`) et multi-joueur local.
@@ -91,7 +91,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [README.md](editor/ui-screen-editor/README.md) — objectif et périmètre du screen editor.
 - [architecture.md](editor/ui-screen-editor/architecture.md) — architecture (document model, preview, XAML).
 - [architecture-entry-points.md](editor/ui-screen-editor/architecture-entry-points.md) — points d'entrée dans le code.
-- [screen-authoring-conventions.md](editor/ui-screen-editor/screen-authoring-conventions.md) — conventions d'authoring des screens.
+- [screen-authoring-conventions.md](editor/ui-screen-editor/screen-authoring-conventions.md) — conventions d'authoring des screens : enveloppe `.uiscreen`, écrans liés à un view-model, images nommées par asset (sprites et animations 2D), données de conception.
 - [xaml-support-matrix.md](editor/ui-screen-editor/xaml-support-matrix.md) — matrice de support XAML.
 
 ## Voir aussi

@@ -36,7 +36,14 @@ Limites connues de ce mécanisme (acceptées comme risque documenté) :
 - un nœud ou un élément de propriété ajouté dans l'éditeur (donc sans `SourceElement`) est toujours synthétisé
   comme en v1 (attributs triés, espaces de noms par défaut), sans mise en forme d'origine à préserver ;
 - remplacer la racine du document par un nœud entièrement nouveau (`UIScreenDocument.SetRoot` avec un nœud
-  qui n'a jamais été parsé) ne renomme pas la balise XML racine d'origine.
+  qui n'a jamais été parsé) ne renomme pas la balise XML racine d'origine ;
+- déplacer un nœud vers un **autre parent** le ressynthétise (`UIScreenXamlSerializer.cs:176`) : il est réécrit sur
+  une ligne, et les commentaires qu'il contenait sont perdus. Le réordonnancement dans le même parent, lui, garde
+  tout (tableau ci-dessus).
+
+> **État au 2026-09-24.** Ces garanties valent pour `UIScreenEditorSession.Save`. La commande « Save » de l'éditeur
+> (`GameEditor.SaveCurrentProject`) n'enregistre pas encore les documents d'écran : la question est posée à l'auteur
+> (point ouvert O6 du plan `ai-agent/tasks/bound-screens-tasks.md`).
 
 ## Support v1 (base, inchangée)
 

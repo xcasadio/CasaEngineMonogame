@@ -779,12 +779,24 @@ boîte de dialogue.
 
 ## Phase 7 — Documentation et clôture
 
-### ⏳ T7.1 — Documentation et clôture
+### ✅ T7.1 — Documentation et clôture
 
 - Fichiers : `docs/editor/ui-screen-editor/` (auteur d'écrans : sources d'image, données de conception, binding),
   `docs/README.md`, `ai-agent/README.md`, ce plan (archivage).
 - Validation : relecture des liens ; validation globale.
 - Commit : `docs(ui): document bound screens, image sources and design-time data`
+- Note (2026-09-24) :
+  - `docs/editor/ui-screen-editor/screen-authoring-conventions.md` : sources d'image (sprites et animations 2D
+    nommés par identifiant ou nom, résolus par l'hôte ; `AnimationStartOffset` et `IsAnimationPlaying` ; pause d'une
+    image repliée ou hors champ ; décalage de partie en pixels d'écran, Y vers le bas, contre Y vers le haut dans le
+    monde ; G8) ; écrans liés (contexte de données, chemins imbriqués, notifier seulement ce qui change, copie typée
+    sans allocation, `CanvasLeft`/`CanvasTop`, G9, libération des bindings G10, collection de tests) ; renvoi vers
+    le remplacement de la boîte de dialogue. Chaque affirmation cite le code qui la porte.
+  - `xaml-support-matrix.md` : remarque A1 de la phase 4 (un nœud déplacé vers un autre parent est ressynthétisé,
+    commentaires internes perdus) et état de l'enregistrement dans l'éditeur (O6).
+  - Index `docs/README.md` et tableau de `ai-agent/README.md` à jour. Le plan reste dans `tasks/` et non dans
+    `tasks/archive/` : T2.3, T4.3 et T5.1 attendent une validation de l'auteur, et O3, O5, O6 une décision.
+  - Validation : liens relatifs relus (chaque cible existe).
 
 ---
 

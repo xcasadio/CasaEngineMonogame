@@ -1,7 +1,7 @@
 # Ce qui manque à MGUI et au moteur, vu depuis la conversion des écrans en XAML
 
 Rapport ouvert le 2026-09-20 pendant le chantier
-[xaml-runtime-bridge-tasks.md](../tasks/xaml-runtime-bridge-tasks.md).
+[xaml-runtime-bridge-tasks.md](../tasks/archive/xaml-runtime-bridge-tasks.md).
 
 **Pourquoi ce document.** Règle de l'auteur, 2026-09-20 : *« je ne veux pas de workaround, et le projet sert
 aussi à détecter les fonctionnalités manquantes dans MGUI et le moteur CasaEngine »*. Convertir dix écrans
