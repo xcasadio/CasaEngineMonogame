@@ -367,3 +367,7 @@ l'inventaire, 122 pour le HUD) et gardait atteignables les anciennes fenêtres, 
 **La correction.** `RemoveBindings` retire aussi les bindings de `_Bindings`
 (`MGUI.Tests/Architecture/DataBindingRegistryTests.cs`) ; `XamlUIScreenBase.Dispose` retire les bindings de toute
 sa fenêtre (`CasaEngine.Tests/UI/XamlUIScreenBaseBindingReleaseTests.cs`). Chaque test échoue sans la correction.
+
+**Limite restante.** `MGElement.RemoveDataBindings` ne parcourt que l'arbre visuel : un binding dont la cible n'est
+pas un élément (un pinceau lié, `MGUI/MGUI.Core/UI/XAML/Element.cs:1096`) reste dans le registre. Aucun écran
+d'Alundra n'en déclare ; à traiter le jour où un écran lié en aura besoin.

@@ -670,7 +670,7 @@ boîte de dialogue.
 - B1 fait ; B2 (parent `79c0099`) et B3 (parent `b9f3133`, moteur `e78e14a9`) CONFIRMED par un vérificateur frais.
   Reste en 🧪 : l'enregistrement d'un écran depuis l'éditeur, qui attend la réponse à O6.
 
-### 🚧 T5.2 — Libérer les bindings d'un écran avec lui
+### ✅ T5.2 — Libérer les bindings d'un écran avec lui
 
 - Constat (2026-09-24, session principale, après B3) : rien ne retire les bindings d'une fenêtre d'écran quand l'écran
   est libéré. `XamlUIScreenBase.Dispose` ne rend que le handle de l'enveloppe, et aucun code du moteur n'appelle
@@ -703,7 +703,19 @@ boîte de dialogue.
   - étape 2 : moteur, `CasaEngine.Tests` 1844/1844 ; le nouveau test échouait avant la correction, après avoir
     constaté le texte lié et les deux bindings ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`
     sans erreur ; manque G10 consigné comme corrigé ;
-  - étape 3 et vérification : à suivre.
+  - étape 3 : parent `a52a022`, `Alundra.Tests` 1084/1084 ; les deux tests échouent sans la ligne du moteur ;
+    recette rejouée (`run-t52`) identique à `run-b3-clock`, hors `inv-389` (écart d'animation du monde entre runs) ;
+  - **vérificateur frais (2026-09-24) : CONFIRMED**, sans constat P0 à P2 : défaut reproduit en retirant chaque
+    ligne (122 bindings restants pour le HUD, 172 pour l'inventaire) ; suites et builds reproduits ; aucun code de
+    production ne lit `DataBindingManager.Bindings` ; les écrans libérés ont déjà quitté l'affichage (le `UIRoot`
+    est libéré au même changement de monde) ; recette rejouée identique au pixel à `run-b3-clock`. Remarques P4,
+    reportées :
+    - un binding dont la cible n'est pas un élément (un pinceau lié) n'est pas parcouru par `RemoveDataBindings`
+      et reste dans le registre : limite de MGUI antérieure, les écrans d'Alundra n'en ont pas ;
+    - `DataBindingRegistryTests` n'est dans aucune collection, comme les autres tests de binding de MGUI : risque
+      d'instabilité hérité d'`AddBinding`, deux passes complètes sans échec ;
+    - un second `BuildWindow` sur le même écran remplacerait la fenêtre sans libérer les bindings de la première :
+      aucun appelant ne le fait.
 
 ---
 
