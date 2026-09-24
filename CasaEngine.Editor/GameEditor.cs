@@ -5755,6 +5755,11 @@ public class GameEditor : Game, IObservableUpdate
             {
                 ExecutePaste();
             }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.S))
+            {
+                // D18: the same save as File > Save, guards included (play mode, no project).
+                SaveCurrentProject();
+            }
         }
 
         _previousShortcutKeyboardState = kb;

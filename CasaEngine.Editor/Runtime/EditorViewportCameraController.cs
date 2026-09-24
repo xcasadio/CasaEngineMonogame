@@ -267,7 +267,10 @@ internal sealed class EditorViewportCameraController
             move -= camera.Up;
         }
 
-        if (allowClassicKeys)
+        // The letter keys stay free for the editor's Ctrl shortcuts (Ctrl+S saves, Ctrl+D duplicates): while Ctrl is
+        // held they do not move the camera. The arrows and Page Up/Down above are not shortcuts and still move it.
+        bool controlHeld = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+        if (allowClassicKeys && !controlHeld)
         {
             if (keyboardState.IsKeyDown(Keys.D))
             {

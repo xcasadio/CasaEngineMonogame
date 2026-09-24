@@ -280,7 +280,10 @@ Place each category in a matching sub-directory under `Content/Screens/`.
    and updates the preview (ADR-0038).
 5. Adjust visual position with the drag handles in the preview surface.
 6. Switch resolution presets (1280×720, 1920×1080, etc.) to verify responsiveness.
-7. Save the XAML file — the preview will hot-reload automatically.
+7. Save with **File > Save** or **Ctrl+S**: every modified screen writes its XAML back, losslessly (only the edited
+   attributes change), and loses its `*`; the screen keeps its selection and undo history. Closing a modified screen,
+   or quitting the editor with one, asks whether to save it first. A XAML file changed on disk by another program
+   reloads the preview automatically.
 8. All edits are undoable with `Ctrl+Z` / `Ctrl+Y`.
 
 ---

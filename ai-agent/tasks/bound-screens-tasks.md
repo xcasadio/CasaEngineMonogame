@@ -954,8 +954,15 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais), après recon
   - Mutations : Cancel ignoré sur le chemin des onglets -> exactement les trois tests de ce chemin échouent ; pas
     d'abonnement à `WindowClosing` -> le test de la fenêtre flottante entière échoue ; un enregistrement raté traité
     comme « continuer » -> le test de ce cas échoue.
+  - Sortie automatisée avec un écran modifié (session principale, éditeur réel, projet Alundra protégé par
+    `scratchpad/b6_run.py --no-save`, run `t45-exit-modified`) : `WeaponBoxBackground.Opacity` changé, pas
+    d'enregistrement, sortie après capture : l'éditeur sort seul (code 0, aucune boîte), le `.xaml` n'est pas écrit,
+    rien n'est écrit dans le projet. La ligne « modified screen(s) abandoned » n'est pas observable dans un fichier :
+    l'éditeur ne journalise que dans son panneau et la sortie de débogage (`GameEditor.cs:369-370`), et
+    `diag.txt` est écrit avant la sortie ; elle reste couverte par la lecture du code et le test du cas
+    « automatisation » de `ModifiedScreenCloseDecision`.
 
-### ⏳ T4.6 — Ctrl+S (D18)
+### 🚧 T4.6 — Ctrl+S (D18)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 
@@ -969,6 +976,14 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 - Validation : `CasaEngine.Tests`, deux solutions ; l'appui réel sur Ctrl+S (enregistre, astérisque effacée,
   caméra immobile) revient à l'auteur si l'automatisation ne sait pas injecter de touche (🧪 pour ce point).
   Vérificateur frais (avec T4.5).
+- Note d'exécution (2026-09-24, session principale) : branche Ctrl+S -> `SaveCurrentProject()` en fin de chaîne des
+  raccourcis de `GameEditor.Update`, derrière la même garde ; `EditorViewportCameraController.HandleKeyboardCameraInput`
+  ignore WASDQE tant que Ctrl gauche ou droit est tenu ; théorie `Update_LetterKeysMoveTheCamera_ButNotWhileControlIsHeld`
+  (S seul déplace ; Ctrl gauche ou droit + S, Ctrl + D ne déplacent pas ; Ctrl + flèche déplace) ; mutation (garde
+  retirée) : les trois cas Ctrl échouent ; `CasaEngine.Tests` 1888/1888, deux solutions sans erreur. Doc : étape 7
+  du flux de l'éditeur d'écrans (`screen-authoring-conventions.md`) : File > Save ou Ctrl+S, confirmation à la
+  fermeture et à la sortie. L'automatisation de l'éditeur ne sait pas injecter une touche (`EditorAutomationOptions`
+  n'a pas d'option de clavier) : l'appui réel sur Ctrl+S reste à l'auteur.
 
 ---
 
