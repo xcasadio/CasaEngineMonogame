@@ -1030,6 +1030,17 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 - Validation : `MGUI.Tests`, `CasaEngine.Tests`, les solutions ; vérificateur frais ; le `*` en vrai lancement
   revient à l'auteur.
 - Commits : MGUI `fix(docking): keep tab and window titles in step with their panel`, puis pointeur du sous-module.
+- Note d'exécution (2026-09-24, exécutant, relu par la session principale) : MGUI `6e8b999`. `MGDockTabItem`
+  (abonnement dans le setter de `Panel` et le constructeur, `OnPanelPropertyChanged`, `Detach`) ;
+  `MGDockTabGroup.RebuildTabHeaders` détache les anciens onglets ; `MGFloatingDockWindow.UpdateTitle` déplace
+  l'abonnement vers le panneau dont il montre le titre ; `MGDockAutoHideStrip.Refresh` se réabonne, `Detach` appelé
+  par `MGDockHost` quand un gabarit remplace la bande ; `MGDockAutoHideDrawer.ActivePanel` déplace l'abonnement.
+  `DockTitleFollowTests` (5 tests, une mutation par vue : chaque test échoue sans son abonnement) ; `MGUI.Tests`
+  3039/3039, `CasaEngine.Tests` 1888/1888, `MGUI.Samples` et les deux solutions sans erreur.
+  - Hypothèse de l'exécutant, **contredite** par l'éditeur réel : selon lui, l'hôte reconstruisait déjà les onglets
+    à tout changement d'un panneau. Même scénario dans l'éditeur réel (`scratchpad/b6_run.py --no-save`, HUD
+    modifié, capture) : avant la correction (run `t45-exit-modified`) l'onglet affiche « HudScreen » sans `*` ;
+    après (run `t47-asterisk-fixed`) « HudScreen * ». Projet intact après les deux runs.
 
 ---
 
