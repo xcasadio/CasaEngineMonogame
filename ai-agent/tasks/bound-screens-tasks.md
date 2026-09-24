@@ -332,7 +332,7 @@ boîte de dialogue.
   - Limite reportée : l'ajout d'une texture statique de même nom relance la résolution et remplace l'animation,
     conformément à l'ordre (le statique gagne).
 
-### 🧪 T2.3 — Sample, documentation MGUI et référence dans le moteur
+### ✅ T2.3 — Sample, documentation MGUI et référence dans le moteur
 
 - Objectif : démontrer et documenter les fonctionnalités ajoutées (règles de MGUI : toute nouvelle fonctionnalité
   est démontrée dans un sample MGUI ; toute API publique ajoutée est documentée), puis les utiliser depuis le moteur.
@@ -362,6 +362,7 @@ boîte de dialogue.
     `SampleXamlEmbeddingTests`, qui échoue en nommant tout `.xaml` du dossier des samples non embarqué ; vérifié en
     retirant la correction) ; ressource présente dans l'assembly construit ; l'application lancée 25 s sans
     exception ; `MGUI.Tests` 3034/3034. La vérification visuelle du sample reste à l'auteur.
+  - **Validé par l'auteur le 2026-09-24** (vérification visuelle du sample « Bound Images »).
 - **Vérificateur frais des phases 1 et 2 (2026-09-24) : CONFIRMED**, sans constat P0 à P2, sur MGUI
   `6ac7a68..3ca2c23` et le moteur `80c11406`. Il a reproduit les suites (MGUI 3020/3020, `CasaEngine.Tests`
   1781/1781, deux solutions sans erreur), sondé hors dépôt le chemin pilote `Color?` (zéro octet) et les cas de
@@ -567,7 +568,7 @@ boîte de dialogue.
     L'automatisation ne prenait de capture que pendant le smoke de jeu : elle en prend désormais une finale quand
     `--screenshot-out` est donné (`GameEditor`, validation directement liée).
 
-### 🧪 T4.3 — Choisir une image dans l'inspecteur
+### ✅ T4.3 — Choisir une image dans l'inspecteur
 
 - Objectif : rendre la source d'une `Image` éditable sans taper de GUID.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Inspector/UIPropertyRegistry.cs` (descripteur `Source` existant,
@@ -594,6 +595,7 @@ boîte de dialogue.
   - **Reste en 🧪** : la ligne « Source » avec son sélecteur n'apparaît qu'une fois un nœud `Image` sélectionné
     dans l'écran, ce que l'automatisation de l'éditeur ne sait pas faire (elle sélectionne des entités du monde). La
     vérification visuelle du sélecteur revient à l'auteur ; sa logique est couverte par les six tests.
+  - **Validé par l'auteur le 2026-09-24** (vérification visuelle du sélecteur d'image).
 - **Vérificateur frais de la phase 4 (2026-09-24) : REFUTED**, sur le moteur `26e944a7..10ac11cd` et MGUI
   `3ca2c23..23638b0`. Suites et builds reproduits (moteur 1828/1828 sur 28 lancements sur 29, MGUI 3021/3021).
   Constats et décisions :
@@ -916,7 +918,7 @@ conçues après une reconnaissance, relues avant exécution. Ordre : T6.2, T4.4,
     `UnauthorizedAccessException` ; une autre exception du sérialiseur sortirait de `SaveCurrentProject`, que le
     menu appelle sans `try`.
 
-### 🧪 T4.5 — Demander avant de perdre un écran modifié (D17)
+### ✅ T4.5 — Demander avant de perdre un écran modifié (D17)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais), après reconnaissance.
 
@@ -969,7 +971,7 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais), après recon
     `diag.txt` est écrit avant la sortie ; elle reste couverte par la lecture du code et le test du cas
     « automatisation » de `ModifiedScreenCloseDecision`.
 
-### 🧪 T4.6 — Ctrl+S (D18)
+### ✅ T4.6 — Ctrl+S (D18)
 
 Conception relue READY le 2026-09-24 (vérificateur de plan frais).
 
@@ -1010,6 +1012,24 @@ Conception relue READY le 2026-09-24 (vérificateur de plan frais).
     modifié (confiance basse, relève de T4.4) : à regarder par l'auteur en vrai lancement.
 - **Reste 🧪 pour l'auteur** : les vrais clics Yes/No/Cancel (onglet, File > Exit, croix de la fenêtre), un vrai
   Ctrl+S, la case « Unsaved changes » du sample de docking de MGUI, et la présence du `*` après une modification.
+- **Validé par l'auteur le 2026-09-24** : les clics Yes/No/Cancel, Ctrl+S et le veto du sample de docking. Le `*`,
+  lui, n'apparaît qu'au prochain redessin de l'onglet : défaut de MGUI traité par T4.7.
+
+### 🚧 T4.7 — Le titre d'un onglet suit son panneau
+
+- Constat de l'auteur (2026-09-24, vérification visuelle de T4.5/T4.6) : le `*` d'un écran modifié n'apparaît sur
+  son onglet qu'au prochain redessin (survol, activation). Cause : `GameEditor.UpdateDockPanelTitle`
+  (`GameEditor.cs:5190-5197`) met bien à jour `DockPanelNode.Title`, qui lève `PropertyChanged`
+  (`MGUI/MGUI.Core/UI/Docking/DockLayout/DockPanelNode.cs:12-22`), mais les vues du docking copient le titre une
+  fois et ne l'observent pas : `MGDockTabItem` (ne relit `Panel.Title` que dans `UpdateVisuals`, `:540`),
+  `MGFloatingDockWindow.UpdateTitle`, les boutons de `MGDockAutoHideStrip`, l'en-tête de `MGDockAutoHideDrawer`.
+  Défaut antérieur au programme, qui touche tous les types de documents.
+- Correction (MGUI) : chaque vue s'abonne au `PropertyChanged` du panneau dont elle affiche le titre, rafraîchit
+  son texte sur « Title », et se désabonne quand elle cesse de l'afficher (panneau remplacé, vue reconstruite ou
+  jetée) ; tests sans affichage pour les quatre vues, une mutation par vue.
+- Validation : `MGUI.Tests`, `CasaEngine.Tests`, les solutions ; vérificateur frais ; le `*` en vrai lancement
+  revient à l'auteur.
+- Commits : MGUI `fix(docking): keep tab and window titles in step with their panel`, puis pointeur du sous-module.
 
 ---
 
