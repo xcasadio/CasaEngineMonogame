@@ -77,10 +77,45 @@ public sealed class UIScreenEditorSession
         EnsureDocumentLoaded();
         EnsureSourceXamlPath();
 
-        File.WriteAllText(SourceXamlFilePath!, _serializer.Serialize(Document!));
+        // Whether the document actually changed since it was opened is decided from a semantic snapshot
+        // comparison, not from IsDirty alone (T4.1, engine ADR-0038 "Lossless editor round trip"): IsDirty
+        // can be set by a caller (see MarkDirty) without any real change, and trusting it alone could
+        // rewrite a byte-identical file through the serializer and lose formatting it does not model.
+        var currentSnapshot = UIScreenSemanticSnapshot.Compute(Document!);
+        if (Document!.OriginalBytes != null
+            && string.Equals(currentSnapshot, Document!.BaselineSemanticSnapshot, StringComparison.Ordinal))
+        {
+            File.WriteAllBytes(SourceXamlFilePath!, Document!.OriginalBytes);
+        }
+        else
+        {
+            var serialized = _serializer.Serialize(Document!);
+            var bytes = EncodeWithOriginalBom(serialized, Document!.OriginalBytes);
+            File.WriteAllBytes(SourceXamlFilePath!, bytes);
+
+            // The file on disk now matches this state exactly: keep the document's own bookkeeping in
+            // sync so a later unmodified Save (no further edits) takes the byte-identical fast path too.
+            Document!.OriginalBytes = bytes;
+            Document!.BaselineSemanticSnapshot = currentSnapshot;
+        }
+
         IsDirty = false;
         RebuildPreview();
         LastErrorMessage = null;
+    }
+
+    /// <summary>
+    /// Encodes <paramref name="text"/> as UTF-8, reproducing the presence or absence of a byte-order mark
+    /// from <paramref name="originalBytes"/> (or omitting it, matching the previous plain
+    /// <see cref="File.WriteAllText(string, string)"/> behaviour, when there is no original file to match).
+    /// </summary>
+    private static byte[] EncodeWithOriginalBom(string text, byte[]? originalBytes)
+    {
+        var hasBom = originalBytes is { Length: >= 3 }
+            && originalBytes[0] == 0xEF && originalBytes[1] == 0xBB && originalBytes[2] == 0xBF;
+
+        var encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: hasBom);
+        return encoding.GetBytes(text);
     }
 
     public void UpdateDocument(UIScreenDocument document, bool markDirty = true)

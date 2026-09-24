@@ -35,6 +35,24 @@ public sealed class UIScreenPropertyValue
     public string? EffectiveSerializedValue
         => Binding != null ? Binding.ToMarkupString() : SerializedValue;
 
+    /// <summary>
+    /// For a property that was parsed from a XAML property element (<see cref="ValueType"/> "xaml"), the
+    /// original owner-qualified element local name exactly as authored (for example <c>Canvas.Left</c> or
+    /// <c>Window.Resources</c>). The serializer uses this verbatim instead of reconstructing
+    /// <c>{node.ControlType}.{Name}</c>, which is wrong for an attached property whose owner differs from
+    /// the node it is set on. Null for a property that has no XAML source (a brand-new property, or one on
+    /// a document created without source text).
+    /// </summary>
+    public string? ElementQualifiedName { get; internal set; }
+
+    /// <summary>
+    /// The live XAML property element this value was parsed from, kept so the fidelity serializer (T4.1,
+    /// engine ADR-0038) can patch it in place -- leaving it untouched when its content did not change, and
+    /// preserving every comment, namespace and surrounding whitespace it and its siblings carry. Null when
+    /// there is no source document to patch (a brand-new property, or a document created without source text).
+    /// </summary>
+    internal System.Xml.Linq.XElement? SourceElement { get; set; }
+
     public void SetValue(string? serializedValue, string valueType)
     {
         if (string.IsNullOrWhiteSpace(valueType))

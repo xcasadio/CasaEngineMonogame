@@ -472,7 +472,7 @@ boîte de dialogue.
 
 ## Phase 4 — Éditeur
 
-### ⏳ T4.1 — Aller-retour sans perte
+### ✅ T4.1 — Aller-retour sans perte
 
 - Objectif : D2, P9.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Xaml/UIScreenXamlParser.cs`, `UIScreenXamlSerializer.cs`, le
@@ -481,10 +481,37 @@ boîte de dialogue.
   1. Le modèle garde les commentaires (et leur place), les déclarations d'espace de noms, le propriétaire d'une
      propriété attachée, l'ordre des attributs et le texte des extensions de balisage.
   2. Le sérialiseur les restitue ; un attribut ajouté se place après les autres.
-- Validation : tests golden : un XAML avec commentaires, `xmlns:dataBinding`, `{MGBinding …}`, `Canvas.Left` en
-  attribut et en élément de propriété, ouvert puis enregistré sans modification, ressort identique octet pour octet
-  (fins de ligne comprises) et se charge dans le vrai `XAMLParser`. Tests existants de l'éditeur verts.
+- Validation : tests golden : un XAML avec commentaires, `xmlns:dataBinding`, `{dataBinding:MGBinding …}`,
+  `CanvasLeft` en attribut et un élément de propriété qualifié, ouvert puis enregistré sans modification, ressort
+  identique octet pour octet (fins de ligne comprises) et se charge dans le vrai `XAMLParser`. Tests existants de
+  l'éditeur verts.
+- Précision de contrat (2026-09-24, fait vérifié dans le code) : `XDocument` ne conserve ni les retours à la ligne
+  entre attributs (la racine d'`InventoryScreen.xaml` en a), ni les guillemets simples, ni les fins de ligne `\r\n` ;
+  le sérialiseur actuel (`UIScreenXamlSerializer.cs:28-29`) ajoute en plus une déclaration XML. Deux garanties :
+  - **document non modifié** : l'enregistrement réécrit le texte d'origine tel quel ;
+  - **document modifié** : sérialisation sans perte de contenu (commentaires, déclarations d'espace de noms,
+    préfixes, propriétaire des propriétés attachées et éléments de propriété à leur place, ordre des attributs,
+    texte des extensions de balisage, présence de la déclaration XML, style de fin de ligne) ; seule la mise en
+    forme des zones touchées peut changer.
 - Commit : `fix(screen-editor): keep comments, namespaces and attribute order when saving a screen`
+- **Fait** :
+  - Le modèle garde une référence vivante vers l'arbre XML d'origine (`UIScreenNode.SourceElement`,
+    `UIScreenPropertyValue.SourceElement`, `UIScreenDocument.SourceXDocument`, champs internes : aucune API des
+    panneaux ne change). Le sérialiseur modifie cet arbre en place, seulement là où une valeur a changé :
+    commentaires, espaces, déclarations `xmlns`, préfixes et éléments de propriété qualifiés survivent par
+    construction. Un document sans source (créé dans l'éditeur) garde l'ancienne synthèse.
+  - « Aucun changement sémantique » : `UIScreenSemanticSnapshot` (type, nom, valeurs effectives, enfants dans
+    l'ordre, ressources) calculé juste après l'analyse et comparé à l'enregistrement ; s'il est égal, les octets
+    d'origine sont réécrits tels quels, BOM compris.
+  - Supprimer un nœud supprime les commentaires qui le précèdent ; limites documentées dans la matrice de support :
+    réordonner des enfants ne déplace pas leurs commentaires, et modifier une ressource reconstruit tout le bloc
+    `Window.Resources`.
+  - `CasaEngine.Tests` 1814/1814 (1804 + 10), reproduit : rejeu octet pour octet de la vraie
+    `InventoryScreen.xaml` d'Alundra (CRLF, attributs sur plusieurs lignes, commentaires), d'un fichier LF, d'un
+    fichier à guillemets simples, d'un fichier avec BOM, et d'un fichier avec `xmlns:dataBinding` ; enregistrement
+    après modification chargé par le vrai `XAMLParser`, binding compris ; deux solutions sans erreur.
+  - Fait confirmé : MGUI ne connaît pas la syntaxe attachée `Canvas.Left` en XAML (le vrai analyseur la
+    refuse) ; ses coordonnées s'écrivent `CanvasLeft` (voir T1.2).
 
 ### ⏳ T4.2 — Aperçu lié et images réelles
 

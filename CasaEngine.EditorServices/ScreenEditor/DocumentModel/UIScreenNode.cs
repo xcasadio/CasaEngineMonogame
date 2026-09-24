@@ -17,6 +17,16 @@ public sealed class UIScreenNode
 
     public DocumentNodeId Id { get; } = DocumentNodeId.NewId();
 
+    /// <summary>
+    /// The live XAML element this node was parsed from, kept so the fidelity serializer (T4.1, engine
+    /// ADR-0038 "Lossless editor round trip") can patch it in place instead of rebuilding it -- preserving
+    /// every comment, namespace declaration, prefix, attribute order and surrounding whitespace the source
+    /// document carries. Null for a node created in the editor with no backing XAML (a new node, or one on
+    /// a document created without source text), in which case the serializer synthesizes a fresh element.
+    /// Never copied by <see cref="DeepClone"/>: a clone is a detached node with no ties to any source document.
+    /// </summary>
+    internal System.Xml.Linq.XElement? SourceElement { get; set; }
+
     public string ControlType { get; }
 
     public string? Name { get; set; }
