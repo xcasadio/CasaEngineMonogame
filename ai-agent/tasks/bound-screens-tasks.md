@@ -513,7 +513,7 @@ boîte de dialogue.
   - Fait confirmé : MGUI ne connaît pas la syntaxe attachée `Canvas.Left` en XAML (le vrai analyseur la
     refuse) ; ses coordonnées s'écrivent `CanvasLeft` (voir T1.2).
 
-### 🧪 T4.2 — Aperçu lié et images réelles
+### ✅ T4.2 — Aperçu lié et images réelles
 
 - Objectif : D9, D1 dans l'éditeur, P7.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Preview/UIScreenPreviewBuilder.cs`,
@@ -545,9 +545,14 @@ boîte de dialogue.
     fournisseur à sa fermeture.
   - MGUI.Tests 3021/3021 ; `CasaEngine.Tests` 1822/1822 (1814 + 8 : 5 sur l'aperçu avec données de conception,
     3 sur le fournisseur) ; deux solutions sans erreur.
-  - **Reste en 🧪** : le smoke dans l'éditeur n'est pas faisable sur RPGDemo. L'automatisation de l'éditeur
-    exige une entité sélectionnable dans le premier monde, et `TitleScreenWorld` n'en a aucune (deux lancements
-    arrêtés au délai). Le smoke est reporté en B2, sur le projet Alundra, dont le premier monde a des entités.
+  - Le smoke dans l'éditeur n'était pas faisable sur RPGDemo (l'automatisation exige une entité dans le premier
+    monde, que `TitleScreenWorld` n'a pas). **Fait en B2 sur le projet Alundra (2026-09-24)** : `--project
+    alundra-project/AlundraGame.json --open-asset UI/Screens/InventoryScreen.uiscreen --entity-index 0` ouvre
+    l'écran dans son onglet ; la capture montre les boîtes, les icônes de la pièce, du faucon et de la clé tirées du
+    catalogue, les chiffres des données de conception (`x0000`, `00`) et le curseur ; la ligne d'état dit « Loaded
+    InventoryScreen.xaml », sans erreur de données de conception ; aucun avertissement dans les diagnostics.
+    L'automatisation ne prenait de capture que pendant le smoke de jeu : elle en prend désormais une finale quand
+    `--screenshot-out` est donné (`GameEditor`, validation directement liée).
 
 ### 🧪 T4.3 — Choisir une image dans l'inspecteur
 
@@ -573,7 +578,9 @@ boîte de dialogue.
     (`GetPickableAssets`, `SelectAsset`), sans changement de comportement, pour les tests.
   - `CasaEngine.Tests` 1828/1828 (1822 + 6), mutation vérifiée (écrire l'id au format `N` fait échouer 3 tests) ;
     deux solutions sans erreur ni avertissement dans les fichiers touchés.
-  - **Reste en 🧪** : smoke dans l'éditeur, pour la même raison que T4.2 ; reporté en B2 sur le projet Alundra.
+  - **Reste en 🧪** : la ligne « Source » avec son sélecteur n'apparaît qu'une fois un nœud `Image` sélectionné
+    dans l'écran, ce que l'automatisation de l'éditeur ne sait pas faire (elle sélectionne des entités du monde). La
+    vérification visuelle du sélecteur revient à l'auteur ; sa logique est couverte par les six tests.
 - **Vérificateur frais de la phase 4 (2026-09-24) : REFUTED**, sur le moteur `26e944a7..10ac11cd` et MGUI
   `3ca2c23..23638b0`. Suites et builds reproduits (moteur 1828/1828 sur 28 lancements sur 29, MGUI 3021/3021).
   Constats et décisions :

@@ -6253,6 +6253,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        // The play smoke takes its own screenshots at each of its steps; any other run gets one of the editor as
+        // the automation left it (an opened asset's panel, for example).
+        if (!_automationOptions.PlaySmoke)
+        {
+            CaptureAutomationScreenshot("final");
+        }
+
         CaptureAutomationDiagnostics();
         RestoreAutomationEditedFilesIfNeeded();
         DeleteAutomationCreatedParticleAssetIfNeeded();
