@@ -324,3 +324,23 @@ son XAML, garde une boucle en C# qui parcourt ses images pour poser ce réglage.
 
 **À quoi ressemblerait l'API absente.** Une propriété `UseLinearFilteringWhenDownscaling` sur le DTO `Image`,
 appliquée dans `ApplyDerivedSettings` comme `Stretch`.
+
+## G9 — La translation d'une `RenderTransform` ne peut pas être liée
+
+> **Consigné, non corrigé** (programme bound-screens, tranche B3 du dépôt parent, 2026-09-24).
+
+**Ce que le code doit faire.** Le HUD d'Alundra glisse d'un bloc à l'ouverture et à la fermeture : le présentateur
+calcule chaque tick un décalage vertical, que l'écran applique à `RenderTransform.Translation` de son canevas (le
+seul moyen de déplacer un élément sans relancer le layout, ADR-0006 de MGUI).
+
+**Pourquoi il ne peut pas le déclarer.** Le XAML de MGUI déclare une `RenderTransform` par un DTO
+(`MGUI/MGUI.Core/UI/XAML/Animation.cs:238`, `<Canvas.RenderTransform><RenderTransform Translation="4,0" /></…>`),
+appliqué une fois au chargement ; ce DTO n'est pas un élément, et les bindings ne sont traités que sur les éléments
+(`MGUI/MGUI.Core/UI/XAML/Element.cs:1044-1072`). Rien ne relie donc `Translation` à une propriété du view-model.
+
+**Ce que ça coûte.** `AlundraHudScreen` s'abonne à `PropertyChanged` de son view-model pour recopier la translation
+sur le canevas : une glue en C# dans un écran dont tout le reste est déclaré ou lié.
+
+**À quoi ressemblerait l'API absente.** Des bindings sur les propriétés du DTO `RenderTransform` (translation,
+échelle, rotation), résolus sur l'`UIRenderTransform` de l'élément porteur ; ou des propriétés d'élément liables
+(`RenderTranslationX/Y`) qui y écrivent.

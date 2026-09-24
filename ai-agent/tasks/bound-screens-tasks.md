@@ -665,6 +665,8 @@ boîte de dialogue.
   `AssetCatalog` que pour un nom : les tests de la DLL Alundra donnent à leur gestionnaire un catalogue à eux. Même
   comportement en jeu (`EngineRuntimeContext` résout par `AssetCatalog.Get`). Un test moteur de plus. Manque G8
   consigné : le filtrage à la réduction d'une `Image` n'est pas déclarable en XAML.
+- Pendant B3 (2026-09-24) : O4 corrigé (`afbb3cdc`) ; manque G9 consigné : la translation d'une `RenderTransform`
+  ne se lie pas en XAML, le HUD la recopie depuis son view-model.
 
 ---
 
