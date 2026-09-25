@@ -143,7 +143,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 
 ## Phase 1 — MGUI
 
-### ⏳ T1.1 — `MGMessageBox` (D3, D7)
+### 🧪 T1.1 — `MGMessageBox` (D3, D7)
 
 - Objectif : un contrôle générique qui affiche un titre, un message et 1 à 3 boutons libellés, dans la surcouche modale
   du bureau, et rend l'indice du bouton choisi par un rappel.
@@ -182,8 +182,39 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   touche Entrée atteindre la seconde boîte ; `MGUI.Samples` construit. 🧪 pour le coup d'œil
   de l'auteur sur le sample si aucun lancement visuel n'est possible.
 - Commit MGUI : `feat(ui): add a modal message box hosted in the desktop overlay`.
+- Note (2026-09-25) : MGUI `e061e06`. `MGUI.Core/UI/MGMessageBox.cs` suit le contrat ; les boutons sont une sous-classe
+  privée de `MGButton` qui envoie `UINavigationAction.Cancel` au bouton d'annulation.
+  - **O2 levé** : l'éditeur ne touche ni à `UseRawNavigationInput` ni à `MGUIInputContext` (`rg` sur `CasaEngine*`), il
+    passe donc par le chemin brut du bureau. Ce chemin envoie Entrée/Espace → `Submit` et Échap → `Cancel`
+    (`MGDesktop.TryMapNavigationAction`) à l'élément qui a le focus (`UIFocusNavigationService.TryDispatchNavigationAction`).
+    Le chemin sémantique (`TryHandleInputAction`) est testé aussi.
+  - Précision du contrat : Entrée active le bouton qui a le focus. À l'ouverture, c'est le bouton par défaut ; Tab
+    passe d'un bouton à l'autre, comme sous Windows. Le focus est ramené sur le bouton par défaut s'il quitte les boutons.
+  - Écart de langue : `MGUI/Docs/controls-architecture.md` est rédigé en français sans accents. La section
+    « MessageBox » suit donc la langue du fichier, pas la règle « anglais » de ce plan.
+  - `ResolvedPilotWriteSitesTests` (ADR-0005 de MGUI) impose le setter étiqueté `SetPadding(…, UIValueResolutionSource.Default(…))`.
+  - Défaut latent de MGUI trouvé, non corrigé ici (O4) : la boîte appelle `TryClose` avant `TryRemoveOverlay`.
+  - Tests : 15 dans `MGUI.Tests/MessageBox/MGMessageBoxTests.cs` (dont la boîte enchaînée après un clic, après Entrée
+    et après Échap, avec Entrée/Échap tenus 60 frames) et 5 dans `MessageBoxSampleTests.cs` (le XAML du sample se
+    charge en mode strict, et les noms que lit le code-behind existent). `MGUI.Tests` 3069/3069 (ligne de base 3049) ;
+    `MGUI.Samples` construit sans avertissement.
+  - Mutations, chacune rougit au moins un test :
+    - M1 : surcouche non retirée.
+    - M2 : pas de rappel.
+    - M3 : Échap non géré.
+    - M4 : ni focus initial ni maintien du focus.
+    - M5 : pas de maintien du focus.
+    - M6 : rappel **avant** que la boîte quitte l'hôte ; il ne rougit que la boîte enchaînée, aux trois entrées.
+    - M7 : pas de `ZIndex` au-dessus des autres surcouches.
+    - M8 : pas de garde `IsOpen`. Elle a d'abord survécu ; le test `AButtonOfAnAnsweredBox_DoesNothing` l'attrape maintenant.
+    - M9 : `TryRemoveOverlay` sans `TryClose`.
+  - La mutation « la même Entrée atteint la seconde boîte » n'a pas de forme naturelle : chaque appui n'est envoyé
+    qu'une fois, à un seul élément, et un bouton ne se déclenche qu'au relâchement d'un appui reçu par lui-même. Les
+    60 frames d'Entrée tenue de la boîte enchaînée l'épinglent.
+  - **Reste 🧪** : coup d'œil de l'auteur sur la page « MessageBox » du Compendium de `MGUI.Samples` (thème, tailles,
+    anneau de focus du bouton par défaut) ; aucun lancement visuel n'est possible depuis cette session.
 
-### ⏳ T1.2 — Cause « fenêtre flottante fermée entière » dans `PanelClosing` (D5)
+### ✅ T1.2 — Cause « fenêtre flottante fermée entière » dans `PanelClosing` (D5)
 
 - Objectif : l'abonné de `PanelClosing` sait qu'un refus a annulé la fermeture d'une fenêtre flottante entière, et
   laquelle, pour la retenter après la réponse.
@@ -204,18 +235,40 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Validation : `MGUI.Tests` vert ; les 10 tests existants de `PanelClosingVetoTests` inchangés et verts ; le test de la
   fenêtre flottante échoue si l'on ne passe pas la fenêtre (mutation notée).
 - Commit MGUI : `feat(docking): tell a panel-closing subscriber which floating window is closing`.
+- Note (2026-09-25) : MGUI `2e037f1`.
+  - `DockPanelClosingEventArgs` (même dossier que `MGDockHost`) : `RaisePanelClosingVetoed(panel, closingFloatingWindow = null)`
+    crée toujours ce type. Seul `OnFloatingWindowClosing` passe la fenêtre.
+  - **Écart au plan, dans le périmètre** : le test de la chaîne a montré que `DetachToFloating` retire le panneau du
+    registre de l'hôte (`MGDockHost.cs`, `_panelRegistry.Remove(panel.Id)` dans `DetachToFloating`). `RemovePanel(id)`
+    rend donc `false` pour un panneau flottant, ce qui contredit le fait rapporté par la reconnaissance. L'éditeur
+    n'avait aucune voie publique pour fermer un écran flottant après sa réponse (`CloseFloatingPanel` est interne).
+    Ajout additif : `MGDockHost.ClosePanel(DockPanelNode)`. Pour un panneau ancré ou auto-masqué, il passe par
+    `RemovePanel` ; pour une fenêtre flottante suivie par l'hôte, il appelle `MGFloatingDockWindow.ClosePanelWithoutVeto`,
+    la suite de sa fermeture d'onglet après le veto, désormais partagée. Il ne lève pas `PanelClosing`. Consigné dans
+    MGUI ADR-0018 et la doc ; T3.1 appelle `ClosePanel` au lieu de `RemovePanel`.
+  - Tests ajoutés dans `PanelClosingVetoTests` (13) : la cause sur chaque chemin (onglet, « Close Others », « Close
+    All », onglet flottant ancré au modèle, onglet flottant autonome, tiroir auto-masqué, fenêtre entière), la chaîne
+    refus → `ClosePanel` → `TryCloseWindow()` jusqu'à la fermeture de la fenêtre (le dernier `ClosePanel` ferme la
+    fenêtre elle-même), `RemovePanel` aveugle aux panneaux flottants, et `ClosePanel` ancré, auto-masqué, flottant avec
+    d'autres panneaux et inconnu. Les 10 tests existants sont inchangés et verts. `MGUI.Tests` 3082/3082.
+  - Mutations, chacune rougit au moins un test : N1 la fenêtre non transmise (la cause de la fenêtre entière et la
+    chaîne) ; N2 un `CancelEventArgs` simple (les 8 tests de cause) ; N3 `ClosePanel` sans les fenêtres flottantes ;
+    N4 `ClosePanel` sans le registre.
 
 ---
 
 ## Phase 2 — Éditeur : la file et les messages simples
 
-### ⏳ T2.1 — Pointeur de sous-module
+### ✅ T2.1 — Pointeur de sous-module
 
 - Objectif : le moteur référence le `MGUI` de T1.1 et T1.2.
 - Fichiers : `MGUI` (pointeur), ce plan (notes de T1.1 et T1.2).
 - Validation : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` sans erreur ;
   `CasaEngine.Tests` sans nouvel échec.
 - Commit : `chore(submodules): point MGUI at the message box and the floating-window close cause`.
+- Note (2026-09-25) : pointeur `MGUI` sur `2e037f1` (T1.1 `e061e06`, T1.2 `2e037f1`, ADR `9224a2a`). `dotnet build
+  CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` 1888/1888 (ligne de base
+  1888). Ce commit porte aussi les notes de T1.1 et T1.2.
 
 ### ⏳ T2.2 — File de boîtes de l'éditeur (D8)
 
@@ -263,8 +316,9 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
      réponse ? » (Save et enregistrement réussi → fermer ; Save raté → garder ; Don't Save → fermer ; Cancel → garder),
      sans délégué synchrone. Les 7 cas existants sont repris, plus « Save raté » et « Cancel » sur chacune des deux entrées.
   2. `OnDockHostPanelClosing` : écran modifié hors automatisation → `e.Cancel = true` et `AskSave` pour ce panneau, sauf
-     si une question est déjà en attente ou ouverte pour ce panneau. Réponse qui ferme → `RemovePanel(panelId)` (le
-     ménage passe par `PanelRemoved`, comme avant) ; puis, si `e` était un `DockPanelClosingEventArgs` avec
+     si une question est déjà en attente ou ouverte pour ce panneau. Réponse qui ferme → `ClosePanel(panel)` (corrigé
+     en T1.2 : `RemovePanel` ne voit pas un panneau flottant ; le ménage passe par `PanelRemoved`, comme avant) ; puis,
+     si `e` était un `DockPanelClosingEventArgs` avec
      `ClosingFloatingWindow` et que cette fenêtre est encore ouverte, `TryCloseWindow()` sur elle (D5). Réponse qui garde
      → rien, pas de nouvel essai. Réponse pour un panneau qui n'existe plus → ignorée.
 - Validation : tests de la décision (chaque nouveau cas échoue sous mutation) ; build ; `CasaEngine.Tests` sans nouvel
@@ -322,7 +376,8 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Icônes (avertissement, erreur, information) : pas de ressource d'icône vérifiée dans MGUI ; hors de cette version, à ajouter si l'auteur le demande. | — |
-| O2 | Chemin d'Entrée et d'Échap que l'éditeur alimente vraiment dans le bureau MGUI : à établir en T1.1 ; absent → ⚠️ Blocked. | T1.1 |
+| O2 | ~~Chemin d'Entrée et d'Échap que l'éditeur alimente vraiment dans le bureau MGUI.~~ Levé en T1.1 : chemin de navigation brut du bureau. | T1.1 |
+| O4 | Défaut latent de MGUI : `MGOverlayHost.TryRemoveOverlay` sur une surcouche ouverte ne la retire pas de `OpenOverlays` (`MGUI/MGUI.Core/UI/MGOverlay.cs:43-73`), donc elle reste `ActiveOverlay`. `MGMessageBox` le contourne en appelant `TryClose` d'abord ; la correction de `TryRemoveOverlay` est hors de ce plan (décision de l'auteur). | — |
 | O3 | Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ? Si oui, décision de l'auteur. | T3.3 |
 
 ## Hors périmètre
