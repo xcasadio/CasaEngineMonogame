@@ -458,7 +458,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 
 ## Phase 4 — Clôture
 
-### ⏳ T4.1 — Documentation et vérification finale
+### ✅ T4.1 — Documentation et vérification finale
 
 - Objectif : documenter et faire vérifier l'ensemble.
 - Fichiers : `docs/editor/` (page courte sur les boîtes de l'éditeur : file, libellés, automatisation, sélecteurs natifs
@@ -467,6 +467,21 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Validation : validation globale verte ; vérificateur **CONFIRMED**. Smoke de l'auteur restant, repris des tâches 🧪 :
   T1.1 (sample), T2.3, T3.1, T3.2, T3.3.
 - Commit : `docs(editor): document the MGUI message boxes`.
+- Note (2026-09-25) :
+  - Documentation : `docs/editor/editor-message-boxes.md` (en anglais) et son entrée dans `docs/README.md`.
+  - ADR-0039 corrigée sur un point : la fermeture par code passe par `MGDockHost.ClosePanel`, pas par `RemovePanel`
+    (voir T1.2). La correction est écrite en toutes lettres dans l'ADR.
+  - **Vérificateur de clôture, frais, sur tout le chantier : CONFIRMED**, aucun constat P0–P2. Il a vérifié le moteur
+    `724b5da5` et MGUI `bb0201d`.
+  - Il a reproduit : `MGUI.Tests` 3083/3083 ; `MGUI.Samples`, `CasaEngine.MonoGame.sln` et
+    `CasaEngine.Editor.MonoGame.sln` sans erreur ; `CasaEngine.Tests` 1931/1931 ; le `rg` des boîtes natives vide.
+  - Il n'a trouvé aucune autre boîte native, dans l'éditeur, le lanceur et les sous-modules.
+  - Il a décompilé MonoGame DesktopGL 3.8.5.1 : `Game.Exit()` ne fait que lever un drapeau, `OnExiting` passe en fin
+    de frame et respecte `Cancel`, et la croix de la fenêtre appelle aussi `Exit()`. Relancer `Exit()` depuis un
+    rappel n'est donc pas réentrant.
+  - Il a relu la doc et la correction de l'ADR : conformes au code.
+  - Quatre avis P4, reportés (O5 élargi, O8, O9 ; le troisième, la liste de « Quit » figée, est déjà dans la doc).
+  - Restent les clics de l'auteur listés dans les tâches 🧪.
 
 ---
 
@@ -476,11 +491,13 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 |---|---|---|
 | O1 | Icônes (avertissement, erreur, information) : pas de ressource d'icône vérifiée dans MGUI ; hors de cette version, à ajouter si l'auteur le demande. | — |
 | O2 | ~~Chemin d'Entrée et d'Échap que l'éditeur alimente vraiment dans le bureau MGUI.~~ Levé en T1.1 : chemin de navigation brut du bureau. | T1.1 |
-| O5 | Avis P4 du vérificateur de T3.1, reporté : si `MGMessageBox.Show` levait, `ModifiedScreenCloseCoordinator` garderait la question « en attente » et refuserait ensuite toute fermeture de cet écran. `Show` ne lève que sur de mauvais arguments ou un hôte de surcouche non modal ; l'éditeur passe des libellés fixes et l'hôte modal par défaut. À revoir si ce réglage change. | T3.1 |
+| O3 | ~~Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ?~~ Non, levé le 2026-09-25 : `RunAutomation` n'ouvre son asset (`TryApplyAutomationAssetOpen`, une fois) qu'au début de la séquence, juste après le chargement du monde et avant toute étape qui le modifie ; l'asset de démarrage ne s'ouvre que hors automatisation (`TryOpenStartupAssetIfRequested`). | T3.3 |
+| O4 | Défaut latent de MGUI : `MGOverlayHost.TryRemoveOverlay` sur une surcouche ouverte ne la retire pas de `OpenOverlays` (`MGUI/MGUI.Core/UI/MGOverlay.cs:43-73`), donc elle reste `ActiveOverlay`. `MGMessageBox` le contourne en appelant `TryClose` d'abord ; la correction de `TryRemoveOverlay` est hors de ce plan (décision de l'auteur). | — |
+| O5 | Avis P4 du vérificateur de T3.1, reporté : si `MGMessageBox.Show` levait, `ModifiedScreenCloseCoordinator` garderait la question « en attente » et refuserait ensuite toute fermeture de cet écran. Le vérificateur de clôture relève le même cas pour la question « Quit » (`ModifiedScreensExitCoordinator`) et pour `_worldOpenQuestionPending` : la sortie serait toujours annulée, ou l'ouverture d'un monde modifié ignorée. `Show` ne lève que sur de mauvais arguments ou un hôte de surcouche non modal ; l'éditeur passe des libellés fixes et l'hôte modal par défaut. À revoir si ce réglage change. | T3.1 |
 | O6 | Avis P4 du vérificateur de T3.1, reporté : un écran rouvert sous le même identifiant pendant que sa question attend serait enregistré par Save, puis `ClosePanel` échouerait avec un avertissement (aucune perte). La boîte modale rend ce cas difficile à atteindre. | T3.1 |
 | O7 | Avis P4 du vérificateur de T3.1, reporté : pas de test de `ClosePanel` sur une fenêtre flottante autonome (non suivie par l'hôte, que l'éditeur ne crée pas) ; fermeture sans frame intermédiaire vérifiée à la lecture seulement. | T1.2 |
-| O4 | Défaut latent de MGUI : `MGOverlayHost.TryRemoveOverlay` sur une surcouche ouverte ne la retire pas de `OpenOverlays` (`MGUI/MGUI.Core/UI/MGOverlay.cs:43-73`), donc elle reste `ActiveOverlay`. `MGMessageBox` le contourne en appelant `TryClose` d'abord ; la correction de `TryRemoveOverlay` est hors de ce plan (décision de l'auteur). | — |
-| O3 | ~~Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ?~~ Non, levé le 2026-09-25 : `RunAutomation` n'ouvre son asset (`TryApplyAutomationAssetOpen`, une fois) qu'au début de la séquence, juste après le chargement du monde et avant toute étape qui le modifie ; l'asset de démarrage ne s'ouvre que hors automatisation (`TryOpenStartupAssetIfRequested`). | T3.3 |
+| O8 | Avis P4 du vérificateur de clôture, reporté : un `ContentBrowserPanel` ou un `ProjectLauncherWindow` construit par son constructeur public (sans la file partagée) tient sa propre file ; les boîtes s'empilent alors (ce que `MGMessageBox` sait faire). L'éditeur passe toujours la file partagée. | T2.3 |
+| O9 | Avis P4 du vérificateur de clôture, spéculatif, reporté : si Entrée ouvrait un monde depuis le Content Browser et que la répétition de la touche atteignait la nouvelle boîte, elle répondrait « Save » (non destructif). À observer dans l'éditeur, Entrée tenue. | T3.3 |
 
 ## Hors périmètre
 

@@ -31,7 +31,9 @@
 - The editor keeps a queue of message boxes: only one is open at a time, the next opens when the previous closes.
   The queue lives in the editor, not in MGUI.
 - The three save prompts become asynchronous. Closing a modified screen: the close is refused, the question is
-  asked, then the panel is removed by code (`MGDockHost.RemovePanel`) when the answer lets it close. Quitting: the
+  asked, then the panel is closed by code (`MGDockHost.ClosePanel`, added by MGUI ADR-0018; first written here as
+  `RemovePanel`, corrected during the same chantier when a test showed `RemovePanel` does not see floating panels)
+  when the answer lets it close. Quitting: the
   exit is cancelled, the question is asked, then `Exit()` is called again once the answer lets it proceed.
   Opening a world: the open resumes in the answer's callback.
 - Several modified screens closed at once ("Close Others", "Close All"): one box per screen, one after the other;
