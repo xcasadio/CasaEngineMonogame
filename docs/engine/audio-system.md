@@ -2,7 +2,7 @@
 
 Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture sont figées dans
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
-Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md) and [ADR-0039](../decisions/0039-software-stereo-voices.md).
+Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md) and [ADR-0040](../decisions/0040-project-audio-mute-setting.md).
 
 ---
 
@@ -168,6 +168,25 @@ Limites (voir [ADR-0039](../decisions/0039-software-stereo-voices.md)) :
 - La boucle reprend le clip entier, sans points de boucle.
 - Le PCM mono de chaque clip chargé est gardé deux fois (dans le `SoundEffect` et pour la voix
   stéréo).
+
+---
+
+## 5 ter. Muet projet
+
+Le mute est un **réglage projet**, pas un réglage utilisateur local (ADR-0040) : la clé
+`IsAudioMuted` du fichier `.json` du projet mute le bus `Master`. Absente, elle vaut `false` ;
+elle n'est écrite dans le fichier que si elle vaut `true`, donc un projet non muet garde un
+fichier identique au bit près.
+
+Appliquée au démarrage (le runtime charge le projet avant de créer `AudioSystemComponent`) et, côté
+éditeur, à chaque ouverture de projet — muter `Master` coupe donc aussi les previews de l'éditeur,
+puisque le bus `Editor` en descend. Accès en jeu :
+
+```csharp
+game.AudioSystemComponent.IsMuted = true; // mute Master et répercute dans les réglages projet
+```
+
+Pas d'interface utilisateur : le réglage s'édite dans le fichier projet.
 
 ---
 

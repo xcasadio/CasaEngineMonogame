@@ -126,7 +126,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   - borne par `Update` retirée (test arrêté par `--blame-hang-timeout`) ;
   - double arrondi remis.
 
-### ⏳ T3 — Son coupé, réglage du projet
+### 🧪 T3 — Son coupé, réglage du projet — fait le 2026-09-25, contrôle éditeur en attente
 
 - Objectif : D4.
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs`, `ProjectSettingsHelper.cs` ; `CasaEngine/Framework/Application/Components/AudioSystemComponent.cs` ; un abonné `IDisposable` dans `CasaEngine.EditorServices/` ; `CasaEngine.Editor/GameEditor.cs` (création de l'abonné juste après le runtime hébergé, `:1029`, et libération) ; tests ; `docs/engine/audio-system.md`.
@@ -144,6 +144,35 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   3. Mutations en vrai : réglage non appliqué au bus ; clé écrite même fausse ; abonnement retiré de l'abonné ; lecture sur la mauvaise instance si les deux diffèrent. La ligne de câblage de `GameEditor` n'est couverte par aucun test : le dire dans la note.
 - Validation : builds ; tests verts ; en direct, Launcher et éditeur sur un projet coupé puis non coupé. Si l'agent ne peut pas faire un contrôle en direct : 🧪 avec ce qui manque.
 - Commit : `feat(audio): mute the whole mix from the project settings`
+
+**Note de validation (2026-09-25) : 🧪, il manque le contrôle en direct de l'éditeur.**
+
+- **Implémentation.** Par un exécuteur :
+  - `ProjectSettings.IsAudioMuted`, lu avec `?? false` et écrit seulement s'il est vrai ;
+  - `ProjectAudioSettings` (`Apply`, `SetMuted`), avec une ligne de journal quand un projet coupe le son ;
+  - `AudioSystemComponent` applique le réglage à sa construction, et gagne `IsMuted` ;
+  - `EditorProjectAudioMuteSync` dans `CasaEngine.EditorServices`, créé par `GameEditor` après `InitializeHost`.
+- **Relectures.** Deux relectures indépendantes en lecture seule. La relecture « sérialisation » n'a rien trouvé. La
+  relecture « séparation et cycle de vie » classait P1 l'absence de test de nullité sur `AudioSystemComponent` dans
+  `GameEditor`. Scénario inatteignable, donc reclassé P4 : `CasaEngineGame.Initialize` crée ce composant sans
+  condition (`CasaEngineGame.cs:366`), et son constructeur se rabat sur `NullAudioBackend`. Le test de nullité est
+  ajouté quand même, par cohérence avec les accès `?.` du reste de l'éditeur.
+- **Instance lue par l'abonné.** L'émetteur de `ProjectLoaded`, c'est-à-dire `GameSettings.ProjectSettings`.
+  `GameEditor` appelle `LoadProject(fileName)` sans contexte, et `FromGlobals` enveloppe cette même instance.
+- **Builds et tests.** Les deux solutions : 0 erreur. `CasaEngine.Tests` **1914 / 1914** (1904 + 10), dont
+  `EditorProjectAudioMuteSyncTests`, qui passe par le vrai `LoadProject`.
+- **Mutations réelles**, toutes tuées : `Apply` ne coupe pas le bus ; clé écrite même fausse ; chargement sans la clé
+  qui garde l'ancienne valeur ; abonnement à `ProjectLoaded` retiré ; lecture sur une autre instance que celle
+  chargée.
+- **Runtime en direct.** `CasaEngine.Demos` : `"IsAudioMuted": true` ajouté temporairement à
+  `Content/DemosGame.json` (fichier restauré, SHA-1 identique), démo audio capturée par back-buffer. Résultat :
+  « Master volume 1,00 muted True gain 0,00 », tous les bus à gain 0, et « The project settings mute the Master audio
+  bus » dans `log.txt`. Sans la clé : « muted False ».
+- **Éditeur en direct : non observable par l'agent.** Le projet Alundra du worktree a été ouvert coupé
+  (`--project`, fichier restauré à l'octet), et l'éditeur s'ouvre et se ferme proprement. Mais l'éditeur n'écrit
+  aucun fichier de journal, son panneau Logs reste vide en automatisation, et son tampon de diagnostics ne reçoit pas
+  les `Logs.*`. La ligne de câblage de `GameEditor` n'est couverte par aucun test ; le contrôle passe à la recette
+  T5.3 du plan parent.
 
 ---
 
