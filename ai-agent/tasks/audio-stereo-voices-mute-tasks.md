@@ -56,7 +56,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 - Les deux solutions buildent sans erreur.
 - `CasaEngine.Tests` : 1888 + les nouveaux tests, zéro échec.
-- Vérificateur frais sur T2 et T3 (tranche T1.4 du plan parent).
+- Vérificateur frais sur T2 et T3 (tranche T1.4 du plan parent) : **CONFIRMED** le 2026-09-25, sur `7968a608`, `7c017ae5`, `af5246ca`. Builds rejoués (0 erreur), `CasaEngine.Tests` 1914 / 1914 rejoué. Aucun constat P0 à P2 ; deux remarques reportées (O1, O2).
 - En direct : Launcher et éditeur sur un projet coupé puis non coupé (T3).
 
 ---
@@ -180,7 +180,8 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| — | Aucun à l'ouverture. | — |
+| O1 | Remarque A1 du vérificateur (P3, reportée) : `GetVoiceStereoGains` interroge seulement l'entrée du mélangeur, sans demander au service si la voix vit encore. Après `Stop`, `StopAll` ou `StopVoicesOwnedBy`, il rend encore `true` et les anciens gains jusqu'au `Update` suivant ; après `Dispose`, pour toujours. Correctif possible : tester `AudioService.IsAlive` dans `GetVoiceStereoGains`/`SetVoiceStereoGains`, avec un test avant `Update` et après `Dispose`. Sans effet sur le portage Alundra, qui écarte les voix mortes avant tout remix. | T2 |
+| O2 | Remarque A2 du vérificateur (P4, reportée) : dans une session d'éditeur normale, `EditorProjectAudioMuteSync` s'abonne pendant le premier `ProjectLoaded` et manque cet événement. Le comportement reste juste : le constructeur d'`AudioSystemComponent` applique le réglage déjà chargé. La phrase « à chaque `ProjectLoaded` » décrit le mécanisme de façon un peu inexacte. | T3 |
 
 ## Hors périmètre
 
