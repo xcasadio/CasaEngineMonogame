@@ -133,6 +133,9 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0039).</summary>
     private EditorMessageBoxes _messageBoxes;
 
+    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0039, D4, D5).</summary>
+    private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
+
     // ── Main editor window ─────────────────────────────────────────────
     private MGWindow _mainWindow;
     private MGDockPanel _rootPanel;
@@ -367,6 +370,12 @@ public class GameEditor : Game, IObservableUpdate
         _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
         _desktop.LoadDefaultResources();
         _messageBoxes = new EditorMessageBoxes(_desktop);
+        _modifiedScreenCloseCoordinator = new ModifiedScreenCloseCoordinator(
+            isModified: panelId => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId)),
+            isAutomationActive: () => _automationOptions.HasAutomation,
+            ask: AskSaveBeforeClosingScreen,
+            isScreenOpen: panelId => TryGetUIScreenPreviewPanel(panelId, out _),
+            trySave: TrySaveScreenDocumentBeforeClose);
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
@@ -2559,39 +2568,74 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17): asks whether to save a modified screen document before a USER close removes its
-    /// panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close
-    /// button, "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close,
-    /// and closing a whole floating window; never for <c>RemovePanel</c> or <c>CloseFloatingWindow</c>
-    /// called by application code). Only screen panels are considered; every other kind of panel closes
-    /// unconditionally, exactly as before this event existed.
+    /// T4.5 (D17), made asynchronous by ADR-0039: asks whether to save a modified screen document before a USER close
+    /// removes its panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close button,
+    /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
+    /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
+    /// application code). The MGUI question answers later, so <see cref="_modifiedScreenCloseCoordinator"/> refuses the
+    /// close now and redoes it by code once the answer lets it go. Only screen panels are considered; every other kind of
+    /// panel closes unconditionally, exactly as before this event existed.
     /// </summary>
     private void OnDockHostPanelClosing(object sender, CancelEventArgs<DockPanelNode> e)
     {
-        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out var previewPanel))
+        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out _))
         {
             return;
         }
 
-        string panelId = e.Data.Id;
-        var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId);
-        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+        DockPanelNode panel = e.Data;
+        MGFloatingDockWindow closingWindow = (e as DockPanelClosingEventArgs)?.ClosingFloatingWindow;
+        Action retryWindowClose = closingWindow == null ? null : () => RetryFloatingWindowClose(closingWindow);
 
-        var result = ModifiedScreenCloseDecision.Decide(
-            isModified: _editorDirtyState.IsDirty(historyContext),
-            isAutomationActive: _automationOptions.HasAutomation,
-            askUser: () => ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
-                $"Save changes to '{title}' before closing?",
-                "Close Screen",
-                System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-                System.Windows.Forms.MessageBoxIcon.Warning)),
-            trySave: () => TrySaveScreenDocument(panelId, previewPanel, historyContext));
-
-        if (!result.ShouldProceed)
+        if (_modifiedScreenCloseCoordinator.OnClosing(panel.Id, () => CloseScreenPanelAfterAnswer(panel), retryWindowClose))
         {
             e.Cancel = true;
         }
     }
+
+    private void AskSaveBeforeClosingScreen(string panelId, Action<ModifiedScreenCloseDecision.Answer> answered)
+    {
+        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+        _messageBoxes.AskSave("Close Screen", $"Save changes to '{title}' before closing?",
+            answer => answered(ToModifiedScreenCloseAnswer(answer)));
+    }
+
+    private bool TrySaveScreenDocumentBeforeClose(string panelId)
+        => TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
+           && TrySaveScreenDocument(panelId, previewPanel, new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+
+    /// <summary>Closes a screen panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
+    /// finds the panel wherever it is, floating windows included; its <see cref="MGDockHost.PanelRemoved"/> runs
+    /// <see cref="OnDockHostPanelRemoved"/>, as the user's close did.</summary>
+    private bool CloseScreenPanelAfterAnswer(DockPanelNode panel)
+    {
+        if (_dockHost?.ClosePanel(panel) == true)
+        {
+            return true;
+        }
+
+        Logs.WriteWarning($"Cannot close screen '{panel.Title}': the dock host no longer holds its panel.");
+        return false;
+    }
+
+    /// <summary>D5: retries the close of a whole floating window refused for a modified screen, once that screen is closed:
+    /// the retry asks about the window's next modified screen. Closing the window's last panel closes the window itself
+    /// (MGUI ADR-0018), in which case there is nothing to retry.</summary>
+    private void RetryFloatingWindowClose(MGFloatingDockWindow window)
+    {
+        if (_dockHost != null && _dockHost.FloatingWindows.Contains(window))
+        {
+            window.TryCloseWindow();
+        }
+    }
+
+    private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(EditorSaveAnswer answer)
+        => answer switch
+        {
+            EditorSaveAnswer.Save => ModifiedScreenCloseDecision.Answer.Yes,
+            EditorSaveAnswer.DontSave => ModifiedScreenCloseDecision.Answer.No,
+            _ => ModifiedScreenCloseDecision.Answer.Cancel,
+        };
 
     private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(System.Windows.Forms.DialogResult dialogResult)
         => dialogResult switch

@@ -328,7 +328,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 
 ## Phase 3 — Éditeur : les questions d'enregistrement en asynchrone
 
-### ⏳ T3.1 — Fermer un écran modifié (D4, D5, D6)
+### 🧪 T3.1 — Fermer un écran modifié (D4, D5, D6)
 
 - Objectif : `OnDockHostPanelClosing` refuse toujours la fermeture d'un écran modifié hors automatisation, pose la
   question, puis ferme par code selon la réponse.
@@ -349,6 +349,22 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   avec deux écrans modifiés (Cancel sur le premier le garde et la question du second vient) ; une fenêtre flottante avec
   deux écrans modifiés (Save puis Don't Save → la fenêtre se ferme ; Cancel → elle reste) ; le tiroir auto-masqué.
 - Commit : `feat(editor): ask to save a closing screen in an MGUI message box`.
+- Note (2026-09-25) :
+  - `ModifiedScreenCloseDecision` gagne `NeedsAnswer` et `ApplyAnswer`, ajoutés sans casser l'API : `Decide` reste
+    public, les réutilise, et ses 7 tests sont inchangés. Il sert encore à `OnExiting` jusqu'à T3.2.
+  - Le flux asynchrone vit dans `ModifiedScreenCloseCoordinator`, une classe pure (`CasaEngine.Editor/History`) : refus
+    immédiat et question unique par écran ; à la réponse, rien si l'écran a disparu, sinon `ApplyAnswer`, puis
+    fermeture par code, puis nouvelle tentative de la fenêtre flottante seulement si l'écran a été fermé.
+  - `GameEditor.OnDockHostPanelClosing` ne fait que brancher : `AskSave` « Close Screen », `ClosePanel(panel)`, et
+    `TryCloseWindow()` sur `ClosingFloatingWindow` si l'hôte la suit encore.
+  - Tests : 9 dans `ModifiedScreenCloseDecisionTests` (`NeedsAnswer` et `ApplyAnswer`) et 15 dans
+    `ModifiedScreenCloseCoordinatorTests`. Ceux-ci couvrent Save, Save raté, Don't Save, Cancel, l'écran disparu,
+    la double fermeture, la double réponse, « Close All » avec Cancel sur un écran, et la fenêtre flottante entière
+    avec ses trois enchaînements.
+  - Mutations C1 à C6 : chacune rougit au moins un test (pas de dédoublonnage, pas de contrôle d'écran ouvert, nouvelle
+    tentative même si l'écran est gardé, question jamais soldée, fermeture jamais refusée, automatisation ignorée).
+  - Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1921/1921.
+  - **Reste 🧪** : les clics de l'auteur (liste ci-dessus) et le vérificateur frais sur T1.2 + T3.1.
 
 ### ⏳ T3.2 — Quitter avec des écrans modifiés (D6)
 

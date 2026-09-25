@@ -121,4 +121,56 @@ public class ModifiedScreenCloseDecisionTests
             Assert.Equal(1, askCount);
         }
     }
+
+    // ── ADR-0039: the two halves an asynchronous caller uses ─────────────────
+
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public void NeedsAnswer_OnlyForAModifiedDocument_OutsideAutomation(bool isModified, bool isAutomationActive, bool expected)
+        => Assert.Equal(expected, ModifiedScreenCloseDecision.NeedsAnswer(isModified, isAutomationActive));
+
+    [Fact]
+    public void ApplyAnswer_YesAndSaved_Proceeds_AfterSavingOnce()
+    {
+        int saveCount = 0;
+        var result = ModifiedScreenCloseDecision.ApplyAnswer(ModifiedScreenCloseDecision.Answer.Yes, () => { saveCount++; return true; });
+
+        Assert.True(result.ShouldProceed);
+        Assert.True(result.SaveAttempted);
+        Assert.Equal(1, saveCount);
+    }
+
+    [Fact]
+    public void ApplyAnswer_YesButSaveFails_Cancels()
+    {
+        var result = ModifiedScreenCloseDecision.ApplyAnswer(ModifiedScreenCloseDecision.Answer.Yes, () => false);
+
+        Assert.False(result.ShouldProceed);
+        Assert.True(result.SaveAttempted);
+    }
+
+    [Fact]
+    public void ApplyAnswer_No_Proceeds_WithoutSaving()
+    {
+        var result = ModifiedScreenCloseDecision.ApplyAnswer(ModifiedScreenCloseDecision.Answer.No, SaveThrows());
+
+        Assert.True(result.ShouldProceed);
+        Assert.False(result.SaveAttempted);
+    }
+
+    [Fact]
+    public void ApplyAnswer_Cancel_Cancels_WithoutSaving()
+    {
+        var result = ModifiedScreenCloseDecision.ApplyAnswer(ModifiedScreenCloseDecision.Answer.Cancel, SaveThrows());
+
+        Assert.False(result.ShouldProceed);
+        Assert.False(result.SaveAttempted);
+    }
+
+    [Fact]
+    public void ApplyAnswer_Yes_WithoutASaveFunction_FailsEarly()
+        => Assert.Throws<ArgumentNullException>(() => ModifiedScreenCloseDecision.ApplyAnswer(ModifiedScreenCloseDecision.Answer.Yes, null));
 }
