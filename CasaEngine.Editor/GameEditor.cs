@@ -139,6 +139,9 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0039).</summary>
     private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
 
+    /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0039).</summary>
+    private bool _worldOpenQuestionPending;
+
     // ── Main editor window ─────────────────────────────────────────────
     private MGWindow _mainWindow;
     private MGDockPanel _rootPanel;
@@ -4205,7 +4208,13 @@ public class GameEditor : Game, IObservableUpdate
         return false;
     }
 
-    private bool TryOpenWorldAsset(string fullPath)
+    private bool TryOpenWorldAsset(string fullPath) => OpenWorldAsset(fullPath, unsavedChangesHandled: false);
+
+    /// <summary>Opens a world asset in the World document. When the current world is modified and
+    /// <paramref name="unsavedChangesHandled"/> is false, asks whether to save it first and returns false: the MGUI
+    /// question answers later (ADR-0039), and the answer calls this again with <paramref name="unsavedChangesHandled"/>
+    /// true (saved, or Don't Save), which redoes every other check.</summary>
+    private bool OpenWorldAsset(string fullPath, bool unsavedChangesHandled)
     {
         var gameManager = _editorRuntime?.GameManager;
         if (gameManager == null || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
@@ -4239,9 +4248,9 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         var worldHistoryContext = new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
-        if (_editorDirtyState.IsDirty(worldHistoryContext)
-            && !ConfirmSaveBeforeOpeningWorld(worldHistoryContext, Path.GetFileNameWithoutExtension(assetInfo.FileName)))
+        if (!unsavedChangesHandled && _editorDirtyState.IsDirty(worldHistoryContext))
         {
+            AskSaveBeforeOpeningWorld(fullPath, worldHistoryContext, Path.GetFileNameWithoutExtension(assetInfo.FileName));
             return false;
         }
 
@@ -4276,24 +4285,35 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    private bool ConfirmSaveBeforeOpeningWorld(EditorHistoryContext worldHistoryContext, string worldName)
+    /// <summary>Asks whether to save the project before opening another world (ADR-0039). Save opens it only once the
+    /// world is saved; Don't Save opens it and drops the changes; Cancel keeps the current world. One question at a time:
+    /// a request made while it waits is ignored.</summary>
+    private void AskSaveBeforeOpeningWorld(string fullPath, EditorHistoryContext worldHistoryContext, string worldName)
     {
-        var answer = System.Windows.Forms.MessageBox.Show(
-            $"The current world has unsaved changes.\n\nSave the project before opening '{worldName}'?",
+        if (_worldOpenQuestionPending)
+        {
+            return;
+        }
+
+        _worldOpenQuestionPending = true;
+        _messageBoxes.AskSave(
             "Open World",
-            System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-            System.Windows.Forms.MessageBoxIcon.Warning);
+            $"The current world has unsaved changes.\n\nSave the project before opening '{worldName}'?",
+            answer =>
+            {
+                _worldOpenQuestionPending = false;
+                var result = ModifiedScreenCloseDecision.ApplyAnswer(
+                    ToModifiedScreenCloseAnswer(answer),
+                    () => TrySaveProjectBeforeOpeningWorld(worldHistoryContext));
+                if (result.ShouldProceed)
+                {
+                    OpenWorldAsset(fullPath, unsavedChangesHandled: true);
+                }
+            });
+    }
 
-        if (answer == System.Windows.Forms.DialogResult.No)
-        {
-            return true;
-        }
-
-        if (answer != System.Windows.Forms.DialogResult.Yes)
-        {
-            return false;
-        }
-
+    private bool TrySaveProjectBeforeOpeningWorld(EditorHistoryContext worldHistoryContext)
+    {
         try
         {
             SaveCurrentProject();

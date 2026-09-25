@@ -424,7 +424,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   - **Reste 🧪** : File > Exit et la croix de la fenêtre, chacun avec Save, Don't Save et Cancel. Seul un lancement
     réel prouve que `Exit()` relancé après une annulation ferme bien l'éditeur sous DesktopGL.
 
-### ⏳ T3.3 — Ouvrir un monde quand le monde courant est modifié (D6)
+### 🧪 T3.3 — Ouvrir un monde quand le monde courant est modifié (D6)
 
 - Objectif : `ConfirmSaveBeforeOpeningWorld` devient une question asynchrone ; l'ouverture continue dans le rappel.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`.
@@ -436,6 +436,23 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Validation : build ; `CasaEngine.Tests` sans nouvel échec ; `rg` de la validation globale sans résultat. 🧪 pour
   l'auteur : ouvrir un monde avec le monde courant modifié, avec chaque réponse.
 - Commit : `feat(editor): ask to save the world before opening another in an MGUI message box`.
+- Note (2026-09-25) :
+  - `TryOpenWorldAsset` (la route) appelle `OpenWorldAsset(fullPath, unsavedChangesHandled: false)`. Avec un monde
+    modifié, `AskSaveBeforeOpeningWorld` pose « Open World » et rend `false`.
+  - La réponse passe par `ModifiedScreenCloseDecision.ApplyAnswer`, déjà testé :
+    - Save appelle `TrySaveProjectBeforeOpeningWorld`, l'ancien corps de `ConfirmSaveBeforeOpeningWorld`, inchangé ;
+    - si l'enregistrement réussit, et sur Don't Save, le monde s'ouvre avec `OpenWorldAsset(fullPath, true)`, qui
+      refait toutes les autres vérifications (catalogue, mode Play, même monde) ;
+    - Cancel ou un enregistrement raté ne font rien.
+  - Une seule question à la fois (`_worldOpenQuestionPending`).
+  - O3 levé (voir « Points ouverts ») : aucun chemin d'automatisation n'arrive ici avec un monde modifié.
+  - Aucun test ajouté : le flux reste dans `GameEditor` (runtime GPU), et la décision est celle d'`ApplyAnswer`, déjà
+    couverte.
+  - Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1931/1931.
+  - `rg "System.Windows.Forms.MessageBox|FormsMessageBox|MessageBoxButtons|MessageBoxIcon" CasaEngine.Editor` ne
+    rend plus rien. `DialogResult` ne reste que pour les sélecteurs natifs gardés (D2) : `ProjectLauncherWindow.cs`
+    Browse et dossier, `ContentBrowserPanel.cs` Import. La commande de la validation globale l'incluait à tort.
+  - **Reste 🧪** : ouvrir un monde quand le monde courant est modifié, avec chaque réponse.
 
 ---
 
