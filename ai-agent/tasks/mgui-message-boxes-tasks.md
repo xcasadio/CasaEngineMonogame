@@ -10,6 +10,11 @@ enchaînée, corrigé dans T1.1, puis READY). Décisions : ADR-0041 (moteur) et 
 L'ADR du moteur a été écrite sous le numéro 0039, puis renumérotée **0041** le 2026-09-25 au moment du merge dans
 `main`, où le chantier audio avait déjà pris 0039 et 0040. Les mentions « ADR-0039 » de ce plan écrites avant le
 renommage ont été remplacées.
+**Fusionné** le 2026-09-25 à la demande de l'auteur. MGUI : chantier et correctif O4 dans `develop` (`7a801e8`).
+Moteur : dans `main` (`60635e0e`), après intégration de `main`, qui porte le chantier audio (`8616c463`) : les deux
+solutions sans erreur, `CasaEngine.Tests` 1957/1957. Push de `develop` (MGUI) et de `main` (moteur) à faire par
+l'auteur : le hook du dépôt refuse tout `git push`. Les vérifications à la main (tâches 🧪) restent à faire : le
+contrôle du bureau n'est pas disponible dans la session qui a fusionné.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
