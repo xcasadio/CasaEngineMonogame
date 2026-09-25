@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using CasaEngine.Editor.Controls;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Newtonsoft.Json;
@@ -24,6 +25,7 @@ public class ProjectLauncherWindow
     private readonly MGWindow _parentWindow;
     private readonly Action<string> _requestOpenProject;
     private readonly Action<string, string> _requestCreateProject;
+    private readonly EditorMessageBoxes _messageBoxes;
     private MGWindow _launcherWindow;
     private MGListBox<string> _recentList;
     private List<string> _recentProjects;
@@ -32,10 +34,21 @@ public class ProjectLauncherWindow
         MGWindow parentWindow,
         Action<string> requestOpenProject,
         Action<string, string> requestCreateProject)
+        : this(parentWindow, requestOpenProject, requestCreateProject, null)
+    {
+    }
+
+    /// <param name="messageBoxes">The editor's shared message box queue (ADR-0039); null gives this launcher a queue of its own.</param>
+    internal ProjectLauncherWindow(
+        MGWindow parentWindow,
+        Action<string> requestOpenProject,
+        Action<string, string> requestCreateProject,
+        EditorMessageBoxes messageBoxes)
     {
         _parentWindow = parentWindow;
         _requestOpenProject = requestOpenProject;
         _requestCreateProject = requestCreateProject;
+        _messageBoxes = messageBoxes ?? new EditorMessageBoxes(parentWindow.Desktop);
     }
 
     public void Show()
@@ -138,11 +151,9 @@ public class ProjectLauncherWindow
     {
         if (!File.Exists(fileName))
         {
-            MessageBox.Show(
-                $"Project file not found:\n{fileName}\n\nIt will be removed from the recent list.",
+            _messageBoxes.ShowMessage(
                 "File Not Found",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning);
+                $"Project file not found:\n{fileName}\n\nIt will be removed from the recent list.");
 
             _recentProjects.Remove(fileName);
             _recentList.SetItemsSource(_recentProjects.ToList());
@@ -207,7 +218,7 @@ public class ProjectLauncherWindow
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(path))
             {
-                MessageBox.Show("Please enter a project name and path.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _messageBoxes.ShowMessage("Validation", "Please enter a project name and path.");
                 return;
             }
 
@@ -219,7 +230,7 @@ public class ProjectLauncherWindow
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Cannot create directory:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _messageBoxes.ShowMessage("Error", $"Cannot create directory:\n{ex.Message}");
                     return;
                 }
             }

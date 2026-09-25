@@ -1297,7 +1297,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (_contentBrowserPanel == null)
         {
-            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime);
+            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime, _messageBoxes);
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Sound", CreateSoundAssetInFolder);
@@ -2186,7 +2186,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ShowProjectLauncher()
     {
-        var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate);
+        var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate, _messageBoxes);
         launcher.Show();
     }
 
@@ -2212,12 +2212,8 @@ public class GameEditor : Game, IObservableUpdate
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(
-                    $"Failed to open project:\n{ex.Message}",
-                    "Error",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Error);
-                OpenProjectLauncher();
+                // The launcher comes back once the message is dismissed, as it did after the native box.
+                _messageBoxes.ShowMessage("Error", $"Failed to open project:\n{ex.Message}", OpenProjectLauncher);
             }
         };
     }
@@ -2232,12 +2228,8 @@ public class GameEditor : Game, IObservableUpdate
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(
-                    $"Failed to create project:\n{ex.Message}",
-                    "Error",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Error);
-                OpenProjectLauncher();
+                // The launcher comes back once the message is dismissed, as it did after the native box.
+                _messageBoxes.ShowMessage("Error", $"Failed to create project:\n{ex.Message}", OpenProjectLauncher);
             }
         };
     }

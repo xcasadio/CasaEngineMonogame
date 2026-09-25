@@ -294,7 +294,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   réponse réussit, suite toujours montrée, `Enqueue` qui montre même si une boîte est ouverte) : chacune rougit au moins
   un test. Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1897/1897.
 
-### ⏳ T2.3 — Messages et confirmations de suppression (D1, D9)
+### 🧪 T2.3 — Messages et confirmations de suppression (D1, D9)
 
 - Objectif : les 8 messages OK et les 2 confirmations de suppression passent par la file.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs` (`QueueProjectOpen`, `QueueProjectCreate` : le lanceur se rouvre dans le
@@ -309,6 +309,20 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   d'enregistrement). 🧪 pour l'auteur : supprimer un élément (Yes et No), Properties, un projet récent disparu, un
   nouveau projet sans nom.
 - Commit : `feat(editor): show editor messages and delete confirmations in MGUI`.
+- Note (2026-09-25) : les 10 appels passent par `EditorMessageBoxes`.
+  - Les suppressions (un ou N éléments) s'exécutent dans le rappel « Yes » (`DeleteItem`, `DeleteItems`).
+  - Après une erreur d'ouverture ou de création de projet, le lanceur se rouvre dans le rappel de la boîte.
+  - Les titres des boîtes natives sont gardés (« Content Browser », « File Not Found », « Validation », « Error »,
+    « Properties - <nom> »).
+  - API : les constructeurs publics de `ContentBrowserPanel` et `ProjectLauncherWindow` gardent leur signature et
+    créent leur propre file. Seuls les constructeurs internes reçoivent la file partagée de `GameEditor`.
+  - Alias `FormsMessageBox`, `FormsMessageBoxButtons` et `FormsMessageBoxIcon` retirés. `FormsDialogResult` est gardé
+    (sélecteur d'import), tout comme `using System.Windows.Forms` du lanceur (sélecteurs natifs, D2).
+  - `rg "MessageBox.Show" CasaEngine.Editor` ne rend plus que les trois questions d'enregistrement de `GameEditor.cs`
+    et `MGMessageBox.Show` dans `EditorMessageBoxes.cs`.
+  - Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1897/1897. Aucun test ajouté : ce sont des appels
+    d'UI qui demandent le runtime GPU de l'éditeur ; la file est testée en T2.2.
+  - **Reste 🧪** : les vrais clics de l'auteur (liste de la tâche).
 
 ---
 
