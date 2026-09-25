@@ -388,6 +388,21 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   - Aucun chemin ne ferme sans Save ni Don't Save.
   - Trois avis P4, reportés (O5, O6, O7). Un point non vérifiable par lecture, « le clic qui répond atteint-il ce qui est
     dessous ? », est désormais épinglé par un test MGUI (note de T1.1).
+- **Défaut trouvé par l'auteur au premier clic réel (2026-09-25)**, après le merge et le push.
+  - Symptôme : Don't Save sur un écran modifié ne ferme pas l'onglet, et le journal affiche « Cannot close screen
+    'DialogueScreen *': the dock host no longer holds its panel ». Save avait le même défaut : l'écran était enregistré
+    mais l'onglet restait ouvert.
+  - Cause : l'éditeur ancre ses documents directement dans le modèle, avec `DockOperation.DockAsTab`
+    (`GameEditor.cs`, `TryOpenUIScreenAsset` et les autres routes de document), sans `RegisterPanel`. Or
+    `MGDockHost.ClosePanel` cherchait un panneau ancré dans le registre de l'hôte, par `RemovePanel`, et rendait `false`.
+  - Pourquoi rien ne l'a vu : les tests MGUI enregistrent tous leurs panneaux (harnais de `PanelClosingVetoTests`), et
+    les deux vérificateurs ont raisonné sur ces tests.
+  - Correctif (MGUI `75e2382`) : `ClosePanel` trouve le panneau par `LayoutModel` (ancré ou auto-masqué) et par les
+    fenêtres flottantes suivies, jamais par le registre. Il ferme par le même code que les chemins utilisateur : la
+    fermeture du groupe d'onglets devient une méthode partagée, et l'auto-masqué passe par `CloseAutoHidePanel`.
+  - Deux tests de régression ancrent un document comme le fait l'éditeur ; ils échouent sur l'ancien code.
+    `MGUI.Tests` 3090/3090 ; les deux solutions sans erreur ; `CasaEngine.Tests` 1957/1957.
+  - T3.1 reste 🧪 : le clic de l'auteur doit être refait.
 
 ### 🧪 T3.2 — Quitter avec des écrans modifiés (D6)
 
