@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// MGUI message boxes plan, T3.2 (ADR-0039): the asynchronous "save before quitting?" question. An exit that needs an
+/// MGUI message boxes plan, T3.2 (ADR-0041): the asynchronous "save before quitting?" question. An exit that needs an
 /// answer is cancelled at once and asked about once; an answer that lets it go requests the exit again, and that exit - and
 /// only that one - goes through without asking.
 /// </summary>

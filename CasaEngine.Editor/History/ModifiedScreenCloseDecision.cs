@@ -45,7 +45,7 @@ public static class ModifiedScreenCloseDecision
     /// </list>
     /// <paramref name="trySave"/> is never called unless the user answered Yes.
     /// </summary>
-    [Obsolete("Asks synchronously. The editor's questions answer later (ADR-0039): use NeedsAnswer, then ApplyAnswer once the answer arrives.")]
+    [Obsolete("Asks synchronously. The editor's questions answer later (ADR-0041): use NeedsAnswer, then ApplyAnswer once the answer arrives.")]
     public static Result Decide(bool isModified, bool isAutomationActive, Func<Answer> askUser, Func<bool> trySave)
     {
         if (!NeedsAnswer(isModified, isAutomationActive))
@@ -62,7 +62,7 @@ public static class ModifiedScreenCloseDecision
     }
 
     /// <summary>
-    /// First half of <see cref="Decide"/>, for a caller whose answer arrives later (ADR-0039: an MGUI message box answers
+    /// First half of <see cref="Decide"/>, for a caller whose answer arrives later (ADR-0041: an MGUI message box answers
     /// in a callback): true when the user must be asked - a modified document, outside automation. When false, the
     /// close/exit proceeds without asking.
     /// </summary>

@@ -6,7 +6,10 @@ et il doit en aller de même pour toutes les boîtes de dialogue de l'éditeur.
 Les décisions D1 → D6 ci-dessous ont été arbitrées avec l'auteur le 2026-09-25 ; D7 → D9 sont proposées avec ce plan et
 valent décision une fois le plan approuvé : **ce plan les applique, il ne les rediscute pas**.
 **Approuvé par l'auteur le 2026-09-25, mode AUTO**, après deux relectures du vérificateur de plan (REVISE sur la boîte
-enchaînée, corrigé dans T1.1, puis READY). Décisions : ADR-0039 (moteur) et MGUI ADR-0018.
+enchaînée, corrigé dans T1.1, puis READY). Décisions : ADR-0041 (moteur) et MGUI ADR-0018.
+L'ADR du moteur a été écrite sous le numéro 0039, puis renumérotée **0041** le 2026-09-25 au moment du merge dans
+`main`, où le chantier audio avait déjà pris 0039 et 0040. Les mentions « ADR-0039 » de ce plan écrites avant le
+renommage ont été remplacées.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
@@ -123,7 +126,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 
 - Objectif : ouvrir le chantier et enregistrer les décisions.
 - Fichiers : `ai-agent/tasks/mgui-message-boxes-tasks.md` (ce plan), `ai-agent/README.md` (ligne du tableau),
-  `docs/decisions/0039-editor-message-boxes-are-mgui.md` + `docs/decisions/README.md`,
+  `docs/decisions/0041-editor-message-boxes-are-mgui.md` + `docs/decisions/README.md`,
   `MGUI/Docs/decisions/0018-modal-message-box-in-the-desktop-overlay.md` + `MGUI/Docs/decisions/README.md`.
 - Étapes :
   1. Créer `chantier/mgui-message-boxes` dans `MGUI` (depuis `develop`) et dans le moteur (depuis `main`).
@@ -135,7 +138,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Commit MGUI : `docs(decisions): record the modal message box design` ; commit moteur : `docs(plan): plan the MGUI message boxes`.
 - Note (2026-09-25) : branches `chantier/mgui-message-boxes` créées (MGUI depuis `develop` `c5d5a09`, moteur depuis
   `main` `43688074`). Lignes de base : `MGUI.Tests` 3049/3049, `CasaEngine.Tests` 1888/1888, aucun échec préexistant.
-  ADR-0039 (`docs/decisions/0039-editor-message-boxes-are-mgui.md`) et MGUI ADR-0018
+  ADR-0041 (`docs/decisions/0041-editor-message-boxes-are-mgui.md`) et MGUI ADR-0018
   (`MGUI/Docs/decisions/0018-modal-message-box-in-the-desktop-overlay.md`), indexées. Le pointeur `MGUI` du moteur
   n'est pas mis à jour ici : il suit en T2.1.
 
@@ -469,7 +472,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Commit : `docs(editor): document the MGUI message boxes`.
 - Note (2026-09-25) :
   - Documentation : `docs/editor/editor-message-boxes.md` (en anglais) et son entrée dans `docs/README.md`.
-  - ADR-0039 corrigée sur un point : la fermeture par code passe par `MGDockHost.ClosePanel`, pas par `RemovePanel`
+  - ADR-0041 corrigée sur un point : la fermeture par code passe par `MGDockHost.ClosePanel`, pas par `RemovePanel`
     (voir T1.2). La correction est écrite en toutes lettres dans l'ADR.
   - **Vérificateur de clôture, frais, sur tout le chantier : CONFIRMED**, aucun constat P0–P2. Il a vérifié le moteur
     `724b5da5` et MGUI `bb0201d`.

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The ordering behind <see cref="EditorMessageBoxes"/> (ADR-0039): one question shown at a time, the next one shown when
+/// The ordering behind <see cref="EditorMessageBoxes"/> (ADR-0041): one question shown at a time, the next one shown when
 /// the previous one is answered, in the order they were asked. Pure: the presenter that actually shows a box is injected,
 /// so the ordering is tested without MGUI.
 /// </summary>

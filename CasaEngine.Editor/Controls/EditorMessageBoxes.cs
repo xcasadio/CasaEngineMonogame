@@ -13,7 +13,7 @@ internal enum EditorSaveAnswer
 }
 
 /// <summary>
-/// The editor's questions and messages, shown as MGUI message boxes over the whole editor desktop (ADR-0039,
+/// The editor's questions and messages, shown as MGUI message boxes over the whole editor desktop (ADR-0041,
 /// <see cref="MGMessageBox"/>): one at a time, in the order they were asked. An answer arrives in a callback, never on
 /// the line after the call.
 /// </summary>

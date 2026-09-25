@@ -1,7 +1,7 @@
 # Editor message boxes
 
 Every question and message of the editor is an MGUI message box (`MGMessageBox`), shown over the whole editor desktop,
-in the editor theme, while the game loop keeps running. Decisions: [ADR-0039](../decisions/0039-editor-message-boxes-are-mgui.md)
+in the editor theme, while the game loop keeps running. Decisions: [ADR-0041](../decisions/0041-editor-message-boxes-are-mgui.md)
 (editor) and MGUI ADR-0018 (`MGUI/Docs/decisions/0018-modal-message-box-in-the-desktop-overlay.md`).
 
 ## What the user sees

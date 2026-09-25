@@ -130,16 +130,16 @@ public class GameEditor : Game, IObservableUpdate
     private MGDesktop _desktop;
     private FontStashSharpTextEngine _fontStashSharpEngine;
 
-    /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0039).</summary>
+    /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0041).</summary>
     private EditorMessageBoxes _messageBoxes;
 
-    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0039, D4, D5).</summary>
+    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0041, D4, D5).</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
-    /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0039).</summary>
+    /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0041).</summary>
     private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
 
-    /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0039).</summary>
+    /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0041).</summary>
     private bool _worldOpenQuestionPending;
 
     // ── Main editor window ─────────────────────────────────────────────
@@ -2581,7 +2581,7 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0039: asks whether to save a modified screen document before a USER close
+    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save a modified screen document before a USER close
     /// removes its panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close button,
     /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
     /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
@@ -2673,7 +2673,7 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0039: asks whether to save every still-modified screen document before the
+    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save every still-modified screen document before the
     /// game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
     /// asks, and requests the exit again (<see cref="Game.Exit"/>) once the answer lets it go. Under automation, nothing is
     /// asked - the abandoned screens are logged instead, exactly as the author decided for every other unattended path.
@@ -4212,7 +4212,7 @@ public class GameEditor : Game, IObservableUpdate
 
     /// <summary>Opens a world asset in the World document. When the current world is modified and
     /// <paramref name="unsavedChangesHandled"/> is false, asks whether to save it first and returns false: the MGUI
-    /// question answers later (ADR-0039), and the answer calls this again with <paramref name="unsavedChangesHandled"/>
+    /// question answers later (ADR-0041), and the answer calls this again with <paramref name="unsavedChangesHandled"/>
     /// true (saved, or Don't Save), which redoes every other check.</summary>
     private bool OpenWorldAsset(string fullPath, bool unsavedChangesHandled)
     {
@@ -4285,7 +4285,7 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    /// <summary>Asks whether to save the project before opening another world (ADR-0039). Save opens it only once the
+    /// <summary>Asks whether to save the project before opening another world (ADR-0041). Save opens it only once the
     /// world is saved; Don't Save opens it and drops the changes; Cancel keeps the current world. One question at a time:
     /// a request made while it waits is ignored.</summary>
     private void AskSaveBeforeOpeningWorld(string fullPath, EditorHistoryContext worldHistoryContext, string worldName)

@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// MGUI message boxes plan, T2.2 (D8, ADR-0039): the editor shows one question at a time, in the order asked, and the
+/// MGUI message boxes plan, T2.2 (D8, ADR-0041): the editor shows one question at a time, in the order asked, and the
 /// next one only once the previous one is answered — including when an answer asks a new question, which is how the
 /// asynchronous close, quit and open-world flows chain their questions.
 /// </summary>

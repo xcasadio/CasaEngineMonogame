@@ -38,7 +38,7 @@ public class ProjectLauncherWindow
     {
     }
 
-    /// <param name="messageBoxes">The editor's shared message box queue (ADR-0039); null gives this launcher a queue of its own.</param>
+    /// <param name="messageBoxes">The editor's shared message box queue (ADR-0041); null gives this launcher a queue of its own.</param>
     internal ProjectLauncherWindow(
         MGWindow parentWindow,
         Action<string> requestOpenProject,

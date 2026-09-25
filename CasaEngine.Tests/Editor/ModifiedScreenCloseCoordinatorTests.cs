@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// MGUI message boxes plan, T3.1 (D4, D5, ADR-0039): the asynchronous "save before closing?" question of screen documents.
+/// MGUI message boxes plan, T3.1 (D4, D5, ADR-0041): the asynchronous "save before closing?" question of screen documents.
 /// A close that needs an answer is refused at once; the answer then saves and closes, closes without saving, or keeps the
 /// screen - and only a close that happened retries a whole floating window's close.
 /// </summary>

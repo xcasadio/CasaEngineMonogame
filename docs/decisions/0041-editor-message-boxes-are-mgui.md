@@ -1,4 +1,4 @@
-# ADR-0039: Editor message boxes are MGUI message boxes, answered asynchronously
+# ADR-0041: Editor message boxes are MGUI message boxes, answered asynchronously
 
 - **Status**: Accepted
 - **Date**: 2026-09-25

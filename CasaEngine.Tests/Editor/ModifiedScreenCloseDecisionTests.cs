@@ -2,7 +2,7 @@ using System;
 using CasaEngine.Editor.History;
 using Xunit;
 
-// Decide is obsolete since ADR-0039 (the editor asks asynchronously) but stays public; its cases are kept.
+// Decide is obsolete since ADR-0041 (the editor asks asynchronously) but stays public; its cases are kept.
 #pragma warning disable CS0618
 
 namespace CasaEngine.Tests.Editor;
@@ -125,7 +125,7 @@ public class ModifiedScreenCloseDecisionTests
         }
     }
 
-    // ── ADR-0039: the two halves an asynchronous caller uses ─────────────────
+    // ── ADR-0041: the two halves an asynchronous caller uses ─────────────────
 
     [Theory]
     [InlineData(false, false, false)]

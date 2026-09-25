@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CasaEngine.Editor.History;
 
 /// <summary>
-/// The asynchronous "save before closing?" question for screen documents (ADR-0039, plan decisions D4 and D5). The docking
+/// The asynchronous "save before closing?" question for screen documents (ADR-0041, plan decisions D4 and D5). The docking
 /// host needs to know at once whether a user close goes on, but the answer to an MGUI message box arrives later: a close
 /// that needs an answer is refused now, the question is asked, and the close is redone by code once the answer lets it go.
 /// Pure: the dirty state, the question, the save and the close are injected, so every path is tested without MGUI.
