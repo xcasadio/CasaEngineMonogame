@@ -521,6 +521,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 | O7 | Avis P4 du vérificateur de T3.1, reporté : pas de test de `ClosePanel` sur une fenêtre flottante autonome (non suivie par l'hôte, que l'éditeur ne crée pas) ; fermeture sans frame intermédiaire vérifiée à la lecture seulement. | T1.2 |
 | O8 | Avis P4 du vérificateur de clôture, reporté : un `ContentBrowserPanel` ou un `ProjectLauncherWindow` construit par son constructeur public (sans la file partagée) tient sa propre file ; les boîtes s'empilent alors (ce que `MGMessageBox` sait faire). L'éditeur passe toujours la file partagée. | T2.3 |
 | O9 | Avis P4 du vérificateur de clôture, spéculatif, reporté : si Entrée ouvrait un monde depuis le Content Browser et que la répétition de la touche atteignait la nouvelle boîte, elle répondrait « Save » (non destructif). À observer dans l'éditeur, Entrée tenue. | T3.3 |
+| O10 | Avis P4 du vérificateur du correctif `ClosePanel`, reportés : (1) un document ancré deux fois sous le même identifiant (écran flotté puis rouvert : le contrôle « déjà ouvert ? » de l'éditeur ne cherche que dans l'arbre ancré) ne se ferme pas par `ClosePanel` si ce n'est pas le premier trouvé ; retour `false` sûr, avertissement journalisé. À refaire : ouvrir un écran, le flotter, rouvrir le même asset, Don't Save sur chaque copie. (2) Un panneau enregistré mais absent du modèle et des fenêtres flottantes rend désormais `false` (aucun chemin connu). (3) `_panelRegistry.Remove` retire par identifiant, comme le chemin utilisateur déjà. | T1.2, T3.1 |
 
 ## Hors périmètre
 
