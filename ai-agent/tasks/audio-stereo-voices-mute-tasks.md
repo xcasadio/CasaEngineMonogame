@@ -70,7 +70,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - Validation : relecture ; index à jour.
 - Commit : `docs(adr): record the software stereo voices and the project mute setting, and plan them`
 
-### ⏳ T2 — Voix stéréo logicielle
+### ✅ T2 — Voix stéréo logicielle — fait le 2026-09-25
 
 - Objectif : D1, D2, D3.
 - Fichiers : `CasaEngine/Framework/Audio/` (interface d'accès aux échantillons ; nourrisseur interne possédé et mis à jour par `AudioService`, sur le modèle de `Streaming/MusicPlayer.cs`) ; `Backends/MonoGameAudioClip.cs` ; `Assets/Loaders/SoundEffectLoader.cs` ; `AudioService.cs` ; `CasaEngine.Tests/Audio/` (dont `FakeAudioClip`, qui gagne les échantillons) ; `docs/engine/audio-system.md`.
@@ -94,6 +94,37 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   3. Mutations en vrai : G et D inversés ; gain appliqué au tampon déjà en file ; volume de bus cuit dans les échantillons ; borne par `Update` retirée.
 - Validation : builds ; `CasaEngine.Tests` = 1888 + n, zéro échec.
 - Commit : `feat(audio): play mono clips on software stereo voices with exact left/right gains`
+
+**Note de validation (2026-09-25).**
+
+- **Implémentation.** Par un exécuteur ; revue en session principale, puis deux relectures indépendantes en lecture
+  seule. La relecture « contrat » n'a rien trouvé. La relecture « chemin chaud et cycle de vie » a relevé un P2,
+  introduit par la tâche et donc corrigé : le rééchantillonnage arrondissait l'échantillon avant le gain, puis encore
+  après. Les lectures rendent maintenant un `double`, et l'unique arrondi se fait après le gain, en double précision.
+  Un test le prouve (`PlayClipStereo_WhenResampling_RoundsOnlyOnceAfterTheGain`).
+- **Autres corrections en session principale.**
+  - Le repli du chargeur ne capture plus que `NotSupportedException` et `InvalidDataException` (§9.10 : ne jamais
+    avaler une exception en silence).
+  - La doc XML de `PlayClipStereo` ne nomme plus un consommateur.
+  - Un message limité signale un backend sans flux.
+- **Démo.** `AudioDemo` gagne la touche `B` : un bip mono synthétisé, sans nouvel asset (les WAV de la démo sont
+  stéréo), joué à gauche seule, à droite seule, puis sur les deux canaux. La démo a été lancée depuis
+  `CasaEngine.Demos/`, avec une capture du back-buffer : périphérique disponible, ligne `B` affichée, aucune erreur.
+  L'écoute de `B` elle-même n'est pas automatisable par l'agent.
+- **Vrai backend OpenAL.** Harnais hors dépôt (`scratchpad/stereo-harness`) : trois WAV réels d'Alundra, chargés par
+  `SoundEffectLoader`, joués par `PlayClipStereo`, avec un changement de gain à la 5e image.
+  - `sfx_0302_0` à 11 025 Hz (natif) : 2 545 ms de clip, 2 593 ms au mur, jouées en entier.
+  - `sfx_0003` à 4 274 Hz (sur-échantillonné) : 216 ms de clip, 250 ms au mur.
+  - `sfx_0162_1` à 172 610 Hz (sous-échantillonné) : 19 ms de clip, 62 ms au mur.
+  - Aucun refus ; chaque voix est libérée à la fin.
+- **Builds et tests.** `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+  `CasaEngine.Tests` **1904 / 1904** (1888 + 16).
+- **Mutations réelles** (`scratchpad/mutate.py`), toutes tuées :
+  - gauche et droite inversés ;
+  - changement de gain ignoré ;
+  - gain de bus cuit dans les échantillons ;
+  - borne par `Update` retirée (test arrêté par `--blame-hang-timeout`) ;
+  - double arrondi remis.
 
 ### ⏳ T3 — Son coupé, réglage du projet
 
