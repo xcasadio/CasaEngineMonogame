@@ -213,6 +213,10 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
     60 frames d'Entrée tenue de la boîte enchaînée l'épinglent.
   - **Reste 🧪** : coup d'œil de l'auteur sur la page « MessageBox » du Compendium de `MGUI.Samples` (thème, tailles,
     anneau de focus du bouton par défaut) ; aucun lancement visuel n'est possible depuis cette session.
+  - Ajout (2026-09-25, MGUI `bb0201d`), suite au vérificateur de T3.1 : `TheClickThatAnswersABox_DoesNotReachWhatLiesUnderIt`.
+    La frame qui répond ferme aussi la surcouche, et les autres fenêtres se mettent à jour après elle dans cette même
+    frame ; le relâchement ne doit pas atteindre l'élément sous le bouton. Le test rougit quand les boutons répondent par
+    `OnLeftClicked` au lieu de `Command` : c'est la marque « handled » de la commande qui protège. `MGUI.Tests` 3083/3083.
 
 ### ✅ T1.2 — Cause « fenêtre flottante fermée entière » dans `PanelClosing` (D5)
 
@@ -364,7 +368,18 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   - Mutations C1 à C6 : chacune rougit au moins un test (pas de dédoublonnage, pas de contrôle d'écran ouvert, nouvelle
     tentative même si l'écran est gardé, question jamais soldée, fermeture jamais refusée, automatisation ignorée).
   - Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1921/1921.
-  - **Reste 🧪** : les clics de l'auteur (liste ci-dessus) et le vérificateur frais sur T1.2 + T3.1.
+  - **Reste 🧪** : les clics de l'auteur (liste ci-dessus).
+- **Vérificateur frais sur T1.2 + T3.1 (2026-09-25) : CONFIRMED**, aucun constat P0–P2. Il a vérifié MGUI `2e037f1` et
+  le moteur `eaf59110`.
+  - Il a reproduit : `MGUI.Tests` 3082/3082, `CasaEngine.Tests` 1921/1921, les deux solutions sans erreur.
+  - Chaque chemin utilisateur passe par le veto avec la bonne cause.
+  - `ClosePanel` refait la fermeture utilisateur d'après le veto, y compris la fermeture immédiate d'une fenêtre
+    flottante vidée.
+  - `OnDockHostPanelRemoved` fait le ménage comme avant.
+  - Rien n'est réentrant ni périmé quand la réponse arrive dans la mise à jour de MGUI.
+  - Aucun chemin ne ferme sans Save ni Don't Save.
+  - Trois avis P4, reportés (O5, O6, O7). Un point non vérifiable par lecture, « le clic qui répond atteint-il ce qui est
+    dessous ? », est désormais épinglé par un test MGUI (note de T1.1).
 
 ### ⏳ T3.2 — Quitter avec des écrans modifiés (D6)
 
@@ -416,8 +431,11 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 |---|---|---|
 | O1 | Icônes (avertissement, erreur, information) : pas de ressource d'icône vérifiée dans MGUI ; hors de cette version, à ajouter si l'auteur le demande. | — |
 | O2 | ~~Chemin d'Entrée et d'Échap que l'éditeur alimente vraiment dans le bureau MGUI.~~ Levé en T1.1 : chemin de navigation brut du bureau. | T1.1 |
+| O5 | Avis P4 du vérificateur de T3.1, reporté : si `MGMessageBox.Show` levait, `ModifiedScreenCloseCoordinator` garderait la question « en attente » et refuserait ensuite toute fermeture de cet écran. `Show` ne lève que sur de mauvais arguments ou un hôte de surcouche non modal ; l'éditeur passe des libellés fixes et l'hôte modal par défaut. À revoir si ce réglage change. | T3.1 |
+| O6 | Avis P4 du vérificateur de T3.1, reporté : un écran rouvert sous le même identifiant pendant que sa question attend serait enregistré par Save, puis `ClosePanel` échouerait avec un avertissement (aucune perte). La boîte modale rend ce cas difficile à atteindre. | T3.1 |
+| O7 | Avis P4 du vérificateur de T3.1, reporté : pas de test de `ClosePanel` sur une fenêtre flottante autonome (non suivie par l'hôte, que l'éditeur ne crée pas) ; fermeture sans frame intermédiaire vérifiée à la lecture seulement. | T1.2 |
 | O4 | Défaut latent de MGUI : `MGOverlayHost.TryRemoveOverlay` sur une surcouche ouverte ne la retire pas de `OpenOverlays` (`MGUI/MGUI.Core/UI/MGOverlay.cs:43-73`), donc elle reste `ActiveOverlay`. `MGMessageBox` le contourne en appelant `TryClose` d'abord ; la correction de `TryRemoveOverlay` est hors de ce plan (décision de l'auteur). | — |
-| O3 | Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ? Si oui, décision de l'auteur. | T3.3 |
+| O3 | ~~Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ?~~ Non, levé le 2026-09-25 : `RunAutomation` n'ouvre son asset (`TryApplyAutomationAssetOpen`, une fois) qu'au début de la séquence, juste après le chargement du monde et avant toute étape qui le modifie ; l'asset de démarrage ne s'ouvre que hors automatisation (`TryOpenStartupAssetIfRequested`). | T3.3 |
 
 ## Hors périmètre
 
