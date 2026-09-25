@@ -3,11 +3,13 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -21,6 +23,8 @@ namespace CasaEngine.Demos.Demos;
 ///   L          start or stop the looping sound effect
 ///   F          fade the looping sound out over one second
 ///   S          stop every sound
+///   B          play a mono beep on a software stereo voice (ADR-0039): left only, then right
+///              only, then both channels, one step per press
 ///
 /// Music keys (streamed from disk, never fully loaded):
 ///   P          start the music with a one second fade in, or fade it out over two seconds
@@ -44,6 +48,11 @@ public class AudioDemo : Demo
     private const float MusicFadeOutSeconds = 2f;
     private const float CrossfadeSeconds = 2f;
 
+    private const int BeepSampleRate = 22050;
+    private const float BeepFrequency = 440f;
+    private const float BeepSeconds = 0.3f;
+    private const float BeepAmplitude = 12000f;
+
     private CasaEngineGame? _game;
     private AssetHandle<SoundAsset>? _clickSoundHandle;
     private AssetHandle<SoundAsset>? _musicHandle;
@@ -51,6 +60,8 @@ public class AudioDemo : Demo
     private SoundAsset? _clickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
+    private MonoGameAudioClip? _stereoBeep;
+    private int _stereoBeepStep;
     private AudioVoiceHandle _loopingVoice = AudioVoiceHandle.None;
     private MusicTrackHandle _musicTrack = MusicTrackHandle.None;
     private bool _pitchedMusicPlaying;
@@ -76,6 +87,38 @@ public class AudioDemo : Demo
         _music = _musicHandle?.Asset;
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
         _pitchedMusic = _pitchedMusicHandle?.Asset;
+        _stereoBeep = CreateStereoBeep();
+    }
+
+    /// <summary>
+    /// The demo's wav files are stereo, and a software stereo voice plays a mono clip: the beep is
+    /// synthesized here instead, a short sine with a linear fade in and out.
+    /// </summary>
+    private static MonoGameAudioClip? CreateStereoBeep()
+    {
+        var sampleCount = (int)(BeepSampleRate * BeepSeconds);
+        var fadeSamples = sampleCount / 10;
+        var samples = new short[sampleCount];
+
+        for (var i = 0; i < sampleCount; i++)
+        {
+            var envelope = Math.Min(1f, Math.Min(i, sampleCount - 1 - i) / (float)fadeSamples);
+            var value = MathF.Sin(2f * MathF.PI * BeepFrequency * i / BeepSampleRate) * BeepAmplitude * envelope;
+            samples[i] = (short)value;
+        }
+
+        var bytes = new byte[sampleCount * sizeof(short)];
+        Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
+
+        try
+        {
+            return new MonoGameAudioClip(new SoundEffect(bytes, BeepSampleRate, AudioChannels.Mono), samples, BeepSampleRate);
+        }
+        catch (NoAudioHardwareException exception)
+        {
+            Logs.WriteWarning($"AudioDemo: no audio hardware, the stereo beep is disabled. {exception.Message}");
+            return null;
+        }
     }
 
     private static AssetHandle<SoundAsset>? TryAcquire(CasaEngineGame game, Guid assetId)
@@ -152,6 +195,11 @@ public class AudioDemo : Demo
             _loopingVoice = AudioVoiceHandle.None;
             _musicTrack = MusicTrackHandle.None;
             _lastAction = "everything stopped";
+        }
+
+        if (WasJustPressed(keyboard, Keys.B))
+        {
+            PlayStereoBeep(service);
         }
 
         if (WasJustPressed(keyboard, Keys.P))
@@ -232,7 +280,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 244), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 266), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -249,6 +297,7 @@ public class AudioDemo : Demo
             : "Music stopped");
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
+        DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
         DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
 
@@ -274,6 +323,9 @@ public class AudioDemo : Demo
         _musicHandle = null;
         _pitchedMusicHandle?.Dispose();
         _pitchedMusicHandle = null;
+        _stereoBeep?.Dispose();
+        _stereoBeep = null;
+        _stereoBeepStep = 0;
         _game = null;
     }
 
@@ -281,6 +333,27 @@ public class AudioDemo : Demo
     {
         spriteBatch.DrawString(_font, text, new Vector2(20f, y), Color.White);
         y += 22f;
+    }
+
+    private void PlayStereoBeep(AudioService service)
+    {
+        if (_stereoBeep == null)
+        {
+            _lastAction = "stereo beep unavailable (no audio hardware)";
+            return;
+        }
+
+        var (leftGain, rightGain, label) = _stereoBeepStep switch
+        {
+            0 => (1f, 0f, "left only"),
+            1 => (0f, 1f, "right only"),
+            _ => (1f, 1f, "both channels"),
+        };
+        _stereoBeepStep = (_stereoBeepStep + 1) % 3;
+
+        var voice = service.PlayClipStereo(
+            _stereoBeep, AudioBusNames.Sfx, AudioVoiceParameters.Default, leftGain, rightGain, _game?.GameManager.CurrentWorld);
+        _lastAction = voice.IsValid ? $"stereo beep, {label}" : "stereo beep refused";
     }
 
     private void TogglePlayMusic(AudioService service)

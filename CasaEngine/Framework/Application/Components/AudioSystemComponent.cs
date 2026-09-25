@@ -27,6 +27,11 @@ public class AudioSystemComponent : GameComponent
         if (game is CasaEngineGame casaEngineGame)
         {
             Service.ClipProvider = new AssetContentManagerAudioClipProvider(casaEngineGame.AssetContentManager);
+
+            // ADR-0040: the project settings are already loaded at this point (Initialize loads
+            // them before creating this component), so this applies the project's mute from the
+            // very first frame.
+            ProjectAudioSettings.Apply(Mixer, casaEngineGame.RuntimeContext.ProjectSettings);
         }
 
         UpdateOrder = (int)ComponentUpdateOrder.Audio;
@@ -47,6 +52,27 @@ public class AudioSystemComponent : GameComponent
     {
         get => Mixer.GetBus(AudioBusNames.Master).Volume;
         set => Mixer.GetBus(AudioBusNames.Master).Volume = value;
+    }
+
+    /// <summary>
+    /// Mute of the <see cref="AudioBusNames.Master"/> bus (ADR-0040). The setter mirrors the value
+    /// into the project settings (through <see cref="ProjectAudioSettings.SetMuted"/>) so it
+    /// survives an editor save; it never writes the project file.
+    /// </summary>
+    public bool IsMuted
+    {
+        get => Mixer.GetBus(AudioBusNames.Master).IsMuted;
+        set
+        {
+            if (Game is CasaEngineGame casaEngineGame)
+            {
+                ProjectAudioSettings.SetMuted(Mixer, value, casaEngineGame.RuntimeContext.ProjectSettings, GameSettings.ProjectSettings);
+            }
+            else
+            {
+                Mixer.GetBus(AudioBusNames.Master).IsMuted = value;
+            }
+        }
     }
 
     /// <summary>Stops every voice, whoever owns it.</summary>

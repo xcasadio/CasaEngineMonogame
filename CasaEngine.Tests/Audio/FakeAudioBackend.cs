@@ -131,6 +131,7 @@ public sealed class FakeAudioBackend : IAudioBackend
         slot.Clip = null;
         slot.IsStreaming = false;
         slot.PendingBuffers = 0;
+        slot.SubmittedBuffers.Clear();
         slot.Generation++;
     }
 
@@ -178,10 +179,18 @@ public sealed class FakeAudioBackend : IAudioBackend
         slot.ChannelCount = channelCount;
         slot.PendingBuffers = 0;
         slot.SubmittedBytes = 0;
+        slot.SubmittedBuffers.Clear();
 
         StreamingVoiceCount++;
         return new AudioVoiceHandle(index, slot.Generation);
     }
+
+    /// <summary>
+    /// True copies every submitted buffer for inspection (see <see cref="GetSubmittedBuffers"/>).
+    /// Defaults to false, so the allocation-free tests of streamed playback stay meaningful: only
+    /// a test that actually needs to read the bytes back pays for the copy.
+    /// </summary>
+    public bool RecordSubmittedBuffers { get; set; }
 
     public void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
     {
@@ -192,10 +201,29 @@ public sealed class FakeAudioBackend : IAudioBackend
 
         slot.PendingBuffers++;
         slot.SubmittedBytes += count;
+
+        if (RecordSubmittedBuffers)
+        {
+            var copy = new byte[count];
+            Buffer.BlockCopy(buffer, offset, copy, 0, count);
+            slot.SubmittedBuffers.Add(copy);
+        }
     }
+
+    /// <summary>
+    /// True makes <see cref="GetPendingBufferCount"/> always answer 0, regardless of what was
+    /// submitted: simulates a backend that never reports its queue, to check that a feeder still
+    /// bounds how many buffers it submits per <c>Update</c>.
+    /// </summary>
+    public bool ReportsZeroPendingBuffers { get; set; }
 
     public int GetPendingBufferCount(AudioVoiceHandle voice)
     {
+        if (ReportsZeroPendingBuffers)
+        {
+            return 0;
+        }
+
         return TryGetSlot(voice, out var slot) ? slot.PendingBuffers : 0;
     }
 
@@ -231,6 +259,12 @@ public sealed class FakeAudioBackend : IAudioBackend
     public long GetSubmittedBytes(AudioVoiceHandle voice)
     {
         return TryGetSlot(voice, out var slot) ? slot.SubmittedBytes : 0;
+    }
+
+    /// <summary>Every buffer submitted on that voice so far, each a separate copy, in order.</summary>
+    public IReadOnlyList<byte[]> GetSubmittedBuffers(AudioVoiceHandle voice)
+    {
+        return TryGetSlot(voice, out var slot) ? slot.SubmittedBuffers : Array.Empty<byte[]>();
     }
 
     public bool IsStreamingVoice(AudioVoiceHandle voice)
@@ -328,5 +362,6 @@ public sealed class FakeAudioBackend : IAudioBackend
         public int ChannelCount;
         public int PendingBuffers;
         public long SubmittedBytes;
+        public readonly List<byte[]> SubmittedBuffers = new();
     }
 }

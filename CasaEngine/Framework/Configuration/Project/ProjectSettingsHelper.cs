@@ -29,6 +29,10 @@ public static class ProjectSettingsHelper
         projectSettings.DialogueScreenAsset = rootElement["DialogueScreenAsset"]?.GetString() ?? string.Empty;
         projectSettings.ExternalToolsDirectory = rootElement["ExternalToolsDirectory"]?.GetString() ?? projectSettings.ExternalToolsDirectory;
 
+        // Absent means false, not "keep the previous value": otherwise opening an unmuted
+        // project right after a muted one would leave the mute on.
+        projectSettings.IsAudioMuted = rootElement["IsAudioMuted"]?.GetBoolean() ?? false;
+
 #if !FINAL
         projectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"]?.GetBoolean() ?? projectSettings.DebugIsFullScreen;
         projectSettings.DebugHeight = rootElement["DebugHeight"]?.GetInt32() ?? projectSettings.DebugHeight;
@@ -80,6 +84,11 @@ public static class ProjectSettingsHelper
         if (!string.IsNullOrWhiteSpace(settings.DialogueScreenAsset))
         {
             rootElement["DialogueScreenAsset"] = settings.DialogueScreenAsset;
+        }
+
+        if (settings.IsAudioMuted)
+        {
+            rootElement["IsAudioMuted"] = true;
         }
 
 #if !FINAL

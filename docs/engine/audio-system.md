@@ -2,7 +2,7 @@
 
 Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture sont figées dans
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
-Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md) and [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md).
+Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md) and [ADR-0040](../decisions/0040-project-audio-mute-setting.md).
 
 ---
 
@@ -136,6 +136,60 @@ abandonnée qu'une fois sa file de buffers vidée, jamais sur une famine passag�
 
 ---
 
+## 5 bis. Voix stéréo logicielles
+
+Une voix mono ne peut porter qu'un couple (volume, pan) : sur DesktopGL, le pan d'une source mono
+ne fait que tourner sa position OpenAL, ce qui ne donne jamais des gains gauche/droite choisis. Le
+port Alundra a besoin des volumes gauche et droite exacts que l'original écrit par tonalité — une
+**voix stéréo logicielle** joue un clip mono sur une voix de streaming stéréo que le moteur nourrit
+lui-même, chaque frame de sortie étant `gauche = son × gainGauche`, `droite = son × gainDroite`.
+
+```csharp
+var voice = audio.PlayClipStereo(clip, AudioBusNames.Sfx, AudioVoiceParameters.Default, leftGain: 0.8f, rightGain: 0.2f);
+audio.SetVoiceStereoGains(voice, leftGain: 0.5f, rightGain: 0.5f); // remix en direct
+audio.GetVoiceStereoGains(voice, out var left, out var right);
+```
+
+`parameters.Volume` et `IsLooped` s'appliquent normalement (bus compris) ; `Pan` et `Pitch` sont
+**ignorés**, les gains explicites en tenant déjà lieu. La voix retournée est une voix ordinaire
+pour tout le reste : `Stop`, `StopVoicesOwnedBy`, `StopAll`, `Pause`, `Resume`, `FadeVoice`.
+
+Un clip ne peut être joué en stéréo que s'il expose ses échantillons mono 16 bits
+(`IAudioClipSamples`, porté par `MonoGameAudioClip` quand `SoundEffectLoader` a pu décoder le wav
+source en mono 16 bits PCM) ; sinon `PlayClipStereo` renvoie `AudioVoiceHandle.None`.
+
+Limites (voir [ADR-0039](../decisions/0039-software-stereo-voices.md)) :
+
+- Un changement de gain n'atteint que les buffers pas encore soumis : jusqu'à ~60 ms de latence à
+  la profondeur de file par défaut, contre un changement immédiat côté PSX d'origine.
+- MonoGame refuse une voix de streaming hors 8 000-48 000 Hz : un clip hors de cette plage est
+  rééchantillonné par le moteur (facteur entier, interpolation linéaire en dessous, moyenne par
+  blocs au-dessus), une approximation déclarée.
+- La boucle reprend le clip entier, sans points de boucle.
+- Le PCM mono de chaque clip chargé est gardé deux fois (dans le `SoundEffect` et pour la voix
+  stéréo).
+
+---
+
+## 5 ter. Muet projet
+
+Le mute est un **réglage projet**, pas un réglage utilisateur local (ADR-0040) : la clé
+`IsAudioMuted` du fichier `.json` du projet mute le bus `Master`. Absente, elle vaut `false` ;
+elle n'est écrite dans le fichier que si elle vaut `true`, donc un projet non muet garde un
+fichier identique au bit près.
+
+Appliquée au démarrage (le runtime charge le projet avant de créer `AudioSystemComponent`) et, côté
+éditeur, à chaque ouverture de projet — muter `Master` coupe donc aussi les previews de l'éditeur,
+puisque le bus `Editor` en descend. Accès en jeu :
+
+```csharp
+game.AudioSystemComponent.IsMuted = true; // mute Master et répercute dans les réglages projet
+```
+
+Pas d'interface utilisateur : le réglage s'édite dans le fichier projet.
+
+---
+
 ## 6. Composant d'entité
 
 `SoundEmitterComponent` pose un son sur une entité. Il apparaît automatiquement dans
@@ -226,6 +280,7 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 | `L` | boucle le SFX / l'arrête |
 | `F` | fade out du SFX bouclé (1 s) |
 | `S` | arrête tout |
+| `B` | bip mono sur une voix stéréo logicielle : gauche seule, puis droite seule, puis les deux (un pas par appui) |
 | `P` | démarre la musique (fade in 1 s) / la fade out (2 s) |
 | `C` | crossfade vers l'autre piste (2 s) |
 | `PagePréc` / `PageSuiv` | volume du bus `Music` |

@@ -20,6 +20,7 @@ public sealed class AudioService : IDisposable
     private readonly List<VoiceEntry> _voices = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
     private readonly AudioLogThrottle _missingClipLog = new();
+    private readonly StereoVoiceMixer _stereoVoiceMixer;
 
     private int _appliedMixerVersion = -1;
     private bool _isDisposed;
@@ -29,6 +30,7 @@ public sealed class AudioService : IDisposable
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
         Music = new MusicPlayer(this);
+        _stereoVoiceMixer = new StereoVoiceMixer(this);
     }
 
     public IAudioBackend Backend => _backend;
@@ -178,6 +180,79 @@ public sealed class AudioService : IDisposable
         ActiveVoiceCount++;
 
         return handle;
+    }
+
+    /// <summary>
+    /// Plays a mono clip on a software stereo voice the engine feeds itself, with an exact left
+    /// and right gain per output frame (ADR-0039). For callers that need independent left and
+    /// right levels, which a single (volume, pan) pair on a mono voice cannot give: on DesktopGL
+    /// the pan of a mono voice only moves the OpenAL source.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="parameters"/>.Volume and IsLooped apply, through a bus like any other
+    /// voice; Pan and Pitch are ignored, since the explicit gains already say where each channel
+    /// sits. The returned handle is an ordinary voice for everything else: <see cref="Stop"/>,
+    /// <see cref="StopVoicesOwnedBy"/>, <see cref="StopAll"/>, <see cref="Pause"/>,
+    /// <see cref="Resume"/>, <see cref="SetVoiceVolume"/>, <see cref="FadeVoice"/>. Returns
+    /// <see cref="AudioVoiceHandle.None"/>, with a throttled log, when the clip exposes no usable
+    /// samples (see <see cref="IAudioClipSamples"/>) or the backend has no voice left.
+    /// </remarks>
+    public AudioVoiceHandle PlayClipStereo(
+        IAudioClip clip,
+        string busName,
+        in AudioVoiceParameters parameters,
+        float leftGain,
+        float rightGain,
+        object owner = null)
+    {
+        ArgumentNullException.ThrowIfNull(clip);
+
+        if (_isDisposed)
+        {
+            return AudioVoiceHandle.None;
+        }
+
+        if (clip is not IAudioClipSamples clipSamples || clipSamples.MonoSamples.IsEmpty || clipSamples.SampleRate <= 0)
+        {
+            _missingClipLog.WriteWarning("Audio: a stereo sound was refused, its clip exposes no samples.");
+            return AudioVoiceHandle.None;
+        }
+
+        if (!_backend.SupportsStreaming)
+        {
+            _missingClipLog.WriteWarning("Audio: a stereo sound was refused, the audio backend cannot stream.");
+            return AudioVoiceHandle.None;
+        }
+
+        var voiceParameters = parameters.WithPan(0f).WithPitch(0f);
+
+        return _stereoVoiceMixer.Play(
+            clipSamples,
+            busName,
+            voiceParameters,
+            SanitizeGain(leftGain),
+            SanitizeGain(rightGain),
+            owner);
+    }
+
+    /// <summary>
+    /// Changes the left and right gains of a voice started with <see cref="PlayClipStereo"/>.
+    /// Buffers already submitted keep their old gain; the next one filled uses the new one, so
+    /// the change is heard after about 60 ms at the default queue depth. Ignored on a stale
+    /// handle or a voice that is not a software stereo voice.
+    /// </summary>
+    public void SetVoiceStereoGains(AudioVoiceHandle voice, float leftGain, float rightGain)
+    {
+        _stereoVoiceMixer.SetGains(voice, SanitizeGain(leftGain), SanitizeGain(rightGain));
+    }
+
+    /// <summary>
+    /// Left and right gains of a voice started with <see cref="PlayClipStereo"/>. Returns false,
+    /// with both gains at zero, for a stale handle or a voice that is not a software stereo voice.
+    /// </summary>
+    public bool GetVoiceStereoGains(AudioVoiceHandle voice, out float leftGain, out float rightGain)
+    {
+        return _stereoVoiceMixer.TryGetGains(voice, out leftGain, out rightGain);
     }
 
     /// <summary>Queues 16 bit PCM audio on a streaming voice. The data is copied by the backend.</summary>
@@ -509,6 +584,7 @@ public sealed class AudioService : IDisposable
         // After the voices: a fade out that just ended released its voice, and the music player
         // drops the matching track on the same frame.
         Music.Update(elapsedSeconds);
+        _stereoVoiceMixer.Update(elapsedSeconds);
     }
 
     public void Dispose()
@@ -596,6 +672,12 @@ public sealed class AudioService : IDisposable
     private void ApplyGain(VoiceEntry entry)
     {
         _backend.SetVolume(entry.Handle, entry.BaseParameters.Volume * Mixer.GetEffectiveGain(entry.BusName));
+    }
+
+    /// <summary>Same sanitizing contract as <see cref="AudioVoiceParameters.Volume"/>: NaN becomes full gain, otherwise clamped to [0, 1].</summary>
+    private static float SanitizeGain(float value)
+    {
+        return float.IsNaN(value) ? AudioVoiceParameters.MaxVolume : Math.Clamp(value, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
     }
 
     private VoiceEntry GetOrCreateEntry(int index)

@@ -44,6 +44,14 @@ public class ProjectSettings
     [Category("UI")]
     public string DialogueScreenAsset { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Mutes the <see cref="CasaEngine.Framework.Audio.Mixing.AudioBusNames.Master"/> bus for this
+    /// project (ADR-0040). Applied at startup and, in the editor, on every project load; no user
+    /// interface, edited directly in the project file.
+    /// </summary>
+    [Category("Audio")]
+    public bool IsAudioMuted { get; set; }
+
 #if !FINAL
 
     [Category("Debug")]
