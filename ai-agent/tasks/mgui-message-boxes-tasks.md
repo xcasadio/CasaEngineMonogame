@@ -1,0 +1,336 @@
+# Plan agent IA — Boîtes de message MGUI dans l'éditeur
+
+Plan d'exécution né d'une demande de l'auteur (2026-09-25) : la boîte native « Save changes to 'DialogueScreen' before
+closing? » (fenêtre Windows, boutons « Oui / Non / Annuler » dans la langue du système) doit devenir une boîte MGUI,
+et il doit en aller de même pour toutes les boîtes de dialogue de l'éditeur.
+Les décisions D1 → D6 ci-dessous ont été arbitrées avec l'auteur le 2026-09-25 ; D7 → D9 sont proposées avec ce plan et
+valent décision une fois le plan approuvé : **ce plan les applique, il ne les rediscute pas**.
+**Approuvé par l'auteur le 2026-09-25, mode AUTO**, après deux relectures du vérificateur de plan (REVISE sur la boîte
+enchaînée, corrigé dans T1.1, puis READY). Décisions : ADR-0039 (moteur) et MGUI ADR-0018.
+
+Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
+
+> **Quand écrire un plan** : dès que le travail demande plus d'un commit. En dessous, exécution directe avec le rapport de fin de tâche d'`AGENTS.md`.
+> **Avant d'écrire le plan** : poser toutes les questions en une seule fois ; ne rien inventer, ne rien supposer.
+> **Après approbation** : exécution autonome, tâche par tâche ; arrêt uniquement sur ⚠️ Blocked.
+
+## Objectif
+
+Toutes les boîtes de message natives de l'éditeur (WinForms `MessageBox`, 13 appels) deviennent des boîtes MGUI : même
+thème que l'éditeur, textes en anglais, boucle de jeu jamais bloquée. Le chantier livre :
+
+- dans MGUI, un contrôle générique `MGMessageBox` affiché dans la surcouche modale du bureau, testé, avec un sample et
+  sa documentation ;
+- dans MGUI, la cause « fenêtre flottante fermée entière » transmise aux abonnés de `MGDockHost.PanelClosing` ;
+- dans l'éditeur, une file de boîtes (une seule ouverte à la fois) et la conversion en asynchrone des trois questions
+  d'enregistrement (fermer un écran modifié, quitter l'éditeur, ouvrir un autre monde).
+
+Ce qu'il ne livre pas est dans « Hors périmètre ».
+
+## État vérifié du dépôt (2026-09-25)
+
+- Branche courante `main` ; `MGUI` sur `develop` propre en `c5d5a09`, pointeur du parent identique (`git submodule status`).
+- Changement préexistant de l'auteur : `CasaEngine.Launcher/Program.cs` modifié, non indexé. **Ne jamais l'indexer.**
+- Appels natifs dans l'éditeur (`rg "MessageBox|OpenFileDialog|SaveFileDialog|FolderBrowserDialog" CasaEngine.Editor`) :
+  - messages OK : `GameEditor.cs:2211` (ouverture de projet), `:2231` (création de projet),
+    `ContentBrowserPanel.cs:515` (erreur d'opération), `:521` (avertissement d'opération), `:1238` (Properties),
+    `ProjectLauncherWindow.cs:141` (projet introuvable), `:210` (validation), `:222` (création du dossier) ;
+  - confirmations Oui/Non : `ContentBrowserPanel.cs:1051` (supprimer un élément), `:1863` (supprimer N éléments) ;
+  - Oui/Non/Annuler : `GameEditor.cs:2587` (fermeture d'un écran, `OnDockHostPanelClosing`), `:2675` (sortie,
+    `OnExiting`), `:4247` (`ConfirmSaveBeforeOpeningWorld`) ;
+  - sélecteurs natifs gardés (D2) : `GameEditor.cs:8343` (Export PNG), `ContentBrowserPanel.cs:1121` (Import),
+    `ProjectLauncherWindow.cs:123` (Browse), `:182` (dossier du projet).
+- Les trois questions d'enregistrement dépendent d'une réponse synchrone : `e.Cancel` de `PanelClosing`
+  (`GameEditor.cs:2594-2597`), `args.Cancel` de `OnExiting` (`GameEditor.cs:2694-2697`), et le `bool` de
+  `ConfirmSaveBeforeOpeningWorld` qui arrête `TryOpenWorldAsset` (`GameEditor.cs:4208-4212`).
+  `ModifiedScreenCloseDecision.Decide(isModified, isAutomationActive, Func<Answer> askUser, Func<bool> trySave)`
+  (`CasaEngine.Editor/History/ModifiedScreenCloseDecision.cs:48`), 7 tests (`CasaEngine.Tests/Editor/ModifiedScreenCloseDecisionTests.cs`).
+- Sous automatisation, aucune question à la fermeture ni à la sortie (`GameEditor.cs:2586`, `:2659-2667`).
+- MGUI : aucune boîte de message réutilisable. `MGDesktop.OverlayHost` (`MGOverlayHost`, `MGUI.Core/UI/MGOverlay.cs:16`)
+  est une surcouche du bureau entier : `AddOverlay`, `TryOpen`, `TryClose`, `TryRemoveOverlay`, `IsModal` (défaut vrai),
+  fond assombri `DefaultOverlayBackground`. Avec une surcouche modale active :
+  `MGDesktop.IsBlockedByModalOrOverlay` bloque tout élément hors de la surcouche (`MGDesktop.cs:324-339`), et
+  `MGDesktop.ShouldCaptureGameplayInput()` rend vrai (`MGDesktop.cs:621-624`), donc `IsEditorShellCapturingKeyboard()`
+  coupe les raccourcis de l'éditeur (`GameEditor.cs:5907-5908`) et `IsEditorShellBlockingViewportPointer()` coupe le
+  pointeur du viewport (`GameEditor.cs:5910-5919`).
+- À l'inverse, `MGWindow.PushModalWindow` ne bloque que la fenêtre propriétaire (`MGDesktop.cs:338`,
+  `MGUI.Tests/Modal/ModalBlockingTests.cs`) : une fenêtre flottante du docking, ajoutée par `AddNestedWindow`
+  (`MGDockHost.cs:1556`), resterait cliquable.
+- Docking : « Close Others » et « Close All » demandent panneau par panneau et continuent après un refus
+  (`MGDockTabGroup.cs:597-631`) ; la fermeture d'une fenêtre flottante entière s'arrête au premier refus et annule la
+  fermeture (`MGDockHost.cs:1559-1580`) ; `RemovePanel` ne lève pas `PanelClosing` mais lève `PanelRemoved`
+  (`MGDockHost.cs:1119-1162`), dont `GameEditor.OnDockHostPanelRemoved` fait le ménage de l'écran (historique, état
+  modifié, titres). `CancelEventArgs<T>` n'est pas scellée (`MGWindow.cs:19-27`) ; `MGFloatingDockWindow` est publique.
+- `TryOpenEditorAsset` : les chemins utilisateur ignorent le retour (`GameEditor.cs:3655`, `:3674`, `:3783`) ; les
+  chemins d'automatisation l'utilisent (`GameEditor.cs:7022`, `:7047`, `:7083`).
+- `ContentBrowserPanel` et `ProjectLauncherWindow` reçoivent déjà la fenêtre principale `_mainWindow`
+  (`GameEditor.cs:1296`, `:2185`).
+- Règles MGUI : `MGUI/CLAUDE.md` renvoie à `MGUI/.github/copilot-instructions.md` (outils shell) ; les règles du
+  parent s'appliquent (`AGENTS.md` §1). ADR de MGUI dans `MGUI/Docs/decisions/` (dernier : 0017) ; ADR du moteur dans
+  `docs/decisions/` (dernier : 0038).
+
+## Décisions verrouillées
+
+| Réf | Décision |
+|---|---|
+| D1 | Les 13 boîtes de message natives de l'éditeur deviennent des boîtes MGUI (auteur, 2026-09-25). |
+| D2 | Les 4 sélecteurs natifs de fichiers et de dossiers restent (Export PNG, Import, Browse et dossier du lanceur) (auteur, 2026-09-25). |
+| D3 | La boîte de message réutilisable est un contrôle générique du sous-module MGUI, avec tests, sample et doc (auteur, 2026-09-25). |
+| D4 | Plusieurs écrans modifiés fermés d'un coup (« Close Others », « Close All ») : une boîte par écran, l'une après l'autre ; Cancel garde cet écran et les questions continuent pour les suivants, comme aujourd'hui (auteur, 2026-09-25). |
+| D5 | Fermer une fenêtre flottante entière : après Save réussi ou Don't Save, la fenêtre retente d'elle-même sa fermeture, ce qui pose la question de l'écran modifié suivant ; Cancel ou un enregistrement raté arrête. MGUI transmet cette cause dans `PanelClosing` (auteur, 2026-09-25). |
+| D6 | Les trois questions d'enregistrement ont les boutons « Save », « Don't Save », « Cancel » (auteur, 2026-09-25). |
+| D7 | `MGMessageBox` s'affiche dans la surcouche modale du bureau (`MGDesktop.OverlayHost`), pas en fenêtre modale d'une fenêtre : elle bloque tout le bureau, fenêtres flottantes comprises, et coupe les raccourcis et le pointeur du viewport de l'éditeur sans code de plus (faits ci-dessus). Proposée avec ce plan. |
+| D8 | Une seule boîte ouverte à la fois : l'éditeur tient une file, la suivante s'ouvre quand la précédente se ferme. Pas de file dans MGUI. Proposée avec ce plan. |
+| D9 | Règle d'automatisation inchangée : pas de question à la fermeture d'un écran ni à la sortie. Les confirmations de suppression gardent « Yes » / « No » ; les messages simples ont un seul bouton « OK ». Pas d'icône dans cette version (voir Hors périmètre). Proposée avec ce plan. |
+
+## Règles d'exécution pour l'agent
+
+- **Branches dédiées `chantier/mgui-message-boxes`** : dans le moteur depuis `main`, dans `MGUI` depuis `develop`. Ne jamais committer sur `main` ni sur `develop`.
+- **Une seule tâche à la fois.** Avant de commencer une tâche, remplacer son icône `⏳` par `🚧`. À la fin, lancer la validation indiquée, remplacer l'icône par `✅`, `🧪` ou `⚠️`, ajouter une courte note de validation sous la tâche, puis **créer un commit dédié** qui inclut la mise à jour de ce fichier. Une tâche MGUI a son commit dans `MGUI` ; la mise à jour de ce plan pour cette tâche part dans le commit moteur suivant (le pointeur de sous-module ou la tâche moteur suivante), en le disant dans sa note.
+- **Un commit par tâche**, atomique et compilable, message en anglais au format `type(area): summary`.
+- **Ne jamais pousser.** Le merge sur `main` et sur `develop` reste une décision humaine.
+- **Ne rien inventer** : toute API, tout fichier, toute règle utilisée existe dans le dépôt, vient d'une réponse de l'auteur, ou d'une doc officielle citée (URL). Sinon : passer la tâche en ⚠️ Blocked, écrire la question dans « Points ouverts », et **s'arrêter**.
+- **Build obligatoire** avant ✅ dès que du code est touché ; **tests** dès qu'une tâche touche du code testé. Si le build est impossible, la tâche reste 🧪 avec la raison écrite.
+- Si le code est écrit mais qu'une vérification visuelle ou manuelle manque, utiliser `🧪 Needs testing` et noter précisément ce qui manque.
+- **Ne jamais laisser une tâche en 🚧** à la fin d'une session.
+- **Ne jamais indexer** `CasaEngine.Launcher/Program.cs` ni aucune modification préexistante : `git add` fichier par fichier.
+- **Langue** : ce plan en français ; code, messages de commit, docs de `docs/`, docs de `MGUI/Docs/` et ADR en anglais.
+- Rappel moteur : pas d'allocation, de LINQ ni de closure dans les chemins chauds (la boîte se construit une fois à l'ouverture, rien par frame) ; pas d'état global mutable nouveau (le service de boîtes est une instance passée par constructeur) ; échouer tôt sur un usage invalide.
+- **Chantier à risque** (une erreur dans les flux asynchrones fait perdre des modifications non enregistrées) : vérificateur frais sur T1.2 + T3.1 ensemble (frontière MGUI/éditeur de la fermeture) et vérificateur frais de clôture sur l'ensemble avant de déclarer le chantier fait.
+
+## Légende des statuts
+
+- ⏳ Todo : pas encore commencé.
+- 🚧 In progress : en cours de modification locale.
+- 🧪 Needs testing : code écrit, validation incomplète ou en attente.
+- ✅ Done : code validé, build/tests OK, commit effectué.
+- ⚠️ Blocked : bloqué par une erreur non résolue ou une décision manquante.
+
+## Validation globale
+
+- `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj` : ligne de base de T0.1 plus les nouveaux tests, tout vert.
+- `dotnet build MGUI/MGUI.Samples/MGUI.Samples.csproj` : sans erreur.
+- `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : sans erreur.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : ligne de base de T0.1 plus les nouveaux tests ; aucun nouvel échec.
+- `rg -n "System.Windows.Forms.MessageBox|FormsMessageBox|MessageBoxButtons|MessageBoxIcon|DialogResult" CasaEngine.Editor --glob "*.cs"` : aucun résultat à la fin de T3.3.
+- Smoke manuel de l'auteur (éditeur réel, projet Alundra) : voir la liste de T4.1.
+
+---
+
+## Phase 0 — Préparation
+
+### ✅ T0.1 — Branches, plan, ADR, lignes de base
+
+- Objectif : ouvrir le chantier et enregistrer les décisions.
+- Fichiers : `ai-agent/tasks/mgui-message-boxes-tasks.md` (ce plan), `ai-agent/README.md` (ligne du tableau),
+  `docs/decisions/0039-editor-message-boxes-are-mgui.md` + `docs/decisions/README.md`,
+  `MGUI/Docs/decisions/0018-modal-message-box-in-the-desktop-overlay.md` + `MGUI/Docs/decisions/README.md`.
+- Étapes :
+  1. Créer `chantier/mgui-message-boxes` dans `MGUI` (depuis `develop`) et dans le moteur (depuis `main`).
+  2. Mesurer les lignes de base : `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj` et
+     `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` (nombres réussis/échoués notés ici, échecs préexistants nommés).
+  3. ADR moteur (skill `adr`) : D1, D2, D4, D5, D6, D8, D9 et leurs raisons. ADR MGUI : D3, D7 et la cause de fermeture de D5.
+  4. Copier ce plan, l'ajouter au tableau de `ai-agent/README.md`.
+- Validation : fichiers relus ; `git diff --cached` ne contient que ces fichiers.
+- Commit MGUI : `docs(decisions): record the modal message box design` ; commit moteur : `docs(plan): plan the MGUI message boxes`.
+- Note (2026-09-25) : branches `chantier/mgui-message-boxes` créées (MGUI depuis `develop` `c5d5a09`, moteur depuis
+  `main` `43688074`). Lignes de base : `MGUI.Tests` 3049/3049, `CasaEngine.Tests` 1888/1888, aucun échec préexistant.
+  ADR-0039 (`docs/decisions/0039-editor-message-boxes-are-mgui.md`) et MGUI ADR-0018
+  (`MGUI/Docs/decisions/0018-modal-message-box-in-the-desktop-overlay.md`), indexées. Le pointeur `MGUI` du moteur
+  n'est pas mis à jour ici : il suit en T2.1.
+
+---
+
+## Phase 1 — MGUI
+
+### ⏳ T1.1 — `MGMessageBox` (D3, D7)
+
+- Objectif : un contrôle générique qui affiche un titre, un message et 1 à 3 boutons libellés, dans la surcouche modale
+  du bureau, et rend l'indice du bouton choisi par un rappel.
+- Fichiers : `MGUI/MGUI.Core/UI/MGMessageBox.cs` (nouveau), `MGUI/MGUI.Tests/MessageBox/MGMessageBoxTests.cs` (nouveau),
+  une page de `MGUI/MGUI.Samples` enregistrée dans `Compendium` comme les autres, `MGUI/Docs/controls-architecture.md`.
+- Contrat :
+  - `public static MGMessageBox Show(MGDesktop desktop, string title, string message, IReadOnlyList<string> buttonLabels, int defaultButtonIndex, int cancelButtonIndex, Action<int> closed)` ;
+    arguments invalides (bureau ou rappel nul, aucun bouton, plus de 3, indice hors plage) → exception immédiate ;
+    `desktop.OverlayHost.IsModal == false` → `InvalidOperationException` (la boîte ne doit jamais être non bloquante).
+  - Contenu construit une fois : titre, message avec retour à la ligne et largeur maximale, rangée de boutons à droite ;
+    thème du bureau, aucune couleur codée en dur.
+  - Clic sur un bouton, Entrée (bouton par défaut) ou Échap (bouton d'annulation) : ferme et retire la surcouche, puis
+    appelle `closed` **exactement une fois** avec l'indice ; aucun abonnement laissé derrière.
+  - Pas de bouton de fermeture de la surcouche (`ShowCloseButton = false`) : on ne sort que par un bouton, Entrée ou Échap.
+  - Appeler `Show` depuis `closed` est permis (la file de l'éditeur, D8, ouvre la boîte suivante ainsi) : la nouvelle
+    boîte devient la surcouche active, et le clic ou la touche qui a fermé la précédente ne lui arrive jamais.
+- Étapes :
+  1. Lire `MGOverlayHost` / `MGOverlay` (`MGUI.Core/UI/MGOverlay.cs`) : ouverture, fermeture, placement du contenu,
+     `ZIndex` ; et les tests qui s'en servent (`MGUI.Tests/Focus/FocusArchitectureTests.cs`,
+     `MGUI.Tests/Input/WindowActivationOnClickTests.cs`) pour le harnais.
+  2. Trouver le chemin réel d'Entrée et d'Échap dans le bureau (`MGDesktop.TryHandleInputAction` et
+     `UINavigationAction.Submit`/`Cancel`, `MGUI.Core/UI/Enums.cs:130-135`, ou le gestionnaire clavier) **et le chemin que
+     l'éditeur alimente** ; le test pilote ce chemin-là. Si l'éditeur n'alimente aucun des deux → ⚠️ Blocked (O2).
+  3. Écrire le contrôle, puis les tests : chaque bouton rend son indice ; Entrée → défaut ; Échap → annulation ; deux clics
+     dans la même frame → un seul rappel ; pendant l'ouverture, `ShouldCaptureGameplayInput()` est vrai et un clic sur un
+     bouton d'une **autre fenêtre racine** du bureau n'arrive pas ; après fermeture, `OverlayHost.Overlays` ne contient plus
+     la boîte ; arguments invalides → exception ; **boîte enchaînée** : depuis `closed`, rappeler `Show`, une fois après
+     un clic, une fois après Entrée, une fois après Échap, et vérifier à chaque fois que la seconde boîte est
+     `OverlayHost.ActiveOverlay`, que son rappel n'a pas été appelé pendant cette mise à jour, et que
+     `ShouldCaptureGameplayInput()` est toujours vrai après la mise à jour.
+  4. Sample : trois boutons qui ouvrent un OK, un Yes/No, un Save/Don't Save/Cancel et affichent la réponse.
+  5. Doc : section « Message box » dans `controls-architecture.md` (usage, file à tenir côté hôte, limites).
+- Validation : `MGUI.Tests` vert (ligne de base + nouveaux) ; chaque nouveau test échoue si l'on retire la fermeture de
+  la surcouche, le rappel ou la gestion d'Entrée/Échap (mutation notée) ; le test de la boîte enchaînée échoue sous au
+  moins une mutation notée : appeler `closed` avant que la boîte ne soit retirée de `OpenOverlays`, ou laisser la même
+  touche Entrée atteindre la seconde boîte ; `MGUI.Samples` construit. 🧪 pour le coup d'œil
+  de l'auteur sur le sample si aucun lancement visuel n'est possible.
+- Commit MGUI : `feat(ui): add a modal message box hosted in the desktop overlay`.
+
+### ⏳ T1.2 — Cause « fenêtre flottante fermée entière » dans `PanelClosing` (D5)
+
+- Objectif : l'abonné de `PanelClosing` sait qu'un refus a annulé la fermeture d'une fenêtre flottante entière, et
+  laquelle, pour la retenter après la réponse.
+- Fichiers : `MGUI/MGUI.Core/UI/Docking/Controls/MGDockHost.cs`, un nouveau type
+  `DockPanelClosingEventArgs : CancelEventArgs<DockPanelNode>` à côté (même dossier), `MGUI/MGUI.Tests/Docking/PanelClosingVetoTests.cs`,
+  `MGUI/Docs/controls-architecture.md`.
+- Contrat : le type de l'événement ne change pas (`EventHandler<CancelEventArgs<DockPanelNode>>`, aucune rupture) ;
+  `RaisePanelClosingVetoed` crée toujours un `DockPanelClosingEventArgs` ; sa propriété
+  `MGFloatingDockWindow ClosingFloatingWindow` n'est renseignée que depuis `OnFloatingWindowClosing`, nulle partout ailleurs.
+- Étapes :
+  1. Ajouter le type et le paramètre ; renseigner la fenêtre depuis `OnFloatingWindowClosing` seulement.
+  2. Tests : fenêtre flottante fermée entière → `ClosingFloatingWindow` est cette fenêtre ; onglet, « Close Others »,
+     « Close All », onglet d'une fenêtre flottante, tiroir auto-masqué → nulle ; un abonné qui refuse puis appelle
+     `RemovePanel` puis `TryCloseWindow()` sur la même fenêtre voit `PanelClosing` levé pour les panneaux restants et la
+     fenêtre se ferme quand plus personne ne refuse ; `RemovePanel` du dernier panneau d'une fenêtre flottante : noter
+     par un test si la fenêtre se ferme d'elle-même (fait dont T3.1 a besoin).
+  3. Doc : compléter la section `PanelClosing` de `controls-architecture.md`.
+- Validation : `MGUI.Tests` vert ; les 10 tests existants de `PanelClosingVetoTests` inchangés et verts ; le test de la
+  fenêtre flottante échoue si l'on ne passe pas la fenêtre (mutation notée).
+- Commit MGUI : `feat(docking): tell a panel-closing subscriber which floating window is closing`.
+
+---
+
+## Phase 2 — Éditeur : la file et les messages simples
+
+### ⏳ T2.1 — Pointeur de sous-module
+
+- Objectif : le moteur référence le `MGUI` de T1.1 et T1.2.
+- Fichiers : `MGUI` (pointeur), ce plan (notes de T1.1 et T1.2).
+- Validation : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` sans erreur ;
+  `CasaEngine.Tests` sans nouvel échec.
+- Commit : `chore(submodules): point MGUI at the message box and the floating-window close cause`.
+
+### ⏳ T2.2 — File de boîtes de l'éditeur (D8)
+
+- Objectif : un service d'instance qui ouvre les `MGMessageBox` l'une après l'autre.
+- Fichiers : `CasaEngine.Editor/Controls/EditorMessageBoxes.cs` (nouveau), sa partie pure (file) testable sans MGUI,
+  `CasaEngine.Tests/Editor/EditorMessageBoxQueueTests.cs` (nouveau), `CasaEngine.Editor/GameEditor.cs` (création du
+  service à côté de `_desktop` et `_mainWindow`).
+- Contrat : `Show(title, message, labels, defaultIndex, cancelIndex, Action<int>)` et des raccourcis `ShowError`,
+  `ShowWarning`, `ShowInfo` (un bouton « OK », rappel optionnel), `AskYesNo` (« Yes » / « No »), `AskSave`
+  (« Save » / « Don't Save » / « Cancel », D6) ; une seule boîte ouverte, les suivantes attendent dans l'ordre d'arrivée ;
+  `HasPendingOrOpen` pour les appelants qui doivent éviter un doublon. La boîte suivante s'ouvre depuis le rappel
+  `closed` de la précédente, cas couvert par le test « boîte enchaînée » de T1.1.
+- Validation : tests de la file (ordre, une seule ouverte, la suivante s'ouvre à la fermeture de la précédente, rappel
+  une fois) ; build des deux solutions ; `CasaEngine.Tests` sans nouvel échec.
+- Commit : `feat(editor): add a queue of MGUI message boxes`.
+
+### ⏳ T2.3 — Messages et confirmations de suppression (D1, D9)
+
+- Objectif : les 8 messages OK et les 2 confirmations de suppression passent par la file.
+- Fichiers : `CasaEngine.Editor/GameEditor.cs` (`QueueProjectOpen`, `QueueProjectCreate` : le lanceur se rouvre dans le
+  rappel de la boîte, pas avant), `CasaEngine.Editor/Controls/ContentBrowserPanel.cs` (`:515`, `:521`, `:1051`, `:1238`,
+  `:1863` ; la suppression s'exécute dans le rappel « Yes »), `CasaEngine.Editor/ProjectLauncher/ProjectLauncherWindow.cs`
+  (`:141`, `:210`, `:222`) ; le service est passé par constructeur à `ContentBrowserPanel` et `ProjectLauncherWindow`.
+- Étapes : remplacer chaque appel ; retirer les alias `FormsMessageBox`, `FormsMessageBoxButtons`, `FormsMessageBoxIcon`
+  et `FormsDialogResult` devenus inutiles ; garder `FormsOpenFileDialog`, `FormsClipboard`, et dans le lanceur les
+  sélecteurs natifs (D2).
+- Validation : build des deux solutions ; `CasaEngine.Tests` sans nouvel échec ;
+  `rg -n "MessageBox.Show" CasaEngine.Editor --glob "*.cs"` ne rend plus que `GameEditor.cs` (les trois questions
+  d'enregistrement). 🧪 pour l'auteur : supprimer un élément (Yes et No), Properties, un projet récent disparu, un
+  nouveau projet sans nom.
+- Commit : `feat(editor): show editor messages and delete confirmations in MGUI`.
+
+---
+
+## Phase 3 — Éditeur : les questions d'enregistrement en asynchrone
+
+### ⏳ T3.1 — Fermer un écran modifié (D4, D5, D6)
+
+- Objectif : `OnDockHostPanelClosing` refuse toujours la fermeture d'un écran modifié hors automatisation, pose la
+  question, puis ferme par code selon la réponse.
+- Fichiers : `CasaEngine.Editor/History/ModifiedScreenCloseDecision.cs`, `CasaEngine.Tests/Editor/ModifiedScreenCloseDecisionTests.cs`,
+  `CasaEngine.Editor/GameEditor.cs`.
+- Étapes :
+  1. `ModifiedScreenCloseDecision` sépare « faut-il demander ? » (modifié, automatisation) de « que faire de la
+     réponse ? » (Save et enregistrement réussi → fermer ; Save raté → garder ; Don't Save → fermer ; Cancel → garder),
+     sans délégué synchrone. Les 7 cas existants sont repris, plus « Save raté » et « Cancel » sur chacune des deux entrées.
+  2. `OnDockHostPanelClosing` : écran modifié hors automatisation → `e.Cancel = true` et `AskSave` pour ce panneau, sauf
+     si une question est déjà en attente ou ouverte pour ce panneau. Réponse qui ferme → `RemovePanel(panelId)` (le
+     ménage passe par `PanelRemoved`, comme avant) ; puis, si `e` était un `DockPanelClosingEventArgs` avec
+     `ClosingFloatingWindow` et que cette fenêtre est encore ouverte, `TryCloseWindow()` sur elle (D5). Réponse qui garde
+     → rien, pas de nouvel essai. Réponse pour un panneau qui n'existe plus → ignorée.
+- Validation : tests de la décision (chaque nouveau cas échoue sous mutation) ; build ; `CasaEngine.Tests` sans nouvel
+  échec ; vérificateur frais sur T1.2 + T3.1. 🧪 pour l'auteur : un onglet (Save, Don't Save, Cancel) ; « Close All »
+  avec deux écrans modifiés (Cancel sur le premier le garde et la question du second vient) ; une fenêtre flottante avec
+  deux écrans modifiés (Save puis Don't Save → la fenêtre se ferme ; Cancel → elle reste) ; le tiroir auto-masqué.
+- Commit : `feat(editor): ask to save a closing screen in an MGUI message box`.
+
+### ⏳ T3.2 — Quitter avec des écrans modifiés (D6)
+
+- Objectif : `OnExiting` annule la sortie, pose la question « Quit » qui liste les écrans, puis relance `Exit()`.
+- Fichiers : `CasaEngine.Editor/GameEditor.cs`.
+- Étapes : champ `_exitConfirmed` ; `OnExiting` avec `_exitConfirmed` → `base.OnExiting` directement ; sinon écrans
+  modifiés hors automatisation → `args.Cancel = true` et une seule question à la fois (une seconde demande de sortie
+  pendant la question ne l'empile pas). Save → `SaveDirtyScreenDocuments` ; tous enregistrés → `_exitConfirmed = true`
+  puis `Exit()` ; sinon avertissement et l'éditeur reste. Don't Save → `_exitConfirmed = true` puis `Exit()`. Cancel → rien.
+  Branche d'automatisation inchangée.
+- Validation : build ; `CasaEngine.Tests` sans nouvel échec ; une sortie automatisée par une option d'automatisation
+  existante qui appelle `Exit()` (`GameEditor.cs:6294` ou `:6501`) sort seule, code 0. 🧪 pour l'auteur : File > Exit et
+  la croix de la fenêtre, chacun avec Save, Don't Save, Cancel (seul un lancement réel prouve que `Exit()` relancé après
+  un `Cancel` ferme bien l'éditeur sous DesktopGL).
+- Commit : `feat(editor): ask to save modified screens before quitting in an MGUI message box`.
+
+### ⏳ T3.3 — Ouvrir un monde quand le monde courant est modifié (D6)
+
+- Objectif : `ConfirmSaveBeforeOpeningWorld` devient une question asynchrone ; l'ouverture continue dans le rappel.
+- Fichiers : `CasaEngine.Editor/GameEditor.cs`.
+- Étapes : `TryOpenWorldAsset` pose la question et rend `false` (monde pas encore ouvert) ; Save → `SaveCurrentProject`,
+  puis ouverture seulement si le monde n'est plus modifié ; Don't Save → ouverture sans le contrôle « modifié » ;
+  Cancel → rien. L'ouverture reprend toutes les vérifications de `TryOpenWorldAsset` (catalogue, mode Play, même monde).
+  Vérifier qu'aucun chemin d'automatisation (`GameEditor.cs:7022`, `:7047`, `:7083`) ne peut arriver avec un monde
+  modifié ; sinon → ⚠️ Blocked (O3).
+- Validation : build ; `CasaEngine.Tests` sans nouvel échec ; `rg` de la validation globale sans résultat. 🧪 pour
+  l'auteur : ouvrir un monde avec le monde courant modifié, avec chaque réponse.
+- Commit : `feat(editor): ask to save the world before opening another in an MGUI message box`.
+
+---
+
+## Phase 4 — Clôture
+
+### ⏳ T4.1 — Documentation et vérification finale
+
+- Objectif : documenter et faire vérifier l'ensemble.
+- Fichiers : `docs/editor/` (page courte sur les boîtes de l'éditeur : file, libellés, automatisation, sélecteurs natifs
+  gardés), `docs/README.md`, ce plan, `ai-agent/README.md`.
+- Étapes : doc ; validation globale complète ; vérificateur frais de clôture sur tout le chantier.
+- Validation : validation globale verte ; vérificateur **CONFIRMED**. Smoke de l'auteur restant, repris des tâches 🧪 :
+  T1.1 (sample), T2.3, T3.1, T3.2, T3.3.
+- Commit : `docs(editor): document the MGUI message boxes`.
+
+---
+
+## Points ouverts
+
+| Réf | Sujet | Tâche concernée |
+|---|---|---|
+| O1 | Icônes (avertissement, erreur, information) : pas de ressource d'icône vérifiée dans MGUI ; hors de cette version, à ajouter si l'auteur le demande. | — |
+| O2 | Chemin d'Entrée et d'Échap que l'éditeur alimente vraiment dans le bureau MGUI : à établir en T1.1 ; absent → ⚠️ Blocked. | T1.1 |
+| O3 | Un chemin d'automatisation peut-il ouvrir un monde alors que le monde courant est modifié ? Si oui, décision de l'auteur. | T3.3 |
+
+## Hors périmètre
+
+- Les sélecteurs natifs de fichiers et de dossiers (D2) ; « Open in Explorer » (`ContentBrowserPanel.cs:1265`) ; le
+  presse-papiers WinForms (`UIScreenPreviewPanel.cs:669`, `ContentBrowserPanel.cs`, `LogsPanel.cs`). `UseWindowsForms`
+  reste donc dans `CasaEngine.Editor.csproj`.
+- L'`OpenFileDialog` du designer XAML de MGUI (`MGUI/MGUI.Core/UI/MGXAMLDesigner.cs:212`), que l'éditeur n'utilise pas.
+- Les boîtes du jeu (runtime) et la traduction des textes de l'éditeur.
+- Les icônes de boîte (O1) et une file de boîtes dans MGUI (D8).
+- Les autres types de documents modifiés (matériaux, entités) : aucune question aujourd'hui, pas de nouvelle question.
