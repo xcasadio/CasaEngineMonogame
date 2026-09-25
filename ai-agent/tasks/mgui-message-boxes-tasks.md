@@ -270,7 +270,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` 1888/1888 (ligne de base
   1888). Ce commit porte aussi les notes de T1.1 et T1.2.
 
-### ⏳ T2.2 — File de boîtes de l'éditeur (D8)
+### ✅ T2.2 — File de boîtes de l'éditeur (D8)
 
 - Objectif : un service d'instance qui ouvre les `MGMessageBox` l'une après l'autre.
 - Fichiers : `CasaEngine.Editor/Controls/EditorMessageBoxes.cs` (nouveau), sa partie pure (file) testable sans MGUI,
@@ -284,6 +284,15 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 - Validation : tests de la file (ordre, une seule ouverte, la suivante s'ouvre à la fermeture de la précédente, rappel
   une fois) ; build des deux solutions ; `CasaEngine.Tests` sans nouvel échec.
 - Commit : `feat(editor): add a queue of MGUI message boxes`.
+- Note (2026-09-25) : `EditorMessageBoxQueue` (pure) et `EditorMessageBoxes`, instance créée dans
+  `GameEditor.Initialize` juste après `_desktop` (champ `_messageBoxes`). Écart au contrat : `ShowError`, `ShowWarning` et
+  `ShowInfo` sont réunis en `ShowMessage`, puisque sans icône (D9) les trois seraient identiques. `AskYesNo` : Entrée →
+  Yes, comme le bouton par défaut de la boîte native ; `AskSave` rend `EditorSaveAnswer`. La file valide la demande à
+  l'entrée. Un présentateur qui lève ou une réponse qui lève ne bloquent pas la file. Une question posée depuis une
+  réponse passe après celles qui attendaient déjà. Tests : 9 dans `CasaEngine.Tests/Editor/EditorMessageBoxQueueTests.cs`.
+  Mutations Q1 à Q5 (pas de garde de réponse unique, présentateur qui laisse la file ouverte, suite seulement si la
+  réponse réussit, suite toujours montrée, `Enqueue` qui montre même si une boîte est ouverte) : chacune rougit au moins
+  un test. Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1897/1897.
 
 ### ⏳ T2.3 — Messages et confirmations de suppression (D1, D9)
 

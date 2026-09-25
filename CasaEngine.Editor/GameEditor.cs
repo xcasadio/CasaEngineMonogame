@@ -130,6 +130,9 @@ public class GameEditor : Game, IObservableUpdate
     private MGDesktop _desktop;
     private FontStashSharpTextEngine _fontStashSharpEngine;
 
+    /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0039).</summary>
+    private EditorMessageBoxes _messageBoxes;
+
     // ── Main editor window ─────────────────────────────────────────────
     private MGWindow _mainWindow;
     private MGDockPanel _rootPanel;
@@ -363,6 +366,7 @@ public class GameEditor : Game, IObservableUpdate
         _desktop = new MGDesktop(backend.Runtime);
         _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
         _desktop.LoadDefaultResources();
+        _messageBoxes = new EditorMessageBoxes(_desktop);
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
