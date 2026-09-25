@@ -381,7 +381,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   - Trois avis P4, reportés (O5, O6, O7). Un point non vérifiable par lecture, « le clic qui répond atteint-il ce qui est
     dessous ? », est désormais épinglé par un test MGUI (note de T1.1).
 
-### ⏳ T3.2 — Quitter avec des écrans modifiés (D6)
+### 🧪 T3.2 — Quitter avec des écrans modifiés (D6)
 
 - Objectif : `OnExiting` annule la sortie, pose la question « Quit » qui liste les écrans, puis relance `Exit()`.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`.
@@ -395,6 +395,34 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   la croix de la fenêtre, chacun avec Save, Don't Save, Cancel (seul un lancement réel prouve que `Exit()` relancé après
   un `Cancel` ferme bien l'éditeur sous DesktopGL).
 - Commit : `feat(editor): ask to save modified screens before quitting in an MGUI message box`.
+- Note (2026-09-25) :
+  - Le flux vit dans `ModifiedScreensExitCoordinator`, classe pure de `CasaEngine.Editor/History`. Il annule la
+    sortie, pose une seule question « Quit » avec la liste des écrans, et ne la repose pas si on quitte de nouveau
+    pendant l'attente. Save enregistre tout, puis ne sort que si plus rien n'est modifié. Don't Save sort. Pour sortir,
+    il appelle `Exit()`, et laisse passer la sortie suivante, une seule fois : si elle n'avait pas lieu, la prochaine
+    redemanderait. Sous automatisation, rien n'est demandé et le journal liste les écrans abandonnés, comme avant.
+  - `GameEditor.OnExiting` ne fait que brancher.
+  - `ModifiedScreenCloseDecision.Decide` n'a plus d'appelant : il est marqué `[Obsolete]` mais reste public
+    (§9.8), et ses tests tournent sous `#pragma warning disable CS0618`.
+  - La surcharge `ToModifiedScreenCloseAnswer(DialogResult)` est retirée.
+  - Tests : 10 dans `CasaEngine.Tests/Editor/ModifiedScreensExitCoordinatorTests.cs`. Mutations E1 à E6 : chacune
+    rougit au moins un test (pas de passage après la réponse, passage jamais consommé, automatisation ignorée, pas de
+    dédoublonnage, sortie jamais demandée, seconde réponse acceptée).
+  - Les deux solutions compilent sans erreur ; `CasaEngine.Tests` 1931/1931.
+  - **Sortie automatisée avec un écran modifié**, éditeur réel : `CasaEngine.Editor.exe --project
+    Projects/SampleProject/SampleProject.json --open-asset Screens/sample-popup.uiscreen --set-screen-property
+    lblTitle:Text=ChangedBySmoke --capture-delay 2 --diagnostics-out …`, lancé depuis le scratchpad. Le diagnostic
+    montre « Updated screen property 'lblTitle.Text' ». L'éditeur sort seul, code 0, en 3 s, sans question. Les
+    empreintes SHA-1 du projet sont identiques avant et après (le `.xaml` n'est pas écrit).
+  - Seul artefact : `Projects/SampleProject/.casaeditor/viewport.editor.json`, créé par le lancement et retiré.
+    Incident, réparé : en le retirant, j'ai d'abord supprimé tout `.casaeditor/`, qui contient deux fichiers suivis
+    (`layout.uiscreen.json`, `layout.world.json`). Ils ont été restaurés depuis Git ; ils étaient propres avant le
+    lancement, et les empreintes sont de nouveau identiques au relevé d'avant.
+  - Sur `Projects/RPGDemo`, la même commande ne progresse pas : l'automatisation générique doit d'abord
+    sélectionner une entité, et le monde de départ de RPGDemo n'en a pas. C'est une limite de l'automatisation, pas
+    de ce chantier : `--play-smoke` sort bien, code 0, en 8 s.
+  - **Reste 🧪** : File > Exit et la croix de la fenêtre, chacun avec Save, Don't Save et Cancel. Seul un lancement
+    réel prouve que `Exit()` relancé après une annulation ferme bien l'éditeur sous DesktopGL.
 
 ### ⏳ T3.3 — Ouvrir un monde quand le monde courant est modifié (D6)
 

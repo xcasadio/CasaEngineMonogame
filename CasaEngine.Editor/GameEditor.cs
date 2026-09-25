@@ -136,6 +136,9 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0039, D4, D5).</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
+    /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0039).</summary>
+    private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
+
     // ── Main editor window ─────────────────────────────────────────────
     private MGWindow _mainWindow;
     private MGDockPanel _rootPanel;
@@ -376,6 +379,13 @@ public class GameEditor : Game, IObservableUpdate
             ask: AskSaveBeforeClosingScreen,
             isScreenOpen: panelId => TryGetUIScreenPreviewPanel(panelId, out _),
             trySave: TrySaveScreenDocumentBeforeClose);
+        _modifiedScreensExitCoordinator = new ModifiedScreensExitCoordinator(
+            modifiedScreenTitles: GetModifiedScreenTitles,
+            isAutomationActive: () => _automationOptions.HasAutomation,
+            logAbandonedUnderAutomation: LogScreensAbandonedByAutomatedExit,
+            ask: AskSaveBeforeQuitting,
+            trySaveAll: TrySaveAllScreenDocumentsBeforeQuitting,
+            requestExit: Exit);
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
@@ -2637,13 +2647,6 @@ public class GameEditor : Game, IObservableUpdate
             _ => ModifiedScreenCloseDecision.Answer.Cancel,
         };
 
-    private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(System.Windows.Forms.DialogResult dialogResult)
-        => dialogResult switch
-        {
-            System.Windows.Forms.DialogResult.Yes => ModifiedScreenCloseDecision.Answer.Yes,
-            System.Windows.Forms.DialogResult.No => ModifiedScreenCloseDecision.Answer.No,
-            _ => ModifiedScreenCloseDecision.Answer.Cancel,
-        };
 
     /// <summary>Saves one screen document, exactly as <see cref="SaveDirtyScreenDocuments"/> does for
     /// each dirty one, but for a single panel already known to be dirty and already resolved by the
@@ -2667,77 +2670,68 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17): asks whether to save every still-modified screen document before the game exits.
-    /// Under automation, nothing is asked - the abandoned screens are logged instead, exactly as the
-    /// author decided for every other unattended path. Neither <see cref="GameEditor"/> nor its base
-    /// <see cref="Game"/> overrode this before T4.5 (verified: no other <c>OnExiting</c> override in the
-    /// repository); MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true
-    /// to cancel closing the game".
+    /// T4.5 (D17), made asynchronous by ADR-0039: asks whether to save every still-modified screen document before the
+    /// game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
+    /// asks, and requests the exit again (<see cref="Game.Exit"/>) once the answer lets it go. Under automation, nothing is
+    /// asked - the abandoned screens are logged instead, exactly as the author decided for every other unattended path.
+    /// MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true to cancel closing the game".
     /// </summary>
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
-        var modifiedScreens = new List<(string PanelId, string Title)>();
-        if (_screenPreviewPanels != null)
-        {
-            foreach (var pair in _screenPreviewPanels)
-            {
-                var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key);
-                if (_editorDirtyState.IsDirty(historyContext))
-                {
-                    string title = _screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen";
-                    modifiedScreens.Add((pair.Key, title));
-                }
-            }
-        }
-
-        if (modifiedScreens.Count == 0)
-        {
-            base.OnExiting(sender, args);
-            return;
-        }
-
-        if (_automationOptions.HasAutomation)
-        {
-            string abandonedTitles = string.Join(", ", modifiedScreens.Select(screen => screen.Title));
-            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
-            Logs.WriteInfo($"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
-            base.OnExiting(sender, args);
-            return;
-        }
-
-        var result = ModifiedScreenCloseDecision.Decide(
-            isModified: true,
-            isAutomationActive: false,
-            askUser: () =>
-            {
-                string list = string.Join("\n", modifiedScreens.Select(screen => $"- {screen.Title}"));
-                return ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
-                    $"Save changes to the modified screens before quitting?\n\n{list}",
-                    "Quit",
-                    System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-                    System.Windows.Forms.MessageBoxIcon.Warning));
-            },
-            trySave: () =>
-            {
-                SaveDirtyScreenDocuments();
-                bool anyStillModified = modifiedScreens.Any(screen =>
-                    _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, screen.PanelId)));
-                if (anyStillModified)
-                {
-                    Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
-                }
-
-                return !anyStillModified;
-            });
-
-        if (!result.ShouldProceed)
+        if (_modifiedScreensExitCoordinator?.OnExiting() == true)
         {
             args.Cancel = true;
             return;
         }
 
         base.OnExiting(sender, args);
+    }
+
+    private IReadOnlyList<string> GetModifiedScreenTitles()
+    {
+        var titles = new List<string>();
+        if (_screenPreviewPanels == null)
+        {
+            return titles;
+        }
+
+        foreach (var pair in _screenPreviewPanels)
+        {
+            if (_editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key)))
+            {
+                titles.Add(_screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen");
+            }
+        }
+
+        return titles;
+    }
+
+    private static void LogScreensAbandonedByAutomatedExit(IReadOnlyList<string> titles)
+    {
+        string abandonedTitles = string.Join(", ", titles);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
+        Logs.WriteInfo($"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
+    }
+
+    private void AskSaveBeforeQuitting(IReadOnlyList<string> titles, Action<ModifiedScreenCloseDecision.Answer> answered)
+    {
+        string list = string.Join("\n", titles.Select(title => $"- {title}"));
+        _messageBoxes.AskSave("Quit", $"Save changes to the modified screens before quitting?\n\n{list}",
+            answer => answered(ToModifiedScreenCloseAnswer(answer)));
+    }
+
+    /// <summary>Saves every modified screen document; false, with a warning, when one is still modified afterwards.</summary>
+    private bool TrySaveAllScreenDocumentsBeforeQuitting()
+    {
+        SaveDirtyScreenDocuments();
+        if (GetModifiedScreenTitles().Count == 0)
+        {
+            return true;
+        }
+
+        Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
+        return false;
     }
 
     private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)

@@ -45,6 +45,7 @@ public static class ModifiedScreenCloseDecision
     /// </list>
     /// <paramref name="trySave"/> is never called unless the user answered Yes.
     /// </summary>
+    [Obsolete("Asks synchronously. The editor's questions answer later (ADR-0039): use NeedsAnswer, then ApplyAnswer once the answer arrives.")]
     public static Result Decide(bool isModified, bool isAutomationActive, Func<Answer> askUser, Func<bool> trySave)
     {
         if (!NeedsAnswer(isModified, isAutomationActive))

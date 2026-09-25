@@ -2,6 +2,9 @@ using System;
 using CasaEngine.Editor.History;
 using Xunit;
 
+// Decide is obsolete since ADR-0039 (the editor asks asynchronously) but stays public; its cases are kept.
+#pragma warning disable CS0618
+
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>Bound screens program, phase 8, T4.5 (D17): every case of <see cref="ModifiedScreenCloseDecision.Decide"/>.</summary>
