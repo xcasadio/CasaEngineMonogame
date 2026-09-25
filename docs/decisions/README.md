@@ -54,3 +54,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted | 2026-09-24 |
 | [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
+| [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |

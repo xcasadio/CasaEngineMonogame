@@ -35,9 +35,6 @@ using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 using FormsClipboard = System.Windows.Forms.Clipboard;
 using FormsDialogResult = System.Windows.Forms.DialogResult;
-using FormsMessageBox = System.Windows.Forms.MessageBox;
-using FormsMessageBoxButtons = System.Windows.Forms.MessageBoxButtons;
-using FormsMessageBoxIcon = System.Windows.Forms.MessageBoxIcon;
 using FormsOpenFileDialog = System.Windows.Forms.OpenFileDialog;
 
 namespace CasaEngine.Editor.Controls;
@@ -217,6 +214,7 @@ public class ContentBrowserPanel
     public event Action<IReadOnlyList<ContentItem>> SelectionChanged;
 
     private readonly MGWindow _window;
+    private readonly EditorMessageBoxes _messageBoxes;
 
     public ContentBrowserConfig Config { get; }
 
@@ -259,18 +257,20 @@ public class ContentBrowserPanel
     }
 
     public ContentBrowserPanel(MGWindow window, ContentBrowserConfig config)
-        : this(window, config, null)
+        : this(window, config, null, null)
     {
     }
 
-    internal ContentBrowserPanel(MGWindow window, HostedEditorGameAdapter editorRuntime)
-        : this(window, null, editorRuntime)
+    internal ContentBrowserPanel(MGWindow window, HostedEditorGameAdapter editorRuntime, EditorMessageBoxes messageBoxes)
+        : this(window, null, editorRuntime, messageBoxes)
     {
     }
 
-    internal ContentBrowserPanel(MGWindow window, ContentBrowserConfig config, HostedEditorGameAdapter editorRuntime)
+    /// <param name="messageBoxes">The editor's shared message box queue (ADR-0041); null gives this panel a queue of its own.</param>
+    internal ContentBrowserPanel(MGWindow window, ContentBrowserConfig config, HostedEditorGameAdapter editorRuntime, EditorMessageBoxes messageBoxes)
     {
         _window = window;
+        _messageBoxes = messageBoxes ?? new EditorMessageBoxes(window.Desktop);
         Config = config ?? new ContentBrowserConfig();
         if (window.Desktop.Runtime is not CasaDesktopRuntime runtime)
         {
@@ -512,13 +512,13 @@ public class ContentBrowserPanel
 
         if (!string.IsNullOrEmpty(_pendingOperationError))
         {
-            FormsMessageBox.Show(_pendingOperationError, "Content Browser", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Error);
+            _messageBoxes.ShowMessage("Content Browser", _pendingOperationError);
             _pendingOperationError = string.Empty;
         }
 
         if (!string.IsNullOrEmpty(_pendingOperationWarning))
         {
-            FormsMessageBox.Show(_pendingOperationWarning, "Content Browser", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Warning);
+            _messageBoxes.ShowMessage("Content Browser", _pendingOperationWarning);
             _pendingOperationWarning = string.Empty;
         }
     }
@@ -1048,11 +1048,17 @@ public class ContentBrowserPanel
 
     private void OnDeleteItemRequested(ContentItem item)
     {
-        if (FormsMessageBox.Show($"Delete '{item.Name}'?", "Content Browser", FormsMessageBoxButtons.YesNo, FormsMessageBoxIcon.Warning) != FormsDialogResult.Yes)
+        _messageBoxes.AskYesNo("Content Browser", $"Delete '{item.Name}'?", confirmed =>
         {
-            return;
-        }
+            if (confirmed)
+            {
+                DeleteItem(item);
+            }
+        });
+    }
 
+    private void DeleteItem(ContentItem item)
+    {
         InvalidateThumbnailForItem(item);
         var undoViewState = CaptureViewState();
         if (_fileOperationService.TryDeleteOperation(new[] { item.FullPath }, out var operation))
@@ -1235,7 +1241,7 @@ public class ContentBrowserPanel
 
     private void OnPropertiesRequested(ContentItem item)
     {
-        FormsMessageBox.Show(BuildPropertiesText(item), $"Properties - {item.Name}", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Information);
+        _messageBoxes.ShowMessage($"Properties - {item.Name}", BuildPropertiesText(item));
     }
 
     private void OnCopyPathRequested(ContentItem item)
@@ -1860,11 +1866,17 @@ public class ContentBrowserPanel
             return;
         }
 
-        if (FormsMessageBox.Show($"Delete {selectedItems.Count} items?", "Content Browser", FormsMessageBoxButtons.YesNo, FormsMessageBoxIcon.Warning) != FormsDialogResult.Yes)
+        _messageBoxes.AskYesNo("Content Browser", $"Delete {selectedItems.Count} items?", confirmed =>
         {
-            return;
-        }
+            if (confirmed)
+            {
+                DeleteItems(selectedItems);
+            }
+        });
+    }
 
+    private void DeleteItems(List<ContentItem> selectedItems)
+    {
         var itemsToDelete = selectedItems.OrderByDescending(item => item.FullPath.Length).ToList();
         for (int i = 0; i < itemsToDelete.Count; i++)
         {

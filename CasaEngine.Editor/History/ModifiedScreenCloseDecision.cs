@@ -45,9 +45,10 @@ public static class ModifiedScreenCloseDecision
     /// </list>
     /// <paramref name="trySave"/> is never called unless the user answered Yes.
     /// </summary>
+    [Obsolete("Asks synchronously. The editor's questions answer later (ADR-0041): use NeedsAnswer, then ApplyAnswer once the answer arrives.")]
     public static Result Decide(bool isModified, bool isAutomationActive, Func<Answer> askUser, Func<bool> trySave)
     {
-        if (!isModified || isAutomationActive)
+        if (!NeedsAnswer(isModified, isAutomationActive))
         {
             return new Result(Outcome.Proceed, SaveAttempted: false);
         }
@@ -57,7 +58,23 @@ public static class ModifiedScreenCloseDecision
             throw new ArgumentNullException(nameof(askUser));
         }
 
-        Answer answer = askUser();
+        return ApplyAnswer(askUser(), trySave);
+    }
+
+    /// <summary>
+    /// First half of <see cref="Decide"/>, for a caller whose answer arrives later (ADR-0041: an MGUI message box answers
+    /// in a callback): true when the user must be asked - a modified document, outside automation. When false, the
+    /// close/exit proceeds without asking.
+    /// </summary>
+    public static bool NeedsAnswer(bool isModified, bool isAutomationActive) => isModified && !isAutomationActive;
+
+    /// <summary>
+    /// Second half of <see cref="Decide"/>: what the user's <paramref name="answer"/> means once it arrives. Yes:
+    /// <paramref name="trySave"/> is called exactly once - success proceeds, failure cancels (so unsaved changes are not
+    /// lost). No: proceed without saving. Cancel: cancel. <paramref name="trySave"/> is never called unless the answer is Yes.
+    /// </summary>
+    public static Result ApplyAnswer(Answer answer, Func<bool> trySave)
+    {
         switch (answer)
         {
             case Answer.Yes:

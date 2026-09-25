@@ -130,6 +130,18 @@ public class GameEditor : Game, IObservableUpdate
     private MGDesktop _desktop;
     private FontStashSharpTextEngine _fontStashSharpEngine;
 
+    /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0041).</summary>
+    private EditorMessageBoxes _messageBoxes;
+
+    /// <summary>The asynchronous "save before closing?" question of screen documents (ADR-0041, D4, D5).</summary>
+    private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
+
+    /// <summary>The asynchronous "save before quitting?" question of screen documents (ADR-0041).</summary>
+    private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
+
+    /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0041).</summary>
+    private bool _worldOpenQuestionPending;
+
     // ── Main editor window ─────────────────────────────────────────────
     private MGWindow _mainWindow;
     private MGDockPanel _rootPanel;
@@ -364,6 +376,20 @@ public class GameEditor : Game, IObservableUpdate
         _desktop = new MGDesktop(backend.Runtime);
         _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
         _desktop.LoadDefaultResources();
+        _messageBoxes = new EditorMessageBoxes(_desktop);
+        _modifiedScreenCloseCoordinator = new ModifiedScreenCloseCoordinator(
+            isModified: panelId => _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId)),
+            isAutomationActive: () => _automationOptions.HasAutomation,
+            ask: AskSaveBeforeClosingScreen,
+            isScreenOpen: panelId => TryGetUIScreenPreviewPanel(panelId, out _),
+            trySave: TrySaveScreenDocumentBeforeClose);
+        _modifiedScreensExitCoordinator = new ModifiedScreensExitCoordinator(
+            modifiedScreenTitles: GetModifiedScreenTitles,
+            isAutomationActive: () => _automationOptions.HasAutomation,
+            logAbandonedUnderAutomation: LogScreensAbandonedByAutomatedExit,
+            ask: AskSaveBeforeQuitting,
+            trySaveAll: TrySaveAllScreenDocumentsBeforeQuitting,
+            requestExit: Exit);
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
@@ -1300,7 +1326,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (_contentBrowserPanel == null)
         {
-            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime);
+            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime, _messageBoxes);
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Sound", CreateSoundAssetInFolder);
@@ -2189,7 +2215,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ShowProjectLauncher()
     {
-        var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate);
+        var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate, _messageBoxes);
         launcher.Show();
     }
 
@@ -2215,12 +2241,8 @@ public class GameEditor : Game, IObservableUpdate
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(
-                    $"Failed to open project:\n{ex.Message}",
-                    "Error",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Error);
-                OpenProjectLauncher();
+                // The launcher comes back once the message is dismissed, as it did after the native box.
+                _messageBoxes.ShowMessage("Error", $"Failed to open project:\n{ex.Message}", OpenProjectLauncher);
             }
         };
     }
@@ -2235,12 +2257,8 @@ public class GameEditor : Game, IObservableUpdate
             }
             catch (Exception ex)
             {
-                System.Windows.Forms.MessageBox.Show(
-                    $"Failed to create project:\n{ex.Message}",
-                    "Error",
-                    System.Windows.Forms.MessageBoxButtons.OK,
-                    System.Windows.Forms.MessageBoxIcon.Error);
-                OpenProjectLauncher();
+                // The launcher comes back once the message is dismissed, as it did after the native box.
+                _messageBoxes.ShowMessage("Error", $"Failed to create project:\n{ex.Message}", OpenProjectLauncher);
             }
         };
     }
@@ -2570,47 +2588,75 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17): asks whether to save a modified screen document before a USER close removes its
-    /// panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close
-    /// button, "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close,
-    /// and closing a whole floating window; never for <c>RemovePanel</c> or <c>CloseFloatingWindow</c>
-    /// called by application code). Only screen panels are considered; every other kind of panel closes
-    /// unconditionally, exactly as before this event existed.
+    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save a modified screen document before a USER close
+    /// removes its panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close button,
+    /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
+    /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
+    /// application code). The MGUI question answers later, so <see cref="_modifiedScreenCloseCoordinator"/> refuses the
+    /// close now and redoes it by code once the answer lets it go. Only screen panels are considered; every other kind of
+    /// panel closes unconditionally, exactly as before this event existed.
     /// </summary>
     private void OnDockHostPanelClosing(object sender, CancelEventArgs<DockPanelNode> e)
     {
-        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out var previewPanel))
+        if (e?.Data == null || !TryGetUIScreenPreviewPanel(e.Data.Id, out _))
         {
             return;
         }
 
-        string panelId = e.Data.Id;
-        var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId);
-        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+        DockPanelNode panel = e.Data;
+        MGFloatingDockWindow closingWindow = (e as DockPanelClosingEventArgs)?.ClosingFloatingWindow;
+        Action retryWindowClose = closingWindow == null ? null : () => RetryFloatingWindowClose(closingWindow);
 
-        var result = ModifiedScreenCloseDecision.Decide(
-            isModified: _editorDirtyState.IsDirty(historyContext),
-            isAutomationActive: _automationOptions.HasAutomation,
-            askUser: () => ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
-                $"Save changes to '{title}' before closing?",
-                "Close Screen",
-                System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-                System.Windows.Forms.MessageBoxIcon.Warning)),
-            trySave: () => TrySaveScreenDocument(panelId, previewPanel, historyContext));
-
-        if (!result.ShouldProceed)
+        if (_modifiedScreenCloseCoordinator.OnClosing(panel.Id, () => CloseScreenPanelAfterAnswer(panel), retryWindowClose))
         {
             e.Cancel = true;
         }
     }
 
-    private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(System.Windows.Forms.DialogResult dialogResult)
-        => dialogResult switch
+    private void AskSaveBeforeClosingScreen(string panelId, Action<ModifiedScreenCloseDecision.Answer> answered)
+    {
+        string title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+        _messageBoxes.AskSave("Close Screen", $"Save changes to '{title}' before closing?",
+            answer => answered(ToModifiedScreenCloseAnswer(answer)));
+    }
+
+    private bool TrySaveScreenDocumentBeforeClose(string panelId)
+        => TryGetUIScreenPreviewPanel(panelId, out var previewPanel)
+           && TrySaveScreenDocument(panelId, previewPanel, new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+
+    /// <summary>Closes a screen panel whose close question was answered with Save (saved) or Don't Save. <see cref="MGDockHost.ClosePanel"/>
+    /// finds the panel wherever it is, floating windows included; its <see cref="MGDockHost.PanelRemoved"/> runs
+    /// <see cref="OnDockHostPanelRemoved"/>, as the user's close did.</summary>
+    private bool CloseScreenPanelAfterAnswer(DockPanelNode panel)
+    {
+        if (_dockHost?.ClosePanel(panel) == true)
         {
-            System.Windows.Forms.DialogResult.Yes => ModifiedScreenCloseDecision.Answer.Yes,
-            System.Windows.Forms.DialogResult.No => ModifiedScreenCloseDecision.Answer.No,
+            return true;
+        }
+
+        Logs.WriteWarning($"Cannot close screen '{panel.Title}': the dock host no longer holds its panel.");
+        return false;
+    }
+
+    /// <summary>D5: retries the close of a whole floating window refused for a modified screen, once that screen is closed:
+    /// the retry asks about the window's next modified screen. Closing the window's last panel closes the window itself
+    /// (MGUI ADR-0018), in which case there is nothing to retry.</summary>
+    private void RetryFloatingWindowClose(MGFloatingDockWindow window)
+    {
+        if (_dockHost != null && _dockHost.FloatingWindows.Contains(window))
+        {
+            window.TryCloseWindow();
+        }
+    }
+
+    private static ModifiedScreenCloseDecision.Answer ToModifiedScreenCloseAnswer(EditorSaveAnswer answer)
+        => answer switch
+        {
+            EditorSaveAnswer.Save => ModifiedScreenCloseDecision.Answer.Yes,
+            EditorSaveAnswer.DontSave => ModifiedScreenCloseDecision.Answer.No,
             _ => ModifiedScreenCloseDecision.Answer.Cancel,
         };
+
 
     /// <summary>Saves one screen document, exactly as <see cref="SaveDirtyScreenDocuments"/> does for
     /// each dirty one, but for a single panel already known to be dirty and already resolved by the
@@ -2634,77 +2680,68 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17): asks whether to save every still-modified screen document before the game exits.
-    /// Under automation, nothing is asked - the abandoned screens are logged instead, exactly as the
-    /// author decided for every other unattended path. Neither <see cref="GameEditor"/> nor its base
-    /// <see cref="Game"/> overrode this before T4.5 (verified: no other <c>OnExiting</c> override in the
-    /// repository); MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true
-    /// to cancel closing the game".
+    /// T4.5 (D17), made asynchronous by ADR-0041: asks whether to save every still-modified screen document before the
+    /// game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
+    /// asks, and requests the exit again (<see cref="Game.Exit"/>) once the answer lets it go. Under automation, nothing is
+    /// asked - the abandoned screens are logged instead, exactly as the author decided for every other unattended path.
+    /// MonoGame 3.8.5.1's <see cref="ExitingEventArgs.Cancel"/> is documented "Set to true to cancel closing the game".
     /// </summary>
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
-        var modifiedScreens = new List<(string PanelId, string Title)>();
-        if (_screenPreviewPanels != null)
-        {
-            foreach (var pair in _screenPreviewPanels)
-            {
-                var historyContext = new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key);
-                if (_editorDirtyState.IsDirty(historyContext))
-                {
-                    string title = _screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen";
-                    modifiedScreens.Add((pair.Key, title));
-                }
-            }
-        }
-
-        if (modifiedScreens.Count == 0)
-        {
-            base.OnExiting(sender, args);
-            return;
-        }
-
-        if (_automationOptions.HasAutomation)
-        {
-            string abandonedTitles = string.Join(", ", modifiedScreens.Select(screen => screen.Title));
-            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
-            Logs.WriteInfo($"[Automation] Exiting with {modifiedScreens.Count} modified screen(s) abandoned: {abandonedTitles}");
-            base.OnExiting(sender, args);
-            return;
-        }
-
-        var result = ModifiedScreenCloseDecision.Decide(
-            isModified: true,
-            isAutomationActive: false,
-            askUser: () =>
-            {
-                string list = string.Join("\n", modifiedScreens.Select(screen => $"- {screen.Title}"));
-                return ToModifiedScreenCloseAnswer(System.Windows.Forms.MessageBox.Show(
-                    $"Save changes to the modified screens before quitting?\n\n{list}",
-                    "Quit",
-                    System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-                    System.Windows.Forms.MessageBoxIcon.Warning));
-            },
-            trySave: () =>
-            {
-                SaveDirtyScreenDocuments();
-                bool anyStillModified = modifiedScreens.Any(screen =>
-                    _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, screen.PanelId)));
-                if (anyStillModified)
-                {
-                    Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
-                }
-
-                return !anyStillModified;
-            });
-
-        if (!result.ShouldProceed)
+        if (_modifiedScreensExitCoordinator?.OnExiting() == true)
         {
             args.Cancel = true;
             return;
         }
 
         base.OnExiting(sender, args);
+    }
+
+    private IReadOnlyList<string> GetModifiedScreenTitles()
+    {
+        var titles = new List<string>();
+        if (_screenPreviewPanels == null)
+        {
+            return titles;
+        }
+
+        foreach (var pair in _screenPreviewPanels)
+        {
+            if (_editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, pair.Key)))
+            {
+                titles.Add(_screenPreviewPanelTitles.TryGetValue(pair.Key, out var value) ? value : "UIScreen");
+            }
+        }
+
+        return titles;
+    }
+
+    private static void LogScreensAbandonedByAutomatedExit(IReadOnlyList<string> titles)
+    {
+        string abandonedTitles = string.Join(", ", titles);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
+        Logs.WriteInfo($"[Automation] Exiting with {titles.Count} modified screen(s) abandoned: {abandonedTitles}");
+    }
+
+    private void AskSaveBeforeQuitting(IReadOnlyList<string> titles, Action<ModifiedScreenCloseDecision.Answer> answered)
+    {
+        string list = string.Join("\n", titles.Select(title => $"- {title}"));
+        _messageBoxes.AskSave("Quit", $"Save changes to the modified screens before quitting?\n\n{list}",
+            answer => answered(ToModifiedScreenCloseAnswer(answer)));
+    }
+
+    /// <summary>Saves every modified screen document; false, with a warning, when one is still modified afterwards.</summary>
+    private bool TrySaveAllScreenDocumentsBeforeQuitting()
+    {
+        SaveDirtyScreenDocuments();
+        if (GetModifiedScreenTitles().Count == 0)
+        {
+            return true;
+        }
+
+        Logs.WriteWarning("Exit cancelled: one or more modified screens could not be saved.");
+        return false;
     }
 
     private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)
@@ -4178,7 +4215,13 @@ public class GameEditor : Game, IObservableUpdate
         return false;
     }
 
-    private bool TryOpenWorldAsset(string fullPath)
+    private bool TryOpenWorldAsset(string fullPath) => OpenWorldAsset(fullPath, unsavedChangesHandled: false);
+
+    /// <summary>Opens a world asset in the World document. When the current world is modified and
+    /// <paramref name="unsavedChangesHandled"/> is false, asks whether to save it first and returns false: the MGUI
+    /// question answers later (ADR-0041), and the answer calls this again with <paramref name="unsavedChangesHandled"/>
+    /// true (saved, or Don't Save), which redoes every other check.</summary>
+    private bool OpenWorldAsset(string fullPath, bool unsavedChangesHandled)
     {
         var gameManager = _editorRuntime?.GameManager;
         if (gameManager == null || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
@@ -4212,9 +4255,9 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         var worldHistoryContext = new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
-        if (_editorDirtyState.IsDirty(worldHistoryContext)
-            && !ConfirmSaveBeforeOpeningWorld(worldHistoryContext, Path.GetFileNameWithoutExtension(assetInfo.FileName)))
+        if (!unsavedChangesHandled && _editorDirtyState.IsDirty(worldHistoryContext))
         {
+            AskSaveBeforeOpeningWorld(fullPath, worldHistoryContext, Path.GetFileNameWithoutExtension(assetInfo.FileName));
             return false;
         }
 
@@ -4249,24 +4292,35 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    private bool ConfirmSaveBeforeOpeningWorld(EditorHistoryContext worldHistoryContext, string worldName)
+    /// <summary>Asks whether to save the project before opening another world (ADR-0041). Save opens it only once the
+    /// world is saved; Don't Save opens it and drops the changes; Cancel keeps the current world. One question at a time:
+    /// a request made while it waits is ignored.</summary>
+    private void AskSaveBeforeOpeningWorld(string fullPath, EditorHistoryContext worldHistoryContext, string worldName)
     {
-        var answer = System.Windows.Forms.MessageBox.Show(
-            $"The current world has unsaved changes.\n\nSave the project before opening '{worldName}'?",
+        if (_worldOpenQuestionPending)
+        {
+            return;
+        }
+
+        _worldOpenQuestionPending = true;
+        _messageBoxes.AskSave(
             "Open World",
-            System.Windows.Forms.MessageBoxButtons.YesNoCancel,
-            System.Windows.Forms.MessageBoxIcon.Warning);
+            $"The current world has unsaved changes.\n\nSave the project before opening '{worldName}'?",
+            answer =>
+            {
+                _worldOpenQuestionPending = false;
+                var result = ModifiedScreenCloseDecision.ApplyAnswer(
+                    ToModifiedScreenCloseAnswer(answer),
+                    () => TrySaveProjectBeforeOpeningWorld(worldHistoryContext));
+                if (result.ShouldProceed)
+                {
+                    OpenWorldAsset(fullPath, unsavedChangesHandled: true);
+                }
+            });
+    }
 
-        if (answer == System.Windows.Forms.DialogResult.No)
-        {
-            return true;
-        }
-
-        if (answer != System.Windows.Forms.DialogResult.Yes)
-        {
-            return false;
-        }
-
+    private bool TrySaveProjectBeforeOpeningWorld(EditorHistoryContext worldHistoryContext)
+    {
         try
         {
             SaveCurrentProject();
