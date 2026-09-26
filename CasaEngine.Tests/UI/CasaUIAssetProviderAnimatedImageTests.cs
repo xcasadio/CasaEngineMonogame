@@ -266,7 +266,7 @@ public class CasaUIAssetProviderAnimatedImageTests : IDisposable
             animatedImage.Advance(dt);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 1000; i++)
         {
             animatedImage.Advance(dt);
@@ -286,7 +286,7 @@ public class CasaUIAssetProviderAnimatedImageTests : IDisposable
             sampler.Update(1f / 60f);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 1000; i++)
         {
             sampler.Update(1f / 60f);

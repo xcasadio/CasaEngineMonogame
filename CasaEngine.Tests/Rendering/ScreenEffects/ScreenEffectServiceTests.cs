@@ -252,7 +252,7 @@ public class ScreenEffectServiceTests
             service.Update(0.016f);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 1000; i++)
         {
             service.Update(0.016f);
