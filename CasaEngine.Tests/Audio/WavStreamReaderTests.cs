@@ -149,7 +149,7 @@ public class WavStreamReaderTests
         var buffer = new byte[512];
 
         reader.Read(buffer, 0, buffer.Length);
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
 
         for (var i = 0; i < 100; i++)
         {

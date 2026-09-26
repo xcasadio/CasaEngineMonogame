@@ -292,7 +292,7 @@ public class TileMapComponentSortedOverlayTests
         component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
         component.ClearSortedOverlayTiles();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 50; i++)
         {
             component.AddSortedOverlayTile(reference, 0, 0, in RenderSortKey2D.Default);
@@ -301,9 +301,8 @@ public class TileMapComponentSortedOverlayTests
         var after = GC.GetAllocatedBytesForCurrentThread();
 
         // A boxing comparer would allocate on every one of the 100 dictionary lookups (TryGetValue +
-        // decrement) above; the generous ceiling only guards against that class of regression, not exact
-        // allocator behavior.
-        Assert.True(after - before < 2048, $"Expected no measurable allocation from repeated cache hits, but observed {after - before} bytes.");
+        // decrement) above.
+        Assert.Equal(0, after - before);
     }
 
     [Fact]

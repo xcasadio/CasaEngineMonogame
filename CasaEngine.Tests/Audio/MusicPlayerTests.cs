@@ -310,7 +310,7 @@ public class MusicPlayerTests
             service.Update(0.016f);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 200; i++)
         {
             backend.ConsumeBuffers(voice, 2);
