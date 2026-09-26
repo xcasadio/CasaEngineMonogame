@@ -388,6 +388,21 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
   - Aucun chemin ne ferme sans Save ni Don't Save.
   - Trois avis P4, reportés (O5, O6, O7). Un point non vérifiable par lecture, « le clic qui répond atteint-il ce qui est
     dessous ? », est désormais épinglé par un test MGUI (note de T1.1).
+- **Défaut trouvé par l'auteur au premier clic réel (2026-09-25)**, après le merge et le push.
+  - Symptôme : Don't Save sur un écran modifié ne ferme pas l'onglet, et le journal affiche « Cannot close screen
+    'DialogueScreen *': the dock host no longer holds its panel ». Save avait le même défaut : l'écran était enregistré
+    mais l'onglet restait ouvert.
+  - Cause : l'éditeur ancre ses documents directement dans le modèle, avec `DockOperation.DockAsTab`
+    (`GameEditor.cs`, `TryOpenUIScreenAsset` et les autres routes de document), sans `RegisterPanel`. Or
+    `MGDockHost.ClosePanel` cherchait un panneau ancré dans le registre de l'hôte, par `RemovePanel`, et rendait `false`.
+  - Pourquoi rien ne l'a vu : les tests MGUI enregistrent tous leurs panneaux (harnais de `PanelClosingVetoTests`), et
+    les deux vérificateurs ont raisonné sur ces tests.
+  - Correctif (MGUI `75e2382`) : `ClosePanel` trouve le panneau par `LayoutModel` (ancré ou auto-masqué) et par les
+    fenêtres flottantes suivies, jamais par le registre. Il ferme par le même code que les chemins utilisateur : la
+    fermeture du groupe d'onglets devient une méthode partagée, et l'auto-masqué passe par `CloseAutoHidePanel`.
+  - Deux tests de régression ancrent un document comme le fait l'éditeur ; ils échouent sur l'ancien code.
+    `MGUI.Tests` 3090/3090 ; les deux solutions sans erreur ; `CasaEngine.Tests` 1957/1957.
+  - T3.1 reste 🧪 : le clic de l'auteur doit être refait.
 
 ### 🧪 T3.2 — Quitter avec des écrans modifiés (D6)
 
@@ -506,6 +521,7 @@ Ce qu'il ne livre pas est dans « Hors périmètre ».
 | O7 | Avis P4 du vérificateur de T3.1, reporté : pas de test de `ClosePanel` sur une fenêtre flottante autonome (non suivie par l'hôte, que l'éditeur ne crée pas) ; fermeture sans frame intermédiaire vérifiée à la lecture seulement. | T1.2 |
 | O8 | Avis P4 du vérificateur de clôture, reporté : un `ContentBrowserPanel` ou un `ProjectLauncherWindow` construit par son constructeur public (sans la file partagée) tient sa propre file ; les boîtes s'empilent alors (ce que `MGMessageBox` sait faire). L'éditeur passe toujours la file partagée. | T2.3 |
 | O9 | Avis P4 du vérificateur de clôture, spéculatif, reporté : si Entrée ouvrait un monde depuis le Content Browser et que la répétition de la touche atteignait la nouvelle boîte, elle répondrait « Save » (non destructif). À observer dans l'éditeur, Entrée tenue. | T3.3 |
+| O10 | Avis P4 du vérificateur du correctif `ClosePanel`, reportés : (1) un document ancré deux fois sous le même identifiant (écran flotté puis rouvert : le contrôle « déjà ouvert ? » de l'éditeur ne cherche que dans l'arbre ancré) ne se ferme pas par `ClosePanel` si ce n'est pas le premier trouvé ; retour `false` sûr, avertissement journalisé. À refaire : ouvrir un écran, le flotter, rouvrir le même asset, Don't Save sur chaque copie. (2) Un panneau enregistré mais absent du modèle et des fenêtres flottantes rend désormais `false` (aucun chemin connu). (3) `_panelRegistry.Remove` retire par identifiant, comme le chemin utilisateur déjà. | T1.2, T3.1 |
 
 ## Hors périmètre
 
