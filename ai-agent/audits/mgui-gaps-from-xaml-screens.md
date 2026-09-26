@@ -325,9 +325,19 @@ son XAML, garde une boucle en C# qui parcourt ses images pour poser ce réglage.
 **À quoi ressemblerait l'API absente.** Une propriété `UseLinearFilteringWhenDownscaling` sur le DTO `Image`,
 appliquée dans `ApplyDerivedSettings` comme `Stretch`.
 
-## G9 — La translation d'une `RenderTransform` ne peut pas être liée
+## ~~G9~~ — La translation d'une `RenderTransform` ne peut pas être liée — **CORRIGÉ le 2026-09-26**
 
-> **Consigné, non corrigé** (programme bound-screens, tranche B3 du dépôt parent, 2026-09-24).
+> **Corrigé** dans MGUI (ADR-0020, `MGUI/Docs/decisions/0020-bindable-render-transform.md`), branche
+> `chantier/render-transform-bindings`, tâche PI3 du plan `docs/plan-portrait-inventaire.md`.
+>
+> Deux nouveaux attributs de chaîne sur le DTO `Element` (`RenderTransformTranslation`, `RenderTransformScale`)
+> s'appliquent après le DTO `RenderTransform` et se laissent lier : `BindingPathMappings` les renomme en
+> `RenderTransform.Translation`/`.Scale`, un chemin de cible imbriqué que `DataBinding.ResolvePath` résout jusqu'à
+> l'`UIRenderTransform` de l'élément (même mécanisme que `Background`/`CanvasLeft`, ADR-0016), en `PushStrategy.
+> TypedCopy` (aucune allocation). `UIRenderTransform` elle-même n'a pas changé (elle reste `sealed`, hors de
+> `XAMLBindableBase`) ; `Width`/`Height` restent les seuls attributs liables qui relancent la mise en page (D3 du
+> plan). Sample MGUI : `MGUI.Samples/Features/RenderTransformBinding.xaml`. Tests :
+> `MGUI.Tests/Architecture/RenderTransformBindingTests.cs`.
 
 **Ce que le code doit faire.** Le HUD d'Alundra glisse d'un bloc à l'ouverture et à la fermeture : le présentateur
 calcule chaque tick un décalage vertical, que l'écran applique à `RenderTransform.Translation` de son canevas (le
