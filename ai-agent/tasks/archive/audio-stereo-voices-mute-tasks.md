@@ -3,7 +3,8 @@
 Plan d'exécution de la partie moteur du chantier décrit dans le plan parent
 `docs/plan-audio-mix-exact-muet.md` du dépôt `alundra-casaengine-project-converter` (tranches T1.1 à T1.4 ; le
 consommateur est le portage d'Alundra). Les décisions ci-dessous ont été arbitrées avec l'auteur le 2026-09-25 :
-**ce plan les applique, il ne les rediscute pas**. Approuvé le 2026-09-25, mode **AUTO**.
+**ce plan les applique, il ne les rediscute pas**. Approuvé le 2026-09-25, mode **AUTO**. **Terminé le 2026-09-26** :
+validé en jeu par l'auteur (recette T5.3 du plan parent), archivé.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
@@ -126,7 +127,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   - borne par `Update` retirée (test arrêté par `--blame-hang-timeout`) ;
   - double arrondi remis.
 
-### 🧪 T3 — Son coupé, réglage du projet — fait le 2026-09-25, contrôle éditeur en attente
+### ✅ T3 — Son coupé, réglage du projet — fait le 2026-09-25, contrôle de l'éditeur fait par l'auteur le 2026-09-26
 
 - Objectif : D4.
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs`, `ProjectSettingsHelper.cs` ; `CasaEngine/Framework/Application/Components/AudioSystemComponent.cs` ; un abonné `IDisposable` dans `CasaEngine.EditorServices/` ; `CasaEngine.Editor/GameEditor.cs` (création de l'abonné juste après le runtime hébergé, `:1029`, et libération) ; tests ; `docs/engine/audio-system.md`.
@@ -173,6 +174,10 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   aucun fichier de journal, son panneau Logs reste vide en automatisation, et son tampon de diagnostics ne reçoit pas
   les `Logs.*`. La ligne de câblage de `GameEditor` n'est couverte par aucun test ; le contrôle passe à la recette
   T5.3 du plan parent.
+
+**Contrôle en direct (2026-09-26, par l'auteur) : validé.** C'est la recette T5.3 du plan parent. Avec
+`"IsAudioMuted": true`, le Launcher et l'aperçu des sons dans l'éditeur sont muets ; sans la clé, le son revient. La
+ligne de câblage de `GameEditor` est ainsi couverte en direct.
 
 ---
 
