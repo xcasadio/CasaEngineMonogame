@@ -358,7 +358,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   ce plan. Relecture faite, liens vérifiés (ADR-0042, ADR-0043, plan). Documentation seule : pas de
   test dédié ; `dotnet build CasaEngine.MonoGame.sln` 0 erreur (vérification que rien n'est cassé).
 
-### 🚧 T2.2 — Vérification de clôture
+### ✅ T2.2 — Vérification de clôture
 
 - Objectif : verifier frais sur le chantier entier ; tableau d'`ai-agent/README.md` à jour.
 - Validation : verdict **CONFIRMED** ; suites vertes.
@@ -370,7 +370,10 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   (`Command_EmptyText_RaisesEventAndDoesNotBlock`,
   `Start_RefusedOnUnknownNode_CurrentDialogueStillReadsItsInitialAndComputedValues`,
   `RegisterFunction_DeclaredFunction_DecidesIfConditionAtRuntime`, deux cas) ; `CasaEngine.Tests`
-  1991/1991. Deux avis P4 reportés avec l'accord de l'auteur : O5, O6. Revérification ciblée à faire.
+  1991/1991. Deux avis P4 reportés avec l'accord de l'auteur : O5, O6.
+- **Revérification ciblée (2026-09-27) : CONFIRMED.** Le commit `ef8889ba` ne touche que ce test et ce
+  plan ; chaque nouveau test échoue quand on casse son comportement dans une copie jetable (six
+  mutations) ; `CasaEngine.Tests` 1991/1991.
 
 ---
 
