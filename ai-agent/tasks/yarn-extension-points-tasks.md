@@ -317,7 +317,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   `CasaEngine.Tests` 1979/1979 (+6, aucun échec), les deux tests existants de `YarnDialogueRunnerTests`
   inchangés.
 
-### ⏳ T1.5 — Lire une ligne hors d'un dialogue
+### ✅ T1.5 — Lire une ligne hors d'un dialogue
 
 - Objectif : `DialogueAsset.TryGetLineText(string lineId, out string text)` et un analyseur statique
   qui rend le texte nettoyé et les attributs d'un texte brut, pour les textes qu'un jeu affiche hors
@@ -325,6 +325,19 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 - Fichiers : `DialogueAsset.cs`, le nouvel analyseur, tests.
 - Validation : tests — identifiant présent et absent ; markup et substitutions traités comme en T1.4.
 - Commit : `feat(dialogue): read single Yarn lines outside a dialogue`
+- **Validation** : `DialogueAsset.TryGetLineText(string, out string)` ajouté (simple lecture de
+  `LineTexts`). `YarnLineTextParser` (statique, `CasaEngine.Framework.Dialogue.Yarn`) reprend
+  exactement le pipeline de `YarnDialogueRunner.OnLine` (T1.4) : `ExpandSubstitutions`, `Parse` avec un
+  `LineParser` partagé (`select`/`plural`/`ordinal`), attribut `character` retiré vers `Speaker`, repli
+  sur le texte brut sans lever en cas de markup invalide. `YarnDialogueRunner` a été refactoré pour
+  déléguer à `YarnLineTextParser` (`OnLine` et `ResolveLineText`), au lieu de dupliquer la logique :
+  aucun changement de comportement, les tests de T1.4 passent inchangés. 8 tests ajoutés
+  (`DialogueAssetTests` : identifiant présent/absent ; `YarnLineTextParserTests` : texte simple
+  inchangé, préfixe `Nom:` donnant `Speaker`/`Text`, marqueur `[b]...[/b]` avec la bonne longueur,
+  markup invalide livré brut sans lever, substitution `{0}` remplacée, substitution puis analyse
+  bout-en-bout). `dotnet build CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1987/1987 (+8,
+  aucun échec), les deux tests existants de `YarnDialogueRunnerTests` et ceux de `YarnDialogueCompilerTests`
+  inchangés.
 
 ---
 
