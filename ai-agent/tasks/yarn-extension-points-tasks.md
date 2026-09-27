@@ -236,7 +236,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   `Continue()`. `dotnet build CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1968/1968
   (+6, aucun échec), les deux tests existants inchangés.
 
-### ⏳ T1.3 — Fonctions
+### ⚠️ T1.3 — Fonctions
 
 - Objectif : `RegisterFunction(string name, Delegate implementation)`, conservé par le runner et
   appliqué à la bibliothèque de chaque `Dialogue` créé.
@@ -246,6 +246,10 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   compilation d'un script qui appelle une fonction non déclarée au compilateur réussit (fait à
   confirmer ici, sinon ⚠️).
 - Commit : `feat(dialogue): register game functions on the Yarn runner`
+- **Bloqué le 2026-09-27** : le fait à confirmer par cette tâche s'est révélé faux dans le cas
+  d'usage que la tâche elle-même liste en premier. Question posée en « Points ouverts » (O4) ;
+  code de production et tests de cette tâche annulés (`git checkout --`), aucun commit de code.
+  `RegisterFunction` sur le runner (T1.1/T1.2 inchangées) n'a pas été implémenté.
 
 ### ⏳ T1.4 — Markup et attributs
 
@@ -312,6 +316,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 | O1 | ~~Modification préexistante de l'auteur~~ — **tranché le 2026-09-27 : accepté**, la branche du chantier porte `CasaEngine.Launcher/Program.cs` dans l'arbre de travail, jamais indexé. | T0.1 |
 | O2 | `DialogueScreen` interprète le formatage en ligne de MGUI (`[b]…[/b]`) : un texte de jeu qui garderait des crochets littéraux après l'analyse Yarn serait réinterprété à l'affichage. À vérifier en T1.4, sans changer `DialogueScreen` hors de ce besoin. | T1.4 |
 | O3 | Reporté (P3) : un nom de fonction qui entre en conflit avec une fonction intégrée de Yarn n'échoue qu'au `Start` ; un contrôle à l'enregistrement est possible plus tard. | T1.3 |
+| O4 | **Bloquant, ouvert le 2026-09-27.** T1.3 demande de confirmer que « la compilation d'un script qui appelle une fonction non déclarée au compilateur réussit », sinon ⚠️. Constaté faux dans le cas que la tâche liste en premier : `YarnDialogueCompiler.CompileString` (`CasaEngine.Compiler.Dialogue`) compile chaque script avec `new Library()` (aucune fonction connue, y compris celles que `RegisterFunction` du runner enregistrerait au runtime). Un appel `{maFonction(1, 2)}` **dans le texte d'une ligne** échoue à la compilation (`Can't determine the type of the expression ...`, `result.Success == false`) : le compilateur ne peut pas déduire un type de retour d'une simple interpolation de texte sans déclaration préalable. Le même appel **dans un contexte typé** (`<<if maFonction(...)>>`, où le booléen attendu contraint le type) compile et s'exécute correctement — vérifié par un test isolé avant l'arrêt de la tâche. Question pour l'auteur : le point d'extension `RegisterFunction` du runner (exécution) doit-il s'accompagner d'un mécanisme côté compilateur pour déclarer le type de retour d'une fonction de jeu (ex. passer une `Library` pré-remplie ou un fichier de déclarations à `CompilationJob`), ou le périmètre de cette tâche se limite-t-il aux fonctions déjà utilisables dans un contexte typé (conditions, arguments d'autres fonctions typées) et documente-t-il la limite pour les appels en interpolation de texte ? Aucune décision prise ici : la tâche s'arrête sans coder `RegisterFunction`. | T1.3 |
 
 ## Hors périmètre
 
