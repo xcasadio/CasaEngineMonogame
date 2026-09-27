@@ -173,7 +173,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 1 — Points d'extension
 
-### ⏳ T1.1 — Stockage de variables injectable
+### ✅ T1.1 — Stockage de variables injectable
 
 - Objectif : `YarnDialogueRunner.VariableStorage` (`Yarn.IVariableStorage?`), utilisé par chaque
   `Start` ; à `null`, un `MemoryVariableStore` neuf comme aujourd'hui.
@@ -194,6 +194,11 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   - sans stockage injecté, le comportement actuel est inchangé ;
   - un stockage qui dérive de `MemoryVariableStore` garde `visited()` fonctionnel.
 - Commit : `feat(dialogue): let games inject the Yarn variable storage`
+- Validation : 5 tests ajoutés dans `YarnDialogueRunnerTests` (set/if, persistance entre deux `Start`,
+  `Start` refusé sur nœud absent laissant A continuer via le stockage partagé, comportement inchangé
+  sans stockage injecté, `visited()` fonctionnel avec un stockage injecté). `dotnet build
+  CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1962/1962 (+5, aucun échec), les deux tests
+  existants inchangés.
 
 ### ⏳ T1.2 — Registre de commandes
 

@@ -19,6 +19,15 @@ public sealed class YarnDialogueRunner
 
     public bool IsRunning => _dialogue?.IsActive == true;
 
+    /// <summary>
+    /// The variable storage bound to every <see cref="global::Yarn.Dialogue"/> this runner creates.
+    /// When <see langword="null"/> (the default), each <see cref="Start(DialogueAsset)"/> creates a
+    /// fresh <see cref="global::Yarn.MemoryVariableStore"/>, as before this property existed.
+    /// Set it once and keep it across calls to <see cref="Start(DialogueAsset)"/> so a game's Yarn
+    /// variables persist from one dialogue to the next.
+    /// </summary>
+    public global::Yarn.IVariableStorage VariableStorage { get; set; }
+
     public bool Start(DialogueAsset asset)
         => Start(asset, asset?.StartNode);
 
@@ -33,12 +42,15 @@ public sealed class YarnDialogueRunner
 
         string nodeName = string.IsNullOrWhiteSpace(startNode) ? "Start" : startNode;
         global::Yarn.Program program = global::Yarn.Program.Parser.ParseFrom(asset.ProgramBytes);
-        global::Yarn.Dialogue dialogue = CreateDialogue(program);
-        dialogue.SetProgram(program);
-        if (!dialogue.NodeExists(nodeName))
+        if (program.Nodes == null || !program.Nodes.ContainsKey(nodeName))
         {
+            // The requested node does not exist on this program: fail before touching the dialogue
+            // currently running, or the (possibly shared) variable storage.
             return false;
         }
+
+        global::Yarn.Dialogue dialogue = CreateDialogue(program);
+        dialogue.SetProgram(program);
 
         Stop();
         _asset = asset;
@@ -71,12 +83,12 @@ public sealed class YarnDialogueRunner
 
     private global::Yarn.Dialogue CreateDialogue(global::Yarn.Program program)
     {
-        var variableStore = new global::Yarn.MemoryVariableStore
+        global::Yarn.IVariableStorage variableStorage = VariableStorage ?? new global::Yarn.MemoryVariableStore
         {
             Program = program,
         };
 
-        return new global::Yarn.Dialogue(variableStore)
+        return new global::Yarn.Dialogue(variableStorage)
         {
             LineHandler = OnLine,
             OptionsHandler = OnOptions,

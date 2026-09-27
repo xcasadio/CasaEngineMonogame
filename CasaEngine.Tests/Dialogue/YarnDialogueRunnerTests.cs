@@ -40,6 +40,146 @@ public sealed class YarnDialogueRunnerTests
         Assert.True(presenter.CurrentLine.IsEmpty);
     }
 
+    [Fact]
+    public void Start_InjectedVariableStorage_SetAffectsSubsequentIf()
+    {
+        DialogueAsset asset = CompileAsset(
+            "Conditional",
+            """
+            title: Start
+            ---
+            <<set $x to true>>
+            <<if $x>>
+            Yes.
+            <<else>>
+            No.
+            <<endif>>
+            ===
+            """);
+        var storage = new global::Yarn.MemoryVariableStore();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+
+        bool started = runner.Start(asset);
+
+        Assert.True(started);
+        Assert.Equal("Yes.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Start_InjectedVariableStorage_PersistsAcrossStartCalls()
+    {
+        DialogueAsset setAsset = CompileAsset(
+            "Setter",
+            """
+            title: Start
+            ---
+            <<set $x to true>>
+            Set.
+            ===
+            """);
+        DialogueAsset checkAsset = CompileAsset(
+            "Checker",
+            """
+            title: Start
+            ---
+            <<if $x>>
+            Yes.
+            <<else>>
+            No.
+            <<endif>>
+            ===
+            """);
+        var storage = new global::Yarn.MemoryVariableStore();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+
+        runner.Start(setAsset);
+        runner.Start(checkAsset);
+
+        Assert.Equal("Yes.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Start_RefusedOnUnknownNode_LeavesCurrentDialogueRunningWithSharedStorage()
+    {
+        DialogueAsset assetA = CompileAsset(
+            "AssetA",
+            """
+            title: Start
+            ---
+            <<set $x to true>>
+            First from A.
+            Second from A.
+            ===
+            """);
+        DialogueAsset assetB = CompileAsset(
+            "AssetB",
+            """
+            title: Start
+            ---
+            From B.
+            ===
+            """);
+        var storage = new global::Yarn.MemoryVariableStore();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+        runner.Start(assetA);
+
+        bool started = runner.Start(assetB, "Absent");
+
+        Assert.False(started);
+        Assert.True(runner.IsRunning);
+        Assert.Equal("First from A.", presenter.CurrentLine.Text);
+
+        runner.Continue();
+
+        Assert.Equal("Second from A.", presenter.CurrentLine.Text);
+        Assert.True(storage.TryGetValue<bool>("$x", out bool x));
+        Assert.True(x);
+    }
+
+    [Fact]
+    public void Start_WithoutInjectedVariableStorage_BehavesAsBefore()
+    {
+        DialogueAsset asset = CreateGreetingAsset();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        bool started = runner.Start(asset);
+
+        Assert.True(started);
+        Assert.Null(runner.VariableStorage);
+        Assert.Equal("Bonjour depuis CasaEngine.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Start_InjectedMemoryVariableStore_KeepsVisitedFunctional()
+    {
+        DialogueAsset asset = CompileAsset(
+            "Visited",
+            """
+            title: Start
+            ---
+            <<if visited("Start")>>
+            Back again.
+            <<else>>
+            First time.
+            <<endif>>
+            <<jump Start>>
+            ===
+            """);
+        var storage = new global::Yarn.MemoryVariableStore();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+
+        runner.Start(asset);
+        Assert.Equal("First time.", presenter.CurrentLine.Text);
+
+        runner.Continue();
+        Assert.Equal("Back again.", presenter.CurrentLine.Text);
+    }
+
     private static DialogueAsset CreateGreetingAsset()
     {
         string sourceFileName = Path.Combine(FindRepositoryRoot(), "CasaEngine.Tests", "Dialogue", "Fixtures", "greeting.yarn");
@@ -51,6 +191,18 @@ public sealed class YarnDialogueRunnerTests
         }
 
         return DialogueAsset.FromCompiledProgram("Greeting", "Start", result.ProgramBytes, result.LineTexts);
+    }
+
+    private static DialogueAsset CompileAsset(string name, string source)
+    {
+        var compiler = new YarnDialogueCompiler();
+        YarnDialogueCompilationResult result = compiler.CompileString(source, name + ".yarn");
+        if (!result.Success)
+        {
+            throw new InvalidOperationException(string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
+        }
+
+        return DialogueAsset.FromCompiledProgram(name, "Start", result.ProgramBytes, result.LineTexts);
     }
 
     private static string FindRepositoryRoot()
