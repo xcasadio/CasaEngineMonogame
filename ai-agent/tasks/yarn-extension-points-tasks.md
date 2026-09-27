@@ -200,7 +200,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1962/1962 (+5, aucun échec), les deux tests
   existants inchangés.
 
-### ⏳ T1.2 — Registre de commandes
+### ✅ T1.2 — Registre de commandes
 
 - Objectif : `AddCommandHandler(string name, Action<IReadOnlyList<string>> handler)`,
   `RemoveCommandHandler(string name)`, événement `UnhandledCommand`.
@@ -225,6 +225,16 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   - un gestionnaire qui lève : l'exception remonte, le runner est arrêté et le présentateur fermé ;
   - nom déjà enregistré → `ArgumentException`.
 - Commit : `feat(dialogue): dispatch Yarn commands to game handlers`
+- Validation : 6 tests ajoutés (commande enregistrée avec argument entre guillemets et substitution
+  `{$n}`, reprise automatique ; commande inconnue et événement ; `Stop()` dans un gestionnaire ;
+  `Start(autre)` dans un gestionnaire, première ligne affichée ; exception d'un gestionnaire qui
+  remonte et arrête le runner ; nom déjà enregistré). Point technique découvert en cours de tâche,
+  non couvert par les faits connus du plan : `Yarn.Dialogue.Continue()` est protégé contre la
+  réentrance (`isContinuing`) et ne fait rien s'il est appelé depuis l'intérieur du gestionnaire de
+  commande qui l'a déclenché ; la reprise synchrone après une commande traitée utilise donc
+  `Dialogue.SignalContentComplete()` (API publique documentée pour exactement ce cas), pas
+  `Continue()`. `dotnet build CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1968/1968
+  (+6, aucun échec), les deux tests existants inchangés.
 
 ### ⏳ T1.3 — Fonctions
 

@@ -180,6 +180,145 @@ public sealed class YarnDialogueRunnerTests
         Assert.Equal("Back again.", presenter.CurrentLine.Text);
     }
 
+    [Fact]
+    public void Command_RegisteredHandler_ReceivesArgumentsAndDialogueResumes()
+    {
+        DialogueAsset asset = CompileAsset(
+            "Command",
+            """
+            title: Start
+            ---
+            <<set $n to 3>>
+            <<greet "Alice" {$n}>>
+            After command.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        IReadOnlyList<string> receivedArguments = null;
+        runner.AddCommandHandler("greet", args => receivedArguments = args);
+
+        runner.Start(asset);
+
+        Assert.NotNull(receivedArguments);
+        Assert.Equal(new[] { "Alice", "3" }, receivedArguments);
+        Assert.Equal("After command.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Command_Unknown_RaisesEventAndDoesNotBlock()
+    {
+        DialogueAsset asset = CompileAsset(
+            "UnknownCommand",
+            """
+            title: Start
+            ---
+            <<mystery arg>>
+            After unknown.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        var unhandled = new List<string>();
+        runner.UnhandledCommand += (_, e) => unhandled.Add(e.Name);
+
+        runner.Start(asset);
+
+        Assert.Equal(new[] { "mystery" }, unhandled);
+        Assert.Equal("After unknown.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Command_HandlerCallsStop_ClosesPresenterWithoutThrowing()
+    {
+        DialogueAsset asset = CompileAsset(
+            "StoppingCommand",
+            """
+            title: Start
+            ---
+            First.
+            <<stopnow>>
+            Never shown.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.AddCommandHandler("stopnow", _ => runner.Stop());
+        runner.Start(asset);
+
+        runner.Continue();
+
+        Assert.False(runner.IsRunning);
+        Assert.False(presenter.IsOpen);
+    }
+
+    [Fact]
+    public void Command_HandlerStartsAnotherDialogue_ShowsItsFirstLineWithoutSkipping()
+    {
+        DialogueAsset other = CompileAsset(
+            "OtherDialogue",
+            """
+            title: Start
+            ---
+            From the other dialogue.
+            ===
+            """);
+        DialogueAsset asset = CompileAsset(
+            "SwitchingCommand",
+            """
+            title: Start
+            ---
+            First.
+            <<switch>>
+            Never shown.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.AddCommandHandler("switch", _ => runner.Start(other));
+        runner.Start(asset);
+
+        runner.Continue();
+
+        Assert.True(runner.IsRunning);
+        Assert.Equal("From the other dialogue.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Command_HandlerThrows_ExceptionPropagatesAndRunnerStops()
+    {
+        DialogueAsset asset = CompileAsset(
+            "ThrowingCommand",
+            """
+            title: Start
+            ---
+            First.
+            <<explode>>
+            Never shown.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.AddCommandHandler("explode", _ => throw new InvalidOperationException("boom"));
+        runner.Start(asset);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => runner.Continue());
+
+        Assert.Equal("boom", exception.Message);
+        Assert.False(runner.IsRunning);
+        Assert.False(presenter.IsOpen);
+    }
+
+    [Fact]
+    public void AddCommandHandler_DuplicateName_ThrowsArgumentException()
+    {
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.AddCommandHandler("greet", _ => { });
+
+        Assert.Throws<ArgumentException>(() => runner.AddCommandHandler("greet", _ => { }));
+    }
+
     private static DialogueAsset CreateGreetingAsset()
     {
         string sourceFileName = Path.Combine(FindRepositoryRoot(), "CasaEngine.Tests", "Dialogue", "Fixtures", "greeting.yarn");

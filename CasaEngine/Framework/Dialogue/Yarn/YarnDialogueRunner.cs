@@ -7,6 +7,8 @@ namespace CasaEngine.Framework.Dialogue.Yarn;
 public sealed class YarnDialogueRunner
 {
     private readonly IDialoguePresenter _presenter;
+    private readonly Dictionary<string, Action<IReadOnlyList<string>>> _commandHandlers = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _warnedUnhandledCommandNames = new(StringComparer.Ordinal);
     private DialogueAsset _asset;
     private global::Yarn.Dialogue _dialogue;
 
@@ -27,6 +29,36 @@ public sealed class YarnDialogueRunner
     /// variables persist from one dialogue to the next.
     /// </summary>
     public global::Yarn.IVariableStorage VariableStorage { get; set; }
+
+    /// <summary>
+    /// Raised when a <c>&lt;&lt;command&gt;&gt;</c> line names a command with no handler registered
+    /// through <see cref="AddCommandHandler"/>. The dialogue resumes right after this event fires;
+    /// it never blocks on an unknown command.
+    /// </summary>
+    public event EventHandler<UnhandledYarnCommandEventArgs> UnhandledCommand;
+
+    /// <summary>
+    /// Registers a handler for the named Yarn <c>&lt;&lt;command&gt;&gt;</c>. The dialogue that raised
+    /// the command resumes automatically once <paramref name="handler"/> returns, unless it called
+    /// <see cref="Stop"/> or started a different dialogue.
+    /// </summary>
+    /// <exception cref="ArgumentException">A handler is already registered for <paramref name="name"/>.</exception>
+    public void AddCommandHandler(string name, Action<IReadOnlyList<string>> handler)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(handler);
+
+        _commandHandlers.Add(name, handler);
+    }
+
+    /// <summary>Removes the handler registered for <paramref name="name"/>, if any.</summary>
+    /// <returns><see langword="true"/> if a handler was removed.</returns>
+    public bool RemoveCommandHandler(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        return _commandHandlers.Remove(name);
+    }
 
     public bool Start(DialogueAsset asset)
         => Start(asset, asset?.StartNode);
@@ -109,6 +141,44 @@ public sealed class YarnDialogueRunner
 
     private void OnCommand(global::Yarn.Command command)
     {
+        global::Yarn.Dialogue commandDialogue = _dialogue;
+        List<string> tokens = YarnCommandLine.Tokenize(command.Text);
+        string name = tokens.Count > 0 ? tokens[0] : string.Empty;
+        List<string> arguments = tokens.Count > 1 ? tokens.GetRange(1, tokens.Count - 1) : new List<string>();
+
+        if (name.Length > 0 && _commandHandlers.TryGetValue(name, out Action<IReadOnlyList<string>> handler))
+        {
+            try
+            {
+                handler(arguments);
+            }
+            catch
+            {
+                Stop();
+                throw;
+            }
+        }
+        else
+        {
+            if (_warnedUnhandledCommandNames.Add(name))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    name.Length > 0
+                        ? $"YarnDialogueRunner: no handler registered for command '{name}'."
+                        : "YarnDialogueRunner: a command line had empty text.");
+            }
+
+            UnhandledCommand?.Invoke(this, new UnhandledYarnCommandEventArgs(name, arguments));
+        }
+
+        if (ReferenceEquals(_dialogue, commandDialogue) && commandDialogue != null && commandDialogue.IsActive)
+        {
+            // The command completed synchronously and neither stopped this dialogue nor started
+            // another one: resume immediately. Yarn Spinner is still inside the Continue() call
+            // that dispatched this command (Dialogue.Continue() is reentrancy-guarded and would be
+            // a no-op here), so SignalContentComplete is the documented way to resume synchronously.
+            commandDialogue.SignalContentComplete();
+        }
     }
 
     private void OnDialogueComplete()
