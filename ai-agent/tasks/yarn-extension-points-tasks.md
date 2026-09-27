@@ -152,7 +152,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 0 — Cadre
 
-### ⏳ T0.1 — Branche, ADR, index
+### ✅ T0.1 — Branche, ADR, index
 
 - Objectif : ouvrir le chantier et consigner D1 à D4 et les choix techniques.
 - Fichiers : `docs/decisions/<numéro libre>-yarn-runner-extension-points.md`,
@@ -166,6 +166,8 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   3. Ligne du tableau d'`ai-agent/README.md`.
 - Validation : relecture, liens valides.
 - Commit : `docs(dialogue): record the Yarn runner extension points decision`
+- Validation : ADR-0042 créée (`docs/decisions/0042-yarn-runner-extension-points.md`), indexée dans
+  `docs/decisions/README.md` ; ligne ajoutée à `ai-agent/README.md`. Pas de build (documentation seule).
 
 ---
 
