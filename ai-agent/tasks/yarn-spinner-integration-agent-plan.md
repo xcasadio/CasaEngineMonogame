@@ -423,7 +423,13 @@ Validation :
 
 Commit requis : oui, un commit dedie avec choix et statut.
 
-### ⏳ Tache 14 - Ajouter le store de variables Yarn
+### ✅ Tache 14 - Ajouter le store de variables Yarn
+
+Faite par le chantier `ai-agent/tasks/yarn-extension-points-tasks.md` (T1.1, 2026-09-27) :
+`YarnDialogueRunner.VariableStorage` (`Yarn.IVariableStorage`), injectable et persistant d'un `Start`
+à l'autre ; sans injection, comportement inchangé (un `MemoryVariableStore` neuf par `Start`). Tests
+dans `YarnDialogueRunnerTests`.
+
 
 Objectif : connecter les variables Yarn a un stockage CasaEngine testable.
 
@@ -446,7 +452,13 @@ Validation :
 
 Commit requis : oui, un commit dedie avec variables et statut.
 
-### ⏳ Tache 15 - Ajouter les commandes Yarn dispatchables
+### ✅ Tache 15 - Ajouter les commandes Yarn dispatchables
+
+Faite par le chantier `ai-agent/tasks/yarn-extension-points-tasks.md` (T1.2, 2026-09-27) :
+`YarnDialogueRunner.AddCommandHandler`/`RemoveCommandHandler`, repli et évènement `UnhandledCommand`
+pour une commande inconnue, reprise automatique du dialogue après une commande traitée. Tests dans
+`YarnDialogueRunnerTests`.
+
 
 Objectif : preparer les commandes sans les lier a des services inexistants.
 

@@ -343,7 +343,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 2 — Documentation et clôture
 
-### ⏳ T2.1 — Documentation et plan Yarn
+### ✅ T2.1 — Documentation et plan Yarn
 
 - Objectif : documenter les points d'extension ; tâches 14 et 15 de
   `yarn-spinner-integration-agent-plan.md` marquées faites, avec renvoi à ce plan.
@@ -351,6 +351,12 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   d'usage), `ai-agent/tasks/yarn-spinner-integration-agent-plan.md`.
 - Validation : relecture ; liens valides.
 - Commit : `docs(dialogue): document the Yarn runner extension points`
+- **Validation** : section « Points d'extension du runner Yarn » ajoutée à
+  `docs/engine/yarn_spinner_integration.md` (stockage de variables, commandes, fonctions, markup,
+  lecture hors dialogue, exemples d'usage, renvoi ADR-0042/ADR-0043), note en tête de document.
+  Tâches 14 et 15 de `ai-agent/tasks/yarn-spinner-integration-agent-plan.md` passées ✅ avec renvoi à
+  ce plan. Relecture faite, liens vérifiés (ADR-0042, ADR-0043, plan). Documentation seule : pas de
+  test dédié ; `dotnet build CasaEngine.MonoGame.sln` 0 erreur (vérification que rien n'est cassé).
 
 ### ⏳ T2.2 — Vérification de clôture
 
