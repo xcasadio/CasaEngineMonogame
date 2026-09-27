@@ -140,6 +140,41 @@ public sealed class YarnDialogueRunnerTests
     }
 
     [Fact]
+    public void Start_RefusedOnUnknownNode_CurrentDialogueStillReadsItsInitialAndComputedValues()
+    {
+        DialogueAsset assetA = CompileAsset(
+            "AssetAValues",
+            """
+            title: Start
+            ---
+            <<declare $d = 5>>
+            <<declare $s = $d + 1>>
+            First from A.
+            A {$d} {$s}.
+            ===
+            """);
+        DialogueAsset assetB = CompileAsset(
+            "AssetBValues",
+            """
+            title: Start
+            ---
+            <<declare $d = 40>>
+            From B.
+            ===
+            """);
+        var storage = new global::Yarn.MemoryVariableStore();
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+        runner.Start(assetA);
+
+        bool started = runner.Start(assetB, "Absent");
+        runner.Continue();
+
+        Assert.False(started);
+        Assert.Equal("A 5 6.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
     public void Start_WithoutInjectedVariableStorage_BehavesAsBefore()
     {
         DialogueAsset asset = CreateGreetingAsset();
@@ -226,6 +261,30 @@ public sealed class YarnDialogueRunnerTests
 
         Assert.Equal(new[] { "mystery" }, unhandled);
         Assert.Equal("After unknown.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Command_EmptyText_RaisesEventAndDoesNotBlock()
+    {
+        DialogueAsset asset = CompileAsset(
+            "EmptyCommand",
+            """
+            title: Start
+            ---
+            <<declare $e = "">>
+            <<{$e}>>
+            After empty.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        var unhandled = new List<string>();
+        runner.UnhandledCommand += (_, e) => unhandled.Add(e.Name);
+
+        runner.Start(asset);
+
+        Assert.Equal(new[] { string.Empty }, unhandled);
+        Assert.Equal("After empty.", presenter.CurrentLine.Text);
     }
 
     [Fact]
@@ -329,6 +388,29 @@ public sealed class YarnDialogueRunnerTests
 
         Assert.True(started);
         Assert.Equal("HI", presenter.CurrentLine.Text);
+    }
+
+    [Theory]
+    [InlineData(true, "Ready.")]
+    [InlineData(false, "Not ready.")]
+    public void RegisterFunction_DeclaredFunction_DecidesIfConditionAtRuntime(bool implementationResult, string expectedLine)
+    {
+        var functionDeclarations = new global::Yarn.Library();
+        functionDeclarations.RegisterFunction("ready", (Func<bool>)(() => true));
+        var compiler = new YarnDialogueCompiler();
+        YarnDialogueCompilationResult result = compiler.CompileString(
+            "title: Start\n---\n<<if ready()>>\nReady.\n<<else>>\nNot ready.\n<<endif>>\n===",
+            "Ready.yarn",
+            functionDeclarations);
+        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
+        DialogueAsset asset = DialogueAsset.FromCompiledProgram("Ready", "Start", result.ProgramBytes, result.LineTexts);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.RegisterFunction("ready", (Func<bool>)(() => implementationResult));
+
+        runner.Start(asset);
+
+        Assert.Equal(expectedLine, presenter.CurrentLine.Text);
     }
 
     [Fact]

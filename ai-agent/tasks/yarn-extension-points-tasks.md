@@ -358,11 +358,19 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   ce plan. Relecture faite, liens vérifiés (ADR-0042, ADR-0043, plan). Documentation seule : pas de
   test dédié ; `dotnet build CasaEngine.MonoGame.sln` 0 erreur (vérification que rien n'est cassé).
 
-### ⏳ T2.2 — Vérification de clôture
+### 🚧 T2.2 — Vérification de clôture
 
 - Objectif : verifier frais sur le chantier entier ; tableau d'`ai-agent/README.md` à jour.
 - Validation : verdict **CONFIRMED** ; suites vertes.
 - Commit : `docs(dialogue): close the Yarn extension points plan`
+- **Première vérification (2026-09-27) : REFUTED**, un seul constat bloquant, F1 (P2) : le comportement
+  est juste (28 sondes sur 28), mais trois lignes de validation n'avaient pas de test — la commande au
+  texte vide (T1.2), les valeurs initiales et calculées après un `Start` refusé (T1.1), une fonction
+  qui décide d'un `<<if>>` au runtime (T1.3). **Corrigé** par trois tests
+  (`Command_EmptyText_RaisesEventAndDoesNotBlock`,
+  `Start_RefusedOnUnknownNode_CurrentDialogueStillReadsItsInitialAndComputedValues`,
+  `RegisterFunction_DeclaredFunction_DecidesIfConditionAtRuntime`, deux cas) ; `CasaEngine.Tests`
+  1991/1991. Deux avis P4 reportés avec l'accord de l'auteur : O5, O6. Revérification ciblée à faire.
 
 ---
 
@@ -376,6 +384,8 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 | O2 | `DialogueScreen` interprète le formatage en ligne de MGUI (`[b]…[/b]`) : un texte de jeu qui garderait des crochets littéraux après l'analyse Yarn serait réinterprété à l'affichage. À vérifier en T1.4, sans changer `DialogueScreen` hors de ce besoin. | T1.4 |
 | O3 | Reporté (P3) : un nom de fonction qui entre en conflit avec une fonction intégrée de Yarn n'échoue qu'au `Start` ; un contrôle à l'enregistrement est possible plus tard. | T1.3 |
 | O4 | ~~Fonctions de jeu non typées à la compilation~~ — **tranché par l'auteur le 2026-09-27** : le compilateur accepte une bibliothèque de déclarations fournie par le jeu (T1.3 révisée). Constat d'origine : `YarnDialogueCompiler` compile avec une `Library` vide, et un appel de fonction dans le texte d'une ligne échoue (« Can't determine the type of the expression ») ; dans une condition, il compile. | T1.3 |
+| O5 | Reporté (avis A1, P4) : aucun test ne vérifie que l'avertissement d'une commande inconnue n'est journalisé qu'une fois par nom (le code le fait par un `HashSet`, `YarnDialogueRunner.cs:194`). | T1.2 |
+| O6 | Reporté (avis A2, P4) : aucun test dédié pour « `DialogueScreen` affiche toujours `Text` » ; `DialogueScreen` n'est pas modifié par ce chantier. | T1.4 |
 
 ## Hors périmètre
 
