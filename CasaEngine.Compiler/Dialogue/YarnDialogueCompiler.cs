@@ -7,14 +7,36 @@ namespace CasaEngine.Compiler.Dialogue;
 public sealed class YarnDialogueCompiler
 {
     public YarnDialogueCompilationResult CompileFile(string fileName)
+        => CompileFile(fileName, functionDeclarations: null);
+
+    /// <summary>
+    /// Compiles <paramref name="fileName"/>. <paramref name="functionDeclarations"/>, when supplied,
+    /// declares to the compiler the name and parameter/return types (from each delegate's signature)
+    /// of the functions a game will register on its dialogue runner (<c>YarnDialogueRunner.RegisterFunction</c>)
+    /// at run time, so that <c>{...}</c> expressions and <c>&lt;&lt;if&gt;&gt;</c> conditions calling
+    /// them can compile. The engine contributes no declarations of its own: this library is entirely
+    /// the caller's.
+    /// </summary>
+    public YarnDialogueCompilationResult CompileFile(string fileName, Library functionDeclarations)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
 
         string source = File.ReadAllText(fileName);
-        return CompileString(source, fileName);
+        return CompileString(source, fileName, functionDeclarations);
     }
 
     public YarnDialogueCompilationResult CompileString(string source, string fileName)
+        => CompileString(source, fileName, functionDeclarations: null);
+
+    /// <summary>
+    /// Compiles <paramref name="source"/>. <paramref name="functionDeclarations"/>, when supplied,
+    /// declares to the compiler the name and parameter/return types (from each delegate's signature)
+    /// of the functions a game will register on its dialogue runner (<c>YarnDialogueRunner.RegisterFunction</c>)
+    /// at run time, so that <c>{...}</c> expressions and <c>&lt;&lt;if&gt;&gt;</c> conditions calling
+    /// them can compile. The engine contributes no declarations of its own: this library is entirely
+    /// the caller's.
+    /// </summary>
+    public YarnDialogueCompilationResult CompileString(string source, string fileName, Library functionDeclarations)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
@@ -24,7 +46,7 @@ public sealed class YarnDialogueCompiler
             CompilationJob job = CompilationJob.CreateFromString(
                 fileName,
                 source,
-                new Library(),
+                functionDeclarations ?? new Library(),
                 global::Yarn.Compiler.Project.CurrentProjectFileVersion);
             CompilationResult result = global::Yarn.Compiler.Compiler.Compile(job);
 

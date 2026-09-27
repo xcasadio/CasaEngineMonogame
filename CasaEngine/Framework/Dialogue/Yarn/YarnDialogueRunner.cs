@@ -9,6 +9,7 @@ public sealed class YarnDialogueRunner
     private readonly IDialoguePresenter _presenter;
     private readonly Dictionary<string, Action<IReadOnlyList<string>>> _commandHandlers = new(StringComparer.Ordinal);
     private readonly HashSet<string> _warnedUnhandledCommandNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Delegate> _functions = new(StringComparer.Ordinal);
     private DialogueAsset _asset;
     private global::Yarn.Dialogue _dialogue;
 
@@ -58,6 +59,23 @@ public sealed class YarnDialogueRunner
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
         return _commandHandlers.Remove(name);
+    }
+
+    /// <summary>
+    /// Registers <paramref name="implementation"/> as the Yarn function <paramref name="name"/>
+    /// (called from a line as <c>{name(args)}</c> or from a condition as <c>&lt;&lt;if name(args)&gt;&gt;</c>).
+    /// It is applied to the <see cref="global::Yarn.Library"/> of every <see cref="global::Yarn.Dialogue"/>
+    /// this runner creates afterwards, including across calls to <see cref="Start(DialogueAsset)"/>.
+    /// For the call to compile, the same name and delegate shape must have been declared to
+    /// <c>YarnDialogueCompiler</c> when the script was compiled.
+    /// </summary>
+    /// <exception cref="ArgumentException">A function is already registered for <paramref name="name"/>.</exception>
+    public void RegisterFunction(string name, Delegate implementation)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentNullException.ThrowIfNull(implementation);
+
+        _functions.Add(name, implementation);
     }
 
     public bool Start(DialogueAsset asset)
@@ -120,13 +138,20 @@ public sealed class YarnDialogueRunner
             Program = program,
         };
 
-        return new global::Yarn.Dialogue(variableStorage)
+        var dialogue = new global::Yarn.Dialogue(variableStorage)
         {
             LineHandler = OnLine,
             OptionsHandler = OnOptions,
             CommandHandler = OnCommand,
             DialogueCompleteHandler = OnDialogueComplete,
         };
+
+        foreach (KeyValuePair<string, Delegate> function in _functions)
+        {
+            dialogue.Library.RegisterFunction(function.Key, function.Value);
+        }
+
+        return dialogue;
     }
 
     private void OnLine(global::Yarn.Line line)

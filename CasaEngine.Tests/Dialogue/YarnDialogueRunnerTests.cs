@@ -310,6 +310,38 @@ public sealed class YarnDialogueRunnerTests
     }
 
     [Fact]
+    public void RegisterFunction_DeclaredFunction_ImplementationRunsInLineText()
+    {
+        var functionDeclarations = new global::Yarn.Library();
+        functionDeclarations.RegisterFunction("upper", (Func<string, string>)(text => text.ToUpperInvariant()));
+        var compiler = new YarnDialogueCompiler();
+        YarnDialogueCompilationResult result = compiler.CompileString(
+            "title: Start\n---\n{upper(\"hi\")}\n===",
+            "Upper.yarn",
+            functionDeclarations);
+        Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
+        DialogueAsset asset = DialogueAsset.FromCompiledProgram("Upper", "Start", result.ProgramBytes, result.LineTexts);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.RegisterFunction("upper", (Func<string, string>)(text => text.ToUpperInvariant()));
+
+        bool started = runner.Start(asset);
+
+        Assert.True(started);
+        Assert.Equal("HI", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void RegisterFunction_DuplicateName_ThrowsArgumentException()
+    {
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+        runner.RegisterFunction("upper", (Func<string, string>)(text => text));
+
+        Assert.Throws<ArgumentException>(() => runner.RegisterFunction("upper", (Func<string, string>)(text => text)));
+    }
+
+    [Fact]
     public void AddCommandHandler_DuplicateName_ThrowsArgumentException()
     {
         var presenter = new FakeDialoguePresenter();

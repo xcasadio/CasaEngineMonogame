@@ -236,7 +236,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   `Continue()`. `dotnet build CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1968/1968
   (+6, aucun échec), les deux tests existants inchangés.
 
-### ⏳ T1.3 — Fonctions (révisée le 2026-09-27 après O4)
+### ✅ T1.3 — Fonctions (révisée le 2026-09-27 après O4)
 
 - Objectif : deux ajouts génériques.
   1. **Compilation** : `YarnDialogueCompiler` gagne des surcharges de `CompileString` et
@@ -261,6 +261,16 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 - **Historique** : bloquée le 2026-09-27 (le fait « une fonction non déclarée au compilateur compile »
   s'est révélé faux dans le texte d'une ligne, O4) ; code annulé, aucun commit de code ; débloquée le
   même jour par la révision ci-dessus, décidée par l'auteur.
+- **Validation** : `YarnDialogueCompiler.CompileString`/`CompileFile` gagnent une surcharge à trois
+  arguments (`Yarn.Library` de déclarations, optionnelle par la surcharge à deux arguments inchangée) ;
+  `YarnDialogueRunner.RegisterFunction(string, Delegate)` garde les fonctions et les applique à la
+  `Library` de chaque `Dialogue` créé. ADR-0043 créée (`docs/decisions/0043-yarn-function-declarations-at-compile-time.md`),
+  indexée dans `docs/decisions/README.md`. 5 tests ajoutés (3 dans `YarnDialogueCompilerTests` : fonction
+  déclarée compilant dans le texte d'une ligne, dans une condition `<<if>>`, et fonction non déclarée
+  toujours refusée dans le texte d'une ligne ; 2 dans `YarnDialogueRunnerTests` : implémentation
+  enregistrée donnant le bon texte de ligne, nom déjà enregistré → `ArgumentException`). `dotnet build
+  CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1973/1973 (+5, aucun échec), les deux tests
+  existants de `YarnDialogueRunnerTests` et ceux de `YarnDialogueCompilerTests` inchangés.
 
 ### ⏳ T1.4 — Markup et attributs
 
