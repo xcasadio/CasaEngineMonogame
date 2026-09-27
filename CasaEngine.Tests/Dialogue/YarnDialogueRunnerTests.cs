@@ -342,6 +342,132 @@ public sealed class YarnDialogueRunnerTests
     }
 
     [Fact]
+    public void Line_SelfClosingMarker_AppearsInAttributesAndIsRemovedFromText()
+    {
+        DialogueAsset asset = CompileAsset(
+            "SelfClosingMarker",
+            """
+            title: Start
+            ---
+            Hello [br/]world.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        runner.Start(asset);
+
+        Assert.Equal("Hello world.", presenter.CurrentLine.Text);
+        DialogueMarkupAttribute attribute = Assert.Single(presenter.CurrentLine.Attributes);
+        Assert.Equal("br", attribute.Name);
+        Assert.Equal(6, attribute.Position);
+        Assert.Equal(0, attribute.Length);
+    }
+
+    [Fact]
+    public void Line_RangedMarker_HasCorrectLength()
+    {
+        DialogueAsset asset = CompileAsset(
+            "RangedMarker",
+            """
+            title: Start
+            ---
+            Hello [b]bold[/b] world.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        runner.Start(asset);
+
+        Assert.Equal("Hello bold world.", presenter.CurrentLine.Text);
+        DialogueMarkupAttribute attribute = Assert.Single(presenter.CurrentLine.Attributes);
+        Assert.Equal("b", attribute.Name);
+        Assert.Equal(6, attribute.Position);
+        Assert.Equal(4, attribute.Length);
+    }
+
+    [Fact]
+    public void Line_Substitution_IsReplaced()
+    {
+        DialogueAsset asset = CompileAsset(
+            "Substitution",
+            """
+            title: Start
+            ---
+            <<set $n to "Bob">>
+            Hello {$n}.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        runner.Start(asset);
+
+        Assert.Equal("Hello Bob.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Line_CharacterPrefix_SetsSpeakerAndRemovesItFromText()
+    {
+        DialogueAsset asset = CompileAsset(
+            "CharacterPrefix",
+            """
+            title: Start
+            ---
+            Nom: some text
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        runner.Start(asset);
+
+        Assert.Equal("some text", presenter.CurrentLine.Text);
+        Assert.Equal("Nom", presenter.CurrentLine.Speaker);
+    }
+
+    [Fact]
+    public void Line_SelectMarker_RendersMatchingVariant()
+    {
+        DialogueAsset asset = CompileAsset(
+            "SelectMarker",
+            """
+            title: Start
+            ---
+            You see [select value=1 1="an apple" many="apples"/].
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        runner.Start(asset);
+
+        Assert.Equal("You see an apple.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
+    public void Line_InvalidMarkup_IsDeliveredRawWithoutThrowing()
+    {
+        DialogueAsset asset = CompileAsset(
+            "InvalidMarkup",
+            """
+            title: Start
+            ---
+            Hello [b foo=] world.
+            ===
+            """);
+        var presenter = new FakeDialoguePresenter();
+        var runner = new YarnDialogueRunner(presenter);
+
+        bool started = runner.Start(asset);
+
+        Assert.True(started);
+        Assert.True(runner.IsRunning);
+        Assert.Equal("Hello [b foo=] world.", presenter.CurrentLine.Text);
+    }
+
+    [Fact]
     public void AddCommandHandler_DuplicateName_ThrowsArgumentException()
     {
         var presenter = new FakeDialoguePresenter();

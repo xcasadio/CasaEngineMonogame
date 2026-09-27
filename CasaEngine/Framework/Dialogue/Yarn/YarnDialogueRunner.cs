@@ -10,6 +10,7 @@ public sealed class YarnDialogueRunner
     private readonly Dictionary<string, Action<IReadOnlyList<string>>> _commandHandlers = new(StringComparer.Ordinal);
     private readonly HashSet<string> _warnedUnhandledCommandNames = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Delegate> _functions = new(StringComparer.Ordinal);
+    private readonly global::Yarn.Markup.LineParser _lineParser = CreateLineParser();
     private DialogueAsset _asset;
     private global::Yarn.Dialogue _dialogue;
 
@@ -30,6 +31,12 @@ public sealed class YarnDialogueRunner
     /// variables persist from one dialogue to the next.
     /// </summary>
     public global::Yarn.IVariableStorage VariableStorage { get; set; }
+
+    /// <summary>
+    /// The BCP-47 locale tag passed to Yarn Spinner's markup parser for every line, used by the
+    /// <c>plural</c> and <c>ordinal</c> built-in markers. Defaults to <c>"en"</c>.
+    /// </summary>
+    public string LocaleCode { get; set; } = "en";
 
     /// <summary>
     /// Raised when a <c>&lt;&lt;command&gt;&gt;</c> line names a command with no handler registered
@@ -156,8 +163,73 @@ public sealed class YarnDialogueRunner
 
     private void OnLine(global::Yarn.Line line)
     {
-        string text = ResolveLineText(line);
-        _presenter.ShowLine(new DialogueLine(text));
+        string rawText = ResolveLineText(line);
+        string text = rawText;
+        string speaker = string.Empty;
+        IReadOnlyList<DialogueMarkupAttribute> attributes = Array.Empty<DialogueMarkupAttribute>();
+
+        try
+        {
+            global::Yarn.Markup.MarkupParseResult parsed = _lineParser.ParseString(rawText, LocaleCode);
+
+            if (parsed.TryGetAttributeWithName(global::Yarn.Markup.LineParser.CharacterAttribute, out global::Yarn.Markup.MarkupAttribute characterAttribute))
+            {
+                if (characterAttribute.TryGetProperty(global::Yarn.Markup.LineParser.CharacterAttributeNameProperty, out string characterName))
+                {
+                    speaker = characterName;
+                }
+
+                parsed = parsed.DeleteRange(characterAttribute);
+            }
+
+            text = parsed.Text;
+            attributes = BuildAttributes(parsed.Attributes);
+        }
+        catch (Exception exception)
+        {
+            // The line's markup could not be parsed (malformed markup, or invalid input to the
+            // parser): fall back to the raw, unparsed text rather than lose or block the line.
+            System.Diagnostics.Debug.WriteLine($"YarnDialogueRunner: failed to parse markup for line '{line.ID}': {exception.Message}");
+            text = rawText;
+            speaker = string.Empty;
+            attributes = Array.Empty<DialogueMarkupAttribute>();
+        }
+
+        _presenter.ShowLine(new DialogueLine(text, speaker, attributes));
+    }
+
+    private static List<DialogueMarkupAttribute> BuildAttributes(IReadOnlyList<global::Yarn.Markup.MarkupAttribute> source)
+    {
+        var attributes = new List<DialogueMarkupAttribute>(source.Count);
+        foreach (global::Yarn.Markup.MarkupAttribute attribute in source)
+        {
+            var properties = new Dictionary<string, object>(attribute.Properties.Count, StringComparer.Ordinal);
+            foreach (KeyValuePair<string, global::Yarn.Markup.MarkupValue> property in attribute.Properties)
+            {
+                properties[property.Key] = property.Value.Type switch
+                {
+                    global::Yarn.Markup.MarkupValueType.String => property.Value.StringValue,
+                    global::Yarn.Markup.MarkupValueType.Integer => property.Value.IntegerValue,
+                    global::Yarn.Markup.MarkupValueType.Float => property.Value.FloatValue,
+                    global::Yarn.Markup.MarkupValueType.Bool => property.Value.BoolValue,
+                    _ => property.Value.StringValue,
+                };
+            }
+
+            attributes.Add(new DialogueMarkupAttribute(attribute.Name, attribute.Position, attribute.Length, properties));
+        }
+
+        return attributes;
+    }
+
+    private static global::Yarn.Markup.LineParser CreateLineParser()
+    {
+        var parser = new global::Yarn.Markup.LineParser();
+        var builtInReplacer = new global::Yarn.Markup.BuiltInMarkupReplacer();
+        parser.RegisterMarkerProcessor("select", builtInReplacer);
+        parser.RegisterMarkerProcessor("plural", builtInReplacer);
+        parser.RegisterMarkerProcessor("ordinal", builtInReplacer);
+        return parser;
     }
 
     private void OnOptions(global::Yarn.OptionSet options)
@@ -220,12 +292,6 @@ public sealed class YarnDialogueRunner
             text = line.ID;
         }
 
-        string[] substitutions = line.Substitutions;
-        for (int index = 0; index < substitutions.Length; index++)
-        {
-            text = text.Replace("{" + index + "}", substitutions[index] ?? string.Empty, StringComparison.Ordinal);
-        }
-
-        return text;
+        return global::Yarn.Markup.LineParser.ExpandSubstitutions(text, line.Substitutions);
     }
 }

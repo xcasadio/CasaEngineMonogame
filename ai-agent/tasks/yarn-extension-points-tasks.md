@@ -272,7 +272,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   CasaEngine.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 1973/1973 (+5, aucun échec), les deux tests
   existants de `YarnDialogueRunnerTests` et ceux de `YarnDialogueCompilerTests` inchangés.
 
-### ⏳ T1.4 — Markup et attributs
+### ✅ T1.4 — Markup et attributs
 
 - Objectif : le runner analyse chaque ligne (`LineParser.ExpandSubstitutions` puis `ParseString`,
   marqueurs `select`/`plural`/`ordinal` enregistrés) et livre au présentateur le texte nettoyé plus
@@ -297,6 +297,25 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   - une ligne au markup invalide est livrée brute, sans exception ;
   - les deux tests existants passent sans modification ; `DialogueScreen` affiche toujours `Text`.
 - Commit : `feat(dialogue): parse Yarn markup into line attributes`
+- **Validation** : `DialogueMarkupAttribute` créé (nom, position, longueur, propriétés) ; `DialogueLine`
+  gagne une surcharge de constructeur à trois arguments et `Attributes` (vide par défaut, bug d'ordre
+  d'initialisation statique corrigé : `NoAttributes` doit être déclaré avant `Empty`). `YarnDialogueRunner`
+  crée un `LineParser` unique (marqueurs `select`/`plural`/`ordinal` via `RegisterMarkerProcessor` et
+  `BuiltInMarkupReplacer`, tous publics en 3.2.1 — vérifiés par un programme de test), expose `LocaleCode`
+  (par défaut `"en"`), et `ResolveLineText` utilise désormais `LineParser.ExpandSubstitutions` (même
+  résultat que la boucle `string.Replace` précédente). L'attribut `character` de Yarn donne `Speaker` et
+  est retiré du texte par `MarkupParseResult.DeleteRange` (qui décale aussi la position des attributs
+  restants, vérifié). Une exception pendant le parsing (constatée par test : un Unicode invalide lève
+  `ArgumentException`, pas `MarkupParseException`) est rattrapée au sens large : avertissement, texte
+  brut, pas d'attributs, pas d'exception. O2 vérifié : le texte livré au présentateur ne contient plus les
+  crochets `[...]` du markup Yarn (ils sont consommés par `ParseString`), donc plus de collision avec le
+  formatage `[b]...[/b]` que `DialogueScreen.cs:366` applique lui-même au nom du locuteur ;
+  `DialogueScreen` inchangé. 6 tests ajoutés dans `YarnDialogueRunnerTests` (marqueur autofermant en
+  attribut et retiré du texte, marqueur `[b]...[/b]` avec la bonne longueur, substitution `{$n}`
+  remplacée, préfixe `Nom:` donnant `Speaker`/`Text`, `[select value=1 .../]` rendant la bonne variante,
+  markup invalide livré brut sans lever). `dotnet build CasaEngine.MonoGame.sln` 0 erreur ;
+  `CasaEngine.Tests` 1979/1979 (+6, aucun échec), les deux tests existants de `YarnDialogueRunnerTests`
+  inchangés.
 
 ### ⏳ T1.5 — Lire une ligne hors d'un dialogue
 
