@@ -17,7 +17,8 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > ADR-0042 et 0043 venant du chantier Yarn. La ligne citée du document Yarn devient `:164`. Une note
 > est ajoutée sur les variables Yarn d'Alundra (plan parent E16.f). Relecture fraîche de la
 > révision 3 : **READY**. **Approuvé par l'auteur le 2026-09-28** (« fait tout E16 », mode ASK),
-> branche `chantier/save-game-service` créée depuis `main` (`793d1ee8`).
+> branche `chantier/save-game-service` créée depuis `main` (`793d1ee8`). **Toutes les tâches faites ;
+> vérification de clôture CONFIRMED le 2026-09-28.** Reste le merge par l'auteur, puis l'archivage.
 
 ## Objectif
 
@@ -475,12 +476,22 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   résultats, frontière des erreurs, section « Trust model and consumer contract » avec la phrase de
   l'ADR-0044, limites) ; entrée ajoutée à `docs/README.md` ; liens vérifiés.
 
-### ⏳ T4.2 — Vérification de clôture
+### ✅ T4.2 — Vérification de clôture
 
 - Objectif : verifier frais sur le chantier entier ; tableau d'`ai-agent/README.md` à jour.
 - Validation : verdict **CONFIRMED** ; suites vertes ; recherche de T2.2 (types interdits) refaite
   sur l'état final.
 - Commit : `docs(save-games): close the save-game service plan`
+- Validation (2026-09-28) : vérificateur neuf **CONFIRMED** sur tout le chantier (`f6220b8e`..`010f46a6`),
+  aucun constat P0 à P2.
+  - Plus de 80 fichiers hostiles fabriqués, sans exception ni allocation démesurée.
+  - L'extrait d'usage de la doc compile contre les vraies signatures.
+  - Recherche des types interdits vide.
+  - `CasaEngine.Tests` 2355/2355.
+  - Aucune écriture sous le vrai `LocalApplicationData`.
+  - Rien poussé ; la modification de l'auteur n'est pas indexée.
+
+  Trois remarques P4, reportées (O6 à O8) : on ne retouche pas un état confirmé pour elles.
 
 ---
 
@@ -521,6 +532,9 @@ l'applique.
 | O3 | Une écriture sous AppData faite depuis l'app Claude est virtualisée et invisible ailleurs : les recettes manuelles se lancent hors de l'app, les tests écrivent sous un dossier temporaire. | T1.1, recette parente |
 | O4 | ~~Modification préexistante de l'auteur~~ — **tranché le 2026-09-27 : accepté**, la branche du chantier porte `CasaEngine.Launcher/Program.cs` dans l'arbre de travail, jamais indexé. | T0.1 |
 | O5 | Reporté (F9) : une option pour refuser le JSON au chargement dans une build finale, puisque le JSON n'a pas de somme de contrôle. Décision de l'auteur, plus tard. | Hors de ce plan |
+| O6 | Reporté (P4 de la clôture) : `SaveGameEnvelope.TryOpen` recopie le message de l'exception de l'analyseur JSON, qui contient le littéral hostile en entier ; un entier d'un million de chiffres donne un message d'environ un million de caractères, dans le journal et dans le résultat. À borner, dans l'esprit de `DescribeToken`. | Suite |
+| O7 | Reporté (P4 de la clôture) : le commentaire de `SaveGameArchive.cs:449-450` dit qu'un échappement JSON de demi-paire UTF-16 reviendrait tel quel ; Newtonsoft le remplace par U+FFFD. Le comportement est sûr, le commentaire est à corriger. | Suite |
+| O8 | Reporté (P4 de la clôture) : un `containerVersion` JSON de plus de 380 chiffres environ donne `InvalidData` (erreur de l'analyseur) au lieu de `UnsupportedContainer`. C'est bien un résultat, et le plan ne couvrait pas ce cas. | Suite |
 
 ## Hors périmètre
 
