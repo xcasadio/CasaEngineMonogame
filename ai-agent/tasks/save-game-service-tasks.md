@@ -455,7 +455,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 4 — Documentation et clôture
 
-### ⏳ T4.1 — Documentation
+### ✅ T4.1 — Documentation
 
 - Objectif : documenter l'usage pour un jeu.
 - Fichiers : `docs/engine/save-games.md` (nouveau), `docs/README.md` (index).
@@ -471,6 +471,9 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
     ligne de MGUI désactivé pour les afficher.
 - Validation : relecture ; liens valides.
 - Commit : `docs(save-games): document the save-game service`
+- Validation (2026-09-28) : `docs/engine/save-games.md` écrit à partir du code (usage, dossier, formats,
+  résultats, frontière des erreurs, section « Trust model and consumer contract » avec la phrase de
+  l'ADR-0044, limites) ; entrée ajoutée à `docs/README.md` ; liens vérifiés.
 
 ### ⏳ T4.2 — Vérification de clôture
 
