@@ -211,7 +211,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 1 — Stockage
 
-### ⏳ T1.1 — Emplacements sur disque
+### ✅ T1.1 — Emplacements sur disque
 
 - Objectif : `SaveGameFileStorage`, qui résout le dossier de sauvegarde, valide les noms et lit ou
   écrit un emplacement sans jamais laisser d'exception d'entrée-sortie remonter.
@@ -268,6 +268,19 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   - `ProjectName` par défaut, vide, contenant `:`, `..` ou un séparateur → `InvalidOperationException`
     au premier appel ; `"AlundraGame"` accepté.
 - Commit : `feat(save-games): add slot file storage`
+- Validation (2026-09-28, exécutant de sécurité) : `SaveGameNames` et `SaveGameFileStorage`
+  (internes, une seule classe concrète) ; 76 tests couvrant toute la liste de validation ; build de
+  la solution à 0 erreur ; `CasaEngine.Tests` 2067/2067. Choix consignés :
+  - les expressions régulières utilisent `\A…\z`, car `$` laisse passer un `
+` final ;
+  - le dossier par défaut est mis en cache après la première résolution réussie ;
+  - `Write(slot, Action<Stream>)` sert de point d'injection : les erreurs d'entrée-sortie deviennent
+    un résultat, toute autre exception remonte après suppression du `.tmp` ;
+  - les tests n'écrivent jamais sous le vrai `LocalApplicationData` (O3).
+  Noms réservés : la liste de Microsoft (page citée, relue le 2026-09-28) est CON, PRN, AUX, NUL,
+  COM1-COM9, COM¹-COM³, LPT1-LPT9, LPT¹-LPT³ ; `COM0` et `LPT0` n'y figurent pas, et les exposants sont
+  exclus par la liste blanche ASCII. `Write` n'impose pas le plafond de 1 Mio : T3.1 s'en charge (le
+  service sérialise en mémoire et refuse une sauvegarde trop grosse avant d'écrire).
 
 ---
 
@@ -355,6 +368,9 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   `SaveGameLoadResult.cs`, `SaveGameSaveResult.cs`, `SaveGameSlotInfo.cs` (nouveaux),
   `CasaEngine/Framework/Application/GameSettings.cs` (propriété `SaveGames`), tests associés.
 - Étapes :
+  0. (Ajout du 2026-09-28, suite de T1.1.) Le service sérialise en mémoire ; une sauvegarde qui
+     dépasse le plafond de 1 Mio de T1.1 est refusée (`TooLarge`) sans rien écrire, pour qu'aucun
+     emplacement écrit ne soit illisible ensuite.
   1. `SaveGameSaveResult Save(slot, ISaveGameData data, SaveGameFormat format,
      IReadOnlyDictionary<string,string>? metadata)` : `Saved` ou `IoError` (ou `InvalidData` si
      l'objet écrit une valeur refusée, par exemple un `float` non fini).
