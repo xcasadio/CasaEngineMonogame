@@ -319,7 +319,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   validation par T2.2, 46 tests via une archive d'essai qui ne contrôle rien elle-même. Build à
   0 erreur, `CasaEngine.Tests` 2113/2113.
 
-### ⏳ T2.2 — Formats JSON et binaire
+### ✅ T2.2 — Formats JSON et binaire
 
 - Objectif : les deux implémentations de l'archive et l'enveloppe de fichier.
 - Fichiers : `CasaEngine/Framework/SaveGames/JsonSaveGameArchive.cs`,
@@ -368,6 +368,29 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   - recherche dans `CasaEngine/Framework/SaveGames` : aucune occurrence de `TypeNameHandling`,
     `JsonConvert.`, `ToObject`, `JsonSerializer`, `BinaryFormatter`, `ReadString(`.
 - Commit : `feat(save-games): add JSON and binary save-game formats`
+- Validation (2026-09-28, exécutant de sécurité) : `Crc32`, `SaveGameEnvelope`
+  (`TryWrite`, `TryOpen`, `TryDeserialize`), `JsonSaveGameArchive` et `BinarySaveGameArchive`, tous
+  internes ; 203 tests couvrant toute la liste de validation ; `CasaEngine.Tests` 2316/2316 ; recherche
+  des types interdits vide, et faite aussi par un test.
+  - **Absence d'allocation** : mesurée par `GC.GetAllocatedBytesForCurrentThread()`, moins de 1 Mio
+    alloué pour des longueurs annoncées jusqu'à `int.MaxValue`, CRC recalculé. Une mutation qui
+    allouait la longueur annoncée a fait échouer ces tests, puis a été retirée.
+  - **Frontière des exceptions** : `TryOpen` n'exécute aucun code du jeu et convertit une liste
+    nommée d'exceptions d'entrée hostile. `TryWrite` et `TryDeserialize` ne convertissent que
+    `SaveGameDataException` ; le reste remonte (exception du jeu, mauvais usage développeur).
+  - **Choix** :
+    - un `float` s'écrit en JSON comme le `double` exact de sa valeur (aller-retour bit pour bit), et
+      un jeton entier est accepté pour un `float` ;
+    - un nom de champ JSON en double à l'écriture est une erreur développeur ;
+    - les métadonnées sont triées et le JSON s'écrit en UTF-8 sans BOM avec des fins de ligne LF :
+      sortie déterministe ;
+    - en binaire, des octets restants après le dernier champ sont une donnée invalide.
+  - **Écart accepté** : la version du conteneur binaire (entier à position fixe, seulement comparé à
+    1, qui ne dimensionne rien) est lue avant le CRC, pour qu'un conteneur futur donne
+    `UnsupportedContainer` et non `Corrupted`. Tout le reste, métadonnées comprises, n'est lu qu'après
+    le CRC.
+  - Pour une erreur de schéma, la lecture des métadonnées seules réussit et seul le chargement rend
+    `InvalidData` : seul l'objet du jeu connaît son schéma.
 
 ---
 
