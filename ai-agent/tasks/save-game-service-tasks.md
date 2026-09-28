@@ -271,8 +271,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 - Validation (2026-09-28, exécutant de sécurité) : `SaveGameNames` et `SaveGameFileStorage`
   (internes, une seule classe concrète) ; 76 tests couvrant toute la liste de validation ; build de
   la solution à 0 erreur ; `CasaEngine.Tests` 2067/2067. Choix consignés :
-  - les expressions régulières utilisent `\A…\z`, car `$` laisse passer un `
-` final ;
+  - les expressions régulières utilisent `\A…\z`, car `$` laisse passer un saut de ligne final ;
   - le dossier par défaut est mis en cache après la première résolution réussie ;
   - `Write(slot, Action<Stream>)` sert de point d'injection : les erreurs d'entrée-sortie deviennent
     un résultat, toute autre exception remonte après suppression du `.tmp` ;
@@ -372,7 +371,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
      dépasse le plafond de 1 Mio de T1.1 est refusée (`TooLarge`) sans rien écrire, pour qu'aucun
      emplacement écrit ne soit illisible ensuite.
   1. `SaveGameSaveResult Save(slot, ISaveGameData data, SaveGameFormat format,
-     IReadOnlyDictionary<string,string>? metadata)` : `Saved` ou `IoError` (ou `InvalidData` si
+     IReadOnlyDictionary<string,string>? metadata)` : `Saved`, `IoError`, `TooLarge` (étape 0) (ou `InvalidData` si
      l'objet écrit une valeur refusée, par exemple un `float` non fini).
   2. `SaveGameLoadResult TryLoad<T>(slot, out T? data) where T : ISaveGameData, new()` ; résultats
      `Loaded`, `NotFound`, `TooLarge`, `Corrupted`, `UnsupportedContainer`, `NewerDataVersion`
