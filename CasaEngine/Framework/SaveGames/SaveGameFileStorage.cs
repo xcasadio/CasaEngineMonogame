@@ -1,5 +1,6 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application;
+using Microsoft.Win32.SafeHandles;
 
 namespace CasaEngine.Framework.SaveGames;
 
@@ -337,7 +338,52 @@ internal sealed class SaveGameFileStorage
         return folderPath;
     }
 
-    private string GetSlotPath(string slotName)
+    /// <summary>
+    /// The slot file's last-write time in UTC: <see cref="SaveGameStorageStatus.NotFound"/> when the slot does not
+    /// exist, <see cref="SaveGameStorageStatus.IoError"/> (logged) when the file cannot be opened, as
+    /// <see cref="TryRead"/> would report it (locked, access denied).
+    /// </summary>
+    internal SaveGameStorageResult TryGetLastWriteTimeUtc(string slotName, out DateTime lastWriteTimeUtc)
+    {
+        lastWriteTimeUtc = default;
+        string slotPath = GetSlotPath(slotName);
+
+        try
+        {
+            // Read from an open handle rather than by path: FileInfo reports most attribute failures as a missing
+            // file, which would hide an unreadable slot. The share mode lets any other reader or writer proceed.
+            using SafeFileHandle handle = File.OpenHandle(
+                slotPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete);
+            lastWriteTimeUtc = File.GetLastWriteTimeUtc(handle);
+            return SaveGameStorageResult.Success;
+        }
+        catch (FileNotFoundException)
+        {
+            return SaveGameStorageResult.NotFound;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return SaveGameStorageResult.NotFound;
+        }
+        catch (IOException exception)
+        {
+            return LogIoError("last-write time read", slotPath, exception);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            return LogIoError("last-write time read", slotPath, exception);
+        }
+    }
+
+    /// <summary>
+    /// The full path of a slot file, resolving the folder on first use. Touches no disk.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="slotName"/> fails the slot name rule.</exception>
+    /// <exception cref="InvalidOperationException">The default folder cannot be resolved safely.</exception>
+    internal string GetSlotPath(string slotName)
     {
         SaveGameNames.ThrowIfInvalidSlotName(slotName, nameof(slotName));
 

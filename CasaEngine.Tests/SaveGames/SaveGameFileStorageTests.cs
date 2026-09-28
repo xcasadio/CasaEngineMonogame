@@ -325,6 +325,45 @@ public sealed class SaveGameFileStorageTests : IDisposable
     }
 
     [Fact]
+    public void TryGetLastWriteTimeUtc_ReturnsTheFileTime_OrNotFound()
+    {
+        Assert.Equal(SaveGameStorageStatus.NotFound, _storage.TryGetLastWriteTimeUtc("slot", out DateTime missingTime).Status);
+        Assert.Equal(default, missingTime);
+        Assert.False(Directory.Exists(_folderPath));
+
+        Assert.True(_storage.Write("slot", new byte[] { 1 }).IsSuccess);
+        string slotPath = Path.Combine(_folderPath, "slot.sav");
+        var expected = new DateTime(2024, 5, 6, 7, 8, 9, DateTimeKind.Utc);
+        File.SetLastWriteTimeUtc(slotPath, expected);
+
+        SaveGameStorageResult result = _storage.TryGetLastWriteTimeUtc("slot", out DateTime lastWriteTimeUtc);
+
+        Assert.Equal(SaveGameStorageStatus.Success, result.Status);
+        Assert.Equal(expected, lastWriteTimeUtc);
+        Assert.Equal(DateTimeKind.Utc, lastWriteTimeUtc.Kind);
+        Assert.Throws<ArgumentException>(() => _storage.TryGetLastWriteTimeUtc("../slot", out _));
+    }
+
+    [Fact]
+    public void TryGetLastWriteTimeUtc_LockedSlot_ReturnsIoError_WithoutException()
+    {
+        Assert.True(_storage.Write("slot", new byte[] { 1 }).IsSuccess);
+        string slotPath = Path.Combine(_folderPath, "slot.sav");
+
+        SaveGameStorageResult result;
+        DateTime lastWriteTimeUtc;
+        using (new FileStream(slotPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            result = _storage.TryGetLastWriteTimeUtc("slot", out lastWriteTimeUtc);
+        }
+
+        Assert.Equal(SaveGameStorageStatus.IoError, result.Status);
+        Assert.Contains("last-write time read", result.Message);
+        Assert.Contains(slotPath, result.Message);
+        Assert.Equal(default, lastWriteTimeUtc);
+    }
+
+    [Fact]
     public void DefaultFolder_FollowsProjectNameReadAtFirstCall_NotAtConstruction()
     {
         string localApplicationData = Path.Combine(_rootPath, "LocalAppData");

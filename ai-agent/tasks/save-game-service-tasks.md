@@ -396,7 +396,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 3 — Service
 
-### ⏳ T3.1 — `SaveGameService`
+### ✅ T3.1 — `SaveGameService`
 
 - Objectif : l'API publique du jeu, sur le modèle de `UGameplayStatics` (Unreal).
 - Fichiers : `CasaEngine/Framework/SaveGames/SaveGameService.cs`, `SaveGameFormat.cs`,
@@ -433,6 +433,23 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   parmi des emplacements sains** : les sains sont listés, les autres signalés comme illisibles avec
   leur raison, aucune exception.
 - Commit : `feat(save-games): add the save-game service`
+- Validation (2026-09-28, exécutant de sécurité) :
+  - **API publique** : `SaveGameService` (constructeurs internes ; le jeu passe par
+    `GameSettings.SaveGames`), `SaveGameFormat`, `SaveGameSaveResult` et `SaveGameLoadResult` (classes
+    avec statut et message, jamais nulles, pour qu'une valeur par défaut ne vaille pas « réussi »),
+    `SaveGameSlotInfo`. `Delete` rend `Deleted` ou `NotFound`.
+  - **Frontière des exceptions** : le service n'a aucun `catch` ; seules les conversions des couches du
+    dessous s'appliquent, tout le reste remonte.
+  - **Contrôles** : `NewerDataVersion` est vérifié avant tout appel à `Serialize` ; le plafond de 1 Mio
+    est appliqué avant d'écrire.
+  - **Stockage** : `TryGetLastWriteTimeUtc` lit la date d'écriture par un handle, car `FileInfo`
+    masquerait les erreurs d'accès.
+  - **Tests** : 39 nouveaux ; trois mutations (objet à moitié rendu, contrôle de taille retiré, version
+    plus récente acceptée) ont été détectées par les tests puis annulées ; `CasaEngine.Tests` 2355/2355 ;
+    recherche des types interdits vide.
+  - **À reprendre au plan parent (E16.c)** : les constructeurs du service sont internes, donc les
+    tests de la DLL Alundra ne peuvent pas construire un service sur un dossier temporaire. Constructeur
+    public avec dossier, ou tests par `ISaveGameData` seul : à trancher à la planification d'E16.c.
 
 ---
 
