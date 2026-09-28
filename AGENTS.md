@@ -106,7 +106,7 @@ Ne pas casser une API publique sans demande explicite ; préférer les changemen
 
 ### 9.9 Séparation runtime et éditeur
 
-Le runtime ne dépend pas de l'UI de l'éditeur ; aucune feature éditeur ne fuit dans le runtime. Sauvegarde et export appartiennent à l'éditeur et à l'outillage (`CasaEngine.EditorServices`, `CasaEngine.Editor`) ; chargement et exécution au runtime (`CasaEngine`). Préférer des frontières de projet ou de namespace. Quand une tâche touche les deux côtés, dire quels fichiers appartiennent à chacun.
+Le runtime ne dépend pas de l'UI de l'éditeur ; aucune feature éditeur ne fuit dans le runtime. Sauvegarde et export **des assets** appartiennent à l'éditeur et à l'outillage (`CasaEngine.EditorServices`, `CasaEngine.Editor`) ; chargement et exécution au runtime (`CasaEngine`). La sauvegarde de partie du joueur est un service runtime (`CasaEngine/Framework/SaveGames`, ADR-0044), seul chemin d'écriture ajouté au runtime. Préférer des frontières de projet ou de namespace. Quand une tâche touche les deux côtés, dire quels fichiers appartiennent à chacun.
 
 ### 9.10 Erreurs
 

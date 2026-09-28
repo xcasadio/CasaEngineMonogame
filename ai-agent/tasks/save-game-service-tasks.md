@@ -185,7 +185,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 0 — Cadre
 
-### 🚧 T0.1 — ADR et règle §9.9
+### ✅ T0.1 — ADR et règle §9.9
 
 - Objectif : consigner D1 à D5 et les choix techniques de ce plan ; lever la contradiction avec
   §9.9 (O1, prérequis du programme).
@@ -203,6 +203,9 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
   4. Ajouter ce plan au tableau d'`ai-agent/README.md`.
 - Validation : relecture ; liens de l'index valides.
 - Commit : `docs(save-games): record the runtime save-game service decision`
+- Validation (2026-09-28) : ADR-0044 écrite (la phrase sur le CRC-32 y figure mot pour mot), ligne
+  d'index ajoutée ; §9.9 d'`AGENTS.md` précisé ; plan ajouté au tableau d'`ai-agent/README.md` ; liens
+  vérifiés (fichiers présents). Numéro 0044 libre sur toutes les branches du moteur.
 
 ---
 
