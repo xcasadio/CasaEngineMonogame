@@ -285,7 +285,7 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
 
 ## Phase 2 — Archive et formats
 
-### ⏳ T2.1 — Archive symétrique
+### ✅ T2.1 — Archive symétrique
 
 - Objectif : `SaveGameArchive`, API unique de lecture et d'écriture, et le contrat
   `ISaveGameData`.
@@ -305,6 +305,19 @@ Choix techniques proposés par ce plan (approuvés avec lui) :
      champ ; c'est le seul type que le service convertit en résultat (T3.1).
 - Validation : tests via les deux implémentations de T2.2.
 - Commit : `feat(save-games): add the symmetric save-game archive`
+- Validation (2026-09-28, exécutant de sécurité) : `ISaveGameData` (public), `SaveGameArchive`
+  (public abstraite, constructeur et primitives `private protected` : un jeu ne peut pas en dériver),
+  `SaveGameDataException` (interne, chemin du champ compris, par exemple `player.inventory[3]`).
+  Les contrôles communs aux deux formats sont dans la base :
+  - plage du type C# pour chaque entier ;
+  - flottants non finis refusés dans les deux sens ;
+  - chaîne nulle ou demi-paire UTF-16 refusée ;
+  - longueur d'un tableau comparée avant tout élément ;
+  - profondeur d'objets limitée à 32.
+
+  Tableaux pris en charge : `byte`, `short`, `ushort`, `int`, `uint`, `long`. En plus de la
+  validation par T2.2, 46 tests via une archive d'essai qui ne contrôle rien elle-même. Build à
+  0 erreur, `CasaEngine.Tests` 2113/2113.
 
 ### ⏳ T2.2 — Formats JSON et binaire
 
