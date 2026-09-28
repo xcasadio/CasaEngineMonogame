@@ -55,3 +55,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
 | [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |
+| [ADR-0042](0042-yarn-runner-extension-points.md) | Yarn dialogue runner extension points | Accepted | 2026-09-27 |
+| [ADR-0043](0043-yarn-function-declarations-at-compile-time.md) | Yarn scripts compile with function declarations supplied by the game | Accepted | 2026-09-27 |
