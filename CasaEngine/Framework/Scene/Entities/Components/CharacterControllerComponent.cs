@@ -15,6 +15,8 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private const int MaxSweepIterations = 3;
     private const float MinMoveDistanceSquared = 0.000001f;
     private const float MinSweepShapeSize = 0.001f;
+    private const int ContactBisectionIterations = 24;
+    private const int ContactRecheckStepBacks = 4;
 
     private CharacterControllerSettings _settings = new();
     private Vector2 _moveIntent;
@@ -899,7 +901,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     {
         if (TryResolveCollisionDependencies(out _, out var collisionComponent, out var fixture, out var isCapsule))
         {
-            ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+            ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset, out _);
             return Vector3.Dot(rootComponent.Position, up) + footUpOffset;
         }
 
@@ -990,9 +992,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 up,
         Vector3 h1,
         Vector3 h2,
-        out float footUpOffset)
+        out float footUpOffset,
+        out Vector3 fixtureOffsetFromRoot)
     {
-        var fixtureOffsetFromRoot = (collisionComponent.Position - rootComponent.Position) + fixture.LocalPosition;
+        fixtureOffsetFromRoot = (collisionComponent.Position - rootComponent.Position) + fixture.LocalPosition;
         var worldFixtureCenter = rootComponent.Position + fixtureOffsetFromRoot;
         var horizontalCenter = worldFixtureCenter - up * Vector3.Dot(worldFixtureCenter, up);
 
@@ -1091,13 +1094,16 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     /// <summary>
     /// C5: resolves the horizontal (h1, h2) part of a requested displacement against
-    /// <see cref="World.CollisionField"/>, axis by axis (h1 then h2). An axis is blocked (its
-    /// displacement set to zero, no partial displacement) when any corner of the footprint at the
-    /// candidate position has no ground, non-walkable ground, or ground higher than foot + step
-    /// height. Passes the displacement through unchanged when no field is installed.
-    /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> (M2) report exactly those
-    /// blocked-axis decisions, authoritative only here (the field path) - both are <c>false</c>
-    /// when no field is installed.
+    /// <see cref="World.CollisionField"/>, axis by axis (h1 then h2). An axis is blocked when any
+    /// corner of the footprint at the candidate position has no ground, non-walkable ground, or
+    /// ground higher than foot + step height. A blocked axis advances to the contact (ADR-0045):
+    /// the farthest unblocked position along the step, found by
+    /// <see cref="AdvanceBlockedAxisToContact"/>, with no margin on the grid; it is zero only when
+    /// the entity already touches the obstacle. The next axis starts from the advanced position.
+    /// Passes the displacement through unchanged when no field is installed.
+    /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> (M2) report that the requested
+    /// step was shortened on that axis, whether what remains is zero or not, authoritative only
+    /// here (the field path) - both are <c>false</c> when no field is installed.
     /// </summary>
     private Vector3 ResolveHorizontalDisplacementAgainstField(
         SceneComponent rootComponent,
@@ -1120,8 +1126,9 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             return requestedDisplacement;
         }
 
-        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset, out var fixtureOffsetFromRoot);
         var footUpCoordinate = Vector3.Dot(rootComponent.Position, up) + footUpOffset;
+        var rootPosition = rootComponent.Position;
 
         var h1Amount = Vector3.Dot(requestedDisplacement, h1);
         var h2Amount = Vector3.Dot(requestedDisplacement, h2);
@@ -1134,13 +1141,17 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             var candidateCenter = footHorizontalCenter + h1 * h1Amount;
             if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
             {
-                h1Amount = 0f;
+                h1Amount = AdvanceBlockedAxisToContact(
+                    field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h1, h1Amount);
                 h1Curtailed = true;
+                footHorizontalCenter = FootHorizontalCenterAt(rootPosition + h1 * h1Amount, fixtureOffsetFromRoot, up);
             }
             else
             {
                 footHorizontalCenter = candidateCenter;
             }
+
+            rootPosition += h1 * h1Amount;
         }
 
         if (h2Amount != 0f)
@@ -1148,12 +1159,93 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             var candidateCenter = footHorizontalCenter + h2 * h2Amount;
             if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
             {
-                h2Amount = 0f;
+                h2Amount = AdvanceBlockedAxisToContact(
+                    field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h2, h2Amount);
                 h2Curtailed = true;
             }
         }
 
         return h1 * h1Amount + h2 * h2Amount + otherComponent;
+    }
+
+    /// <summary>
+    /// Horizontal center of the footprint for a root at <paramref name="rootPosition"/>, computed as
+    /// <see cref="ResolveFootprint"/> does: the fixture center (root + offset) without its up component.
+    /// </summary>
+    private static Vector3 FootHorizontalCenterAt(Vector3 rootPosition, Vector3 fixtureOffsetFromRoot, Vector3 up)
+    {
+        var worldFixtureCenter = rootPosition + fixtureOffsetFromRoot;
+        return worldFixtureCenter - up * Vector3.Dot(worldFixtureCenter, up);
+    }
+
+    /// <summary>
+    /// ADR-0045: the step <paramref name="amount"/> along <paramref name="axis"/> (h1 or h2) is blocked
+    /// on the field; returns the largest tested amount of the same sign that is not, 0 when the entity
+    /// already touches the obstacle. The search variable is the candidate position of the
+    /// ROOT (<c>rootPosition + axis * amount * t</c>, the footprint center recomputed from it), not the
+    /// center: the float spacing of the center differs from the root's, and a bisection on the center can
+    /// end one or two ULP inside the wall. A pre-probe one ULP away tells an entity that pushes a wall
+    /// from one that can still move, then <see cref="ContactBisectionIterations"/> fixed iterations narrow
+    /// t in [0, 1] (exact while |amount| * 2^-24 stays under the ULP of the root coordinate). The returned
+    /// amount is exactly the tested one, so root + amount falls back on the validated candidate bit for
+    /// bit (for axis-aligned h1 and h2). No allocation.
+    /// </summary>
+    private float AdvanceBlockedAxisToContact(
+        ICollisionField field,
+        in CharacterFootprint footprint,
+        Vector3 rootPosition,
+        Vector3 fixtureOffsetFromRoot,
+        float footUpCoordinate,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2,
+        Vector3 axis,
+        float amount)
+    {
+        var coordinate = Vector3.Dot(rootPosition, axis);
+        var probeCoordinate = amount > 0f ? MathF.BitIncrement(coordinate) : MathF.BitDecrement(coordinate);
+        var probeAmount = probeCoordinate - coordinate;
+        if (IsHorizontalMoveBlocked(field, footprint, FootHorizontalCenterAt(rootPosition + axis * probeAmount, fixtureOffsetFromRoot, up), footUpCoordinate, up, h1, h2))
+        {
+            return 0f;
+        }
+
+        var free = 0f;
+        var blocked = 1f;
+        for (var i = 0; i < ContactBisectionIterations; i++)
+        {
+            var middle = 0.5f * (free + blocked);
+            var candidateCenter = FootHorizontalCenterAt(rootPosition + axis * (amount * middle), fixtureOffsetFromRoot, up);
+            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            {
+                blocked = middle;
+            }
+            else
+            {
+                free = middle;
+            }
+        }
+
+        if (free == 0f)
+        {
+            return probeAmount;
+        }
+
+        // Final check from the retained root: step back one ULP at a time, a few times at most (a guard for a
+        // fixture whose offset does not follow the root exactly).
+        var advance = amount * free;
+        for (var i = 0; i < ContactRecheckStepBacks; i++)
+        {
+            var center = FootHorizontalCenterAt(rootPosition + axis * advance, fixtureOffsetFromRoot, up);
+            if (!IsHorizontalMoveBlocked(field, footprint, center, footUpCoordinate, up, h1, h2))
+            {
+                return advance;
+            }
+
+            advance = advance > 0f ? MathF.BitDecrement(advance) : MathF.BitIncrement(advance);
+        }
+
+        return advance;
     }
 
     private bool IsHorizontalMoveBlocked(
@@ -1351,7 +1443,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         bool isCapsule,
         float footUpBeforeStep)
     {
-        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset);
+        var footprint = ResolveFootprint(rootComponent, collisionComponent, fixture, isCapsule, up, h1, h2, out var footUpOffset, out _);
         var footUpAfterStep = Vector3.Dot(rootComponent.Position, up) + footUpOffset;
 
         var verticalDelta = Math.Abs(footUpAfterStep - footUpBeforeStep);

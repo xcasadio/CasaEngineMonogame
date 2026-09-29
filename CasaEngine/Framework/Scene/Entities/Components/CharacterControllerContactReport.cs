@@ -80,8 +80,10 @@ public readonly struct CharacterControllerContactReport
     public float ActualH2Amount { get; }
 
     /// <summary>
-    /// True when the h1 axis was curtailed to zero by the FIELD-based horizontal resolution
-    /// (<see cref="ICollisionField"/>) during the step. Authoritative only on that path: the
+    /// True when the requested h1 step was shortened by the FIELD-based horizontal resolution
+    /// (<see cref="ICollisionField"/>) during the step, whether the remaining displacement is zero or
+    /// not: a blocked step advances to the contact (ADR-0045), so <see cref="ActualH1Amount"/> can
+    /// be non-zero while this is true. Authoritative only on that path: the
     /// physics-sweep path has no per-axis notion of "blocked" and always reports this as
     /// <c>false</c> - see <see cref="SweepHit"/> for that path's indicator instead.
     /// </summary>

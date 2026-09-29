@@ -164,7 +164,9 @@ l'interface `ICollisionField`.
 
 ## Phase 1 — Le contact
 
-### ⏳ T1.1 — Bisection jusqu'au contact sur le champ, et tests
+### ✅ T1.1 — Bisection jusqu'au contact sur le champ, et tests
+
+*(fait le 2026-09-29 : bisection sur la position de la racine dans `AdvanceBlockedAxisToContact` (24 itérations, pré-test d'1 ULP, contrôle final), `ResolveFootprint` expose le décalage de la fixture, docs XML reformulées. 20 tests ajoutés ou changés dans `CharacterControllerFieldAwareMoverTests`, tous vus en échec sur l'ancien code (23 échecs sur 34, dont les 3 tests changés) ; le filtre `CharacterController` passe 121/121, la suite entière 2375/2375, solution sans erreur. Mutations réelles par script, code restauré à l'octet près : rejet entier remis (13 noms de test échouent), recherche sur le centre (les deux théories des puissances de deux échouent), 12 itérations (les tests de contact échouent). Aucun test hors du fichier n'a changé de résultat (O1). Constat de mesure : au bord de la grille, la borne lointaine étant exclusive d'un ULP, le dernier flottant libre est `BitIncrement(120)` et non 120 (test écrit en conséquence).)*
 
 - Objectif : un axe bloqué avance jusqu'au contact (D1, P1), et les tests le prouvent.
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/CharacterControllerComponent.cs`, `CasaEngine.Tests/Physics/CharacterControllerFieldAwareMoverTests.cs` (et au besoin un fichier de tests voisin).
