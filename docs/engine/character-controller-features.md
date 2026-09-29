@@ -323,6 +323,13 @@ remplace le sweep de snap dans `UpdateGround` (voir `collision-2d-3d-architectur
 contrat consommateur). Reste hors scope de E3.c : pentes (`MaxSlopeAngle` toujours Y-agnostique via
 la base), pathfinding, entite-entite, glissade par attribut de tuile.
 
+**Contact sur le champ (ADR-0045).** La regle E3.c « pas de deplacement partiel » est levee : sur le champ,
+un pas bloque sur un axe avance jusqu'au contact (bisection sur la position de la racine, sans marge sur la
+grille) au lieu d'etre rejete en entier, pour `Move` comme pour les deux deplacements de `Update`. Le contact
+est exact a un ULP pres (ou a 1e-3 px pres, seuil du balayage rigide). `H1Curtailed`/`H2Curtailed` disent
+« pas raccourci sur cet axe » meme quand le deplacement restant n'est pas nul, et la vitesse de `Update` garde
+la valeur partielle a l'image du contact. Toujours pas de glissement le long des murs quand un seul coin touche.
+
 La phase F du doc [collision-2d-3d-architecture.md](collision-2d-3d-architecture.md) a livre la
 famille de colliders « champs » — `ICollisionField`, `GroundSample`, `HeightGridCollisionField` et
 le slot `World.CollisionField` — mais **sans aucun cablage consommateur**. La resolution du sol par

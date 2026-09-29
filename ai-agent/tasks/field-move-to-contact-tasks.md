@@ -224,7 +224,9 @@ l'interface `ICollisionField`.
   `CharacterController` d'abord, puis la suite entière.
 - Commit : `fix(physics): advance a blocked cell-field step to contact instead of rejecting it`
 
-### ⏳ T1.2 — Documentation
+### ✅ T1.2 — Documentation
+
+*(fait le 2026-09-29 : un paragraphe en français dans chacun des deux documents (`collision-2d-3d-architecture.md`, après « État de D5 » ; `character-controller-features.md`, après le paragraphe E3.c, dans le style sans accents de ce document), renvoi à ADR-0045 ; `git diff` limité à ces deux paragraphes, 16 lignes ajoutées.)*
 
 - Objectif : les docs du moteur décrivent le contact.
 - Fichiers : `docs/engine/collision-2d-3d-architecture.md` (paragraphe « État de D5 », `:362-368`), `docs/engine/character-controller-features.md` (paragraphe E3.c, `:312-324`).

@@ -367,6 +367,15 @@ est installé, il remplace le sweep de snap pour le sol et filtre le déplacemen
 axe (h1 puis h2) contre `IsWalkable`/`GroundHeight`, sous une base `(up, h1, h2)` dérivée de
 `SimulationSpacePolicy.Up` — les trois prérequis relevés dans ce même doc sont donc traités.
 
+**Un pas bloqué avance jusqu'au contact** (ADR-0045) : sur le champ, un axe bloqué n'est plus rejeté en
+entier. Le mover avance jusqu'à la position la plus lointaine non bloquée, sans marge sur la grille, par une
+bisection sur la position de la racine (24 itérations, pré-test d'un ULP pour l'entité qui pousse déjà un
+mur). Le contact est exact à un ULP près, ou à 1e-3 px près quand le balayage rigide abandonne une avance
+résiduelle ; un pas demandé de moins de 1e-3 px n'est jamais testé contre le champ. L'ordre h1 puis h2 est
+gardé, l'axe suivant partant de la position avancée. `H1Curtailed`/`H2Curtailed` signifient « le pas demandé
+a été raccourci sur cet axe », qu'il reste nul ou non. Il n'y a pas de glissement le long d'un mur quand un
+seul coin touche : une marche en diagonale contre un coin diffère encore de l'original.
+
 ### D6 — Les fixtures sont animables par la timeline
 
 Généralisation du frame data des jeux de combat, valable pour tout genre à mêlée :
