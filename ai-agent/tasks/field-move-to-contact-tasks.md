@@ -14,9 +14,22 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > mot pour mot, dont un dans ce plan : la grille doit contenir le coin lointain de l'empreinte de
 > départ. Le plafond de relecture est atteint ; cette version n'est pas relue à nouveau.
 >
-> Fichier non commité : le sous-module est sur `main` avec une modification en cours de l'auteur
-> (`CasaEngine.Launcher/Program.cs`). Aucune branche n'est donc créée avant l'approbation, pour ne
-> pas déplacer son checkout. Le fichier sera commité en T0.1, sur la branche du chantier.
+> **Exécuté le 2026-09-29** sur `chantier/field-move-to-contact`, créée depuis `main` (`a550859f`) :
+> T0.1 `d51089f5`, T1.1 `62ac8431`, T1.2 `25f8385c`. `CasaEngine.Tests` 2375/2375. La modification de
+> l'auteur dans `CasaEngine.Launcher/Program.cs` n'a été ni indexée ni touchée.
+>
+> **Vérification de clôture (2026-09-29)** : un verifier frais rend **CONFIRMED** sur la tranche
+> entière, moteur et parent. Un contradicteur en lecture seule ne trouve aucun P0 à P3. Ses P4,
+> signalés et non corrigés sur le candidat vérifié :
+> - le contrôle final d'`AdvanceBlockedAxisToContact` ne peut jamais reculer : il recalcule le centre
+>   avec le même décalage que la recherche. C'est une garde morte, décrite comme active ;
+> - la bisection suppose le blocage monotone le long du pas : un pas plus long qu'un obstacle fin
+>   plus la largeur de l'empreinte (environ 45 px en x) pourrait le traverser. C'est inatteignable
+>   avec les pas d'Alundra (2,44 px au plus), mais la limite n'est pas écrite dans l'ADR-0045 ;
+> - un reste de moins de 1e-3 px est abandonné par le balayage : c'est la limite acceptée P5.
+>
+> **Reste** : le merge par l'auteur (moteur d'abord, puis le parent, dont le pointeur vise `25f8385c`),
+> puis l'archivage. La recette en jeu est la tâche T5 du plan parent.
 
 ## Objectif
 
