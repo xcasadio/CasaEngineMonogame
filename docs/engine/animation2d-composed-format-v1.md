@@ -168,7 +168,10 @@ precomputed `DurationSeconds` and `AnimationType` (Animation2dCompositionAdapter
 - **Time advance / `Update(elapsedTime)`:** if `AnimationType == Loop`, delegates to
   `UpdateLooping`, which wraps time modulo `DurationSeconds`, dispatching any events crossed
   in each wrap segment, and never reports finished (`IsFinished` stays `false`)
-  (Animation2dCompositionSampler.cs:48-53, 76-115). Otherwise, if `DurationSeconds <= 0`, the
+  (Animation2dCompositionSampler.cs:48-53, 76-115). **Wrap rule:** a time that lands exactly on
+  the duration (float32 sums can) wraps to 0 at once: the loop never stays at or above its
+  duration, and a time already at the duration (`Seek(Duration)`) wraps on the next update.
+  The sampler counts the turns of its last update (`LastUpdateLoopTurns`). For a non-Loop clip, if `DurationSeconds <= 0`, the
   clip is immediately finished and sampled at time 0 (lines 56-61). Otherwise time advances
   clamped to `DurationSeconds`, `IsFinished` becomes `true` once the clamp triggers, events in
   the crossed range are dispatched, then tracks are applied at the new time (lines 63-74).
@@ -208,6 +211,35 @@ precomputed `DurationSeconds` and `AnimationType` (Animation2dCompositionAdapter
   ascending as a tiebreaker (Animation2dCompositionRuntimeState.cs:58-61, 85-103). Consumers
   (e.g. rendering) are expected to iterate `DrawPartIndices` in that order; the sampler itself
   does not draw anything.
+
+
+## Two clocks: rendering and logical ends (`AnimatedSpriteComponent`, ADR-0046)
+
+An animation played by `AnimatedSpriteComponent` has two clocks.
+
+- **Rendering, in real time.** `Update(elapsedTime)` drives the composition sampler: images, bounds, collision
+  timeline and authored events. This is the only clock by default, and then `AnimationFinished` (Once) and
+  `AnimationLooped` (one per loop turn) are raised by this update.
+- **Logical ends, in ticks (optional).** A game that simulates on a fixed integer tick turns the logical clock on with
+  `SetLogicalTickRate(ticksPerSecond)` (0 = off, the default) and calls `AdvanceLogicalTicks(ticks)` itself. While it is
+  on, only the advance raises `AnimationFinished` and `AnimationLooped`, at the exact tick; the real-time update never
+  raises them. Rendering is not re-aligned at the logical end: the two can differ by about one tick.
+
+Rules of the logical clock:
+
+- The duration in ticks `D` is 0 if `DurationSeconds` <= 0, else max(1, `DurationSeconds` * rate rounded half away from
+  zero). Key times off the tick grid are therefore rounded to the nearest tick.
+- A Once finishes on its `D`-th advance after a reset (one `AnimationFinished`, then nothing). A Loop turns on every
+  `D`-th advance (`AnimationLooped`, `CompletedLoopCount` + 1, `LogicalTick` back to 0). With `D` = 0 a Once finishes on
+  the first advance and a Loop never turns (engine rules).
+- Reset to tick 0 on a `SetCurrentAnimation` that resets the sampler, on `InitializeWithWorld` and on a change of rate
+  (the same rate does nothing). `SeekCurrentAnimation` re-aligns the tick without any event.
+- `AdvanceLogicalTicks` returns the ticks applied: fewer than requested when a handler changed the animation. It throws
+  `InvalidOperationException` when the rate is 0 and `ArgumentOutOfRangeException` for a negative count; with no current
+  animation it does nothing and returns 0. It allocates nothing.
+- `IsPlaybackPaused` and the execution policy do not block the logical advance; the copy constructor does not copy the
+  rate.
+- Read-only state: `LogicalTickRate`, `LogicalTick`, `LogicalDurationTicks`, `IsLogicalEndReached`, `CompletedLoopCount`.
 
 ## Limits observed in the code
 

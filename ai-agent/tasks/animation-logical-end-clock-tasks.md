@@ -249,12 +249,13 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 - Note (2026-10-01) : L1 à L17 verts du premier coup avec les valeurs écrites d'avance (L14 : 0 octet sur 1000 avances) ; seule une erreur de mon test L6 (tick attendu après la fin) a été corrigée, aucune valeur du plan touchée ; base 2375, maintenant 2405, 0 échec, aucun test existant modifié ; solution compilée, 0 erreur.
 - Commit : `feat(animation): add a logical tick clock for 2D animation ends`
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Fichiers : `docs/engine/animation2d-composed-format-v1.md` (règle de bouclage, section « deux horloges » :
   temps réel pour le rendu, horloge logique optionnelle pour les fins), ligne de `docs/README.md` si un
   nouveau document apparaît, mise à jour de la ligne de ce plan dans `ai-agent/README.md`.
 - Validation : relecture.
+- Note (2026-10-01) : règle de bouclage et section « deux horloges » ajoutées au document du format ; pas de nouveau document donc `docs/README.md` inchangé ; ligne du plan mise à jour dans `ai-agent/README.md`.
 - Commit : `docs(animation): document the logical end clock and the loop wrap rule`
 
 ---
