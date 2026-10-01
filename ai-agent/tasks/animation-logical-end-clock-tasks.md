@@ -259,6 +259,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
   REVISE. Ajouts : règle sans animation courante ni échantillonneur et test L17, règle de recalage par
   `Seek`, valeur rendue de L4, borne de la grille. Toutes les autres valeurs (R1 à R4, L1 à L16) recalculées
   et confirmées.
+- 2026-10-01, relecture neuve de la révision (`92869187`, parent `9d169eb`) : READY.
 
 ## Points ouverts
 
