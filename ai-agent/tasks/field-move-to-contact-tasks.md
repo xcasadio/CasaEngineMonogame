@@ -28,8 +28,12 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 >   avec les pas d'Alundra (2,44 px au plus), mais la limite n'est pas écrite dans l'ADR-0045 ;
 > - un reste de moins de 1e-3 px est abandonné par le balayage : c'est la limite acceptée P5.
 >
-> **Reste** : le merge par l'auteur (moteur d'abord, puis le parent, dont le pointeur vise `25f8385c`),
-> puis l'archivage. La recette en jeu est la tâche T5 du plan parent.
+> **Recette en jeu validée par l'auteur le 2026-10-01** : la cabine de la 390 passe (tâche T5 du plan
+> parent). Un effet de bord, le marin 12 de la 389, a été corrigé côté DLL par la tranche parent E19.a3,
+> sans changer le moteur.
+>
+> **Reste** : le merge par l'auteur (moteur d'abord, puis le parent, dont le pointeur vise ce chantier),
+> puis l'archivage.
 
 ## Objectif
 
