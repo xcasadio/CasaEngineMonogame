@@ -143,7 +143,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 
 ## Phase 0 — Cadre
 
-### ⏳ T0.1 — ADR-0046 et documentation de la conception
+### ✅ T0.1 — ADR-0046 et documentation de la conception
 
 - Objectif : enregistrer la décision avant le code.
 - Fichiers : `docs/decisions/0046-a-logical-tick-clock-for-2d-animation-ends.md` (nouveau), ligne
@@ -153,6 +153,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
   pour une animation, rendu et fin logique peuvent différer d'environ un tick ; un mode actif sans pilote ne
   lève plus de fin ; clés hors grille arrondies au tick).
 - Validation : relecture.
+- Note (2026-10-01) : ADR-0046 écrite (statut Accepted) et ajoutée à l'index ; relue.
 - Commit : `docs(adr): add ADR-0046 on the logical tick clock of 2D animation ends`
 
 ## Phase 1 — Correction du chemin en temps réel
