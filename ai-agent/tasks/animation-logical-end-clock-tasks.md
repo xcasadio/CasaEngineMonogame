@@ -268,6 +268,30 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
   et confirmées.
 - 2026-10-01, relecture neuve de la révision (`92869187`, parent `9d169eb`) : READY.
 
+## Vérification de clôture (2026-10-01)
+
+- Commits : `1561fd07` (T0.1), `cc6f498e` (T1.1), `34ddf5e2` (T2.1), `b40888f1` (T3.1). `CasaEngine.Tests` 2405/2405
+  (base 2375), aucun test existant modifié. Le parent pointe `b40888f1` puis cette mise à jour.
+- **Verifier frais, moteur et parent ensemble : CONFIRMED.** Dans un arbre jetable : la logique de bouclage
+  d'avant remise fait échouer R1 à R4 ; un chemin en temps réel qui lèverait encore `AnimationFinished` en mode
+  logique fait échouer L6 (et des tests du parent).
+- **Contradicteur moteur en lecture seule** : aucun P0 à P3. Ses P4, reportés (jamais corrigés sur un candidat
+  CONFIRMED) :
+  - activer ou couper l'horloge pendant une animation désaligne les deux horloges et peut perdre ou doubler une
+    fin Once (le parent pose le taux une seule fois, à l'apparition) ;
+  - sur le chemin en temps réel, un gestionnaire qui relance la même animation pendant une mise à jour de
+    plusieurs tours reçoit encore les tours restants, alors que l'horloge logique s'arrête ;
+  - `LastUpdateLoopTurns` reste périmé après `Reset` ou `Seek` (lu seulement juste après `Update`) ;
+  - les numéros de ligne de `docs/engine/animation2d-composed-format-v1.md` sont décalés de 11 lignes ;
+  - trous de tests : rien n'épingle le silence d'`AnimationLooped` sur le chemin en temps réel en mode logique,
+    ni la garde de relance de ce chemin, ni une Loop menée à la fois par `Update` et par les avances ;
+  - entrées limites : `Seek` arrondi jusqu'à un demi-tick avant la fin marque la fin atteinte sans événement ;
+    NaN et durées absurdes non gardés ; `AdvanceLogicalTicks` en O(ticks) sans plafond ; un nombre négatif sans
+    animation lève (la règle « ne lève jamais » visait l'absence d'animation, un usage invalide lève) ;
+    `Detach` laisse l'horloge active.
+- Question de l'exécuteur, laissée en l'état : en mode par défaut, `CompletedLoopCount` reste à 0 (le plan le
+  rattache à l'horloge logique), alors qu'`AnimationLooped` est levé.
+
 ## Points ouverts
 
-- Aucun à l'écriture du plan.
+- Les P4 ci-dessus, pour une passe d'hygiène du moteur.
