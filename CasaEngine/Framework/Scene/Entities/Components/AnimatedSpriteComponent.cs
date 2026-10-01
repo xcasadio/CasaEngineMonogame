@@ -20,6 +20,9 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable, IConditionalEntityUpdateSource
 {
     public event EventHandler<Animation2d> AnimationFinished;
+
+    /// <summary>Raised once per turn of a Loop animation.</summary>
+    public event EventHandler<Animation2d> AnimationLooped;
     public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
     //Ghost bodies of the collision timeline, built once per (animation, collision keyframe) and pooled:
@@ -211,7 +214,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         if (CurrentAnimation != null && !IsPlaybackPaused)
         {
             var wasFinished = _currentCompositionSampler?.IsFinished == true;
+            var animation = CurrentAnimation;
             var isFinished = _currentCompositionSampler?.Update(elapsedTime) == true;
+            var loopTurns = _currentCompositionSampler?.LastUpdateLoopTurns ?? 0;
             IsBoundingBoxDirty = true;
             UpdateCurrentSprite();
             UpdateCollisionTimeline();
@@ -219,6 +224,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             if (!wasFinished && isFinished)
             {
                 AnimationFinished?.Invoke(this, CurrentAnimation);
+            }
+
+            for (var turn = 0; turn < loopTurns && ReferenceEquals(CurrentAnimation, animation); turn++)
+            {
+                AnimationLooped?.Invoke(this, animation);
             }
         }
 

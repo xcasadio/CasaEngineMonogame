@@ -158,7 +158,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 
 ## Phase 1 — Correction du chemin en temps réel
 
-### ⏳ T1.1 — Les Loop ne restent plus figées après la durée
+### ✅ T1.1 — Les Loop ne restent plus figées après la durée
 
 - Objectif : corriger `UpdateLooping` (branches ii et i) et lever `AnimationLooped` une fois par tour sur le
   chemin en temps réel.
@@ -183,6 +183,10 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 - Validation : R1 à R3 rouges avant la correction, verts après ; R4 vert ; `CasaEngine.Tests` 0 échec, aucun
   test existant modifié (un modèle donne des valeurs identiques pour toutes les suites de Loop des tests
   existants).
+- Note (2026-10-01) : R1 à R3 rouges avant la correction (R1 : 15 mises à jour à 0,29999998f comme prévu, puis 0,32f
+  à la 16e au lieu de 0 ; R3 : 0,34f au lieu de 0,02f ; R2 : le temps vaut la durée à la mise à jour D pour les 5
+  durées), verts après ; R4 vert (3 événements et 0,04000002f pour `Update(1f)`) ; base 2375, maintenant 2383, 0 échec,
+  aucun test existant modifié ; solution compilée, 0 erreur.
 - Commit : `fix(animation): wrap a 2D loop whose time lands on its duration`
 
 ## Phase 2 — Horloge logique
