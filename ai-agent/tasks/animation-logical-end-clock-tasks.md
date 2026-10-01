@@ -191,7 +191,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 
 ## Phase 2 — Horloge logique
 
-### ⏳ T2.1 — Horloge logique des fins sur `AnimatedSpriteComponent`
+### ✅ T2.1 — Horloge logique des fins sur `AnimatedSpriteComponent`
 
 - Objectif : la conception retenue, API additive, sans allocation.
 - Fichiers : `AnimatedSpriteComponent.cs`, `CasaEngine.Tests/Animation/AnimatedSpriteLogicalEndClockTests.cs`
@@ -246,6 +246,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
     `InitializeWithWorld`, le taux vaut 50 et D est celui de l'animation 0. Un composant sans aucune
     animation : `SetLogicalTickRate(50)` puis 10 avances, aucune exception, aucun événement.
 - Validation : `CasaEngine.Tests` 0 échec ; aucun test existant modifié.
+- Note (2026-10-01) : L1 à L17 verts du premier coup avec les valeurs écrites d'avance (L14 : 0 octet sur 1000 avances) ; seule une erreur de mon test L6 (tick attendu après la fin) a été corrigée, aucune valeur du plan touchée ; base 2375, maintenant 2405, 0 échec, aucun test existant modifié ; solution compilée, 0 erreur.
 - Commit : `feat(animation): add a logical tick clock for 2D animation ends`
 
 ### ⏳ T3.1 — Documentation

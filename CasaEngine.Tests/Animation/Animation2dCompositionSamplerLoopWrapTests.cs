@@ -214,13 +214,18 @@ internal static class AnimatedSpriteClockTestHost
         componentsField.SetValue(game, new Microsoft.Xna.Framework.GameComponentCollection());
         SetProperty(world, nameof(CasaEngine.Framework.Scene.World.World.Game), game);
 
+        var component = new AnimatedSpriteComponent();
+        PlaceInWorld(component, world);
+        return component;
+    }
+
+    /// <summary>Puts a component under a fresh entity of the stand-in world, as a spawned entity would be.</summary>
+    public static void PlaceInWorld(AnimatedSpriteComponent component, CasaEngine.Framework.Scene.World.World world)
+    {
         var entityRoot = new HostSceneComponent();
         var entity = new Entity { RootComponent = entityRoot };
         SetProperty(entity, nameof(Entity.World), world);
-
-        var component = new AnimatedSpriteComponent();
         entityRoot.AddChildComponent(component);
-        return component;
     }
 
     private static void SetProperty<TTarget, TValue>(TTarget target, string propertyName, TValue value)
