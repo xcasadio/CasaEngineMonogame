@@ -43,7 +43,7 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 - Utilisateurs : le jeu Alundra (DLL du dépôt parent, pont des fins d'animation), la démo RPG (abonnée à
   `AnimationFinished`, reste en mode par défaut), l'éditeur (`SeekCurrentAnimation` en aperçu),
   `CasaUIAnimatedImage` (son propre échantillonneur : il profite de la correction de boucle).
-- Données : chaque instant de clé exporté est à moins de 1,02e-4 tick de la grille à 50 Hz ; la durée vient
+- Données : chaque instant de clé exporté est à au plus 1,03e-4 tick de la grille à 50 Hz ; la durée vient
   toujours de la dernière clé d'une piste ; aucune Once de durée nulle ; 5 Loop de durée nulle ; aucun
   `.anim2d` n'a d'événement dessiné ; 5568 ont des clés de collision.
 - Dernière ADR : ADR-0045. Prochaine : **ADR-0046**.
@@ -84,8 +84,14 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
     `AnimationLooped` ; il garde les images, la chronologie des collisions et les événements dessinés. Aucun
     recalage du rendu à la fin logique ;
   - remise à zéro : à chaque `SetCurrentAnimation` qui remet l'échantillonneur à zéro, à `InitializeWithWorld`
-    et à un changement de taux. `SeekCurrentAnimation` recale le tick logique sur le temps demandé, sans
-    événement ;
+    et à un changement de taux ; D est alors recalculé depuis l'échantillonneur courant ;
+  - **sans animation courante ni échantillonneur** (composant pas encore intégré au monde, ou sans
+    animation) : `SetLogicalTickRate` garde le taux (la même valeur ne fait toujours rien) et met D à 0 sans
+    fin en attente ; `AdvanceLogicalTicks` ne fait rien, ne lève rien, rend 0 et ne lève jamais d'exception.
+    La règle « une Once de D = 0 finit à la première avance » ne s'applique qu'à une vraie animation ;
+  - `SeekCurrentAnimation` recale le tick logique sans événement : k = arrondi au plus proche, demi loin de
+    zéro, de max(0, t) × taux ; Once : tick = min(k, D), fin atteinte si D > 0 et k ≥ D ; Loop : tick =
+    k mod D (0 si D = 0) ; `CompletedLoopCount` inchangé ;
   - ni `IsPlaybackPaused` ni `ExecutionPolicy` ne bloquent l'avance logique (c'est la couche de jeu qui décide
     quand avancer) ; le constructeur de copie ne copie pas le taux ; `InitializeWithWorld` le garde ;
     `ShouldUpdateWhenConditional` est inchangé ;
@@ -195,7 +201,8 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
     `AnimationLooped` aux avances 54, 108 et 162 seulement, `CompletedLoopCount` 1, 2, 3 ; `LogicalTick` 53
     après l'avance 53, 0 après la 54e ; jamais d'`AnimationFinished`.
   - **L4** — Loop D 24 : `AdvanceLogicalTicks(50)` lève 2 tours, laisse le tick à 2 et rend 50. Once D 24 :
-    `AdvanceLogicalTicks(100)` lève une fin, laisse le tick à 24. `AdvanceLogicalTicks(0)` ne fait rien.
+    `AdvanceLogicalTicks(100)` lève une fin, laisse le tick à 24 et rend 100 (aucun gestionnaire ne change
+    d'animation). `AdvanceLogicalTicks(0)` ne fait rien.
     `AdvanceLogicalTicks(-1)` et `SetLogicalTickRate(-1)` lèvent `ArgumentOutOfRangeException`.
   - **L5** — remises à zéro : après la fin, `SetCurrentAnimation(même, true)` remet le tick à 0, et la fin
     suivante vient à la 24e avance ; au tick 10, `SetCurrentAnimation(même, false)` laisse 10 ; au tick 10, un
@@ -229,6 +236,10 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
     Loop D 24 : exactement un `AnimationLooped`, puis tick 0 sur la nouvelle animation, valeur rendue 24.
   - **L16** — `IsPlaybackPaused` vrai, par image `Update(0.02f)` puis une avance : la fin vient à l'image 24,
     `CurrentAnimationTimeSeconds` reste 0f.
+  - **L17** — taux 50 posé sur un composant sans animation courante, comme à l'apparition avant
+    `InitializeWithWorld` : 10 avances ne lèvent rien, laissent le tick à 0 et rendent 0 ; après
+    `InitializeWithWorld`, le taux vaut 50 et D est celui de l'animation 0. Un composant sans aucune
+    animation : `SetLogicalTickRate(50)` puis 10 avances, aucune exception, aucun événement.
 - Validation : `CasaEngine.Tests` 0 échec ; aucun test existant modifié.
 - Commit : `feat(animation): add a logical tick clock for 2D animation ends`
 
@@ -241,6 +252,13 @@ du monde ; tout changement du format `.anim2d` ou du convertisseur ; l'éditeur.
 - Commit : `docs(animation): document the logical end clock and the loop wrap rule`
 
 ---
+
+## Relectures
+
+- 2026-10-01, plan-verifier et audit indépendant des valeurs (relecture commune avec le plan parent) :
+  REVISE. Ajouts : règle sans animation courante ni échantillonneur et test L17, règle de recalage par
+  `Seek`, valeur rendue de L4, borne de la grille. Toutes les autres valeurs (R1 à R4, L1 à L16) recalculées
+  et confirmées.
 
 ## Points ouverts
 
