@@ -152,7 +152,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 0 — Cadre
 
-### ⏳ T0.1 — ADR-0047
+### ✅ T0.1 — ADR-0047
 
 - Objectif : enregistrer la décision avant le code.
 - Fichiers : `docs/decisions/0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md` (nouveau),
@@ -161,7 +161,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   (conception retenue ci-dessus, interface dans `CasaEngine.Framework.Physics`), conséquences (sans sonde rien ne
   change ; avance par axe gardée, pas de glissement propre ; rapport additif et sa composition dans `Update` ; coût par
   appels ; tracé ; limites écrites ci-dessus).
-- Validation : relecture.
+- Validation : relecture. Faite le 2026-10-02 : ADR-0047 écrit d'après le plan (D1-D4, conception, consignes P4 1 à 3 et 6, limites) ; index mis à jour.
 - Commit : `docs(adr): add ADR-0047 on dynamic movement obstacles in the character controller field stage`
 
 ## Phase 1 — Point d'extension
