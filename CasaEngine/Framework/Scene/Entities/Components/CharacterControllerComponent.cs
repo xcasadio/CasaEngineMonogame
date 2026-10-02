@@ -244,17 +244,25 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         // flags and sweep-hit indicator are the OR of both calls, exactly like
         // LastRequestedDisplacement/LastActualDisplacement publish their SUM rather than only the
         // second call.
+        //
+        // ADR-0047: the obstacle published for an axis is the one of the velocity call when that call shortened
+        // the axis, otherwise the one of the ground call (a moving ground is not covered by a test: the Alundra
+        // port has none).
         bool h1Curtailed = false;
         bool h2Curtailed = false;
         bool sweepHit = false;
+        Entity h1Obstacle = null;
+        Entity h2Obstacle = null;
 
         var actualGroundDisplacement = Vector3.Zero;
         if (inheritedGroundDisplacement.LengthSquared() > MinMoveDistanceSquared)
         {
-            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement, up, h1, h2, out var groundH1Curtailed, out var groundH2Curtailed, out var groundSweepHit);
+            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement, up, h1, h2, out var groundH1Curtailed, out var groundH2Curtailed, out var groundSweepHit, out var groundH1Obstacle, out var groundH2Obstacle);
             h1Curtailed |= groundH1Curtailed;
             h2Curtailed |= groundH2Curtailed;
             sweepHit |= groundSweepHit;
+            h1Obstacle = groundH1Obstacle;
+            h2Obstacle = groundH2Obstacle;
         }
 
         var requestedDisplacement = velocity * elapsedTime;
@@ -270,10 +278,19 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var actualDisplacement = Vector3.Zero;
         if (appliedRequestedDisplacement)
         {
-            actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var velocityH1Curtailed, out var velocityH2Curtailed, out var velocitySweepHit);
+            actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var velocityH1Curtailed, out var velocityH2Curtailed, out var velocitySweepHit, out var velocityH1Obstacle, out var velocityH2Obstacle);
             h1Curtailed |= velocityH1Curtailed;
             h2Curtailed |= velocityH2Curtailed;
             sweepHit |= velocitySweepHit;
+            if (velocityH1Curtailed)
+            {
+                h1Obstacle = velocityH1Obstacle;
+            }
+
+            if (velocityH2Curtailed)
+            {
+                h2Obstacle = velocityH2Obstacle;
+            }
         }
 
         _lastRequestedDisplacement = inheritedGroundDisplacement + requestedDisplacement;
@@ -281,7 +298,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _lastContact = _lastContact.WithDisplacement(
             Vector3.Dot(_lastRequestedDisplacement, up), Vector3.Dot(_lastRequestedDisplacement, h1), Vector3.Dot(_lastRequestedDisplacement, h2),
             Vector3.Dot(_lastActualDisplacement, up), Vector3.Dot(_lastActualDisplacement, h1), Vector3.Dot(_lastActualDisplacement, h2),
-            h1Curtailed, h2Curtailed, sweepHit);
+            h1Curtailed, h2Curtailed, sweepHit, h1Obstacle, h2Obstacle);
 
         if (elapsedTime > 0f && appliedRequestedDisplacement)
         {
@@ -442,13 +459,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _settings.Validate();
         var up = ResolveUp();
         var (h1, h2) = ResolveHorizontalAxes(up);
-        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var h1Curtailed, out var h2Curtailed, out var sweepHit);
+        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement, up, h1, h2, out var h1Curtailed, out var h2Curtailed, out var sweepHit, out var h1Obstacle, out var h2Obstacle);
         _lastRequestedDisplacement = requestedDisplacement;
         _lastActualDisplacement = actualDisplacement;
         _lastContact = _lastContact.WithDisplacement(
             Vector3.Dot(requestedDisplacement, up), Vector3.Dot(requestedDisplacement, h1), Vector3.Dot(requestedDisplacement, h2),
             Vector3.Dot(actualDisplacement, up), Vector3.Dot(actualDisplacement, h1), Vector3.Dot(actualDisplacement, h2),
-            h1Curtailed, h2Curtailed, sweepHit);
+            h1Curtailed, h2Curtailed, sweepHit, h1Obstacle, h2Obstacle);
         return actualDisplacement;
     }
 
@@ -1018,12 +1035,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     /// <summary>
     /// Resolves <paramref name="requestedDisplacement"/> against field and sweep collisions.
     /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> are authoritative only for
-    /// the field-based horizontal resolution (M2) - they are <c>false</c> whenever no field is
-    /// installed, i.e. on the pure sweep path, which has no per-axis notion of "blocked" and is
+    /// the field-based horizontal resolution (M2) - they are <c>false</c> whenever neither a field nor a
+    /// movement obstacle probe is installed, i.e. on the pure sweep path, which has no per-axis notion of "blocked" and is
     /// reported instead by <paramref name="sweepHit"/> (whether any sweep iteration hit
-    /// something).
+    /// something). <paramref name="h1Obstacle"/>/<paramref name="h2Obstacle"/> (ADR-0047) are the dynamic
+    /// obstacles that shortened each axis on that same field path, <c>null</c> otherwise.
     /// </summary>
-    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement, Vector3 up, Vector3 h1, Vector3 h2, out bool h1Curtailed, out bool h2Curtailed, out bool sweepHit)
+    private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement, Vector3 up, Vector3 h1, Vector3 h2, out bool h1Curtailed, out bool h2Curtailed, out bool sweepHit, out Entity h1Obstacle, out Entity h2Obstacle)
     {
         _lastCollisionHit = default;
         _hasStepSupportHit = false;
@@ -1031,6 +1049,8 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         h1Curtailed = false;
         h2Curtailed = false;
         sweepHit = false;
+        h1Obstacle = null;
+        h2Obstacle = null;
 
         if (requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared
             || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent, out var fixture, out var isCapsule))
@@ -1041,7 +1061,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
         var startPosition = rootComponent.Position;
         var fieldAdjustedDisplacement = ResolveHorizontalDisplacementAgainstField(
-            rootComponent, collisionComponent, fixture, isCapsule, requestedDisplacement, up, h1, h2, out h1Curtailed, out h2Curtailed);
+            rootComponent, collisionComponent, fixture, isCapsule, requestedDisplacement, up, h1, h2, out h1Curtailed, out h2Curtailed, out h1Obstacle, out h2Obstacle);
 
         var currentPosition = startPosition;
         var remainingDisplacement = fieldAdjustedDisplacement;
@@ -1094,16 +1114,21 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     /// <summary>
     /// C5: resolves the horizontal (h1, h2) part of a requested displacement against
-    /// <see cref="World.CollisionField"/>, axis by axis (h1 then h2). An axis is blocked when any
-    /// corner of the footprint at the candidate position has no ground, non-walkable ground, or
-    /// ground higher than foot + step height. A blocked axis advances to the contact (ADR-0045):
-    /// the farthest unblocked position along the step, found by
-    /// <see cref="AdvanceBlockedAxisToContact"/>, with no margin on the grid; it is zero only when
-    /// the entity already touches the obstacle. The next axis starts from the advanced position.
-    /// Passes the displacement through unchanged when no field is installed.
+    /// <see cref="World.MovementObstacleProbe"/> then <see cref="World.CollisionField"/>, axis by axis
+    /// (h1 then h2). An axis is blocked when the probe reports an obstacle at the candidate root
+    /// (asked first: the entity before the cell, ADR-0047), or when any corner of the footprint at
+    /// the candidate position has no ground, non-walkable ground, or ground higher than foot + step
+    /// height on the field (when one is installed; with a probe alone, only the obstacle blocks).
+    /// A blocked axis advances to the contact (ADR-0045): the farthest unblocked position along the
+    /// step, found by <see cref="AdvanceBlockedAxisToContact"/>, with no margin on the grid; it is
+    /// zero only when the entity already touches the obstacle. The next axis starts from the advanced
+    /// position. Passes the displacement through unchanged when neither a field nor a probe is
+    /// installed.
     /// <paramref name="h1Curtailed"/>/<paramref name="h2Curtailed"/> (M2) report that the requested
     /// step was shortened on that axis, whether what remains is zero or not, authoritative only
-    /// here (the field path) - both are <c>false</c> when no field is installed.
+    /// here (the field path) - both are <c>false</c> when neither is installed.
+    /// <paramref name="h1Obstacle"/>/<paramref name="h2Obstacle"/> name the obstacle of the last blocked
+    /// test of that axis (<c>null</c> when the axis was not shortened or the field blocked last).
     /// </summary>
     private Vector3 ResolveHorizontalDisplacementAgainstField(
         SceneComponent rootComponent,
@@ -1115,13 +1140,18 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 h1,
         Vector3 h2,
         out bool h1Curtailed,
-        out bool h2Curtailed)
+        out bool h2Curtailed,
+        out Entity h1Obstacle,
+        out Entity h2Obstacle)
     {
         h1Curtailed = false;
         h2Curtailed = false;
+        h1Obstacle = null;
+        h2Obstacle = null;
 
         var field = Owner?.World?.CollisionField;
-        if (field == null)
+        var probe = Owner?.World?.MovementObstacleProbe;
+        if (field == null && probe == null)
         {
             return requestedDisplacement;
         }
@@ -1139,10 +1169,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         if (h1Amount != 0f)
         {
             var candidateCenter = footHorizontalCenter + h1 * h1Amount;
-            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            if (IsCandidateBlocked(probe, field, footprint, rootPosition + h1 * h1Amount, candidateCenter, footUpCoordinate, up, h1, h2, out var stepObstacle))
             {
                 h1Amount = AdvanceBlockedAxisToContact(
-                    field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h1, h1Amount);
+                    probe, field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h1, h1Amount, stepObstacle, out h1Obstacle);
                 h1Curtailed = true;
                 footHorizontalCenter = FootHorizontalCenterAt(rootPosition + h1 * h1Amount, fixtureOffsetFromRoot, up);
             }
@@ -1157,10 +1187,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         if (h2Amount != 0f)
         {
             var candidateCenter = footHorizontalCenter + h2 * h2Amount;
-            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            if (IsCandidateBlocked(probe, field, footprint, rootPosition + h2 * h2Amount, candidateCenter, footUpCoordinate, up, h1, h2, out var stepObstacle))
             {
                 h2Amount = AdvanceBlockedAxisToContact(
-                    field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h2, h2Amount);
+                    probe, field, footprint, rootPosition, fixtureOffsetFromRoot, footUpCoordinate, up, h1, h2, h2, h2Amount, stepObstacle, out h2Obstacle);
                 h2Curtailed = true;
             }
         }
@@ -1189,8 +1219,16 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     /// t in [0, 1] (exact while |amount| * 2^-24 stays under the ULP of the root coordinate). The returned
     /// amount is exactly the tested one, so root + amount falls back on the validated candidate bit for
     /// bit (for axis-aligned h1 and h2). No allocation.
+    /// <para>
+    /// ADR-0047: every test goes through <see cref="IsCandidateBlocked"/>, the probe candidate being the
+    /// root the bisection already builds. <paramref name="obstacle"/> starts as
+    /// <paramref name="stepObstacle"/> (the obstacle of the whole-step test) and is replaced only by the
+    /// obstacle of one of this method's own blocked tests: at the end it is the obstacle of the last blocked
+    /// test, <c>null</c> when that test was blocked by the field.
+    /// </para>
     /// </summary>
     private float AdvanceBlockedAxisToContact(
+        IMovementObstacleProbe probe,
         ICollisionField field,
         in CharacterFootprint footprint,
         Vector3 rootPosition,
@@ -1200,13 +1238,19 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         Vector3 h1,
         Vector3 h2,
         Vector3 axis,
-        float amount)
+        float amount,
+        Entity stepObstacle,
+        out Entity obstacle)
     {
+        obstacle = stepObstacle;
+
         var coordinate = Vector3.Dot(rootPosition, axis);
         var probeCoordinate = amount > 0f ? MathF.BitIncrement(coordinate) : MathF.BitDecrement(coordinate);
         var probeAmount = probeCoordinate - coordinate;
-        if (IsHorizontalMoveBlocked(field, footprint, FootHorizontalCenterAt(rootPosition + axis * probeAmount, fixtureOffsetFromRoot, up), footUpCoordinate, up, h1, h2))
+        var probeRoot = rootPosition + axis * probeAmount;
+        if (IsCandidateBlocked(probe, field, footprint, probeRoot, FootHorizontalCenterAt(probeRoot, fixtureOffsetFromRoot, up), footUpCoordinate, up, h1, h2, out var probeObstacle))
         {
+            obstacle = probeObstacle;
             return 0f;
         }
 
@@ -1215,9 +1259,11 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         for (var i = 0; i < ContactBisectionIterations; i++)
         {
             var middle = 0.5f * (free + blocked);
-            var candidateCenter = FootHorizontalCenterAt(rootPosition + axis * (amount * middle), fixtureOffsetFromRoot, up);
-            if (IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2))
+            var candidateRoot = rootPosition + axis * (amount * middle);
+            var candidateCenter = FootHorizontalCenterAt(candidateRoot, fixtureOffsetFromRoot, up);
+            if (IsCandidateBlocked(probe, field, footprint, candidateRoot, candidateCenter, footUpCoordinate, up, h1, h2, out var bisectionObstacle))
             {
+                obstacle = bisectionObstacle;
                 blocked = middle;
             }
             else
@@ -1236,16 +1282,46 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var advance = amount * free;
         for (var i = 0; i < ContactRecheckStepBacks; i++)
         {
-            var center = FootHorizontalCenterAt(rootPosition + axis * advance, fixtureOffsetFromRoot, up);
-            if (!IsHorizontalMoveBlocked(field, footprint, center, footUpCoordinate, up, h1, h2))
+            var recheckRoot = rootPosition + axis * advance;
+            var center = FootHorizontalCenterAt(recheckRoot, fixtureOffsetFromRoot, up);
+            if (!IsCandidateBlocked(probe, field, footprint, recheckRoot, center, footUpCoordinate, up, h1, h2, out var recheckObstacle))
             {
                 return advance;
             }
 
+            obstacle = recheckObstacle;
             advance = advance > 0f ? MathF.BitDecrement(advance) : MathF.BitIncrement(advance);
         }
 
         return advance;
+    }
+
+    /// <summary>
+    /// ADR-0047: whether the candidate position blocks the mover in the field stage. The probe (when installed) is
+    /// asked first with the candidate ROOT, as the original game tests an entity before the terrain cell; the field
+    /// (when installed) is asked second with <paramref name="candidateCenter"/>, the center each call site already
+    /// computes. <paramref name="obstacle"/> is the probe's obstacle when it blocked, <c>null</c> otherwise (free, or
+    /// blocked by the field). Without a probe this is exactly <see cref="IsHorizontalMoveBlocked"/>. No allocation.
+    /// </summary>
+    private bool IsCandidateBlocked(
+        IMovementObstacleProbe probe,
+        ICollisionField field,
+        in CharacterFootprint footprint,
+        Vector3 candidateRoot,
+        Vector3 candidateCenter,
+        float footUpCoordinate,
+        Vector3 up,
+        Vector3 h1,
+        Vector3 h2,
+        out Entity obstacle)
+    {
+        if (probe != null && probe.TryFindObstacle(Owner, candidateRoot, out obstacle))
+        {
+            return true;
+        }
+
+        obstacle = null;
+        return field != null && IsHorizontalMoveBlocked(field, footprint, candidateCenter, footUpCoordinate, up, h1, h2);
     }
 
     private bool IsHorizontalMoveBlocked(

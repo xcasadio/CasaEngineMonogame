@@ -175,7 +175,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - Validation (2026-10-02) : tests écrits d'abord (rouge : CS0246 `IMovementObstacleProbe` introuvable) ; build de la solution 0 erreur ; `CasaEngine.Tests` 2409 réussis (2405 + 4), 0 échec. Tests dans `CasaEngine.Tests/Physics/MovementObstacleProbeWorldTests.cs`.
 - Commit : `feat(physics): add an optional movement obstacle probe on World`
 
-### ⏳ T1.2 — Étage champ et rapport
+### ✅ T1.2 — Étage champ et rapport
 
 - Fichiers : `CharacterControllerComponent.cs` (et sa doc XML : étage champ, sonde ou champ, mode sonde seule),
   `CharacterControllerContactReport.cs` (nouveaux membres de la moitié déplacement, `WithDisplacementReset`,
@@ -229,6 +229,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
     `CharacterControllerComponentTests.cs:820` et `:853`, ne sont pas touchés) : chaque test bloque d'abord sur la sonde
     pour poser `H2Obstacle`, puis applique `Stop`, `Teleport`, `RestoreStateSnapshot`, `Update(0f)` ou un `Move` de
     longueur ≤ 1e-3, et vérifie que `H1Obstacle` et `H2Obstacle` valent null.
+- Validation (2026-10-02) : tests écrits d'abord (rouge : CS1061, `H1Obstacle`/`H2Obstacle` absents de `CharacterControllerContactReport`) ; build de la solution 0 erreur ; `CasaEngine.Tests` 2438 réussis (2409 + 29), 0 échec, aucun test existant modifié. Valeurs mesurées conformes aux valeurs écrites d'avance : T-ENG-1 contact 27 appels, poussée 2, axe libre 1 ; T-ENG-5 (a) et (b) 28 appels ; T-ENG-11 pas fixe : 27 appels au premier sous-pas, 2 au second ; T-ENG-8 : 0 octet sans sonde, 0 octet avec sonde (série de 100 pas depuis 551,5 : 33 libres, 1 contact, 66 poussées), 0 octet avec sonde jamais bloquante. Écart local : `AdvanceBlockedAxisToContact` reçoit l'obstacle du pas entier en paramètre d'entrée (`stepObstacle`) et rend le résultat par `out`, pour tenir la consigne 1.
 - Commit : `feat(physics): stop the character controller field stage at dynamic movement obstacles`
 
 ### ⏳ T1.3 — Tracé de débogage
