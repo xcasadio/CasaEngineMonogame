@@ -232,7 +232,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - Validation (2026-10-02) : tests écrits d'abord (rouge : CS1061, `H1Obstacle`/`H2Obstacle` absents de `CharacterControllerContactReport`) ; build de la solution 0 erreur ; `CasaEngine.Tests` 2438 réussis (2409 + 29), 0 échec, aucun test existant modifié. Valeurs mesurées conformes aux valeurs écrites d'avance : T-ENG-1 contact 27 appels, poussée 2, axe libre 1 ; T-ENG-5 (a) et (b) 28 appels ; T-ENG-11 pas fixe : 27 appels au premier sous-pas, 2 au second ; T-ENG-8 : 0 octet sans sonde, 0 octet avec sonde (série de 100 pas depuis 551,5 : 33 libres, 1 contact, 66 poussées), 0 octet avec sonde jamais bloquante. Écart local : `AdvanceBlockedAxisToContact` reçoit l'obstacle du pas entier en paramètre d'entrée (`stepObstacle`) et rend le résultat par `out`, pour tenir la consigne 1.
 - Commit : `feat(physics): stop the character controller field stage at dynamic movement obstacles`
 
-### ⏳ T1.3 — Tracé de débogage
+### ✅ T1.3 — Tracé de débogage
 
 - Fichiers : `PhysicsDebugViewRendererComponent.cs` (appel de l'assistant interne sous `DisplayPhysics`),
   `CasaEngine/Engine/Physics/PhysicsDebugDrawerExtensions.cs` (nouveau), tests dans le nouveau fichier de T1.2.
@@ -240,6 +240,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   `CountingDebugDrawer` existant étant privé) : `DrawAabb` émet 12 `DrawLine` dont les extrémités sont les 8 sommets
   attendus ; `DrawMovementObstacleProbe(world, drawer)` appelle `DrawDebug` de la sonde installée une fois et ne fait
   rien sans sonde. La garde `DisplayPhysics` du composant (une ligne) est relue, pas testée sans GPU.
+- Validation (2026-10-02) : build de la solution 0 erreur ; `CasaEngine.Tests` 2441 réussis (2438 + 3), 0 échec. Garde `DisplayPhysics` de `RenderForView` relue : l'appel de l'assistant est après `DrawDebugWorld`, sous la même garde et la garde du monde physique non null.
 - Commit : `feat(physics): draw movement obstacle probes in the physics debug view`
 
 ## Phase 2 — Documentation

@@ -31,7 +31,7 @@ public interface IMovementObstacleProbe
     /// <summary>
     /// Draws the obstacles for the physics debug view (<c>DisplayPhysics</c>). Coordinates are in the simulation
     /// (logical) space of the world, the one of the physics debug view, not the projected render space. No allocation:
-    /// this runs on the draw path. The default draws nothing.
+    /// this runs on the draw path. The default draws nothing; see <see cref="PhysicsDebugDrawerExtensions.DrawAabb"/>.
     /// </summary>
     void DrawDebug(IPhysicsDebugDrawer drawer)
     {

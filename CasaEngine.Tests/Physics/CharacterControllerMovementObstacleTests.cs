@@ -496,6 +496,66 @@ public class CharacterControllerMovementObstacleTests
         Assert.Null(rig.Controller.LastContact.H2Obstacle);
     }
 
+    // T-ENG-13
+
+    [Fact]
+    public void DrawAabb_EmitsTheTwelveEdgesOfTheBox()
+    {
+        var drawer = new RecordingDrawer();
+        var min = new Vector3(1f, 2f, 3f);
+        var max = new Vector3(4f, 6f, 9f);
+
+        drawer.DrawAabb(min, max, Color.Red);
+
+        Assert.Equal(12, drawer.Lines.Count);
+        var edges = new HashSet<(Vector3, Vector3)>();
+        var vertices = new HashSet<Vector3>();
+        foreach (var (from, to, color) in drawer.Lines)
+        {
+            Assert.Equal(Color.Red, color);
+            var changedCoordinates = (from.X != to.X ? 1 : 0) + (from.Y != to.Y ? 1 : 0) + (from.Z != to.Z ? 1 : 0);
+            Assert.Equal(1, changedCoordinates);
+            foreach (var point in new[] { from, to })
+            {
+                Assert.True(point.X == min.X || point.X == max.X);
+                Assert.True(point.Y == min.Y || point.Y == max.Y);
+                Assert.True(point.Z == min.Z || point.Z == max.Z);
+                vertices.Add(point);
+            }
+
+            edges.Add(Vector3.Min(from, to) == from ? (from, to) : (to, from));
+        }
+
+        Assert.Equal(8, vertices.Count);
+        Assert.Equal(12, edges.Count);
+    }
+
+    [Fact]
+    public void DrawMovementObstacleProbe_CallsTheInstalledProbeOnce()
+    {
+        var probe = new BoxProbe();
+        probe.Add(ObstacleMin, ObstacleMax);
+        var world = new World { MovementObstacleProbe = probe };
+        var drawer = new RecordingDrawer();
+
+        PhysicsDebugViewRendererComponent.DrawMovementObstacleProbe(world, drawer);
+
+        Assert.Equal(1, probe.DrawDebugCalls);
+        Assert.Same(drawer, probe.LastDrawer);
+        Assert.Equal(12, drawer.Lines.Count);
+    }
+
+    [Fact]
+    public void DrawMovementObstacleProbe_DoesNothingWithoutAProbeOrAWorld()
+    {
+        var drawer = new RecordingDrawer();
+
+        PhysicsDebugViewRendererComponent.DrawMovementObstacleProbe(new World(), drawer);
+        PhysicsDebugViewRendererComponent.DrawMovementObstacleProbe(null, drawer);
+
+        Assert.Empty(drawer.Lines);
+    }
+
     private static void ConfigureForUpdate(CharacterControllerComponent controller)
     {
         controller.Settings.Gravity = 0f;
@@ -610,6 +670,10 @@ public class CharacterControllerMovementObstacleTests
 
         public int Calls { get; set; }
 
+        public int DrawDebugCalls { get; private set; }
+
+        public IPhysicsDebugDrawer LastDrawer { get; private set; }
+
         public Entity FirstObstacle => _entities[0];
 
         public Entity LastMover { get; private set; }
@@ -624,6 +688,16 @@ public class CharacterControllerMovementObstacleTests
             _maxs[_count] = max;
             _count++;
             return entity;
+        }
+
+        public void DrawDebug(IPhysicsDebugDrawer drawer)
+        {
+            DrawDebugCalls++;
+            LastDrawer = drawer;
+            for (var i = 0; i < _count; i++)
+            {
+                drawer.DrawAabb(_mins[i], _maxs[i], Color.Yellow);
+            }
         }
 
         public bool TryFindObstacle(Entity mover, in Vector3 candidateRootPosition, out Entity obstacle)
@@ -658,6 +732,30 @@ public class CharacterControllerMovementObstacleTests
 
             obstacle = null;
             return false;
+        }
+    }
+
+    private sealed class RecordingDrawer : IPhysicsDebugDrawer
+    {
+        public List<(Vector3 From, Vector3 To, Color Color)> Lines { get; } = [];
+
+        public PhysicsDebugDrawModes DebugMode { get; set; }
+
+        public void Draw3dText(ref Vector3 location, string textString)
+        {
+        }
+
+        public void DrawContactPoint(ref Vector3 pointOnB, ref Vector3 normalOnB, float distance, int lifeTime, Color color)
+        {
+        }
+
+        public void DrawLine(ref Vector3 from, ref Vector3 to, Color color)
+        {
+            Lines.Add((from, to, color));
+        }
+
+        public void ReportErrorWarning(string warningString)
+        {
         }
     }
 
