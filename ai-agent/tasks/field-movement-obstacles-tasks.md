@@ -14,10 +14,14 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - Publier dans `CharacterControllerContactReport`, par axe, **quel obstacle** a raccourci le pas.
 - Un tracé de débogage de ces obstacles (AGENTS §9.6).
 
-Hors périmètre : toute règle d'obstacle propre à un jeu (elle vit dans le jeu) ; le glissement le long d'un obstacle
-et la division conjointe des deux axes (le contrôleur garde l'avance par axe, ADR-0045 D2) ; le balayage rigide, la
-marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'éditeur ; une démo moteur (voir
-« Points ouverts »).
+## Hors périmètre
+
+- Toute règle d'obstacle propre à un jeu (elle vit dans le jeu).
+- Le glissement le long d'un obstacle et la division conjointe des deux axes : le contrôleur garde l'avance par axe
+  (ADR-0045 D2).
+- Le balayage rigide, la marche d'escalier et le vertical : la sonde ne filtre que l'étage champ.
+- Un registre d'obstacles natif du moteur ; l'éditeur.
+- Une démo moteur : question O1 à l'approbation (« Points ouverts »).
 
 ## État vérifié du dépôt (2026-10-02)
 
@@ -40,7 +44,8 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 - Débogage : `PhysicsDebugViewRendererComponent` (`CasaEngine/Framework/Application/Components/Physics/`) dessine le
   monde physique quand `DisplayPhysics` est vrai ; `IPhysicsDebugDrawer.DrawLine(ref Vector3, ref Vector3, Color)`
   existe (`CasaEngine/Engine/Physics/IPhysicsDebugDrawer.cs`) ; rien ne dessine aujourd'hui le champ ni l'étage
-  champ du contrôleur ; `CountingDebugDrawer` existe dans les tests (`BepuDebugDrawTests.cs:20`).
+  champ du contrôleur ; `CountingDebugDrawer` existe dans les tests mais comme classe privée imbriquée (`BepuDebugDrawTests.cs:20`,
+  `BepuContactRecordLifetimeTests.cs:47`), qui ne fait que compter.
 - Le balayage rigide ignore les corps sans réponse de contact (`BepuPhysicsEngine.cs:452-470`) : les entités Alundra
   sont des corps cinématiques fantômes, invisibles au balayage et à `TryStepMove`.
 - Un pas de longueur ≤ 1e-3 px est abandonné (`:16`, `:1052-1055`) : il ne peut ni contourner l'étage ni s'appliquer
@@ -62,18 +67,24 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 
 ## Conception retenue
 
-- **Interface** `IMovementObstacleProbe` (`CasaEngine/Engine/Physics/IMovementObstacleProbe.cs`, à côté de
-  `ICollisionField`) :
+- **Interface** `IMovementObstacleProbe` (`CasaEngine/Framework/Physics/IMovementObstacleProbe.cs`, namespace
+  `CasaEngine.Framework.Physics` : sa signature cite `Entity`, qui vit dans `Framework` ; la placer dans `Engine` créerait
+  la première dépendance de `Engine` vers `Framework`) :
   - `bool TryFindObstacle(Entity mover, in Vector3 candidateRootPosition, out Entity obstacle)` : vrai quand
     l'obstacle trouvé bloque la racine candidate ; contrat écrit en doc XML : O(nombre d'obstacles), **sans
-    allocation**, appelable plusieurs fois par entité et par image, ne modifie rien ;
-  - `void DrawDebug(IPhysicsDebugDrawer drawer) { }` : méthode par défaut vide.
+    allocation**, appelable plusieurs fois par entité et par image, ne modifie rien, ne lève pas d'exception à chaque
+    image ; `obstacle` est non null exactement quand la méthode rend vrai ;
+  - `void DrawDebug(IPhysicsDebugDrawer drawer) { }` : méthode par défaut vide, sans allocation (chemin de dessin).
 - **Installation** : `World.MovementObstacleProbe` (public, non sérialisé), mêmes règles que `CollisionField` :
   `Clear()` la remet à null, `ClearEntities()` la garde.
-- **Étage champ** : un test privé `IsCandidateBlocked(...)` remplace l'appel direct aux 5 sites. Il interroge **d'abord
-  la sonde** avec la racine candidate (préséance du binaire : l'entité avant la case), **puis le champ** avec le centre
-  recalculé comme aujourd'hui. `IsHorizontalMoveBlocked` et la bisection restent tels quels : **sans sonde installée,
-  le comportement est identique au bit près**.
+- **Étage champ** : un test privé `IsCandidateBlocked(IMovementObstacleProbe probe, ICollisionField field, in
+  CharacterFootprint footprint, Vector3 candidateRoot, Vector3 candidateCenter, float footUpCoordinate, Vector3 up,
+  Vector3 h1, Vector3 h2, out Entity obstacle)` remplace l'appel direct aux 5 sites. Il interroge **d'abord la sonde**
+  avec la racine candidate (préséance du binaire : l'entité avant la case), **puis le champ**, seulement s'il est
+  installé, avec **le centre que chaque site calcule aujourd'hui** (`footHorizontalCenter + h × montant` au pas entier,
+  `FootHorizontalCenterAt(...)` dans la bisection), jamais un centre recalculé autrement. `AdvanceBlockedAxisToContact`
+  reçoit la sonde et rend par un `out` l'obstacle de son dernier test bloqué. `IsHorizontalMoveBlocked` reste tel
+  quel : **sans sonde installée, le comportement est identique au bit près**.
 - **Racine candidate** : celle que la bisection construit déjà (`rootPosition + axis × montant`) ; pour le pas
   entier, `rootPosition + h × montant`. Jamais un centre reconverti (erreur d'un ULP, 4 à 8 unités 16.16 au-delà de
   512 px, qui finirait le pas dans l'obstacle).
@@ -85,12 +96,22 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
   plus.
 - **Rapport** : `CharacterControllerContactReport.H1Obstacle` et `H2Obstacle` (`Entity`, publics en lecture, nouveaux
   paramètres du constructeur `internal`) ; effacés avec la moitié déplacement (entrée de `Move` et d'`Update`, `Stop`,
-  `Teleport`, `RestoreStateSnapshot`). `H1Curtailed`/`H2Curtailed` gardent leur sens (D-E19-11).
+  `Teleport`, `RestoreStateSnapshot`) : `WithDisplacementReset` les met à null, `WithDisplacement` les reçoit,
+  `WithGround` les recopie (il est appelé après `WithDisplacement` dans `Update`). `H1Curtailed`/`H2Curtailed` gardent
+  leur sens (D-E19-11). **Composition dans `Update`**, qui fait deux appels à `MoveWithCollisions` (déplacement hérité
+  du sol, puis vitesse) : pour chaque axe, l'obstacle de l'appel de vitesse s'il a raccourci cet axe, sinon celui de
+  l'appel du sol (règle documentée ; le cas d'un sol mobile n'est pas testé, Alundra n'en a pas).
 - **Coût** : par axe non nul, 1 appel quand l'axe est libre, 2 quand le mobile pousse un contact déjà établi
   (pas entier et pré-sonde bloqués), 26 à 30 au seul tick où le contact s'établit. Aucun pré-filtre.
-- **Tracé** : `PhysicsDebugViewRendererComponent` appelle `World.MovementObstacleProbe?.DrawDebug(drawer)` sous
-  `DisplayPhysics` ; un utilitaire public `DrawAabb(IPhysicsDebugDrawer, Vector3 min, Vector3 max, Color)` (12 lignes)
-  sert aux implémentations.
+- **Tracé** : `PhysicsDebugViewRendererComponent` appelle, sous `DisplayPhysics`, un assistant statique interne
+  `DrawMovementObstacleProbe(World world, IPhysicsDebugDrawer drawer)` qui appelle `DrawDebug` de la sonde installée ;
+  l'extension publique `PhysicsDebugDrawerExtensions.DrawAabb(this IPhysicsDebugDrawer drawer, Vector3 min, Vector3
+  max, Color color)` (12 lignes, à côté d'`IPhysicsDebugDrawer`) sert aux implémentations ; le patron privé de
+  `BepuPhysicsDebugRenderer` n'est pas réécrit.
+- **Limites écrites** (ADR-0047, docs) : la sonde ne filtre que l'étage champ (le balayage rigide et la marche qui
+  suivent ne la consultent pas) ; seul le point d'arrivée de chaque essai est testé, donc un obstacle plus fin que le
+  pas peut être traversé, dans un pas libre comme dans un pas déjà bloqué par un obstacle plus loin (prédicat non
+  monotone) ; sans effet pour Alundra (pas d'au plus 3 px, boîtes d'au moins 14 px, corps fantômes).
 
 ## Règles d'exécution pour l'agent
 
@@ -125,6 +146,7 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 - `CasaEngine.Tests` : base 2405 réussis, 0 échec ; après le chantier, la base plus les nouveaux tests, 0 échec,
   aucun test existant modifié.
 - La règle d'obstacle d'Alundra, les arcs et la recette sont vérifiés dans le plan parent (E19.d2b).
+- Aucun test existant n'est modifié : tous les tests de ce plan sont nouveaux.
 
 ---
 
@@ -136,8 +158,9 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 - Fichiers : `docs/decisions/0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md` (nouveau),
   ligne de `docs/decisions/README.md`.
 - Contenu : contexte (entités sans blocage dans l'étage champ, contact exact d'ADR-0045, besoin d'Alundra), décision
-  (conception retenue ci-dessus), conséquences (sans sonde rien ne change ; avance par axe gardée, pas de glissement
-  propre ; rapport additif ; coût par appels ; tracé).
+  (conception retenue ci-dessus, interface dans `CasaEngine.Framework.Physics`), conséquences (sans sonde rien ne
+  change ; avance par axe gardée, pas de glissement propre ; rapport additif et sa composition dans `Update` ; coût par
+  appels ; tracé ; limites écrites ci-dessus).
 - Validation : relecture.
 - Commit : `docs(adr): add ADR-0047 on dynamic movement obstacles in the character controller field stage`
 
@@ -145,7 +168,7 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 
 ### ⏳ T1.1 — Interface et installation sur `World`
 
-- Fichiers : `CasaEngine/Engine/Physics/IMovementObstacleProbe.cs` (nouveau), `CasaEngine/Framework/Scene/World/World.cs`,
+- Fichiers : `CasaEngine/Framework/Physics/IMovementObstacleProbe.cs` (nouveau), `CasaEngine/Framework/Scene/World/World.cs`,
   tests dans `CasaEngine.Tests/Physics/` (même fichier que les tests de `World.CollisionField`, ou un fichier voisin).
 - Tests **T-ENG-9** (vie du `World`) : défaut null ; accepte une sonde ; `ClearEntities()` la garde ; `Clear()` la met
   à null.
@@ -153,11 +176,14 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 
 ### ⏳ T1.2 — Étage champ et rapport
 
-- Fichiers : `CharacterControllerComponent.cs`, `CharacterControllerContactReport.cs`, tests dans
-  `CasaEngine.Tests/Physics/` (nouveau fichier `CharacterControllerMovementObstacleTests.cs`).
+- Fichiers : `CharacterControllerComponent.cs` (et sa doc XML : étage champ, sonde ou champ, mode sonde seule),
+  `CharacterControllerContactReport.cs` (nouveaux membres de la moitié déplacement, `WithDisplacementReset`,
+  `WithDisplacement`, `WithGround`, doc XML), tests dans `CasaEngine.Tests/Physics/` (nouveau fichier
+  `CharacterControllerMovementObstacleTests.cs`).
 - Montage commun des tests : pion à boîte 20 × 14 × 32 (demi-étendues 10 × 7), racine posée sur un champ plat de
-  hauteur 48 sauf mention ; sonde de test à boîtes semi-ouvertes `[min ; max)` en X, Y et Z, qui compte ses appels et
-  garde l'entité reçue ; aucune allocation par appel.
+  hauteur 48 sauf mention, **d'au moins 72 × 72 cases de 16 px** (1152 px : les coins atteignent 1034 px dans
+  T-ENG-3) pour toutes les hauteurs ; sonde de test à boîtes semi-ouvertes `[min ; max)` en X, Y et Z, qui compte ses
+  appels et garde l'entité reçue ; aucune allocation par appel.
 - Valeurs écrites d'avance :
   - **T-ENG-1** contact exact et rapport : racine (968 ; 552 ; 48), obstacle `[949,5 ; 969,5) × [497 ; 511) × [48 ; 80)`,
     `Move(0, -0,5, 0)` puis `Move(0, -1, 0)` à chaque tick : Y = 551,5 après le pas 1 (1 appel) ; 550,5 après le pas 2 ;
@@ -189,22 +215,29 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
     racine candidate garde le X (pour h2) et le Z de la racine.
   - **T-ENG-7** sans sonde rien ne change : suite existante inchangée ; plus une sonde jamais bloquante dont les racines
     finales sont égales au bit près à celles du chemin sans sonde sur 100 pas variés.
-  - **T-ENG-8** zéro allocation (`AllocationWindow`) : 100 `Move` avec la sonde comptante allouent autant que 100 `Move`
-    sans sonde (écart 0).
+  - **T-ENG-8** allocation (`AllocationWindow`) : après un préchauffage, mesurer 100 `Move` qui comprennent un tick de
+    contact et des poussées contre la sonde comptante ; si la même série sans sonde alloue 0 octet, affirmer 0 octet,
+    sinon affirmer « avec sonde ≤ sans sonde » ; séparément, une sonde jamais bloquante sur des pas identiques alloue
+    exactement autant que le chemin sans sonde.
   - **T-ENG-10** sans champ, sonde seule : montage de T-ENG-1 sans `CollisionField` → Y 518,0 au pas 35.
   - **T-ENG-11** chemin `Update` : racine (968 ; 520 ; 48), gravité nulle, `MaxHorizontalSpeed` 500, `Acceleration`
     100000, intention (0 ; 1), `Update(0,02)` → pas demandé -10, Y 518,0, `H2Curtailed` et `H2Obstacle`, `Velocity.Y`
-    proche de -100 (précision 1) ; `FixedTimeStep` 0,02 avec une image de 0,04 → 2 pas, la sonde vue à chaque pas.
-  - **T-ENG-12** effacement : `H1Obstacle`/`H2Obstacle` null après `Stop`, `Teleport`, `RestoreStateSnapshot`, et
-    après un `Move`/`Update` sans déplacement (étendre les tests existants de l'effacement du rapport).
+    proche de -100 (précision 1) ; `FixedTimeStep` 0,02 avec une image de 0,04 → `ExecutedFixedStepCount` vaut 2, 26 à
+    30 appels de la sonde au premier pas (contact) puis 2 au second.
+  - **T-ENG-12** effacement, en **nouveaux tests** (les tests existants de l'effacement du rapport,
+    `CharacterControllerComponentTests.cs:820` et `:853`, ne sont pas touchés) : chaque test bloque d'abord sur la sonde
+    pour poser `H2Obstacle`, puis applique `Stop`, `Teleport`, `RestoreStateSnapshot`, `Update(0f)` ou un `Move` de
+    longueur ≤ 1e-3, et vérifie que `H1Obstacle` et `H2Obstacle` valent null.
 - Commit : `feat(physics): stop the character controller field stage at dynamic movement obstacles`
 
 ### ⏳ T1.3 — Tracé de débogage
 
-- Fichiers : `PhysicsDebugViewRendererComponent.cs`, l'utilitaire `DrawAabb` (classe statique publique à côté de
-  `IPhysicsDebugDrawer`), test.
-- **T-ENG-13** : `DrawAabb` sur un `CountingDebugDrawer` émet 12 `DrawLine` dont les extrémités sont les 8 sommets
-  attendus ; le composant appelle `DrawDebug` de la sonde installée seulement quand `DisplayPhysics` est vrai.
+- Fichiers : `PhysicsDebugViewRendererComponent.cs` (appel de l'assistant interne sous `DisplayPhysics`),
+  `CasaEngine/Engine/Physics/PhysicsDebugDrawerExtensions.cs` (nouveau), tests dans le nouveau fichier de T1.2.
+- **T-ENG-13** : un tiroir de tracé de test qui **enregistre** les extrémités (écrit dans le fichier de test, le
+  `CountingDebugDrawer` existant étant privé) : `DrawAabb` émet 12 `DrawLine` dont les extrémités sont les 8 sommets
+  attendus ; `DrawMovementObstacleProbe(world, drawer)` appelle `DrawDebug` de la sonde installée une fois et ne fait
+  rien sans sonde. La garde `DisplayPhysics` du composant (une ligne) est relue, pas testée sans GPU.
 - Commit : `feat(physics): draw movement obstacle probes in the physics debug view`
 
 ## Phase 2 — Documentation
@@ -213,16 +246,27 @@ marche d'escalier et le vertical ; un registre d'obstacles natif du moteur ; l'�
 
 - Fichiers : `docs/engine/character-controller-features.md`, `docs/engine/collision-2d-3d-architecture.md` (et leur index
   si une ligne change), ligne de ce plan dans `ai-agent/README.md`.
-- Contenu : la sonde, son contrat, l'ordre sonde puis champ, le contact exact, le rapport par axe, le coût, le tracé,
-  les limites (avance par axe, pas de glissement propre, seul le point d'arrivée est testé).
+- Contenu : la sonde, son contrat, l'ordre sonde puis champ, le contact exact, le rapport par axe et sa composition, le
+  coût, le tracé, les limites (avance par axe, pas de glissement propre, seul l'étage champ est filtré, seul le point
+  d'arrivée est testé). Ces deux documents sont en français : les paragraphes ajoutés suivent la langue du fichier,
+  comme celui du chantier d'ADR-0045 (AGENTS §9.11, style des fichiers touchés).
 - Commit : `docs(physics): describe dynamic movement obstacles in the controller docs`
 
 ---
 
+## Relectures
+
+- 2026-10-02, première relecture (plan-verifier frais, auditeur des valeurs, relecteur moteur), sur `b3aa47ca` :
+  **REVISE**. Bloquant : T-ENG-12 étendait des tests existants alors que la validation l'interdit (corrigé : nouveaux
+  tests). P2 : l'interface citait `Entity` depuis `CasaEngine/Engine/Physics` (corrigé : `CasaEngine/Framework/Physics`).
+  P3 et P4 corrigés : taille du champ des tests, tiroir de tracé enregistreur et assistant interne testable, règle de
+  composition du rapport dans `Update`, signature d'`IsCandidateBlocked` et centres inchangés, `WithGround`, doc XML,
+  limites du contrat, montage de T-ENG-8, chiffres de T-ENG-11, nom de `PhysicsDebugDrawerExtensions`, langue des
+  documents, démo posée en question O1. Toutes les valeurs T-ENG-1 à T-ENG-13 ont été recalculées par l'auditeur : justes.
+
 ## Points ouverts
 
-- **Démo moteur** (AGENTS §6) : le point d'extension n'est pas une fonction visible en soi ; son tracé l'est. Le plan
-  propose le tracé (T1.3) et la recette Alundra du parent comme échantillon, sans démo dans `CasaEngine.Demos`. À
-  confirmer par l'auteur à l'approbation ; une démo s'ajoute en tâche T1.4 si elle est demandée.
-- **Pas fixe** : sous `FixedTimeStep > 0`, les sous-pas d'une image voient l'état des obstacles du moment de chaque
-  appel ; sans effet pour Alundra (pas fixe à 0), documenté.
+| Réf | Point | Statut |
+|---|---|---|
+| O1 | **Démo moteur** (AGENTS §6, règle par chemin `physics` : « un sample couvre la feature ») : le plan propose le tracé (T1.3) et la recette Alundra du parent comme échantillon, sans démo dans `CasaEngine.Demos`. Question à l'approbation. Si l'auteur la demande : tâche T1.4, une démo minimale (champ plat, un pion piloté au clavier, deux boîtes obstacles, `DisplayPhysics` activable), environ une tâche d'une demi-journée, lancée une fois avant ✅. T1.3 n'en dépend pas. | à trancher à l'approbation |
+| O2 | **Pas fixe** : sous `FixedTimeStep > 0`, les sous-pas d'une image voient l'état des obstacles du moment de chaque appel ; sans effet pour Alundra (pas fixe à 0), documenté. | accepté, documenté |
