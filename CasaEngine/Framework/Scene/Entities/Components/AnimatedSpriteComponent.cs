@@ -20,6 +20,12 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable, IConditionalEntityUpdateSource
 {
     public event EventHandler<Animation2d> AnimationFinished;
+
+    /// <summary>
+    /// Raised once per turn of a Loop animation, by the logical clock when it is active
+    /// (<see cref="SetLogicalTickRate"/>), by the real-time update otherwise.
+    /// </summary>
+    public event EventHandler<Animation2d> AnimationLooped;
     public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
     //Ghost bodies of the collision timeline, built once per (animation, collision keyframe) and pooled:
@@ -63,6 +69,16 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public float CurrentAnimationTimeSeconds => _currentCompositionSampler?.CurrentTime ?? 0f;
     private Animation2dCompositionSampler _currentCompositionSampler;
     private Guid _currentSpriteId;
+
+    //Logical clock of the animation ends (see SetLogicalTickRate): value fields only, nothing is allocated by an advance.
+    private int _logicalTickRate;
+    private int _logicalTick;
+    private int _logicalDurationTicks;
+    private bool _logicalIsLoop;
+    private bool _logicalEndReached;
+    private int _completedLoopCount;
+    private int _logicalResetVersion;
+
     public Animation2dCompositionRuntimeState CurrentCompositionState => _currentCompositionSampler?.RuntimeState;
     public List<Animation2d> Animations { get; } = new();
 
@@ -109,6 +125,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             {
                 CurrentAnimation.Reset();
                 _currentCompositionSampler?.Reset();
+                ResetLogicalClock();
                 UpdateCurrentSprite();
                 UpdateCollisionTimeline();
             }
@@ -120,6 +137,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         CurrentAnimation.Reset();
         _compositionSamplerByAnimation.TryGetValue(CurrentAnimation, out _currentCompositionSampler);
         _currentCompositionSampler?.Reset();
+        ResetLogicalClock();
 
         _currentSpriteId = Guid.Empty;
         UpdateCurrentSprite();
@@ -188,6 +206,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             SetCurrentAnimation(0, true);
         }
+        else
+        {
+            ResetLogicalClock();
+        }
     }
 
     public override AnimatedSpriteComponent Clone()
@@ -211,14 +233,25 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         if (CurrentAnimation != null && !IsPlaybackPaused)
         {
             var wasFinished = _currentCompositionSampler?.IsFinished == true;
+            var animation = CurrentAnimation;
             var isFinished = _currentCompositionSampler?.Update(elapsedTime) == true;
+            var loopTurns = _currentCompositionSampler?.LastUpdateLoopTurns ?? 0;
             IsBoundingBoxDirty = true;
             UpdateCurrentSprite();
             UpdateCollisionTimeline();
 
-            if (!wasFinished && isFinished)
+            //With the logical clock active it alone raises the ends of the animation.
+            if (_logicalTickRate == 0)
             {
-                AnimationFinished?.Invoke(this, CurrentAnimation);
+                if (!wasFinished && isFinished)
+                {
+                    AnimationFinished?.Invoke(this, CurrentAnimation);
+                }
+
+                for (var turn = 0; turn < loopTurns && ReferenceEquals(CurrentAnimation, animation); turn++)
+                {
+                    AnimationLooped?.Invoke(this, animation);
+                }
             }
         }
 
@@ -233,10 +266,161 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
 
         _currentCompositionSampler.Seek(timeSeconds);
+        SeekLogicalClock(timeSeconds);
         IsBoundingBoxDirty = true;
         UpdateCurrentSprite();
         UpdateCollisionTimeline();
         return true;
+    }
+
+    /// <summary>Ticks per second of the logical clock of the animation ends; 0 when the clock is off (default).</summary>
+    public int LogicalTickRate => _logicalTickRate;
+
+    /// <summary>Current tick of the logical clock: ticks since the last reset, modulo the duration for a Loop.</summary>
+    public int LogicalTick => _logicalTick;
+
+    /// <summary>
+    /// Duration of the current animation in logical ticks: 0 when the duration is not positive, when the clock
+    /// is off or when there is no animation, else the duration times the rate rounded to the nearest tick (at least 1).
+    /// </summary>
+    public int LogicalDurationTicks => _logicalDurationTicks;
+
+    /// <summary>True once the logical clock has raised, or been seeked to, the end of a Once animation.</summary>
+    public bool IsLogicalEndReached => _logicalEndReached;
+
+    /// <summary>Loop turns completed by the logical clock since its last reset.</summary>
+    public int CompletedLoopCount => _completedLoopCount;
+
+    /// <summary>
+    /// Turns the logical clock of the animation ends on (rate &gt; 0) or off (0, the default). When it is on,
+    /// only <see cref="AdvanceLogicalTicks"/> raises <see cref="AnimationFinished"/> and <see cref="AnimationLooped"/>,
+    /// at the exact tick; the real-time update keeps driving the images, the collisions and the authored events.
+    /// The same rate does nothing; another rate resets the clock.
+    /// </summary>
+    public void SetLogicalTickRate(int ticksPerSecond)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(ticksPerSecond);
+
+        if (ticksPerSecond == _logicalTickRate)
+        {
+            return;
+        }
+
+        _logicalTickRate = ticksPerSecond;
+        ResetLogicalClock();
+    }
+
+    /// <summary>
+    /// Advances the logical clock by <paramref name="ticks"/> ticks and raises <see cref="AnimationFinished"/> /
+    /// <see cref="AnimationLooped"/> synchronously. Returns the number of ticks applied: fewer than requested when
+    /// a handler changed the animation (the remaining ticks are dropped). Does nothing without a current animation.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The clock is off (rate 0).</exception>
+    public int AdvanceLogicalTicks(int ticks)
+    {
+        if (_logicalTickRate == 0)
+        {
+            throw new InvalidOperationException("The logical tick clock is off: call SetLogicalTickRate with a positive rate first.");
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(ticks);
+
+        if (ticks == 0 || CurrentAnimation == null || _currentCompositionSampler == null)
+        {
+            return 0;
+        }
+
+        var resetVersion = _logicalResetVersion;
+
+        for (var applied = 0; applied < ticks; applied++)
+        {
+            if (_logicalIsLoop)
+            {
+                if (_logicalDurationTicks == 0)
+                {
+                    return ticks;
+                }
+
+                _logicalTick++;
+                if (_logicalTick < _logicalDurationTicks)
+                {
+                    continue;
+                }
+
+                _logicalTick = 0;
+                _completedLoopCount++;
+                AnimationLooped?.Invoke(this, CurrentAnimation);
+            }
+            else
+            {
+                if (_logicalEndReached)
+                {
+                    return ticks;
+                }
+
+                if (_logicalDurationTicks > 0)
+                {
+                    _logicalTick++;
+                    if (_logicalTick < _logicalDurationTicks)
+                    {
+                        continue;
+                    }
+                }
+
+                _logicalEndReached = true;
+                AnimationFinished?.Invoke(this, CurrentAnimation);
+            }
+
+            if (resetVersion != _logicalResetVersion)
+            {
+                return applied + 1;
+            }
+        }
+
+        return ticks;
+    }
+
+    private void ResetLogicalClock()
+    {
+        _logicalTick = 0;
+        _logicalEndReached = false;
+        _completedLoopCount = 0;
+        _logicalResetVersion++;
+        _logicalDurationTicks = 0;
+        _logicalIsLoop = false;
+
+        if (_logicalTickRate == 0 || CurrentAnimation == null || _currentCompositionSampler == null)
+        {
+            return;
+        }
+
+        _logicalIsLoop = _currentCompositionSampler.AnimationType == AnimationType.Loop;
+        var durationSeconds = _currentCompositionSampler.DurationSeconds;
+        _logicalDurationTicks = durationSeconds <= 0f
+            ? 0
+            : Math.Max(1, (int)Math.Round((double)durationSeconds * _logicalTickRate, MidpointRounding.AwayFromZero));
+    }
+
+    /// <summary>Re-aligns the logical tick on a seek, without any event.</summary>
+    private void SeekLogicalClock(float timeSeconds)
+    {
+        if (_logicalTickRate == 0)
+        {
+            return;
+        }
+
+        var ticks = Math.Round(Math.Max(0.0, timeSeconds) * _logicalTickRate, MidpointRounding.AwayFromZero);
+        var tick = ticks >= int.MaxValue ? int.MaxValue : (int)ticks;
+
+        if (_logicalIsLoop)
+        {
+            _logicalTick = _logicalDurationTicks > 0 ? tick % _logicalDurationTicks : 0;
+        }
+        else
+        {
+            _logicalTick = Math.Min(tick, _logicalDurationTicks);
+            _logicalEndReached = _logicalDurationTicks > 0 && tick >= _logicalDurationTicks;
+        }
     }
 
     public override void Draw(float elapsedTime)
