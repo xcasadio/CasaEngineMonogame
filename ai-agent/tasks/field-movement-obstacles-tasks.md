@@ -264,6 +264,33 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   limites du contrat, montage de T-ENG-8, chiffres de T-ENG-11, nom de `PhysicsDebugDrawerExtensions`, langue des
   documents, démo posée en question O1. Toutes les valeurs T-ENG-1 à T-ENG-13 ont été recalculées par l'auditeur : justes.
 
+- 2026-10-02, seconde relecture (plan-verifier frais, relecteur moteur frais), sur `c372e946` : **READY** ; plan moteur
+  sain, aucune remarque P0 à P3. Ses huit remarques P4 sont des consignes d'exécution, ci-dessous.
+
+## Consignes d'exécution (remarques P4 de la seconde relecture)
+
+1. `AdvanceBlockedAxisToContact` : son `out` est initialisé avec l'obstacle du pas entier ; il ne le remplace que par
+   celui d'un de ses propres tests bloqués.
+2. « Coût » et limites d'ADR-0047 : renvoi à ADR-0045 P5 ; un mobile peut caler jusqu'à 1e-3 px avant l'obstacle, et
+   payer alors 26 à 30 appels à chaque tick de poussée (rare, valeurs T-ENG inchangées).
+3. Doc XML de `DrawDebug` et ADR-0047 : coordonnées dans l'espace de simulation (logique) du monde, celui de la vue
+   physique, pas dans l'espace de rendu projeté.
+4. T1.3 : l'appel se fait après `DrawDebugWorld`, sous la même garde ; l'assistant rend tout de suite si le monde ou la
+   sonde est null ; T-ENG-13 ajoute le cas « monde null : rien ».
+5. T-ENG-11 (pas fixe) : montage avec le monde physique posé par réflexion (comme `CharacterControllerFieldAwareMoverTests.cs:739-745`),
+   le champ, la sonde, l'entité dans `world.Entities`, puis `world.CharacterMotion.Update(FrameTime.FromElapsedTime(0.04f, 1))` ;
+   la sonde enregistre ses Y candidats dans un tableau préalloué pour séparer les deux sous-pas (sinon affirmer le
+   total, 28 à 32, et garder le compte par pas pour le test `Update(0,02)`).
+6. O2 et ADR-0047 : chaque mobile voit les obstacles dans leur état au moment de son propre appel ; le résultat suit
+   l'ordre déterministe dans lequel les mobiles bougent (ordre d'enregistrement du système, ou de l'appelant pour `Move`).
+7. Forme : la ligne « Langue » admet l'exception des paragraphes ajoutés aux deux documents en français (comme pour
+   ADR-0045) ; l'arrêt d'allocation se lit « une allocation introduite par la sonde » ; T1.1 à T1.3 se valident par le
+   build et `CasaEngine.Tests` sans échec.
+8. Doc XML de l'interface : consultée seulement dans l'étage champ, pour un axe non nul, quand le contrôleur résout ses
+   dépendances de collision ; ne rend jamais le mobile lui-même. Montage des tests : boîte du pion en `LocalPosition`
+   (0 ; 0 ; 16), boîte du mobile dans la sonde de test `[x - 10 ; x + 10) × [y - 7 ; y + 7) × [z ; z + 32)` ; T-ENG-3 vers
+   l'ouest : pion en Y = 24, obstacle `[0 ; 5000)` en Y et `[0 ; 1000)` en Z.
+
 ## Points ouverts
 
 | Réf | Point | Statut |
