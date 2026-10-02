@@ -166,12 +166,13 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 1 — Point d'extension
 
-### ⏳ T1.1 — Interface et installation sur `World`
+### ✅ T1.1 — Interface et installation sur `World`
 
 - Fichiers : `CasaEngine/Framework/Physics/IMovementObstacleProbe.cs` (nouveau), `CasaEngine/Framework/Scene/World/World.cs`,
   tests dans `CasaEngine.Tests/Physics/` (même fichier que les tests de `World.CollisionField`, ou un fichier voisin).
 - Tests **T-ENG-9** (vie du `World`) : défaut null ; accepte une sonde ; `ClearEntities()` la garde ; `Clear()` la met
   à null.
+- Validation (2026-10-02) : tests écrits d'abord (rouge : CS0246 `IMovementObstacleProbe` introuvable) ; build de la solution 0 erreur ; `CasaEngine.Tests` 2409 réussis (2405 + 4), 0 échec. Tests dans `CasaEngine.Tests/Physics/MovementObstacleProbeWorldTests.cs`.
 - Commit : `feat(physics): add an optional movement obstacle probe on World`
 
 ### ⏳ T1.2 — Étage champ et rapport
