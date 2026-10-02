@@ -295,6 +295,16 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
    (0 ; 0 ; 16), boîte du mobile dans la sonde de test `[x - 10 ; x + 10) × [y - 7 ; y + 7) × [z ; z + 32)` ; T-ENG-3 vers
    l'ouest : pion en Y = 24, obstacle `[0 ; 5000)` en Y et `[0 ; 1000)` en Z.
 
+## Vérification de clôture (2026-10-02)
+
+- T0.1 à T2.1 faites (`4e6bd6bd` à `c2e4fdce`) ; `CasaEngine.Tests` 2441/2441 (base 2405, +36 nouveaux) ; aucun test
+  existant modifié ; toutes les valeurs T-ENG-1 à T-ENG-13 tenues sans ré-épingle (27 appels au tick de contact).
+- Verifier frais du plan parent (E19.d2b), qui couvre ce plan : **CONFIRMED**. Contradicteur « règles du moteur » :
+  aucun P0 à P3 ; API additive, aucune allocation introduite, identique au bit près sans sonde, contact exact.
+- P4 reportés : la doc XML d'`H1Curtailed` ne cite encore que le champ comme source ; le contrat de `DrawDebug` ne dit
+  pas que le tiroir du composant lève `NotImplementedException` sur `Draw3dText` et `ReportErrorWarning`.
+- Reste : le merge par l'auteur, `chantier/animation-logical-end-clock` d'abord, puis cette branche.
+
 ## Points ouverts
 
 | Réf | Point | Statut |
