@@ -1,6 +1,6 @@
 # Plan agent IA — Obstacles dynamiques dans l'étage champ du contrôleur de personnage
 
-Plan d'exécution de la partie moteur de la tranche E19.d2b du portage Alundra (plan parent
+Plan **approuvé par l'auteur le 2026-10-02** (sans démo moteur, O1). Plan d'exécution de la partie moteur de la tranche E19.d2b du portage Alundra (plan parent
 `docs/plan-e19-opcodes.md`, §1.2h.2, dépôt `alundra-casaengine-project-converter`). Les décisions ci-dessous ont été
 arbitrées avec l'auteur le 2026-10-02 : **ce plan les applique, il ne les rediscute pas**.
 
@@ -295,5 +295,5 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 | Réf | Point | Statut |
 |---|---|---|
-| O1 | **Démo moteur** (AGENTS §6, règle par chemin `physics` : « un sample couvre la feature ») : le plan propose le tracé (T1.3) et la recette Alundra du parent comme échantillon, sans démo dans `CasaEngine.Demos`. Question à l'approbation. Si l'auteur la demande : tâche T1.4, une démo minimale (champ plat, un pion piloté au clavier, deux boîtes obstacles, `DisplayPhysics` activable), environ une tâche d'une demi-journée, lancée une fois avant ✅. T1.3 n'en dépend pas. | à trancher à l'approbation |
+| O1 | **Démo moteur** (AGENTS §6, règle par chemin `physics` : « un sample couvre la feature ») : le plan propose le tracé (T1.3) et la recette Alundra du parent comme échantillon, sans démo dans `CasaEngine.Demos`. **Tranché par l'auteur le 2026-10-02 : sans démo** ; le tracé (T1.3) et la recette Alundra du parent tiennent lieu d'échantillon. | tranché |
 | O2 | **Pas fixe** : sous `FixedTimeStep > 0`, les sous-pas d'une image voient l'état des obstacles du moment de chaque appel ; sans effet pour Alundra (pas fixe à 0), documenté. | accepté, documenté |
