@@ -1,6 +1,7 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
+using GameWorld = CasaEngine.Framework.Scene.World.World;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
 
@@ -43,8 +44,18 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
         }
 
         _physicsDebugRenderer.DrawDebugWorld(physicsWorld);
+        DrawMovementObstacleProbe(view.World, _physicsDebugRenderer);
         _lastPhysicsWorldNamesByViewId[view.Id] = view.World.Name;
         _lastPhysicsObjectCountsByViewId[view.Id] = physicsWorld.CollisionObjectCount;
+    }
+
+    /// <summary>
+    /// Lets the <see cref="Framework.Physics.IMovementObstacleProbe"/> installed on <paramref name="world"/> draw its
+    /// obstacles (ADR-0047); does nothing when the world or the probe is null.
+    /// </summary>
+    internal static void DrawMovementObstacleProbe(GameWorld world, IPhysicsDebugDrawer drawer)
+    {
+        world?.MovementObstacleProbe?.DrawDebug(drawer);
     }
 
     public bool TryGetLastRenderedPhysicsWorldName(ViewId viewId, out string worldName)

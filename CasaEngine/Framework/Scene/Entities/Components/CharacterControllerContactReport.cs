@@ -1,4 +1,6 @@
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Physics;
+using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
@@ -14,7 +16,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// The report is two halves with DIFFERENT freshness, each documented on its members:
 /// <list type="bullet">
 /// <item><description>the DISPLACEMENT half (<see cref="RequestedUpAmount"/> through
-/// <see cref="SweepHit"/>) is filled at the end of every resolution, whether it was driven by
+/// <see cref="H2Obstacle"/>) is filled at the end of every resolution, whether it was driven by
 /// <see cref="CharacterControllerComponent.Update"/> or by
 /// <see cref="CharacterControllerComponent.Move"/> - and zeroed at the ENTRY of both, including
 /// every early-return path, so a step with no displacement publishes zeros and no flags rather
@@ -41,6 +43,8 @@ public readonly struct CharacterControllerContactReport
         bool h1Curtailed,
         bool h2Curtailed,
         bool sweepHit,
+        Entity h1Obstacle,
+        Entity h2Obstacle,
         bool isGrounded,
         Vector3 groundNormal,
         string groundSurfaceTag,
@@ -55,6 +59,8 @@ public readonly struct CharacterControllerContactReport
         H1Curtailed = h1Curtailed;
         H2Curtailed = h2Curtailed;
         SweepHit = sweepHit;
+        H1Obstacle = h1Obstacle;
+        H2Obstacle = h2Obstacle;
         IsGrounded = isGrounded;
         GroundNormal = groundNormal;
         GroundSurfaceTag = groundSurfaceTag;
@@ -100,6 +106,21 @@ public readonly struct CharacterControllerContactReport
     /// </summary>
     public bool SweepHit { get; }
 
+    /// <summary>
+    /// The dynamic obstacle (<see cref="IMovementObstacleProbe"/>, ADR-0047) that shortened the requested h1 step, or
+    /// <c>null</c>. It is the obstacle of the LAST blocked test of the field stage on that axis (whole step, pre-probe,
+    /// bisection or final check): the one closest to the contact. It is <c>null</c> when the axis was not shortened,
+    /// when no probe is installed, or when the last blocked test was blocked by the <see cref="ICollisionField"/>
+    /// rather than by an obstacle. Cleared with the rest of the displacement half. In
+    /// <see cref="CharacterControllerComponent.Update"/>, which resolves two displacements, the obstacle of the
+    /// velocity displacement wins when it shortened this axis, otherwise the one of the displacement inherited from
+    /// the ground is kept.
+    /// </summary>
+    public Entity H1Obstacle { get; }
+
+    /// <summary>Same as <see cref="H1Obstacle"/>, for the h2 axis.</summary>
+    public Entity H2Obstacle { get; }
+
     /// <summary>Ground half: whether the controller was grounded, as of the last <c>Update</c>.</summary>
     public bool IsGrounded { get; }
 
@@ -131,7 +152,7 @@ public readonly struct CharacterControllerContactReport
     internal CharacterControllerContactReport WithDisplacementReset()
     {
         return new CharacterControllerContactReport(
-            0f, 0f, 0f, 0f, 0f, 0f, false, false, false,
+            0f, 0f, 0f, 0f, 0f, 0f, false, false, false, null, null,
             IsGrounded, GroundNormal, GroundSurfaceTag, GroundCollider);
     }
 
@@ -145,12 +166,15 @@ public readonly struct CharacterControllerContactReport
         float actualH2Amount,
         bool h1Curtailed,
         bool h2Curtailed,
-        bool sweepHit)
+        bool sweepHit,
+        Entity h1Obstacle,
+        Entity h2Obstacle)
     {
         return new CharacterControllerContactReport(
             requestedUpAmount, requestedH1Amount, requestedH2Amount,
             actualUpAmount, actualH1Amount, actualH2Amount,
             h1Curtailed, h2Curtailed, sweepHit,
+            h1Obstacle, h2Obstacle,
             IsGrounded, GroundNormal, GroundSurfaceTag, GroundCollider);
     }
 
@@ -161,6 +185,7 @@ public readonly struct CharacterControllerContactReport
             RequestedUpAmount, RequestedH1Amount, RequestedH2Amount,
             ActualUpAmount, ActualH1Amount, ActualH2Amount,
             H1Curtailed, H2Curtailed, SweepHit,
+            H1Obstacle, H2Obstacle,
             isGrounded, groundNormal, groundSurfaceTag, groundCollider);
     }
 }

@@ -10,6 +10,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
@@ -57,6 +58,14 @@ public sealed class World : ObjectBase
     /// does not silently discard a field assigned from code.
     /// </summary>
     public ICollisionField CollisionField { get; set; }
+
+    /// <summary>
+    /// Optional probe of dynamic movement obstacles, consulted by the field stage of
+    /// <see cref="CharacterControllerComponent"/> before <see cref="CollisionField"/> (ADR-0047), or null.
+    /// It is NOT serialized: it comes from code. Same reset rules as <see cref="CollisionField"/>:
+    /// <see cref="Clear"/> drops it, <see cref="ClearEntities"/> leaves it untouched.
+    /// </summary>
+    public IMovementObstacleProbe MovementObstacleProbe { get; set; }
 
     public GameplayProxy GameplayProxy { get; private set; }
 
@@ -136,6 +145,7 @@ public sealed class World : ObjectBase
 
         ClearEntities(true);
         CollisionField = null;
+        MovementObstacleProbe = null;
         DisposePhysicsWorldContext();
         ReleasePlayerStartupSettings();
     }
