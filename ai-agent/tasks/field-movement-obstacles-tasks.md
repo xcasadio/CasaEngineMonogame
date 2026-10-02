@@ -245,7 +245,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 2 — Documentation
 
-### ⏳ T2.1 — Docs
+### ✅ T2.1 — Docs
 
 - Fichiers : `docs/engine/character-controller-features.md`, `docs/engine/collision-2d-3d-architecture.md` (et leur index
   si une ligne change), ligne de ce plan dans `ai-agent/README.md`.
@@ -253,6 +253,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   coût, le tracé, les limites (avance par axe, pas de glissement propre, seul l'étage champ est filtré, seul le point
   d'arrivée est testé). Ces deux documents sont en français : les paragraphes ajoutés suivent la langue du fichier,
   comme celui du chantier d'ADR-0045 (AGENTS §9.11, style des fichiers touchés).
+- Validation (2026-10-02) : relecture ; paragraphes ajoutés en français dans les deux documents, dans le style de chaque fichier (sans accents dans `character-controller-features.md`) ; ligne du plan mise à jour dans `ai-agent/README.md`. Aucun index de `docs/` ne change (pas de nouveau document).
 - Commit : `docs(physics): describe dynamic movement obstacles in the controller docs`
 
 ---

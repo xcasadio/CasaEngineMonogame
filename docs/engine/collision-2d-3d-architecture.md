@@ -376,6 +376,15 @@ gardé, l'axe suivant partant de la position avancée. `H1Curtailed`/`H2Curtaile
 a été raccourci sur cet axe », qu'il reste nul ou non. Il n'y a pas de glissement le long d'un mur quand un
 seul coin touche : une marche en diagonale contre un coin diffère encore de l'original.
 
+**Obstacles dynamiques sur le champ** (ADR-0047) : le champ ne connaît que le terrain ; les obstacles qu'un jeu
+déplace lui-même (personnages, portes, caisses) passent par une sonde optionnelle `IMovementObstacleProbe`,
+installée sur `World.MovementObstacleProbe` (non sérialisée, mêmes règles de vie que `CollisionField`). L'étage
+champ du mover l'interroge avant le champ, avec la racine candidate, à chaque essai de la même bisection :
+contact exact, avance par axe, sans glissement. Le rapport de contact publie par axe l'obstacle du dernier essai
+bloqué (`H1Obstacle`/`H2Obstacle`). Seul l'étage champ est filtré (ni le balayage rigide ni la marche d'escalier ne
+consultent la sonde), seul le point d'arrivée de chaque essai est testé, et la sonde dessine ses obstacles dans la
+vue de débogage physique (`DrawDebug`).
+
 ### D6 — Les fixtures sont animables par la timeline
 
 Généralisation du frame data des jeux de combat, valable pour tout genre à mêlée :
