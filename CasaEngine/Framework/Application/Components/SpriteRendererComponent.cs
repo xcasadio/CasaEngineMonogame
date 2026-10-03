@@ -27,6 +27,10 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public bool HasSortKey;
         public SpriteBlendMode BlendMode;
 
+        // Raw-alpha window of the texels this entry draws, (AlphaMin ; AlphaMax] (ADR-0051).
+        public float AlphaMin;
+        public float AlphaMax;
+
         // ADR-0034: a full-screen overlay (screen fade/tint) must cover every pixel
         // regardless of what has already been drawn at that pixel's depth. Default false so every
         // other caller of DrawSprite keeps testing/writing depth exactly as before this field existed.
@@ -34,12 +38,34 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     private const int NbSprites = 10000;
+
+    /// <summary>Lower bound of the neutral raw-alpha window: nothing is rejected by it.</summary>
+    internal const float NeutralAlphaMin = -1f;
+
+    /// <summary>Upper bound of the neutral raw-alpha window: nothing is rejected by it.</summary>
+    internal const float NeutralAlphaMax = 2f;
+
+    // ADR-0051: the two raw-alpha windows of a sprite that carries a PSX semi-transparency mode. The sheets hold only the
+    // alpha values 0 (transparent), 128 (STP texel) and 255 (opaque), so these windows are disjoint and each keeps one class.
+    private const float OpaqueTexelsAlphaMin = 0.75f;
+    private const float OpaqueTexelsAlphaMax = 1f;
+    private const float StpTexelsAlphaMin = 0.25f;
+    private const float StpTexelsAlphaMax = 0.75f;
+
+    // The PSX GPU's mode 3 draws the front colour at a quarter: the binary has no tint per entity, so this colour replaces
+    // the component's colour on the STP draw of a mode 3 sprite (add 64/255 of the texel).
+    private static readonly Color Mode3FrontColor = new(64, 64, 64, 255);
+
+    /// <summary>Test seam (ADR-0051): when set, receives the raw-alpha window instead of the effect parameter.</summary>
+    internal Action<float, float> AlphaWindowWriter;
     private readonly VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
     private readonly List<SpriteDisplayData> _spriteDatas = new(NbSprites);
     private readonly Stack<SpriteDisplayData> _freeSpriteDatas = new(NbSprites);
     private VertexBuffer _vertexBuffer;
     private IndexBuffer _indexBuffer;
     private Effect _effect;
+    private Effect _alphaWindowEffect;
+    private EffectParameter _alphaWindowParameter;
     private readonly CasaEngineGame _game;
 
     public bool IsDrawSpriteOriginEnabled = false;
@@ -141,6 +167,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         _effect.Dispose();
         _effect = effect;
+        PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
         return true;
     }
 
@@ -178,6 +205,12 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     private void Draw(Matrix view, Matrix projection)
     {
+        // The effect keeps its parameters from one draw to the next: start from the neutral window, whatever the last
+        // draw that used the effect left behind.
+        PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+        var currentAlphaMin = NeutralAlphaMin;
+        var currentAlphaMax = NeutralAlphaMax;
+
         var graphicsDevice = _effect.GraphicsDevice;
 
         // DepthStencilState is the normal depth-tested/written state by default for the sorted-sprite
@@ -226,6 +259,13 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
                 graphicsDevice.DepthStencilState = currentIgnoresDepth ? DepthStencilState.None : _depthStencilState;
             }
 
+            if (spriteDisplayData.AlphaMin != currentAlphaMin || spriteDisplayData.AlphaMax != currentAlphaMax)
+            {
+                currentAlphaMin = spriteDisplayData.AlphaMin;
+                currentAlphaMax = spriteDisplayData.AlphaMax;
+                PoseAlphaWindow(currentAlphaMin, currentAlphaMax);
+            }
+
             _effect.Parameters["Texture"].SetValue(spriteDisplayData.Texture);
             _effect.Parameters["Color"].SetValue(spriteDisplayData.Color.ToVector4());
             _effect.Parameters["World"].SetValue(spriteDisplayData.WorldMatrix);
@@ -239,6 +279,33 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
 
         graphicsDevice.ScissorRectangle = scissorRectangle;
+
+        // Whatever is drawn next with the shared effect starts from the neutral window.
+        if (currentAlphaMin != NeutralAlphaMin || currentAlphaMax != NeutralAlphaMax)
+        {
+            PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+        }
+    }
+
+    /// <summary>
+    /// Sets the raw-alpha window of the sprite effect (ADR-0051). The shader of a project may predate the parameter
+    /// (<see cref="TryReloadBuiltInShader"/>): then there is nothing to set.
+    /// </summary>
+    private void PoseAlphaWindow(float alphaMin, float alphaMax)
+    {
+        if (AlphaWindowWriter != null)
+        {
+            AlphaWindowWriter(alphaMin, alphaMax);
+            return;
+        }
+
+        if (!ReferenceEquals(_alphaWindowEffect, _effect))
+        {
+            _alphaWindowEffect = _effect;
+            _alphaWindowParameter = _effect.Parameters["AlphaWindow"];
+        }
+
+        _alphaWindowParameter?.SetValue(new Vector2(alphaMin, alphaMax));
     }
 
     /// <summary>
@@ -263,6 +330,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     // full-screen texture display and always applies to the primary (active) view.
     public void DrawDirectly(Texture2D texture)
     {
+        PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
+
         var graphicsDevice = _effect.GraphicsDevice;
 
         graphicsDevice.DepthStencilState = DepthStencilState.None;
@@ -315,6 +384,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         {
             return false;
         }
+
+        PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
 
         var graphicsDevice = _effect.GraphicsDevice;
         var previousDepthStencilState = graphicsDevice.DepthStencilState;
@@ -394,6 +465,16 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     private void UpdateBuffer()
     {
+        var vertexCount = FillVertices();
+        _vertexBuffer.SetData(_vertices, 0, Math.Min(vertexCount, NbSprites * 4));
+    }
+
+    /// <summary>
+    /// Sorts the queue and writes the four vertices of every entry into the staging array. Returns the number of vertices
+    /// written. The step of <see cref="UpdateBuffer"/> that needs no graphics device.
+    /// </summary>
+    internal int FillVertices()
+    {
         var nbVertices = 4;
 
         _spriteDatas.Sort(SpriteDisplayDataComparison);
@@ -413,7 +494,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             _vertices[index + 3].TextureCoordinate = spriteDisplayData.BottomLeft.TextureCoordinate;
         }
 
-        _vertexBuffer.SetData(_vertices, 0, Math.Min(_spriteDatas.Count * 4, NbSprites * 4));
+        return _spriteDatas.Count * 4;
     }
 
     private static int CompareSpriteDisplayData(SpriteDisplayData x, SpriteDisplayData y)
@@ -516,6 +597,53 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
                 DrawCollision(collision2d, pos, zOrder, sprite.SpriteData.Origin, scale);
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, SpriteEffects effects, SpritePsxSemiTransparency psxSemiTransparency)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, in sortKey, true, effects, GraphicsDevice.ScissorRectangle, psxSemiTransparency);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, SpritePsxSemiTransparency psxSemiTransparency)
+    {
+        if (psxSemiTransparency == SpritePsxSemiTransparency.None)
+        {
+            DrawSprite(sprite, pos, rot, scale, color, zOrder, in sortKey, drawDebug, effects, scissorRectangle);
+            return;
+        }
+
+        // ADR-0051: two entries of the same sort key, one per raw-alpha window, so each pixel of the sprite is drawn by
+        // exactly one of them: the opaque texels with the opaque state, then the STP texels with the state of the mode.
+        var texture = sprite.Texture.Resource;
+        var spriteData = sprite.SpriteData;
+        var stpColor = psxSemiTransparency == SpritePsxSemiTransparency.Mode3 ? Mode3FrontColor : color;
+
+        DrawSprite(texture, spriteData.PositionInTexture, spriteData.Origin, pos, rot, scale, color, zOrder, effects,
+            scissorRectangle, drawDebug, true, sortKey, hasWorldTransform: false, worldTransform: default,
+            blendMode: SpriteBlendMode.Opaque, alphaMin: OpaqueTexelsAlphaMin, alphaMax: OpaqueTexelsAlphaMax);
+        DrawSprite(texture, spriteData.PositionInTexture, spriteData.Origin, pos, rot, scale, stpColor, zOrder, effects,
+            scissorRectangle, false, true, sortKey, hasWorldTransform: false, worldTransform: default,
+            blendMode: GetPsxBlendMode(psxSemiTransparency), alphaMin: StpTexelsAlphaMin, alphaMax: StpTexelsAlphaMax);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
+        {
+            foreach (var collision2d in spriteData.CollisionShapes)
+            {
+                DrawCollision(collision2d, pos, zOrder, spriteData.Origin, scale);
+            }
+        }
+    }
+
+    private static SpriteBlendMode GetPsxBlendMode(SpritePsxSemiTransparency mode)
+    {
+        return mode switch
+        {
+            SpritePsxSemiTransparency.Mode0 => SpriteBlendMode.AlphaBlend,
+            SpritePsxSemiTransparency.Mode2 => SpriteBlendMode.Subtractive,
+            _ => SpriteBlendMode.Additive
+        };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -654,7 +782,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
-        bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque, bool ignoresDepth = false)
+        bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque, bool ignoresDepth = false,
+        float alphaMin = NeutralAlphaMin, float alphaMax = NeutralAlphaMax)
     {
         if (texture2d == null)
         {
@@ -704,6 +833,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             spriteDisplayData.HasSortKey = hasSortKey;
             spriteDisplayData.BlendMode = blendMode;
             spriteDisplayData.IgnoresDepth = ignoresDepth;
+        spriteDisplayData.AlphaMin = alphaMin;
+        spriteDisplayData.AlphaMax = alphaMax;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)

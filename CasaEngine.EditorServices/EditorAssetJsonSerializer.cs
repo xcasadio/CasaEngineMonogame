@@ -380,6 +380,11 @@ internal static class EditorAssetJsonSerializer
         spriteData.Origin.Save(hotspotNode);
         node.Add("hotspot", hotspotNode);
 
+        if (spriteData.PsxSemiTransparency != SpritePsxSemiTransparency.None)
+        {
+            node.Add(SpriteData.PsxSemiTransparencyKey, spriteData.PsxSemiTransparency.ToString());
+        }
+
         var collisionsArray = new JArray();
         foreach (var collisionShape in spriteData.CollisionShapes)
         {

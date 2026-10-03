@@ -87,7 +87,7 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
 
 ## Phase 1 — Moteur
 
-### ⏳ E1 — Champ de `SpriteData`, fenêtre du shader, deux dessins disjoints
+### ✅ E1 — Champ de `SpriteData`, fenêtre du shader, deux dessins disjoints
 
 - Objectif : G2a-R1, G2a-R2 et G2a-R3 (hors capacité).
 - Fichiers : `CasaEngine/Content/Shaders/SpriteBatch.fx`, `CasaEngine/Framework/Assets/Sprites/SpriteData.cs`,
@@ -107,6 +107,16 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
   - `AnimatedSpriteComponent` d'un sprite `Mode2` à `DepthSortable2DComponent` : 2 entrées ; sans `DepthSortable2DComponent` : 1
     entrée (chemin par `zOrder` opaque) ;
   - `Draw`/`DrawStaticBatch`/`DrawDirectly` posent la fenêtre neutre (−1 ; 2) avant de toucher au périphérique.
+- Validation faite : rouges d'abord sur le code d'avant avec la surface d'API ajoutée sans comportement (champ, surcharge qui
+  ignore le mode, couture `AlphaWindowWriter` muette) : 12 tests rouges sur 20 (le 13e rouge de la série, la capacité, se lit en E2) ; valeurs lues : `SpriteData`
+  écrit sans clé là où `"ModeN"` est attendu (4 cas, lu `null`) ; une entrée là où deux sont attendues (4 modes, et
+  `AnimatedSpriteComponent` à `DepthSortable2DComponent`) ; aucune pose de fenêtre sur `Draw`, `DrawStaticBatch` et `DrawDirectly`
+  (liste vide là où `[(-1 ; 2)]` est attendu). Les cas `None`, chemin par `zOrder`, appelant à `SpriteBlendMode`, entrée recyclée
+  du pool et nom inconnu étaient verts d'avance (gardes). Verts après : 20 tests ajoutés (13 dans
+  `SpriteRendererComponentPsxSemiTransparencyTests`, 7 dans `SpriteDataPsxSemiTransparencyTests`, théories comptées par cas),
+  `CasaEngine.Tests` 2531/2531 (2511 avant, +20 ici), aucun test existant touché. Aucune valeur écrite d'avance contredite.
+  L'entrée `AnimatedSpriteComponent` des tests passe par un `IGraphicsDeviceService` factice dont le périphérique est un objet non
+  initialisé (`ScissorRectangle` rend un rectangle vide).
 - Commit : `feat(rendering): sprites carry a PSX semi-transparency mode drawn as two disjoint passes`
 
 ### ⏳ E2 — Capacité de la file au-delà de 10 000 entrées

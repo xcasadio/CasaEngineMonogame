@@ -1,4 +1,5 @@
 ﻿
+using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -18,8 +19,36 @@ public class SpriteData : ObjectBase
     public Guid SpriteSheetAssetId { get; set; }
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }
+
+    /// <summary>
+    /// The PSX semi-transparency mode of the sprite (ADR-0051). <see cref="SpritePsxSemiTransparency.None"/> by default and
+    /// when the serialized field is absent.
+    /// </summary>
+    public SpritePsxSemiTransparency PsxSemiTransparency { get; set; }
     public List<Socket> Sockets { get; } = new();
     public List<Collision2d> CollisionShapes { get; } = new();
+
+    /// <summary>The key of <see cref="PsxSemiTransparency"/> in the serialized sprite: the member name, absent for <c>None</c>.</summary>
+    public const string PsxSemiTransparencyKey = "psx_semi_transparency";
+
+    private string FileOrName => string.IsNullOrEmpty(FileName) ? Name : FileName;
+
+    private SpritePsxSemiTransparency ReadPsxSemiTransparency(JObject element)
+    {
+        var text = element[PsxSemiTransparencyKey]?.Value<string>();
+        if (string.IsNullOrEmpty(text))
+        {
+            return SpritePsxSemiTransparency.None;
+        }
+
+        if (Enum.TryParse<SpritePsxSemiTransparency>(text, out var mode) && Enum.IsDefined(mode))
+        {
+            return mode;
+        }
+
+        Logs.WriteError($"SpriteData '{FileOrName}': unknown {PsxSemiTransparencyKey} '{text}', the sprite is not semi-transparent");
+        return SpritePsxSemiTransparency.None;
+    }
 
     public override void Load(JObject element)
     {
@@ -28,6 +57,7 @@ public class SpriteData : ObjectBase
         SpriteSheetAssetId = element["sprite_sheet_asset_id"].GetGuid();
         PositionInTexture = element["location"].GetRectangle();
         Origin = element["hotspot"].GetPoint();
+        PsxSemiTransparency = ReadPsxSemiTransparency(element);
 
         if (element.TryGetValue("collisions", out var collisionsElement))
         {
