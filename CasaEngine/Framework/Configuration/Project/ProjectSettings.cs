@@ -52,6 +52,14 @@ public class ProjectSettings
     [Category("Audio")]
     public bool IsAudioMuted { get; set; }
 
+    /// <summary>
+    /// Optional fixed logical resolution (ADR-0048). Null: the single runtime view fills the window, as it always
+    /// did. Set: outside the editor the runtime fits the image into the window at a whole factor, centered, with black
+    /// bands, and follows the window size in real time.
+    /// </summary>
+    [Category("Display")]
+    public VirtualResolutionSettings VirtualResolution { get; set; }
+
 #if !FINAL
 
     [Category("Debug")]

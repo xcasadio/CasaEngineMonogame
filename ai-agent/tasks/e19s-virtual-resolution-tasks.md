@@ -80,11 +80,12 @@ quand la fenêtre change de taille, en temps réel. Les écrans XAML sont préve
 - Validation faite : rouge d'abord (talon qui rend 0 : 19 tests sur 22 rouges, par exemple 1920 × 1080 → échelle 0 au lieu de 4), puis vert, 22 sur 22. Une résolution virtuelle non positive lève `ArgumentOutOfRangeException` ; une fenêtre vide rend l'échelle 1 et un rectangle vide.
 - Commit : `feat(rendering): pure integer-fit layout for a virtual resolution (E19.s)`
 
-### ⏳ T1.2 — Réglage de projet
+### ✅ T1.2 — Réglage de projet
 
 - Objectif : `ProjectSettings.VirtualResolution` (nul = absent), lu et écrit par `ProjectSettingsHelper`.
 - Fichiers : `ProjectSettings.cs`, `VirtualResolutionSettings.cs`, `ProjectSettingsHelper.cs`, tests.
 - Validation : lecture, écriture, aller-retour, absent = nul (même après un projet qui l'avait), valeurs invalides rejetées.
+- Validation faite : rouge d'abord (propriété ajoutée, lecture non branchée : le réglage lu rendait null, les cinq déclarations invalides ne levaient rien), puis vert, 7 tests de plus (17 sur 17 avec les réglages voisins). Clé `VirtualResolution` : `Width`, `Height`, `Mode` (défaut `IntegerFit`) ; absent = null, écrit seulement quand présent ; invalide = `InvalidDataException` qui nomme la clé.
 - Commit : `feat(project): virtual resolution project setting (E19.s)`
 
 ### ⏳ T1.3 — Application à la vue, au redimensionnement et aux bandes

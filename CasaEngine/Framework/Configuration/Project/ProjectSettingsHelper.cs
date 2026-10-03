@@ -33,6 +33,9 @@ public static class ProjectSettingsHelper
         // project right after a muted one would leave the mute on.
         projectSettings.IsAudioMuted = rootElement["IsAudioMuted"]?.GetBoolean() ?? false;
 
+        // Same rule: absent means no virtual resolution (the full-window view), never the previous project's.
+        projectSettings.VirtualResolution = ReadVirtualResolution(rootElement["VirtualResolution"]);
+
 #if !FINAL
         projectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"]?.GetBoolean() ?? projectSettings.DebugIsFullScreen;
         projectSettings.DebugHeight = rootElement["DebugHeight"]?.GetInt32() ?? projectSettings.DebugHeight;
@@ -52,6 +55,43 @@ public static class ProjectSettingsHelper
         }
 
         AssetCatalog.Load(assetInfoFileName);
+    }
+
+    private static VirtualResolutionSettings ReadVirtualResolution(JToken token)
+    {
+        if (token == null || token.Type == JTokenType.Null)
+        {
+            return null;
+        }
+
+        if (token is not JObject declaration)
+        {
+            throw new InvalidDataException("Project setting 'VirtualResolution' must be an object with Width, Height and an optional Mode.");
+        }
+
+        int width = ReadPositiveDimension(declaration, "Width");
+        int height = ReadPositiveDimension(declaration, "Height");
+
+        var mode = VirtualResolutionMode.IntegerFit;
+        string modeName = (string)declaration["Mode"];
+        if (modeName != null && (!Enum.TryParse(modeName, ignoreCase: false, out mode) || !Enum.IsDefined(mode)))
+        {
+            throw new InvalidDataException(
+                $"Project setting 'VirtualResolution.Mode' is '{modeName}'; the supported mode is '{nameof(VirtualResolutionMode.IntegerFit)}'.");
+        }
+
+        return new VirtualResolutionSettings { Width = width, Height = height, Mode = mode };
+    }
+
+    private static int ReadPositiveDimension(JObject declaration, string key)
+    {
+        int? value = (int?)declaration[key];
+        if (value is not > 0)
+        {
+            throw new InvalidDataException($"Project setting 'VirtualResolution.{key}' must be a positive integer.");
+        }
+
+        return value.Value;
     }
 
     public static void Save(string fileName, ProjectSettings projectSettings = null)
@@ -89,6 +129,16 @@ public static class ProjectSettingsHelper
         if (settings.IsAudioMuted)
         {
             rootElement["IsAudioMuted"] = true;
+        }
+
+        if (settings.VirtualResolution != null)
+        {
+            rootElement["VirtualResolution"] = new JObject
+            {
+                ["Width"] = settings.VirtualResolution.Width,
+                ["Height"] = settings.VirtualResolution.Height,
+                ["Mode"] = settings.VirtualResolution.Mode.ToString(),
+            };
         }
 
 #if !FINAL
