@@ -63,6 +63,8 @@ quand la fenêtre change de taille, en temps réel. Les écrans XAML sont préve
   matériaux est connu pour être instable).
 - Recette en jeu : par le plan parent (E19.s, recette S6).
 
+**Fait le 2026-10-03** : T0.1 à T2.1 ✅. `CasaEngine.Tests` 2490 sur 2490 (Debug, `--blame-hang-timeout 300s`, aucune instabilité constatée) ; `CasaEngine.MonoGame.sln` sans erreur. Reste 🧪 : le comportement dans un jeu qui tourne (abonnement à `ClientSizeChanged`, effacement des bandes, `UIRoot.Update`) par la recette S6 du plan parent. Aucun point ouvert.
+
 ---
 
 ## Phase 1 — Moteur
