@@ -58,7 +58,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     /// <summary>Test seam (ADR-0051): when set, receives the raw-alpha window instead of the effect parameter.</summary>
     internal Action<float, float> AlphaWindowWriter;
-    private readonly VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
+    private VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
     private readonly List<SpriteDisplayData> _spriteDatas = new(NbSprites);
     private readonly Stack<SpriteDisplayData> _freeSpriteDatas = new(NbSprites);
     private VertexBuffer _vertexBuffer;
@@ -466,18 +466,33 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private void UpdateBuffer()
     {
         var vertexCount = FillVertices();
-        _vertexBuffer.SetData(_vertices, 0, Math.Min(vertexCount, NbSprites * 4));
+
+        // The queue can hold more than NbSprites entries (ADR-0051): the vertex buffer follows the staging array.
+        if (_vertices.Length > _vertexBuffer.VertexCount)
+        {
+            _vertexBuffer.Dispose();
+            _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), _vertices.Length, BufferUsage.None);
+        }
+
+        _vertexBuffer.SetData(_vertices, 0, vertexCount);
     }
 
     /// <summary>
-    /// Sorts the queue and writes the four vertices of every entry into the staging array. Returns the number of vertices
-    /// written. The step of <see cref="UpdateBuffer"/> that needs no graphics device.
+    /// Sorts the queue and writes the four vertices of every entry into the staging array, which grows when the queue
+    /// outgrows it (ADR-0051). Returns the number of vertices written. The step of <see cref="UpdateBuffer"/> that needs no
+    /// graphics device.
     /// </summary>
     internal int FillVertices()
     {
         var nbVertices = 4;
 
         _spriteDatas.Sort(SpriteDisplayDataComparison);
+
+        var vertexCount = _spriteDatas.Count * nbVertices;
+        if (vertexCount > _vertices.Length)
+        {
+            Array.Resize(ref _vertices, Math.Max(vertexCount, _vertices.Length * 2));
+        }
 
         for (var i = 0; i < _spriteDatas.Count; i++)
         {

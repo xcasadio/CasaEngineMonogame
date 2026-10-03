@@ -119,12 +119,17 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
   initialisé (`ScissorRectangle` rend un rectangle vide).
 - Commit : `feat(rendering): sprites carry a PSX semi-transparency mode drawn as two disjoint passes`
 
-### ⏳ E2 — Capacité de la file au-delà de 10 000 entrées
+### ✅ E2 — Capacité de la file au-delà de 10 000 entrées
 
 - Objectif : G2a-R3, capacité.
 - Fichiers : `CasaEngine/Framework/Application/Components/SpriteRendererComponent.cs`, tests dans `CasaEngine.Tests/Rendering/`.
 - Valeurs de test : 10 001 entrées en file (clés croissantes) : `FillVertices` ne lève rien, rend 40 004 et remplit les sommets de la
   10 001e à ses positions (aujourd'hui : `IndexOutOfRangeException`).
+- Validation faite : rouge d'abord sur le code d'E1 : `IndexOutOfRangeException` dans `FillVertices` à la 10 001e entrée (valeur
+  écrite d'avance : « aujourd'hui `IndexOutOfRange` », lue égale) ; le test des 10 entrées (tableau gardé, 40 sommets) était vert
+  d'avance. Verts après : `_vertices` grandit (le plus grand de la taille requise et du double), `UpdateBuffer` recrée le
+  `VertexBuffer` quand le tableau le dépasse et envoie `vertexCount` sommets ; `CasaEngine.Tests` 2533/2533 (+2). La croissance du
+  `VertexBuffer` lui-même n'est observable que sur périphérique : démo de capacité (E3).
 - Commit : `feat(rendering): the sprite queue grows past 10000 entries`
 
 ### ⏳ E3 — Démos du moteur (modes et capacité)
