@@ -72,11 +72,12 @@ quand la fenêtre change de taille, en temps réel. Les écrans XAML sont préve
 - Objectif : le plan, la ligne de l'index.
 - Commit : `docs(plan): plan the virtual resolution with integer fit and black bands (E19.s)`
 
-### ⏳ T1.1 — Fonction de mise en page
+### ✅ T1.1 — Fonction de mise en page
 
 - Objectif : `VirtualResolutionLayout.Compute(L, H, largeur, hauteur)` pure, rend le facteur `k` et le rectangle rogné.
 - Fichiers : `CasaEngine/Framework/Rendering/VirtualResolutionLayout.cs`, `CasaEngine.Tests/Rendering/VirtualResolutionLayoutTests.cs`.
 - Validation : la table de S-R3 telle quelle (neuf lignes, 320 × 240) plus une autre résolution virtuelle.
+- Validation faite : rouge d'abord (talon qui rend 0 : 19 tests sur 22 rouges, par exemple 1920 × 1080 → échelle 0 au lieu de 4), puis vert, 22 sur 22. Une résolution virtuelle non positive lève `ArgumentOutOfRangeException` ; une fenêtre vide rend l'échelle 1 et un rectangle vide.
 - Commit : `feat(rendering): pure integer-fit layout for a virtual resolution (E19.s)`
 
 ### ⏳ T1.2 — Réglage de projet
