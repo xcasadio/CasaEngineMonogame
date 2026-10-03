@@ -52,18 +52,28 @@ que si une cellule `FallRespawn` réapparaît réellement ce tick (voir §6).
 
 Une seule horloge entière ; `ticks = 0` n'avance rien.
 
-## 4. `Normal` — dérive, pas de période, enroulement
+## 4. `Normal` — dérive, période, enroulement
 
 ```
 posX += DX ; posY += DY
-si PeriodX != 0 : stepX = ComputePeriodStepOr(DX, PeriodX) ; si ++tickX >= |PeriodX| { posX += stepX ; tickX = 0 }
+si PeriodX != 0 : stepX = ComputePeriodStepOr(DX, PeriodX) ; si tickX++ > |PeriodX| { posX += stepX ; tickX = 0 }
    (idem en Y avec PeriodY/DY/tickY)
 baseX = CamXDen != 0 ? cameraX * CamXNum / CamXDen : 0   (idem baseY)
-sx = posX - baseX ; minX = U0 - U1
-   si sx < minX       : posX += 320 - minX ; sx = posX - baseX
-   sinon si sx > 319   : posX += -320 + minX ; sx = posX - baseX
+sx = posX - baseX ; drawX = sx ; minX = U0 - U1
+   si sx < minX       : posX += 320 - minX
+   sinon si sx > 319   : posX += -320 + minX
 (idem en Y, 240 et minY = V0 - V1)
 ```
+
+**Période.** Le pas s'applique quand `|P|` est inférieur au compteur d'**avant** son incrément, puis le
+compteur repasse à 0 : un pas tous les `|P| + 2` ticks (`0x8005CC64`/`0x8005CCBC` pour le type 0,
+`0x8005D218`/`0x8005D278` pour le type 2). Le défilement automatique de `ScrollingLayerService` garde son
+propre rythme, `|P|` ticks (`0x8005C7E0`).
+
+**Position dessinée.** La cellule est dessinée à la position calculée **avant** les enroulements
+(`0x8005CCFC`/`0x8005CD00` écrites en `0x8005CDF0`/`0x8005CDF4`) : les enroulements ne déplacent que la
+position rangée, donc au tick d'un enroulement la cellule est hors de l'écran et n'apparaît à sa nouvelle
+place qu'au tick suivant (ADR-0050).
 
 **Le pas de période est un OU de signes, recalculé à chaque tick** —
 `ComputePeriodStepOr(delta, period) = (delta < 0 || period < 0) ? -1 : 1` — **pas** le OU EXCLUSIF
@@ -77,20 +87,24 @@ EXCLUSIF donnerait +1) — c'est le seul cas qui les distingue, et c'est le cas 
 Même dérive et même enroulement en X que `Normal`. En Y, à la place de l'enroulement :
 
 ```
+drawY = sy
 si sy > 239 {
-    posX = (int)((nextRandomUInt32() * (ulong)320) >> 32)
+    posX = (int)nextRandomUInt32() / 102        (division signée, tronquée vers 0)
     posY += -240 + (V0 - V1)
-    sx = posX - baseX ; sy = posY - baseY
 }
 ```
 
-**Partage le flux aléatoire global de l'original** (D7, `Random.cs:5,14` — graine `0xB017C93D`,
-`seed = seed * 0x7d2b89dd + 0xe06a02e7`) : `CellularLayerService` ne possède aucun générateur à lui —
-`Advance` reçoit le prochain entier 32 bits brut via un délégué injecté, appelé **seulement** quand une
-cellule réapparaît réellement ce tick. `CellularLayerComponent.RandomSource` est le point où la DLL doit
-brancher ce flux partagé (propriété réglable, lance par défaut si jamais appelée sans avoir été câblée).
-L'acceptation (D7) épingle les **invariants** — réapparaît en haut, abscisse dans les bornes de l'écran —
-jamais une position absolue, puisque le flux est partagé avec le reste du jeu.
+La position dessinée (`drawX`, `drawY`) est celle d'avant l'enroulement en X et d'avant la réapparition
+(`0x8005D2C0`/`0x8005D2C4` écrites en `0x8005D3AC`/`0x8005D3B0`), comme pour `Normal`.
+
+**Tire le `rand()` de la bibliothèque C de l'original** (ADR-0050 ; `0x80081E6C`,
+`s = s * 0x41C64E6D + 0x3039`, rend `(s >> 16) & 0x7FFF`) : `CellularLayerService` ne possède aucun
+générateur à lui — `Advance` reçoit la prochaine valeur de ce `rand()` (0 à 0x7FFF) via un délégué
+injecté, appelé **une fois** par réapparition et **seulement** quand une cellule réapparaît réellement ce
+tick. L'abscisse tirée va de 0 à 321 (`0x8005D324`..`0x8005D340`) ; 320 et 321 sont hors écran, la cellule
+s'enroule au tick suivant. `CellularLayerComponent.RandomSource` est le point où la DLL doit brancher son
+exemplaire du générateur (propriété réglable, avertit une fois et rend 0 si jamais appelée sans avoir été
+câblée).
 
 ## 6. `WaveX` — sans état, formule fixe
 
@@ -162,8 +176,8 @@ résolution supplémentaire ici, elle appartient à la DLL.
 
 - **Pas d'éditeur, pas de sérialisation** : le format `.backdrop.json` reste lu par la DLL.
 - **`CellularLayerComponent.RandomSource` doit être câblé par la DLL** avant qu'une couche `FallRespawn`
-  n'atteigne `Advance()` — sans quoi le délégué par défaut lève une exception explicite plutôt que de
-  tirer d'un flux non partagé (D7). Une carte sans cellule `FallRespawn` n'atteint jamais ce chemin.
+  n'atteigne `Advance()` — sans quoi le délégué par défaut avertit une fois et rend 0 (les cellules
+  réapparaissent à l'abscisse 0). Une carte sans cellule `FallRespawn` n'atteint jamais ce chemin.
 - **Une seule caméra active à la fois**, comme le mécanisme frère.
 - **`Submit` ne soumet rien sans poussée reçue** (`FramesPushed == 0`).
 - Les 8 champs `Cellular`/16 champs `Cell` sortis par le convertisseur sont copiés 1:1 ; les deux octets

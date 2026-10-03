@@ -57,6 +57,15 @@ public class CellularLayerServiceTests
 
     private static uint ZeroRandom() => 0u;
 
+    /// <summary>Advances one tick and returns the cell state (cell 0 of layer 0).</summary>
+    private static CellularCellState StepOnce(CellularLayerService service, System.Func<uint> random)
+    {
+        service.SetFrame(0, 0, 1, Vector3.Zero);
+        service.Advance(random);
+        Assert.True(service.TryGetCellState(0, 0, out var state));
+        return state;
+    }
+
     // ---- Cadence: AnimFrameTimer / AnimFrameCounter --------------------------------------------------
 
     [Fact]
@@ -117,14 +126,14 @@ public class CellularLayerServiceTests
         var cell = MakeCell(CellularCellType.Normal, x0: 100, u0: 0, u1: 1000, dx: -1, periodX: -10);
         var service = CreateService(cell);
 
-        service.SetFrame(0, 0, 10, Vector3.Zero);
+        service.SetFrame(0, 0, 12, Vector3.Zero);
         service.Advance(ZeroRandom);
 
-        // 10 ticks of DX=-1 (-10) plus one extra period step at tick 10 (OR => -1): 100 - 10 - 1 = 89.
-        // Had the sibling's XOR rule been used instead, the extra step would be +1: 100 - 10 + 1 = 91.
+        // 12 ticks of DX=-1 (-12) plus one extra period step at tick 12 = |P| + 2 (OR => -1): 100 - 12 - 1 = 87.
+        // Had the sibling's XOR rule been used instead, the extra step would be +1: 100 - 12 + 1 = 89.
         Assert.True(service.TryGetCellState(0, 0, out var state));
         Assert.True(state.ShouldDraw);
-        Assert.Equal(89, state.DrawX);
+        Assert.Equal(87, state.DrawX);
     }
 
     // ---- Normal: wrap on both axes, both bounds -------------------------------------------------------
@@ -136,13 +145,16 @@ public class CellularLayerServiceTests
         var cell = MakeCell(CellularCellType.Normal, x0: -20, y0: 0, u0: 0, u1: 15, v0: 0, v1: 15);
         var service = CreateService(cell);
 
-        service.SetFrame(0, 0, 1, Vector3.Zero);
-        service.Advance(ZeroRandom);
+        // The original draws the position computed BEFORE the wrap (0x8005CCFC..0x8005CDF0): tick 1 is
+        // drawn at -20 (fully off screen), the wrapped position shows on tick 2.
+        var first = StepOnce(service, ZeroRandom);
+        Assert.Equal(-20, first.DrawX);
+        Assert.Equal(0, first.DrawY);
 
         // posX += 320 - minX = 320 + 15 = 335 -> posX = -20 + 335 = 315.
-        Assert.True(service.TryGetCellState(0, 0, out var state));
-        Assert.Equal(315, state.DrawX);
-        Assert.Equal(0, state.DrawY);
+        var second = StepOnce(service, ZeroRandom);
+        Assert.Equal(315, second.DrawX);
+        Assert.Equal(0, second.DrawY);
     }
 
     [Fact]
@@ -152,12 +164,10 @@ public class CellularLayerServiceTests
         var cell = MakeCell(CellularCellType.Normal, x0: 400, y0: 0, u0: 0, u1: 15, v0: 0, v1: 15);
         var service = CreateService(cell);
 
-        service.SetFrame(0, 0, 1, Vector3.Zero);
-        service.Advance(ZeroRandom);
+        Assert.Equal(400, StepOnce(service, ZeroRandom).DrawX); // pre-wrap position, off screen.
 
         // posX += -320 + minX = -320 - 15 = -335 -> posX = 400 - 335 = 65.
-        Assert.True(service.TryGetCellState(0, 0, out var state));
-        Assert.Equal(65, state.DrawX);
+        Assert.Equal(65, StepOnce(service, ZeroRandom).DrawX);
     }
 
     [Fact]
@@ -167,13 +177,14 @@ public class CellularLayerServiceTests
         var cell = MakeCell(CellularCellType.Normal, x0: 0, y0: -20, u0: 0, u1: 15, v0: 0, v1: 15);
         var service = CreateService(cell);
 
-        service.SetFrame(0, 0, 1, Vector3.Zero);
-        service.Advance(ZeroRandom);
+        var first = StepOnce(service, ZeroRandom);
+        Assert.Equal(0, first.DrawX);
+        Assert.Equal(-20, first.DrawY); // pre-wrap position, off screen.
 
         // posY += 240 - minY = 240 + 15 = 255 -> posY = -20 + 255 = 235.
-        Assert.True(service.TryGetCellState(0, 0, out var state));
-        Assert.Equal(0, state.DrawX);
-        Assert.Equal(235, state.DrawY);
+        var second = StepOnce(service, ZeroRandom);
+        Assert.Equal(0, second.DrawX);
+        Assert.Equal(235, second.DrawY);
     }
 
     [Fact]
@@ -183,39 +194,141 @@ public class CellularLayerServiceTests
         var cell = MakeCell(CellularCellType.Normal, x0: 0, y0: 400, u0: 0, u1: 15, v0: 0, v1: 15);
         var service = CreateService(cell);
 
-        service.SetFrame(0, 0, 1, Vector3.Zero);
-        service.Advance(ZeroRandom);
+        Assert.Equal(400, StepOnce(service, ZeroRandom).DrawY); // pre-wrap position, off screen.
 
         // posY += -240 + minY = -240 - 15 = -255 -> posY = 400 - 255 = 145.
-        Assert.True(service.TryGetCellState(0, 0, out var state));
-        Assert.Equal(145, state.DrawY);
+        Assert.Equal(145, StepOnce(service, ZeroRandom).DrawY);
+    }
+
+    [Fact]
+    public void Advance_NormalCell_DriftingOffTheLeftEdge_IsHiddenOneTickBeforeReappearingOnTheRight()
+    {
+        // T-W5: X0 = -13, DX = -1, U1 = 15, minX = -15. Ticks 1 and 2 draw -14 and -15 (a one pixel
+        // column at the left edge); tick 3 draws the pre-wrap -16 (off screen) and only tick 4 shows 318.
+        var cell = MakeCell(CellularCellType.Normal, x0: -13, u0: 0, u1: 15, dx: -1);
+        var service = CreateService(cell);
+
+        Assert.Equal(-14, StepOnce(service, ZeroRandom).DrawX);
+        Assert.Equal(-15, StepOnce(service, ZeroRandom).DrawX);
+        Assert.Equal(-16, StepOnce(service, ZeroRandom).DrawX);
+        Assert.Equal(318, StepOnce(service, ZeroRandom).DrawX);
+    }
+
+    // ---- Period: one step every |P| + 2 ticks (0x8005CC64, 0x8005CCBC, 0x8005D218, 0x8005D278) -------
+
+    [Fact]
+    public void Advance_NormalCell_PeriodX1_StepsEveryThreeTicks()
+    {
+        // T-P1: DX = 0, PeriodX = 1 (step +1). The step lands on ticks 3, 6, ...
+        var cell = MakeCell(CellularCellType.Normal, x0: 100, u0: 0, u1: 1000, periodX: 1);
+        var service = CreateService(cell);
+
+        Assert.Equal(100, StepOnce(service, ZeroRandom).DrawX); // tick 1
+        StepOnce(service, ZeroRandom); // tick 2
+        Assert.Equal(101, StepOnce(service, ZeroRandom).DrawX); // tick 3
+        StepOnce(service, ZeroRandom); // tick 4
+        StepOnce(service, ZeroRandom); // tick 5
+        Assert.Equal(102, StepOnce(service, ZeroRandom).DrawX); // tick 6
+    }
+
+    [Fact]
+    public void Advance_NormalCell_PeriodYMinus2_StepsEveryFourTicks()
+    {
+        // T-P2: DY = 0, PeriodY = -2 (step -1). The step lands on ticks 4, 8, ...
+        var cell = MakeCell(CellularCellType.Normal, y0: 100, v0: 0, v1: 1000, periodY: -2);
+        var service = CreateService(cell);
+
+        StepOnce(service, ZeroRandom); // tick 1
+        Assert.Equal(100, StepOnce(service, ZeroRandom).DrawY); // tick 2
+        StepOnce(service, ZeroRandom); // tick 3
+        Assert.Equal(99, StepOnce(service, ZeroRandom).DrawY); // tick 4
+        StepOnce(service, ZeroRandom); // tick 5
+        StepOnce(service, ZeroRandom); // tick 6
+        StepOnce(service, ZeroRandom); // tick 7
+        Assert.Equal(98, StepOnce(service, ZeroRandom).DrawY); // tick 8
+    }
+
+    [Fact]
+    public void Advance_FallRespawnCell_PeriodX2_StepsEveryFourTicks()
+    {
+        // T-P3: DX = 0, DY = 0, PeriodX = 2 (step +1), U0 = U1 = 0 so the wrap bounds stay out of the way.
+        var cell = MakeCell(CellularCellType.FallRespawn, x0: 100, u0: 0, u1: 0, periodX: 2);
+        var service = CreateService(cell);
+
+        StepOnce(service, ZeroRandom); // tick 1
+        Assert.Equal(100, StepOnce(service, ZeroRandom).DrawX); // tick 2
+        StepOnce(service, ZeroRandom); // tick 3
+        Assert.Equal(101, StepOnce(service, ZeroRandom).DrawX); // tick 4
+        StepOnce(service, ZeroRandom); // tick 5
+        StepOnce(service, ZeroRandom); // tick 6
+        StepOnce(service, ZeroRandom); // tick 7
+        Assert.Equal(102, StepOnce(service, ZeroRandom).DrawX); // tick 8
     }
 
     // ---- FallRespawn: no Y wrap, respawns at a random top X instead -----------------------------------
 
     [Fact]
-    public void Advance_FallRespawnCell_PastTheBottom_RespawnsAtTheTop_WithAnAbscissaWithinScreenBounds()
+    public void Advance_FallRespawnCell_PastTheBottom_DrawsThePreRespawnPosition_ThenTheLibcRandDividedBy102()
     {
-        // DY=300 overshoots ScreenHeight-1=239 in a single tick; the invariants pinned here (D7) are
-        // "reappears near the top" and "abscissa within screen bounds" - never the absolute position,
-        // since FallRespawn deliberately shares the game's own global random stream.
-        var cell = MakeCell(CellularCellType.FallRespawn, x0: 0, y0: 0, u0: 0, u1: 15, v0: 0, v1: 15, dy: 300);
+        // T-F1: the cell crosses the bottom on tick 1 (232 + 8 = 240 > 239). The original draws the
+        // position computed before the respawn (0x8005D2C0..0x8005D3AC), so tick 1 shows (7, 240), off
+        // screen. The respawn takes ONE rand() (0x8005D31C): posX = rand / 102 (0x8005D324..0x8005D340),
+        // 16320 / 102 = 160, and posY becomes 240 - 240 + (V0 - V1) = -15, so tick 2 draws (160, -7).
+        var cell = MakeCell(CellularCellType.FallRespawn, x0: 7, y0: 232, u0: 0, u1: 15, v0: 0, v1: 15, dy: 8);
         var service = CreateService(cell);
         var randomCallCount = 0;
         uint Random()
         {
             randomCallCount++;
-            return 0x80000000u; // exactly mid-range: ((ulong)0x80000000 * 320) >> 32 == 160.
+            return 16320u;
         }
 
-        service.SetFrame(0, 0, 1, Vector3.Zero);
-        service.Advance(Random);
-
-        Assert.True(service.TryGetCellState(0, 0, out var state));
-        Assert.True(state.ShouldDraw);
-        Assert.InRange(state.DrawX, 0, CellularLayerService.ScreenWidth - 1); // invariant: on screen.
-        Assert.True(state.DrawY < CellularLayerService.ScreenHeight); // invariant: reappeared, not still falling.
+        var first = StepOnce(service, Random);
+        Assert.True(first.ShouldDraw);
+        Assert.Equal(7, first.DrawX);
+        Assert.Equal(240, first.DrawY);
         Assert.Equal(1, randomCallCount); // called exactly once, only because this cell actually respawned.
+
+        var second = StepOnce(service, Random);
+        Assert.Equal(160, second.DrawX);
+        Assert.Equal(-7, second.DrawY);
+        Assert.Equal(1, randomCallCount);
+
+        var third = StepOnce(service, Random);
+        Assert.Equal(160, third.DrawX);
+        Assert.Equal(1, third.DrawY);
+        Assert.Equal(1, randomCallCount);
+    }
+
+    [Theory]
+    [InlineData(32767u, 321)] // 32767 / 102 = 321: past the right edge, wraps on tick 2 and shows on tick 3.
+    [InlineData(32640u, 320)] // 32640 / 102 = 320: the first value off the right edge.
+    [InlineData(101u, 0)] // 101 / 102 truncates to 0.
+    [InlineData(102u, 1)]
+    public void Advance_FallRespawnCell_RespawnAbscissa_IsTheSignedTruncatedDivisionBy102(uint rand, int expectedPosX)
+    {
+        // T-F2: same cell as T-F1, only the source value changes; DrawX on tick 2 is the respawn abscissa.
+        var cell = MakeCell(CellularCellType.FallRespawn, x0: 7, y0: 232, u0: 0, u1: 15, v0: 0, v1: 15, dy: 8);
+        var service = CreateService(cell);
+
+        StepOnce(service, () => rand);
+        Assert.Equal(expectedPosX, StepOnce(service, () => rand).DrawX);
+    }
+
+    [Fact]
+    public void Advance_FallRespawnCell_AbscissaPastTheRightEdge_WrapsOnTheNextTick_AndShowsOnTheOneAfter()
+    {
+        // T-F2 with 32767: ticks 1-3 draw (7, 240), (321, -7), (-14, 1): 321 > 319 wraps by -320 - 15.
+        var cell = MakeCell(CellularCellType.FallRespawn, x0: 7, y0: 232, u0: 0, u1: 15, v0: 0, v1: 15, dy: 8);
+        var service = CreateService(cell);
+        System.Func<uint> random = () => 32767u;
+
+        var first = StepOnce(service, random);
+        Assert.Equal((7, 240), (first.DrawX, first.DrawY));
+        var second = StepOnce(service, random);
+        Assert.Equal((321, -7), (second.DrawX, second.DrawY));
+        var third = StepOnce(service, random);
+        Assert.Equal((-14, 1), (third.DrawX, third.DrawY));
     }
 
     [Fact]

@@ -19,10 +19,10 @@ namespace CasaEngine.Framework.Rendering.CellularLayers;
 /// no floating-point clock, a nominal one-tick frame reproduces the original bit for bit and a
 /// catch-up frame follows the same logic tick the rest of the frame used.
 ///
-/// <see cref="CellularCellType.FallRespawn"/> shares the original's own global random stream
-/// (<c>Random.cs:5,14</c>, D7) - this service therefore owns no generator of its own. <see cref="Advance"/>
-/// takes the next raw 32-bit value through an injected delegate, so the consuming DLL can wire it to
-/// that shared stream and tests can pin an exact sequence.
+/// <see cref="CellularCellType.FallRespawn"/> draws from the C library <c>rand()</c> of the original
+/// (<c>0x80081E6C</c>, ADR-0050) - this service owns no generator of its own. <see cref="Advance"/>
+/// takes the next value of that <c>rand()</c> (0 to 0x7FFF) through an injected delegate, so the consuming
+/// DLL can wire it to its own copy of the generator and tests can pin an exact sequence.
 /// </summary>
 public sealed class CellularLayerService
 {
@@ -37,6 +37,10 @@ public sealed class CellularLayerService
     /// count is <c>Divisions</c>, between 15 and 120, so this cap is never hit by the current corpus
     /// but is still enforced defensively.</summary>
     public const int CellMax = 200;
+
+    /// <summary>The divisor the original applies to a C library <c>rand()</c> value (0 to 0x7FFF) to get a
+    /// respawn abscissa (<c>0x8005D324</c>..<c>0x8005D340</c>), so 0 to 321.</summary>
+    private const int RespawnAbscissaDivisor = 102;
 
     private struct CellRuntime
     {
@@ -210,9 +214,10 @@ public sealed class CellularLayerService
     /// <summary>
     /// Consumes the pending frame: for each of <see cref="PendingTicks"/> ticks, for every layer, in
     /// the original's own per-frame order - cadence first (<c>AnimFrameTimer</c>/<c>AnimFrameCounter</c>/
-    /// <c>WaveTick</c>), then every cell in definition order. <paramref name="nextRandomUInt32"/> is
-    /// called only when a <see cref="CellularCellType.FallRespawn"/> cell actually respawns this tick
-    /// (D7 - the shared global stream, never this service's own generator).
+    /// <c>WaveTick</c>), then every cell in definition order. <paramref name="nextRandomUInt32"/> yields the
+    /// next value of the C library <c>rand()</c> of the original, 0 to 0x7FFF (ADR-0050); it is called
+    /// only when a <see cref="CellularCellType.FallRespawn"/> cell actually respawns this tick, once per
+    /// respawn, and the new abscissa is that value divided by 102.
     /// </summary>
     public void Advance(System.Func<uint> nextRandomUInt32)
     {
@@ -300,7 +305,9 @@ public sealed class CellularLayerService
         if (definition.PeriodX != 0)
         {
             var stepX = ComputePeriodStepOr(definition.DX, definition.PeriodX);
-            if (++cell.TickX >= System.Math.Abs(definition.PeriodX))
+            // The original steps when |P| is below the counter BEFORE its increment, then clears it: one
+            // step every |P| + 2 ticks (0x8005CC64 / 0x8005D218; the scrolling routine differs, 0x8005C7E0).
+            if (cell.TickX++ > System.Math.Abs(definition.PeriodX))
             {
                 cell.PosX += stepX;
                 cell.TickX = 0;
@@ -310,7 +317,7 @@ public sealed class CellularLayerService
         if (definition.PeriodY != 0)
         {
             var stepY = ComputePeriodStepOr(definition.DY, definition.PeriodY);
-            if (++cell.TickY >= System.Math.Abs(definition.PeriodY))
+            if (cell.TickY++ > System.Math.Abs(definition.PeriodY))
             {
                 cell.PosY += stepY;
                 cell.TickY = 0;
@@ -320,34 +327,33 @@ public sealed class CellularLayerService
         var baseX = ComputeCameraBase(cameraX, definition.CamXNum, definition.CamXDen);
         var baseY = ComputeCameraBase(cameraY, definition.CamYNum, definition.CamYDen);
 
+        // The original draws the position computed BEFORE the wraps (0x8005CCFC / 0x8005CD00 written at
+        // 0x8005CDF0 / 0x8005CDF4): the wraps only move the stored position, so on a wrap tick the cell is
+        // drawn fully off screen and shows at its new place on the next tick.
         var sx = cell.PosX - baseX;
+        cell.DrawX = sx;
         var minX = definition.U0 - definition.U1;
         if (sx < minX)
         {
             cell.PosX += ScreenWidth - minX;
-            sx = cell.PosX - baseX;
         }
         else if (sx > ScreenWidth - 1)
         {
             cell.PosX += -ScreenWidth + minX;
-            sx = cell.PosX - baseX;
         }
 
         var sy = cell.PosY - baseY;
+        cell.DrawY = sy;
         var minY = definition.V0 - definition.V1;
         if (sy < minY)
         {
             cell.PosY += ScreenHeight - minY;
-            sy = cell.PosY - baseY;
         }
         else if (sy > ScreenHeight - 1)
         {
             cell.PosY += -ScreenHeight + minY;
-            sy = cell.PosY - baseY;
         }
 
-        cell.DrawX = sx;
-        cell.DrawY = sy;
         cell.ShouldDraw = true;
     }
 
@@ -361,14 +367,14 @@ public sealed class CellularLayerService
         // the `PeriodX != 0` guard. Both shapes are behaviourally equivalent when the period is 0 (the
         // step is simply never applied), but the spec calls for the shape itself to be preserved.
         var stepX = ComputePeriodStepOr(definition.DX, definition.PeriodX);
-        if (System.Math.Abs(definition.PeriodX) > 0 && ++cell.TickX >= System.Math.Abs(definition.PeriodX))
+        if (System.Math.Abs(definition.PeriodX) > 0 && cell.TickX++ > System.Math.Abs(definition.PeriodX))
         {
             cell.PosX += stepX;
             cell.TickX = 0;
         }
 
         var stepY = ComputePeriodStepOr(definition.DY, definition.PeriodY);
-        if (System.Math.Abs(definition.PeriodY) > 0 && ++cell.TickY >= System.Math.Abs(definition.PeriodY))
+        if (System.Math.Abs(definition.PeriodY) > 0 && cell.TickY++ > System.Math.Abs(definition.PeriodY))
         {
             cell.PosY += stepY;
             cell.TickY = 0;
@@ -377,31 +383,31 @@ public sealed class CellularLayerService
         var baseX = ComputeCameraBase(cameraX, definition.CamXNum, definition.CamXDen);
         var baseY = ComputeCameraBase(cameraY, definition.CamYNum, definition.CamYDen);
 
+        // Drawn at the position computed before the wrap and the respawn (0x8005D2C0 / 0x8005D2C4 written at
+        // 0x8005D3AC / 0x8005D3B0), like the Normal cell.
         var sx = cell.PosX - baseX;
+        cell.DrawX = sx;
         var minX = definition.U0 - definition.U1;
         if (sx < minX)
         {
             cell.PosX += ScreenWidth - minX;
-            sx = cell.PosX - baseX;
         }
         else if (sx > ScreenWidth - 1)
         {
             cell.PosX += -ScreenWidth + minX;
-            sx = cell.PosX - baseX;
         }
 
-        // No Y wrap for FallRespawn - a fall past the bottom respawns at a random X at the top instead.
+        // No Y wrap for FallRespawn - a fall past the bottom respawns at a new X at the top instead. The
+        // original draws one value of the C library rand() (0x8005D31C) and divides it by 102 with a signed,
+        // truncating divide (0x8005D324..0x8005D340): 0 to 321, absolute, no camera term.
         var sy = cell.PosY - baseY;
+        cell.DrawY = sy;
         if (sy > ScreenHeight - 1)
         {
-            cell.PosX = (int)(((ulong)nextRandomUInt32() * (ulong)ScreenWidth) >> 32);
+            cell.PosX = (int)nextRandomUInt32() / RespawnAbscissaDivisor;
             cell.PosY += -ScreenHeight + (definition.V0 - definition.V1);
-            sx = cell.PosX - baseX;
-            sy = cell.PosY - baseY;
         }
 
-        cell.DrawX = sx;
-        cell.DrawY = sy;
         cell.ShouldDraw = true;
     }
 

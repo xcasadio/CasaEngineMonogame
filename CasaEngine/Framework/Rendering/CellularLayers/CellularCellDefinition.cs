@@ -43,8 +43,9 @@ public struct CellularCellDefinition
 
     public int CamYDen;
 
-    /// <summary>Drift added to <c>posX</c> every tick, plus one further step every <c>|PeriodX|</c>
-    /// ticks - direction is an OR of signs recomputed every tick (<see cref="CellularLayerService.ComputePeriodStepOr"/>),
+    /// <summary>Drift added to <c>posX</c> every tick, plus one further step every <c>|PeriodX| + 2</c>
+    /// ticks (the original steps when <c>|P|</c> is below the counter before its increment,
+    /// <c>0x8005CC64</c> / <c>0x8005D218</c>) - direction is an OR of signs recomputed every tick (<see cref="CellularLayerService.ComputePeriodStepOr"/>),
     /// NOT the XOR-computed-once-at-load rule the sibling scrolling-layer mechanism uses for its own
     /// auto-scroll (docs/plan-e9d-mode-cellulaire.md §1.4 - do not unify the two).</summary>
     public int DX;

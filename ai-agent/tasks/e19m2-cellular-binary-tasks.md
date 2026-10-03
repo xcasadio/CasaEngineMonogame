@@ -67,7 +67,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 1 — Moteur
 
-### 🚧 M2-1 — Tests d'abord (rouges sur le code d'avant)
+### ✅ M2-1 — Tests d'abord (rouges sur le code d'avant)
 
 - Objectif : épingler M2-R1 à M2-R3 par des tests dont les valeurs sont écrites d'avance, un tick à la fois.
 - Fichiers : `CasaEngine.Tests/Rendering/CellularLayers/CellularLayerServiceTests.cs`.
@@ -82,16 +82,22 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
     tick 2 (160, −7) ; tick 3 (160, 1) (aujourd'hui (0, −15) au tick 1). T-F2 : source 32767 : (7, 240), (321, −7), (−14, 1) ;
     source 32640 : DrawX 320 au tick 2.
   - `:111-128` réécrit : 12 ticks, 87 (OU de signes ; le OU EXCLUSIF donnerait 89).
-- Validation : rouge constaté sur le code d'avant, valeurs lues notées sous la tâche.
+- Validation faite : sur le code d'avant, 13 tests rouges sur 55 (`FullyQualifiedName~CellularLayerServiceTests`), toutes les valeurs
+  lues égales aux valeurs « aujourd'hui » du plan : T-P1 tick 1 attendu 100 lu 101 ; T-P2 tick 2 attendu 100 lu 99 ; T-P3 tick 2
+  attendu 100 lu 101 ; bouclages tick 1 attendu −20 lu 315, attendu 400 lu 65, attendu −20 lu 235, attendu 400 lu 145 ; T-W5 tick 3
+  attendu −16 lu 319 ; T-F1 tick 1 attendu (7, 240) lu (0, −15) ; T-F2 tick 2 : 32767 attendu 321 lu 0, 32640 attendu 320 lu 0, 102
+  attendu 1 lu 0 (101 → 0 vert d'avance). Le test `:111-128` réécrit (12 ticks, 87) était vert d'avance, comme annoncé. Tests écrits
+  dans `CellularLayerServiceTests.cs` (+9 net). Aucune valeur écrite d'avance contredite.
 - Commit : avec M2-2 (le commit de tests seuls serait rouge).
 
-### ⏳ M2-2 — Code
+### ✅ M2-2 — Code
 
 - Objectif : M2-R1 à M2-R3 dans `CellularLayerService`, docs (`CellularCellDefinition.cs`, `CellularLayerComponent.cs`,
   `cellular-layers.md`).
-- Validation : tests de M2-1 verts, `CasaEngine.Tests` entier vert.
-- Commits : `fix(rendering): cellular layers step every |P|+2 ticks and draw the pre-wrap position like the original` puis
-  `fix(rendering): cellular fall respawn takes a C library rand() value`.
+- Validation faite : tests de M2-1 verts (55 sur 55 en filtre), `CasaEngine.Tests` 2511 sur 2511 (Debug, 2502 avant, +9), aucun test
+  hors de la liste fermée touché. Un seul commit vert (tests, code et docs ensemble : séparer la période et la position dessinée du
+  tirage aurait laissé des tests rouges).
+- Commit : `fix(rendering): cellular layers follow the original's period, drawn position and C library rand respawn`.
 
 ### ⏳ M2-2b — ADR-0050
 

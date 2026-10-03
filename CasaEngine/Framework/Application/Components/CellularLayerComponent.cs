@@ -43,11 +43,11 @@ public class CellularLayerComponent : GameComponent
     public CellularLayerService Service { get; }
 
     /// <summary>
-    /// D7: the source of the next raw 32-bit value for <see cref="CellularCellType.FallRespawn"/>'s
-    /// respawn - the original's own global random stream (<c>Random.cs:5,14</c>, seed <c>0xB017C93D</c>,
-    /// <c>seed = seed * 0x7d2b89dd + 0xe06a02e7</c>), which the game DLL owns and this engine-side
-    /// component does not have access to. The consuming DLL's integration slice (C3) must set this to
-    /// that shared stream before any <see cref="CellularCellType.FallRespawn"/> layer's cell can
+    /// ADR-0050: the source of the next value of the C library <c>rand()</c> of the original (0 to 0x7FFF;
+    /// <c>0x80081E6C</c>, <c>s = s * 0x41C64E6D + 0x3039</c>, result <c>(s >> 16) &amp; 0x7FFF</c>) for
+    /// <see cref="CellularCellType.FallRespawn"/>'s respawn, which divides it by 102 to get the new
+    /// abscissa. The game DLL owns that generator and this engine-side component does not have access to
+    /// it. The consuming DLL must set this to its copy of the generator before any <see cref="CellularCellType.FallRespawn"/> layer's cell can
     /// actually respawn - <see cref="Service"/>'s <see cref="CellularLayerService.Advance"/> only calls
     /// this delegate lazily, on the tick a respawn actually happens, so a world with no
     /// <see cref="CellularCellType.FallRespawn"/> cells never reaches the default below.
@@ -68,7 +68,7 @@ public class CellularLayerComponent : GameComponent
             _warnedAboutUnwiredRandomSource = true;
             Logs.WriteWarning(
                 "CellularLayerComponent.RandomSource is not wired: FallRespawn cells will respawn at "
-                + "abscissa 0. D7 requires this to share the gameplay DLL's own global random stream.");
+                + "abscissa 0. ADR-0050 requires this to yield the next C library rand() value of the game.");
         }
 
         return 0u;
