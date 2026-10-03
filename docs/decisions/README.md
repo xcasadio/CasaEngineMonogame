@@ -61,3 +61,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0045](0045-a-blocked-field-step-advances-to-contact.md) | A blocked step on the cell collision field advances to the contact | Accepted | 2026-09-29 |
 | [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
 | [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
+| [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted | 2026-10-03 |

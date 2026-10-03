@@ -218,7 +218,7 @@ Pour qu'un texel de tileset couvre exactement un pixel écran :
 
 1. `Camera2dComponent` sur la vue (jamais une caméra perspective) ;
 2. `PixelSnap = true` ;
-3. `Zoom` entier (×1, ×2, ×3…) ;
+3. `Zoom` entier (×1, ×2, ×3…) — avec une résolution virtuelle, le moteur le pose (voir ci-dessous) ;
 4. `RenderView.ResolutionScale = 1` ;
 5. `SamplerState.PointClamp` sur les matériaux affichant des textures de tiles.
 
@@ -236,6 +236,48 @@ Pour qu'un texel de tileset couvre exactement un pixel écran :
 > Note : le diagnostic ne s'applique qu'aux caméras avec `PixelSnap` actif. Une `Camera2dComponent`
 > avec `PixelSnap = false` affiche donc `PixelPerfect: OK` dans l'overlay — la ligne signale « le
 > contrat n'est pas rompu », pas « l'image est snappée ».
+
+---
+
+## Résolution virtuelle à facteur entier
+
+Un jeu 2D à image logique fixe (par exemple 320 × 240) la déclare dans le fichier de projet :
+
+```json
+"VirtualResolution": { "Width": 320, "Height": 240, "Mode": "IntegerFit" }
+```
+
+(`ProjectSettings.VirtualResolution`, `VirtualResolutionSettings`). Réglage absent : la vue unique couvre toute la fenêtre,
+comme avant. L'éditeur (gestion externe des vues) n'applique jamais ce réglage.
+
+Avec le réglage, hors éditeur, le moteur calcule `VirtualResolutionLayout.Compute(fenêtre, résolution)` :
+
+- `k = max(1, floor(min(L / largeur, H / hauteur)))` ;
+- l'image fait `largeur·k × hauteur·k`, centrée avec des décalages arrondis par défaut, puis rognée par la fenêtre (une
+  fenêtre plus petite que l'image montre son centre à l'échelle 1) ;
+- 1280 × 960 → ×4 sans bande ; 1920 × 1080 → ×4, image (320, 60, 1280, 960) ; 1280 × 944 → ×3, image (160, 112, 960, 720).
+
+Ce qu'il en fait (`DefaultRuntimeViewBootstrapper.CreateDefaultView`, `CasaEngineGame.OnScreenResized`) :
+
+- `ViewportRect` de la vue unique = le rectangle de l'image ;
+- sa `Camera2dComponent` reçoit `Zoom = k` **et un viewport de la taille du rectangle rogné**, posé après
+  `World.OnScreenResized` (qui a mis toutes les caméras à la taille de la fenêtre) : sans cela la projection
+  `viewport / Zoom` serait calculée sur la fenêtre entière et l'image serait écrasée. La caméra cadre exactement
+  `largeur × hauteur` unités du monde ;
+- le moteur s'abonne à `Window.ClientSizeChanged` : un redimensionnement de l'utilisateur ne fait que changer le
+  back-buffer (il ne réinitialise pas le périphérique), donc la mise en page est refaite à chaque changement. Une fenêtre
+  réduite à rien garde la dernière mise en page ;
+- quand l'image ne couvre pas la fenêtre, tout le back-buffer est effacé en noir avant les vues, à chaque image ;
+- le jeu ne pose plus le zoom de la caméra : le moteur le possède.
+
+Le contenu en unités du monde (fonds, couches cellulaires, fondus) est dimensionné par la vue de la caméra et ne change
+pas. L'interface MGUI est locale à la vue ; un écran XAML qui place sa fenêtre d'après les bornes de son bureau les
+recalcule dans `XamlUIScreenBase.OnScreenBoundsChanged(Rectangle)`, appelé par `UIRoot.Update` (via
+`ScreenStack.NotifyScreenBounds`, écrans gelés sous un modal compris) quand ces bornes changent.
+
+Limites : seul le mode `IntegerFit`, bandes noires ; le rendu va droit dans le viewport du back-buffer (pas de cible de rendu,
+`BackBufferPresenter` reste non branché) ; l'abonnement à `ClientSizeChanged` et l'effacement des bandes demandent un
+périphérique graphique et se vérifient dans un jeu qui tourne. Decisions: see ADR-0048.
 
 ---
 

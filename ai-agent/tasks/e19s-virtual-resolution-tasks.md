@@ -106,9 +106,10 @@ quand la fenêtre change de taille, en temps réel. Les écrans XAML sont préve
 - Validation faite : rouge d'abord (talons sans effet : le rappel ne reçoit rien, liste vide lue au lieu de [(0, 0, 960, 720)], pour l'écran seul et pour la pile avec un écran gelé sous un modal), puis vert, 5 tests ; les 312 tests de `UI` du moteur restent verts. `XamlUIScreenBase.NotifyScreenBounds(Rectangle)` + `OnScreenBoundsChanged` (protégé, virtuel, sans effet par défaut) ; `ScreenStack.NotifyScreenBounds` parcourt toute la pile, écrans gelés compris ; `UIRoot.Update` l'appelle avec `Desktop.ValidScreenBounds` avant `ScreenStack.Update`. Le branchement dans `UIRoot` (une ligne) n'est pas exécutable sans périphérique graphique.
 - Commit : `feat(ui): screen bounds changed callback on XAML screens (E19.s)`
 
-### ⏳ T2.1 — ADR et documentation
+### ✅ T2.1 — ADR et documentation
 
 - Objectif : ADR-0048 (`Accepted`), `docs/engine/rendering-2d-3d-spaces.md`, index des ADR.
+- Validation faite : ADR-0048 (`Accepted`, en anglais) et sa ligne à l'index ; section « Résolution virtuelle à facteur entier » de `docs/engine/rendering-2d-3d-spaces.md` (écrite en français comme le reste de ce document) avec « Decisions: see ADR-0048 ».
 - Commit : `docs(adr): ADR-0048 virtual resolution with integer fit and black bands`
 
 ---
