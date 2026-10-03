@@ -195,7 +195,7 @@ public class CellularLayerComponent : GameComponent
 
         for (var i = 0; i < Service.LayerCount; i++)
         {
-            if (!Service.TryGetLayerState(i, out var layerState))
+            if (!Service.IsLayerActive(i) || !Service.TryGetLayerState(i, out var layerState))
             {
                 continue;
             }

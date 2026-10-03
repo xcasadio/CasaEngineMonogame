@@ -58,7 +58,7 @@ appels à cette API.
 
 ## Phase 1 — Moteur
 
-### ⏳ K2-1 — Masque des couches, tests d'abord
+### ✅ K2-1 — Masque des couches, tests d'abord
 
 - Objectif : K2-R1 dans les deux services et les deux composants, tests à côté de `ScrollingLayerServiceTests` et
   `CellularLayerServiceTests`.
@@ -67,6 +67,12 @@ appels à cette API.
   seule couche d'identifiant 1 : `SetLayerActive(0, false)` sans effet, `SetLayerActive(1, false)` la fige et la cache ;
   `SetLayers` après un masque : toutes actives. Cellulaire, une couche d'identifiant 0 : `false` puis trois ticks, positions,
   vagues et générateur aléatoire inchangés (aucun tirage), aucune soumission ; `true` : elle reprend.
+- Validation faite : API posée d'abord en talon sans effet (`SetLayerActive` ne fait rien, `IsLayerActive` rend vrai), puis 12 tests
+  (`ScrollingLayerMaskTests`, `CellularLayerMaskTests`) : 8 rouges (le premier assert lu est `IsLayerActive` faux attendu, vrai lu, ou
+  un compteur attendu 0 lu 2, ou une soumission attendue vide non vide), 4 verts d'avance (`SetLayers` et `Clear` remettent tout actif,
+  vrais par construction avec le talon). Puis implémentation : toutes les valeurs écrites tenues, aucune ré-épinglée. `CasaEngine.Tests`
+  2502 sur 2502 (Debug, 2490 avant, +12), aucun test existant touché. Une couche inactive est figée en entier (cadence, défilement
+  automatique, décalages, vagues, positions des cellules, aucun tirage aléatoire) et `IsLayerActive` rend faux pour un index sans couche.
 - Commit : `feat(rendering): scrolling and cellular layers can be switched off, frozen and not drawn`
 
 ### ⏳ K2-1b — ADR

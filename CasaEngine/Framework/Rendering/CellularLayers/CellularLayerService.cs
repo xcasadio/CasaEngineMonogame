@@ -63,6 +63,7 @@ public sealed class CellularLayerService
     private struct LayerRuntime
     {
         public CellularLayerDefinition Definition;
+        public bool Inactive;
         public int AnimFrameTimer;
         public int AnimFrameCounter;
         public byte WaveTick;
@@ -140,6 +141,32 @@ public sealed class CellularLayerService
         LayersVersion++;
     }
 
+    /// <summary>
+    /// Switches on or off every layer whose <see cref="CellularLayerDefinition.LayerId"/> is
+    /// <paramref name="layerId"/> (the identifier the game gave the layer, not its place in the array). An
+    /// inactive layer is frozen - <see cref="Advance"/> moves none of its state (cadence, wave tick, cell
+    /// positions) and draws no value from the random stream for it - and
+    /// <see cref="Application.Components.CellularLayerComponent"/> submits none of its cells. An identifier
+    /// no layer carries is ignored. <see cref="SetLayers"/> and <see cref="Clear"/> make every layer active again.
+    /// </summary>
+    public void SetLayerActive(int layerId, bool active)
+    {
+        for (var i = 0; i < _layers.Length; i++)
+        {
+            if (_layers[i].Definition.LayerId == layerId)
+            {
+                _layers[i].Inactive = !active;
+            }
+        }
+    }
+
+    /// <summary>False when the layer at <paramref name="index"/> was switched off by <see cref="SetLayerActive"/>
+    /// (also false for an index with no layer).</summary>
+    public bool IsLayerActive(int index)
+    {
+        return (uint)index < (uint)_layers.Length && !_layers[index].Inactive;
+    }
+
     /// <summary>Pushes the per-map <c>WaveLut</c> (a copy is kept). An empty span is a valid push - it
     /// reproduces the original's own defensive early exit on every <see cref="CellularCellType.WaveX"/>
     /// cell (docs/plan-e9d-mode-cellulaire.md §1.5 ter).</summary>
@@ -195,7 +222,10 @@ public sealed class CellularLayerService
         {
             for (var i = 0; i < _layers.Length; i++)
             {
-                AdvanceLayerOneTick(ref _layers[i], _waveLut, LastPushedCameraX, LastPushedCameraY, nextRandomUInt32);
+                if (!_layers[i].Inactive)
+                {
+                    AdvanceLayerOneTick(ref _layers[i], _waveLut, LastPushedCameraX, LastPushedCameraY, nextRandomUInt32);
+                }
             }
         }
 

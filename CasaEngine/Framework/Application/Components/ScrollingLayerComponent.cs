@@ -211,7 +211,7 @@ public class ScrollingLayerComponent : GameComponent
 
         for (var i = 0; i < Service.LayerCount; i++)
         {
-            if (!Service.TryGetLayerState(i, out var state))
+            if (!Service.IsLayerActive(i) || !Service.TryGetLayerState(i, out var state))
             {
                 continue;
             }
