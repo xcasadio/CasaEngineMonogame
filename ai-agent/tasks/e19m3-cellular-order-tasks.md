@@ -89,12 +89,16 @@ fois), l'ordre de dessin des cellules d'une couche (la cellule 0 dessus).
   `CellularLayers`, aucun test existant touché.
 - Commit : `fix(rendering): type-0 cells use a truncated parallax factor`
 
-### ⏳ M3-1c — Cellule 0 dessinée dessus (M3-R3), tests d'abord
+### ✅ M3-1c — Cellule 0 dessinée dessus (M3-R3), tests d'abord
 
 - Valeurs écrites : trois cellules → `LocalSortOffset` 0, −1, −2 et des `CompareTo` strictement ordonnés (aujourd'hui tous 0) ;
   `[Normal, ScriptTrack, Normal]` → décalages 0 et −2 ; garde : couche 0 (`OrderInLayer` 1) et couche 1 (`OrderInLayer` 0), trois
   cellules chacune → toute clé de la couche 1 se trie avant toute clé de la couche 0 ; après `FillVertices`, l'ordre des cellules
   est 2, 1, 0 (aujourd'hui 0, 1, 2).
+- Validation faite : `CellularLayerCellOrderTests` (4 tests). Rouge lu sur le code d'avant : décalages 0, 0, 0 (attendu 0, −1, −2) ;
+  `[Normal, ScriptTrack, Normal]` décalage 0 (attendu −2 pour la seconde entrée) ; après `FillVertices`, centres en x
+  −52, −42, −32 (ordre 0, 1, 2 ; attendu −32, −42, −52, soit 2, 1, 0 : le centre vaut `x − 160 + 8`) ; la garde entre couches est
+  verte d'avance. Vert après : 72 sur 72 aux tests `CellularLayer*`, aucun test existant touché.
 - Commit : `fix(rendering): cell 0 of a cellular layer is drawn on top`
 
 ### ⏳ M3-2 — Docs et ADR-0052

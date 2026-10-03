@@ -206,7 +206,6 @@ public class CellularLayerComponent : GameComponent
             // D6: the render pass is derived from Ground, exactly like the DLL already routes the
             // sibling mechanism's own layers (AlundraBackdropStage.BuildDefinitions).
             var pass = definition.Ground ? RenderPass2D.Effects : RenderPass2D.Background;
-            var sortKey = new RenderSortKey2D((int)pass, definition.SortingLayer, definition.OrderInLayer, 0, 0, 0, definition.LayerId);
             var layerZ = pass == RenderPass2D.Background
                 ? cameraTarget.Z - configuration.BackgroundDepth
                 : cameraTarget.Z;
@@ -220,6 +219,11 @@ public class CellularLayerComponent : GameComponent
                 }
 
                 var cellDefinition = definition.Cells[c];
+
+                // The original inserts each cell at the head of the same ordering-table slot, so cell 0 ends up drawn
+                // last, on top: one key per cell, the offset falling with the index (ADR-0052). The offset follows the
+                // cell index, not the submission count, and the layer-level fields still compare first.
+                var sortKey = new RenderSortKey2D((int)pass, definition.SortingLayer, definition.OrderInLayer, 0, 0, -c, definition.LayerId);
                 var sheet = cellDefinition.PalDex < sheets.Length ? sheets[cellDefinition.PalDex] : null;
                 if (sheet == null)
                 {
