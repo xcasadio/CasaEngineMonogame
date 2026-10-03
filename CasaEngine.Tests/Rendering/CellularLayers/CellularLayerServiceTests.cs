@@ -484,7 +484,7 @@ public class CellularLayerServiceTests
 
         Assert.True(service.TryGetLayerState(0, out var layerState));
         Assert.Equal(0, layerState.AnimFrameTimer);
-        Assert.Equal((byte)0, layerState.WaveTick);
+        Assert.Equal((byte)5, layerState.WaveTick); // the wave counter is the service's: a reset does not touch it (ADR-0052).
         // The cell has not been re-advanced yet, so ShouldDraw/DrawX/DrawY are back to the runtime
         // struct's own defaults - only a fresh Advance() re-populates them, seeded from X0/Y0.
         service.SetFrame(0, 0, 0, Vector3.Zero);

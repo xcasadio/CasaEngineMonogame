@@ -63,7 +63,7 @@ fois), l'ordre de dessin des cellules d'une couche (la cellule 0 dessus).
 
 ## Phase 1 — Moteur
 
-### ⏳ M3-1a — Compteur des vagues global (M3-R1), tests d'abord
+### ✅ M3-1a — Compteur des vagues global (M3-R1), tests d'abord
 
 - Valeurs écrites (table des vagues `lut[i] = i`, `BWavePhase` 1, `BWaveWeight` 128, cellule de vague `X0 = Y0 = 50`, donc
   `DrawX = 42 + compteur`) : `SetLayers`, 3 ticks, `SetLayers`, 1 tick → 4 / 46 (aujourd'hui 1 / 43) ; 2 ticks, `Clear`, 3 ticks,
@@ -72,6 +72,11 @@ fois), l'ordre de dessin des cellules d'une couche (la cellule 0 dessus).
   masque, 3 ticks, reprise, 1 tick → 5 / 47 (2 / 44) ; `SetLayers(L)`, 1 tick, `SetLayers([])`, 4 ticks, `SetLayers(L)`, 1 tick →
   6 / 48 (1 / 43).
 - Tests existants touchés : voir la liste fermée.
+- Validation faite : nouveau fichier `CellularLayerWaveCounterTests` (6 tests) et les cinq assertions de la liste fermée. Rouge lu
+  sur le code d'avant, égal aux valeurs « aujourd'hui » écrites : 1 / 43 (recharge, `Clear`, remise à zéro, liste vide, couche 0
+  masquée), 2 / 44 (reprise du masque, avec la table), `:122` attendu 3 lu 1, `:133` attendu 2 lu 0, `:93` attendu 4 lu 1,
+  `:487` attendu 5 lu 0 ; `:101` n'est pas atteint tant que `:93` échoue (valeur d'aujourd'hui 2, écrite au plan). Vert après :
+  61 sur 61 aux tests `CellularLayers`.
 - Commit : `fix(rendering): one global wave counter like the original`
 
 ### ⏳ M3-1b — Parallaxe tronquée du type 0 (M3-R2), tests d'abord

@@ -70,11 +70,15 @@ public sealed class CellularLayerService
         public bool Inactive;
         public int AnimFrameTimer;
         public int AnimFrameCounter;
-        public byte WaveTick;
         public CellRuntime[] Cells;
     }
 
     private LayerRuntime[] _layers = System.Array.Empty<LayerRuntime>();
+
+    // The one wave counter of the original (word 0x800C48C4, shared by both layers): +1 per tick before the layers, only
+    // while the map has a backdrop, never reset (ADR-0052). Only its low 8 bits reach a wave index, hence a byte.
+    private byte _waveTick;
+    private bool _hasBackdrop;
     private int[] _waveLut = System.Array.Empty<int>();
     private CellularLayerConfiguration _configuration;
 
@@ -142,13 +146,14 @@ public sealed class CellularLayerService
         }
 
         _layers = newLayers;
+        _hasBackdrop = true;
         LayersVersion++;
     }
 
     /// <summary>
     /// Switches on or off every layer whose <see cref="CellularLayerDefinition.LayerId"/> is
     /// <paramref name="layerId"/> (the identifier the game gave the layer, not its place in the array). An
-    /// inactive layer is frozen - <see cref="Advance"/> moves none of its state (cadence, wave tick, cell
+    /// inactive layer is frozen - <see cref="Advance"/> moves none of its state (cadence, cell
     /// positions) and draws no value from the random stream for it - and
     /// <see cref="Application.Components.CellularLayerComponent"/> submits none of its cells. An identifier
     /// no layer carries is ignored. <see cref="SetLayers"/> and <see cref="Clear"/> make every layer active again.
@@ -184,6 +189,7 @@ public sealed class CellularLayerService
     public void Clear()
     {
         _layers = System.Array.Empty<LayerRuntime>();
+        _hasBackdrop = false;
         _waveLut = System.Array.Empty<int>();
         FramesPushed = 0;
         PendingTicks = 0;
@@ -213,8 +219,9 @@ public sealed class CellularLayerService
 
     /// <summary>
     /// Consumes the pending frame: for each of <see cref="PendingTicks"/> ticks, for every layer, in
-    /// the original's own per-frame order - cadence first (<c>AnimFrameTimer</c>/<c>AnimFrameCounter</c>/
-    /// <c>WaveTick</c>), then every cell in definition order. <paramref name="nextRandomUInt32"/> yields the
+    /// the original's own per-frame order - the service's wave counter first (once per tick, before the layers, while
+    /// layers were set since the last <see cref="Clear"/>; ADR-0052), then per layer the cadence
+    /// (<c>AnimFrameTimer</c>/<c>AnimFrameCounter</c>), then every cell in definition order. <paramref name="nextRandomUInt32"/> yields the
     /// next value of the C library <c>rand()</c> of the original, 0 to 0x7FFF (ADR-0050); it is called
     /// only when a <see cref="CellularCellType.FallRespawn"/> cell actually respawns this tick, once per
     /// respawn, and the new abscissa is that value divided by 102.
@@ -225,11 +232,16 @@ public sealed class CellularLayerService
 
         for (var tick = 0; tick < ticks; tick++)
         {
+            if (_hasBackdrop)
+            {
+                _waveTick = unchecked((byte)(_waveTick + 1));
+            }
+
             for (var i = 0; i < _layers.Length; i++)
             {
                 if (!_layers[i].Inactive)
                 {
-                    AdvanceLayerOneTick(ref _layers[i], _waveLut, LastPushedCameraX, LastPushedCameraY, nextRandomUInt32);
+                    AdvanceLayerOneTick(ref _layers[i], _waveLut, _waveTick, LastPushedCameraX, LastPushedCameraY, nextRandomUInt32);
                 }
             }
         }
@@ -238,7 +250,7 @@ public sealed class CellularLayerService
         HasPendingFrame = false;
     }
 
-    private static void AdvanceLayerOneTick(ref LayerRuntime layer, int[] waveLut, int cameraX, int cameraY, System.Func<uint> nextRandomUInt32)
+    private static void AdvanceLayerOneTick(ref LayerRuntime layer, int[] waveLut, byte waveTick, int cameraX, int cameraY, System.Func<uint> nextRandomUInt32)
     {
         ref readonly var definition = ref layer.Definition;
 
@@ -254,8 +266,6 @@ public sealed class CellularLayerService
 
             layer.AnimFrameTimer = 0;
         }
-
-        layer.WaveTick = unchecked((byte)(layer.WaveTick + 1));
 
         var cellCount = System.Math.Min(layer.Cells.Length, CellMax);
 
@@ -291,7 +301,7 @@ public sealed class CellularLayerService
                         break;
                     }
 
-                    AdvanceWaveXCell(ref cellRuntime, in cellDefinition, in definition, waveLut, layer.WaveTick);
+                    AdvanceWaveXCell(ref cellRuntime, in cellDefinition, in definition, waveLut, waveTick);
                     break;
             }
         }
@@ -507,7 +517,7 @@ public sealed class CellularLayerService
 
         ref readonly var layer = ref _layers[layerIndex];
         var phase = ComputePhase(layer.AnimFrameCounter, layer.Definition.AnimNum);
-        state = new CellularLayerState(layer.AnimFrameTimer, layer.AnimFrameCounter, phase, layer.WaveTick);
+        state = new CellularLayerState(layer.AnimFrameTimer, layer.AnimFrameCounter, phase, _waveTick);
         return true;
     }
 
@@ -558,7 +568,6 @@ public sealed class CellularLayerService
             ref var layer = ref _layers[i];
             layer.AnimFrameTimer = 0;
             layer.AnimFrameCounter = 0;
-            layer.WaveTick = 0;
 
             for (var c = 0; c < layer.Cells.Length; c++)
             {

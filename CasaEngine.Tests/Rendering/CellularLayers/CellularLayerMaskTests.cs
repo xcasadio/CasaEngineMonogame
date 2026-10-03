@@ -13,8 +13,8 @@ namespace CasaEngine.Tests.Rendering.CellularLayers;
 
 /// <summary>
 /// <see cref="CellularLayerService.SetLayerActive"/> (plan E19.k2, rule K2-R1): a layer is addressed by its
-/// <see cref="CellularLayerDefinition.LayerId"/>; an inactive layer is frozen (cadence, wave tick, cell
-/// positions, random draws) and is not submitted by <see cref="CellularLayerComponent"/>.
+/// <see cref="CellularLayerDefinition.LayerId"/>; an inactive layer is frozen (cadence, cell positions, random draws;
+/// not the wave counter, which is the service's, ADR-0052) and is not submitted by <see cref="CellularLayerComponent"/>.
 /// </summary>
 public class CellularLayerMaskTests
 {
@@ -73,7 +73,7 @@ public class CellularLayerMaskTests
     }
 
     [Fact]
-    public void SetLayerActive_False_FreezesCadenceWaveTickCellsAndRandomDraws_ThenTrueResumesThem()
+    public void SetLayerActive_False_FreezesCadenceCellsAndRandomDraws_NotTheWaveCounter_ThenTrueResumesThem()
     {
         var service = CreateService(MakeLayer(0));
 
@@ -90,7 +90,15 @@ public class CellularLayerMaskTests
         Tick(service, 3);
 
         var frozen = Snapshot(service, 0);
-        Assert.Equal(afterOne, frozen);
+        // The wave counter is the service's, outside the guarded call of the original: it keeps counting (4), while the
+        // cadence, the cells and the random stream are frozen.
+        Assert.Equal((byte)4, frozen.layer.WaveTick);
+        Assert.Equal(afterOne.layer.AnimFrameTimer, frozen.layer.AnimFrameTimer);
+        Assert.Equal(afterOne.layer.AnimFrameCounter, frozen.layer.AnimFrameCounter);
+        Assert.Equal(afterOne.layer.Phase, frozen.layer.Phase);
+        Assert.Equal(afterOne.normal, frozen.normal);
+        Assert.Equal(afterOne.fall, frozen.fall);
+        Assert.Equal(afterOne.wave, frozen.wave);
         Assert.Equal(1, _randomCalls); // no draw while masked.
 
         service.SetLayerActive(0, true);
@@ -98,7 +106,7 @@ public class CellularLayerMaskTests
         Tick(service, 1);
 
         var resumed = Snapshot(service, 0);
-        Assert.Equal((byte)2, resumed.layer.WaveTick);
+        Assert.Equal((byte)5, resumed.layer.WaveTick);
         Assert.Equal(2, resumed.layer.AnimFrameTimer);
         Assert.Equal(14, resumed.normal.DrawX);
         Assert.Equal(12, resumed.normal.DrawY);
@@ -119,7 +127,7 @@ public class CellularLayerMaskTests
         service.SetLayerActive(1, false);
         Assert.False(service.IsLayerActive(0));
         Tick(service, 2);
-        Assert.Equal((byte)1, Snapshot(service, 0).layer.WaveTick);
+        Assert.Equal((byte)3, Snapshot(service, 0).layer.WaveTick);
     }
 
     [Fact]
@@ -130,7 +138,7 @@ public class CellularLayerMaskTests
         service.SetLayerActive(0, false);
         Tick(service, 2);
 
-        Assert.Equal((byte)0, Snapshot(service, 0).layer.WaveTick);
+        Assert.Equal((byte)2, Snapshot(service, 0).layer.WaveTick);
         Assert.Equal((byte)2, Snapshot(service, 1).layer.WaveTick);
         Assert.Equal(2, _randomCalls); // only layer 1's fall cell drew, once per tick.
     }
