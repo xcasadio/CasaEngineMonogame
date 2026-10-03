@@ -334,8 +334,10 @@ public sealed class CellularLayerService
             }
         }
 
-        var baseX = ComputeCameraBase(cameraX, definition.CamXNum, definition.CamXDen);
-        var baseY = ComputeCameraBase(cameraY, definition.CamYNum, definition.CamYDen);
+        // The factor is truncated once (signed integer Num / Den, 0x8005C0AC..0x8005C158), then multiplied by the
+        // camera (0x8005CB78, 0x8005CBB8): a factor below 1 in absolute value is 0, unlike the type 2 formula.
+        var baseX = definition.CamXDen != 0 ? cameraX * (definition.CamXNum / definition.CamXDen) : 0;
+        var baseY = definition.CamYDen != 0 ? cameraY * (definition.CamYNum / definition.CamYDen) : 0;
 
         // The original draws the position computed BEFORE the wraps (0x8005CCFC / 0x8005CD00 written at
         // 0x8005CDF0 / 0x8005CDF4): the wraps only move the stored position, so on a wrap tick the cell is
@@ -437,6 +439,7 @@ public sealed class CellularLayerService
         cell.ShouldDraw = true;
     }
 
+    // FallRespawn cells only (type 2 of the original, 0x8005D0C4 / 0x8005D0D4): camera * Num / Den every tick.
     private static int ComputeCameraBase(int camera, int factorNum, int factorDenom)
     {
         return factorDenom != 0 ? camera * factorNum / factorDenom : 0;

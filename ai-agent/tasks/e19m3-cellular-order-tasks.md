@@ -79,11 +79,14 @@ fois), l'ordre de dessin des cellules d'une couche (la cellule 0 dessus).
   61 sur 61 aux tests `CellularLayers`.
 - Commit : `fix(rendering): one global wave counter like the original`
 
-### ⏳ M3-1b — Parallaxe tronquée du type 0 (M3-R2), tests d'abord
+### ✅ M3-1b — Parallaxe tronquée du type 0 (M3-R2), tests d'abord
 
 - Valeurs écrites (cellule normale en (100, 100), un tick) : facteur 1/2, caméra (100, 60) → (100, 100) (aujourd'hui (50, 70)) ;
   3/2, caméra (10, 10) → (90, 90) ((85, 85)) ; −1/2, caméra (10, 10) → (100, 100) ((105, 105)) ; gardes : 1/1 caméra (37, 21) →
   (63, 79) et 2/1 caméra (20, 10) → (60, 80) inchangés ; `FallRespawn` 1/2, caméra (100, 60) → (50, 70) inchangé.
+- Validation faite : `CellularLayerParallaxTests` (7 cas). Rouge lu sur le code d'avant, égal aux valeurs « aujourd'hui » : (50, 70),
+  (85, 85), (105, 105) ; les gardes (1/1, 2/1, `FallRespawn`, Den 0) verts d'avance. Vert après : 68 sur 68 aux tests
+  `CellularLayers`, aucun test existant touché.
 - Commit : `fix(rendering): type-0 cells use a truncated parallax factor`
 
 ### ⏳ M3-1c — Cellule 0 dessinée dessus (M3-R3), tests d'abord
