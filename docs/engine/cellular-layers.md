@@ -46,8 +46,11 @@ service.SetFrame(cameraX, cameraY, ticks, cameraTarget);
 
 `SetFrame` **arme** une frame en attente sans rien avancer ; une seconde poussée avant l'`Advance()`
 suivant **écrase** la précédente. `Advance(nextRandomUInt32)` **consomme** la frame : pour chacun des
-`ticks`, pour chaque couche — cadence V (`AnimFrameTimer`/`AnimFrameCounter`), avance du `WaveTick`
-(byte, enroule mod 256), puis chaque cellule dans l'ordre de définition. `nextRandomUInt32` n'est appelé
+`ticks` : d'abord le compteur des vagues du **service** (un seul octet pour toutes les couches, +1 par tick
+avant la boucle des couches dès que `SetLayers` a été appelé depuis le dernier `Clear`, même avec une liste vide ;
+`SetLayers`, `Clear` et `ResetLayerRuntimeState` ne le remettent jamais à 0 et le masque ne le fige pas, ADR-0052),
+puis, pour chaque couche, la cadence V (`AnimFrameTimer`/`AnimFrameCounter`), puis chaque cellule dans l'ordre de
+définition. `nextRandomUInt32` n'est appelé
 que si une cellule `FallRespawn` réapparaît réellement ce tick (voir §6).
 
 Une seule horloge entière ; `ticks = 0` n'avance rien.
@@ -58,7 +61,8 @@ Une seule horloge entière ; `ticks = 0` n'avance rien.
 posX += DX ; posY += DY
 si PeriodX != 0 : stepX = ComputePeriodStepOr(DX, PeriodX) ; si tickX++ > |PeriodX| { posX += stepX ; tickX = 0 }
    (idem en Y avec PeriodY/DY/tickY)
-baseX = CamXDen != 0 ? cameraX * CamXNum / CamXDen : 0   (idem baseY)
+baseX = CamXDen != 0 ? cameraX * (CamXNum / CamXDen) : 0   (idem baseY ; facteur tronqué une fois, division
+                                                            entière signée, ADR-0052 : 1/2 vaut 0)
 sx = posX - baseX ; drawX = sx ; minX = U0 - U1
    si sx < minX       : posX += 320 - minX
    sinon si sx > 319   : posX += -320 + minX
@@ -93,6 +97,9 @@ si sy > 239 {
     posY += -240 + (V0 - V1)
 }
 ```
+
+La parallaxe de `FallRespawn` garde la formule exécutée à chaque tick, `cameraX * CamXNum / CamXDen` (type 2 de
+l'original, ADR-0052), contrairement à `Normal`.
 
 La position dessinée (`drawX`, `drawY`) est celle d'avant l'enroulement en X et d'avant la réapparition
 (`0x8005D2C0`/`0x8005D2C4` écrites en `0x8005D3AC`/`0x8005D3B0`), comme pour `Normal`.
@@ -187,8 +194,17 @@ résolution supplémentaire ici, elle appartient à la DLL.
 
 `SetLayerActive(layerId, active)` éteint ou rallume toute couche dont `LayerId` vaut `layerId` (l'identifiant donné
 par le jeu, pas la position dans le tableau ; un identifiant absent est sans effet). Une couche éteinte est
-**figée** : `Advance` ne touche ni sa cadence, ni son `WaveTick`, ni les positions de ses cellules, et ne tire
-aucune valeur du flux aléatoire pour elle ; `CellularLayerComponent.Submit` n'en soumet aucune cellule. `SetLayers`
+**figée** : `Advance` ne touche ni sa cadence, ni les positions de ses cellules, et ne tire
+aucune valeur du flux aléatoire pour elle (le compteur des vagues, lui, est celui du service et continue de
+compter : ADR-0052 amende ADR-0049 sur ce point) ; `CellularLayerComponent.Submit` n'en soumet aucune cellule. `SetLayers`
 et `Clear` remettent toutes les couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.
 
-Decisions: see [ADR-0049](../decisions/0049-background-layers-can-be-switched-off-by-identifier.md) and [ADR-0050](../decisions/0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md).
+## 14. Ordre de dessin des cellules (E19.m3, ADR-0052)
+
+Chaque cellule reçoit sa propre clé de tri, `LocalSortOffset = -indice` : la cellule 0 est dessinée en dernier, dessus,
+comme dans l'original qui insère chaque cellule en tête du même créneau de sa table d'ordre. L'ordre ne dépend donc pas
+de la stabilité du tri de la file. Les champs de la couche (passe, `SortingLayer`, `OrderInLayer`) se comparent d'abord :
+l'ordre entre couches de valeurs distinctes ne change pas ; deux couches qui partagent ces trois champs verraient leurs
+cellules entrelacées par indice.
+
+Decisions: see [ADR-0049](../decisions/0049-background-layers-can-be-switched-off-by-identifier.md), [ADR-0052](../decisions/0052-cellular-wave-counter-truncated-type-0-parallax-and-cell-order.md) and [ADR-0050](../decisions/0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md).

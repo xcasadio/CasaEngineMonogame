@@ -32,8 +32,10 @@ public struct CellularCellDefinition
 
     public int Y0;
 
-    /// <summary>Camera parallax factor on X, per cell: <c>cameraX * CamXNum / CamXDen</c>, truncated.
-    /// A zero denominator disables this axis' parallax contribution.</summary>
+    /// <summary>Camera parallax factor on X, per cell. A <see cref="CellularCellType.Normal"/> cell uses the factor
+    /// truncated once, <c>cameraX * (CamXNum / CamXDen)</c> (integer division); a <see cref="CellularCellType.FallRespawn"/>
+    /// cell uses <c>cameraX * CamXNum / CamXDen</c> (ADR-0052). A zero denominator disables this axis' parallax
+    /// contribution.</summary>
     public int CamXNum;
 
     public int CamXDen;

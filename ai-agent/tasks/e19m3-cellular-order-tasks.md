@@ -101,11 +101,14 @@ fois), l'ordre de dessin des cellules d'une couche (la cellule 0 dessus).
   verte d'avance. Vert après : 72 sur 72 aux tests `CellularLayer*`, aucun test existant touché.
 - Commit : `fix(rendering): cell 0 of a cellular layer is drawn on top`
 
-### ⏳ M3-2 — Docs et ADR-0052
+### ✅ M3-2 — Docs et ADR-0052
 
 - Docs : `CellularLayerState.cs`, `CellularLayerService.cs` (résumés), `CellularCellDefinition.cs`, `cellular-layers.md` (§3, §4,
   §5, §13) ; ADR-0052 (`Accepted`), ADR-0049 reçoit « Amended by ADR-0052 » ; ligne dans `docs/decisions/README.md` et dans
   `ai-agent/README.md`.
+- Validation faite : ADR-0052 (`Accepted`) et sa ligne à l'index ; ADR-0049 « Amended by ADR-0052 » ; `cellular-layers.md` §3, §4, §5,
+  §13 et nouveau §14 ; commentaires de `CellularCellDefinition`, `CellularLayerService`, `CellularLayerState`. `CasaEngine.Tests`
+  2550 sur 2550 (Debug, build séparé), aucun échec.
 - Commit : `docs(adr): ADR-0052 cellular wave counter, truncated type-0 parallax and cell order`
 
 ---

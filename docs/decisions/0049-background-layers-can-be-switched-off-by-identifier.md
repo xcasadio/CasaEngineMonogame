@@ -1,6 +1,6 @@
 # ADR-0049: Background layers can be switched off by identifier, frozen and not drawn
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0052 (the wave tick is not frozen by the mask; the rest stands)
 - **Date**: 2026-10-03 (plan E19.k2 read until READY on 2026-10-03; work in the engine authorized by the author on 2026-10-03)
 - **Source**: this chantier: `ai-agent/tasks/e19k2-layer-mask-tasks.md` (rule K2-R1). Parent repository:
   `docs/plan-e19-opcodes.md`, step E19.k2 (the background-layer mask opcode of the original game). Complements the scrolling
