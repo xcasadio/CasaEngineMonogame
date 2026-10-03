@@ -75,9 +75,10 @@ appels à cette API.
   automatique, décalages, vagues, positions des cellules, aucun tirage aléatoire) et `IsLayerActive` rend faux pour un index sans couche.
 - Commit : `feat(rendering): scrolling and cellular layers can be switched off, frozen and not drawn`
 
-### ⏳ K2-1b — ADR
+### ✅ K2-1b — ADR
 
 - Objectif : ADR du moteur (le prochain numéro libre), `Accepted`, et sa ligne à l'index.
+- Validation faite : ADR-0049 (`Accepted`, en anglais) et sa ligne à l'index ; sections ajoutées à `docs/engine/scrolling-layers.md` (§9) et `docs/engine/cellular-layers.md` (§13), et la limite devenue fausse du premier retirée.
 - Commit : `docs(adr): ADR-0049 background layers can be switched off, frozen and not drawn`
 
 ---

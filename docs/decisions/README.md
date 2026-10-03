@@ -62,3 +62,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
 | [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
 | [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted | 2026-10-03 |
+| [ADR-0049](0049-background-layers-can-be-switched-off-by-identifier.md) | Background layers can be switched off by identifier, frozen and not drawn | Accepted | 2026-10-03 |

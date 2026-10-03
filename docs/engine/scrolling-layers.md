@@ -126,5 +126,13 @@ jamais la valeur brute du compteur, dès qu'un chargement de couche est dégrad�
 - **`Submit` ne soumet rien sans poussée reçue** (`FramesPushed == 0`) : l'aperçu éditeur, qui ne fait
   jamais tourner la DLL (`UpdateGameplayScripts = false`), ne dessine donc aucun fond — comportement
   inchangé, même limite que [screen-effects.md](screen-effects.md).
-- Les comportements jamais portés par la DLL (activation par couche à l'exécution, décalage scripté,
-  marcheur de teinte, mode cellulaire) restent hors de ce mécanisme.
+- Les comportements jamais portés par la DLL (décalage scripté, marcheur de teinte, mode cellulaire) restent
+  hors de ce mécanisme.
+
+## 9. Masque d'une couche (E19.k2, ADR-0049)
+
+`SetLayerActive(stableId, active)` éteint ou rallume toute couche dont `StableId` vaut `stableId` (l'identifiant
+donné par le jeu, pas la position dans le tableau ; un identifiant absent est sans effet). Une couche éteinte est
+**figée** : `Advance` ne touche ni sa cadence d'animation, ni ses accumulateurs de défilement, ni ses décalages
+enroulés ; `ScrollingLayerComponent.Submit` n'en soumet aucun quad. `SetLayers` et `Clear` remettent toutes les
+couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.

@@ -168,3 +168,11 @@ résolution supplémentaire ici, elle appartient à la DLL.
 - **`Submit` ne soumet rien sans poussée reçue** (`FramesPushed == 0`).
 - Les 8 champs `Cellular`/16 champs `Cell` sortis par le convertisseur sont copiés 1:1 ; les deux octets
   morts de l'original (`Unused0`/`Unused1`) ne sont pas représentés.
+
+## 13. Masque d'une couche (E19.k2, ADR-0049)
+
+`SetLayerActive(layerId, active)` éteint ou rallume toute couche dont `LayerId` vaut `layerId` (l'identifiant donné
+par le jeu, pas la position dans le tableau ; un identifiant absent est sans effet). Une couche éteinte est
+**figée** : `Advance` ne touche ni sa cadence, ni son `WaveTick`, ni les positions de ses cellules, et ne tire
+aucune valeur du flux aléatoire pour elle ; `CellularLayerComponent.Submit` n'en soumet aucune cellule. `SetLayers`
+et `Clear` remettent toutes les couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.
