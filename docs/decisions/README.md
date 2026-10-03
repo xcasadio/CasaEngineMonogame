@@ -64,3 +64,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted | 2026-10-03 |
 | [ADR-0049](0049-background-layers-can-be-switched-off-by-identifier.md) | Background layers can be switched off by identifier, frozen and not drawn | Accepted | 2026-10-03 |
 | [ADR-0050](0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md) | Cellular layers follow the original's period, drawn position and C library rand | Accepted | 2026-10-03 |
+| [ADR-0051](0051-psx-semi-transparency-of-sprites-as-two-disjoint-passes.md) | PSX semi-transparency of sprites as two disjoint passes | Accepted | 2026-10-03 |

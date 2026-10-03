@@ -154,10 +154,11 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
   une entrée de plus en tête de file (12 001 entrées en tout, 12 000 sprites de texel plus le fond). Doc : `docs/engine/sprite-psx-semi-transparency.md`.
 - Commit : `feat(demos): PSX semi-transparency and sprite queue capacity demos`
 
-### ⏳ E4 — ADR-0051
+### ✅ E4 — ADR-0051
 
 - Objectif : ADR du moteur, `Accepted` (anglais), ligne à l'index `docs/decisions/README.md` (D-E19-52 de l'auteur : champ de
   `SpriteData`, deux dessins disjoints par fenêtres d'alpha, états de mélange, couleur du mode 3, capacité).
+- Validation faite : ADR-0051 (`Accepted`, en anglais) et sa ligne à l'index ; `docs/engine/sprite-psx-semi-transparency.md` y renvoie.
 - Commit : `docs(adr): ADR-0051 PSX semi-transparency of sprites as two disjoint passes`
 
 ---
