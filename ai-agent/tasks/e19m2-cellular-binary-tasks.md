@@ -99,9 +99,10 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   tirage aurait laissé des tests rouges).
 - Commit : `fix(rendering): cellular layers follow the original's period, drawn position and C library rand respawn`.
 
-### ⏳ M2-2b — ADR-0050
+### ✅ M2-2b — ADR-0050
 
 - Objectif : ADR du moteur, `Accepted` (anglais), ligne à l'index `docs/decisions/README.md`.
+- Validation faite : ADR-0050 (`Accepted`, en anglais), sa ligne à l'index et « Decisions: see » dans `docs/engine/cellular-layers.md`.
 - Commit : `docs(adr): ADR-0050 cellular layers follow the original's period, drawn position and C library rand`
 
 ---

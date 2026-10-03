@@ -190,3 +190,5 @@ par le jeu, pas la position dans le tableau ; un identifiant absent est sans eff
 **figée** : `Advance` ne touche ni sa cadence, ni son `WaveTick`, ni les positions de ses cellules, et ne tire
 aucune valeur du flux aléatoire pour elle ; `CellularLayerComponent.Submit` n'en soumet aucune cellule. `SetLayers`
 et `Clear` remettent toutes les couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.
+
+Decisions: see [ADR-0049](../decisions/0049-background-layers-can-be-switched-off-by-identifier.md) and [ADR-0050](../decisions/0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md).
