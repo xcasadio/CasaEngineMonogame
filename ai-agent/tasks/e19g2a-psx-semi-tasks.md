@@ -132,7 +132,7 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
   `VertexBuffer` lui-même n'est observable que sur périphérique : démo de capacité (E3).
 - Commit : `feat(rendering): the sprite queue grows past 10000 entries`
 
-### ⏳ E3 — Démos du moteur (modes et capacité)
+### ✅ E3 — Démos du moteur (modes et capacité)
 
 - Objectif : preuve sur périphérique de G2a-R1 à G2a-R3. Scène « PSX sprite semi-transparency » : fond uni (100, 150, 200), un sprite
   de chaque mode (`AnimatedSpriteComponent` + `DepthSortable2DComponent`), texel opaque (60, 40, 20), texel STP (120, 80, 40, alpha 128),
@@ -143,6 +143,15 @@ La file de `SpriteRendererComponent` peut dépasser 10 000 entrées (tampon de s
   - opaque → (60, 40, 20) ; `Mode0` → (110, 115, 120) ; `Mode1` → (220, 230, 240) ; `Mode2` → (0, 70, 160) ; `Mode3` →
     (130, 170, 210) ; transparent → (100, 150, 200) ;
   - capacité : (0, 255, 0).
+- Validation faite : démos `PSX sprite semi-transparency` et `Sprite queue capacity` (`CasaEngine.Demos/Demos/PsxSemiTransparency/`,
+  sonde `BackBufferProbe` : `GetBackBufferData` en processus, projection monde vers écran par `Viewport.Project`, comparaison à ±1 par
+  canal RVB), lancées depuis `CasaEngine.Demos/` (Debug, fenêtre 1024 × 768). Modes : 15 contrôles sur 15 passent, pixels lus égaux aux
+  valeurs écrites d'avance : opaque (60, 40, 20) ; `Mode0` (110, 115, 120) (alpha de back-buffer 191, comme prévu) ; `Mode1` (220, 230,
+  240) ; `Mode2` (0, 70, 160) ; `Mode3` (130, 170, 210) ; transparent (100, 150, 200) ; témoin sans mode (STP dessiné opaque) (120, 80,
+  40) ; image `scratchpad/e19g2a-exec/demo-out/psx-modes.png`. Capacité : 12 001 entrées en file, pixel témoin (702, 469) lu (0, 255, 0),
+  fond voisin (100, 150, 200) ; image `psx-capacity.png`. Rouge de la capacité sur le code d'E1 (sans croissance) : `IndexOutOfRangeException`
+  à chaque image dans `log.txt`, ni capture ni lecture (le jeu tourne sans rien dessiner de la file) ; vert avec E2. Écart : le fond est
+  une entrée de plus en tête de file (12 001 entrées en tout, 12 000 sprites de texel plus le fond). Doc : `docs/engine/sprite-psx-semi-transparency.md`.
 - Commit : `feat(demos): PSX semi-transparency and sprite queue capacity demos`
 
 ### ⏳ E4 — ADR-0051
