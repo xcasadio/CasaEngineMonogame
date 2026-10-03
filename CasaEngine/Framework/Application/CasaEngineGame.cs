@@ -71,6 +71,14 @@ public class CasaEngineGame : Game, IObservableUpdate
     public MaterialCache MaterialCache { get; }
     public RenderTargetPool RenderTargetPool { get; private set; }
     public GameplayExecutionPolicy ExecutionPolicy { get; set; } = GameplayExecutionPolicies.Runtime;
+
+    /// <summary>
+    /// The project's virtual resolution (ADR-0048) when this game manages its own window, null when the project has
+    /// none or an external host (the editor) manages the views.
+    /// </summary>
+    public VirtualResolutionSettings ActiveVirtualResolution
+        => ExecutionPolicy.UseExternalViewManagement ? null : RuntimeContext.ProjectSettings.VirtualResolution;
+
     private readonly MaterialDependencyIndex _materialDependencyIndex = new();
 
     // ---- Multi-view render pipeline ----
@@ -296,8 +304,9 @@ public class CasaEngineGame : Game, IObservableUpdate
         // Single full-screen backbuffer view: auto-resize both the surface and its camera.
         if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
         {
-            single.ViewportRect = new Rectangle(0, 0, width, height);
-            bbViews[0].Camera?.OnScreenResized(width, height);
+            // With a virtual resolution the view is the integer-fit image and its camera frames the virtual
+            // resolution; this runs after World.OnScreenResized, which sized every camera to the window.
+            VirtualResolutionRuntime.ResizeSingleBackBufferView(bbViews[0], single, width, height, ActiveVirtualResolution);
         }
         else if (GameManager.ViewManager.AutoLayoutMode != null)
         {
@@ -323,6 +332,28 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             v.Invalidate();
         }
+    }
+
+    /// <summary>
+    /// A user resize of the window only changes the back buffer and raises <c>ClientSizeChanged</c> (it never resets
+    /// the device), so the virtual resolution (ADR-0048) follows the window from here. Without a virtual resolution
+    /// nothing happens, as before.
+    /// </summary>
+    private void OnWindowClientSizeChanged(object sender, EventArgs e)
+    {
+        if (ActiveVirtualResolution == null)
+        {
+            return;
+        }
+
+        var bounds = Window.ClientBounds;
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            // Minimized: keep the last layout.
+            return;
+        }
+
+        OnScreenResized(bounds.Width, bounds.Height);
     }
 
     /// <summary>
@@ -438,6 +469,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
             Window.AllowUserResizing = RuntimeContext.ProjectSettings.AllowUserResizing;
+            Window.ClientSizeChanged += OnWindowClientSizeChanged;
             IsFixedTimeStep = RuntimeContext.ProjectSettings.IsFixedTimeStep;
             IsMouseVisible = RuntimeContext.ProjectSettings.IsMouseVisible;
         }
@@ -603,6 +635,7 @@ public class CasaEngineGame : Game, IObservableUpdate
                 }
                 else
                 {
+                    ClearVirtualResolutionBands(views);
                     _renderPipeline.Render(views, (float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
 
@@ -635,6 +668,25 @@ public class CasaEngineGame : Game, IObservableUpdate
                     (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
         }
+    }
+
+    /// <summary>
+    /// With a virtual resolution whose image does not cover the window, clears the WHOLE back buffer to black before
+    /// the views draw, every frame (ADR-0048). The view then only paints its own rectangle.
+    /// </summary>
+    private void ClearVirtualResolutionBands(IReadOnlyList<RenderView> views)
+    {
+        var pp = GraphicsDevice.PresentationParameters;
+        if (!VirtualResolutionRuntime.ShouldClearBands(views, ActiveVirtualResolution, pp.BackBufferWidth, pp.BackBufferHeight))
+        {
+            return;
+        }
+
+        // GraphicsDevice.Clear is not guaranteed to ignore the viewport the previous frame left behind.
+        var previousViewport = GraphicsDevice.Viewport;
+        GraphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
+        GraphicsDevice.Clear(Color.Black);
+        GraphicsDevice.Viewport = previousViewport;
     }
 
     /// <summary>

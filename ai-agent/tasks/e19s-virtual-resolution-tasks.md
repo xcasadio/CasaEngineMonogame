@@ -88,13 +88,14 @@ quand la fenêtre change de taille, en temps réel. Les écrans XAML sont préve
 - Validation faite : rouge d'abord (propriété ajoutée, lecture non branchée : le réglage lu rendait null, les cinq déclarations invalides ne levaient rien), puis vert, 7 tests de plus (17 sur 17 avec les réglages voisins). Clé `VirtualResolution` : `Width`, `Height`, `Mode` (défaut `IntegerFit`) ; absent = null, écrit seulement quand présent ; invalide = `InvalidDataException` qui nomme la clé.
 - Commit : `feat(project): virtual resolution project setting (E19.s)`
 
-### ⏳ T1.3 — Application à la vue, au redimensionnement et aux bandes
+### ✅ T1.3 — Application à la vue, au redimensionnement et aux bandes
 
 - Objectif : création de la vue, `OnScreenResized`, abonnement à `ClientSizeChanged`, effacement des bandes.
 - Fichiers : `VirtualResolutionLayout.cs` (application à une surface et une caméra), `DefaultRuntimeViewBootstrapper.cs`,
   `CasaEngineGame.cs`, tests.
 - Validation : fenêtre 1920 × 1080, `k` 4 → rectangle (320, 60, 1280, 960), viewport de la caméra 1280 × 960, aire visible
   320 × 240, à la création comme après un redimensionnement ; 400 × 200 → viewport 320 × 200 ; réglage absent = inerte ; prédicat des bandes.
+- Validation faite : rouge d'abord (talons sans effet : par exemple 1920 × 1080 → rectangle (0, 0, 1920, 1080) lu au lieu de (320, 60, 1280, 960), 400 × 200 → (0, 0, 1280, 960) lu au lieu de (40, 0, 320, 200), prédicat des bandes toujours faux), puis vert : 9 tests (vue à la création, réglage absent, redimensionnements 1920 × 1080 / 1280 × 960 / 640 × 480 / 400 × 200, autre sorte de caméra, prédicat des bandes). `CasaEngine.MonoGame.sln` se construit sans erreur. Les tests passent par les points d'appui statiques que `CasaEngineGame` et `DefaultRuntimeViewBootstrapper` appellent ; le jeu lui-même (abonnement à `ClientSizeChanged`, `GraphicsDevice.Clear` des bandes) exige un périphérique graphique et n'est pas construit en test : à voir à la recette en jeu du plan parent (S6).
 - Commit : `feat(runtime): apply the virtual resolution to the view, its camera and the bands (E19.s)`
 
 ### ⏳ T1.4 — Rappel des bornes pour les écrans XAML
