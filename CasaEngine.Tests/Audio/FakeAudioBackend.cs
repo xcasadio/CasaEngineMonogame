@@ -156,7 +156,20 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
     {
-        if (IsDisposed || !IsAvailable || !SupportsStreaming || ActiveVoiceCount >= VoiceCapacity)
+        if (IsDisposed || !IsAvailable || !SupportsStreaming)
+        {
+            RefusedPlayCount++;
+            return AudioVoiceHandle.None;
+        }
+
+        // Same observable contract as the real backends: a bad channel count is a developer
+        // error, a non-positive rate is refused like any stream the platform cannot play.
+        if (channelCount is not (1 or 2))
+        {
+            throw new ArgumentOutOfRangeException(nameof(channelCount), channelCount, "Only mono and stereo are supported.");
+        }
+
+        if (sampleRate <= 0 || ActiveVoiceCount >= VoiceCapacity)
         {
             RefusedPlayCount++;
             return AudioVoiceHandle.None;
@@ -194,6 +207,8 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public void SubmitBuffer(AudioVoiceHandle voice, byte[] buffer, int offset, int count)
     {
+        ArgumentNullException.ThrowIfNull(buffer);
+
         if (!TryGetSlot(voice, out var slot) || !slot.IsStreaming || count <= 0)
         {
             return;

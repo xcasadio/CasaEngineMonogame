@@ -386,7 +386,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   réveils de la boucle min 10,05 / moy 15,55 / max 17,13 ms (granularité de la minuterie Windows,
   `timeBeginPeriod` non appelé) : marge d'environ 2,5 réveils, à confirmer sous stress en T1.6.
 
-### ⏳ T1.4 — Backend logiciel et suite de conformité
+### ✅ T1.4 — Backend logiciel et suite de conformité
 
 - Objectif : `SoftwareAudioBackend : IAudioBackend`, avec le même contrat observable que le
   backend MonoGame.
@@ -403,6 +403,23 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 - Validation : suite de conformité verte pour les deux backends (capacité, refus sans exception,
   handles périmés, états, pause/reprise, streaming et comptes, indisponibilité) ; suite complète verte.
 - Commit : `feat(audio): add the software audio backend behind IAudioBackend`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, table des voix,
+  vidage des évènements et attente bornée relus en session principale. `SoftwareAudioBackend`
+  public (constructeur public sur OpenAL, constructeur interne sur une `IAudioOutput`,
+  diagnostics `UnderrunCount`, `OutputSampleRate`, `LeadMilliseconds`, `DroppedChunkCount`,
+  `DroppedEventCount`). Suite de conformité abstraite, exécutée sur `FakeAudioBackend` et
+  `SoftwareAudioBackend` (sortie hors ligne pilotée par le test). Build : 0 erreur.
+  `CasaEngine.Tests` : 2588/2588 (+65), dont un cycle de jeu sans allocation (0 octet) et un essai de
+  bout en bout `AudioService` → backend logiciel (`PlayClip`, `PlayClipStereo`, recyclage des voix).
+  Écarts tranchés : (1) la suite a révélé trois écarts du faux backend au contrat, corrigés dans
+  `FakeAudioBackend.cs` sans changer d'attente existante — nombre de canaux hors 1–2 → exception,
+  débit ≤ 0 → `None`, buffer nul → `ArgumentNullException` (comme le backend MonoGame ; le faux
+  d'`Alundra.Tests`, dépôt parent, n'est pas touché) ; (2) écarts voulus avec MonoGame : tout débit
+  positif accepté en streaming, seul `PcmAudioClip` est accepté par `Play` ; (3) une voix de
+  streaming arrêtée ne peut pas être relancée par `Start` (le mixeur la libère) ; aucun appelant du
+  moteur ne le fait (`MusicPlayer` et `StereoVoiceMixer` arrêtent puis libèrent). File de commandes
+  pleine : attente bornée à 100 ms puis abandon consigné, sauf `SetVolume`, renvoyé à chaque frame
+  par les fondus, abandonné sans attente avec un journal limité.
 
 ### ⏳ T1.5 — Choix du backend par réglage de projet
 
