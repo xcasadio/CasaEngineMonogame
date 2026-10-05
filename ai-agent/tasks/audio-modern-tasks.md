@@ -352,7 +352,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   surplus est compté dans `DroppedChunkCount`). Anneaux testés sur un seul thread (le thread audio
   vient en T1.3) : à surveiller dans le stress de T1.6.
 
-### ⏳ T1.3 — Sortie OpenAL Soft sur thread audio
+### ✅ T1.3 — Sortie OpenAL Soft sur thread audio
 
 - Objectif : envoyer le rendu du mixeur à la carte son sans code géré bloqué sur le thread
   temps réel d'OpenAL (P2).
@@ -374,6 +374,17 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 - Validation : build ; tests de la comptabilité (file, sous-alimentation) avec une couche native
   simulée ; essai réel en T1.6.
 - Commit : `feat(audio): add an OpenAL Soft output fed from a dedicated audio thread`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, boucle et cycle de vie
+  relus en session principale. Fichiers `internal` sous `CasaEngine/Framework/Audio/Output/`
+  (`IAudioOutput`, `NullAudioOutput`, `OpenAl/OpenAlNative`, `OpenAlAudioOutput`, `IOpenAlStream`,
+  `OpenAlStream`, `OpenAlRefillLoop`) ; constantes reprises des en-têtes d'OpenAL Soft 1.24.3, lignes
+  citées dans `OpenAlNative.cs` ; aucun code `unsafe`. `Licences/OpenAL-Soft.txt` : en-tête puis
+  `COPYING` 1.24.3 recopié tel quel (P8). Build : 0 erreur, aucun avertissement de ces fichiers.
+  `CasaEngine.Tests` : 2523/2523 (+8 : sortie nulle, boucle de remplissage avec une couche OpenAL
+  simulée). Essai ponctuel non commité sur le vrai périphérique (sinus 440 Hz, 3 s) : ouvert,
+  extensions présentes, 48 000 Hz, 4 × 480 trames (40 ms d'avance), **0 sous-alimentation** ;
+  réveils de la boucle min 10,05 / moy 15,55 / max 17,13 ms (granularité de la minuterie Windows,
+  `timeBeginPeriod` non appelé) : marge d'environ 2,5 réveils, à confirmer sous stress en T1.6.
 
 ### ⏳ T1.4 — Backend logiciel et suite de conformité
 
