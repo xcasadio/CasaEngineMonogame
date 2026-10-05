@@ -10,6 +10,9 @@ internal struct MixerVoice
     public bool Paused;
     public bool Looped;
 
+    /// <summary>Index of the bus the voice is mixed into (0 is Master).</summary>
+    public int Bus;
+
     /// <summary>A resident voice reached its end but the event ring was full: retried each block.</summary>
     public bool EndPending;
 

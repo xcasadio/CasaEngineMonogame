@@ -13,11 +13,17 @@ namespace CasaEngine.Framework.Audio;
 /// CI. <see cref="Application.Components.AudioSystemComponent"/> is the thin GameComponent that
 /// drives it from the game loop.
 /// A voice keeps its "base" parameters (what the caller asked for); the volume actually sent to
-/// the backend is that base volume multiplied by the effective gain of its bus.
+/// the backend is that base volume multiplied by the effective gain of its bus, except on a backend with
+/// <see cref="IAudioBusBackend"/> (the software backend): there each voice is routed to its bus, the backend mixes
+/// the bus graph itself and the volume sent is the base volume alone.
 /// </remarks>
 public sealed class AudioService : IDisposable
 {
     private readonly IAudioBackend _backend;
+    private readonly IAudioBusBackend _busBackend;
+    // Per bus of Mixer.Buses (same order): index on the backend, or -1 when it is not on it (routed to Master).
+    private readonly List<int> _backendBusIndices = new();
+    private int _syncedBusVersion = -1;
     private readonly List<VoiceEntry> _voices = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
     private readonly AudioLogThrottle _missingClipLog = new();
@@ -33,6 +39,8 @@ public sealed class AudioService : IDisposable
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
+        _busBackend = _backend as IAudioBusBackend;
+        SyncBuses();
         // Real backends stream music from the background worker; test and null backends read inline.
         Music = new MusicPlayer(this, _backend is Backends.SoftwareAudioBackend or Backends.MonoGameAudioBackend);
         _stereoVoiceMixer = new StereoVoiceMixer(this);
@@ -75,9 +83,9 @@ public sealed class AudioService : IDisposable
             return AudioVoiceHandle.None;
         }
 
-        var gain = Mixer.GetEffectiveGain(busName);
-        var backendParameters = parameters.WithVolume(parameters.Volume * gain);
+        var backendParameters = parameters.WithVolume(BackendVolume(parameters.Volume, busName));
 
+        RouteNextVoice(busName);
         var handle = _backend.Play(clip, backendParameters);
         if (!handle.IsValid)
         {
@@ -164,9 +172,9 @@ public sealed class AudioService : IDisposable
             return AudioVoiceHandle.None;
         }
 
-        var gain = Mixer.GetEffectiveGain(busName);
-        var backendParameters = parameters.WithVolume(parameters.Volume * gain);
+        var backendParameters = parameters.WithVolume(BackendVolume(parameters.Volume, busName));
 
+        RouteNextVoice(busName);
         var handle = _backend.CreateStreamingVoice(sampleRate, channelCount, backendParameters);
         if (!handle.IsValid)
         {
@@ -299,8 +307,9 @@ public sealed class AudioService : IDisposable
         object owner)
     {
         var voiceParameters = parameters.WithPan(0f).WithPitch(0f);
-        var backendParameters = voiceParameters.WithVolume(voiceParameters.Volume * Mixer.GetEffectiveGain(busName));
+        var backendParameters = voiceParameters.WithVolume(BackendVolume(voiceParameters.Volume, busName));
 
+        RouteNextVoice(busName);
         var handle = stereoBackend.PlayStereo(clip, backendParameters, leftGain, rightGain);
         if (!handle.IsValid)
         {
@@ -423,7 +432,7 @@ public sealed class AudioService : IDisposable
 
         entry.BaseParameters = entry.BaseParameters.WithPan(pan);
         _backend.SetParameters(entry.Handle, entry.BaseParameters.WithVolume(
-            entry.BaseParameters.Volume * Mixer.GetEffectiveGain(entry.BusName)));
+            BackendVolume(entry.BaseParameters.Volume, entry.BusName)));
     }
 
     /// <summary>Bus the voice is routed to, or null for a stale handle.</summary>
@@ -601,8 +610,8 @@ public sealed class AudioService : IDisposable
     /// <summary>
     /// Creates the PlayStation SPU on a backend that hosts one (<see cref="IPsxSpuHost"/>, the software backend)
     /// and routes its output to <paramref name="busName"/> "like a voice": the gain set on the port is multiplied by
-    /// the effective gain of the bus, and re-applied when the bus gains change (real bus routing comes with the
-    /// bus graph of S4). Without the capability, or when an SPU is already alive or the backend is unavailable,
+    /// the effective gain of the bus, and re-applied when the bus gains change; with <see cref="IAudioBusBackend"/> the SPU
+    /// is routed to the bus and mixed with it by the backend instead. Without the capability, or when an SPU is already alive or the backend is unavailable,
     /// returns false with a throttled "SPU unavailable" log and a null <paramref name="port"/>. Game thread only.
     /// </summary>
     public bool TryCreatePsxSpu(PsxSpuHardwareTables tables, string busName, out PsxSpuPort port)
@@ -630,7 +639,15 @@ public sealed class AudioService : IDisposable
 
         _spuPort = port;
         _spuBusName = busName;
-        port.SetBusGain(Mixer.GetEffectiveGain(busName));
+        if (_busBackend != null)
+        {
+            _busBackend.TrySetPsxSpuBus(port, ResolveBackendBus(busName));
+        }
+        else
+        {
+            port.SetBusGain(Mixer.GetEffectiveGain(busName));
+        }
+
         return true;
     }
 
@@ -646,6 +663,11 @@ public sealed class AudioService : IDisposable
         }
 
         var mixerChanged = _appliedMixerVersion != Mixer.Version;
+
+        if (mixerChanged)
+        {
+            SyncBuses();
+        }
 
         for (var i = 0; i < _voices.Count; i++)
         {
@@ -674,7 +696,8 @@ public sealed class AudioService : IDisposable
                 continue;
             }
 
-            if (mixerChanged)
+            // With the bus capability the backend applies the bus gain itself: nothing to reapply here.
+            if (mixerChanged && _busBackend == null)
             {
                 ApplyGain(entry);
             }
@@ -686,7 +709,7 @@ public sealed class AudioService : IDisposable
             {
                 _spuPort = null;
             }
-            else if (mixerChanged)
+            else if (mixerChanged && _busBackend == null)
             {
                 _spuPort.SetBusGain(Mixer.GetEffectiveGain(_spuBusName));
             }
@@ -787,9 +810,119 @@ public sealed class AudioService : IDisposable
         return clip;
     }
 
+    /// <summary>
+    /// Volume sent to the backend for a voice. Without the bus capability the effective gain of the bus is folded
+    /// into it; with it the backend mixes the bus itself, so folding it here would apply it twice.
+    /// </summary>
+    private float BackendVolume(float volume, string busName)
+    {
+        return _busBackend != null ? volume : volume * Mixer.GetEffectiveGain(busName);
+    }
+
+    /// <summary>With the bus capability, makes the voice the backend starts next go to the bus of <paramref name="busName"/>.</summary>
+    private void RouteNextVoice(string busName)
+    {
+        _busBackend?.SetNextVoiceBus(ResolveBackendBus(busName));
+    }
+
+    /// <summary>
+    /// Index on the backend of the bus a voice is routed to: the named bus, or the root when the name is unknown
+    /// (as <see cref="AudioMixer.GetEffectiveGain"/> falls back to the root gain). Master, index 0, for a bus the
+    /// backend could not hold.
+    /// </summary>
+    private int ResolveBackendBus(string busName)
+    {
+        SyncBuses();
+
+        if (!Mixer.TryGetBus(busName, out var bus))
+        {
+            bus = Mixer.Root;
+        }
+
+        var buses = Mixer.Buses;
+
+        for (var i = 0; i < _backendBusIndices.Count; i++)
+        {
+            if (ReferenceEquals(buses[i], bus))
+            {
+                return Math.Max(0, _backendBusIndices[i]);
+            }
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// With the bus capability: creates on the backend the buses the mixer gained since the last call (they are
+    /// created in parent first order, which is the backend index order), and publishes the own gain of every bus
+    /// when something changed: its volume, or 0 when it is muted. The backend multiplies along the chain itself.
+    /// Allocation free when nothing changed.
+    /// </summary>
+    private void SyncBuses()
+    {
+        if (_busBackend == null)
+        {
+            return;
+        }
+
+        var buses = Mixer.Buses;
+
+        while (_backendBusIndices.Count < buses.Count)
+        {
+            var bus = buses[_backendBusIndices.Count];
+            var index = -1;
+
+            if (bus.Parent == null)
+            {
+                index = 0;
+            }
+            else
+            {
+                var parentIndex = BackendIndexOf(bus.Parent);
+
+                if (parentIndex >= 0 && _busBackend.TryCreateBus(parentIndex, out var created))
+                {
+                    index = created;
+                }
+            }
+
+            _backendBusIndices.Add(index);
+        }
+
+        if (_syncedBusVersion == Mixer.Version)
+        {
+            return;
+        }
+
+        for (var i = 0; i < buses.Count; i++)
+        {
+            if (_backendBusIndices[i] >= 0)
+            {
+                _busBackend.SetBusGain(_backendBusIndices[i], buses[i].IsMuted ? 0f : buses[i].Volume);
+            }
+        }
+
+        _syncedBusVersion = Mixer.Version;
+    }
+
+    private int BackendIndexOf(AudioBus bus)
+    {
+        var buses = Mixer.Buses;
+
+        for (var i = 0; i < _backendBusIndices.Count; i++)
+        {
+            if (ReferenceEquals(buses[i], bus))
+            {
+                return _backendBusIndices[i];
+            }
+        }
+
+        return -1;
+    }
+
     private void ApplyGain(VoiceEntry entry)
     {
-        _backend.SetVolume(entry.Handle, entry.BaseParameters.Volume * Mixer.GetEffectiveGain(entry.BusName));
+        _backend.SetVolume(entry.Handle, BackendVolume(entry.BaseParameters.Volume, entry.BusName));
     }
 
     /// <summary>Same sanitizing contract as <see cref="AudioVoiceParameters.Volume"/>: NaN becomes full gain, otherwise clamped to [0, 1].</summary>

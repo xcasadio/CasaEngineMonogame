@@ -20,6 +20,12 @@ internal enum MixerCommandKind
 
     /// <summary>Detaches <see cref="MixerCommand.Spu"/> if it is the attached source.</summary>
     DetachPsxSpu,
+
+    /// <summary>Creates bus <see cref="MixerCommand.Bus"/> as a child of <see cref="MixerCommand.ParentBus"/>.</summary>
+    CreateBus,
+
+    /// <summary>Routes the attached <see cref="MixerCommand.Spu"/> to bus <see cref="MixerCommand.Bus"/>.</summary>
+    RoutePsxSpu,
 }
 
 /// <summary>
@@ -47,6 +53,12 @@ internal struct MixerCommand
     public float Volume;
     public SampleChunk Chunk;
     public PsxSpuSource Spu;
+
+    /// <summary>Bus index: the bus a voice starts on, the bus to create, or the bus the SPU is routed to.</summary>
+    public int Bus;
+
+    /// <summary><see cref="MixerCommandKind.CreateBus"/>: index of the parent bus.</summary>
+    public int ParentBus;
 
     /// <summary>
     /// <see cref="MixerCommandKind.StartResident"/>: the mono voice uses explicit gains (no pan law).

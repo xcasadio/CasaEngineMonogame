@@ -1258,7 +1258,7 @@ T4.4 (la source SPU doit être routée vers un bus comme une voix). Retour arri�
 
 Budget : identique à S2.
 
-### 🚧 T5.1 — Graphe de bus au thread audio et capacité `IAudioBusBackend`
+### ✅ T5.1 — Graphe de bus au thread audio et capacité `IAudioBusBackend`
 
 - Objectif : routage des voix vers leur bus, mix hiérarchique, gains lissés, sans changer le repli.
 - Fichiers : `CasaEngine/Framework/Audio/IAudioBusBackend.cs` (capacité publique), `Software/`
@@ -1278,6 +1278,31 @@ Budget : identique à S2.
   avertissement ; muet du Master ; repli MonoGame/faux backend : `git diff` vide des tests
   d'`AudioService` existants et verts ; zéro allocation avec 32 bus et 64 voix ; suite complète.
 - Commit : `feat(audio): mix a real bus graph on the audio thread`
+- Note de validation (2026-10-06) : capacité publique `IAudioBusBackend` (`BusCapacity`,
+  `TryCreateBus(parent, out index)`, `SetBusGain(index, gain)`, `SetNextVoiceBus(index)`,
+  `TrySetPsxSpuBus(port, index)`), implémentée par `SoftwareAudioBackend` seul ; `IAudioBackend`
+  inchangé. Mixeur : 32 bus préalloués (0 = Master), index donnés dans l'ordre de création (un
+  parent a toujours un index plus petit, donc le mix de l'index le plus haut vers 0 donne « enfants,
+  puis parents, puis Master ») ; un tampon par bus, bloc maximal fixé à la construction
+  (`BufferFrames` de la sortie), `Render` découpe une demande plus grande ; gain propre de chaque bus
+  publié en dernière valeur (`Volatile`, jamais perdu), rampé sur le bloc ; chaque voix (résidente,
+  stéréo, streaming) et la source SPU portent leur bus. `AudioService` sous la capacité : ne
+  multiplie plus le gain de bus dans le volume des voix ni dans le gain du SPU, route chaque voix par
+  `SetNextVoiceBus` juste avant son démarrage (le bus fait partie de l'ordre de démarrage : la voix
+  ne sonne jamais d'abord sur Master), crée les bus du mixeur à la demande et publie
+  `muet ? 0 : volume` par bus quand `Mixer.Version` change (même produit que `EffectiveGain`) ; sans
+  la capacité, chemin identique à avant. **Écarts relus et acceptés** : pas de notification ajoutée
+  à `AudioMixer`/`AudioBus` (la détection par `Mixer.Version` existait déjà) ; le 33e bus est refusé
+  sur le thread de jeu, un avertissement, routé vers Master (le thread audio ne peut pas journaliser
+  sans allouer) ; un bus dont la création échoue sur un anneau plein plus de 100 ms reste sur Master
+  (pas de nouvel essai, avis P4). 18 tests (`SoftwareMixerBusTests.cs`,
+  `AudioServiceBusRoutingTests.cs`) : enfant 0,5 sous parent 0,5 → 0,25 ; Master ; lissage sur un
+  bloc ; gain conservé malgré un anneau plein ; voix stéréo et streaming routées ; 33e bus ; bus
+  inconnu → Master ; découpage = mix non découpé ; zéro allocation avec 32 bus et 64 voix
+  (`AllocationWindow`) ; côté service : gain appliqué une fois, chaîne de bus, muet du Master, SPU
+  routé, faux backend toujours replié ; tests existants d'`AudioService` inchangés et verts. Les deux
+  solutions : 0 erreur, aucun avertissement dans les fichiers touchés ; suite complète 2956/2956
+  (six passages ; un échec isolé d'un test de durée de S2, traité à part, O20).
 
 ### ⏳ T5.2 — Rampes à durée explicite (P21)
 

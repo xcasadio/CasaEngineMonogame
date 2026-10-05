@@ -54,6 +54,15 @@ internal sealed class SoftwareMixer
     public const int DefaultInitialChunkCount = 256;
     public const int DefaultMaxChunkCount = 4096;
 
+    /// <summary>Largest block <see cref="Render"/> mixes at once; a larger request is split.</summary>
+    public const int DefaultMaxBlockFrames = 1024;
+
+    /// <summary>Fixed number of buses, Master (index 0) included.</summary>
+    public const int BusCapacity = 32;
+
+    /// <summary>Index of the Master bus: the root every other bus ends in, and the default route.</summary>
+    public const int MasterBus = 0;
+
     /// <summary>Maximum number of chunks a single streaming voice can have queued.</summary>
     public const int VoiceChunkQueueCapacity = 128;
 
@@ -72,8 +81,23 @@ internal sealed class SoftwareMixer
     private int _droppedChunkCount;
     private readonly AudioLogThrottle _invalidRegionLog = new();
 
-    // Render thread only: the pulled PlayStation SPU source, null while none is attached.
+    // Render thread only: the pulled PlayStation SPU source, null while none is attached, and its bus.
     private PsxSpuSource _spu;
+    private int _spuBus;
+
+    // Bus graph. A parent always has a lower index than its child (it must exist to be given as a
+    // parent), so mixing from the highest index down to 0 is "children, then parents, then Master".
+    private readonly int _maxBlockFrames;
+    private readonly float[] _busBuffers;
+    private readonly int[] _busParent = new int[BusCapacity];
+    private readonly float[] _busAppliedGain = new float[BusCapacity];
+
+    // Last value published per bus by the producer (float bits); never queued, so never lost.
+    private readonly int[] _busGainBits = new int[BusCapacity];
+
+    // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
+    private int _busCount = 1;
+    private int _producerBusCount = 1;
 
     public SoftwareMixer(
         int outputSampleRate,
@@ -82,10 +106,12 @@ internal sealed class SoftwareMixer
         int eventCapacity = DefaultEventCapacity,
         int chunkSamples = DefaultChunkSamples,
         int initialChunkCount = DefaultInitialChunkCount,
-        int maxChunkCount = DefaultMaxChunkCount)
+        int maxChunkCount = DefaultMaxChunkCount,
+        int maxBlockFrames = DefaultMaxBlockFrames)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(outputSampleRate);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(voiceCapacity);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxBlockFrames);
 
         if (chunkSamples < 2 || chunkSamples % 2 != 0)
         {
@@ -103,6 +129,15 @@ internal sealed class SoftwareMixer
         _commands = new SpscRingBuffer<MixerCommand>(commandCapacity);
         _events = new SpscRingBuffer<MixerEvent>(eventCapacity);
         _pool = new SampleChunkPool(chunkSamples, initialChunkCount, maxChunkCount);
+        _maxBlockFrames = maxBlockFrames;
+        _busBuffers = new float[BusCapacity * maxBlockFrames * 2];
+        var unity = BitConverter.SingleToInt32Bits(1f);
+
+        for (var i = 0; i < BusCapacity; i++)
+        {
+            _busGainBits[i] = unity;
+            _busAppliedGain[i] = 1f;
+        }
 
         for (var i = 0; i < _voices.Length; i++)
         {
@@ -113,6 +148,12 @@ internal sealed class SoftwareMixer
     public int OutputSampleRate { get; }
 
     public int VoiceCapacity => _voices.Length;
+
+    /// <summary>Largest block mixed at once (frames); <see cref="Render"/> splits a larger request.</summary>
+    public int MaxBlockFrames => _maxBlockFrames;
+
+    /// <summary>Producer side: buses handed out so far, Master included (at most <see cref="BusCapacity"/>).</summary>
+    public int BusCount => _producerBusCount;
 
     /// <summary>Samples (all channels) per streaming chunk.</summary>
     public int ChunkSamples { get; }
@@ -162,7 +203,7 @@ internal sealed class SoftwareMixer
         return _commands.TryEnqueue(in command);
     }
 
-    public bool TryStartResidentVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters)
+    public bool TryStartResidentVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, int bus = MasterBus)
     {
         var command = new MixerCommand
         {
@@ -171,6 +212,7 @@ internal sealed class SoftwareMixer
             Generation = generation,
             Clip = clip,
             Parameters = ValidateLoopRegion(parameters, clip),
+            Bus = bus,
         };
 
         return _commands.TryEnqueue(in command);
@@ -202,7 +244,7 @@ internal sealed class SoftwareMixer
     /// Starts a resident mono voice whose channel gains are explicit: left = volume * leftGain, right =
     /// volume * rightGain, no pan law. A clip that is not mono starts as an ordinary voice.
     /// </summary>
-    public bool TryStartResidentStereoVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, float leftGain, float rightGain)
+    public bool TryStartResidentStereoVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, float leftGain, float rightGain, int bus = MasterBus)
     {
         var command = new MixerCommand
         {
@@ -214,6 +256,7 @@ internal sealed class SoftwareMixer
             ExplicitGains = true,
             LeftGain = leftGain,
             RightGain = rightGain,
+            Bus = bus,
         };
 
         return _commands.TryEnqueue(in command);
@@ -234,7 +277,7 @@ internal sealed class SoftwareMixer
         return _commands.TryEnqueue(in command);
     }
 
-    public bool TryCreateStreamingVoice(int slot, int generation, int channels, int sampleRate, AudioVoiceParameters parameters)
+    public bool TryCreateStreamingVoice(int slot, int generation, int channels, int sampleRate, AudioVoiceParameters parameters, int bus = MasterBus)
     {
         if ((uint)slot >= (uint)_voices.Length || channels is not (1 or 2) || sampleRate <= 0)
         {
@@ -249,6 +292,7 @@ internal sealed class SoftwareMixer
             Channels = channels,
             SampleRate = sampleRate,
             Parameters = parameters,
+            Bus = bus,
         };
 
         if (!_commands.TryEnqueue(in command))
@@ -258,6 +302,60 @@ internal sealed class SoftwareMixer
 
         _producerChannels[slot] = channels;
         return true;
+    }
+
+    /// <summary>
+    /// Creates the next bus as a child of <paramref name="parentBus"/> and returns its index. False, with
+    /// nothing created, when the parent was not handed out, when the <see cref="BusCapacity"/> buses exist
+    /// (the caller routes to Master instead) or when the command ring is full. Producer thread only.
+    /// </summary>
+    public bool TryCreateBus(int parentBus, out int bus)
+    {
+        bus = -1;
+
+        if ((uint)parentBus >= (uint)_producerBusCount || _producerBusCount >= BusCapacity)
+        {
+            return false;
+        }
+
+        var index = _producerBusCount;
+        var command = new MixerCommand { Kind = MixerCommandKind.CreateBus, Bus = index, ParentBus = parentBus };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        _producerBusCount++;
+        bus = index;
+        return true;
+    }
+
+    /// <summary>
+    /// Publishes the own gain of a bus, in [0, 1]: a last value read at the next block, never queued so never
+    /// lost (NaN is ignored). The audio thread ramps to it across the block. A bus not handed out is ignored.
+    /// </summary>
+    public void SetBusGain(int bus, float gain)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || float.IsNaN(gain))
+        {
+            return;
+        }
+
+        var clamped = Math.Clamp(gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        Volatile.Write(ref _busGainBits[bus], BitConverter.SingleToInt32Bits(clamped));
+    }
+
+    /// <summary>Routes the attached SPU to a bus, applied in order with the other commands.</summary>
+    public bool TryRoutePsxSpu(PsxSpuSource spu, int bus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.RoutePsxSpu, Spu = spu, Bus = bus };
+        return _commands.TryEnqueue(in command);
     }
 
     public bool TryStartStreamingVoice(int slot, int generation)
@@ -434,12 +532,24 @@ internal sealed class SoftwareMixer
             ApplyCommand(in command);
         }
 
-        var output = interleavedStereo.Slice(0, frameCount * 2);
-        output.Clear();
+        // A request larger than the block the bus buffers were sized for is mixed in several blocks.
+        var done = 0;
 
-        if (frameCount == 0)
+        while (done < frameCount)
         {
-            return;
+            var blockFrames = Math.Min(_maxBlockFrames, frameCount - done);
+            RenderBlock(interleavedStereo.Slice(done * 2, blockFrames * 2), blockFrames);
+            done += blockFrames;
+        }
+    }
+
+    private void RenderBlock(Span<float> output, int frameCount)
+    {
+        var sampleCount = frameCount * 2;
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            BusBuffer(b, sampleCount).Clear();
         }
 
         for (var v = 0; v < _voices.Length; v++)
@@ -462,23 +572,74 @@ internal sealed class SoftwareMixer
                 continue;
             }
 
+            var busBuffer = BusBuffer(voice.Bus, sampleCount);
+
             if (voice.IsStreaming)
             {
-                RenderStreaming(v, ref voice, output, frameCount);
+                RenderStreaming(v, ref voice, busBuffer, frameCount);
             }
             else
             {
-                RenderResident(v, ref voice, output, frameCount);
+                RenderResident(v, ref voice, busBuffer, frameCount);
             }
         }
 
-        // Before the final hard clip, like a voice.
-        _spu?.MixInto(output, frameCount, OutputSampleRate);
+        // Like a voice, on its own bus.
+        _spu?.MixInto(BusBuffer(_spuBus, sampleCount), frameCount, OutputSampleRate);
 
+        MixBuses(output, frameCount);
+
+        // The final hard clip, after Master.
         for (var i = 0; i < output.Length; i++)
         {
             var sample = output[i];
             output[i] = sample > 1f ? 1f : sample < -1f ? -1f : sample;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Span<float> BusBuffer(int bus, int sampleCount)
+    {
+        return _busBuffers.AsSpan(bus * _maxBlockFrames * 2, sampleCount);
+    }
+
+    // Children before parents: a child always has a higher index than its parent, so going down from the
+    // last bus reaches Master last. Each bus is scaled by its own gain, ramped across the block, while it is
+    // added to its parent buffer; Master is scaled into the output. The per-bus buffers are also where
+    // insert effects will sit, between the voices and this scaling.
+    private void MixBuses(Span<float> output, int frameCount)
+    {
+        var sampleCount = frameCount * 2;
+
+        for (var b = _busCount - 1; b >= 0; b--)
+        {
+            var source = BusBuffer(b, sampleCount);
+            var target = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[b]));
+            var gain = _busAppliedGain[b];
+            var increment = (target - gain) / frameCount;
+
+            if (b == MasterBus)
+            {
+                for (var i = 0; i < sampleCount; i += 2)
+                {
+                    gain += increment;
+                    output[i] = source[i] * gain;
+                    output[i + 1] = source[i + 1] * gain;
+                }
+            }
+            else
+            {
+                var destination = BusBuffer(_busParent[b], sampleCount);
+
+                for (var i = 0; i < sampleCount; i += 2)
+                {
+                    gain += increment;
+                    destination[i] += source[i] * gain;
+                    destination[i + 1] += source[i + 1] * gain;
+                }
+            }
+
+            _busAppliedGain[b] = target;
         }
     }
 
@@ -487,6 +648,7 @@ internal sealed class SoftwareMixer
         if (command.Kind == MixerCommandKind.AttachPsxSpu)
         {
             _spu = command.Spu;
+            _spuBus = MasterBus;
             return;
         }
 
@@ -495,6 +657,31 @@ internal sealed class SoftwareMixer
             if (ReferenceEquals(_spu, command.Spu))
             {
                 _spu = null;
+                _spuBus = MasterBus;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RoutePsxSpu)
+        {
+            if (ReferenceEquals(_spu, command.Spu) && (uint)command.Bus < (uint)_busCount)
+            {
+                _spuBus = command.Bus;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.CreateBus)
+        {
+            // The producer hands indices out in order; anything else is ignored.
+            if (command.Bus == _busCount && command.Bus < BusCapacity && (uint)command.ParentBus < (uint)_busCount)
+            {
+                _busParent[command.Bus] = command.ParentBus;
+                // A new bus starts at its published gain: no ramp from a stale value.
+                _busAppliedGain[command.Bus] = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[command.Bus]));
+                _busCount++;
             }
 
             return;
@@ -623,6 +810,7 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = true;
+        voice.Bus = (uint)command.Bus < (uint)_busCount ? command.Bus : MasterBus;
         voice.Generation = command.Generation;
         voice.IsStreaming = false;
         voice.Started = true;
@@ -654,6 +842,7 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = true;
+        voice.Bus = (uint)command.Bus < (uint)_busCount ? command.Bus : MasterBus;
         voice.Generation = command.Generation;
         voice.IsStreaming = true;
         voice.Started = false;

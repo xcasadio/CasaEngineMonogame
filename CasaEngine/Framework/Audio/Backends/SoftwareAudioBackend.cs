@@ -39,7 +39,7 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -59,6 +59,10 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
     // The one live SPU (attached to the mixer), and one whose Detach command is still to be sent (see ReleasePsxSpu).
     private PsxSpuSource _spuSource;
     private PsxSpuSource _spuDetachPending;
+
+    // Bus of the next voice (IAudioBusBackend), consumed by the next start; Master when none was chosen.
+    private int _nextVoiceBus;
+    private bool _busCapacityLogged;
 
     private int _freeSlotCount;
     private int _pendingStopCount;
@@ -95,7 +99,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         {
             if (output.TryOpen())
             {
-                _mixer = new SoftwareMixer(output.SampleRate, voiceCapacity);
+                _mixer = new SoftwareMixer(output.SampleRate, voiceCapacity, maxBlockFrames: Math.Max(1, output.BufferFrames));
                 // Created once: the audio thread must not see a new delegate per frame.
                 _renderCallback = _mixer.Render;
                 output.Start(_renderCallback);
@@ -185,6 +189,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
     private AudioVoiceHandle PlayResident(IAudioClip clip, in AudioVoiceParameters parameters, bool explicitGains, float leftGain, float rightGain)
     {
+        var bus = TakeNextVoiceBus();
         ArgumentNullException.ThrowIfNull(clip);
 
         if (!IsOutputAlive())
@@ -231,8 +236,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         var wait = new RingWait(_output);
         bool sent;
         while (!(sent = explicitGains
-                   ? _mixer.TryStartResidentStereoVoice(slotIndex, slot.Generation, pcmClip, parameters, leftGain, rightGain)
-                   : _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters)) && wait.Next())
+                   ? _mixer.TryStartResidentStereoVoice(slotIndex, slot.Generation, pcmClip, parameters, leftGain, rightGain, bus)
+                   : _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters, bus)) && wait.Next())
         {
         }
 
@@ -348,6 +353,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
     public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
     {
+        var bus = TakeNextVoiceBus();
         if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
@@ -384,7 +390,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
         var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryCreateStreamingVoice(slotIndex, slot.Generation, channelCount, sampleRate, parameters))
+        while (!(sent = _mixer.TryCreateStreamingVoice(slotIndex, slot.Generation, channelCount, sampleRate, parameters, bus))
                && wait.Next())
         {
         }
@@ -523,6 +529,92 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
             ReportRingFull();
             _spuDetachPending = source;
         }
+    }
+
+    public int BusCapacity => SoftwareMixer.BusCapacity;
+
+    /// <summary>
+    /// Creates a bus (<see cref="IAudioBusBackend"/>). The 33rd bus is not created: one warning is logged and false
+    /// is returned, so the caller routes it to Master (the audio thread only knows <see cref="BusCapacity"/> buses).
+    /// A full command ring is waited for like a voice start.
+    /// </summary>
+    public bool TryCreateBus(int parentBus, out int busIndex)
+    {
+        busIndex = -1;
+
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        if (_mixer.BusCount >= SoftwareMixer.BusCapacity)
+        {
+            if (!_busCapacityLogged)
+            {
+                _busCapacityLogged = true;
+                Logs.WriteWarning($"Audio: more than {SoftwareMixer.BusCapacity} mixing buses, the extra buses are attached to Master.");
+            }
+
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool created;
+        while (!(created = _mixer.TryCreateBus(parentBus, out busIndex)) && _mixer.BusCount < SoftwareMixer.BusCapacity
+               && (uint)parentBus < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!created)
+        {
+            busIndex = -1;
+            return false;
+        }
+
+        return true;
+    }
+
+    public void SetBusGain(int busIndex, float gain)
+    {
+        if (IsOutputAlive())
+        {
+            _mixer.SetBusGain(busIndex, gain);
+        }
+    }
+
+    public void SetNextVoiceBus(int busIndex)
+    {
+        _nextVoiceBus = busIndex;
+    }
+
+    public bool TrySetPsxSpuBus(PsxSpuPort port, int busIndex)
+    {
+        ArgumentNullException.ThrowIfNull(port);
+
+        if (!IsOutputAlive() || !ReferenceEquals(port.Source, _spuSource))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRoutePsxSpu(_spuSource, busIndex)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    private int TakeNextVoiceBus()
+    {
+        var bus = _nextVoiceBus;
+        _nextVoiceBus = SoftwareMixer.MasterBus;
+        return bus;
     }
 
     public void Dispose()
