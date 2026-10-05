@@ -89,12 +89,24 @@ deux fenêtres d'alpha brut disjointes (texels opaques, puis texels STP à l'ét
   la surcharge `Sprite` sans mode).
 - Commit : `feat(rendering): background layers draw per-texel PSX semi-transparency as two disjoint passes`
 
-### ⏳ E2 — Démo du moteur (texture chargée depuis un PNG, sonde du back-buffer)
+### ✅ E2 — Démo du moteur (texture chargée depuis un PNG, sonde du back-buffer)
 
 - Objectif : preuve sur périphérique, avec le chargeur de texture du moteur (hypothèse à prouver : un PNG à alpha 128 garde son alpha).
 - Valeurs attendues (fond (100, 150, 200), ±1 par canal, pixels loin des bords) : texel (96, 96, 88, α255) d'une couche `Mode0` →
   (96, 96, 88) ; texel (24, 32, 24, α128) d'une couche `Mode0` → (62, 91, 112) ; texel (96, 96, 96, α128) d'une couche `Mode1` →
   (196, 246, 255) ; texel (120, 80, 40, α128) d'une couche `None` → (120, 80, 40).
+- Validation faite : démo `Background layers PSX semi-transparency`
+  (`CasaEngine.Demos/Demos/PsxSemiTransparency/BackdropLayersPsxSemiTransparencyDemo.cs`, feuilles PNG générées dans
+  `CasaEngine.Demos/Content/PsxBackdropLayers/`, chargées par `Texture2DLoader.LoadAsset`, c'est-à-dire `Texture2D.FromStream` : l'alpha
+  128 est gardé, sans prémultiplication), quatre couches de défilement (fond, `Mode0`, `Mode1`, sans mode) et une couche cellulaire
+  `Mode0` à `Blend = Additive` ; sonde `BackBufferProbe` (`GetBackBufferData` en processus), lancée depuis `CasaEngine.Demos/` (Debug,
+  1024 × 768). Pixels lus égaux aux valeurs écrites d'avance, 6 contrôles sur 6 : texel (96, 96, 88, α255) d'une couche `Mode0` →
+  (96, 96, 88) ; texel (24, 32, 24, α128) d'une couche `Mode0` → (62, 91, 112) (alpha de back-buffer 191) ; texel (96, 96, 96, α128)
+  d'une couche `Mode1` → (196, 246, 255) ; texel (120, 80, 40, α128) d'une couche sans mode → (120, 80, 40) ; la couche cellulaire
+  `Mode0` → (62, 91, 112) ; fond voisin (100, 150, 200). Rouge d'abord, la soumission des couches rendue aveugle au mode
+  (`if (false && ...)`, rétabli après) : texel `Mode0` STP lu (24, 32, 24), `Mode1` STP lu (96, 96, 96), cellulaire lu (124, 182, 224)
+  (le `Blend` additif de la couche, qui est ignoré quand un mode est posé), 3 contrôles sur 6 rouges. Image
+  `scratchpad/e19g2c-exec/demo-out/backdrop-layers.png`, lectures `backdrop-layers.txt` (vert) et `backdrop-layers-red.txt` (rouge).
 - Commit : `feat(demos): per-texel PSX semi-transparency of background layers demo`
 
 ### ⏳ E3 — Documentation et ADR

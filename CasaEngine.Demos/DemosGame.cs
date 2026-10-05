@@ -101,6 +101,8 @@ public class DemosGame : CasaEngineGame
         // E19.g G2a (ADR-0051): PSX semi-transparency of sprites and queue capacity, each checks its own back-buffer.
         _demos.Add(new PsxSemiTransparencyDemo());
         _demos.Add(new SpriteQueueCapacityDemo());
+        // E19.g G2c (ADR-0051 extended to the background layers): per-texel PSX semi-transparency of the layer sheets.
+        _demos.Add(new BackdropLayersPsxSemiTransparencyDemo());
 
         ChangeDemo(ResolveStartupDemoIndex());
     }
