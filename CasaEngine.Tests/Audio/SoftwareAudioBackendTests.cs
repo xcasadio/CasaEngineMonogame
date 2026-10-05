@@ -251,7 +251,10 @@ public class SoftwareAudioBackendTests
         started.Stop();
 
         _log.WriteLine($"Pause on a full ring, dead output: {started.Elapsed.TotalMilliseconds} ms");
-        Assert.True(started.Elapsed.TotalMilliseconds < 5, $"Pause took {started.Elapsed.TotalMilliseconds} ms");
+        // Half the retry wait: far below the full wait, and above a GC pause or a first-call JIT caused by the other
+        // tests running in parallel (a 5 ms bound failed that way now and then).
+        var bound = SoftwareAudioBackend.CommandRetryMilliseconds / 2.0;
+        Assert.True(started.Elapsed.TotalMilliseconds < bound, $"Pause took {started.Elapsed.TotalMilliseconds} ms");
     }
 
     [Fact]

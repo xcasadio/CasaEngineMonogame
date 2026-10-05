@@ -125,19 +125,24 @@ public class SoftwareAudioBackendPsxSpuTests
         Assert.True(port.TryUpload(0, bank.AsSpan(0, 64)));
         PumpBlocks(output, 2);
 
-        // The pressure round is repeated: a real allocation on the render thread shows in every round, whereas a
-        // one-off runtime cost charged to this thread would not.
-        var smallest = long.MaxValue;
-        for (var round = 0; round < 3 && smallest != 0; round++)
+        // The pressure round is repeated: a real allocation on the render thread, or a call that is slow by itself,
+        // shows in every round, whereas a one-off cost charged to this thread (a GC pause caused by the other tests
+        // running in parallel) would not.
+        var smallestAllocation = long.MaxValue;
+        var fastestSlowestCall = double.MaxValue;
+        for (var round = 0; round < 3 && (smallestAllocation != 0 || fastestSlowestCall >= 1.0); round++)
         {
-            smallest = Math.Min(smallest, PressureRound(port, output, bank, round));
+            smallestAllocation = Math.Min(smallestAllocation, PressureRound(port, output, bank, round, out var slowestMilliseconds));
+            fastestSlowestCall = Math.Min(fastestSlowestCall, slowestMilliseconds);
         }
 
-        Assert.Equal(0, smallest);
+        Assert.True(fastestSlowestCall < 1.0, $"slowest call {fastestSlowestCall} ms");
+        Assert.Equal(0, smallestAllocation);
     }
 
-    // 4096 register writes and a 512 KB upload between two blocks; returns the bytes allocated by the two blocks.
-    private static long PressureRound(PsxSpuPort port, OfflineAudioOutput output, byte[] bank, int round)
+    // 4096 register writes and a 512 KB upload between two blocks; returns the bytes allocated by the two blocks and
+    // the duration of the slowest call.
+    private static long PressureRound(PsxSpuPort port, OfflineAudioOutput output, byte[] bank, int round, out double slowestMilliseconds)
     {
         var slowest = 0L;
         for (var i = 0; i < 4096; i++)
@@ -152,7 +157,7 @@ public class SoftwareAudioBackendPsxSpuTests
         Assert.True(port.TryUpload(0, bank));
         slowest = Math.Max(slowest, Stopwatch.GetTimestamp() - uploadStart);
 
-        Assert.True(slowest * 1000.0 / Stopwatch.Frequency < 1.0, $"slowest call {slowest * 1000.0 / Stopwatch.Frequency} ms");
+        slowestMilliseconds = slowest * 1000.0 / Stopwatch.Frequency;
         Assert.Equal(0, port.RefusedWriteCount);
 
         var before = AllocationWindow.Start();
