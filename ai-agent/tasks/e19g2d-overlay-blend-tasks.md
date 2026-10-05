@@ -79,13 +79,21 @@ opaque en opaque.
   étaient verts d'avance (gardes). Verts après : `ScrollingLayer*` 80/80, aucun test existant touché.
 - Commit : `feat(rendering): the scrolling-layer tint carries a PSX semi-transparency mode`
 
-### ⏳ E2 — Démos du moteur (une par mode, sonde du back-buffer)
+### ✅ E2 — Démos du moteur (une par mode, sonde du back-buffer)
 
 - Objectif : preuve sur périphérique de G2d-R1. Deux classes de démo sœurs de celle de G2c (`BackgroundTintPsxMode1Demo`,
   `BackgroundTintPsxMode0Demo`, base commune `BackgroundTintPsxDemoBase`), chacune avec la couche de fond unie de G2c
   (`Content/PsxBackdropLayers/background.png`, (100, 150, 200), passe `Background`) et une teinte.
 - Valeurs attendues (±1 par canal, couche aux points (48, 48), (160, 120), (300, 220)) : teinte (50, 0, 0) en `Mode1` → (150, 150, 200) ;
   teinte (40, 40, 40) en `Mode0` → (70, 95, 120).
+- Validation faite : démos `Background tint PSX mode 1` et `Background tint PSX mode 0`
+  (`CasaEngine.Demos/Demos/PsxSemiTransparency/BackgroundTintPsx*.cs`), lancées depuis `CasaEngine.Demos/` (Debug, 1024 × 768),
+  `CASAENGINE_START_DEMO` puis `CASAENGINE_DEMO_PIXELS_PATH`. Pixels lus égaux aux valeurs écrites d'avance, 3 contrôles sur 3 par démo :
+  `Mode1` → (150, 150, 200) alpha 255 aux trois points ; `Mode0` → (70, 95, 120) alpha 191 aux trois points. Rouge d'abord, la
+  soumission de la teinte rendue aveugle au mode (`switch (SpritePsxSemiTransparency.None)`, rétabli après) : `Mode1` lu (50, 0, 0),
+  `Mode0` lu (40, 40, 40), 6 contrôles sur 6 rouges. La démo de G2c, non modifiée, passe encore ses 6 contrôles sur 6. Lectures et images
+  dans `scratchpad/e19g2d-exec/demo-out/`.
+- Commit : `feat(demos): background tint PSX mode demos`
 
 ### ⏳ E3 — Documentation et ADR
 
