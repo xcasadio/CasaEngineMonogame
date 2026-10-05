@@ -202,12 +202,12 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 | **S1 — Socle** | Backend logiciel derrière `IAudioBackend`, sortie OpenAL Soft sur thread audio, clip PCM neutre, choix par réglage de projet, recette puis bascule du défaut. | — | moteur |
 | S2 — Temps réel et streaming | Lecture disque et décodage hors du thread de jeu ; voix stéréo logicielles mixées au thread audio (fin des ~60 ms de latence des gains) ; rampes de volume à l'échantillon ; points de boucle et plage de pitch élargie (API additive) ; changement de périphérique à chaud (`ALC_SOFT_system_events`, `alcReopenDeviceSOFT`). | S1 | moteur |
 | S3 — Formats | Ogg Vorbis (NVorbis, déjà dépendance transitive de MonoGame), ADPCM WAV ; MP3 et FLAC à arbitrer (nouvelle dépendance). | S1 | moteur |
-| S4 — Bus et effets | Vrais bus de submix avec effets insérés (EQ et filtres biquad, compresseur, limiteur du master), départs auxiliaires (reverb), ducking, snapshots ; configuration sérialisée (ADR). | S2 | moteur |
+| S4 — Bus et effets | Vrais bus de submix avec effets insérés (EQ et filtres biquad, compresseur, limiteur du master), départs auxiliaires (reverb), ducking, snapshots, rampes à durée explicite. *(Ajusté en vague 3 : la configuration sérialisée passe en S6, P19.)* | S2 | moteur |
 | S5 — Couche jeu | Priorités et vol de voix, voix virtuelles, conteneurs (aléatoire, séquence, pitch, volume et délai aléatoires), atténuation 2D/3D, écouteur, Doppler, paramètres de jeu. | S4 | moteur |
-| S6 — Éditeur et outils | Panneau de mixage, vu-mètres, formes d'onde, profileur audio. | S4 | moteur |
+| S6 — Éditeur et outils | Panneau de mixage, vu-mètres, formes d'onde, profileur audio ; configuration sérialisée du mixeur (nouveau type d'asset, chargement, édition, ADR ; reçue de S4 en vague 3, P19). | S4 | moteur |
 | X1 — Module SPU PSX | ADPCM VAG, 24 voix, pas SPU, interpolation gaussienne, ADSR (d'après psx-spx), boucles, gains gauche/droite exacts, reverb SPU, comme groupe de voix du mixeur. Base : le mixeur SPU de l'analyseur (MIT, même auteur), à nettoyer. | S1 (S2 conseillé) | moteur |
 | X2 — Données PSX | Export VAB/VAG/SEQ par le convertisseur et types d'assets moteur correspondants (ADR, sérialisation). | X1 | parent + moteur |
-| X3 — Séquenceur SEQ/SEP | Musiques en temps réel et bruitages déclenchés par séquence. | X1, X2 | moteur |
+| X3 — Séquenceur SEQ/SEP | Musiques en temps réel et bruitages déclenchés par séquence. *(En pause : O16, O4.)* | X1, X2 | moteur |
 | X4 — Bascule d'Alundra | Bruitages et musiques d'Alundra joués par le module PSX. | X3 | parent |
 | X5 — XA (optionnel) | Pistes XA et audio des vidéos. | X1 | moteur + parent |
 
@@ -770,7 +770,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   stéréo refusé, zéro allocation, repli des clips non PCM. `AudioServiceStereoVoiceTests` inchangé.
   `CasaEngine.Tests` 2823/2823.
 
-### ⏳ T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
+### 🚧 T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
 
 - Objectif : boucler sur une région et dépasser une octave, de façon additive.
 - Fichiers : `CasaEngine/Framework/Audio/AudioVoiceParameters.cs` (membres et méthodes ajoutés,
@@ -1076,6 +1076,174 @@ dans « Points ouverts » au lieu d'être devinée.
 
 ---
 
+## Vague 3 — tranche S4 (détail du 2026-10-05) et pause de X3
+
+Découverte en lecture seule de S4 et X3 (deux enquêtes, chacune passée par un vérificateur
+contradictoire), sur l'instantané `3b37c9e7`.
+
+**X3 en pause (O16, O4).** Un séquenceur SEQ/VAB « à la libsnd » n'a pas de spécification publique
+au-delà des en-têtes (psx-spx) : le comportement de lecture (événements, NRPN, boucles, choix des
+tons, hauteur, allocation des voix) n'existe que dans des décompilations du libsnd propriétaire de
+Sony (transcription de l'analyseur depuis `ALUN_CD.EXE`, `psyz/decomp`, `sotn-decomp`). Le choix de
+la source et sa licence reviennent à l'auteur (O16). Le séquenceur de l'analyseur ne se transpose
+pas tel quel non plus (verrou partagé, allocations à chaque note, globals du jeu). Rien de X3 n'est
+fait en mode AUTO.
+
+### Enveloppe ajustée (vague 3)
+
+- **S4** perd la « configuration sérialisée (ADR) » (P19, à confirmer par l'auteur) ; elle garde
+  bus, effets insérés, départs et réverbération, ducking, snapshots, et reçoit les rampes à durée
+  explicite (P14, P21).
+- **S6** gagne la **configuration sérialisée du mixeur** (nouveau type d'asset, son chargement, son
+  édition et son ADR), en plus de ses outils (panneau de mixage, vu-mètres, formes d'onde,
+  profileur).
+- **X3** est en pause (O16, O4).
+
+### Décisions de la vague 3 (arbitrages de l'agent, à confirmer par l'auteur)
+
+| Réf | Arbitrage |
+|---|---|
+| P18 | **P9 étendue à S4** : bus réels, effets, départs, ducking et rampes passent par une capacité optionnelle `IAudioBusBackend` implémentée par `SoftwareAudioBackend` ; `IAudioBackend` et le dépôt parent ne changent pas. Sans la capacité (backend MonoGame, faux backends), `AudioService` garde exactement le repli actuel : gain de bus multiplié dans le volume de chaque voix, fondus par frame ; effets, départs et ducking y sont absents (une ligne de journal, une fois). |
+| P19 | **Configuration sérialisée du mixeur déplacée en S6** (outils de l'éditeur) : S4 livre l'API d'exécution (code) ; un nouveau type d'asset et son édition relèvent de l'éditeur. |
+| P20 | **Algorithmes depuis des sources libres, citées** : filtres biquad d'après l'« Audio EQ Cookbook » (note W3C de 2021, licence permissive W3C ; forme directe I ou transposée II, coefficients calculés depuis les formules), compresseur à action directe d'après Giannoulis, Massberg et Reiss (JAES, 2012), réverbération Freeverb (domaine public, « Jezar at Dreampoint », décrite sur la page CCRMA de J. O. Smith), longueurs de retard mises à l'échelle du débit de sortie ; garde contre les nombres dénormaux. Aucun code GPL, LGPL ou MPL. |
+| P21 | **Rampes « à l'échantillon »** : une rampe à durée explicite (voix, bus) est interpolée échantillon par échantillon ; son départ est arrondi au début du bloc suivant (≤ 10 ms), faute d'horodatage des commandes (documenté). Les fondus de voix et de musique d'`AudioService` l'utilisent sous la capacité. **Le contrat public des fondus ne change pas** : le thread de jeu garde sa propre chronologie de chaque rampe (départ, cible, durée, temps écoulé en `Update`), qui répond à `GetVoiceVolume`, `MusicPlayer.GetVolume`, `IsFading`, décide la libération en fin de `StopWithFade` et sert de point de départ aux fondus enchaînés ; `CancelFade` envoie une commande « figer à la valeur courante » et le thread de jeu garde la valeur atteinte selon sa chronologie. L'écart entre cette chronologie et le rendu est d'au plus un bloc. |
+
+---
+
+## Phase 5 — Tranche S4 : bus et effets (exécution)
+
+Résultat attendu : sous le backend logiciel, chaque voix est routée vers son bus ; les bus forment
+un vrai graphe mixé au thread audio (enfants puis parents, puis Master) ; chaque bus a un gain
+lissé, jusqu'à 4 effets insérés (filtres biquad, compresseur), des départs vers des bus de retour
+(réverbération) ; le Master a un limiteur ; un bus peut en atténuer un autre (ducking) ; l'état des
+bus se capture et se rétablit en fondu (snapshots) ; les fondus sont des rampes à durée explicite.
+Non-objectifs : configuration sérialisée et édition (P19, S6) ; `IAudioBackend` et dépôt parent
+inchangés. Prérequis : S2 (fichiers du mixeur et de `AudioService` modifiés par T2.2–T2.5) et X1
+T4.4 (la source SPU doit être routée vers un bus comme une voix). Retour arrière : revert, ou
+`CASAENGINE_AUDIO_BACKEND=MonoGame`.
+
+État vérifié (2026-10-05, instantané `3b37c9e7`) :
+- Le gain de bus est multiplié dans le volume de chaque voix à chaque changement
+  (`AudioService.cs:73-74` et `AudioMixer.InvalidateGains`) ; aucune voix du mixeur ne porte de bus
+  (`MixerVoice.cs`).
+- `AudioMixer.CreateBus` est public et appelable à tout moment ; le mixeur par défaut est créé à la
+  construction d'`AudioService` (`AudioService.cs:31`) ; l'ordre inverse de création est un ordre
+  « enfants avant parents » (`AudioMixer.cs:31-70`).
+- `AudioBus` est une classe du thread de jeu : le thread audio n'y lit rien ; tout état de bus, de
+  rampe et d'effet du côté audio doit vivre dans le mixeur, préalloué, alimenté par commandes
+  (`SoftwareMixer.cs:12-15`).
+- `Render` accepte n'importe quel nombre de trames et écrit les voix directement dans la sortie,
+  puis écrête (`SoftwareMixer.cs:340-396`) : des tampons par bus exigent une taille de bloc maximale.
+- Le bus Editor est tenu hors du mix du jeu et le muet du Master vient des réglages du projet
+  (`AudioBusNames.cs:24-28`, `ProjectAudioSettings.cs`, `EditorProjectAudioMuteSync.cs`).
+- Alundra pilote ses fondus de musique en écrivant le volume du Master à chaque tick, et ses tests
+  supposent le gain replié sur le faux backend du dépôt parent
+  (`Alundra/Scripts/AlundraBgmFadeDirector.cs:92-96`, `:256-264`) : le repli doit rester identique.
+- `SetVolume` est abandonné sans attente quand l'anneau est plein (T1.4) : les gains de bus et les
+  paramètres d'effets doivent être publiés en « dernière valeur » (non perdables).
+
+Budget : identique à S2.
+
+### ⏳ T5.1 — Graphe de bus au thread audio et capacité `IAudioBusBackend`
+
+- Objectif : routage des voix vers leur bus, mix hiérarchique, gains lissés, sans changer le repli.
+- Fichiers : `CasaEngine/Framework/Audio/IAudioBusBackend.cs` (capacité publique), `Software/`
+  (nouveau `MixerBus` préalloué, capacité fixe 32 bus, commandes de création et de routage),
+  `SoftwareMixer.cs`, `MixerVoice.cs`, `MixerMessages.cs`, `Backends/SoftwareAudioBackend.cs`,
+  `AudioService.cs`, `Mixing/AudioMixer.cs` et `AudioBus.cs` (notification interne de création et de
+  gain), tests `Software/` et `SoftwareAudioBackendTests.cs`.
+- Étapes : taille de bloc maximale fixée à la construction du mixeur (`BufferFrames` de la sortie) ;
+  `Render` découpe une demande plus grande ; tampon par bus ; chaque voix (résidente, streaming,
+  stéréo de T2.3, source SPU de T4.4) porte un indice de bus ; ordre de mix enfants puis parents ;
+  gain de bus publié en dernière valeur par bus (tableau `Volatile`, pas de file), lissé par bloc ;
+  au-delà de 32 bus → bus rattaché à Master côté audio, avertissement une fois ; sous la capacité,
+  `AudioService` cesse de multiplier le gain de bus dans le volume des voix (sinon il serait appliqué
+  deux fois) ; muet et bus Editor conservés.
+- Validation : tests : voix sur un bus enfant à gain 0,5 sous un parent à 0,5 → amplitude 0,25 ;
+  changement de gain lissé sur un bloc ; voix stéréo et streaming routées ; 33e bus → Master et
+  avertissement ; muet du Master ; repli MonoGame/faux backend : `git diff` vide des tests
+  d'`AudioService` existants et verts ; zéro allocation avec 32 bus et 64 voix ; suite complète.
+- Commit : `feat(audio): mix a real bus graph on the audio thread`
+
+### ⏳ T5.2 — Rampes à durée explicite (P21)
+
+- Objectif : fondus de voix, de musique et de bus sans pas par frame.
+- Fichiers : `Software/` (rampe par voix et par bus), `IAudioBusBackend.cs` (rampe), `AudioService.cs`
+  (fondus de voix et de bus sous la capacité), `Streaming/MusicPlayer.cs` (fondus de piste), tests.
+- Étapes : commande « rampe vers v en n trames » (non perdable : réessai borné comme `SetParameters`)
+  et commande « figer » ; interpolation par échantillon, départ au bloc suivant ; `FadeVoice`, les
+  fondus de `MusicPlayer` et un nouveau `AudioService.FadeBus(bus, cible, durée)` (additif)
+  l'utilisent sous la capacité ; repli inchangé. Sous la capacité, le thread de jeu tient la
+  chronologie de chaque rampe (P21) et en tire `GetVoiceVolume`, `MusicPlayer.GetVolume`,
+  `IsFading`, la libération en fin de `StopWithFade` et le départ d'un fondu enchaîné ;
+  `CancelFade` envoie « figer ».
+- Validation : tests du mixeur : rampe de 1 à 0 en 0,25 s → enveloppe linéaire à 1e-5 près
+  échantillon par échantillon depuis le début du bloc suivant ; rampe interrompue par une autre →
+  reprise depuis la valeur courante ; « figer » arrête l'enveloppe. **Tests du contrat public sur
+  `SoftwareAudioBackend` avec la sortie hors ligne**, comparés au même scénario sur le faux backend
+  (repli) : `GetVoiceVolume` et `MusicPlayer.GetVolume` pendant un fondu, `IsFading` avant, pendant
+  et après, `CancelFade` (valeur gardée, voix vivante), fondu enchaîné repartant de la valeur
+  atteinte, libération de la voix à la fin de `StopWithFade` — mêmes résultats à un bloc près ; tests
+  de fondu existants (faux backend) inchangés et verts ; suite complète.
+- Commit : `feat(audio): sample-interpolated fades on voices and buses`
+
+### ⏳ T5.3 — Effets insérés : filtres biquad et compresseur (P20)
+
+- Objectif : jusqu'à 4 effets par bus, dans l'ordre d'insertion.
+- Fichiers : `CasaEngine/Framework/Audio/Effects/` (`AudioEffect` public abstrait côté jeu,
+  `BiquadFilterEffect` : passe-bas, passe-haut, passe-bande, crête, plateaux ; `CompressorEffect`),
+  état DSP interne côté mixeur, `AudioBus.cs` (ajout et retrait d'effets, additif), tests.
+- Étapes : l'effet est construit sur le thread de jeu (allocation permise) et transmis par
+  l'anneau ; ses paramètres sont publiés en dernière valeur ; coefficients calculés depuis les
+  formules du Cookbook (URL citée) ; compresseur depuis l'article cité (seuil, rapport, genou,
+  attaque, relâchement, gain de sortie) ; garde contre les dénormaux.
+- Validation : tests : réponse en fréquence d'un passe-bas à fc (−3 dB à ±0,5 dB, mesurée sur
+  sinus) et d'une crête (+6 dB à fc) ; coefficients recalculés dans le test depuis les formules ;
+  compresseur : réduction de gain stabilisée conforme à la formule pour 3 niveaux, attaque et
+  relâchement à ±10 % des constantes ; queue décroissante longue sans dénormaux (temps de rendu
+  stable) ; zéro allocation ; suite complète.
+- Commit : `feat(audio): biquad filter and compressor bus effects`
+
+### ⏳ T5.4 — Limiteur du Master, bus de retour et réverbération (P20)
+
+- Objectif : sortie protégée et réverbération partagée.
+- Fichiers : `Effects/LimiterEffect.cs`, `Effects/ReverbEffect.cs` (Freeverb), bus de retour et
+  départs (`AudioBus.SetSend(bus, niveau)`, additif), mixeur, tests.
+- Étapes : limiteur à action directe sur le Master (avant l'écrêtage dur conservé en dernier
+  recours), actif par défaut sous le backend logiciel (plafond −1 dBFS) ; bus de retour mixés après
+  les autres, sans départ vers eux-mêmes (cycle refusé) ; Freeverb d'après la description citée,
+  retards mis à l'échelle du débit de sortie.
+- Validation : tests : somme de voix à +12 dB → crête de sortie ≤ −1 dBFS après l'attaque ;
+  réponse impulsionnelle de la réverbération : énergie décroissante, aucune valeur non finie,
+  longueurs de retard attendues au débit de sortie ; cycle de départs refusé ; zéro allocation ;
+  stress de 60 s avec réverbération et limiteur : 0 sous-alimentation ; suite complète.
+- Commit : `feat(audio): master limiter, return buses and reverb`
+
+### ⏳ T5.5 — Ducking et snapshots
+
+- Objectif : atténuer un bus selon l'activité d'un autre, et rétablir un état de mix en fondu.
+- Fichiers : `Effects/DuckingEffect.cs` (ou propriété de bus), `Mixing/AudioMixerSnapshot.cs`
+  (capture et application, additif), `AudioService.cs`, tests.
+- Étapes : ducking : enveloppe du bus source calculée dans le bloc, atténuation du bus cible
+  (profondeur, seuil, attaque, relâchement) ; snapshot : gains de bus et paramètres d'effets, appliqué
+  en rampe ; le bus Editor et le muet du Master ne sont jamais touchés ; repli : snapshots de gains
+  seulement, ducking absent (journal une fois).
+- Validation : tests : dialogue actif → musique atténuée de la profondeur réglée, retour après le
+  relâchement ; snapshot capturé, modifié, réappliqué en 0,5 s → gains d'origine, Editor et muet
+  inchangés ; suite complète.
+- Commit : `feat(audio): bus ducking and mixer snapshots`
+
+### ⏳ T5.6 — Démo, documentation, ADR et vérification
+
+- Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs` (réverbération, filtre et ducking à la touche,
+  stress inchangé), `docs/engine/audio-system.md`, `docs/decisions/0059-…md` (numéro revérifié sur
+  toutes les branches, P18 à P21), index, ce plan.
+- Validation : stress de 60 s avec effets : 0 sous-alimentation ; vérificateur frais **CONFIRMED** ;
+  écoute de la démo : 🧪 pour l'auteur.
+- Commit : `docs(audio): document buses, effects, ducking and snapshots`
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
@@ -1097,6 +1265,7 @@ dans « Points ouverts » au lieu d'être devinée.
 | O13 | **Question à l'auteur** — MP3, FLAC, Opus : nouvelles dépendances (NLayer 3.0.0 MIT ; Concentus 2.2.2 BSD-3 + Concentus.OggFile MIT pour Opus ; aucun décodeur FLAC géré maintenu trouvé). À décider avant toute intégration. | S3 (en pause) |
 | O14 | **Information pour l'auteur** — le dépôt de l'analyseur (MIT) contient du code dérivé de P.E.Op.S, sous GPL (table ADSR de `SoundBin.cs`, fonction `GetAdsrRate`) : problème de licence existant, hors de ce chantier ; X1 n'en reprend rien. | hors chantier |
 | O15 | Adoption par Alundra des régions de boucle (T2.4) et des voix stéréo exactes (T2.3) : travail du dépôt parent (passer `LoopStart`/`LoopEnd` de chaque ton à `PlayClipStereo`), avec son propre plan ; non fait en mode AUTO. | après S2 |
+| O16 | **Question à l'auteur** — source du séquenceur SEQ/VAB (X3) : le comportement de lecture de libsnd n'existe que dans des décompilations du libsnd propriétaire de Sony (transcription de l'analyseur depuis `ALUN_CD.EXE` ; `psyz/decomp`, étiqueté MIT ; `sotn-decomp`, AGPL-3.0 avec des fichiers MIT). Laquelle peut servir de référence pour un moteur MIT, et sous quelle forme (référence de comportement réécrite, ou rien) ? Avec O4 (cadence du pilote : libsnd en mode 50 Hz chez Alundra, rendus actuels à 60 Hz ; tick sur le thread audio ou de jeu). X3 en pause. Faits utiles : la table note→pitch de 192 entrées se calcule (`floor(4096·2^(k/192))`) ; les données d'Alundra débordent cette table (piste 19), il faudra une règle documentée ; un séquenceur doit gérer plusieurs séquences en même temps (BGM et SFX de séquence) et partager les 24 voix avec les SFX directs. | X3 |
 
 ## Hors périmètre
 
