@@ -23,8 +23,8 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     private readonly ManualResetEventSlim _opened = new(false);
     private readonly ManualResetEventSlim _wake = new(false);
     private readonly int _requestedBufferFrames;
-    private Thread? _thread;
-    private volatile AudioRenderCallback? _callback;
+    private Thread _thread;
+    private volatile AudioRenderCallback _callback;
     private volatile bool _available;
     private volatile bool _stopRequested;
     private int _sampleRate;
@@ -98,7 +98,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
 
     public void Dispose()
     {
-        Thread? thread;
+        Thread thread;
         lock (_lifecycleLock)
         {
             if (_disposed)
@@ -128,7 +128,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         var contextIsCurrent = false;
         var source = 0u;
         var sourceCreated = false;
-        uint[]? buffers = null;
+        uint[] buffers = null;
 
         try
         {
@@ -164,7 +164,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     }
 
     private bool TryInitialize(ref IntPtr device, ref IntPtr context, ref bool contextIsCurrent, ref uint source,
-        ref bool sourceCreated, ref uint[]? buffers, out string failure)
+        ref bool sourceCreated, ref uint[] buffers, out string failure)
     {
         device = OpenAlNative.AlcOpenDevice(null);
         if (device == IntPtr.Zero)
@@ -260,7 +260,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     }
 
     private static void Cleanup(IntPtr device, IntPtr context, bool contextIsCurrent, uint source, bool sourceCreated,
-        uint[]? buffers)
+        uint[] buffers)
     {
         try
         {
