@@ -1,14 +1,16 @@
 namespace CasaEngine.Framework.Audio.Psx;
 
 /// <summary>
-/// Software PlayStation SPU core (task T4.1): 512 KB of SPU RAM, 24 ADPCM voices, pitch, fixed and sweeping volumes,
-/// key on/off and ENDX, rendered at 44100 Hz into 16 bit stereo. Written from the psx-spx description of the SPU
+/// Software PlayStation SPU core (tasks T4.1 and T4.2): 512 KB of SPU RAM, 24 ADPCM voices, pitch, pitch modulation,
+/// fixed and sweeping volumes, ADSR envelopes (ENVX), the noise generator, key on/off and ENDX, rendered at 44100 Hz
+/// into 16 bit stereo. Written from the psx-spx description of the SPU
 /// (https://psx-spx.consoledev.net/ps1/spu/soundprocessingunitspu/ and, for the sample decoding formula the SPU shares
 /// with CD-XA, https://psx-spx.consoledev.net/ps1/cdr/cdromformat/), decision P17: no hardware table is built in,
 /// see <see cref="PsxSpuHardwareTables"/>.
 ///
-/// Not yet implemented, left as extension points: ADSR and ENVX (T4.2, see <c>PlaceholderEnvx</c>), noise and pitch
-/// modulation (T4.2, see <c>ComputeStep</c>), reverb (T4.3), hosting by the software mixer (T4.4).
+/// The ADSR, the volume sweep and the noise generator are formula only (psx-spx sections "Volume and ADSR Generator",
+/// "ADSR Register", "SPU Noise Generator"): no table is needed. Not yet implemented: reverb (T4.3), hosting by the
+/// software mixer (T4.4).
 ///
 /// Addresses of the voice registers are in 8 byte units like the hardware registers; <see cref="WriteRam"/> takes a
 /// byte address. Not thread safe: the caller serialises register writes and <see cref="Render"/> (the ring between the
@@ -35,8 +37,11 @@ public sealed class PsxSpu
     private const int FlagLoopRepeat = 2;
     private const int FlagLoopStart = 4;
 
-    // Placeholder envelope until the ADSR generator (T4.2): a key on jumps straight to the maximum level.
-    private const int PlaceholderEnvx = 0x7FFF;
+    // ADSR phases.
+    private const byte PhaseAttack = 0;
+    private const byte PhaseDecay = 1;
+    private const byte PhaseSustain = 2;
+    private const byte PhaseRelease = 3;
 
     private readonly PsxSpuHardwareTables _tables;
     private readonly IPsxSpuInterpolator _interpolator;
@@ -53,6 +58,10 @@ public sealed class PsxSpu
     private readonly int[] _nextSampleIndex = new int[VoiceCount];
     private readonly int[] _counter = new int[VoiceCount];
     private readonly int[] _envx = new int[VoiceCount];
+    private readonly uint[] _adsr = new uint[VoiceCount]; // ADSR1 in the low 16 bits, ADSR2 in the high 16 bits
+    private readonly byte[] _phase = new byte[VoiceCount];
+    private readonly int[] _adsrCounter = new int[VoiceCount];
+    private readonly int[] _outx = new int[VoiceCount]; // voice output after the envelope, before the volume
     private readonly int[] _old = new int[VoiceCount];
     private readonly int[] _older = new int[VoiceCount];
     private readonly short[] _decoded = new short[VoiceCount * BlockSamples];
@@ -64,6 +73,14 @@ public sealed class PsxSpu
     private readonly int[] _sweepCounter = new int[VoiceCount * 2];
 
     private uint _endx;
+    private uint _noiseVoices;
+    private uint _pitchModulation;
+
+    // Noise generator state (psx-spx "SPU Noise Generator").
+    private int _noiseShift;
+    private int _noiseStep = 4;
+    private int _noiseTimer;
+    private int _noiseLevel;
 
     /// <param name="tables">Hardware tables supplied by the caller.</param>
     /// <param name="interpolator">
@@ -156,9 +173,47 @@ public sealed class PsxSpu
     }
 
     /// <summary>
-    /// Current envelope level (ENVX) of a voice. Placeholder until T4.2: 7FFFh while the voice is on, 0 after a key
-    /// off or a loop end without repeat flag.
+    /// Writes the 32 bit ADSR register of a voice: the low half is ADSR1 (bit 15 attack mode, bits 14-10 attack shift,
+    /// bits 9-8 attack step, bits 7-4 decay shift, bits 3-0 sustain level), the high half is ADSR2 (bit 31 sustain mode,
+    /// bit 30 sustain direction, bits 28-24 sustain shift, bits 23-22 sustain step, bit 21 release mode, bits 20-16
+    /// release shift). It is read on every envelope step, so a write also applies to a voice that is playing.
     /// </summary>
+    public void SetAdsr(int voice, uint register)
+    {
+        CheckVoice(voice);
+        _adsr[voice] = register;
+    }
+
+    /// <summary>
+    /// Noise mode flags (NON): for the voices whose bit is set (bits 0-23), the noise level replaces the ADPCM sample;
+    /// the ADPCM decoding, the address advance and the loop flags go on.
+    /// </summary>
+    public void SetNoiseMode(uint voiceMask) => _noiseVoices = voiceMask & 0xFFFFFF;
+
+    /// <summary>
+    /// Pitch modulation flags (PMON): the pitch of a voice whose bit is set is modulated by the output of the previous
+    /// voice. Bit 0 is ignored (voice 0 is never modulated).
+    /// </summary>
+    public void SetPitchModulation(uint voiceMask) => _pitchModulation = voiceMask & 0xFFFFFE;
+
+    /// <summary>
+    /// Noise clock from the SPUCNT register: <paramref name="shift"/> is bits 13-10 (0..15, low to high frequency),
+    /// <paramref name="step"/> is bits 9-8 (0..3, noise step 4..7).
+    /// </summary>
+    public void SetNoiseClock(int shift, int step)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(shift);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(shift, 15);
+        ArgumentOutOfRangeException.ThrowIfNegative(step);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(step, 3);
+        _noiseShift = shift;
+        _noiseStep = 4 + step;
+    }
+
+    /// <summary>Current noise level of the generator, a signed 16 bit value.</summary>
+    public int GetNoiseLevel() => (short)_noiseLevel;
+
+    /// <summary>Current envelope level (ENVX) of a voice, 0..7FFFh.</summary>
     public int GetEnvx(int voice)
     {
         CheckVoice(voice);
@@ -170,7 +225,7 @@ public sealed class PsxSpu
 
     /// <summary>
     /// Key on for the voices whose bit is set (bits 0-23): the current address takes the start address, ENDX is cleared,
-    /// the decoder history and pitch counter are reset and the envelope goes to the placeholder level (T4.2: attack from 0).
+    /// the decoder history and pitch counter are reset and the envelope restarts its attack from 0.
     /// </summary>
     public void KeyOn(uint voiceMask)
     {
@@ -191,13 +246,16 @@ public sealed class PsxSpu
             _old[v] = 0;
             _older[v] = 0;
             _history[v * 4] = _history[v * 4 + 1] = _history[v * 4 + 2] = _history[v * 4 + 3] = 0;
-            _envx[v] = PlaceholderEnvx;
+            // psx-spx: key on "automatically initializes ADSR Volume to zero".
+            _envx[v] = 0;
+            _phase[v] = PhaseAttack;
+            // AMBIGUOUS (psx-spx): the envelope counter at key on is not specified; zero.
+            _adsrCounter[v] = 0;
         }
     }
 
     /// <summary>
-    /// Key off for the voices whose bit is set. Placeholder until T4.2 (release phase): the envelope drops to 0
-    /// immediately; the voice keeps advancing silently.
+    /// Key off for the voices whose bit is set: the envelope enters its release phase from the current level.
     /// </summary>
     public void KeyOff(uint voiceMask)
     {
@@ -205,7 +263,7 @@ public sealed class PsxSpu
         {
             if ((voiceMask & (1u << v)) != 0)
             {
-                _envx[v] = 0;
+                _phase[v] = PhaseRelease;
             }
         }
     }
@@ -223,6 +281,7 @@ public sealed class PsxSpu
 
         for (var f = 0; f < frames; f++)
         {
+            StepNoise();
             var left = 0;
             var right = 0;
 
@@ -234,10 +293,21 @@ public sealed class PsxSpu
                 }
 
                 var h = v * 4;
-                var sample = _interpolator.Interpolate(_history[h], _history[h + 1], _history[h + 2], _history[h + 3], (_counter[v] >> 4) & 0xFF);
+                int sample;
+                if ((_noiseVoices & (1u << v)) != 0)
+                {
+                    sample = (short)_noiseLevel;
+                }
+                else
+                {
+                    sample = _interpolator.Interpolate(_history[h], _history[h + 1], _history[h + 2], _history[h + 3], (_counter[v] >> 4) & 0xFF);
+                }
 
                 // Lvol = (ENVX * VOLXL) >> 15 (psx-spx), the sample is then scaled by Lvol the same way.
                 var env = _envx[v];
+                // AMBIGUOUS (psx-spx): VxOUTX is "the output after ADSR"; taken as the sample scaled by ENVX, before the
+                // voice volume, and the factor of PMON uses the value of the previous voice computed in this same frame.
+                _outx[v] = (sample * env) >> 15;
                 var lvol = (env * _volumeLevel[v * 2]) >> 15;
                 var rvol = (env * _volumeLevel[v * 2 + 1]) >> 15;
                 left += SaturateToShort((sample * lvol) >> 15);
@@ -250,6 +320,8 @@ public sealed class PsxSpu
                 {
                     PushNextSample(v);
                 }
+
+                StepAdsr(v);
             }
 
             for (var s = 0; s < VoiceCount * 2; s++)
@@ -262,11 +334,89 @@ public sealed class PsxSpu
         }
     }
 
-    // Pitch counter step of psx-spx: values above 3FFFh give 4000h. Extension point: PMON (T4.2) modifies the step first.
+    // Pitch counter step of psx-spx "Pitch Counter": PMON modulates the step with the output of the previous voice, then
+    // values above 3FFFh give 4000h.
     private int ComputeStep(int voice)
     {
         int step = _pitch[voice];
+        if (voice > 0 && (_pitchModulation & (1u << voice)) != 0)
+        {
+            var factor = _outx[voice - 1] + 0x8000;
+            step = (short)step; // SignExpand16to32
+            step = (step * factor) >> 15; // SAR 15
+            step &= 0xFFFF;
+        }
+
         return step > 0x3FFF ? 0x4000 : step;
+    }
+
+    // Noise generator of psx-spx "SPU Noise Generator", once per output frame, before the voices.
+    // AMBIGUOUS (psx-spx): the initial timer and noise level are not specified (both zero), and the three "IF Timer<0"
+    // lines are run in the written order: the level update and the first reload see the same timer, the second reload
+    // sees the timer after the first.
+    private void StepNoise()
+    {
+        _noiseTimer -= _noiseStep;
+        var parity = ((_noiseLevel >> 15) ^ (_noiseLevel >> 12) ^ (_noiseLevel >> 11) ^ (_noiseLevel >> 10) ^ 1) & 1;
+        if (_noiseTimer < 0)
+        {
+            _noiseLevel = ((_noiseLevel << 1) + parity) & 0xFFFF;
+        }
+
+        if (_noiseTimer < 0)
+        {
+            _noiseTimer += 0x20000 >> _noiseShift;
+        }
+
+        if (_noiseTimer < 0)
+        {
+            _noiseTimer += 0x20000 >> _noiseShift;
+        }
+    }
+
+    // One envelope step of a voice (psx-spx "ADSR Register" and "Envelope Operation"), once per output frame after the
+    // voice output was produced. AMBIGUOUS (psx-spx): the tick order against the output is not specified; the output of a
+    // frame uses the level before that frame's step. The phase switches are evaluated at the start of the step from the
+    // current level: attack to decay once the level is 7FFFh, decay to sustain once the level is at or below
+    // (N+1)*800h (a sustain level of Fh, 8000h, thus ends the decay at once).
+    private void StepAdsr(int v)
+    {
+        var register = _adsr[v];
+        var level = _envx[v];
+        var phase = _phase[v];
+
+        if (phase == PhaseAttack && level >= 0x7FFF)
+        {
+            phase = PhaseDecay;
+        }
+
+        if (phase == PhaseDecay && level <= (((int)register & 0xF) + 1) * 0x800)
+        {
+            phase = PhaseSustain;
+        }
+
+        _phase[v] = phase;
+
+        // AMBIGUOUS (psx-spx): the counter carries over from one phase to the next (it is only reset at key on).
+        switch (phase)
+        {
+            case PhaseAttack:
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x8000) != 0, false, false, (int)(register >> 10) & 0x1F, (int)(register >> 8) & 3);
+                break;
+            case PhaseDecay:
+                // Decay: fixed exponential decrease, step value 0 ("-8").
+                level = StepEnvelope(level, ref _adsrCounter[v], true, true, false, (int)(register >> 4) & 0xF, 0);
+                break;
+            case PhaseSustain:
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x80000000) != 0, (register & 0x40000000) != 0, false, (int)(register >> 24) & 0x1F, (int)(register >> 22) & 3);
+                break;
+            default:
+                // Release: decrease, step value 0 ("-8"), mode and shift from the register.
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x200000) != 0, true, false, (int)(register >> 16) & 0x1F, 0);
+                break;
+        }
+
+        _envx[v] = level;
     }
 
     private void PushNextSample(int v)
@@ -363,8 +513,9 @@ public sealed class PsxSpu
             _currentAddress[v] = _repeatAddress[v];
             if ((flags & FlagLoopRepeat) == 0)
             {
-                // Code 1, End+Mute: jump to the loop address, ENDX, release, envelope 0. The voice keeps playing the
+                // Code 1, End+Mute: jump to the loop address, ENDX, "Release, Env=0000h". The voice keeps playing the
                 // loop silently, there is no way to stop the output (psx-spx).
+                _phase[v] = PhaseRelease;
                 _envx[v] = 0;
             }
         }
@@ -383,13 +534,20 @@ public sealed class PsxSpu
             return;
         }
 
-        var exponential = (register & 0x4000) != 0;
-        var decreasing = (register & 0x2000) != 0;
-        var phaseNegative = (register & 0x1000) != 0;
-        var shift = (register >> 2) & 0x1F;
-        var stepValue = register & 3;
-        var level = _volumeLevel[slot];
+        _volumeLevel[slot] = StepEnvelope(
+            _volumeLevel[slot],
+            ref _sweepCounter[slot],
+            (register & 0x4000) != 0,
+            (register & 0x2000) != 0,
+            (register & 0x1000) != 0,
+            (register >> 2) & 0x1F,
+            register & 3);
+    }
 
+    // The psx-spx "Envelope Operation depending on Shift/Step/Mode/Direction", shared by the volume sweep and the ADSR:
+    // one step per output frame, the counter is carried by the caller; returns the new level.
+    private static int StepEnvelope(int level, ref int counterRef, bool exponential, bool decreasing, bool phaseNegative, int shift, int stepValue)
+    {
         var adsrStep = 7 - stepValue;
         if (decreasing ^ phaseNegative)
         {
@@ -426,31 +584,23 @@ public sealed class PsxSpu
             counterIncrement = Math.Max(counterIncrement, 1);
         }
 
-        var counter = _sweepCounter[slot] + counterIncrement;
+        var counter = counterRef + counterIncrement;
         if ((counter & 0x8000) == 0)
         {
-            _sweepCounter[slot] = counter;
-            return;
+            counterRef = counter;
+            return level;
         }
 
         // AMBIGUOUS (psx-spx): the pseudo code does not say what happens to the counter once a step is taken; reset to 0.
-        _sweepCounter[slot] = 0;
+        counterRef = 0;
 
         level += adsrStep;
         if (!decreasing)
         {
-            level = Math.Clamp(level, -0x8000, 0x7FFF);
-        }
-        else if (phaseNegative)
-        {
-            level = Math.Clamp(level, -0x8000, 0);
-        }
-        else
-        {
-            level = Math.Max(level, 0);
+            return Math.Clamp(level, -0x8000, 0x7FFF);
         }
 
-        _volumeLevel[slot] = level;
+        return phaseNegative ? Math.Clamp(level, -0x8000, 0) : Math.Max(level, 0);
     }
 
     private static int SaturateToShort(int value) => value > short.MaxValue ? short.MaxValue : value < short.MinValue ? short.MinValue : value;

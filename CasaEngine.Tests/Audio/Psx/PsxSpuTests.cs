@@ -7,7 +7,7 @@ namespace CasaEngine.Tests.Audio.Psx;
 /// Synthetic tests of the PlayStation SPU core. Expected values are recomputed here from the psx-spx formulas, with
 /// synthetic hardware tables defined in this file (no table of the real hardware is used or shipped).
 /// </summary>
-public class PsxSpuTests
+public partial class PsxSpuTests
 {
     // Synthetic ADPCM filter coefficients (1/64 units), deliberately not the hardware ones.
     private static readonly int[] Positive = { 0, 16, 32, 48, -24 };
@@ -15,6 +15,11 @@ public class PsxSpuTests
 
     private const int Delay = 3; // frames before the first decoded sample reaches the cubic output at pitch 1000h
     private const int MaxVolumeRegister = 0x3FFF; // direct volume register: level +7FFEh
+
+    // ADSR word for the T4.1 tests: attack linear, shift 0, step 0 (+7 << 11 = 3800h per frame, ENVX 0, 3800h, 7000h, 7FFFh
+    // from the third frame, i.e. the Delay), decay shift 0 with sustain level Fh (ends at once), sustain increase with
+    // shift 1Fh and step 3 (all bits set: never steps), so the envelope stays at 7FFFh.
+    private const uint FullEnvelope = 0x1FC0000F;
 
     private sealed record Block(int Shift, int Filter, int Flags, int[] Nibbles);
 
@@ -68,9 +73,12 @@ public class PsxSpuTests
         return samples.ToArray();
     }
 
-    private static int Scale(int sample, int level)
+    // ENVX seen by the output of frame n with FullEnvelope (the envelope steps after the output of each frame).
+    private static int FullEnvelopeAt(int frame) => Math.Min(0x7FFF, 0x3800 * frame);
+
+    private static int Scale(int sample, int level, int envx = 0x7FFF)
     {
-        var lvol = (0x7FFF * level) >> 15;
+        var lvol = (envx * level) >> 15;
         return Math.Clamp((sample * lvol) >> 15, -0x8000, 0x7FFF);
     }
 
@@ -90,6 +98,7 @@ public class PsxSpuTests
 
         spu.SetStartAddress(voice, (ushort)unitAddress);
         spu.SetPitch(voice, pitch);
+        spu.SetAdsr(voice, FullEnvelope);
         spu.SetVolume(voice, false, MaxVolumeRegister);
         spu.SetVolume(voice, true, MaxVolumeRegister);
         return spu;
@@ -201,13 +210,19 @@ public class PsxSpuTests
     }
 
     [Fact]
-    public void KeyOff_PlaceholderSilencesTheVoice()
+    public void KeyOff_StartsTheReleaseFromTheCurrentLevel()
     {
         var spu = NewSpu(0, 0x100, new[] { MakeBlock(11, 0, 0, 5), MakeBlock(11, 0, 0, 6) }, 0x1000, out _);
+        spu.SetAdsr(0, FullEnvelope); // release linear, shift 0: -8 << 11 = -4000h per frame
         spu.KeyOn(1);
         Assert.Contains(RenderLeft(spu, 20), s => s != 0);
+        Assert.Equal(0x7FFF, spu.GetEnvx(0));
 
         spu.KeyOff(1);
+        RenderLeft(spu, 1);
+        Assert.Equal(0x3FFF, spu.GetEnvx(0));
+        RenderLeft(spu, 1);
+        Assert.Equal(0, spu.GetEnvx(0));
 
         Assert.All(RenderLeft(spu, 20), s => Assert.Equal(0, s));
     }
@@ -232,7 +247,7 @@ public class PsxSpuTests
         for (var n = 0; n < frames; n++)
         {
             var index = samplesPerFrame * n - Delay;
-            var expected = index < 0 ? 0 : Scale(expectedSamples[index], 0x7FFE);
+            var expected = index < 0 ? 0 : Scale(expectedSamples[index], 0x7FFE, FullEnvelopeAt(n));
             Assert.Equal(expected, output[n]);
         }
     }
@@ -272,6 +287,7 @@ public class PsxSpuTests
         spu.WriteRam(0x102 * 8, ToBytes(blocks[1]));
         spu.SetStartAddress(0, 0x100);
         spu.SetPitch(0, 0x1000);
+        spu.SetAdsr(0, FullEnvelope);
         spu.SetVolume(0, false, MaxVolumeRegister);
         spu.KeyOn(1);
         var s = DecodeSequence(blocks);
@@ -467,6 +483,7 @@ public class PsxSpuTests
         {
             spu.SetStartAddress(v, 0x100);
             spu.SetPitch(v, 0x1000);
+            spu.SetAdsr(v, FullEnvelope);
             spu.SetVolume(v, false, MaxVolumeRegister);
             spu.SetVolume(v, true, MaxVolumeRegister);
         }
@@ -475,6 +492,7 @@ public class PsxSpuTests
         {
             spu.SetStartAddress(v, 0x200);
             spu.SetPitch(v, 0x1000);
+            spu.SetAdsr(v, FullEnvelope);
             spu.SetVolume(v, false, MaxVolumeRegister);
             spu.SetVolume(v, true, MaxVolumeRegister);
         }
@@ -493,6 +511,7 @@ public class PsxSpuTests
         {
             negativeOnly.SetStartAddress(v, 0x200);
             negativeOnly.SetPitch(v, 0x1000);
+            negativeOnly.SetAdsr(v, FullEnvelope);
             negativeOnly.SetVolume(v, false, MaxVolumeRegister);
             negativeOnly.SetVolume(v, true, MaxVolumeRegister);
         }
@@ -513,6 +532,7 @@ public class PsxSpuTests
         spu.WriteRam(PsxSpu.RamSize - 8, bytes);
         spu.SetStartAddress(0, 0xFFFF);
         spu.SetPitch(0, 0x1000);
+        spu.SetAdsr(0, FullEnvelope);
         spu.SetVolume(0, false, MaxVolumeRegister);
         spu.KeyOn(1);
         var s = DecodeSequence(new[] { block });
