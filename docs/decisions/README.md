@@ -61,4 +61,11 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0045](0045-a-blocked-field-step-advances-to-contact.md) | A blocked step on the cell collision field advances to the contact | Accepted | 2026-09-29 |
 | [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
 | [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
+| [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted | 2026-10-03 |
+| [ADR-0049](0049-background-layers-can-be-switched-off-by-identifier.md) | Background layers can be switched off by identifier, frozen and not drawn | Accepted | 2026-10-03 |
+| [ADR-0050](0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md) | Cellular layers follow the original's period, drawn position and C library rand | Accepted | 2026-10-03 |
+| [ADR-0051](0051-psx-semi-transparency-of-sprites-as-two-disjoint-passes.md) | PSX semi-transparency of sprites as two disjoint passes | Accepted | 2026-10-03 |
+| [ADR-0052](0052-cellular-wave-counter-truncated-type-0-parallax-and-cell-order.md) | One global wave counter, a truncated type-0 parallax factor and cell 0 drawn on top in cellular layers | Accepted | 2026-10-03 |
+| [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
+| [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |

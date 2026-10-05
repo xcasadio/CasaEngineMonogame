@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
 
@@ -59,4 +60,12 @@ public struct ScrollingLayerDefinition
     public SpriteBlendMode Blend;
 
     public Color Tint;
+
+    /// <summary>
+    /// PSX semi-transparency mode of the layer (ADR-0051, extended to the background layers). When it is not
+    /// <see cref="SpritePsxSemiTransparency.None"/>, each covering quad is drawn as two entries of the same sort key on two
+    /// disjoint raw-alpha windows (opaque texels, then STP texels with the blend state of the mode) and <see cref="Blend"/> is
+    /// ignored. <see cref="SpritePsxSemiTransparency.None"/> (the default) draws one entry with <see cref="Blend"/>.
+    /// </summary>
+    public SpritePsxSemiTransparency PsxSemiTransparency;
 }

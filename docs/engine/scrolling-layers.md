@@ -94,7 +94,12 @@ rectangle de test.
 ## 6. Fusion et résolution des textures
 
 Chaque couche porte son propre `SpriteBlendMode`/teinte (politique DLL) ; la teinte plein écran est
-toujours soumise en `SpriteBlendMode.AlphaBlend`. Les textures sont résolues par
+toujours soumise en `SpriteBlendMode.AlphaBlend`. Une couche qui porte un `PsxSemiTransparency` autre que
+`None` (ADR-0053, qui étend ADR-0051 aux couches de fond) ignore son `Blend` : chaque quad couvrant est
+soumis en deux entrées de même clé sur deux fenêtres d'alpha brut disjointes, les texels opaques (alpha
+255) à l'état opaque puis les texels STP (alpha 128) à l'état du mode (`Mode0` moyenne, `Mode1` additif,
+`Mode2` soustractif, `Mode3` additif de couleur (64, 64, 64)) ; voir `sprite-psx-semi-transparency.md`.
+Un mode `None` (défaut) garde une entrée au `Blend` de la couche. Les textures sont résolues par
 `ScrollingLayerComponent.ResolveTextures(loader)`, appelé par `Update` seulement quand
 `Service.LayersVersion` change (jamais par frame) — un id nul (`Guid.Empty`) donne une trame nulle
 sans appeler le délégué ; trame 0 nulle → couche ignorée ; trame `f ≥ 1` nulle → repli sur `[frame0]`
@@ -126,5 +131,13 @@ jamais la valeur brute du compteur, dès qu'un chargement de couche est dégrad�
 - **`Submit` ne soumet rien sans poussée reçue** (`FramesPushed == 0`) : l'aperçu éditeur, qui ne fait
   jamais tourner la DLL (`UpdateGameplayScripts = false`), ne dessine donc aucun fond — comportement
   inchangé, même limite que [screen-effects.md](screen-effects.md).
-- Les comportements jamais portés par la DLL (activation par couche à l'exécution, décalage scripté,
-  marcheur de teinte, mode cellulaire) restent hors de ce mécanisme.
+- Les comportements jamais portés par la DLL (décalage scripté, marcheur de teinte, mode cellulaire) restent
+  hors de ce mécanisme.
+
+## 9. Masque d'une couche (E19.k2, ADR-0049)
+
+`SetLayerActive(stableId, active)` éteint ou rallume toute couche dont `StableId` vaut `stableId` (l'identifiant
+donné par le jeu, pas la position dans le tableau ; un identifiant absent est sans effet). Une couche éteinte est
+**figée** : `Advance` ne touche ni sa cadence d'animation, ni ses accumulateurs de défilement, ni ses décalages
+enroulés ; `ScrollingLayerComponent.Submit` n'en soumet aucun quad. `SetLayers` et `Clear` remettent toutes les
+couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.

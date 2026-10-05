@@ -64,6 +64,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [save-games.md](engine/save-games.md) — service de sauvegarde de partie au runtime (ADR-0044) : `SaveGameService` (`GameSettings.SaveGames`), objet `ISaveGameData` sérialisé par une archive symétrique, formats JSON et binaire, résultats, contrat de validation par le jeu.
 - [scrolling-layers.md](engine/scrolling-layers.md) — mécanisme des couches défilantes V1 : `ScrollingLayerService` (parallaxe/auto-défilement/cadence par tick entier, sans type GPU), `ScrollingLayerComponent` (résolution des textures, ciseaux en paramètre, soumission des quads couvrants), politique Z = 0.
 - [cellular-layers.md](engine/cellular-layers.md) — mécanisme des couches à cellules V1 (le second mode de fond d'Alundra) : `CellularLayerService` (dérive/période/parallaxe par cellule, `WaveX` sans état, cadence V-animation et `WaveTick`, sans type GPU), `CellularLayerComponent` (résolution des planches par `PalDex`, soumission cellule par cellule), mécanisme parallèle à `scrolling-layers.md` et non une extension.
+- [sprite-psx-semi-transparency.md](engine/sprite-psx-semi-transparency.md) — semi-transparence PSX par texel d'un sprite : champ `SpriteData.PsxSemiTransparency` (`psx_semi_transparency`), deux dessins disjoints par fenêtres d'alpha brut (`AlphaWindow`), états de mélange des modes 0 à 3, capacité de la file au-delà de 10 000 entrées, démos qui lisent leur back-buffer.
 
 ### Ressources
 

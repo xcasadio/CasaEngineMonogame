@@ -1,5 +1,6 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Rendering.ScrollingLayers;
 using Microsoft.Xna.Framework;
@@ -211,7 +212,7 @@ public class ScrollingLayerComponent : GameComponent
 
         for (var i = 0; i < Service.LayerCount; i++)
         {
-            if (!Service.TryGetLayerState(i, out var state))
+            if (!Service.IsLayerActive(i) || !Service.TryGetLayerState(i, out var state))
             {
                 continue;
             }
@@ -255,6 +256,24 @@ public class ScrollingLayerComponent : GameComponent
                     var worldPosition = new Vector2(
                         cameraTarget.X + (originX - halfWidth),
                         cameraTarget.Y + (halfHeight - originY));
+
+                    if (definition.PsxSemiTransparency != SpritePsxSemiTransparency.None)
+                    {
+                        renderer.DrawSprite(
+                            frame,
+                            frame.Bounds,
+                            Point.Zero,
+                            worldPosition,
+                            0f,
+                            Vector2.One,
+                            definition.Tint,
+                            layerZ,
+                            sortKey,
+                            SpriteEffects.None,
+                            scissorRectangle,
+                            definition.PsxSemiTransparency);
+                        continue;
+                    }
 
                     renderer.DrawSprite(
                         frame,

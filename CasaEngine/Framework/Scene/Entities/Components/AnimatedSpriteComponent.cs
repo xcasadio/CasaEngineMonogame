@@ -537,7 +537,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             if (_depthSortable2DComponent != null)
             {
                 var sortKey = BuildPartSortKey(baseSortKey, part);
-                _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, Position.Z, sortKey, spriteEffects);
+                // ADR-0051: a sprite that carries a PSX semi-transparency mode is queued as two disjoint passes.
+                // The zOrder path below stays opaque.
+                _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, Position.Z, sortKey,
+                    spriteEffects, sprite.SpriteData.PsxSemiTransparency);
                 continue;
             }
 

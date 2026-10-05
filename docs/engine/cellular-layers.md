@@ -46,24 +46,38 @@ service.SetFrame(cameraX, cameraY, ticks, cameraTarget);
 
 `SetFrame` **arme** une frame en attente sans rien avancer ; une seconde poussée avant l'`Advance()`
 suivant **écrase** la précédente. `Advance(nextRandomUInt32)` **consomme** la frame : pour chacun des
-`ticks`, pour chaque couche — cadence V (`AnimFrameTimer`/`AnimFrameCounter`), avance du `WaveTick`
-(byte, enroule mod 256), puis chaque cellule dans l'ordre de définition. `nextRandomUInt32` n'est appelé
+`ticks` : d'abord le compteur des vagues du **service** (un seul octet pour toutes les couches, +1 par tick
+avant la boucle des couches dès que `SetLayers` a été appelé depuis le dernier `Clear`, même avec une liste vide ;
+`SetLayers`, `Clear` et `ResetLayerRuntimeState` ne le remettent jamais à 0 et le masque ne le fige pas, ADR-0052),
+puis, pour chaque couche, la cadence V (`AnimFrameTimer`/`AnimFrameCounter`), puis chaque cellule dans l'ordre de
+définition. `nextRandomUInt32` n'est appelé
 que si une cellule `FallRespawn` réapparaît réellement ce tick (voir §6).
 
 Une seule horloge entière ; `ticks = 0` n'avance rien.
 
-## 4. `Normal` — dérive, pas de période, enroulement
+## 4. `Normal` — dérive, période, enroulement
 
 ```
 posX += DX ; posY += DY
-si PeriodX != 0 : stepX = ComputePeriodStepOr(DX, PeriodX) ; si ++tickX >= |PeriodX| { posX += stepX ; tickX = 0 }
+si PeriodX != 0 : stepX = ComputePeriodStepOr(DX, PeriodX) ; si tickX++ > |PeriodX| { posX += stepX ; tickX = 0 }
    (idem en Y avec PeriodY/DY/tickY)
-baseX = CamXDen != 0 ? cameraX * CamXNum / CamXDen : 0   (idem baseY)
-sx = posX - baseX ; minX = U0 - U1
-   si sx < minX       : posX += 320 - minX ; sx = posX - baseX
-   sinon si sx > 319   : posX += -320 + minX ; sx = posX - baseX
+baseX = CamXDen != 0 ? cameraX * (CamXNum / CamXDen) : 0   (idem baseY ; facteur tronqué une fois, division
+                                                            entière signée, ADR-0052 : 1/2 vaut 0)
+sx = posX - baseX ; drawX = sx ; minX = U0 - U1
+   si sx < minX       : posX += 320 - minX
+   sinon si sx > 319   : posX += -320 + minX
 (idem en Y, 240 et minY = V0 - V1)
 ```
+
+**Période.** Le pas s'applique quand `|P|` est inférieur au compteur d'**avant** son incrément, puis le
+compteur repasse à 0 : un pas tous les `|P| + 2` ticks (`0x8005CC64`/`0x8005CCBC` pour le type 0,
+`0x8005D218`/`0x8005D278` pour le type 2). Le défilement automatique de `ScrollingLayerService` garde son
+propre rythme, `|P|` ticks (`0x8005C7E0`).
+
+**Position dessinée.** La cellule est dessinée à la position calculée **avant** les enroulements
+(`0x8005CCFC`/`0x8005CD00` écrites en `0x8005CDF0`/`0x8005CDF4`) : les enroulements ne déplacent que la
+position rangée, donc au tick d'un enroulement la cellule est hors de l'écran et n'apparaît à sa nouvelle
+place qu'au tick suivant (ADR-0050).
 
 **Le pas de période est un OU de signes, recalculé à chaque tick** —
 `ComputePeriodStepOr(delta, period) = (delta < 0 || period < 0) ? -1 : 1` — **pas** le OU EXCLUSIF
@@ -77,20 +91,27 @@ EXCLUSIF donnerait +1) — c'est le seul cas qui les distingue, et c'est le cas 
 Même dérive et même enroulement en X que `Normal`. En Y, à la place de l'enroulement :
 
 ```
+drawY = sy
 si sy > 239 {
-    posX = (int)((nextRandomUInt32() * (ulong)320) >> 32)
+    posX = (int)nextRandomUInt32() / 102        (division signée, tronquée vers 0)
     posY += -240 + (V0 - V1)
-    sx = posX - baseX ; sy = posY - baseY
 }
 ```
 
-**Partage le flux aléatoire global de l'original** (D7, `Random.cs:5,14` — graine `0xB017C93D`,
-`seed = seed * 0x7d2b89dd + 0xe06a02e7`) : `CellularLayerService` ne possède aucun générateur à lui —
-`Advance` reçoit le prochain entier 32 bits brut via un délégué injecté, appelé **seulement** quand une
-cellule réapparaît réellement ce tick. `CellularLayerComponent.RandomSource` est le point où la DLL doit
-brancher ce flux partagé (propriété réglable, lance par défaut si jamais appelée sans avoir été câblée).
-L'acceptation (D7) épingle les **invariants** — réapparaît en haut, abscisse dans les bornes de l'écran —
-jamais une position absolue, puisque le flux est partagé avec le reste du jeu.
+La parallaxe de `FallRespawn` garde la formule exécutée à chaque tick, `cameraX * CamXNum / CamXDen` (type 2 de
+l'original, ADR-0052), contrairement à `Normal`.
+
+La position dessinée (`drawX`, `drawY`) est celle d'avant l'enroulement en X et d'avant la réapparition
+(`0x8005D2C0`/`0x8005D2C4` écrites en `0x8005D3AC`/`0x8005D3B0`), comme pour `Normal`.
+
+**Tire le `rand()` de la bibliothèque C de l'original** (ADR-0050 ; `0x80081E6C`,
+`s = s * 0x41C64E6D + 0x3039`, rend `(s >> 16) & 0x7FFF`) : `CellularLayerService` ne possède aucun
+générateur à lui — `Advance` reçoit la prochaine valeur de ce `rand()` (0 à 0x7FFF) via un délégué
+injecté, appelé **une fois** par réapparition et **seulement** quand une cellule réapparaît réellement ce
+tick. L'abscisse tirée va de 0 à 321 (`0x8005D324`..`0x8005D340`) ; 320 et 321 sont hors écran, la cellule
+s'enroule au tick suivant. `CellularLayerComponent.RandomSource` est le point où la DLL doit brancher son
+exemplaire du générateur (propriété réglable, avertit une fois et rend 0 si jamais appelée sans avoir été
+câblée).
 
 ## 6. `WaveX` — sans état, formule fixe
 
@@ -156,15 +177,38 @@ référencent, jamais la couche entière.
 Même règle que le mécanisme frère : `Submit` ne lit jamais `GraphicsDevice`, le rectangle de ciseaux est
 un paramètre résolu une fois par frame par `Update`. Chaque couche porte son propre `SpriteBlendMode`/
 teinte (politique DLL), lus directement depuis `CellularLayerDefinition.Blend`/`Tint` — aucune
-résolution supplémentaire ici, elle appartient à la DLL.
+résolution supplémentaire ici, elle appartient à la DLL. Une couche qui porte un `PsxSemiTransparency`
+autre que `None` (ADR-0053, qui étend ADR-0051 aux couches de fond) ignore son `Blend` : chaque cellule
+est soumise en deux entrées de même clé (la clé par cellule d'ADR-0052 est gardée) sur deux fenêtres
+d'alpha brut disjointes, les texels opaques à l'état opaque puis les texels STP à l'état du mode ; voir
+`sprite-psx-semi-transparency.md`. Un mode `None` (défaut) garde une entrée par cellule au `Blend` de la couche.
 
 ## 12. Limites connues (V1)
 
 - **Pas d'éditeur, pas de sérialisation** : le format `.backdrop.json` reste lu par la DLL.
 - **`CellularLayerComponent.RandomSource` doit être câblé par la DLL** avant qu'une couche `FallRespawn`
-  n'atteigne `Advance()` — sans quoi le délégué par défaut lève une exception explicite plutôt que de
-  tirer d'un flux non partagé (D7). Une carte sans cellule `FallRespawn` n'atteint jamais ce chemin.
+  n'atteigne `Advance()` — sans quoi le délégué par défaut avertit une fois et rend 0 (les cellules
+  réapparaissent à l'abscisse 0). Une carte sans cellule `FallRespawn` n'atteint jamais ce chemin.
 - **Une seule caméra active à la fois**, comme le mécanisme frère.
 - **`Submit` ne soumet rien sans poussée reçue** (`FramesPushed == 0`).
 - Les 8 champs `Cellular`/16 champs `Cell` sortis par le convertisseur sont copiés 1:1 ; les deux octets
   morts de l'original (`Unused0`/`Unused1`) ne sont pas représentés.
+
+## 13. Masque d'une couche (E19.k2, ADR-0049)
+
+`SetLayerActive(layerId, active)` éteint ou rallume toute couche dont `LayerId` vaut `layerId` (l'identifiant donné
+par le jeu, pas la position dans le tableau ; un identifiant absent est sans effet). Une couche éteinte est
+**figée** : `Advance` ne touche ni sa cadence, ni les positions de ses cellules, et ne tire
+aucune valeur du flux aléatoire pour elle (le compteur des vagues, lui, est celui du service et continue de
+compter : ADR-0052 amende ADR-0049 sur ce point) ; `CellularLayerComponent.Submit` n'en soumet aucune cellule. `SetLayers`
+et `Clear` remettent toutes les couches actives. `IsLayerActive(index)` lit l'état d'une couche par sa position.
+
+## 14. Ordre de dessin des cellules (E19.m3, ADR-0052)
+
+Chaque cellule reçoit sa propre clé de tri, `LocalSortOffset = -indice` : la cellule 0 est dessinée en dernier, dessus,
+comme dans l'original qui insère chaque cellule en tête du même créneau de sa table d'ordre. L'ordre ne dépend donc pas
+de la stabilité du tri de la file. Les champs de la couche (passe, `SortingLayer`, `OrderInLayer`) se comparent d'abord :
+l'ordre entre couches de valeurs distinctes ne change pas ; deux couches qui partagent ces trois champs verraient leurs
+cellules entrelacées par indice.
+
+Decisions: see [ADR-0049](../decisions/0049-background-layers-can-be-switched-off-by-identifier.md), [ADR-0052](../decisions/0052-cellular-wave-counter-truncated-type-0-parallax-and-cell-order.md) and [ADR-0050](../decisions/0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md).

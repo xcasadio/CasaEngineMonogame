@@ -2,6 +2,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.XAML;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.UI;
 
@@ -25,6 +26,9 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
     private readonly string _assetFilePath;
     private readonly XamlDocumentSource _source;
     private readonly string _themeName;
+
+    // The bounds the screen last saw, from the build or from NotifyScreenBounds.
+    private Rectangle _lastScreenBounds;
 
     // Set only by the constructor that acquires its envelope through the asset manager (ADR-0037,
     // ADR-0038); null for a screen built from a caller-supplied asset or an embedded document, which own
@@ -116,9 +120,36 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
         }
 
         Window = LoadWindow(desktop);
+        _lastScreenBounds = desktop.ValidScreenBounds;
 
         OnWindowLoaded(Window);
         return Window;
+    }
+
+    /// <summary>
+    /// Tells the screen the bounds of its desktop (the view's rectangle, view-local) as they are now. Calls
+    /// <see cref="OnScreenBoundsChanged"/> when they differ from the ones the screen last saw, and does nothing before
+    /// the window is built. <see cref="UIRoot"/> calls it every frame through <see cref="ScreenStack.NotifyScreenBounds"/>,
+    /// including for screens frozen under a modal one.
+    /// </summary>
+    public void NotifyScreenBounds(Rectangle bounds)
+    {
+        if (Window == null || bounds == _lastScreenBounds)
+        {
+            return;
+        }
+
+        _lastScreenBounds = bounds;
+        OnScreenBoundsChanged(bounds);
+    }
+
+    /// <summary>
+    /// Called when the bounds of the screen's desktop change after the window was built -- the window was resized and
+    /// the view with it (ADR-0048). <see cref="OnWindowLoaded"/> saw the bounds at load time; place whatever depends
+    /// on them again here. Called from the update, never from a draw.
+    /// </summary>
+    protected virtual void OnScreenBoundsChanged(Rectangle bounds)
+    {
     }
 
     /// <summary>

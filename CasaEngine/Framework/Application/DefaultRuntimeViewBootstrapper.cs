@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering;
 
@@ -33,12 +34,33 @@ public sealed class DefaultRuntimeViewBootstrapper : IRuntimeViewBootstrapper
             camera = world.CreateDefaultCamera();
         }
 
-        var fullScreen = new Rectangle(0, 0, game.ScreenSizeWidth, game.ScreenSizeHeight);
-        viewManager.CreateView(new ViewDefinition
+        CreateDefaultView(world, viewManager, camera, game.ScreenSizeWidth, game.ScreenSizeHeight, game.ActiveVirtualResolution);
+    }
+
+    /// <summary>
+    /// Creates the default view over the whole window, or -- with a virtual resolution -- over its integer-fit image
+    /// (ADR-0048), the camera framing exactly the virtual resolution. Fitted before the view is registered so the UI
+    /// runtime created on registration already sees the final rectangle.
+    /// </summary>
+    internal static ViewId CreateDefaultView(
+        Scene.World.World world,
+        ViewManager viewManager,
+        CameraComponent camera,
+        int windowWidth,
+        int windowHeight,
+        VirtualResolutionSettings virtualResolution)
+    {
+        var surface = new BackBufferSurface(new Rectangle(0, 0, windowWidth, windowHeight));
+        if (virtualResolution != null)
+        {
+            VirtualResolutionLayout.Apply(surface, camera, windowWidth, windowHeight, virtualResolution);
+        }
+
+        return viewManager.CreateView(new ViewDefinition
         {
             World = world,
             Camera = camera,
-            Surface = new BackBufferSurface(fullScreen),
+            Surface = surface,
             Name = "Default view",
             ClearColor = Color.CornflowerBlue,
         });

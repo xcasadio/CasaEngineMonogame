@@ -1,0 +1,11 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="20" Top="300" Width="160" Height="80"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="8"
+        Background="rgba(255,0,0,255)">
+
+  <!-- A solid red element, 160 x 80, at (20, 300) of the view it is pushed on (the right view of the split-screen demo),
+       below the stats overlay that covers the top of every view. SplitScreenDemo reads the middle of it back from the back buffer. -->
+  <TextBlock Name="lblMarker" Text="[color=white]UI in the offset view[/color]" />
+</Window>

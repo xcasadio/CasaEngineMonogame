@@ -1,3 +1,8 @@
+using System;
+using System.Globalization;
+using System.IO;
+using System.Text;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -16,8 +21,13 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 public class SplitScreenDemo : Demo
 {
+    private const int ProbeFrames = 20;
+
     private ArcBallCameraComponent? _camera2;
+    private RenderView? _offsetView;
     private CasaEngineGame? _game;
+    private int _frames;
+    private bool _probed;
 
     public override string Title => "Split-screen demo (2 views)";
     public override string Description => "Validates per-view render stats in split-screen: the left view sees a heavier textured/transparent cluster, the right view a lighter opaque cluster.";
@@ -120,16 +130,78 @@ public class SplitScreenDemo : Demo
             ClearColor = Color.CornflowerBlue,
             ShowDebugOverlay = true,
         });
-        viewManager.Add(new RenderView(world, _camera2, new BackBufferSurface(rects[1]))
+        _offsetView = new RenderView(world, _camera2, new BackBufferSurface(rects[1]))
         {
             Name = "View 2 (stats light)",
             ClearColor = new Color(0.12f, 0.12f, 0.20f),
             ShowDebugOverlay = true,
-        });
+        };
+        viewManager.Add(_offsetView);
+
+        // ADR-0054: a UI element in the view that does not start at the corner of the window. The UI runtime of the view
+        // exists once the view is added; the element is a solid red window the probe reads back.
+        _offsetView.UIView?.PushScreen(new SplitScreenOffsetViewScreen());
+        _frames = 0;
+        _probed = false;
     }
 
     public override void Update(GameTime gameTime)
     {
+    }
+
+    /// <summary>
+    /// Reads the back buffer in process (<see cref="GraphicsDevice.GetBackBufferData{T}(T[])"/>, never a capture of the desktop)
+    /// above the text of the element of <see cref="SplitScreenOffsetViewScreen"/> and compares it with its colour. The result
+    /// goes to the log and, when <c>CASAENGINE_DEMO_PIXELS_PATH</c> names a file, to that file. Run it with
+    /// <c>CASAENGINE_START_DEMO="Split-screen demo (2 views)"</c> from the <c>CasaEngine.Demos</c> folder, and
+    /// <c>CASAENGINE_CAPTURE_SCREENSHOT_PATH</c> to also save the image and close the demo by itself.
+    /// </summary>
+    public override void PostDraw(CasaEngineGame game, GameTime gameTime)
+    {
+        if (_probed || _offsetView == null || ++_frames < ProbeFrames)
+        {
+            return;
+        }
+
+        _probed = true;
+        var device = game.GraphicsDevice;
+        var width = device.PresentationParameters.BackBufferWidth;
+        var height = device.PresentationParameters.BackBufferHeight;
+        var data = new byte[width * height * 4];
+        device.GetBackBufferData(data);
+
+        // Above the text, in the middle of the width of the 160 x 80 window of the XAML, which sits at (20, 300) of the view,
+        // below the stats overlay.
+        var view = _offsetView.Surface.ViewportRect;
+        var x = view.X + 20 + 80;
+        var y = view.Y + 300 + 12;
+        var report = new StringBuilder();
+        report.AppendLine(string.Create(CultureInfo.InvariantCulture, $"demo={Title} backbuffer={width}x{height} view=({view.X},{view.Y},{view.Width},{view.Height})"));
+
+        var ok = false;
+        if (x >= 0 && y >= 0 && x < width && y < height)
+        {
+            var offset = (y * width + x) * 4;
+            var r = data[offset];
+            var g = data[offset + 1];
+            var b = data[offset + 2];
+            ok = Math.Abs(r - 255) <= 1 && g <= 1 && b <= 1;
+            report.AppendLine(string.Create(CultureInfo.InvariantCulture,
+                $"{(ok ? "OK  " : "FAIL")} UI element of the offset view pixel=({x},{y}) read=({r},{g},{b}) expected=(255,0,0)"));
+        }
+        else
+        {
+            report.AppendLine(string.Create(CultureInfo.InvariantCulture, $"FAIL pixel=({x},{y}) outside the back buffer"));
+        }
+
+        report.AppendLine($"result={(ok ? "PASS" : "FAIL")}");
+        Logs.WriteInfo($"[{Title}] probe{Environment.NewLine}{report}");
+
+        var path = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH");
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            File.WriteAllText(Path.GetFullPath(path), report.ToString());
+        }
     }
 
     public override void Clean()
@@ -140,6 +212,7 @@ public class SplitScreenDemo : Demo
         }
 
         _camera2 = null;
+        _offsetView = null;
         _game = null;
     }
 

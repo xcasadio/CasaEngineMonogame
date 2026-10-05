@@ -26,6 +26,7 @@ public sealed class ScrollingLayerService
     private struct LayerRuntime
     {
         public ScrollingLayerDefinition Definition;
+        public bool Inactive;
         public int AnimFrameTimer;
         public int AnimFrameCounter;
         public int AutoScrollOffsetX;
@@ -95,6 +96,32 @@ public sealed class ScrollingLayerService
         LayersVersion++;
     }
 
+    /// <summary>
+    /// Switches on or off every layer whose <see cref="ScrollingLayerDefinition.StableId"/> is
+    /// <paramref name="stableId"/> (the identifier the game gave the layer, not its place in the array). An
+    /// inactive layer is frozen - <see cref="Advance"/> moves none of its per-tick state (animation cadence,
+    /// auto-scroll accumulators, wrapped offsets) - and <see cref="Application.Components.ScrollingLayerComponent"/>
+    /// submits none of its quads. An identifier no layer carries is ignored. <see cref="SetLayers"/> and
+    /// <see cref="Clear"/> make every layer active again.
+    /// </summary>
+    public void SetLayerActive(int stableId, bool active)
+    {
+        for (var i = 0; i < _layers.Length; i++)
+        {
+            if (_layers[i].Definition.StableId == stableId)
+            {
+                _layers[i].Inactive = !active;
+            }
+        }
+    }
+
+    /// <summary>False when the layer at <paramref name="index"/> was switched off by <see cref="SetLayerActive"/>
+    /// (also false for an index with no layer).</summary>
+    public bool IsLayerActive(int index)
+    {
+        return (uint)index < (uint)_layers.Length && !_layers[index].Inactive;
+    }
+
     public void SetTint(ScrollingTintDefinition? tint)
     {
         _tint = tint;
@@ -148,13 +175,19 @@ public sealed class ScrollingLayerService
         {
             for (var i = 0; i < _layers.Length; i++)
             {
-                AdvanceLayerOneTick(ref _layers[i]);
+                if (!_layers[i].Inactive)
+                {
+                    AdvanceLayerOneTick(ref _layers[i]);
+                }
             }
         }
 
         for (var i = 0; i < _layers.Length; i++)
         {
-            RecomputeLayerOffset(ref _layers[i]);
+            if (!_layers[i].Inactive)
+            {
+                RecomputeLayerOffset(ref _layers[i]);
+            }
         }
 
         PendingTicks = 0;

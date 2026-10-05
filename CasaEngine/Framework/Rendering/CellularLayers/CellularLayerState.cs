@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Rendering.CellularLayers;
 /// One layer's per-tick cadence state, as of the most recent <see cref="CellularLayerService.Advance"/>
 /// call - read-only snapshot returned by <see cref="CellularLayerService.TryGetLayerState"/>. Mirrors
 /// the original's own per-layer accumulators, computed once per layer per tick before its cell loop
-/// (Alundra's <c>GraphicManager.cs:988-997</c>).
+/// (Alundra's <c>GraphicManager.cs:988-997</c>), plus the service's wave counter.
 /// </summary>
 public readonly struct CellularLayerState
 {
@@ -28,7 +28,8 @@ public readonly struct CellularLayerState
     /// from.</summary>
     public int Phase { get; }
 
-    /// <summary>Byte counter advanced every tick, wrapping mod 256 - the original's own <c>WaveTick</c>,
-    /// read by every <see cref="CellularCellType.WaveX"/> cell in this layer.</summary>
+    /// <summary>The service's wave counter (one byte for all layers, wrapping mod 256), as read by every
+    /// <see cref="CellularCellType.WaveX"/> cell: the original's single word <c>0x800C48C4</c>. It counts ticks while the
+    /// map has a backdrop, even for a masked layer, and no reset touches it (ADR-0052).</summary>
     public byte WaveTick { get; }
 }

@@ -113,6 +113,21 @@ public sealed class ScreenStack
             Pop();
     }
 
+    /// <summary>
+    /// Tells every <see cref="XamlUIScreenBase"/> on the stack the bounds of the desktop, frozen or not: a screen
+    /// under a modal one still has to follow the window.
+    /// </summary>
+    public void NotifyScreenBounds(Rectangle bounds)
+    {
+        for (int i = 0; i < _screens.Count; i++)
+        {
+            if (_screens[i] is XamlUIScreenBase xamlScreen)
+            {
+                xamlScreen.NotifyScreenBounds(bounds);
+            }
+        }
+    }
+
     // ---- Update ----
 
     /// <summary>

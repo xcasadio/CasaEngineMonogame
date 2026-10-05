@@ -9,6 +9,12 @@
 float4x4 ViewProj;
 float4x4 World;
 float4 Color;
+
+// Raw-alpha window (min, max] of the texels this draw keeps (ADR-0051). A texel whose own alpha, before the Color
+// product, is outside the window is discarded. The neutral window (-1, 2) keeps everything, so a draw that does not set
+// the window behaves exactly as before it existed. The test reads the sampled alpha as it is stored: it assumes the point
+// sampling the sprite renderer sets (a filtered sample would blend the alpha of neighbours).
+float2 AlphaWindow = float2(-1.0f, 2.0f);
 Texture2D Texture;
 sampler2D TextureSampler = sampler_state
 {
@@ -39,7 +45,13 @@ VS_OUTPUT VS(VS_INPUT vertex)
 
 float4 PS(VS_OUTPUT input) : COLOR
 {
-    float4 texel = tex2D(TextureSampler, input.textureCoordinates) * Color;
+    float4 sampled = tex2D(TextureSampler, input.textureCoordinates);
+    if (sampled.a <= AlphaWindow.x || sampled.a > AlphaWindow.y)
+    {
+        discard;
+    }
+
+    float4 texel = sampled * Color;
     if (texel.a <= 0.01f)
     {
 	    discard;

@@ -129,6 +129,10 @@ public sealed class UIRoot : IUIViewRuntime
         // Desktop.Update() reads the current input snapshot that was refreshed
         // when PreviewUpdate fired on the UI host/runtime bridge.
         Desktop.Update();
+
+        // The view's rectangle follows the window (virtual resolution, ADR-0048): screens that placed their
+        // window from the bounds at load time place it again.
+        ScreenStack.NotifyScreenBounds(Desktop.ValidScreenBounds);
         ScreenStack.Update(gameTime);
     }
 

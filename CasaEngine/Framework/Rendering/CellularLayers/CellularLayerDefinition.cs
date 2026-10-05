@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
 
@@ -7,7 +8,7 @@ namespace CasaEngine.Framework.Rendering.CellularLayers;
 /// Static description of one cellular backdrop layer (docs/engine/cellular-layers.md): V-animation
 /// cadence, the six <c>WaveX</c> parameters, its cells and the per-<c>PalDex</c> tile sheet textures
 /// baked by the converter (D2). Pushed once per world load via <see cref="CellularLayerService.SetLayers"/>;
-/// the policy that builds these (which layers exist, blend/tint per <c>Ground</c>) lives in the
+/// the policy that builds these (which layers exist, blend/tint per <c>Ground</c>, PSX semi-transparency mode) lives in the
 /// consuming game DLL, not here - same split as <see cref="CellularLayerService"/>'s sibling
 /// <see cref="ScrollingLayers.ScrollingLayerService"/> (plan-e9d-mode-cellulaire.md D3).
 /// </summary>
@@ -37,6 +38,14 @@ public struct CellularLayerDefinition
     public SpriteBlendMode Blend;
 
     public Color Tint;
+
+    /// <summary>
+    /// PSX semi-transparency mode of the layer (ADR-0051, extended to the background layers). When it is not
+    /// <see cref="SpritePsxSemiTransparency.None"/>, each cell is drawn as two entries of the same sort key on two disjoint
+    /// raw-alpha windows (opaque texels, then STP texels with the blend state of the mode) and <see cref="Blend"/> is ignored.
+    /// <see cref="SpritePsxSemiTransparency.None"/> (the default) draws one entry per cell with <see cref="Blend"/>.
+    /// </summary>
+    public SpritePsxSemiTransparency PsxSemiTransparency;
 
     /// <summary><c>WaveX</c>'s first term: <c>WaveLut[(Y0 * AWaveY) &amp; 0xFF] * WaveLut[(WaveTick * AWavePhase) &amp; 0xFF] * AWaveAmp</c>.</summary>
     public int AWaveY;
