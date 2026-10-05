@@ -522,7 +522,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   mesure de stress) ; évolutions reliées au programme ; démo (touche `G`, commande sans clavier).
   Liens relatifs vérifiés (`test -f`).
 
-### ⏳ T1.8 — Vérification de la tranche et recette de l'auteur
+### 🧪 T1.8 — Vérification de la tranche et recette de l'auteur
 
 - Objectif : prouver le résultat de S1 avant de changer le défaut.
 - Sources : tout le diff de la branche.
@@ -535,6 +535,19 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
      parcours Alundra. La ligne `Audio backend: …` du journal confirme le backend de chaque essai.
 - Validation : verdict **CONFIRMED** ; accord de l'auteur. En attente de l'auteur : 🧪.
 - Commit : `docs(plan): record the S1 verification and listening test`
+- Note de validation, étape 1 (2026-10-05) : vérificateur frais (`verifier`) sur `main..d2397514`,
+  verdict **CONFIRMED**, aucun constat P0–P2. Preuves rejouées par lui : build des deux solutions
+  (0 erreur), `CasaEngine.Tests` 2608/2608 (108/108 sur les suites audio nouvelles), aucune
+  différence de signature sur `IAudioBackend`, `AudioService`, `IAudioClip`, `IAudioClipSamples`,
+  `AudioVoiceParameters` ; son propre stress de 60 s : `underruns=0 gc=119`,
+  `monogame-openal-initialized=false` ; retour MonoGame par la variable : ligne et capture
+  « Backend: MonoGameAudioBackend » ; essai hors dépôt sur le vrai périphérique : les deux backends
+  jouent des `PcmAudioClip` à 6 000, 22 050, 44 100, 48 000 et 96 000 Hz, mono et stéréo, en boucle
+  ou non, relecture depuis le cache, `Dispose` propre (thread joint en 14 ms). Avis non bloquants
+  reportés (règle P3/P4 : pas de correction d'un résultat confirmé) : O6 à O9.
+- Étape 2 en attente de l'auteur (🧪) : écoute de la démo, de l'éditeur (dont la ligne
+  `Audio backend:` dans son panneau Log, reste de T1.5) et d'Alundra, avec
+  `CASAENGINE_AUDIO_BACKEND=Software` puis `MonoGame`. Pour Alundra, voir O10.
 
 ### ⏳ T1.9 — Bascule du défaut
 
@@ -566,6 +579,11 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 | O3 | Retrait du backend MonoGame et de `MonoGameAudioClip` (rupture d'API publique) : décision de l'auteur, après la bascule. | après T1.9 |
 | O4 | PSX : cadence du séquenceur (port à 50 Hz, rendus actuels des musiques à 60 Hz) et provenance des tables ADSR de l'analyseur (convention P.E.Op.S, licence à vérifier). | X1, X3 |
 | O5 | L'éditeur ne suit pas le réglage `AudioBackend` du projet ouvert (son runtime est créé sans projet ; changer de backend à chaud n'est pas prévu en S1). À reprendre si l'auteur le souhaite. | après S1 |
+| O6 | Avis A1 du vérificateur (P3, introduit, reporté) : si le thread audio meurt sur une exception, `SoftwareAudioBackend.IsAvailable` reste vrai ; une fois la file de commandes pleine, chaque appel attend jusqu'à 100 ms. Attendu : le backend devient muet et sans attente. Aucun déclencheur réaliste trouvé (pas d'erreur AL au débranchement). À traiter en S2 avec le changement de périphérique à chaud. | S2 |
+| O7 | Avis A2 (P4) : même situation que O6 ; `Release`/`StopAll` rendent l'emplacement même si l'ordre `Stop` a été abandonné, une voix en boucle peut continuer jusqu'à la réutilisation de l'emplacement. | S2 |
+| O8 | Avis A3 (P4) : si la file de 128 chunks d'une voix déborde (environ 2,7 s en file) et que le chunk perdu termine un buffer, `GetPendingBufferCount` ne redescend plus pour ce buffer (perte comptée dans `DroppedChunkCount`). | S2 |
+| O9 | Avis A4 (P4, accepté par P4) : sous le backend MonoGame, le `SoundEffect` d'un `PcmAudioClip` est construit au premier `Play` (copie WAV sur le thread de jeu, à-coup possible pour un long clip) ; un clip stéréo y est gardé deux fois. Disparaît avec le retrait du backend MonoGame (O3). | O3 |
+| O10 | Recette Alundra : le worktree part de `main`, alors que la pile `e19` (non mergée) ajoute des API moteur que le `Alundra.dll` actuel utilise probablement ; lancer Alundra sur le moteur de cette branche peut échouer pour des raisons étrangères à l'audio. Options : tester Alundra quand `e19` sera dans `main` (puis intégrer `main` ici), ou intégrer dès maintenant la pile `e19` dans cette branche pour la recette. Décision de l'auteur. | T1.8 |
 
 ## Hors périmètre
 
