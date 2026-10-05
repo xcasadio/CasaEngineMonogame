@@ -608,8 +608,10 @@ vérificateur contradictoire) ; faits repris ci-dessous avec leurs fichiers. Ord
 écrivain à la fois). Relecture des détails : S3 **READY** au premier passage ; S2 et X1 : deux
 REVISE, chaque point tranché FIX (S2 : compteur consommé par génération, règle du travailleur,
 méthodes `With*`, liaison sans `unsafe`, état « reconnexion » ; X1 : tables matérielles fournies
-par l'appelant, anneau borné, ordre téléversement/registres), puis relecture de clôture (résultat
-ci-dessous). S3 passe en premier parce qu'elle était prête la première.
+par l'appelant, anneau borné, ordre téléversement/registres), puis relecture de clôture : X1
+**READY** ; S2 REVISE sur le seul point T2.6 (débranchement : pas de point d'injection simulable
+au niveau du périphérique) → T2.6 séparée de S2 et mise en pause, puis relecture de clôture de S2
+réduite (T2.1–T2.5, T2.7) : **READY**. S3 passe en premier parce qu'elle était prête la première.
 
 ### Décisions de la vague 2 (arbitrages de l'agent, à confirmer par l'auteur à son retour)
 
@@ -642,9 +644,10 @@ ci-dessous). S3 passe en premier parce qu'elle était prête la première.
 
 Résultat attendu : sous le backend logiciel, les voix stéréo d'Alundra ont leurs gains exacts sans
 file de 60 ms, les boucles peuvent viser une région, la vitesse peut dépasser une octave, la lecture
-des musiques quitte le thread de jeu, et la sortie survit au débranchement du périphérique ; O6 à
-O8 sont corrigés. Non-objectifs : `IAudioBackend`, `SoundAsset` et le dépôt parent ne changent pas ;
-rampes explicites (S4). Prérequis : S1. Retour arrière : `CASAENGINE_AUDIO_BACKEND=MonoGame`, ou
+des musiques quitte le thread de jeu ; O6 à O8 sont corrigés. Non-objectifs : `IAudioBackend`,
+`SoundAsset` et le dépôt parent ne changent pas ; rampes explicites (S4) ; **débranchement et
+changement de périphérique (T2.6), séparés de S2 après la relecture de clôture et mis en pause**
+(voir T2.6). Prérequis : S1. Retour arrière : `CASAENGINE_AUDIO_BACKEND=MonoGame`, ou
 revert des commits de la tranche.
 
 État vérifié (2026-10-05, branche) :
@@ -779,7 +782,20 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   stress de 60 s avec la musique : 0 sous-alimentation ; suite complète.
 - Commit : `feat(audio): read streamed music on a background worker`
 
-### ⏳ T2.6 — Débranchement et changement de périphérique
+### ⚠️ T2.6 — Débranchement et changement de périphérique (séparée de S2, en pause)
+
+> **En pause (2026-10-05)** : la relecture de clôture de S2 a montré que l'acceptation ci-dessous
+> n'est pas démontrable en l'état. Le seul point d'injection, `IOpenAlStream`, ne couvre que les
+> sources et les buffers (`IOpenAlStream.cs:7-22`) ; l'état de sortie, le cycle de vie du thread,
+> l'ouverture du périphérique et le rythme de la boucle vivent dans `OpenAlAudioOutput`, qui appelle
+> `OpenAlNative` directement (`OpenAlAudioOutput.cs:46`, `:124-260`), et aucun test ne construit
+> `OpenAlAudioOutput`. Avant reprise, il faut concevoir : le composant qui porte la coupure (test de
+> connexion, essai de réouverture, état « reconnexion », rendu au rythme du périphérique dans un
+> tampon jeté, suppression du comptage de sous-alimentations) derrière une interface simulable au
+> niveau du périphérique ; et ce que construit le test (une vraie `OpenAlAudioOutput` sur la couche
+> simulée, reliée à `SoftwareAudioBackend`), avec la liste complète des fichiers. Règle de relecture
+> atteinte (deux REVISE puis clôture REVISE) : décision de l'auteur ou nouvelle conception, puis une
+> relecture. Le reste de S2 n'en dépend pas.
 
 - Objectif : le son continue après un débranchement ou un changement de sortie par défaut.
 - Fichiers : `Output/OpenAl/OpenAlNative.cs` (fonctions obtenues par `alcGetProcAddress`,
@@ -818,7 +834,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
 
 - Objectif : documenter S2 et prouver la tranche.
 - Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0056-…md`, index des ADR, ce plan.
-- Étapes : doc (voix stéréo, boucles, vitesse, travailleur, périphérique, limites du repli
+- Étapes : doc (voix stéréo, boucles, vitesse, travailleur, limites du repli
   MonoGame) ; vérificateur frais sur S2 ; stress de 60 s sur le build final.
 - Validation : verdict **CONFIRMED** ; stress 0 sous-alimentation.
 - Commit : `docs(audio): document real-time stereo voices, loops and streaming`
@@ -846,7 +862,7 @@ Prérequis : S1 (S2 pour l'ordre d'exécution seulement). Retour arrière : reve
 
 Budget : identique à S2.
 
-### ⏳ T3.1 — Chargeur de clips multi-format et Ogg résident (P15)
+### 🧪 T3.1 — Chargeur de clips multi-format et Ogg résident (P15)
 
 - Fichiers : `Directory.Packages.props` et `CasaEngine/CasaEngine.csproj` (référence directe à
   NVorbis **0.10.4**, la version déjà livrée), `CasaEngine/Framework/Audio/Decoding/OggDecoder.cs`,
@@ -864,6 +880,16 @@ Budget : identique à S2.
   du refus en streaming ; build des deux solutions ; inspecteur : 🧪 (choisir un `.ogg` dans
   l'éditeur, coup d'œil de l'auteur).
 - Commit : `feat(audio): load ogg vorbis files as resident clips`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu en session
+  principale. NVorbis 0.10.4 référencé directement (même version que celle livrée par MonoGame,
+  restauration depuis le cache local, aucun téléchargement) ; `OggDecoder` et `PcmConversion`
+  (conversion flottant → 16 bits partagée avec `WavDecoder`) ; `DecodedWav` renommé `DecodedPcm` ;
+  `AudioClipLoader` (`.wav` et `.ogg`) remplace `WavAudioClipLoader` (renommé avec ses tests) ;
+  `MusicPlayer` refuse une piste Ogg streamée (« OggS » détecté, une ligne d'erreur, aucune voix) ;
+  filtre de l'inspecteur `.sound` élargi à `.ogg` ; trois fixtures synthétiques de 4 à 6 Ko avec
+  leurs commandes `ffmpeg` (`CasaEngine.Tests/Audio/Fixtures/README.md`). Build des deux solutions :
+  0 erreur ; `CasaEngine.Tests` 2750/2750 (+15). **Reste 🧪** : choisir un `.ogg` dans
+  l'inspecteur d'un `.sound` de l'éditeur et l'écouter (coup d'œil de l'auteur).
 
 ### ⏳ T3.2 — ADPCM MS et IMA (P16)
 

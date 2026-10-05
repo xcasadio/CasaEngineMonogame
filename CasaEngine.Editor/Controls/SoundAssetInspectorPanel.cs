@@ -344,7 +344,8 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         {
             AssetId = _soundAsset.AudioFileAssetId,
             // Only the formats the engine can actually decode.
-            Filter = assetInfo => assetInfo.FileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase),
+            Filter = assetInfo => assetInfo.FileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase)
+                || assetInfo.FileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase),
         };
         selector.AssetChanged += (_, assetId) =>
         {

@@ -317,6 +317,15 @@ public sealed class MusicPlayer : IDisposable
 
         try
         {
+            if (StartsWithOggMagic(stream))
+            {
+                stream.Dispose();
+                _log.WriteError(
+                    $"Audio: music '{asset.Name}' is an Ogg file and Ogg streaming is not supported yet (open question O11). "
+                    + "Do not mark this sound as streaming: it will be loaded fully instead.");
+                return null;
+            }
+
             return new WavStreamReader(stream);
         }
         catch (Exception exception)
@@ -325,6 +334,22 @@ public sealed class MusicPlayer : IDisposable
             _log.WriteError($"Audio: music '{asset.Name}' cannot be streamed. {exception.Message}");
             return null;
         }
+    }
+
+    /// <summary>Reads the "OggS" capture pattern, then puts the stream back where it was.</summary>
+    private static bool StartsWithOggMagic(Stream stream)
+    {
+        if (!stream.CanSeek)
+        {
+            return false;
+        }
+
+        var start = stream.Position;
+        Span<byte> magic = stackalloc byte[4];
+        var read = stream.Read(magic);
+        stream.Position = start;
+
+        return read == 4 && magic[0] == (byte)'O' && magic[1] == (byte)'g' && magic[2] == (byte)'g' && magic[3] == (byte)'S';
     }
 
     private int TakeTrackSlot()

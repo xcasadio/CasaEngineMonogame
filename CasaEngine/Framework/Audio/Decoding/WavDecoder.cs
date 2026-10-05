@@ -3,12 +3,12 @@ using System.Buffers.Binary;
 namespace CasaEngine.Framework.Audio.Decoding;
 
 /// <summary>
-/// A wav file decoded to interleaved 16 bit PCM.
+/// A sound file (wav, ogg) decoded to interleaved 16 bit PCM.
 /// </summary>
 /// <param name="Samples">Interleaved 16 bit samples, <see cref="ChannelCount"/> per frame.</param>
 /// <param name="SampleRate">Sample rate in Hz.</param>
 /// <param name="ChannelCount">1 or 2.</param>
-public readonly record struct DecodedWav(short[] Samples, int SampleRate, int ChannelCount);
+public readonly record struct DecodedPcm(short[] Samples, int SampleRate, int ChannelCount);
 
 /// <summary>
 /// Decodes a RIFF/WAVE file held in memory to interleaved 16 bit PCM.
@@ -34,7 +34,7 @@ public static class WavDecoder
     /// <param name="sourceName">Name of the source (usually the file name), quoted in error messages.</param>
     /// <exception cref="InvalidDataException">The data is not a usable RIFF wav file.</exception>
     /// <exception cref="NotSupportedException">The wav is valid but uses an unsupported encoding or layout.</exception>
-    public static DecodedWav Decode(ReadOnlySpan<byte> bytes, string sourceName)
+    public static DecodedPcm Decode(ReadOnlySpan<byte> bytes, string sourceName)
     {
         ArgumentNullException.ThrowIfNull(sourceName);
 
@@ -109,7 +109,7 @@ public static class WavDecoder
                 }
 
                 var samples = ConvertToInt16(bytes.Slice(bodyStart, (int)chunkSize), encoding, bitsPerSample);
-                return new DecodedWav(samples, sampleRate, channelCount);
+                return new DecodedPcm(samples, sampleRate, channelCount);
             }
 
             // RIFF chunks are word aligned: an odd size is followed by a padding byte.
@@ -182,7 +182,7 @@ public static class WavDecoder
             var sample = data.Slice(i * bytesPerSample, bytesPerSample);
 
             samples[i] = encoding == SampleEncoding.Float
-                ? FloatToInt16(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(sample)))
+                ? PcmConversion.FloatToInt16(BitConverter.Int32BitsToSingle(BinaryPrimitives.ReadInt32LittleEndian(sample)))
                 : bitsPerSample switch
                 {
                     8 => (short)((sample[0] - 128) << 8),
@@ -194,17 +194,6 @@ public static class WavDecoder
         }
 
         return samples;
-    }
-
-    private static short FloatToInt16(float value)
-    {
-        // NaN compares false with everything: map it to silence rather than an arbitrary value.
-        if (float.IsNaN(value))
-        {
-            return 0;
-        }
-
-        return (short)MathF.Round(Math.Clamp(value, -1f, 1f) * short.MaxValue);
     }
 
     private static bool Matches(ReadOnlySpan<byte> value, string ascii)

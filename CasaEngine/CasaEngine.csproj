@@ -22,6 +22,7 @@
 		<PackageReference Include="MonoGame.Framework.DesktopGL" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" />
 		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="NVorbis" />
 		<PackageReference Include="SharpGLTF.Core" />
 		<PackageReference Include="SharpGLTF.Toolkit" />
 		<PackageReference Include="YarnSpinner" />

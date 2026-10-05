@@ -5,24 +5,27 @@ using CasaEngine.Framework.Audio.Decoding;
 namespace CasaEngine.Framework.Assets.Loaders;
 
 /// <summary>
-/// Loads a wav file as a fully resident, backend neutral <see cref="PcmAudioClip"/>
+/// Loads a wav or ogg file as a fully resident, backend neutral <see cref="PcmAudioClip"/>
 /// (see docs/decisions/0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md).
 /// </summary>
 /// <remarks>
-/// Decoding is done by <see cref="WavDecoder"/>, so the supported encodings are its own (PCM 8 to
-/// 32 bit, IEEE float, mono or stereo). Long sounds should be streamed instead.
+/// The decoder is picked by extension: <see cref="WavDecoder"/> for .wav (PCM 8 to 32 bit, IEEE
+/// float) and <see cref="OggDecoder"/> for .ogg (Vorbis); mono or stereo only. Long sounds should
+/// be streamed instead, which is only available for wav for now.
 /// </remarks>
-public class WavAudioClipLoader : IAssetLoader
+public class AudioClipLoader : IAssetLoader
 {
-    private static readonly string[] _extensionSupported = { ".wav" };
+    private static readonly string[] _extensionSupported = { ".wav", ".ogg" };
 
     public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {
             var bytes = File.ReadAllBytes(fileName);
-            var wav = WavDecoder.Decode(bytes, fileName);
-            return new PcmAudioClip(wav.Samples, wav.SampleRate, wav.ChannelCount);
+            var decoded = Path.GetExtension(fileName).Equals(".ogg", StringComparison.OrdinalIgnoreCase)
+                ? OggDecoder.Decode(bytes, fileName)
+                : WavDecoder.Decode(bytes, fileName);
+            return new PcmAudioClip(decoded.Samples, decoded.SampleRate, decoded.ChannelCount);
         }
         catch (Exception exception)
         {
