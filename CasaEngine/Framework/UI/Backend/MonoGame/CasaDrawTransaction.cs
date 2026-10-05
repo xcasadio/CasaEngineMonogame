@@ -65,7 +65,23 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     private CasaRenderTargetService RenderTargets { get; }
     private IShapeRenderer2D ShapeRenderer { get; }
     private CasaClipManager ClipManager { get; }
-    public Rectangle? CurrentClipBounds => CurrentSettings.UsesScissorTest ? GraphicsDevice.ScissorRectangle : null;
+    /// <summary>The current clip rectangle in pixels of the view being drawn (the space MGUI computes its clips in), or null without a clip.
+    /// The device scissor is in absolute pixels of the render target, so it is brought back by the origin of the viewport (ADR-0054).</summary>
+    public Rectangle? CurrentClipBounds => CurrentSettings.UsesScissorTest ? ToViewSpace(GraphicsDevice.ScissorRectangle) : null;
+
+    /// <summary>Moves a rectangle of the view to the absolute pixels of the render target, where the device scissor lives: the sprites
+    /// are drawn relative to the origin of the viewport, the scissor is not (ADR-0054).</summary>
+    private Rectangle ToDeviceSpace(Rectangle ViewBounds)
+    {
+        Viewport View = GraphicsDevice.Viewport;
+        return new Rectangle(ViewBounds.X + View.X, ViewBounds.Y + View.Y, ViewBounds.Width, ViewBounds.Height);
+    }
+
+    private Rectangle ToViewSpace(Rectangle DeviceBounds)
+    {
+        Viewport View = GraphicsDevice.Viewport;
+        return new Rectangle(DeviceBounds.X - View.X, DeviceBounds.Y - View.Y, DeviceBounds.Width, DeviceBounds.Height);
+    }
     private RasterizerState CurrentRasterizerState => DrawState.CurrentRasterizerState;
     private BlendState CurrentBlendState => DrawState.CurrentBlendState;
     private SamplerState CurrentSamplerState => DrawState.CurrentSamplerState;
@@ -741,20 +757,23 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// the clip target will be the intersection of the current clip target and the given <paramref name="Bounds"/></param>
     public void SetClipTarget(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
     {
+        // The device scissor is in absolute pixels of the render target; Bounds is in pixels of the view (ADR-0054).
         Rectangle CurrentBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
 
         bool IsScissorTesting = CurrentSettings.UsesScissorTest;
         bool ShouldScissorTest = Bounds.HasValue;
 
-        if (IsScissorTesting && Bounds.HasValue && IntersectWithCurrentClipTarget)
+        Rectangle? DeviceBounds = Bounds.HasValue ? ToDeviceSpace(Bounds.Value) : null;
+
+        if (IsScissorTesting && DeviceBounds.HasValue && IntersectWithCurrentClipTarget)
         {
-            Bounds = Rectangle.Intersect(Bounds.Value, CurrentBounds);
+            DeviceBounds = Rectangle.Intersect(DeviceBounds.Value, CurrentBounds);
         }
 
-        if (Bounds != CurrentBounds || IsScissorTesting != ShouldScissorTest)
+        if (DeviceBounds != CurrentBounds || IsScissorTesting != ShouldScissorTest)
         {
             EndDraw(CurrentContext);
-            SpriteBatch.GraphicsDevice.ScissorRectangle = Bounds ?? Renderer.GetViewport(0);
+            SpriteBatch.GraphicsDevice.ScissorRectangle = DeviceBounds ?? ToDeviceSpace(Renderer.GetViewport(0));
             if (ShouldScissorTest && !IsScissorTesting)
             {
                 SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });

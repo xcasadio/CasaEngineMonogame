@@ -6,6 +6,7 @@ using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI;
+using CasaEngine.Framework.UI.Backend.MonoGame;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -337,10 +338,13 @@ public class CasaEngineGame : Game, IObservableUpdate
     /// <summary>
     /// A user resize of the window only changes the back buffer and raises <c>ClientSizeChanged</c> (it never resets
     /// the device), so the virtual resolution (ADR-0048) follows the window from here. Without a virtual resolution
-    /// nothing happens, as before.
+    /// nothing else happens, as before. The device scissor is refreshed first in every case (ADR-0054).
     /// </summary>
     private void OnWindowClientSizeChanged(object sender, EventArgs e)
     {
+        // The device keeps the scissor of its last reset across a user resize; the first clip of the UI would intersect with it (ADR-0054).
+        UiDeviceScissor.ResetToBackBuffer(GraphicsDevice);
+
         if (ActiveVirtualResolution == null)
         {
             return;
