@@ -19,6 +19,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         SampleRate = sampleRate;
     }
 
+    // Nothing pumps this output on its own, so its command ring stays undrained until a test calls Pump.
     public bool IsAvailable { get; private set; }
 
     public int SampleRate { get; }
@@ -61,6 +62,12 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         }
 
         return peak;
+    }
+
+    /// <summary>Simulates the audio thread dying: the output reports itself unavailable.</summary>
+    public void Die()
+    {
+        IsAvailable = false;
     }
 
     public void Dispose()

@@ -31,7 +31,8 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// A refused stream buffer (ring or chunk pool full) is dropped with a throttled warning.
 /// </para>
 /// <para>
-/// When the output cannot be opened the backend is unavailable and every call is a silent no-op.
+/// When the output cannot be opened, or its audio thread dies later (one warning is logged), the
+/// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
 public sealed class SoftwareAudioBackend : IAudioBackend
@@ -54,6 +55,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     private int _freeSlotCount;
     private int _activeVoiceCount;
     private bool _isDisposed;
+    private bool _outputDeathLogged;
 
     /// <summary>Opens the default OpenAL output.</summary>
     public SoftwareAudioBackend(int voiceCapacity = DefaultVoiceCapacity)
@@ -104,7 +106,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
     }
 
-    public bool IsAvailable => _mixer != null;
+    /// <summary>
+    /// True while the mixer exists and the output is still running. Once the audio thread died the
+    /// backend stays silent for good (a device loss is not a death, see the output implementation).
+    /// </summary>
+    public bool IsAvailable => IsOutputAlive();
 
     public int VoiceCapacity => _slots.Length;
 
@@ -138,7 +144,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     {
         ArgumentNullException.ThrowIfNull(clip);
 
-        if (_isDisposed || _mixer == null)
+        if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
         }
@@ -169,7 +175,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         var slot = _slots[slotIndex];
         slot.Generation++;
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters)) && wait.Next())
         {
@@ -198,7 +204,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return;
         }
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TrySetParameters(voice.Index, slot.Generation, parameters)) && wait.Next())
         {
@@ -272,7 +278,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public void StopAll()
     {
-        if (_isDisposed || _mixer == null)
+        if (!IsOutputAlive())
         {
             return;
         }
@@ -290,7 +296,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
     {
-        if (_isDisposed || _mixer == null)
+        if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
         }
@@ -324,7 +330,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         var slot = _slots[slotIndex];
         slot.Generation++;
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TryCreateStreamingVoice(slotIndex, slot.Generation, channelCount, sampleRate, parameters))
                && wait.Next())
@@ -393,8 +399,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
 
         // The output first: it joins the audio thread, so nothing renders while the state is released.
-        _output.Dispose();
         _isDisposed = true;
+        _output.Dispose();
 
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -419,7 +425,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     private bool SendSimple(MixerCommandKind kind, int slotIndex, int generation)
     {
         var command = new MixerCommand { Kind = kind, Slot = slotIndex, Generation = generation };
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
         {
@@ -431,6 +437,28 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
 
         return sent;
+    }
+
+    // Cheap: two field reads. The first time the output is found dead one warning is logged.
+    private bool IsOutputAlive()
+    {
+        if (_isDisposed || _mixer == null)
+        {
+            return false;
+        }
+
+        if (_output.IsAvailable)
+        {
+            return true;
+        }
+
+        if (!_outputDeathLogged)
+        {
+            _outputDeathLogged = true;
+            Logs.WriteWarning("Audio: the audio output thread stopped, the software audio backend is now silent.");
+        }
+
+        return false;
     }
 
     private void ReportRingFull()
@@ -472,7 +500,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     {
         slot = null;
 
-        if (_isDisposed || _mixer == null || !voice.IsValid || voice.Index >= _slots.Length)
+        if (!IsOutputAlive() || !voice.IsValid || voice.Index >= _slots.Length)
         {
             return false;
         }
@@ -549,12 +577,24 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     // Bounded wait for room in the command ring; a struct so the retry path allocates nothing.
     private struct RingWait
     {
+        private readonly IAudioOutput _output;
         private long _deadline;
         private SpinWait _spin;
         private bool _started;
 
+        public RingWait(IAudioOutput output)
+        {
+            _output = output;
+        }
+
         public bool Next()
         {
+            // A dead output never drains the ring: give up at once instead of spinning.
+            if (!_output.IsAvailable)
+            {
+                return false;
+            }
+
             if (!_started)
             {
                 _started = true;

@@ -681,7 +681,7 @@ principale ; une revérification ciblée par défaut corrigé, cinq passes au pl
 vérificateur ; stress : deux passages au plus par build ; budget épuisé → ⚠️ Blocked, question
 écrite, arrêt de la tranche (les autres continuent).
 
-### ⏳ T2.1 — Santé de la sortie (O6)
+### ✅ T2.1 — Santé de la sortie (O6)
 
 - Objectif : un thread audio mort rend le backend muet et sans attente.
 - Fichiers : `CasaEngine/Framework/Audio/Backends/SoftwareAudioBackend.cs`,
@@ -694,6 +694,13 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
 - Validation : test avec une sortie hors ligne qui « meurt » : `IsAvailable` faux, `Play` rend
   `None`, un appel quand l'anneau est plein ne bloque pas (moins de 5 ms mesurées) ; suite complète.
 - Commit : `fix(audio): mute the software backend when its output thread dies`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu.
+  `IsAvailable` = mixeur et sortie vivants (lecture sans allocation) ; `RingWait` s'arrête net si
+  la sortie est morte ; un avertissement unique ; `_isDisposed` posé avant de libérer la sortie
+  (pas d'avertissement au `Dispose`). `OfflineAudioOutput.Die()` pour les tests. Mesures : `Pause`
+  sur anneau plein avec sortie morte 0,153 ms (≈ 100 ms avant) ; tour de six appels ≈ 0,0025 ms.
+  L'attente bornée de 100 ms reste inchangée pour une sortie vivante (test existant vert).
+  `CasaEngine.Tests` 2798/2798 (+2). O6 corrigé.
 
 ### ⏳ T2.2 — Comptes de streaming fiables et arrêts garantis (O7, O8)
 

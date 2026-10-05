@@ -2,6 +2,7 @@ using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Mixing;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CasaEngine.Tests.Audio;
 
@@ -9,6 +10,13 @@ namespace CasaEngine.Tests.Audio;
 public class SoftwareAudioBackendTests
 {
     private const int Rate = 48000;
+
+    private readonly ITestOutputHelper _log;
+
+    public SoftwareAudioBackendTests(ITestOutputHelper log)
+    {
+        _log = log;
+    }
 
     private static PcmAudioClip Constant(short value, int frames, int rate = Rate, int channels = 1)
     {
@@ -185,6 +193,65 @@ public class SoftwareAudioBackendTests
 
         Assert.Equal(AudioVoiceState.Playing, backend.GetState(voice));
         Assert.InRange(started.ElapsedMilliseconds, SoftwareAudioBackend.CommandRetryMilliseconds - 20, SoftwareAudioBackend.CommandRetryMilliseconds * 20);
+    }
+
+    [Fact]
+    public void DeadOutput_MutesTheBackend_AndNeverWaitsOnAFullRing()
+    {
+        using var backend = Create(out var output, capacity: 4);
+        var voice = backend.Play(Constant(1000, Rate), new AudioVoiceParameters(1f, 0f, 0f, true));
+        var stream = backend.CreateStreamingVoice(Rate, 2, AudioVoiceParameters.Default);
+
+        // Fill the 4096 slot command ring (nothing pumps it), then kill the output.
+        for (var i = 0; i < 5000; i++)
+        {
+            backend.SetVolume(voice, 0.5f);
+        }
+
+        output.Die();
+
+        Assert.False(backend.IsAvailable);
+        Assert.False(backend.SupportsStreaming);
+        Assert.Equal(AudioVoiceState.Stopped, backend.GetState(voice));
+        Assert.Equal(0, backend.GetPendingBufferCount(stream));
+
+        var started = System.Diagnostics.Stopwatch.StartNew();
+        var worst = 0.0;
+        var clip = Constant(1000, 100);
+        for (var i = 0; i < 10; i++)
+        {
+            var before = started.Elapsed.TotalMilliseconds;
+            Assert.False(backend.Play(clip, AudioVoiceParameters.Default).IsValid);
+            Assert.False(backend.CreateStreamingVoice(Rate, 2, AudioVoiceParameters.Default).IsValid);
+            backend.Pause(voice);
+            backend.SetParameters(voice, AudioVoiceParameters.Default);
+            backend.Stop(voice);
+            backend.StopAll();
+            worst = Math.Max(worst, started.Elapsed.TotalMilliseconds - before);
+        }
+
+        _log.WriteLine($"worst dead-output call batch: {worst} ms");
+        Assert.True(worst < 5, $"a call on a dead output took {worst} ms");
+    }
+
+    [Fact]
+    public void OutputDyingWhileACommandWaitsOnAFullRing_ReturnsWithoutTheFullWait()
+    {
+        using var backend = Create(out var output, capacity: 4);
+        var voice = backend.Play(Constant(1000, Rate), new AudioVoiceParameters(1f, 0f, 0f, true));
+        for (var i = 0; i < 5000; i++)
+        {
+            backend.SetVolume(voice, 0.5f);
+        }
+
+        // The output is already dead when the backend is first asked to retry on the full ring.
+        output.Die();
+        var started = System.Diagnostics.Stopwatch.StartNew();
+        backend.Pause(voice);
+        started.Stop();
+
+        _log.WriteLine($"Pause on a full ring, dead output: {started.Elapsed.TotalMilliseconds} ms");
+        Assert.True(started.Elapsed.TotalMilliseconds < 5, $"Pause took {started.Elapsed.TotalMilliseconds} ms");
     }
 
     [Fact]
