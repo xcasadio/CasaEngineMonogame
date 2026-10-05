@@ -421,7 +421,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   pleine : attente bornée à 100 ms puis abandon consigné, sauf `SetVolume`, renvoyé à chaque frame
   par les fondus, abandonné sans attente avec un journal limité.
 
-### 🧪 T1.5 — Choix du backend par réglage de projet
+### ✅ T1.5 — Choix du backend par réglage de projet
 
 - Objectif : sélectionner `MonoGame` ou `Software` sans recompiler (P3).
 - Fichiers : `CasaEngine/Framework/Audio/AudioBackendKind.cs`,
@@ -465,6 +465,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   débogage), donc la ligne `Audio backend: SoftwareAudioBackend (source: environment)` de l'éditeur
   lancé avec `CASAENGINE_AUDIO_BACKEND=Software` est à lire dans son panneau Log pendant la recette
   de T1.8 ; le chemin de code est le même (`AudioSystemComponent`) et le cas sans projet est testé.
+  Levé le 2026-10-05 : recette de l'auteur sur la démo et l'éditeur, « test OK » (note de T1.8).
 
 ### ✅ T1.6 — Démo : statistiques et harnais de stress
 
@@ -545,9 +546,17 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   jouent des `PcmAudioClip` à 6 000, 22 050, 44 100, 48 000 et 96 000 Hz, mono et stéréo, en boucle
   ou non, relecture depuis le cache, `Dispose` propre (thread joint en 14 ms). Avis non bloquants
   reportés (règle P3/P4 : pas de correction d'un résultat confirmé) : O6 à O9.
-- Étape 2 en attente de l'auteur (🧪) : écoute de la démo, de l'éditeur (dont la ligne
-  `Audio backend:` dans son panneau Log, reste de T1.5) et d'Alundra, avec
-  `CASAENGINE_AUDIO_BACKEND=Software` puis `MonoGame`. Pour Alundra, voir O10.
+- Étape 2, recette de l'auteur : démo et éditeur (dont la ligne `Audio backend:` du panneau Log,
+  reste de T1.5) avec `CASAENGINE_AUDIO_BACKEND=Software` puis `MonoGame` : **« test OK »**
+  (auteur, 2026-10-05). O10 tranché par l'auteur le même jour (« intègre la pile e19
+  maintenant ») : fusion de `chantier/e19s2-ui-clip-view-space` (`a6efd2a9`, toute la pile `e19`,
+  ADR-0048 à 0054) dans cette branche, commit `5d048882` ; conflits limités aux réglages de projet
+  (`AudioBackend` et `VirtualResolution` gardés tous deux) et aux index ; build des deux solutions
+  0 erreur, `CasaEngine.Tests` 2734/2734. Passage de contrôle en session principale : Launcher du
+  worktree sur `alundra-project/AlundraGame.json` avec `CASAENGINE_AUDIO_BACKEND=Software`,
+  25 s : `Audio backend: SoftwareAudioBackend (source: environment)`, 1 206 lignes de journal sans
+  exception, erreur ni avertissement, `alundra-project` inchangé. **Reste 🧪 : l'écoute d'Alundra
+  par l'auteur** sur ce moteur, puis T1.9.
 
 ### ⏳ T1.9 — Bascule du défaut
 
@@ -583,7 +592,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 | O7 | Avis A2 (P4) : même situation que O6 ; `Release`/`StopAll` rendent l'emplacement même si l'ordre `Stop` a été abandonné, une voix en boucle peut continuer jusqu'à la réutilisation de l'emplacement. | S2 |
 | O8 | Avis A3 (P4) : si la file de 128 chunks d'une voix déborde (environ 2,7 s en file) et que le chunk perdu termine un buffer, `GetPendingBufferCount` ne redescend plus pour ce buffer (perte comptée dans `DroppedChunkCount`). | S2 |
 | O9 | Avis A4 (P4, accepté par P4) : sous le backend MonoGame, le `SoundEffect` d'un `PcmAudioClip` est construit au premier `Play` (copie WAV sur le thread de jeu, à-coup possible pour un long clip) ; un clip stéréo y est gardé deux fois. Disparaît avec le retrait du backend MonoGame (O3). | O3 |
-| O10 | Recette Alundra : le worktree part de `main`, alors que la pile `e19` (non mergée) ajoute des API moteur que le `Alundra.dll` actuel utilise probablement ; lancer Alundra sur le moteur de cette branche peut échouer pour des raisons étrangères à l'audio. Options : tester Alundra quand `e19` sera dans `main` (puis intégrer `main` ici), ou intégrer dès maintenant la pile `e19` dans cette branche pour la recette. Décision de l'auteur. | T1.8 |
+| O10 | Recette Alundra : le worktree part de `main`, alors que la pile `e19` (non mergée) ajoute des API moteur que le `Alundra.dll` actuel utilise probablement ; lancer Alundra sur le moteur de cette branche peut échouer pour des raisons étrangères à l'audio. Options : tester Alundra quand `e19` sera dans `main` (puis intégrer `main` ici), ou intégrer dès maintenant la pile `e19` dans cette branche pour la recette. **Tranché le 2026-10-05** : pile `e19` intégrée (`5d048882`, note de T1.8). Conséquence : cette branche contient désormais la pile `e19` ; son merge dans `main` suppose celui de la pile, ou se fait après elle. | T1.8 |
 
 ## Hors périmètre
 
