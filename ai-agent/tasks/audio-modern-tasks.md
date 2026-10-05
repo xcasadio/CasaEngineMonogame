@@ -319,7 +319,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   Remarque : `CasaEngine.Tests` n'est pas reconstruit par les builds de solution ; toujours lancer
   `dotnet test` sans `--no-build`.
 
-### ⏳ T1.2 — Cœur du mixeur logiciel
+### ✅ T1.2 — Cœur du mixeur logiciel
 
 - Objectif : un mixeur C# pur, sans thread ni périphérique, testable à l'échantillon près (P5, P6).
 - Fichiers : `CasaEngine/Framework/Audio/Software/` (mixeur, voix, rééchantillonneur cubique,
@@ -337,6 +337,20 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   de streaming) ; test d'absence d'allocation : `GC.GetAllocatedBytesForCurrentThread` inchangé sur
   1 000 rendus avec 64 voix actives (résidentes et en streaming) ; suite complète verte.
 - Commit : `feat(audio): add the engine software mixer core`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, code concurrent relu en
+  session principale (anneaux SPSC : élément écrit avant publication de l'index, `Volatile`
+  lecture/écriture, aucun verrou ; retour des chunks par un anneau de la taille maximale du pool).
+  Types `internal` dans `CasaEngine/Framework/Audio/Software/` (`SoftwareMixer`, `MixerVoice`,
+  `MixerMessages`, `SpscRingBuffer`, `SampleChunk`, `SampleChunkPool`). Build : 0 erreur, aucun
+  avertissement venant de ces fichiers. `CasaEngine.Tests` : 2515/2515 (+23), dont le test sans
+  allocation (64 voix, 1 000 rendus de 480 trames, commandes et alimentation du streaming comprises).
+  Choix de l'exécuteur : position en `double` ; voisins hors bord bornés au bord (boucle : bouclés) ;
+  streaming décalé de 2 trames pour l'interpolation, buffer déclaré consommé quand sa dernière trame
+  entre dans la fenêtre ; une fin de voix n'est jamais perdue (réessai si l'anneau d'évènements est
+  plein), un « buffer consommé » perdu est compté (`DroppedEventCount`) ; chunks de 4 096
+  échantillons, pool initial 256 (2 Mo), maximum 4 096, au plus 128 chunks en file par voix (le
+  surplus est compté dans `DroppedChunkCount`). Anneaux testés sur un seul thread (le thread audio
+  vient en T1.3) : à surveiller dans le stress de T1.6.
 
 ### ⏳ T1.3 — Sortie OpenAL Soft sur thread audio
 
