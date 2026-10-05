@@ -76,6 +76,20 @@ internal static class WavBuilder
         return bytes;
     }
 
+    /// <summary>Builds a WAVE_FORMAT_EXTENSIBLE wav (40 byte 'fmt ' chunk) whose SubFormat is <paramref name="subFormatTag"/>.</summary>
+    public static byte[] CreateExtensible(int subFormatTag, int sampleRate, int channelCount, int bitsPerSample, byte[] data)
+    {
+        var wav = Create(ExtensibleFormatTag, sampleRate, channelCount, bitsPerSample, data, formatChunkSize: 40);
+
+        // 'fmt ' body starts at offset 20: base 16 bytes, then cbSize (22), valid bits, channel mask, SubFormat GUID.
+        BitConverter.GetBytes((ushort)22).CopyTo(wav, 36);
+        BitConverter.GetBytes((ushort)bitsPerSample).CopyTo(wav, 38);
+        BitConverter.GetBytes((ushort)subFormatTag).CopyTo(wav, 44);
+        // Rest of the KSDATAFORMAT GUID: 0000-0010-8000-00AA00389B71.
+        new byte[] { 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 }.CopyTo(wav, 46);
+        return wav;
+    }
+
     public static byte[] ExpectedData(byte[] wav, int dataLength)
     {
         var start = wav.Length - dataLength;

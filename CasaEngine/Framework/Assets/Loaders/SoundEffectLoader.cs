@@ -20,6 +20,7 @@ namespace CasaEngine.Framework.Assets.Loaders;
 /// depth, ADPCM, float, or a parse failure) simply skips that: the clip is created exactly as
 /// before, without samples.
 /// </remarks>
+[Obsolete("Use WavAudioClipLoader, which produces a backend neutral PcmAudioClip (ADR-0055).")]
 public class SoundEffectLoader : IAssetLoader
 {
     private static readonly string[] _extensionSupported = { ".wav" };

@@ -28,7 +28,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
         assetContentManager.RegisterAssetLoader(typeof(XnaTextureCube), new TextureCubeLoader());
         assetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
-        assetContentManager.RegisterAssetLoader(typeof(IAudioClip), new SoundEffectLoader());
+        assetContentManager.RegisterAssetLoader(typeof(IAudioClip), new WavAudioClipLoader());
         assetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
         assetContentManager.RegisterAssetLoader(typeof(SkeletonDefinition), new SkeletonDefinitionLoader());
         assetContentManager.RegisterAssetLoader(typeof(AnimationClip), new AnimationClipLoader());

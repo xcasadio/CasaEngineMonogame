@@ -75,10 +75,29 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             return AudioVoiceHandle.None;
         }
 
-        if (clip is not MonoGameAudioClip monoGameClip)
+        MonoGameAudioClip monoGameClip;
+
+        if (clip is MonoGameAudioClip directClip)
+        {
+            monoGameClip = directClip;
+        }
+        else if (clip is PcmAudioClip pcmClip)
+        {
+            if (pcmClip.IsDisposed)
+            {
+                return AudioVoiceHandle.None;
+            }
+
+            monoGameClip = GetOrCreateMonoGameClip(pcmClip);
+            if (monoGameClip == null)
+            {
+                return AudioVoiceHandle.None;
+            }
+        }
+        else
         {
             throw new ArgumentException(
-                $"{nameof(MonoGameAudioBackend)} only plays {nameof(MonoGameAudioClip)} instances, got '{clip.GetType().FullName}'.",
+                $"{nameof(MonoGameAudioBackend)} only plays {nameof(MonoGameAudioClip)} and {nameof(PcmAudioClip)} instances, got '{clip.GetType().FullName}'.",
                 nameof(clip));
         }
 
@@ -357,6 +376,68 @@ public sealed class MonoGameAudioBackend : IAudioBackend
 
         _activeVoiceCount = 0;
         _freeSlotCount = 0;
+    }
+
+    // A PcmAudioClip is played through a MonoGame SoundEffect built once from its samples and kept
+    // in the clip's BackendResource, so it is released with the clip and slot reuse keeps working.
+    private MonoGameAudioClip GetOrCreateMonoGameClip(PcmAudioClip pcmClip)
+    {
+        if (pcmClip.BackendResource is MonoGameAudioClip cached)
+        {
+            return cached;
+        }
+
+        try
+        {
+            var wavBytes = CreateWavBytes(pcmClip);
+            using var wavStream = new MemoryStream(wavBytes);
+            var soundEffect = SoundEffect.FromStream(wavStream);
+
+            // Mono samples are kept next to the effect for the software stereo path (ADR-0039).
+            var created = pcmClip.ChannelCount == 1
+                ? new MonoGameAudioClip(soundEffect, pcmClip.SampleArray, pcmClip.SampleRate)
+                : new MonoGameAudioClip(soundEffect);
+
+            pcmClip.BackendResource = created;
+            return created;
+        }
+        catch (NoAudioHardwareException exception)
+        {
+            DisableAfterHardwareFailure(exception);
+            return null;
+        }
+    }
+
+    // RIFF header (44 bytes) followed by the 16 bit PCM samples, as SoundEffect.FromStream expects.
+    private static byte[] CreateWavBytes(PcmAudioClip clip)
+    {
+        const int headerSize = 44;
+        const int bitsPerSample = 16;
+
+        var dataSize = clip.SampleArray.Length * sizeof(short);
+        var blockAlign = clip.ChannelCount * (bitsPerSample / 8);
+        var bytes = new byte[headerSize + dataSize];
+
+        using (var stream = new MemoryStream(bytes))
+        using (var writer = new BinaryWriter(stream))
+        {
+            writer.Write("RIFF"u8);
+            writer.Write(36 + dataSize);
+            writer.Write("WAVE"u8);
+            writer.Write("fmt "u8);
+            writer.Write(16);
+            writer.Write((short)1);
+            writer.Write((short)clip.ChannelCount);
+            writer.Write(clip.SampleRate);
+            writer.Write(clip.SampleRate * blockAlign);
+            writer.Write((short)blockAlign);
+            writer.Write((short)bitsPerSample);
+            writer.Write("data"u8);
+            writer.Write(dataSize);
+        }
+
+        Buffer.BlockCopy(clip.SampleArray, 0, bytes, headerSize, dataSize);
+        return bytes;
     }
 
     // Prefers a free slot that already holds an instance of the same clip, so the common case

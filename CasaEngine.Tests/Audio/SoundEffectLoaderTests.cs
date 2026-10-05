@@ -1,6 +1,8 @@
 using CasaEngine.Framework.Assets.Loaders;
 using Xunit;
 
+#pragma warning disable CS0618 // SoundEffectLoader is obsolete on purpose; its behaviour is still tested.
+
 namespace CasaEngine.Tests.Audio;
 
 public class SoundEffectLoaderTests

@@ -281,7 +281,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 
 ## Phase 1 — Tranche S1 : le socle
 
-### ⏳ T1.1 — Clip PCM neutre et décodeur WAV
+### ✅ T1.1 — Clip PCM neutre et décodeur WAV
 
 - Objectif : un clip sans aucun type MonoGame, lisible par les deux backends (P4).
 - Fichiers : `CasaEngine/Framework/Audio/PcmAudioClip.cs`, `CasaEngine/Framework/Audio/Decoding/WavDecoder.cs`,
@@ -306,6 +306,18 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   extensible, en-têtes invalides, fichier tronqué) et du chargeur ; suite complète verte. Écoute
   de la démo et d'Alundra sous le backend MonoGame, inchangée : 🧪 pour l'auteur (avec T1.8).
 - Commit : `feat(audio): decode wav files into a backend-neutral PCM clip`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu en session
+  principale. Build des deux solutions : 0 erreur. `CasaEngine.Tests` : 2492/2492 (2445 avant, +47 :
+  décodeur, clip, chargeur). Contrôle ponctuel non commité : les 1 044 WAV du dépôt et
+  d'`alundra-project` se décodent, débit et canaux conformes à leur en-tête. Choix laissés à
+  l'exécuteur : `InvalidDataException` pour un fichier malformé, `NotSupportedException` pour un
+  format valide non géré ; NaN flottant → 0 ; un nombre d'échantillons non multiple du nombre de
+  canaux est refusé. Changements de comportement assumés (P4) : un WAV ADPCM ou exotique que
+  MonoGame chargeait est désormais refusé avec une erreur consignée ; un clip stéréo rapporte son
+  vrai débit et ses canaux (0 et 0 avant). Le chemin `PcmAudioClip` du backend MonoGame n'a pas de
+  test automatique (il faut un périphérique) : l'écoute sous MonoGame est dans la recette de T1.8.
+  Remarque : `CasaEngine.Tests` n'est pas reconstruit par les builds de solution ; toujours lancer
+  `dotnet test` sans `--no-build`.
 
 ### ⏳ T1.2 — Cœur du mixeur logiciel
 

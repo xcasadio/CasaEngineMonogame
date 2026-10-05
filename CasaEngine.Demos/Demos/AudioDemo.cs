@@ -3,13 +3,11 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
-using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -60,7 +58,7 @@ public class AudioDemo : Demo
     private SoundAsset? _clickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
-    private MonoGameAudioClip? _stereoBeep;
+    private PcmAudioClip? _stereoBeep;
     private int _stereoBeepStep;
     private AudioVoiceHandle _loopingVoice = AudioVoiceHandle.None;
     private MusicTrackHandle _musicTrack = MusicTrackHandle.None;
@@ -94,7 +92,7 @@ public class AudioDemo : Demo
     /// The demo's wav files are stereo, and a software stereo voice plays a mono clip: the beep is
     /// synthesized here instead, a short sine with a linear fade in and out.
     /// </summary>
-    private static MonoGameAudioClip? CreateStereoBeep()
+    private static PcmAudioClip CreateStereoBeep()
     {
         var sampleCount = (int)(BeepSampleRate * BeepSeconds);
         var fadeSamples = sampleCount / 10;
@@ -107,18 +105,7 @@ public class AudioDemo : Demo
             samples[i] = (short)value;
         }
 
-        var bytes = new byte[sampleCount * sizeof(short)];
-        Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
-
-        try
-        {
-            return new MonoGameAudioClip(new SoundEffect(bytes, BeepSampleRate, AudioChannels.Mono), samples, BeepSampleRate);
-        }
-        catch (NoAudioHardwareException exception)
-        {
-            Logs.WriteWarning($"AudioDemo: no audio hardware, the stereo beep is disabled. {exception.Message}");
-            return null;
-        }
+        return new PcmAudioClip(samples, BeepSampleRate, 1);
     }
 
     private static AssetHandle<SoundAsset>? TryAcquire(CasaEngineGame game, Guid assetId)
