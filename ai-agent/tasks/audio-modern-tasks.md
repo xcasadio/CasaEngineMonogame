@@ -555,7 +555,9 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   0 erreur, `CasaEngine.Tests` 2734/2734. Passage de contrôle en session principale : Launcher du
   worktree sur `alundra-project/AlundraGame.json` avec `CASAENGINE_AUDIO_BACKEND=Software`,
   25 s : `Audio backend: SoftwareAudioBackend (source: environment)`, 1 206 lignes de journal sans
-  exception, erreur ni avertissement, `alundra-project` inchangé. **Reste 🧪 : l'écoute d'Alundra
+  exception, erreur ni avertissement ; aucune écriture constatée dans `alundra-project` (ce dossier
+  est ignoré par git dans le dépôt parent : `git status` n'y voit rien, le contrôle valable est par
+  date de fichier, fait par le vérificateur de clôture). **Reste 🧪 : l'écoute d'Alundra
   par l'auteur** sur ce moteur, puis T1.9.
 
 ### ✅ T1.9 — Bascule du défaut
@@ -581,7 +583,18 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   2735/2735. Launcher du worktree sur `alundra-project/AlundraGame.json` (qui ne renseigne pas
   `AudioBackend`) : sans variable → `Audio backend: SoftwareAudioBackend (source: default)` ; avec
   `CASAENGINE_AUDIO_BACKEND=MonoGame` → `Audio backend: MonoGameAudioBackend (source: environment)` ;
-  aucune erreur, `alundra-project` inchangé.
+  aucune erreur ; aucune écriture dans `alundra-project` (contrôle par date de fichier du
+  vérificateur de clôture, `git status` n'y voyant rien car le dossier est ignoré par git).
+- Clôture de la tranche S1 (2026-10-05) : la fusion `e19` et la bascule du défaut étant venues après
+  le premier verdict, un second vérificateur frais a contrôlé l'état final `d7ef352b` :
+  **CONFIRMED**, aucun constat P0–P2. Build des deux solutions 0 erreur ; `CasaEngine.Tests`
+  2735/2735 ; résolution des quatre conflits comparée aux deux parents (rien de perdu, aucun
+  marqueur) ; défaut unique (`AudioBackendSelection.cs:30`) ; Launcher sur Alundra : défaut →
+  logiciel, variable `MonoGame` → MonoGame ; stress de 60 s sur le défaut, build fusionné :
+  `underruns=0 gc=117`, `monogame-openal-initialized=false`. Deux avis P4 non bloquants : la
+  preuve « rien d'écrit » doit passer par les dates de fichier (corrigé ci-dessus) ; aucun test
+  n'enregistre ensemble `AudioBackend` et `VirtualResolution` (clés indépendantes, chacune testée).
+  **Tranche S1 terminée.**
 
 ---
 
