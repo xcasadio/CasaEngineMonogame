@@ -23,8 +23,11 @@ public static class AudioBackendSelection
     /// <summary>Environment variable that overrides the project setting, for every host.</summary>
     public const string EnvironmentVariableName = "CASAENGINE_AUDIO_BACKEND";
 
-    /// <summary>Backend used when neither the environment nor the project says anything.</summary>
-    public const AudioBackendKind DefaultKind = AudioBackendKind.MonoGame;
+    /// <summary>
+    /// Backend used when neither the environment nor the project says anything: the engine's
+    /// software mixer since the author's listening test of 2026-10-05 (ADR-0055).
+    /// </summary>
+    public const AudioBackendKind DefaultKind = AudioBackendKind.Software;
 
     /// <param name="environmentValue">Value of <see cref="EnvironmentVariableName"/>, or null.</param>
     /// <param name="projectSetting">The project's <c>AudioBackend</c>, or null when not set or no project is loaded.</param>

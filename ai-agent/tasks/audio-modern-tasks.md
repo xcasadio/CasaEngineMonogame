@@ -558,7 +558,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   exception, erreur ni avertissement, `alundra-project` inchangé. **Reste 🧪 : l'écoute d'Alundra
   par l'auteur** sur ce moteur, puis T1.9.
 
-### ⏳ T1.9 — Bascule du défaut
+### ✅ T1.9 — Bascule du défaut
 
 - Objectif : `Software` devient le backend par défaut (P3), après T1.8 seulement.
 - Fichiers : `CasaEngine/Framework/Audio/AudioBackendSelection.cs`,
@@ -574,6 +574,14 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   projet) dont le projet ne renseigne pas `AudioBackend` → `Audio backend: SoftwareAudioBackend (source: default)` ;
   Launcher avec `CASAENGINE_AUDIO_BACKEND=MonoGame` → `MonoGameAudioBackend (source: environment)`.
 - Commit : `feat(audio): make the software mixer the default audio backend`
+- Note de validation (2026-10-05) : après « test Alundra OK, fais toute la suite » de l'auteur.
+  Fait en session principale (une constante : délégation sans bénéfice). `DefaultKind` =
+  `Software`, seul changement de code ; nouveau test qui épingle ce défaut. Doc §1 bis et
+  conséquences d'ADR-0055 mises à jour. Build des deux solutions : 0 erreur ; `CasaEngine.Tests`
+  2735/2735. Launcher du worktree sur `alundra-project/AlundraGame.json` (qui ne renseigne pas
+  `AudioBackend`) : sans variable → `Audio backend: SoftwareAudioBackend (source: default)` ; avec
+  `CASAENGINE_AUDIO_BACKEND=MonoGame` → `Audio backend: MonoGameAudioBackend (source: environment)` ;
+  aucune erreur, `alundra-project` inchangé.
 
 ---
 

@@ -82,7 +82,8 @@
   for a decision by the author. A lead of 40 ms plus the device's own buffering sets the latency floor.
 - Until the default switches, existing projects keep the MonoGame backend. After the switch, the editor and every
   project without the setting use the software mixer; `CASAENGINE_AUDIO_BACKEND=MonoGame` or the project setting
-  reverts to MonoGame.
+  reverts to MonoGame. The default switched to `Software` on 2026-10-05, after the author's listening test of the
+  demo, the editor and Alundra (plan task T1.9).
 - The editor's runtime is created without a project, so it follows the environment variable or the default, never
   the setting of a project opened later.
 - Later slices may change public APIs additively and touch the parent repository under their own approval; a slice

@@ -53,8 +53,10 @@ AudioService ─▶ SoftwareAudioBackend         OpenAlAudioOutput (contexte Ope
   1. la variable d'environnement `CASAENGINE_AUDIO_BACKEND` (`Software` ou `MonoGame`), valable
      pour tous les hôtes, éditeur compris ;
   2. sinon le réglage de projet `AudioBackend` (absent = non renseigné) ;
-  3. sinon le défaut, `AudioBackendSelection.DefaultKind` (`MonoGame` jusqu'à la recette d'écoute,
-     puis `Software`).
+  3. sinon le défaut, `AudioBackendSelection.DefaultKind` : **`Software`** depuis la recette
+     d'écoute de l'auteur du 2026-10-05 (démo, éditeur, Alundra). Retour arrière :
+     `CASAENGINE_AUDIO_BACKEND=MonoGame` (tous les hôtes) ou `"AudioBackend": "MonoGame"` dans le
+     fichier de projet.
 
   La ligne `Audio backend: <type> (source: environment|project|default)` est consignée au
   démarrage. Si la sortie logicielle ne s'ouvre pas, le moteur revient au backend MonoGame

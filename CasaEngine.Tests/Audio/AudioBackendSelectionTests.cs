@@ -44,6 +44,14 @@ public class AudioBackendSelectionTests
     }
 
     [Fact]
+    public void TheDefaultIsTheSoftwareMixer()
+    {
+        // ADR-0055: the default switched to the software mixer after the author's listening test.
+        Assert.Equal(AudioBackendKind.Software, AudioBackendSelection.DefaultKind);
+        Assert.Equal(AudioBackendKind.Software, AudioBackendSelection.Resolve(null, null).Kind);
+    }
+
+    [Fact]
     public void ProjectSoftware_IsChosenWithProjectSource()
     {
         var result = AudioBackendSelection.Resolve(null, AudioBackendKind.Software);
