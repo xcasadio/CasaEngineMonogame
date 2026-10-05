@@ -892,7 +892,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   manipulation écrite.
 - Commit : `feat(audio): survive audio device loss and default device changes`
 
-### ⏳ T2.7 — Documentation, ADR et vérification de la tranche
+### 🚧 T2.7 — Documentation, ADR et vérification de la tranche
 
 - Objectif : documenter S2 et prouver la tranche.
 - Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0056-…md`, index des ADR, ce plan.

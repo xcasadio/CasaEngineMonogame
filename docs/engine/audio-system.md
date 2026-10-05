@@ -191,6 +191,12 @@ Le fichier est lu par blocs et jamais chargé entièrement. La boucle **rembobin
 elle ne passe pas par `IsLooped`, que MonoGame refuse sur une voix dynamique. Une piste n'est
 abandonnée qu'une fois sa file de buffers vidée, jamais sur une famine passagère.
 
+**Lecture hors du thread de jeu (ADR-0056).** Avec un backend réel (logiciel ou MonoGame), `Play`
+ouvre le fichier, lit l'en-tête et remplit la première file de façon synchrone, puis un thread
+« CasaEngine Audio Streaming » lit et rembobine le fichier dans un anneau par piste ; `Update` ne
+fait plus que transmettre les buffers prêts à la voix. Les faux backends des tests gardent la
+lecture en ligne. En mode travailleur, `GetPosition` donne la position du dernier buffer transmis.
+
 ---
 
 ## 5 bis. Voix stéréo logicielles
@@ -212,10 +218,22 @@ audio.GetVoiceStereoGains(voice, out var left, out var right);
 pour tout le reste : `Stop`, `StopVoicesOwnedBy`, `StopAll`, `Pause`, `Resume`, `FadeVoice`.
 
 Un clip ne peut être joué en stéréo que s'il expose ses échantillons mono 16 bits
-(`IAudioClipSamples`, porté par `MonoGameAudioClip` quand `SoundEffectLoader` a pu décoder le wav
-source en mono 16 bits PCM) ; sinon `PlayClipStereo` renvoie `AudioVoiceHandle.None`.
+(`IAudioClipSamples`, porté par `PcmAudioClip` pour un clip mono) ; sinon `PlayClipStereo` renvoie
+`AudioVoiceHandle.None`.
 
-Limites (voir [ADR-0039](../decisions/0039-software-stereo-voices.md)) :
+**Sous le backend logiciel (ADR-0056)**, un `PcmAudioClip` mono est joué par la capacité
+`IStereoVoiceBackend` : une voix résidente dont les gains gauche et droite sont appliqués au
+mixage, au bloc suivant, à n'importe quel débit, avec le rééchantillonnage cubique du mixeur. Les
+limites ci-dessous ne valent alors plus ; elles restent celles des autres backends et des clips qui
+ne sont pas des `PcmAudioClip`.
+
+**Région de boucle et vitesse (ADR-0056).** `AudioVoiceParameters.WithLoopRegion(début, fin)` fait
+boucler une voix résidente ou stéréo sur `[début, fin[` (en trames du clip, après une éventuelle
+intro) ; `WithRateMultiplier(r)` (]0, 16]) multiplie la vitesse, au-delà de l'octave du pitch.
+Toutes les méthodes `With*` les conservent. Le backend MonoGame ignore la région (boucle du clip
+entier) et replie le multiplicateur sur son pitch borné à ±1 octave.
+
+Limites du chemin historique (voir [ADR-0039](../decisions/0039-software-stereo-voices.md)) :
 
 - Un changement de gain n'atteint que les buffers pas encore soumis : jusqu'à ~60 ms de latence à
   la profondeur de file par défaut, contre un changement immédiat côté PSX d'origine.
@@ -311,13 +329,12 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 - **Backend MonoGame : streaming entre 8 000 et 48 000 Hz.** Limite de `DynamicSoundEffectInstance`
   (`MonoGameAudioBackend.MinStreamingSampleRate` / `MaxStreamingSampleRate`) : une piste hors plage
   est refusée avec un log throttlé, sans exception ni voix perdue. Le backend logiciel n'a pas cette
-  limite. Les voix stéréo logicielles (§5 bis) rééchantillonnent encore par facteur entier, quel que
-  soit le backend.
+  limite. Sur le chemin historique (§5 bis), les voix stéréo rééchantillonnent encore par facteur
+  entier.
 - **Pas d'audio 3D.** Volume et pan uniquement : ni listener, ni atténuation par distance, ni
   Doppler.
-- **Lecture disque sur le thread de jeu.** Le remplissage des buffers se fait dans `Update`
-  (~88 Ko/s pour une musique 22 kHz stéréo 16 bits), avec environ une demi-seconde de file
-  d'avance contre les frames longues.
+- **Débranchement du périphérique** : le son s'arrête jusqu'au relancement du jeu (T2.6 en pause).
+  Si le thread audio meurt, le backend logiciel devient muet sans faire attendre le jeu.
 - **Limite de voix.** 64 par défaut côté backend. Au-delà, la voix est refusée avec un log
   throttlé, jamais une exception.
 - **Pas de limiteur ni d'effet** (tranche S4) : le backend logiciel écrête simplement la sortie.
