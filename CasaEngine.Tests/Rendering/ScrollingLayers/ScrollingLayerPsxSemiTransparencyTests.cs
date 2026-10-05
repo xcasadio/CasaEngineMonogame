@@ -60,7 +60,89 @@ public class ScrollingLayerPsxSemiTransparencyTests
         AssertEntry(entries[1]!, SpriteBlendMode.AlphaBlend, 0.25f, 0.75f, Color.White);
     }
 
+    // ---- E19.g G2d: the tint overlay carries the PSX mode of the map (BGColorA) ----
+
+    [Fact]
+    public void TintWithMode1_IsOneAdditiveEntry_WithTheColorAsIs()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(50, 0, 0, 255), TintKey, SpritePsxSemiTransparency.Mode1));
+
+        var entry = Assert.Single(entries);
+        AssertEntry(entry!, SpriteBlendMode.Additive, -1f, 2f, new Color(50, 0, 0, 255));
+    }
+
+    [Fact]
+    public void TintWithMode0_IsOneAlphaBlendEntry_WithAnAlphaOf128()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(40, 40, 40, 255), TintKey, SpritePsxSemiTransparency.Mode0));
+
+        var entry = Assert.Single(entries);
+        AssertEntry(entry!, SpriteBlendMode.AlphaBlend, -1f, 2f, new Color(40, 40, 40, 128));
+    }
+
+    [Fact]
+    public void TintWithMode2_IsOneSubtractiveEntry_WithTheColorAsIs()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(50, 0, 0, 255), TintKey, SpritePsxSemiTransparency.Mode2));
+
+        var entry = Assert.Single(entries);
+        AssertEntry(entry!, SpriteBlendMode.Subtractive, -1f, 2f, new Color(50, 0, 0, 255));
+    }
+
+    [Fact]
+    public void TintWithMode3_IsOneAdditiveEntry_WithEachChannelScaledBy64Over255()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(50, 0, 0, 255), TintKey, SpritePsxSemiTransparency.Mode3));
+
+        var entry = Assert.Single(entries);
+        AssertEntry(entry!, SpriteBlendMode.Additive, -1f, 2f, new Color(13, 0, 0, 255));
+    }
+
+    [Fact]
+    public void TintWithTheTwoArgumentConstructor_IsTodaysEntry_AlphaBlendWithTheColorAsIs()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(40, 40, 40, 128), TintKey));
+
+        var entry = Assert.Single(entries);
+        AssertEntry(entry!, SpriteBlendMode.AlphaBlend, -1f, 2f, new Color(40, 40, 40, 128));
+    }
+
+    [Fact]
+    public void TintWithAMode_KeepsItsSortKey()
+    {
+        var entries = SubmitTint(new ScrollingTintDefinition(new Color(50, 0, 0, 255), TintKey, SpritePsxSemiTransparency.Mode1));
+
+        var sortKey = (RenderSortKey2D)GetField(entries[0]!, "SortKey");
+        Assert.Equal(TintKey, sortKey);
+    }
+
     // ---- helpers ----
+
+    private static readonly RenderSortKey2D TintKey = new((int)RenderPass2D.Effects, -1, 0, 0, 0, 0, 0);
+
+    private static System.Collections.IList SubmitTint(ScrollingTintDefinition tint)
+    {
+        var game = (CasaEngineGame)RuntimeHelpers.GetUninitializedObject(typeof(CasaEngineGame));
+        var componentsField = typeof(Game).GetField("_components", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(componentsField);
+        componentsField!.SetValue(game, new GameComponentCollection());
+        var renderer = new SpriteRendererComponent(game);
+        var component = new ScrollingLayerComponent(game);
+
+        var whiteField = typeof(ScrollingLayerComponent).GetField("_whiteTexture", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(whiteField);
+        whiteField!.SetValue(component, (Texture2D)RuntimeHelpers.GetUninitializedObject(typeof(Texture2D)));
+
+        component.Service.SetConfiguration(Configuration);
+        component.Service.SetTint(tint);
+        component.Service.SetFrame(0, 0, 0, Vector3.Zero);
+        component.Service.Advance();
+        component.Submit(renderer, component.Service.CameraTarget, Scissor);
+
+        var field = typeof(SpriteRendererComponent).GetField("_spriteDatas", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        return (System.Collections.IList)field!.GetValue(renderer)!;
+    }
 
     private static ScrollingLayerDefinition MakeLayer(SpritePsxSemiTransparency mode, SpriteBlendMode blend)
     {
