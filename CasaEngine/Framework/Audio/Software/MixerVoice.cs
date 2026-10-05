@@ -18,6 +18,12 @@ internal struct MixerVoice
     public float Pan;
     public float Pitch;
 
+    /// <summary>Mono resident voice with caller chosen channel gains: left = Volume * ExplicitLeft, right = Volume * ExplicitRight.</summary>
+    public bool ExplicitGains;
+
+    public float ExplicitLeft;
+    public float ExplicitRight;
+
     /// <summary>Source frames advanced per output frame, pitch included.</summary>
     public double Step;
 

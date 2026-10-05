@@ -172,6 +172,42 @@ internal sealed class SoftwareMixer
         return _commands.TryEnqueue(in command);
     }
 
+    /// <summary>
+    /// Starts a resident mono voice whose channel gains are explicit: left = volume * leftGain, right =
+    /// volume * rightGain, no pan law. A clip that is not mono starts as an ordinary voice.
+    /// </summary>
+    public bool TryStartResidentStereoVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, float leftGain, float rightGain)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.StartResident,
+            Slot = slot,
+            Generation = generation,
+            Clip = clip,
+            Parameters = parameters,
+            ExplicitGains = true,
+            LeftGain = leftGain,
+            RightGain = rightGain,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Changes the explicit gains of a voice started by <see cref="TryStartResidentStereoVoice"/>; ramped over the next block.</summary>
+    public bool TrySetStereoGains(int slot, int generation, float leftGain, float rightGain)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.SetStereoGains,
+            Slot = slot,
+            Generation = generation,
+            LeftGain = leftGain,
+            RightGain = rightGain,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
     public bool TryCreateStreamingVoice(int slot, int generation, int channels, int sampleRate, AudioVoiceParameters parameters)
     {
         if ((uint)slot >= (uint)_voices.Length || channels is not (1 or 2) || sampleRate <= 0)
@@ -478,6 +514,15 @@ internal sealed class SoftwareMixer
             case MixerCommandKind.SetVolume:
                 SetParameters(ref voice, command.Volume, voice.Pan, voice.Pitch, false);
                 break;
+            case MixerCommandKind.SetStereoGains:
+                if (voice.ExplicitGains)
+                {
+                    voice.ExplicitLeft = command.LeftGain;
+                    voice.ExplicitRight = command.RightGain;
+                    SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+                }
+
+                break;
             case MixerCommandKind.Pause:
                 voice.Paused = true;
                 break;
@@ -539,6 +584,9 @@ internal sealed class SoftwareMixer
         PublishConsumed(command.Slot, ref voice);
         voice.SourceRatio = (double)clip.SampleRate / OutputSampleRate;
         voice.Looped = command.Parameters.IsLooped;
+        voice.ExplicitGains = command.ExplicitGains && clip.ChannelCount == 1;
+        voice.ExplicitLeft = command.LeftGain;
+        voice.ExplicitRight = command.RightGain;
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
     }
 
@@ -567,6 +615,7 @@ internal sealed class SoftwareMixer
         voice.CurrentChunk = null;
         voice.CurrentIndex = 0;
         voice.ConsumedBuffers = 0;
+        voice.ExplicitGains = false;
         PublishConsumed(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
     }
@@ -588,7 +637,12 @@ internal sealed class SoftwareMixer
         float left;
         float right;
 
-        if (voice.SourceChannels == 1)
+        if (voice.ExplicitGains)
+        {
+            left = volume * voice.ExplicitLeft;
+            right = volume * voice.ExplicitRight;
+        }
+        else if (voice.SourceChannels == 1)
         {
             var angle = (pan + 1.0) * QuarterPi;
             left = (float)(volume * Math.Cos(angle));
@@ -634,6 +688,7 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = false;
+        voice.ExplicitGains = false;
         voice.EndPending = false;
         voice.Started = false;
         voice.Paused = false;

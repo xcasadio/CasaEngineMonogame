@@ -13,6 +13,7 @@ internal enum MixerCommandKind
     Stop,
     SubmitChunk,
     StopAll,
+    SetStereoGains,
 }
 
 /// <summary>
@@ -39,6 +40,15 @@ internal struct MixerCommand
     public int SampleRate;
     public float Volume;
     public SampleChunk Chunk;
+
+    /// <summary>
+    /// <see cref="MixerCommandKind.StartResident"/>: the mono voice uses explicit gains (no pan law).
+    /// <see cref="MixerCommandKind.SetStereoGains"/>: unused, the gains are always explicit.
+    /// </summary>
+    public bool ExplicitGains;
+
+    public float LeftGain;
+    public float RightGain;
 }
 
 internal enum MixerEventKind

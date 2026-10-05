@@ -218,6 +218,13 @@ public sealed class AudioService : IDisposable
             return AudioVoiceHandle.None;
         }
 
+        // The backend capability plays PcmAudioClip only (ADR-0056); any other clip that exposes its
+        // samples keeps the game-thread streaming path of ADR-0039, which works on every backend.
+        if (_backend is IStereoVoiceBackend stereoBackend && clip is PcmAudioClip)
+        {
+            return PlayClipStereoOnBackend(stereoBackend, clip, busName, parameters, SanitizeGain(leftGain), SanitizeGain(rightGain), owner);
+        }
+
         if (!_backend.SupportsStreaming)
         {
             _missingClipLog.WriteWarning("Audio: a stereo sound was refused, the audio backend cannot stream.");
@@ -243,7 +250,18 @@ public sealed class AudioService : IDisposable
     /// </summary>
     public void SetVoiceStereoGains(AudioVoiceHandle voice, float leftGain, float rightGain)
     {
-        _stereoVoiceMixer.SetGains(voice, SanitizeGain(leftGain), SanitizeGain(rightGain));
+        leftGain = SanitizeGain(leftGain);
+        rightGain = SanitizeGain(rightGain);
+
+        if (TryGetEntry(voice, out var entry) && entry.IsBackendStereo)
+        {
+            entry.StereoLeftGain = leftGain;
+            entry.StereoRightGain = rightGain;
+            ((IStereoVoiceBackend)_backend).SetStereoGains(voice, leftGain, rightGain);
+            return;
+        }
+
+        _stereoVoiceMixer.SetGains(voice, leftGain, rightGain);
     }
 
     /// <summary>
@@ -252,7 +270,52 @@ public sealed class AudioService : IDisposable
     /// </summary>
     public bool GetVoiceStereoGains(AudioVoiceHandle voice, out float leftGain, out float rightGain)
     {
+        if (TryGetEntry(voice, out var entry) && entry.IsBackendStereo)
+        {
+            leftGain = entry.StereoLeftGain;
+            rightGain = entry.StereoRightGain;
+            return true;
+        }
+
         return _stereoVoiceMixer.TryGetGains(voice, out leftGain, out rightGain);
+    }
+
+    /// <summary>
+    /// <see cref="PlayClipStereo"/> on a backend that mixes explicit gains itself: an ordinary resident
+    /// voice, recycled at its end by <see cref="Update"/>, with no engine fed buffers.
+    /// </summary>
+    private AudioVoiceHandle PlayClipStereoOnBackend(
+        IStereoVoiceBackend stereoBackend,
+        IAudioClip clip,
+        string busName,
+        in AudioVoiceParameters parameters,
+        float leftGain,
+        float rightGain,
+        object owner)
+    {
+        var voiceParameters = parameters.WithPan(0f).WithPitch(0f);
+        var backendParameters = voiceParameters.WithVolume(voiceParameters.Volume * Mixer.GetEffectiveGain(busName));
+
+        var handle = stereoBackend.PlayStereo(clip, backendParameters, leftGain, rightGain);
+        if (!handle.IsValid)
+        {
+            RefusedVoiceCount++;
+            _refusedVoiceLog.WriteWarning("Audio: a stereo sound was refused, no voice left on the backend or an unsupported clip.");
+            return AudioVoiceHandle.None;
+        }
+
+        var entry = GetOrCreateEntry(handle.Index);
+        entry.Handle = handle;
+        entry.BusName = busName;
+        entry.BaseParameters = voiceParameters;
+        entry.Owner = owner;
+        entry.InUse = true;
+        entry.IsBackendStereo = true;
+        entry.StereoLeftGain = leftGain;
+        entry.StereoRightGain = rightGain;
+        ActiveVoiceCount++;
+
+        return handle;
     }
 
     /// <summary>Queues 16 bit PCM audio on a streaming voice. The data is copied by the backend.</summary>
@@ -731,6 +794,9 @@ public sealed class AudioService : IDisposable
         public object Owner;
         public bool InUse;
         public bool IsStreaming;
+        public bool IsBackendStereo;
+        public float StereoLeftGain;
+        public float StereoRightGain;
         public bool IsPausedBySystem;
 
         public bool IsFading;
@@ -747,6 +813,9 @@ public sealed class AudioService : IDisposable
             Owner = null;
             InUse = false;
             IsStreaming = false;
+            IsBackendStereo = false;
+            StereoLeftGain = 0f;
+            StereoRightGain = 0f;
             IsPausedBySystem = false;
             IsFading = false;
             FadeStartVolume = 0f;

@@ -739,7 +739,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   Non testé : la libération des arrêts en attente quand la sortie meurt (`FreePendingStopsAfterDeath`).
   O7 et O8 corrigés.
 
-### 🚧 T2.3 — Voix stéréo au thread audio (P10)
+### ✅ T2.3 — Voix stéréo au thread audio (P10)
 
 - Objectif : `PlayClipStereo` sans file de 60 ms ni facteur entier sous le backend logiciel.
 - Fichiers : `CasaEngine/Framework/Audio/IStereoVoiceBackend.cs` (capacité publique optionnelle),
@@ -757,6 +757,18 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   172 610 Hz joués sans refus, voix recyclée à sa fin, fondu et propriétaire comme une voix
   ordinaire ; les tests existants sur le faux backend inchangés et verts ; suite complète.
 - Commit : `feat(audio): mix software stereo voices on the audio thread`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu. Capacité
+  publique `IStereoVoiceBackend` (`PlayStereo`, `SetStereoGains`), implémentée par
+  `SoftwareAudioBackend` ; mode « gains explicites » d'une voix résidente mono dans le mixeur ;
+  `AudioService.PlayClipStereo` l'utilise, sinon `StereoVoiceMixer`. Correction en session
+  principale : la capacité ne sert que pour un `PcmAudioClip` ; un autre clip qui expose ses
+  échantillons garde le chemin de streaming d'ADR-0039 au lieu de lever une exception (régression
+  évitée, test ajouté). ADR-0056 écrite (décisions P9 à P14), ADR-0039 marquée remplacée en partie,
+  index mis à jour. Tests (+18) : gains exacts à 1e-6, changement visible au bloc suivant (rampe à
+  1e-4 près à la dernière trame, cumul flottant), tons à 3 370 et 172 610 Hz sans refus et à la
+  bonne durée, recyclage en fin de voix, fondu et bus, propriétaire, pause, handle périmé, clip
+  stéréo refusé, zéro allocation, repli des clips non PCM. `AudioServiceStereoVoiceTests` inchangé.
+  `CasaEngine.Tests` 2823/2823.
 
 ### ⏳ T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
 

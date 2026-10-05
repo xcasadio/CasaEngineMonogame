@@ -52,7 +52,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0036](0036-reference-counted-asset-handles-and-bitmap-fonts.md) | Reference-counted asset handles with deferred release, and bitmap fonts as assets | Accepted (compatibility clause superseded by ADR-0037) | 2026-09-21 |
 | [ADR-0037](0037-counted-handles-replace-load-and-categories.md) | Counted handles replace Load and asset categories | Accepted | 2026-09-21 |
 | [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted | 2026-09-24 |
-| [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted | 2026-09-25 |
+| [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted (game-thread path superseded in part by ADR-0056 under the software backend) | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
 | [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |
 | [ADR-0042](0042-yarn-runner-extension-points.md) | Yarn dialogue runner extension points | Accepted | 2026-09-27 |
@@ -69,4 +69,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
 | [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |
+| [ADR-0056](0056-optional-audio-backend-capabilities-and-real-time-stereo-voices.md) | Optional audio backend capabilities, real-time stereo voices, loop regions and background music reads | Accepted | 2026-10-05 |
 | [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |

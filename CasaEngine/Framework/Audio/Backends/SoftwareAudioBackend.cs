@@ -38,7 +38,7 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -146,6 +146,40 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public AudioVoiceHandle Play(IAudioClip clip, in AudioVoiceParameters parameters)
     {
+        return PlayResident(clip, in parameters, explicitGains: false, 0f, 0f);
+    }
+
+    /// <summary>
+    /// Plays a mono <see cref="PcmAudioClip"/> with explicit channel gains, mixed on the audio thread at
+    /// any clip rate (<see cref="IStereoVoiceBackend"/>). A clip that is not mono is refused with
+    /// <see cref="AudioVoiceHandle.None"/>; a clip of another type throws like <see cref="Play"/>.
+    /// </summary>
+    public AudioVoiceHandle PlayStereo(IAudioClip clip, in AudioVoiceParameters parameters, float leftGain, float rightGain)
+    {
+        return PlayResident(clip, in parameters, explicitGains: true, leftGain, rightGain);
+    }
+
+    public void SetStereoGains(AudioVoiceHandle voice, float leftGain, float rightGain)
+    {
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive || !slot.ExplicitGains)
+        {
+            return;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetStereoGains(voice.Index, slot.Generation, leftGain, rightGain)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+    }
+
+    private AudioVoiceHandle PlayResident(IAudioClip clip, in AudioVoiceParameters parameters, bool explicitGains, float leftGain, float rightGain)
+    {
         ArgumentNullException.ThrowIfNull(clip);
 
         if (!IsOutputAlive())
@@ -165,6 +199,16 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return AudioVoiceHandle.None;
         }
 
+        if (explicitGains && pcmClip.ChannelCount != 1)
+        {
+            if (_formatLog.ShouldWrite())
+            {
+                _formatLog.WriteNow("Audio: a stereo voice was refused, its clip is not mono.");
+            }
+
+            return AudioVoiceHandle.None;
+        }
+
         var slotIndex = TakeFreeSlot();
         if (slotIndex < 0)
         {
@@ -181,7 +225,9 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters)) && wait.Next())
+        while (!(sent = explicitGains
+                   ? _mixer.TryStartResidentStereoVoice(slotIndex, slot.Generation, pcmClip, parameters, leftGain, rightGain)
+                   : _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters)) && wait.Next())
         {
         }
 
@@ -194,6 +240,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         slot.InUse = true;
         slot.IsStreaming = false;
+        slot.ExplicitGains = explicitGains;
         slot.MixerAlive = true;
         slot.State = AudioVoiceState.Playing;
         slot.SubmittedBuffers = 0;
@@ -346,6 +393,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         slot.InUse = true;
         slot.IsStreaming = true;
+        slot.ExplicitGains = false;
         slot.MixerAlive = true;
         slot.CanStart = true;
         slot.State = AudioVoiceState.Stopped;
@@ -636,6 +684,9 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         public bool InUse;
         public bool IsStreaming;
 
+        /// <summary>The voice was started by <see cref="PlayStereo"/>.</summary>
+        public bool ExplicitGains;
+
         /// <summary>False once the mixer no longer holds the voice (ended or stopped): commands would be ignored.</summary>
         public bool MixerAlive;
 
@@ -655,6 +706,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         {
             InUse = false;
             IsStreaming = false;
+            ExplicitGains = false;
             MixerAlive = false;
             CanStart = false;
             State = AudioVoiceState.Stopped;
