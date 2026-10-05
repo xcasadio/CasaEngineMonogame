@@ -14,7 +14,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted | 2026-08-26 |
+| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055) | 2026-08-26 |
 | [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted | 2026-08-26 |
 | [ADR-0003](0003-single-3d-simulation.md) | Single 3D simulation, simulation space as a world policy | Accepted | 2026-08 |
 | [ADR-0004](0004-collision-layers.md) | Collision layers Shape / Fixture / Body / World, Shape3d as the only public volume vocabulary, no pose on shapes | Accepted | 2026-08 |
@@ -61,3 +61,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0045](0045-a-blocked-field-step-advances-to-contact.md) | A blocked step on the cell collision field advances to the contact | Accepted | 2026-09-29 |
 | [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
 | [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
+| [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |

@@ -1,6 +1,6 @@
 # ADR-0001: Audio runtime architecture V1 (buses, streaming, backend)
 
-- **Status**: Accepted
+- **Status**: Accepted (MonoGame-only backend superseded in part by ADR-0055)
 - **Date**: 2026-08-26
 - **Source**: `ai-agent/audits/analysis-audio-system.md:185-204` (section 3, "Décisions prises", arbitrated with the author on 2026-08-26); `docs/engine/audio-system.md:3-4` (the engine doc points at that section as the frozen decisions) and `:185-200` (known limits). Backfilled on 2026-09-06.
 
