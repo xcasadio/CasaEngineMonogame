@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Streaming;
 
 namespace CasaEngine.Framework.Audio;
@@ -20,8 +21,11 @@ public sealed class AudioService : IDisposable
     private readonly List<VoiceEntry> _voices = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
     private readonly AudioLogThrottle _missingClipLog = new();
+    private readonly AudioLogThrottle _spuLog = new();
     private readonly StereoVoiceMixer _stereoVoiceMixer;
 
+    private PsxSpuPort _spuPort;
+    private string _spuBusName;
     private int _appliedMixerVersion = -1;
     private bool _isDisposed;
 
@@ -595,6 +599,42 @@ public sealed class AudioService : IDisposable
     }
 
     /// <summary>
+    /// Creates the PlayStation SPU on a backend that hosts one (<see cref="IPsxSpuHost"/>, the software backend)
+    /// and routes its output to <paramref name="busName"/> "like a voice": the gain set on the port is multiplied by
+    /// the effective gain of the bus, and re-applied when the bus gains change (real bus routing comes with the
+    /// bus graph of S4). Without the capability, or when an SPU is already alive or the backend is unavailable,
+    /// returns false with a throttled "SPU unavailable" log and a null <paramref name="port"/>. Game thread only.
+    /// </summary>
+    public bool TryCreatePsxSpu(PsxSpuHardwareTables tables, string busName, out PsxSpuPort port)
+    {
+        ArgumentNullException.ThrowIfNull(tables);
+        port = null;
+
+        if (_isDisposed)
+        {
+            return false;
+        }
+
+        if (_backend is not IPsxSpuHost host)
+        {
+            _spuLog.WriteWarning("Audio: SPU unavailable, the audio backend does not host the PlayStation SPU.");
+            return false;
+        }
+
+        if (!host.TryCreatePsxSpu(tables, out port))
+        {
+            port = null;
+            _spuLog.WriteWarning("Audio: SPU unavailable, the audio backend is not running or an SPU is already alive.");
+            return false;
+        }
+
+        _spuPort = port;
+        _spuBusName = busName;
+        port.SetBusGain(Mixer.GetEffectiveGain(busName));
+        return true;
+    }
+
+    /// <summary>
     /// Per-frame maintenance: recycles the voices that finished, and reapplies the bus gains when
     /// the mixer changed. Allocation free.
     /// </summary>
@@ -640,6 +680,18 @@ public sealed class AudioService : IDisposable
             }
         }
 
+        if (_spuPort != null)
+        {
+            if (_spuPort.IsDisposed)
+            {
+                _spuPort = null;
+            }
+            else if (mixerChanged)
+            {
+                _spuPort.SetBusGain(Mixer.GetEffectiveGain(_spuBusName));
+            }
+        }
+
         if (mixerChanged)
         {
             _appliedMixerVersion = Mixer.Version;
@@ -660,6 +712,8 @@ public sealed class AudioService : IDisposable
 
         Music.Dispose();
         StopAll();
+        _spuPort?.Dispose();
+        _spuPort = null;
         _isDisposed = true;
         _backend.Dispose();
     }

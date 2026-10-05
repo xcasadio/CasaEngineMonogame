@@ -72,6 +72,9 @@ internal sealed class SoftwareMixer
     private int _droppedChunkCount;
     private readonly AudioLogThrottle _invalidRegionLog = new();
 
+    // Render thread only: the pulled PlayStation SPU source, null while none is attached.
+    private PsxSpuSource _spu;
+
     public SoftwareMixer(
         int outputSampleRate,
         int voiceCapacity = DefaultVoiceCapacity,
@@ -469,6 +472,9 @@ internal sealed class SoftwareMixer
             }
         }
 
+        // Before the final hard clip, like a voice.
+        _spu?.MixInto(output, frameCount, OutputSampleRate);
+
         for (var i = 0; i < output.Length; i++)
         {
             var sample = output[i];
@@ -478,6 +484,22 @@ internal sealed class SoftwareMixer
 
     private void ApplyCommand(in MixerCommand command)
     {
+        if (command.Kind == MixerCommandKind.AttachPsxSpu)
+        {
+            _spu = command.Spu;
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.DetachPsxSpu)
+        {
+            if (ReferenceEquals(_spu, command.Spu))
+            {
+                _spu = null;
+            }
+
+            return;
+        }
+
         if (command.Kind == MixerCommandKind.StopAll)
         {
             for (var i = 0; i < _voices.Length; i++)

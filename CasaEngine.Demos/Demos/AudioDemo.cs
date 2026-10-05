@@ -7,6 +7,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
@@ -93,6 +94,9 @@ public class AudioDemo : Demo
     private int _stressLoggedSeconds;
     private int _stressGcCount;
     private byte[] _stressGarbageSink = [];
+
+    private PsxSpuPort _spuPort;
+    private bool _spuTried;
 
     public override string Title => "Audio demo";
 
@@ -309,7 +313,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 332), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 350), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -317,6 +321,9 @@ public class AudioDemo : Demo
             : "Audio device: NOT available (everything is silent)");
         DrawLine(spriteBatch, ref y, $"Backend: {service.Backend.GetType().Name}   active voices: {service.ActiveVoiceCount}"
             + (_stressActive ? "   STRESS ON" : string.Empty));
+        DrawLine(spriteBatch, ref y, _spuPort != null
+            ? $"SPU: active   refused writes {_spuPort.RefusedWriteCount}"
+            : _spuTried ? "SPU: unavailable" : "SPU: not started (the stress starts it)");
         if (service.Backend is SoftwareAudioBackend software)
         {
             DrawLine(spriteBatch, ref y, $"Lead {software.LeadMilliseconds} ms   output {software.OutputSampleRate} Hz"
@@ -346,6 +353,7 @@ public class AudioDemo : Demo
     {
         var service = _game?.AudioSystemComponent?.Service;
         service?.StopAll();
+        StopSpu();
 
         _loopingVoice = AudioVoiceHandle.None;
         _musicTrack = MusicTrackHandle.None;
@@ -383,6 +391,7 @@ public class AudioDemo : Demo
             _stressActive = false;
             _stressStarted = false;
             _stressGarbageSink = [];
+            StopSpu();
             service.StopAll();
             _loopingVoice = AudioVoiceHandle.None;
             _musicTrack = MusicTrackHandle.None;
@@ -460,6 +469,7 @@ public class AudioDemo : Demo
             _stressLastGcMilliseconds = 0;
             _stressClock.Restart();
             _stressStarted = true;
+            StartSpu(service);
             _lastAction = "stress running";
             return;
         }
@@ -492,12 +502,66 @@ public class AudioDemo : Demo
             _stressActive = false;
             _stressStarted = false;
             _stressGarbageSink = [];
+            StopSpu();
 
             if (_stressExitWhenDone)
             {
                 _game.Exit();
             }
         }
+    }
+
+    // One synthetic ADPCM block (shift 0, filter 0) looping on itself: 14 samples of 7000h then 14 of -8000h, a square
+    // wave of 28 samples (1575 Hz at pitch 1000h). The tables are synthetic too (all ADPCM filters are the
+    // no-prediction one, no FIR, no Gaussian table): not hardware values.
+    private void StartSpu(AudioService service)
+    {
+        _spuTried = true;
+        if (_spuPort != null)
+        {
+            return;
+        }
+
+        var tables = new PsxSpuHardwareTables(new int[PsxSpuHardwareTables.AdpcmFilterCount], new int[PsxSpuHardwareTables.AdpcmFilterCount]);
+        if (!service.TryCreatePsxSpu(tables, AudioBusNames.Sfx, out var port))
+        {
+            return;
+        }
+
+        const int soundAddress = 0x1000;
+        const ushort modestVolume = 0x0800; // fixed volume register: level 1000h of 7FFFh, about 1/8
+        var block = new byte[16];
+        block[1] = 7; // loop start, loop end, repeat
+        Array.Fill(block, (byte)0x77, 2, 7);
+        Array.Fill(block, (byte)0x88, 9, 7);
+        ushort[] pitches = [0x1000, 0x1430, 0x1800, 0x0C00];
+
+        var accepted = port.TryUpload(soundAddress, block);
+        for (var voice = 0; voice < pitches.Length; voice++)
+        {
+            accepted &= port.TrySetStartAddress(voice, soundAddress / 8);
+            accepted &= port.TrySetPitch(voice, pitches[voice]);
+            accepted &= port.TrySetAdsr(voice, 0x1FC0000F);
+            accepted &= port.TrySetVolume(voice, false, modestVolume);
+            accepted &= port.TrySetVolume(voice, true, modestVolume);
+        }
+
+        accepted &= port.TryKeyOn(0xF);
+        _spuPort = port;
+        Logs.WriteInfo($"Audio demo: SPU started, {pitches.Length} voices, all writes accepted={accepted}");
+    }
+
+    private void StopSpu()
+    {
+        if (_spuPort == null)
+        {
+            return;
+        }
+
+        Logs.WriteInfo($"Audio demo: SPU stopped, refused writes={_spuPort.RefusedWriteCount}");
+        _spuPort.TryKeyOff(0xF);
+        _spuPort.Dispose();
+        _spuPort = null;
     }
 
     private void PlayStereoBeep(AudioService service)

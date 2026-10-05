@@ -12,6 +12,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
     private readonly bool _canOpen;
     private AudioRenderCallback _callback;
     private float[] _buffer = new float[2 * 4096];
+    private int _lastFrames;
 
     public OfflineAudioOutput(bool canOpen = true, int sampleRate = 48000)
     {
@@ -34,6 +35,9 @@ internal sealed class OfflineAudioOutput : IAudioOutput
 
     public bool IsStarted => _callback != null;
 
+    /// <summary>Interleaved stereo samples of the last <see cref="Pump"/>.</summary>
+    public ReadOnlySpan<float> LastBlock => _buffer.AsSpan(0, _lastFrames * 2);
+
     public bool TryOpen()
     {
         IsAvailable = _canOpen;
@@ -54,6 +58,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         }
 
         _callback(_buffer, frames);
+        _lastFrames = frames;
 
         var peak = 0f;
         for (var i = 0; i < frames * 2; i++)

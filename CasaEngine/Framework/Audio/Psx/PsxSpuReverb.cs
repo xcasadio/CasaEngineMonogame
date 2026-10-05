@@ -14,7 +14,7 @@ namespace CasaEngine.Framework.Audio.Psx;
 internal sealed class PsxSpuReverb
 {
     private const int RamSize = PsxSpu.RamSize;
-    private const int RegisterCount = 32;
+    internal const int RegisterCount = 32;
     private const int Taps = PsxSpuHardwareTables.ReverbFirTapCount;
 
     // Register indices ((address - 1F801DC0h) / 2).

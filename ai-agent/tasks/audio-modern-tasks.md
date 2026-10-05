@@ -1115,7 +1115,7 @@ dans « Points ouverts » au lieu d'être devinée.
   0 avertissement dans `Psx/`. Les deux solutions : 0 erreur ; suite complète 2928/2928. Lectures
   ambiguës : O19 (20 à 29), dont le gain de sortie, à confirmer à l'écoute.
 
-### ⏳ T4.4 — Branchement au mixeur et accès public
+### ✅ T4.4 — Branchement au mixeur et accès public
 
 - Fichiers : `Software/SoftwareMixer.cs` (source « tirée » à 44 100 Hz rééchantillonnée vers la
   sortie), `Backends/SoftwareAudioBackend.cs`, nouvelle capacité publique optionnelle
@@ -1145,6 +1145,32 @@ dans « Points ouverts » au lieu d'être devinée.
   rendues décodent les données téléversées ; stress de 60 s de la
   démo avec un SPU actif (tables synthétiques, ajout à la démo audio) : 0 sous-alimentation.
 - Commit : `feat(psx): host the SPU in the software audio backend`
+- Note de validation (2026-10-06) : API additive : capacité `IPsxSpuHost.TryCreatePsxSpu(tables,
+  out PsxSpuPort)` (seul `SoftwareAudioBackend` l'implémente ; `IAudioBackend` inchangé) ;
+  `AudioService.TryCreatePsxSpu(tables, busName, out port)` (sans la capacité : `false` et un
+  journal « SPU unavailable » limité) ; `PsxSpuPort` (thread de jeu) : un `Try*` par setter de
+  `PsxSpu`, `TryUpload`, `ReadEndx`, `GetEnvx`, `SetGain`, `RefusedWriteCount`, `Dispose`. Un
+  seul SPU vivant par backend. Interne : `PsxSpuSource` (anneau de 16 384 écritures, tampon d'étape
+  de 1 Mo en morceaux de 64 Ko, au plus 256 Ko appliqués par bloc, marqueur numéroté par
+  téléversement qui arrête l'anneau jusqu'à la fin du téléversement ; instantané ENDX/ENVX publié à
+  chaque bloc sous compteur de séquence, sans verrou côté audio ; gain en dernière valeur, rampé
+  sur le bloc ; rééchantillonnage cubique 44 100 Hz → sortie, ajouté avant l'écrêtage final) ;
+  commandes `AttachPsxSpu`/`DetachPsxSpu` dans l'anneau du mixeur, le détachement réessayé comme
+  les arrêts ; `StopAll` ne touche pas le SPU. Volume « comme une voix » : gain × gain effectif du
+  bus, réappliqué quand les bus changent (vrai routage en T5.1). Relu en session principale ; corrigé
+  dans la démo : le bloc ADPCM synthétique ne donnait qu'un niveau continu, remplacé par une onde
+  carrée. 10 tests (`SoftwareAudioBackendPsxSpuTests.cs`, `AudioServicePsxSpuLoggingTests.cs`) :
+  bout en bout, borne (4 096 écritures et 512 Ko entre deux blocs, chaque appel < 1 ms, zéro
+  allocation au rendu), au-delà de la borne (16 384 acceptées, 3 616 refusées, préfixe seul
+  appliqué), ordre (key on après un téléversement de 512 Ko : rien au bloc 1, données téléversées
+  décodées au bloc 2), gains et gain de bus, deuxième création refusée, détachement malgré un
+  anneau plein, lecture concurrente de l'instantané, absence de capacité. Les deux solutions :
+  0 erreur ; suite complète 2938/2938 (7 passages). **Stress de 60 s, sans clavier** :
+  `Audio backend: SoftwareAudioBackend (source: environment)`,
+  `monogame-openal-initialized=false`, `Audio demo: SPU started, 4 voices, all writes
+  accepted=True`, `Audio stress done: backend=SoftwareAudioBackend seconds=60 underruns=0 gc=119`,
+  `SPU stopped, refused writes=0`, sortie code 0. Écoute de la démo (touche G) : 🧪 pour l'auteur,
+  avec les autres écoutes.
 
 ### ⏳ T4.5 — Documentation, ADR et vérification
 

@@ -14,6 +14,12 @@ internal enum MixerCommandKind
     SubmitChunk,
     StopAll,
     SetStereoGains,
+
+    /// <summary>Attaches <see cref="MixerCommand.Spu"/> as the pulled SPU source (replacing any).</summary>
+    AttachPsxSpu,
+
+    /// <summary>Detaches <see cref="MixerCommand.Spu"/> if it is the attached source.</summary>
+    DetachPsxSpu,
 }
 
 /// <summary>
@@ -40,6 +46,7 @@ internal struct MixerCommand
     public int SampleRate;
     public float Volume;
     public SampleChunk Chunk;
+    public PsxSpuSource Spu;
 
     /// <summary>
     /// <see cref="MixerCommandKind.StartResident"/>: the mono voice uses explicit gains (no pan law).

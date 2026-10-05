@@ -2,6 +2,7 @@ using System.Diagnostics;
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Audio.Output;
 using CasaEngine.Framework.Audio.Output.OpenAl;
+using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Software;
 
 namespace CasaEngine.Framework.Audio.Backends;
@@ -38,7 +39,7 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -54,6 +55,10 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
     private readonly IAudioOutput _output;
     private readonly SoftwareMixer _mixer;
     private readonly AudioRenderCallback _renderCallback;
+
+    // The one live SPU (attached to the mixer), and one whose Detach command is still to be sent (see ReleasePsxSpu).
+    private PsxSpuSource _spuSource;
+    private PsxSpuSource _spuDetachPending;
 
     private int _freeSlotCount;
     private int _pendingStopCount;
@@ -447,6 +452,79 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
         }
     }
 
+    /// <summary>
+    /// Creates the one live SPU (<see cref="IPsxSpuHost"/>). The SPU, its rings and its buffers are allocated here;
+    /// the attach order waits for room in the command ring like a voice start. Fails when an SPU is alive or when
+    /// the detach of the previous one could not be sent yet.
+    /// </summary>
+    public bool TryCreatePsxSpu(PsxSpuHardwareTables tables, out PsxSpuPort port)
+    {
+        ArgumentNullException.ThrowIfNull(tables);
+        port = null;
+
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        RetryPendingStops();
+
+        if (_spuSource != null || _spuDetachPending != null)
+        {
+            return false;
+        }
+
+        var source = new PsxSpuSource(tables);
+        var command = new MixerCommand { Kind = MixerCommandKind.AttachPsxSpu, Spu = source };
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+            return false;
+        }
+
+        _spuSource = source;
+        port = new PsxSpuPort(source, this);
+        return true;
+    }
+
+    /// <summary>
+    /// Called by <see cref="PsxSpuPort.Dispose"/>: sends the Detach command, with the bounded wait of a Stop; when
+    /// the ring stays full the order is kept and resent by <see cref="RetryPendingStops"/>, so it is never lost.
+    /// </summary>
+    internal void ReleasePsxSpu(PsxSpuSource source)
+    {
+        if (_isDisposed || !ReferenceEquals(_spuSource, source))
+        {
+            return;
+        }
+
+        _spuSource = null;
+
+        if (_mixer == null || !_output.IsAvailable)
+        {
+            return;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.DetachPsxSpu, Spu = source };
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+            _spuDetachPending = source;
+        }
+    }
+
     public void Dispose()
     {
         if (_isDisposed)
@@ -457,6 +535,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
         // The output first: it joins the audio thread, so nothing renders while the state is released.
         _isDisposed = true;
         _output.Dispose();
+        _spuSource = null;
+        _spuDetachPending = null;
 
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -517,6 +597,15 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend
     // Cheap when nothing is pending (one int compare). No wait: a full ring is simply tried again at the next call.
     private void RetryPendingStops()
     {
+        if (_spuDetachPending != null)
+        {
+            var command = new MixerCommand { Kind = MixerCommandKind.DetachPsxSpu, Spu = _spuDetachPending };
+            if (_mixer.TryEnqueueCommand(in command))
+            {
+                _spuDetachPending = null;
+            }
+        }
+
         if (_pendingStopCount == 0)
         {
             return;
