@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Audio.Effects;
+
 namespace CasaEngine.Framework.Audio.Software;
 
 internal enum MixerCommandKind
@@ -38,6 +40,12 @@ internal enum MixerCommandKind
 
     /// <summary>Stops the gain ramp of bus <see cref="MixerCommand.Bus"/> at its current value.</summary>
     FreezeBus,
+
+    /// <summary>Appends <see cref="MixerCommand.Effect"/> to the insert effects of bus <see cref="MixerCommand.Bus"/>.</summary>
+    AddEffect,
+
+    /// <summary>Removes <see cref="MixerCommand.Effect"/> from the insert effects of bus <see cref="MixerCommand.Bus"/>.</summary>
+    RemoveEffect,
 }
 
 /// <summary>
@@ -65,6 +73,7 @@ internal struct MixerCommand
     public float Volume;
     public SampleChunk Chunk;
     public PsxSpuSource Spu;
+    public AudioEffect Effect;
 
     /// <summary>Bus index: the bus a voice starts on, the bus to create, or the bus the SPU is routed to.</summary>
     public int Bus;

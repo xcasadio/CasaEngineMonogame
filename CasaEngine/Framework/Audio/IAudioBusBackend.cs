@@ -71,4 +71,16 @@ public interface IAudioBusBackend
 
     /// <summary>Stops the gain ramp of a bus at the value it has reached. Ignored when no ramp runs.</summary>
     void FreezeBusGain(int busIndex);
+
+    /// <summary>
+    /// Appends an insert effect to a bus (plan decision P20): it runs on the audio thread, on the buffer of the bus, in
+    /// insertion order, between the voices and the bus gain. The effect object is built on the game thread and its
+    /// parameters are published as last values; the DSP state lives in the backend. A bus runs at most
+    /// <see cref="Mixing.AudioBus.MaxEffects"/> effects. A full command ring is waited for like a voice start.
+    /// Returns false when it could not be sent.
+    /// </summary>
+    bool TryAddBusEffect(int busIndex, Effects.AudioEffect effect);
+
+    /// <summary>Removes an insert effect from a bus; the effects after it move up. Returns false when it could not be sent.</summary>
+    bool TryRemoveBusEffect(int busIndex, Effects.AudioEffect effect);
 }

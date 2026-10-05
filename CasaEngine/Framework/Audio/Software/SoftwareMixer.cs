@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using CasaEngine.Framework.Audio.Effects;
 
 namespace CasaEngine.Framework.Audio.Software;
 
@@ -60,6 +61,9 @@ internal sealed class SoftwareMixer
     /// <summary>Fixed number of buses, Master (index 0) included.</summary>
     public const int BusCapacity = 32;
 
+    /// <summary>Insert effects held by one bus.</summary>
+    public const int EffectSlotsPerBus = 4;
+
     /// <summary>Index of the Master bus: the root every other bus ends in, and the default route.</summary>
     public const int MasterBus = 0;
 
@@ -100,6 +104,12 @@ internal sealed class SoftwareMixer
 
     // Render thread: explicit duration gain ramp of each bus (see MixBuses).
     private readonly BusRamp[] _busRamps = new BusRamp[BusCapacity];
+
+    // Render thread: insert effects of each bus (EffectSlotsPerBus slots, in insertion order) and the DSP state of
+    // each, preallocated so that adding an effect allocates nothing on the audio thread.
+    private readonly AudioEffect[] _busEffects = new AudioEffect[BusCapacity * EffectSlotsPerBus];
+    private readonly EffectDspState[] _busEffectStates = new EffectDspState[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _busEffectCounts = new int[BusCapacity];
 
     // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
     private int _busCount = 1;
@@ -391,6 +401,34 @@ internal sealed class SoftwareMixer
     }
 
     /// <summary>Routes the attached SPU to a bus, applied in order with the other commands.</summary>
+    /// <summary>
+    /// Appends an insert effect to a bus (at most <see cref="EffectSlotsPerBus"/>; a further one is ignored by the audio
+    /// thread). A command, so it is never lost silently: false when the ring is full (the caller retries), the bus was not
+    /// handed out or the effect is null. Producer thread only.
+    /// </summary>
+    public bool TryAddEffect(int bus, AudioEffect effect)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || effect == null)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, Effect = effect };
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Removes an insert effect from a bus; the ones after it move up. False when the command could not be sent.</summary>
+    public bool TryRemoveEffect(int bus, AudioEffect effect)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || effect == null)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.RemoveEffect, Bus = bus, Effect = effect };
+        return _commands.TryEnqueue(in command);
+    }
+
     public bool TryRoutePsxSpu(PsxSpuSource spu, int bus)
     {
         if ((uint)bus >= (uint)_producerBusCount)
@@ -683,8 +721,8 @@ internal sealed class SoftwareMixer
 
     // Children before parents: a child always has a higher index than its parent, so going down from the
     // last bus reaches Master last. Each bus is scaled by its own gain, ramped across the block, while it is
-    // added to its parent buffer; Master is scaled into the output. The per-bus buffers are also where
-    // insert effects will sit, between the voices and this scaling.
+    // added to its parent buffer; Master is scaled into the output. The insert effects of a bus run on its
+    // buffer first, between the voices and this scaling.
     private void MixBuses(Span<float> output, int frameCount)
     {
         var sampleCount = frameCount * 2;
@@ -692,6 +730,7 @@ internal sealed class SoftwareMixer
         for (var b = _busCount - 1; b >= 0; b--)
         {
             var source = BusBuffer(b, sampleCount);
+            ProcessEffects(b, source, frameCount);
             ref var ramp = ref _busRamps[b];
             var publishCount = Volatile.Read(ref _busGainPublishCount[b]);
             var publishedBits = Volatile.Read(ref _busGainBits[b]);
@@ -760,6 +799,59 @@ internal sealed class SoftwareMixer
             {
                 _busAppliedGain[b] = target;
             }
+        }
+    }
+
+    // Insert effects of a bus, in insertion order, on its buffer: after the voices and the children were mixed into
+    // it, before its gain. A silent bus is processed too, so a tail (filter ring, compressor release) keeps going.
+    private void ProcessEffects(int bus, Span<float> buffer, int frameCount)
+    {
+        var count = _busEffectCounts[bus];
+        var first = bus * EffectSlotsPerBus;
+
+        for (var e = 0; e < count; e++)
+        {
+            _busEffects[first + e].Process(ref _busEffectStates[first + e], buffer, frameCount, OutputSampleRate);
+        }
+    }
+
+    private void AddBusEffect(int bus, AudioEffect effect)
+    {
+        var count = _busEffectCounts[bus];
+
+        if (count >= EffectSlotsPerBus)
+        {
+            return;
+        }
+
+        var slot = (bus * EffectSlotsPerBus) + count;
+        _busEffects[slot] = effect;
+        _busEffectStates[slot] = default;
+        _busEffectCounts[bus] = count + 1;
+    }
+
+    private void RemoveBusEffect(int bus, AudioEffect effect)
+    {
+        var count = _busEffectCounts[bus];
+        var first = bus * EffectSlotsPerBus;
+
+        for (var e = 0; e < count; e++)
+        {
+            if (!ReferenceEquals(_busEffects[first + e], effect))
+            {
+                continue;
+            }
+
+            for (var next = e + 1; next < count; next++)
+            {
+                _busEffects[first + next - 1] = _busEffects[first + next];
+                _busEffectStates[first + next - 1] = _busEffectStates[first + next];
+            }
+
+            _busEffects[first + count - 1] = null;
+            _busEffectStates[first + count - 1] = default;
+            _busEffectCounts[bus] = count - 1;
+            return;
         }
     }
 
@@ -890,6 +982,26 @@ internal sealed class SoftwareMixer
             if ((uint)command.Bus < (uint)_busCount)
             {
                 FreezeBusRamp(command.Bus);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.AddEffect)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                AddBusEffect(command.Bus, command.Effect);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RemoveEffect)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                RemoveBusEffect(command.Bus, command.Effect);
             }
 
             return;

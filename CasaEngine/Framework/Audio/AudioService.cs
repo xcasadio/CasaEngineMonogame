@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Streaming;
@@ -24,6 +25,10 @@ public sealed class AudioService : IDisposable
     // Per bus of Mixer.Buses (same order): index on the backend, or -1 when it is not on it (routed to Master).
     private readonly List<int> _backendBusIndices = new();
     private int _syncedBusVersion = -1;
+    // Per bus of Mixer.Buses (same order): the insert effects already sent to the backend, in order.
+    private readonly List<List<AudioEffect>> _sentEffects = new();
+    private int _syncedEffectsVersion;
+    private readonly AudioLogThrottle _effectsLog = new();
     private readonly List<VoiceEntry> _voices = new();
     private readonly List<BusFade> _busFades = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
@@ -42,6 +47,7 @@ public sealed class AudioService : IDisposable
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
         _busBackend = _backend as IAudioBusBackend;
         SyncBuses();
+        SyncEffects();
         // Real backends stream music from the background worker; test and null backends read inline.
         Music = new MusicPlayer(this, _backend is Backends.SoftwareAudioBackend or Backends.MonoGameAudioBackend);
         _stereoVoiceMixer = new StereoVoiceMixer(this);
@@ -754,6 +760,11 @@ public sealed class AudioService : IDisposable
             SyncBuses();
         }
 
+        if (_syncedEffectsVersion != Mixer.EffectsVersion)
+        {
+            SyncEffects();
+        }
+
         for (var i = 0; i < _voices.Count; i++)
         {
             var entry = _voices[i];
@@ -1061,6 +1072,104 @@ public sealed class AudioService : IDisposable
         }
 
         _syncedBusVersion = Mixer.Version;
+    }
+
+    /// <summary>
+    /// Sends the insert effects of the buses to the backend: the ones removed first, then the new ones in order. Without
+    /// <see cref="IAudioBusBackend"/> effects are absent and that is logged (once per throttle window). A command that
+    /// could not be sent is retried on the next <see cref="Update"/>. Allocation free when nothing changed.
+    /// </summary>
+    private void SyncEffects()
+    {
+        var buses = Mixer.Buses;
+
+        if (_busBackend == null)
+        {
+            for (var i = 0; i < buses.Count; i++)
+            {
+                if (buses[i].Effects.Count > 0)
+                {
+                    _effectsLog.WriteWarning("Audio: this backend has no bus graph, so the insert effects of the audio buses are ignored (use the software backend).");
+                    break;
+                }
+            }
+
+            _syncedEffectsVersion = Mixer.EffectsVersion;
+            return;
+        }
+
+        SyncBuses();
+        var allSent = true;
+
+        for (var i = 0; i < buses.Count; i++)
+        {
+            while (_sentEffects.Count <= i)
+            {
+                _sentEffects.Add(new List<AudioEffect>());
+            }
+
+            var backendIndex = _backendBusIndices[i];
+
+            if (backendIndex < 0)
+            {
+                continue;
+            }
+
+            var wanted = buses[i].Effects;
+            var sent = _sentEffects[i];
+
+            for (var j = sent.Count - 1; j >= 0; j--)
+            {
+                if (!ContainsEffect(wanted, sent[j]))
+                {
+                    if (_busBackend.TryRemoveBusEffect(backendIndex, sent[j]))
+                    {
+                        sent.RemoveAt(j);
+                    }
+                    else
+                    {
+                        allSent = false;
+                    }
+                }
+            }
+
+            for (var j = 0; j < wanted.Count; j++)
+            {
+                if (ContainsEffect(sent, wanted[j]))
+                {
+                    continue;
+                }
+
+                // Insertion order: a later effect never goes before an earlier one that failed to send.
+                if (_busBackend.TryAddBusEffect(backendIndex, wanted[j]))
+                {
+                    sent.Add(wanted[j]);
+                }
+                else
+                {
+                    allSent = false;
+                    break;
+                }
+            }
+        }
+
+        if (allSent)
+        {
+            _syncedEffectsVersion = Mixer.EffectsVersion;
+        }
+    }
+
+    private static bool ContainsEffect(IReadOnlyList<AudioEffect> effects, AudioEffect effect)
+    {
+        for (var i = 0; i < effects.Count; i++)
+        {
+            if (ReferenceEquals(effects[i], effect))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private int BackendIndexOf(AudioBus bus)

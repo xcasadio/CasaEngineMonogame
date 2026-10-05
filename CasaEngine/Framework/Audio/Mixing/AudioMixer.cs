@@ -17,6 +17,9 @@ public sealed class AudioMixer
     /// <summary>Incremented every time an effective gain may have changed.</summary>
     public int Version { get; private set; }
 
+    /// <summary>Incremented every time an effect is added to or removed from a bus.</summary>
+    public int EffectsVersion { get; private set; }
+
     public IReadOnlyList<AudioBus> Buses => _buses;
 
     /// <summary>The bus every other bus hangs from, or null while the mixer is empty.</summary>
@@ -104,6 +107,11 @@ public sealed class AudioMixer
         }
 
         return Root?.EffectiveGain ?? 1f;
+    }
+
+    internal void InvalidateEffects()
+    {
+        EffectsVersion++;
     }
 
     /// <summary>Recomputes every effective gain and bumps <see cref="Version"/>.</summary>

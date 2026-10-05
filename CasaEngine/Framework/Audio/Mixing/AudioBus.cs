@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Audio.Effects;
+
 namespace CasaEngine.Framework.Audio.Mixing;
 
 /// <summary>
@@ -13,6 +15,7 @@ public sealed class AudioBus
     private readonly AudioMixer _mixer;
     private float _volume = 1f;
     private bool _isMuted;
+    private readonly List<AudioEffect> _effects = new();
 
     internal AudioBus(AudioMixer mixer, string name, AudioBus parent)
     {
@@ -74,6 +77,50 @@ public sealed class AudioBus
     /// per frame.
     /// </summary>
     public float EffectiveGain { get; internal set; }
+
+    /// <summary>Largest number of insert effects a bus holds.</summary>
+    public const int MaxEffects = 4;
+
+    /// <summary>
+    /// Insert effects of this bus, in the order they run (insertion order). They only run on a backend with
+    /// <see cref="IAudioBusBackend"/> (the software backend); see <see cref="AudioEffect"/>.
+    /// </summary>
+    public IReadOnlyList<AudioEffect> Effects => _effects;
+
+    /// <summary>Appends an insert effect after the ones already on this bus. Game thread only.</summary>
+    /// <exception cref="ArgumentNullException">The effect is null.</exception>
+    /// <exception cref="InvalidOperationException">The effect is already on a bus, or the bus holds <see cref="MaxEffects"/> effects.</exception>
+    public void AddEffect(AudioEffect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (effect.Bus != null)
+        {
+            throw new InvalidOperationException($"The effect is already inserted on the audio bus '{effect.Bus.Name}'.");
+        }
+
+        if (_effects.Count >= MaxEffects)
+        {
+            throw new InvalidOperationException($"The audio bus '{Name}' already holds {MaxEffects} effects.");
+        }
+
+        _effects.Add(effect);
+        effect.Bus = this;
+        _mixer.InvalidateEffects();
+    }
+
+    /// <summary>Removes an insert effect; the ones after it move up. Returns false when it is not on this bus. Game thread only.</summary>
+    public bool RemoveEffect(AudioEffect effect)
+    {
+        if (effect == null || !_effects.Remove(effect))
+        {
+            return false;
+        }
+
+        effect.Bus = null;
+        _mixer.InvalidateEffects();
+        return true;
+    }
 
     public override string ToString() => $"{Name} (volume:{_volume} muted:{_isMuted} gain:{EffectiveGain})";
 }

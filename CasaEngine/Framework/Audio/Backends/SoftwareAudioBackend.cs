@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Output;
 using CasaEngine.Framework.Audio.Output.OpenAl;
 using CasaEngine.Framework.Audio.Psx;
@@ -656,6 +657,37 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         {
             ReportRingFull();
         }
+    }
+
+    public bool TryAddBusEffect(int busIndex, AudioEffect effect)
+    {
+        return SendBusEffect(busIndex, effect, add: true);
+    }
+
+    public bool TryRemoveBusEffect(int busIndex, AudioEffect effect)
+    {
+        return SendBusEffect(busIndex, effect, add: false);
+    }
+
+    private bool SendBusEffect(int busIndex, AudioEffect effect, bool add)
+    {
+        if (effect == null || !IsOutputAlive() || (uint)busIndex >= (uint)_mixer.BusCount)
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = add ? _mixer.TryAddEffect(busIndex, effect) : _mixer.TryRemoveEffect(busIndex, effect)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
     }
 
     // At least one frame; capped so the frame count of a very long duration stays an int.

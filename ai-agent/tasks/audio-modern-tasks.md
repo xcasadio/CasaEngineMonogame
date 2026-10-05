@@ -1351,7 +1351,7 @@ Budget : identique à S2.
   (`AllocationWindow`) ; tests de fondu existants inchangés et verts. Les deux solutions : 0 erreur ;
   suite complète 2980/2980 (quatre passages).
 
-### ⏳ T5.3 — Effets insérés : filtres biquad et compresseur (P20)
+### ✅ T5.3 — Effets insérés : filtres biquad et compresseur (P20)
 
 - Objectif : jusqu'à 4 effets par bus, dans l'ordre d'insertion.
 - Fichiers : `CasaEngine/Framework/Audio/Effects/` (`AudioEffect` public abstrait côté jeu,
@@ -1367,6 +1367,29 @@ Budget : identique à S2.
   relâchement à ±10 % des constantes ; queue décroissante longue sans dénormaux (temps de rendu
   stable) ; zéro allocation ; suite complète.
 - Commit : `feat(audio): biquad filter and compressor bus effects`
+- Note de validation (2026-10-06) : types publics `AudioEffect` (abstrait, constructeur interne :
+  seuls les effets du moteur existent), `BiquadFilterEffect` (`BiquadFilterType` : passe-bas,
+  passe-haut, passe-bande, crête, plateaux bas et haut ; fréquence, Q, gain), `CompressorEffect`
+  (seuil, rapport, genou, attaque, relâchement, gain de sortie) ; `AudioBus.AddEffect`,
+  `RemoveEffect`, `Effects`, `MaxEffects = 4` ; `AudioMixer.EffectsVersion` ; `IAudioBusBackend`
+  gagne `TryAddBusEffect`, `TryRemoveBusEffect` (tout additif). Paramètres : instantané immuable
+  publié en dernière valeur (`Volatile`), coefficients recalculés sur le thread audio quand
+  l'instantané change ; ajout et retrait par commandes, réessayés au `Update` suivant si l'anneau
+  est plein, dans l'ordre ; 32 × 4 emplacements préalloués ; effets appliqués dans le tampon du bus
+  avant son gain, y compris sur un bus silencieux (les queues continuent) ; garde contre les
+  dénormaux (état ramené à 0 sous 1e-30). Sources lues : Audio EQ Cookbook du W3C
+  (https://www.w3.org/TR/audio-eq-cookbook/, six jeux de coefficients, forme directe transposée II
+  en double) ; Giannoulis, Massberg, Reiss, JAES 2012 (page QMUL vide, PDF lu sur une copie de la
+  Wayback Machine de la même URL ; équations 1, 4, 7, 16, 23 : genou doux, réduction de gain,
+  détecteur de crête lissé à branches, coefficients, gain de sortie). Choix documentés : détecteur
+  stéréo lié (maximum des deux canaux) ; pas de lissage des changements de paramètres ; sans la
+  capacité, effets absents et un journal limité. 34 tests (`AudioEffectDspTests.cs`,
+  `SoftwareMixerEffectTests.cs`, `AudioServiceEffectsTests.cs`) : coefficients recalculés depuis le
+  Cookbook (à 1e-12, sept cas), passe-bas et passe-haut à −3 dB ± 0,5 à fc, crête +6 dB ± 0,1,
+  compresseur stabilisé à 0,01 dB sur sept niveaux, attaque et relâchement à ± 10 %, queue sans
+  dénormaux, ordre d'insertion, effet avant le gain, retrait, 5e effet refusé, paramètres
+  conservés malgré un anneau plein, zéro allocation (32 bus × 4 effets, 64 voix), repli. Les deux
+  solutions : 0 erreur ; suite complète 3014/3014 (quatre passages).
 
 ### ⏳ T5.4 — Limiteur du Master, bus de retour et réverbération (P20)
 
