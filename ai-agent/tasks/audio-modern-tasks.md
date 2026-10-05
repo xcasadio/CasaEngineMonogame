@@ -1033,7 +1033,7 @@ d'Alundra (X2), séquenceur (X3), XA (X5), entrée CD et capture. Prérequis : S
 Budget : identique à S2 ; en plus, toute fonction dont la formule psx-spx est ambiguë est notée
 dans « Points ouverts » au lieu d'être devinée.
 
-### 🚧 T4.1 — Cœur SPU pur (voix, ADPCM, pitch, volumes)
+### ✅ T4.1 — Cœur SPU pur (voix, ADPCM, pitch, volumes)
 
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpu.cs` (+ types de voix et de registres),
   `CasaEngine.Tests/Audio/Psx/`.
@@ -1052,6 +1052,16 @@ dans « Points ouverts » au lieu d'être devinée.
   valeur hors borne) → exception à la construction ; `rg` sur `CasaEngine/` ne trouve aucune table
   matérielle ; zéro allocation ; suite complète.
 - Commit : `feat(psx): add a software PlayStation SPU core`
+- Note de validation (2026-10-06) : `PsxSpu`, `PsxSpuHardwareTables` (validées et copiées à la
+  construction ; coefficient ADPCM hors de −128..127 → `ArgumentException`, borne choisie par le
+  moteur), `IPsxSpuInterpolator` (cubique par défaut, gaussienne si la table est fournie) ; 38 tests
+  dans `CasaEngine.Tests/Audio/Psx/PsxSpuTests.cs` (chaque filtre 0 à 4, décalages, historique à
+  travers les blocs et les sauts, boucles et ENDX, fin muette, pitch 1000h/2000h/4000h et écrêtage,
+  pitch 0, gaussienne, volumes négatifs, sweep dans dix combinaisons de modes, saturation, RAM
+  circulaire, tables invalides, zéro allocation sur 1 000 rendus de 441 trames à 24 voix) ; `rg` de
+  suites de littéraux hexadécimaux dans `Psx/` → rien ; les deux solutions : 0 erreur ; suite
+  complète 2898/2898. ENVX et key off restent des substituts jusqu'à T4.2. Lectures ambiguës de
+  psx-spx : O19.
 
 ### ⏳ T4.2 — ADSR, ENVX, bruit et PMON
 
@@ -1306,6 +1316,7 @@ Budget : identique à S2.
 | O16 | **Question à l'auteur** — source du séquenceur SEQ/VAB (X3) : le comportement de lecture de libsnd n'existe que dans des décompilations du libsnd propriétaire de Sony (transcription de l'analyseur depuis `ALUN_CD.EXE` ; `psyz/decomp`, étiqueté MIT ; `sotn-decomp`, AGPL-3.0 avec des fichiers MIT). Laquelle peut servir de référence pour un moteur MIT, et sous quelle forme (référence de comportement réécrite, ou rien) ? Avec O4 (cadence du pilote : libsnd en mode 50 Hz chez Alundra, rendus actuels à 60 Hz ; tick sur le thread audio ou de jeu). X3 en pause. Faits utiles (O16) : la table note→pitch de 192 entrées se calcule (`floor(4096·2^(k/192))`) ; les données d'Alundra débordent cette table (piste 19), il faudra une règle documentée ; un séquenceur doit gérer plusieurs séquences en même temps (BGM et SFX de séquence) et partager les 24 voix avec les SFX directs. | X3 |
 | O17 | Avis P4 du vérificateur de S2 : `SoundPlaybackOverrides.ApplyTo` (`SoundPlaybackOverrides.cs:38`) reconstruit les paramètres par le constructeur à 4 arguments et perdrait une région de boucle ou un multiplicateur ; sans effet aujourd'hui (son entrée vient de `SoundAsset`, qui n'en porte pas). À traiter si `.sound` reçoit ces champs (S5). | S5 |
 | O18 | Avis P4 du vérificateur de S2 : le thread « CasaEngine Audio Streaming » ne redémarre pas s'il meurt sur une exception hors de son `try` (par exemple à la fermeture d'un lecteur) ; la musique s'arrêterait sans repli. Lecture du code seulement, non reproduit. | après S2 |
+| O19 | **Question à l'auteur** — lectures retenues là où psx-spx est ambigu (chacune marquée `AMBIGUOUS (psx-spx)` dans le code ; les tests recalculent les formules, donc une mauvaise lecture y serait reproduite). T4.1 : (1) le « /64 » de la formule ADPCM lu comme une division entière tronquée vers zéro, pas comme un décalage arithmétique ; (2) indices de filtre 5 à 7 traités comme le filtre 0 ; (3) décalages 13 à 15 traités comme 9 (documenté pour le XA seulement) ; (4) historiques ADPCM et d'interpolation remis à zéro au key on ; (5) ENDX levé à l'arrivée sur le bloc de fin, saut et mise en sourdine après ses 28 échantillons (les 3 dernières trames sont muettes à cause du retard d'interpolation) ; (6) somme gaussienne saturée à 16 bits ; (7) interpolation cubique par défaut entre « older » et « old » (choix du moteur) ; (8) compteur du sweep remis à 0 après un pas ; (9) « / 8000h » du pas exponentiel décroissant tronqué vers zéro ; (10) sweep avancé à chaque trame, voix allumée ou non, après le calcul de la trame ; (11) échelle en deux temps `(ENVX·VOL)>>15` puis `(échantillon·Lvol)>>15`, saturation par voix puis somme. Vérifiés contre psx-spx le 2026-10-06 (lecture de la page) : key on ne copie pas l'adresse de départ dans LSAX, le saut de boucle a lieu après le bloc, pseudo-code du sweep, formule gaussienne, compteur de pitch, codes de boucle 0 à 3. Une référence matérielle (O12) trancherait ces points. | X1 |
 
 ## Hors périmètre
 
