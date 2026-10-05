@@ -67,3 +67,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0051](0051-psx-semi-transparency-of-sprites-as-two-disjoint-passes.md) | PSX semi-transparency of sprites as two disjoint passes | Accepted | 2026-10-03 |
 | [ADR-0052](0052-cellular-wave-counter-truncated-type-0-parallax-and-cell-order.md) | One global wave counter, a truncated type-0 parallax factor and cell 0 drawn on top in cellular layers | Accepted | 2026-10-03 |
 | [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
+| [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |

@@ -271,13 +271,15 @@ Ce qu'il en fait (`DefaultRuntimeViewBootstrapper.CreateDefaultView`, `CasaEngin
 - le jeu ne pose plus le zoom de la caméra : le moteur le possède.
 
 Le contenu en unités du monde (fonds, couches cellulaires, fondus) est dimensionné par la vue de la caméra et ne change
-pas. L'interface MGUI est locale à la vue ; un écran XAML qui place sa fenêtre d'après les bornes de son bureau les
+pas. L'interface MGUI est locale à la vue, découpes comprises : `CasaDrawTransaction` décale chaque rectangle de découpe par l'origine de la
+vue quand il l'écrit dans le ciseau du périphérique (en pixels absolus du tampon) et le ramène à la relecture, et le ciseau du
+périphérique est remis au tampon entier à chaque `ClientSizeChanged` (ADR-0054) ; un écran XAML qui place sa fenêtre d'après les bornes de son bureau les
 recalcule dans `XamlUIScreenBase.OnScreenBoundsChanged(Rectangle)`, appelé par `UIRoot.Update` (via
 `ScreenStack.NotifyScreenBounds`, écrans gelés sous un modal compris) quand ces bornes changent.
 
 Limites : seul le mode `IntegerFit`, bandes noires ; le rendu va droit dans le viewport du back-buffer (pas de cible de rendu,
 `BackBufferPresenter` reste non branché) ; l'abonnement à `ClientSizeChanged` et l'effacement des bandes demandent un
-périphérique graphique et se vérifient dans un jeu qui tourne. Decisions: see ADR-0048.
+périphérique graphique et se vérifient dans un jeu qui tourne. Decisions: see ADR-0048, ADR-0054.
 
 ---
 

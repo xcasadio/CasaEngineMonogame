@@ -1,6 +1,6 @@
 # ADR-0048: A project virtual resolution fitted at an integer factor with black bands
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0054 (the clip rectangles of the UI are local to the view; the device scissor is refreshed on every resize; the rest stands)
 - **Date**: 2026-10-03 (decisions taken with the author on 2026-10-03)
 - **Source**: this chantier: `ai-agent/tasks/e19s-virtual-resolution-tasks.md` (rules S-R2 to S-R5). Parent repository:
   `docs/plan-e19-opcodes.md`, step E19.s, decisions D-E19-47 and D-E19-60 (the image keeps the 320 x 240 of the original,

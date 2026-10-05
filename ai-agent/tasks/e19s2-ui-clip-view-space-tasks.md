@@ -82,10 +82,11 @@ l'écriture et les ramène à la relecture, et rafraîchit le ciseau du périph�
 - Validation faite (2026-10-05) : démo lancée depuis `CasaEngine.Demos/` (`CASAENGINE_START_DEMO="Split-screen demo (2 views)"`, `CASAENGINE_DEMO_PIXELS_PATH`, `CASAENGINE_CAPTURE_SCREENSHOT_PATH`, la démo se ferme seule, sonde du back-buffer en processus, jamais de capture du bureau). Fenêtre 1024 × 768, vue de droite (512, 0, 512, 768), pixel (612, 312) (au-dessus du texte de l'élément, qui est en (20, 300) de la vue ; l'élément est sous le panneau de statistiques de la vue, que le moteur dessine après l'interface). Rouge d'abord, avec `CasaDrawTransaction.cs` de `3b05301f` : le pixel lit (30, 30, 51), la couleur de fond de la vue, l'élément manque. Vert avec le code de T1.1 : le pixel lit (255, 0, 0), `result=PASS`. Les sorties et les images sont dans le scratchpad de la session (`e19s2-exec/pixels-red.txt`, `pixels-green.txt`, `shot-red.png`, `shot-green.png`).
 - Commit : `feat(demos): split-screen demo with a UI element in the offset view (E19.s2)`
 
-### ⏳ T1.3 — ADR et documentation (S2-R3)
+### ✅ T1.3 — ADR et documentation (S2-R3)
 
 - Objectif : ADR-0054 (`Accepted`) et sa ligne à l'index, note de statut sur ADR-0048, doc de la résolution virtuelle.
 - Fichiers : `docs/decisions/0054-*.md`, `docs/decisions/README.md`, `docs/decisions/0048-*.md`, `docs/engine/rendering-2d-3d-spaces.md`.
+- Validation faite (2026-10-05) : ADR-0054 (`Accepted`, en anglais, numéro libre vérifié sur toutes les branches), sa ligne à l'index, note de statut sur ADR-0048 (le reste de l'ADR n'est pas réécrit), la section de la résolution virtuelle de `docs/engine/rendering-2d-3d-spaces.md` dit que les découpes de l'interface sont locales à la vue (« Decisions: see ADR-0048, ADR-0054 »). `CasaEngine.Tests` 2567 sur 2567 (Debug, aucun saut, aucune instabilité), `MGUI.Tests` 3108 sur 3108 (Debug).
 - Commit : `docs(adr): ADR-0054 MGUI clip rectangles are local to the view`
 
 ---
