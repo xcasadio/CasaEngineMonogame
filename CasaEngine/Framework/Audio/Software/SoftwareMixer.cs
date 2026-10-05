@@ -70,6 +70,7 @@ internal sealed class SoftwareMixer
     private readonly long[] _consumedBuffers;
     private int _droppedEventCount;
     private int _droppedChunkCount;
+    private readonly AudioLogThrottle _invalidRegionLog = new();
 
     public SoftwareMixer(
         int outputSampleRate,
@@ -166,10 +167,32 @@ internal sealed class SoftwareMixer
             Slot = slot,
             Generation = generation,
             Clip = clip,
-            Parameters = parameters,
+            Parameters = ValidateLoopRegion(parameters, clip),
         };
 
         return _commands.TryEnqueue(in command);
+    }
+
+    // Producer side. A loop region that does not fit the clip falls back to the whole clip.
+    private AudioVoiceParameters ValidateLoopRegion(AudioVoiceParameters parameters, PcmAudioClip clip)
+    {
+        if (!parameters.IsLooped || !parameters.HasLoopRegion || clip == null)
+        {
+            return parameters;
+        }
+
+        if (IsValidRegion(parameters.LoopStartFrame, parameters.LoopEndFrame, clip.FrameCount))
+        {
+            return parameters;
+        }
+
+        _invalidRegionLog.WriteWarning("Audio: a loop region does not fit its clip (start below 0, end past the clip or start not below end), the whole clip loops instead.");
+        return parameters.WithoutLoopRegion();
+    }
+
+    private static bool IsValidRegion(int start, int end, int frames)
+    {
+        return start >= 0 && end <= frames && start < end;
     }
 
     /// <summary>
@@ -184,7 +207,7 @@ internal sealed class SoftwareMixer
             Slot = slot,
             Generation = generation,
             Clip = clip,
-            Parameters = parameters,
+            Parameters = ValidateLoopRegion(parameters, clip),
             ExplicitGains = true,
             LeftGain = leftGain,
             RightGain = rightGain,
@@ -509,6 +532,13 @@ internal sealed class SoftwareMixer
                 break;
             case MixerCommandKind.SetParameters:
                 voice.Looped = !voice.IsStreaming && command.Parameters.IsLooped;
+                voice.RateMultiplier = command.Parameters.RateMultiplier;
+
+                if (!voice.IsStreaming)
+                {
+                    ApplyLoopRegion(ref voice, command.Parameters);
+                }
+
                 SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, false);
                 break;
             case MixerCommandKind.SetVolume:
@@ -584,6 +614,8 @@ internal sealed class SoftwareMixer
         PublishConsumed(command.Slot, ref voice);
         voice.SourceRatio = (double)clip.SampleRate / OutputSampleRate;
         voice.Looped = command.Parameters.IsLooped;
+        voice.RateMultiplier = command.Parameters.RateMultiplier;
+        ApplyLoopRegion(ref voice, command.Parameters);
         voice.ExplicitGains = command.ExplicitGains && clip.ChannelCount == 1;
         voice.ExplicitLeft = command.LeftGain;
         voice.ExplicitRight = command.RightGain;
@@ -606,6 +638,7 @@ internal sealed class SoftwareMixer
         voice.Paused = false;
         voice.EndPending = false;
         voice.Looped = false;
+        voice.RateMultiplier = command.Parameters.RateMultiplier;
         voice.SourceChannels = command.Channels;
         voice.SourceRatio = (double)command.SampleRate / OutputSampleRate;
         voice.StreamFraction = 3.0;
@@ -627,12 +660,27 @@ internal sealed class SoftwareMixer
         Volatile.Write(ref _consumedBuffers[slot], ((long)(uint)voice.Generation << 32) | (uint)voice.ConsumedBuffers);
     }
 
+    // Render thread. A region invalid against the clip (already warned about on the producer side) is the whole clip.
+    private static void ApplyLoopRegion(ref MixerVoice voice, in AudioVoiceParameters parameters)
+    {
+        if (parameters.HasLoopRegion && IsValidRegion(parameters.LoopStartFrame, parameters.LoopEndFrame, voice.FrameCount))
+        {
+            voice.LoopStart = parameters.LoopStartFrame;
+            voice.LoopEnd = parameters.LoopEndFrame;
+        }
+        else
+        {
+            voice.LoopStart = 0;
+            voice.LoopEnd = voice.FrameCount;
+        }
+    }
+
     private static void SetParameters(ref MixerVoice voice, float volume, float pan, float pitch, bool immediate)
     {
         voice.Volume = volume;
         voice.Pan = pan;
         voice.Pitch = pitch;
-        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch);
+        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch) * voice.RateMultiplier;
 
         float left;
         float right;
@@ -719,6 +767,9 @@ internal sealed class SoftwareMixer
         var channels = voice.SourceChannels;
         var frames = voice.FrameCount;
         var looped = voice.Looped;
+        var loopStart = looped ? voice.LoopStart : 0;
+        var loopEnd = looped ? voice.LoopEnd : frames;
+        var loopLength = loopEnd - loopStart;
         var position = voice.Position;
         var step = voice.Step;
 
@@ -730,7 +781,7 @@ internal sealed class SoftwareMixer
 
         for (var i = 0; i < frameCount && !ended; i++)
         {
-            if (position >= frames)
+            if (position >= loopEnd)
             {
                 if (!looped)
                 {
@@ -738,12 +789,14 @@ internal sealed class SoftwareMixer
                     break;
                 }
 
-                position -= frames;
+                position -= loopEnd;
 
-                while (position >= frames)
+                while (position >= loopLength)
                 {
-                    position -= frames;
+                    position -= loopLength;
                 }
+
+                position += loopStart;
             }
 
             var index = (int)position;
@@ -754,19 +807,19 @@ internal sealed class SoftwareMixer
 
             if (channels == 1)
             {
-                var y0 = data[Neighbor(index - 1, frames, looped)] * InverseShortRange;
+                var y0 = data[Neighbor(index - 1, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
                 var y1 = data[index] * InverseShortRange;
-                var y2 = data[Neighbor(index + 1, frames, looped)] * InverseShortRange;
-                var y3 = data[Neighbor(index + 2, frames, looped)] * InverseShortRange;
+                var y2 = data[Neighbor(index + 1, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
+                var y3 = data[Neighbor(index + 2, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
                 l = Hermite(y0, y1, y2, y3, t);
                 r = l;
             }
             else
             {
-                var i0 = Neighbor(index - 1, frames, looped) * 2;
+                var i0 = Neighbor(index - 1, index, frames, looped, loopStart, loopEnd) * 2;
                 var i1 = index * 2;
-                var i2 = Neighbor(index + 1, frames, looped) * 2;
-                var i3 = Neighbor(index + 2, frames, looped) * 2;
+                var i2 = Neighbor(index + 1, index, frames, looped, loopStart, loopEnd) * 2;
+                var i3 = Neighbor(index + 2, index, frames, looped, loopStart, loopEnd) * 2;
                 l = Hermite(data[i0] * InverseShortRange, data[i1] * InverseShortRange, data[i2] * InverseShortRange, data[i3] * InverseShortRange, t);
                 r = Hermite(data[i0 + 1] * InverseShortRange, data[i1 + 1] * InverseShortRange, data[i2 + 1] * InverseShortRange, data[i3 + 1] * InverseShortRange, t);
             }
@@ -935,12 +988,23 @@ internal sealed class SoftwareMixer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int Neighbor(int index, int frames, bool looped)
+    // A looped voice wraps neighbours inside [loopStart, loopEnd[ once its base frame is inside it (the
+    // whole clip without a region); before the region (the intro) a neighbour below 0 is clamped.
+    private static int Neighbor(int index, int baseIndex, int frames, bool looped, int loopStart, int loopEnd)
     {
         if (looped)
         {
-            index %= frames;
-            return index < 0 ? index + frames : index;
+            if (index >= loopEnd)
+            {
+                return loopStart + ((index - loopEnd) % (loopEnd - loopStart));
+            }
+
+            if (index < loopStart && baseIndex >= loopStart)
+            {
+                var length = loopEnd - loopStart;
+                var wrapped = (index - loopStart) % length;
+                return loopStart + (wrapped < 0 ? wrapped + length : wrapped);
+            }
         }
 
         return index < 0 ? 0 : index >= frames ? frames - 1 : index;

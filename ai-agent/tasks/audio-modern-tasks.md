@@ -770,7 +770,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   stéréo refusé, zéro allocation, repli des clips non PCM. `AudioServiceStereoVoiceTests` inchangé.
   `CasaEngine.Tests` 2823/2823.
 
-### 🚧 T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
+### ✅ T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
 
 - Objectif : boucler sur une région et dépasser une octave, de façon additive.
 - Fichiers : `CasaEngine/Framework/Audio/AudioVoiceParameters.cs` (membres et méthodes ajoutés,
@@ -792,6 +792,19 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   changement de volume de bus → le backend reçoit toujours la région et le multiplicateur ; zéro
   allocation ; suite complète.
 - Commit : `feat(audio): loop regions and a rate multiplier for voices`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu. API ajoutée
+  à `AudioVoiceParameters` : `MaxRateMultiplier` (16), `HasLoopRegion`, `LoopStartFrame`,
+  `LoopEndFrame`, `RateMultiplier`, `WithLoopRegion`, `WithoutLoopRegion`, `WithRateMultiplier` ;
+  constructeur à 4 arguments, bornes de pitch et `Default` inchangés ; chaque `With*` copie tous les
+  champs ; égalité et hachage incluent les nouveaux champs. Correction en session principale :
+  `ToString()` reste identique à avant tant que les nouvelles options ne sont pas utilisées (test
+  ajouté). Mixeur : pas = débit × 2^pitch × multiplicateur / sortie ; boucle sur la région avec les
+  voisins d'interpolation bouclés dans la région (l'intro avant la région est jouée) ; région
+  invalide → clip entier et avertissement limité ; voix de streaming : multiplicateur seulement.
+  Backend MonoGame : région ignorée (documenté), multiplicateur replié sur le pitch borné. Tests
+  (+30) : paramètres, région 1 000–2 000 exacte à l'échantillon, jointure continue comparée à une
+  référence Hermite, multiplicateur 4, de bout en bout par `AudioService` (faux backend et rendu du
+  backend logiciel). `CasaEngine.Tests` 2853/2853.
 
 ### ⏳ T2.5 — Lecture des musiques hors du thread de jeu (P13)
 

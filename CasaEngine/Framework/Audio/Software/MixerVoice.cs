@@ -18,6 +18,14 @@ internal struct MixerVoice
     public float Pan;
     public float Pitch;
 
+    /// <summary>Speed factor on top of the pitch, in ]0, 16].</summary>
+    public float RateMultiplier;
+
+    /// <summary>Resident voice loop region [LoopStart, LoopEnd[; the whole clip when no valid region was given.</summary>
+    public int LoopStart;
+
+    public int LoopEnd;
+
     /// <summary>Mono resident voice with caller chosen channel gains: left = Volume * ExplicitLeft, right = Volume * ExplicitRight.</summary>
     public bool ExplicitGains;
 
