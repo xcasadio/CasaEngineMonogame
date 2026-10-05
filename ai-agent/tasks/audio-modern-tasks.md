@@ -702,7 +702,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   L'attente bornée de 100 ms reste inchangée pour une sortie vivante (test existant vert).
   `CasaEngine.Tests` 2798/2798 (+2). O6 corrigé.
 
-### ⏳ T2.2 — Comptes de streaming fiables et arrêts garantis (O7, O8)
+### ✅ T2.2 — Comptes de streaming fiables et arrêts garantis (O7, O8)
 
 - Objectif : `GetPendingBufferCount` ne peut plus rester trop haut, et un emplacement n'est rendu
   qu'une fois son arrêt transmis.
@@ -724,6 +724,20 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   abandonné puis renvoyé → la voix se tait et l'emplacement revient ; test sans allocation
   inchangé ; `MusicPlayerTests` inchangés et verts ; suite complète.
 - Commit : `fix(audio): make streaming pending counts and voice stops reliable`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu. Le mixeur
+  publie par emplacement `(génération << 32) | consommés` par une écriture `Volatile` unique de
+  64 bits (cible x64), remise à zéro à la création ; le backend calcule soumis − consommés, en
+  ignorant une autre génération. Chunk abandonné qui termine un buffer compté comme consommé ;
+  évènements `BufferConsumed` toujours émis, mais le compte n'en dépend plus. Arrêt perdu : le
+  handle devient périmé, l'emplacement reste « arrêt en attente » hors de la liste libre et l'ordre
+  est renvoyé, sans attente, à l'appel suivant ; sortie morte → libération immédiate.
+  `MusicPlayer.FillQueue` borné à `QueuedBufferTarget` par appel. Tests (+7) : anneau
+  d'évènements saturé, débordement de 128 chunks, génération ancienne ignorée, réutilisation
+  d'emplacement (3 soumis sans rendu → 3 en attente), `MusicPlayer.Play` en boucle sur un
+  emplacement réutilisé (3 en attente, borne montrée par la valeur), arrêt perdu puis renvoyé
+  (voix muette, emplacement rendu). `MusicPlayerTests.cs` inchangé. `CasaEngine.Tests` 2805/2805.
+  Non testé : la libération des arrêts en attente quand la sortie meurt (`FreePendingStopsAfterDeath`).
+  O7 et O8 corrigés.
 
 ### ⏳ T2.3 — Voix stéréo au thread audio (P10)
 

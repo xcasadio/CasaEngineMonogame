@@ -20,13 +20,16 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// <para>
 /// Every public member must be called from the game thread. <see cref="GetState"/> stays
 /// synchronous: each call drains the mixer events first (a resident voice that reached its end
-/// becomes Stopped, a consumed buffer lowers the pending count), without allocating.
+/// becomes Stopped), without allocating. The pending buffer count is submitted minus the consumed count
+/// that the audio thread publishes per slot (generation and count in one 64 bit value), so a lost event
+/// cannot leave it too high.
 /// </para>
 /// <para>
 /// Command ring full: a state-changing command that the mixer refuses is retried with a bounded
 /// wait (<see cref="CommandRetryMilliseconds"/> at most), because the audio thread drains the ring
 /// every few milliseconds. If the ring is still full a throttled error is logged and the command
-/// is dropped; the local state is then left unchanged so it keeps matching the mixer. The only
+/// is dropped; the local state is then left unchanged so it keeps matching the mixer. A Stop that
+/// cannot be sent when a voice is released keeps its slot off the free list until it is resent. The only
 /// command that is not retried is the volume update, which the per-frame fade ramps resend anyway.
 /// A refused stream buffer (ring or chunk pool full) is dropped with a throttled warning.
 /// </para>
@@ -53,6 +56,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     private readonly AudioRenderCallback _renderCallback;
 
     private int _freeSlotCount;
+    private int _pendingStopCount;
     private int _activeVoiceCount;
     private bool _isDisposed;
     private bool _outputDeathLogged;
@@ -192,7 +196,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         slot.IsStreaming = false;
         slot.MixerAlive = true;
         slot.State = AudioVoiceState.Playing;
-        slot.PendingBuffers = 0;
+        slot.SubmittedBuffers = 0;
         _activeVoiceCount++;
         return new AudioVoiceHandle(slotIndex, slot.Generation);
     }
@@ -268,12 +272,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return;
         }
 
-        if (slot.MixerAlive)
-        {
-            StopSlot(voice.Index, slot);
-        }
-
-        ReturnSlot(voice.Index);
+        ReleaseSlot(voice.Index, slot, wait: true);
     }
 
     public void StopAll()
@@ -283,13 +282,14 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return;
         }
 
-        SendSimple(MixerCommandKind.StopAll, 0, 0);
+        var stopAllSent = SendSimple(MixerCommandKind.StopAll, 0, 0);
 
         for (var i = 0; i < _slots.Length; i++)
         {
             if (_slots[i].InUse)
             {
-                ReturnSlot(i);
+                // StopAll refused: every slot still sounding goes through the pending stop path.
+                ReleaseSlot(i, _slots[i], wait: false, stopAlreadySent: stopAllSent);
             }
         }
     }
@@ -349,7 +349,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         slot.MixerAlive = true;
         slot.CanStart = true;
         slot.State = AudioVoiceState.Stopped;
-        slot.PendingBuffers = 0;
+        slot.SubmittedBuffers = 0;
         _activeVoiceCount++;
         return new AudioVoiceHandle(slotIndex, slot.Generation);
     }
@@ -369,7 +369,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         if (_mixer.TrySubmitStreamingBuffer(voice.Index, slot.Generation, pcm, slot.NextSequence))
         {
             slot.NextSequence++;
-            slot.PendingBuffers++;
+            slot.SubmittedBuffers++;
         }
         else if (_bufferLog.ShouldWrite())
         {
@@ -379,7 +379,15 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public int GetPendingBufferCount(AudioVoiceHandle voice)
     {
-        return TryGetSlot(voice, out var slot) && slot.IsStreaming ? slot.PendingBuffers : 0;
+        if (!TryGetSlot(voice, out var slot) || !slot.IsStreaming)
+        {
+            return 0;
+        }
+
+        // Submitted minus consumed, the consumed count being published by the audio thread for this
+        // generation only (0 until it applied the creation). It never relies on events.
+        var pending = slot.SubmittedBuffers - _mixer.GetConsumedBufferCount(voice.Index, slot.Generation);
+        return pending > 0 ? pending : 0;
     }
 
     public void Start(AudioVoiceHandle voice)
@@ -409,6 +417,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         _activeVoiceCount = 0;
         _freeSlotCount = 0;
+        _pendingStopCount = 0;
     }
 
     private void StopSlot(int slotIndex, VoiceSlot slot)
@@ -418,8 +427,82 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             slot.State = AudioVoiceState.Stopped;
             slot.MixerAlive = false;
             slot.CanStart = false;
-            slot.PendingBuffers = 0;
+            slot.SubmittedBuffers = 0;
         }
+    }
+
+    /// <summary>
+    /// Frees the slot once the mixer was told to stop its voice. When the Stop command cannot be
+    /// enqueued the slot stays off the free list in a pending stop state, so a new voice can never
+    /// share it with one that still sounds; <see cref="RetryPendingStops"/> resends the order.
+    /// </summary>
+    private void ReleaseSlot(int slotIndex, VoiceSlot slot, bool wait, bool stopAlreadySent = false)
+    {
+        if (!slot.MixerAlive || stopAlreadySent)
+        {
+            ReturnSlot(slotIndex);
+            return;
+        }
+
+        var sent = wait ? SendSimple(MixerCommandKind.Stop, slotIndex, slot.Generation) : TryEnqueueSimple(MixerCommandKind.Stop, slotIndex, slot.Generation);
+        if (sent)
+        {
+            ReturnSlot(slotIndex);
+            return;
+        }
+
+        // The handle becomes stale at once (InUse false); the slot keeps its generation for the retry.
+        if (slot.InUse)
+        {
+            _activeVoiceCount--;
+        }
+
+        slot.InUse = false;
+        slot.State = AudioVoiceState.Stopped;
+        slot.MixerAlive = false;
+        slot.CanStart = false;
+        slot.SubmittedBuffers = 0;
+        slot.StopPending = true;
+        _pendingStopCount++;
+    }
+
+    // Cheap when nothing is pending (one int compare). No wait: a full ring is simply tried again at the next call.
+    private void RetryPendingStops()
+    {
+        if (_pendingStopCount == 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            var slot = _slots[i];
+
+            if (slot.StopPending && TryEnqueueSimple(MixerCommandKind.Stop, i, slot.Generation))
+            {
+                _pendingStopCount--;
+                ReturnSlot(i);
+            }
+        }
+    }
+
+    // The audio thread is gone: nothing renders any more, so slots waiting for a stop are free.
+    private void FreePendingStopsAfterDeath()
+    {
+        for (var i = 0; _pendingStopCount > 0 && i < _slots.Length; i++)
+        {
+            if (_slots[i].StopPending)
+            {
+                _pendingStopCount--;
+                ReturnSlot(i);
+            }
+        }
+    }
+
+    private bool TryEnqueueSimple(MixerCommandKind kind, int slotIndex, int generation)
+    {
+        var command = new MixerCommand { Kind = kind, Slot = slotIndex, Generation = generation };
+        return _mixer.TryEnqueueCommand(in command);
     }
 
     private bool SendSimple(MixerCommandKind kind, int slotIndex, int generation)
@@ -456,6 +539,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         {
             _outputDeathLogged = true;
             Logs.WriteWarning("Audio: the audio output thread stopped, the software audio backend is now silent.");
+            FreePendingStopsAfterDeath();
         }
 
         return false;
@@ -471,6 +555,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     private int TakeFreeSlot()
     {
+        RetryPendingStops();
+
         if (_freeSlotCount == 0)
         {
             return -1;
@@ -505,6 +591,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return false;
         }
 
+        RetryPendingStops();
         DrainEvents();
 
         var candidate = _slots[voice.Index];
@@ -528,6 +615,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             }
 
             var slot = _slots[mixerEvent.Slot];
+            // Only voice ends matter here; consumed buffers are read from the published counter.
             if (!slot.InUse || slot.Generation != mixerEvent.Generation)
             {
                 continue;
@@ -538,10 +626,6 @@ public sealed class SoftwareAudioBackend : IAudioBackend
                 slot.State = AudioVoiceState.Stopped;
                 slot.MixerAlive = false;
                 slot.CanStart = false;
-            }
-            else if (mixerEvent.Kind == MixerEventKind.BufferConsumed && slot.PendingBuffers > 0)
-            {
-                slot.PendingBuffers--;
             }
         }
     }
@@ -559,7 +643,12 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         public bool CanStart;
 
         public AudioVoiceState State;
-        public int PendingBuffers;
+
+        /// <summary>Buffers accepted by the mixer for this voice; pending = this minus the consumed counter.</summary>
+        public int SubmittedBuffers;
+
+        /// <summary>The voice was released but its Stop command is still to be sent: the slot is off the free list.</summary>
+        public bool StopPending;
         public int NextSequence;
 
         public void Reset()
@@ -569,7 +658,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             MixerAlive = false;
             CanStart = false;
             State = AudioVoiceState.Stopped;
-            PendingBuffers = 0;
+            SubmittedBuffers = 0;
+            StopPending = false;
             NextSequence = 0;
         }
     }

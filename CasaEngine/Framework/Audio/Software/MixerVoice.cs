@@ -44,4 +44,7 @@ internal struct MixerVoice
     public int QueueCount;
     public SampleChunk CurrentChunk;
     public int CurrentIndex;
+
+    /// <summary>Streaming buffers consumed (or dropped on queue overflow) since the voice was created.</summary>
+    public int ConsumedBuffers;
 }

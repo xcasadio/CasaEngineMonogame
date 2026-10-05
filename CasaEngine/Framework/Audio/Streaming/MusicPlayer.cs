@@ -272,7 +272,11 @@ public sealed class MusicPlayer : IDisposable
 
     private void FillQueue(Track track)
     {
-        while (!track.IsFinishing && _service.GetPendingBufferCount(track.Voice) < _queuedBufferTarget)
+        // At most one queue's worth of buffers per call: a pending count that does not go up (a refused
+        // or dropped submit) must not turn the loop into an endless read of the file.
+        for (var submitted = 0;
+             submitted < _queuedBufferTarget && !track.IsFinishing && _service.GetPendingBufferCount(track.Voice) < _queuedBufferTarget;
+             submitted++)
         {
             var read = track.Reader.Read(_scratchBuffer, 0, _scratchBuffer.Length);
 

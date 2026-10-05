@@ -65,6 +65,9 @@ internal sealed class SoftwareMixer
     private readonly SpscRingBuffer<MixerEvent> _events;
     private readonly SampleChunkPool _pool;
     private readonly int[] _producerChannels;
+
+    // Per slot, (generation << 32) | consumed buffer count; written by the render thread only.
+    private readonly long[] _consumedBuffers;
     private int _droppedEventCount;
     private int _droppedChunkCount;
 
@@ -92,6 +95,7 @@ internal sealed class SoftwareMixer
         ChunkSamples = chunkSamples;
         _voices = new MixerVoice[voiceCapacity];
         _producerChannels = new int[voiceCapacity];
+        _consumedBuffers = new long[voiceCapacity];
         _commands = new SpscRingBuffer<MixerCommand>(commandCapacity);
         _events = new SpscRingBuffer<MixerEvent>(eventCapacity);
         _pool = new SampleChunkPool(chunkSamples, initialChunkCount, maxChunkCount);
@@ -307,6 +311,23 @@ internal sealed class SoftwareMixer
         return _events.TryDequeue(out mixerEvent);
     }
 
+    /// <summary>
+    /// Streaming buffers the render thread consumed (or dropped on queue overflow) for the voice of
+    /// <paramref name="generation"/> in <paramref name="slot"/>. 0 while the render thread has not yet
+    /// applied the creation of that generation (the published value then belongs to an older voice).
+    /// Producer thread only. Allocation free.
+    /// </summary>
+    public int GetConsumedBufferCount(int slot, int generation)
+    {
+        if ((uint)slot >= (uint)_consumedBuffers.Length)
+        {
+            return 0;
+        }
+
+        var published = Volatile.Read(ref _consumedBuffers[slot]);
+        return (int)(published >> 32) == generation ? (int)(published & 0xFFFFFFFFL) : 0;
+    }
+
     private bool TrySimple(MixerCommandKind kind, int slot, int generation)
     {
         var command = new MixerCommand { Kind = kind, Slot = slot, Generation = generation };
@@ -436,7 +457,7 @@ internal sealed class SoftwareMixer
 
         if (command.Kind == MixerCommandKind.SubmitChunk)
         {
-            QueueChunk(ref voice, matches, command.Chunk);
+            QueueChunk(command.Slot, ref voice, matches, command.Chunk);
             return;
         }
 
@@ -469,7 +490,7 @@ internal sealed class SoftwareMixer
         }
     }
 
-    private void QueueChunk(ref MixerVoice voice, bool matches, SampleChunk chunk)
+    private void QueueChunk(int slot, ref MixerVoice voice, bool matches, SampleChunk chunk)
     {
         if (matches && voice.IsStreaming)
         {
@@ -481,6 +502,13 @@ internal sealed class SoftwareMixer
             }
 
             Interlocked.Increment(ref _droppedChunkCount);
+
+            // The dropped chunk will never be played: the buffer it ends still counts as consumed.
+            if (chunk.EndsBuffer)
+            {
+                voice.ConsumedBuffers++;
+                PublishConsumed(slot, ref voice);
+            }
         }
 
         _pool.ReturnFromRender(chunk);
@@ -507,6 +535,8 @@ internal sealed class SoftwareMixer
         voice.SourceChannels = clip.ChannelCount;
         voice.FrameCount = clip.FrameCount;
         voice.Position = 0.0;
+        voice.ConsumedBuffers = 0;
+        PublishConsumed(command.Slot, ref voice);
         voice.SourceRatio = (double)clip.SampleRate / OutputSampleRate;
         voice.Looped = command.Parameters.IsLooped;
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
@@ -536,7 +566,16 @@ internal sealed class SoftwareMixer
         voice.QueueCount = 0;
         voice.CurrentChunk = null;
         voice.CurrentIndex = 0;
+        voice.ConsumedBuffers = 0;
+        PublishConsumed(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
+    }
+
+    // Render thread. One 64-bit store carries the generation and the count together, so the producer
+    // can never pair the count of one voice with the generation of another.
+    private void PublishConsumed(int slot, ref MixerVoice voice)
+    {
+        Volatile.Write(ref _consumedBuffers[slot], ((long)(uint)voice.Generation << 32) | (uint)voice.ConsumedBuffers);
     }
 
     private static void SetParameters(ref MixerVoice voice, float volume, float pan, float pitch, bool immediate)
@@ -818,6 +857,9 @@ internal sealed class SoftwareMixer
     {
         if (chunk.EndsBuffer)
         {
+            voice.ConsumedBuffers++;
+            PublishConsumed(slot, ref voice);
+
             var mixerEvent = new MixerEvent
             {
                 Kind = MixerEventKind.BufferConsumed,
