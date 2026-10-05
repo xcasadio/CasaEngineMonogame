@@ -9,8 +9,8 @@ namespace CasaEngine.Framework.Audio.Psx;
 /// see <see cref="PsxSpuHardwareTables"/>.
 ///
 /// The ADSR, the volume sweep and the noise generator are formula only (psx-spx sections "Volume and ADSR Generator",
-/// "ADSR Register", "SPU Noise Generator"): no table is needed. Not yet implemented: reverb (T4.3), hosting by the
-/// software mixer (T4.4).
+/// "ADSR Register", "SPU Noise Generator"): no table is needed. The reverb unit (T4.3, see <c>PsxSpuReverb</c>) is
+/// bypassed unless the tables hold the 39 FIR coefficients. Not yet implemented: hosting by the software mixer (T4.4).
 ///
 /// Addresses of the voice registers are in 8 byte units like the hardware registers; <see cref="WriteRam"/> takes a
 /// byte address. Not thread safe: the caller serialises register writes and <see cref="Render"/> (the ring between the
@@ -72,6 +72,7 @@ public sealed class PsxSpu
     private readonly int[] _volumeLevel = new int[VoiceCount * 2];
     private readonly int[] _sweepCounter = new int[VoiceCount * 2];
 
+    private readonly PsxSpuReverb _reverb;
     private uint _endx;
     private uint _noiseVoices;
     private uint _pitchModulation;
@@ -87,10 +88,11 @@ public sealed class PsxSpu
     /// Interpolation; when null, <see cref="PsxGaussianInterpolator"/> if <paramref name="tables"/> holds the Gaussian table,
     /// otherwise <see cref="PsxCubicInterpolator"/>.
     /// </param>
-    public PsxSpu(PsxSpuHardwareTables tables, IPsxSpuInterpolator? interpolator = null)
+    public PsxSpu(PsxSpuHardwareTables tables, IPsxSpuInterpolator interpolator = null)
     {
         ArgumentNullException.ThrowIfNull(tables);
         _tables = tables;
+        _reverb = new PsxSpuReverb(_ram, tables.ReverbFir);
         _interpolator = interpolator
                         ?? (tables.HasGaussianTable ? new PsxGaussianInterpolator(tables) : PsxCubicInterpolator.Instance);
     }
@@ -109,6 +111,20 @@ public sealed class PsxSpu
             var chunk = Math.Min(data.Length, RamSize - address);
             data[..chunk].CopyTo(_ram.AsSpan(address));
             data = data[chunk..];
+            address = 0;
+        }
+    }
+
+    /// <summary>Copies SPU RAM at a byte address into <paramref name="destination"/>, wrapping like <see cref="WriteRam"/>.</summary>
+    internal void ReadRam(int byteAddress, Span<byte> destination)
+    {
+        var address = byteAddress & RamMask;
+        var done = 0;
+        while (done < destination.Length)
+        {
+            var chunk = Math.Min(destination.Length - done, RamSize - address);
+            _ram.AsSpan(address, chunk).CopyTo(destination.Slice(done));
+            done += chunk;
             address = 0;
         }
     }
@@ -210,6 +226,36 @@ public sealed class PsxSpu
         _noiseStep = 4 + step;
     }
 
+    /// <summary>
+    /// Reverb mode flags (EON, 1F801D98h/1F801D9Ah): the voices whose bit is set (bits 0-23) are sent to the reverb in
+    /// addition to the mixer.
+    /// </summary>
+    public void SetReverbVoices(uint voiceMask) => _reverb.VoiceMask = voiceMask & 0xFFFFFF;
+
+    /// <summary>
+    /// Reverb master enable (SPUCNT bit 7). When clear the reverb unit still reads its work area and outputs, but writes
+    /// nothing to it (psx-spx "Reverb Bits in ATTR Register", "Reverb Disable"). Without FIR coefficients in the hardware
+    /// tables the whole reverb unit is bypassed: no output and no work area write.
+    /// </summary>
+    public void SetReverbEnabled(bool enabled) => _reverb.Enabled = enabled;
+
+    /// <summary>
+    /// Reverb work area start (ESA, 1F801DA2h) in 8 byte units; the area ends at 7FFFEh. Writing it also sets the current
+    /// buffer address to the start, like the hardware.
+    /// </summary>
+    public void SetReverbWorkAreaStart(ushort units) => _reverb.SetWorkAreaStart(units);
+
+    /// <summary>Reverb output volume left and right (EVOLL/EVOLR, 1F801D84h/1F801D86h), signed 16 bit, fixed volume.</summary>
+    public void SetReverbOutputVolume(short left, short right) => _reverb.SetOutputVolume(left, right);
+
+    /// <summary>
+    /// Writes a reverb preset register. <paramref name="index"/> is (address - 1F801DC0h) / 2, 0 to 31: 0 dAPF1,
+    /// 1 dAPF2, 2 vIIR, 3-6 vCOMB1-4, 7 vWALL, 8 vAPF1, 9 vAPF2, 10 mLSAME, 11 mRSAME, 12 mLCOMB1, 13 mRCOMB1,
+    /// 14 mLCOMB2, 15 mRCOMB2, 16 dLSAME, 17 dRSAME, 18 mLDIFF, 19 mRDIFF, 20 mLCOMB3, 21 mRCOMB3, 22 mLCOMB4,
+    /// 23 mRCOMB4, 24 dLDIFF, 25 dRDIFF, 26 mLAPF1, 27 mRAPF1, 28 mLAPF2, 29 mRAPF2, 30 vLIN, 31 vRIN.
+    /// </summary>
+    public void SetReverbRegister(int index, ushort value) => _reverb.SetRegister(index, value);
+
     /// <summary>Current noise level of the generator, a signed 16 bit value.</summary>
     public int GetNoiseLevel() => (short)_noiseLevel;
 
@@ -270,7 +316,7 @@ public sealed class PsxSpu
 
     /// <summary>
     /// Renders <paramref name="frames"/> frames at 44100 Hz into <paramref name="interleavedStereo"/> (left, right),
-    /// overwriting it; voices are summed and saturated to 16 bit. No allocation, no lock.
+    /// overwriting it; voices are summed, the reverb output is added, and the sum is saturated to 16 bit. No allocation, no lock.
     /// </summary>
     public void Render(Span<short> interleavedStereo, int frames)
     {
@@ -284,6 +330,9 @@ public sealed class PsxSpu
             StepNoise();
             var left = 0;
             var right = 0;
+            var reverbLeft = 0;
+            var reverbRight = 0;
+            var reverbMask = _reverb.VoiceMask;
 
             for (var v = 0; v < VoiceCount; v++)
             {
@@ -310,8 +359,15 @@ public sealed class PsxSpu
                 _outx[v] = (sample * env) >> 15;
                 var lvol = (env * _volumeLevel[v * 2]) >> 15;
                 var rvol = (env * _volumeLevel[v * 2 + 1]) >> 15;
-                left += SaturateToShort((sample * lvol) >> 15);
-                right += SaturateToShort((sample * rvol) >> 15);
+                var voiceLeft = SaturateToShort((sample * lvol) >> 15);
+                var voiceRight = SaturateToShort((sample * rvol) >> 15);
+                left += voiceLeft;
+                right += voiceRight;
+                if ((reverbMask & (1u << v)) != 0)
+                {
+                    reverbLeft += voiceLeft;
+                    reverbRight += voiceRight;
+                }
 
                 _counter[v] += ComputeStep(v);
                 var advance = _counter[v] >> 12;
@@ -329,8 +385,10 @@ public sealed class PsxSpu
                 StepSweep(s);
             }
 
-            interleavedStereo[f * 2] = (short)SaturateToShort(left);
-            interleavedStereo[f * 2 + 1] = (short)SaturateToShort(right);
+            // Order: dry voices summed, reverb output added, then one saturation to 16 bit.
+            _reverb.Process(SaturateToShort(reverbLeft), SaturateToShort(reverbRight), out var wetLeft, out var wetRight);
+            interleavedStereo[f * 2] = (short)SaturateToShort(left + wetLeft);
+            interleavedStereo[f * 2 + 1] = (short)SaturateToShort(right + wetRight);
         }
     }
 

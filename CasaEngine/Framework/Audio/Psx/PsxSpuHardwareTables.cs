@@ -25,12 +25,12 @@ public sealed class PsxSpuHardwareTables
 
     private readonly int[] _adpcmPositive;
     private readonly int[] _adpcmNegative;
-    private readonly short[]? _reverbFir;
-    private readonly short[]? _gaussian;
+    private readonly short[] _reverbFir;
+    private readonly short[] _gaussian;
 
     /// <param name="adpcmPositive">Coefficient applied to the previous sample, one per filter (5 values, -128..127).</param>
     /// <param name="adpcmNegative">Coefficient applied to the sample before it, one per filter (5 values, -128..127).</param>
-    /// <param name="reverbFir">Empty, or the 39 reverb FIR coefficients (consumed by the reverb unit, T4.3).</param>
+    /// <param name="reverbFir">Empty, or the 39 reverb FIR coefficients (consumed by the reverb unit of <see cref="PsxSpu"/>; without them the reverb is bypassed).</param>
     /// <param name="gaussian">Empty, or the 512 interpolation table entries.</param>
     /// <exception cref="ArgumentException">A table has the wrong size or a value out of range.</exception>
     public PsxSpuHardwareTables(
@@ -73,7 +73,9 @@ public sealed class PsxSpuHardwareTables
 
     internal int AdpcmNegative(int filter) => _adpcmNegative[filter];
 
-    internal short[]? GaussianTable => _gaussian;
+    internal short[] GaussianTable => _gaussian;
+
+    internal short[] ReverbFir => _reverbFir;
 
     private static int[] ValidateAdpcm(ReadOnlySpan<int> values, string name)
     {
