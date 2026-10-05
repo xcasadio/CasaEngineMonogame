@@ -38,8 +38,13 @@ entity without `DepthSortable2DComponent`) stays opaque.
 `None`, `ScrollingLayerComponent.Submit` (each covering quad) and `CellularLayerComponent.Submit` (each cell) call an internal overload
 of `SpriteRendererComponent.DrawSprite` (`Texture2D`, source rectangle, origin, position, rotation, scale, colour, z, sort key, effects,
 scissor, mode) that queues the same two entries as above, with the same sort key and z, and the `Blend` of the layer is ignored; the
-per-cell sort offset of ADR-0052 is kept. With `None` the layers draw one entry with their `Blend`, as before. The tint overlay of the
-scrolling layers is not touched. The `Sprite` overloads of `DrawSprite` are not redirected to it.
+per-cell sort offset of ADR-0052 is kept. With `None` the layers draw one entry with their `Blend`, as before. The `Sprite` overloads
+of `DrawSprite` are not redirected to it.
+
+The tint overlay of the scrolling layers (`ScrollingTintDefinition`) takes a mode through a three-argument constructor (ADR-0056). A
+flat primitive has no per-texel STP, so the tint stays **one** entry on the neutral window with the blend state of the mode: `Mode0`
+`AlphaBlend` with `(R, G, B, 128)`, `Mode1` `Additive` and `Mode2` `Subtractive` with `(R, G, B, 255)`, `Mode3` `Additive` with each
+channel times 64/255 (rounded to nearest). The two-argument constructor and `None` keep the colour as given, `AlphaBlend`.
 
 ## Limits
 
