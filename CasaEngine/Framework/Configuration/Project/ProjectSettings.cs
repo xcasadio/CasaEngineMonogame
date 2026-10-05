@@ -52,6 +52,14 @@ public class ProjectSettings
     [Category("Audio")]
     public bool IsAudioMuted { get; set; }
 
+    /// <summary>
+    /// Audio backend this project starts with. Null means "not set": the engine default applies.
+    /// The <c>CASAENGINE_AUDIO_BACKEND</c> environment variable overrides it. Takes effect at the
+    /// next launch; no user interface, edited directly in the project file.
+    /// </summary>
+    [Category("Audio")]
+    public CasaEngine.Framework.Audio.AudioBackendKind? AudioBackend { get; set; }
+
 #if !FINAL
 
     [Category("Debug")]

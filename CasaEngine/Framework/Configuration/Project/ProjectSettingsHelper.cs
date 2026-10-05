@@ -1,4 +1,6 @@
-﻿using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Logging;
+using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Application;
 using Newtonsoft.Json.Linq;
@@ -32,6 +34,9 @@ public static class ProjectSettingsHelper
         // Absent means false, not "keep the previous value": otherwise opening an unmuted
         // project right after a muted one would leave the mute on.
         projectSettings.IsAudioMuted = rootElement["IsAudioMuted"]?.GetBoolean() ?? false;
+
+        // Same rule: absent means "not set" (null), never the previous project's value.
+        projectSettings.AudioBackend = ReadAudioBackend(rootElement["AudioBackend"]);
 
 #if !FINAL
         projectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"]?.GetBoolean() ?? projectSettings.DebugIsFullScreen;
@@ -91,6 +96,11 @@ public static class ProjectSettingsHelper
             rootElement["IsAudioMuted"] = true;
         }
 
+        if (settings.AudioBackend.HasValue)
+        {
+            rootElement["AudioBackend"] = settings.AudioBackend.Value.ToString();
+        }
+
 #if !FINAL
         rootElement["DebugIsFullScreen"] = settings.DebugIsFullScreen;
         rootElement["DebugHeight"] = settings.DebugHeight;
@@ -99,5 +109,24 @@ public static class ProjectSettingsHelper
 #endif
 
         File.WriteAllText(fileName, rootElement.ToString());
+    }
+
+    private static AudioBackendKind? ReadAudioBackend(JToken token)
+    {
+        string value = token?.GetString();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (Enum.TryParse(value.Trim(), ignoreCase: true, out AudioBackendKind kind)
+            && Enum.IsDefined(kind)
+            && !int.TryParse(value, out _))
+        {
+            return kind;
+        }
+
+        Logs.WriteWarning($"Project setting AudioBackend '{value}' is not a known audio backend (expected Software or MonoGame), ignored.");
+        return null;
     }
 }

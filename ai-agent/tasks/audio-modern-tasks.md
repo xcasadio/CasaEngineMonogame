@@ -421,7 +421,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   pleine : attente bornée à 100 ms puis abandon consigné, sauf `SetVolume`, renvoyé à chaque frame
   par les fondus, abandonné sans attente avec un journal limité.
 
-### ⏳ T1.5 — Choix du backend par réglage de projet
+### 🧪 T1.5 — Choix du backend par réglage de projet
 
 - Objectif : sélectionner `MonoGame` ou `Software` sans recompiler (P3).
 - Fichiers : `CasaEngine/Framework/Audio/AudioBackendKind.cs`,
@@ -453,6 +453,18 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   verte ; build des deux solutions ; éditeur lancé avec `CASAENGINE_AUDIO_BACKEND=Software` →
   ligne `Audio backend: SoftwareAudioBackend (source: environment)` dans son journal.
 - Commit : `feat(audio): choose the audio backend from the environment or the project settings`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, câblage relu en session
+  principale. Build : 0 erreur. `CasaEngine.Tests` : 2608/2608 (+20 : 14 cas de `Resolve`, 6
+  aller-retour du réglage). Démos lancées sans clavier (variables `CASAENGINE_START_DEMO`,
+  capture d'écran puis sortie automatique) : `[Info] Audio backend: SoftwareAudioBackend (source: environment)`
+  avec `CASAENGINE_AUDIO_BACKEND=Software`, `[Info] Audio backend: MonoGameAudioBackend (source: environment)`
+  avec `MonoGame`. Choix de l'exécuteur : seuls les noms `Software` et `MonoGame` comptent (pas de
+  valeur numérique), espaces autour de la variable ignorés, avertissement d'une valeur inconnue
+  porté par le résultat de `Resolve` (fonction pure). **Reste 🧪** : l'éditeur n'écrit pas de
+  journal sur disque (`LoggerEditor` alimente son panneau Log, `DebugLogger` la sortie de
+  débogage), donc la ligne `Audio backend: SoftwareAudioBackend (source: environment)` de l'éditeur
+  lancé avec `CASAENGINE_AUDIO_BACKEND=Software` est à lire dans son panneau Log pendant la recette
+  de T1.8 ; le chemin de code est le même (`AudioSystemComponent`) et le cas sans projet est testé.
 
 ### ⏳ T1.6 — Démo : statistiques et harnais de stress
 

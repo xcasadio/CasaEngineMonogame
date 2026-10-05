@@ -22,7 +22,11 @@ public class AudioSystemComponent : GameComponent
     public AudioSystemComponent(Game game, IAudioBackend backend = null)
         : base(game)
     {
-        Service = new AudioService(backend ?? CreateDefaultBackend());
+        Service = new AudioService(backend ?? CreateSelectedBackend(game));
+        if (backend != null)
+        {
+            Logs.WriteInfo($"Audio backend: {backend.GetType().Name} (source: injected)");
+        }
 
         if (game is CasaEngineGame casaEngineGame)
         {
@@ -105,7 +109,69 @@ public class AudioSystemComponent : GameComponent
         }
     }
 
-    private static IAudioBackend CreateDefaultBackend()
+    /// <summary>
+    /// Picks the backend (environment variable, then project setting, then default), creates it and
+    /// logs the outcome once. The environment variable is read here, once, at startup.
+    /// </summary>
+    private static IAudioBackend CreateSelectedBackend(Game game)
+    {
+        string environmentValue = Environment.GetEnvironmentVariable(AudioBackendSelection.EnvironmentVariableName);
+        AudioBackendKind? projectSetting = game is CasaEngineGame casaEngineGame
+            ? casaEngineGame.RuntimeContext.ProjectSettings.AudioBackend
+            : null;
+
+        var selection = AudioBackendSelection.Resolve(environmentValue, projectSetting);
+        if (selection.Warning != null)
+        {
+            Logs.WriteWarning(selection.Warning);
+        }
+
+        bool fellBack = false;
+        IAudioBackend backend = null;
+        if (selection.Kind == AudioBackendKind.Software)
+        {
+            backend = TryCreateSoftwareBackend();
+            fellBack = backend == null;
+        }
+
+        backend ??= CreateMonoGameBackend();
+
+        Logs.WriteInfo($"Audio backend: {backend.GetType().Name} (source: {selection.Source.ToString().ToLowerInvariant()})"
+            + (fellBack ? " (fallback from Software)" : string.Empty));
+        return backend;
+    }
+
+    private static IAudioBackend TryCreateSoftwareBackend()
+    {
+        SoftwareAudioBackend software = null;
+        try
+        {
+            software = new SoftwareAudioBackend();
+            if (software.IsAvailable)
+            {
+                return software;
+            }
+
+            Logs.WriteWarning("The software audio backend has no output device, falling back to the MonoGame backend.");
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(new Exception("The software audio backend could not be created, falling back to the MonoGame backend.", exception));
+        }
+
+        try
+        {
+            software?.Dispose();
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(new Exception("The unavailable software audio backend could not be disposed.", exception));
+        }
+
+        return null;
+    }
+
+    private static IAudioBackend CreateMonoGameBackend()
     {
         try
         {
