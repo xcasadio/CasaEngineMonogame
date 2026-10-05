@@ -313,7 +313,7 @@ public class SoftwareMixerLoopRegionTests
             Block(i);
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
 
         for (var i = 0; i < 1000; i++)
         {

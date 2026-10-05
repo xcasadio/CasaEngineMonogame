@@ -125,8 +125,8 @@ public class SoftwareAudioBackendPsxSpuTests
         Assert.True(port.TryUpload(0, bank.AsSpan(0, 64)));
         PumpBlocks(output, 2);
 
-        // The pressure round is repeated: a real allocation on the render thread shows in every round, whereas the
-        // runtime may charge a one-off tiered JIT step to the first rounds (open point O20 for the SPU render tests).
+        // The pressure round is repeated: a real allocation on the render thread shows in every round, whereas a
+        // one-off runtime cost charged to this thread would not.
         var smallest = long.MaxValue;
         for (var round = 0; round < 3 && smallest != 0; round++)
         {

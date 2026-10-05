@@ -478,7 +478,7 @@ public partial class PsxSpuTests
         spu.Render(buffer, 441); // warm-up
         spu.KeyOff(0x0000F0);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 1000; i++)
         {
             spu.Render(buffer, 441);

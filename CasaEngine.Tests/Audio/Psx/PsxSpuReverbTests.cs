@@ -374,7 +374,7 @@ public class PsxSpuReverbTests
             spu.Render(buffer, 441); // warm-up: lets the JIT finish before the measured loop
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 1000; i++)
         {
             spu.Render(buffer, 441);

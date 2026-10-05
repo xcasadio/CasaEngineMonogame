@@ -351,7 +351,7 @@ public class SoftwareStereoVoiceTests
             output.Pump();
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 200; i++)
         {
             var gain = (i % 10) / 10f;

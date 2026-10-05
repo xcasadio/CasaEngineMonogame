@@ -299,7 +299,7 @@ public class SoftwareAudioBackendTests
             Frame();
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
+        var before = AllocationWindow.Start();
         for (var i = 0; i < 300; i++)
         {
             Frame();
