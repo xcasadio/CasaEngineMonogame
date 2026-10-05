@@ -14,16 +14,26 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// DesktopGL exposes 256 OpenAL sources; past that MonoGame throws
 /// <see cref="InstancePlayLimitException"/>, which is caught here and reported as a refused
 /// voice rather than propagated to gameplay.
+/// A streaming voice only accepts the sample rates <see cref="DynamicSoundEffectInstance"/>
+/// accepts (<see cref="MinStreamingSampleRate"/> to <see cref="MaxStreamingSampleRate"/>); any
+/// other rate is refused the same way.
 /// </remarks>
 public sealed class MonoGameAudioBackend : IAudioBackend
 {
     /// <summary>Well under the 256 OpenAL sources of DesktopGL, to leave room for streaming voices.</summary>
     public const int DefaultVoiceCapacity = 64;
 
+    /// <summary>Lowest sample rate of a streaming voice, the floor of <see cref="DynamicSoundEffectInstance"/>.</summary>
+    public const int MinStreamingSampleRate = 8000;
+
+    /// <summary>Highest sample rate of a streaming voice, the ceiling of <see cref="DynamicSoundEffectInstance"/>.</summary>
+    public const int MaxStreamingSampleRate = 48000;
+
     private readonly VoiceSlot[] _slots;
     private readonly int[] _freeSlots;
     private readonly AudioLogThrottle _playLimitLog = new();
     private readonly AudioLogThrottle _hardwareLog = new();
+    private readonly AudioLogThrottle _streamFormatLog = new();
 
     private int _freeSlotCount;
     private int _activeVoiceCount;
@@ -52,6 +62,9 @@ public sealed class MonoGameAudioBackend : IAudioBackend
     public int VoiceCapacity => _slots.Length;
 
     public int ActiveVoiceCount => _activeVoiceCount;
+
+    /// <summary>Slots ready for a new voice; lets tests check that a refused voice gave its slot back.</summary>
+    internal int FreeVoiceCount => _freeSlotCount;
 
     public AudioVoiceHandle Play(IAudioClip clip, in AudioVoiceParameters parameters)
     {
@@ -220,6 +233,19 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             throw new ArgumentOutOfRangeException(nameof(channelCount), channelCount, "Only mono and stereo are supported.");
         }
 
+        // The rate comes from asset data (a wav header), so it is refused rather than thrown:
+        // DynamicSoundEffectInstance would throw ArgumentOutOfRangeException for it.
+        if (sampleRate is < MinStreamingSampleRate or > MaxStreamingSampleRate)
+        {
+            if (_streamFormatLog.ShouldWrite())
+            {
+                _streamFormatLog.WriteNow(
+                    $"Audio: stream refused, its sample rate ({sampleRate} Hz) is outside the {MinStreamingSampleRate}-{MaxStreamingSampleRate} Hz range MonoGame can stream.");
+            }
+
+            return AudioVoiceHandle.None;
+        }
+
         var slotIndex = TakeFreeSlot(null);
         if (slotIndex < 0)
         {
@@ -238,11 +264,24 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             slot.BindStreaming(sampleRate, channelCount);
             slot.ApplyParameters(parameters);
         }
+        catch (InstancePlayLimitException)
+        {
+            // Thrown by the DynamicSoundEffectInstance constructor when no OpenAL source is left.
+            ReturnSlot(slotIndex, disposeInstance: true);
+            _playLimitLog.WriteWarning("Audio: OpenAL source limit reached, stream refused.");
+            return AudioVoiceHandle.None;
+        }
         catch (NoAudioHardwareException exception)
         {
             ReturnSlot(slotIndex, disposeInstance: true);
             DisableAfterHardwareFailure(exception);
             return AudioVoiceHandle.None;
+        }
+        catch
+        {
+            // Not a refusal: the slot still goes back so the voice is not lost, and the error surfaces.
+            ReturnSlot(slotIndex, disposeInstance: true);
+            throw;
         }
 
         slot.InUse = true;

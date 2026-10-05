@@ -166,7 +166,7 @@ public sealed class AudioService : IDisposable
         if (!handle.IsValid)
         {
             RefusedVoiceCount++;
-            _refusedVoiceLog.WriteWarning("Audio: a stream was refused, no voice left on the backend.");
+            _refusedVoiceLog.WriteWarning("Audio: a stream was refused by the backend (no voice left or unsupported sample rate).");
             return AudioVoiceHandle.None;
         }
 

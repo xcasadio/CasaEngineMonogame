@@ -63,6 +63,9 @@ public interface IAudioBackend : IDisposable
     /// Allocates a voice fed by <see cref="SubmitBuffer"/>. The voice does not play until
     /// <see cref="Start"/> is called, so the caller can queue a few buffers first and avoid an
     /// immediate underrun.
+    /// Returns <see cref="AudioVoiceHandle.None"/> when no voice is available or the platform
+    /// cannot stream at <paramref name="sampleRate"/>; like for <see cref="Play"/>, this is a
+    /// normal outcome and must not throw.
     /// </summary>
     AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters);
 

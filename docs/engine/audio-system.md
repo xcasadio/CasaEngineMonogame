@@ -245,6 +245,10 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 - **Streaming : PCM 16 bits uniquement.** C'est le format attendu par
   `DynamicSoundEffectInstance`, donc aucune conversion n'est faite. Les autres variantes de `.wav`
   (8/24 bits, float, ADPCM) restent lisibles en mode non streamé.
+- **Streaming : 8 000-48 000 Hz.** Limite de `DynamicSoundEffectInstance`
+  (`MonoGameAudioBackend.MinStreamingSampleRate` / `MaxStreamingSampleRate`). Une musique `.wav`
+  hors de cette plage n'est pas rééchantillonnée : la piste est refusée avec un log throttlé, sans
+  exception ni voix perdue. Le rééchantillonnage ne concerne que les voix stéréo logicielles (§5 bis).
 - **Pas d'audio 3D.** Volume et pan uniquement : ni listener, ni atténuation par distance, ni
   Doppler.
 - **Lecture disque sur le thread de jeu.** Le remplissage des buffers se fait dans `Update`
