@@ -35,12 +35,11 @@ public static class WavDecoder
     private const int MinFormatChunkSize = 16;
     private const int ExtensibleFormatChunkSize = 40;
 
-    // ADPCMWAVEFORMAT: 16 byte base, cbSize, wSamplesPerBlock, wNumCoef, then wNumCoef pairs of int16.
-    // https://learn.microsoft.com/en-us/windows/win32/api/mmreg/ns-mmreg-adpcmwaveformat
+    // ADPCMWAVEFORMAT: 16 byte base, cbSize, wSamplesPerBlock, wNumCoef, then wNumCoef pairs of int16
+    // (sources in AdpcmDecoder.cs).
     private const int MsAdpcmFixedFormatChunkSize = 22;
 
-    // IMAADPCMWAVEFORMAT: 16 byte base, cbSize, wSamplesPerBlock.
-    // https://learn.microsoft.com/en-us/windows/win32/api/mmreg/ns-mmreg-imaadpcmwaveformat
+    // IMAADPCMWAVEFORMAT: 16 byte base, cbSize, wSamplesPerBlock (sources in AdpcmDecoder.cs).
     private const int ImaAdpcmFormatChunkSize = 20;
 
     /// <param name="bytes">The whole wav file.</param>

@@ -739,7 +739,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   Non testé : la libération des arrêts en attente quand la sortie meurt (`FreePendingStopsAfterDeath`).
   O7 et O8 corrigés.
 
-### ⏳ T2.3 — Voix stéréo au thread audio (P10)
+### 🚧 T2.3 — Voix stéréo au thread audio (P10)
 
 - Objectif : `PlayClipStereo` sans file de 60 ms ni facteur entier sous le backend logiciel.
 - Fichiers : `CasaEngine/Framework/Audio/IStereoVoiceBackend.cs` (capacité publique optionnelle),
@@ -938,11 +938,23 @@ Budget : identique à S2.
   Tests de refus passés de l'ADPCM à 0x55 (MP3 dans un WAV) et 6 (a-law). Build des deux solutions :
   0 erreur ; `CasaEngine.Tests` 2796/2796 (+46).
 
-### 🚧 T3.3 — Documentation, ADR et vérification
+### ✅ T3.3 — Documentation, ADR et vérification
 
 - Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0057-…md` (P15, P16), index, ce plan.
 - Validation : vérificateur frais **CONFIRMED**.
 - Commit : `docs(audio): document ogg and adpcm support`
+- Note de validation (2026-10-05) : doc `audio-system.md` (formats lus, limites O11 et O13) et
+  ADR-0057 écrites en session principale (`3b37c9e7`). Vérificateur frais, dans un worktree de
+  vérification figé sur `3b37c9e7` : **CONFIRMED**, aucun P0–P2. Il a rejoué build et tests
+  (2796/2796), passé 84 fichiers ADPCM supplémentaires de `ffmpeg` (blocs MS de 32 à 8 192
+  octets, IMA en puissances de deux, bruit blanc pleine échelle, sinus, carré) : 84/84 identiques à
+  l'échantillon ; montré que la forme fermée IMA égale `ffmpeg` (42/42) et la forme du document IMA
+  non (0/42) ; 8 000 ADPCM et 775 Ogg corrompus → uniquement `InvalidDataException` ou
+  `NotSupportedException`, aucun blocage ; NVorbis à 1 LSB de `ffmpeg` ; fixtures ADPCM regénérées
+  à l'octet près depuis les commandes du README. Avis P3 traité : deux liens Microsoft Learn morts
+  restaient dans des commentaires de `WavDecoder.cs` alors que la note de T3.2 les disait retirés ;
+  supprimés (`rg learn.microsoft.com` sur `Decoding/` ne trouve plus rien). Reste 🧪 T3.1 (écoute
+  d'un `.ogg` dans l'inspecteur de l'éditeur). **Tranche S3 terminée.**
 
 ---
 
