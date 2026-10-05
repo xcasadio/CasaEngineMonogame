@@ -240,8 +240,7 @@ public class WavDecoderTests
     }
 
     [Theory]
-    [InlineData(2)] // MS-ADPCM
-    [InlineData(0x11)] // IMA ADPCM
+    [InlineData(0x55)] // MPEG layer 3 in a wav
     [InlineData(6)] // A-law
     public void Decode_OtherFormatTag_IsNotSupported(int formatTag)
     {

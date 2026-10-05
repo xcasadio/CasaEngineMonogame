@@ -76,8 +76,8 @@ public sealed class AudioClipLoaderTests : IDisposable
     [Fact]
     public void LoadAsset_ReturnsNullForAnUnsupportedEncoding()
     {
-        var path = Path.Combine(_directory, "adpcm.wav");
-        File.WriteAllBytes(path, WavBuilder.Create(2, 22050, 1, 4, new byte[16]));
+        var path = Path.Combine(_directory, "mp3.wav");
+        File.WriteAllBytes(path, WavBuilder.Create(0x55, 22050, 1, 4, new byte[16]));
 
         Assert.Null(new AudioClipLoader().LoadAsset(path, null));
     }

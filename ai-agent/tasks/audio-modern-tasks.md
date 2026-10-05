@@ -891,7 +891,7 @@ Budget : identique à S2.
   0 erreur ; `CasaEngine.Tests` 2750/2750 (+15). **Reste 🧪** : choisir un `.ogg` dans
   l'inspecteur d'un `.sound` de l'éditeur et l'écouter (coup d'œil de l'auteur).
 
-### ⏳ T3.2 — ADPCM MS et IMA (P16)
+### ✅ T3.2 — ADPCM MS et IMA (P16)
 
 - Fichiers : `CasaEngine/Framework/Audio/Decoding/WavDecoder.cs`, fichiers d'essai, `WavDecoderTests.cs`.
 - Étapes : décodage par blocs depuis la documentation officielle (citée en commentaire) : MS ADPCM
@@ -902,6 +902,20 @@ Budget : identique à S2.
   fichiers (fichiers de référence PCM commités), mono et stéréo ; blocs tronqués → refus avec raison ;
   suite complète.
 - Commit : `feat(audio): decode MS and IMA ADPCM wav files`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, renvoyé une fois en
+  correction (liens écrits de mémoire, dernier bloc court refusé). `AdpcmDecoder` interne appelé par
+  `WavDecoder` (étiquettes 2 et 0x11, résident seulement ; `WavStreamReader` inchangé ; contrôles
+  PCM inchangés ; ADPCM dans `WAVE_FORMAT_EXTENSIBLE` refusé). Sources citées dans l'en-tête du
+  fichier, toutes récupérées : wiki.multimedia.cx (Microsoft ADPCM, Microsoft IMA ADPCM, IMA ADPCM)
+  et le document IMA « Recommended Practices » rév. 3.00 (1992) ; les deux pages Microsoft Learn
+  citées d'abord répondaient 404 et ont été retirées. Choix : reconstruction IMA sous la forme fermée
+  `((2·(nibble&7)+1)·pas)>>3` (celle de `ffmpeg`) plutôt que la forme par additions du document IMA,
+  qui diffère de 2 au plus par échantillon ; dernier bloc plus court accepté s'il contient l'en-tête
+  complet (comme certains encodeurs l'écrivent). Fixtures : 4 fichiers ADPCM (MS et IMA, mono et
+  stéréo, 22 050 Hz) et leurs références PCM décodées par `ffmpeg` (5 à 37 Ko), commandes dans le
+  README. Résultat : **égalité à l'échantillon près** avec la référence, avec et sans bloc `fact`.
+  Tests de refus passés de l'ADPCM à 0x55 (MP3 dans un WAV) et 6 (a-law). Build des deux solutions :
+  0 erreur ; `CasaEngine.Tests` 2796/2796 (+46).
 
 ### ⏳ T3.3 — Documentation, ADR et vérification
 
