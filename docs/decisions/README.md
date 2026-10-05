@@ -71,3 +71,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |
 | [ADR-0056](0056-optional-audio-backend-capabilities-and-real-time-stereo-voices.md) | Optional audio backend capabilities, real-time stereo voices, loop regions and background music reads | Accepted | 2026-10-05 |
 | [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |
+| [ADR-0058](0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md) | A software PlayStation SPU hosted by the software audio backend | Accepted | 2026-10-06 |

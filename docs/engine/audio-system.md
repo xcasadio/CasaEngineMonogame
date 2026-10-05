@@ -3,6 +3,7 @@
 Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture sont figées dans
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
 Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md), [ADR-0040](../decisions/0040-project-audio-mute-setting.md) and [ADR-0055](../decisions/0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) (mixeur logiciel du moteur, §1 bis).
+SPU PlayStation logiciel, hébergé par le backend logiciel : [psx-spu.md](psx-spu.md) ([ADR-0058](../decisions/0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md)).
 
 ---
 

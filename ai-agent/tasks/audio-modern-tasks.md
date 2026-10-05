@@ -1172,7 +1172,7 @@ dans « Points ouverts » au lieu d'être devinée.
   `SPU stopped, refused writes=0`, sortie code 0. Écoute de la démo (touche G) : 🧪 pour l'auteur,
   avec les autres écoutes.
 
-### ⏳ T4.5 — Documentation, ADR et vérification
+### 🚧 T4.5 — Documentation, ADR et vérification
 
 - Fichiers : `docs/engine/` (nouvelle page `psx-spu.md`), `docs/decisions/0058-…md`, index, ce plan.
 - Validation : vérificateur frais **CONFIRMED**.
