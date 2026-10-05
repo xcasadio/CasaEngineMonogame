@@ -67,7 +67,11 @@ public class SoftwareStereoVoiceTests
     {
         output = new CapturingOutput();
         backend = new SoftwareAudioBackend(output, capacity);
-        return new AudioService(backend);
+        var service = new AudioService(backend);
+
+        // These tests read exact levels up to full scale: the default Master limiter (T5.4) is tested on its own.
+        service.MasterLimiter.IsEnabled = false;
+        return service;
     }
 
     private static void AssertBlock(float[] block, float left, float right)

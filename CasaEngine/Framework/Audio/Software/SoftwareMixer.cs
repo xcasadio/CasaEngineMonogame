@@ -64,6 +64,9 @@ internal sealed class SoftwareMixer
     /// <summary>Insert effects held by one bus.</summary>
     public const int EffectSlotsPerBus = 4;
 
+    /// <summary>Sends held by one bus.</summary>
+    public const int SendSlotsPerBus = 4;
+
     /// <summary>Index of the Master bus: the root every other bus ends in, and the default route.</summary>
     public const int MasterBus = 0;
 
@@ -111,6 +114,34 @@ internal sealed class SoftwareMixer
     private readonly EffectDspState[] _busEffectStates = new EffectDspState[BusCapacity * EffectSlotsPerBus];
     private readonly int[] _busEffectCounts = new int[BusCapacity];
 
+    // Render thread: sends of each bus (SendSlotsPerBus slots, compacted): target bus, target level (a command sets it) and
+    // the level applied at the end of the previous block (ramped across the block).
+    private readonly int[] _busSendTarget = new int[BusCapacity * SendSlotsPerBus];
+    private readonly float[] _busSendLevel = new float[BusCapacity * SendSlotsPerBus];
+    private readonly float[] _busSendApplied = new float[BusCapacity * SendSlotsPerBus];
+    private readonly int[] _busSendCount = new int[BusCapacity];
+
+    // Render thread: order the buses are mixed in (every bus after the buses that feed it: its children and the buses that
+    // send to it), rebuilt when a bus or a send is added. Scratch arrays preallocated for the rebuild and the block.
+    private readonly int[] _busOrder = new int[BusCapacity];
+    private readonly int[] _orderIndegree = new int[BusCapacity];
+    private readonly bool[] _orderIsReturn = new bool[BusCapacity];
+    private readonly bool[] _orderDone = new bool[BusCapacity];
+    private readonly float[] _sendLevelNow = new float[SendSlotsPerBus];
+    private readonly float[] _sendIncrement = new float[SendSlotsPerBus];
+    private readonly int[] _sendOffset = new int[SendSlotsPerBus];
+    private bool _orderDirty;
+
+    // Render thread: the limiter of the Master output (applied after the Master gain, before the hard clip) and its state.
+    private AudioEffect _masterLimiter;
+    private EffectDspState _masterLimiterState;
+
+    // Producer: mirror of the graph (parent and sends of each bus) used to refuse a send cycle.
+    private readonly int[] _producerParent = new int[BusCapacity];
+    private readonly int[] _producerSendTarget = new int[BusCapacity * SendSlotsPerBus];
+    private readonly int[] _producerSendCount = new int[BusCapacity];
+    private readonly bool[] _producerVisited = new bool[BusCapacity];
+
     // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
     private int _busCount = 1;
     private int _producerBusCount = 1;
@@ -147,6 +178,7 @@ internal sealed class SoftwareMixer
         _pool = new SampleChunkPool(chunkSamples, initialChunkCount, maxChunkCount);
         _maxBlockFrames = maxBlockFrames;
         _busBuffers = new float[BusCapacity * maxBlockFrames * 2];
+        _busOrder[0] = MasterBus;
         var unity = BitConverter.SingleToInt32Bits(1f);
 
         for (var i = 0; i < BusCapacity; i++)
@@ -342,6 +374,7 @@ internal sealed class SoftwareMixer
             return false;
         }
 
+        _producerParent[index] = parentBus;
         _producerBusCount++;
         bus = index;
         return true;
@@ -413,7 +446,142 @@ internal sealed class SoftwareMixer
             return false;
         }
 
-        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, Effect = effect };
+        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, Effect = effect, EffectState = effect.CreateAudioState(OutputSampleRate) };
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>
+    /// True when <see cref="TrySetSend"/> may succeed for these arguments once the ring has room: both buses exist, the level
+    /// is a number, and the send either exists, is a removal, or has a free slot and makes no cycle. Producer thread only.
+    /// </summary>
+    public bool IsSendAccepted(int bus, int target, float level)
+    {
+        return IsSendAccepted(bus, target, level, out _);
+    }
+
+    private bool IsSendAccepted(int bus, int target, float level, out int slot)
+    {
+        slot = -1;
+
+        if ((uint)bus >= (uint)_producerBusCount || (uint)target >= (uint)_producerBusCount || float.IsNaN(level))
+        {
+            return false;
+        }
+
+        var first = bus * SendSlotsPerBus;
+        var count = _producerSendCount[bus];
+
+        for (var s = 0; s < count; s++)
+        {
+            if (_producerSendTarget[first + s] == target)
+            {
+                slot = s;
+                return true;
+            }
+        }
+
+        if (level <= 0f)
+        {
+            return true;
+        }
+
+        return count < SendSlotsPerBus && !ProducerReaches(target, bus);
+    }
+
+    /// <summary>
+    /// Sets the send of bus <paramref name="bus"/> to bus <paramref name="target"/>: after the insert effects and the gain of
+    /// <paramref name="bus"/>, its signal times <paramref name="level"/> (in [0, 1], ramped across each block) is added to the
+    /// buffer of <paramref name="target"/>, which is mixed after the buses that feed it. A level of 0 removes the send; a
+    /// bus holds at most <see cref="SendSlotsPerBus"/>. A command: false when the ring is full (the caller retries), a bus was
+    /// not handed out, the bus has no free slot, or the send would make a cycle (a bus cannot send to itself, to a bus below
+    /// it or to a bus that reaches it through other sends). Producer thread only.
+    /// </summary>
+    public bool TrySetSend(int bus, int target, float level)
+    {
+        if (!IsSendAccepted(bus, target, level, out var slot))
+        {
+            return false;
+        }
+
+        var clamped = Math.Clamp(level, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        var first = bus * SendSlotsPerBus;
+        var count = _producerSendCount[bus];
+
+        if (slot < 0 && clamped <= 0f)
+        {
+            return true;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.SetSend, Bus = bus, ParentBus = target, Volume = clamped };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        if (slot < 0)
+        {
+            _producerSendTarget[first + count] = target;
+            _producerSendCount[bus] = count + 1;
+        }
+        else if (clamped <= 0f)
+        {
+            for (var s = slot + 1; s < count; s++)
+            {
+                _producerSendTarget[first + s - 1] = _producerSendTarget[first + s];
+            }
+
+            _producerSendCount[bus] = count - 1;
+        }
+
+        return true;
+    }
+
+    // True when the signal of bus "from" reaches bus "goal" (itself included) through parents and sends. Producer thread;
+    // the visited flags are scratch.
+    private bool ProducerReaches(int from, int goal)
+    {
+        Array.Clear(_producerVisited, 0, _producerVisited.Length);
+        return ProducerReachesFrom(from, goal);
+    }
+
+    private bool ProducerReachesFrom(int bus, int goal)
+    {
+        if (bus == goal)
+        {
+            return true;
+        }
+
+        if (_producerVisited[bus])
+        {
+            return false;
+        }
+
+        _producerVisited[bus] = true;
+
+        if (bus != MasterBus && ProducerReachesFrom(_producerParent[bus], goal))
+        {
+            return true;
+        }
+
+        for (var s = 0; s < _producerSendCount[bus]; s++)
+        {
+            if (ProducerReachesFrom(_producerSendTarget[(bus * SendSlotsPerBus) + s], goal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Sets the limiter of the Master output (null removes it): it runs on the final mix, after the Master gain and before the
+    /// hard clip. False when the command ring is full (the caller retries). Producer thread only.
+    /// </summary>
+    public bool TrySetMasterLimiter(LimiterEffect limiter)
+    {
+        var command = new MixerCommand { Kind = MixerCommandKind.SetMasterLimiter, Effect = limiter };
         return _commands.TryEnqueue(in command);
     }
 
@@ -656,6 +824,11 @@ internal sealed class SoftwareMixer
     {
         var sampleCount = frameCount * 2;
 
+        if (_orderDirty)
+        {
+            RebuildBusOrder();
+        }
+
         for (var b = 0; b < _busCount; b++)
         {
             BusBuffer(b, sampleCount).Clear();
@@ -705,6 +878,9 @@ internal sealed class SoftwareMixer
 
         MixBuses(output, frameCount);
 
+        // The Master limiter, after the Master gain; the hard clip below stays as the last resort.
+        _masterLimiter?.Process(ref _masterLimiterState, output, frameCount, OutputSampleRate);
+
         // The final hard clip, after Master.
         for (var i = 0; i < output.Length; i++)
         {
@@ -727,8 +903,9 @@ internal sealed class SoftwareMixer
     {
         var sampleCount = frameCount * 2;
 
-        for (var b = _busCount - 1; b >= 0; b--)
+        for (var order = 0; order < _busCount; order++)
         {
+            var b = _busOrder[order];
             var source = BusBuffer(b, sampleCount);
             ProcessEffects(b, source, frameCount);
             ref var ramp = ref _busRamps[b];
@@ -752,6 +929,15 @@ internal sealed class SoftwareMixer
             var increment = (target - gain) / frameCount;
             var destination = b == MasterBus ? output : BusBuffer(_busParent[b], sampleCount);
             var add = b != MasterBus;
+            var sendCount = _busSendCount[b];
+
+            for (var s = 0; s < sendCount; s++)
+            {
+                var slot = (b * SendSlotsPerBus) + s;
+                _sendLevelNow[s] = _busSendApplied[slot];
+                _sendIncrement[s] = (_busSendLevel[slot] - _busSendApplied[slot]) / frameCount;
+                _sendOffset[s] = _busSendTarget[slot] * _maxBlockFrames * 2;
+            }
 
             for (var f = 0; f < frameCount; f++)
             {
@@ -776,6 +962,22 @@ internal sealed class SoftwareMixer
                     destination[i] = source[i] * gain;
                     destination[i + 1] = source[i + 1] * gain;
                 }
+
+                // Post-fader sends: the signal of this bus, effects and own gain applied, into the return buffers.
+                for (var s = 0; s < sendCount; s++)
+                {
+                    _sendLevelNow[s] += _sendIncrement[s];
+                    var sent = gain * _sendLevelNow[s];
+                    var o = _sendOffset[s] + i;
+                    _busBuffers[o] += source[i] * sent;
+                    _busBuffers[o + 1] += source[i + 1] * sent;
+                }
+            }
+
+            for (var s = 0; s < sendCount; s++)
+            {
+                var slot = (b * SendSlotsPerBus) + s;
+                _busSendApplied[slot] = _busSendLevel[slot];
             }
 
             if (ramping)
@@ -815,7 +1017,122 @@ internal sealed class SoftwareMixer
         }
     }
 
-    private void AddBusEffect(int bus, AudioEffect effect)
+    // Render thread. Every bus after the buses that feed it (its children and the buses that send to it). Among the ready
+    // buses a bus that is not the target of a send goes first, then the highest index: without sends this is the order
+    // "highest index down to Master"; a return bus is mixed after the other buses that are ready with it.
+    private void RebuildBusOrder()
+    {
+        _orderDirty = false;
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            _orderIndegree[b] = 0;
+            _orderIsReturn[b] = false;
+            _orderDone[b] = false;
+        }
+
+        for (var b = 1; b < _busCount; b++)
+        {
+            _orderIndegree[_busParent[b]]++;
+        }
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            for (var s = 0; s < _busSendCount[b]; s++)
+            {
+                var target = _busSendTarget[(b * SendSlotsPerBus) + s];
+                _orderIndegree[target]++;
+                _orderIsReturn[target] = true;
+            }
+        }
+
+        for (var emitted = 0; emitted < _busCount; emitted++)
+        {
+            var pick = -1;
+
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b] && _orderIndegree[b] <= 0 && !_orderIsReturn[b])
+                {
+                    pick = b;
+                }
+            }
+
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b] && _orderIndegree[b] <= 0)
+                {
+                    pick = b;
+                }
+            }
+
+            // Not reachable with sends accepted by the producer (they never make a cycle): keep the loop total anyway.
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b])
+                {
+                    pick = b;
+                }
+            }
+
+            _orderDone[pick] = true;
+            _busOrder[emitted] = pick;
+
+            if (pick != MasterBus)
+            {
+                _orderIndegree[_busParent[pick]]--;
+            }
+
+            for (var s = 0; s < _busSendCount[pick]; s++)
+            {
+                _orderIndegree[_busSendTarget[(pick * SendSlotsPerBus) + s]]--;
+            }
+        }
+    }
+
+    private void SetBusSend(int bus, int target, float level)
+    {
+        var first = bus * SendSlotsPerBus;
+        var count = _busSendCount[bus];
+
+        for (var s = 0; s < count; s++)
+        {
+            if (_busSendTarget[first + s] != target)
+            {
+                continue;
+            }
+
+            if (level > 0f)
+            {
+                _busSendLevel[first + s] = level;
+                return;
+            }
+
+            for (var next = s + 1; next < count; next++)
+            {
+                _busSendTarget[first + next - 1] = _busSendTarget[first + next];
+                _busSendLevel[first + next - 1] = _busSendLevel[first + next];
+                _busSendApplied[first + next - 1] = _busSendApplied[first + next];
+            }
+
+            _busSendCount[bus] = count - 1;
+            _orderDirty = true;
+            return;
+        }
+
+        if (level <= 0f || count >= SendSlotsPerBus)
+        {
+            return;
+        }
+
+        _busSendTarget[first + count] = target;
+        _busSendLevel[first + count] = level;
+        _busSendApplied[first + count] = level;
+        _busSendCount[bus] = count + 1;
+        _orderDirty = true;
+    }
+
+    private void AddBusEffect(int bus, AudioEffect effect, object effectState)
     {
         var count = _busEffectCounts[bus];
 
@@ -826,7 +1143,7 @@ internal sealed class SoftwareMixer
 
         var slot = (bus * EffectSlotsPerBus) + count;
         _busEffects[slot] = effect;
-        _busEffectStates[slot] = default;
+        _busEffectStates[slot] = new EffectDspState { Extra = effectState };
         _busEffectCounts[bus] = count + 1;
     }
 
@@ -959,6 +1276,7 @@ internal sealed class SoftwareMixer
             if (command.Bus == _busCount && command.Bus < BusCapacity && (uint)command.ParentBus < (uint)_busCount)
             {
                 _busParent[command.Bus] = command.ParentBus;
+                _orderDirty = true;
                 // A new bus starts at its published gain: no ramp from a stale value.
                 _busAppliedGain[command.Bus] = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[command.Bus]));
                 _busCount++;
@@ -987,11 +1305,28 @@ internal sealed class SoftwareMixer
             return;
         }
 
+        if (command.Kind == MixerCommandKind.SetSend)
+        {
+            if ((uint)command.Bus < (uint)_busCount && (uint)command.ParentBus < (uint)_busCount && command.Bus != command.ParentBus)
+            {
+                SetBusSend(command.Bus, command.ParentBus, command.Volume);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.SetMasterLimiter)
+        {
+            _masterLimiter = command.Effect;
+            _masterLimiterState = default;
+            return;
+        }
+
         if (command.Kind == MixerCommandKind.AddEffect)
         {
             if ((uint)command.Bus < (uint)_busCount)
             {
-                AddBusEffect(command.Bus, command.Effect);
+                AddBusEffect(command.Bus, command.Effect, command.EffectState);
             }
 
             return;

@@ -29,6 +29,13 @@ public sealed class AudioService : IDisposable
     private readonly List<List<AudioEffect>> _sentEffects = new();
     private int _syncedEffectsVersion;
     private readonly AudioLogThrottle _effectsLog = new();
+    // Per bus of Mixer.Buses (same order): the sends already sent to the backend.
+    private readonly List<List<AudioBusSend>> _sentSends = new();
+    private int _syncedSendsVersion;
+    private readonly AudioLogThrottle _sendsLog = new();
+    private readonly AudioLogThrottle _limiterLog = new();
+    private readonly LimiterEffect _masterLimiter = new();
+    private bool _masterLimiterSent;
     private readonly List<VoiceEntry> _voices = new();
     private readonly List<BusFade> _busFades = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
@@ -48,6 +55,8 @@ public sealed class AudioService : IDisposable
         _busBackend = _backend as IAudioBusBackend;
         SyncBuses();
         SyncEffects();
+        SyncSends();
+        SendMasterLimiter();
         // Real backends stream music from the background worker; test and null backends read inline.
         Music = new MusicPlayer(this, _backend is Backends.SoftwareAudioBackend or Backends.MonoGameAudioBackend);
         _stereoVoiceMixer = new StereoVoiceMixer(this);
@@ -56,6 +65,25 @@ public sealed class AudioService : IDisposable
     public IAudioBackend Backend => _backend;
 
     public AudioMixer Mixer { get; }
+
+    /// <summary>
+    /// The limiter of the Master output (plan decision P20): a feed-forward limiter with a -1 dBFS ceiling, on by default under
+    /// the software backend, running after the Master gain and before the hard clip. Tune it or set
+    /// <see cref="LimiterEffect.IsEnabled"/> to false; the object belongs to this service (do not insert it on a bus). Without
+    /// <see cref="IAudioBusBackend"/> the limiter is absent: changing it has no effect, and one throttled line says so.
+    /// </summary>
+    public LimiterEffect MasterLimiter
+    {
+        get
+        {
+            if (_busBackend == null && _limiterLog.ShouldWrite())
+            {
+                _limiterLog.WriteNow("Audio: this backend has no bus graph, so the master limiter is absent (use the software backend).");
+            }
+
+            return _masterLimiter;
+        }
+    }
 
     /// <summary>Streamed playback: music and ambiences, with fades and crossfade.</summary>
     public MusicPlayer Music { get; }
@@ -765,6 +793,16 @@ public sealed class AudioService : IDisposable
             SyncEffects();
         }
 
+        if (_syncedSendsVersion != Mixer.SendsVersion)
+        {
+            SyncSends();
+        }
+
+        if (!_masterLimiterSent)
+        {
+            SendMasterLimiter();
+        }
+
         for (var i = 0; i < _voices.Count; i++)
         {
             var entry = _voices[i];
@@ -1156,6 +1194,126 @@ public sealed class AudioService : IDisposable
         if (allSent)
         {
             _syncedEffectsVersion = Mixer.EffectsVersion;
+        }
+    }
+
+    /// <summary>Sends the Master limiter to the backend that has the capability; a failure is retried at the next <see cref="Update"/>.</summary>
+    private void SendMasterLimiter()
+    {
+        _masterLimiterSent = _busBackend == null || _busBackend.TrySetMasterLimiter(_masterLimiter);
+    }
+
+    /// <summary>
+    /// Sends the sends of the buses to the backend: the ones removed or lowered to zero first (they free slots), then the new
+    /// and changed ones. Without <see cref="IAudioBusBackend"/> sends are absent and that is logged (once per throttle window).
+    /// A command that could not be sent is retried on the next <see cref="Update"/>. Allocation free when nothing changed.
+    /// </summary>
+    private void SyncSends()
+    {
+        var buses = Mixer.Buses;
+
+        if (_busBackend == null)
+        {
+            for (var i = 0; i < buses.Count; i++)
+            {
+                if (buses[i].Sends.Count > 0)
+                {
+                    _sendsLog.WriteWarning("Audio: this backend has no bus graph, so the sends of the audio buses are ignored (use the software backend).");
+                    break;
+                }
+            }
+
+            _syncedSendsVersion = Mixer.SendsVersion;
+            return;
+        }
+
+        SyncBuses();
+        var allSent = true;
+
+        for (var i = 0; i < buses.Count; i++)
+        {
+            while (_sentSends.Count <= i)
+            {
+                _sentSends.Add(new List<AudioBusSend>());
+            }
+
+            var backendIndex = _backendBusIndices[i];
+
+            if (backendIndex < 0)
+            {
+                continue;
+            }
+
+            var wanted = buses[i].Sends;
+            var sent = _sentSends[i];
+
+            for (var j = sent.Count - 1; j >= 0; j--)
+            {
+                if (buses[i].GetSend(sent[j].Target) > 0f)
+                {
+                    continue;
+                }
+
+                var targetIndex = BackendIndexOf(sent[j].Target);
+
+                if (targetIndex < 0 || _busBackend.TrySetBusSend(backendIndex, targetIndex, 0f))
+                {
+                    sent.RemoveAt(j);
+                }
+                else
+                {
+                    allSent = false;
+                }
+            }
+
+            for (var j = 0; j < wanted.Count; j++)
+            {
+                var send = wanted[j];
+                var known = -1;
+
+                for (var k = 0; k < sent.Count; k++)
+                {
+                    if (ReferenceEquals(sent[k].Target, send.Target))
+                    {
+                        known = k;
+                        break;
+                    }
+                }
+
+                if (known >= 0 && sent[known].Level.Equals(send.Level))
+                {
+                    continue;
+                }
+
+                var targetIndex = BackendIndexOf(send.Target);
+
+                if (targetIndex < 0)
+                {
+                    continue;
+                }
+
+                if (_busBackend.TrySetBusSend(backendIndex, targetIndex, send.Level))
+                {
+                    if (known >= 0)
+                    {
+                        sent[known] = send;
+                    }
+                    else
+                    {
+                        sent.Add(send);
+                    }
+                }
+                else
+                {
+                    allSent = false;
+                    _sendsLog.WriteWarning("Audio: a bus send could not be sent to the backend and will be retried.");
+                }
+            }
+        }
+
+        if (allSent)
+        {
+            _syncedSendsVersion = Mixer.SendsVersion;
         }
     }
 

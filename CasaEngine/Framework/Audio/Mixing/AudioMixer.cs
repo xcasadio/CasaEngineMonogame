@@ -20,6 +20,9 @@ public sealed class AudioMixer
     /// <summary>Incremented every time an effect is added to or removed from a bus.</summary>
     public int EffectsVersion { get; private set; }
 
+    /// <summary>Incremented every time a send of a bus is added, changed or removed.</summary>
+    public int SendsVersion { get; private set; }
+
     public IReadOnlyList<AudioBus> Buses => _buses;
 
     /// <summary>The bus every other bus hangs from, or null while the mixer is empty.</summary>
@@ -112,6 +115,51 @@ public sealed class AudioMixer
     internal void InvalidateEffects()
     {
         EffectsVersion++;
+    }
+
+    internal void InvalidateSends()
+    {
+        SendsVersion++;
+    }
+
+    /// <summary>
+    /// True when the signal of <paramref name="from"/> reaches <paramref name="goal"/> (itself included) through parents and
+    /// sends: a send from <paramref name="goal"/> to <paramref name="from"/> would then make a cycle.
+    /// </summary>
+    internal static bool Reaches(AudioBus from, AudioBus goal)
+    {
+        return Reaches(from, goal, 0);
+    }
+
+    private static bool Reaches(AudioBus bus, AudioBus goal, int depth)
+    {
+        if (ReferenceEquals(bus, goal))
+        {
+            return true;
+        }
+
+        // The graph is acyclic by construction (parents are fixed, sends are checked), so the depth is bounded by the bus count.
+        if (depth > 1024)
+        {
+            return false;
+        }
+
+        if (bus.Parent != null && Reaches(bus.Parent, goal, depth + 1))
+        {
+            return true;
+        }
+
+        var sends = bus.Sends;
+
+        for (var i = 0; i < sends.Count; i++)
+        {
+            if (Reaches(sends[i].Target, goal, depth + 1))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Recomputes every effective gain and bumps <see cref="Version"/>.</summary>

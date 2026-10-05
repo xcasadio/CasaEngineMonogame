@@ -83,4 +83,21 @@ public interface IAudioBusBackend
 
     /// <summary>Removes an insert effect from a bus; the effects after it move up. Returns false when it could not be sent.</summary>
     bool TryRemoveBusEffect(int busIndex, Effects.AudioEffect effect);
+
+    /// <summary>
+    /// Sets the send of a bus to a return bus (plan decision P20): after the insert effects and the gain of the bus, its
+    /// signal times <paramref name="level"/> (in [0, 1], ramped across each audio block) is added to the buffer of
+    /// <paramref name="targetBusIndex"/>, which is mixed after the buses that feed it. A level of 0 removes the send. A bus
+    /// holds at most <see cref="Mixing.AudioBus.MaxSends"/> sends. Returns false when it could not be sent: unavailable
+    /// backend, unknown bus, no free slot, a send cycle (a bus sending to itself, or to a bus that reaches it through the
+    /// graph) or a command ring still full after the wait of a voice start.
+    /// </summary>
+    bool TrySetBusSend(int busIndex, int targetBusIndex, float level);
+
+    /// <summary>
+    /// Sets the limiter of the Master output (null removes it): it runs on the final mix, after the Master gain and before the
+    /// hard clip that stays as the last resort. Its parameters are published as last values like any effect. Returns false when
+    /// it could not be sent.
+    /// </summary>
+    bool TrySetMasterLimiter(Effects.LimiterEffect limiter);
 }

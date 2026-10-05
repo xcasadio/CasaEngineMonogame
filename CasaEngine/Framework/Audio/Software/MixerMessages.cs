@@ -46,6 +46,12 @@ internal enum MixerCommandKind
 
     /// <summary>Removes <see cref="MixerCommand.Effect"/> from the insert effects of bus <see cref="MixerCommand.Bus"/>.</summary>
     RemoveEffect,
+
+    /// <summary>Sets the send of bus <see cref="MixerCommand.Bus"/> to bus <see cref="MixerCommand.ParentBus"/> at level <see cref="MixerCommand.Volume"/> (0 removes it).</summary>
+    SetSend,
+
+    /// <summary>Sets <see cref="MixerCommand.Effect"/> as the limiter of the Master output (null removes it).</summary>
+    SetMasterLimiter,
 }
 
 /// <summary>
@@ -75,10 +81,13 @@ internal struct MixerCommand
     public PsxSpuSource Spu;
     public AudioEffect Effect;
 
+    /// <summary><see cref="MixerCommandKind.AddEffect"/>: audio-side memory of the effect, built on the producer thread.</summary>
+    public object EffectState;
+
     /// <summary>Bus index: the bus a voice starts on, the bus to create, or the bus the SPU is routed to.</summary>
     public int Bus;
 
-    /// <summary><see cref="MixerCommandKind.CreateBus"/>: index of the parent bus.</summary>
+    /// <summary><see cref="MixerCommandKind.CreateBus"/>: index of the parent bus. <see cref="MixerCommandKind.SetSend"/>: index of the target bus.</summary>
     public int ParentBus;
 
     /// <summary>

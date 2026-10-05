@@ -16,6 +16,9 @@ internal struct EffectDspState
     /// <summary>The parameter snapshot the coefficients below were computed from (compared by reference).</summary>
     public object AppliedParameters;
 
+    /// <summary>Memory built on the game thread by <see cref="AudioEffect.CreateAudioState"/> (the reverb delay lines), or null.</summary>
+    public object Extra;
+
     // Biquad, normalized by a0, with the transposed direct form II memory of each channel.
     public double B0;
     public double B1;

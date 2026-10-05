@@ -54,6 +54,7 @@ public class AudioServiceEffectsTests
     {
         var output = new OfflineAudioOutput();
         using var service = new AudioService(new SoftwareAudioBackend(output, 16));
+        service.MasterLimiter.IsEnabled = false; // the doubled level reaches full scale; the limiter has its own tests
         var sfx = service.Mixer.GetBus(AudioBusNames.Sfx);
         service.PlayClip(HalfScaleStereoClip(), AudioBusNames.Sfx, AudioVoiceParameters.Default);
         Assert.Equal(0.5f, Settled(service, output), 3);
@@ -75,6 +76,7 @@ public class AudioServiceEffectsTests
         mixer.GetBus(AudioBusNames.Sfx).AddEffect(Doubler());
         var output = new OfflineAudioOutput();
         using var service = new AudioService(new SoftwareAudioBackend(output, 16), mixer);
+        service.MasterLimiter.IsEnabled = false; // the doubled level reaches full scale; the limiter has its own tests
         service.PlayClip(HalfScaleStereoClip(), AudioBusNames.Sfx, AudioVoiceParameters.Default);
 
         Assert.Equal(1f, Settled(service, output), 3);

@@ -16,6 +16,7 @@ public sealed class AudioBus
     private float _volume = 1f;
     private bool _isMuted;
     private readonly List<AudioEffect> _effects = new();
+    private readonly List<AudioBusSend> _sends = new();
 
     internal AudioBus(AudioMixer mixer, string name, AudioBus parent)
     {
@@ -120,6 +121,103 @@ public sealed class AudioBus
         effect.Bus = null;
         _mixer.InvalidateEffects();
         return true;
+    }
+
+    /// <summary>Largest number of sends a bus holds.</summary>
+    public const int MaxSends = 4;
+
+    /// <summary>
+    /// Sends of this bus to return buses. They only run on a backend with <see cref="IAudioBusBackend"/> (the software
+    /// backend); see <see cref="SetSend"/>.
+    /// </summary>
+    public IReadOnlyList<AudioBusSend> Sends => _sends;
+
+    /// <summary>Level of the send of this bus to <paramref name="target"/>, or 0 when there is none.</summary>
+    public float GetSend(AudioBus target)
+    {
+        for (var i = 0; i < _sends.Count; i++)
+        {
+            if (ReferenceEquals(_sends[i].Target, target))
+            {
+                return _sends[i].Level;
+            }
+        }
+
+        return 0f;
+    }
+
+    /// <summary>
+    /// Sends part of this bus to the return bus <paramref name="target"/>: on the audio thread, after the insert effects and
+    /// the gain of this bus, its signal times <paramref name="level"/> is added to the buffer of the target, which is mixed
+    /// after the buses that feed it (typically a bus with a <see cref="ReverbEffect"/>, a child of Master). The signal still
+    /// goes to the parent of this bus as well. A level of 0 removes the send; a value out of [0, 1] is clamped and NaN is
+    /// ignored. The send follows the gain of this bus, not the gain of its ancestors. Game thread only.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">The target is null.</exception>
+    /// <exception cref="ArgumentException">The target belongs to another mixer.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// The send would make a cycle (this bus sending to itself, to a bus that is below it or to a bus that reaches it through
+    /// other sends), or the bus already holds <see cref="MaxSends"/> sends.
+    /// </exception>
+    public void SetSend(AudioBus target, float level)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+
+        if (!ReferenceEquals(target._mixer, _mixer))
+        {
+            throw new ArgumentException("The target belongs to another audio mixer.", nameof(target));
+        }
+
+        if (float.IsNaN(level))
+        {
+            return;
+        }
+
+        var clamped = Math.Clamp(level, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        var existing = -1;
+
+        for (var i = 0; i < _sends.Count; i++)
+        {
+            if (ReferenceEquals(_sends[i].Target, target))
+            {
+                existing = i;
+                break;
+            }
+        }
+
+        if (existing < 0)
+        {
+            if (clamped <= 0f)
+            {
+                return;
+            }
+
+            if (AudioMixer.Reaches(target, this))
+            {
+                throw new InvalidOperationException($"A send from the audio bus '{Name}' to '{target.Name}' would make a cycle.");
+            }
+
+            if (_sends.Count >= MaxSends)
+            {
+                throw new InvalidOperationException($"The audio bus '{Name}' already holds {MaxSends} sends.");
+            }
+
+            _sends.Add(new AudioBusSend(target, clamped));
+        }
+        else if (clamped <= 0f)
+        {
+            _sends.RemoveAt(existing);
+        }
+        else if (_sends[existing].Level.Equals(clamped))
+        {
+            return;
+        }
+        else
+        {
+            _sends[existing] = new AudioBusSend(target, clamped);
+        }
+
+        _mixer.InvalidateSends();
     }
 
     public override string ToString() => $"{Name} (volume:{_volume} muted:{_isMuted} gain:{EffectiveGain})";

@@ -32,7 +32,11 @@ public class AudioServiceBusRoutingTests
     private static AudioService CreateService(out OfflineAudioOutput output, AudioMixer mixer = null)
     {
         output = new OfflineAudioOutput();
-        return new AudioService(new SoftwareAudioBackend(output, 16), mixer);
+        var service = new AudioService(new SoftwareAudioBackend(output, 16), mixer);
+
+        // These tests read exact levels up to full scale: the default Master limiter (T5.4) is tested on its own.
+        service.MasterLimiter.IsEnabled = false;
+        return service;
     }
 
     // Stereo clip of a constant 0.5: a stereo voice at full volume and centre plays 0.5 on both channels.

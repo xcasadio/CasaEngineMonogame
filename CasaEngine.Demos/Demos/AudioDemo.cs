@@ -6,6 +6,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Backends;
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Streaming;
@@ -62,6 +63,7 @@ public class AudioDemo : Demo
     private const int StressGcIntervalMilliseconds = 500;
     private const int StressArrayCount = 8;
     private const int StressArrayBytes = 512 * 1024;
+    private const string StressReverbBusName = "StressReverb";
 
     private const int BeepSampleRate = 22050;
     private const float BeepFrequency = 440f;
@@ -94,6 +96,7 @@ public class AudioDemo : Demo
     private int _stressLoggedSeconds;
     private int _stressGcCount;
     private byte[] _stressGarbageSink = [];
+    private AudioBus _stressReverbBus;
 
     private PsxSpuPort _spuPort;
     private bool _spuTried;
@@ -392,6 +395,7 @@ public class AudioDemo : Demo
             _stressStarted = false;
             _stressGarbageSink = [];
             StopSpu();
+            StopStressReverb(service);
             service.StopAll();
             _loopingVoice = AudioVoiceHandle.None;
             _musicTrack = MusicTrackHandle.None;
@@ -470,6 +474,7 @@ public class AudioDemo : Demo
             _stressClock.Restart();
             _stressStarted = true;
             StartSpu(service);
+            StartStressReverb(service);
             _lastAction = "stress running";
             return;
         }
@@ -503,12 +508,41 @@ public class AudioDemo : Demo
             _stressStarted = false;
             _stressGarbageSink = [];
             StopSpu();
+            StopStressReverb(service);
 
             if (_stressExitWhenDone)
             {
                 _game.Exit();
             }
         }
+    }
+
+    // The stress also runs a reverb send (Sfx and Music to a return bus holding a Freeverb) and the Master limiter, so the
+    // 60 second run covers them (T5.4). Without the bus capability the sends and the limiter are absent (one log line).
+    private void StartStressReverb(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_stressReverbBus == null && !mixer.TryGetBus(StressReverbBusName, out _stressReverbBus))
+        {
+            _stressReverbBus = mixer.CreateBus(StressReverbBusName, AudioBusNames.Master);
+            _stressReverbBus.AddEffect(new ReverbEffect(0.8f));
+        }
+
+        mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0.4f);
+        mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0.3f);
+        Logs.WriteInfo($"Audio stress: reverb send on, master limiter enabled={service.MasterLimiter.IsEnabled} ceiling={service.MasterLimiter.CeilingDb} dB");
+    }
+
+    private void StopStressReverb(AudioService service)
+    {
+        if (_stressReverbBus == null)
+        {
+            return;
+        }
+
+        service.Mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0f);
+        service.Mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0f);
     }
 
     // One synthetic ADPCM block (shift 0, filter 0) looping on itself: 14 samples of 7000h then 14 of -8000h, a square

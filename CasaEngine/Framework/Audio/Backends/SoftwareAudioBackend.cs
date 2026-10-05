@@ -669,6 +669,48 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         return SendBusEffect(busIndex, effect, add: false);
     }
 
+    public bool TrySetBusSend(int busIndex, int targetBusIndex, float level)
+    {
+        if (!IsOutputAlive() || (uint)busIndex >= (uint)_mixer.BusCount || (uint)targetBusIndex >= (uint)_mixer.BusCount || float.IsNaN(level))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetSend(busIndex, targetBusIndex, level)) && _mixer.IsSendAccepted(busIndex, targetBusIndex, level) && wait.Next())
+        {
+        }
+
+        if (!sent && _mixer.IsSendAccepted(busIndex, targetBusIndex, level))
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public bool TrySetMasterLimiter(LimiterEffect limiter)
+    {
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetMasterLimiter(limiter)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
     private bool SendBusEffect(int busIndex, AudioEffect effect, bool add)
     {
         if (effect == null || !IsOutputAlive() || (uint)busIndex >= (uint)_mixer.BusCount)

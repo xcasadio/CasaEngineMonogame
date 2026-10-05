@@ -20,7 +20,7 @@ namespace CasaEngine.Framework.Audio.Effects;
 /// </para>
 /// <para>
 /// The constructor is internal: the DSP is dispatched by the mixer, so the engine provides the effects
-/// (<see cref="BiquadFilterEffect"/>, <see cref="CompressorEffect"/>).
+/// (<see cref="BiquadFilterEffect"/>, <see cref="CompressorEffect"/>, <see cref="LimiterEffect"/>, <see cref="ReverbEffect"/>).
 /// </para>
 /// </remarks>
 public abstract class AudioEffect
@@ -31,6 +31,15 @@ public abstract class AudioEffect
 
     /// <summary>The bus this effect is inserted on, or null while it is not on a bus.</summary>
     public AudioBus Bus { get; internal set; }
+
+    /// <summary>
+    /// Game thread. Builds the audio-side memory this effect needs beyond <see cref="EffectDspState"/> (delay lines sized for
+    /// <paramref name="sampleRate"/>), carried by the add command so the audio thread allocates nothing. Null when none.
+    /// </summary>
+    internal virtual object CreateAudioState(int sampleRate)
+    {
+        return null;
+    }
 
     /// <summary>
     /// Audio thread. Processes <paramref name="frameCount"/> interleaved stereo frames in place, with the state that
