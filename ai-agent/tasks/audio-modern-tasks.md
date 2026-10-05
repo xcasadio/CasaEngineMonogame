@@ -917,7 +917,7 @@ Budget : identique à S2.
   Tests de refus passés de l'ADPCM à 0x55 (MP3 dans un WAV) et 6 (a-law). Build des deux solutions :
   0 erreur ; `CasaEngine.Tests` 2796/2796 (+46).
 
-### ⏳ T3.3 — Documentation, ADR et vérification
+### 🚧 T3.3 — Documentation, ADR et vérification
 
 - Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0057-…md` (P15, P16), index, ce plan.
 - Validation : vérificateur frais **CONFIRMED**.

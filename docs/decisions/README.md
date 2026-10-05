@@ -69,3 +69,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
 | [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |
+| [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |

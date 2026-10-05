@@ -23,8 +23,11 @@ AudioService                 pool de voix, routage vers les bus, fades, proprié
 AudioSystemComponent         GameComponent : choisit et possède le backend, appelle Update
 ```
 
-Les fichiers `.wav` sont chargés par `WavAudioClipLoader` en `PcmAudioClip` : PCM 16 bits entrelacé,
-mono ou stéréo, sans aucun type MonoGame, lisible par les deux backends (§1 bis).
+Les fichiers `.wav` et `.ogg` sont chargés par `AudioClipLoader` en `PcmAudioClip` : PCM 16 bits
+entrelacé, mono ou stéréo, sans aucun type MonoGame, lisible par les deux backends (§1 bis).
+Formats lus (ADR-0057) : WAV en PCM entier 8/16/24/32 bits, flottant 32 bits, ADPCM Microsoft et
+IMA/DVI ; Ogg Vorbis (NVorbis 0.10.4, la version déjà livrée par MonoGame). Le décodage est
+complet, au chargement.
 
 Point d'entrée depuis le jeu : `game.AudioSystemComponent.Service`.
 
@@ -294,14 +297,17 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 
 ## 9. Limites connues (V1)
 
-- **Pas de MP3.** MonoGame DesktopGL ne sait pas le décoder, ni en effet ni en musique. Le `.mp3`
-  n'est plus annoncé comme jouable dans le Content Browser. Convertir en `.wav`.
-- **Streaming : PCM 16 bits uniquement.** C'est le format du contrat `IAudioBackend.SubmitBuffer`,
-  donc aucune conversion n'est faite.
-- **`.wav` résidents : PCM entier 8/16/24/32 bits et flottant 32 bits, mono ou stéréo**
-  (`WavDecoder`, `WAVE_FORMAT_EXTENSIBLE` compris). L'**ADPCM** (MS, IMA) n'est plus lu depuis
-  ADR-0055 : le fichier est refusé avec une erreur consignée (tranche S3 du programme). Aucun
-  `.wav` du dépôt n'en utilise.
+- **Pas de MP3, de FLAC ni d'Opus.** Ce seraient de nouvelles dépendances (question ouverte O13 du
+  plan). Le `.mp3` n'est pas annoncé comme jouable dans le Content Browser. Convertir en `.wav` ou
+  en `.ogg`.
+- **Streaming : WAV PCM 16 bits uniquement.** C'est le format du contrat
+  `IAudioBackend.SubmitBuffer`. Une piste **Ogg** marquée streaming est refusée avec un message
+  clair : NVorbis alloue à chaque paquet décodé, ce que les règles du moteur interdisent pour le
+  streaming (question ouverte O11). Un `.ogg` se joue donc en clip résident (`is_streaming` à faux).
+- **Clips résidents** : WAV PCM entier 8/16/24/32 bits, flottant 32 bits (`WAVE_FORMAT_EXTENSIBLE`
+  compris), ADPCM Microsoft (étiquette 2) et IMA/DVI (étiquette 0x11), Ogg Vorbis ; mono ou stéréo.
+  L'ADPCM dans `WAVE_FORMAT_EXTENSIBLE` et les autres étiquettes (MP3 dans un WAV, a-law…) sont
+  refusés avec une erreur consignée.
 - **Backend MonoGame : streaming entre 8 000 et 48 000 Hz.** Limite de `DynamicSoundEffectInstance`
   (`MonoGameAudioBackend.MinStreamingSampleRate` / `MaxStreamingSampleRate`) : une piste hors plage
   est refusée avec un log throttlé, sans exception ni voix perdue. Le backend logiciel n'a pas cette
