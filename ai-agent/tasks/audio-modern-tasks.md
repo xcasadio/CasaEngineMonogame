@@ -598,6 +598,399 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 
 ---
 
+## Vague 2 — tranches S2, S3 et X1 (détail du 2026-10-05)
+
+Détail écrit après la clôture de S1, en mode AUTO : l'auteur a demandé « fini tout » avant de
+partir dormir, et cette demande vaut accord pour exécuter les tranches de l'enveloppe une fois
+leur détail relu (READY). Découverte en lecture seule (trois enquêtes, chacune passée par un
+vérificateur contradictoire) ; faits repris ci-dessous avec leurs fichiers. Ordre d'exécution :
+**S3, puis S2, puis X1** (X1 réutilise les correctifs O6–O8 de S2 ; une seule branche, un seul
+écrivain à la fois). Relecture des détails : S3 **READY** au premier passage ; S2 et X1 : deux
+REVISE, chaque point tranché FIX (S2 : compteur consommé par génération, règle du travailleur,
+méthodes `With*`, liaison sans `unsafe`, état « reconnexion » ; X1 : tables matérielles fournies
+par l'appelant, anneau borné, ordre téléversement/registres), puis relecture de clôture (résultat
+ci-dessous). S3 passe en premier parce qu'elle était prête la première.
+
+### Décisions de la vague 2 (arbitrages de l'agent, à confirmer par l'auteur à son retour)
+
+| Réf | Arbitrage |
+|---|---|
+| P9 | **Capacités optionnelles plutôt que `IAudioBackend`.** Les nouveautés de S2 et X1 passent par des interfaces publiques optionnelles que `SoftwareAudioBackend` implémente et qu'`AudioService` détecte (`backend is I…`). `IAudioBackend` ne change pas, donc ni le faux backend du moteur ni celui d'`Alundra.Tests` (dépôt parent). Le backend MonoGame garde le chemin actuel. |
+| P10 | **Voix stéréo au thread audio** : sous le backend logiciel, `PlayClipStereo` joue une voix résidente mono avec des gains gauche/droite explicites appliqués au rendu (bloc suivant, tout débit, rééchantillonnage cubique). Fin de la file de ~60 ms et des facteurs entiers d'ADR-0039 pour ce backend ; `StereoVoiceMixer` reste le chemin des autres backends. |
+| P11 | **Région de boucle par appel** : `AudioVoiceParameters` reçoit une région de boucle optionnelle (début et fin en trames, additif : nouveau `WithLoopRegion`, le constructeur existant ne change pas). Le backend logiciel la respecte sur les voix résidentes et stéréo ; le backend MonoGame boucle le clip entier (documenté). Pas de champ sérialisé en S2 (`SoundAsset` inchangé). |
+| P12 | **Plage de pitch élargie** : multiplicateur de vitesse additif (`WithRateMultiplier`, borné à ]0, 16]), qui s'ajoute au pitch en octaves borné à ±1 (inchangé). Le backend MonoGame le replie sur son pitch, borné. |
+| P13 | **Streaming hors du thread de jeu** : un thread unique « CasaEngine Audio Streaming » lit et décode pour toutes les pistes de `MusicPlayer` ; l'ouverture, l'en-tête et le premier remplissage restent synchrones (contrat public de `MusicPlayer` inchangé) ; le thread de jeu ne fait plus que recopier vers la voix. Mode « en ligne » pour les tests. |
+| P14 | **Rampes « à l'échantillon » déplacées en S4** : le mixeur fait déjà une rampe par bloc (pas de clic) ; une rampe à durée explicite suppose de revoir le modèle gain de bus × fondu, qui est l'objet de S4. |
+| P15 | **Ogg résident seulement en S3** (NVorbis 0.10.4, déjà livré par MonoGame, référencé directement à la même version) : le décodage alloue à chaque paquet, admissible au chargement mais pas en streaming (AGENTS.md §9.3). Une piste Ogg marquée streaming est refusée avec un message clair (O11). |
+| P16 | **ADPCM MS et IMA en S3, résident seulement** (`WavDecoder`), avec des fichiers d'essai générés localement par le `ffmpeg` du cache NuGet et commités (sinusoïdes synthétiques). |
+| P17 | **X1 sans aucune table copiée d'un tiers** : ADSR, volumes, sweep, bruit, PMON, boucles par drapeaux, réverbération implémentés depuis les formules de psx-spx ; rien de l'analyseur (tables P.E.Op.S sous GPL), de psyz (MPL-2.0) ni de DuckStation. **Un traitement unique pour toutes les tables de constantes matérielles** dont psx-spx est la seule source (les 5 couples de coefficients des filtres ADPCM, les coefficients du filtre FIR de la réverbération, la table gaussienne de 512 entrées) : le moteur n'en livre **aucune** tant que l'auteur n'a pas tranché O12 ; le SPU les reçoit de l'appelant dans un objet `PsxSpuHardwareTables` (validé à la construction), et les tests utilisent des tables synthétiques définies dans les tests. L'interpolation reste un point d'extension (cubique du moteur par défaut, gaussienne quand une table est fournie). Le SPU n'est donc utilisable en jeu qu'après O12, ce qui ne bloque rien : son adoption (X4) est en pause. |
+
+### Enveloppe ajustée
+
+- S2 perd les « rampes de volume à l'échantillon » (P14), ajoutées à S4.
+- S3 perd l'Ogg en streaming et MP3/FLAC/Opus (nouvelles dépendances) : en pause, questions
+  O11 et O13.
+- X1 garde son périmètre, mais les tables de constantes matérielles (coefficients ADPCM, FIR de
+  réverbération, table gaussienne) sont fournies par l'appelant, aucune n'étant livrée avant la
+  décision de l'auteur (O12). Sa sortie « exacte » s'entend au débit
+  interne du SPU (44 100 Hz, entiers 16 bits), avant le rééchantillonnage vers le débit du
+  périphérique.
+
+---
+
+## Phase 2 — Tranche S2 : temps réel et streaming
+
+Résultat attendu : sous le backend logiciel, les voix stéréo d'Alundra ont leurs gains exacts sans
+file de 60 ms, les boucles peuvent viser une région, la vitesse peut dépasser une octave, la lecture
+des musiques quitte le thread de jeu, et la sortie survit au débranchement du périphérique ; O6 à
+O8 sont corrigés. Non-objectifs : `IAudioBackend`, `SoundAsset` et le dépôt parent ne changent pas ;
+rampes explicites (S4). Prérequis : S1. Retour arrière : `CASAENGINE_AUDIO_BACKEND=MonoGame`, ou
+revert des commits de la tranche.
+
+État vérifié (2026-10-05, branche) :
+- `SoftwareAudioBackend.IsAvailable` vaut `_mixer != null` (`SoftwareAudioBackend.cs:107`) alors
+  que la sortie remet son propre `IsAvailable` à faux quand son thread meurt
+  (`OpenAlAudioOutput.cs:154-160`) ; `RingWait` attend 100 ms (`:549-571`).
+- Le compte de buffers en attente repose sur des évènements qui peuvent se perdre (anneau plein,
+  `SoftwareMixer.cs:817-833`) et sur le chemin d'abandon d'un chunk (`:472-487`) ; or
+  `MusicPlayer` et `StereoVoiceMixer` ne relâchent une voix finie qu'à 0 en attente
+  (`MusicPlayer.cs:254`, `StereoVoiceMixer.cs:146`, `:158-160`).
+- `StereoVoiceMixer` borne le débit à 8–48 kHz et rééchantillonne par facteur entier, quel que
+  soit le backend (`StereoVoiceMixer.cs:70`, `:284-317`) ; le mixeur garde déjà des gains gauche et
+  droite cibles et courants par voix (`MixerVoice.cs:91-94`).
+- Les voisins de l'interpolation bouclent sur le clip entier (`SoftwareMixer.cs:647-653`,
+  `:841-850`) : une région de boucle doit aussi borner les voisins.
+- `MusicPlayer` est public ; ses tests figent un contrat synchrone (lecture active et 3 buffers en
+  attente juste après `Play`, `Play` invalide si le fichier ne s'ouvre pas) (`MusicPlayerTests.cs:44-52`,
+  `:209-234`).
+- Le mixeur n'accepte qu'un producteur (`SoftwareMixer.cs:12-15`) : un thread de lecture ne peut
+  pas soumettre lui-même.
+- Les fonctions `alcReopenDeviceSOFT` et `alcEvent*SOFT` ne sont pas exportées par `openal.dll` :
+  `alcGetProcAddress` obligatoire. `ALC_EXT_disconnect` (`ALC_CONNECTED`) se lit par
+  `alcGetIntegerv`, déjà lié. Le rappel d'évènements système tourne sur un thread système et ne doit
+  appeler ni AL ni ALC. Une source jouée sur un périphérique déconnecté passe aussitôt à
+  `AL_STOPPED` (OpenAL Soft 1.24.3, `al/source.cpp`).
+- Les tests `AudioServiceStereoVoiceTests`, `AudioServiceStreamingTests` et `MusicPlayerTests`
+  tournent sur le faux backend : ils figent le chemin de repli et restent tels quels.
+
+Budget de la tranche : un `executor` par tâche de code ; deux échecs → reprise en session
+principale ; une revérification ciblée par défaut corrigé, cinq passes au plus pour les P1/P2 du
+vérificateur ; stress : deux passages au plus par build ; budget épuisé → ⚠️ Blocked, question
+écrite, arrêt de la tranche (les autres continuent).
+
+### ⏳ T2.1 — Santé de la sortie (O6)
+
+- Objectif : un thread audio mort rend le backend muet et sans attente.
+- Fichiers : `CasaEngine/Framework/Audio/Backends/SoftwareAudioBackend.cs`,
+  `CasaEngine.Tests/Audio/SoftwareAudioBackendTests.cs`, `CasaEngine.Tests/Audio/OfflineAudioOutput.cs`.
+- Étapes : `IsAvailable` = mixeur présent **et** sortie disponible ; `RingWait` et la recherche de
+  voix s'arrêtent tout de suite quand la sortie ne l'est plus ; une ligne de journal au passage à
+  l'état muet. Seule la **mort du thread audio** rend la sortie indisponible (et le backend muet,
+  définitivement) ; une perte de périphérique n'est pas une mort : voir l'état « reconnexion » de
+  T2.6.
+- Validation : test avec une sortie hors ligne qui « meurt » : `IsAvailable` faux, `Play` rend
+  `None`, un appel quand l'anneau est plein ne bloque pas (moins de 5 ms mesurées) ; suite complète.
+- Commit : `fix(audio): mute the software backend when its output thread dies`
+
+### ⏳ T2.2 — Comptes de streaming fiables et arrêts garantis (O7, O8)
+
+- Objectif : `GetPendingBufferCount` ne peut plus rester trop haut, et un emplacement n'est rendu
+  qu'une fois son arrêt transmis.
+- Fichiers : `CasaEngine/Framework/Audio/Software/SoftwareMixer.cs`, `MixerVoice.cs`,
+  `SoftwareAudioBackend.cs`, tests `Software/SoftwareMixerTests.cs` et `SoftwareAudioBackendTests.cs`.
+- Étapes : le mixeur publie par emplacement le couple **(génération, buffers consommés)** dans une
+  seule valeur 64 bits écrite par `Volatile.Write` (génération en poids fort) ; le backend la lit au
+  lieu de compter des évènements et **ignore une valeur d'une autre génération** que celle de la
+  voix (compte consommé = 0 tant que le thread audio n'a pas appliqué la création) ; un chunk
+  abandonné qui termine un buffer compte comme consommé ; `Release`/`StopAll` gardent
+  l'emplacement hors de la liste libre tant que l'ordre d'arrêt n'est pas passé, et le renvoient à
+  l'appel suivant. Défense en profondeur : `MusicPlayer.FillQueue` soumet au plus
+  `QueuedBufferTarget` buffers par appel (aujourd'hui sans borne, `MusicPlayer.cs:273-300`).
+- Validation : tests : anneau d'évènements saturé puis vidé → compte exact ; débordement de la
+  file de 128 chunks → compte qui redescend à 0 ; **réutilisation d'emplacement** : voix de
+  streaming créée, N buffers consommés, relâchée, nouvelle voix dans le même emplacement, 3 buffers
+  soumis sans rendu entre-temps → `GetPendingBufferCount` = 3 ; `MusicPlayer.Play` d'une piste en
+  boucle dans un emplacement réutilisé revient après un nombre borné de soumissions ; arrêt
+  abandonné puis renvoyé → la voix se tait et l'emplacement revient ; test sans allocation
+  inchangé ; `MusicPlayerTests` inchangés et verts ; suite complète.
+- Commit : `fix(audio): make streaming pending counts and voice stops reliable`
+
+### ⏳ T2.3 — Voix stéréo au thread audio (P10)
+
+- Objectif : `PlayClipStereo` sans file de 60 ms ni facteur entier sous le backend logiciel.
+- Fichiers : `CasaEngine/Framework/Audio/IStereoVoiceBackend.cs` (capacité publique optionnelle),
+  `Software/SoftwareMixer.cs`, `MixerMessages.cs`, `MixerVoice.cs`, `Backends/SoftwareAudioBackend.cs`,
+  `AudioService.cs` (routage interne, aucune signature publique changée), tests
+  `CasaEngine.Tests/Audio/SoftwareStereoVoiceTests.cs`, `docs/decisions/0056-…md` (nouvelle ADR des
+  décisions P9 à P13, qui remplace en partie ADR-0039 pour ce backend).
+- Étapes : mode « gains explicites » d'une voix résidente mono dans le mixeur (gauche = volume ×
+  gainG, droite = volume × gainD, sans loi de pan) ; `IStereoVoiceBackend` : jouer un clip mono
+  avec ses gains, changer les gains d'une voix vivante ; `AudioService.PlayClipStereo`,
+  `SetVoiceStereoGains` et `GetVoiceStereoGains` utilisent la capacité si le backend l'a, sinon le
+  chemin `StereoVoiceMixer` actuel ; bus, propriétaire, arrêts, pause et fondus inchangés.
+- Validation : tests sur le backend logiciel avec sortie hors ligne : gains exacts par canal à
+  1e-6 près sur un signal constant, changement de gains visible au bloc suivant, tons à 3 370 Hz et
+  172 610 Hz joués sans refus, voix recyclée à sa fin, fondu et propriétaire comme une voix
+  ordinaire ; les tests existants sur le faux backend inchangés et verts ; suite complète.
+- Commit : `feat(audio): mix software stereo voices on the audio thread`
+
+### ⏳ T2.4 — Région de boucle et multiplicateur de vitesse (P11, P12)
+
+- Objectif : boucler sur une région et dépasser une octave, de façon additive.
+- Fichiers : `CasaEngine/Framework/Audio/AudioVoiceParameters.cs` (membres et méthodes ajoutés,
+  égalité et `ToString` mis à jour), `Software/SoftwareMixer.cs`, `MixerVoice.cs`,
+  `Backends/MonoGameAudioBackend.cs` (repli documenté), tests `AudioVoiceParametersTests` (ou le
+  fichier de contrat existant) et `Software/SoftwareMixerTests.cs`.
+- Étapes : région `[début, fin[` en trames, validée contre la longueur du clip au départ de la
+  voix (région invalide → clip entier, avertissement limité) ; voisins de l'interpolation bornés à
+  la région ; multiplicateur de vitesse ]0, 16] (NaN ou hors borne → 1) appliqué au pas ; **chaque
+  méthode `With*` existante conserve la région et le multiplicateur** (aujourd'hui toutes repassent
+  par le constructeur à 4 arguments, `AudioVoiceParameters.cs:40-46`, et `AudioService` les utilise
+  partout : gain de bus, `PlayClipStereo`, pan, fondus) ; les voix stéréo de T2.3 en profitent ; le
+  backend MonoGame ignore la région et replie le multiplicateur sur son pitch borné.
+- Validation : tests : une boucle 1 000–2 000 rejoue exactement les trames 1 000 à 1 999 sans saut
+  à la jointure (continuité de l'interpolation vérifiée) ; multiplicateur 4 → durée divisée par 4 ;
+  paramètres par défaut identiques à avant (égalité, hachage) ; **de bout en bout par
+  `AudioService`** avec un backend qui enregistre les paramètres reçus : `Play` et `PlayClipStereo`
+  avec `WithLoopRegion(1000, 2000).WithRateMultiplier(4)`, puis `SetVoicePan`, un fondu et un
+  changement de volume de bus → le backend reçoit toujours la région et le multiplicateur ; zéro
+  allocation ; suite complète.
+- Commit : `feat(audio): loop regions and a rate multiplier for voices`
+
+### ⏳ T2.5 — Lecture des musiques hors du thread de jeu (P13)
+
+- Objectif : plus aucune lecture disque dans `Update` pour les pistes de `MusicPlayer`.
+- Fichiers : `CasaEngine/Framework/Audio/Streaming/MusicPlayer.cs`, nouveau
+  `Streaming/StreamingWorker.cs` (thread unique, file par piste en anneau d'octets SPSC), tests
+  `MusicPlayerTests.cs` (mode en ligne) et nouveaux tests du travailleur.
+- Étapes : ouverture, en-tête et premier remplissage synchrones dans `Play` (contrat inchangé) ;
+  le travailleur lit et rembobine les fichiers ; `Update` recopie de l'anneau vers la voix ;
+  position tirée d'un compteur atomique ; `Dispose` et `Stop` libèrent la piste côté travailleur ;
+  erreur de lecture → piste arrêtée et journal, jamais d'exception sur le thread de jeu. **Règle de
+  choix** : `AudioService` crée son `MusicPlayer` (`AudioService.cs:32`) en mode « travailleur »
+  quand son backend est un backend réel (`SoftwareAudioBackend` ou `MonoGameAudioBackend`), et en
+  mode « en ligne » sinon (faux backends des tests, `NullAudioBackend`) ; le mode est un paramètre
+  interne de `MusicPlayer`, sans changement de son API publique. Les `MusicPlayerTests`, construits
+  sur `FakeAudioBackend`, restent donc en ligne et inchangés.
+- Validation : `git diff` de `MusicPlayerTests.cs` vide, tests verts ; nouveau test : `AudioService`
+  sur `SoftwareAudioBackend` (sortie hors ligne) joue une piste streamée, plusieurs `Update` → le
+  flux de test, qui enregistre le thread de chaque lecture, ne voit **aucune lecture sur le thread
+  de jeu après `Play`** ; boucle et fin de piste via le travailleur réel (attente bornée) ; démo :
+  stress de 60 s avec la musique : 0 sous-alimentation ; suite complète.
+- Commit : `feat(audio): read streamed music on a background worker`
+
+### ⏳ T2.6 — Débranchement et changement de périphérique
+
+- Objectif : le son continue après un débranchement ou un changement de sortie par défaut.
+- Fichiers : `Output/OpenAl/OpenAlNative.cs` (fonctions obtenues par `alcGetProcAddress`,
+  constantes citées depuis les en-têtes 1.24.3), `OpenAlAudioOutput.cs`, `OpenAlRefillLoop.cs`,
+  `IOpenAlStream.cs`, tests `Output/OpenAlRefillLoopTests.cs`.
+- Étapes : détection par `ALC_CONNECTED` (et, si l'extension existe, par l'évènement système de
+  changement de sortie par défaut, simple drapeau posé par le rappel) ; le thread audio rouvre le
+  périphérique avec `alcReopenDeviceSOFT` en gardant le débit courant ; tant qu'il n'y a pas de
+  sortie, nouvel essai toutes les secondes sans compter de sous-alimentation ; extension absente →
+  comportement de S1, une ligne d'information. **Pendant la coupure** : la sortie reste
+  disponible, dans un état « reconnexion » (exposé en lecture pour la démo et les tests) ; le thread
+  audio **continue d'appeler le rendu du mixeur au rythme du périphérique** (un bloc par période,
+  rendu dans un tampon jeté), si bien que les commandes du jeu sont vidées et qu'aucun appel du jeu
+  n'attend ; après une réouverture réussie, la lecture reprend normalement (les voix vivantes
+  continuent). **Liaison sans code `unsafe`** (le projet n'active
+  pas `AllowUnsafeBlocks`, `CasaEngine.csproj` ne change pas) : `alcGetProcAddress` par
+  `DllImport`, puis `Marshal.GetDelegateForFunctionPointer` pour les appels et
+  `Marshal.GetFunctionPointerForDelegate` pour le rappel, ces délégués étant créés une seule fois
+  à l'ouverture. Le délégué du rappel est **gardé dans un champ** pendant toute l'inscription, et
+  les évènements sont désactivés (`alcEventControlSOFT`) **avant** `alcCloseDevice` et au `Dispose`.
+  Le rappel ne fait que poser un drapeau `Volatile` : aucun appel AL/ALC, aucune allocation.
+- Validation : tests de la boucle avec la couche simulée (déconnexion → réouverture → reprise ;
+  échec de réouverture → nouvel essai ; pas de comptage de sous-alimentation pendant la coupure) ;
+  **pendant une coupure simulée**, plus de commandes du jeu que la capacité de l'anneau → chaque
+  appel rend la main en moins de 5 ms, `IsAvailable` reste vrai (état « reconnexion »), puis après
+  la réouverture simulée un nouveau `Play` rend un handle valide et sa voix est rendue ; le test
+  « thread mort » de T2.1 passe toujours ;
+  `git diff` de la tâche sans mot-clé `unsafe` ni `AllowUnsafeBlocks` ; relecture : délégué gardé
+  en champ, désactivation avant fermeture ; essai réel ponctuel non commité : changement de la
+  sortie par défaut de Windows pendant la démo **avec le mode stress actif** (ramasse-miettes
+  forcé), sans plantage, consigné. Si l'essai réel n'est pas faisable sans l'auteur : 🧪 avec la
+  manipulation écrite.
+- Commit : `feat(audio): survive audio device loss and default device changes`
+
+### ⏳ T2.7 — Documentation, ADR et vérification de la tranche
+
+- Objectif : documenter S2 et prouver la tranche.
+- Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0056-…md`, index des ADR, ce plan.
+- Étapes : doc (voix stéréo, boucles, vitesse, travailleur, périphérique, limites du repli
+  MonoGame) ; vérificateur frais sur S2 ; stress de 60 s sur le build final.
+- Validation : verdict **CONFIRMED** ; stress 0 sous-alimentation.
+- Commit : `docs(audio): document real-time stereo voices, loops and streaming`
+
+---
+
+## Phase 3 — Tranche S3 : formats
+
+Résultat attendu : le moteur lit des `.ogg` comme clips résidents et des `.wav` ADPCM (MS et IMA),
+dans le jeu et dans l'éditeur. Non-objectifs : Ogg en streaming (O11), MP3, FLAC, Opus (O13).
+Prérequis : S1 (S2 pour l'ordre d'exécution seulement). Retour arrière : revert des commits.
+
+État vérifié (2026-10-05, branche) :
+- NVorbis 0.10.4 est déjà livré par MonoGame (dépendance de `MonoGame.Framework.DesktopGL`
+  3.8.5.1), licence MIT, entièrement géré ; un décodage mesuré alloue environ 41 Ko par lecture de
+  4 096 trames.
+- Un seul chargeur par type dans `AssetContentManager` (dictionnaire, `Add`) : un deuxième chargeur
+  `IAudioClip` lèverait une exception ; il faut un chargeur unique qui choisit par extension.
+- Le Content Browser classe déjà `.ogg` en son (`ContentItem.cs:228`) ; le sélecteur de fichier de
+  l'inspecteur `.sound` n'accepte que `.wav` (`SoundAssetInspectorPanel.cs:347`).
+- `WavDecoder` refuse l'ADPCM et les tests l'affirment (`WavDecoderTests`) ; `WavStreamReader` ne
+  lit que le PCM 16 bits (inchangé).
+- `ffmpeg` est présent dans le cache NuGet (`monogame.tool.ffmpeg/7.0.0.10`) avec les encodeurs
+  libvorbis, adpcm_ms et adpcm_ima_wav.
+
+Budget : identique à S2.
+
+### ⏳ T3.1 — Chargeur de clips multi-format et Ogg résident (P15)
+
+- Fichiers : `Directory.Packages.props` et `CasaEngine/CasaEngine.csproj` (référence directe à
+  NVorbis **0.10.4**, la version déjà livrée), `CasaEngine/Framework/Audio/Decoding/OggDecoder.cs`,
+  nouveau `CasaEngine/Framework/Assets/Loaders/AudioClipLoader.cs` (choix par extension, `.wav` et
+  `.ogg`) enregistré à la place de `WavAudioClipLoader` (ajouté par T1.1 sur cette branche, jamais
+  publié : supprimé, ses tests repris), `Streaming/MusicPlayer.cs` (une piste Ogg marquée streaming
+  est refusée avec un message clair), `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`
+  (filtre `.wav` et `.ogg`), fichiers d'essai sous `CasaEngine.Tests/Audio/Fixtures/`, tests.
+- Étapes : décodage complet au chargement en `PcmAudioClip` (plus de 2 canaux → refus avec raison) ;
+  conversion flottant → 16 bits identique à `WavDecoder` ; fichiers d'essai générés par `ffmpeg`
+  (sinusoïde synthétique mono et stéréo, quelques dixièmes de seconde) et commités avec la commande
+  qui les recrée.
+- Validation : tests du décodeur (débit, canaux, durée, fréquence de la sinusoïde par passages par
+  zéro), du chargeur (`.wav`, `.ogg`, extension inconnue, fichier corrompu → `null` sans exception),
+  du refus en streaming ; build des deux solutions ; inspecteur : 🧪 (choisir un `.ogg` dans
+  l'éditeur, coup d'œil de l'auteur).
+- Commit : `feat(audio): load ogg vorbis files as resident clips`
+
+### ⏳ T3.2 — ADPCM MS et IMA (P16)
+
+- Fichiers : `CasaEngine/Framework/Audio/Decoding/WavDecoder.cs`, fichiers d'essai, `WavDecoderTests.cs`.
+- Étapes : décodage par blocs depuis la documentation officielle (citée en commentaire) : MS ADPCM
+  (étiquette 2, table de coefficients de l'extension `fmt `, échantillons par bloc), IMA/DVI
+  (étiquette 0x11, tables de pas et d'index) ; nombre d'échantillons du bloc `fact` pour couper le
+  remplissage ; les tests qui affirmaient le refus de l'ADPCM passent à l'acceptation.
+- Validation : comparaison échantillon par échantillon avec le décodage de `ffmpeg` des mêmes
+  fichiers (fichiers de référence PCM commités), mono et stéréo ; blocs tronqués → refus avec raison ;
+  suite complète.
+- Commit : `feat(audio): decode MS and IMA ADPCM wav files`
+
+### ⏳ T3.3 — Documentation, ADR et vérification
+
+- Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0057-…md` (P15, P16), index, ce plan.
+- Validation : vérificateur frais **CONFIRMED**.
+- Commit : `docs(audio): document ogg and adpcm support`
+
+---
+
+## Phase 4 — Tranche X1 : module SPU PSX
+
+Résultat attendu : un SPU PlayStation logiciel dans le moteur (`CasaEngine.Framework.Audio.Psx`),
+piloté par registres depuis le jeu, rendu sur le thread audio à 44 100 Hz puis mélangé au reste :
+SPU RAM de 512 Ko, 24 voix ADPCM décodées à la volée selon les drapeaux de bloc, pas de pitch et son
+écrêtage, ADSR et ENVX, volumes fixes et sweep (y compris négatifs), key on/off et ENDX, bruit,
+PMON, réverbération pilotée par registres. Non-objectifs : table gaussienne (O12), données
+d'Alundra (X2), séquenceur (X3), XA (X5), entrée CD et capture. Prérequis : S1 et les correctifs O6
+à O8 de S2. Retour arrière : revert ; rien n'utilise le module avant X4.
+
+État vérifié (2026-10-05) :
+- Le mixeur rend au débit du périphérique, en flottant (`SoftwareAudioBackend.cs:87`,
+  `SoftwareMixer.cs:340-396`) : l'exactitude se teste sur la sortie interne 16 bits du SPU.
+- Les commandes sont appliquées au début de chaque bloc (`SoftwareMixer.cs:350-353`) : les
+  écritures de registres sont quantifiées à un bloc (10 ms) ; la cadence du pilote son est l'affaire
+  de X3 (O4).
+- L'analyseur ne sert ni de référence ni de source : interpolation linéaire, pas d'ENVX, volumes
+  négatifs et sweep ramenés à 0, pitch non écrêté, réverbération Studio C codée en dur, ADSR tiré de
+  P.E.Op.S (GPL, `SoundBin.cs`, fonction `GetAdsrRate`) ; psyz est sous MPL-2.0 et sa table
+  gaussienne est à l'échelle SNES.
+- psx-spx ne déclare pas de licence : on implémente depuis ses formules sans copier son texte.
+
+Budget : identique à S2 ; en plus, toute fonction dont la formule psx-spx est ambiguë est notée
+dans « Points ouverts » au lieu d'être devinée.
+
+### ⏳ T4.1 — Cœur SPU pur (voix, ADPCM, pitch, volumes)
+
+- Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpu.cs` (+ types de voix et de registres),
+  `CasaEngine.Tests/Audio/Psx/`.
+- Étapes : SPU RAM fixe de 512 Ko (adresses masquées) ; écriture des données d'échantillons ;
+  24 voix : adresse de départ, de répétition (LSAX), décodage ADPCM par bloc de 16 octets selon la
+  formule psx-spx (décalage, filtre choisi par le bloc, historique conservé aux sauts), avec les
+  coefficients de filtre **fournis par `PsxSpuHardwareTables`** (P17), drapeaux de fin et de
+  répétition, ENDX ; pas de pitch écrêté à 4000h, pitch 0 = arrêt ; volumes gauche/droite fixes (y
+  compris négatifs) et sweep ; key on/off ; rendu `Render(Span<short> stéréo, trames)` à
+  44 100 Hz, sans allocation ; interpolation par un point d'extension (cubique par défaut,
+  gaussienne si une table est fournie, O12).
+- Validation : vecteurs synthétiques dont la valeur attendue est calculée dans le test depuis les
+  formules psx-spx **avec des tables de coefficients synthétiques définies dans le test** (bloc
+  ADPCM de chaque indice de filtre, boucle par drapeaux, pitch 1000h/2000h/4000h et au-delà,
+  volumes négatifs, sweep linéaire et exponentiel) ; `PsxSpuHardwareTables` invalide (taille ou
+  valeur hors borne) → exception à la construction ; `rg` sur `CasaEngine/` ne trouve aucune table
+  matérielle ; zéro allocation ; suite complète.
+- Commit : `feat(psx): add a software PlayStation SPU core`
+
+### ⏳ T4.2 — ADSR, ENVX, bruit et PMON
+
+- Fichiers : `Psx/PsxSpu.cs` et ses types, tests.
+- Étapes : enveloppe ADSR depuis la formule psx-spx (attaque, décroissance, maintien, relâchement ;
+  modes linéaire et exponentiel ; pas et décalage ; pas de table) ; ENVX lisible ; key off →
+  relâchement ; générateur de bruit ; PMON (pitch modulé par la voix précédente).
+- Validation : courbes d'enveloppe calculées pour plusieurs mots ADSR (dont les cas limites) et
+  comparées échantillon par échantillon ; bruit : séquence déterministe attendue ; PMON sur un cas
+  calculé ; suite complète.
+- Commit : `feat(psx): add ADSR envelopes, noise and pitch modulation to the SPU`
+
+### ⏳ T4.3 — Réverbération du SPU
+
+- Fichiers : `Psx/PsxSpu.cs` (ou `PsxSpuReverb.cs`), tests.
+- Étapes : zone de travail en SPU RAM de l'adresse ESA à 7FFFEh ; algorithme psx-spx à partir des
+  registres (pas de préréglage codé en dur) ; filtre FIR d'entrée et de sortie avec ses coefficients
+  **fournis par `PsxSpuHardwareTables`** (P17) ; envoi par voix ; volume de sortie gauche/droite.
+- Validation : réponse impulsionnelle d'un jeu de registres de test et de coefficients FIR
+  synthétiques, calculée dans le test depuis la formule ; zone de travail respectée (aucune
+  écriture hors zone) ; suite complète.
+- Commit : `feat(psx): add the SPU reverb unit`
+
+### ⏳ T4.4 — Branchement au mixeur et accès public
+
+- Fichiers : `Software/SoftwareMixer.cs` (source « tirée » à 44 100 Hz rééchantillonnée vers la
+  sortie), `Backends/SoftwareAudioBackend.cs`, nouvelle capacité publique optionnelle
+  `CasaEngine/Framework/Audio/Psx/IPsxSpuHost.cs` (P9), anneau dédié aux écritures de registres
+  (thread de jeu → thread audio), tests.
+- Étapes : le jeu obtient un SPU par la capacité (backends sans capacité → « SPU indisponible »,
+  journal une fois) ; lecture d'ENDX/ENVX par un instantané publié à chaque bloc ; volume et bus du
+  SPU comme une voix. **Transmission bornée, un seul producteur** : seul le thread de jeu écrit ;
+  écritures de registres dans un anneau SPSC préalloué de 16 384 entrées (au moins 4 096 écritures
+  par bloc de 10 ms acceptées sans perte) ; téléversements copiés dans un tampon d'étape SPSC
+  préalloué de 1 Mo, découpés en morceaux de 64 Ko, appliqués à la SPU RAM au début des blocs
+  suivants, au plus 256 Ko par bloc (une banque de 512 Ko passe en deux blocs). Anneau ou tampon
+  plein → l'appel rend `false` sans attendre et incrémente un compteur d'écritures refusées ; jamais
+  d'attente ni d'allocation sur le thread audio, jamais d'allocation sur le thread de jeu après la
+  création. **Ordre conservé** : chaque téléversement place aussi dans l'anneau des registres un
+  marqueur portant son numéro ; le thread audio applique l'anneau dans l'ordre et **s'arrête sur un
+  marqueur** tant que ce téléversement n'est pas entièrement en SPU RAM, puis reprend : une
+  écriture de registre n'est jamais appliquée avant un téléversement soumis avant elle (comme sur
+  le matériel, où le transfert finit avant les écritures suivantes).
+- Validation : test de bout en bout avec la sortie hors ligne (téléversement, key on, sortie non
+  nulle, key off, relâchement) ; pression à la borne (4 096 écritures et 512 Ko téléversés entre
+  deux blocs) → aucune perte, chaque appel sous 1 ms mesuré, zéro allocation sur le thread de rendu ;
+  au-delà de la borne → `false` et compteur incrémenté, état du SPU cohérent ; **ordre** : un
+  téléversement de 512 Ko (données différentes du contenu précédent de la SPU RAM) suivi d'un key on
+  dans le même intervalle entre deux blocs → la voix ne démarre qu'une fois le téléversement
+  entièrement appliqué (deux blocs, visible par l'instantané ENDX/ENVX) et ses premières trames
+  rendues décodent les données téléversées ; stress de 60 s de la
+  démo avec un SPU actif (tables synthétiques, ajout à la démo audio) : 0 sous-alimentation.
+- Commit : `feat(psx): host the SPU in the software audio backend`
+
+### ⏳ T4.5 — Documentation, ADR et vérification
+
+- Fichiers : `docs/engine/` (nouvelle page `psx-spu.md`), `docs/decisions/0058-…md`, index, ce plan.
+- Validation : vérificateur frais **CONFIRMED**.
+- Commit : `docs(psx): document the software SPU module`
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
@@ -614,6 +1007,11 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
 | O8 | Avis A3 (P4) : si la file de 128 chunks d'une voix déborde (environ 2,7 s en file) et que le chunk perdu termine un buffer, `GetPendingBufferCount` ne redescend plus pour ce buffer (perte comptée dans `DroppedChunkCount`). | S2 |
 | O9 | Avis A4 (P4, accepté par P4) : sous le backend MonoGame, le `SoundEffect` d'un `PcmAudioClip` est construit au premier `Play` (copie WAV sur le thread de jeu, à-coup possible pour un long clip) ; un clip stéréo y est gardé deux fois. Disparaît avec le retrait du backend MonoGame (O3). | O3 |
 | O10 | Recette Alundra : le worktree part de `main`, alors que la pile `e19` (non mergée) ajoute des API moteur que le `Alundra.dll` actuel utilise probablement ; lancer Alundra sur le moteur de cette branche peut échouer pour des raisons étrangères à l'audio. Options : tester Alundra quand `e19` sera dans `main` (puis intégrer `main` ici), ou intégrer dès maintenant la pile `e19` dans cette branche pour la recette. **Tranché le 2026-10-05** : pile `e19` intégrée (`5d048882`, note de T1.8). Conséquence : cette branche contient désormais la pile `e19` ; son merge dans `main` suppose celui de la pile, ou se fait après elle. | T1.8 |
+| O11 | **Question à l'auteur** — Ogg en streaming : NVorbis 0.10.4 alloue environ 41 Ko par lecture de 4 096 trames (≈ 444 Ko/s en 44,1 kHz stéréo), ce qu'AGENTS.md §9.3 interdit pour le streaming d'assets. Options : exception documentée par une ADR (le décodage tourne sur le travailleur de S2, hors des threads de jeu et audio), ou décodeur adapté/forké sans allocation, ou rester en Ogg résident. Aucun consommateur actuel (Alundra joue ses musiques en clips résidents). | S3 (en pause) |
+| O12 | **Question à l'auteur** — tables de constantes matérielles du SPU : les 5 couples de coefficients des filtres ADPCM, les coefficients du filtre FIR de la réverbération et la table gaussienne de 512 entrées. psx-spx en est la seule source et ne déclare pas de licence (ce sont des données mesurées sur le matériel, mais la décision de les reprendre revient à l'auteur). En attendant, X1 les reçoit de l'appelant (`PsxSpuHardwareTables`, P17) et n'en livre aucune : le SPU est complet et testé, mais pas utilisable en jeu tant que la question n'est pas tranchée. | X1, X4 |
+| O13 | **Question à l'auteur** — MP3, FLAC, Opus : nouvelles dépendances (NLayer 3.0.0 MIT ; Concentus 2.2.2 BSD-3 + Concentus.OggFile MIT pour Opus ; aucun décodeur FLAC géré maintenu trouvé). À décider avant toute intégration. | S3 (en pause) |
+| O14 | **Information pour l'auteur** — le dépôt de l'analyseur (MIT) contient du code dérivé de P.E.Op.S, sous GPL (table ADSR de `SoundBin.cs`, fonction `GetAdsrRate`) : problème de licence existant, hors de ce chantier ; X1 n'en reprend rien. | hors chantier |
+| O15 | Adoption par Alundra des régions de boucle (T2.4) et des voix stéréo exactes (T2.3) : travail du dépôt parent (passer `LoopStart`/`LoopEnd` de chaque ton à `PlayClipStereo`), avec son propre plan ; non fait en mode AUTO. | après S2 |
 
 ## Hors périmètre
 
