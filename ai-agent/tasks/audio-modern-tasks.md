@@ -892,7 +892,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   manipulation écrite.
 - Commit : `feat(audio): survive audio device loss and default device changes`
 
-### 🚧 T2.7 — Documentation, ADR et vérification de la tranche
+### ✅ T2.7 — Documentation, ADR et vérification de la tranche
 
 - Objectif : documenter S2 et prouver la tranche.
 - Fichiers : `docs/engine/audio-system.md`, `docs/decisions/0056-…md`, index des ADR, ce plan.
@@ -900,6 +900,15 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   MonoGame) ; vérificateur frais sur S2 ; stress de 60 s sur le build final.
 - Validation : verdict **CONFIRMED** ; stress 0 sous-alimentation.
 - Commit : `docs(audio): document real-time stereo voices, loops and streaming`
+- Note de validation (2026-10-05) : doc (`audio-system.md` §5, §5 bis, limites) écrite en session
+  principale (`b459742f`) ; ADR-0056 écrite en T2.3. Vérificateur frais dans le worktree de
+  vérification figé sur `b459742f`, S2 réduite (T2.6 hors périmètre) : **CONFIRMED**, aucun constat
+  P0–P3. Il a rejoué build et tests (2860/2860), le stress de 60 s sur le défaut logiciel
+  (`underruns=0 gc=119`, `monogame-openal-initialized=false`), vérifié que `MusicPlayerTests` et
+  `AudioServiceStereoVoiceTests` sont inchangés depuis avant S2, relu la concurrence (publication
+  64 bits, propriété du lecteur par le travailleur, croissance du tableau des canaux), l'additivité
+  des API publiques et l'absence d'allocation. Deux avis P4 reportés : O17 et O18. **Tranche S2
+  terminée** (hors T2.6, en pause).
 
 ---
 
@@ -1024,7 +1033,7 @@ d'Alundra (X2), séquenceur (X3), XA (X5), entrée CD et capture. Prérequis : S
 Budget : identique à S2 ; en plus, toute fonction dont la formule psx-spx est ambiguë est notée
 dans « Points ouverts » au lieu d'être devinée.
 
-### ⏳ T4.1 — Cœur SPU pur (voix, ADPCM, pitch, volumes)
+### 🚧 T4.1 — Cœur SPU pur (voix, ADPCM, pitch, volumes)
 
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpu.cs` (+ types de voix et de registres),
   `CasaEngine.Tests/Audio/Psx/`.
@@ -1294,7 +1303,9 @@ Budget : identique à S2.
 | O13 | **Question à l'auteur** — MP3, FLAC, Opus : nouvelles dépendances (NLayer 3.0.0 MIT ; Concentus 2.2.2 BSD-3 + Concentus.OggFile MIT pour Opus ; aucun décodeur FLAC géré maintenu trouvé). À décider avant toute intégration. | S3 (en pause) |
 | O14 | **Information pour l'auteur** — le dépôt de l'analyseur (MIT) contient du code dérivé de P.E.Op.S, sous GPL (table ADSR de `SoundBin.cs`, fonction `GetAdsrRate`) : problème de licence existant, hors de ce chantier ; X1 n'en reprend rien. | hors chantier |
 | O15 | Adoption par Alundra des régions de boucle (T2.4) et des voix stéréo exactes (T2.3) : travail du dépôt parent (passer `LoopStart`/`LoopEnd` de chaque ton à `PlayClipStereo`), avec son propre plan ; non fait en mode AUTO. | après S2 |
-| O16 | **Question à l'auteur** — source du séquenceur SEQ/VAB (X3) : le comportement de lecture de libsnd n'existe que dans des décompilations du libsnd propriétaire de Sony (transcription de l'analyseur depuis `ALUN_CD.EXE` ; `psyz/decomp`, étiqueté MIT ; `sotn-decomp`, AGPL-3.0 avec des fichiers MIT). Laquelle peut servir de référence pour un moteur MIT, et sous quelle forme (référence de comportement réécrite, ou rien) ? Avec O4 (cadence du pilote : libsnd en mode 50 Hz chez Alundra, rendus actuels à 60 Hz ; tick sur le thread audio ou de jeu). X3 en pause. Faits utiles : la table note→pitch de 192 entrées se calcule (`floor(4096·2^(k/192))`) ; les données d'Alundra débordent cette table (piste 19), il faudra une règle documentée ; un séquenceur doit gérer plusieurs séquences en même temps (BGM et SFX de séquence) et partager les 24 voix avec les SFX directs. | X3 |
+| O16 | **Question à l'auteur** — source du séquenceur SEQ/VAB (X3) : le comportement de lecture de libsnd n'existe que dans des décompilations du libsnd propriétaire de Sony (transcription de l'analyseur depuis `ALUN_CD.EXE` ; `psyz/decomp`, étiqueté MIT ; `sotn-decomp`, AGPL-3.0 avec des fichiers MIT). Laquelle peut servir de référence pour un moteur MIT, et sous quelle forme (référence de comportement réécrite, ou rien) ? Avec O4 (cadence du pilote : libsnd en mode 50 Hz chez Alundra, rendus actuels à 60 Hz ; tick sur le thread audio ou de jeu). X3 en pause. Faits utiles (O16) : la table note→pitch de 192 entrées se calcule (`floor(4096·2^(k/192))`) ; les données d'Alundra débordent cette table (piste 19), il faudra une règle documentée ; un séquenceur doit gérer plusieurs séquences en même temps (BGM et SFX de séquence) et partager les 24 voix avec les SFX directs. | X3 |
+| O17 | Avis P4 du vérificateur de S2 : `SoundPlaybackOverrides.ApplyTo` (`SoundPlaybackOverrides.cs:38`) reconstruit les paramètres par le constructeur à 4 arguments et perdrait une région de boucle ou un multiplicateur ; sans effet aujourd'hui (son entrée vient de `SoundAsset`, qui n'en porte pas). À traiter si `.sound` reçoit ces champs (S5). | S5 |
+| O18 | Avis P4 du vérificateur de S2 : le thread « CasaEngine Audio Streaming » ne redémarre pas s'il meurt sur une exception hors de son `try` (par exemple à la fermeture d'un lecteur) ; la musique s'arrêterait sans repli. Lecture du code seulement, non reproduit. | après S2 |
 
 ## Hors périmètre
 
