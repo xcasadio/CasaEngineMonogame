@@ -774,6 +774,34 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             hasWorldTransform: false, worldTransform: default, blendMode: blendMode, ignoresDepth: ignoresDepth);
     }
 
+    /// <summary>
+    /// Draws a raw texture with a PSX semi-transparency mode (ADR-0051, extended to the background layers: the quads of
+    /// <see cref="ScrollingLayerComponent"/> and the cells of <see cref="CellularLayerComponent"/>). <see cref="SpritePsxSemiTransparency.None"/>
+    /// queues one opaque entry on the neutral window, like the overload without a mode; any other mode queues two entries of the same
+    /// sort key and z on two disjoint raw-alpha windows: the opaque texels with the opaque state, then the STP texels with the state
+    /// of the mode (<see cref="SpritePsxSemiTransparency.Mode3"/> draws them with the colour (64, 64, 64) instead of
+    /// <paramref name="color"/>). Not redirected from the <see cref="Sprite"/> overloads, which keep their debug drawing.
+    /// </summary>
+    internal void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle,
+        SpritePsxSemiTransparency psxSemiTransparency)
+    {
+        if (psxSemiTransparency == SpritePsxSemiTransparency.None)
+        {
+            DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, in sortKey, effects, scissorRectangle);
+            return;
+        }
+
+        var stpColor = psxSemiTransparency == SpritePsxSemiTransparency.Mode3 ? Mode3FrontColor : color;
+
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, scissorRectangle,
+            false, true, sortKey, hasWorldTransform: false, worldTransform: default,
+            blendMode: SpriteBlendMode.Opaque, alphaMin: OpaqueTexelsAlphaMin, alphaMax: OpaqueTexelsAlphaMax);
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, stpColor, z, effects, scissorRectangle,
+            false, true, sortKey, hasWorldTransform: false, worldTransform: default,
+            blendMode: GetPsxBlendMode(psxSemiTransparency), alphaMin: StpTexelsAlphaMin, alphaMax: StpTexelsAlphaMax);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug)

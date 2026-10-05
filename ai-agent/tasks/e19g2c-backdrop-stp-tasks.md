@@ -64,7 +64,7 @@ deux fenêtres d'alpha brut disjointes (texels opaques, puis texels STP à l'ét
 
 ## Phase 1 — Moteur
 
-### ⏳ E1 — Champ des définitions, surcharge interne, soumission des couches (tests d'abord)
+### ✅ E1 — Champ des définitions, surcharge interne, soumission des couches (tests d'abord)
 
 - Objectif : G2c-R2.
 - Fichiers : `CasaEngine/Framework/Rendering/ScrollingLayers/ScrollingLayerDefinition.cs`,
@@ -79,6 +79,14 @@ deux fenêtres d'alpha brut disjointes (texels opaques, puis texels STP à l'ét
     `None` inchangé (une entrée par cellule, `definition.Blend`) ;
   - le `Blend` de la couche est ignoré quand un mode est posé (couche à `Blend = Additive`, `Mode0` : entrée opaque `Opaque`, entrée
     STP `AlphaBlend`) ; la surcharge `Sprite` n'est pas redirigée (`SpriteRendererComponentPsxSemiTransparencyTests` reste à une entrée).
+- Validation faite : rouges d'abord sur le code d'avant avec la surface d'API ajoutée sans comportement (champ sur les deux
+  définitions, surcharge interne qui ignore le mode, `Submit` qui l'appelle) : 10 tests rouges sur 12 ; valeurs lues égales aux valeurs
+  écrites d'avance : couche de défilement en `Mode0` à `Mode3` (4 cas) et `Mode0` à `Blend = Additive` : 1 entrée là où 2 sont
+  attendues ; couche cellulaire de 3 cellules en `Mode0` à `Mode3` (4 cas) et `Mode0` à `Blend = Additive` : 3 entrées là où 6 sont
+  attendues ; les cas `None` (une entrée, `definition.Blend`, fenêtre neutre) étaient verts d'avance (gardes). Verts après : 12 tests
+  ajoutés (`ScrollingLayerPsxSemiTransparencyTests` 6, `CellularLayerPsxSemiTransparencyTests` 6, théories comptées par cas),
+  `CasaEngine.Tests` 2562/2562, aucun test existant touché (`SpriteRendererComponentPsxSemiTransparencyTests` reste à une entrée pour
+  la surcharge `Sprite` sans mode).
 - Commit : `feat(rendering): background layers draw per-texel PSX semi-transparency as two disjoint passes`
 
 ### ⏳ E2 — Démo du moteur (texture chargée depuis un PNG, sonde du back-buffer)

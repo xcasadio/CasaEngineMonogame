@@ -1,5 +1,6 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.CellularLayers;
 using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
@@ -238,6 +239,24 @@ public class CellularLayerComponent : GameComponent
                 var worldPosition = new Vector2(
                     cameraTarget.X + (cellState.DrawX - halfWidth),
                     cameraTarget.Y + (halfHeight - cellState.DrawY));
+
+                if (definition.PsxSemiTransparency != SpritePsxSemiTransparency.None)
+                {
+                    renderer.DrawSprite(
+                        sheet,
+                        sourceRectangle,
+                        Point.Zero,
+                        worldPosition,
+                        0f,
+                        Vector2.One,
+                        definition.Tint,
+                        layerZ,
+                        sortKey,
+                        SpriteEffects.None,
+                        scissorRectangle,
+                        definition.PsxSemiTransparency);
+                    continue;
+                }
 
                 renderer.DrawSprite(
                     sheet,
