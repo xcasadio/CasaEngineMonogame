@@ -75,11 +75,11 @@ l'écriture et les ramène à la relecture, et rafraîchit le ciseau du périph�
 - Validation faite (2026-10-05, les tests ont tourné sur le GPU de la machine, aucun n'a sauté) : rouges d'abord sur le code de `3b05301f` (l'utilitaire `UiDeviceScissor.ResetToBackBuffer` posé sans effet, pour que le projet compile) : T-S2-1 le pixel absolu (80, 48) lit (100, 149, 237) (la couleur de fond) au lieu de rouge ; T-S2-4 le ciseau du périphérique lit (40, 80, 840, 240) au lieu de (561, 126, 840, 240) ; T-S2-3 (témoin) vert. S2-R1 posé, l'utilitaire toujours sans effet : T-S2-1, T-S2-4 et le témoin verts ; T-S2-2 rouge, le pixel (100, 80) lit (100, 149, 237) comme prédit et le ciseau après l'appel lit (0, 0, 96, 64) au lieu de (0, 0, 256, 192). Utilitaire réel et appel en première instruction de `OnWindowClientSizeChanged` : 4 tests sur 4 verts. `CasaEngine.Tests` 2566 sur 2566 (Debug, aucun saut). Aucun test existant touché. Un seul commit pour les tâches S2-1 (tests) et S2-2 (code) du plan parent : chaque commit doit rester vert.
 - Commit : `fix(ui): MGUI clip rectangles in view space and a fresh device scissor on resize (E19.s2)`
 
-### ⏳ T1.2 — Démo en écran partagé avec une interface dans la vue décalée (S2-1)
+### ✅ T1.2 — Démo en écran partagé avec une interface dans la vue décalée (S2-1)
 
 - Objectif : la démo en écran partagé reçoit un élément d'interface (écran XAML) dans la vue de droite ; sonde du back-buffer en processus.
 - Fichiers : `CasaEngine.Demos/Demos/SplitScreenDemo.cs`, `CasaEngine.Demos/Content/Screens/split-screen-offset-view.xaml`, `CasaEngine.Demos/CasaEngine.Demos.csproj` si besoin.
-- Validation : démo lancée depuis `CasaEngine.Demos/`, sonde rouge sur le code d'avant (l'élément manque), verte après.
+- Validation faite (2026-10-05) : démo lancée depuis `CasaEngine.Demos/` (`CASAENGINE_START_DEMO="Split-screen demo (2 views)"`, `CASAENGINE_DEMO_PIXELS_PATH`, `CASAENGINE_CAPTURE_SCREENSHOT_PATH`, la démo se ferme seule, sonde du back-buffer en processus, jamais de capture du bureau). Fenêtre 1024 × 768, vue de droite (512, 0, 512, 768), pixel (612, 312) (au-dessus du texte de l'élément, qui est en (20, 300) de la vue ; l'élément est sous le panneau de statistiques de la vue, que le moteur dessine après l'interface). Rouge d'abord, avec `CasaDrawTransaction.cs` de `3b05301f` : le pixel lit (30, 30, 51), la couleur de fond de la vue, l'élément manque. Vert avec le code de T1.1 : le pixel lit (255, 0, 0), `result=PASS`. Les sorties et les images sont dans le scratchpad de la session (`e19s2-exec/pixels-red.txt`, `pixels-green.txt`, `shot-red.png`, `shot-green.png`).
 - Commit : `feat(demos): split-screen demo with a UI element in the offset view (E19.s2)`
 
 ### ⏳ T1.3 — ADR et documentation (S2-R3)
