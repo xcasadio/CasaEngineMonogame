@@ -1,8 +1,11 @@
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -34,6 +37,14 @@ namespace CasaEngine.Demos.Demos;
 ///   Left/Right Sfx bus volume
 ///   M          mute or unmute the Master bus
 ///   N          mute or unmute the Sfx bus
+///
+/// Stress key:
+///   G          start or stop the GC stress: looping sound and music play continuously while the
+///              demo allocates garbage every frame and forces a full collection every 500 ms
+///
+/// Without keyboard, CASAENGINE_AUDIO_STRESS_SECONDS=&lt;n&gt; starts the stress when the demo is
+/// initialized, logs the backend and its underrun count every second, then logs a summary after
+/// n seconds and exits the game.
 /// </summary>
 public class AudioDemo : Demo
 {
@@ -45,6 +56,11 @@ public class AudioDemo : Demo
     private const float MusicFadeInSeconds = 1f;
     private const float MusicFadeOutSeconds = 2f;
     private const float CrossfadeSeconds = 2f;
+
+    private const string StressSecondsVariable = "CASAENGINE_AUDIO_STRESS_SECONDS";
+    private const int StressGcIntervalMilliseconds = 500;
+    private const int StressArrayCount = 8;
+    private const int StressArrayBytes = 512 * 1024;
 
     private const int BeepSampleRate = 22050;
     private const float BeepFrequency = 440f;
@@ -68,6 +84,16 @@ public class AudioDemo : Demo
     private Texture2D? _panelBackground;
     private string _lastAction = "ready";
 
+    private bool _stressActive;
+    private int _stressDurationSeconds;
+    private bool _stressExitWhenDone;
+    private Stopwatch _stressClock = new();
+    private bool _stressStarted;
+    private long _stressLastGcMilliseconds;
+    private int _stressLoggedSeconds;
+    private int _stressGcCount;
+    private byte[] _stressGarbageSink = [];
+
     public override string Title => "Audio demo";
 
     public override string Description =>
@@ -86,6 +112,15 @@ public class AudioDemo : Demo
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
         _pitchedMusic = _pitchedMusicHandle?.Asset;
         _stereoBeep = CreateStereoBeep();
+
+        var stressText = Environment.GetEnvironmentVariable(StressSecondsVariable);
+        if (int.TryParse(stressText, out var stressSeconds) && stressSeconds > 0)
+        {
+            _stressDurationSeconds = stressSeconds;
+            _stressExitWhenDone = true;
+            _stressActive = true;
+            _stressStarted = false;
+        }
     }
 
     /// <summary>
@@ -144,6 +179,13 @@ public class AudioDemo : Demo
         }
 
         var service = audio.Service;
+
+        if (WasJustPressed(keyboard, Keys.G))
+        {
+            ToggleStress(service);
+        }
+
+        UpdateStress(service);
 
         if (WasJustPressed(keyboard, Keys.Space))
         {
@@ -267,12 +309,20 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 266), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 332), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
             ? "Audio device: available"
             : "Audio device: NOT available (everything is silent)");
+        DrawLine(spriteBatch, ref y, $"Backend: {service.Backend.GetType().Name}   active voices: {service.ActiveVoiceCount}"
+            + (_stressActive ? "   STRESS ON" : string.Empty));
+        if (service.Backend is SoftwareAudioBackend software)
+        {
+            DrawLine(spriteBatch, ref y, $"Lead {software.LeadMilliseconds} ms   output {software.OutputSampleRate} Hz"
+                + $"   underruns {software.UnderrunCount}");
+        }
+
         DrawLine(spriteBatch, ref y, $"Master  volume {master.Volume:0.00}  muted {master.IsMuted}  gain {master.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Sfx     volume {sfx.Volume:0.00}  muted {sfx.IsMuted}  gain {sfx.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Music   volume {music.Volume:0.00}  muted {music.IsMuted}  gain {music.EffectiveGain:0.00}");
@@ -286,6 +336,7 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
+        DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
         DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
 
         spriteBatch.End();
@@ -313,6 +364,9 @@ public class AudioDemo : Demo
         _stereoBeep?.Dispose();
         _stereoBeep = null;
         _stereoBeepStep = 0;
+        _stressActive = false;
+        _stressStarted = false;
+        _stressGarbageSink = [];
         _game = null;
     }
 
@@ -320,6 +374,130 @@ public class AudioDemo : Demo
     {
         spriteBatch.DrawString(_font, text, new Vector2(20f, y), Color.White);
         y += 22f;
+    }
+
+    private void ToggleStress(AudioService service)
+    {
+        if (_stressActive)
+        {
+            _stressActive = false;
+            _stressStarted = false;
+            _stressGarbageSink = [];
+            service.StopAll();
+            _loopingVoice = AudioVoiceHandle.None;
+            _musicTrack = MusicTrackHandle.None;
+            _lastAction = "stress stopped";
+            return;
+        }
+
+        _stressDurationSeconds = 0;
+        _stressExitWhenDone = false;
+        _stressActive = true;
+        _stressStarted = false;
+    }
+
+    private static int GetUnderrunCount(AudioService service)
+    {
+        return service.Backend is SoftwareAudioBackend software ? software.UnderrunCount : 0;
+    }
+
+    private static void LogMonoGameOpenAlState()
+    {
+        // Reads the private field on purpose: the public Instance property would initialize OpenAL.
+        try
+        {
+            var type = typeof(Microsoft.Xna.Framework.Audio.SoundEffect).Assembly.GetType("Microsoft.Xna.Framework.Audio.OpenALSoundController");
+            if (type == null)
+            {
+                Logs.WriteInfo("Audio stress: monogame-openal-initialized=unknown (type OpenALSoundController not found)");
+                return;
+            }
+
+            var field = type.GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static);
+            if (field == null)
+            {
+                Logs.WriteInfo("Audio stress: monogame-openal-initialized=unknown (static field _instance not found)");
+                return;
+            }
+
+            Logs.WriteInfo($"Audio stress: monogame-openal-initialized={(field.GetValue(null) != null ? "true" : "false")}");
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteInfo($"Audio stress: monogame-openal-initialized=unknown ({exception.GetType().Name}: {exception.Message})");
+        }
+    }
+
+    private void UpdateStress(AudioService service)
+    {
+        if (!_stressActive || _game == null)
+        {
+            return;
+        }
+
+        var backendName = service.Backend.GetType().Name;
+
+        if (!_stressStarted)
+        {
+            LogMonoGameOpenAlState();
+
+            if (!service.IsAlive(_loopingVoice) && _clickSound != null)
+            {
+                _loopingVoice = service.PlaySound(
+                    _clickSound,
+                    new SoundPlaybackOverrides(isLooped: true),
+                    _game.GameManager.CurrentWorld);
+            }
+
+            if (!service.Music.IsAlive(_musicTrack) && _music != null)
+            {
+                _musicTrack = service.Music.Play(_music, MusicFadeInSeconds, _game.GameManager.CurrentWorld);
+                _pitchedMusicPlaying = false;
+            }
+
+            _stressGcCount = 0;
+            _stressLoggedSeconds = 0;
+            _stressLastGcMilliseconds = 0;
+            _stressClock.Restart();
+            _stressStarted = true;
+            _lastAction = "stress running";
+            return;
+        }
+
+        // Garbage: large short-lived arrays, which live on the large object heap and need gen 2.
+        for (var i = 0; i < StressArrayCount; i++)
+        {
+            _stressGarbageSink = new byte[StressArrayBytes];
+        }
+
+        var elapsedMilliseconds = _stressClock.ElapsedMilliseconds;
+        if (elapsedMilliseconds - _stressLastGcMilliseconds >= StressGcIntervalMilliseconds)
+        {
+            GC.Collect(2, GCCollectionMode.Forced, true);
+            _stressGcCount++;
+            _stressLastGcMilliseconds = elapsedMilliseconds;
+        }
+
+        var elapsedSeconds = (int)(elapsedMilliseconds / 1000);
+        while (_stressLoggedSeconds < elapsedSeconds)
+        {
+            _stressLoggedSeconds++;
+            Logs.WriteInfo($"Audio stress: backend={backendName} elapsed={_stressLoggedSeconds} underruns={GetUnderrunCount(service)}");
+        }
+
+        if (_stressDurationSeconds > 0 && elapsedSeconds >= _stressDurationSeconds)
+        {
+            Logs.WriteInfo($"Audio stress done: backend={backendName} seconds={_stressDurationSeconds}"
+                + $" underruns={GetUnderrunCount(service)} gc={_stressGcCount}");
+            _stressActive = false;
+            _stressStarted = false;
+            _stressGarbageSink = [];
+
+            if (_stressExitWhenDone)
+            {
+                _game.Exit();
+            }
+        }
     }
 
     private void PlayStereoBeep(AudioService service)

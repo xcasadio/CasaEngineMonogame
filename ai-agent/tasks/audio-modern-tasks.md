@@ -466,7 +466,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   lancé avec `CASAENGINE_AUDIO_BACKEND=Software` est à lire dans son panneau Log pendant la recette
   de T1.8 ; le chemin de code est le même (`AudioSystemComponent`) et le cas sans projet est testé.
 
-### ⏳ T1.6 — Démo : statistiques et harnais de stress
+### ✅ T1.6 — Démo : statistiques et harnais de stress
 
 - Objectif : mesurer la tenue du thread audio sous pression du ramasse-miettes (hypothèse de P1).
 - Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs`. Aucun changement de
@@ -491,6 +491,21 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   Au plus deux passages (Budget de la tranche S1) ; deux passages avec des coupures → ⚠️ Blocked
   (O1), arrêt du programme.
 - Commit : `feat(demos): show audio backend statistics and a GC stress mode`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, diff relu en session
+  principale. Seul `AudioDemo.cs` change : affichage du backend, des voix, de l'avance, du débit et
+  des sous-alimentations ; touche `G` ou variable `CASAENGINE_AUDIO_STRESS_SECONDS` ; stress =
+  son en boucle et musique, 8 tableaux de 512 Ko alloués par frame, `GC.Collect(2, Forced, true)`
+  toutes les 500 ms ; contrôle par réflexion du champ privé `_instance` (jamais la propriété
+  `Instance`). Build : 0 erreur ; `CasaEngine.Tests` 2608/2608. **Deux passages de 60 s, même
+  build, sans clavier** (budget : deux au plus), `log.txt` :
+  passage 1 (exécuteur) `Audio stress done: backend=SoftwareAudioBackend seconds=60 underruns=0 gc=118` ;
+  passage 2 (session principale) `Audio backend: SoftwareAudioBackend (source: environment)`,
+  `monogame-openal-initialized=false`, 60 lignes par seconde,
+  `Audio stress done: backend=SoftwareAudioBackend seconds=60 underruns=0 gc=119`, sortie
+  automatique, code 0. Avance par défaut inchangée (4 × 10 ms à 48 000 Hz). O1 non déclenché.
+  Démo sous `CASAENGINE_AUDIO_BACKEND=MonoGame` (capture puis sortie) : démarre et se ferme,
+  `Audio backend: MonoGameAudioBackend (source: environment)`. L'affichage n'a pas été regardé :
+  coup d'œil de l'auteur en T1.8.
 
 ### ⏳ T1.7 — Documentation
 
