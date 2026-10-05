@@ -41,6 +41,23 @@ internal struct MixerVoice
     /// <summary>sourceRate / outputRate, without pitch.</summary>
     public double SourceRatio;
 
+    /// <summary>Channel factors of the voice gain without the volume (pan law, balance or explicit gains): gain = Volume * factor.</summary>
+    public float PanLeftFactor;
+
+    public float PanRightFactor;
+
+    /// <summary>
+    /// Explicit duration volume ramp. While <see cref="RampActive"/> the volume is interpolated per sample from
+    /// <see cref="RampValue"/> (its value at the start of the block) by <see cref="RampIncrement"/> per frame, and
+    /// reaches <see cref="RampTarget"/> after <see cref="RampFramesLeft"/> frames.
+    /// </summary>
+    public bool RampActive;
+
+    public double RampValue;
+    public double RampTarget;
+    public double RampIncrement;
+    public int RampFramesLeft;
+
     public float CurrentLeftGain;
     public float CurrentRightGain;
     public float TargetLeftGain;

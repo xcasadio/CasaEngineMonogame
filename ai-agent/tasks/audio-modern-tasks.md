@@ -1304,7 +1304,7 @@ Budget : identique à S2.
   solutions : 0 erreur, aucun avertissement dans les fichiers touchés ; suite complète 2956/2956
   (six passages ; un échec isolé d'un test de durée de S2, traité à part, O20).
 
-### ⏳ T5.2 — Rampes à durée explicite (P21)
+### ✅ T5.2 — Rampes à durée explicite (P21)
 
 - Objectif : fondus de voix, de musique et de bus sans pas par frame.
 - Fichiers : `Software/` (rampe par voix et par bus), `IAudioBusBackend.cs` (rampe), `AudioService.cs`
@@ -1325,6 +1325,31 @@ Budget : identique à S2.
   atteinte, libération de la voix à la fin de `StopWithFade` — mêmes résultats à un bloc près ; tests
   de fondu existants (faux backend) inchangés et verts ; suite complète.
 - Commit : `feat(audio): sample-interpolated fades on voices and buses`
+- Note de validation (2026-10-06) : `IAudioBusBackend` gagne `TryRampVoiceVolume(voice, cible,
+  secondes)`, `FreezeVoiceVolume(voice)`, `TryRampBusGain(bus, cible, secondes)`,
+  `FreezeBusGain(bus)` (interface encore non publiée hors de cette branche) ; `AudioService.FadeBus(bus,
+  cible, secondes)` (additif). Mixeur : commandes `RampVoice`, `FreezeVoice`, `RampBus`, `FreezeBus`
+  (envoyées avec l'attente bornée de `SetParameters`, jamais perdues en silence ; échec → repli au
+  pas par frame), départ au bloc suivant, interpolation linéaire par échantillon en double précision
+  (y compris à travers le découpage des blocs) ; une rampe repart de la valeur courante ; « figer »
+  arrête l'enveloppe ; pendant une rampe, `SetVolume` y met fin et le volume de `SetParameters` est
+  ignoré (pan et pitch s'appliquent) ; un bus garde la valeur atteinte jusqu'à la prochaine
+  publication, qui l'emporte même à valeur égale (compteur de publications). Thread de jeu (P21) :
+  `FadeVoice` garde sa chronologie et envoie la rampe une fois ; `GetVoiceVolume`, `IsFading`, la
+  libération en fin de `StopWithFade` et le départ d'un fondu enchaîné suivent la chronologie ;
+  `CancelFade` envoie « figer ». `MusicPlayer` inchangé (ses fondus passent déjà par `AudioService`).
+  Relu en session principale ; **corrigé** : couper ou rétablir le son d'un bus pendant un `FadeBus`
+  ne prenait effet qu'à la fin du fondu sous la capacité ; désormais au `Update` suivant sur les deux
+  chemins (la publication explicite met fin à la rampe, la suite du fondu est publiée par frame
+  depuis la chronologie). Écarts acceptés : une libération en fin de `StopWithFade` peut couper
+  jusqu'à un bloc de rampe restant (écart documenté d'un bloc) ; un changement de pan pendant une
+  rampe saute dans le bloc. 24 tests (`SoftwareMixerRampTests.cs`, `AudioServiceRampFadeTests.cs`) :
+  rampe 1 → 0 en 0,25 s linéaire à 1e-5 par échantillon, interruption, figer, voix en pause, `SetVolume`
+  pendant une rampe, génération périmée, rampes de bus et publication qui l'emporte, contrat public
+  comparé au faux backend tick par tick (`GetVoiceVolume`, `IsFading`, `CancelFade`, fondu enchaîné,
+  `StopWithFade`, fondu croisé de musique, `FadeBus`, muet pendant un fondu de bus), zéro allocation
+  (`AllocationWindow`) ; tests de fondu existants inchangés et verts. Les deux solutions : 0 erreur ;
+  suite complète 2980/2980 (quatre passages).
 
 ### ⏳ T5.3 — Effets insérés : filtres biquad et compresseur (P20)
 

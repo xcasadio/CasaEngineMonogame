@@ -46,4 +46,29 @@ public interface IAudioBusBackend
 
     /// <summary>Routes the output of a hosted SPU (<see cref="IPsxSpuHost"/>) to a bus. Returns false when it cannot be sent.</summary>
     bool TrySetPsxSpuBus(PsxSpuPort port, int busIndex);
+
+    /// <summary>
+    /// Ramps the volume of a voice to <paramref name="targetVolume"/> over <paramref name="durationSeconds"/> (plan
+    /// decision P21): the audio thread interpolates it linearly, sample by sample, from the value the voice has at that
+    /// moment. The ramp starts at the start of the next audio block (at most one block, about 10 ms, after the call: no
+    /// command carries a timestamp). The command is not lost: a full command ring is waited for like a voice start.
+    /// Returns false when it could not be sent (unavailable backend, stale handle, ring still full), in which case the
+    /// caller steps the volume itself. While the ramp runs, <see cref="IAudioBackend.SetVolume"/> ends it and the volume
+    /// of <see cref="IAudioBackend.SetParameters"/> is ignored. A ramp advances while the voice is paused.
+    /// </summary>
+    bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds);
+
+    /// <summary>Stops the volume ramp of a voice at the value it has reached. Ignored when no ramp runs.</summary>
+    void FreezeVoiceVolume(AudioVoiceHandle voice);
+
+    /// <summary>
+    /// Ramps the own gain of a bus to <paramref name="targetGain"/> over <paramref name="durationSeconds"/>, like
+    /// <see cref="TryRampVoiceVolume"/>. The ramp owns the gain of the bus until it ends; the gain then stays at the target
+    /// until a different value is published with <see cref="SetBusGain"/>, which also ends a running ramp. Returns false
+    /// when it could not be sent.
+    /// </summary>
+    bool TryRampBusGain(int busIndex, float targetGain, float durationSeconds);
+
+    /// <summary>Stops the gain ramp of a bus at the value it has reached. Ignored when no ramp runs.</summary>
+    void FreezeBusGain(int busIndex);
 }

@@ -26,6 +26,18 @@ internal enum MixerCommandKind
 
     /// <summary>Routes the attached <see cref="MixerCommand.Spu"/> to bus <see cref="MixerCommand.Bus"/>.</summary>
     RoutePsxSpu,
+
+    /// <summary>Ramps the volume of a voice to <see cref="MixerCommand.Volume"/> over <see cref="MixerCommand.Frames"/> frames.</summary>
+    RampVoice,
+
+    /// <summary>Stops the volume ramp of a voice at its current value.</summary>
+    FreezeVoice,
+
+    /// <summary>Ramps the own gain of bus <see cref="MixerCommand.Bus"/> to <see cref="MixerCommand.Volume"/> over <see cref="MixerCommand.Frames"/> frames.</summary>
+    RampBus,
+
+    /// <summary>Stops the gain ramp of bus <see cref="MixerCommand.Bus"/> at its current value.</summary>
+    FreezeBus,
 }
 
 /// <summary>
@@ -68,6 +80,9 @@ internal struct MixerCommand
 
     public float LeftGain;
     public float RightGain;
+
+    /// <summary><see cref="MixerCommandKind.RampVoice"/> and <see cref="MixerCommandKind.RampBus"/>: length of the ramp in output frames.</summary>
+    public int Frames;
 }
 
 internal enum MixerEventKind

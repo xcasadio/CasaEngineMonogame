@@ -95,6 +95,12 @@ internal sealed class SoftwareMixer
     // Last value published per bus by the producer (float bits); never queued, so never lost.
     private readonly int[] _busGainBits = new int[BusCapacity];
 
+    // Number of times the producer published a gain for each bus: lets a ramp notice a publish even of the same value.
+    private readonly int[] _busGainPublishCount = new int[BusCapacity];
+
+    // Render thread: explicit duration gain ramp of each bus (see MixBuses).
+    private readonly BusRamp[] _busRamps = new BusRamp[BusCapacity];
+
     // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
     private int _busCount = 1;
     private int _producerBusCount = 1;
@@ -344,6 +350,44 @@ internal sealed class SoftwareMixer
 
         var clamped = Math.Clamp(gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
         Volatile.Write(ref _busGainBits[bus], BitConverter.SingleToInt32Bits(clamped));
+        Volatile.Write(ref _busGainPublishCount[bus], _busGainPublishCount[bus] + 1);
+    }
+
+    /// <summary>
+    /// Ramps the own gain of a bus to <paramref name="gain"/> over <paramref name="frames"/> output frames, linearly per
+    /// sample, from its current value. A command, so it is never lost silently: false when the ring is full (the caller
+    /// retries) or the bus was not handed out. The ramp starts at the start of the next block the audio thread renders
+    /// (at most one block, about 10 ms, late: commands carry no timestamp). The ramp owns the gain of the bus while it
+    /// runs and after it ends (the gain stays at the target) until the next <see cref="SetBusGain"/> call, which wins.
+    /// </summary>
+    public bool TryRampBusGain(int bus, float gain, int frames)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.RampBus,
+            Bus = bus,
+            Volume = Math.Clamp(float.IsNaN(gain) ? 1f : gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+            Frames = frames,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Stops the gain ramp of a bus at its current value. False when the ring is full or the bus was not handed out.</summary>
+    public bool TryFreezeBusGain(int bus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.FreezeBus, Bus = bus };
+        return _commands.TryEnqueue(in command);
     }
 
     /// <summary>Routes the attached SPU to a bus, applied in order with the other commands.</summary>
@@ -387,6 +431,33 @@ internal sealed class SoftwareMixer
         };
 
         return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>
+    /// Ramps the volume of a voice to <paramref name="volume"/> over <paramref name="frames"/> output frames, linearly per
+    /// sample, from its current value (the value a previous ramp reached when it is interrupted). The ramp starts at the
+    /// start of the next block the audio thread renders, at most one block (about 10 ms) after the command is sent. It
+    /// advances while the voice is paused. While it runs, a <see cref="TrySetVolume"/> ends it and the volume of a
+    /// <see cref="TrySetParameters"/> is ignored (pan and pitch still apply).
+    /// </summary>
+    public bool TryRampVoiceVolume(int slot, int generation, float volume, int frames)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.RampVoice,
+            Slot = slot,
+            Generation = generation,
+            Volume = Math.Clamp(float.IsNaN(volume) ? 1f : volume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+            Frames = frames,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Stops the volume ramp of a voice at the value it has reached.</summary>
+    public bool TryFreezeVoiceVolume(int slot, int generation)
+    {
+        return TrySimple(MixerCommandKind.FreezeVoice, slot, generation);
     }
 
     public bool TryPause(int slot, int generation)
@@ -569,6 +640,8 @@ internal sealed class SoftwareMixer
 
             if (!voice.Started || voice.Paused)
             {
+                // A ramp keeps running on a silent voice, like the game thread chronology it follows.
+                FinishVoiceRamp(ref voice, frameCount);
                 continue;
             }
 
@@ -581,6 +654,11 @@ internal sealed class SoftwareMixer
             else
             {
                 RenderResident(v, ref voice, busBuffer, frameCount);
+            }
+
+            if (voice.Active)
+            {
+                FinishVoiceRamp(ref voice, frameCount);
             }
         }
 
@@ -614,33 +692,143 @@ internal sealed class SoftwareMixer
         for (var b = _busCount - 1; b >= 0; b--)
         {
             var source = BusBuffer(b, sampleCount);
-            var target = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[b]));
+            ref var ramp = ref _busRamps[b];
+            var publishCount = Volatile.Read(ref _busGainPublishCount[b]);
+            var publishedBits = Volatile.Read(ref _busGainBits[b]);
+
+            // A gain published after the ramp started is an explicit change: it wins.
+            if ((ramp.Active || ramp.Holding) && publishCount != ramp.SeenPublishCount)
+            {
+                ramp.Active = false;
+                ramp.Holding = false;
+            }
+
+            var ramping = ramp.Active;
+            var rampStart = ramp.Value;
+            var rampIncrement = ramp.Increment;
+            var rampTarget = ramp.Target;
+            var rampLeft = ramp.FramesLeft;
+            var target = ramp.Holding ? (float)ramp.Value : BitConverter.Int32BitsToSingle(publishedBits);
             var gain = _busAppliedGain[b];
             var increment = (target - gain) / frameCount;
+            var destination = b == MasterBus ? output : BusBuffer(_busParent[b], sampleCount);
+            var add = b != MasterBus;
 
-            if (b == MasterBus)
+            for (var f = 0; f < frameCount; f++)
             {
-                for (var i = 0; i < sampleCount; i += 2)
+                if (ramping)
+                {
+                    gain = (float)(f + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (f + 1));
+                }
+                else
                 {
                     gain += increment;
-                    output[i] = source[i] * gain;
-                    output[i + 1] = source[i + 1] * gain;
+                }
+
+                var i = f * 2;
+
+                if (add)
+                {
+                    destination[i] += source[i] * gain;
+                    destination[i + 1] += source[i + 1] * gain;
+                }
+                else
+                {
+                    destination[i] = source[i] * gain;
+                    destination[i + 1] = source[i + 1] * gain;
+                }
+            }
+
+            if (ramping)
+            {
+                if (frameCount >= rampLeft)
+                {
+                    ramp.Active = false;
+                    ramp.Holding = true;
+                    ramp.Value = rampTarget;
+                    ramp.FramesLeft = 0;
+                    _busAppliedGain[b] = (float)rampTarget;
+                }
+                else
+                {
+                    ramp.Value = rampStart + rampIncrement * frameCount;
+                    ramp.FramesLeft = rampLeft - frameCount;
+                    _busAppliedGain[b] = (float)ramp.Value;
                 }
             }
             else
             {
-                var destination = BusBuffer(_busParent[b], sampleCount);
-
-                for (var i = 0; i < sampleCount; i += 2)
-                {
-                    gain += increment;
-                    destination[i] += source[i] * gain;
-                    destination[i + 1] += source[i + 1] * gain;
-                }
+                _busAppliedGain[b] = target;
             }
-
-            _busAppliedGain[b] = target;
         }
+    }
+
+    // Render thread. The ramp starts from the gain the bus has now; see TryRampBusGain.
+    private void StartBusRamp(int bus, float target, int frames)
+    {
+        frames = Math.Max(1, frames);
+        ref var ramp = ref _busRamps[bus];
+        ramp.Value = _busAppliedGain[bus];
+        ramp.Target = target;
+        ramp.Increment = (target - ramp.Value) / frames;
+        ramp.FramesLeft = frames;
+        ramp.Active = true;
+        ramp.Holding = false;
+        ramp.SeenPublishCount = Volatile.Read(ref _busGainPublishCount[bus]);
+    }
+
+    // Render thread. A frozen bus keeps the gain it reached until another value is published.
+    private void FreezeBusRamp(int bus)
+    {
+        ref var ramp = ref _busRamps[bus];
+
+        if (ramp.Active)
+        {
+            ramp.Active = false;
+            ramp.Holding = true;
+            ramp.Value = _busAppliedGain[bus];
+        }
+    }
+
+    // Render thread. Starts a voice ramp from the volume the voice has now (a running ramp keeps Volume at its
+    // value at the start of the block, which is where a command is applied).
+    private static void StartVoiceRamp(ref MixerVoice voice, float target, int frames)
+    {
+        frames = Math.Max(1, frames);
+        voice.RampValue = voice.Volume;
+        voice.RampTarget = target;
+        voice.RampIncrement = (target - voice.RampValue) / frames;
+        voice.RampFramesLeft = frames;
+        voice.RampActive = true;
+    }
+
+    // Render thread, after a block: moves a running ramp forward by the block, and keeps Volume and the channel
+    // gains at the value reached, so the next command (or the end of the ramp) starts from it.
+    private static void FinishVoiceRamp(ref MixerVoice voice, int frameCount)
+    {
+        if (!voice.RampActive)
+        {
+            return;
+        }
+
+        double value;
+
+        if (frameCount >= voice.RampFramesLeft)
+        {
+            value = voice.RampTarget;
+            voice.RampActive = false;
+            voice.RampFramesLeft = 0;
+        }
+        else
+        {
+            value = voice.RampValue + voice.RampIncrement * frameCount;
+            voice.RampFramesLeft -= frameCount;
+        }
+
+        voice.RampValue = value;
+        voice.Volume = (float)value;
+        voice.CurrentLeftGain = voice.TargetLeftGain = voice.PanLeftFactor * voice.Volume;
+        voice.CurrentRightGain = voice.TargetRightGain = voice.PanRightFactor * voice.Volume;
     }
 
     private void ApplyCommand(in MixerCommand command)
@@ -682,6 +870,26 @@ internal sealed class SoftwareMixer
                 // A new bus starts at its published gain: no ramp from a stale value.
                 _busAppliedGain[command.Bus] = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[command.Bus]));
                 _busCount++;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RampBus)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                StartBusRamp(command.Bus, command.Volume, command.Frames);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.FreezeBus)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                FreezeBusRamp(command.Bus);
             }
 
             return;
@@ -748,10 +956,18 @@ internal sealed class SoftwareMixer
                     ApplyLoopRegion(ref voice, command.Parameters);
                 }
 
-                SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, false);
+                // A running ramp owns the volume.
+                SetParameters(ref voice, voice.RampActive ? voice.Volume : command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, false);
                 break;
             case MixerCommandKind.SetVolume:
+                voice.RampActive = false;
                 SetParameters(ref voice, command.Volume, voice.Pan, voice.Pitch, false);
+                break;
+            case MixerCommandKind.RampVoice:
+                StartVoiceRamp(ref voice, command.Volume, command.Frames);
+                break;
+            case MixerCommandKind.FreezeVoice:
+                voice.RampActive = false;
                 break;
             case MixerCommandKind.SetStereoGains:
                 if (voice.ExplicitGains)
@@ -898,17 +1114,25 @@ internal sealed class SoftwareMixer
 
         if (voice.ExplicitGains)
         {
+            voice.PanLeftFactor = voice.ExplicitLeft;
+            voice.PanRightFactor = voice.ExplicitRight;
             left = volume * voice.ExplicitLeft;
             right = volume * voice.ExplicitRight;
         }
         else if (voice.SourceChannels == 1)
         {
             var angle = (pan + 1.0) * QuarterPi;
-            left = (float)(volume * Math.Cos(angle));
-            right = (float)(volume * Math.Sin(angle));
+            var cos = Math.Cos(angle);
+            var sin = Math.Sin(angle);
+            voice.PanLeftFactor = (float)cos;
+            voice.PanRightFactor = (float)sin;
+            left = (float)(volume * cos);
+            right = (float)(volume * sin);
         }
         else
         {
+            voice.PanLeftFactor = pan > 0f ? 1f - pan : 1f;
+            voice.PanRightFactor = pan < 0f ? 1f + pan : 1f;
             left = pan > 0f ? volume * (1f - pan) : volume;
             right = pan < 0f ? volume * (1f + pan) : volume;
         }
@@ -947,6 +1171,7 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = false;
+        voice.RampActive = false;
         voice.ExplicitGains = false;
         voice.EndPending = false;
         voice.Started = false;
@@ -988,6 +1213,13 @@ internal sealed class SoftwareMixer
         var rightGain = voice.CurrentRightGain;
         var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
         var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        var ramping = voice.RampActive;
+        var rampStart = voice.RampValue;
+        var rampIncrement = voice.RampIncrement;
+        var rampTarget = voice.RampTarget;
+        var rampLeft = voice.RampFramesLeft;
+        var panLeft = voice.PanLeftFactor;
+        var panRight = voice.PanRightFactor;
         var ended = frames == 0;
 
         for (var i = 0; i < frameCount && !ended; i++)
@@ -1035,8 +1267,18 @@ internal sealed class SoftwareMixer
                 r = Hermite(data[i0 + 1] * InverseShortRange, data[i1 + 1] * InverseShortRange, data[i2 + 1] * InverseShortRange, data[i3 + 1] * InverseShortRange, t);
             }
 
-            leftGain += leftIncrement;
-            rightGain += rightIncrement;
+            if (ramping)
+            {
+                var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
+                leftGain = panLeft * rampGain;
+                rightGain = panRight * rampGain;
+            }
+            else
+            {
+                leftGain += leftIncrement;
+                rightGain += rightIncrement;
+            }
+
             output[i * 2] += l * leftGain;
             output[i * 2 + 1] += r * rightGain;
             position += step;
@@ -1062,6 +1304,13 @@ internal sealed class SoftwareMixer
         var rightGain = voice.CurrentRightGain;
         var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
         var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        var ramping = voice.RampActive;
+        var rampStart = voice.RampValue;
+        var rampIncrement = voice.RampIncrement;
+        var rampTarget = voice.RampTarget;
+        var rampLeft = voice.RampFramesLeft;
+        var panLeft = voice.PanLeftFactor;
+        var panRight = voice.PanRightFactor;
 
         for (var i = 0; i < frameCount; i++)
         {
@@ -1105,8 +1354,18 @@ internal sealed class SoftwareMixer
             var l = Hermite(voice.L0, voice.L1, voice.L2, voice.L3, t);
             var r = stereo ? Hermite(voice.R0, voice.R1, voice.R2, voice.R3, t) : l;
 
-            leftGain += leftIncrement;
-            rightGain += rightIncrement;
+            if (ramping)
+            {
+                var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
+                leftGain = panLeft * rampGain;
+                rightGain = panRight * rampGain;
+            }
+            else
+            {
+                leftGain += leftIncrement;
+                rightGain += rightIncrement;
+            }
+
             output[i * 2] += l * leftGain;
             output[i * 2 + 1] += r * rightGain;
             fraction += step;
@@ -1232,4 +1491,24 @@ internal sealed class SoftwareMixer
     }
 
     #endregion
+
+    /// <summary>Render-thread state of the gain ramp of one bus.</summary>
+    private struct BusRamp
+    {
+        /// <summary>A ramp is running: the gain is interpolated per sample.</summary>
+        public bool Active;
+
+        /// <summary>The ramp ended or was frozen: the gain stays at <see cref="Value"/> until another gain is published.</summary>
+        public bool Holding;
+
+        /// <summary>Gain at the start of the current block (running), or the held gain.</summary>
+        public double Value;
+
+        public double Target;
+        public double Increment;
+        public int FramesLeft;
+
+        /// <summary>Publish count of the bus when the ramp started; a later publish ends the ramp.</summary>
+        public int SeenPublishCount;
+    }
 }

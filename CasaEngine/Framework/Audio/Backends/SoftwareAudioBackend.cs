@@ -587,6 +587,84 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         _nextVoiceBus = busIndex;
     }
 
+    public bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds)
+    {
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive || !IsOutputAlive())
+        {
+            return false;
+        }
+
+        var frames = SecondsToFrames(durationSeconds);
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRampVoiceVolume(voice.Index, slot.Generation, targetVolume, frames)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public void FreezeVoiceVolume(AudioVoiceHandle voice)
+    {
+        if (TryGetSlot(voice, out var slot) && slot.MixerAlive)
+        {
+            SendSimple(MixerCommandKind.FreezeVoice, voice.Index, slot.Generation);
+        }
+    }
+
+    public bool TryRampBusGain(int busIndex, float targetGain, float durationSeconds)
+    {
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        var frames = SecondsToFrames(durationSeconds);
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRampBusGain(busIndex, targetGain, frames)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public void FreezeBusGain(int busIndex)
+    {
+        if (!IsOutputAlive())
+        {
+            return;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryFreezeBusGain(busIndex)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+    }
+
+    // At least one frame; capped so the frame count of a very long duration stays an int.
+    private int SecondsToFrames(float durationSeconds)
+    {
+        var frames = Math.Round((double)durationSeconds * _mixer.OutputSampleRate);
+        return float.IsNaN(durationSeconds) ? 1 : (int)Math.Clamp(frames, 1.0, int.MaxValue / 2);
+    }
+
     public bool TrySetPsxSpuBus(PsxSpuPort port, int busIndex)
     {
         ArgumentNullException.ThrowIfNull(port);

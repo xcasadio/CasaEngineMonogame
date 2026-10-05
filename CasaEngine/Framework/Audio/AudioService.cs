@@ -25,6 +25,7 @@ public sealed class AudioService : IDisposable
     private readonly List<int> _backendBusIndices = new();
     private int _syncedBusVersion = -1;
     private readonly List<VoiceEntry> _voices = new();
+    private readonly List<BusFade> _busFades = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
     private readonly AudioLogThrottle _missingClipLog = new();
     private readonly AudioLogThrottle _spuLog = new();
@@ -404,7 +405,13 @@ public sealed class AudioService : IDisposable
         }
 
         entry.BaseParameters = entry.BaseParameters.WithVolume(volume);
-        ApplyGain(entry);
+
+        // A fade the backend ramps owns the volume (the next Update sets the chronology value back, as the per-frame
+        // fade does): pushing a volume here would end the ramp.
+        if (!entry.IsBackendRamp)
+        {
+            ApplyGain(entry);
+        }
     }
 
     /// <summary>Volume asked for by the caller, before the bus gain. Zero for a stale handle.</summary>
@@ -448,6 +455,13 @@ public sealed class AudioService : IDisposable
     /// Starting a second fade on the same voice replaces the first one, starting from the volume
     /// reached so far, so chained fades never jump.
     /// </summary>
+    /// <remarks>
+    /// With <see cref="IAudioBusBackend"/> the backend interpolates the ramp itself, sample by sample on the audio
+    /// thread, and this service keeps its own chronology of it (start, target, duration, time elapsed in
+    /// <see cref="Update"/>): <see cref="GetVoiceVolume"/>, <see cref="IsFading"/>, the release at the end of
+    /// <see cref="StopWithFade"/> and the start of the next fade follow that chronology, which is at most one audio
+    /// block (about 10 ms) away from what is rendered. Without the capability the volume is stepped each frame.
+    /// </remarks>
     public void FadeVoice(
         AudioVoiceHandle voice,
         float targetVolume,
@@ -466,6 +480,7 @@ public sealed class AudioService : IDisposable
         if (durationSeconds <= 0f || float.IsNaN(durationSeconds))
         {
             entry.IsFading = false;
+            entry.IsBackendRamp = false;
             entry.BaseParameters = entry.BaseParameters.WithVolume(target);
             ApplyGain(entry);
 
@@ -484,6 +499,67 @@ public sealed class AudioService : IDisposable
         entry.FadeDuration = durationSeconds;
         entry.FadeElapsed = 0f;
         entry.FadeCompletion = completion;
+        entry.IsBackendRamp = _busBackend != null && _busBackend.TryRampVoiceVolume(entry.Handle, target, durationSeconds);
+    }
+
+    /// <summary>
+    /// Ramps the own volume of the bus <paramref name="busName"/> to <paramref name="targetVolume"/> over
+    /// <paramref name="durationSeconds"/>; <see cref="AudioBus.Volume"/> follows the ramp as <see cref="Update"/> advances
+    /// it, and a zero duration applies the target at once. An unknown bus is ignored. A second fade on the same bus
+    /// replaces the first, starting from the volume reached so far.
+    /// </summary>
+    /// <remarks>
+    /// With <see cref="IAudioBusBackend"/> the backend interpolates the gain per sample on the audio thread, within one
+    /// block (about 10 ms) of the volume of <see cref="AudioBus"/>. Muting or unmuting the bus during the fade takes
+    /// effect at the next <see cref="Update"/>, as without the capability: the backend ramp is then abandoned by an
+    /// explicit publish, and the rest of the fade is published each frame from the chronology. Without the capability the
+    /// bus volume is stepped each frame, so the gain of every voice on the bus is reapplied at each <see cref="Update"/>.
+    /// </remarks>
+    public void FadeBus(string busName, float targetVolume, float durationSeconds)
+    {
+        if (_isDisposed || float.IsNaN(targetVolume) || !Mixer.TryGetBus(busName, out var bus))
+        {
+            return;
+        }
+
+        var target = Math.Clamp(targetVolume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        var fade = FindBusFade(bus);
+        var backendIndex = _busBackend != null ? BackendIndexOf(bus) : -1;
+
+        if (durationSeconds <= 0f || float.IsNaN(durationSeconds))
+        {
+            var wasRamped = fade is { Active: true, BackendRamp: true };
+
+            if (fade != null)
+            {
+                fade.Active = false;
+            }
+
+            bus.Volume = target;
+
+            // An explicit publish also ends a ramp the backend still holds.
+            if (wasRamped)
+            {
+                _busBackend.SetBusGain(backendIndex, bus.IsMuted ? 0f : target);
+            }
+
+            return;
+        }
+
+        if (fade == null)
+        {
+            fade = new BusFade { Bus = bus };
+            _busFades.Add(fade);
+        }
+
+        fade.Active = true;
+        fade.Start = bus.Volume;
+        fade.Target = target;
+        fade.Duration = durationSeconds;
+        fade.Elapsed = 0f;
+        fade.BackendIndex = backendIndex;
+        fade.MutedAtSend = bus.IsMuted;
+        fade.BackendRamp = backendIndex >= 0 && _busBackend.TryRampBusGain(backendIndex, bus.IsMuted ? 0f : target, durationSeconds);
     }
 
     /// <summary>Fades the voice out and releases it once silent.</summary>
@@ -497,7 +573,14 @@ public sealed class AudioService : IDisposable
     {
         if (TryGetEntry(voice, out var entry))
         {
+            if (entry.IsFading && entry.IsBackendRamp)
+            {
+                // The backend stops where it is; the volume stays the one the chronology reached.
+                _busBackend.FreezeVoiceVolume(entry.Handle);
+            }
+
             entry.IsFading = false;
+            entry.IsBackendRamp = false;
         }
     }
 
@@ -662,6 +745,8 @@ public sealed class AudioService : IDisposable
             return;
         }
 
+        AdvanceBusFades(elapsedSeconds);
+
         var mixerChanged = _appliedMixerVersion != Mixer.Version;
 
         if (mixerChanged)
@@ -755,7 +840,12 @@ public sealed class AudioService : IDisposable
 
         var volume = entry.FadeStartVolume + ((entry.FadeTargetVolume - entry.FadeStartVolume) * progress);
         entry.BaseParameters = entry.BaseParameters.WithVolume(volume);
-        ApplyGain(entry);
+
+        // A ramp interpolated by the backend needs no per-frame push: this is only its chronology.
+        if (!entry.IsBackendRamp)
+        {
+            ApplyGain(entry);
+        }
 
         if (progress < 1f)
         {
@@ -763,6 +853,7 @@ public sealed class AudioService : IDisposable
         }
 
         entry.IsFading = false;
+        entry.IsBackendRamp = false;
 
         if (entry.FadeCompletion != AudioFadeCompletion.Stop)
         {
@@ -771,6 +862,73 @@ public sealed class AudioService : IDisposable
 
         _backend.Stop(entry.Handle);
         ReleaseEntry(entry);
+        return true;
+    }
+
+    /// <summary>
+    /// Advances the chronology of every bus fade and writes the volume it reaches to the bus. A fade ramped by the
+    /// backend publishes its final gain once, when it ends, so the backend holds exactly the volume of the bus.
+    /// </summary>
+    private void AdvanceBusFades(float elapsedSeconds)
+    {
+        for (var i = 0; i < _busFades.Count; i++)
+        {
+            var fade = _busFades[i];
+
+            if (!fade.Active)
+            {
+                continue;
+            }
+
+            fade.Elapsed += elapsedSeconds;
+
+            var progress = fade.Elapsed >= fade.Duration ? 1f : fade.Elapsed / fade.Duration;
+            fade.Bus.Volume = fade.Start + ((fade.Target - fade.Start) * progress);
+
+            if (progress < 1f)
+            {
+                continue;
+            }
+
+            fade.Active = false;
+
+            if (fade.BackendRamp)
+            {
+                _busBackend.SetBusGain(fade.BackendIndex, fade.Bus.IsMuted ? 0f : fade.Bus.Volume);
+            }
+        }
+    }
+
+    private BusFade FindBusFade(AudioBus bus)
+    {
+        for (var i = 0; i < _busFades.Count; i++)
+        {
+            if (ReferenceEquals(_busFades[i].Bus, bus))
+            {
+                return _busFades[i];
+            }
+        }
+
+        return null;
+    }
+
+    // True while the backend ramps the gain of the bus: its gain is not published from the bus volume meanwhile.
+    private bool IsRampedByBackend(AudioBus bus)
+    {
+        var fade = FindBusFade(bus);
+
+        if (fade is not { Active: true, BackendRamp: true })
+        {
+            return false;
+        }
+
+        // The mute changed since the ramp was sent: the ramp (sent with the old mute) is abandoned, the caller publishes.
+        if (bus.IsMuted != fade.MutedAtSend)
+        {
+            fade.BackendRamp = false;
+            return false;
+        }
+
         return true;
     }
 
@@ -896,7 +1054,7 @@ public sealed class AudioService : IDisposable
 
         for (var i = 0; i < buses.Count; i++)
         {
-            if (_backendBusIndices[i] >= 0)
+            if (_backendBusIndices[i] >= 0 && !IsRampedByBackend(buses[i]))
             {
                 _busBackend.SetBusGain(_backendBusIndices[i], buses[i].IsMuted ? 0f : buses[i].Volume);
             }
@@ -994,6 +1152,9 @@ public sealed class AudioService : IDisposable
         public float FadeElapsed;
         public AudioFadeCompletion FadeCompletion;
 
+        /// <summary>The backend interpolates the running fade itself (<see cref="IAudioBusBackend.TryRampVoiceVolume"/>); the fields above are its chronology.</summary>
+        public bool IsBackendRamp;
+
         public void Reset()
         {
             Handle = AudioVoiceHandle.None;
@@ -1011,6 +1172,22 @@ public sealed class AudioService : IDisposable
             FadeDuration = 0f;
             FadeElapsed = 0f;
             FadeCompletion = AudioFadeCompletion.None;
+            IsBackendRamp = false;
         }
+    }
+
+    // Chronology of one bus fade: the bus volume follows it, and the backend ramps the gain itself when it can. One
+    // entry per bus, reused by the next fade of that bus, so a fade allocates nothing after the first one.
+    private sealed class BusFade
+    {
+        public AudioBus Bus;
+        public bool Active;
+        public float Start;
+        public float Target;
+        public float Duration;
+        public float Elapsed;
+        public int BackendIndex;
+        public bool BackendRamp;
+        public bool MutedAtSend;
     }
 }
