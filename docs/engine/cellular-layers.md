@@ -177,7 +177,11 @@ référencent, jamais la couche entière.
 Même règle que le mécanisme frère : `Submit` ne lit jamais `GraphicsDevice`, le rectangle de ciseaux est
 un paramètre résolu une fois par frame par `Update`. Chaque couche porte son propre `SpriteBlendMode`/
 teinte (politique DLL), lus directement depuis `CellularLayerDefinition.Blend`/`Tint` — aucune
-résolution supplémentaire ici, elle appartient à la DLL.
+résolution supplémentaire ici, elle appartient à la DLL. Une couche qui porte un `PsxSemiTransparency`
+autre que `None` (ADR-0053, qui étend ADR-0051 aux couches de fond) ignore son `Blend` : chaque cellule
+est soumise en deux entrées de même clé (la clé par cellule d'ADR-0052 est gardée) sur deux fenêtres
+d'alpha brut disjointes, les texels opaques à l'état opaque puis les texels STP à l'état du mode ; voir
+`sprite-psx-semi-transparency.md`. Un mode `None` (défaut) garde une entrée par cellule au `Blend` de la couche.
 
 ## 12. Limites connues (V1)
 

@@ -94,7 +94,12 @@ rectangle de test.
 ## 6. Fusion et résolution des textures
 
 Chaque couche porte son propre `SpriteBlendMode`/teinte (politique DLL) ; la teinte plein écran est
-toujours soumise en `SpriteBlendMode.AlphaBlend`. Les textures sont résolues par
+toujours soumise en `SpriteBlendMode.AlphaBlend`. Une couche qui porte un `PsxSemiTransparency` autre que
+`None` (ADR-0053, qui étend ADR-0051 aux couches de fond) ignore son `Blend` : chaque quad couvrant est
+soumis en deux entrées de même clé sur deux fenêtres d'alpha brut disjointes, les texels opaques (alpha
+255) à l'état opaque puis les texels STP (alpha 128) à l'état du mode (`Mode0` moyenne, `Mode1` additif,
+`Mode2` soustractif, `Mode3` additif de couleur (64, 64, 64)) ; voir `sprite-psx-semi-transparency.md`.
+Un mode `None` (défaut) garde une entrée au `Blend` de la couche. Les textures sont résolues par
 `ScrollingLayerComponent.ResolveTextures(loader)`, appelé par `Update` seulement quand
 `Service.LayersVersion` change (jamais par frame) — un id nul (`Guid.Empty`) donne une trame nulle
 sans appeler le délégué ; trame 0 nulle → couche ignorée ; trame `f ≥ 1` nulle → repli sur `[frame0]`

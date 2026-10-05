@@ -109,12 +109,15 @@ deux fenêtres d'alpha brut disjointes (texels opaques, puis texels STP à l'ét
   `scratchpad/e19g2c-exec/demo-out/backdrop-layers.png`, lectures `backdrop-layers.txt` (vert) et `backdrop-layers-red.txt` (rouge).
 - Commit : `feat(demos): per-texel PSX semi-transparency of background layers demo`
 
-### ⏳ E3 — Documentation et ADR
+### ✅ E3 — Documentation et ADR
 
 - Objectif : docs `scrolling-layers.md`, `cellular-layers.md`, `sprite-psx-semi-transparency.md`, commentaire de
   `CellularLayerDefinition` ; ADR du moteur (prochain numéro libre, `Accepted`, D-E19-68, étend ADR-0051 aux couches de fond) et sa
   ligne d'index.
-- Commit : `docs(adr): ADR per-texel PSX semi-transparency of background layers`
+- Validation faite : ADR-0053 (`Accepted`, en anglais) et sa ligne à l'index ; `docs/engine/sprite-psx-semi-transparency.md` (section
+  « Background layers »), `scrolling-layers.md` §6 et `cellular-layers.md` §11 (en français, langue de ces fichiers) y renvoient ; commentaire de
+  `CellularLayerDefinition`.
+- Commit : `docs(adr): ADR-0053 background layers draw per-texel PSX semi-transparency`
 
 ---
 

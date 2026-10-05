@@ -1,6 +1,6 @@
 # Sprite PSX semi-transparency
 
-Decisions: see ADR-0051.
+Decisions: see ADR-0051 and, for the background layers, ADR-0053.
 
 A sprite can carry a PSX semi-transparency mode, so that the semi-transparent texels of its sheet (the PSX "STP" texels, stored at
 alpha 128) blend with the scene the way the PSX GPU blends them, while the opaque texels of the same sprite stay opaque.
@@ -32,6 +32,15 @@ depends only on the PSX mode, never on `SpriteBlendMode`. The window tests the r
 sampler); every draw path that uses the sprite effect sets its window, so none leaks into the next draw. The path by `zOrder` (an
 entity without `DepthSortable2DComponent`) stays opaque.
 
+## Background layers
+
+`ScrollingLayerDefinition` and `CellularLayerDefinition` also carry a `PsxSemiTransparency` (default `None`, ADR-0053). When it is not
+`None`, `ScrollingLayerComponent.Submit` (each covering quad) and `CellularLayerComponent.Submit` (each cell) call an internal overload
+of `SpriteRendererComponent.DrawSprite` (`Texture2D`, source rectangle, origin, position, rotation, scale, colour, z, sort key, effects,
+scissor, mode) that queues the same two entries as above, with the same sort key and z, and the `Blend` of the layer is ignored; the
+per-cell sort offset of ADR-0052 is kept. With `None` the layers draw one entry with their `Blend`, as before. The tint overlay of the
+scrolling layers is not touched. The `Sprite` overloads of `DrawSprite` are not redirected to it.
+
 ## Limits
 
 - The formulas are the PSX ones on 8-bit colours, not the 5-bit arithmetic of the hardware (differences up to a few levels).
@@ -47,7 +56,8 @@ grow with the queue (they never shrink). The index buffer (six indices) does not
 
 ## Demos
 
-`PSX sprite semi-transparency` and `Sprite queue capacity` (`CasaEngine.Demos/Demos/PsxSemiTransparency/`) read their own back-buffer
+`PSX sprite semi-transparency`, `Sprite queue capacity` and `Background layers PSX semi-transparency` (the last one draws scrolling and
+cellular layers from PNG sheets in `CasaEngine.Demos/Content/PsxBackdropLayers/`; `CasaEngine.Demos/Demos/PsxSemiTransparency/`) read their own back-buffer
 in process and compare it with the expected pixels to within one level per channel. From the `CasaEngine.Demos` folder:
 
 ```
