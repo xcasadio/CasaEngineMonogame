@@ -29,7 +29,8 @@ public sealed class AudioService : IDisposable
     {
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
-        Music = new MusicPlayer(this);
+        // Real backends stream music from the background worker; test and null backends read inline.
+        Music = new MusicPlayer(this, _backend is Backends.SoftwareAudioBackend or Backends.MonoGameAudioBackend);
         _stereoVoiceMixer = new StereoVoiceMixer(this);
     }
 

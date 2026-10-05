@@ -806,7 +806,7 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   référence Hermite, multiplicateur 4, de bout en bout par `AudioService` (faux backend et rendu du
   backend logiciel). `CasaEngine.Tests` 2853/2853.
 
-### ⏳ T2.5 — Lecture des musiques hors du thread de jeu (P13)
+### ✅ T2.5 — Lecture des musiques hors du thread de jeu (P13)
 
 - Objectif : plus aucune lecture disque dans `Update` pour les pistes de `MusicPlayer`.
 - Fichiers : `CasaEngine/Framework/Audio/Streaming/MusicPlayer.cs`, nouveau
@@ -827,6 +827,22 @@ vérificateur ; stress : deux passages au plus par build ; budget épuisé → �
   de jeu après `Play`** ; boucle et fin de piste via le travailleur réel (attente bornée) ; démo :
   stress de 60 s avec la musique : 0 sous-alimentation ; suite complète.
 - Commit : `feat(audio): read streamed music on a background worker`
+- Note de validation (2026-10-05) : exécuté par un sous-agent `executor`, conception relue.
+  `StreamingWorker` interne : un thread d'arrière-plan « CasaEngine Audio Streaming » par
+  `MusicPlayer` (donc un par service audio), créé au premier `Play` en mode travailleur ; par piste
+  un anneau de 6 emplacements de 16 384 octets (≈ 98 Ko), compteurs publiés par `Volatile`, sommeil
+  sur un évènement (garde de 250 ms), aucune allocation en régime établi. `Play` reste synchrone
+  (ouverture, en-tête, premier remplissage), puis le lecteur appartient au seul travailleur ;
+  `Stop`/fin de fondu : état « libération », le travailleur ferme le lecteur ; `Dispose` joint le
+  thread (2 s). Choix du mode : `AudioService.cs:32` (backend logiciel ou MonoGame → travailleur,
+  sinon en ligne). Changement observable mineur : en mode travailleur, `GetPosition` donne la
+  position du dernier buffer transmis à la voix (au lieu de la position de lecture du fichier),
+  plus proche de ce qu'on entend ; le mode en ligne est inchangé. `MusicPlayerTests.cs` : diff vide,
+  vert. Tests (+7) : aucune lecture sur le thread de jeu après `Play`, boucle au-delà de deux
+  longueurs, fin de piste, erreur de lecture sans exception côté jeu, `Stop` et réutilisation,
+  `Dispose` avec pistes en cours, zéro allocation de l'`Update` ; stables sur 5 passages
+  supplémentaires (attentes bornées à 2 s). Stress de 60 s (musique streamée, défaut logiciel) :
+  `underruns=0 gc=119`. `CasaEngine.Tests` 2860/2860.
 
 ### ⚠️ T2.6 — Débranchement et changement de périphérique (séparée de S2, en pause)
 
