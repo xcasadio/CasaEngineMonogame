@@ -507,7 +507,7 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   `Audio backend: MonoGameAudioBackend (source: environment)`. L'affichage n'a pas été regardé :
   coup d'œil de l'auteur en T1.8.
 
-### ⏳ T1.7 — Documentation
+### ✅ T1.7 — Documentation
 
 - Objectif : documenter l'architecture et le réglage.
 - Fichiers : `docs/engine/audio-system.md`.
@@ -515,6 +515,12 @@ travaillent dans le dépôt parent selon ses propres règles et plans (`docs/pla
   sémantique (P5), l'avance (P6), les limites connues mises à jour (ADPCM en S3, pas de limiteur).
 - Validation : relecture ; liens vers ADR-0055.
 - Commit : `docs(audio): document the software mixer and the backend setting`
+- Note de validation (2026-10-05) : écrit en session principale, en français comme le reste du
+  document. Schéma d'ensemble mis à jour ; nouvelle section « 1 bis. Mixeur logiciel du moteur »
+  (choix du backend, sortie, sémantique, mixage, tests) ; limites connues mises à jour (formats
+  `.wav`, ADPCM refusé, bornes 8–48 kHz propres au backend MonoGame, pas de limiteur, latence et
+  mesure de stress) ; évolutions reliées au programme ; démo (touche `G`, commande sans clavier).
+  Liens relatifs vérifiés (`test -f`).
 
 ### ⏳ T1.8 — Vérification de la tranche et recette de l'auteur
 

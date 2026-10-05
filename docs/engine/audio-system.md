@@ -2,7 +2,7 @@
 
 Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture sont figées dans
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
-Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md) and [ADR-0040](../decisions/0040-project-audio-mute-setting.md).
+Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md), [ADR-0040](../decisions/0040-project-audio-mute-setting.md) and [ADR-0055](../decisions/0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) (mixeur logiciel du moteur, §1 bis).
 
 ---
 
@@ -15,17 +15,69 @@ AudioService                 pool de voix, routage vers les bus, fades, proprié
    ├─ AudioMixer             arbre de bus nommés, gain effectif
    ├─ MusicPlayer            pistes streamées, fade in/out, crossfade
    └─ IAudioBackend          frontière plateforme
+              ├─ SoftwareAudioBackend   mixeur C# du moteur + sortie native mince (§1 bis)
               ├─ MonoGameAudioBackend   OpenAL, SoundEffect + DynamicSoundEffectInstance
               ├─ NullAudioBackend       aucun périphérique : tout devient silencieux
               └─ FakeAudioBackend       tests (dans CasaEngine.Tests)
         ↑
-AudioSystemComponent         GameComponent : possède le backend, appelle Update
+AudioSystemComponent         GameComponent : choisit et possède le backend, appelle Update
 ```
+
+Les fichiers `.wav` sont chargés par `WavAudioClipLoader` en `PcmAudioClip` : PCM 16 bits entrelacé,
+mono ou stéréo, sans aucun type MonoGame, lisible par les deux backends (§1 bis).
 
 Point d'entrée depuis le jeu : `game.AudioSystemComponent.Service`.
 
 `AudioService` ne contient **aucun type MonoGame ni `Game`** : c'est ce qui rend les bus, les voix,
 les fades et le streaming testables, un périphérique OpenAL ne pouvant pas être ouvert en CI.
+
+---
+
+## 1 bis. Mixeur logiciel du moteur (ADR-0055)
+
+Le moteur mixe lui-même son audio, en C#, sur un thread audio dédié qui calcule de l'avance ; une
+sortie native minimale envoie le flux à la carte. C'est la première tranche (S1) du programme
+« audio moderne » ([plan](../../ai-agent/tasks/audio-modern-tasks.md)) : même contrat
+`IAudioBackend`, même API d'`AudioService`, aucun changement côté jeu.
+
+```text
+thread de jeu                               thread audio « CasaEngine Audio »
+AudioService ─▶ SoftwareAudioBackend         OpenAlAudioOutput (contexte OpenAL propre au thread)
+                 table des voix, états          │ toutes les ~10 ms : buffers consommés
+                 │ commandes (file sans verrou)  ▼
+                 └──────────────▶ SoftwareMixer.Render ─▶ 4 buffers float stéréo en file
+                 ◀────────────── fins de voix, buffers de streaming consommés
+```
+
+- **Choix du backend**, une fois au démarrage, dans cet ordre :
+  1. la variable d'environnement `CASAENGINE_AUDIO_BACKEND` (`Software` ou `MonoGame`), valable
+     pour tous les hôtes, éditeur compris ;
+  2. sinon le réglage de projet `AudioBackend` (absent = non renseigné) ;
+  3. sinon le défaut, `AudioBackendSelection.DefaultKind` (`MonoGame` jusqu'à la recette d'écoute,
+     puis `Software`).
+
+  La ligne `Audio backend: <type> (source: environment|project|default)` est consignée au
+  démarrage. Si la sortie logicielle ne s'ouvre pas, le moteur revient au backend MonoGame
+  (`(fallback from Software)`). L'éditeur crée son runtime sans projet : il suit la variable ou le
+  défaut, jamais le réglage du projet ouvert ensuite.
+- **Sortie** : OpenAL Soft livré par MonoGame (`openal`), lié directement. Le moteur ouvre **son
+  propre** périphérique et contexte, rendu courant sur le seul thread audio
+  (`ALC_EXT_thread_local_context`), et ne touche jamais le contexte global de MonoGame. Le flux
+  est stéréo, en flottant 32 bits, joué sans spatialisation (`AL_SOFT_direct_channels`) au débit
+  du périphérique. Avance par défaut : 4 buffers de 10 ms (40 ms). Avec ce backend, l'audio de
+  MonoGame n'est jamais initialisé.
+- **Sémantique** : volume linéaire [0, 1] ; pitch en octaves (±1), appliqué comme 2^pitch ; boucle
+  du clip entier. Un clip mono est panoramiqué à **puissance constante** (−3 dB au centre), un clip
+  stéréo par **balance** ; une voix stéréo (musique, `PlayClipStereo`) est restituée exactement,
+  gauche vers gauche et droite vers droite. C'est un changement audible par rapport au backend
+  MonoGame, qui tourne la position OpenAL de la source.
+- **Mixage** : flottant 32 bits, rééchantillonnage cubique (Hermite à 4 points), rampe linéaire
+  des gains sur un bloc quand le volume ou le pan change (pas de clic), écrêtage dur en sortie.
+  Tout débit de clip ou de flux positif est accepté (pas de bornes 8–48 kHz). Le rendu ne fait
+  aucune allocation.
+- **Tests** : le mixeur se rend hors ligne, à l'échantillon près, sans carte son ; une suite de
+  conformité vérifie le même contrat sur le faux backend et le backend logiciel. La tenue en temps
+  réel se mesure avec le mode stress de la démo (§11).
 
 ---
 
@@ -242,27 +294,41 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 
 - **Pas de MP3.** MonoGame DesktopGL ne sait pas le décoder, ni en effet ni en musique. Le `.mp3`
   n'est plus annoncé comme jouable dans le Content Browser. Convertir en `.wav`.
-- **Streaming : PCM 16 bits uniquement.** C'est le format attendu par
-  `DynamicSoundEffectInstance`, donc aucune conversion n'est faite. Les autres variantes de `.wav`
-  (8/24 bits, float, ADPCM) restent lisibles en mode non streamé.
-- **Streaming : 8 000-48 000 Hz.** Limite de `DynamicSoundEffectInstance`
-  (`MonoGameAudioBackend.MinStreamingSampleRate` / `MaxStreamingSampleRate`). Une musique `.wav`
-  hors de cette plage n'est pas rééchantillonnée : la piste est refusée avec un log throttlé, sans
-  exception ni voix perdue. Le rééchantillonnage ne concerne que les voix stéréo logicielles (§5 bis).
+- **Streaming : PCM 16 bits uniquement.** C'est le format du contrat `IAudioBackend.SubmitBuffer`,
+  donc aucune conversion n'est faite.
+- **`.wav` résidents : PCM entier 8/16/24/32 bits et flottant 32 bits, mono ou stéréo**
+  (`WavDecoder`, `WAVE_FORMAT_EXTENSIBLE` compris). L'**ADPCM** (MS, IMA) n'est plus lu depuis
+  ADR-0055 : le fichier est refusé avec une erreur consignée (tranche S3 du programme). Aucun
+  `.wav` du dépôt n'en utilise.
+- **Backend MonoGame : streaming entre 8 000 et 48 000 Hz.** Limite de `DynamicSoundEffectInstance`
+  (`MonoGameAudioBackend.MinStreamingSampleRate` / `MaxStreamingSampleRate`) : une piste hors plage
+  est refusée avec un log throttlé, sans exception ni voix perdue. Le backend logiciel n'a pas cette
+  limite. Les voix stéréo logicielles (§5 bis) rééchantillonnent encore par facteur entier, quel que
+  soit le backend.
 - **Pas d'audio 3D.** Volume et pan uniquement : ni listener, ni atténuation par distance, ni
   Doppler.
 - **Lecture disque sur le thread de jeu.** Le remplissage des buffers se fait dans `Update`
   (~88 Ko/s pour une musique 22 kHz stéréo 16 bits), avec environ une demi-seconde de file
   d'avance contre les frames longues.
-- **Limite de voix.** 64 par défaut côté backend, contre 256 sources OpenAL disponibles. Au-delà,
-  la voix est refusée avec un log throttlé, jamais une exception.
+- **Limite de voix.** 64 par défaut côté backend. Au-delà, la voix est refusée avec un log
+  throttlé, jamais une exception.
+- **Pas de limiteur ni d'effet** (tranche S4) : le backend logiciel écrête simplement la sortie.
+- **Latence du backend logiciel** : environ 40 ms d'avance plus la mise en tampon du périphérique.
+  Le thread audio se réveille au rythme de la minuterie Windows (environ 15,6 ms). Mesure du
+  2026-10-05 : 0 sous-alimentation sur 60 s de stress (ramasse-miettes forcé toutes les 500 ms).
 - **Pas de persistance des volumes utilisateur.** Les réglages de bus ne sont pas sauvegardés.
-- **La lecture réelle n'est pas couverte par les tests.** Un périphérique OpenAL ne peut pas être
-  ouvert en CI ; toute la logique l'est via `FakeAudioBackend`, le reste passe par la démo.
+- **La sortie vers la carte son n'est pas couverte par les tests automatiques.** Le mixeur logiciel
+  l'est, à l'échantillon près, hors ligne ; la sortie OpenAL passe par le mode stress de la démo.
 
 ---
 
 ## 10. Évolutions prévues
+
+Le programme « audio moderne » ([plan](../../ai-agent/tasks/audio-modern-tasks.md), ADR-0055)
+enchaîne, sur le mixeur logiciel, les tranches suivantes : temps réel et streaming hors du thread de
+jeu (S2), formats Ogg et ADPCM (S3), bus et effets (S4), couche jeu avec priorités, conteneurs et
+3D (S5), outils de l'éditeur (S6), puis le module PSX (SPU, séquenceur SEQ/VAB, XA). Les points
+ci-dessous viennent de la V1 et y sont repris.
 
 - Décodeur **Ogg Vorbis** branché sur `WavStreamReader`/`MusicPlayer` — NVorbis est déjà présent
   en dépendance transitive de MonoGame.
@@ -291,3 +357,16 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 | `Haut` / `Bas` | volume du bus `Master` |
 | `Gauche` / `Droite` | volume du bus `Sfx` |
 | `M` / `N` | mute `Master` / `Sfx` |
+| `G` | mode stress : SFX en boucle et musique, allocations massives et ramasse-miettes forcé toutes les 500 ms ; arrêt par un second appui |
+
+L'écran affiche le backend actif et le nombre de voix ; avec le backend logiciel, aussi l'avance,
+le débit de sortie et le compteur de sous-alimentations.
+
+Mode stress sans clavier, depuis `CasaEngine.Demos/bin/Debug/net9.0-windows/` :
+
+```bash
+CASAENGINE_START_DEMO="Audio demo" CASAENGINE_AUDIO_BACKEND=Software CASAENGINE_AUDIO_STRESS_SECONDS=60 ./CasaEngine.Demos.exe
+```
+
+Le jeu se ferme seul ; `log.txt` contient une ligne `Audio stress: backend=… elapsed=… underruns=…`
+par seconde, puis `Audio stress done: backend=… seconds=60 underruns=… gc=…`.
