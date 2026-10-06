@@ -1,6 +1,6 @@
 # Sprite PSX semi-transparency
 
-Decisions: see ADR-0051 and, for the background layers, ADR-0053.
+Decisions: see ADR-0051 and, for the background layers, ADR-0053; for the quads with four free vertices, ADR-0068.
 
 A sprite can carry a PSX semi-transparency mode, so that the semi-transparent texels of its sheet (the PSX "STP" texels, stored at
 alpha 128) blend with the scene the way the PSX GPU blends them, while the opaque texels of the same sprite stay opaque.
@@ -46,13 +46,36 @@ flat primitive has no per-texel STP, so the tint stays **one** entry on the neut
 `AlphaBlend` with `(R, G, B, 128)`, `Mode1` `Additive` and `Mode2` `Subtractive` with `(R, G, B, 255)`, `Mode3` `Additive` with each
 channel times 64/255 (rounded to nearest). The two-argument constructor and `None` keep the colour as given, `AlphaBlend`.
 
+## Free quads
+
+`SpriteRendererComponent.DrawPsxQuad` (ADR-0068) draws a PS1 textured quad: four vertices in the order of the PS1 data (top-left,
+top-right, bottom-left, bottom-right of the texture rectangle) placed anywhere in the world (units = PS1 pixels, y up), so a scaled,
+mirrored, sheared or arbitrary quad is drawn as the PS1 draws it.
+
+```csharp
+renderer.DrawPsxQuad(texture, new Rectangle(sx, sy, w, h), topLeft, topRight, bottomLeft, bottomRight,
+    Color.White, z, in sortKey, SpritePsxSemiTransparency.None, scissorRectangle);
+```
+
+- The rectangle is the **raw** texture window of the PS1 data in texels (`u, v, w, h`). The texture coordinates are its corners, never
+  flipped: a mirror is in the corners. A mirrored axis names its window one texel back; the producer gives it that way.
+- The quad is split along the TR-BL diagonal (the PS1 split). The entry is drawn without face culling, so a mirrored quad shows.
+- A PSX mode queues two entries of the same key, z and corners, as for a sprite (opaque texels, then STP texels).
+- Overloads: with or without a sort key (the `z` path), explicit scissor or the device scissor.
+- Drawing uses the effect `Shaders/PsxQuad.fx`, loaded on the first quad entry. At the integer factor k (screen pixels per PS1 pixel,
+  read from the projection and the viewport): coverage by the top-left corner of the screen pixel, texel `floor(u(p) + 1/2)` with
+  p = ((sx + 1/2) / k - 1/2, (sy + 1/2) / k - 1/2). Exact at k = 1; a 1:1 quad equals the rectangle path at every factor; a
+  deformed quad at k > 1 is smoother than the PS1 enlarged.
+- Demo: `PSX free quads` (`CASAENGINE_PSXQUAD_ZOOM` 1 or 3, `CASAENGINE_PSXQUAD_DUMP_PATH` for the back-buffer dump), run from the
+  `CasaEngine.Demos` folder.
+
 ## Limits
 
 - The formulas are the PSX ones on 8-bit colours, not the 5-bit arithmetic of the hardware (differences up to a few levels).
 - The back-buffer alpha is rewritten by `Mode0` (191 instead of 255): an in-process capture saved as PNG shows those pixels
   translucent.
 - A shader of a project that predates the `AlphaWindow` parameter draws every texel (the parameter is skipped when absent).
-- Quads with four free vertices are not covered (G2b of the Alundra port).
+- Quads with four free vertices are drawn by `DrawPsxQuad` (next section), not by the sprite overloads.
 
 ## Capacity
 
