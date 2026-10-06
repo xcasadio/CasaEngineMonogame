@@ -1719,6 +1719,19 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
 
 ---
 
+## Fusion dans `main` (2026-10-06, à la demande de l'auteur)
+
+- Le `main` local (`ebeb81c9` : S1 et la pile e19) et `origin/main` (`dd91efe7` : correctif
+  `MouseManager.HasMoved`) avaient divergé. `origin/main` a d'abord été fusionné dans la branche du
+  chantier (`e3d2d5f8`) ; les deux solutions compilent sans erreur, la suite passe à 3140/3140 (un
+  test de durée de T2.1 a échoué une fois au premier passage et a été corrigé, O20).
+- `main` a ensuite été avancé en avance rapide sur la branche (`git fetch . chantier/audio-modern:main`,
+  aucun commit sur `main`) : il contient S1 à S4, X1, S6a et `origin/main` ; un push serait une
+  avance rapide d'`origin/main`. **Rien n'a été poussé.**
+- Restent ouverts : S5 (O23), S6b (O24), X3 (O4, O16), T2.6, O11, O13, les écoutes 🧪 (T1.8, T3.1,
+  T5.6, T6.2) et les choix à confirmer (O12, O19, O22). Le plan reste dans `tasks/` tant que ces
+  tranches ne sont pas tranchées.
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
