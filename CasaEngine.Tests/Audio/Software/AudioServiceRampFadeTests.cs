@@ -512,6 +512,80 @@ public class AudioServiceRampFadeTests
     }
 
     [Fact]
+    public void AMuteSetBeforeARampedBusFadeInTheSameFrame_SilencesTheBus_UntilItIsUnmuted()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = true;
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.5f, 1f);
+            rig.Tick();
+        }
+
+        Assert.Equal(0f, fake.Fake.GetParameters(fakeVoice).Volume);
+        Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+
+        for (var tick = 0; tick < 50; tick++)
+        {
+            soft.Tick();
+            fake.Tick();
+            Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+        }
+
+        // Unmuting half way: the output follows the chronology and the fade ends at its target on the fallback's tick.
+        foreach (var rig in new[] { soft, fake })
+        {
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = false;
+            rig.Tick(3);
+        }
+
+        AssertRendered(soft, BusVolume(soft), OneBlockOfASecondFade);
+        Assert.Equal(BusVolume(fake), BusVolume(soft), 5);
+
+        for (var tick = 0; tick < 60; tick++)
+        {
+            soft.Tick();
+            fake.Tick();
+            Assert.Equal(BusVolume(fake), BusVolume(soft), 5);
+        }
+
+        Assert.Equal(0.5f, BusVolume(soft), 5);
+        AssertRendered(soft, 0.5f, 1e-3f);
+    }
+
+    [Fact]
+    public void AMuteSetBeforeASnapshotApplicationOverTime_SilencesTheBusFromTheNextUpdate()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            var snapshot = rig.Service.CaptureSnapshot();
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).Volume = 0.2f;
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = true;
+            rig.Service.ApplySnapshot(snapshot, 2f);
+            rig.Tick();
+        }
+
+        Assert.Equal(0f, fake.Fake.GetParameters(fakeVoice).Volume);
+        Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+
+        soft.Tick(50);
+        Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+    }
+
+    [Fact]
     public void FadeBus_IgnoresAnUnknownBus()
     {
         using var soft = new Rig(true);

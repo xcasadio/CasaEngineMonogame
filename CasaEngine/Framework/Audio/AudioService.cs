@@ -594,7 +594,10 @@ public sealed class AudioService : IDisposable
         fade.Elapsed = 0f;
         fade.BackendIndex = backendIndex;
         fade.MutedAtSend = bus.IsMuted;
-        fade.BackendRamp = backendIndex >= 0 && _busBackend.TryRampBusGain(backendIndex, bus.IsMuted ? 0f : target, durationSeconds);
+
+        // A muted bus is not ramped by the backend: its fade is published each frame from the chronology, which is 0 while
+        // it is muted, so the mute applies at the next Update (ramping from the audible gain would keep it audible).
+        fade.BackendRamp = !bus.IsMuted && backendIndex >= 0 && _busBackend.TryRampBusGain(backendIndex, target, durationSeconds);
     }
 
     /// <summary>

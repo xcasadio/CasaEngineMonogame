@@ -1500,6 +1500,16 @@ Budget : identique à S2.
   compteur de la rampe). 5 tests de non-régression (scénarios A, C, D et E du vérificateur, chacun
   comparé au repli, et un test du mixeur) ; les deux solutions : 0 erreur ; suite complète
   3062/3062 (trois passages) ; stress de 60 s : `underruns=0`. Avis A1 traité dans la doc.
+  **Nouveau vérificateur frais sur `580a8e66` : REFUTED** — F1 et A2 corrigés (sonde d'origine et
+  cinq scénarios d'ordre supplémentaires justes ; builds, 3062/3062 en trois passages, stress),
+  mais **N1 (P2, présent depuis T5.2, manqué au premier passage)** : un muet posé *avant* un fondu
+  de bus rampé dans la même frame n'est pas appliqué sous la capacité ; le bus reste audible pendant
+  tout le fondu (cas réaliste : couper Sfx puis appliquer un snapshot de 2 s). **Correctif de N1**
+  (passe 2 sur 5) : `FadeBus` n'envoie plus de rampe au backend pour un bus muet ; la chronologie
+  publie alors `muet ? 0 : volume` à chaque frame, comme pour un muet posé en cours de fondu.
+  2 tests (scénarios F et F2 du vérificateur, comparés au repli, avec rétablissement du son) ; les
+  deux solutions : 0 erreur ; suite complète 3064/3064 (trois passages) ; stress de 60 s :
+  `underruns=0`.
 
 ---
 
