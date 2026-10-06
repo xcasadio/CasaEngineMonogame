@@ -242,6 +242,10 @@ public class GameEditor : Game, IObservableUpdate
     private string _nodeClipboard; // JSON-serialized node subtree for copy/paste
     private LogsPanel _logsPanel;
     private MGElement _logsContent;
+    private AudioProfilerPanel _audioProfilerPanel;
+    private MGElement _audioProfilerContent;
+    // True while the "Audio" tool panel is in the dock (docked, floating or hidden in a tab): only then are the meters read.
+    private bool _isAudioProfilerPresent;
     private Action _pendingProjectLauncherAction;
     private FrameCachedWindowInputSource _windowInputSource;
     private string _editorInputProbePath;
@@ -477,6 +481,7 @@ public class GameEditor : Game, IObservableUpdate
                 _dockHost.ActivePanelChanged -= OnDockHostActivePanelChanged;
                 _dockHost.PanelRemoved -= OnDockHostPanelRemoved;
                 _dockHost.PanelClosing -= OnDockHostPanelClosing;
+                _dockHost.DockLayoutChanged -= OnDockHostLayoutChangedRefreshAudioProfilerPresence;
                 _editorContext.ActiveDocumentChanged -= OnActiveDocumentChangedSyncToolPanels;
             }
 
@@ -533,6 +538,8 @@ public class GameEditor : Game, IObservableUpdate
         _menuBar.AddItem("Windows", item =>
         {
             item.Submenu = new MGContextMenu(_mainWindow, null);
+            item.Submenu.AddButton("Audio", _ => OpenAudioProfilerPanel());
+            item.Submenu.AddSeparator();
             item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
             item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
             item.Submenu.AddSeparator();
@@ -1317,6 +1324,7 @@ public class GameEditor : Game, IObservableUpdate
         _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
         _dockHost.PanelRemoved += OnDockHostPanelRemoved;
         _dockHost.PanelClosing += OnDockHostPanelClosing;
+        _dockHost.DockLayoutChanged += OnDockHostLayoutChangedRefreshAudioProfilerPresence;
         _editorContext.ActiveDocumentChanged += OnActiveDocumentChangedSyncToolPanels;
         _rootPanel.TryAddChild(_dockHost, Dock.Top);
         SetupInitialDockLayout();
@@ -2081,6 +2089,64 @@ public class GameEditor : Game, IObservableUpdate
         return _logsContent;
     }
 
+    private MGElement GetOrCreateAudioProfilerContent()
+    {
+        // The single audio service of the editor, which the play-in-editor session shares.
+        _audioProfilerPanel ??= new AudioProfilerPanel(_mainWindow, () => _editorRuntime?.AudioSystemComponent?.Service);
+        _audioProfilerContent ??= _audioProfilerPanel.CreateContent();
+        return _audioProfilerContent;
+    }
+
+    /// <summary>
+    /// Windows &gt; Audio: docks the registered "Audio" tool panel by the path of <see cref="EnsureContextualToolPanelPresent"/>
+    /// (a tab of the Content Browser / Logs group, without changing the default layout), or only makes it the active tab when it
+    /// is already in the dock.
+    /// </summary>
+    private void OpenAudioProfilerPanel()
+    {
+        if (_dockHost?.LayoutModel == null)
+        {
+            return;
+        }
+
+        if (!IsDockPanelPresent(EditorPanelIds.AudioProfiler))
+        {
+            EnsureContextualToolPanelPresent(EditorPanelIds.AudioProfiler);
+        }
+
+        ActivateDockPanel(EditorPanelIds.AudioProfiler);
+        RefreshAudioProfilerPresence();
+    }
+
+    /// <summary>
+    /// The dock host raises its events (and <see cref="EnsureContextualToolPanelPresent"/> raises none) at points where the
+    /// model is not always settled, so the presence of the "Audio" panel is recomputed from the model after the fact and kept
+    /// in a flag: <see cref="Update"/> must not walk the layout tree on every frame.
+    /// </summary>
+    private void RefreshAudioProfilerPresence()
+    {
+        bool isPresent = IsDockPanelPresent(EditorPanelIds.AudioProfiler);
+        if (isPresent && !_isAudioProfilerPresent)
+        {
+            // Docked (again): start from what the backend publishes now, not from where the last reading stopped.
+            _audioProfilerPanel?.Reset();
+        }
+
+        _isAudioProfilerPresent = isPresent;
+    }
+
+    private void OnDockHostLayoutChangedRefreshAudioProfilerPresence(object sender, EventArgs e)
+    {
+        RefreshAudioProfilerPresence();
+    }
+
+    private bool IsDockPanelPresent(string panelId)
+    {
+        var layoutModel = _dockHost?.LayoutModel;
+        return layoutModel != null
+            && (layoutModel.FindPanelById(panelId) != null || layoutModel.FindFloatingGroupOf(panelId) != null);
+    }
+
     private EditorPanelRegistry CreatePanelRegistry()
     {
         return new EditorPanelRegistry(new[]
@@ -2131,6 +2197,13 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Logs",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateLogsContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.AudioProfiler,
+                Title = "Audio",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = GetOrCreateAudioProfilerContent,
             },
             new EditorPanelDescriptor
             {
@@ -2539,6 +2612,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             var json = File.ReadAllText(layoutPath);
             _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
+            RefreshAudioProfilerPresence();
             _ = GetOrCreateLogsContent();
             LoadPersistedViewportViewState();
 
@@ -2564,6 +2638,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _dockHost.LayoutModel.RootNode = CreateDefaultDockLayout();
+        RefreshAudioProfilerPresence();
     }
 
     private DockNode CreateDefaultDockLayout()
@@ -2746,6 +2821,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)
     {
+        if (string.Equals(panel.Id, EditorPanelIds.AudioProfiler, StringComparison.Ordinal))
+        {
+            // Closed: the meters are no longer read. The model may not be settled yet, so the flag is not recomputed from it.
+            _isAudioProfilerPresent = false;
+        }
+
         if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
         {
             _screenPreviewPanels.Remove(panel.Id);
@@ -5902,6 +5983,16 @@ public class GameEditor : Game, IObservableUpdate
                 // instead of killing the editor.
                 Logs.WriteError($"Play mode stopped by an unhandled gameplay exception: {ex}");
                 StopPlayMode();
+            }
+        }
+
+        // Read on every frame while the "Audio" panel is in the dock: the backend keeps its blocks for 80 ms only, and the
+        // meters integrate every block published since the previous frame. After the host update, which runs the audio service.
+        if (_isAudioProfilerPresent && _audioProfilerPanel != null)
+        {
+            using (EditorPerformanceProbe.BeginPhase("AudioProfilerPanel.Update"))
+            {
+                _audioProfilerPanel.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             }
         }
 

@@ -1651,7 +1651,7 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
   (une ligne de journal). Les deux solutions : 0 erreur, aucun avertissement dans les fichiers
   touchés ; suite complète 3087/3087 (trois passages) ; stress de 60 s : `underruns=0`.
 
-### ⏳ T6.2 — Panneau « Audio » de l'éditeur (P23)
+### 🧪 T6.2 — Panneau « Audio » de l'éditeur (P23)
 
 - Fichiers : `CasaEngine.Editor/Controls/AudioProfilerPanel.cs`, un contrôle de vu-mètre dans
   `CasaEngine.Editor/Controls/`, `CasaEngine.Editor/Workspaces/EditorPanelIds.cs` (nouvel
@@ -1680,6 +1680,24 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
   et dans le texte suivant** ; lecture des mesures sans allocation) ; build des deux solutions ;
   vérification visuelle du panneau dans l'éditeur : 🧪 pour l'auteur.
 - Commit : `feat(editor): an audio profiler panel with bus meters`
+- Note de validation (2026-10-06) : `AudioProfilerPanel` (forme de `LogsPanel`), `AudioMeterControl`
+  (`MGElement` : barre de crête verte, jaune, rouge avec bascules à −12 et −3 dBFS sur −60..0,
+  barre efficace, repère de maintien, voyant de dépassement) et **`AudioProfilerModel.cs` en plus de
+  la liste** (logique sans UI, testable sans GPU) ; identifiant `EditorPanelIds.AudioProfiler` ;
+  dans `GameEditor.cs` (ajouts seulement) : descripteur d'outil « Audio » à côté de « Logs », entrée
+  « Windows > Audio » qui ancre le panneau par `EnsureContextualToolPanelPresent` (groupe du Content
+  Browser et des Logs ; disposition par défaut inchangée) ou active son onglet, indicateur de
+  présence tenu par les événements du dock (pas de recherche par frame), lecture des mesures à chaque
+  `Update` tant qu'il est ancré. Constantes : maintien de crête 1,5 s, retombée 20 dB/s, plancher
+  −90 dBFS (« -inf »), textes au plus toutes les 0,25 s et seulement quand une valeur affichée change
+  au dixième de dB. Sans la capacité : « Metering unavailable » et les statistiques communes, sans
+  avertissement. **Écart** : l'état du SPU se limite à « hébergé ou non » (`AudioService` ne publie
+  pas son port SPU ; un accesseur public additif serait une petite suite possible). 44 tests
+  (`CasaEngine.Tests/Editor/AudioProfilerTests.cs`) dont la crête isolée d'un bloc entre deux
+  reconstructions de texte (visible dans le maintien et le texte suivant), l'intervalle de 0,25 s
+  (test de mutation à 0,05 : deux échecs), la lecture sans allocation, le panneau construit sans GPU.
+  Les deux solutions : 0 erreur, aucun avertissement dans les fichiers touchés ; suite complète
+  3131/3131 (trois passages). Éditeur non lancé : vérification visuelle 🧪 pour l'auteur.
 
 ### ⏳ T6.3 — Documentation, ADR et vérification
 
