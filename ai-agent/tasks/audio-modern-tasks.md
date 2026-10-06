@@ -2827,7 +2827,7 @@ de clôture **READY**.
   sans erreur, aucun avertissement dans les fichiers ajoutés ; 3632/3632 ; diffs vides depuis `c468280c` sur
   `AudioService.cs`, `IAudioBackend.cs`, `AudioMixer.cs`, `AudioBus.cs`.
 
-### ⏳ T10.2 — Validation et application au mixeur vivant (P46, P47)
+### ✅ T10.2 — Validation et application au mixeur vivant (P46, P47)
 
 - Fichiers : nouveaux `CasaEngine/Framework/Audio/Mixing/AudioMixerAssetValidator.cs` (avec `AudioMixerPlan`),
   `AudioMixerAssetApplier.cs` ; tests `AudioMixerAssetValidatorTests.cs`, `AudioMixerAssetApplierTests.cs`. Aucun
@@ -2855,6 +2855,15 @@ de clôture **READY**.
   logiciel hors ligne : un bus créé sous Sfx à 0,5 rend 0,5 de l'amplitude d'une voix constante ; un 33e bus refusé avec
   problème. Deux solutions ; suite verte.
 - Commit : `feat(audio): validate a mixer asset and apply it to the live mixer`
+- Note de validation (2026-10-06) : `AudioMixerAssetValidator` (quatre phases ; ordre parents d'abord par parcours
+  itératif ; graphe parents, départs et ducking comme `AudioMixer.Reaches` ; les départs et ducking déjà vivants ne sont
+  pas lus pour les cycles, un conflit avec un effet ou un départ du jeu remonte comme exception attrapée et avertie) ;
+  `AudioMixerAssetApplier` : état possédé par bus, retrait des bus possédés absents du plan, puis deux passes ; effets
+  comparés élément par élément (même type, même source de ducking, instance toujours sur le bus) et seules les propriétés
+  qui diffèrent sont écrites, donc une réapplication identique ne publie rien ; `Apply(null)` = `Release()`. 47 tests,
+  dont le départ vers un bus déclaré après sa source, la source de ducking changée (nouvelle instance, ancienne
+  retirée), l'effet du jeu resté en tête, le 33e bus refusé sous le backend logiciel et le rendu à 0,5 d'un bus créé.
+  Deux solutions sans erreur, aucun avertissement dans les fichiers ajoutés ; 3679/3679.
 
 ### ⏳ T10.3 — Réglage de projet, application au démarrage et dans l'éditeur (P48)
 
