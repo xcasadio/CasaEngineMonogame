@@ -1,6 +1,6 @@
 # ADR-0058: A software PlayStation SPU hosted by the software audio backend
 
-- **Status**: Accepted (hardware tables policy superseded in part by ADR-0061: the engine is to ship the ADPCM coefficients and a formula-computed reverb FIR)
+- **Status**: Accepted (hardware tables policy superseded in part by ADR-0061 and ADR-0062: the engine ships the ADPCM coefficients and a formula-computed reverb FIR)
 - **Date**: 2026-10-06 (decided by the agent in AUTO mode after the author's "fini tout", within the approved
   program envelope; to be confirmed by the author on return)
 - **Source**: this chantier: `ai-agent/tasks/audio-modern-tasks.md`, slice X1 (tasks T4.1-T4.5, decisions P9 and

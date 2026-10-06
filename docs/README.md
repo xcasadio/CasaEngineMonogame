@@ -57,7 +57,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### Audio
 
 - [audio-system.md](engine/audio-system.md) — système audio V1 : bus de mixage (et, sous le backend logiciel, graphe de bus avec effets, départs, ducking, limiteur, fondus à l'échantillon et snapshots, ADR-0059), asset `.sound`, SFX one-shot/loop, streaming des musiques (fade, crossfade), `SoundEmitterComponent`, actions de cutscene, règles play-in-editor et limites connues.
-- [psx-spu.md](engine/psx-spu.md) — SPU PlayStation logiciel (ADR-0058) : registres, ADPCM, ADSR, bruit, PMON, réverbération, tables matérielles fournies par l'appelant, hébergement par le backend logiciel (`AudioService.TryCreatePsxSpu`, `PsxSpuPort`), bornes et ordre des écritures, points de précision ouverts.
+- [psx-spu.md](engine/psx-spu.md) — SPU PlayStation logiciel (ADR-0058, ADR-0062) : registres, ADPCM, ADSR, bruit, PMON, réverbération, tables par défaut (`CreateDefault`) ou fournies par l'appelant, hébergement par le backend logiciel (`AudioService.TryCreatePsxSpu`, `PsxSpuPort`), bornes et ordre des écritures, points de précision ouverts.
 
 ### Rendu 2D
 

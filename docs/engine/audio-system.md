@@ -170,6 +170,9 @@ service.MasterLimiter.CeilingDb = -1f;              // actif par défaut
   relâchement.
 - **Limiteur du Master** : `AudioService.MasterLimiter`, actif par défaut à −1 dBFS ;
   `IsEnabled = false` le coupe. Tout son au-dessus du plafond est réduit au lieu d'être écrêté.
+  Un projet peut le couper par le réglage `IsMasterLimiterEnabled: false` de son fichier de projet
+  (sans interface, comme `IsAudioMuted`), appliqué au démarrage et, dans l'éditeur, à chaque
+  ouverture de projet ; sans ce réglage le limiteur est actif (ADR-0062).
 - **Snapshots** : `CaptureSnapshot` retient le volume propre de chaque bus et les paramètres des
   effets insérés ; `ApplySnapshot` rétablit les volumes par `FadeBus` et les paramètres aussitôt.
   Le bus `Editor`, le muet des bus (donc le muet projet du `Master`) et le limiteur ne sont jamais

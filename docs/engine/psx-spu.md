@@ -21,20 +21,28 @@ with it.
   table is supplied.
 
 Not emulated: CD audio and XA input, SPU interrupts, capture buffers, sound RAM reads by DMA, the volume sweep of the
-reverb output, the libsnd sequencer (separate slice X3, paused).
+reverb output. No libsnd sequencer is planned: Alundra's music stays pre-rendered WAV (ADR-0061).
 
 ## Hardware tables
 
 `PsxSpuHardwareTables` holds the three constant tables of the chip: the 5 ADPCM filter coefficient pairs (required),
-the 39 reverb FIR coefficients and the 512-entry Gaussian table (both optional). The engine ships none of them
-(open question O12 of the audio plan): the caller supplies them, and they are validated and copied at construction.
-Without FIR coefficients the reverb is bypassed (no output, no work-area write); without a Gaussian table the cubic
-interpolation is used.
+the 39 reverb FIR coefficients and the 512-entry Gaussian table (both optional). Tables are validated and copied at
+construction. Without FIR coefficients the reverb is bypassed (no output, no work-area write); without a Gaussian
+table the cubic interpolation is used.
+
+`PsxSpuHardwareTables.CreateDefault()` gives the tables the engine ships (ADR-0061):
+
+- the 5 ADPCM filter pairs as psx-spx gives them (CD-ROM XA "Pos/neg Tables", which the SPU shares): positive
+  0, 60, 115, 98, 122; negative 0, 0, -52, -55, -60;
+- a 39-tap reverb FIR computed by formula, not measured on the console: windowed-sinc low-pass with a Blackman
+  window (S. W. Smith, "The Scientist and Engineer's Guide to Digital Signal Processing", ch. 16), cut-off
+  11025 Hz, unity DC gain. The reverb therefore works, but its exact tone is an approximation;
+- no Gaussian table: interpolation stays cubic unless the caller supplies one.
 
 ## Usage
 
 ```csharp
-var tables = new PsxSpuHardwareTables(adpcmPositive, adpcmNegative, reverbFir, gaussian);
+var tables = PsxSpuHardwareTables.CreateDefault(); // or new PsxSpuHardwareTables(...) with your own tables
 if (audioService.TryCreatePsxSpu(tables, AudioBusNames.Music, out var spu))
 {
     spu.TryUpload(0x1000, soundBank);          // bytes into SPU RAM
@@ -51,11 +59,11 @@ if (audioService.TryCreatePsxSpu(tables, AudioBusNames.Music, out var spu))
 ```
 
 - `AudioService.TryCreatePsxSpu` works only on a backend that implements `IPsxSpuHost` (the software backend).
-  Elsewhere (MonoGame backend, test fakes) it returns false and logs "SPU unavailable" once.
+  Elsewhere (MonoGame backend, test fakes) it returns false and logs "SPU unavailable" (at most once per 5 s).
 - One SPU is alive per backend, like the console; a second creation fails until the first is disposed.
 - `PsxSpuPort` mirrors every setter of `PsxSpu` as a `Try*` method. Call it from the game thread only.
-- `SetGain` sets the gain of the whole SPU; it is multiplied by the effective gain of the bus given at creation and
-  re-applied when bus gains change. Until the bus graph of the audio plan's slice S4, the bus is not a real mix stage.
+- `SetGain` sets the gain of the whole SPU, which is mixed into the bus given at creation like a voice (bus graph,
+  ADR-0059).
 - `PsxSpu` itself can also be used directly, without the mixer (offline rendering, tests): it renders with
   `Render(Span<short>, frames)` and is not thread safe.
 
@@ -81,12 +89,13 @@ psx-spx leaves several points open (rounding of the ADPCM division, timing of th
 noise generator start, reverb resampling layout and gain, and others). Each choice is marked
 `AMBIGUOUS (psx-spx)` in the code and listed in open question O19 of `ai-agent/tasks/audio-modern-tasks.md`. The
 tests recompute the psx-spx formulas with synthetic tables, so a misreading would be reproduced by them: the choices
-are to be confirmed against hardware references. Known consequence: the reverb may come out about half as loud as on
-the console (output FIR gain not compensated).
+are to be confirmed by listening against a recording of the console (ADR-0061). Known consequences: the reverb may
+come out about half as loud as on the console (output FIR gain not compensated), and with the default tables its
+tone is approximate (formula FIR).
 
 ## Demo and tests
 
-- The audio demo (`CasaEngine.Demos`, "Audio demo") starts an SPU with synthetic tables and a square wave on four
+- The audio demo (`CasaEngine.Demos`, "Audio demo") starts an SPU with the default tables and a square wave on four
   voices when its stress mode runs (key G or `CASAENGINE_AUDIO_STRESS_SECONDS`), and shows its state and refused
   writes.
 - Tests: `CasaEngine.Tests/Audio/Psx/` (decoding, pitch, loops, volumes, sweep, ADSR, noise, PMON, reverb, zero
