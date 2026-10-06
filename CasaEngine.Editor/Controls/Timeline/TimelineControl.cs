@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Input;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers.Grids;
-using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Keyboard;
 using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Editor.Controls.Timeline.Rendering;
@@ -144,7 +143,7 @@ internal class TimelineControl : MGGrid
         };
         _viewport = new TimelineViewport(window, this);
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
-        _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
+        _horizontalScrollBar.ValueChangedNonAlloc += OnHorizontalScrollBarValueChanged;
 
         _timelineGrid.TryAddChild(0, 0, _cornerHeader);
         _timelineGrid.TryAddChild(0, 1, _ruler);
@@ -947,7 +946,7 @@ internal class TimelineControl : MGGrid
         _trackColumn.Length = GridLength.CreatePixelLength(width);
     }
 
-    private void OnHorizontalScrollBarValueChanged(object? sender, EventArgs<float> e)
+    private void OnHorizontalScrollBarValueChanged(object? sender, (float PreviousValue, float NewValue) e)
     {
         if (_suppressScrollBarCallback)
         {

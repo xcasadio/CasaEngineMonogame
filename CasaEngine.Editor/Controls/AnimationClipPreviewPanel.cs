@@ -501,7 +501,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
             ShowValueLabel = true,
             ValueLabelFormat = valueFormat,
         };
-        slider.ValueChanged += (_, args) =>
+        slider.ValueChangedNonAlloc += (_, args) =>
         {
             if (_suspendControlCallbacks)
             {

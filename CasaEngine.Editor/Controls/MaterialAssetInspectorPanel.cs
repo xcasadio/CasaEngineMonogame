@@ -1283,7 +1283,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             _slider = slider;
             _propertyDefinition = propertyDefinition;
             _applyValue = applyValue;
-            _slider.ValueChanged += (_, args) =>
+            _slider.ValueChangedNonAlloc += (_, args) =>
             {
                 if (_isUpdating)
                 {

@@ -500,7 +500,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   erreur (218 et 188 avertissements), aucun avertissement CS0618 ni sur `ValueChanged`, `CasaEngine.Tests` 3159/3159.
   Ce commit porte aussi les notes de T1.1 à T1.11 de ce plan.
 
-### ⏳ T2.2 — Abonnés du moteur sur `ValueChangedNonAlloc`
+### 🧪 T2.2 — Abonnés du moteur sur `ValueChangedNonAlloc`
 
 - Objectif : D5 côté moteur.
 - Fichiers : `CasaEngine.Editor/Controls/AnimationClipPreviewPanel.cs` (`:504`),
@@ -515,6 +515,11 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   ou une sous-classe ; ouverture de l'éditeur, glissement d'un slider de l'inspecteur de matériau et défilement
   horizontal de la timeline : 🧪 laissés à l'auteur si l'agent ne peut pas les piloter.
 - Commit : `perf(editor): subscribe editor and demo sliders to the allocation-free value event`
+- Note (2026-10-06) : 5 abonnements migrés, corps inchangés ; gestionnaire de la timeline sur le tuple ;
+  `using MGUI.Shared.Helpers` de `TimelineControl.cs` retiré, devenu inutile (le projet éditeur compile sans lui). La
+  recherche d'acceptation ne trouve plus d'abonnement `ValueChanged` sur un slider. Deux solutions 0 erreur (build
+  incrémental), `CasaEngine.Tests` 3159/3159. Ouverture de l'éditeur, glissement d'un slider de l'inspecteur de matériau
+  et défilement horizontal de la timeline : non pilotés par l'agent, 🧪 pour l'auteur.
 
 ---
 
