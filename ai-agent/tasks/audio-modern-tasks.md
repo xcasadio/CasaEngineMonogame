@@ -1875,6 +1875,281 @@ de clôture **READY**.
   `--no-incremental` sans avertissement nouveau, 3159/3159 deux fois. Deux avis P4 sans suite (l'étage FIR
   tourne désormais dans la démo pour une sortie nulle ; coefficient central arrondi de 2 unités, voulu).
 
+## Vague 5 — tranche S5a : variations et priorités (détail du 2026-10-06)
+
+Découverte en lecture seule (un brouillon par tranche, passé par un contrôle contradictoire) ; les faits
+dont dépend la tranche ont été revérifiés sur `6f06298f` (fin de T7, `main` au même commit). S5 est
+découpée : **S5a (variations aléatoires et priorités de voix, D5, D6, D7, D14)** se détaille ci-dessous ;
+**S5b (écouteur, mode spatial, atténuation, Doppler, paramètres de jeu, émetteur en composant de scène,
+D8 à D13)** suivra avec son propre détail.
+
+**Faits établis.**
+- `SoundPlaybackOverrides.ApplyTo` (`SoundPlaybackOverrides.cs:36-43`) reconstruit les paramètres par le
+  constructeur à 4 arguments et perd région de boucle et multiplicateur (O17) ; les méthodes `With*`
+  d'`AudioVoiceParameters` (`AudioVoiceParameters.cs:69-88`) les conservent.
+- `SoundAsset` porte six champs (fichier, volume, pitch, boucle, bus, streaming) ; `Load` lit par
+  `GetSingle`/`GetBoolean`, qui lèvent sur un type inattendu, et `SoundAssetLoader` rend alors `null`
+  (l'asset entier est perdu). La sauvegarde est `EditorAssetJsonSerializer.SaveSoundAsset` (`:740`) ; un
+  `.sound` neuf est créé par `GameEditor.TryCreateSoundAssetInFolder` (`:3810`).
+- Les surcharges passent des valeurs absolues : l'émetteur `asset.Volume * VolumeOverride` et
+  `asset.Pitch + PitchOverride` (`SoundEmitterComponent.cs:201-210`), l'action de cinématique
+  `asset.Volume * action.Volume` (`CutsceneActionCoroutineFactory.cs:195-197`).
+- `AudioService.PlayClip` (`AudioService.cs:178-207`) compte un refus quand le backend rend une poignée
+  invalide ; `PlaySound` (`:223-252`) résout le clip puis appelle `PlayClip` ; `VoiceEntry` (`:1546-1588`)
+  ne porte aucune priorité ; `Update` recycle les voix finies (`:930`).
+- Alundra n'appelle que `PlayClip(…, owner: …)`, `PlayClipStereo` et `new AudioService(backend)` ; elle
+  n'utilise ni `.sound` ni émetteur (vague 4).
+- Le dépôt contient trois `.sound` (`CasaEngine.Demos/Content/Audio/`) et aucun émetteur ni aucune
+  cinématique sauvegardés qui référencent un son : aucune donnée à migrer.
+- ADR-0002 écrit « no random variations in V1 » ; aucune ADR 0063 n'existe sur les branches locales.
+
+### Décisions de la vague 5 (arbitrages de l'agent, à confirmer par l'auteur)
+
+| Réf | Arbitrage |
+|---|---|
+| P24 | **Plages relatives** : un facteur de volume et un décalage de pitch en octaves, tirés **par-dessus** la valeur déjà surchargée (la surcharge remplace la base comme aujourd'hui, le tirage s'applique ensuite, le résultat est borné). C'est la lecture qui fait composer l'émetteur et la cinématique sans les modifier (D5) ; des plages absolues obligeraient à changer `CreateOverrides` et l'action de cinématique pour qu'ils passent des facteurs. Un tirage par lecture : une boucle garde le sien. |
+| P25 | **Bornes** : facteur de volume dans [0, 1] (atténuation seule : le volume final est borné à 1, un facteur supérieur serait le plus souvent écrêté) ; décalage de pitch dans [`MinPitch`, `MaxPitch`] ; tirage uniforme et linéaire ; une plage inversée est conservée telle quelle et triée au tirage ; une plage dégénérée ne tire rien. |
+| P26 | **Fichiers** : le tirage choisit entre le fichier principal (`AudioFileAssetId`) et une liste additionnelle `variation_audio_file_asset_ids` ; entrées vides ignorées ; tirage uniforme sans anti-répétition (O27) ; pas de repli si le fichier tiré ne se charge pas (même issue qu'aujourd'hui : journal étranglé, `AudioVoiceHandle.None`). Un asset streaming ignore variations et priorité (le lecteur de musique ne les lit pas). |
+| P27 | **Hasard injectable** : `AudioService.VariationRandom` (`System.Random`, défaut `Random.Shared`, `null` y revient, thread de jeu seulement) ; ordre des appels figé (fichier, volume, pitch) ; aucun appel quand rien n'est à tirer ; valeurs rendues bornées (indice dans [0, n−1], réel dans [0, 1)) pour qu'un `Random` défaillant ne fasse jamais lever `PlaySound`. |
+| P28 | **Priorité** : entier porté par `SoundAsset.Priority` (0 = aucune, borné à [0, `MaxPriority` = 100], valeur haute arbitraire) et par `SoundPlaybackOverrides.Priority` (`int?`, propriété `init` ; 0 retire la priorité) ; **ni dans `AudioVoiceParameters` ni dans `IAudioBackend`** : Alundra et son faux backend ne changent pas, et `PlayClip`, `PlayClipStereo` et `PlayStream` jouent toujours sans priorité. |
+| P29 | **Vol** (D6) : seulement pour une priorité > 0, quand le backend est disponible et plein (`ActiveVoiceCount >= VoiceCapacity`) ; d'abord recycler une voix déjà finie (ce n'est pas un vol) ; sinon victime = voix non streamée, non stéréo du backend, de priorité > 0 et strictement inférieure, la plus basse puis la plus ancienne ; voix en pause ou en fondu éligibles. `StolenVoiceCount` n'augmente que si le `Play` qui suit réussit ; un `Play` refusé après un vol compte un refus et la victime reste perdue (cas dégradé documenté). Pas de journal par vol. |
+| P30 | **Sérialisation additive** : chaque nouvelle clé (`priority`, `variation_audio_file_asset_ids`, `variation_volume_min`, `variation_volume_max`, `variation_pitch_min`, `variation_pitch_max`) n'est écrite que si sa propre valeur diffère de son défaut (la liste : ses seuls GUID non vides, dans l'ordre, s'il y en a) ; un `.sound` sans ces champs se resauvegarde clé pour clé à l'identique. Chargement tolérant : une valeur de type inattendu garde le défaut avec un avertissement qui nomme l'asset et la clé ; aucune exception. |
+| P31 | **Éditeur** : la prévisualisation de l'inspecteur joue avec `Priority = 0` (elle ne vole jamais une voix du jeu) et tire les variations ; le compteur de vols n'est montré que dans la démo (panneau Audio : O28). |
+
+## Phase 8 — Tranche S5a : variations aléatoires et priorités de voix (D5, D6, D7, D14)
+
+Résultat attendu : un `.sound` peut déclarer des fichiers de variation, des plages de volume et de pitch et
+une priorité ; `PlaySound` tire une variation par lecture, composée avec les surcharges de l'émetteur et des
+cinématiques ; quand les voix sont toutes prises, le refus reste le défaut et une voix n'est volée que pour
+un son de priorité explicitement plus haute. Non-objectifs : voix virtuelles (D7) ; délai et séquence
+(D14) ; écouteur, spatialisation, Doppler, paramètres de jeu et passage de l'émetteur en composant de scène
+(S5b) ; affichage des vols dans le panneau Audio (O28) ; toute modification d'`IAudioBackend`,
+d'`AudioVoiceParameters`, des backends ou du dépôt parent. Prérequis : T7 clôturée ; **base `6f06298f`**
+pour toutes les comparaisons `git diff 6f06298f -- …` de la phase (`main` peut avancer). Retour arrière :
+revert des commits de la phase ; un `.sound` écrit avec les nouvelles clés se charge encore (le chargeur
+ne lit que ses clés connues). Approbation : D33 (AUTO), après relecture **READY** de ce détail.
+
+Budget : identique à S2.
+
+Revue du détail (2026-10-06) : brouillon passé par un contrôle contradictoire (instantané périmé, choix de format
+à inscrire en P24 à P31, preuves sur les chemins réels de l'émetteur et de la cinématique, vol sous le backend
+logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; relecteur frais sur le détail
+**READY**.
+
+### ⏳ T8.1 — Les surcharges conservent région de boucle et multiplicateur (O17)
+
+- Fichiers : `CasaEngine/Framework/Audio/SoundPlaybackOverrides.cs` (corps et doc XML d'`ApplyTo`),
+  `CasaEngine.Tests/Audio/SoundPlaybackOverridesTests.cs` (nouveau).
+- Étapes : `ApplyTo` part de `parameters` et enchaîne `WithVolume`, `WithPan`, `WithPitch` et `WithLooping`
+  pour les seuls champs surchargés ; signature, `ResolveBus` et constructeur inchangés ; doc XML : les champs
+  non surchargés, région de boucle et multiplicateur compris, gardent la valeur d'entrée.
+  `SoundAsset.CreateVoiceParameters` ne change pas.
+- Validation : tests avec `p = AudioVoiceParameters.Default.WithLoopRegion(1000, 2000).WithRateMultiplier(4f)` :
+  `None.ApplyTo(p)` égale `p` ; une surcharge des quatre champs les change et garde région et multiplicateur ;
+  une surcharge partielle (volume seul) garde le reste ; `None.ApplyTo(Default)` égale `Default` ; une surcharge
+  `volume: float.NaN` donne le même volume qu'avant la tâche (valeur relevée avant la modification et figée
+  dans le test). Mutation notée : remettre le constructeur à 4 arguments fait échouer les deux premiers tests.
+  Deux solutions sans erreur, aucun avertissement nouveau dans les fichiers touchés ; suite complète verte.
+- Commit : `fix(audio): keep the loop region and rate multiplier when overrides are applied`
+
+### ⏳ T8.2 — Champs additifs du `.sound` : variations et priorité (D5, D6, P25, P26, P28, P30)
+
+- Fichiers : `CasaEngine/Framework/Audio/SoundAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
+  (`SaveSoundAsset`), `CasaEngine.Tests/Audio/SoundAssetTests.cs`,
+  `CasaEngine.Tests/Audio/SoundAssetEditorSerializationTests.cs`. Rien d'autre ne lit ces champs dans cette tâche.
+- Étapes :
+  1. `SoundAsset` : `public const int MaxPriority = 100` et `Priority` (setter borné à [0, `MaxPriority`]) ;
+     `public List<Guid> VariationAudioFileAssetIds { get; } = new()` (entrées `Guid.Empty` tolérées) ;
+     `VariationVolumeMin`/`VariationVolumeMax` (défaut 1, chaque extrémité bornée à [0, 1], NaN garde la valeur
+     précédente, motif de `SanitizeVolume`) ; `VariationPitchMin`/`VariationPitchMax` (défaut 0, bornées à
+     [`MinPitch`, `MaxPitch`], NaN garde). Une plage inversée est conservée. Doc XML (anglais) sur chaque membre.
+  2. `Load` : clés de P30 ; liste vidée avant lecture ; chaque clé absente donne son défaut. Lecteur tolérant
+     privé : un nombre est attendu (`JTokenType.Integer` ou `Float`), sinon défaut et `Logs.WriteWarning`
+     nommant l'asset et la clé (`using CasaEngine.Core.Logging;`) ; pour la liste, une valeur qui n'est pas un
+     tableau est ignorée avec un avertissement, une entrée que `Guid.TryParse` refuse est ignorée avec un
+     avertissement, les autres sont gardées ; jamais d'exception. Les six clés d'avant gardent leur lecture.
+  3. `SaveSoundAsset` : après les clés existantes, chaque nouvelle clé seulement si sa valeur diffère de son
+     défaut ; la liste en `JArray` des GUID non vides, dans l'ordre, seulement s'il y en a un.
+- Validation : `SoundAssetTests` : document complet ; document minimal et document à six clés copié de
+  `menu_click.sound` → défauts (liste vide, 1/1, 0/0, priorité 0) ; `null`, une chaîne et un objet pour
+  `priority`, pour une clé de plage et pour la liste → asset chargé, défaut pour la clé fautive, autres champs
+  intacts, un avertissement chacun (journal de test par `Logs.AddLogger` puis `Logs.Close` en `finally`, modèle
+  `TileMapDepthSettingsLoadWarningsTests.cs`) ; entrée GUID invalide ignorée, les autres gardées ; bornes
+  (priorité −3 → 0, 500 → 100 ; facteur 9 → 1, −1 → 0 ; pitch 3 → 1 ; NaN garde) ; plage inversée conservée ;
+  les trois `.sound` de la démo chargés par le vrai `SoundAssetLoader` ont les nouveaux champs aux défauts.
+  `SoundAssetEditorSerializationTests` : aller-retour de tous les champs ; un asset neuf et les trois `.sound` de
+  la démo ne produisent aucune nouvelle clé et exactement leurs clés d'origine ; min 0,5 et max 1 n'écrit que
+  `variation_volume_min` ; `Guid.Empty` n'est pas écrit ; sauvegarde → chargement → sauvegarde égale
+  (`JToken.DeepEquals`). Deux solutions sans erreur ni avertissement nouveau dans les fichiers touchés ; suite
+  complète verte.
+- Commit : `feat(audio): additive variation and priority fields in the .sound asset`
+
+### ⏳ T8.3 — Tirage des variations à `PlaySound` (D5, P24, P26, P27)
+
+- Fichiers : `CasaEngine/Framework/Audio/SoundVariation.cs` (nouveau, `internal`),
+  `CasaEngine/Framework/Audio/AudioService.cs` (`PlaySound`, `ResolveClip`, `VariationRandom`),
+  `CasaEngine.Tests/Audio/SoundVariationTests.cs` et `CasaEngine.Tests/Audio/AudioServiceVariationTests.cs`
+  (nouveaux). L'émetteur, l'action de cinématique, `MusicPlayer`, `AudioVoiceParameters`, `IAudioBackend` et
+  les backends ne changent pas.
+- Étapes :
+  1. `SoundVariation.cs` : `internal readonly struct SoundVariationDraw` (`AudioFileAssetId`, `VolumeFactor`,
+     `PitchOffset`) avec `ApplyTo(in AudioVoiceParameters)` : tirage neutre (1 et 0) → entrée rendue telle
+     quelle ; sinon `WithVolume(Volume * VolumeFactor).WithPitch(Pitch + PitchOffset)`. `internal static class
+     SoundVariation` avec `Draw(SoundAsset, Random)` : candidats = fichier principal non vide puis entrées non
+     vides de la liste (boucle `for`, sans LINQ ni liste temporaire) ; 0 candidat → `Guid.Empty`, 1 → lui sans
+     appel au hasard, n ≥ 2 → `Next(n)` borné à [0, n−1] ; volume puis pitch : extrémités triées, plage non
+     dégénérée → `lo + (hi − lo) * u` avec `u = NextSingle()` borné à [0, 1), sinon `lo` sans appel. Aucune
+     allocation.
+  2. `AudioService.VariationRandom` (P27 ; doc XML : thread de jeu, injectable pour les tests ou un rejeu) ;
+     constructeur inchangé.
+  3. `PlaySound` : après le refus des assets streaming, `Draw`, puis `ResolveClip(asset, draw.AudioFileAssetId)`
+     (nouveau paramètre de la méthode privée ; messages inchangés et toujours étranglés), puis
+     `draw.ApplyTo(overrides.ApplyTo(asset.CreateVoiceParameters()))`. Doc XML de `PlaySound` : règle de
+     composition de P24. `PlayClip`, `PlayStream`, `PlayClipStereo` et `MusicPlayer.Play` ne changent pas.
+- Validation : `SoundVariationTests` (sous-classe de test de `Random` qui scripte `Next(int)` et `NextSingle()`
+  et note ses appels) : 0 et 1 candidat sans appel ; indices scriptés 0, 1, 2 sur trois fichiers ; entrées vides
+  ignorées ; plage [0,5 ; 1] avec 0 et 0,5 → 0,5 et 0,75 ; plage inversée triée ; plage dégénérée sans appel ;
+  ordre fichier, volume, pitch ; `Random` hostile (−1, n, 1,0) borné sans exception ; tirage neutre →
+  paramètres égaux (région et multiplicateur gardés). `AudioServiceVariationTests` (`FakeAudioBackend` et
+  `FakeAudioClipProvider`) : asset sans variation → paramètres reçus inchangés et hasard jamais appelé
+  (`AudioServicePlaySoundTests` verts sans modification) ; facteur 0,5 sur un volume 0,8 → 0,4, avec la
+  surcharge `volume: 0,5` → 0,25 ; décalage 0,25 sur un pitch surchargé à 0,5 → 0,75 ; trois clips, indice 2 →
+  `GetClip` rend le troisième ; fichier tiré introuvable → `None`, sans repli ; asset streaming toujours
+  refusé ; `VariationRandom = null` retombe sur le défaut. **Chemins réels** : `SoundEmitterComponent.Play()`
+  (émetteur à `VolumeOverride` 0,5 et `PitchOverride` 0,25 ; `AudioService` injecté par les champs de stockage
+  de `CasaEngineGame.AudioSystemComponent` et de `AudioSystemComponent.Service`, gabarit
+  `SoundEmitterComponentAssetHandleTests.cs` ; chargeur qui rend un asset à plages dégénérées) et la méthode
+  privée `CutsceneActionCoroutineFactory.PlaySound` appelée par réflexion (gabarit
+  `CutsceneActionCoroutineFactorySoundAssetHandleTests.cs`, action à volume 0,5) → paramètres reçus = surcharge
+  puis tirage. Zéro allocation : 1 000 `PlaySound` **acceptés** avec variations (voix arrêtée dans la boucle ou
+  capacité suffisante) après 20 tours de chauffe, fenêtre `AllocationWindow.Start()` ; si la même boucle sans
+  variation alloue déjà, mesurer et comparer A/B (règle O20) au lieu d'affaiblir la borne. Deux solutions sans
+  erreur ni avertissement nouveau dans les fichiers touchés ; suite complète verte ; `git diff 6f06298f --
+  CasaEngine/Framework/Audio/AudioVoiceParameters.cs CasaEngine/Framework/Audio/IAudioBackend.cs
+  CasaEngine/Framework/Audio/Backends CasaEngine/Framework/Audio/Software` vide.
+- Commit : `feat(audio): draw random variations when playing a sound asset`
+
+### ⏳ T8.4 — Priorités de voix et vol (D6, D7, P28, P29)
+
+- Fichiers : `CasaEngine/Framework/Audio/SoundPlaybackOverrides.cs` (`Priority`, `ResolvePriority`),
+  `CasaEngine/Framework/Audio/AudioService.cs` (cœur privé de `PlayClip`, `PlaySound`, `StolenVoiceCount`,
+  `VoiceEntry`, `TryFreeVoiceFor`), tests `CasaEngine.Tests/Audio/AudioServiceVoicePriorityTests.cs` (faux
+  backend), `CasaEngine.Tests/Audio/Software/AudioServiceVoicePriorityOnSoftwareBackendTests.cs` (backend
+  logiciel hors ligne), compléments à `SoundPlaybackOverridesTests.cs`. Ne changent pas : `IAudioBackend.cs`,
+  `AudioVoiceParameters.cs`, `Backends/`, `Software/`, `Streaming/`.
+- Étapes :
+  1. `SoundPlaybackOverrides` : `public int? Priority { get; init; }` (constructeur et `None` inchangés) et
+     `public int ResolvePriority(int assetPriority)` = `Math.Clamp(Priority ?? assetPriority, 0, SoundAsset.MaxPriority)`.
+  2. `AudioService` : `StolenVoiceCount` (à côté de `RefusedVoiceCount`) ; compteur de démarrages ;
+     `VoiceEntry.Priority` et `StartSequence`, remis à 0 par `Reset()`. Le corps de `PlayClip` devient un cœur
+     privé qui reçoit la priorité ; `PlayClip` public (signature et noms de paramètres inchangés) l'appelle avec
+     0, `PlaySound` avec `overrides.ResolvePriority(asset.Priority)`. Dans le cœur, si la priorité est > 0,
+     `TryFreeVoiceFor` avant `RouteNextVoice` et `_backend.Play` ; après un `Play` réussi, l'entrée note sa
+     priorité et son rang de démarrage, et `StolenVoiceCount` augmente si une victime a été libérée pour lui.
+  3. `TryFreeVoiceFor(priority)` (boucles `for`, sans LINQ ni allocation) : rien si le backend est indisponible
+     ou s'il reste de la place ; d'abord libérer une entrée non streamée dont l'état backend est `Stopped` (même
+     test que `Update`), sans compter de vol ; sinon victime selon P29, `_backend.Stop` puis `ReleaseEntry`
+     (motif de `StopVoicesOwnedBy`) ; sans victime, le `Play` qui suit est refusé comme aujourd'hui.
+  4. Doc XML : `PlayClip` (refus par défaut inchangé), `PlaySound` (règle de vol), `StolenVoiceCount`.
+- Validation : `ResolvePriority` (null garde l'asset, 0 retire, 500 → 100, négatif → 0). Faux backend (capacité
+  3 ou 4) : réservoir plein sans priorité → refus, aucun vol ; priorité 5 contre {1, 2, 2, 3} → la voix 1 meurt,
+  la nouvelle vit, un vol, aucun refus ; égalité des plus basses → la plus ancienne ; priorité égale → refus ;
+  voix sans priorité jamais volée, même pour 100 ; voix de `PlayStream`, de `MusicPlayer` et stéréo de repli
+  jamais victimes ; voix finie non recyclée remplacée sans vol compté ; surcharge `Priority = 0` sur un asset à
+  5 : ne vole pas et n'est pas volable ; `Priority = 9` sur un asset sans priorité : vole ; emplacement repris
+  par `PlayClip` à 4 arguments non volable ; poignée volée : `Stop`, `SetVoiceVolume` et `FadeVoice` ignorés, la
+  nouvelle voix du même index intacte ; `Play` refusé après un vol → `StolenVoiceCount` 0, `RefusedVoiceCount` 1 ;
+  zéro allocation de 1 000 vols répétés après chauffe (`AllocationWindow.Start()`). Backend logiciel hors ligne
+  (`new SoftwareAudioBackend(new OfflineAudioOutput(), 2)`, `service.MasterLimiter.IsEnabled = false`, clips PCM
+  stéréo de niveaux constants 0,05 pour la victime, 0,10 pour la survivante, 0,20 pour la nouvelle, collection
+  `ProjectEnvironmentCollection`, modèle `AudioServiceRampFadeTests.cs`) : après le vol et `Pump(480)`, la sortie
+  égale (à 1e-4) celle d'un banc de référence qui ne joue que la survivante et la nouvelle, et diffère de celle
+  qui inclut la victime ; dans la même image, avant le `Pump`, `FadeVoice`, `SetVoiceVolume` et `Stop` sur
+  l'ancienne poignée laissent la nouvelle voix (même index d'emplacement) vivante et à son niveau ; une victime
+  en fondu rampé par le backend ne transmet pas sa rampe ; une voix `PlayClipStereo` et une piste `MusicPlayer`
+  qui occupent des emplacements ne sont jamais volées. Deux solutions sans erreur ni avertissement nouveau dans
+  les fichiers touchés ; suite complète verte trois fois ; `git diff 6f06298f --` sur `IAudioBackend.cs`,
+  `AudioVoiceParameters.cs`, `Backends`, `Software` et `Streaming` vide ; signatures publiques d'`AudioService`
+  inchangées ; tests audio existants verts sans modification.
+- Commit : `feat(audio): steal a lower-priority voice for a higher-priority sound`
+
+### ⏳ T8.5 — Inspecteur de son : variations, plages et priorité (P31)
+
+- Fichiers : `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`,
+  `CasaEngine.Tests/Editor/SoundAssetInspectorPanelTests.cs` (nouveau). Sous-module MGUI, `GameEditor.cs` et
+  dispositions de l'éditeur inchangés.
+- Étapes :
+  1. Sous la ligne « Audio file » : une ligne par fichier de variation (`AssetSelector` configuré comme
+     `CreateAudioFileRow`, même filtre et même garde `_suppressControlCallbacks`, copie locale de l'indice dans
+     la boucle) avec un bouton « Remove », puis un bouton « Add variation file ». Les boutons appellent des
+     méthodes internes `AddVariationFile()` et `RemoveVariationFile(int index)` qui modifient l'asset, appellent
+     `SetDirty(true)` puis reconstruisent l'inspecteur (motif de `ParticleAssetInspectorPanel.RemoveEmitter`).
+  2. Sous la ligne « Pitch » : « Volume variation » (min et max dans [0, 1]) et « Pitch variation » (min et max
+     dans [`MinPitch`, `MaxPitch`]), pas de 0,05, valeurs arrondies à 2 décimales à l'écriture ; « Priority »
+     (0 à `MaxPriority`, pas de 1, arrondie à l'entier ; libellé : 0 = aucune, jamais volée, ne vole jamais).
+     Chaque changement écrit l'asset et appelle `SetDirty(true)` en respectant `_suppressControlCallbacks`. Une
+     ligne d'aide dit que variations et priorité sont ignorées pour un asset streaming.
+  3. `PlayPreview` : surcharge `new SoundPlaybackOverrides(busName: AudioBusNames.Editor) { Priority = 0 }`.
+     `CreatePreviewCopy` (chemin streaming) inchangé.
+- Validation : tests de panneau sans GPU (modèle `AudioProfilerTests.cs` : `ContentBrowserViewTestHarness`,
+  `Window.SetContent(panel.CreateContent())` ; `EngineEnvironment.ProjectPath` posé sur un dossier temporaire
+  puis restauré, collection `ProjectEnvironmentCollection`) : construire le contenu ne marque pas l'asset
+  modifié ; `AddVariationFile` ajoute `Guid.Empty` et marque modifié ; une sélection dans un `AssetSelector` de
+  variation met à jour la bonne entrée ; `RemoveVariationFile` retire la bonne ; les champs de plage et de
+  priorité écrivent l'asset (arrondis, bornés) ; `TrySaveLoadedAsset` écrit les six clés seules sans variation
+  ni priorité, et les nouvelles quand elles sont posées, relues à l'identique. 🧪 pour l'auteur : aspect des
+  lignes et prévisualisation dans l'éditeur hébergé (ouvrir un `.sound`, ajouter deux fichiers, régler plages et
+  priorité, Save, rouvrir, Play plusieurs fois). Deux solutions sans erreur ; suite complète verte.
+- Commit : `feat(editor): variation and priority rows in the sound inspector`
+
+### ⏳ T8.6 — Démo : variations et vol de voix
+
+- Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs`, `CasaEngine.Demos/Content/Audio/menu_click_varied.sound`
+  (nouveau, GUID neuf), `CasaEngine.Demos/Content/AssetInfos.json`, `CasaEngine.Demos/Content/Content.mgcb`.
+- Étapes : le nouveau `.sound` référence le même `.wav` que `menu_click.sound`, avec un facteur de volume
+  [0,6 ; 1] et un pitch [−0,15 ; 0,15] ; il est déclaré aux trois endroits comme `menu_click.sound` (fichier,
+  entrée `AssetInfos.json`, bloc `Content.mgcb` avec `/copy:`) ; constante d'identifiant, poignée acquise à
+  l'initialisation (`TryAcquire`) et rendue au nettoyage, comme les sons existants. Touches (libres, revérifiées
+  par `rg` au moment de l'exécution), placées après la garde du son de clic : V joue le son varié ; J remplit les
+  voix libres de boucles de priorité 1 à faible volume (`new SoundPlaybackOverrides(isLooped: true, volume:
+  0.05f) { Priority = 1 }`, possédées par le monde courant ; S les arrête) ; H joue le clic avec `Priority = 10`.
+  La ligne `Voices:` affiche `StolenVoiceCount`. Le tirage de fichier n'est pas audible dans la démo (un seul
+  `.wav` court) : il est couvert par les tests.
+- Validation : deux solutions sans erreur ; le `.sound` arrive dans la sortie de build ; démo lancée sans
+  clavier (`CASAENGINE_START_DEMO="Audio demo"`, backends `Software` puis `MonoGame`) : elle démarre et charge le
+  nouveau `.sound` sans erreur au journal. 🧪 pour l'auteur : J puis Espace → refus, compteur de vols inchangé ;
+  J puis H → un vol de plus et le clic joue ; V → hauteurs et volumes variés.
+- Commit : `feat(demos): demo keys for sound variations and voice priorities`
+
+### ⏳ T8.7 — Documentation, ADR et vérification de la tranche
+
+- Fichiers : `docs/engine/audio-system.md` (sections « 3. L'asset `.sound` », « 4. Jouer un son », « 6.
+  Composant d'entité », « 7. Cutscenes », « 8. Play-in-editor », « 9. Limites connues », « 10. Évolutions
+  prévues », « 11. Démo »), `docs/decisions/0063-…md` (numéro revérifié sur toutes les branches), note de statut
+  d'ADR-0002, `docs/decisions/README.md`, `docs/README.md` si l'entrée audio change, ce plan, `ai-agent/README.md`.
+- Étapes : doc (français) : nouvelles clés et exemple JSON, forme relative et bornes, écriture seulement si
+  posée ; règle de composition et `VariationRandom` ; vol, `StolenVoiceCount` et `SoundPlaybackOverrides.Priority` ;
+  l'émetteur et l'action de cinématique composent sans changer ; la prévisualisation joue sans priorité ;
+  limites : refus par défaut, vol seulement pour une priorité plus haute, voix sans priorité et streamées jamais
+  volées, un `Play` refusé après un vol perd la victime, une boucle de basse priorité peut être volée (l'émetteur
+  le voit par `IsPlaying`), pas de voix virtuelles ni de délai ni de séquence, premier chargement d'un fichier de
+  variation sur le thread de jeu puis clip gardé, fichiers de variation à cataloguer dans `AssetInfos.json` ;
+  retirer « Variations aléatoires » des évolutions ; touches V, J, H. ADR-0063 (anglais) : P24 à P31,
+  alternatives écartées, conséquences (Alundra inchangée, sérialisation additive sans migration, `ApplyTo` garde
+  région et multiplicateur, aucune priorité par `PlayClip`). ADR-0002 : note de statut (variations ajoutées par
+  ADR-0063). Plan : notes, O17 résolu, D5, D6, D7 et D14 appliquées, ligne de `ai-agent/README.md`.
+- Validation : vérificateur frais **CONFIRMED** (déclencheur : sérialisation d'un format d'asset) sur : (1) un
+  `.sound` sans les nouveaux champs se charge et se resauvegarde clé pour clé à l'identique ; (2) l'émetteur et
+  la cinématique composent avec le tirage ; (3) par défaut le réservoir plein refuse ; un vol n'arrive que pour
+  une priorité explicitement plus haute (la plus basse, puis la plus ancienne) ; voix sans priorité et streamées
+  jamais volées ; (4) Alundra inchangée (diffs vides depuis `6f06298f` sur `IAudioBackend.cs`,
+  `AudioVoiceParameters.cs`, `Backends`, `Software`, `Streaming` ; signatures publiques d'`AudioService`
+  conservées) ; (5) aucune allocation dans le tirage ni dans le vol. Au plus cinq passes de correction pour un
+  P1 ou un P2. La note dit ce que l'auteur teste (build des deux solutions, inspecteur, touches de la démo) et
+  que `Alundra.Tests` ne tourne pas contre ce worktree (Alundra référence le moteur de son propre checkout) :
+  il se lance quand ce checkout contient la tranche.
+- Commit : `docs(audio): document sound variations and voice priorities`
+
 ---
 
 ## Réponses de l'auteur du 2026-10-06
@@ -1915,6 +2190,8 @@ du SPU) auront chacune leur détail, relu, avant exécution.
 | O22 | **À confirmer par l'auteur** — choix de T5.4 que la source ne tranche pas : (1) gain d'entrée de la réverbération à 1/32, valeur du moteur (les pages CCRMA ne la donnent pas ; le code d'origine de Freeverb, domaine public, n'a pas été lu) ; (2) limiteur du Master : plafonnement par échantillon ajouté au modèle de l'article (sans lui, la crête dépasse le plafond d'environ 0,12 dB) — alternatives : anticipation (look-ahead) ou attaque plus courte ; (3) le limiteur est actif par défaut à −1 dBFS sous le backend logiciel (décision P20 du plan) : tout son au-dessus de −1 dBFS est désormais réduit au lieu d'être écrêté à 0 dBFS, y compris dans Alundra — à écouter ; `service.MasterLimiter.IsEnabled = false` le coupe ; (4) un départ suit le gain propre de son bus, pas celui de ses ancêtres ; (5) niveaux de départ limités à [0, 1] ; T5.5 : (6) suiveur de crête de 50 ms devant le seuil du ducking (ajout du moteur) ; (7) le ducking lit le gain propre de la source en fin de bloc, pas celui de ses ancêtres ; (8) un snapshot applique les paramètres d'effets aussitôt, sans rampe. | S4 |
 | O25 | Avis A1 du vérificateur de S4 (P3, reporté, introduit par `0d876d5f`) : recibler un fondu de bus en cours après un `Update` qui n'a rendu aucun bloc fait sauter le gain, en un échantillon, de l'écart entre la chronologie du jeu et la valeur rendue (au plus un bloc de pente ; mesuré 0,09 sur un fondu de 0,1 s) : petit clic possible sur des fondus très courts. Remède possible : raccorder la nouvelle rampe depuis la valeur rendue sur le premier bloc. **Réponse de l'auteur (2026-10-06) : D30.** | S4 |
 | O26 | Avis P4 du vérificateur de S6a (reportés) : A1 le panneau « Audio » n'a pas été lancé dans l'éditeur (ancrage, indicateur de présence et dessin vérifiés par lecture et tests ; T6.2 🧪 pour l'auteur : ouvrir Windows > Audio, le fermer, le rouvrir) ; A2 le test de lecture concurrente utilise des blocs identiques et ne détecterait pas un enregistrement déchiré (la sonde du vérificateur, à signal variable, n'en trouve aucun) ; A3 `audio-system.md` et `audio-profiler-panel.md` ne répètent pas la condition de l'ADR-0060 (blocs d'au moins 1,25 ms) — sans effet avec les blocs de 10 ms par défaut. | S6a |
+| O27 | **Question à l'auteur (non bloquante)** — anti-répétition du tirage de fichier (par exemple pour des bruits de pas : ne jamais rejouer le même fichier deux fois de suite). S5a tire uniformément (P26) ; un champ additif du `.sound` pourra l'ajouter plus tard si l'auteur le souhaite. | S5a |
+| O28 | **Questions à l'auteur (non bloquantes)** — (1) une surcharge de priorité par émetteur et par action de cinématique (champ sérialisé à ajouter ; aujourd'hui ils jouent avec la priorité de l'asset) ; (2) l'affichage des voix volées dans le panneau Audio de l'éditeur. | après S5a |
 | O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? **Réponses de l'auteur (2026-10-06) : D5 à D14.** | S5 |
 | O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? **Réponses de l'auteur (2026-10-06) : D15 à D21.** | S6b |
 
