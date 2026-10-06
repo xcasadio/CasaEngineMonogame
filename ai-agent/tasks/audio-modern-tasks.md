@@ -1783,36 +1783,60 @@ les autres choix de O22. Prérequis : X1 et S4 clôturées. Retour arrière : re
 
 Budget : identique à S2.
 
-### ⏳ T7.1 — Tables par défaut du SPU (D25)
+Revue du détail (2026-10-06) : deux relecteurs frais **REVISE** (FIR : coupure chiffrée, fenêtre, somme exacte
+et seuils mesurables ; éditeur : fichiers et forme additive pour atteindre le limiteur), corrigés ; relecture
+de clôture **READY**.
+
+### 🚧 T7.1 — Tables par défaut du SPU (D25)
 
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpuHardwareTables.cs` (fabrique additive des tables par
   défaut), un calcul de FIR dans `Psx/`, `CasaEngine.Demos/Demos/AudioDemo.cs` (le SPU de la démo utilise
   les tables par défaut), tests `CasaEngine.Tests/Audio/Psx/`.
 - Étapes : les 5 couples de coefficients ADPCM recopiés de psx-spx (page lue, section citée par URL ;
-  aucun autre tiers) ; une FIR de 39 coefficients calculée par une formule publique citée (sinus cardinal
-  fenêtré, par exemple d'après « The Scientist and Engineer's Guide to Digital Signal Processing » de
-  S. W. Smith, chapitre 16), coupure à la moitié de la bande du débit réduit, gain continu de 1, symétrique,
-  arrondie en entiers 16 bits ; aucune valeur matérielle pour la FIR ; la table gaussienne reste à
-  l'appelant ; l'usage de la FIR par `PsxSpuReverb` ne change pas (le gain de sortie reste la lecture 20
-  de O19).
+  aucun autre tiers) ; une FIR de 39 coefficients (M = 38) calculée par le noyau en sinus cardinal fenêtré
+  de S. W. Smith, « The Scientist and Engineer's Guide to Digital Signal Processing », chapitre 16 : noyau
+  de l'éq. 16-4 (https://www.dspguide.com/ch16/2.htm, point central i = M/2 traité comme décrit), fenêtre de
+  **Blackman** de l'éq. 16-2 (https://www.dspguide.com/ch16/1.htm), **fréquence de coupure fc = 11 025 Hz**
+  (0,25 × 44 100 Hz, la fréquence de Nyquist du débit réduit de 22 050 Hz que la réverbération utilise),
+  normalisée à un gain continu de 1, puis arrondie en entiers Q15 (× 32 768) ; après arrondi, le
+  coefficient central est ajusté pour que la somme des 39 entiers vaille **exactement 32 768** ; aucune
+  valeur matérielle pour la FIR ; la table gaussienne reste à l'appelant ; l'usage de la FIR par
+  `PsxSpuReverb` ne change pas (le gain de sortie reste la lecture 20 de O19).
 - Validation : tests : les coefficients ADPCM livrés égalent la table de la source citée ; un bloc de
-  chaque filtre décodé avec les tables par défaut égale la formule ; FIR de 39 coefficients symétrique,
-  gain continu à 1 près d'une unité, atténuation mesurée en bande coupée ; réponse impulsionnelle de la
-  réverbération non nulle et décroissante avec les tables par défaut ; zéro allocation inchangé ; suite
-  complète.
+  chaque filtre décodé avec les tables par défaut égale la formule ; FIR : 39 coefficients symétriques,
+  somme exactement 32 768 ; réponse en fréquence calculée dans le test sur les entiers livrés, à 44 100 Hz :
+  gain à 5 512,5 Hz entre −0,1 et +0,1 dB, gain à 11 025 Hz à −6,0 ± 0,5 dB, atténuation **≥ 60 dB pour
+  toute fréquence de 14 000 à 22 050 Hz** (pas de 50 Hz) — un filtre coupé à 5 512,5 Hz échouerait au
+  premier critère ; réponse impulsionnelle de la réverbération non nulle et décroissante avec les tables
+  par défaut ; zéro allocation inchangé ; suite complète.
 - Commit : `feat(psx): ship default ADPCM filters and a formula reverb FIR`
 
 ### ⏳ T7.2 — Réglage de projet du limiteur du Master (D32)
 
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs` et
-  `ProjectSettingsHelper.cs` (réglage additif, absent = limiteur actif, écrit seulement quand il est
-  posé), `CasaEngine/Framework/Application/Components/AudioSystemComponent.cs` (application au
-  démarrage), l'éditeur à l'ouverture d'un projet (sur le modèle d'`EditorProjectAudioMuteSync`), tests.
-- Étapes : le réglage n'a pas d'interface (édité dans le fichier de projet, comme `IsAudioMuted`) ; un
-  fichier de projet sans le réglage reste identique octet pour octet à l'écriture.
-- Validation : tests : lecture et écriture (absent, vrai, faux ; fichier inchangé quand absent), limiteur
-  coupé au démarrage quand le réglage le demande, réappliqué dans l'éditeur à l'ouverture d'un projet ;
-  suite complète ; les deux solutions.
+  `ProjectSettingsHelper.cs` (réglage additif `bool? IsMasterLimiterEnabled`, absent ou nul = limiteur
+  actif, écrit seulement quand il a une valeur, comme `AudioBackend`), `CasaEngine/Framework/Audio/ProjectAudioSettings.cs`
+  (nouvelle surcharge additive `Apply(AudioService service, ProjectSettings projectSettings)` qui applique
+  le muet du Master par l'`Apply(AudioMixer, …)` existant puis l'état du limiteur), `CasaEngine/Framework/Application/Components/AudioSystemComponent.cs`
+  (au démarrage, appel de la nouvelle surcharge à la place de `Apply(Mixer, …)`, `AudioSystemComponent.cs:38`),
+  `CasaEngine.EditorServices/EditorProjectAudioMuteSync.cs` (nouveau constructeur additif
+  `EditorProjectAudioMuteSync(AudioService service)` qui applique la nouvelle surcharge à chaque
+  `ProjectLoaded` ; le constructeur `EditorProjectAudioMuteSync(AudioMixer)` et `Apply(AudioMixer, …)`
+  restent inchangés), `CasaEngine.Editor/GameEditor.cs` (`GameEditor.cs:1074-1078` : construction par
+  `editorAudio.Service`), tests `CasaEngine.Tests/` (dont `CasaEngine.Tests/EditorServices/EditorProjectAudioMuteSyncTests.cs`).
+- Étapes : aucune signature publique existante ne change ; la nouvelle surcharge ne touche au limiteur que
+  si le backend du service a la capacité de bus (`service.Backend is IAudioBusBackend`), pour ne pas
+  déclencher le journal « master limiter is absent » de `AudioService.MasterLimiter` sous le backend
+  MonoGame ; elle met `MasterLimiter.IsEnabled` à la valeur du réglage, **ou à vrai quand le réglage est
+  absent** (un projet ouvert après un projet qui coupait le limiteur le réactive) ; le réglage n'a pas
+  d'interface (édité dans le fichier de projet, comme `IsAudioMuted`) ; un fichier de projet sans le
+  réglage reste identique octet pour octet à l'écriture.
+- Validation : tests : lecture et écriture du réglage (absent, vrai, faux ; fichier inchangé quand
+  absent) ; limiteur coupé au démarrage quand le réglage vaut faux ; dans l'éditeur, ouverture d'un projet
+  A (limiteur coupé) puis d'un projet B (réglage absent) → `MasterLimiter.IsEnabled` vrai, et le muet
+  suit toujours chaque projet ; sous un faux backend sans capacité : aucun journal du limiteur, muet
+  appliqué comme avant ; tests existants de `EditorProjectAudioMuteSyncTests` inchangés et verts ; suite
+  complète ; les deux solutions.
 - Commit : `feat(audio): a project setting to switch the Master limiter off`
 
 ### ⏳ T7.3 — Documentation, ADR et vérification
