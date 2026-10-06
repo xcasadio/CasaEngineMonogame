@@ -2666,7 +2666,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   de droite à gauche, volume suivant la distance), K (montée en approche, descente en éloignement, petite coupure à la
   relance), I (paliers de volume et de hauteur), sous les deux backends.
 
-### 🧪 T9.10 — Documentation, ADR et vérification de la tranche
+### ✅ T9.10 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (nouvelle section « 5 quater. Spatialisation, Doppler et paramètres de
   jeu », §1 bis lois de pan, §3, §6, §9, §10, §11), `docs/decisions/0064-…md` (numéro revérifié sur toutes les
@@ -2684,7 +2684,22 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
 - Note (2026-10-06) : `audio-system.md` (vue d'ensemble, §1 bis pan spatial, §3 nouvelles clés, nouvelle section « 5
   quater » avec formules citées, unités, Doppler, liaisons et leur format, composition, pose des composants, §6 émetteur
   composant de scène, §9 limites dont le retour arrière, §10 puce retirée, §11 touches O, K, I), ADR-0064 (aucune 0064 sur
-  les branches locales), statut d'ADR-0001, index des ADR et `docs/README.md`. Vérificateur frais en attente.
+  les branches locales), statut d'ADR-0001, index des ADR et `docs/README.md` (commit `6296ac0e`). Premier vérificateur
+  frais sur `6296ac0e` : **REFUTED** sur deux P2 introduits dans le mixeur, points 2 à 8 confirmés : F1 — le backend
+  réutilise un emplacement dès que l'arrêt de sa voix est mis en file et publie la modulation de la voix suivante avant
+  que le mixeur applique cet arrêt ; l'ancienne voix lisait alors les valeurs neutres et jouait un bloc à plein gain,
+  centrée (sonde sur un vrai thread de rendu, invisible aux tests hors ligne) ; F2 — le démarrage d'une voix streamée
+  forçait ses gains de canal, la rampe du premier bloc d'avant la tranche disparaissait pour une voix modifiée entre sa
+  création et son démarrage. Correctif `ee142c5c` : une voix ne lit que les valeurs étiquetées de sa génération, et le
+  démarrage d'une voix streamée ne réapplique la modulation que si quelque chose a été publié, sans forcer les gains ;
+  deux tests de régression (en échec sur `6296ac0e`), formulation de §5 quater corrigée ; stress de 60 s
+  `underruns=0`. Vérificateur frais sur `ee142c5c` : **CONFIRMED**, aucun P0–P2 : sortie identique octet pour octet à
+  `d83b2410` sans publication (14 scénarios, dont ceux de F2), sondes F1 sur un vrai thread (mixeur et backend, jusqu'à
+  15 s) sans aucun bloc non nul contre plus de 13 000 avant le correctif, fuzz vert et mutation du repliement en échec,
+  formules relues dans le PDF, API additive hors la base de `SoundEmitterComponent` (D13), 3612/3612 deux fois. Avis P3
+  reporté : un pan publié entre la création et le démarrage d'une voix streamée rejoint sa valeur sur le premier bloc (la
+  doc XML de `SetVoiceModulation` le dit « valeur de départ ») ; aucun appelant du moteur ne le fait (musique non
+  spatialisée). **🧪 pour l'auteur** : T9.3 (inspecteur), T9.8 (éditeur), T9.9 (écoute de la démo).
 
 ---
 
