@@ -22,6 +22,9 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public int VoiceCapacity { get; set; }
 
+    /// <summary>True makes <see cref="Play"/> refuse every call while the backend still reports itself available (a Play refused after a voice was freed).</summary>
+    public bool RefusesPlay { get; set; }
+
     public int ActiveVoiceCount
     {
         get
@@ -51,7 +54,7 @@ public sealed class FakeAudioBackend : IAudioBackend
     {
         ArgumentNullException.ThrowIfNull(clip);
 
-        if (IsDisposed || !IsAvailable || ActiveVoiceCount >= VoiceCapacity)
+        if (IsDisposed || !IsAvailable || RefusesPlay || ActiveVoiceCount >= VoiceCapacity)
         {
             RefusedPlayCount++;
             return AudioVoiceHandle.None;

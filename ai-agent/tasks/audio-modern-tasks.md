@@ -2050,7 +2050,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   les fichiers touchés (builds `--no-incremental`) ; 3236/3236 ; diffs vides depuis `6f06298f` sur
   `AudioVoiceParameters.cs`, `IAudioBackend.cs`, `Backends`, `Software`.
 
-### ⏳ T8.4 — Priorités de voix et vol (D6, D7, P28, P29)
+### ✅ T8.4 — Priorités de voix et vol (D6, D7, P28, P29)
 
 - Fichiers : `CasaEngine/Framework/Audio/SoundPlaybackOverrides.cs` (`Priority`, `ResolvePriority`),
   `CasaEngine/Framework/Audio/AudioService.cs` (cœur privé de `PlayClip`, `PlaySound`, `StolenVoiceCount`,
@@ -2093,6 +2093,17 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   `AudioVoiceParameters.cs`, `Backends`, `Software` et `Streaming` vide ; signatures publiques d'`AudioService`
   inchangées ; tests audio existants verts sans modification.
 - Commit : `feat(audio): steal a lower-priority voice for a higher-priority sound`
+- Note de validation (2026-10-06) : `PlayClipCore` reçoit la priorité (0 pour `PlayClip`, résolue par
+  `SoundPlaybackOverrides.ResolvePriority` pour `PlaySound`) ; `TryFreeVoiceFor` recycle d'abord toutes les voix
+  finies (`ReleaseEntry`, comme `Update`, sans vol compté) puis vole selon P29 ; seul `PlayClipCore` pose
+  `Priority` et `StartSequence`, que `Reset()` remet à 0 (`PlayStream`, `PlayClipStereoOnBackend` et la musique
+  restent à 0). 25 tests (15 sur le faux backend, 5 sur le backend logiciel hors ligne, 4 sur
+  `ResolvePriority`), dont : poignée volée périmée sur le même index d'emplacement, rampe de la victime non
+  transmise, voix `PlayClipStereo` et piste de musique jamais volées sous le backend logiciel. Le faux backend de
+  test reçoit un interrupteur `RefusesPlay` (défaut faux) pour le cas « `Play` refusé après un vol ». Allocation :
+  0 octet sur 1 000 vols. Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3261/3261
+  quatre fois ; diffs vides depuis `6f06298f` sur `IAudioBackend.cs`, `AudioVoiceParameters.cs`, `Backends`,
+  `Software`, `Streaming`.
 
 ### ⏳ T8.5 — Inspecteur de son : variations, plages et priorité (P31)
 

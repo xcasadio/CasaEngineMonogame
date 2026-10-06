@@ -65,4 +65,39 @@ public class SoundPlaybackOverridesTests
 
         Assert.Equal(AudioVoiceParameters.MaxVolume, result.Volume);
     }
+
+    [Fact]
+    public void ResolvePriority_NullKeepsTheAssetValue()
+    {
+        Assert.Equal(7, SoundPlaybackOverrides.None.ResolvePriority(7));
+        Assert.Equal(0, SoundPlaybackOverrides.None.ResolvePriority(0));
+        Assert.Equal(SoundAsset.MaxPriority, new SoundPlaybackOverrides(volume: 0.5f).ResolvePriority(500));
+    }
+
+    [Fact]
+    public void ResolvePriority_ZeroRemovesAnyPriority()
+    {
+        var overrides = new SoundPlaybackOverrides(busName: "Sfx") { Priority = 0 };
+
+        Assert.Equal(0, overrides.ResolvePriority(50));
+    }
+
+    [Fact]
+    public void ResolvePriority_ClampsTheOverride()
+    {
+        Assert.Equal(SoundAsset.MaxPriority, new SoundPlaybackOverrides { Priority = 500 }.ResolvePriority(1));
+        Assert.Equal(0, new SoundPlaybackOverrides { Priority = -3 }.ResolvePriority(40));
+        Assert.Equal(9, new SoundPlaybackOverrides { Priority = 9 }.ResolvePriority(0));
+    }
+
+    [Fact]
+    public void ThePriorityInitializer_DoesNotTouchTheOtherFields()
+    {
+        var overrides = new SoundPlaybackOverrides(volume: 0.4f, busName: "Ui") { Priority = 3 };
+
+        Assert.Equal(3, overrides.Priority);
+        Assert.Equal(0.4f, overrides.Volume);
+        Assert.Equal("Ui", overrides.ResolveBus("Sfx"));
+        Assert.Null(SoundPlaybackOverrides.None.Priority);
+    }
 }

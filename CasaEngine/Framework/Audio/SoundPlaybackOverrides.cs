@@ -64,6 +64,15 @@ public readonly struct SoundPlaybackOverrides
         return result;
     }
 
+    /// <summary>
+    /// Steal priority replacing the one of the asset. Null keeps the asset value; 0 removes any priority
+    /// (the voice neither steals nor can be stolen); values are clamped to [0, <see cref="SoundAsset.MaxPriority"/>].
+    /// </summary>
+    public int? Priority { get; init; }
+
+    /// <summary>Priority of the voice to start: the override when set, otherwise <paramref name="assetPriority"/>, clamped.</summary>
+    public int ResolvePriority(int assetPriority) => Math.Clamp(Priority ?? assetPriority, 0, SoundAsset.MaxPriority);
+
     public string ResolveBus(string assetBusName)
     {
         return string.IsNullOrWhiteSpace(BusName) ? assetBusName : BusName;

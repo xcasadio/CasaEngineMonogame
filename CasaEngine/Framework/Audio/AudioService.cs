@@ -40,6 +40,7 @@ public sealed class AudioService : IDisposable
     private readonly LimiterEffect _masterLimiter = new();
     private bool _masterLimiterSent;
     private readonly List<VoiceEntry> _voices = new();
+    private long _voiceStartCounter;
     private readonly List<BusFade> _busFades = new();
     private readonly AudioLogThrottle _refusedVoiceLog = new();
     private readonly AudioLogThrottle _missingClipLog = new();
@@ -180,13 +181,26 @@ public sealed class AudioService : IDisposable
     public int RefusedVoiceCount { get; private set; }
 
     /// <summary>
+    /// Number of voices stopped since creation to make room for a <see cref="PlaySound(SoundAsset, in SoundPlaybackOverrides, object)"/>
+    /// of a higher priority. A steal whose Play is then refused by the backend is not counted here, only in
+    /// <see cref="RefusedVoiceCount"/>: the victim is lost.
+    /// </summary>
+    public int StolenVoiceCount { get; private set; }
+
+    /// <summary>
     /// Starts <paramref name="clip"/> on <paramref name="busName"/>.
     /// <paramref name="owner"/> scopes the voice: voices owned by a world are stopped when that
     /// world is cleared, while a null owner means the voice outlives worlds (UI, editor preview).
     /// Returns <see cref="AudioVoiceHandle.None"/> when the backend has no voice left; that is a
-    /// normal outcome under load, not an error.
+    /// normal outcome under load, not an error. The voice has no priority: it never steals a voice when
+    /// the backend is full, and it can never be stolen.
     /// </summary>
     public AudioVoiceHandle PlayClip(IAudioClip clip, string busName, in AudioVoiceParameters parameters, object owner = null)
+    {
+        return PlayClipCore(clip, busName, parameters, owner, 0);
+    }
+
+    private AudioVoiceHandle PlayClipCore(IAudioClip clip, string busName, in AudioVoiceParameters parameters, object owner, int priority)
     {
         ArgumentNullException.ThrowIfNull(clip);
 
@@ -194,6 +208,8 @@ public sealed class AudioService : IDisposable
         {
             return AudioVoiceHandle.None;
         }
+
+        var stole = priority > 0 && TryFreeVoiceFor(priority);
 
         var backendParameters = parameters.WithVolume(BackendVolume(parameters.Volume, busName));
 
@@ -212,9 +228,73 @@ public sealed class AudioService : IDisposable
         entry.BaseParameters = parameters;
         entry.Owner = owner;
         entry.InUse = true;
+        entry.Priority = priority;
+        entry.StartSequence = ++_voiceStartCounter;
         ActiveVoiceCount++;
 
+        if (stole)
+        {
+            StolenVoiceCount++;
+        }
+
         return handle;
+    }
+
+    /// <summary>
+    /// Makes room for a sound of <paramref name="priority"/> when the backend is full. A voice that already
+    /// finished but was not recycled yet is released (not a steal, returns false). Otherwise the victim is the
+    /// voice with the lowest priority strictly below <paramref name="priority"/>, the oldest on a tie; voices
+    /// without priority, streamed voices and backend stereo voices are never victims. Paused and fading voices
+    /// are eligible. Returns true only when a voice was stopped.
+    /// </summary>
+    private bool TryFreeVoiceFor(int priority)
+    {
+        if (!_backend.IsAvailable || _backend.ActiveVoiceCount < _backend.VoiceCapacity)
+        {
+            return false;
+        }
+
+        var releasedFinished = false;
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (entry.InUse && !entry.IsStreaming && _backend.GetState(entry.Handle) == AudioVoiceState.Stopped)
+            {
+                ReleaseEntry(entry);
+                releasedFinished = true;
+            }
+        }
+
+        if (releasedFinished)
+        {
+            return false;
+        }
+
+        VoiceEntry victim = null;
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (!entry.InUse || entry.IsStreaming || entry.IsBackendStereo || entry.Priority <= 0 || entry.Priority >= priority)
+            {
+                continue;
+            }
+
+            if (victim == null
+                || entry.Priority < victim.Priority
+                || (entry.Priority == victim.Priority && entry.StartSequence < victim.StartSequence))
+            {
+                victim = entry;
+            }
+        }
+
+        if (victim == null)
+        {
+            return false;
+        }
+
+        _backend.Stop(victim.Handle);
+        ReleaseEntry(victim);
+        return true;
     }
 
     /// <summary>
@@ -230,6 +310,12 @@ public sealed class AudioService : IDisposable
     /// asset (file, volume factor, pitch offset) applies on top, and <see cref="AudioVoiceParameters"/> clamps
     /// the result. One draw per play: a looped voice keeps its draw. An asset without variation never calls
     /// <see cref="VariationRandom"/>. If the drawn file cannot be loaded, nothing plays (no fallback).
+    /// <para/>
+    /// Priority: when every voice is taken, a sound without priority (0) is refused. A sound with a priority
+    /// (<see cref="SoundAsset.Priority"/>, or <see cref="SoundPlaybackOverrides.Priority"/>) stops the voice of
+    /// strictly lower priority (lowest first, oldest on a tie) and takes its place. A voice without priority,
+    /// a streamed voice and a backend stereo voice are never stolen. Stealing counts in
+    /// <see cref="StolenVoiceCount"/>; there are no virtual voices.
     /// </remarks>
     public AudioVoiceHandle PlaySound(SoundAsset asset, object owner = null)
     {
@@ -266,7 +352,7 @@ public sealed class AudioService : IDisposable
         var parameters = draw.ApplyTo(overrides.ApplyTo(asset.CreateVoiceParameters()));
         var busName = overrides.ResolveBus(asset.BusName);
 
-        return PlayClip(clip, busName, parameters, owner);
+        return PlayClipCore(clip, busName, parameters, owner, overrides.ResolvePriority(asset.Priority));
     }
 
     /// <summary>
@@ -1570,6 +1656,13 @@ public sealed class AudioService : IDisposable
         public bool InUse;
         public bool IsStreaming;
         public bool IsBackendStereo;
+
+        /// <summary>Steal priority, 0 for a voice that is never stolen. Only <see cref="PlayClipCore"/> sets it.</summary>
+        public int Priority;
+
+        /// <summary>Order of start, to find the oldest voice among equal priorities.</summary>
+        public long StartSequence;
+
         public float StereoLeftGain;
         public float StereoRightGain;
         public bool IsPausedBySystem;
@@ -1592,6 +1685,8 @@ public sealed class AudioService : IDisposable
             InUse = false;
             IsStreaming = false;
             IsBackendStereo = false;
+            Priority = 0;
+            StartSequence = 0;
             StereoLeftGain = 0f;
             StereoRightGain = 0f;
             IsPausedBySystem = false;
