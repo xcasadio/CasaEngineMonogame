@@ -172,6 +172,9 @@ Faits relevés sur `main` (la branche du chantier en partira), sauf mention cont
 | D28 | (O11) **L'Ogg reste résident** (pas de streaming Ogg). |
 | D29 | (O13) **Pas de MP3, FLAC ni Opus** : conversion en WAV ou Ogg. |
 | D30 | (O25) Le petit saut de gain au reciblage d'un fondu de bus très court **reste tel quel et se documente**. |
+| D31 | (X2/X4, 2026-10-06) **La musique d'Alundra reste en WAV.** Faire passer les bruitages par la puce n'est pas demandé : X2 et X4 ne sont pas lancées. |
+| D32 | (O22-3) **Le limiteur du Master reste actif par défaut, avec un réglage de projet additif pour le couper** (par exemple pour Alundra). Les autres choix de O22 seront revus par l'auteur après écoute. |
+| D33 | Les tranches débloquées s'exécutent **en mode AUTO** (accord de l'auteur du 2026-10-06), dans les limites déjà annoncées : pas de push ni de merge vers GitHub, rien dans le dépôt parent, pas de nouvelle dépendance, pas de rupture d'API, chaque tranche détaillée et relue avant exécution puis vérifiée. |
 
 ## Points à valider par l'auteur (arbitrages proposés)
 
@@ -1760,12 +1763,73 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
   T5.6, T6.2) et les choix à confirmer (O12, O19, O22). Le plan reste dans `tasks/` tant que ces
   tranches ne sont pas tranchées.
 
+## Phase 7 — Tranche T7 : tables par défaut du SPU et réglage du limiteur (D25, D32)
+
+Résultat attendu : le moteur livre les coefficients des filtres ADPCM du SPU et une FIR de réverbération
+calculée par formule, de sorte qu'un jeu crée un SPU qui décode de vrais sons PlayStation et fait de la
+réverbération sans fournir de table ; un projet peut couper le limiteur du Master par un réglage.
+Non-objectifs : la table gaussienne (toujours à l'appelant) ; les lectures ambiguës de O19 (D26) ;
+les autres choix de O22. Prérequis : X1 et S4 clôturées. Retour arrière : revert.
+
+État vérifié (2026-10-06) :
+- `PsxSpuHardwareTables` valide et copie des tables fournies ; ADPCM obligatoire, FIR (39 coefficients) et
+  gaussienne (512) facultatives (`PsxSpuHardwareTables.cs`) ; sans FIR la réverbération est court-circuitée
+  (`PsxSpuReverb.cs`).
+- Les réglages audio du projet suivent un modèle : `IsAudioMuted` et `AudioBackend` dans
+  `ProjectSettings.cs:47-61`, lus en `ProjectSettingsHelper.cs:36-39`, écrits seulement quand ils sont
+  posés (`:134-141`) ; le muet s'applique au démarrage par `AudioSystemComponent` et dans l'éditeur à
+  chaque ouverture de projet (`EditorProjectAudioMuteSync`).
+- Le limiteur est créé actif par `AudioService` (`AudioService.MasterLimiter`, `IsEnabled`).
+
+Budget : identique à S2.
+
+### ⏳ T7.1 — Tables par défaut du SPU (D25)
+
+- Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpuHardwareTables.cs` (fabrique additive des tables par
+  défaut), un calcul de FIR dans `Psx/`, `CasaEngine.Demos/Demos/AudioDemo.cs` (le SPU de la démo utilise
+  les tables par défaut), tests `CasaEngine.Tests/Audio/Psx/`.
+- Étapes : les 5 couples de coefficients ADPCM recopiés de psx-spx (page lue, section citée par URL ;
+  aucun autre tiers) ; une FIR de 39 coefficients calculée par une formule publique citée (sinus cardinal
+  fenêtré, par exemple d'après « The Scientist and Engineer's Guide to Digital Signal Processing » de
+  S. W. Smith, chapitre 16), coupure à la moitié de la bande du débit réduit, gain continu de 1, symétrique,
+  arrondie en entiers 16 bits ; aucune valeur matérielle pour la FIR ; la table gaussienne reste à
+  l'appelant ; l'usage de la FIR par `PsxSpuReverb` ne change pas (le gain de sortie reste la lecture 20
+  de O19).
+- Validation : tests : les coefficients ADPCM livrés égalent la table de la source citée ; un bloc de
+  chaque filtre décodé avec les tables par défaut égale la formule ; FIR de 39 coefficients symétrique,
+  gain continu à 1 près d'une unité, atténuation mesurée en bande coupée ; réponse impulsionnelle de la
+  réverbération non nulle et décroissante avec les tables par défaut ; zéro allocation inchangé ; suite
+  complète.
+- Commit : `feat(psx): ship default ADPCM filters and a formula reverb FIR`
+
+### ⏳ T7.2 — Réglage de projet du limiteur du Master (D32)
+
+- Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs` et
+  `ProjectSettingsHelper.cs` (réglage additif, absent = limiteur actif, écrit seulement quand il est
+  posé), `CasaEngine/Framework/Application/Components/AudioSystemComponent.cs` (application au
+  démarrage), l'éditeur à l'ouverture d'un projet (sur le modèle d'`EditorProjectAudioMuteSync`), tests.
+- Étapes : le réglage n'a pas d'interface (édité dans le fichier de projet, comme `IsAudioMuted`) ; un
+  fichier de projet sans le réglage reste identique octet pour octet à l'écriture.
+- Validation : tests : lecture et écriture (absent, vrai, faux ; fichier inchangé quand absent), limiteur
+  coupé au démarrage quand le réglage le demande, réappliqué dans l'éditeur à l'ouverture d'un projet ;
+  suite complète ; les deux solutions.
+- Commit : `feat(audio): a project setting to switch the Master limiter off`
+
+### ⏳ T7.3 — Documentation, ADR et vérification
+
+- Fichiers : `docs/engine/psx-spu.md`, `docs/engine/audio-system.md`, `docs/decisions/0062-…md` (numéro
+  revérifié sur toutes les branches), index, ce plan.
+- Validation : vérificateur frais **CONFIRMED**.
+- Commit : `docs(audio): document the default SPU tables and the limiter project setting`
+
+---
+
 ## Réponses de l'auteur du 2026-10-06
 
 L'auteur a répondu à O11, O12, O13, O16 (avec O4 et X5), O19, O23, O24, O25 et T2.6 : décisions D5 à D30
-ci-dessus, consignées dans l'ADR-0061. Restent sans réponse : l'étendue de X2/X4 (réponse « a, b et c »
-à préciser, les trois options s'excluant en partie), O22 (choix de S4, dont le limiteur du Master actif
-par défaut pour Alundra) et O26 (coup d'œil au panneau Audio). Les tranches débloquées (S5, S6b, tables
+ci-dessus, consignées dans l'ADR-0061. Précisions du même jour : D31 (musique en WAV, X2/X4 non lancées), D32 (limiteur
+actif par défaut avec un réglage de projet pour le couper), D33 (exécution en AUTO). Restent ouverts :
+les autres choix de O22 (revus par l'auteur après écoute) et O26 (coup d'œil au panneau Audio). Les tranches débloquées (S5, S6b, tables
 du SPU) auront chacune leur détail, relu, avant exécution.
 
 ## Points ouverts
