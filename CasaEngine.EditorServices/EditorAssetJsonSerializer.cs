@@ -1,10 +1,12 @@
 using System.Reflection;
 using CasaEngine.Engine.Input;
+using CasaEngine.EditorServices.Audio;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
@@ -98,6 +100,10 @@ internal static class EditorAssetJsonSerializer
 
             case SoundAsset soundAsset:
                 SaveSoundAsset(soundAsset, rootObject);
+                return true;
+
+            case AudioMixerAsset audioMixerAsset:
+                EditorAudioMixerAssetJsonWriter.Save(audioMixerAsset, rootObject);
                 return true;
 
             default:

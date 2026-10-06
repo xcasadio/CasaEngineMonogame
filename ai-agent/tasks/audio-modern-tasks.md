@@ -2787,7 +2787,7 @@ complète de `GameEditor`, panneau scindé, gestes, choix produit en O34 à O39)
 modifiable sur place ; onglet de mixage resté relié au mixeur vivant après un changement de projet), corrigés ; relecture
 de clôture **READY**.
 
-### ⏳ T10.1 — Type d'asset `.audioMixer` : modèle, chargeur versionné, écriture de l'éditeur (P45)
+### ✅ T10.1 — Type d'asset `.audioMixer` : modèle, chargeur versionné, écriture de l'éditeur (P45)
 
 - Fichiers : `Constants.cs` (`AudioMixer = ".audioMixer"`), `AssetLoaderRegistry.cs` (enregistrement),
   nouveaux dans `CasaEngine/Framework/Audio/Mixing/` : `AudioMixerAsset.cs`, `AudioMixerBusData.cs`,
@@ -2819,6 +2819,13 @@ de clôture **READY**.
   (`ProjectEnvironmentCollection`). Deux solutions ; suite verte ; `git diff c468280c --` sur `AudioService.cs`,
   `IAudioBackend.cs`, `AudioMixer.cs`, `AudioBus.cs` vide.
 - Commit : `feat(audio): the .audioMixer asset type with a versioned loader and an editor writer`
+- Note de validation (2026-10-06) : modèle `AudioMixerAsset` (bus, effets en `sealed record`, défauts en constantes
+  publiques `AudioMixerEffectDefaults`, Butterworth recopié), sérialiseur versionné (`version` absent = 1, version
+  supérieure ou ≤ 0 refusée, `CanMigrate`, `MigrateToCurrent`), lecture tolérante par entrée (dix cas avertis, dont un
+  ducking sans source et un départ sans cible ignorés ; niveau de départ absent = 1, choix de l'exécutant), chargeur
+  `.audioMixer`, écrivain de l'éditeur (`EditorAssetSaveSource.AudioMixerEditorPanel` = 7). 20 tests. Deux solutions
+  sans erreur, aucun avertissement dans les fichiers ajoutés ; 3632/3632 ; diffs vides depuis `c468280c` sur
+  `AudioService.cs`, `IAudioBackend.cs`, `AudioMixer.cs`, `AudioBus.cs`.
 
 ### ⏳ T10.2 — Validation et application au mixeur vivant (P46, P47)
 

@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Fonts;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Cutscenes;
@@ -55,6 +56,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(CutsceneAsset), new CutsceneAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(DialogueAsset), new DialogueAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(SoundAsset), new SoundAssetLoader());
+        assetContentManager.RegisterAssetLoader(typeof(AudioMixerAsset), new AudioMixerAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(BitmapFont), new BitmapFontLoader());
     }
 }

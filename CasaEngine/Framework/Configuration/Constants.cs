@@ -36,6 +36,7 @@ public static class Constants
         public const string Cutscene = ".cutscene";
         public const string Dialogue = ".dialogue";
         public const string Sound = ".sound";
+        public const string AudioMixer = ".audioMixer";
 
         //project
         public const string Project = ".json";
