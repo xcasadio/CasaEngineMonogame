@@ -48,6 +48,12 @@ public sealed class FakeAudioBackend : IAudioBackend
     /// <summary>Total number of Play calls refused because no voice was available.</summary>
     public int RefusedPlayCount { get; private set; }
 
+    /// <summary>Total number of <see cref="SetParameters"/> calls received (also those for a stale handle).</summary>
+    public int SetParametersCount { get; private set; }
+
+    /// <summary>Total number of <see cref="SetVolume"/> calls received (also those for a stale handle).</summary>
+    public int SetVolumeCount { get; private set; }
+
     public bool IsDisposed { get; private set; }
 
     public AudioVoiceHandle Play(IAudioClip clip, in AudioVoiceParameters parameters)
@@ -79,6 +85,7 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public void SetParameters(AudioVoiceHandle voice, in AudioVoiceParameters parameters)
     {
+        SetParametersCount++;
         if (TryGetSlot(voice, out var slot))
         {
             slot.Parameters = parameters;
@@ -87,6 +94,7 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public void SetVolume(AudioVoiceHandle voice, float volume)
     {
+        SetVolumeCount++;
         if (TryGetSlot(voice, out var slot))
         {
             slot.Parameters = slot.Parameters.WithVolume(volume);

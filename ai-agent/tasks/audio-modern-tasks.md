@@ -2451,7 +2451,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   `float.MaxValue`. 31 tests. Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3411/3411.
   **🧪 pour l'auteur** : aspect des six lignes dans l'éditeur.
 
-### ⏳ T9.4 — Écouteur, voix spatiales et repli dans `AudioService` (P32, P35, P36, P38, P44)
+### ✅ T9.4 — Écouteur, voix spatiales et repli dans `AudioService` (P32, P35, P36, P38, P44)
 
 - Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, tests `CasaEngine.Tests/Audio/Spatial/AudioServiceListenerTests.cs`
   et `AudioServiceSpatialVoiceTests.cs` (nouveaux, collection `ProjectEnvironmentCollection`), faux backend de test
@@ -2504,6 +2504,17 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   (14) zéro allocation de l'`Update` avec 64 voix spatiales et un déplacement par frame. Tests existants
   d'`AudioService` inchangés et verts ; deux solutions ; suite verte trois fois.
 - Commit : `feat(audio): audio listener and spatial voices in AudioService`
+- Note de validation (2026-10-06) : `SetListener`, `RemoveListener`, `HasListener`, `PlaySoundAt`, `SetVoicePosition`
+  (API additive) ; pile d'écouteurs préallouée ; `PlayClipCore` reçoit `VoiceModulationStart` ; chaque démarrage écrit les
+  champs de modulation (`WriteStartModulation`, `WriteNeutralModulation` pour `PlayStream` et `PlayClipStereoOnBackend`) ;
+  `Update` : fondus de bus, écouteur, puis par voix recyclage, `UpdateModulation`, fondu ; repli : gain et pan repliés,
+  un seul `SetVolume` par voix et par frame (une voix en fondu ne reçoit son gain que par le fondu). Choix de l'exécutant
+  gardés : `SetVoicePosition` rend spatiale une voix d'asset spatial lancée par `PlaySound` (P38) ; sur le repli, un
+  changement de pan d'une voix en fondu envoie `SetParameters` puis le `SetVolume` du fondu, tous deux au bon volume.
+  88 cas de test sous le backend logiciel hors ligne (niveau rendu recalculé par la loi de pan), le faux backend (repli)
+  et un faux backend avec la capacité, dont les ordres de S4 (F1, N1, R1, V1/V2), le cas « 9 bis » et le slot réutilisé ;
+  mutation : retirer le repliement du gain fait échouer 17 tests ; 0 octet sur 100 frames de 64 voix spatiales déplacées.
+  Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3499/3499 quatre fois.
 
 ### ⏳ T9.5 — Doppler et pitch de voix (P33, P37)
 
