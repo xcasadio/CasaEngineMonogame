@@ -542,7 +542,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   en `string`). Cinq questions de conception posées à l'auteur (Q1–Q5) ; le plan se fige et s'approuve avec ses
   réponses.
 
-### ⏳ T3.2 — Plan séparé « image du bureau sans allocation »
+### ✅ T3.2 — Plan séparé « image du bureau sans allocation »
 
 - Objectif : écrire le plan du chantier séparé qui rend une image complète du bureau sans allocation (resserrement
   du 2026-10-06 après la relecture du plan), sans code.
@@ -553,6 +553,11 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   plan ; le soumettre.
 - Validation : plan approuvé ou questions posées.
 - Commit : `docs(plan): plan the allocation-free MGUI desktop frame`
+- Note (2026-10-06) : [mgui-desktop-frame-nonalloc-tasks.md](mgui-desktop-frame-nonalloc-tasks.md) écrit et ajouté à
+  l'index. Mesure (sonde non commitée, runtime de test dont la transaction de dessin enregistre les appels, donc ordre
+  de grandeur seulement) : environ 12 400 octets par image au repos (update 1 400, dessin 11 000), 14 500 pendant un
+  glissement. Sites connus (`MGDesktop.cs:1602` et `:1739`, tri des fenêtres à chaque image ; O3), phases de mesure
+  existantes, zones non parcourues. Quatre questions posées à l'auteur (Q1–Q4).
 
 ---
 
