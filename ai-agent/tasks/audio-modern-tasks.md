@@ -3100,7 +3100,7 @@ de clôture **READY**.
   plus de `DeepEquals`, qui ignore l'ordre des clés). Démo lancée sans clavier : 294 assets au catalogue, aucune ligne du
   mixeur, aucun avertissement. Deux solutions sans erreur ; 4067/4067.
 
-### 🧪 T10.11 — Documentation, ADR et vérification de la tranche
+### ✅ T10.11 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (nouvelle section « 2 ter. Asset de mixeur `.audioMixer` », « 5 ter »
   pour le réglage, §3, §9, §10), nouveau `docs/editor/audio-mixer-panel.md` (anglais), `docs/editor/editor-history.md`
@@ -3115,7 +3115,18 @@ de clôture **READY**.
 - Note (2026-10-06) : `audio-system.md` (nouvelle section « 2 ter », renvoi depuis « 5 ter », §3 liste de bus et dessin,
   §9 limites, §10), `docs/editor/audio-mixer-panel.md` (nouveau, anglais), `docs/editor/editor-history.md` (contexte de
   mixage), **ADR-0067** (0065 et 0066 sont déjà pris par des branches `e19`, dont une renumérotation en cours), index des
-  ADR et `docs/README.md`. Vérificateur frais en attente.
+  ADR et `docs/README.md` (commit `1e873399`). Vérificateur frais sur `1e873399` : **CONFIRMED**, aucun P0–P2 : aller-retour
+  de tous les champs et des six types de filtre, onze entrées fautives averties, versions refusées ; démarrage sûr (ordre
+  dans `Initialize`, dix fichiers hostiles et trois ids inconnus sans exception, mixeur vivant inchangé ; trois
+  lancements réels de la démo sans réglage, avec l'exemple activé et avec un nom inconnu) ; sens unique, idempotence,
+  Master/Editor/muets/limiteur/effets du jeu intacts ; une entrée par geste, annuler et rétablir, mode jeu, solo (dont un
+  retour du seul mixeur vivant) ; changement de projet par une variante avec `LoadProject`, `ClearProject` et la vraie
+  synchro ; exemple de code de la doc compilé et exécuté ; API additive ; 4067/4067 deux fois. Non exercé (lecture
+  seulement) : le câblage de `GameEditor` dans l'éditeur lancé. Avis reportés (O40) : P3 un départ posé par le jeu vers
+  la même cible qu'un départ de l'asset est remis à 0 au relâchement au lieu d'être rétabli ; P3 le commentaire de
+  `AudioMixerDocument` sur un `commandSink` qui ne fait qu'enregistrer est faux (sans effet : le panneau passe par
+  `EditorHistoryStack.Execute`) ; P4 « 26 bus d'asset au plus » compte en fait 26 bus **nouveaux** (les quatre bus du
+  moteur ne comptent pas). **🧪 pour l'auteur** : T10.3, T10.5 à T10.9 (éditeur lancé).
 
 ---
 
@@ -3170,6 +3181,7 @@ du SPU) auront chacune leur détail, relu, avant exécution.
 | O37 | **Question à l'auteur (non bloquante)** — structure du mixeur : le moteur ne sait ni renommer, ni reparenter, ni retirer un bus vivant ; S6b n'offre que l'ajout et la suppression de bus personnalisés sans lien, effective au prochain démarrage (P52). Faut-il ces opérations (évolution du moteur) ? | S6b |
 | O38 | **Question à l'auteur (non bloquante)** — dessin d'un fichier son : décodage résident sous un plafond de 64 Mo, calculé une fois à l'ouverture (P56) ; mesure de T10.9 : un WAV de 5 min coûte 0,04 s (Release) à 0,3 s (Debug) et 101 Mio temporaires ; un Ogg de 5 min (3 Mio) 0,4 à 0,6 s et 310 Mio alloués au total, et le plafond en taille de fichier ne borne pas un gros Ogg. Faut-il un plafond par durée (lue dans l'en-tête), un calcul en tâche de fond ou un chemin par flux ? | S6b |
 | O39 | **Question à l'auteur (non bloquante)** — fermeture d'un onglet de mixage modifié : sans confirmation, comme les autres panneaux sauf les écrans UI ; la fermeture réapplique l'asset enregistré au mixeur vivant (P49). Faut-il une confirmation ? | S6b |
+| O40 | Avis P3/P4 du vérificateur de S6b (reportés, non bloquants) : (1) un départ posé par le jeu vers la même cible qu'un départ de l'asset est remis à 0 au relâchement de l'applicateur au lieu de reprendre sa valeur (`AudioMixerAssetApplier.Retire`/`ApplySends`) ; (2) le commentaire de classe d'`AudioMixerDocument` dit qu'un `commandSink` qui se contente d'enregistrer la commande fonctionne, ce qui est faux après une annulation (le panneau passe par `EditorHistoryStack.Execute`, donc sans effet aujourd'hui) ; (3) `audio-system.md` §2 ter dit « 26 bus d'asset au plus » alors que ce sont 26 bus nouveaux (les quatre bus du moteur existent déjà). | S6b |
 | O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? **Réponses de l'auteur (2026-10-06) : D5 à D14.** | S5 |
 | O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? **Réponses de l'auteur (2026-10-06) : D15 à D21.** | S6b |
 
