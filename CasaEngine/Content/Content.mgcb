@@ -92,6 +92,13 @@
 /processorParam:Defines=
 /build:Shaders/SpriteBatch.fx
 
+#begin Shaders/PsxQuad.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/PsxQuad.fx
+
 #begin Shaders/TexturedPrimitive.fx
 /importer:EffectImporter
 /processor:EffectProcessor

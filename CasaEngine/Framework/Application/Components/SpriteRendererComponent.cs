@@ -35,6 +35,12 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         // regardless of what has already been drawn at that pixel's depth. Default false so every
         // other caller of DrawSprite keeps testing/writing depth exactly as before this field existed.
         public bool IgnoresDepth;
+
+        // ADR-0068: an entry of a free PSX quad (DrawPsxQuad). NoCull draws it without face culling (a mirrored quad winds the
+        // other way); PsxQuad draws it with the PsxQuad effect instead of the sprite effect. Both are false for every sprite
+        // entry, so a pooled entry never keeps them from a previous use.
+        public bool NoCull;
+        public bool PsxQuad;
     }
 
     private const int NbSprites = 10000;
@@ -56,6 +62,13 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     // the component's colour on the STP draw of a mode 3 sprite (add 64/255 of the texel).
     private static readonly Color Mode3FrontColor = new(64, 64, 64, 255);
 
+    // ADR-0068: DrawPsxQuad adds this to the texture coordinates of the four corners, in texels: half a texel (the PS1 reads the texel
+    // floor(u + 1/2)) plus 1/4096 of a texel, so an exact tie is resolved upward whatever the rounding of the interpolation.
+    private const float PsxQuadTexelShift = 0.5f + 1f / 4096f;
+
+    /// <summary>Content name of the effect that draws the free PSX quads (ADR-0068), loaded on the first such entry.</summary>
+    internal const string PsxQuadContentName = "Shaders\\PsxQuad";
+
     /// <summary>Test seam (ADR-0051): when set, receives the raw-alpha window instead of the effect parameter.</summary>
     internal Action<float, float> AlphaWindowWriter;
     private VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
@@ -65,6 +78,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private IndexBuffer _indexBuffer;
     private Effect _effect;
     private Effect _alphaWindowEffect;
+    private Effect _psxQuadEffect;
     private EffectParameter _alphaWindowParameter;
     private readonly CasaEngineGame _game;
 
@@ -243,6 +257,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         // sprites sharing the same IgnoresDepth flag (ADR-0034).
         var currentIgnoresDepth = false;
 
+        // ADR-0068: the series of free-quad entries are drawn without face culling (a mirrored quad winds the other way) and with
+        // the PsxQuad effect; the frame parameters of that effect are set once, on the first quad entry.
+        var currentNoCull = false;
+        var psxQuadFramePosed = false;
+
         for (var i = 0; i < _spriteDatas.Count; i++)
         {
             var spriteDisplayData = _spriteDatas[i];
@@ -257,6 +276,25 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             {
                 currentIgnoresDepth = spriteDisplayData.IgnoresDepth;
                 graphicsDevice.DepthStencilState = currentIgnoresDepth ? DepthStencilState.None : _depthStencilState;
+            }
+
+            if (spriteDisplayData.NoCull != currentNoCull)
+            {
+                currentNoCull = spriteDisplayData.NoCull;
+                graphicsDevice.RasterizerState = currentNoCull ? RasterizerState.CullNone : RasterizerState.CullCounterClockwise;
+            }
+
+            if (spriteDisplayData.PsxQuad)
+            {
+                var quadEffect = GetPsxQuadEffect();
+                if (!psxQuadFramePosed)
+                {
+                    PosePsxQuadFrame(quadEffect, view * projection, projection, graphicsDevice);
+                    psxQuadFramePosed = true;
+                }
+
+                DrawPsxQuadEntry(quadEffect, in spriteDisplayData, i, graphicsDevice);
+                continue;
             }
 
             if (spriteDisplayData.AlphaMin != currentAlphaMin || spriteDisplayData.AlphaMax != currentAlphaMax)
@@ -651,6 +689,144 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
     }
 
+    /// <summary>
+    /// Queues a free PSX quad (ADR-0068): the four vertices of a PS1 textured quad, in the order of the PS1 data (top-left,
+    /// top-right, bottom-left, bottom-right of the texture rectangle), anywhere in the world (units = PS1 pixels, y up), so a
+    /// scaled, mirrored, sheared or arbitrary quad is drawn as the PS1 draws it. <paramref name="sourceInTexture"/> is the raw
+    /// texture window of the PS1 data in texels (<c>u, v, w, h</c>): the texture coordinates are its corners, never flipped (the
+    /// mirror is in the corners), and a mirrored axis names its window one texel back, as the producer gives it. The quad is
+    /// drawn with the screen-resolution rule of ADR-0068 (exact at factor 1, one texel per PS1 pixel for a 1:1 quad at any
+    /// factor); the mode queues two entries of the same key on two disjoint raw-alpha windows (ADR-0051), like a sprite.
+    /// </summary>
+    public void DrawPsxQuad(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, in RenderSortKey2D sortKey, SpritePsxSemiTransparency psxSemiTransparency,
+        Rectangle scissorRectangle)
+    {
+        DrawPsxQuadCore(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, true, in sortKey,
+            psxSemiTransparency, scissorRectangle);
+    }
+
+    /// <summary>The overload with a sort key, on the device scissor.</summary>
+    public void DrawPsxQuad(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, in RenderSortKey2D sortKey, SpritePsxSemiTransparency psxSemiTransparency)
+    {
+        DrawPsxQuadCore(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, true, in sortKey,
+            psxSemiTransparency, GraphicsDevice.ScissorRectangle);
+    }
+
+    /// <summary>The path by <paramref name="z"/> (no sort key): the same quad as the overload with a sort key.</summary>
+    public void DrawPsxQuad(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, SpritePsxSemiTransparency psxSemiTransparency, Rectangle scissorRectangle)
+    {
+        DrawPsxQuadCore(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, false,
+            RenderSortKey2D.Default, psxSemiTransparency, scissorRectangle);
+    }
+
+    /// <summary>The path by <paramref name="z"/> (no sort key), on the device scissor.</summary>
+    public void DrawPsxQuad(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, SpritePsxSemiTransparency psxSemiTransparency)
+    {
+        DrawPsxQuadCore(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, false,
+            RenderSortKey2D.Default, psxSemiTransparency, GraphicsDevice.ScissorRectangle);
+    }
+
+    private void DrawPsxQuadCore(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, bool hasSortKey, in RenderSortKey2D sortKey,
+        SpritePsxSemiTransparency psxSemiTransparency, Rectangle scissorRectangle)
+    {
+        ArgumentNullException.ThrowIfNull(texture);
+
+        if (texture.IsDisposed)
+        {
+            throw new ArgumentException($"{nameof(texture)} is disposed");
+        }
+
+        if (psxSemiTransparency == SpritePsxSemiTransparency.None)
+        {
+            QueuePsxQuad(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, hasSortKey, in sortKey,
+                scissorRectangle, SpriteBlendMode.Opaque, NeutralAlphaMin, NeutralAlphaMax);
+            return;
+        }
+
+        // ADR-0051: the opaque texels, then the STP texels with the state of the mode, the same corners and key.
+        var stpColor = psxSemiTransparency == SpritePsxSemiTransparency.Mode3 ? Mode3FrontColor : color;
+        QueuePsxQuad(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, color, z, hasSortKey, in sortKey,
+            scissorRectangle, SpriteBlendMode.Opaque, OpaqueTexelsAlphaMin, OpaqueTexelsAlphaMax);
+        QueuePsxQuad(texture, sourceInTexture, topLeft, topRight, bottomLeft, bottomRight, stpColor, z, hasSortKey, in sortKey,
+            scissorRectangle, GetPsxBlendMode(psxSemiTransparency), StpTexelsAlphaMin, StpTexelsAlphaMax);
+    }
+
+    /// <summary>
+    /// Writes one entry of a free quad. It does not use the core of the sprite (unit square and scale matrix): every field of
+    /// the entry is assigned, so an entry reused from the pool keeps nothing of its previous use. The corners go into the
+    /// vertex slots TR, BR, BL, TL so the index buffer {0, 1, 2, 0, 2, 3} draws the triangles (TR, BR, BL) and (TR, BL, TL):
+    /// the TR-BL diagonal of the PS1 split.
+    /// </summary>
+    private void QueuePsxQuad(Texture2D texture, Rectangle sourceInTexture, Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft,
+        Vector2 bottomRight, Color color, float z, bool hasSortKey, in RenderSortKey2D sortKey, Rectangle scissorRectangle,
+        SpriteBlendMode blendMode, float alphaMin, float alphaMax)
+    {
+        var center = (topLeft + topRight + bottomLeft + bottomRight) * 0.25f;
+
+        var left = (sourceInTexture.Left + PsxQuadTexelShift) / texture.Width;
+        var right = (sourceInTexture.Right + PsxQuadTexelShift) / texture.Width;
+        var top = (sourceInTexture.Top + PsxQuadTexelShift) / texture.Height;
+        var bottom = (sourceInTexture.Bottom + PsxQuadTexelShift) / texture.Height;
+
+        GetSpriteDisplayData(out var spriteDisplayData);
+        spriteDisplayData.TopLeft = new VertexPositionTexture(new Vector3(topRight - center, 0f), new Vector2(right, top));
+        spriteDisplayData.TopRight = new VertexPositionTexture(new Vector3(bottomRight - center, 0f), new Vector2(right, bottom));
+        spriteDisplayData.BottomRight = new VertexPositionTexture(new Vector3(bottomLeft - center, 0f), new Vector2(left, bottom));
+        spriteDisplayData.BottomLeft = new VertexPositionTexture(new Vector3(topLeft - center, 0f), new Vector2(left, top));
+        spriteDisplayData.Color = color;
+        spriteDisplayData.Texture = texture;
+        spriteDisplayData.WorldMatrix = Matrix.CreateTranslation(center.X, center.Y, z);
+        spriteDisplayData.ScissorRectangle = scissorRectangle;
+        spriteDisplayData.SortKey = sortKey;
+        spriteDisplayData.HasSortKey = hasSortKey;
+        spriteDisplayData.BlendMode = blendMode;
+        spriteDisplayData.AlphaMin = alphaMin;
+        spriteDisplayData.AlphaMax = alphaMax;
+        spriteDisplayData.IgnoresDepth = false;
+        spriteDisplayData.NoCull = true;
+        spriteDisplayData.PsxQuad = true;
+        _spriteDatas.Add(spriteDisplayData);
+    }
+
+    private Effect GetPsxQuadEffect()
+    {
+        return _psxQuadEffect ??= _game.Content.Load<Effect>(PsxQuadContentName);
+    }
+
+    /// <summary>
+    /// Frame parameters of the PsxQuad effect (ADR-0068): the view-projection, the half screen pixel the geometry is shifted by
+    /// (right and down, in clip space) and the factor k, the screen pixels per world unit (PS1 pixel), read from the projection
+    /// and the viewport (an integer under ADR-0048).
+    /// </summary>
+    private static void PosePsxQuadFrame(Effect effect, Matrix viewProjection, Matrix projection, GraphicsDevice graphicsDevice)
+    {
+        var viewport = graphicsDevice.Viewport;
+        effect.Parameters["ViewProj"].SetValue(viewProjection);
+        effect.Parameters["HalfPixel"].SetValue(new Vector2(1f / viewport.Width, -1f / viewport.Height));
+        effect.Parameters["Scale"].SetValue(projection.M11 * viewport.Width * 0.5f);
+    }
+
+    private static void DrawPsxQuadEntry(Effect effect, in SpriteDisplayData entry, int index, GraphicsDevice graphicsDevice)
+    {
+        effect.Parameters["Texture"].SetValue(entry.Texture);
+        effect.Parameters["TextureSize"].SetValue(new Vector2(entry.Texture.Width, entry.Texture.Height));
+        effect.Parameters["Color"].SetValue(entry.Color.ToVector4());
+        effect.Parameters["World"].SetValue(entry.WorldMatrix);
+        effect.Parameters["AlphaWindow"].SetValue(new Vector2(entry.AlphaMin, entry.AlphaMax));
+        graphicsDevice.ScissorRectangle = entry.ScissorRectangle;
+
+        for (var j = 0; j < effect.CurrentTechnique.Passes.Count; j++)
+        {
+            effect.CurrentTechnique.Passes[j].Apply();
+            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, index * 4, 0, 2);
+        }
+    }
+
     private static SpriteBlendMode GetPsxBlendMode(SpritePsxSemiTransparency mode)
     {
         return mode switch
@@ -878,6 +1054,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             spriteDisplayData.IgnoresDepth = ignoresDepth;
         spriteDisplayData.AlphaMin = alphaMin;
         spriteDisplayData.AlphaMax = alphaMax;
+        spriteDisplayData.NoCull = false;
+        spriteDisplayData.PsxQuad = false;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)
