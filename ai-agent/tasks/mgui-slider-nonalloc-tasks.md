@@ -525,7 +525,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 
 ## Phase 3 — Plans séparés
 
-### ⏳ T3.1 — Plan séparé « `MGTextBlock` sans allocation »
+### ✅ T3.1 — Plan séparé « `MGTextBlock` sans allocation »
 
 - Objectif : D7. Écrire le plan du chantier séparé, sans code.
 - Fichiers : `ai-agent/tasks/mgui-text-nonalloc-tasks.md` (nouveau), `ai-agent/README.md`.
@@ -535,6 +535,12 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   questions de conception à l'auteur en une fois ; rédiger le plan ; le soumettre.
 - Validation : plan approuvé ou questions posées.
 - Commit : `docs(plan): plan the allocation-free MGUI text pipeline`
+- Note (2026-10-06) : [mgui-text-nonalloc-tasks.md](mgui-text-nonalloc-tasks.md) écrit et ajouté à l'index. Mesure
+  (sonde non commitée) : environ 3 200 octets par changement de texte pour le setter seul, environ 11 500 avec la mesure
+  et le layout qui suivent. Inventaire des sites (setter, `ParseRuns`, tokenizer, `ParseLines` et coupure, dessin,
+  révélation progressive) et de l'API publique concernée (`Runs`, `Lines`, `MGTextRun`, `MGTextLine`, moteurs de texte
+  en `string`). Cinq questions de conception posées à l'auteur (Q1–Q5) ; le plan se fige et s'approuve avec ses
+  réponses.
 
 ### ⏳ T3.2 — Plan séparé « image du bureau sans allocation »
 
