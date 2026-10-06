@@ -1996,7 +1996,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   solutions sans erreur ni avertissement nouveau dans les fichiers touchés ; 3202/3202 ; diffs vides depuis
   `6f06298f` sur `IAudioBackend.cs`, `AudioVoiceParameters.cs`, `AudioService.cs`.
 
-### ⏳ T8.3 — Tirage des variations à `PlaySound` (D5, P24, P26, P27)
+### ✅ T8.3 — Tirage des variations à `PlaySound` (D5, P24, P26, P27)
 
 - Fichiers : `CasaEngine/Framework/Audio/SoundVariation.cs` (nouveau, `internal`),
   `CasaEngine/Framework/Audio/AudioService.cs` (`PlaySound`, `ResolveClip`, `VariationRandom`),
@@ -2040,6 +2040,15 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   CasaEngine/Framework/Audio/AudioVoiceParameters.cs CasaEngine/Framework/Audio/IAudioBackend.cs
   CasaEngine/Framework/Audio/Backends CasaEngine/Framework/Audio/Software` vide.
 - Commit : `feat(audio): draw random variations when playing a sound asset`
+- Note de validation (2026-10-06) : `SoundVariation.Draw` (boucles `for`, sans allocation, valeurs du hasard
+  bornées) et `SoundVariationDraw.ApplyTo` (tirage neutre = entrée rendue telle quelle) ; `PlaySound` tire puis
+  résout le fichier tiré et applique le tirage sur les paramètres surchargés. 34 tests, dont les chemins réels
+  `SoundEmitterComponent.Play()` (volume 0,8 × 0,5 × 0,5 = 0,2 ; pitch 0,1 + 0,25 + 0,25 = 0,6) et
+  `CutsceneActionCoroutineFactory.PlaySound` par réflexion. Allocation : 0 octet sur 1 000 lectures acceptées
+  avec variations, 0 sans (même boucle). Un asset sans fichier principal mais avec des variations joue une
+  variation (P26 : seuls les candidats non vides comptent). Deux solutions sans erreur, aucun avertissement dans
+  les fichiers touchés (builds `--no-incremental`) ; 3236/3236 ; diffs vides depuis `6f06298f` sur
+  `AudioVoiceParameters.cs`, `IAudioBackend.cs`, `Backends`, `Software`.
 
 ### ⏳ T8.4 — Priorités de voix et vol (D6, D7, P28, P29)
 

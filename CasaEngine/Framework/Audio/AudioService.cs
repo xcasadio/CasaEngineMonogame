@@ -50,6 +50,7 @@ public sealed class AudioService : IDisposable
     private string _spuBusName;
     private int _appliedMixerVersion = -1;
     private bool _isDisposed;
+    private Random _variationRandom = Random.Shared;
 
     public AudioService(IAudioBackend backend, AudioMixer mixer = null)
     {
@@ -160,6 +161,16 @@ public sealed class AudioService : IDisposable
     /// </summary>
     public IAudioClipProvider ClipProvider { get; set; }
 
+    /// <summary>
+    /// Random source of the variations drawn by <see cref="PlaySound(SoundAsset, in SoundPlaybackOverrides, object)"/>.
+    /// Game thread only. Injectable for tests or a deterministic replay; null restores <see cref="Random.Shared"/>.
+    /// </summary>
+    public Random VariationRandom
+    {
+        get => _variationRandom;
+        set => _variationRandom = value ?? Random.Shared;
+    }
+
     public bool IsAudioAvailable => _backend.IsAvailable;
 
     /// <summary>Number of voices the service currently tracks (playing or paused).</summary>
@@ -213,7 +224,12 @@ public sealed class AudioService : IDisposable
     /// A missing audio file, an unresolvable clip or a saturated backend all end the same way:
     /// a throttled log and <see cref="AudioVoiceHandle.None"/>. Gameplay code never has to guard
     /// against a broken sound asset.
-    /// Streaming assets are refused here; they go through the music player instead.
+    /// Streaming assets are refused here; they go through the music player instead, and have no variation draw.
+    /// <para/>
+    /// Composition of the parameters: the overrides replace the asset values, then the variation draw of the
+    /// asset (file, volume factor, pitch offset) applies on top, and <see cref="AudioVoiceParameters"/> clamps
+    /// the result. One draw per play: a looped voice keeps its draw. An asset without variation never calls
+    /// <see cref="VariationRandom"/>. If the drawn file cannot be loaded, nothing plays (no fallback).
     /// </remarks>
     public AudioVoiceHandle PlaySound(SoundAsset asset, object owner = null)
     {
@@ -239,13 +255,15 @@ public sealed class AudioService : IDisposable
             return AudioVoiceHandle.None;
         }
 
-        var clip = ResolveClip(asset);
+        var draw = SoundVariation.Draw(asset, _variationRandom);
+
+        var clip = ResolveClip(asset, draw.AudioFileAssetId);
         if (clip == null)
         {
             return AudioVoiceHandle.None;
         }
 
-        var parameters = overrides.ApplyTo(asset.CreateVoiceParameters());
+        var parameters = draw.ApplyTo(overrides.ApplyTo(asset.CreateVoiceParameters()));
         var busName = overrides.ResolveBus(asset.BusName);
 
         return PlayClip(clip, busName, parameters, owner);
@@ -1095,9 +1113,9 @@ public sealed class AudioService : IDisposable
         return true;
     }
 
-    private IAudioClip ResolveClip(SoundAsset asset)
+    private IAudioClip ResolveClip(SoundAsset asset, Guid audioFileAssetId)
     {
-        if (asset.AudioFileAssetId == Guid.Empty)
+        if (audioFileAssetId == Guid.Empty)
         {
             if (_missingClipLog.ShouldWrite())
             {
@@ -1117,12 +1135,12 @@ public sealed class AudioService : IDisposable
             return null;
         }
 
-        var clip = ClipProvider.GetClip(asset.AudioFileAssetId);
+        var clip = ClipProvider.GetClip(audioFileAssetId);
         if (clip is not { IsDisposed: false })
         {
             if (_missingClipLog.ShouldWrite())
             {
-                _missingClipLog.WriteNow($"Audio: the audio file of sound '{asset.Name}' ({asset.AudioFileAssetId}) could not be loaded.");
+                _missingClipLog.WriteNow($"Audio: the audio file of sound '{asset.Name}' ({audioFileAssetId}) could not be loaded.");
             }
 
             return null;
