@@ -1483,6 +1483,128 @@ Budget : identique à S2.
 
 ---
 
+## Vague 4 — tranches S5 et S6 (détail du 2026-10-06)
+
+Découverte en lecture seule de S5 et S6 (deux enquêtes, chacune passée par un vérificateur
+contradictoire, sur l'instantané `b459742f`) ; les faits dont dépend la partie exécutable ont été
+revérifiés sur `247330ba` (fin de S4).
+
+**Faits établis.**
+- Alundra n'utilise ni `.sound`, ni `SoundAsset`, ni `SoundEmitterComponent` ; son seul contact avec
+  S5 serait de nouveaux champs d'`AudioVoiceParameters`, qu'il construit directement.
+- `SoundPlaybackOverrides.ApplyTo` et `SoundAsset.CreateVoiceParameters` reconstruisent les
+  paramètres par le constructeur à 4 arguments (O17) : tout nouveau champ de `.sound` y serait perdu.
+  La sauvegarde d'un `.sound` est dans `CasaEngine.EditorServices`, le chargement dans le runtime.
+- `AudioService` n'a accès ni au monde ni à une caméra active ; `SceneComponent` n'expose pas de
+  vecteur « droite » ; `SceneComponent.Load` déréférence `local_transform` et `children_component`
+  sans contrôle, absents des émetteurs sauvegardés : convertir `SoundEmitterComponent` en
+  `SceneComponent` change la sérialisation.
+- Les voix streamées (musique, voix stéréo du chemin de repli) prennent leurs emplacements dans le
+  même réservoir de 64 voix que les effets sonores ; `SetParameters` peut attendre jusqu'à 100 ms
+  quand l'anneau est plein ; aucun filtre par voix n'existe (les effets de S4 sont par bus) ;
+  `SoundAsset` n'a pas de champ de pan.
+- Le « solo » n'existe nulle part ; le muet du Master appartient au projet (ADR-0040) et Alundra
+  écrit le volume du Master à chaque tick ; l'inspecteur de son code en dur la liste de bus
+  {Sfx, Music, Voice, Ui} ; `MGSlider.ValueChanged` alloue un `EventArgs` à chaque changement
+  (sous-module MGUI).
+- Le moteur n'expose ses éléments internes qu'à `CasaEngine.EditorServices`, `CasaEngine.Tests` et
+  `CasaEngine.AposShapes` (`CasaEngine/InternalsVisibleTo.*.cs`) : un panneau de l'éditeur ne lit
+  que des API publiques. Les statistiques sont déjà publiques : `SoftwareAudioBackend.ActiveVoiceCount`,
+  `UnderrunCount`, `OutputSampleRate`, `LeadMilliseconds`, `DroppedChunkCount`, `DroppedEventCount`
+  (`SoftwareAudioBackend.cs:131-155`), `AudioService.ActiveVoiceCount` et `RefusedVoiceCount`
+  (`AudioService.cs:101-104`). Le panneau « Output » (`LogsPanel`, enregistré dans `GameEditor.cs`,
+  identifiant `EditorPanelIds.Output`) est le modèle d'un panneau en lecture seule.
+- Les dépassements de pleine échelle ne se voient pas après le mix : l'écrêtage final et le
+  limiteur du Master (T5.4) les effacent ; ils se comptent sur le thread audio, avant eux.
+
+**Enveloppe ajustée (vague 4).**
+- **S5 (couche jeu) en pause entière** sur les questions O23 : aucune de ses tâches ne s'exécute
+  sans trancher la forme des variations, la sémantique des priorités, l'écouteur et l'atténuation,
+  le Doppler, la liaison des paramètres de jeu et la migration de `SoundEmitterComponent`.
+- **S6 est découpée.** **S6a (mesure des niveaux et profileur audio de l'éditeur, en lecture
+  seule)** ne demande aucune décision produit et se détaille ci-dessous. **S6b (asset du mixeur, panneau
+  de mixage éditable, solo, formes d'onde)** est en pause sur les questions O24.
+
+### Décisions de la vague 4 (arbitrages de l'agent, à confirmer par l'auteur)
+
+| Réf | Arbitrage |
+|---|---|
+| P22 | **Mesure par capacité optionnelle publique** `IAudioMeteringBackend` (même schéma que P9 et P18), implémentée par `SoftwareAudioBackend` seul : pour chaque bus et pour la sortie, crête et valeur efficace de chaque bloc, plus un compteur de dépassements de pleine échelle mesuré à l'entrée du limiteur, avant l'écrêtage. Publication sans verrou, lisible par plusieurs lecteurs sans perte de crête tant que chacun lit au moins toutes les 80 ms (historique circulaire préalloué de 16 blocs par bus et compteur de blocs, ou schéma équivalent justifié). Aucune allocation ni attente sur le thread audio. |
+| P23 | **Panneau « Audio » de l'éditeur en lecture seule** : backend, voix (actives, refusées), avance, débit, sous-alimentations, pertes, état du SPU s'il existe, vu-mètres par bus (crête, valeur efficace, dépassements). Il ne modifie rien : pas de source de vérité concurrente (O24). Contrôle de vu-mètre dessiné par un `MGElement` propre à `CasaEngine.Editor/Controls` (ni dans le runtime, ni dans le sous-module MGUI). Textes rafraîchis au plus 4 fois par seconde et seulement quand une valeur change. |
+
+## Phase 6 — Tranche S6a : mesure et profileur audio (exécution)
+
+Résultat attendu : sous le backend logiciel, le jeu et l'éditeur lisent sans verrou les niveaux de
+chaque bus et de la sortie ; l'éditeur a un panneau « Audio » qui les affiche avec les statistiques
+du backend. Non-objectifs : asset du mixeur, panneau de mixage éditable, solo, formes d'onde (S6b,
+O24) ; aucune modification du sous-module MGUI ; pas de changement de la disposition par défaut
+de l'éditeur ni des dispositions `.casaeditor` suivies. **Prérequis : S4 clôturée** — T5.6 passée
+en ✅ (ou 🧪 pour la seule écoute de l'auteur) après un vérificateur frais **CONFIRMED** sur S4, et
+ADR-0059 présent sur la branche. **Arrêt** : tant que T5.6 n'est pas dans cet état, T6.1 ne
+démarre pas (les deux toucheraient `SoftwareMixer.RenderBlock`/`MixBuses`). Retour arrière : revert ;
+rien du runtime ne dépend de la mesure.
+
+Budget : identique à S2.
+
+Revue du détail (2026-10-06) : deux relecteurs frais **REVISE** (prérequis « S4 clôturée » et arrêt ;
+chemin d'ouverture, source et rafraîchissement du panneau ; puis rythme de lecture des mesures
+distinct de celui des textes), corrigés ; relecture de clôture **READY**.
+
+### ⏳ T6.1 — Mesure des niveaux au thread audio (P22)
+
+- Fichiers : `CasaEngine/Framework/Audio/IAudioMeteringBackend.cs` (capacité publique),
+  `Software/SoftwareMixer.cs`, `Backends/SoftwareAudioBackend.cs`, tests `CasaEngine.Tests/Audio/Software/`.
+- Étapes : dans le mix des bus (T5.1–T5.5), mesurer la crête et la valeur efficace de chaque bus
+  après son gain, et de la sortie ; compter les échantillons au-delà de ±1 à l'entrée du limiteur ;
+  publier par bloc selon P22 ; lecture côté jeu par index de bus et pour la sortie, avec la
+  correspondance nom de bus → index fournie par `AudioService` (additif).
+- Validation : tests : sinus d'amplitude connue sur un bus → crête et valeur efficace attendues
+  (à 1e-4) ; voix sur un bus enfant mesurée sur l'enfant et le parent ; dépassements comptés
+  quand la somme dépasse la pleine échelle, avec le limiteur actif (la sortie, elle, reste sous le
+  plafond) ; deux lecteurs qui lisent à des rythmes différents voient chacun la crête d'un bloc
+  isolé ; zéro allocation au rendu (`AllocationWindow`) ; sans la capacité, `AudioService` le dit
+  (une ligne de journal limitée) et rien d'autre ne change ; suite complète.
+- Commit : `feat(audio): publish bus levels from the audio thread`
+
+### ⏳ T6.2 — Panneau « Audio » de l'éditeur (P23)
+
+- Fichiers : `CasaEngine.Editor/Controls/AudioProfilerPanel.cs`, un contrôle de vu-mètre dans
+  `CasaEngine.Editor/Controls/`, `CasaEngine.Editor/Workspaces/EditorPanelIds.cs` (nouvel
+  identifiant), `CasaEngine.Editor/GameEditor.cs` (descripteur d'outil dans le registre de
+  panneaux, comme celui d'« Output » vers `GameEditor.cs:2128-2134` ; entrée de menu ; appel de
+  rafraîchissement), tests `CasaEngine.Tests/` (construction et logique sans GPU, sur le modèle des
+  tests de panneaux existants).
+- Étapes : **ouverture** par une nouvelle entrée « Audio » du menu « Windows »
+  (`GameEditor.cs:532-540`, qui n'a aujourd'hui que Save, Load et Reset Layout) : elle ancre le
+  panneau d'outil enregistré par le même chemin que `EnsureContextualToolPanelPresent`
+  (`GameEditor.cs:3154-3189` : `CreateRegisteredToolPanelNode`, ajout au groupe d'onglets du
+  Content Browser ou d'Output, `RebuildVisualTree`), ou le rend actif s'il est déjà ancré ; la
+  disposition par défaut (`EditorShellLayoutBuilder`) ne change pas. **Source** : le seul service de
+  l'éditeur, `_editorRuntime.AudioSystemComponent.Service`, qui sert aussi le jeu dans l'éditeur
+  (`EditorPlaySessionController` réutilise le même jeu). **Deux rythmes distincts** : la
+  **lecture des mesures** se fait à chaque `GameEditor.Update` (`GameEditor.cs:5755`) tant que le
+  panneau est ancré, donc à moins de 80 ms d'intervalle (P22), sans allocation : le maintien et la
+  retombée de crête intègrent chaque bloc publié non encore vu ; seule la **reconstruction des
+  textes** est limitée à 4 fois par seconde, et seulement quand une valeur affichée change.
+  Contenu : vu-mètres par bus (crête et valeur efficace en dBFS, maintien de crête, dépassements),
+  statistiques du backend ; sous un backend sans la capacité : « mesure indisponible » et seulement
+  les statistiques communes.
+- Validation : tests de logique (conversion dBFS, maintien et retombée de la crête, textes
+  reconstruits au plus 4 fois par seconde et jamais quand rien ne change ; **une crête isolée
+  publiée sur un seul bloc entre deux reconstructions de texte apparaît dans le maintien de crête
+  et dans le texte suivant** ; lecture des mesures sans allocation) ; build des deux solutions ;
+  vérification visuelle du panneau dans l'éditeur : 🧪 pour l'auteur.
+- Commit : `feat(editor): an audio profiler panel with bus meters`
+
+### ⏳ T6.3 — Documentation, ADR et vérification
+
+- Fichiers : `docs/editor/` (nouvelle page du panneau), `docs/engine/audio-system.md`,
+  `docs/decisions/0060-…md` (numéro revérifié sur toutes les branches, P22–P23), index, ce plan.
+- Validation : vérificateur frais **CONFIRMED**.
+- Commit : `docs(audio): document bus metering and the audio profiler panel`
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
@@ -1511,6 +1633,8 @@ Budget : identique à S2.
 | O20 | Test instable possible : `SoftwareMixerLoopRegionTests.Render_WithRegionsAndMultipliers_DoesNotAllocate` (T2.4) a échoué une fois dans une suite complète lancée par l'exécutant de T4.2 (fichiers sans rapport), puis a passé ; non reproduit en 7 exécutions le 2026-10-06 (une suite complète, six filtrées sur les tests `DoesNotAllocate`). Hypothèse non vérifiée : une compilation JIT (OSR) sur le thread du test pendant la fenêtre mesurée. À surveiller ; si l'échec revient, mesurer ce qui alloue avant de toucher au test. Même schéma vu une fois pendant T4.3 sur le nouveau test d'allocation de la réverbération (6 408 octets, puis cinq passages verts) : l'exécutant y a ajouté 50 rendus de chauffe avant la mesure. Deux tests touchés une fois chacun : la cause reste à mesurer. **Résolu le 2026-10-06** : pendant T4.4, les tests d'allocation du SPU ont échoué plusieurs fois (1 016 à 5 896 octets) ; un essai avec `DOTNET_TieredCompilation=0` n'a pas départagé (aucun échec sur 7 passages normaux ; les deux échecs sans tiering étaient des tests de durée). La cause est déjà documentée dans le dépôt (`CasaEngine.Tests/AllocationWindow.cs`, commit `075886f5` de la pile e19) : un GC d'arrière-plan annule le contexte d'allocation de chaque thread sans en reprendre la fin inutilisée, et ajoute jusqu'à environ 8 Ko jamais alloués au compteur du thread. Les sept mesures audio du chantier lisaient le compteur directement ; elles ouvrent désormais leur fenêtre par `AllocationWindow.Start()` (commit `test(audio): open audio zero-allocation windows with an empty allocation context`). Même famille, sur des durées : `AtTheBound_…` (T4.4, « chaque appel < 1 ms », vu à 2,4 ms une fois) et `OutputDyingWhileACommandWaitsOnAFullRing_ReturnsWithoutTheFullWait` (T2.1, borne de 5 ms, échec isolé deux fois) ; le premier juge désormais le meilleur de trois tours de pression (un appel lent par nature l'est à chaque tour), le second compare à la moitié de l'attente de 100 ms qu'il doit éviter (commit `test(audio): judge wall-clock bounds against parallel test load`). | ✅ |
 | O21 | Avis P4 du vérificateur de X1 (reportés, non bloquants). A1 : la fenêtre d'interpolation a un échantillon de retard sur la lecture de psx-spx « Counter.Bit12 and up indicates the current sample » (le plus récent de la fenêtre est n−1, pas n) ; non marqué AMBIGUOUS, à ajouter aux lectures de O19. A2 : relâchement au décalage 1Fh : la prose de psx-spx dit qu'il ne bouge jamais, le pseudo-code appliqué à la lettre fait un pas toutes les 0,74 s environ (le code suit le pseudo-code) ; contradiction de la source, non marquée, à trancher avec O19. A3 : `psx-spu.md` dit que « SPU unavailable » est journalisé « once », c'est une fois par fenêtre de 5 s (`AudioLogThrottle`) ; mot à corriger au prochain passage sur la page. A4 : `PsxSpuPort.Dispose` attend brièvement (comme un arrêt de voix) ; une écriture de registre soumise *avant* un téléversement peut être appliquée après lui dans le même bloc, sans effet visible puisqu'aucun setter ne lit la SPU RAM et que le rendu suit les deux (le contrat ne garantit que l'inverse, qui tient). | X1 |
 | O22 | **À confirmer par l'auteur** — choix de T5.4 que la source ne tranche pas : (1) gain d'entrée de la réverbération à 1/32, valeur du moteur (les pages CCRMA ne la donnent pas ; le code d'origine de Freeverb, domaine public, n'a pas été lu) ; (2) limiteur du Master : plafonnement par échantillon ajouté au modèle de l'article (sans lui, la crête dépasse le plafond d'environ 0,12 dB) — alternatives : anticipation (look-ahead) ou attaque plus courte ; (3) le limiteur est actif par défaut à −1 dBFS sous le backend logiciel (décision P20 du plan) : tout son au-dessus de −1 dBFS est désormais réduit au lieu d'être écrêté à 0 dBFS, y compris dans Alundra — à écouter ; `service.MasterLimiter.IsEnabled = false` le coupe ; (4) un départ suit le gain propre de son bus, pas celui de ses ancêtres ; (5) niveaux de départ limités à [0, 1] ; T5.5 : (6) suiveur de crête de 50 ms devant le seuil du ducking (ajout du moteur) ; (7) le ducking lit le gain propre de la source en fin de bloc, pas celui de ses ancêtres ; (8) un snapshot applique les paramètres d'effets aussitôt, sans rampe. | S4 |
+| O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? | S5 |
+| O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? | S6b |
 
 ## Hors périmètre
 
