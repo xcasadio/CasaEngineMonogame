@@ -70,7 +70,8 @@ public class CharacterControllerFieldAwareMoverTests
         component.Move(new Vector3(20f, 0f, 0f));
         component.Update(Tick);
 
-        AssertPosition(new Vector3(48f, 24f, 0f), entity.RootComponent!.Position);
+        // ADR-0045: the step advances to the contact (far corner = root + 8 stops on the frontier x = 64).
+        AssertPosition(new Vector3(56f, 24f, 0f), entity.RootComponent!.Position);
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public class CharacterControllerFieldAwareMoverTests
     public void Move_ContactReport_FieldBlockedAxis_MarksOnlyThatAxis()
     {
         // (b): a move against a cliff taller than step height curtails the h1 axis and no other,
-        // with requested/actual values matching that curtailment.
+        // with requested/actual values matching that curtailment (the step advances to the contact).
         var (entity, component) = CreatePawn(CreateColumnHeightField(32f));
         entity.RootComponent!.Position = new Vector3(48f, 24f, 0f);
 
@@ -122,7 +123,7 @@ public class CharacterControllerFieldAwareMoverTests
         Assert.True(contact.H1Curtailed);
         Assert.False(contact.H2Curtailed);
         Assert.Equal(20f, contact.RequestedH1Amount, precision: 3);
-        Assert.Equal(0f, contact.ActualH1Amount, precision: 3);
+        Assert.Equal(8f, contact.ActualH1Amount, precision: 3); // advanced to the contact (ADR-0045), still curtailed.
         Assert.Equal(0f, contact.RequestedH2Amount, precision: 3);
         Assert.Equal(0f, contact.ActualH2Amount, precision: 3);
     }
@@ -178,7 +179,8 @@ public class CharacterControllerFieldAwareMoverTests
         component.Move(new Vector3(20f, 0f, 0f));
         component.Update(Tick);
 
-        AssertPosition(new Vector3(48f, 24f, 0f), entity.RootComponent!.Position);
+        // ADR-0045: the step advances to the contact (far corner = root + 8 stops on the frontier x = 64).
+        AssertPosition(new Vector3(56f, 24f, 0f), entity.RootComponent!.Position);
     }
 
     [Fact]
@@ -351,6 +353,282 @@ public class CharacterControllerFieldAwareMoverTests
         AssertPosition(new Vector3(24f, 24f, 0f), entity.RootComponent!.Position);
         Assert.True(component.IsGrounded);
         Assert.Equal(0f, component.Velocity.Z, precision: 3);
+    }
+
+    // ADR-0045: on the cell field, a blocked step advances to the contact instead of being rejected whole.
+    // Expected values are written by hand from the geometry (cells of 16, the hero's 21x15x32 box at local
+    // (0.5, 0.5, 16): near corner = root - 10 / root - 7, far corner = root + 11 / root + 8, exclusive by one ULP).
+
+    /// <summary>
+    /// The cabin of the Alundra map 390 (parent plan E19.a2): row 12 (y in [192, 208)) is blocked, the hero stands at
+    /// y = 216.34 and pushes 1.6 px north. Its near corner sits at y - 7, so the contact is y = 215.0 exactly (near corner
+    /// on the frontier 208); the old rejection left it at 216.34.
+    /// </summary>
+    [Fact]
+    public void Move_TheCabinStep_AdvancesToTheContactExactly()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 16, blockedColumn: -1, blockedRow: 12);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(60f, 216.34f, 0f);
+
+        component.Move(new Vector3(0f, -1.6f, 0f));
+
+        Assert.Equal(215f, entity.RootComponent!.Position.Y);
+        Assert.Equal(60f, entity.RootComponent.Position.X);
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.True(contact.H2Curtailed);
+        Assert.False(contact.H1Curtailed);
+        Assert.Equal(-1.6f, contact.RequestedH2Amount, precision: 3);
+        Assert.Equal(-1.34f, contact.ActualH2Amount, precision: 3);
+        AssertExactContact(field, 60f, 215f, moveAlongY: true, sign: -1);
+    }
+
+    /// <summary>The 80 px walk of the cabin: from y = 295.16 north by steps of 1.625, it stops at y = 215.0 after 80.16 px.</summary>
+    [Fact]
+    public void Move_AWalkOfEightyPixels_StopsAtTheContactHavingCoveredAtLeastEighty()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 20, blockedColumn: -1, blockedRow: 12);
+        var (entity, component) = CreateHeroPawn(field);
+        const float startY = 295.16f;
+        entity.RootComponent!.Position = new Vector3(60f, startY, 0f);
+
+        for (var i = 0; i < 60; i++)
+        {
+            component.Move(new Vector3(0f, -1.625f, 0f));
+            Assert.True(entity.RootComponent!.Position.Y >= 215f, $"step {i} went into the wall: y = {entity.RootComponent.Position.Y}");
+        }
+
+        Assert.Equal(215f, entity.RootComponent!.Position.Y);
+        Assert.True(startY - entity.RootComponent.Position.Y >= 80f);
+    }
+
+    [Fact]
+    public void Move_PushingAtTheContact_ReturnsAZeroDisplacementAndStaysCurtailed()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 16, blockedColumn: -1, blockedRow: 12);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(60f, 216.34f, 0f);
+        component.Move(new Vector3(0f, -1.6f, 0f));
+        Assert.Equal(215f, entity.RootComponent!.Position.Y);
+
+        for (var i = 0; i < 3; i++)
+        {
+            component.Move(new Vector3(0f, -1.6f, 0f));
+
+            Assert.Equal(215f, entity.RootComponent.Position.Y);
+            CharacterControllerContactReport contact = component.LastContact;
+            Assert.True(contact.H2Curtailed);
+            Assert.Equal(0f, contact.ActualH2Amount);
+        }
+    }
+
+    [Fact]
+    public void Move_TowardsTheEastAndTheSouth_AdvancesToTheContact()
+    {
+        // Pawn 16x16 (box at local (0, 0, 16)): far corner = root + 8. Column 4 (x >= 64) and row 5 (y >= 80) blocked.
+        var field = CreateBlockedLineField(width: 8, depth: 8, blockedColumn: 4, blockedRow: 5);
+        var (entity, component) = CreatePawn(field);
+        entity.RootComponent!.Position = new Vector3(48f, 24f, 0f);
+
+        component.Move(new Vector3(20f, 0f, 0f));
+        AssertPosition(new Vector3(56f, 24f, 0f), entity.RootComponent!.Position);
+        Assert.True(component.LastContact.H1Curtailed);
+        Assert.Equal(8f, component.LastContact.ActualH1Amount, precision: 3);
+
+        entity.RootComponent!.Position = new Vector3(24f, 48f, 0f);
+        component.Move(new Vector3(0f, 40f, 0f));
+        AssertPosition(new Vector3(24f, 72f, 0f), entity.RootComponent!.Position);
+        Assert.True(component.LastContact.H2Curtailed);
+    }
+
+    [Fact]
+    public void Move_TowardsTheWest_AdvancesToTheContact()
+    {
+        // Hero box: near corner = root - 10. Column 2 (x in [32, 48)) blocked: the contact is 48 + 10 = 58.
+        var field = CreateBlockedLineField(width: 8, depth: 8, blockedColumn: 2, blockedRow: -1);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(70f, 24f, 0f);
+
+        component.Move(new Vector3(-20f, 0f, 0f));
+
+        Assert.Equal(58f, entity.RootComponent!.Position.X);
+        Assert.True(component.LastContact.H1Curtailed);
+        AssertExactContact(field, 58f, 24f, moveAlongY: false, sign: -1);
+    }
+
+    /// <summary>A diagonal step: axis h1 is cut at its contact, then axis h2 walks free from the advanced position.</summary>
+    [Fact]
+    public void Move_Diagonal_CutsTheBlockedAxisAtTheContact_ThenMovesTheFreeAxisFromThere()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 8, blockedColumn: 4, blockedRow: -1);
+        var (entity, component) = CreatePawn(field);
+        entity.RootComponent!.Position = new Vector3(48f, 24f, 0f);
+
+        component.Move(new Vector3(20f, 10f, 0f));
+
+        AssertPosition(new Vector3(56f, 34f, 0f), entity.RootComponent!.Position);
+        CharacterControllerContactReport contact = component.LastContact;
+        Assert.True(contact.H1Curtailed);
+        Assert.False(contact.H2Curtailed);
+        Assert.Equal(8f, contact.ActualH1Amount, precision: 3);
+        Assert.Equal(10f, contact.ActualH2Amount, precision: 3);
+    }
+
+    /// <summary>The far edge of the grid is a wall: the footprint stops with its far corner just inside the last row.</summary>
+    [Fact]
+    public void Move_TowardsTheEdgeOfTheGrid_StopsExactlyOnTheEdge()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 8, blockedColumn: -1, blockedRow: -1);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(60f, 100f, 0f);
+
+        component.Move(new Vector3(0f, 40f, 0f));
+
+        // Far corner = root + 8 stays below 128, the edge, so the root stops at 120 - except that the far corner is exclusive
+        // by one float ULP (BitDecrement of centre + 7.5): the sum of the first float above 120 rounds to 128.0 and its
+        // decrement is still inside the grid, so that float is the last free one.
+        var expectedY = MathF.BitIncrement(120f);
+        Assert.Equal(expectedY, entity.RootComponent!.Position.Y);
+        AssertExactContact(field, 60f, expectedY, moveAlongY: true, sign: 1);
+    }
+
+    /// <summary>
+    /// The float32 spacing doubles at every power of two: with the search variable on the centre, the contact can end one
+    /// or two ULP inside the wall for a start root in [255.5, 256) or [1023.5, 1024). The search is on the root and the
+    /// position reached, retested, is free while the previous float is blocked.
+    /// </summary>
+    [Theory]
+    [InlineData(255.5f, 247f)]
+    [InlineData(255.75f, 247f)]
+    [InlineData(255.9995f, 247f)]
+    [InlineData(1023.5f, 1015f)]
+    [InlineData(1023.75f, 1015f)]
+    [InlineData(1023.9995f, 1015f)]
+    public void Move_NorthFromAPowerOfTwoWindow_StopsOnTheFloatJustFreeOfTheWall(float startY, float expectedY)
+    {
+        // Wall row: 14 (y in [224, 240)) for the first window, 62 ([992, 1008)) for the second. Contact = frontier + 7.
+        // The grid holds the far corner of the start footprint (root + 8: row 16, resp. 64).
+        var wallRow = startY < 512f ? 14 : 62;
+        var depth = startY < 512f ? 18 : 66;
+        var field = CreateBlockedLineField(width: 8, depth: depth, blockedColumn: -1, blockedRow: wallRow);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(60f, startY, 0f);
+
+        component.Move(new Vector3(0f, -10f, 0f));
+
+        Assert.Equal(expectedY, entity.RootComponent!.Position.Y);
+        AssertExactContact(field, 60f, expectedY, moveAlongY: true, sign: -1);
+    }
+
+    [Theory]
+    [InlineData(255.5f, 250f)]
+    [InlineData(255.75f, 250f)]
+    [InlineData(255.9995f, 250f)]
+    [InlineData(1023.5f, 1018f)]
+    [InlineData(1023.75f, 1018f)]
+    [InlineData(1023.9995f, 1018f)]
+    public void Move_WestFromAPowerOfTwoWindow_StopsOnTheFloatJustFreeOfTheWall(float startX, float expectedX)
+    {
+        // Wall column: 14 (x in [224, 240)), resp. 62. Contact = frontier + 10. The grid holds the far corner of the start
+        // footprint (root + 11: column 16, resp. 64).
+        var wallColumn = startX < 512f ? 14 : 62;
+        var width = startX < 512f ? 18 : 66;
+        var field = CreateBlockedLineField(width: width, depth: 4, blockedColumn: wallColumn, blockedRow: -1);
+        var (entity, component) = CreateHeroPawn(field);
+        entity.RootComponent!.Position = new Vector3(startX, 24f, 0f);
+
+        component.Move(new Vector3(-10f, 0f, 0f));
+
+        Assert.Equal(expectedX, entity.RootComponent!.Position.X);
+        AssertExactContact(field, expectedX, 24f, moveAlongY: false, sign: -1);
+    }
+
+    /// <summary>The velocity path of <c>Update</c> also advances to the contact; the velocity is then recomputed from
+    /// the displacement actually done (4 px in 0.02 s = 200 px/s).</summary>
+    [Fact]
+    public void Update_TheVelocityStepIsCutAtTheContact_AndTheVelocityKeepsThePartialValue()
+    {
+        var field = CreateBlockedLineField(width: 8, depth: 8, blockedColumn: 4, blockedRow: -1);
+        var (entity, component) = CreatePawn(field);
+        component.Settings.MaxHorizontalSpeed = 500f;
+        component.Settings.Acceleration = 100000f;
+        component.Settings.Gravity = 0f;
+        entity.RootComponent!.Position = new Vector3(52f, 24f, 0f);
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(Tick);
+
+        AssertPosition(new Vector3(56f, 24f, 0f), entity.RootComponent!.Position);
+        Assert.True(component.LastContact.H1Curtailed);
+        Assert.Equal(200f, component.Velocity.X, precision: 1);
+    }
+
+    /// <summary>Whether the hero footprint (box 21x15, fixture at (0.5, 0.5)) at the root (x, y) is blocked on the field, like
+    /// the mover's own test: a corner without ground, on a non-walkable cell, or above foot + step height.</summary>
+    private static bool IsHeroFootprintBlocked(HeightGridCollisionField field, float rootX, float rootY)
+    {
+        var centerX = rootX + 0.5f;
+        var centerY = rootY + 0.5f;
+        var xs = new[] { centerX - 10.5f, MathF.BitDecrement(centerX + 10.5f) };
+        var ys = new[] { centerY - 7.5f, MathF.BitDecrement(centerY + 7.5f) };
+        foreach (var x in xs)
+        {
+            foreach (var y in ys)
+            {
+                if (!((ICollisionField)field).TrySampleGround(new Vector3(x, y, 3f), float.MaxValue, 0u, out var sample) || !sample.IsWalkable || sample.GroundHeight > 3f)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>The contact is exact: the position reached is free, and the next float in the direction of the move is blocked.</summary>
+    private static void AssertExactContact(HeightGridCollisionField field, float rootX, float rootY, bool moveAlongY, int sign)
+    {
+        Assert.False(IsHeroFootprintBlocked(field, rootX, rootY), "the position reached is blocked");
+        var nextX = moveAlongY ? rootX : (sign > 0 ? MathF.BitIncrement(rootX) : MathF.BitDecrement(rootX));
+        var nextY = moveAlongY ? (sign > 0 ? MathF.BitIncrement(rootY) : MathF.BitDecrement(rootY)) : rootY;
+        Assert.True(IsHeroFootprintBlocked(field, nextX, nextY), "the next float in the direction of the move is free: the contact is not reached");
+    }
+
+    /// <summary>Flat at 0 and walkable, except every cell of column <paramref name="blockedColumn"/> and of row
+    /// <paramref name="blockedRow"/> (a negative index blocks none), which are non-walkable.</summary>
+    private static HeightGridCollisionField CreateBlockedLineField(int width, int depth, int blockedColumn, int blockedRow)
+    {
+        var heights = new float[width * depth];
+        var walkable = new bool[width * depth];
+        for (var b = 0; b < depth; b++)
+        {
+            for (var a = 0; a < width; a++)
+            {
+                walkable[b * width + a] = a != blockedColumn && b != blockedRow;
+            }
+        }
+
+        return new HeightGridCollisionField(Vector3.Zero, 16f, width, depth, heights, walkable, up: Vector3.UnitZ);
+    }
+
+    /// <summary>A pawn with the hero's body: box 21x15x32, local position (0.5, 0.5, 16).</summary>
+    private static (Entity Entity, TestCharacterControllerComponent Component) CreateHeroPawn(ICollisionField field)
+    {
+        var entity = CreateEntityWithRoot();
+        var world = CreateWorld(new PhysicsWorld(useExternalViewManagement: false, spacePolicy: new TopDownElevationSimulationSpacePolicy()));
+        world.CollisionField = field;
+        SetWorld(entity, world);
+        var collisionComponent = new CollisionComponent();
+        collisionComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(21f, 15f, 32f) })
+        {
+            LocalPosition = new Vector3(0.5f, 0.5f, 16f),
+        });
+        entity.AddComponent(collisionComponent);
+        AttachToRoot(entity, collisionComponent);
+        var component = new TestCharacterControllerComponent();
+        ConfigureFieldAwareSettings(component.Settings);
+        entity.AddComponent(component);
+        return (entity, component);
     }
 
     private static void AssertPosition(Vector3 expected, Vector3 actual)

@@ -19,6 +19,20 @@ public sealed class DialogueAsset : ObjectBase
     public Dictionary<string, string> LineTexts { get; } = new();
     public bool HasCompiledProgram => ProgramBytes.Length > 0;
 
+    /// <summary>
+    /// Looks up the raw text of the line identified by <paramref name="lineId"/>, without running a
+    /// dialogue. A game uses this for a Yarn line shown outside of a dialogue box (e.g. a menu or an
+    /// inventory); pass the result through <c>YarnLineTextParser</c> to expand substitutions and parse
+    /// its markup, the same way <see cref="CasaEngine.Framework.Dialogue.Yarn.YarnDialogueRunner"/> does
+    /// for a running dialogue.
+    /// </summary>
+    public bool TryGetLineText(string lineId, out string text)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(lineId);
+
+        return LineTexts.TryGetValue(lineId, out text);
+    }
+
     public static DialogueAsset FromCompiledProgram(string name, string startNode, byte[] programBytes, IReadOnlyDictionary<string, string> lineTexts)
     {
         ArgumentNullException.ThrowIfNull(programBytes);

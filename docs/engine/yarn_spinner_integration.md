@@ -8,6 +8,12 @@
 > signatures `DialogueService`/`DialogueStartRequest`/`ShowText` de ce document sont la feuille de
 > route Yarn d'origine, pas l'état actuel du code.
 
+> **Note (E15.a, 2026-09-27)** : `YarnDialogueRunner` a reçu ses points d'extension génériques
+> (stockage de variables injectable, registre de commandes, fonctions, markup). Voir
+> [Points d'extension du runner Yarn](#points-dextension-du-runner-yarn) plus bas, l'ADR-0042 et
+> l'ADR-0043, et le plan `ai-agent/tasks/yarn-extension-points-tasks.md` (qui réalise les tâches 14
+> et 15 de ce document, ci-dessous).
+
 ## Objectif
 
 L'objectif est d'intégrer **Yarn Spinner** dans CasaEngine pour obtenir un système de dialogue moderne, maintenable et extensible.
@@ -1419,4 +1425,87 @@ YarnCommandDispatcher
 
 Cette approche évite de mélanger UI, gameplay, cutscenes et narration, et permet à CasaEngine d'obtenir un système de dialogue moderne, testable et extensible.
 
-Decisions: see [ADR-0022](../decisions/0022-yarn-spinner-dialogue-integration.md).
+---
+
+# Points d'extension du runner Yarn
+
+Ajoutés par le chantier E15.a (`ai-agent/tasks/yarn-extension-points-tasks.md`, ADR-0042, ADR-0043),
+sur le modèle de l'intégration Unity de Yarn Spinner (`DialogueRunner.AddCommandHandler`, stockage de
+variables remplaçable), sans code propre à un jeu dans le moteur.
+
+## Stockage de variables injectable
+
+`YarnDialogueRunner.VariableStorage` (`Yarn.IVariableStorage`, `null` par défaut) est lié à chaque
+`Yarn.Dialogue` créé par `Start`. À `null`, comportement inchangé : un `Yarn.MemoryVariableStore` neuf
+par `Start`. Un jeu qui l'affecte une fois garde ses variables Yarn d'un dialogue à l'autre, adossées à
+son propre état (sauvegarde, etc.).
+
+```csharp
+var storage = new Yarn.MemoryVariableStore();
+var runner = new YarnDialogueRunner(presenter) { VariableStorage = storage };
+runner.Start(introAsset);
+// ... plus tard, un autre dialogue lit les mêmes variables :
+runner.Start(shopAsset);
+```
+
+## Commandes (`<<command>>`)
+
+`AddCommandHandler(string name, Action<IReadOnlyList<string>> handler)` et
+`RemoveCommandHandler(string name)` ; l'évènement `UnhandledCommand` se déclenche pour un nom sans
+gestionnaire (avertissement journalisé une fois par nom, le dialogue reprend quand même). Le dialogue
+reprend automatiquement après un gestionnaire, sauf s'il a appelé `Stop()` ou démarré un autre dialogue.
+Une exception d'un gestionnaire arrête le runner (présentateur fermé) puis remonte.
+
+```csharp
+runner.AddCommandHandler("give_item", args => inventory.Give(args[0]));
+```
+
+## Fonctions (`{fonction(args)}`, `<<if fonction(args)>>`)
+
+Deux temps : le jeu déclare la fonction au **compilateur** (nom et types, portés par la signature du
+délégué) pour que l'appel compile, puis enregistre l'**implémentation** sur le runner.
+
+```csharp
+var declarations = new Yarn.Library();
+declarations.RegisterFunction("hasItem", (Func<string, bool>)(_ => false)); // types seulement
+
+var result = new YarnDialogueCompiler().CompileFile("quest.yarn", declarations);
+
+runner.RegisterFunction("hasItem", (Func<string, bool>)(id => inventory.Has(id)));
+```
+
+Sans déclaration, un appel dans le texte d'une ligne (`{...}`) échoue à la compilation (diagnostic Yarn
+Spinner) ; le même appel dans une condition (`<<if ...>>`) compile déjà sans déclaration.
+
+## Markup et attributs
+
+Chaque ligne est analysée par un `Yarn.Markup.LineParser` partagé (marqueurs `select`, `plural`,
+`ordinal` enregistrés avec `BuiltInMarkupReplacer`). Le préfixe `Nom:` devient `DialogueLine.Speaker`
+et disparaît du texte ; le reste du markup (`[b]...[/b]`, `[br/]`, ...) devient
+`DialogueLine.Attributes` (`DialogueMarkupAttribute` : nom, position, longueur, propriétés). Un markup
+invalide ne lève jamais : la ligne est livrée avec son texte brut. `YarnDialogueRunner.LocaleCode`
+(par défaut `"en"`) pilote les marqueurs `plural`/`ordinal`.
+
+## Lire une ligne hors d'un dialogue
+
+`DialogueAsset.TryGetLineText(string lineId, out string text)` puis `YarnLineTextParser` (même
+pipeline que le runner : `ExpandSubstitutions`, `Parse`) pour un texte de menu ou d'inventaire, sans
+dialogue en cours.
+
+```csharp
+if (asset.TryGetLineText("menu.title", out string raw))
+{
+    DialogueLine line = YarnLineTextParser.Parse(raw);
+    // line.Text, line.Speaker, line.Attributes
+}
+```
+
+## Hors périmètre
+
+Les options Yarn (`->`, tâche 13 ci-dessus), les commandes asynchrones, l'import `.yarn` dans
+l'éditeur (tâche 17), la localisation multi-langue, et le défaut connu du pluriel français intégré à
+Yarn Spinner 3.2.1.
+
+---
+
+Decisions: see [ADR-0022](../decisions/0022-yarn-spinner-dialogue-integration.md), [ADR-0042](../decisions/0042-yarn-runner-extension-points.md), [ADR-0043](../decisions/0043-yarn-function-declarations-at-compile-time.md).

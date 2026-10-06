@@ -12,6 +12,17 @@ public sealed class Animation2dCompositionSampler
 
     public bool IsFinished { get; private set; }
 
+    /// <summary>Duration of the animation in seconds (the time of its last key).</summary>
+    public float DurationSeconds => _composition.DurationSeconds;
+
+    public AnimationType AnimationType => _composition.AnimationType;
+
+    /// <summary>
+    /// Number of loop turns completed by the last <see cref="Update"/> (0 for a Once animation). Read by the
+    /// owner right after the update to raise one event per turn.
+    /// </summary>
+    public int LastUpdateLoopTurns { get; private set; }
+
     /// <summary>
     /// Index in <see cref="CollisionKeyframes"/> of the fixture set active at <see cref="CurrentTime"/>,
     /// or -1 before the first keyframe. Step semantics: the last keyframe whose time is at or before
@@ -47,6 +58,7 @@ public sealed class Animation2dCompositionSampler
 
     public bool Update(float elapsedTime)
     {
+        LastUpdateLoopTurns = 0;
         if (_composition.AnimationType == AnimationType.Loop)
         {
             UpdateLooping(MathF.Max(0f, elapsedTime));
@@ -92,12 +104,17 @@ public sealed class Animation2dCompositionSampler
             float timeUntilRestart = restartTimeSeconds - previousTime;
             if (timeUntilRestart <= 0f)
             {
-                timeUntilRestart = restartTimeSeconds;
+                //Already at (or past) the duration, e.g. after Seek(Duration): the time wraps right away.
+                previousTime = 0f;
+                LastUpdateLoopTurns++;
+                continue;
             }
 
-            if (remainingTime < timeUntilRestart)
+            //The sum may land exactly on the duration in float32 even when remainingTime < timeUntilRestart:
+            //only a time strictly inside the cycle stays in it.
+            float currentTime = previousTime + remainingTime;
+            if (currentTime < restartTimeSeconds)
             {
-                float currentTime = previousTime + remainingTime;
                 DispatchEventRange(handler, previousTime, currentTime);
                 previousTime = currentTime;
                 remainingTime = 0f;
@@ -107,6 +124,7 @@ public sealed class Animation2dCompositionSampler
             DispatchEventRange(handler, previousTime, restartTimeSeconds);
             remainingTime -= timeUntilRestart;
             previousTime = 0f;
+            LastUpdateLoopTurns++;
         }
 
         CurrentTime = previousTime;

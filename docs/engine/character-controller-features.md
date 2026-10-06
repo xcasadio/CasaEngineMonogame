@@ -323,6 +323,37 @@ remplace le sweep de snap dans `UpdateGround` (voir `collision-2d-3d-architectur
 contrat consommateur). Reste hors scope de E3.c : pentes (`MaxSlopeAngle` toujours Y-agnostique via
 la base), pathfinding, entite-entite, glissade par attribut de tuile.
 
+**Contact sur le champ (ADR-0045).** La regle E3.c « pas de deplacement partiel » est levee : sur le champ,
+un pas bloque sur un axe avance jusqu'au contact (bisection sur la position de la racine, sans marge sur la
+grille) au lieu d'etre rejete en entier, pour `Move` comme pour les deux deplacements de `Update`. Le contact
+est exact a un ULP pres (ou a 1e-3 px pres, seuil du balayage rigide). `H1Curtailed`/`H2Curtailed` disent
+« pas raccourci sur cet axe » meme quand le deplacement restant n'est pas nul, et la vitesse de `Update` garde
+la valeur partielle a l'image du contact. Toujours pas de glissement le long des murs quand un seul coin touche.
+
+**Obstacles dynamiques (ADR-0047).** Un jeu peut installer sur `World.MovementObstacleProbe` une sonde
+`IMovementObstacleProbe` (`CasaEngine.Framework.Physics`) : `TryFindObstacle(Entity mover, in Vector3
+candidateRootPosition, out Entity obstacle)` rend vrai quand un obstacle bloque la racine candidate (`obstacle`
+est non null exactement dans ce cas). La regle de ce qui est un obstacle appartient au jeu, le moteur n'a pas de
+registre. Contrat : O(nombre d'obstacles), sans allocation, appelable plusieurs fois par entite et par image,
+ne modifie rien, ne leve pas d'exception a chaque image ; elle n'est consultee que dans l'etage champ, pour un
+axe non nul, et ne rend jamais le mobile lui-meme. Dans l'etage champ, chaque essai (pas entier, pre-sonde d'un
+ULP, bisection, controle final) interroge **d'abord la sonde** avec la racine candidate, **puis le champ** s'il
+est installe : sans champ, seule la sonde bloque ; sans sonde, le comportement est identique au bit pres. Le
+contact est exact, par la meme bisection que celle d'ADR-0045, et l'avance reste par axe (h1 puis h2), sans
+glissement le long d'un obstacle. `CharacterControllerContactReport.H1Obstacle`/`H2Obstacle` donnent, par axe,
+l'obstacle du **dernier essai bloque** (le plus proche du contact) ; ils valent null quand l'axe n'est pas
+raccourci ou quand le champ a bloque en dernier, et sont effaces avec la moitie deplacement du rapport. Dans
+`Update`, qui resout deux deplacements (herite du sol, puis vitesse), l'obstacle d'un axe est celui de l'appel de
+vitesse s'il a raccourci cet axe, sinon celui de l'appel du sol. Cout par axe non nul : 1 appel de sonde quand
+l'axe est libre, 2 quand le mobile pousse un contact deja etabli, 26 a 30 (27 mesures) au seul tick ou le
+contact s'etablit. Trace : sous `DisplayPhysics`, la vue de debogage physique appelle `DrawDebug` de la sonde
+(coordonnees de l'espace de simulation du monde), et `PhysicsDebugDrawerExtensions.DrawAabb` dessine une boite.
+Limites : la sonde ne filtre que l'etage champ (le balayage rigide et la marche d'escalier qui suivent ne la
+consultent pas) ; seul le point d'arrivee de chaque essai est teste, donc un obstacle plus fin que le pas peut
+etre traverse ; un mobile qui chevauche un obstacle ne sort que par un pas qui quitte tout le chevauchement ;
+chaque mobile voit les obstacles dans leur etat au moment de son propre appel, donc le resultat suit l'ordre
+deterministe dans lequel les mobiles bougent (et, sous un pas fixe, chaque sous-pas voit l'etat de son moment).
+
 La phase F du doc [collision-2d-3d-architecture.md](collision-2d-3d-architecture.md) a livre la
 famille de colliders « champs » — `ICollisionField`, `GroundSample`, `HeightGridCollisionField` et
 le slot `World.CollisionField` — mais **sans aucun cablage consommateur**. La resolution du sol par

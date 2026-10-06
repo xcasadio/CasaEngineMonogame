@@ -55,3 +55,9 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
 | [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |
+| [ADR-0042](0042-yarn-runner-extension-points.md) | Yarn dialogue runner extension points | Accepted | 2026-09-27 |
+| [ADR-0043](0043-yarn-function-declarations-at-compile-time.md) | Yarn scripts compile with function declarations supplied by the game | Accepted | 2026-09-27 |
+| [ADR-0044](0044-runtime-save-games.md) | The runtime owns a generic save-game service for the player's game saves | Accepted | 2026-09-28 |
+| [ADR-0045](0045-a-blocked-field-step-advances-to-contact.md) | A blocked step on the cell collision field advances to the contact | Accepted | 2026-09-29 |
+| [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
+| [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
