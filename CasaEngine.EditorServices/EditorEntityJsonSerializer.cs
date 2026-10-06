@@ -493,6 +493,7 @@ internal static class EditorEntityJsonSerializer
         settingsNode.Add("hit_triggers", settings.HitTriggers);
         settingsNode.Add("walkability_mask", settings.WalkabilityMask);
         settingsNode.Add("max_fall_speed", settings.MaxFallSpeed);
+        settingsNode.Add("min_move_distance", settings.MinMoveDistance);
         node.Add("settings", settingsNode);
 
         node.Add("control_mode", component.ControlMode.ToString());

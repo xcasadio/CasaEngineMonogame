@@ -97,6 +97,48 @@ public class CharacterControllerSettingsTests
     }
 
     [Fact]
+    public void Defaults_MinMoveDistance_IsOneThousandthOfAPixel()
+    {
+        Assert.Equal(0.001f, new CharacterControllerSettings().MinMoveDistance);
+    }
+
+    [Fact]
+    public void Load_ReadsMinMoveDistance()
+    {
+        var settings = new CharacterControllerSettings();
+
+        settings.Load(new JObject { ["min_move_distance"] = 0f });
+
+        Assert.Equal(0f, settings.MinMoveDistance);
+    }
+
+    [Fact]
+    public void Load_WithoutMinMoveDistance_KeepsTheDefault()
+    {
+        var settings = new CharacterControllerSettings();
+
+        settings.Load(new JObject());
+
+        Assert.Equal(0.001f, settings.MinMoveDistance);
+    }
+
+    [Fact]
+    public void Clone_RoundTrips_MinMoveDistance()
+    {
+        var settings = new CharacterControllerSettings { MinMoveDistance = 0.25f };
+
+        Assert.Equal(0.25f, settings.Clone().MinMoveDistance);
+    }
+
+    [Fact]
+    public void Validate_RejectsNegativeMinMoveDistance()
+    {
+        var settings = new CharacterControllerSettings { MinMoveDistance = -0.5f };
+
+        Assert.Throws<InvalidOperationException>(settings.Validate);
+    }
+
+    [Fact]
     public void Validate_RejectsInvalidCapsuleDimensions()
     {
         var settings = new CharacterControllerSettings

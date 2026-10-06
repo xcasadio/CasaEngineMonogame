@@ -37,6 +37,7 @@ public sealed class CharacterControllerSettings
         HitTriggers = other.HitTriggers;
         WalkabilityMask = other.WalkabilityMask;
         MaxFallSpeed = other.MaxFallSpeed;
+        MinMoveDistance = other.MinMoveDistance;
     }
 
     public float Radius { get; set; } = 0.35f;
@@ -87,6 +88,14 @@ public sealed class CharacterControllerSettings
     public float MaxFallSpeed { get; set; }
 
     /// <summary>
+    /// A requested displacement this long or shorter (same unit as the position) is dropped instead of
+    /// applied. The default, 0.001, keeps the historical behaviour. A controller whose owner needs
+    /// every step applied, however small (a script-driven body stepping by one fixed-point unit), sets
+    /// it to 0: a zero displacement is still dropped.
+    /// </summary>
+    public float MinMoveDistance { get; set; } = 0.001f;
+
+    /// <summary>
     /// Channels the character sweeps against: what its own collision profile blocks.
     /// Resolved once per profile name, never looked up again while the name does not change.
     /// </summary>
@@ -130,6 +139,7 @@ public sealed class CharacterControllerSettings
         HitTriggers = ReadBoolean(element, "hit_triggers", HitTriggers);
         WalkabilityMask = ReadUInt32(element, "walkability_mask", WalkabilityMask);
         MaxFallSpeed = ReadSingle(element, "max_fall_speed", MaxFallSpeed);
+        MinMoveDistance = ReadSingle(element, "min_move_distance", MinMoveDistance);
 
         Validate();
     }
@@ -199,6 +209,11 @@ public sealed class CharacterControllerSettings
         if (MaxFallSpeed < 0f)
         {
             throw new InvalidOperationException("Character controller max fall speed cannot be negative.");
+        }
+
+        if (MinMoveDistance < 0f)
+        {
+            throw new InvalidOperationException("Character controller min move distance cannot be negative.");
         }
     }
 

@@ -45,6 +45,7 @@ public class CharacterControllerComponentSerializationTests
         component.Settings.HitTriggers = true;
         component.Settings.WalkabilityMask = 0x41u;
         component.Settings.MaxFallSpeed = 800f;
+        component.Settings.MinMoveDistance = 0f;
         component.SetControlMode(CharacterControlMode.AI);
 
         entity.AddComponent(component);
@@ -78,6 +79,7 @@ public class CharacterControllerComponentSerializationTests
         Assert.True(loadedSettings.HitTriggers);
         Assert.Equal(0x41u, loadedSettings.WalkabilityMask);
         Assert.Equal(800f, loadedSettings.MaxFallSpeed);
+        Assert.Equal(0f, loadedSettings.MinMoveDistance);
         Assert.Equal(CharacterControlMode.AI, loadedComponent.ControlMode);
     }
 }
