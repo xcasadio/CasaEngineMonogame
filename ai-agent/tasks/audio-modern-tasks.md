@@ -2216,6 +2216,390 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   fichier concerné) ; le test des types inattendus ne couvre que quatre des six clés (même lecteur pour toutes).
   **🧪 pour l'auteur** : T8.5 (inspecteur) et T8.6 (touches de la démo).
 
+## Vague 6 — tranche S5b : écouteur, spatialisation, Doppler et paramètres de jeu (détail du 2026-10-06)
+
+Découverte en lecture seule (brouillon passé par un contrôle contradictoire) ; les faits dont dépend la tranche
+ont été revérifiés après S5a (base de la phase : le commit de clôture de S5a, noté `d83b2410` ci-dessous et remplacé
+par son SHA à l'écriture).
+
+**Faits établis.**
+- Spécification OpenAL 1.1 (https://www.openal.org/documentation/openal-1.1-specification.pdf, juin 2005) :
+  §3.4.1 à §3.4.6, modèles de distance (inverse, linéaire, exponentiel, chacun borné ou non ; « if the formula can
+  not be evaluated then the source will not be attenuated ») ; attributs de source AL_REFERENCE_DISTANCE (défaut 1),
+  AL_ROLLOFF_FACTOR (défaut 1), AL_MAX_DISTANCE (défaut MAX_FLOAT), modèle par défaut AL_INVERSE_DISTANCE_CLAMPED ;
+  §3.5.2 Doppler (SS = 343,3, DF = 1, `vls`, `vss` bornés à SS/DF, `f' = f·(SS − DF·vls)/(SS − DF·vss)`) ; la
+  spécification ne définit pas le panoramique d'une source mono ; elle ne fixe aucune unité de distance.
+- Le moteur n'a aucune constante d'unité par mètre ; un monde 2D est en pixels, +Y vers le haut, caméra le long de
+  −Z (`Camera2dComponent.cs`).
+- Le mixeur logiciel calcule `Step = SourceRatio · 2^pitch · RateMultiplier` (`SoftwareMixer.SetParameters`) ; le
+  backend MonoGame replie `log2(RateMultiplier)` dans le pitch et borne le total à ±1 octave. Pan d'une source
+  mono : puissance constante ; stéréo : balance ; voix à gains explicites (`PlayClipStereo`) : pan ignoré.
+- Sous le backend logiciel, une rampe de voix est interpolée à l'échantillon ; `SetVolume` y met fin ; le volume
+  d'un `SetParameters` est ignoré pendant une rampe ; `SetParameters` peut attendre jusqu'à 100 ms sur une file
+  pleine, `SetVolume` jamais. `SetBusGain` publie une dernière valeur sans file (entier `Volatile`).
+- Motif « valeur de la prochaine voix » : `IAudioBusBackend.SetNextVoiceBus`, consommé tout en haut de
+  `SoftwareAudioBackend.PlayResident` et `CreateStreamingVoice` par `TakeNextVoiceBus`, avant toute validation ; la
+  génération de l'emplacement est incrémentée (`slot.Generation++`) juste avant l'envoi du démarrage.
+- `AudioService` : `PlayClipCore(clip, busName, parameters, owner, priority)` (S5a) est le seul démarrage de
+  `PlayClip`/`PlaySound` ; `SetVoicePan` pousse tout par `SetParameters` avec le volume replié ; aucun pitch de voix
+  réglable après coup ; `ApplyGain(entry)` = `SetVolume(BackendVolume(...))` ; `BackendVolume` = volume sous la
+  capacité de bus, volume × gain de bus sinon ; `VoiceEntry.Reset()` remet l'entrée à zéro.
+- `SceneComponent` : `Position`/`Orientation` additionnent sans composer les rotations (faux sous un parent tourné) ;
+  `WorldMatrixNoScale` compose correctement ; pour un composant qui a un parent dans une entité enfant, la racine de
+  l'entité parente est appliquée deux fois (`SceneComponent.cs`, comportement existant, aussi reproduit par
+  `RenderProjectionComponent`) ; un composant de scène de niveau entité (`Entity.Components`, sans parent) n'est
+  pas rattaché à la racine de l'entité, et le gizmo de l'éditeur le place à sa propre matrice.
+- `SceneComponent.Load` déréférence `local_transform` et `children_component` sans contrôle : l'ancienne forme
+  d'un émetteur (niveau entité, sans ces clés) lèverait. L'auteur confirme qu'aucun projet hors du dépôt ne
+  contient d'émetteur sauvegardé (D13) ; le dépôt n'en contient aucun.
+- L'éditeur ajoute un composant de scène en enfant du composant sélectionné, sinon en racine si l'entité n'en a
+  pas, sinon au niveau entité ; un `SceneComponent` reçoit `TransformComponentEditor` ; l'éditeur générique ne sait
+  pas éditer un nullable comme tri-état.
+- Une entité ne met à jour ses composants que si sa politique de tick le dit ; `RenderProjectionComponent` impose
+  `DynamicDefault` par `IEntityPolicyDefaultsProvider`. `AudioSystemComponent` est mis à jour après le monde dans
+  la même frame. Un `AudioSystemComponent` ne se construit pas sans `Game`.
+- Alundra n'utilise ni `.sound`, ni `SoundEmitterComponent`, ni `SoundPlaybackOverrides` ; le seul nom
+  `SoundEmitterComponent` du dépôt parent est dans un commentaire.
+
+### Décisions de la vague 6 (arbitrages de l'agent, à confirmer par l'auteur)
+
+| Réf | Arbitrage |
+|---|---|
+| P32 | **Canal de modulation par voix** : capacité optionnelle publique `IAudioVoiceModulationBackend` (même schéma que P9, P18, P22), implémentée par `SoftwareAudioBackend` seul. Par emplacement de voix, trois dernières valeurs publiées sans file et étiquetées par la génération : un gain multiplicatif [0, 1], un pan spatial (NaN = pan propre de la voix) et un rapport de vitesse [1/16, 16]. Elles sont orthogonales au volume, à ses rampes et au gain des bus ; les valeurs initiales voyagent avec le démarrage (`SetNextVoiceModulation`, comme `SetNextVoiceBus`). Sans la capacité (backend MonoGame, faux backend), **repli** : gain replié dans le volume envoyé, pan et pitch par `SetParameters` seulement quand ils changent, pitch total borné à ±1 octave. |
+| P33 | **Formules de la spécification OpenAL 1.1 à la lettre** (citées, aucun code repris), plus des additions du moteur déclarées comme telles : gain de distance borné à [0, 1] ; dénominateur ≤ 0 du modèle inverse = formule non évaluable = pas d'atténuation ; rapport de Doppler borné à [0,25 ; 4] ; somme des liaisons de pitch bornée à [−1, 1] octave avant `2^somme`. |
+| P34 | **Modèle de distance par asset** (`distance_model`, défaut `InverseDistanceClamped`, défaut de la spécification) et **distances par défaut de la spécification** (référence 1, maximale `float.MaxValue`, rolloff 1), en unités monde, réglées par asset. |
+| P35 | **Écouteur** : `AudioListenerComponent` pousse sa pose ; **le dernier enregistré gagne** (pile), un avertissement limité quand un second s'enregistre ; le retrait (détachement ou entité désactivée) réactive le précédent ; **aucun écouteur = aucune spatialisation** (gain 1, pan propre, vitesse 1 : comportement actuel, l'éditeur hors jeu n'est pas rendu muet). C'est un **état de chaque frame** : une voix spatiale démarrée avant tout écouteur joue neutre puis se spatialise dès l'`Update` qui suit l'enregistrement d'un écouteur, et redevient neutre quand le dernier disparaît. L'écouteur impose `DynamicDefault` à son entité. |
+| P36 | **Mode 2D** = distances, directions et vitesses projetées sur le plan X/Y (Z ignoré). **Pan spatial** = produit scalaire de la direction normalisée de la source avec le vecteur droit de l'écouteur (sinus de l'azimut, pas de distinction avant/arrière), appliqué par la loi de pan existante du mixeur ; le pan spatial remplace le pan de base sur les deux chemins. |
+| P37 | **Doppler** : `doppler_factor` par asset (0 = désactivé, défaut 0, D11) ; vitesse du son `AudioService.SpeedOfSound` en unités monde par seconde, défaut 343,3 (défaut de la spécification, à régler par le jeu) ; vitesses dérivées de deux poses poussées successives (déplacement / temps de l'`Update`, nulle à la première pose et quand la pose n'a pas été poussée dans la frame) ; bornes de la spécification sur les projections, rapport borné par P33 ; **pas de détection de téléportation** (O32), pas de lissage. |
+| P38 | **Un son spatial joué sans position** (`PlaySound`, action de cinématique, prévisualisation de l'inspecteur) joue comme un son non spatial, sans journal ; seules `PlaySoundAt` et `SetVoicePosition` spatialisent. Le mode mémorisé par la voix ne dépend que du mode de l'asset et de la présence d'une position, jamais de la présence d'un écouteur au démarrage (P35). Les liaisons de paramètres s'appliquent avec ou sans position. |
+| P39 | **Paramètres de jeu** : liaison linéaire `{parameter, input_min, input_max, output_min, output_max, target}` (cible `Volume` : facteur dans [0, 1] ; cible `Pitch` : octaves dans [−1, 1]) ; entrée bornée à la plage, plage d'entrée dégénérée = marche ; un paramètre jamais écrit est neutre ; registre de 64 paramètres préalloués (recherche linéaire insensible à la casse, sans allocation après la création d'un nom), 8 liaisons au plus par son ; les pistes de musique (`MusicPlayer`) reçoivent les liaisons de leur asset (pas la spatialisation). |
+| P40 | **Pose** lue dans `WorldMatrixNoScale` du composant (jamais `Position`/`Orientation`) : position = translation, avant et haut = axes transformés et normalisés. Un composant de niveau entité garde sa propre matrice, comme le gizmo de l'éditeur (O30). La double application de la racine d'une entité parente est un comportement existant : documenté, non corrigé. |
+| P41 | **`SoundEmitterComponent` devient un `SceneComponent`** (D13 ; seule rupture d'API de la tranche, autorisée par D13) ; chargement tolérant par une valve additive `protected virtual bool AllowsMissingSceneData => false` de `SceneComponent.Load` (vraie pour l'émetteur : transform identité et aucun enfant quand les clés manquent ; comportement inchangé pour tous les autres composants). Le mode spatial vient de l'asset seul (O29). |
+| P42 | **Sérialisation additive** du `.sound` : `spatial_mode`, `distance_model`, `reference_distance`, `max_distance`, `rolloff_factor`, `doppler_factor`, `parameter_bindings`, écrites seulement hors défaut ; lecture tolérante (énumérations par `TryParse` puis `Enum.IsDefined`, valeur inconnue = défaut avec avertissement ; liaison invalide ignorée avec avertissement ; jamais d'exception). L'inspecteur édite mode, modèle, distances, rolloff et Doppler ; les liaisons y sont seulement comptées (édition dans le fichier, O31). |
+| P43 | **Visibilité** : publics `AudioSpatialMode`, `AudioDistanceModel`, `AudioListenerPose`, `AudioParameterTarget`, `AudioParameterBinding`, `IAudioVoiceModulationBackend` ; internes `AudioSpatialMath`, `AudioDoppler`, `AudioDistanceAttenuation`, `AudioGameParameterRegistry`. Positions en `System.Numerics.Vector3` (`AudioService` reste sans type MonoGame). |
+| P44 | **Seuils d'envoi** côté jeu, pour n'envoyer que ce qui change : gain 0,001 ; pan 0,002 ; rapport relatif 0,0005 (constantes internes documentées). |
+
+## Phase 9 — Tranche S5b : écouteur, spatialisation, Doppler et paramètres de jeu (D8 à D13)
+
+Résultat attendu : un `AudioListenerComponent` fixe le point d'écoute ; un `.sound` peut être 2D ou 3D, avec un
+modèle de distance d'OpenAL 1.1, un Doppler à la demande et des liaisons « paramètre de jeu → volume ou pitch » ;
+`SoundEmitterComponent` est un composant de scène dont la position suit l'entité. Sous le backend logiciel, gain,
+pan et vitesse passent par un canal orthogonal au volume, à ses rampes et aux bus ; sous les autres backends, par
+repli. Non-objectifs : filtre par voix (D12) ; cônes, gain d'écouteur, `AL_MIN_GAIN`/`AL_MAX_GAIN`, HRTF ;
+spatialisation des pistes streamées ; sons de cinématique positionnés ; réglage de projet de la vitesse du son ;
+éditeur de liaisons ; surcharge du mode spatial ou du Doppler par l'émetteur (O29) ; correction de la double
+application de la racine d'une entité parente ; tout changement d'`IAudioBackend`, d'`IAudioBusBackend`,
+d'`AudioVoiceParameters` ou du dépôt parent. Prérequis : S5a clôturée (`d83b2410`, base des comparaisons
+`git diff d83b2410 -- …` de la phase). Retour arrière : revert ; tout `.sound` existant reste en mode « aucun » et se
+réenregistre à l'identique ; **une entité enregistrée après la tranche avec un émetteur en racine ou en enfant, ou
+avec un `AudioListenerComponent`, ne se recharge plus dans le moteur d'avant** (l'ancienne forme reste lisible).
+Approbation : D33 (AUTO), après relecture **READY** de ce détail. Budget : identique à S2.
+
+Revue du détail (2026-10-06) : brouillon passé par un contrôle contradictoire (T8.4 du brouillon scindée en quatre
+tâches, symboles définis, choix produit en O29 à O33), puis deux relecteurs frais **REVISE** (une voix spatiale démarrée
+avant tout écouteur restait non spatiale ; une voix liée à des paramètres de jeu, musique comprise, n'avait pas de
+valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relecture de clôture **READY**.
+
+### ⏳ T9.1 — Canal de modulation par voix au thread audio (P32)
+
+- Fichiers : `CasaEngine/Framework/Audio/IAudioVoiceModulationBackend.cs` (nouveau),
+  `CasaEngine/Framework/Audio/Software/MixerVoice.cs`, `CasaEngine/Framework/Audio/Software/SoftwareMixer.cs`,
+  `CasaEngine/Framework/Audio/Backends/SoftwareAudioBackend.cs`, remarque de tête d'`IAudioBackend.cs` (commentaire
+  seulement), tests `CasaEngine.Tests/Audio/Software/SoftwareMixerModulationTests.cs` et
+  `CasaEngine.Tests/Audio/Software/SoftwareAudioBackendModulationTests.cs` (nouveaux).
+- Étapes :
+  1. Interface publique `IAudioVoiceModulationBackend` : `void SetNextVoiceModulation(float gain, float pan, float rate)`
+     (valeurs initiales de la prochaine voix démarrée, consommées par elle seule) et
+     `void SetVoiceModulation(AudioVoiceHandle voice, float gain, float pan, float rate)` (dernières valeurs, jamais
+     mises en file, jamais d'attente). Domaines documentés : gain [0, 1] (NaN = 1) ; pan [−1, 1] ou NaN = pan propre ;
+     rate [1/16, `AudioVoiceParameters.MaxRateMultiplier`] (NaN ou ≤ 0 = 1).
+  2. `SoftwareMixer` : trois tableaux `long[]` dimensionnés au nombre de voix dans le constructeur, valeur =
+     `(génération << 32) | bits du float`, écrits par `internal void PublishVoiceModulation(int slot, int generation,
+     float gain, float pan, float rate)` (assainit puis `Volatile.Write`) et lus au thread audio par `Volatile.Read`
+     (même technique que `_consumedBuffers`). Aucune allocation, aucun verrou.
+  3. `MixerVoice` : `ModGainApplied`, `ModGainTarget`, `ModRate`, `SpatialPanActive`, `SpatialPan`. `StartResident`
+     et `CreateStreaming` les **posent toujours** (lus pour le couple emplacement/génération de la commande ;
+     génération différente = gain 1, pan NaN, rate 1 ; `ModGainApplied = ModGainTarget`) avant l'appel
+     `SetParameters(..., immediate: true)` : une voix ne sonne jamais d'abord à plein gain ni à la mauvaise vitesse.
+  4. `RenderBlock` : pour chaque voix démarrée et non en pause, avant son rendu, relire les trois valeurs ; génération
+     égale → `ModGainTarget` ; pan ou rate changé → recalcul des facteurs par `SetParameters(ref voice, voice.Volume,
+     voice.Pan, voice.Pitch, false)`. `voice.Pan` reste toujours le pan propre (reçu des commandes) :
+     `SetParameters` calcule le pan effectif `SpatialPanActive ? SpatialPan : pan` pour les facteurs seulement, et
+     `Step = SourceRatio · 2^pitch · RateMultiplier · ModRate`. Une voix en pause garde ses valeurs et les applique à
+     la reprise sans saut. **Voix streamée créée mais pas encore démarrée** : à l'application de sa commande de
+     démarrage (`Start`), relire les trois valeurs publiées pour sa génération et poser `ModGainApplied = ModGainTarget`
+     (sans rampe depuis 1) et `ModRate` : une valeur publiée par `SetVoiceModulation` entre la création et `Start` est
+     sa valeur de départ (la file publie sa queue en libération, la valeur écrite avant l'enfilage est visible).
+  5. `RenderResident` et `RenderStreaming` : hors rampe, gain de début de bloc `CurrentGain · ModGainApplied` et de fin
+     `TargetGain · ModGainTarget` (la boucle par échantillon ne change pas) ; dans le chemin de rampe, le facteur de
+     modulation est interpolé linéairement sur le bloc ; en fin de bloc `ModGainApplied = ModGainTarget`.
+     `CurrentLeftGain`/`TargetLeftGain` et `FinishVoiceRamp` restent « pan × volume » sans le facteur. Avec (1, NaN, 1)
+     toutes les multiplications valent 1,0 : sortie identique bit à bit.
+  6. `SoftwareAudioBackend` implémente la capacité : `SetNextVoiceModulation` mémorise trois floats ;
+     `TakeNextVoiceModulation()` appelé tout en haut de `PlayResident` et `CreateStreamingVoice`, à côté de
+     `TakeNextVoiceBus()` (rien ne fuit sur la voix suivante si le Play est refusé) ; publication pour
+     (emplacement, `slot.Generation`) entre `slot.Generation++` et l'envoi du démarrage ; `SetVoiceModulation` :
+     emplacement valide et vivant, sinon ignoré, sans attente.
+  7. Remarque d'`IAudioBackend.cs` : le contrat de base reste 2D ; la spatialisation passe par une capacité optionnelle.
+- Validation : mixeur hors ligne (modèle des tests de rampe existants) : (a) valeurs initiales portées par le
+  démarrage (le premier bloc est déjà au gain attendu) ; (b) dernière valeur : gain 1 puis 0,5 → rampe linéaire sur
+  un bloc (1e-5) puis constante ; (c) composition volume 0,8 × bus 0,5 × gain 0,5 ; (d) rampe de voix 1 → 0 en 0,25 s
+  avec gain 0,5 : enveloppe = 0,5 × rampe ; `SetVolume` pendant la rampe la termine sans toucher au gain ;
+  `SetParameters` pendant la rampe garde le gain ; (e) valeur publiée pour l'ancienne génération ignorée par une
+  nouvelle voix du même emplacement ; (f) pan publié : balance stéréo et puissance constante mono à −1, 0, 1
+  recalculées dans le test ; NaN rend exactement le rendu du pan propre ; un `SetParameters` après le pan publié ne
+  le défait pas ; voix à gains explicites : pan sans effet, gain actif ; (g) rate 2 : un clip de 480 trames finit en
+  240 ; produit pitch × multiplicateur × rate ; bornes NaN, 0, 100 ; (h) voix en pause : gain appliqué à la reprise
+  sans saut ; (i) **voix streamée** : gain, pan, rate 2 qui consomme les tampons deux fois plus vite ; une valeur publiée
+  par `SetVoiceModulation` entre la création et `Start` (gain 0,25, rate 2) donne dès le premier bloc rendu 0,25 et la
+  vitesse double, sans rampe depuis 1 ; (j) voix démarrée sans publication : gain 1 (champs posés explicitement) ; (k) invariance :
+  scénario sans publication identique bit à bit à (1, NaN, 1) publié ; tests existants du mixeur inchangés ; (l) zéro
+  allocation avec 64 voix dont les trois valeurs changent à chaque bloc (`AllocationWindow.Start()`). Backend :
+  `SetNextVoiceModulation` consommé même quand le Play est refusé ; handle périmé ignoré ; aucune attente sur file
+  saturée ; capacité absente de `NullAudioBackend`, `MonoGameAudioBackend` et du faux backend. Deux solutions sans
+  erreur ni avertissement dans les fichiers touchés ; suite verte trois fois.
+- Commit : `feat(audio): per-voice gain, pan and speed published as last values on the audio thread`
+
+### ⏳ T9.2 — Calcul spatial d'OpenAL 1.1, liaisons de paramètres et registre (P33, P36, P37, P39, P43)
+
+- Fichiers : nouveaux, `CasaEngine/Framework/Audio/Spatial/` (espace de noms `CasaEngine.Framework.Audio.Spatial`) :
+  `AudioSpatialMode.cs`, `AudioDistanceModel.cs`, `AudioDistanceAttenuation.cs`, `AudioListenerPose.cs`,
+  `AudioSpatialMath.cs`, `AudioDoppler.cs`, `AudioParameterTarget.cs`, `AudioParameterBinding.cs`,
+  `AudioGameParameterRegistry.cs` ; tests `CasaEngine.Tests/Audio/Spatial/*Tests.cs`.
+- Étapes : fonctions pures, sans état de service ni allocation ; chaque formule commentée avec l'URL de la
+  spécification et sa section ; visibilité de P43, doc XML (anglais) des types publics.
+  1. `AudioSpatialMode { None = 0, Spatial2D = 1, Spatial3D = 2 }` ; `AudioDistanceModel { None, InverseDistance,
+     InverseDistanceClamped, LinearDistance, LinearDistanceClamped, ExponentDistance, ExponentDistanceClamped }`.
+  2. `AudioDistanceAttenuation.Evaluate(model, distance, referenceDistance, maxDistance, rolloffFactor)` : formules
+     §3.4.1 à §3.4.6 ; non évaluable (division par zéro, dénominateur ≤ 0, résultat non fini, entrée NaN, linéaire
+     avec ref = max) = 1 ; résultat borné à [0, 1] ; `None` = 1.
+  3. `AudioListenerPose` (readonly struct : `Position`, `Forward`, `Up`, `Right` = `Cross(Forward, Up)` normalisé,
+     repli (1, 0, 0)) ; `Create` normalise ; pose par défaut : origine, avant (0, 0, −1), haut (0, 1, 0) (§4.2.1).
+  4. `AudioSpatialMath.Distance(mode, listenerPosition, sourcePosition)` (3D euclidienne ; 2D plan X/Y) et
+     `Pan(mode, in listener, sourcePosition)` (P36 ; 2D : projections X/Y renormalisées, repli (1, 0) ; distance
+     nulle = 0 ; résultat dans [−1, 1]).
+  5. `AudioDoppler.Ratio(mode, listenerPosition, listenerVelocity, sourcePosition, sourceVelocity, speedOfSound,
+     dopplerFactor)` : §3.5.2 ; 2D projeté ; bornes P33 ; DF ≤ 0, SS ≤ 0, distance nulle ou entrée non finie = 1 ;
+     constantes `DefaultSpeedOfSound = 343.3f`, `MinRatio = 0.25f`, `MaxRatio = 4f`.
+  6. `AudioParameterTarget { Volume, Pitch }` et `AudioParameterBinding` (classe scellée immuable : `ParameterName`,
+     `Target`, `InputMin`, `InputMax`, `OutputMin`, `OutputMax` ; `Evaluate(float input)` de P39).
+  7. `AudioGameParameterRegistry` (thread de jeu) : 64 emplacements ; `GetOrCreateIndex(string)` (recherche
+     linéaire `OrdinalIgnoreCase`, −1 et un avertissement limité quand plein) ; `Set(int, float)` ; `Get(int)` (NaN =
+     jamais écrit) ; version par paramètre, incrémentée seulement sur changement.
+- Validation : valeurs recalculées dans les tests depuis la spécification : atténuation (ref 2, max 10, r 1) —
+  inverse d=6 → 1/3, inverse borné d=1 → 1, d=50 → 0,2 ; linéaire d=6 → 0,5, d=50 → 0 ; exponentiel r=2 d=4 → 0,25,
+  borné d=50 → 0,04 ; r=0 → 1 ; linéaire ref = max → 1 ; inverse ref 2, r 3, d 1 → 1 (dénominateur négatif) ;
+  NaN → 1. Pan : écouteur à l'origine regardant −Z, source (10,0,0) → +1, (−10,0,0) → −1, (0,0,−10) → 0,
+  (7,07 ; 0 ; −7,07) → 0,7071 ; écouteur tourné de 90° autour de Y : source (0,0,−10) → +1 ; 2D : source (10,0,5000) →
+  distance 10, pan +1. Doppler (SS 343,3, DF 1) : source qui approche à 34,33 → 1,111111 ; qui s'éloigne → 0,909091 ;
+  écouteur qui approche → 1,1 ; qui s'éloigne → 0,9 ; DF 0 → 1 ; vitesse au-delà de SS/DF → borne 4 ; 2D ignore Z.
+  Liaisons : (0..10 → 1..0,5) v=5 → 0,75, v=−3 → 1, v=20 → 0,5 ; plage inversée ; plage dégénérée ; bornes de sortie.
+  Registre : indices stables, casse, 65e nom → −1 avec un seul journal, `Get` d'un paramètre jamais écrit = NaN,
+  version sur changement seulement, zéro allocation de `GetOrCreateIndex` sur un nom existant. Zéro allocation de
+  `Evaluate`, `Pan`, `Ratio`, `Set`/`Get`. Deux solutions ; suite verte.
+- Commit : `feat(audio): OpenAL 1.1 distance models, Doppler, spatial pan and game parameter bindings`
+
+### ⏳ T9.3 — Champs spatiaux et liaisons dans le `.sound`, inspecteur (P34, P42)
+
+- Fichiers : `CasaEngine/Framework/Audio/SoundAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
+  (`SaveSoundAsset`), `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`, tests `SoundAssetTests.cs`,
+  `SoundAssetEditorSerializationTests.cs`, `CasaEngine.Tests/Editor/SoundAssetInspectorPanelTests.cs`.
+- Étapes :
+  1. `SoundAsset` : `SpatialMode` (défaut `None`), `DistanceModel` (défaut `InverseDistanceClamped`),
+     `ReferenceDistance` (défaut 1, ≥ 0), `MaxDistance` (défaut `float.MaxValue`, ≥ 0 ; +∞ → `float.MaxValue`),
+     `RolloffFactor` (défaut 1, ≥ 0), `DopplerFactor` (défaut 0, ≥ 0), `ParameterBindings` (liste en lecture seule,
+     8 au plus, avertissement au-delà) ; setters : NaN ou négatif garde la valeur précédente.
+     `CreateVoiceParameters` ne change pas.
+  2. `Load` : clés de P42 ; énumérations en chaînes insensibles à la casse par `TryParse` puis `Enum.IsDefined` ;
+     nombres par le lecteur tolérant de T8.2 ; `parameter_bindings` = tableau d'objets `{parameter, input_min,
+     input_max, output_min, output_max, target}` ; liaison invalide (nom vide, nombre non fini, cible inconnue)
+     ignorée avec avertissement nommant l'asset ; jamais d'exception.
+  3. `SaveSoundAsset` : chaque nouvelle clé seulement hors défaut ; énumérations écrites par leur nom.
+  4. Inspecteur, après la ligne du bus : « Spatial » (combo des trois modes), « Distance model » (combo des sept
+     modèles), « Reference distance », « Max distance » (affiche « no limit » à `float.MaxValue`, sans réécrire la
+     valeur tant qu'on ne la modifie pas), « Rolloff », « Doppler factor » (minimum 0) et une ligne en lecture seule
+     « Parameter bindings: N (edit the .sound file) » ; garde `_suppressControlCallbacks`, `SetDirty(true)`. La
+     prévisualisation reste non spatiale (P38).
+- Validation : chargement de chaque champ ; défauts sur un document minimal ; mode ou modèle inconnu, chaîne
+  numérique (« 7 ») → défaut avec avertissement ; liaison invalide et neuvième liaison ignorées ; setters ; aller-retour
+  de tous les champs ; un asset aux défauts et les quatre `.sound` de la démo gardent exactement leurs clés ;
+  inspecteur : lignes, écriture, `float.MaxValue` non réécrit par la construction. 🧪 aspect dans l'éditeur. Deux
+  solutions ; suite verte.
+- Commit : `feat(audio): spatial mode, distance model, Doppler factor and parameter bindings in the .sound asset`
+
+### ⏳ T9.4 — Écouteur, voix spatiales et repli dans `AudioService` (P32, P35, P36, P38, P44)
+
+- Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, tests `CasaEngine.Tests/Audio/Spatial/AudioServiceListenerTests.cs`
+  et `AudioServiceSpatialVoiceTests.cs` (nouveaux, collection `ProjectEnvironmentCollection`), faux backend de test
+  `CasaEngine.Tests/Audio/FakeAudioBackend.cs` (compteurs `SetParametersCount`, `SetVolumeCount`, additifs).
+- Étapes :
+  1. Champs : `_modulationBackend = _backend as IAudioVoiceModulationBackend` ; pile d'écouteurs (source, pose, pose
+     précédente, vitesse) préallouée.
+  2. API publique additive : `SetListener(object source, in AudioListenerPose pose)` (une source déjà enregistrée
+     met à jour sa pose sans doublon), `RemoveListener(object source)` (retrait où qu'elle soit ; le sommet retiré
+     réactive le précédent), `HasListener` ; `PlaySoundAt(SoundAsset asset, System.Numerics.Vector3 position, in
+     SoundPlaybackOverrides overrides, object owner = null)` ; `SetVoicePosition(AudioVoiceHandle voice,
+     System.Numerics.Vector3 position)`. Avertissement limité (`AudioLogThrottle`) quand un second écouteur s'enregistre.
+     `Dispose` vide la pile.
+  3. Démarrage : `PlayClipCore` reçoit en plus `in VoiceModulationStart start` (struct privée : `SoundAsset Asset`,
+     null = aucune modulation ; `bool HasPosition` ; `Vector3 Position`) ; `PlayClip` passe `default` (comportement
+     identique) ; `PlaySound` passe l'asset sans position ; `PlaySoundAt` avec la position. Mode mémorisé = mode de
+     l'asset si une position est donnée, sinon `None` (P38) ; la présence d'un écouteur n'entre pas dans ce mode (P35) :
+     elle est relue à chaque `Update`, et une voix spatiale sans écouteur reçoit des valeurs neutres. `HasModulation` est
+     vrai pour toute voix de mode mémorisé non `None` (ou à liaisons, T9.6). Avant `_backend.Play`, avec la
+     capacité et une modulation non neutre : `SetNextVoiceModulation(gain, pan, rate)` juste après `RouteNextVoice` ;
+     sans la capacité : gain replié dans le volume envoyé, pan spatial dans les paramètres envoyés.
+  4. `VoiceEntry` : `HasModulation`, `SpatialMode`, `DistanceModel`, `ReferenceDistance`, `MaxDistance`,
+     `RolloffFactor`, `Position`, `HasPosition`, `SentGain`, `SentPan`, `SentRate`, `FoldedGain` (1 sous la capacité),
+     `FoldedPan` (NaN = aucun), `FoldedPitchOffset` ; **chaque démarrage les écrit explicitement** (y compris
+     `PlayStream` et `PlayClipStereoOnBackend`, à leurs valeurs neutres) et `Reset()` les remet à zéro.
+  5. `Update` : après `AdvanceBusFades`, avancer l'écouteur ; dans la boucle des voix, entre le recyclage et le
+     fondu, `UpdateModulation(entry)` seulement si `entry.HasModulation` : sans écouteur actif, valeurs neutres (gain 1,
+     pan NaN, rate 1) ; sinon gain de distance et pan spatial ; envoi
+     seulement au-delà des seuils de P44 ; avec la capacité, `SetVoiceModulation` (aucune file) ; sans la capacité,
+     `FoldedGain`/`FoldedPan` puis `ApplyGain(entry)` si seul le gain a changé et que la voix n'est pas en fondu
+     (le fondu l'applique juste après), `SetParameters(BuildBackendParameters(entry))` si le pan a changé.
+  6. Repli : `BuildBackendParameters(entry)` = `BaseParameters` avec volume `BackendVolume(...) × FoldedGain`, pan
+     `FoldedPan` s'il n'est pas NaN, pitch `BaseParameters.Pitch + FoldedPitchOffset` borné ; `ApplyGain` et
+     `SetVoicePan` l'utilisent. Sous la capacité, rien ne change.
+- Validation (backend logiciel hors ligne et faux backend ; le logiciel est comparé au **niveau rendu** gauche et
+  droite recalculé dans le test par la loi de pan, le repli à `GetParameters` recalculé dans le test ; tolérance
+  0,01 et seuils de P44) : (1) source à 2 × référence, modèle inverse borné → gain 0,5 des deux côtés ;
+  (2) `SetVoiceVolume` puis déplacement dans la même frame ; (3) `FadeVoice` en cours pendant que la distance change :
+  niveau = chronologie × gain, à un bloc près ; (4) `FadeVoice` suivi d'un déplacement et l'inverse ; (5) `CancelFade`,
+  `StopWithFade`, `SetVoiceVolume` puis `CancelFade` dans la même frame (cas V1/V2 de S4) ; (6) muet de bus, `FadeBus`
+  et snapshot pendant un son spatial (cas F1, N1, R1) ; (7) son lointain : le premier bloc n'est jamais à plein gain ;
+  (8) Play refusé suivi d'un `PlayClip` normal : gain 1, rien n'a fui ; (9) écouteurs : retrait au sommet et au milieu,
+  double enregistrement, second écouteur (un avertissement), aucun écouteur → voix neutres à la frame suivante ;
+  (9 bis) **`PlaySoundAt` d'un asset 3D sans écouteur** : la voix joue neutre ; `SetListener` ensuite ; après l'`Update`
+  suivant, niveau rendu (logiciel) et paramètres reçus (faux backend) montrent le gain de distance et le pan spatial ;
+  retrait de l'écouteur : neutre à nouveau ;
+  (10) pan : stéréo et mono ; 2D ignore Z ; (11) son spatial joué par `PlaySound` sans position : non spatial ;
+  (12) seulement ce qui change est envoyé : compteurs du faux backend immobiles sur 100 frames ; (13) emplacement
+  d'une voix spatiale arrêtée repris par `PlayClip` dans la même frame : gain 1, aucun envoi de modulation ;
+  (14) zéro allocation de l'`Update` avec 64 voix spatiales et un déplacement par frame. Tests existants
+  d'`AudioService` inchangés et verts ; deux solutions ; suite verte trois fois.
+- Commit : `feat(audio): audio listener and spatial voices in AudioService`
+
+### ⏳ T9.5 — Doppler et pitch de voix (P33, P37)
+
+- Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, test `CasaEngine.Tests/Audio/Spatial/AudioServiceDopplerTests.cs`.
+- Étapes : `VoiceEntry` : `DopplerFactor`, position précédente, vitesse, drapeau « position poussée dans la frame » ;
+  `SpeedOfSound` (propriété, assainie > 0, défaut `AudioDoppler.DefaultSpeedOfSound`) ; vitesses de P37 (la dernière
+  vitesse est gardée si le temps écoulé est ≤ 1e-6) ; rapport = Doppler (si facteur > 0) envoyé dans le `rate` du canal
+  ou replié en `FoldedPitchOffset = log2(rapport)` borné ; API additive `SetVoicePitch(voice, pitch)` /
+  `GetVoicePitch(voice)` (pitch de base en octaves, poussé par `SetParameters` comme `SetVoicePan`, conservé après un
+  changement spatial).
+- Validation : Doppler désactivé par défaut (rapport 1) ; activé : source qui approche → vitesse de lecture × 1,1111
+  au logiciel (positions comptées sur un clip) et pitch replié + log2(1,1111) sur le faux backend ; pose non poussée
+  dans la frame → vitesse 0 ; sous le repli le pitch total reste borné à ±1 octave (rapport 4 demandé) ; `SetVoicePitch`
+  borné et conservé ; zéro allocation. Deux solutions ; suite verte.
+- Commit : `feat(audio): Doppler on spatial voices and a settable voice pitch`
+
+### ⏳ T9.6 — Paramètres de jeu (P39)
+
+- Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, `CasaEngine/Framework/Audio/Streaming/MusicPlayer.cs`
+  (un appel entre `PlayStream` et `StartVoice`), test `CasaEngine.Tests/Audio/Spatial/AudioServiceGameParameterTests.cs`.
+- Étapes : registre dans le service ; API additive `GetGameParameterIndex(string)`, `SetGameParameter(int, float)`,
+  `SetGameParameter(string, float)`, `GetGameParameter(int)` ; à la création d'une voix liée, résolution des noms en
+  indices une fois (tableau d'indices de 8 conservé dans l'entrée et réutilisé) ; `HasModulation` vrai pour une voix à
+  liaisons ; gain = gain de distance × produit des liaisons `Volume` ; rapport = Doppler × `2^(somme bornée des liaisons
+  Pitch)` ; recalcul seulement si une version de paramètre a changé ou si la voix est spatiale, **et toujours au premier
+  `UpdateModulation` qui suit la création ou la liaison** ; `internal void BindSoundParameters(AudioVoiceHandle voice,
+  SoundAsset asset)` appelé par `MusicPlayer.Play` entre `PlayStream` et `StartVoice` (pas de spatialisation des pistes).
+  **Valeurs de départ** : le facteur des liaisons `Volume` et le rapport des liaisons `Pitch` font partie des valeurs
+  de départ de la voix, jamais une rampe depuis le plein gain : pour `PlaySound`/`PlaySoundAt`, par le chemin de T9.4
+  étape 3 (`SetNextVoiceModulation` avec la capacité ; sans elle, volume et pitch repliés dans les paramètres du `Play`) ;
+  pour `BindSoundParameters`, avant `StartVoice` : avec la capacité, `SetVoiceModulation` sur la voix créée (sa valeur
+  de départ, T9.1 étape 4) ; sans elle, volume et pitch repliés envoyés par `SetVolume`/`SetParameters` avant le
+  démarrage.
+- Validation : non écrit = neutre ; écrit change volume et pitch des deux côtés ; entrée bornée ; somme de pitch bornée ;
+  **valeurs de départ, sous le backend logiciel (niveau rendu) et le faux backend (paramètres reçus)** : (1) `PlaySound`
+  sans position d'un asset dont une liaison `Volume` vaut 0,25 : premier bloc rendu à 0,25 ± 0,01, et le premier `Play`
+  du faux backend porte déjà 0,25 × volume ; (2) piste de musique avec la même liaison, sans fondu d'entrée : premier bloc
+  après `StartVoice` à 0,25, et le faux backend reçoit le volume replié avant `Start` ; (3) même chose avec une liaison
+  `Pitch` : premier bloc déjà à la vitesse liée ; piste de musique liée sous fondu d'entrée et fondu enchaîné ; 65e paramètre refusé ; `SetGameParameter(string)` sans
+  allocation après création ; zéro allocation de l'`Update` avec 64 voix liées. Deux solutions ; suite verte.
+- Commit : `feat(audio): game parameters bound to sound volume and pitch`
+
+### ⏳ T9.7 — Sondes d'ordre et fuzz logiciel contre repli
+
+- Fichiers : test `CasaEngine.Tests/Audio/Spatial/AudioServiceModulationOrderTests.cs` (nouveau) ; correctifs dans
+  `AudioService.cs` seulement si un écart est trouvé.
+- Étapes : fuzz à graines fixes (300 graines, quatre rythmes d'`Update`) mélangeant `SetVoiceVolume`, `FadeVoice`,
+  `CancelFade`, `StopWithFade`, `SetVoicePosition`, `SetGameParameter`, `FadeBus`, muets ; même scénario sous le
+  backend logiciel (niveau rendu) et le faux backend (paramètres reçus), comparés après chaque `Update`.
+- Validation : erreur finale au plus égale aux seuils de P44 ; écarts transitoires d'au plus un bloc ; test de mutation
+  (retirer le repliement du gain fait échouer le repli). Deux solutions ; suite verte trois fois.
+- Commit : `test(audio): order probes and fuzz of spatial modulation against the fallback`
+
+### ⏳ T9.8 — `AudioListenerComponent` et `SoundEmitterComponent` en composants de scène (D8, D13, P35, P40, P41)
+
+- Fichiers : `CasaEngine/Framework/Scene/Entities/Components/AudioListenerComponent.cs` (nouveau),
+  `AudioScenePose.cs` (nouveau, `internal static`), `SoundEmitterComponent.cs`, `SceneComponent.cs` (valve de
+  chargement), `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs` (`SaveSoundEmitterComponent`), tests
+  `CasaEngine.Tests/Audio/AudioListenerComponentTests.cs` (nouveau), `SoundEmitterComponentTests.cs`,
+  `SoundEmitterComponentSpatialTests.cs` (nouveau).
+- Étapes :
+  1. `SceneComponent.Load` : valve `protected virtual bool AllowsMissingSceneData => false` (P41).
+  2. `AudioScenePose.GetWorldPose(SceneComponent, out Vector3 position, out Vector3 forward, out Vector3 up)` depuis
+     `WorldMatrixNoScale` (P40), conversion `System.Numerics` sans allocation.
+  3. `AudioListenerComponent` : `SceneComponent`, `IEntityPolicyDefaultsProvider` (`DynamicDefault`),
+     `[DisplayName("Audio Listener")]`, constructeurs et `Clone` ; `InitializeWithWorld` : service lu comme
+     l'émetteur, `SetListener(this, pose)` si l'entité est active ; `Update` : `base.Update(elapsedTime)` d'abord,
+     puis repousse la pose seulement si elle a changé ; `OnEnabledValueChange` : retrait quand l'entité est désactivée,
+     réenregistrement sinon ; `Detach` : `RemoveListener(this)` puis `base.Detach()` ; petite boîte englobante autour
+     de la pose (modèle `PlayerStartComponent`) ; point d'injection `internal void BindServiceForTests(AudioService)`.
+  4. `SoundEmitterComponent` : base `SceneComponent`, `AllowsMissingSceneData` vrai, remarque « on purpose » retirée ;
+     `Play` : asset streaming → chemin actuel ; mode de l'asset `None` → `PlaySound` actuel ; sinon `PlaySoundAt`
+     (position d'`AudioScenePose`) ; `Update` : `base.Update(elapsedTime)` d'abord, puis `SetVoicePosition` seulement
+     quand la position change et que la voix vit ; petite boîte englobante ; `Detach` arrête la voix comme avant ;
+     `internal void BindServicesForTests(AudioService service, SoundAsset asset)`.
+  5. `SaveSoundEmitterComponent` : écrit d'abord le transform et les enfants comme un `SceneComponent`, puis les clés
+     existantes.
+- Validation : (a) pose sous un parent tourné de 90° autour de Y à (10, 0, 0), enfant en (1, 0, 0) → position
+  (10, 0, −1), avant (−1, 0, 0) (le test documente l'écart avec `SceneComponent.Position`) ; échelle non uniforme sans
+  effet ; pose dans une entité enfant documentée telle que le moteur la calcule ; (b) ancienne forme figée (JSON écrit à
+  la main : id, name, type, `sound_asset_id`, `play_on_start`, `bus_name`, `volume_override`, `pitch_override`,
+  `is_looped_override`) chargée par `Entity.Load` : aucune exception, champs gardés, transform identité ; un autre
+  composant sans `local_transform` lève toujours ; (c) aller-retour d'un émetteur en racine, en enfant et au niveau
+  entité, et d'un `AudioListenerComponent` ; tests existants de l'émetteur verts ; (d) `Clone` ; (e) émetteur spatial
+  lié : gain de distance à la création, suit l'entité déplacée, rien d'envoyé à l'arrêt, `Detach` arrête la voix ;
+  émetteur dont l'asset est en mode `None` : chemin `PlaySound` inchangé ; (f) écouteur : pose à l'enregistrement,
+  `Update` sur changement seulement, `Detach` et désactivation retirent, deux écouteurs ; tick forcé avec un
+  `StaticModelComponent` ; un émetteur `PlayOnStart` initialisé **avant** un `AudioListenerComponent` d'une autre entité
+  est spatialisé dès le premier `Update` qui suit l'enregistrement de l'écouteur ; (g) boîte englobante d'une entité sans émetteur inchangée, et mesure avec un émetteur
+  enfant éloigné. 🧪 éditeur : ajouter un émetteur et un écouteur, les déplacer au gizmo, sauvegarder, recharger.
+  Deux solutions ; suite verte.
+- Commit : `feat(audio): audio listener component and a scene-component sound emitter`
+
+### ⏳ T9.9 — Démo : son spatial, Doppler et paramètre de jeu
+
+- Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs`.
+- Étapes : un `SoundAsset` créé en code (copie du clic en boucle, `SpatialMode = Spatial3D`, distances explicites) joué
+  par `PlaySoundAt` ; écouteur posé à l'origine par `SetListener` ; touche O : orbite on/off (rayon et vitesse en
+  unités par seconde) ; K : Doppler on/off sur ce son ; une touche libre (vérifiée par `rg`) : paramètre de jeu lié au
+  volume et au pitch ; lignes d'état (mode, distance, gain, pan, rapport) ; stress (G) inchangé.
+- Validation : deux solutions ; lancement sans clavier sous `Software` puis `MonoGame` (capture, journal propre) ;
+  stress de 60 s sous `Software` : 0 sous-alimentation. 🧪 écoute de l'auteur.
+- Commit : `feat(demos): spatial sound, Doppler and game parameter keys`
+
+### ⏳ T9.10 — Documentation, ADR et vérification de la tranche
+
+- Fichiers : `docs/engine/audio-system.md` (nouvelle section « 5 quater. Spatialisation, Doppler et paramètres de
+  jeu », §1 bis lois de pan, §3, §6, §9, §10, §11), `docs/decisions/0064-…md` (numéro revérifié sur toutes les
+  branches), statut d'ADR-0001 (« 2D only » remplacé en partie), index, `docs/README.md`, ce plan, `ai-agent/README.md`.
+- Étapes : doc en français : écouteur et règles, modes, modèles et formules citées (URL), unités (distances et vitesses
+  en unités monde, `SpeedOfSound` en unités par seconde), Doppler et additions du moteur, liaisons (format exact et
+  exemple), composition (canal orthogonal, repli, ±1 octave sous MonoGame), pose des composants, limites (pistes non
+  spatialisées, cinématiques non spatiales, pas de cône ni gain d'écouteur, pas de téléportation, double application de
+  la racine d'une entité parente, retour arrière avec perte pour les entités enregistrées après la tranche). ADR
+  (anglais) : P32 à P44, D8 à D13 rappelées, alternatives écartées, conséquences.
+- Validation : vérificateur frais **CONFIRMED** sur : sondes d'ordre de S4 rejouées sur le canal, mutation des
+  correctifs, formules contre le PDF de la spécification, ancienne forme de l'émetteur, absence d'allocation, API
+  additive hors la classe de base de `SoundEmitterComponent` (D13). Au plus cinq passes de correction pour un P1 ou P2.
+- Commit : `docs(audio): document spatial audio, Doppler and game parameters`
+
 ---
 
 ## Réponses de l'auteur du 2026-10-06
@@ -2258,6 +2642,11 @@ du SPU) auront chacune leur détail, relu, avant exécution.
 | O26 | Avis P4 du vérificateur de S6a (reportés) : A1 le panneau « Audio » n'a pas été lancé dans l'éditeur (ancrage, indicateur de présence et dessin vérifiés par lecture et tests ; T6.2 🧪 pour l'auteur : ouvrir Windows > Audio, le fermer, le rouvrir) ; A2 le test de lecture concurrente utilise des blocs identiques et ne détecterait pas un enregistrement déchiré (la sonde du vérificateur, à signal variable, n'en trouve aucun) ; A3 `audio-system.md` et `audio-profiler-panel.md` ne répètent pas la condition de l'ADR-0060 (blocs d'au moins 1,25 ms) — sans effet avec les blocs de 10 ms par défaut. | S6a |
 | O27 | **Question à l'auteur (non bloquante)** — anti-répétition du tirage de fichier (par exemple pour des bruits de pas : ne jamais rejouer le même fichier deux fois de suite). S5a tire uniformément (P26) ; un champ additif du `.sound` pourra l'ajouter plus tard si l'auteur le souhaite. | S5a |
 | O28 | **Questions à l'auteur (non bloquantes)** — (1) une surcharge de priorité par émetteur et par action de cinématique (champ sérialisé à ajouter ; aujourd'hui ils jouent avec la priorité de l'asset) ; (2) l'affichage des voix volées dans le panneau Audio de l'éditeur. | après S5a |
+| O29 | **Question à l'auteur (non bloquante)** — surcharge du mode spatial et du Doppler par `SoundEmitterComponent` (par exemple des énumérations à trois états « depuis l'asset / non / oui ») : S5b n'utilise que le mode de l'asset (D9 le dit par asset). | S5b |
+| O30 | **Question à l'auteur (non bloquante)** — pose d'un composant de scène placé au niveau de l'entité (sans parent) : S5b garde sa propre matrice, comme le gizmo de l'éditeur (P40) ; un émetteur de l'ancienne forme, sans transform, sonne donc à l'origine (s'il est spatial). Alternative : le rattacher à la racine de l'entité pour l'audio seulement (le gizmo et le son divergeraient). Avec : l'éditeur fait d'un composant de scène ajouté à une entité sans racine sa racine, donc un émetteur peut devenir racine d'entité. | S5b |
+| O31 | **Question à l'auteur (non bloquante)** — édition des liaisons de paramètres dans l'inspecteur de son (S5b les compte seulement, édition dans le fichier `.sound`, P42). | S5b |
+| O32 | **Question à l'auteur (non bloquante)** — Doppler : détection de téléportation (seuil de déplacement par frame en unités monde, ou API de remise à zéro de la vitesse) et réglage de projet de la vitesse du son ; S5b n'a ni l'un ni l'autre (P37 : une téléportation donne un rapport extrême, borné, pendant une frame ; Doppler désactivé par défaut). | S5b |
+| O33 | **Information pour l'auteur** — pour un composant qui a un parent dans une entité enfant, `WorldMatrixWithScale`/`WorldMatrixNoScale` appliquent deux fois la racine de l'entité parente (`SceneComponent.cs`, aussi reproduit par `RenderProjectionComponent`) : comportement existant, peut-être voulu ; l'audio en hérite, S5b ne le corrige pas. | S5b |
 | O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? **Réponses de l'auteur (2026-10-06) : D5 à D14.** | S5 |
 | O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? **Réponses de l'auteur (2026-10-06) : D15 à D21.** | S6b |
 
