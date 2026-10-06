@@ -14,7 +14,7 @@ public class MouseManager
     public Point Position => new(_currentState.X, _currentState.Y);
     public float DeltaX => _deltaX;
     public float DeltaY => _deltaY;
-    public bool HasMoved => DeltaX > 1 || DeltaY > 1;
+    public bool HasMoved => Math.Abs(_deltaX) > 1 || Math.Abs(_deltaY) > 1;
 
     public bool LeftButtonPressed => _currentState.LeftButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
     public bool RightButtonPressed => _currentState.RightButton == Microsoft.Xna.Framework.Input.ButtonState.Pressed;
