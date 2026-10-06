@@ -302,12 +302,14 @@ public class CasaEngineGame : Game, IObservableUpdate
             }
         }
 
-        // Single full-screen backbuffer view: auto-resize both the surface and its camera.
+        // Single backbuffer view: auto-resize both the surface and its camera to the layout area (the whole window
+        // unless the view manager has layout insets, ADR-0070).
         if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
         {
             // With a virtual resolution the view is the integer-fit image and its camera frames the virtual
             // resolution; this runs after World.OnScreenResized, which sized every camera to the window.
-            VirtualResolutionRuntime.ResizeSingleBackBufferView(bbViews[0], single, width, height, ActiveVirtualResolution);
+            VirtualResolutionRuntime.ResizeSingleBackBufferView(
+                bbViews[0], single, width, height, GameManager.ViewManager.GetLayoutArea(width, height), ActiveVirtualResolution);
         }
         else if (GameManager.ViewManager.AutoLayoutMode != null)
         {

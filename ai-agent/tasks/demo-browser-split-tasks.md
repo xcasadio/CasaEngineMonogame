@@ -168,7 +168,7 @@ Automatisation et tests :
 - Commit : `feat(rendering): view layout insets confine back-buffer views to an area`
 - Note de validation (2026-10-06) : `ViewLayoutInsets`, `ViewManager.LayoutInsets` / `GetLayoutArea`, surcharge `SplitScreenLayout.Compute(Rectangle, …)` (l'ancienne l'appelle avec `(0, 0, w, h)`), `ApplyBackBufferLayout` sur la zone. `ViewLayoutAreaTests` : 31 cas (égalité des deux surcharges et décalage pour 1 à 4 vues × 3 modes, zone avec et sans marges, marges trop grandes ou négatives, `ApplyBackBufferLayout` avec et sans marge). Deux solutions : 0 erreur. `CasaEngine.Tests` : 4136/4136.
 
-### ⏳ T1.2 — Vue unique et vue par défaut dans la zone
+### ✅ T1.2 — Vue unique et vue par défaut dans la zone
 
 - Objectif : la vue par défaut et la vue unique redimensionnée suivent la zone ; refus explicite avec une résolution virtuelle (P6).
 - Fichiers : `CasaEngine/Framework/Application/VirtualResolutionRuntime.cs`, `CasaEngine/Framework/Application/DefaultRuntimeViewBootstrapper.cs`, `CasaEngine/Framework/Application/CasaEngineGame.cs`, `CasaEngine.Tests/Application/VirtualResolutionRuntimeTests.cs` (et le fichier de tests du bootstrapper s'il existe : `rg -l CreateDefaultView CasaEngine.Tests`).
@@ -178,6 +178,7 @@ Automatisation et tests :
   3. `CasaEngineGame.OnScreenResized` et le bootstrapper passent `GameManager.ViewManager.GetLayoutArea(w, h)` / `viewManager.GetLayoutArea(w, h)`.
 - Validation : tests (zone avec et sans marges, exception avec résolution virtuelle, cas existants inchangés) ; deux solutions buildées ; suite verte.
 - Commit : `feat(rendering): the single and default back-buffer views follow the layout area`
+- Note de validation (2026-10-06) : `ResizeSingleBackBufferView` gagne une surcharge avec la zone (l'ancienne l'appelle avec la fenêtre entière) ; `CreateDefaultView` prend `viewManager.GetLayoutArea` et ne redimensionne la caméra que si la zone n'est pas la fenêtre (comportement sans marge inchangé) ; `ThrowIfLayoutAreaIsNotTheWindow` refuse marges + résolution virtuelle (P6) ; `CasaEngineGame.OnScreenResized` passe la zone. 5 tests ajoutés à `VirtualResolutionRuntimeTests`. Deux solutions : 0 erreur ; `CasaEngine.Tests` 4141/4141. Sondes : 7 PASS, relevés identiques à la référence ; captures et dump identiques octet pour octet sauf Split-screen, dont les deux tableaux de statistiques par vue (FPS, temps : coin haut-gauche de chaque vue) changent à chaque lancement — critère retenu pour cette démo : relevé identique.
 
 ---
 
