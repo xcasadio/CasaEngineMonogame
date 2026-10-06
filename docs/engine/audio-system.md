@@ -5,6 +5,7 @@ Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture
 Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md), [ADR-0040](../decisions/0040-project-audio-mute-setting.md) and [ADR-0055](../decisions/0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) (mixeur logiciel du moteur, §1 bis).
 SPU PlayStation logiciel, hébergé par le backend logiciel : [psx-spu.md](psx-spu.md) ([ADR-0058](../decisions/0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md)).
 Graphe de bus, effets, départs, ducking, fondus et snapshots du backend logiciel : §2 bis ([ADR-0059](../decisions/0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md)).
+Variations aléatoires et priorités de voix : §3 et §4 ([ADR-0063](../decisions/0063-sound-variations-and-voice-priorities.md)).
 
 ---
 
@@ -12,8 +13,10 @@ Graphe de bus, effets, départs, ducking, fondus et snapshots du backend logicie
 
 ```text
 SoundAsset (.sound)          asset JSON : fichier audio + volume + pitch + loop + bus + streaming
+                             + variations aléatoires + priorité
         ↓
-AudioService                 pool de voix, routage vers les bus, fades, propriété (owner)
+AudioService                 pool de voix, routage vers les bus, fades, propriété (owner),
+                             tirage des variations, vol de voix par priorité
    ├─ AudioMixer             arbre de bus nommés, gain effectif
    ├─ MusicPlayer            pistes streamées, fade in/out, crossfade
    └─ IAudioBackend          frontière plateforme
@@ -230,8 +233,46 @@ Le streaming est **authoré**, pas déduit de l'extension : le même `.wav` peut
 Tout champ absent prend sa valeur par défaut, donc un document incomplet se charge au lieu
 d'échouer.
 
+**Variations aléatoires et priorité** (ADR-0063), champs additifs : chaque clé n'est écrite que si
+sa valeur diffère de son défaut, donc un `.sound` qui ne s'en sert pas garde exactement les clés
+ci-dessus.
+
+```json
+{
+  "id": "…",
+  "name": "footstep",
+  "audio_file_asset_id": "…",
+  "volume": 0.8,
+  "pitch": 0.0,
+  "is_looped": false,
+  "bus_name": "Sfx",
+  "is_streaming": false,
+  "priority": 20,
+  "variation_audio_file_asset_ids": [ "…", "…" ],
+  "variation_volume_min": 0.7,
+  "variation_pitch_min": -0.1,
+  "variation_pitch_max": 0.1
+}
+```
+
+| Champ | Défaut | Sens |
+|---|---|---|
+| `variation_audio_file_asset_ids` | aucun | fichiers tirés en plus de `audio_file_asset_id` ; chacun doit être catalogué dans `AssetInfos.json` |
+| `variation_volume_min` / `variation_volume_max` | 1 / 1 | facteur de volume tiré dans [min, max], borné à [0, 1] : la variation ne fait qu'atténuer |
+| `variation_pitch_min` / `variation_pitch_max` | 0 / 0 | décalage de pitch en octaves tiré dans [min, max], borné à [-1, 1] |
+| `priority` | 0 | priorité de vol de voix, 0..100 ; 0 = aucune (§4) |
+
+Les plages sont **relatives** à la valeur jouée : le facteur multiplie le volume, le décalage
+s'ajoute au pitch. Le tirage est uniforme ; une plage inversée est triée au tirage, une plage
+dégénérée (min = max) ne tire rien. Le fichier est tiré uniformément parmi le fichier principal et
+les variations non vides, sans anti-répétition (le même fichier peut sortir deux fois de suite).
+Le chargement est tolérant : une valeur d'un type inattendu (texte, `null`, objet) garde le défaut
+avec un avertissement qui nomme l'asset et la clé ; une entrée de liste qui n'est pas un GUID est
+ignorée de même. Un asset marqué streaming ignore variations et priorité.
+
 Dans l'éditeur : clic droit sur un dossier → **Create Sound**, puis double-clic pour ouvrir
-l'inspecteur (fichier, volume, pitch, loop, bus, streaming, preview).
+l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, loop,
+bus, streaming, preview).
 
 ---
 
@@ -257,6 +298,32 @@ protéger d'un asset son cassé.**
 
 Le paramètre `owner` porte la durée de vie : une voix appartenant à un monde est coupée par
 `World.Clear()`, une voix sans propriétaire (UI, preview éditeur) survit aux changements de monde.
+
+**Composition avec les variations.** Les surcharges remplacent les valeurs de l'asset, puis le
+tirage des variations s'applique par-dessus (facteur de volume, décalage de pitch), et le résultat
+est borné (volume dans [0, 1], pitch dans [-1, 1]). Un seul tirage par lecture : une voix en boucle
+garde le sien. La source aléatoire est `AudioService.VariationRandom` (`Random.Shared` par défaut,
+thread de jeu seulement), remplaçable pour un test ou un rejeu déterministe. Si le fichier tiré ne
+se charge pas, rien ne joue (journal étranglé), sans repli sur un autre fichier. Chaque fichier
+tiré est chargé et décodé à sa première lecture, sur le thread de jeu, puis reste en mémoire pour
+la vie du fournisseur de clips.
+
+**Priorités et vol de voix.** Quand toutes les voix du backend sont prises, un son sans priorité
+est refusé, comme avant. Un son de priorité `p > 0` (celle de l'asset, ou
+`SoundPlaybackOverrides.Priority`, dont 0 retire la priorité) libère d'abord une voix déjà
+terminée qui n'a pas encore été recyclée ; sinon il coupe la voix de priorité la plus basse
+strictement inférieure à `p`, la plus ancienne à égalité, et prend sa place. Une voix sans
+priorité, une voix streamée (musique) et une voix stéréo du backend ne sont jamais volées ;
+`PlayClip`, `PlayClipStereo` et `PlayStream` jouent toujours sans priorité. Une voix en pause ou
+en fondu peut être volée ; sa poignée devient périmée (`IsAlive` faux), et un émetteur en boucle de
+basse priorité le voit par `IsPlaying`. `AudioService.StolenVoiceCount` compte les vols ; si le
+backend refuse quand même la nouvelle voix après un vol (cas dégradé), c'est un refus et la
+victime reste perdue. Il n'y a pas de voix virtuelles.
+
+```csharp
+// Ce son peut prendre la place d'une voix de priorité plus basse.
+audio.PlaySound(asset, new SoundPlaybackOverrides(volume: 0.5f) { Priority = 30 }, world);
+```
 
 ---
 
@@ -367,6 +434,10 @@ Pas d'interface utilisateur : le réglage s'édite dans le fichier projet.
 Un asset marqué streaming part vers le `MusicPlayer`, les autres deviennent une voix normale.
 Détacher le composant coupe le son.
 
+Les surcharges du composant composent avec les variations de l'asset (§4) : `VolumeOverride` et
+`PitchOverride` donnent la valeur de base, le tirage s'applique par-dessus. Le composant joue avec
+la priorité de l'asset.
+
 ---
 
 ## 7. Cutscenes
@@ -384,6 +455,9 @@ Les trois premières sont non bloquantes : une cutscene veut en général un son
 action, pas à la place. `FadeMusic` attend la fin de la rampe, parce que l'action suivante doit
 démarrer sur le nouveau niveau.
 
+`PlaySound` compose avec les variations de l'asset comme l'émetteur (§6) : `volume` multiplie le
+volume de l'asset, puis le tirage s'applique ; le son joue avec la priorité de l'asset.
+
 ---
 
 ## 8. Play-in-editor
@@ -394,7 +468,9 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 - **Pause** met ces voix en pause (un `TimeScale` à zéro gèle la simulation, pas le matériel
   audio) et **Resume** ne relance que ce que la pause de session avait arrêté ;
 - le bus **`Editor`** est épargné dans les deux cas : une preview d'asset survit au Stop et reste
-  audible pendant une session.
+  audible pendant une session ;
+- la preview de l'inspecteur de son joue **sans priorité** : elle ne vole jamais une voix du jeu,
+  et elle est refusée quand toutes les voix sont prises. Elle tire les variations à chaque appui.
 
 ---
 
@@ -421,7 +497,13 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 - **Débranchement du périphérique** : le son s'arrête jusqu'au relancement du jeu (T2.6 en pause).
   Si le thread audio meurt, le backend logiciel devient muet sans faire attendre le jeu.
 - **Limite de voix.** 64 par défaut côté backend. Au-delà, la voix est refusée avec un log
-  throttlé, jamais une exception.
+  throttlé, jamais une exception, sauf pour un son de priorité explicitement plus haute qu'une voix
+  en cours, qui la vole (§4). Voix sans priorité et voix streamées jamais volées ; pas de voix
+  virtuelles (une voix volée est perdue, elle ne reprend pas) ; pas de délai ni de séquence de
+  sons.
+- **Variations** : pas d'anti-répétition du fichier tiré ; un fichier de variation est chargé à sa
+  première lecture, sur le thread de jeu (à-coup possible pour un gros fichier), et reste en
+  mémoire ensuite.
 - **Effets, départs, ducking et limiteur : backend logiciel seulement** (§2 bis). Sous le backend
   MonoGame, la sortie est seulement écrêtée. Pas encore de configuration de mixeur sérialisée ni
   d'édition dans l'éditeur (tranche S6) : le graphe se construit par code.
@@ -449,7 +531,6 @@ V1 et y sont repris.
   atténuation.
 - **Panneau mixer** dans l'éditeur, et persistance des volumes.
 - **Producteur en tâche de fond** pour le streaming, si la lecture disque devient audible.
-- **Variations aléatoires** dans le `.sound` (liste de fichiers, plages de volume/pitch).
 
 ---
 
@@ -474,9 +555,12 @@ V1 et y sont repris.
 | `T` | Filtre passe-bas à 600 Hz (`BiquadFilterEffect`) inséré sur le bus `Music`, activé ou désactivé (backend logiciel seulement) |
 | `D` | Ducking (`DuckingEffect`) de `Music` par `Sfx`, activé ou désactivé : lancer la musique (`P`) puis un son (`Espace` ou `L`) pour entendre la musique baisser (backend logiciel seulement) |
 | `G` | mode stress : SFX en boucle et musique, allocations massives et ramasse-miettes forcé toutes les 500 ms, avec le SPU PSX, une réverbération en départ et le limiteur du Master actifs ; arrêt par un second appui |
+| `V` | joue `menu_click_varied.sound` : volume tiré dans [0,6 ; 1], pitch dans [-0,15 ; 0,15] octave |
+| `J` | remplit toutes les voix libres de boucles du clic à faible volume, de priorité 1 (`S` les arrête) |
+| `H` | joue le clic avec la priorité 10 : après `J`, il vole une boucle de priorité 1 ; `Espace` (sans priorité) est refusé |
 
-L'écran affiche le backend actif et le nombre de voix ; avec le backend logiciel, aussi l'avance,
-le débit de sortie et le compteur de sous-alimentations.
+L'écran affiche le backend actif et le nombre de voix (actives, refusées, volées) ; avec le backend
+logiciel, aussi l'avance, le débit de sortie et le compteur de sous-alimentations.
 
 Mode stress sans clavier, depuis `CasaEngine.Demos/bin/Debug/net9.0-windows/` :
 

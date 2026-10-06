@@ -146,16 +146,16 @@ Faits relevés sur `main` (la branche du chantier en partira), sauf mention cont
 | D2 | Plateformes : les mêmes que MonoGame. Le reciblage multiplateforme du moteur (aujourd'hui `net9.0-windows`, x64) est **hors chantier** : le code audio reste neutre, mais il n'est validé que sur Windows x64. |
 | D3 | Côté PSX, les bruitages (SFX) et les musiques (BGM) sont dans le périmètre. |
 | D4 | On commence par le socle (tranche S1). |
-| D5 | (O23-1, 2026-10-06) Les variations aléatoires s'écrivent **dans le `.sound`** (liste de fichiers, plages de volume et de pitch), en champs additifs ; la règle des surcharges de l'émetteur et des cinématiques devra composer avec le tirage au lieu de l'écraser (O17). |
-| D6 | (O23-2) **Le refus actuel reste le comportement par défaut** quand les voix sont toutes prises ; une voix n'est volée que pour un son de priorité explicitement plus haute (la plus basse, puis la plus ancienne) ; une voix sans priorité n'est jamais volée ; les voix streamées sont toujours protégées. |
-| D7 | (O23-2c) **Pas de voix virtuelles** pour l'instant. |
+| D5 | (O23-1, 2026-10-06) Les variations aléatoires s'écrivent **dans le `.sound`** (liste de fichiers, plages de volume et de pitch), en champs additifs ; la règle des surcharges de l'émetteur et des cinématiques devra composer avec le tirage au lieu de l'écraser (O17). **Appliquée en S5a (ADR-0063).** |
+| D6 | (O23-2) **Le refus actuel reste le comportement par défaut** quand les voix sont toutes prises ; une voix n'est volée que pour un son de priorité explicitement plus haute (la plus basse, puis la plus ancienne) ; une voix sans priorité n'est jamais volée ; les voix streamées sont toujours protégées. **Appliquée en S5a (ADR-0063).** |
+| D7 | (O23-2c) **Pas de voix virtuelles** pour l'instant. **Respectée en S5a.** |
 | D8 | (O23-3a) Le point d'écoute vient d'un **composant** (`AudioListenerComponent`) qui pousse sa pose dans `AudioService`. |
 | D9 | (O23-3b) **Un mode spatial par asset : aucun, 2D ou 3D**, « aucun » par défaut (les assets existants ne changent pas). |
 | D10 | (O23-3c) Courbes d'atténuation : **les modèles de distance de la spécification OpenAL 1.1**, source publique citée, aucun code repris. |
 | D11 | (O23-4) **Doppler désactivé par défaut**, activé sur demande. |
 | D12 | (O23-5) Paramètres de jeu : **volume et pitch d'abord** ; un filtre par voix (nouvel étage du mixeur) viendra plus tard. |
 | D13 | (O23-6) **`SoundEmitterComponent` devient un composant de scène** ; l'auteur confirme qu'aucun projet hors de ce dépôt ne contient d'émetteur sauvegardé (chargement tolérant tout de même, AGENTS.md §9.7). |
-| D14 | (O23-7) **Pas de délai ni de séquence** dans un premier temps. |
+| D14 | (O23-7) **Pas de délai ni de séquence** dans un premier temps. **Respectée en S5a.** |
 | D15 | (O24-1) **Un seul asset de mixeur par projet**, désigné par un réglage de projet facultatif (vide = mixeur par défaut), extension `.audioMixer`. |
 | D16 | (O24-2) Le panneau de mixage **édite l'asset** (une seule source de vérité) et applique au mixeur vivant, **toujours dans le sens asset → mixeur**, jamais l'inverse. |
 | D17 | (O24-3) **Solo fait dans le panneau** avec les muets existants (moteur inchangé) ; il garde audibles les bus de retour (réverbération) et le bus Editor. |
@@ -2174,7 +2174,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   (volume et hauteur varient) ; J puis Espace (refus, `stolen` inchangé) ; J puis H (`stolen` + 1, le clic joue) ;
   S arrête les boucles de J.
 
-### ⏳ T8.7 — Documentation, ADR et vérification de la tranche
+### 🧪 T8.7 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (sections « 3. L'asset `.sound` », « 4. Jouer un son », « 6.
   Composant d'entité », « 7. Cutscenes », « 8. Play-in-editor », « 9. Limites connues », « 10. Évolutions
@@ -2202,6 +2202,10 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   que `Alundra.Tests` ne tourne pas contre ce worktree (Alundra référence le moteur de son propre checkout) :
   il se lance quand ce checkout contient la tranche.
 - Commit : `docs(audio): document sound variations and voice priorities`
+- Note (2026-10-06) : `audio-system.md` (vue d'ensemble, §3 nouvelles clés, exemple, bornes et tolérance, §4
+  composition, `VariationRandom`, vol de voix et `StolenVoiceCount`, §6 et §7 composition, §8 prévisualisation sans
+  priorité, §9 limite de voix et variations, §10 puce retirée, §11 touches V, J, H), ADR-0063 (aucune 0063 sur les
+  branches locales), note de statut d'ADR-0002, index des ADR et `docs/README.md`. Vérificateur frais en attente.
 
 ---
 
