@@ -216,7 +216,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 
 ## Phase 1 — MGUI (sous-module, branche `chantier/mgui-slider-nonalloc`)
 
-### ⏳ T1.1 — `ValueChangedNonAlloc`, plus d'abonnement à soi-même, texte formaté dans un tampon
+### ✅ T1.1 — `ValueChangedNonAlloc`, plus d'abonnement à soi-même, texte formaté dans un tampon
 
 - Objectif : D1, D2, D3.
 - Fichiers : `MGUI/MGUI.Core/UI/MGSlider.cs`, `MGUI/MGUI.Tests/Controls/SliderValueChangedTests.cs` (nouveau),
@@ -240,8 +240,15 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      d'allocation doivent échouer.
 - Validation : build `MGUI.Tests` et `MGUI.Samples` ; nouveaux tests verts ; suite `MGUI.Tests` complète verte.
 - Commit (MGUI) : `feat(slider): raise an allocation-free value change event and format the value label without allocating`
+- Note (2026-10-06) : MGUI `chantier/mgui-slider-nonalloc` créée depuis `develop` `d3e0cd1` ; commit `da602c2`.
+  Ligne de base `MGUI.Tests` 3108/3108. 9 tests dans `SliderValueChangedTests` (valeurs, ordre, borne, valeur discrète,
+  valeur identique, texte de la valeur, texte déjà à jour pour les abonnés, 3 tests d'allocation nulle). Contre-épreuves :
+  abonnement à soi-même remis, 3 tests d'allocation rouges (24 000 octets pour 1000 changements) ; ancien `ToString`
+  remis, test du texte inchangé rouge (24 000 octets) ; arbre remis à l'identique (empreinte du diff identique).
+  `ResolvedPilotWriteSitesTests` : ligne 675 → 701. Build `MGUI.Tests` et `MGUI.Samples` sans erreur ; `MGUI.Tests`
+  3117/3117. Mise à jour du plan commitée avec le commit moteur suivant.
 
-### ⏳ T1.2 — `DrawSelf` du slider sans liste ni LINQ
+### ✅ T1.2 — `DrawSelf` du slider sans liste ni LINQ
 
 - Objectif : D4.
 - Fichiers : `MGUI/MGUI.Core/UI/MGSlider.cs`, test voisin de T1.1, `ResolvedPilotWriteSitesTests.cs` si la ligne bouge.
@@ -253,8 +260,16 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      d'atteindre cet état sans modifier MGUI hors tâche, le dire dans la note et passer en 🧪.
 - Validation : build ; test vert, rouge avec l'ancien code ; suite `MGUI.Tests` complète verte.
 - Commit (MGUI) : `perf(slider): draw the hover overlay without allocating a list each frame`
+- Note (2026-10-06) : commit `702f09d`. Les morceaux non vides passent par un helper `DrawNumberLineOverlayChunk`,
+  même ordre. `SliderDrawAllocationTests` (4) : en état survolé, la surcouche couvre le morceau avant, le morceau
+  après puis le curseur, contigus au curseur, en horizontal et en vertical (vert sur l'ancien code aussi : même
+  dessin) ; allocation nulle du code de la surcouche (slider non visible au hit-test, donc `IsHovered` vrai et brosses
+  de surcouche nulles, bordures retirées). Contre-épreuve : ancien `DrawSelf`, 296 000 octets pour 1000 dessins ;
+  arbre remis à l'identique. Trouvé en écrivant le test : un `DrawSelf` complet alloue encore 64 octets par bordure
+  uniforme dessinée, dans `ThicknessUtils.IsEmpty`, hors des sites du plan : point ouvert O3. `MGUI.Tests` 3121/3121,
+  `MGUI.Samples` sans erreur.
 
-### ⏳ T1.3 — `MGColorSlider` : événements sans allocation
+### ✅ T1.3 — `MGColorSlider` : événements sans allocation
 
 - Objectif : D6.
 - Fichiers : `MGUI/MGUI.Core/UI/Color/MGColorSlider.cs`, `MGUI/MGUI.Tests/Color/ColorSliderTests.cs` (ou fichier voisin).
@@ -263,8 +278,15 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   `SetValue` répétés avec un abonné de chaque nouvel événement ; contre-épreuve avec l'ancien `EventArgs`.
 - Validation : build ; tests verts ; suite `MGUI.Tests` complète verte.
 - Commit (MGUI) : `feat(color): raise allocation-free value events from the color slider`
+- Note (2026-10-06) : commit `70d9544`. `ColorSliderValueEventsTests` (4) : ordre et valeurs de `ValueChanged` puis
+  `ValueChangedNonAlloc` (valeur bornée, valeur identique sans événement) ; glissement simulé (appui puis
+  déplacement) : `ValueChanging` puis `ValueChangingNonAlloc`, mêmes valeurs ; allocation nulle de `SetValue` répétés
+  et de pas de glissement répétés (méthode privée `SetValueFromScreenPosition` appelée par un délégué construit hors
+  de la fenêtre, comme `DataBindingAllocationTests`) avec abonnés des nouveaux événements. Contre-épreuve : un
+  `EventArgs` alloué dans les nouveaux événements, tests rouges (24 000 et 48 000 octets) ; arbre remis à l'identique.
+  `MGUI.Tests` 3125/3125, `MGUI.Samples` sans erreur.
 
-### ⏳ T1.4 — Samples MGUI sur les événements sans allocation
+### ✅ T1.4 — Samples MGUI sur les événements sans allocation
 
 - Objectif : D5 côté MGUI ; montre la feature dans un sample (règle MGUI).
 - Fichiers : `MGUI/MGUI.Samples/Controls/Slider.xaml.cs` (`:26`, `:31`, `:36`),
@@ -274,8 +296,12 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   même nom dans le tuple).
 - Validation : build `MGUI.Samples` ; `MGUI.Samples` lancé une fois.
 - Commit (MGUI) : `refactor(samples): subscribe to the allocation-free slider events`
+- Note (2026-10-06) : commit `52fba11`, 10 abonnements passés aux événements `NonAlloc`, corps inchangés ; plus aucun
+  abonné slider aux anciens événements dans MGUI hors des tests qui les couvrent. Build `MGUI.Samples` sans erreur ;
+  `MGUI.Samples.exe` lancé 25 s (arrêté par `timeout`, code 124), aucun plantage ni sortie d'erreur. Glissement
+  visuel des sliders du sample non piloté par l'agent : à faire par l'auteur.
 
-### ⏳ T1.5 — `MGElement.Update` : argument d'update créé seulement s'il a un abonné
+### ✅ T1.5 — `MGElement.Update` : argument d'update créé seulement s'il a un abonné
 
 - Objectif : D10, premier volet.
 - Fichiers : `MGUI/MGUI.Core/UI/MGElement.cs`, nouveau test d'allocation (dossier `MGUI.Tests/Architecture/`).
@@ -286,8 +312,12 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 - Validation : build ; tests verts ; suite `MGUI.Tests` complète verte (l'allocation nulle de l'update complet est
   prouvée en T1.6, après les itérateurs).
 - Commit (MGUI) : `perf(element): create the update event args only when an update event has a subscriber`
+- Note (2026-10-06) : commit `f9ff09c`, helper privé `RaiseUpdateEvent` (argument créé au premier événement qui a
+  un abonné, partagé par les suivants de la même update). `ElementUpdateEventArgsTests` (3) : les quatre événements
+  reçoivent l'élément et ses `UA`, une instance par update ; abonné du seul `OnEndUpdate` ; abonné ajouté pendant
+  l'update. `MGUI.Tests` 3128/3128. Allocation nulle prouvée en T1.6.
 
-### ⏳ T1.6 — `MGElement.Update` : brushes collectés dans des listes réutilisées
+### ✅ T1.6 — `MGElement.Update` : brushes collectés dans des listes réutilisées
 
 - Objectif : D10, second volet.
 - Fichiers : `MGUI/MGUI.Core/UI/MGElement.cs` et les 11 surcharges (`MGSlider`, `MGRectangle`, `MGShapeElementBase`,
@@ -304,8 +334,16 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      l'ancien itérateur. Toute allocation restante dans `MGElement.Update` hors des sites de D10 est un point ouvert.
 - Validation : build `MGUI.Tests` et `MGUI.Samples` ; suite `MGUI.Tests` complète verte.
 - Commit (MGUI) : `perf(element): collect the brushes to tick into reused lists instead of iterators`
+- Note (2026-10-06) : commit `2a7d10e`. `CollectBorderBrushes`, `CollectVisualStateFillBrushes`, `CollectFillBrushes`
+  (protégées virtuelles) ; `TickOwnBrushes` les remplit dans trois listes `[ThreadStatic]` réutilisées, avec un
+  drapeau d'usage (une update imbriquée prend des listes temporaires). 16 surcharges dans 11 fichiers converties par
+  script (base puis `Add` dans le même ordre) ; aucune dans le moteur. Sonde et noms de `FillBrushLifecycleTests`,
+  doc XML de `IFillBrush`, `drawing-architecture.md` (`:85`, `:142`) mis à jour. `ElementUpdateAllocationTests` :
+  update d'un `MGSlider` immobile (registre de peinture vidé à chaque image) sans allocation. Contre-épreuves : listes
+  neuves à chaque update, 560 000 octets ; argument d'update recréé à chaque image (avant T1.5), 272 000 octets ;
+  arbre remis à l'identique. `MGUI.Tests` 3129/3129, `MGUI.Samples` sans erreur.
 
-### ⏳ T1.7 — Entrée : ordre des handlers en cache, plus de `List` au glissement
+### ✅ T1.7 — Entrée : ordre des handlers en cache, plus de `List` au glissement
 
 - Objectif : D8, partie sans changement visible.
 - Fichiers : `MGUI/MGUI.Shared/Input/Mouse/MouseTracker.cs`, `MGUI/MGUI.Shared/Input/Keyboard/KeyboardTracker.cs`,
@@ -320,8 +358,17 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      handlers manuels exclus ; allocation nulle de `UpdateHandlers` souris immobile ; contre-épreuve avec le LINQ.
 - Validation : build ; tests verts ; suites `Input`, `Focus`, `KeyboardNav` puis `MGUI.Tests` complète vertes.
 - Commit (MGUI) : `perf(input): order input handlers once instead of sorting them every frame`
+- Note (2026-10-06) : commit `adc7cd2`. `InputHandlerOrder.Build` (nouveau, interne à `MGUI.Shared`) : tri par insertion
+  stable dans un tableau neuf ; `_OrderedHandlers` remis à null à l'ajout et au retrait réel d'un handler, reconstruit
+  par le `UpdateHandlers` suivant (souris et clavier). Conditions de glissement de `MouseHandler` lues une fois et
+  parcourues sans `List`. `InputHandlerOrderTests` (7) : ordre souris et clavier égal à l'ordre LINQ d'origine sur des
+  priorités mêlées, handler ajouté pendant le parcours (parcouru à l'image suivante), handler retiré pendant le
+  parcours, handlers manuels exclus, allocation nulle de `UpdateHandlers` souris immobile et clavier. Contre-épreuve :
+  les trois fichiers d'origine, 2 tests d'allocation rouges (1 656 000 octets), 5 tests de comportement verts (même
+  ordre) ; arbre remis à l'identique. La `List` de glissement est couverte par la mesure d'une image de glissement en
+  T1.9. `MGUI.Tests` 3136/3136, `MGUI.Samples` sans erreur.
 
-### ⏳ T1.8 — Entrée : boucles des trackers sans énumérateur, sans LINQ ni liste de touches
+### ✅ T1.8 — Entrée : boucles des trackers sans énumérateur, sans LINQ ni liste de touches
 
 - Objectif : D8b.
 - Fichiers : `MouseTracker.cs`, `MouseHandler.cs`, `KeyboardTracker.cs`, `KeyboardHandler.cs`,
@@ -349,8 +396,18 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      et de glissement reste mesurée à part (T1.9).
 - Validation : build ; tests verts ; suites `Input`, `Focus`, `KeyboardNav`, `TextBox` puis `MGUI.Tests` complète vertes.
 - Commit (MGUI) : `perf(input): walk buttons, conditions and keys without allocating each frame`
+- Note (2026-10-06) : commit `e702cc9`. `foreach` sur des tableaux statiques construits depuis les collections publiques
+  (inchangées) ; `Any` remplacés par des parcours de `Dictionary` concrets (énumérateur struct) ; `HasKeyboardActivity`
+  par index sur `KeyboardTracker.AllKeys` ; touches appuyées lues par `GetPressedKeyCount` et `GetPressedKeys(Keys[])`
+  (présentes dans MonoGame 3.8.5.1, vérifié dans `MonoGame.Framework.xml` du paquet) dans un tampon et deux listes
+  réutilisés. `ResolvedPilotWriteSitesTests` : `MGDesktop.cs` 966 → 980. `InputTrackerAllocationTests` (5) : journal
+  d'une session souris et clavier (appui, glissement, relâchement, deux touches à la fois, clics) identique ligne à
+  ligne à celui de l'ancien code ; allocation nulle de `InputTracker.Update` souris immobile sans touche et avec deux
+  touches tenues, des handlers clavier abonnés (`UpdateHandlers` et `ManualUpdate`), de `HasKeyboardActivity` et
+  `HasActivity`. Contre-épreuve : les six fichiers d'origine, 4 tests d'allocation rouges (976 000, 1 200 000,
+  80 000 et 160 000 octets) ; arbre remis à l'identique. `MGUI.Tests` 3141/3141, `MGUI.Samples` sans erreur.
 
-### ⏳ T1.9 — Entrée : arguments de déplacement et de glissement réutilisés
+### ✅ T1.9 — Entrée : arguments de déplacement et de glissement réutilisés
 
 - Objectif : D8, partie visible.
 - Fichiers : `MouseTracker.cs`, `MGUI/MGUI.Shared/Input/Mouse/MouseEventArgs.cs`, tests dans `MGUI.Tests/Input/`.
@@ -363,8 +420,19 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   allocation nulle d'une image de déplacement et d'une image de glissement ; contre-épreuve.
 - Validation : build ; tests verts ; suite `MGUI.Tests` complète verte.
 - Commit (MGUI) : `perf(input): reuse the mouse move and drag event args across frames`
+- Note (2026-10-06) : commit `ba19985`. Une instance de déplacement par tracker et une instance de glissement par
+  condition et par bouton, remplies par des setters internes ; propriétés publiques toujours en lecture seule ; doc
+  XML « lire pendant la frame, ne pas garder ». Écart avec l'étape prévue : ni `BaseMouseMovedEventArgs` ni
+  `BaseMouseDraggedEventArgs` ne dérivent de `HandledByEventArgs` (`MouseEventArgs.cs:34`, `:257`, `SetHandled` vide),
+  il n'y a donc aucun état « handled » à remettre à zéro. `MouseEventArgsReuseTests` (5) : déplacement rempli à chaque
+  mouvement et nul souris immobile ; glissement rempli à chaque frame (position, départ, instant, bouton), une instance
+  par condition ; glissement réel du curseur d'un `MGSlider` (valeur croissante, puis 100) ; allocation nulle des
+  frames de déplacement et de glissement avec handler abonné (couvre aussi la `List` retirée en T1.7). Contre-épreuve :
+  fichiers précédents, tests d'allocation rouges (44 208 et 152 000 octets) et tests « même instance » rouges (le
+  changement visible), glissement du slider vert ; arbre remis à l'identique. `MGUI.Tests` 3146/3146, `MGUI.Samples`
+  sans erreur.
 
-### ⏳ T1.10 — Liaison de données : abonnement direct dans la version WPF
+### ✅ T1.10 — Liaison de données : abonnement direct dans la version WPF
 
 - Objectif : D9.
 - Fichiers : `MGUI/MGUI.Core/UI/DataBinding/DataBinding.cs`, `MGUI/MGUI.Tests/Architecture/DataBindingAllocationTests.cs`
@@ -379,8 +447,20 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
      (environ 192 octets attendus).
 - Validation : build ; tests verts ; suites de liaison (`Binding`, `Xaml`, `DataContext`) puis `MGUI.Tests` complète vertes.
 - Commit (MGUI) : `perf(binding): subscribe to property changes directly instead of through WPF weak events`
+- Note (2026-10-06) : commit `1166a5a`. Toutes les branches `#if UseWPF` d'abonnement et de désabonnement (chemin
+  pointé, source, cible, `Dispose`) remplacées par le code `#else` existant ; `throw` WPF des gestionnaires retiré ;
+  le bloc `using` conditionnel du haut reste (il ne sert pas qu'aux abonnements) ; commentaire d'en-tête et en-tête de
+  `DataBindingAllocationTests` mis à jour. `DataBindingNotificationTests` (5, collection non parallèle) sur un
+  `MGSlider` : OneWay, TwoWay, chemin pointé dont l'objet intermédiaire est remplacé, plus aucune poussée après
+  `RemoveBinding`, allocation nulle d'une notification de bout en bout (setter puis slider). Contre-épreuve : ancien
+  `DataBinding.cs`, 192 000 octets pour 1000 notifications (les 192 octets cités jusqu'ici), 4 tests de comportement
+  verts ; arbre remis à l'identique. Écart de comportement à connaître : `PropertyChangedEventManager` transmettait
+  aussi une notification au nom nul ou vide (« toutes les propriétés »), qui relançait la résolution d'un chemin
+  pointé et levait une exception dans les gestionnaires de source et de cible ; l'abonnement direct l'ignore. Aucun
+  code de MGUI ni du moteur n'en émet (`rg` sur `NotifyPropertyChanged(null|""|string.Empty)` et
+  `PropertyChangedEventArgs(null|""|string.Empty)`). `MGUI.Tests` 3151/3151, `MGUI.Samples` sans erreur.
 
-### ⏳ T1.11 — Preuve de bout en bout, ADR et documentation MGUI
+### ⚠️ T1.11 — Preuve de bout en bout, ADR et documentation MGUI
 
 - Objectif : prouver l'objectif sur le chemin du slider et enregistrer D1–D10 et D8b côté MGUI.
 - Fichiers : test de bout en bout (`MGUI.Tests/Architecture/`), `MGUI/Docs/decisions/0021-allocation-free-slider-drag.md`,
@@ -395,12 +475,18 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   poser la question. ADR et docs.
 - Validation : test vert ; suite `MGUI.Tests` complète verte ; liens et index relus.
 - Commit (MGUI) : `docs(decisions): record the allocation-free slider drag (ADR-0021)` (le test part dans ce commit).
+- Note (2026-10-06) : **bloquée par O3**. Test de bout en bout écrit (`SliderDragFrameAllocationTests`, deux variantes :
+  label masqué, label au texte inchangé) : la valeur suit bien le glissement et le texte du label garde la même
+  instance, mais chaque image alloue 320 octets, soit 5 bordures uniformes × 64 octets dans `ThicknessUtils.IsEmpty`
+  (2 bordures du slider, 3 bordures de surcouche pendant le glissement). Sonde non commitée : avec `IsEmpty` réécrit sans
+  LINQ, les deux variantes passent à 0 octet ; arbre remis à l'identique. Le test est mis de côté hors de l'arbre
+  (scratchpad de la session) en attendant la réponse ; l'ADR et la doc sont écrits avec lui, une fois O3 tranché.
 
 ---
 
 ## Phase 2 — Moteur
 
-### ⏳ T2.1 — Pointeur de sous-module
+### ✅ T2.1 — Pointeur de sous-module
 
 - Objectif : le moteur pointe sur la tête de `chantier/mgui-slider-nonalloc` de MGUI ; mise à jour de ce plan pour
   T1.1 à T1.11.
@@ -408,6 +494,11 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 - Étapes : ligne de base `CasaEngine.Tests` sur le pointeur d'origine ; bascule du pointeur ; builds et tests.
 - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` sans erreur ; `CasaEngine.Tests` vert.
 - Commit : `chore(submodules): point MGUI at the allocation-free slider drag`
+- Note (2026-10-06) : pointeur `d3e0cd1` → `1166a5a` (tête de `chantier/mgui-slider-nonalloc` après T1.10 ; T1.11 bloquée
+  par O3, un second pointeur suivra). Ligne de base sur `d3e0cd1` : `CasaEngine.MonoGame.sln` 0 erreur (218
+  avertissements), `CasaEngine.Editor.MonoGame.sln` 0 erreur (193), `CasaEngine.Tests` 3159/3159. Après bascule : 0
+  erreur (218 et 188 avertissements), aucun avertissement CS0618 ni sur `ValueChanged`, `CasaEngine.Tests` 3159/3159.
+  Ce commit porte aussi les notes de T1.1 à T1.11 de ce plan.
 
 ### ⏳ T2.2 — Abonnés du moteur sur `ValueChangedNonAlloc`
 
@@ -477,6 +568,8 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 |---|---|---|
 | O1 | Le plan audio (`audio-modern-tasks.md`, D20 et O24) n'est pas modifié ici pour éviter un conflit avec le chantier audio en cours ; à noter côté audio quand ce chantier sera fusionné. | — |
 | O2 | D9 change l'ordre de passage d'une liaison par rapport aux autres abonnés du `PropertyChanged` d'un objet (l'événement faible WPF passait par son propre gestionnaire). Aucun code connu n'en dépend ; un test rouge de la suite en serait le signe, à remonter avant toute correction. | T1.10 |
+
+| O3 | Allocation imprévue trouvée en T1.2 : `ThicknessUtils.IsEmpty` (`MGUI/MGUI.Shared/Helpers/ThicknessUtils.cs:14`) fait `@this.Sides().All(x => x == 0)`, 64 octets par appel. `MGUniformBorderBrush.Draw` l'appelle à chaque bordure dessinée (`MGUI.Core/UI/Brushes/BorderBrushes/MGUniformBorderBrush.cs:69`) : un `DrawSelf` du slider avec ses bordures par défaut alloue 128 octets (mesuré), plus 64 par bordure de surcouche quand il est survolé (déduit du code) ; 10 appelants dans MGUI. Correctif d'une ligne à comportement identique (`Left == 0 && Top == 0 && Right == 0 && Bottom == 0`), mais hors des sites du plan : **à confirmer par l'auteur avant de l'inclure**. Sans lui, la preuve de bout en bout de T1.11 (dessin du slider compris) ne peut pas être verte. **Confirmé en T1.11** : 320 octets par image de glissement, tous dans `IsEmpty` (0 octet avec le correctif d'une ligne, sonde non commitée). | T1.11 |
 
 ## Hors périmètre
 
