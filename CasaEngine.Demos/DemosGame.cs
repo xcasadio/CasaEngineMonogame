@@ -25,6 +25,8 @@ public class DemosGame : CasaEngineGame
     private Demo _currentDemo;
     private int _currentDemoIndex;
     private CameraComponent _pendingStartupCamera;
+    // Demo requested by the UI, loaded at the start of the next update rather than inside the UI callback.
+    private int _pendingDemoIndex = -1;
     private KeyboardState _prevKeyboard;
     private bool _automationScreenshotCaptured;
 
@@ -57,6 +59,10 @@ public class DemosGame : CasaEngineGame
         // On startup the first demo is prepared before GameManager loads the world, so
         // its camera/UI setup must be finalized only after the world and views exist.
         GameManager.WorldLoaded += (_, _) => OnWorldLoaded();
+
+        // Without a virtual resolution the engine does not lay the views out again when the player resizes the window
+        // (CasaEngineGame.OnWindowClientSizeChanged): the demos do it, so the scene follows the window.
+        Window.ClientSizeChanged += OnDemosWindowClientSizeChanged;
 
         // Window title, mouse visibility, resizing, project path and the asset catalog
         // all come from Content\DemosGame.json, loaded by the base class (see constructor).
@@ -156,6 +162,9 @@ public class DemosGame : CasaEngineGame
         currentWorld.ClearEntities();
         _currentDemo?.Clean();
 
+        // A multi-view demo sets its own automatic layout; the next demo starts without one.
+        GameManager.ViewManager.AutoLayoutMode = null;
+
         _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(currentWorld);
@@ -210,7 +219,7 @@ public class DemosGame : CasaEngineGame
             .Select(d => (d.Title, d.Description))
             .ToList();
 
-        _demoInfoScreen  = new DemoInfoScreen(entries, _currentDemoIndex, ChangeDemo);
+        _demoInfoScreen  = new DemoInfoScreen(entries, _currentDemoIndex, RequestDemo);
         _demoHintOverlay = new DemoHintOverlay();
 
         uiView.PushScreen(_demoInfoScreen);
@@ -219,6 +228,29 @@ public class DemosGame : CasaEngineGame
         bool automationScreenshotEnabled = !string.IsNullOrWhiteSpace(_automationScreenshotPath);
         _demoInfoScreen.SetVisible(!automationScreenshotEnabled && _demoInfoVisible);
         _demoHintOverlay.SetVisible(!automationScreenshotEnabled && !_demoInfoVisible);
+    }
+
+    /// <summary>Asks for a demo change; it happens at the start of the next update, outside any UI callback.</summary>
+    private void RequestDemo(int index)
+    {
+        _pendingDemoIndex = index;
+    }
+
+    private void OnDemosWindowClientSizeChanged(object sender, EventArgs e)
+    {
+        if (ActiveVirtualResolution != null)
+        {
+            return;
+        }
+
+        var bounds = Window.ClientBounds;
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            // Minimized: keep the last layout.
+            return;
+        }
+
+        OnScreenResized(bounds.Width, bounds.Height);
     }
 
     private void ApplyAutomationViewSettings()
@@ -247,6 +279,13 @@ public class DemosGame : CasaEngineGame
 
     protected override void Update(GameTime gameTime)
     {
+        if (_pendingDemoIndex >= 0)
+        {
+            int requestedIndex = _pendingDemoIndex;
+            _pendingDemoIndex = -1;
+            ChangeDemo(requestedIndex);
+        }
+
         _currentDemo.Update(gameTime);
 
         var kb = IsActive ? Keyboard.GetState() : new KeyboardState();

@@ -212,7 +212,7 @@ Automatisation et tests :
 
 ## Phase 3 — Démos : base
 
-### ⏳ T3.1 — Changement de démo différé, redimensionnement, layout automatique remis à zéro
+### 🧪 T3.1 — Changement de démo différé, redimensionnement, layout automatique remis à zéro
 
 - Objectif : aucun changement de démo depuis un callback d'UI ; la scène suit la fenêtre ; une démo multi-vues ne laisse pas son `AutoLayoutMode` à la suivante.
 - Fichiers : `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/Demos/DemoUI/DemoInfoScreen.cs` (callback seulement, l'écran est retiré en T4.3).
@@ -222,6 +222,7 @@ Automatisation et tests :
   3. Abonnement à `Window.ClientSizeChanged` dans `DemosGame` : sans résolution virtuelle et avec des bornes non nulles, `OnScreenResized(bounds.Width, bounds.Height)` (même lecture des bornes que `CasaEngineGame.cs:352-359`).
 - Validation : build ; manuel : redimensionner la fenêtre sur Material et sur Split-screen ; passer de Split-screen à Material (une seule vue plein cadre) ; changer de démo par l'ancien panneau.
 - Commit : `fix(demos): defer demo changes, follow window resizes, reset the auto layout`
+- Note de validation (2026-10-06) : `_pendingDemoIndex` posé par `RequestDemo` (callback de l'ancien panneau) et consommé au début de `DemosGame.Update` ; `AutoLayoutMode = null` dans `ChangeDemo` avant `InitializeCamera` de la démo suivante (Split-screen et Sandbox le reposent dans leur `InitializeCamera`) ; `Window.ClientSizeChanged` → `OnScreenResized(bounds)` sans résolution virtuelle. Build : 0 erreur. Redimensionnement vérifié sans toucher aux entrées de l'auteur (script `resize-capture.ps1` du scratchpad : lancement, `MoveWindow` à 1296x839, capture par la démo) : Material remplit 1280x800, Split-screen passe à deux vues de 640x800. **Reste à la main (T5.2)** : changer de démo par l'ancien panneau, et Split-screen → Material (une seule vue plein cadre).
 
 ### ⏳ T3.2 — Contrat de viewport de `PostDraw` et démos placées dans la zone
 
