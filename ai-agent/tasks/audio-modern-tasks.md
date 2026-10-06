@@ -2174,7 +2174,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   (volume et hauteur varient) ; J puis Espace (refus, `stolen` inchangé) ; J puis H (`stolen` + 1, le clic joue) ;
   S arrête les boucles de J.
 
-### 🧪 T8.7 — Documentation, ADR et vérification de la tranche
+### ✅ T8.7 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (sections « 3. L'asset `.sound` », « 4. Jouer un son », « 6.
   Composant d'entité », « 7. Cutscenes », « 8. Play-in-editor », « 9. Limites connues », « 10. Évolutions
@@ -2205,7 +2205,16 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
 - Note (2026-10-06) : `audio-system.md` (vue d'ensemble, §3 nouvelles clés, exemple, bornes et tolérance, §4
   composition, `VariationRandom`, vol de voix et `StolenVoiceCount`, §6 et §7 composition, §8 prévisualisation sans
   priorité, §9 limite de voix et variations, §10 puce retirée, §11 touches V, J, H), ADR-0063 (aucune 0063 sur les
-  branches locales), note de statut d'ADR-0002, index des ADR et `docs/README.md`. Vérificateur frais en attente.
+  branches locales), note de statut d'ADR-0002, index des ADR et `docs/README.md` (commit `df5cd356`). Premier
+  vérificateur frais sur `df5cd356` : **REFUTED** sur un seul P2 introduit (F1) — la théorie qui vérifiait les défauts
+  sur tous les `.sound` de la démo échouait sur `menu_click_varied.sound`, ajouté par T8.6 sans relancer la suite ; le
+  comportement du moteur (points 1 à 5) confirmé sur toutes les sondes. Correctif `0072b77b` (la théorie liste les
+  trois fichiers d'avant S5a, le clic varié a son propre test). Vérificateur frais sur `0072b77b` : **CONFIRMED**,
+  aucun P0–P2 : suite 3289/3289 quatre fois, valeurs hostiles sur les six clés sans exception, composition émetteur et
+  cinématique, règles de vol, diffs vides depuis `6f06298f` sur les backends, API additive, aucune allocation. Deux avis
+  P4 sans suite : une clé écrite à la main à sa valeur par défaut disparaît à la resauvegarde (voulu par P30, aucun
+  fichier concerné) ; le test des types inattendus ne couvre que quatre des six clés (même lecteur pour toutes).
+  **🧪 pour l'auteur** : T8.5 (inspecteur) et T8.6 (touches de la démo).
 
 ---
 
