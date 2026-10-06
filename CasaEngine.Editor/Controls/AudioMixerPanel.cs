@@ -11,6 +11,7 @@ using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.Containers.Grids;
 using Newtonsoft.Json.Linq;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
@@ -19,15 +20,30 @@ using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The document panel of one <c>.audioMixer</c> asset (plan T10.5, decisions P49 and P50): the editing shell around an
-/// <see cref="AudioMixerDocument"/> (header, banners, Save, Reload, Apply, problem list). The body below the header is where the
-/// bus strips and the detail views are built.
+/// The document panel of one <c>.audioMixer</c> asset (plan T10.5 and T10.6, decisions P49 to P54): the editing shell around an
+/// <see cref="AudioMixerDocument"/> (header, banners, Save, Reload, Apply, problem list) and the bus strips below it: a fader, a
+/// dB readout, mute and solo, a level meter and, for a custom bus, a delete button, plus a row to add a bus. The detail views of
+/// a bus are built below the strips.
 /// </summary>
 /// <remarks>
 /// <para>
 /// The panel owns the document. Its edits go to the editor history of the context set by <see cref="SetHistoryContextId"/>
 /// (one entry per user intent, see <see cref="AudioMixerDocument"/>); the dirty state follows the document. The controls are
-/// refreshed when the document raises <see cref="AudioMixerDocument.Changed"/>, never per frame.
+/// refreshed when the document raises <see cref="AudioMixerDocument.Changed"/>, never per frame; the strips are rebuilt only when
+/// the set or the structure of the buses changed (the asset's, or the live mixer's: a bus the game created appears as a read-only strip).
+/// </para>
+/// <para>
+/// Strips: a bus of the asset is editable (fader 0..1 read in dB, M, S, meter, and a delete button when it is a custom bus); a live
+/// bus the asset does not name is read-only (greyed name and meter only); Master and Editor are read-only and show the live volume of
+/// their bus. Every other displayed value comes from the asset, never from the live mixer: only the meters (and the read-only Master and
+/// Editor volumes) read it. The strip controls carry a <c>Tag</c> naming them (<c>fader:Sfx</c>, <c>mute:Sfx</c>, <c>solo:Sfx</c>,
+/// <c>remove:Sfx</c>, <c>db:Sfx</c>).
+/// </para>
+/// <para>
+/// A fader moves through an <see cref="AudioMixerGestureTracker"/>: one burst of changes (a drag, a key repeat, a click on the track)
+/// is one history entry, closed by <see cref="Update"/> at the first frame without change where the fader is no longer held. While the
+/// editor history is suspended (a play session) the faders, Save, Apply, adding and removing a bus are disabled; mute, solo and the
+/// meters stay active.
 /// </para>
 /// <para>
 /// A document is live (it drives the project's mixer) only when it was given the applier of the project mixer; otherwise its
@@ -41,9 +57,25 @@ public sealed class AudioMixerPanel : IDisposable
 {
     private const string LiveBannerText = "Live: changes are applied to the mixer";
     private const string SoftwareOnlyBannerText = "Effects, sends and ducking: software backend only";
+    private const string PlayLockBannerText = "Stop play mode to edit the mixer";
+    private const string PlayLockRefusalText = "Mixer edits are disabled during a play session.";
+
+    private const int NameColumnWidth = 130;
+    private const int ReadoutColumnWidth = 66;
+    private const int ButtonColumnWidth = 26;
+    private const int IndentPerDepth = 12;
+    private const float ReadOnlyOpacity = 0.55f;
+
+    /// <summary>What a volume that was never shown is compared against: no valid volume is negative.</summary>
+    private const float NeverShownVolume = -1f;
 
     private readonly MGWindow _window;
     private readonly Func<AudioService?> _audioServiceProvider;
+    private readonly AudioProfilerModel _meterModel;
+    private readonly List<StripRow> _strips = new();
+    private readonly List<StripSpec> _builtSpecs = new();
+    private readonly List<StripSpec> _wantedSpecs = new();
+    private readonly List<string> _parentChoices = new();
 
     private MGDockPanel? _root;
     private MGTextBlock? _headerText;
@@ -52,18 +84,31 @@ public sealed class AudioMixerPanel : IDisposable
     private MGTextBlock? _liveBanner;
     private MGTextBlock? _notHeardBanner;
     private MGTextBlock? _softwareOnlyBanner;
+    private MGTextBlock? _playLockBanner;
     private MGButton? _saveButton;
     private MGButton? _reloadButton;
     private MGButton? _applyButton;
     private MGStackPanel? _problemsHost;
     private MGStackPanel? _bodyHost;
+    private MGStackPanel? _stripsHost;
+    private MGStackPanel? _addRow;
+    private MGTextBox? _addNameBox;
+    private MGComboBox<string>? _addParentCombo;
+    private MGButton? _addButton;
+    private MGTextBlock? _capacityHint;
 
     private AudioMixerDocument? _document;
+    private AudioMixerGestureTracker? _gestureTracker;
     private AudioMixerAssetApplier? _liveApplier;
     private string? _loadedRelativePath;
     private string? _loadedFullPath;
     private string? _historyContextId;
     private IReadOnlyList<string> _shownProblems = Array.Empty<string>();
+    private AudioMeterTrack[]? _builtTracks;
+    private int _builtLiveBusCount = -2;
+    private bool _isSyncingControls;
+    private bool _isPlayLocked;
+    private bool _recordDespiteSuspension;
     private bool _lastDirty;
     private bool _isDisposed;
 
@@ -73,10 +118,15 @@ public sealed class AudioMixerPanel : IDisposable
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _audioServiceProvider = audioServiceProvider ?? throw new ArgumentNullException(nameof(audioServiceProvider));
+        _meterModel = new AudioProfilerModel(_audioServiceProvider);
+        _isPlayLocked = EditorHistoryService.Current.IsSuspended;
     }
 
     /// <summary>The document being edited, null until <see cref="LoadAsset"/>.</summary>
     public AudioMixerDocument? Document => _document;
+
+    /// <summary>The meters the strips draw: the panel's own model, with its own meter cursor (the Audio panel keeps its own).</summary>
+    internal AudioProfilerModel MeterModel => _meterModel;
 
     public string? LoadedRelativePath => _loadedRelativePath;
 
@@ -149,6 +199,8 @@ public sealed class AudioMixerPanel : IDisposable
 
         CloseDocument();
 
+        // No gesture is open here, so the session state can be read afresh.
+        _isPlayLocked = EditorHistoryService.Current.IsSuspended;
         _loadedFullPath = fullPath;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         _liveApplier = liveApplier;
@@ -162,6 +214,7 @@ public sealed class AudioMixerPanel : IDisposable
 
         _document = new AudioMixerDocument(asset, _loadedRelativePath, liveApplier, ExecuteCommand);
         _document.Changed += OnDocumentChanged;
+        _gestureTracker = new AudioMixerGestureTracker(_document);
 
         bool wasDirty = _lastDirty;
         _lastDirty = _document.IsDirty;
@@ -184,7 +237,14 @@ public sealed class AudioMixerPanel : IDisposable
             return false;
         }
 
+        if (EditorHistoryService.Current.IsSuspended)
+        {
+            SetStatus("Mixer edits are disabled during a play session.");
+            return false;
+        }
+
         // A fader gesture still open is a change that is not saved yet.
+        _gestureTracker?.End();
         _document.EndGesture();
         if (_document.IsDirty)
         {
@@ -302,6 +362,7 @@ public sealed class AudioMixerPanel : IDisposable
         _liveBanner = CreateBanner(LiveBannerText);
         _notHeardBanner = CreateBanner(string.Empty);
         _softwareOnlyBanner = CreateBanner(SoftwareOnlyBannerText);
+        _playLockBanner = CreateBanner(PlayLockBannerText);
 
         _statusText = new MGTextBlock(_window, "Open a .audioMixer asset from the Content Browser.")
         {
@@ -334,6 +395,11 @@ public sealed class AudioMixerPanel : IDisposable
             Margin = new Thickness(8, 0, 8, 8),
         };
 
+        _stripsHost = new MGStackPanel(_window, Orientation.Vertical);
+        _bodyHost.TryAddChild(_stripsHost);
+        _addRow = CreateAddRow();
+        _bodyHost.TryAddChild(_addRow);
+
         var scrolled = new MGStackPanel(_window, Orientation.Vertical);
         scrolled.TryAddChild(_problemsHost);
         scrolled.TryAddChild(_bodyHost);
@@ -347,6 +413,7 @@ public sealed class AudioMixerPanel : IDisposable
         _root.TryAddChild(_liveBanner, Dock.Top);
         _root.TryAddChild(_notHeardBanner, Dock.Top);
         _root.TryAddChild(_softwareOnlyBanner, Dock.Top);
+        _root.TryAddChild(_playLockBanner, Dock.Top);
         _root.TryAddChild(toolbar, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
@@ -355,17 +422,31 @@ public sealed class AudioMixerPanel : IDisposable
         return _root;
     }
 
-    /// <summary>Reads what the panel shows from the audio service. Call it on every editor frame while the panel is the active document.</summary>
+    /// <summary>
+    /// Reads the meters from the audio service, follows the play session (see the remarks of the class), closes a fader gesture that
+    /// is over and follows the live mixer (a bus the game created, the volume of Master and Editor). Allocation free while nothing
+    /// changes. Call it on every editor frame while the panel is the active document.
+    /// </summary>
     /// <param name="elapsedSeconds">The time since the previous call.</param>
     public void Update(float elapsedSeconds)
     {
-        // The shell shows no level yet: the bus strips read their meters here.
+        _meterModel.ReadMeters(elapsedSeconds);
+
+        if (_document == null || _stripsHost == null)
+        {
+            return;
+        }
+
+        UpdatePlayLock();
+        TickGesture();
+        RefreshLiveStructure();
+        RefreshLiveVolumes();
     }
 
     /// <summary>Forgets the levels seen so far. Call it when the panel becomes the active document again.</summary>
     public void ResetMeters()
     {
-        // The shell has no meter yet.
+        _meterModel.Reset();
     }
 
     /// <summary>
@@ -392,9 +473,12 @@ public sealed class AudioMixerPanel : IDisposable
             return;
         }
 
+        var tracker = _gestureTracker;
         _document = null;
+        _gestureTracker = null;
         document.Changed -= OnDocumentChanged;
 
+        tracker?.End();
         document.EndGesture();
         if (document.IsDirty)
         {
@@ -406,11 +490,21 @@ public sealed class AudioMixerPanel : IDisposable
 
     private void ExecuteCommand(IEditorCommand command)
     {
-        // The change is already applied when the command arrives, so the history only records it.
-        if (TryGetHistoryContext(out var historyContext))
+        if (!TryGetHistoryContext(out var historyContext))
         {
-            EditorHistoryService.Current.Execute(historyContext, command);
+            return;
         }
+
+        // The change is already applied when the command arrives, so the history only records it.
+        if (_recordDespiteSuspension)
+        {
+            // The fader gesture a play session interrupted: the service refuses commands from now on, and the entry would be lost
+            // while the document stays modified. The change was made before the session started, so it is recorded.
+            EditorHistoryService.Current.GetOrCreate(historyContext).Execute(command);
+            return;
+        }
+
+        EditorHistoryService.Current.Execute(historyContext, command);
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
@@ -434,9 +528,20 @@ public sealed class AudioMixerPanel : IDisposable
             DirtyStateChanged?.Invoke(this);
         }
 
-        // A fader being dragged changes no text of the shell: it is refreshed when the gesture ends.
+        // A fader being dragged changes no text of the shell: it is refreshed when the gesture ends. The strip of the bus follows at once,
+        // without anything being rebuilt: only its fader value and its readout.
         if (_document is { IsGestureOpen: true })
         {
+            string? gestureBus = _gestureTracker?.Bus;
+            if (gestureBus != null)
+            {
+                RefreshStripValue(gestureBus);
+            }
+            else
+            {
+                RefreshStripValues();
+            }
+
             return;
         }
 
@@ -464,10 +569,9 @@ public sealed class AudioMixerPanel : IDisposable
             SetVisible(_liveBanner!, false);
             SetVisible(_notHeardBanner!, false);
             SetVisible(_softwareOnlyBanner!, false);
-            _saveButton!.IsEnabled = false;
-            _reloadButton!.IsEnabled = false;
-            _applyButton!.IsEnabled = false;
             RefreshProblems(Array.Empty<string>());
+            ClearStrips();
+            ApplyEnabledStates();
             return;
         }
 
@@ -485,11 +589,59 @@ public sealed class AudioMixerPanel : IDisposable
         SetVisible(_notHeardBanner!, !document.IsLive);
         SetVisible(_softwareOnlyBanner!, _audioServiceProvider()?.Backend is not IAudioBusBackend);
 
-        _saveButton!.IsEnabled = true;
-        _reloadButton!.IsEnabled = !document.IsDirty;
-        _applyButton!.IsEnabled = document.IsLive;
-
         RefreshProblems(document.Problems);
+        RefreshStrips();
+        ApplyEnabledStates();
+    }
+
+    /// <summary>
+    /// The enabled state of the controls that depend on the document and on the play session: Save and Apply, the faders, adding and
+    /// removing a bus are off while the editor history is suspended (P51). Mute, solo and the meters are never disabled.
+    /// </summary>
+    private void ApplyEnabledStates()
+    {
+        var document = _document;
+        bool hasDocument = document != null;
+        bool canEdit = hasDocument && !_isPlayLocked;
+
+        if (_saveButton != null)
+        {
+            _saveButton.IsEnabled = canEdit;
+            // A reload of a live document applies it to the mixer, like Apply: not during a play session.
+            _reloadButton!.IsEnabled = canEdit && !document!.IsDirty;
+            _applyButton!.IsEnabled = canEdit && document!.IsLive;
+        }
+
+        if (_playLockBanner != null)
+        {
+            SetVisible(_playLockBanner, hasDocument && _isPlayLocked);
+        }
+
+        for (int index = 0; index < _strips.Count; index++)
+        {
+            var strip = _strips[index];
+            if (strip.Fader != null)
+            {
+                strip.Fader.IsEnabled = canEdit;
+            }
+
+            if (strip.Remove != null)
+            {
+                strip.Remove.IsEnabled = canEdit;
+            }
+        }
+
+        if (_addRow != null)
+        {
+            bool isFull = hasDocument && _builtSpecs.Count >= document!.BusCapacity;
+            SetVisible(_addRow, hasDocument);
+            _addButton!.IsEnabled = canEdit && !isFull;
+            SetVisible(_capacityHint!, isFull);
+            if (isFull)
+            {
+                SetText(_capacityHint!, $"Bus capacity reached ({document!.BusCapacity})");
+            }
+        }
     }
 
     private void RefreshProblems(IReadOnlyList<string> problems)
@@ -545,6 +697,743 @@ public sealed class AudioMixerPanel : IDisposable
             }
         }
 
+        return true;
+    }
+
+    // ------------------------------------------------------------------ bus strips
+
+    private enum StripKind
+    {
+        /// <summary>A bus of the asset: editable.</summary>
+        Asset,
+
+        /// <summary>A live bus the asset does not name: read-only.</summary>
+        LiveOnly,
+
+        /// <summary>The root bus: read-only, shows its live volume.</summary>
+        Master,
+
+        /// <summary>The editor preview bus: read-only, shows its live volume.</summary>
+        Editor,
+    }
+
+    /// <summary>What one strip is, compared as a whole to know whether the strips must be rebuilt.</summary>
+    private readonly record struct StripSpec(string Name, StripKind Kind, int Depth, string Parent);
+
+    private sealed class StripRow
+    {
+        public StripRow(StripSpec spec)
+        {
+            Spec = spec;
+        }
+
+        public StripSpec Spec { get; }
+
+        public string Name => Spec.Name;
+
+        public MGSlider? Fader { get; set; }
+
+        public MGTextBlock? Readout { get; set; }
+
+        public MGToggleButton? Mute { get; set; }
+
+        public MGToggleButton? Solo { get; set; }
+
+        public MGButton? Remove { get; set; }
+
+        /// <summary>The volume the readout was last built for, <see cref="NeverShownVolume"/> before the first one.</summary>
+        public float ShownVolume { get; set; } = NeverShownVolume;
+    }
+
+    /// <summary>
+    /// Brings the strips in line with the document and the live mixer: rebuilt when the set, the order or the nesting of the buses
+    /// changed, or when the live mixer or the meters grew another bus; otherwise only the values are refreshed.
+    /// </summary>
+    private void RefreshStrips()
+    {
+        var document = _document;
+        if (document == null || _stripsHost == null)
+        {
+            ClearStrips();
+            return;
+        }
+
+        BuildWantedSpecs(document);
+        int liveCount = _audioServiceProvider()?.Mixer.Buses.Count ?? -1;
+
+        if (!SameSpecs() || liveCount != _builtLiveBusCount || !ReferenceEquals(_builtTracks, _meterModel.Buses))
+        {
+            RebuildStrips(liveCount);
+        }
+        else
+        {
+            RefreshStripValues();
+        }
+
+        RefreshParentChoices();
+    }
+
+    private void ClearStrips()
+    {
+        _strips.Clear();
+        _builtSpecs.Clear();
+        _parentChoices.Clear();
+        _builtLiveBusCount = -2;
+        _builtTracks = null;
+        _stripsHost?.TryRemoveAll();
+    }
+
+    private bool SameSpecs()
+    {
+        if (_builtSpecs.Count != _wantedSpecs.Count)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < _builtSpecs.Count; index++)
+        {
+            if (!_builtSpecs[index].Equals(_wantedSpecs[index]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Lists the strips in the order they are shown: Master, then the tree below it (the buses of the asset in file order, then the
+    /// live buses the asset does not name), then Editor. A bus no path from Master reaches (an unknown parent, a cycle: the problem list
+    /// says so) still gets its strip.
+    /// </summary>
+    private void BuildWantedSpecs(AudioMixerDocument document)
+    {
+        _wantedSpecs.Clear();
+
+        var nodes = new List<StripSpec>();
+        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { AudioBusNames.Master, AudioBusNames.Editor };
+
+        var assetBuses = document.Asset.Buses;
+        for (int index = 0; index < assetBuses.Count; index++)
+        {
+            var bus = assetBuses[index];
+            if (bus != null && !string.IsNullOrWhiteSpace(bus.Name) && known.Add(bus.Name))
+            {
+                string parent = string.IsNullOrWhiteSpace(bus.Parent) ? AudioBusNames.Master : bus.Parent;
+                nodes.Add(new StripSpec(bus.Name, StripKind.Asset, 0, parent));
+            }
+        }
+
+        var liveBuses = _audioServiceProvider()?.Mixer.Buses;
+        if (liveBuses != null)
+        {
+            for (int index = 0; index < liveBuses.Count; index++)
+            {
+                var bus = liveBuses[index];
+                if (known.Add(bus.Name))
+                {
+                    nodes.Add(new StripSpec(bus.Name, StripKind.LiveOnly, 0, bus.Parent?.Name ?? AudioBusNames.Master));
+                }
+            }
+        }
+
+        _wantedSpecs.Add(new StripSpec(AudioBusNames.Master, StripKind.Master, 0, string.Empty));
+
+        var emitted = new bool[nodes.Count];
+        EmitChildren(nodes, emitted, AudioBusNames.Master, 1);
+
+        for (int index = 0; index < nodes.Count; index++)
+        {
+            if (!emitted[index])
+            {
+                emitted[index] = true;
+                _wantedSpecs.Add(nodes[index] with { Depth = 1 });
+                EmitChildren(nodes, emitted, nodes[index].Name, 2);
+            }
+        }
+
+        _wantedSpecs.Add(new StripSpec(AudioBusNames.Editor, StripKind.Editor, 1, AudioBusNames.Master));
+    }
+
+    private void EmitChildren(List<StripSpec> nodes, bool[] emitted, string parent, int depth)
+    {
+        for (int index = 0; index < nodes.Count; index++)
+        {
+            if (!emitted[index] && string.Equals(nodes[index].Parent, parent, StringComparison.OrdinalIgnoreCase))
+            {
+                emitted[index] = true;
+                _wantedSpecs.Add(nodes[index] with { Depth = depth });
+                EmitChildren(nodes, emitted, nodes[index].Name, depth + 1);
+            }
+        }
+    }
+
+    private void RebuildStrips(int liveCount)
+    {
+        _builtSpecs.Clear();
+        _builtSpecs.AddRange(_wantedSpecs);
+        _builtLiveBusCount = liveCount;
+        _builtTracks = _meterModel.Buses;
+        _strips.Clear();
+        _stripsHost!.TryRemoveAll();
+
+        var grid = new MGGrid(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
+            ColumnSpacing = 6,
+            RowSpacing = 3,
+        };
+        grid.AddColumn(GridLength.CreatePixelLength(NameColumnWidth));
+        grid.AddColumn(GridLength.CreateWeightedLength(1));
+        grid.AddColumn(GridLength.CreatePixelLength(ReadoutColumnWidth));
+        grid.AddColumn(GridLength.CreatePixelLength(ButtonColumnWidth));
+        grid.AddColumn(GridLength.CreatePixelLength(ButtonColumnWidth));
+        grid.AddColumn(GridLength.CreateWeightedLength(1));
+        grid.AddColumn(GridLength.CreatePixelLength(ButtonColumnWidth));
+
+        int rowIndex = 0;
+        grid.AddRow(GridLength.Auto);
+        grid.TryAddChild(rowIndex, 0, CreateHeaderText("Bus", HorizontalAlignment.Left));
+        grid.TryAddChild(rowIndex, 1, CreateHeaderText("Volume", HorizontalAlignment.Left));
+        grid.TryAddChild(rowIndex, 5, CreateHeaderText("Level (dBFS)", HorizontalAlignment.Left));
+        rowIndex++;
+
+        for (int index = 0; index < _builtSpecs.Count; index++)
+        {
+            AddStripRow(grid, rowIndex++, _builtSpecs[index]);
+        }
+
+        _stripsHost.TryAddChild(grid);
+        RefreshStripValues();
+        RefreshLiveVolumes();
+    }
+
+    private void AddStripRow(MGGrid grid, int rowIndex, StripSpec spec)
+    {
+        grid.AddRow(GridLength.Auto);
+
+        var strip = new StripRow(spec);
+        var assetBus = spec.Kind == StripKind.Asset ? FindAssetBus(spec.Name) : null;
+        bool isEditable = assetBus != null;
+
+        grid.TryAddChild(rowIndex, 0, new MGTextBlock(_window, EscapeMarkup(spec.Name))
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(spec.Depth * IndentPerDepth, 0, 0, 0),
+            Opacity = isEditable ? 1f : ReadOnlyOpacity,
+            WrapText = false,
+        });
+
+        if (isEditable)
+        {
+            var fader = new MGSlider(_window, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume, assetBus!.Volume)
+            {
+                MinWidth = 100,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center,
+                Tag = "fader:" + spec.Name,
+            };
+            fader.ValueChanged += (_, e) => OnFaderChanged(strip, e.NewValue);
+            strip.Fader = fader;
+            grid.TryAddChild(rowIndex, 1, fader);
+        }
+
+        if (isEditable || spec.Kind is StripKind.Master or StripKind.Editor)
+        {
+            strip.Readout = new MGTextBlock(_window, string.Empty)
+            {
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center,
+                WrapText = false,
+                Tag = "db:" + spec.Name,
+            };
+            grid.TryAddChild(rowIndex, 2, strip.Readout);
+        }
+
+        if (isEditable)
+        {
+            strip.Mute = CreateToggle("M", "mute:" + spec.Name, isMuted => _document?.SetMute(spec.Name, isMuted));
+            strip.Solo = CreateToggle("S", "solo:" + spec.Name, isSoloed => _document?.SetSolo(spec.Name, isSoloed));
+            grid.TryAddChild(rowIndex, 3, strip.Mute);
+            grid.TryAddChild(rowIndex, 4, strip.Solo);
+        }
+
+        grid.TryAddChild(rowIndex, 5, new AudioMeterControl(_window, GetMeterTrack(spec))
+        {
+            MinWidth = 80,
+        });
+
+        if (isEditable && !IsDefaultBus(spec.Name))
+        {
+            strip.Remove = CreateButton("X", () => TryRemoveBus(spec.Name), ButtonColumnWidth);
+            strip.Remove.Tag = "remove:" + spec.Name;
+            grid.TryAddChild(rowIndex, 6, strip.Remove);
+        }
+
+        _strips.Add(strip);
+    }
+
+    /// <summary>The meter of a bus: the live one when the model has it, otherwise a silent one (the bus is not live, or the backend does not measure).</summary>
+    private AudioMeterTrack GetMeterTrack(StripSpec spec)
+    {
+        var tracks = _meterModel.Buses;
+        for (int index = 0; index < tracks.Length; index++)
+        {
+            if (string.Equals(tracks[index].Name, spec.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return tracks[index];
+            }
+        }
+
+        return new AudioMeterTrack(spec.Name, spec.Depth, -1, isOutput: false);
+    }
+
+    private AudioMixerBusData? FindAssetBus(string name)
+    {
+        var buses = _document?.Asset.Buses;
+        if (buses == null)
+        {
+            return null;
+        }
+
+        for (int index = 0; index < buses.Count; index++)
+        {
+            var bus = buses[index];
+            if (bus != null && string.Equals(bus.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return bus;
+            }
+        }
+
+        return null;
+    }
+
+    private StripRow? FindStrip(string name)
+    {
+        for (int index = 0; index < _strips.Count; index++)
+        {
+            if (string.Equals(_strips[index].Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return _strips[index];
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsDefaultBus(string name)
+        => string.Equals(name, AudioBusNames.Music, StringComparison.OrdinalIgnoreCase)
+           || string.Equals(name, AudioBusNames.Sfx, StringComparison.OrdinalIgnoreCase)
+           || string.Equals(name, AudioBusNames.Voice, StringComparison.OrdinalIgnoreCase)
+           || string.Equals(name, AudioBusNames.Ui, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>A volume as the fader readout shows it: dB with a tenth of precision (the scale of the meters), "-inf dB" at silence.</summary>
+    internal static string FormatDb(float volume)
+    {
+        return AudioMeterTrack.FormatTenths(AudioMeterTrack.ToTenths(AudioMeterScale.ToDb(volume))) + " dB";
+    }
+
+    /// <summary>
+    /// Writes the values of the document into the controls of the editable strips (fader, readout, M and S) without raising their change
+    /// events as edits. Allocates only the text of a readout whose value changed.
+    /// </summary>
+    private void RefreshStripValues()
+    {
+        var document = _document;
+        if (document == null)
+        {
+            return;
+        }
+
+        bool wasSyncing = _isSyncingControls;
+        _isSyncingControls = true;
+        try
+        {
+            for (int index = 0; index < _strips.Count; index++)
+            {
+                ApplyStripValues(document, _strips[index]);
+            }
+        }
+        finally
+        {
+            _isSyncingControls = wasSyncing;
+        }
+    }
+
+    /// <summary>The same for the strip of one bus: what a fader gesture needs while the fader moves.</summary>
+    private void RefreshStripValue(string bus)
+    {
+        var document = _document;
+        var strip = FindStrip(bus);
+        if (document == null || strip == null)
+        {
+            return;
+        }
+
+        bool wasSyncing = _isSyncingControls;
+        _isSyncingControls = true;
+        try
+        {
+            ApplyStripValues(document, strip);
+        }
+        finally
+        {
+            _isSyncingControls = wasSyncing;
+        }
+    }
+
+    private void ApplyStripValues(AudioMixerDocument document, StripRow strip)
+    {
+        var bus = strip.Spec.Kind == StripKind.Asset ? FindAssetBus(strip.Name) : null;
+        if (bus == null)
+        {
+            return;
+        }
+
+        float volume = bus.Volume;
+        if (strip.Fader != null && strip.Fader.Value != volume)
+        {
+            strip.Fader.Value = volume;
+        }
+
+        if (strip.Readout != null && strip.ShownVolume != volume)
+        {
+            strip.Readout.Text = FormatDb(volume);
+            strip.ShownVolume = volume;
+        }
+
+        if (strip.Mute != null)
+        {
+            bool isMuted = document.IsMuted(strip.Name);
+            if (strip.Mute.IsChecked != isMuted)
+            {
+                strip.Mute.IsChecked = isMuted;
+            }
+        }
+
+        if (strip.Solo != null)
+        {
+            bool isSoloed = document.IsSoloed(strip.Name);
+            if (strip.Solo.IsChecked != isSoloed)
+            {
+                strip.Solo.IsChecked = isSoloed;
+            }
+        }
+    }
+
+    /// <summary>Shows the live volume of Master and Editor, the two read-only strips that read the live mixer. Allocation free while the volumes stay.</summary>
+    private void RefreshLiveVolumes()
+    {
+        AudioMixer? mixer = null;
+
+        for (int index = 0; index < _strips.Count; index++)
+        {
+            var strip = _strips[index];
+            if (strip.Readout == null || strip.Spec.Kind is not (StripKind.Master or StripKind.Editor))
+            {
+                continue;
+            }
+
+            mixer ??= _audioServiceProvider()?.Mixer;
+            float volume = float.NaN;
+            if (mixer != null && mixer.TryGetBus(strip.Name, out var bus))
+            {
+                volume = bus.Volume;
+            }
+
+            if (volume.Equals(strip.ShownVolume))
+            {
+                continue;
+            }
+
+            strip.ShownVolume = volume;
+            strip.Readout.Text = float.IsNaN(volume) ? "n/a" : FormatDb(volume);
+        }
+    }
+
+    /// <summary>Rebuilds the strips when the live mixer grew a bus or the meters changed their set. Waits for the end of a fader gesture.</summary>
+    private void RefreshLiveStructure()
+    {
+        int liveCount = _audioServiceProvider()?.Mixer.Buses.Count ?? -1;
+        if (liveCount == _builtLiveBusCount && ReferenceEquals(_builtTracks, _meterModel.Buses))
+        {
+            return;
+        }
+
+        // A rebuild would replace the fader under the mouse: the strips stay as they are until the gesture is over.
+        if (_document is { IsGestureOpen: true })
+        {
+            return;
+        }
+
+        RefreshStrips();
+        ApplyEnabledStates();
+    }
+
+    private MGTextBlock CreateHeaderText(string text, HorizontalAlignment alignment)
+    {
+        return new MGTextBlock(_window, text)
+        {
+            HorizontalAlignment = alignment,
+            Opacity = 0.7f,
+            WrapText = false,
+        };
+    }
+
+    private MGToggleButton CreateToggle(string label, string tag, Action<bool> onChanged)
+    {
+        var toggle = new MGToggleButton(_window)
+        {
+            PreferredWidth = ButtonColumnWidth,
+            Tag = tag,
+        };
+        toggle.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        toggle.OnCheckStateChanged += (_, e) =>
+        {
+            // The strips writing the state of the document into the toggle is not a click.
+            if (!_isSyncingControls)
+            {
+                onChanged(e.NewValue);
+            }
+        };
+        return toggle;
+    }
+
+    // ------------------------------------------------------------------ fader gestures and the play session
+
+    /// <summary>A fader moved: through the tracker, so that the burst of changes is one history entry.</summary>
+    private void OnFaderChanged(StripRow strip, float value)
+    {
+        if (_isSyncingControls || _document == null || _gestureTracker == null)
+        {
+            return;
+        }
+
+        if (EditorHistoryService.Current.IsSuspended)
+        {
+            // The faders are disabled during a play session; this is a change that raced the first frame of the session.
+            RefreshStripValues();
+            return;
+        }
+
+        _gestureTracker.Change(strip.Name, value);
+    }
+
+    /// <summary>Gives the tracker the frame: the gesture closes when nothing changed and the fader that opened it is no longer held.</summary>
+    private void TickGesture()
+    {
+        var tracker = _gestureTracker;
+        if (tracker == null)
+        {
+            return;
+        }
+
+        bool isHeld = false;
+        string? bus = tracker.Bus;
+        if (bus != null)
+        {
+            var fader = FindStrip(bus)?.Fader;
+            isHeld = fader != null && (fader.IsDraggingThumb || fader.IsLMBPressed);
+        }
+
+        tracker.Tick(isHeld);
+    }
+
+    /// <summary>
+    /// Follows the play session (the editor history is suspended): a gesture still open ends at once, and the controls that edit through
+    /// the history are disabled until the session is over.
+    /// </summary>
+    private void UpdatePlayLock()
+    {
+        bool isLocked = EditorHistoryService.Current.IsSuspended;
+        if (isLocked == _isPlayLocked)
+        {
+            return;
+        }
+
+        _isPlayLocked = isLocked;
+
+        if (isLocked && _gestureTracker != null)
+        {
+            _recordDespiteSuspension = true;
+            try
+            {
+                _gestureTracker.End();
+            }
+            finally
+            {
+                _recordDespiteSuspension = false;
+            }
+        }
+
+        ApplyEnabledStates();
+    }
+
+    // ------------------------------------------------------------------ add and remove a bus
+
+    private MGStackPanel CreateAddRow()
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            Margin = new Thickness(0, 8, 0, 0),
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, "Add bus")
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        _addNameBox = new MGTextBox(_window, CharacterLimit: 64)
+        {
+            PreferredWidth = 150,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        row.TryAddChild(_addNameBox);
+
+        row.TryAddChild(new MGTextBlock(_window, "under")
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = 0.7f,
+        });
+
+        var combo = new MGComboBox<string>(_window)
+        {
+            MinWidth = 120,
+        };
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(EscapeMarkup(item));
+            return button;
+        };
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, EscapeMarkup(item))
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        _addParentCombo = combo;
+        row.TryAddChild(combo);
+
+        _addButton = CreateButton("Add", OnAddClicked, 60);
+        row.TryAddChild(_addButton);
+
+        _capacityHint = new MGTextBlock(_window, string.Empty)
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = 0.7f,
+            Visibility = Visibility.Collapsed,
+        };
+        row.TryAddChild(_capacityHint);
+
+        return row;
+    }
+
+    /// <summary>The parents the new bus can go under: Master, then the buses of the asset.</summary>
+    private void RefreshParentChoices()
+    {
+        var combo = _addParentCombo;
+        if (combo == null || _document == null)
+        {
+            return;
+        }
+
+        bool isSame = _parentChoices.Count > 0 && _parentChoices[0] == AudioBusNames.Master;
+        int position = 1;
+        for (int index = 0; isSame && index < _wantedSpecs.Count; index++)
+        {
+            if (_wantedSpecs[index].Kind != StripKind.Asset)
+            {
+                continue;
+            }
+
+            isSame = position < _parentChoices.Count && _parentChoices[position] == _wantedSpecs[index].Name;
+            position++;
+        }
+
+        if (isSame && position == _parentChoices.Count)
+        {
+            return;
+        }
+
+        string selected = combo.SelectedItem ?? AudioBusNames.Master;
+
+        _parentChoices.Clear();
+        _parentChoices.Add(AudioBusNames.Master);
+        for (int index = 0; index < _wantedSpecs.Count; index++)
+        {
+            if (_wantedSpecs[index].Kind == StripKind.Asset)
+            {
+                _parentChoices.Add(_wantedSpecs[index].Name);
+            }
+        }
+
+        combo.SetItemsSource(new List<string>(_parentChoices));
+        combo.SelectedItem = _parentChoices.Contains(selected) ? selected : AudioBusNames.Master;
+    }
+
+    private void OnAddClicked()
+    {
+        TryAddBus(_addNameBox?.Text ?? string.Empty, _addParentCombo?.SelectedItem ?? AudioBusNames.Master);
+    }
+
+    /// <summary>
+    /// Adds a custom bus to the asset under <paramref name="parent"/>, as one history entry; what the user typed is cleared. A refusal
+    /// (reserved or duplicate name, unknown parent, capacity) shows in the status line. Nothing happens during a play session.
+    /// </summary>
+    internal bool TryAddBus(string name, string parent)
+    {
+        if (_document == null)
+        {
+            return false;
+        }
+
+        if (EditorHistoryService.Current.IsSuspended)
+        {
+            SetStatus(PlayLockRefusalText);
+            return false;
+        }
+
+        if (!_document.TryAddBus(name, parent, out string error))
+        {
+            SetStatus(error);
+            return false;
+        }
+
+        _addNameBox?.SetText(string.Empty);
+        SetStatus($"Added bus '{name.Trim()}'");
+        return true;
+    }
+
+    /// <summary>
+    /// Removes a custom bus of the asset (see <see cref="AudioMixerDocument.TryRemoveBus"/>): one history entry; the live bus stays until the
+    /// next start and then shows as a read-only strip. A refusal shows in the status line. Nothing happens during a play session.
+    /// </summary>
+    internal bool TryRemoveBus(string name)
+    {
+        if (_document == null)
+        {
+            return false;
+        }
+
+        if (EditorHistoryService.Current.IsSuspended)
+        {
+            SetStatus(PlayLockRefusalText);
+            return false;
+        }
+
+        if (!_document.TryRemoveBus(name, out string error))
+        {
+            SetStatus(error);
+            return false;
+        }
+
+        SetStatus($"Removed bus '{name}' from the asset");
         return true;
     }
 

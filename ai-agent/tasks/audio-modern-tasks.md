@@ -2976,7 +2976,7 @@ de clôture **READY**.
   restaurée (« Panel unavailable » comme pour les particules), mixeur de A puis projet B ; les vérifications avec une vraie
   modification (astérisque, Ctrl+Z, enregistrer tout) attendent les faders de T10.6.
 
-### ⏳ T10.6 — Tranches de bus : faders, muet, solo, vu-mètres (P51, P53, P54)
+### 🧪 T10.6 — Tranches de bus : faders, muet, solo, vu-mètres (P51, P53, P54)
 
 - Fichiers : `CasaEngine.Editor/Controls/AudioMixerPanel.cs`, nouveau `AudioMixerGestureTracker.cs` (machine à états
   des gestes, testable seule), tests `AudioMixerPanelTests.cs`, `AudioMixerGestureTrackerTests.cs`.
@@ -2992,6 +2992,18 @@ de clôture **READY**.
   allocation (`AllocationWindow`). 🧪 auteur : fader pendant une démo (un seul Ctrl+Z annule le glissement), muet, solo.
   Deux solutions ; suite verte.
 - Commit : `feat(editor): mixer panel bus strips with faders, mute, solo and meters`
+- Note de validation (2026-10-06) : grille (Master en tête, arbre de l'asset puis bus vivants hors asset en lecture seule,
+  Editor en dernier ; Master et Editor affichent leur volume vivant), faders 0..1 avec lecture en dB, M et S, vu-mètres
+  par un modèle de mesure propre au panneau, ajout et suppression de bus ; `AudioMixerGestureTracker` (un geste par bus,
+  fermé au premier cadre sans changement où le fader n'est plus tenu, à `Dispose` et au passage en jeu ; un geste fermé
+  par le passage en jeu est quand même enregistré, sa modification ayant été faite hors jeu) ; pendant le jeu (P51), faders,
+  ajout, suppression, Save, Apply **et Reload** désactivés (Reload ajouté par la session principale : il applique l'asset
+  au mixeur comme Apply), M, S et vu-mètres actifs ; la molette ne règle pas les faders (le défilement du panneau ne doit
+  pas changer un volume). 62 tests (dont 18 de la machine à états, événements adverses compris), dix mutations détectées,
+  0 octet en lecture des mesures. Deux solutions sans erreur, aucun avertissement sur les lignes touchées ; 3855/3855.
+  **🧪 pour l'auteur** : glisser un fader pendant une démo (un seul Ctrl+Z annule le glissement), flèches et clic sur la
+  piste, M, S puis retrait, bus créé par le jeu en lecture seule, ajout et suppression de bus, mode jeu, enregistrer tout,
+  fermeture d'un onglet modifié (le mixeur revient à l'asset enregistré), aspect des colonnes.
 
 ### ⏳ T10.7 — Effets, départs et ducking d'un bus (P50)
 
