@@ -746,6 +746,45 @@ internal static class EditorAssetJsonSerializer
         node.Add("is_looped", soundAsset.IsLooped);
         node.Add("bus_name", soundAsset.BusName);
         node.Add("is_streaming", soundAsset.IsStreaming);
+
+        if (soundAsset.Priority > 0)
+        {
+            node.Add("priority", soundAsset.Priority);
+        }
+
+        var variationIds = new JArray();
+        foreach (var variationId in soundAsset.VariationAudioFileAssetIds)
+        {
+            if (variationId != Guid.Empty)
+            {
+                variationIds.Add(variationId.ToString());
+            }
+        }
+
+        if (variationIds.Count > 0)
+        {
+            node.Add("variation_audio_file_asset_ids", variationIds);
+        }
+
+        if (soundAsset.VariationVolumeMin != 1f)
+        {
+            node.Add("variation_volume_min", soundAsset.VariationVolumeMin);
+        }
+
+        if (soundAsset.VariationVolumeMax != 1f)
+        {
+            node.Add("variation_volume_max", soundAsset.VariationVolumeMax);
+        }
+
+        if (soundAsset.VariationPitchMin != 0f)
+        {
+            node.Add("variation_pitch_min", soundAsset.VariationPitchMin);
+        }
+
+        if (soundAsset.VariationPitchMax != 0f)
+        {
+            node.Add("variation_pitch_max", soundAsset.VariationPitchMax);
+        }
     }
 
     private static void SaveTexture(Texture texture, JObject node)

@@ -1956,7 +1956,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   attendus et la surcharge partielle). Deux solutions sans erreur ni avertissement dans les fichiers touchés ;
   3164/3164.
 
-### ⏳ T8.2 — Champs additifs du `.sound` : variations et priorité (D5, D6, P25, P26, P28, P30)
+### ✅ T8.2 — Champs additifs du `.sound` : variations et priorité (D5, D6, P25, P26, P28, P30)
 
 - Fichiers : `CasaEngine/Framework/Audio/SoundAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
   (`SaveSoundAsset`), `CasaEngine.Tests/Audio/SoundAssetTests.cs`,
@@ -1987,6 +1987,14 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   (`JToken.DeepEquals`). Deux solutions sans erreur ni avertissement nouveau dans les fichiers touchés ; suite
   complète verte.
 - Commit : `feat(audio): additive variation and priority fields in the .sound asset`
+- Note de validation (2026-10-06) : six membres additifs sur `SoundAsset`, lecteur numérique tolérant (un type
+  inattendu garde le défaut avec un avertissement nommant l'asset et la clé), liste lue par `Guid.TryParse` ;
+  `SaveSoundAsset` n'écrit chaque nouvelle clé que hors défaut. Une priorité fractionnaire est tronquée après la
+  borne (2,7 → 2) ; une entrée GUID invalide donne un avertissement par entrée. 38 tests ajoutés, dont les trois
+  `.sound` de la démo chargés par le vrai chargeur et resérialisés avec leurs seules clés d'origine. Deux
+  annotations `string?` (CS8632, hors contexte nullable) retirées après une build `--no-incremental`. Deux
+  solutions sans erreur ni avertissement nouveau dans les fichiers touchés ; 3202/3202 ; diffs vides depuis
+  `6f06298f` sur `IAudioBackend.cs`, `AudioVoiceParameters.cs`, `AudioService.cs`.
 
 ### ⏳ T8.3 — Tirage des variations à `PlaySound` (D5, P24, P26, P27)
 

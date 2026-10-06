@@ -1,6 +1,8 @@
 using CasaEngine.EditorServices;
+using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.Audio;
@@ -53,6 +55,146 @@ public class SoundAssetEditorSerializationTests
         Assert.False(loaded.IsLooped);
         Assert.Equal(AudioBusNames.Sfx, loaded.BusName);
         Assert.False(loaded.IsStreaming);
+    }
+
+    private static readonly string[] SixKeys =
+    {
+        "audio_file_asset_id", "volume", "pitch", "is_looped", "bus_name", "is_streaming",
+    };
+
+    private static JObject Serialize(SoundAsset asset)
+    {
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(asset, out var document));
+        return document;
+    }
+
+    private static string DemoAudioDirectory()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            var candidate = Path.Combine(directory.FullName, "CasaEngine.Demos", "Content", "Audio");
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("CasaEngine.Demos/Content/Audio not found above the test output.");
+    }
+
+    public static IEnumerable<object[]> DemoSoundFiles()
+    {
+        foreach (var path in Directory.GetFiles(DemoAudioDirectory(), "*.sound"))
+        {
+            yield return new object[] { Path.GetFileName(path) };
+        }
+    }
+
+    [Fact]
+    public void SaveThenLoad_KeepsEveryVariationField()
+    {
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        var saved = new SoundAsset
+        {
+            Priority = 55,
+            VariationVolumeMin = 0.5f,
+            VariationVolumeMax = 0.8f,
+            VariationPitchMin = -0.25f,
+            VariationPitchMax = 0.125f,
+        };
+        saved.VariationAudioFileAssetIds.Add(first);
+        saved.VariationAudioFileAssetIds.Add(second);
+
+        var loaded = new SoundAsset();
+        loaded.Load(Serialize(saved));
+
+        Assert.Equal(55, loaded.Priority);
+        Assert.Equal(new[] { first, second }, loaded.VariationAudioFileAssetIds);
+        Assert.Equal(0.5f, loaded.VariationVolumeMin, 4);
+        Assert.Equal(0.8f, loaded.VariationVolumeMax, 4);
+        Assert.Equal(-0.25f, loaded.VariationPitchMin, 4);
+        Assert.Equal(0.125f, loaded.VariationPitchMax, 4);
+    }
+
+    [Fact]
+    public void Serialize_OfANewAsset_WritesNoVariationKey()
+    {
+        var document = Serialize(new SoundAsset());
+
+        foreach (var key in new[]
+                 {
+                     "priority", "variation_audio_file_asset_ids", "variation_volume_min",
+                     "variation_volume_max", "variation_pitch_min", "variation_pitch_max",
+                 })
+        {
+            Assert.False(document.ContainsKey(key), key);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(DemoSoundFiles))]
+    public void Serialize_OfADemoSoundFile_KeepsExactlyItsOriginalKeys(string fileName)
+    {
+        var path = Path.Combine(DemoAudioDirectory(), fileName);
+        var original = JObject.Parse(File.ReadAllText(path));
+        var asset = Assert.IsType<SoundAsset>(new SoundAssetLoader().LoadAsset(path, null));
+
+        var document = Serialize(asset);
+
+        Assert.Equal(
+            original.Properties().Select(p => p.Name).OrderBy(n => n),
+            document.Properties().Select(p => p.Name).OrderBy(n => n));
+        foreach (var key in SixKeys)
+        {
+            Assert.True(document.ContainsKey(key));
+        }
+    }
+
+    [Fact]
+    public void Serialize_WritesOnlyTheVariationKeyThatDiffersFromItsDefault()
+    {
+        var document = Serialize(new SoundAsset { VariationVolumeMin = 0.5f, VariationVolumeMax = 1f });
+
+        Assert.True(document.ContainsKey("variation_volume_min"));
+        Assert.False(document.ContainsKey("variation_volume_max"));
+        Assert.False(document.ContainsKey("variation_pitch_min"));
+        Assert.False(document.ContainsKey("variation_pitch_max"));
+        Assert.False(document.ContainsKey("priority"));
+    }
+
+    [Fact]
+    public void Serialize_DoesNotWriteAnEmptyGuidVariationEntry()
+    {
+        var kept = Guid.NewGuid();
+        var asset = new SoundAsset();
+        asset.VariationAudioFileAssetIds.Add(Guid.Empty);
+        asset.VariationAudioFileAssetIds.Add(kept);
+
+        var array = Assert.IsType<JArray>(Serialize(asset)["variation_audio_file_asset_ids"]);
+
+        Assert.Equal(new[] { kept.ToString() }, array.Select(t => (string)t));
+
+        var onlyEmpty = new SoundAsset();
+        onlyEmpty.VariationAudioFileAssetIds.Add(Guid.Empty);
+        Assert.False(Serialize(onlyEmpty).ContainsKey("variation_audio_file_asset_ids"));
+    }
+
+    [Fact]
+    public void SaveLoadSave_ProducesEqualDocuments()
+    {
+        var asset = new SoundAsset { Priority = 7, VariationPitchMin = -0.3f, VariationPitchMax = 0.3f };
+        asset.VariationAudioFileAssetIds.Add(Guid.NewGuid());
+        var first = Serialize(asset);
+
+        var reloaded = new SoundAsset();
+        reloaded.Load(first);
+        var second = Serialize(reloaded);
+
+        Assert.True(JToken.DeepEquals(first, second));
     }
 
     [Fact]
