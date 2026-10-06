@@ -184,7 +184,7 @@ Automatisation et tests :
 
 ## Phase 2 — Moteur : UI de fenêtre
 
-### ⏳ T2.1 — UI de fenêtre hors des vues, arbitrage de l'entrée
+### ✅ T2.1 — UI de fenêtre hors des vues, arbitrage de l'entrée
 
 - Objectif : un jeu peut installer une UI qui n'appartient à aucune vue ; elle est mise à jour avec les UI de vue, dessinée par-dessus tout, et l'`InputRouter` la consulte.
 - Fichiers : `CasaEngine/Framework/Application/CasaEngineGame.cs`, `CasaEngine/Framework/Input/InputRouter.cs`, `CasaEngine.Tests/Input/InputRouterTests.cs`.
@@ -195,6 +195,7 @@ Automatisation et tests :
   4. `InputRouter.WindowUI` (posé par `SetWindowUI` / `ClearWindowUI`) ; `IsMouseHandledByUI(view)` et `IsKeyboardCapturedByUI(view)` renvoient aussi vrai quand l'`InputState` de l'UI de fenêtre a le pointeur ou le clavier. Le reste du routeur ne change pas. Règle générique du moteur : c'est au jeu de garder le focus de son UI de fenêtre cohérent (pour les démos, désarmement de P9, T4.1) ; à écrire dans la doc XML et l'ADR.
 - Validation : tests du routeur (UI de fenêtre absente : résultats inchangés ; pointeur ou clavier pris par l'UI de fenêtre : vrai même si l'UI de vue dit faux) avec un faux `IUIViewRuntime` (réutiliser celui des tests s'il existe) ; deux solutions buildées ; suite verte.
 - Commit : `feat(ui): a window-level UI outside the views, honoured by the input router`
+- Note de validation (2026-10-06) : `CasaEngineGame.WindowUI`, `SetWindowUI(ui, surface)`, `ClearWindowUI()` ; mise à jour juste après la boucle des UI de vue avec ses métriques (`UIScaler` 1920x1080 gardé en champ, comme `RenderView.cs:125`) ; dessin après la phase 3 (`surface.Apply`, `Draw`, viewport remis sur tout le back-buffer). `InputRouter.WindowUI` lu par `IsMouseHandledByUI` et `IsKeyboardCapturedByUI` (propriétés `IsPointerOverUI` / `IsKeyboardCaptured` lues directement). 4 tests ajoutés à `InputRouterTests`. Deux solutions : 0 erreur, avertissements inchangés (134 / 194) ; `CasaEngine.Tests` 4145/4145. Le dessin réel de l'UI de fenêtre se vérifie en T4.1 (aucun test sans `GraphicsDevice`).
 
 ### ⏳ T2.2 — ADR-0070 et documentation moteur
 
