@@ -2,6 +2,7 @@ using System.Reflection;
 using CasaEngine.Editor;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Styling;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Audio;
@@ -9,10 +10,12 @@ using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Backends;
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Tests.Audio;
 using CasaEngine.Tests.ContentBrowser;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Input.Mouse;
@@ -1923,5 +1926,1149 @@ public sealed class AudioMixerPanelTests : IDisposable
         rig.Panel.Update(Frame);
 
         Assert.True(Button(rig.Content, "Reload").IsEnabled);
+    }
+
+    // ───────────────────────── bus detail: effects, sends and ducking (T10.7) ─────────────────────────
+
+    /// <summary>
+    /// Sfx carrying the first <paramref name="effects"/> of a biquad (high-pass at 200 Hz), a compressor, a reverb and a ducking by
+    /// Voice, and two sends (to Reverb, a return under Master, and to Ambience, under Music); Footsteps is a child of Sfx.
+    /// </summary>
+    private static Action<AudioMixerAsset> DetailAsset(int effects = 4)
+    {
+        return asset =>
+        {
+            asset.Buses.Add(new AudioMixerBusData { Name = "Reverb", Parent = "Master" });
+            asset.Buses.Add(new AudioMixerBusData { Name = "Ambience", Parent = "Music" });
+            asset.Buses.Add(new AudioMixerBusData { Name = "Footsteps", Parent = "Sfx" });
+
+            var all = new AudioMixerEffectData[]
+            {
+                new AudioMixerBiquadEffectData(BiquadFilterType.HighPass, 200f, 1f, 0f),
+                new AudioMixerCompressorEffectData(),
+                new AudioMixerReverbEffectData(),
+                new AudioMixerDuckingEffectData("Voice"),
+            };
+
+            var sfx = asset.Buses.Single(bus => bus.Name == "Sfx");
+            for (int index = 0; index < effects; index++)
+            {
+                sfx.Effects.Add(all[index]);
+            }
+
+            sfx.Sends.Add(new AudioMixerSendData("Reverb", 0.3f));
+            sfx.Sends.Add(new AudioMixerSendData("Ambience", 0.2f));
+        };
+    }
+
+    private Rig OpenDetail(int effects = 4, IAudioBackend backend = null)
+    {
+        var rig = Open(customize: DetailAsset(effects), backend: backend);
+        Assert.True(rig.Panel.SelectBus("Sfx"));
+        return rig;
+    }
+
+    private static NumericField Field(MGElement content, string tag) => Tagged<NumericField>(content, tag);
+
+    private static MGComboBox<string> Combo(MGElement content, string tag) => Tagged<MGComboBox<string>>(content, tag);
+
+    private static MGButton DetailButton(MGElement content, string tag) => Tagged<MGButton>(content, tag);
+
+    private static void Press(MGButton button) => Assert.True(button.TryHandleNavigationAction(UINavigationAction.Submit));
+
+    private static MGTextBox TextBoxOf(NumericField field) => field.TraverseVisualTree().OfType<MGTextBox>().Single();
+
+    /// <summary>Types the characters one after the other, the way the keyboard does: the text of the box changes after each one.</summary>
+    private static void Type(NumericField field, string text)
+    {
+        var box = TextBoxOf(field);
+        for (int length = 1; length <= text.Length; length++)
+        {
+            box.SetText(text.Substring(0, length));
+        }
+    }
+
+    private static List<AudioMixerEffectData> AssetEffects(Rig rig, string bus = "Sfx")
+        => rig.Document.Asset.Buses.Single(data => data.Name == bus).Effects;
+
+    private static IReadOnlyList<AudioEffect> LiveEffects(Rig rig, string bus = "Sfx") => rig.Service.Mixer.GetBus(bus).Effects;
+
+    private static bool HasPending(Rig rig) => rig.Panel.DetailView.HasPendingEdit;
+
+    private static bool StatusContains(Rig rig, string text)
+        => TextBlocks(rig.Content).Any(block => block.Text != null && block.Text.Contains(text, StringComparison.Ordinal));
+
+    private static bool IsHighlighted(MGTextBlock name)
+        => name.BackgroundBrush?.NormalValue is MGSolidFillBrush solid && solid.Color == EditorThemePalette.AccentSelection;
+
+    private static int ParameterFieldCount(MGElement content, int effect)
+        => content.TraverseVisualTree().OfType<NumericField>().Count(field => ((string)field.Tag).StartsWith($"effect-param:{effect}:", StringComparison.Ordinal));
+
+    /// <summary>The controls of the detail view that edit: buttons, fields and combos, by the tags they carry.</summary>
+    private static List<MGElement> EditingControls(MGElement content)
+        => content.TraverseVisualTree()
+            .Where(element => element.Tag is string tag
+                              && (tag.StartsWith("effect-", StringComparison.Ordinal) || tag.StartsWith("send-", StringComparison.Ordinal)))
+            .ToList();
+
+    private static void SetKeyboardFocus(MGDesktop desktop, MGElement element)
+    {
+        var setter = typeof(MGDesktop).GetProperty(nameof(MGDesktop.FocusedKeyboardHandler), BindingFlags.Public | BindingFlags.Instance)!.GetSetMethod(true)!;
+        setter.Invoke(desktop, new object[] { element });
+    }
+
+    private static void AssertEffectTypes(Rig rig, params Type[] expected)
+    {
+        Assert.Equal(expected, AssetEffects(rig).Select(data => data.GetType()));
+        var live = LiveEffects(rig);
+        Assert.Equal(expected.Length, live.Count);
+        var liveTypes = live.Select(effect => effect.GetType()).ToArray();
+        var wanted = expected.Select(type =>
+            type == typeof(AudioMixerBiquadEffectData) ? typeof(BiquadFilterEffect)
+            : type == typeof(AudioMixerCompressorEffectData) ? typeof(CompressorEffect)
+            : type == typeof(AudioMixerReverbEffectData) ? typeof(ReverbEffect)
+            : typeof(DuckingEffect)).ToArray();
+        Assert.Equal(wanted, liveTypes);
+    }
+
+    private static readonly Type BiquadData = typeof(AudioMixerBiquadEffectData);
+    private static readonly Type CompressorData = typeof(AudioMixerCompressorEffectData);
+    private static readonly Type ReverbData = typeof(AudioMixerReverbEffectData);
+    private static readonly Type DuckingData = typeof(AudioMixerDuckingEffectData);
+
+    private static float WetOf(Rig rig) => ((AudioMixerReverbEffectData)AssetEffects(rig)[2]).Wet;
+
+    // ----- selection
+
+    [Fact]
+    public void WithoutASelection_TheDetailShowsAHint_AndNoControl()
+    {
+        var rig = Open(customize: DetailAsset());
+
+        Assert.Null(rig.Panel.SelectedBus);
+        Assert.True(IsTagged<MGTextBlock>(rig.Content, "detail-hint"));
+        Assert.Empty(EditingControls(rig.Content));
+        Assert.Empty(rig.Content.TraverseVisualTree().OfType<NumericField>());
+    }
+
+    [Fact]
+    public void ClickingTheNameOfABus_SelectsIt_ShowsItsDetail_AndMarksItsStrip()
+    {
+        var rig = Open(customize: DetailAsset());
+
+        ClickCenterOf(rig, Tagged<MGTextBlock>(rig.Content, "bus:Sfx"));
+
+        Assert.Equal("Sfx", rig.Panel.SelectedBus);
+        Assert.Equal("[b]Effects and sends of Sfx[/b]", Tagged<MGTextBlock>(rig.Content, "detail-title").Text);
+        Assert.False(IsTagged<MGTextBlock>(rig.Content, "detail-hint"));
+        Assert.True(IsHighlighted(Tagged<MGTextBlock>(rig.Content, "bus:Sfx")));
+        Assert.False(IsHighlighted(Tagged<MGTextBlock>(rig.Content, "bus:Music")));
+        Assert.Equal(4, ParameterFieldCount(rig.Content, 3));
+
+        // Another bus: the selection and the mark move, nothing else happens.
+        ClickCenterOf(rig, Tagged<MGTextBlock>(rig.Content, "bus:Music"));
+
+        Assert.Equal("Music", rig.Panel.SelectedBus);
+        Assert.Equal("[b]Effects and sends of Music[/b]", Tagged<MGTextBlock>(rig.Content, "detail-title").Text);
+        Assert.True(IsHighlighted(Tagged<MGTextBlock>(rig.Content, "bus:Music")));
+        Assert.False(IsHighlighted(Tagged<MGTextBlock>(rig.Content, "bus:Sfx")));
+        Assert.Equal(0, ParameterFieldCount(rig.Content, 0));
+        Assert.False(CanUndo());
+        Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void OnlyTheBusesOfTheAsset_AreSelectable()
+    {
+        var rig = Open(customize: DetailAsset());
+        rig.Service.Mixer.CreateBus("GameBus", "Master");
+        Frames(rig, 2);
+
+        Assert.False(IsTagged<MGTextBlock>(rig.Content, "bus:Master"));
+        Assert.False(IsTagged<MGTextBlock>(rig.Content, "bus:Editor"));
+        Assert.False(IsTagged<MGTextBlock>(rig.Content, "bus:GameBus"));
+        Assert.False(rig.Panel.SelectBus("Master"));
+        Assert.False(rig.Panel.SelectBus("Editor"));
+        Assert.False(rig.Panel.SelectBus("GameBus"));
+        Assert.False(rig.Panel.SelectBus("Nope"));
+        Assert.Null(rig.Panel.SelectedBus);
+
+        Assert.True(rig.Panel.SelectBus("sfx"));
+        Assert.Equal("Sfx", rig.Panel.SelectedBus);
+    }
+
+    [Fact]
+    public void WhenTheSelectedBusIsRemoved_OrItsAdditionUndone_TheDetailGoesBackToTheHint()
+    {
+        var rig = Open();
+        Assert.True(rig.Panel.TryAddBus("Footsteps", "Sfx"));
+        Assert.True(rig.Panel.SelectBus("Footsteps"));
+        Assert.True(IsTagged<MGButton>(rig.Content, "effect-add"));
+
+        Assert.True(rig.Panel.TryRemoveBus("Footsteps"));
+
+        Assert.Null(rig.Panel.SelectedBus);
+        Assert.False(IsTagged<MGButton>(rig.Content, "effect-add"));
+        Assert.True(IsTagged<MGTextBlock>(rig.Content, "detail-hint"));
+
+        // The removal undone brings the bus back, not the selection; the addition undone while selected clears it.
+        EditorHistoryService.Current.SetActiveContext(Context);
+        Assert.True(EditorHistoryService.Current.Undo());
+        Assert.Null(rig.Panel.SelectedBus);
+        Assert.True(rig.Panel.SelectBus("Footsteps"));
+        Assert.True(EditorHistoryService.Current.Undo());
+
+        Assert.Null(rig.Panel.SelectedBus);
+        Assert.False(IsTagged<MGButton>(rig.Content, "effect-add"));
+        Assert.False(IsTagged<MGTextBlock>(rig.Content, "bus:Footsteps"));
+    }
+
+    // ----- rows
+
+    [Fact]
+    public void ABusWithTheFourEffectKindsAndTwoSends_ShowsOneRowPerEffectAndPerSend()
+    {
+        var rig = OpenDetail();
+
+        var titles = TextBlocks(rig.Content)
+            .Select(text => text.Text)
+            .Where(text => text != null && text.Length > 6 && text.StartsWith("[b]", StringComparison.Ordinal) && char.IsDigit(text[3]) && text[4] == '.')
+            .ToList();
+        Assert.Equal(new[] { "[b]1. Biquad filter[/b]", "[b]2. Compressor[/b]", "[b]3. Reverb[/b]", "[b]4. Ducking[/b]" }, titles);
+        Assert.Equal(new[] { 3, 6, 5, 4 }, Enumerable.Range(0, 4).Select(effect => ParameterFieldCount(rig.Content, effect)));
+        Assert.Contains(TextBlocks(rig.Content), text => text.Text != null && text.Text.StartsWith("[b]Effects[/b] (4/4)", StringComparison.Ordinal));
+        Assert.Contains(TextBlocks(rig.Content), text => text.Text != null && text.Text.StartsWith("[b]Sends[/b] (2/4)", StringComparison.Ordinal));
+
+        for (int effect = 0; effect < 4; effect++)
+        {
+            Assert.True(IsTagged<MGButton>(rig.Content, $"effect-up:{effect}"), $"up {effect}");
+            Assert.True(IsTagged<MGButton>(rig.Content, $"effect-down:{effect}"), $"down {effect}");
+            Assert.True(IsTagged<MGButton>(rig.Content, $"effect-delete:{effect}"), $"delete {effect}");
+        }
+
+        Assert.False(IsTagged<MGButton>(rig.Content, "effect-up:4"));
+        Assert.Equal(2, rig.Content.TraverseVisualTree().OfType<NumericField>().Count(field => ((string)field.Tag).StartsWith("send-level:", StringComparison.Ordinal)));
+        Assert.True(IsTagged<NumericField>(rig.Content, "send-new-level"));
+        Assert.True(IsTagged<MGComboBox<string>>(rig.Content, "send-new-target"));
+        Assert.True(IsTagged<MGComboBox<string>>(rig.Content, "effect-add-kind"));
+    }
+
+    [Fact]
+    public void TheFields_ShowTheValuesOfTheAsset_WithTheBoundsAndStepsOfTheCatalog()
+    {
+        var rig = OpenDetail();
+
+        for (int effect = 0; effect < 4; effect++)
+        {
+            var data = AssetEffects(rig)[effect];
+            var parameters = AudioMixerEffectCatalog.GetParameters(AudioMixerEffectCatalog.GetKind(data));
+            for (int parameter = 0; parameter < parameters.Count; parameter++)
+            {
+                var field = Field(rig.Content, $"effect-param:{effect}:{parameter}");
+                Assert.Equal(parameters[parameter].Min, field.Min);
+                Assert.Equal(parameters[parameter].Max, field.Max);
+                Assert.Equal(parameters[parameter].Step, field.Step);
+                Assert.Equal(AudioMixerEffectCatalog.GetValue(data, parameter), field.Value);
+            }
+        }
+
+        Assert.Equal(200f, Field(rig.Content, "effect-param:0:0").Value);
+        Assert.Equal("High-pass", Combo(rig.Content, "effect-filter:0").SelectedItem);
+        Assert.Equal("Voice", Combo(rig.Content, "effect-source:3").SelectedItem);
+        Assert.Equal(0.3f, Field(rig.Content, "send-level:Reverb").Value);
+        Assert.Equal(0.2f, Field(rig.Content, "send-level:Ambience").Value);
+        Assert.Equal(0f, Field(rig.Content, "send-new-level").Value);
+        Assert.Equal("Biquad filter", Combo(rig.Content, "effect-add-kind").SelectedItem);
+    }
+
+    [Fact]
+    public void TheCombos_OfferTheBusesTheDocumentAccepts_NotTheBusItself()
+    {
+        var rig = OpenDetail();
+
+        var sources = Combo(rig.Content, "effect-source:3").ItemsSource.ToList();
+        Assert.DoesNotContain("Sfx", sources);
+        Assert.All(new[] { "Music", "Voice", "Ui", "Reverb", "Ambience", "Footsteps", "Master", "Editor" }, name => Assert.Contains(name, sources));
+
+        // A send target: the other buses, the returns included, minus the ones already sent to.
+        var targets = Combo(rig.Content, "send-new-target").ItemsSource.ToList();
+        Assert.DoesNotContain("Sfx", targets);
+        Assert.DoesNotContain("Reverb", targets);
+        Assert.DoesNotContain("Ambience", targets);
+        Assert.All(new[] { "Music", "Voice", "Ui", "Footsteps", "Master", "Editor" }, name => Assert.Contains(name, targets));
+        Assert.Equal(targets[0], Combo(rig.Content, "send-new-target").SelectedItem);
+
+        Assert.Equal(
+            new[] { "Low-pass", "High-pass", "Band-pass", "Peaking", "Low shelf", "High shelf" },
+            Combo(rig.Content, "effect-filter:0").ItemsSource.ToArray());
+        Assert.Equal(
+            new[] { "Biquad filter", "Compressor", "Reverb", "Ducking" },
+            Combo(rig.Content, "effect-add-kind").ItemsSource.ToArray());
+    }
+
+    [Fact]
+    public void TheChoices_FollowTheBusesThatAppear_TheAssetsAndTheLiveMixers()
+    {
+        var rig = OpenDetail();
+        Assert.True(rig.Panel.TryAddBus("Extra", "Master"));
+
+        Assert.Contains("Extra", Combo(rig.Content, "effect-source:3").ItemsSource);
+        Assert.Contains("Extra", Combo(rig.Content, "send-new-target").ItemsSource);
+
+        rig.Service.Mixer.CreateBus("GameBus", "Master");
+        Frames(rig, 2);
+
+        Assert.Contains("GameBus", Combo(rig.Content, "effect-source:3").ItemsSource);
+        Assert.Contains("GameBus", Combo(rig.Content, "send-new-target").ItemsSource);
+    }
+
+    [Fact]
+    public void TheMoveButtons_AreDisabledAtTheEnds_AndTheAddButtonAtFourEffects()
+    {
+        var rig = OpenDetail();
+
+        Assert.False(DetailButton(rig.Content, "effect-up:0").IsEnabled);
+        Assert.True(DetailButton(rig.Content, "effect-up:1").IsEnabled);
+        Assert.True(DetailButton(rig.Content, "effect-down:2").IsEnabled);
+        Assert.False(DetailButton(rig.Content, "effect-down:3").IsEnabled);
+        Assert.True(DetailButton(rig.Content, "effect-delete:0").IsEnabled);
+        Assert.False(DetailButton(rig.Content, "effect-add").IsEnabled);
+
+        // One effect fewer: there is room again.
+        Press(DetailButton(rig.Content, "effect-delete:3"));
+
+        Assert.True(DetailButton(rig.Content, "effect-add").IsEnabled);
+        Assert.False(DetailButton(rig.Content, "effect-down:2").IsEnabled);
+    }
+
+    // ----- one history entry per user intent: the fields
+
+    [Fact]
+    public void TypingInAField_IsOneHistoryEntry_WrittenHalfASecondAfterTheLastChange()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2"); // the wet level of the reverb
+        var liveReverb = Assert.IsType<ReverbEffect>(LiveEffects(rig)[2]);
+        Assert.Equal(1f, field.Value);
+
+        Type(field, "0.25");
+
+        // The burst is open: the document does not know it yet, but the panel counts it as unsaved.
+        Assert.True(HasPending(rig));
+        Assert.True(rig.Panel.IsDirty);
+        Assert.False(rig.Document.IsDirty);
+        Assert.False(CanUndo());
+        Assert.Equal(1f, WetOf(rig));
+        Assert.Equal(1f, liveReverb.Wet);
+
+        rig.Panel.Update(0.4f);
+        Assert.True(HasPending(rig));
+        Assert.False(CanUndo());
+
+        rig.Panel.Update(0.1f);
+
+        Assert.False(HasPending(rig));
+        Assert.True(CanUndo());
+        Assert.True(rig.Document.IsDirty);
+        Assert.Equal(1, rig.DirtyEvents);
+        Assert.Equal(0.25f, WetOf(rig));
+        Assert.Same(liveReverb, LiveEffects(rig)[2]);
+        Assert.Equal(0.25f, liveReverb.Wet);
+        Assert.Same(field, Field(rig.Content, "effect-param:2:2"));
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal(1f, WetOf(rig));
+        Assert.Equal(1f, liveReverb.Wet);
+        Assert.Equal(1f, field.Value);
+    }
+
+    [Fact]
+    public void EveryChangeOfTheBurst_RestartsTheHalfSecond()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+
+        Type(field, "0.25");
+        rig.Panel.Update(0.4f);
+        TextBoxOf(field).SetText("0.3");
+        rig.Panel.Update(0.4f);
+
+        Assert.True(HasPending(rig));
+        Assert.False(CanUndo());
+
+        rig.Panel.Update(0.1f);
+
+        Assert.False(HasPending(rig));
+        Assert.Equal(0.3f, WetOf(rig));
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void AFieldThatLosesTheKeyboardFocus_WritesItsBurstAtOnce()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        SetKeyboardFocus(rig.Harness.Desktop, TextBoxOf(field));
+        Type(field, "0.25");
+        Assert.True(HasPending(rig));
+
+        SetKeyboardFocus(rig.Harness.Desktop, null);
+
+        Assert.False(HasPending(rig));
+        Assert.True(CanUndo());
+        Assert.Equal(0.25f, WetOf(rig));
+        Assert.Equal(0.25f, ((ReverbEffect)LiveEffects(rig)[2]).Wet);
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void TheFocusMovingInsideTheField_KeepsTheBurstOpen()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        var plus = field.TraverseVisualTree().OfType<MGButton>().Single(button => button.TraverseVisualTree().OfType<MGTextBlock>().Any(text => text.Text == "+"));
+        SetKeyboardFocus(rig.Harness.Desktop, TextBoxOf(field));
+        Type(field, "0.25");
+
+        SetKeyboardFocus(rig.Harness.Desktop, plus);
+
+        Assert.True(HasPending(rig));
+        Assert.False(CanUndo());
+    }
+
+    [Fact]
+    public void AFieldThatLosesTheFocus_ShowsItsValueInTheCanonicalForm()
+    {
+        var rig = OpenDetail();
+        var frequency = Field(rig.Content, "effect-param:0:0");
+        SetKeyboardFocus(rig.Harness.Desktop, TextBoxOf(frequency));
+
+        // More than the engine accepts: the field clamps the value, not the text.
+        Type(frequency, "99999");
+        SetKeyboardFocus(rig.Harness.Desktop, null);
+
+        Assert.Equal(BiquadFilterEffect.MaxFrequencyHz, ((AudioMixerBiquadEffectData)AssetEffects(rig)[0]).FrequencyHz);
+        Assert.Equal("24000", TextBoxOf(frequency).Text);
+
+        // Not a number: nothing changes, and the text goes back to the value.
+        SetKeyboardFocus(rig.Harness.Desktop, TextBoxOf(frequency));
+        TextBoxOf(frequency).SetText("abc");
+        Assert.False(HasPending(rig));
+        SetKeyboardFocus(rig.Harness.Desktop, null);
+
+        Assert.Equal("24000", TextBoxOf(frequency).Text);
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void TheStepButtonsOfAField_AreOneBurst()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        var minus = field.TraverseVisualTree().OfType<MGButton>().Single(button => button.TraverseVisualTree().OfType<MGTextBlock>().Any(text => text.Text == "−"));
+
+        Press(minus);
+        Press(minus);
+        Press(minus);
+        rig.Panel.Update(0.5f);
+
+        Assert.Equal(0.85f, WetOf(rig), 0.001f);
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal(1f, WetOf(rig));
+    }
+
+    [Fact]
+    public void AnotherFieldChanging_WritesTheOpenBurstFirst_ThenOpensItsOwn()
+    {
+        var rig = OpenDetail();
+
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+        Type(Field(rig.Content, "effect-param:2:3"), "0.5"); // the dry level of the same reverb
+
+        // The first burst is an entry already; the second is still open, and its field keeps what was typed in it.
+        Assert.True(CanUndo());
+        Assert.True(HasPending(rig));
+        Assert.Equal(0.25f, WetOf(rig));
+        Assert.Equal(0f, ((AudioMixerReverbEffectData)AssetEffects(rig)[2]).Dry);
+        Assert.Equal(0.5f, Field(rig.Content, "effect-param:2:3").Value);
+        Assert.Equal("0.5", TextBoxOf(Field(rig.Content, "effect-param:2:3")).Text);
+
+        rig.Panel.Update(0.5f);
+
+        Assert.Equal(0.5f, ((AudioMixerReverbEffectData)AssetEffects(rig)[2]).Dry);
+        Assert.Equal(2, UndoEverything());
+    }
+
+    [Fact]
+    public void AnotherIntent_WritesTheOpenBurstFirst_SoTheEntriesKeepTheirOrder()
+    {
+        var rig = OpenDetail();
+        Type(Field(rig.Content, "effect-param:1:0"), "-30"); // the threshold of the compressor
+
+        Press(DetailButton(rig.Content, "effect-down:0"));
+
+        Assert.False(HasPending(rig));
+        AssertEffectTypes(rig, CompressorData, BiquadData, ReverbData, DuckingData);
+        Assert.Equal(-30f, ((AudioMixerCompressorEffectData)AssetEffects(rig)[0]).ThresholdDb);
+
+        // Undo takes the move back first: the typed value was written before it.
+        EditorHistoryService.Current.SetActiveContext(Context);
+        Assert.True(EditorHistoryService.Current.Undo());
+        AssertEffectTypes(rig, BiquadData, CompressorData, ReverbData, DuckingData);
+        Assert.Equal(-30f, ((AudioMixerCompressorEffectData)AssetEffects(rig)[1]).ThresholdDb);
+
+        Assert.True(EditorHistoryService.Current.Undo());
+        Assert.Equal(AudioMixerEffectDefaults.CompressorThresholdDb, ((AudioMixerCompressorEffectData)AssetEffects(rig)[1]).ThresholdDb);
+        Assert.False(CanUndo());
+    }
+
+    [Fact]
+    public void Save_WritesTheOpenBurstFirst()
+    {
+        var rig = OpenDetail();
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+        Assert.True(rig.Panel.IsDirty);
+
+        Assert.True(rig.Panel.TrySaveLoadedAsset(out string error), error);
+
+        Assert.False(HasPending(rig));
+        Assert.False(rig.Panel.IsDirty);
+        Assert.True(AudioMixerPanel.TryLoadAsset(rig.FullPath, out var saved, out error), error);
+        var reverb = Assert.IsType<AudioMixerReverbEffectData>(saved.Buses.Single(bus => bus.Name == "Sfx").Effects[2]);
+        Assert.Equal(0.25f, reverb.Wet);
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void ReloadWithAnOpenBurst_IsRefusedLikeAnyUnsavedChange()
+    {
+        var rig = OpenDetail();
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+
+        Assert.False(rig.Panel.ReloadFromDisk());
+
+        Assert.False(HasPending(rig));
+        Assert.Equal(0.25f, WetOf(rig));
+        Assert.True(rig.Document.IsDirty);
+        Assert.True(StatusContains(rig, "Unsaved changes kept"));
+    }
+
+    [Fact]
+    public void ApplyWithAnOpenBurst_WritesItFirst_ThenAppliesTheAsset()
+    {
+        var rig = OpenDetail();
+        var liveReverb = Assert.IsType<ReverbEffect>(LiveEffects(rig)[2]);
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+
+        rig.Panel.ApplyToLive();
+
+        Assert.False(HasPending(rig));
+        Assert.Equal(0.25f, WetOf(rig));
+        Assert.Equal(0.25f, liveReverb.Wet);
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void ClosingThePanelWithAnOpenBurst_DropsIt_AndLeavesTheLiveMixerAtTheSavedAsset()
+    {
+        var rig = OpenDetail();
+        var liveReverb = Assert.IsType<ReverbEffect>(LiveEffects(rig)[2]);
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+
+        rig.Panel.Dispose();
+
+        Assert.Equal(1f, liveReverb.Wet);
+        Assert.Equal(1f, ((ReverbEffect)LiveEffects(rig)[2]).Wet);
+        Assert.False(HasPending(rig));
+        Assert.False(CanUndo());
+
+        // Nothing is left to write: the view no longer holds the document.
+        rig.Panel.Update(1f);
+        Assert.False(CanUndo());
+    }
+
+    [Fact]
+    public void ClosingTheDocumentOfAModifiedPanel_GivesTheSavedAssetBackToTheLiveMixer_BurstOrNot()
+    {
+        var rig = OpenDetail();
+        var liveReverb = Assert.IsType<ReverbEffect>(LiveEffects(rig)[2]);
+        Field(rig.Content, "effect-param:2:2").Value = 0.4f;
+        rig.Panel.Update(0.5f);
+        Assert.Equal(0.4f, liveReverb.Wet);
+        Type(Field(rig.Content, "effect-param:2:3"), "0.5");
+
+        rig.Panel.Dispose();
+
+        Assert.Equal(1f, liveReverb.Wet);
+        Assert.Equal(0f, liveReverb.Dry);
+    }
+
+    [Fact]
+    public void AnUndoWhileABurstIsOpen_TakesTheBurstBack_TheFieldShowsTheDocument()
+    {
+        var rig = OpenDetail();
+        Press(DetailButton(rig.Content, "effect-up:1")); // an entry to undo
+        var field = Field(rig.Content, "effect-param:2:2");
+        Type(field, "0.25");
+        Assert.True(HasPending(rig));
+
+        EditorHistoryService.Current.SetActiveContext(Context);
+        Assert.True(EditorHistoryService.Current.Undo());
+
+        Assert.False(HasPending(rig));
+        Assert.Equal(1f, Field(rig.Content, "effect-param:2:2").Value);
+        rig.Panel.Update(1f);
+        Assert.Equal(1f, WetOf(rig));
+        Assert.False(CanUndo());
+    }
+
+    // ----- one history entry per user intent: buttons and combos
+
+    [Fact]
+    public void UpAndDown_AreOneEntryEach_AndTheLiveBusFollows()
+    {
+        var rig = OpenDetail();
+        AssertEffectTypes(rig, BiquadData, CompressorData, ReverbData, DuckingData);
+
+        Press(DetailButton(rig.Content, "effect-up:1"));
+
+        AssertEffectTypes(rig, CompressorData, BiquadData, ReverbData, DuckingData);
+        Assert.True(CanUndo());
+
+        Press(DetailButton(rig.Content, "effect-down:2"));
+
+        AssertEffectTypes(rig, CompressorData, BiquadData, DuckingData, ReverbData);
+        Assert.Equal(2, UndoEverything());
+        AssertEffectTypes(rig, BiquadData, CompressorData, ReverbData, DuckingData);
+    }
+
+    [Fact]
+    public void TheRowsFollowTheMove_AndTheValuesStayWithTheirEffect()
+    {
+        var rig = OpenDetail();
+
+        Press(DetailButton(rig.Content, "effect-up:1"));
+
+        Assert.Equal(-18f, Field(rig.Content, "effect-param:0:0").Value);
+        Assert.Equal(200f, Field(rig.Content, "effect-param:1:0").Value);
+        Assert.Equal("High-pass", Combo(rig.Content, "effect-filter:1").SelectedItem);
+        Assert.False(DetailButton(rig.Content, "effect-up:0").IsEnabled);
+        Assert.True(DetailButton(rig.Content, "effect-up:1").IsEnabled);
+    }
+
+    [Fact]
+    public void Delete_IsOneEntry_AndAddAppendsTheDefaultsOfTheKind_AsOneEntry()
+    {
+        var rig = OpenDetail(effects: 2);
+
+        Press(DetailButton(rig.Content, "effect-delete:0"));
+
+        AssertEffectTypes(rig, CompressorData);
+        Assert.True(CanUndo());
+
+        Combo(rig.Content, "effect-add-kind").SelectedItem = "Reverb";
+        Press(DetailButton(rig.Content, "effect-add"));
+
+        AssertEffectTypes(rig, CompressorData, ReverbData);
+        Assert.Equal(AudioMixerEffectCatalog.CreateDefault(AudioMixerEffectKind.Reverb, null), AssetEffects(rig)[1]);
+        Assert.Equal(AudioMixerEffectDefaults.ReverbRoomSize, ((ReverbEffect)LiveEffects(rig)[1]).RoomSize);
+        Assert.Equal("Reverb", Combo(rig.Content, "effect-add-kind").SelectedItem);
+        Assert.Equal(2, UndoEverything());
+        AssertEffectTypes(rig, BiquadData, CompressorData);
+    }
+
+    [Fact]
+    public void AddingADucking_TakesABusThatCanDriveIt_VoiceFirst()
+    {
+        var rig = OpenDetail(effects: 0);
+        Combo(rig.Content, "effect-add-kind").SelectedItem = "Ducking";
+
+        Press(DetailButton(rig.Content, "effect-add"));
+
+        var ducking = Assert.IsType<AudioMixerDuckingEffectData>(AssetEffects(rig)[0]);
+        Assert.Equal("Voice", ducking.Source);
+        Assert.Equal("Voice", ((DuckingEffect)LiveEffects(rig)[0]).Source.Name);
+        Assert.Equal(1, UndoEverything());
+
+        // On Ui, Voice still comes first although Music is before it; on Voice itself, the first bus that can drive it: Music.
+        Assert.True(rig.Panel.SelectBus("Ui"));
+        Combo(rig.Content, "effect-add-kind").SelectedItem = "Ducking";
+        Press(DetailButton(rig.Content, "effect-add"));
+
+        Assert.Equal("Voice", Assert.IsType<AudioMixerDuckingEffectData>(AssetEffects(rig, "Ui")[0]).Source);
+
+        Assert.True(rig.Panel.SelectBus("Voice"));
+        Combo(rig.Content, "effect-add-kind").SelectedItem = "Ducking";
+        Press(DetailButton(rig.Content, "effect-add"));
+
+        Assert.Equal("Music", Assert.IsType<AudioMixerDuckingEffectData>(AssetEffects(rig, "Voice")[0]).Source);
+    }
+
+    [Fact]
+    public void AnAddedDuckingThatNoBusCanDrive_IsRefusedWithAMessage()
+    {
+        // Sfx sends to every other bus: any of them driving a ducking on Sfx would close a loop.
+        var rig = Open(customize: asset =>
+        {
+            var sfx = asset.Buses.Single(bus => bus.Name == "Sfx");
+            foreach (string target in new[] { "Music", "Voice", "Ui" })
+            {
+                sfx.Sends.Add(new AudioMixerSendData(target, 0.1f));
+            }
+        });
+        Assert.True(rig.Panel.SelectBus("Sfx"));
+        Combo(rig.Content, "effect-add-kind").SelectedItem = "Ducking";
+
+        Press(DetailButton(rig.Content, "effect-add"));
+
+        Assert.True(StatusContains(rig, "No bus can be the ducking source of 'Sfx'."));
+        Assert.Empty(AssetEffects(rig));
+        Assert.False(CanUndo());
+        Assert.False(rig.Document.IsDirty);
+    }
+
+    [Fact]
+    public void ChangingTheNewSendTarget_WritesTheLevelTypedForThePreviousTarget_AtOnce()
+    {
+        var rig = OpenDetail(effects: 0);
+        var sfx = rig.Service.Mixer.GetBus("Sfx");
+        Combo(rig.Content, "send-new-target").SelectedItem = "Voice";
+        Field(rig.Content, "send-new-level").Value = 0.4f;
+        Assert.True(HasPending(rig));
+
+        Combo(rig.Content, "send-new-target").SelectedItem = "Ui";
+
+        Assert.False(HasPending(rig));
+        Assert.Equal(0.4f, sfx.GetSend(rig.Service.Mixer.GetBus("Voice")));
+        Assert.Equal(0f, sfx.GetSend(rig.Service.Mixer.GetBus("Ui")));
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void AFifthEffect_IsRefusedWithTheMessageOfTheDocument()
+    {
+        var rig = OpenDetail();
+        Assert.False(DetailButton(rig.Content, "effect-add").IsEnabled);
+
+        Assert.False(rig.Panel.DetailView.TryAddEffect(AudioMixerEffectKind.Compressor));
+
+        Assert.True(StatusContains(rig, "already holds 4 effects"));
+        Assert.False(CanUndo());
+        Assert.False(rig.Document.IsDirty);
+        Assert.Equal(4, AssetEffects(rig).Count);
+        Assert.Equal(4, LiveEffects(rig).Count);
+    }
+
+    [Fact]
+    public void ChangingTheFilterType_IsOneEntry()
+    {
+        var rig = OpenDetail();
+        var combo = Combo(rig.Content, "effect-filter:0");
+
+        combo.SelectedItem = "Low-pass";
+
+        var biquad = Assert.IsType<AudioMixerBiquadEffectData>(AssetEffects(rig)[0]);
+        Assert.Equal(BiquadFilterType.LowPass, biquad.FilterType);
+        Assert.Equal(200f, biquad.FrequencyHz);
+        Assert.Equal(BiquadFilterType.LowPass, ((BiquadFilterEffect)LiveEffects(rig)[0]).Type);
+        Assert.Same(combo, Combo(rig.Content, "effect-filter:0"));
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal(BiquadFilterType.HighPass, ((BiquadFilterEffect)LiveEffects(rig)[0]).Type);
+        Assert.Equal("High-pass", combo.SelectedItem);
+    }
+
+    [Fact]
+    public void ChangingTheDuckingSource_ReplacesTheLiveEffect_AsOneEntry()
+    {
+        var rig = OpenDetail();
+        var before = Assert.IsType<DuckingEffect>(LiveEffects(rig)[3]);
+        Assert.Equal("Voice", before.Source.Name);
+
+        Combo(rig.Content, "effect-source:3").SelectedItem = "Ui";
+
+        var after = Assert.IsType<DuckingEffect>(LiveEffects(rig)[3]);
+        Assert.NotSame(before, after);
+        Assert.Equal("Ui", after.Source.Name);
+        Assert.DoesNotContain(before, LiveEffects(rig));
+        Assert.Equal("Ui", ((AudioMixerDuckingEffectData)AssetEffects(rig)[3]).Source);
+        Assert.Equal(4, LiveEffects(rig).Count);
+        Assert.Equal("Ui", Combo(rig.Content, "effect-source:3").SelectedItem);
+
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal("Voice", ((AudioMixerDuckingEffectData)AssetEffects(rig)[3]).Source);
+        Assert.Equal("Voice", ((DuckingEffect)LiveEffects(rig)[3]).Source.Name);
+        Assert.Equal("Voice", Combo(rig.Content, "effect-source:3").SelectedItem);
+    }
+
+    [Fact]
+    public void ADuckingSourceThatMakesACycle_IsRefusedWithTheMessage_AndTheComboGoesBack()
+    {
+        var rig = OpenDetail();
+        var before = LiveEffects(rig)[3];
+
+        // Sfx sends to Reverb: Reverb ducking Sfx would close the loop (the other way round, Reverb is a source of Sfx).
+        Combo(rig.Content, "effect-source:3").SelectedItem = "Reverb";
+
+        Assert.True(StatusContains(rig, "A ducking of 'Sfx' by 'Reverb' would make a cycle."));
+        Assert.False(CanUndo());
+        Assert.False(rig.Document.IsDirty);
+        Assert.Equal("Voice", ((AudioMixerDuckingEffectData)AssetEffects(rig)[3]).Source);
+
+        rig.Panel.Update(Frame);
+
+        Assert.Equal("Voice", Combo(rig.Content, "effect-source:3").SelectedItem);
+        Assert.Same(before, LiveEffects(rig)[3]);
+    }
+
+    // ----- sends
+
+    [Fact]
+    public void ACyclingSend_IsRefusedWithTheMessageOfTheDocument_AndTheFieldIsBackToZero()
+    {
+        var rig = OpenDetail(effects: 2);
+        Combo(rig.Content, "send-new-target").SelectedItem = "Footsteps"; // a child of Sfx
+        var level = Field(rig.Content, "send-new-level");
+
+        level.Value = 0.5f;
+        Assert.True(HasPending(rig));
+        rig.Panel.Update(0.5f);
+
+        Assert.True(StatusContains(rig, "A send from 'Sfx' to 'Footsteps' would make a cycle."));
+        Assert.False(CanUndo());
+        Assert.False(rig.Document.IsDirty);
+        Assert.Equal(2, rig.Document.Asset.Buses.Single(bus => bus.Name == "Sfx").Sends.Count);
+        Assert.Equal(0f, Field(rig.Content, "send-new-level").Value);
+        Assert.Same(level, Field(rig.Content, "send-new-level"));
+        Assert.Equal("Footsteps", Combo(rig.Content, "send-new-target").SelectedItem);
+    }
+
+    [Fact]
+    public void ANewSend_IsOneEntry_AndALevelOfZeroRemovesIt()
+    {
+        var rig = OpenDetail(effects: 0);
+        var sfx = rig.Service.Mixer.GetBus("Sfx");
+        var voice = rig.Service.Mixer.GetBus("Voice");
+        Combo(rig.Content, "send-new-target").SelectedItem = "Voice";
+
+        Field(rig.Content, "send-new-level").Value = 0.4f;
+        rig.Panel.Update(0.5f);
+
+        Assert.Equal(0.4f, rig.Document.Asset.Buses.Single(bus => bus.Name == "Sfx").Sends.Single(send => send.Target == "Voice").Level);
+        Assert.Equal(0.4f, sfx.GetSend(voice));
+        Assert.Equal(0.4f, Field(rig.Content, "send-level:Voice").Value);
+        Assert.Equal(0f, Field(rig.Content, "send-new-level").Value);
+        Assert.DoesNotContain("Voice", Combo(rig.Content, "send-new-target").ItemsSource);
+        Assert.True(CanUndo());
+
+        Field(rig.Content, "send-level:Voice").Value = 0f;
+        rig.Panel.Update(0.5f);
+
+        Assert.DoesNotContain(rig.Document.Asset.Buses.Single(bus => bus.Name == "Sfx").Sends, send => send.Target == "Voice");
+        Assert.Equal(0f, sfx.GetSend(voice));
+        Assert.False(IsTagged<NumericField>(rig.Content, "send-level:Voice"));
+        Assert.Contains("Voice", Combo(rig.Content, "send-new-target").ItemsSource);
+
+        Assert.Equal(2, UndoEverything());
+        Assert.Equal(2, sfx.Sends.Count);
+    }
+
+    [Fact]
+    public void ChangingTheLevelOfASend_IsOneEntry_AndTheLiveSendFollows()
+    {
+        var rig = OpenDetail(effects: 0);
+        var sfx = rig.Service.Mixer.GetBus("Sfx");
+        var reverb = rig.Service.Mixer.GetBus("Reverb");
+
+        Type(Field(rig.Content, "send-level:Reverb"), "0.75");
+        rig.Panel.Update(0.5f);
+
+        Assert.Equal(0.75f, sfx.GetSend(reverb));
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal(0.3f, sfx.GetSend(reverb));
+        Assert.Equal(0.3f, Field(rig.Content, "send-level:Reverb").Value);
+    }
+
+    [Fact]
+    public void AtFourSends_TheNewSendRowIsDisabled()
+    {
+        var rig = OpenDetail(effects: 0);
+        foreach (string target in new[] { "Voice", "Ui" })
+        {
+            Combo(rig.Content, "send-new-target").SelectedItem = target;
+            Field(rig.Content, "send-new-level").Value = 0.5f;
+            rig.Panel.Update(0.5f);
+        }
+
+        Assert.Equal(4, rig.Document.Asset.Buses.Single(bus => bus.Name == "Sfx").Sends.Count);
+        Assert.False(Combo(rig.Content, "send-new-target").IsEnabled);
+        Assert.False(Field(rig.Content, "send-new-level").IsEnabled);
+        Assert.Equal(2, UndoEverything());
+    }
+
+    // ----- rebuild and refresh
+
+    [Fact]
+    public void TheControls_AreRebuiltOnlyWhenTheStructureChanges_NeverPerFrame()
+    {
+        var rig = OpenDetail();
+        var up = DetailButton(rig.Content, "effect-up:1");
+        var field = Field(rig.Content, "effect-param:0:0");
+        Frames(rig, 60);
+        Assert.Same(up, DetailButton(rig.Content, "effect-up:1"));
+
+        // A value only: written into the control that is there.
+        field.Value = 500f;
+        rig.Panel.Update(0.5f);
+        Assert.Same(field, Field(rig.Content, "effect-param:0:0"));
+        Assert.Same(up, DetailButton(rig.Content, "effect-up:1"));
+
+        // A mute is not a change of the structure either.
+        rig.Document.SetMute("Voice", true);
+        rig.Document.SetBusVolume("Music", 0.7f);
+        Assert.Same(up, DetailButton(rig.Content, "effect-up:1"));
+
+        // A move is.
+        Press(up);
+        Assert.NotSame(up, DetailButton(rig.Content, "effect-up:1"));
+    }
+
+    [Fact]
+    public void UndoAndRedo_PutTheFieldsBack_InPlace_WithoutANewEntry()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        field.Value = 0.4f;
+        rig.Panel.Update(0.5f);
+        Assert.True(CanUndo());
+
+        EditorHistoryService.Current.SetActiveContext(Context);
+        Assert.True(EditorHistoryService.Current.Undo());
+        Frames(rig, 40);
+
+        Assert.Same(field, Field(rig.Content, "effect-param:2:2"));
+        Assert.Equal(1f, field.Value);
+        Assert.False(HasPending(rig));
+        Assert.False(CanUndo());
+        Assert.True(EditorHistoryService.Current.CanRedo);
+
+        Assert.True(EditorHistoryService.Current.Redo());
+        Frames(rig, 40);
+
+        Assert.Equal(0.4f, field.Value);
+        Assert.False(HasPending(rig));
+        Assert.True(CanUndo());
+        Assert.False(EditorHistoryService.Current.CanRedo);
+        Assert.Equal(1, UndoEverything());
+    }
+
+    [Fact]
+    public void AFieldValueOutsideTheBounds_IsShownClamped_AndLeftAlone()
+    {
+        var rig = Open(customize: asset =>
+        {
+            asset.Buses.Single(bus => bus.Name == "Sfx").Effects.Add(new AudioMixerBiquadEffectData(BiquadFilterType.LowPass, 50000f));
+        });
+        Assert.True(rig.Panel.SelectBus("Sfx"));
+
+        Assert.Equal(BiquadFilterEffect.MaxFrequencyHz, Field(rig.Content, "effect-param:0:0").Value);
+        Assert.Equal(50000f, ((AudioMixerBiquadEffectData)AssetEffects(rig)[0]).FrequencyHz);
+        Frames(rig, 40);
+        Assert.False(rig.Document.IsDirty);
+        Assert.False(CanUndo());
+    }
+
+    // ----- the play session (P51)
+
+    [Fact]
+    public void DuringAPlaySession_EveryEditingControlOfTheDetailIsDisabled_AndTheEditsAreRefused()
+    {
+        var rig = OpenDetail(effects: 2);
+        var controls = EditingControls(rig.Content);
+        Assert.NotEmpty(controls);
+
+        EditorHistoryService.Current.IsSuspended = true;
+        rig.Panel.Update(Frame);
+
+        Assert.All(controls, control => Assert.False(control.IsEnabled, (string)control.Tag));
+        Assert.All(
+            controls.OfType<NumericField>(),
+            field =>
+            {
+                Assert.False(TextBoxOf(field).DerivedIsEnabled, (string)field.Tag);
+                Assert.All(field.TraverseVisualTree().OfType<MGButton>(), button => Assert.False(button.DerivedIsEnabled, (string)field.Tag));
+            });
+
+        Assert.False(rig.Panel.DetailView.TryAddEffect(AudioMixerEffectKind.Reverb));
+        Assert.True(StatusContains(rig, "Mixer edits are disabled during a play session."));
+        Assert.Equal(2, AssetEffects(rig).Count);
+        Assert.False(CanUndo());
+
+        EditorHistoryService.Current.IsSuspended = false;
+        rig.Panel.Update(Frame);
+
+        Assert.All(
+            controls.Where(control => (string)control.Tag != "effect-up:0" && (string)control.Tag != "effect-down:1"),
+            control => Assert.True(control.IsEnabled, (string)control.Tag));
+        Assert.False(DetailButton(rig.Content, "effect-up:0").IsEnabled);
+        Assert.False(DetailButton(rig.Content, "effect-down:1").IsEnabled);
+    }
+
+    [Fact]
+    public void ADetailOpenedDuringAPlaySession_StartsLocked()
+    {
+        EditorHistoryService.Current.IsSuspended = true;
+        var rig = Open(customize: DetailAsset());
+
+        Assert.True(rig.Panel.SelectBus("Sfx"));
+
+        Assert.NotEmpty(EditingControls(rig.Content));
+        Assert.All(EditingControls(rig.Content), control => Assert.False(control.IsEnabled, (string)control.Tag));
+    }
+
+    [Fact]
+    public void APlaySessionStartingWithAnOpenBurst_RecordsTheBurst_AndKeepsItsEntry()
+    {
+        var rig = OpenDetail();
+        Type(Field(rig.Content, "effect-param:2:2"), "0.25");
+        Assert.True(HasPending(rig));
+
+        EditorHistoryService.Current.IsSuspended = true;
+        rig.Panel.Update(Frame);
+
+        // The service refuses commands now, yet the change made before the session started is recorded.
+        Assert.False(HasPending(rig));
+        Assert.True(CanUndo());
+        Assert.True(rig.Document.IsDirty);
+        Assert.Equal(0.25f, WetOf(rig));
+
+        EditorHistoryService.Current.IsSuspended = false;
+        rig.Panel.Update(Frame);
+        Assert.Equal(1, UndoEverything());
+        Assert.Equal(1f, WetOf(rig));
+    }
+
+    [Fact]
+    public void AFocusLossOnTheFirstFrameOfASession_StillRecordsTheBurst()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        SetKeyboardFocus(rig.Harness.Desktop, TextBoxOf(field));
+        Type(field, "0.25");
+
+        // The session starts, and the focus leaves the field before the panel has seen it.
+        EditorHistoryService.Current.IsSuspended = true;
+        SetKeyboardFocus(rig.Harness.Desktop, null);
+
+        Assert.False(HasPending(rig));
+        Assert.True(CanUndo());
+        Assert.Equal(0.25f, WetOf(rig));
+    }
+
+    [Fact]
+    public void AFieldChangeThatRacesTheFirstFrameOfASession_IsTakenBack()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        EditorHistoryService.Current.IsSuspended = true;
+
+        // The panel has not seen the session yet: the field is still enabled.
+        field.Value = 0.4f;
+
+        Assert.False(HasPending(rig));
+        rig.Panel.Update(Frame);
+        Assert.Equal(1f, field.Value);
+        Assert.Equal(1f, WetOf(rig));
+        Assert.Equal(1f, ((ReverbEffect)LiveEffects(rig)[2]).Wet);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.False(CanUndo());
+    }
+
+    // ----- allocation
+
+    [Fact]
+    public void Update_WithTheDetailShown_AllocatesNothing_EvenWithABurstOpen()
+    {
+        var rig = OpenDetail();
+        var field = Field(rig.Content, "effect-param:2:2");
+        Frames(rig, 10);
+
+        long before = AllocationWindow.Start();
+        Frames(rig, 30);
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.Equal(0, allocated);
+
+        field.Value = 0.4f;
+        Frames(rig, 2);
+
+        before = AllocationWindow.Start();
+        Frames(rig, 10);
+        allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.True(HasPending(rig));
+        Assert.Equal(0, allocated);
+    }
+
+    // ----- rendered
+
+    private static PcmAudioClip SineClip(double frequency, double amplitude)
+    {
+        var samples = new short[2 * 48000];
+        for (int frame = 0; frame < 48000; frame++)
+        {
+            short value = (short)Math.Round(amplitude * 32767.0 * Math.Sin(2.0 * Math.PI * frequency * frame / 48000.0));
+            samples[2 * frame] = value;
+            samples[(2 * frame) + 1] = value;
+        }
+
+        return new PcmAudioClip(samples, 48000, 2);
+    }
+
+    /// <summary>Renders blocks of 10 ms and returns the largest peak of the last three.</summary>
+    private static float PumpPeak(OfflineAudioOutput output, int blocks)
+    {
+        float peak = 0f;
+        for (int block = 0; block < blocks; block++)
+        {
+            float blockPeak = output.Pump(480);
+            if (block >= blocks - 3)
+            {
+                peak = Math.Max(peak, blockPeak);
+            }
+        }
+
+        return peak;
+    }
+
+    [Fact]
+    public void ALowPassAt500Hz_AddedInThePanelOnSfx_TakesAnEightKilohertzSineBelowATenthOfItsPeak_Rendered()
+    {
+        var output = new OfflineAudioOutput();
+        var rig = Open(backend: new SoftwareAudioBackend(output, 16));
+        rig.Service.MasterLimiter.IsEnabled = false;
+        Assert.True(rig.Panel.SelectBus("Sfx"));
+        var clip = SineClip(8000.0, 0.5);
+
+        rig.Service.PlayClip(clip, "Sfx", AudioVoiceParameters.Default.WithLooping(true));
+        rig.Service.Update(0.01f);
+        float unfiltered = PumpPeak(output, 12);
+        rig.Service.StopAll();
+        rig.Service.Update(0.01f);
+        Assert.True(PumpPeak(output, 30) < 0.001f);
+        Assert.True(unfiltered > 0.1f, $"unfiltered peak {unfiltered}");
+
+        // The panel adds a biquad (a low-pass at 1000 Hz by default) and sets its frequency to 500 Hz.
+        Press(DetailButton(rig.Content, "effect-add"));
+        Field(rig.Content, "effect-param:0:0").Value = 500f;
+        rig.Panel.Update(0.5f);
+        Assert.Equal(500f, ((BiquadFilterEffect)LiveEffects(rig)[0]).FrequencyHz);
+        Assert.Equal(BiquadFilterType.LowPass, ((BiquadFilterEffect)LiveEffects(rig)[0]).Type);
+
+        rig.Service.PlayClip(clip, "Sfx", AudioVoiceParameters.Default.WithLooping(true));
+        rig.Service.Update(0.01f);
+        float filtered = PumpPeak(output, 12);
+
+        Assert.True(filtered < unfiltered / 10f, $"filtered peak {filtered}, unfiltered peak {unfiltered}");
+        Assert.Equal(2, UndoEverything());
+        Assert.Empty(LiveEffects(rig));
     }
 }

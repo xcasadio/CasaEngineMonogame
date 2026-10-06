@@ -4,12 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Audio;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.FillBrushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
 using Newtonsoft.Json.Linq;
@@ -22,8 +24,8 @@ namespace CasaEngine.Editor.Controls;
 /// <summary>
 /// The document panel of one <c>.audioMixer</c> asset (plan T10.5 and T10.6, decisions P49 to P54): the editing shell around an
 /// <see cref="AudioMixerDocument"/> (header, banners, Save, Reload, Apply, problem list) and the bus strips below it: a fader, a
-/// dB readout, mute and solo, a level meter and, for a custom bus, a delete button, plus a row to add a bus. The detail views of
-/// a bus are built below the strips.
+/// dB readout, mute and solo, a level meter and, for a custom bus, a delete button, plus a row to add a bus. Clicking the name of
+/// a bus of the asset selects it; below the strips, an <see cref="AudioMixerBusDetailView"/> edits its effects, sends and ducking (T10.7).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -41,9 +43,11 @@ namespace CasaEngine.Editor.Controls;
 /// </para>
 /// <para>
 /// A fader moves through an <see cref="AudioMixerGestureTracker"/>: one burst of changes (a drag, a key repeat, a click on the track)
-/// is one history entry, closed by <see cref="Update"/> at the first frame without change where the fader is no longer held. While the
-/// editor history is suspended (a play session) the faders, Save, Apply, adding and removing a bus are disabled; mute, solo and the
-/// meters stay active.
+/// is one history entry, closed by <see cref="Update"/> at the first frame without change where the fader is no longer held. The
+/// numeric fields of the detail view group their changes the same way (see <see cref="AudioMixerBusDetailView"/>). While the editor
+/// history is suspended (a play session) the faders, the controls of the detail view, Save, Apply, adding and removing a bus are
+/// disabled; mute, solo and the meters stay active. A numeric field with changes not written yet counts as unsaved (<see cref="IsDirty"/>),
+/// and Save, Apply and Reload write them first (closing the document drops them: they never reached the asset nor the live mixer).
 /// </para>
 /// <para>
 /// A document is live (it drives the project's mixer) only when it was given the applier of the project mixer; otherwise its
@@ -58,7 +62,7 @@ public sealed class AudioMixerPanel : IDisposable
     private const string LiveBannerText = "Live: changes are applied to the mixer";
     private const string SoftwareOnlyBannerText = "Effects, sends and ducking: software backend only";
     private const string PlayLockBannerText = "Stop play mode to edit the mixer";
-    private const string PlayLockRefusalText = "Mixer edits are disabled during a play session.";
+    private const string PlayLockRefusalText = AudioMixerBusDetailView.PlayLockRefusalText;
 
     private const int NameColumnWidth = 130;
     private const int ReadoutColumnWidth = 66;
@@ -72,6 +76,7 @@ public sealed class AudioMixerPanel : IDisposable
     private readonly MGWindow _window;
     private readonly Func<AudioService?> _audioServiceProvider;
     private readonly AudioProfilerModel _meterModel;
+    private readonly AudioMixerBusDetailView _detailView;
     private readonly List<StripRow> _strips = new();
     private readonly List<StripSpec> _builtSpecs = new();
     private readonly List<StripSpec> _wantedSpecs = new();
@@ -103,6 +108,7 @@ public sealed class AudioMixerPanel : IDisposable
     private string? _loadedRelativePath;
     private string? _loadedFullPath;
     private string? _historyContextId;
+    private string? _selectedBus;
     private IReadOnlyList<string> _shownProblems = Array.Empty<string>();
     private AudioMeterTrack[]? _builtTracks;
     private int _builtLiveBusCount = -2;
@@ -119,20 +125,30 @@ public sealed class AudioMixerPanel : IDisposable
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _audioServiceProvider = audioServiceProvider ?? throw new ArgumentNullException(nameof(audioServiceProvider));
         _meterModel = new AudioProfilerModel(_audioServiceProvider);
+        _detailView = new AudioMixerBusDetailView(_window, _audioServiceProvider, SetStatus);
         _isPlayLocked = EditorHistoryService.Current.IsSuspended;
     }
 
     /// <summary>The document being edited, null until <see cref="LoadAsset"/>.</summary>
     public AudioMixerDocument? Document => _document;
 
+    /// <summary>The detail of the selected bus: its effects, sends and ducking.</summary>
+    internal AudioMixerBusDetailView DetailView => _detailView;
+
+    /// <summary>The bus whose detail is shown (the one whose name was clicked), or null.</summary>
+    internal string? SelectedBus => _selectedBus;
+
     /// <summary>The meters the strips draw: the panel's own model, with its own meter cursor (the Audio panel keeps its own).</summary>
     internal AudioProfilerModel MeterModel => _meterModel;
 
     public string? LoadedRelativePath => _loadedRelativePath;
 
-    public bool IsDirty => _document?.IsDirty ?? false;
+    /// <summary>True when the document has unsaved changes, or a numeric field has changes the document does not hold yet (they are written by Save).</summary>
+    public bool IsDirty => IsDocumentDirty || _detailView.HasPendingEdit;
 
-    /// <summary>Raised when <see cref="IsDirty"/> changed.</summary>
+    private bool IsDocumentDirty => _document?.IsDirty ?? false;
+
+    /// <summary>Raised when the dirty state of the document changed.</summary>
     public event Action<AudioMixerPanel>? DirtyStateChanged;
 
     /// <summary>
@@ -215,6 +231,7 @@ public sealed class AudioMixerPanel : IDisposable
         _document = new AudioMixerDocument(asset, _loadedRelativePath, liveApplier, ExecuteCommand);
         _document.Changed += OnDocumentChanged;
         _gestureTracker = new AudioMixerGestureTracker(_document);
+        _detailView.SetDocument(_document);
 
         bool wasDirty = _lastDirty;
         _lastDirty = _document.IsDirty;
@@ -243,8 +260,9 @@ public sealed class AudioMixerPanel : IDisposable
             return false;
         }
 
-        // A fader gesture still open is a change that is not saved yet.
+        // A fader gesture, or a numeric field, still open is a change that is not saved yet.
         _gestureTracker?.End();
+        _detailView.FlushPending();
         _document.EndGesture();
         if (_document.IsDirty)
         {
@@ -280,6 +298,7 @@ public sealed class AudioMixerPanel : IDisposable
             return false;
         }
 
+        _detailView.FlushPending();
         if (!_document.TrySave(out string error))
         {
             errorMessage = error;
@@ -310,6 +329,7 @@ public sealed class AudioMixerPanel : IDisposable
             return;
         }
 
+        _detailView.FlushPending();
         _document.ApplyToLive();
         SetStatus("Applied to the live mixer");
     }
@@ -399,6 +419,7 @@ public sealed class AudioMixerPanel : IDisposable
         _bodyHost.TryAddChild(_stripsHost);
         _addRow = CreateAddRow();
         _bodyHost.TryAddChild(_addRow);
+        _bodyHost.TryAddChild(_detailView.Root);
 
         var scrolled = new MGStackPanel(_window, Orientation.Vertical);
         scrolled.TryAddChild(_problemsHost);
@@ -424,8 +445,9 @@ public sealed class AudioMixerPanel : IDisposable
 
     /// <summary>
     /// Reads the meters from the audio service, follows the play session (see the remarks of the class), closes a fader gesture that
-    /// is over and follows the live mixer (a bus the game created, the volume of Master and Editor). Allocation free while nothing
-    /// changes. Call it on every editor frame while the panel is the active document.
+    /// is over, gives the detail view its frame (it closes a numeric field burst that is over) and follows the live mixer (a bus the
+    /// game created, the volume of Master and Editor). Allocation free while nothing changes. Call it on every editor frame while the
+    /// panel is the active document.
     /// </summary>
     /// <param name="elapsedSeconds">The time since the previous call.</param>
     public void Update(float elapsedSeconds)
@@ -439,6 +461,7 @@ public sealed class AudioMixerPanel : IDisposable
 
         UpdatePlayLock();
         TickGesture();
+        _detailView.Update(elapsedSeconds);
         RefreshLiveStructure();
         RefreshLiveVolumes();
     }
@@ -463,6 +486,7 @@ public sealed class AudioMixerPanel : IDisposable
 
         _isDisposed = true;
         CloseDocument();
+        _detailView.Dispose();
     }
 
     private void CloseDocument()
@@ -477,6 +501,9 @@ public sealed class AudioMixerPanel : IDisposable
         _document = null;
         _gestureTracker = null;
         document.Changed -= OnDocumentChanged;
+
+        // A numeric field with changes not written yet drops them: nothing of them reached the asset nor the live mixer.
+        _detailView.SetDocument(null);
 
         tracker?.End();
         document.EndGesture();
@@ -496,10 +523,11 @@ public sealed class AudioMixerPanel : IDisposable
         }
 
         // The change is already applied when the command arrives, so the history only records it.
-        if (_recordDespiteSuspension)
+        if (_recordDespiteSuspension || _detailView.IsCommittingBurst)
         {
-            // The fader gesture a play session interrupted: the service refuses commands from now on, and the entry would be lost
-            // while the document stays modified. The change was made before the session started, so it is recorded.
+            // The fader gesture (or the numeric field burst) a play session interrupted: the service refuses commands from now on, and
+            // the entry would be lost while the document stays modified. The change was made before the session started, so it is
+            // recorded.
             EditorHistoryService.Current.GetOrCreate(historyContext).Execute(command);
             return;
         }
@@ -521,7 +549,7 @@ public sealed class AudioMixerPanel : IDisposable
 
     private void OnDocumentChanged(object? sender, EventArgs e)
     {
-        bool isDirty = IsDirty;
+        bool isDirty = IsDocumentDirty;
         if (isDirty != _lastDirty)
         {
             _lastDirty = isDirty;
@@ -570,6 +598,7 @@ public sealed class AudioMixerPanel : IDisposable
             SetVisible(_notHeardBanner!, false);
             SetVisible(_softwareOnlyBanner!, false);
             RefreshProblems(Array.Empty<string>());
+            _selectedBus = null;
             ClearStrips();
             ApplyEnabledStates();
             return;
@@ -590,7 +619,24 @@ public sealed class AudioMixerPanel : IDisposable
         SetVisible(_softwareOnlyBanner!, _audioServiceProvider()?.Backend is not IAudioBusBackend);
 
         RefreshProblems(document.Problems);
+
+        // A bus the asset no longer holds (removed, or an undone addition) cannot stay selected.
+        if (_selectedBus != null && FindAssetBus(_selectedBus) == null)
+        {
+            _selectedBus = null;
+        }
+
         RefreshStrips();
+
+        if (string.Equals(_detailView.SelectedBus, _selectedBus, StringComparison.Ordinal))
+        {
+            _detailView.Refresh();
+        }
+        else
+        {
+            _detailView.Show(_selectedBus);
+        }
+
         ApplyEnabledStates();
     }
 
@@ -630,6 +676,8 @@ public sealed class AudioMixerPanel : IDisposable
                 strip.Remove.IsEnabled = canEdit;
             }
         }
+
+        _detailView.SetEditable(canEdit);
 
         if (_addRow != null)
         {
@@ -731,6 +779,11 @@ public sealed class AudioMixerPanel : IDisposable
 
         public string Name => Spec.Name;
 
+        public MGTextBlock? NameText { get; set; }
+
+        /// <summary>True while the name carries the selection highlight.</summary>
+        public bool IsHighlighted { get; set; }
+
         public MGSlider? Fader { get; set; }
 
         public MGTextBlock? Readout { get; set; }
@@ -768,9 +821,54 @@ public sealed class AudioMixerPanel : IDisposable
         else
         {
             RefreshStripValues();
+            ApplySelectionHighlight();
         }
 
         RefreshParentChoices();
+    }
+
+    /// <summary>
+    /// Selects the bus <paramref name="bus"/> of the asset: its name is highlighted in the strips and its detail is shown below them. False
+    /// when the asset has no such bus (a live bus the asset does not name, Master and Editor are not selectable: there is nothing of
+    /// theirs to edit).
+    /// </summary>
+    internal bool SelectBus(string bus)
+    {
+        var data = _document != null ? FindAssetBus(bus) : null;
+        if (data == null)
+        {
+            return false;
+        }
+
+        if (!string.Equals(_selectedBus, data.Name, StringComparison.Ordinal))
+        {
+            _selectedBus = data.Name;
+            ApplySelectionHighlight();
+            _detailView.Show(_selectedBus);
+        }
+
+        return true;
+    }
+
+    /// <summary>Puts the highlight on the name of the selected bus, and takes it off the others. Only writes what changed.</summary>
+    private void ApplySelectionHighlight()
+    {
+        for (int index = 0; index < _strips.Count; index++)
+        {
+            var strip = _strips[index];
+            bool isSelected = _selectedBus != null
+                              && strip.Spec.Kind == StripKind.Asset
+                              && string.Equals(strip.Name, _selectedBus, StringComparison.OrdinalIgnoreCase);
+            if (strip.NameText == null || strip.IsHighlighted == isSelected)
+            {
+                continue;
+            }
+
+            strip.IsHighlighted = isSelected;
+            strip.NameText.BackgroundBrush = new VisualStateFillBrush(isSelected
+                ? new MGSolidFillBrush(EditorThemePalette.AccentSelection)
+                : SolidFillBrushes.Transparent);
+        }
     }
 
     private void ClearStrips()
@@ -907,6 +1005,7 @@ public sealed class AudioMixerPanel : IDisposable
         _stripsHost.TryAddChild(grid);
         RefreshStripValues();
         RefreshLiveVolumes();
+        ApplySelectionHighlight();
     }
 
     private void AddStripRow(MGGrid grid, int rowIndex, StripSpec spec)
@@ -917,13 +1016,24 @@ public sealed class AudioMixerPanel : IDisposable
         var assetBus = spec.Kind == StripKind.Asset ? FindAssetBus(spec.Name) : null;
         bool isEditable = assetBus != null;
 
-        grid.TryAddChild(rowIndex, 0, new MGTextBlock(_window, EscapeMarkup(spec.Name))
+        var nameText = new MGTextBlock(_window, EscapeMarkup(spec.Name))
         {
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(spec.Depth * IndentPerDepth, 0, 0, 0),
             Opacity = isEditable ? 1f : ReadOnlyOpacity,
             WrapText = false,
-        });
+        };
+
+        if (isEditable)
+        {
+            // Clicking the name of a bus of the asset selects it: its effects and sends show below the strips.
+            nameText.Tag = "bus:" + spec.Name;
+            nameText.HorizontalAlignment = HorizontalAlignment.Stretch;
+            nameText.MouseHandler.LMBClickedInside += (_, _) => SelectBus(spec.Name);
+        }
+
+        strip.NameText = nameText;
+        grid.TryAddChild(rowIndex, 0, nameText);
 
         if (isEditable)
         {
@@ -1168,6 +1278,13 @@ public sealed class AudioMixerPanel : IDisposable
         }
 
         RefreshStrips();
+
+        // The choices of the detail view (the live buses) changed too, unless a numeric field is being typed in: its next write refreshes them.
+        if (!_detailView.HasPendingEdit)
+        {
+            _detailView.Refresh();
+        }
+
         ApplyEnabledStates();
     }
 
@@ -1258,12 +1375,13 @@ public sealed class AudioMixerPanel : IDisposable
 
         _isPlayLocked = isLocked;
 
-        if (isLocked && _gestureTracker != null)
+        if (isLocked)
         {
             _recordDespiteSuspension = true;
             try
             {
-                _gestureTracker.End();
+                _gestureTracker?.End();
+                _detailView.FlushPending();
             }
             finally
             {
@@ -1487,6 +1605,6 @@ public sealed class AudioMixerPanel : IDisposable
         return button;
     }
 
-    private static string EscapeMarkup(string value)
+    internal static string EscapeMarkup(string value)
         => value.Replace("[", "\\[").Replace("]", "\\]");
 }

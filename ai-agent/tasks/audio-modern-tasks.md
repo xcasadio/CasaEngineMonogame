@@ -3005,7 +3005,7 @@ de clôture **READY**.
   piste, M, S puis retrait, bus créé par le jeu en lecture seule, ajout et suppression de bus, mode jeu, enregistrer tout,
   fermeture d'un onglet modifié (le mixeur revient à l'asset enregistré), aspect des colonnes.
 
-### ⏳ T10.7 — Effets, départs et ducking d'un bus (P50)
+### 🧪 T10.7 — Effets, départs et ducking d'un bus (P50)
 
 - Fichiers : nouveaux `CasaEngine.EditorServices/Audio/AudioMixerEffectCatalog.cs` (pur),
   `CasaEngine.Editor/Controls/AudioMixerBusDetailView.cs` ; `AudioMixerPanel.cs` ; tests
@@ -3021,6 +3021,18 @@ de clôture **READY**.
   sur Sfx : un sinus à 8 kHz rend une crête inférieure au dixième (backend logiciel hors ligne). 🧪 auteur. Deux
   solutions ; suite verte.
 - Commit : `feat(editor): edit the effects, sends and ducking of a bus in the mixer panel`
+- Note de validation (2026-10-06) : `AudioMixerEffectCatalog` (bornes des constantes publiques du moteur, quelques bornes
+  privées du moteur recopiées et vérifiées par un test contre son bornage ; défauts du modèle d'asset ; pas choisis par
+  l'exécutant) ; `AudioMixerBusDetailView` : sélection d'un bus de l'asset par son nom, effets (haut, bas, supprimer,
+  champs, type de filtre, source du ducking, ajout) et départs ; une rafale de saisie est gardée en attente et écrite en
+  une seule opération après 0,5 s sans changement, à la perte du focus, à un autre geste, à Save, Apply, Reload ou au
+  passage en jeu ; le mixeur vivant suit donc à la fin de la rafale. Écarts gardés : la cible d'un départ existant ne se
+  change pas (le retirer puis l'ajouter, deux entrées ; pas de reciblage atomique dans le document) ; un `NumericField`
+  réagit déjà à la molette (contrôle partagé, hors périmètre). 73 tests, 26 mutations détectées ; rendu hors ligne : un
+  passe-bas à 500 Hz ajouté depuis le panneau ramène un sinus de 8 kHz sous le dixième de sa crête. Deux solutions sans
+  erreur, aucun avertissement dans les fichiers touchés ; 3928/3928. **🧪 pour l'auteur** : compresseur, retour de
+  réverbération alimenté par un départ de Sfx et ducking Voice → Music pendant une démo, annuler et rétablir, molette
+  sur un champ, aspect des lignes.
 
 ### ⏳ T10.8 — Niveau de la sortie dans le temps (P55)
 
