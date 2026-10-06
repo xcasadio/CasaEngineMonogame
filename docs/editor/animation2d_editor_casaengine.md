@@ -1226,4 +1226,8 @@ inspector de visualisation
 
 La composition, les tracks de propriétés et l’authoring complet de timeline sont reportés aux versions suivantes.
 
+Piste de coins (`Corners`, ADR-0069) : un asset `.anim2d` peut porter une piste `Corners` (clés `corner_keyframes`) qui dessine une partie comme un
+quad libre à quatre coins. L’éditeur ne la crée pas et ne l’affiche pas dans la timeline ; il la conserve : le snapshot d’annulation écrit
+`corner_keyframes` quand la liste n’est pas vide, de sorte qu’un undo ou un redo ne la perd pas.
+
 Decisions: see [ADR-0015](../decisions/0015-animation2d-editor-v1.md).

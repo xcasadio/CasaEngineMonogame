@@ -57,10 +57,40 @@ intent could not be confirmed from source, this is marked **unverified**.
 | `DrawOrderKeyframes` | `draw_order_keyframes` | array of `{time_seconds, value}` (value = int) | empty list | Keyframes for `Property == DrawOrder` (Animation2dTrackData.cs:41, 63, 123-139). |
 | `FlipKeyframes` | `flip_keyframes` | array of `{time_seconds, value}` (value = bool) | empty list | Keyframes for `Property == FlipX` or `Property == FlipY` — both flip axes share the same `flip_keyframes` list on a track (Animation2dTrackData.cs:43, 64, 105-121; applied per-axis in `Animation2dCompositionSampler.ApplyTrack`, Animation2dCompositionSampler.cs:227-240). |
 | `RotationKeyframes` | `rotation_keyframes` | array of `{time_seconds, value}` (value = float) | empty list | Keyframes for `Property == Rotation` (Animation2dTrackData.cs:45, 65, 141-157). |
+| `CornerKeyframes` | `corner_keyframes` | array of corner keys (see "Corner track") | empty list | Keyframes for `Property == Corners` (ADR-0069). Written only when not empty. |
 
 `Animation2dTrackProperty` values: `Sprite`, `Position`, `Visible`, `DrawOrder`, `FlipX`,
-`FlipY`, `Rotation` (Animation2dTrackData.cs:7-16). `Animation2dInterpolationMode` currently
-declares only `Step` (Animation2dTrackData.cs:18-21).
+`FlipY`, `Rotation`, `Corners` (Animation2dTrackData.cs:7-16; `Corners` was appended at the end,
+ADR-0069). `Animation2dInterpolationMode` currently declares only `Step` (Animation2dTrackData.cs:18-21).
+
+### Corner track (`Property == Corners`, ADR-0069)
+
+A part whose corner track is active is drawn as a free quad (four free vertices, the way the PS1
+draws its images) instead of a rectangle. One key:
+
+```json
+{ "time_seconds": 0.1, "enabled": true,
+  "top_left": { "x": -12.0, "y": 12.0 }, "top_right": { "x": 12.0, "y": 12.0 },
+  "bottom_left": { "x": -12.0, "y": -12.0 }, "bottom_right": { "x": 12.0, "y": -12.0 },
+  "source_offset": { "x": -1, "y": 0 } }
+```
+
+A disabled key is `{ "time_seconds": 0.3, "enabled": false }` (corners and offset omitted).
+
+- The corners are offsets in pixels (y up) from the value of the `Position` track of the part, in the
+  order top-left, top-right, bottom-left, bottom-right of the texture rectangle, and are multiplied by the
+  entity scale like the position. `source_offset` (integers, any value accepted) moves the source window of
+  the sprite.
+- Step semantics: the last key at the time or before applies. Before the first key and on a disabled key the
+  part is a rectangle, as without the track. A missing field reads as zero (`enabled`: false).
+- `corner_keyframes` is written only when not empty, so a file without a corner track is read and rewritten
+  byte for byte.
+- Drawing (`AnimatedSpriteComponent.DrawComposedAnimation`): a part with active corners goes through
+  `SpriteRendererComponent.DrawPsxQuad` (ADR-0068) with the same sort key, z and PSX mode as a rectangle part.
+  **The rotation and the flips of the part and the `SpriteEffect` of the component are ignored for it**: the
+  corners carry the whole geometry.
+- `Animation2dBoundsCalculator` takes the box of the corners (plus the part position) for such a part.
+- The corner track is not shown in the timeline of the animation editor; the undo snapshot keeps it.
 
 Each keyframe record is a `readonly record struct` with `TimeSeconds` (float, JSON
 `time_seconds`) and a typed `Value` (JSON `value`), one struct type per property kind
@@ -153,7 +183,7 @@ instance, and calls `Load`; any exception is caught and logged via `Logs.WriteEx
 
 `GetDurationSeconds()` returns the maximum `TimeSeconds` found across: every track's
 `SpriteKeyframes`, `PositionKeyframes`, `VisibleKeyframes`, `DrawOrderKeyframes`,
-`FlipKeyframes`, `RotationKeyframes` (last element only, since keyframes are expected in time
+`FlipKeyframes`, `RotationKeyframes`, `CornerKeyframes` (last element only, since keyframes are expected in time
 order — no explicit re-sort happens here), every `Events[i].TimeSeconds`, and every
 `CollisionKeyframes[i].TimeSeconds` (Animation2dData.cs:78-103, 318-341).
 
