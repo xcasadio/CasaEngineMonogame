@@ -14,7 +14,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055; folded bus gain superseded in part by ADR-0059) | 2026-08-26 |
+| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055; folded bus gain superseded in part by ADR-0059; 2D only superseded in part by ADR-0064) | 2026-08-26 |
 | [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted (variations and priority added by ADR-0063) | 2026-08-26 |
 | [ADR-0003](0003-single-3d-simulation.md) | Single 3D simulation, simulation space as a world policy | Accepted | 2026-08 |
 | [ADR-0004](0004-collision-layers.md) | Collision layers Shape / Fixture / Body / World, Shape3d as the only public volume vocabulary, no pose on shapes | Accepted | 2026-08 |
@@ -77,3 +77,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0061](0061-author-decisions-for-the-audio-game-layer-mixer-asset-and-psx-module.md) | Author's decisions for the audio game layer, the mixer asset and the PSX module | Accepted | 2026-10-06 |
 | [ADR-0062](0062-default-spu-tables-and-a-project-switch-for-the-master-limiter.md) | Default SPU tables and a project switch for the Master limiter | Accepted | 2026-10-06 |
 | [ADR-0063](0063-sound-variations-and-voice-priorities.md) | Sound variations and voice priorities | Accepted | 2026-10-06 |
+| [ADR-0064](0064-listener-spatial-audio-doppler-and-game-parameters.md) | Listener, spatial audio, Doppler and game parameters | Accepted | 2026-10-06 |

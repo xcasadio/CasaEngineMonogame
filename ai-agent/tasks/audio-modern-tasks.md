@@ -2666,7 +2666,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   de droite à gauche, volume suivant la distance), K (montée en approche, descente en éloignement, petite coupure à la
   relance), I (paliers de volume et de hauteur), sous les deux backends.
 
-### ⏳ T9.10 — Documentation, ADR et vérification de la tranche
+### 🧪 T9.10 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (nouvelle section « 5 quater. Spatialisation, Doppler et paramètres de
   jeu », §1 bis lois de pan, §3, §6, §9, §10, §11), `docs/decisions/0064-…md` (numéro revérifié sur toutes les
@@ -2681,6 +2681,10 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   correctifs, formules contre le PDF de la spécification, ancienne forme de l'émetteur, absence d'allocation, API
   additive hors la classe de base de `SoundEmitterComponent` (D13). Au plus cinq passes de correction pour un P1 ou P2.
 - Commit : `docs(audio): document spatial audio, Doppler and game parameters`
+- Note (2026-10-06) : `audio-system.md` (vue d'ensemble, §1 bis pan spatial, §3 nouvelles clés, nouvelle section « 5
+  quater » avec formules citées, unités, Doppler, liaisons et leur format, composition, pose des composants, §6 émetteur
+  composant de scène, §9 limites dont le retour arrière, §10 puce retirée, §11 touches O, K, I), ADR-0064 (aucune 0064 sur
+  les branches locales), statut d'ADR-0001, index des ADR et `docs/README.md`. Vérificateur frais en attente.
 
 ---
 

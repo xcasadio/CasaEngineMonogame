@@ -6,6 +6,7 @@ Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [
 SPU PlayStation logiciel, hébergé par le backend logiciel : [psx-spu.md](psx-spu.md) ([ADR-0058](../decisions/0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md)).
 Graphe de bus, effets, départs, ducking, fondus et snapshots du backend logiciel : §2 bis ([ADR-0059](../decisions/0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md)).
 Variations aléatoires et priorités de voix : §3 et §4 ([ADR-0063](../decisions/0063-sound-variations-and-voice-priorities.md)).
+Écouteur, sons 2D et 3D, Doppler et paramètres de jeu : §5 quater ([ADR-0064](../decisions/0064-listener-spatial-audio-doppler-and-game-parameters.md)).
 
 ---
 
@@ -13,10 +14,11 @@ Variations aléatoires et priorités de voix : §3 et §4 ([ADR-0063](../decisio
 
 ```text
 SoundAsset (.sound)          asset JSON : fichier audio + volume + pitch + loop + bus + streaming
-                             + variations aléatoires + priorité
+                             + variations aléatoires + priorité + mode spatial + liaisons
         ↓
 AudioService                 pool de voix, routage vers les bus, fades, propriété (owner),
-                             tirage des variations, vol de voix par priorité
+                             tirage des variations, vol de voix par priorité,
+                             écouteur, voix spatiales, Doppler, paramètres de jeu
    ├─ AudioMixer             arbre de bus nommés, gain effectif
    ├─ MusicPlayer            pistes streamées, fade in/out, crossfade
    └─ IAudioBackend          frontière plateforme
@@ -80,7 +82,8 @@ AudioService ─▶ SoftwareAudioBackend         OpenAlAudioOutput (contexte Ope
   du clip entier. Un clip mono est panoramiqué à **puissance constante** (−3 dB au centre), un clip
   stéréo par **balance** ; une voix stéréo (musique, `PlayClipStereo`) est restituée exactement,
   gauche vers gauche et droite vers droite. C'est un changement audible par rapport au backend
-  MonoGame, qui tourne la position OpenAL de la source.
+  MonoGame, qui tourne la position OpenAL de la source. Un son spatial (§5 quater) remplace le pan
+  de la voix par son pan spatial, avec la même loi.
 - **Mixage** : flottant 32 bits, rééchantillonnage cubique (Hermite à 4 points), rampe linéaire
   des gains sur un bloc quand le volume ou le pan change (pas de clic), écrêtage dur en sortie.
   Tout débit de clip ou de flux positif est accepté (pas de bornes 8–48 kHz). Le rendu ne fait
@@ -233,7 +236,7 @@ Le streaming est **authoré**, pas déduit de l'extension : le même `.wav` peut
 Tout champ absent prend sa valeur par défaut, donc un document incomplet se charge au lieu
 d'échouer.
 
-**Variations aléatoires et priorité** (ADR-0063), champs additifs : chaque clé n'est écrite que si
+**Variations aléatoires, priorité, spatialisation et liaisons** (ADR-0063, ADR-0064), champs additifs : chaque clé n'est écrite que si
 sa valeur diffère de son défaut, donc un `.sound` qui ne s'en sert pas garde exactement les clés
 ci-dessus.
 
@@ -261,6 +264,11 @@ ci-dessus.
 | `variation_volume_min` / `variation_volume_max` | 1 / 1 | facteur de volume tiré dans [min, max], borné à [0, 1] : la variation ne fait qu'atténuer |
 | `variation_pitch_min` / `variation_pitch_max` | 0 / 0 | décalage de pitch en octaves tiré dans [min, max], borné à [-1, 1] |
 | `priority` | 0 | priorité de vol de voix, 0..100 ; 0 = aucune (§4) |
+| `spatial_mode` | `None` | `None`, `Spatial2D` ou `Spatial3D` (§5 quater) |
+| `distance_model` | `InverseDistanceClamped` | modèle de distance d'OpenAL 1.1 (§5 quater) |
+| `reference_distance` / `max_distance` / `rolloff_factor` | 1 / sans limite / 1 | réglages du modèle, en unités monde |
+| `doppler_factor` | 0 | 0 = Doppler désactivé |
+| `parameter_bindings` | aucune | liaisons de paramètres de jeu vers le volume ou le pitch (§5 quater), huit au plus |
 
 Les plages sont **relatives** à la valeur jouée : le facteur multiplie le volume, le décalage
 s'ajoute au pitch. Le tirage est uniforme ; une plage inversée est triée au tirage, une plage
@@ -272,7 +280,7 @@ ignorée de même. Un asset marqué streaming ignore variations et priorité.
 
 Dans l'éditeur : clic droit sur un dossier → **Create Sound**, puis double-clic pour ouvrir
 l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, loop,
-bus, streaming, preview).
+bus, mode spatial, modèle et distances, Doppler, nombre de liaisons, streaming, preview).
 
 ---
 
@@ -417,10 +425,93 @@ Pas d'interface utilisateur : le réglage s'édite dans le fichier projet.
 
 ---
 
+## 5 quater. Écouteur, spatialisation, Doppler et paramètres de jeu (ADR-0064)
+
+**Écouteur.** Le point d'écoute vient d'un `AudioListenerComponent` (composant de scène, « Audio
+Listener » dans « Add Component ») qui pousse sa pose monde dans `AudioService` chaque fois qu'elle
+change ; son entité est toujours mise à jour (politique `DynamicDefault`). Le code peut aussi appeler
+`AudioService.SetListener(source, pose)` et `RemoveListener(source)`. Le dernier écouteur enregistré
+gagne ; un second écouteur est signalé une fois au journal ; quand il disparaît (détachement, entité
+désactivée), le précédent reprend. **Sans écouteur, rien n'est spatialisé** : les sons jouent comme
+avant. C'est un état de chaque frame : un son spatial lancé avant l'arrivée de l'écouteur se
+spatialise dès l'`Update` qui suit.
+
+**Mode spatial par asset** (`spatial_mode`, §3) : `None` (défaut), `Spatial2D` (distances, directions
+et vitesses projetées sur le plan X/Y, Z ignoré : un monde en pixels, +Y vers le haut) ou `Spatial3D`.
+Seuls `PlaySoundAt(asset, position, overrides, owner)` et `SetVoicePosition(voice, position)`
+spatialisent ; un asset spatial joué par `PlaySound` sans position, par une cinématique ou par la
+prévisualisation de l'inspecteur joue comme un son non spatial. Positions en
+`System.Numerics.Vector3`, en **unités monde** : la spécification ne fixe aucune unité, les distances
+de l'asset se règlent dans celles du jeu.
+
+**Atténuation.** Les modèles de distance de la spécification OpenAL 1.1
+(<https://www.openal.org/documentation/openal-1.1-specification.pdf>, §3.4.1 à §3.4.6), formules
+appliquées à la lettre, aucun code repris : `InverseDistance`, `InverseDistanceClamped` (défaut, celui
+de la spécification), `LinearDistance`, `LinearDistanceClamped`, `ExponentDistance`,
+`ExponentDistanceClamped`, `None`. Réglages par asset : `reference_distance` (défaut 1),
+`max_distance` (défaut sans limite), `rolloff_factor` (défaut 1). Ajouts du moteur : le gain est
+borné à [0, 1] (un volume ne dépasse jamais 1) ; une formule non évaluable (division par zéro,
+dénominateur négatif ou nul du modèle inverse, référence égale au maximum en linéaire) n'atténue pas.
+
+**Pan spatial.** Produit scalaire de la direction de la source avec le vecteur droit de l'écouteur
+(sinus de l'azimut, sans distinction avant/arrière) ; la spécification ne définit pas le
+panoramique, c'est un choix du moteur. Il remplace le pan propre de la voix tant que la voix est
+spatiale (`SetVoicePan` est alors sans effet audible).
+
+**Doppler** (désactivé par défaut) : `doppler_factor` de l'asset (0 = désactivé), formule de la
+spécification (§3.5.2) ; vitesse du son `AudioService.SpeedOfSound`, défaut 343,3 **unités monde par
+seconde** (la valeur de la spécification, pensée pour des mètres) : à régler selon l'échelle du jeu
+(dans un monde en pixels, des vitesses ordinaires approchent 343,3 et saturent l'effet). Les vitesses
+sont dérivées des poses poussées d'une frame à l'autre (nulles quand la pose n'a pas été poussée dans
+la frame). Ajout du moteur : rapport borné à [0,25 ; 4]. Il n'y a pas de détection de téléportation :
+un saut de position donne un rapport extrême, borné, pendant une frame.
+
+**Paramètres de jeu.** Une liaison du `.sound` relie un paramètre nommé au volume ou au pitch :
+
+```json
+"parameter_bindings": [
+  { "parameter": "intensity", "target": "Volume", "input_min": 0.0, "input_max": 1.0, "output_min": 0.3, "output_max": 1.0 },
+  { "parameter": "intensity", "target": "Pitch",  "input_min": 0.0, "input_max": 1.0, "output_min": -0.3, "output_max": 0.3 }
+]
+```
+
+L'entrée est bornée à sa plage, la sortie est interpolée linéairement (une plage d'entrée dégénérée
+fait une marche) ; une sortie `Volume` est un facteur dans [0, 1], une sortie `Pitch` des octaves
+dans [-1, 1] ; les liaisons de volume se multiplient, celles de pitch s'additionnent et la somme est
+bornée à une octave. Un paramètre jamais écrit est neutre. Huit liaisons au plus par son.
+
+```csharp
+var intensity = audio.GetGameParameterIndex("intensity"); // une fois
+audio.SetGameParameter(intensity, 0.8f);                   // à chaque changement, sans allocation
+```
+
+Registre de 64 paramètres ; `SetGameParameter(string, float)` ne crée le nom qu'une fois. Les pistes
+de musique (`MusicPlayer`) reçoivent les liaisons de leur asset, pas la spatialisation. Le volume et
+le pitch liés font partie des valeurs de départ de la voix : un son ou une piste liés ne jouent jamais
+leur premier bloc à plein volume.
+
+**Composition.** Gain de distance × facteurs des liaisons de volume, pan spatial, et rapport de vitesse
+(Doppler × `2^somme` des liaisons de pitch) forment une modulation par voix, orthogonale au volume de
+la voix, à ses fondus et aux bus. Sous le backend logiciel elle passe par un canal de dernières valeurs
+au thread audio (capacité `IAudioVoiceModulationBackend`, aucune file, aucune attente) ; sous le
+backend MonoGame, elle est repliée dans le volume et les paramètres envoyés, et le pitch total reste
+borné à ±1 octave. Seuls les changements au-delà de petits seuils sont envoyés. `SetVoicePitch` et
+`GetVoicePitch` règlent le pitch de base d'une voix.
+
+**Composants.** La pose d'un écouteur ou d'un émetteur est lue dans la matrice monde sans échelle du
+composant (`WorldMatrixNoScale`), qui compose les rotations des parents. Un composant placé au niveau
+de l'entité (sans parent) garde sa propre matrice, comme le gizmo de l'éditeur ; dans une entité
+enfant, la racine de l'entité parente est appliquée deux fois par le moteur (comportement existant).
+Un émetteur ne suit son entité que si celle-ci est mise à jour (politique de tick).
+
+---
+
 ## 6. Composant d'entité
 
-`SoundEmitterComponent` pose un son sur une entité. Il apparaît automatiquement dans
-« Add Component ».
+`SoundEmitterComponent` pose un son sur une entité. C'est un **composant de scène** (ADR-0064) : il a
+un transform, peut être racine ou enfant d'un composant de scène, et l'éditeur l'édite avec la section
+Transform. Il apparaît automatiquement dans « Add Component ». Un émetteur sauvegardé sous l'ancienne
+forme (sans transform ni enfants) se charge toujours, avec un transform identité.
 
 | Propriété | Sens |
 |---|---|
@@ -436,7 +527,8 @@ Détacher le composant coupe le son.
 
 Les surcharges du composant composent avec les variations de l'asset (§4) : `VolumeOverride` et
 `PitchOverride` donnent la valeur de base, le tirage s'applique par-dessus. Le composant joue avec
-la priorité de l'asset.
+la priorité de l'asset. Si l'asset a un mode spatial, l'émetteur joue à sa position monde
+(`PlaySoundAt`) et la suit quand elle change (§5 quater) ; sinon il joue comme avant.
 
 ---
 
@@ -492,8 +584,13 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   est refusée avec un log throttlé, sans exception ni voix perdue. Le backend logiciel n'a pas cette
   limite. Sur le chemin historique (§5 bis), les voix stéréo rééchantillonnent encore par facteur
   entier.
-- **Pas d'audio 3D.** Volume et pan uniquement : ni listener, ni atténuation par distance, ni
-  Doppler.
+- **Spatialisation** (§5 quater) : un seul point d'écoute ; pas de cône directionnel, de gain
+  d'écouteur, de gain minimal ou maximal par source, ni de HRTF ; les pistes de musique et les sons de
+  cinématique ne sont pas spatialisés ; pas de détection de téléportation pour le Doppler ; le mode
+  spatial vient de l'asset seul (pas de surcharge par l'émetteur). Les liaisons de paramètres ne
+  s'éditent pas dans l'inspecteur (le fichier `.sound` seulement). Un retour arrière de cette tranche
+  rend illisibles les entités enregistrées depuis avec un émetteur en racine ou en enfant, ou avec un
+  `AudioListenerComponent`.
 - **Débranchement du périphérique** : le son s'arrête jusqu'au relancement du jeu (T2.6 en pause).
   Si le thread audio meurt, le backend logiciel devient muet sans faire attendre le jeu.
 - **Limite de voix.** 64 par défaut côté backend. Au-delà, la voix est refusée avec un log
@@ -527,8 +624,6 @@ V1 et y sont repris.
 
 - Décodeur **Ogg Vorbis** branché sur `WavStreamReader`/`MusicPlayer` — NVorbis est déjà présent
   en dépendance transitive de MonoGame.
-- **Audio 3D** : `SoundEmitterComponent` deviendrait un `SceneComponent`, avec listener et
-  atténuation.
 - **Panneau mixer** dans l'éditeur, et persistance des volumes.
 - **Producteur en tâche de fond** pour le streaming, si la lecture disque devient audible.
 
@@ -558,6 +653,9 @@ V1 et y sont repris.
 | `V` | joue `menu_click_varied.sound` : volume tiré dans [0,6 ; 1], pitch dans [-0,15 ; 0,15] octave |
 | `J` | remplit toutes les voix libres de boucles du clic à faible volume, de priorité 1 (`S` les arrête) |
 | `H` | joue le clic avec la priorité 10 : après `J`, il vole une boucle de priorité 1 ; `Espace` (sans priorité) est refusé |
+| `O` | son spatial 3D (boucle du clic) en orbite autour de l'écouteur posé à l'origine : le pan passe de droite à gauche, le volume suit la distance (rayon de 2 à 12 unités sur 8 s) ; second appui : arrêt |
+| `K` | Doppler activé ou coupé sur ce son (`SpeedOfSound` à 16 unités/s pour la démo : seule la variation du rayon le rend audible) ; la voix est relancée |
+| `I` | paramètre de jeu `demo_intensity` à 0, 0,5 puis 1, lié au volume (0,3 à 1) et au pitch (−0,3 à +0,3 octave) du son spatial |
 
 L'écran affiche le backend actif et le nombre de voix (actives, refusées, volées) ; avec le backend
 logiciel, aussi l'avance, le débit de sortie et le compteur de sous-alimentations.
