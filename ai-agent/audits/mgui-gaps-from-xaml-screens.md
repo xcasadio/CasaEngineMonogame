@@ -408,3 +408,40 @@ décision D2 du plan du portrait de l'inventaire, remplacée par D-E19-100).
 
 **Limite restante.** Un `Brightness` supérieur à 1 coûte un second dessin et un vidage du lot de sprites ; un `Brightness`
 au-dessus de 2 se comporte comme 2, et un négatif comme 0.
+
+## G12 — La vue d'un écran lié a une image de retard sur la logique du monde
+
+**Ce que le code doit faire.** Un écran d'Alundra (boîte de texte, choix, sauvegarde, inventaire) est un document XAML lié à un
+view model que la logique du jeu modifie pendant la mise à jour du monde. La PS1 dessine l'état de l'image courante : une valeur
+changée au tick k se voit à l'image k.
+
+**Pourquoi il ne peut pas le déclarer.** `CasaEngineGame.Update` met à jour les vues d'interface **avant** le monde
+(`CasaEngine/Framework/Application/CasaEngineGame.cs`, boucle `view.UIView?.Update(gameTime)` puis `GameManager.UpdateWorld(gameTime)`,
+commentaire « Update all per-view UI runtimes BEFORE gameplay so the UI has first-chance input ») ; la mise en page et
+l'application des liaisons se font dans `Desktop.Update()` (`CasaEngine/Framework/UI/UIRoot.cs`, seul appelant). Une liaison
+modifiée par le monde n'atteint donc les pixels qu'au `Desktop.Update()` de l'image suivante ; un changement de
+`Image.SourceName`, lui, s'applique aussitôt (63 texels mesurés : le nouveau curseur sur l'ancienne disposition). Mesuré sur
+GPU réel par la découverte d'E19.f2b1 du dépôt parent (`docs/plan-e19-f2b1-annexe/`, point O-E19-65 de
+`docs/plan-e19-opcodes.md`). Aucun attribut XAML ni réglage d'écran ne permet de demander une mise en page après le monde.
+
+**Ce que ça coûte.** Tous les écrans d'Alundra montrent leurs changements une image (20 ms) après la PS1 ; l'écart est accepté
+et consigné dans le plan du parent (O-E19-65), pas contourné.
+
+**À quoi ressemblerait l'API absente.** Une passe de mise en page de l'interface après la mise à jour du monde (par exemple un
+`Desktop.UpdateLayout()` appelé par le moteur après `GameManager.UpdateWorld`), ou un réglage par vue qui choisit l'ordre
+(entrée d'abord, ou état du monde d'abord), en gardant la lecture d'entrée avant le monde.
+
+## G13 — Une fenêtre retirée puis remise sur le bureau garde une image son ancienne mise en page
+
+**Ce que le code doit faire.** Le choix d'Alundra (OUI / NON) est une fenêtre MGUI retirée du bureau à sa fermeture et remise à
+l'ouverture du choix suivant ; sa première image doit montrer le nouveau cadre.
+
+**Pourquoi il ne peut pas le déclarer.** Une fenêtre remise n'est mise en page qu'au `Desktop.Update()` suivant : la première
+image dessine l'ancien cadre. Mesuré par la découverte d'E19.f3b du dépôt parent (point O-E19-70 de `docs/plan-e19-opcodes.md`) :
+après un choix annulé en plein glissement, la première image du choix suivant montre l'ancien cadre, 1898 à 3556 texels selon
+l'instant de l'annulation, le pire au repos. Aucun cas du corpus connu à ce jour. Même famille que G12.
+
+**Ce que ça coûte.** Rien de visible sur la chaîne aujourd'hui ; l'écart est consigné (O-E19-70), pas contourné.
+
+**À quoi ressemblerait l'API absente.** Mettre en page une fenêtre remise sur le bureau avant son premier dessin (à l'ajout,
+ou au premier `Draw` si sa mise en page est périmée).
