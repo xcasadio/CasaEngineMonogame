@@ -2865,7 +2865,7 @@ de clôture **READY**.
   retirée), l'effet du jeu resté en tête, le 33e bus refusé sous le backend logiciel et le rendu à 0,5 d'un bus créé.
   Deux solutions sans erreur, aucun avertissement dans les fichiers ajoutés ; 3679/3679.
 
-### ⏳ T10.3 — Réglage de projet, application au démarrage et dans l'éditeur (P48)
+### 🧪 T10.3 — Réglage de projet, application au démarrage et dans l'éditeur (P48)
 
 - Fichiers : `ProjectSettings.cs`, `ProjectSettingsHelper.cs`, `AudioSystemComponent.cs` (propriété `ProjectMixer`,
   méthode `ApplyProjectMixerAsset`), `CasaEngineGame.cs` (appel juste après `RegisterLoaders`), `GameEditor.cs` (champ,
@@ -2888,6 +2888,15 @@ de clôture **READY**.
   sans clavier : aucun message du nouveau code. 🧪 auteur : un projet avec réglage ouvert comme premier puis second
   projet d'une session de l'éditeur. Deux solutions ; suite verte.
 - Commit : `feat(audio): a project setting names the mixer asset, applied at startup and on editor project load`
+- Note de validation (2026-10-06) : réglage `AudioMixerAsset` (vide par défaut, écrit seulement posé) ; `ProjectAudioMixer`
+  (`Apply` entièrement sous `try`/`catch`, un avertissement et le mixeur par défaut en cas d'échec, `AppliedAssetId`,
+  `TryResolveAssetId`) ; `AudioSystemComponent.ProjectMixer` et `ApplyProjectMixerAsset()` appelé juste après
+  `RegisterLoaders` ; `EditorProjectAudioMixerSync` (application à `ProjectLoaded`, relâchement à `ProjectClosed`,
+  événement `ProjectMixerApplied`), créé à côté de la synchro du muet. 18 tests (réglage, résolution par id et par nom,
+  id inconnu, fichier tronqué, JSON invalide, version future, A puis B puis vide, deux dossiers de projet, synchro).
+  Démo lancée sans clavier : sortie 0, aucune ligne du nouveau code au journal (projet sans réglage). Deux solutions sans
+  erreur, aucun avertissement sur les lignes touchées ; 3698/3698. **🧪 pour l'auteur** : un projet avec un
+  `.audioMixer` désigné, ouvert comme premier puis comme second projet d'une session de l'éditeur.
 
 ### ⏳ T10.4 — Document de mixage de l'éditeur : historique, gestes, solo, enregistrement (P49 à P53)
 

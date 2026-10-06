@@ -162,6 +162,7 @@ public class GameEditor : Game, IObservableUpdate
     private EditorPlaySessionController _playSessionController;
     private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private EditorProjectAudioMuteSync _projectAudioMuteSync;
+    private EditorProjectAudioMixerSync _projectAudioMixerSync;
     private WorldViewportPanel _worldViewportPanel;
     private EditorViewportViewState? _pendingWorldViewportViewState;
     private MGElement _worldViewportContent;
@@ -470,6 +471,7 @@ public class GameEditor : Game, IObservableUpdate
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             _shaderSourceHotReloadService?.Dispose();
             _projectAudioMuteSync?.Dispose();
+            _projectAudioMixerSync?.Dispose();
             if (_desktop?.Runtime is IMonoGameDesktopBackend monoGameBackend
                 && monoGameBackend.AssetProvider is CasaUIAssetProvider uiAssetProvider)
             {
@@ -1075,6 +1077,13 @@ public class GameEditor : Game, IObservableUpdate
         {
             // ADR-0040: the editor runtime starts without a project; its mute follows every project opened later.
             _projectAudioMuteSync = new EditorProjectAudioMuteSync(editorAudio.Service);
+
+            // The first project of a session goes through CasaEngineGame.Initialize (this runtime is created during that
+            // ProjectLoaded); the later ones go through this sync. Applying is idempotent (automation loads twice).
+            if (editorAudio.ProjectMixer != null)
+            {
+                _projectAudioMixerSync = new EditorProjectAudioMixerSync(editorAudio.ProjectMixer);
+            }
         }
         _editorRuntime.LoadContentHost();
     }

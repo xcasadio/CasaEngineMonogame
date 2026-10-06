@@ -480,6 +480,9 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 
+        // Order: settings and catalog (loaded above) -> audio component -> asset loaders -> mixer asset, which needs all three.
+        AudioSystemComponent.ApplyProjectMixerAsset();
+
         // Keep the raw TTF bytes so MGUI can share the same FontSystem instance and sizing calibration.
         DefaultFontSystemTtfData = File.ReadAllBytes(Path.Combine(Content.RootDirectory, "Fonts", "tahoma.ttf"));
         FontSystem.AddFont(DefaultFontSystemTtfData);

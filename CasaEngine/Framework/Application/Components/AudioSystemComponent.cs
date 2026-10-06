@@ -32,6 +32,10 @@ public class AudioSystemComponent : GameComponent
         {
             Service.ClipProvider = new AssetContentManagerAudioClipProvider(casaEngineGame.AssetContentManager);
 
+            // Not applied here: the asset loaders are not registered yet. CasaEngineGame.Initialize calls
+            // ApplyProjectMixerAsset right after registering them.
+            ProjectMixer = new ProjectAudioMixer(Service, casaEngineGame.AssetContentManager);
+
             // ADR-0040: the project settings are already loaded at this point (Initialize loads
             // them before creating this component), so this applies the project's mute from the
             // very first frame.
@@ -44,6 +48,12 @@ public class AudioSystemComponent : GameComponent
 
     /// <summary>Playback API: buses, voices, ownership.</summary>
     public AudioService Service { get; }
+
+    /// <summary>
+    /// Applies the project's <c>.audioMixer</c> asset (<see cref="Configuration.Project.ProjectSettings.AudioMixerAsset"/>).
+    /// Null when the game is not a <see cref="CasaEngineGame"/>.
+    /// </summary>
+    public ProjectAudioMixer ProjectMixer { get; }
 
     /// <summary>The mixing bus tree. Volumes and mutes are set through it.</summary>
     public AudioMixer Mixer => Service.Mixer;
@@ -76,6 +86,18 @@ public class AudioSystemComponent : GameComponent
             {
                 Mixer.GetBus(AudioBusNames.Master).IsMuted = value;
             }
+        }
+    }
+
+    /// <summary>
+    /// Applies the mixer asset named by the game's project settings. Call it once the asset loaders are registered;
+    /// does nothing outside a <see cref="CasaEngineGame"/>. Never throws.
+    /// </summary>
+    public void ApplyProjectMixerAsset()
+    {
+        if (ProjectMixer != null && Game is CasaEngineGame casaEngineGame)
+        {
+            ProjectMixer.Apply(casaEngineGame.RuntimeContext.ProjectSettings);
         }
     }
 
