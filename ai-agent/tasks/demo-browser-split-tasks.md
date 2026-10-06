@@ -261,7 +261,7 @@ Automatisation et tests :
   - Deux solutions : 0 erreur ; `CasaEngine.Tests` 4151/4151. Sondes en automatisation : 7 PASS, relevés identiques à la référence. Capture Material avec `CASAENGINE_DEMO_BROWSER=open` : navigateur de 280 px en thème Dark, scène à droite au bon aspect. Navigateur forcé ouvert : sonde Split-screen PASS (vue décalée en 652) ; sonde du sprite PSX FAIL sur 2 points attendus (scène en pixels 1:1 centrée sur la fenêtre, environ 140 px rognés de chaque côté, voir O4).
   - **Reste à la main (T5.2)** : glisser la poignée (bornes 200 et 340 px à 1024x768), F1 et « << », molette et orbite sans effet au-dessus du navigateur, règle P9 en vrai.
 
-### ⏳ T4.2 — Arbre par thèmes, description, chargement au clic ou à Entrée
+### 🧪 T4.2 — Arbre par thèmes, description, chargement au clic ou à Entrée
 
 - Objectif : l'arbre range les 30 démos par thème (D6) ; sélection = description ; clic ou Entrée = chargement (D2) ; repli pour les démos pleine fenêtre (D4).
 - Fichiers : `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/Demos/DemoUI/DemoBrowserScreen.cs`.
@@ -272,6 +272,11 @@ Automatisation et tests :
   4. Après un chargement : démo courante mise en évidence, son thème déplié, `ScrollIntoView` ; démo `collapsesBrowser` : repli.
 - Validation : build ; suite verte ; manuel : clic charge, flèches ne chargent pas, Entrée charge, Split-screen replie, F1 rouvre, `CASAENGINE_START_DEMO=6` lance la même démo qu'avant.
 - Commit : `feat(demos): demo tree by theme with a description pane`
+- Note de validation (2026-10-06) :
+  - Code : `AddDemo(demo, theme, collapsesBrowser)` remplace les 30 `_demos.Add` dans le même ordre (listes parallèles `_demoThemes`, `_demoCollapsesBrowser`) ; thèmes de D8 en constantes, ordre `ThemeOrder` ; repli D4 au début de `ChangeDemo`, avant la création des vues ; Entrée lue par `DemosGame` quand `BrowserOwnsKeyboard`. `DemoBrowserScreen` construit l'arbre une fois (en-têtes `MGTextBlock` sans balisage), charge au `LMBClickedInside` de chaque feuille, décrit la sélection (`SelectionChanged` : démo ou résumé du thème), marque la démo courante (« > » et gras), déplie son thème, la sélectionne par `SelectItem` et la fait défiler ; un thème absent de l'ordre lève une exception au chargement.
+  - Comportement MGUI vérifié sans toucher aux entrées de l'auteur : `DemoBrowserTreeTests` (3 tests, vrai `demo-browser.xaml`, bureau sans affichage) : un clic sur l'en-tête d'une feuille atteint son gestionnaire et la sélectionne ; un second clic sur la feuille déjà sélectionnée atteint encore son gestionnaire alors que `SelectionChanged` ne se relève pas (d'où le choix) ; `SelectItem` relève `SelectionChanged` sans aucun clic.
+  - Deux solutions : 0 erreur ; `CasaEngine.Tests` 4154/4154. Sondes en automatisation : 7 PASS, relevés identiques. Capture Material navigateur ouvert : 9 thèmes dans l'ordre de D8, Rendering déplié, « > Material system demo » sélectionné, description affichée. Split-screen et PSX free quads lancés navigateur forcé ouvert : le navigateur se replie (Split-screen en vues de 512), sondes PASS. `CASAENGINE_START_DEMO=6` lance toujours Material.
+  - **Reste à la main (T5.2)** : clic sur une démo (y compris la démo déjà sélectionnée), flèches sans chargement, Entrée qui charge, F1 qui rouvre après un repli D4.
 
 ### ⏳ T4.3 — Retrait de l'ancien panneau, rappel F1, tests XAML
 

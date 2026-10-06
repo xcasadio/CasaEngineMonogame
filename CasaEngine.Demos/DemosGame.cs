@@ -21,6 +21,25 @@ namespace CasaEngine.Demos;
 public class DemosGame : CasaEngineGame
 {
     private readonly List<Demo> _demos = new();
+    // Parallel to _demos (same index): the theme of each demo in the browser's tree, and whether it needs the whole
+    // window (decision D4). Declared at registration, so the demo classes stay unchanged (plan point P5).
+    private readonly List<string> _demoThemes = new();
+    private readonly List<bool> _demoCollapsesBrowser = new();
+
+    // Themes of the demo browser, in the order of its tree (decision D8).
+    private const string ThemeRendering = "Rendering";
+    private const string ThemeAnimation = "Animation";
+    private const string ThemePhysics = "Physics";
+    private const string ThemeSceneAndViews = "Scene and views";
+    private const string ThemeCutscenes = "Cutscenes";
+    private const string ThemeTileMaps = "2D and tile maps";
+    private const string ThemeUI = "UI";
+    private const string ThemeAudio = "Audio";
+    private const string ThemePsx = "PSX rendering";
+    private static readonly string[] ThemeOrder =
+    {
+        ThemeRendering, ThemeAnimation, ThemePhysics, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI, ThemeAudio, ThemePsx,
+    };
     private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
     private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
     private readonly bool _automationShowDebugOverlay = ResolveAutomationShowDebugOverlay();
@@ -92,51 +111,62 @@ public class DemosGame : CasaEngineGame
         GameManager.SetWorldToLoad(world);
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
-        _demos.Add(new CutsceneMoveToDemo());
-    _demos.Add(new CutsceneNavigateToDemo());
-        _demos.Add(new Collision3dBasicDemo());
-        _demos.Add(new Collision2dBasicDemo());
-        _demos.Add(new TopDownElevationDemo());
-        _demos.Add(new StaticModelDemo());
-        _demos.Add(new MaterialDemo());
-        _demos.Add(new ParticleSystemDemo());
-        _demos.Add(new EnvironmentShowcaseDemo());
+        AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
+        AddDemo(new CutsceneNavigateToDemo(), ThemeCutscenes);
+        AddDemo(new Collision3dBasicDemo(), ThemePhysics);
+        AddDemo(new Collision2dBasicDemo(), ThemePhysics);
+        AddDemo(new TopDownElevationDemo(), ThemePhysics);
+        AddDemo(new StaticModelDemo(), ThemeRendering);
+        AddDemo(new MaterialDemo(), ThemeRendering);
+        AddDemo(new ParticleSystemDemo(), ThemeRendering);
+        AddDemo(new EnvironmentShowcaseDemo(), ThemeRendering);
         // Re-enabled for T2.2 (ai-agent/tasks/screen-effect-above-ui-tasks.md): it was disabled
         // since 2026-05-24 (commit 9d73f9460, an unrelated runtime/editor separation pass), and its
         // Camera2dComponent is the only supported camera for the above-UI screen effect quad's
         // placement formula (ScreenEffectComponent.cs:53-67), so it is also the only demo that can
         // host that smoke.
-        _demos.Add(new TileMapDemo());
-        _demos.Add(new TileMap3dDemo());
-        _demos.Add(new TileMapSurfaceScreenDemo());
-        _demos.Add(new SkinnedMeshDemo());
-        _demos.Add(new StaticShadowValidationDemo());
-        _demos.Add(new AnimationBlendDemo());
-        _demos.Add(new AnimationIkDemo());
-        _demos.Add(new SkeletalAnimationBlendingDemo());
-        _demos.Add(new SceneManagementDemo());
-        _demos.Add(new SplitScreenDemo());
-        _demos.Add(new RenderToTextureDemo());
-        _demos.Add(new WorldSpaceUIDemo());
-        _demos.Add(new ViewManagerSandbox());
-        _demos.Add(new UIOverlayDemo());
-        _demos.Add(new AudioDemo());
+        AddDemo(new TileMapDemo(), ThemeTileMaps);
+        AddDemo(new TileMap3dDemo(), ThemeTileMaps);
+        AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+        AddDemo(new SkinnedMeshDemo(), ThemeAnimation);
+        AddDemo(new StaticShadowValidationDemo(), ThemeRendering);
+        AddDemo(new AnimationBlendDemo(), ThemeAnimation);
+        AddDemo(new AnimationIkDemo(), ThemeAnimation);
+        AddDemo(new SkeletalAnimationBlendingDemo(), ThemeAnimation);
+        AddDemo(new SceneManagementDemo(), ThemeSceneAndViews);
+        AddDemo(new SplitScreenDemo(), ThemeSceneAndViews, collapsesBrowser: true);
+        AddDemo(new RenderToTextureDemo(), ThemeSceneAndViews);
+        AddDemo(new WorldSpaceUIDemo(), ThemeUI);
+        AddDemo(new ViewManagerSandbox(), ThemeSceneAndViews, collapsesBrowser: true);
+        AddDemo(new UIOverlayDemo(), ThemeUI);
+        AddDemo(new AudioDemo(), ThemeAudio);
         // E19.g G2a (ADR-0051): PSX semi-transparency of sprites and queue capacity, each checks its own back-buffer.
-        _demos.Add(new PsxSemiTransparencyDemo());
-        _demos.Add(new SpriteQueueCapacityDemo());
+        AddDemo(new PsxSemiTransparencyDemo(), ThemePsx);
+        AddDemo(new SpriteQueueCapacityDemo(), ThemePsx);
         // E19.g G2c (ADR-0051 extended to the background layers): per-texel PSX semi-transparency of the layer sheets.
-        _demos.Add(new BackdropLayersPsxSemiTransparencyDemo());
+        AddDemo(new BackdropLayersPsxSemiTransparencyDemo(), ThemePsx);
         // E19.g G2d (ADR-0066): the tint overlay of the scrolling layers draws with the PSX mode of the map, one scene per mode.
-        _demos.Add(new BackgroundTintPsxMode1Demo());
-        _demos.Add(new BackgroundTintPsxMode0Demo());
+        AddDemo(new BackgroundTintPsxMode1Demo(), ThemePsx);
+        AddDemo(new BackgroundTintPsxMode0Demo(), ThemePsx);
         // E19.g G2b-1 (ADR-0068): free PS1 quads (scaled, mirrored, sheared, trapezoid), compared with the prediction of the annex.
-        _demos.Add(new PsxFreeQuadDemo());
+        AddDemo(new PsxFreeQuadDemo(), ThemePsx, collapsesBrowser: true);
 
         // Before the first demo: its default view is created inside the layout area the browser leaves.
         CreateDemoBrowser();
         ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: false);
 
         ChangeDemo(ResolveStartupDemoIndex());
+    }
+
+    /// <summary>
+    /// Registers a demo at the next index (the index <c>CASAENGINE_START_DEMO</c> and the browser load it by), with its
+    /// theme in the browser and whether it needs the whole window (decision D4: the browser collapses when it loads).
+    /// </summary>
+    private void AddDemo(Demo demo, string theme, bool collapsesBrowser = false)
+    {
+        _demos.Add(demo);
+        _demoThemes.Add(theme);
+        _demoCollapsesBrowser.Add(collapsesBrowser);
     }
 
     /// <summary>
@@ -154,7 +184,13 @@ public class DemosGame : CasaEngineGame
         _browserSurface = new BackBufferSurface(new Rectangle(0, 0, _browserWidth, Math.Max(1, ScreenSizeHeight)));
         _browserRoot = new UIRoot(this, _browserSurface, RuntimeContext);
         _browserRoot.Desktop.Resources.DefaultTheme = new MGTheme(MGTheme.BuiltInTheme.Dark, _browserRoot.Desktop.DefaultFontFamily);
-        _browserScreen = new DemoBrowserScreen(ToggleDemoBrowser);
+        var entries = new DemoBrowserScreen.Entry[_demos.Count];
+        for (int i = 0; i < _demos.Count; i++)
+        {
+            entries[i] = new DemoBrowserScreen.Entry(_demos[i].Title, _demos[i].Description, _demoThemes[i]);
+        }
+
+        _browserScreen = new DemoBrowserScreen(entries, ThemeOrder, RequestDemo, ToggleDemoBrowser);
         _browserRoot.PushScreen(_browserScreen);
     }
 
@@ -310,6 +346,14 @@ public class DemosGame : CasaEngineGame
     private void ChangeDemo(int index)
     {
         _currentDemoIndex = Math.Clamp(index, 0, _demos.Count - 1);
+
+        // Decision D4: a demo that needs the whole window collapses the browser before its views are created.
+        if (_demoCollapsesBrowser[_currentDemoIndex] && _browserOpen)
+        {
+            _browserOpen = false;
+            ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: false);
+        }
+
         var currentWorld = GameManager.CurrentWorld;
         ArgumentNullException.ThrowIfNull(currentWorld);
         bool worldAlreadyLoaded = currentWorld.Game != null;
@@ -321,6 +365,7 @@ public class DemosGame : CasaEngineGame
         GameManager.ViewManager.AutoLayoutMode = null;
 
         _currentDemo = _demos[_currentDemoIndex];
+        _browserScreen?.SetCurrentDemo(_currentDemoIndex);
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(currentWorld);
         var camera = _currentDemo.CreateCamera(this);
@@ -462,6 +507,14 @@ public class DemosGame : CasaEngineGame
         if (kb.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))
         {
             ToggleDemoBrowser();
+        }
+
+        // Enter loads the demo selected in the browser while the browser owns the keyboard (decision D2, point P9).
+        if (_browserOwnsKeyboard
+            && kb.IsKeyDown(Keys.Enter) && !_prevKeyboard.IsKeyDown(Keys.Enter)
+            && _browserScreen != null && _browserScreen.TryGetSelectedDemo(out int selectedDemo))
+        {
+            RequestDemo(selectedDemo);
         }
 
         _prevKeyboard = kb;
