@@ -129,6 +129,8 @@ public class DemoScreenXamlTests
     // blending controls: same corner, but 560 does NOT fit in 480 -- the height is capped to the space the
     // margin leaves, which is exactly what Math.Min(560, viewport - 20) used to do.
     [InlineData("blending-controls.xaml", 640 - 320 - 10, 10, 320, 480 - 20)]
+    // demo browser: stretched over its whole surface, no inset (ADR-0070; the game sizes the surface).
+    [InlineData("demo-browser.xaml", 0, 0, 640, 480)]
     public void EachPlacedScreen_LandsWhereItsOldArithmeticPutIt(string fileName, int left, int top, int width, int height)
     {
         var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
@@ -139,6 +141,31 @@ public class DemoScreenXamlTests
         Assert.Equal(top, window.Top);
         Assert.Equal(width, window.WindowWidth);
         Assert.Equal(height, window.WindowHeight);
+    }
+
+    [Fact]
+    public void TheDemoBrowser_DeclaresWhatItsScreenLooksUp()
+    {
+        // DemoBrowserScreen and the browser's keyboard rule (plan point P9) find these by name; a rename in the markup
+        // must break here rather than in the demo.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop(280, 768);
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-browser.xaml")));
+
+        Assert.False(window.IsTitleBarVisible);
+        Assert.Equal(0, window.Left);
+        Assert.Equal(0, window.Top);
+        Assert.Equal(280, window.WindowWidth);
+        Assert.Equal(768, window.WindowHeight);
+        Assert.True(window.TryGetElementByName("treeDemos", out MGTreeView _));
+        Assert.True(window.TryGetElementByName("btnCollapse", out MGButton _));
+        Assert.True(window.TryGetElementByName("lblHeader", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblTitle", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblTheme", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock description));
+        Assert.False(description.AllowsInlineFormatting);
+        Assert.True(window.TryGetElementByName("lblHint", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("bdrSceneHandle", out MGBorder _));
     }
 
     [Fact]
@@ -205,7 +232,7 @@ public class DemoScreenXamlTests
         }
     }
 
-    private static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
+    internal static string ScreenPath(string fileName) => Path.Combine(ScreensDirectory(), fileName);
 
     private static string ScreensDirectory()
         => Path.Combine(FindRepositoryRoot(), "CasaEngine.Demos", "Content", "Screens");

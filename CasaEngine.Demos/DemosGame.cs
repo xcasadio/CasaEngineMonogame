@@ -10,6 +10,8 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.Rendering;
+using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -33,7 +35,25 @@ public class DemosGame : CasaEngineGame
     // ---- Demo navigation UI ----
     private DemoInfoScreen?  _demoInfoScreen;
     private DemoHintOverlay? _demoHintOverlay;
-    private bool             _demoInfoVisible = true;
+
+    // ---- Demo browser beside the scene (ADR-0070) ----
+    private const int DefaultBrowserWidth = 280;
+    private const int MinimumBrowserWidth = 200;
+    // The last column of demo-browser.xaml, which the game drags (the scene is not part of the browser's desktop).
+    private const int SceneHandleWidth = 6;
+    // The scene keeps at least this fraction of its height in width: a narrower 3D view widens its vertical field of
+    // view past 90 degrees (Camera3dComponent.OnScreenResized), plan point P1.
+    private const float MinimumSceneAspect = 0.89f;
+    private UIRoot? _browserRoot;
+    private BackBufferSurface? _browserSurface;
+    private DemoBrowserScreen? _browserScreen;
+    private bool _browserOpen = true;
+    private bool _browserLayoutDirty;
+    private int _browserWidth = DefaultBrowserWidth;
+    private bool _browserOwnsKeyboard;
+    private bool _draggingSceneHandle;
+    private int _sceneHandleGrabOffset;
+    private MouseState _prevMouse;
 
     // The demos content folder is a regular editor project (DemosGame.json + AssetInfos.json).
     // Passing the project file to the base constructor lets CasaEngineGame.Initialize load it
@@ -50,10 +70,7 @@ public class DemosGame : CasaEngineGame
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
 
-        if (!string.IsNullOrWhiteSpace(_automationScreenshotPath))
-        {
-            _demoInfoVisible = false;
-        }
+        _browserOpen = ResolveInitialBrowserOpen();
 
         // Push demo UI screens whenever the engine finishes building views for a world.
         // On startup the first demo is prepared before GameManager loads the world, so
@@ -115,7 +132,145 @@ public class DemosGame : CasaEngineGame
         // E19.g G2b-1 (ADR-0068): free PS1 quads (scaled, mirrored, sheared, trapezoid), compared with the prediction of the annex.
         _demos.Add(new PsxFreeQuadDemo());
 
+        // Before the first demo: its default view is created inside the layout area the browser leaves.
+        CreateDemoBrowser();
+        ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: false);
+
         ChangeDemo(ResolveStartupDemoIndex());
+    }
+
+    /// <summary>
+    /// True while the demo browser owns the keyboard (plan point P9): it is shown, the game is active and the pointer is
+    /// over it (or drags its handle). Computed at the start of every update from the raw mouse state.
+    /// </summary>
+    internal bool BrowserOwnsKeyboard => _browserOwnsKeyboard;
+
+    /// <summary>
+    /// Builds the demo browser once, on its own UI runtime with the MGUI Dark theme (decision D7): it is installed as the
+    /// window-level UI and outlives every demo change.
+    /// </summary>
+    private void CreateDemoBrowser()
+    {
+        _browserSurface = new BackBufferSurface(new Rectangle(0, 0, _browserWidth, Math.Max(1, ScreenSizeHeight)));
+        _browserRoot = new UIRoot(this, _browserSurface, RuntimeContext);
+        _browserRoot.Desktop.Resources.DefaultTheme = new MGTheme(MGTheme.BuiltInTheme.Dark, _browserRoot.Desktop.DefaultFontFamily);
+        _browserScreen = new DemoBrowserScreen(ToggleDemoBrowser);
+        _browserRoot.PushScreen(_browserScreen);
+    }
+
+    /// <summary>Asks to collapse or reopen the browser; applied at the start of the next update.</summary>
+    private void ToggleDemoBrowser()
+    {
+        _browserOpen = !_browserOpen;
+        _browserLayoutDirty = true;
+    }
+
+    /// <summary>
+    /// The browser widths the screen allows (plan point P1): at least <see cref="MinimumBrowserWidth"/>, at most what
+    /// leaves the scene <see cref="MinimumSceneAspect"/> of its height. False when the screen is too narrow for both.
+    /// </summary>
+    private static bool TryGetBrowserWidthRange(int screenWidth, int screenHeight, out int minimum, out int maximum)
+    {
+        minimum = MinimumBrowserWidth;
+        maximum = screenWidth - (int)MathF.Ceiling(MinimumSceneAspect * screenHeight);
+        return maximum >= minimum;
+    }
+
+    /// <summary>
+    /// Shows the browser at its width and keeps the scene views out of it (ADR-0070), or gives the whole window back to
+    /// the scene when it is collapsed or the screen is too narrow. With <paramref name="relayoutViews"/>, the views and
+    /// their cameras are laid out again for the new area.
+    /// </summary>
+    private void ApplyBrowserLayout(int screenWidth, int screenHeight, bool relayoutViews)
+    {
+        _browserLayoutDirty = false;
+
+        bool fits = TryGetBrowserWidthRange(screenWidth, screenHeight, out int minimum, out int maximum);
+        if (_browserOpen && _browserRoot != null && fits)
+        {
+            _browserWidth = Math.Clamp(_browserWidth, minimum, maximum);
+            _browserSurface!.ViewportRect = new Rectangle(0, 0, _browserWidth, screenHeight);
+            GameManager.ViewManager.LayoutInsets = new ViewLayoutInsets(_browserWidth, 0, 0, 0);
+            if (WindowUI != _browserRoot)
+            {
+                SetWindowUI(_browserRoot!, _browserSurface);
+            }
+        }
+        else
+        {
+            GameManager.ViewManager.LayoutInsets = ViewLayoutInsets.Zero;
+            if (WindowUI != null)
+            {
+                ClearWindowUI();
+            }
+
+            _draggingSceneHandle = false;
+            SetBrowserOwnsKeyboard(false);
+        }
+
+        if (relayoutViews)
+        {
+            OnScreenResized(screenWidth, screenHeight);
+        }
+    }
+
+    /// <summary>
+    /// Keyboard ownership and the scene handle of the browser, from the raw mouse state (plan points P9 and P1):
+    /// dragging the handle sets the width, and the browser owns the keyboard while the pointer is over it.
+    /// </summary>
+    private void UpdateDemoBrowserInput()
+    {
+        bool shown = _browserRoot != null && WindowUI == _browserRoot;
+        var mouse = IsActive ? Mouse.GetState() : default;
+        var position = mouse.Position;
+        var browserBounds = shown ? _browserSurface!.ViewportRect : Rectangle.Empty;
+
+        if (shown)
+        {
+            bool pressed = mouse.LeftButton == ButtonState.Pressed;
+            bool wasPressed = _prevMouse.LeftButton == ButtonState.Pressed;
+            var handle = new Rectangle(browserBounds.Right - SceneHandleWidth, browserBounds.Top, SceneHandleWidth, browserBounds.Height);
+
+            if (!_draggingSceneHandle && pressed && !wasPressed && handle.Contains(position))
+            {
+                _draggingSceneHandle = true;
+                _sceneHandleGrabOffset = browserBounds.Right - position.X;
+            }
+            else if (_draggingSceneHandle && !pressed)
+            {
+                _draggingSceneHandle = false;
+            }
+
+            if (_draggingSceneHandle
+                && TryGetBrowserWidthRange(ScreenSizeWidth, ScreenSizeHeight, out int minimum, out int maximum))
+            {
+                int width = Math.Clamp(position.X + _sceneHandleGrabOffset, minimum, maximum);
+                if (width != _browserWidth)
+                {
+                    _browserWidth = width;
+                    ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: true);
+                    browserBounds = _browserSurface!.ViewportRect;
+                }
+            }
+        }
+        else
+        {
+            _draggingSceneHandle = false;
+        }
+
+        _prevMouse = mouse;
+        SetBrowserOwnsKeyboard(shown && IsActive && (_draggingSceneHandle || browserBounds.Contains(position)));
+    }
+
+    private void SetBrowserOwnsKeyboard(bool owns)
+    {
+        if (owns == _browserOwnsKeyboard)
+        {
+            return;
+        }
+
+        _browserOwnsKeyboard = owns;
+        _browserScreen?.SetKeyboardArmed(owns);
     }
 
     private int ResolveStartupDemoIndex()
@@ -226,8 +381,8 @@ public class DemosGame : CasaEngineGame
         uiView.PushScreen(_demoHintOverlay);
 
         bool automationScreenshotEnabled = !string.IsNullOrWhiteSpace(_automationScreenshotPath);
-        _demoInfoScreen.SetVisible(!automationScreenshotEnabled && _demoInfoVisible);
-        _demoHintOverlay.SetVisible(!automationScreenshotEnabled && !_demoInfoVisible);
+        _demoInfoScreen.SetVisible(!automationScreenshotEnabled);
+        _demoHintOverlay.SetVisible(false);
     }
 
     /// <summary>Asks for a demo change; it happens at the start of the next update, outside any UI callback.</summary>
@@ -250,7 +405,7 @@ public class DemosGame : CasaEngineGame
             return;
         }
 
-        OnScreenResized(bounds.Width, bounds.Height);
+        ApplyBrowserLayout(bounds.Width, bounds.Height, relayoutViews: true);
     }
 
     private void ApplyAutomationViewSettings()
@@ -285,6 +440,13 @@ public class DemosGame : CasaEngineGame
 
     protected override void Update(GameTime gameTime)
     {
+        if (_browserLayoutDirty)
+        {
+            ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: true);
+        }
+
+        UpdateDemoBrowserInput();
+
         if (_pendingDemoIndex >= 0)
         {
             int requestedIndex = _pendingDemoIndex;
@@ -296,12 +458,10 @@ public class DemosGame : CasaEngineGame
 
         var kb = IsActive ? Keyboard.GetState() : new KeyboardState();
 
-        // F1 — toggle demo info panel visibility
+        // F1 — collapse or reopen the demo browser
         if (kb.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))
         {
-            _demoInfoVisible = !_demoInfoVisible;
-            _demoInfoScreen?.SetVisible(_demoInfoVisible);
-            _demoHintOverlay?.SetVisible(!_demoInfoVisible);
+            ToggleDemoBrowser();
         }
 
         _prevKeyboard = kb;
@@ -312,6 +472,18 @@ public class DemosGame : CasaEngineGame
         }
 
         base.Update(gameTime);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // The window-level UI belongs to the game that installed it (ADR-0070).
+            _browserRoot?.Dispose();
+            _browserRoot = null;
+        }
+
+        base.Dispose(disposing);
     }
 
     private void TryCaptureAutomationScreenshot(GameTime gameTime)
@@ -364,6 +536,34 @@ public class DemosGame : CasaEngineGame
             Logs.WriteException(ex);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Whether the demo browser starts open (plan point P4): collapsed whenever an automation run captures or probes the
+    /// back buffer, so the image is the one the demos always produced; <c>CASAENGINE_DEMO_BROWSER=open</c> or
+    /// <c>collapsed</c> overrides it, e.g. to capture the browser itself.
+    /// </summary>
+    private static bool ResolveInitialBrowserOpen()
+    {
+        var requested = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BROWSER");
+        if (string.Equals(requested, "open", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (string.Equals(requested, "collapsed", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(requested))
+        {
+            Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_BROWSER='{requested}' is neither 'open' nor 'collapsed'; it is ignored.");
+        }
+
+        return string.IsNullOrWhiteSpace(ResolveAutomationScreenshotPath())
+            && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"))
+            && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_PSXQUAD_DUMP_PATH"));
     }
 
     private static string? ResolveAutomationScreenshotPath()

@@ -240,7 +240,7 @@ Automatisation et tests :
 
 ## Phase 4 — Démos : navigateur
 
-### ⏳ T4.1 — Coquille du navigateur : UI de fenêtre, thème Dark, poignée, F1
+### 🧪 T4.1 — Coquille du navigateur : UI de fenêtre, thème Dark, poignée, F1
 
 - Objectif : le navigateur existe à gauche, vide, en thème Dark ; la poignée règle sa largeur ; F1 le replie et le rouvre.
 - Fichiers : `CasaEngine.Demos/Content/Screens/demo-browser.xaml` (nouveau), `CasaEngine.Demos/Demos/DemoUI/DemoBrowserScreen.cs` (nouveau), `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Tests/UI/DemoScreenXamlTests.cs`.
@@ -253,6 +253,13 @@ Automatisation et tests :
   6. Prototype de P9, avant de continuer : (i) touches d'une démo pressées sans jamais toucher le navigateur → `WindowUI.IsKeyboardCaptured` reste faux ; (ii) pointeur sur le navigateur puis sur la scène → `IsKeyboardCaptured` redevient faux à l'image suivante. Si MGUI garde le focus malgré le désarmement, ⚠️ Blocked : la seule autre voie publique serait une API de MGUI, hors périmètre (question à l'auteur).
 - Validation : build ; `DemoScreenXamlTests` vert (le nouveau XAML est chargé en strict) avec un test des noms et du placement étiré ; prototype P9 (étape 6) noté sous la tâche ; manuel : thème Dark, scène à droite au bon aspect, poignée, F1, molette et orbite sans effet au-dessus du navigateur, redimensionnement de la fenêtre.
 - Commit : `feat(demos): split-window demo browser shell with the MGUI dark theme`
+- Note de validation (2026-10-06) :
+  - Code : `demo-browser.xaml` (fenêtre étirée, `Grid` `*,6` × `Auto,*[120,],6,180[80,],Auto`, `TreeView`, `GridSplitter`, description en `AllowsInlineFormatting="False"`, poignée `bdrSceneHandle`) ; `DemoBrowserScreen` (bouton « << », `SetKeyboardArmed`) ; `DemosGame` crée une fois une `BackBufferSurface` et un `UIRoot` au thème `MGTheme.BuiltInTheme.Dark`, pose les marges (`ApplyBrowserLayout`, bornes P1, repli s'il ne reste pas 200 px), `SetWindowUI` / `ClearWindowUI`, F1 et « << » différés à la mise à jour suivante, règle P9 (`BrowserOwnsKeyboard`) et glissement de la poignée depuis l'état brut de la souris, `Dispose` du `UIRoot`.
+  - Écart assumé à l'étape 1 : le prototype d'un glissement MGUI hors du bureau ne peut pas se vérifier sans simuler la souris de l'auteur ; le repli (glissement suivi par `DemosGame` avec l'état brut de la souris) est retenu d'emblée.
+  - Avancé depuis T5.1 pour pouvoir capturer le navigateur : P4 complet (`ResolveInitialBrowserOpen` : replié sous `CASAENGINE_CAPTURE_SCREENSHOT_PATH`, `CASAENGINE_DEMO_PIXELS_PATH`, `CASAENGINE_PSXQUAD_DUMP_PATH`, surchargé par `CASAENGINE_DEMO_BROWSER=open|collapsed`, valeur inconnue signalée). Transitoire jusqu'à T4.3 : l'ancien panneau reste affiché dans la scène (hors automatisation) pour naviguer tant que l'arbre est vide ; le rappel F1 est masqué.
+  - Prototype P9 (étape 6) automatisé sans toucher aux entrées de l'auteur : `DemoBrowserFocusTests` (3 tests sur le vrai `demo-browser.xaml`, bureau sans affichage) : armé, une touche fait prendre le focus par MGUI (la menace existe) ; désarmé, les touches ne focalisent rien ; désarmer un navigateur focalisé retire le focus dès la mise à jour suivante. Plus un test des noms et un cas de placement étiré dans `DemoScreenXamlTests`.
+  - Deux solutions : 0 erreur ; `CasaEngine.Tests` 4151/4151. Sondes en automatisation : 7 PASS, relevés identiques à la référence. Capture Material avec `CASAENGINE_DEMO_BROWSER=open` : navigateur de 280 px en thème Dark, scène à droite au bon aspect. Navigateur forcé ouvert : sonde Split-screen PASS (vue décalée en 652) ; sonde du sprite PSX FAIL sur 2 points attendus (scène en pixels 1:1 centrée sur la fenêtre, environ 140 px rognés de chaque côté, voir O4).
+  - **Reste à la main (T5.2)** : glisser la poignée (bornes 200 et 340 px à 1024x768), F1 et « << », molette et orbite sans effet au-dessus du navigateur, règle P9 en vrai.
 
 ### ⏳ T4.2 — Arbre par thèmes, description, chargement au clic ou à Entrée
 
@@ -328,8 +335,9 @@ Automatisation et tests :
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | ~~Fusion des thèmes à une seule démo~~ : **tranché le 2026-10-06 par l'auteur (« on fusionne »), voir D8.** | T4.2 |
-| O2 | Glissement de la poignée hors du bureau du navigateur : à prototyper, repli prévu (T4.1 étape 1). | T4.1 |
+| O2 | ~~Glissement de la poignée hors du bureau du navigateur~~ : **tranché en T4.1**, le repli (glissement suivi par `DemosGame` avec l'état brut de la souris) est retenu d'emblée ; à vérifier à la main en T5.2. | T4.1 |
 | O3 | FOV de la scène navigateur ouvert à 1024x768 (60° → environ 83°) : conséquence acceptée de D3, à constater par l'auteur. | T5.2 |
+| O4 | Navigateur ouvert, les scènes PSX en pixels 1:1 (centrées sur la fenêtre) sont rognées d'environ 140 px de chaque côté dans une zone de 744 px, et leur sonde échoue si on la lance navigateur ouvert (constaté en T4.1, sprite PSX : premier sprite sous le navigateur). En automatisation le navigateur est replié (P4), donc rien ne change pour les sondes. Question à l'auteur : replier aussi le navigateur pour les cinq autres démos PSX (D4 n'en cite qu'une), ou garder le rognage (F1 rend toute la fenêtre) ? | T4.2, T5.2 |
 
 ## Hors périmètre
 
