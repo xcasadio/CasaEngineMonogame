@@ -17,7 +17,8 @@ namespace CasaEngine.Editor.Controls;
 
 /// <summary>
 /// Inspector for a <c>.sound</c> asset: audio file, variation audio files, volume, pitch, volume and
-/// pitch variation ranges, voice priority, loop, target bus, streaming, plus a preview.
+/// pitch variation ranges, voice priority, loop, target bus, streaming, spatial mode, distance model, distances, rolloff
+/// and Doppler factor, the count of parameter bindings, plus a preview.
 /// </summary>
 /// <remarks>
 /// The preview is routed to the Editor bus, never to the game buses: it must not be silenced by
@@ -33,6 +34,10 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         AudioBusNames.Voice,
         AudioBusNames.Ui,
     };
+
+    private const float MaxDistanceRange = 100000f;
+    private const float MaxRolloffRange = 10f;
+    private const float MaxDopplerRange = 10f;
 
     private readonly MGWindow _window;
     private readonly HostedEditorGameAdapter _editorRuntime;
@@ -371,6 +376,31 @@ public sealed class SoundAssetInspectorPanel : IDisposable
                 SetDirty(true);
             }));
         _fieldStack.TryAddChild(CreateBusRow());
+        _fieldStack.TryAddChild(CreateEnumRow(
+            "Spatial", _soundAsset.SpatialMode, value => _soundAsset.SpatialMode = value));
+        _fieldStack.TryAddChild(CreateEnumRow(
+            "Distance model", _soundAsset.DistanceModel, value => _soundAsset.DistanceModel = value));
+        _fieldStack.TryAddChild(CreateNumericRow(
+            "Reference distance", MaxDistanceRange, 1f, _soundAsset.ReferenceDistance,
+            value => _soundAsset.ReferenceDistance = MathF.Round(value, 2)));
+        _fieldStack.TryAddChild(CreateNumericRow(
+            "Max distance", MaxDistanceRange, 1f, _soundAsset.MaxDistance,
+            value => _soundAsset.MaxDistance = MathF.Round(value, 2)));
+        if (_soundAsset.MaxDistance == float.MaxValue)
+        {
+            // The field shows its own maximum: the asset keeps float.MaxValue until the user edits the field.
+            _fieldStack.TryAddChild(CreateHelpText("Max distance: no limit."));
+        }
+
+        _fieldStack.TryAddChild(CreateNumericRow(
+            "Rolloff", MaxRolloffRange, 0.1f, _soundAsset.RolloffFactor,
+            value => _soundAsset.RolloffFactor = MathF.Round(value, 2)));
+        _fieldStack.TryAddChild(CreateNumericRow(
+            "Doppler factor", MaxDopplerRange, 0.1f, _soundAsset.DopplerFactor,
+            value => _soundAsset.DopplerFactor = MathF.Round(value, 2)));
+        _fieldStack.TryAddChild(CreateHelpText("Spatial settings apply when the sound is played at a position. Doppler 0 = off."));
+        _fieldStack.TryAddChild(CreateHelpText(
+            $"Parameter bindings: {_soundAsset.ParameterBindings.Count} (edit the .sound file)"));
 
         _suppressControlCallbacks = false;
     }
@@ -584,6 +614,49 @@ public sealed class SoundAssetInspectorPanel : IDisposable
             }
 
             _soundAsset.BusName = args.NewValue;
+            SetDirty(true);
+        };
+
+        row.TryAddChild(combo);
+        return row;
+    }
+
+    private MGElement CreateNumericRow(string label, float max, float step, float value, Action<float> applyValue)
+    {
+        var row = CreateRow(label);
+        row.TryAddChild(CreateNumericField(string.Empty, 0f, max, step, value, applyValue));
+        return row;
+    }
+
+    private MGElement CreateEnumRow<T>(string label, T value, Action<T> applyValue) where T : struct, Enum
+    {
+        var row = CreateRow(label);
+
+        var combo = new MGComboBox<T>(_window)
+        {
+            MinWidth = 140,
+        };
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(item.ToString());
+            return button;
+        };
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item.ToString())
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        combo.SetItemsSource(Enum.GetValues<T>());
+        combo.SelectedItem = value;
+        combo.SelectedItemChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            applyValue(args.NewValue);
             SetDirty(true);
         };
 

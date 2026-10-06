@@ -5,6 +5,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.Entities;
@@ -784,6 +785,55 @@ internal static class EditorAssetJsonSerializer
         if (soundAsset.VariationPitchMax != 0f)
         {
             node.Add("variation_pitch_max", soundAsset.VariationPitchMax);
+        }
+
+        if (soundAsset.SpatialMode != AudioSpatialMode.None)
+        {
+            node.Add("spatial_mode", soundAsset.SpatialMode.ToString());
+        }
+
+        if (soundAsset.DistanceModel != AudioDistanceModel.InverseDistanceClamped)
+        {
+            node.Add("distance_model", soundAsset.DistanceModel.ToString());
+        }
+
+        if (soundAsset.ReferenceDistance != 1f)
+        {
+            node.Add("reference_distance", soundAsset.ReferenceDistance);
+        }
+
+        if (soundAsset.MaxDistance != float.MaxValue)
+        {
+            node.Add("max_distance", soundAsset.MaxDistance);
+        }
+
+        if (soundAsset.RolloffFactor != 1f)
+        {
+            node.Add("rolloff_factor", soundAsset.RolloffFactor);
+        }
+
+        if (soundAsset.DopplerFactor != 0f)
+        {
+            node.Add("doppler_factor", soundAsset.DopplerFactor);
+        }
+
+        if (soundAsset.ParameterBindings.Count > 0)
+        {
+            var bindings = new JArray();
+            foreach (var binding in soundAsset.ParameterBindings)
+            {
+                bindings.Add(new JObject
+                {
+                    ["parameter"] = binding.ParameterName,
+                    ["target"] = binding.Target.ToString(),
+                    ["input_min"] = binding.InputMin,
+                    ["input_max"] = binding.InputMax,
+                    ["output_min"] = binding.OutputMin,
+                    ["output_max"] = binding.OutputMax,
+                });
+            }
+
+            node.Add("parameter_bindings", bindings);
         }
     }
 

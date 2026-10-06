@@ -2,6 +2,7 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Spatial;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -477,5 +478,280 @@ public class SoundAssetTests
         {
             File.Delete(path);
         }
+    }
+
+    // ----- spatial fields and parameter bindings (T9.3) -----
+
+    private static JObject BindingNode(string name = "speed", string target = "Volume", JToken inputMax = null)
+    {
+        return new JObject
+        {
+            ["parameter"] = name,
+            ["target"] = target,
+            ["input_min"] = 0,
+            ["input_max"] = inputMax ?? 10,
+            ["output_min"] = 1.0,
+            ["output_max"] = 0.25,
+        };
+    }
+
+    private static void AssertSpatialDefaults(SoundAsset asset)
+    {
+        Assert.Equal(AudioSpatialMode.None, asset.SpatialMode);
+        Assert.Equal(AudioDistanceModel.InverseDistanceClamped, asset.DistanceModel);
+        Assert.Equal(1f, asset.ReferenceDistance);
+        Assert.Equal(float.MaxValue, asset.MaxDistance);
+        Assert.Equal(1f, asset.RolloffFactor);
+        Assert.Equal(0f, asset.DopplerFactor);
+        Assert.Empty(asset.ParameterBindings);
+    }
+
+    [Fact]
+    public void Load_EverySpatialField_IsRead()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["spatial_mode"] = "spatial3d";
+        document["distance_model"] = "LinearDistance";
+        document["reference_distance"] = 2.5;
+        document["max_distance"] = 300;
+        document["rolloff_factor"] = 0.5;
+        document["doppler_factor"] = 1;
+        document["parameter_bindings"] = new JArray(BindingNode(), BindingNode("rpm", "pitch"));
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Empty(warnings);
+        Assert.Equal(AudioSpatialMode.Spatial3D, asset.SpatialMode);
+        Assert.Equal(AudioDistanceModel.LinearDistance, asset.DistanceModel);
+        Assert.Equal(2.5f, asset.ReferenceDistance);
+        Assert.Equal(300f, asset.MaxDistance);
+        Assert.Equal(0.5f, asset.RolloffFactor);
+        Assert.Equal(1f, asset.DopplerFactor);
+        Assert.Equal(2, asset.ParameterBindings.Count);
+        var first = asset.ParameterBindings[0];
+        Assert.Equal("speed", first.ParameterName);
+        Assert.Equal(AudioParameterTarget.Volume, first.Target);
+        Assert.Equal(0f, first.InputMin);
+        Assert.Equal(10f, first.InputMax);
+        Assert.Equal(1f, first.OutputMin);
+        Assert.Equal(0.25f, first.OutputMax);
+        Assert.Equal(AudioParameterTarget.Pitch, asset.ParameterBindings[1].Target);
+    }
+
+    [Fact]
+    public void Load_MinimalDocument_KeepsTheSpatialDefaults()
+    {
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, new JObject
+        {
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "minimal",
+        });
+
+        Assert.Empty(warnings);
+        AssertSpatialDefaults(asset);
+    }
+
+    [Theory]
+    [InlineData("spatial_mode", "Spatial4D")]
+    [InlineData("spatial_mode", "7")]
+    [InlineData("distance_model", "Quadratic")]
+    [InlineData("distance_model", "7")]
+    [InlineData("distance_model", "")]
+    public void Load_UnknownOrNumericEnumString_KeepsTheDefaultAndWarnsOnce(string key, string value)
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document[key] = value;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        var warning = Assert.Single(warnings);
+        Assert.Contains(key, warning);
+        Assert.Contains("footstep", warning);
+        AssertSpatialDefaults(asset);
+    }
+
+    [Theory]
+    [InlineData("spatial_mode")]
+    [InlineData("distance_model")]
+    public void Load_NonStringEnumToken_KeepsTheDefaultAndWarnsOnce(string key)
+    {
+        foreach (var token in new JToken[] { new JValue(2), JValue.CreateNull(), new JObject(), new JValue(true) })
+        {
+            var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+            document[key] = token;
+            var asset = new SoundAsset();
+
+            var warnings = LoadWithWarnings(asset, document);
+
+            Assert.Contains(key, Assert.Single(warnings));
+            AssertSpatialDefaults(asset);
+        }
+    }
+
+    [Theory]
+    [InlineData("reference_distance")]
+    [InlineData("max_distance")]
+    [InlineData("rolloff_factor")]
+    [InlineData("doppler_factor")]
+    public void Load_NonNumericSpatialValue_KeepsTheDefaultAndWarnsOnce(string key)
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document[key] = "far";
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Contains(key, Assert.Single(warnings));
+        AssertSpatialDefaults(asset);
+    }
+
+    [Fact]
+    public void Load_NegativeSpatialNumbers_KeepTheDefaults()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["reference_distance"] = -1;
+        document["max_distance"] = -5;
+        document["rolloff_factor"] = -0.5;
+        document["doppler_factor"] = -2;
+        var asset = new SoundAsset();
+
+        asset.Load(document);
+
+        AssertSpatialDefaults(asset);
+    }
+
+    [Fact]
+    public void Load_NonArrayBindings_IsIgnoredWithOneWarning()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["parameter_bindings"] = BindingNode();
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Contains("parameter_bindings", Assert.Single(warnings));
+        Assert.Empty(asset.ParameterBindings);
+    }
+
+    [Fact]
+    public void Load_InvalidBindings_AreSkippedWithAWarningNamingTheAsset()
+    {
+        var missingNumber = BindingNode();
+        missingNumber.Remove("output_min");
+        var stringNumber = BindingNode(inputMax: "ten");
+        var nanNumber = BindingNode(inputMax: double.NaN);
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["parameter_bindings"] = new JArray(
+            BindingNode(name: ""),
+            BindingNode(name: "   "),
+            missingNumber,
+            stringNumber,
+            nanNumber,
+            BindingNode(target: "Reverb"),
+            BindingNode(target: "7"),
+            new JValue(3),
+            BindingNode("kept", "volume"));
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Equal(8, warnings.Count);
+        Assert.All(warnings, warning =>
+        {
+            Assert.Contains("footstep", warning);
+            Assert.Contains("parameter_bindings", warning);
+        });
+        var kept = Assert.Single(asset.ParameterBindings);
+        Assert.Equal("kept", kept.ParameterName);
+    }
+
+    [Fact]
+    public void Load_NinthBindingAndLater_AreDroppedWithOneWarning()
+    {
+        var bindings = new JArray();
+        for (var i = 0; i < 11; i++)
+        {
+            bindings.Add(BindingNode("p" + i));
+        }
+
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["parameter_bindings"] = bindings;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Contains("footstep", Assert.Single(warnings));
+        Assert.Equal(SoundAsset.MaxParameterBindings, asset.ParameterBindings.Count);
+        Assert.Equal("p7", asset.ParameterBindings[7].ParameterName);
+    }
+
+    [Fact]
+    public void Load_ReplacesThePreviousBindings()
+    {
+        var asset = new SoundAsset();
+        asset.SetParameterBindings(new[] { new AudioParameterBinding("old", AudioParameterTarget.Volume, 0, 1, 0, 1) });
+
+        asset.Load(CreateDocument(Guid.NewGuid(), Guid.NewGuid()));
+
+        Assert.Empty(asset.ParameterBindings);
+    }
+
+    [Fact]
+    public void SpatialSetters_NaNOrNegative_KeepThePreviousValue()
+    {
+        var asset = new SoundAsset
+        {
+            ReferenceDistance = 3f,
+            MaxDistance = 50f,
+            RolloffFactor = 2f,
+            DopplerFactor = 0.5f,
+        };
+
+        asset.ReferenceDistance = -1f;
+        asset.MaxDistance = float.NaN;
+        asset.RolloffFactor = float.NegativeInfinity;
+        asset.DopplerFactor = float.NaN;
+
+        Assert.Equal(3f, asset.ReferenceDistance);
+        Assert.Equal(50f, asset.MaxDistance);
+        Assert.Equal(2f, asset.RolloffFactor);
+        Assert.Equal(0.5f, asset.DopplerFactor);
+
+        asset.ReferenceDistance = 0f;
+        asset.DopplerFactor = 0f;
+        Assert.Equal(0f, asset.ReferenceDistance);
+        Assert.Equal(0f, asset.DopplerFactor);
+    }
+
+    [Fact]
+    public void MaxDistance_PositiveInfinity_IsStoredAsFloatMaxValue()
+    {
+        var asset = new SoundAsset { MaxDistance = 10f };
+
+        asset.MaxDistance = float.PositiveInfinity;
+
+        Assert.Equal(float.MaxValue, asset.MaxDistance);
+    }
+
+    [Fact]
+    public void SetParameterBindings_KeepsAtMostEight_SkipsNulls_AndAcceptsNull()
+    {
+        var asset = new SoundAsset();
+        var bindings = Enumerable.Range(0, 10)
+            .Select(i => new AudioParameterBinding("p" + i, AudioParameterTarget.Pitch, 0, 1, 0, 1))
+            .ToList();
+        bindings.Insert(0, null);
+
+        asset.SetParameterBindings(bindings);
+
+        Assert.Equal(8, asset.ParameterBindings.Count);
+        Assert.Equal("p0", asset.ParameterBindings[0].ParameterName);
+
+        asset.SetParameterBindings(null);
+        Assert.Empty(asset.ParameterBindings);
     }
 }

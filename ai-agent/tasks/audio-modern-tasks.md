@@ -2415,7 +2415,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   sortie stockée n'est pas finie rend la valeur neutre. 61 tests, valeurs recalculées depuis la spécification, zéro
   allocation. Deux solutions sans erreur ni avertissement dans les fichiers ajoutés ; 3380/3380.
 
-### ⏳ T9.3 — Champs spatiaux et liaisons dans le `.sound`, inspecteur (P34, P42)
+### 🧪 T9.3 — Champs spatiaux et liaisons dans le `.sound`, inspecteur (P34, P42)
 
 - Fichiers : `CasaEngine/Framework/Audio/SoundAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
   (`SaveSoundAsset`), `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`, tests `SoundAssetTests.cs`,
@@ -2442,6 +2442,14 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   inspecteur : lignes, écriture, `float.MaxValue` non réécrit par la construction. 🧪 aspect dans l'éditeur. Deux
   solutions ; suite verte.
 - Commit : `feat(audio): spatial mode, distance model, Doppler factor and parameter bindings in the .sound asset`
+- Note de validation (2026-10-06) : `SoundAsset` reçoit le mode spatial, le modèle de distance, les distances, le
+  rolloff, le facteur de Doppler et `ParameterBindings` (`SetParameterBindings`, huit au plus) ; lecture des énumérations
+  par `TryParse` puis `IsDefined` (un nombre en chaîne qui nomme une valeur définie, « 1 », est accepté ; « 7 » ne
+  l'est pas), +∞ ramené à `float.MaxValue` pour les quatre réglages numériques ; écriture seulement hors défaut ;
+  inspecteur : Spatial, Distance model, Reference distance et Max distance (0 à 100 000, pas 1), Rolloff et Doppler
+  factor (0 à 10, pas 0,1), lignes d'aide « no limit » et nombre de liaisons ; construire l'inspecteur ne réécrit pas
+  `float.MaxValue`. 31 tests. Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3411/3411.
+  **🧪 pour l'auteur** : aspect des six lignes dans l'éditeur.
 
 ### ⏳ T9.4 — Écouteur, voix spatiales et repli dans `AudioService` (P32, P35, P36, P38, P44)
 

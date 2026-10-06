@@ -8,6 +8,7 @@ using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Tests.Audio;
 using CasaEngine.Tests.ContentBrowser;
 using MGUI.Core.UI;
@@ -232,7 +233,8 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
             new[]
             {
                 "Audio file", "Variation 1", "Variation 2", "Variations", "Volume", "Pitch",
-                "Volume variation", "Pitch variation", "Priority", "Bus",
+                "Volume variation", "Pitch variation", "Priority", "Bus", "Spatial", "Distance model",
+                "Reference distance", "Max distance", "Rolloff", "Doppler factor",
             },
             rowLabels);
 
@@ -522,6 +524,156 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
         Assert.Equal(12f, FieldsOfRow(rig.Content, "Priority")[0].Value);
     }
 
+
+    // ----- spatial rows (T9.3) -----
+
+    private static MGComboBox<T> ComboOfRow<T>(MGElement content, string rowLabel)
+    {
+        var label = content.TraverseVisualTree().OfType<MGTextBlock>().First(text => text.Text == rowLabel);
+        var row = Assert.IsAssignableFrom<MGStackPanel>(label.Parent);
+        return Assert.Single(row.TraverseVisualTree().OfType<MGComboBox<T>>());
+    }
+
+    [Fact]
+    public void TheSpatialRows_ShowTheAssetValues_WithTheirRanges()
+    {
+        var asset = CreateAsset();
+        asset.SpatialMode = AudioSpatialMode.Spatial2D;
+        asset.DistanceModel = AudioDistanceModel.LinearDistance;
+        asset.ReferenceDistance = 4f;
+        asset.MaxDistance = 250f;
+        asset.RolloffFactor = 0.5f;
+        asset.DopplerFactor = 2f;
+        asset.SetParameterBindings(new[]
+        {
+            new AudioParameterBinding("a", AudioParameterTarget.Volume, 0, 1, 0, 1),
+            new AudioParameterBinding("b", AudioParameterTarget.Pitch, 0, 1, 0, 1),
+        });
+
+        var rig = Open(asset);
+
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DirtyEvents);
+        Assert.Equal(AudioSpatialMode.Spatial2D, ComboOfRow<AudioSpatialMode>(rig.Content, "Spatial").SelectedItem);
+        Assert.Equal(AudioDistanceModel.LinearDistance, ComboOfRow<AudioDistanceModel>(rig.Content, "Distance model").SelectedItem);
+
+        var reference = Assert.Single(FieldsOfRow(rig.Content, "Reference distance"));
+        Assert.Equal(4f, reference.Value);
+        Assert.Equal(0f, reference.Min);
+        Assert.Equal(100000f, reference.Max);
+        Assert.Equal(1f, reference.Step);
+        Assert.Equal(250f, Assert.Single(FieldsOfRow(rig.Content, "Max distance")).Value);
+        var rolloff = Assert.Single(FieldsOfRow(rig.Content, "Rolloff"));
+        Assert.Equal(0.5f, rolloff.Value);
+        Assert.Equal(0f, rolloff.Min);
+        Assert.Equal(10f, rolloff.Max);
+        Assert.Equal(0.1f, rolloff.Step);
+        var doppler = Assert.Single(FieldsOfRow(rig.Content, "Doppler factor"));
+        Assert.Equal(2f, doppler.Value);
+        Assert.Equal(0f, doppler.Min);
+        Assert.Equal(10f, doppler.Max);
+
+        var texts = rig.Content.TraverseVisualTree().OfType<MGTextBlock>().Select(text => text.Text).ToList();
+        Assert.Contains("Parameter bindings: 2 (edit the .sound file)", texts);
+        Assert.DoesNotContain(texts, text => text != null && text.Contains("no limit", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void TheSpatialRows_FollowTheBusRow_InOrder()
+    {
+        var rig = Open(CreateAsset());
+
+        var rowLabels = rig.Content.TraverseVisualTree()
+            .OfType<MGTextBlock>()
+            .Where(text => text.PreferredWidth == 110)
+            .Select(text => text.Text)
+            .ToArray();
+
+        Assert.Equal(
+            new[]
+            {
+                "Bus", "Spatial", "Distance model", "Reference distance", "Max distance", "Rolloff", "Doppler factor",
+            },
+            rowLabels.SkipWhile(label => label != "Bus").ToArray());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BuildingTheContent_WithNoLimit_DoesNotRewriteMaxDistance_NorMarkDirty(bool buildContentFirst)
+    {
+        var asset = CreateAsset();
+        Assert.Equal(float.MaxValue, asset.MaxDistance);
+
+        var rig = Open(asset, buildContentFirst);
+
+        Assert.Equal(float.MaxValue, asset.MaxDistance);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DirtyEvents);
+        Assert.Contains(
+            rig.Content.TraverseVisualTree().OfType<MGTextBlock>().Select(text => text.Text),
+            text => text != null && text.Contains("no limit", StringComparison.Ordinal));
+
+        Assert.True(rig.Panel.TrySaveLoadedAsset(out var error), error);
+        Assert.Equal(OriginalKeys, KeysOf(rig.FullPath));
+    }
+
+    [Fact]
+    public void EditingTheMaxDistance_WritesTheAsset_AndMarksDirty()
+    {
+        var rig = Open(CreateAsset());
+
+        FieldsOfRow(rig.Content, "Max distance")[0].Value = 120f;
+
+        Assert.Equal(120f, rig.Asset.MaxDistance);
+        Assert.True(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void EditingTheSpatialRows_WritesTheAsset_AndMarksDirty()
+    {
+        var rig = Open(CreateAsset());
+
+        ComboOfRow<AudioSpatialMode>(rig.Content, "Spatial").SelectedItem = AudioSpatialMode.Spatial3D;
+        Assert.Equal(AudioSpatialMode.Spatial3D, rig.Asset.SpatialMode);
+        Assert.True(rig.Panel.IsDirty);
+
+        ComboOfRow<AudioDistanceModel>(rig.Content, "Distance model").SelectedItem = AudioDistanceModel.ExponentDistance;
+        Assert.Equal(AudioDistanceModel.ExponentDistance, rig.Asset.DistanceModel);
+
+        FieldsOfRow(rig.Content, "Reference distance")[0].Value = 3f;
+        FieldsOfRow(rig.Content, "Rolloff")[0].Value = 0.35000002f;
+        FieldsOfRow(rig.Content, "Doppler factor")[0].Value = 1.5f;
+
+        Assert.Equal(3f, rig.Asset.ReferenceDistance);
+        Assert.Equal(0.35f, rig.Asset.RolloffFactor);
+        Assert.Equal(1.5f, rig.Asset.DopplerFactor);
+
+        Assert.True(rig.Panel.TrySaveLoadedAsset(out var error), error);
+        var document = JObject.Parse(File.ReadAllText(rig.FullPath));
+        Assert.Equal("Spatial3D", (string)document["spatial_mode"]);
+        Assert.Equal("ExponentDistance", (string)document["distance_model"]);
+        Assert.Equal(3f, (float)document["reference_distance"]);
+        Assert.Equal(0.35f, (float)document["rolloff_factor"]);
+        Assert.Equal(1.5f, (float)document["doppler_factor"]);
+        Assert.False(document.ContainsKey("max_distance"));
+    }
+
+    [Fact]
+    public void TheSpatialFields_AreNotWrittenByTheBuild_AndTheDirtyFlagStaysClear()
+    {
+        var asset = CreateAsset();
+        asset.SpatialMode = AudioSpatialMode.Spatial3D;
+        asset.DistanceModel = AudioDistanceModel.InverseDistance;
+        asset.MaxDistance = 99f;
+
+        var rig = Open(asset);
+
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(AudioSpatialMode.Spatial3D, asset.SpatialMode);
+        Assert.Equal(AudioDistanceModel.InverseDistance, asset.DistanceModel);
+        Assert.Equal(99f, asset.MaxDistance);
+    }
     // ───────────────────────── save and load ─────────────────────────
 
     [Fact]

@@ -2,6 +2,7 @@ using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Spatial;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -208,5 +209,80 @@ public class SoundAssetEditorSerializationTests
         Assert.True(document.ContainsKey("is_looped"));
         Assert.True(document.ContainsKey("bus_name"));
         Assert.True(document.ContainsKey("is_streaming"));
+    }
+
+    private static readonly string[] SpatialKeys =
+    {
+        "spatial_mode", "distance_model", "reference_distance", "max_distance", "rolloff_factor", "doppler_factor",
+        "parameter_bindings",
+    };
+
+    [Fact]
+    public void SaveThenLoad_KeepsEverySpatialField()
+    {
+        var saved = new SoundAsset
+        {
+            SpatialMode = AudioSpatialMode.Spatial3D,
+            DistanceModel = AudioDistanceModel.ExponentDistanceClamped,
+            ReferenceDistance = 2.5f,
+            MaxDistance = 400f,
+            RolloffFactor = 0.5f,
+            DopplerFactor = 1.25f,
+        };
+        saved.SetParameterBindings(new[]
+        {
+            new AudioParameterBinding("speed", AudioParameterTarget.Volume, 0f, 10f, 1f, 0.25f),
+            new AudioParameterBinding("rpm", AudioParameterTarget.Pitch, -1f, 1f, -0.5f, 0.5f),
+        });
+
+        var document = Serialize(saved);
+
+        Assert.Equal("Spatial3D", (string)document["spatial_mode"]);
+        Assert.Equal("ExponentDistanceClamped", (string)document["distance_model"]);
+        var bindingsNode = Assert.IsType<JArray>(document["parameter_bindings"]);
+        Assert.Equal(
+            new[] { "input_max", "input_min", "output_max", "output_min", "parameter", "target" },
+            ((JObject)bindingsNode[0]).Properties().Select(p => p.Name).OrderBy(n => n, StringComparer.Ordinal));
+
+        var loaded = new SoundAsset();
+        loaded.Load(document);
+
+        Assert.Equal(saved.SpatialMode, loaded.SpatialMode);
+        Assert.Equal(saved.DistanceModel, loaded.DistanceModel);
+        Assert.Equal(2.5f, loaded.ReferenceDistance);
+        Assert.Equal(400f, loaded.MaxDistance);
+        Assert.Equal(0.5f, loaded.RolloffFactor);
+        Assert.Equal(1.25f, loaded.DopplerFactor);
+        Assert.Equal(2, loaded.ParameterBindings.Count);
+        Assert.Equal("rpm", loaded.ParameterBindings[1].ParameterName);
+        Assert.Equal(AudioParameterTarget.Pitch, loaded.ParameterBindings[1].Target);
+        Assert.Equal(-1f, loaded.ParameterBindings[1].InputMin);
+        Assert.Equal(1f, loaded.ParameterBindings[1].InputMax);
+        Assert.Equal(-0.5f, loaded.ParameterBindings[1].OutputMin);
+        Assert.Equal(0.5f, loaded.ParameterBindings[1].OutputMax);
+        Assert.True(JToken.DeepEquals(document, Serialize(loaded)));
+    }
+
+    [Fact]
+    public void Serialize_OfANewAsset_WritesNoSpatialKey()
+    {
+        var document = Serialize(new SoundAsset());
+
+        foreach (var key in SpatialKeys)
+        {
+            Assert.False(document.ContainsKey(key), key);
+        }
+    }
+
+    [Fact]
+    public void Serialize_WritesOnlyTheSpatialKeyThatDiffersFromItsDefault()
+    {
+        var document = Serialize(new SoundAsset { DistanceModel = AudioDistanceModel.LinearDistance, MaxDistance = float.PositiveInfinity });
+
+        Assert.Equal("LinearDistance", (string)document["distance_model"]);
+        foreach (var key in SpatialKeys.Where(key => key != "distance_model"))
+        {
+            Assert.False(document.ContainsKey(key), key);
+        }
     }
 }
