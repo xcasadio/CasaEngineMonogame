@@ -69,5 +69,5 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
 | [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |
-| [ADR-0056](0056-scrolling-layer-tint-draws-with-the-psx-mode-of-the-map.md) | The scrolling-layer tint draws with the PSX mode of the map | Accepted | 2026-10-06 |
 | [ADR-0065](0065-character-controller-min-move-distance-setting.md) | The character controller minimum move distance is a per-controller setting | Accepted | 2026-10-06 |
+| [ADR-0066](0066-scrolling-layer-tint-draws-with-the-psx-mode-of-the-map.md) | The scrolling-layer tint draws with the PSX mode of the map | Accepted | 2026-10-06 |

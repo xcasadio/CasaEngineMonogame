@@ -9,7 +9,7 @@ namespace CasaEngine.Framework.Rendering.ScrollingLayers;
 /// optional tint - docs/engine/scrolling-layers.md). Submitted as one quad. Without a mode it is
 /// drawn with <see cref="SpriteBlendMode.AlphaBlend"/> and the colour as given (the DLL bakes any alpha
 /// it wants into <see cref="Color"/>); with a <see cref="PsxSemiTransparency"/> mode the mode picks the
-/// blend state (ADR-0056).
+/// blend state (ADR-0066).
 /// </summary>
 public readonly struct ScrollingTintDefinition
 {

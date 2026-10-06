@@ -99,9 +99,9 @@ opaque en opaque.
 
 - Objectif : `docs/engine/scrolling-layers.md` (§6), `docs/engine/sprite-psx-semi-transparency.md` (section « Background layers ») ;
   ADR 0056 du moteur (`Accepted`, étend ADR-0053 à la teinte) et sa ligne d'index.
-- Validation faite : ADR-0056 (`Accepted`, en anglais) et sa ligne à l'index ; `scrolling-layers.md` §6 (en français) et
+- Validation faite : ADR-0056 (renumbered ADR-0066 on 2026-10-06) (`Accepted`, en anglais) et sa ligne à l'index ; `scrolling-layers.md` §6 (en français) et
   `sprite-psx-semi-transparency.md` (en anglais) décrivent la teinte à mode ; commentaire de `ScrollingTintDefinition` mis à jour.
-- Commit : `docs(adr): ADR-0056 the scrolling-layer tint draws with the PSX mode of the map`
+- Commit : `docs(adr): ADR-0056 (renumbered ADR-0066 on 2026-10-06) the scrolling-layer tint draws with the PSX mode of the map`
 
 ---
 

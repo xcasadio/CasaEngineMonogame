@@ -15,7 +15,7 @@ using EngineTexture = CasaEngine.Framework.Assets.Textures.Texture;
 namespace CasaEngine.Demos.Demos.PsxSemiTransparency;
 
 /// <summary>
-/// E19.g G2d (ADR-0056): the full-view tint overlay of the scrolling layers draws with the PSX mode of the map (the
+/// E19.g G2d (ADR-0066): the full-view tint overlay of the scrolling layers draws with the PSX mode of the map (the
 /// <c>BGColorA</c> byte of the original) instead of a fixed average. One scene per mode: the plain background layer of the
 /// G2c demo (<c>Content/PsxBackdropLayers/background.png</c>, (100, 150, 200), pass <c>Background</c>) and one tint over the
 /// whole view. The scene reads its own back-buffer in process (<see cref="BackBufferProbe"/>) at three layer points and

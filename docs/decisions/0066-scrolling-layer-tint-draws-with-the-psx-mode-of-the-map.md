@@ -1,10 +1,11 @@
-# ADR-0056: The scrolling-layer tint draws with the PSX mode of the map
+# ADR-0066: The scrolling-layer tint draws with the PSX mode of the map
 
 - **Status**: Accepted
 - **Date**: 2026-10-06 (plan E19.g G2d read until READY on 2026-10-05; work in the engine authorized by the author on 2026-10-03)
 - **Source**: this chantier: `ai-agent/tasks/e19g2d-overlay-blend-tasks.md` (rule G2d-R1). Parent repository:
   `docs/plan-e19-opcodes.md`, step E19.g G2d and O-E19-58 (the author's rule "the binary decides"). Extends ADR-0053 to the tint overlay
   of the scrolling layers; replaces no ADR.
+- **Renumbered**: 2026-10-06, from 0056 (the engine's main took 0056 and above for the audio work).
 
 ## Context
 

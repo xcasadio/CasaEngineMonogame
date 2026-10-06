@@ -296,7 +296,7 @@ public class ScrollingLayerComponent : GameComponent
 
     /// <summary>
     /// The tint is one entry on the neutral alpha window (a flat primitive has no per-texel STP). Without a mode: the colour
-    /// as the caller wrote it, <see cref="SpriteBlendMode.AlphaBlend"/>. With a mode (E19.g G2d, ADR-0056): the colour is the
+    /// as the caller wrote it, <see cref="SpriteBlendMode.AlphaBlend"/>. With a mode (E19.g G2d, ADR-0066): the colour is the
     /// opaque colour of the primitive and the mode picks the blend state - mode 0 averages (alpha 128), mode 1 adds, mode 2
     /// subtracts, mode 3 adds a quarter of the colour (each channel times 64/255, rounded to nearest).
     /// </summary>
