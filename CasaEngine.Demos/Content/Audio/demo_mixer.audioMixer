@@ -1,0 +1,58 @@
+{
+  "id": "23ddf15f-ea55-4c8b-9077-9b033f10b0f9",
+  "name": "demo_mixer",
+  "type": "AudioMixerAsset",
+  "version": 1,
+  "schema_version": 1,
+  "buses": [
+    {
+      "name": "Music",
+      "parent": "Master",
+      "volume": 1.0,
+      "effects": [],
+      "sends": []
+    },
+    {
+      "name": "Sfx",
+      "parent": "Master",
+      "volume": 1.0,
+      "effects": [],
+      "sends": [
+        {
+          "target": "DemoMixerReverb",
+          "level": 0.3
+        }
+      ]
+    },
+    {
+      "name": "Voice",
+      "parent": "Master",
+      "volume": 1.0,
+      "effects": [],
+      "sends": []
+    },
+    {
+      "name": "Ui",
+      "parent": "Master",
+      "volume": 1.0,
+      "effects": [],
+      "sends": []
+    },
+    {
+      "name": "DemoMixerReverb",
+      "parent": "Master",
+      "volume": 1.0,
+      "effects": [
+        {
+          "type": "reverb",
+          "room_size": 0.5,
+          "damping": 0.5,
+          "wet": 1.0,
+          "dry": 0.0,
+          "stereo_separation": 1.0
+        }
+      ],
+      "sends": []
+    }
+  ]
+}

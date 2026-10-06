@@ -3086,13 +3086,19 @@ de clôture **READY**.
   l'asset, bus ajouté au mixeur puis enregistré (la liste de l'inspecteur ouvert le propose), changement du fichier,
   musique en streaming dessinée, aspect de la ligne, ouverture d'une musique de 5 min en WAV et en Ogg.
 
-### ⏳ T10.10 — Exemple d'asset de mixeur dans les démos (P58)
+### ✅ T10.10 — Exemple d'asset de mixeur dans les démos (P58)
 
 - Fichiers : `CasaEngine.Demos/Content/Audio/demo_mixer.audioMixer` (nouveau), `AssetInfos.json`, `Content.mgcb`.
 - Étapes : bus par défaut, bus de retour `DemoMixerReverb` avec `ReverbEffect`, départ de Sfx ; écrit par l'écrivain de
   l'éditeur (ordre et format des clés) ; réglage `AudioMixerAsset` non ajouté à `DemosGame.json`.
 - Validation : chargé par le vrai chargeur dans un test ; démo lancée sans clavier, comportement inchangé.
 - Commit : `feat(demos): an example audio mixer asset`
+- Note de validation (2026-10-06) : `demo_mixer.audioMixer` (`23ddf15f-ea55-4c8b-9077-9b033f10b0f9`, écrit comme l'éditeur
+  l'écrit : quatre bus du moteur, retour `DemoMixerReverb` avec une réverbération aux valeurs par défaut, départ de Sfx
+  à 0,3), catalogué (`audiomixer`) et copié par `Content.mgcb` ; non activé (`DemosGame.json` inchangé). Un test le charge
+  par le vrai chargeur, le valide sans problème et vérifie qu'il se resérialise au texte près (comparaison textuelle en
+  plus de `DeepEquals`, qui ignore l'ordre des clés). Démo lancée sans clavier : 294 assets au catalogue, aucune ligne du
+  mixeur, aucun avertissement. Deux solutions sans erreur ; 4067/4067.
 
 ### ⏳ T10.11 — Documentation, ADR et vérification de la tranche
 

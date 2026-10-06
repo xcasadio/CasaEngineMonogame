@@ -1,4 +1,5 @@
 using CasaEngine.Core.Logging;
+using CasaEngine.EditorServices;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
@@ -281,6 +282,77 @@ public class AudioMixerAssetTests
             EngineEnvironment.ProjectPath = previousProjectPath;
             Directory.Delete(directory, recursive: true);
         }
+    }
+
+    [Fact]
+    public void DemoMixer_LoadsThroughTheRealLoaderAndIsWrittenAsTheEditorWritesIt()
+    {
+        string path = Path.Combine(DemoAudioDirectory(), "demo_mixer.audioMixer");
+        var logger = new CapturingLogger();
+        Logs.AddLogger(logger);
+        object loaded;
+        try
+        {
+            loaded = new AudioMixerAssetLoader().LoadAsset(path, new AssetContentManager());
+        }
+        finally
+        {
+            Logs.Close();
+        }
+
+        Assert.Empty(logger.Warnings);
+        Assert.Empty(logger.Errors);
+        var asset = Assert.IsType<AudioMixerAsset>(loaded);
+        Assert.Equal(Guid.Parse("23ddf15f-ea55-4c8b-9077-9b033f10b0f9"), asset.Id);
+        Assert.Equal("demo_mixer", asset.Name);
+        Assert.Equal(AudioMixerAsset.CurrentVersion, asset.Version);
+
+        Assert.Equal(
+            new[] { AudioBusNames.Music, AudioBusNames.Sfx, AudioBusNames.Voice, AudioBusNames.Ui, "DemoMixerReverb" },
+            asset.Buses.Select(bus => bus.Name).ToArray());
+        Assert.All(asset.Buses, bus =>
+        {
+            Assert.Equal(AudioBusNames.Master, bus.Parent);
+            Assert.Equal(1f, bus.Volume);
+        });
+
+        var reverbBus = asset.Buses[4];
+        var reverb = Assert.IsType<AudioMixerReverbEffectData>(Assert.Single(reverbBus.Effects));
+        Assert.Equal(new AudioMixerReverbEffectData(0.5f, 0.5f, 1f, 0f, 1f), reverb);
+        Assert.Equal(new AudioMixerReverbEffectData(), reverb);
+        Assert.Empty(reverbBus.Sends);
+
+        Assert.All(asset.Buses.Take(4), bus => Assert.Empty(bus.Effects));
+        Assert.Equal(new AudioMixerSendData("DemoMixerReverb", 0.3f), Assert.Single(asset.Buses[1].Sends));
+        Assert.All(asset.Buses.Where(bus => bus.Name != AudioBusNames.Sfx), bus => Assert.Empty(bus.Sends));
+
+        Assert.Empty(AudioMixerAssetValidator.Validate(asset, null, 32).Problems);
+
+        // The editor writer produces the same document, key order and number format included
+        // (JToken.DeepEquals ignores the order of the properties, hence the text comparison).
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(asset, out var written));
+        string fileText = File.ReadAllText(path);
+        Assert.True(JToken.DeepEquals(JObject.Parse(fileText), JObject.Parse(written.ToString())));
+        Assert.Equal(NormalizeJsonText(fileText), NormalizeJsonText(written.ToString()));
+    }
+
+    private static string NormalizeJsonText(string text) => text.Replace("\r\n", "\n").TrimEnd();
+
+    private static string DemoAudioDirectory()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            string candidate = Path.Combine(directory.FullName, "CasaEngine.Demos", "Content", "Audio");
+            if (Directory.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("CasaEngine.Demos/Content/Audio not found above the test output.");
     }
 
     private static string CreateTempDirectory()

@@ -1187,6 +1187,12 @@
       "name": "racing_game_music_pitched",
       "file_name": "Audio\\racing_game_music_pitched.sound",
       "asset_type": "sound"
+    },
+    {
+      "id": "23ddf15f-ea55-4c8b-9077-9b033f10b0f9",
+      "name": "demo_mixer",
+      "file_name": "Audio\\demo_mixer.audioMixer",
+      "asset_type": "audiomixer"
     }
   ]
 }
