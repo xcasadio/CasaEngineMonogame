@@ -197,7 +197,7 @@ Automatisation et tests :
 - Commit : `feat(ui): a window-level UI outside the views, honoured by the input router`
 - Note de validation (2026-10-06) : `CasaEngineGame.WindowUI`, `SetWindowUI(ui, surface)`, `ClearWindowUI()` ; mise à jour juste après la boucle des UI de vue avec ses métriques (`UIScaler` 1920x1080 gardé en champ, comme `RenderView.cs:125`) ; dessin après la phase 3 (`surface.Apply`, `Draw`, viewport remis sur tout le back-buffer). `InputRouter.WindowUI` lu par `IsMouseHandledByUI` et `IsKeyboardCapturedByUI` (propriétés `IsPointerOverUI` / `IsKeyboardCaptured` lues directement). 4 tests ajoutés à `InputRouterTests`. Deux solutions : 0 erreur, avertissements inchangés (134 / 194) ; `CasaEngine.Tests` 4145/4145. Le dessin réel de l'UI de fenêtre se vérifie en T4.1 (aucun test sans `GraphicsDevice`).
 
-### ⏳ T2.2 — ADR-0070 et documentation moteur
+### ✅ T2.2 — ADR-0070 et documentation moteur
 
 - Objectif : enregistrer la décision (zone de layout, UI de fenêtre, refus avec résolution virtuelle).
 - Fichiers : `docs/decisions/0070-view-layout-area-and-window-ui.md`, `docs/decisions/README.md`, le document de `docs/engine/` qui décrit `ViewManager` (`rg -l ViewManager docs/engine`).
@@ -206,6 +206,7 @@ Automatisation et tests :
   2. Écrire l'ADR avec le skill `adr` et le modèle `docs/decisions/template.md` ; source : ce plan et la conversation du 2026-10-06.
 - Validation : liens de l'index vérifiés.
 - Commit : `docs(adr): ADR-0070 view layout area and window-level UI`
+- Note de validation (2026-10-06) : numéro revérifié sur toutes les branches locales (aucun `007*` ; ADR-0069 n'existe que sur `chantier/e19-suite2`, pas sur `main`). ADR écrite avec le skill `adr`, ligne ajoutée à l'index. Aucun document de `docs/engine/` ne décrit `ViewManager` (`rg -l ViewManager docs/engine` : `render-stats-demo-workflow.md` et `screen-effects.md` ne font que le citer) : rien d'autre à mettre à jour ici, la doc d'usage vient en T5.1 (`demos-browser.md`).
 
 ---
 

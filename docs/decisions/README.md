@@ -82,3 +82,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0066](0066-scrolling-layer-tint-draws-with-the-psx-mode-of-the-map.md) | The scrolling-layer tint draws with the PSX mode of the map | Accepted | 2026-10-06 |
 | [ADR-0067](0067-a-project-mixer-asset-applied-to-the-live-mixer.md) | A project mixer asset applied to the live mixer, and an editable mixer panel | Accepted | 2026-10-06 |
 | [ADR-0068](0068-free-psx-quads-draw-at-the-screen-resolution.md) | Free PSX quads draw at the screen resolution | Accepted | 2026-10-06 |
+| [ADR-0070](0070-view-layout-area-and-window-ui.md) | View layout area and window-level UI | Accepted | 2026-10-06 |
