@@ -6,5 +6,5 @@
         Padding="6"
         Background="rgba(0,0,0,140)">
 
-  <TextBlock Name="lblHint" Text="[color=lightgray][i]Press [b]F1[/b] to show demo info[/i][/color]" />
+  <TextBlock Name="lblHint" Text="[color=lightgray][i]Press [b]F1[/b] to show the demo browser[/i][/color]" />
 </Window>

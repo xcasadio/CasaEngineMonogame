@@ -70,21 +70,6 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName("btnDialogue", out MGButton _));
     }
 
-    [Fact]
-    public void TheDemoNavigator_DeclaresTheEmptyListItsScreenFills()
-    {
-        // The demo buttons are data -- one per demo -- so the document declares an empty named panel and
-        // DemoInfoScreen fills it. If that panel lost its name the navigator would have no entries at all.
-        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
-
-        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-info.xaml")));
-
-        Assert.True(window.TryGetElementByName("lblTitle", out MGTextBlock _));
-        Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock _));
-        Assert.True(window.TryGetElementByName("lstDemos", out MGUI.Core.UI.Containers.MGStackPanel list));
-        Assert.Empty(list.Children);
-    }
-
     [Theory]
     [InlineData("chkShowModel")]
     [InlineData("chkShowSkeleton")]
@@ -124,8 +109,6 @@ public class DemoScreenXamlTests
     [InlineData("pause-menu.xaml", (640 - 300) / 2, (480 - 200) / 2, 300, 200)]
     // F1 hint: centred horizontally, 14px above the bottom, 300x36.
     [InlineData("demo-hint.xaml", (640 - 300) / 2, 480 - 36 - 14, 300, 36)]
-    // demo navigator: top-right corner inset by 10, 300 wide, 440 tall and the view has room for it.
-    [InlineData("demo-info.xaml", 640 - 300 - 10, 10, 300, 440)]
     // blending controls: same corner, but 560 does NOT fit in 480 -- the height is capped to the space the
     // margin leaves, which is exactly what Math.Min(560, viewport - 20) used to do.
     [InlineData("blending-controls.xaml", 640 - 320 - 10, 10, 320, 480 - 20)]
@@ -176,7 +159,7 @@ public class DemoScreenXamlTests
         // placement has its own ScreenMargin. Checked against a screen that declares no inset at all.
         var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
 
-        var placed = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-info.xaml")));
+        var placed = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-hint.xaml")));
         var unplaced = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("pause-menu.xaml")));
 
         Assert.Equal(default, placed.Margin);

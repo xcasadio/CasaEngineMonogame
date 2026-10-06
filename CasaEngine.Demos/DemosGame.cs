@@ -51,8 +51,7 @@ public class DemosGame : CasaEngineGame
     private KeyboardState _prevKeyboard;
     private bool _automationScreenshotCaptured;
 
-    // ---- Demo navigation UI ----
-    private DemoInfoScreen?  _demoInfoScreen;
+    // ---- F1 reminder shown in the scene while the demo browser is collapsed ----
     private DemoHintOverlay? _demoHintOverlay;
 
     // ---- Demo browser beside the scene (ADR-0070) ----
@@ -63,9 +62,9 @@ public class DemosGame : CasaEngineGame
     // The scene keeps at least this fraction of its height in width: a narrower 3D view widens its vertical field of
     // view past 90 degrees (Camera3dComponent.OnScreenResized), plan point P1.
     private const float MinimumSceneAspect = 0.89f;
-    private UIRoot? _browserRoot;
-    private BackBufferSurface? _browserSurface;
-    private DemoBrowserScreen? _browserScreen;
+    private UIRoot _browserRoot;
+    private BackBufferSurface _browserSurface;
+    private DemoBrowserScreen _browserScreen;
     private bool _browserOpen = true;
     private bool _browserLayoutDirty;
     private int _browserWidth = DefaultBrowserWidth;
@@ -244,6 +243,8 @@ public class DemosGame : CasaEngineGame
             SetBrowserOwnsKeyboard(false);
         }
 
+        UpdateDemoHintVisibility();
+
         if (relayoutViews)
         {
             OnScreenResized(screenWidth, screenHeight);
@@ -407,27 +408,29 @@ public class DemosGame : CasaEngineGame
         => GameManager.ViewManager.GetActiveUIView();
 
     /// <summary>
-    /// (Re)creates the DemoInfoScreen and DemoHintOverlay on the current UI view.
-    /// Called after every demo change because ViewManager.Clear() tears down the old runtime.
+    /// (Re)creates the F1 reminder on the current UI view (the demo browser itself lives on its own runtime and is never
+    /// recreated). Called after every demo change because ViewManager.Clear() tears down the old runtime.
     /// </summary>
     private void RefreshDemoUI()
     {
         var uiView = GetUIView();
         if (uiView == null) return;
 
-        var entries = _demos
-            .Select(d => (d.Title, d.Description))
-            .ToList();
-
-        _demoInfoScreen  = new DemoInfoScreen(entries, _currentDemoIndex, RequestDemo);
         _demoHintOverlay = new DemoHintOverlay();
-
-        uiView.PushScreen(_demoInfoScreen);
         uiView.PushScreen(_demoHintOverlay);
+        UpdateDemoHintVisibility();
+    }
 
-        bool automationScreenshotEnabled = !string.IsNullOrWhiteSpace(_automationScreenshotPath);
-        _demoInfoScreen.SetVisible(!automationScreenshotEnabled);
-        _demoHintOverlay.SetVisible(false);
+    /// <summary>
+    /// The F1 reminder shows while the browser is collapsed (by the player, by a demo that needs the whole window, or
+    /// because the window is too narrow), never during an automation run that captures or probes the back buffer.
+    /// </summary>
+    private void UpdateDemoHintVisibility()
+    {
+        bool automation = !string.IsNullOrWhiteSpace(_automationScreenshotPath)
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_PSXQUAD_DUMP_PATH"));
+        _demoHintOverlay?.SetVisible(!automation && WindowUI != _browserRoot);
     }
 
     /// <summary>Asks for a demo change; it happens at the start of the next update, outside any UI callback.</summary>

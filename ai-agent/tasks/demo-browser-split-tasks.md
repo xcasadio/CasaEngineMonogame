@@ -278,7 +278,7 @@ Automatisation et tests :
   - Deux solutions : 0 erreur ; `CasaEngine.Tests` 4154/4154. Sondes en automatisation : 7 PASS, relevés identiques. Capture Material navigateur ouvert : 9 thèmes dans l'ordre de D8, Rendering déplié, « > Material system demo » sélectionné, description affichée. Split-screen et PSX free quads lancés navigateur forcé ouvert : le navigateur se replie (Split-screen en vues de 512), sondes PASS. `CASAENGINE_START_DEMO=6` lance toujours Material.
   - **Reste à la main (T5.2)** : clic sur une démo (y compris la démo déjà sélectionnée), flèches sans chargement, Entrée qui charge, F1 qui rouvre après un repli D4.
 
-### ⏳ T4.3 — Retrait de l'ancien panneau, rappel F1, tests XAML
+### 🧪 T4.3 — Retrait de l'ancien panneau, rappel F1, tests XAML
 
 - Objectif : `DemoInfoScreen` disparaît (et avec lui le bug des crochets) ; le rappel F1 parle du navigateur.
 - Fichiers : `CasaEngine.Demos/Demos/DemoUI/DemoInfoScreen.cs` (supprimé), `CasaEngine.Demos/Content/Screens/demo-info.xaml` (supprimé), `CasaEngine.Demos/Content/Screens/demo-hint.xaml`, `CasaEngine.Demos/Demos/DemoUI/DemoHintOverlay.cs` (doc), `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Tests/UI/DemoScreenXamlTests.cs`.
@@ -288,6 +288,7 @@ Automatisation et tests :
   3. Tests : retirer les cas de `demo-info.xaml` (`:74-86`, `:128`, `:145-157` s'ils en dépendent), garder `demo-hint.xaml`, ajouter ce qui manque pour `demo-browser.xaml`.
 - Validation : build ; suite verte ; manuel : rappel visible navigateur replié.
 - Commit : `refactor(demos): the demo browser replaces the demo info panel`
+- Note de validation (2026-10-06) : `DemoInfoScreen.cs` et `demo-info.xaml` supprimés (le bug des crochets part avec eux ; plus aucune référence dans `CasaEngine.Demos`, `CasaEngine.Tests` et `docs/`, hors le contexte historique de l'ADR-0070) ; `RefreshDemoUI` ne pousse plus que le rappel, visible seulement navigateur replié et hors automatisation (`UpdateDemoHintVisibility`, appelé aussi par `ApplyBrowserLayout`) ; texte « Press F1 to show the demo browser » (P3), style du rappel inchangé (P8). Tests : cas de `demo-info.xaml` retirés, `APlacedScreen_KeepsItsFullContentArea` passe sur `demo-hint.xaml` (placé, `ScreenMargin` non nul). Deux solutions : 0 erreur, aucun nouvel avertissement venant des fichiers touchés ; `CasaEngine.Tests` 4151/4151 (3 cas de l'ancien panneau en moins). Sondes : 7 PASS, relevés identiques. Capture Audio navigateur ouvert : le panneau `PostDraw` de la démo est dans la scène, à droite du navigateur. **Reste à la main (T5.2)** : le rappel visible après F1 et après le repli d'une démo pleine fenêtre.
 
 ### ⏳ T4.4 — Clavier des démos neutralisé quand le navigateur possède le clavier (D5, P9)
 
