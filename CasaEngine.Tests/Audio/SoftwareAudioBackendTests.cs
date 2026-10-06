@@ -231,7 +231,11 @@ public class SoftwareAudioBackendTests
         }
 
         _log.WriteLine($"worst dead-output call batch: {worst} ms");
-        Assert.True(worst < 5, $"a call on a dead output took {worst} ms");
+        // Half the retry wait: a batch that waited on the full ring would take at least the whole wait, while a
+        // first-call JIT or a GC pause caused by the tests running in parallel stays far below (a 5 ms bound failed
+        // that way now and then).
+        var bound = SoftwareAudioBackend.CommandRetryMilliseconds / 2.0;
+        Assert.True(worst < bound, $"a call on a dead output took {worst} ms");
     }
 
     [Fact]
