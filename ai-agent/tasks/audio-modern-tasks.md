@@ -2538,7 +2538,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   +1 octave sur le repli, pitch de base gardé ; 0 octet sur 100 frames de 64 voix Doppler. Deux solutions sans erreur,
   aucun avertissement dans les fichiers touchés ; 3522/3522.
 
-### ⏳ T9.6 — Paramètres de jeu (P39)
+### ✅ T9.6 — Paramètres de jeu (P39)
 
 - Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, `CasaEngine/Framework/Audio/Streaming/MusicPlayer.cs`
   (un appel entre `PlayStream` et `StartVoice`), test `CasaEngine.Tests/Audio/Spatial/AudioServiceGameParameterTests.cs`.
@@ -2563,6 +2563,15 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   `Pitch` : premier bloc déjà à la vitesse liée ; piste de musique liée sous fondu d'entrée et fondu enchaîné ; 65e paramètre refusé ; `SetGameParameter(string)` sans
   allocation après création ; zéro allocation de l'`Update` avec 64 voix liées. Deux solutions ; suite verte.
 - Commit : `feat(audio): game parameters bound to sound volume and pitch`
+- Note de validation (2026-10-06) : registre de 64 paramètres dans le service (`GetGameParameterIndex`,
+  `SetGameParameter(int|string)`, `GetGameParameter`, API additive) ; par voix, indices et versions dans deux `int[8]`
+  réutilisés ; facteur de volume (produit) et rapport `2^somme bornée` ; **valeurs de départ** : `PlayClipCore` les
+  compose avec le gain de distance avant `Play`, `BindSoundParameters` les publie (capacité) ou les replie (repli) avant
+  `StartVoice`, appelé par `MusicPlayer.Play` juste après `PlayStream`. 48 tests : premier bloc à 0,25 pour un son et
+  pour une piste de musique, premier bloc à la vitesse liée (2^0,5), fondu d'entrée et fondu enchaîné, 65e paramètre
+  refusé ; mutations (retirer les valeurs de départ de `BindSoundParameters` ou de `PlayClipCore`) : 7 et 6 tests en
+  échec ; 0 octet pour `SetGameParameter(string)` et pour 100 frames de 64 voix liées. Deux solutions sans erreur,
+  aucun avertissement dans les fichiers touchés ; 3570/3570.
 
 ### ⏳ T9.7 — Sondes d'ordre et fuzz logiciel contre repli
 

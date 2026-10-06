@@ -73,6 +73,10 @@ public sealed class AudioService : IDisposable
     private float _frameElapsed;
     private float _speedOfSound = AudioDoppler.DefaultSpeedOfSound;
 
+    // Game parameters (plan decision P39) and the scratch indices a start resolves its bindings into before the voice exists.
+    private readonly AudioGameParameterRegistry _gameParameters = new();
+    private readonly int[] _startBindingIndices = new int[SoundAsset.MaxParameterBindings];
+
     private PsxSpuPort _spuPort;
     private string _spuBusName;
     private int _appliedMixerVersion = -1;
@@ -249,12 +253,21 @@ public sealed class AudioService : IDisposable
         var mode = start.Asset != null && start.HasPosition ? start.Asset.SpatialMode : AudioSpatialMode.None;
         var startGain = 1f;
         var startPan = float.NaN;
+        var startRate = 1f;
 
         if (mode != AudioSpatialMode.None && _listeners.Count > 0)
         {
             EvaluateSpatial(
                 _listeners[^1].Pose, mode, start.Asset.DistanceModel, start.Asset.ReferenceDistance, start.Asset.MaxDistance,
                 start.Asset.RolloffFactor, start.Position, out startGain, out startPan);
+        }
+
+        // The bound parameters are part of the start values too: never a ramp from full gain (plan decision P39).
+        var bindingCount = start.Asset != null ? ResolveBindings(start.Asset, _startBindingIndices) : 0;
+        if (bindingCount > 0)
+        {
+            EvaluateBindings(start.Asset.ParameterBindings, _startBindingIndices, bindingCount, out var bindingVolume, out startRate);
+            startGain *= bindingVolume;
         }
 
         var hasCapability = _modulationBackend != null;
@@ -266,12 +279,17 @@ public sealed class AudioService : IDisposable
             backendParameters = backendParameters.WithPan(startPan);
         }
 
+        if (!hasCapability && startRate != 1f)
+        {
+            backendParameters = backendParameters.WithPitch(FoldPitch(parameters.Pitch, startRate));
+        }
+
         RouteNextVoice(busName);
 
         // The backend takes these at the top of its start, refused or not: a refused Play leaves nothing for the next voice.
-        if (hasCapability && (startGain != 1f || !float.IsNaN(startPan)))
+        if (hasCapability && (startGain != 1f || !float.IsNaN(startPan) || startRate != 1f))
         {
-            _modulationBackend.SetNextVoiceModulation(startGain, startPan, 1f);
+            _modulationBackend.SetNextVoiceModulation(startGain, startPan, startRate);
         }
 
         var handle = _backend.Play(clip, backendParameters);
@@ -290,7 +308,12 @@ public sealed class AudioService : IDisposable
         entry.InUse = true;
         entry.Priority = priority;
         entry.StartSequence = ++_voiceStartCounter;
-        WriteStartModulation(entry, in start, mode, hasCapability, startGain, startPan);
+        WriteStartModulation(entry, in start, mode, hasCapability, startGain, startPan, startRate);
+        if (bindingCount > 0)
+        {
+            AttachBindings(entry, start.Asset, _startBindingIndices, bindingCount);
+        }
+
         ActiveVoiceCount++;
 
         if (stole)
@@ -312,7 +335,8 @@ public sealed class AudioService : IDisposable
         AudioSpatialMode mode,
         bool hasCapability,
         float startGain,
-        float startPan)
+        float startPan,
+        float startRate)
     {
         WriteNeutralModulation(entry);
 
@@ -334,8 +358,10 @@ public sealed class AudioService : IDisposable
         entry.PositionPushedThisFrame = start.HasPosition;
         entry.SentGain = startGain;
         entry.SentPan = startPan;
+        entry.SentRate = startRate;
         entry.FoldedGain = hasCapability ? 1f : startGain;
         entry.FoldedPan = hasCapability ? float.NaN : startPan;
+        entry.FoldedPitchOffset = hasCapability ? 0f : MathF.Log2(startRate);
     }
 
     /// <summary>The modulation of a voice that is not spatial: nothing sent, nothing folded.</summary>
@@ -361,6 +387,190 @@ public sealed class AudioService : IDisposable
         entry.FoldedGain = 1f;
         entry.FoldedPan = float.NaN;
         entry.FoldedPitchOffset = 0f;
+        entry.Bindings = null;
+        entry.BindingCount = 0;
+        entry.BindingsStale = false;
+        entry.BindingVolumeFactor = 1f;
+        entry.BindingRateFactor = 1f;
+    }
+
+    private static float FoldPitch(float basePitch, float rate)
+    {
+        return Math.Clamp(basePitch + MathF.Log2(rate), AudioVoiceParameters.MinPitch, AudioVoiceParameters.MaxPitch);
+    }
+
+    /// <summary>Resolves the parameter names of the bindings of <paramref name="asset"/> into registry indices (-1 when the registry is full). Returns the bound count.</summary>
+    private int ResolveBindings(SoundAsset asset, int[] indices)
+    {
+        var bindings = asset.ParameterBindings;
+        var count = Math.Min(bindings.Count, indices.Length);
+        for (var i = 0; i < count; i++)
+        {
+            indices[i] = _gameParameters.GetOrCreateIndex(bindings[i].ParameterName);
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Volume factor (product of the written Volume bindings) and speed ratio (2 to the sum, bounded to one octave, of the
+    /// written Pitch bindings). A parameter never written is neutral. Allocation free.
+    /// </summary>
+    private void EvaluateBindings(
+        IReadOnlyList<AudioParameterBinding> bindings,
+        int[] indices,
+        int count,
+        out float volumeFactor,
+        out float rateFactor)
+    {
+        volumeFactor = 1f;
+        var pitchSum = 0f;
+
+        for (var i = 0; i < count; i++)
+        {
+            var index = indices[i];
+            if (index < 0)
+            {
+                continue;
+            }
+
+            var input = _gameParameters.Get(index);
+            if (float.IsNaN(input))
+            {
+                continue;
+            }
+
+            var binding = bindings[i];
+            var output = binding.Evaluate(input);
+            if (binding.Target == AudioParameterTarget.Volume)
+            {
+                volumeFactor *= output;
+            }
+            else
+            {
+                pitchSum += output;
+            }
+        }
+
+        rateFactor = pitchSum == 0f ? 1f : MathF.Pow(2f, Math.Clamp(pitchSum, -1f, 1f));
+    }
+
+    /// <summary>Binds the parameters of <paramref name="asset"/> to a voice: indices, versions and the first factors. The next <see cref="UpdateModulation"/> recomputes them regardless.</summary>
+    private void AttachBindings(VoiceEntry entry, SoundAsset asset, int[] indices, int count)
+    {
+        entry.Bindings = asset.ParameterBindings;
+        entry.BindingCount = count;
+        Array.Copy(indices, entry.BindingIndices, count);
+        SnapshotBindingVersions(entry);
+        EvaluateBindings(entry.Bindings, entry.BindingIndices, count, out entry.BindingVolumeFactor, out entry.BindingRateFactor);
+        entry.BindingsStale = true;
+        entry.HasModulation = true;
+    }
+
+    private void SnapshotBindingVersions(VoiceEntry entry)
+    {
+        for (var i = 0; i < entry.BindingCount; i++)
+        {
+            entry.BindingVersions[i] = _gameParameters.GetVersion(entry.BindingIndices[i]);
+        }
+    }
+
+    /// <summary>Recomputes the binding factors of a voice when a bound parameter changed, or on the first call after the binding.</summary>
+    private void RefreshBindingFactors(VoiceEntry entry)
+    {
+        var changed = entry.BindingsStale;
+        for (var i = 0; !changed && i < entry.BindingCount; i++)
+        {
+            changed = _gameParameters.GetVersion(entry.BindingIndices[i]) != entry.BindingVersions[i];
+        }
+
+        if (!changed)
+        {
+            return;
+        }
+
+        entry.BindingsStale = false;
+        SnapshotBindingVersions(entry);
+        EvaluateBindings(entry.Bindings, entry.BindingIndices, entry.BindingCount, out entry.BindingVolumeFactor, out entry.BindingRateFactor);
+    }
+
+    /// <summary>
+    /// Binds the game parameters of a streaming <paramref name="asset"/> to a music voice created by <see cref="PlayStream"/>
+    /// and not started yet: the factor and the speed ratio of the bindings become the starting values of the voice (never a
+    /// ramp from full gain). The music player calls it between the creation and <see cref="StartVoice"/>; tracks are not
+    /// spatialized.
+    /// </summary>
+    internal void BindSoundParameters(AudioVoiceHandle voice, SoundAsset asset)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+
+        if (!TryGetEntry(voice, out var entry) || !entry.IsStreaming)
+        {
+            return;
+        }
+
+        var count = ResolveBindings(asset, _startBindingIndices);
+        if (count == 0)
+        {
+            return;
+        }
+
+        AttachBindings(entry, asset, _startBindingIndices, count);
+
+        var gain = entry.BindingVolumeFactor;
+        var rate = entry.BindingRateFactor;
+        entry.SentGain = gain;
+        entry.SentRate = rate;
+
+        if (gain == 1f && rate == 1f)
+        {
+            return;
+        }
+
+        if (_modulationBackend != null)
+        {
+            // Before the start, this is the starting value of the voice.
+            _modulationBackend.SetVoiceModulation(entry.Handle, gain, float.NaN, rate);
+            return;
+        }
+
+        entry.FoldedGain = gain;
+        entry.FoldedPitchOffset = MathF.Log2(rate);
+        _backend.SetParameters(entry.Handle, BuildBackendParameters(entry));
+    }
+
+    /// <summary>
+    /// Index of the game parameter <paramref name="name"/> (case-insensitive), created on first use. Resolve it once and
+    /// use <see cref="SetGameParameter(int, float)"/> in hot paths. -1 for an empty name or when the 64 slots are taken.
+    /// A parameter never written is neutral for the sounds bound to it. Game thread only.
+    /// </summary>
+    public int GetGameParameterIndex(string name)
+    {
+        return _gameParameters.GetOrCreateIndex(name);
+    }
+
+    /// <summary>
+    /// Writes a game parameter by index, the allocation free way. The sounds bound to it follow at the next
+    /// <see cref="Update"/>. An invalid index is ignored. Game thread only.
+    /// </summary>
+    public void SetGameParameter(int index, float value)
+    {
+        _gameParameters.Set(index, value);
+    }
+
+    /// <summary>
+    /// Writes a game parameter by name, creating it on first use (a linear search, no allocation once the name exists;
+    /// prefer the index overload in hot paths). Game thread only.
+    /// </summary>
+    public void SetGameParameter(string name, float value)
+    {
+        _gameParameters.Set(_gameParameters.GetOrCreateIndex(name), value);
+    }
+
+    /// <summary>The value of a game parameter; NaN when it was never written (a sound bound to it is then neutral) or the index is invalid. Game thread only.</summary>
+    public float GetGameParameter(int index)
+    {
+        return _gameParameters.Get(index);
     }
 
     /// <summary>
@@ -1989,6 +2199,11 @@ public sealed class AudioService : IDisposable
 
         AdvanceVoiceVelocity(entry);
 
+        if (entry.BindingCount > 0)
+        {
+            RefreshBindingFactors(entry);
+        }
+
         if (_hasActiveListener && entry.SpatialMode != AudioSpatialMode.None && entry.HasPosition)
         {
             EvaluateSpatial(
@@ -2002,6 +2217,9 @@ public sealed class AudioService : IDisposable
                     _speedOfSound, entry.DopplerFactor);
             }
         }
+
+        gain *= entry.BindingVolumeFactor;
+        rate *= entry.BindingRateFactor;
 
         var gainChanged = MathF.Abs(gain - entry.SentGain) > GainSendThreshold;
         var panChanged = PanDiffers(pan, entry.SentPan);
@@ -2220,6 +2438,18 @@ public sealed class AudioService : IDisposable
         /// <summary>Pitch offset, in octaves, folded into the parameters on a backend without the channel.</summary>
         public float FoldedPitchOffset;
 
+        /// <summary>Bindings of the asset (null without), their registry indices and last seen versions, allocated once per entry and reused.</summary>
+        public IReadOnlyList<AudioParameterBinding> Bindings;
+        public readonly int[] BindingIndices = new int[SoundAsset.MaxParameterBindings];
+        public readonly int[] BindingVersions = new int[SoundAsset.MaxParameterBindings];
+        public int BindingCount;
+
+        /// <summary>True until the first <see cref="UpdateModulation"/> after the binding, which recomputes the factors whatever the versions.</summary>
+        public bool BindingsStale;
+
+        public float BindingVolumeFactor;
+        public float BindingRateFactor;
+
         public void Reset()
         {
             Handle = AudioVoiceHandle.None;
@@ -2261,6 +2491,11 @@ public sealed class AudioService : IDisposable
             FoldedGain = 0f;
             FoldedPan = float.NaN;
             FoldedPitchOffset = 0f;
+            Bindings = null;
+            BindingCount = 0;
+            BindingsStale = false;
+            BindingVolumeFactor = 1f;
+            BindingRateFactor = 1f;
         }
     }
 

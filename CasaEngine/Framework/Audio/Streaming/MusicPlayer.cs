@@ -111,6 +111,9 @@ public sealed class MusicPlayer : IDisposable
             return MusicTrackHandle.None;
         }
 
+        // The bound game parameters are the starting values of the voice, set before it starts (plan decision P39).
+        _service.BindSoundParameters(voice, asset);
+
         var index = TakeTrackSlot();
         var track = _tracks[index];
         track.Reader = reader;
