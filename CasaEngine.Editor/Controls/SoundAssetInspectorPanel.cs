@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.Audio;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
@@ -24,23 +27,27 @@ namespace CasaEngine.Editor.Controls;
 /// The preview is routed to the Editor bus, never to the game buses: it must not be silenced by
 /// the game mix, and it must survive the end of a play session. It plays with priority 0, so it
 /// never steals a voice from the game. Variations and priority only apply to a non-streaming asset.
+/// The bus list is the four buses of the engine plus those of the project's <c>.audioMixer</c> asset (plan P57), and the
+/// Waveform row draws the main audio file, computed when the asset is loaded and when its file changes (plan P56).
 /// </remarks>
 public sealed class SoundAssetInspectorPanel : IDisposable
 {
-    private static readonly string[] BusChoices =
-    {
-        AudioBusNames.Sfx,
-        AudioBusNames.Music,
-        AudioBusNames.Voice,
-        AudioBusNames.Ui,
-    };
-
     private const float MaxDistanceRange = 100000f;
     private const float MaxRolloffRange = 10f;
     private const float MaxDopplerRange = 10f;
 
+    /// <summary>Tag of the strip that draws the audio file, for finding it in the visual tree.</summary>
+    internal const string WaveformEnvelopeTag = "sound-waveform";
+
+    /// <summary>Tag of the line under the drawing (duration, sample rate and channels, or why there is no drawing).</summary>
+    internal const string WaveformTextTag = "sound-waveform-text";
+
+    /// <summary>The colour of the entry of a bus that neither the engine nor the project mixer asset has.</summary>
+    private static readonly Microsoft.Xna.Framework.Color UnknownBusColor = Microsoft.Xna.Framework.Color.Orange;
+
     private readonly MGWindow _window;
     private readonly HostedEditorGameAdapter _editorRuntime;
+    private readonly WaveformEnvelopeSource _waveformSource = new();
 
     private MGDockPanel _root;
     private MGTextBlock _headerText;
@@ -52,6 +59,12 @@ public sealed class SoundAssetInspectorPanel : IDisposable
     private string _loadedRelativePath;
     private bool _isDirty;
     private bool _suppressControlCallbacks;
+
+    private MGComboBox<SoundBusChoice> _busCombo;
+    private List<SoundBusChoice> _busChoices = new();
+
+    private AudioWaveformResult _waveformResult;
+    private MGTextBlock _waveformText;
 
     private AudioVoiceHandle _previewVoice = AudioVoiceHandle.None;
     private MusicTrackHandle _previewTrack = MusicTrackHandle.None;
@@ -174,7 +187,32 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         _soundAsset = soundAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         SetDirty(false);
+        RecomputeWaveform();
         RefreshInspector();
+    }
+
+    /// <summary>
+    /// Lists the buses again from the project's <c>.audioMixer</c> asset as it is on disk (plan P57), for instance after the asset
+    /// was saved. The bus of the sound is kept selected and the asset is not touched. Does nothing when no sound is shown.
+    /// </summary>
+    public void RefreshBusChoices()
+    {
+        if (_busCombo == null || _soundAsset == null)
+        {
+            return;
+        }
+
+        bool wasSuppressed = _suppressControlCallbacks;
+        _suppressControlCallbacks = true;
+        try
+        {
+            SoundBusChoices.TryLoadProjectMixer(out AudioMixerAsset projectMixer);
+            ApplyBusChoices(projectMixer);
+        }
+        finally
+        {
+            _suppressControlCallbacks = wasSuppressed;
+        }
     }
 
     public bool ReloadFromDisk()
@@ -335,6 +373,8 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         }
 
         _fieldStack.TryRemoveAll();
+        _busCombo = null;
+        _waveformText = null;
 
         if (_soundAsset == null)
         {
@@ -349,6 +389,7 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         _suppressControlCallbacks = true;
 
         _fieldStack.TryAddChild(CreateAudioFileRow());
+        _fieldStack.TryAddChild(CreateWaveformRow());
         for (var i = 0; i < _soundAsset.VariationAudioFileAssetIds.Count; i++)
         {
             _fieldStack.TryAddChild(CreateVariationFileRow(i));
@@ -410,8 +451,77 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         var row = CreateRow("Audio file");
         row.TryAddChild(CreateAudioFileSelector(
             _soundAsset.AudioFileAssetId,
-            assetId => _soundAsset.AudioFileAssetId = assetId));
+            assetId =>
+            {
+                _soundAsset.AudioFileAssetId = assetId;
+                RecomputeWaveform();
+            }));
         return row;
+    }
+
+    /// <summary>
+    /// The drawing of the main audio file and a line about it: duration, sample rate and channels, or why there is no drawing. It
+    /// shows what <see cref="RecomputeWaveform"/> computed, and computes nothing itself.
+    /// </summary>
+    private MGElement CreateWaveformRow()
+    {
+        var row = CreateRow("Waveform");
+
+        var envelope = new AudioEnvelopeControl(_window, _waveformSource)
+        {
+            ShowLevelMarks = false,
+            Tag = WaveformEnvelopeTag,
+        };
+        _waveformText = new MGTextBlock(_window, DescribeWaveform(_waveformResult))
+        {
+            Opacity = 0.7f,
+            Tag = WaveformTextTag,
+        };
+
+        var content = new MGStackPanel(_window, Orientation.Vertical) { Spacing = 2 };
+        content.TryAddChild(envelope);
+        content.TryAddChild(_waveformText);
+        row.TryAddChild(content);
+        return row;
+    }
+
+    /// <summary>
+    /// Decodes the main audio file once to draw it (plan P56), when the asset is loaded and when the file selector changes. The
+    /// variation files are not drawn, and <c>is_streaming</c> makes no difference. Updates the Waveform row when there is one.
+    /// </summary>
+    private void RecomputeWaveform()
+    {
+        _waveformResult = _soundAsset == null
+            ? null
+            : AudioWaveformBuilder.BuildFromAsset(_soundAsset.AudioFileAssetId, AudioWaveformBuilder.DefaultColumnCount);
+
+        _waveformSource.Waveform = _waveformResult?.Waveform;
+        if (_waveformText != null)
+        {
+            _waveformText.Text = DescribeWaveform(_waveformResult);
+        }
+    }
+
+    private static string DescribeWaveform(AudioWaveformResult result)
+    {
+        if (result == null)
+        {
+            return string.Empty;
+        }
+
+        AudioWaveform waveform = result.Waveform;
+        if (waveform == null)
+        {
+            return result.Reason;
+        }
+
+        // Whole hundredths of a second first, so that 59.999 s reads 1:00.00 and not 0:60.00.
+        long hundredths = (long)Math.Round(waveform.Duration.TotalSeconds * 100.0);
+        string duration = hundredths < 6000
+            ? string.Create(CultureInfo.InvariantCulture, $"{hundredths / 100.0:0.00} s")
+            : string.Create(CultureInfo.InvariantCulture, $"{hundredths / 6000}:{hundredths % 6000 / 100.0:00.00}");
+        string channels = waveform.ChannelCount == 1 ? "mono" : "stereo";
+        return string.Create(CultureInfo.InvariantCulture, $"{duration}, {waveform.SampleRate} Hz, {channels}");
     }
 
     private MGElement CreateVariationFileRow(int index)
@@ -589,36 +699,103 @@ public sealed class SoundAssetInspectorPanel : IDisposable
     {
         var row = CreateRow("Bus");
 
-        var combo = new MGComboBox<string>(_window)
+        var combo = new MGComboBox<SoundBusChoice>(_window)
         {
             MinWidth = 140,
         };
-        combo.DropdownItemTemplate = item =>
+        combo.DropdownItemTemplate = choice =>
         {
             var button = combo.CreateDefaultDropdownButton();
-            button.SetContent(item);
+            if (choice.IsUnknown)
+            {
+                button.SetContent(DescribeBusChoice(choice), UnknownBusColor);
+            }
+            else
+            {
+                button.SetContent(choice.Name);
+            }
+
             return button;
         };
-        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
+        combo.SelectedItemTemplate = choice => new MGTextBlock(
+            _window,
+            DescribeBusChoice(choice),
+            choice.IsUnknown ? UnknownBusColor : null)
         {
             Padding = new Thickness(4, 1, 4, 1),
             VerticalAlignment = VerticalAlignment.Center,
         };
-        combo.SetItemsSource(BusChoices);
-        combo.SelectedItem = _soundAsset.BusName;
+
+        _busCombo = combo;
+        SoundBusChoices.TryLoadProjectMixer(out AudioMixerAsset projectMixer);
+        ApplyBusChoices(projectMixer);
+
         combo.SelectedItemChanged += (_, args) =>
         {
-            if (_suppressControlCallbacks || string.IsNullOrWhiteSpace(args.NewValue))
+            if (_suppressControlCallbacks || args.NewValue == null)
             {
                 return;
             }
 
-            _soundAsset.BusName = args.NewValue;
-            SetDirty(true);
+            ChooseBus(args.NewValue);
         };
 
         row.TryAddChild(combo);
         return row;
+    }
+
+    private static string DescribeBusChoice(SoundBusChoice choice)
+    {
+        return choice.IsUnknown ? $"{choice.Name} (unknown bus)" : choice.Name;
+    }
+
+    /// <summary>
+    /// Lists the buses (plan P57) for the bus the sound has now and selects that one. The caller suppresses the control callbacks:
+    /// nothing is written to the asset.
+    /// </summary>
+    private void ApplyBusChoices(AudioMixerAsset projectMixer)
+    {
+        if (_busCombo.IsDropdownOpen)
+        {
+            // The entries are about to be replaced under the open list.
+            _busCombo.IsDropdownOpen = false;
+        }
+
+        _busChoices = SoundBusChoices.Resolve(projectMixer, _soundAsset.BusName);
+        _busCombo.SetItemsSource(_busChoices);
+        _busCombo.SelectedItem = FindBusChoice(_soundAsset.BusName);
+    }
+
+    /// <summary>The entry that stands for <paramref name="busName"/>, compared ignoring case like the mixer does, or null.</summary>
+    private SoundBusChoice FindBusChoice(string busName)
+    {
+        for (var i = 0; i < _busChoices.Count; i++)
+        {
+            if (_busChoices[i].Name.Equals(busName, StringComparison.OrdinalIgnoreCase))
+            {
+                return _busChoices[i];
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The user picked an entry. A real bus is written to the asset. The unknown entry is not a bus a sound can be given: the asset is
+    /// left as it is and the list shows the bus the asset really has again.
+    /// </summary>
+    private void ChooseBus(SoundBusChoice choice)
+    {
+        if (choice.IsUnknown)
+        {
+            _suppressControlCallbacks = true;
+            _busCombo.SelectedItem = FindBusChoice(_soundAsset.BusName);
+            _suppressControlCallbacks = false;
+            return;
+        }
+
+        _soundAsset.BusName = choice.Name;
+        SetDirty(true);
     }
 
     private MGElement CreateNumericRow(string label, float max, float step, float value, Action<float> applyValue)
@@ -738,6 +915,33 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         if (_statusText != null)
         {
             _statusText.Text = status;
+        }
+    }
+
+    /// <summary>
+    /// The columns of the drawing of a file for <see cref="AudioEnvelopeControl"/>: a linear scale, the lowest sample below the axis
+    /// and the highest above it (a column that does not cross zero is drawn from the axis), no inner band.
+    /// </summary>
+    private sealed class WaveformEnvelopeSource : IAudioEnvelopeSource
+    {
+        public AudioWaveform Waveform { get; set; }
+
+        public int ColumnCount => Waveform?.ColumnCount ?? 0;
+
+        public void GetColumn(int index, out float lower, out float upper, out float inner)
+        {
+            AudioWaveform waveform = Waveform;
+            if (waveform == null || (uint)index >= (uint)waveform.ColumnCount)
+            {
+                lower = 0f;
+                upper = 0f;
+                inner = 0f;
+                return;
+            }
+
+            lower = Math.Min(waveform.GetMinimum(index), 0f);
+            upper = Math.Max(waveform.GetMaximum(index), 0f);
+            inner = 0f;
         }
     }
 }

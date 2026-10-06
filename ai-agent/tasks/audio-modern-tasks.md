@@ -3056,7 +3056,7 @@ de clôture **READY**.
   n'a pas tourné (pas de GPU). **🧪 pour l'auteur** : la bande suit le niveau de la démo, un clic isolé laisse une trace
   nette, aspect (hauteur, couleurs, repères à −12 et −3 dBFS).
 
-### ⏳ T10.9 — Inspecteur de son : bus de l'asset et dessin du fichier (P56, P57)
+### 🧪 T10.9 — Inspecteur de son : bus de l'asset et dessin du fichier (P56, P57)
 
 - Fichiers : nouveaux `CasaEngine.EditorServices/Audio/SoundBusChoices.cs`, `AudioWaveformBuilder.cs` (purs) ;
   `SoundAssetInspectorPanel.cs` ; `GameEditor.cs` (`OnEditorAssetSaved` : branche `.audioMixer` **avant** la sortie
@@ -3071,6 +3071,20 @@ de clôture **READY**.
   WAV 24 bits et Ogg, plafond ; mesure du temps et de la mémoire sur un WAV de 5 minutes notée. Deux solutions ; suite
   verte. 🧪 auteur.
 - Commit : `feat(editor): the sound inspector lists the project mixer buses and draws its audio file`
+- Note de validation (2026-10-06) : `SoundBusChoices` (les quatre bus du moteur puis les autres bus de l'asset du projet ;
+  un bus absent des deux affiché « (unknown bus) » en orange, jamais écrit dans l'asset ; une ligne de journal par échec
+  de lecture de l'asset) ; `AudioWaveformBuilder` (`BuildFromSamples` reçoit en plus le débit pour la durée ; chemin
+  unique par `AudioClipLoader` sous le plafond de 64 Mo, clip libéré aussitôt, 512 colonnes) ; ligne « Waveform » après
+  « Audio file », calculée au chargement et au changement du fichier principal seulement ; `GameEditor.OnEditorAssetSaved`
+  rafraîchit la liste des inspecteurs de son ouverts à l'enregistrement d'un `.audioMixer`. **Mesure pour O38** (WAV de
+  5 min, 44,1 kHz stéréo, 50,5 Mio) : 0,3 s en Debug, 0,04 s en Release, 101 Mio alloués (fichier lu + PCM décodé,
+  temporaires) ; Ogg synthétique de 5 min (3 Mio) : 0,4 à 0,6 s, 310 Mio alloués au total par le décodeur — le plafond en
+  taille de fichier ne borne donc pas la mémoire d'un gros Ogg (le même décodage complet a lieu quand ce son est joué,
+  l'Ogg étant résident, D28). Constat hors tranche : `AssetSelector` lève une `FormatException` pour un id absent du
+  catalogue (`{_assetId:D8}`), tâche séparée proposée. 74 tests, 16 mutations détectées. Deux solutions sans erreur,
+  aucun avertissement dans les fichiers touchés ; 4066/4066. **🧪 pour l'auteur** : `.sound` dont le bus a été retiré de
+  l'asset, bus ajouté au mixeur puis enregistré (la liste de l'inspecteur ouvert le propose), changement du fichier,
+  musique en streaming dessinée, aspect de la ligne, ouverture d'une musique de 5 min en WAV et en Ogg.
 
 ### ⏳ T10.10 — Exemple d'asset de mixeur dans les démos (P58)
 
@@ -3144,7 +3158,7 @@ du SPU) auront chacune leur détail, relu, avant exécution.
 | O35 | **Question à l'auteur (non bloquante)** — mixer pendant une session de jeu dans l'éditeur : S6b désactive les opérations qui passent par l'historique et garde muet, solo et vu-mètres (P51). Faut-il un mode d'édition en jeu (sans annulation, ou écrit dans l'asset) ? | S6b |
 | O36 | **Question à l'auteur (non bloquante)** — désignation de l'asset du projet : à la main dans le fichier de projet (`AudioMixerAsset`, P48) ; faut-il un bouton « Use as project mixer » dans le panneau ? Faut-il activer l'asset d'exemple dans le projet de démos (P58 le laisse inactif) ? | S6b |
 | O37 | **Question à l'auteur (non bloquante)** — structure du mixeur : le moteur ne sait ni renommer, ni reparenter, ni retirer un bus vivant ; S6b n'offre que l'ajout et la suppression de bus personnalisés sans lien, effective au prochain démarrage (P52). Faut-il ces opérations (évolution du moteur) ? | S6b |
-| O38 | **Question à l'auteur (non bloquante)** — dessin d'un fichier son : décodage résident sous un plafond de 64 Mo, calculé une fois à l'ouverture (P56) ; selon la mesure de T10.9 sur une musique de 5 minutes, faut-il un calcul en tâche de fond ou un chemin par flux ? | S6b |
+| O38 | **Question à l'auteur (non bloquante)** — dessin d'un fichier son : décodage résident sous un plafond de 64 Mo, calculé une fois à l'ouverture (P56) ; mesure de T10.9 : un WAV de 5 min coûte 0,04 s (Release) à 0,3 s (Debug) et 101 Mio temporaires ; un Ogg de 5 min (3 Mio) 0,4 à 0,6 s et 310 Mio alloués au total, et le plafond en taille de fichier ne borne pas un gros Ogg. Faut-il un plafond par durée (lue dans l'en-tête), un calcul en tâche de fond ou un chemin par flux ? | S6b |
 | O39 | **Question à l'auteur (non bloquante)** — fermeture d'un onglet de mixage modifié : sans confirmation, comme les autres panneaux sauf les écrans UI ; la fermeture réapplique l'asset enregistré au mixeur vivant (P49). Faut-il une confirmation ? | S6b |
 | O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? **Réponses de l'auteur (2026-10-06) : D5 à D14.** | S5 |
 | O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? **Réponses de l'auteur (2026-10-06) : D15 à D21.** | S6b |

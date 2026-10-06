@@ -1,7 +1,9 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.EditorServices.Audio;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
@@ -41,6 +43,7 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
 
     private readonly string _projectDirectory;
     private readonly string _previousProjectPath;
+    private readonly string _previousMixerSetting = GameSettings.ProjectSettings.AudioMixerAsset;
 
     public SoundAssetInspectorPanelTests()
     {
@@ -49,6 +52,7 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
 
         _previousProjectPath = EngineEnvironment.ProjectPath;
         EngineEnvironment.ProjectPath = _projectDirectory;
+        GameSettings.ProjectSettings.AudioMixerAsset = string.Empty;
 
         AssetCatalog.ClearInternal();
         AssetCatalog.AddInternal(new AssetInfo(FileA) { Name = "step_a", FileName = "Sounds/step_a.wav" });
@@ -59,6 +63,7 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
 
     public void Dispose()
     {
+        GameSettings.ProjectSettings.AudioMixerAsset = _previousMixerSetting;
         EngineEnvironment.ProjectPath = _previousProjectPath;
         AssetCatalog.ClearInternal();
 
@@ -232,7 +237,7 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
         Assert.Equal(
             new[]
             {
-                "Audio file", "Variation 1", "Variation 2", "Variations", "Volume", "Pitch",
+                "Audio file", "Waveform", "Variation 1", "Variation 2", "Variations", "Volume", "Pitch",
                 "Volume variation", "Pitch variation", "Priority", "Bus", "Spatial", "Distance model",
                 "Reference distance", "Max distance", "Rolloff", "Doppler factor",
             },
@@ -788,6 +793,442 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
         Assert.Equal(expected.VariationVolumeMax, actual.VariationVolumeMax);
         Assert.Equal(expected.VariationPitchMin, actual.VariationPitchMin);
         Assert.Equal(expected.VariationPitchMax, actual.VariationPitchMax);
+    }
+
+    // ───────────────────────── the bus list (T10.9, P57) ─────────────────────────
+
+    private static readonly string[] EngineBuses = { "Sfx", "Music", "Voice", "Ui" };
+
+    private static string[] BusNames(MGComboBox<SoundBusChoice> combo) => combo.ItemsSource.Select(choice => choice.Name).ToArray();
+
+    /// <summary>Writes a <c>.audioMixer</c> with these buses to the project folder, catalogues it and names it in the project setting.</summary>
+    private void SetProjectMixer(params string[] busNames)
+    {
+        var asset = new AudioMixerAsset { Name = "Project mixer" };
+        foreach (string name in busNames)
+        {
+            asset.Buses.Add(new AudioMixerBusData { Name = name, Parent = AudioBusNames.Master });
+        }
+
+        var node = new JObject();
+        EditorAudioMixerAssetJsonWriter.Save(asset, node);
+        File.WriteAllText(Path.Combine(_projectDirectory, "Project.audioMixer"), node.ToString());
+
+        if (AssetCatalog.Get("Project") == null)
+        {
+            AssetCatalog.AddInternal(new AssetInfo { Name = "Project", FileName = "Project.audioMixer" });
+        }
+
+        GameSettings.ProjectSettings.AudioMixerAsset = "Project";
+    }
+
+    [Fact]
+    public void TheBusRow_WithoutAMixerAsset_ListsTheFourEngineBuses_AndSelectsTheBusOfTheSound()
+    {
+        GameSettings.ProjectSettings.AudioMixerAsset = string.Empty;
+        var asset = CreateAsset();
+        asset.BusName = "Music";
+
+        var rig = Open(asset);
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+
+        Assert.Equal(EngineBuses, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Music", false), combo.SelectedItem);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DirtyEvents);
+        Assert.Equal("Music", asset.BusName);
+    }
+
+    [Fact]
+    public void TheBusRow_WithAMixerAsset_ListsTheEngineBusesThenTheOtherBusesOfTheAsset()
+    {
+        SetProjectMixer("Zeta", "Master", "Music", "Ambience", "Editor");
+        var asset = CreateAsset();
+        asset.BusName = "Ambience";
+
+        var rig = Open(asset);
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+
+        Assert.Equal(new[] { "Sfx", "Music", "Voice", "Ui", "Zeta", "Ambience" }, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Ambience", false), combo.SelectedItem);
+        Assert.Equal(0, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void AnAssetWithoutMusic_AndASoundOnMusic_ShowsMusicAsAnOrdinaryBus()
+    {
+        SetProjectMixer("Ambience");
+        var asset = CreateAsset();
+        asset.BusName = "Music";
+
+        var combo = ComboOfRow<SoundBusChoice>(Open(asset).Content, "Bus");
+
+        Assert.Equal(new SoundBusChoice("Music", false), combo.SelectedItem);
+        Assert.DoesNotContain(combo.ItemsSource, choice => choice.IsUnknown);
+    }
+
+    [Fact]
+    public void AMixerAssetThatCannotBeRead_GivesTheDefaultList()
+    {
+        GameSettings.ProjectSettings.AudioMixerAsset = "Missing";
+
+        var combo = ComboOfRow<SoundBusChoice>(Open(CreateAsset()).Content, "Bus");
+
+        Assert.Equal(EngineBuses, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Sfx", false), combo.SelectedItem);
+    }
+
+    [Fact]
+    public void ABusInNeitherList_IsShownAsUnknownInAWarningColour_AndIsNeverWrittenToTheAsset()
+    {
+        SetProjectMixer("Ambience");
+        var asset = CreateAsset();
+        asset.BusName = "Gone";
+
+        var rig = Open(asset);
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+        var unknown = new SoundBusChoice("Gone", true);
+
+        // Listed last and selected, with its label and a colour that is not the plain text colour.
+        Assert.Equal(unknown, combo.ItemsSource[^1]);
+        Assert.Equal(unknown, combo.SelectedItem);
+        var shown = combo.TraverseVisualTree().OfType<MGTextBlock>().Single(text => text.Text == "Gone (unknown bus)");
+        Assert.Equal(Color.Orange, shown.ActualForeground);
+        var listed = combo.DropdownItemTemplate(unknown);
+        var listedText = listed.TraverseVisualTree().OfType<MGTextBlock>().Single();
+        Assert.Equal("Gone (unknown bus)", listedText.Text);
+        Assert.Equal(Color.Orange, listedText.ActualForeground);
+        Assert.Equal("Gone", asset.BusName);
+        Assert.False(rig.Panel.IsDirty);
+
+        // A real bus is written to the asset.
+        combo.SelectedItem = new SoundBusChoice("Ambience", false);
+        Assert.Equal("Ambience", asset.BusName);
+        Assert.Equal(1, rig.DirtyEvents);
+
+        // The unknown entry is not a bus a sound can be given: the asset keeps its bus and the list shows it again.
+        combo.SelectedItem = unknown;
+        Assert.Equal("Ambience", asset.BusName);
+        Assert.Equal(new SoundBusChoice("Ambience", false), combo.SelectedItem);
+        Assert.Equal(1, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void PickingARealBus_WritesTheAssetAndMarksItDirty()
+    {
+        var rig = Open(CreateAsset());
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+
+        combo.SelectedItem = new SoundBusChoice("Voice", false);
+
+        Assert.Equal("Voice", rig.Asset.BusName);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void ABusWithADifferentCase_IsSelectedAsTheKnownBus_AndTheAssetKeepsItsSpelling()
+    {
+        var asset = CreateAsset();
+        asset.BusName = "sfx";
+
+        var rig = Open(asset);
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+
+        Assert.Equal(new SoundBusChoice("Sfx", false), combo.SelectedItem);
+        Assert.DoesNotContain(combo.ItemsSource, choice => choice.IsUnknown);
+        Assert.Equal("sfx", asset.BusName);
+        Assert.Equal(0, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void RefreshBusChoices_ReadsTheMixerAssetAgain_AndKeepsTheSelectionAndTheAssetUntouched()
+    {
+        var asset = CreateAsset();
+        asset.BusName = "Ambience";
+        var rig = Open(asset);
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+
+        // Without an asset the bus of the sound is unknown.
+        Assert.Equal(new SoundBusChoice("Ambience", true), combo.SelectedItem);
+
+        // The asset is saved with that bus: it is an ordinary bus now, same combo, same selection.
+        SetProjectMixer("Ambience", "Cinematics");
+        rig.Panel.RefreshBusChoices();
+
+        Assert.Same(combo, ComboOfRow<SoundBusChoice>(rig.Content, "Bus"));
+        Assert.Equal(new[] { "Sfx", "Music", "Voice", "Ui", "Ambience", "Cinematics" }, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Ambience", false), combo.SelectedItem);
+        Assert.NotNull(combo.TraverseVisualTree().OfType<MGTextBlock>().SingleOrDefault(text => text.Text == "Ambience"));
+
+        // The bus is removed from the asset: the sound is on an unknown bus again.
+        SetProjectMixer("Cinematics");
+        rig.Panel.RefreshBusChoices();
+
+        Assert.Equal(new[] { "Sfx", "Music", "Voice", "Ui", "Cinematics", "Ambience" }, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Ambience", true), combo.SelectedItem);
+
+        Assert.Equal("Ambience", asset.BusName);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void RefreshBusChoices_AfterTheProjectSettingIsCleared_GoesBackToTheDefaultList()
+    {
+        SetProjectMixer("Ambience");
+        var rig = Open(CreateAsset());
+        var combo = ComboOfRow<SoundBusChoice>(rig.Content, "Bus");
+        Assert.Equal(5, combo.ItemsSource.Count);
+
+        GameSettings.ProjectSettings.AudioMixerAsset = string.Empty;
+        rig.Panel.RefreshBusChoices();
+
+        Assert.Equal(EngineBuses, BusNames(combo));
+        Assert.Equal(new SoundBusChoice("Sfx", false), combo.SelectedItem);
+        Assert.Equal(0, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void TheBusList_IsComputedAgainAtEachRebuildOfTheInspector()
+    {
+        var rig = Open(CreateAsset());
+        Assert.Equal(EngineBuses, BusNames(ComboOfRow<SoundBusChoice>(rig.Content, "Bus")));
+
+        SetProjectMixer("Ambience");
+        rig.Panel.AddVariationFile();
+
+        Assert.Equal(
+            new[] { "Sfx", "Music", "Voice", "Ui", "Ambience" },
+            BusNames(ComboOfRow<SoundBusChoice>(rig.Content, "Bus")));
+    }
+
+    [Fact]
+    public void RefreshBusChoices_WithoutContentOrWithoutAnAsset_DoesNothing()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(900, 900);
+
+        var withoutContent = new SoundAssetInspectorPanel(harness.Window);
+        withoutContent.RefreshBusChoices();
+
+        var withoutAsset = new SoundAssetInspectorPanel(harness.Window);
+        withoutAsset.CreateContent();
+        withoutAsset.RefreshBusChoices();
+
+        var assetButNoContent = new SoundAssetInspectorPanel(harness.Window);
+        assetButNoContent.LoadAsset(CreateAsset(), Path.Combine(_projectDirectory, "step.sound"));
+        assetButNoContent.RefreshBusChoices();
+
+        Assert.False(assetButNoContent.IsDirty);
+    }
+
+    // ───────────────────────── the drawing of the audio file (T10.9, P56) ─────────────────────────
+
+    /// <summary>A stereo wav in the project folder: the left channel at +0.25 and the right channel at -0.5 throughout.</summary>
+    private void WriteWav(string relativePath, int sampleRate, int frameCount)
+    {
+        var samples = new short[2 * frameCount];
+        for (int frame = 0; frame < frameCount; frame++)
+        {
+            samples[2 * frame] = 8192;
+            samples[(2 * frame) + 1] = -16384;
+        }
+
+        string fullPath = Path.Combine(_projectDirectory, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+        File.WriteAllBytes(
+            fullPath,
+            WavBuilder.Create(WavBuilder.PcmFormatTag, sampleRate, 2, 16, MemoryMarshal.AsBytes(samples.AsSpan()).ToArray()));
+    }
+
+    private static AudioEnvelopeControl WaveformStrip(MGElement content)
+    {
+        return content.TraverseVisualTree().OfType<AudioEnvelopeControl>().Single(control => Equals(control.Tag, SoundAssetInspectorPanel.WaveformEnvelopeTag));
+    }
+
+    private static string WaveformText(MGElement content)
+    {
+        return content.TraverseVisualTree().OfType<MGTextBlock>().Single(text => Equals(text.Tag, SoundAssetInspectorPanel.WaveformTextTag)).Text;
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TheWaveformRow_DrawsTheMainAudioFile_OnALinearScaleWithoutMarks(bool buildContentFirst)
+    {
+        WriteWav("Sounds/step_a.wav", 8000, 8000);
+
+        var rig = Open(CreateAsset(), buildContentFirst);
+
+        var strip = WaveformStrip(rig.Content);
+        Assert.False(strip.ShowLevelMarks);
+        Assert.Equal("1.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+
+        var source = strip.Source;
+        Assert.NotNull(source);
+        Assert.Equal(512, source.ColumnCount);
+        source.GetColumn(0, out float lower, out float upper, out float inner);
+        Assert.Equal(-0.5f, lower, 1e-3f);
+        Assert.Equal(0.25f, upper, 1e-3f);
+        Assert.Equal(0f, inner);
+        source.GetColumn(511, out lower, out upper, out inner);
+        Assert.Equal(-0.5f, lower, 1e-3f);
+        Assert.Equal(0.25f, upper, 1e-3f);
+
+        // An index outside the columns is an empty column, not an exception: the control draws on every frame.
+        source.GetColumn(-1, out lower, out upper, out inner);
+        Assert.Equal((0f, 0f, 0f), (lower, upper, inner));
+        source.GetColumn(512, out lower, out upper, out inner);
+        Assert.Equal((0f, 0f, 0f), (lower, upper, inner));
+
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DirtyEvents);
+    }
+
+    [Fact]
+    public void TheWaveformRow_ASourceThatDoesNotCrossZero_IsDrawnFromTheAxis()
+    {
+        // Constant +0.5 on both channels: the lowest sample is not below the axis, but the column still starts at it.
+        var samples = new short[2 * 2000];
+        Array.Fill(samples, (short)16384);
+        string fullPath = Path.Combine(_projectDirectory, "Sounds", "step_a.wav");
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+        File.WriteAllBytes(fullPath, WavBuilder.Create(WavBuilder.PcmFormatTag, 8000, 2, 16, MemoryMarshal.AsBytes(samples.AsSpan()).ToArray()));
+
+        var rig = Open(CreateAsset());
+
+        WaveformStrip(rig.Content).Source.GetColumn(10, out float lower, out float upper, out _);
+        Assert.Equal(0f, lower);
+        Assert.Equal(0.5f, upper, 1e-3f);
+    }
+
+    [Fact]
+    public void TheWaveformRow_WithoutAnAudioFile_SaysSo()
+    {
+        var asset = CreateAsset();
+        asset.AudioFileAssetId = Guid.Empty;
+
+        var rig = Open(asset);
+
+        Assert.Equal("No audio file.", WaveformText(rig.Content));
+        Assert.Equal(0, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void TheWaveformRow_WithAFileThatIsNotThere_SaysItWasNotFound()
+    {
+        // FileA is catalogued but the temporary project has no such file. (An id that is not catalogued is not found either, see
+        // AudioWaveformBuilderTests; it cannot be shown here because AssetSelector throws on an id the catalogue does not know.)
+        var rig = Open(CreateAsset());
+        Assert.Equal("Audio file not found.", WaveformText(rig.Content));
+        Assert.Equal(0, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void TheWaveformRow_WithAFileThatCannotBeDecoded_SaysItIsUnreadable()
+    {
+        File.WriteAllBytes(Path.Combine(Directory.CreateDirectory(Path.Combine(_projectDirectory, "Sounds")).FullName, "step_a.wav"), new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+
+        var rig = Open(CreateAsset());
+
+        Assert.Equal("Audio file unreadable.", WaveformText(rig.Content));
+        Assert.Equal(0, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void TheWaveformRow_WithAFileOverTheCap_SaysItIsTooLargeToDraw()
+    {
+        string path = Path.Combine(Directory.CreateDirectory(Path.Combine(_projectDirectory, "Sounds")).FullName, "step_a.wav");
+        using (var stream = new FileStream(path, FileMode.Create, FileAccess.Write))
+        {
+            stream.SetLength(AudioWaveformBuilder.MaxDrawableFileBytes + 1);
+        }
+
+        var rig = Open(CreateAsset());
+
+        Assert.StartsWith("Too large to draw", WaveformText(rig.Content), StringComparison.Ordinal);
+        Assert.Equal(0, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void AStreamingSound_IsDrawnLikeAnyOther()
+    {
+        WriteWav("Sounds/step_a.wav", 8000, 16000);
+        var asset = CreateAsset();
+        asset.IsStreaming = true;
+
+        var rig = Open(asset);
+
+        Assert.Equal("2.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+        Assert.Equal(512, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void ChangingTheAudioFile_DrawsTheNewFile_AndMarksTheAssetDirtyOnce()
+    {
+        WriteWav("Sounds/step_a.wav", 8000, 8000);
+        WriteWav("Sounds/step_c.WAV", 22050, 11025 * 3);
+        var rig = Open(CreateAsset());
+        Assert.Equal("1.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+
+        Selectors(rig.Content)[0].SelectAsset(AssetCatalog.Get(FileC));
+
+        Assert.Equal(FileC, rig.Asset.AudioFileAssetId);
+        Assert.Equal("1.50 s, 22050 Hz, stereo", WaveformText(rig.Content));
+        Assert.Equal(1, rig.DirtyEvents);
+
+        // The strip is the same control and now holds the new drawing.
+        Assert.Equal(512, WaveformStrip(rig.Content).Source.ColumnCount);
+
+        // A file that is not there: the drawing goes and the reason shows.
+        Selectors(rig.Content)[0].SelectAsset(AssetCatalog.Get(FileB));
+        Assert.Equal("Audio file not found.", WaveformText(rig.Content));
+        Assert.Equal(0, WaveformStrip(rig.Content).Source.ColumnCount);
+    }
+
+    [Fact]
+    public void ChangingAVariationFile_DoesNotChangeTheDrawing()
+    {
+        WriteWav("Sounds/step_a.wav", 8000, 8000);
+        WriteWav("Sounds/step_c.WAV", 22050, 11025 * 3);
+        var asset = CreateAsset();
+        asset.VariationAudioFileAssetIds.Add(Guid.Empty);
+        var rig = Open(asset);
+
+        Selectors(rig.Content)[1].SelectAsset(AssetCatalog.Get(FileC));
+
+        Assert.Equal("1.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+    }
+
+    [Fact]
+    public void TheDrawing_IsComputedOnceAtLoad_NotAtEveryRebuildOfTheInspector_AndAgainByAReload()
+    {
+        WriteWav("Sounds/step_a.wav", 8000, 8000);
+        var rig = Open(CreateAsset());
+        Assert.True(rig.Panel.TrySaveLoadedAsset(out string error), error);
+        Assert.Equal("1.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+
+        // The file changes on disk behind the inspector's back: a rebuild of the rows keeps the drawing it has.
+        WriteWav("Sounds/step_a.wav", 8000, 24000);
+        rig.Panel.AddVariationFile();
+        Assert.Equal("1.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+
+        // Loading the asset again computes it again.
+        Assert.True(rig.Panel.ReloadFromDisk());
+        Assert.Equal("3.00 s, 8000 Hz, stereo", WaveformText(rig.Content));
+    }
+
+    [Fact]
+    public void TheDurationText_ReadsInMinutes_FromOneMinute()
+    {
+        WriteWav("Sounds/step_a.wav", 100, 6000);
+        WriteWav("Sounds/step_c.WAV", 100, 6000 * 2 + 5000);
+
+        Assert.Equal("1:00.00, 100 Hz, stereo", WaveformText(Open(CreateAsset()).Content));
+
+        var longer = CreateAsset();
+        longer.AudioFileAssetId = FileC;
+        Assert.Equal("2:50.00, 100 Hz, stereo", WaveformText(Open(longer).Content));
     }
 
     // ───────────────────────── the preview ─────────────────────────

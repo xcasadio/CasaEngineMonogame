@@ -674,6 +674,17 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        if (e.RelativePath.EndsWith(Constants.FileNameExtensions.AudioMixer, StringComparison.OrdinalIgnoreCase))
+        {
+            // The sound inspectors list the buses of the project's mixer asset: they read it again.
+            foreach (var soundInspectorPanel in _soundInspectorPanels.Values)
+            {
+                soundInspectorPanel.RefreshBusChoices();
+            }
+
+            return;
+        }
+
         if (!e.RelativePath.EndsWith(".material", StringComparison.OrdinalIgnoreCase))
         {
             return;
