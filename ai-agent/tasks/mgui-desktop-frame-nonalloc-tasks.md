@@ -30,8 +30,8 @@ Sites déjà connus :
 - `MGDesktop.Update` trie les fenêtres à chaque image : `Windows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost).ToList()`
   (`MGUI/MGUI.Core/UI/MGDesktop.cs:1602`) ; `MGDesktop.Draw` (`:1729`) refait `foreach (var Window in Windows.OrderBy(x => x.IsTopmost))`
   (`:1739`).
-- `ThicknessUtils.IsEmpty` (`MGUI/MGUI.Shared/Helpers/ThicknessUtils.cs:14`, LINQ, 64 octets par appel) à chaque
-  bordure uniforme dessinée : point ouvert O3 du plan du slider, tranché par l'auteur dans ce plan-là.
+- `ThicknessUtils.IsEmpty` (LINQ, 64 octets par bordure uniforme dessinée, inclus dans les mesures ci-dessus) : corrigé
+  après ces mesures par le chantier du slider (D11, MGUI `c77e014`, ADR-0021) ; T0.1 refait la mesure sans lui.
 - `MGDesktop.Update` est découpé en phases mesurables (`UIPerformanceProbe.BeginDesktopPhase`, `MGDesktop.cs:1517`
   à `:1591` : Animations, RootWindowEntries, ResponsiveMetrics, OverlayWindowBounds, RootWindowPlacement,
   InputModeAndFocus, HighPriorityInput, FloatingWindows, …), ce qui permet de ventiler la mesure.

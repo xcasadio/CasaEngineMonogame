@@ -159,6 +159,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 | D8b | Entrée, suite : toutes les autres allocations par image de `MouseTracker.Update`, `KeyboardTracker.Update`, `GamePadTracker.Update` et `HasActivity`, du chemin d'événements de `MouseHandler` et de `KeyboardHandler.InvokeQueuedEvents`, et de `MGDesktop.HasKeyboardActivity` (énumérateurs, `Any`, listes de touches) disparaissent aussi, sans changement visible. Trouvé par la relecture du plan après D8, et nécessaire à l'objectif « glissement sans allocation » : à confirmer à l'approbation du plan. |
 | D9 | Liaison : la version WPF utilise aussi l'abonnement direct de la version sans WPF (`+=` et `PropertyNameHandler`) à la place de `PropertyChangedEventManager`. |
 | D10 | `MGElement.Update` : `ElementUpdateEventArgs` n'est créé que si l'un des quatre événements d'update a un abonné ; les itérateurs `Get*Brushes` sont remplacés par des méthodes protégées qui remplissent une liste réutilisée ; les 11 surcharges MGUI sont migrées. |
+| D11 | (O3, auteur, 2026-10-06) `ThicknessUtils.IsEmpty` est réécrit sans LINQ (`Left == 0 && Top == 0 && Right == 0 && Bottom == 0`, même résultat) dans T1.11, avec son test d'allocation et sa contre-épreuve. |
 
 ## Règles d'exécution pour l'agent
 
@@ -460,7 +461,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   code de MGUI ni du moteur n'en émet (`rg` sur `NotifyPropertyChanged(null|""|string.Empty)` et
   `PropertyChangedEventArgs(null|""|string.Empty)`). `MGUI.Tests` 3151/3151, `MGUI.Samples` sans erreur.
 
-### ⚠️ T1.11 — Preuve de bout en bout, ADR et documentation MGUI
+### ✅ T1.11 — Preuve de bout en bout, ADR et documentation MGUI
 
 - Objectif : prouver l'objectif sur le chemin du slider et enregistrer D1–D10 et D8b côté MGUI.
 - Fichiers : test de bout en bout (`MGUI.Tests/Architecture/`), `MGUI/Docs/decisions/0021-allocation-free-slider-drag.md`,
@@ -481,6 +482,14 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   (2 bordures du slider, 3 bordures de surcouche pendant le glissement). Sonde non commitée : avec `IsEmpty` réécrit sans
   LINQ, les deux variantes passent à 0 octet ; arbre remis à l'identique. Le test est mis de côté hors de l'arbre
   (scratchpad de la session) en attendant la réponse ; l'ADR et la doc sont écrits avec lui, une fois O3 tranché.
+- Note (2026-10-06, après D11) : commit MGUI `c77e014`. `ThicknessUtils.IsEmpty` lit les quatre côtés ;
+  `ThicknessIsEmptyTests` (9 : chaque côté, valeurs négatives, allocation nulle) ; `SliderDragFrameAllocationTests`
+  (2 variantes) vert : 0 octet par image de glissement sur le chemin du slider. Contre-épreuve : ancien `IsEmpty`, test
+  d'`IsEmpty` rouge (128 000 octets), bout en bout rouge (320 000 et 323 304 octets) ; arbre remis à l'identique.
+  ADR-0021 (`MGUI/Docs/decisions/0021-allocation-free-slider-drag.md`) et index ; `controls-architecture.md` (section
+  Slider, limite du label), `input-architecture.md` (arguments réutilisés, ordre des handlers en cache),
+  `image-sources-and-data-binding.md` (limite O3 de la liaison levée) ; commentaire de `SliderDrawAllocationTests`
+  mis à jour. `MGUI.Tests` 3162/3162, `MGUI.Samples` sans erreur.
 
 ---
 
@@ -499,6 +508,8 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   avertissements), `CasaEngine.Editor.MonoGame.sln` 0 erreur (193), `CasaEngine.Tests` 3159/3159. Après bascule : 0
   erreur (218 et 188 avertissements), aucun avertissement CS0618 ni sur `ValueChanged`, `CasaEngine.Tests` 3159/3159.
   Ce commit porte aussi les notes de T1.1 à T1.11 de ce plan.
+- Note (2026-10-06, second pointeur) : `1166a5a` → `c77e014` (T1.11 après D11). Deux solutions 0 erreur (218 et 193
+  avertissements, comme la ligne de base), `CasaEngine.Tests` 3159/3159.
 
 ### 🧪 T2.2 — Abonnés du moteur sur `ValueChangedNonAlloc`
 
@@ -585,7 +596,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 | O1 | Le plan audio (`audio-modern-tasks.md`, D20 et O24) n'est pas modifié ici pour éviter un conflit avec le chantier audio en cours ; à noter côté audio quand ce chantier sera fusionné. | — |
 | O2 | D9 change l'ordre de passage d'une liaison par rapport aux autres abonnés du `PropertyChanged` d'un objet (l'événement faible WPF passait par son propre gestionnaire). Aucun code connu n'en dépend ; un test rouge de la suite en serait le signe, à remonter avant toute correction. | T1.10 |
 
-| O3 | Allocation imprévue trouvée en T1.2 : `ThicknessUtils.IsEmpty` (`MGUI/MGUI.Shared/Helpers/ThicknessUtils.cs:14`) fait `@this.Sides().All(x => x == 0)`, 64 octets par appel. `MGUniformBorderBrush.Draw` l'appelle à chaque bordure dessinée (`MGUI.Core/UI/Brushes/BorderBrushes/MGUniformBorderBrush.cs:69`) : un `DrawSelf` du slider avec ses bordures par défaut alloue 128 octets (mesuré), plus 64 par bordure de surcouche quand il est survolé (déduit du code) ; 10 appelants dans MGUI. Correctif d'une ligne à comportement identique (`Left == 0 && Top == 0 && Right == 0 && Bottom == 0`), mais hors des sites du plan : **à confirmer par l'auteur avant de l'inclure**. Sans lui, la preuve de bout en bout de T1.11 (dessin du slider compris) ne peut pas être verte. **Confirmé en T1.11** : 320 octets par image de glissement, tous dans `IsEmpty` (0 octet avec le correctif d'une ligne, sonde non commitée). | T1.11 |
+| O3 | Allocation imprévue trouvée en T1.2 : `ThicknessUtils.IsEmpty` (`MGUI/MGUI.Shared/Helpers/ThicknessUtils.cs:14`) fait `@this.Sides().All(x => x == 0)`, 64 octets par appel. `MGUniformBorderBrush.Draw` l'appelle à chaque bordure dessinée (`MGUI.Core/UI/Brushes/BorderBrushes/MGUniformBorderBrush.cs:69`) : un `DrawSelf` du slider avec ses bordures par défaut alloue 128 octets (mesuré), plus 64 par bordure de surcouche quand il est survolé (déduit du code) ; 10 appelants dans MGUI. Correctif d'une ligne à comportement identique (`Left == 0 && Top == 0 && Right == 0 && Bottom == 0`), hors des sites du plan : **tranché par l'auteur le 2026-10-06, inclus (D11)**. Sans lui, la preuve de bout en bout de T1.11 (dessin du slider compris) ne peut pas être verte. **Confirmé en T1.11** : 320 octets par image de glissement, tous dans `IsEmpty` (0 octet avec le correctif d'une ligne, sonde non commitée). | T1.11 |
 
 ## Hors périmètre
 
