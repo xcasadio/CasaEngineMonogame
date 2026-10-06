@@ -15,6 +15,9 @@
 //    1/4096 texel to it; the pixel shader moves it to p with the term -(k / 2 - 1/2) (ddx + ddy) (zero at k = 1) and then
 //    chooses the texel itself (floor, then a read at the centre of that texel): the sampler decides nothing, because Direct3D 11
 //    only guarantees 8 sub-texel bits, so a pixel just under a texel boundary could flip.
+//    ddy follows the convention of the back end (window y up under OpenGL, down under Direct3D): the vertex shader also passes the
+//    screen row (increasing downward, one unit per pixel) and the pixel shader takes the sign of its ddy, so the derivative of
+//    the texture coordinate is always the one along a screen row going down.
 // Otherwise the pixel logic of SpriteBatch.fx: raw-alpha window, then the rejection of a texel whose alpha is at most 0.01.
 
 float4x4 ViewProj;
@@ -49,12 +52,14 @@ struct VS_OUTPUT
 {
     float4 position : POSITION;
     float2 textureCoordinates : TEXCOORD0;
+    float screenRow : TEXCOORD1;
 };
 
 VS_OUTPUT VS(VS_INPUT vertex)
 {
     VS_OUTPUT Out = (VS_OUTPUT) 0;
     Out.position = mul(float4(vertex.position, 1.0f), mul(World, ViewProj));
+    Out.screenRow = Out.position.y / (2.0f * HalfPixel.y * Out.position.w);
     Out.position.xy += HalfPixel * Out.position.w;
     Out.textureCoordinates = vertex.textureCoordinates;
     return Out;
@@ -63,7 +68,7 @@ VS_OUTPUT VS(VS_INPUT vertex)
 float4 PS(VS_OUTPUT input) : COLOR
 {
     float2 t = input.textureCoordinates * TextureSize;
-    t -= (0.5f * Scale - 0.5f) * (ddx(t) + ddy(t));
+    t -= (0.5f * Scale - 0.5f) * (ddx(t) + ddy(t) * sign(ddy(input.screenRow)));
 
     float2 texel = floor(t);
     float4 sampled = tex2D(TextureSampler, (texel + 0.5f) / TextureSize);
