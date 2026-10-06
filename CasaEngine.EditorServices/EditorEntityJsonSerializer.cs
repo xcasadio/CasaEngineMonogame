@@ -375,7 +375,7 @@ internal static class EditorEntityJsonSerializer
 
     private static void SaveSoundEmitterComponent(SoundEmitterComponent component, JObject node)
     {
-        SaveEntityComponent(component, node);
+        SaveSceneComponent(component, node);
         node.Add("sound_asset_id", component.SoundAssetId.ToString());
         node.Add("play_on_start", component.PlayOnStart);
         node.Add("bus_name", component.BusName);

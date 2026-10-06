@@ -423,12 +423,31 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
             localTransformNodeName = "coordinates";
         }
 
-        LocalTransform = element[localTransformNodeName].GetLocalTransform();
+        var localTransformNode = element[localTransformNodeName];
 
-        foreach (var childComponentNode in element["children_component"])
+        if (localTransformNode != null || !AllowsMissingSceneData)
+        {
+            LocalTransform = localTransformNode.GetLocalTransform();
+        }
+
+        var childrenNode = element["children_component"];
+
+        if (childrenNode == null && AllowsMissingSceneData)
+        {
+            return;
+        }
+
+        foreach (var childComponentNode in childrenNode)
         {
             AddChildComponent(ElementFactory.Load<SceneComponent>((JObject)childComponentNode));
         }
     }
+
+    /// <summary>
+    /// True for a component that used to be saved without a transform and without children (before it became a
+    /// scene component): <see cref="Load"/> then keeps the identity local transform and loads no child when
+    /// <c>local_transform</c> / <c>children_component</c> are missing. False (the default) keeps the strict loading.
+    /// </summary>
+    protected virtual bool AllowsMissingSceneData => false;
 
 }

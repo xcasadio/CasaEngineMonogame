@@ -2592,7 +2592,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   **Aucune divergence, aucun code de production modifié.** Mutation (retirer le repliement du gain) : les quatre
   rythmes échouent dès la graine 0. Durée du fuzz environ 13 s ; suite complète 3577/3577 trois fois (environ 22 s).
 
-### ⏳ T9.8 — `AudioListenerComponent` et `SoundEmitterComponent` en composants de scène (D8, D13, P35, P40, P41)
+### 🧪 T9.8 — `AudioListenerComponent` et `SoundEmitterComponent` en composants de scène (D8, D13, P35, P40, P41)
 
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/AudioListenerComponent.cs` (nouveau),
   `AudioScenePose.cs` (nouveau, `internal static`), `SoundEmitterComponent.cs`, `SceneComponent.cs` (valve de
@@ -2631,6 +2631,20 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   enfant éloigné. 🧪 éditeur : ajouter un émetteur et un écouteur, les déplacer au gizmo, sauvegarder, recharger.
   Deux solutions ; suite verte.
 - Commit : `feat(audio): audio listener component and a scene-component sound emitter`
+- Note de validation (2026-10-06) : valve `AllowsMissingSceneData` dans `SceneComponent.Load` (fausse partout ailleurs :
+  un `TransformComponent` sans `local_transform` lève toujours) ; `AudioScenePose` lit `WorldMatrixNoScale` ;
+  `AudioListenerComponent` (`DynamicDefault`, pose poussée seulement quand elle change, retiré au détachement et quand
+  l'entité ou un ancêtre est désactivé, `IsRegistered` public en plus) ; `SoundEmitterComponent` devient un
+  `SceneComponent` (seule rupture d'API, D13 ; aucun autre code du dépôt ne dépendait de sa base) : chemin `PlaySound`
+  inchangé pour un asset non spatial, `PlaySoundAt` sinon, `SetVoicePosition` seulement quand la position change ; la
+  sauvegarde écrit d'abord le transform et les enfants. Mesures : sous un parent tourné, (10, 0, −1) contre (11, 0, 0)
+  par `SceneComponent.Position` ; dans une entité enfant, x = 21 pour un x local de 1 (O33). Un émetteur d'une entité
+  qui ne tick pas ne suit pas son entité. L'éditeur lui donne désormais `TransformComponentEditor` ; « Audio Listener »
+  apparaît seul dans la liste des composants ; un émetteur ajouté à une entité sans racine en devient la racine (O30).
+  33 tests (ancienne forme chargée sans exception, allers-retours en racine, en enfant et au niveau entité, écouteur
+  avant ou après l'émetteur, désactivation, boîte englobante) ; mutation sur la poussée de pose. Deux solutions sans
+  erreur, aucun avertissement sur les lignes touchées ; 3610/3610. **🧪 pour l'auteur** : dans l'éditeur, ajouter un
+  émetteur et un écouteur, les déplacer au gizmo, sauvegarder, recharger.
 
 ### ⏳ T9.9 — Démo : son spatial, Doppler et paramètre de jeu
 

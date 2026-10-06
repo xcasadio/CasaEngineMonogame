@@ -3,8 +3,11 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Audio.Streaming;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using NumericsVector3 = System.Numerics.Vector3;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
@@ -12,14 +15,17 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// Plays a <see cref="SoundAsset"/> from an entity: a sound effect, or a streamed track.
 /// </summary>
 /// <remarks>
-/// Derives from <see cref="EntityComponent"/> and not <see cref="SceneComponent"/> on purpose:
-/// the V1 audio is 2D only, so a transform would be carried around without ever being read.
-/// Making it a scene component is the change to do the day spatialization arrives.
+/// A scene component (decision D13): its world position is the position of a sound whose asset is spatial
+/// (<see cref="SoundAsset.SpatialMode"/> other than none), read as described in <see cref="AudioScenePose"/>, and the
+/// voice follows the component when it moves. The spatial mode comes from the asset only. A sound without a spatial mode
+/// plays as before, whatever the transform.
 /// The voice is scoped to the world, so leaving the world stops it, and detaching the component
 /// stops it too.
+/// An emitter saved before it was a scene component has no transform and no children: it loads with an identity
+/// transform (<see cref="AllowsMissingSceneData"/>).
 /// </remarks>
 [DisplayName("Sound Emitter")]
-public class SoundEmitterComponent : EntityComponent
+public class SoundEmitterComponent : SceneComponent
 {
     private float _volumeOverride = 1f;
     private float _pitchOverride;
@@ -34,7 +40,12 @@ public class SoundEmitterComponent : EntityComponent
     private AudioVoiceHandle _voice = AudioVoiceHandle.None;
     private MusicTrackHandle _track = MusicTrackHandle.None;
 
-    public SoundEmitterComponent()
+    // A voice started with PlaySoundAt follows the position of this component, sent only when it changed.
+    private bool _isVoiceSpatial;
+    private NumericsVector3 _lastVoicePosition;
+    private bool _isBoundForTests;
+
+    public SoundEmitterComponent() : base()
     {
     }
 
@@ -95,12 +106,17 @@ public class SoundEmitterComponent : EntityComponent
         }
     }
 
+    protected override bool AllowsMissingSceneData => true;
+
     public override void InitializeWithWorld(World.World world)
     {
         base.InitializeWithWorld(world);
 
-        _audioService = world?.Game?.AudioSystemComponent?.Service;
-        LoadSoundAsset(world);
+        if (!_isBoundForTests)
+        {
+            _audioService = world?.Game?.AudioSystemComponent?.Service;
+            LoadSoundAsset(world);
+        }
 
         if (PlayOnStart)
         {
@@ -129,12 +145,22 @@ public class SoundEmitterComponent : EntityComponent
             return;
         }
 
-        _voice = _audioService.PlaySound(_soundAsset, CreateOverrides(), owner);
+        if (_soundAsset.SpatialMode == AudioSpatialMode.None)
+        {
+            _voice = _audioService.PlaySound(_soundAsset, CreateOverrides(), owner);
+            return;
+        }
+
+        _lastVoicePosition = AudioScenePose.GetWorldPosition(this);
+        _voice = _audioService.PlaySoundAt(_soundAsset, _lastVoicePosition, CreateOverrides(), owner);
+        _isVoiceSpatial = _voice.IsValid;
     }
 
     /// <summary>Stops whatever this emitter started, immediately.</summary>
     public void Stop()
     {
+        _isVoiceSpatial = false;
+
         if (_audioService == null)
         {
             return;
@@ -156,6 +182,8 @@ public class SoundEmitterComponent : EntityComponent
     /// <summary>Fades out over <paramref name="durationSeconds"/>, then stops.</summary>
     public void StopWithFade(float durationSeconds)
     {
+        _isVoiceSpatial = false;
+
         if (_audioService == null)
         {
             return;
@@ -174,11 +202,48 @@ public class SoundEmitterComponent : EntityComponent
         }
     }
 
+    public override void Update(float elapsedTime)
+    {
+        base.Update(elapsedTime);
+
+        if (!_isVoiceSpatial || _audioService == null)
+        {
+            return;
+        }
+
+        if (!_audioService.IsAlive(_voice))
+        {
+            _isVoiceSpatial = false;
+            return;
+        }
+
+        var position = AudioScenePose.GetWorldPosition(this);
+
+        if (position != _lastVoicePosition)
+        {
+            _lastVoicePosition = position;
+            _audioService.SetVoicePosition(_voice, position);
+        }
+    }
+
     public override void Detach()
     {
         Stop();
         ReleaseSoundAssetHandle();
         base.Detach();
+    }
+
+    public override BoundingBox GetBoundingBox() => AudioScenePose.GetBoundingBox(this);
+
+    /// <summary>Test seam: the voice started by <see cref="Play"/>, to read what the backend received for it.</summary>
+    internal AudioVoiceHandle VoiceForTests => _voice;
+
+    /// <summary>Test seam: uses <paramref name="service"/> and <paramref name="asset"/> instead of the ones of the world.</summary>
+    internal void BindServicesForTests(AudioService service, SoundAsset asset)
+    {
+        _audioService = service;
+        _soundAsset = asset;
+        _isBoundForTests = true;
     }
 
     public override SoundEmitterComponent Clone() => new(this);
