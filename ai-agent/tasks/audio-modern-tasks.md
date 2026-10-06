@@ -1861,12 +1861,19 @@ de clôture **READY**.
   inchangés et verts. Limite : aucun test ne construit un vrai `AudioSystemComponent` (il faut un `Game`) ; le
   démarrage passe par la surcharge testée. Les deux solutions : 0 erreur ; suite complète 3159/3159.
 
-### 🚧 T7.3 — Documentation, ADR et vérification
+### ✅ T7.3 — Documentation, ADR et vérification
 
 - Fichiers : `docs/engine/psx-spu.md`, `docs/engine/audio-system.md`, `docs/decisions/0062-…md` (numéro
   revérifié sur toutes les branches), index, ce plan.
 - Validation : vérificateur frais **CONFIRMED**.
 - Commit : `docs(audio): document the default SPU tables and the limiter project setting`
+- Note de validation (2026-10-06) : `psx-spu.md` (tables par défaut, exemple `CreateDefault`, journal limité
+  à une fois par 5 s, SPU mixé dans son bus, plus de séquenceur prévu), `audio-system.md` (réglage du limiteur),
+  ADR-0062, statut d'ADR-0058, index (commit `3fa755dc`). Vérificateur frais sur `3fa755dc` : **CONFIRMED**,
+  aucun P0–P2 : coefficients ADPCM comparés à psx-spx téléchargé, FIR recalculée indépendamment (même tableau
+  bit pour bit, gains mesurés conformes), réglage et éditeur vérifiés, API additive, deux builds
+  `--no-incremental` sans avertissement nouveau, 3159/3159 deux fois. Deux avis P4 sans suite (l'étage FIR
+  tourne désormais dans la démo pour une sortie nulle ; coefficient central arrondi de 2 unités, voulu).
 
 ---
 
