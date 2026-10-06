@@ -58,6 +58,20 @@ internal struct MixerVoice
     public double RampIncrement;
     public int RampFramesLeft;
 
+    /// <summary>Per-voice modulation gain at the start of the block, in [0, 1] (published by the game thread, orthogonal to the volume).</summary>
+    public float ModGainApplied;
+
+    /// <summary>Per-voice modulation gain at the end of the block.</summary>
+    public float ModGainTarget;
+
+    /// <summary>Per-voice speed ratio on top of the pitch and <see cref="RateMultiplier"/>, in [1/16, 16].</summary>
+    public float ModRate;
+
+    /// <summary>A published spatial pan replaces <see cref="Pan"/> in the channel factors (which stays the own pan of the voice).</summary>
+    public bool SpatialPanActive;
+
+    public float SpatialPan;
+
     public float CurrentLeftGain;
     public float CurrentRightGain;
     public float TargetLeftGain;

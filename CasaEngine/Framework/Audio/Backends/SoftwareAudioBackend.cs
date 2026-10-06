@@ -40,7 +40,7 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend, IAudioMeteringBackend
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend, IAudioMeteringBackend, IAudioVoiceModulationBackend
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -63,6 +63,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
     // Bus of the next voice (IAudioBusBackend), consumed by the next start; Master when none was chosen.
     private int _nextVoiceBus;
+
+    // Modulation of the next voice (IAudioVoiceModulationBackend), consumed by the next start; (1, NaN, 1) when none was set.
+    private float _nextModGain = 1f;
+    private float _nextModPan = float.NaN;
+    private float _nextModRate = 1f;
     private bool _busCapacityLogged;
 
     private int _freeSlotCount;
@@ -191,6 +196,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
     private AudioVoiceHandle PlayResident(IAudioClip clip, in AudioVoiceParameters parameters, bool explicitGains, float leftGain, float rightGain)
     {
         var bus = TakeNextVoiceBus();
+        TakeNextVoiceModulation(out var modGain, out var modPan, out var modRate);
         ArgumentNullException.ThrowIfNull(clip);
 
         if (!IsOutputAlive())
@@ -233,6 +239,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
         var slot = _slots[slotIndex];
         slot.Generation++;
+        _mixer.PublishVoiceModulation(slotIndex, slot.Generation, modGain, modPan, modRate);
 
         var wait = new RingWait(_output);
         bool sent;
@@ -355,6 +362,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
     public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
     {
         var bus = TakeNextVoiceBus();
+        TakeNextVoiceModulation(out var modGain, out var modPan, out var modRate);
         if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
@@ -388,6 +396,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
         var slot = _slots[slotIndex];
         slot.Generation++;
+        _mixer.PublishVoiceModulation(slotIndex, slot.Generation, modGain, modPan, modRate);
 
         var wait = new RingWait(_output);
         bool sent;
@@ -586,6 +595,24 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
     public void SetNextVoiceBus(int busIndex)
     {
         _nextVoiceBus = busIndex;
+    }
+
+    public void SetNextVoiceModulation(float gain, float pan, float rate)
+    {
+        _nextModGain = gain;
+        _nextModPan = pan;
+        _nextModRate = rate;
+    }
+
+    public void SetVoiceModulation(AudioVoiceHandle voice, float gain, float pan, float rate)
+    {
+        // A last value: no command, no wait. A stale handle, a voice the mixer ended or a refused start is ignored.
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive)
+        {
+            return;
+        }
+
+        _mixer.PublishVoiceModulation(voice.Index, slot.Generation, gain, pan, rate);
     }
 
     public bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds)
@@ -810,6 +837,16 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         }
 
         return sent;
+    }
+
+    private void TakeNextVoiceModulation(out float gain, out float pan, out float rate)
+    {
+        gain = _nextModGain;
+        pan = _nextModPan;
+        rate = _nextModRate;
+        _nextModGain = 1f;
+        _nextModPan = float.NaN;
+        _nextModRate = 1f;
     }
 
     private int TakeNextVoiceBus()

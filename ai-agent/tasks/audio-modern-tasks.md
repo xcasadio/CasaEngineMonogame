@@ -2300,7 +2300,7 @@ tâches, symboles définis, choix produit en O29 à O33), puis deux relecteurs f
 avant tout écouteur restait non spatiale ; une voix liée à des paramètres de jeu, musique comprise, n'avait pas de
 valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relecture de clôture **READY**.
 
-### ⏳ T9.1 — Canal de modulation par voix au thread audio (P32)
+### ✅ T9.1 — Canal de modulation par voix au thread audio (P32)
 
 - Fichiers : `CasaEngine/Framework/Audio/IAudioVoiceModulationBackend.cs` (nouveau),
   `CasaEngine/Framework/Audio/Software/MixerVoice.cs`, `CasaEngine/Framework/Audio/Software/SoftwareMixer.cs`,
@@ -2359,6 +2359,15 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   saturée ; capacité absente de `NullAudioBackend`, `MonoGameAudioBackend` et du faux backend. Deux solutions sans
   erreur ni avertissement dans les fichiers touchés ; suite verte trois fois.
 - Commit : `feat(audio): per-voice gain, pan and speed published as last values on the audio thread`
+- Note de validation (2026-10-06) : capacité publique `IAudioVoiceModulationBackend` implémentée par
+  `SoftwareAudioBackend` ; trois tableaux `long[]` étiquetés par la génération (valeur sentinelle `int.MinValue` pour un
+  emplacement jamais publié), lus par `ApplyStartModulation` au démarrage et à l'application de `Start` d'une voix
+  streamée pas encore démarrée, et par `RefreshModulation` avant le rendu de chaque voix démarrée non en pause ; pan
+  effectif pour les facteurs seulement ; rampe : facteur interpolé sur le bloc. 30 tests (mixeur et backend), dont
+  l'invariance bit à bit d'un scénario mixte sans publication et avec (1, NaN, 1), la voix streamée publiée avant
+  `Start`, l'absence d'attente sur une file saturée et l'absence de la capacité sur les autres backends. Après `SetVolume`
+  en pleine rampe, le volume rejoint sa nouvelle valeur sur le bloc suivant (comportement existant). Deux solutions sans
+  erreur ni avertissement dans les fichiers touchés ; 3319/3319 quatre fois ; stress de 60 s : `underruns=0 gc=119`.
 
 ### ⏳ T9.2 — Calcul spatial d'OpenAL 1.1, liaisons de paramètres et registre (P33, P36, P37, P39, P43)
 

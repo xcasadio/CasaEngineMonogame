@@ -84,6 +84,12 @@ internal sealed class SoftwareMixer
 
     // Per slot, (generation << 32) | consumed buffer count; written by the render thread only.
     private readonly long[] _consumedBuffers;
+
+    // Per slot, (generation << 32) | float bits of the last published per-voice gain, spatial pan and speed ratio.
+    // Written by the producer thread (PublishVoiceModulation), read by the render thread; never queued.
+    private readonly long[] _modGain;
+    private readonly long[] _modPan;
+    private readonly long[] _modRate;
     private int _droppedEventCount;
     private int _droppedChunkCount;
     private readonly AudioLogThrottle _invalidRegionLog = new();
@@ -197,6 +203,12 @@ internal sealed class SoftwareMixer
         _voices = new MixerVoice[voiceCapacity];
         _producerChannels = new int[voiceCapacity];
         _consumedBuffers = new long[voiceCapacity];
+        _modGain = new long[voiceCapacity];
+        _modPan = new long[voiceCapacity];
+        _modRate = new long[voiceCapacity];
+        Array.Fill(_modGain, UnpublishedModulation);
+        Array.Fill(_modPan, UnpublishedModulation);
+        Array.Fill(_modRate, UnpublishedModulation);
         _commands = new SpscRingBuffer<MixerCommand>(commandCapacity);
         _events = new SpscRingBuffer<MixerEvent>(eventCapacity);
         _pool = new SampleChunkPool(chunkSamples, initialChunkCount, maxChunkCount);
@@ -903,6 +915,88 @@ internal sealed class SoftwareMixer
         return (int)(published >> 32) == generation ? (int)(published & 0xFFFFFFFFL) : 0;
     }
 
+    // Generation tag no voice ever has (generations are positive): a slot nothing was published for.
+    private const long UnpublishedModulation = (long)int.MinValue << 32;
+
+    private const float MinModulationRate = 1f / 16f;
+
+    /// <summary>
+    /// Publishes the last per-voice gain, spatial pan and speed ratio of the voice of <paramref name="generation"/> in
+    /// <paramref name="slot"/>. The values are sanitized (gain in [0, 1], NaN is 1; pan in [-1, 1], NaN is the own pan of the
+    /// voice; rate in [1/16, 16], NaN or not positive is 1) and tagged with the generation, so a value published for an
+    /// older voice of the slot is ignored by a newer one. Never queued, never waits, allocation free. Producer thread only.
+    /// </summary>
+    internal void PublishVoiceModulation(int slot, int generation, float gain, float pan, float rate)
+    {
+        if ((uint)slot >= (uint)_modGain.Length)
+        {
+            return;
+        }
+
+        var tag = (long)(uint)generation << 32;
+        Volatile.Write(ref _modGain[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationGain(gain)));
+        Volatile.Write(ref _modPan[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationPan(pan)));
+        Volatile.Write(ref _modRate[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationRate(rate)));
+    }
+
+    private static float SanitizeModulationGain(float gain)
+    {
+        return float.IsNaN(gain) ? 1f : Math.Clamp(gain, 0f, 1f);
+    }
+
+    private static float SanitizeModulationPan(float pan)
+    {
+        return float.IsNaN(pan) ? float.NaN : Math.Clamp(pan, -1f, 1f);
+    }
+
+    private static float SanitizeModulationRate(float rate)
+    {
+        return float.IsNaN(rate) || rate <= 0f ? 1f : Math.Clamp(rate, MinModulationRate, AudioVoiceParameters.MaxRateMultiplier);
+    }
+
+    // Render thread. The published values of the voice of this generation, or (1, NaN, 1) when none were published for it.
+    private void ReadModulation(int slot, int generation, out float gain, out float pan, out float rate)
+    {
+        gain = ReadModulationValue(_modGain, slot, generation, 1f);
+        pan = ReadModulationValue(_modPan, slot, generation, float.NaN);
+        rate = ReadModulationValue(_modRate, slot, generation, 1f);
+    }
+
+    private static float ReadModulationValue(long[] values, int slot, int generation, float fallback)
+    {
+        var published = Volatile.Read(ref values[slot]);
+        return (int)(published >> 32) == generation ? BitConverter.Int32BitsToSingle((int)(published & 0xFFFFFFFFL)) : fallback;
+    }
+
+    // Render thread, before a started voice that is not paused renders: takes the values published since the last block.
+    private void RefreshModulation(int slot, ref MixerVoice voice)
+    {
+        ReadModulation(slot, voice.Generation, out var gain, out var pan, out var rate);
+        voice.ModGainTarget = gain;
+
+        var panActive = !float.IsNaN(pan);
+
+        if (panActive != voice.SpatialPanActive || (panActive && pan != voice.SpatialPan) || rate != voice.ModRate)
+        {
+            voice.SpatialPanActive = panActive;
+            voice.SpatialPan = panActive ? pan : 0f;
+            voice.ModRate = rate;
+            SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+        }
+    }
+
+    // Render thread. A new voice always starts from the values published for its generation, so it never sounds first at
+    // full gain or at the wrong speed: the gain has no ramp from 1.
+    private void ApplyStartModulation(int slot, ref MixerVoice voice)
+    {
+        ReadModulation(slot, voice.Generation, out var gain, out var pan, out var rate);
+        voice.ModGainTarget = gain;
+        voice.ModGainApplied = gain;
+        voice.ModRate = rate;
+        voice.SpatialPanActive = !float.IsNaN(pan);
+        voice.SpatialPan = voice.SpatialPanActive ? pan : 0f;
+    }
+
     private bool TrySimple(MixerCommandKind kind, int slot, int generation)
     {
         var command = new MixerCommand { Kind = kind, Slot = slot, Generation = generation };
@@ -993,6 +1087,8 @@ internal sealed class SoftwareMixer
                 FinishVoiceRamp(ref voice, frameCount);
                 continue;
             }
+
+            RefreshModulation(v, ref voice);
 
             var busBuffer = BusBuffer(voice.Bus, sampleCount);
 
@@ -1766,6 +1862,13 @@ internal sealed class SoftwareMixer
         switch (command.Kind)
         {
             case MixerCommandKind.StartStreaming:
+                if (!voice.Started)
+                {
+                    // A value published between the creation and this start is the starting value (no ramp from 1).
+                    ApplyStartModulation(command.Slot, ref voice);
+                    SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, true);
+                }
+
                 voice.Started = true;
                 break;
             case MixerCommandKind.SetParameters:
@@ -1866,6 +1969,7 @@ internal sealed class SoftwareMixer
         voice.ExplicitGains = command.ExplicitGains && clip.ChannelCount == 1;
         voice.ExplicitLeft = command.LeftGain;
         voice.ExplicitRight = command.RightGain;
+        ApplyStartModulation(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
     }
 
@@ -1898,6 +2002,7 @@ internal sealed class SoftwareMixer
         voice.ConsumedBuffers = 0;
         voice.ExplicitGains = false;
         PublishConsumed(command.Slot, ref voice);
+        ApplyStartModulation(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
     }
 
@@ -1928,7 +2033,10 @@ internal sealed class SoftwareMixer
         voice.Volume = volume;
         voice.Pan = pan;
         voice.Pitch = pitch;
-        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch) * voice.RateMultiplier;
+        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch) * voice.RateMultiplier * voice.ModRate;
+
+        // The published spatial pan replaces the own pan for the channel factors only; voice.Pan stays the own pan.
+        var effectivePan = voice.SpatialPanActive ? voice.SpatialPan : pan;
 
         float left;
         float right;
@@ -1942,7 +2050,7 @@ internal sealed class SoftwareMixer
         }
         else if (voice.SourceChannels == 1)
         {
-            var angle = (pan + 1.0) * QuarterPi;
+            var angle = (effectivePan + 1.0) * QuarterPi;
             var cos = Math.Cos(angle);
             var sin = Math.Sin(angle);
             voice.PanLeftFactor = (float)cos;
@@ -1952,10 +2060,10 @@ internal sealed class SoftwareMixer
         }
         else
         {
-            voice.PanLeftFactor = pan > 0f ? 1f - pan : 1f;
-            voice.PanRightFactor = pan < 0f ? 1f + pan : 1f;
-            left = pan > 0f ? volume * (1f - pan) : volume;
-            right = pan < 0f ? volume * (1f + pan) : volume;
+            voice.PanLeftFactor = effectivePan > 0f ? 1f - effectivePan : 1f;
+            voice.PanRightFactor = effectivePan < 0f ? 1f + effectivePan : 1f;
+            left = effectivePan > 0f ? volume * (1f - effectivePan) : volume;
+            right = effectivePan < 0f ? volume * (1f + effectivePan) : volume;
         }
 
         voice.TargetLeftGain = left;
@@ -2030,10 +2138,15 @@ internal sealed class SoftwareMixer
         var position = voice.Position;
         var step = voice.Step;
 
-        var leftGain = voice.CurrentLeftGain;
-        var rightGain = voice.CurrentRightGain;
-        var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
-        var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        // The modulation factor multiplies the channel gains outside a ramp (start of block, end of block) and is
+        // interpolated linearly over the block in the ramp path; the pan x volume gains stay without it.
+        var modApplied = voice.ModGainApplied;
+        var modTarget = voice.ModGainTarget;
+        var modIncrement = (modTarget - modApplied) / frameCount;
+        var leftGain = voice.CurrentLeftGain * modApplied;
+        var rightGain = voice.CurrentRightGain * modApplied;
+        var leftIncrement = (voice.TargetLeftGain * modTarget - leftGain) / frameCount;
+        var rightIncrement = (voice.TargetRightGain * modTarget - rightGain) / frameCount;
         var ramping = voice.RampActive;
         var rampStart = voice.RampValue;
         var rampIncrement = voice.RampIncrement;
@@ -2091,8 +2204,9 @@ internal sealed class SoftwareMixer
             if (ramping)
             {
                 var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
-                leftGain = panLeft * rampGain;
-                rightGain = panRight * rampGain;
+                var modGain = i + 1 >= frameCount ? modTarget : modApplied + modIncrement * (i + 1);
+                leftGain = panLeft * rampGain * modGain;
+                rightGain = panRight * rampGain * modGain;
             }
             else
             {
@@ -2108,6 +2222,7 @@ internal sealed class SoftwareMixer
         voice.Position = position;
         voice.CurrentLeftGain = voice.TargetLeftGain;
         voice.CurrentRightGain = voice.TargetRightGain;
+        voice.ModGainApplied = modTarget;
 
         if (ended)
         {
@@ -2121,10 +2236,15 @@ internal sealed class SoftwareMixer
         var step = voice.Step;
         var stereo = voice.SourceChannels == 2;
 
-        var leftGain = voice.CurrentLeftGain;
-        var rightGain = voice.CurrentRightGain;
-        var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
-        var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        // The modulation factor multiplies the channel gains outside a ramp (start of block, end of block) and is
+        // interpolated linearly over the block in the ramp path; the pan x volume gains stay without it.
+        var modApplied = voice.ModGainApplied;
+        var modTarget = voice.ModGainTarget;
+        var modIncrement = (modTarget - modApplied) / frameCount;
+        var leftGain = voice.CurrentLeftGain * modApplied;
+        var rightGain = voice.CurrentRightGain * modApplied;
+        var leftIncrement = (voice.TargetLeftGain * modTarget - leftGain) / frameCount;
+        var rightIncrement = (voice.TargetRightGain * modTarget - rightGain) / frameCount;
         var ramping = voice.RampActive;
         var rampStart = voice.RampValue;
         var rampIncrement = voice.RampIncrement;
@@ -2178,8 +2298,9 @@ internal sealed class SoftwareMixer
             if (ramping)
             {
                 var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
-                leftGain = panLeft * rampGain;
-                rightGain = panRight * rampGain;
+                var modGain = i + 1 >= frameCount ? modTarget : modApplied + modIncrement * (i + 1);
+                leftGain = panLeft * rampGain * modGain;
+                rightGain = panRight * rampGain * modGain;
             }
             else
             {
@@ -2195,6 +2316,7 @@ internal sealed class SoftwareMixer
         voice.StreamFraction = fraction;
         voice.CurrentLeftGain = voice.TargetLeftGain;
         voice.CurrentRightGain = voice.TargetRightGain;
+        voice.ModGainApplied = modTarget;
     }
 
     /// <summary>Reads the next source frame of a streaming voice; false when its queue ran dry.</summary>
