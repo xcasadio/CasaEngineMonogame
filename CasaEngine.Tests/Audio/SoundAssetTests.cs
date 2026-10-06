@@ -67,12 +67,12 @@ public class SoundAssetTests
         throw new DirectoryNotFoundException("CasaEngine.Demos/Content/Audio not found above the test output.");
     }
 
-    public static IEnumerable<object[]> DemoSoundFiles()
+    /// <summary>The demo sound files written before variations and priorities existed.</summary>
+    public static IEnumerable<object[]> DemoSoundFilesWithoutVariations()
     {
-        foreach (var path in Directory.GetFiles(DemoAudioDirectory(), "*.sound"))
-        {
-            yield return new object[] { Path.GetFileName(path) };
-        }
+        yield return new object[] { "menu_click.sound" };
+        yield return new object[] { "racing_game_music.sound" };
+        yield return new object[] { "racing_game_music_pitched.sound" };
     }
 
     [Fact]
@@ -285,7 +285,7 @@ public class SoundAssetTests
     }
 
     [Theory]
-    [MemberData(nameof(DemoSoundFiles))]
+    [MemberData(nameof(DemoSoundFilesWithoutVariations))]
     public void Loader_DemoSoundFiles_HaveTheVariationDefaults(string fileName)
     {
         var path = Path.Combine(DemoAudioDirectory(), fileName);
@@ -293,6 +293,21 @@ public class SoundAssetTests
         var asset = Assert.IsType<SoundAsset>(new SoundAssetLoader().LoadAsset(path, null));
 
         AssertVariationDefaults(asset);
+    }
+
+    [Fact]
+    public void Loader_TheVariedDemoClick_ReadsItsVariations()
+    {
+        var path = Path.Combine(DemoAudioDirectory(), "menu_click_varied.sound");
+
+        var asset = Assert.IsType<SoundAsset>(new SoundAssetLoader().LoadAsset(path, null));
+
+        Assert.Equal(0, asset.Priority);
+        Assert.Empty(asset.VariationAudioFileAssetIds);
+        Assert.Equal(0.6f, asset.VariationVolumeMin, 4);
+        Assert.Equal(1f, asset.VariationVolumeMax);
+        Assert.Equal(-0.15f, asset.VariationPitchMin, 4);
+        Assert.Equal(0.15f, asset.VariationPitchMax, 4);
     }
 
     private static JObject CreateDocument(Guid id, Guid audioFileAssetId)
