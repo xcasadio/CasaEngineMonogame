@@ -673,13 +673,14 @@ public class CasaEngineGame : Game, IObservableUpdate
                     }
                 }
 
-                // Window-level UI (ADR-0070): drawn last, over everything, on its own surface.
+                // Window-level UI (ADR-0070): drawn last, over everything, on its own surface. Every state the UI
+                // changes is restored, as the pipeline does for each view, so the next frame starts from the state the
+                // pipeline expects.
                 if (_windowUI != null)
                 {
+                    using var guard = new GraphicsStateGuard(GraphicsDevice);
                     _windowUISurface.Apply(GraphicsDevice);
                     _windowUI.Draw();
-                    var pp = GraphicsDevice.PresentationParameters;
-                    GraphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
                 }
             }
         }

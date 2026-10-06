@@ -482,7 +482,14 @@ public class DemosGame : CasaEngineGame
         GraphicsDevice.Viewport = new Viewport(GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight));
         _currentDemo?.PostDraw(this, gameTime);
         GraphicsDevice.Viewport = previousViewport;
+    }
 
+    protected override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+
+        // Captured once the whole frame is drawn, the window-level demo browser included (ADR-0070): it is drawn after
+        // AfterRenderPipeline, and a demo that switches render targets discards what the back buffer held before.
         TryCaptureAutomationScreenshot(gameTime);
     }
 

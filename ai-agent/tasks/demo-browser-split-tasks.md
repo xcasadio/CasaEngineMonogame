@@ -316,7 +316,7 @@ Automatisation et tests :
 - Commit : `docs(demos): document the demo browser and its automation switches`
 - Note de validation (2026-10-06) : l'étape 1 (P4, variables d'automatisation) est faite en T4.1, où elle servait à capturer le navigateur ; ses vérifications sont notées là (7 sondes PASS et relevés identiques, navigateur replié ; capture avec `CASAENGINE_DEMO_BROWSER=open`). Étape 2 : `docs/engine/demos-browser.md` (disposition, touches vérifiées dans `MGTreeView` : Droite/Gauche, Origine/Fin, Entrée et Espace sur un thème ; thèmes, ajout d'une démo, automatisation, limites ; renvoi à ADR-0070), `animation-blend-demo.md` (F1 et lancement depuis le navigateur), nouvelle section « Démos » de `docs/README.md`. `render-stats-demo-workflow.md` reste juste (index 6 et 9 inchangés).
 
-### ⏳ T5.2 — Validation globale
+### 🧪 T5.2 — Validation globale
 
 - Objectif : dérouler la validation globale sur les 30 démos.
 - Fichiers : ce plan (notes).
@@ -325,6 +325,11 @@ Automatisation et tests :
   2. Passage manuel sur les 30 démos (chargement, redimensionnement, séparateurs, F1, clavier, souris, HUD propres dans la scène).
 - Validation : notes sous la tâche ; 🧪 tant que l'auteur n'a pas regardé (thème, FOV à 1024x768 : O3).
 - Commit : `docs(ai-agent): record the demo browser validation`
+- Note de validation (2026-10-06) :
+  - Automatisé sans toucher aux entrées de l'auteur : deux solutions 0 erreur ; `CasaEngine.Tests` 4151/4151 ; 7 sondes PASS, relevés identiques à la référence, captures et dump PSX identiques octet pour octet (hors statistiques de Split-screen) ; les 30 démos lancées navigateur ouvert (`CASAENGINE_DEMO_BROWSER=open`, capture à 3,5 s) : 30 chargements, 0 exception, navigateur présent sauf pour Split-screen, Sandbox et PSX free quads (repli D4), HUD propres des démos dans la scène. Seul avertissement : `DockClose` introuvable dans Skeletal animation blending, déjà présent avec le build d'avant le chantier (hors périmètre).
+  - **Deux défauts trouvés et corrigés ici** (commit `fix(demos)` dédié) : (1) la capture d'automatisation était prise dans `AfterRenderPipeline`, avant le dessin de l'UI de fenêtre, si bien qu'une capture navigateur ouvert montrait le navigateur de l'image précédente, ou rien quand la démo change de render target (ombres de Static shadow et Skeletal blending, UI hors écran de World-space UI) ; elle est désormais prise après l'image complète (`DemosGame.Draw`), sans changement pour les captures navigateur replié (empreintes identiques) ; une capture de l'écran réel (`CopyFromScreen`) confirme que le navigateur s'affichait bien. (2) Le dessin de l'UI de fenêtre ne restaurait pas l'état du `GraphicsDevice` (AGENTS §9.4) : il est entouré d'un `GraphicsStateGuard`, comme chaque vue du pipeline.
+  - Fausse alerte écartée : le quad de World-space UI paraissait blanc navigateur replié et noir navigateur ouvert ; les pixels valent (0, 0, 0, 0) dans toutes les captures, y compris celle du build d'avant le chantier (la visionneuse montrait la transparence en blanc).
+  - **Reste à l'auteur** (gestes réels, non simulés) : changer de démo par clic (y compris la démo déjà sélectionnée) et par Entrée, flèches sans chargement ; glisser la poignée (200 à 340 px à 1024x768) et le séparateur arbre/description ; F1 et « << » ; rappel F1 visible navigateur replié ; molette et orbite sans effet au-dessus du navigateur ; règle P9 en vrai (touches pressées avant de toucher au navigateur, pointeur sur l'arbre puis sur la scène) ; redimensionner la fenêtre à la main ; coup d'œil au thème Dark et au FOV à 1024x768 (O3), réponse à O4.
 
 ### ⏳ T5.3 — Vérification fraîche
 
