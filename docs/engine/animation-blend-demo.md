@@ -11,10 +11,10 @@ Controls:
 - `Cross-fade`: `1`, `2`, `3` cross-fade between idle, walk, and run.
 - `Upper-body override`: `Space` triggers a masked upper-body action over locomotion, `Q` / `E` adjust layer weight.
 - `Additive + root motion`: `Space` triggers a root-motion burst, `R` toggles observe-only vs apply-to-entity, `W` / `Shift + W` still drive the base locomotion graph.
-- `F1`: show or hide the demo info overlay.
+- `F1`: show or hide the demo browser (see [demos-browser.md](demos-browser.md)).
 
 How to launch:
-- Open `CasaEngine.Demos` and select `Animation blend demo` from the demo picker.
+- Open `CasaEngine.Demos` and select `Animation blend demo` in the demo browser (theme `Animation`).
 - Or, from the `CasaEngine.Demos` directory, start `CasaEngine.Demos` with `CASAENGINE_START_DEMO="Animation blend demo"`.
 
 Implementation notes:

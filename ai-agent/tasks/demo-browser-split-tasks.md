@@ -305,7 +305,7 @@ Automatisation et tests :
 
 ## Phase 5 — Automatisation, documentation, validation
 
-### ⏳ T5.1 — Automatisation et documentation
+### ✅ T5.1 — Automatisation et documentation
 
 - Objectif : l'automatisation produit la même image qu'avant ; le navigateur est documenté.
 - Fichiers : `CasaEngine.Demos/DemosGame.cs`, `docs/engine/animation-blend-demo.md`, `docs/engine/demos-browser.md` (nouveau), `docs/README.md`.
@@ -314,6 +314,7 @@ Automatisation et tests :
   2. `animation-blend-demo.md:14` : F1 affiche ou cache le navigateur. Nouveau `demos-browser.md` : disposition, touches, thèmes, variables, limites (FOV, résolution virtuelle) ; index `docs/README.md`.
 - Validation : build ; sondes de Split-screen et des six démos PSX égales à la référence T0.1 ; capture avec `CASAENGINE_DEMO_BROWSER=open` gardée dans le scratchpad pour le coup d'œil de l'auteur.
 - Commit : `docs(demos): document the demo browser and its automation switches`
+- Note de validation (2026-10-06) : l'étape 1 (P4, variables d'automatisation) est faite en T4.1, où elle servait à capturer le navigateur ; ses vérifications sont notées là (7 sondes PASS et relevés identiques, navigateur replié ; capture avec `CASAENGINE_DEMO_BROWSER=open`). Étape 2 : `docs/engine/demos-browser.md` (disposition, touches vérifiées dans `MGTreeView` : Droite/Gauche, Origine/Fin, Entrée et Espace sur un thème ; thèmes, ajout d'une démo, automatisation, limites ; renvoi à ADR-0070), `animation-blend-demo.md` (F1 et lancement depuis le navigateur), nouvelle section « Démos » de `docs/README.md`. `render-stats-demo-workflow.md` reste juste (index 6 et 9 inchangés).
 
 ### ⏳ T5.2 — Validation globale
 
