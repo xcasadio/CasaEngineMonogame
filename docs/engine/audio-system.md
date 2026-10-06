@@ -456,7 +456,8 @@ dénominateur négatif ou nul du modèle inverse, référence égale au maximum 
 **Pan spatial.** Produit scalaire de la direction de la source avec le vecteur droit de l'écouteur
 (sinus de l'azimut, sans distinction avant/arrière) ; la spécification ne définit pas le
 panoramique, c'est un choix du moteur. Il remplace le pan propre de la voix tant que la voix est
-spatiale (`SetVoicePan` est alors sans effet audible).
+spatiale et qu'un écouteur est actif (`SetVoicePan` est alors sans effet audible ; sans écouteur, le pan
+propre s'applique de nouveau).
 
 **Doppler** (désactivé par défaut) : `doppler_factor` de l'asset (0 = désactivé), formule de la
 spécification (§3.5.2) ; vitesse du son `AudioService.SpeedOfSound`, défaut 343,3 **unités monde par

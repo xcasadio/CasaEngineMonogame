@@ -517,4 +517,39 @@ public class SoftwareMixerModulationTests
 
         mixer.Render(buffer, Block);
     }
+
+    [Fact]
+    public void AVoiceWaitingForItsStop_KeepsItsModulation_WhenItsSlotIsPublishedForANewerVoice()
+    {
+        var mixer = new SoftwareMixer(OutputRate);
+        mixer.PublishVoiceModulation(0, 1, 0.05f, 0.9f, 1f);
+        Assert.True(mixer.TryStartResidentVoice(0, 1, Constant(400000), AudioVoiceParameters.Default));
+        AssertAll(Render(mixer, Block), MonoLeft(0.9f, 0.05f), MonoRight(0.9f, 0.05f));
+
+        // The backend reuses a slot as soon as the Stop of its voice is queued, and publishes the values of the next
+        // voice before the mixer has applied that Stop: the old voice renders this block with its own values.
+        mixer.PublishVoiceModulation(0, 2, 1f, float.NaN, 1f);
+
+        AssertAll(Render(mixer, Block), MonoLeft(0.9f, 0.05f), MonoRight(0.9f, 0.05f));
+    }
+
+    [Fact]
+    public void AStreamingVoiceChangedBeforeItsStart_WithNothingPublished_RampsItsFirstBlockAsBefore()
+    {
+        var mixer = new SoftwareMixer(OutputRate);
+        Assert.True(mixer.TryCreateStreamingVoice(0, 1, 1, OutputRate, AudioVoiceParameters.Default));
+        Assert.True(mixer.TrySetVolume(0, 1, 0.3f));
+        Assert.True(mixer.TrySubmitStreamingBuffer(0, 1, ConstantPcm(4000), 0));
+        Assert.True(mixer.TryStartStreamingVoice(0, 1));
+
+        var first = Render(mixer, Block);
+        var second = Render(mixer, Block);
+
+        // The channel gains go from the creation volume to the new volume over the first block, as they did before the
+        // modulation channel existed: the start does not snap them.
+        Assert.True(first[0] > MonoLeft(0f, 0.3f) + 0.3f, $"first frame {first[0]}");
+        Assert.Equal(MonoLeft(0f, 0.3f), first[(Block - 1) * 2], 1e-3f);
+        Assert.Equal(MonoLeft(0f, 0.3f), second[0], 1e-3f);
+        Assert.Equal(MonoLeft(0f, 0.3f), second[(Block - 1) * 2], 1e-3f);
+    }
 }

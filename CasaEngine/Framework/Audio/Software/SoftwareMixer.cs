@@ -964,15 +964,45 @@ internal sealed class SoftwareMixer
 
     private static float ReadModulationValue(long[] values, int slot, int generation, float fallback)
     {
+        return TryReadModulationValue(values, slot, generation, out var value) ? value : fallback;
+    }
+
+    private static bool TryReadModulationValue(long[] values, int slot, int generation, out float value)
+    {
         var published = Volatile.Read(ref values[slot]);
-        return (int)(published >> 32) == generation ? BitConverter.Int32BitsToSingle((int)(published & 0xFFFFFFFFL)) : fallback;
+
+        if ((int)(published >> 32) != generation)
+        {
+            value = 0f;
+            return false;
+        }
+
+        value = BitConverter.Int32BitsToSingle((int)(published & 0xFFFFFFFFL));
+        return true;
     }
 
     // Render thread, before a started voice that is not paused renders: takes the values published since the last block.
+    // A value tagged with another generation was published for a newer voice of this slot while this voice still waits for
+    // its Stop to be applied (the backend reuses a slot as soon as the Stop is queued): this voice keeps the modulation it
+    // has, it never falls back to the neutral values.
     private void RefreshModulation(int slot, ref MixerVoice voice)
     {
-        ReadModulation(slot, voice.Generation, out var gain, out var pan, out var rate);
-        voice.ModGainTarget = gain;
+        if (TryReadModulationValue(_modGain, slot, voice.Generation, out var gain))
+        {
+            voice.ModGainTarget = gain;
+        }
+
+        var pan = voice.SpatialPanActive ? voice.SpatialPan : float.NaN;
+        if (TryReadModulationValue(_modPan, slot, voice.Generation, out var publishedPan))
+        {
+            pan = publishedPan;
+        }
+
+        var rate = voice.ModRate;
+        if (TryReadModulationValue(_modRate, slot, voice.Generation, out var publishedRate))
+        {
+            rate = publishedRate;
+        }
 
         var panActive = !float.IsNaN(pan);
 
@@ -1864,9 +1894,20 @@ internal sealed class SoftwareMixer
             case MixerCommandKind.StartStreaming:
                 if (!voice.Started)
                 {
-                    // A value published between the creation and this start is the starting value (no ramp from 1).
+                    // A value published between the creation and this start is the starting value: the modulation gain
+                    // has no ramp from the creation value. The channel gains are left as they are, so a voice nothing
+                    // was published for starts exactly as before the modulation channel existed.
+                    var spatialPanActive = voice.SpatialPanActive;
+                    var spatialPan = voice.SpatialPan;
+                    var modRate = voice.ModRate;
                     ApplyStartModulation(command.Slot, ref voice);
-                    SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, true);
+
+                    if (voice.SpatialPanActive != spatialPanActive
+                        || (voice.SpatialPanActive && voice.SpatialPan != spatialPan)
+                        || voice.ModRate != modRate)
+                    {
+                        SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+                    }
                 }
 
                 voice.Started = true;
