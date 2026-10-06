@@ -381,3 +381,30 @@ sa fenêtre (`CasaEngine.Tests/UI/XamlUIScreenBaseBindingReleaseTests.cs`). Chaq
 **Limite restante.** `MGElement.RemoveDataBindings` ne parcourt que l'arbre visuel : un binding dont la cible n'est
 pas un élément (un pinceau lié, `MGUI/MGUI.Core/UI/XAML/Element.cs:1096`) reste dans le registre. Aucun écran
 d'Alundra n'en déclare ; à traiter le jour où un écran lié en aura besoin.
+
+## ~~G11~~ — Une `Image` ne peut pas dépasser une teinte de 1 — **CORRIGÉ le 2026-10-06**
+
+> **Corrigé** dans MGUI (ADR-0021, `MGUI/Docs/decisions/0021-image-brightness-above-one.md`), branche
+> `chantier/e19f4c1-image-brightness`, tranche E19.f4c1 du plan `docs/plan-e19-opcodes.md` du dépôt parent.
+>
+> Une propriété `MGImage.Brightness` (`float`, défaut 1, notifiée) et l'attribut XAML `Brightness` de l'élément `Image`
+> (liable). À 1, un seul dessin inchangé ; en dessous, un seul dessin avec un masque gris opaque `round(255 · k)` ; au-dessus,
+> l'image dessinée normalement puis une seconde fois en `BlendType.Additive` avec un masque gris opaque `round(255 · (k − 1))`
+> (l'alpha du masque reste 255, sinon l'ajout vaudrait texel · (k − 1)²) : chaque canal sature à 255. Avec une
+> `TextureColor`, les deux masques se multiplient. Exemple MGUI : `MGUI.Samples/Features/ImageBrightness.xaml`. Tests :
+> `MGUI.Tests/Controls/MGImageBrightnessTests.cs` (les masques de chaque dessin) et
+> `MGUI.Tests/Integration/MGImageBrightnessGpuTests.cs` (le pixel sur GPU, à 2/255 près de `min(255, t · k)`).
+
+**Ce que le code doit faire.** Le portrait du dialogue et celui de l'inventaire d'Alundra sont des quads modulés dont la
+couleur `Rgb / 128` va de 1,99 à 1,05 à l'ouverture et revient : la PS1 multiplie le texel et sature, d'où un éclair visible
+sur les petites tailles pendant le vol (D-E19-100).
+
+**Pourquoi il ne pouvait pas le déclarer.** `MGImage` dessine par `MGTextureData.Draw`, qui passe à `DrawTextureTo` un masque
+de couleur (`MGUI/MGUI.Core/UI/MGTextureData.cs:22`) : chaque canal d'une `Color` est un octet, un masque ne sait donc que
+foncer (facteur au plus 1). `TextureColor` n'y change rien.
+
+**Ce que ça coûtait.** Le portrait restait borné à une teinte de 1 : la rampe au-dessus de 1 était abandonnée (ancienne
+décision D2 du plan du portrait de l'inventaire, remplacée par D-E19-100).
+
+**Limite restante.** Un `Brightness` supérieur à 1 coûte un second dessin et un vidage du lot de sprites ; un `Brightness`
+au-dessus de 2 se comporte comme 2, et un négatif comme 0.
