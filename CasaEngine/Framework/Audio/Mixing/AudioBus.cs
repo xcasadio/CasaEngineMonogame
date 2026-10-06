@@ -28,6 +28,8 @@ public sealed class AudioBus
 
     public string Name { get; }
 
+    internal AudioMixer Mixer => _mixer;
+
     /// <summary>Null for the root bus.</summary>
     public AudioBus Parent { get; }
 
@@ -90,7 +92,12 @@ public sealed class AudioBus
 
     /// <summary>Appends an insert effect after the ones already on this bus. Game thread only.</summary>
     /// <exception cref="ArgumentNullException">The effect is null.</exception>
-    /// <exception cref="InvalidOperationException">The effect is already on a bus, or the bus holds <see cref="MaxEffects"/> effects.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// The effect is already on a bus, the bus holds <see cref="MaxEffects"/> effects, or the effect is a
+    /// <see cref="DuckingEffect"/> whose source is this bus or a bus this bus feeds (a ducking relation is mixed
+    /// source first, so it cannot make a cycle with the parents, the sends and the other ducking relations).
+    /// </exception>
+    /// <exception cref="ArgumentException">The source of a <see cref="DuckingEffect"/> belongs to another mixer.</exception>
     public void AddEffect(AudioEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
@@ -103,6 +110,20 @@ public sealed class AudioBus
         if (_effects.Count >= MaxEffects)
         {
             throw new InvalidOperationException($"The audio bus '{Name}' already holds {MaxEffects} effects.");
+        }
+
+        if (effect is DuckingEffect ducking)
+        {
+            if (!ReferenceEquals(ducking.Source._mixer, _mixer))
+            {
+                throw new ArgumentException("The source of the ducking belongs to another audio mixer.", nameof(effect));
+            }
+
+            // The relation is an edge source -> this bus: it makes a cycle when this bus already reaches the source.
+            if (AudioMixer.Reaches(this, ducking.Source))
+            {
+                throw new InvalidOperationException($"A ducking of the audio bus '{Name}' by '{ducking.Source.Name}' would make a cycle.");
+            }
         }
 
         _effects.Add(effect);

@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Audio.Effects;
+
 namespace CasaEngine.Framework.Audio.Mixing;
 
 /// <summary>
@@ -123,8 +125,8 @@ public sealed class AudioMixer
     }
 
     /// <summary>
-    /// True when the signal of <paramref name="from"/> reaches <paramref name="goal"/> (itself included) through parents and
-    /// sends: a send from <paramref name="goal"/> to <paramref name="from"/> would then make a cycle.
+    /// True when the signal of <paramref name="from"/> reaches <paramref name="goal"/> (itself included) through parents, sends
+    /// and ducking relations: a send from <paramref name="goal"/> to <paramref name="from"/> would then make a cycle.
     /// </summary>
     internal static bool Reaches(AudioBus from, AudioBus goal)
     {
@@ -156,6 +158,22 @@ public sealed class AudioMixer
             if (Reaches(sends[i].Target, goal, depth + 1))
             {
                 return true;
+            }
+        }
+
+        // A ducking relation is an edge from its source to the bus it is inserted on.
+        var buses = bus.Mixer._buses;
+
+        for (var b = 0; b < buses.Count; b++)
+        {
+            var effects = buses[b].Effects;
+
+            for (var e = 0; e < effects.Count; e++)
+            {
+                if (effects[e] is DuckingEffect ducking && ReferenceEquals(ducking.Source, bus) && Reaches(buses[b], goal, depth + 1))
+                {
+                    return true;
+                }
             }
         }
 

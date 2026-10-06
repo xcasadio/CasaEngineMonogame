@@ -29,6 +29,7 @@ public sealed class AudioService : IDisposable
     private readonly List<List<AudioEffect>> _sentEffects = new();
     private int _syncedEffectsVersion;
     private readonly AudioLogThrottle _effectsLog = new();
+    private readonly AudioLogThrottle _duckingLog = new();
     // Per bus of Mixer.Buses (same order): the sends already sent to the backend.
     private readonly List<List<AudioBusSend>> _sentSends = new();
     private int _syncedSendsVersion;
@@ -596,6 +597,47 @@ public sealed class AudioService : IDisposable
         fade.BackendRamp = backendIndex >= 0 && _busBackend.TryRampBusGain(backendIndex, bus.IsMuted ? 0f : target, durationSeconds);
     }
 
+    /// <summary>
+    /// Captures the own volume of every bus and the parameters of the insert effects (see <see cref="AudioMixerSnapshot"/>); the
+    /// Editor bus is skipped. Allocates: call it on demand, not every frame.
+    /// </summary>
+    public AudioMixerSnapshot CaptureSnapshot()
+    {
+        return AudioMixerSnapshot.Capture(Mixer);
+    }
+
+    /// <summary>
+    /// Brings the mixer back to a captured state: the volume of every captured bus ramps to its captured value over
+    /// <paramref name="durationSeconds"/> like <see cref="FadeBus"/> (on the backend, sample by sample, with
+    /// <see cref="IAudioBusBackend"/>; stepped each <see cref="Update"/> without it; a zero duration applies the volumes at once).
+    /// The parameters of the insert effects are published at once, at the call, whatever the duration (effect parameters are not
+    /// ramped), and only with <see cref="IAudioBusBackend"/>: without it the effects are absent and only the volumes apply.
+    /// The Editor bus, and the mute of every bus (so the Master mute that the project settings drive), are never touched.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">The snapshot is null.</exception>
+    /// <exception cref="ArgumentException">The snapshot was captured from another mixer.</exception>
+    public void ApplySnapshot(AudioMixerSnapshot snapshot, float durationSeconds)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        if (!ReferenceEquals(snapshot.Mixer, Mixer))
+        {
+            throw new ArgumentException("The snapshot was captured from another audio mixer.", nameof(snapshot));
+        }
+
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (_busBackend != null)
+        {
+            snapshot.RestoreEffectParameters();
+        }
+
+        snapshot.RestoreBusVolumes(this, durationSeconds);
+    }
+
     /// <summary>Fades the voice out and releases it once silent.</summary>
     public void StopWithFade(AudioVoiceHandle voice, float durationSeconds)
     {
@@ -1125,10 +1167,18 @@ public sealed class AudioService : IDisposable
         {
             for (var i = 0; i < buses.Count; i++)
             {
-                if (buses[i].Effects.Count > 0)
+                var effects = buses[i].Effects;
+
+                for (var j = 0; j < effects.Count; j++)
                 {
-                    _effectsLog.WriteWarning("Audio: this backend has no bus graph, so the insert effects of the audio buses are ignored (use the software backend).");
-                    break;
+                    if (effects[j] is DuckingEffect)
+                    {
+                        _duckingLog.WriteWarning("Audio: this backend has no bus graph, so the ducking of the audio buses is absent (use the software backend).");
+                    }
+                    else
+                    {
+                        _effectsLog.WriteWarning("Audio: this backend has no bus graph, so the insert effects of the audio buses are ignored (use the software backend).");
+                    }
                 }
             }
 
@@ -1179,7 +1229,29 @@ public sealed class AudioService : IDisposable
                 }
 
                 // Insertion order: a later effect never goes before an earlier one that failed to send.
-                if (_busBackend.TryAddBusEffect(backendIndex, wanted[j]))
+                var accepted = false;
+
+                if (wanted[j] is DuckingEffect ducking)
+                {
+                    var sourceIndex = BackendIndexOf(ducking.Source);
+
+                    if (sourceIndex < 0)
+                    {
+                        // The source is not on the backend (more buses than it holds): the relation cannot run.
+                        _duckingLog.WriteWarning("Audio: the source bus of a ducking is not on the backend, so the ducking is absent.");
+                        accepted = true;
+                    }
+                    else
+                    {
+                        accepted = _busBackend.TryAddBusDucking(backendIndex, ducking, sourceIndex);
+                    }
+                }
+                else
+                {
+                    accepted = _busBackend.TryAddBusEffect(backendIndex, wanted[j]);
+                }
+
+                if (accepted)
                 {
                     sent.Add(wanted[j]);
                 }

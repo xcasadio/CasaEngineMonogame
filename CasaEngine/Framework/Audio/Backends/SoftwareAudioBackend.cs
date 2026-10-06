@@ -664,6 +664,27 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         return SendBusEffect(busIndex, effect, add: true);
     }
 
+    public bool TryAddBusDucking(int busIndex, DuckingEffect effect, int sourceBusIndex)
+    {
+        if (effect == null || !IsOutputAlive() || !_mixer.IsDuckingAccepted(busIndex, sourceBusIndex))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryAddDuckingEffect(busIndex, effect, sourceBusIndex)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
     public bool TryRemoveBusEffect(int busIndex, AudioEffect effect)
     {
         return SendBusEffect(busIndex, effect, add: false);

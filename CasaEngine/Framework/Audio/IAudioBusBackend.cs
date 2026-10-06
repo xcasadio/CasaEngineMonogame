@@ -81,7 +81,16 @@ public interface IAudioBusBackend
     /// </summary>
     bool TryAddBusEffect(int busIndex, Effects.AudioEffect effect);
 
-    /// <summary>Removes an insert effect from a bus; the effects after it move up. Returns false when it could not be sent.</summary>
+    /// <summary>
+    /// Appends a ducking effect to a bus, like <see cref="TryAddBusEffect"/> (it takes one of the effect slots of the bus), driven
+    /// by the level of <paramref name="sourceBusIndex"/>: the backend mixes the source before the bus, in the same block, and
+    /// reads its buffer. Returns false when it could not be sent: unavailable backend, unknown bus, no free effect slot, a cycle
+    /// (the source is the bus itself or a bus it feeds through parents, sends or other ducking relations) or a command ring still
+    /// full after the wait of a voice start. <see cref="TryAddBusEffect"/> refuses a <see cref="Effects.DuckingEffect"/>.
+    /// </summary>
+    bool TryAddBusDucking(int busIndex, Effects.DuckingEffect effect, int sourceBusIndex);
+
+    /// <summary>Removes an insert effect from a bus (a ducking effect included); the effects after it move up. Returns false when it could not be sent.</summary>
     bool TryRemoveBusEffect(int busIndex, Effects.AudioEffect effect);
 
     /// <summary>

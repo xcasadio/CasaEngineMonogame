@@ -87,7 +87,10 @@ internal struct MixerCommand
     /// <summary>Bus index: the bus a voice starts on, the bus to create, or the bus the SPU is routed to.</summary>
     public int Bus;
 
-    /// <summary><see cref="MixerCommandKind.CreateBus"/>: index of the parent bus. <see cref="MixerCommandKind.SetSend"/>: index of the target bus.</summary>
+    /// <summary>
+    /// <see cref="MixerCommandKind.CreateBus"/>: index of the parent bus. <see cref="MixerCommandKind.SetSend"/>: index of the
+    /// target bus. <see cref="MixerCommandKind.AddEffect"/> of a ducking effect: index of its source bus.
+    /// </summary>
     public int ParentBus;
 
     /// <summary>

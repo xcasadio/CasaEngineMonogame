@@ -106,6 +106,19 @@ public sealed class CompressorEffect : AudioEffect
         Volatile.Write(ref _parameters, parameters);
     }
 
+    internal override object CaptureParameters()
+    {
+        return Volatile.Read(ref _parameters);
+    }
+
+    internal override void RestoreParameters(object parameters)
+    {
+        if (parameters is Parameters restored)
+        {
+            Publish(restored);
+        }
+    }
+
     /// <summary>Static characteristic, Eq. (4) of the paper: output level in dB for an input level in dB.</summary>
     internal static double StaticOutputDb(double inputDb, double thresholdDb, double ratio, double kneeDb)
     {

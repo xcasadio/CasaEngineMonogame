@@ -36,4 +36,8 @@ internal struct EffectDspState
 
     /// <summary>Smoothed gain reduction in dB (the detector output y_L of the paper, at least 0).</summary>
     public double GainReductionDb;
+
+    // Ducking: the peak follower of the source level (linear) and its per-sample decay coefficient.
+    public double PeakLevel;
+    public double HoldCoefficient;
 }

@@ -20,7 +20,8 @@ namespace CasaEngine.Framework.Audio.Effects;
 /// </para>
 /// <para>
 /// The constructor is internal: the DSP is dispatched by the mixer, so the engine provides the effects
-/// (<see cref="BiquadFilterEffect"/>, <see cref="CompressorEffect"/>, <see cref="LimiterEffect"/>, <see cref="ReverbEffect"/>).
+/// (<see cref="BiquadFilterEffect"/>, <see cref="CompressorEffect"/>, <see cref="LimiterEffect"/>, <see cref="ReverbEffect"/>,
+/// <see cref="DuckingEffect"/>).
 /// </para>
 /// </remarks>
 public abstract class AudioEffect
@@ -46,4 +47,13 @@ public abstract class AudioEffect
     /// belongs to this effect on this bus. Must not allocate, lock or log.
     /// </summary>
     internal abstract void Process(ref EffectDspState state, Span<float> interleavedStereo, int frameCount, int sampleRate);
+
+    /// <summary>
+    /// Game thread. The current parameter snapshot, an immutable object (see <see cref="AudioMixerSnapshot"/>), or null
+    /// when the effect has none. Capturing allocates nothing: the snapshot already exists, it is the one the audio thread reads.
+    /// </summary>
+    internal abstract object CaptureParameters();
+
+    /// <summary>Game thread. Publishes a snapshot returned by <see cref="CaptureParameters"/> of the same effect as a last value; any other object is ignored.</summary>
+    internal abstract void RestoreParameters(object parameters);
 }

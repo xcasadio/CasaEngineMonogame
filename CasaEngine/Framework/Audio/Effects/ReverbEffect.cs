@@ -116,6 +116,19 @@ public sealed class ReverbEffect : AudioEffect
         Volatile.Write(ref _parameters, parameters);
     }
 
+    internal override object CaptureParameters()
+    {
+        return Volatile.Read(ref _parameters);
+    }
+
+    internal override void RestoreParameters(object parameters)
+    {
+        if (parameters is Parameters restored)
+        {
+            Publish(restored);
+        }
+    }
+
     /// <summary>A delay length of the page (given at 44.1 kHz) scaled to <paramref name="sampleRate"/>, rounded, at least 1.</summary>
     public static int ScaleDelay(int samplesAt44100, int sampleRate)
     {

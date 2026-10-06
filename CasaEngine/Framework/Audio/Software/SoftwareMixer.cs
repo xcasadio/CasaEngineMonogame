@@ -114,6 +114,9 @@ internal sealed class SoftwareMixer
     private readonly EffectDspState[] _busEffectStates = new EffectDspState[BusCapacity * EffectSlotsPerBus];
     private readonly int[] _busEffectCounts = new int[BusCapacity];
 
+    // Source bus of the ducking effect held in each effect slot (read only for a DuckingEffect).
+    private readonly int[] _busEffectSource = new int[BusCapacity * EffectSlotsPerBus];
+
     // Render thread: sends of each bus (SendSlotsPerBus slots, compacted): target bus, target level (a command sets it) and
     // the level applied at the end of the previous block (ramped across the block).
     private readonly int[] _busSendTarget = new int[BusCapacity * SendSlotsPerBus];
@@ -141,6 +144,11 @@ internal sealed class SoftwareMixer
     private readonly int[] _producerSendTarget = new int[BusCapacity * SendSlotsPerBus];
     private readonly int[] _producerSendCount = new int[BusCapacity];
     private readonly bool[] _producerVisited = new bool[BusCapacity];
+
+    // Producer: the ducking effects sent to each bus (compacted, EffectSlotsPerBus slots) and their source bus, to refuse a cycle.
+    private readonly DuckingEffect[] _producerDuckEffect = new DuckingEffect[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _producerDuckSource = new int[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _producerDuckCount = new int[BusCapacity];
 
     // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
     private int _busCount = 1;
@@ -441,13 +449,55 @@ internal sealed class SoftwareMixer
     /// </summary>
     public bool TryAddEffect(int bus, AudioEffect effect)
     {
-        if ((uint)bus >= (uint)_producerBusCount || effect == null)
+        // A ducking needs its source bus: see TryAddDuckingEffect.
+        if ((uint)bus >= (uint)_producerBusCount || effect == null || effect is DuckingEffect)
         {
             return false;
         }
 
         var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, Effect = effect, EffectState = effect.CreateAudioState(OutputSampleRate) };
         return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>
+    /// True when <see cref="TryAddDuckingEffect"/> may succeed once the ring has room: both buses exist, the source is not the
+    /// target nor a bus the target feeds (a cycle), and the bus has a free effect slot. Producer thread only.
+    /// </summary>
+    public bool IsDuckingAccepted(int bus, int sourceBus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || (uint)sourceBus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        return _producerDuckCount[bus] < EffectSlotsPerBus && !ProducerReaches(bus, sourceBus);
+    }
+
+    /// <summary>
+    /// Appends a ducking effect to the insert effects of <paramref name="bus"/>, driven by the level of
+    /// <paramref name="sourceBus"/> (mixed before it in the same block, so the order gains an edge source to bus). A command:
+    /// false when the ring is full (the caller retries), a bus was not handed out, the bus has no free slot or the relation
+    /// would make a cycle (the source is the bus itself or a bus the bus feeds). Producer thread only.
+    /// </summary>
+    public bool TryAddDuckingEffect(int bus, DuckingEffect effect, int sourceBus)
+    {
+        if (effect == null || !IsDuckingAccepted(bus, sourceBus))
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, ParentBus = sourceBus, Effect = effect };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        var slot = (bus * EffectSlotsPerBus) + _producerDuckCount[bus];
+        _producerDuckEffect[slot] = effect;
+        _producerDuckSource[slot] = sourceBus;
+        _producerDuckCount[bus]++;
+        return true;
     }
 
     /// <summary>
@@ -572,6 +622,18 @@ internal sealed class SoftwareMixer
             }
         }
 
+        // A ducking relation is an edge from its source to the bus it is inserted on.
+        for (var target = 0; target < _producerBusCount; target++)
+        {
+            for (var d = 0; d < _producerDuckCount[target]; d++)
+            {
+                if (_producerDuckSource[(target * EffectSlotsPerBus) + d] == bus && ProducerReachesFrom(target, goal))
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
@@ -594,7 +656,42 @@ internal sealed class SoftwareMixer
         }
 
         var command = new MixerCommand { Kind = MixerCommandKind.RemoveEffect, Bus = bus, Effect = effect };
-        return _commands.TryEnqueue(in command);
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        if (effect is DuckingEffect)
+        {
+            ForgetProducerDucking(bus, effect);
+        }
+
+        return true;
+    }
+
+    private void ForgetProducerDucking(int bus, AudioEffect effect)
+    {
+        var first = bus * EffectSlotsPerBus;
+        var count = _producerDuckCount[bus];
+
+        for (var d = 0; d < count; d++)
+        {
+            if (!ReferenceEquals(_producerDuckEffect[first + d], effect))
+            {
+                continue;
+            }
+
+            for (var next = d + 1; next < count; next++)
+            {
+                _producerDuckEffect[first + next - 1] = _producerDuckEffect[first + next];
+                _producerDuckSource[first + next - 1] = _producerDuckSource[first + next];
+            }
+
+            _producerDuckEffect[first + count - 1] = null;
+            _producerDuckCount[bus] = count - 1;
+            return;
+        }
     }
 
     public bool TryRoutePsxSpu(PsxSpuSource spu, int bus)
@@ -1013,7 +1110,20 @@ internal sealed class SoftwareMixer
 
         for (var e = 0; e < count; e++)
         {
-            _busEffects[first + e].Process(ref _busEffectStates[first + e], buffer, frameCount, OutputSampleRate);
+            var effect = _busEffects[first + e];
+
+            if (effect is DuckingEffect ducking)
+            {
+                // The source was mixed before this bus (the order has the edge): its buffer holds this block, effects applied.
+                if (IsDuckSource(bus, first + e, out var source))
+                {
+                    ducking.ProcessDucking(ref _busEffectStates[first + e], buffer, BusBuffer(source, buffer.Length), _busAppliedGain[source], frameCount, OutputSampleRate);
+                }
+            }
+            else
+            {
+                effect.Process(ref _busEffectStates[first + e], buffer, frameCount, OutputSampleRate);
+            }
         }
     }
 
@@ -1043,6 +1153,18 @@ internal sealed class SoftwareMixer
                 var target = _busSendTarget[(b * SendSlotsPerBus) + s];
                 _orderIndegree[target]++;
                 _orderIsReturn[target] = true;
+            }
+        }
+
+        // A ducking relation: the bus waits for its source.
+        for (var b = 0; b < _busCount; b++)
+        {
+            for (var e = 0; e < _busEffectCounts[b]; e++)
+            {
+                if (_busEffects[(b * EffectSlotsPerBus) + e] is DuckingEffect && IsDuckSource(b, (b * EffectSlotsPerBus) + e, out _))
+                {
+                    _orderIndegree[b]++;
+                }
             }
         }
 
@@ -1087,7 +1209,27 @@ internal sealed class SoftwareMixer
             {
                 _orderIndegree[_busSendTarget[(pick * SendSlotsPerBus) + s]]--;
             }
+
+            for (var b = 0; b < _busCount; b++)
+            {
+                for (var e = 0; e < _busEffectCounts[b]; e++)
+                {
+                    var slot = (b * EffectSlotsPerBus) + e;
+
+                    if (_busEffects[slot] is DuckingEffect && IsDuckSource(b, slot, out var source) && source == pick)
+                    {
+                        _orderIndegree[b]--;
+                    }
+                }
+            }
         }
+    }
+
+    // Render thread. True when the effect in this slot has a usable ducking source (a bus that exists and is not the bus itself).
+    private bool IsDuckSource(int bus, int slot, out int source)
+    {
+        source = _busEffectSource[slot];
+        return (uint)source < (uint)_busCount && source != bus;
     }
 
     private void SetBusSend(int bus, int target, float level)
@@ -1132,7 +1274,7 @@ internal sealed class SoftwareMixer
         _orderDirty = true;
     }
 
-    private void AddBusEffect(int bus, AudioEffect effect, object effectState)
+    private void AddBusEffect(int bus, AudioEffect effect, object effectState, int sourceBus)
     {
         var count = _busEffectCounts[bus];
 
@@ -1144,7 +1286,13 @@ internal sealed class SoftwareMixer
         var slot = (bus * EffectSlotsPerBus) + count;
         _busEffects[slot] = effect;
         _busEffectStates[slot] = new EffectDspState { Extra = effectState };
+        _busEffectSource[slot] = sourceBus;
         _busEffectCounts[bus] = count + 1;
+
+        if (effect is DuckingEffect)
+        {
+            _orderDirty = true;
+        }
     }
 
     private void RemoveBusEffect(int bus, AudioEffect effect)
@@ -1163,6 +1311,12 @@ internal sealed class SoftwareMixer
             {
                 _busEffects[first + next - 1] = _busEffects[first + next];
                 _busEffectStates[first + next - 1] = _busEffectStates[first + next];
+                _busEffectSource[first + next - 1] = _busEffectSource[first + next];
+            }
+
+            if (effect is DuckingEffect)
+            {
+                _orderDirty = true;
             }
 
             _busEffects[first + count - 1] = null;
@@ -1326,7 +1480,7 @@ internal sealed class SoftwareMixer
         {
             if ((uint)command.Bus < (uint)_busCount)
             {
-                AddBusEffect(command.Bus, command.Effect, command.EffectState);
+                AddBusEffect(command.Bus, command.Effect, command.EffectState, command.ParentBus);
             }
 
             return;

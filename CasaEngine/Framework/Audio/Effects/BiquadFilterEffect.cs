@@ -73,6 +73,19 @@ public sealed class BiquadFilterEffect : AudioEffect
         Volatile.Write(ref _parameters, parameters);
     }
 
+    internal override object CaptureParameters()
+    {
+        return Volatile.Read(ref _parameters);
+    }
+
+    internal override void RestoreParameters(object parameters)
+    {
+        if (parameters is Parameters restored)
+        {
+            Publish(restored);
+        }
+    }
+
     internal override void Process(ref EffectDspState state, Span<float> interleavedStereo, int frameCount, int sampleRate)
     {
         var parameters = Volatile.Read(ref _parameters);
