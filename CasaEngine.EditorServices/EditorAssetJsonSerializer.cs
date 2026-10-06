@@ -268,8 +268,52 @@ internal static class EditorAssetJsonSerializer
         AddIntKeyframes(node, "draw_order_keyframes", track.DrawOrderKeyframes);
         AddBoolKeyframes(node, "flip_keyframes", track.FlipKeyframes);
         AddFloatKeyframes(node, "rotation_keyframes", track.RotationKeyframes);
+        AddCornersKeyframes(node, "corner_keyframes", track.CornerKeyframes);
 
         return node;
+    }
+
+    // ADR-0069: written only when the list is not empty; a disabled key carries no corners nor offset.
+    private static void AddCornersKeyframes(JObject node, string key, IReadOnlyList<Animation2dCornersKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            var keyframeNode = new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["enabled"] = keyframe.Enabled,
+            };
+
+            if (keyframe.Enabled)
+            {
+                AddCornerVector(keyframeNode, "top_left", keyframe.TopLeft);
+                AddCornerVector(keyframeNode, "top_right", keyframe.TopRight);
+                AddCornerVector(keyframeNode, "bottom_left", keyframe.BottomLeft);
+                AddCornerVector(keyframeNode, "bottom_right", keyframe.BottomRight);
+                keyframeNode["source_offset"] = new JObject
+                {
+                    ["x"] = keyframe.SourceOffset.X,
+                    ["y"] = keyframe.SourceOffset.Y,
+                };
+            }
+
+            keyframesNode.Add(keyframeNode);
+        }
+
+        node.Add(key, keyframesNode);
+    }
+
+    private static void AddCornerVector(JObject keyframeNode, string key, Microsoft.Xna.Framework.Vector2 value)
+    {
+        var valueNode = new JObject();
+        value.Save(valueNode);
+        keyframeNode[key] = valueNode;
     }
 
     private static void AddGuidKeyframes(JObject node, string key, IReadOnlyList<Animation2dGuidKeyframeData> keyframes)

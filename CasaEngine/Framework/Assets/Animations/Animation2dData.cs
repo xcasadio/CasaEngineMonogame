@@ -87,6 +87,7 @@ public class Animation2dData : ObjectBase
             durationSeconds = MathF.Max(durationSeconds, GetLastIntKeyframeTime(track.DrawOrderKeyframes));
             durationSeconds = MathF.Max(durationSeconds, GetLastBoolKeyframeTime(track.FlipKeyframes));
             durationSeconds = MathF.Max(durationSeconds, GetLastFloatKeyframeTime(track.RotationKeyframes));
+            durationSeconds = MathF.Max(durationSeconds, GetLastCornersKeyframeTime(track.CornerKeyframes));
         }
 
         foreach (var animationEvent in Events)
@@ -336,6 +337,11 @@ public class Animation2dData : ObjectBase
     }
 
     private static float GetLastFloatKeyframeTime(List<Animation2dFloatKeyframeData> keyframes)
+    {
+        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
+    }
+
+    private static float GetLastCornersKeyframeTime(List<Animation2dCornersKeyframeData> keyframes)
     {
         return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
     }

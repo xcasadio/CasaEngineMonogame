@@ -125,6 +125,11 @@ public static class Animation2dCompositionAdapter
             clone.RotationKeyframes.Add(keyframe);
         }
 
+        foreach (var keyframe in track.CornerKeyframes)
+        {
+            clone.CornerKeyframes.Add(keyframe);
+        }
+
         return clone;
     }
 

@@ -3788,7 +3788,44 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         AddIntKeyframes(node, "draw_order_keyframes", track.DrawOrderKeyframes);
         AddBoolKeyframes(node, "flip_keyframes", track.FlipKeyframes);
         AddFloatKeyframes(node, "rotation_keyframes", track.RotationKeyframes);
+        AddCornersKeyframes(node, "corner_keyframes", track.CornerKeyframes);
         return node;
+    }
+
+    // ADR-0069: the corner track is not shown in the timeline, but the snapshot keeps it (the undo must not lose it).
+    private static void AddCornersKeyframes(JObject node, string key, IReadOnlyList<Animation2dCornersKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        JArray keyframeArray = new();
+        foreach (Animation2dCornersKeyframeData keyframe in keyframes)
+        {
+            JObject keyframeNode = new()
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["enabled"] = keyframe.Enabled,
+            };
+
+            if (keyframe.Enabled)
+            {
+                keyframeNode["top_left"] = SerializeVector2(keyframe.TopLeft);
+                keyframeNode["top_right"] = SerializeVector2(keyframe.TopRight);
+                keyframeNode["bottom_left"] = SerializeVector2(keyframe.BottomLeft);
+                keyframeNode["bottom_right"] = SerializeVector2(keyframe.BottomRight);
+                keyframeNode["source_offset"] = new JObject
+                {
+                    ["x"] = keyframe.SourceOffset.X,
+                    ["y"] = keyframe.SourceOffset.Y,
+                };
+            }
+
+            keyframeArray.Add(keyframeNode);
+        }
+
+        node.Add(key, keyframeArray);
     }
 
     private static JObject SerializeVector2(Vector2 value)

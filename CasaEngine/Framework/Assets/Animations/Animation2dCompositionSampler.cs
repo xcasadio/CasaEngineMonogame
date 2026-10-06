@@ -266,6 +266,17 @@ public sealed class Animation2dCompositionSampler
                     part.Rotation = rotation;
                 }
                 break;
+            case Animation2dTrackProperty.Corners:
+                if (TryEvaluateCorners(track.CornerKeyframes, sampleTime, out var corners))
+                {
+                    part.HasCorners = corners.Enabled;
+                    part.CornerTopLeft = corners.TopLeft;
+                    part.CornerTopRight = corners.TopRight;
+                    part.CornerBottomLeft = corners.BottomLeft;
+                    part.CornerBottomRight = corners.BottomRight;
+                    part.CornerSourceOffset = corners.SourceOffset;
+                }
+                break;
             default:
                 throw new NotSupportedException($"Animation2d track property '{track.Property}' is not supported.");
         }
@@ -341,6 +352,25 @@ public sealed class Animation2dCompositionSampler
             }
 
             value = keyframe.Value;
+            hasValue = true;
+        }
+
+        return hasValue;
+    }
+
+    private static bool TryEvaluateCorners(List<Animation2dCornersKeyframeData> keyframes, float sampleTime, out Animation2dCornersKeyframeData value)
+    {
+        value = default;
+        var hasValue = false;
+        for (var index = 0; index < keyframes.Count; index++)
+        {
+            var keyframe = keyframes[index];
+            if (keyframe.TimeSeconds > sampleTime)
+            {
+                break;
+            }
+
+            value = keyframe;
             hasValue = true;
         }
 

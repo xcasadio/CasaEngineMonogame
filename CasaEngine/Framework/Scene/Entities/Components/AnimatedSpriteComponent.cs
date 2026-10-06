@@ -532,6 +532,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             var partPosition = new Vector2(
                 position.X + part.Position.X * scale.X,
                 position.Y + part.Position.Y * scale.Y);
+            if (part.HasCorners)
+            {
+                DrawCornerQuad(sprite, part, partPosition, scale, baseSortKey);
+                continue;
+            }
+
             var spriteEffects = GetPartSpriteEffects(part);
 
             if (_depthSortable2DComponent != null)
@@ -547,6 +553,34 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             var zOrder = Position.Z - part.DrawOrder * 0.0001f - part.SourceIndex * 0.000001f;
             _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, zOrder, spriteEffects);
         }
+    }
+
+    /// <summary>
+    /// Draws a part whose corner track is active as a free PSX quad (E19.g G2b-2, ADR-0069): the source window of the sprite moved
+    /// by the source offset, the four corners = the part position plus the corners times the entity scale, same sort key, z and PSX
+    /// mode as a rectangle part (the zOrder path stays opaque). The corners carry the whole geometry: the rotation and the flips of
+    /// the part and the <see cref="SpriteEffect"/> of the component are ignored for this part.
+    /// </summary>
+    private void DrawCornerQuad(Sprite sprite, Animation2dPartRuntimeState part, Vector2 partPosition, Vector2 scale, in RenderSortKey2D baseSortKey)
+    {
+        var window = sprite.SpriteData.PositionInTexture;
+        window.Offset(part.CornerSourceOffset);
+        var topLeft = partPosition + part.CornerTopLeft * scale;
+        var topRight = partPosition + part.CornerTopRight * scale;
+        var bottomLeft = partPosition + part.CornerBottomLeft * scale;
+        var bottomRight = partPosition + part.CornerBottomRight * scale;
+
+        if (_depthSortable2DComponent != null)
+        {
+            var sortKey = BuildPartSortKey(baseSortKey, part);
+            _spriteRenderer.DrawPsxQuad(sprite.Texture.Resource, window, topLeft, topRight, bottomLeft, bottomRight, Color, Position.Z,
+                in sortKey, sprite.SpriteData.PsxSemiTransparency);
+            return;
+        }
+
+        var zOrder = Position.Z - part.DrawOrder * 0.0001f - part.SourceIndex * 0.000001f;
+        _spriteRenderer.DrawPsxQuad(sprite.Texture.Resource, window, topLeft, topRight, bottomLeft, bottomRight, Color, zOrder,
+            SpritePsxSemiTransparency.None);
     }
 
     /// <summary>

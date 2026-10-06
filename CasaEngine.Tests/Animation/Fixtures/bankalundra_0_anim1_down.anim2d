@@ -1,0 +1,296 @@
+{
+  "id": "c92a0a42-f950-5381-b365-a010a811bf25",
+  "name": "bankalundra_0_anim1_down",
+  "animation_type": "Once",
+  "event_track_name": "Track 3",
+  "parts": [
+    {
+      "id": "part0",
+      "name": "part0",
+      "default_sprite_id": "00000000-0000-0000-0000-000000000000",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_rotation": 0.0,
+      "default_draw_order": 1,
+      "default_visible": false,
+      "default_flip_x": false,
+      "default_flip_y": false
+    },
+    {
+      "id": "part1",
+      "name": "part1",
+      "default_sprite_id": "00000000-0000-0000-0000-000000000000",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_rotation": 0.0,
+      "default_draw_order": 0,
+      "default_visible": false,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
+    {
+      "name": "Track 1",
+      "target_part_id": "part0",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "d974e88d-26e4-5f1e-b30f-0d5edc603026"
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": "8faadc13-0822-5f6f-879a-37f0c740e0eb"
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": "93b6c19b-f653-59db-bacc-8f407c3cc4ca"
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": "5afebf90-b089-54dc-b188-f19ff9255d2f"
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": "6c009f23-f269-5f24-b32d-36906cb159be"
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": "3c79fd95-2150-531b-86ce-cdf26e6ba638"
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": "3c79fd95-2150-531b-86ce-cdf26e6ba638"
+        }
+      ]
+    },
+    {
+      "name": "Track 2",
+      "target_part_id": "part0",
+      "property": "Position",
+      "interpolation": "Step",
+      "position_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": {
+            "x": 0.0,
+            "y": 24.0
+          }
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": {
+            "x": 0.0,
+            "y": 22.0
+          }
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": {
+            "x": 0.0,
+            "y": 24.0
+          }
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": {
+            "x": 0.0,
+            "y": 24.0
+          }
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": {
+            "x": 0.0,
+            "y": 22.0
+          }
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": {
+            "x": 0.0,
+            "y": 23.0
+          }
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": {
+            "x": 0.0,
+            "y": 23.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Track 3",
+      "target_part_id": "part0",
+      "property": "Visible",
+      "interpolation": "Step",
+      "visible_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": true
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": true
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": true
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": true
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": true
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": true
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": true
+        }
+      ]
+    },
+    {
+      "name": "Track 4",
+      "target_part_id": "part1",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "70bdf254-6e08-5368-bd01-dd594a9b978c"
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": "4c1b7490-a42f-5fa3-a0e0-c7b30068cd80"
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": "25bfbca0-749c-5195-86d3-5f641554697b"
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": "cc90ee9c-fcfe-5173-9e6c-12ae0403e102"
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": "8f44a29d-86e4-51b6-a068-00755d275940"
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": "1800ce11-e3c3-5450-a9d2-f44b727fe938"
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": "1800ce11-e3c3-5450-a9d2-f44b727fe938"
+        }
+      ]
+    },
+    {
+      "name": "Track 5",
+      "target_part_id": "part1",
+      "property": "Position",
+      "interpolation": "Step",
+      "position_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": {
+            "x": 0.0,
+            "y": 4.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "Track 6",
+      "target_part_id": "part1",
+      "property": "Visible",
+      "interpolation": "Step",
+      "visible_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": true
+        },
+        {
+          "time_seconds": 0.099999994,
+          "value": true
+        },
+        {
+          "time_seconds": 0.19999999,
+          "value": true
+        },
+        {
+          "time_seconds": 0.29999998,
+          "value": true
+        },
+        {
+          "time_seconds": 0.39999998,
+          "value": true
+        },
+        {
+          "time_seconds": 0.49999997,
+          "value": true
+        },
+        {
+          "time_seconds": 0.59999996,
+          "value": true
+        }
+      ]
+    }
+  ]
+}

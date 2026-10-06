@@ -22,6 +22,19 @@ public sealed class Animation2dPartRuntimeState
 
     public bool FlipY { get; set; }
 
+    /// <summary>True when a corner key is active: the part is a free quad (ADR-0069) instead of a rectangle.</summary>
+    public bool HasCorners { get; set; }
+
+    public Vector2 CornerTopLeft { get; set; }
+
+    public Vector2 CornerTopRight { get; set; }
+
+    public Vector2 CornerBottomLeft { get; set; }
+
+    public Vector2 CornerBottomRight { get; set; }
+
+    public Point CornerSourceOffset { get; set; }
+
     internal void Reset(Animation2dPartData part, int sourceIndex)
     {
         PartId = part.Id;
@@ -33,5 +46,11 @@ public sealed class Animation2dPartRuntimeState
         Visible = part.DefaultVisible;
         FlipX = part.DefaultFlipX;
         FlipY = part.DefaultFlipY;
+        HasCorners = false;
+        CornerTopLeft = Vector2.Zero;
+        CornerTopRight = Vector2.Zero;
+        CornerBottomLeft = Vector2.Zero;
+        CornerBottomRight = Vector2.Zero;
+        CornerSourceOffset = Point.Zero;
     }
 }

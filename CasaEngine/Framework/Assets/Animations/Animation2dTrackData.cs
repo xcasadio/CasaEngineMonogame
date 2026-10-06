@@ -12,7 +12,8 @@ public enum Animation2dTrackProperty
     DrawOrder,
     FlipX,
     FlipY,
-    Rotation
+    Rotation,
+    Corners
 }
 
 public enum Animation2dInterpolationMode
@@ -44,6 +45,9 @@ public sealed class Animation2dTrackData
 
     public List<Animation2dFloatKeyframeData> RotationKeyframes { get; } = new();
 
+    /// <summary>Free quad corners of the part (E19.g G2b-2, ADR-0069); written only when not empty.</summary>
+    public List<Animation2dCornersKeyframeData> CornerKeyframes { get; } = new();
+
     public static Animation2dTrackData Load(JObject node)
     {
         ArgumentNullException.ThrowIfNull(node);
@@ -63,7 +67,32 @@ public sealed class Animation2dTrackData
         LoadIntKeyframes(node["draw_order_keyframes"] as JArray, track.DrawOrderKeyframes);
         LoadBoolKeyframes(node["flip_keyframes"] as JArray, track.FlipKeyframes);
         LoadFloatKeyframes(node["rotation_keyframes"] as JArray, track.RotationKeyframes);
+        LoadCornersKeyframes(node["corner_keyframes"] as JArray, track.CornerKeyframes);
         return track;
+    }
+
+    private static void LoadCornersKeyframes(JArray keyframesNode, List<Animation2dCornersKeyframeData> keyframes)
+    {
+        if (keyframesNode == null)
+        {
+            return;
+        }
+
+        foreach (var keyframeNode in keyframesNode)
+        {
+            if (keyframeNode is JObject keyframeObject)
+            {
+                // A missing field reads as zero (a missing "enabled" as false): a disabled key carries no corners nor offset.
+                keyframes.Add(new Animation2dCornersKeyframeData(
+                    keyframeObject["time_seconds"]?.Value<float>() ?? 0f,
+                    keyframeObject["enabled"]?.Value<bool>() ?? false,
+                    keyframeObject["top_left"]?.GetVector2() ?? Vector2.Zero,
+                    keyframeObject["top_right"]?.GetVector2() ?? Vector2.Zero,
+                    keyframeObject["bottom_left"]?.GetVector2() ?? Vector2.Zero,
+                    keyframeObject["bottom_right"]?.GetVector2() ?? Vector2.Zero,
+                    keyframeObject["source_offset"]?.GetPoint() ?? Point.Zero));
+            }
+        }
     }
 
     private static void LoadGuidKeyframes(JArray keyframesNode, List<Animation2dGuidKeyframeData> keyframes)
@@ -166,3 +195,18 @@ public readonly record struct Animation2dBoolKeyframeData(float TimeSeconds, boo
 public readonly record struct Animation2dIntKeyframeData(float TimeSeconds, int Value);
 
 public readonly record struct Animation2dFloatKeyframeData(float TimeSeconds, float Value);
+
+/// <summary>
+/// One key of the corner track (ADR-0069). An active key replaces the rectangle of the part by a free quad: the four corners
+/// are offsets in pixels (y up) from the value of the Position track of the part, in the order of the PS1 data (top-left,
+/// top-right, bottom-left, bottom-right of the texture rectangle); SourceOffset moves the source window of the sprite
+/// (a mirrored axis names its window one texel back). A disabled key puts the part back to its rectangle.
+/// </summary>
+public readonly record struct Animation2dCornersKeyframeData(
+    float TimeSeconds,
+    bool Enabled,
+    Vector2 TopLeft,
+    Vector2 TopRight,
+    Vector2 BottomLeft,
+    Vector2 BottomRight,
+    Point SourceOffset);

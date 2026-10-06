@@ -25,10 +25,25 @@ public static class Animation2dBoundsCalculator
                 continue;
             }
 
-            Vector2 topLeft = RotateCorner(new Vector2(-spriteData.Origin.X, spriteData.Origin.Y), part.Rotation) + part.Position;
-            Vector2 topRight = RotateCorner(new Vector2(spriteData.PositionInTexture.Width - spriteData.Origin.X, spriteData.Origin.Y), part.Rotation) + part.Position;
-            Vector2 bottomRight = RotateCorner(new Vector2(spriteData.PositionInTexture.Width - spriteData.Origin.X, spriteData.Origin.Y - spriteData.PositionInTexture.Height), part.Rotation) + part.Position;
-            Vector2 bottomLeft = RotateCorner(new Vector2(-spriteData.Origin.X, spriteData.Origin.Y - spriteData.PositionInTexture.Height), part.Rotation) + part.Position;
+            Vector2 topLeft;
+            Vector2 topRight;
+            Vector2 bottomRight;
+            Vector2 bottomLeft;
+            if (part.HasCorners)
+            {
+                // ADR-0069: the corners of the free quad, offsets from the part position (rotation is ignored, as when drawing).
+                topLeft = part.CornerTopLeft + part.Position;
+                topRight = part.CornerTopRight + part.Position;
+                bottomRight = part.CornerBottomRight + part.Position;
+                bottomLeft = part.CornerBottomLeft + part.Position;
+            }
+            else
+            {
+                topLeft = RotateCorner(new Vector2(-spriteData.Origin.X, spriteData.Origin.Y), part.Rotation) + part.Position;
+                topRight = RotateCorner(new Vector2(spriteData.PositionInTexture.Width - spriteData.Origin.X, spriteData.Origin.Y), part.Rotation) + part.Position;
+                bottomRight = RotateCorner(new Vector2(spriteData.PositionInTexture.Width - spriteData.Origin.X, spriteData.Origin.Y - spriteData.PositionInTexture.Height), part.Rotation) + part.Position;
+                bottomLeft = RotateCorner(new Vector2(-spriteData.Origin.X, spriteData.Origin.Y - spriteData.PositionInTexture.Height), part.Rotation) + part.Position;
+            }
 
             min.X = MathF.Min(min.X, MathF.Min(MathF.Min(topLeft.X, topRight.X), MathF.Min(bottomRight.X, bottomLeft.X)));
             min.Y = MathF.Min(min.Y, MathF.Min(MathF.Min(topLeft.Y, topRight.Y), MathF.Min(bottomRight.Y, bottomLeft.Y)));
