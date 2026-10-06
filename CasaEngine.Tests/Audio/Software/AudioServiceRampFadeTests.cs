@@ -664,6 +664,72 @@ public class AudioServiceRampFadeTests
         });
     }
 
+    // Like AssertSameAsFallback, for one voice: the volume asked for and the audio follow the fallback within one block.
+    private static void AssertVoiceSameAsFallback(Action<Rig, AudioVoiceHandle> setup, int ticks = 130)
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        var softVoice = soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        // A fade running for 20 ticks first, so the next call finds a backend ramp in flight.
+        soft.Service.FadeVoice(softVoice, 0f, 1f);
+        fake.Service.FadeVoice(fakeVoice, 0f, 1f);
+        soft.Tick(20);
+        fake.Tick(20);
+
+        setup(soft, softVoice);
+        setup(fake, fakeVoice);
+
+        for (var tick = 0; tick < ticks; tick++)
+        {
+            soft.Tick();
+            fake.Tick();
+
+            Assert.Equal(fake.Service.IsAlive(fakeVoice), soft.Service.IsAlive(softVoice));
+
+            if (!soft.Service.IsAlive(softVoice))
+            {
+                continue;
+            }
+
+            Assert.Equal(fake.Service.GetVoiceVolume(fakeVoice), soft.Service.GetVoiceVolume(softVoice), 5);
+            Assert.Equal(0.5f * fake.Fake.GetParameters(fakeVoice).Volume, soft.RenderedLevel(), 0.01f);
+        }
+    }
+
+    [Fact]
+    public void ASetVoiceVolumeThenCancelFade_InTheSameFrame_HoldsTheVolumeSet()
+    {
+        AssertVoiceSameAsFallback((rig, voice) =>
+        {
+            rig.Service.SetVoiceVolume(voice, 0.9f);
+            rig.Service.CancelFade(voice);
+        });
+    }
+
+    [Fact]
+    public void ASetVoiceVolumeThenANewFade_InTheSameFrame_StartsFromTheVolumeSet()
+    {
+        AssertVoiceSameAsFallback((rig, voice) =>
+        {
+            rig.Service.SetVoiceVolume(voice, 0.9f);
+            rig.Service.FadeVoice(voice, 0.5f, 0.5f);
+        });
+    }
+
+    [Fact]
+    public void ASetVoiceVolumeThenStopWithFade_InTheSameFrame_FadesFromTheVolumeSet_AndReleasesOnTheSameTick()
+    {
+        AssertVoiceSameAsFallback((rig, voice) =>
+        {
+            rig.Service.SetVoiceVolume(voice, 0.9f);
+            rig.Service.StopWithFade(voice, 0.5f);
+        });
+    }
+
     [Fact]
     public void FadeBus_IgnoresAnUnknownBus()
     {

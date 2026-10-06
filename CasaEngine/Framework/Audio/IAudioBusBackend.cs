@@ -58,6 +58,13 @@ public interface IAudioBusBackend
     /// </summary>
     bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds);
 
+    /// <summary>
+    /// <see cref="TryRampVoiceVolume(AudioVoiceHandle, float, float)"/> from <paramref name="startVolume"/>: the volume the
+    /// caller knows the voice has now, which can differ from the one the backend holds (a volume set during a ramp is only
+    /// kept by the caller). NaN means the volume the backend holds.
+    /// </summary>
+    bool TryRampVoiceVolume(AudioVoiceHandle voice, float startVolume, float targetVolume, float durationSeconds);
+
     /// <summary>Stops the volume ramp of a voice at the value it has reached. Ignored when no ramp runs.</summary>
     void FreezeVoiceVolume(AudioVoiceHandle voice);
 

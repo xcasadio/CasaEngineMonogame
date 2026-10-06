@@ -74,6 +74,20 @@ public class SoftwareMixerRampTests
     }
 
     [Fact]
+    public void AVoiceRampStartsFromItsCarriedStartVolume_NotFromTheVolumeTheAudioThreadHolds()
+    {
+        var mixer = MixerWithVoice(); // the voice is at 1 on the audio thread
+
+        Assert.True(mixer.TryRampVoiceVolume(0, 1, 0.5f, 1f, 1000));
+        var output = Render(mixer, 1000);
+
+        for (var i = 0; i < 1000; i++)
+        {
+            Assert.Equal(FullScale * (0.5f + 0.5f * (i + 1f) / 1000f), output[i * 2], Tolerance);
+        }
+    }
+
+    [Fact]
     public void Freeze_StopsTheEnvelopeAtTheCurrentValue()
     {
         var mixer = MixerWithVoice();

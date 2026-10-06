@@ -760,6 +760,15 @@ internal sealed class SoftwareMixer
     /// </summary>
     public bool TryRampVoiceVolume(int slot, int generation, float volume, int frames)
     {
+        return TryRampVoiceVolume(slot, generation, float.NaN, volume, frames);
+    }
+
+    /// <summary>
+    /// Like <see cref="TryRampVoiceVolume(int, int, float, int)"/>, from <paramref name="startVolume"/> (the volume the game
+    /// thread knows the voice has) instead of the volume the audio thread holds. A NaN start means that held volume.
+    /// </summary>
+    public bool TryRampVoiceVolume(int slot, int generation, float startVolume, float volume, int frames)
+    {
         var command = new MixerCommand
         {
             Kind = MixerCommandKind.RampVoice,
@@ -767,6 +776,7 @@ internal sealed class SoftwareMixer
             Generation = generation,
             Volume = Math.Clamp(float.IsNaN(volume) ? 1f : volume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
             Frames = frames,
+            StartGain = float.IsNaN(startVolume) ? float.NaN : Math.Clamp(startVolume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
         };
 
         return _commands.TryEnqueue(in command);
@@ -1368,12 +1378,12 @@ internal sealed class SoftwareMixer
         }
     }
 
-    // Render thread. Starts a voice ramp from the volume the voice has now (a running ramp keeps Volume at its
-    // value at the start of the block, which is where a command is applied).
-    private static void StartVoiceRamp(ref MixerVoice voice, float target, int frames)
+    // Render thread. Starts a voice ramp from the given volume, or from the volume the voice has now when none was given
+    // (a running ramp keeps Volume at its value at the start of the block, which is where a command is applied).
+    private static void StartVoiceRamp(ref MixerVoice voice, float start, float target, int frames)
     {
         frames = Math.Max(1, frames);
-        voice.RampValue = voice.Volume;
+        voice.RampValue = float.IsNaN(start) ? voice.Volume : start;
         voice.RampTarget = target;
         voice.RampIncrement = (target - voice.RampValue) / frames;
         voice.RampFramesLeft = frames;
@@ -1580,7 +1590,7 @@ internal sealed class SoftwareMixer
                 SetParameters(ref voice, command.Volume, voice.Pan, voice.Pitch, false);
                 break;
             case MixerCommandKind.RampVoice:
-                StartVoiceRamp(ref voice, command.Volume, command.Frames);
+                StartVoiceRamp(ref voice, command.StartGain, command.Volume, command.Frames);
                 break;
             case MixerCommandKind.FreezeVoice:
                 voice.RampActive = false;

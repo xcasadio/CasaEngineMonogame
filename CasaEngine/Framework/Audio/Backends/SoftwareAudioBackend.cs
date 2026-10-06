@@ -590,6 +590,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
     public bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds)
     {
+        return TryRampVoiceVolume(voice, float.NaN, targetVolume, durationSeconds);
+    }
+
+    public bool TryRampVoiceVolume(AudioVoiceHandle voice, float startVolume, float targetVolume, float durationSeconds)
+    {
         if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive || !IsOutputAlive())
         {
             return false;
@@ -598,7 +603,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         var frames = SecondsToFrames(durationSeconds);
         var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryRampVoiceVolume(voice.Index, slot.Generation, targetVolume, frames)) && wait.Next())
+        while (!(sent = _mixer.TryRampVoiceVolume(voice.Index, slot.Generation, startVolume, targetVolume, frames)) && wait.Next())
         {
         }
 

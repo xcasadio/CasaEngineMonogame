@@ -1520,6 +1520,23 @@ Budget : identique à S2.
   publiée) ; règles F1 et N1 inchangées. 6 tests (un du mixeur ; Q1, Q2, Q3, P1, P2 comparés au
   repli tick par tick à 0,01 près) ; les deux solutions : 0 erreur, aucun avertissement dans les
   fichiers touchés ; suite complète 3070/3070 (trois passages) ; stress de 60 s : `underruns=0`.
+  Toutes les sondes des vérificateurs rejouées en session principale : écart nul avec le repli.
+  **Quatrième vérificateur frais sur `0d876d5f` : REFUTED** — chemin des bus propre (F1, N1, R1
+  corrigés ; test de mutation : chaque correctif annulé fait échouer ses tests ; fuzz de 300 graines
+  par réglage, aucun écart au-delà d'un bloc), mais **V1/V2 (P2, présent depuis T5.2)** sur le
+  chemin des **voix** : un `SetVoiceVolume` suivi dans la même frame d'un `CancelFade` ou d'un
+  `FadeVoice` est ignoré par le backend (`CancelFade` fige la valeur rendue alors que
+  `GetVoiceVolume` rend la valeur demandée, de façon permanente ; la rampe de voix part de la valeur
+  rendue, pas de la chronologie). Avis A1 (P3, introduit par `0d876d5f`, **reporté**) : recibler un
+  fondu de bus entre deux blocs fait sauter le gain d'au plus un bloc de pente en un échantillon
+  (petit clic). Avis A2 (P4) : un `CancelFade` entre deux blocs garde la valeur rendue, dans la
+  tolérance d'un bloc. **Correctif de V1/V2** (passe 4 sur 5) : la rampe de voix porte sa valeur
+  de départ (`FadeStartVolume`, surcharge additive `IAudioBusBackend.TryRampVoiceVolume(voix,
+  départ, cible, secondes)`) ; `CancelFade` fige la rampe puis renvoie au backend la valeur de la
+  chronologie (si ce `SetVolume` est perdu, anneau plein, la rampe est au moins arrêtée). 4 tests
+  (un du mixeur ; V1, V2, `SetVoiceVolume` puis `StopWithFade`, comparés au repli tick par tick) ;
+  les deux solutions : 0 erreur, aucun avertissement dans les fichiers touchés ; suite complète
+  3074/3074 (trois passages) ; stress de 60 s : `underruns=0`.
 
 ---
 

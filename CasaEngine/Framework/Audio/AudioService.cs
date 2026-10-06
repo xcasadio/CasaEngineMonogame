@@ -534,7 +534,7 @@ public sealed class AudioService : IDisposable
         entry.FadeDuration = durationSeconds;
         entry.FadeElapsed = 0f;
         entry.FadeCompletion = completion;
-        entry.IsBackendRamp = _busBackend != null && _busBackend.TryRampVoiceVolume(entry.Handle, target, durationSeconds);
+        entry.IsBackendRamp = _busBackend != null && _busBackend.TryRampVoiceVolume(entry.Handle, entry.FadeStartVolume, target, durationSeconds);
     }
 
     /// <summary>
@@ -656,6 +656,10 @@ public sealed class AudioService : IDisposable
             {
                 // The backend stops where it is; the volume stays the one the chronology reached.
                 _busBackend.FreezeVoiceVolume(entry.Handle);
+
+                // And the backend takes the volume the chronology reached, which a SetVoiceVolume of this frame may have
+                // moved from the rendered one. If this volume is dropped (full ring) the freeze still stopped the ramp.
+                ApplyGain(entry);
             }
 
             entry.IsFading = false;
