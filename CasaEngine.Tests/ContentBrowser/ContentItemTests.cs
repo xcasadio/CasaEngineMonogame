@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using CasaEngine.Editor.ContentBrowser;
 using CasaEngine.Editor.ContentBrowser.Models;
 using Xunit;
 
@@ -25,6 +26,24 @@ public class ContentItemTests
         Assert.Equal("world.tileMap", item.Name);
         Assert.Equal(".tileMap", item.Extension);
         Assert.Equal(ContentItemType.TileMap, item.Type);
+    }
+
+    [Theory]
+    [InlineData("D:/Project/audio/main.audioMixer")]
+    [InlineData("D:/Project/audio/MAIN.AUDIOMIXER")]
+    public void Constructor_DeducesAudioMixerTypeFromExtension(string path)
+    {
+        var item = new ContentItem(path, false);
+
+        Assert.Equal(ContentItemType.AudioMixer, item.Type);
+        Assert.Equal("Audio Mixer", ContentItemDisplay.GetTypeLabel(item));
+    }
+
+    [Fact]
+    public void AudioMixerFiles_AreNotTakenForSounds_AndSoundsKeepTheirLabel()
+    {
+        Assert.NotEqual(ContentItemType.Sound, new ContentItem("D:/Project/audio/main.audioMixer", false).Type);
+        Assert.Equal("Sound", ContentItemDisplay.GetTypeLabel(new ContentItem("D:/Project/audio/click.sound", false)));
     }
 
     [Theory]

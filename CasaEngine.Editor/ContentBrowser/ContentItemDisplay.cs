@@ -31,6 +31,7 @@ public static class ContentItemDisplay
             ContentItemType.Prefab => EditorIcons.Package,
             ContentItemType.Animation => EditorIcons.Clapperboard,
             ContentItemType.World => EditorIcons.Layers,
+            ContentItemType.AudioMixer => EditorIcons.Sliders ?? EditorIcons.Volume ?? EditorIcons.Settings,
             _ => EditorIcons.FilePlus,
         };
     }
@@ -58,6 +59,7 @@ public static class ContentItemDisplay
             ContentItemType.Prefab => "Prefab",
             ContentItemType.Animation => "Animation",
             ContentItemType.World => "World",
+            ContentItemType.AudioMixer => "Audio Mixer",
             _ => string.IsNullOrWhiteSpace(item.Extension) ? "Unknown" : item.Extension.TrimStart('.').ToUpperInvariant(),
         };
     }

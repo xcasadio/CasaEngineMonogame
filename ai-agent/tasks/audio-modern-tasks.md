@@ -2938,7 +2938,7 @@ de clôture **READY**.
   l'asset de A), solo (dont les retours du mixeur vivant) et rendu nul d'un bus coupé. Deux solutions sans erreur, aucun
   avertissement dans les fichiers ajoutés ; 3746/3746.
 
-### ⏳ T10.5 — Plomberie de l'éditeur et coquille du panneau (P49, P50)
+### 🧪 T10.5 — Plomberie de l'éditeur et coquille du panneau (P49, P50)
 
 - Fichiers : `EditorDocumentKind.cs`, `History/EditorHistoryContextKind.cs` (membres en dernier),
   `History/EditorHistoryContext.cs`, `Workspaces/EditorPanelIds.cs`, `ContentBrowser/Models/ContentItemType.cs`,
@@ -2963,6 +2963,18 @@ de clôture **READY**.
   plus « live ») ; créer, ouvrir, ouvrir puis fermer un autre onglet, Ctrl+Z agit sur le
   mixeur, titre avec astérisque, « enregistrer tout », restauration d'une disposition. Deux solutions ; suite verte.
 - Commit : `feat(editor): open, create and save audio mixer documents`
+- Note de validation (2026-10-06) : types et identifiants ajoutés en dernier ; `GameEditor` (ajouts seulement) : création
+  « Create Audio Mixer », route `.audioMixer`, `TryGetAudioMixerPanel`, branches de `CreateDocumentPanelNode`,
+  `GetPanelContentFactory`, `OnDockHostActivePanelChanged`, `SyncActiveEditorDocumentFromDockState`,
+  `OnDockHostPanelRemoved`, `SaveDirtyAudioMixers`, titres, mise à jour du seul onglet actif, `ProjectClosed` →
+  `DetachLive` et `ProjectMixerApplied` → `UpdateLiveBinding` ; la liaison à l'ouverture compare l'asset à
+  `ProjectMixer.AppliedAssetId`. `AudioMixerPanel` (coquille) : bandeaux, Save, Reload (un nouveau document, l'historique
+  du contexte vidé), Apply, problèmes, rafraîchi sur `Changed` seulement. 43 tests (dont 3 du Content Browser) ;
+  mutation : 4 tests en échec. Deux solutions sans erreur, aucun avertissement sur les lignes touchées ; 3789/3789. Le
+  câblage de `GameEditor` n'est vérifié que par compilation et lecture. **🧪 pour l'auteur** : créer un mixeur depuis le
+  Content Browser, l'ouvrir, ouvrir puis fermer un autre onglet, Reload d'un fichier modifié à la main, disposition
+  restaurée (« Panel unavailable » comme pour les particules), mixeur de A puis projet B ; les vérifications avec une vraie
+  modification (astérisque, Ctrl+Z, enregistrer tout) attendent les faders de T10.6.
 
 ### ⏳ T10.6 — Tranches de bus : faders, muet, solo, vu-mètres (P51, P53, P54)
 

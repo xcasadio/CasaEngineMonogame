@@ -20,6 +20,7 @@ using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Particles;
@@ -208,6 +209,8 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SoundAssetInspectorPanel> _soundInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _soundInspectorPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AudioMixerPanel> _audioMixerPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _audioMixerPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CutsceneAssetInspectorPanel> _cutsceneInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Animation2dAssetInspectorPanel> _animation2dInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
@@ -447,6 +450,7 @@ public class GameEditor : Game, IObservableUpdate
         _editorDirtyState.DirtyStateChanged += OnDirtyStateChanged;
 
         EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
+        EditorProjectAuthoringService.ProjectClosed += OnProjectClosedDetachAudioMixers;
         EditorAssetWriterService.AssetSaved += OnEditorAssetSaved;
 
         if (_automationOptions.HasProjectPath)
@@ -469,9 +473,14 @@ public class GameEditor : Game, IObservableUpdate
             SavePersistedViewportViewState();
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
+            EditorProjectAuthoringService.ProjectClosed -= OnProjectClosedDetachAudioMixers;
             _shaderSourceHotReloadService?.Dispose();
             _projectAudioMuteSync?.Dispose();
-            _projectAudioMixerSync?.Dispose();
+            if (_projectAudioMixerSync != null)
+            {
+                _projectAudioMixerSync.ProjectMixerApplied -= OnProjectMixerApplied;
+                _projectAudioMixerSync.Dispose();
+            }
             if (_desktop?.Runtime is IMonoGameDesktopBackend monoGameBackend
                 && monoGameBackend.AssetProvider is CasaUIAssetProvider uiAssetProvider)
             {
@@ -625,6 +634,30 @@ public class GameEditor : Game, IObservableUpdate
         _automationDiagnosticsCaptured = false;
         PresentLoadedProject();
         TryOpenStartupAssetIfRequested();
+    }
+
+    /// <summary>
+    /// P49: a project is closing, so no mixing document drives the live mixer any more: the mutes it set are given back, its
+    /// applier is dropped and nothing is applied again to the next project.
+    /// </summary>
+    private void OnProjectClosedDetachAudioMixers(object sender, EventArgs e)
+    {
+        foreach (var mixerPanel in _audioMixerPanels.Values)
+        {
+            mixerPanel.DetachLive();
+        }
+    }
+
+    /// <summary>
+    /// P49: the asset of the project (or none) was applied to the live mixer. A document is attached only when it is that asset.
+    /// </summary>
+    private void OnProjectMixerApplied(object sender, Guid appliedAssetId)
+    {
+        var applier = _editorRuntime?.AudioSystemComponent?.ProjectMixer?.Applier;
+        foreach (var mixerPanel in _audioMixerPanels.Values)
+        {
+            mixerPanel.UpdateLiveBinding(appliedAssetId, applier);
+        }
     }
 
     private void OnEditorAssetSaved(object sender, EditorAssetSavedEventArgs e)
@@ -1083,6 +1116,9 @@ public class GameEditor : Game, IObservableUpdate
             if (editorAudio.ProjectMixer != null)
             {
                 _projectAudioMixerSync = new EditorProjectAudioMixerSync(editorAudio.ProjectMixer);
+
+                // No mixing document can be open yet: the sync of the first project is created before any document is.
+                _projectAudioMixerSync.ProjectMixerApplied += OnProjectMixerApplied;
             }
         }
         _editorRuntime.LoadContentHost();
@@ -1347,6 +1383,7 @@ public class GameEditor : Game, IObservableUpdate
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Sound", CreateSoundAssetInFolder);
+            _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Audio Mixer", CreateAudioMixerAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Fire Loop", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.FireLoop));
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Smoke Puff", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SmokePuff));
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Spark Burst", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SparkBurst));
@@ -2255,6 +2292,10 @@ public class GameEditor : Game, IObservableUpdate
         {
             ActivateParticleDocument(panel.Id, particleInspectorPanel);
         }
+        else if (TryGetAudioMixerPanel(panel.Id, out var audioMixerPanel))
+        {
+            ActivateAudioMixerDocument(panel.Id, audioMixerPanel);
+        }
         else if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
         {
             ActivateAnimation2dDocument(panel.Id, animation2dInspectorPanel);
@@ -2376,6 +2417,7 @@ public class GameEditor : Game, IObservableUpdate
         SaveDirtyMaterialInspectors();
         SaveDirtySpriteInspectors();
         SaveDirtyParticleInspectors();
+        SaveDirtyAudioMixers();
         SaveDirtyAnimation2dInspectors();
         SaveDirtyEntityAssetEditors();
 
@@ -2465,6 +2507,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_tileMapEditorPanels.TryGetValue(panelId, out var tileMapEditorPanel))
         {
             return tileMapEditorPanel.CreateContent;
+        }
+
+        if (TryGetAudioMixerPanel(panelId, out var audioMixerPanel))
+        {
+            return audioMixerPanel.CreateContent;
         }
 
         return () => CreateUnavailablePanelContent(panelId);
@@ -2918,6 +2965,11 @@ public class GameEditor : Game, IObservableUpdate
             _soundInspectorPanelTitles.Remove(panel.Id);
         }
 
+        if (TryGetAudioMixerPanel(panel.Id, out var audioMixerPanel))
+        {
+            CloseAudioMixerPanel(panel.Id, audioMixerPanel);
+        }
+
         if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
         {
             _cutsceneInspectorPanels.Remove(panel.Id);
@@ -3166,6 +3218,19 @@ public class GameEditor : Game, IObservableUpdate
             };
         }
 
+        if (TryGetAudioMixerPanel(panelId, out var audioMixerPanel))
+        {
+            return new DockPanelNode(panelId)
+            {
+                Title = GetAudioMixerDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = audioMixerPanel.CreateContent,
+            };
+        }
+
         return null;
     }
 
@@ -3363,6 +3428,18 @@ public class GameEditor : Game, IObservableUpdate
         return _particleInspectorPanels.TryGetValue(panelId, out inspectorPanel);
     }
 
+    private bool TryGetAudioMixerPanel(string panelId, out AudioMixerPanel mixerPanel)
+    {
+        mixerPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.AudioMixerAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _audioMixerPanels.TryGetValue(panelId, out mixerPanel);
+    }
+
     private bool TryGetCutsceneAssetInspectorPanel(string panelId, out CutsceneAssetInspectorPanel inspectorPanel)
     {
         inspectorPanel = null!;
@@ -3558,6 +3635,28 @@ public class GameEditor : Game, IObservableUpdate
         RefreshParticleViews();
     }
 
+    private void ActivateAudioMixerDocument(string panelId, AudioMixerPanel mixerPanel)
+    {
+        // The levels the panel drew belong to an earlier visit: start from what the mixer publishes now.
+        // Activating the panel that is already active again (another panel was closed) keeps them.
+        var activeDocument = _editorContext.ActiveDocument;
+        bool wasActive = activeDocument != null
+                         && activeDocument.Kind == EditorDocumentKind.AudioMixer
+                         && string.Equals(activeDocument.Id, panelId, StringComparison.Ordinal);
+        if (!wasActive)
+        {
+            mixerPanel.ResetMeters();
+        }
+
+        _editorContext.SetActiveDocument(new EditorDocumentContext(
+            EditorDocumentKind.AudioMixer,
+            panelId,
+            _audioMixerPanelTitles.TryGetValue(panelId, out var title) ? title : "Audio Mixer",
+            mixerPanel));
+        SyncGlobalSelectionFromActiveDocument();
+        RefreshActiveHistoryContext();
+    }
+
     private void ActivateCutsceneDocument(string panelId, CutsceneAssetInspectorPanel inspectorPanel)
     {
         _activeCutsceneInspectorPanel = inspectorPanel;
@@ -3670,6 +3769,13 @@ public class GameEditor : Game, IObservableUpdate
             && TryGetTileMapEditorPanel(activeDocumentPanelId, out var tileMapEditorPanel))
         {
             ActivateTileMapDocument(activeDocumentPanelId, tileMapEditorPanel);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetAudioMixerPanel(activeDocumentPanelId, out var audioMixerPanel))
+        {
+            ActivateAudioMixerDocument(activeDocumentPanelId, audioMixerPanel);
             return;
         }
 
@@ -3889,6 +3995,109 @@ public class GameEditor : Game, IObservableUpdate
         while (File.Exists(candidate))
         {
             candidate = Path.Combine(folderPath, $"{baseName}_{suffix}{Constants.FileNameExtensions.Sound}");
+            suffix++;
+        }
+
+        return candidate;
+    }
+
+    private void CreateAudioMixerAssetInFolder(ContentItem folderItem)
+    {
+        if (folderItem == null || !folderItem.IsDirectory)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
+        {
+            Logs.WriteWarning("Cannot create audio mixer asset because no project path is configured.");
+            return;
+        }
+
+        if (TryCreateAudioMixerAssetInFolder(folderItem.FullPath, out var fullPath, out var relativePath, out var errorMessage))
+        {
+            _contentBrowserPanel?.Refresh();
+            TryOpenEditorAsset(fullPath);
+            Logs.WriteInfo($"Audio mixer asset created: {relativePath}");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+    }
+
+    private static bool TryCreateAudioMixerAssetInFolder(
+        string folderPath,
+        out string fullPath,
+        out string relativePath,
+        out string errorMessage)
+    {
+        fullPath = string.Empty;
+        relativePath = string.Empty;
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+        {
+            errorMessage = $"Cannot create audio mixer asset because folder '{folderPath}' does not exist.";
+            return false;
+        }
+
+        try
+        {
+            fullPath = CreateUniqueAudioMixerAssetPath(folderPath);
+            relativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+            string assetName = Path.GetFileNameWithoutExtension(fullPath);
+
+            var mixerAsset = AudioMixerAsset.CreateDefault(assetName);
+            mixerAsset.FileName = relativePath;
+
+            bool addedToCatalog = false;
+            if (AssetCatalog.GetByFileName(relativePath) == null
+                && AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) == null)
+            {
+                EditorAssetCatalogService.Add(mixerAsset);
+                EditorAssetCatalogService.Save();
+                addedToCatalog = true;
+            }
+
+            try
+            {
+                EditorAssetWriterService.SaveAsset(relativePath, mixerAsset, EditorAssetSaveSource.AudioMixerEditorPanel);
+            }
+            catch
+            {
+                // Leaving a catalogue entry pointing at a file that was never written would
+                // break every later load of the project.
+                if (addedToCatalog)
+                {
+                    EditorAssetCatalogService.Remove(mixerAsset.Id);
+                    EditorAssetCatalogService.Save();
+                }
+
+                throw;
+            }
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            errorMessage = exception.Message;
+            return false;
+        }
+    }
+
+    private static string CreateUniqueAudioMixerAssetPath(string folderPath)
+    {
+        const string baseName = "NewAudioMixer";
+
+        string candidate = Path.Combine(folderPath, baseName + Constants.FileNameExtensions.AudioMixer);
+        int suffix = 2;
+        while (File.Exists(candidate))
+        {
+            candidate = Path.Combine(folderPath, $"{baseName}_{suffix}{Constants.FileNameExtensions.AudioMixer}");
             suffix++;
         }
 
@@ -4267,6 +4476,7 @@ public class GameEditor : Game, IObservableUpdate
             new AssetDocumentRoute(Constants.FileNameExtensions.Sprite, TryOpenSpriteAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Particle, TryOpenParticleAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Sound, TryOpenSoundAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.AudioMixer, TryOpenAudioMixerAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
@@ -4613,6 +4823,99 @@ public class GameEditor : Game, IObservableUpdate
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened sound asset='{soundAsset.Name}', panel='{panelId}'");
         return true;
+    }
+
+    private bool TryOpenAudioMixerAsset(string fullPath)
+    {
+        if (!AudioMixerPanel.TryLoadAsset(fullPath, out var mixerAsset, out string loadError))
+        {
+            Logs.WriteWarning(loadError);
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = mixerAsset.AssetId != Guid.Empty ? mixerAsset.AssetId : mixerAsset.Id;
+        var panelId = $"{EditorPanelIds.AudioMixerAssetDocumentPrefix}{documentId:N}";
+        bool createdPanel = false;
+        if (!_audioMixerPanels.TryGetValue(panelId, out var mixerPanel))
+        {
+            mixerPanel = new AudioMixerPanel(_mainWindow, () => _editorRuntime?.AudioSystemComponent?.Service);
+            mixerPanel.DirtyStateChanged += OnAudioMixerDirtyStateChanged;
+            _audioMixerPanels.Add(panelId, mixerPanel);
+            createdPanel = true;
+        }
+
+        mixerPanel.SetHistoryContextId(panelId);
+        if (createdPanel)
+        {
+            mixerPanel.LoadAsset(mixerAsset, fullPath, GetLiveApplierForAudioMixer(mixerAsset));
+        }
+
+        var panelTitle = string.IsNullOrWhiteSpace(mixerAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : mixerAsset.Name;
+        _audioMixerPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var panelNode = CreateDocumentPanelNode(panelId);
+            var targetGroup = GetDocumentDockGroup();
+            if (panelNode == null || targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    // No tab will ever close this document: release it now, or it would keep the live mixer.
+                    CloseAudioMixerPanel(panelId, mixerPanel);
+                }
+
+                return false;
+            }
+
+            panelNode.Title = GetAudioMixerDocumentTitle(panelId);
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetAudioMixerDocumentTitle(panelId);
+        }
+
+        ActivateAudioMixerDocument(panelId, mixerPanel);
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened audio mixer asset='{mixerAsset.Name}', panel='{panelId}', live={mixerPanel.Document?.IsLive}");
+        return true;
+    }
+
+    /// <summary>
+    /// Only the asset the project mixer applies drives the live mixer (P49): its applier for that asset, null for any other.
+    /// </summary>
+    private AudioMixerAssetApplier GetLiveApplierForAudioMixer(AudioMixerAsset mixerAsset)
+    {
+        var projectMixer = _editorRuntime?.AudioSystemComponent?.ProjectMixer;
+        if (projectMixer == null || mixerAsset.AssetId == Guid.Empty || projectMixer.AppliedAssetId != mixerAsset.AssetId)
+        {
+            return null;
+        }
+
+        return projectMixer.Applier;
+    }
+
+    /// <summary>
+    /// Closes a mixing document: the panel gives the live mixer back to the saved asset (an unsaved edit must not stay heard once its
+    /// tab is gone), then its history and dirty state go.
+    /// </summary>
+    private void CloseAudioMixerPanel(string panelId, AudioMixerPanel mixerPanel)
+    {
+        mixerPanel.DirtyStateChanged -= OnAudioMixerDirtyStateChanged;
+        mixerPanel.Dispose();
+        _audioMixerPanels.Remove(panelId);
+        _audioMixerPanelTitles.Remove(panelId);
+
+        var historyContext = new EditorHistoryContext(EditorHistoryContextKind.AudioMixer, panelId);
+        _editorHistory.Remove(historyContext);
+        _editorDirtyState.Remove(historyContext);
     }
 
     private bool TryOpenParticleAsset(string fullPath)
@@ -5018,6 +5321,14 @@ public class GameEditor : Game, IObservableUpdate
         UpdateDockPanelTitleForParticleInspector(inspectorPanel);
     }
 
+    private void OnAudioMixerDirtyStateChanged(AudioMixerPanel mixerPanel)
+    {
+        if (TryGetAudioMixerPanelId(mixerPanel, out var panelId))
+        {
+            UpdateDockPanelTitle(panelId, GetAudioMixerDocumentTitle(panelId));
+        }
+    }
+
     private void OnSpriteInspectorDirtyStateChanged(SpriteAssetInspectorPanel inspectorPanel)
     {
         UpdateDockPanelTitleForSpriteInspector(inspectorPanel);
@@ -5048,6 +5359,21 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var pair in _particleInspectorPanels)
         {
             if (ReferenceEquals(pair.Value, inspectorPanel))
+            {
+                panelId = pair.Key;
+                return true;
+            }
+        }
+
+        panelId = string.Empty;
+        return false;
+    }
+
+    private bool TryGetAudioMixerPanelId(AudioMixerPanel mixerPanel, out string panelId)
+    {
+        foreach (var pair in _audioMixerPanels)
+        {
+            if (ReferenceEquals(pair.Value, mixerPanel))
             {
                 panelId = pair.Key;
                 return true;
@@ -5174,6 +5500,29 @@ public class GameEditor : Game, IObservableUpdate
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetParticleDocumentTitle(pair.Key));
                 Logs.WriteInfo($"Particle asset saved: {particleInspectorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
+    private void SaveDirtyAudioMixers()
+    {
+        foreach (var pair in _audioMixerPanels)
+        {
+            var mixerPanel = pair.Value;
+            if (!mixerPanel.IsDirty)
+            {
+                continue;
+            }
+
+            // The panel marks its history context saved.
+            if (mixerPanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                UpdateDockPanelTitle(pair.Key, GetAudioMixerDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Audio mixer asset saved: {mixerPanel.LoadedRelativePath}");
             }
             else if (!string.IsNullOrWhiteSpace(errorMessage))
             {
@@ -5332,6 +5681,14 @@ public class GameEditor : Game, IObservableUpdate
 
                 break;
 
+            case EditorHistoryContextKind.AudioMixer:
+                if (_audioMixerPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetAudioMixerDocumentTitle(context.Id));
+                }
+
+                break;
+
             case EditorHistoryContextKind.ContentBrowser:
                 UpdateDockPanelTitle(EditorPanelIds.ContentBrowser, GetContentBrowserTitle());
                 break;
@@ -5387,6 +5744,18 @@ public class GameEditor : Game, IObservableUpdate
         if (TryGetParticleAssetInspectorPanel(panelId, out var inspectorPanel))
         {
             isDirty |= inspectorPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private string GetAudioMixerDocumentTitle(string panelId)
+    {
+        var title = _audioMixerPanelTitles.TryGetValue(panelId, out var value) ? value : "Audio Mixer";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.AudioMixer, panelId));
+        if (TryGetAudioMixerPanel(panelId, out var mixerPanel))
+        {
+            isDirty |= mixerPanel.IsDirty;
         }
 
         return isDirty ? $"{title} *" : title;
@@ -6002,6 +6371,15 @@ public class GameEditor : Game, IObservableUpdate
             using (EditorPerformanceProbe.BeginPhase("AudioProfilerPanel.Update"))
             {
                 _audioProfilerPanel.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+            }
+        }
+
+        // Only the mixing document in front reads its meters: the others stay as they were.
+        if (_editorContext.ActiveDocument is { Kind: EditorDocumentKind.AudioMixer, Payload: AudioMixerPanel activeAudioMixerPanel })
+        {
+            using (EditorPerformanceProbe.BeginPhase("AudioMixerPanel.Update"))
+            {
+                activeAudioMixerPanel.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
             }
         }
 
