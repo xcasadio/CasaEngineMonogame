@@ -331,13 +331,18 @@ Automatisation et tests :
   - Fausse alerte écartée : le quad de World-space UI paraissait blanc navigateur replié et noir navigateur ouvert ; les pixels valent (0, 0, 0, 0) dans toutes les captures, y compris celle du build d'avant le chantier (la visionneuse montrait la transparence en blanc).
   - **Reste à l'auteur** (gestes réels, non simulés) : changer de démo par clic (y compris la démo déjà sélectionnée) et par Entrée, flèches sans chargement ; glisser la poignée (200 à 340 px à 1024x768) et le séparateur arbre/description ; F1 et « << » ; rappel F1 visible navigateur replié ; molette et orbite sans effet au-dessus du navigateur ; règle P9 en vrai (touches pressées avant de toucher au navigateur, pointeur sur l'arbre puis sur la scène) ; redimensionner la fenêtre à la main ; coup d'œil au thème Dark et au FOV à 1024x768 (O3), réponse à O4.
 
-### ⏳ T5.3 — Vérification fraîche
+### ✅ T5.3 — Vérification fraîche
 
 - Objectif : un `verifier` frais confirme ou réfute l'objectif sur le diff complet du chantier.
 - Fichiers : ce plan (verdict et dispositions).
 - Étapes : transmettre l'objectif, les décisions, la validation globale et le diff `main..chantier/demo-browser` ; disposer chaque constat (corriger, reporter, rejeter avec preuve).
 - Validation : verdict CONFIRMED, ou constats disposés.
 - Commit : `docs(ai-agent): record the demo browser verification`
+- Note de validation (2026-10-06) : `verifier` frais sur `main..HEAD` (13 commits) : **CONFIRMED**, aucun constat P0–P2. Il a rebâti les deux solutions (0 erreur), relancé `CasaEngine.Tests` (4151/4151), refait les 7 sondes (relevés, captures PSX et dump identiques à la référence), capturé Material, Render-to-texture, UI overlay navigateur ouvert et les trois replis D4, redimensionné les fenêtres par `MoveWindow` (1400x800 : le navigateur garde sa largeur ; 700x800 : repli automatique, la scène remplit la fenêtre ; Render-to-texture et Sandbox se replacent), comparé l'ordre d'enregistrement à `main`, lu le code des règles P1, P4, P9 et D2, et vérifié les règles du dépôt (MGUI et NvgSharp intacts, aucune dépendance vers l'éditeur, API additive, état GPU restauré, plan mis à jour à chaque commit). Gestes réels non vérifiés (exclus, voir T5.2).
+- Dispositions des avis (tous P4) :
+  - A1 (ligne de `ai-agent/README.md` restée à l'état de T0.1) : **corrigé** dans ce commit.
+  - A2 (deux coûts par image : `UIRoot.IsPointerOverUI` de l'UI de fenêtre lu par l'arbitrage, et un `GraphicsStateSnapshot.Capture` de plus par image) : **reporté**, mêmes motifs que le pipeline existant (un garde par vue, `Views.ToArray()`, LINQ dans `Draw`) ; à reprendre avec une mesure d'allocation par image si un chantier d'allocation nulle touche `CasaEngineGame` (O5).
+  - A3 (`SyncWindowUIMetrics` passe la marge de sécurité par défaut, 0,05, quand les vues passent `view.UISafeAreaInset`) : **reporté**, `UIScale` n'est lu nulle part hors de `UIRoot` et les captures ne montrent aucun défaut ; à documenter si une UI de fenêtre en dépend un jour (O6).
 
 ---
 
@@ -351,6 +356,8 @@ Automatisation et tests :
 | O2 | ~~Glissement de la poignée hors du bureau du navigateur~~ : **tranché en T4.1**, le repli (glissement suivi par `DemosGame` avec l'état brut de la souris) est retenu d'emblée ; à vérifier à la main en T5.2. | T4.1 |
 | O3 | FOV de la scène navigateur ouvert à 1024x768 (60° → environ 83°) : conséquence acceptée de D3, à constater par l'auteur. | T5.2 |
 | O4 | Navigateur ouvert, les scènes PSX en pixels 1:1 (centrées sur la fenêtre) sont rognées d'environ 140 px de chaque côté dans une zone de 744 px, et leur sonde échoue si on la lance navigateur ouvert (constaté en T4.1, sprite PSX : premier sprite sous le navigateur). En automatisation le navigateur est replié (P4), donc rien ne change pour les sondes. Question à l'auteur : replier aussi le navigateur pour les cinq autres démos PSX (D4 n'en cite qu'une), ou garder le rognage (F1 rend toute la fenêtre) ? | T4.2, T5.2 |
+| O5 | Avis A2 de la vérification (P4) : coûts par image de l'UI de fenêtre (`IsPointerOverUI` en LINQ, une capture d'état de plus), à mesurer dans un futur chantier d'allocation nulle de `CasaEngineGame`. | — |
+| O6 | Avis A3 de la vérification (P4) : la marge de sécurité de l'UI de fenêtre (0,05 par défaut) n'est pas réglable comme celle d'une vue ; sans effet aujourd'hui. | — |
 
 ## Hors périmètre
 
