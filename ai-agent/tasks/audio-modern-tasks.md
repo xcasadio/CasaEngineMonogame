@@ -1823,7 +1823,7 @@ de clôture **READY**.
   réverbération du SPU). 11 tests (`PsxSpuDefaultTablesTests.cs`). Les deux solutions : 0 erreur, aucun
   avertissement dans `Psx/` ; suite complète 3151/3151.
 
-### 🚧 T7.2 — Réglage de projet du limiteur du Master (D32)
+### ✅ T7.2 — Réglage de projet du limiteur du Master (D32)
 
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs` et
   `ProjectSettingsHelper.cs` (réglage additif `bool? IsMasterLimiterEnabled`, absent ou nul = limiteur
@@ -1850,8 +1850,18 @@ de clôture **READY**.
   appliqué comme avant ; tests existants de `EditorProjectAudioMuteSyncTests` inchangés et verts ; suite
   complète ; les deux solutions.
 - Commit : `feat(audio): a project setting to switch the Master limiter off`
+- Note de validation (2026-10-06) : membres additifs `bool? ProjectSettings.IsMasterLimiterEnabled` (lu comme
+  `AudioBackend`, écrit seulement s'il a une valeur), `ProjectAudioSettings.Apply(AudioService, ProjectSettings)`
+  (muet par l'`Apply(AudioMixer, …)` existant, puis `MasterLimiter.IsEnabled = réglage ?? vrai`, seulement sous
+  la capacité de bus), `EditorProjectAudioMuteSync(AudioService)` ; `AudioSystemComponent` appelle la nouvelle
+  surcharge au démarrage, `GameEditor` construit la synchronisation depuis le service ; aucune signature
+  existante modifiée. 8 tests (`ProjectMasterLimiterSettingTests.cs`) : fichier identique quand le réglage
+  est absent, aller-retour vrai et faux, projet sans clé après un projet qui l'avait, limiteur coupé puis
+  rallumé, aucun journal sous un faux backend, éditeur projet A puis projet B ; `EditorProjectAudioMuteSyncTests`
+  inchangés et verts. Limite : aucun test ne construit un vrai `AudioSystemComponent` (il faut un `Game`) ; le
+  démarrage passe par la surcharge testée. Les deux solutions : 0 erreur ; suite complète 3159/3159.
 
-### ⏳ T7.3 — Documentation, ADR et vérification
+### 🚧 T7.3 — Documentation, ADR et vérification
 
 - Fichiers : `docs/engine/psx-spu.md`, `docs/engine/audio-system.md`, `docs/decisions/0062-…md` (numéro
   revérifié sur toutes les branches), index, ce plan.

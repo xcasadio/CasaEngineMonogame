@@ -35,7 +35,7 @@ public class AudioSystemComponent : GameComponent
             // ADR-0040: the project settings are already loaded at this point (Initialize loads
             // them before creating this component), so this applies the project's mute from the
             // very first frame.
-            ProjectAudioSettings.Apply(Mixer, casaEngineGame.RuntimeContext.ProjectSettings);
+            ProjectAudioSettings.Apply(Service, casaEngineGame.RuntimeContext.ProjectSettings);
         }
 
         UpdateOrder = (int)ComponentUpdateOrder.Audio;

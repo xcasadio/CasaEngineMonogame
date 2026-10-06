@@ -35,6 +35,9 @@ public static class ProjectSettingsHelper
         // project right after a muted one would leave the mute on.
         projectSettings.IsAudioMuted = rootElement["IsAudioMuted"]?.GetBoolean() ?? false;
 
+        // Same rule: absent means "not set" (null, the limiter is on), never the previous project's value.
+        projectSettings.IsMasterLimiterEnabled = rootElement["IsMasterLimiterEnabled"]?.GetBoolean();
+
         // Same rule: absent means "not set" (null), never the previous project's value.
         projectSettings.AudioBackend = ReadAudioBackend(rootElement["AudioBackend"]);
 
@@ -134,6 +137,11 @@ public static class ProjectSettingsHelper
         if (settings.IsAudioMuted)
         {
             rootElement["IsAudioMuted"] = true;
+        }
+
+        if (settings.IsMasterLimiterEnabled.HasValue)
+        {
+            rootElement["IsMasterLimiterEnabled"] = settings.IsMasterLimiterEnabled.Value;
         }
 
         if (settings.AudioBackend.HasValue)

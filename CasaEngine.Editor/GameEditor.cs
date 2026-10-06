@@ -1074,7 +1074,7 @@ public class GameEditor : Game, IObservableUpdate
         if (_editorRuntime.AudioSystemComponent is { } editorAudio)
         {
             // ADR-0040: the editor runtime starts without a project; its mute follows every project opened later.
-            _projectAudioMuteSync = new EditorProjectAudioMuteSync(editorAudio.Mixer);
+            _projectAudioMuteSync = new EditorProjectAudioMuteSync(editorAudio.Service);
         }
         _editorRuntime.LoadContentHost();
     }
