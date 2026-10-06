@@ -155,7 +155,7 @@ Automatisation et tests :
 
 ## Phase 1 — Moteur : zone de layout des vues
 
-### ⏳ T1.1 — Marges de layout du `ViewManager` et découpage dans une zone
+### ✅ T1.1 — Marges de layout du `ViewManager` et découpage dans une zone
 
 - Objectif : les vues back-buffer réparties automatiquement se placent dans une zone réduite par des marges ; marges nulles = comportement identique.
 - Fichiers : `CasaEngine/Framework/Rendering/ViewLayoutInsets.cs` (nouveau), `CasaEngine/Framework/Rendering/ViewManager.cs`, `CasaEngine/Framework/Rendering/SplitScreenLayout.cs`, `CasaEngine.Tests/Rendering/ViewLayoutAreaTests.cs` (nouveau).
@@ -166,6 +166,7 @@ Automatisation et tests :
   4. `ApplyBackBufferLayout(w, h)` découpe `GetLayoutArea(w, h)`.
 - Validation : tests ajoutés (égalité des deux surcharges pour 1 à 4 vues et chaque `SplitMode` ; décalage d'une zone ; `GetLayoutArea` avec `Zero` et avec des marges trop grandes ; `ApplyBackBufferLayout` avec marges) ; deux solutions buildées ; suite verte.
 - Commit : `feat(rendering): view layout insets confine back-buffer views to an area`
+- Note de validation (2026-10-06) : `ViewLayoutInsets`, `ViewManager.LayoutInsets` / `GetLayoutArea`, surcharge `SplitScreenLayout.Compute(Rectangle, …)` (l'ancienne l'appelle avec `(0, 0, w, h)`), `ApplyBackBufferLayout` sur la zone. `ViewLayoutAreaTests` : 31 cas (égalité des deux surcharges et décalage pour 1 à 4 vues × 3 modes, zone avec et sans marges, marges trop grandes ou négatives, `ApplyBackBufferLayout` avec et sans marge). Deux solutions : 0 erreur. `CasaEngine.Tests` : 4136/4136.
 
 ### ⏳ T1.2 — Vue unique et vue par défaut dans la zone
 
