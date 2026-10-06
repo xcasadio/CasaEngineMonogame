@@ -1,8 +1,8 @@
 namespace CasaEngine.Framework.Audio.Psx;
 
 /// <summary>
-/// The hardware constant tables of the PlayStation SPU, supplied by the caller (decision P17, open question O12):
-/// the engine ships none of them. The ADPCM filter coefficients are mandatory; the reverb FIR coefficients and the
+/// The hardware constant tables of the PlayStation SPU, supplied by the caller (decision P17), or the engine's
+/// defaults from <see cref="CreateDefault"/> (decision D25, open question O12: no Gaussian table is shipped). The ADPCM filter coefficients are mandatory; the reverb FIR coefficients and the
 /// Gaussian interpolation table are optional (a missing Gaussian table selects the engine's cubic interpolation).
 /// Every table is validated and copied at construction.
 /// </summary>
@@ -68,6 +68,23 @@ public sealed class PsxSpuHardwareTables
 
     /// <summary>True when the reverb FIR coefficients were supplied.</summary>
     public bool HasReverbFir => _reverbFir != null;
+
+    /// <summary>
+    /// Creates the default tables the engine ships (decision D25): the five ADPCM filter coefficient pairs and a
+    /// formula computed reverb FIR; there is no Gaussian table (the caller supplies it, otherwise the engine's cubic
+    /// interpolation is used).
+    /// ADPCM source: psx-spx, https://psx-spx.consoledev.net/ps1/cdr/cdromformat/ , section "Pos/neg Tables" of
+    /// "CDROM XA Audio ADPCM Compression" (the SPU page refers to it for the filter table):
+    /// pos_xa_adpcm_table[0..4] = (0, +60, +115, +98, +122), neg_xa_adpcm_table[0..4] = (0, 0, -52, -55, -60).
+    /// The site declares no licence. The FIR is an approximation, see <see cref="PsxSpuDefaultReverbFir"/>.
+    /// </summary>
+    public static PsxSpuHardwareTables CreateDefault()
+    {
+        return new PsxSpuHardwareTables(
+            new[] { 0, 60, 115, 98, 122 },
+            new[] { 0, 0, -52, -55, -60 },
+            PsxSpuDefaultReverbFir.Coefficients);
+    }
 
     internal int AdpcmPositive(int filter) => _adpcmPositive[filter];
 

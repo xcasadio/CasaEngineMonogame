@@ -1787,7 +1787,7 @@ Revue du détail (2026-10-06) : deux relecteurs frais **REVISE** (FIR : coupure 
 et seuils mesurables ; éditeur : fichiers et forme additive pour atteindre le limiteur), corrigés ; relecture
 de clôture **READY**.
 
-### 🚧 T7.1 — Tables par défaut du SPU (D25)
+### ✅ T7.1 — Tables par défaut du SPU (D25)
 
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpuHardwareTables.cs` (fabrique additive des tables par
   défaut), un calcul de FIR dans `Psx/`, `CasaEngine.Demos/Demos/AudioDemo.cs` (le SPU de la démo utilise
@@ -1810,8 +1810,20 @@ de clôture **READY**.
   premier critère ; réponse impulsionnelle de la réverbération non nulle et décroissante avec les tables
   par défaut ; zéro allocation inchangé ; suite complète.
 - Commit : `feat(psx): ship default ADPCM filters and a formula reverb FIR`
+- Note de validation (2026-10-06) : `PsxSpuHardwareTables.CreateDefault()` (additif) ; coefficients ADPCM
+  recopiés de psx-spx, page « CDROM XA Audio ADPCM Compression », section « Pos/neg Tables »
+  (https://psx-spx.consoledev.net/ps1/cdr/cdromformat/ ; la page du SPU renvoie au CD-XA pour ce filtre) :
+  positifs 0, 60, 115, 98, 122 ; négatifs 0, 0, −52, −55, −60 (le SPU utilise les cinq filtres) ; FIR calculée
+  une fois par `PsxSpuDefaultReverbFir` (interne) : noyau de l'éq. 16-4 et fenêtre de Blackman de l'éq. 16-2
+  de Smith (équations en images sur le site : formes standard décrites par le texte, noté dans le code),
+  M = 38, fc = 11 025 Hz, arrondi Q15, coefficient central ajusté à 16 382 pour une somme de 32 768 ;
+  filtre demi-bande (coefficients pairs hors centre nuls). Mesures sur les entiers livrés : 0 dB à 0 Hz,
+  −0,0014 dB à 5 512,5 Hz, −6,02 dB à 11 025 Hz, au moins 64,09 dB d'atténuation de 14 000 à 22 050 Hz.
+  La démo utilise les tables par défaut (son inchangé : son bloc utilise le filtre 0 ; elle n'active pas la
+  réverbération du SPU). 11 tests (`PsxSpuDefaultTablesTests.cs`). Les deux solutions : 0 erreur, aucun
+  avertissement dans `Psx/` ; suite complète 3151/3151.
 
-### ⏳ T7.2 — Réglage de projet du limiteur du Master (D32)
+### 🚧 T7.2 — Réglage de projet du limiteur du Master (D32)
 
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs` et
   `ProjectSettingsHelper.cs` (réglage additif `bool? IsMasterLimiterEnabled`, absent ou nul = limiteur

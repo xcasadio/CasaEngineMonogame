@@ -666,8 +666,8 @@ public class AudioDemo : Demo
     }
 
     // One synthetic ADPCM block (shift 0, filter 0) looping on itself: 14 samples of 7000h then 14 of -8000h, a square
-    // wave of 28 samples (1575 Hz at pitch 1000h). The tables are synthetic too (all ADPCM filters are the
-    // no-prediction one, no FIR, no Gaussian table): not hardware values.
+    // wave of 28 samples (1575 Hz at pitch 1000h). The SPU uses the engine's default tables (ADPCM
+    // filters from psx-spx, formula reverb FIR, no Gaussian table); the block uses filter 0.
     private void StartSpu(AudioService service)
     {
         _spuTried = true;
@@ -676,7 +676,7 @@ public class AudioDemo : Demo
             return;
         }
 
-        var tables = new PsxSpuHardwareTables(new int[PsxSpuHardwareTables.AdpcmFilterCount], new int[PsxSpuHardwareTables.AdpcmFilterCount]);
+        var tables = PsxSpuHardwareTables.CreateDefault();
         if (!service.TryCreatePsxSpu(tables, AudioBusNames.Sfx, out var port))
         {
             return;
