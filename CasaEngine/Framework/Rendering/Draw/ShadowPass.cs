@@ -59,7 +59,8 @@ public sealed class ShadowPass : RenderPass
         Matrix lightViewProjection = BuildDirectionalShadowViewProjection(
             context.Frame.CameraPosition,
             context.Lighting.DirectionalLights[directionalLightIndex].Direction,
-            context.Shadows.Settings.MaxDistance);
+            context.Shadows.Settings.MaxDistance,
+            resolution);
 
         context.Shadows.AddVisibleLight(new ShadowLight(
             ShadowLightType.Directional,
@@ -223,7 +224,7 @@ public sealed class ShadowPass : RenderPass
         return -1;
     }
 
-    private static Matrix BuildDirectionalShadowViewProjection(Vector3 cameraPosition, Vector3 lightDirection, float maxDistance)
+    internal static Matrix BuildDirectionalShadowViewProjection(Vector3 cameraPosition, Vector3 lightDirection, float maxDistance, int resolution)
     {
         Vector3 direction = lightDirection;
         if (direction.LengthSquared() <= 0.0001f)
@@ -241,6 +242,13 @@ public sealed class ShadowPass : RenderPass
         Vector3 up = MathF.Abs(Vector3.Dot(direction, Vector3.Up)) > 0.99f ? Vector3.Forward : Vector3.Up;
 
         Matrix view = Matrix.CreateLookAt(position, target, up);
+
+        // Move the map by whole texels only: a sub-texel shift as the camera moves would rasterize the casters at a
+        // new offset every frame, and static shadow edges would crawl.
+        float texelSize = clampedDistance * 2.0f / resolution;
+        view.M41 = MathF.Round(view.M41 / texelSize) * texelSize;
+        view.M42 = MathF.Round(view.M42 / texelSize) * texelSize;
+
         Matrix projection = Matrix.CreateOrthographic(clampedDistance * 2.0f, clampedDistance * 2.0f, 0.1f, clampedDistance * 2.0f);
         return view * projection;
     }
