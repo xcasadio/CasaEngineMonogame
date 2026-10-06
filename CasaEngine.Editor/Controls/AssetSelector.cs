@@ -103,7 +103,8 @@ public class AssetSelector : MGStackPanel
         else
         {
             var info = AssetCatalog.Get(_assetId);
-            _assetNameBlock.Text = info != null ? info.Name : $"[c=Orange]Unknown ({_assetId:D8}…)[/c]";
+            // A Guid takes no width specifier: the short id is the first group of its "D" form.
+            _assetNameBlock.Text = info != null ? info.Name : $"[c=Orange]Unknown ({_assetId.ToString("D")[..8]}…)[/c]";
         }
     }
 
