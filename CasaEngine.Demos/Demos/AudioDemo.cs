@@ -9,12 +9,14 @@ using CasaEngine.Framework.Audio.Backends;
 using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Psx;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using NumericsVector3 = System.Numerics.Vector3;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -52,6 +54,17 @@ namespace CasaEngine.Demos.Demos;
 ///   R          reverb: a send from Sfx to a return bus holding a ReverbEffect, on or off
 ///   T          low-pass filter (600 Hz) inserted on the Music bus, on or off
 ///   D          ducking of Music by Sfx, on or off (play the music with P, then a sound effect)
+///
+/// Spatial keys (a looping click created in code, Spatial3D, inverse distance clamped, reference distance 1, max
+/// distance 50, heard by a listener at the origin looking down -Z):
+///   O          start or stop the orbit: the loop circles the listener in the X/Z plane at a quarter turn per
+///              second while its radius swings between 2 and 12 units every 8 seconds; the pan follows the side,
+///              the gain follows the distance
+///   K          Doppler on or off (Doppler factor 1, speed of sound 16 units per second): the pitch rises while
+///              the loop comes closer and falls while it moves away; a running orbit restarts its voice, because
+///              the service reads the Doppler factor when a voice starts
+///   I          game parameter demo_intensity: 0, then 0.5, then 1, one step per press (bound to the volume,
+///              0.3 to 1, and to the pitch, -0.3 to +0.3 octave); never written it is neutral
 ///
 /// Stress key:
 ///   G          start or stop the GC stress: looping sound and music play continuously while the
@@ -92,6 +105,25 @@ public class AudioDemo : Demo
     private const float BeepSeconds = 0.3f;
     private const float BeepAmplitude = 12000f;
 
+    private const string IntensityParameterName = "demo_intensity";
+    private const float SpatialReferenceDistance = 1f;
+    private const float SpatialMaxDistance = 50f;
+    private const float OrbitTurnsPerSecond = 0.25f;
+    private const float OrbitRadiusMiddle = 7f;
+    private const float OrbitRadiusSwing = 5f;
+    private const float OrbitRadiusCyclesPerSecond = 0.125f;
+    // Both motions repeat after 8 seconds (4 s per turn, 8 s per radius cycle): the clock wraps there without a jump.
+    private const float OrbitPatternSeconds = 8f;
+    private const float DemoDopplerFactor = 1f;
+    // A circle centred on the listener has no radial speed, so only the radius swing makes a Doppler shift. Its
+    // largest radial speed is 5 x 2 pi x 0.125 = 3.93 units per second; at 16 units per second the ratio goes from
+    // 16 / (16 + 3.93) = 0.80 moving away to 16 / (16 - 3.93) = 1.33 coming closer, about -0.32 to +0.41 octave.
+    private const float DemoSpeedOfSound = 16f;
+    private const string SpatialModeText = "Spatial loop: Spatial3D, inverse distance clamped, ref 1, max 50";
+
+    private static readonly float[] IntensitySteps = [0f, 0.5f, 1f];
+    private static readonly NumericsVector3 ListenerPosition = NumericsVector3.Zero;
+
     private CasaEngineGame? _game;
     private AssetHandle<SoundAsset>? _clickSoundHandle;
     private AssetHandle<SoundAsset> _variedClickSoundHandle;
@@ -130,11 +162,23 @@ public class AudioDemo : Demo
     private PsxSpuPort _spuPort;
     private bool _spuTried;
 
+    private SoundAsset _spatialLoop;
+    private AudioVoiceHandle _orbitVoice = AudioVoiceHandle.None;
+    private float _orbitSeconds;
+    private NumericsVector3 _orbitPosition;
+    private bool _dopplerOn;
+    private int _intensityParameter = -1;
+    private int _intensityStep = -1;
+    private bool _listenerSet;
+    private bool _speedOfSoundSaved;
+    private float _savedSpeedOfSound;
+
     public override string Title => "Audio demo";
 
     public override string Description =>
         "Sound effects (one-shot, looping, fade out) and music streamed from disk (fade in/out, crossfade), "
-        + "routed through the named mixing buses Master, Sfx and Music.";
+        + "routed through the named mixing buses Master, Sfx and Music; a spatial loop orbits the listener "
+        + "(distance, pan, Doppler, game parameter).";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -150,6 +194,12 @@ public class AudioDemo : Demo
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
         _pitchedMusic = _pitchedMusicHandle?.Asset;
         _stereoBeep = CreateStereoBeep();
+
+        var service = game.AudioSystemComponent?.Service;
+        if (service != null)
+        {
+            StartSpatial(service);
+        }
 
         var stressText = Environment.GetEnvironmentVariable(StressSecondsVariable);
         if (int.TryParse(stressText, out var stressSeconds) && stressSeconds > 0)
@@ -179,6 +229,72 @@ public class AudioDemo : Demo
         }
 
         return new PcmAudioClip(samples, BeepSampleRate, 1);
+    }
+
+    /// <summary>
+    /// Registers the demo as the audio listener (the demo is not an entity, the service is enough), sets the speed of
+    /// sound of the orbit, resolves the game parameter and builds the spatial loop from the click asset.
+    /// </summary>
+    private void StartSpatial(AudioService service)
+    {
+        service.SetListener(this, AudioListenerPose.Create(
+            ListenerPosition, new NumericsVector3(0f, 0f, -1f), new NumericsVector3(0f, 1f, 0f)));
+        _listenerSet = true;
+
+        _savedSpeedOfSound = service.SpeedOfSound;
+        _speedOfSoundSaved = true;
+        service.SpeedOfSound = DemoSpeedOfSound;
+
+        _intensityParameter = service.GetGameParameterIndex(IntensityParameterName);
+        _intensityStep = -1;
+        _dopplerOn = false;
+        _spatialLoop = _clickSound != null ? CreateSpatialLoop(_clickSound) : null;
+    }
+
+    /// <summary>
+    /// A copy of the click asset's settings, looped and spatial, with a volume and a pitch binding on
+    /// <see cref="IntensityParameterName"/>. Built in code: no content file is added for the demo.
+    /// </summary>
+    private static SoundAsset CreateSpatialLoop(SoundAsset click)
+    {
+        var asset = new SoundAsset
+        {
+            Name = "spatial_click_loop",
+            AudioFileAssetId = click.AudioFileAssetId,
+            Volume = click.Volume,
+            Pitch = click.Pitch,
+            BusName = click.BusName,
+            Priority = click.Priority,
+            IsLooped = true,
+            SpatialMode = AudioSpatialMode.Spatial3D,
+            DistanceModel = AudioDistanceModel.InverseDistanceClamped,
+            ReferenceDistance = SpatialReferenceDistance,
+            MaxDistance = SpatialMaxDistance,
+            DopplerFactor = 0f,
+        };
+
+        asset.SetParameterBindings(
+        [
+            new AudioParameterBinding(IntensityParameterName, AudioParameterTarget.Volume, 0f, 1f, 0.3f, 1f),
+            new AudioParameterBinding(IntensityParameterName, AudioParameterTarget.Pitch, 0f, 1f, -0.3f, 0.3f),
+        ]);
+
+        return asset;
+    }
+
+    private void StopSpatial(AudioService service)
+    {
+        if (_listenerSet)
+        {
+            service.RemoveListener(this);
+            _listenerSet = false;
+        }
+
+        if (_speedOfSoundSaved)
+        {
+            service.SpeedOfSound = _savedSpeedOfSound;
+            _speedOfSoundSaved = false;
+        }
     }
 
     private static AssetHandle<SoundAsset>? TryAcquire(CasaEngineGame game, Guid assetId)
@@ -351,6 +467,23 @@ public class AudioDemo : Demo
             ToggleDemoDucking(service);
         }
 
+        if (WasJustPressed(keyboard, Keys.O))
+        {
+            ToggleOrbit(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.K))
+        {
+            ToggleDoppler(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.I))
+        {
+            CycleIntensity(service);
+        }
+
+        UpdateOrbit(service, (float)gameTime.ElapsedGameTime.TotalSeconds);
+
         _previousKeyboard = keyboard;
     }
 
@@ -377,7 +510,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 480), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 570), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -407,6 +540,14 @@ public class AudioDemo : Demo
             ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
               + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
             : "Effects (R, T, D) absent on this backend (software backend only)");
+        DrawLine(spriteBatch, ref y, SpatialModeText);
+        DrawLine(spriteBatch, ref y, service.IsAlive(_orbitVoice)
+            ? $"Orbit (O) ON   distance {NumericsVector3.Distance(_orbitPosition, ListenerPosition):0.0}"
+              + $"   x {_orbitPosition.X:0.0}  z {_orbitPosition.Z:0.0}"
+            : "Orbit (O) off");
+        var intensity = service.GetGameParameter(_intensityParameter);
+        DrawLine(spriteBatch, ref y, $"Doppler (K) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
+            + (float.IsNaN(intensity) ? "   intensity (I) unset" : $"   intensity (I) {intensity:0.0}"));
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
@@ -416,6 +557,7 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
         DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
         DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
+        DrawLine(spriteBatch, ref y, "O spatial orbit on/off   K Doppler on/off   I intensity 0/0.5/1");
         DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
 
         spriteBatch.End();
@@ -429,8 +571,15 @@ public class AudioDemo : Demo
         if (service != null)
         {
             StopDemoEffects(service);
+            StopSpatial(service);
         }
 
+        _orbitVoice = AudioVoiceHandle.None;
+        _orbitSeconds = 0f;
+        _spatialLoop = null;
+        _dopplerOn = false;
+        _intensityParameter = -1;
+        _intensityStep = -1;
         _loopingVoice = AudioVoiceHandle.None;
         _musicTrack = MusicTrackHandle.None;
         _panelBackground?.Dispose();
@@ -535,6 +684,108 @@ public class AudioDemo : Demo
         }
 
         _lastAction = $"music ducking {(_demoDucking != null ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleOrbit(AudioService service)
+    {
+        if (service.IsAlive(_orbitVoice))
+        {
+            service.Stop(_orbitVoice);
+            _orbitVoice = AudioVoiceHandle.None;
+            _lastAction = "orbit stopped";
+            return;
+        }
+
+        if (_spatialLoop == null)
+        {
+            _lastAction = "spatial loop unavailable (click asset missing)";
+            return;
+        }
+
+        _orbitSeconds = 0f;
+        _orbitPosition = ComputeOrbitPosition(_orbitSeconds);
+        _orbitVoice = service.PlaySoundAt(_spatialLoop, _orbitPosition, SoundPlaybackOverrides.None, _game?.GameManager.CurrentWorld);
+        _lastAction = _orbitVoice.IsValid ? "orbit started" : "orbit refused (no voice left)";
+    }
+
+    /// <summary>
+    /// The service reads the Doppler factor of the asset when a voice starts: the factor is set on the spatial loop, and
+    /// a running orbit restarts its voice at its current position so that the change is heard at once.
+    /// </summary>
+    private void ToggleDoppler(AudioService service)
+    {
+        if (_spatialLoop == null)
+        {
+            _lastAction = "spatial loop unavailable (click asset missing)";
+            return;
+        }
+
+        _dopplerOn = !_dopplerOn;
+        _spatialLoop.DopplerFactor = _dopplerOn ? DemoDopplerFactor : 0f;
+
+        if (!service.IsAlive(_orbitVoice))
+        {
+            _lastAction = $"Doppler {(_dopplerOn ? "on" : "off")} (heard once the orbit runs, O)";
+            return;
+        }
+
+        service.Stop(_orbitVoice);
+        _orbitVoice = service.PlaySoundAt(_spatialLoop, _orbitPosition, SoundPlaybackOverrides.None, _game?.GameManager.CurrentWorld);
+        _lastAction = _orbitVoice.IsValid
+            ? $"Doppler {(_dopplerOn ? "on" : "off")}, orbit voice restarted"
+            : "orbit voice refused on restart (no voice left)";
+    }
+
+    private void CycleIntensity(AudioService service)
+    {
+        _intensityStep = (_intensityStep + 1) % IntensitySteps.Length;
+        var value = IntensitySteps[_intensityStep];
+        service.SetGameParameter(_intensityParameter, value);
+        _lastAction = $"{IntensityParameterName} = {value:0.0}";
+    }
+
+    /// <summary>
+    /// Moves the orbiting voice every frame, so that the service measures its speed for the Doppler shift. Allocation
+    /// free. A voice stopped elsewhere (S, the stress G) ends the orbit.
+    /// </summary>
+    private void UpdateOrbit(AudioService service, float elapsedSeconds)
+    {
+        if (!_orbitVoice.IsValid)
+        {
+            return;
+        }
+
+        if (!service.IsAlive(_orbitVoice))
+        {
+            _orbitVoice = AudioVoiceHandle.None;
+            _lastAction = "orbit stopped (its voice was stopped)";
+            return;
+        }
+
+        _orbitSeconds += elapsedSeconds;
+        if (_orbitSeconds >= OrbitPatternSeconds)
+        {
+            _orbitSeconds -= OrbitPatternSeconds;
+        }
+
+        _orbitPosition = ComputeOrbitPosition(_orbitSeconds);
+        service.SetVoicePosition(_orbitVoice, _orbitPosition);
+    }
+
+    /// <summary>
+    /// Position on the orbit around the listener: it starts in front (-Z) and turns towards the right (+X), the radius
+    /// swinging between <see cref="OrbitRadiusMiddle"/> - <see cref="OrbitRadiusSwing"/> and
+    /// <see cref="OrbitRadiusMiddle"/> + <see cref="OrbitRadiusSwing"/>.
+    /// </summary>
+    private static NumericsVector3 ComputeOrbitPosition(float seconds)
+    {
+        var angle = 2f * MathF.PI * OrbitTurnsPerSecond * seconds;
+        var radius = OrbitRadiusMiddle + OrbitRadiusSwing * MathF.Sin(2f * MathF.PI * OrbitRadiusCyclesPerSecond * seconds);
+
+        return new NumericsVector3(
+            ListenerPosition.X + radius * MathF.Sin(angle),
+            ListenerPosition.Y,
+            ListenerPosition.Z - radius * MathF.Cos(angle));
     }
 
     private static string EffectsNote(AudioService service)

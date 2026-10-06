@@ -2646,7 +2646,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   erreur, aucun avertissement sur les lignes touchées ; 3610/3610. **🧪 pour l'auteur** : dans l'éditeur, ajouter un
   émetteur et un écouteur, les déplacer au gizmo, sauvegarder, recharger.
 
-### ⏳ T9.9 — Démo : son spatial, Doppler et paramètre de jeu
+### 🧪 T9.9 — Démo : son spatial, Doppler et paramètre de jeu
 
 - Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs`.
 - Étapes : un `SoundAsset` créé en code (copie du clic en boucle, `SpatialMode = Spatial3D`, distances explicites) joué
@@ -2656,6 +2656,15 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
 - Validation : deux solutions ; lancement sans clavier sous `Software` puis `MonoGame` (capture, journal propre) ;
   stress de 60 s sous `Software` : 0 sous-alimentation. 🧪 écoute de l'auteur.
 - Commit : `feat(demos): spatial sound, Doppler and game parameter keys`
+- Note de validation (2026-10-06) : boucle spatiale 3D créée en code (même `.wav` que le clic, référence 1, maximum 50,
+  liaisons de volume et de pitch sur `demo_intensity`), écouteur à l'origine ; touches O (orbite, rayon de 2 à 12 sur
+  8 s), K (Doppler, relance de la voix car le facteur est lu au démarrage), I (intensité 0 ; 0,5 ; 1) ; `SpeedOfSound`
+  à 16 u/s (une orbite circulaire n'a pas de vitesse radiale : seule l'oscillation du rayon fait le Doppler, rapport
+  0,80 à 1,33) ; trois lignes d'état. Deux solutions sans erreur, aucun avertissement nouveau dans `AudioDemo.cs` ;
+  lancements sans clavier sous `Software` et `MonoGame` : sortie 0, journal propre ; sonde temporaire (retirée) :
+  0 octet pour l'orbite sur 80 frames ; stress de 60 s : `underruns=0 gc=119` ; 3610/3610. **🧪 pour l'auteur** : O (pan
+  de droite à gauche, volume suivant la distance), K (montée en approche, descente en éloignement, petite coupure à la
+  relance), I (paliers de volume et de hauteur), sous les deux backends.
 
 ### ⏳ T9.10 — Documentation, ADR et vérification de la tranche
 
