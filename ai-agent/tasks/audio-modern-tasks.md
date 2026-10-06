@@ -2573,7 +2573,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   échec ; 0 octet pour `SetGameParameter(string)` et pour 100 frames de 64 voix liées. Deux solutions sans erreur,
   aucun avertissement dans les fichiers touchés ; 3570/3570.
 
-### ⏳ T9.7 — Sondes d'ordre et fuzz logiciel contre repli
+### ✅ T9.7 — Sondes d'ordre et fuzz logiciel contre repli
 
 - Fichiers : test `CasaEngine.Tests/Audio/Spatial/AudioServiceModulationOrderTests.cs` (nouveau) ; correctifs dans
   `AudioService.cs` seulement si un écart est trouvé.
@@ -2583,6 +2583,14 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
 - Validation : erreur finale au plus égale aux seuils de P44 ; écarts transitoires d'au plus un bloc ; test de mutation
   (retirer le repliement du gain fait échouer le repli). Deux solutions ; suite verte trois fois.
 - Commit : `test(audio): order probes and fuzz of spatial modulation against the fallback`
+- Note de validation (2026-10-06) : aucun fuzz de S4 n'était commité (celui de S4 a été conduit par ses vérificateurs) ;
+  fuzz écrit ici : 300 graines × quatre rythmes (10 ms, 1/60 s, 7 ms, 33 ms), 2 à 4 voix de sept sortes (simples,
+  spatiales 2D et 3D, liées), 0 à 3 opérations par frame (volume, fondus, annulation, arrêt en fondu, position,
+  écouteur, paramètres de jeu, fondu et muet de bus, pan) ; somme des niveaux rendus sous le backend logiciel comparée
+  au niveau attendu du repli (paramètres reçus, même loi de pan) : écart transitoire au plus 0,01 hors de la plage du
+  repli sur ± un bloc (observé ≈ 1e-5), écart final au plus 0,01 (observé 0). Vitesse par une sonde à rampe séparée.
+  **Aucune divergence, aucun code de production modifié.** Mutation (retirer le repliement du gain) : les quatre
+  rythmes échouent dès la graine 0. Durée du fuzz environ 13 s ; suite complète 3577/3577 trois fois (environ 22 s).
 
 ### ⏳ T9.8 — `AudioListenerComponent` et `SoundEmitterComponent` en composants de scène (D8, D13, P35, P40, P41)
 
