@@ -2701,6 +2701,320 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   doc XML de `SetVoiceModulation` le dit « valeur de départ ») ; aucun appelant du moteur ne le fait (musique non
   spatialisée). **🧪 pour l'auteur** : T9.3 (inspecteur), T9.8 (éditeur), T9.9 (écoute de la démo).
 
+## Vague 7 — tranche S6b : asset de mixeur, panneau de mixage éditable, solo et formes d'onde (détail du 2026-10-06)
+
+Découverte en lecture seule (brouillon passé par un contrôle contradictoire) ; faits revérifiés à la clôture de S5b
+(base de la phase : `c468280c`, remplacé par son SHA à l'écriture).
+
+**Faits établis.**
+- Extensions en camelCase dans `Constants.FileNameExtensions` (`.tileMap`, `.gameplayMode`…), `.sound` compris ;
+  `AssetInfo.InferAssetType` met l'extension en minuscules.
+- Modèle de chargeur : `SoundAssetLoader` (extension `OrdinalIgnoreCase`, toute exception attrapée et consignée, rend
+  `null`), enregistré par `AssetLoaderRegistry.RegisterLoaders` ; `AssetContentManager.LoadNew` lève si le chargeur rend
+  `null` ; `LoadCopy` rend une copie non partagée. Trois assets sont versionnés (`CutsceneAsset`, `DialogueAsset`,
+  `ParticleEffectAsset`) : leurs sérialiseurs écrivent `type`, `version` et `schema_version`, lisent `version` (absent =
+  courante), refusent une version plus récente ; seul celui des particules a `MigrateToCurrent`.
+- L'écriture d'un asset d'éditeur passe par `EditorAssetJsonSerializer.TrySerialize` (`switch` de types) et
+  `EditorAssetWriterService.SaveAsset` (chemin relatif à `EngineEnvironment.ProjectPath`, événement `AssetSaved`,
+  `EditorAssetSaveSource`).
+- Moteur : `AudioMixer.CreateBus` lève pour un nom vide, déjà pris ou un parent inconnu ; un bus ne peut être ni
+  retiré, ni renommé, ni reparenté (`AudioBus.Name`, `Parent` en lecture seule) ; `AudioBus.Volume` borné [0, 1] ;
+  `AddEffect` lève au-delà de `MaxEffects = 4`, pour un effet déjà posé ou un cycle de ducking ; `SetSend` lève pour un
+  cycle ou au-delà de `MaxSends = 4`, un niveau ≤ 0 retire ; paramètres d'effets bornés par les effets eux-mêmes ;
+  `AudioBusNames.CreateDefaultMixer` crée Master, Music, Sfx, Voice, Ui, Editor ; les snapshots ignorent Editor, les
+  muets et le limiteur ; le backend logiciel tient 32 bus (Master compris), au-delà `TryCreateBus` rend faux et le bus
+  est routé vers Master.
+- Le jeu peut aussi créer des bus et des effets (`AudioDemo` : `DemoReverb`, `StressReverb`).
+- Démarrage : `CasaEngineGame.Initialize` charge les réglages et le catalogue, crée `AudioSystemComponent`, puis
+  `AssetLoaderRegistry.RegisterLoaders`, puis `base.Initialize()`. Dans l'éditeur, le runtime est créé une fois, pendant
+  le premier `ProjectLoaded` ; `EditorProjectAudioMuteSync(AudioService)` réapplique les réglages audio aux projets
+  suivants ; en automatisation le projet est chargé deux fois.
+- Réglages de projet audio : `IsAudioMuted`, `AudioBackend`, `IsMasterLimiterEnabled` (T7.2), écrits seulement quand
+  ils sont posés ; `DialogueScreenAsset` est une référence d'asset par id ou nom (`Guid.TryParse` puis
+  `AssetCatalog.Get`). Il n'existe aucune interface de réglages de projet dans l'éditeur.
+- Éditeur : documents routés par extension (`GetAssetDocumentRoutes`) ; le modèle complet d'un document avec
+  historique, état modifié, fermeture et « enregistrer tout » est celui des particules (`TryOpenParticleAsset`,
+  `ActivateParticleDocument`, `SyncActiveEditorDocumentFromDockState`, `CreateDocumentPanelNode`,
+  `GetPanelContentFactory`, `TryGetParticleAssetInspectorPanel`, `OnDockHostPanelRemoved`, `SaveDirtyParticleInspectors`,
+  `RefreshHistoryContextTitle`) ; l'historique est suspendu pendant une session de jeu (`EditorHistoryService.Execute`
+  refuse) ; seuls les écrans UI demandent confirmation à la fermeture ; `OnEditorAssetSaved` sort tôt pour les
+  extensions qu'il ne connaît pas.
+- `MGSlider.ValueChanged` alloue à chaque changement (D20, hors programme) ; `IsDraggingThumb` n'a pas d'ordre garanti
+  avec le dernier `ValueChanged` ; `NumericField` lève `ValueChanged` à chaque frappe qui se lit comme un nombre.
+- Inspecteur de son : liste de bus codée en dur (Sfx, Music, Voice, Ui) ; un bus inconnu du `.sound` n'est pas
+  sélectionné, donc invisible. `AudioClipLoader` décode WAV et Ogg en `PcmAudioClip` (`Samples` entrelacé public).
+- Mesure : `AudioProfilerModel`/`AudioMeterTrack` (internes à l'éditeur), un curseur de lecture par modèle, aucun
+  historique temporel ; `AudioMeterControl.ToFraction` (−60..0 dBFS).
+- `EditorHistoryService.Current`, `EditorDirtyStateService.Current`, `AssetCatalog` et `EngineEnvironment.ProjectPath`
+  sont globaux : les tests qui les touchent vont dans `ProjectEnvironmentCollection` avec restauration.
+- Projet de démos : `CasaEngine.Demos/Content/DemosGame.json`, sans réglage audio.
+
+### Décisions de la vague 7 (arbitrages de l'agent, à confirmer par l'auteur)
+
+| Réf | Arbitrage |
+|---|---|
+| P45 | **Contenu de l'asset** : bus (nom, parent, volume), effets insérés (biquad, compresseur, réverbération, ducking) et départs ; ni Master (D19), ni Editor, ni muets (O34), ni limiteur, ni snapshots. Format versionné comme les autres assets versionnés (`type`, `version`, `schema_version`, crochet `MigrateToCurrent`) ; chargeur et clés dans le runtime, écriture dans `CasaEngine.EditorServices` (AGENTS §9.9). |
+| P46 | **Application idempotente à état possédé**, en deux passes (créer tous les bus et poser les volumes, puis effets et départs) : ne retire, ne renomme ni ne reparente jamais un bus ; ne touche ni Master, ni Editor, ni les muets, ni le limiteur, ni les effets et départs posés par le jeu ; `Release` rétablit les volumes d'origine et retire ce qu'elle a posé. |
+| P47 | **Validation tolérante par entrée** (nom vide, réservé ou doublon, parent inconnu ou cyclique avec ses descendants, effet, départ ou ducking invalide, au-delà de 4 effets ou départs, au-delà de la capacité de bus) : entrée ignorée avec un problème consigné qui nomme l'asset et le bus ; asset entier refusé seulement s'il est illisible ou d'une version plus récente ; jamais d'exception vers le démarrage. Un bus vivant sous un autre parent que celui de l'asset est signalé. |
+| P48 | **Réglage de projet `AudioMixerAsset`** (id recommandé, ou nom ; vide = mixeur par défaut), écrit seulement quand il est posé, édité dans le fichier de projet (aucune interface, O36) ; appliqué juste après `RegisterLoaders`, réappliqué à chaque `ProjectLoaded` de l'éditeur et relâché à `ProjectClosed`. |
+| P49 | **Seul l'asset du projet pilote le mixeur vivant** ; un autre `.audioMixer` s'édite et s'enregistre sans être entendu (bandeau). Sens unique asset → mixeur (D16). Fermer ou recharger un document modifié non enregistré réapplique l'asset enregistré. **Changement de projet** : à `ProjectClosed`, chaque document de mixage ouvert est détaché du mixeur vivant (muets transitoires rétablis, applicateur lâché, rien n'est réappliqué au projet suivant) ; après l'application de l'asset du nouveau projet, un document n'est rattaché que si le réglage du nouveau projet désigne son asset. |
+| P50 | **Document par asset** (onglet ouvert depuis le Content Browser, type `AudioMixer` dédié), historique par instantanés avant/après ; un geste (glissement de fader, saisie dans un champ numérique) = une entrée : un geste s'ouvre au premier changement et se ferme au premier cadre sans changement où le contrôle n'est plus tenu (fader) ou après 0,5 s sans changement ou à la perte du focus (champ). |
+| P51 | **Pendant une session de jeu**, les opérations qui passent par l'historique (faders, effets, départs, ajout et suppression de bus, Save, Apply) sont désactivées ; muet, solo et vu-mètres restent actifs (O35). |
+| P52 | **Structure** : ajout d'un bus (parent choisi à la création) ; suppression des seuls bus personnalisés sans enfant, sans départ entrant ni source de ducking, effective dans le mixeur vivant au prochain démarrage (le bus reste, remis à son volume d'origine, sans effet ni départ) ; ni renommage ni reparentage (O37). |
+| P53 | **Solo** (D17) : muet transitoire de tous les bus de l'asset sauf les bus en solo, leurs ancêtres et descendants, les bus de retour (cibles de départs de l'asset et du mixeur vivant) avec leurs ancêtres, et Editor ; plusieurs solos ; non enregistré, non annulable ; muets rétablis à la fermeture ; un bus vivant hors asset n'est jamais coupé ; marche sur tous les backends. |
+| P54 | **Lignes du panneau** : éditables pour les bus de l'asset ; en lecture seule (nom grisé, vu-mètre, sans fader) pour les bus vivants absents de l'asset ; Master et Editor en lecture seule avec leur volume vivant. Fader linéaire [0, 1] avec lecture en dB. |
+| P55 | **Niveau de la sortie dans le temps** (D18) : historique circulaire de 240 colonnes (environ 10 s) de crête et de valeur efficace de la sortie, échelle −60..0 dBFS, dans le panneau de mixage seulement (le panneau Audio reste inchangé). |
+| P56 | **Dessin d'un fichier son** (D18) : un seul chemin, décodage transitoire par `AudioClipLoader` sous un plafond de taille de fichier nommé (64 Mo), 512 colonnes min/max calculées une fois au chargement du `.sound` et au changement de fichier ; `is_streaming` sans effet ; temps et mémoire mesurés sur un WAV de 5 minutes (O38). |
+| P57 | **Liste de bus de l'inspecteur** (D21) : les quatre bus du moteur (Sfx, Music, Voice, Ui, ordre actuel), puis les autres bus de l'asset du projet dans l'ordre du fichier (jamais Master ni Editor) ; un bus du `.sound` absent des deux apparaît comme « (unknown bus) » sans être sélectionnable ; liste rafraîchie à l'enregistrement d'un `.audioMixer`. |
+| P58 | **Exemple livré** : un `.audioMixer` d'exemple dans le contenu des démos (bus par défaut plus un bus de retour avec réverbération et un départ de Sfx), catalogué, avec la ligne `AudioMixerAsset` à ajouter documentée mais **non activée** (le projet de démos garde son comportement, O36). |
+
+## Phase 10 — Tranche S6b : asset de mixeur et panneau de mixage (D15 à D21)
+
+Résultat attendu : un projet peut désigner un asset `.audioMixer` appliqué au mixeur vivant au démarrage et à chaque
+ouverture de projet dans l'éditeur ; l'éditeur l'édite dans un panneau (faders, muet, solo, effets, départs, ducking,
+annuler et rétablir, enregistrer, vu-mètres, niveau de la sortie dans le temps) qui applique toujours l'asset au
+mixeur ; l'inspecteur de son propose les bus de l'asset et dessine son fichier audio. Non-objectifs : Master, Editor,
+muets et limiteur dans l'asset ; snapshots nommés ; renommage, reparentage et retrait à chaud d'un bus ; filtre par
+voix ; correction de `MGSlider` (D20) ; aucun changement d'`AudioService`, d'`IAudioBackend`, d'`AudioMixer`, d'`AudioBus`,
+des fichiers de `Software/` ni du dépôt parent. Prérequis : S5b clôturée (`c468280c`, base des comparaisons
+`git diff c468280c -- …`). Retour arrière : revert ; sans réglage `AudioMixerAsset`, comportement strictement inchangé ; un
+fichier de projet avec le réglage reste lisible (clé ignorée). Approbation : D33 (AUTO), après relecture **READY**.
+Budget : identique à S2. Écart assumé : onze tâches (le panneau et le document dépassent chacun un commit raisonnable).
+
+Revue du détail (2026-10-06) : brouillon passé par un contrôle contradictoire (application en deux passes, plomberie
+complète de `GameEditor`, panneau scindé, gestes, choix produit en O34 à O39), puis deux relecteurs frais **REVISE**
+(valeurs par défaut du biquad qui renvoyaient à un défaut inexistant et à une constante privée ; source d'un ducking non
+modifiable sur place ; onglet de mixage resté relié au mixeur vivant après un changement de projet), corrigés ; relecture
+de clôture **READY**.
+
+### ⏳ T10.1 — Type d'asset `.audioMixer` : modèle, chargeur versionné, écriture de l'éditeur (P45)
+
+- Fichiers : `Constants.cs` (`AudioMixer = ".audioMixer"`), `AssetLoaderRegistry.cs` (enregistrement),
+  nouveaux dans `CasaEngine/Framework/Audio/Mixing/` : `AudioMixerAsset.cs`, `AudioMixerBusData.cs`,
+  `AudioMixerEffectData.cs` (abstrait et quatre `sealed record`), `AudioMixerAssetJsonSerializer.cs` (avec la classe
+  interne `AudioMixerAssetKeys`) ; `CasaEngine/Framework/Assets/Loaders/AudioMixerAssetLoader.cs` ; nouveau dossier
+  `CasaEngine.EditorServices/Audio/` avec `EditorAudioMixerAssetJsonWriter.cs` ; `EditorAssetJsonSerializer.cs` (cas
+  `AudioMixerAsset`) ; `EditorAssetWriterService.cs` (`EditorAssetSaveSource.AudioMixerEditorPanel`, en dernier) ;
+  tests `CasaEngine.Tests/Audio/AudioMixerAssetTests.cs`, `AudioMixerAssetEditorSerializationTests.cs`.
+- Étapes : modèle `AudioMixerAsset : ObjectBase` (`CurrentVersion = 1`, `Version`, `Buses`, nom par défaut
+  `Audio mixer {Id}`, fabrique `CreateDefault(name)` : Music, Sfx, Voice, Ui sous Master à 1) ; `AudioMixerBusData`
+  (`Name`, `Parent` défaut Master, `Volume` borné [0, 1], NaN ignoré, `Effects`, `Sends`) ; `AudioMixerSendData(Target,
+  Level)` ; effets, chacun avec ses défauts écrits en constantes nommées du modèle d'asset :
+  `AudioMixerBiquadEffectData(FilterType, FrequencyHz, Q, GainDb)` — LowPass, 1000 Hz et Q = 0,70710678 (Butterworth)
+  sont des **choix de l'agent** (le constructeur de `BiquadFilterEffect` n'a pas de fréquence par défaut et sa constante
+  Butterworth est privée : la valeur est recopiée en constante du modèle), gain 0 dB ;
+  `AudioMixerCompressorEffectData(ThresholdDb, Ratio, KneeDb, AttackSeconds, ReleaseSeconds, MakeupGainDb)` — −18, 4, 6,
+  0,01, 0,1, 0 (défauts du constructeur de `CompressorEffect`) ; `AudioMixerReverbEffectData(RoomSize, Damping, Wet, Dry,
+  StereoSeparation)` — 0,5, 0,5, 1, 0, 1 (défauts du constructeur de `ReverbEffect`) ; `AudioMixerDuckingEffectData(Source,
+  DepthDb, ThresholdDb, AttackSeconds, ReleaseSeconds)` — source obligatoire, 12, −40, 0,02, 0,4 (défauts du constructeur
+  de `DuckingEffect`) ; JSON en snake_case : `id`, `name`, `type`, `version`, `schema_version`, `buses` [{`name`, `parent`,
+  `volume`, `effects` [{`type` parmi `biquad`, `compressor`, `reverb`, `ducking`, plus les paramètres}], `sends`
+  [{`target`, `level`}]}] ; sérialiseur : `version` absent = courante, plus récente ou ≤ 0 refusée
+  (`InvalidOperationException`), `CanMigrate`, `MigrateToCurrent` (pose `version` et `schema_version` en v1) ; lecture
+  tolérante par entrée (non-objet, bus sans nom, type d'effet inconnu ignorés ; filtre inconnu → LowPass ; un
+  avertissement nommant l'asset chaque fois) ; aucune règle de graphe ici. Chargeur calqué sur `SoundAssetLoader`.
+- Validation : `IsFileSupported` (`.audioMixer`, `.AUDIOMIXER`, pas `.sound`) ; aller-retour de chaque champ et des
+  quatre effets ; `CreateDefault` ; lecture tolérante avec avertissements capturés ; version 2 et 0 refusées (le
+  chargeur rend `null` et consigne) ; `RegisterLoaders` puis `LoadFromFile` sur un fichier temporaire
+  (`ProjectEnvironmentCollection`). Deux solutions ; suite verte ; `git diff c468280c --` sur `AudioService.cs`,
+  `IAudioBackend.cs`, `AudioMixer.cs`, `AudioBus.cs` vide.
+- Commit : `feat(audio): the .audioMixer asset type with a versioned loader and an editor writer`
+
+### ⏳ T10.2 — Validation et application au mixeur vivant (P46, P47)
+
+- Fichiers : nouveaux `CasaEngine/Framework/Audio/Mixing/AudioMixerAssetValidator.cs` (avec `AudioMixerPlan`),
+  `AudioMixerAssetApplier.cs` ; tests `AudioMixerAssetValidatorTests.cs`, `AudioMixerAssetApplierTests.cs`. Aucun
+  fichier existant modifié.
+- Étapes : `Validate(asset, AudioMixer liveMixer, int busCapacity)` → plan (bus dans l'ordre d'application, parents
+  d'abord, ordre stable même si un enfant précède son parent dans le fichier ; effets et départs retenus ; problèmes) ;
+  `liveMixer` nul = les six bus de `CreateDefaultMixer` ; règles de P47 ; problème « bus X is live under Y » quand un bus
+  vivant a un autre parent ; `WouldMakeCycle(asset, fromBus, toBus)` (parents, départs, ducking). Applicateur
+  (`AudioService`, thread de jeu) : `BusCapacity` (`IAudioBusBackend.BusCapacity` ou illimité), `IsApplied`,
+  `LastProblems`, `Apply(asset, logProblems = true)`, `TryApplyBusVolume(bus, volume)` (chemin rapide d'un fader),
+  `Release()` ; état possédé : volume d'origine relevé à la première modification, effets posés (donnée, instance) et
+  cibles de départs posés. `Apply` en deux passes (P46) ; effets comparés à la liste possédée élément par élément (même
+  type : propriétés modifiées en place ; premier écart : retrait des possédés à partir de là puis ajout). **Un ducking dont
+  la source diffère est un écart** (`DuckingEffect.Source` est fixée à la construction) : l'instance possédée est retirée à
+  partir de cet indice et une nouvelle est ajoutée avec la nouvelle source ; chaque
+  `CreateBus`, `AddEffect`, `SetSend` dans un `try` qui consigne et continue ; un avertissement unique quand un asset avec
+  effets est appliqué sous un backend sans `IAudioBusBackend`.
+- Validation : validateur : chaque règle de P47, capacité (40 bus sur le mixeur par défaut, capacité 32 → 26 retenus),
+  ordre indépendant du fichier, `WouldMakeCycle`. Applicateur (faux backend) : création, volumes, effets, départs ;
+  **départ vers un bus déclaré après sa source et ducking dont la source est déclarée après sa cible** ; seconde
+  application identique sans changement de version ni d'instance ; paramètre changé en place ; type changé remplacé ;
+  **changer la source d'un ducking remplace l'instance : après réapplication, le bus vivant porte un `DuckingEffect` de
+  nouvelle `Source` et l'ancienne instance n'y est plus** ; retraits ; `Release` ; projets A puis B puis aucun ; Master, Editor, muets et un effet du jeu intacts (l'effet du jeu
+  reste en tête après réapplication) ; bus plein de quatre effets étrangers : avertissement sans exception. Backend
+  logiciel hors ligne : un bus créé sous Sfx à 0,5 rend 0,5 de l'amplitude d'une voix constante ; un 33e bus refusé avec
+  problème. Deux solutions ; suite verte.
+- Commit : `feat(audio): validate a mixer asset and apply it to the live mixer`
+
+### ⏳ T10.3 — Réglage de projet, application au démarrage et dans l'éditeur (P48)
+
+- Fichiers : `ProjectSettings.cs`, `ProjectSettingsHelper.cs`, `AudioSystemComponent.cs` (propriété `ProjectMixer`,
+  méthode `ApplyProjectMixerAsset`), `CasaEngineGame.cs` (appel juste après `RegisterLoaders`), `GameEditor.cs` (champ,
+  création à côté de la synchro du muet, `Dispose`) ; nouveaux `CasaEngine/Framework/Audio/Mixing/ProjectAudioMixer.cs`,
+  `CasaEngine.EditorServices/EditorProjectAudioMixerSync.cs` ; tests `ProjectSettingsAudioMixerTests.cs`,
+  `ProjectAudioMixerTests.cs`, `EditorProjectAudioMixerSyncTests.cs`.
+- Étapes : réglage `AudioMixerAsset` (chaîne, vide par défaut, lu « absent = vide », écrit seulement si non vide) ;
+  `ProjectAudioMixer(AudioService, AssetContentManager)` : `Applier`, `Apply(ProjectSettings)` (vide → `Release` ; sinon
+  résolution id ou nom par `TryResolveAssetId`, `LoadCopy<AudioMixerAsset>`, `Applier.Apply` ; **tout le corps dans un
+  `try`/`catch (Exception)`** qui consigne avec le réglage, puis `Release`), `TryResolveAssetId` statique, propriété
+  `AppliedAssetId` (id de l'asset appliqué, `Guid.Empty` sans asset) ;
+  `AudioSystemComponent` crée `ProjectMixer` sous `CasaEngineGame` sans l'appliquer ; `CasaEngineGame.Initialize`
+  appelle `ApplyProjectMixerAsset()` juste après `RegisterLoaders` (commentaire d'ordre) ; `EditorProjectAudioMixerSync`
+  (modèle `EditorProjectAudioMuteSync`) : applique à `ProjectLoaded`, `Release` à `ProjectClosed`, `Dispose` idempotent,
+  et lève après chaque application ou relâchement un événement `ProjectMixerApplied` portant
+  `ProjectMixer.AppliedAssetId` (l'éditeur s'en sert pour relier les documents ouverts, T10.5).
+- Validation : réglage (écrit seulement posé, valeur périmée remise à vide, fichier sans réglage inchangé) ; résolution
+  par id et par nom ; id inconnu, fichier tronqué, JSON invalide, version future : aucune exception, mixeur par défaut,
+  avertissement ; A puis B puis vide ; deux dossiers de projet ; synchro (chargement, fermeture, `Dispose`, `ProjectMixerApplied` levé après l'application avec l'id appliqué). Démo lancée
+  sans clavier : aucun message du nouveau code. 🧪 auteur : un projet avec réglage ouvert comme premier puis second
+  projet d'une session de l'éditeur. Deux solutions ; suite verte.
+- Commit : `feat(audio): a project setting names the mixer asset, applied at startup and on editor project load`
+
+### ⏳ T10.4 — Document de mixage de l'éditeur : historique, gestes, solo, enregistrement (P49 à P53)
+
+- Fichiers : nouveaux `CasaEngine.EditorServices/Audio/AudioMixerDocument.cs`, `AudioMixerSolo.cs` ; tests
+  `CasaEngine.Tests/EditorServices/AudioMixerDocumentTests.cs`, `AudioMixerSoloTests.cs`.
+- Étapes : `AudioMixerDocument(asset, relativePath, AudioMixerAssetApplier liveApplier = null, Action<IEditorCommand>
+  commandSink = null, int busCapacity)` : `Asset`, `IsLive`, `IsDirty` (booléen en cache recalculé après chaque
+  opération, annulation, rétablissement et enregistrement), `Problems`, `Changed` ; bus par défaut absents ajoutés à
+  l'ouverture sans historique ; opérations par instantanés avant/après (modèle `ParticleAssetInspectorPanel.ApplyChange` ;
+  identique = aucune entrée ; annuler et rétablir rechargent l'instantané puis `SyncLive`) ; `TryAddBus` (refuse aussi un
+  nom vivant sous un autre parent), `TryRemoveBus` (P52), `SetBusVolume`, gestes `BeginGesture`/`UpdateBusVolume`/
+  `EndGesture` (application vive par `TryApplyBusVolume`, une entrée à la fin, aucune si la valeur revient au départ),
+  `TryAddEffect`, `TryRemoveEffect`, `TryMoveEffect`, `TrySetEffect`, `TrySetSend`, `TrySave`, `ApplyToLive`,
+  `RestoreSavedToLive()` (réapplique l'asset enregistré, pour la fermeture et le rechargement d'un document modifié ;
+  sans effet quand le document n'est pas vivant) ; liaison au mixeur vivant changeable : `DetachLive()` (rétablit les
+  muets transitoires posés, lâche l'applicateur, `IsLive` faux, ne réapplique rien) et `UpdateLiveBinding(Guid
+  projectAssetId, AudioMixerAssetApplier applier)` (rattache si l'id de l'asset du document vaut `projectAssetId` non vide,
+  sinon détache ; un document rattaché applique son asset par `SyncLive`, sens asset → mixeur) ; état transitoire `SetMute`, `SetSolo`, `ClearTransientState` (rétablit exactement les muets posés) ; aucune lecture du
+  mixeur vivant vers l'asset. `AudioMixerSolo.ComputeMuted` pur (P53).
+- Validation : (`ProjectEnvironmentCollection`, historique et catalogue restaurés) chaque opération puis annuler puis
+  rétablir redonne l'asset (JSON) et le mixeur vivant ; 50 `UpdateBusVolume` = une entrée ; retour à la valeur de départ
+  = aucune ; `IsDirty` exact ; `TrySave` puis rechargement identique ; refus avec message (doublon, réservé, parent
+  inconnu, capacité, bus par défaut, bus avec enfants, cible de départ, source de ducking, 5e effet, cycles, bus vivant
+  sous un autre parent) ; sens unique ; sans applicateur rien ne touche le mixeur ; éditer puis `RestoreSavedToLive` →
+  volume vivant = fichier ; **changement de projet** (document et `EditorProjectAudioMixerSync` réels, projets A et B sur
+  disque chargés par `EditorProjectAuthoringService.LoadProject`) : un document vivant du projet A, puis `ProjectClosed`
+  (`DetachLive`) et chargement de B, puis un geste de fader, un solo, un `ApplyToLive` et la fermeture
+  (`RestoreSavedToLive`) : le mixeur vivant reste exactement celui que l'asset de B (ou le mixeur par défaut) définit, et
+  le document n'est pas vivant, sauf si le réglage de B désigne son asset (alors rattaché par `UpdateLiveBinding`) ; solo (cas purs, retours de l'asset et du mixeur vivant, deux solos, retrait, combiné au
+  muet, bus vivant hors asset jamais coupé) et rendu nul d'un bus coupé sous le backend logiciel hors ligne. Deux
+  solutions ; suite verte.
+- Commit : `feat(editor): an audio mixer document with history, gestures, solo and save`
+
+### ⏳ T10.5 — Plomberie de l'éditeur et coquille du panneau (P49, P50)
+
+- Fichiers : `EditorDocumentKind.cs`, `History/EditorHistoryContextKind.cs` (membres en dernier),
+  `History/EditorHistoryContext.cs`, `Workspaces/EditorPanelIds.cs`, `ContentBrowser/Models/ContentItemType.cs`,
+  `ContentBrowser/Models/ContentItem.cs` (`ExtensionMap`), `ContentBrowser/ContentItemDisplay.cs` (icône, libellé
+  « Audio Mixer »), `GameEditor.cs` (ajouts seulement, symboles cherchés par nom), nouveau
+  `CasaEngine.Editor/Controls/AudioMixerPanel.cs` ; tests `ContentItemTests.cs`, `CasaEngine.Tests/Editor/AudioMixerPanelTests.cs`.
+- Étapes : types et identifiants ; `GameEditor` : création (« Create Audio Mixer », calqué sur la création d'un son),
+  route `.audioMixer` → `TryOpenAudioMixerAsset` (calqué sur `TryOpenParticleAsset`), `TryGetAudioMixerPanel` par
+  préfixe, branches dans `CreateDocumentPanelNode`, `GetPanelContentFactory`, `OnDockHostActivePanelChanged`,
+  `SyncActiveEditorDocumentFromDockState`, `OnDockHostPanelRemoved` (fermeture : `RestoreSavedToLive` si modifié,
+  `ClearTransientState`, `Dispose`, nettoyage de l'historique et de l'état modifié), `SaveCurrentProject`
+  (`SaveDirtyAudioMixers`), titre (`GetAudioMixerDocumentTitle`, `RefreshHistoryContextTitle`), activation
+  (`ActivateAudioMixerDocument`, remise à zéro des mesures), mise à jour par frame du seul panneau actif ; l'applicateur
+  vivant est celui du projet seulement si le réglage désigne cet asset ; **changement de projet** : `GameEditor` s'abonne
+  à `ProjectClosed` (appelle `DetachLive` sur chaque document de mixage ouvert) et à `ProjectMixerApplied` de la synchro
+  (appelle `UpdateLiveBinding(appliedAssetId, applicateur)` sur chaque document ouvert) ; la synchro est créée au premier
+  projet, avant qu'aucun document ne puisse être ouvert. Panneau (coquille) : en-tête, bandeau « live » ou
+  « non entendu, mettre AudioMixerAsset = <id> », bandeau « effets : backend logiciel seulement », Save, Reload
+  (désactivé si modifié ; un rechargement réapplique), Apply, liste des problèmes.
+- Validation : `ContentItemTests` ; panneau construit sans GPU (bandeaux, Save puis `IsDirty` faux, Reload, panneau sans
+  applicateur laisse le mixeur intact). 🧪 auteur : ouvrir le mixeur du projet A puis ouvrir le projet B (le mixeur de B reste intact, l'onglet de A n'est
+  plus « live ») ; créer, ouvrir, ouvrir puis fermer un autre onglet, Ctrl+Z agit sur le
+  mixeur, titre avec astérisque, « enregistrer tout », restauration d'une disposition. Deux solutions ; suite verte.
+- Commit : `feat(editor): open, create and save audio mixer documents`
+
+### ⏳ T10.6 — Tranches de bus : faders, muet, solo, vu-mètres (P51, P53, P54)
+
+- Fichiers : `CasaEngine.Editor/Controls/AudioMixerPanel.cs`, nouveau `AudioMixerGestureTracker.cs` (machine à états
+  des gestes, testable seule), tests `AudioMixerPanelTests.cs`, `AudioMixerGestureTrackerTests.cs`.
+- Étapes : grille d'après `AudioProfilerPanel.RebuildMeterRows`, lignes de P54 indentées par profondeur ; fader 0..1 et
+  lecture en dB ; boutons M et S ; `AudioMeterControl` alimenté par un `AudioProfilerModel` propre au panneau ; ajout de
+  bus (nom, parent, désactivé à la capacité) et suppression (P52) ; gestes de P50 par `AudioMixerGestureTracker` (ouvert au
+  premier `ValueChanged`, fermé au premier cadre sans changement où ni `IsDraggingThumb` ni le bouton gauche ne sont tenus,
+  fermé aussi à `Dispose` et au passage en session de jeu) ; valeurs affichées tirées de l'asset, jamais du mixeur
+  vivant ; pendant le jeu, P51.
+- Validation : machine à états avec événements adverses (relâchement après la fin du glissement, clic sur la piste, deux
+  changements dans le même cadre, molette) : une entrée par geste ; panneau sans GPU : lignes, lecture seule, annuler
+  remet le fader sans nouvelle entrée, P51 (faders désactivés, muet et solo actifs), lecture des mesures par `Update` sans
+  allocation (`AllocationWindow`). 🧪 auteur : fader pendant une démo (un seul Ctrl+Z annule le glissement), muet, solo.
+  Deux solutions ; suite verte.
+- Commit : `feat(editor): mixer panel bus strips with faders, mute, solo and meters`
+
+### ⏳ T10.7 — Effets, départs et ducking d'un bus (P50)
+
+- Fichiers : nouveaux `CasaEngine.EditorServices/Audio/AudioMixerEffectCatalog.cs` (pur),
+  `CasaEngine.Editor/Controls/AudioMixerBusDetailView.cs` ; `AudioMixerPanel.cs` ; tests
+  `AudioMixerEffectCatalogTests.cs`, `AudioMixerPanelTests.cs`.
+- Étapes : catalogue des paramètres (bornes et pas tirés des constantes publiques des effets du moteur), `CreateDefault`,
+  `GetValue`/`WithValue` ; vue de détail du bus sélectionné : effets (au plus 4, Haut, Bas, Supprimer, un `NumericField`
+  par paramètre, type de filtre, source du ducking, « Add effect ») et départs (au plus 4, cible, niveau, 0 = retrait) ;
+  la saisie d'un champ est groupée en une entrée par le geste de P50 ; refus affiché, champ remis ; reconstruction sur
+  `Document.Changed` seulement.
+- Validation : bornes du catalogue = constantes publiques des effets du moteur ; défauts du catalogue = ceux du modèle d'asset
+  (T10.1) ; changer la source d'un ducking dans la vue remplace l'effet vivant (une entrée d'historique) ; saisie « 0.25 » = une
+  entrée ; Haut ou Bas = une entrée et le mixeur vivant suit ; 5e effet et cycle refusés avec message ; passe-bas à 500 Hz
+  sur Sfx : un sinus à 8 kHz rend une crête inférieure au dixième (backend logiciel hors ligne). 🧪 auteur. Deux
+  solutions ; suite verte.
+- Commit : `feat(editor): edit the effects, sends and ducking of a bus in the mixer panel`
+
+### ⏳ T10.8 — Niveau de la sortie dans le temps (P55)
+
+- Fichiers : nouveaux `CasaEngine.Editor/Controls/AudioLevelHistory.cs`, `AudioEnvelopeControl.cs` (avec
+  `IAudioEnvelopeSource` interne, propriété `ShowLevelMarks`) ; `AudioProfilerModel.cs` (`AudioMeterTrack.EnableHistory`,
+  historique nul par défaut) ; `AudioMixerPanel.cs` ; tests `AudioLevelHistoryTests.cs`.
+- Étapes : anneau préalloué de fractions déjà converties en dB à l'écriture ; `Integrate` écrit une colonne par
+  intervalle (plusieurs pour un grand pas, crête conservée) ; contrôle à hauteur fixe dessiné sans allocation, repères à
+  −12 et −3 dBFS seulement si `ShowLevelMarks` ; bande « Output level (last 10 s) » dans le panneau.
+- Validation : anneau ; 1 s en pas de 16 ms = 24 colonnes à une près ; crête isolée d'un bloc dans exactement une
+  colonne ; grand pas ; silence ; même échelle que `AudioMeterControl.ToFraction` ; aucune allocation ; pistes sans
+  historique inchangées (`AudioProfilerTests` verts sans modification). Deux solutions ; suite verte.
+- Commit : `feat(editor): the mixer panel draws the output level over time`
+
+### ⏳ T10.9 — Inspecteur de son : bus de l'asset et dessin du fichier (P56, P57)
+
+- Fichiers : nouveaux `CasaEngine.EditorServices/Audio/SoundBusChoices.cs`, `AudioWaveformBuilder.cs` (purs) ;
+  `SoundAssetInspectorPanel.cs` ; `GameEditor.cs` (`OnEditorAssetSaved` : branche `.audioMixer` **avant** la sortie
+  anticipée, qui appelle `RefreshBusChoices` sur les inspecteurs de son ouverts) ; tests `SoundBusChoicesTests.cs`,
+  `AudioWaveformBuilderTests.cs`, `SoundAssetInspectorPanelTests.cs`.
+- Étapes : `SoundBusChoices.Resolve(projectMixer, currentBus)` (P57) et chargement de l'asset du projet depuis le disque ;
+  combo de `SoundBusChoice` (entrée inconnue non sélectionnable) ; `AudioWaveformBuilder.BuildFromSamples` (min et max par
+  colonne, stéréo = extrêmes des deux canaux) ; chemin P56 ; ligne « Waveform » (`AudioEnvelopeControl`, échelle linéaire,
+  sans repères) avec durée, débit, canaux ou motif d'absence.
+- Validation : sans asset = liste actuelle ; avec asset = moteur puis autres bus ; asset sans Music + `.sound` sur Music
+  = non marqué ; bus absent marqué ; asset introuvable = liste par défaut ; silence, carré, sinus, stéréo, clip court,
+  WAV 24 bits et Ogg, plafond ; mesure du temps et de la mémoire sur un WAV de 5 minutes notée. Deux solutions ; suite
+  verte. 🧪 auteur.
+- Commit : `feat(editor): the sound inspector lists the project mixer buses and draws its audio file`
+
+### ⏳ T10.10 — Exemple d'asset de mixeur dans les démos (P58)
+
+- Fichiers : `CasaEngine.Demos/Content/Audio/demo_mixer.audioMixer` (nouveau), `AssetInfos.json`, `Content.mgcb`.
+- Étapes : bus par défaut, bus de retour `DemoMixerReverb` avec `ReverbEffect`, départ de Sfx ; écrit par l'écrivain de
+  l'éditeur (ordre et format des clés) ; réglage `AudioMixerAsset` non ajouté à `DemosGame.json`.
+- Validation : chargé par le vrai chargeur dans un test ; démo lancée sans clavier, comportement inchangé.
+- Commit : `feat(demos): an example audio mixer asset`
+
+### ⏳ T10.11 — Documentation, ADR et vérification de la tranche
+
+- Fichiers : `docs/engine/audio-system.md` (nouvelle section « 2 ter. Asset de mixeur `.audioMixer` », « 5 ter »
+  pour le réglage, §3, §9, §10), nouveau `docs/editor/audio-mixer-panel.md` (anglais), `docs/editor/editor-history.md`
+  (contexte de mixage), ADR (premier numéro libre revérifié sur toutes les branches), index, `docs/README.md`, ce plan,
+  `ai-agent/README.md`.
+- Validation : vérificateur frais **CONFIRMED** : application au démarrage après `RegisterLoaders` et à chaque projet de
+  l'éditeur ; sens unique ; Master, Editor, muets, limiteur et effets du jeu intacts ; entrées invalides tolérées, aucune
+  exception au démarrage ; API additive (`git diff c468280c --` vide sur `AudioService.cs`, `IAudioBackend.cs`,
+  `AudioMixer.cs`, `AudioBus.cs`, `Software/`) ; projet sans réglage inchangé ; une entrée d'historique par geste ; mesures
+  sans allocation ; exemple de la doc compilé. Au plus cinq passes de correction pour un P1 ou P2.
+- Commit : `docs(audio): document the mixer asset, the mixer panel and the sound inspector additions`
+
 ---
 
 ## Réponses de l'auteur du 2026-10-06
@@ -2748,6 +3062,12 @@ du SPU) auront chacune leur détail, relu, avant exécution.
 | O31 | **Question à l'auteur (non bloquante)** — édition des liaisons de paramètres dans l'inspecteur de son (S5b les compte seulement, édition dans le fichier `.sound`, P42). | S5b |
 | O32 | **Question à l'auteur (non bloquante)** — Doppler : détection de téléportation (seuil de déplacement par frame en unités monde, ou API de remise à zéro de la vitesse) et réglage de projet de la vitesse du son ; S5b n'a ni l'un ni l'autre (P37 : une téléportation donne un rapport extrême, borné, pendant une frame ; Doppler désactivé par défaut). | S5b |
 | O33 | **Information pour l'auteur** — pour un composant qui a un parent dans une entité enfant, `WorldMatrixWithScale`/`WorldMatrixNoScale` appliquent deux fois la racine de l'entité parente (`SceneComponent.cs`, aussi reproduit par `RenderProjectionComponent`) : comportement existant, peut-être voulu ; l'audio en hérite, S5b ne le corrige pas. | S5b |
+| O34 | **Question à l'auteur (non bloquante)** — contenu de l'asset de mixeur : faut-il y enregistrer les muets des bus, des snapshots nommés, les réglages du limiteur du Master ? S6b n'y met que bus, volumes, effets et départs (P45). | S6b |
+| O35 | **Question à l'auteur (non bloquante)** — mixer pendant une session de jeu dans l'éditeur : S6b désactive les opérations qui passent par l'historique et garde muet, solo et vu-mètres (P51). Faut-il un mode d'édition en jeu (sans annulation, ou écrit dans l'asset) ? | S6b |
+| O36 | **Question à l'auteur (non bloquante)** — désignation de l'asset du projet : à la main dans le fichier de projet (`AudioMixerAsset`, P48) ; faut-il un bouton « Use as project mixer » dans le panneau ? Faut-il activer l'asset d'exemple dans le projet de démos (P58 le laisse inactif) ? | S6b |
+| O37 | **Question à l'auteur (non bloquante)** — structure du mixeur : le moteur ne sait ni renommer, ni reparenter, ni retirer un bus vivant ; S6b n'offre que l'ajout et la suppression de bus personnalisés sans lien, effective au prochain démarrage (P52). Faut-il ces opérations (évolution du moteur) ? | S6b |
+| O38 | **Question à l'auteur (non bloquante)** — dessin d'un fichier son : décodage résident sous un plafond de 64 Mo, calculé une fois à l'ouverture (P56) ; selon la mesure de T10.9 sur une musique de 5 minutes, faut-il un calcul en tâche de fond ou un chemin par flux ? | S6b |
+| O39 | **Question à l'auteur (non bloquante)** — fermeture d'un onglet de mixage modifié : sans confirmation, comme les autres panneaux sauf les écrans UI ; la fermeture réapplique l'asset enregistré au mixeur vivant (P49). Faut-il une confirmation ? | S6b |
 | O23 | **Questions à l'auteur — S5 (couche jeu), en pause.** (1) Variations aléatoires : dans le `.sound` (direction écrite dans `audio-system.md` §10 : liste de fichiers, plages de volume, pitch et délai) ou un asset « conteneur » séparé (type, chargeur, extension, sauvegarde éditeur et ADR en plus) ? (2) Priorités : par défaut, garder le refus actuel quand les 64 voix sont prises et ne voler que pour une priorité explicite plus haute (la plus basse, puis la plus ancienne) ? Les voix streamées (musique, voix stéréo) sont-elles toujours protégées ? Faut-il des voix virtuelles (reprise à la position écoulée, seulement possible sous le backend logiciel) ? (3) Écouteur et atténuation : qui fournit la pose de l'écouteur (composant `AudioListenerComponent` poussé dans `AudioService`, ou la caméra active) ; 2D, 3D ou les deux ; modèle d'atténuation (proposition : les modèles de distance de la spécification OpenAL 1.1, source citée) ; drapeau 3D par asset ? (4) Doppler actif par défaut ou sur demande (formule de la spécification OpenAL 1.1, aucun code repris) ? (5) Paramètres de jeu (type RTPC) : syntaxe de liaison dans le `.sound` et cibles (volume, pitch ; un filtre par voix demanderait un nouvel étage du mixeur) ? (6) `SoundEmitterComponent` : devenir un `SceneComponent` (changement de sérialisation avec migration et chargement tolérant) ou lire la pose de `Owner.RootComponent` sans changer de type ? (7) Démarrage différé : quel handle rendre pour une voix pas encore démarrée ? **Réponses de l'auteur (2026-10-06) : D5 à D14.** | S5 |
 | O24 | **Questions à l'auteur — S6b (asset du mixeur et panneau de mixage), en pause.** (1) Un seul asset de mixeur par projet (réglage de projet facultatif, vide = mixeur par défaut, comme `DialogueScreenAsset`) ou plusieurs ? Extension en camelCase comme les autres (par exemple `.audioMixer`) ? (2) Panneau de mixage éditable : ses changements restent-ils en direct seulement, ou marquent-ils l'asset comme modifié et s'y enregistrent-ils (une seule source de vérité) ? (3) Solo : sémantique (un bus en solo coupe tous les autres sauf ses ancêtres et descendants ?) et repli sous le backend MonoGame ? (4) Formes d'onde : mix de sortie, préécoute seule (prise sur le bus Editor) ou dessin du clip ? (5) Le bus Master hors de l'asset (son muet appartient au projet, ADR-0040, et Alundra réécrit son volume) ? (6) `MGSlider` alloue à chaque changement : accepter l'allocation pendant un glissement dans l'éditeur, ou modifier le sous-module MGUI ? (7) L'inspecteur de son doit-il proposer les bus du mixeur au lieu de sa liste fixe ? **Réponses de l'auteur (2026-10-06) : D15 à D21.** | S6b |
 
