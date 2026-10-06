@@ -151,7 +151,7 @@ service.MasterLimiter.CeilingDb = -1f;              // actif par défaut
   dur conservé en dernier recours.
 - **Gains** : le gain propre d'un bus (`muet ? 0 : volume`) est publié en dernière valeur, jamais
   perdu, et rampé sur un bloc audio (10 ms). Au plus 32 bus ; au-delà, un avertissement et le bus
-  est mixé dans `Master`.
+  est mixé directement dans `Master`, sans son gain propre ni celui de ses parents.
 - **Fondus** : `FadeVoice`, les fondus de `MusicPlayer` et `FadeBus` deviennent des rampes
   interpolées à l'échantillon sur le thread audio, qui démarrent au bloc suivant. Le contrat public
   ne change pas : `GetVoiceVolume`, `IsFading`, la fin de `StopWithFade` et les fondus enchaînés

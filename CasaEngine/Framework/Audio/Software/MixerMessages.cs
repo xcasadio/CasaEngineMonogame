@@ -104,6 +104,9 @@ internal struct MixerCommand
 
     /// <summary><see cref="MixerCommandKind.RampVoice"/> and <see cref="MixerCommandKind.RampBus"/>: length of the ramp in output frames.</summary>
     public int Frames;
+
+    /// <summary><see cref="MixerCommandKind.RampBus"/>: publish count of the bus when the command was sent (see <see cref="SoftwareMixer.TryRampBusGain"/>).</summary>
+    public int PublishCount;
 }
 
 internal enum MixerEventKind

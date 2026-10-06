@@ -414,6 +414,103 @@ public class AudioServiceRampFadeTests
         Assert.True(soft.Service.IsAlive(voice));
     }
 
+    private static float BusVolume(Rig rig) => rig.Service.Mixer.GetBus(AudioBusNames.Sfx).Volume;
+
+    [Fact]
+    public void ARampedBusFadeReplacedByAZeroDurationOneInTheSameFrame_ReachesTheNewTarget()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0f, 1f);
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.6f, 0f);
+            rig.Tick(200);
+        }
+
+        Assert.Equal(0.6f, BusVolume(soft), 5);
+        Assert.Equal(0.6f, BusVolume(fake), 5);
+        Assert.Equal(0.6f, fake.Fake.GetParameters(fakeVoice).Volume, 3);
+        AssertRendered(soft, 0.6f, 1e-3f);
+    }
+
+    [Fact]
+    public void ASnapshotAppliedAtOnceRightAfterARampedBusFade_Wins()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            var snapshot = rig.Service.CaptureSnapshot();
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0f, 1f);
+            rig.Service.ApplySnapshot(snapshot, 0f);
+            rig.Tick(200);
+        }
+
+        Assert.Equal(1f, BusVolume(soft), 5);
+        Assert.Equal(1f, BusVolume(fake), 5);
+        Assert.Equal(1f, fake.Fake.GetParameters(fakeVoice).Volume, 3);
+        AssertRendered(soft, 1f, 1e-3f);
+    }
+
+    [Fact]
+    public void AZeroDurationFadeAfterARampedOne_WinsEvenWhenNoAudioBlockWasRenderedBetween()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0f, 1f);
+            rig.Service.Update(Frame);
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.6f, 0f);
+            rig.Service.Update(Frame);
+            rig.Tick(200);
+        }
+
+        Assert.Equal(0.6f, BusVolume(soft), 5);
+        Assert.Equal(0.6f, fake.Fake.GetParameters(fakeVoice).Volume, 3);
+        AssertRendered(soft, 0.6f, 1e-3f);
+    }
+
+    [Fact]
+    public void AMuteSetInTheSameFrameAsARampedBusFade_SilencesTheBusFromTheNextBlock()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        foreach (var rig in new[] { soft, fake })
+        {
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.5f, 1f);
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = true;
+            rig.Tick();
+        }
+
+        Assert.Equal(0f, fake.Fake.GetParameters(fakeVoice).Volume);
+        Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+
+        soft.Tick(200);
+        Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
+    }
+
     [Fact]
     public void FadeBus_IgnoresAnUnknownBus()
     {

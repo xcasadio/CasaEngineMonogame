@@ -424,6 +424,10 @@ internal sealed class SoftwareMixer
             Bus = bus,
             Volume = Math.Clamp(float.IsNaN(gain) ? 1f : gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
             Frames = frames,
+
+            // Producer side, where the count is written: a gain published after this point, even before the audio thread
+            // applies the command, is later than the ramp and wins over it.
+            PublishCount = _busGainPublishCount[bus],
         };
 
         return _commands.TryEnqueue(in command);
@@ -1327,7 +1331,7 @@ internal sealed class SoftwareMixer
     }
 
     // Render thread. The ramp starts from the gain the bus has now; see TryRampBusGain.
-    private void StartBusRamp(int bus, float target, int frames)
+    private void StartBusRamp(int bus, float target, int frames, int publishCount)
     {
         frames = Math.Max(1, frames);
         ref var ramp = ref _busRamps[bus];
@@ -1337,7 +1341,7 @@ internal sealed class SoftwareMixer
         ramp.FramesLeft = frames;
         ramp.Active = true;
         ramp.Holding = false;
-        ramp.SeenPublishCount = Volatile.Read(ref _busGainPublishCount[bus]);
+        ramp.SeenPublishCount = publishCount;
     }
 
     // Render thread. A frozen bus keeps the gain it reached until another value is published.
@@ -1443,7 +1447,7 @@ internal sealed class SoftwareMixer
         {
             if ((uint)command.Bus < (uint)_busCount)
             {
-                StartBusRamp(command.Bus, command.Volume, command.Frames);
+                StartBusRamp(command.Bus, command.Volume, command.Frames, command.PublishCount);
             }
 
             return;

@@ -1480,6 +1480,26 @@ Budget : identique à S2.
 - Validation : stress de 60 s avec effets : 0 sous-alimentation ; vérificateur frais **CONFIRMED** ;
   écoute de la démo : 🧪 pour l'auteur.
 - Commit : `docs(audio): document buses, effects, ducking and snapshots`
+- Note de progression (2026-10-06) : démo (touches R, T, D ; stress inchangé), section 2 bis
+  d'`audio-system.md`, limites et tableau des touches, ADR-0059 (numéro libre sur toutes les
+  branches), statut d'ADR-0001, index (commit `247330ba`) ; stress de 60 s avec SPU, réverbération
+  et limiteur : `underruns=0`. **Vérificateur frais sur `247330ba` : REFUTED** sur un seul point,
+  **F1 (P2, introduit par T5.2)** : une rampe de bus lisait le compteur de publications quand le
+  thread audio l'appliquait, pas quand le jeu l'envoyait ; un `FadeBus` remplacé avant le bloc
+  suivant (fondu de durée nulle, snapshot immédiat) laissait le bus bloqué sur l'ancienne cible,
+  silencieux. Tout le reste confirmé (repli inchangé, graphe de bus, effets contre leurs sources,
+  chemins chauds, API additive, builds, 3057/3057 en quatre passages, stress, documentation dont
+  l'exemple compilé). Avis : A1 (P4, un bus au-delà du 32e perd son gain et celui de ses parents :
+  précisé dans la doc), A2 (P3, muet dans la même frame qu'un fondu de bus appliqué un tick en
+  retard : même cause que F1), A3 (P4, la rampe suit le temps audio et la chronologie le temps de
+  jeu : un à-coup plus long que le pas maximal de MonoGame les écarte de plus d'un bloc jusqu'à la
+  fin du fondu), A4 (P4, deux bornes de durée de tests relâchées par `9fdd1f12`, documenté en O20).
+  **Correctif de F1** (passe 1 sur 5 du budget de reprise) : le compteur de publications du bus
+  est lu sur le thread de jeu à l'envoi de la rampe et porté par la commande ; toute publication
+  postérieure à l'envoi l'emporte au bloc suivant (`FreezeBus` n'a pas ce trou : il garde le
+  compteur de la rampe). 5 tests de non-régression (scénarios A, C, D et E du vérificateur, chacun
+  comparé au repli, et un test du mixeur) ; les deux solutions : 0 erreur ; suite complète
+  3062/3062 (trois passages) ; stress de 60 s : `underruns=0`. Avis A1 traité dans la doc.
 
 ---
 

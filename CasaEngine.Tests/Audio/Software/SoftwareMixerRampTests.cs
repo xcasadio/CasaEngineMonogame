@@ -188,6 +188,22 @@ public class SoftwareMixerRampTests
     }
 
     [Fact]
+    public void AGainPublishedAfterTheRampWasSent_ButBeforeItIsApplied_WinsAtTheNextBlock()
+    {
+        var mixer = new SoftwareMixer(OutputRate);
+        Assert.True(mixer.TryCreateBus(SoftwareMixer.MasterBus, out var bus));
+        MixerWithVoice(bus, mixer);
+
+        Assert.True(mixer.TryRampBusGain(bus, 0f, 1000));
+        mixer.SetBusGain(bus, 0.5f);
+        Render(mixer, 10); // smoothing to the published gain
+        var output = Render(mixer, 2000);
+
+        // The ramp to 0 was dropped, not held.
+        Assert.All(output, sample => Assert.Equal(FullScale * 0.5f, sample, Tolerance));
+    }
+
+    [Fact]
     public void ABusRamp_YieldsToAGainPublishedAfterIt_EvenOfTheSameValue()
     {
         var mixer = new SoftwareMixer(OutputRate);
