@@ -290,7 +290,7 @@ Automatisation et tests :
 - Commit : `refactor(demos): the demo browser replaces the demo info panel`
 - Note de validation (2026-10-06) : `DemoInfoScreen.cs` et `demo-info.xaml` supprimés (le bug des crochets part avec eux ; plus aucune référence dans `CasaEngine.Demos`, `CasaEngine.Tests` et `docs/`, hors le contexte historique de l'ADR-0070) ; `RefreshDemoUI` ne pousse plus que le rappel, visible seulement navigateur replié et hors automatisation (`UpdateDemoHintVisibility`, appelé aussi par `ApplyBrowserLayout`) ; texte « Press F1 to show the demo browser » (P3), style du rappel inchangé (P8). Tests : cas de `demo-info.xaml` retirés, `APlacedScreen_KeepsItsFullContentArea` passe sur `demo-hint.xaml` (placé, `ScreenMargin` non nul). Deux solutions : 0 erreur, aucun nouvel avertissement venant des fichiers touchés ; `CasaEngine.Tests` 4151/4151 (3 cas de l'ancien panneau en moins). Sondes : 7 PASS, relevés identiques. Capture Audio navigateur ouvert : le panneau `PostDraw` de la démo est dans la scène, à droite du navigateur. **Reste à la main (T5.2)** : le rappel visible après F1 et après le repli d'une démo pleine fenêtre.
 
-### ⏳ T4.4 — Clavier des démos neutralisé quand le navigateur possède le clavier (D5, P9)
+### 🧪 T4.4 — Clavier des démos neutralisé quand le navigateur possède le clavier (D5, P9)
 
 - Objectif : les flèches, Espace et Entrée tapés dans l'arbre ne pilotent plus la démo.
 - Fichiers : `CasaEngine.Demos/DemoKeyboard.cs` (nouveau) et les 11 fichiers listés dans l'état vérifié.
@@ -299,6 +299,7 @@ Automatisation et tests :
   2. Remplacer les 12 lectures directes (mécanique, délégable à un `mech-executor`) ; `EnvironmentShowcaseDemo.cs:76` gagne ainsi le test d'activité des autres démos (changement noté).
 - Validation : build ; manuel, sur Audio, Animation blend et le joueur de Tile map : touches pressées avant tout contact avec le navigateur → la démo répond ; pointeur sur l'arbre → flèches et Espace sans effet sur la démo ; démo chargée par clic puis par Entrée, pointeur ramené sur la scène → les touches de la démo répondent.
 - Commit : `fix(demos): demos ignore the keyboard while the demo browser has focus`
+- Note de validation (2026-10-06) : `DemoKeyboard.Read(CasaEngineGame)` écrit en session principale (clavier vide si jeu nul ou inactif, ou si `DemosGame.BrowserOwnsKeyboard`) ; les 12 remplacements confiés à un `mech-executor` (brief complet, propriété exclusive des 11 fichiers), puis revérifiés ici : une ligne par site (deux dans `AudioDemo`), CRLF et BOM conservés, `rg "Keyboard\.GetState"` ne trouve plus que `DemosGame.cs` (F1, Entrée, Échap) et `DemoKeyboard.cs`. `EnvironmentShowcaseDemo.cs:76` gagne le test d'activité (clavier ignoré fenêtre inactive, comme les autres démos). Deux solutions : 0 erreur ; `CasaEngine.Tests` 4151/4151 ; sondes : 7 PASS, relevés identiques. **Reste à la main (T5.2)** : les trois scénarios de la validation ci-dessus (Audio, Animation blend, joueur de Tile map).
 
 ---
 
