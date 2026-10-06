@@ -574,7 +574,7 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
 
 ## Phase 4 — Vérification
 
-### ⏳ T4.1 — Vérificateur frais
+### ✅ T4.1 — Vérificateur frais
 
 - Objectif : un `verifier` frais confirme ou réfute : (a) T1.1 et T1.3 (valeurs, ordre, allocation nulle) ;
   (b) `ValueChanged` inchangé pour un abonné qui y reste ; (c) `DrawSelf` du slider sans allocation ; (d) update
@@ -584,6 +584,18 @@ Restent hors de ce plan, chacun avec un plan séparé préparé en phase 3 : le 
   et les abonnés migrés se comportent comme avant.
 - Validation : verdict CONFIRMED ; tout constat P0–P2 traité selon les règles d'`AGENTS.md`.
 - Commit : `docs(plan): record the slider chantier verification`
+- Note (2026-10-06) : `verifier` frais, verdict **CONFIRMED**, aucun constat P0–P2, sur MGUI `d3e0cd1..c77e014` et
+  moteur `6f06298f..90c65341`. Preuves rejouées : deux solutions 0 erreur, `CasaEngine.Tests` 3159/3159, `MGUI.Tests`
+  3162/3162 (deux passes), les 12 classes de test nouvelles ou modifiées seules 69/69 (deux passes). MGUI extrait à
+  `d3e0cd1` et à `c77e014` hors du dépôt : les nouveaux tests de comportement passent aussi sur l'ancien code
+  (comportement inchangé), les tests d'allocation et de réutilisation y échouent ; sondes à lui, journaux comparés :
+  `SetValue` réentrant, 18 touches dans la même frame, update imbriquée atteignant `TickOwnBrushes`, liaison avec un
+  nom de propriété nul, vide ou autre (seul écart : celui déclaré dans la note de T1.10). Avis P4 reportés, sans
+  changement : (1) sous un `SetValue` réentrant, le changement interne est annoncé avant l'externe, pour
+  `ValueChangedNonAlloc` comme pour `ValueChanged` avant ce chantier ; (2) un texte de label identique ne repasse plus
+  par `MGTextBlock.SetText`, qui effaçait aussi d'éventuels runs explicites posés sur l'élément du label (aucun appelant
+  ne le fait) ; (3) `SliderDragFrameAllocationTests` n'enregistre pas les valeurs pendant la fenêtre mesurée (montré
+  pendant la chauffe et par d'autres tests).
 
 ---
 
