@@ -40,6 +40,11 @@ namespace CasaEngine.Demos.Demos;
 ///   M          mute or unmute the Master bus
 ///   N          mute or unmute the Sfx bus
 ///
+/// Effect keys (software backend only; the panel says so on the MonoGame backend):
+///   R          reverb: a send from Sfx to a return bus holding a ReverbEffect, on or off
+///   T          low-pass filter (600 Hz) inserted on the Music bus, on or off
+///   D          ducking of Music by Sfx, on or off (play the music with P, then a sound effect)
+///
 /// Stress key:
 ///   G          start or stop the GC stress: looping sound and music play continuously while the
 ///              demo allocates garbage every frame and forces a full collection every 500 ms
@@ -64,6 +69,10 @@ public class AudioDemo : Demo
     private const int StressArrayCount = 8;
     private const int StressArrayBytes = 512 * 1024;
     private const string StressReverbBusName = "StressReverb";
+
+    private const string DemoReverbBusName = "DemoReverb";
+    private const float DemoReverbSendLevel = 0.5f;
+    private const float DemoFilterFrequencyHz = 600f;
 
     private const int BeepSampleRate = 22050;
     private const float BeepFrequency = 440f;
@@ -97,6 +106,11 @@ public class AudioDemo : Demo
     private int _stressGcCount;
     private byte[] _stressGarbageSink = [];
     private AudioBus _stressReverbBus;
+
+    private AudioBus _demoReverbBus;
+    private BiquadFilterEffect _demoFilter;
+    private DuckingEffect _demoDucking;
+    private bool _demoReverbOn;
 
     private PsxSpuPort _spuPort;
     private bool _spuTried;
@@ -290,6 +304,21 @@ public class AudioDemo : Demo
             ToggleMute(mixer, AudioBusNames.Sfx);
         }
 
+        if (WasJustPressed(keyboard, Keys.R))
+        {
+            ToggleDemoReverb(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.T))
+        {
+            ToggleDemoFilter(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.D))
+        {
+            ToggleDemoDucking(service);
+        }
+
         _previousKeyboard = keyboard;
     }
 
@@ -316,7 +345,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 350), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 480), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -342,11 +371,17 @@ public class AudioDemo : Demo
             ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
               + $"  queued buffers {service.Music.GetPendingBufferCount(_musicTrack)}"
             : "Music stopped");
+        DrawLine(spriteBatch, ref y, service.Backend is IAudioBusBackend
+            ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
+              + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
+            : "Effects (R, T, D) absent on this backend (software backend only)");
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
         DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
+        DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
+        DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
         DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
 
         spriteBatch.End();
@@ -357,6 +392,10 @@ public class AudioDemo : Demo
         var service = _game?.AudioSystemComponent?.Service;
         service?.StopAll();
         StopSpu();
+        if (service != null)
+        {
+            StopDemoEffects(service);
+        }
 
         _loopingVoice = AudioVoiceHandle.None;
         _musicTrack = MusicTrackHandle.None;
@@ -407,6 +446,87 @@ public class AudioDemo : Demo
         _stressExitWhenDone = false;
         _stressActive = true;
         _stressStarted = false;
+    }
+
+    private void ToggleDemoReverb(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_demoReverbBus == null && !mixer.TryGetBus(DemoReverbBusName, out _demoReverbBus))
+        {
+            _demoReverbBus = mixer.CreateBus(DemoReverbBusName, AudioBusNames.Master);
+            _demoReverbBus.AddEffect(new ReverbEffect(0.8f));
+        }
+
+        _demoReverbOn = !_demoReverbOn;
+        mixer.GetBus(AudioBusNames.Sfx).SetSend(_demoReverbBus, _demoReverbOn ? DemoReverbSendLevel : 0f);
+        _lastAction = $"reverb send {(_demoReverbOn ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleDemoFilter(AudioService service)
+    {
+        var music = service.Mixer.GetBus(AudioBusNames.Music);
+
+        if (_demoFilter != null)
+        {
+            music.RemoveEffect(_demoFilter);
+            _demoFilter = null;
+        }
+        else
+        {
+            _demoFilter = new BiquadFilterEffect(BiquadFilterType.LowPass, DemoFilterFrequencyHz);
+            music.AddEffect(_demoFilter);
+        }
+
+        _lastAction = $"music low-pass {(_demoFilter != null ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleDemoDucking(AudioService service)
+    {
+        var mixer = service.Mixer;
+        var music = mixer.GetBus(AudioBusNames.Music);
+
+        if (_demoDucking != null)
+        {
+            music.RemoveEffect(_demoDucking);
+            _demoDucking = null;
+        }
+        else
+        {
+            _demoDucking = new DuckingEffect(mixer.GetBus(AudioBusNames.Sfx));
+            music.AddEffect(_demoDucking);
+        }
+
+        _lastAction = $"music ducking {(_demoDucking != null ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private static string EffectsNote(AudioService service)
+    {
+        return service.Backend is IAudioBusBackend ? string.Empty : " (no effect on this backend)";
+    }
+
+    private void StopDemoEffects(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_demoReverbBus != null)
+        {
+            mixer.GetBus(AudioBusNames.Sfx).SetSend(_demoReverbBus, 0f);
+        }
+
+        if (_demoFilter != null)
+        {
+            mixer.GetBus(AudioBusNames.Music).RemoveEffect(_demoFilter);
+        }
+
+        if (_demoDucking != null)
+        {
+            mixer.GetBus(AudioBusNames.Music).RemoveEffect(_demoDucking);
+        }
+
+        _demoReverbOn = false;
+        _demoFilter = null;
+        _demoDucking = null;
     }
 
     private static int GetUnderrunCount(AudioService service)

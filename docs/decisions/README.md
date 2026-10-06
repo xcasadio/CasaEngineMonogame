@@ -14,7 +14,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055) | 2026-08-26 |
+| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055; folded bus gain superseded in part by ADR-0059) | 2026-08-26 |
 | [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted | 2026-08-26 |
 | [ADR-0003](0003-single-3d-simulation.md) | Single 3D simulation, simulation space as a world policy | Accepted | 2026-08 |
 | [ADR-0004](0004-collision-layers.md) | Collision layers Shape / Fixture / Body / World, Shape3d as the only public volume vocabulary, no pose on shapes | Accepted | 2026-08 |
@@ -72,3 +72,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0056](0056-optional-audio-backend-capabilities-and-real-time-stereo-voices.md) | Optional audio backend capabilities, real-time stereo voices, loop regions and background music reads | Accepted | 2026-10-05 |
 | [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |
 | [ADR-0058](0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md) | A software PlayStation SPU hosted by the software audio backend | Accepted | 2026-10-06 |
+| [ADR-0059](0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md) | A bus graph with effects, sends, ramps and snapshots mixed by the software audio backend | Accepted | 2026-10-06 |

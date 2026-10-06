@@ -4,6 +4,7 @@ Sons courts, musiques streamées et bus de mixage. Les décisions d'architecture
 [analysis-audio-system.md](../../ai-agent/audits/analysis-audio-system.md) (§3).
 Decisions: see [ADR-0001](../decisions/0001-audio-runtime-architecture-v1.md), [ADR-0002](../decisions/0002-audio-asset-format-and-editor-scope-v1.md), [ADR-0039](../decisions/0039-software-stereo-voices.md), [ADR-0040](../decisions/0040-project-audio-mute-setting.md) and [ADR-0055](../decisions/0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) (mixeur logiciel du moteur, §1 bis).
 SPU PlayStation logiciel, hébergé par le backend logiciel : [psx-spu.md](psx-spu.md) ([ADR-0058](../decisions/0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md)).
+Graphe de bus, effets, départs, ducking, fondus et snapshots du backend logiciel : §2 bis ([ADR-0059](../decisions/0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md)).
 
 ---
 
@@ -112,6 +113,67 @@ mixer.GetBus(AudioBusNames.Sfx).IsMuted = true;
 
 Le parent d'un bus est fixé à la création et ne change jamais : l'arbre ne peut pas contenir de
 cycle. Les bus par défaut sont figés dans le moteur ; un projet peut en ajouter au-dessus.
+
+---
+
+## 2 bis. Graphe de bus, effets et fondus sous le backend logiciel (ADR-0059)
+
+Avec le backend logiciel (capacité `IAudioBusBackend`), les bus deviennent un vrai graphe mixé sur
+le thread audio : chaque voix (y compris les voix stéréo, la musique streamée et le SPU PSX) est
+mixée dans le tampon de son bus, puis chaque bus applique ses effets, son gain propre, ses départs,
+et s'ajoute à son parent, jusqu'à `Master`. `AudioService` ne multiplie plus le gain du bus dans le
+volume de chaque voix. Les autres backends (MonoGame, faux backends de test) gardent exactement le
+comportement du §2 ; effets, départs et ducking y sont absents, avec une ligne de journal limitée.
+
+```csharp
+var mixer = game.AudioSystemComponent.Mixer;
+var service = game.AudioSystemComponent.Service;
+var music = mixer.GetBus(AudioBusNames.Music);
+var sfx = mixer.GetBus(AudioBusNames.Sfx);
+
+music.AddEffect(new BiquadFilterEffect(BiquadFilterType.LowPass, 800f)); // au plus 4 effets par bus
+music.AddEffect(new DuckingEffect(source: mixer.GetBus(AudioBusNames.Voice), depthDb: 12f));
+
+var reverbBus = mixer.CreateBus("Reverb", AudioBusNames.Master);
+reverbBus.AddEffect(new ReverbEffect(roomSize: 0.8f));
+sfx.SetSend(reverbBus, 0.4f);                       // départ post-fader ; 0 le retire
+
+service.FadeBus(AudioBusNames.Music, 0.2f, 1.5f);   // fondu de bus à durée explicite
+var calm = service.CaptureSnapshot();
+// ... changements de volumes et d'effets ...
+service.ApplySnapshot(calm, 0.5f);                  // retour en rampe
+service.MasterLimiter.CeilingDb = -1f;              // actif par défaut
+```
+
+- **Ordre du mix** : un bus est mixé après tous ceux qui l'alimentent (ses enfants, les bus qui lui
+  envoient un départ, la source d'un ducking). Dans le tampon d'un bus : effets insérés dans l'ordre
+  d'ajout, puis gain propre, puis départs et parent. Après `Master` : le limiteur, puis l'écrêtage
+  dur conservé en dernier recours.
+- **Gains** : le gain propre d'un bus (`muet ? 0 : volume`) est publié en dernière valeur, jamais
+  perdu, et rampé sur un bloc audio (10 ms). Au plus 32 bus ; au-delà, un avertissement et le bus
+  est mixé dans `Master`.
+- **Fondus** : `FadeVoice`, les fondus de `MusicPlayer` et `FadeBus` deviennent des rampes
+  interpolées à l'échantillon sur le thread audio, qui démarrent au bloc suivant. Le contrat public
+  ne change pas : `GetVoiceVolume`, `IsFading`, la fin de `StopWithFade` et les fondus enchaînés
+  suivent une chronologie tenue sur le thread de jeu, à un bloc près du son. Couper le son d'un bus
+  pendant un fondu prend effet au `Update` suivant.
+- **Effets** (`CasaEngine.Framework.Audio.Effects`) : `BiquadFilterEffect` (passe-bas, passe-haut,
+  passe-bande, crête, plateaux ; Audio EQ Cookbook du W3C), `CompressorEffect` (Giannoulis,
+  Massberg et Reiss, 2012), `ReverbEffect` (Freeverb, d'après J. O. Smith, CCRMA), `LimiterEffect`,
+  `DuckingEffect`. Les paramètres se changent à tout moment depuis le thread de jeu ; ils sont lus
+  au bloc suivant, sans lissage.
+- **Départs** : au plus 4 par bus, niveau dans [0, 1], pris après les effets et le gain propre du bus
+  (pas celui de ses ancêtres). Un départ ou un ducking qui fermerait une boucle est refusé
+  (`InvalidOperationException`).
+- **Ducking** : `DuckingEffect`, inséré sur le bus à atténuer, suit le niveau du bus source dans le
+  même bloc et réduit le bus cible de `DepthDb` au-dessus de `ThresholdDb`, avec attaque et
+  relâchement.
+- **Limiteur du Master** : `AudioService.MasterLimiter`, actif par défaut à −1 dBFS ;
+  `IsEnabled = false` le coupe. Tout son au-dessus du plafond est réduit au lieu d'être écrêté.
+- **Snapshots** : `CaptureSnapshot` retient le volume propre de chaque bus et les paramètres des
+  effets insérés ; `ApplySnapshot` rétablit les volumes par `FadeBus` et les paramètres aussitôt.
+  Le bus `Editor`, le muet des bus (donc le muet projet du `Master`) et le limiteur ne sont jamais
+  touchés.
 
 ---
 
@@ -338,7 +400,9 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   Si le thread audio meurt, le backend logiciel devient muet sans faire attendre le jeu.
 - **Limite de voix.** 64 par défaut côté backend. Au-delà, la voix est refusée avec un log
   throttlé, jamais une exception.
-- **Pas de limiteur ni d'effet** (tranche S4) : le backend logiciel écrête simplement la sortie.
+- **Effets, départs, ducking et limiteur : backend logiciel seulement** (§2 bis). Sous le backend
+  MonoGame, la sortie est seulement écrêtée. Pas encore de configuration de mixeur sérialisée ni
+  d'édition dans l'éditeur (tranche S6) : le graphe se construit par code.
 - **Latence du backend logiciel** : environ 40 ms d'avance plus la mise en tampon du périphérique.
   Le thread audio se réveille au rythme de la minuterie Windows (environ 15,6 ms). Mesure du
   2026-10-05 : 0 sous-alimentation sur 60 s de stress (ramasse-miettes forcé toutes les 500 ms).
@@ -352,9 +416,10 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
 
 Le programme « audio moderne » ([plan](../../ai-agent/tasks/audio-modern-tasks.md), ADR-0055)
 enchaîne, sur le mixeur logiciel, les tranches suivantes : temps réel et streaming hors du thread de
-jeu (S2), formats Ogg et ADPCM (S3), bus et effets (S4), couche jeu avec priorités, conteneurs et
-3D (S5), outils de l'éditeur (S6), puis le module PSX (SPU, séquenceur SEQ/VAB, XA). Les points
-ci-dessous viennent de la V1 et y sont repris.
+jeu (S2), formats Ogg et ADPCM (S3), bus et effets (S4, §2 bis), couche jeu avec priorités,
+conteneurs et 3D (S5), outils de l'éditeur (S6), puis le module PSX (SPU logiciel livré,
+[psx-spu.md](psx-spu.md) ; séquenceur SEQ/VAB et XA à venir). Les points ci-dessous viennent de la
+V1 et y sont repris.
 
 - Décodeur **Ogg Vorbis** branché sur `WavStreamReader`/`MusicPlayer` — NVorbis est déjà présent
   en dépendance transitive de MonoGame.
@@ -383,7 +448,10 @@ ci-dessous viennent de la V1 et y sont repris.
 | `Haut` / `Bas` | volume du bus `Master` |
 | `Gauche` / `Droite` | volume du bus `Sfx` |
 | `M` / `N` | mute `Master` / `Sfx` |
-| `G` | mode stress : SFX en boucle et musique, allocations massives et ramasse-miettes forcé toutes les 500 ms ; arrêt par un second appui |
+| `R` | Réverbération : envoi de `Sfx` vers un bus de retour `DemoReverb` (enfant de Master, `ReverbEffect`), niveau 0,5, activé ou désactivé (backend logiciel seulement) |
+| `T` | Filtre passe-bas à 600 Hz (`BiquadFilterEffect`) inséré sur le bus `Music`, activé ou désactivé (backend logiciel seulement) |
+| `D` | Ducking (`DuckingEffect`) de `Music` par `Sfx`, activé ou désactivé : lancer la musique (`P`) puis un son (`Espace` ou `L`) pour entendre la musique baisser (backend logiciel seulement) |
+| `G` | mode stress : SFX en boucle et musique, allocations massives et ramasse-miettes forcé toutes les 500 ms, avec le SPU PSX, une réverbération en départ et le limiteur du Master actifs ; arrêt par un second appui |
 
 L'écran affiche le backend actif et le nombre de voix ; avec le backend logiciel, aussi l'avance,
 le débit de sortie et le compteur de sous-alimentations.

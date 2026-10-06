@@ -1472,7 +1472,7 @@ Budget : identique à S2.
   seulement, un journal). Les deux solutions : 0 erreur, aucun avertissement dans les fichiers
   touchés ; suite complète 3057/3057 (trois passages). Choix à confirmer : O22.
 
-### ⏳ T5.6 — Démo, documentation, ADR et vérification
+### 🚧 T5.6 — Démo, documentation, ADR et vérification
 
 - Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs` (réverbération, filtre et ducking à la touche,
   stress inchangé), `docs/engine/audio-system.md`, `docs/decisions/0059-…md` (numéro revérifié sur
