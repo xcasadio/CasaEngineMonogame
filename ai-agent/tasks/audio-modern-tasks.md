@@ -2369,7 +2369,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   en pleine rampe, le volume rejoint sa nouvelle valeur sur le bloc suivant (comportement existant). Deux solutions sans
   erreur ni avertissement dans les fichiers touchés ; 3319/3319 quatre fois ; stress de 60 s : `underruns=0 gc=119`.
 
-### ⏳ T9.2 — Calcul spatial d'OpenAL 1.1, liaisons de paramètres et registre (P33, P36, P37, P39, P43)
+### ✅ T9.2 — Calcul spatial d'OpenAL 1.1, liaisons de paramètres et registre (P33, P36, P37, P39, P43)
 
 - Fichiers : nouveaux, `CasaEngine/Framework/Audio/Spatial/` (espace de noms `CasaEngine.Framework.Audio.Spatial`) :
   `AudioSpatialMode.cs`, `AudioDistanceModel.cs`, `AudioDistanceAttenuation.cs`, `AudioListenerPose.cs`,
@@ -2407,6 +2407,13 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   version sur changement seulement, zéro allocation de `GetOrCreateIndex` sur un nom existant. Zéro allocation de
   `Evaluate`, `Pan`, `Ratio`, `Set`/`Get`. Deux solutions ; suite verte.
 - Commit : `feat(audio): OpenAL 1.1 distance models, Doppler, spatial pan and game parameter bindings`
+- Note de validation (2026-10-06) : neuf fichiers dans `Framework/Audio/Spatial/` (publics : deux énumérations de mode
+  et de modèle, `AudioListenerPose`, `AudioParameterTarget`, `AudioParameterBinding` ; internes : atténuation, calcul
+  spatial, Doppler, registre de 64 paramètres) ; formules relues dans le PDF de la spécification (§3.4.1 à §3.4.6,
+  §3.5.2, §4.2.1), conformes aux faits du plan ; le modèle linéaire non borné ne fait que `min(distance, MAX)`, comme la
+  spécification (au-dessous de la référence il dépasse 1, puis la borne du moteur le ramène à 1). Une liaison dont une
+  sortie stockée n'est pas finie rend la valeur neutre. 61 tests, valeurs recalculées depuis la spécification, zéro
+  allocation. Deux solutions sans erreur ni avertissement dans les fichiers ajoutés ; 3380/3380.
 
 ### ⏳ T9.3 — Champs spatiaux et liaisons dans le `.sound`, inspecteur (P34, P42)
 
