@@ -143,7 +143,7 @@ internal sealed class BlendingControlsScreen : XamlUIScreenBase
     private MGSlider BindSlider(string name, Action<float> onChanged)
     {
         var slider = FindControl<MGSlider>(name);
-        slider.ValueChanged += (_, e) => onChanged(e.NewValue);
+        slider.ValueChangedNonAlloc += (_, e) => onChanged(e.NewValue);
         return slider;
     }
 }
