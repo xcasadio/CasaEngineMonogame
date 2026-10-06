@@ -953,6 +953,45 @@ public class CharacterControllerComponentTests
         Assert.NotNull(entity);
     }
 
+    [Fact]
+    public void Move_DropsADisplacementOfOneThousandthOfAPixelOrLess_ByDefault()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        entity.AddComponent(component);
+
+        Vector3 actualDisplacement = component.Move(new Vector3(0.0005f, 0f, 0f));
+
+        Assert.Equal(Vector3.Zero, actualDisplacement);
+        Assert.Equal(0f, entity.RootComponent!.Position.X);
+    }
+
+    [Fact]
+    public void Move_AppliesATinyDisplacement_WhenMinMoveDistanceIsZero()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.MinMoveDistance = 0f;
+        entity.AddComponent(component);
+
+        Vector3 actualDisplacement = component.Move(new Vector3(0.0005f, 0f, 0f));
+
+        Assert.Equal(new Vector3(0.0005f, 0f, 0f), actualDisplacement);
+        Assert.Equal(0.0005f, entity.RootComponent!.Position.X);
+    }
+
+    [Fact]
+    public void Move_StillDropsAZeroDisplacement_WhenMinMoveDistanceIsZero()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.MinMoveDistance = 0f;
+        entity.AddComponent(component);
+
+        Assert.Equal(Vector3.Zero, component.Move(Vector3.Zero));
+        Assert.Equal(0f, entity.RootComponent!.Position.X);
+    }
+
     private static Entity CreateEntityWithRoot()
     {
         return new Entity

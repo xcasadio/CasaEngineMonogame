@@ -13,12 +13,13 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaultsProvider, IWorldSystemDrivenComponent
 {
     private const int MaxSweepIterations = 3;
-    private const float MinMoveDistanceSquared = 0.000001f;
     private const float MinSweepShapeSize = 0.001f;
     private const int ContactBisectionIterations = 24;
     private const int ContactRecheckStepBacks = 4;
 
     private CharacterControllerSettings _settings = new();
+
+    private float MinMoveDistanceSquared => _settings.MinMoveDistance * _settings.MinMoveDistance;
     private Vector2 _moveIntent;
     private bool _jumpRequested;
     private float _jumpBufferRemainingSeconds;

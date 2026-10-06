@@ -193,6 +193,7 @@ public class ScrollingLayerComponent : GameComponent
             if (whiteTexture != null)
             {
                 var tintWorldPosition = new Vector2(cameraTarget.X - halfWidth, cameraTarget.Y + halfHeight);
+                ResolveTintDraw(tint.Value, out var tintColor, out var tintBlend);
 
                 renderer.DrawSprite(
                     whiteTexture,
@@ -201,12 +202,12 @@ public class ScrollingLayerComponent : GameComponent
                     tintWorldPosition,
                     0f,
                     new Vector2(configuration.ViewWidth, configuration.ViewHeight),
-                    tint.Value.Color,
+                    tintColor,
                     cameraTarget.Z,
                     tint.Value.SortKey,
                     SpriteEffects.None,
                     scissorRectangle,
-                    SpriteBlendMode.AlphaBlend);
+                    tintBlend);
             }
         }
 
@@ -291,6 +292,45 @@ public class ScrollingLayerComponent : GameComponent
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// The tint is one entry on the neutral alpha window (a flat primitive has no per-texel STP). Without a mode: the colour
+    /// as the caller wrote it, <see cref="SpriteBlendMode.AlphaBlend"/>. With a mode (E19.g G2d, ADR-0066): the colour is the
+    /// opaque colour of the primitive and the mode picks the blend state - mode 0 averages (alpha 128), mode 1 adds, mode 2
+    /// subtracts, mode 3 adds a quarter of the colour (each channel times 64/255, rounded to nearest).
+    /// </summary>
+    private static void ResolveTintDraw(ScrollingTintDefinition tint, out Color color, out SpriteBlendMode blend)
+    {
+        var source = tint.Color;
+        switch (tint.PsxSemiTransparency)
+        {
+            case SpritePsxSemiTransparency.Mode0:
+                color = new Color(source.R, source.G, source.B, (byte)128);
+                blend = SpriteBlendMode.AlphaBlend;
+                break;
+            case SpritePsxSemiTransparency.Mode1:
+                color = new Color(source.R, source.G, source.B, (byte)255);
+                blend = SpriteBlendMode.Additive;
+                break;
+            case SpritePsxSemiTransparency.Mode2:
+                color = new Color(source.R, source.G, source.B, (byte)255);
+                blend = SpriteBlendMode.Subtractive;
+                break;
+            case SpritePsxSemiTransparency.Mode3:
+                color = new Color(Quarter(source.R), Quarter(source.G), Quarter(source.B), (byte)255);
+                blend = SpriteBlendMode.Additive;
+                break;
+            default:
+                color = source;
+                blend = SpriteBlendMode.AlphaBlend;
+                break;
+        }
+    }
+
+    private static byte Quarter(byte channel)
+    {
+        return (byte)((channel * 64 + 127) / 255);
     }
 
     private Rectangle ResolveScissorRectangle()

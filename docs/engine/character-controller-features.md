@@ -162,6 +162,7 @@ Les reglages doivent rester petits et testables. Le tableau reflete le contenu r
 | `StepHeight` | Hauteur maximale de marche franchissable au sol. Zero desactive le step offset. |
 | `ProfileName` | Profil de collision du personnage, `CollisionProfileNames.Pawn` par defaut. Ses canaux bloques donnent le masque des sweeps via `GetSweepChannelMask()`. |
 | `HitTriggers` | Indique si les triggers doivent etre inclus dans les requetes. |
+| `MinMoveDistance` | Un deplacement demande d'une longueur egale ou inferieure (meme unite que la position) est jete au lieu d'etre applique ; cle JSON `min_move_distance`. Defaut `0.001` (comportement historique). `0` applique tout deplacement non nul, pour un proprietaire qui avance par pas d'une unite fixe (un deplacement nul reste jete). Ne peut pas etre negatif. |
 
 Ne pas utiliser `LayerMask` dans cette V1 : aucun type portant ce nom n'a ete constate. Si une abstraction de masque CasaEngine est creee plus tard, elle devra mapper proprement vers le filtrage physique existant.
 

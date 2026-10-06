@@ -94,7 +94,9 @@ rectangle de test.
 ## 6. Fusion et résolution des textures
 
 Chaque couche porte son propre `SpriteBlendMode`/teinte (politique DLL) ; la teinte plein écran est
-toujours soumise en `SpriteBlendMode.AlphaBlend`. Une couche qui porte un `PsxSemiTransparency` autre que
+soumise en `SpriteBlendMode.AlphaBlend` sauf si elle porte un `PsxSemiTransparency` (ADR-0066) : une seule entrée,
+fenêtre neutre, à l'état du mode (`Mode0` `AlphaBlend` en (R, G, B, 128), `Mode1` additif et `Mode2` soustractif en (R, G, B, 255),
+`Mode3` additif de chaque canal × 64/255) ; sans mode, la couleur telle quelle. Une couche qui porte un `PsxSemiTransparency` autre que
 `None` (ADR-0053, qui étend ADR-0051 aux couches de fond) ignore son `Blend` : chaque quad couvrant est
 soumis en deux entrées de même clé sur deux fenêtres d'alpha brut disjointes, les texels opaques (alpha
 255) à l'état opaque puis les texels STP (alpha 128) à l'état du mode (`Mode0` moyenne, `Mode1` additif,

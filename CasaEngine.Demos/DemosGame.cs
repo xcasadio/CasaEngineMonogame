@@ -103,6 +103,9 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new SpriteQueueCapacityDemo());
         // E19.g G2c (ADR-0051 extended to the background layers): per-texel PSX semi-transparency of the layer sheets.
         _demos.Add(new BackdropLayersPsxSemiTransparencyDemo());
+        // E19.g G2d (ADR-0066): the tint overlay of the scrolling layers draws with the PSX mode of the map, one scene per mode.
+        _demos.Add(new BackgroundTintPsxMode1Demo());
+        _demos.Add(new BackgroundTintPsxMode0Demo());
 
         ChangeDemo(ResolveStartupDemoIndex());
     }
