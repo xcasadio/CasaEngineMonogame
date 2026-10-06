@@ -7,6 +7,7 @@ SPU PlayStation logiciel, hébergé par le backend logiciel : [psx-spu.md](psx-s
 Graphe de bus, effets, départs, ducking, fondus et snapshots du backend logiciel : §2 bis ([ADR-0059](../decisions/0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md)).
 Variations aléatoires et priorités de voix : §3 et §4 ([ADR-0063](../decisions/0063-sound-variations-and-voice-priorities.md)).
 Écouteur, sons 2D et 3D, Doppler et paramètres de jeu : §5 quater ([ADR-0064](../decisions/0064-listener-spatial-audio-doppler-and-game-parameters.md)).
+Asset de mixeur `.audioMixer` du projet : §2 ter ([ADR-0067](../decisions/0067-a-project-mixer-asset-applied-to-the-live-mixer.md)) ; panneau de mixage de l'éditeur : [audio-mixer-panel.md](../editor/audio-mixer-panel.md).
 
 ---
 
@@ -205,6 +206,65 @@ if (service.TryGetMeterBusIndex(AudioBusNames.Music, out var music)
 
 ---
 
+## 2 ter. Asset de mixeur `.audioMixer` (ADR-0067)
+
+Un projet peut décrire ses bus dans **un** asset `.audioMixer`, désigné par le réglage de projet
+facultatif `AudioMixerAsset` (id de l'asset, recommandé, ou son nom ; vide = mixeur par défaut du
+moteur). L'asset est la seule source de vérité : il est appliqué au mixeur vivant, jamais l'inverse.
+
+```json
+{
+  "id": "…",
+  "name": "demo_mixer",
+  "type": "AudioMixerAsset",
+  "version": 1,
+  "schema_version": 1,
+  "buses": [
+    { "name": "Music", "parent": "Master", "volume": 1.0, "effects": [], "sends": [] },
+    { "name": "Sfx", "parent": "Master", "volume": 1.0, "effects": [],
+      "sends": [ { "target": "DemoMixerReverb", "level": 0.3 } ] },
+    { "name": "DemoMixerReverb", "parent": "Master", "volume": 1.0,
+      "effects": [ { "type": "reverb", "room_size": 0.5, "damping": 0.5, "wet": 1.0, "dry": 0.0, "stereo_separation": 1.0 } ],
+      "sends": [] }
+  ]
+}
+```
+
+- **Contenu** : bus (nom, parent, volume), effets insérés (`biquad` : `filter`, `frequency_hz`, `q`,
+  `gain_db` ; `compressor` : `threshold_db`, `ratio`, `knee_db`, `attack_seconds`, `release_seconds`,
+  `makeup_gain_db` ; `reverb` : `room_size`, `damping`, `wet`, `dry`, `stereo_separation` ;
+  `ducking` : `source`, `depth_db`, `threshold_db`, `attack_seconds`, `release_seconds`) et départs
+  (`target`, `level`). Le bus **Master** n'y figure pas (son muet appartient au projet, §5 ter), ni
+  Editor, ni les muets, ni le limiteur, ni de snapshots.
+- **Version** : `version` absente = 1 ; une version plus récente ou nulle est refusée (le projet garde
+  le mixeur par défaut, avec un avertissement). Les clés sont dans le runtime, l'écriture dans
+  l'éditeur.
+- **Validation tolérante, entrée par entrée** : nom vide, réservé (Master, Editor) ou en double ;
+  parent inconnu ou en cycle (le bus et ses descendants sont ignorés) ; effet, départ ou ducking
+  invalide ; plus de 4 effets ou 4 départs ; au-delà de la capacité de bus du backend logiciel (32,
+  Master compris, donc 26 bus d'asset au plus). Chaque entrée écartée est consignée avec le nom de
+  l'asset et du bus ; seul un fichier illisible ou d'une version plus récente est refusé en entier.
+  Aucune exception n'atteint le démarrage du jeu.
+- **Application** (`AudioMixerAssetApplier`, idempotente) : au démarrage, juste après
+  l'enregistrement des chargeurs d'assets, puis dans l'éditeur à chaque ouverture de projet. Deux
+  passes : création des bus (parents d'abord) et volumes, puis effets et départs. Elle ne retire,
+  ne renomme ni ne reparente jamais un bus (le moteur ne le sait pas), et ne touche ni Master, ni
+  Editor, ni les muets, ni le limiteur, ni les effets et départs posés par le jeu. Un paramètre
+  d'effet changé est modifié sur place ; un changement de type ou de source de ducking remplace
+  l'effet. Les volumes de l'asset sont des valeurs de départ : le jeu peut les réécrire.
+
+```csharp
+var applier = new AudioMixerAssetApplier(audioService);
+applier.Apply(mixerAsset);   // asset -> mixeur vivant
+applier.Release();           // volumes d'origine, effets et départs retirés
+```
+
+Exemple livré, **non activé** : `CasaEngine.Demos/Content/Audio/demo_mixer.audioMixer`. Pour l'essayer,
+ajouter à la racine de `CasaEngine.Demos/Content/DemosGame.json` la ligne
+`"AudioMixerAsset": "23ddf15f-ea55-4c8b-9077-9b033f10b0f9"`.
+
+---
+
 ## 3. L'asset `.sound`
 
 Un `.sound` référence son fichier audio par identifiant de catalogue, comme un `.texture`
@@ -280,7 +340,11 @@ ignorée de même. Un asset marqué streaming ignore variations et priorité.
 
 Dans l'éditeur : clic droit sur un dossier → **Create Sound**, puis double-clic pour ouvrir
 l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, loop,
-bus, mode spatial, modèle et distances, Doppler, nombre de liaisons, streaming, preview).
+bus, mode spatial, modèle et distances, Doppler, nombre de liaisons, streaming, preview). La liste
+des bus propose les quatre bus du moteur puis les autres bus de l'asset de mixeur du projet (§2 ter) ;
+un bus du `.sound` absent des deux s'affiche « (unknown bus) » sans être sélectionnable. La ligne
+« Waveform » dessine le fichier audio principal (décodé une fois à l'ouverture et au changement de
+fichier, jusqu'à 64 Mo de fichier).
 
 ---
 
@@ -421,7 +485,8 @@ puisque le bus `Editor` en descend. Accès en jeu :
 game.AudioSystemComponent.IsMuted = true; // mute Master et répercute dans les réglages projet
 ```
 
-Pas d'interface utilisateur : le réglage s'édite dans le fichier projet.
+Pas d'interface utilisateur : le réglage s'édite dans le fichier projet. Autres réglages audio du projet :
+`AudioBackend` (§1 bis), `IsMasterLimiterEnabled` (§2 bis) et `AudioMixerAsset` (§2 ter).
 
 ---
 
@@ -603,8 +668,11 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   première lecture, sur le thread de jeu (à-coup possible pour un gros fichier), et reste en
   mémoire ensuite.
 - **Effets, départs, ducking et limiteur : backend logiciel seulement** (§2 bis). Sous le backend
-  MonoGame, la sortie est seulement écrêtée. Pas encore de configuration de mixeur sérialisée ni
-  d'édition dans l'éditeur (tranche S6) : le graphe se construit par code.
+  MonoGame, la sortie est seulement écrêtée.
+- **Asset de mixeur** (§2 ter) : un bus ne se retire, ne se renomme ni ne se reparente pas à chaud ;
+  après un changement de projet dans l'éditeur, les bus du projet précédent restent vivants (remis à
+  leur volume d'origine, sans effet ni départ) jusqu'au redémarrage. Les muets ne sont pas dans
+  l'asset. Le dessin d'un gros Ogg décode tout le fichier (comme sa lecture, l'Ogg étant résident).
 - **Latence du backend logiciel** : environ 40 ms d'avance plus la mise en tampon du périphérique.
   Le thread audio se réveille au rythme de la minuterie Windows (environ 15,6 ms). Mesure du
   2026-10-05 : 0 sous-alimentation sur 60 s de stress (ramasse-miettes forcé toutes les 500 ms).
@@ -625,7 +693,8 @@ V1 et y sont repris.
 
 - Décodeur **Ogg Vorbis** branché sur `WavStreamReader`/`MusicPlayer` — NVorbis est déjà présent
   en dépendance transitive de MonoGame.
-- **Panneau mixer** dans l'éditeur, et persistance des volumes.
+- **Persistance des volumes utilisateur** (réglages du joueur, distincts de l'asset de mixeur du
+  projet).
 - **Producteur en tâche de fond** pour le streaming, si la lecture disque devient audible.
 
 ---

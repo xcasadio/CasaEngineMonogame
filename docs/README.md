@@ -56,7 +56,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 ### Audio
 
-- [audio-system.md](engine/audio-system.md) — système audio V1 : bus de mixage (et, sous le backend logiciel, graphe de bus avec effets, départs, ducking, limiteur, fondus à l'échantillon et snapshots, ADR-0059), asset `.sound` (variations aléatoires et priorité de vol de voix, ADR-0063), écouteur, sons 2D et 3D, Doppler et paramètres de jeu (ADR-0064), SFX one-shot/loop, streaming des musiques (fade, crossfade), `SoundEmitterComponent`, actions de cutscene, règles play-in-editor et limites connues.
+- [audio-system.md](engine/audio-system.md) — système audio V1 : bus de mixage (et, sous le backend logiciel, graphe de bus avec effets, départs, ducking, limiteur, fondus à l'échantillon et snapshots, ADR-0059), asset `.sound` (variations aléatoires et priorité de vol de voix, ADR-0063), écouteur, sons 2D et 3D, Doppler et paramètres de jeu (ADR-0064), asset de mixeur `.audioMixer` du projet (ADR-0067), SFX one-shot/loop, streaming des musiques (fade, crossfade), `SoundEmitterComponent`, actions de cutscene, règles play-in-editor et limites connues.
 - [psx-spu.md](engine/psx-spu.md) — SPU PlayStation logiciel (ADR-0058, ADR-0062) : registres, ADPCM, ADSR, bruit, PMON, réverbération, tables par défaut (`CreateDefault`) ou fournies par l'appelant, hébergement par le backend logiciel (`AudioService.TryCreatePsxSpu`, `PsxSpuPort`), bornes et ordre des écritures, points de précision ouverts.
 
 ### Rendu 2D
@@ -84,6 +84,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
+- [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).
 - [gameplay-csproj-scaffolding.md](editor/gameplay-csproj-scaffolding.md) — conception du scaffolding du projet C# gameplay à `CreateProject` (csproj/sln générés, Phase 1 DLL éditeur → Phase 2 NuGet).
 - [timeline_control_architecture.md](editor/timeline_control_architecture.md) — architecture du contrôle Timeline V1.

@@ -3100,7 +3100,7 @@ de clôture **READY**.
   plus de `DeepEquals`, qui ignore l'ordre des clés). Démo lancée sans clavier : 294 assets au catalogue, aucune ligne du
   mixeur, aucun avertissement. Deux solutions sans erreur ; 4067/4067.
 
-### ⏳ T10.11 — Documentation, ADR et vérification de la tranche
+### 🧪 T10.11 — Documentation, ADR et vérification de la tranche
 
 - Fichiers : `docs/engine/audio-system.md` (nouvelle section « 2 ter. Asset de mixeur `.audioMixer` », « 5 ter »
   pour le réglage, §3, §9, §10), nouveau `docs/editor/audio-mixer-panel.md` (anglais), `docs/editor/editor-history.md`
@@ -3112,6 +3112,10 @@ de clôture **READY**.
   `AudioMixer.cs`, `AudioBus.cs`, `Software/`) ; projet sans réglage inchangé ; une entrée d'historique par geste ; mesures
   sans allocation ; exemple de la doc compilé. Au plus cinq passes de correction pour un P1 ou P2.
 - Commit : `docs(audio): document the mixer asset, the mixer panel and the sound inspector additions`
+- Note (2026-10-06) : `audio-system.md` (nouvelle section « 2 ter », renvoi depuis « 5 ter », §3 liste de bus et dessin,
+  §9 limites, §10), `docs/editor/audio-mixer-panel.md` (nouveau, anglais), `docs/editor/editor-history.md` (contexte de
+  mixage), **ADR-0067** (0065 et 0066 sont déjà pris par des branches `e19`, dont une renumérotation en cours), index des
+  ADR et `docs/README.md`. Vérificateur frais en attente.
 
 ---
 

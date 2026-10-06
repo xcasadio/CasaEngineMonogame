@@ -78,3 +78,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0062](0062-default-spu-tables-and-a-project-switch-for-the-master-limiter.md) | Default SPU tables and a project switch for the Master limiter | Accepted | 2026-10-06 |
 | [ADR-0063](0063-sound-variations-and-voice-priorities.md) | Sound variations and voice priorities | Accepted | 2026-10-06 |
 | [ADR-0064](0064-listener-spatial-audio-doppler-and-game-parameters.md) | Listener, spatial audio, Doppler and game parameters | Accepted | 2026-10-06 |
+| [ADR-0067](0067-a-project-mixer-asset-applied-to-the-live-mixer.md) | A project mixer asset applied to the live mixer, and an editable mixer panel | Accepted | 2026-10-06 |
