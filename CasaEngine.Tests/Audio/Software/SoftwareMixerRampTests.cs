@@ -204,6 +204,22 @@ public class SoftwareMixerRampTests
     }
 
     [Fact]
+    public void ABusRampStartsFromItsCarriedStartGain_NotFromTheGainTheAudioThreadHolds()
+    {
+        var mixer = new SoftwareMixer(OutputRate);
+        Assert.True(mixer.TryCreateBus(SoftwareMixer.MasterBus, out var bus));
+        MixerWithVoice(bus, mixer); // the bus is at 1 on the audio thread
+
+        Assert.True(mixer.TryRampBusGain(bus, 0.5f, 1f, 1000));
+        var output = Render(mixer, 1000);
+
+        for (var i = 0; i < 1000; i++)
+        {
+            Assert.Equal(FullScale * (0.5f + 0.5f * (i + 1f) / 1000f), output[i * 2], Tolerance);
+        }
+    }
+
+    [Fact]
     public void ABusRamp_YieldsToAGainPublishedAfterIt_EvenOfTheSameValue()
     {
         var mixer = new SoftwareMixer(OutputRate);

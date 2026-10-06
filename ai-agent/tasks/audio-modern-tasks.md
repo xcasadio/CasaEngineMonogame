@@ -1509,7 +1509,17 @@ Budget : identique à S2.
   publie alors `muet ? 0 : volume` à chaque frame, comme pour un muet posé en cours de fondu.
   2 tests (scénarios F et F2 du vérificateur, comparés au repli, avec rétablissement du son) ; les
   deux solutions : 0 erreur ; suite complète 3064/3064 (trois passages) ; stress de 60 s :
-  `underruns=0`.
+  `underruns=0`. **Troisième vérificateur frais sur `be32267f` : REFUTED** — N1 et F1 corrigés
+  (toutes les sondes justes, y compris muet puis rétablissement, et dix combinaisons muettes ou
+  mixtes à erreur nulle), mais **R1 (P2, présent depuis T5.2)** : une rampe de bus part du gain
+  que le backend tenait avant la frame, pas du volume du bus, quand le volume ou le muet a changé
+  plus tôt dans la même frame (cas courant : `FadeBus(bus, 0, 0)` puis `FadeBus(bus, 1, 2 s)` → pas
+  de fondu d'entrée). **Correctif de R1** (passe 3 sur 5, reprise d'urgence) : la commande de
+  rampe de bus porte sa valeur de départ (`fade.Start`, le volume du bus côté jeu à l'envoi) ;
+  surcharge additive `IAudioBusBackend.TryRampBusGain(bus, départ, cible, secondes)` (interface non
+  publiée) ; règles F1 et N1 inchangées. 6 tests (un du mixeur ; Q1, Q2, Q3, P1, P2 comparés au
+  repli tick par tick à 0,01 près) ; les deux solutions : 0 erreur, aucun avertissement dans les
+  fichiers touchés ; suite complète 3070/3070 (trois passages) ; stress de 60 s : `underruns=0`.
 
 ---
 

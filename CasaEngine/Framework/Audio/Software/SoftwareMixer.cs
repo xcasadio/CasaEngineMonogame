@@ -413,6 +413,16 @@ internal sealed class SoftwareMixer
     /// </summary>
     public bool TryRampBusGain(int bus, float gain, int frames)
     {
+        return TryRampBusGain(bus, float.NaN, gain, frames);
+    }
+
+    /// <summary>
+    /// Like <see cref="TryRampBusGain(int, float, int)"/>, from <paramref name="startGain"/> (the value the game thread
+    /// knows the bus has, which the audio thread may not have seen yet) instead of the gain the audio thread holds.
+    /// A NaN start means that held gain.
+    /// </summary>
+    public bool TryRampBusGain(int bus, float startGain, float gain, int frames)
+    {
         if ((uint)bus >= (uint)_producerBusCount)
         {
             return false;
@@ -424,6 +434,7 @@ internal sealed class SoftwareMixer
             Bus = bus,
             Volume = Math.Clamp(float.IsNaN(gain) ? 1f : gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
             Frames = frames,
+            StartGain = float.IsNaN(startGain) ? float.NaN : Math.Clamp(startGain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
 
             // Producer side, where the count is written: a gain published after this point, even before the audio thread
             // applies the command, is later than the ramp and wins over it.
@@ -1330,12 +1341,12 @@ internal sealed class SoftwareMixer
         }
     }
 
-    // Render thread. The ramp starts from the gain the bus has now; see TryRampBusGain.
-    private void StartBusRamp(int bus, float target, int frames, int publishCount)
+    // Render thread. The ramp starts from the given gain, or from the gain the bus has now when none was given; see TryRampBusGain.
+    private void StartBusRamp(int bus, float start, float target, int frames, int publishCount)
     {
         frames = Math.Max(1, frames);
         ref var ramp = ref _busRamps[bus];
-        ramp.Value = _busAppliedGain[bus];
+        ramp.Value = float.IsNaN(start) ? _busAppliedGain[bus] : start;
         ramp.Target = target;
         ramp.Increment = (target - ramp.Value) / frames;
         ramp.FramesLeft = frames;
@@ -1447,7 +1458,7 @@ internal sealed class SoftwareMixer
         {
             if ((uint)command.Bus < (uint)_busCount)
             {
-                StartBusRamp(command.Bus, command.Volume, command.Frames, command.PublishCount);
+                StartBusRamp(command.Bus, command.StartGain, command.Volume, command.Frames, command.PublishCount);
             }
 
             return;

@@ -620,6 +620,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
 
     public bool TryRampBusGain(int busIndex, float targetGain, float durationSeconds)
     {
+        return TryRampBusGain(busIndex, float.NaN, targetGain, durationSeconds);
+    }
+
+    public bool TryRampBusGain(int busIndex, float startGain, float targetGain, float durationSeconds)
+    {
         if (!IsOutputAlive())
         {
             return false;
@@ -628,7 +633,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         var frames = SecondsToFrames(durationSeconds);
         var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryRampBusGain(busIndex, targetGain, frames)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        while (!(sent = _mixer.TryRampBusGain(busIndex, startGain, targetGain, frames)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
         {
         }
 

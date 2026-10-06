@@ -107,6 +107,9 @@ internal struct MixerCommand
 
     /// <summary><see cref="MixerCommandKind.RampBus"/>: publish count of the bus when the command was sent (see <see cref="SoftwareMixer.TryRampBusGain"/>).</summary>
     public int PublishCount;
+
+    /// <summary><see cref="MixerCommandKind.RampBus"/>: gain the ramp starts from, or NaN for the gain the bus has when the command is applied.</summary>
+    public float StartGain;
 }
 
 internal enum MixerEventKind

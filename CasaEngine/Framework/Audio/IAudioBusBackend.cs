@@ -69,6 +69,13 @@ public interface IAudioBusBackend
     /// </summary>
     bool TryRampBusGain(int busIndex, float targetGain, float durationSeconds);
 
+    /// <summary>
+    /// <see cref="TryRampBusGain(int, float, float)"/> from <paramref name="startGain"/>: the gain the caller knows the bus
+    /// has now. A caller that changed the bus volume earlier in the same frame has not published it yet (a ramped bus is not
+    /// published meanwhile), so the backend must not start from the gain it still holds. NaN means that held gain.
+    /// </summary>
+    bool TryRampBusGain(int busIndex, float startGain, float targetGain, float durationSeconds);
+
     /// <summary>Stops the gain ramp of a bus at the value it has reached. Ignored when no ramp runs.</summary>
     void FreezeBusGain(int busIndex);
 

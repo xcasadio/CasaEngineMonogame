@@ -585,6 +585,85 @@ public class AudioServiceRampFadeTests
         Assert.Equal(0f, soft.RenderedLevel(), 1e-4f);
     }
 
+    // Runs the same setup on the software rig and on the fallback and checks, tick by tick, that the audio of the first
+    // follows the voice gain of the second to within one block (the slopes here are at most 1 per second).
+    private static void AssertSameAsFallback(Action<Rig> setup, int ticks = 130)
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+        soft.PlayConstantHalf();
+        var fakeVoice = fake.PlayConstantHalf();
+        soft.Tick(3);
+        fake.Tick(3);
+
+        setup(soft);
+        setup(fake);
+
+        for (var tick = 0; tick < ticks; tick++)
+        {
+            soft.Tick();
+            fake.Tick();
+            Assert.Equal(BusVolume(fake), BusVolume(soft), 5);
+            Assert.Equal(0.5f * fake.Fake.GetParameters(fakeVoice).Volume, soft.RenderedLevel(), 0.01f);
+        }
+    }
+
+    [Fact]
+    public void ARampedFadeAfterAZeroDurationOne_InTheSameFrame_StartsFromTheValueJustSet()
+    {
+        AssertSameAsFallback(rig =>
+        {
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0f, 0f);
+            rig.Service.FadeBus(AudioBusNames.Sfx, 1f, 2f);
+        });
+    }
+
+    [Fact]
+    public void ASnapshotAppliedOverTime_AfterAVolumeSetInTheSameFrame_StartsFromThatVolume()
+    {
+        AssertSameAsFallback(rig =>
+        {
+            var snapshot = rig.Service.CaptureSnapshot();
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).Volume = 0f;
+            rig.Service.ApplySnapshot(snapshot, 1f);
+        });
+    }
+
+    [Fact]
+    public void ARampedFadeAfterAZeroDurationSnapshot_InTheSameFrame_StartsFromTheSnapshotVolume()
+    {
+        AssertSameAsFallback(rig =>
+        {
+            var snapshot = rig.Service.CaptureSnapshot();
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).Volume = 0.2f;
+            rig.Tick();
+            rig.Service.ApplySnapshot(snapshot, 0f);
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.3f, 1f);
+        });
+    }
+
+    [Fact]
+    public void AnUnmuteThenARampedFade_InTheSameFrame_StartsFromTheBusVolume_NotFromSilence()
+    {
+        AssertSameAsFallback(rig =>
+        {
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = true;
+            rig.Tick(2);
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).IsMuted = false;
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.5f, 1f);
+        });
+    }
+
+    [Fact]
+    public void ARampedFadeAfterAVolumeSetInTheSameFrame_StartsFromThatVolume()
+    {
+        AssertSameAsFallback(rig =>
+        {
+            rig.Service.Mixer.GetBus(AudioBusNames.Sfx).Volume = 0.2f;
+            rig.Service.FadeBus(AudioBusNames.Sfx, 0.8f, 1f);
+        });
+    }
+
     [Fact]
     public void FadeBus_IgnoresAnUnknownBus()
     {
