@@ -127,7 +127,8 @@ public class ViewManagerSandbox : Demo
     {
         var game = _game!;
         var pp   = game.GraphicsDevice.PresentationParameters;
-        var rects = SplitScreenLayout.Compute(pp.BackBufferWidth, pp.BackBufferHeight, 4, SplitMode.Grid4);
+        var sceneArea = game.GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight);
+        var rects = SplitScreenLayout.Compute(sceneArea, 4, SplitMode.Grid4);
 
         var targets = new[]
         {

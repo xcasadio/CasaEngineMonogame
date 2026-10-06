@@ -224,7 +224,7 @@ Automatisation et tests :
 - Commit : `fix(demos): defer demo changes, follow window resizes, reset the auto layout`
 - Note de validation (2026-10-06) : `_pendingDemoIndex` posé par `RequestDemo` (callback de l'ancien panneau) et consommé au début de `DemosGame.Update` ; `AutoLayoutMode = null` dans `ChangeDemo` avant `InitializeCamera` de la démo suivante (Split-screen et Sandbox le reposent dans leur `InitializeCamera`) ; `Window.ClientSizeChanged` → `OnScreenResized(bounds)` sans résolution virtuelle. Build : 0 erreur. Redimensionnement vérifié sans toucher aux entrées de l'auteur (script `resize-capture.ps1` du scratchpad : lancement, `MoveWindow` à 1296x839, capture par la démo) : Material remplit 1280x800, Split-screen passe à deux vues de 640x800. **Reste à la main (T5.2)** : changer de démo par l'ancien panneau, et Split-screen → Material (une seule vue plein cadre).
 
-### ⏳ T3.2 — Contrat de viewport de `PostDraw` et démos placées dans la zone
+### ✅ T3.2 — Contrat de viewport de `PostDraw` et démos placées dans la zone
 
 - Objectif : `PostDraw` dessine dans la zone de la scène ; les démos qui posaient leurs vues sur toute la fenêtre utilisent la zone.
 - Fichiers : `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/Demo.cs` (doc XML de `PostDraw`), `CasaEngine.Demos/Demos/SplitScreenDemo.cs`, `CasaEngine.Demos/Demos/ViewManagerSandbox.cs`, `CasaEngine.Demos/Demos/RenderToTextureDemo.cs`.
@@ -234,6 +234,7 @@ Automatisation et tests :
   3. `RenderToTextureDemo` : caméra 1 et vue principale sur la zone (`:85`, `:102`), vignette calculée sur `GraphicsDevice.Viewport` (`:133-134`), surcharge `OnScreenResized` qui rend à la caméra 2 sa taille de cible (`_camera2.OnScreenResized(RtSize, RtSize)`).
 - Validation : build ; marges encore nulles, donc image identique : sonde Split-screen égale à la référence T0.1 ; les trois démos lancées à la main.
 - Commit : `refactor(demos): demos lay their views out in the scene area`
+- Note de validation (2026-10-06) : `AfterRenderPipeline` pose le viewport sur `GetLayoutArea` autour de `PostDraw` puis restaure le précédent ; doc XML de `Demo.PostDraw` ; Split-screen et Sandbox découpent `GetLayoutArea` ; Render-to-texture pose caméra et vue principale sur la zone, place la vignette depuis `GraphicsDevice.Viewport` et rend à la caméra RT sa taille (`OnScreenResized`). Build : 0 erreur. Marges nulles : 7 sondes PASS, relevés identiques, captures identiques sauf les statistiques de Split-screen. Après agrandissement à 1280x800 (script `resize-capture.ps1`) : Render-to-texture plein cadre, vignette carrée en bas à droite ; Sandbox en 4 vues de 640x400. Constat préexistant, hors périmètre : la vue 3 de Sandbox (mode `OnDemand`) garde son ancienne image après un redimensionnement, une vue `OnDemand` dans le back-buffer ne se redessine pas à chaque image.
 
 ---
 

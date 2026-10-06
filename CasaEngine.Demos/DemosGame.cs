@@ -273,7 +273,13 @@ public class DemosGame : CasaEngineGame
 
     protected override void AfterRenderPipeline(GameTime gameTime)
     {
+        // Demo.PostDraw draws in the scene area (the layout area of the views, ADR-0070), never over the demo browser.
+        var pp = GraphicsDevice.PresentationParameters;
+        var previousViewport = GraphicsDevice.Viewport;
+        GraphicsDevice.Viewport = new Viewport(GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight));
         _currentDemo?.PostDraw(this, gameTime);
+        GraphicsDevice.Viewport = previousViewport;
+
         TryCaptureAutomationScreenshot(gameTime);
     }
 
