@@ -56,6 +56,9 @@ public sealed class AudioService : IDisposable
     private const float PanSendThreshold = 0.002f;
     private const float RateSendThreshold = 0.0005f;
 
+    // Below this elapsed time a velocity cannot be derived from a displacement: the last one is kept (plan decision P37).
+    private const float MinVelocityElapsed = 1e-6f;
+
     // Listener stack (plan decision P35): the last registered listener is the active one. Slots are recycled through the
     // pool, so a registration after the first ones allocates nothing.
     private readonly List<ListenerSlot> _listeners = new(8);
@@ -64,6 +67,11 @@ public sealed class AudioService : IDisposable
     // The pose the voices spatialize against this frame, read from the stack at the start of Update.
     private AudioListenerPose _activePose = AudioListenerPose.Default;
     private bool _hasActiveListener;
+    // Velocity of the active listener, derived from the poses pushed in the last two frames (plan decision P37).
+    private Vector3 _activeVelocity;
+    // Elapsed time of the current Update, read by the voices to derive their own velocity.
+    private float _frameElapsed;
+    private float _speedOfSound = AudioDoppler.DefaultSpeedOfSound;
 
     private PsxSpuPort _spuPort;
     private string _spuBusName;
@@ -321,6 +329,9 @@ public sealed class AudioService : IDisposable
         entry.HasModulation = mode != AudioSpatialMode.None;
         entry.HasPosition = start.HasPosition;
         entry.Position = start.Position;
+        entry.DopplerFactor = start.Asset?.DopplerFactor ?? 0f;
+        // A position given at the start is the first pose of the voice: the next push is measured against it.
+        entry.PositionPushedThisFrame = start.HasPosition;
         entry.SentGain = startGain;
         entry.SentPan = startPan;
         entry.FoldedGain = hasCapability ? 1f : startGain;
@@ -339,6 +350,11 @@ public sealed class AudioService : IDisposable
         entry.RolloffFactor = 1f;
         entry.Position = Vector3.Zero;
         entry.HasPosition = false;
+        entry.DopplerFactor = 0f;
+        entry.PreviousPosition = Vector3.Zero;
+        entry.HasPreviousPosition = false;
+        entry.Velocity = Vector3.Zero;
+        entry.PositionPushedThisFrame = false;
         entry.SentGain = 1f;
         entry.SentPan = float.NaN;
         entry.SentRate = 1f;
@@ -773,6 +789,28 @@ public sealed class AudioService : IDisposable
     }
 
     /// <summary>
+    /// Sets the base pitch of an already-playing voice, in octaves (clamped to the range of
+    /// <see cref="AudioVoiceParameters"/>). Pushed like <see cref="SetVoicePan"/>; a spatial Doppler ratio is applied on top
+    /// of it and is kept when the voice moves. Ignored for a stale handle.
+    /// </summary>
+    public void SetVoicePitch(AudioVoiceHandle voice, float pitch)
+    {
+        if (!TryGetEntry(voice, out var entry))
+        {
+            return;
+        }
+
+        entry.BaseParameters = entry.BaseParameters.WithPitch(pitch);
+        _backend.SetParameters(entry.Handle, BuildBackendParameters(entry));
+    }
+
+    /// <summary>Base pitch of the voice, in octaves, without the Doppler ratio; 0 for a stale handle.</summary>
+    public float GetVoicePitch(AudioVoiceHandle voice)
+    {
+        return TryGetEntry(voice, out var entry) ? entry.BaseParameters.Pitch : 0f;
+    }
+
+    /// <summary>
     /// Moves a voice started with <see cref="PlaySoundAt"/> (or gives a position to a voice of a spatial sound started
     /// without one): the next <see cref="Update"/> recomputes its distance gain and pan. Ignored for a stale handle.
     /// </summary>
@@ -785,6 +823,7 @@ public sealed class AudioService : IDisposable
 
         entry.Position = position;
         entry.HasPosition = true;
+        entry.PositionPushedThisFrame = true;
 
         // A spatial sound started without a position plays as a non spatial one until it gets one (plan decision P38).
         if (entry.SpatialMode == AudioSpatialMode.None && entry.AssetSpatialMode != AudioSpatialMode.None)
@@ -815,6 +854,7 @@ public sealed class AudioService : IDisposable
             if (ReferenceEquals(_listeners[i].Source, source))
             {
                 _listeners[i].Pose = pose;
+                _listeners[i].PushedThisFrame = true;
                 return;
             }
         }
@@ -838,6 +878,9 @@ public sealed class AudioService : IDisposable
 
         slot.Source = source;
         slot.Pose = pose;
+        slot.PushedThisFrame = true;
+        slot.HasPreviousPosition = false;
+        slot.Velocity = Vector3.Zero;
         _listeners.Add(slot);
     }
 
@@ -869,6 +912,23 @@ public sealed class AudioService : IDisposable
         _listeners.RemoveAt(index);
         slot.Source = null;
         _listenerPool.Add(slot);
+    }
+
+    /// <summary>
+    /// Speed of sound of the Doppler effect, in world units per second. It must be tuned to the game's world units (the
+    /// default is 343.3, the value of the OpenAL specification for metres); the Doppler effect stays off unless a sound asset
+    /// sets <c>doppler_factor</c> above zero. A NaN or non-positive value is ignored and the previous one is kept.
+    /// </summary>
+    public float SpeedOfSound
+    {
+        get => _speedOfSound;
+        set
+        {
+            if (value > 0f)
+            {
+                _speedOfSound = value;
+            }
+        }
     }
 
     /// <summary>Bus the voice is routed to, or null for a stale handle.</summary>
@@ -1222,8 +1282,9 @@ public sealed class AudioService : IDisposable
             return;
         }
 
+        _frameElapsed = elapsedSeconds;
         AdvanceBusFades(elapsedSeconds);
-        AdvanceListener();
+        AdvanceListener(elapsedSeconds);
 
         var mixerChanged = _appliedMixerVersion != Mixer.Version;
 
@@ -1308,13 +1369,49 @@ public sealed class AudioService : IDisposable
     }
 
     /// <summary>Reads the active listener (the top of the stack) for the voices of this frame.</summary>
-    private void AdvanceListener()
+    private void AdvanceListener(float elapsedSeconds)
     {
+        // Every slot advances, not only the active one: a listener that becomes active later must not measure its
+        // displacement over frames it was not followed.
+        for (var i = 0; i < _listeners.Count; i++)
+        {
+            var slot = _listeners[i];
+            var position = slot.Pose.Position;
+
+            if (slot.PushedThisFrame)
+            {
+                if (!slot.HasPreviousPosition)
+                {
+                    slot.Velocity = Vector3.Zero;
+                }
+                else if (elapsedSeconds > MinVelocityElapsed)
+                {
+                    slot.Velocity = (position - slot.PreviousPosition) / elapsedSeconds;
+                }
+
+                slot.PreviousPosition = position;
+                slot.HasPreviousPosition = true;
+                slot.PushedThisFrame = false;
+            }
+            else
+            {
+                // Not pushed in this frame: no motion is known, and the next push has nothing to compare with.
+                slot.Velocity = Vector3.Zero;
+                slot.HasPreviousPosition = false;
+            }
+        }
+
         _hasActiveListener = _listeners.Count > 0;
 
         if (_hasActiveListener)
         {
-            _activePose = _listeners[^1].Pose;
+            var active = _listeners[^1];
+            _activePose = active.Pose;
+            _activeVelocity = active.Velocity;
+        }
+        else
+        {
+            _activeVelocity = Vector3.Zero;
         }
     }
 
@@ -1888,14 +1985,22 @@ public sealed class AudioService : IDisposable
     {
         var gain = 1f;
         var pan = float.NaN;
-        // The speed ratio is neutral until the Doppler effect is added to the voice.
         var rate = 1f;
+
+        AdvanceVoiceVelocity(entry);
 
         if (_hasActiveListener && entry.SpatialMode != AudioSpatialMode.None && entry.HasPosition)
         {
             EvaluateSpatial(
                 _activePose, entry.SpatialMode, entry.DistanceModel, entry.ReferenceDistance, entry.MaxDistance,
                 entry.RolloffFactor, entry.Position, out gain, out pan);
+
+            if (entry.DopplerFactor > 0f)
+            {
+                rate = AudioDoppler.Ratio(
+                    entry.SpatialMode, _activePose.Position, _activeVelocity, entry.Position, entry.Velocity,
+                    _speedOfSound, entry.DopplerFactor);
+            }
         }
 
         var gainChanged = MathF.Abs(gain - entry.SentGain) > GainSendThreshold;
@@ -1938,6 +2043,12 @@ public sealed class AudioService : IDisposable
             entry.FoldedPan = pan;
         }
 
+        if (rateChanged)
+        {
+            // Without the channel the speed ratio is a pitch offset in octaves; BuildBackendParameters bounds the total.
+            entry.FoldedPitchOffset = MathF.Log2(rate);
+        }
+
         if (panChanged || rateChanged)
         {
             // Pushes the whole parameter set, the volume included.
@@ -1952,6 +2063,31 @@ public sealed class AudioService : IDisposable
         }
 
         return false;
+    }
+
+    /// <summary>Derives the velocity of a voice from the position pushed since the last frame (plan decision P37) and clears the flag.</summary>
+    private void AdvanceVoiceVelocity(VoiceEntry entry)
+    {
+        if (entry.PositionPushedThisFrame)
+        {
+            if (!entry.HasPreviousPosition)
+            {
+                entry.Velocity = Vector3.Zero;
+            }
+            else if (_frameElapsed > MinVelocityElapsed)
+            {
+                entry.Velocity = (entry.Position - entry.PreviousPosition) / _frameElapsed;
+            }
+
+            entry.PreviousPosition = entry.Position;
+            entry.HasPreviousPosition = true;
+            entry.PositionPushedThisFrame = false;
+        }
+        else
+        {
+            entry.Velocity = Vector3.Zero;
+            entry.HasPreviousPosition = false;
+        }
     }
 
     private static bool PanDiffers(float pan, float sent)
@@ -2057,6 +2193,19 @@ public sealed class AudioService : IDisposable
         public Vector3 Position;
         public bool HasPosition;
 
+        /// <summary>Doppler factor of the asset (0 = off).</summary>
+        public float DopplerFactor;
+
+        /// <summary>Position of the last frame the voice was followed in, to derive <see cref="Velocity"/>.</summary>
+        public Vector3 PreviousPosition;
+        public bool HasPreviousPosition;
+
+        /// <summary>World units per second, derived from the positions pushed in two successive frames (plan decision P37).</summary>
+        public Vector3 Velocity;
+
+        /// <summary>True when the position was pushed since the last <see cref="UpdateModulation"/>.</summary>
+        public bool PositionPushedThisFrame;
+
         /// <summary>Last values sent beyond the thresholds of P44 (to the modulation channel, or folded).</summary>
         public float SentGain;
         public float SentPan;
@@ -2100,6 +2249,11 @@ public sealed class AudioService : IDisposable
             RolloffFactor = 0f;
             Position = Vector3.Zero;
             HasPosition = false;
+            DopplerFactor = 0f;
+            PreviousPosition = Vector3.Zero;
+            HasPreviousPosition = false;
+            Velocity = Vector3.Zero;
+            PositionPushedThisFrame = false;
             SentGain = 0f;
             SentPan = 0f;
             SentRate = 0f;
@@ -2114,6 +2268,10 @@ public sealed class AudioService : IDisposable
     {
         public object Source;
         public AudioListenerPose Pose;
+        public Vector3 PreviousPosition;
+        public bool HasPreviousPosition;
+        public Vector3 Velocity;
+        public bool PushedThisFrame;
     }
 
     // What a start tells the modulation: the asset (null for a plain PlayClip), and the position given to PlaySoundAt.

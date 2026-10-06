@@ -2516,7 +2516,7 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   mutation : retirer le repliement du gain fait échouer 17 tests ; 0 octet sur 100 frames de 64 voix spatiales déplacées.
   Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3499/3499 quatre fois.
 
-### ⏳ T9.5 — Doppler et pitch de voix (P33, P37)
+### ✅ T9.5 — Doppler et pitch de voix (P33, P37)
 
 - Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, test `CasaEngine.Tests/Audio/Spatial/AudioServiceDopplerTests.cs`.
 - Étapes : `VoiceEntry` : `DopplerFactor`, position précédente, vitesse, drapeau « position poussée dans la frame » ;
@@ -2530,6 +2530,13 @@ valeurs de départ et jouait son premier bloc à plein gain), corrigés ; relect
   dans la frame → vitesse 0 ; sous le repli le pitch total reste borné à ±1 octave (rapport 4 demandé) ; `SetVoicePitch`
   borné et conservé ; zéro allocation. Deux solutions ; suite verte.
 - Commit : `feat(audio): Doppler on spatial voices and a settable voice pitch`
+- Note de validation (2026-10-06) : vitesses de l'écouteur et des voix dérivées des poses poussées dans la frame
+  (une pose non poussée donne 0 et invalide la position précédente : la reprise mesure un pas complet une frame plus
+  tard, sans pic) ; rapport de Doppler envoyé dans le canal ou replié en `log2` borné à ±1 octave ; `SpeedOfSound`,
+  `SetVoicePitch`, `GetVoicePitch` (API additive). 23 tests : × 1,1111 pour une source qui approche à 34,33 u/s sous le
+  backend logiciel (tolérance 0,002, quantification d'une rampe 16 bits), × 1,1 pour l'écouteur, rapport 4 borné à
+  +1 octave sur le repli, pitch de base gardé ; 0 octet sur 100 frames de 64 voix Doppler. Deux solutions sans erreur,
+  aucun avertissement dans les fichiers touchés ; 3522/3522.
 
 ### ⏳ T9.6 — Paramètres de jeu (P39)
 
