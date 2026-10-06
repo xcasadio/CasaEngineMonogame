@@ -2898,7 +2898,7 @@ de clôture **READY**.
   erreur, aucun avertissement sur les lignes touchées ; 3698/3698. **🧪 pour l'auteur** : un projet avec un
   `.audioMixer` désigné, ouvert comme premier puis comme second projet d'une session de l'éditeur.
 
-### ⏳ T10.4 — Document de mixage de l'éditeur : historique, gestes, solo, enregistrement (P49 à P53)
+### ✅ T10.4 — Document de mixage de l'éditeur : historique, gestes, solo, enregistrement (P49 à P53)
 
 - Fichiers : nouveaux `CasaEngine.EditorServices/Audio/AudioMixerDocument.cs`, `AudioMixerSolo.cs` ; tests
   `CasaEngine.Tests/EditorServices/AudioMixerDocumentTests.cs`, `AudioMixerSoloTests.cs`.
@@ -2929,6 +2929,14 @@ de clôture **READY**.
   muet, bus vivant hors asset jamais coupé) et rendu nul d'un bus coupé sous le backend logiciel hors ligne. Deux
   solutions ; suite verte.
 - Commit : `feat(editor): an audio mixer document with history, gestures, solo and save`
+- Note de validation (2026-10-06) : `AudioMixerDocument` (instantanés JSON compacts avant/après ; l'asset et le mixeur
+  vivant sont déjà à jour quand la commande part, sa première exécution ne refait rien ; `IsDirty` en cache ; gestes à une
+  entrée ; liaison `DetachLive`/`UpdateLiveBinding` sur `AssetId` ; `RestoreSavedToLive` par un asset temporaire ; muets
+  possédés : seuls ceux que le document a posés sont rétablis, un bus déjà coupé par le jeu n'est pas touché) et
+  `AudioMixerSolo` (pur). 48 tests, dont annuler/rétablir de chaque opération sur l'asset et le mixeur vivant, gestes,
+  refus, sens unique, changement de projet avec la vraie synchro et `LoadProject` (A, B, puis un projet qui désigne
+  l'asset de A), solo (dont les retours du mixeur vivant) et rendu nul d'un bus coupé. Deux solutions sans erreur, aucun
+  avertissement dans les fichiers ajoutés ; 3746/3746.
 
 ### ⏳ T10.5 — Plomberie de l'éditeur et coquille du panneau (P49, P50)
 
