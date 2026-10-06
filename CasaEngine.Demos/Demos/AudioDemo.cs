@@ -29,6 +29,14 @@ namespace CasaEngine.Demos.Demos;
 ///   B          play a mono beep on a software stereo voice (ADR-0039): left only, then right
 ///              only, then both channels, one step per press
 ///
+/// Variation and priority keys:
+///   V          play the varied click (menu_click_varied.sound): each press draws a volume factor in
+///              [0.6, 1] and a pitch offset in [-0.15, 0.15] octave
+///   J          start looping clicks at volume 0.05 and priority 1 on every free voice, so that the
+///              next Space is refused; S stops them
+///   H          play the click with priority 10: when every voice is taken it steals the oldest
+///              priority-1 voice (the Voices line counts the steal)
+///
 /// Music keys (streamed from disk, never fully loaded):
 ///   P          start the music with a one second fade in, or fade it out over two seconds
 ///   C          crossfade to the other music track over two seconds
@@ -56,6 +64,7 @@ namespace CasaEngine.Demos.Demos;
 public class AudioDemo : Demo
 {
     private static readonly Guid ClickSoundAssetId = new("b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4");
+    private static readonly Guid VariedClickSoundAssetId = new("f5c920e0-ab46-45d8-81c0-feb6f481b27d");
     private static readonly Guid MusicAssetId = new("7c9e5d31-4b62-4a08-8e17-2f6ba0c4d5e9");
     private static readonly Guid PitchedMusicAssetId = new("2e60f8a4-9c13-4d75-b3ea-58c7d1904f26");
 
@@ -63,6 +72,10 @@ public class AudioDemo : Demo
     private const float MusicFadeInSeconds = 1f;
     private const float MusicFadeOutSeconds = 2f;
     private const float CrossfadeSeconds = 2f;
+
+    private const float FillVoiceVolume = 0.05f;
+    private const int FillVoicePriority = 1;
+    private const int HighPriority = 10;
 
     private const string StressSecondsVariable = "CASAENGINE_AUDIO_STRESS_SECONDS";
     private const int StressGcIntervalMilliseconds = 500;
@@ -81,9 +94,11 @@ public class AudioDemo : Demo
 
     private CasaEngineGame? _game;
     private AssetHandle<SoundAsset>? _clickSoundHandle;
+    private AssetHandle<SoundAsset> _variedClickSoundHandle;
     private AssetHandle<SoundAsset>? _musicHandle;
     private AssetHandle<SoundAsset>? _pitchedMusicHandle;
     private SoundAsset? _clickSound;
+    private SoundAsset _variedClickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
     private PcmAudioClip? _stereoBeep;
@@ -128,6 +143,8 @@ public class AudioDemo : Demo
 
         _clickSoundHandle = TryAcquire(game, ClickSoundAssetId);
         _clickSound = _clickSoundHandle?.Asset;
+        _variedClickSoundHandle = TryAcquire(game, VariedClickSoundAssetId);
+        _variedClickSound = _variedClickSoundHandle?.Asset;
         _musicHandle = TryAcquire(game, MusicAssetId);
         _music = _musicHandle?.Asset;
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
@@ -237,6 +254,21 @@ public class AudioDemo : Demo
             service.StopWithFade(_loopingVoice, 1f);
             _loopingVoice = AudioVoiceHandle.None;
             _lastAction = "loop fading out over 1s";
+        }
+
+        if (WasJustPressed(keyboard, Keys.V))
+        {
+            PlayVariedClick(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.J))
+        {
+            FillFreeVoices(service, _clickSound);
+        }
+
+        if (WasJustPressed(keyboard, Keys.H))
+        {
+            PlayHighPriorityClick(service, _clickSound);
         }
 
         if (WasJustPressed(keyboard, Keys.S))
@@ -365,7 +397,7 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, $"Master  volume {master.Volume:0.00}  muted {master.IsMuted}  gain {master.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Sfx     volume {sfx.Volume:0.00}  muted {sfx.IsMuted}  gain {sfx.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Music   volume {music.Volume:0.00}  muted {music.IsMuted}  gain {music.EffectiveGain:0.00}");
-        DrawLine(spriteBatch, ref y, $"Voices: {service.ActiveVoiceCount} active, {service.RefusedVoiceCount} refused"
+        DrawLine(spriteBatch, ref y, $"Voices: {service.ActiveVoiceCount} active, {service.RefusedVoiceCount} refused, {service.StolenVoiceCount} stolen"
             + $"   Music tracks: {service.Music.ActiveTrackCount}");
         DrawLine(spriteBatch, ref y, service.Music.IsAlive(_musicTrack)
             ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
@@ -378,6 +410,8 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
+        DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
+        DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
         DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
         DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
@@ -403,10 +437,13 @@ public class AudioDemo : Demo
         _panelBackground = null;
         _font = null;
         _clickSound = null;
+        _variedClickSound = null;
         _music = null;
         _pitchedMusic = null;
         _clickSoundHandle?.Dispose();
         _clickSoundHandle = null;
+        _variedClickSoundHandle?.Dispose();
+        _variedClickSoundHandle = null;
         _musicHandle?.Dispose();
         _musicHandle = null;
         _pitchedMusicHandle?.Dispose();
@@ -716,6 +753,61 @@ public class AudioDemo : Demo
         _spuPort.TryKeyOff(0xF);
         _spuPort.Dispose();
         _spuPort = null;
+    }
+
+    private void PlayVariedClick(AudioService service)
+    {
+        if (_variedClickSound == null)
+        {
+            _lastAction = "varied click asset is missing";
+            return;
+        }
+
+        var voice = service.PlaySound(_variedClickSound, _game?.GameManager.CurrentWorld);
+        _lastAction = voice.IsValid ? "varied click played" : "varied click refused (no voice left)";
+    }
+
+    /// <summary>
+    /// Starts a quiet looping click of priority 1 on every voice the backend still has free, so that a sound without
+    /// priority is then refused and a sound of a higher priority steals one of them.
+    /// </summary>
+    private void FillFreeVoices(AudioService service, SoundAsset clickSound)
+    {
+        var freeVoices = service.Backend.VoiceCapacity - service.Backend.ActiveVoiceCount;
+        var overrides = new SoundPlaybackOverrides(isLooped: true, volume: FillVoiceVolume) { Priority = FillVoicePriority };
+        var started = 0;
+
+        for (var i = 0; i < freeVoices; i++)
+        {
+            if (!service.PlaySound(clickSound, overrides, _game?.GameManager.CurrentWorld).IsValid)
+            {
+                break;
+            }
+
+            started++;
+        }
+
+        _lastAction = started > 0
+            ? $"{started} priority-1 loops started"
+            : "no free voice to fill";
+    }
+
+    private void PlayHighPriorityClick(AudioService service, SoundAsset clickSound)
+    {
+        var stolenBefore = service.StolenVoiceCount;
+        var overrides = new SoundPlaybackOverrides { Priority = HighPriority };
+        var voice = service.PlaySound(clickSound, overrides, _game?.GameManager.CurrentWorld);
+
+        if (!voice.IsValid)
+        {
+            _lastAction = "priority 10 click refused (no voice to steal)";
+        }
+        else
+        {
+            _lastAction = service.StolenVoiceCount > stolenBefore
+                ? "priority 10 click played, a voice was stolen"
+                : "priority 10 click played, a voice was free";
+        }
     }
 
     private void PlayStereoBeep(AudioService service)

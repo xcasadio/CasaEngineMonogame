@@ -2146,7 +2146,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   colonne et que les lignes d'aide ne forcent pas de défilement horizontal. Une plage inversée est acceptée
   (P25 : triée au tirage).
 
-### ⏳ T8.6 — Démo : variations et vol de voix
+### 🧪 T8.6 — Démo : variations et vol de voix
 
 - Fichiers : `CasaEngine.Demos/Demos/AudioDemo.cs`, `CasaEngine.Demos/Content/Audio/menu_click_varied.sound`
   (nouveau, GUID neuf), `CasaEngine.Demos/Content/AssetInfos.json`, `CasaEngine.Demos/Content/Content.mgcb`.
@@ -2164,6 +2164,15 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   nouveau `.sound` sans erreur au journal. 🧪 pour l'auteur : J puis Espace → refus, compteur de vols inchangé ;
   J puis H → un vol de plus et le clic joue ; V → hauteurs et volumes variés.
 - Commit : `feat(demos): demo keys for sound variations and voice priorities`
+- Note de validation (2026-10-06) : `menu_click_varied.sound` (`f5c920e0-ab46-45d8-81c0-feb6f481b27d`, même `.wav`
+  que le clic, `variation_volume_min` 0,6, pitch ±0,15 ; `variation_volume_max` omis car égal au défaut) déclaré dans
+  `AssetInfos.json` et `Content.mgcb` ; touches V, J, H (libres) ; la ligne `Voices:` affiche `stolen`. Deux
+  solutions et la démo sans erreur ; aucun avertissement nouveau dans `AudioDemo.cs` (les 11 CS8632 du fichier
+  préexistent). Lancement sans clavier (capture d'écran après 3 s, fermeture automatique) sous `Software` puis
+  `MonoGame` : sortie 0, le nouveau `.sound` chargé, aucun avertissement ni erreur au journal, ligne
+  `Voices: 0 active, 0 refused, 0 stolen` visible. **🧪 pour l'auteur**, sous les deux backends : V plusieurs fois
+  (volume et hauteur varient) ; J puis Espace (refus, `stolen` inchangé) ; J puis H (`stolen` + 1, le clic joue) ;
+  S arrête les boucles de J.
 
 ### ⏳ T8.7 — Documentation, ADR et vérification de la tranche
 

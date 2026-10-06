@@ -19,6 +19,9 @@
 #begin Audio/menu_click.sound
 /copy:Audio/menu_click.sound
 
+#begin Audio/menu_click_varied.sound
+/copy:Audio/menu_click_varied.sound
+
 #begin Audio/menu_screenclick.wav
 /copy:Audio/menu_screenclick.wav
 
