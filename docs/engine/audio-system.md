@@ -174,6 +174,25 @@ service.MasterLimiter.CeilingDb = -1f;              // actif par défaut
   effets insérés ; `ApplySnapshot` rétablit les volumes par `FadeBus` et les paramètres aussitôt.
   Le bus `Editor`, le muet des bus (donc le muet projet du `Master`) et le limiteur ne sont jamais
   touchés.
+- **Mesure des niveaux** (capacité `IAudioMeteringBackend`, ADR-0060) : le thread audio publie, pour
+  chaque bloc, la crête par canal et la valeur efficace de chaque bus (après ses effets et son gain)
+  et de la sortie, et compte les échantillons au-delà de la pleine échelle avant le limiteur. Chaque
+  lecteur garde son curseur et ne perd aucune crête s'il lit au moins toutes les 80 ms ; rien n'est
+  verrouillé ni alloué.
+
+```csharp
+var cursor = default(AudioMeterCursor);        // un par lecteur
+Span<AudioLevel> buses = stackalloc AudioLevel[32];
+if (service.TryGetMeterBusIndex(AudioBusNames.Music, out var music)
+    && service.TryReadLevels(ref cursor, buses, out var output, out var read))
+{
+    var musicPeak = buses[music].Peak;          // linéaire, 1 = pleine échelle
+    var overs = output.Overs;
+}
+```
+
+  Le panneau « Audio » de l'éditeur (Windows > Audio) affiche ces niveaux :
+  [audio-profiler-panel.md](../editor/audio-profiler-panel.md).
 
 ---
 

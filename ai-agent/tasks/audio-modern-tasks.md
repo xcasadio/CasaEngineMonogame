@@ -1699,7 +1699,7 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
   Les deux solutions : 0 erreur, aucun avertissement dans les fichiers touchés ; suite complète
   3131/3131 (trois passages). Éditeur non lancé : vérification visuelle 🧪 pour l'auteur.
 
-### ⏳ T6.3 — Documentation, ADR et vérification
+### 🚧 T6.3 — Documentation, ADR et vérification
 
 - Fichiers : `docs/editor/` (nouvelle page du panneau), `docs/engine/audio-system.md`,
   `docs/decisions/0060-…md` (numéro revérifié sur toutes les branches, P22–P23), index, ce plan.

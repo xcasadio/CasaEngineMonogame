@@ -73,3 +73,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |
 | [ADR-0058](0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md) | A software PlayStation SPU hosted by the software audio backend | Accepted | 2026-10-06 |
 | [ADR-0059](0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md) | A bus graph with effects, sends, ramps and snapshots mixed by the software audio backend | Accepted | 2026-10-06 |
+| [ADR-0060](0060-lock-free-bus-metering-and-a-read-only-audio-profiler-panel.md) | Lock-free bus metering and a read-only audio profiler panel | Accepted | 2026-10-06 |
