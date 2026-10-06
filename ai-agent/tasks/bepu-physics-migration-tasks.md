@@ -264,7 +264,10 @@ l'overlay physique (smoke manuel documenté dans le commit) ; suite physique ver
   2026-08-23** après le merge (`5e4a7cb9`, un nœud sans `physics_type` garde le type courant, test ajouté).
 - Test `AssimpToGltfConverterTests.Convert_ObjStaticMesh…` signalé flaky une fois par un verifier :
   non reproductible en 36 passes complètes ; nettoyage du dossier temporaire rendu best-effort
-  (retries) le 2026-08-23, seule étape fragile du test.
+  (retries) le 2026-08-23, seule étape fragile du test. Cause trouvée le 2026-09-24 : le glb
+  intermédiaire écrit par l'exporteur natif d'Assimp (handle héritable) était hérité par un
+  processus enfant lancé en parallèle (`dotnet build` des tests de scripts) ; le convertisseur
+  exporte désormais en mémoire (`ExportToBlob`), sans fichier intermédiaire.
 - Le smoke visuel de l'overlay debug (`TileMapDemo`, éditeur) n'a pas été exécuté par les agents
   (pas de session graphique) : rester en 🧪 dans le suivi, à valider par l'utilisateur.
 - Nettoyer `Collision2dBasicDemo.cs:76` (ligne commentée référençant un champ supprimé) si elle

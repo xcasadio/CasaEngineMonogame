@@ -33,14 +33,45 @@ public readonly struct SoundPlaybackOverrides
     /// <summary>Null or empty keeps the bus declared by the asset.</summary>
     public string BusName { get; }
 
+    /// <summary>
+    /// Replaces the overridden fields of <paramref name="parameters"/>. Every field that is not
+    /// overridden, the loop region and the rate multiplier included, keeps its input value.
+    /// </summary>
     public AudioVoiceParameters ApplyTo(in AudioVoiceParameters parameters)
     {
-        return new AudioVoiceParameters(
-            Volume ?? parameters.Volume,
-            Pan ?? parameters.Pan,
-            Pitch ?? parameters.Pitch,
-            IsLooped ?? parameters.IsLooped);
+        var result = parameters;
+
+        if (Volume.HasValue)
+        {
+            result = result.WithVolume(Volume.Value);
+        }
+
+        if (Pan.HasValue)
+        {
+            result = result.WithPan(Pan.Value);
+        }
+
+        if (Pitch.HasValue)
+        {
+            result = result.WithPitch(Pitch.Value);
+        }
+
+        if (IsLooped.HasValue)
+        {
+            result = result.WithLooping(IsLooped.Value);
+        }
+
+        return result;
     }
+
+    /// <summary>
+    /// Steal priority replacing the one of the asset. Null keeps the asset value; 0 removes any priority
+    /// (the voice neither steals nor can be stolen); values are clamped to [0, <see cref="SoundAsset.MaxPriority"/>].
+    /// </summary>
+    public int? Priority { get; init; }
+
+    /// <summary>Priority of the voice to start: the override when set, otherwise <paramref name="assetPriority"/>, clamped.</summary>
+    public int ResolvePriority(int assetPriority) => Math.Clamp(Priority ?? assetPriority, 0, SoundAsset.MaxPriority);
 
     public string ResolveBus(string assetBusName)
     {

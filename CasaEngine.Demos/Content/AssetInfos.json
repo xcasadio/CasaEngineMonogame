@@ -1171,6 +1171,12 @@
       "asset_type": "sound"
     },
     {
+      "id": "f5c920e0-ab46-45d8-81c0-feb6f481b27d",
+      "name": "menu_click_varied",
+      "file_name": "Audio\\menu_click_varied.sound",
+      "asset_type": "sound"
+    },
+    {
       "id": "7c9e5d31-4b62-4a08-8e17-2f6ba0c4d5e9",
       "name": "racing_game_music",
       "file_name": "Audio\\racing_game_music.sound",
@@ -1181,6 +1187,12 @@
       "name": "racing_game_music_pitched",
       "file_name": "Audio\\racing_game_music_pitched.sound",
       "asset_type": "sound"
+    },
+    {
+      "id": "23ddf15f-ea55-4c8b-9077-9b033f10b0f9",
+      "name": "demo_mixer",
+      "file_name": "Audio\\demo_mixer.audioMixer",
+      "asset_type": "audiomixer"
     }
   ]
 }

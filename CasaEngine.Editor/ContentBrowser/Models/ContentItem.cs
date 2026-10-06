@@ -245,6 +245,8 @@ public sealed class ContentItem : INotifyPropertyChanged
         { ".particle", ContentItemType.Particle },
         // TileMaps
         { ".tileMap", ContentItemType.TileMap },
+        // Audio mixers
+        { ".audioMixer", ContentItemType.AudioMixer },
         // Sprites
         { ".sprite", ContentItemType.Sprite },
         // Prefabs / Entities

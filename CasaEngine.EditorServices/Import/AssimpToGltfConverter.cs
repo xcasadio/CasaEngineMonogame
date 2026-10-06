@@ -10,10 +10,15 @@ namespace CasaEngine.EditorServices.Import;
 /// SharpGLTF), so every other source format is normalised to <c>.glb</c> first and then read
 /// back by the shared SharpGLTF readers.
 /// <para/>
-/// The conversion is two-stage: AssimpNetter exports an intermediate binary glTF (which may
-/// reference textures by external URI), then SharpGLTF re-reads it with a resolver that pulls
+/// The conversion is two-stage: AssimpNetter exports an intermediate binary glTF in memory (which
+/// may reference textures by external URI), then SharpGLTF re-reads it with a resolver that pulls
 /// those textures from the source asset's directory by file name and embeds them, producing a
 /// fully self-contained <c>.glb</c>.
+/// <para/>
+/// The intermediate glTF never goes through a file: Assimp's native file I/O opens files with
+/// inheritable handles, so a child process started at that moment by any thread of the editor
+/// (a <c>dotnet build</c> of the gameplay scripts, for instance) inherits the write handle and
+/// keeps the file locked for its whole lifetime.
 /// </summary>
 public static class AssimpToGltfConverter
 {
@@ -63,41 +68,35 @@ public static class AssimpToGltfConverter
         }
 
         string sourceDirectory = Path.GetDirectoryName(Path.GetFullPath(sourceFilePath)) ?? string.Empty;
-        string intermediateDirectory = Path.Combine(Path.GetTempPath(), "CasaEngineGlbConvert", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(intermediateDirectory);
-        string intermediateGlb = Path.Combine(intermediateDirectory, "intermediate.glb");
 
-        try
+        ExportDataBlob? intermediateGlb;
+        using (var context = new AssimpContext())
         {
-            using (var context = new AssimpContext())
+            if (!context.GetSupportedExportFormats().Any(format =>
+                    string.Equals(format.FormatId, GlbExportFormatId, StringComparison.OrdinalIgnoreCase)))
             {
-                if (!context.GetSupportedExportFormats().Any(format =>
-                        string.Equals(format.FormatId, GlbExportFormatId, StringComparison.OrdinalIgnoreCase)))
-                {
-                    throw new NotSupportedException($"AssimpNetter does not expose the '{GlbExportFormatId}' export format.");
-                }
-
-                var scene = context.ImportFile(sourceFilePath, ConversionPostProcess);
-                if (!context.ExportFile(scene, intermediateGlb, GlbExportFormatId))
-                {
-                    throw new InvalidOperationException($"AssimpNetter failed to export '{sourceFilePath}' to glb.");
-                }
+                throw new NotSupportedException($"AssimpNetter does not expose the '{GlbExportFormatId}' export format.");
             }
 
-            // Re-read with a resolver that embeds external textures (resolved by file name from the
-            // source directory) so the final glb is fully self-contained. Validation is skipped
-            // because Assimp's exporter emits inverse-bind matrices that fail strict glTF validation
-            // yet are correct for linear-blend skinning.
-            var readContext = ReadContext.Create(assetName => ResolveAsset(assetName, intermediateDirectory, sourceDirectory));
-            readContext.Validation = ValidationMode.Skip;
-            var model = readContext.ReadSchema2(Path.GetFileName(intermediateGlb));
-            model.SaveGLB(destinationGlbPath, new WriteSettings { Validation = ValidationMode.Skip });
-            return destinationGlbPath;
+            var scene = context.ImportFile(sourceFilePath, ConversionPostProcess);
+            intermediateGlb = context.ExportToBlob(scene, GlbExportFormatId);
         }
-        finally
+
+        if (intermediateGlb == null || !intermediateGlb.HasData)
         {
-            TryDeleteDirectory(intermediateDirectory);
+            throw new InvalidOperationException($"AssimpNetter failed to export '{sourceFilePath}' to glb.");
         }
+
+        // Re-read with a resolver that embeds external textures (resolved by file name from the
+        // source directory) so the final glb is fully self-contained. Validation is skipped
+        // because Assimp's exporter emits inverse-bind matrices that fail strict glTF validation
+        // yet are correct for linear-blend skinning.
+        var readContext = ReadContext.Create(assetName => ResolveAsset(assetName, sourceDirectory));
+        readContext.Validation = ValidationMode.Skip;
+        using var intermediateStream = new MemoryStream(intermediateGlb.Data, writable: false);
+        var model = readContext.ReadBinarySchema2(intermediateStream);
+        model.SaveGLB(destinationGlbPath, new WriteSettings { Validation = ValidationMode.Skip });
+        return destinationGlbPath;
     }
 
     /// <summary>
@@ -119,13 +118,12 @@ public static class AssimpToGltfConverter
         return Convert(sourceFilePath, destinationGlbPath);
     }
 
-    private static ArraySegment<byte> ResolveAsset(string assetName, string intermediateDirectory, string sourceDirectory)
+    private static ArraySegment<byte> ResolveAsset(string assetName, string sourceDirectory)
     {
-        // The glb container and any sibling files Assimp wrote next to it.
-        string directPath = Path.Combine(intermediateDirectory, assetName);
-        if (File.Exists(directPath))
+        // External textures referenced by an absolute path, as DCC tools often write them.
+        if (Path.IsPathRooted(assetName) && File.Exists(assetName))
         {
-            return new ArraySegment<byte>(File.ReadAllBytes(directPath));
+            return new ArraySegment<byte>(File.ReadAllBytes(assetName));
         }
 
         // External textures: Assimp may reference them with an original sub-path (e.g. "kid/Tex.png")
@@ -140,20 +138,5 @@ public static class AssimpToGltfConverter
         }
 
         return new ArraySegment<byte>(Array.Empty<byte>());
-    }
-
-    private static void TryDeleteDirectory(string directory)
-    {
-        try
-        {
-            if (Directory.Exists(directory))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
-        }
-        catch
-        {
-            // Best-effort cleanup of the temporary conversion artifacts.
-        }
     }
 }

@@ -1,10 +1,13 @@
 using System.Reflection;
 using CasaEngine.Engine.Input;
+using CasaEngine.EditorServices.Audio;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.Entities;
@@ -97,6 +100,10 @@ internal static class EditorAssetJsonSerializer
 
             case SoundAsset soundAsset:
                 SaveSoundAsset(soundAsset, rootObject);
+                return true;
+
+            case AudioMixerAsset audioMixerAsset:
+                EditorAudioMixerAssetJsonWriter.Save(audioMixerAsset, rootObject);
                 return true;
 
             default:
@@ -746,6 +753,94 @@ internal static class EditorAssetJsonSerializer
         node.Add("is_looped", soundAsset.IsLooped);
         node.Add("bus_name", soundAsset.BusName);
         node.Add("is_streaming", soundAsset.IsStreaming);
+
+        if (soundAsset.Priority > 0)
+        {
+            node.Add("priority", soundAsset.Priority);
+        }
+
+        var variationIds = new JArray();
+        foreach (var variationId in soundAsset.VariationAudioFileAssetIds)
+        {
+            if (variationId != Guid.Empty)
+            {
+                variationIds.Add(variationId.ToString());
+            }
+        }
+
+        if (variationIds.Count > 0)
+        {
+            node.Add("variation_audio_file_asset_ids", variationIds);
+        }
+
+        if (soundAsset.VariationVolumeMin != 1f)
+        {
+            node.Add("variation_volume_min", soundAsset.VariationVolumeMin);
+        }
+
+        if (soundAsset.VariationVolumeMax != 1f)
+        {
+            node.Add("variation_volume_max", soundAsset.VariationVolumeMax);
+        }
+
+        if (soundAsset.VariationPitchMin != 0f)
+        {
+            node.Add("variation_pitch_min", soundAsset.VariationPitchMin);
+        }
+
+        if (soundAsset.VariationPitchMax != 0f)
+        {
+            node.Add("variation_pitch_max", soundAsset.VariationPitchMax);
+        }
+
+        if (soundAsset.SpatialMode != AudioSpatialMode.None)
+        {
+            node.Add("spatial_mode", soundAsset.SpatialMode.ToString());
+        }
+
+        if (soundAsset.DistanceModel != AudioDistanceModel.InverseDistanceClamped)
+        {
+            node.Add("distance_model", soundAsset.DistanceModel.ToString());
+        }
+
+        if (soundAsset.ReferenceDistance != 1f)
+        {
+            node.Add("reference_distance", soundAsset.ReferenceDistance);
+        }
+
+        if (soundAsset.MaxDistance != float.MaxValue)
+        {
+            node.Add("max_distance", soundAsset.MaxDistance);
+        }
+
+        if (soundAsset.RolloffFactor != 1f)
+        {
+            node.Add("rolloff_factor", soundAsset.RolloffFactor);
+        }
+
+        if (soundAsset.DopplerFactor != 0f)
+        {
+            node.Add("doppler_factor", soundAsset.DopplerFactor);
+        }
+
+        if (soundAsset.ParameterBindings.Count > 0)
+        {
+            var bindings = new JArray();
+            foreach (var binding in soundAsset.ParameterBindings)
+            {
+                bindings.Add(new JObject
+                {
+                    ["parameter"] = binding.ParameterName,
+                    ["target"] = binding.Target.ToString(),
+                    ["input_min"] = binding.InputMin,
+                    ["input_max"] = binding.InputMax,
+                    ["output_min"] = binding.OutputMin,
+                    ["output_max"] = binding.OutputMax,
+                });
+            }
+
+            node.Add("parameter_bindings", bindings);
+        }
     }
 
     private static void SaveTexture(Texture texture, JObject node)

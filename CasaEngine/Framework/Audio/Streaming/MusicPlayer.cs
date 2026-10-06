@@ -7,11 +7,13 @@ namespace CasaEngine.Framework.Audio.Streaming;
 /// Several tracks can play at once, which is what makes a crossfade possible; each one gets its
 /// own voice, so volume, pan and bus gain apply per track.
 /// <para>
-/// Blocks are read on the game thread from <see cref="Update"/>. For the sizes involved this is
-/// marginal (a 22 kHz stereo 16 bit stream is about 88 KB/s), and it keeps the whole thing free
-/// of threading. The queue is kept several hundred milliseconds deep so a long frame — shader
-/// compilation, world load — does not starve the voice. Moving the reads to a background
-/// producer is the natural next step if that ever becomes audible.
+/// Two modes, chosen by <see cref="AudioService"/>. With a real backend the files are read by a single
+/// background <see cref="StreamingWorker"/>: <see cref="Play"/> still opens the file, parses the header and
+/// queues the first buffers synchronously, then hands the reader to the worker, and <see cref="Update"/> only
+/// copies ready blocks from the track's ring to the voice (the game thread stays the only thread that
+/// submits to the backend). In the inline mode (test backends) <see cref="Update"/> reads the file itself.
+/// The queue is kept several hundred milliseconds deep so a long frame — shader compilation, world
+/// load — does not starve the voice.
 /// </para>
 /// <para>
 /// Looping is done by rewinding the reader: MonoGame refuses IsLooped on a dynamic voice.
@@ -31,10 +33,22 @@ public sealed class MusicPlayer : IDisposable
     private readonly int _queuedBufferTarget;
     private readonly AudioLogThrottle _log = new();
 
+    private readonly bool _useWorker;
+    private StreamingWorker _worker;
     private bool _isDisposed;
 
     public MusicPlayer(
         AudioService service,
+        int bufferSizeInBytes = DefaultBufferSizeInBytes,
+        int queuedBufferTarget = DefaultQueuedBufferTarget)
+        : this(service, false, bufferSizeInBytes, queuedBufferTarget)
+    {
+    }
+
+    /// <param name="useWorker">True to read the files on the background streaming worker.</param>
+    internal MusicPlayer(
+        AudioService service,
+        bool useWorker,
         int bufferSizeInBytes = DefaultBufferSizeInBytes,
         int queuedBufferTarget = DefaultQueuedBufferTarget)
     {
@@ -43,6 +57,7 @@ public sealed class MusicPlayer : IDisposable
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(queuedBufferTarget);
 
         _service = service;
+        _useWorker = useWorker;
         _queuedBufferTarget = queuedBufferTarget;
 
         // SubmitBuffer copies the data, so one scratch array feeds every track.
@@ -96,9 +111,14 @@ public sealed class MusicPlayer : IDisposable
             return MusicTrackHandle.None;
         }
 
+        // The bound game parameters are the starting values of the voice, set before it starts (plan decision P39).
+        _service.BindSoundParameters(voice, asset);
+
         var index = TakeTrackSlot();
         var track = _tracks[index];
         track.Reader = reader;
+        track.BytesPerSecond = reader.Format.BytesPerSecond;
+        track.HandedPosition = 0;
         track.Voice = voice;
         track.IsLooped = asset.IsLooped;
         track.IsFinishing = false;
@@ -107,6 +127,15 @@ public sealed class MusicPlayer : IDisposable
 
         // Queue ahead before starting, so the first frame cannot starve.
         FillQueue(track);
+
+        if (_useWorker && !track.IsFinishing)
+        {
+            // From here on only the worker touches the reader.
+            _worker ??= new StreamingWorker(_scratchBuffer.Length, _queuedBufferTarget * 2);
+            track.Channel = _worker.Acquire(reader, track.IsLooped, asset.Name);
+            track.Reader = null;
+        }
+
         _service.StartVoice(voice);
 
         if (fadeInSeconds > 0f)
@@ -215,12 +244,14 @@ public sealed class MusicPlayer : IDisposable
     /// <summary>How far the decoder has read into the file. Loops back to zero on a rewind.</summary>
     public TimeSpan GetPosition(MusicTrackHandle track)
     {
-        if (!TryGetTrack(track, out var entry) || entry.Reader.Format.BytesPerSecond <= 0)
+        if (!TryGetTrack(track, out var entry) || entry.BytesPerSecond <= 0)
         {
             return TimeSpan.Zero;
         }
 
-        return TimeSpan.FromSeconds((double)entry.Reader.Position / entry.Reader.Format.BytesPerSecond);
+        // With the worker the reader is not ours: the position is the one after the last block handed out.
+        var position = entry.Reader != null ? entry.Reader.Position : entry.HandedPosition;
+        return TimeSpan.FromSeconds((double)position / entry.BytesPerSecond);
     }
 
     public int GetPendingBufferCount(MusicTrackHandle track)
@@ -249,7 +280,14 @@ public sealed class MusicPlayer : IDisposable
                 continue;
             }
 
-            FillQueue(track);
+            if (track.Channel != null)
+            {
+                FillQueueFromRing(track);
+            }
+            else
+            {
+                FillQueue(track);
+            }
 
             if (track.IsFinishing && _service.GetPendingBufferCount(track.Voice) == 0)
             {
@@ -268,11 +306,58 @@ public sealed class MusicPlayer : IDisposable
 
         StopAll();
         _isDisposed = true;
+        _worker?.Dispose();
+        _worker = null;
+    }
+
+    /// <summary>The worker thread, for tests; null in the inline mode or before the first track.</summary>
+    internal bool IsWorkerThreadAlive => _worker is { IsThreadAlive: true };
+
+    /// <summary>
+    /// Worker mode: copies ready blocks from the ring to the voice, at most one queue's worth per call. No
+    /// file access, no allocation.
+    /// </summary>
+    private void FillQueueFromRing(Track track)
+    {
+        var channel = track.Channel;
+        var submitted = 0;
+
+        while (submitted < _queuedBufferTarget
+               && !track.IsFinishing
+               && _service.GetPendingBufferCount(track.Voice) < _queuedBufferTarget)
+        {
+            // Read before peeking: a producer that is done had published every block before it said so.
+            var isDone = channel.IsProducerDone;
+
+            if (!channel.TryPeek(out var buffer, out var offset, out var length, out var endPosition))
+            {
+                if (isDone)
+                {
+                    track.IsFinishing = true;
+                }
+
+                break;
+            }
+
+            _service.SubmitStreamBuffer(track.Voice, buffer, offset, length);
+            track.HandedPosition = endPosition;
+            channel.Pop();
+            submitted++;
+        }
+
+        if (submitted > 0)
+        {
+            _worker.NotifySpaceFreed();
+        }
     }
 
     private void FillQueue(Track track)
     {
-        while (!track.IsFinishing && _service.GetPendingBufferCount(track.Voice) < _queuedBufferTarget)
+        // At most one queue's worth of buffers per call: a pending count that does not go up (a refused
+        // or dropped submit) must not turn the loop into an endless read of the file.
+        for (var submitted = 0;
+             submitted < _queuedBufferTarget && !track.IsFinishing && _service.GetPendingBufferCount(track.Voice) < _queuedBufferTarget;
+             submitted++)
         {
             var read = track.Reader.Read(_scratchBuffer, 0, _scratchBuffer.Length);
 
@@ -296,6 +381,7 @@ public sealed class MusicPlayer : IDisposable
             }
 
             _service.SubmitStreamBuffer(track.Voice, _scratchBuffer, 0, read);
+            track.HandedPosition = track.Reader.Position;
         }
     }
 
@@ -317,6 +403,15 @@ public sealed class MusicPlayer : IDisposable
 
         try
         {
+            if (StartsWithOggMagic(stream))
+            {
+                stream.Dispose();
+                _log.WriteError(
+                    $"Audio: music '{asset.Name}' is an Ogg file and Ogg streaming is not supported yet (open question O11). "
+                    + "Do not mark this sound as streaming: it will be loaded fully instead.");
+                return null;
+            }
+
             return new WavStreamReader(stream);
         }
         catch (Exception exception)
@@ -325,6 +420,22 @@ public sealed class MusicPlayer : IDisposable
             _log.WriteError($"Audio: music '{asset.Name}' cannot be streamed. {exception.Message}");
             return null;
         }
+    }
+
+    /// <summary>Reads the "OggS" capture pattern, then puts the stream back where it was.</summary>
+    private static bool StartsWithOggMagic(Stream stream)
+    {
+        if (!stream.CanSeek)
+        {
+            return false;
+        }
+
+        var start = stream.Position;
+        Span<byte> magic = stackalloc byte[4];
+        var read = stream.Read(magic);
+        stream.Position = start;
+
+        return read == 4 && magic[0] == (byte)'O' && magic[1] == (byte)'g' && magic[2] == (byte)'g' && magic[3] == (byte)'S';
     }
 
     private int TakeTrackSlot()
@@ -367,6 +478,12 @@ public sealed class MusicPlayer : IDisposable
             return;
         }
 
+        if (track.Channel != null)
+        {
+            _worker.Release(track.Channel);
+            track.Channel = null;
+        }
+
         track.Reader?.Dispose();
         track.Reader = null;
         track.Voice = AudioVoiceHandle.None;
@@ -380,6 +497,9 @@ public sealed class MusicPlayer : IDisposable
     private sealed class Track
     {
         public WavStreamReader Reader;
+        public StreamingWorker.Channel Channel;
+        public int BytesPerSecond;
+        public long HandedPosition;
         public AudioVoiceHandle Voice;
         public bool IsLooped;
         public bool IsFinishing;

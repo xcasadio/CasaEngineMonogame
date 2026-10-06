@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using CasaEngine.Framework.Audio.Effects;
 
 namespace CasaEngine.Framework.Audio.Software;
 
@@ -54,6 +55,21 @@ internal sealed class SoftwareMixer
     public const int DefaultInitialChunkCount = 256;
     public const int DefaultMaxChunkCount = 4096;
 
+    /// <summary>Largest block <see cref="Render"/> mixes at once; a larger request is split.</summary>
+    public const int DefaultMaxBlockFrames = 1024;
+
+    /// <summary>Fixed number of buses, Master (index 0) included.</summary>
+    public const int BusCapacity = 32;
+
+    /// <summary>Insert effects held by one bus.</summary>
+    public const int EffectSlotsPerBus = 4;
+
+    /// <summary>Sends held by one bus.</summary>
+    public const int SendSlotsPerBus = 4;
+
+    /// <summary>Index of the Master bus: the root every other bus ends in, and the default route.</summary>
+    public const int MasterBus = 0;
+
     /// <summary>Maximum number of chunks a single streaming voice can have queued.</summary>
     public const int VoiceChunkQueueCapacity = 128;
 
@@ -65,8 +81,100 @@ internal sealed class SoftwareMixer
     private readonly SpscRingBuffer<MixerEvent> _events;
     private readonly SampleChunkPool _pool;
     private readonly int[] _producerChannels;
+
+    // Per slot, (generation << 32) | consumed buffer count; written by the render thread only.
+    private readonly long[] _consumedBuffers;
+
+    // Per slot, (generation << 32) | float bits of the last published per-voice gain, spatial pan and speed ratio.
+    // Written by the producer thread (PublishVoiceModulation), read by the render thread; never queued.
+    private readonly long[] _modGain;
+    private readonly long[] _modPan;
+    private readonly long[] _modRate;
     private int _droppedEventCount;
     private int _droppedChunkCount;
+    private readonly AudioLogThrottle _invalidRegionLog = new();
+
+    // Render thread only: the pulled PlayStation SPU source, null while none is attached, and its bus.
+    private PsxSpuSource _spu;
+    private int _spuBus;
+
+    // Bus graph. A parent always has a lower index than its child (it must exist to be given as a
+    // parent), so mixing from the highest index down to 0 is "children, then parents, then Master".
+    private readonly int _maxBlockFrames;
+    private readonly float[] _busBuffers;
+    private readonly int[] _busParent = new int[BusCapacity];
+    private readonly float[] _busAppliedGain = new float[BusCapacity];
+
+    // Last value published per bus by the producer (float bits); never queued, so never lost.
+    private readonly int[] _busGainBits = new int[BusCapacity];
+
+    // Number of times the producer published a gain for each bus: lets a ramp notice a publish even of the same value.
+    private readonly int[] _busGainPublishCount = new int[BusCapacity];
+
+    // Render thread: explicit duration gain ramp of each bus (see MixBuses).
+    private readonly BusRamp[] _busRamps = new BusRamp[BusCapacity];
+
+    // Render thread: insert effects of each bus (EffectSlotsPerBus slots, in insertion order) and the DSP state of
+    // each, preallocated so that adding an effect allocates nothing on the audio thread.
+    private readonly AudioEffect[] _busEffects = new AudioEffect[BusCapacity * EffectSlotsPerBus];
+    private readonly EffectDspState[] _busEffectStates = new EffectDspState[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _busEffectCounts = new int[BusCapacity];
+
+    // Source bus of the ducking effect held in each effect slot (read only for a DuckingEffect).
+    private readonly int[] _busEffectSource = new int[BusCapacity * EffectSlotsPerBus];
+
+    // Render thread: sends of each bus (SendSlotsPerBus slots, compacted): target bus, target level (a command sets it) and
+    // the level applied at the end of the previous block (ramped across the block).
+    private readonly int[] _busSendTarget = new int[BusCapacity * SendSlotsPerBus];
+    private readonly float[] _busSendLevel = new float[BusCapacity * SendSlotsPerBus];
+    private readonly float[] _busSendApplied = new float[BusCapacity * SendSlotsPerBus];
+    private readonly int[] _busSendCount = new int[BusCapacity];
+
+    // Render thread: order the buses are mixed in (every bus after the buses that feed it: its children and the buses that
+    // send to it), rebuilt when a bus or a send is added. Scratch arrays preallocated for the rebuild and the block.
+    private readonly int[] _busOrder = new int[BusCapacity];
+    private readonly int[] _orderIndegree = new int[BusCapacity];
+    private readonly bool[] _orderIsReturn = new bool[BusCapacity];
+    private readonly bool[] _orderDone = new bool[BusCapacity];
+    private readonly float[] _sendLevelNow = new float[SendSlotsPerBus];
+    private readonly float[] _sendIncrement = new float[SendSlotsPerBus];
+    private readonly int[] _sendOffset = new int[SendSlotsPerBus];
+    private bool _orderDirty;
+
+    // Render thread: the limiter of the Master output (applied after the Master gain, before the hard clip) and its state.
+    private AudioEffect _masterLimiter;
+    private EffectDspState _masterLimiterState;
+
+    // Level metering (plan decision P22). The render thread measures each bus (after its own gain, effects applied) and the
+    // output once per block, and publishes the block in a ring of MeterHistoryBlocks slots guarded by a per-slot sequence
+    // number (a seqlock) and a block counter: readers never block the audio thread. A record is (peak left, peak right,
+    // sum of squares) for each bus then for the output, in the slot of the block number modulo the ring size.
+    public const int MeterHistoryBlocks = 64;
+    private const int MeterRecordFloats = 3;
+    private const int MeterRecords = BusCapacity + 1;
+    private const int MeterOutputRecord = BusCapacity;
+    private readonly float[] _meterData = new float[MeterHistoryBlocks * MeterRecords * MeterRecordFloats];
+    private readonly int[] _meterFrames = new int[MeterHistoryBlocks];
+    private readonly int[] _meterOvers = new int[MeterHistoryBlocks];
+    private readonly long[] _meterSequence = new long[MeterHistoryBlocks];
+    private long _meterPublished;
+    // Render thread scratch of the block being measured.
+    private readonly float[] _meterBlock = new float[MeterRecords * MeterRecordFloats];
+
+    // Producer: mirror of the graph (parent and sends of each bus) used to refuse a send cycle.
+    private readonly int[] _producerParent = new int[BusCapacity];
+    private readonly int[] _producerSendTarget = new int[BusCapacity * SendSlotsPerBus];
+    private readonly int[] _producerSendCount = new int[BusCapacity];
+    private readonly bool[] _producerVisited = new bool[BusCapacity];
+
+    // Producer: the ducking effects sent to each bus (compacted, EffectSlotsPerBus slots) and their source bus, to refuse a cycle.
+    private readonly DuckingEffect[] _producerDuckEffect = new DuckingEffect[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _producerDuckSource = new int[BusCapacity * EffectSlotsPerBus];
+    private readonly int[] _producerDuckCount = new int[BusCapacity];
+
+    // Render thread: buses created so far (Master always exists). Producer: buses handed out so far.
+    private int _busCount = 1;
+    private int _producerBusCount = 1;
 
     public SoftwareMixer(
         int outputSampleRate,
@@ -75,10 +183,12 @@ internal sealed class SoftwareMixer
         int eventCapacity = DefaultEventCapacity,
         int chunkSamples = DefaultChunkSamples,
         int initialChunkCount = DefaultInitialChunkCount,
-        int maxChunkCount = DefaultMaxChunkCount)
+        int maxChunkCount = DefaultMaxChunkCount,
+        int maxBlockFrames = DefaultMaxBlockFrames)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(outputSampleRate);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(voiceCapacity);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxBlockFrames);
 
         if (chunkSamples < 2 || chunkSamples % 2 != 0)
         {
@@ -92,9 +202,26 @@ internal sealed class SoftwareMixer
         ChunkSamples = chunkSamples;
         _voices = new MixerVoice[voiceCapacity];
         _producerChannels = new int[voiceCapacity];
+        _consumedBuffers = new long[voiceCapacity];
+        _modGain = new long[voiceCapacity];
+        _modPan = new long[voiceCapacity];
+        _modRate = new long[voiceCapacity];
+        Array.Fill(_modGain, UnpublishedModulation);
+        Array.Fill(_modPan, UnpublishedModulation);
+        Array.Fill(_modRate, UnpublishedModulation);
         _commands = new SpscRingBuffer<MixerCommand>(commandCapacity);
         _events = new SpscRingBuffer<MixerEvent>(eventCapacity);
         _pool = new SampleChunkPool(chunkSamples, initialChunkCount, maxChunkCount);
+        _maxBlockFrames = maxBlockFrames;
+        _busBuffers = new float[BusCapacity * maxBlockFrames * 2];
+        _busOrder[0] = MasterBus;
+        var unity = BitConverter.SingleToInt32Bits(1f);
+
+        for (var i = 0; i < BusCapacity; i++)
+        {
+            _busGainBits[i] = unity;
+            _busAppliedGain[i] = 1f;
+        }
 
         for (var i = 0; i < _voices.Length; i++)
         {
@@ -105,6 +232,12 @@ internal sealed class SoftwareMixer
     public int OutputSampleRate { get; }
 
     public int VoiceCapacity => _voices.Length;
+
+    /// <summary>Largest block mixed at once (frames); <see cref="Render"/> splits a larger request.</summary>
+    public int MaxBlockFrames => _maxBlockFrames;
+
+    /// <summary>Producer side: buses handed out so far, Master included (at most <see cref="BusCapacity"/>).</summary>
+    public int BusCount => _producerBusCount;
 
     /// <summary>Samples (all channels) per streaming chunk.</summary>
     public int ChunkSamples { get; }
@@ -154,7 +287,7 @@ internal sealed class SoftwareMixer
         return _commands.TryEnqueue(in command);
     }
 
-    public bool TryStartResidentVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters)
+    public bool TryStartResidentVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, int bus = MasterBus)
     {
         var command = new MixerCommand
         {
@@ -162,13 +295,73 @@ internal sealed class SoftwareMixer
             Slot = slot,
             Generation = generation,
             Clip = clip,
-            Parameters = parameters,
+            Parameters = ValidateLoopRegion(parameters, clip),
+            Bus = bus,
         };
 
         return _commands.TryEnqueue(in command);
     }
 
-    public bool TryCreateStreamingVoice(int slot, int generation, int channels, int sampleRate, AudioVoiceParameters parameters)
+    // Producer side. A loop region that does not fit the clip falls back to the whole clip.
+    private AudioVoiceParameters ValidateLoopRegion(AudioVoiceParameters parameters, PcmAudioClip clip)
+    {
+        if (!parameters.IsLooped || !parameters.HasLoopRegion || clip == null)
+        {
+            return parameters;
+        }
+
+        if (IsValidRegion(parameters.LoopStartFrame, parameters.LoopEndFrame, clip.FrameCount))
+        {
+            return parameters;
+        }
+
+        _invalidRegionLog.WriteWarning("Audio: a loop region does not fit its clip (start below 0, end past the clip or start not below end), the whole clip loops instead.");
+        return parameters.WithoutLoopRegion();
+    }
+
+    private static bool IsValidRegion(int start, int end, int frames)
+    {
+        return start >= 0 && end <= frames && start < end;
+    }
+
+    /// <summary>
+    /// Starts a resident mono voice whose channel gains are explicit: left = volume * leftGain, right =
+    /// volume * rightGain, no pan law. A clip that is not mono starts as an ordinary voice.
+    /// </summary>
+    public bool TryStartResidentStereoVoice(int slot, int generation, PcmAudioClip clip, AudioVoiceParameters parameters, float leftGain, float rightGain, int bus = MasterBus)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.StartResident,
+            Slot = slot,
+            Generation = generation,
+            Clip = clip,
+            Parameters = ValidateLoopRegion(parameters, clip),
+            ExplicitGains = true,
+            LeftGain = leftGain,
+            RightGain = rightGain,
+            Bus = bus,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Changes the explicit gains of a voice started by <see cref="TryStartResidentStereoVoice"/>; ramped over the next block.</summary>
+    public bool TrySetStereoGains(int slot, int generation, float leftGain, float rightGain)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.SetStereoGains,
+            Slot = slot,
+            Generation = generation,
+            LeftGain = leftGain,
+            RightGain = rightGain,
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    public bool TryCreateStreamingVoice(int slot, int generation, int channels, int sampleRate, AudioVoiceParameters parameters, int bus = MasterBus)
     {
         if ((uint)slot >= (uint)_voices.Length || channels is not (1 or 2) || sampleRate <= 0)
         {
@@ -183,6 +376,7 @@ internal sealed class SoftwareMixer
             Channels = channels,
             SampleRate = sampleRate,
             Parameters = parameters,
+            Bus = bus,
         };
 
         if (!_commands.TryEnqueue(in command))
@@ -192,6 +386,366 @@ internal sealed class SoftwareMixer
 
         _producerChannels[slot] = channels;
         return true;
+    }
+
+    /// <summary>
+    /// Creates the next bus as a child of <paramref name="parentBus"/> and returns its index. False, with
+    /// nothing created, when the parent was not handed out, when the <see cref="BusCapacity"/> buses exist
+    /// (the caller routes to Master instead) or when the command ring is full. Producer thread only.
+    /// </summary>
+    public bool TryCreateBus(int parentBus, out int bus)
+    {
+        bus = -1;
+
+        if ((uint)parentBus >= (uint)_producerBusCount || _producerBusCount >= BusCapacity)
+        {
+            return false;
+        }
+
+        var index = _producerBusCount;
+        var command = new MixerCommand { Kind = MixerCommandKind.CreateBus, Bus = index, ParentBus = parentBus };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        _producerParent[index] = parentBus;
+        _producerBusCount++;
+        bus = index;
+        return true;
+    }
+
+    /// <summary>
+    /// Publishes the own gain of a bus, in [0, 1]: a last value read at the next block, never queued so never
+    /// lost (NaN is ignored). The audio thread ramps to it across the block. A bus not handed out is ignored.
+    /// </summary>
+    public void SetBusGain(int bus, float gain)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || float.IsNaN(gain))
+        {
+            return;
+        }
+
+        var clamped = Math.Clamp(gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        Volatile.Write(ref _busGainBits[bus], BitConverter.SingleToInt32Bits(clamped));
+        Volatile.Write(ref _busGainPublishCount[bus], _busGainPublishCount[bus] + 1);
+    }
+
+    /// <summary>
+    /// Ramps the own gain of a bus to <paramref name="gain"/> over <paramref name="frames"/> output frames, linearly per
+    /// sample, from its current value. A command, so it is never lost silently: false when the ring is full (the caller
+    /// retries) or the bus was not handed out. The ramp starts at the start of the next block the audio thread renders
+    /// (at most one block, about 10 ms, late: commands carry no timestamp). The ramp owns the gain of the bus while it
+    /// runs and after it ends (the gain stays at the target) until the next <see cref="SetBusGain"/> call, which wins.
+    /// </summary>
+    public bool TryRampBusGain(int bus, float gain, int frames)
+    {
+        return TryRampBusGain(bus, float.NaN, gain, frames);
+    }
+
+    /// <summary>
+    /// Like <see cref="TryRampBusGain(int, float, int)"/>, from <paramref name="startGain"/> (the value the game thread
+    /// knows the bus has, which the audio thread may not have seen yet) instead of the gain the audio thread holds.
+    /// A NaN start means that held gain.
+    /// </summary>
+    public bool TryRampBusGain(int bus, float startGain, float gain, int frames)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.RampBus,
+            Bus = bus,
+            Volume = Math.Clamp(float.IsNaN(gain) ? 1f : gain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+            Frames = frames,
+            StartGain = float.IsNaN(startGain) ? float.NaN : Math.Clamp(startGain, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+
+            // Producer side, where the count is written: a gain published after this point, even before the audio thread
+            // applies the command, is later than the ramp and wins over it.
+            PublishCount = _busGainPublishCount[bus],
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Stops the gain ramp of a bus at its current value. False when the ring is full or the bus was not handed out.</summary>
+    public bool TryFreezeBusGain(int bus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.FreezeBus, Bus = bus };
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Routes the attached SPU to a bus, applied in order with the other commands.</summary>
+    /// <summary>
+    /// Appends an insert effect to a bus (at most <see cref="EffectSlotsPerBus"/>; a further one is ignored by the audio
+    /// thread). A command, so it is never lost silently: false when the ring is full (the caller retries), the bus was not
+    /// handed out or the effect is null. Producer thread only.
+    /// </summary>
+    public bool TryAddEffect(int bus, AudioEffect effect)
+    {
+        // A ducking needs its source bus: see TryAddDuckingEffect.
+        if ((uint)bus >= (uint)_producerBusCount || effect == null || effect is DuckingEffect)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, Effect = effect, EffectState = effect.CreateAudioState(OutputSampleRate) };
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>
+    /// True when <see cref="TryAddDuckingEffect"/> may succeed once the ring has room: both buses exist, the source is not the
+    /// target nor a bus the target feeds (a cycle), and the bus has a free effect slot. Producer thread only.
+    /// </summary>
+    public bool IsDuckingAccepted(int bus, int sourceBus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || (uint)sourceBus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        return _producerDuckCount[bus] < EffectSlotsPerBus && !ProducerReaches(bus, sourceBus);
+    }
+
+    /// <summary>
+    /// Appends a ducking effect to the insert effects of <paramref name="bus"/>, driven by the level of
+    /// <paramref name="sourceBus"/> (mixed before it in the same block, so the order gains an edge source to bus). A command:
+    /// false when the ring is full (the caller retries), a bus was not handed out, the bus has no free slot or the relation
+    /// would make a cycle (the source is the bus itself or a bus the bus feeds). Producer thread only.
+    /// </summary>
+    public bool TryAddDuckingEffect(int bus, DuckingEffect effect, int sourceBus)
+    {
+        if (effect == null || !IsDuckingAccepted(bus, sourceBus))
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.AddEffect, Bus = bus, ParentBus = sourceBus, Effect = effect };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        var slot = (bus * EffectSlotsPerBus) + _producerDuckCount[bus];
+        _producerDuckEffect[slot] = effect;
+        _producerDuckSource[slot] = sourceBus;
+        _producerDuckCount[bus]++;
+        return true;
+    }
+
+    /// <summary>
+    /// True when <see cref="TrySetSend"/> may succeed for these arguments once the ring has room: both buses exist, the level
+    /// is a number, and the send either exists, is a removal, or has a free slot and makes no cycle. Producer thread only.
+    /// </summary>
+    public bool IsSendAccepted(int bus, int target, float level)
+    {
+        return IsSendAccepted(bus, target, level, out _);
+    }
+
+    private bool IsSendAccepted(int bus, int target, float level, out int slot)
+    {
+        slot = -1;
+
+        if ((uint)bus >= (uint)_producerBusCount || (uint)target >= (uint)_producerBusCount || float.IsNaN(level))
+        {
+            return false;
+        }
+
+        var first = bus * SendSlotsPerBus;
+        var count = _producerSendCount[bus];
+
+        for (var s = 0; s < count; s++)
+        {
+            if (_producerSendTarget[first + s] == target)
+            {
+                slot = s;
+                return true;
+            }
+        }
+
+        if (level <= 0f)
+        {
+            return true;
+        }
+
+        return count < SendSlotsPerBus && !ProducerReaches(target, bus);
+    }
+
+    /// <summary>
+    /// Sets the send of bus <paramref name="bus"/> to bus <paramref name="target"/>: after the insert effects and the gain of
+    /// <paramref name="bus"/>, its signal times <paramref name="level"/> (in [0, 1], ramped across each block) is added to the
+    /// buffer of <paramref name="target"/>, which is mixed after the buses that feed it. A level of 0 removes the send; a
+    /// bus holds at most <see cref="SendSlotsPerBus"/>. A command: false when the ring is full (the caller retries), a bus was
+    /// not handed out, the bus has no free slot, or the send would make a cycle (a bus cannot send to itself, to a bus below
+    /// it or to a bus that reaches it through other sends). Producer thread only.
+    /// </summary>
+    public bool TrySetSend(int bus, int target, float level)
+    {
+        if (!IsSendAccepted(bus, target, level, out var slot))
+        {
+            return false;
+        }
+
+        var clamped = Math.Clamp(level, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume);
+        var first = bus * SendSlotsPerBus;
+        var count = _producerSendCount[bus];
+
+        if (slot < 0 && clamped <= 0f)
+        {
+            return true;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.SetSend, Bus = bus, ParentBus = target, Volume = clamped };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        if (slot < 0)
+        {
+            _producerSendTarget[first + count] = target;
+            _producerSendCount[bus] = count + 1;
+        }
+        else if (clamped <= 0f)
+        {
+            for (var s = slot + 1; s < count; s++)
+            {
+                _producerSendTarget[first + s - 1] = _producerSendTarget[first + s];
+            }
+
+            _producerSendCount[bus] = count - 1;
+        }
+
+        return true;
+    }
+
+    // True when the signal of bus "from" reaches bus "goal" (itself included) through parents and sends. Producer thread;
+    // the visited flags are scratch.
+    private bool ProducerReaches(int from, int goal)
+    {
+        Array.Clear(_producerVisited, 0, _producerVisited.Length);
+        return ProducerReachesFrom(from, goal);
+    }
+
+    private bool ProducerReachesFrom(int bus, int goal)
+    {
+        if (bus == goal)
+        {
+            return true;
+        }
+
+        if (_producerVisited[bus])
+        {
+            return false;
+        }
+
+        _producerVisited[bus] = true;
+
+        if (bus != MasterBus && ProducerReachesFrom(_producerParent[bus], goal))
+        {
+            return true;
+        }
+
+        for (var s = 0; s < _producerSendCount[bus]; s++)
+        {
+            if (ProducerReachesFrom(_producerSendTarget[(bus * SendSlotsPerBus) + s], goal))
+            {
+                return true;
+            }
+        }
+
+        // A ducking relation is an edge from its source to the bus it is inserted on.
+        for (var target = 0; target < _producerBusCount; target++)
+        {
+            for (var d = 0; d < _producerDuckCount[target]; d++)
+            {
+                if (_producerDuckSource[(target * EffectSlotsPerBus) + d] == bus && ProducerReachesFrom(target, goal))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Sets the limiter of the Master output (null removes it): it runs on the final mix, after the Master gain and before the
+    /// hard clip. False when the command ring is full (the caller retries). Producer thread only.
+    /// </summary>
+    public bool TrySetMasterLimiter(LimiterEffect limiter)
+    {
+        var command = new MixerCommand { Kind = MixerCommandKind.SetMasterLimiter, Effect = limiter };
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Removes an insert effect from a bus; the ones after it move up. False when the command could not be sent.</summary>
+    public bool TryRemoveEffect(int bus, AudioEffect effect)
+    {
+        if ((uint)bus >= (uint)_producerBusCount || effect == null)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.RemoveEffect, Bus = bus, Effect = effect };
+
+        if (!_commands.TryEnqueue(in command))
+        {
+            return false;
+        }
+
+        if (effect is DuckingEffect)
+        {
+            ForgetProducerDucking(bus, effect);
+        }
+
+        return true;
+    }
+
+    private void ForgetProducerDucking(int bus, AudioEffect effect)
+    {
+        var first = bus * EffectSlotsPerBus;
+        var count = _producerDuckCount[bus];
+
+        for (var d = 0; d < count; d++)
+        {
+            if (!ReferenceEquals(_producerDuckEffect[first + d], effect))
+            {
+                continue;
+            }
+
+            for (var next = d + 1; next < count; next++)
+            {
+                _producerDuckEffect[first + next - 1] = _producerDuckEffect[first + next];
+                _producerDuckSource[first + next - 1] = _producerDuckSource[first + next];
+            }
+
+            _producerDuckEffect[first + count - 1] = null;
+            _producerDuckCount[bus] = count - 1;
+            return;
+        }
+    }
+
+    public bool TryRoutePsxSpu(PsxSpuSource spu, int bus)
+    {
+        if ((uint)bus >= (uint)_producerBusCount)
+        {
+            return false;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.RoutePsxSpu, Spu = spu, Bus = bus };
+        return _commands.TryEnqueue(in command);
     }
 
     public bool TryStartStreamingVoice(int slot, int generation)
@@ -223,6 +777,43 @@ internal sealed class SoftwareMixer
         };
 
         return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>
+    /// Ramps the volume of a voice to <paramref name="volume"/> over <paramref name="frames"/> output frames, linearly per
+    /// sample, from its current value (the value a previous ramp reached when it is interrupted). The ramp starts at the
+    /// start of the next block the audio thread renders, at most one block (about 10 ms) after the command is sent. It
+    /// advances while the voice is paused. While it runs, a <see cref="TrySetVolume"/> ends it and the volume of a
+    /// <see cref="TrySetParameters"/> is ignored (pan and pitch still apply).
+    /// </summary>
+    public bool TryRampVoiceVolume(int slot, int generation, float volume, int frames)
+    {
+        return TryRampVoiceVolume(slot, generation, float.NaN, volume, frames);
+    }
+
+    /// <summary>
+    /// Like <see cref="TryRampVoiceVolume(int, int, float, int)"/>, from <paramref name="startVolume"/> (the volume the game
+    /// thread knows the voice has) instead of the volume the audio thread holds. A NaN start means that held volume.
+    /// </summary>
+    public bool TryRampVoiceVolume(int slot, int generation, float startVolume, float volume, int frames)
+    {
+        var command = new MixerCommand
+        {
+            Kind = MixerCommandKind.RampVoice,
+            Slot = slot,
+            Generation = generation,
+            Volume = Math.Clamp(float.IsNaN(volume) ? 1f : volume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+            Frames = frames,
+            StartGain = float.IsNaN(startVolume) ? float.NaN : Math.Clamp(startVolume, AudioVoiceParameters.MinVolume, AudioVoiceParameters.MaxVolume),
+        };
+
+        return _commands.TryEnqueue(in command);
+    }
+
+    /// <summary>Stops the volume ramp of a voice at the value it has reached.</summary>
+    public bool TryFreezeVoiceVolume(int slot, int generation)
+    {
+        return TrySimple(MixerCommandKind.FreezeVoice, slot, generation);
     }
 
     public bool TryPause(int slot, int generation)
@@ -307,6 +898,135 @@ internal sealed class SoftwareMixer
         return _events.TryDequeue(out mixerEvent);
     }
 
+    /// <summary>
+    /// Streaming buffers the render thread consumed (or dropped on queue overflow) for the voice of
+    /// <paramref name="generation"/> in <paramref name="slot"/>. 0 while the render thread has not yet
+    /// applied the creation of that generation (the published value then belongs to an older voice).
+    /// Producer thread only. Allocation free.
+    /// </summary>
+    public int GetConsumedBufferCount(int slot, int generation)
+    {
+        if ((uint)slot >= (uint)_consumedBuffers.Length)
+        {
+            return 0;
+        }
+
+        var published = Volatile.Read(ref _consumedBuffers[slot]);
+        return (int)(published >> 32) == generation ? (int)(published & 0xFFFFFFFFL) : 0;
+    }
+
+    // Generation tag no voice ever has (generations are positive): a slot nothing was published for.
+    private const long UnpublishedModulation = (long)int.MinValue << 32;
+
+    private const float MinModulationRate = 1f / 16f;
+
+    /// <summary>
+    /// Publishes the last per-voice gain, spatial pan and speed ratio of the voice of <paramref name="generation"/> in
+    /// <paramref name="slot"/>. The values are sanitized (gain in [0, 1], NaN is 1; pan in [-1, 1], NaN is the own pan of the
+    /// voice; rate in [1/16, 16], NaN or not positive is 1) and tagged with the generation, so a value published for an
+    /// older voice of the slot is ignored by a newer one. Never queued, never waits, allocation free. Producer thread only.
+    /// </summary>
+    internal void PublishVoiceModulation(int slot, int generation, float gain, float pan, float rate)
+    {
+        if ((uint)slot >= (uint)_modGain.Length)
+        {
+            return;
+        }
+
+        var tag = (long)(uint)generation << 32;
+        Volatile.Write(ref _modGain[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationGain(gain)));
+        Volatile.Write(ref _modPan[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationPan(pan)));
+        Volatile.Write(ref _modRate[slot], tag | (uint)BitConverter.SingleToInt32Bits(SanitizeModulationRate(rate)));
+    }
+
+    private static float SanitizeModulationGain(float gain)
+    {
+        return float.IsNaN(gain) ? 1f : Math.Clamp(gain, 0f, 1f);
+    }
+
+    private static float SanitizeModulationPan(float pan)
+    {
+        return float.IsNaN(pan) ? float.NaN : Math.Clamp(pan, -1f, 1f);
+    }
+
+    private static float SanitizeModulationRate(float rate)
+    {
+        return float.IsNaN(rate) || rate <= 0f ? 1f : Math.Clamp(rate, MinModulationRate, AudioVoiceParameters.MaxRateMultiplier);
+    }
+
+    // Render thread. The published values of the voice of this generation, or (1, NaN, 1) when none were published for it.
+    private void ReadModulation(int slot, int generation, out float gain, out float pan, out float rate)
+    {
+        gain = ReadModulationValue(_modGain, slot, generation, 1f);
+        pan = ReadModulationValue(_modPan, slot, generation, float.NaN);
+        rate = ReadModulationValue(_modRate, slot, generation, 1f);
+    }
+
+    private static float ReadModulationValue(long[] values, int slot, int generation, float fallback)
+    {
+        return TryReadModulationValue(values, slot, generation, out var value) ? value : fallback;
+    }
+
+    private static bool TryReadModulationValue(long[] values, int slot, int generation, out float value)
+    {
+        var published = Volatile.Read(ref values[slot]);
+
+        if ((int)(published >> 32) != generation)
+        {
+            value = 0f;
+            return false;
+        }
+
+        value = BitConverter.Int32BitsToSingle((int)(published & 0xFFFFFFFFL));
+        return true;
+    }
+
+    // Render thread, before a started voice that is not paused renders: takes the values published since the last block.
+    // A value tagged with another generation was published for a newer voice of this slot while this voice still waits for
+    // its Stop to be applied (the backend reuses a slot as soon as the Stop is queued): this voice keeps the modulation it
+    // has, it never falls back to the neutral values.
+    private void RefreshModulation(int slot, ref MixerVoice voice)
+    {
+        if (TryReadModulationValue(_modGain, slot, voice.Generation, out var gain))
+        {
+            voice.ModGainTarget = gain;
+        }
+
+        var pan = voice.SpatialPanActive ? voice.SpatialPan : float.NaN;
+        if (TryReadModulationValue(_modPan, slot, voice.Generation, out var publishedPan))
+        {
+            pan = publishedPan;
+        }
+
+        var rate = voice.ModRate;
+        if (TryReadModulationValue(_modRate, slot, voice.Generation, out var publishedRate))
+        {
+            rate = publishedRate;
+        }
+
+        var panActive = !float.IsNaN(pan);
+
+        if (panActive != voice.SpatialPanActive || (panActive && pan != voice.SpatialPan) || rate != voice.ModRate)
+        {
+            voice.SpatialPanActive = panActive;
+            voice.SpatialPan = panActive ? pan : 0f;
+            voice.ModRate = rate;
+            SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+        }
+    }
+
+    // Render thread. A new voice always starts from the values published for its generation, so it never sounds first at
+    // full gain or at the wrong speed: the gain has no ramp from 1.
+    private void ApplyStartModulation(int slot, ref MixerVoice voice)
+    {
+        ReadModulation(slot, voice.Generation, out var gain, out var pan, out var rate);
+        voice.ModGainTarget = gain;
+        voice.ModGainApplied = gain;
+        voice.ModRate = rate;
+        voice.SpatialPanActive = !float.IsNaN(pan);
+        voice.SpatialPan = voice.SpatialPanActive ? pan : 0f;
+    }
+
     private bool TrySimple(MixerCommandKind kind, int slot, int generation)
     {
         var command = new MixerCommand { Kind = kind, Slot = slot, Generation = generation };
@@ -351,12 +1071,29 @@ internal sealed class SoftwareMixer
             ApplyCommand(in command);
         }
 
-        var output = interleavedStereo.Slice(0, frameCount * 2);
-        output.Clear();
+        // A request larger than the block the bus buffers were sized for is mixed in several blocks.
+        var done = 0;
 
-        if (frameCount == 0)
+        while (done < frameCount)
         {
-            return;
+            var blockFrames = Math.Min(_maxBlockFrames, frameCount - done);
+            RenderBlock(interleavedStereo.Slice(done * 2, blockFrames * 2), blockFrames);
+            done += blockFrames;
+        }
+    }
+
+    private void RenderBlock(Span<float> output, int frameCount)
+    {
+        var sampleCount = frameCount * 2;
+
+        if (_orderDirty)
+        {
+            RebuildBusOrder();
+        }
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            BusBuffer(b, sampleCount).Clear();
         }
 
         for (var v = 0; v < _voices.Length; v++)
@@ -376,28 +1113,735 @@ internal sealed class SoftwareMixer
 
             if (!voice.Started || voice.Paused)
             {
+                // A ramp keeps running on a silent voice, like the game thread chronology it follows.
+                FinishVoiceRamp(ref voice, frameCount);
                 continue;
             }
 
+            RefreshModulation(v, ref voice);
+
+            var busBuffer = BusBuffer(voice.Bus, sampleCount);
+
             if (voice.IsStreaming)
             {
-                RenderStreaming(v, ref voice, output, frameCount);
+                RenderStreaming(v, ref voice, busBuffer, frameCount);
             }
             else
             {
-                RenderResident(v, ref voice, output, frameCount);
+                RenderResident(v, ref voice, busBuffer, frameCount);
+            }
+
+            if (voice.Active)
+            {
+                FinishVoiceRamp(ref voice, frameCount);
             }
         }
 
-        for (var i = 0; i < output.Length; i++)
+        // Like a voice, on its own bus.
+        _spu?.MixInto(BusBuffer(_spuBus, sampleCount), frameCount, OutputSampleRate);
+
+        MixBuses(output, frameCount);
+
+        // The overs: samples beyond full scale on the Master mix, counted before the limiter and the hard clip erase them.
+        var overs = 0;
+
+        for (var i = 0; i < sampleCount; i++)
         {
             var sample = output[i];
-            output[i] = sample > 1f ? 1f : sample < -1f ? -1f : sample;
+
+            if (sample > 1f || sample < -1f)
+            {
+                overs++;
+            }
         }
+
+        // The Master limiter, after the Master gain; the hard clip below stays as the last resort.
+        _masterLimiter?.Process(ref _masterLimiterState, output, frameCount, OutputSampleRate);
+
+        // The final hard clip, after Master; the output level is measured on what leaves it.
+        var outputPeakLeft = 0f;
+        var outputPeakRight = 0f;
+        double outputSumSquares = 0.0;
+
+        for (var i = 0; i < sampleCount; i += 2)
+        {
+            var left = output[i];
+            var right = output[i + 1];
+            left = left > 1f ? 1f : left < -1f ? -1f : left;
+            right = right > 1f ? 1f : right < -1f ? -1f : right;
+            output[i] = left;
+            output[i + 1] = right;
+            var absLeft = left < 0f ? -left : left;
+            var absRight = right < 0f ? -right : right;
+
+            if (absLeft > outputPeakLeft)
+            {
+                outputPeakLeft = absLeft;
+            }
+
+            if (absRight > outputPeakRight)
+            {
+                outputPeakRight = absRight;
+            }
+
+            outputSumSquares += ((double)left * left) + ((double)right * right);
+        }
+
+        var record = MeterOutputRecord * MeterRecordFloats;
+        _meterBlock[record] = outputPeakLeft;
+        _meterBlock[record + 1] = outputPeakRight;
+        _meterBlock[record + 2] = (float)outputSumSquares;
+        PublishMeters(frameCount, overs);
+    }
+
+    // Render thread. Seqlock publication of the block measured in _meterBlock: the slot sequence is odd while the slot is
+    // written and even (twice the block number) once complete, so a reader that finds anything else, before or after its
+    // copy, knows the slot is not (or no longer) the block it wants. The block counter is published last.
+    private void PublishMeters(int frameCount, int overs)
+    {
+        var block = _meterPublished + 1;
+        var slot = (int)(block % MeterHistoryBlocks);
+        Volatile.Write(ref _meterSequence[slot], (block * 2) - 1);
+        Interlocked.MemoryBarrier();
+        var first = slot * MeterRecords * MeterRecordFloats;
+
+        // Buses that do not exist yet stay at zero in every slot.
+        for (var b = 0; b < _busCount; b++)
+        {
+            Array.Copy(_meterBlock, b * MeterRecordFloats, _meterData, first + (b * MeterRecordFloats), MeterRecordFloats);
+        }
+
+        Array.Copy(_meterBlock, MeterOutputRecord * MeterRecordFloats, _meterData, first + (MeterOutputRecord * MeterRecordFloats), MeterRecordFloats);
+        _meterFrames[slot] = frameCount;
+        _meterOvers[slot] = overs;
+        Volatile.Write(ref _meterSequence[slot], block * 2);
+        Volatile.Write(ref _meterPublished, block);
+    }
+
+    /// <summary>
+    /// Any thread, any number of readers. Aggregates the blocks published since <paramref name="cursor"/>: maximum of the
+    /// peaks, root mean square over all their frames, sum of the overs. Allocates nothing.
+    /// </summary>
+    public AudioMeterRead ReadLevels(ref AudioMeterCursor cursor, Span<AudioLevel> buses, out AudioLevel output)
+    {
+        var published = Volatile.Read(ref _meterPublished);
+        var oldest = Math.Max(1, published - MeterHistoryBlocks + 1);
+        var next = cursor.Started ? cursor.LastBlock + 1 : oldest;
+        var missed = 0;
+
+        if (next < oldest)
+        {
+            missed = (int)Math.Min(int.MaxValue, oldest - next);
+            next = oldest;
+        }
+
+        cursor.Started = true;
+        cursor.LastBlock = published;
+
+        Span<float> peakLeft = stackalloc float[MeterRecords];
+        Span<float> peakRight = stackalloc float[MeterRecords];
+        Span<double> sumSquares = stackalloc double[MeterRecords];
+        Span<float> copy = stackalloc float[MeterRecords * MeterRecordFloats];
+        var blocks = 0;
+        var frames = 0;
+        long overs = 0;
+
+        for (var block = next; block <= published; block++)
+        {
+            var slot = (int)(block % MeterHistoryBlocks);
+            var sequence = Volatile.Read(ref _meterSequence[slot]);
+
+            if (sequence != block * 2)
+            {
+                missed++;
+                continue;
+            }
+
+            _meterData.AsSpan(slot * MeterRecords * MeterRecordFloats, copy.Length).CopyTo(copy);
+            var blockFrames = _meterFrames[slot];
+            var blockOvers = _meterOvers[slot];
+            Interlocked.MemoryBarrier();
+
+            if (Volatile.Read(ref _meterSequence[slot]) != sequence)
+            {
+                missed++;
+                continue;
+            }
+
+            for (var r = 0; r < MeterRecords; r++)
+            {
+                var o = r * MeterRecordFloats;
+
+                if (copy[o] > peakLeft[r])
+                {
+                    peakLeft[r] = copy[o];
+                }
+
+                if (copy[o + 1] > peakRight[r])
+                {
+                    peakRight[r] = copy[o + 1];
+                }
+
+                sumSquares[r] += copy[o + 2];
+            }
+
+            blocks++;
+            frames += blockFrames;
+            overs += blockOvers;
+        }
+
+        var sampleCount = frames * 2.0;
+        var count = Math.Min(buses.Length, BusCapacity);
+
+        for (var b = 0; b < count; b++)
+        {
+            buses[b] = new AudioLevel(peakLeft[b], peakRight[b], sampleCount > 0.0 ? (float)Math.Sqrt(sumSquares[b] / sampleCount) : 0f, 0);
+        }
+
+        output = new AudioLevel(
+            peakLeft[MeterOutputRecord],
+            peakRight[MeterOutputRecord],
+            sampleCount > 0.0 ? (float)Math.Sqrt(sumSquares[MeterOutputRecord] / sampleCount) : 0f,
+            (int)Math.Min(int.MaxValue, overs));
+        return new AudioMeterRead(blocks, missed, frames);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Span<float> BusBuffer(int bus, int sampleCount)
+    {
+        return _busBuffers.AsSpan(bus * _maxBlockFrames * 2, sampleCount);
+    }
+
+    // Children before parents: a child always has a higher index than its parent, so going down from the
+    // last bus reaches Master last. Each bus is scaled by its own gain, ramped across the block, while it is
+    // added to its parent buffer; Master is scaled into the output. The insert effects of a bus run on its
+    // buffer first, between the voices and this scaling.
+    private void MixBuses(Span<float> output, int frameCount)
+    {
+        var sampleCount = frameCount * 2;
+
+        for (var order = 0; order < _busCount; order++)
+        {
+            var b = _busOrder[order];
+            var source = BusBuffer(b, sampleCount);
+            ProcessEffects(b, source, frameCount);
+            ref var ramp = ref _busRamps[b];
+            var publishCount = Volatile.Read(ref _busGainPublishCount[b]);
+            var publishedBits = Volatile.Read(ref _busGainBits[b]);
+
+            // A gain published after the ramp started is an explicit change: it wins.
+            if ((ramp.Active || ramp.Holding) && publishCount != ramp.SeenPublishCount)
+            {
+                ramp.Active = false;
+                ramp.Holding = false;
+            }
+
+            var ramping = ramp.Active;
+            var rampStart = ramp.Value;
+            var rampIncrement = ramp.Increment;
+            var rampTarget = ramp.Target;
+            var rampLeft = ramp.FramesLeft;
+            var target = ramp.Holding ? (float)ramp.Value : BitConverter.Int32BitsToSingle(publishedBits);
+            var gain = _busAppliedGain[b];
+            var increment = (target - gain) / frameCount;
+            var destination = b == MasterBus ? output : BusBuffer(_busParent[b], sampleCount);
+            var add = b != MasterBus;
+            var sendCount = _busSendCount[b];
+            var peakLeft = 0f;
+            var peakRight = 0f;
+            double sumSquares = 0.0;
+
+            for (var s = 0; s < sendCount; s++)
+            {
+                var slot = (b * SendSlotsPerBus) + s;
+                _sendLevelNow[s] = _busSendApplied[slot];
+                _sendIncrement[s] = (_busSendLevel[slot] - _busSendApplied[slot]) / frameCount;
+                _sendOffset[s] = _busSendTarget[slot] * _maxBlockFrames * 2;
+            }
+
+            for (var f = 0; f < frameCount; f++)
+            {
+                if (ramping)
+                {
+                    gain = (float)(f + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (f + 1));
+                }
+                else
+                {
+                    gain += increment;
+                }
+
+                var i = f * 2;
+
+                var left = source[i] * gain;
+                var right = source[i + 1] * gain;
+
+                if (add)
+                {
+                    destination[i] += left;
+                    destination[i + 1] += right;
+                }
+                else
+                {
+                    destination[i] = left;
+                    destination[i + 1] = right;
+                }
+
+                // The level of the bus: the signal it passes to its parent.
+                var absLeft = left < 0f ? -left : left;
+                var absRight = right < 0f ? -right : right;
+
+                if (absLeft > peakLeft)
+                {
+                    peakLeft = absLeft;
+                }
+
+                if (absRight > peakRight)
+                {
+                    peakRight = absRight;
+                }
+
+                sumSquares += ((double)left * left) + ((double)right * right);
+
+                // Post-fader sends: the signal of this bus, effects and own gain applied, into the return buffers.
+                for (var s = 0; s < sendCount; s++)
+                {
+                    _sendLevelNow[s] += _sendIncrement[s];
+                    var sent = gain * _sendLevelNow[s];
+                    var o = _sendOffset[s] + i;
+                    _busBuffers[o] += source[i] * sent;
+                    _busBuffers[o + 1] += source[i + 1] * sent;
+                }
+            }
+
+            _meterBlock[b * MeterRecordFloats] = peakLeft;
+            _meterBlock[(b * MeterRecordFloats) + 1] = peakRight;
+            _meterBlock[(b * MeterRecordFloats) + 2] = (float)sumSquares;
+
+            for (var s = 0; s < sendCount; s++)
+            {
+                var slot = (b * SendSlotsPerBus) + s;
+                _busSendApplied[slot] = _busSendLevel[slot];
+            }
+
+            if (ramping)
+            {
+                if (frameCount >= rampLeft)
+                {
+                    ramp.Active = false;
+                    ramp.Holding = true;
+                    ramp.Value = rampTarget;
+                    ramp.FramesLeft = 0;
+                    _busAppliedGain[b] = (float)rampTarget;
+                }
+                else
+                {
+                    ramp.Value = rampStart + rampIncrement * frameCount;
+                    ramp.FramesLeft = rampLeft - frameCount;
+                    _busAppliedGain[b] = (float)ramp.Value;
+                }
+            }
+            else
+            {
+                _busAppliedGain[b] = target;
+            }
+        }
+    }
+
+    // Insert effects of a bus, in insertion order, on its buffer: after the voices and the children were mixed into
+    // it, before its gain. A silent bus is processed too, so a tail (filter ring, compressor release) keeps going.
+    private void ProcessEffects(int bus, Span<float> buffer, int frameCount)
+    {
+        var count = _busEffectCounts[bus];
+        var first = bus * EffectSlotsPerBus;
+
+        for (var e = 0; e < count; e++)
+        {
+            var effect = _busEffects[first + e];
+
+            if (effect is DuckingEffect ducking)
+            {
+                // The source was mixed before this bus (the order has the edge): its buffer holds this block, effects applied.
+                if (IsDuckSource(bus, first + e, out var source))
+                {
+                    ducking.ProcessDucking(ref _busEffectStates[first + e], buffer, BusBuffer(source, buffer.Length), _busAppliedGain[source], frameCount, OutputSampleRate);
+                }
+            }
+            else
+            {
+                effect.Process(ref _busEffectStates[first + e], buffer, frameCount, OutputSampleRate);
+            }
+        }
+    }
+
+    // Render thread. Every bus after the buses that feed it (its children and the buses that send to it). Among the ready
+    // buses a bus that is not the target of a send goes first, then the highest index: without sends this is the order
+    // "highest index down to Master"; a return bus is mixed after the other buses that are ready with it.
+    private void RebuildBusOrder()
+    {
+        _orderDirty = false;
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            _orderIndegree[b] = 0;
+            _orderIsReturn[b] = false;
+            _orderDone[b] = false;
+        }
+
+        for (var b = 1; b < _busCount; b++)
+        {
+            _orderIndegree[_busParent[b]]++;
+        }
+
+        for (var b = 0; b < _busCount; b++)
+        {
+            for (var s = 0; s < _busSendCount[b]; s++)
+            {
+                var target = _busSendTarget[(b * SendSlotsPerBus) + s];
+                _orderIndegree[target]++;
+                _orderIsReturn[target] = true;
+            }
+        }
+
+        // A ducking relation: the bus waits for its source.
+        for (var b = 0; b < _busCount; b++)
+        {
+            for (var e = 0; e < _busEffectCounts[b]; e++)
+            {
+                if (_busEffects[(b * EffectSlotsPerBus) + e] is DuckingEffect && IsDuckSource(b, (b * EffectSlotsPerBus) + e, out _))
+                {
+                    _orderIndegree[b]++;
+                }
+            }
+        }
+
+        for (var emitted = 0; emitted < _busCount; emitted++)
+        {
+            var pick = -1;
+
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b] && _orderIndegree[b] <= 0 && !_orderIsReturn[b])
+                {
+                    pick = b;
+                }
+            }
+
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b] && _orderIndegree[b] <= 0)
+                {
+                    pick = b;
+                }
+            }
+
+            // Not reachable with sends accepted by the producer (they never make a cycle): keep the loop total anyway.
+            for (var b = _busCount - 1; b >= 0 && pick < 0; b--)
+            {
+                if (!_orderDone[b])
+                {
+                    pick = b;
+                }
+            }
+
+            _orderDone[pick] = true;
+            _busOrder[emitted] = pick;
+
+            if (pick != MasterBus)
+            {
+                _orderIndegree[_busParent[pick]]--;
+            }
+
+            for (var s = 0; s < _busSendCount[pick]; s++)
+            {
+                _orderIndegree[_busSendTarget[(pick * SendSlotsPerBus) + s]]--;
+            }
+
+            for (var b = 0; b < _busCount; b++)
+            {
+                for (var e = 0; e < _busEffectCounts[b]; e++)
+                {
+                    var slot = (b * EffectSlotsPerBus) + e;
+
+                    if (_busEffects[slot] is DuckingEffect && IsDuckSource(b, slot, out var source) && source == pick)
+                    {
+                        _orderIndegree[b]--;
+                    }
+                }
+            }
+        }
+    }
+
+    // Render thread. True when the effect in this slot has a usable ducking source (a bus that exists and is not the bus itself).
+    private bool IsDuckSource(int bus, int slot, out int source)
+    {
+        source = _busEffectSource[slot];
+        return (uint)source < (uint)_busCount && source != bus;
+    }
+
+    private void SetBusSend(int bus, int target, float level)
+    {
+        var first = bus * SendSlotsPerBus;
+        var count = _busSendCount[bus];
+
+        for (var s = 0; s < count; s++)
+        {
+            if (_busSendTarget[first + s] != target)
+            {
+                continue;
+            }
+
+            if (level > 0f)
+            {
+                _busSendLevel[first + s] = level;
+                return;
+            }
+
+            for (var next = s + 1; next < count; next++)
+            {
+                _busSendTarget[first + next - 1] = _busSendTarget[first + next];
+                _busSendLevel[first + next - 1] = _busSendLevel[first + next];
+                _busSendApplied[first + next - 1] = _busSendApplied[first + next];
+            }
+
+            _busSendCount[bus] = count - 1;
+            _orderDirty = true;
+            return;
+        }
+
+        if (level <= 0f || count >= SendSlotsPerBus)
+        {
+            return;
+        }
+
+        _busSendTarget[first + count] = target;
+        _busSendLevel[first + count] = level;
+        _busSendApplied[first + count] = level;
+        _busSendCount[bus] = count + 1;
+        _orderDirty = true;
+    }
+
+    private void AddBusEffect(int bus, AudioEffect effect, object effectState, int sourceBus)
+    {
+        var count = _busEffectCounts[bus];
+
+        if (count >= EffectSlotsPerBus)
+        {
+            return;
+        }
+
+        var slot = (bus * EffectSlotsPerBus) + count;
+        _busEffects[slot] = effect;
+        _busEffectStates[slot] = new EffectDspState { Extra = effectState };
+        _busEffectSource[slot] = sourceBus;
+        _busEffectCounts[bus] = count + 1;
+
+        if (effect is DuckingEffect)
+        {
+            _orderDirty = true;
+        }
+    }
+
+    private void RemoveBusEffect(int bus, AudioEffect effect)
+    {
+        var count = _busEffectCounts[bus];
+        var first = bus * EffectSlotsPerBus;
+
+        for (var e = 0; e < count; e++)
+        {
+            if (!ReferenceEquals(_busEffects[first + e], effect))
+            {
+                continue;
+            }
+
+            for (var next = e + 1; next < count; next++)
+            {
+                _busEffects[first + next - 1] = _busEffects[first + next];
+                _busEffectStates[first + next - 1] = _busEffectStates[first + next];
+                _busEffectSource[first + next - 1] = _busEffectSource[first + next];
+            }
+
+            if (effect is DuckingEffect)
+            {
+                _orderDirty = true;
+            }
+
+            _busEffects[first + count - 1] = null;
+            _busEffectStates[first + count - 1] = default;
+            _busEffectCounts[bus] = count - 1;
+            return;
+        }
+    }
+
+    // Render thread. The ramp starts from the given gain, or from the gain the bus has now when none was given; see TryRampBusGain.
+    private void StartBusRamp(int bus, float start, float target, int frames, int publishCount)
+    {
+        frames = Math.Max(1, frames);
+        ref var ramp = ref _busRamps[bus];
+        ramp.Value = float.IsNaN(start) ? _busAppliedGain[bus] : start;
+        ramp.Target = target;
+        ramp.Increment = (target - ramp.Value) / frames;
+        ramp.FramesLeft = frames;
+        ramp.Active = true;
+        ramp.Holding = false;
+        ramp.SeenPublishCount = publishCount;
+    }
+
+    // Render thread. A frozen bus keeps the gain it reached until another value is published.
+    private void FreezeBusRamp(int bus)
+    {
+        ref var ramp = ref _busRamps[bus];
+
+        if (ramp.Active)
+        {
+            ramp.Active = false;
+            ramp.Holding = true;
+            ramp.Value = _busAppliedGain[bus];
+        }
+    }
+
+    // Render thread. Starts a voice ramp from the given volume, or from the volume the voice has now when none was given
+    // (a running ramp keeps Volume at its value at the start of the block, which is where a command is applied).
+    private static void StartVoiceRamp(ref MixerVoice voice, float start, float target, int frames)
+    {
+        frames = Math.Max(1, frames);
+        voice.RampValue = float.IsNaN(start) ? voice.Volume : start;
+        voice.RampTarget = target;
+        voice.RampIncrement = (target - voice.RampValue) / frames;
+        voice.RampFramesLeft = frames;
+        voice.RampActive = true;
+    }
+
+    // Render thread, after a block: moves a running ramp forward by the block, and keeps Volume and the channel
+    // gains at the value reached, so the next command (or the end of the ramp) starts from it.
+    private static void FinishVoiceRamp(ref MixerVoice voice, int frameCount)
+    {
+        if (!voice.RampActive)
+        {
+            return;
+        }
+
+        double value;
+
+        if (frameCount >= voice.RampFramesLeft)
+        {
+            value = voice.RampTarget;
+            voice.RampActive = false;
+            voice.RampFramesLeft = 0;
+        }
+        else
+        {
+            value = voice.RampValue + voice.RampIncrement * frameCount;
+            voice.RampFramesLeft -= frameCount;
+        }
+
+        voice.RampValue = value;
+        voice.Volume = (float)value;
+        voice.CurrentLeftGain = voice.TargetLeftGain = voice.PanLeftFactor * voice.Volume;
+        voice.CurrentRightGain = voice.TargetRightGain = voice.PanRightFactor * voice.Volume;
     }
 
     private void ApplyCommand(in MixerCommand command)
     {
+        if (command.Kind == MixerCommandKind.AttachPsxSpu)
+        {
+            _spu = command.Spu;
+            _spuBus = MasterBus;
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.DetachPsxSpu)
+        {
+            if (ReferenceEquals(_spu, command.Spu))
+            {
+                _spu = null;
+                _spuBus = MasterBus;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RoutePsxSpu)
+        {
+            if (ReferenceEquals(_spu, command.Spu) && (uint)command.Bus < (uint)_busCount)
+            {
+                _spuBus = command.Bus;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.CreateBus)
+        {
+            // The producer hands indices out in order; anything else is ignored.
+            if (command.Bus == _busCount && command.Bus < BusCapacity && (uint)command.ParentBus < (uint)_busCount)
+            {
+                _busParent[command.Bus] = command.ParentBus;
+                _orderDirty = true;
+                // A new bus starts at its published gain: no ramp from a stale value.
+                _busAppliedGain[command.Bus] = BitConverter.Int32BitsToSingle(Volatile.Read(ref _busGainBits[command.Bus]));
+                _busCount++;
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RampBus)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                StartBusRamp(command.Bus, command.StartGain, command.Volume, command.Frames, command.PublishCount);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.FreezeBus)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                FreezeBusRamp(command.Bus);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.SetSend)
+        {
+            if ((uint)command.Bus < (uint)_busCount && (uint)command.ParentBus < (uint)_busCount && command.Bus != command.ParentBus)
+            {
+                SetBusSend(command.Bus, command.ParentBus, command.Volume);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.SetMasterLimiter)
+        {
+            _masterLimiter = command.Effect;
+            _masterLimiterState = default;
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.AddEffect)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                AddBusEffect(command.Bus, command.Effect, command.EffectState, command.ParentBus);
+            }
+
+            return;
+        }
+
+        if (command.Kind == MixerCommandKind.RemoveEffect)
+        {
+            if ((uint)command.Bus < (uint)_busCount)
+            {
+                RemoveBusEffect(command.Bus, command.Effect);
+            }
+
+            return;
+        }
+
         if (command.Kind == MixerCommandKind.StopAll)
         {
             for (var i = 0; i < _voices.Length; i++)
@@ -436,7 +1880,7 @@ internal sealed class SoftwareMixer
 
         if (command.Kind == MixerCommandKind.SubmitChunk)
         {
-            QueueChunk(ref voice, matches, command.Chunk);
+            QueueChunk(command.Slot, ref voice, matches, command.Chunk);
             return;
         }
 
@@ -448,14 +1892,56 @@ internal sealed class SoftwareMixer
         switch (command.Kind)
         {
             case MixerCommandKind.StartStreaming:
+                if (!voice.Started)
+                {
+                    // A value published between the creation and this start is the starting value: the modulation gain
+                    // has no ramp from the creation value. The channel gains are left as they are, so a voice nothing
+                    // was published for starts exactly as before the modulation channel existed.
+                    var spatialPanActive = voice.SpatialPanActive;
+                    var spatialPan = voice.SpatialPan;
+                    var modRate = voice.ModRate;
+                    ApplyStartModulation(command.Slot, ref voice);
+
+                    if (voice.SpatialPanActive != spatialPanActive
+                        || (voice.SpatialPanActive && voice.SpatialPan != spatialPan)
+                        || voice.ModRate != modRate)
+                    {
+                        SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+                    }
+                }
+
                 voice.Started = true;
                 break;
             case MixerCommandKind.SetParameters:
                 voice.Looped = !voice.IsStreaming && command.Parameters.IsLooped;
-                SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, false);
+                voice.RateMultiplier = command.Parameters.RateMultiplier;
+
+                if (!voice.IsStreaming)
+                {
+                    ApplyLoopRegion(ref voice, command.Parameters);
+                }
+
+                // A running ramp owns the volume.
+                SetParameters(ref voice, voice.RampActive ? voice.Volume : command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, false);
                 break;
             case MixerCommandKind.SetVolume:
+                voice.RampActive = false;
                 SetParameters(ref voice, command.Volume, voice.Pan, voice.Pitch, false);
+                break;
+            case MixerCommandKind.RampVoice:
+                StartVoiceRamp(ref voice, command.StartGain, command.Volume, command.Frames);
+                break;
+            case MixerCommandKind.FreezeVoice:
+                voice.RampActive = false;
+                break;
+            case MixerCommandKind.SetStereoGains:
+                if (voice.ExplicitGains)
+                {
+                    voice.ExplicitLeft = command.LeftGain;
+                    voice.ExplicitRight = command.RightGain;
+                    SetParameters(ref voice, voice.Volume, voice.Pan, voice.Pitch, false);
+                }
+
                 break;
             case MixerCommandKind.Pause:
                 voice.Paused = true;
@@ -469,7 +1955,7 @@ internal sealed class SoftwareMixer
         }
     }
 
-    private void QueueChunk(ref MixerVoice voice, bool matches, SampleChunk chunk)
+    private void QueueChunk(int slot, ref MixerVoice voice, bool matches, SampleChunk chunk)
     {
         if (matches && voice.IsStreaming)
         {
@@ -481,6 +1967,13 @@ internal sealed class SoftwareMixer
             }
 
             Interlocked.Increment(ref _droppedChunkCount);
+
+            // The dropped chunk will never be played: the buffer it ends still counts as consumed.
+            if (chunk.EndsBuffer)
+            {
+                voice.ConsumedBuffers++;
+                PublishConsumed(slot, ref voice);
+            }
         }
 
         _pool.ReturnFromRender(chunk);
@@ -498,6 +1991,7 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = true;
+        voice.Bus = (uint)command.Bus < (uint)_busCount ? command.Bus : MasterBus;
         voice.Generation = command.Generation;
         voice.IsStreaming = false;
         voice.Started = true;
@@ -507,8 +2001,16 @@ internal sealed class SoftwareMixer
         voice.SourceChannels = clip.ChannelCount;
         voice.FrameCount = clip.FrameCount;
         voice.Position = 0.0;
+        voice.ConsumedBuffers = 0;
+        PublishConsumed(command.Slot, ref voice);
         voice.SourceRatio = (double)clip.SampleRate / OutputSampleRate;
         voice.Looped = command.Parameters.IsLooped;
+        voice.RateMultiplier = command.Parameters.RateMultiplier;
+        ApplyLoopRegion(ref voice, command.Parameters);
+        voice.ExplicitGains = command.ExplicitGains && clip.ChannelCount == 1;
+        voice.ExplicitLeft = command.LeftGain;
+        voice.ExplicitRight = command.RightGain;
+        ApplyStartModulation(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
     }
 
@@ -522,12 +2024,14 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = true;
+        voice.Bus = (uint)command.Bus < (uint)_busCount ? command.Bus : MasterBus;
         voice.Generation = command.Generation;
         voice.IsStreaming = true;
         voice.Started = false;
         voice.Paused = false;
         voice.EndPending = false;
         voice.Looped = false;
+        voice.RateMultiplier = command.Parameters.RateMultiplier;
         voice.SourceChannels = command.Channels;
         voice.SourceRatio = (double)command.SampleRate / OutputSampleRate;
         voice.StreamFraction = 3.0;
@@ -536,7 +2040,33 @@ internal sealed class SoftwareMixer
         voice.QueueCount = 0;
         voice.CurrentChunk = null;
         voice.CurrentIndex = 0;
+        voice.ConsumedBuffers = 0;
+        voice.ExplicitGains = false;
+        PublishConsumed(command.Slot, ref voice);
+        ApplyStartModulation(command.Slot, ref voice);
         SetParameters(ref voice, command.Parameters.Volume, command.Parameters.Pan, command.Parameters.Pitch, true);
+    }
+
+    // Render thread. One 64-bit store carries the generation and the count together, so the producer
+    // can never pair the count of one voice with the generation of another.
+    private void PublishConsumed(int slot, ref MixerVoice voice)
+    {
+        Volatile.Write(ref _consumedBuffers[slot], ((long)(uint)voice.Generation << 32) | (uint)voice.ConsumedBuffers);
+    }
+
+    // Render thread. A region invalid against the clip (already warned about on the producer side) is the whole clip.
+    private static void ApplyLoopRegion(ref MixerVoice voice, in AudioVoiceParameters parameters)
+    {
+        if (parameters.HasLoopRegion && IsValidRegion(parameters.LoopStartFrame, parameters.LoopEndFrame, voice.FrameCount))
+        {
+            voice.LoopStart = parameters.LoopStartFrame;
+            voice.LoopEnd = parameters.LoopEndFrame;
+        }
+        else
+        {
+            voice.LoopStart = 0;
+            voice.LoopEnd = voice.FrameCount;
+        }
     }
 
     private static void SetParameters(ref MixerVoice voice, float volume, float pan, float pitch, bool immediate)
@@ -544,21 +2074,37 @@ internal sealed class SoftwareMixer
         voice.Volume = volume;
         voice.Pan = pan;
         voice.Pitch = pitch;
-        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch);
+        voice.Step = voice.SourceRatio * Math.Pow(2.0, pitch) * voice.RateMultiplier * voice.ModRate;
+
+        // The published spatial pan replaces the own pan for the channel factors only; voice.Pan stays the own pan.
+        var effectivePan = voice.SpatialPanActive ? voice.SpatialPan : pan;
 
         float left;
         float right;
 
-        if (voice.SourceChannels == 1)
+        if (voice.ExplicitGains)
         {
-            var angle = (pan + 1.0) * QuarterPi;
-            left = (float)(volume * Math.Cos(angle));
-            right = (float)(volume * Math.Sin(angle));
+            voice.PanLeftFactor = voice.ExplicitLeft;
+            voice.PanRightFactor = voice.ExplicitRight;
+            left = volume * voice.ExplicitLeft;
+            right = volume * voice.ExplicitRight;
+        }
+        else if (voice.SourceChannels == 1)
+        {
+            var angle = (effectivePan + 1.0) * QuarterPi;
+            var cos = Math.Cos(angle);
+            var sin = Math.Sin(angle);
+            voice.PanLeftFactor = (float)cos;
+            voice.PanRightFactor = (float)sin;
+            left = (float)(volume * cos);
+            right = (float)(volume * sin);
         }
         else
         {
-            left = pan > 0f ? volume * (1f - pan) : volume;
-            right = pan < 0f ? volume * (1f + pan) : volume;
+            voice.PanLeftFactor = effectivePan > 0f ? 1f - effectivePan : 1f;
+            voice.PanRightFactor = effectivePan < 0f ? 1f + effectivePan : 1f;
+            left = effectivePan > 0f ? volume * (1f - effectivePan) : volume;
+            right = effectivePan < 0f ? volume * (1f + effectivePan) : volume;
         }
 
         voice.TargetLeftGain = left;
@@ -595,6 +2141,8 @@ internal sealed class SoftwareMixer
         }
 
         voice.Active = false;
+        voice.RampActive = false;
+        voice.ExplicitGains = false;
         voice.EndPending = false;
         voice.Started = false;
         voice.Paused = false;
@@ -625,18 +2173,33 @@ internal sealed class SoftwareMixer
         var channels = voice.SourceChannels;
         var frames = voice.FrameCount;
         var looped = voice.Looped;
+        var loopStart = looped ? voice.LoopStart : 0;
+        var loopEnd = looped ? voice.LoopEnd : frames;
+        var loopLength = loopEnd - loopStart;
         var position = voice.Position;
         var step = voice.Step;
 
-        var leftGain = voice.CurrentLeftGain;
-        var rightGain = voice.CurrentRightGain;
-        var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
-        var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        // The modulation factor multiplies the channel gains outside a ramp (start of block, end of block) and is
+        // interpolated linearly over the block in the ramp path; the pan x volume gains stay without it.
+        var modApplied = voice.ModGainApplied;
+        var modTarget = voice.ModGainTarget;
+        var modIncrement = (modTarget - modApplied) / frameCount;
+        var leftGain = voice.CurrentLeftGain * modApplied;
+        var rightGain = voice.CurrentRightGain * modApplied;
+        var leftIncrement = (voice.TargetLeftGain * modTarget - leftGain) / frameCount;
+        var rightIncrement = (voice.TargetRightGain * modTarget - rightGain) / frameCount;
+        var ramping = voice.RampActive;
+        var rampStart = voice.RampValue;
+        var rampIncrement = voice.RampIncrement;
+        var rampTarget = voice.RampTarget;
+        var rampLeft = voice.RampFramesLeft;
+        var panLeft = voice.PanLeftFactor;
+        var panRight = voice.PanRightFactor;
         var ended = frames == 0;
 
         for (var i = 0; i < frameCount && !ended; i++)
         {
-            if (position >= frames)
+            if (position >= loopEnd)
             {
                 if (!looped)
                 {
@@ -644,12 +2207,14 @@ internal sealed class SoftwareMixer
                     break;
                 }
 
-                position -= frames;
+                position -= loopEnd;
 
-                while (position >= frames)
+                while (position >= loopLength)
                 {
-                    position -= frames;
+                    position -= loopLength;
                 }
+
+                position += loopStart;
             }
 
             var index = (int)position;
@@ -660,25 +2225,36 @@ internal sealed class SoftwareMixer
 
             if (channels == 1)
             {
-                var y0 = data[Neighbor(index - 1, frames, looped)] * InverseShortRange;
+                var y0 = data[Neighbor(index - 1, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
                 var y1 = data[index] * InverseShortRange;
-                var y2 = data[Neighbor(index + 1, frames, looped)] * InverseShortRange;
-                var y3 = data[Neighbor(index + 2, frames, looped)] * InverseShortRange;
+                var y2 = data[Neighbor(index + 1, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
+                var y3 = data[Neighbor(index + 2, index, frames, looped, loopStart, loopEnd)] * InverseShortRange;
                 l = Hermite(y0, y1, y2, y3, t);
                 r = l;
             }
             else
             {
-                var i0 = Neighbor(index - 1, frames, looped) * 2;
+                var i0 = Neighbor(index - 1, index, frames, looped, loopStart, loopEnd) * 2;
                 var i1 = index * 2;
-                var i2 = Neighbor(index + 1, frames, looped) * 2;
-                var i3 = Neighbor(index + 2, frames, looped) * 2;
+                var i2 = Neighbor(index + 1, index, frames, looped, loopStart, loopEnd) * 2;
+                var i3 = Neighbor(index + 2, index, frames, looped, loopStart, loopEnd) * 2;
                 l = Hermite(data[i0] * InverseShortRange, data[i1] * InverseShortRange, data[i2] * InverseShortRange, data[i3] * InverseShortRange, t);
                 r = Hermite(data[i0 + 1] * InverseShortRange, data[i1 + 1] * InverseShortRange, data[i2 + 1] * InverseShortRange, data[i3 + 1] * InverseShortRange, t);
             }
 
-            leftGain += leftIncrement;
-            rightGain += rightIncrement;
+            if (ramping)
+            {
+                var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
+                var modGain = i + 1 >= frameCount ? modTarget : modApplied + modIncrement * (i + 1);
+                leftGain = panLeft * rampGain * modGain;
+                rightGain = panRight * rampGain * modGain;
+            }
+            else
+            {
+                leftGain += leftIncrement;
+                rightGain += rightIncrement;
+            }
+
             output[i * 2] += l * leftGain;
             output[i * 2 + 1] += r * rightGain;
             position += step;
@@ -687,6 +2263,7 @@ internal sealed class SoftwareMixer
         voice.Position = position;
         voice.CurrentLeftGain = voice.TargetLeftGain;
         voice.CurrentRightGain = voice.TargetRightGain;
+        voice.ModGainApplied = modTarget;
 
         if (ended)
         {
@@ -700,10 +2277,22 @@ internal sealed class SoftwareMixer
         var step = voice.Step;
         var stereo = voice.SourceChannels == 2;
 
-        var leftGain = voice.CurrentLeftGain;
-        var rightGain = voice.CurrentRightGain;
-        var leftIncrement = (voice.TargetLeftGain - leftGain) / frameCount;
-        var rightIncrement = (voice.TargetRightGain - rightGain) / frameCount;
+        // The modulation factor multiplies the channel gains outside a ramp (start of block, end of block) and is
+        // interpolated linearly over the block in the ramp path; the pan x volume gains stay without it.
+        var modApplied = voice.ModGainApplied;
+        var modTarget = voice.ModGainTarget;
+        var modIncrement = (modTarget - modApplied) / frameCount;
+        var leftGain = voice.CurrentLeftGain * modApplied;
+        var rightGain = voice.CurrentRightGain * modApplied;
+        var leftIncrement = (voice.TargetLeftGain * modTarget - leftGain) / frameCount;
+        var rightIncrement = (voice.TargetRightGain * modTarget - rightGain) / frameCount;
+        var ramping = voice.RampActive;
+        var rampStart = voice.RampValue;
+        var rampIncrement = voice.RampIncrement;
+        var rampTarget = voice.RampTarget;
+        var rampLeft = voice.RampFramesLeft;
+        var panLeft = voice.PanLeftFactor;
+        var panRight = voice.PanRightFactor;
 
         for (var i = 0; i < frameCount; i++)
         {
@@ -747,8 +2336,19 @@ internal sealed class SoftwareMixer
             var l = Hermite(voice.L0, voice.L1, voice.L2, voice.L3, t);
             var r = stereo ? Hermite(voice.R0, voice.R1, voice.R2, voice.R3, t) : l;
 
-            leftGain += leftIncrement;
-            rightGain += rightIncrement;
+            if (ramping)
+            {
+                var rampGain = (float)(i + 1 >= rampLeft ? rampTarget : rampStart + rampIncrement * (i + 1));
+                var modGain = i + 1 >= frameCount ? modTarget : modApplied + modIncrement * (i + 1);
+                leftGain = panLeft * rampGain * modGain;
+                rightGain = panRight * rampGain * modGain;
+            }
+            else
+            {
+                leftGain += leftIncrement;
+                rightGain += rightIncrement;
+            }
+
             output[i * 2] += l * leftGain;
             output[i * 2 + 1] += r * rightGain;
             fraction += step;
@@ -757,6 +2357,7 @@ internal sealed class SoftwareMixer
         voice.StreamFraction = fraction;
         voice.CurrentLeftGain = voice.TargetLeftGain;
         voice.CurrentRightGain = voice.TargetRightGain;
+        voice.ModGainApplied = modTarget;
     }
 
     /// <summary>Reads the next source frame of a streaming voice; false when its queue ran dry.</summary>
@@ -818,6 +2419,9 @@ internal sealed class SoftwareMixer
     {
         if (chunk.EndsBuffer)
         {
+            voice.ConsumedBuffers++;
+            PublishConsumed(slot, ref voice);
+
             var mixerEvent = new MixerEvent
             {
                 Kind = MixerEventKind.BufferConsumed,
@@ -838,12 +2442,23 @@ internal sealed class SoftwareMixer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int Neighbor(int index, int frames, bool looped)
+    // A looped voice wraps neighbours inside [loopStart, loopEnd[ once its base frame is inside it (the
+    // whole clip without a region); before the region (the intro) a neighbour below 0 is clamped.
+    private static int Neighbor(int index, int baseIndex, int frames, bool looped, int loopStart, int loopEnd)
     {
         if (looped)
         {
-            index %= frames;
-            return index < 0 ? index + frames : index;
+            if (index >= loopEnd)
+            {
+                return loopStart + ((index - loopEnd) % (loopEnd - loopStart));
+            }
+
+            if (index < loopStart && baseIndex >= loopStart)
+            {
+                var length = loopEnd - loopStart;
+                var wrapped = (index - loopStart) % length;
+                return loopStart + (wrapped < 0 ? wrapped + length : wrapped);
+            }
         }
 
         return index < 0 ? 0 : index >= frames ? frames - 1 : index;
@@ -860,4 +2475,24 @@ internal sealed class SoftwareMixer
     }
 
     #endregion
+
+    /// <summary>Render-thread state of the gain ramp of one bus.</summary>
+    private struct BusRamp
+    {
+        /// <summary>A ramp is running: the gain is interpolated per sample.</summary>
+        public bool Active;
+
+        /// <summary>The ramp ended or was frozen: the gain stays at <see cref="Value"/> until another gain is published.</summary>
+        public bool Holding;
+
+        /// <summary>Gain at the start of the current block (running), or the held gain.</summary>
+        public double Value;
+
+        public double Target;
+        public double Increment;
+        public int FramesLeft;
+
+        /// <summary>Publish count of the bus when the ramp started; a later publish ends the ramp.</summary>
+        public int SeenPublishCount;
+    }
 }

@@ -547,11 +547,19 @@ public sealed class MonoGameAudioBackend : IAudioBackend
             Clip = null;
         }
 
+        /// <remarks>
+        /// The loop region of the parameters is ignored: a looped clip loops whole (SoundEffectInstance has
+        /// no region). The rate multiplier is folded into the pitch, pitch + log2(multiplier), clamped to
+        /// the +-1 octave range of SoundEffectInstance.
+        /// </remarks>
         public void ApplyParameters(in AudioVoiceParameters parameters)
         {
             Instance.Volume = parameters.Volume;
             Instance.Pan = parameters.Pan;
-            Instance.Pitch = parameters.Pitch;
+            Instance.Pitch = Math.Clamp(
+                parameters.Pitch + MathF.Log2(parameters.RateMultiplier),
+                AudioVoiceParameters.MinPitch,
+                AudioVoiceParameters.MaxPitch);
 
             // XNA forbids IsLooped on a dynamic instance: looping a stream is the reader's job,
             // it rewinds and keeps submitting.

@@ -7,7 +7,8 @@ namespace CasaEngine.Framework.Audio;
 /// </summary>
 /// <remarks>
 /// The contract is 2D only (volume and pan), per the V1 audio decisions: there is no
-/// listener, no emitter and no distance attenuation.
+/// listener, no emitter and no distance attenuation. Spatialization goes through an optional capability
+/// (<see cref="IAudioVoiceModulationBackend"/>), like buses (<see cref="IAudioBusBackend"/>).
 /// </remarks>
 public interface IAudioBackend : IDisposable
 {

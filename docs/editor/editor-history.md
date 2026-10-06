@@ -16,6 +16,7 @@ The editor uses one history stack per authoring context:
 - `World`
 - one stack per open `UIScreen` document
 - one stack per open material document
+- one stack per open audio mixer document (`.audioMixer`, see [audio-mixer-panel.md](audio-mixer-panel.md))
 - one shared `ContentBrowser` tooling context
 
 The shell resolves the active stack from the active dock panel and routes `Ctrl+Z`, `Ctrl+Y`, `Ctrl+Shift+Z`, and the `Edit` menu to that context.

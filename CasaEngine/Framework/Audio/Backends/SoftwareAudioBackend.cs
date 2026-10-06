@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Output;
 using CasaEngine.Framework.Audio.Output.OpenAl;
+using CasaEngine.Framework.Audio.Psx;
 using CasaEngine.Framework.Audio.Software;
 
 namespace CasaEngine.Framework.Audio.Backends;
@@ -20,21 +22,25 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// <para>
 /// Every public member must be called from the game thread. <see cref="GetState"/> stays
 /// synchronous: each call drains the mixer events first (a resident voice that reached its end
-/// becomes Stopped, a consumed buffer lowers the pending count), without allocating.
+/// becomes Stopped), without allocating. The pending buffer count is submitted minus the consumed count
+/// that the audio thread publishes per slot (generation and count in one 64 bit value), so a lost event
+/// cannot leave it too high.
 /// </para>
 /// <para>
 /// Command ring full: a state-changing command that the mixer refuses is retried with a bounded
 /// wait (<see cref="CommandRetryMilliseconds"/> at most), because the audio thread drains the ring
 /// every few milliseconds. If the ring is still full a throttled error is logged and the command
-/// is dropped; the local state is then left unchanged so it keeps matching the mixer. The only
+/// is dropped; the local state is then left unchanged so it keeps matching the mixer. A Stop that
+/// cannot be sent when a voice is released keeps its slot off the free list until it is resent. The only
 /// command that is not retried is the volume update, which the per-frame fade ramps resend anyway.
 /// A refused stream buffer (ring or chunk pool full) is dropped with a throttled warning.
 /// </para>
 /// <para>
-/// When the output cannot be opened the backend is unavailable and every call is a silent no-op.
+/// When the output cannot be opened, or its audio thread dies later (one warning is logged), the
+/// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend, IAudioMeteringBackend, IAudioVoiceModulationBackend
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -51,9 +57,24 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     private readonly SoftwareMixer _mixer;
     private readonly AudioRenderCallback _renderCallback;
 
+    // The one live SPU (attached to the mixer), and one whose Detach command is still to be sent (see ReleasePsxSpu).
+    private PsxSpuSource _spuSource;
+    private PsxSpuSource _spuDetachPending;
+
+    // Bus of the next voice (IAudioBusBackend), consumed by the next start; Master when none was chosen.
+    private int _nextVoiceBus;
+
+    // Modulation of the next voice (IAudioVoiceModulationBackend), consumed by the next start; (1, NaN, 1) when none was set.
+    private float _nextModGain = 1f;
+    private float _nextModPan = float.NaN;
+    private float _nextModRate = 1f;
+    private bool _busCapacityLogged;
+
     private int _freeSlotCount;
+    private int _pendingStopCount;
     private int _activeVoiceCount;
     private bool _isDisposed;
+    private bool _outputDeathLogged;
 
     /// <summary>Opens the default OpenAL output.</summary>
     public SoftwareAudioBackend(int voiceCapacity = DefaultVoiceCapacity)
@@ -84,7 +105,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         {
             if (output.TryOpen())
             {
-                _mixer = new SoftwareMixer(output.SampleRate, voiceCapacity);
+                _mixer = new SoftwareMixer(output.SampleRate, voiceCapacity, maxBlockFrames: Math.Max(1, output.BufferFrames));
                 // Created once: the audio thread must not see a new delegate per frame.
                 _renderCallback = _mixer.Render;
                 output.Start(_renderCallback);
@@ -104,7 +125,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
     }
 
-    public bool IsAvailable => _mixer != null;
+    /// <summary>
+    /// True while the mixer exists and the output is still running. Once the audio thread died the
+    /// backend stays silent for good (a device loss is not a death, see the output implementation).
+    /// </summary>
+    public bool IsAvailable => IsOutputAlive();
 
     public int VoiceCapacity => _slots.Length;
 
@@ -136,9 +161,45 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public AudioVoiceHandle Play(IAudioClip clip, in AudioVoiceParameters parameters)
     {
+        return PlayResident(clip, in parameters, explicitGains: false, 0f, 0f);
+    }
+
+    /// <summary>
+    /// Plays a mono <see cref="PcmAudioClip"/> with explicit channel gains, mixed on the audio thread at
+    /// any clip rate (<see cref="IStereoVoiceBackend"/>). A clip that is not mono is refused with
+    /// <see cref="AudioVoiceHandle.None"/>; a clip of another type throws like <see cref="Play"/>.
+    /// </summary>
+    public AudioVoiceHandle PlayStereo(IAudioClip clip, in AudioVoiceParameters parameters, float leftGain, float rightGain)
+    {
+        return PlayResident(clip, in parameters, explicitGains: true, leftGain, rightGain);
+    }
+
+    public void SetStereoGains(AudioVoiceHandle voice, float leftGain, float rightGain)
+    {
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive || !slot.ExplicitGains)
+        {
+            return;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetStereoGains(voice.Index, slot.Generation, leftGain, rightGain)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+    }
+
+    private AudioVoiceHandle PlayResident(IAudioClip clip, in AudioVoiceParameters parameters, bool explicitGains, float leftGain, float rightGain)
+    {
+        var bus = TakeNextVoiceBus();
+        TakeNextVoiceModulation(out var modGain, out var modPan, out var modRate);
         ArgumentNullException.ThrowIfNull(clip);
 
-        if (_isDisposed || _mixer == null)
+        if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
         }
@@ -155,6 +216,16 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return AudioVoiceHandle.None;
         }
 
+        if (explicitGains && pcmClip.ChannelCount != 1)
+        {
+            if (_formatLog.ShouldWrite())
+            {
+                _formatLog.WriteNow("Audio: a stereo voice was refused, its clip is not mono.");
+            }
+
+            return AudioVoiceHandle.None;
+        }
+
         var slotIndex = TakeFreeSlot();
         if (slotIndex < 0)
         {
@@ -168,10 +239,13 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         var slot = _slots[slotIndex];
         slot.Generation++;
+        _mixer.PublishVoiceModulation(slotIndex, slot.Generation, modGain, modPan, modRate);
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters)) && wait.Next())
+        while (!(sent = explicitGains
+                   ? _mixer.TryStartResidentStereoVoice(slotIndex, slot.Generation, pcmClip, parameters, leftGain, rightGain, bus)
+                   : _mixer.TryStartResidentVoice(slotIndex, slot.Generation, pcmClip, parameters, bus)) && wait.Next())
         {
         }
 
@@ -184,9 +258,10 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         slot.InUse = true;
         slot.IsStreaming = false;
+        slot.ExplicitGains = explicitGains;
         slot.MixerAlive = true;
         slot.State = AudioVoiceState.Playing;
-        slot.PendingBuffers = 0;
+        slot.SubmittedBuffers = 0;
         _activeVoiceCount++;
         return new AudioVoiceHandle(slotIndex, slot.Generation);
     }
@@ -198,7 +273,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return;
         }
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TrySetParameters(voice.Index, slot.Generation, parameters)) && wait.Next())
         {
@@ -262,35 +337,33 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             return;
         }
 
-        if (slot.MixerAlive)
-        {
-            StopSlot(voice.Index, slot);
-        }
-
-        ReturnSlot(voice.Index);
+        ReleaseSlot(voice.Index, slot, wait: true);
     }
 
     public void StopAll()
     {
-        if (_isDisposed || _mixer == null)
+        if (!IsOutputAlive())
         {
             return;
         }
 
-        SendSimple(MixerCommandKind.StopAll, 0, 0);
+        var stopAllSent = SendSimple(MixerCommandKind.StopAll, 0, 0);
 
         for (var i = 0; i < _slots.Length; i++)
         {
             if (_slots[i].InUse)
             {
-                ReturnSlot(i);
+                // StopAll refused: every slot still sounding goes through the pending stop path.
+                ReleaseSlot(i, _slots[i], wait: false, stopAlreadySent: stopAllSent);
             }
         }
     }
 
     public AudioVoiceHandle CreateStreamingVoice(int sampleRate, int channelCount, in AudioVoiceParameters parameters)
     {
-        if (_isDisposed || _mixer == null)
+        var bus = TakeNextVoiceBus();
+        TakeNextVoiceModulation(out var modGain, out var modPan, out var modRate);
+        if (!IsOutputAlive())
         {
             return AudioVoiceHandle.None;
         }
@@ -323,10 +396,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         var slot = _slots[slotIndex];
         slot.Generation++;
+        _mixer.PublishVoiceModulation(slotIndex, slot.Generation, modGain, modPan, modRate);
 
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
-        while (!(sent = _mixer.TryCreateStreamingVoice(slotIndex, slot.Generation, channelCount, sampleRate, parameters))
+        while (!(sent = _mixer.TryCreateStreamingVoice(slotIndex, slot.Generation, channelCount, sampleRate, parameters, bus))
                && wait.Next())
         {
         }
@@ -340,10 +414,11 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         slot.InUse = true;
         slot.IsStreaming = true;
+        slot.ExplicitGains = false;
         slot.MixerAlive = true;
         slot.CanStart = true;
         slot.State = AudioVoiceState.Stopped;
-        slot.PendingBuffers = 0;
+        slot.SubmittedBuffers = 0;
         _activeVoiceCount++;
         return new AudioVoiceHandle(slotIndex, slot.Generation);
     }
@@ -363,7 +438,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         if (_mixer.TrySubmitStreamingBuffer(voice.Index, slot.Generation, pcm, slot.NextSequence))
         {
             slot.NextSequence++;
-            slot.PendingBuffers++;
+            slot.SubmittedBuffers++;
         }
         else if (_bufferLog.ShouldWrite())
         {
@@ -373,7 +448,15 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     public int GetPendingBufferCount(AudioVoiceHandle voice)
     {
-        return TryGetSlot(voice, out var slot) && slot.IsStreaming ? slot.PendingBuffers : 0;
+        if (!TryGetSlot(voice, out var slot) || !slot.IsStreaming)
+        {
+            return 0;
+        }
+
+        // Submitted minus consumed, the consumed count being published by the audio thread for this
+        // generation only (0 until it applied the creation). It never relies on events.
+        var pending = slot.SubmittedBuffers - _mixer.GetConsumedBufferCount(voice.Index, slot.Generation);
+        return pending > 0 ? pending : 0;
     }
 
     public void Start(AudioVoiceHandle voice)
@@ -385,6 +468,394 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
     }
 
+    /// <summary>
+    /// Creates the one live SPU (<see cref="IPsxSpuHost"/>). The SPU, its rings and its buffers are allocated here;
+    /// the attach order waits for room in the command ring like a voice start. Fails when an SPU is alive or when
+    /// the detach of the previous one could not be sent yet.
+    /// </summary>
+    public bool TryCreatePsxSpu(PsxSpuHardwareTables tables, out PsxSpuPort port)
+    {
+        ArgumentNullException.ThrowIfNull(tables);
+        port = null;
+
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        RetryPendingStops();
+
+        if (_spuSource != null || _spuDetachPending != null)
+        {
+            return false;
+        }
+
+        var source = new PsxSpuSource(tables);
+        var command = new MixerCommand { Kind = MixerCommandKind.AttachPsxSpu, Spu = source };
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+            return false;
+        }
+
+        _spuSource = source;
+        port = new PsxSpuPort(source, this);
+        return true;
+    }
+
+    /// <summary>
+    /// Called by <see cref="PsxSpuPort.Dispose"/>: sends the Detach command, with the bounded wait of a Stop; when
+    /// the ring stays full the order is kept and resent by <see cref="RetryPendingStops"/>, so it is never lost.
+    /// </summary>
+    internal void ReleasePsxSpu(PsxSpuSource source)
+    {
+        if (_isDisposed || !ReferenceEquals(_spuSource, source))
+        {
+            return;
+        }
+
+        _spuSource = null;
+
+        if (_mixer == null || !_output.IsAvailable)
+        {
+            return;
+        }
+
+        var command = new MixerCommand { Kind = MixerCommandKind.DetachPsxSpu, Spu = source };
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+            _spuDetachPending = source;
+        }
+    }
+
+    public int BusCapacity => SoftwareMixer.BusCapacity;
+
+    /// <summary>
+    /// Creates a bus (<see cref="IAudioBusBackend"/>). The 33rd bus is not created: one warning is logged and false
+    /// is returned, so the caller routes it to Master (the audio thread only knows <see cref="BusCapacity"/> buses).
+    /// A full command ring is waited for like a voice start.
+    /// </summary>
+    public bool TryCreateBus(int parentBus, out int busIndex)
+    {
+        busIndex = -1;
+
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        if (_mixer.BusCount >= SoftwareMixer.BusCapacity)
+        {
+            if (!_busCapacityLogged)
+            {
+                _busCapacityLogged = true;
+                Logs.WriteWarning($"Audio: more than {SoftwareMixer.BusCapacity} mixing buses, the extra buses are attached to Master.");
+            }
+
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool created;
+        while (!(created = _mixer.TryCreateBus(parentBus, out busIndex)) && _mixer.BusCount < SoftwareMixer.BusCapacity
+               && (uint)parentBus < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!created)
+        {
+            busIndex = -1;
+            return false;
+        }
+
+        return true;
+    }
+
+    public void SetBusGain(int busIndex, float gain)
+    {
+        if (IsOutputAlive())
+        {
+            _mixer.SetBusGain(busIndex, gain);
+        }
+    }
+
+    public void SetNextVoiceBus(int busIndex)
+    {
+        _nextVoiceBus = busIndex;
+    }
+
+    public void SetNextVoiceModulation(float gain, float pan, float rate)
+    {
+        _nextModGain = gain;
+        _nextModPan = pan;
+        _nextModRate = rate;
+    }
+
+    public void SetVoiceModulation(AudioVoiceHandle voice, float gain, float pan, float rate)
+    {
+        // A last value: no command, no wait. A stale handle, a voice the mixer ended or a refused start is ignored.
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive)
+        {
+            return;
+        }
+
+        _mixer.PublishVoiceModulation(voice.Index, slot.Generation, gain, pan, rate);
+    }
+
+    public bool TryRampVoiceVolume(AudioVoiceHandle voice, float targetVolume, float durationSeconds)
+    {
+        return TryRampVoiceVolume(voice, float.NaN, targetVolume, durationSeconds);
+    }
+
+    public bool TryRampVoiceVolume(AudioVoiceHandle voice, float startVolume, float targetVolume, float durationSeconds)
+    {
+        if (!TryGetSlot(voice, out var slot) || !slot.MixerAlive || !IsOutputAlive())
+        {
+            return false;
+        }
+
+        var frames = SecondsToFrames(durationSeconds);
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRampVoiceVolume(voice.Index, slot.Generation, startVolume, targetVolume, frames)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public void FreezeVoiceVolume(AudioVoiceHandle voice)
+    {
+        if (TryGetSlot(voice, out var slot) && slot.MixerAlive)
+        {
+            SendSimple(MixerCommandKind.FreezeVoice, voice.Index, slot.Generation);
+        }
+    }
+
+    public bool TryRampBusGain(int busIndex, float targetGain, float durationSeconds)
+    {
+        return TryRampBusGain(busIndex, float.NaN, targetGain, durationSeconds);
+    }
+
+    public bool TryRampBusGain(int busIndex, float startGain, float targetGain, float durationSeconds)
+    {
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        var frames = SecondsToFrames(durationSeconds);
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRampBusGain(busIndex, startGain, targetGain, frames)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public void FreezeBusGain(int busIndex)
+    {
+        if (!IsOutputAlive())
+        {
+            return;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryFreezeBusGain(busIndex)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+    }
+
+    public bool TryAddBusEffect(int busIndex, AudioEffect effect)
+    {
+        return SendBusEffect(busIndex, effect, add: true);
+    }
+
+    public bool TryAddBusDucking(int busIndex, DuckingEffect effect, int sourceBusIndex)
+    {
+        if (effect == null || !IsOutputAlive() || !_mixer.IsDuckingAccepted(busIndex, sourceBusIndex))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryAddDuckingEffect(busIndex, effect, sourceBusIndex)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    public bool TryRemoveBusEffect(int busIndex, AudioEffect effect)
+    {
+        return SendBusEffect(busIndex, effect, add: false);
+    }
+
+    public bool TrySetBusSend(int busIndex, int targetBusIndex, float level)
+    {
+        if (!IsOutputAlive() || (uint)busIndex >= (uint)_mixer.BusCount || (uint)targetBusIndex >= (uint)_mixer.BusCount || float.IsNaN(level))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetSend(busIndex, targetBusIndex, level)) && _mixer.IsSendAccepted(busIndex, targetBusIndex, level) && wait.Next())
+        {
+        }
+
+        if (!sent && _mixer.IsSendAccepted(busIndex, targetBusIndex, level))
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    /// <summary>Blocks kept for the readers (<see cref="IAudioMeteringBackend"/>).</summary>
+    public int MeterHistoryBlocks => SoftwareMixer.MeterHistoryBlocks;
+
+    /// <summary>
+    /// Levels measured on the audio thread (<see cref="IAudioMeteringBackend"/>); lock free, allocation free, callable from
+    /// any thread. An empty read when the backend is unavailable.
+    /// </summary>
+    public AudioMeterRead ReadLevels(ref AudioMeterCursor cursor, Span<AudioLevel> buses, out AudioLevel output)
+    {
+        if (_mixer == null)
+        {
+            buses.Clear();
+            output = default;
+            return default;
+        }
+
+        return _mixer.ReadLevels(ref cursor, buses, out output);
+    }
+
+    public bool TrySetMasterLimiter(LimiterEffect limiter)
+    {
+        if (!IsOutputAlive())
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TrySetMasterLimiter(limiter)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    private bool SendBusEffect(int busIndex, AudioEffect effect, bool add)
+    {
+        if (effect == null || !IsOutputAlive() || (uint)busIndex >= (uint)_mixer.BusCount)
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = add ? _mixer.TryAddEffect(busIndex, effect) : _mixer.TryRemoveEffect(busIndex, effect)) && wait.Next())
+        {
+        }
+
+        if (!sent)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    // At least one frame; capped so the frame count of a very long duration stays an int.
+    private int SecondsToFrames(float durationSeconds)
+    {
+        var frames = Math.Round((double)durationSeconds * _mixer.OutputSampleRate);
+        return float.IsNaN(durationSeconds) ? 1 : (int)Math.Clamp(frames, 1.0, int.MaxValue / 2);
+    }
+
+    public bool TrySetPsxSpuBus(PsxSpuPort port, int busIndex)
+    {
+        ArgumentNullException.ThrowIfNull(port);
+
+        if (!IsOutputAlive() || !ReferenceEquals(port.Source, _spuSource))
+        {
+            return false;
+        }
+
+        var wait = new RingWait(_output);
+        bool sent;
+        while (!(sent = _mixer.TryRoutePsxSpu(_spuSource, busIndex)) && (uint)busIndex < (uint)_mixer.BusCount && wait.Next())
+        {
+        }
+
+        if (!sent && (uint)busIndex < (uint)_mixer.BusCount)
+        {
+            ReportRingFull();
+        }
+
+        return sent;
+    }
+
+    private void TakeNextVoiceModulation(out float gain, out float pan, out float rate)
+    {
+        gain = _nextModGain;
+        pan = _nextModPan;
+        rate = _nextModRate;
+        _nextModGain = 1f;
+        _nextModPan = float.NaN;
+        _nextModRate = 1f;
+    }
+
+    private int TakeNextVoiceBus()
+    {
+        var bus = _nextVoiceBus;
+        _nextVoiceBus = SoftwareMixer.MasterBus;
+        return bus;
+    }
+
     public void Dispose()
     {
         if (_isDisposed)
@@ -393,8 +864,10 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         }
 
         // The output first: it joins the audio thread, so nothing renders while the state is released.
-        _output.Dispose();
         _isDisposed = true;
+        _output.Dispose();
+        _spuSource = null;
+        _spuDetachPending = null;
 
         for (var i = 0; i < _slots.Length; i++)
         {
@@ -403,6 +876,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
         _activeVoiceCount = 0;
         _freeSlotCount = 0;
+        _pendingStopCount = 0;
     }
 
     private void StopSlot(int slotIndex, VoiceSlot slot)
@@ -412,14 +886,97 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             slot.State = AudioVoiceState.Stopped;
             slot.MixerAlive = false;
             slot.CanStart = false;
-            slot.PendingBuffers = 0;
+            slot.SubmittedBuffers = 0;
         }
+    }
+
+    /// <summary>
+    /// Frees the slot once the mixer was told to stop its voice. When the Stop command cannot be
+    /// enqueued the slot stays off the free list in a pending stop state, so a new voice can never
+    /// share it with one that still sounds; <see cref="RetryPendingStops"/> resends the order.
+    /// </summary>
+    private void ReleaseSlot(int slotIndex, VoiceSlot slot, bool wait, bool stopAlreadySent = false)
+    {
+        if (!slot.MixerAlive || stopAlreadySent)
+        {
+            ReturnSlot(slotIndex);
+            return;
+        }
+
+        var sent = wait ? SendSimple(MixerCommandKind.Stop, slotIndex, slot.Generation) : TryEnqueueSimple(MixerCommandKind.Stop, slotIndex, slot.Generation);
+        if (sent)
+        {
+            ReturnSlot(slotIndex);
+            return;
+        }
+
+        // The handle becomes stale at once (InUse false); the slot keeps its generation for the retry.
+        if (slot.InUse)
+        {
+            _activeVoiceCount--;
+        }
+
+        slot.InUse = false;
+        slot.State = AudioVoiceState.Stopped;
+        slot.MixerAlive = false;
+        slot.CanStart = false;
+        slot.SubmittedBuffers = 0;
+        slot.StopPending = true;
+        _pendingStopCount++;
+    }
+
+    // Cheap when nothing is pending (one int compare). No wait: a full ring is simply tried again at the next call.
+    private void RetryPendingStops()
+    {
+        if (_spuDetachPending != null)
+        {
+            var command = new MixerCommand { Kind = MixerCommandKind.DetachPsxSpu, Spu = _spuDetachPending };
+            if (_mixer.TryEnqueueCommand(in command))
+            {
+                _spuDetachPending = null;
+            }
+        }
+
+        if (_pendingStopCount == 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < _slots.Length; i++)
+        {
+            var slot = _slots[i];
+
+            if (slot.StopPending && TryEnqueueSimple(MixerCommandKind.Stop, i, slot.Generation))
+            {
+                _pendingStopCount--;
+                ReturnSlot(i);
+            }
+        }
+    }
+
+    // The audio thread is gone: nothing renders any more, so slots waiting for a stop are free.
+    private void FreePendingStopsAfterDeath()
+    {
+        for (var i = 0; _pendingStopCount > 0 && i < _slots.Length; i++)
+        {
+            if (_slots[i].StopPending)
+            {
+                _pendingStopCount--;
+                ReturnSlot(i);
+            }
+        }
+    }
+
+    private bool TryEnqueueSimple(MixerCommandKind kind, int slotIndex, int generation)
+    {
+        var command = new MixerCommand { Kind = kind, Slot = slotIndex, Generation = generation };
+        return _mixer.TryEnqueueCommand(in command);
     }
 
     private bool SendSimple(MixerCommandKind kind, int slotIndex, int generation)
     {
         var command = new MixerCommand { Kind = kind, Slot = slotIndex, Generation = generation };
-        var wait = new RingWait();
+        var wait = new RingWait(_output);
         bool sent;
         while (!(sent = _mixer.TryEnqueueCommand(in command)) && wait.Next())
         {
@@ -433,6 +990,29 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         return sent;
     }
 
+    // Cheap: two field reads. The first time the output is found dead one warning is logged.
+    private bool IsOutputAlive()
+    {
+        if (_isDisposed || _mixer == null)
+        {
+            return false;
+        }
+
+        if (_output.IsAvailable)
+        {
+            return true;
+        }
+
+        if (!_outputDeathLogged)
+        {
+            _outputDeathLogged = true;
+            Logs.WriteWarning("Audio: the audio output thread stopped, the software audio backend is now silent.");
+            FreePendingStopsAfterDeath();
+        }
+
+        return false;
+    }
+
     private void ReportRingFull()
     {
         if (_ringLog.ShouldWrite())
@@ -443,6 +1023,8 @@ public sealed class SoftwareAudioBackend : IAudioBackend
 
     private int TakeFreeSlot()
     {
+        RetryPendingStops();
+
         if (_freeSlotCount == 0)
         {
             return -1;
@@ -472,11 +1054,12 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     {
         slot = null;
 
-        if (_isDisposed || _mixer == null || !voice.IsValid || voice.Index >= _slots.Length)
+        if (!IsOutputAlive() || !voice.IsValid || voice.Index >= _slots.Length)
         {
             return false;
         }
 
+        RetryPendingStops();
         DrainEvents();
 
         var candidate = _slots[voice.Index];
@@ -500,6 +1083,7 @@ public sealed class SoftwareAudioBackend : IAudioBackend
             }
 
             var slot = _slots[mixerEvent.Slot];
+            // Only voice ends matter here; consumed buffers are read from the published counter.
             if (!slot.InUse || slot.Generation != mixerEvent.Generation)
             {
                 continue;
@@ -511,10 +1095,6 @@ public sealed class SoftwareAudioBackend : IAudioBackend
                 slot.MixerAlive = false;
                 slot.CanStart = false;
             }
-            else if (mixerEvent.Kind == MixerEventKind.BufferConsumed && slot.PendingBuffers > 0)
-            {
-                slot.PendingBuffers--;
-            }
         }
     }
 
@@ -524,6 +1104,9 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         public bool InUse;
         public bool IsStreaming;
 
+        /// <summary>The voice was started by <see cref="PlayStereo"/>.</summary>
+        public bool ExplicitGains;
+
         /// <summary>False once the mixer no longer holds the voice (ended or stopped): commands would be ignored.</summary>
         public bool MixerAlive;
 
@@ -531,17 +1114,24 @@ public sealed class SoftwareAudioBackend : IAudioBackend
         public bool CanStart;
 
         public AudioVoiceState State;
-        public int PendingBuffers;
+
+        /// <summary>Buffers accepted by the mixer for this voice; pending = this minus the consumed counter.</summary>
+        public int SubmittedBuffers;
+
+        /// <summary>The voice was released but its Stop command is still to be sent: the slot is off the free list.</summary>
+        public bool StopPending;
         public int NextSequence;
 
         public void Reset()
         {
             InUse = false;
             IsStreaming = false;
+            ExplicitGains = false;
             MixerAlive = false;
             CanStart = false;
             State = AudioVoiceState.Stopped;
-            PendingBuffers = 0;
+            SubmittedBuffers = 0;
+            StopPending = false;
             NextSequence = 0;
         }
     }
@@ -549,12 +1139,24 @@ public sealed class SoftwareAudioBackend : IAudioBackend
     // Bounded wait for room in the command ring; a struct so the retry path allocates nothing.
     private struct RingWait
     {
+        private readonly IAudioOutput _output;
         private long _deadline;
         private SpinWait _spin;
         private bool _started;
 
+        public RingWait(IAudioOutput output)
+        {
+            _output = output;
+        }
+
         public bool Next()
         {
+            // A dead output never drains the ring: give up at once instead of spinning.
+            if (!_output.IsAvailable)
+            {
+                return false;
+            }
+
             if (!_started)
             {
                 _started = true;

@@ -12,6 +12,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
     private readonly bool _canOpen;
     private AudioRenderCallback _callback;
     private float[] _buffer = new float[2 * 4096];
+    private int _lastFrames;
 
     public OfflineAudioOutput(bool canOpen = true, int sampleRate = 48000)
     {
@@ -19,6 +20,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         SampleRate = sampleRate;
     }
 
+    // Nothing pumps this output on its own, so its command ring stays undrained until a test calls Pump.
     public bool IsAvailable { get; private set; }
 
     public int SampleRate { get; }
@@ -32,6 +34,9 @@ internal sealed class OfflineAudioOutput : IAudioOutput
     public bool IsDisposed { get; private set; }
 
     public bool IsStarted => _callback != null;
+
+    /// <summary>Interleaved stereo samples of the last <see cref="Pump"/>.</summary>
+    public ReadOnlySpan<float> LastBlock => _buffer.AsSpan(0, _lastFrames * 2);
 
     public bool TryOpen()
     {
@@ -53,6 +58,7 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         }
 
         _callback(_buffer, frames);
+        _lastFrames = frames;
 
         var peak = 0f;
         for (var i = 0; i < frames * 2; i++)
@@ -61,6 +67,12 @@ internal sealed class OfflineAudioOutput : IAudioOutput
         }
 
         return peak;
+    }
+
+    /// <summary>Simulates the audio thread dying: the output reports itself unavailable.</summary>
+    public void Die()
+    {
+        IsAvailable = false;
     }
 
     public void Dispose()

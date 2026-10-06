@@ -14,8 +14,8 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 
 | ADR | Title | Status | Date |
 |---|---|---|---|
-| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055) | 2026-08-26 |
-| [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted | 2026-08-26 |
+| [ADR-0001](0001-audio-runtime-architecture-v1.md) | Audio runtime architecture V1 (buses, streaming, backend) | Accepted (MonoGame-only backend superseded in part by ADR-0055; folded bus gain superseded in part by ADR-0059; 2D only superseded in part by ADR-0064) | 2026-08-26 |
+| [ADR-0002](0002-audio-asset-format-and-editor-scope-v1.md) | Audio asset format and editor scope V1 | Accepted (variations and priority added by ADR-0063) | 2026-08-26 |
 | [ADR-0003](0003-single-3d-simulation.md) | Single 3D simulation, simulation space as a world policy | Accepted | 2026-08 |
 | [ADR-0004](0004-collision-layers.md) | Collision layers Shape / Fixture / Body / World, Shape3d as the only public volume vocabulary, no pose on shapes | Accepted | 2026-08 |
 | [ADR-0005](0005-collision-channels-profiles.md) | Collision channels, responses and named profiles | Accepted | 2026-08 |
@@ -52,7 +52,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0036](0036-reference-counted-asset-handles-and-bitmap-fonts.md) | Reference-counted asset handles with deferred release, and bitmap fonts as assets | Accepted (compatibility clause superseded by ADR-0037) | 2026-09-21 |
 | [ADR-0037](0037-counted-handles-replace-load-and-categories.md) | Counted handles replace Load and asset categories | Accepted | 2026-09-21 |
 | [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted | 2026-09-24 |
-| [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted | 2026-09-25 |
+| [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted (game-thread path superseded in part by ADR-0056 under the software backend) | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
 | [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |
 | [ADR-0042](0042-yarn-runner-extension-points.md) | Yarn dialogue runner extension points | Accepted | 2026-09-27 |
@@ -69,6 +69,16 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0053](0053-background-layers-draw-per-texel-psx-semi-transparency.md) | Background layers draw per-texel PSX semi-transparency | Accepted | 2026-10-05 |
 | [ADR-0054](0054-mgui-clip-rectangles-are-local-to-the-view.md) | MGUI clip rectangles are local to the view, the device scissor is absolute | Accepted | 2026-10-05 |
 | [ADR-0055](0055-engine-owned-software-audio-mixer-with-thin-native-outputs.md) | Engine-owned software audio mixer with thin native outputs | Accepted | 2026-10-05 |
+| [ADR-0056](0056-optional-audio-backend-capabilities-and-real-time-stereo-voices.md) | Optional audio backend capabilities, real-time stereo voices, loop regions and background music reads | Accepted | 2026-10-05 |
+| [ADR-0057](0057-ogg-vorbis-resident-clips-and-adpcm-decoding.md) | Ogg Vorbis resident clips and ADPCM decoding in one clip loader | Accepted | 2026-10-05 |
+| [ADR-0058](0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md) | A software PlayStation SPU hosted by the software audio backend | Accepted (hardware tables policy superseded in part by ADR-0061 and ADR-0062) | 2026-10-06 |
+| [ADR-0059](0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md) | A bus graph with effects, sends, ramps and snapshots mixed by the software audio backend | Accepted | 2026-10-06 |
+| [ADR-0060](0060-lock-free-bus-metering-and-a-read-only-audio-profiler-panel.md) | Lock-free bus metering and a read-only audio profiler panel | Accepted | 2026-10-06 |
+| [ADR-0061](0061-author-decisions-for-the-audio-game-layer-mixer-asset-and-psx-module.md) | Author's decisions for the audio game layer, the mixer asset and the PSX module | Accepted | 2026-10-06 |
+| [ADR-0062](0062-default-spu-tables-and-a-project-switch-for-the-master-limiter.md) | Default SPU tables and a project switch for the Master limiter | Accepted | 2026-10-06 |
+| [ADR-0063](0063-sound-variations-and-voice-priorities.md) | Sound variations and voice priorities | Accepted | 2026-10-06 |
+| [ADR-0064](0064-listener-spatial-audio-doppler-and-game-parameters.md) | Listener, spatial audio, Doppler and game parameters | Accepted | 2026-10-06 |
 | [ADR-0065](0065-character-controller-min-move-distance-setting.md) | The character controller minimum move distance is a per-controller setting | Accepted | 2026-10-06 |
 | [ADR-0066](0066-scrolling-layer-tint-draws-with-the-psx-mode-of-the-map.md) | The scrolling-layer tint draws with the PSX mode of the map | Accepted | 2026-10-06 |
+| [ADR-0067](0067-a-project-mixer-asset-applied-to-the-live-mixer.md) | A project mixer asset applied to the live mixer, and an editable mixer panel | Accepted | 2026-10-06 |
 | [ADR-0068](0068-free-psx-quads-draw-at-the-screen-resolution.md) | Free PSX quads draw at the screen resolution | Accepted | 2026-10-06 |

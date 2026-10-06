@@ -22,6 +22,9 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public int VoiceCapacity { get; set; }
 
+    /// <summary>True makes <see cref="Play"/> refuse every call while the backend still reports itself available (a Play refused after a voice was freed).</summary>
+    public bool RefusesPlay { get; set; }
+
     public int ActiveVoiceCount
     {
         get
@@ -45,13 +48,19 @@ public sealed class FakeAudioBackend : IAudioBackend
     /// <summary>Total number of Play calls refused because no voice was available.</summary>
     public int RefusedPlayCount { get; private set; }
 
+    /// <summary>Total number of <see cref="SetParameters"/> calls received (also those for a stale handle).</summary>
+    public int SetParametersCount { get; private set; }
+
+    /// <summary>Total number of <see cref="SetVolume"/> calls received (also those for a stale handle).</summary>
+    public int SetVolumeCount { get; private set; }
+
     public bool IsDisposed { get; private set; }
 
     public AudioVoiceHandle Play(IAudioClip clip, in AudioVoiceParameters parameters)
     {
         ArgumentNullException.ThrowIfNull(clip);
 
-        if (IsDisposed || !IsAvailable || ActiveVoiceCount >= VoiceCapacity)
+        if (IsDisposed || !IsAvailable || RefusesPlay || ActiveVoiceCount >= VoiceCapacity)
         {
             RefusedPlayCount++;
             return AudioVoiceHandle.None;
@@ -76,6 +85,7 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public void SetParameters(AudioVoiceHandle voice, in AudioVoiceParameters parameters)
     {
+        SetParametersCount++;
         if (TryGetSlot(voice, out var slot))
         {
             slot.Parameters = parameters;
@@ -84,6 +94,7 @@ public sealed class FakeAudioBackend : IAudioBackend
 
     public void SetVolume(AudioVoiceHandle voice, float volume)
     {
+        SetVolumeCount++;
         if (TryGetSlot(voice, out var slot))
         {
             slot.Parameters = slot.Parameters.WithVolume(volume);

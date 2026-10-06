@@ -6,13 +6,17 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Backends;
+using CasaEngine.Framework.Audio.Effects;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Audio.Psx;
+using CasaEngine.Framework.Audio.Spatial;
 using CasaEngine.Framework.Audio.Streaming;
 using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using NumericsVector3 = System.Numerics.Vector3;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -27,6 +31,14 @@ namespace CasaEngine.Demos.Demos;
 ///   B          play a mono beep on a software stereo voice (ADR-0039): left only, then right
 ///              only, then both channels, one step per press
 ///
+/// Variation and priority keys:
+///   V          play the varied click (menu_click_varied.sound): each press draws a volume factor in
+///              [0.6, 1] and a pitch offset in [-0.15, 0.15] octave
+///   J          start looping clicks at volume 0.05 and priority 1 on every free voice, so that the
+///              next Space is refused; S stops them
+///   H          play the click with priority 10: when every voice is taken it steals the oldest
+///              priority-1 voice (the Voices line counts the steal)
+///
 /// Music keys (streamed from disk, never fully loaded):
 ///   P          start the music with a one second fade in, or fade it out over two seconds
 ///   C          crossfade to the other music track over two seconds
@@ -37,6 +49,22 @@ namespace CasaEngine.Demos.Demos;
 ///   Left/Right Sfx bus volume
 ///   M          mute or unmute the Master bus
 ///   N          mute or unmute the Sfx bus
+///
+/// Effect keys (software backend only; the panel says so on the MonoGame backend):
+///   R          reverb: a send from Sfx to a return bus holding a ReverbEffect, on or off
+///   T          low-pass filter (600 Hz) inserted on the Music bus, on or off
+///   D          ducking of Music by Sfx, on or off (play the music with P, then a sound effect)
+///
+/// Spatial keys (a looping click created in code, Spatial3D, inverse distance clamped, reference distance 1, max
+/// distance 50, heard by a listener at the origin looking down -Z):
+///   O          start or stop the orbit: the loop circles the listener in the X/Z plane at a quarter turn per
+///              second while its radius swings between 2 and 12 units every 8 seconds; the pan follows the side,
+///              the gain follows the distance
+///   K          Doppler on or off (Doppler factor 1, speed of sound 16 units per second): the pitch rises while
+///              the loop comes closer and falls while it moves away; a running orbit restarts its voice, because
+///              the service reads the Doppler factor when a voice starts
+///   I          game parameter demo_intensity: 0, then 0.5, then 1, one step per press (bound to the volume,
+///              0.3 to 1, and to the pitch, -0.3 to +0.3 octave); never written it is neutral
 ///
 /// Stress key:
 ///   G          start or stop the GC stress: looping sound and music play continuously while the
@@ -49,6 +77,7 @@ namespace CasaEngine.Demos.Demos;
 public class AudioDemo : Demo
 {
     private static readonly Guid ClickSoundAssetId = new("b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4");
+    private static readonly Guid VariedClickSoundAssetId = new("f5c920e0-ab46-45d8-81c0-feb6f481b27d");
     private static readonly Guid MusicAssetId = new("7c9e5d31-4b62-4a08-8e17-2f6ba0c4d5e9");
     private static readonly Guid PitchedMusicAssetId = new("2e60f8a4-9c13-4d75-b3ea-58c7d1904f26");
 
@@ -57,21 +86,51 @@ public class AudioDemo : Demo
     private const float MusicFadeOutSeconds = 2f;
     private const float CrossfadeSeconds = 2f;
 
+    private const float FillVoiceVolume = 0.05f;
+    private const int FillVoicePriority = 1;
+    private const int HighPriority = 10;
+
     private const string StressSecondsVariable = "CASAENGINE_AUDIO_STRESS_SECONDS";
     private const int StressGcIntervalMilliseconds = 500;
     private const int StressArrayCount = 8;
     private const int StressArrayBytes = 512 * 1024;
+    private const string StressReverbBusName = "StressReverb";
+
+    private const string DemoReverbBusName = "DemoReverb";
+    private const float DemoReverbSendLevel = 0.5f;
+    private const float DemoFilterFrequencyHz = 600f;
 
     private const int BeepSampleRate = 22050;
     private const float BeepFrequency = 440f;
     private const float BeepSeconds = 0.3f;
     private const float BeepAmplitude = 12000f;
 
+    private const string IntensityParameterName = "demo_intensity";
+    private const float SpatialReferenceDistance = 1f;
+    private const float SpatialMaxDistance = 50f;
+    private const float OrbitTurnsPerSecond = 0.25f;
+    private const float OrbitRadiusMiddle = 7f;
+    private const float OrbitRadiusSwing = 5f;
+    private const float OrbitRadiusCyclesPerSecond = 0.125f;
+    // Both motions repeat after 8 seconds (4 s per turn, 8 s per radius cycle): the clock wraps there without a jump.
+    private const float OrbitPatternSeconds = 8f;
+    private const float DemoDopplerFactor = 1f;
+    // A circle centred on the listener has no radial speed, so only the radius swing makes a Doppler shift. Its
+    // largest radial speed is 5 x 2 pi x 0.125 = 3.93 units per second; at 16 units per second the ratio goes from
+    // 16 / (16 + 3.93) = 0.80 moving away to 16 / (16 - 3.93) = 1.33 coming closer, about -0.32 to +0.41 octave.
+    private const float DemoSpeedOfSound = 16f;
+    private const string SpatialModeText = "Spatial loop: Spatial3D, inverse distance clamped, ref 1, max 50";
+
+    private static readonly float[] IntensitySteps = [0f, 0.5f, 1f];
+    private static readonly NumericsVector3 ListenerPosition = NumericsVector3.Zero;
+
     private CasaEngineGame? _game;
     private AssetHandle<SoundAsset>? _clickSoundHandle;
+    private AssetHandle<SoundAsset> _variedClickSoundHandle;
     private AssetHandle<SoundAsset>? _musicHandle;
     private AssetHandle<SoundAsset>? _pitchedMusicHandle;
     private SoundAsset? _clickSound;
+    private SoundAsset _variedClickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
     private PcmAudioClip? _stereoBeep;
@@ -93,12 +152,33 @@ public class AudioDemo : Demo
     private int _stressLoggedSeconds;
     private int _stressGcCount;
     private byte[] _stressGarbageSink = [];
+    private AudioBus _stressReverbBus;
+
+    private AudioBus _demoReverbBus;
+    private BiquadFilterEffect _demoFilter;
+    private DuckingEffect _demoDucking;
+    private bool _demoReverbOn;
+
+    private PsxSpuPort _spuPort;
+    private bool _spuTried;
+
+    private SoundAsset _spatialLoop;
+    private AudioVoiceHandle _orbitVoice = AudioVoiceHandle.None;
+    private float _orbitSeconds;
+    private NumericsVector3 _orbitPosition;
+    private bool _dopplerOn;
+    private int _intensityParameter = -1;
+    private int _intensityStep = -1;
+    private bool _listenerSet;
+    private bool _speedOfSoundSaved;
+    private float _savedSpeedOfSound;
 
     public override string Title => "Audio demo";
 
     public override string Description =>
         "Sound effects (one-shot, looping, fade out) and music streamed from disk (fade in/out, crossfade), "
-        + "routed through the named mixing buses Master, Sfx and Music.";
+        + "routed through the named mixing buses Master, Sfx and Music; a spatial loop orbits the listener "
+        + "(distance, pan, Doppler, game parameter).";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -107,11 +187,19 @@ public class AudioDemo : Demo
 
         _clickSoundHandle = TryAcquire(game, ClickSoundAssetId);
         _clickSound = _clickSoundHandle?.Asset;
+        _variedClickSoundHandle = TryAcquire(game, VariedClickSoundAssetId);
+        _variedClickSound = _variedClickSoundHandle?.Asset;
         _musicHandle = TryAcquire(game, MusicAssetId);
         _music = _musicHandle?.Asset;
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
         _pitchedMusic = _pitchedMusicHandle?.Asset;
         _stereoBeep = CreateStereoBeep();
+
+        var service = game.AudioSystemComponent?.Service;
+        if (service != null)
+        {
+            StartSpatial(service);
+        }
 
         var stressText = Environment.GetEnvironmentVariable(StressSecondsVariable);
         if (int.TryParse(stressText, out var stressSeconds) && stressSeconds > 0)
@@ -141,6 +229,72 @@ public class AudioDemo : Demo
         }
 
         return new PcmAudioClip(samples, BeepSampleRate, 1);
+    }
+
+    /// <summary>
+    /// Registers the demo as the audio listener (the demo is not an entity, the service is enough), sets the speed of
+    /// sound of the orbit, resolves the game parameter and builds the spatial loop from the click asset.
+    /// </summary>
+    private void StartSpatial(AudioService service)
+    {
+        service.SetListener(this, AudioListenerPose.Create(
+            ListenerPosition, new NumericsVector3(0f, 0f, -1f), new NumericsVector3(0f, 1f, 0f)));
+        _listenerSet = true;
+
+        _savedSpeedOfSound = service.SpeedOfSound;
+        _speedOfSoundSaved = true;
+        service.SpeedOfSound = DemoSpeedOfSound;
+
+        _intensityParameter = service.GetGameParameterIndex(IntensityParameterName);
+        _intensityStep = -1;
+        _dopplerOn = false;
+        _spatialLoop = _clickSound != null ? CreateSpatialLoop(_clickSound) : null;
+    }
+
+    /// <summary>
+    /// A copy of the click asset's settings, looped and spatial, with a volume and a pitch binding on
+    /// <see cref="IntensityParameterName"/>. Built in code: no content file is added for the demo.
+    /// </summary>
+    private static SoundAsset CreateSpatialLoop(SoundAsset click)
+    {
+        var asset = new SoundAsset
+        {
+            Name = "spatial_click_loop",
+            AudioFileAssetId = click.AudioFileAssetId,
+            Volume = click.Volume,
+            Pitch = click.Pitch,
+            BusName = click.BusName,
+            Priority = click.Priority,
+            IsLooped = true,
+            SpatialMode = AudioSpatialMode.Spatial3D,
+            DistanceModel = AudioDistanceModel.InverseDistanceClamped,
+            ReferenceDistance = SpatialReferenceDistance,
+            MaxDistance = SpatialMaxDistance,
+            DopplerFactor = 0f,
+        };
+
+        asset.SetParameterBindings(
+        [
+            new AudioParameterBinding(IntensityParameterName, AudioParameterTarget.Volume, 0f, 1f, 0.3f, 1f),
+            new AudioParameterBinding(IntensityParameterName, AudioParameterTarget.Pitch, 0f, 1f, -0.3f, 0.3f),
+        ]);
+
+        return asset;
+    }
+
+    private void StopSpatial(AudioService service)
+    {
+        if (_listenerSet)
+        {
+            service.RemoveListener(this);
+            _listenerSet = false;
+        }
+
+        if (_speedOfSoundSaved)
+        {
+            service.SpeedOfSound = _savedSpeedOfSound;
+            _speedOfSoundSaved = false;
+        }
     }
 
     private static AssetHandle<SoundAsset>? TryAcquire(CasaEngineGame game, Guid assetId)
@@ -218,6 +372,21 @@ public class AudioDemo : Demo
             _lastAction = "loop fading out over 1s";
         }
 
+        if (WasJustPressed(keyboard, Keys.V))
+        {
+            PlayVariedClick(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.J))
+        {
+            FillFreeVoices(service, _clickSound);
+        }
+
+        if (WasJustPressed(keyboard, Keys.H))
+        {
+            PlayHighPriorityClick(service, _clickSound);
+        }
+
         if (WasJustPressed(keyboard, Keys.S))
         {
             service.StopAll();
@@ -283,6 +452,38 @@ public class AudioDemo : Demo
             ToggleMute(mixer, AudioBusNames.Sfx);
         }
 
+        if (WasJustPressed(keyboard, Keys.R))
+        {
+            ToggleDemoReverb(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.T))
+        {
+            ToggleDemoFilter(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.D))
+        {
+            ToggleDemoDucking(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.O))
+        {
+            ToggleOrbit(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.K))
+        {
+            ToggleDoppler(service);
+        }
+
+        if (WasJustPressed(keyboard, Keys.I))
+        {
+            CycleIntensity(service);
+        }
+
+        UpdateOrbit(service, (float)gameTime.ElapsedGameTime.TotalSeconds);
+
         _previousKeyboard = keyboard;
     }
 
@@ -309,7 +510,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 332), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 570), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -317,6 +518,9 @@ public class AudioDemo : Demo
             : "Audio device: NOT available (everything is silent)");
         DrawLine(spriteBatch, ref y, $"Backend: {service.Backend.GetType().Name}   active voices: {service.ActiveVoiceCount}"
             + (_stressActive ? "   STRESS ON" : string.Empty));
+        DrawLine(spriteBatch, ref y, _spuPort != null
+            ? $"SPU: active   refused writes {_spuPort.RefusedWriteCount}"
+            : _spuTried ? "SPU: unavailable" : "SPU: not started (the stress starts it)");
         if (service.Backend is SoftwareAudioBackend software)
         {
             DrawLine(spriteBatch, ref y, $"Lead {software.LeadMilliseconds} ms   output {software.OutputSampleRate} Hz"
@@ -326,17 +530,34 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, $"Master  volume {master.Volume:0.00}  muted {master.IsMuted}  gain {master.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Sfx     volume {sfx.Volume:0.00}  muted {sfx.IsMuted}  gain {sfx.EffectiveGain:0.00}");
         DrawLine(spriteBatch, ref y, $"Music   volume {music.Volume:0.00}  muted {music.IsMuted}  gain {music.EffectiveGain:0.00}");
-        DrawLine(spriteBatch, ref y, $"Voices: {service.ActiveVoiceCount} active, {service.RefusedVoiceCount} refused"
+        DrawLine(spriteBatch, ref y, $"Voices: {service.ActiveVoiceCount} active, {service.RefusedVoiceCount} refused, {service.StolenVoiceCount} stolen"
             + $"   Music tracks: {service.Music.ActiveTrackCount}");
         DrawLine(spriteBatch, ref y, service.Music.IsAlive(_musicTrack)
             ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
               + $"  queued buffers {service.Music.GetPendingBufferCount(_musicTrack)}"
             : "Music stopped");
+        DrawLine(spriteBatch, ref y, service.Backend is IAudioBusBackend
+            ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
+              + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
+            : "Effects (R, T, D) absent on this backend (software backend only)");
+        DrawLine(spriteBatch, ref y, SpatialModeText);
+        DrawLine(spriteBatch, ref y, service.IsAlive(_orbitVoice)
+            ? $"Orbit (O) ON   distance {NumericsVector3.Distance(_orbitPosition, ListenerPosition):0.0}"
+              + $"   x {_orbitPosition.X:0.0}  z {_orbitPosition.Z:0.0}"
+            : "Orbit (O) off");
+        var intensity = service.GetGameParameter(_intensityParameter);
+        DrawLine(spriteBatch, ref y, $"Doppler (K) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
+            + (float.IsNaN(intensity) ? "   intensity (I) unset" : $"   intensity (I) {intensity:0.0}"));
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
         DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
+        DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
+        DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
         DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
+        DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
+        DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
+        DrawLine(spriteBatch, ref y, "O spatial orbit on/off   K Doppler on/off   I intensity 0/0.5/1");
         DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
 
         spriteBatch.End();
@@ -346,17 +567,32 @@ public class AudioDemo : Demo
     {
         var service = _game?.AudioSystemComponent?.Service;
         service?.StopAll();
+        StopSpu();
+        if (service != null)
+        {
+            StopDemoEffects(service);
+            StopSpatial(service);
+        }
 
+        _orbitVoice = AudioVoiceHandle.None;
+        _orbitSeconds = 0f;
+        _spatialLoop = null;
+        _dopplerOn = false;
+        _intensityParameter = -1;
+        _intensityStep = -1;
         _loopingVoice = AudioVoiceHandle.None;
         _musicTrack = MusicTrackHandle.None;
         _panelBackground?.Dispose();
         _panelBackground = null;
         _font = null;
         _clickSound = null;
+        _variedClickSound = null;
         _music = null;
         _pitchedMusic = null;
         _clickSoundHandle?.Dispose();
         _clickSoundHandle = null;
+        _variedClickSoundHandle?.Dispose();
+        _variedClickSoundHandle = null;
         _musicHandle?.Dispose();
         _musicHandle = null;
         _pitchedMusicHandle?.Dispose();
@@ -383,6 +619,8 @@ public class AudioDemo : Demo
             _stressActive = false;
             _stressStarted = false;
             _stressGarbageSink = [];
+            StopSpu();
+            StopStressReverb(service);
             service.StopAll();
             _loopingVoice = AudioVoiceHandle.None;
             _musicTrack = MusicTrackHandle.None;
@@ -394,6 +632,189 @@ public class AudioDemo : Demo
         _stressExitWhenDone = false;
         _stressActive = true;
         _stressStarted = false;
+    }
+
+    private void ToggleDemoReverb(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_demoReverbBus == null && !mixer.TryGetBus(DemoReverbBusName, out _demoReverbBus))
+        {
+            _demoReverbBus = mixer.CreateBus(DemoReverbBusName, AudioBusNames.Master);
+            _demoReverbBus.AddEffect(new ReverbEffect(0.8f));
+        }
+
+        _demoReverbOn = !_demoReverbOn;
+        mixer.GetBus(AudioBusNames.Sfx).SetSend(_demoReverbBus, _demoReverbOn ? DemoReverbSendLevel : 0f);
+        _lastAction = $"reverb send {(_demoReverbOn ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleDemoFilter(AudioService service)
+    {
+        var music = service.Mixer.GetBus(AudioBusNames.Music);
+
+        if (_demoFilter != null)
+        {
+            music.RemoveEffect(_demoFilter);
+            _demoFilter = null;
+        }
+        else
+        {
+            _demoFilter = new BiquadFilterEffect(BiquadFilterType.LowPass, DemoFilterFrequencyHz);
+            music.AddEffect(_demoFilter);
+        }
+
+        _lastAction = $"music low-pass {(_demoFilter != null ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleDemoDucking(AudioService service)
+    {
+        var mixer = service.Mixer;
+        var music = mixer.GetBus(AudioBusNames.Music);
+
+        if (_demoDucking != null)
+        {
+            music.RemoveEffect(_demoDucking);
+            _demoDucking = null;
+        }
+        else
+        {
+            _demoDucking = new DuckingEffect(mixer.GetBus(AudioBusNames.Sfx));
+            music.AddEffect(_demoDucking);
+        }
+
+        _lastAction = $"music ducking {(_demoDucking != null ? "on" : "off")}" + EffectsNote(service);
+    }
+
+    private void ToggleOrbit(AudioService service)
+    {
+        if (service.IsAlive(_orbitVoice))
+        {
+            service.Stop(_orbitVoice);
+            _orbitVoice = AudioVoiceHandle.None;
+            _lastAction = "orbit stopped";
+            return;
+        }
+
+        if (_spatialLoop == null)
+        {
+            _lastAction = "spatial loop unavailable (click asset missing)";
+            return;
+        }
+
+        _orbitSeconds = 0f;
+        _orbitPosition = ComputeOrbitPosition(_orbitSeconds);
+        _orbitVoice = service.PlaySoundAt(_spatialLoop, _orbitPosition, SoundPlaybackOverrides.None, _game?.GameManager.CurrentWorld);
+        _lastAction = _orbitVoice.IsValid ? "orbit started" : "orbit refused (no voice left)";
+    }
+
+    /// <summary>
+    /// The service reads the Doppler factor of the asset when a voice starts: the factor is set on the spatial loop, and
+    /// a running orbit restarts its voice at its current position so that the change is heard at once.
+    /// </summary>
+    private void ToggleDoppler(AudioService service)
+    {
+        if (_spatialLoop == null)
+        {
+            _lastAction = "spatial loop unavailable (click asset missing)";
+            return;
+        }
+
+        _dopplerOn = !_dopplerOn;
+        _spatialLoop.DopplerFactor = _dopplerOn ? DemoDopplerFactor : 0f;
+
+        if (!service.IsAlive(_orbitVoice))
+        {
+            _lastAction = $"Doppler {(_dopplerOn ? "on" : "off")} (heard once the orbit runs, O)";
+            return;
+        }
+
+        service.Stop(_orbitVoice);
+        _orbitVoice = service.PlaySoundAt(_spatialLoop, _orbitPosition, SoundPlaybackOverrides.None, _game?.GameManager.CurrentWorld);
+        _lastAction = _orbitVoice.IsValid
+            ? $"Doppler {(_dopplerOn ? "on" : "off")}, orbit voice restarted"
+            : "orbit voice refused on restart (no voice left)";
+    }
+
+    private void CycleIntensity(AudioService service)
+    {
+        _intensityStep = (_intensityStep + 1) % IntensitySteps.Length;
+        var value = IntensitySteps[_intensityStep];
+        service.SetGameParameter(_intensityParameter, value);
+        _lastAction = $"{IntensityParameterName} = {value:0.0}";
+    }
+
+    /// <summary>
+    /// Moves the orbiting voice every frame, so that the service measures its speed for the Doppler shift. Allocation
+    /// free. A voice stopped elsewhere (S, the stress G) ends the orbit.
+    /// </summary>
+    private void UpdateOrbit(AudioService service, float elapsedSeconds)
+    {
+        if (!_orbitVoice.IsValid)
+        {
+            return;
+        }
+
+        if (!service.IsAlive(_orbitVoice))
+        {
+            _orbitVoice = AudioVoiceHandle.None;
+            _lastAction = "orbit stopped (its voice was stopped)";
+            return;
+        }
+
+        _orbitSeconds += elapsedSeconds;
+        if (_orbitSeconds >= OrbitPatternSeconds)
+        {
+            _orbitSeconds -= OrbitPatternSeconds;
+        }
+
+        _orbitPosition = ComputeOrbitPosition(_orbitSeconds);
+        service.SetVoicePosition(_orbitVoice, _orbitPosition);
+    }
+
+    /// <summary>
+    /// Position on the orbit around the listener: it starts in front (-Z) and turns towards the right (+X), the radius
+    /// swinging between <see cref="OrbitRadiusMiddle"/> - <see cref="OrbitRadiusSwing"/> and
+    /// <see cref="OrbitRadiusMiddle"/> + <see cref="OrbitRadiusSwing"/>.
+    /// </summary>
+    private static NumericsVector3 ComputeOrbitPosition(float seconds)
+    {
+        var angle = 2f * MathF.PI * OrbitTurnsPerSecond * seconds;
+        var radius = OrbitRadiusMiddle + OrbitRadiusSwing * MathF.Sin(2f * MathF.PI * OrbitRadiusCyclesPerSecond * seconds);
+
+        return new NumericsVector3(
+            ListenerPosition.X + radius * MathF.Sin(angle),
+            ListenerPosition.Y,
+            ListenerPosition.Z - radius * MathF.Cos(angle));
+    }
+
+    private static string EffectsNote(AudioService service)
+    {
+        return service.Backend is IAudioBusBackend ? string.Empty : " (no effect on this backend)";
+    }
+
+    private void StopDemoEffects(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_demoReverbBus != null)
+        {
+            mixer.GetBus(AudioBusNames.Sfx).SetSend(_demoReverbBus, 0f);
+        }
+
+        if (_demoFilter != null)
+        {
+            mixer.GetBus(AudioBusNames.Music).RemoveEffect(_demoFilter);
+        }
+
+        if (_demoDucking != null)
+        {
+            mixer.GetBus(AudioBusNames.Music).RemoveEffect(_demoDucking);
+        }
+
+        _demoReverbOn = false;
+        _demoFilter = null;
+        _demoDucking = null;
     }
 
     private static int GetUnderrunCount(AudioService service)
@@ -460,6 +881,8 @@ public class AudioDemo : Demo
             _stressLastGcMilliseconds = 0;
             _stressClock.Restart();
             _stressStarted = true;
+            StartSpu(service);
+            StartStressReverb(service);
             _lastAction = "stress running";
             return;
         }
@@ -492,11 +915,149 @@ public class AudioDemo : Demo
             _stressActive = false;
             _stressStarted = false;
             _stressGarbageSink = [];
+            StopSpu();
+            StopStressReverb(service);
 
             if (_stressExitWhenDone)
             {
                 _game.Exit();
             }
+        }
+    }
+
+    // The stress also runs a reverb send (Sfx and Music to a return bus holding a Freeverb) and the Master limiter, so the
+    // 60 second run covers them (T5.4). Without the bus capability the sends and the limiter are absent (one log line).
+    private void StartStressReverb(AudioService service)
+    {
+        var mixer = service.Mixer;
+
+        if (_stressReverbBus == null && !mixer.TryGetBus(StressReverbBusName, out _stressReverbBus))
+        {
+            _stressReverbBus = mixer.CreateBus(StressReverbBusName, AudioBusNames.Master);
+            _stressReverbBus.AddEffect(new ReverbEffect(0.8f));
+        }
+
+        mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0.4f);
+        mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0.3f);
+        Logs.WriteInfo($"Audio stress: reverb send on, master limiter enabled={service.MasterLimiter.IsEnabled} ceiling={service.MasterLimiter.CeilingDb} dB");
+    }
+
+    private void StopStressReverb(AudioService service)
+    {
+        if (_stressReverbBus == null)
+        {
+            return;
+        }
+
+        service.Mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0f);
+        service.Mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0f);
+    }
+
+    // One synthetic ADPCM block (shift 0, filter 0) looping on itself: 14 samples of 7000h then 14 of -8000h, a square
+    // wave of 28 samples (1575 Hz at pitch 1000h). The SPU uses the engine's default tables (ADPCM
+    // filters from psx-spx, formula reverb FIR, no Gaussian table); the block uses filter 0.
+    private void StartSpu(AudioService service)
+    {
+        _spuTried = true;
+        if (_spuPort != null)
+        {
+            return;
+        }
+
+        var tables = PsxSpuHardwareTables.CreateDefault();
+        if (!service.TryCreatePsxSpu(tables, AudioBusNames.Sfx, out var port))
+        {
+            return;
+        }
+
+        const int soundAddress = 0x1000;
+        const ushort modestVolume = 0x0800; // fixed volume register: level 1000h of 7FFFh, about 1/8
+        var block = new byte[16];
+        block[1] = 7; // loop start, loop end, repeat
+        Array.Fill(block, (byte)0x77, 2, 7);
+        Array.Fill(block, (byte)0x88, 9, 7);
+        ushort[] pitches = [0x1000, 0x1430, 0x1800, 0x0C00];
+
+        var accepted = port.TryUpload(soundAddress, block);
+        for (var voice = 0; voice < pitches.Length; voice++)
+        {
+            accepted &= port.TrySetStartAddress(voice, soundAddress / 8);
+            accepted &= port.TrySetPitch(voice, pitches[voice]);
+            accepted &= port.TrySetAdsr(voice, 0x1FC0000F);
+            accepted &= port.TrySetVolume(voice, false, modestVolume);
+            accepted &= port.TrySetVolume(voice, true, modestVolume);
+        }
+
+        accepted &= port.TryKeyOn(0xF);
+        _spuPort = port;
+        Logs.WriteInfo($"Audio demo: SPU started, {pitches.Length} voices, all writes accepted={accepted}");
+    }
+
+    private void StopSpu()
+    {
+        if (_spuPort == null)
+        {
+            return;
+        }
+
+        Logs.WriteInfo($"Audio demo: SPU stopped, refused writes={_spuPort.RefusedWriteCount}");
+        _spuPort.TryKeyOff(0xF);
+        _spuPort.Dispose();
+        _spuPort = null;
+    }
+
+    private void PlayVariedClick(AudioService service)
+    {
+        if (_variedClickSound == null)
+        {
+            _lastAction = "varied click asset is missing";
+            return;
+        }
+
+        var voice = service.PlaySound(_variedClickSound, _game?.GameManager.CurrentWorld);
+        _lastAction = voice.IsValid ? "varied click played" : "varied click refused (no voice left)";
+    }
+
+    /// <summary>
+    /// Starts a quiet looping click of priority 1 on every voice the backend still has free, so that a sound without
+    /// priority is then refused and a sound of a higher priority steals one of them.
+    /// </summary>
+    private void FillFreeVoices(AudioService service, SoundAsset clickSound)
+    {
+        var freeVoices = service.Backend.VoiceCapacity - service.Backend.ActiveVoiceCount;
+        var overrides = new SoundPlaybackOverrides(isLooped: true, volume: FillVoiceVolume) { Priority = FillVoicePriority };
+        var started = 0;
+
+        for (var i = 0; i < freeVoices; i++)
+        {
+            if (!service.PlaySound(clickSound, overrides, _game?.GameManager.CurrentWorld).IsValid)
+            {
+                break;
+            }
+
+            started++;
+        }
+
+        _lastAction = started > 0
+            ? $"{started} priority-1 loops started"
+            : "no free voice to fill";
+    }
+
+    private void PlayHighPriorityClick(AudioService service, SoundAsset clickSound)
+    {
+        var stolenBefore = service.StolenVoiceCount;
+        var overrides = new SoundPlaybackOverrides { Priority = HighPriority };
+        var voice = service.PlaySound(clickSound, overrides, _game?.GameManager.CurrentWorld);
+
+        if (!voice.IsValid)
+        {
+            _lastAction = "priority 10 click refused (no voice to steal)";
+        }
+        else
+        {
+            _lastAction = service.StolenVoiceCount > stolenBefore
+                ? "priority 10 click played, a voice was stolen"
+                : "priority 10 click played, a voice was free";
         }
     }
 

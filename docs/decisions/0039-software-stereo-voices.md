@@ -1,6 +1,6 @@
 # ADR-0039: Software stereo voices with exact left/right gains
 
-- **Status**: Accepted
+- **Status**: Accepted (game-thread path superseded in part by ADR-0056 under the software backend)
 - **Date**: 2026-09-25
 - **Source**: this chantier: `ai-agent/tasks/audio-stereo-voices-mute-tasks.md`, consumer plan `docs/plan-audio-mix-exact-muet.md` of the parent repository `alundra-casaengine-project-converter` (decision D3 and proposals P3, P4, P5, accepted by the author on 2026-09-25).
 

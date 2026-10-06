@@ -26,6 +26,7 @@ namespace CasaEngine.EditorServices;
 public sealed class EditorProjectAudioMuteSync : IDisposable
 {
     private readonly AudioMixer _mixer;
+    private readonly AudioService _service;
     private bool _isDisposed;
 
     public EditorProjectAudioMuteSync(AudioMixer mixer)
@@ -36,10 +37,26 @@ public sealed class EditorProjectAudioMuteSync : IDisposable
         EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
     }
 
+    /// <summary>Same sync, and the Master limiter follows <see cref="ProjectSettings.IsMasterLimiterEnabled"/> too.</summary>
+    public EditorProjectAudioMuteSync(AudioService service)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+
+        _service = service;
+        EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
+    }
+
     private void OnProjectLoaded(object? sender, EventArgs e)
     {
         var projectSettings = sender as ProjectSettings ?? GameSettings.ProjectSettings;
-        ProjectAudioSettings.Apply(_mixer, projectSettings);
+        if (_service != null)
+        {
+            ProjectAudioSettings.Apply(_service, projectSettings);
+        }
+        else
+        {
+            ProjectAudioSettings.Apply(_mixer, projectSettings);
+        }
     }
 
     public void Dispose()

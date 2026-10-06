@@ -53,6 +53,22 @@ public class ProjectSettings
     public bool IsAudioMuted { get; set; }
 
     /// <summary>
+    /// Switches the Master limiter (<see cref="CasaEngine.Framework.Audio.AudioService.MasterLimiter"/>) on or off for this
+    /// project. Null (absent from the project file) means on. Applied at startup and, in the editor, on every project load;
+    /// no user interface, edited directly in the project file.
+    /// </summary>
+    [Category("Audio")]
+    public bool? IsMasterLimiterEnabled { get; set; }
+
+    /// <summary>
+    /// Id (recommended) or name of the <c>.audioMixer</c> asset that configures this project's mixer (buses, effects, sends).
+    /// Empty (absent from the project file) means the engine's default mixer. Applied after the asset loaders are
+    /// registered and, in the editor, on every project load; no user interface, edited directly in the project file.
+    /// </summary>
+    [Category("Audio")]
+    public string AudioMixerAsset { get; set; } = string.Empty;
+
+    /// <summary>
     /// Audio backend this project starts with. Null means "not set": the engine default applies.
     /// The <c>CASAENGINE_AUDIO_BACKEND</c> environment variable overrides it. Takes effect at the
     /// next launch; no user interface, edited directly in the project file.

@@ -13,4 +13,5 @@ public enum EditorHistoryContextKind
     Particle,
     TileMap,
     ContentBrowser,
+    AudioMixer,
 }

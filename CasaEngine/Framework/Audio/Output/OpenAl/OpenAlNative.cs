@@ -49,7 +49,7 @@ internal static class OpenAlNative
 
     // alc.h:227
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl, EntryPoint = "alcOpenDevice")]
-    public static extern IntPtr AlcOpenDevice([MarshalAs(UnmanagedType.LPStr)] string? deviceName);
+    public static extern IntPtr AlcOpenDevice([MarshalAs(UnmanagedType.LPStr)] string deviceName);
 
     // alc.h:229
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl, EntryPoint = "alcCloseDevice")]

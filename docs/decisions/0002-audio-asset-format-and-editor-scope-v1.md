@@ -1,6 +1,6 @@
 # ADR-0002: Audio asset format and editor scope V1
 
-- **Status**: Accepted
+- **Status**: Accepted (random variations and a voice priority added to the `.sound` by ADR-0063, following ADR-0061)
 - **Date**: 2026-08-26
 - **Source**: `ai-agent/audits/analysis-audio-system.md:194-203` (section 3, D3, D4, D6, D8, D9, D12, arbitrated with the author on 2026-08-26); `docs/engine/audio-system.md:185-200` (known limits). Backfilled on 2026-09-06.
 

@@ -13,4 +13,5 @@ public enum EditorDocumentKind
     Particle,
     Cutscene,
     TileMap,
+    AudioMixer,
 }

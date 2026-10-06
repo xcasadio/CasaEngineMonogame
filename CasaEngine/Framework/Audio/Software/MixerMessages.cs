@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Audio.Effects;
+
 namespace CasaEngine.Framework.Audio.Software;
 
 internal enum MixerCommandKind
@@ -13,6 +15,43 @@ internal enum MixerCommandKind
     Stop,
     SubmitChunk,
     StopAll,
+    SetStereoGains,
+
+    /// <summary>Attaches <see cref="MixerCommand.Spu"/> as the pulled SPU source (replacing any).</summary>
+    AttachPsxSpu,
+
+    /// <summary>Detaches <see cref="MixerCommand.Spu"/> if it is the attached source.</summary>
+    DetachPsxSpu,
+
+    /// <summary>Creates bus <see cref="MixerCommand.Bus"/> as a child of <see cref="MixerCommand.ParentBus"/>.</summary>
+    CreateBus,
+
+    /// <summary>Routes the attached <see cref="MixerCommand.Spu"/> to bus <see cref="MixerCommand.Bus"/>.</summary>
+    RoutePsxSpu,
+
+    /// <summary>Ramps the volume of a voice to <see cref="MixerCommand.Volume"/> over <see cref="MixerCommand.Frames"/> frames.</summary>
+    RampVoice,
+
+    /// <summary>Stops the volume ramp of a voice at its current value.</summary>
+    FreezeVoice,
+
+    /// <summary>Ramps the own gain of bus <see cref="MixerCommand.Bus"/> to <see cref="MixerCommand.Volume"/> over <see cref="MixerCommand.Frames"/> frames.</summary>
+    RampBus,
+
+    /// <summary>Stops the gain ramp of bus <see cref="MixerCommand.Bus"/> at its current value.</summary>
+    FreezeBus,
+
+    /// <summary>Appends <see cref="MixerCommand.Effect"/> to the insert effects of bus <see cref="MixerCommand.Bus"/>.</summary>
+    AddEffect,
+
+    /// <summary>Removes <see cref="MixerCommand.Effect"/> from the insert effects of bus <see cref="MixerCommand.Bus"/>.</summary>
+    RemoveEffect,
+
+    /// <summary>Sets the send of bus <see cref="MixerCommand.Bus"/> to bus <see cref="MixerCommand.ParentBus"/> at level <see cref="MixerCommand.Volume"/> (0 removes it).</summary>
+    SetSend,
+
+    /// <summary>Sets <see cref="MixerCommand.Effect"/> as the limiter of the Master output (null removes it).</summary>
+    SetMasterLimiter,
 }
 
 /// <summary>
@@ -39,6 +78,38 @@ internal struct MixerCommand
     public int SampleRate;
     public float Volume;
     public SampleChunk Chunk;
+    public PsxSpuSource Spu;
+    public AudioEffect Effect;
+
+    /// <summary><see cref="MixerCommandKind.AddEffect"/>: audio-side memory of the effect, built on the producer thread.</summary>
+    public object EffectState;
+
+    /// <summary>Bus index: the bus a voice starts on, the bus to create, or the bus the SPU is routed to.</summary>
+    public int Bus;
+
+    /// <summary>
+    /// <see cref="MixerCommandKind.CreateBus"/>: index of the parent bus. <see cref="MixerCommandKind.SetSend"/>: index of the
+    /// target bus. <see cref="MixerCommandKind.AddEffect"/> of a ducking effect: index of its source bus.
+    /// </summary>
+    public int ParentBus;
+
+    /// <summary>
+    /// <see cref="MixerCommandKind.StartResident"/>: the mono voice uses explicit gains (no pan law).
+    /// <see cref="MixerCommandKind.SetStereoGains"/>: unused, the gains are always explicit.
+    /// </summary>
+    public bool ExplicitGains;
+
+    public float LeftGain;
+    public float RightGain;
+
+    /// <summary><see cref="MixerCommandKind.RampVoice"/> and <see cref="MixerCommandKind.RampBus"/>: length of the ramp in output frames.</summary>
+    public int Frames;
+
+    /// <summary><see cref="MixerCommandKind.RampBus"/>: publish count of the bus when the command was sent (see <see cref="SoftwareMixer.TryRampBusGain"/>).</summary>
+    public int PublishCount;
+
+    /// <summary><see cref="MixerCommandKind.RampBus"/>: gain the ramp starts from, or NaN for the gain the bus has when the command is applied.</summary>
+    public float StartGain;
 }
 
 internal enum MixerEventKind

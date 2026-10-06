@@ -19,4 +19,5 @@ public enum ContentItemType
     World,
     Particle,
     TileMap,
+    AudioMixer,
 }

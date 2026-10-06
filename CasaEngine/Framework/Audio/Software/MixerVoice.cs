@@ -10,6 +10,9 @@ internal struct MixerVoice
     public bool Paused;
     public bool Looped;
 
+    /// <summary>Index of the bus the voice is mixed into (0 is Master).</summary>
+    public int Bus;
+
     /// <summary>A resident voice reached its end but the event ring was full: retried each block.</summary>
     public bool EndPending;
 
@@ -18,11 +21,56 @@ internal struct MixerVoice
     public float Pan;
     public float Pitch;
 
+    /// <summary>Speed factor on top of the pitch, in ]0, 16].</summary>
+    public float RateMultiplier;
+
+    /// <summary>Resident voice loop region [LoopStart, LoopEnd[; the whole clip when no valid region was given.</summary>
+    public int LoopStart;
+
+    public int LoopEnd;
+
+    /// <summary>Mono resident voice with caller chosen channel gains: left = Volume * ExplicitLeft, right = Volume * ExplicitRight.</summary>
+    public bool ExplicitGains;
+
+    public float ExplicitLeft;
+    public float ExplicitRight;
+
     /// <summary>Source frames advanced per output frame, pitch included.</summary>
     public double Step;
 
     /// <summary>sourceRate / outputRate, without pitch.</summary>
     public double SourceRatio;
+
+    /// <summary>Channel factors of the voice gain without the volume (pan law, balance or explicit gains): gain = Volume * factor.</summary>
+    public float PanLeftFactor;
+
+    public float PanRightFactor;
+
+    /// <summary>
+    /// Explicit duration volume ramp. While <see cref="RampActive"/> the volume is interpolated per sample from
+    /// <see cref="RampValue"/> (its value at the start of the block) by <see cref="RampIncrement"/> per frame, and
+    /// reaches <see cref="RampTarget"/> after <see cref="RampFramesLeft"/> frames.
+    /// </summary>
+    public bool RampActive;
+
+    public double RampValue;
+    public double RampTarget;
+    public double RampIncrement;
+    public int RampFramesLeft;
+
+    /// <summary>Per-voice modulation gain at the start of the block, in [0, 1] (published by the game thread, orthogonal to the volume).</summary>
+    public float ModGainApplied;
+
+    /// <summary>Per-voice modulation gain at the end of the block.</summary>
+    public float ModGainTarget;
+
+    /// <summary>Per-voice speed ratio on top of the pitch and <see cref="RateMultiplier"/>, in [1/16, 16].</summary>
+    public float ModRate;
+
+    /// <summary>A published spatial pan replaces <see cref="Pan"/> in the channel factors (which stays the own pan of the voice).</summary>
+    public bool SpatialPanActive;
+
+    public float SpatialPan;
 
     public float CurrentLeftGain;
     public float CurrentRightGain;
@@ -44,4 +92,7 @@ internal struct MixerVoice
     public int QueueCount;
     public SampleChunk CurrentChunk;
     public int CurrentIndex;
+
+    /// <summary>Streaming buffers consumed (or dropped on queue overflow) since the voice was created.</summary>
+    public int ConsumedBuffers;
 }

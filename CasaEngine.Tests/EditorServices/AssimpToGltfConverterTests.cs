@@ -54,9 +54,58 @@ public class AssimpToGltfConverterTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Convert_ObjWithExternalTexture_EmbedsTheTexture(bool absoluteTexturePath)
+    {
+        const string OnePixelPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+        string tempDirectory = Path.Combine(Path.GetTempPath(), "CasaEngineConvObj", Guid.NewGuid().ToString("N"));
+        string sourceDirectory = Path.Combine(tempDirectory, "source");
+        Directory.CreateDirectory(sourceDirectory);
+        try
+        {
+            string objPath = Path.Combine(sourceDirectory, "quad.obj");
+            File.WriteAllText(objPath,
+                "mtllib quad.mtl\no Quad\nv 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\n"
+                + "vt 0 0\nvt 1 0\nvt 1 1\nvt 0 1\nvn 0 0 1\nusemtl Mat\nf 1/1/1 2/2/1 3/3/1 4/4/1\n");
+            byte[] png = Convert.FromBase64String(OnePixelPng);
+            string texturePath;
+            if (absoluteTexturePath)
+            {
+                // An absolute path outside the source directory, as DCC tools often write.
+                string textureDirectory = Path.Combine(tempDirectory, "elsewhere");
+                Directory.CreateDirectory(textureDirectory);
+                texturePath = Path.Combine(textureDirectory, "tex.png");
+                File.WriteAllBytes(texturePath, png);
+            }
+            else
+            {
+                // A sub-path that does not exist on disk: the texture sits next to the source file.
+                texturePath = "textures/tex.png";
+                File.WriteAllBytes(Path.Combine(sourceDirectory, "tex.png"), png);
+            }
+
+            File.WriteAllText(Path.Combine(sourceDirectory, "quad.mtl"), $"newmtl Mat\nKd 1 1 1\nmap_Kd {texturePath}\n");
+
+            // Written away from the source so the glb cannot find the texture next to it.
+            string glbPath = Path.Combine(tempDirectory, "output", "quad.glb");
+            AssimpToGltfConverter.Convert(objPath, glbPath);
+
+            var image = Assert.Single(SharpGLTF.Schema2.ModelRoot.Load(glbPath).LogicalImages);
+            Assert.True(image.Content.IsPng);
+            Assert.Equal(png, image.Content.Content.ToArray());
+        }
+        finally
+        {
+            DeleteTemporaryDirectory(tempDirectory);
+        }
+    }
+
     /// <summary>
-    /// Best-effort cleanup: on Windows a freshly written file can stay locked for a moment by a
-    /// scanner or by the native exporter, and a cleanup failure must not fail a test whose
+    /// Best-effort cleanup: the native importer reads the source file through an inheritable
+    /// handle, so a child process started meanwhile by another test (a <c>dotnet build</c>) can
+    /// keep it undeletable for a while, and a cleanup failure must not fail a test whose
     /// assertions already passed. A few short retries cover the usual delay.
     /// </summary>
     private static void DeleteTemporaryDirectory(string directory)

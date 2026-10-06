@@ -36,6 +36,25 @@ public class MusicPlayerTests
     }
 
     [Fact]
+    public void Play_RefusesAnOggStreamWithoutCreatingAVoice()
+    {
+        var service = CreateService(out var backend, out var provider);
+        var asset = new SoundAsset
+        {
+            Name = "ogg-theme",
+            AudioFileAssetId = provider.RegisterStream(AudioFixtures.ReadBytes(AudioFixtures.MonoOgg44100)),
+            BusName = AudioBusNames.Music,
+            IsStreaming = true,
+        };
+
+        var track = service.Music.Play(asset);
+
+        Assert.False(track.IsValid);
+        Assert.Equal(0, service.Music.ActiveTrackCount);
+        Assert.Equal(0, backend.StreamingVoiceCount);
+    }
+
+    [Fact]
     public void Play_StartsAStreamAndQueuesAhead()
     {
         var service = CreateService(out var backend, out var provider);

@@ -27,6 +27,24 @@ public static class ProjectAudioSettings
     }
 
     /// <summary>
+    /// Applies the Master mute as <see cref="Apply(AudioMixer, ProjectSettings)" /> does, then the Master limiter state:
+    /// <see cref="ProjectSettings.IsMasterLimiterEnabled"/>, or on when the setting is absent (a project opened after one
+    /// that switched it off gets it back). The limiter is touched only under a backend with the bus capability, so the
+    /// MonoGame backend does not trigger the "limiter is absent" log.</summary>
+    public static void Apply(AudioService service, ProjectSettings projectSettings)
+    {
+        ArgumentNullException.ThrowIfNull(service);
+        ArgumentNullException.ThrowIfNull(projectSettings);
+
+        Apply(service.Mixer, projectSettings);
+
+        if (service.Backend is IAudioBusBackend)
+        {
+            service.MasterLimiter.IsEnabled = projectSettings.IsMasterLimiterEnabled ?? true;
+        }
+    }
+
+    /// <summary>
     /// Sets the Master bus mute and mirrors <paramref name="isMuted"/> into
     /// <paramref name="projectSettings"/> and, when it is a different instance, into
     /// <paramref name="globalProjectSettings"/> (same idea as
