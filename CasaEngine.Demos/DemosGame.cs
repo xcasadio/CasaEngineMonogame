@@ -106,6 +106,8 @@ public class DemosGame : CasaEngineGame
         // E19.g G2d (ADR-0066): the tint overlay of the scrolling layers draws with the PSX mode of the map, one scene per mode.
         _demos.Add(new BackgroundTintPsxMode1Demo());
         _demos.Add(new BackgroundTintPsxMode0Demo());
+        // E19.g G2b-1 (ADR-0068): free PS1 quads (scaled, mirrored, sheared, trapezoid), compared with the prediction of the annex.
+        _demos.Add(new PsxFreeQuadDemo());
 
         ChangeDemo(ResolveStartupDemoIndex());
     }
