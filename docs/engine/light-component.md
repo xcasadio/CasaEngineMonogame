@@ -43,6 +43,7 @@ Cela permet de desactiver le casting ou la reception soit au niveau instance, so
 ## Limites V1 du workflow shadows
 
 - V1 supporte une shadow map directional dans le pipeline forward.
+- La shadow map directional suit la camera par pas entiers de texel (`ShadowPass.BuildDirectionalShadowViewProjection`) : les bords des ombres statiques ne rampent pas quand la camera bouge. L'ombre d'un objet en mouvement change toujours de texel avec lui.
 - La shadow map stocke la profondeur en `SurfaceFormat.Single` pour eviter la quantification 8 bits visible sous forme de bandes d'auto-ombrage; le fallback `Color` ne doit servir qu'aux materiels qui ne supportent pas ce format.
 - Les materials lit forward et les meshes skinnes peuvent recevoir cette shadow map si leurs flags effectifs l'autorisent.
 - L'ambient global et l'environnement ne sont pas shadowes en V1; seule la lumiere directe directional est attenuee.
