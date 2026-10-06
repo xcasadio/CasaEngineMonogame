@@ -108,6 +108,8 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new BackgroundTintPsxMode0Demo());
         // E19.g G2b-1 (ADR-0068): free PS1 quads (scaled, mirrored, sheared, trapezoid), compared with the prediction of the annex.
         _demos.Add(new PsxFreeQuadDemo());
+        // E19.g G2e (ADR-0071): effect quads pushed to EffectQuadService and drawn by EffectQuadComponent, compared with the prediction of the annex.
+        _demos.Add(new EffectQuadDemo());
 
         ChangeDemo(ResolveStartupDemoIndex());
     }

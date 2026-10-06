@@ -40,7 +40,12 @@ public enum ComponentUpdateOrder
     // pushed this frame's camera/ticks to its service from GameManager.UpdateWorld. Relative order
     // against ScrollingLayers does not matter (parallel sibling mechanisms, never both active on the
     // same layer) - appended last purely to keep existing enum values stable.
-    CellularLayers
+    CellularLayers,
+
+    // Same reasoning as CellularLayers - EffectQuadComponent.Update submits after the DLL has pushed this frame's effect quads to
+    // its service from GameManager.UpdateWorld. The component does not sort (the sprite pass does, from each quad's sort key), so
+    // its order against the other overlays does not matter - appended last purely to keep existing enum values stable.
+    EffectQuads
 }
 
 public enum ComponentDrawOrder

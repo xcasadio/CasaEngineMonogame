@@ -65,6 +65,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public ScreenEffectComponent ScreenEffectComponent { get; private set; }
     public ScrollingLayerComponent ScrollingLayerComponent { get; private set; }
     public CellularLayerComponent CellularLayerComponent { get; private set; }
+    public EffectQuadComponent EffectQuadComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
@@ -402,6 +403,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         ScreenEffectComponent = new ScreenEffectComponent(this);
         ScrollingLayerComponent = new ScrollingLayerComponent(this);
         CellularLayerComponent = new CellularLayerComponent(this);
+        EffectQuadComponent = new EffectQuadComponent(this);
         FontSystem = new FontSystem();
         UIFonts = new UIFontRegistry(AssetContentManager);
 
