@@ -16,12 +16,13 @@ using Thickness = MonoGame.Extended.Thickness;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// Inspector for a <c>.sound</c> asset: audio file, volume, pitch, loop, target bus, streaming,
-/// plus a preview.
+/// Inspector for a <c>.sound</c> asset: audio file, variation audio files, volume, pitch, volume and
+/// pitch variation ranges, voice priority, loop, target bus, streaming, plus a preview.
 /// </summary>
 /// <remarks>
 /// The preview is routed to the Editor bus, never to the game buses: it must not be silenced by
-/// the game mix, and it must survive the end of a play session.
+/// the game mix, and it must survive the end of a play session. It plays with priority 0, so it
+/// never steals a voice from the game. Variations and priority only apply to a non-streaming asset.
 /// </remarks>
 public sealed class SoundAssetInspectorPanel : IDisposable
 {
@@ -237,9 +238,10 @@ public sealed class SoundAssetInspectorPanel : IDisposable
             return;
         }
 
+        // Priority 0: the preview neither steals a game voice nor can be stolen by one.
         _previewVoice = audioService.PlaySound(
             _soundAsset,
-            new SoundPlaybackOverrides(busName: AudioBusNames.Editor));
+            new SoundPlaybackOverrides(busName: AudioBusNames.Editor) { Priority = 0 });
 
         SetStatus(_previewVoice.IsValid ? "Previewing" : "The sound could not be played.");
     }
@@ -289,6 +291,32 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         return _editorRuntime?.AudioSystemComponent?.Service;
     }
 
+    /// <summary>Appends an empty variation file entry to the asset and rebuilds the inspector.</summary>
+    internal void AddVariationFile()
+    {
+        if (_soundAsset == null)
+        {
+            return;
+        }
+
+        _soundAsset.VariationAudioFileAssetIds.Add(Guid.Empty);
+        SetDirty(true);
+        RefreshInspector();
+    }
+
+    /// <summary>Removes the variation file entry at <paramref name="index"/> (ignored when out of range) and rebuilds the inspector.</summary>
+    internal void RemoveVariationFile(int index)
+    {
+        if (_soundAsset == null || index < 0 || index >= _soundAsset.VariationAudioFileAssetIds.Count)
+        {
+            return;
+        }
+
+        _soundAsset.VariationAudioFileAssetIds.RemoveAt(index);
+        SetDirty(true);
+        RefreshInspector();
+    }
+
     private void SaveLoadedAsset()
     {
         TrySaveLoadedAsset(out _);
@@ -316,8 +344,19 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         _suppressControlCallbacks = true;
 
         _fieldStack.TryAddChild(CreateAudioFileRow());
+        for (var i = 0; i < _soundAsset.VariationAudioFileAssetIds.Count; i++)
+        {
+            _fieldStack.TryAddChild(CreateVariationFileRow(i));
+        }
+
+        _fieldStack.TryAddChild(CreateAddVariationFileRow());
         _fieldStack.TryAddChild(CreateVolumeRow());
         _fieldStack.TryAddChild(CreatePitchRow());
+        _fieldStack.TryAddChild(CreateVolumeVariationRow());
+        _fieldStack.TryAddChild(CreatePitchVariationRow());
+        _fieldStack.TryAddChild(CreatePriorityRow());
+        _fieldStack.TryAddChild(CreateHelpText("Priority 0 = none: never stolen, never steals."));
+        _fieldStack.TryAddChild(CreateHelpText("Variations and priority are ignored for a streaming asset."));
         _fieldStack.TryAddChild(CreateCheckBoxRow("Looped", _soundAsset.IsLooped, value =>
         {
             _soundAsset.IsLooped = value;
@@ -339,27 +378,60 @@ public sealed class SoundAssetInspectorPanel : IDisposable
     private MGElement CreateAudioFileRow()
     {
         var row = CreateRow("Audio file");
+        row.TryAddChild(CreateAudioFileSelector(
+            _soundAsset.AudioFileAssetId,
+            assetId => _soundAsset.AudioFileAssetId = assetId));
+        return row;
+    }
 
+    private MGElement CreateVariationFileRow(int index)
+    {
+        var row = CreateRow($"Variation {index + 1}");
+        row.TryAddChild(CreateAudioFileSelector(
+            _soundAsset.VariationAudioFileAssetIds[index],
+            assetId =>
+            {
+                if (index < _soundAsset.VariationAudioFileAssetIds.Count)
+                {
+                    _soundAsset.VariationAudioFileAssetIds[index] = assetId;
+                }
+            }));
+        row.TryAddChild(CreateButton("Remove", () => RemoveVariationFile(index)));
+        return row;
+    }
+
+    private MGElement CreateAddVariationFileRow()
+    {
+        var row = CreateRow("Variations");
+        row.TryAddChild(CreateButton("Add variation file", AddVariationFile, preferredWidth: null));
+        return row;
+    }
+
+    /// <summary>
+    /// Selector of an audio file, limited to the formats the engine can decode. <paramref name="onChanged"/> writes
+    /// the asset, then the asset is marked dirty, unless the inspector is being rebuilt.
+    /// </summary>
+    private AssetSelector CreateAudioFileSelector(Guid assetId, Action<Guid> onChanged)
+    {
         var selector = new AssetSelector(_window)
         {
-            AssetId = _soundAsset.AudioFileAssetId,
+            AssetId = assetId,
             // Only the formats the engine can actually decode.
             Filter = assetInfo => assetInfo.FileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase)
                 || assetInfo.FileName.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase),
         };
-        selector.AssetChanged += (_, assetId) =>
+        selector.AssetChanged += (_, selectedAssetId) =>
         {
             if (_suppressControlCallbacks)
             {
                 return;
             }
 
-            _soundAsset.AudioFileAssetId = assetId;
+            onChanged(selectedAssetId);
             SetDirty(true);
         };
 
-        row.TryAddChild(selector);
-        return row;
+        return selector;
     }
 
     private MGElement CreateVolumeRow()
@@ -404,6 +476,83 @@ public sealed class SoundAssetInspectorPanel : IDisposable
 
         row.TryAddChild(field);
         return row;
+    }
+
+    private MGElement CreateVolumeVariationRow()
+    {
+        var row = CreateRow("Volume variation");
+        row.TryAddChild(CreateNumericField(
+            "Min",
+            AudioVoiceParameters.MinVolume,
+            AudioVoiceParameters.MaxVolume,
+            0.05f,
+            _soundAsset.VariationVolumeMin,
+            value => _soundAsset.VariationVolumeMin = MathF.Round(value, 2)));
+        row.TryAddChild(CreateNumericField(
+            "Max",
+            AudioVoiceParameters.MinVolume,
+            AudioVoiceParameters.MaxVolume,
+            0.05f,
+            _soundAsset.VariationVolumeMax,
+            value => _soundAsset.VariationVolumeMax = MathF.Round(value, 2)));
+        return row;
+    }
+
+    private MGElement CreatePitchVariationRow()
+    {
+        var row = CreateRow("Pitch variation");
+        row.TryAddChild(CreateNumericField(
+            "Min",
+            AudioVoiceParameters.MinPitch,
+            AudioVoiceParameters.MaxPitch,
+            0.05f,
+            _soundAsset.VariationPitchMin,
+            value => _soundAsset.VariationPitchMin = MathF.Round(value, 2)));
+        row.TryAddChild(CreateNumericField(
+            "Max",
+            AudioVoiceParameters.MinPitch,
+            AudioVoiceParameters.MaxPitch,
+            0.05f,
+            _soundAsset.VariationPitchMax,
+            value => _soundAsset.VariationPitchMax = MathF.Round(value, 2)));
+        return row;
+    }
+
+    private MGElement CreatePriorityRow()
+    {
+        var row = CreateRow("Priority");
+        row.TryAddChild(CreateNumericField(
+            string.Empty,
+            0f,
+            SoundAsset.MaxPriority,
+            1f,
+            _soundAsset.Priority,
+            value => _soundAsset.Priority = (int)MathF.Round(value)));
+        return row;
+    }
+
+    /// <summary>
+    /// Numeric field writing the asset through <paramref name="applyValue"/>, then marking it dirty, unless the
+    /// inspector is being rebuilt. The float field drifts (0.35 becomes 0.35000002): callers round what they write.
+    /// </summary>
+    private NumericField CreateNumericField(string label, float min, float max, float step, float value, Action<float> applyValue)
+    {
+        var field = new NumericField(_window, label, min, max, step)
+        {
+            Value = value,
+        };
+        field.ValueChanged += (_, newValue) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            applyValue(newValue);
+            SetDirty(true);
+        };
+
+        return field;
     }
 
     private MGElement CreateBusRow()
@@ -454,6 +603,15 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         return row;
     }
 
+    private MGTextBlock CreateHelpText(string text)
+    {
+        return new MGTextBlock(_window, text)
+        {
+            Opacity = 0.7f,
+            WrapText = true,
+        };
+    }
+
     private MGElement CreateCheckBoxRow(string label, bool isChecked, Action<bool> onChanged)
     {
         var checkBox = new MGCheckBox(_window)
@@ -477,11 +635,11 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         return checkBox;
     }
 
-    private MGButton CreateButton(string label, Action onClick)
+    private MGButton CreateButton(string label, Action onClick, int? preferredWidth = 84)
     {
         var button = new MGButton(_window, _ => onClick())
         {
-            PreferredWidth = 84,
+            PreferredWidth = preferredWidth,
         };
         button.SetContent(new MGTextBlock(_window, label)
         {

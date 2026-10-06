@@ -2105,7 +2105,7 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   quatre fois ; diffs vides depuis `6f06298f` sur `IAudioBackend.cs`, `AudioVoiceParameters.cs`, `Backends`,
   `Software`, `Streaming`.
 
-### ⏳ T8.5 — Inspecteur de son : variations, plages et priorité (P31)
+### 🧪 T8.5 — Inspecteur de son : variations, plages et priorité (P31)
 
 - Fichiers : `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`,
   `CasaEngine.Tests/Editor/SoundAssetInspectorPanelTests.cs` (nouveau). Sous-module MGUI, `GameEditor.cs` et
@@ -2133,6 +2133,18 @@ logiciel, lecture tolérante, allocations sur le chemin accepté), corrigé ; re
   lignes et prévisualisation dans l'éditeur hébergé (ouvrir un `.sound`, ajouter deux fichiers, régler plages et
   priorité, Save, rouvrir, Play plusieurs fois). Deux solutions sans erreur ; suite complète verte.
 - Commit : `feat(editor): variation and priority rows in the sound inspector`
+- Note de validation (2026-10-06) : lignes « Variation N » (sélecteur partagé avec « Audio file », même filtre et
+  même garde) avec « Remove », bouton « Add variation file », « Volume variation » et « Pitch variation » (Min et
+  Max, arrondis à 2 décimales), « Priority » (entier), deux lignes d'aide ; `AddVariationFile` et
+  `RemoveVariationFile` internes ; prévisualisation à `Priority = 0`. 26 tests sans GPU, dont des clics réels sur
+  « Add variation file » et sur le second « Remove », l'enregistrement (huit clés seules sans champ posé, nouvelles
+  clés relues à l'identique) et la prévisualisation refusée sans vol quand une voix du jeu de priorité 1 tient la
+  seule voix. Mutation : retirer `{ Priority = 0 }` et les arrondis fait échouer six tests. Deux solutions sans
+  erreur, aucun avertissement dans les fichiers touchés ; 3287/3287. **🧪 pour l'auteur** (éditeur non lancé) :
+  ouvrir un `.sound`, ajouter deux fichiers de variation, régler plages et priorité, Save, rouvrir, Play
+  plusieurs fois ; vérifier que les libellés « Volume variation » et « Pitch variation » tiennent dans leur
+  colonne et que les lignes d'aide ne forcent pas de défilement horizontal. Une plage inversée est acceptée
+  (P25 : triée au tirage).
 
 ### ⏳ T8.6 — Démo : variations et vol de voix
 
