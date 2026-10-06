@@ -40,7 +40,7 @@ namespace CasaEngine.Framework.Audio.Backends;
 /// backend is unavailable and every call is a silent no-op; waiting on a full ring stops at once.
 /// </para>
 /// </remarks>
-public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend
+public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, IPsxSpuHost, IAudioBusBackend, IAudioMeteringBackend
 {
     public const int DefaultVoiceCapacity = 64;
 
@@ -719,6 +719,25 @@ public sealed class SoftwareAudioBackend : IAudioBackend, IStereoVoiceBackend, I
         }
 
         return sent;
+    }
+
+    /// <summary>Blocks kept for the readers (<see cref="IAudioMeteringBackend"/>).</summary>
+    public int MeterHistoryBlocks => SoftwareMixer.MeterHistoryBlocks;
+
+    /// <summary>
+    /// Levels measured on the audio thread (<see cref="IAudioMeteringBackend"/>); lock free, allocation free, callable from
+    /// any thread. An empty read when the backend is unavailable.
+    /// </summary>
+    public AudioMeterRead ReadLevels(ref AudioMeterCursor cursor, Span<AudioLevel> buses, out AudioLevel output)
+    {
+        if (_mixer == null)
+        {
+            buses.Clear();
+            output = default;
+            return default;
+        }
+
+        return _mixer.ReadLevels(ref cursor, buses, out output);
     }
 
     public bool TrySetMasterLimiter(LimiterEffect limiter)

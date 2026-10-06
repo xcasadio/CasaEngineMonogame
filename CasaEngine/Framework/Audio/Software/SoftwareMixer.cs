@@ -139,6 +139,22 @@ internal sealed class SoftwareMixer
     private AudioEffect _masterLimiter;
     private EffectDspState _masterLimiterState;
 
+    // Level metering (plan decision P22). The render thread measures each bus (after its own gain, effects applied) and the
+    // output once per block, and publishes the block in a ring of MeterHistoryBlocks slots guarded by a per-slot sequence
+    // number (a seqlock) and a block counter: readers never block the audio thread. A record is (peak left, peak right,
+    // sum of squares) for each bus then for the output, in the slot of the block number modulo the ring size.
+    public const int MeterHistoryBlocks = 64;
+    private const int MeterRecordFloats = 3;
+    private const int MeterRecords = BusCapacity + 1;
+    private const int MeterOutputRecord = BusCapacity;
+    private readonly float[] _meterData = new float[MeterHistoryBlocks * MeterRecords * MeterRecordFloats];
+    private readonly int[] _meterFrames = new int[MeterHistoryBlocks];
+    private readonly int[] _meterOvers = new int[MeterHistoryBlocks];
+    private readonly long[] _meterSequence = new long[MeterHistoryBlocks];
+    private long _meterPublished;
+    // Render thread scratch of the block being measured.
+    private readonly float[] _meterBlock = new float[MeterRecords * MeterRecordFloats];
+
     // Producer: mirror of the graph (parent and sends of each bus) used to refuse a send cycle.
     private readonly int[] _producerParent = new int[BusCapacity];
     private readonly int[] _producerSendTarget = new int[BusCapacity * SendSlotsPerBus];
@@ -1000,15 +1016,168 @@ internal sealed class SoftwareMixer
 
         MixBuses(output, frameCount);
 
+        // The overs: samples beyond full scale on the Master mix, counted before the limiter and the hard clip erase them.
+        var overs = 0;
+
+        for (var i = 0; i < sampleCount; i++)
+        {
+            var sample = output[i];
+
+            if (sample > 1f || sample < -1f)
+            {
+                overs++;
+            }
+        }
+
         // The Master limiter, after the Master gain; the hard clip below stays as the last resort.
         _masterLimiter?.Process(ref _masterLimiterState, output, frameCount, OutputSampleRate);
 
-        // The final hard clip, after Master.
-        for (var i = 0; i < output.Length; i++)
+        // The final hard clip, after Master; the output level is measured on what leaves it.
+        var outputPeakLeft = 0f;
+        var outputPeakRight = 0f;
+        double outputSumSquares = 0.0;
+
+        for (var i = 0; i < sampleCount; i += 2)
         {
-            var sample = output[i];
-            output[i] = sample > 1f ? 1f : sample < -1f ? -1f : sample;
+            var left = output[i];
+            var right = output[i + 1];
+            left = left > 1f ? 1f : left < -1f ? -1f : left;
+            right = right > 1f ? 1f : right < -1f ? -1f : right;
+            output[i] = left;
+            output[i + 1] = right;
+            var absLeft = left < 0f ? -left : left;
+            var absRight = right < 0f ? -right : right;
+
+            if (absLeft > outputPeakLeft)
+            {
+                outputPeakLeft = absLeft;
+            }
+
+            if (absRight > outputPeakRight)
+            {
+                outputPeakRight = absRight;
+            }
+
+            outputSumSquares += ((double)left * left) + ((double)right * right);
         }
+
+        var record = MeterOutputRecord * MeterRecordFloats;
+        _meterBlock[record] = outputPeakLeft;
+        _meterBlock[record + 1] = outputPeakRight;
+        _meterBlock[record + 2] = (float)outputSumSquares;
+        PublishMeters(frameCount, overs);
+    }
+
+    // Render thread. Seqlock publication of the block measured in _meterBlock: the slot sequence is odd while the slot is
+    // written and even (twice the block number) once complete, so a reader that finds anything else, before or after its
+    // copy, knows the slot is not (or no longer) the block it wants. The block counter is published last.
+    private void PublishMeters(int frameCount, int overs)
+    {
+        var block = _meterPublished + 1;
+        var slot = (int)(block % MeterHistoryBlocks);
+        Volatile.Write(ref _meterSequence[slot], (block * 2) - 1);
+        Interlocked.MemoryBarrier();
+        var first = slot * MeterRecords * MeterRecordFloats;
+
+        // Buses that do not exist yet stay at zero in every slot.
+        for (var b = 0; b < _busCount; b++)
+        {
+            Array.Copy(_meterBlock, b * MeterRecordFloats, _meterData, first + (b * MeterRecordFloats), MeterRecordFloats);
+        }
+
+        Array.Copy(_meterBlock, MeterOutputRecord * MeterRecordFloats, _meterData, first + (MeterOutputRecord * MeterRecordFloats), MeterRecordFloats);
+        _meterFrames[slot] = frameCount;
+        _meterOvers[slot] = overs;
+        Volatile.Write(ref _meterSequence[slot], block * 2);
+        Volatile.Write(ref _meterPublished, block);
+    }
+
+    /// <summary>
+    /// Any thread, any number of readers. Aggregates the blocks published since <paramref name="cursor"/>: maximum of the
+    /// peaks, root mean square over all their frames, sum of the overs. Allocates nothing.
+    /// </summary>
+    public AudioMeterRead ReadLevels(ref AudioMeterCursor cursor, Span<AudioLevel> buses, out AudioLevel output)
+    {
+        var published = Volatile.Read(ref _meterPublished);
+        var oldest = Math.Max(1, published - MeterHistoryBlocks + 1);
+        var next = cursor.Started ? cursor.LastBlock + 1 : oldest;
+        var missed = 0;
+
+        if (next < oldest)
+        {
+            missed = (int)Math.Min(int.MaxValue, oldest - next);
+            next = oldest;
+        }
+
+        cursor.Started = true;
+        cursor.LastBlock = published;
+
+        Span<float> peakLeft = stackalloc float[MeterRecords];
+        Span<float> peakRight = stackalloc float[MeterRecords];
+        Span<double> sumSquares = stackalloc double[MeterRecords];
+        Span<float> copy = stackalloc float[MeterRecords * MeterRecordFloats];
+        var blocks = 0;
+        var frames = 0;
+        long overs = 0;
+
+        for (var block = next; block <= published; block++)
+        {
+            var slot = (int)(block % MeterHistoryBlocks);
+            var sequence = Volatile.Read(ref _meterSequence[slot]);
+
+            if (sequence != block * 2)
+            {
+                missed++;
+                continue;
+            }
+
+            _meterData.AsSpan(slot * MeterRecords * MeterRecordFloats, copy.Length).CopyTo(copy);
+            var blockFrames = _meterFrames[slot];
+            var blockOvers = _meterOvers[slot];
+            Interlocked.MemoryBarrier();
+
+            if (Volatile.Read(ref _meterSequence[slot]) != sequence)
+            {
+                missed++;
+                continue;
+            }
+
+            for (var r = 0; r < MeterRecords; r++)
+            {
+                var o = r * MeterRecordFloats;
+
+                if (copy[o] > peakLeft[r])
+                {
+                    peakLeft[r] = copy[o];
+                }
+
+                if (copy[o + 1] > peakRight[r])
+                {
+                    peakRight[r] = copy[o + 1];
+                }
+
+                sumSquares[r] += copy[o + 2];
+            }
+
+            blocks++;
+            frames += blockFrames;
+            overs += blockOvers;
+        }
+
+        var sampleCount = frames * 2.0;
+        var count = Math.Min(buses.Length, BusCapacity);
+
+        for (var b = 0; b < count; b++)
+        {
+            buses[b] = new AudioLevel(peakLeft[b], peakRight[b], sampleCount > 0.0 ? (float)Math.Sqrt(sumSquares[b] / sampleCount) : 0f, 0);
+        }
+
+        output = new AudioLevel(
+            peakLeft[MeterOutputRecord],
+            peakRight[MeterOutputRecord],
+            sampleCount > 0.0 ? (float)Math.Sqrt(sumSquares[MeterOutputRecord] / sampleCount) : 0f,
+            (int)Math.Min(int.MaxValue, overs));
+        return new AudioMeterRead(blocks, missed, frames);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1052,6 +1221,9 @@ internal sealed class SoftwareMixer
             var destination = b == MasterBus ? output : BusBuffer(_busParent[b], sampleCount);
             var add = b != MasterBus;
             var sendCount = _busSendCount[b];
+            var peakLeft = 0f;
+            var peakRight = 0f;
+            double sumSquares = 0.0;
 
             for (var s = 0; s < sendCount; s++)
             {
@@ -1074,16 +1246,35 @@ internal sealed class SoftwareMixer
 
                 var i = f * 2;
 
+                var left = source[i] * gain;
+                var right = source[i + 1] * gain;
+
                 if (add)
                 {
-                    destination[i] += source[i] * gain;
-                    destination[i + 1] += source[i + 1] * gain;
+                    destination[i] += left;
+                    destination[i + 1] += right;
                 }
                 else
                 {
-                    destination[i] = source[i] * gain;
-                    destination[i + 1] = source[i + 1] * gain;
+                    destination[i] = left;
+                    destination[i + 1] = right;
                 }
+
+                // The level of the bus: the signal it passes to its parent.
+                var absLeft = left < 0f ? -left : left;
+                var absRight = right < 0f ? -right : right;
+
+                if (absLeft > peakLeft)
+                {
+                    peakLeft = absLeft;
+                }
+
+                if (absRight > peakRight)
+                {
+                    peakRight = absRight;
+                }
+
+                sumSquares += ((double)left * left) + ((double)right * right);
 
                 // Post-fader sends: the signal of this bus, effects and own gain applied, into the return buffers.
                 for (var s = 0; s < sendCount; s++)
@@ -1095,6 +1286,10 @@ internal sealed class SoftwareMixer
                     _busBuffers[o + 1] += source[i + 1] * sent;
                 }
             }
+
+            _meterBlock[b * MeterRecordFloats] = peakLeft;
+            _meterBlock[(b * MeterRecordFloats) + 1] = peakRight;
+            _meterBlock[(b * MeterRecordFloats) + 2] = (float)sumSquares;
 
             for (var s = 0; s < sendCount; s++)
             {

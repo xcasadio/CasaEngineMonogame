@@ -1615,7 +1615,7 @@ Revue du détail (2026-10-06) : deux relecteurs frais **REVISE** (prérequis « 
 chemin d'ouverture, source et rafraîchissement du panneau ; puis rythme de lecture des mesures
 distinct de celui des textes), corrigés ; relecture de clôture **READY**.
 
-### ⏳ T6.1 — Mesure des niveaux au thread audio (P22)
+### ✅ T6.1 — Mesure des niveaux au thread audio (P22)
 
 - Fichiers : `CasaEngine/Framework/Audio/IAudioMeteringBackend.cs` (capacité publique),
   `Software/SoftwareMixer.cs`, `Backends/SoftwareAudioBackend.cs`, tests `CasaEngine.Tests/Audio/Software/`.
@@ -1630,6 +1630,26 @@ distinct de celui des textes), corrigés ; relecture de clôture **READY**.
   isolé ; zéro allocation au rendu (`AllocationWindow`) ; sans la capacité, `AudioService` le dit
   (une ligne de journal limitée) et rien d'autre ne change ; suite complète.
 - Commit : `feat(audio): publish bus levels from the audio thread`
+- Note de validation (2026-10-06) : capacité publique `IAudioMeteringBackend` (`MeterHistoryBlocks`,
+  `ReadLevels(ref AudioMeterCursor, Span<AudioLevel> bus, out AudioLevel sortie)`), types
+  `AudioMeterCursor` (un par lecteur), `AudioLevel` (crêtes gauche et droite, `Peak`, `Rms`,
+  `Overs`), `AudioMeterRead` (blocs lus, blocs manqués, trames) ; `AudioService.IsMeteringAvailable`,
+  `TryGetMeterBusIndex`, `TryReadLevels` (tout additif). Mesure : chaque bus après effets et gain
+  propre (le signal passé à son parent ; Master avant le limiteur) ; la sortie après le limiteur et
+  l'écrêtage ; dépassements comptés juste après le mix des bus, avant le limiteur (par échantillon
+  et par canal). Publication : historique circulaire préalloué de **64 blocs** (au lieu de 16 :
+  un bloc est un tampon du périphérique, sans durée minimale garantie ; 64 couvrent 80 ms dès
+  1,25 ms par bloc), chaque emplacement sous compteur de séquence (impair pendant l'écriture), le
+  compteur de blocs publié en dernier ; le lecteur relit la séquence après copie, un emplacement
+  réécrit est compté « manqué », jamais agrégé ; aucune perte de crête pour un lecteur à moins de
+  64 blocs ; aucune allocation ni attente d'un côté ou de l'autre. Un bus au-delà du 32e est
+  « indisponible », jamais Master. 13 tests (`SoftwareMixerMeteringTests.cs`,
+  `AudioServiceMeteringTests.cs`) : sinus 0,8 à gain 0,5 → crête 0,4 et efficace 0,4/√2 à 1e-4 ;
+  bus enfant et parent ; dépassements avec limiteur actif (sortie sous le plafond) ; deux lecteurs
+  à rythmes différents voient la crête d'un bloc isolé ; blocs manqués comptés ; lecture concurrente
+  sans enregistrement déchiré ; zéro allocation (32 bus, 32 voix, limiteur) ; repli sans la capacité
+  (une ligne de journal). Les deux solutions : 0 erreur, aucun avertissement dans les fichiers
+  touchés ; suite complète 3087/3087 (trois passages) ; stress de 60 s : `underruns=0`.
 
 ### ⏳ T6.2 — Panneau « Audio » de l'éditeur (P23)
 

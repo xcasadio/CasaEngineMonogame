@@ -22,6 +22,8 @@ public sealed class AudioService : IDisposable
 {
     private readonly IAudioBackend _backend;
     private readonly IAudioBusBackend _busBackend;
+    private readonly IAudioMeteringBackend _meteringBackend;
+    private readonly AudioLogThrottle _meteringLog = new();
     // Per bus of Mixer.Buses (same order): index on the backend, or -1 when it is not on it (routed to Master).
     private readonly List<int> _backendBusIndices = new();
     private int _syncedBusVersion = -1;
@@ -54,6 +56,7 @@ public sealed class AudioService : IDisposable
         _backend = backend ?? throw new ArgumentNullException(nameof(backend));
         Mixer = mixer ?? AudioBusNames.CreateDefaultMixer();
         _busBackend = _backend as IAudioBusBackend;
+        _meteringBackend = _backend as IAudioMeteringBackend;
         SyncBuses();
         SyncEffects();
         SyncSends();
@@ -64,6 +67,68 @@ public sealed class AudioService : IDisposable
     }
 
     public IAudioBackend Backend => _backend;
+
+    /// <summary>True when the backend measures bus levels on its audio thread (<see cref="IAudioMeteringBackend"/>).</summary>
+    public bool IsMeteringAvailable => _meteringBackend != null;
+
+    /// <summary>
+    /// Index to read the level of the bus called <paramref name="busName"/> at in <see cref="TryReadLevels"/>. False when the
+    /// bus does not exist, when it is beyond the backend capacity (it is mixed into Master, but has no level of its own), or
+    /// when the backend has no metering (one throttled line says so). The Master bus is index 0.
+    /// </summary>
+    public bool TryGetMeterBusIndex(string busName, out int index)
+    {
+        index = -1;
+
+        if (!CheckMetering())
+        {
+            return false;
+        }
+
+        SyncBuses();
+
+        if (!Mixer.TryGetBus(busName, out var bus))
+        {
+            return false;
+        }
+
+        index = BackendIndexOf(bus);
+        return index >= 0;
+    }
+
+    /// <summary>
+    /// Reads the levels published since <paramref name="cursor"/> (see <see cref="IAudioMeteringBackend.ReadLevels"/>): the
+    /// bus levels in <paramref name="buses"/> by the index <see cref="TryGetMeterBusIndex"/> gives, and the output. False,
+    /// with everything zero, when the backend has no metering (one throttled line says so). Allocation free.
+    /// </summary>
+    public bool TryReadLevels(ref AudioMeterCursor cursor, Span<AudioLevel> buses, out AudioLevel output, out AudioMeterRead read)
+    {
+        if (!CheckMetering())
+        {
+            buses.Clear();
+            output = default;
+            read = default;
+            return false;
+        }
+
+        read = _meteringBackend.ReadLevels(ref cursor, buses, out output);
+        return true;
+    }
+
+    private bool CheckMetering()
+    {
+        if (_meteringBackend != null)
+        {
+            return true;
+        }
+
+        if (_meteringLog.ShouldWrite())
+        {
+            _meteringLog.WriteNow("Audio: this backend does not measure levels, so bus meters are unavailable (use the software backend).");
+        }
+
+        return false;
+    }
 
     public AudioMixer Mixer { get; }
 
