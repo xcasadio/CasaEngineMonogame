@@ -25,7 +25,9 @@ namespace CasaEngine.Editor.Controls;
 /// The document panel of one <c>.audioMixer</c> asset (plan T10.5 and T10.6, decisions P49 to P54): the editing shell around an
 /// <see cref="AudioMixerDocument"/> (header, banners, Save, Reload, Apply, problem list) and the bus strips below it: a fader, a
 /// dB readout, mute and solo, a level meter and, for a custom bus, a delete button, plus a row to add a bus. Clicking the name of
-/// a bus of the asset selects it; below the strips, an <see cref="AudioMixerBusDetailView"/> edits its effects, sends and ducking (T10.7).
+/// a bus of the asset selects it; below the strips, an <see cref="AudioMixerBusDetailView"/> edits its effects, sends and ducking (T10.7). Under the
+/// toolbar, a band draws the level of the final output over the last ten seconds (T10.8, decision P55) from the history of the output meter
+/// of the panel's own model; the "Audio" panel keeps no history.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -63,6 +65,7 @@ public sealed class AudioMixerPanel : IDisposable
     private const string SoftwareOnlyBannerText = "Effects, sends and ducking: software backend only";
     private const string PlayLockBannerText = "Stop play mode to edit the mixer";
     private const string PlayLockRefusalText = AudioMixerBusDetailView.PlayLockRefusalText;
+    private const string LevelHistoryTitle = "Output level (last 10 s)";
 
     private const int NameColumnWidth = 130;
     private const int ReadoutColumnWidth = 66;
@@ -101,6 +104,7 @@ public sealed class AudioMixerPanel : IDisposable
     private MGComboBox<string>? _addParentCombo;
     private MGButton? _addButton;
     private MGTextBlock? _capacityHint;
+    private AudioEnvelopeControl? _levelBand;
 
     private AudioMixerDocument? _document;
     private AudioMixerGestureTracker? _gestureTracker;
@@ -436,11 +440,57 @@ public sealed class AudioMixerPanel : IDisposable
         _root.TryAddChild(_softwareOnlyBanner, Dock.Top);
         _root.TryAddChild(_playLockBanner, Dock.Top);
         _root.TryAddChild(toolbar, Dock.Top);
+        _root.TryAddChild(CreateLevelBand(), Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
+        SyncLevelHistory();
         Refresh();
         return _root;
+    }
+
+    /// <summary>The title and the strip of the level of the output over time (plan T10.8, decision P55), drawn from the history of the output meter.</summary>
+    private MGStackPanel CreateLevelBand()
+    {
+        var title = new MGTextBlock(_window, LevelHistoryTitle)
+        {
+            Opacity = EditorThemePalette.SectionLabelOpacity,
+        };
+
+        _levelBand = new AudioEnvelopeControl(_window)
+        {
+            ShowLevelMarks = true,
+            Tag = "level-history",
+        };
+
+        var band = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 2,
+            Margin = new Thickness(8, 0, 8, 8),
+        };
+        band.TryAddChild(title);
+        band.TryAddChild(_levelBand);
+        return band;
+    }
+
+    /// <summary>
+    /// Keeps the history of the output meter of the panel's model: a track that did not exist before (the first read of a service)
+    /// gets its history, and the strip draws the history of the track the model holds now, or nothing when there is none.
+    /// The model keeps its tracks between two calls (and the history with them), so this allocates only when a track is new.
+    /// </summary>
+    private void SyncLevelHistory()
+    {
+        var output = _meterModel.Output;
+
+        if (output != null && output.History == null)
+        {
+            output.EnableHistory(AudioLevelHistory.DefaultColumns, AudioLevelHistory.DefaultSecondsPerColumn);
+        }
+
+        if (_levelBand != null && !ReferenceEquals(_levelBand.Source, output?.History))
+        {
+            _levelBand.Source = output?.History;
+        }
     }
 
     /// <summary>
@@ -453,6 +503,7 @@ public sealed class AudioMixerPanel : IDisposable
     public void Update(float elapsedSeconds)
     {
         _meterModel.ReadMeters(elapsedSeconds);
+        SyncLevelHistory();
 
         if (_document == null || _stripsHost == null)
         {
@@ -466,7 +517,7 @@ public sealed class AudioMixerPanel : IDisposable
         RefreshLiveVolumes();
     }
 
-    /// <summary>Forgets the levels seen so far. Call it when the panel becomes the active document again.</summary>
+    /// <summary>Forgets the levels seen so far, the level history of the output included. Call it when the panel becomes the active document again.</summary>
     public void ResetMeters()
     {
         _meterModel.Reset();

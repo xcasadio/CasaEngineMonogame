@@ -67,6 +67,10 @@ internal sealed class AudioMeterTrack
     private int _shownHold = NeverShown;
     private int _shownRms = NeverShown;
     private long _shownOvers = -1;
+    private AudioLevelHistory? _history;
+    private float _historyPeak;
+    private float _historyRms;
+    private float _historySeconds;
 
     public AudioMeterTrack(string name, int depth, int backendIndex, bool isOutput)
     {
@@ -118,6 +122,24 @@ internal sealed class AudioMeterTrack
     public string OversText { get; private set; } = string.Empty;
 
     /// <summary>
+    /// The levels of the last seconds, one column per <see cref="AudioLevelHistory.SecondsPerColumn"/>, or null (the default): a track
+    /// only keeps a history after <see cref="EnableHistory"/>, so the meters of the "Audio" panel are the same as before.
+    /// </summary>
+    public AudioLevelHistory? History => _history;
+
+    /// <summary>
+    /// Starts keeping a history of this track (plan T10.8, decision P55), empty, replacing the previous one if any. The ring is
+    /// allocated here; <see cref="Integrate"/> then fills it without allocating.
+    /// </summary>
+    /// <param name="columns">How many columns the ring holds.</param>
+    /// <param name="secondsPerColumn">The time one column covers, in seconds.</param>
+    public void EnableHistory(int columns, float secondsPerColumn)
+    {
+        _history = new AudioLevelHistory(columns, secondsPerColumn);
+        ResetHistoryAccumulation();
+    }
+
+    /// <summary>
     /// Integrates what was published since the last call: <paramref name="level"/> aggregates every block not yet seen
     /// (the maximum peak and the combined RMS), <paramref name="elapsedSeconds"/> is the wall time since the last call.
     /// A silent level (no new block) only lets the bars and the marker fall.
@@ -156,6 +178,11 @@ internal sealed class AudioMeterTrack
         else
         {
             SecondsSinceOver += elapsed;
+        }
+
+        if (_history != null)
+        {
+            WriteHistory(_history, level.Peak, level.Rms, elapsed);
         }
     }
 
@@ -221,6 +248,56 @@ internal sealed class AudioMeterTrack
         _holdAgeSeconds = 0f;
         OversTotal = 0;
         SecondsSinceOver = float.MaxValue;
+        _history?.Reset();
+        ResetHistoryAccumulation();
+    }
+
+    /// <summary>
+    /// Keeps the largest peak and the largest RMS seen since the last column, and writes one column for every
+    /// <see cref="AudioLevelHistory.SecondsPerColumn"/> that elapsed, so that a one block peak between two frames is never lost.
+    /// A step longer than a column (a hitch of the editor) writes several: the first one holds the peak and the RMS, the others
+    /// are silent (what this step measured is one level, whose position in the step is unknown), and the time left over carries to the next step.
+    /// </summary>
+    private void WriteHistory(AudioLevelHistory history, float peak, float rms, float elapsed)
+    {
+        if (peak > _historyPeak)
+        {
+            _historyPeak = peak;
+        }
+
+        if (rms > _historyRms)
+        {
+            _historyRms = rms;
+        }
+
+        // A step longer than the whole ring is not worth more than the ring: it also keeps the division below finite.
+        _historySeconds += MathF.Min(elapsed, history.TotalSeconds);
+
+        var secondsPerColumn = history.SecondsPerColumn;
+
+        if (_historySeconds < secondsPerColumn)
+        {
+            return;
+        }
+
+        var columns = Math.Min((int)(_historySeconds / secondsPerColumn), history.Capacity);
+        history.Write(_historyPeak, _historyRms);
+
+        for (var i = 1; i < columns; i++)
+        {
+            history.Write(0f, 0f);
+        }
+
+        _historyPeak = 0f;
+        _historyRms = 0f;
+        _historySeconds = MathF.Max(0f, _historySeconds - (columns * secondsPerColumn));
+    }
+
+    private void ResetHistoryAccumulation()
+    {
+        _historyPeak = 0f;
+        _historyRms = 0f;
+        _historySeconds = 0f;
     }
 
     /// <summary>The level as the integer number of tenths of a dB that is displayed; <see cref="SilentTenths"/> at the floor.</summary>

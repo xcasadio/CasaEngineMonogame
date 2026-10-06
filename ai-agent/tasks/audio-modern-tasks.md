@@ -3034,7 +3034,7 @@ de clôture **READY**.
   réverbération alimenté par un départ de Sfx et ducking Voice → Music pendant une démo, annuler et rétablir, molette
   sur un champ, aspect des lignes.
 
-### ⏳ T10.8 — Niveau de la sortie dans le temps (P55)
+### 🧪 T10.8 — Niveau de la sortie dans le temps (P55)
 
 - Fichiers : nouveaux `CasaEngine.Editor/Controls/AudioLevelHistory.cs`, `AudioEnvelopeControl.cs` (avec
   `IAudioEnvelopeSource` interne, propriété `ShowLevelMarks`) ; `AudioProfilerModel.cs` (`AudioMeterTrack.EnableHistory`,
@@ -3046,6 +3046,15 @@ de clôture **READY**.
   colonne ; grand pas ; silence ; même échelle que `AudioMeterControl.ToFraction` ; aucune allocation ; pistes sans
   historique inchangées (`AudioProfilerTests` verts sans modification). Deux solutions ; suite verte.
 - Commit : `feat(editor): the mixer panel draws the output level over time`
+- Note de validation (2026-10-06) : `AudioLevelHistory` (anneau de 240 colonnes en fractions d'affichage déjà converties
+  en dB), `AudioMeterTrack.EnableHistory` (nul par défaut : le panneau Audio ne change pas ; un grand pas écrit la crête
+  dans la première colonne et des colonnes silencieuses ensuite, pour ne pas étaler un clic), `AudioEnvelopeControl`
+  (fusion des colonnes par extrêmes quand il y en a plus que de pixels ; `ShowLevelMarks` règle repères et zones de
+  couleur ; le bord droit est toujours « maintenant ») ; bande « Output level (last 10 s) » sous la barre d'outils du
+  panneau de mixage. 64 tests, 11 mutations détectées ; un clic isolé sur le vrai backend logiciel laisse une seule
+  colonne. Deux solutions sans erreur, aucun avertissement dans les fichiers touchés ; 3992/3992 trois fois. Le dessin
+  n'a pas tourné (pas de GPU). **🧪 pour l'auteur** : la bande suit le niveau de la démo, un clic isolé laisse une trace
+  nette, aspect (hauteur, couleurs, repères à −12 et −3 dBFS).
 
 ### ⏳ T10.9 — Inspecteur de son : bus de l'asset et dessin du fichier (P56, P57)
 
