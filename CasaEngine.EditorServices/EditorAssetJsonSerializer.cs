@@ -798,6 +798,11 @@ internal static class EditorAssetJsonSerializer
         node.Add("bus_name", soundAsset.BusName);
         node.Add("is_streaming", soundAsset.IsStreaming);
 
+        if (soundAsset.LoopStartSample != 0)
+        {
+            node.Add("loop_start_sample", soundAsset.LoopStartSample);
+        }
+
         if (soundAsset.Priority > 0)
         {
             node.Add("priority", soundAsset.Priority);

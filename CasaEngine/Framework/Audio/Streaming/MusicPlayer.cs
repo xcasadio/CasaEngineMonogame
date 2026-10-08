@@ -16,7 +16,9 @@ namespace CasaEngine.Framework.Audio.Streaming;
 /// load — does not starve the voice.
 /// </para>
 /// <para>
-/// Looping is done by rewinding the reader: MonoGame refuses IsLooped on a dynamic voice.
+/// Looping is done by seeking the reader back to the loop-start sample of the asset (0 for the start of the file):
+/// MonoGame refuses IsLooped on a dynamic voice. The first pass plays the whole file; every later pass starts at the
+/// loop start. A read stops at the end of the data, so each seam submits one buffer shorter than the others.
 /// </para>
 /// </remarks>
 public sealed class MusicPlayer : IDisposable
@@ -121,6 +123,7 @@ public sealed class MusicPlayer : IDisposable
         track.HandedPosition = 0;
         track.Voice = voice;
         track.IsLooped = asset.IsLooped;
+        track.LoopStartSample = ResolveLoopStart(asset, reader);
         track.IsFinishing = false;
         track.InUse = true;
         ActiveTrackCount++;
@@ -132,7 +135,7 @@ public sealed class MusicPlayer : IDisposable
         {
             // From here on only the worker touches the reader.
             _worker ??= new StreamingWorker(_scratchBuffer.Length, _queuedBufferTarget * 2);
-            track.Channel = _worker.Acquire(reader, track.IsLooped, asset.Name);
+            track.Channel = _worker.Acquire(reader, track.IsLooped, track.LoopStartSample, asset.Name);
             track.Reader = null;
         }
 
@@ -241,7 +244,7 @@ public sealed class MusicPlayer : IDisposable
         }
     }
 
-    /// <summary>How far the decoder has read into the file. Loops back to zero on a rewind.</summary>
+    /// <summary>How far the decoder has read into the file. Loops back to the loop start of the track on a seam.</summary>
     public TimeSpan GetPosition(MusicTrackHandle track)
     {
         if (!TryGetTrack(track, out var entry) || entry.BytesPerSecond <= 0)
@@ -369,8 +372,8 @@ public sealed class MusicPlayer : IDisposable
                     return;
                 }
 
-                // Loop: rewind and keep feeding, without submitting a partial buffer first.
-                track.Reader.Rewind();
+                // Loop: go back to the loop start and keep feeding, without submitting a partial buffer first.
+                track.Reader.SeekToSample(track.LoopStartSample);
                 read = track.Reader.Read(_scratchBuffer, 0, _scratchBuffer.Length);
 
                 if (read == 0)
@@ -383,6 +386,28 @@ public sealed class MusicPlayer : IDisposable
             _service.SubmitStreamBuffer(track.Voice, _scratchBuffer, 0, read);
             track.HandedPosition = track.Reader.Position;
         }
+    }
+
+    /// <summary>
+    /// The frame a looped track goes back to, checked once here (never in <see cref="Update"/>): the loop start of the
+    /// asset, or 0 with a warning when it is at or past the end of the data. Not looped: 0, the field is not read.
+    /// </summary>
+    private long ResolveLoopStart(SoundAsset asset, WavStreamReader reader)
+    {
+        if (!asset.IsLooped || asset.LoopStartSample == 0)
+        {
+            return 0;
+        }
+
+        var frameCount = reader.Format.SampleFrameCount;
+        if (asset.LoopStartSample < frameCount)
+        {
+            return asset.LoopStartSample;
+        }
+
+        _log.WriteWarning(
+            $"Audio: music '{asset.Name}' has loop start {asset.LoopStartSample}, at or past its {frameCount} frames; it loops from the start.");
+        return 0;
     }
 
     private WavStreamReader OpenReader(SoundAsset asset)
@@ -490,6 +515,7 @@ public sealed class MusicPlayer : IDisposable
         track.InUse = false;
         track.IsFinishing = false;
         track.IsLooped = false;
+        track.LoopStartSample = 0;
         track.Generation++;
         ActiveTrackCount--;
     }
@@ -502,6 +528,7 @@ public sealed class MusicPlayer : IDisposable
         public long HandedPosition;
         public AudioVoiceHandle Voice;
         public bool IsLooped;
+        public long LoopStartSample;
         public bool IsFinishing;
         public bool InUse;
         public int Generation;

@@ -85,3 +85,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0069](0069-anim2d-corner-track-draws-a-part-as-a-free-psx-quad.md) | The `.anim2d` corner track draws a part as a free PSX quad | Accepted | 2026-10-06 |
 | [ADR-0070](0070-view-layout-area-and-window-ui.md) | View layout area and window-level UI | Accepted | 2026-10-06 |
 | [ADR-0071](0071-the-engine-draws-the-effect-quads-the-game-pushes.md) | The engine draws the effect quads the game pushes | Accepted | 2026-10-07 |
+| [ADR-0072](0072-a-streamed-music-track-loops-back-to-its-loop-start-sample.md) | A streamed music track loops back to its loop-start sample | Accepted | 2026-10-08 |

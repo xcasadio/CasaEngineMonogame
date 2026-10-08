@@ -21,6 +21,7 @@ public class SoundAsset : ObjectBase
     private float _pitch;
     private string _busName = AudioBusNames.Sfx;
     private int _priority;
+    private long _loopStartSample;
     private float _variationVolumeMin = 1f;
     private float _variationVolumeMax = 1f;
     private float _variationPitchMin;
@@ -75,10 +76,16 @@ public class SoundAsset : ObjectBase
     /// </summary>
     public bool IsStreaming { get; set; }
 
+    /// <summary>
+    /// Sample frame (one sample per channel, counted from the first audio byte) a looped streamed sound goes back to
+    /// when it reaches the end of its data; 0 loops to the start of the file. Meaningful only when both
+    /// <see cref="IsLooped"/> and <see cref="IsStreaming"/> are set: a resident sound ignores it. A negative value is
+    /// brought back to 0; a value at or past the end of the data is refused when the sound is played.
+    /// </summary>
     public long LoopStartSample
     {
-        get => throw new NotImplementedException();
-        set => throw new NotImplementedException();
+        get => _loopStartSample;
+        set => _loopStartSample = Math.Max(0L, value);
     }
 
     /// <summary>
@@ -243,6 +250,7 @@ public class SoundAsset : ObjectBase
         IsLooped = element.ContainsKey("is_looped") && element["is_looped"].GetBoolean();
         BusName = element.ContainsKey("bus_name") ? element["bus_name"].GetString() : AudioBusNames.Sfx;
         IsStreaming = element.ContainsKey("is_streaming") && element["is_streaming"].GetBoolean();
+        LoopStartSample = ReadInteger(element, "loop_start_sample", 0L);
 
         var priority = ReadNumber(element, "priority", 0f);
         Priority = float.IsNaN(priority) ? 0 : (int)Math.Clamp(priority, 0f, MaxPriority);
@@ -365,6 +373,33 @@ public class SoundAsset : ObjectBase
         }
 
         return (float)token;
+    }
+
+    /// <summary>
+    /// Reads an integer key exactly (<see cref="ReadNumber"/> goes through a float, which loses odd values above 2^24).
+    /// Any other token type, or an integer that does not fit a long, keeps the default and warns.
+    /// </summary>
+    private long ReadInteger(JObject element, string key, long defaultValue)
+    {
+        if (!element.TryGetValue(key, out var token))
+        {
+            return defaultValue;
+        }
+
+        if (token.Type == JTokenType.Integer)
+        {
+            try
+            {
+                return (long)token;
+            }
+            catch (OverflowException)
+            {
+                // Falls through to the warning below.
+            }
+        }
+
+        Logs.WriteWarning($"Sound asset '{Name}': key '{key}' is not an integer, the default is used.");
+        return defaultValue;
     }
 
     private void LoadVariationAudioFileAssetIds(JObject element)

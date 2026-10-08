@@ -325,6 +325,7 @@ public sealed class SoundAssetInspectorPanel : IDisposable
             Pitch = source.Pitch,
             IsLooped = source.IsLooped,
             IsStreaming = source.IsStreaming,
+            LoopStartSample = source.LoopStartSample,
             BusName = AudioBusNames.Editor,
         };
     }

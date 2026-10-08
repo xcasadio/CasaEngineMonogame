@@ -3,7 +3,7 @@ using CasaEngine.Core.Logging;
 namespace CasaEngine.Framework.Audio.Streaming;
 
 /// <summary>
-/// One background thread that reads and rewinds the wav files of every <see cref="MusicPlayer"/> track,
+/// One background thread that reads the wav files of every <see cref="MusicPlayer"/> track and loops them,
 /// so the game thread never touches the disk after <see cref="MusicPlayer.Play"/> returned (P13).
 /// </summary>
 /// <remarks>
@@ -57,7 +57,7 @@ internal sealed class StreamingWorker : IDisposable
     /// Gives <paramref name="reader"/> to the worker. Game thread only. The reader must not be touched by the
     /// caller afterwards; <see cref="Release"/> makes the worker dispose it.
     /// </summary>
-    public Channel Acquire(WavStreamReader reader, bool isLooped, string name)
+    public Channel Acquire(WavStreamReader reader, bool isLooped, long loopStartSample, string name)
     {
         Channel channel = null;
 
@@ -82,7 +82,7 @@ internal sealed class StreamingWorker : IDisposable
                 Volatile.Write(ref _channels, grown);
             }
 
-            channel.Reset(reader, isLooped, name);
+            channel.Reset(reader, isLooped, loopStartSample, name);
         }
 
         _wake.Set();
@@ -158,6 +158,7 @@ internal sealed class StreamingWorker : IDisposable
 
         private WavStreamReader _reader;
         private bool _isLooped;
+        private long _loopStartSample;
         private string _name;
         private int _writeCount;
         private int _readCount;
@@ -202,10 +203,12 @@ internal sealed class StreamingWorker : IDisposable
         /// <summary>Consumer side: frees the block returned by <see cref="TryPeek"/>.</summary>
         public void Pop() => Volatile.Write(ref _readCount, _readCount + 1);
 
-        internal void Reset(WavStreamReader reader, bool isLooped, string name)
+        internal void Reset(WavStreamReader reader, bool isLooped, long loopStartSample, string name)
         {
+            // Every field is written before State goes Active: the worker reads State first, then the rest.
             _reader = reader;
             _isLooped = isLooped;
+            _loopStartSample = loopStartSample;
             _name = name;
             _writeCount = 0;
             _readCount = 0;
@@ -260,7 +263,7 @@ internal sealed class StreamingWorker : IDisposable
                             return true;
                         }
 
-                        _reader.Rewind();
+                        _reader.SeekToSample(_loopStartSample);
                         read = _reader.Read(_ring, slot * _slotSize, _slotSize);
 
                         if (read == 0)

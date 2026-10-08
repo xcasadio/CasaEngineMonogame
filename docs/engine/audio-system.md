@@ -296,7 +296,7 @@ Le streaming est **authoré**, pas déduit de l'extension : le même `.wav` peut
 Tout champ absent prend sa valeur par défaut, donc un document incomplet se charge au lieu
 d'échouer.
 
-**Variations aléatoires, priorité, spatialisation et liaisons** (ADR-0063, ADR-0064), champs additifs : chaque clé n'est écrite que si
+**Variations aléatoires, priorité, spatialisation, liaisons et point de boucle** (ADR-0063, ADR-0064, ADR-0072), champs additifs : chaque clé n'est écrite que si
 sa valeur diffère de son défaut, donc un `.sound` qui ne s'en sert pas garde exactement les clés
 ci-dessus.
 
@@ -329,6 +329,7 @@ ci-dessus.
 | `reference_distance` / `max_distance` / `rolloff_factor` | 1 / sans limite / 1 | réglages du modèle, en unités monde |
 | `doppler_factor` | 0 | 0 = Doppler désactivé |
 | `parameter_bindings` | aucune | liaisons de paramètres de jeu vers le volume ou le pitch (§5 quater), huit au plus |
+| `loop_start_sample` | 0 | entier, en trames (un échantillon par canal) à partir du premier octet audio : la trame où une piste streamée et bouclée revient à la fin de ses données ; 0 = le début du fichier (§5) |
 
 Les plages sont **relatives** à la valeur jouée : le facteur multiplie le volume, le décalage
 s'ajoute au pitch. Le tirage est uniforme ; une plage inversée est triée au tirage, une plage
@@ -337,6 +338,13 @@ les variations non vides, sans anti-répétition (le même fichier peut sortir d
 Le chargement est tolérant : une valeur d'un type inattendu (texte, `null`, objet) garde le défaut
 avec un avertissement qui nomme l'asset et la clé ; une entrée de liste qui n'est pas un GUID est
 ignorée de même. Un asset marqué streaming ignore variations et priorité.
+
+**Point de boucle** (`loop_start_sample`, ADR-0072). `SoundAsset.LoopStartSample` est un `long`, lu comme un entier
+JSON exact (pas par un flottant : 16 777 217 reste 16 777 217) ; une valeur négative devient 0 ; un jeton d'un autre
+type (texte, nombre à virgule, booléen) garde 0 avec un avertissement qui nomme l'asset et la clé. La clé n'est écrite
+qu'à une valeur non nulle, juste après `is_streaming`. Elle ne sert qu'à un son à la fois bouclé et streamé : un son
+résident l'ignore. L'inspecteur n'a pas de ligne pour ce champ (son champ numérique est flottant) : on le règle dans
+le fichier `.sound` ; la copie d'aperçu de l'inspecteur le garde.
 
 Dans l'éditeur : clic droit sur un dossier → **Create Sound**, puis double-clic pour ouvrir
 l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, loop,
@@ -411,13 +419,18 @@ music.Stop(track, fadeOutSeconds: 2f);
 var next = music.Crossfade(track, battleThemeAsset, durationSeconds: 2f, world);
 ```
 
-Le fichier est lu par blocs et jamais chargé entièrement. La boucle **rembobine le lecteur** ;
-elle ne passe pas par `IsLooped`, que MonoGame refuse sur une voix dynamique. Une piste n'est
+Le fichier est lu par blocs et jamais chargé entièrement. La boucle **replace le lecteur au point de
+boucle du son** (`loop_start_sample`, §3 ; 0 par défaut, le début du fichier) ; elle ne passe pas par
+`IsLooped`, que MonoGame refuse sur une voix dynamique. Le premier passage joue tout le fichier, les
+suivants repartent du point de boucle. Une lecture s'arrête toujours à la fin des données : chaque raccord
+soumet donc un buffer plus court que les autres (la région bouclée restante), sans remplissage à travers
+le raccord. Le point de boucle est vérifié une fois dans `Play` : à la fin des données ou au-delà, un
+avertissement (soumis au délai unique du lecteur) et la boucle revient à 0. Une piste n'est
 abandonnée qu'une fois sa file de buffers vidée, jamais sur une famine passagère.
 
 **Lecture hors du thread de jeu (ADR-0056).** Avec un backend réel (logiciel ou MonoGame), `Play`
 ouvre le fichier, lit l'en-tête et remplit la première file de façon synchrone, puis un thread
-« CasaEngine Audio Streaming » lit et rembobine le fichier dans un anneau par piste ; `Update` ne
+« CasaEngine Audio Streaming » lit et boucle le fichier dans un anneau par piste ; `Update` ne
 fait plus que transmettre les buffers prêts à la voix. Les faux backends des tests gardent la
 lecture en ligne. En mode travailleur, `GetPosition` donne la position du dernier buffer transmis.
 
@@ -664,6 +677,10 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   en cours, qui la vole (§4). Voix sans priorité et voix streamées jamais volées ; pas de voix
   virtuelles (une voix volée est perdue, elle ne reprend pas) ; pas de délai ni de séquence de
   sons.
+- **Point de boucle** (§3, §5) : un seul point, celui du début de la boucle ; pas de point de fin (la boucle part de la
+  fin des données), pas de fondu de raccord du moteur (il se cuit dans le fichier) ; un son résident ignore la clé ;
+  pas de ligne d'inspecteur. Une région bouclée plus courte qu'un buffer fait soumettre des buffers courts, donc
+  une file moins profonde en durée (le cas extrême, un point sur la dernière trame, soumet des buffers d'une trame).
 - **Variations** : pas d'anti-répétition du fichier tiré ; un fichier de variation est chargé à sa
   première lecture, sur le thread de jeu (à-coup possible pour un gros fichier), et reste en
   mémoire ensuite.

@@ -47,7 +47,7 @@ public sealed class WavStreamReader : IDisposable
 
     public WavFormatInfo Format { get; }
 
-    /// <summary>True once every audio byte has been read; <see cref="Rewind"/> starts over.</summary>
+    /// <summary>True once every audio byte has been read; <see cref="Rewind"/> or <see cref="SeekToSample"/> starts over.</summary>
     public bool IsEndOfStream => _dataBytesRead >= Format.DataLength;
 
     /// <summary>Audio bytes read since the beginning of the data chunk.</summary>
@@ -87,16 +87,30 @@ public sealed class WavStreamReader : IDisposable
         return read;
     }
 
-    /// <summary>Goes back to the first audio byte. This is how a streamed sound loops.</summary>
-    public void Rewind()
+    /// <summary>Goes back to the first audio byte. Same as <c>SeekToSample(0)</c>.</summary>
+    public void Rewind() => SeekToSample(0);
+
+    /// <summary>
+    /// Moves to a sample frame (one sample per channel), counted from the first audio byte. This is how a streamed
+    /// sound loops: back to its loop-start sample. The file position is the data offset read from the header plus
+    /// <paramref name="frame"/> times the block size, never a fixed 44 bytes. Allocates nothing.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="frame"/> is negative or not below <see cref="WavFormatInfo.SampleFrameCount"/>.
+    /// </exception>
+    public void SeekToSample(long frame)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        _stream.Seek(Format.DataOffset, SeekOrigin.Begin);
-        _dataBytesRead = 0;
-    }
+        if (frame < 0 || frame >= Format.SampleFrameCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(frame), frame, "The frame is outside the audio data.");
+        }
 
-    public void SeekToSample(long frame) => throw new NotImplementedException();
+        var byteOffset = frame * Format.BlockAlign;
+        _stream.Seek(Format.DataOffset + byteOffset, SeekOrigin.Begin);
+        _dataBytesRead = byteOffset;
+    }
 
     public void Dispose()
     {

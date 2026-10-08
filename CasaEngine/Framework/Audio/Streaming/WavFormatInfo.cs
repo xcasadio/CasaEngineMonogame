@@ -36,6 +36,9 @@ public readonly struct WavFormatInfo
 
     public int BytesPerSecond => SampleRate * BlockAlign;
 
+    /// <summary>Number of sample frames (one sample per channel) in the audio data. The valid frames of a seek are [0, this).</summary>
+    public long SampleFrameCount => BlockAlign > 0 ? DataLength / BlockAlign : 0;
+
     public TimeSpan Duration => BytesPerSecond > 0
         ? TimeSpan.FromSeconds((double)DataLength / BytesPerSecond)
         : TimeSpan.Zero;
