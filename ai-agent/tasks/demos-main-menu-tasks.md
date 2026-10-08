@@ -189,7 +189,7 @@ Moteur (vérifié dans le code) :
     - La logique propre à la classe (ordre des thèmes, sélection initiale) est vérifiée en T2.3 par le parcours et les captures.
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4158/4158 (7 nouveaux).
 
-### ⏳ T2.2 — Retrait du navigateur latéral
+### ✅ T2.2 — Retrait du navigateur latéral
 
 - Objectif : D6 côté interface ; chaque démo occupe toute la fenêtre.
 - Prérequis : T1.1 ✅ et T2.1 ✅ (les tests de l'écran principal remplacent ceux du navigateur).
@@ -197,7 +197,8 @@ Moteur (vérifié dans le code) :
   - `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/DemoKeyboard.cs` ;
   - suppression de `CasaEngine.Demos/Demos/DemoUI/DemoBrowserScreen.cs` et `CasaEngine.Demos/Content/Screens/demo-browser.xaml` ;
   - `CasaEngine.Demos/Content/Screens/demo-hint.xaml` (gardé, nouveau texte) et `CasaEngine.Demos/Content/Screens/ui-overlay-hud.xaml` (texte F1) ;
-  - tests : suppression de `CasaEngine.Tests/UI/DemoBrowserTreeTests.cs` et `DemoBrowserFocusTests.cs`, mise à jour de `CasaEngine.Tests/UI/DemoScreenXamlTests.cs`.
+  - tests : suppression de `CasaEngine.Tests/UI/DemoBrowserTreeTests.cs` et `DemoBrowserFocusTests.cs`, mise à jour de `CasaEngine.Tests/UI/DemoScreenXamlTests.cs` ;
+  - ajouté pendant l'exécution (nettoyage requis par le critère `rg "Press F1"`) : `CasaEngine.Demos/Demos/ViewManagerSandbox.cs`, deux lignes d'un commentaire de classe qui renvoyaient à l'ancien « demo navigator panel » et à F1. Aucun code de démo modifié.
 - Étapes :
   1. Retirer le navigateur, F1, la zone de layout et la poignée, les replis (`collapsesBrowser`), `BrowserOwnsKeyboard` (`DemoKeyboard` ne garde que la condition « fenêtre active »), `CASAENGINE_DEMO_BROWSER` et le reste `CASAENGINE_PSXQUAD_DUMP_PATH`.
   2. Rappel dans les démos : `demo-hint.xaml` affiche « Échap / Select : menu » ; la ligne F1 de `ui-overlay-hud.xaml` est remplacée.
@@ -208,6 +209,12 @@ Moteur (vérifié dans le code) :
   4. Démarrage temporaire sur la démo 0 ou `CASAENGINE_START_DEMO` (l'écran principal arrive en T2.3).
 - Validation : build, `CasaEngine.Tests` ; `rg "demo-browser|DemoBrowser|Press F1" CasaEngine.Tests CasaEngine.Demos` ne trouve plus rien ; captures des trois démos et sonde de `SplitScreenDemo` identiques à T0.1.
 - Commit : `refactor(demos): remove the side demo browser`
+- Note :
+  - `DemosGame` sans navigateur : plus de `UIRoot` de fenêtre, de zone de layout, de poignée, de F1, d'Entrée pour le navigateur, de repli, de `CASAENGINE_DEMO_BROWSER` ni de reste `CASAENGINE_PSXQUAD_DUMP_PATH`. Thème PSX retiré de l'ordre des thèmes (plus aucune démo PSX). Le redimensionnement de la fenêtre remet les vues en page par `OnScreenResized`, comme avant pour une fenêtre sans navigateur. Démarrage encore sur la démo 0 ou `CASAENGINE_START_DEMO` ; Échap quitte encore (le retour au menu vient en T2.3).
+  - `DemoKeyboard` ne garde que « fenêtre active » ; `demo-hint.xaml` affiche « Esc / Select: back to the menu » ; la ligne d'aide de `ui-overlay-hud.xaml` devient « Esc or Select: back to the menu ».
+  - `rg "demo-browser|DemoBrowser|Press F1|BrowserOwnsKeyboard" CasaEngine.Tests CasaEngine.Demos` : rien.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149 (les 9 tests du navigateur retirés).
+  - Captures : `tilemap` identique à T0.1 ; `collision3d` identique à 300 ms au binaire d'avant le chantier. `uioverlay` ne diffère que par la nouvelle ligne d'aide, et `splitscreen` que par les compteurs de temps ; la sonde passe.
 
 ### ⏳ T2.3 — Monde « menu », lancement et retour
 

@@ -16,7 +16,7 @@
     <TextBlock Name="lblTime" Text="[color=lightgray]Time: 0.0s[/color]" />
 
     <TextBlock Name="lblHint"
-               Text="[color=gray]Press F1 to toggle the demo navigator[/color]"
+               Text="[color=gray]Esc or Select: back to the menu[/color]"
                Margin="0,4,0,0" />
 
     <Button Name="btnPause" Margin="0,8,0,0">

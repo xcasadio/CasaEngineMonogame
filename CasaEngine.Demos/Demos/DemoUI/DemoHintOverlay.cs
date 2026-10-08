@@ -4,8 +4,8 @@ using MGUI.Core.UI;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// Small bottom-center overlay displayed in the scene while the <see cref="DemoBrowserScreen"/> is collapsed.
-/// Reminds the player how to bring the demo browser back.
+/// Small bottom-center overlay displayed in the scene of every demo.
+/// Reminds the player how to go back to the main screen (Esc, or Select on a gamepad).
 /// Toggle visibility with <see cref="SetVisible"/>.
 /// <para/>
 /// Its tree lives in `Content/Screens/demo-hint.xaml`, where it sits included.
