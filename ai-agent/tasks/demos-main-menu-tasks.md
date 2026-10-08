@@ -334,6 +334,7 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
   - `MainMenuScreenTests` (10 tests, bureau sans affichage, vrai XAML, `BuildWindow`) : arbre dans l'ordre des thèmes (thème sans démo omis) et démos dans l'ordre du jeu, en-tête, sélection initiale sous son thème déplié et fiche, index hors limites → première démo, fiche d'un thème et Launch désactivé, bouton Launch, bouton Quit, double-clic sur une démo, `ShowLoading`, thème absent de l'ordre → exception qui nomme la démo et le thème. Commentaire de `DemoMainMenuTests` mis à jour.
   - Preuves par mutations temporaires de `MainMenuScreen.cs` (restauré à l'identique) : démos parcourues à l'envers dans `BuildTree` → 2 échecs ; sélection initiale forcée à 0 → 3 échecs ; index hors limites → dernière démo → 2 échecs ; bouton Launch débranché → 1 échec.
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4159/4159 (10 nouveaux). Code des démos inchangé : le parcours de T5.2 reste valable.
+- Fusion de la phase 5 (2026-10-08, à la demande de l'auteur) : `chantier/demos-main-menu-advisories` dans `main` (fusion `a5de743b`, par `chantier/demos-main-menu` `ba994b0f`). Revérifié sur l'état fusionné : les deux solutions sans erreur, `CasaEngine.Tests` 4159/4159, `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97`. Non poussé.
 
 ---
 
