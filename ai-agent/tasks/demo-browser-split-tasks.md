@@ -344,6 +344,13 @@ Automatisation et tests :
   - A2 (deux coûts par image : `UIRoot.IsPointerOverUI` de l'UI de fenêtre lu par l'arbitrage, et un `GraphicsStateSnapshot.Capture` de plus par image) : **reporté**, mêmes motifs que le pipeline existant (un garde par vue, `Views.ToArray()`, LINQ dans `Draw`) ; à reprendre avec une mesure d'allocation par image si un chantier d'allocation nulle touche `CasaEngineGame` (O5).
   - A3 (`SyncWindowUIMetrics` passe la marge de sécurité par défaut, 0,05, quand les vues passent `view.UISafeAreaInset`) : **reporté**, `UIScale` n'est lu nulle part hors de `UIRoot` et les captures ne montrent aucun défaut ; à documenter si une UI de fenêtre en dépend un jour (O6).
 
+
+---
+
+## Intégration
+
+- **Fusion dans `chantier/e19-suite2` le 2026-10-08** (`f86a981b`), à la demande de l'auteur : la 31e démo `EffectQuadDemo` (E19.g G2e) y est rattachée au thème PSX rendering et replie le navigateur (critère de D4, à confirmer par l'auteur), et `CASAENGINE_EFFECTQUAD_DUMP_PATH` rejoint les variables d'automatisation (`IsBackBufferAutomationRun`) ; vérificateur frais **CONFIRMED**. Le détail est dans ce plan sur cette branche.
+- **Fusion dans `main` le 2026-10-08**, à la demande de l'auteur : commit de fusion `44581be4` sur `integration/demo-browser` (le hook interdit tout commit sur `main`) ; `main` était la base du chantier, l'arbre fusionné est identique à la tête vérifiée `d8184c5d`. L'avancement de `main` jusqu'à cette branche est fait par l'auteur, le mode auto refusant à l'agent la mise à jour directe de `main`. `main` ne contient pas la pile e19 (ni `EffectQuadDemo`). Non poussé.
 ---
 
 ## Points ouverts
