@@ -30,6 +30,8 @@ public static class ElementFactory
         var typeName = element["type"].GetString();
         var component = Create<T>(typeName);
         component.Load(element);
+        //  Properties marked [SerializedProperty] (ADR-0071), read after the type's own keys.
+        SerializedProperties.Load(component, element);
         return component;
     }
 

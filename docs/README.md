@@ -27,6 +27,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [shader-naming-convention.md](engine/shader-naming-convention.md) — convention de nommage des shaders.
 - [effect-file-inventory.md](engine/effect-file-inventory.md) — inventaire des fichiers `.fx` / `.fxh` et leurs consommateurs.
 - [light-component.md](engine/light-component.md) — `LightComponent`.
+- [component-persistence.md](engine/component-persistence.md) — chargement et sauvegarde des composants, propriétés `[SerializedProperty]` des composants de jeu (ADR-0071).
 - [environment-system-v1.md](engine/environment-system-v1.md) — système d'environnement V1.
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
 - [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).

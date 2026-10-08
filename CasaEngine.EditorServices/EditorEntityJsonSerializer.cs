@@ -186,6 +186,13 @@ internal static class EditorEntityJsonSerializer
 
     private static void SaveComponent(EntityComponent component, JObject node)
     {
+        SaveComponentCore(component, node);
+        //  Properties marked [SerializedProperty] (ADR-0071), which ElementFactory.Load reads back after the type's own keys.
+        EditorSerializedPropertyWriter.Save(component, node);
+    }
+
+    private static void SaveComponentCore(EntityComponent component, JObject node)
+    {
         switch (component)
         {
             case ArcBallCameraComponent arcBallCameraComponent:
