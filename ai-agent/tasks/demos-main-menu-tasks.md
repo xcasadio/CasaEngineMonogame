@@ -246,13 +246,14 @@ Moteur (vérifié dans le code) :
 
 ## Phase 3 — Documentation
 
-### ⏳ T3.1 — ADR-0072 et documentation
+### ✅ T3.1 — ADR-0072 et documentation
 
 - Objectif : enregistrer la décision et remplacer la doc du navigateur.
 - Prérequis : T2.3 ✅ ou 🧪 (seules les vérifications manuelles de l'auteur manquent).
 - Fichiers : `docs/decisions/0072-demos-start-on-a-menu-world-and-load-a-world-per-demo.md` (nom indicatif), `docs/decisions/README.md`, `docs/engine/demos-main-menu.md` (remplace `docs/engine/demos-browser.md`), `docs/README.md`, `docs/engine/animation-blend-demo.md` (mention de F1 et du navigateur).
 - Validation : relecture ; liens et index à jour.
 - Commit : `docs(demos): record the demos main screen (ADR-0072)`
+- Note : `docs/decisions/0072-demos-start-on-a-menu-world-and-load-a-world-per-demo.md` et son index ; `docs/engine/demos-browser.md` renommé en `demos-main-menu.md` et réécrit (écran principal, touches, mondes, thèmes, ajout d'une démo, automatisation dont `CASAENGINE_DEMO_CYCLE`, limites) ; index `docs/README.md` ; `animation-blend-demo.md` (Échap ou Select au lieu de F1, lancement depuis l'écran principal). Plus aucune doc hors ADR ne parle du navigateur, de F1 ou de `CASAENGINE_DEMO_BROWSER`.
 
 ---
 
