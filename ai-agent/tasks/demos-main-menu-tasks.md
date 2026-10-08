@@ -216,11 +216,11 @@ Moteur (vérifié dans le code) :
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149 (les 9 tests du navigateur retirés).
   - Captures : `tilemap` identique à T0.1 ; `collision3d` identique à 300 ms au binaire d'avant le chantier. `uioverlay` ne diffère que par la nouvelle ligne d'aide, et `splitscreen` que par les compteurs de temps ; la sonde passe.
 
-### ⏳ T2.3 — Monde « menu », lancement et retour
+### 🧪 T2.3 — Monde « menu », lancement et retour
 
 - Objectif : D1, D4, D5 et le reste de D6.
 - Prérequis : T1.1 ✅, T2.1 ✅, T2.2 ✅.
-- Fichiers : `CasaEngine.Demos/DemosGame.cs`.
+- Fichiers : `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/DemoCycleAutomation.cs` (le parcours passe par le menu, étape 4).
 - Étapes :
   1. Démarrage dans le monde menu (sans `CASAENGINE_START_DEMO`) : monde neuf, écran principal poussé sur la vue active au `WorldLoaded`, retiré et libéré avant d'en sortir.
   2. « Lancer » : « Chargement… » pendant une image, puis le chemin de T1.1.
@@ -228,6 +228,19 @@ Moteur (vérifié dans le code) :
   4. `CASAENGINE_DEMO_CYCLE` passe par le menu : menu, démo, menu, démo suivante, avec les vérifications de T1.1. À chaque retour au menu, il vérifie aussi que le monde menu est neuf, que le monde de la démo n'a plus d'entité, que l'écran principal est poussé une seule fois et qu'il n'y a qu'une vue.
 - Validation : build, `CasaEngine.Tests` ; parcours complet avec le code 0 ; capture de l'écran principal ; navigation clavier et manette à vérifier par l'auteur (🧪 si non faite).
 - Commit : `feat(demos): start on a menu world and return to it from a demo`
+- Note :
+  - Démarrage sans `CASAENGINE_START_DEMO` : `EnterMainScreen` crée un monde menu neuf avec sa propre caméra fixe (`CameraLookAtComponent`, pour que le moteur n'en crée pas une par défaut) et sans décor (D8). Au `WorldLoaded`, l'écran principal est poussé sur la vue active (`GameScreenManager.PushScreenToActiveView`, comme l'écran-titre du RPGDemo) ; il est retiré et libéré avant de quitter ce monde.
+  - Un chemin unique pour quitter un monde (`LeaveCurrentWorld` : écran principal retiré, monde vidé, `Clean` de la démo), partagé par le lancement d'une démo et le retour au menu.
+  - Lancement (bouton Launch, double-clic, Entrée ou A sur front montant) : « Loading … » pendant une image, puis le chemin de T1.1. Pendant une démo, Échap ou Back sur front montant ramènent au menu, sur la démo quittée. Sur l'écran principal, ni Échap ni Back ne quittent ; Quit quitte.
+  - `CASAENGINE_DEMO_CYCLE=60` depuis le menu : 97 étapes (49 menus, 48 lancements : 24 démos, deux tours), toutes « OK », `result=PASS failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; menu : 1 entité, 1 vue, écran poussé une fois. La sonde de `SplitScreenDemo`, atteinte depuis le menu, passe.
+  - Capture de l'écran principal (`scratchpad/dm/t23-menu.png`) : thème Dark, arbre des thèmes, première démo sélectionnée sous son thème déplié, fiche, boutons, ligne d'aide ; journal sans erreur ni avertissement.
+  - Démarrage direct inchangé : `tilemap` identique à T0.1, `uioverlay` identique à T2.2, `collision3d` identique à 300 ms ; sonde PASS ; « elevation separated pair: not colliding » présent.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149.
+  - Reste pour l'auteur (🧪, aucune automatisation ne simule ces entrées) :
+    - Échap et Select (manette) pendant une démo ;
+    - Entrée et A sur l'écran principal, les flèches et la croix directionnelle ;
+    - le double-clic ;
+    - l'affichage d'une image de « Loading … ».
 
 ---
 
@@ -259,7 +272,7 @@ Moteur (vérifié dans le code) :
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | ~~Décor du monde menu~~ : tranché par D8 (fond uni sombre). | T2.3 |
-| O2 | La navigation à la manette n'a jamais été vérifiée avec une vraie manette dans l'UI du moteur : à faire par l'auteur. | T2.3, T4.1 |
+| O2 | La navigation à la manette n'a jamais été vérifiée avec une vraie manette dans l'UI du moteur : à faire par l'auteur (T2.3 en 🧪). | T2.3, T4.1 |
 
 ## Hors périmètre
 
