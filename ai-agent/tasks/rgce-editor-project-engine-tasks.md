@@ -205,7 +205,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 
 ## Phase 2 — Matériaux et automatisation
 
-### ⏳ T4 — Facteurs de réflexion de `lit-diffuse` (E4)
+### ✅ T4 — Facteurs de réflexion de `lit-diffuse` (E4)
 
 - **Objectif** : P4.
 - **Fichiers** : `BuiltInMaterialDefinitions.cs`, `MaterialCompiler.cs` ; tests dans `CasaEngine.Tests` (compilation d'un `MaterialAsset`) ; `docs/engine/` (doc des matériaux qui liste les propriétés de `lit-diffuse`, si elle existe).
@@ -214,6 +214,24 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - build ; tous les tests ;
   - l'inspecteur de matériau les affiche (capture de `--open-asset` d'un `.material` de `Projects/SampleProject`).
 - **Commit** : `feat(materials): author the reflection factors of lit-diffuse materials`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - 4 propriétés ajoutées à la définition `lit-diffuse`, toutes dans le groupe `Lighting` :
+>     - `use_scene_reflection_cube`, booléen, faux par défaut, `AffectsShaderCompilation` ;
+>     - `reflection_add_amount`, flottant, 1 par défaut ;
+>     - `reflection_multiply_base`, flottant, 1 par défaut ;
+>     - `reflection_multiply_factor`, flottant, 0 par défaut.
+>     Les trois flottants vont de 0 à 2, au pas de 0,01.
+>   - `MaterialCompiler.CreateLitDiffuseMaterial` les copie, avec un `GetBoolean` ajouté.
+>   - Doc : `docs/engine/materials-workflow.md`, notes de compatibilité.
+> - **Tests** (`MaterialCompilerTests`) :
+>   - sans ces clés, le matériau compilé garde 1, 1, 0 et faux ;
+>   - un `.material` qui les écrit les donne au `LitDiffuseMaterial` compilé, et `MaterialAssetJsonSerializer.Save` les réécrit.
+> - **Tests existants** : `MaterialDefinitionEditorRegistryTests` listait exactement les 9 propriétés. Il passe à 13, et la section PBR, où le registre range toute clé contenant « reflection », reçoit les 4 nouvelles.
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 179 sur 4 179.
+> - **Inspecteur** : capture de `--open-asset NewLitDiffuseMaterial.material` sur `Projects/SampleProject`. La section PBR montre la case « Scene Reflection Cube » et les curseurs « Reflection Add Amount » et « Reflection Multiply Base » ; le troisième curseur est plus bas dans la liste.
+>   - Le lancement a créé `Projects/SampleProject/.casaeditor/viewport.editor.json`, supprimé ensuite. Au passage, les deux fichiers suivis de ce dossier ont été supprimés par erreur, puis restaurés par `git checkout` : `git status` est propre.
 
 ### ⏳ T5 — Automatisation fiable (E5)
 
