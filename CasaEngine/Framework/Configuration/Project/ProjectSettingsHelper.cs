@@ -96,13 +96,15 @@ public static class ProjectSettingsHelper
 
     private static int ReadPositiveDimension(JObject declaration, string key)
     {
-        int? value = (int?)declaration[key];
-        if (value is not > 0)
+        // Only a JSON integer in 1..int.MaxValue is a dimension: no numeric string, boolean, float or out-of-range integer.
+        JToken token = declaration[key];
+        long? value = token is JValue { Type: JTokenType.Integer, Value: int or long } ? token.Value<long>() : null;
+        if (value is not (> 0 and <= int.MaxValue))
         {
             throw new InvalidDataException($"Project setting 'VirtualResolution.{key}' must be a positive integer.");
         }
 
-        return value.Value;
+        return (int)value.Value;
     }
 
     public static void Save(string fileName, ProjectSettings projectSettings = null)

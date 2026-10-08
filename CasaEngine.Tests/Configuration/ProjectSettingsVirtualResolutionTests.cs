@@ -38,7 +38,7 @@ public class ProjectSettingsVirtualResolutionTests
         }
     }
 
-    private static string WriteProject(string directory, string name, JObject virtualResolution)
+    private static string WriteProject(string directory, string name, JToken virtualResolution)
     {
         string fileName = Path.Combine(directory, name);
         var root = new JObject
@@ -176,6 +176,73 @@ public class ProjectSettingsVirtualResolutionTests
 
             Assert.Contains("VirtualResolution", error.Message);
             Assert.Contains(key, error.Message);
+        });
+    }
+
+    // Only a JSON integer in 1..int.MaxValue is a dimension: a numeric string, a boolean, a float or an out-of-range
+    // integer used to load silently (or throw without naming the key).
+    [Theory]
+    [InlineData("\"abc\"")]
+    [InlineData("\"320\"")]
+    [InlineData("true")]
+    [InlineData("1.5")]
+    [InlineData("320.0")]
+    [InlineData("{}")]
+    [InlineData("[]")]
+    [InlineData("3000000000")]
+    [InlineData("99999999999999999999")]
+    [InlineData("null")]
+    public void Load_WithADimensionThatIsNotAPositiveInteger_FailsNamingTheKey(string json)
+    {
+        foreach (string key in new[] { "Width", "Height" })
+        {
+            string directory = NewDirectory();
+            WithCleanGlobals(directory, () =>
+            {
+                var declaration = new JObject { ["Width"] = 320, ["Height"] = 240 };
+                declaration[key] = JToken.Parse(json);
+                string fileName = WriteProject(directory, "P.json", declaration);
+
+                var error = Assert.Throws<InvalidDataException>(() => ProjectSettingsHelper.Load(fileName));
+
+                Assert.Contains("VirtualResolution." + key, error.Message);
+            });
+        }
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(int.MaxValue)]
+    public void Load_WithADimensionAtABound_LoadsIt(int dimension)
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json",
+                new JObject { ["Width"] = dimension, ["Height"] = dimension });
+
+            ProjectSettingsHelper.Load(fileName);
+
+            var setting = GameSettings.ProjectSettings.VirtualResolution;
+            Assert.Equal(dimension, setting.Width);
+            Assert.Equal(dimension, setting.Height);
+        });
+    }
+
+    [Theory]
+    [InlineData("\"320x240\"")]
+    [InlineData("[320,240]")]
+    [InlineData("5")]
+    public void Load_WithAVirtualResolutionThatIsNotAnObject_FailsNamingTheSetting(string json)
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json", JToken.Parse(json));
+
+            var error = Assert.Throws<InvalidDataException>(() => ProjectSettingsHelper.Load(fileName));
+
+            Assert.Contains("VirtualResolution", error.Message);
         });
     }
 }
