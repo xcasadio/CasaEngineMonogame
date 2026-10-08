@@ -27,6 +27,15 @@
     <None Include="Audio\Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The demos main screen, tested on its own source (ai-agent/tasks/demos-main-menu-tasks.md, T5.4): the demos app is a
+       WinExe that builds MonoGame content, so the screen and its XAML are linked here instead of referencing the app.
+       The XAML lands where DemoScreenXaml looks for it: Content/Screens beside the test assembly. -->
+  <ItemGroup>
+    <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\MainMenuScreen.cs" Link="Demos\MainMenuScreen.cs" />
+    <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\DemoScreenXaml.cs" Link="Demos\DemoScreenXaml.cs" />
+    <None Include="..\CasaEngine.Demos\Content\Screens\main-menu.xaml" Link="Content\Screens\main-menu.xaml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />

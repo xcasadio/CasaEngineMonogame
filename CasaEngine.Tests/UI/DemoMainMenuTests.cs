@@ -14,8 +14,8 @@ namespace CasaEngine.Tests.UI;
 /// the selection of the focused tree and the sheet follows <see cref="MGTreeView.SelectionChanged"/>; a double click on a
 /// demo reaches the demo's own double-click handler; the Launch and Quit buttons run their commands; Enter and Escape on
 /// the tree neither change the selection nor do anything else, which is why the game reads Enter (and A) itself and why
-/// nothing quits from this screen (decision D4). The screen itself lives in the demos app, which this project does not
-/// reference.
+/// nothing quits from this screen (decision D4). These pin the MGUI behaviours the screen relies on; the screen itself,
+/// linked from the demos app, is tested by <see cref="MainMenuScreenTests"/>.
 /// </summary>
 public class DemoMainMenuTests
 {
