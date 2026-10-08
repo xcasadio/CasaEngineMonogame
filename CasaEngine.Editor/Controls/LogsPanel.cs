@@ -5,6 +5,7 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.Text;
 using MGUI.Shared.Input.Mouse;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
@@ -200,14 +201,16 @@ public class LogsPanel
         return menu;
     }
 
-    private string FormatMarkupEntry(LogEntry entry)
+    /// <summary>The entry as MGUI formatted text: its visible text (<see cref="FormatClipboardEntry"/>) escaped with
+    /// <see cref="FTTokenizer.EscapeMarkdown"/>, so that the verbosity brackets and any '[' of the message stay text, in the
+    /// colour of its verbosity.</summary>
+    internal static string FormatMarkupEntry(LogEntry entry)
     {
         var colorTag = VerbosityColor(entry.Verbosity);
-        var ts = entry.Timestamp.ToString("HH:mm:ss");
-        return $"[c={colorTag}]{ts} [{entry.Verbosity,-7}] {EscapeMarkup(entry.Message)}[/c]";
+        return $"[c={colorTag}]{FTTokenizer.EscapeMarkdown(FormatClipboardEntry(entry))}[/c]";
     }
 
-    private static string FormatClipboardEntry(LogEntry entry) =>
+    internal static string FormatClipboardEntry(LogEntry entry) =>
         $"{entry.Timestamp:HH:mm:ss} [{entry.Verbosity,-7}] {entry.Message}";
 
     private static string VerbosityColor(LogVerbosity v) => v switch
@@ -219,8 +222,6 @@ public class LogsPanel
         LogVerbosity.Error   => "Red",
         _                    => "White",
     };
-
-    private static string EscapeMarkup(string msg) => msg.Replace("[", "[[");
 
     // ─────────────────────────────────────────────────────────────────────────
     // Event handlers
