@@ -31,7 +31,7 @@ Arbre et branches :
 
 Application des démos (découverte en lecture seule, quatre relevés, faits revérifiés sur les points qui portent le design) :
 
-- 23 démos enregistrées par `AddDemo(demo, theme, collapsesBrowser)` dans `DemosGame.LoadContentPrivate` (`CasaEngine.Demos/DemosGame.cs:112-140`). Toutes sont du code : `Demo` a `Title`, `Description` (texte simple), `Initialize`, `ConfigureSceneLighting`, `CreateCamera`, `InitializeCamera`, `Update`, `PostDraw`, `OnScreenResized`, `Clean` (`CasaEngine.Demos/Demo.cs:10-62`).
+- 24 démos enregistrées par `AddDemo(demo, theme, collapsesBrowser)` dans `DemosGame.LoadContentPrivate` (`CasaEngine.Demos/DemosGame.cs:112-140`). Toutes sont du code : `Demo` a `Title`, `Description` (texte simple), `Initialize`, `ConfigureSceneLighting`, `CreateCamera`, `InitializeCamera`, `Update`, `PostDraw`, `OnScreenResized`, `Clean` (`CasaEngine.Demos/Demo.cs:10-62`).
 - Un seul `World`, créé au démarrage (`DemosGame.cs:109-110`) et vidé à chaque changement : `ChangeDemo` appelle `ClearEntities` puis `Clean` de l'ancienne démo, puis `Initialize`, `ConfigureSceneLighting`, `CreateCamera` de la nouvelle ; quand le monde est déjà chargé, `ViewManager.Clear`, `World.LoadContent`, `BootstrapViews` et `InitializeCamera` (`DemosGame.cs:336`, `ChangeDemo`). Le changement est différé à l'update suivant (`RequestDemo`), et `_currentDemo.Update` (`DemosGame.cs:501`) n'est jamais protégé contre l'absence de démo.
 - Échap et Back de la manette appellent `Exit()` (`DemosGame.cs:520-523`). Aucune démo ne lit Échap ou Back.
 - Navigateur : `DemoBrowserScreen` sur sa propre `UIRoot` installée comme UI de fenêtre (ADR-0070), `demo-browser.xaml`, F1, `DemoHintOverlay` (« Press F1 to show the demo browser », `Content/Screens/demo-hint.xaml:9`), règle P9 de `DemoKeyboard` (`BrowserOwnsKeyboard`), repli pour `SplitScreenDemo` et `ViewManagerSandbox` (`DemosGame.cs:135, 138`). `Content/Screens/ui-overlay-hud.xaml:19` parle encore du « demo navigator » et de F1.
@@ -127,7 +127,7 @@ Moteur (vérifié dans le code) :
 
 ## Phase 1 — Un monde par démo
 
-### ⏳ T1.1 — Lancer chaque démo dans un monde neuf
+### ✅ T1.1 — Lancer chaque démo dans un monde neuf
 
 - Objectif : D2, avant tout changement d'interface ; le navigateur actuel sert encore à changer de démo.
 - Prérequis : T0.1 ✅, avec ses captures, sa sonde de `SplitScreenDemo` et sa ligne « elevation separated pair » notées dans ce plan.
@@ -148,11 +148,19 @@ Moteur (vérifié dans le code) :
      Un `ILogger` ajouté par `Logs.AddLogger` compte les erreurs, les exceptions et l'avertissement « No camera found ». Le parcours quitte avec le code 1 si une vérification échoue ou si une erreur ou une exception a été journalisée, sinon avec le code 0. Avec `CASAENGINE_DEMO_PIXELS_PATH`, la sonde de `SplitScreenDemo` s'exécute quand le parcours l'atteint, donc après un changement. Le parcours passera par le menu en T2.3.
 - Validation :
   - build, `CasaEngine.Tests` ;
-  - `CASAENGINE_DEMO_CYCLE` quitte avec le code 0 sur les 23 démos ; le journal contient « elevation separated pair: not colliding » pour `TopDownElevationDemo` et aucun « No camera found » ;
+  - `CASAENGINE_DEMO_CYCLE` quitte avec le code 0 sur les 24 démos ; le journal contient « elevation separated pair: not colliding » pour `TopDownElevationDemo` et aucun « No camera found » ;
   - preuve que le parcours détecte l'erreur visée : une mutation temporaire qui construit la démo au `WorldLoaded` le fait quitter avec le code 1 (mutation annulée ensuite) ;
   - captures des trois démos par `CASAENGINE_START_DEMO` identiques à T0.1 ; sonde de `SplitScreenDemo` identique à T0.1 au démarrage et atteinte par le parcours, après un changement ;
   - une démo qui échoue au parcours mais pas au démarrage direct relève de ce chantier (voir « Fichiers ») ; une démo qui échoue aussi au démarrage direct relève d'un défaut antérieur (voir « Règles d'exécution »).
 - Commit : `feat(demos): load each demo in a fresh world`
+- Note :
+  - `ChangeDemo` vide le monde sortant (`World.Clear()`), appelle `Clean` de la démo sortante, crée un `World` neuf, `SetWorldToLoad`, puis construit la démo sur ce monde avant son chargement ; `OnWorldLoaded` n'initialise que la caméra, les réglages de vue et l'UI. Le démarrage passe par le même chemin. Aucune démo modifiée.
+  - `CASAENGINE_DEMO_CYCLE=60` (nouveau `DemoCycleAutomation.cs`) : 48 étapes (24 démos, deux tours), toutes « OK », `result=PASS failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0. « elevation separated pair: not colliding » journalisé. Sonde de `SplitScreenDemo` atteinte après un changement : `result=PASS`.
+  - Mutation (démo construite au `WorldLoaded`, annulée ensuite) : 17 étapes « FAIL » (caméra de la démo absente des vues, avertissement « No camera found »), puis exception dans `SceneManagementDemo.Update` et sortie avec un code non nul (127). Le parcours détecte bien l'erreur visée.
+  - Builds des deux solutions : 0 erreur ; `CasaEngine.Tests` 4151/4151.
+  - Captures par `CASAENGINE_START_DEMO` : `tilemap` et `uioverlay` identiques à T0.1 au pixel près.
+  - `collision3d` à 1500 ms ne se compare pas : le pas de temps est variable (capture à l'update 106, soit 1500,4 ms, avant le chantier ; à l'update 108, soit 1507,8 ms, après ; monde chargé à l'update 1 dans les deux cas, mesuré par une instrumentation temporaire retirée), donc la chute des boîtes dépend du temps réel. À 300 ms, scène encore statique, l'ancien binaire et le nouveau donnent la même image au pixel près (deux exécutions chacun).
+  - `splitscreen` : seuls les compteurs de performance diffèrent (FPS, temps d'update et de dessin) ; la sonde passe au démarrage comme à T0.1.
 
 ---
 

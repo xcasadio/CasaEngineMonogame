@@ -44,7 +44,10 @@ public class DemosGame : CasaEngineGame
     private readonly bool _automationShowDebugOverlay = ResolveAutomationShowDebugOverlay();
     private Demo _currentDemo;
     private int _currentDemoIndex;
-    private CameraComponent _pendingStartupCamera;
+    // Camera of the demo being loaded: the demo creates it on its new world before the world loads, and initializes it
+    // once the world and its views exist (OnWorldLoaded).
+    private CameraComponent _pendingDemoCamera;
+    private DemoCycleAutomation _demoCycle;
     // Demo requested by the UI, loaded at the start of the next update rather than inside the UI callback.
     private int _pendingDemoIndex = -1;
     private KeyboardState _prevKeyboard;
@@ -105,8 +108,6 @@ public class DemosGame : CasaEngineGame
 
     protected override void LoadContentPrivate()
     {
-        var world = new World();
-        GameManager.SetWorldToLoad(world);
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
         AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
@@ -143,7 +144,11 @@ public class DemosGame : CasaEngineGame
         CreateDemoBrowser();
         ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: false);
 
-        ChangeDemo(ResolveStartupDemoIndex());
+        int startupDemoIndex = ResolveStartupDemoIndex();
+        _demoCycle = DemoCycleAutomation.TryCreate(_demos.Count, startupDemoIndex);
+
+        // The first demo creates the first world, so GameManager.EndLoadContent never falls back to FirstWorldLoaded.
+        ChangeDemo(startupDemoIndex);
     }
 
     /// <summary>
@@ -344,51 +349,56 @@ public class DemosGame : CasaEngineGame
             ApplyBrowserLayout(ScreenSizeWidth, ScreenSizeHeight, relayoutViews: false);
         }
 
-        var currentWorld = GameManager.CurrentWorld;
-        ArgumentNullException.ThrowIfNull(currentWorld);
-        bool worldAlreadyLoaded = currentWorld.Game != null;
+        // Every demo runs in a fresh world (plan demos-main-menu, decision D2). GameManager.SetWorldToLoad(World) replaces the
+        // current world without clearing it, so the world of the demo being left is cleared here first: its entities, its
+        // physics context, the voices it owns and its UI. Then the demo cleans what it holds, as before (entities first).
+        var outgoingWorld = GameManager.CurrentWorld;
+        _demoCycle?.OnDemoLeaving(outgoingWorld);
+        if (outgoingWorld != null && outgoingWorld.Game != null)
+        {
+            outgoingWorld.Clear();
+        }
 
-        currentWorld.ClearEntities();
         _currentDemo?.Clean();
 
         // A multi-view demo sets its own automatic layout; the next demo starts without one.
         GameManager.ViewManager.AutoLayoutMode = null;
 
+        // The new world is the current world from this call on. It loads in the next GameManager.UpdateWorld (in
+        // base.Update, at the end of this update, or in the first update at startup), which clears the views, loads the
+        // world, builds its views from its entities and raises WorldLoaded.
+        var world = new World();
+        GameManager.SetWorldToLoad(world);
+
+        // The demo builds its scene before the world loads: World.LoadContent adds its entities (AddEntity only queues
+        // them), creates the physics context with the space policy the demo set, and the view bootstrapper picks the
+        // demo's camera among them.
         _currentDemo = _demos[_currentDemoIndex];
         _browserScreen?.SetCurrentDemo(_currentDemoIndex);
         _currentDemo.Initialize(this);
-        _currentDemo.ConfigureSceneLighting(currentWorld);
-        var camera = _currentDemo.CreateCamera(this);
+        _currentDemo.ConfigureSceneLighting(world);
+        _pendingDemoCamera = _currentDemo.CreateCamera(this);
 
         Window.Title = _currentDemo.Title;
-
-        if (!worldAlreadyLoaded)
-        {
-            _pendingStartupCamera = camera;
-            return;
-        }
-
-        _pendingStartupCamera = null;
-        // Clear any views registered by the previous demo so that World.LoadContent
-        // can register a fresh default view (it only does so when Views.Count == 0).
-        GameManager.ViewManager.Clear();
-        currentWorld.LoadContent(this);
-        RuntimeViewBootstrapper?.BootstrapViews(this, currentWorld, GameManager.ViewManager);
-        _currentDemo.InitializeCamera(camera);
-        ApplyAutomationViewSettings();
-        RefreshDemoUI();
     }
 
     private void OnWorldLoaded()
     {
-        if (_pendingStartupCamera != null)
+        if (_currentDemo == null)
         {
-            _currentDemo.InitializeCamera(_pendingStartupCamera);
-            _pendingStartupCamera = null;
+            return;
+        }
+
+        var demoCamera = _pendingDemoCamera;
+        if (demoCamera != null)
+        {
+            _currentDemo.InitializeCamera(demoCamera);
+            _pendingDemoCamera = null;
         }
 
         ApplyAutomationViewSettings();
         RefreshDemoUI();
+        _demoCycle?.OnDemoWorldLoaded(GameManager, _currentDemo.Title, demoCamera);
     }
 
     // ---- Demo navigation UI helpers ----
@@ -491,6 +501,21 @@ public class DemosGame : CasaEngineGame
 
         UpdateDemoBrowserInput();
 
+        if (_demoCycle != null)
+        {
+            int nextDemo = _demoCycle.Update();
+            if (nextDemo >= 0)
+            {
+                RequestDemo(nextDemo);
+            }
+            else if (_demoCycle.IsFinished)
+            {
+                Environment.ExitCode = _demoCycle.Passed ? 0 : 1;
+                Exit();
+                return;
+            }
+        }
+
         if (_pendingDemoIndex >= 0)
         {
             int requestedIndex = _pendingDemoIndex;
@@ -498,7 +523,7 @@ public class DemosGame : CasaEngineGame
             ChangeDemo(requestedIndex);
         }
 
-        _currentDemo.Update(gameTime);
+        _currentDemo?.Update(gameTime);
 
         var kb = IsActive ? Keyboard.GetState() : new KeyboardState();
 
