@@ -70,7 +70,9 @@ AddDemo(new MyDemo(), ThemeRendering);
   - the new world is a new instance and the world left holds no entity;
   - every view camera belongs to the new world, and the camera the demo created is in a view, so no default camera was
     created;
-  - the menu world has one view and one main screen.
+  - the menu world has one view and one main screen;
+  - every world that loads was asked for: during the loading frame of each launch the cycle asks for the same demo
+    again, as a second click would, and the game drops that request.
 
 ## Limits
 

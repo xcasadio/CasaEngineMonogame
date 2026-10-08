@@ -405,8 +405,11 @@ public class DemosGame : CasaEngineGame
 
         if (_launchingDemoIndex >= 0)
         {
+            // The demo shown as loading is the one that loads: a launch asked during the loading frame (a second click, a
+            // double click) is dropped, or it would change the world again at the next update.
             int launching = _launchingDemoIndex;
             _launchingDemoIndex = -1;
+            _pendingDemoIndex = -1;
             ChangeDemo(launching);
             return;
         }

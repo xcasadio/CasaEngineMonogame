@@ -20,6 +20,9 @@ namespace CasaEngine.Demos;
 /// world it also checks that there is one view and that the main screen was pushed once. A logger counts the errors and
 /// exceptions logged during the run, and the warning the view bootstrapper writes when it has to create a default
 /// camera (the camera was not in the world when its views were built).
+/// <para/>
+/// During the loading frame of every launch it asks for the same demo again, as a second click or a double click would,
+/// and fails when a world it did not ask for loads (the game must drop that request).
 /// </summary>
 internal sealed class DemoCycleAutomation
 {
@@ -39,6 +42,8 @@ internal sealed class DemoCycleAutomation
     private int _demoVisits;
     private int _step;
     private int _framesInWorld;
+    // The demo launched from the main screen, asked again during its loading frame; -1 when there is none.
+    private int _relaunchDemo = -1;
     private bool _worldLoaded;
     private bool _currentIsMenu;
     private bool _finished;
@@ -80,11 +85,24 @@ internal sealed class DemoCycleAutomation
 
     /// <summary>
     /// Called once per update. Once the current world has run its frames, returns what to load next: the index of a demo
-    /// (from the main screen), <see cref="MenuTarget"/> (from a demo), or -1 (nothing yet, or the run is over).
+    /// (from the main screen), <see cref="MenuTarget"/> (from a demo), or -1 (nothing yet, or the run is over). The update
+    /// after a launch, the loading frame, returns the same demo again.
     /// </summary>
     public int Update()
     {
-        if (_finished || !_worldLoaded || ++_framesInWorld < _framesPerWorld)
+        if (_finished)
+        {
+            return -1;
+        }
+
+        if (!_worldLoaded)
+        {
+            int relaunch = _relaunchDemo;
+            _relaunchDemo = -1;
+            return relaunch;
+        }
+
+        if (++_framesInWorld < _framesPerWorld)
         {
             return -1;
         }
@@ -105,6 +123,7 @@ internal sealed class DemoCycleAutomation
         int demo = _nextDemo;
         _nextDemo = (_nextDemo + 1) % _demoCount;
         _demoVisits++;
+        _relaunchDemo = demo;
         return demo;
     }
 
@@ -124,6 +143,12 @@ internal sealed class DemoCycleAutomation
     {
         var world = gameManager.CurrentWorld;
         int failures = 0;
+
+        if (_worldLoaded)
+        {
+            failures++;
+            Logs.WriteInfo($"[DemoCycle] FAIL '{title}': this world was not asked for (for example a launch asked during the loading frame was not dropped)");
+        }
 
         if (_outgoingWorld != null && ReferenceEquals(world, _outgoingWorld))
         {
