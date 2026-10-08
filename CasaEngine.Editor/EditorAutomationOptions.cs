@@ -6,6 +6,7 @@ namespace CasaEngine.Editor;
 public sealed class EditorAutomationOptions
 {
     private const double DefaultCaptureDelaySeconds = 6.0;
+    private const double DefaultAutomationTimeoutSeconds = 300.0;
 
     public string ProjectPath { get; private set; }
     public string OpenAssetPath { get; private set; }
@@ -36,6 +37,8 @@ public sealed class EditorAutomationOptions
     public bool PlaySmoke { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
+    /// <summary>Longest an automation run may take before it writes its diagnostics and stops with exit code 2.</summary>
+    public double AutomationTimeoutSeconds { get; private set; } = DefaultAutomationTimeoutSeconds;
     public bool ExitAfterCapture { get; private set; } = true;
     private bool EntityIndexSpecified { get; set; }
     private bool CaptureDelaySpecified { get; set; }
@@ -216,6 +219,15 @@ public sealed class EditorAutomationOptions
                     {
                         options.CaptureDelaySeconds = Math.Max(0.5, captureDelaySeconds);
                         options.CaptureDelaySpecified = true;
+                    }
+
+                    index++;
+                    break;
+
+                case "--automation-timeout":
+                    if (double.TryParse(next, NumberStyles.Float, CultureInfo.InvariantCulture, out double timeoutSeconds))
+                    {
+                        options.AutomationTimeoutSeconds = Math.Max(1.0, timeoutSeconds);
                     }
 
                     index++;

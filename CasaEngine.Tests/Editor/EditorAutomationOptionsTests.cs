@@ -48,6 +48,18 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_AutomationTimeout_DefaultsTo300Seconds_AndDoesNotEnableAutomationAlone()
+    {
+        Assert.Equal(300.0, EditorAutomationOptions.Parse(System.Array.Empty<string>()).AutomationTimeoutSeconds);
+
+        var options = EditorAutomationOptions.Parse(new[] { "--automation-timeout", "5" });
+
+        Assert.Equal(5.0, options.AutomationTimeoutSeconds);
+        Assert.False(options.HasAutomation);
+        Assert.Equal(1.0, EditorAutomationOptions.Parse(new[] { "--automation-timeout", "0.2" }).AutomationTimeoutSeconds);
+    }
+
+    [Fact]
     public void Parse_EntityIndexZero_StillEnablesAutomation()
     {
         var options = EditorAutomationOptions.Parse(new[]

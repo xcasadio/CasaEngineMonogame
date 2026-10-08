@@ -233,7 +233,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 > - **Inspecteur** : capture de `--open-asset NewLitDiffuseMaterial.material` sur `Projects/SampleProject`. La section PBR montre la case « Scene Reflection Cube » et les curseurs « Reflection Add Amount » et « Reflection Multiply Base » ; le troisième curseur est plus bas dans la liste.
 >   - Le lancement a créé `Projects/SampleProject/.casaeditor/viewport.editor.json`, supprimé ensuite. Au passage, les deux fichiers suivis de ce dossier ont été supprimés par erreur, puis restaurés par `git checkout` : `git status` est propre.
 
-### ⏳ T5 — Automatisation fiable (E5)
+### ✅ T5 — Automatisation fiable (E5)
 
 - **Objectif** : P5.
 - **Fichiers** : `EditorAutomationOptions.cs` (`--automation-timeout`), `GameEditor.cs` (section `Logs:`, code de sortie, délai) ; tests `EditorAutomationOptionsTests` et une aide pure de calcul du code de sortie.
@@ -243,6 +243,19 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - sur le projet RacingGameCasaEngine, un `.wav` encore sans document donne le code 1 et des diagnostics avec `Logs:`, tandis qu'un `.uiscreen` donne 0 ;
   - un délai de 5 s sur un projet sans fin d'attente donne le code 2.
 - **Commit** : `feat(editor): make editor automation outcomes checkable`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - `EditorAutomationOutcome.ComputeExitCode` : 2 en cas de délai dépassé ; 1 pour un diagnostic qui commence par « [Automation] Unable to open asset », « Failed to », « Refused to » ou « Timed out », ou pour un résultat de `--play-smoke` qui commence par `FAIL` ; 0 sinon ;
+>   - `ExitAutomation` fixe `Environment.ExitCode` avant de quitter ;
+>   - `--automation-timeout <s>` (300 par défaut, au moins 1, n'active pas l'automatisation à lui seul) : au-delà, l'éditeur écrit l'erreur, les diagnostics, restaure les fichiers et sort avec le code 2. Le délai court même tant que le monde n'est pas chargé ;
+>   - les diagnostics ont une ligne « Automation outcome (exit code) » et une section `Logs:` (avertissements et erreurs du journal de l'éditeur).
+> - **Tests** : `EditorAutomationOutcomeTests` (6 cas) et `Parse_AutomationTimeout_…`.
+> - **Build et tests** : `CasaEngine.Editor.MonoGame.sln` compile avec 0 erreur ; `CasaEngine.Tests` : 4 186 sur 4 186.
+> - **Sur le projet RacingGameCasaEngine** :
+>   - `--open-asset Audio/Beep.wav` sort avec le code 1, avec « Unable to open asset » et une section `Logs:` ;
+>   - `UI/Screens/Splash/Splash.uiscreen` sort avec le code 0 ;
+>   - une copie dont `Editor.world` n'a plus d'entité, avec `--automation-timeout 5`, sort avec le code 2 et « [Automation] Timed out after 5 s ».
 
 ## Phase 3 — Documents des assets
 

@@ -267,6 +267,8 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationSelectionAppliedAt;
     private bool _automationPanelActivationApplied;
     private TimeSpan _automationPanelActivatedAt;
+    private TimeSpan? _automationStartedAt;
+    private bool _automationTimedOut;
     private bool _automationLogsFilterApplied;
     private TimeSpan _automationLogsFilterAppliedAt;
     private bool _automationContentFolderSelectionAttempted;
@@ -6818,7 +6820,20 @@ public class GameEditor : Game, IObservableUpdate
 
     private void RunAutomation(TimeSpan totalGameTime)
     {
-        if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured || !_automationWorldLoaded)
+        if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured)
+        {
+            return;
+        }
+
+        //  A world that never loads, or a step that never completes, would otherwise keep the editor waiting forever.
+        _automationStartedAt ??= totalGameTime;
+        if (totalGameTime - _automationStartedAt.Value > TimeSpan.FromSeconds(_automationOptions.AutomationTimeoutSeconds))
+        {
+            StopTimedOutAutomation();
+            return;
+        }
+
+        if (!_automationWorldLoaded)
         {
             return;
         }
@@ -6843,7 +6858,7 @@ public class GameEditor : Game, IObservableUpdate
 
             if (_automationOptions.ExitAfterCapture)
             {
-                Exit();
+                ExitAutomation();
             }
 
             return;
@@ -7063,7 +7078,33 @@ public class GameEditor : Game, IObservableUpdate
 
         if (_automationOptions.ExitAfterCapture)
         {
-            Exit();
+            ExitAutomation();
+        }
+    }
+
+    private int ComputeAutomationExitCode()
+        => EditorAutomationOutcome.ComputeExitCode(EditorDiagnosticsBuffer.GetEntriesSnapshot(), _automationPlaySmokeResults, _automationTimedOut);
+
+    /// <summary>Ends an automation run with the exit code of its outcome (<see cref="EditorAutomationOutcome"/>).</summary>
+    private void ExitAutomation()
+    {
+        Environment.ExitCode = ComputeAutomationExitCode();
+        Exit();
+    }
+
+    private void StopTimedOutAutomation()
+    {
+        _automationTimedOut = true;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Error,
+            $"[Automation] Timed out after {_automationOptions.AutomationTimeoutSeconds:0.#} s (world loaded: {_automationWorldLoaded}, asset opened: {_automationAssetOpened}).");
+        CaptureAutomationDiagnostics();
+        RestoreAutomationEditedFilesIfNeeded();
+        DeleteAutomationCreatedParticleAssetIfNeeded();
+        _automationDiagnosticsCaptured = true;
+
+        if (_automationOptions.ExitAfterCapture)
+        {
+            ExitAutomation();
         }
     }
 
@@ -8347,6 +8388,26 @@ public class GameEditor : Game, IObservableUpdate
             .FirstOrDefault(component => ComponentMatches(component, expectedName));
     }
 
+    /// <summary>The warnings and errors of the engine log (the Logs panel), which the diagnostics buffer does not carry.</summary>
+    private void AppendEditorLogDiagnostics(StringBuilder builder)
+    {
+        builder.AppendLine("Logs:");
+        if (_loggerEditor == null)
+        {
+            return;
+        }
+
+        var logEntries = _loggerEditor.Entries;
+        for (int i = 0; i < logEntries.Count; i++)
+        {
+            var entry = logEntries[i];
+            if (entry.Verbosity is LogVerbosity.Warning or LogVerbosity.Error)
+            {
+                builder.AppendLine($"  - {entry.Timestamp:HH:mm:ss.fff} [{entry.Verbosity}] {entry.Message}");
+            }
+        }
+    }
+
     private void CaptureAutomationDiagnostics()
     {
         string outputPath = ResolveAutomationDiagnosticsPath();
@@ -8398,6 +8459,8 @@ public class GameEditor : Game, IObservableUpdate
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendTileMapDiagnostics(builder, activeDocumentPanelId);
         AppendAutomationSelectionDiagnostics(builder);
+        builder.AppendLine($"Automation outcome (exit code): {ComputeAutomationExitCode()}");
+        AppendEditorLogDiagnostics(builder);
         builder.AppendLine($"Entries: {entries.Count}");
         builder.AppendLine();
 
