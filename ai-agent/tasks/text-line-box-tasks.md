@@ -159,7 +159,7 @@ Mesures de référence (T0.1) :
 
 ## Phase 2 — Moteur et éditeur (branche `chantier/fss-line-height`)
 
-### ⏳ T2.1 — Dessinateurs du moteur et de l'éditeur
+### ✅ T2.1 — Dessinateurs du moteur et de l'éditeur
 
 - Objectif : le moteur et l'éditeur suivent D3.
 - Fichiers : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs`, `CasaEngine.Editor/Controls/Timeline/TimelineRuler.cs`, `TimelineViewport.cs`, `TimelineTrackHeaderPanel.cs`, `Rendering/DefaultTimelineItemRenderer.cs`.
@@ -168,6 +168,7 @@ Mesures de référence (T0.1) :
   2. Timeline : échelle = `ExactScale` ; hauteur du texte = `LineHeight`, déjà à l'échelle.
 - Validation : build des deux solutions, `CasaEngine.Tests` vert.
 - Commit : `fix(ui): draw engine and editor text at the measured scale`
+- Note : `CasaDrawTransaction` perd le paramètre `Exact` (dessin à `ExactScale`, règle d'origine unique, retour = mesure) ; la timeline résout à `ExactScale` et ne multiplie plus `LineHeight` par l'échelle (`TimelineRuler`, `TimelineViewport`, `TimelineTrackHeaderPanel`, `DefaultTimelineItemRenderer`). Aucun autre dessinateur du moteur ni de l'éditeur n'utilisait `SuggestedScale` ou ne remultipliait `LineHeight` (`rg`). Les deux solutions sans erreur, `CasaEngine.Tests` 4151/4151.
 
 ### ⏳ T2.2 — Vérification visuelle
 

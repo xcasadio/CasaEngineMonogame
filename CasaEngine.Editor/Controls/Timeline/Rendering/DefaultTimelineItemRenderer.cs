@@ -114,7 +114,7 @@ public sealed class DefaultTimelineItemRenderer : ITimelineItemRenderer
             return;
         }
 
-        float textHeight = Math.Max(textSize.Y, font.LineHeight * context.FontScale);
+        float textHeight = Math.Max(textSize.Y, font.LineHeight);
         float labelX = left + 4f;
         float labelY = top + Math.Max(0f, (height - textHeight) * 0.5f);
         Vector2 drawPosition = new Vector2(labelX, labelY) + (font.DrawOrigin * context.FontScale) + origin;
