@@ -121,7 +121,7 @@ public class AnimationBlendDemo : Demo
             return;
         }
 
-        var keyboardState = _game.IsActive ? Keyboard.GetState() : new KeyboardState();
+        var keyboardState = DemoKeyboard.Read(_game);
         if (IsNewKeyPress(keyboardState, Keys.Tab))
         {
             CycleDemoMode(IsShiftPressed(keyboardState) ? -1 : 1);

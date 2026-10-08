@@ -78,11 +78,12 @@ public class RenderToTextureDemo : Demo
     {
         var game = _game!;
         var pp = game.GraphicsDevice.PresentationParameters;
+        var sceneArea = game.GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight);
 
-        // ---- Camera 1: front view (full-screen backbuffer) ----
+        // ---- Camera 1: front view (the scene area of the backbuffer, ADR-0070) ----
         var cam1 = (ArcBallCameraComponent)camera;
         cam1.SetCamera(Vector3.Backward * 18 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        cam1.OnScreenResized(pp.BackBufferWidth, pp.BackBufferHeight);
+        cam1.OnScreenResized(sceneArea.Width, sceneArea.Height);
 
         // ---- Camera 2: top-down view (render-to-texture) ----
         _camera2!.SetCamera(Vector3.Up * 25, Vector3.Zero, Vector3.Forward);
@@ -99,8 +100,7 @@ public class RenderToTextureDemo : Demo
         viewManager.Clear();
 
         // View 1: main backbuffer
-        var fullScreen = new Rectangle(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
-        viewManager.Add(new RenderView(world, cam1, new BackBufferSurface(fullScreen))
+        viewManager.Add(new RenderView(world, cam1, new BackBufferSurface(sceneArea))
         {
             Name = "Main view",
             ClearColor = Color.CornflowerBlue,
@@ -115,7 +115,8 @@ public class RenderToTextureDemo : Demo
     }
 
     /// <summary>
-    /// Draws the render-target texture as a thumbnail in the bottom-right corner.
+    /// Draws the render-target texture as a thumbnail in the bottom-right corner of the scene area (the viewport
+    /// <see cref="Demo.PostDraw"/> runs in).
     /// Called after the pipeline has flushed all views.
     /// </summary>
     public override void PostDraw(CasaEngineGame game, GameTime gameTime)
@@ -125,13 +126,13 @@ public class RenderToTextureDemo : Demo
             return;
         }
 
-        var pp = game.GraphicsDevice.PresentationParameters;
+        var viewport = game.GraphicsDevice.Viewport;
         const int padding = 8;
         const int thumbSize = RtSize / 2; // 128x128
 
         var dest = new Rectangle(
-            pp.BackBufferWidth  - thumbSize - padding,
-            pp.BackBufferHeight - thumbSize - padding,
+            viewport.Width  - thumbSize - padding,
+            viewport.Height - thumbSize - padding,
             thumbSize,
             thumbSize);
 
@@ -145,6 +146,14 @@ public class RenderToTextureDemo : Demo
             DepthStencilState.None, RasterizerState.CullNone);
         sb.Draw(_rtSurface.Texture, dest, Color.White);
         sb.End();
+    }
+
+    /// <summary>
+    /// A resize sizes every camera of the world to the window: the render-target camera gets its target size back.
+    /// </summary>
+    public override void OnScreenResized(CasaEngineGame game, int width, int height)
+    {
+        _camera2?.OnScreenResized(RtSize, RtSize);
     }
 
     public override void Update(GameTime gameTime)

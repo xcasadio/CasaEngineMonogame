@@ -106,8 +106,9 @@ public class SplitScreenDemo : Demo
         var game = _game!;
         var pp = game.GraphicsDevice.PresentationParameters;
 
-        // Compute left/right viewport rectangles
-        var rects = SplitScreenLayout.Compute(pp.BackBufferWidth, pp.BackBufferHeight, 2, SplitMode.Vertical);
+        // Compute left/right viewport rectangles inside the scene area (ADR-0070)
+        var sceneArea = game.GameManager.ViewManager.GetLayoutArea(pp.BackBufferWidth, pp.BackBufferHeight);
+        var rects = SplitScreenLayout.Compute(sceneArea, 2, SplitMode.Vertical);
 
         // ---- Camera 1: heavy left cluster ----
         var cam1 = (ArcBallCameraComponent)camera;

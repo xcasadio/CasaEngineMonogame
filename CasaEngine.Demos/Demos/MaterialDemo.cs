@@ -388,7 +388,7 @@ public class MaterialDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var kb = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        var kb = DemoKeyboard.Read(_game);
 
         // T — cycle per-sphere instance tints
         if (kb.IsKeyDown(Keys.T) && !_prevKb.IsKeyDown(Keys.T))

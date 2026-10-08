@@ -38,9 +38,10 @@ public sealed class DefaultRuntimeViewBootstrapper : IRuntimeViewBootstrapper
     }
 
     /// <summary>
-    /// Creates the default view over the whole window, or -- with a virtual resolution -- over its integer-fit image
-    /// (ADR-0048), the camera framing exactly the virtual resolution. Fitted before the view is registered so the UI
-    /// runtime created on registration already sees the final rectangle.
+    /// Creates the default view over the layout area of <paramref name="viewManager"/> (the whole window unless it has
+    /// layout insets, ADR-0070), or -- with a virtual resolution -- over its integer-fit image (ADR-0048), the camera
+    /// framing exactly the virtual resolution. Fitted before the view is registered so the UI runtime created on
+    /// registration already sees the final rectangle.
     /// </summary>
     internal static ViewId CreateDefaultView(
         Scene.World.World world,
@@ -50,10 +51,17 @@ public sealed class DefaultRuntimeViewBootstrapper : IRuntimeViewBootstrapper
         int windowHeight,
         VirtualResolutionSettings virtualResolution)
     {
-        var surface = new BackBufferSurface(new Rectangle(0, 0, windowWidth, windowHeight));
+        var layoutArea = viewManager.GetLayoutArea(windowWidth, windowHeight);
+        var surface = new BackBufferSurface(layoutArea);
         if (virtualResolution != null)
         {
+            VirtualResolutionRuntime.ThrowIfLayoutAreaIsNotTheWindow(layoutArea, windowWidth, windowHeight);
             VirtualResolutionLayout.Apply(surface, camera, windowWidth, windowHeight, virtualResolution);
+        }
+        else if (layoutArea != new Rectangle(0, 0, windowWidth, windowHeight))
+        {
+            // The world sized the camera to the window; the view only gets the area.
+            camera.OnScreenResized(layoutArea.Width, layoutArea.Height);
         }
 
         return viewManager.CreateView(new ViewDefinition

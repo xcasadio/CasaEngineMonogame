@@ -95,7 +95,7 @@ public class AnimationIkDemo : Demo
             return;
         }
 
-        var keyboard = _game.IsActive ? Keyboard.GetState() : new KeyboardState();
+        var keyboard = DemoKeyboard.Read(_game);
         var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
         if (IsNewKeyPress(keyboard, Keys.Space))

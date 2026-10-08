@@ -73,7 +73,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
             return;
         }
 
-        var keyboard = Keyboard.GetState();
+        var keyboard = DemoKeyboard.Read(_game);
         var environmentSettings = _game.GameManager.CurrentWorld.EnvironmentSettings;
 
         if (IsNewKeyPress(keyboard, Keys.B))

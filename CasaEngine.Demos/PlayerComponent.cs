@@ -42,7 +42,7 @@ public class PlayerComponent : EntityComponent
         var velocityX = 0f;
         var velocityY = 0f;
         string animationName = "";
-        var keyboardState = Owner?.World.Game.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        var keyboardState = DemoKeyboard.Read(Owner?.World.Game);
 
         if (keyboardState.IsKeyDown(Keys.Down))
         {

@@ -71,7 +71,7 @@ public sealed class CutsceneNavigateToDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var keyboard = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        var keyboard = DemoKeyboard.Read(_game);
         var world = _hero?.World;
 
         TryAutoPlay();

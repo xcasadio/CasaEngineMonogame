@@ -140,7 +140,7 @@ public class TileMapDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var keyboard = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        var keyboard = DemoKeyboard.Read(_game);
 
         if (_fadeState == FadeSmokeState.Idle)
         {

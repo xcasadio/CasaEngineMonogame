@@ -115,7 +115,7 @@ public class UIOverlayDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        KeyboardState keyboard = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        KeyboardState keyboard = DemoKeyboard.Read(_game);
         if (keyboard.IsKeyDown(Keys.D) && !_previousKeyboard.IsKeyDown(Keys.D))
         {
             ToggleDialogue();
