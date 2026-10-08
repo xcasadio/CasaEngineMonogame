@@ -1189,6 +1189,18 @@
       "asset_type": "sound"
     },
     {
+      "id": "01eae917-23f7-491a-ba55-2851b05916f3",
+      "name": "loop_point_demo_wav",
+      "file_name": "Audio\\loop_point_demo.wav",
+      "asset_type": "wav"
+    },
+    {
+      "id": "f138a08a-bb02-4c28-b186-72e9caea112a",
+      "name": "loop_point_demo",
+      "file_name": "Audio\\loop_point_demo.sound",
+      "asset_type": "sound"
+    },
+    {
       "id": "23ddf15f-ea55-4c8b-9077-9b033f10b0f9",
       "name": "demo_mixer",
       "file_name": "Audio\\demo_mixer.audioMixer",

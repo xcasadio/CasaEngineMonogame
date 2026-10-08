@@ -22,6 +22,12 @@
 #begin Audio/menu_click.sound
 /copy:Audio/menu_click.sound
 
+#begin Audio/loop_point_demo.sound
+/copy:Audio/loop_point_demo.sound
+
+#begin Audio/loop_point_demo.wav
+/copy:Audio/loop_point_demo.wav
+
 #begin Audio/menu_click_varied.sound
 /copy:Audio/menu_click_varied.sound
 

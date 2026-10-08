@@ -93,11 +93,15 @@ le travailleur de flux), le sérialiseur de l'éditeur et la copie d'aperçu de 
   nouvel ADR ; plus grand numéro de toutes les branches et worktrees avant lui : 0072.
 - Commit : `perf(audio): the default music queue depth goes from 3 to 24 (E19.L-a T2, D-E19-104)`.
 
-### ⏳ T3 — Démo du point de boucle
+### 🧪 T3 — Démo du point de boucle
 
-- Touche libre de `AudioDemo.cs` (parmi A, E, Q, U, W, X, Y, Z), `loop_point_demo.wav` (529 260 o) et `loop_point_demo.sound`
-  (`loop_start_sample` 44 100), `AssetInfos.json`, `Content.mgcb`, ligne de §11 de `audio-system.md`, ligne ajoutée à la liste fixe de
-  `Loader_DemoSoundFiles_HaveTheVariationDefaults`. Réponse de l'auteur du 2026-10-08 : le WAV est versionné (D8).
+- Touche `Q` de `AudioDemo.cs` (libre parmi A, E, Q, U, W, X, Y, Z ; ligne de l'aide et ligne d'état avec la position et la file),
+  `loop_point_demo.wav` (529 260 o, données à l'offset 60, généré par `docs/plan-e19-loop-annexe/la-1008/gen_loop_point_demo.py` du dépôt
+  parent, versionné : D8) et `loop_point_demo.sound` (`loop_start_sample` 44 100), `AssetInfos.json`, `Content.mgcb`, ligne de §11 de
+  `audio-system.md`, ligne ajoutée à la liste fixe de `Loader_DemoSoundFiles_HaveTheVariationDefaults`.
+- Validation faite : la démo lancée depuis `CasaEngine.Demos/`, touche `Q`, capture du back-buffer par le chemin de la démo (la piste joue, 24
+  buffers en file, position 3,0 s, 0 sous-alimentation), journal sans avertissement. **Reste 🧪 : l'écoute par l'auteur** (un ton de 440 Hz
+  une fois, puis des bips de 660 Hz toutes les 0,5 s, sans trou ni clic au raccord).
 
 ---
 

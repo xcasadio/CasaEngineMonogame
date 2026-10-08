@@ -1,0 +1,11 @@
+{
+  "id": "f138a08a-bb02-4c28-b186-72e9caea112a",
+  "name": "loop_point_demo",
+  "audio_file_asset_id": "01eae917-23f7-491a-ba55-2851b05916f3",
+  "volume": 0.8,
+  "pitch": 0.0,
+  "is_looped": true,
+  "bus_name": "Music",
+  "is_streaming": true,
+  "loop_start_sample": 44100
+}

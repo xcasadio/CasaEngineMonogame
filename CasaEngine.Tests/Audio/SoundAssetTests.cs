@@ -68,12 +68,16 @@ public class SoundAssetTests
         throw new DirectoryNotFoundException("CasaEngine.Demos/Content/Audio not found above the test output.");
     }
 
-    /// <summary>The demo sound files written before variations and priorities existed.</summary>
+    /// <summary>
+    /// The demo sound files that carry no variation and no priority: the ones written before they existed, and
+    /// <c>loop_point_demo.sound</c>, which only adds the loop-start key (E19.L-a).
+    /// </summary>
     public static IEnumerable<object[]> DemoSoundFilesWithoutVariations()
     {
         yield return new object[] { "menu_click.sound" };
         yield return new object[] { "racing_game_music.sound" };
         yield return new object[] { "racing_game_music_pitched.sound" };
+        yield return new object[] { "loop_point_demo.sound" };
     }
 
     [Fact]

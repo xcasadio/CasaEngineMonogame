@@ -42,6 +42,11 @@ namespace CasaEngine.Demos.Demos;
 /// Music keys (streamed from disk, never fully loaded):
 ///   P          start the music with a one second fade in, or fade it out over two seconds
 ///   C          crossfade to the other music track over two seconds
+///   Q          loop point (E19.L-a): play or stop loop_point_demo.sound, a 3 second 44.1 kHz stream whose loop
+///              starts at 1 second. Expected sound: a 440 Hz tone once, then 660 Hz beeps every half second
+///              for ever, with no gap or click at the seam. The position jumps back from about 3 s to 1 s
+///              (it leads the sound by the queue depth, about 2 s). Before the loop point existed, the tone
+///              came back every 3 seconds
 ///   PageUp/Dn  Music bus volume
 ///
 /// Bus keys:
@@ -80,6 +85,7 @@ public class AudioDemo : Demo
     private static readonly Guid VariedClickSoundAssetId = new("f5c920e0-ab46-45d8-81c0-feb6f481b27d");
     private static readonly Guid MusicAssetId = new("7c9e5d31-4b62-4a08-8e17-2f6ba0c4d5e9");
     private static readonly Guid PitchedMusicAssetId = new("2e60f8a4-9c13-4d75-b3ea-58c7d1904f26");
+    private static readonly Guid LoopPointAssetId = new("f138a08a-bb02-4c28-b186-72e9caea112a");
 
     private const float VolumeStep = 0.1f;
     private const float MusicFadeInSeconds = 1f;
@@ -129,14 +135,17 @@ public class AudioDemo : Demo
     private AssetHandle<SoundAsset> _variedClickSoundHandle;
     private AssetHandle<SoundAsset>? _musicHandle;
     private AssetHandle<SoundAsset>? _pitchedMusicHandle;
+    private AssetHandle<SoundAsset>? _loopPointHandle;
     private SoundAsset? _clickSound;
     private SoundAsset _variedClickSound;
     private SoundAsset? _music;
     private SoundAsset? _pitchedMusic;
+    private SoundAsset? _loopPoint;
     private PcmAudioClip? _stereoBeep;
     private int _stereoBeepStep;
     private AudioVoiceHandle _loopingVoice = AudioVoiceHandle.None;
     private MusicTrackHandle _musicTrack = MusicTrackHandle.None;
+    private MusicTrackHandle _loopPointTrack = MusicTrackHandle.None;
     private bool _pitchedMusicPlaying;
     private KeyboardState _previousKeyboard;
     private DynamicSpriteFont? _font;
@@ -193,6 +202,8 @@ public class AudioDemo : Demo
         _music = _musicHandle?.Asset;
         _pitchedMusicHandle = TryAcquire(game, PitchedMusicAssetId);
         _pitchedMusic = _pitchedMusicHandle?.Asset;
+        _loopPointHandle = TryAcquire(game, LoopPointAssetId);
+        _loopPoint = _loopPointHandle?.Asset;
         _stereoBeep = CreateStereoBeep();
 
         var service = game.AudioSystemComponent?.Service;
@@ -392,6 +403,7 @@ public class AudioDemo : Demo
             service.StopAll();
             _loopingVoice = AudioVoiceHandle.None;
             _musicTrack = MusicTrackHandle.None;
+            _loopPointTrack = MusicTrackHandle.None;
             _lastAction = "everything stopped";
         }
 
@@ -411,6 +423,11 @@ public class AudioDemo : Demo
         }
 
         var mixer = service.Mixer;
+
+        if (WasJustPressed(keyboard, Keys.Q))
+        {
+            ToggleLoopPointDemo(service);
+        }
 
         if (WasJustPressed(keyboard, Keys.PageUp))
         {
@@ -510,7 +527,7 @@ public class AudioDemo : Demo
 
         var spriteBatch = game.SpriteBatch;
         spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 570), Color.White);
+        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 614), Color.White);
 
         var y = 16f;
         DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
@@ -536,6 +553,10 @@ public class AudioDemo : Demo
             ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
               + $"  queued buffers {service.Music.GetPendingBufferCount(_musicTrack)}"
             : "Music stopped");
+        DrawLine(spriteBatch, ref y, service.Music.IsAlive(_loopPointTrack)
+            ? $"Loop point (Q) position {service.Music.GetPosition(_loopPointTrack).TotalSeconds:0.0} s"
+              + $"  queued buffers {service.Music.GetPendingBufferCount(_loopPointTrack)}"
+            : "Loop point (Q) stopped");
         DrawLine(spriteBatch, ref y, service.Backend is IAudioBusBackend
             ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
               + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
@@ -554,6 +575,7 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
         DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");
         DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
+        DrawLine(spriteBatch, ref y, "Q loop point: tone once, then beeps (loops from 1 s)");
         DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
         DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
         DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
@@ -589,6 +611,8 @@ public class AudioDemo : Demo
         _variedClickSound = null;
         _music = null;
         _pitchedMusic = null;
+        _loopPoint = null;
+        _loopPointTrack = MusicTrackHandle.None;
         _clickSoundHandle?.Dispose();
         _clickSoundHandle = null;
         _variedClickSoundHandle?.Dispose();
@@ -597,6 +621,8 @@ public class AudioDemo : Demo
         _musicHandle = null;
         _pitchedMusicHandle?.Dispose();
         _pitchedMusicHandle = null;
+        _loopPointHandle?.Dispose();
+        _loopPointHandle = null;
         _stereoBeep?.Dispose();
         _stereoBeep = null;
         _stereoBeepStep = 0;
@@ -1101,6 +1127,26 @@ public class AudioDemo : Demo
         _musicTrack = service.Music.Play(_music, MusicFadeInSeconds, _game?.GameManager.CurrentWorld);
         _pitchedMusicPlaying = false;
         _lastAction = _musicTrack.IsValid ? "music fading in" : "music refused";
+    }
+
+    private void ToggleLoopPointDemo(AudioService service)
+    {
+        if (service.Music.IsAlive(_loopPointTrack))
+        {
+            service.Music.Stop(_loopPointTrack, MusicFadeOutSeconds);
+            _loopPointTrack = MusicTrackHandle.None;
+            _lastAction = $"loop point music fading out over {MusicFadeOutSeconds:0}s";
+            return;
+        }
+
+        if (_loopPoint == null)
+        {
+            _lastAction = "loop point asset is missing";
+            return;
+        }
+
+        _loopPointTrack = service.Music.Play(_loopPoint, 0f, _game?.GameManager.CurrentWorld);
+        _lastAction = _loopPointTrack.IsValid ? "loop point music playing" : "loop point music refused";
     }
 
     private void CrossfadeMusic(AudioService service)

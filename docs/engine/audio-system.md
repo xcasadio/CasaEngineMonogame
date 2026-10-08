@@ -737,6 +737,7 @@ V1 et y sont repris.
 | `B` | bip mono sur une voix stéréo logicielle : gauche seule, puis droite seule, puis les deux (un pas par appui) |
 | `P` | démarre la musique (fade in 1 s) / la fade out (2 s) |
 | `C` | crossfade vers l'autre piste (2 s) |
+| `Q` | point de boucle (E19.L-a) : joue / arrête `loop_point_demo.sound`, un flux de 3 s à 44,1 kHz dont la boucle repart à 1 s (`loop_start_sample` 44 100). À entendre : un ton de 440 Hz une seule fois, puis des bips de 660 Hz toutes les 0,5 s sans fin, sans trou ni clic au raccord ; la position affichée revient d'environ 3 s à 1 s (elle précède le son d'environ 2 s, la profondeur de la file). Le WAV (529 260 octets, données à l'offset 60) est généré par `docs/plan-e19-loop-annexe/la-1008/gen_loop_point_demo.py` du dépôt parent et versionné (D-E19-107) |
 | `PagePréc` / `PageSuiv` | volume du bus `Music` |
 | `Haut` / `Bas` | volume du bus `Master` |
 | `Gauche` / `Droite` | volume du bus `Sfx` |
