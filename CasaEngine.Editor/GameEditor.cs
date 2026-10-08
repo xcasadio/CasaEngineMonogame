@@ -8649,7 +8649,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         string fullPath = Path.Combine(EngineEnvironment.ProjectPath, texturePanel.LoadedRelativePath);
-        if (_automationEditedFileSnapshots.ContainsKey(fullPath))
+        if (_automationEditedFileByteSnapshots.ContainsKey(fullPath))
         {
             return true;
         }
@@ -8660,7 +8660,8 @@ public class GameEditor : Game, IObservableUpdate
             return false;
         }
 
-        _automationEditedFileSnapshots.Add(fullPath, File.ReadAllText(fullPath));
+        // As bytes, like the static model snapshot below, so that the restore gives back a byte order mark too.
+        _automationEditedFileByteSnapshots.Add(fullPath, File.ReadAllBytes(fullPath));
         _automationEditedFilesRestored = false;
         return true;
     }
