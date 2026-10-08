@@ -170,7 +170,7 @@ Mesures de référence (T0.1) :
 - Commit : `fix(ui): draw engine and editor text at the measured scale`
 - Note : `CasaDrawTransaction` perd le paramètre `Exact` (dessin à `ExactScale`, règle d'origine unique, retour = mesure) ; la timeline résout à `ExactScale` et ne multiplie plus `LineHeight` par l'échelle (`TimelineRuler`, `TimelineViewport`, `TimelineTrackHeaderPanel`, `DefaultTimelineItemRenderer`). Aucun autre dessinateur du moteur ni de l'éditeur n'utilisait `SuggestedScale` ou ne remultipliait `LineHeight` (`rg`). Les deux solutions sans erreur, `CasaEngine.Tests` 4151/4151.
 
-### ⏳ T2.2 — Vérification visuelle
+### 🧪 T2.2 — Vérification visuelle
 
 - Objectif : prouver la correction sur de vraies images.
 - Étapes :
@@ -179,6 +179,11 @@ Mesures de référence (T0.1) :
   3. Capture de l'éditeur si l'automatisation le permet ; échantillons MGUI (moteur SpriteFont) à regarder par l'auteur.
 - Validation : captures relues ; 🧪 pour ce qui demande l'œil de l'auteur.
 - Commit : `docs(ai-agent): record the text line box visual checks`
+- Note :
+  - Sonde relancée (retirée ensuite) : SpriteFont 8, 11, 14 pt = 17, 20, 26 px ; FontStashSharp (Tahoma calibrée comme `UIRoot`) 8, 11, 14 pt = 15, 20, 26 px ; `DrawOrigin` nul pour les deux ; `MeasureText.Y` = `LineHeight`. Conforme à D2.
+  - Captures de `CasaEngine.Demos` (`CASAENGINE_DEMO_BROWSER=open`, démos 0 et 5), avant (commit T0.1, MGUI `18b2c14a`) et après : avant, le bas des `g` de « Rendering », « NavigateTo », « PSX rendering » est coupé ; après, jambages, accents et crochets sont entiers dans l'arbre et la description. Les lignes plus hautes font apparaître une barre de défilement dans la description à la taille par défaut, ce qui la rétrécit et change ses retours à la ligne.
+  - Capture automatisée de l'éditeur (SampleProject, `--screenshot-out`) avant et après : pixels identiques hors viewport (menu, hiérarchie, inspecteur, navigateur de contenu). Les deux fichiers créés par l'éditeur (`.casaeditor/viewport.editor.json`, `editor-diagnostics.txt`) ont été supprimés un par un.
+  - Reste pour l'auteur (🧪) : la timeline de l'éditeur avec une animation ouverte, et les échantillons `MGUI.Samples` (moteur SpriteFont, dont l'inventaire du `SampleHUD`).
 
 ### ⏳ T2.3 — Vérificateur frais et rapport
 
