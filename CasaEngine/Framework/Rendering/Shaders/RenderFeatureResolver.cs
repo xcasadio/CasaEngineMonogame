@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Materials.Compilation;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -34,7 +35,20 @@ public static class RenderFeatureResolver
     {
         ArgumentNullException.ThrowIfNull(input.Material);
 
-        var features = ResolveMaterialFeatures(input.Material);
+        return AdjustToMesh(ResolveMaterialFeatures(input.Material), in input);
+    }
+
+    /// <summary>
+    /// Adjusts material-level features (from <see cref="ResolveMaterialFeatures"/> or
+    /// <see cref="CompiledMaterial.Features"/>) to the drawn mesh and draw path: removes
+    /// <see cref="ShaderFeature.NormalMap"/> when the mesh has no tangents (or is skinned),
+    /// and adds <see cref="ShaderFeature.Skinned"/>, <see cref="ShaderFeature.Instanced"/> and
+    /// <see cref="ShaderFeature.VertexColor"/> as the draw requires.
+    /// <see cref="RenderFeatureInput.Material"/> is not read. This is the single place holding
+    /// these rules, so a compiled and a code-built material draw alike on the same mesh.
+    /// </summary>
+    public static ShaderFeature AdjustToMesh(ShaderFeature features, in RenderFeatureInput input)
+    {
         bool isSkinned = input.IsSkinned || input.SkinnedMesh is not null;
 
         if ((features & ShaderFeature.NormalMap) != 0 && !SupportsNormalMapping(input, isSkinned))
@@ -61,6 +75,21 @@ public static class RenderFeatureResolver
 
         return features;
     }
+
+    /// <summary>
+    /// Features a static mesh is drawn with: a compiled material starts from its
+    /// <see cref="CompiledMaterial.Features"/>, a code-built one (<paramref name="compiledMaterial"/> null)
+    /// from <paramref name="material"/>; both then go through <see cref="AdjustToMesh(ShaderFeature, StaticModelMesh)"/>.
+    /// Used by the static mesh renderer to fill <c>RenderItem.Features</c>.
+    /// </summary>
+    public static ShaderFeature ResolveForMesh(MaterialBase material, CompiledMaterial compiledMaterial, StaticModelMesh mesh)
+        => compiledMaterial is null
+            ? Resolve(new RenderFeatureInput { Material = material, Mesh = mesh })
+            : AdjustToMesh(compiledMaterial.Features, mesh);
+
+    /// <summary>Convenience overload of <see cref="AdjustToMesh(ShaderFeature, in RenderFeatureInput)"/> for a static mesh.</summary>
+    public static ShaderFeature AdjustToMesh(ShaderFeature features, StaticModelMesh mesh)
+        => AdjustToMesh(features, new RenderFeatureInput { Mesh = mesh });
 
     public static ShaderFeature ResolveMaterialFeatures(MaterialBase material)
     {

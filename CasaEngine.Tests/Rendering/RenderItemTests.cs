@@ -9,7 +9,7 @@ namespace CasaEngine.Tests.Rendering;
 public class RenderItemTests
 {
     [Fact]
-    public void Accessors_PreferCompiledMaterial_WhenPresent()
+    public void Accessors_PreferCompiledMaterial_WhenPresent_ExceptFeatures()
     {
         var runtimeMaterial = new LitDiffuseMaterial
         {
@@ -42,7 +42,8 @@ public class RenderItemTests
         };
 
         Assert.Equal(compiledMaterial.EffectiveShader.ShaderId, item.EffectiveShaderId);
-        Assert.Equal(compiledMaterial.Features, item.Features);
+        // Features is the value the producer set (resolved against the drawn mesh), not the compiled snapshot.
+        Assert.Equal(ShaderFeature.None, item.Features);
         Assert.Equal(RenderQueue.Transparent, item.Queue);
         Assert.True(item.EffectiveCastShadows);
         Assert.False(item.EffectiveReceiveShadows);
