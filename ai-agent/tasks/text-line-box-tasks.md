@@ -120,7 +120,7 @@ Mesures de référence (T0.1) :
 - Commits : MGUI `fix(text): size SpriteFont lines by the ink of the line box repertoire` ; moteur `chore(mgui): bump MGUI to the SpriteFont line box`.
 - Note : MGUI `300cd8be`. `SpriteFontLineBoxTests` (5 tests : boîte sur deux styles avec accent négatif, blanc au faux pixel et glyphe hors répertoire ignorés ; repli sur l'interligne ; moteur à `ExactScale` 1 et 1/3, styles normal et gras). `MGUI.Tests` 3179/3179, les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151 (un échec instable au premier passage après build, non reproduit sur quatre relances ; T1.1 ne touche pas le chemin du moteur, qui utilise FontStashSharp).
 
-### ⏳ T1.2 — Moteur FontStashSharp : boîte de ligne du répertoire
+### ✅ T1.2 — Moteur FontStashSharp : boîte de ligne du répertoire
 
 - Objectif : `FontStashSharpTextEngine` mesure et dessine avec la boîte de ligne de D2, mesurée sur sa propre police.
 - Fichiers : `MGUI/MGUI.FontStashSharp/FontStashSharpTextEngine.cs`, `MGUI/MGUI.Tests/Text/FSSLineBoxTests.cs` (nouveau).
@@ -132,6 +132,7 @@ Mesures de référence (T0.1) :
   5. Tests sans carte graphique (`Fonts/arial.ttf`) : pour une plage de tailles, `DrawOrigin` nul, `LineHeight` couvre l'encre de chaque caractère du répertoire et la dépasse de moins d'un pixel, `MeasureText.Y` = `LineHeight`, police de repli comprise.
 - Validation : `MGUI.Tests` vert ; build des deux solutions du moteur après l'avance du pointeur.
 - Commits : MGUI `fix(fss): size FontStashSharp lines by the ink of the line box repertoire` ; moteur `chore(mgui): bump MGUI to the FontStashSharp line box`.
+- Note : MGUI `9fa782b9`. `FSSLineBoxTests` (15 tests : pour 12 tailles de 6 à 48, la hauteur est l'union de l'encre de chaque caractère du répertoire mesurée sur une police indépendante, son haut est au-dessus du point de dessin, l'origine est nulle ; hauteurs de `MeasureText`, `MeasureGlyph` et `GetLineHeight` ; police de repli). `MGUI.Tests` 3194/3194, les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151.
 
 ### ⏳ T1.3 — Une seule échelle de dessin
 
