@@ -26,6 +26,7 @@ public class EditorAutomationOutcomeTests
     [InlineData("[Automation] Unable to open asset='Audio/Beep.wav' (resolved='x')")]
     [InlineData("[Automation] Failed to update material property 'alpha_cutoff': no such property")]
     [InlineData("[Automation] Refused to update material property 'alpha_cutoff': no file")]
+    [InlineData("[Automation] Failed to update texture sampler 'address_u'='Bogus': 'Bogus' is not a TextureAddressMode")]
     public void ComputeExitCode_IsOne_WhenARequestedStepFailed(string message)
     {
         Assert.Equal(EditorAutomationOutcome.Failure, EditorAutomationOutcome.ComputeExitCode(new[] { Entry(message, LogVerbosity.Warning) }, Array.Empty<string>(), timedOut: false));

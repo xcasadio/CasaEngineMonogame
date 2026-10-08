@@ -302,7 +302,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 >   - la libération à la fermeture d'un onglet, que l'automatisation ne ferme pas.
 > - **Limite** : un glTF brut s'affiche en gris neutre. Ses images ne sont pas des matériaux du moteur.
 
-### ⏳ T7 — Document `.texture` (E3b)
+### ✅ T7 — Document `.texture` (E3b)
 
 - **Objectif** : P7.
 - **Fichiers** :
@@ -316,6 +316,31 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - `--open-asset UI/Sprites/Ui.Menu.ButtonsTexture.texture --set-texture-sampler address_u=Wrap --diagnostics-out <f>` : les diagnostics donnent `address_u=Wrap`, relu dans le fichier enregistré. Le fichier est restauré à l'identique en fin de lancement (SHA-1 avant et après) ;
   - catalogue de RacingGameCasaEngine : 94 entrées sur 94 s'ouvrent.
 - **Commit** : `feat(editor): edit texture assets`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - `CasaEngine.EditorServices/Textures/TextureAssetDocument` (sans interface) charge le `.texture`. `TryApply(clé, valeur)` construit un nouveau `SamplerState`, copie de tous les champs du JSON, et ne modifie jamais l'ancien ni les états partagés comme `SamplerState.AnisotropicWrap`. Clés : `texture_filter`, `address_u`, `address_v`, `address_w`, `max_anisotropy`. Les énumérations n'acceptent que leurs noms ; l'anisotropie va de 1 à 16 ;
+>   - `TextureAssetDocumentPanel` : listes pour le filtre, les trois adressages et l'anisotropie, boutons Save et Reload, aperçu de l'image liée sous les réglages ;
+>   - `GameEditor` :
+>     - route `.texture` avant le repli de T6 ;
+>     - état modifié par `EditorHistoryContextKind.Texture`, avec `*` dans le titre de l'onglet ;
+>     - `SaveDirtyTextureDocuments` dans `SaveCurrentProject` ;
+>     - libération à la fermeture de l'onglet ;
+>   - `--set-texture-sampler <clé>=<valeur>`, avec instantané, enregistrement, valeur relue dans le fichier enregistré et restauration. Une clé ou une valeur invalide donne « [Automation] Failed to update texture sampler » et le code 1 ; le fichier n'est pas touché.
+> - **Tests** : `TextureAssetDocumentTests` (26 tests, dont l'aller-retour `TryApply`, `EditorAssetJsonSerializer` puis `GetSamplerState`), 4 cas d'`EditorAutomationOptionsTests`, et 1 d'`EditorAutomationOutcomeTests`.
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 281 sur 4 281.
+> - **Sur une copie du projet RacingGameCasaEngine** :
+>   - capture lue de `Ui.Menu.ButtonsTexture` : réglages (Linear, Clamp ×3, 4) et aperçu de `buttons.png` ;
+>   - `--set-texture-sampler address_u=Wrap` : code 0, diagnostics « address_u=Wrap (read back from the saved file) ». La valeur d'origine est Clamp. SHA-1 identique avant et après (`39d59ed5…`) ;
+>   - `max_anisotropy=8` : code 0, valeur relue, fichier restauré ;
+>   - `address_u=Bogus` et `nope=Wrap` : code 1, fichier identique ;
+>   - les 8 `.texture` ouverts un par un : code 0, fichier identique.
+>   Les fichiers `.texture` sont en UTF-8 sans BOM, CRLF, sans saut de ligne final : l'instantané en texte garde leurs octets.
+> - **Catalogue de RacingGameCasaEngine** : les 94 entrées d'origine, ouvertes une par une avec l'éditeur de T7 (`artifacts/editor-project-baseline/catalogue-t7/` côté RacingGame), s'ouvrent toutes avec le code 0, les 8 `.texture` comprises. Le catalogue en compte maintenant 345 (S3) ; T2.1 les ouvre toutes avec l'éditeur de fin de S2.
+> - **Non vérifié en conditions réelles** :
+>   - les clics dans les listes et sur Save et Reload, ainsi que le `*` du titre, faute d'entrée simulée ;
+>   - la libération à la fermeture de l'onglet ;
+>   - la restauration d'une disposition enregistrée qui contient un onglet de texture : comme pour les panneaux du son et de l'aperçu, elle retombe sur « Panel unavailable ».
 
 ### ⏳ T8 — Document `.staticModel` (E3c)
 

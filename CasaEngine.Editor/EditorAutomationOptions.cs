@@ -26,6 +26,9 @@ public sealed class EditorAutomationOptions
     public bool ParticleUndoRedoSmoke { get; private set; }
     public string SetMaterialPropertyKey { get; private set; }
     public string SetMaterialPropertyValue { get; private set; }
+    /// <summary>Sampler field of a <c>.texture</c> asset to change (<c>--set-texture-sampler &lt;key&gt;=&lt;value&gt;</c>), by its JSON key.</summary>
+    public string SetTextureSamplerKey { get; private set; }
+    public string SetTextureSamplerValue { get; private set; }
     public string SetScreenPropertyNodeName { get; private set; }
     public string SetScreenPropertyName { get; private set; }
     public string SetScreenPropertyValue { get; private set; }
@@ -59,6 +62,7 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(SetParticlePropertyKey)
         || ParticleUndoRedoSmoke
         || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
+        || !string.IsNullOrWhiteSpace(SetTextureSamplerKey)
         || !string.IsNullOrWhiteSpace(SetScreenPropertyNodeName)
         || SaveProject
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
@@ -154,6 +158,17 @@ public sealed class EditorAutomationOptions
                     {
                         options.SetMaterialPropertyKey = next[..separatorIndex];
                         options.SetMaterialPropertyValue = next[(separatorIndex + 1)..];
+                    }
+
+                    index++;
+                    break;
+
+                case "--set-texture-sampler":
+                    int samplerSeparatorIndex = next.IndexOf('=');
+                    if (samplerSeparatorIndex > 0 && samplerSeparatorIndex < next.Length - 1)
+                    {
+                        options.SetTextureSamplerKey = next[..samplerSeparatorIndex];
+                        options.SetTextureSamplerValue = next[(samplerSeparatorIndex + 1)..];
                     }
 
                     index++;

@@ -119,6 +119,36 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_SetTextureSampler_SplitsTheKeyAtTheFirstEquals_AndEnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "UI/Sprites/Ui.Menu.ButtonsTexture.texture",
+            "--set-texture-sampler", "address_u=Wrap",
+        });
+
+        Assert.Equal("address_u", options.SetTextureSamplerKey);
+        Assert.Equal("Wrap", options.SetTextureSamplerValue);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Theory]
+    [InlineData("address_u")]      // no '='
+    [InlineData("=Wrap")]          // empty key
+    [InlineData("address_u=")]     // empty value
+    public void Parse_SetTextureSampler_Malformed_IsIgnored(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-texture-sampler", value,
+        });
+
+        Assert.Null(options.SetTextureSamplerKey);
+        Assert.Null(options.SetTextureSamplerValue);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
     public void Parse_SaveProject_EnablesAutomation()
     {
         var options = EditorAutomationOptions.Parse(new[] { "--save-project" });

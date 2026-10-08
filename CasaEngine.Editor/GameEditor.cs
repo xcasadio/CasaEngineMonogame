@@ -17,6 +17,7 @@ using CasaEngine.Editor.Log;
 using CasaEngine.Editor.PlayMode;
 using CasaEngine.EditorServices.PlayMode;
 using CasaEngine.EditorServices.Scripting;
+using CasaEngine.EditorServices.Textures;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
@@ -210,6 +211,8 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SoundAssetInspectorPanel> _soundInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AssetPreviewPanel> _assetPreviewPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TextureAssetDocumentPanel> _textureDocumentPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _textureDocumentPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _soundInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AudioMixerPanel> _audioMixerPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _audioMixerPanelTitles = new(StringComparer.Ordinal);
@@ -305,6 +308,10 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationMaterialEditAttempted;
     private bool _automationMaterialEdited;
     private TimeSpan _automationMaterialEditedAt;
+    private bool _automationTextureEditAttempted;
+    private bool _automationTextureEdited;
+    private TimeSpan _automationTextureEditedAt;
+    private string _automationTextureEditResult;
     private bool _automationScreenEditAttempted;
     private bool _automationScreenEdited;
     private TimeSpan _automationScreenEditedAt;
@@ -631,6 +638,9 @@ public class GameEditor : Game, IObservableUpdate
         _automationParticleDropped = false;
         _automationMaterialEditAttempted = false;
         _automationMaterialEdited = false;
+        _automationTextureEditAttempted = false;
+        _automationTextureEdited = false;
+        _automationTextureEditResult = null;
         _automationScreenEditAttempted = false;
         _automationScreenEdited = false;
         _automationSaveProjectAttempted = false;
@@ -2432,6 +2442,7 @@ public class GameEditor : Game, IObservableUpdate
         SaveSelectedAnimation2dInspector();
         SaveDirtyScreenDocuments();
         SaveDirtyMaterialInspectors();
+        SaveDirtyTextureDocuments();
         SaveDirtySpriteInspectors();
         SaveDirtyParticleInspectors();
         SaveDirtyAudioMixers();
@@ -2980,6 +2991,12 @@ public class GameEditor : Game, IObservableUpdate
             soundInspectorPanel.Dispose();
             _soundInspectorPanels.Remove(panel.Id);
             _soundInspectorPanelTitles.Remove(panel.Id);
+        }
+
+        if (_textureDocumentPanels.TryGetValue(panel.Id, out var textureDocumentPanel))
+        {
+            // Disposing releases the preview texture of the image.
+            CloseTextureDocumentPanel(panel.Id, textureDocumentPanel);
         }
 
         if (_assetPreviewPanels.TryGetValue(panel.Id, out var assetPreviewPanel))
@@ -4504,6 +4521,7 @@ public class GameEditor : Game, IObservableUpdate
             new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Texture, TryOpenTextureAsset),
             new AssetDocumentRoute(Constants.FileNameExtensions.World, TryOpenWorldAsset),
         ];
 
@@ -4849,6 +4867,138 @@ public class GameEditor : Game, IObservableUpdate
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened sound asset='{soundAsset.Name}', panel='{panelId}'");
         return true;
+    }
+
+    /// <summary>Opens the document of a <c>.texture</c> asset (plan P7): one panel per file, disposed with its tab.</summary>
+    private bool TryOpenTextureAsset(string fullPath)
+    {
+        if (!TextureAssetDocumentPanel.TryLoadAsset(fullPath, out var textureDocument, out string loadError))
+        {
+            Logs.WriteWarning(loadError);
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        var panelId = EditorPanelIds.TextureAssetDocumentPrefix + CreateAssetPreviewDocumentKey(fullPath);
+        bool createdPanel = false;
+        if (!_textureDocumentPanels.TryGetValue(panelId, out var texturePanel))
+        {
+            texturePanel = new TextureAssetDocumentPanel(_mainWindow, GraphicsDevice);
+            texturePanel.DirtyStateChanged += OnTextureDocumentDirtyStateChanged;
+            _textureDocumentPanels.Add(panelId, texturePanel);
+            createdPanel = true;
+        }
+
+        if (createdPanel)
+        {
+            texturePanel.LoadAsset(textureDocument, fullPath);
+        }
+
+        _textureDocumentPanelTitles[panelId] = Path.GetFileNameWithoutExtension(fullPath);
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    CloseTextureDocumentPanel(panelId, texturePanel);
+                }
+
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = GetTextureDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = texturePanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetTextureDocumentTitle(panelId);
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened texture asset='{Path.GetFileName(fullPath)}', panel='{panelId}'");
+        return true;
+    }
+
+    private void CloseTextureDocumentPanel(string panelId, TextureAssetDocumentPanel texturePanel)
+    {
+        texturePanel.DirtyStateChanged -= OnTextureDocumentDirtyStateChanged;
+        texturePanel.Dispose();
+        _textureDocumentPanels.Remove(panelId);
+        _textureDocumentPanelTitles.Remove(panelId);
+        _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+    }
+
+    private void OnTextureDocumentDirtyStateChanged(TextureAssetDocumentPanel texturePanel)
+    {
+        if (TryGetTextureDocumentPanelId(texturePanel, out var panelId))
+        {
+            UpdateDockPanelTitle(panelId, GetTextureDocumentTitle(panelId));
+        }
+    }
+
+    private bool TryGetTextureDocumentPanelId(TextureAssetDocumentPanel texturePanel, out string panelId)
+    {
+        foreach (var pair in _textureDocumentPanels)
+        {
+            if (ReferenceEquals(pair.Value, texturePanel))
+            {
+                panelId = pair.Key;
+                return true;
+            }
+        }
+
+        panelId = string.Empty;
+        return false;
+    }
+
+    private string GetTextureDocumentTitle(string panelId)
+    {
+        var title = _textureDocumentPanelTitles.TryGetValue(panelId, out var value) ? value : "Texture";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+        if (_textureDocumentPanels.TryGetValue(panelId, out var texturePanel))
+        {
+            isDirty |= texturePanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private void SaveDirtyTextureDocuments()
+    {
+        foreach (var pair in _textureDocumentPanels)
+        {
+            var texturePanel = pair.Value;
+            if (!texturePanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (texturePanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetTextureDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Texture asset saved: {texturePanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
     }
 
     /// <summary>Opens the read-only preview of a file that has no editing document: one panel per file, closed with its tab.</summary>
@@ -5780,6 +5930,14 @@ public class GameEditor : Game, IObservableUpdate
                 if (_audioMixerPanelTitles.ContainsKey(context.Id))
                 {
                     UpdateDockPanelTitle(context.Id, GetAudioMixerDocumentTitle(context.Id));
+                }
+
+                break;
+
+            case EditorHistoryContextKind.Texture:
+                if (_textureDocumentPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetTextureDocumentTitle(context.Id));
                 }
 
                 break;
@@ -7055,6 +7213,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationTextureEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerKey)
+            && !_automationTextureEditAttempted)
+        {
+            return;
+        }
+
         TryApplyAutomationScreenEdit(totalGameTime);
         if (!string.IsNullOrWhiteSpace(_automationOptions.SetScreenPropertyNodeName)
             && !_automationScreenEditAttempted)
@@ -7107,6 +7272,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
         {
             readyAt = _automationMaterialEditedAt;
+        }
+
+        if (_automationTextureEdited && _automationTextureEditedAt > readyAt)
+        {
+            readyAt = _automationTextureEditedAt;
         }
 
         if (_automationScreenEdited && _automationScreenEditedAt > readyAt)
@@ -7838,6 +8008,85 @@ public class GameEditor : Game, IObservableUpdate
             $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
     }
 
+    private void TryApplyAutomationTextureEdit(TimeSpan totalGameTime)
+    {
+        string key = _automationOptions.SetTextureSamplerKey;
+        string value = _automationOptions.SetTextureSamplerValue;
+        if (_automationTextureEditAttempted
+            || string.IsNullOrWhiteSpace(key)
+            || string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        if (_automationAssetOpenAttempted && !_automationAssetOpened)
+        {
+            // The open failure is already reported ("Unable to open asset"); there is no document to edit.
+            _automationTextureEditAttempted = true;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update texture sampler '{key}': the texture asset was not opened.");
+            return;
+        }
+
+        if (!TryFindAutomationTextureDocumentPanel(out string panelId, out var texturePanel))
+        {
+            return;
+        }
+
+        _automationTextureEditAttempted = true;
+        if (!TrySnapshotAutomationEditableFile(texturePanel, out string snapshotError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update texture sampler '{key}': {snapshotError}");
+            return;
+        }
+
+        if (!texturePanel.TryApplySamplerEdit(key, value, out string errorMessage)
+            || !texturePanel.TrySaveLoadedAsset(out errorMessage))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update texture sampler '{key}'='{value}': {errorMessage}");
+            return;
+        }
+
+        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, panelId));
+        UpdateDockPanelTitle(panelId, GetTextureDocumentTitle(panelId));
+
+        // What the diagnostics report is read back from the saved file, not echoed from the request.
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, texturePanel.LoadedRelativePath);
+        if (!TextureAssetDocument.TryReadSamplerValue(fullPath, key, out string readBack))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update texture sampler '{key}'='{value}': the saved file has no such field.");
+            return;
+        }
+
+        _automationTextureEditResult = $"{key.Trim().ToLowerInvariant()}={readBack}";
+        _automationTextureEdited = true;
+        _automationTextureEditedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Updated texture sampler '{key}'='{value}' (saved file: {_automationTextureEditResult})");
+    }
+
+    private bool TryFindAutomationTextureDocumentPanel(out string panelId, out TextureAssetDocumentPanel texturePanel)
+    {
+        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath ?? string.Empty);
+        foreach (var pair in _textureDocumentPanels)
+        {
+            if (!string.IsNullOrWhiteSpace(pair.Value.LoadedRelativePath)
+                && string.Equals(Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, pair.Value.LoadedRelativePath)), fullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                panelId = pair.Key;
+                texturePanel = pair.Value;
+                return true;
+            }
+        }
+
+        panelId = null;
+        texturePanel = null;
+        return false;
+    }
+
     private void TryApplyAutomationScreenEdit(TimeSpan totalGameTime)
     {
         if (_automationScreenEditAttempted
@@ -8149,6 +8398,33 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
+    private bool TrySnapshotAutomationEditableFile(TextureAssetDocumentPanel texturePanel, out string errorMessage)
+    {
+        errorMessage = null;
+
+        if (texturePanel.Document == null || string.IsNullOrWhiteSpace(texturePanel.LoadedRelativePath))
+        {
+            errorMessage = "no loaded texture file is associated with the document.";
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, texturePanel.LoadedRelativePath);
+        if (_automationEditedFileSnapshots.ContainsKey(fullPath))
+        {
+            return true;
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            errorMessage = $"unable to snapshot '{fullPath}' because the file does not exist.";
+            return false;
+        }
+
+        _automationEditedFileSnapshots.Add(fullPath, File.ReadAllText(fullPath));
+        _automationEditedFilesRestored = false;
+        return true;
+    }
+
     private bool TrySnapshotAutomationEditableFile(ParticleAssetInspectorPanel inspectorPanel, out string errorMessage)
     {
         errorMessage = null;
@@ -8269,6 +8545,28 @@ public class GameEditor : Game, IObservableUpdate
 
             _editorRuntime.ReloadParticleAsset(particleAssetId);
             Logs.WriteInfo($"[Automation] Restored edited particle '{relativePath}' after diagnostics capture.");
+            return;
+        }
+
+        if (relativePath.EndsWith(Constants.FileNameExtensions.Texture, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var pair in _textureDocumentPanels)
+            {
+                var texturePanel = pair.Value;
+                if (string.IsNullOrWhiteSpace(texturePanel.LoadedRelativePath)
+                    || !string.Equals(NormalizeRelativePath(texturePanel.LoadedRelativePath), relativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (texturePanel.ReloadFromDisk())
+                {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Texture, pair.Key));
+                    UpdateDockPanelTitle(pair.Key, GetTextureDocumentTitle(pair.Key));
+                }
+            }
+
+            Logs.WriteInfo($"[Automation] Restored edited texture '{relativePath}' after diagnostics capture.");
             return;
         }
 
@@ -8515,6 +8813,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
         builder.AppendLine($"Particle undo/redo smoke: {_automationOptions.ParticleUndoRedoSmoke} undo={_automationParticleUndoSucceeded} redo={_automationParticleRedoSucceeded}");
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
+        builder.AppendLine($"Automation texture edit: {FormatAutomationTextureEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
         builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
         string activeDocumentPanelId = GetActiveDocumentPanelId();
@@ -8718,6 +9017,20 @@ public class GameEditor : Game, IObservableUpdate
         {
             builder.AppendLine($"  - {state[index]}");
         }
+    }
+
+    /// <summary>The requested sampler edit and, once saved, the value read back from the file.</summary>
+    private string FormatAutomationTextureEdit()
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerKey)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetTextureSamplerValue))
+        {
+            return "<none>";
+        }
+
+        return _automationTextureEditResult != null
+            ? $"{_automationTextureEditResult} (read back from the saved file)"
+            : $"{_automationOptions.SetTextureSamplerKey}={_automationOptions.SetTextureSamplerValue} (not applied)";
     }
 
     private string FormatAutomationMaterialEdit()
