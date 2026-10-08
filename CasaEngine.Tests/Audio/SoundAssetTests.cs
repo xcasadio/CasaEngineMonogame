@@ -813,4 +813,22 @@ public class SoundAssetTests
             Assert.Contains("footstep", warning);
         }
     }
+
+    [Fact]
+    public void Load_ALoopStartBeyondALong_KeepsZeroAndWarnsOnce()
+    {
+        // E19.m8 M8-c (L-a T1 verification, note P4): 2^63 parses as an integer token (a BigInteger) that does not fit a long;
+        // ReadInteger catches the overflow and falls back to the warning and the default.
+        var token = JToken.Parse("9223372036854775808");
+        Assert.Equal(JTokenType.Integer, token.Type);
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["loop_start_sample"] = token;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Equal(0L, asset.LoopStartSample);
+        var warning = Assert.Single(warnings);
+        Assert.Contains("loop_start_sample", warning);
+    }
 }

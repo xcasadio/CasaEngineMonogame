@@ -316,6 +316,33 @@ public class EffectQuadComponentSubmissionTests
         Assert.Empty(GetSpriteDatas(wired.Renderer));
     }
 
+    [Fact]
+    public void AnAbsentSheet_NeverReachesTheLoader_AndIsNoWarning()
+    {
+        // E19.m8 M8-c (G2e verification, note P3): Guid.Empty is an absent sheet, skipped before the loader - not a failed load.
+        var wired = CreateWired();
+        wired.Component.Service.SetSheets(new[] { SheetA, Guid.Empty });
+        var asked = new List<Guid>();
+
+        var logger = new CapturingLogger();
+        Logs.AddLogger(logger);
+        try
+        {
+            wired.Component.ResolveTextures(id =>
+            {
+                asked.Add(id);
+                return id == SheetA ? CreateTexture() : null;
+            });
+        }
+        finally
+        {
+            Logs.Close();
+        }
+
+        Assert.Equal(new[] { SheetA }, asked);
+        Assert.Empty(logger.Warnings);
+    }
+
     // ---- helpers --------------------------------------------------------------------------------------------------
 
     private static EffectQuad Quad(int sheetIndex, SpritePsxSemiTransparency mode, RenderSortKey2D key)
