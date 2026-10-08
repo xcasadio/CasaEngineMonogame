@@ -272,6 +272,7 @@ Moteur (vérifié dans le code) :
     - Relecture du code : l'ordre de sortie et d'entrée des mondes est juste ; le `Clean` de chaque démo reste sans effet néfaste après `World.Clear`, grâce à des doubles libérations protégées.
     - Exactitude : le plan, l'ADR et la doc sont fidèles au code.
   - Avis reportés en O3 à O8 (P3 et P4) ; erreurs de compte rendu du plan corrigées dans ce commit (liste de T2.2, note de T2.1, liste de l'auteur en T2.3).
+- Fusion (2026-10-08, à la demande de l'auteur) : `chantier/demos-main-menu` dans `main` (fusion `252deaaf`). Sur l'état fusionné : les deux solutions sans erreur, `CasaEngine.Tests` 4149/4149. Non poussé.
 
 ---
 
