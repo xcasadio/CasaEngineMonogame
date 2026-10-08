@@ -147,12 +147,13 @@ Mesures de référence (T0.1) :
 - Commits : MGUI `fix(text): draw text at the scale it is measured with and remove UseExactScale` ; moteur `chore(mgui): bump MGUI to the single text draw scale`.
 - Note : MGUI `ecd09ba4`. `TextDrawScaleTests` (3 tests, moteur factice `ExactScale` 0,5 ≠ `SuggestedScale` 1, origine (0, 3)) : `MGTextBlock` dessine à 0,5 avec l'origine ; `MGRotatedTextLabel` tourne autour du centre de la boîte en unités natives ; `MGColorField` centre la boîte dans sa bande (une mutation qui remet la double mise à l'échelle fait échouer ce test). Le harnais partagé `GraphNoOpDrawTransaction` enregistre désormais les appels de texte. `MGUI.Tests` 3197/3197, `MGUI.sln` et les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151. `rg UseExactScale` ne rend plus rien dans MGUI (l'ADR viendra en T1.4).
 
-### ⏳ T1.4 — ADR-0023 de MGUI
+### ✅ T1.4 — ADR-0023 de MGUI
 
 - Objectif : enregistrer le contrat de boîte de ligne et l'échelle de dessin unique.
 - Fichiers : `MGUI/Docs/decisions/0023-text-line-box-and-single-draw-scale.md`, `MGUI/Docs/decisions/README.md`.
 - Validation : relecture ; index à jour.
 - Commits : MGUI `docs(decisions): record the text line box contract (ADR-0023)` ; moteur `chore(mgui): bump MGUI to ADR-0023`.
+- Note : MGUI commit ADR-0023 (contexte chiffré par la sonde, décision en trois points : boîte de ligne, point de dessin, échelle unique ; conséquences, dont la rupture d'API). Index `MGUI/Docs/decisions/README.md` à jour.
 
 ---
 
