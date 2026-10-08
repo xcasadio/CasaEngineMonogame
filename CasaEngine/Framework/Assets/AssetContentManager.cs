@@ -111,13 +111,12 @@ public class AssetContentManager
     {
         ArgumentNullException.ThrowIfNull(asset);
 
-        if (_assets.ContainsKey(id))
+        if (!_assets.TryAdd(id, asset))
         {
             throw new InvalidOperationException(
                 $"An asset is already present under '{id}'; use Replace to swap its instance.");
         }
 
-        _assets[id] = asset;
         _leases[id] = new AssetLease { HandleCount = 1 };
         return new AssetHandle<T>(this, id, asset);
     }
