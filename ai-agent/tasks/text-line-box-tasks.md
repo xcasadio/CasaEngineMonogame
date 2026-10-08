@@ -106,7 +106,7 @@ Mesures de référence (T0.1) :
 
 ## Phase 1 — MGUI (sous-module, branche `chantier/text-line-box`)
 
-### ⏳ T1.1 — Moteur SpriteFont : boîte de ligne de l'atlas
+### ✅ T1.1 — Moteur SpriteFont : boîte de ligne de l'atlas
 
 - Objectif : `SpriteFontTextEngine` mesure et dessine avec la boîte de ligne de D2.
 - Fichiers : `MGUI/MGUI.Shared/Text/LineBoxRepertoire.cs` (nouveau), `MGUI/MGUI.Shared/Text/ResolvedFont.cs` (doc), `MGUI/MGUI.MonoGame.Integration/Text/FontSet.cs`, `MGUI/MGUI.MonoGame.Integration/Text/Engines/SpriteFontTextEngine.cs`, `MGUI/MGUI.Tests/Text/SpriteFontLineBoxTests.cs` (nouveau).
@@ -118,6 +118,7 @@ Mesures de référence (T0.1) :
   5. Tests sans carte graphique, polices `SpriteFont` synthétiques (texture nulle) : boîte d'un `FontSet` (accent négatif, jambage, blanc au faux pixel ignoré, glyphe hors répertoire ignoré, plusieurs styles) ; `ResolveFont` du moteur (hauteur × `ExactScale` pour une taille réduite, `DrawOrigin` nul, `MeasureText.Y` et `MeasureGlyph` égaux à `LineHeight`).
 - Validation : build de `MGUI.sln` ou des projets touchés, `MGUI.Tests` vert ; build des deux solutions du moteur après l'avance du pointeur.
 - Commits : MGUI `fix(text): size SpriteFont lines by the ink of the line box repertoire` ; moteur `chore(mgui): bump MGUI to the SpriteFont line box`.
+- Note : MGUI `300cd8be`. `SpriteFontLineBoxTests` (5 tests : boîte sur deux styles avec accent négatif, blanc au faux pixel et glyphe hors répertoire ignorés ; repli sur l'interligne ; moteur à `ExactScale` 1 et 1/3, styles normal et gras). `MGUI.Tests` 3179/3179, les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151 (un échec instable au premier passage après build, non reproduit sur quatre relances ; T1.1 ne touche pas le chemin du moteur, qui utilise FontStashSharp).
 
 ### ⏳ T1.2 — Moteur FontStashSharp : boîte de ligne du répertoire
 
