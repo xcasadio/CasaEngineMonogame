@@ -186,7 +186,7 @@ Moteur (vérifié dans le code) :
   - Tests : `CasaEngine.Tests` ne référence pas l'application des démos (comme pour l'ancien navigateur). Les tests portent donc sur le vrai `main-menu.xaml` dans un bureau sans affichage :
     - `TheMainMenu_DeclaresWhatItsScreenLooksUp` (noms, fenêtre pleine), plus le chargement strict de tous les écrans livrés ;
     - `DemoMainMenuTests` : les flèches déplacent la sélection de l'arbre ayant le focus, le double-clic atteint la démo et pas `ItemDoubleClicked`, Entrée et Échap ne changent rien, les boutons exécutent leur commande.
-    - La logique propre à la classe (ordre des thèmes, sélection initiale) est vérifiée en T2.3 par le parcours et les captures.
+    - La logique propre à la classe (ordre des thèmes, sélection initiale) n'a qu'une preuve par capture (T2.3, écran au démarrage : ordre des thèmes et première démo sélectionnée) ; le parcours ne la vérifie pas, et la sélection restaurée au retour d'une démo est à regarder par l'auteur (T2.3).
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4158/4158 (7 nouveaux).
 
 ### ✅ T2.2 — Retrait du navigateur latéral
@@ -198,7 +198,7 @@ Moteur (vérifié dans le code) :
   - suppression de `CasaEngine.Demos/Demos/DemoUI/DemoBrowserScreen.cs` et `CasaEngine.Demos/Content/Screens/demo-browser.xaml` ;
   - `CasaEngine.Demos/Content/Screens/demo-hint.xaml` (gardé, nouveau texte) et `CasaEngine.Demos/Content/Screens/ui-overlay-hud.xaml` (texte F1) ;
   - tests : suppression de `CasaEngine.Tests/UI/DemoBrowserTreeTests.cs` et `DemoBrowserFocusTests.cs`, mise à jour de `CasaEngine.Tests/UI/DemoScreenXamlTests.cs` ;
-  - ajouté pendant l'exécution (nettoyage requis par le critère `rg "Press F1"`) : `CasaEngine.Demos/Demos/ViewManagerSandbox.cs`, deux lignes d'un commentaire de classe qui renvoyaient à l'ancien « demo navigator panel » et à F1. Aucun code de démo modifié.
+  - ajoutés pendant l'exécution (nettoyage de commentaires requis par le critère `rg`) : `CasaEngine.Demos/Demos/ViewManagerSandbox.cs`, deux lignes d'un commentaire de classe qui renvoyaient à l'ancien « demo navigator panel » et à F1 ; `CasaEngine.Demos/Demos/DemoUI/DemoHintOverlay.cs`, commentaire de classe qui nommait `DemoBrowserScreen` (oubli de cette liste relevé par le vérificateur). Aucun code de démo modifié.
 - Étapes :
   1. Retirer le navigateur, F1, la zone de layout et la poignée, les replis (`collapsesBrowser`), `BrowserOwnsKeyboard` (`DemoKeyboard` ne garde que la condition « fenêtre active »), `CASAENGINE_DEMO_BROWSER` et le reste `CASAENGINE_PSXQUAD_DUMP_PATH`.
   2. Rappel dans les démos : `demo-hint.xaml` affiche « Échap / Select : menu » ; la ligne F1 de `ui-overlay-hud.xaml` est remplacée.
@@ -240,7 +240,8 @@ Moteur (vérifié dans le code) :
     - Échap et Select (manette) pendant une démo ;
     - Entrée et A sur l'écran principal, les flèches et la croix directionnelle ;
     - le double-clic ;
-    - l'affichage d'une image de « Loading … ».
+    - l'affichage d'une image de « Loading … » ;
+    - au retour d'une démo, la sélection de l'écran principal sur la démo quittée.
 
 ---
 
@@ -259,12 +260,18 @@ Moteur (vérifié dans le code) :
 
 ## Phase 4 — Vérification
 
-### ⏳ T4.1 — Vérification finale
+### ✅ T4.1 — Vérification finale
 
 - Objectif : prouver le chantier et rendre le rapport.
 - Prérequis : T3.1 ✅.
 - Étapes : parcours `CASAENGINE_DEMO_CYCLE`, captures, sonde ; `verifier` frais ; traitement des constats ; plan et `ai-agent/README.md` à jour ; rapport de fin.
 - Commit : `docs(ai-agent): record the demos main screen verification`
+- Note :
+  - Trois vérificateurs frais en parallèle, chacun **CONFIRMED**, aucun constat P0 à P2.
+    - Exécution : les deux solutions sans erreur, `CasaEngine.Tests` 4149/4149, `CASAENGINE_DEMO_CYCLE=60` à `result=PASS` en 97 étapes, captures de l'écran principal et du démarrage direct. Cas limites : titre inconnu, retour à la démo 0 ; parcours avec `CASAENGINE_START_DEMO=22`, `PASS` en 96 étapes.
+    - Relecture du code : l'ordre de sortie et d'entrée des mondes est juste ; le `Clean` de chaque démo reste sans effet néfaste après `World.Clear`, grâce à des doubles libérations protégées.
+    - Exactitude : le plan, l'ADR et la doc sont fidèles au code.
+  - Avis reportés en O3 à O8 (P3 et P4) ; erreurs de compte rendu du plan corrigées dans ce commit (liste de T2.2, note de T2.1, liste de l'auteur en T2.3).
 
 ---
 
@@ -274,6 +281,12 @@ Moteur (vérifié dans le code) :
 |---|---|---|
 | O1 | ~~Décor du monde menu~~ : tranché par D8 (fond uni sombre). | T2.3 |
 | O2 | La navigation à la manette n'a jamais été vérifiée avec une vraie manette dans l'UI du moteur : à faire par l'auteur (T2.3 en 🧪). | T2.3, T4.1 |
+| O3 | Avis P3 du vérificateur : une demande de lancement qui arrive pendant l'image « Loading … » (double-clic ou bouton) survit et lance un second changement de démo une image après le premier (`DemosGame.cs:406-411` ne remet pas `_pendingDemoIndex` à zéro). Peu probable pour un joueur. Reporté. | T2.3 |
+| O4 | Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
+| O5 | Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Reporté. | T2.1 |
+| O6 | Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
+| O7 | Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
+| O8 | Avis P4 : le premier `Update` d'une démo lancée s'exécute avant le chargement de son monde ; aucune démo n'en souffre (lecture de chaque `Update`, parcours sans erreur). Reporté. | T1.1 |
 
 ## Hors périmètre
 
