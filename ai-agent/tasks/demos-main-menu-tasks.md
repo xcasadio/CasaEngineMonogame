@@ -295,7 +295,7 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
   - Avec le correctif : `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; « elevation separated pair: not colliding » journalisé.
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149.
 
-### ⏳ T5.2 — O6 et O7 : écran principal sur la pile de la vue, attente bornée
+### ✅ T5.2 — O6 et O7 : écran principal sur la pile de la vue, attente bornée
 
 - Objectif : le parcours vérifie la présence réelle de l'écran principal et ne bloque jamais.
 - Fichiers : `CasaEngine.Demos/DemoCycleAutomation.cs`, `CasaEngine.Demos/DemosGame.cs`, `docs/engine/demos-main-menu.md`.
@@ -304,6 +304,12 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
   2. O7 : si aucun monde ne se charge dans un nombre fixe d'images après une demande, le parcours échoue, journalise la cause et quitte avec le code 1.
 - Validation : build des deux solutions, `CasaEngine.Tests` ; parcours à `result=PASS`, code 0 ; preuves par mutations temporaires (annulées ensuite) : écran principal créé sans être poussé → code 1 ; un `WorldLoaded` non transmis au parcours → code 1 au lieu d'un blocage.
 - Commit : `test(demos): check the main screen stack and bound the world wait in the demo cycle`
+- Note :
+  - O6 : `OnWorldLoaded` reçoit l'écran principal du jeu (plus le compteur `_mainMenuPushes`, retiré) et compte les `MainMenuScreen` de la pile d'écrans (`UIRoot.ScreenStack`) de la vue active : exactement un, celui du jeu, dans le monde menu ; aucun dans une démo. La ligne d'étape journalise `main screens=`.
+  - O7 : au-delà de 300 updates sans monde chargé après une demande, le parcours journalise « no world loaded 300 updates after step N », termine en échec et le jeu quitte avec le code 1. Doc `docs/engine/demos-main-menu.md` à jour.
+  - Preuves par mutations temporaires (annulées ensuite), une seule exécution `CASAENGINE_DEMO_CYCLE=2` : écran principal retiré de la pile juste après l'avoir poussé → étapes menu « holds 0 main screen(s), none of them the one the game opened » ; `WorldLoaded` non transmis au parcours pour la démo 1 → « no world loaded 300 updates after step 3 », `result=FAIL`, code 1 en 7 s au lieu d'un blocage.
+  - Sans mutation : `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; menus à `main screens=1`, démos à `main screens=0`.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149 (projet de tests reconstruit).
 
 ### ⏳ T5.3 — O4 : commentaires périmés
 
@@ -328,8 +334,8 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
 | O3 | ✅ Corrigé en T5.1. Avis P3 du vérificateur : une demande de lancement qui arrive pendant l'image « Loading … » (double-clic ou bouton) survit et lance un second changement de démo une image après le premier (`DemosGame.cs:406-411` ne remet pas `_pendingDemoIndex` à zéro). Peu probable pour un joueur. Reporté. | T2.3 |
 | O4 | Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
 | O5 | Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Reporté. | T2.1 |
-| O6 | Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
-| O7 | Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
+| O6 | ✅ Corrigé en T5.2. Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
+| O7 | ✅ Corrigé en T5.2. Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
 | O8 | Avis P4 : le premier `Update` d'une démo lancée s'exécute avant le chargement de son monde ; aucune démo n'en souffre (lecture de chaque `Update`, parcours sans erreur). Reporté. | T1.1 |
 
 ## Hors périmètre

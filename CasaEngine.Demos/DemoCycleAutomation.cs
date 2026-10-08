@@ -2,9 +2,11 @@ using System;
 using System.Globalization;
 using System.Threading;
 using CasaEngine.Core.Logging;
+using CasaEngine.Demos.Demos;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.UI;
 
 namespace CasaEngine.Demos;
 
@@ -17,12 +19,14 @@ namespace CasaEngine.Demos;
 /// After each world change it checks that the current world is a new instance, that the world left behind holds no
 /// entity, that the camera of every view belongs to the new world, that the camera the demo (or the menu) created is the
 /// camera of a view, and that no error and no default-camera warning was logged since the previous step. For the menu
-/// world it also checks that there is one view and that the main screen was pushed once. A logger counts the errors and
-/// exceptions logged during the run, and the warning the view bootstrapper writes when it has to create a default
-/// camera (the camera was not in the world when its views were built).
+/// world it also checks that there is one view and that the UI stack of the active view holds the main screen the game
+/// opened, once; a demo world holds none. A logger counts the errors and exceptions logged during the run, and the
+/// warning the view bootstrapper writes when it has to create a default camera (the camera was not in the world when
+/// its views were built).
 /// <para/>
 /// During the loading frame of every launch it asks for the same demo again, as a second click or a double click would,
-/// and fails when a world it did not ask for loads (the game must drop that request).
+/// and fails when a world it did not ask for loads (the game must drop that request). A world that has not loaded
+/// <see cref="MaxUpdatesToLoadAWorld"/> updates after it was asked for ends the run as failed, so it never hangs.
 /// </summary>
 internal sealed class DemoCycleAutomation
 {
@@ -33,6 +37,8 @@ internal sealed class DemoCycleAutomation
     private const int DefaultFramesPerWorld = 60;
     private const int Rounds = 2;
     private const string DefaultCameraWarning = "No camera found in the world";
+    // A world loads in the update that asks for it, or in the next one after the loading frame of a launch: far below.
+    private const int MaxUpdatesToLoadAWorld = 300;
 
     private readonly int _framesPerWorld;
     private readonly int _demoCount;
@@ -42,6 +48,7 @@ internal sealed class DemoCycleAutomation
     private int _demoVisits;
     private int _step;
     private int _framesInWorld;
+    private int _updatesWaitingForWorld;
     // The demo launched from the main screen, asked again during its loading frame; -1 when there is none.
     private int _relaunchDemo = -1;
     private bool _worldLoaded;
@@ -97,6 +104,15 @@ internal sealed class DemoCycleAutomation
 
         if (!_worldLoaded)
         {
+            if (++_updatesWaitingForWorld > MaxUpdatesToLoadAWorld)
+            {
+                _failedChecks++;
+                Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
+                    $"[DemoCycle] FAIL: no world loaded {MaxUpdatesToLoadAWorld} updates after step {_step}"));
+                Finish();
+                return -1;
+            }
+
             int relaunch = _relaunchDemo;
             _relaunchDemo = -1;
             return relaunch;
@@ -137,9 +153,9 @@ internal sealed class DemoCycleAutomation
     /// <param name="title">The demo title, or the menu window title.</param>
     /// <param name="ownCamera">The camera the demo (or the menu) created for its world.</param>
     /// <param name="isMenu">True for the menu world.</param>
-    /// <param name="mainScreenPushes">How many main screens were pushed for this menu world.</param>
+    /// <param name="mainScreen">The main screen the game opened for this menu world; null for a demo.</param>
     /// <param name="demoIndex">The demo just loaded, or -1 for the menu.</param>
-    public void OnWorldLoaded(GameManager gameManager, string title, CameraComponent ownCamera, bool isMenu, int mainScreenPushes, int demoIndex)
+    public void OnWorldLoaded(GameManager gameManager, string title, CameraComponent ownCamera, bool isMenu, IUIScreen mainScreen, int demoIndex)
     {
         var world = gameManager.CurrentWorld;
         int failures = 0;
@@ -189,10 +205,12 @@ internal sealed class DemoCycleAutomation
             Logs.WriteInfo($"[DemoCycle] FAIL '{title}': the camera created for this world is the camera of no view");
         }
 
-        if (isMenu && mainScreenPushes != 1)
+        int mainScreens = CountMainScreensOnActiveView(gameManager, mainScreen, out bool mainScreenOnStack);
+        if (isMenu ? mainScreens != 1 || !mainScreenOnStack : mainScreens != 0)
         {
             failures++;
-            Logs.WriteInfo($"[DemoCycle] FAIL '{title}': the main screen was pushed {mainScreenPushes} time(s)");
+            Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
+                $"[DemoCycle] FAIL '{title}': the UI stack of the active view holds {mainScreens} main screen(s){(isMenu && !mainScreenOnStack ? ", none of them the one the game opened" : string.Empty)}"));
         }
 
         int errors = _logger.Errors;
@@ -217,12 +235,39 @@ internal sealed class DemoCycleAutomation
         _step++;
         _failedChecks += failures;
         Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
-            $"[DemoCycle] step {_step} {(isMenu ? "menu" : "demo")} '{title}': {(failures == 0 ? "OK" : "FAIL")}, entities={world.Entities.Count}, views={viewCount}, demo visits={_demoVisits}/{_totalDemoVisits}"));
+            $"[DemoCycle] step {_step} {(isMenu ? "menu" : "demo")} '{title}': {(failures == 0 ? "OK" : "FAIL")}, entities={world.Entities.Count}, views={viewCount}, main screens={mainScreens}, demo visits={_demoVisits}/{_totalDemoVisits}"));
 
         _outgoingWorld = null;
         _currentIsMenu = isMenu;
         _worldLoaded = true;
         _framesInWorld = 0;
+        _updatesWaitingForWorld = 0;
+    }
+
+    /// <summary>
+    /// Counts the main screens on the UI stack of the active view, and tells whether <paramref name="gameMainScreen"/> is
+    /// one of them: the screen the game pushed, not only the call it made.
+    /// </summary>
+    private static int CountMainScreensOnActiveView(GameManager gameManager, IUIScreen gameMainScreen, out bool gameMainScreenFound)
+    {
+        gameMainScreenFound = false;
+        if (gameManager.ViewManager.GetActiveUIView() is not UIRoot uiRoot)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        var screens = uiRoot.ScreenStack.Screens;
+        for (int i = 0; i < screens.Count; i++)
+        {
+            if (screens[i] is MainMenuScreen)
+            {
+                count++;
+                gameMainScreenFound |= ReferenceEquals(screens[i], gameMainScreen);
+            }
+        }
+
+        return count;
     }
 
     private void Finish()
