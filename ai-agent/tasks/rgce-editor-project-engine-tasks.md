@@ -259,7 +259,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 
 ## Phase 3 — Documents des assets
 
-### ⏳ T6 — Document d'aperçu en lecture seule (E3a)
+### ✅ T6 — Document d'aperçu en lecture seule (E3a)
 
 - **Objectif** : P6.
 - **Fichiers** :
@@ -273,6 +273,34 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - captures lues, sur RacingGameCasaEngine : un png, un wav, `GameFont.fnt`, un `.Track` ; sur des fichiers de test du scratchpad : un dds et un glTF ;
   - catalogue de RacingGameCasaEngine ouvert entrée par entrée : 86 entrées sur 94 s'ouvrent. Les 8 `.texture` restent fermées, conformément à la règle de repli de P6.
 - **Commit** : `feat(editor): preview assets that have no editing document`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - `CasaEngine.EditorServices/AssetPreview/` (sans interface) :
+>     - `AssetPreviewClassifier` refuse tout format d'asset du moteur (`Constants.FileNameExtensions`). Il classe images, `dds`, `wav` et `ogg`, `fnt`, `gltf` et `glb` par extension, et tout autre fichier en texte ou binaire : un octet nul ou de l'UTF-8 invalide dans les 8 premiers Kio donne du binaire ;
+>     - `AssetPreviewReader` lit les en-têtes ;
+>     - `AssetPreviewGrayscale` produit l'aperçu d'un binaire dont la taille est un carré d'octets.
+>   - `AssetPreviewPanel` (lecture seule) :
+>     - lecture et arrêt de l'audio par un `SoundAsset` transitoire, sur le bus `Editor`, en priorité 0 ;
+>     - texte d'exemple d'une police `.fnt` dessiné avec la police elle-même, enregistrée sur le moteur de texte de l'éditeur sous une famille unique, puis retirée et libérée à la fermeture ;
+>     - aperçu 3D d'un glTF par `ModelPreviewViewport` (interne, réutilisé par T8).
+>   - `GameEditor` : route de repli `TryOpenAssetPreview`, après toutes les routes existantes. Un panneau par fichier (`panel_asset_preview_<16 hex du SHA-1 du chemin>`), libéré à la fermeture de son onglet.
+> - **Tests** : `AssetPreviewTests` (69 tests).
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 255 sur 4 255.
+> - **Captures lues**, sur une copie du projet RacingGameCasaEngine dans le scratchpad :
+>   - `background.png` : 1024 × 1024, RGBA ;
+>   - `Beep.wav` : PCM, 44 100 Hz, stéréo, 16 bits, 1,000 s, avec les boutons Play et Stop ;
+>   - `GameFont.fnt` : informations, texte d'exemple dans la police, page `GameFont.png` ;
+>   - `TrackBeginner.Track` : texte, 3 445 lignes, les 400 premières affichées ;
+>   - `SkyCubeMap.dds` : cubemap DXT1 de 512, 6 faces ;
+>   - `LandscapeHeights.data` : carte 257 × 257 en niveaux de gris ;
+>   - `Car.gltf` et `Blockade.gltf` : modèle 3D cadré ;
+>   - un `.texture` sort avec le code 1 (« Unable to open asset »).
+> - **Catalogue de RacingGameCasaEngine** ouvert entrée par entrée (`artifacts/editor-project-baseline/catalogue-t6/` côté RacingGame) : 86 entrées sur 94 s'ouvrent avec le code 0. Les 8 `.texture` sortent avec le code 1, comme prévu. Le projet n'a pas changé dans git.
+> - **Non vérifié en conditions réelles** :
+>   - la lecture audio par le bouton Play, faute de clic simulé ;
+>   - la libération à la fermeture d'un onglet, que l'automatisation ne ferme pas.
+> - **Limite** : un glTF brut s'affiche en gris neutre. Ses images ne sont pas des matériaux du moteur.
 
 ### ⏳ T7 — Document `.texture` (E3b)
 

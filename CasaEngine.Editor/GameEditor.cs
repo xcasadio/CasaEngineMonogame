@@ -7,6 +7,7 @@ using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.AssetPreview;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
@@ -208,6 +209,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, SpriteAssetInspectorPanel> _spriteInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, SoundAssetInspectorPanel> _soundInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AssetPreviewPanel> _assetPreviewPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _soundInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AudioMixerPanel> _audioMixerPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _audioMixerPanelTitles = new(StringComparer.Ordinal);
@@ -2980,6 +2982,13 @@ public class GameEditor : Game, IObservableUpdate
             _soundInspectorPanelTitles.Remove(panel.Id);
         }
 
+        if (_assetPreviewPanels.TryGetValue(panel.Id, out var assetPreviewPanel))
+        {
+            // Disposing stops the audio and releases the textures and the model of the preview.
+            assetPreviewPanel.Dispose();
+            _assetPreviewPanels.Remove(panel.Id);
+        }
+
         if (TryGetAudioMixerPanel(panel.Id, out var audioMixerPanel))
         {
             CloseAudioMixerPanel(panel.Id, audioMixerPanel);
@@ -4527,7 +4536,9 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
-        return false;
+        // Fallback for a file without an editing document (plan P6). The classifier refuses every engine asset format, so a
+        // format that is still waiting for its own document stays unopened.
+        return TryOpenAssetPreview(fullPath);
     }
 
     private bool TryOpenWorldAsset(string fullPath) => OpenWorldAsset(fullPath, unsavedChangesHandled: false);
@@ -4838,6 +4849,75 @@ public class GameEditor : Game, IObservableUpdate
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened sound asset='{soundAsset.Name}', panel='{panelId}'");
         return true;
+    }
+
+    /// <summary>Opens the read-only preview of a file that has no editing document: one panel per file, closed with its tab.</summary>
+    private bool TryOpenAssetPreview(string fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath) || GraphicsDevice == null)
+        {
+            return false;
+        }
+
+        var info = AssetPreviewReader.Read(fullPath);
+        if (info.Kind == AssetPreviewKind.None)
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        var panelId = EditorPanelIds.AssetPreviewDocumentPrefix + CreateAssetPreviewDocumentKey(fullPath);
+        bool createdPanel = false;
+        if (!_assetPreviewPanels.TryGetValue(panelId, out var previewPanel))
+        {
+            previewPanel = new AssetPreviewPanel(_mainWindow, GraphicsDevice, _editorRuntime, info, _fontStashSharpEngine);
+            _assetPreviewPanels.Add(panelId, previewPanel);
+            createdPanel = true;
+        }
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null)
+            {
+                if (createdPanel)
+                {
+                    previewPanel.Dispose();
+                    _assetPreviewPanels.Remove(panelId);
+                }
+
+                return false;
+            }
+
+            var panelNode = new DockPanelNode(panelId)
+            {
+                Title = info.FileName,
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = previewPanel.CreateContent,
+            };
+
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = info.FileName;
+        }
+
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened asset preview file='{info.FileName}', kind={info.Kind}, panel='{panelId}'");
+        return true;
+    }
+
+    private static string CreateAssetPreviewDocumentKey(string fullPath)
+    {
+        string normalizedPath = Path.GetFullPath(fullPath).ToLowerInvariant();
+        return Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(Encoding.UTF8.GetBytes(normalizedPath)))[..16].ToLowerInvariant();
     }
 
     private bool TryOpenAudioMixerAsset(string fullPath)
@@ -8952,6 +9032,10 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
             {
                 animationClipPreviewPanel.RefreshPreviewAfterDraw();
+            }
+            foreach (var assetPreviewPanel in _assetPreviewPanels.Values)
+            {
+                assetPreviewPanel.RefreshAfterDraw();
             }
         }
 
