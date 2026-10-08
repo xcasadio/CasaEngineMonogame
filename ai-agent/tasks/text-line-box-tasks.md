@@ -134,7 +134,7 @@ Mesures de référence (T0.1) :
 - Commits : MGUI `fix(fss): size FontStashSharp lines by the ink of the line box repertoire` ; moteur `chore(mgui): bump MGUI to the FontStashSharp line box`.
 - Note : MGUI `9fa782b9`. `FSSLineBoxTests` (15 tests : pour 12 tailles de 6 à 48, la hauteur est l'union de l'encre de chaque caractère du répertoire mesurée sur une police indépendante, son haut est au-dessus du point de dessin, l'origine est nulle ; hauteurs de `MeasureText`, `MeasureGlyph` et `GetLineHeight` ; police de repli). `MGUI.Tests` 3194/3194, les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151.
 
-### ⏳ T1.3 — Une seule échelle de dessin
+### ✅ T1.3 — Une seule échelle de dessin
 
 - Objectif : tout le texte de MGUI est dessiné à `ExactScale` (D3).
 - Fichiers : `MGUI/MGUI.Core/UI/MGTheme.cs`, `MGUI/MGUI.Core/UI/XAML/Themes.cs`, `MGUI/MGUI.Core/UI/XAML/ThemeDefinitionBuilder.cs`, `MGUI/MGUI.Core/UI/Styling/UIThemeValueInvalidation.cs`, `MGUI/MGUI.Tests/Architecture/ThemeValueInvalidationInventoryTests.cs`, `MGUI/Docs/styling-theme-architecture.md`, `MGUI/MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs`, `MGUI/MGUI.Core/UI/MGTextBlock.cs`, `MGUI/MGUI.Core/UI/Color/MGColorField.cs`, `MGUI/MGUI.Core/UI/MGRotatedTextLabel.cs`, `MGUI/MGUI.Core/UI/Docking/Controls/MGDockAutoHideStrip.cs`, `MGUI/MGUI.Samples/Dialogs/SampleHUD.xaml.cs`, tests associés.
@@ -145,6 +145,7 @@ Mesures de référence (T0.1) :
   4. Tests : `MGTextBlock` dessine à `ExactScale` avec un moteur factice où `ExactScale` ≠ `SuggestedScale` ; centre de `MGRotatedTextLabel` ; centrage vertical de `MGColorField` si le harnais le permet.
 - Validation : `MGUI.Tests` vert (test d'inventaire compris) ; `rg UseExactScale` ne rend plus que l'ADR ; build des deux solutions du moteur après l'avance du pointeur.
 - Commits : MGUI `fix(text): draw text at the scale it is measured with and remove UseExactScale` ; moteur `chore(mgui): bump MGUI to the single text draw scale`.
+- Note : MGUI `ecd09ba4`. `TextDrawScaleTests` (3 tests, moteur factice `ExactScale` 0,5 ≠ `SuggestedScale` 1, origine (0, 3)) : `MGTextBlock` dessine à 0,5 avec l'origine ; `MGRotatedTextLabel` tourne autour du centre de la boîte en unités natives ; `MGColorField` centre la boîte dans sa bande (une mutation qui remet la double mise à l'échelle fait échouer ce test). Le harnais partagé `GraphNoOpDrawTransaction` enregistre désormais les appels de texte. `MGUI.Tests` 3197/3197, `MGUI.sln` et les deux solutions du moteur sans erreur, `CasaEngine.Tests` 4151/4151. `rg UseExactScale` ne rend plus rien dans MGUI (l'ADR viendra en T1.4).
 
 ### ⏳ T1.4 — ADR-0023 de MGUI
 
