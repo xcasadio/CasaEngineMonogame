@@ -185,11 +185,12 @@ Mesures de référence (T0.1) :
   - Capture automatisée de l'éditeur (SampleProject, `--screenshot-out`) avant et après : pixels identiques hors viewport (menu, hiérarchie, inspecteur, navigateur de contenu). Les deux fichiers créés par l'éditeur (`.casaeditor/viewport.editor.json`, `editor-diagnostics.txt`) ont été supprimés un par un.
   - Reste pour l'auteur (🧪) : la timeline de l'éditeur avec une animation ouverte, et les échantillons `MGUI.Samples` (moteur SpriteFont, dont l'inventaire du `SampleHUD`).
 
-### ⏳ T2.3 — Vérificateur frais et rapport
+### ✅ T2.3 — Vérificateur frais et rapport
 
 - Objectif : vérification indépendante du chantier, puis rapport de fin.
 - Étapes : `verifier` frais sur le contrat (D1 à D3), les tests et les captures ; traitement des constats ; plan et `ai-agent/README.md` à jour.
 - Commit : `docs(ai-agent): record the text line box verification`
+- Note : `verifier` frais **CONFIRMED**. Il a rebâti les trois solutions (0 erreur) et chaque état intermédiaire du chantier, relancé `MGUI.Tests` 3197/3197 et `CasaEngine.Tests` 4151/4151 (sans l'échec instable), refait la capture du navigateur (jambages entiers) et contrôlé par `rg` qu'il ne reste aucun usage des API supprimées ni aucun dessin à `SuggestedScale`. Aucun constat P0 à P2. Quatre avis reportés en O3 à O6.
 
 ---
 
@@ -201,6 +202,10 @@ Mesures de référence (T0.1) :
 |---|---|---|
 | O1 | Des consommateurs hors de ce dépôt (portage Alundra, autres projets) peuvent utiliser `UseExactScale` ou le paramètre `Exact` : à vérifier par l'auteur avant le merge. | T1.3, T2.1 |
 | O2 | Un thème XAML externe qui écrit `UseExactScale` ne se chargera plus. | T1.3 |
+| O3 | Avis P3 du vérificateur : aucun test ne couvre le décalage d'origine dans le `DrawText` des deux moteurs (`SpriteFontTextEngine.cs:231`, `FontStashSharpTextEngine.cs:755`) ; seule une capture le prouve. Reporté : il faudrait un test qui enregistre l'origine passée à `SpriteBatch` ou à FontStashSharp, ou un test de pixels sur une cible de rendu. | T1.1, T1.2 |
+| O4 | Avis P4 : `MGDockAutoHideStrip`, les aides de `DrawTransaction` et `CasaDrawTransaction`, `SampleHUD` et la timeline ne sont vérifiés que par lecture du code, sans test d'échelle. Reporté. | T1.3, T2.1 |
+| O5 | Avis P4 : les lignes sont plus hautes (effet voulu par D2) ; les mises en page denses changent, et la description du navigateur de démos défile à sa taille par défaut. À regarder par l'auteur. | T2.2 |
+| O6 | Avis P4 : un texte retourné verticalement se dessine au-dessus de sa position, comme avant le chantier ; aucun appelant ne le fait. Reporté. | T1.2 |
 
 ## Hors périmètre
 
