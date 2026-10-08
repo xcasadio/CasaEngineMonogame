@@ -754,4 +754,59 @@ public class SoundAssetTests
         asset.SetParameterBindings(null);
         Assert.Empty(asset.ParameterBindings);
     }
+
+    // ---- loop_start_sample (plan E19.L-a, ADR-0072) ----
+
+    [Theory]
+    [InlineData(5_344_920L, 5_344_920L)]
+    [InlineData(16_777_217L, 16_777_217L)] // a float read would give 16 777 216
+    [InlineData(-5L, 0L)]
+    public void Load_ReadsTheLoopStartAsAnInteger(long written, long expected)
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["loop_start_sample"] = written;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Empty(warnings);
+        Assert.Equal(expected, asset.LoopStartSample);
+    }
+
+    [Fact]
+    public void Load_WithoutTheLoopStartKey_KeepsZero()
+    {
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, CreateDocument(Guid.NewGuid(), Guid.NewGuid()));
+
+        Assert.Empty(warnings);
+        Assert.Equal(0L, asset.LoopStartSample);
+    }
+
+    [Fact]
+    public void LoopStartSample_ClampsANegativeValueToZero()
+    {
+        var asset = new SoundAsset { LoopStartSample = -3 };
+
+        Assert.Equal(0L, asset.LoopStartSample);
+    }
+
+    [Fact]
+    public void Load_ALoopStartThatIsNotAnInteger_KeepsZeroAndWarnsOnce()
+    {
+        foreach (var token in new JToken[] { new JValue("600"), new JValue(600.5), new JValue(true) })
+        {
+            var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+            document["loop_start_sample"] = token;
+            var asset = new SoundAsset();
+
+            var warnings = LoadWithWarnings(asset, document);
+
+            Assert.Equal(0L, asset.LoopStartSample);
+            var warning = Assert.Single(warnings);
+            Assert.Contains("loop_start_sample", warning);
+            Assert.Contains("footstep", warning);
+        }
+    }
 }

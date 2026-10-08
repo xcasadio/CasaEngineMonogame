@@ -96,6 +96,8 @@ public sealed class WavStreamReader : IDisposable
         _dataBytesRead = 0;
     }
 
+    public void SeekToSample(long frame) => throw new NotImplementedException();
+
     public void Dispose()
     {
         if (_isDisposed)

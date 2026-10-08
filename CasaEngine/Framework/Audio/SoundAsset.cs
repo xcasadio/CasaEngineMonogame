@@ -75,6 +75,12 @@ public class SoundAsset : ObjectBase
     /// </summary>
     public bool IsStreaming { get; set; }
 
+    public long LoopStartSample
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Voice priority in [0, <see cref="MaxPriority"/>]. 0 means no priority: such a voice is never
     /// stolen and never steals another one. Out of range values are clamped.

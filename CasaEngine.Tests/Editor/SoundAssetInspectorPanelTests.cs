@@ -780,6 +780,16 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
         Assert.Equal(OriginalKeys, KeysOf(rig.FullPath));
     }
 
+    [Fact]
+    public void CreatePreviewCopy_KeepsTheLoopStartOfAStreamedLoopedSound()
+    {
+        var copy = SoundAssetInspectorPanel.CreatePreviewCopy(
+            new SoundAsset { IsStreaming = true, IsLooped = true, LoopStartSample = 600 });
+
+        Assert.Equal(600L, copy.LoopStartSample);
+        Assert.Equal(AudioBusNames.Editor, copy.BusName);
+    }
+
     private static void AssertSameAudioSettings(SoundAsset expected, SoundAsset actual)
     {
         Assert.Equal(expected.AudioFileAssetId, actual.AudioFileAssetId);

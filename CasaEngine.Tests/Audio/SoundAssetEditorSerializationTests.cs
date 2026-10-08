@@ -285,4 +285,25 @@ public class SoundAssetEditorSerializationTests
             Assert.False(document.ContainsKey(key), key);
         }
     }
+
+    [Fact]
+    public void SaveThenLoad_KeepsTheLoopStartAsAnInteger_RightAfterIsStreaming()
+    {
+        var document = Serialize(new SoundAsset { IsStreaming = true, IsLooped = true, LoopStartSample = 5_344_920 });
+
+        Assert.Equal(JTokenType.Integer, document["loop_start_sample"].Type);
+        var keys = document.Properties().Select(property => property.Name).ToList();
+        Assert.Equal(keys.IndexOf("is_streaming") + 1, keys.IndexOf("loop_start_sample"));
+
+        var loaded = new SoundAsset();
+        loaded.Load(document);
+        Assert.Equal(5_344_920L, loaded.LoopStartSample);
+    }
+
+    [Fact]
+    public void Serialize_WritesNoLoopStartKeyWhenItIsZero()
+    {
+        Assert.False(Serialize(new SoundAsset()).ContainsKey("loop_start_sample"));
+        Assert.False(Serialize(new SoundAsset { IsStreaming = true, IsLooped = true }).ContainsKey("loop_start_sample"));
+    }
 }

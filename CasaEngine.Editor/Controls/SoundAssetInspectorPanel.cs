@@ -315,7 +315,7 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         StopPreview();
     }
 
-    private static SoundAsset CreatePreviewCopy(SoundAsset source)
+    internal static SoundAsset CreatePreviewCopy(SoundAsset source)
     {
         return new SoundAsset
         {

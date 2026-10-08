@@ -129,6 +129,137 @@ public class WavStreamReaderTests
         Assert.Equal(first, second);
     }
 
+    // ---- SeekToSample (plan E19.L-a): the loop start of a streamed track is a frame, not a byte ----
+
+    private static byte[] MonoRamp(int frames)
+    {
+        var data = new byte[frames * 2];
+        for (var f = 0; f < frames; f++)
+        {
+            BitConverter.TryWriteBytes(data.AsSpan(f * 2, 2), (short)f);
+        }
+
+        return WavBuilder.Create(WavBuilder.PcmFormatTag, 44100, 1, 16, data, 16);
+    }
+
+    [Fact]
+    public void SeekToSample_LandsOnTheFrameFromTheDataOffsetOfTheHeader()
+    {
+        // 'fmt ' of 18 bytes plus a 6 byte LIST chunk: the data starts at offset 60, not 44.
+        using var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18, 6));
+        Assert.Equal(60, reader.Format.DataOffset);
+
+        reader.SeekToSample(600);
+
+        Assert.Equal(2400, reader.Position);
+        var buffer = new byte[16];
+        Assert.Equal(16, reader.Read(buffer, 0, 16));
+        for (var k = 0; k < 4; k++)
+        {
+            Assert.Equal(600 + k, BitConverter.ToInt16(buffer, k * 4));
+            Assert.Equal(10600 + k, BitConverter.ToInt16(buffer, (k * 4) + 2));
+        }
+
+        Assert.Equal(2416, reader.Position);
+    }
+
+    [Fact]
+    public void SeekToSample_TheLastFrameIsReadableThenTheStreamEnds()
+    {
+        using var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18));
+        var buffer = new byte[64];
+
+        reader.SeekToSample(999);
+
+        Assert.Equal(4, reader.Read(buffer, 0, 64));
+        Assert.Equal(0, reader.Read(buffer, 0, 64));
+        Assert.True(reader.IsEndOfStream);
+    }
+
+    [Theory]
+    [InlineData(-1L)]
+    [InlineData(1000L)]
+    public void SeekToSample_OutsideTheFramesThrows(long frame)
+    {
+        using var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => reader.SeekToSample(frame));
+    }
+
+    [Fact]
+    public void SeekToSample_OnADisposedReaderThrows()
+    {
+        var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18));
+        reader.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => reader.SeekToSample(0));
+    }
+
+    [Fact]
+    public void SeekToSample_ZeroAndRewind_ReadTheFirstFrameOfAHeaderThatIsNot44Bytes()
+    {
+        // The data starts at offset 46; frame 0 is (0, 10000). A seek that assumed 44 would read the two header bytes before it.
+        using var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18));
+        Assert.Equal(46, reader.Format.DataOffset);
+        var scratch = new byte[64];
+        var frame = new byte[4];
+
+        reader.Read(scratch, 0, 64);
+        reader.SeekToSample(0);
+        Assert.Equal(0, reader.Position);
+        Assert.Equal(4, reader.Read(frame, 0, 4));
+        Assert.Equal((0, 10000), ((int)BitConverter.ToInt16(frame, 0), (int)BitConverter.ToInt16(frame, 2)));
+
+        reader.Read(scratch, 0, 64);
+        reader.Rewind();
+        Assert.Equal(4, reader.Read(frame, 0, 4));
+        Assert.Equal((0, 10000), ((int)BitConverter.ToInt16(frame, 0), (int)BitConverter.ToInt16(frame, 2)));
+    }
+
+    [Fact]
+    public void SeekToSample_CountsTheBlockAlignOfAMonoFile()
+    {
+        using var reader = Open(MonoRamp(1000));
+
+        reader.SeekToSample(600);
+
+        Assert.Equal(1200, reader.Position);
+        var buffer = new byte[2];
+        reader.Read(buffer, 0, 2);
+        Assert.Equal(600, BitConverter.ToInt16(buffer, 0));
+    }
+
+    [Fact]
+    public void SeekToSample_AllocatesNothing()
+    {
+        using var reader = Open(MusicPlayerLoopStartTests.Ramp(1000, 18, 6));
+        reader.SeekToSample(1);
+
+        var before = AllocationWindow.Start();
+        for (var i = 0; i < 1000; i++)
+        {
+            reader.SeekToSample(i % 1000);
+        }
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
+    [Fact]
+    public void SeekToSample_OnAHeaderOf18BytesDoesNotLandTwoBytesEarly()
+    {
+        // 'fmt ' of 18 bytes: the data starts at 46. The naive 44 + 600 * 4 reads (10599, 600), the channels shifted by one sample.
+        var wav = MusicPlayerLoopStartTests.Ramp(1000, 18);
+        using var reader = Open(wav);
+        Assert.Equal(46, reader.Format.DataOffset);
+
+        reader.SeekToSample(600);
+
+        var frame = new byte[4];
+        reader.Read(frame, 0, 4);
+        Assert.Equal((600, 10600), ((int)BitConverter.ToInt16(frame, 0), (int)BitConverter.ToInt16(frame, 2)));
+        Assert.Equal((10599, 600), ((int)BitConverter.ToInt16(wav, 44 + 2400), (int)BitConverter.ToInt16(wav, 44 + 2402)));
+    }
+
     [Fact]
     public void Position_TracksTheBytesRead()
     {
