@@ -27,6 +27,8 @@ public class EditorAutomationOutcomeTests
     [InlineData("[Automation] Failed to update material property 'alpha_cutoff': no such property")]
     [InlineData("[Automation] Refused to update material property 'alpha_cutoff': no file")]
     [InlineData("[Automation] Failed to update texture sampler 'address_u'='Bogus': 'Bogus' is not a TextureAddressMode")]
+    [InlineData("[Automation] Failed to update static model material '5'='afcdcca9-8833-4f9c-9b13-3972177ba7b1': mesh index 5 is out of range (the model has 1 mesh(es)).")]
+    [InlineData("[Automation] Refused to update static model material '0': the static model asset was not opened.")]
     public void ComputeExitCode_IsOne_WhenARequestedStepFailed(string message)
     {
         Assert.Equal(EditorAutomationOutcome.Failure, EditorAutomationOutcome.ComputeExitCode(new[] { Entry(message, LogVerbosity.Warning) }, Array.Empty<string>(), timedOut: false));

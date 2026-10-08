@@ -29,6 +29,9 @@ public sealed class EditorAutomationOptions
     /// <summary>Sampler field of a <c>.texture</c> asset to change (<c>--set-texture-sampler &lt;key&gt;=&lt;value&gt;</c>), by its JSON key.</summary>
     public string SetTextureSamplerKey { get; private set; }
     public string SetTextureSamplerValue { get; private set; }
+    /// <summary>Mesh whose material of a <c>.staticModel</c> asset to change (<c>--set-static-model-material &lt;mesh index&gt;=&lt;material id&gt;</c>), as typed; the editor validates both.</summary>
+    public string SetStaticModelMaterialMeshIndex { get; private set; }
+    public string SetStaticModelMaterialId { get; private set; }
     public string SetScreenPropertyNodeName { get; private set; }
     public string SetScreenPropertyName { get; private set; }
     public string SetScreenPropertyValue { get; private set; }
@@ -63,6 +66,7 @@ public sealed class EditorAutomationOptions
         || ParticleUndoRedoSmoke
         || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
         || !string.IsNullOrWhiteSpace(SetTextureSamplerKey)
+        || !string.IsNullOrWhiteSpace(SetStaticModelMaterialMeshIndex)
         || !string.IsNullOrWhiteSpace(SetScreenPropertyNodeName)
         || SaveProject
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
@@ -169,6 +173,17 @@ public sealed class EditorAutomationOptions
                     {
                         options.SetTextureSamplerKey = next[..samplerSeparatorIndex];
                         options.SetTextureSamplerValue = next[(samplerSeparatorIndex + 1)..];
+                    }
+
+                    index++;
+                    break;
+
+                case "--set-static-model-material":
+                    int materialSeparatorIndex = next.IndexOf('=');
+                    if (materialSeparatorIndex > 0 && materialSeparatorIndex < next.Length - 1)
+                    {
+                        options.SetStaticModelMaterialMeshIndex = next[..materialSeparatorIndex];
+                        options.SetStaticModelMaterialId = next[(materialSeparatorIndex + 1)..];
                     }
 
                     index++;

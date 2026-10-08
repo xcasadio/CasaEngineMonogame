@@ -119,6 +119,49 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_SetStaticModelMaterial_SplitsTheMeshIndexAtTheFirstEquals_AndEnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Entities/Box.staticModel",
+            "--set-static-model-material", "0=afcdcca9-8833-4f9c-9b13-3972177ba7b1",
+        });
+
+        Assert.Equal("0", options.SetStaticModelMaterialMeshIndex);
+        Assert.Equal("afcdcca9-8833-4f9c-9b13-3972177ba7b1", options.SetStaticModelMaterialId);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_SetStaticModelMaterial_KeepsWhatIsTyped_SoTheEditorCanRefuseIt()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-static-model-material", "five=not-a-guid",
+        });
+
+        Assert.Equal("five", options.SetStaticModelMaterialMeshIndex);
+        Assert.Equal("not-a-guid", options.SetStaticModelMaterialId);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Theory]
+    [InlineData("0")]      // no '='
+    [InlineData("=afcdcca9-8833-4f9c-9b13-3972177ba7b1")]  // empty mesh index
+    [InlineData("0=")]     // empty id
+    public void Parse_SetStaticModelMaterial_Malformed_IsIgnored(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--set-static-model-material", value,
+        });
+
+        Assert.Null(options.SetStaticModelMaterialMeshIndex);
+        Assert.Null(options.SetStaticModelMaterialId);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
     public void Parse_SetTextureSampler_SplitsTheKeyAtTheFirstEquals_AndEnablesAutomation()
     {
         var options = EditorAutomationOptions.Parse(new[]

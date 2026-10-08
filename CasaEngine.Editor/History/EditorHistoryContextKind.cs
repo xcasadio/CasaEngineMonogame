@@ -15,4 +15,5 @@ public enum EditorHistoryContextKind
     ContentBrowser,
     AudioMixer,
     Texture,
+    StaticModel,
 }

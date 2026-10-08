@@ -342,7 +342,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 >   - la libération à la fermeture de l'onglet ;
 >   - la restauration d'une disposition enregistrée qui contient un onglet de texture : comme pour les panneaux du son et de l'aperçu, elle retombe sur « Panel unavailable ».
 
-### ⏳ T8 — Document `.staticModel` (E3c)
+### ✅ T8 — Document `.staticModel` (E3c)
 
 - **Objectif** : P8.
 - **Fichiers** :
@@ -355,6 +355,37 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - capture lue de `Projects/SampleProject/Entities/Box.staticModel` ;
   - `--open-asset Entities/Box.staticModel --set-static-model-material 0=<id de NewLitDiffuseMaterial>` sur `Projects/SampleProject` : les diagnostics donnent cet id, relu dans le fichier enregistré. Le fichier est restauré à l'identique ensuite (SHA-1).
 - **Commit** : `feat(editor): preview static models and assign their materials`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - `CasaEngine.EditorServices/StaticModels/StaticModelAssetDocument` (sans interface) :
+>     - `TrySetMaterial(maillage, sous-maillage ou maillage entier, id)` change l'id et oublie le matériau d'exécution périmé ;
+>     - `TryParseMeshIndex` et `TryParseMaterialId` refusent un id absent du catalogue ou d'un autre type que `material` ;
+>     - `TryReadMeshMaterialId` relit l'id dans le fichier enregistré ;
+>   - `StaticModelAssetDocumentPanel` :
+>     - aperçu par `ModelPreviewViewport` (T6) ;
+>     - une ligne par maillage et par sous-maillage, avec un `AssetSelector` filtré sur `material`, un bouton None et l'id ;
+>     - Save et Reload ;
+>     - libération de la vue et des tampons du modèle à la fermeture ;
+>   - `GameEditor` :
+>     - route `.staticModel` avant le repli de T6 ;
+>     - `EditorHistoryContextKind.StaticModel`, avec `*` dans le titre ;
+>     - `SaveDirtyStaticModelDocuments` dans `SaveCurrentProject` ;
+>     - `--set-static-model-material <indice>=<id>` : instantané en octets, enregistrement, id relu dans le fichier enregistré et restauration à l'identique ;
+>   - `EditorAssetJsonSerializer` gérait déjà `StaticModel` avec tous les champs que le chargeur lit : inchangé.
+> - **Tests** : `StaticModelAssetDocumentTests` et les cas d'options et de code de sortie, soit 36 de plus. Dans l'aller-retour d'un modèle à deux maillages, deux plages de sous-maillages et un nœud enfant :
+>   - sommets (comparés bit à bit), indices, bornes, nœuds et ids sont identiques ;
+>   - le JSON ne diffère que par `material_asset_id`.
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 317 sur 4 317.
+> - **Sur une copie de `Projects/SampleProject`** (le vrai projet n'est pas touché, et le SHA-1 de `Box.staticModel` reste `46f1c34d…`) :
+>   - ouverture de `Entities/Box.staticModel` : code 0, fichier identique. La capture lue montre le cube éclairé et « Mesh 0, 24 vertices, 36 indices, Material None » ;
+>   - `--set-static-model-material 0=afcdcca9-…` (`NewLitDiffuseMaterial`) : code 0. Les diagnostics donnent « mesh 0 material_asset_id=afcdcca9-… (read back from the saved file) », et la capture montre le damier du matériau. SHA-1 identique avant et après ;
+>   - indice 5, GUID inconnu, id d'un `staticmodel`, texte invalide : code 1 chacun, fichier identique.
+> - **Non vérifié en conditions réelles** :
+>   - le sélecteur de matériau et le bouton None, faute d'entrée simulée ; ils passent par le même `TrySetMaterial` que l'automatisation ;
+>   - les lignes de sous-maillages, que `Box` n'a pas, couvertes par les tests seulement ;
+>   - le cas d'un modèle sans maillage.
+> - **Limite** : le cadrage fixe de `ModelPreviewViewport` coupe un peu le bas du cube dans cette taille de fenêtre.
 
 ### ⏳ T9 — Clôture de la tranche
 
