@@ -153,7 +153,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 >   - le monde est réécrit, puisque l'entité gagne les clés de politique que l'éditeur écrit, et `SampleAnnotatedComponent` garde `label`, `weight`, `tint` et `linked_asset_id` ;
 >   - lancé par `CasaEngine.Launcher` sur `DefaultWorld.world` (réglé dans la copie seulement), RPGDemo tourne 12 s : aucun avertissement ni erreur dans `log.txt`, et les ennemis sont actifs.
 
-### ⏳ T2 — Composants de type inconnu conservés (E2)
+### ✅ T2 — Composants de type inconnu conservés (E2)
 
 - **Objectif** : un monde ou une entité qui cite un type inconnu se charge, journalise une erreur avec son contexte et se réenregistre sans perte (P2).
 - **Fichiers** :
@@ -169,6 +169,20 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - build ; tous les tests ;
   - dans l'éditeur, un monde copié dans le scratchpad avec un type inconnu s'ouvre, sans plantage.
 - **Commit** : `feat(scene): keep components of unknown type instead of failing the load`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - `UnresolvedComponent` garde une copie du nœud, son transform et le nom du type ; ses enfants restent dans le nœud ;
+>   - `ElementFactory.LoadComponent<T>`, appelé par `Entity.Load` (racine et composants) et `SceneComponent.Load` (enfants), journalise l'erreur avec le type, le nom et l'id, puis garde le nœud ;
+>   - `Create<T>` lève une `ArgumentException` qui nomme le type ;
+>   - l'éditeur réécrit le nœud gardé, avec l'id et le transform courants (`SaveUnresolvedComponent`), et exclut `UnresolvedComponent` de la liste « Add Component ».
+> - **Tests** : `CasaEngine.Tests/Scene/UnresolvedComponentTests.cs`, 7 tests : composant, racine et enfant inconnus réécrits à l'identique ; racine déplacée ; clones de racine, de composant et d'enfant, dont le nœud est gardé, id renouvelé à part ; type existant mais qui n'est pas un composant.
+>   - Contrôle négatif : avec un `Clone` qui ne copie pas le nœud, les 2 tests de clonage échouent ; le fichier a été restauré.
+>   - Le test existant `UnregisteredScriptAssembly_IsNoLongerResolvable`, qui attend une `ArgumentException`, passe toujours.
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 175 sur 4 175.
+> - **Éditeur**, sur la copie de RPGDemo du scratchpad, avec un composant `ComponentThatNoAssemblyDeclares` ajouté à `DefaultWorld.world` :
+>   - `--open-asset DefaultWorld.world --save-project` ouvre le monde (« Opened asset ») et sort avec le code 0 ;
+>   - le monde est réécrit, puisque le fichier écrit avec une indentation de 4 revient à celle de 2 de l'éditeur, et le nœud inconnu y est intact, `nested` compris.
 
 ### ⏳ T3 — Liste « Add Component » à jour (E1b)
 

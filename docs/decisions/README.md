@@ -84,3 +84,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0068](0068-free-psx-quads-draw-at-the-screen-resolution.md) | Free PSX quads draw at the screen resolution | Accepted | 2026-10-06 |
 | [ADR-0070](0070-view-layout-area-and-window-ui.md) | View layout area and window-level UI | Accepted | 2026-10-06 |
 | [ADR-0071](0071-serialized-properties-of-game-components.md) | Game components persist the properties they mark with [SerializedProperty] | Accepted | 2026-10-08 |
+| [ADR-0072](0072-unresolved-components-are-kept.md) | A component of unknown type is kept as an unresolved component | Accepted | 2026-10-08 |

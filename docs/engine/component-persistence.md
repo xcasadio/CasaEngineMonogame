@@ -6,7 +6,11 @@ How a component's data reaches a `.world` or `.entity` file and comes back.
 
 `ElementFactory.Load<T>(JObject)` creates the component from its `type` key, then calls the component's `Load(JObject)`, then reads its properties marked `[SerializedProperty]` (`SerializedProperties.Load`).
 
-Every component node goes through it: the root component and the `components` of an entity, the `children_component` of a scene component, entity assets, inline entities of a world, and Play snapshots.
+Every component node of an entity goes through `ElementFactory.LoadComponent<T>`: the root component, the `components`, the `children_component` of a scene component, in entity assets, inline entities of a world and Play snapshots.
+
+## Unknown types
+
+When no loaded assembly declares a node's `type` (a missing, outdated or renamed gameplay DLL), `LoadComponent` logs an error with the type, the component's name and id, and keeps the node in an `UnresolvedComponent`: an empty scene component that keeps the node's transform and leaves its children in the node. The editor writes the node back, with the component's current id and transform, so saving loses nothing. Decision: [ADR-0072](../decisions/0072-unresolved-components-are-kept.md).
 
 ## Saving (editor)
 

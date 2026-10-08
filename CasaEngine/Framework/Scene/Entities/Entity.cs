@@ -586,12 +586,12 @@ public class Entity : ObjectBase
         var node = element["root_component"];
         if (node.Type == JTokenType.Object)
         {
-            RootComponent = ElementFactory.Load<SceneComponent>((JObject)node);
+            RootComponent = ElementFactory.LoadComponent<SceneComponent>((JObject)node);
         }
 
         foreach (var componentNode in element["components"])
         {
-            var entityComponent = ElementFactory.Load<EntityComponent>((JObject)componentNode);
+            var entityComponent = ElementFactory.LoadComponent<EntityComponent>((JObject)componentNode);
             //_components.Add(entityComponent);
             AddComponent(entityComponent);
         }
