@@ -311,17 +311,21 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
   - Sans mutation : `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; menus à `main screens=1`, démos à `main screens=0`.
   - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149 (projet de tests reconstruit).
 
-### ⏳ T5.3 — O4 : commentaires périmés
+### ✅ T5.3 — O4 : commentaires périmés
 
 - Objectif : plus de mention du navigateur ni d'un monde partagé dans les démos.
 - Fichiers : `CasaEngine.Demos/Demos/UIOverlayDemo.cs`, `CasaEngine.Demos/Demos/TopDownElevationDemo.cs`, `ai-agent/README.md`.
 - Validation : build ; `rg "navigator|share one world" CasaEngine.Demos --glob "*.cs"` ne trouve plus rien.
 - Commit : `docs(demos): update stale demo comments`
+- Note :
+  - `UIOverlayDemo.cs` : « Launch this demo from the demos main screen (UI theme) » ; `TopDownElevationDemo.cs` : chaque démo a son monde (ADR-0072), la remise de la politique d'espace dans `Clean` n'est plus qu'une précaution (code inchangé).
+  - `rg "navigator|share one world" CasaEngine.Demos --glob "*.cs"` : rien. Commentaires seulement : les builds et le parcours de T5.2 ont tourné avec ces deux fichiers modifiés (0 erreur, `PASS`).
 
-### ⏳ T5.4 — O5 : tester `MainMenuScreen` lui-même
+### ⚠️ T5.4 — O5 : tester `MainMenuScreen` lui-même
 
 - Objectif : qu'une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons fasse échouer un test.
 - Prérequis : réponse de l'auteur (voir O5) : `CasaEngine.Tests` ne référence pas l'application des démos, et toute solution change la structure du projet de tests.
+- Bloquée : question posée en O5, aucun fichier modifié.
 
 ---
 
@@ -332,8 +336,8 @@ Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger
 | O1 | ~~Décor du monde menu~~ : tranché par D8 (fond uni sombre). | T2.3 |
 | O2 | La navigation à la manette n'a jamais été vérifiée avec une vraie manette dans l'UI du moteur : à faire par l'auteur (T2.3 en 🧪). | T2.3, T4.1 |
 | O3 | ✅ Corrigé en T5.1. Avis P3 du vérificateur : une demande de lancement qui arrive pendant l'image « Loading … » (double-clic ou bouton) survit et lance un second changement de démo une image après le premier (`DemosGame.cs:406-411` ne remet pas `_pendingDemoIndex` à zéro). Peu probable pour un joueur. Reporté. | T2.3 |
-| O4 | Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
-| O5 | Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Reporté. | T2.1 |
+| O4 | ✅ Corrigé en T5.3. Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
+| O5 | Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Reporté. **Question à l'auteur (T5.4 ⚠️)** : `MainMenuScreen` ne dépend que du moteur, de MGUI et de `DemoScreenXaml` (XAML lu sous `AppContext.BaseDirectory/Content/Screens`). Trois voies : (a) `ProjectReference` de `CasaEngine.Tests` vers `CasaEngine.Demos` (WinExe) et `InternalsVisibleTo` dans les démos : le build des tests construit alors l'application et son contenu MonoGame, et la copie des XAML dans la sortie des tests reste à vérifier ; (b) **recommandée** : fichiers liés dans `CasaEngine.Tests.csproj` (`MainMenuScreen.cs` et `DemoScreenXaml.cs` en `Compile Link`, `main-menu.xaml` copié sous `Content/Screens`), sans dépendance au WinExe ; (c) accepter l'avis tel quel. | T2.1, T5.4 |
 | O6 | ✅ Corrigé en T5.2. Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
 | O7 | ✅ Corrigé en T5.2. Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
 | O8 | Avis P4 : le premier `Update` d'une démo lancée s'exécute avant le chargement de son monde ; aucune démo n'en souffre (lecture de chaque `Update`, parcours sans erreur). Reporté. | T1.1 |
