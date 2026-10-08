@@ -28,4 +28,21 @@ public class LogsPanelFormatTests
         Assert.Equal(LogsPanel.FormatClipboardEntry(entry), string.Concat(runs.Select(run => run.Text)));
         Assert.All(runs, run => Assert.Equal(Color.Yellow, run.Settings.Foreground));
     }
+
+    /// <summary>The editor automation's <c>--logs-filter</c> names a filter of the Logs panel, case-insensitive.</summary>
+    [Theory]
+    [InlineData("Warning", "Warning")]
+    [InlineData("warning", "Warning")]
+    [InlineData("all", "All")]
+    public void TryResolveFilterItem_MatchesTheFilterBoxItems(string name, string expected)
+    {
+        Assert.True(LogsPanel.TryResolveFilterItem(name, out var item));
+        Assert.Equal(expected, item);
+    }
+
+    [Fact]
+    public void TryResolveFilterItem_RejectsAnUnknownName()
+    {
+        Assert.False(LogsPanel.TryResolveFilterItem("Verbose", out _));
+    }
 }

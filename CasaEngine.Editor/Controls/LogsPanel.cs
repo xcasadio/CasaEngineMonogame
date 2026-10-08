@@ -171,6 +171,36 @@ public class LogsPanel
         return _rootContent;
     }
 
+    /// <summary>Selects the filter named <paramref name="filterName"/> (<c>All</c> or a <see cref="LogVerbosity"/> name,
+    /// case-insensitive), as if picked in the filter box. Returns false when the name is unknown or the content does not
+    /// exist yet.</summary>
+    public bool TrySetFilter(string filterName)
+    {
+        if (_filterCombo == null || !TryResolveFilterItem(filterName, out var item))
+        {
+            return false;
+        }
+
+        _filterCombo.SelectedItem = item;
+        return true;
+    }
+
+    /// <summary>The item of the filter box named <paramref name="filterName"/>, case-insensitive.</summary>
+    internal static bool TryResolveFilterItem(string filterName, out string item)
+    {
+        foreach (var candidate in FilterItems)
+        {
+            if (string.Equals(candidate, filterName, StringComparison.OrdinalIgnoreCase))
+            {
+                item = candidate;
+                return true;
+            }
+        }
+
+        item = null;
+        return false;
+    }
+
     public void Refresh()
     {
         if (_rootContent == null)

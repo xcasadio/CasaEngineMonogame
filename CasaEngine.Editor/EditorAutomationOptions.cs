@@ -10,6 +10,9 @@ public sealed class EditorAutomationOptions
     public string ProjectPath { get; private set; }
     public string OpenAssetPath { get; private set; }
     public string ActivatePanelId { get; private set; }
+    /// <summary>Filter applied to the Logs panel before the capture (<c>All</c> or a <c>LogVerbosity</c> name), so that the
+    /// entries of one level are on screen even when later entries would scroll them out of view.</summary>
+    public string LogsFilter { get; private set; }
     public string ContentBrowserFolderPath { get; private set; }
     public string ContentBrowserScrollTarget { get; private set; }
     public string DockResizeTarget { get; private set; }
@@ -42,6 +45,7 @@ public sealed class EditorAutomationOptions
         || EntityIndexSpecified
         || !string.IsNullOrWhiteSpace(ComponentName)
         || !string.IsNullOrWhiteSpace(ActivatePanelId)
+        || !string.IsNullOrWhiteSpace(LogsFilter)
         || !string.IsNullOrWhiteSpace(ContentBrowserFolderPath)
         || !string.IsNullOrWhiteSpace(ContentBrowserScrollTarget)
         || !string.IsNullOrWhiteSpace(DockResizeTarget)
@@ -87,6 +91,11 @@ public sealed class EditorAutomationOptions
 
                 case "--activate-panel":
                     options.ActivatePanelId = next;
+                    index++;
+                    break;
+
+                case "--logs-filter":
+                    options.LogsFilter = next;
                     index++;
                     break;
 

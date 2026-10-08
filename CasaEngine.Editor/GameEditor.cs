@@ -267,6 +267,8 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationSelectionAppliedAt;
     private bool _automationPanelActivationApplied;
     private TimeSpan _automationPanelActivatedAt;
+    private bool _automationLogsFilterApplied;
+    private TimeSpan _automationLogsFilterAppliedAt;
     private bool _automationContentFolderSelectionAttempted;
     private bool _automationContentFolderSelectionApplied;
     private TimeSpan _automationContentFolderSelectionAppliedAt;
@@ -6877,6 +6879,14 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(_automationOptions.LogsFilter)
+            && !_automationLogsFilterApplied)
+        {
+            ApplyAutomationLogsFilter(totalGameTime);
+            _automationLogsFilterApplied = true;
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(_automationOptions.ContentBrowserFolderPath)
             && !_automationContentFolderSelectionAttempted)
         {
@@ -6974,6 +6984,11 @@ public class GameEditor : Game, IObservableUpdate
             readyAt = _automationPanelActivatedAt;
         }
 
+        if (_automationLogsFilterApplied && _automationLogsFilterAppliedAt > readyAt)
+        {
+            readyAt = _automationLogsFilterAppliedAt;
+        }
+
         if (_automationContentFolderSelectionApplied && _automationContentFolderSelectionAppliedAt > readyAt)
         {
             readyAt = _automationContentFolderSelectionAppliedAt;
@@ -7068,6 +7083,21 @@ public class GameEditor : Game, IObservableUpdate
 
         var desiredComponent = desiredEntity == null ? null : FindAutomationComponent(desiredEntity);
         return ReferenceEquals(_editorSelection.SelectedComponent, desiredComponent);
+    }
+
+    private void ApplyAutomationLogsFilter(TimeSpan totalGameTime)
+    {
+        GetOrCreateLogsContent();
+        if (!_logsPanel.TrySetFilter(_automationOptions.LogsFilter))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unknown logs filter '{_automationOptions.LogsFilter}'.");
+            return;
+        }
+
+        _automationLogsFilterAppliedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Logs filter '{_automationOptions.LogsFilter}' applied.");
     }
 
     private bool TryApplyAutomationDockPanelActivation(TimeSpan totalGameTime)
@@ -8333,6 +8363,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
         builder.AppendLine($"Activate panel: {_automationOptions.ActivatePanelId ?? "<none>"}");
+        builder.AppendLine($"Logs filter: {_automationOptions.LogsFilter ?? "<none>"}");
         builder.AppendLine($"Content folder: {_automationOptions.ContentBrowserFolderPath ?? "<none>"}");
         builder.AppendLine($"Content scroll: {_automationOptions.ContentBrowserScrollTarget ?? "<none>"}");
         builder.AppendLine($"Dock resize target: {_automationOptions.DockResizeTarget ?? "<none>"}");

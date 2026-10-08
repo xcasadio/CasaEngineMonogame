@@ -35,6 +35,19 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_LogsFilter_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--project", "Projects/SampleProject/SampleProject.json",
+            "--logs-filter", "Warning",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal("Warning", options.LogsFilter);
+    }
+
+    [Fact]
     public void Parse_EntityIndexZero_StillEnablesAutomation()
     {
         var options = EditorAutomationOptions.Parse(new[]
