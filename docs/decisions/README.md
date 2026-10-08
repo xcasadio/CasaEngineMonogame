@@ -83,3 +83,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0067](0067-a-project-mixer-asset-applied-to-the-live-mixer.md) | A project mixer asset applied to the live mixer, and an editable mixer panel | Accepted | 2026-10-06 |
 | [ADR-0068](0068-free-psx-quads-draw-at-the-screen-resolution.md) | Free PSX quads draw at the screen resolution | Accepted | 2026-10-06 |
 | [ADR-0070](0070-view-layout-area-and-window-ui.md) | View layout area and window-level UI | Accepted | 2026-10-06 |
+| [ADR-0072](0072-demos-start-on-a-menu-world-and-load-a-world-per-demo.md) | The demos start on a menu world and load a fresh world per demo | Accepted | 2026-10-08 |
