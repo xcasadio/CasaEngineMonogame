@@ -85,6 +85,11 @@ public class CasaEngineGame : Game, IObservableUpdate
     // ---- Multi-view render pipeline ----
     private RenderPipeline _renderPipeline;
 
+    // ---- Window-level UI (ADR-0070) ----
+    private IUIViewRuntime _windowUI;
+    private IRenderSurface _windowUISurface;
+    private readonly UIScaler _windowUIScaler = new(new Point(1920, 1080));
+
 #if !FINAL
     public string ContentPath = string.Empty;
 #endif
@@ -302,12 +307,14 @@ public class CasaEngineGame : Game, IObservableUpdate
             }
         }
 
-        // Single full-screen backbuffer view: auto-resize both the surface and its camera.
+        // Single backbuffer view: auto-resize both the surface and its camera to the layout area (the whole window
+        // unless the view manager has layout insets, ADR-0070).
         if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
         {
             // With a virtual resolution the view is the integer-fit image and its camera frames the virtual
             // resolution; this runs after World.OnScreenResized, which sized every camera to the window.
-            VirtualResolutionRuntime.ResizeSingleBackBufferView(bbViews[0], single, width, height, ActiveVirtualResolution);
+            VirtualResolutionRuntime.ResizeSingleBackBufferView(
+                bbViews[0], single, width, height, GameManager.ViewManager.GetLayoutArea(width, height), ActiveVirtualResolution);
         }
         else if (GameManager.ViewManager.AutoLayoutMode != null)
         {
@@ -540,6 +547,12 @@ public class CasaEngineGame : Game, IObservableUpdate
                 view.UIView?.Update(gameTime);
             }
 
+            if (_windowUI != null)
+            {
+                SyncWindowUIMetrics();
+                _windowUI.Update(gameTime);
+            }
+
             var worldsWithUI = GameManager.ViewManager.Views
                 .Select(static view => view.World)
                 .Distinct()
@@ -659,6 +672,16 @@ public class CasaEngineGame : Game, IObservableUpdate
                         component.Draw(gameTime);
                     }
                 }
+
+                // Window-level UI (ADR-0070): drawn last, over everything, on its own surface. Every state the UI
+                // changes is restored, as the pipeline does for each view, so the next frame starts from the state the
+                // pipeline expects.
+                if (_windowUI != null)
+                {
+                    using var guard = new GraphicsStateGuard(GraphicsDevice);
+                    _windowUISurface.Apply(GraphicsDevice);
+                    _windowUI.Draw();
+                }
             }
         }
         catch (Exception e)
@@ -694,6 +717,52 @@ public class CasaEngineGame : Game, IObservableUpdate
         GraphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
         GraphicsDevice.Clear(Color.Black);
         GraphicsDevice.Viewport = previousViewport;
+    }
+
+    /// <summary>
+    /// The UI installed with <see cref="SetWindowUI"/>, outside every view (ADR-0070), or null.
+    /// </summary>
+    public IUIViewRuntime WindowUI => _windowUI;
+
+    /// <summary>
+    /// Installs a UI that belongs to no view (ADR-0070), e.g. a panel beside the scene whose views are kept out of its
+    /// rectangle by <see cref="ViewManager.LayoutInsets"/>. It is updated right after the per-view UIs, drawn on
+    /// <paramref name="surface"/> after everything else, and <see cref="InputRouter"/> counts its pointer and keyboard
+    /// state for every view. Replaces any previous window-level UI. The caller keeps ownership (the game never disposes
+    /// it) and keeps its keyboard focus consistent: nothing in the engine takes focus away from it.
+    /// </summary>
+    public void SetWindowUI(IUIViewRuntime ui, IRenderSurface surface)
+    {
+        ArgumentNullException.ThrowIfNull(ui);
+        ArgumentNullException.ThrowIfNull(surface);
+
+        _windowUI = ui;
+        _windowUISurface = surface;
+        if (InputComponent?.InputRouter != null)
+        {
+            InputComponent.InputRouter.WindowUI = ui;
+        }
+
+        SyncWindowUIMetrics();
+    }
+
+    /// <summary>Removes the window-level UI installed with <see cref="SetWindowUI"/>, without disposing it.</summary>
+    public void ClearWindowUI()
+    {
+        _windowUI = null;
+        _windowUISurface = null;
+        if (InputComponent?.InputRouter != null)
+        {
+            InputComponent.InputRouter.WindowUI = null;
+        }
+    }
+
+    /// <summary>The window-level UI's metrics, computed from its surface as <see cref="SyncUIViewMetrics"/> does for a view.</summary>
+    private void SyncWindowUIMetrics()
+    {
+        var area = _windowUISurface.ViewportRect;
+        var metrics = _windowUIScaler.ComputeMetrics(new Point(Math.Max(1, area.Width), Math.Max(1, area.Height)));
+        _windowUI.UpdateMetrics(metrics);
     }
 
     /// <summary>

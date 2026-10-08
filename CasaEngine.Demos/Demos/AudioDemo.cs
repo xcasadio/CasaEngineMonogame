@@ -183,7 +183,7 @@ public class AudioDemo : Demo
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
-        _previousKeyboard = Keyboard.GetState();
+        _previousKeyboard = DemoKeyboard.Read(game);
 
         _clickSoundHandle = TryAcquire(game, ClickSoundAssetId);
         _clickSound = _clickSoundHandle?.Asset;
@@ -323,7 +323,7 @@ public class AudioDemo : Demo
             return;
         }
 
-        var keyboard = _game.IsActive ? Keyboard.GetState() : new KeyboardState();
+        var keyboard = DemoKeyboard.Read(_game);
         var audio = _game.AudioSystemComponent;
 
         if (audio == null || _clickSound == null)

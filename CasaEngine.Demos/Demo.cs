@@ -44,6 +44,8 @@ public abstract class Demo
     /// <summary>
     /// Called after the render pipeline has run, before the frame is presented.
     /// Override to draw 2D overlays (SpriteBatch, render-to-texture thumbnails, etc.).
+    /// The graphics device viewport is the scene area (the layout area of the views, ADR-0070), so an overlay placed
+    /// from the viewport stays inside the scene; it is restored after the call.
     /// </summary>
     public virtual void PostDraw(CasaEngineGame game, GameTime gameTime)
     {

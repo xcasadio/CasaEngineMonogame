@@ -174,4 +174,74 @@ public class VirtualResolutionRuntimeTests
         Assert.False(VirtualResolutionRuntime.ShouldClearBands(new[] { first, second }, Native320x240, 1920, 1080));
         Assert.False(VirtualResolutionRuntime.ShouldClearBands(Array.Empty<RenderView>(), Native320x240, 1920, 1080));
     }
+
+    // ---- Layout area of the view manager (ADR-0070) ----
+
+    [Fact]
+    public void CreateDefaultView_WithALeftLayoutMargin_PlacesTheViewInTheAreaAndSizesTheCameraToIt()
+    {
+        var camera = NewCamera(1024, 768, zoom: 1f);
+        var viewManager = new ViewManager { LayoutInsets = new ViewLayoutInsets(280, 0, 0, 0) };
+
+        var id = DefaultRuntimeViewBootstrapper.CreateDefaultView(new World(), viewManager, camera, 1024, 768, null);
+
+        Assert.True(viewManager.TryGetView(id, out var view));
+        Assert.Equal(new Rectangle(280, 0, 744, 768), Assert.IsType<BackBufferSurface>(view.Surface).ViewportRect);
+        Assert.Equal(744, camera.Viewport.Width);
+        Assert.Equal(768, camera.Viewport.Height);
+    }
+
+    [Fact]
+    public void CreateDefaultView_WithLayoutMarginsAndAVirtualResolution_Throws()
+    {
+        var camera = NewCamera(1920, 1080, zoom: 4f);
+        var viewManager = new ViewManager { LayoutInsets = new ViewLayoutInsets(280, 0, 0, 0) };
+
+        Assert.Throws<InvalidOperationException>(
+            () => DefaultRuntimeViewBootstrapper.CreateDefaultView(new World(), viewManager, camera, 1920, 1080, Native320x240));
+        Assert.Empty(viewManager.Views);
+    }
+
+    [Fact]
+    public void ResizeSingleView_WithALayoutArea_PutsTheViewAndItsCameraInTheArea()
+    {
+        var camera = NewCamera(1024, 768, zoom: 1f);
+        var surface = new BackBufferSurface(new Rectangle(0, 0, 1024, 768));
+        var view = new RenderView(new World(), camera, surface);
+
+        VirtualResolutionRuntime.ResizeSingleBackBufferView(view, surface, 1280, 800, new Rectangle(280, 0, 1000, 800), null);
+
+        Assert.Equal(new Rectangle(280, 0, 1000, 800), surface.ViewportRect);
+        Assert.Equal(1000, camera.Viewport.Width);
+        Assert.Equal(800, camera.Viewport.Height);
+    }
+
+    [Fact]
+    public void ResizeSingleView_WithALayoutAreaAndAVirtualResolution_ThrowsAndLeavesTheViewAlone()
+    {
+        var camera = NewCamera(1920, 1080, zoom: 4f);
+        var surface = new BackBufferSurface(new Rectangle(0, 0, 1920, 1080));
+        var view = new RenderView(new World(), camera, surface);
+
+        Assert.Throws<InvalidOperationException>(
+            () => VirtualResolutionRuntime.ResizeSingleBackBufferView(view, surface, 1920, 1080, new Rectangle(280, 0, 1640, 1080), Native320x240));
+        Assert.Equal(new Rectangle(0, 0, 1920, 1080), surface.ViewportRect);
+    }
+
+    [Fact]
+    public void ResizeSingleView_WithTheWholeWindowAsLayoutArea_MatchesTheWindowOverload()
+    {
+        var cameraA = NewCamera(1280, 960, zoom: 4f);
+        var surfaceA = new BackBufferSurface(new Rectangle(0, 0, 1280, 960));
+        var cameraB = NewCamera(1280, 960, zoom: 4f);
+        var surfaceB = new BackBufferSurface(new Rectangle(0, 0, 1280, 960));
+
+        VirtualResolutionRuntime.ResizeSingleBackBufferView(new RenderView(new World(), cameraA, surfaceA), surfaceA, 1920, 1080, Native320x240);
+        VirtualResolutionRuntime.ResizeSingleBackBufferView(
+            new RenderView(new World(), cameraB, surfaceB), surfaceB, 1920, 1080, new Rectangle(0, 0, 1920, 1080), Native320x240);
+
+        Assert.Equal(surfaceA.ViewportRect, surfaceB.ViewportRect);
+        Assert.Equal(cameraA.Zoom, cameraB.Zoom);
+        Assert.Equal(cameraA.Viewport, cameraB.Viewport);
+    }
 }

@@ -15,15 +15,39 @@ internal static class VirtualResolutionRuntime
     /// </summary>
     internal static void ResizeSingleBackBufferView(
         RenderView view, BackBufferSurface surface, int windowWidth, int windowHeight, VirtualResolutionSettings virtualResolution)
+        => ResizeSingleBackBufferView(view, surface, windowWidth, windowHeight, new Rectangle(0, 0, windowWidth, windowHeight), virtualResolution);
+
+    /// <summary>
+    /// Sizes the single back-buffer view inside the layout area of the view manager (ADR-0070): without a virtual
+    /// resolution, the view and its camera take the area; with one, the area must be the whole window.
+    /// </summary>
+    internal static void ResizeSingleBackBufferView(
+        RenderView view, BackBufferSurface surface, int windowWidth, int windowHeight, Rectangle layoutArea,
+        VirtualResolutionSettings virtualResolution)
     {
         if (virtualResolution != null)
         {
+            ThrowIfLayoutAreaIsNotTheWindow(layoutArea, windowWidth, windowHeight);
             VirtualResolutionLayout.Apply(surface, view.Camera, windowWidth, windowHeight, virtualResolution);
             return;
         }
 
-        surface.ViewportRect = new Rectangle(0, 0, windowWidth, windowHeight);
-        view.Camera?.OnScreenResized(windowWidth, windowHeight);
+        surface.ViewportRect = layoutArea;
+        view.Camera?.OnScreenResized(layoutArea.Width, layoutArea.Height);
+    }
+
+    /// <summary>
+    /// A virtual resolution places its integer-fit image in the whole window (ADR-0048); view layout insets (ADR-0070)
+    /// cannot be combined with it.
+    /// </summary>
+    internal static void ThrowIfLayoutAreaIsNotTheWindow(Rectangle layoutArea, int windowWidth, int windowHeight)
+    {
+        if (layoutArea != new Rectangle(0, 0, windowWidth, windowHeight))
+        {
+            throw new InvalidOperationException(
+                $"View layout insets (ADR-0070) cannot be combined with a virtual resolution (ADR-0048): the layout area {layoutArea} " +
+                $"must be the whole {windowWidth}x{windowHeight} window.");
+        }
     }
 
     /// <summary>

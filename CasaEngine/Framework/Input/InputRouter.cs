@@ -334,8 +334,16 @@ public sealed class InputRouter
         => _viewManager.ScreenToView(screenPoint);
 
     /// <summary>
+    /// UI installed by <see cref="Application.CasaEngineGame.SetWindowUI"/> outside every view (ADR-0070), or null.
+    /// Its pointer and keyboard state count for every view in <see cref="IsMouseHandledByUI"/> and
+    /// <see cref="IsKeyboardCapturedByUI"/>; the rest of the routing ignores it.
+    /// </summary>
+    public IUIViewRuntime WindowUI { get; set; }
+
+    /// <summary>
     /// Returns true if the MGUI desktop for <paramref name="view"/> currently has
-    /// the mouse hovering over a UI element (i.e. a widget may handle click events).
+    /// the mouse hovering over a UI element (i.e. a widget may handle click events),
+    /// or if the window-level UI (<see cref="WindowUI"/>) has the pointer.
     ///
     /// Returns true also when a UI element has keyboard focus (e.g. a text box),
     /// indicating that keyboard input should not be consumed by gameplay.
@@ -344,17 +352,20 @@ public sealed class InputRouter
     /// </summary>
     public bool IsMouseHandledByUI(RenderView view)
     {
-        return view.UIView?.InputState.IsPointerOverUI ?? false;
+        return (view.UIView?.InputState.IsPointerOverUI ?? false)
+            || (WindowUI?.IsPointerOverUI ?? false);
     }
 
     /// <summary>
     /// Returns true if a UI element in <paramref name="view"/> has keyboard focus
-    /// (e.g. a text box that is actively receiving key input).
+    /// (e.g. a text box that is actively receiving key input), or if the window-level UI
+    /// (<see cref="WindowUI"/>) has it.
     /// Pass this result to gameplay systems to suppress hotkey handling.
     /// </summary>
     public bool IsKeyboardCapturedByUI(RenderView view)
     {
-        return view.UIView?.InputState.IsKeyboardCaptured ?? false;
+        return (view.UIView?.InputState.IsKeyboardCaptured ?? false)
+            || (WindowUI?.IsKeyboardCaptured ?? false);
     }
 
     private RenderView ResolveModalView()

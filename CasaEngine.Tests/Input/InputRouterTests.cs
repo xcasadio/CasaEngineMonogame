@@ -134,6 +134,67 @@ public class InputRouterTests
         Assert.Equal(focusedView.Id, context.RoutingState.KeyboardFocusViewId);
     }
 
+    // ---- Window-level UI (ADR-0070) ----
+
+    [Fact]
+    public void UiArbitration_WithoutAWindowUI_OnlyReadsTheViewUI()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var quietView = CreateView(viewManager, new Rectangle(0, 0, 100, 100), new StubUIViewRuntime(UIViewInputState.Empty));
+        var busyView = CreateView(viewManager, new Rectangle(100, 0, 100, 100), new StubUIViewRuntime(new UIViewInputState(true, false, true, false)));
+
+        Assert.Null(router.WindowUI);
+        Assert.False(router.IsMouseHandledByUI(quietView));
+        Assert.False(router.IsKeyboardCapturedByUI(quietView));
+        Assert.True(router.IsMouseHandledByUI(busyView));
+        Assert.True(router.IsKeyboardCapturedByUI(busyView));
+    }
+
+    [Fact]
+    public void IsMouseHandledByUI_WhenTheWindowUIHasThePointer_IsTrueForEveryView()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var view = CreateView(viewManager, new Rectangle(280, 0, 744, 768), new StubUIViewRuntime(UIViewInputState.Empty));
+        var viewWithoutUI = CreateView(viewManager, new Rectangle(0, 0, 10, 10));
+
+        router.WindowUI = new StubUIViewRuntime(new UIViewInputState(true, false, false, false));
+
+        Assert.True(router.IsMouseHandledByUI(view));
+        Assert.True(router.IsMouseHandledByUI(viewWithoutUI));
+        Assert.False(router.IsKeyboardCapturedByUI(view));
+    }
+
+    [Fact]
+    public void IsKeyboardCapturedByUI_WhenTheWindowUIHasTheKeyboard_IsTrueForEveryView()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var view = CreateView(viewManager, new Rectangle(280, 0, 744, 768), new StubUIViewRuntime(UIViewInputState.Empty));
+
+        router.WindowUI = new StubUIViewRuntime(new UIViewInputState(false, false, true, false));
+
+        Assert.True(router.IsKeyboardCapturedByUI(view));
+        Assert.False(router.IsMouseHandledByUI(view));
+    }
+
+    [Fact]
+    public void UiArbitration_AQuietWindowUI_LeavesTheViewUIInCharge()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var busyView = CreateView(viewManager, new Rectangle(0, 0, 100, 100), new StubUIViewRuntime(new UIViewInputState(true, false, true, false)));
+        var quietView = CreateView(viewManager, new Rectangle(100, 0, 100, 100), new StubUIViewRuntime(UIViewInputState.Empty));
+
+        router.WindowUI = new StubUIViewRuntime(UIViewInputState.Empty);
+
+        Assert.True(router.IsMouseHandledByUI(busyView));
+        Assert.True(router.IsKeyboardCapturedByUI(busyView));
+        Assert.False(router.IsMouseHandledByUI(quietView));
+        Assert.False(router.IsKeyboardCapturedByUI(quietView));
+    }
+
     private static RenderView CreateView(ViewManager viewManager, Rectangle screenBounds, IUIViewRuntime? uiView = null)
     {
         var surface = new StubRenderSurface(new Rectangle(0, 0, screenBounds.Width, screenBounds.Height));

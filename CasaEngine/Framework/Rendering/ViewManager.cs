@@ -49,8 +49,27 @@ public sealed class ViewManager
     public SplitMode? AutoLayoutMode { get; set; }
 
     /// <summary>
-    /// Distributes all BackBuffer views across a screen of the given size using
-    /// <see cref="AutoLayoutMode"/>. Updates each view's <see cref="BackBufferSurface.ViewportRect"/>
+    /// Margins kept free of back-buffer views (ADR-0070), e.g. for a window-level UI beside the scene.
+    /// <see cref="ViewLayoutInsets.Zero"/> by default: the views cover the whole screen.
+    /// </summary>
+    public ViewLayoutInsets LayoutInsets { get; set; }
+
+    /// <summary>
+    /// The rectangle back-buffer views are laid out in: the screen minus <see cref="LayoutInsets"/>. Negative margins
+    /// count as zero, and the area always keeps at least one pixel in each direction inside the screen.
+    /// </summary>
+    public Rectangle GetLayoutArea(int screenWidth, int screenHeight)
+    {
+        int left = Math.Clamp(LayoutInsets.Left, 0, Math.Max(0, screenWidth - 1));
+        int top = Math.Clamp(LayoutInsets.Top, 0, Math.Max(0, screenHeight - 1));
+        int width = Math.Max(1, screenWidth - left - Math.Max(0, LayoutInsets.Right));
+        int height = Math.Max(1, screenHeight - top - Math.Max(0, LayoutInsets.Bottom));
+        return new Rectangle(left, top, width, height);
+    }
+
+    /// <summary>
+    /// Distributes all BackBuffer views across the layout area (<see cref="GetLayoutArea"/>) of a screen of the given
+    /// size using <see cref="AutoLayoutMode"/>. Updates each view's <see cref="BackBufferSurface.ViewportRect"/>
     /// and notifies the camera via <c>OnScreenResized</c>.
     /// Does nothing if <see cref="AutoLayoutMode"/> is null or there are no BackBuffer views.
     /// </summary>
@@ -75,7 +94,7 @@ public sealed class ViewManager
             return;
         }
 
-        var rects = SplitScreenLayout.Compute(screenWidth, screenHeight, bbViews.Count, AutoLayoutMode.Value);
+        var rects = SplitScreenLayout.Compute(GetLayoutArea(screenWidth, screenHeight), bbViews.Count, AutoLayoutMode.Value);
         for (int i = 0; i < bbViews.Count; i++)
         {
             ((BackBufferSurface)bbViews[i].Surface).ViewportRect = rects[i];
