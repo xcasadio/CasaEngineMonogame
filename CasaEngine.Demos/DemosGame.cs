@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Core.Logging;
 using CasaEngine.Demos.Demos;
-using CasaEngine.Demos.Demos.PsxSemiTransparency;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
@@ -139,16 +138,6 @@ public class DemosGame : CasaEngineGame
         AddDemo(new ViewManagerSandbox(), ThemeSceneAndViews, collapsesBrowser: true);
         AddDemo(new UIOverlayDemo(), ThemeUI);
         AddDemo(new AudioDemo(), ThemeAudio);
-        // E19.g G2a (ADR-0051): PSX semi-transparency of sprites and queue capacity, each checks its own back-buffer.
-        AddDemo(new PsxSemiTransparencyDemo(), ThemePsx);
-        AddDemo(new SpriteQueueCapacityDemo(), ThemePsx);
-        // E19.g G2c (ADR-0051 extended to the background layers): per-texel PSX semi-transparency of the layer sheets.
-        AddDemo(new BackdropLayersPsxSemiTransparencyDemo(), ThemePsx);
-        // E19.g G2d (ADR-0066): the tint overlay of the scrolling layers draws with the PSX mode of the map, one scene per mode.
-        AddDemo(new BackgroundTintPsxMode1Demo(), ThemePsx);
-        AddDemo(new BackgroundTintPsxMode0Demo(), ThemePsx);
-        // E19.g G2b-1 (ADR-0068): free PS1 quads (scaled, mirrored, sheared, trapezoid), compared with the prediction of the annex.
-        AddDemo(new PsxFreeQuadDemo(), ThemePsx, collapsesBrowser: true);
 
         // Before the first demo: its default view is created inside the layout area the browser leaves.
         CreateDemoBrowser();

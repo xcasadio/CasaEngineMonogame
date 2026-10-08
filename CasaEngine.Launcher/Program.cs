@@ -14,7 +14,7 @@ public static class Program
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
 
-        //var projectFileName = @"D:\development\repo\alundra-casaengine-project-converter\alundra-project\AlundraGame.json";//args[0];
+        //var projectFileName = @"D:\development\repo\alundra-casaengine-project-converter\alundra-project\AlundraGame.json";
         var projectFileName = args[0];
 
         EngineEnvironment.ProjectPath = Path.GetFullPath(Path.GetDirectoryName(projectFileName));
