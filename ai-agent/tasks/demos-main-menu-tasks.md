@@ -275,17 +275,78 @@ Moteur (vérifié dans le code) :
 
 ---
 
+## Phase 5 — Suivi des avis O3 à O7
+
+Demandée le 2026-10-08 par la session qui a mené le chantier (brief : corriger O3, O4, O6 et O7, O5 en option après question à l'auteur), sans rediscuter D1 → D8. Branche `chantier/demos-main-menu-advisories`, créée depuis `chantier/demos-main-menu` `a7363b94`, dans le même worktree. Mêmes règles d'exécution que les phases 0 à 4.
+
+### ✅ T5.1 — O3 : un lancement demandé pendant « Loading … » est ignoré
+
+- Objectif : la démo affichée comme en chargement est la seule qui se charge ; une seconde demande pendant l'image « Loading … » (double-clic, bouton) ne lance pas un second changement de monde.
+- Fichiers : `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/DemoCycleAutomation.cs`, `docs/engine/demos-main-menu.md`.
+- Étapes :
+  1. `ApplyWorldRequests` : quand le lancement en attente s'applique, la demande arrivée entre-temps (`_pendingDemoIndex`) est abandonnée.
+  2. Le parcours redemande la même démo pendant chaque image « Loading … », comme le ferait un second clic, et échoue si un monde qu'il n'a pas demandé se charge.
+- Validation : build des deux solutions, `CasaEngine.Tests` ; parcours `CASAENGINE_DEMO_CYCLE=60` à `result=PASS`, code 0 ; preuve : le même parcours sans l'étape 1 sort avec le code 1.
+- Commit : `fix(demos): drop a launch asked during the loading frame`
+- Note :
+  - `ApplyWorldRequests` remet `_pendingDemoIndex` à -1 quand le lancement affiché comme en chargement s'applique.
+  - Le parcours redemande la démo lancée à l'update suivant (l'image « Loading … ») et échoue sur un monde chargé sans demande (« this world was not asked for »). Doc `docs/engine/demos-main-menu.md` à jour.
+  - Preuve : parcours avec la nouvelle vérification mais sans le correctif : `result=FAIL steps=145 failedChecks=48`, code 1 (chaque lancement charge son monde deux fois).
+  - Avec le correctif : `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; « elevation separated pair: not colliding » journalisé.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149.
+
+### ✅ T5.2 — O6 et O7 : écran principal sur la pile de la vue, attente bornée
+
+- Objectif : le parcours vérifie la présence réelle de l'écran principal et ne bloque jamais.
+- Fichiers : `CasaEngine.Demos/DemoCycleAutomation.cs`, `CasaEngine.Demos/DemosGame.cs`, `docs/engine/demos-main-menu.md`.
+- Étapes :
+  1. O6 : au chargement d'un monde, la pile d'écrans de la vue active contient l'écran principal du jeu exactement une fois dans le monde menu, et aucun dans une démo (remplace le compteur d'appels `_mainMenuPushes`).
+  2. O7 : si aucun monde ne se charge dans un nombre fixe d'images après une demande, le parcours échoue, journalise la cause et quitte avec le code 1.
+- Validation : build des deux solutions, `CasaEngine.Tests` ; parcours à `result=PASS`, code 0 ; preuves par mutations temporaires (annulées ensuite) : écran principal créé sans être poussé → code 1 ; un `WorldLoaded` non transmis au parcours → code 1 au lieu d'un blocage.
+- Commit : `test(demos): check the main screen stack and bound the world wait in the demo cycle`
+- Note :
+  - O6 : `OnWorldLoaded` reçoit l'écran principal du jeu (plus le compteur `_mainMenuPushes`, retiré) et compte les `MainMenuScreen` de la pile d'écrans (`UIRoot.ScreenStack`) de la vue active : exactement un, celui du jeu, dans le monde menu ; aucun dans une démo. La ligne d'étape journalise `main screens=`.
+  - O7 : au-delà de 300 updates sans monde chargé après une demande, le parcours journalise « no world loaded 300 updates after step N », termine en échec et le jeu quitte avec le code 1. Doc `docs/engine/demos-main-menu.md` à jour.
+  - Preuves par mutations temporaires (annulées ensuite), une seule exécution `CASAENGINE_DEMO_CYCLE=2` : écran principal retiré de la pile juste après l'avoir poussé → étapes menu « holds 0 main screen(s), none of them the one the game opened » ; `WorldLoaded` non transmis au parcours pour la démo 1 → « no world loaded 300 updates after step 3 », `result=FAIL`, code 1 en 7 s au lieu d'un blocage.
+  - Sans mutation : `CASAENGINE_DEMO_CYCLE=60` à `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0 ; menus à `main screens=1`, démos à `main screens=0`.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4149/4149 (projet de tests reconstruit).
+
+### ✅ T5.3 — O4 : commentaires périmés
+
+- Objectif : plus de mention du navigateur ni d'un monde partagé dans les démos.
+- Fichiers : `CasaEngine.Demos/Demos/UIOverlayDemo.cs`, `CasaEngine.Demos/Demos/TopDownElevationDemo.cs`, `ai-agent/README.md`.
+- Validation : build ; `rg "navigator|share one world" CasaEngine.Demos --glob "*.cs"` ne trouve plus rien.
+- Commit : `docs(demos): update stale demo comments`
+- Note :
+  - `UIOverlayDemo.cs` : « Launch this demo from the demos main screen (UI theme) » ; `TopDownElevationDemo.cs` : chaque démo a son monde (ADR-0072), la remise de la politique d'espace dans `Clean` n'est plus qu'une précaution (code inchangé).
+  - `rg "navigator|share one world" CasaEngine.Demos --glob "*.cs"` : rien. Commentaires seulement : les builds et le parcours de T5.2 ont tourné avec ces deux fichiers modifiés (0 erreur, `PASS`).
+
+### ✅ T5.4 — O5 : tester `MainMenuScreen` lui-même
+
+- Objectif : qu'une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons fasse échouer un test.
+- Prérequis : réponse de l'auteur (voir O5) : `CasaEngine.Tests` ne référence pas l'application des démos, et toute solution change la structure du projet de tests. Réponse le 2026-10-08 : voie (b), fichiers liés.
+- Fichiers : `CasaEngine.Tests/CasaEngine.Tests.csproj` (`MainMenuScreen.cs` et `DemoScreenXaml.cs` liés en `Compile`, `main-menu.xaml` copié sous `Content/Screens`), `CasaEngine.Tests/UI/MainMenuScreenTests.cs` (nouveau), `CasaEngine.Tests/UI/DemoMainMenuTests.cs` (commentaire de classe).
+- Validation : build des deux solutions, `CasaEngine.Tests` (nouveaux tests compris) ; preuve qu'une régression échoue : mutations temporaires de `MainMenuScreen` (ordre des thèmes, sélection initiale, bouton Launch) qui font échouer les nouveaux tests.
+- Commit : `test(demos): test the demos main screen itself`
+- Note :
+  - `CasaEngine.Tests.csproj` compile `MainMenuScreen.cs` et `DemoScreenXaml.cs` liés depuis l'application des démos et copie `main-menu.xaml` dans `Content/Screens` de sa sortie, là où `DemoScreenXaml` le cherche. Aucune référence au WinExe.
+  - `MainMenuScreenTests` (10 tests, bureau sans affichage, vrai XAML, `BuildWindow`) : arbre dans l'ordre des thèmes (thème sans démo omis) et démos dans l'ordre du jeu, en-tête, sélection initiale sous son thème déplié et fiche, index hors limites → première démo, fiche d'un thème et Launch désactivé, bouton Launch, bouton Quit, double-clic sur une démo, `ShowLoading`, thème absent de l'ordre → exception qui nomme la démo et le thème. Commentaire de `DemoMainMenuTests` mis à jour.
+  - Preuves par mutations temporaires de `MainMenuScreen.cs` (restauré à l'identique) : démos parcourues à l'envers dans `BuildTree` → 2 échecs ; sélection initiale forcée à 0 → 3 échecs ; index hors limites → dernière démo → 2 échecs ; bouton Launch débranché → 1 échec.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4159/4159 (10 nouveaux). Code des démos inchangé : le parcours de T5.2 reste valable.
+
+---
+
 ## Points ouverts
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | ~~Décor du monde menu~~ : tranché par D8 (fond uni sombre). | T2.3 |
 | O2 | La navigation à la manette n'a jamais été vérifiée avec une vraie manette dans l'UI du moteur : à faire par l'auteur (T2.3 en 🧪). | T2.3, T4.1 |
-| O3 | Avis P3 du vérificateur : une demande de lancement qui arrive pendant l'image « Loading … » (double-clic ou bouton) survit et lance un second changement de démo une image après le premier (`DemosGame.cs:406-411` ne remet pas `_pendingDemoIndex` à zéro). Peu probable pour un joueur. Reporté. | T2.3 |
-| O4 | Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
-| O5 | Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Reporté. | T2.1 |
-| O6 | Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
-| O7 | Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
+| O3 | ✅ Corrigé en T5.1. Avis P3 du vérificateur : une demande de lancement qui arrive pendant l'image « Loading … » (double-clic ou bouton) survit et lance un second changement de démo une image après le premier (`DemosGame.cs:406-411` ne remet pas `_pendingDemoIndex` à zéro). Peu probable pour un joueur. Reporté. | T2.3 |
+| O4 | ✅ Corrigé en T5.3. Avis P3 : commentaire périmé dans `UIOverlayDemo.cs:29` (« MGUI demo navigator panel »), antérieur au chantier ; et `TopDownElevationDemo.cs:152` dit encore que les démos partagent un monde (P4). Reporté. | T2.2, T1.1 |
+| O5 | ✅ Corrigé en T5.4. Avis P3 : `DemoMainMenuTests` construit son arbre à la main et n'instancie pas `MainMenuScreen` (le projet de tests ne référence pas l'application des démos) ; une régression de `BuildTree`, `SelectDemo` ou du branchement des boutons ne ferait échouer aucun test. Voie (b) choisie par l'auteur le 2026-10-08, parmi : `MainMenuScreen` ne dépend que du moteur, de MGUI et de `DemoScreenXaml` (XAML lu sous `AppContext.BaseDirectory/Content/Screens`). Trois voies : (a) `ProjectReference` de `CasaEngine.Tests` vers `CasaEngine.Demos` (WinExe) et `InternalsVisibleTo` dans les démos : le build des tests construit alors l'application et son contenu MonoGame, et la copie des XAML dans la sortie des tests reste à vérifier ; (b) **recommandée** : fichiers liés dans `CasaEngine.Tests.csproj` (`MainMenuScreen.cs` et `DemoScreenXaml.cs` en `Compile Link`, `main-menu.xaml` copié sous `Content/Screens`), sans dépendance au WinExe ; (c) accepter l'avis tel quel. | T2.1, T5.4 |
+| O6 | ✅ Corrigé en T5.2. Avis P4 : le contrôle « écran principal poussé une fois » du parcours compte les appels, pas la présence réelle de l'écran sur la pile de la vue. Reporté. | T2.3 |
+| O7 | ✅ Corrigé en T5.2. Avis P4 : le parcours attend `WorldLoaded` sans limite ; un monde qui ne se chargerait jamais bloquerait l'automatisation au lieu de sortir avec le code 1. Reporté. | T1.1 |
 | O8 | Avis P4 : le premier `Update` d'une démo lancée s'exécute avant le chargement de son monde ; aucune démo n'en souffre (lecture de chaque `Update`, parcours sans erreur). Reporté. | T1.1 |
 
 ## Hors périmètre

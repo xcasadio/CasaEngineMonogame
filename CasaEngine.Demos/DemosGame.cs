@@ -60,7 +60,6 @@ public class DemosGame : CasaEngineGame
     private World _menuWorld;
     private CameraComponent _menuCamera;
     private int _menuSelection;
-    private int _mainMenuPushes;
     // The demo shown as loading on the main screen for one frame before its world loads (decision D6).
     private int _launchingDemoIndex = -1;
     private bool _returnToMenuRequested;
@@ -231,7 +230,6 @@ public class DemosGame : CasaEngineGame
         LeaveCurrentWorld();
 
         _menuSelection = selectedDemoIndex;
-        _mainMenuPushes = 0;
         var world = new World();
         GameManager.SetWorldToLoad(world);
         _menuWorld = world;
@@ -280,7 +278,6 @@ public class DemosGame : CasaEngineGame
     {
         _mainMenu = new MainMenuScreen(_mainMenuEntries, ThemeOrder, _menuSelection, RequestDemo, () => _quitRequested = true);
         GameManager.ScreenManager.PushScreenToActiveView(_mainMenu);
-        _mainMenuPushes++;
     }
 
     private void CloseMainScreen()
@@ -300,7 +297,7 @@ public class DemosGame : CasaEngineGame
         if (_menuWorld != null && ReferenceEquals(GameManager.CurrentWorld, _menuWorld))
         {
             OpenMainScreen();
-            _demoCycle?.OnWorldLoaded(GameManager, MainScreenTitle, _menuCamera, isMenu: true, _mainMenuPushes, demoIndex: -1);
+            _demoCycle?.OnWorldLoaded(GameManager, MainScreenTitle, _menuCamera, isMenu: true, _mainMenu, demoIndex: -1);
             return;
         }
 
@@ -318,7 +315,7 @@ public class DemosGame : CasaEngineGame
 
         ApplyAutomationViewSettings();
         RefreshDemoUI();
-        _demoCycle?.OnWorldLoaded(GameManager, _currentDemo.Title, demoCamera, isMenu: false, mainScreenPushes: 0, _currentDemoIndex);
+        _demoCycle?.OnWorldLoaded(GameManager, _currentDemo.Title, demoCamera, isMenu: false, mainScreen: null, _currentDemoIndex);
     }
 
     // ---- Demo navigation UI helpers ----
@@ -405,8 +402,11 @@ public class DemosGame : CasaEngineGame
 
         if (_launchingDemoIndex >= 0)
         {
+            // The demo shown as loading is the one that loads: a launch asked during the loading frame (a second click, a
+            // double click) is dropped, or it would change the world again at the next update.
             int launching = _launchingDemoIndex;
             _launchingDemoIndex = -1;
+            _pendingDemoIndex = -1;
             ChangeDemo(launching);
             return;
         }

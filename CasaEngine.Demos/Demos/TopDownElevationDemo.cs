@@ -149,7 +149,8 @@ public class TopDownElevationDemo : Demo
 
     public override void Clean()
     {
-        //The demos share one world: give it back the default policy of the project.
+        //Each demo runs in a world of its own (ADR-0072), dropped after this call: giving it back the default policy of
+        //the project is only a precaution.
         if (_world != null)
         {
             _world.SpacePolicyName = string.Empty;
