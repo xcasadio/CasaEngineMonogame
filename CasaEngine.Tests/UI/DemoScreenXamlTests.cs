@@ -152,6 +152,31 @@ public class DemoScreenXamlTests
     }
 
     [Fact]
+    public void TheMainMenu_DeclaresWhatItsScreenLooksUp()
+    {
+        // MainMenuScreen finds these by name (ai-agent/tasks/demos-main-menu-tasks.md, decision D3), and the screen fills
+        // the view of the menu world; a rename in the markup must break here rather than in the demo.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop(1024, 768);
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("main-menu.xaml")));
+
+        Assert.False(window.IsTitleBarVisible);
+        Assert.Equal(0, window.Left);
+        Assert.Equal(0, window.Top);
+        Assert.Equal(1024, window.WindowWidth);
+        Assert.Equal(768, window.WindowHeight);
+        Assert.True(window.TryGetElementByName("treeDemos", out MGTreeView _));
+        Assert.True(window.TryGetElementByName("lblHeader", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblTitle", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblTheme", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock description));
+        Assert.False(description.AllowsInlineFormatting);
+        Assert.True(window.TryGetElementByName("lblStatus", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("btnLaunch", out MGButton _));
+        Assert.True(window.TryGetElementByName("btnQuit", out MGButton _));
+    }
+
+    [Fact]
     public void APlacedScreen_KeepsItsFullContentArea()
     {
         // The inset from the screen edge must not eat into the window's own content. Margin on a root window

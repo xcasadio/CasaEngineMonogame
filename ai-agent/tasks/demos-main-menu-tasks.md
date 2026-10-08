@@ -166,7 +166,7 @@ Moteur (vérifié dans le code) :
 
 ## Phase 2 — Écran principal
 
-### ⏳ T2.1 — Écran principal (liste et fiche)
+### ✅ T2.1 — Écran principal (liste et fiche)
 
 - Objectif : l'écran de D3, testé seul, pas encore branché.
 - Prérequis : T0.1 ✅.
@@ -177,6 +177,17 @@ Moteur (vérifié dans le code) :
   3. Tests : chargement strict du XAML et noms attendus, arbre et ordre des thèmes, sélection initiale et restaurée, validation au clavier (Entrée) qui déclenche le lancement, « Quitter » qui déclenche son rappel.
 - Validation : build, `CasaEngine.Tests` (nouveaux tests et `DemoScreenXamlTests`).
 - Commit : `feat(demos): add the demos main screen`
+- Note :
+  - `Content/Screens/main-menu.xaml` : en-tête, arbre `treeDemos`, fiche (`lblTitle`, `lblTheme`, `lblDescription`), boutons `btnLaunch` et `btnQuit`, ligne d'aide `lblStatus`.
+  - `Demos/DemoUI/MainMenuScreen.cs` : thème Dark sur sa propre fenêtre, arbre par thèmes dans l'ordre du jeu, sélection initiale (démo donnée, sinon la première), fiche qui suit la sélection (bouton Launch désactivé sur un thème), lancement par le bouton ou un double-clic sur la démo, Quit, `TryGetSelectedDemo` pour Entrée et A (lus par le jeu en T2.3), `ShowLoading`.
+  - Deux faits MGUI ont guidé le code :
+    - `MGTreeView.ItemDoubleClicked` ne se déclenche que sur un élément qui a des enfants (`MGTreeViewItem.cs:57-61`) : chaque démo écoute donc son propre `LMBDoubleClickedInside` ;
+    - Entrée et la validation de la manette ne font que déplier ou replier l'élément sélectionné (`MGTreeView.cs:492-497, 567-570`) : le jeu lit Entrée et A lui-même.
+  - Tests : `CasaEngine.Tests` ne référence pas l'application des démos (comme pour l'ancien navigateur). Les tests portent donc sur le vrai `main-menu.xaml` dans un bureau sans affichage :
+    - `TheMainMenu_DeclaresWhatItsScreenLooksUp` (noms, fenêtre pleine), plus le chargement strict de tous les écrans livrés ;
+    - `DemoMainMenuTests` : les flèches déplacent la sélection de l'arbre ayant le focus, le double-clic atteint la démo et pas `ItemDoubleClicked`, Entrée et Échap ne changent rien, les boutons exécutent leur commande.
+    - La logique propre à la classe (ordre des thèmes, sélection initiale) est vérifiée en T2.3 par le parcours et les captures.
+  - Les deux solutions sans erreur ; `CasaEngine.Tests` 4158/4158 (7 nouveaux).
 
 ### ⏳ T2.2 — Retrait du navigateur latéral
 

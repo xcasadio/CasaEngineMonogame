@@ -1,0 +1,36 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        ScreenHorizontalAlignment="Stretch" ScreenVerticalAlignment="Stretch" ScreenMargin="0"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="0">
+
+  <!-- The demos main screen (ai-agent/tasks/demos-main-menu-tasks.md, decision D3): the themes and their demos on the
+       left, the sheet of the selected demo on the right, the buttons and the controls hint at the bottom. It fills the
+       view of the menu world. No background here: the MGUI Dark theme the screen applies supplies an opaque one. -->
+
+  <Grid ColumnLengths="360[240,],*" RowLengths="Auto,*,Auto">
+
+    <TextBlock Name="lblHeader" GridRow="0" GridColumn="0" GridColumnSpan="2" Margin="16,12,16,8"
+               Text="CasaEngine demos" AllowsInlineFormatting="False" IsBold="True" FontSize="20" />
+
+    <!-- One item per theme, one leaf per demo, added by the screen: this tree IS the data, so it cannot be declared. -->
+    <TreeView Name="treeDemos" GridRow="1" GridColumn="0" Margin="12,0,6,0" IndentSize="16" />
+
+    <ScrollViewer GridRow="1" GridColumn="1" Padding="16,4"
+                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Orientation="Vertical" Spacing="8">
+        <TextBlock Name="lblTitle" Text="" AllowsInlineFormatting="False" IsBold="True" FontSize="18" WrapText="True" />
+        <TextBlock Name="lblTheme" Text="" AllowsInlineFormatting="False" WrapText="True" />
+        <TextBlock Name="lblDescription" Text="" AllowsInlineFormatting="False" WrapText="True" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <DockPanel GridRow="2" GridColumn="0" GridColumnSpan="2" Margin="12,8,16,12">
+      <Button Name="btnQuit" Dock="Right" Content="Quit" Padding="14,4" />
+      <Button Name="btnLaunch" Dock="Right" Content="Launch" Padding="14,4" Margin="0,0,8,0" />
+      <TextBlock Name="lblStatus" AllowsInlineFormatting="False" WrapText="True" Margin="4,0,12,0"
+                 Text="Arrows or D-pad: choose. Enter, A or double-click: launch. In a demo, Esc or Select: back here." />
+    </DockPanel>
+
+  </Grid>
+</Window>
