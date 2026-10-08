@@ -191,6 +191,7 @@ Mesures de référence (T0.1) :
 - Étapes : `verifier` frais sur le contrat (D1 à D3), les tests et les captures ; traitement des constats ; plan et `ai-agent/README.md` à jour.
 - Commit : `docs(ai-agent): record the text line box verification`
 - Note : `verifier` frais **CONFIRMED**. Il a rebâti les trois solutions (0 erreur) et chaque état intermédiaire du chantier, relancé `MGUI.Tests` 3197/3197 et `CasaEngine.Tests` 4151/4151 (sans l'échec instable), refait la capture du navigateur (jambages entiers) et contrôlé par `rg` qu'il ne reste aucun usage des API supprimées ni aucun dessin à `SuggestedScale`. Aucun constat P0 à P2. Quatre avis reportés en O3 à O6.
+- Fusion (2026-10-08, à la demande de l'auteur) : MGUI `chantier/text-line-box` dans `develop` (fusion `3db3c769`), moteur `chantier/fss-line-height` dans `main` (fusion `7f5d72b1`, pointeur MGUI sur `3db3c769`). Sur l'état fusionné : les deux solutions sans erreur, `MGUI.Tests` 3197/3197, `CasaEngine.Tests` 4151/4151. Non poussé.
 
 ---
 
