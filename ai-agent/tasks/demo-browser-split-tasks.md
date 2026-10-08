@@ -354,6 +354,7 @@ Automatisation et tests :
   - `CasaEngine.Demos/DemosGame.cs` : la 31e démo, `EffectQuadDemo` (G2e), est enregistrée par `AddDemo` dans le thème PSX rendering avec `collapsesBrowser: true`. Application du critère de D4 à une démo que D4 ne nommait pas, comme PSX free quads : origine PS1 sur le pixel haut-gauche du back-buffer, zoom 1 ou 3 ; **à confirmer par l'auteur**. Sa variable de dump `CASAENGINE_EFFECTQUAD_DUMP_PATH` rejoint les variables d'automatisation de P4, désormais réunies dans `IsBackBufferAutomationRun` (navigateur replié et rappel F1 masqué, sinon le rappel, dessiné dans la scène, salirait le dump).
   - `docs/engine/demos-browser.md` : effet quads dans le tableau des thèmes, variable de dump ajoutée, en-tête `Demos (n)`.
   - `CasaEngineGame.cs`, `ai-agent/README.md` et `docs/README.md` fusionnés automatiquement (ajouts disjoints), relus.
+- **Fusion dans `main` le 2026-10-08**, à la demande de l'auteur : commit de fusion `44581be4` sur `integration/demo-browser` (le hook interdit tout commit sur `main`) ; `main` était la base du chantier, l'arbre fusionné est identique à la tête vérifiée `d8184c5d`. L'avancement de `main` jusqu'à cette branche est fait par l'auteur, le mode auto refusant à l'agent la mise à jour directe de `main`. À cette date, `main` ne contenait pas la pile e19 (ni `EffectQuadDemo`) ; la pile e19 l'a rejoint le même jour par la fusion de `integration/e19-1008`. Non poussé.
 ---
 
 ## Points ouverts
