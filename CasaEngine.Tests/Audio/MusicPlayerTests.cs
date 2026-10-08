@@ -6,9 +6,10 @@ namespace CasaEngine.Tests.Audio;
 
 public class MusicPlayerTests
 {
-    // Big enough that the queue can hold several buffers: one 16 KB buffer is 4096 stereo
-    // 16 bit samples, so a shorter file would end before the queue is full.
-    private const int SampleCount = 65536;
+    // Big enough that the queue can hold the default depth (24 buffers) plus two: one 16 KB buffer is
+    // 4096 stereo 16 bit samples, so 26 buffers are 106 496 samples and a shorter file would end before
+    // the queue is full.
+    private const int SampleCount = 106496;
 
     private static AudioService CreateService(out FakeAudioBackend backend, out FakeAudioClipProvider provider)
     {
@@ -68,7 +69,7 @@ public class MusicPlayerTests
         Assert.Equal(1, backend.StreamingVoiceCount);
 
         // Buffers are queued before the voice starts, so it cannot starve on the first frame.
-        Assert.Equal(3, service.Music.GetPendingBufferCount(track));
+        Assert.Equal(24, service.Music.GetPendingBufferCount(track));
     }
 
     [Fact]
@@ -92,11 +93,11 @@ public class MusicPlayerTests
         var voice = new AudioVoiceHandle(0, 0);
 
         backend.ConsumeBuffers(voice, 2);
-        Assert.Equal(1, service.Music.GetPendingBufferCount(track));
+        Assert.Equal(22, service.Music.GetPendingBufferCount(track));
 
         service.Update(0.016f);
 
-        Assert.Equal(3, service.Music.GetPendingBufferCount(track));
+        Assert.Equal(24, service.Music.GetPendingBufferCount(track));
     }
 
     [Fact]
@@ -295,7 +296,7 @@ public class MusicPlayerTests
         var service = CreateService(out _, out var provider);
         var track = service.Music.Play(CreateStreamingAsset(provider, isLooped: true));
 
-        // Three 16 KB buffers were queued at 88200 bytes per second.
+        // Twenty-four 16 KB buffers were queued at 88200 bytes per second.
         Assert.True(service.Music.GetPosition(track) > TimeSpan.Zero);
     }
 

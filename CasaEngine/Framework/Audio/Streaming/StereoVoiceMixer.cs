@@ -32,7 +32,10 @@ internal sealed class StereoVoiceMixer
     /// <summary>Denominator used to size a buffer at about 20 ms of audio.</summary>
     private const int BufferFramesPerSecondDivisor = 50;
 
-    /// <summary>Buffers kept queued ahead, like <see cref="MusicPlayer.DefaultQueuedBufferTarget"/>.</summary>
+    /// <summary>
+    /// Buffers kept queued ahead. Independent of <see cref="MusicPlayer.DefaultQueuedBufferTarget"/> (24): these
+    /// buffers are about 20 ms each and fed by the mixer, not read from a file.
+    /// </summary>
     private const int QueuedBufferTarget = 3;
 
     /// <summary>

@@ -30,6 +30,8 @@ le travailleur de flux), le sérialiseur de l'éditeur et la copie d'aperçu de 
 | D4 | Les deux sites de boucle se placent au point de boucle ; `Acquire` et `Channel.Reset` reçoivent l'argument, écrit avant que l'état du canal devienne actif (LA-R5). |
 | D5 | La lecture s'arrête toujours à la fin des données : un tampon court à chaque raccord, aucun remplissage à travers le raccord (LA-R6). |
 | D6 | Hors périmètre : fin de boucle, fondu du moteur, points de boucle des sons résidents, interface des backends, la DLL et les données (LA-R7). |
+| D7 | (2026-10-08, l'auteur, D-E19-104) La profondeur par défaut de la file de musique passe de 3 à 24 buffers pour tout le moteur (T2, ADR-0073). |
+| D8 | (2026-10-08, l'auteur, D-E19-107) La démo versionne un WAV généré de 529 260 octets (T3). |
 
 ## Règles d'exécution pour l'agent
 
@@ -81,17 +83,21 @@ le travailleur de flux), le sérialiseur de l'éditeur et la copie d'aperçu de 
 
 ## Phase 2 — En attente de l'auteur
 
-### ⏳ T2 — Profondeur de la file par défaut (D-E19-75, O-E19-63)
+### ✅ T2 — Profondeur de la file par défaut (D-E19-75, D-E19-104, O-E19-63)
 
 - `MusicPlayer.DefaultQueuedBufferTarget` de 3 à 24 (marge à la couture d'environ 2 s contre 96 ms) ; coût : 384 Kio de file et un anneau de
-  768 Kio par piste jouée ; `audio-system.md` réécrit pour 44,1 kHz ; deux tests bougent (`Play_StartsAStreamAndQueuesAhead`,
-  `Update_TopsTheQueueBackUpAsBuffersAreConsumed`). Tâche à part, révocable seule. **Attend la réponse de l'auteur sur la profondeur.**
+  768 Kio par piste jouée ; `audio-system.md` §5 réécrit pour 44,1 kHz ; la ligne de doc de `StereoVoiceMixer.cs` corrigée (le mélangeur
+  garde ses 3 buffers) ; deux tests bougent (`Play_StartsAStreamAndQueuesAhead`, `Update_TopsTheQueueBackUpAsBuffersAreConsumed` : 24, 22, 24
+  avec `SampleCount` = 106 496). Tâche à part, révocable seule.
+- Décision enregistrée dans l'ADR-0073 : l'ADR-0072 est acceptée et une décision ne se réécrit pas (`docs/decisions/README.md`), donc un
+  nouvel ADR ; plus grand numéro de toutes les branches et worktrees avant lui : 0072.
+- Commit : `perf(audio): the default music queue depth goes from 3 to 24 (E19.L-a T2, D-E19-104)`.
 
 ### ⏳ T3 — Démo du point de boucle
 
 - Touche libre de `AudioDemo.cs` (parmi A, E, Q, U, W, X, Y, Z), `loop_point_demo.wav` (529 260 o) et `loop_point_demo.sound`
   (`loop_start_sample` 44 100), `AssetInfos.json`, `Content.mgcb`, ligne de §11 de `audio-system.md`, ligne ajoutée à la liste fixe de
-  `Loader_DemoSoundFiles_HaveTheVariationDefaults`. **Attend la réponse de l'auteur** (versionner le WAV de 529 Ko, ou le fabriquer en mémoire).
+  `Loader_DemoSoundFiles_HaveTheVariationDefaults`. Réponse de l'auteur du 2026-10-08 : le WAV est versionné (D8).
 
 ---
 
@@ -99,8 +105,8 @@ le travailleur de flux), le sérialiseur de l'éditeur et la copie d'aperçu de 
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Profondeur par défaut de la file : 24 (recommandé), un réglage par projet, ou le minimum 6 | T2 |
-| O2 | Le fichier WAV de la démo est-il versionné dans le moteur ? | T3 |
+| O1 | ~~Profondeur par défaut de la file~~ : tranchée le 2026-10-08, 24 pour tout le moteur (D7) | T2 |
+| O2 | Le fichier WAV de la démo est-il versionné dans le moteur ? Tranché le 2026-10-08 : oui (D8) | T3 |
 
 ## Hors périmètre
 

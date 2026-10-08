@@ -428,6 +428,14 @@ le raccord. Le point de boucle est vérifié une fois dans `Play` : à la fin de
 avertissement (soumis au délai unique du lecteur) et la boucle revient à 0. Une piste n'est
 abandonnée qu'une fois sa file de buffers vidée, jamais sur une famine passagère.
 
+**Profondeur de la file (ADR-0073).** `MusicPlayer.DefaultQueuedBufferTarget` vaut 24 buffers de 16 Kio, soit environ
+2,2 s d'avance à 44,1 kHz stéréo 16 bits (environ 4,5 s à 22,05 kHz). À un raccord de boucle, le buffer court réduit
+cette marge : 2045 ms au pire raccord mesuré (81 trames, piste 13 de l'extraction Alundra), contre 96 ms avec 3 buffers ;
+le pire arrêt mesuré du thread de jeu est de 351,5 ms (O-E19-63). Coût par piste jouée : 384 Kio de file, un anneau de
+768 Kio côté travailleur et une lecture de 384 Kio, synchrone, dans `Play` ; le mélangeur logiciel accepte 64 buffers par
+voix. `GetPosition` peut précéder le son entendu d'environ 2,2 s. La voix stéréo logicielle (§5 bis) garde sa propre
+file, de 3 buffers d'environ 20 ms.
+
 **Lecture hors du thread de jeu (ADR-0056).** Avec un backend réel (logiciel ou MonoGame), `Play`
 ouvre le fichier, lit l'en-tête et remplit la première file de façon synchrone, puis un thread
 « CasaEngine Audio Streaming » lit et boucle le fichier dans un anneau par piste ; `Update` ne

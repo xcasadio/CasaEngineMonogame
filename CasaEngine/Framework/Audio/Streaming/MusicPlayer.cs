@@ -12,8 +12,8 @@ namespace CasaEngine.Framework.Audio.Streaming;
 /// queues the first buffers synchronously, then hands the reader to the worker, and <see cref="Update"/> only
 /// copies ready blocks from the track's ring to the voice (the game thread stays the only thread that
 /// submits to the backend). In the inline mode (test backends) <see cref="Update"/> reads the file itself.
-/// The queue is kept several hundred milliseconds deep so a long frame — shader compilation, world
-/// load — does not starve the voice.
+/// The queue is kept about two seconds deep (<see cref="DefaultQueuedBufferTarget"/>) so a long frame — shader
+/// compilation, world load — does not starve the voice.
 /// </para>
 /// <para>
 /// Looping is done by seeking the reader back to the loop-start sample of the asset (0 for the start of the file):
@@ -26,8 +26,11 @@ public sealed class MusicPlayer : IDisposable
     /// <summary>About 185 ms of 22 kHz stereo 16 bit audio, and a multiple of every block size.</summary>
     public const int DefaultBufferSizeInBytes = 16384;
 
-    /// <summary>Buffers kept queued ahead: roughly half a second of margin against a long frame.</summary>
-    public const int DefaultQueuedBufferTarget = 3;
+    /// <summary>
+    /// Buffers kept queued ahead: 24 buffers of 16 KiB, which is about 2.2 s of margin against a long frame at
+    /// 44.1 kHz stereo 16 bit (about 4.5 s at 22.05 kHz). 3 buffers left under 100 ms at a loop seam (E19.L-a, ADR-0073).
+    /// </summary>
+    public const int DefaultQueuedBufferTarget = 24;
 
     private readonly AudioService _service;
     private readonly List<Track> _tracks = new();
