@@ -8,6 +8,7 @@ using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -25,8 +26,6 @@ namespace CasaEngine.Editor.Controls;
 public sealed class EntityDetailsPanel
 {
     private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
-
-    private static readonly Lazy<IReadOnlyDictionary<string, Type>> ComponentTypes = new(CreateComponentTypeLookup);
 
     private readonly MGWindow _window;
     private readonly bool _includeComponentTree;
@@ -1025,7 +1024,9 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        var componentNames = ComponentTypes.Value.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        //  Built at every opening: a script reload replaces the gameplay assembly's component types.
+        var componentTypes = BuildAddableComponentTypes();
+        var componentNames = componentTypes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
         if (componentNames.Count == 0)
         {
             return;
@@ -1068,7 +1069,7 @@ public sealed class EntityDetailsPanel
         var addButton = new MGButton(dialog, _ =>
         {
             var selectedName = listBox.SelectedValue;
-            if (selectedName == null || !ComponentTypes.Value.TryGetValue(selectedName, out var componentType))
+            if (selectedName == null || !componentTypes.TryGetValue(selectedName, out var componentType))
             {
                 return;
             }
@@ -1230,15 +1231,16 @@ public sealed class EntityDetailsPanel
         }
     }
 
-    private static IReadOnlyDictionary<string, Type> CreateComponentTypeLookup()
+    /// <summary>
+    /// The components the Add Component dialog offers, by display name: the concrete component types of the assemblies
+    /// <see cref="ElementFactory"/> resolves names in (the non-collectible assemblies and the registered gameplay script
+    /// assembly), with a public parameterless constructor and not marked <c>[Browsable(false)]</c>. Built at every call, so
+    /// that a reloaded or unregistered script assembly is never offered.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, Type> BuildAddableComponentTypes()
     {
-        var componentType = typeof(EntityComponent);
-
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(GetLoadableTypes)
-            .Where(type => type is { IsClass: true, IsAbstract: false, IsGenericType: false }
-                && type.IsSubclassOf(componentType)
-                && type.GetConstructor(Type.EmptyTypes) != null
+        return ElementFactory.GetDerivedTypesFrom<EntityComponent>()
+            .Where(type => type.GetConstructor(Type.EmptyTypes) != null
                 && IsAddableComponentType(type))
             .Select(type => new
             {
@@ -1247,18 +1249,6 @@ public sealed class EntityDetailsPanel
             })
             .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First().Type, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException e)
-        {
-            return e.Types.Where(type => type != null)!;
-        }
     }
 
     private static bool IsAddableComponentType(Type type)

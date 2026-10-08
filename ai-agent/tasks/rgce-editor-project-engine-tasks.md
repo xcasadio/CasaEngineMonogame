@@ -184,7 +184,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 >   - `--open-asset DefaultWorld.world --save-project` ouvre le monde (« Opened asset ») et sort avec le code 0 ;
 >   - le monde est réécrit, puisque le fichier écrit avec une indentation de 4 revient à celle de 2 de l'éditeur, et le nœud inconnu y est intact, `nested` compris.
 
-### ⏳ T3 — Liste « Add Component » à jour (E1b)
+### ✅ T3 — Liste « Add Component » à jour (E1b)
 
 - **Objectif** : la boîte « Add Component » propose les composants des assemblies que le chargement résout, recalculés à chaque ouverture (P3).
 - **Fichiers** : `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` : le `Lazy` statique disparaît, et une méthode interne de construction de la liste est appelée par la boîte à chaque ouverture ; test `CasaEngine.Tests/Editor/AddComponentListTests.cs`.
@@ -193,6 +193,15 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - test : un composant `[Browsable(false)]` n'y figure pas ;
   - build ; tous les tests.
 - **Commit** : `fix(editor): rebuild the Add Component list from the loadable assemblies`
+
+> Validation (2026-10-08) :
+> - **Code** :
+>   - le `Lazy` statique est retiré. `EntityDetailsPanel.BuildAddableComponentTypes()` part de `ElementFactory.GetDerivedTypesFrom<EntityComponent>()`, avec les filtres d'avant : constructeur public sans paramètre, `[Browsable]`, `[DisplayName]`, et sans `UnresolvedComponent`. La boîte l'appelle à chaque ouverture et garde ce dictionnaire pour son bouton Add ;
+>   - `ElementFactory.BuildDerivedTypes` ignore désormais les types qui ne se chargent pas d'une assembly (`ReflectionTypeLoadException`), comme le faisait l'ancienne liste.
+> - **Tests** : `CasaEngine.Tests/Editor/AddComponentListTests.cs`, 2 tests ; le composant visible est listé, ni `[Browsable(false)]` ni `UnresolvedComponent` ne le sont.
+>   - Assembly de script compilée, enregistrée puis retirée : son composant est listé, puis ne l'est plus.
+>   - Contrôle négatif : avec un résultat mis en cache dans la méthode, ce test échoue ; le fichier a été restauré.
+> - **Build et tests** : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` : 4 177 sur 4 177.
 
 ## Phase 2 — Matériaux et automatisation
 

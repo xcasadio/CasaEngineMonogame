@@ -145,10 +145,23 @@ public static class ElementFactory
 
     private static IEnumerable<Type> BuildDerivedTypes(Type type) =>
         GetCandidateAssemblies()
-            .SelectMany(x => x.GetTypes())
+            .SelectMany(GetLoadableTypes)
             .Where(x => x is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
                         && x.IsSubclassOf(type))
             .ToList();
+
+    //  An assembly whose dependencies do not all resolve still lists the types that load.
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException exception)
+        {
+            return exception.Types.Where(type => type != null)!;
+        }
+    }
 
     public static IEnumerable<Type> GetDerivedTypesFrom<T>() where T : class
     {
