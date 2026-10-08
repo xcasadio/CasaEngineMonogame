@@ -387,7 +387,7 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
 >   - le cas d'un modèle sans maillage.
 > - **Limite** : le cadrage fixe de `ModelPreviewViewport` coupe un peu le bas du cube dans cette taille de fenêtre.
 
-### ⏳ T9 — Clôture de la tranche
+### ✅ T9 — Clôture de la tranche
 
 - **Objectif** :
   - validation globale, doc des documents (`docs/editor/asset-documents.md`), ADR-0073 et index ;
@@ -396,6 +396,27 @@ Découverte en lecture seule du programme (rapports `editor-disc2/` du scratchpa
   - côté RacingGame, enregistrement du pointeur.
 - **Validation** : la validation globale ci-dessus ; vérificateur CONFIRMED.
 - **Commit** : `docs(editor): close the editor project foundations plan`
+
+> Validation (2026-10-08) :
+> - **Documents** : ADR-0073, `docs/editor/asset-documents.md`, et leurs entrées dans `docs/decisions/README.md` et `docs/README.md`. Les ADR-0071 et 0072 et `docs/engine/component-persistence.md` sont venus avec T1 et T2.
+> - **Premier vérificateur indépendant de S2 : REFUTED**, sur un seul point de la doc (F1, P2). Elle promettait une restauration « octet pour octet », mais l'instantané d'un `.texture` était du texte : un BOM se perdait.
+>   - Les parties 1, 2, 3 et 5 de l'affirmation tenaient :
+>     - builds à 0 erreur et 4 317 tests verts ;
+>     - P1 à P8 conformes, sans dépendance du runtime vers l'éditeur, sans allocation par image, sans état GPU touché ni `SamplerState` partagé modifié, et une géométrie inchangée ;
+>     - automatisation rejouée sur copies : texture, valeur invalide, `.wav`, `Box.staticModel`, et un `.tileset` refusé avec le code 1 ;
+>     - samples : RPGDemo, avec ses propriétés sérialisées gardées après enregistrement et un composant inconnu réécrit tel quel ; `Box.staticModel`.
+>   - **Corrigé** par le commit `fix(editor): restore an automated texture edit byte for byte` : l'instantané du `.texture` passe par les octets, comme celui du `.staticModel`. Deux remarques P3 sur la doc ont aussi été traitées : l'option mal formée, ignorée à l'analyse comme les autres `--set-*`, et les métadonnées d'emplacement qu'un enregistrement de `.staticModel` écrit.
+> - **Contre-vérificateur de S2 : CONFIRMED** :
+>   - un `.texture` avec BOM et un sans BOM sont restaurés à l'identique (SHA-1), et la valeur est bien enregistrée puis relue pendant le lancement ;
+>   - `Box.staticModel` est inchangé ;
+>   - build à 0 erreur, `CasaEngine.Tests` à 4 317 sur 4 317 ;
+>   - chaque phrase d'ADR-0073 et d'`asset-documents.md` est confirmée par le code.
+> - **Avis reportés**, non bloquants, à reprendre dans un prochain chantier sur l'éditeur :
+>   - P3 : après `--set-texture-sampler`, les listes du document gardent l'ancienne valeur dans la capture (`TextureAssetDocumentPanel.TryApplySamplerEdit`). Le fichier enregistré est juste ;
+>   - P3 : la liste des formats du moteur sans document, dans `asset-documents.md`, oublie `.retargetProfile` ;
+>   - P4 : la ligne Image de la table d'aperçu donne les champs du PNG ; BMP et TGA affichent « Bits per pixel » ;
+>   - P4, antérieur à S2 : les avertissements de déchargement du contexte de scripts (« Script assembly context is still alive after unload ») à chaque ouverture de projet.
+> - **Archivage** : ce plan passe dans `tasks/archive/`. Le pointeur `CasaEngine` est enregistré côté RacingGame par T2.1 de `rgce-editor-project-tasks.md`.
 
 ---
 
