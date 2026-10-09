@@ -12,6 +12,7 @@ namespace CasaEngine.Tests.ScreenEditor;
 /// <summary>
 /// Pins the container the editor wraps the document root in, when the root is duplicated or a node is pasted
 /// with no target: it must be a type the screen loader knows, or the screen saved afterwards no longer loads.
+/// A <c>Window</c> root is never wrapped by a duplicate, since the loader only accepts a <c>Window</c> root.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]
 public class UIScreenRootWrapperTests
@@ -22,10 +23,36 @@ public class UIScreenRootWrapperTests
         var root = Node("StackPanel", "pnl1", Node("Button", "btn1"));
         var document = NewDocument(root);
 
+        Assert.True(DuplicateNodeCommand.CanDuplicate(document, root.Id));
         new DuplicateNodeCommand(document, root.Id).Execute();
 
         AssertLoads(document);
         Assert.Equal("StackPanel", document.Root!.ControlType);
+    }
+
+    [Fact]
+    public void Duplicate_OfAWindowRoot_IsRefused_SoTheScreenStillLoads()
+    {
+        var play = Node("Button", "btnPlay");
+        var window = Node("Window", "wndMain", play);
+        window.SetProperty("Left", "0");
+        window.SetProperty("Top", "0");
+        window.SetProperty("Width", "320");
+        window.SetProperty("Height", "200");
+        var document = NewDocument(window);
+        var command = new DuplicateNodeCommand(document, window.Id);
+
+        Assert.False(DuplicateNodeCommand.CanDuplicate(document, window.Id));
+        Assert.True(DuplicateNodeCommand.CanDuplicate(document, play.Id));
+        command.Execute();
+
+        Assert.Null(command.CreatedNode);
+        Assert.Same(window, document.Root);
+        Assert.Same(play, Assert.Single(window.Children));
+        AssertLoads(document);
+
+        command.Undo();
+        Assert.Same(window, document.Root);
     }
 
     [Fact]

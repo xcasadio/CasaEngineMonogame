@@ -6,6 +6,7 @@ namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 /// <summary>
 /// Deep-clones a node and inserts the clone as the next sibling.
 /// If the node is the document root, both it and the clone are wrapped in a new StackPanel.
+/// A <c>Window</c> root is not duplicated: see <see cref="CanDuplicate"/>.
 /// </summary>
 public sealed class DuplicateNodeCommand : IUIScreenCommand
 {
@@ -27,10 +28,22 @@ public sealed class DuplicateNodeCommand : IUIScreenCommand
     /// <summary>The cloned node, available after <see cref="Execute"/>.</summary>
     public UIScreenNode? CreatedNode => _clone;
 
+    /// <summary>
+    /// Whether the node can be duplicated. A <c>Window</c> at the document root cannot: the root and its copy
+    /// would be wrapped in a StackPanel that becomes the root, and the screen loader only accepts a
+    /// <c>Window</c> root.
+    /// </summary>
+    public static bool CanDuplicate(UIScreenDocument document, DocumentNodeId nodeId)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        var node = document.FindNode(nodeId);
+        return node != null && !IsWindowRoot(node);
+    }
+
     public void Execute()
     {
         var source = _document.FindNode(_sourceId);
-        if (source == null) return;
+        if (source == null || IsWindowRoot(source)) return;
 
         _clone = source.DeepClone();
         var cloneNames = UIScreenNodeNames.AssignUniqueNames(_document, _clone);
@@ -76,6 +89,9 @@ public sealed class DuplicateNodeCommand : IUIScreenCommand
     // ─────────────────────────────────────────────────────────────────────
     //  Helpers  (mirror of RemoveNodeCommand.InsertAt)
     // ─────────────────────────────────────────────────────────────────────
+
+    private static bool IsWindowRoot(UIScreenNode node)
+        => node.Parent == null && string.Equals(node.ControlType, "Window", StringComparison.Ordinal);
 
     private static int IndexOf(UIScreenNode parent, UIScreenNode child)
     {

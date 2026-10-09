@@ -87,6 +87,7 @@ Each candidate must exist on disk to be used; when none does, loading fails and 
 ### Root element
 - Use `MGDockPanel` or `MGStackPanel` as the root unless the screen maps 1:1 to a window.
 - Do **not** use a raw `Window` as root unless you intentionally want a floating window — the editor wraps non-Window roots in a preview window automatically.
+- The editor does not duplicate a `Window` root: the root and its copy would be wrapped in a `StackPanel` that becomes the root, and the screen loader (`UIScreenLoader`) only accepts a `Window` root.
 
 ### Layout hierarchy
 - Favour `MGDockPanel` for header/footer/sidebar layouts.

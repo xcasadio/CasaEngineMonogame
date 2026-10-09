@@ -1698,7 +1698,8 @@ public class GameEditor : Game, IObservableUpdate
             };
             _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
             {
-                if (!TryGetActiveScreenCommandStack(out var commandStack))
+                // Checked before the command is built, so a refused duplicate leaves no empty step in the history.
+                if (!DuplicateNodeCommand.CanDuplicate(doc, nodeId) || !TryGetActiveScreenCommandStack(out var commandStack))
                 {
                     return;
                 }
@@ -2015,6 +2016,8 @@ public class GameEditor : Game, IObservableUpdate
         if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
         var document = _activeScreenPreviewPanel.CurrentDocument;
         if (document == null) return;
+        // Checked before the command is built, so a refused duplicate leaves no empty step in the history.
+        if (!DuplicateNodeCommand.CanDuplicate(document, _screenSelection.SelectedNodeId.Value)) return;
 
         var cmd = new DuplicateNodeCommand(document, _screenSelection.SelectedNodeId.Value);
         if (!TryGetActiveScreenCommandStack(out var commandStack))
