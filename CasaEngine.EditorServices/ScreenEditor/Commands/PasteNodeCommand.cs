@@ -1,4 +1,5 @@
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
+using CasaEngine.EditorServices.ScreenEditor.Naming;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 
@@ -30,6 +31,7 @@ public sealed class PasteNodeCommand : IUIScreenCommand
 
     public void Execute()
     {
+        var insertedNames = UIScreenNodeNames.AssignUniqueNames(_document, _nodeToInsert);
         var target = _targetSiblingId.HasValue ? _document.FindNode(_targetSiblingId.Value) : null;
 
         if (target?.Parent is { } parent)
@@ -41,7 +43,11 @@ public sealed class PasteNodeCommand : IUIScreenCommand
         {
             // Insert after root (wrap both in StackPanel)
             _originalRoot = _document.Root;
-            var wrapper = new UIScreenNode("MGStackPanel");
+            // Named before SetRoot: afterwards the document no longer holds the names of the original tree.
+            var wrapper = new UIScreenNode("MGStackPanel")
+            {
+                Name = UIScreenNodeNames.CreateDefaultName(_document, "MGStackPanel", insertedNames),
+            };
             _document.SetRoot(wrapper);
             wrapper.AddChild(_originalRoot);
             wrapper.AddChild(_nodeToInsert);
