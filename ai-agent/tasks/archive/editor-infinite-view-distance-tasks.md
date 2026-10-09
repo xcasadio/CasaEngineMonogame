@@ -274,7 +274,7 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 >   4. survoler et déplacer les axes du gizmo, près de l'origine puis loin d'elle ;
 >   5. passer en mode Play et revenir : la caméra d'édition reste sans plan lointain.
 
-### ⏳ T1.3 — ADR, documentation et pointeur RacingGame
+### ✅ T1.3 — ADR, documentation et pointeur RacingGame
 
 - Fichiers :
   - `docs/decisions/0074-editor-cameras-have-an-infinite-far-plane.md` (P5) et l'index `docs/decisions/README.md` ;
@@ -288,6 +288,33 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
     - `--smoke-frontend` sort à 0 ;
   - vérificateur indépendant : CONFIRMED.
 - Commit : `docs(adr): record the infinite far plane of the editor cameras`
+
+> Validation (2026-10-09) :
+> - **Docs** : ADR-0074 (`docs/decisions/0074-editor-cameras-have-an-infinite-far-plane.md`) et son entrée d'index. Section « Caméra 3D sans plan lointain (éditeur) » de `docs/engine/rendering-2d-3d-spaces.md`, en français comme le reste du document. Le plan passe dans `ai-agent/tasks/archive/`.
+> - **RacingGame**, sur le nouveau moteur :
+>   - `dotnet build RacingGame.slnx` : 0 erreur ;
+>   - export de scène identique à `artifacts/o7-track-helpers/after/scene-a.json` (1 372, 953, 2 829 enregistrements appariés) ;
+>   - `--smoke-frontend` : code 0 ;
+>   - réglages de l'auteur restaurés à l'identique.
+>   Le commit du pointeur, sur `remaster`, enregistre aussi le commit de l'auteur `ba7b4e41f` (vignettes), antérieur à ce chantier sur la branche.
+> - **Vérification indépendante, en workflow à deux angles : CONFIRMED pour les deux**, sans constat P0 à P2 (sorties dans `verify-infcam/` du scratchpad) :
+>   - **angle qui exécute** :
+>     - builds à 0 erreur, 4 357 tests sur 4 357 ;
+>     - dans un worktree à `221e63065` avec l'ancien `RayHelper` et l'ancien `TileMapComponent`, 13 tests échouent : les 12 rayons, y compris au lointain 1 000, et la tilemap ;
+>     - sa propre sonde : 200 caméras tirées au hasard par cas, à 10, 3 000 et 100 000 unités, au lointain 1 000 et infini. Erreur de direction au plus 2e-7 contre une référence en double précision, `GizmoRay` égal à `RayHelper`, et l'orthographique exact ;
+>     - culling juste à l'origine comme à (90 000 ; 50 ; −90 000) ;
+>     - ciel : écart de 1,4e-7 avec l'ancienne formule au lointain fini, et formule définie à l'infini ;
+>     - dans l'éditeur, l'hôtel à 5 000 unités est absent avant et présent après, et le ciel est le même (1 pixel sur 125 125). Les aperçus de modèle, de matériau, de sprite et de particules s'ouvrent ;
+>     - export RacingGame identique et smoke à 0 ;
+>   - **relecture adverse**, en lecture seule : elle confirme la fabrique, la réinitialisation au changement de monde, le mode Play intact, les appelants de `RayHelper` (`ViewManager.ViewToWorldRay`, `WorldSpaceUIDemo`), l'absence d'allocation, et que l'ADR et la doc concordent avec le code.
+> - **Avis reportés**, sans retouche du candidat confirmé :
+>   - P3 : les caméras des vignettes ne passent pas par la fabrique. C'est voulu (« Hors périmètre »), et l'ADR le dit ;
+>   - P3 : le commentaire de `Gizmo.ActiveViewport` (`GizmoTool/Gizmo.cs:202`) parle encore d'`Unproject` ;
+>   - P4 : avec le plan lointain NaN, `BoundingFrustum.Contains` ne rend jamais `Contains`. La requête de l'octree teste donc chaque objet au lieu de prendre un nœud entier : le résultat est juste, pour un léger coût dans l'éditeur ;
+>   - P4 : la sélection du runtime (`ViewToWorldRay`) change aussi, en mieux. L'ancien rayon lisait la profondeur 1..1000 du viewport et était faux même au lointain fini. L'ADR le dit (« Picking is more precise for every camera »).
+> - **Non exécuté** :
+>   - l'aperçu de clip d'animation, faute d'asset `.skeletonAnim` dans les projets ; son changement est le même appel de fabrique que les quatre autres ;
+>   - le changement de monde dans l'éditeur (entrée et sortie du mode Play), qui reste dans le contrôle manuel de l'auteur (T1.2).
 
 ---
 
