@@ -117,7 +117,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 
 ## Phase 1 — Noms par défaut
 
-### ✅ T1.1 — Noms des éléments d'écran ajoutés, enveloppés, dupliqués et collés
+### 🧪 T1.1 — Noms des éléments d'écran ajoutés, enveloppés, dupliqués et collés
 
 - Objectif : P1 à P3, dans les services d'édition, avec les commandes qui créent des nœuds.
 - Fichiers :
@@ -168,7 +168,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - Preuve par l'absurde, `AssignUniqueNames` retiré de `DuplicateNodeCommand` : `ADuplicatedDocument_Serialized_LoadsWithoutADuplicateElementName` échoue (`XamlLoaderException`, nom `btnPlay` en double), par `UIScreenLoader.Load` comme `UIScreenLoaderTests.cs:140-160`.
 > - `AssignUniqueNames` renvoie l'ensemble des noms du sous-arbre, pour les réserver à l'enveloppe (étape 4). La ligne du plan dans `ai-agent/README.md` est incluse dans le commit.
 
-### ✅ T1.2 — Noms des composants ajoutés ou déposés
+### 🧪 T1.2 — Noms des composants ajoutés ou déposés
 
 - Objectif : P4 et P5.
 - Fichiers :
@@ -198,7 +198,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4406 réussis, 0 échec (dont les 8 nouveaux tests de `EditorComponentNamesTests` : cinq pour `CreateUniqueName`, trois pour `GetComponentLabel`).
 > - Geste à vérifier par l'auteur (O1) : « Add component » nomme le composant d'après son type, et un modèle déposé dans le viewport a un composant `StaticModelComponent`.
 
-### ✅ T1.3 — Un composant cloné avec son entité garde son nom
+### 🧪 T1.3 — Un composant cloné avec son entité garde son nom
 
 - Objectif : P8, dans le runtime (`CasaEngine`).
 - Fichiers :
@@ -221,7 +221,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4407 réussis, 0 échec (dont le nouveau test `ComponentCloneNameTests`).
 > - Étape 2 annulée temporairement : le test échoue (`Expected: "Root"`, `Actual: "Object 9fe23912-..."`) ; étape 2 rétablie, le test passe.
 
-### 🧪 T1.4 — Convention, ADR et index
+### ✅ T1.4 — Convention, ADR et index
 
 - Objectif : la convention et la décision sont écrites.
 - Fichiers :
@@ -243,7 +243,24 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > Validation (2026-10-09) :
 > - Docs seulement, pas de build. ADR-0075 écrite d'après `docs/decisions/template.md` (D1 à D3, P1 à P5, P8) ; index `docs/decisions/README.md`, section 2 de la convention et ligne du plan dans `ai-agent/README.md` mis à jour.
 > - Liens vérifiés par `rg` : l'ADR-0075, son index et la convention pointent vers des fichiers existants.
-> - Écart : le plan n'est pas archivé par cette tâche ; la session principale l'archive après la vérification indépendante. Reste 🧪 pour les vérifications de l'auteur (O1).
+> - Écart : le plan n'est pas archivé par cette tâche. Il reste dans `tasks/` tant que les gestes de l'auteur (O1) attendent, ce qui garde valides le lien de la source de l'ADR-0075 et celui de l'index.
+>
+> Statuts corrigés à la clôture : T1.1 à T1.3 en 🧪, car chacune attend un geste de l'auteur dans l'éditeur (O1) ; T1.4 en ✅, car la documentation est complète.
+
+> **Vérification de clôture (2026-10-09)**, après T1.4. Workflow : trois relectures en lecture seule et un vérificateur qui lance les commandes.
+> - Vérificateur : **CONFIRMED**.
+>   - Les deux solutions buildent sans erreur. `CasaEngine.Tests` passe à 4407/4407, et encore après la restauration des mutations.
+>   - Quatre mutations, chacune détectée :
+>     - (a) `AssignUniqueNames` garde tous les noms : 9 tests échouent ;
+>     - (b) sans la réservation du nom de l'enveloppe : les 2 tests d'enveloppe échouent ;
+>     - (c) `EditorComponentNames` ignore les noms pris : 4 tests échouent ;
+>     - (d) `Clone()` aux trois sites de clonage : le test de clonage échoue, et chaque site retiré seul est détecté.
+>   - Les valeurs attendues du plan sont vérifiées dans les tests.
+> - Relectures : aucun P0 à P2. Avis traités :
+>   - les statuts des tâches, corrigés ;
+>   - le lien de la source de l'ADR, qui reste valide puisque le plan reste dans `tasks/` ;
+>   - O2, O3 et O4, reportés dans les points ouverts.
+> - Commits : `3dbe7c0f6`, `cf5169c9a`, `0693ab321`, `1d7a46e45`.
 
 ---
 
@@ -253,7 +270,10 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Vérifications de l'auteur dans l'éditeur (gestes de la validation globale). | T1.1, T1.2, T1.3 |
+| O1 | Vérifications de l'auteur dans l'éditeur (gestes de la validation globale) : T1.1 ajout depuis la palette, duplication, collage ; T1.2 « Add component » et dépôt d'un modèle ; T1.3 duplication d'une entité. | T1.1, T1.2, T1.3 |
+| O2 | Préexistant, hors périmètre (avis P4 de la vérification). La racine dupliquée, ou un collage sans cible, est enveloppée dans un nœud de type `MGStackPanel` (`DuplicateNodeCommand.cs:49`, `PasteNodeCommand.cs:47`, depuis `fe27e3ae4`). La fabrique utilise `StackPanel`, le seul nom du XAML de MGUI (`MGUI/MGUI.Core/UI/XAML/Containers.cs:525`). Un écran enregistré après ce geste contiendrait donc `<MGStackPanel>`. Les noms ne sont pas en cause. À corriger à part, avec un test d'enregistrement puis de chargement. | — |
+| O3 | Avis P3 de la vérification, reporté. `EditorComponentNames.CreateUniqueName` compte l'arbre de la racine et les éléments de `Components`, comme P4 le dit, mais pas les enfants d'un `SceneComponent` posé dans `Components`. Un composant ajouté comme enfant d'un tel composant peut donc reprendre un nom déjà pris dans l'entité. C'est cosmétique : libellé ambigu, nom en double enregistré. Correctif : parcourir aussi ces enfants, avec un test. | T1.2 |
+| O4 | Avis P4 reporté : il manque une assertion annuler puis rétablir sur l'ajout simple (`AddNodeCommand` sans enveloppe). Le code est correct, car le nom est recalculé dans le même état du document. | T1.1 |
 
 ## Hors périmètre
 
