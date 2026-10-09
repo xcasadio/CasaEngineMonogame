@@ -44,9 +44,9 @@ public sealed class PasteNodeCommand : IUIScreenCommand
             // Insert after root (wrap both in StackPanel)
             _originalRoot = _document.Root;
             // Named before SetRoot: afterwards the document no longer holds the names of the original tree.
-            var wrapper = new UIScreenNode("MGStackPanel")
+            var wrapper = new UIScreenNode("StackPanel")
             {
-                Name = UIScreenNodeNames.CreateDefaultName(_document, "MGStackPanel", insertedNames),
+                Name = UIScreenNodeNames.CreateDefaultName(_document, "StackPanel", insertedNames),
             };
             _document.SetRoot(wrapper);
             wrapper.AddChild(_originalRoot);

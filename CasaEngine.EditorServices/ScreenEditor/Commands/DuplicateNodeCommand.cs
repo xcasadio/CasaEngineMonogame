@@ -5,7 +5,7 @@ namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 
 /// <summary>
 /// Deep-clones a node and inserts the clone as the next sibling.
-/// If the node is the document root, both it and the clone are wrapped in a new MGStackPanel.
+/// If the node is the document root, both it and the clone are wrapped in a new StackPanel.
 /// </summary>
 public sealed class DuplicateNodeCommand : IUIScreenCommand
 {
@@ -46,9 +46,9 @@ public sealed class DuplicateNodeCommand : IUIScreenCommand
             // Source is the document root — wrap in a new StackPanel
             _originalRoot = source;
             // Named before SetRoot: afterwards the document no longer holds the names of the original tree.
-            var wrapper = new UIScreenNode("MGStackPanel")
+            var wrapper = new UIScreenNode("StackPanel")
             {
-                Name = UIScreenNodeNames.CreateDefaultName(_document, "MGStackPanel", cloneNames),
+                Name = UIScreenNodeNames.CreateDefaultName(_document, "StackPanel", cloneNames),
             };
             _document.SetRoot(wrapper);
             wrapper.AddChild(source);
