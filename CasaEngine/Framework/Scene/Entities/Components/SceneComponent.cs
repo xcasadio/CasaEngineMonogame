@@ -300,7 +300,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 
         foreach (var child in other.Children)
         {
-            AddChildComponent(child.Clone() as SceneComponent);
+            AddChildComponent(child.CloneWithName() as SceneComponent);
         }
     }
 

@@ -168,14 +168,14 @@ public class Entity : ObjectBase
         IsVisible = entity.IsVisible;
         Policies = entity.Policies.Clone();
         Parent = entity.Parent;
-        RootComponent = entity.RootComponent?.Clone() as SceneComponent;
+        RootComponent = entity.RootComponent?.CloneWithName() as SceneComponent;
         GameplayProxyClassName = entity.GameplayProxyClassName;
         GameplayProxy = entity.GameplayProxy?.Clone();
         _gameplayProxyState = entity._gameplayProxyState;
 
         foreach (var component in entity._components)
         {
-            AddComponent(component.Clone());
+            AddComponent(component.CloneWithName());
         }
 
         foreach (var child in entity._children)

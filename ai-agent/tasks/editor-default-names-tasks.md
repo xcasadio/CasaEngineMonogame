@@ -198,7 +198,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4406 réussis, 0 échec (dont les 8 nouveaux tests de `EditorComponentNamesTests` : cinq pour `CreateUniqueName`, trois pour `GetComponentLabel`).
 > - Geste à vérifier par l'auteur (O1) : « Add component » nomme le composant d'après son type, et un modèle déposé dans le viewport a un composant `StaticModelComponent`.
 
-### ⏳ T1.3 — Un composant cloné avec son entité garde son nom
+### ✅ T1.3 — Un composant cloné avec son entité garde son nom
 
 - Objectif : P8, dans le runtime (`CasaEngine`).
 - Fichiers :
@@ -215,6 +215,11 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
     - Après `entity.Clone()`, les trois clones portent les mêmes noms et des ids neufs.
     - Sans l'étape 2, le test échoue (`Object <guid>`).
 - Commit : `fix(scene): keep the component names when an entity is cloned`
+
+> Validation (2026-10-09) :
+> - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+> - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4407 réussis, 0 échec (dont le nouveau test `ComponentCloneNameTests`).
+> - Étape 2 annulée temporairement : le test échoue (`Expected: "Root"`, `Actual: "Object 9fe23912-..."`) ; étape 2 rétablie, le test passe.
 
 ### ⏳ T1.4 — Convention, ADR et index
 
