@@ -7,6 +7,7 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
@@ -1079,6 +1080,11 @@ public sealed class EntityDetailsPanel
                 return;
             }
 
+            if (_selectedEntity != null)
+            {
+                component.Name = EditorComponentNames.CreateUniqueName(_selectedEntity, component);
+            }
+
             AddComponent(component);
             dialog.TryCloseWindow();
         });
@@ -1264,13 +1270,15 @@ public sealed class EntityDetailsPanel
             ?? component.GetType().Name;
     }
 
-    private static string GetComponentLabel(EntityComponent component)
+    /// <summary>Display name of the component type, followed by the instance name when it says something more.</summary>
+    internal static string GetComponentLabel(EntityComponent component)
     {
         var displayName = GetDisplayName(component);
         var instanceName = component.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(instanceName)
             || string.Equals(instanceName, displayName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(instanceName, component.GetType().Name, StringComparison.OrdinalIgnoreCase)
             || instanceName.StartsWith("Object ", StringComparison.OrdinalIgnoreCase))
         {
             return displayName;

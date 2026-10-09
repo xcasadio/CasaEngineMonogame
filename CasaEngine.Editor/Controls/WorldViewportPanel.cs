@@ -1083,6 +1083,7 @@ public class WorldViewportPanel : IDisposable
             Position = spawnPosition,
         };
 
+        staticModelComponent.Name = EditorComponentNames.CreateUniqueName(entity, staticModelComponent);
         entity.RootComponent = staticModelComponent;
         return entity;
     }

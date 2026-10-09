@@ -168,7 +168,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - Preuve par l'absurde, `AssignUniqueNames` retiré de `DuplicateNodeCommand` : `ADuplicatedDocument_Serialized_LoadsWithoutADuplicateElementName` échoue (`XamlLoaderException`, nom `btnPlay` en double), par `UIScreenLoader.Load` comme `UIScreenLoaderTests.cs:140-160`.
 > - `AssignUniqueNames` renvoie l'ensemble des noms du sous-arbre, pour les réserver à l'enveloppe (étape 4). La ligne du plan dans `ai-agent/README.md` est incluse dans le commit.
 
-### ⏳ T1.2 — Noms des composants ajoutés ou déposés
+### ✅ T1.2 — Noms des composants ajoutés ou déposés
 
 - Objectif : P4 et P5.
 - Fichiers :
@@ -192,6 +192,11 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
     - nom ` (2)` : nom d'affichage puis le nom entre crochets ;
     - `Object <guid>` : nom d'affichage seul, comme aujourd'hui.
 - Commit : `feat(editor): name the components the editor adds after their type`
+
+> Validation (2026-10-09) :
+> - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+> - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4406 réussis, 0 échec (dont les 8 nouveaux tests de `EditorComponentNamesTests` : cinq pour `CreateUniqueName`, trois pour `GetComponentLabel`).
+> - Geste à vérifier par l'auteur (O1) : « Add component » nomme le composant d'après son type, et un modèle déposé dans le viewport a un composant `StaticModelComponent`.
 
 ### ⏳ T1.3 — Un composant cloné avec son entité garde son nom
 
