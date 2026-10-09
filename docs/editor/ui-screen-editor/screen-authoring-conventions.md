@@ -62,14 +62,23 @@ Each candidate must exist on disk to be used; when none does, loading fails and 
 - Store screens under `Content/Screens/` or a sub-folder that mirrors their category.
 
 ### XAML control names
-- All named controls use `PascalCase` prefixed with a two-letter type hint:
+- All named controls use `PascalCase` prefixed with a three-letter type hint, followed by a number or a role:
   - `btn` — Buttons: `btnConfirm`, `btnCancel`
   - `lbl` — Text blocks / labels: `lblTitle`, `lblScore`
-  - `inp` — Input boxes: `inpSearch`, `inpPlayerName`
-  - `lst` — List views: `lstInventory`, `lstOptions`
-  - `pnl` — Panels / containers: `pnlHeader`, `pnlFooter`
   - `img` — Images: `imgAvatar`, `imgBackground`
-- Controls that are not referenced in code do not need a `Name` attribute.
+  - `inp` — Text boxes: `inpSearch`, `inpPlayerName`
+  - `lst` — List boxes: `lstInventory`, `lstOptions`
+  - `cmb` — Combo boxes: `cmbDifficulty`
+  - `chk` — Check boxes: `chkFullscreen`
+  - `rdo` — Radio buttons: `rdoEasy`
+  - `sld` — Sliders: `sldVolume`
+  - `prg` — Progress bars: `prgLoading`
+  - `wnd` — Windows: `wndPause`
+  - `pnl` — Panels and containers (StackPanel, DockPanel, Grid, UniformGrid, ScrollViewer, Border, Expander, OverlayPanel): `pnlHeader`, `pnlFooter`
+- A type is read with or without the `MG` prefix. A type that is not in the list takes its name without `MG`, first letter in lower case (`contextMenu`).
+- Every element has a `Name` that is unique in the screen (MGUI rejects a duplicate in a window). The editor gives one at creation, duplication and paste: the prefix and the smallest free number (`img1`, `btn2`), and a copied name gets a number (`btnPlay` becomes `btnPlay2`).
+
+> **Decisions: see ADR-0075** (`docs/decisions/0075-the-editor-names-the-elements-and-components-it-creates.md`).
 
 ---
 

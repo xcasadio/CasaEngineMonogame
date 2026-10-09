@@ -87,3 +87,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0072](0072-unresolved-components-are-kept.md) | A component of unknown type is kept as an unresolved component | Accepted | 2026-10-08 |
 | [ADR-0073](0073-preview-and-edit-documents-for-assets-without-one.md) | Assets without a document open in a read-only preview, and textures and static models get edit documents | Accepted | 2026-10-08 |
 | [ADR-0074](0074-editor-cameras-have-an-infinite-far-plane.md) | The editor cameras have an infinite far plane | Accepted | 2026-10-09 |
+| [ADR-0075](0075-the-editor-names-the-elements-and-components-it-creates.md) | The editor names the screen elements and components it creates | Accepted | 2026-10-09 |

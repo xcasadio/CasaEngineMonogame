@@ -221,7 +221,7 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
 > - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 4407 réussis, 0 échec (dont le nouveau test `ComponentCloneNameTests`).
 > - Étape 2 annulée temporairement : le test échoue (`Expected: "Root"`, `Actual: "Object 9fe23912-..."`) ; étape 2 rétablie, le test passe.
 
-### ⏳ T1.4 — Convention, ADR et index
+### 🧪 T1.4 — Convention, ADR et index
 
 - Objectif : la convention et la décision sont écrites.
 - Fichiers :
@@ -239,6 +239,11 @@ Branche `chantier/rgce-editor-project`, tête `7a5320b6a`, arbre propre (`git st
   3. Ligne du tableau de `ai-agent/README.md`.
 - Validation : les liens de la convention, de l'ADR et des index pointent vers des fichiers existants (`rg`) ; relecture du diff.
 - Commit : `docs(adr): record the default names the editor gives`
+
+> Validation (2026-10-09) :
+> - Docs seulement, pas de build. ADR-0075 écrite d'après `docs/decisions/template.md` (D1 à D3, P1 à P5, P8) ; index `docs/decisions/README.md`, section 2 de la convention et ligne du plan dans `ai-agent/README.md` mis à jour.
+> - Liens vérifiés par `rg` : l'ADR-0075, son index et la convention pointent vers des fichiers existants.
+> - Écart : le plan n'est pas archivé par cette tâche ; la session principale l'archive après la vérification indépendante. Reste 🧪 pour les vérifications de l'auteur (O1).
 
 ---
 
