@@ -10,6 +10,22 @@ namespace CasaEngine.Tests.Editor;
 public sealed class EditorViewportCameraControllerTests
 {
     [Fact]
+    public void SetStateAndFocus_AllowDistancesUpTo100000()
+    {
+        // The editor camera has no far plane: it may move away far enough to frame a whole world.
+        var controller = new EditorViewportCameraController();
+
+        controller.SetState(0f, 0f, 50000f, Vector3.Zero);
+        Assert.Equal(50000f, controller.Distance);
+
+        controller.SetState(0f, 0f, 200000f, Vector3.Zero);
+        Assert.Equal(100000f, controller.Distance);
+
+        controller.Focus(Vector3.Zero, 3000f);
+        Assert.Equal(3000f, controller.Distance);
+    }
+
+    [Fact]
     public void Update_AllowsPointerActivationWhileKeyboardIsCapturedButDoesNotMoveFromKeyboard()
     {
         var controller = new EditorViewportCameraController();

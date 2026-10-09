@@ -326,18 +326,9 @@ internal sealed class ModelPreviewViewport : IDisposable
 
         EnsurePreviewWorldCreated();
 
-        _cameraEntity = new Entity
-        {
-            Name = "ModelPreviewCamera",
-            IsVisible = false,
-        };
-
         _camera = new CameraLookAtComponent();
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("ModelPreviewCamera", _camera, _previewWorldDriver.World!);
         _camera.NearPlane = 0.05f;
-        _camera.FarPlane = 50.0f;
         _camera.SetPositionAndTarget(new Vector3(2.4f, 1.5f, 3.0f), Vector3.Zero);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 

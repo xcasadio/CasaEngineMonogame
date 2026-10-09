@@ -31,7 +31,8 @@ internal sealed class EditorViewportCameraController
     private const float PanSensitivity = 0.01f;
     private const float ZoomSensitivity = 1.1f;
     private const float MinDistance = 0.5f;
-    private const float MaxDistance = 1000f;
+    // Far enough to frame a world that fills the octree root (+/-100000), the editor camera having no far plane.
+    private const float MaxDistance = 100000f;
     private const float DefaultDistance = 10f;
     private const float KeyboardMoveSpeed = 10f;
 

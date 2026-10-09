@@ -222,7 +222,7 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 > - **Précision du ciel** : la direction au centre s'écarte de l'axe de 1e-6 à 10 unités, de 1e-4 à 3 000 et de 4e-3 à 100 000, avec l'ancienne formule comme avec la nouvelle (sonde `infcam/probe3`). C'est la précision de l'inverse `float` de la vue × projection, inchangée. Le test vérifie donc 1e-3 à 3 000 unités. La nouvelle formule reste définie au lointain infini, là où l'ancienne donne NaN.
 > - `dotnet build CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur, et aucun avertissement dans les fichiers touchés. `CasaEngine.Tests` : 4 344 sur 4 344.
 
-### ⏳ T1.2 — Fabrique des caméras de l'éditeur à distance infinie (D1 à D4, P3, P7)
+### ✅ T1.2 — Fabrique des caméras de l'éditeur à distance infinie (D1 à D4, P3, P7)
 
 - Objectif : la caméra d'édition et les aperçus dessinent toute la géométrie devant eux, la caméra d'édition recule jusqu'à 100 000, et la fabrique est le seul endroit qui crée et règle ces caméras.
 - Fichiers :
@@ -248,6 +248,31 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
      - un écart de pixels est lu et expliqué. Seuls sont admis l'objet lointain, devenu visible, et le soleil s'il est dans le champ (P6).
 - Validation : les deux solutions compilent avec 0 erreur ; `CasaEngine.Tests` passe ; les contrôles des étapes 2 à 4 sont décrits dans la note. Le contrôle manuel de l'auteur (molette jusqu'à voir toute la piste, double-clic de cadrage, axes du gizmo) est écrit dans la note ; la tâche est ✅ si les contrôles automatiques passent.
 - Commit : `feat(editor): give the editor cameras an infinite view distance`
+
+> Validation (2026-10-09) :
+> - **Code** :
+>   - `EditorCameraFactory` (`ApplySettings`, `CreateCameraEntity`, `InitializeWithWorld`) crée et règle les six caméras de l'éditeur. La vue du monde l'appelle à la création et au changement de monde, et les cinq aperçus à la création ;
+>   - l'aperçu de modèle garde son proche de 0,05 et perd son lointain de 50 ;
+>   - `MaxDistance` de la caméra d'édition passe à 100 000 ;
+>   - `GizmoRay.FromScreen` (GizmoTool) calcule le rayon en espace vue, et `Gizmo.ConvertMouseToRay` l'appelle.
+> - **Tests** :
+>   - `EditorCameraFactoryTests` (2) : le lointain infini, réappliqué après une remise à 1 000 ;
+>   - `GizmoRayTests` (10) : avec le viewport de profondeur 0 à 1 du gizmo, à 10, 3 000 et 100 000 unités, au lointain fini et infini ;
+>   - `EditorViewportCameraControllerTests` : 50 000 est gardé, 200 000 ramené à 100 000, et `Focus(…, 3 000)` gardé.
+>   `CasaEngine.Tests` : 4 357 sur 4 357. Les deux solutions compilent avec 0 erreur, et aucun avertissement dans les fichiers touchés.
+> - **Éditeur**, sur des copies du contenu RacingGameCasaEngine. L'éditeur « avant » est une copie du build du 2026-10-08, antérieure à ce chantier, et l'éditeur « après » le build de cette tâche (`infcam/editor-checks/` du scratchpad) :
+>   - **objet lointain** : le monde de contrôle garde la lumière et reçoit `StaticModel.Hotel01` à l'échelle 100, à 5 000 unités dans l'axe de la caméra d'édition par défaut. Cet axe est calculé par le moteur lui-même (sonde `infcam/axisprobe`), avec l'œil en (−6,12 ; 5 ; 6,12) et le point en (3 055,7 ; −2 495 ; −3 055,7) :
+>     - avant, la vue est vide ;
+>     - après, l'hôtel est dessiné ;
+>   - **ciel par cubemap** : le même monde, sans l'hôtel, avec `background_mode` Environment sur `Texture.SkyCubeMap`. Avant et après, le ciel est le même : écart moyen de 0,003 par canal sur la vue, et 6 pixels sur 538 670 au-delà de 8, sur les lignes de la grille, où la profondeur change très légèrement ;
+>   - le monde de test complet, `StaticModel.Hotel01` (aperçu de modèle) et un matériau de `Hotel01` (aperçu de matériau) s'ouvrent avec le code 0. Les captures lues montrent le modèle et la sphère ;
+>   - chaque ouverture n'a que les deux avertissements connus (assemblée de scripts encore chargée).
+> - **Contrôle manuel de l'auteur**, que l'automatisation ne sait pas faire :
+>   1. ouvrir `Worlds/Test/TrackBeginnerGenerators.world` ;
+>   2. reculer à la molette jusqu'à voir toute la piste : rien ne doit être coupé au loin ;
+>   3. double-cliquer une entité pour la cadrer ;
+>   4. survoler et déplacer les axes du gizmo, près de l'origine puis loin d'elle ;
+>   5. passer en mode Play et revenir : la caméra d'édition reste sans plan lointain.
 
 ### ⏳ T1.3 — ADR, documentation et pointeur RacingGame
 

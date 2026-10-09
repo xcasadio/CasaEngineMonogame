@@ -311,16 +311,8 @@ internal sealed class SpritePreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _cameraEntity = new Entity
-        {
-            Name = "SpritePreviewCamera",
-            IsVisible = false,
-        };
-
         _camera = new CameraLookAtComponent();
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("SpritePreviewCamera", _camera, _previewWorldDriver.World!);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
         _surface = new RenderTargetSurface(
