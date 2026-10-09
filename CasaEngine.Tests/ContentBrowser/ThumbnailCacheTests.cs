@@ -39,6 +39,23 @@ public sealed class ThumbnailCacheTests : IDisposable
         Assert.True(cache.TryGetCached(third.FullPath, out _));
     }
 
+    [Theory]
+    [InlineData("road.tga")]
+    [InlineData("road.dds")]
+    public void SupportsThumbnail_ReturnsFalse_ForTextureFormatsGdiCannotDecode(string fileName)
+    {
+        var path = Path.Combine(_rootPath, fileName);
+        File.WriteAllBytes(path, new byte[] { 0, 1, 2, 3 });
+
+        Assert.False(ThumbnailCache.SupportsThumbnail(new ContentItem(path, false)));
+    }
+
+    [Fact]
+    public void SupportsThumbnail_ReturnsTrue_ForPngTexture()
+    {
+        Assert.True(ThumbnailCache.SupportsThumbnail(CreateTextureItem("road.png", Color.Gray)));
+    }
+
     [Fact]
     public void Invalidate_RemovesCachedEntry()
     {
