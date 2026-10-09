@@ -23,7 +23,9 @@ VS_OUTPUT VS_Main(VS_INPUT input)
 
     float4 clipPosition = float4(input.Position.xy, 1.0f, 1.0f);
     float4 worldPosition = mul(clipPosition, InverseViewProjection);
-    float3 worldDirection = normalize(worldPosition.xyz / worldPosition.w - EyePosition);
+    // Same direction as normalize(worldPosition.xyz / worldPosition.w - EyePosition) when w > 0 (any finite far
+    // plane), and still defined when w is 0: without a far plane, clip depth 1 is the point at infinity.
+    float3 worldDirection = normalize(worldPosition.xyz - EyePosition * worldPosition.w);
 
     output.Position = float4(input.Position.xy, 0.9999f, 1.0f);
     output.Direction = worldDirection;
