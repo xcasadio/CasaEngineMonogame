@@ -1,5 +1,7 @@
 # Plan agent IA — Point de boucle de la musique en flux (E19.L-a)
 
+> Note (2026-10-10) : l'ADR de ce chantier est numérotée **ADR-0074** depuis la fusion d'`origin/main` du moteur, dont l'ADR-0072 enregistre l'écran principal des démos. Les comptes rendus ci-dessous gardent l'ancien numéro, comme les messages de commit.
+
 Plan d'exécution de la moitié moteur de la boucle au repère de séquence, décidée dans le dépôt parent (décision D-E19-102, section 1.2w.1 de
 `docs/plan-e19-opcodes.md` du dépôt parent : règles LA-R1 à LA-R7, faits et valeurs dans `docs/plan-e19-loop-annexe/la-1008/` du dépôt parent).
 Les décisions D1 → D6 ci-dessous sont celles du plan du dépôt parent, relu deux fois jusqu'à READY : **ce plan les applique, il ne les rediscute pas**.
@@ -72,9 +74,9 @@ le travailleur de flux), le sérialiseur de l'éditeur et la copie d'aperçu de 
   lecture flottante, copie d'aperçu absente.
 - Commit : `feat(audio): a streamed music track loops back to its loop-start sample (E19.L-a T1, ADR-0072)`.
 
-### ✅ T1.3 — Documentation et ADR-0072
+### ✅ T1.3 — Documentation et ADR-0074 (numérotée ADR-0072 jusqu'au 2026-10-10)
 
-- Fichiers : `docs/engine/audio-system.md` (§3, §5, §9), `docs/decisions/0072-a-streamed-music-track-loops-back-to-its-loop-start-sample.md`,
+- Fichiers : `docs/engine/audio-system.md` (§3, §5, §9), `docs/decisions/0074-a-streamed-music-track-loops-back-to-its-loop-start-sample.md`,
   `docs/decisions/README.md`, ce plan, `ai-agent/README.md`.
 - Validation : relecture ; numéro d'ADR revérifié sur toutes les branches avant le commit.
 - Commit : avec T1.2.

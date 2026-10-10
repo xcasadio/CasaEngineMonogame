@@ -296,7 +296,7 @@ Le streaming est **authoré**, pas déduit de l'extension : le même `.wav` peut
 Tout champ absent prend sa valeur par défaut, donc un document incomplet se charge au lieu
 d'échouer.
 
-**Variations aléatoires, priorité, spatialisation, liaisons et point de boucle** (ADR-0063, ADR-0064, ADR-0072), champs additifs : chaque clé n'est écrite que si
+**Variations aléatoires, priorité, spatialisation, liaisons et point de boucle** (ADR-0063, ADR-0064, ADR-0074), champs additifs : chaque clé n'est écrite que si
 sa valeur diffère de son défaut, donc un `.sound` qui ne s'en sert pas garde exactement les clés
 ci-dessus.
 
@@ -339,7 +339,7 @@ Le chargement est tolérant : une valeur d'un type inattendu (texte, `null`, obj
 avec un avertissement qui nomme l'asset et la clé ; une entrée de liste qui n'est pas un GUID est
 ignorée de même. Un asset marqué streaming ignore variations et priorité.
 
-**Point de boucle** (`loop_start_sample`, ADR-0072). `SoundAsset.LoopStartSample` est un `long`, lu comme un entier
+**Point de boucle** (`loop_start_sample`, ADR-0074). `SoundAsset.LoopStartSample` est un `long`, lu comme un entier
 JSON exact (pas par un flottant : 16 777 217 reste 16 777 217) ; une valeur négative devient 0 ; un jeton d'un autre
 type (texte, nombre à virgule, booléen) garde 0 avec un avertissement qui nomme l'asset et la clé. La clé n'est écrite
 qu'à une valeur non nulle, juste après `is_streaming`. Elle ne sert qu'à un son à la fois bouclé et streamé : un son

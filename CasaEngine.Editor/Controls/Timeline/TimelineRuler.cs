@@ -31,9 +31,9 @@ internal sealed class TimelineRuler : MGElement
         sharedSize = new Thickness(0);
 
         float textHeight = TimelineControlMetrics.LabelFontSize;
-        if (TryResolveFont(out ITextMeasurementEngine textEngine, out ResolvedFont font, out float scale) && font.IsAvailable)
+        if (TryResolveFont(out ITextMeasurementEngine textEngine, out ResolvedFont font, out _) && font.IsAvailable)
         {
-            textHeight = Math.Max(textEngine.MeasureText(font, "0.5").Y, font.LineHeight * scale);
+            textHeight = Math.Max(textEngine.MeasureText(font, "0.5").Y, font.LineHeight);
         }
 
         int desiredHeight = (int)MathF.Ceiling(textHeight + 8f);
@@ -107,7 +107,7 @@ internal sealed class TimelineRuler : MGElement
 
             string label = TimelineTickCalculator.FormatTimeLabel(timeSeconds, timeUnit, frameRate);
             Vector2 textSize = textEngine.MeasureText(font, label);
-            float textHeight = Math.Max(textSize.Y, font.LineHeight * scale);
+            float textHeight = Math.Max(textSize.Y, font.LineHeight);
             float labelX = Math.Min(x + 2f, contentRight - textSize.X - 2f);
             float labelY = layoutBounds.Top + Math.Max(0f, (layoutBounds.Height - textHeight) * 0.5f);
             Vector2 drawPosition = new Vector2(labelX, labelY)
@@ -138,7 +138,7 @@ internal sealed class TimelineRuler : MGElement
     {
         textEngine = GetTextEngine();
         font = textEngine.ResolveFont(new FontSpec(ParentWindow.Desktop.DefaultFontFamily, TimelineControlMetrics.LabelFontSize, CustomFontStyles.Normal));
-        scale = font.SuggestedScale;
+        scale = font.ExactScale;
         return font.IsAvailable;
     }
 

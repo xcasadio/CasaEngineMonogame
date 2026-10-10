@@ -107,13 +107,11 @@ public class DemoScreenXamlTests
     [Theory]
     // pause menu: centred, 300x200.
     [InlineData("pause-menu.xaml", (640 - 300) / 2, (480 - 200) / 2, 300, 200)]
-    // F1 hint: centred horizontally, 14px above the bottom, 300x36.
+    // demo hint (Esc / Select: back to the menu): centred horizontally, 14px above the bottom, 300x36.
     [InlineData("demo-hint.xaml", (640 - 300) / 2, 480 - 36 - 14, 300, 36)]
     // blending controls: same corner, but 560 does NOT fit in 480 -- the height is capped to the space the
     // margin leaves, which is exactly what Math.Min(560, viewport - 20) used to do.
     [InlineData("blending-controls.xaml", 640 - 320 - 10, 10, 320, 480 - 20)]
-    // demo browser: stretched over its whole surface, no inset (ADR-0070; the game sizes the surface).
-    [InlineData("demo-browser.xaml", 0, 0, 640, 480)]
     public void EachPlacedScreen_LandsWhereItsOldArithmeticPutIt(string fileName, int left, int top, int width, int height)
     {
         var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
@@ -127,28 +125,28 @@ public class DemoScreenXamlTests
     }
 
     [Fact]
-    public void TheDemoBrowser_DeclaresWhatItsScreenLooksUp()
+    public void TheMainMenu_DeclaresWhatItsScreenLooksUp()
     {
-        // DemoBrowserScreen and the browser's keyboard rule (plan point P9) find these by name; a rename in the markup
-        // must break here rather than in the demo.
-        var (desktop, _) = HeadlessUiTestHarness.NewDesktop(280, 768);
+        // MainMenuScreen finds these by name (ai-agent/tasks/demos-main-menu-tasks.md, decision D3), and the screen fills
+        // the view of the menu world; a rename in the markup must break here rather than in the demo.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop(1024, 768);
 
-        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-browser.xaml")));
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("main-menu.xaml")));
 
         Assert.False(window.IsTitleBarVisible);
         Assert.Equal(0, window.Left);
         Assert.Equal(0, window.Top);
-        Assert.Equal(280, window.WindowWidth);
+        Assert.Equal(1024, window.WindowWidth);
         Assert.Equal(768, window.WindowHeight);
         Assert.True(window.TryGetElementByName("treeDemos", out MGTreeView _));
-        Assert.True(window.TryGetElementByName("btnCollapse", out MGButton _));
         Assert.True(window.TryGetElementByName("lblHeader", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("lblTitle", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("lblTheme", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock description));
         Assert.False(description.AllowsInlineFormatting);
-        Assert.True(window.TryGetElementByName("lblHint", out MGTextBlock _));
-        Assert.True(window.TryGetElementByName("bdrSceneHandle", out MGBorder _));
+        Assert.True(window.TryGetElementByName("lblStatus", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("btnLaunch", out MGButton _));
+        Assert.True(window.TryGetElementByName("btnQuit", out MGButton _));
     }
 
     [Fact]
@@ -182,7 +180,7 @@ public class DemoScreenXamlTests
     }
 
     [Theory]
-    [InlineData("ui-overlay-hud.xaml", "Press F1 to toggle the demo navigator",
+    [InlineData("ui-overlay-hud.xaml", "Esc or Select: back to the menu",
         new[] { "lblTitle", "lblTime", "lblHint", "btnPause", "btnDialogue" })]
     [InlineData("screen-effect-smoke-hud.xaml", "Press 1: alpha fade to black and back, BelowUI (default)",
         new[] { "lblTitle", "lblBelowUiHint", "lblAboveUiHint", "lblExpectation" })]

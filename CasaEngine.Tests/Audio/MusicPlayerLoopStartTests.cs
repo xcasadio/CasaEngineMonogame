@@ -7,7 +7,7 @@ using Xunit;
 namespace CasaEngine.Tests.Audio;
 
 /// <summary>
-/// A looped streamed track loops back to <see cref="SoundAsset.LoopStartSample"/> instead of frame 0 (plan E19.L-a, ADR-0072).
+/// A looped streamed track loops back to <see cref="SoundAsset.LoopStartSample"/> instead of frame 0 (plan E19.L-a, ADR-0074).
 /// Both loop sites are covered: the inline fill of <see cref="MusicPlayer"/> (also the synchronous first fill of
 /// <see cref="MusicPlayer.Play"/> in every mode) and the streaming worker, which is the production path. Every player here is
 /// built with an explicit queue target of 3, so the default queue depth can change without moving these values.

@@ -57,12 +57,13 @@ Same house pattern as `CellularLayerComponent`; `ComponentUpdateOrder.EffectQuad
 
 ## Demo and proof
 
-`CasaEngine.Demos/Demos/PsxSemiTransparency/EffectQuadDemo.cs` ("Effect quads"): a synthetic 512 x 1105 address texture (one colour per
-texel, STP texels and holes), four scenes (`CASAENGINE_EFFECTQUAD_SCENE`: `a_aura_real`, `a_aura_mix`, `b_mirror_clamp`, `c_ties_tall`), the
-camera mapping one PS1 pixel to `k` screen pixels (`CASAENGINE_EFFECTQUAD_ZOOM`, 1 or 3). It dumps its back-buffer in process
-(`CASAENGINE_EFFECTQUAD_DUMP_PATH`, int32 width, height, k, then RGBA) for the comparison with the prediction of the parent repository
+The proof of E19.g G2e was made with a demo, `CasaEngine.Demos/Demos/PsxSemiTransparency/EffectQuadDemo.cs` ("Effect quads", commit
+`96862da3`): a synthetic 512 x 1105 address texture (one colour per texel, STP texels and holes), four scenes, the camera mapping one PS1
+pixel to `k` screen pixels, and an in-process dump of its back-buffer compared with the prediction of the parent repository
 (`docs/plan-e19-g3c-annexe/g2e_compare.py`): opaque pixels exact, pixels blended by a PSX mode within one level per channel, outside the
-noise zone. Run it from the `CasaEngine.Demos` folder with `CASAENGINE_START_DEMO="Effect quads"`.
+noise zone. The demo was removed on 2026-10-10 with the other PSX validation demos (the demos main screen, ADR-0072); it stays in the
+history at that commit. `EffectQuadServiceTests` and `EffectQuadComponentSubmissionTests` (`CasaEngine.Tests/Rendering/EffectQuads/`)
+keep covering the service and the component.
 
 ## Limits
 

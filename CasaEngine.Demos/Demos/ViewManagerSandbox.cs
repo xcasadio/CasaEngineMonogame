@@ -27,9 +27,6 @@ namespace CasaEngine.Demos.Demos;
 ///   <item>HUD showing view count, RT pool stats, per-view modes.</item>
 /// </list>
 ///
-/// Navigation: use the MGUI demo navigator panel (top-right) to switch demos.
-///             Press F1 to toggle the panel visibility.
-///
 /// Controls (while this demo is active):
 /// <code>
 /// Tab       — add a new view (up to 4)

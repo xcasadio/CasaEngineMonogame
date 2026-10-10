@@ -244,7 +244,7 @@ internal sealed class TimelineViewport : MGElement
     {
         textEngine = GetTextEngine();
         font = textEngine.ResolveFont(new FontSpec(ParentWindow.Desktop.DefaultFontFamily, TimelineControlMetrics.LabelFontSize, CustomFontStyles.Normal));
-        scale = font.SuggestedScale;
+        scale = font.ExactScale;
         return font.IsAvailable;
     }
 

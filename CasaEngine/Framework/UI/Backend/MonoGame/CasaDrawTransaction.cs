@@ -271,22 +271,19 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     }
 
     /// <param name="Family">The font to use</param>
-    /// <param name="DesiredFontSize">The desired size of the <see cref="SpriteFont"/>, in points.</param>
-    /// <param name="Exact">If true, will attempt to render the text at exactly the given <paramref name="DesiredFontSize"/>.<br/>
-    /// If false, treats <paramref name="DesiredFontSize"/> as an approximation, and may render the text slightly larger or smaller to avoid blurriness</param>
+    /// <param name="DesiredFontSize">The desired size of the text, in points. The text is drawn at the scale it is measured with (MGUI ADR-0023).</param>
     public Vector2 DrawShadowedText(string Family, string Text, Vector2 Position, Color TextColor, Color ShadowColor,
-        int DesiredFontSize, float XOffset = 1, float YOffset = 1, bool Exact = false)
-        => DrawShadowedText(Family, CustomFontStyles.Normal, Text, Position, TextColor, ShadowColor, DesiredFontSize, XOffset, YOffset, Exact);
+        int DesiredFontSize, float XOffset = 1, float YOffset = 1)
+        => DrawShadowedText(Family, CustomFontStyles.Normal, Text, Position, TextColor, ShadowColor, DesiredFontSize, XOffset, YOffset);
 
     // Both DrawShadowedText and MeasureText guard with `resolved.NativeFont == null`
     // (not `&& resolved.IsFallback`) so the null-check is consistent across all
     // text-rendering paths in CasaDrawTransaction.  Verified as part of PR #35 review.
     /// <param name="Family">The font to use</param>
-    /// <param name="DesiredFontSize">The desired size of the <see cref="SpriteFont"/>, in points.</param>
-    /// <param name="Exact">If true, will attempt to render the text at exactly the given <paramref name="DesiredFontSize"/>.<br/>
-    /// If false, treats <paramref name="DesiredFontSize"/> as an approximation, and may render the text slightly larger or smaller to avoid blurriness</param>
+    /// <param name="DesiredFontSize">The desired size of the text, in points. The text is drawn at the scale it is measured with (MGUI ADR-0023).</param>
+    /// <returns>The measured size of <paramref name="Text"/>, which is also its drawn size.</returns>
     public Vector2 DrawShadowedText(string Family, CustomFontStyles Style, string Text, Vector2 Position, Color TextColor, Color ShadowColor,
-        int DesiredFontSize, float XOffset = 1, float YOffset = 1, bool Exact = false)
+        int DesiredFontSize, float XOffset = 1, float YOffset = 1)
     {
         // Resolve and measure once; draw twice (shadow + text) to avoid redundant font resolves
         var resolved = TextEngine.ResolveFont(new FontSpec(Family, DesiredFontSize, Style));
@@ -295,22 +292,18 @@ public class CasaDrawTransaction : IMonoGameDrawContext
             return Vector2.Zero;
         }
 
-        float scale = Exact ? resolved.ExactScale : resolved.SuggestedScale;
-        Vector2 suggested = TextEngine.MeasureText(resolved, Text);
+        float scale = resolved.ExactScale;
+        Vector2 size = TextEngine.MeasureText(resolved, Text);
+        Vector2 drawPosition = Position + (resolved.DrawOrigin * scale);
 
         BeginDraw(DrawContext.Sprites);
-        TextRenderer.DrawText(this, resolved, Text, Position + new Vector2(XOffset, YOffset), ShadowColor, resolved.DrawOrigin, scale);
-        TextRenderer.DrawText(this, resolved, Text, Position, TextColor, resolved.DrawOrigin, scale);
-
-        if (!Exact || resolved.SuggestedScale == resolved.ExactScale)
-        {
-            return suggested;
-        }
-
-        return suggested * (resolved.ExactScale / resolved.SuggestedScale);
+        TextRenderer.DrawText(this, resolved, Text, drawPosition + new Vector2(XOffset, YOffset), ShadowColor, resolved.DrawOrigin, scale);
+        TextRenderer.DrawText(this, resolved, Text, drawPosition, TextColor, resolved.DrawOrigin, scale);
+        return size;
     }
 
-    public Vector2 MeasureText(string Family, CustomFontStyles Style, string Text, int DesiredFontSize, bool Exact = false)
+    /// <returns>The size of <paramref name="Text"/> at the scale it is drawn with (MGUI ADR-0023).</returns>
+    public Vector2 MeasureText(string Family, CustomFontStyles Style, string Text, int DesiredFontSize)
     {
         if (string.IsNullOrEmpty(Text))
         {
@@ -323,30 +316,19 @@ public class CasaDrawTransaction : IMonoGameDrawContext
             return Vector2.Zero;
         }
 
-        Vector2 suggested = TextEngine.MeasureText(resolved, Text);
-        if (!Exact || resolved.SuggestedScale == resolved.ExactScale)
-        {
-            return suggested;
-        }
-
-        // Adjust from SuggestedScale to ExactScale proportionally
-        float ratio = resolved.ExactScale / resolved.SuggestedScale;
-        return suggested * ratio;
+        return TextEngine.MeasureText(resolved, Text);
     }
 
     /// <summary>Renders the given <paramref name="Text"/> using <see cref="CustomFontStyles.Normal"/> style.</summary>
     /// <param name="Family">The font to use</param>
-    /// <param name="DesiredFontSize">The desired size of the <see cref="SpriteFont"/>, in points.</param>
-    /// <param name="Exact">If true, will attempt to render the text at exactly the given <paramref name="DesiredFontSize"/>.<br/>
-    /// If false, treats <paramref name="DesiredFontSize"/> as an approximation, and may render the text slightly larger or smaller to avoid blurriness</param>
-    public Vector2 DrawText(string Family, string Text, Vector2 Position, Color Color, int DesiredFontSize, bool Exact = false)
-        => DrawText(Family, CustomFontStyles.Normal, Text, Position, Color, DesiredFontSize, Exact);
+    /// <param name="DesiredFontSize">The desired size of the text, in points. The text is drawn at the scale it is measured with (MGUI ADR-0023).</param>
+    public Vector2 DrawText(string Family, string Text, Vector2 Position, Color Color, int DesiredFontSize)
+        => DrawText(Family, CustomFontStyles.Normal, Text, Position, Color, DesiredFontSize);
 
     /// <param name="Family">The font to use</param>
-    /// <param name="DesiredFontSize">The desired size of the <see cref="SpriteFont"/>, in points.</param>
-    /// <param name="Exact">If true, will attempt to render the text at exactly the given <paramref name="DesiredFontSize"/>.<br/>
-    /// If false, treats <paramref name="DesiredFontSize"/> as an approximation, and may render the text slightly larger or smaller to avoid blurriness</param>
-    public Vector2 DrawText(string Family, CustomFontStyles Style, string Text, Vector2 Position, Color Color, int DesiredFontSize, bool Exact = false)
+    /// <param name="DesiredFontSize">The desired size of the text, in points. The text is drawn at the scale it is measured with (MGUI ADR-0023).</param>
+    /// <returns>The measured size of <paramref name="Text"/>, which is also its drawn size.</returns>
+    public Vector2 DrawText(string Family, CustomFontStyles Style, string Text, Vector2 Position, Color Color, int DesiredFontSize)
     {
         var resolved = TextEngine.ResolveFont(new FontSpec(Family, DesiredFontSize, Style));
         if (resolved.NativeFont == null)
@@ -359,18 +341,12 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         }
 
         // Measure before drawing so we return the correct size without a second engine call.
-        float scale = Exact ? resolved.ExactScale : resolved.SuggestedScale;
-        Vector2 suggested = TextEngine.MeasureText(resolved, Text);
+        float scale = resolved.ExactScale;
+        Vector2 size = TextEngine.MeasureText(resolved, Text);
 
         BeginDraw(DrawContext.Sprites);
-        TextRenderer.DrawText(this, resolved, Text, Position, Color, resolved.DrawOrigin, scale);
-
-        if (!Exact || resolved.SuggestedScale == resolved.ExactScale)
-        {
-            return suggested;
-        }
-
-        return suggested * (resolved.ExactScale / resolved.SuggestedScale);
+        TextRenderer.DrawText(this, resolved, Text, Position + (resolved.DrawOrigin * scale), Color, resolved.DrawOrigin, scale);
+        return size;
     }
     #endregion Draw Text
 

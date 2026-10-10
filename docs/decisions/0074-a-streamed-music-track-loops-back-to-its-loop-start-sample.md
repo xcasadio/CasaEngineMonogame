@@ -1,6 +1,6 @@
-# ADR-0072: A streamed music track loops back to its loop-start sample
+# ADR-0074: A streamed music track loops back to its loop-start sample
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0072 until 2026-10-10: renumbered when the engine merged origin/main, whose ADR-0072 records the demos main screen; the decision is unchanged)
 - **Date**: 2026-10-08 (plan E19.L-a, task T1 read until READY twice; decision D-E19-102 of the parent repository)
 - **Source**: this chantier: `ai-agent/tasks/e19la-music-loop-start-tasks.md` (tasks T1.1 to T1.3). Parent repository:
   `docs/plan-e19-opcodes.md` section 1.2w.1 (rules LA-R1 to LA-R7), values and counter-check in

@@ -759,7 +759,7 @@ public class SoundAssetTests
         Assert.Empty(asset.ParameterBindings);
     }
 
-    // ---- loop_start_sample (plan E19.L-a, ADR-0072) ----
+    // ---- loop_start_sample (plan E19.L-a, ADR-0074) ----
 
     [Theory]
     [InlineData(5_344_920L, 5_344_920L)]
