@@ -92,7 +92,7 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Phase 0 — Recensement
 
-### ⏳ T0.1 — Recenser les filets et la frontière de l'éditeur
+### ⚠️ T0.1 — Recenser les filets et la frontière de l'éditeur
 
 - Objectif : la liste complète des endroits où une création d'objet script est rattrapée (moteur, éditeur, et les chemins de la DLL Alundra que le plan parent nomme), avec, pour chacun, le comportement voulu (D3, D7) ; la frontière qui rattrape un échec de création quand l'éditeur ouvre un monde sans DLL construite.
 - Sources : `git grep` des `catch` autour de `Initialize`, `CreateGameplayProxy`, `CreateLocalPlayerController`, `CreateMode`, `UIScreenDesignTimeDataLoader` ; les chemins de spawn de `World` ; l'ouverture d'un monde dans l'éditeur.
@@ -101,6 +101,31 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
   2. La liste, avec fichier:ligne et la règle de chacun, versée dans ce plan.
   3. Un filet que la règle ne traverse pas sans changer un autre comportement, ou l'absence de frontière dans l'éditeur : ⚠️ Blocked, question (D8).
 - Validation : la liste versée ; aucun code touché.
+- Note de validation (2026-10-16, ARRÊT D8 : pas de frontière dans l'éditeur hors session de jeu). Compte de départ : `CasaEngine.Tests` construit explicitement, **4252/4252 verts** (0 échec, 0 ignoré, 26 s), sous-module à `781d3527`.
+
+  **Inventaire des filets autour d'une création d'objet script** (lignes relevées au commit moteur `781d3527` ; DLL au commit parent `be8f2f4`).
+
+  Créations (rappel) : `Entity.cs:210-214` (proxy d'entité, appelé par `Entity.Initialize`), `World.cs:325-338` (proxy de monde), `World.cs:440` (contrôleur), `GameplayModeAsset.cs:11-18` (mode, appelé par `World.cs:504`), `UIScreenDesignTimeDataLoader.cs:113` (view model d'aperçu).
+
+  | # | Filet | Ce qu'il enveloppe | Aujourd'hui (nom introuvable : `Activator.CreateInstance(null)` lève `ArgumentNullException`) | Règle (D3, D7) |
+  |---|---|---|---|---|
+  | F1 | `World.cs:797` `catch (Exception e) { Logs.WriteException(e); }` dans `InternalAddEntities` (`:774-801`) | `entity.Initialize()` (création du proxy d'entité) puis `InitializeWithWorld`, pour toute entité en attente ; appelé par `LoadContent` (`:304`, `:321`), `InitializePlayerControllers` (`:384`, pion par défaut `:380`) et `Update` (`:528`) ; couvre les entités en ligne, les références de préfab (`:297-304`, `:471-475`) et les ajouts de l'éditeur | journal et entité omise, monde chargé | D7 : filtre `when (e is not ScriptTypeResolutionException)` ; l'entité en ligne est complétée du fichier du monde par un `catch` de ce seul type ; toute autre exception : journal et omission inchangés |
+  | F2 | aucun filet autour de `World.CreateGameplayProxy` (appel `:311`) | création du proxy de monde dans `LoadContent` | l'exception sort de `LoadContent` | traverse déjà ; message complété du fichier du monde (D6) |
+  | F3 | aucun filet autour de `CreateLocalPlayerController` (`:381`, création `:440`) | création du contrôleur | sort de `LoadContent` | traverse déjà ; le message cite le `.gameMode` ou les réglages (D6) |
+  | F4 | aucun filet autour de `StartGameplayModeAsset` (`:496-508`, appelé par `BeginPlay`) | création du mode | sort de `BeginPlay` | traverse déjà ; le message cite le `.gameMode` (D6) |
+  | F5 | `UIScreenDesignTimeDataLoader.cs:115` `catch (Exception ex)` vers `Fail(...)` | `ElementFactory.Create<object>(typeName)` du view model d'aperçu (éditeur) | `Fail` avec le message de l'exception | D3 : même filet, le message de l'exception dédiée (clé, valeur, fichier, assembly, indice) passe tel quel dans `Fail` ; D4 : jamais d'exception hors de `Load` |
+  | F6 | `UIScreenDesignTimeDataLoader.cs:67,71,82,131` | chemin du fichier, lecture JSON, `PopulateObject` | sans rapport avec la création | inchangés |
+  | F7 | `GameEditor.cs:6369` `catch (Exception ex) when (_playModeService?.IsPlaySessionActive == true)` autour de `_editorRuntime?.UpdateHost(gameTime)` (`:6365-6374`) | toute la mise à jour du runtime hébergé, donc `GameManager.UpdateWorld` (`GameManager.cs:84`, `LoadContent` `:131`, `BeginPlay`) et `World.Update` | **session de jeu seulement** : arrêt de la session (`StopPlayMode`), l'éditeur survit | l'exception de D3 y est traitée comme toute exception de gameplay (arrêt de la session) : acceptable |
+  | F8 | `GameEditor.cs:4581` `catch (Exception exception)` autour de `LoadCopy<World>` (`OpenWorldAsset`) | **lecture** du monde seule (`Load`) | refuse l'ouverture, éditeur intact | sans objet (D4 : la création n'a pas lieu au `Load`) |
+  | F9 | `GameEditor.cs:4597` et `:1241` `gameManager.UpdateWorld(new GameTime())`, hors de tout `try` ; `CasaEngine.Editor/Program.cs:16` `catch` qui écrit un fichier de diagnostic puis `throw;` | matérialisation du monde ouvert ou rechargé | l'exception d'un proxy de monde, d'un contrôleur ou d'un mode sort et **tue l'éditeur** ; celle d'une entité est avalée par F1 | voir ci-dessous |
+  | F10 | DLL `AlundraWorldProxy.cs:1093` (boucle de chargement de la carte, `try` `:1058`) | `AlundraEntitySpawnFactory.CreateEntityFromRecord` (`:1061`) qui appelle `entity.Initialize()` (`AlundraEntitySpawnFactory.cs:443`, `:514`, `:593`) | `catch (Exception)` : `AbortCreation`, journal, enregistrement omis | révision 4 : `catch` du seul type dédié, `AbortCreation` puis relance ; toute autre exception : inchangée |
+  | F11 | DLL `AlundraWorldProxy.cs:3409` (`SpawnEntityByRecordId`, `try` `:3376`, opcodes 0x2D/0x8A/0x8B) | `CreateEntityFromRecord` (`:3379`) | `catch (Exception)` : `AbortCreation`, journal, `null` | idem F10 |
+  | F12 | DLL `AlundraWorldProxy.cs:3539` (`SpawnEntityBySpriteIndex`, `try` `:3497`) | `CreateEntityFromSpriteIndex` (`:3508`) | `catch (Exception)` : `AbortCreation`, `Refuse(...)`, `null` | idem F10 |
+  | F13 | DLL `AlundraEntitySpawnFactory.cs:379` | `prefabLoader(prefabAssetId)` = `LoadCopy<Entity>` : lecture seule, jamais la création (`CreateEntityFromPrefab` est appelé hors du `try`, `:387`) | repli sur une entité nue (`:401`) | sans objet (D4) ; la création du repli (`CreateBareEntityFromRecord`) a lieu dans le `try` du site appelant (F10 et F11) |
+
+  Autres sites de la DLL à passer en nom complet (hors filet, partie parent) : `AlundraEntitySpawnFactory.cs:438`, `:509`, `:588` (`nameof(AlundraEntityScriptProxy)` posé dans `GameplayProxyClassName`). Les `catch` de `AlundraWorldProxy.cs:1458`, `:1736`, `:1770`, `:1924` ne touchent pas une création d'objet script. Aucun autre filet n'enveloppe `SpawnEntity`, `AddEntity` ou `LoadContent` dans le moteur, l'éditeur, les démos ou SandBoxGame ; les aperçus de l'éditeur (`PreviewWorldDriver.cs:51`, `WorldViewportPanel.cs:1680`, `EntityAssetEditorPanel.cs:109,308`) appellent `LoadContent`, `AddEntity` et `Update` sans `try`.
+
+  **Frontière de l'éditeur : absente hors session de jeu (O2, ARRÊT D8).** `CasaEngine.Editor/Program.cs` relance toute exception ; `GameEditor.Update` ne rattrape que pendant une session de jeu (F7) ; `CasaEngineGame.Update` n'a qu'un `try/finally` ; `GameManager.UpdateWorld` n'a aucun `try`. Un projet ouvert dans l'éditeur sans DLL de gameplay construite (`AssemblyManager.Load` journalise « Gameplay assembly not found » et continue, `AssemblyManager.cs:20`) n'enregistre aucune assembly de scripts. Or `Entity.InitializePrivate` crée le proxy quelle que soit la politique (`:205-214`), et `EditorPreview` a `InitializeGameplayOnLoad = true` (`GameplayExecutionPolicy.cs:36`) : l'ouverture de `RPGDemo` (`ScriptWorld`, `ScriptPlayer`, `ScriptSign`...) ou l'aperçu d'un préfab à `script_class_name` appliquerait la règle D7 sans rien pour la rattraper. Le proxy de monde, le contrôleur et le mode plantent déjà l'éditeur aujourd'hui (F2 à F4, F9) ; **la règle D7 ferait passer les entités (F1), aujourd'hui journalisées et omises, au même sort** : l'éditeur planterait à l'ouverture d'un monde ou d'un préfab dont le script n'est pas construit, ce qui change un autre comportement. Le plan l'interdit (D8) : tâche en ⚠️, rien d'autre n'est fait, question en O2.
 - Commit : `docs(ai-agent): inventory the catches around a script-object creation`
 
 ## Phase 1 — La recherche par nom complet
@@ -165,7 +190,7 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | **Fermé le 2026-10-16** : branche créée depuis `main` du moteur `781d3527`, après la fusion d'E20 (D-R-8 du parent). | toutes |
-| O2 | La frontière de l'éditeur à l'ouverture d'un monde sans DLL construite (D8) | T0.1 |
+| O2 | **Ouvert, bloque T0.1 (D8, 2026-10-16).** La frontière de l'éditeur à l'ouverture d'un monde sans DLL construite n'existe pas hors session de jeu (inventaire F7, F9). Choix de l'auteur, en termes concrets. (A) **recommandé** : un drapeau de politique, `GameplayExecutionPolicy.ThrowOnScriptTypeResolution` (vrai pour `Runtime` et `EditorSimulation`, faux pour `EditorPreview`) que le filtre de D7 lit : dans l'éditeur hors session de jeu, une entité dont le script n'est pas construit reste journalisée et omise comme aujourd'hui ; en jeu et en session de jeu l'exception sort. Coût : un champ de politique et un test ; le proxy de monde, le contrôleur et le mode continuent de planter l'éditeur comme avant (hors tranche). (B) un `catch` du type dédié dans l'éditeur aux points `UpdateHost` hors session, `OpenWorldAsset` (`UpdateWorld`) et les aperçus : journal et monde laissé à moitié chargé ; plus de code et plus de points à tenir. (C) l'éditeur refuse d'ouvrir un monde tant que la DLL n'est pas construite : change l'usage (on ne pourrait plus ouvrir un monde pour l'éditer avant de construire ses scripts). Sans réponse, rien d'autre n'est fait. | T0.1 |
 
 ## Hors périmètre
 
