@@ -11,6 +11,15 @@ public sealed class GameplayExecutionPolicy
     public required bool UpdateAnimatedSprites { get; init; }
     public required bool UpdatePhysicsComponents { get; init; }
     public required bool UpdatePhysicsEngine { get; init; }
+
+    /// <summary>
+    /// True when a script type name that does not resolve (unknown, ambiguous, wrong kind) must throw a
+    /// <see cref="CasaEngine.Framework.Assets.ScriptTypeResolutionException"/> at creation. False in the editor
+    /// preview: the world then logs a warning and keeps the entity, or the world itself, without its script, so a
+    /// project whose gameplay assembly is not built yet still opens and the inspector can show and fix the script
+    /// (ADR-0075, D9 and D11).
+    /// </summary>
+    public required bool ThrowOnScriptTypeResolution { get; init; }
 }
 
 public static class GameplayExecutionPolicies
@@ -26,6 +35,7 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = true,
         UpdatePhysicsComponents = true,
         UpdatePhysicsEngine = true,
+        ThrowOnScriptTypeResolution = true,
     };
 
     public static GameplayExecutionPolicy EditorPreview { get; } = new()
@@ -39,6 +49,7 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = false,
         UpdatePhysicsComponents = false,
         UpdatePhysicsEngine = false,
+        ThrowOnScriptTypeResolution = false,
     };
 
     public static GameplayExecutionPolicy EditorSimulation { get; } = new()
@@ -52,5 +63,6 @@ public static class GameplayExecutionPolicies
         UpdateAnimatedSprites = true,
         UpdatePhysicsComponents = true,
         UpdatePhysicsEngine = true,
+        ThrowOnScriptTypeResolution = true,
     };
 }

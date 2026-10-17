@@ -111,7 +111,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void EntityProxyState_RoundTripsThroughTheEntitySerializer()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
 
         var proxy = Assert.IsType<StatefulEntityScriptStub>(entity.GameplayProxy);
@@ -139,7 +139,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void WorldProxyState_RoundTripsThroughTheWorldSerializer()
     {
-        var world = new World { GameplayProxyClassName = nameof(StatefulWorldScriptStub) };
+        var world = new World { GameplayProxyClassName = typeof(StatefulWorldScriptStub).FullName };
         world.CreateGameplayProxy();
 
         var proxy = Assert.IsType<StatefulWorldScriptStub>(world.GameplayProxy);
@@ -163,7 +163,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void ClonedEntity_KeepsTheProxyStateThroughInitialize()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
 
         var proxy = Assert.IsType<StatefulEntityScriptStub>(entity.GameplayProxy);
@@ -182,7 +182,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void EntityDocumentWithoutScriptNode_LoadsWithAFreshProxy()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
 
         var node = new JObject();
@@ -201,7 +201,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void WorldDocumentWithoutScriptNode_LoadsWithAFreshProxy()
     {
-        var world = new World { GameplayProxyClassName = nameof(StatefulWorldScriptStub) };
+        var world = new World { GameplayProxyClassName = typeof(StatefulWorldScriptStub).FullName };
 
         var node = new JObject();
         EditorEntityJsonSerializer.SaveWorld(world, node);
@@ -219,13 +219,13 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void ChangedProxyClassName_RecreatesTheProxyOnTheNextInitialize()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
         Assert.IsType<StatefulEntityScriptStub>(entity.GameplayProxy);
 
         //editor scenario: the user picks another script class on an existing entity;
         //the change takes effect on the next initialized instance (spawn clone, play world)
-        entity.GameplayProxyClassName = nameof(AlternateEntityScriptStub);
+        entity.GameplayProxyClassName = typeof(AlternateEntityScriptStub).FullName;
         var clone = entity.Clone();
         clone.Initialize();
 
@@ -235,7 +235,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void PartialScriptNode_WithoutTheBaseKeys_StillLoads()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
 
         var node = new JObject();
@@ -253,7 +253,7 @@ public class GameplayProxyStateSerializationTests
     [Fact]
     public void UninitializedLoadedEntity_KeepsItsScriptStateWhenResaved()
     {
-        var entity = new Entity { GameplayProxyClassName = nameof(StatefulEntityScriptStub) };
+        var entity = new Entity { GameplayProxyClassName = typeof(StatefulEntityScriptStub).FullName };
         entity.Initialize();
         ((StatefulEntityScriptStub)entity.GameplayProxy).HitPoints = 42;
 

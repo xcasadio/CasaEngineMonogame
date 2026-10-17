@@ -63,8 +63,9 @@ public class ElementFactoryReloadTests
 
             UnregisterLoadedAssembly(host);
 
-            // Unknown type name: the factory finds no type and Create fails.
-            Assert.ThrowsAny<ArgumentException>(() => ElementFactory.Create<GameplayProxy>("TestScriptProxy"));
+            // Unknown full name: the factory finds no type and says so.
+            Assert.Throws<ScriptTypeResolutionException>(
+                () => ElementFactory.CreateScriptObject<GameplayProxy>("TestScripts.TestScriptProxy", "script_class_name"));
         }
         finally
         {
@@ -126,7 +127,7 @@ public class ElementFactoryReloadTests
         var assembly = host.Load(assemblyPath);
         ElementFactory.RegisterScriptAssembly(assembly);
 
-        var proxy = ElementFactory.Create<GameplayProxy>("TestScriptProxy");
+        var proxy = ElementFactory.CreateScriptObject<GameplayProxy>("TestScripts.TestScriptProxy", "script_class_name");
         Assert.NotNull(proxy);
 
         var versionProperty = proxy!.GetType().GetProperty("Version");

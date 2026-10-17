@@ -47,5 +47,5 @@
     ]
   },
   "components": [],
-  "script_class_name": "ScriptPlayerWeapon"
+  "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptPlayerWeapon"
 }

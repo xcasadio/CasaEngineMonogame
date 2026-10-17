@@ -55,7 +55,7 @@ Comportement éditeur :
   l'ancienne assembly est désenregistrée d'`ElementFactory` et son contexte déchargé
   (vérification par `WeakReference` ; un avertissement signale toute fuite), puis le
   nouveau DLL est chargé et les proxies recréés à partir des `script_class_name`
-  sérialisés.
+  sérialisés (noms complets, ADR-0075 ; un nom qui ne se résout pas lève `ScriptTypeResolutionException` en session de jeu).
 
 Le runtime standalone (Launcher) garde le chargement direct (`Assembly.LoadFile`) :
 pas de rechargement en jeu final.

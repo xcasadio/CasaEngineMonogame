@@ -234,12 +234,11 @@ The file is a JSON document of the shape:
 }
 ```
 
-- `view_model_type` names the view model's type by its **simple name** (no namespace), the same convention
-  `ElementFactory` uses everywhere else in the engine -- not its fully-qualified name. It must be a public
-  type with a public parameterless constructor, found either in the engine or in the project's loaded
-  gameplay assembly (`ElementFactory.RegisterScriptAssembly`); a name that resolves to more than one type
-  across assemblies picks whichever `ElementFactory`'s cache found first, so keep design-time view model
-  names distinct.
+- `view_model_type` names the view model's type by its **full name** (namespace included, exact case), as for every
+  script object (ADR-0075) -- a simple name no longer resolves. It must be a public top-level type with a public
+  parameterless constructor, found in the project's registered gameplay assembly only
+  (`ElementFactory.RegisterScriptAssembly`). A name that does not resolve, or that is in two registered assemblies,
+  makes the preview fail with a message citing the key, the data file and a hint.
 - `values` is populated onto the instance with `Newtonsoft.Json.JsonConvert.PopulateObject`, so it follows
   the same property-name matching and nested-object rules as any other Newtonsoft.Json deserialization.
 - The preview builder (`CasaEngine.EditorServices/ScreenEditor/Preview/UIScreenDesignTimeDataLoader.cs`) sets

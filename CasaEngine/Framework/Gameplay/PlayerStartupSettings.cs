@@ -6,7 +6,11 @@ namespace CasaEngine.Framework.Gameplay;
 public sealed class PlayerStartupSettings : ObjectBase
 {
     public Guid DefaultPawnAssetId { get; set; } = Guid.Empty;
-    public string PlayerControllerClass { get; set; } = nameof(PlayerController);
+    /// <summary>
+    /// Full name of the player controller class of the gameplay assembly. Empty = the engine's own
+    /// <see cref="PlayerController"/>, created by code (ADR-0075).
+    /// </summary>
+    public string PlayerControllerClass { get; set; } = string.Empty;
     public string AIControllerClass { get; set; } = nameof(AIController);
     public string HUDClass { get; set; }
 

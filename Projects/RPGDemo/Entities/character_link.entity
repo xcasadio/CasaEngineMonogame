@@ -157,7 +157,7 @@
       "stable_id": 1000
     }
   ],
-  "script_class_name": "ScriptPlayer",
+  "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptPlayer",
   "flow_graph": {
     "type": "sequence",
     "id": 10,

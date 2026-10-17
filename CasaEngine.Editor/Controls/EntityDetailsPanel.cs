@@ -8,10 +8,12 @@ using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.Scripting;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
@@ -40,6 +42,9 @@ public sealed class EntityDetailsPanel
     private MGScrollViewer _detailsScrollViewer;
     private MGStackPanel _detailsContent;
     private MGTextBlock _componentSummaryText;
+    private MGComboBox<string> _scriptCombo;
+    private MGElement _scriptWarning;
+    private MGTextBlock _scriptMessage;
     private World _selectedWorld;
     private Entity _selectedEntity;
     private EntityComponent _selectedComponent;
@@ -62,6 +67,26 @@ public sealed class EntityDetailsPanel
     {
         get => _historyContext;
         set => _historyContext = value.IsEmpty ? DefaultHistoryContext : value;
+    }
+
+    /// <summary>The Script row's list of the selected entity or world; null when the details show something else.</summary>
+    internal MGComboBox<string> ScriptCombo => _scriptCombo;
+
+    /// <summary>The warning element next to the Script list (the alert icon, or a "!" text without a texture); null when the name resolves, is empty or no Script row is shown.</summary>
+    internal MGElement ScriptWarningElement => _scriptWarning;
+
+    /// <summary>The resolution message shown under the Script row; null when there is no problem.</summary>
+    internal MGTextBlock ScriptMessageText => _scriptMessage;
+
+    /// <summary>
+    /// Rebuilds the details so the Script row is recomputed from the registered script assemblies (after a script reload).
+    /// </summary>
+    public void RefreshScriptRow()
+    {
+        if (_scriptCombo != null)
+        {
+            RebuildPropertyEditors();
+        }
     }
 
     public MGElement CreateContent()
@@ -608,6 +633,12 @@ public sealed class EntityDetailsPanel
             WrapText = true,
         });
 
+        var world = _selectedWorld;
+        AddScriptRow(
+            "Change World Script",
+            () => world.GameplayProxyClassName,
+            value => world.GameplayProxyClassName = value);
+
         var settings = _selectedWorld.EnvironmentSettings;
         var grid = CreatePropertyGrid();
         int rowIndex = 0;
@@ -805,6 +836,12 @@ public sealed class EntityDetailsPanel
             WrapText = true,
         });
 
+        var scriptEntity = _selectedEntity;
+        AddScriptRow(
+            "Change Entity Script",
+            () => scriptEntity.GameplayProxyClassName,
+            value => scriptEntity.GameplayProxyClassName = value);
+
         var grid = CreatePropertyGrid();
         int rowIndex = 0;
 
@@ -882,7 +919,151 @@ public sealed class EntityDetailsPanel
             return;
         }
 
+        _scriptCombo = null;
+        _scriptWarning = null;
+        _scriptMessage = null;
         _detailsContent.TryRemoveAll();
+    }
+
+    /// <summary>
+    /// The resolution problem of a script name, as the Script row shows it: false for an empty name or a name that
+    /// resolves to a <see cref="GameplayProxy"/> type of the registered script assemblies; otherwise true and the
+    /// message of the resolution (key, value, searched assemblies, hint).
+    /// </summary>
+    internal static bool TryGetScriptProblem(string scriptName, out string message)
+    {
+        message = string.Empty;
+        if (string.IsNullOrWhiteSpace(scriptName))
+        {
+            return false;
+        }
+
+        return !ElementFactory.TryResolveScriptType(typeof(GameplayProxy), "script_class_name", scriptName, out _, out message);
+    }
+
+    /// <summary>
+    /// The entries of the Script list: the full names of the script classes of the registered assemblies, plus the
+    /// current name when it is not among them. Never an empty entry.
+    /// </summary>
+    internal static List<string> GetScriptChoices(string currentName)
+    {
+        var names = ElementFactory.GetScriptTypeNames(typeof(GameplayProxy));
+        if (!string.IsNullOrWhiteSpace(currentName) && !names.Contains(currentName, StringComparer.Ordinal))
+        {
+            names.Insert(0, currentName);
+        }
+
+        return names;
+    }
+
+    private void AddScriptRow(string description, Func<string> getName, Action<string> setName)
+    {
+        string current = getName() ?? string.Empty;
+
+        // Unlike CreateStringCombo, an empty name selects nothing: the first class is not picked in its place.
+        var combo = CreateScriptCombo(GetScriptChoices(current), current, value => ApplyScriptChange(description, getName, setName, value));
+        _scriptCombo = combo;
+
+        bool problem = TryGetScriptProblem(current, out string message);
+
+        var editor = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        editor.TryAddChild(combo);
+        if (problem)
+        {
+            _scriptWarning = CreateScriptWarningElement();
+            editor.TryAddChild(_scriptWarning);
+        }
+
+        var grid = CreatePropertyGrid();
+        AddPropertyRow(grid, 0, "Script", editor);
+        _detailsContent.TryAddChild(grid);
+
+        if (problem)
+        {
+            _scriptMessage = new MGTextBlock(_window, EscapeMarkup(message))
+            {
+                WrapText = true,
+            };
+            _detailsContent.TryAddChild(_scriptMessage);
+        }
+    }
+
+    private MGElement CreateScriptWarningElement()
+    {
+        if (EditorIcons.TriAlert != null)
+        {
+            return new MGImage(_window, EditorIcons.AsImage(EditorIcons.TriAlert)!, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth = 16,
+                PreferredHeight = 16,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+        }
+
+        return new MGTextBlock(_window, "!")
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+    }
+
+    private MGComboBox<string> CreateScriptCombo(List<string> items, string selectedItem, Action<string> onChanged)
+    {
+        var combo = new MGComboBox<string>(_window)
+        {
+            MinWidth = 140,
+        };
+
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(item);
+            return button;
+        };
+
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        combo.SetItemsSource(items);
+        combo.SelectedItem = string.IsNullOrWhiteSpace(selectedItem) ? null : selectedItem;
+        combo.SelectedItemChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.NewValue))
+            {
+                onChanged(e.NewValue);
+            }
+        };
+        return combo;
+    }
+
+    private void ApplyScriptChange(string description, Func<string> getName, Action<string> setName, string newName)
+    {
+        string previousName = getName();
+        if (string.Equals(previousName, newName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ExecuteHistoryCommand(
+            description,
+            () =>
+            {
+                setName(newName);
+                RebuildPropertyEditors();
+            },
+            () =>
+            {
+                setName(previousName);
+                RebuildPropertyEditors();
+            });
     }
 
     private void ApplyWorldEnvironmentChange<T>(

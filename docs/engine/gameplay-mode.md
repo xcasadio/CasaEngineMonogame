@@ -28,6 +28,7 @@ Ces points décrivent l'état du code au moment de cette note, avant la V1. Depu
 - `World.InitializePlayerControllers()` utilise `GameMode.DefaultPawnAssetId` et `GameMode.PlayerControllerClass` pour créer le pawn et le controller par défaut.
 - Les mondes sérialisent déjà `game_mode_asset_id`.
 - Le seul asset `.gameMode` trouvé est `Projects/RPGDemo/RpgGameMode.gameMode`; il stocke `default_pawn_asset_id`, `player_controller_class` et `hud_classClass`.
+- `player_controller_class` est le **nom complet** d'une classe de l'assembly de gameplay (ADR-0075) ; vide, le moteur crée son propre `PlayerController` par le code (`RpgGameMode.gameMode` est vide). Un nom court ou inconnu lève `ScriptTypeResolutionException`, qui cite le `.gameMode`.
 - `AssetLoaderRegistry` enregistre `GameMode` avec `AssetLoader<GameMode>()`.
 - `AssetLoader<T>` construit `new T()` puis appelle `Load(JObject)`. Un type abstrait ne peut donc pas être chargé directement par ce loader générique.
 - Le moteur utilise `FrameTime` comme contexte de temps runtime, pas `GameTimeContext`.

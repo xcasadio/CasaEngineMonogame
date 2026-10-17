@@ -88,6 +88,25 @@ public class Entity : ObjectBase
     public string GameplayProxyClassName { get; set; }
     public IGameplayProxy GameplayProxy { get; private set; }
 
+    /// <summary>
+    /// Sets the gameplay proxy of this entity from code, for an engine-owned script such as
+    /// <see cref="CasaEngine.Framework.Scripting.ScriptArcBallCamera"/>: no name is looked up (ADR-0075).
+    /// <see cref="GameplayProxyClassName"/> is set to the full name of the proxy type so that
+    /// <see cref="Initialize"/> keeps this instance. Initializes the proxy at once when the entity is already initialized.
+    /// </summary>
+    public void SetGameplayProxy(IGameplayProxy proxy)
+    {
+        ArgumentNullException.ThrowIfNull(proxy);
+
+        GameplayProxy = proxy;
+        GameplayProxyClassName = proxy.GetType().FullName;
+
+        if (IsInitialized)
+        {
+            proxy.Initialize(this);
+        }
+    }
+
     //state loaded for the proxy, applied when the proxy is created; kept afterwards so
     //an entity saved before being initialized does not lose it
     internal JObject GameplayProxyState => _gameplayProxyState;
@@ -206,12 +225,14 @@ public class Entity : ObjectBase
         }
 
         //a proxy cloned or already carrying state must survive; recreate only when missing
-        //or when the class name no longer matches (editor changed the script class)
+        //or when the class name no longer matches (editor changed the script class). The name is a full name
+        //(namespace included), compared as written; a name that does not resolve throws
+        //ScriptTypeResolutionException, except in the editor preview, where the entity keeps no proxy (ADR-0075).
         if (!string.IsNullOrWhiteSpace(GameplayProxyClassName)
             && (GameplayProxy == null
-                || !string.Equals(GameplayProxy.GetType().Name, GameplayProxyClassName, StringComparison.InvariantCultureIgnoreCase)))
+                || !string.Equals(GameplayProxy.GetType().FullName, GameplayProxyClassName, StringComparison.Ordinal)))
         {
-            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+            GameplayProxy = ElementFactory.CreateScriptObject<GameplayProxy>(GameplayProxyClassName, "script_class_name", this);
 
             if (GameplayProxy != null && _gameplayProxyState != null)
             {

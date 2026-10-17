@@ -104,5 +104,5 @@
     ]
   },
   "components": [],
-  "script_class_name": "ScriptEnemyWeapon"
+  "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptEnemyWeapon"
 }

@@ -1239,6 +1239,10 @@ public class GameEditor : Game, IObservableUpdate
             // Materialize the reloaded edit world right away so a play session that
             // starts in the same action snapshots a fully loaded world.
             _editorRuntime?.GameManager.UpdateWorld(new GameTime());
+
+            // The Script list and its warning depend on the registered script assemblies.
+            _entityDetailsPanel?.RefreshScriptRow();
+            _entityAssetInspectorPanel?.RefreshScriptRow();
         }
 
         return reloaded;

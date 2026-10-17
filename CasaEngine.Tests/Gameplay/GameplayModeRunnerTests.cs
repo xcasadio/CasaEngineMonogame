@@ -128,13 +128,13 @@ public sealed class GameplayModeRunnerTests
           "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
           "name": "RpgGameMode",
           "default_pawn_asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
-          "player_controller_class": "PlayerController",
+          "player_controller_class": "",
           "hud_classClass": "LegacyHud"
         }
         """));
 
         Assert.Equal(pawnId, settings.DefaultPawnAssetId);
-        Assert.Equal("PlayerController", settings.PlayerControllerClass);
+        Assert.Equal(string.Empty, settings.PlayerControllerClass);
         Assert.Equal("LegacyHud", settings.HUDClass);
     }
 
@@ -192,7 +192,7 @@ public sealed class GameplayModeRunnerTests
         {
           "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
           "name": "TestMode",
-          "mode_class_name": "{{nameof(AssetCreatedGameplayMode)}}"
+          "mode_class_name": "{{typeof(AssetCreatedGameplayMode).FullName}}"
         }
         """));
 
@@ -263,7 +263,9 @@ public sealed class GameplayModeRunnerTests
         }
     }
 
-    public sealed class AssetCreatedGameplayMode : GameplayMode
-    {
-    }
+}
+
+/// <summary>Created by <see cref="GameplayModeAsset"/> from its full name: public and top level, like a gameplay assembly's mode.</summary>
+public sealed class AssetCreatedGameplayMode : GameplayMode
+{
 }
