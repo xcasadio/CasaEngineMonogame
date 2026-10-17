@@ -160,8 +160,10 @@ public class GamePlugin : IPlugin
 ```
 
 `Scripts/SampleProxy.cs` — un `GameplayProxy` d'exemple (overrides vides + `Clone`),
-prêt à être assigné à une entité via `script_class_name`. Les types sont résolus par
-`ElementFactory` (`RegisterScriptAssembly` côté éditeur, scan AppDomain côté runtime).
+prêt à être assigné à une entité via `script_class_name`, par son **nom complet** (namespace compris, casse exacte,
+ADR-0075). Les types sont résolus par `ElementFactory.CreateScriptObject` dans la seule assembly de gameplay
+enregistrée (`RegisterScriptAssembly` côté éditeur, `AssemblyManager.Load` avec le chargeur par défaut côté runtime) :
+un nom court ou inconnu lève `ScriptTypeResolutionException` (aperçu de l'éditeur : avertissement, l'objet reste sans script).
 
 ### Câblage des settings et première compilation
 

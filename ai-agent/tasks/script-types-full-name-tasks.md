@@ -99,6 +99,14 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Validation globale
 
+Résultats (2026-10-17, après T5.1) :
+- Les deux `.sln` : 0 erreur. `CasaEngine.Tests` construit explicitement : **4314/4314**, 0 échec.
+- Smoke `CasaEngine.Demos` (depuis `CasaEngine.Demos/`) : démarre, vivant 14 s, journal sans exception. Parcours `CASAENGINE_DEMO_CYCLE=60` (24 démos, deux tours, passe par `Demo.CreateCamera` donc par `SetGameplayProxy`) : `result=PASS steps=97 failedChecks=0 errors=0 defaultCameraWarnings=0`, code 0. Un premier parcours lancé juste après l'arrêt forcé du smoke a donné un seul contrôle en échec au pas 2 (« this world was not asked for », démo Cutscene MoveTo) ; relancé tel quel il passe, sans changement de code entre les deux : alea de démarrage du parcours, non lié aux scripts.
+- Smoke RPGDemo : lancé par un lanceur de scratch (hors dépôt, `CasaEngine.Launcher` compilé avec `args[0]`, car le `Program.cs` du dépôt est modifié par l'auteur et pointe le projet Alundra). `TitleScreenWorld` : le monde charge son `ScriptTitleScreenWorld` par nom complet, sans exception ni avertissement de script (l'avertissement « No camera found » est préexistant). Preuve par mutation réelle : avec le nom court dans `TitleScreenWorld.world`, le jeu s'arrête sur `ScriptTypeResolutionException` (fichier, assemblies cherchées `CasaEngine.RPGDemo`, « Did you mean 'CasaEngine.RPGDemo.Scripts.ScriptTitleScreenWorld' ? ») ; fichier restauré par `git checkout`, `git status` propre. `DefaultWorld` (copie de scratch du projet, premier monde changé) : les entités `character_link`, `character_octopus`, `weapon_sword`, `weapon_rock` et le `weapon_rock` lancé par `ThrowableWeapon` sont créés sans exception de script. Après environ 30 s de jeu sans entrée, une `NullReferenceException` sort de `Entity.Destroy` → `AnimatedSpriteComponent.OnEnabledValueChange` (détruire un rocher qui touche le joueur) ; ces fichiers ne sont pas dans le diff de la branche (`AnimatedSpriteComponent.cs` identique à `781d3527`) : constat préexistant, à signaler, non corrigé.
+- Smoke SandBoxGame (`Projects/SandBoxGame/bin/Debug/net9.0-windows/SandBoxGame.exe`) : `LoadContent` passe (la caméra par `SetGameplayProxy`), puis `NullReferenceException` dans `SandBoxGame.DrawBoxWithEffect` (`effect.Parameters` sur un effet nul, ligne 174, code non touché par la branche) à la première image : constat préexistant, à signaler, non corrigé.
+- Éditeur (Script de l'inspecteur, avertissement d'un nom faussé, aperçu d'un préfab) : recette de l'auteur de T3.2, non faite par l'agent, T3.2 reste 🧪.
+
+
 - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 échec (compte de départ remesuré en T0.1).
 - Smoke : RPGDemo et les démos (`CasaEngine.Demos`, depuis son dossier) démarrent et affichent leur scène ; l'éditeur ouvre RPGDemo, et son inspecteur montre la ligne Script, sans avertissement avec la DLL construite et avec l'avertissement pour un nom faussé (T3.2) — **recette de l'auteur** pour la partie éditeur (un agent lance les démos, pas l'éditeur à la main).
@@ -262,11 +270,12 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Phase 5 — Documentation
 
-### ⏳ T5.1 — ADR-0075 et docs
+### ✅ T5.1 — ADR-0075 et docs
 
 - Objectif : ADR-0075 (règle, exception, enregistrement, migration des données vers le nom complet) ; les quatre docs du nom court ; le tableau d'`ai-agent/README.md`.
 - Fichiers : `docs/decisions/0075-*.md`, `docs/decisions/README.md`, les quatre docs, `ai-agent/README.md`.
 - Validation : relecture des liens ; validation globale.
+- Note de validation (2026-10-17) : `docs/decisions/0075-script-objects-by-full-name-from-the-gameplay-assembly.md` (numéro 0075 libre, vérifié dans l'index) enregistre D1 à D11, la régression de l'inspecteur (`dc2f4d25`), la migration des données vers le nom complet et la limite connue d'`EditorScriptAssemblyService.Unload()` en Debug ; index `docs/decisions/README.md` ; les quatre docs du nom court mises à jour (`screen-authoring-conventions.md`, `gameplay-csproj-scaffolding.md`, `gameplay-mode.md`, `play-in-editor.md`) ; ligne du tableau d'`ai-agent/README.md` (T0.1 à T5.1 ✅, T3.2 🧪). Aucun lien relatif cassé (un seul lien ajouté, le fichier de l'ADR dans l'index).
 - Commit : `docs(adr): ADR-0075 script objects by full name from the gameplay assembly`
 
 ---
