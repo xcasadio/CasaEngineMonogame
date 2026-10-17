@@ -7,7 +7,10 @@ Les décisions D1 → D8 ci-dessous ont été arbitrées avec l'auteur le 2026-1
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
-Approuvé par l'auteur le 2026-10-17 (« merge main avant et le plan est approuvé. Fais toutes les tâches »). Relu par deux
+Approuvé par l'auteur le 2026-10-17 (« merge main avant et le plan est approuvé. Fais toutes les tâches »). **Fusionné le
+2026-10-17 dans `main`** à la demande de l'auteur (branche d'intégration `chantier/merge-o3-dirty-state` au-dessus de `main`
+`1c49709a` : fusion `cf5106e0` de ce plan, puis `bcab4ab2` du correctif d'O1) ; l'ADR, numéroté 0076 sur la branche, est
+devenu ADR-0077 à la fusion (`1be66601`), `main` ayant reçu entre-temps l'ADR-0076 du correctif RPGDemo. T4 reste 🧪. Relu par deux
 `plan-verifier` frais : REVISE (une P2 : un `.gameMode` dont l'écriture échoue était abandonné sans question, corrigée dans D4 et
 T3), puis READY.
 
@@ -280,5 +283,5 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 
 | Réf | Question | Réponse |
 |---|---|---|
-| O1 | (avis A1 du vérificateur, P3, reporté) Après un rechargement des scripts, `PrepareWorldsForScriptReload` vide l'historique du monde (`GameEditor.cs:1267`) : la révision courante revient à 0, et un monde jamais sauvé depuis l'ouverture du projet (révision sauvée 0) paraît alors non modifié. Ouvrir un autre monde ne pose pas la question et abandonne sans demander le pion modifié, comme toutes les autres modifications du monde. Défaut préexistant du suivi « modifié » au rechargement des scripts, pas introduit par ce plan ; à corriger à part, sur la décision de l'auteur. | — |
+| O1 | **Fermé le 2026-10-17** : corrigé à part sur la décision de l'auteur, dans `EditorDirtyStateService` (vider un historique ne change plus l'état « modifié » d'un document), branche `chantier/dirty-state-history-clear` (`7185d96e`, depuis `main`), fusionnée dans `main` avec ce plan (fusion `bcab4ab2`). Question d'origine : (avis A1 du vérificateur, P3, reporté) Après un rechargement des scripts, `PrepareWorldsForScriptReload` vide l'historique du monde (`GameEditor.cs:1267`) : la révision courante revient à 0, et un monde jamais sauvé depuis l'ouverture du projet (révision sauvée 0) paraît alors non modifié. Ouvrir un autre monde ne pose pas la question et abandonne sans demander le pion modifié, comme toutes les autres modifications du monde. Défaut préexistant du suivi « modifié » au rechargement des scripts, pas introduit par ce plan ; à corriger à part, sur la décision de l'auteur. | — |
 | O2 | (avis A2 du vérificateur, P4, reporté) `PendingGameModeEdits.TrySaveAll` n'attrape pas `ArgumentException` / `NotSupportedException` qu'un nom de fichier invalide du catalogue ferait lever : l'exception sortirait de `SaveCurrentProject` au lieu d'être journalisée et gardée en attente. Cas théorique (chemins du catalogue valides). | — |
