@@ -45,4 +45,4 @@
 - Out of scope, unchanged: adding the same entity twice to a world's list, or making an entity the child of two parents. The copy
   constructor of `Entity` copies `Parent` without putting the clone in the parent's children; the `AddEntity` check looks at the
   parent's children, so such a clone can still become a root entity.
-- No serialized format changes. ADR-0075 is used by the unmerged branch `chantier/script-types-full-name`.
+- No serialized format changes.
