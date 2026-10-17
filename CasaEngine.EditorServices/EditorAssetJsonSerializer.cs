@@ -8,6 +8,7 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Audio.Spatial;
+using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.Entities;
@@ -44,6 +45,10 @@ internal static class EditorAssetJsonSerializer
 
             case World world:
                 EditorEntityJsonSerializer.SaveWorld(world, rootObject);
+                return true;
+
+            case PlayerStartupSettings playerStartupSettings:
+                SavePlayerStartupSettings(playerStartupSettings, rootObject);
                 return true;
 
             case LitDiffuseMaterial litDiffuseMaterial:
@@ -115,6 +120,16 @@ internal static class EditorAssetJsonSerializer
     private static void SaveObjectBase(ObjectBase objectBase, JObject node)
     {
         EditorJsonSaveHelper.SaveObjectBase(objectBase, node);
+    }
+
+    // The keys PlayerStartupSettings.Load reads, under their current names: the legacy "hud_classClass" is read, never written (ADR-0076).
+    private static void SavePlayerStartupSettings(PlayerStartupSettings playerStartupSettings, JObject node)
+    {
+        SaveObjectBase(playerStartupSettings, node);
+        node.Add("default_pawn_asset_id", playerStartupSettings.DefaultPawnAssetId);
+        node.Add("player_controller_class", playerStartupSettings.PlayerControllerClass);
+        node.Add("ai_controller_class", playerStartupSettings.AIControllerClass);
+        node.Add("hud_class", playerStartupSettings.HUDClass);
     }
 
     private static void SaveButtonsMapping(ButtonsMapping buttonsMapping, JObject node)

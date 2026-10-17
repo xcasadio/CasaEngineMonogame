@@ -142,7 +142,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 
 ## Phase 1 — Écrire un `.gameMode`
 
-### ⏳ T1 — Le cas `PlayerStartupSettings` de l'écriture d'assets (D5)
+### ✅ T1 — Le cas `PlayerStartupSettings` de l'écriture d'assets (D5)
 
 - Fichiers : `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.EditorServices/EditorAssetWriterService.cs`
   (valeur `WorldInspector`) ; `CasaEngine.Tests/EditorServices/PlayerStartupSettingsWriterTests.cs`.
@@ -152,6 +152,16 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   puis écrit donne `hud_class` et plus `hud_classClass`, et se relit pareil ; (iv) les clés écrites sont exactement `id`, `name`,
   `default_pawn_asset_id`, `player_controller_class`, `ai_controller_class`, `hud_class`. Puis le code.
 - Validation : tests rouges puis verts ; suite verte ; les deux `.sln`.
+- Note de validation (2026-10-17) : `CasaEngine.Tests/EditorServices/PlayerStartupSettingsWriterTests.cs` (5 cas : fichier écrit et
+  `AssetSaved` levé avec l'identifiant et la source `WorldInspector` ; aller-retour complet ; contrôleur vide et HUD null gardés ;
+  contenu de `RpgGameMode.gameMode` tel que commité, avec `hud_classClass`, écrit en `hud_class` et relu pareil ; clés écrites
+  exactement `id`, `name`, `default_pawn_asset_id`, `player_controller_class`, `ai_controller_class`, `hud_class`, dans cet ordre).
+  Rouges avant le code : les 5, `InvalidOperationException` « Asset type 'CasaEngine.Framework.Gameplay.PlayerStartupSettings' is not
+  supported by the editor writer service » (la valeur `EditorAssetSaveSource.WorldInspector = 8` ajoutée d'abord, seule, pour que les
+  tests compilent). Code : cas `PlayerStartupSettings` de `EditorAssetJsonSerializer.TrySerialize` (`SavePlayerStartupSettings` :
+  `SaveObjectBase` puis les quatre clés). Mutation réelle (fichier copié, ligne `ai_controller_class` retirée, tests, fichier rendu,
+  `cmp` identique) : 3 cas rouges (aller-retour, contrôleur vide, clés exactes). Les deux `.sln` : 0 erreur ; `CasaEngine.Tests` :
+  **4319/4319** (4314 + 5).
 - Commit : `feat(editor-services): write player startup settings (.gameMode) assets`
 
 ## Phase 2 — Les lignes du monde
