@@ -7,6 +7,18 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 Approuvé par l'auteur le 2026-10-16 (« fais toutes les tâches », parent D-R-9). La branche `chantier/script-types-full-name` a été créée depuis `main` du moteur `781d3527`, après la fusion d'E20 (ce qui ferme O1).
 
+**Révision 5 (2026-10-17).** L'auteur a tranché O2 (parent D-R-10) : l'aperçu de l'éditeur reste tolérant (D9) et l'inspecteur affiche de
+nouveau le script, avec une icône d'avertissement quand son nom ne se résout pas (D10). L'auteur précise que cet affichage existait : c'est
+une régression (voir T0.1 et T3.2). T0.1 est close ; T3.1 lit la politique d'exécution ; T3.2 est nouvelle. **Révision 5b (même jour)**,
+après une relecture REVISE à trois blocages : (1) une entité « omise » n'entre pas dans le monde et ne se sélectionne pas, donc son icône
+serait inatteignable : l'auteur a tranché (parent D-R-11, D11 ci-dessous) : dans l'aperçu, l'entité **et le monde** dont le script ne se
+résout pas sont **gardés sans script** ; (2) pas d'entrée vide dans la liste ; (3) l'élément d'avertissement que les tests interrogent est fixé. **Révision 5c (même jour)**,
+après la seconde relecture REVISE (quatre blocages ; cap de deux relectures atteint ; dispositions de la session principale, toutes FIX ;
+une relecture de clôture) : (1) la portée de tolérance s'ouvre dans le corps de `InternalAddEntities` (ses quatre appelants, dont
+`Update`, chemin de l'aperçu d'un préfab et des ajouts de l'éditeur) ; (2) le « genre » d'un script est « type public de premier niveau
+dérivé de `GameplayProxy` », le même pour une entité et pour un monde (aucune autre distinction dans le code) ; (3) un nom vide n'affiche
+aucune sélection ; (4) les vérifications à l'œil de l'éditeur sont la recette de l'auteur.
+
 ## Objectif
 
 Quand le moteur crée un objet « script » à partir d'une chaîne lue dans les données — le proxy d'une entité, le proxy d'un monde, le
@@ -60,6 +72,9 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 | D6 | Le fichier du message : le `FileName` de l'objet, sinon `AssetCatalog.Get(AssetId)?.FileName`, sinon (entité en ligne) le monde complète le message, sinon « fichier inconnu » ; le contrôleur et le mode citent le `.gameMode` (parent R0, révision 2). |
 | D7 | Les filets : le `catch` de `World.InternalAddEntities` prend `when (e is not ScriptTypeResolutionException)` ; l'entité en ligne est complétée du fichier du monde par un `catch` de ce seul type ; toute autre exception garde le journal et l'omission (parent R0, révision 3). |
 | D8 | Avant tout code, un recensement de **tous** les filets qui rattrapent une création d'objet script ; un filet que la règle ne traverse pas sans changer un autre comportement est un arrêt (parent D-R-9). |
+| D9 | (2026-10-17, parent D-R-10, ferme O2 ; précisée par D11) La politique d'exécution porte `ThrowOnScriptTypeResolution` : vrai pour `Runtime` et `EditorSimulation`, faux pour `EditorPreview`. Quand il est faux, le monde ouvre une **portée de tolérance** sans allocation (par exemple un compteur `[ThreadStatic]`) autour de ses créations : **dans le corps de `InternalAddEntities`** (`World.cs:774-801`), ce qui couvre ses quatre appelants, `LoadContent` (`:304`, `:321`), `InitializePlayerControllers` (`:384`) et `Update` (`:528`) — donc les entités en ligne, les préfabs, le pion, l'aperçu d'un préfab de l'éditeur (`EntityAssetEditorPanel.cs:305-309` → `PreviewWorldDriver.Rebuild` → `RefreshNow` → `World.Update`) et toute entité ajoutée à un monde déjà chargé — ; autour de `CreateGameplayProxy` ; et autour de l'initialisation du proxy de monde (`Initialize`, `InitializeWithWorld`, `World.cs:313-317`), qui couvre les entités que ce proxy fait naître. Les sites de création (`Entity.InitializePrivate`, `World.CreateGameplayProxy`) la lisent : dans la portée, un nom qui ne se résout pas écrit un avertissement au journal (clé, valeur, fichier, indice, comme le message de D3) et l'objet reste **sans proxy**, son `GameplayProxyClassName` intact ; hors de la portée, `ScriptTypeResolutionException`. Le filtre de D7 reste `when (e is not ScriptTypeResolutionException)`. Le contrôleur et le mode ne sont pas créés dans l'aperçu (`InitializePlayerControllers` et `RunBeginPlay` faux) : inchangés. |
+| D10 | (2026-10-17, parent D-R-10) L'inspecteur de l'éditeur (`EntityDetailsPanel`) affiche le script de l'entité ou du monde sélectionné, et une icône d'avertissement (`EditorIcons.TriAlert`) à côté quand un nom non vide ne se résout pas, avec le message de la résolution. L'auteur : « cela doit être affiché dans l'inspector obligatoirement ; c'est un bug car je l'avais codé ». |
+| D11 | (2026-10-17, parent D-R-11) Dans l'aperçu de l'éditeur, une entité dont le script ne se résout pas **reste dans le monde sans script** (aucun comportement), visible dans la hiérarchie et sélectionnable, avec l'icône et le message sur sa ligne Script ; **le monde** dont le script ne se résout pas s'ouvre sans son script, avec l'icône sur sa ligne Script, au lieu de faire planter l'éditeur. En jeu et en session de jeu, l'exception sort. |
 
 ## Règles d'exécution pour l'agent
 
@@ -86,13 +101,13 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 0 échec (compte de départ remesuré en T0.1).
-- Smoke : RPGDemo et les démos (`CasaEngine.Demos`, depuis son dossier) démarrent et affichent leur scène ; l'éditeur ouvre RPGDemo.
+- Smoke : RPGDemo et les démos (`CasaEngine.Demos`, depuis son dossier) démarrent et affichent leur scène ; l'éditeur ouvre RPGDemo, et son inspecteur montre la ligne Script, sans avertissement avec la DLL construite et avec l'avertissement pour un nom faussé (T3.2) — **recette de l'auteur** pour la partie éditeur (un agent lance les démos, pas l'éditeur à la main).
 
 ---
 
 ## Phase 0 — Recensement
 
-### ⚠️ T0.1 — Recenser les filets et la frontière de l'éditeur
+### ✅ T0.1 — Recenser les filets et la frontière de l'éditeur
 
 - Objectif : la liste complète des endroits où une création d'objet script est rattrapée (moteur, éditeur, et les chemins de la DLL Alundra que le plan parent nomme), avec, pour chacun, le comportement voulu (D3, D7) ; la frontière qui rattrape un échec de création quand l'éditeur ouvre un monde sans DLL construite.
 - Sources : `git grep` des `catch` autour de `Initialize`, `CreateGameplayProxy`, `CreateLocalPlayerController`, `CreateMode`, `UIScreenDesignTimeDataLoader` ; les chemins de spawn de `World` ; l'ouverture d'un monde dans l'éditeur.
@@ -126,6 +141,21 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
   Autres sites de la DLL à passer en nom complet (hors filet, partie parent) : `AlundraEntitySpawnFactory.cs:438`, `:509`, `:588` (`nameof(AlundraEntityScriptProxy)` posé dans `GameplayProxyClassName`). Les `catch` de `AlundraWorldProxy.cs:1458`, `:1736`, `:1770`, `:1924` ne touchent pas une création d'objet script. Aucun autre filet n'enveloppe `SpawnEntity`, `AddEntity` ou `LoadContent` dans le moteur, l'éditeur, les démos ou SandBoxGame ; les aperçus de l'éditeur (`PreviewWorldDriver.cs:51`, `WorldViewportPanel.cs:1680`, `EntityAssetEditorPanel.cs:109,308`) appellent `LoadContent`, `AddEntity` et `Update` sans `try`.
 
   **Frontière de l'éditeur : absente hors session de jeu (O2, ARRÊT D8).** `CasaEngine.Editor/Program.cs` relance toute exception ; `GameEditor.Update` ne rattrape que pendant une session de jeu (F7) ; `CasaEngineGame.Update` n'a qu'un `try/finally` ; `GameManager.UpdateWorld` n'a aucun `try`. Un projet ouvert dans l'éditeur sans DLL de gameplay construite (`AssemblyManager.Load` journalise « Gameplay assembly not found » et continue, `AssemblyManager.cs:20`) n'enregistre aucune assembly de scripts. Or `Entity.InitializePrivate` crée le proxy quelle que soit la politique (`:205-214`), et `EditorPreview` a `InitializeGameplayOnLoad = true` (`GameplayExecutionPolicy.cs:36`) : l'ouverture de `RPGDemo` (`ScriptWorld`, `ScriptPlayer`, `ScriptSign`...) ou l'aperçu d'un préfab à `script_class_name` appliquerait la règle D7 sans rien pour la rattraper. Le proxy de monde, le contrôleur et le mode plantent déjà l'éditeur aujourd'hui (F2 à F4, F9) ; **la règle D7 ferait passer les entités (F1), aujourd'hui journalisées et omises, au même sort** : l'éditeur planterait à l'ouverture d'un monde ou d'un préfab dont le script n'est pas construit, ce qui change un autre comportement. Le plan l'interdit (D8) : tâche en ⚠️, rien d'autre n'est fait, question en O2.
+  **Clôture (2026-10-17, D9 et D10).** O2 est fermé par les décisions de l'auteur (D9 à D11). Règles par filet, en plus du tableau : F1 garde le filtre de D7 ; dans l'aperçu,
+  l'exception n'est pas levée (portée de tolérance de D9, ouverte quand la politique le dit, lue comme les autres drapeaux,
+  `World.cs:306`, `:313`, `:479`, `:581`) : l'entité est ajoutée sans proxy (`entity.Initialize()` ne lève plus, `_entities.Add` a lieu,
+  `World.cs:788-792`), y compris par `Update` (aperçu d'un préfab, ajouts de l'éditeur) ; F2 : dans l'aperçu, le monde s'ouvre sans proxy ; F3, F4 : le contrôleur et le mode ne sont pas créés dans
+  l'aperçu ; F7 inchangé (une session de jeu s'arrête) ; F9 : dans l'aperçu, l'ouverture d'un monde ne plante plus pour un script
+  d'entité ou de monde introuvable, et l'inspecteur montre l'avertissement de l'objet sélectionné (D10, D11) ; F10 à F12 (DLL) : dans la
+  portée, aucune exception n'arrive, l'entité naît sans proxy.
+  **Régression trouvée (2026-10-17).** L'éditeur WPF avait, dans l'inspecteur d'entité, une section « Script » : une liste déroulante
+  « Script class name » liée à `Entity.GameplayProxyClassName` (et pour le monde à `World.GameplayProxyClassName`), dont les éléments
+  étaient les classes de gameplay enregistrées, plus « Game Mode » et « Default Pawn » pour le monde
+  (`CasaEngine.EditorUI/Controls/EntityControls/EntityControl.xaml` et `EntityControl.xaml.cs`,
+  `ComboBoxGameplayProxyClassName_OnSelectionChanged`). Elle a disparu le 2026-03-30 avec le projet WPF (`dc2f4d25`, « remove unused
+  projects ») ; l'éditeur MGUI ne l'a jamais reprise : aujourd'hui aucun écran de `CasaEngine.Editor/` n'affiche ni ne modifie
+  `GameplayProxyClassName` (seule lecture : une trace de smoke, `GameEditor.cs:6695`). « Game Mode » et « Default Pawn » manquent aussi :
+  hors de cette tranche (O3).
 - Commit : `docs(ai-agent): inventory the catches around a script-object creation`
 
 ## Phase 1 — La recherche par nom complet
@@ -159,11 +189,61 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ### ⏳ T3.1 — Les cinq créations et les filets
 
-- Objectif : `Entity.InitializePrivate` (`:210-214`, la comparaison `:212` en nom complet), `World.CreateGameplayProxy`, `World.cs:440` (vide = `PlayerController` du moteur), `GameplayModeAsset.CreateMode`, `UIScreenDesignTimeDataLoader` (`Fail` avec le message) passent par la recherche de T1.2 ; le fichier du message selon D6 ; les filets de T0.1 selon D7.
-- Fichiers : `Entity.cs`, `World.cs`, `PlayerStartupSettings.cs`, `GameplayModeAsset.cs`, `UIScreenDesignTimeDataLoader.cs` ; tests.
-- Étapes : tests d'abord, rouges : (i) une entité `LoadCopy<Entity>(id).Clone()` initialisée au mauvais `script_class_name` — le message contient le chemin relatif de l'asset ; (ii) le chargement réel d'un monde dont une entité en ligne est fautive lève, avec le fichier du monde ; (ii-b) un monde qui référence un préfab fautif lève, avec le `.entity` du préfab ; (ii-c) une autre faute d'entité est journalisée, l'entité omise, le monde chargé ; (iii) un monde fautif — son fichier ; (iv) un contrôleur fautif — le `.gameMode` ; un proxy cloné gardé (tue le mutant « `:212` en nom court ») ; un `Load` sans assembly ne lève pas ; puis le code.
+- Objectif : `Entity.InitializePrivate` (`:210-214`, la comparaison `:212` en nom complet), `World.CreateGameplayProxy`, `World.cs:440` (vide = `PlayerController` du moteur), `GameplayModeAsset.CreateMode`, `UIScreenDesignTimeDataLoader` (`Fail` avec le message) passent par la recherche de T1.2 ; le fichier du message selon D6 ; les filets de T0.1 selon D7 ; la tolérance de D9 et D11 (`GameplayExecutionPolicy.ThrowOnScriptTypeResolution`, vrai pour `Runtime` et `EditorSimulation`, faux pour `EditorPreview` ; la portée ouverte par le monde ; l'objet gardé sans proxy, son nom intact).
+- Fichiers : `Entity.cs`, `World.cs`, `PlayerStartupSettings.cs`, `GameplayModeAsset.cs`, `UIScreenDesignTimeDataLoader.cs`, `CasaEngine/Framework/Application/GameplayExecutionPolicy.cs` ; tests.
+- Étapes : tests d'abord, rouges : (i) une entité `LoadCopy<Entity>(id).Clone()` initialisée au mauvais `script_class_name` — le message contient le chemin relatif de l'asset ; (ii) le chargement réel d'un monde dont une entité en ligne est fautive lève, avec le fichier du monde ; (ii-b) un monde qui référence un préfab fautif lève, avec le `.entity` du préfab ; (ii-c) une autre faute d'entité est journalisée, l'entité omise, le monde chargé ; (iii) un monde fautif — son fichier ; (iv) un contrôleur fautif — le `.gameMode` ; un proxy cloné gardé (tue le mutant « `:212` en nom court ») ; un `Load` sans assembly ne lève pas ; (v) sous `EditorPreview`, le
+  même monde que (ii) se charge sans exception : l'entité en ligne fautive, l'entité d'un préfab fautif et une entité au nom fautif que
+  le proxy de monde fait naître dans son `InitializeWithWorld` sont dans `World.Entities`, sans proxy, leur `GameplayProxyClassName`
+  intact, un avertissement par entité au journal ; un monde au script fautif s'ouvre sans proxy ; sous `EditorSimulation`, chacun lève
+  (rouges si la politique est ignorée) ; sous `EditorPreview`, un monde **déjà chargé** reçoit `AddEntity` d'une entité au script
+  fautif puis `Update(0f)` (le chemin de l'aperçu d'un préfab) : l'entité est dans `World.Entities`, sans proxy, son nom intact ; sous
+  `EditorSimulation`, le même cas lève ; la portée est refermée après une exception (un test qui lève dans la portée puis vérifie qu'une
+  création hors portée lève) ; puis le code.
 - Validation : tests rouges puis verts ; suite verte.
 - Commit : `feat(scene): create gameplay proxies, controllers, modes and design-time view models by full name`
+
+### ⏳ T3.2 — L'inspecteur affiche et choisit le script, avec l'avertissement (D10)
+
+- Objectif : rétablir dans l'éditeur MGUI la section « Script » perdue avec l'éditeur WPF (T0.1, régression), avec le nom complet de
+  D1 et l'avertissement de D10. Pour l'entité ou le monde sélectionné dans `EntityDetailsPanel` : une ligne « Script » avec une liste
+  déroulante (`CreateStringCombo`, `EntityDetailsPanel.cs:988`) dont les éléments sont les noms complets des classes script des assemblys de
+  scripts enregistrées — types publics de premier niveau dérivés de `GameplayProxy`, **la même liste pour une entité et pour un monde**
+  (les proxys de monde et d'entité dérivent tous de `GameplayProxy`, `GameplayProxy.cs:7`, `ScriptWorld.cs:19`, `ScriptPlayer.cs:16`, et
+  sont créés par `ElementFactory.Create<GameplayProxy>`, `Entity.cs:214`, `World.cs:332` ; la liste WPF montrait de même « les classes
+  de gameplay enregistrées ») —, plus la valeur courante si elle
+  n'y est pas ; pas d'entrée vide (le gestionnaire WPF d'origine ignorait déjà une sélection vide,
+  `ComboBoxGameplayProxyClassName_OnSelectionChanged`, et `CreateStringCombo` filtre les valeurs vides, `:1011-1017`) ; pour un nom vide
+  (la plupart des entités), la ligne **n'affiche aucune sélection** : elle ne prend pas le repli de `CreateStringCombo` sur le premier
+  élément (`combo.SelectedItem = selectedItem ?? itemList.FirstOrDefault()`, `:1008`), par une variante locale à la ligne Script, sans
+  changer les autres listes du panneau ; le choix change `GameplayProxyClassName` par une commande d'historique annulable
+  (`ExecuteHistoryCommand`, comme « Rename Entity », `:356`) et marque l'asset modifié comme le fait le renommage ; quand un nom non vide ne se résout pas (introuvable,
+  nom court, ambigu, type qui ne dérive pas de `GameplayProxy`), un **élément d'avertissement** à côté de la liste, présent même sans texture : l'image
+  `EditorIcons.TriAlert` (`EditorIcons.cs:59`, aujourd'hui sans usage) si elle est chargée, sinon un texte « ! » (le motif de repli de
+  `FilePlus`, `EntityDetailsPanel.cs:281-298`), et **le message de la résolution de T1.2 en texte sous la ligne** (un seul support) ;
+  les deux sont exposés aux tests par des accesseurs internes (`CasaEngine.Editor/InternalsVisibleTo.Tests.cs` existe) ; l'état est recalculé à l'affichage et après un rechargement des scripts (`EditorScriptReloadCoordinator`), sans état
+  gardé ailleurs.
+- La résolution utilisée est celle de T1.2, par une méthode sans exception (`TryResolveScriptType` ou équivalent, qui rend le message) et
+  une énumération des types script d'un genre (pas d'allocation dans le chemin de création ; l'éditeur peut allouer).
+- Fichiers : `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ; `CasaEngine/Framework/Assets/ElementFactory.cs` (l'énumération et le
+  message, si T1.2 ne les a pas) ; tests. Le panneau est construit en code comme tout `CasaEngine.Editor/` (aucun XAML dans l'éditeur) :
+  la ligne suit ce motif.
+- Étapes : tests d'abord, rouges : (i) l'énumération rend les noms complets des types publics de premier niveau dérivés de
+  `GameplayProxy` des assemblys enregistrées, et seulement eux (pas un type d'une assembly non enregistrée, pas un type qui n'en dérive
+  pas, pas un type imbriqué), et rien après désenregistrement ; (ii) l'état d'affichage d'un nom (résolu ; introuvable ; nom court avec l'indice ; ambigu ; type qui ne dérive pas
+  de `GameplayProxy` ; vide = aucun avertissement) ; (iii) **le parcours réel** : sous `EditorPreview`, un monde chargé dont une entité a un script introuvable (D11, par
+  T3.1), puis l'inspecteur construit sur un `MGDesktop` et un `MGWindow` de test (motif de `CasaEngine.Tests/Editor/AudioMixerPanelTests.cs`
+  et `ScreenEditor/UIScreenImageSourcePickerTests.cs`), **sans** `EditorIcons.Load` : pour cette entité, la ligne Script montre la valeur,
+  l'élément d'avertissement existe et le texte porte le message ; pour une entité au script résolu et pour une entité sans script, aucun
+  élément d'avertissement, et pour l'entité sans script **la valeur affichée est vide** et choisir la première classe de la liste change
+  `GameplayProxyClassName` (rouge avec `CreateStringCombo` inchangé) ; même chose pour le monde au script introuvable ; (iv) choisir un autre script change
+  `GameplayProxyClassName`, l'annulation le rend, et les autres listes du panneau (`CreateStringCombo`) ne changent pas ; puis le code.
+- Validation : tests rouges puis verts ; suite verte ; les deux `.sln`. La preuve de l'agent est le test (iii) (parcours réel, accesseurs
+  internes). **Recette de l'auteur** (un agent ne manipule pas l'éditeur lancé) : (a) RPGDemo, DLL construite : la ligne Script de
+  l'entité et du monde, sans avertissement ; (b) cas positif : RPGDemo ouvert avec un nom de script faussé dans un de ses fichiers de
+  données (l'agent prépare la copie de travail et la rétablit après, preuve par `git status`) : le monde s'ouvre, l'entité est dans la
+  hiérarchie, l'avertissement et le message sont visibles dans l'inspecteur ; (c) l'aperçu d'un préfab au script faussé s'ouvre avec
+  l'avertissement. Sans cette recette, T3.2 reste 🧪.
+- Commit : `fix(editor): show and pick the gameplay script in the inspector again, with a warning when it does not resolve`
 
 ## Phase 4 — Les types du moteur et les autres utilisateurs
 
@@ -190,7 +270,8 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | **Fermé le 2026-10-16** : branche créée depuis `main` du moteur `781d3527`, après la fusion d'E20 (D-R-8 du parent). | toutes |
-| O2 | **Ouvert, bloque T0.1 (D8, 2026-10-16).** La frontière de l'éditeur à l'ouverture d'un monde sans DLL construite n'existe pas hors session de jeu (inventaire F7, F9). Choix de l'auteur, en termes concrets. (A) **recommandé** : un drapeau de politique, `GameplayExecutionPolicy.ThrowOnScriptTypeResolution` (vrai pour `Runtime` et `EditorSimulation`, faux pour `EditorPreview`) que le filtre de D7 lit : dans l'éditeur hors session de jeu, une entité dont le script n'est pas construit reste journalisée et omise comme aujourd'hui ; en jeu et en session de jeu l'exception sort. Coût : un champ de politique et un test ; le proxy de monde, le contrôleur et le mode continuent de planter l'éditeur comme avant (hors tranche). (B) un `catch` du type dédié dans l'éditeur aux points `UpdateHost` hors session, `OpenWorldAsset` (`UpdateWorld`) et les aperçus : journal et monde laissé à moitié chargé ; plus de code et plus de points à tenir. (C) l'éditeur refuse d'ouvrir un monde tant que la DLL n'est pas construite : change l'usage (on ne pourrait plus ouvrir un monde pour l'éditer avant de construire ses scripts). Sans réponse, rien d'autre n'est fait. | T0.1 |
+| O2 | **Fermé le 2026-10-17 par l'auteur (parent D-R-10 ; D9, D10).** Question d'origine : La frontière de l'éditeur à l'ouverture d'un monde sans DLL construite n'existe pas hors session de jeu (inventaire F7, F9). Choix de l'auteur, en termes concrets. (A) **recommandé** : un drapeau de politique, `GameplayExecutionPolicy.ThrowOnScriptTypeResolution` (vrai pour `Runtime` et `EditorSimulation`, faux pour `EditorPreview`) que le filtre de D7 lit : dans l'éditeur hors session de jeu, une entité dont le script n'est pas construit reste journalisée et omise comme aujourd'hui ; en jeu et en session de jeu l'exception sort. Coût : un champ de politique et un test ; le proxy de monde, le contrôleur et le mode continuent de planter l'éditeur comme avant (hors tranche). (B) un `catch` du type dédié dans l'éditeur aux points `UpdateHost` hors session, `OpenWorldAsset` (`UpdateWorld`) et les aperçus : journal et monde laissé à moitié chargé ; plus de code et plus de points à tenir. (C) l'éditeur refuse d'ouvrir un monde tant que la DLL n'est pas construite : change l'usage (on ne pourrait plus ouvrir un monde pour l'éditer avant de construire ses scripts). Sans réponse, rien d'autre n'est fait. | T0.1 |
+| O3 | (2026-10-17) « Game Mode » et « Default Pawn » du monde, présents dans l'inspecteur WPF, manquent aussi dans l'éditeur MGUI (même perte, `dc2f4d25`) : hors de cette tranche ; à rétablir à part, sur la décision de l'auteur. | — |
 
 ## Hors périmètre
 
