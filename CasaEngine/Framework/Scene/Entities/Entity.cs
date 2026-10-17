@@ -88,6 +88,25 @@ public class Entity : ObjectBase
     public string GameplayProxyClassName { get; set; }
     public IGameplayProxy GameplayProxy { get; private set; }
 
+    /// <summary>
+    /// Sets the gameplay proxy of this entity from code, for an engine-owned script such as
+    /// <see cref="CasaEngine.Framework.Scripting.ScriptArcBallCamera"/>: no name is looked up (ADR-0075).
+    /// <see cref="GameplayProxyClassName"/> is set to the full name of the proxy type so that
+    /// <see cref="Initialize"/> keeps this instance. Initializes the proxy at once when the entity is already initialized.
+    /// </summary>
+    public void SetGameplayProxy(IGameplayProxy proxy)
+    {
+        ArgumentNullException.ThrowIfNull(proxy);
+
+        GameplayProxy = proxy;
+        GameplayProxyClassName = proxy.GetType().FullName;
+
+        if (IsInitialized)
+        {
+            proxy.Initialize(this);
+        }
+    }
+
     //state loaded for the proxy, applied when the proxy is created; kept afterwards so
     //an entity saved before being initialized does not lose it
     internal JObject GameplayProxyState => _gameplayProxyState;

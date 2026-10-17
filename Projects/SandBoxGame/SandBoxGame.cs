@@ -50,7 +50,7 @@ namespace SandBoxGame
             var entity = new Entity(); // { Name = "camera" };
             var camera = new ArcBallCameraComponent();
             entity.AddComponent(camera);
-            entity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
+            entity.SetGameplayProxy(new ScriptArcBallCamera());
             world.AddEntity(entity);
 
             //============ Box ===============

@@ -174,7 +174,7 @@
           ]
         },
         "components": [],
-        "script_class_name": "ScriptSign",
+        "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptSign",
         "flow_graph": {
           "type": "sequence",
           "id": 22,
@@ -299,7 +299,7 @@
           ]
         },
         "components": [],
-        "script_class_name": "ScriptEnemySpawner",
+        "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptEnemySpawner",
         "flow_graph": {
           "type": "sequence",
           "id": 26,
@@ -310,6 +310,6 @@
       }
     }
   ],
-  "script_class_name": "ScriptWorld",
+  "script_class_name": "CasaEngine.RPGDemo.Scripts.ScriptWorld",
   "game_mode_asset_id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb"
 }

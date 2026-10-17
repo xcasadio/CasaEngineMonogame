@@ -26,7 +26,7 @@ public abstract class Demo
         var entity = new Entity();
         var camera = new ArcBallCameraComponent();
         entity.RootComponent = camera;
-        entity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
+        entity.SetGameplayProxy(new ScriptArcBallCamera());
         entity.Initialize();
         //entity.InitializeWithWorld(game.GameManager.CurrentWorld);
         game.GameManager.CurrentWorld.AddEntity(entity);

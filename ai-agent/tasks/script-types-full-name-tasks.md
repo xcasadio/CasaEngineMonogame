@@ -252,11 +252,12 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Phase 4 — Les types du moteur et les autres utilisateurs
 
-### ⏳ T4.1 — Types du moteur par le code ; démos, SandBoxGame, RPGDemo
+### ✅ T4.1 — Types du moteur par le code ; démos, SandBoxGame, RPGDemo
 
 - Objectif : D2 ; les noms des données et du code des projets d'exemple en noms complets ; les tests existants touchés réécrits (types imbriqués sortis au premier niveau).
 - Fichiers : `PlayerStartupSettings.cs`, `Entity.cs` (`SetGameplayProxy`), `CasaEngine.Demos/Demo.cs`, `Projects/SandBoxGame/SandBoxGame.cs`, `Projects/RPGDemo/` (6 fichiers de données, `RpgGameMode.gameMode`, `Weapons/ThrowableWeapon.cs`), les tests listés.
 - Validation : les deux `.sln` ; suite verte ; RPGDemo et les démos démarrent (smoke).
+- Note de validation (2026-10-17) : `Entity.SetGameplayProxy(IGameplayProxy)` (nouvelle ; pose le proxy et `GameplayProxyClassName` = nom complet du type, donc `Initialize` garde l'instance, et initialise le proxy tout de suite si l'entité l'est déjà) ; `CasaEngine.Demos/Demo.cs` et `Projects/SandBoxGame/SandBoxGame.cs` posent `ScriptArcBallCamera` par `SetGameplayProxy(new ScriptArcBallCamera())` ; `RpgGameMode.gameMode` passe à `"player_controller_class": ""` (le contrôleur vide = `PlayerController` du moteur, fait en T3.1) ; RPGDemo : les 8 noms de scripts de 6 fichiers de données (`DefaultWorld.world` ×3, `TitleScreenWorld.world`, `character_link`, `character_octopus`, `weapon_rock`, `weapon_sword`) en `CasaEngine.RPGDemo.Scripts.<Nom>` ; `ThrowableWeapon` utilise `typeof(ScriptEnemyWeapon).FullName`. Tests : `CasaEngine.Tests/Scripting/EngineOwnedScriptObjectsTests.cs` (5 cas : `SetGameplayProxy` garde l'instance et note le nom complet, survit à `Initialize` sans assembly de script enregistrée, refuse null ; le vrai `RpgGameMode.gameMode` donne un contrôleur vide ; les 8 noms de scripts des données de RPGDemo sont des noms complets dont le fichier source existe et dont le namespace correspond). Rouge avant : les données ramenées à l'état d'avant (patch inversé puis réappliqué) font échouer les 2 cas de données ; les 3 cas de `SetGameplayProxy` ne compilent pas sans la méthode. Tests existants réécrits : `GameplayModeRunnerTests` (forme `player_controller_class` vide), `EditorWorldPlaySnapshotTests` (nom complet). Les deux `.sln` : 0 erreur ; `CasaEngine.Tests` : **4314/4314** (4309 + 5). Le smoke des démos est dans la validation globale ci-dessous.
 - Commit : `refactor(gameplay): create engine-owned script objects in code; full names in the samples`
 
 ## Phase 5 — Documentation

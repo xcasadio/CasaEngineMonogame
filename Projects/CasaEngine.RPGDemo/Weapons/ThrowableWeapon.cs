@@ -31,7 +31,7 @@ public class ThrowableWeapon : Weapon
     private void InitializeEntity(Entity entity)
     {
         //TODO : remove it => must be set by editor
-        entity.GameplayProxyClassName = nameof(ScriptEnemyWeapon);
+        entity.GameplayProxyClassName = typeof(ScriptEnemyWeapon).FullName;
 
         entity.Initialize();
 

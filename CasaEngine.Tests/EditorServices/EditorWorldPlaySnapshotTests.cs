@@ -16,7 +16,7 @@ public class EditorWorldPlaySnapshotTests
         {
             Name = "EditWorld",
             FileName = "EditWorld.world",
-            GameplayProxyClassName = "ScriptArcBallCamera",
+            GameplayProxyClassName = typeof(CasaEngine.Framework.Scripting.ScriptArcBallCamera).FullName,
         };
 
         var entity = new Entity
@@ -42,7 +42,7 @@ public class EditorWorldPlaySnapshotTests
         var snapshot = EditorWorldPlaySnapshot.Capture(world);
 
         Assert.Equal("EditWorld", (string?)snapshot["name"]);
-        Assert.Equal("ScriptArcBallCamera", (string?)snapshot["script_class_name"]);
+        Assert.Equal(typeof(CasaEngine.Framework.Scripting.ScriptArcBallCamera).FullName, (string?)snapshot["script_class_name"]);
         var references = Assert.IsType<JArray>(snapshot["entity_references"]);
         var referenceNode = Assert.IsType<JObject>(Assert.Single(references));
         var entityNode = Assert.IsType<JObject>(referenceNode["entity"]);
