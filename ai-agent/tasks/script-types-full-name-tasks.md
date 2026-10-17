@@ -179,12 +179,13 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Phase 2 — L'enregistrement
 
-### ⏳ T2.1 — `AssemblyManager` enregistre avec le chargeur par défaut
+### ✅ T2.1 — `AssemblyManager` enregistre avec le chargeur par défaut
 
 - Objectif : D5.
 - Fichiers : `CasaEngine/Engine/Plugins/AssemblyManager.cs` ; tests.
 - Étapes : tests d'abord (le chargeur par défaut enregistre et remplace au rechargement ; un chargeur fourni n'enregistre rien ; **rechargement de l'éditeur** : une assembly de scripts compilée chargée deux fois par `AssemblyManager.Load` avec `AssemblyLoader = EditorScriptAssemblyService.LoadShadowCopy` — le premier contexte collectible est collecté, `Unload()` vrai, seule la seconde assembly est enregistrée) ; puis le code.
 - Validation : tests rouges puis verts ; suite verte.
+- Note de validation (2026-10-17) : `CasaEngine.Tests/Scripting/AssemblyManagerRegistrationTests.cs` (4 cas). **Rouges sur le code d'avant** : `DefaultLoader_RegistersTheGameplayAssembly` et `DefaultLoader_ReloadReplacesItsOwnRegistration` ; verts avant comme après, gardes de D5 : `ProvidedLoader_RegistersNothingAndKeepsNoReference` (la `ScriptAssemblyHost` se décharge, `Unload()` vrai) et `EditorShadowCopyReload_KeepsOnlyTheSecondAssemblyRegisteredAndCollectsTheFirst` (même nom complet dans les deux versions : une seule enregistrée, sinon ambiguïté ; le premier contexte collectible est collecté, prouvé par une `WeakReference`). **Constat hors tranche** : `EditorScriptAssemblyService.Unload()` rend `false` dans une construction Debug même quand tout est libéré, parce que le temporaire qui porte l'assembly vers `ElementFactory.UnregisterScriptAssembly(Host.LoadedAssembly!)` reste vivant pendant la vérification de décharge (vérifié : le même test passe avec cet appel placé dans une méthode `NoInlining`, modification retirée ensuite) ; le test n'assert donc pas ce retour (`EditorScriptAssemblyServiceTests` ne l'assert pas non plus) et la collecte est prouvée par la référence faible. Code : `AssemblyManager.Load` enregistre l'assembly seulement avec le chargeur par défaut (comparé à `Assembly.LoadFile`), désenregistre celle qu'il avait enregistrée au rechargement, ne garde rien avec un chargeur fourni. Les deux `.sln` : 0 erreur ; `CasaEngine.Tests` : **4271/4271**.
 - Commit : `feat(plugins): register the gameplay assembly loaded by the default loader`
 
 ## Phase 3 — Les créations
