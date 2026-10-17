@@ -193,7 +193,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   erreur ; `CasaEngine.Tests` : **4328/4328** (4319 + 9), relancé par la session principale.
 - Commit : `fix(editor): show and pick the world game mode and gameplay mode in the inspector again`
 
-### 🧪 T3 — « Default Pawn » et l'écriture avec Ctrl+S (D3, D4)
+### ✅ T3 — « Default Pawn » et l'écriture avec Ctrl+S (D3, D4)
 
 - Fichiers : `CasaEngine.Editor/Controls/PendingGameModeEdits.cs` (nouveau), `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`,
   `CasaEngine.Editor/GameEditor.cs` (registre possédé, donné à `_entityDetailsPanel`, écrit dans `SaveCurrentProject` avant
@@ -244,11 +244,17 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   0 erreur ; `CasaEngine.Tests` : **4349/4349** (4328 + 21). Le câblage de `GameEditor` (`MarkSaved` conditionnel, abandons) n'a pas
   de test unitaire (`GameEditor` n'est pas testable sans tête) : il est laissé au vérificateur indépendant et à la recette de
   l'auteur (T4).
+- Vérificateur indépendant (2026-10-17, sur `a611ff57..86962a23`, affirmation de « Validation globale ») : **CONFIRMED**, aucun
+  constat P0 à P2. Rejoué : les deux `.sln` 0 erreur, `CasaEngine.Tests` 4349/4349 ; câblage de `GameEditor` lu (seul appelant de
+  `TrySaveAll` : `SaveCurrentProject` ; `DiscardAll` dans `OpenWorldAsset` seulement après le chargement réussi du nouveau monde, et
+  dans `LoadInitialWorldIntoEditorRuntime` ; rechargement des scripts sans abandon ; session de jeu : historique suspendu ;
+  `MarkSaved` du monde sauté après un échec, « Save » à la question d'ouverture ne rouvre pas). Deux avis reportés : O1 (P3) et O2
+  (P4), ci-dessous.
 - Commit : `fix(editor): edit the default pawn of the world's game mode again, written with the project save`
 
 ## Phase 3 — Clôture
 
-### ⏳ T4 — Docs, O3, recette
+### 🧪 T4 — Docs, O3, recette
 
 - Fichiers : `docs/engine/gameplay-mode.md` (courte section « Editor » : les trois lignes, la règle d'écriture du `.gameMode`,
   lien ADR-0076) ; le plan R0 (O3 fermé, avec renvoi à ce plan) ; ce plan.
@@ -260,6 +266,11 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   monde pose la question de sauvegarde (retirer ensuite la lecture seule). Rendre ensuite
   `RpgGameMode.gameMode` à son état commité (`git diff` vérifié avant).
 - Validation : suite verte ; les deux `.sln` ; recette 🧪 jusqu'au retour de l'auteur.
+- Note de validation (2026-10-17) : `docs/engine/gameplay-mode.md` reçoit la section « Édition dans l'inspecteur du monde » (en
+  français, comme le reste du fichier : les trois lignes, la règle d'écriture du `.gameMode`, ses clés, l'abandon, l'échec, lien
+  ADR-0076) ; O3 du plan R0 fermé avec renvoi à ce plan ; ligne du tableau d'`ai-agent/README.md` mise à jour. Aucun code touché
+  depuis T3 : la validation de T3 vaut (les deux `.sln` 0 erreur, `CasaEngine.Tests` 4349/4349, rejouée par le vérificateur). Reste
+  🧪 : la recette de l'auteur dans l'éditeur lancé (liste ci-dessus), qu'un agent ne fait pas.
 - Commit : `docs(gameplay): document editing the world's game mode in the inspector; close O3`
 
 ---
@@ -268,4 +279,5 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 
 | Réf | Question | Réponse |
 |---|---|---|
-| — | — | — |
+| O1 | (avis A1 du vérificateur, P3, reporté) Après un rechargement des scripts, `PrepareWorldsForScriptReload` vide l'historique du monde (`GameEditor.cs:1267`) : la révision courante revient à 0, et un monde jamais sauvé depuis l'ouverture du projet (révision sauvée 0) paraît alors non modifié. Ouvrir un autre monde ne pose pas la question et abandonne sans demander le pion modifié, comme toutes les autres modifications du monde. Défaut préexistant du suivi « modifié » au rechargement des scripts, pas introduit par ce plan ; à corriger à part, sur la décision de l'auteur. | — |
+| O2 | (avis A2 du vérificateur, P4, reporté) `PendingGameModeEdits.TrySaveAll` n'attrape pas `ArgumentException` / `NotSupportedException` qu'un nom de fichier invalide du catalogue ferait lever : l'exception sortirait de `SaveCurrentProject` au lieu d'être journalisée et gardée en attente. Cas théorique (chemins du catalogue valides). | — |
