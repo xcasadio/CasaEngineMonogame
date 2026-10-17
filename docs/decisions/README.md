@@ -88,3 +88,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0072](0072-demos-start-on-a-menu-world-and-load-a-world-per-demo.md) | The demos start on a menu world and load a fresh world per demo | Accepted | 2026-10-08 |
 | [ADR-0073](0073-the-default-music-queue-is-24-buffers-deep.md) | The default music queue is 24 buffers deep | Accepted | 2026-10-08 |
 | [ADR-0074](0074-a-streamed-music-track-loops-back-to-its-loop-start-sample.md) | A streamed music track loops back to its loop-start sample (numbered ADR-0072 until 2026-10-10) | Accepted | 2026-10-08 |
+| [ADR-0076](0076-an-entity-lives-in-a-world-list-or-under-a-parent-never-both.md) | An entity lives in a world's entity list or under a parent entity, never both | Accepted | 2026-10-17 |
