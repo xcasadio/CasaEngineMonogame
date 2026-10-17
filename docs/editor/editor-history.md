@@ -55,6 +55,7 @@ Dirty tracking is revision-based at the history layer.
 - Saving a context marks the current revision as saved.
 - Saving does not clear the undo stack.
 - Closing a document or unloading a project may clear its stack.
+- Clearing a stack does not change whether its document is modified: a modified document stays modified until its next save (for example the World document across a script reload, which clears the World history and keeps the world's edits), an unmodified one stays unmodified. A flow that reloads a document from disk clears its stack and then marks it saved.
 
 Material documents also keep a serialized authoring snapshot so local preview edits remain decoupled from disk writes until save time.
 
