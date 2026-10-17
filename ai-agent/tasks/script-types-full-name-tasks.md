@@ -160,19 +160,21 @@ Relevés en lecture seule par `git show` et `git grep` (preuves : scratchpad du 
 
 ## Phase 1 — La recherche par nom complet
 
-### ⏳ T1.1 — Tests de la fabrique (rouges)
+### ✅ T1.1 — Tests de la fabrique (rouges)
 
 - Objectif : les cas qui fixent la règle, rouges sur le code d'avant.
 - Fichiers : `CasaEngine.Tests/Assets/ScriptTypeResolutionTests.cs` (nom à ajuster au dossier existant) ; un initialiseur de module qui enregistre l'assembly de test.
 - Étapes : nom complet résolu dans une assembly enregistrée ; nom court refusé avec l'indice ; nom complet d'un type du moteur introuvable ; type d'une assembly non enregistrée introuvable ; deux assemblys au même nom complet : ambiguïté qui cite les deux ; mauvais genre ; casse ; type imbriqué refusé ; après désenregistrement, introuvable et contexte collecté ; aucune assembly : message explicite.
 - Validation : rouges sur le code d'avant, nommés dans la note.
+- Note de validation (2026-10-17) : `CasaEngine.Tests/Scripting/ScriptTypeResolutionTests.cs` (15 cas : nom complet dans une assembly enregistrée et dans l'assembly de test ; nom court refusé avec l'indice ; type du moteur introuvable ; assembly non enregistrée ; ambiguïté citant les deux assemblys ; mauvais genre ; casse ; type imbriqué ; type abstrait ; après désenregistrement, introuvable et contexte collecté ; aucune assembly ; `TryResolveScriptType` ; nom vide ; fichier complété une fois) et `ScriptTestAssemblyRegistration.cs` (initialiseur de module qui enregistre l'assembly de test). **Rouges sur le code d'avant** : exécutés contre une cale `CreateScriptObject`/`TryResolveScriptType` qui reprenait le comportement d'avant (`Create<T>`, recherche par nom court) : **15/15 en échec** (`ArgumentNullException` du `Activator`, ou aucune exception levée) ; verts avec T1.2 (15/15). Le test de collecte place la création dans une méthode `NoInlining`, comme `ElementFactoryReloadTests`.
 - Commit : regroupé avec T1.2.
 
-### ⏳ T1.2 — `ElementFactory` : la recherche des objets script
+### ✅ T1.2 — `ElementFactory` : la recherche des objets script
 
 - Objectif : `CreateScriptObject<T>` et `TryResolveScriptType` (ou équivalent), `ScriptTypeResolutionException` ; cache par `Type.FullName` construit à partir des seules assemblys de scripts, invalidé seulement à l'enregistrement et au désenregistrement, sans épingler un contexte collectible ; types publics de premier niveau, constructeur sans paramètre, bon genre.
 - Fichiers : `CasaEngine/Framework/Assets/ElementFactory.cs`, le fichier de l'exception.
 - Validation : T1.1 vert ; suite complète verte.
+- Note de validation (2026-10-17) : `ElementFactory.CreateScriptObject<T>(typeName, key, source)` (nom complet exact, assemblys de scripts seulement ; index `Type.FullName` construit à partir des seules assemblys enregistrées, invalidé à l'enregistrement et au désenregistrement, pas à chaque `AssemblyLoad` ; types publics de premier niveau, concrets, non génériques, constructeur public sans paramètre ; lecture du cache sans allocation), `TryResolveScriptType` (rend le message, sans lever) et `GetScriptTypeNames(baseType)` (énumération pour T3.2), `ScriptTypeResolutionException` (nom vérifié contre les collisions par `check_names.py` : libre ; propriétés `Key`, `Value`, `Reason`, `SearchedAssemblies`, `Hint`, `FileName` complété une fois par `CompleteFileName`) et `ScriptTypeResolutionTolerance` (portée de D9, `[ThreadStatic]`, sans allocation, portant le fichier du monde pour l'avertissement ; lue par `CreateScriptObject` : dans la portée, avertissement et `null`). `Create<T>`/`Load<T>` (composants) inchangés. `ElementFactoryReloadTests` passent à la recherche par nom complet. Les deux `.sln` : 0 erreur ; `CasaEngine.Tests` : **4267/4267** (4252 + 15).
 - Commit : `feat(assets): resolve script objects by full name from the script assemblies only`
 
 ## Phase 2 — L'enregistrement
