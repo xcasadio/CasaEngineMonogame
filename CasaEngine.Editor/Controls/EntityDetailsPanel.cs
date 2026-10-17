@@ -45,6 +45,7 @@ public sealed class EntityDetailsPanel
     private MGComboBox<string> _scriptCombo;
     private AssetSelector _gameModeSelector;
     private AssetSelector _gameplayModeSelector;
+    private AssetSelector _defaultPawnSelector;
     private MGElement _scriptWarning;
     private MGTextBlock _scriptMessage;
     private World _selectedWorld;
@@ -79,6 +80,15 @@ public sealed class EntityDetailsPanel
 
     /// <summary>The Gameplay Mode picker of the selected world; null when the details show something else.</summary>
     internal AssetSelector GameplayModeSelector => _gameplayModeSelector;
+
+    /// <summary>The Default Pawn picker of the selected world's game mode; null when the details show something else.</summary>
+    internal AssetSelector DefaultPawnSelector => _defaultPawnSelector;
+
+    /// <summary>
+    /// The game modes edited since the last project save (ADR-0076). The Default Pawn row edits the shared game mode, so it is
+    /// disabled while the panel has none; the editor gives it to the world inspector only.
+    /// </summary>
+    public PendingGameModeEdits GameModeEdits { get; set; }
 
     /// <summary>The warning element next to the Script list (the alert icon, or a "!" text without a texture); null when the name resolves, is empty or no Script row is shown.</summary>
     internal MGElement ScriptWarningElement => _scriptWarning;
@@ -931,6 +941,7 @@ public sealed class EntityDetailsPanel
         _scriptCombo = null;
         _gameModeSelector = null;
         _gameplayModeSelector = null;
+        _defaultPawnSelector = null;
         _scriptWarning = null;
         _scriptMessage = null;
         _detailsContent.TryRemoveAll();
@@ -967,7 +978,7 @@ public sealed class EntityDetailsPanel
         return names;
     }
 
-    /// <summary>The Game Mode and Gameplay Mode rows of the selected world, in one grid under the Script row.</summary>
+    /// <summary>The Game Mode, Default Pawn and Gameplay Mode rows of the selected world, in one grid under the Script row.</summary>
     private void AddWorldModeRows(World world)
     {
         var grid = CreatePropertyGrid();
@@ -988,6 +999,25 @@ public sealed class EntityDetailsPanel
             });
         rowIndex = AddPropertyRow(grid, rowIndex, "Game Mode", _gameModeSelector);
 
+        // The pawn belongs to the game mode asset, shared by every world that uses it: the command edits the shared instance
+        // and records the mode first, on execute and on undo, so a save after an undo still writes the file (D4).
+        var modeId = world.PlayerStartupSettingsAssetId;
+        var settings = world.PlayerStartupSettings;
+        var assetContentManager = world.Game?.AssetContentManager;
+        var edits = GameModeEdits;
+        _defaultPawnSelector = CreateWorldAssetSelector(
+            "entity",
+            settings.DefaultPawnAssetId,
+            "Change Game Mode Default Pawn",
+            value =>
+            {
+                edits.Record(assetContentManager, modeId);
+                settings.DefaultPawnAssetId = value;
+            },
+            null);
+        _defaultPawnSelector.IsEnabled = modeId != Guid.Empty && assetContentManager != null && edits != null;
+        rowIndex = AddPropertyRow(grid, rowIndex, "Default Pawn", _defaultPawnSelector);
+
         // Read at play start only: nothing to reload.
         _gameplayModeSelector = CreateWorldAssetSelector(
             "gameplaymode",
@@ -998,6 +1028,16 @@ public sealed class EntityDetailsPanel
         AddPropertyRow(grid, rowIndex, "Gameplay Mode", _gameplayModeSelector);
 
         _detailsContent.TryAddChild(grid);
+
+        if (modeId != Guid.Empty)
+        {
+            string modeName = AssetCatalog.Get(modeId)?.Name;
+            string modeLabel = string.IsNullOrWhiteSpace(modeName) ? modeId.ToString() : modeName;
+            _detailsContent.TryAddChild(new MGTextBlock(_window, $"The default pawn belongs to the game mode '{EscapeMarkup(modeLabel)}': it applies to every world that uses this game mode, and is saved with the project.")
+            {
+                WrapText = true,
+            });
+        }
     }
 
     /// <summary>

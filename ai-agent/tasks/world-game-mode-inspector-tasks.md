@@ -193,7 +193,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   erreur ; `CasaEngine.Tests` : **4328/4328** (4319 + 9), relancé par la session principale.
 - Commit : `fix(editor): show and pick the world game mode and gameplay mode in the inspector again`
 
-### ⏳ T3 — « Default Pawn » et l'écriture avec Ctrl+S (D3, D4)
+### 🧪 T3 — « Default Pawn » et l'écriture avec Ctrl+S (D3, D4)
 
 - Fichiers : `CasaEngine.Editor/Controls/PendingGameModeEdits.cs` (nouveau), `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`,
   `CasaEngine.Editor/GameEditor.cs` (registre possédé, donné à `_entityDetailsPanel`, écrit dans `SaveCurrentProject` avant
@@ -213,6 +213,37 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   `GameEditor` non couvert par un test unitaire : couvert par le vérificateur et la recette T4).
 - Validation : tests rouges puis verts ; suite verte ; les deux `.sln` ; puis vérificateur indépendant (`verifier`) sur
   l'affirmation de « Validation globale » ; ses constats sont tranchés (FIX / DEFER / REJECT) avant ✅.
+- Note de validation (2026-10-17) : `CasaEngine.Tests/Editor/PendingGameModeEditsTests.cs` (10 cas : le registre garde le mode et le
+  pion d'origine du premier `Record` ; il tient l'instance (`CollectUnreferenced` ne la libère pas, un rechargement la retrouve avec
+  le pion modifié) ; `TrySaveAll` écrit le `.gameMode`, relâche le handle et vide le registre ; un mode revenu à son pion d'origine
+  n'est pas écrit mais est relâché ; changer, sauver, annuler, sauver rend l'ancien pion dans le fichier ; `DiscardAll` remet le
+  pion d'origine, relâche et vide ; écriture en échec (`.gameMode` en lecture seule) journalisée, `TrySaveAll` faux, entrée gardée
+  avec son handle, seconde tentative réussie après retrait de la lecture seule ; l'entrée en échec garde son pion d'origine ; mode
+  absent du catalogue = échec avec message ; une entrée en échec n'empêche pas d'écrire les autres) et
+  `CasaEngine.Tests/Editor/EntityDetailsDefaultPawnRowTests.cs` (11 cas : ligne « Default Pawn » avec le pion du mode et le texte qui
+  nomme le mode ; désactivée sans mode, sans registre, sans `Game` ; filtre `.entity` seulement ; choisir un pion change l'instance
+  partagée, enregistre le mode et l'annulation rend le pion ; même pion = aucune entrée ; changer, abandonner, annuler = le mode est
+  enregistré de nouveau ; `ReleasePlayerStartupSettings` + `CollectUnreferenced` ne libère pas le mode et `LoadPlayerStartupSettings`
+  rend la même instance au pion modifié ; sans changement le mode est libéré ; une entité n'a pas le sélecteur). Rouges avant le
+  code (panneau remis à l'état de `HEAD` avec deux accesseurs vides `DefaultPawnSelector` / `GameModeEdits` et un registre factice
+  sans effet, pour que les tests compilent) : 19 sur 21 ; les deux verts à vide sont
+  `TrySaveAll_DoesNotWriteAModeWhosePawnWentBackToTheOriginalOne_ButReleasesIt` (aucun fichier avec un registre factice) et
+  `WithoutARecordedChange_TheModeIsFreedWhenTheWorldReleasesIt` (cas de contrôle sans registre). Code : `PendingGameModeEdits`
+  (nouveau, `CasaEngine.Editor/Controls/` : handle ADR-0037 + pion d'origine par mode, `Record` / `IsPending` / `Count` /
+  `TrySaveAll` / `DiscardAll` ; seuls `IOException`, `UnauthorizedAccessException` et `InvalidOperationException` sont attrapés) ;
+  `EntityDetailsPanel` (propriété `GameModeEdits`, `internal DefaultPawnSelector`, ligne « Default Pawn » entre Game Mode et
+  Gameplay Mode par `CreateWorldAssetSelector` avec un `setId` qui enregistre le mode puis fixe le pion sur l'instance captée,
+  texte sous la grille qui nomme le mode, sélecteur désactivé sans mode, sans `Game` ou sans registre, remis à null dans
+  `ClearDetailsContent`) ; `GameEditor` (registre possédé et donné à `_entityDetailsPanel` seulement ; `SaveCurrentProject` appelle
+  `TrySaveAll` avant `SaveProject` et ne fait `MarkSaved` du contexte World que s'il a réussi, sinon avertissement « the world
+  stays modified » ; `DiscardAll` dans `OpenWorldAsset` après le vidage de l'historique du monde et dans
+  `LoadInitialWorldIntoEditorRuntime` avant le chargement du premier monde ; rien sur le rechargement des scripts). Mutations
+  réelles par script (fichier copié, mutation, build, tests filtrés, fichier rendu, `cmp` identique) : (a) l'annulation
+  n'enregistre pas = 1 rouge ; (b) `Record` écrase le pion d'origine = 2 rouges ; (c) `TrySaveAll` oublie l'entrée en échec = 3
+  rouges ; (d) `DiscardAll` ne remet pas le pion = 4 rouges ; (e) le registre ne tient pas de handle = 12 rouges. Les deux `.sln` :
+  0 erreur ; `CasaEngine.Tests` : **4349/4349** (4328 + 21). Le câblage de `GameEditor` (`MarkSaved` conditionnel, abandons) n'a pas
+  de test unitaire (`GameEditor` n'est pas testable sans tête) : il est laissé au vérificateur indépendant et à la recette de
+  l'auteur (T4).
 - Commit : `fix(editor): edit the default pawn of the world's game mode again, written with the project save`
 
 ## Phase 3 — Clôture
