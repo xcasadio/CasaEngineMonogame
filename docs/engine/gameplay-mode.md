@@ -449,4 +449,21 @@ GameplayPhase = phase courante du mode
 
 L'ancien `GameMode` peut alors être retiré progressivement, mais seulement après migration de ce qu'il portait réellement : la configuration de pawn/controller par défaut et les références asset existantes.
 
+## Édition dans l'inspecteur du monde
+
+Depuis le 2026-10-17 ([ADR-0077](../decisions/0077-the-world-inspector-edits-the-world-game-mode.md)), l'inspecteur de l'éditeur
+(`EntityDetailsPanel`) montre, pour le monde sélectionné et sous la ligne « Script » :
+
+- **Game Mode** : `World.PlayerStartupSettingsAssetId`, choisi parmi les seuls `.gameMode`. Le changer recharge les réglages du
+  monde (`World.LoadPlayerStartupSettings`, publique).
+- **Default Pawn** : `DefaultPawnAssetId` du mode du monde, choisi parmi les seuls `.entity`. Le pion appartient au `.gameMode`,
+  partagé par tous les mondes qui l'utilisent : la ligne le dit, et elle est grisée quand le monde n'a pas de mode.
+- **Gameplay Mode** : `World.GameplayModeAssetId`, choisi parmi les seuls `.gameplayMode`.
+
+Chaque choix s'annule. Game Mode et Gameplay Mode sont sauvés avec le monde. Le `.gameMode` d'un pion modifié n'est écrit qu'avec la
+sauvegarde du projet (Ctrl+S), par `PendingGameModeEdits` : clés `id`, `name`, `default_pawn_asset_id`, `player_controller_class`,
+`ai_controller_class`, `hud_class` (l'ancienne clé `hud_classClass` reste lue, elle n'est plus écrite). Ouvrir un autre monde sans
+sauver remet le pion d'origine ; un rechargement des scripts garde la modification ; une écriture qui échoue est journalisée et le
+monde reste marqué modifié.
+
 Decisions: see [ADR-0024](../decisions/0024-gameplaymode-v1.md).

@@ -371,10 +371,10 @@ public sealed class World : ObjectBase
     /// <summary>
     /// Acquires the world's player startup settings through a handle held for the world's lifetime
     /// (ADR-0037) and given back in <see cref="Clear"/>. Any previously held settings are released
-    /// first, so a world reloaded over itself does not leak the earlier handle. Internal so tests can
-    /// drive it without a full game behind the world.
+    /// first, so a world reloaded over itself does not leak the earlier handle. Public so the editor
+    /// reloads the settings after changing the world's game mode.
     /// </summary>
-    internal void LoadPlayerStartupSettings()
+    public void LoadPlayerStartupSettings()
     {
         ReleasePlayerStartupSettings();
 

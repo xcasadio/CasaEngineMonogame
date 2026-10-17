@@ -181,6 +181,8 @@ public class GameEditor : Game, IObservableUpdate
     private EntityDetailsPanel _entityDetailsPanel;
     private MGElement _entityDetailsContent;
     private EntityDetailsPanel _entityAssetInspectorPanel;
+    // Game modes whose default pawn was edited from the world inspector since the last save (ADR-0077).
+    private readonly PendingGameModeEdits _pendingGameModeEdits = new();
     private MGElement _entityAssetInspectorContent;
     private MaterialInspectorView _materialInspectorView;
     private MGElement _materialInspectorContent;
@@ -1368,6 +1370,8 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        // Leaving the current world drops the unsaved game mode edits.
+        _pendingGameModeEdits.DiscardAll();
         _editorRuntime.GameManager.SetWorldToLoad(firstWorld);
     }
 
@@ -2134,7 +2138,10 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (_entityDetailsPanel == null)
         {
-            _entityDetailsPanel = new EntityDetailsPanel(_mainWindow);
+            _entityDetailsPanel = new EntityDetailsPanel(_mainWindow)
+            {
+                GameModeEdits = _pendingGameModeEdits,
+            };
             _entityDetailsPanel.SelectedComponentChanged += OnEntityDetailsSelectedComponentChanged;
         }
 
@@ -2436,9 +2443,19 @@ public class GameEditor : Game, IObservableUpdate
         SaveDirtyAnimation2dInspectors();
         SaveDirtyEntityAssetEditors();
 
+        // The game modes edited from the world inspector are written first: a failed write keeps the world modified.
+        bool gameModesSaved = _pendingGameModeEdits.TrySaveAll(out _);
+
         EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
         EditorAssetCatalogService.Save();
-        _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport));
+        if (gameModesSaved)
+        {
+            _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport));
+        }
+        else
+        {
+            Logs.WriteWarning("A game mode could not be saved: the world stays modified.");
+        }
         Logs.WriteInfo($"Project saved: {EditorProjectSession.CurrentProjectFilePath}");
     }
 
@@ -4592,6 +4609,8 @@ public class GameEditor : Game, IObservableUpdate
         // Undo entries and the selection reference entities of the outgoing world.
         _editorHistory.Clear(worldHistoryContext);
         _editorDirtyState.MarkSaved(worldHistoryContext);
+        // Unsaved game mode edits are dropped with the world (a script reload keeps them: it does not come here).
+        _pendingGameModeEdits.DiscardAll();
         _editorSelection.Clear();
 
         currentWorld?.Clear();

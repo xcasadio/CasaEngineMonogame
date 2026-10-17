@@ -16,6 +16,7 @@ public enum EditorAssetSaveSource
     SpriteEditorPanel = 5,
     SoundEditorPanel = 6,
     AudioMixerEditorPanel = 7,
+    WorldInspector = 8,
 }
 
 public sealed class EditorAssetSavedEventArgs : EventArgs
