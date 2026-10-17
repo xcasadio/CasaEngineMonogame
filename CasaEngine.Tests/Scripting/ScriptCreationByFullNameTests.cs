@@ -80,8 +80,8 @@ public class CustomPlayerControllerStub : PlayerController
 [Collection(ProjectEnvironmentCollection.Name)]
 public class ScriptCreationByFullNameTests
 {
-    private const string FaultyScriptName = "Nope.MissingScript";
-    private static readonly Guid PrefabAssetId = Guid.Parse("a1a1a1a1-0000-0000-0000-000000000001");
+    internal const string FaultyScriptName = "Nope.MissingScript";
+    internal static readonly Guid PrefabAssetId = Guid.Parse("a1a1a1a1-0000-0000-0000-000000000001");
     private static readonly Guid StartupSettingsAssetId = Guid.Parse("a1a1a1a1-0000-0000-0000-000000000002");
 
     private sealed class FactoryLoader : IAssetLoader
@@ -95,7 +95,7 @@ public class ScriptCreationByFullNameTests
         public bool IsFileSupported(string fileName) => true;
     }
 
-    private sealed class CapturingLogger : ILogger
+    internal sealed class CapturingLogger : ILogger
     {
         public List<string> Warnings { get; } = new();
         public List<string> Errors { get; } = new();
@@ -108,7 +108,7 @@ public class ScriptCreationByFullNameTests
         public void WriteError(string msg) => Errors.Add(msg);
     }
 
-    private static AssetContentManager NewAssets(string prefabScriptName = FaultyScriptName, string startupControllerName = "")
+    internal static AssetContentManager NewAssets(string prefabScriptName = FaultyScriptName, string startupControllerName = "")
     {
         var infos = new Dictionary<Guid, AssetInfo>
         {
@@ -127,7 +127,7 @@ public class ScriptCreationByFullNameTests
         return manager;
     }
 
-    private static World NewWorld(GameplayExecutionPolicy policy, AssetContentManager assets, string fileName = "Worlds/level.world")
+    internal static World NewWorld(GameplayExecutionPolicy policy, AssetContentManager assets, string fileName = "Worlds/level.world")
     {
         var game = (CasaEngineGame)RuntimeHelpers.GetUninitializedObject(typeof(CasaEngineGame));
         SetBackingField(game, nameof(CasaEngineGame.AssetContentManager), assets);
@@ -152,21 +152,21 @@ public class ScriptCreationByFullNameTests
         field!.SetValue(instance, value);
     }
 
-    private static JObject InlineReference(Entity entity)
+    internal static JObject InlineReference(Entity entity)
     {
         var entityNode = new JObject();
         EditorEntityJsonSerializer.SaveEntity(entity, entityNode);
         return new JObject { ["asset_id"] = Guid.Empty, ["entity"] = entityNode };
     }
 
-    private static JObject PrefabReference(Guid assetId)
+    internal static JObject PrefabReference(Guid assetId)
     {
         var transformNode = new JObject();
         new CasaEngine.Core.Math.LocalTransform().Save(transformNode);
         return new JObject { ["asset_id"] = assetId, ["name"] = "prefab instance", ["initial_local_transform"] = transformNode };
     }
 
-    private static void LoadWorldDocument(World world, string worldScriptName, params JObject[] references)
+    internal static void LoadWorldDocument(World world, string worldScriptName, params JObject[] references)
     {
         world.Load(new JObject
         {
@@ -179,7 +179,7 @@ public class ScriptCreationByFullNameTests
     }
 
     /// <summary>Runs the world's content loading (the private overload that skips the physics context).</summary>
-    private static void LoadContent(World world, bool withReferences = true)
+    internal static void LoadContent(World world, bool withReferences = true)
     {
         var method = typeof(World).GetMethod("LoadContent", BindingFlags.Instance | BindingFlags.NonPublic, new[] { typeof(bool) });
         Assert.NotNull(method);
@@ -193,7 +193,7 @@ public class ScriptCreationByFullNameTests
         }
     }
 
-    private static Entity InlineEntity(string name, string scriptName) => new() { Name = name, GameplayProxyClassName = scriptName };
+    internal static Entity InlineEntity(string name, string scriptName) => new() { Name = name, GameplayProxyClassName = scriptName };
 
     // ---- (i) the entity ----
 
