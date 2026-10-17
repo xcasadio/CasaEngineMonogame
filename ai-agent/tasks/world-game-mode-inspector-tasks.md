@@ -166,7 +166,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 
 ## Phase 2 — Les lignes du monde
 
-### ⏳ T2 — « Game Mode » et « Gameplay Mode » (D1, D2, D7)
+### ✅ T2 — « Game Mode » et « Gameplay Mode » (D1, D2, D7)
 
 - Fichiers : `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ; `CasaEngine/Framework/Scene/World/World.cs`
   (`LoadPlayerStartupSettings` publique, commentaire XML mis à jour) ; `CasaEngine.Tests/Editor/EntityDetailsGameModeRowsTests.cs`.
@@ -178,6 +178,19 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   pour `GameplayModeAssetId` ; (v) une entité sélectionnée n'a pas ces lignes. Exposer les sélecteurs en `internal` comme
   `ScriptCombo` de R0 si les tests en ont besoin. Puis le code.
 - Validation : tests rouges puis verts ; suite verte ; les deux `.sln`.
+- Note de validation (2026-10-17) : `CasaEngine.Tests/Editor/EntityDetailsGameModeRowsTests.cs` (9 cas : lignes avec ids et noms ;
+  monde sans mode = None ; filtres `.gameMode` / `.gameplayMode` seulement ; choix d'un autre mode = id changé, instance rechargée,
+  annulation qui rend l'id et l'instance d'origine ; même choix = aucune entrée d'historique ; Gameplay Mode sans rechargement ;
+  nom de l'entrée d'historique ; monde sans `Game` = id changé sans chargement ; entité = pas de sélecteurs). Le monde de test a un
+  `Game` et un gestionnaire d'assets de test (motif de `WorldAssetHandleTests`) ; le catalogue a deux `.gameplayMode` (il en faut
+  un second pour changer). Rouges avant le code : les 9, les propriétés `GameModeSelector` / `GameplayModeSelector` existaient sans
+  les lignes et restaient nulles. Code : `EntityDetailsPanel.AddWorldModeRows` (une grille sous la ligne Script, Game Mode puis
+  Gameplay Mode, prête pour Default Pawn en T3) et `CreateWorldAssetSelector` (filtre par type, commandes `Change World Game Mode` /
+  `Change World Gameplay Mode`, aucune commande si l'id ne change pas, rechargement des réglages seulement si `world.Game` n'est pas
+  nul, puis `RebuildPropertyEditors`) ; `World.LoadPlayerStartupSettings` publique, commentaire XML mis à jour ; sélecteurs remis à
+  null dans `ClearDetailsContent`. Mutations réelles par script (fichier copié, rendu, `cmp` identique) : (a) sans rechargement →
+  1 rouge ; (b) filtre retiré → 1 rouge ; (c) changement appliqué sans commande d'historique → 3 rouges. Les deux `.sln` : 0
+  erreur ; `CasaEngine.Tests` : **4328/4328** (4319 + 9), relancé par la session principale.
 - Commit : `fix(editor): show and pick the world game mode and gameplay mode in the inspector again`
 
 ### ⏳ T3 — « Default Pawn » et l'écriture avec Ctrl+S (D3, D4)

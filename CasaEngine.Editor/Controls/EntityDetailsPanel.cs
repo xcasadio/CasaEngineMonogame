@@ -43,6 +43,8 @@ public sealed class EntityDetailsPanel
     private MGStackPanel _detailsContent;
     private MGTextBlock _componentSummaryText;
     private MGComboBox<string> _scriptCombo;
+    private AssetSelector _gameModeSelector;
+    private AssetSelector _gameplayModeSelector;
     private MGElement _scriptWarning;
     private MGTextBlock _scriptMessage;
     private World _selectedWorld;
@@ -71,6 +73,12 @@ public sealed class EntityDetailsPanel
 
     /// <summary>The Script row's list of the selected entity or world; null when the details show something else.</summary>
     internal MGComboBox<string> ScriptCombo => _scriptCombo;
+
+    /// <summary>The Game Mode picker of the selected world; null when the details show something else.</summary>
+    internal AssetSelector GameModeSelector => _gameModeSelector;
+
+    /// <summary>The Gameplay Mode picker of the selected world; null when the details show something else.</summary>
+    internal AssetSelector GameplayModeSelector => _gameplayModeSelector;
 
     /// <summary>The warning element next to the Script list (the alert icon, or a "!" text without a texture); null when the name resolves, is empty or no Script row is shown.</summary>
     internal MGElement ScriptWarningElement => _scriptWarning;
@@ -638,6 +646,7 @@ public sealed class EntityDetailsPanel
             "Change World Script",
             () => world.GameplayProxyClassName,
             value => world.GameplayProxyClassName = value);
+        AddWorldModeRows(world);
 
         var settings = _selectedWorld.EnvironmentSettings;
         var grid = CreatePropertyGrid();
@@ -920,6 +929,8 @@ public sealed class EntityDetailsPanel
         }
 
         _scriptCombo = null;
+        _gameModeSelector = null;
+        _gameplayModeSelector = null;
         _scriptWarning = null;
         _scriptMessage = null;
         _detailsContent.TryRemoveAll();
@@ -954,6 +965,76 @@ public sealed class EntityDetailsPanel
         }
 
         return names;
+    }
+
+    /// <summary>The Game Mode and Gameplay Mode rows of the selected world, in one grid under the Script row.</summary>
+    private void AddWorldModeRows(World world)
+    {
+        var grid = CreatePropertyGrid();
+        int rowIndex = 0;
+
+        _gameModeSelector = CreateWorldAssetSelector(
+            "gamemode",
+            world.PlayerStartupSettingsAssetId,
+            "Change World Game Mode",
+            value => world.PlayerStartupSettingsAssetId = value,
+            () =>
+            {
+                // A world not attached to a game loads its settings in LoadContent.
+                if (world.Game != null)
+                {
+                    world.LoadPlayerStartupSettings();
+                }
+            });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Game Mode", _gameModeSelector);
+
+        // Read at play start only: nothing to reload.
+        _gameplayModeSelector = CreateWorldAssetSelector(
+            "gameplaymode",
+            world.GameplayModeAssetId,
+            "Change World Gameplay Mode",
+            value => world.GameplayModeAssetId = value,
+            null);
+        AddPropertyRow(grid, rowIndex, "Gameplay Mode", _gameplayModeSelector);
+
+        _detailsContent.TryAddChild(grid);
+    }
+
+    /// <summary>
+    /// An asset picker of a world asset id: lists the assets of <paramref name="assetType"/>, applies a change through the
+    /// history (set the id, then <paramref name="afterChange"/>, then rebuild the details), and records nothing when the id is unchanged.
+    /// </summary>
+    private AssetSelector CreateWorldAssetSelector(string assetType, Guid current, string description, Action<Guid> setId, Action afterChange)
+    {
+        var selector = new AssetSelector(_window)
+        {
+            AssetId = current,
+            Filter = assetInfo => string.Equals(assetInfo.AssetType, assetType, StringComparison.OrdinalIgnoreCase),
+        };
+        selector.AssetChanged += (_, value) =>
+        {
+            Guid previous = current;
+            if (value == previous)
+            {
+                return;
+            }
+
+            ExecuteHistoryCommand(
+                description,
+                () =>
+                {
+                    setId(value);
+                    afterChange?.Invoke();
+                    RebuildPropertyEditors();
+                },
+                () =>
+                {
+                    setId(previous);
+                    afterChange?.Invoke();
+                    RebuildPropertyEditors();
+                });
+        };
+        return selector;
     }
 
     private void AddScriptRow(string description, Func<string> getName, Action<string> setName)
