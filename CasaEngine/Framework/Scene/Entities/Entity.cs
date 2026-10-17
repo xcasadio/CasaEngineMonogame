@@ -37,6 +37,10 @@ public class Entity : ObjectBase
     public bool IsInitialized { get; private set; }
     public Entity Parent { get; private set; }
 
+    //The world whose entity list, or queue of entities to add, holds this entity. ADR-0076: an entity lives
+    //either there or under a parent entity, never in both places.
+    internal CasaEngine.Framework.Scene.World.World ListingWorld { get; set; }
+
     public IEnumerable<Entity> Children => _children;
 
     public IEnumerable<EntityComponent> Components => _components;
@@ -263,6 +267,14 @@ public class Entity : ObjectBase
 
     public void AddChild(Entity actor)
     {
+        if (actor.ListingWorld != null)
+        {
+            throw new InvalidOperationException(
+                $"Entity '{actor.Name}' is in the entity list of world '{actor.ListingWorld.Name}', so it cannot also be a child of '{Name}': " +
+                "an entity lives either in a world's entity list or under a parent entity. Create the child without adding it to a world " +
+                "(no World.SpawnEntity or World.AddEntity), then call AddChild: the world initializes a child added to one of its entities.");
+        }
+
         _children.Add(actor);
         actor.Parent = this;
         ChildAdded?.Invoke(this, actor);
