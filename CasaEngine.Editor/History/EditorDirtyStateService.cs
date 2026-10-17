@@ -8,6 +8,9 @@ public sealed class EditorDirtyStateService
 {
     public static EditorDirtyStateService Current { get; } = new(EditorHistoryService.Current);
 
+    // Below every history revision (an empty history is revision 0): only a save makes the document unmodified again.
+    private const long UnsavedRevision = -1;
+
     private readonly Dictionary<EditorHistoryContext, DirtyStateEntry> _states = new();
 
     public event EventHandler<EditorDirtyStateChangedEventArgs> DirtyStateChanged;
@@ -68,6 +71,13 @@ public sealed class EditorDirtyStateService
     private void OnHistoryChanged(object sender, EditorHistoryChangedEventArgs e)
     {
         var state = GetOrCreateState(e.Context);
+        if (e.ChangeKind == EditorHistoryStackChangeKind.Cleared)
+        {
+            // Clearing the undo history leaves the document as it is (the script reload clears the World history and keeps
+            // the world's edits): a modified document stays modified until its next save, an unmodified one stays unmodified.
+            state.SavedRevision = state.IsDirty ? UnsavedRevision : e.CurrentRevision;
+        }
+
         state.CurrentRevision = e.CurrentRevision;
         UpdateDirtyState(e.Context, state, MapChangeKind(e.ChangeKind), forceNotification: true);
     }
