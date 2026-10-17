@@ -41,10 +41,10 @@ public sealed class UIScreenDesignTimeDataResult
 /// Loads a screen's optional design-time data file (ADR-0038, "Design-time data"; <c>.uiscreen</c> field
 /// <c>design_time_data_file</c>, see <c>docs/editor/ui-screen-editor/screen-authoring-conventions.md</c>): a
 /// JSON document naming a view-model type and giving it property values. The named type is resolved through
-/// <see cref="ElementFactory"/> -- so it must be a public type with a public parameterless constructor, found
-/// either in the engine or in the project's loaded gameplay assembly (<see cref="ElementFactory.RegisterScriptAssembly"/>)
-/// -- and by its simple (non-namespace-qualified) name, the same convention <see cref="ElementFactory"/> uses
-/// everywhere else. A missing or invalid file, an unresolved type, or a population failure never throws: they
+/// <see cref="ElementFactory.CreateScriptObject{T}"/> -- so it must be a public top-level type with a public
+/// parameterless constructor, found in the project's loaded gameplay assembly
+/// (<see cref="ElementFactory.RegisterScriptAssembly"/>) by its exact full name, namespace included (ADR-0075).
+/// A missing or invalid file, an unresolved type, or a population failure never throws: they
 /// are logged with context and reported through <see cref="UIScreenDesignTimeDataResult.ErrorMessage"/>, and
 /// the caller renders its preview without a data context.
 /// </summary>
@@ -110,16 +110,17 @@ public static class UIScreenDesignTimeDataLoader
         object instance;
         try
         {
-            instance = ElementFactory.Create<object>(typeName);
+            instance = ElementFactory.CreateScriptObject<object>(typeName, "view_model_type");
+        }
+        catch (ScriptTypeResolutionException ex)
+        {
+            // The dedicated message already carries the key, the value, the searched assemblies and the hint.
+            ex.CompleteFileName(dataFilePath);
+            return Fail(ex.Message);
         }
         catch (Exception ex)
         {
             return Fail($"Design-time data file '{dataFilePath}' names view model type '{typeName}', which could not be instantiated: {ex.Message}");
-        }
-
-        if (instance == null)
-        {
-            return Fail($"Design-time data file '{dataFilePath}' names view model type '{typeName}', which was not found in the engine or the project's gameplay assembly.");
         }
 
         if (root["values"] is JObject values)

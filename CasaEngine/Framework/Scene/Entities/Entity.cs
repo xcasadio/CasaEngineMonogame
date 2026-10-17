@@ -206,12 +206,14 @@ public class Entity : ObjectBase
         }
 
         //a proxy cloned or already carrying state must survive; recreate only when missing
-        //or when the class name no longer matches (editor changed the script class)
+        //or when the class name no longer matches (editor changed the script class). The name is a full name
+        //(namespace included), compared as written; a name that does not resolve throws
+        //ScriptTypeResolutionException, except in the editor preview, where the entity keeps no proxy (ADR-0075).
         if (!string.IsNullOrWhiteSpace(GameplayProxyClassName)
             && (GameplayProxy == null
-                || !string.Equals(GameplayProxy.GetType().Name, GameplayProxyClassName, StringComparison.InvariantCultureIgnoreCase)))
+                || !string.Equals(GameplayProxy.GetType().FullName, GameplayProxyClassName, StringComparison.Ordinal)))
         {
-            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+            GameplayProxy = ElementFactory.CreateScriptObject<GameplayProxy>(GameplayProxyClassName, "script_class_name", this);
 
             if (GameplayProxy != null && _gameplayProxyState != null)
             {

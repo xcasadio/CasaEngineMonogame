@@ -7,6 +7,12 @@ using Xunit;
 
 namespace CasaEngine.Tests.ScreenEditor;
 
+/// <summary>The view model of the design-time data tests: public and top level, as a gameplay assembly's view model must be.</summary>
+public sealed class TestViewModel
+{
+    public string WeaponName { get; set; } = string.Empty;
+}
+
 /// <summary>
 /// T4.2 (ADR-0038, "Design-time data"): <see cref="UIScreenPreviewBuilder"/>'s asset-aware overloads load a
 /// screen's optional design-time data file, instantiate and populate the view model it names, and bind it as
@@ -25,11 +31,6 @@ public sealed class UIScreenPreviewBuilderDesignTimeDataTests
     private const string BoundScreenXaml =
         WindowXamlHeader +
         "<TextBlock Name=\"lblWeapon\" Text=\"{dataBinding:MGBinding Path=WeaponName}\" /></Window>";
-
-    public sealed class TestViewModel
-    {
-        public string WeaponName { get; set; } = string.Empty;
-    }
 
     private static UIScreenAsset NewAsset(string designTimeDataFile) => new() { DesignTimeDataFile = designTimeDataFile };
 
@@ -53,11 +54,11 @@ public sealed class UIScreenPreviewBuilderDesignTimeDataTests
         try
         {
             var dataFile = Path.Combine(directory, "screen.designtime.json");
-            // ElementFactory resolves types by their simple (non-namespace-qualified) name -- see
-            // UIScreenDesignTimeDataLoader's doc comment -- so "TestViewModel" is enough here.
-            File.WriteAllText(dataFile, /*lang=json,strict*/ """
+            // View models are resolved by their exact full name from the registered gameplay assemblies
+            // (ElementFactory.CreateScriptObject, ADR-0075); the test assembly stands for the gameplay assembly.
+            File.WriteAllText(dataFile, /*lang=json,strict*/ $$"""
                 {
-                  "view_model_type": "TestViewModel",
+                  "view_model_type": "{{typeof(TestViewModel).FullName}}",
                   "values": { "WeaponName": "Poignard" }
                 }
                 """);
@@ -153,6 +154,35 @@ public sealed class UIScreenPreviewBuilderDesignTimeDataTests
 
             Assert.NotNull(error);
             Assert.Contains("ThereIsNoSuchTypeAnywhere", error);
+            Assert.Null(window.WindowDataContext);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Build_WithAShortViewModelName_ReportsTheFileTheKeyAndTheFullNameHint()
+    {
+        var directory = CreateTempDirectory();
+        try
+        {
+            var dataFile = Path.Combine(directory, "screen.designtime.json");
+            File.WriteAllText(dataFile, /*lang=json,strict*/ """
+                { "view_model_type": "TestViewModel", "values": {} }
+                """);
+
+            var assetFilePath = Path.Combine(directory, "screen.uiscreen");
+            var desktop = HeadlessUiTestHarness.NewDesktop().Desktop;
+            var document = new UIScreenXamlParser().Parse(BoundScreenXaml);
+
+            var window = new UIScreenPreviewBuilder().Build(desktop, document, NewAsset("screen.designtime.json"), assetFilePath, out var error);
+
+            Assert.NotNull(error);
+            Assert.Contains("view_model_type", error);
+            Assert.Contains("screen.designtime.json", error);
+            Assert.Contains(typeof(TestViewModel).FullName!, error);
             Assert.Null(window.WindowDataContext);
         }
         finally

@@ -15,7 +15,7 @@ public sealed class GameplayModeAsset : ObjectBase
             return null;
         }
 
-        return ElementFactory.Create<GameplayMode>(ModeClassName);
+        return ElementFactory.CreateScriptObject<GameplayMode>(ModeClassName, "mode_class_name", this);
     }
 
     public override void Load(JObject element)

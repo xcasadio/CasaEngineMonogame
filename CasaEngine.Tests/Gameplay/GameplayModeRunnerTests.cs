@@ -192,7 +192,7 @@ public sealed class GameplayModeRunnerTests
         {
           "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
           "name": "TestMode",
-          "mode_class_name": "{{nameof(AssetCreatedGameplayMode)}}"
+          "mode_class_name": "{{typeof(AssetCreatedGameplayMode).FullName}}"
         }
         """));
 
@@ -263,7 +263,9 @@ public sealed class GameplayModeRunnerTests
         }
     }
 
-    public sealed class AssetCreatedGameplayMode : GameplayMode
-    {
-    }
+}
+
+/// <summary>Created by <see cref="GameplayModeAsset"/> from its full name: public and top level, like a gameplay assembly's mode.</summary>
+public sealed class AssetCreatedGameplayMode : GameplayMode
+{
 }

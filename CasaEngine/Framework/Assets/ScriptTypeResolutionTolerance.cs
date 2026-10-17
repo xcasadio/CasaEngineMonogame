@@ -21,7 +21,10 @@ internal static class ScriptTypeResolutionTolerance
     /// <summary>The file given when the scope was opened (the world's), used by a warning that knows no file of its own.</summary>
     public static string FallbackFileName => _fallbackFileName;
 
-    /// <summary>Opens a scope; dispose it (a <c>using</c>) to close it, also after an exception.</summary>
+    /// <summary>
+    /// Opens a scope; dispose it (a <c>using</c>) to close it, also after an exception. <c>default(Scope)</c> is a
+    /// closed scope whose disposal does nothing, so a caller can write <c>using var scope = condition ? Open(file) : default;</c>.
+    /// </summary>
     public static Scope Open(string fallbackFileName)
     {
         var scope = new Scope(_fallbackFileName);
@@ -33,14 +36,21 @@ internal static class ScriptTypeResolutionTolerance
     internal readonly struct Scope : IDisposable
     {
         private readonly string _previousFallbackFileName;
+        private readonly bool _isOpen;
 
         internal Scope(string previousFallbackFileName)
         {
             _previousFallbackFileName = previousFallbackFileName;
+            _isOpen = true;
         }
 
         public void Dispose()
         {
+            if (!_isOpen)
+            {
+                return;
+            }
+
             _depth--;
             _fallbackFileName = _previousFallbackFileName;
         }

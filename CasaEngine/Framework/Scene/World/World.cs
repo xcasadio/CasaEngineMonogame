@@ -312,6 +312,8 @@ public sealed class World : ObjectBase
 
         if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
         {
+            // The entities the world script makes appear are created under the same tolerance as the rest.
+            using var tolerance = OpenScriptTypeResolutionTolerance();
             GameplayProxy?.Initialize(null);
             GameplayProxy?.InitializeWithWorld(this);
         }
@@ -329,7 +331,8 @@ public sealed class World : ObjectBase
             return;
         }
 
-        GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+        using var tolerance = OpenScriptTypeResolutionTolerance();
+        GameplayProxy = ElementFactory.CreateScriptObject<GameplayProxy>(GameplayProxyClassName, "script_class_name", this);
 
         if (GameplayProxy != null && _gameplayProxyState != null)
         {
@@ -437,7 +440,11 @@ public sealed class World : ObjectBase
 
     internal PlayerController CreateLocalPlayerController(PlayerIndex playerIndex, Entity pawn, PlayerStartComponent playerStart)
     {
-        var playerController = ElementFactory.Create<PlayerController>(PlayerStartupSettings.PlayerControllerClass);
+        // Empty = the engine's PlayerController, created by code; otherwise the full name of a class of the
+        // gameplay assembly (ADR-0075). The controller is not created in the editor preview, so no tolerance here.
+        var playerController = string.IsNullOrWhiteSpace(PlayerStartupSettings.PlayerControllerClass)
+            ? new PlayerController()
+            : ElementFactory.CreateScriptObject<PlayerController>(PlayerStartupSettings.PlayerControllerClass, "player_controller_class", PlayerStartupSettings);
         playerController.Player = new LocalPlayer { ControllerId = playerIndex };
         playerController.Possess(pawn);
         if (Game?.InputComponent != null)
@@ -771,6 +778,18 @@ public sealed class World : ObjectBase
         }
     }
 
+    /// <summary>
+    /// Opens the editor-preview tolerance (ADR-0075, D9): while it is open, a script type name that does not resolve
+    /// is logged as a warning and the object is created without its script. Closed (a no-op) when the world has no
+    /// game or its execution policy says to throw.
+    /// </summary>
+    private ScriptTypeResolutionTolerance.Scope OpenScriptTypeResolutionTolerance()
+    {
+        return Game != null && !Game.ExecutionPolicy.ThrowOnScriptTypeResolution
+            ? ScriptTypeResolutionTolerance.Open(FileName)
+            : default;
+    }
+
     private void InternalAddEntities()
     {
         if (_baseObjectsToAdd.Count == 0)
@@ -778,6 +797,8 @@ public sealed class World : ObjectBase
             return;
         }
 
+        // Covers the four callers (LoadContent, InitializePlayerControllers, Update, the editor's additions).
+        using var tolerance = OpenScriptTypeResolutionTolerance();
         var entitiesToAdd = new List<Entity>(_baseObjectsToAdd);
         _baseObjectsToAdd.Clear();
 
@@ -794,7 +815,14 @@ public sealed class World : ObjectBase
                 Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
                 NotifyEntityAddedRecursive(entity);
             }
-            catch (Exception e)
+            catch (ScriptTypeResolutionException e)
+            {
+                // An inline entity knows no file of its own: the world completes the message, then the failure
+                // goes up (ADR-0075, D7).
+                e.CompleteFileName(FileName);
+                throw;
+            }
+            catch (Exception e) when (e is not ScriptTypeResolutionException)
             {
                 Logs.WriteException(e);
             }
