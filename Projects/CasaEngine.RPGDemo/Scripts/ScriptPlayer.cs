@@ -1,5 +1,6 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Physics;
@@ -54,8 +55,9 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
         var animatedSprite = Owner.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
-        //weapon
-        var weaponEntity = world.SpawnEntity<Entity>("weapon_sword");
+        //weapon: MeleeWeapon makes it a child of the player, so it is never added to the world's entity list
+        //(World.SpawnEntity would): the world initializes a child added to one of its entities.
+        var weaponEntity = world.Game.AssetContentManager.LoadCopy<Entity>(AssetCatalog.Get("weapon_sword").Id).Clone();
         Character.SetWeapon(new MeleeWeapon(world, weaponEntity));
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;

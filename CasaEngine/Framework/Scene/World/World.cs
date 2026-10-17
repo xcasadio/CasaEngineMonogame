@@ -168,8 +168,30 @@ public sealed class World : ObjectBase
     public void AddEntity(Entity entity)
     {
         System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
+        ThrowIfChildEntity(entity);
         Logs.WriteTrace($"Entity waiting to be added : {entity.Name} {entity.Id}");
         _baseObjectsToAdd.Add(entity);
+        entity.ListingWorld = this;
+    }
+
+    //ADR-0076: an entity lives either in a world's entity list or under a parent entity, never in both places.
+    private void ThrowIfChildEntity(Entity entity)
+    {
+        var parent = entity.Parent;
+        if (parent != null && parent.ChildList.Contains(entity))
+        {
+            throw new InvalidOperationException(
+                $"Entity '{entity.Name}' is a child of '{parent.Name}', so it cannot also be added to the entity list of world '{Name}': " +
+                "an entity lives either in a world's entity list or under a parent entity. Call RemoveChild first to make it a root entity.");
+        }
+    }
+
+    private void ReleaseListing(Entity entity)
+    {
+        if (ReferenceEquals(entity.ListingWorld, this))
+        {
+            entity.ListingWorld = null;
+        }
     }
 
     public void RemoveEntity(Entity entity)
@@ -245,6 +267,12 @@ public sealed class World : ObjectBase
             UnsubscribeEntityTree(entity);
             entity.Destroy();
             DetachComponentsOfDiscardedEntity(entity);
+            ReleaseListing(entity);
+        }
+
+        foreach (var entity in _baseObjectsToAdd)
+        {
+            ReleaseListing(entity);
         }
 
         _entities.Clear();
@@ -571,6 +599,7 @@ public sealed class World : ObjectBase
             MessageBus.UnregisterEntity(entity);
             UnsubscribeEntityTree(entity);
             _entities.Remove(entity);
+            ReleaseListing(entity);
             NotifyEntityRemovedRecursive(entity);
 
             // ADR-0037: a destroyed entity gives back what its components hold, as it would at world teardown.
@@ -825,6 +854,12 @@ public sealed class World : ObjectBase
             catch (Exception e) when (e is not ScriptTypeResolutionException)
             {
                 Logs.WriteException(e);
+
+                //An entity that failed before entering the list has left the queue all the same.
+                if (!_entities.Contains(entity))
+                {
+                    ReleaseListing(entity);
+                }
             }
         }
     }
@@ -1042,9 +1077,11 @@ public sealed class World : ObjectBase
 
     internal void AddEntityReferenceImmediate(EntityReference entityReference, Entity entity)
     {
+        ThrowIfChildEntity(entity);
         _entityReferences.Add(entityReference);
         entity.Initialize();
         _entities.Add(entity);
+        entity.ListingWorld = this;
         entity.InitializeWithWorld(this);
         MessageBus.RegisterEntity(entity);
         AddInSpacePartitioning(entity);
@@ -1073,6 +1110,7 @@ public sealed class World : ObjectBase
         MessageBus.UnregisterEntity(entity);
         UnsubscribeEntityTree(entity);
         _entities.Remove(entity);
+        ReleaseListing(entity);
         SpatialServices.WorldIndex.Remove(entity);
         entity.Destroy();
         NotifyEntityRemovedRecursive(entity);

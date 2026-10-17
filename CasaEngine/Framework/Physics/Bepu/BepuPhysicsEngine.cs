@@ -785,6 +785,14 @@ public sealed class BepuPhysicsEngine
                 continue;
             }
 
+            //The buffer is only cleared before a sub-step, so a frame that runs none reads the records of the
+            //last step again. A body taken out of the simulation since then (e.g. a weapon destroying itself
+            //from OnHit) touches nothing any more: reading its record would raise its ended hit again.
+            if (!record.BackendA.IsInSimulation || !record.BackendB.IsInSimulation)
+            {
+                continue;
+            }
+
             if (ReferenceEquals(componentA, componentB))
             {
                 continue;
