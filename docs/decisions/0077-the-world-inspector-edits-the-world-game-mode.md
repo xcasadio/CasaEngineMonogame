@@ -1,6 +1,6 @@
-# ADR-0076: The world inspector edits the world's game mode, and the project save writes it
+# ADR-0077: The world inspector edits the world's game mode, and the project save writes it
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0076 until 2026-10-17: renumbered when the branch was merged into main, whose ADR-0076 records that an entity lives in a world's entity list or under a parent entity; the decision is unchanged)
 - **Date**: 2026-10-17
 - **Source**: this chantier: `ai-agent/tasks/world-game-mode-inspector-tasks.md` (D1 to D8), open point O3 of `ai-agent/tasks/script-types-full-name-tasks.md`
 

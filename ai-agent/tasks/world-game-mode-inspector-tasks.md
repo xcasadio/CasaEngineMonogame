@@ -68,7 +68,8 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
   (`HeadlessUiTestHarness.NewDesktop`, `includeComponentTree: false`, contexte d'historique de test) ;
   `CasaEngine.Tests/Application/WorldAssetHandleTests.cs` construit un monde avec un `Game` et un `AssetContentManager` de test
   (`NewManager`, `NewWorldWithGame`) et pilote `LoadPlayerStartupSettings`.
-- Prochain ADR du moteur : 0076 (0075 = R0).
+- Prochain ADR du moteur : 0076 (0075 = R0). Renuméroté 0077 le 2026-10-17 à la fusion : `main` avait reçu entre-temps
+  l'ADR-0076 du correctif RPGDemo (une entité est dans la liste d'un monde ou sous un parent, jamais les deux).
 - Changement préexistant de l'auteur dans le checkout du moteur : `CasaEngine.Launcher/Program.cs`. Ne jamais l'indexer.
 
 ## Décisions verrouillées
@@ -82,7 +83,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 | D5 | Écriture d'un `.gameMode` : un cas `PlayerStartupSettings` dans `EditorAssetJsonSerializer.TrySerialize` : `SaveObjectBase`, puis `default_pawn_asset_id`, `player_controller_class`, `ai_controller_class`, `hud_class`. `Load` n'est pas modifié. L'ancienne clé `hud_classClass`, toujours lue, n'est plus écrite (aucun champ renommé : `hud_class` est déjà la clé lue en premier). Nouvelle valeur `EditorAssetSaveSource.WorldInspector = 8`. |
 | D6 | (Q4) Pas de choix « aucun » : `AssetSelector` n'est pas modifié. |
 | D7 | Les trois lignes sont dans une grille sous la ligne « Script », dans l'ordre Game Mode, Default Pawn, Gameplay Mode, avec les libellés exacts « Game Mode », « Default Pawn », « Gameplay Mode ». |
-| D8 | ADR-0076 (numéro revérifié en T0) enregistre D1, D3, D4, D5 (écriture d'un format d'asset, API publique, règle de sauvegarde d'un asset partagé depuis l'inspecteur du monde). |
+| D8 | ADR-0077 (0076 à l'origine, renuméroté à la fusion) enregistre D1, D3, D4, D5 (écriture d'un format d'asset, API publique, règle de sauvegarde d'un asset partagé depuis l'inspecteur du monde). |
 
 ## Règles d'exécution pour l'agent
 
@@ -123,7 +124,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 ### ✅ T0 — Versionner le plan et l'ADR, revérifier l'état
 
 - Objectif : ce plan dans `ai-agent/tasks/world-game-mode-inspector-tasks.md`, sa ligne dans le tableau de `ai-agent/README.md`,
-  l'ADR-0076 (statut Accepted, décisions D1/D3/D4/D5) et son entrée dans `docs/decisions/README.md`.
+  l'ADR-0077 (0076 à l'origine ; statut Accepted, décisions D1/D3/D4/D5) et son entrée dans `docs/decisions/README.md`.
 - Étapes : revérifier sur `main` fusionné chaque fait de « État vérifié » (numéros de ligne, numéro d'ADR libre, emplacement du plan
   R0 : `tasks/` ou `tasks/archive/`) ; inventorier les chemins de `GameEditor` qui quittent le monde courant
   (`rg -n "SetWorldToLoad|_editorHistory.Clear\(" CasaEngine.Editor/GameEditor.cs`) pour y attacher l'abandon de D4, sauf le
@@ -257,7 +258,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 ### 🧪 T4 — Docs, O3, recette
 
 - Fichiers : `docs/engine/gameplay-mode.md` (courte section « Editor » : les trois lignes, la règle d'écriture du `.gameMode`,
-  lien ADR-0076) ; le plan R0 (O3 fermé, avec renvoi à ce plan) ; ce plan.
+  lien ADR-0077) ; le plan R0 (O3 fermé, avec renvoi à ce plan) ; ce plan.
 - Étapes : validation globale complète ; liste de recette pour l'auteur : ouvrir RPGDemo, sélectionner le monde ; voir Script,
   Game Mode (RpgGameMode), Default Pawn (le pion du mode) et Gameplay Mode (None) ; changer le pion → « * » sur le monde ; Ctrl+S →
   `Projects/RPGDemo/RpgGameMode.gameMode` porte le nouveau pion et `hud_class` ; annuler puis Ctrl+S → pion d'origine ; changer le
@@ -268,7 +269,7 @@ Hors périmètre : un choix « aucun » dans `AssetSelector` (D6) ; un éditeur 
 - Validation : suite verte ; les deux `.sln` ; recette 🧪 jusqu'au retour de l'auteur.
 - Note de validation (2026-10-17) : `docs/engine/gameplay-mode.md` reçoit la section « Édition dans l'inspecteur du monde » (en
   français, comme le reste du fichier : les trois lignes, la règle d'écriture du `.gameMode`, ses clés, l'abandon, l'échec, lien
-  ADR-0076) ; O3 du plan R0 fermé avec renvoi à ce plan ; ligne du tableau d'`ai-agent/README.md` mise à jour. Aucun code touché
+  ADR-0077) ; O3 du plan R0 fermé avec renvoi à ce plan ; ligne du tableau d'`ai-agent/README.md` mise à jour. Aucun code touché
   depuis T3 : la validation de T3 vaut (les deux `.sln` 0 erreur, `CasaEngine.Tests` 4349/4349, rejouée par le vérificateur). Reste
   🧪 : la recette de l'auteur dans l'éditeur lancé (liste ci-dessus), qu'un agent ne fait pas.
 - Commit : `docs(gameplay): document editing the world's game mode in the inspector; close O3`

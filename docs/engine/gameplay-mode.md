@@ -451,7 +451,7 @@ L'ancien `GameMode` peut alors être retiré progressivement, mais seulement apr
 
 ## Édition dans l'inspecteur du monde
 
-Depuis le 2026-10-17 ([ADR-0076](../decisions/0076-the-world-inspector-edits-the-world-game-mode.md)), l'inspecteur de l'éditeur
+Depuis le 2026-10-17 ([ADR-0077](../decisions/0077-the-world-inspector-edits-the-world-game-mode.md)), l'inspecteur de l'éditeur
 (`EntityDetailsPanel`) montre, pour le monde sélectionné et sous la ligne « Script » :
 
 - **Game Mode** : `World.PlayerStartupSettingsAssetId`, choisi parmi les seuls `.gameMode`. Le changer recharge les réglages du

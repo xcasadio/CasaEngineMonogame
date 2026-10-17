@@ -89,4 +89,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0073](0073-the-default-music-queue-is-24-buffers-deep.md) | The default music queue is 24 buffers deep | Accepted | 2026-10-08 |
 | [ADR-0074](0074-a-streamed-music-track-loops-back-to-its-loop-start-sample.md) | A streamed music track loops back to its loop-start sample (numbered ADR-0072 until 2026-10-10) | Accepted | 2026-10-08 |
 | [ADR-0075](0075-script-objects-by-full-name-from-the-gameplay-assembly.md) | Script objects are created by full name, from the gameplay assembly only | Accepted | 2026-10-17 |
-| [ADR-0076](0076-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it | Accepted | 2026-10-17 |
+| [ADR-0077](0077-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it (numbered ADR-0076 until 2026-10-17) | Accepted | 2026-10-17 |

@@ -122,7 +122,7 @@ internal static class EditorAssetJsonSerializer
         EditorJsonSaveHelper.SaveObjectBase(objectBase, node);
     }
 
-    // The keys PlayerStartupSettings.Load reads, under their current names: the legacy "hud_classClass" is read, never written (ADR-0076).
+    // The keys PlayerStartupSettings.Load reads, under their current names: the legacy "hud_classClass" is read, never written (ADR-0077).
     private static void SavePlayerStartupSettings(PlayerStartupSettings playerStartupSettings, JObject node)
     {
         SaveObjectBase(playerStartupSettings, node);

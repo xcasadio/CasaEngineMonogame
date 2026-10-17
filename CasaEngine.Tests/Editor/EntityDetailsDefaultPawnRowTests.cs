@@ -14,7 +14,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// ADR-0076 (plan world-game-mode-inspector T3, D3): the inspector of a selected world shows a "Default Pawn" row that edits
+/// ADR-0077 (plan world-game-mode-inspector T3, D3): the inspector of a selected world shows a "Default Pawn" row that edits
 /// the default pawn of the world's game mode. The pawn lives on the <see cref="PlayerStartupSettings"/> instance shared by
 /// every world of the mode, so a change goes through the editor history on that instance and records the mode in the
 /// <see cref="PendingGameModeEdits"/> registry (on execute and on undo), whose handle keeps the instance alive. The asset

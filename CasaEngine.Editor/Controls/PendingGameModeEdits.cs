@@ -10,7 +10,7 @@ using CasaEngine.Framework.Gameplay;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The game modes whose default pawn was edited from the world inspector since the last project save (ADR-0076).
+/// The game modes whose default pawn was edited from the world inspector since the last project save (ADR-0077).
 /// A game mode is shared by every world that uses it, so the edit lands on the shared <see cref="PlayerStartupSettings"/>
 /// instance and its <c>.gameMode</c> file is written only with the project save. Each entry holds a counted handle on the
 /// instance (ADR-0037), so a world reloaded meanwhile finds the same modified instance, and remembers the pawn the mode had

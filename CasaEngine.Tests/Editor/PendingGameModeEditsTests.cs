@@ -10,7 +10,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// ADR-0076 (plan world-game-mode-inspector T3, D4): the registry of the game modes whose default pawn changed since the
+/// ADR-0077 (plan world-game-mode-inspector T3, D4): the registry of the game modes whose default pawn changed since the
 /// last save. It holds a counted handle on each recorded instance and the pawn the mode had when it was recorded; the project
 /// save writes the modes whose pawn differs, an abandon puts the original pawn back, and a failed write keeps its entry.
 /// The asset catalogue and the project path are global state, hence the serialized collection.

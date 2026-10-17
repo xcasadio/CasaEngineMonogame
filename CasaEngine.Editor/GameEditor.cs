@@ -181,7 +181,7 @@ public class GameEditor : Game, IObservableUpdate
     private EntityDetailsPanel _entityDetailsPanel;
     private MGElement _entityDetailsContent;
     private EntityDetailsPanel _entityAssetInspectorPanel;
-    // Game modes whose default pawn was edited from the world inspector since the last save (ADR-0076).
+    // Game modes whose default pawn was edited from the world inspector since the last save (ADR-0077).
     private readonly PendingGameModeEdits _pendingGameModeEdits = new();
     private MGElement _entityAssetInspectorContent;
     private MaterialInspectorView _materialInspectorView;

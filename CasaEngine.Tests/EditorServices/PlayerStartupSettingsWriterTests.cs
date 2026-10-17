@@ -7,7 +7,7 @@ using Xunit;
 namespace CasaEngine.Tests.EditorServices;
 
 /// <summary>
-/// ADR-0076 (plan world-game-mode-inspector T1): the editor writes a <c>.gameMode</c> asset
+/// ADR-0077 (plan world-game-mode-inspector T1): the editor writes a <c>.gameMode</c> asset
 /// (<see cref="PlayerStartupSettings"/>) with the keys <see cref="PlayerStartupSettings.Load"/> reads, under their current
 /// names, so a written file reads back identically.
 /// </summary>

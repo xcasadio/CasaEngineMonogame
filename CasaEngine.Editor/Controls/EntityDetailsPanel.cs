@@ -85,7 +85,7 @@ public sealed class EntityDetailsPanel
     internal AssetSelector DefaultPawnSelector => _defaultPawnSelector;
 
     /// <summary>
-    /// The game modes edited since the last project save (ADR-0076). The Default Pawn row edits the shared game mode, so it is
+    /// The game modes edited since the last project save (ADR-0077). The Default Pawn row edits the shared game mode, so it is
     /// disabled while the panel has none; the editor gives it to the world inspector only.
     /// </summary>
     public PendingGameModeEdits GameModeEdits { get; set; }
