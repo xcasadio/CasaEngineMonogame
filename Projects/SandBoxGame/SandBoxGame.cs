@@ -166,6 +166,13 @@ namespace SandBoxGame
 
         private void DrawBoxWithEffect(GameTime gameTime, Effect effect, MaterialBase material, Matrix world)
         {
+            // The effects are compiled from materials by the experimental code commented out in LoadContent:
+            // while it stays disabled they are null, and their boxes are not drawn.
+            if (effect == null)
+            {
+                return;
+            }
+
             //if (material.Diffuse is MaterialTexture materialTexture)
             //{
             //    effect.Parameters["Texture"].SetValue(materialTexture.Texture?.Resource);
