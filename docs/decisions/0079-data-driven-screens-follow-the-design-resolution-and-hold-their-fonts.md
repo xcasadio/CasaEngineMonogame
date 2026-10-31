@@ -38,9 +38,11 @@
 - A project without a DLL can declare a resolution and get screens that stay pixel-exact when the window changes.
 - `XamlUIScreenBase` and its subclasses do not change: only `DataDrivenScreen` reads these fields. A screen with its own class does what it did.
 - The format is additive: existing projects and envelopes load and save unchanged.
+- `Projects/PixelUiSample` is the proof. In the Launcher, at 960x540, 1280x720 and 1000x600 and through a resize of the running window, every colour change of the capture falls on the grid of `k` from the image's origin, with no intermediate colour, and clicks and keys reach the right buttons (`ai-agent/tasks/pixel-ui-screens-tasks.md`, T2.1).
 - Known limits, accepted:
   - A mistyped `FontFamily` in the XAML stays a silent fallback to the default font. Telling it apart needs an MGUI change.
   - A project has one `VirtualResolution`, so all its screens share one design resolution.
   - `k` applies to the window. A window moved by a drag is put back at `Left * k`, `Top * k` by the next change of bounds, so a screen uses `WindowStyle="None"` or leaves its title bar alone.
   - Under a window smaller than the design resolution, `k` is 1 and the view shows the center of the image, while a screen draws from the view's top-left corner.
-  - The editor does not read `DesignResolution`: `ActiveVirtualResolution` is null there.
+  - The editor does not read `DesignResolution`: `ActiveVirtualResolution` is null there. Its preview takes no hold on `fonts`.
+  - Tooltips, context menus and windows nested in a XAML window are unknown under this scale: they have not been tried.

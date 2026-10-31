@@ -25,7 +25,7 @@ Decisions: see [ADR-0036](../decisions/0036-reference-counted-asset-handles-and-
   file's `face`, and its page textures are held as dependencies.
 - **Fonts for the UI.** `CasaEngineGame.UIFonts` (a `UIFontRegistry`) gives the bitmap fonts the game holds,
   by reference, to every UI text engine. UI text elements name the family, as in `FontFamily="font3"` in
-  XAML.
+  XAML. A data-driven screen declares its fonts in its `.uiscreen` (`docs/engine/data-driven-screens.md`).
 - **Uncatalogued files.** `LoadFromFile<T>(path)` reads a file that is not in the catalog, for tools and
   demos. The result is not cached.
 

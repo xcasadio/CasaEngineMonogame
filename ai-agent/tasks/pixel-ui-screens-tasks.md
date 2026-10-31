@@ -145,15 +145,15 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   - Sur des copies temporaires : police inconnue, fenêtre alignée, page PNG absente : le jeu s'arrête, `log` avec le chemin de l'enveloppe et la cause. Sans `ScaleUI` : fenêtre à (40, 20) à l'échelle 1, comportement antérieur. Faute de frappe sur `FontFamily` : police par défaut lissée et mise en page décalée, aucun message (D8). Fenêtre 200x150 : `k` = 1, l'écran part du coin haut-gauche et le reste est coupé.
   - `log` : aucune exception sur les parcours valides. Seul avertissement : `No camera found in the world TitleWorld. Create default one`, normal pour un monde sans entité.
 - Reste 🧪 : manette, pas de moyen d'injection ici. Le sample n'a pas de son. Coins arrondis de Windows exclus de la mesure (10 pixels en bas de capture).
-- Bash de Git mange `\\` dans un heredoc : `AssetInfos.json` est écrit à part, sans passer par le shell.
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Objectif : format, usage, limites.
 - Fichiers : `docs/engine/data-driven-screens.md`, `docs/README.md`, `docs/engine/asset-handles-and-bitmap-fonts.md` si utile, ADR-0079 si la course réelle a précisé un point.
 - Étapes : section « Pixel screens » ; limites D8 et D9 ; ce qu'ont montré les captures.
 - Validation : relecture contre le code et les captures.
 - Commit : `docs(ui): document pixel UI screens`
+- Validation faite le 2026-10-31 : relu contre `DataDrivenScreen`, `GameManager` et les captures de T2.1. Les affirmations de la section ont été mesurées : deuxième ligne de texte à 135 = (28 + 8 + 2 + 6 + 1) x 3, ce qui donne une ligne de 8 et un `Padding` de 1 ; copie temporaire avec `Padding="0"` : encre à (144, 84), soit (48, 28) en pixels de conception. Ce qui n'a pas été essayé est écrit comme tel : `Content` d'un bouton, police par style, infobulles, menus contextuels, fenêtres imbriquées, aperçu de l'éditeur.
 
 ## Phase 3 — Clôture
 
@@ -173,9 +173,9 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Internes de FontStashSharp 1.5.7 non lus (DLL) : placement vertical, arrondi des positions, comportement sans glyphe espace. À constater à la capture. | T2.1 |
-| O2 | Infobulles et menus contextuels sous `Window.Scale` : non vérifiés. Le sample n'en a pas. | T2.2 |
-| O3 | Aperçu de l'éditeur : `UIScreenPreviewBuilder` ne tient aucune police, une famille bitmap y retomberait sans doute. Non exécuté. | T2.2 |
+| O1 | Internes de FontStashSharp 1.5.7 non lus (DLL) : placement vertical, arrondi des positions, comportement sans glyphe espace. Constaté à la capture pour le sample, qui a un glyphe espace et un `yoffset` nul : placement exact. Le cas sans glyphe espace reste non essayé. | T2.1 |
+| O2 | Infobulles et menus contextuels sous `Window.Scale` : non vérifiés. Le sample n'en a pas. Écrit comme limite. | T2.2 |
+| O3 | Aperçu de l'éditeur : `UIScreenPreviewBuilder` ne tient aucune police, une famille bitmap y retomberait sans doute. Non exécuté. Écrit comme limite. | T2.2 |
 
 ## Hors périmètre
 
