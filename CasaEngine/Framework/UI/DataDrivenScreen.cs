@@ -259,16 +259,16 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// history would keep the window alive. Closing it through MGUI settles both. <c>CanCloseWindow</c> only speaks for
     /// the user's close button, not for the screen.
     /// <para/>
-    /// A window with an exit effect, its own or its theme's, gives the focus away while it is still on the desktop, to
-    /// the top window: going to the back keeps that from being itself. The effect does not show, since
-    /// <see cref="ScreenStack"/> removes the window right after this.
+    /// A window with an exit effect, its own or its theme's, gives the focus away while it is still on the desktop, and
+    /// could give it to one of its own elements, which nothing would ever take back since <see cref="ScreenStack"/>
+    /// removes the window right after this. Disabled, none of them is a candidate. The effect does not show.
     /// </summary>
     private void CloseWindow()
     {
         if (Window != null)
         {
             Window.CanCloseWindow = true;
-            Window.Desktop.BringToBack(Window);
+            Window.IsEnabled = false;
             Window.TryCloseWindow();
         }
     }
@@ -311,8 +311,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <summary>
     /// A screen that names no focus only takes it from another screen: MGUI gives none to a window opened while another
     /// one holds it, keyboard navigation stays inside the focused window, and a command below the top is dropped, so
-    /// this screen could only be reached with the mouse. Otherwise the focus is left to MGUI, so that a screen shown
-    /// over the game does not take the keyboard from the player.
+    /// this screen could only be reached with the mouse. Otherwise the focus is left to MGUI.
     /// </summary>
     private bool IsFocusHeldByAnotherWindow()
         => Window.Desktop.FocusedKeyboardHandler is { } focused && focused.SelfOrParentWindow != Window;

@@ -492,6 +492,28 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Fact]
+    public void TheLastScreen_WithAnExitEffect_LeavesNothingFocused_WhenItCloses()
+    {
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""Left="0" Top="0" """, """Left="0" Top="0" ExitEffect="Fade" """));
+        var closing = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("close_screen", null)));
+        Settle(closing);
+        var closingWindow = Assert.Single(closing.GetWindows());
+        _onClose = closed =>
+        {
+            closed.Hide();
+            _desktop.Windows.Remove(closingWindow);
+        };
+
+        PressEnter(Away, closing);
+        Step(Away, closing);
+
+        Assert.Equal(new[] { "close" }, _calls);
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
     public void AScreenWithNoButton_LeavesTheFocusAlone()
     {
         var below = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
