@@ -148,6 +148,92 @@ public class ProjectSettingsVirtualResolutionTests
         });
     }
 
+    [Fact]
+    public void Load_WithoutScaleUI_IsFalse()
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json", new JObject { ["Width"] = 320, ["Height"] = 180 });
+
+            ProjectSettingsHelper.Load(fileName);
+
+            Assert.False(GameSettings.ProjectSettings.VirtualResolution.ScaleUI);
+        });
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Load_ReadsScaleUI(bool value)
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json",
+                new JObject { ["Width"] = 320, ["Height"] = 180, ["ScaleUI"] = value });
+
+            ProjectSettingsHelper.Load(fileName);
+
+            Assert.Equal(value, GameSettings.ProjectSettings.VirtualResolution.ScaleUI);
+        });
+    }
+
+    [Fact]
+    public void Save_WithScaleUI_RoundTripsIt()
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = Path.Combine(directory, "Project.json");
+            GameSettings.ProjectSettings.VirtualResolution = new VirtualResolutionSettings { Width = 320, Height = 180, ScaleUI = true };
+
+            ProjectSettingsHelper.Save(fileName);
+
+            var document = JObject.Parse(File.ReadAllText(fileName));
+            Assert.True((bool?)document["VirtualResolution"]?["ScaleUI"]);
+
+            GameSettings.ProjectSettings.VirtualResolution = null;
+            ProjectSettingsHelper.Load(fileName);
+            Assert.True(GameSettings.ProjectSettings.VirtualResolution.ScaleUI);
+        });
+    }
+
+    [Fact]
+    public void Save_WithoutScaleUI_DoesNotWriteTheKey()
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = Path.Combine(directory, "Project.json");
+            GameSettings.ProjectSettings.VirtualResolution = new VirtualResolutionSettings { Width = 320, Height = 180 };
+
+            ProjectSettingsHelper.Save(fileName);
+
+            var declaration = (JObject)JObject.Parse(File.ReadAllText(fileName))["VirtualResolution"];
+            Assert.False(declaration.ContainsKey("ScaleUI"));
+        });
+    }
+
+    [Theory]
+    [InlineData("\"true\"")]
+    [InlineData("1")]
+    [InlineData("null")]
+    [InlineData("{}")]
+    public void Load_WithAScaleUIThatIsNotABoolean_FailsNamingTheKey(string json)
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            var declaration = new JObject { ["Width"] = 320, ["Height"] = 180, ["ScaleUI"] = JToken.Parse(json) };
+            string fileName = WriteProject(directory, "P.json", declaration);
+
+            var error = Assert.Throws<InvalidDataException>(() => ProjectSettingsHelper.Load(fileName));
+
+            Assert.Contains("VirtualResolution.ScaleUI", error.Message);
+        });
+    }
+
     [Theory]
     [InlineData(null, 240, "IntegerFit", "Width")]
     [InlineData(320, null, "IntegerFit", "Height")]

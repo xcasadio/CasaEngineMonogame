@@ -88,13 +88,14 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 ## Phase 1 — Runtime
 
-### ⏳ T1.1 — Clé `ScaleUI`
+### ✅ T1.1 — Clé `ScaleUI`
 
 - Objectif : D1.
 - Fichiers : `CasaEngine/Framework/Configuration/Project/VirtualResolutionSettings.cs`, `CasaEngine/Framework/Configuration/Project/ProjectSettingsHelper.cs`, `CasaEngine.Tests/Configuration/ProjectSettingsVirtualResolutionTests.cs`.
 - Étapes : booléen `ScaleUI`, faux par défaut ; lecture stricte comme les dimensions (un booléen JSON, sinon `InvalidDataException` qui nomme la clé) ; écriture seulement si vrai.
 - Validation : absente, faux et non réécrite ; vraie, aller-retour ; valeur non booléenne refusée.
 - Commit : `feat(project): add the optional ScaleUI key to VirtualResolution`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4479/4479, dont 9 cas neufs dans `ProjectSettingsVirtualResolutionTests`. Un `null` JSON est refusé comme un autre type, à la manière de `Width`.
 
 ### ⏳ T1.2 — Échelle entière de `DataDrivenScreen`
 

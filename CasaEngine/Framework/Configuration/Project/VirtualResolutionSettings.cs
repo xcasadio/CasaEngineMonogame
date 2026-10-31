@@ -18,4 +18,10 @@ public sealed class VirtualResolutionSettings
     public int Height { get; set; }
 
     public VirtualResolutionMode Mode { get; set; } = VirtualResolutionMode.IntegerFit;
+
+    /// <summary>
+    /// True when the data-driven screens are authored at this resolution and follow its integer factor (ADR-0079).
+    /// Optional in the project file, and written back only when true.
+    /// </summary>
+    public bool ScaleUI { get; set; }
 }

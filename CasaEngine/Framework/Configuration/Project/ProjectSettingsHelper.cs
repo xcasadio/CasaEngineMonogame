@@ -77,7 +77,7 @@ public static class ProjectSettingsHelper
 
         if (token is not JObject declaration)
         {
-            throw new InvalidDataException("Project setting 'VirtualResolution' must be an object with Width, Height and an optional Mode.");
+            throw new InvalidDataException("Project setting 'VirtualResolution' must be an object with Width, Height, an optional Mode and an optional ScaleUI.");
         }
 
         int width = ReadPositiveDimension(declaration, "Width");
@@ -91,7 +91,23 @@ public static class ProjectSettingsHelper
                 $"Project setting 'VirtualResolution.Mode' is '{modeName}'; the supported mode is '{nameof(VirtualResolutionMode.IntegerFit)}'.");
         }
 
-        return new VirtualResolutionSettings { Width = width, Height = height, Mode = mode };
+        return new VirtualResolutionSettings { Width = width, Height = height, Mode = mode, ScaleUI = ReadScaleUI(declaration) };
+    }
+
+    private static bool ReadScaleUI(JObject declaration)
+    {
+        // Only a JSON boolean: a "true" string would otherwise load as a project that silently ignores the key.
+        if (declaration["ScaleUI"] is not { } token)
+        {
+            return false;
+        }
+
+        if (token.Type != JTokenType.Boolean)
+        {
+            throw new InvalidDataException("Project setting 'VirtualResolution.ScaleUI' must be a boolean.");
+        }
+
+        return token.Value<bool>();
     }
 
     private static int ReadPositiveDimension(JObject declaration, string key)
@@ -161,12 +177,19 @@ public static class ProjectSettingsHelper
 
         if (settings.VirtualResolution != null)
         {
-            rootElement["VirtualResolution"] = new JObject
+            var virtualResolution = new JObject
             {
                 ["Width"] = settings.VirtualResolution.Width,
                 ["Height"] = settings.VirtualResolution.Height,
                 ["Mode"] = settings.VirtualResolution.Mode.ToString(),
             };
+
+            if (settings.VirtualResolution.ScaleUI)
+            {
+                virtualResolution["ScaleUI"] = true;
+            }
+
+            rootElement["VirtualResolution"] = virtualResolution;
         }
 
 #if !FINAL
