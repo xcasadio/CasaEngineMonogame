@@ -1,0 +1,27 @@
+{
+  "id": "d05f3295-1236-4ceb-a766-0987c8d64a27",
+  "name": "Title",
+  "source_xaml_file": "title.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 320,
+    "y": 180
+  },
+  "resource_files": [],
+  "default_focus": "btnStart",
+  "fonts": [ "pixel-block" ],
+  "ui_commands": [
+    {
+      "name": "Start",
+      "actions": [
+        { "type": "change_world", "target": "NextWorld.world" }
+      ]
+    },
+    {
+      "name": "Quit",
+      "actions": [
+        { "type": "quit" }
+      ]
+    }
+  ]
+}

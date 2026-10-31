@@ -1,0 +1,34 @@
+{
+  "asset_infos": [
+    {
+      "id": "2fc8f63d-55b1-4b28-9234-24c3dadf2b07",
+      "name": "TitleWorld",
+      "file_name": "TitleWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "bc6dfaad-511a-4bc2-becd-8acc6d098cf0",
+      "name": "NextWorld",
+      "file_name": "NextWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "d05f3295-1236-4ceb-a766-0987c8d64a27",
+      "name": "Title",
+      "file_name": "Screens\\title.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "2ef68f1e-04c1-4bf6-b01e-173b7702bb09",
+      "name": "pixel-block",
+      "file_name": "Fonts\\pixel-block.fnt",
+      "asset_type": "fnt"
+    },
+    {
+      "id": "6b3f7a10-4c2e-4f6d-9e15-8a7d02c4b1e3",
+      "name": "pixel-block-page",
+      "file_name": "Fonts\\pixel-block.png",
+      "asset_type": "png"
+    }
+  ]
+}

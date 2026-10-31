@@ -126,13 +126,26 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — `Projects/PixelUiSample`
+### 🧪 T2.1 — `Projects/PixelUiSample`
 
 - Objectif : sample obligatoire, D10, et preuve réelle.
 - Fichiers : `Projects/PixelUiSample/` (projet, catalogue, deux mondes, écran, police PNG et `.fnt`, générateur, README), `CasaEngine.Tests/UI/ProjectScreenAssetTests.cs`.
 - Étapes : dessiner la police ; générer PNG et `.fnt` ; écrire le projet ; lancer le Launcher à deux tailles, plus une taille sans multiple entier.
 - Validation : captures relues et mesurées, clic et clavier réels, `log` sans exception ; 🧪 pour ce que seul un humain peut vérifier.
 - Commit : `feat(sample): add a pixel UI sample with its own bitmap font`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4512/4512, dont `ThePixelSampleScreen_PassesTheChecksOfADataDrivenScreen`. Course réelle sur le Launcher, captures relues et mesurées pixel par pixel :
+  - Premier vrai `.fnt` rendu dans ce dépôt : le PNG et le `.fnt` se chargent, le texte s'affiche. O1 : les glyphes tombent à la bonne place, chaque ligne de texte a la hauteur et la position attendues. La boîte de ligne d'un `.fnt` vaut son `lineHeight`.
+  - 960x540, `k` = 3 : cinq couleurs seulement sur toute l'image hors coins arrondis de la fenêtre Windows, aucune teinte intermédiaire ; tous les changements de couleur tombent sur des multiples de 3, en x comme en y. Vidage du titre : blocs exacts de 3x3 pixels. `Left*k`, `Top*k` : fenêtre à (120, 60), bouton de 144 à 816 en x.
+  - 1280x720, `k` = 4 : mêmes cinq couleurs, tous les changements sur des multiples de 4.
+  - 1000x600, `k` = 3 : image à (20, 30), bandes noires, changements en phase avec cette origine.
+  - Redimensionnement à chaud du même processus (960x540, 1280x720, 640x360, 1000x600) : chaque capture passe la même mesure avec `k` 3, 4, 2, 3, puis clic sur QUIT à 1280x720, code 0.
+  - Clic sur START : `NextWorld` s'affiche, le menu disparaît. Clic sur QUIT à 960x540 et à 1280x720 : code 0. À 1000x600 : clic dans la bande sans effet, puis clic sur QUIT compte tenu de l'origine (20, 30), code 0.
+  - Clavier : Entrée sur le focus par défaut charge `NextWorld` ; Bas allume QUIT, Entrée quitte, code 0.
+  - Sur une copie temporaire du projet avec un écran modal `Left="100" Top="100"` : à (300, 300) en `k` = 3, à (400, 400) après passage à 1280x720, grille exacte ; clic sur BACK à l'échelle : fermé ; clic sur START ensuite : monde suivant.
+  - Sur des copies temporaires : police inconnue, fenêtre alignée, page PNG absente : le jeu s'arrête, `log` avec le chemin de l'enveloppe et la cause. Sans `ScaleUI` : fenêtre à (40, 20) à l'échelle 1, comportement antérieur. Faute de frappe sur `FontFamily` : police par défaut lissée et mise en page décalée, aucun message (D8). Fenêtre 200x150 : `k` = 1, l'écran part du coin haut-gauche et le reste est coupé.
+  - `log` : aucune exception sur les parcours valides. Seul avertissement : `No camera found in the world TitleWorld. Create default one`, normal pour un monde sans entité.
+- Reste 🧪 : manette, pas de moyen d'injection ici. Le sample n'a pas de son. Coins arrondis de Windows exclus de la mesure (10 pixels en bas de capture).
+- Bash de Git mange `\\` dans un heredoc : `AssetInfos.json` est écrit à part, sans passer par le shell.
 
 ### ⏳ T2.2 — Documentation
 

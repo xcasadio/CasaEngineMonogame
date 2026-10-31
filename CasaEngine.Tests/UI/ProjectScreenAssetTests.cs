@@ -1,9 +1,11 @@
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Fonts;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.XAML;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -145,6 +147,62 @@ public class ProjectScreenAssetTests
 
         Assert.NotNull(screen.BuildWindow(desktop));
         screen.Dispose();
+    }
+
+    /// <summary>
+    /// The screen of PixelUiSample is valid against that project's own catalogue and resolution, and its font is what
+    /// the XAML names (ADR-0079). The font itself needs a graphics device: it is proved by running the sample.
+    /// </summary>
+    [Fact]
+    public void ThePixelSampleScreen_PassesTheChecksOfADataDrivenScreen()
+    {
+        var projectPath = Path.Combine(FindRepositoryRoot(), "Projects", "PixelUiSample");
+        var catalog = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "AssetInfos.json")))["asset_infos"]!;
+        var project = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "PixelUiSample.json")));
+        JToken? Find(string key, string value, string assetType)
+            => catalog.FirstOrDefault(info => (string?)info[key] == value && (string?)info["asset_type"] == assetType);
+
+        Assert.Equal(string.Empty, (string?)project["GameplayDllName"]);
+        Assert.True((bool?)project["VirtualResolution"]?["ScaleUI"]);
+
+        var heldFonts = new List<string>();
+        var context = new UIScreenActionContext
+        {
+            ScreenExists = name => Find("name", name, "uiscreen") != null,
+            WorldExists = worldFile => Find("file_name", worldFile, "world") != null,
+            AcquireSound = name => throw new InvalidOperationException($"No sound '{name}'."),
+            IsTopScreen = static _ => true,
+            OpenScreen = static _ => { },
+            CloseScreen = static _ => { },
+            ChangeWorld = static _ => { },
+            PlaySound = static _ => { },
+            Quit = static () => { },
+            DesignResolution = new Point((int)project["VirtualResolution"]!["Width"]!, (int)project["VirtualResolution"]!["Height"]!),
+            AcquireFont = name =>
+            {
+                Assert.NotNull(Find("name", name, "fnt"));
+                heldFonts.Add(name);
+                return new MemoryStream();
+            },
+        };
+
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop(960, 540);
+        var envelopePath = Path.Combine(projectPath, "Screens", "title.uiscreen");
+        var screen = new DataDrivenScreen(ReadEnvelope(envelopePath), envelopePath, context);
+
+        var window = screen.BuildWindow(desktop);
+        screen.Dispose();
+
+        Assert.Equal(3f, window.Scale);
+        var font = Assert.Single(heldFonts);
+
+        var fontFileName = (string)Find("name", font, "fnt")!["file_name"]!;
+        var descriptor = BitmapFontDescriptor.Parse(File.ReadAllText(Path.Combine(projectPath, fontFileName)), fontFileName);
+        Assert.Contains($"FontFamily=\"{descriptor.Face}\"", File.ReadAllText(Path.Combine(projectPath, "Screens", "title.xaml")));
+
+        var pageFileName = BitmapFontDescriptor.CatalogFileNameNextTo(
+            projectPath, Path.Combine(projectPath, fontFileName), Assert.Single(descriptor.PageFiles));
+        Assert.NotNull(Find("file_name", pageFileName, "png"));
     }
 
     private static UIScreenAsset ReadEnvelope(string envelopePath)

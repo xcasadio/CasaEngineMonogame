@@ -1,0 +1,17 @@
+{
+  "id": "2fc8f63d-55b1-4b28-9234-24c3dadf2b07",
+  "name": "TitleWorld",
+  "entity_references": [],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 40,
+      "g": 56,
+      "b": 96,
+      "a": 255
+    }
+  }
+}

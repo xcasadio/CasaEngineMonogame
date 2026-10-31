@@ -1,0 +1,13 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="40" Top="20" Width="240" Height="140" WindowStyle="None" IsCloseButtonVisible="False" CanCloseWindow="False">
+  <StackPanel Orientation="Vertical" Spacing="6" Padding="8">
+    <TextBlock Name="lblTitle" FontFamily="pixel-block" Foreground="White" Text="PIXEL UI SAMPLE" />
+    <TextBlock Name="lblSize" FontFamily="pixel-block" Foreground="Yellow" Text="320 X 180 DESIGN PIXELS" />
+    <Button Name="btnStart" CommandName="Start">
+      <TextBlock FontFamily="pixel-block" Foreground="White" Text="START" />
+    </Button>
+    <Button Name="btnQuit" CommandName="Quit">
+      <TextBlock FontFamily="pixel-block" Foreground="White" Text="QUIT" />
+    </Button>
+  </StackPanel>
+</Window>
