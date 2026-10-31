@@ -97,13 +97,14 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - Commit : `feat(project): add the optional ScaleUI key to VirtualResolution`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4479/4479, dont 9 cas neufs dans `ProjectSettingsVirtualResolutionTests`. Un `null` JSON est refusé comme un autre type, à la manière de `Width`.
 
-### ⏳ T1.2 — Échelle entière de `DataDrivenScreen`
+### ✅ T1.2 — Échelle entière de `DataDrivenScreen`
 
 - Objectif : D2, D3, D4.
 - Fichiers : `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `CasaEngine.Tests/UI/FirstScreenTests.cs`.
 - Étapes : membre optionnel `DesignResolution` (`Point?`) ; `GameManager` le remplit seulement si `ActiveVirtualResolution` a `ScaleUI` ; `OnWindowLoaded` retient `Left`, `Top`, refuse `HasScreenPlacement`, applique ; `OnScreenBoundsChanged` applique à nouveau.
 - Validation : headless : sans résolution, rien ne change, `Scale` du XAML gardé ; `k` à la charge ; `k` après changement de bornes ; `Left*k`, `Top*k` ; clic au bon endroit sous échelle ; `HasScreenPlacement` refusé seulement sous échelle ; `Scale` du XAML écrasé sous échelle.
 - Commit : `feat(ui): scale data-driven screens to the design resolution`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4491/4491, dont 11 cas neufs dans `DataDrivenScreenTests` et un dans `FirstScreenTests`. Le test de clic calcule le point d'écran à la main, sans passer par la conversion de MGUI, et vérifie aussi qu'un clic au point non mis à l'échelle ne déclenche rien. Le rendu n'est pas prouvé ici : le harnais n'a pas de device, voir T2.1.
 
 ### ⏳ T1.3 — Champ `fonts` de l'enveloppe
 

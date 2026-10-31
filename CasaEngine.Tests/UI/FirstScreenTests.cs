@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.UI;
@@ -17,6 +18,16 @@ public class FirstScreenTests
 {
     private readonly GameManager _gameManager = new(null);
     private readonly List<string> _created = new();
+
+    [Fact]
+    public void TheDesignResolution_ExistsOnlyWhenTheProjectSetsScaleUI()
+    {
+        Assert.Null(GameManager.DesignResolutionOf(null));
+        Assert.Null(GameManager.DesignResolutionOf(new VirtualResolutionSettings { Width = 320, Height = 180 }));
+        Assert.Equal(
+            new Point(320, 180),
+            GameManager.DesignResolutionOf(new VirtualResolutionSettings { Width = 320, Height = 180, ScaleUI = true }));
+    }
 
     [Theory]
     [InlineData("")]

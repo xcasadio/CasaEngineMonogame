@@ -635,6 +635,112 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.True(handle.IsDisposed);
     }
 
+    [Fact]
+    public void WithoutADesignResolution_TheWindowKeepsWhatTheXamlDeclares()
+    {
+        UseWindowAttributes("""Left="5" Top="7" Width="100" Height="60" Scale="2" """);
+        var screen = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        var window = Assert.Single(screen.GetWindows());
+
+        screen.NotifyScreenBounds(new Rectangle(0, 0, 1280, 720));
+
+        Assert.Equal(2f, window.Scale);
+        Assert.Equal(5, window.Left);
+        Assert.Equal(7, window.Top);
+    }
+
+    [Theory]
+    [InlineData(960, 540, 3)]
+    [InlineData(1280, 720, 4)]
+    [InlineData(1000, 600, 3)]
+    [InlineData(200, 100, 1)]
+    public void TheWindow_TakesTheIntegerFactorOfTheView_AndScalesItsPosition(int width, int height, int factor)
+    {
+        UseWindowAttributes("""Left="5" Top="7" Width="100" Height="60" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(width, height);
+
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+
+        var window = Assert.Single(screen.GetWindows());
+        Assert.Equal(factor, window.Scale);
+        Assert.Equal(5 * factor, window.Left);
+        Assert.Equal(7 * factor, window.Top);
+    }
+
+    [Fact]
+    public void AChangeOfBounds_RescalesFromTheXamlPosition()
+    {
+        UseWindowAttributes("""Left="5" Top="7" Width="100" Height="60" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(960, 540);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+        var window = Assert.Single(screen.GetWindows());
+
+        screen.NotifyScreenBounds(new Rectangle(0, 0, 1280, 720));
+        Assert.Equal(4f, window.Scale);
+        Assert.Equal(20, window.Left);
+        Assert.Equal(28, window.Top);
+
+        screen.NotifyScreenBounds(new Rectangle(0, 0, 640, 360));
+        Assert.Equal(2f, window.Scale);
+        Assert.Equal(10, window.Left);
+        Assert.Equal(14, window.Top);
+    }
+
+    [Fact]
+    public void AScaleInTheXaml_IsOverwritten_UnderADesignResolution()
+    {
+        UseWindowAttributes("""Left="0" Top="0" Width="100" Height="60" Scale="5" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(960, 540);
+
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+
+        Assert.Equal(3f, Assert.Single(screen.GetWindows()).Scale);
+    }
+
+    [Fact]
+    public void AClick_ReachesTheButton_WhereTheScaleDrawsIt()
+    {
+        UseWindowAttributes("""Left="10" Top="6" Width="300" Height="170" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(960, 540);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+        Settle(screen);
+        var window = Assert.Single(screen.GetWindows());
+        var centre = Button(screen, "btnPlay").LayoutBounds.Center;
+
+        // Where the unscaled layout puts the button: the window's top-left corner stays put, the rest moves away from it.
+        Click(centre, screen);
+        Assert.Empty(_calls);
+
+        var scaled = new Point(window.Left + (centre.X - window.Left) * 3, window.Top + (centre.Y - window.Top) * 3);
+        Click(scaled, screen);
+        Assert.Equal(new[] { "quit" }, _calls);
+    }
+
+    [Theory]
+    [InlineData("""ScreenHorizontalAlignment="Center" """)]
+    [InlineData("""ScreenVerticalAlignment="Bottom" """)]
+    public void AWindowPlacedByAlignment_IsRefused_UnderADesignResolution(string attribute)
+    {
+        UseWindowAttributes($"""Width="100" Height="60" {attribute}""");
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(960, 540);
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null))));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("alignment", error.Message);
+    }
+
+    [Fact]
+    public void AWindowPlacedByAlignment_StaysLegal_WithoutADesignResolution()
+    {
+        UseWindowAttributes("""Width="100" Height="60" ScreenHorizontalAlignment="Center" """);
+
+        var screen = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+
+        Assert.True(Assert.Single(screen.GetWindows()).HasScreenPlacement);
+    }
+
     private sealed class EnvelopeLoader : IAssetLoader
     {
         public object LoadAsset(string fileName, AssetContentManager assetContentManager)
@@ -688,6 +794,32 @@ public sealed class DataDrivenScreenTests : IDisposable
         => BuildOn(_desktop, _runtime, asset, commands);
 
     private DataDrivenScreen BuildOn(MGDesktop desktop, HeadlessUiTestHarness.HeadlessRuntime runtime, UIScreenAsset asset, params JObject[] commands)
+        => BuildOn(desktop, runtime, asset, _context, commands);
+
+    /// <summary>The recording context, for a project that scales its screens to 320x180.</summary>
+    private UIScreenActionContext Scaled()
+        => new()
+        {
+            ScreenExists = _context.ScreenExists,
+            WorldExists = _context.WorldExists,
+            AcquireSound = _context.AcquireSound,
+            IsTopScreen = _context.IsTopScreen,
+            OpenScreen = _context.OpenScreen,
+            CloseScreen = _context.CloseScreen,
+            ChangeWorld = _context.ChangeWorld,
+            PlaySound = _context.PlaySound,
+            Quit = _context.Quit,
+            DesignResolution = new Point(320, 180),
+        };
+
+    /// <summary>Replaces the attributes of the Window element in the screen's XAML.</summary>
+    private void UseWindowAttributes(string attributes)
+        => File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""Left="0" Top="0" Width="320" Height="200">""", attributes + ">"));
+
+    private DataDrivenScreen BuildOn(
+        MGDesktop desktop, HeadlessUiTestHarness.HeadlessRuntime runtime, UIScreenAsset asset, UIScreenActionContext context, params JObject[] commands)
     {
         asset.SourceXamlFile = "menu.xaml";
         foreach (var command in commands)
@@ -695,7 +827,7 @@ public sealed class DataDrivenScreenTests : IDisposable
             asset.UICommands.Add(ToCommand(command));
         }
 
-        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+        var screen = new DataDrivenScreen(asset, _envelopePath, context);
         desktop.Windows.Add(screen.BuildWindow(desktop));
         _activeDesktop = desktop;
         _activeRuntime = runtime;

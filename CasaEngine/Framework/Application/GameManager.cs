@@ -2,6 +2,7 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Input;
@@ -209,7 +210,15 @@ public class GameManager
             ChangeWorld = SetWorldToLoad,
             PlaySound = PlaySound,
             Quit = _game.Exit,
+            DesignResolution = DesignResolutionOf(_game.ActiveVirtualResolution),
         };
+
+    /// <summary>
+    /// The resolution screens are written at (ADR-0079). Only a project that sets <c>ScaleUI</c> has one, and the
+    /// editor never does: it manages its own views, so it has no active virtual resolution.
+    /// </summary>
+    internal static Point? DesignResolutionOf(VirtualResolutionSettings virtualResolution)
+        => virtualResolution is { ScaleUI: true } ? new Point(virtualResolution.Width, virtualResolution.Height) : null;
 
     internal static bool IsScreenAsset(string assetIdOrName) => IsCataloguedAs(FindAsset(assetIdOrName), ScreenAssetType);
 

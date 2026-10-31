@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Shared.Input.Keyboard;
@@ -20,6 +21,9 @@ namespace CasaEngine.Framework.UI;
 /// or a Submit is remembered and <see cref="Update"/> runs it.
 /// <para/>
 /// <b>Nobody owns this screen once it is pushed,</b> so <see cref="Hide"/> disposes it: it cannot be pushed again.
+/// <para/>
+/// <b>When the project scales its screens,</b> the XAML is written in design pixels and the window follows the integer
+/// factor of the view (ADR-0079).
 /// </summary>
 public sealed class DataDrivenScreen : XamlUIScreenBase
 {
@@ -33,6 +37,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     private UIScreenCommandData _pendingCommand;
     private bool _isRunningCommand;
     private bool _wasHiddenByItsCommand;
+
+    // Where the XAML puts the window, in design pixels. The window's own Left and Top hold the scaled position.
+    private Point _designTopLeft;
 
     /// <summary>Builds the screen from a catalogued asset, held for the screen's lifetime.</summary>
     /// <exception cref="InvalidOperationException">No screen asset of that id or name can be resolved.</exception>
@@ -70,7 +77,11 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         RegisterCommands(window);
         CollectFocusCandidates(window);
         CheckButtons(window);
+        PrepareDesignScale(window);
     }
+
+    /// <inheritdoc/>
+    protected override void OnScreenBoundsChanged(Rectangle bounds) => ApplyDesignScale(bounds);
 
     /// <summary>Gives the default focus, and runs the command a click or a Submit left.</summary>
     public override void Update(GameTime gameTime)
@@ -251,6 +262,44 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
                 throw InvalidEnvelope($"A button names command '{button.CommandName}', which 'ui_commands' does not declare.");
             }
         }
+    }
+
+    /// <summary>
+    /// A window placed by alignment is refused: <see cref="MGWindow.ApplyScreenPlacement"/> computes its position from
+    /// its size in screen pixels, which ignores the scale.
+    /// </summary>
+    private void PrepareDesignScale(MGWindow window)
+    {
+        if (_context.DesignResolution == null)
+        {
+            return;
+        }
+
+        if (window.HasScreenPlacement)
+        {
+            throw InvalidEnvelope("A window placed by alignment cannot follow the design resolution: declare its Left and Top.");
+        }
+
+        _designTopLeft = window.TopLeft;
+        ApplyDesignScale(window.Desktop.ValidScreenBounds);
+    }
+
+    /// <summary>
+    /// <see cref="MGWindow.Scale"/> scales from the window's top-left corner and leaves that corner in screen pixels,
+    /// so the position is scaled here. It is written first, because <see cref="MGWindow.Scale"/> builds its transforms
+    /// from it.
+    /// </summary>
+    private void ApplyDesignScale(Rectangle bounds)
+    {
+        if (_context.DesignResolution is not { } design)
+        {
+            return;
+        }
+
+        int scale = VirtualResolutionLayout.Compute(bounds.Width, bounds.Height, design.X, design.Y).Scale;
+        Window.Left = _designTopLeft.X * scale;
+        Window.Top = _designTopLeft.Y * scale;
+        Window.Scale = scale;
     }
 
     /// <summary>

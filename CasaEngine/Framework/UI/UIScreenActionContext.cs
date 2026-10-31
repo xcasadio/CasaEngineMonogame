@@ -35,4 +35,10 @@ public sealed class UIScreenActionContext
 
     /// <summary>Quits the game.</summary>
     public required Action Quit { get; init; }
+
+    /// <summary>
+    /// The resolution the screen's XAML is written at, when the project scales its screens to it (ADR-0079), or null
+    /// to leave the window as the XAML declares it.
+    /// </summary>
+    public Point? DesignResolution { get; init; }
 }
