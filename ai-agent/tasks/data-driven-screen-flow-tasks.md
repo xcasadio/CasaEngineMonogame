@@ -140,13 +140,26 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `feat(editor): expose Button CommandName`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4439/4439. Aller-retour XAML prouvé par `UIScreenEditorSessionTests` : le nom survit à l'ouverture, à la modification, à la sauvegarde et au rechargement. La ligne de l'inspecteur n'a pas été regardée dans l'éditeur lancé.
 
-### ⏳ T2.2 — SampleProject sans DLL
+### 🧪 T2.2 — SampleProject sans DLL
 
 - Objectif : sample obligatoire.
 - Fichiers : `Projects/SampleProject/` : `main-menu.*`, écran secondaire, monde vide, son copié de `CasaEngine.Demos/Content/Audio`, `AssetInfos.json`, `SampleProject.json`.
 - Étapes : couvrir les cinq actions.
 - Validation : smoke ; 🧪 pour les gestes réels.
 - Commit : `feat(sample): add zero-DLL menu`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4446/4446. Smoke sur le vrai Launcher, gestes injectés dans la fenêtre (souris, clavier) et captures relues :
+  - `FirstScreenName` ouvre le menu sans DLL, y compris par la commande du README lancée depuis la racine ;
+  - clic sur Options : son chargé, popup modal ouvert ; clic sur Back : popup fermé ; clic sur Quit : code de sortie 0 ;
+  - Entrée sur Play : `NextWorld` s'affiche et le menu disparaît avec l'ancienne vue ; Bas, Entrée : popup, 3 essais sur 3 ; Entrée : Back ; Bas, Bas, Entrée après fermeture : Quit, code 0 ;
+  - après fermeture du popup, Entrée rouvre Options : le focus revient au bouton d'origine, et un second popup se construit ;
+  - `log.txt` sans exception. Seul avertissement, antérieur à ce chantier : `DockClose` non résolu.
+- Trois défauts trouvés par ce smoke, invisibles en sans-affichage, corrigés dans `DataDrivenScreen` avec leurs tests :
+  - O4 : le clic sur l'écran gelé était bien abandonné, mais MGUI remontait sa fenêtre devant le modal. Le modal caché restait au sommet et plus rien ne répondait. Le modal au sommet se remet devant dans `Update`, avant le dessin.
+  - Après la fermeture d'un écran, le focus restait sur son élément retiré, ce qui coupait tout le clavier. `Hide` rend le focus. La cause est plus large : `ScreenStack` retire une fenêtre sans prévenir MGUI, donc les autres écrans y restent exposés (hors périmètre).
+  - `CanCloseWindow="False"` laisse le bouton de fermeture affiché : le sample pose aussi `IsCloseButtonVisible="False"`.
+- Faux défauts écartés, dus à l'injection : SDL ignore une touche sans code de scan, et les flèches exigent le drapeau de touche étendue.
+- Reste 🧪 pour l'auteur : entendre le son, car seul son chargement est prouvé ; manette, non testée (O5) ; passage humain. Visuel du focus (O5) : visible en mode navigation (bouton plus clair), rien au démarrage tant que la souris reste le mode actif. Si Entrée ne répond pas juste après le lancement, activer d'abord la fenêtre : `MonoGameWindowInputSource` coupe le clavier d'une fenêtre inactive.
+- Ajouts hors liste : `Projects/SampleProject/README.md` (règle des samples), test `EverySampleMenuScreen_PassesTheChecksOfADataDrivenScreen`.
 
 ### ⏳ T2.3 — Documentation
 

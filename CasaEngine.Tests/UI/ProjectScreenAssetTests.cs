@@ -1,3 +1,6 @@
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.XAML;
@@ -101,6 +104,47 @@ public class ProjectScreenAssetTests
 
         Assert.Equal(left, window.Left);
         Assert.Equal(top, window.Top);
+    }
+
+    /// <summary>
+    /// The menu of SampleProject is valid against that project's own catalogue, the checks being those a game runs
+    /// when it opens the screen (ADR-0078).
+    /// </summary>
+    [Theory]
+    [InlineData("main-menu.uiscreen")]
+    [InlineData("menu-popup.uiscreen")]
+    public void EverySampleMenuScreen_PassesTheChecksOfADataDrivenScreen(string fileName)
+    {
+        var projectPath = Path.Combine(FindRepositoryRoot(), "Projects", "SampleProject");
+        var catalog = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "AssetInfos.json")))["asset_infos"]!;
+        bool IsCatalogued(string key, string value, string assetType)
+            => catalog.Any(info => (string?)info[key] == value && (string?)info["asset_type"] == assetType);
+
+        var assets = new AssetContentManager();
+        var soundId = Guid.NewGuid();
+        using var soundHold = assets.Register(soundId, new SoundAsset());
+
+        var context = new UIScreenActionContext
+        {
+            ScreenExists = name => IsCatalogued("name", name, "uiscreen"),
+            WorldExists = worldFile => IsCatalogued("file_name", worldFile, "world"),
+            AcquireSound = name => IsCatalogued("name", name, "sound")
+                ? assets.Acquire<SoundAsset>(soundId)
+                : throw new InvalidOperationException($"No sound '{name}'."),
+            IsTopScreen = static _ => true,
+            OpenScreen = static _ => { },
+            CloseScreen = static _ => { },
+            ChangeWorld = static _ => { },
+            PlaySound = static _ => { },
+            Quit = static () => { },
+        };
+
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+        var envelopePath = Path.Combine(projectPath, "Screens", fileName);
+        var screen = new DataDrivenScreen(ReadEnvelope(envelopePath), envelopePath, context);
+
+        Assert.NotNull(screen.BuildWindow(desktop));
+        screen.Dispose();
     }
 
     private static UIScreenAsset ReadEnvelope(string envelopePath)

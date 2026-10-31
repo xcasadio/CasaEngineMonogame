@@ -1,7 +1,9 @@
 <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
-        Left="0" Top="0" Width="640" Height="360" TitleText="Main Menu">
+        Left="0" Top="0" Width="640" Height="360" TitleText="Main Menu" IsCloseButtonVisible="False" CanCloseWindow="False">
   <StackPanel Orientation="Vertical" Spacing="8" Padding="16">
     <TextBlock Text="Hello UIScreen" />
-    <Button Content="Play" />
+    <Button Name="btnPlay" CommandName="Play" Content="Play" />
+    <Button Name="btnOptions" CommandName="Options" Content="Options" />
+    <Button Name="btnQuit" CommandName="Quit" Content="Quit" />
   </StackPanel>
 </Window>
