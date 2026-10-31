@@ -182,13 +182,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Commit : `docs(ui): document data-driven navigation`
 - Validation faite le 2026-10-31 : relu contre `UINavigationInput`, `DataDrivenScreen` et T2.1. La doc affirme que `focus_wrap` marche sans mapping : un test manquait, `AWrap_NeedsNoMapping_AndWorksOnMGUIsOwnPathToo` est ajouté. Hors `docs/`, ce test est le seul code de ce commit. `CasaEngine.Tests` 4599/4599.
 
-### ⏳ T2.3 — Clôture
+### ✅ T2.3 — Clôture
 
 - Objectif : validation globale, plan et tableau à jour.
 - Fichiers : ce plan, `ai-agent/README.md`.
 - Étapes : builds, tests, relecture du diff complet, recherche de noms interdits dans le diff.
 - Validation : tout vert. Le plan reste dans `tasks/` tant qu'un 🧪 attend l'auteur.
 - Commit : `docs(plan): close data-driven navigation`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` reconstruit, 4599/4599. Diff complet depuis `e60fb10a` relu : aucun fichier sous `MGUI/`, sous-module à `3db3c769`, aucun nom interdit (recherche dans le diff). Pas de vérificateur neuf : aucun outil de délégation n'était disponible dans cette session. Plan laissé dans `tasks/` : T2.1 attend l'auteur pour le son et la manette.
 
 ---
 
