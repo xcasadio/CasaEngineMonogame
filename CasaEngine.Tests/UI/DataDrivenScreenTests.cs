@@ -1,16 +1,20 @@
+using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
 using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.FontStashSharp;
+using MGUI.Shared.Input.Keyboard;
 using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
 
 namespace CasaEngine.Tests.UI;
 
@@ -192,6 +196,319 @@ public sealed class DataDrivenScreenTests : IDisposable
         PressEnter(centre, screen);
 
         Assert.Equal(new[] { "quit" }, _calls);
+    }
+
+    [Fact]
+    public void WithoutFocusWrap_TheFocusStopsAtTheEnds()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne" });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnOne", FocusedName());
+
+        Tap(navigation, screen, Keys.Down);
+        Tap(navigation, screen, Keys.Down);
+        Tap(navigation, screen, Keys.Down);
+        Assert.Equal("btnThree", FocusedName());
+    }
+
+    [Fact]
+    public void AVerticalWrap_JoinsBothEnds()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Vertical });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnThree", FocusedName());
+
+        Tap(navigation, screen, Keys.Down);
+        Assert.Equal("btnOne", FocusedName());
+
+        Tap(navigation, screen, Keys.Down);
+        Assert.Equal("btnTwo", FocusedName());
+    }
+
+    [Fact]
+    public void AHorizontalWrap_JoinsBothEnds_AndLeavesUpAndDownAlone()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtonsInARow);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Horizontal });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnOne", FocusedName());
+
+        Tap(navigation, screen, Keys.Left);
+        Assert.Equal("btnThree", FocusedName());
+
+        Tap(navigation, screen, Keys.Right);
+        Assert.Equal("btnOne", FocusedName());
+    }
+
+    [Fact]
+    public void AWrap_WaitsForTheFocus_SoTheFirstKeyOfAScreenWithoutADefaultFocusDoesNotWrap()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { FocusWrap = UIScreenFocusWrap.Vertical });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnOne", FocusedName());
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnThree", FocusedName());
+    }
+
+    [Fact]
+    public void AWrap_TakesTheListOnce_SoADisabledEndStopsIt()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Vertical });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Button(screen, "btnThree").IsEnabled = false;
+        Settle(screen);
+        Tap(navigation, screen, Keys.Up);
+
+        Assert.Equal("btnOne", FocusedName());
+    }
+
+    [Fact]
+    public void AWrap_OnASingleElement_DoesNothing()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), """
+            <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core" Left="0" Top="0" Width="320" Height="200">
+              <Button Name="btnOne" Content="One" />
+            </Window>
+            """);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Vertical });
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Up);
+
+        Assert.Equal("btnOne", FocusedName());
+        Assert.Empty(Button(screen, "btnOne").NavigationNeighbors);
+    }
+
+    [Fact]
+    public void AnUnknownFocusWrap_FailsAtLoad()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(JObject.Parse("""{ "id": "3f2b9e5c-9a1d-4f0b-9c3a-6d7e8f901234", "name": "n", "focus_wrap": "both" }"""));
+        asset.SourceXamlFile = "menu.xaml";
+        asset.UICommands.Add(ToCommand(PlayCommand(("quit", null))));
+
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+        var error = Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("'focus_wrap'", error.Message);
+    }
+
+    [Fact]
+    public void Cancel_RunsTheCancelCommand_OnTheFrameOfTheInput()
+    {
+        var asset = new UIScreenAsset { DefaultFocus = "btnPlay", CancelCommand = "Back" };
+        var screen = BuildOn(_desktop, _runtime, asset, Mapped(), PlayCommand(("quit", null)), Named("Back", ("close_screen", null), ("play_sound", "Confirm")));
+        var navigation = NavigationOf(_desktop, screen);
+        Settle(navigation, screen);
+
+        NavigationStep(navigation, screen, new KeyboardState(Keys.X));
+
+        Assert.Equal(new[] { "close", "sound:Confirm" }, _calls);
+    }
+
+    [Fact]
+    public void Cancel_OnAScreenWithoutACancelCommand_DoesNothing()
+    {
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        var navigation = NavigationOf(_desktop, screen);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.X);
+
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void Cancel_OffTheTopOfTheStack_IsDropped_LikeAClick()
+    {
+        var asset = new UIScreenAsset { CancelCommand = "Back" };
+        var screen = BuildOn(_desktop, _runtime, asset, Mapped(), PlayCommand(("quit", null)), Named("Back", ("close_screen", null)));
+        Settle(screen);
+
+        _isTop = false;
+        screen.ReportCancel();
+        _isTop = true;
+        screen.Update(new GameTime());
+
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void ACancelCommand_ThatNamesNothing_FailsAtLoad()
+    {
+        var asset = new UIScreenAsset { CancelCommand = "Back" };
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => BuildOn(_desktop, _runtime, asset, Mapped(), PlayCommand(("quit", null))));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("'cancel_command' names command 'Back'", error.Message);
+    }
+
+    [Fact]
+    public void ACancelCommand_InAProjectWithoutAMapping_FailsAtLoad()
+    {
+        var asset = new UIScreenAsset { CancelCommand = "Back" };
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => Build(asset, PlayCommand(("quit", null)), Named("Back", ("close_screen", null))));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("UIInputMapping", error.Message);
+    }
+
+    [Fact]
+    public void AMoveCommand_ThatNamesNothing_FailsAtLoad()
+    {
+        var error = Assert.Throws<InvalidOperationException>(
+            () => Build(new UIScreenAsset { MoveCommand = "Tick" }, PlayCommand(("quit", null))));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("'move_command' names command 'Tick'", error.Message);
+    }
+
+    [Fact]
+    public void AMoveCommand_NeedsNoMapping_AndRunsOnMGUIsOwnPathToo()
+    {
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        Settle(screen);
+
+        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Down));
+        Step(Away, screen);
+
+        Assert.Same(Button(screen, "btnPlay"), _desktop.FocusedKeyboardHandler);
+        Assert.Equal(new[] { "sound:Confirm" }, _calls);
+    }
+
+    [Fact]
+    public void AMoveCommand_RunsOncePerMove_AndAgainOnAWrap()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(
+            new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Vertical, MoveCommand = "Tick" },
+            Named("Tick", ("play_sound", "Confirm")));
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+        Assert.Empty(_calls);
+
+        Tap(navigation, screen, Keys.Down);
+        Assert.Single(_calls);
+
+        Tap(navigation, screen, Keys.Up);
+        Tap(navigation, screen, Keys.Up);
+
+        Assert.Equal("btnThree", FocusedName());
+        Assert.Equal(3, _calls.Count);
+    }
+
+    [Fact]
+    public void AMoveCommand_DoesNotRun_WhenTheFocusStops()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", MoveCommand = "Tick" }, Named("Tick", ("play_sound", "Confirm")));
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Up);
+
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void AMoveCommand_DoesNotRun_WhenTheDefaultFocusReplacesWhatMGUIPicked()
+    {
+        // With a key as the last input and nothing focused, MGUI picks the first button it can. When the target of the
+        // default focus is ready at the same time, its request wins and MGUI picks nothing, so it has to come later.
+        _runtime.ApplyFrame(Frame(Away, ButtonState.Released));
+        _desktop.Update();
+        _runtime.ApplyFrame(Frame(Away, ButtonState.Released, new KeyboardState(Keys.Left)));
+        _desktop.Update();
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), Markup.Replace("""<Button Name="btnPlay" """, """<Button Name="btnPlay" IsEnabled="False" """));
+
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay", MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        var seen = new List<string?>();
+        _desktop.FocusedKeyboardHandlerChanged += (_, e) => seen.Add(e.NewValue?.Name);
+        Settle(screen);
+        Assert.Equal("btnPlain", FocusedName());
+
+        Button(screen, "btnPlay").IsEnabled = true;
+        Settle(screen);
+
+        Assert.Equal(new[] { "btnPlain", "btnPlay" }, seen);
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void AMoveCommand_DoesNotRun_WhenTheFocusArrivesFromAnotherScreen()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlain" }, PlayCommand(("quit", null)));
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, below);
+        Tap(navigation, below, Keys.Left);
+
+        var above = Build(new UIScreenAsset { MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        for (int i = 0; i < 6; i++)
+        {
+            NavigationStep(navigation, above, default);
+        }
+
+        Assert.Same(Assert.Single(above.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void AMoveCommand_DoesNotRun_ForAFocusTheMouseGave()
+    {
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" }, Named("Play", ("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        Settle(screen);
+
+        Button(screen, "btnPlay").Focus(KeyboardFocusSource.Pointer);
+        Step(Away, screen);
+        Step(Away, screen);
+
+        Assert.Equal(UIInputMode.Pointer, _desktop.ActiveInputMode);
+        Assert.Same(Button(screen, "btnPlay"), _desktop.FocusedKeyboardHandler);
+        Assert.Empty(_calls);
+    }
+
+    [Fact]
+    public void ASubmitInTheSameFrameAsAMove_RunsItsCommand_AndTheMoveIsDropped()
+    {
+        var asset = new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" };
+        var screen = BuildOn(_desktop, _runtime, asset, Mapped(), PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        var navigation = NavigationOf(_desktop);
+        Settle(navigation, screen);
+
+        Tap(navigation, screen, Keys.Down);
+        _calls.Clear();
+
+        // Submit comes first in the mapping, so it presses btnPlay, then Up moves away from it.
+        NavigationStep(navigation, screen, new KeyboardState(Keys.Z, Keys.Up));
+
+        Assert.Equal(new[] { "quit" }, _calls);
+        Assert.Equal("btnPlain", FocusedName());
     }
 
     [Fact]
@@ -874,6 +1191,84 @@ public sealed class DataDrivenScreenTests : IDisposable
         public bool IsFileSupported(string fileName) => true;
     }
 
+    private const string ThreeButtons = """
+        <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+                Left="0" Top="0" Width="320" Height="200">
+          <StackPanel Orientation="Vertical" Spacing="8" Padding="16">
+            <Button Name="btnOne" Content="One" />
+            <Button Name="btnTwo" Content="Two" />
+            <Button Name="btnThree" Content="Three" />
+          </StackPanel>
+        </Window>
+        """;
+
+    private const string ThreeButtonsInARow = """
+        <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+                Left="0" Top="0" Width="320" Height="200">
+          <StackPanel Orientation="Horizontal" Spacing="8" Padding="16">
+            <Button Name="btnOne" Content="One" />
+            <Button Name="btnTwo" Content="Two" />
+            <Button Name="btnThree" Content="Three" />
+          </StackPanel>
+        </Window>
+        """;
+
+    private static UINavigationInput NavigationOf(MGDesktop desktop, DataDrivenScreen? cancelTarget = null)
+    {
+        var mapping = new ButtonsMapping { Name = "ui-mapping" };
+        mapping.Buttons.Add(Entry("Submit", Keys.Z));
+        mapping.Buttons.Add(Entry("Cancel", Keys.X));
+        mapping.Buttons.Add(Entry("NavigateUp", Keys.Up));
+        mapping.Buttons.Add(Entry("NavigateDown", Keys.Down));
+        mapping.Buttons.Add(Entry("NavigateLeft", Keys.Left));
+        mapping.Buttons.Add(Entry("NavigateRight", Keys.Right));
+
+        var navigation = new UINavigationInput(desktop, mapping);
+        if (cancelTarget != null)
+        {
+            navigation.CancelNotHandled = cancelTarget.ReportCancel;
+        }
+
+        return navigation;
+    }
+
+    private static InputMapping Entry(string name, Keys key)
+        => new() { Name = name, KeyButton = new KeyButton(key), AlternativeKeyButton = new KeyButton() };
+
+    private static JObject Named(string name, params (string Type, string? Target)[] actions)
+    {
+        var command = PlayCommand(actions);
+        command["name"] = name;
+        return command;
+    }
+
+    /// <summary>Presses and releases a key, one frame each, in the order <see cref="UIRoot.Update"/> runs.</summary>
+    private void Tap(UINavigationInput navigation, DataDrivenScreen screen, Keys key)
+    {
+        NavigationStep(navigation, screen, new KeyboardState(key));
+        NavigationStep(navigation, screen, default);
+    }
+
+    /// <summary>Frames through the navigation input too: its first read of the devices is never an edge.</summary>
+    private void Settle(UINavigationInput navigation, DataDrivenScreen screen)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            NavigationStep(navigation, screen, default);
+        }
+    }
+    private void NavigationStep(UINavigationInput navigation, DataDrivenScreen screen, KeyboardState keyboard)
+    {
+        var desktop = _activeDesktop!;
+        _frame++;
+        _activeRuntime!.ApplyFrame(Frame(Away, ButtonState.Released, keyboard));
+        desktop.Update();
+        navigation.Update(TimeSpan.FromMilliseconds(16 * _frame));
+        screen.Update(new GameTime());
+    }
+
+    private string? FocusedName() => _activeDesktop!.FocusedKeyboardHandler?.Name;
+
     private void AddSound(string name)
     {
         var id = Guid.NewGuid();
@@ -920,8 +1315,11 @@ public sealed class DataDrivenScreenTests : IDisposable
     /// <summary>The recording context, for a project that scales its screens to 320x180.</summary>
     private UIScreenActionContext Scaled() => ContextWith(new Point(320, 180), null);
 
-    /// <summary>The recording context, with the two optional members set.</summary>
-    private UIScreenActionContext ContextWith(Point? designResolution, Func<string, IDisposable>? acquireFont)
+    /// <summary>The recording context, for a project that names a UI input mapping.</summary>
+    private UIScreenActionContext Mapped() => ContextWith(null, null, hasUIInputMapping: true);
+
+    /// <summary>The recording context, with the optional members set.</summary>
+    private UIScreenActionContext ContextWith(Point? designResolution, Func<string, IDisposable>? acquireFont, bool hasUIInputMapping = false)
         => new()
         {
             ScreenExists = _context.ScreenExists,
@@ -935,6 +1333,7 @@ public sealed class DataDrivenScreenTests : IDisposable
             Quit = _context.Quit,
             DesignResolution = designResolution,
             AcquireFont = acquireFont!,
+            HasUIInputMapping = hasUIInputMapping,
         };
 
     /// <summary>A context that records what it holds in <see cref="_fontHolds"/>, in order.</summary>

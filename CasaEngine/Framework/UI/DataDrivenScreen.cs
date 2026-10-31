@@ -24,6 +24,9 @@ namespace CasaEngine.Framework.UI;
 /// <para/>
 /// <b>When the project scales its screens,</b> the XAML is written in design pixels and the window follows the integer
 /// factor of the view (ADR-0079).
+/// <para/>
+/// <b>Navigation comes from the envelope too</b> (ADR-0080): the focus can wrap at the ends, and a Cancel nothing
+/// consumed and a focus move can each run a command.
 /// </summary>
 public sealed class DataDrivenScreen : XamlUIScreenBase
 {
@@ -40,6 +43,18 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     private UIScreenCommandData _pendingCommand;
     private bool _isRunningCommand;
     private bool _wasHiddenByItsCommand;
+
+    // The entries of ui_commands the envelope names, null when it names none.
+    private UIScreenCommandData _cancelCommand;
+    private UIScreenCommandData _moveCommand;
+
+    private bool _isFocusWrapPending;
+
+    // Where the focus was at the last Update, whichever window held it.
+    private MGElement _lastFocused;
+
+    // Set on the frame the default focus is asked for: MGUI applies it on the next one, and that change is no move.
+    private bool _isDefaultFocusArriving;
 
     // Where the XAML puts the window, in design pixels. The window's own Left and Top hold the scaled position.
     private Point _designTopLeft;
@@ -89,25 +104,44 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         RegisterCommands(window);
+        ResolveNavigationCommands();
         CollectFocusCandidates(window);
         CheckButtons(window);
         PrepareDesignScale(window);
+        _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
     }
 
     /// <inheritdoc/>
     protected override void OnScreenBoundsChanged(Rectangle bounds) => ApplyDesignScale(bounds);
 
-    /// <summary>Gives the default focus, and runs the command a click or a Submit left.</summary>
+    /// <summary>
+    /// Gives the default focus, sets the wrap up, and runs the command a click, a Submit, a Cancel or a focus move left.
+    /// A move is looked at first: the default focus it must not count is only asked for afterwards.
+    /// </summary>
     public override void Update(GameTime gameTime)
     {
         KeepModalWindowInFront();
+        WatchFocusMove();
         ApplyDefaultFocus();
+        ApplyFocusWrap();
 
         if (_pendingCommand != null)
         {
             var command = _pendingCommand;
             _pendingCommand = null;
             Run(command);
+        }
+    }
+
+    /// <summary>
+    /// Tells the screen a Cancel reached it with nothing having consumed it. It then runs the <c>cancel_command</c> of
+    /// its envelope on its next <see cref="Update"/>, under the same rule as a click.
+    /// </summary>
+    public void ReportCancel()
+    {
+        if (_cancelCommand != null)
+        {
+            Remember(_cancelCommand);
         }
     }
 
@@ -144,6 +178,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         _fonts.Clear();
+        _lastFocused = null;
         base.Dispose();
     }
 
@@ -192,6 +227,36 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
             resources.AddCommand(command.Name, _ => Remember(command));
         }
+    }
+
+    private void ResolveNavigationCommands()
+    {
+        _cancelCommand = FindCommand("cancel_command", Asset.CancelCommand);
+        _moveCommand = FindCommand("move_command", Asset.MoveCommand);
+
+        if (_cancelCommand != null && !_context.HasUIInputMapping)
+        {
+            throw InvalidEnvelope("'cancel_command' needs a project with a UIInputMapping: nothing else reports a Cancel.");
+        }
+    }
+
+    /// <summary>The command a field names, or null when it names none.</summary>
+    private UIScreenCommandData FindCommand(string field, string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        foreach (var command in Asset.UICommands)
+        {
+            if (command.Name == name)
+            {
+                return command;
+            }
+        }
+
+        throw InvalidEnvelope($"'{field}' names command '{name}', which 'ui_commands' does not declare.");
     }
 
     /// <summary>Checks one action, and takes the hold a sound needs.</summary>
@@ -392,11 +457,64 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
                 if (!string.IsNullOrWhiteSpace(Asset.DefaultFocus) || IsFocusHeldByAnotherWindow())
                 {
                     candidate.Focus(KeyboardFocusSource.Programmatic);
+                    _isDefaultFocusArriving = true;
                 }
 
                 _focusCandidates.Clear();
                 return;
             }
+        }
+    }
+
+    /// <summary>
+    /// Waits for the focus, because the list of <see cref="MGDesktop.GetFocusableElements"/> starts from the window that
+    /// holds it. Runs once: an element shown or enabled later is not in the list. MGUI tries a neighbour before its
+    /// geometry, and goes back to its geometry when the neighbour can no longer take the focus.
+    /// </summary>
+    private void ApplyFocusWrap()
+    {
+        if (!_isFocusWrapPending || Window.Desktop.FocusedKeyboardHandler?.SelfOrParentWindow != Window)
+        {
+            return;
+        }
+
+        _isFocusWrapPending = false;
+
+        var elements = Window.Desktop.GetFocusableElements();
+        if (elements.Count < 2)
+        {
+            return;
+        }
+
+        bool isVertical = Asset.FocusWrap == UIScreenFocusWrap.Vertical;
+        var first = elements[0];
+        var last = elements[elements.Count - 1];
+        first.NavigationNeighbors[isVertical ? NavigationDirection.Up : NavigationDirection.Left] = last;
+        last.NavigationNeighbors[isVertical ? NavigationDirection.Down : NavigationDirection.Right] = first;
+    }
+
+    /// <summary>
+    /// Compares the focus with the last frame's rather than subscribing to it: this sees a move on any input path, and
+    /// MGUI keeps the source of a focus change to itself. A focus that comes from nothing or from another window is an
+    /// arrival, not a move, and the mouse does not count.
+    /// </summary>
+    private void WatchFocusMove()
+    {
+        var focused = Window.Desktop.FocusedKeyboardHandler;
+        var previous = _lastFocused;
+        bool isDefaultFocus = _isDefaultFocusArriving;
+
+        _lastFocused = focused;
+        _isDefaultFocusArriving = false;
+
+        if (_moveCommand != null
+            && !isDefaultFocus
+            && focused != previous
+            && previous?.SelfOrParentWindow == Window
+            && focused?.SelfOrParentWindow == Window
+            && Window.Desktop.ActiveInputMode != UIInputMode.Pointer)
+        {
+            Remember(_moveCommand);
         }
     }
 

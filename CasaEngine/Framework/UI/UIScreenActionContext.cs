@@ -47,4 +47,10 @@ public sealed class UIScreenActionContext
     /// when there is none. Left null by a host that offers no fonts: an envelope that declares one then fails at load.
     /// </summary>
     public Func<string, IDisposable> AcquireFont { get; init; }
+
+    /// <summary>
+    /// True when the project reads its UI through a mapping (ADR-0080). Only that path reports a Cancel nothing
+    /// consumed, so an envelope with a <c>cancel_command</c> fails at load without it.
+    /// </summary>
+    public bool HasUIInputMapping { get; init; }
 }

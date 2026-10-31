@@ -142,13 +142,16 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Commit : `feat(ui): add navigation fields to the UIScreen envelope`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4576/4576. Limite héritée de `UIScreenAsset` : une valeur mal formée n'est pas réécrite par une sauvegarde de l'enveloppe, et `DataDrivenScreen` refuse le fichier. `focus_wrap` est sensible à la casse, comme les types d'action.
 
-### ⏳ T1.5 — `DataDrivenScreen`
+### ✅ T1.5 — `DataDrivenScreen`
 
 - Objectif : appliquer D6, D7, D8.
 - Fichiers : `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `UIScreenActionContext.cs`, `GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`.
 - Étapes : résoudre les deux commandes au chargement ; bouclage une fois ; suivi du focus par comparaison, sans abonnement ; `HasUIInputMapping` optionnel dans le contexte.
 - Validation : headless, avec `UINavigationInput` réel : bouclage aux deux bouts, Cancel garde de pile et ComboBox ouverte, son au déplacement, pas au focus par défaut, pas à la souris, un Submit prioritaire dans la même image.
 - Commit : `feat(ui): wrap focus, cancel and react to focus moves from data`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4596/4596, dont 20 nouveaux tests dans `DataDrivenScreenTests`, avec un vrai `UINavigationInput` dans l'ordre d'appel d'`UIRoot`. `UIRoot.ReportCancelToTopScreen` n'est pas testable sans device : à prouver par T2.1. Mutations constatées, avec reconstruction : garde du focus par défaut, mode pointeur, fenêtre d'origine, attente du focus pour le bouclage, garde de pile sur Cancel : chaque mutant fait échouer au moins un test.
+- Fait mesuré : `default_focus` et l'auto-focus de MGUI se croisent à la même image. La demande de l'écran arrive en file avant que MGUI ne choisisse, et MGUI ne choisit plus rien. La transition « MGUI a pris le premier bouton, puis le focus par défaut le remplace » n'arrive que si la cible devient disponible plus tard : le test passe par un bouton activé après coup, et la garde reste nécessaire pour ce cas.
+- Pièges de test : la première lecture de `UINavigationInput` n'est jamais un front (C6), donc un test doit lui donner une image à vide ; `Away` compte comme un mouvement de souris à la première image.
 
 ## Phase 2 — Sample, doc
 

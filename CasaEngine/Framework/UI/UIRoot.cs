@@ -95,7 +95,15 @@ public sealed class UIRoot : IUIViewRuntime
         // ADR-0080: throws on a mapping it refuses, which stops the game when its first view is created.
         if (game.UIInputMapping != null)
         {
-            _navigationInput = new UINavigationInput(Desktop, game.UIInputMapping);
+            _navigationInput = new UINavigationInput(Desktop, game.UIInputMapping) { CancelNotHandled = ReportCancelToTopScreen };
+        }
+    }
+
+    private void ReportCancelToTopScreen()
+    {
+        if (ScreenStack.Top is DataDrivenScreen screen)
+        {
+            screen.ReportCancel();
         }
     }
 

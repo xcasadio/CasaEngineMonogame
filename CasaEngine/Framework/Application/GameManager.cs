@@ -214,6 +214,7 @@ public class GameManager
             Quit = _game.Exit,
             DesignResolution = DesignResolutionOf(_game.ActiveVirtualResolution),
             AcquireFont = AcquireFont,
+            HasUIInputMapping = _game.UIInputMapping != null,
         };
 
     /// <summary>
