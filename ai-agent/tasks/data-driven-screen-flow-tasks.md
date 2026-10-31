@@ -111,13 +111,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `feat(ui): add declarative commands to the UIScreen envelope`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4392/4392, dont 20 dans `UIScreenAssetSerializationTests`. Choix de mise en œuvre : `UIScreenAsset.Load` ne lève pas sur ces champs, car `AssetLoader` avalerait l'exception ; une valeur mal formée va dans `CommandFormatErrors`, que `DataDrivenScreen` refusera en T1.2. Limite : une entrée mal formée n'est pas réécrite par une sauvegarde de l'enveloppe. Aucun chemin de l'éditeur n'écrit aujourd'hui un `.uiscreen` existant : `UIScreenEditorSession.Save` n'écrit que le XAML.
 
-### ⏳ T1.2 — `DataDrivenScreen`
+### ✅ T1.2 — `DataDrivenScreen`
 
 - Objectif : exécuter les commandes.
 - Fichiers : `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`.
 - Étapes : `OnWindowLoaded` enregistre commandes et sons, résout `default_focus`, puis valide ; `Update` appelle `Focus` une seule fois, à la première frame où `IKeyboardHandlerHost.CanReceiveKeyboardInput()` de la cible est vrai ; contexte à délégués, sans interface.
 - Validation : headless : même liste au clic et à Entrée, ordre, chaque erreur, bouton non lié ; `default_focus` appliqué après la mise en page ; Entrée sous survol exécute la liste.
 - Commit : `feat(ui): add data-driven XAML screen`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4425/4425, dont `DataDrivenScreenTests` 33/33 en sans-affichage. Gestes réels renvoyés à T2.2. Fichier hors liste : `XamlUIScreenBase.cs` gagne deux accesseurs protégés additifs, `Asset` et `AssetFilePath`, seul moyen de lire l'enveloppe acquise par le constructeur à gestionnaire d'assets. O4 appliqué : un clic hors sommet est abandonné, pas différé. Ajouts conformes à P3 : une cible sur `close_screen` ou `quit`, et un `default_focus` non focalisable, sont refusés au chargement. `Hide` pendant la liste qui ferme l'écran reporte `Dispose` à la fin de la liste, car `AssetHandle.Asset` lève après `Dispose` et un `play_sound` peut suivre `close_screen`.
 
 ### ⏳ T1.3 — Consommer `FirstScreenName`
 

@@ -38,6 +38,12 @@ public abstract class XamlUIScreenBase : UIScreenBase, IDisposable
     /// <summary>The window built from the XAML, or null until the screen has been initialized.</summary>
     protected MGWindow Window { get; private set; }
 
+    /// <summary>The envelope this screen was built from, or null for a screen built from a bare XAML document.</summary>
+    protected UIScreenAsset Asset => _asset;
+
+    /// <summary>Path of the file <see cref="Asset"/> was read from, or null when <see cref="Asset"/> is.</summary>
+    protected string AssetFilePath => _assetFilePath;
+
     /// <summary>Builds the screen from a catalogued asset.</summary>
     /// <param name="assetFilePath">Path of the envelope file <paramref name="asset"/> was read from.</param>
     protected XamlUIScreenBase(UIScreenAsset asset, string assetFilePath)
