@@ -155,8 +155,8 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
   - `log.txt` sans exception. Seul avertissement, antérieur à ce chantier : `DockClose` non résolu.
 - Trois défauts trouvés par ce smoke, invisibles en sans-affichage, corrigés dans `DataDrivenScreen` avec leurs tests :
   - O4 : le clic sur l'écran gelé était bien abandonné, mais MGUI remontait sa fenêtre devant le modal. Le modal caché restait au sommet et plus rien ne répondait. Le modal au sommet se remet devant dans `Update`, avant le dessin.
-  - Après la fermeture d'un écran, le focus restait sur son élément retiré, ce qui coupait tout le clavier. `Hide` rend le focus. La cause est plus large : `ScreenStack` retire une fenêtre sans prévenir MGUI, donc les autres écrans y restent exposés (hors périmètre).
-  - `CanCloseWindow="False"` laisse le bouton de fermeture affiché : le sample pose aussi `IsCloseButtonVisible="False"`.
+  - Après la fermeture d'un écran, le focus restait sur son élément retiré, ce qui coupait tout le clavier. `Hide` ferme maintenant la fenêtre par MGUI. La cause est plus large : `ScreenStack` retire une fenêtre sans prévenir MGUI, donc les autres écrans y restent exposés (hors périmètre).
+  - `CanCloseWindow="False"` laisse le bouton de fermeture affiché. Ce correctif-là est dans le XAML du sample, qui pose aussi `IsCloseButtonVisible="False"`, pas dans `DataDrivenScreen`.
 - Faux défauts écartés, dus à l'injection : SDL ignore une touche sans code de scan, et les flèches exigent le drapeau de touche étendue.
 - Reste 🧪 pour l'auteur : entendre le son, car seul son chargement est prouvé ; manette, non testée (O5) ; passage humain. Visuel du focus (O5) : visible en mode navigation (bouton plus clair), rien au démarrage tant que la souris reste le mode actif. Si Entrée ne répond pas juste après le lancement, activer d'abord la fenêtre : `MonoGameWindowInputSource` coupe le clavier d'une fenêtre inactive.
 - Ajouts hors liste : `Projects/SampleProject/README.md` (règle des samples), test `EverySampleMenuScreen_PassesTheChecksOfADataDrivenScreen`.
@@ -172,13 +172,21 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 
 ## Phase 3 — Clôture
 
-### ⏳ T3.1 — Vérification et archive
+### 🚧 T3.1 — Vérification et archive
 
 - Objectif : vérification par un sous-agent neuf en lecture seule (rôle `verifier`, `AGENTS.md` §8, modèle opus ; aucune définition n'existe dans `.claude/agents`), plan archivé.
 - Fichiers : ce plan, `ai-agent/README.md`.
 - Étapes : validation globale, archive, index.
 - Validation : verdict du vérificateur.
 - Commit : `docs(plan): close data-driven screen flow`
+- Premier passage le 2026-10-31 : quatre relecteurs neufs en lecture seule (modèle opus), chaque constat P0 à P2 soumis à un contradicteur. Aucun P0 ni P1, deux P2 confirmés, un P2 ramené à P3, aucun réfuté :
+  - P2 : un écran ouvert au clavier sans `default_focus` était inaccessible au clavier et à la manette, le focus restant sur l'écran gelé. Corrigé : le premier bouton prend le focus.
+  - P2 : `play_sound` acceptait une cible d'un autre type, ce que l'ADR dit refusé, et pouvait laisser un `SoundAsset` en cache sous l'id d'un écran. Corrigé : `FindSoundAsset` contrôle le type du catalogue.
+  - P3 : `IsFocusable = false` ne libérait pas une `TextBox`, et l'historique de focus gardait chaque fenêtre fermée. Corrigés : `Hide` passe par `TryCloseWindow`.
+  - P3 : contrôles du catalogue, `Hide` depuis une commande et `Hide` après une commande sans fermeture étaient sans test. Tests ajoutés, dont `ScreenAssetLookupTests`.
+  - P3 : phrase de `is_modal` trop large. Doc corrigée. P4 : effet de `FirstScreenName` sur les projets à DLL ajouté à la doc, note de T2.2 corrigée.
+- O7 vérifié : la PR 7 de `ui-integration.md` prévoit `GameScreenState`, `IGameScreen` et ses écrans ; cette branche n'en crée aucun et ne touche pas `GameScreenManager`.
+- Constats laissés en l'état, sans décision à prendre ici : l'appel à `OpenFirstScreen` dans `UpdateWorld` et le contexte réel ne sont prouvés que par le smoke, car `UpdateWorld` exige un jeu ; le gel sous un modal reste non testé, car `ScreenStack` exige un `UIRoot` ; un `DataDrivenScreen` repoussé par du code après `Hide` échoue tard, usage que la classe documente comme interdit ; `open_screen` refuse une enveloppe `.screen`, format hérité qu'aucun code ne lit (ADR-0035).
 
 ---
 

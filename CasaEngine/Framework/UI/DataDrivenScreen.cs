@@ -28,7 +28,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // Held for the screen's lifetime, so that a sound plays without a load in the middle of a menu.
     private readonly Dictionary<string, AssetHandle<SoundAsset>> _sounds = new(StringComparer.Ordinal);
 
-    // Null once the focus has been given, or when the envelope asks for none.
+    // Null once the focus has been given, or when the screen has nothing to give it to.
     private MGElement _pendingFocus;
     private UIScreenCommandData _pendingCommand;
     private bool _isRunningCommand;
@@ -92,7 +92,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// </summary>
     public override void Hide()
     {
-        ReleaseKeyboardFocus();
+        CloseWindow();
 
         if (_isRunningCommand)
         {
@@ -216,7 +216,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     {
         if (string.IsNullOrWhiteSpace(Asset.DefaultFocus))
         {
-            return null;
+            return FirstFocusableButton(window);
         }
 
         if (!window.TryGetElementByName(Asset.DefaultFocus, out MGElement element))
@@ -230,6 +230,24 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         return element;
+    }
+
+    /// <summary>
+    /// MGUI gives a screen no focus of its own while a screen below holds it, and keyboard navigation stays inside the
+    /// focused window: without a focus here, a screen opened from the keyboard could only be reached with the mouse.
+    /// Components are skipped because the window's close button is one.
+    /// </summary>
+    private static MGElement FirstFocusableButton(MGWindow window)
+    {
+        foreach (var button in window.TraverseVisualTree<MGButton>(includeComponents: false))
+        {
+            if (button.CanHandleKeyboardInput)
+            {
+                return button;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -249,14 +267,16 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <summary>
     /// <see cref="ScreenStack"/> takes the window off the desktop without telling MGUI it closed, so the focus would
-    /// stay on an element nothing updates, which keeps the auto-focus away and leaves the keyboard dead for the screen
-    /// below. A focused element that can no longer take the focus is dropped at the next desktop update.
+    /// stay on an element nothing updates, which leaves the keyboard dead for the screen below, and the desktop's focus
+    /// history would keep the window alive. Closing it through MGUI does both. <c>CanCloseWindow</c> only speaks for
+    /// the user's close button, not for the screen.
     /// </summary>
-    private void ReleaseKeyboardFocus()
+    private void CloseWindow()
     {
-        if (Window?.Desktop.FocusedKeyboardHandler is { } focused && focused.SelfOrParentWindow == Window)
+        if (Window != null)
         {
-            focused.IsFocusable = false;
+            Window.CanCloseWindow = true;
+            Window.TryCloseWindow();
         }
     }
 

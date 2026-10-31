@@ -2,7 +2,7 @@
 
 A project with no gameplay DLL can open a XAML screen, wire its buttons to actions and change world from its data alone. The decision is ADR-0078. `Projects/SampleProject` is the working example.
 
-A project with a DLL keeps every existing path: a `XamlUIScreenBase` subclass reads none of the fields below.
+A project with a DLL keeps every existing path: a `XamlUIScreenBase` subclass reads none of the fields below. `FirstScreenName` applies to every project, though: a value left in a project with a DLL now opens that screen, and one that names no screen stops the game when the first world loads.
 
 ## Opening the first screen
 
@@ -37,8 +37,8 @@ A `.uiscreen` gains three optional fields. A field left out keeps its default an
 }
 ```
 
-- `is_modal`: the screen blocks the screens below it. They stay drawn, receive no `Update`, and a click on them is dropped.
-- `default_focus`: the name of the XAML element that takes the keyboard focus.
+- `is_modal`: the screen blocks the screens below it. They stay drawn and receive no `Update`. A click on a data-driven screen below is dropped; a screen with its own class still handles its clicks.
+- `default_focus`: the name of the XAML element that takes the keyboard focus. Left out, the first button takes it.
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
@@ -67,7 +67,7 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 
 - a malformed field, or an action of an unknown type;
 - a missing target, or a target on `close_screen` or `quit`;
-- a screen, world or sound the project does not have;
+- a screen, world or sound the project does not have, or a target of another asset type;
 - a command with no name, or declared twice;
 - a `default_focus` that names nothing, or an element that cannot take the focus;
 - a button whose `CommandName` resolves to no command.
@@ -79,8 +79,8 @@ An unknown action type stays in the asset with its JSON, so saving an envelope k
 - Actions are edited by hand in the JSON: the editor has no panel for them.
 - A world does not open a screen when it loads. `FirstScreenName` runs once.
 - A list cannot wait, so a fade before `change_world` cannot be expressed.
-- `default_focus` is given once. When a screen on top closes, MGUI chooses the focus: in the sample it returned to the button that opened the popup.
-- A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it, and it moves the keyboard focus.
+- The focus is given once. When a screen on top closes, MGUI chooses it: in the sample it returned to the button that opened the popup.
+- A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it. It also moves the keyboard focus, and only the mouse can then reach the screen on top.
 - Closing a window with MGUI's close button does not close its screen. Set `IsCloseButtonVisible="False"` on the window: `CanCloseWindow="False"` alone leaves the button shown.
 - A keyboard press is ignored while the game window is inactive.
 - Gamepad input has not been tested.

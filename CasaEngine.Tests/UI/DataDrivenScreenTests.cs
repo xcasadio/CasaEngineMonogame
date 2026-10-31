@@ -142,11 +142,9 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Fact]
-    public void TheDefaultFocus_IsAppliedAfterLayout_AndNotBefore()
+    public void TheDefaultFocus_IsAppliedOnceTheLayoutIsDone()
     {
         var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
-
-        Assert.Null(_desktop.FocusedKeyboardHandler);
 
         Settle(screen);
 
@@ -358,6 +356,7 @@ public sealed class DataDrivenScreenTests : IDisposable
     public void AClosedScreen_GivesTheKeyboardBackToTheScreenBelow()
     {
         var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        Settle(below);
         var closing = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
         Settle(closing);
         var closingWindow = Assert.Single(closing.GetWindows());
@@ -368,11 +367,92 @@ public sealed class DataDrivenScreenTests : IDisposable
         _desktop.Windows.Remove(closingWindow);
 
         Step(Away, below);
-        Assert.Null(_desktop.FocusedKeyboardHandler);
-
         PressEnter(Away, below);
 
         Assert.Same(Assert.Single(below.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+    }
+
+    [Fact]
+    public void AClosedScreen_ReleasesTheFocusOfATextBoxToo()
+    {
+        var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        Settle(below);
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""<TextBlock Name="lblTitle" Text="Menu" />""", """<TextBox Name="txtName" />"""));
+        var closing = Build(new UIScreenAsset { DefaultFocus = "txtName" }, PlayCommand(("quit", null)));
+        Settle(closing);
+        var closingWindow = Assert.Single(closing.GetWindows());
+        Assert.Same(closingWindow, _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+
+        closing.Hide();
+        _desktop.Windows.Remove(closingWindow);
+        Step(Away, below);
+
+        Assert.NotSame(closingWindow, _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+    }
+
+    [Fact]
+    public void AScreenClosedByItsOwnCommand_ReleasesTheFocus()
+    {
+        var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        Settle(below);
+        var closing = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("close_screen", null)));
+        Settle(closing);
+        var closingWindow = Assert.Single(closing.GetWindows());
+        _onClose = closed =>
+        {
+            closed.Hide();
+            _desktop.Windows.Remove(closingWindow);
+        };
+
+        PressEnter(Away, closing);
+        Step(Away, below);
+
+        Assert.Equal(new[] { "close" }, _calls);
+        Assert.NotSame(closingWindow, _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+    }
+
+    [Fact]
+    public void Hide_AfterACommandThatDidNotCloseTheScreen_StillDisposes()
+    {
+        var screen = Build(new UIScreenAsset(), PlayCommand(("play_sound", "Confirm")));
+        Settle(screen);
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        Assert.Equal(new[] { "sound:Confirm" }, _calls);
+
+        screen.Hide();
+
+        Assert.True(Assert.Single(_soundHandles).IsDisposed);
+    }
+
+    [Fact]
+    public void AScreenWithoutADefaultFocus_TakesItWithItsFirstButton_FromTheScreenBelow()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        Settle(below);
+
+        var above = Build(new UIScreenAsset(), PlayCommand(("open_screen", "Options")));
+        Settle(above);
+
+        Assert.Same(Button(above, "btnPlain"), _desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
+    public void AScreenWithNoButton_LeavesTheFocusAlone()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        Settle(below);
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), """
+            <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core" Left="0" Top="0" Width="320" Height="200">
+              <TextBlock Text="Nothing to press" />
+            </Window>
+            """);
+
+        var above = Build(new UIScreenAsset());
+        Settle(above);
+
+        Assert.Same(Button(below, "btnPlay"), _desktop.FocusedKeyboardHandler);
     }
 
     [Fact]

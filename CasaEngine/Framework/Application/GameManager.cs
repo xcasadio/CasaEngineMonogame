@@ -16,6 +16,7 @@ public class GameManager
 {
     private const string ScreenAssetType = "uiscreen";
     private const string WorldAssetType = "world";
+    private const string SoundAssetType = "sound";
 
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
@@ -199,8 +200,8 @@ public class GameManager
     private UIScreenActionContext CreateScreenActionContext(IUIViewRuntime view)
         => new()
         {
-            ScreenExists = static assetIdOrName => IsCataloguedAs(FindAsset(assetIdOrName), ScreenAssetType),
-            WorldExists = static fileName => IsCataloguedAs(AssetCatalog.GetByFileName(fileName), WorldAssetType),
+            ScreenExists = IsScreenAsset,
+            WorldExists = IsWorldAsset,
             AcquireSound = AcquireSound,
             IsTopScreen = screen => view is UIRoot root && ReferenceEquals(root.ScreenStack.Top, screen),
             OpenScreen = assetIdOrName => PushNewScreen(view, CreateDataDrivenScreen(assetIdOrName, view)),
@@ -210,6 +211,24 @@ public class GameManager
             Quit = _game.Exit,
         };
 
+    internal static bool IsScreenAsset(string assetIdOrName) => IsCataloguedAs(FindAsset(assetIdOrName), ScreenAssetType);
+
+    internal static bool IsWorldAsset(string fileName) => IsCataloguedAs(AssetCatalog.GetByFileName(fileName), WorldAssetType);
+
+    /// <summary>
+    /// The sound the name or id designates. The type is checked here because <c>SoundAssetLoader</c> would read any
+    /// catalogued JSON as a silent sound, and leave that instance in the cache under the id of another asset.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The project has no such sound.</exception>
+    internal static AssetInfo FindSoundAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, SoundAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No sound asset '{assetIdOrName}' is registered in this project.");
+    }
+
     private static AssetInfo FindAsset(string assetIdOrName)
         => Guid.TryParse(assetIdOrName, out var assetId) ? AssetCatalog.Get(assetId) : AssetCatalog.Get(assetIdOrName);
 
@@ -217,12 +236,7 @@ public class GameManager
         => assetInfo != null && string.Equals(assetInfo.AssetType, assetType, StringComparison.OrdinalIgnoreCase);
 
     private AssetHandle<SoundAsset> AcquireSound(string assetIdOrName)
-    {
-        var assetInfo = FindAsset(assetIdOrName)
-            ?? throw new InvalidOperationException($"No sound asset '{assetIdOrName}' is registered in this project.");
-
-        return _game.AssetContentManager.Acquire<SoundAsset>(assetInfo.Id);
-    }
+        => _game.AssetContentManager.Acquire<SoundAsset>(FindSoundAsset(assetIdOrName).Id);
 
     private void PlaySound(SoundAsset sound)
     {
