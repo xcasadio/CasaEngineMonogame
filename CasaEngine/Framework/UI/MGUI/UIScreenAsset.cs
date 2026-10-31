@@ -1,4 +1,6 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Rendering.Depth;
+using CasaEngine.Framework.Rendering.ScreenEffects;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.UI.MGUI;
@@ -219,12 +221,95 @@ public sealed class UIScreenAsset : ObjectBase
     {
         var type = UIScreenActionTypeNames.Parse(ReadOptionalString(element, "type", $"{location}.type"));
 
-        return new UIScreenActionData
+        var action = new UIScreenActionData
         {
             Type = type,
             Target = ReadOptionalString(element, "target", $"{location}.target"),
             UnknownData = type == UIScreenActionType.Unknown ? (JObject)element.DeepClone() : null,
         };
+
+        if (type == UIScreenActionType.FadeScreen)
+        {
+            ReadFade(element, action, location);
+        }
+
+        return action;
+    }
+
+    /// <summary>
+    /// Reports what is malformed. A field left out stays null and <see cref="DataDrivenScreen"/> refuses it, as it does
+    /// a missing target: a fade has no default to fall back on.
+    /// </summary>
+    private void ReadFade(JObject element, UIScreenActionData action, string location)
+    {
+        action.Layer = ReadEnum<ScreenEffectLayer>(element, "layer", location);
+        action.BlendMode = ReadEnum<SpriteBlendMode>(element, "blend_mode", location);
+        action.From = ReadColor(element, "from", location);
+        action.To = ReadColor(element, "to", location);
+        action.DurationSeconds = ReadSeconds(element, "duration_seconds", location);
+    }
+
+    /// <summary>An exact name of the enum: a number parses as an enum too.</summary>
+    private TEnum? ReadEnum<TEnum>(JObject element, string key, string location)
+        where TEnum : struct, Enum
+    {
+        if (element[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value.Type == JTokenType.String && Enum.IsDefined(typeof(TEnum), value.GetString()))
+        {
+            return Enum.Parse<TEnum>(value.GetString());
+        }
+
+        CommandFormatErrors.Add($"{location}.{key} must be one of {string.Join(", ", Enum.GetNames<TEnum>())}, but is '{value}'.");
+        return null;
+    }
+
+    /// <summary><c>[r, g, b]</c>, opaque, or <c>[r, g, b, a]</c>, each from 0 to 255.</summary>
+    private Color? ReadColor(JObject element, string key, string location)
+    {
+        if (element[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is JArray { Count: 3 or 4 } channels)
+        {
+            var color = new byte[] { 0, 0, 0, byte.MaxValue };
+            int read = 0;
+
+            while (read < channels.Count && channels[read] is JValue { Value: >= 0L and <= 255L })
+            {
+                color[read] = channels[read].Value<byte>();
+                read++;
+            }
+
+            if (read == channels.Count)
+            {
+                return new Color(color[0], color[1], color[2], color[3]);
+            }
+        }
+
+        CommandFormatErrors.Add($"{location}.{key} must be [r, g, b] or [r, g, b, a], each from 0 to 255, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.");
+        return null;
+    }
+
+    private float? ReadSeconds(JObject element, string key, string location)
+    {
+        if (element[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value.Type is JTokenType.Float or JTokenType.Integer)
+        {
+            return value.Value<float>();
+        }
+
+        CommandFormatErrors.Add($"{location}.{key} must be a number, but is a {value.Type}.");
+        return null;
     }
 
     private string ReadOptionalString(JObject element, string key, string location)

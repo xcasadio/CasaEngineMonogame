@@ -16,6 +16,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Framework.Input;
 
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using World = CasaEngine.Framework.Scene.World.World;
 
@@ -637,7 +638,45 @@ internal static class EditorAssetJsonSerializer
             node.Add("target", action.Target);
         }
 
+        if (action.Layer is { } layer)
+        {
+            node.Add("layer", layer.ToString());
+        }
+
+        if (action.BlendMode is { } blendMode)
+        {
+            node.Add("blend_mode", blendMode.ToString());
+        }
+
+        if (action.From is { } from)
+        {
+            node.Add("from", SaveFadeColor(from));
+        }
+
+        if (action.To is { } to)
+        {
+            node.Add("to", SaveFadeColor(to));
+        }
+
+        if (action.DurationSeconds is { } durationSeconds)
+        {
+            node.Add("duration_seconds", durationSeconds);
+        }
+
         return node;
+    }
+
+    /// <summary>The fourth value is only written when it is not the opaque one <c>[r, g, b]</c> stands for.</summary>
+    private static JArray SaveFadeColor(Color color)
+    {
+        var channels = new JArray(color.R, color.G, color.B);
+
+        if (color.A != byte.MaxValue)
+        {
+            channels.Add(color.A);
+        }
+
+        return channels;
     }
 
     private static void SaveMaterialAsset(MaterialAsset materialAsset, JObject node)

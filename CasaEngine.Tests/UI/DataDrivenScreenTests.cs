@@ -549,7 +549,7 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Theory]
-    [InlineData("unknown action", """{ "name": "Play", "actions": [ { "type": "wait_fade", "duration": 12 } ] }""", "wait_fade")]
+    [InlineData("unknown action", """{ "name": "Play", "actions": [ { "type": "shake_screen", "duration": 12 } ] }""", "shake_screen")]
     [InlineData("no type", """{ "name": "Play", "actions": [ { "target": "x" } ] }""", "unknown type")]
     [InlineData("open, no target", """{ "name": "Play", "actions": [ { "type": "open_screen" } ] }""", "open_screen")]
     [InlineData("world, no target", """{ "name": "Play", "actions": [ { "type": "change_world" } ] }""", "change_world")]

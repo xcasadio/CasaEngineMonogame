@@ -1,5 +1,8 @@
 using CasaEngine.EditorServices;
+using CasaEngine.Framework.Rendering.Depth;
+using CasaEngine.Framework.Rendering.ScreenEffects;
 using CasaEngine.Framework.UI.MGUI;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -170,7 +173,7 @@ public class UIScreenAssetSerializationTests
     [Fact]
     public void AnActionOfAnUnknownType_IsKept_WithEverythingItCarried()
     {
-        var action = JObject.Parse("""{ "type": "wait_fade", "target": "x", "duration": 12, "from": { "a": 1 } }""");
+        var action = JObject.Parse("""{ "type": "shake_screen", "target": "x", "duration": 12, "from": { "a": 1 } }""");
         var loaded = new UIScreenAsset();
         loaded.Load(EnvelopeWith(action));
 
@@ -212,6 +215,128 @@ public class UIScreenAssetSerializationTests
         asset.Load(WithIdentity(json));
 
         Assert.Contains(asset.CommandFormatErrors, error => error.Contains(location, StringComparison.Ordinal));
+    }
+
+    private const string FadeAction = """
+        { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 0, 0, 0 ], "to": [ 255, 128, 64 ], "duration_seconds": 0.25 }
+        """;
+
+    [Fact]
+    public void AFade_Loads_EveryField()
+    {
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(JObject.Parse(FadeAction)));
+
+        Assert.Empty(loaded.CommandFormatErrors);
+
+        var action = Assert.Single(Assert.Single(loaded.UICommands).Actions);
+        Assert.Equal(UIScreenActionType.FadeScreen, action.Type);
+        Assert.Equal(ScreenEffectLayer.AboveUI, action.Layer);
+        Assert.Equal(SpriteBlendMode.Subtractive, action.BlendMode);
+        Assert.Equal(new Color(0, 0, 0, 255), action.From);
+        Assert.Equal(new Color(255, 128, 64, 255), action.To);
+        Assert.Equal(0.25f, action.DurationSeconds);
+    }
+
+    [Fact]
+    public void AFade_RoundTrips_ThroughLoadAndSave()
+    {
+        var action = JObject.Parse(FadeAction);
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(action));
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+
+        Assert.True(JToken.DeepEquals(action, document["ui_commands"]![0]!["actions"]![0]));
+    }
+
+    [Fact]
+    public void AnAlphaFade_RoundTrips_WithItsFourthValue()
+    {
+        var action = JObject.Parse("""
+            { "type": "fade_screen", "layer": "BelowUI", "blend_mode": "AlphaBlend", "from": [ 0, 0, 0, 0 ], "to": [ 0, 0, 0, 255 ], "duration_seconds": 2 }
+            """);
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(action));
+
+        var data = Assert.Single(Assert.Single(loaded.UICommands).Actions);
+        Assert.Equal(new Color(0, 0, 0, 0), data.From);
+        Assert.Equal(new Color(0, 0, 0, 255), data.To);
+        Assert.Equal(2f, data.DurationSeconds);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+
+        var written = document["ui_commands"]![0]!["actions"]![0]!;
+        Assert.True(JToken.DeepEquals(action["from"], written["from"]));
+        Assert.Equal(new JArray(0, 0, 0), written["to"], JToken.EqualityComparer);
+    }
+
+    [Fact]
+    public void AWait_RoundTrips_WithItsTypeAlone()
+    {
+        var action = JObject.Parse("""{ "type": "wait_fade" }""");
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(action));
+
+        Assert.Equal(UIScreenActionType.WaitFade, Assert.Single(Assert.Single(loaded.UICommands).Actions).Type);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.True(JToken.DeepEquals(action, document["ui_commands"]![0]!["actions"]![0]));
+    }
+
+    [Fact]
+    public void AFadeWithNoFields_InventsNone()
+    {
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(JObject.Parse("""{ "type": "fade_screen" }""")));
+
+        Assert.Empty(loaded.CommandFormatErrors);
+
+        var action = Assert.Single(Assert.Single(loaded.UICommands).Actions);
+        Assert.Null(action.Layer);
+        Assert.Null(action.BlendMode);
+        Assert.Null(action.From);
+        Assert.Null(action.To);
+        Assert.Null(action.DurationSeconds);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.Equal(new[] { "type" }, ((JObject)document["ui_commands"]![0]!["actions"]![0]!).Properties().Select(property => property.Name));
+    }
+
+    [Fact]
+    public void TheFadeFields_OfAnotherAction_AreNotRead()
+    {
+        var loaded = new UIScreenAsset();
+        loaded.Load(EnvelopeWith(JObject.Parse("""{ "type": "quit", "layer": 3, "from": "x" }""")));
+
+        Assert.Empty(loaded.CommandFormatErrors);
+        Assert.Null(Assert.Single(Assert.Single(loaded.UICommands).Actions).Layer);
+    }
+
+    [Theory]
+    [InlineData("""{ "layer": "Above" }""", ".layer")]
+    [InlineData("""{ "layer": 1 }""", ".layer")]
+    [InlineData("""{ "layer": "1" }""", ".layer")]
+    [InlineData("""{ "layer": "aboveui" }""", ".layer")]
+    [InlineData("""{ "blend_mode": "Multiply" }""", ".blend_mode")]
+    [InlineData("""{ "blend_mode": 3 }""", ".blend_mode")]
+    [InlineData("""{ "from": "black" }""", ".from")]
+    [InlineData("""{ "from": [ 0, 0 ] }""", ".from")]
+    [InlineData("""{ "from": [ 0, 0, 0, 0, 0 ] }""", ".from")]
+    [InlineData("""{ "from": [ 0, 0, 256 ] }""", ".from")]
+    [InlineData("""{ "to": [ -1, 0, 0 ] }""", ".to")]
+    [InlineData("""{ "to": [ 0.5, 0, 0 ] }""", ".to")]
+    [InlineData("""{ "to": [ "0", 0, 0 ] }""", ".to")]
+    [InlineData("""{ "duration_seconds": "1" }""", ".duration_seconds")]
+    public void AMalformedFadeField_IsReportedWithItsPlace(string field, string location)
+    {
+        var action = JObject.Parse("""{ "type": "fade_screen" }""");
+        action.Merge(JObject.Parse(field));
+        var loaded = new UIScreenAsset();
+
+        loaded.Load(EnvelopeWith(action));
+
+        Assert.Contains(loaded.CommandFormatErrors, error => error.Contains("actions[0]" + location, StringComparison.Ordinal));
     }
 
     [Fact]

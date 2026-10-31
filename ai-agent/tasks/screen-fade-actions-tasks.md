@@ -110,15 +110,16 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 
 ## Phase 1 — Actions
 
-### ⏳ T1.1 — `fade_screen` et `wait_fade` dans l'enveloppe
+### ✅ T1.1 — `fade_screen` et `wait_fade` dans l'enveloppe
 
 - Objectif : charger et sauver les actions.
 - Fichiers : `CasaEngine/Framework/UI/MGUI/UIScreenCommandData.cs`, `CasaEngine/Framework/UI/MGUI/UIScreenAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/UI/UIScreenAssetSerializationTests.cs`.
 - Étapes : champs nullables, lecture avec `CommandFormatErrors`, écriture.
 - Validation : aller-retour, valeurs mal formées, champs absents non inventés.
 - Commit : `feat(ui): add fade actions to the UIScreen envelope`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4621/4621. Deux tests existants prenaient `wait_fade` comme exemple de type inconnu : ils passent à `shake_screen`, leur sens ne change pas. Jusqu'à T1.2, `DataDrivenScreen` refuse ces deux actions au chargement, sans rien lancer.
 
-### ⏳ T1.2 — Liste suspendue dans `DataDrivenScreen`
+### 🚧 T1.2 — Liste suspendue dans `DataDrivenScreen`
 
 - Objectif : exécuter les actions, reprendre la liste, couper clavier et manette.
 - Fichiers : `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine/Framework/UI/UINavigationInput.cs`, `CasaEngine/Framework/UI/UIRoot.cs`, `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `CasaEngine.Tests/UI/ProjectScreenAssetTests.cs`, `CasaEngine.Tests/UI/UINavigationInputTests.cs`, `CasaEngine.Tests/UI/ScreenFadeWiringTests.cs`, `CasaEngine.Tests/Rendering/ScreenEffects/`.
