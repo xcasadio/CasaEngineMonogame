@@ -13,6 +13,54 @@ namespace CasaEngine.Tests.Rendering.ScreenEffects;
 /// </summary>
 public class ScreenEffectServiceTests
 {
+    // A frame at a fixed step of 166667 ticks, the step a Game starts with.
+    private const float FixedStepSeconds = 166667 / (float)TimeSpan.TicksPerSecond;
+
+    /// <summary>
+    /// The recipe of docs/engine/screen-effects.md: a duration of (255 / step) frames over the rate gives an exact
+    /// step per frame when the step divides 255, and ends on its last frame.
+    /// </summary>
+    [Theory]
+    [InlineData(15)]
+    [InlineData(5)]
+    [InlineData(17)]
+    [InlineData(51)]
+    public void AFadeInFrames_StepsExactly_WhenTheStepDivides255(int step)
+    {
+        int frames = 255 / step;
+        var service = new ScreenEffectService();
+
+        service.StartFade(0, 0, 0, 255, 255, 255, frames / 60f, SpriteBlendMode.Subtractive);
+
+        for (int frame = 1; frame <= frames; frame++)
+        {
+            Assert.True(service.IsFading);
+            service.Update(FixedStepSeconds);
+            Assert.Equal(step * frame, service.R);
+        }
+
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
+    public void AFadeInFrames_MissesItsMultiples_WhenTheStepDoesNotDivide255()
+    {
+        // 255 / 16 is not whole: 16 frames at 255 / 16 per frame.
+        var service = new ScreenEffectService();
+        var values = new List<int>();
+
+        service.StartFade(0, 0, 0, 255, 255, 255, 16 / 60f, SpriteBlendMode.Subtractive);
+
+        for (int frame = 1; frame <= 16; frame++)
+        {
+            service.Update(FixedStepSeconds);
+            values.Add(service.R);
+        }
+
+        Assert.Equal(255, values[^1]);
+        Assert.Contains(values, value => value % 16 != 0);
+    }
+
     [Fact]
     public void Fade_ReachesExactlyTheTargetAtTheEndOfTheDuration()
     {

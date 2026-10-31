@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.UI.MGUI;
 
 namespace CasaEngine.Framework.UI;
 
@@ -35,6 +36,15 @@ public sealed class UIScreenActionContext
 
     /// <summary>Quits the game.</summary>
     public required Action Quit { get; init; }
+
+    /// <summary>Starts the screen fade a checked <c>fade_screen</c> action describes (ADR-0081).</summary>
+    public required Action<UIScreenActionData> StartFade { get; init; }
+
+    /// <summary>
+    /// True while a screen fade runs. A suspended list asks this every frame, so the host keeps one delegate for the
+    /// lifetime of the context.
+    /// </summary>
+    public required Func<bool> IsFadeRunning { get; init; }
 
     /// <summary>
     /// The resolution the screen's XAML is written at, when the project scales its screens to it (ADR-0079), or null

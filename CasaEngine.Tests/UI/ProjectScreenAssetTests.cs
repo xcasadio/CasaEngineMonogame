@@ -140,6 +140,8 @@ public class ProjectScreenAssetTests
             ChangeWorld = static _ => { },
             PlaySound = static _ => { },
             Quit = static () => { },
+            StartFade = static _ => { },
+            IsFadeRunning = static () => false,
         };
 
         var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
@@ -187,6 +189,8 @@ public class ProjectScreenAssetTests
             ChangeWorld = static _ => { },
             PlaySound = static _ => { },
             Quit = static () => { },
+            StartFade = static _ => { },
+            IsFadeRunning = static () => false,
             DesignResolution = new Point((int)project["VirtualResolution"]!["Width"]!, (int)project["VirtualResolution"]!["Height"]!),
             AcquireFont = name =>
             {

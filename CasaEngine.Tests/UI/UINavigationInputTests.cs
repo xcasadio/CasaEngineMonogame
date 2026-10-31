@@ -328,6 +328,87 @@ public sealed class UINavigationInputTests
     }
 
     [Fact]
+    public void Suspended_NothingReachesTheDesktop_AndTheFocusStays()
+    {
+        var navigation = Ready(Mapping());
+        navigation.CancelNotHandled = () => _cancelCount++;
+        navigation.IsSuspended = true;
+
+        foreach (var key in new[] { Keys.Down, Keys.Z, Keys.X, Keys.Tab })
+        {
+            _keys.Add(key);
+            Step(navigation);
+            _keys.Clear();
+            Step(navigation);
+        }
+
+        Assert.Equal("btnA", Focused());
+        Assert.Equal(0, _commandCount);
+        Assert.Equal(0, _cancelCount);
+    }
+
+    [Fact]
+    public void AnInputHeldThroughASuspension_NeitherFiresNorRepeats_UntilItIsPressedAgain()
+    {
+        var navigation = Ready(Mapping(initialDelayMs: 10, intervalMs: 10));
+
+        navigation.IsSuspended = true;
+        _keys.Add(Keys.Down);
+        Step(navigation);
+
+        navigation.IsSuspended = false;
+        Step(navigation, 50);
+        Step(navigation, 50);
+        Assert.Equal("btnA", Focused());
+
+        _keys.Clear();
+        Step(navigation);
+        _keys.Add(Keys.Down);
+        Step(navigation);
+
+        Assert.Equal("btnB", Focused());
+    }
+
+    [Fact]
+    public void ADirectionHeldWhenTheSuspensionStarts_StopsRepeating_AndStaysIgnoredAfterIt()
+    {
+        var navigation = Ready(Mapping(initialDelayMs: 10, intervalMs: 10));
+
+        _keys.Add(Keys.Down);
+        Step(navigation);
+        Assert.Equal("btnB", Focused());
+
+        navigation.IsSuspended = true;
+        Step(navigation, 50);
+        Step(navigation, 50);
+        navigation.IsSuspended = false;
+        Step(navigation, 50);
+        Step(navigation, 50);
+
+        Assert.Equal("btnB", Focused());
+    }
+
+    [Fact]
+    public void AnInputPressedDuringASuspension_AndReleased_LeavesNothingBehind()
+    {
+        var navigation = Ready(Mapping());
+
+        navigation.IsSuspended = true;
+        _keys.Add(Keys.Down);
+        Step(navigation);
+        _keys.Clear();
+        Step(navigation);
+        navigation.IsSuspended = false;
+
+        Step(navigation);
+        Assert.Equal("btnA", Focused());
+
+        _keys.Add(Keys.Down);
+        Step(navigation);
+        Assert.Equal("btnB", Focused());
+    }
+
+    [Fact]
     public void TheMappedKeys_ReplaceMGUIsOwn()
     {
         var navigation = Ready(Mapping());

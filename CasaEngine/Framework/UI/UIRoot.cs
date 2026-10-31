@@ -149,7 +149,11 @@ public sealed class UIRoot : IUIViewRuntime
 
         // After the desktop, which has the new input state, and before the screens, so that a command this input
         // leaves runs on the same frame.
-        _navigationInput?.Update(gameTime.TotalGameTime);
+        if (_navigationInput != null)
+        {
+            _navigationInput.IsSuspended = ScreenStack.Top is DataDrivenScreen { IsCommandSuspended: true };
+            _navigationInput.Update(gameTime.TotalGameTime);
+        }
 
         // The view's rectangle follows the window (virtual resolution, ADR-0048): screens that placed their
         // window from the bounds at load time place it again.

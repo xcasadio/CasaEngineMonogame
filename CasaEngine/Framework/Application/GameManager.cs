@@ -7,6 +7,8 @@ using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.ScreenEffects;
+using CasaEngine.Framework.UI.MGUI;
 using Microsoft.Xna.Framework;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
@@ -212,10 +214,29 @@ public class GameManager
             ChangeWorld = SetWorldToLoad,
             PlaySound = PlaySound,
             Quit = _game.Exit,
+            StartFade = StartScreenFade,
+            IsFadeRunning = IsScreenFadeRunning,
             DesignResolution = DesignResolutionOf(_game.ActiveVirtualResolution),
             AcquireFont = AcquireFont,
             HasUIInputMapping = _game.UIInputMapping != null,
         };
+
+    /// <summary>
+    /// Starts the fade a checked <c>fade_screen</c> action describes (ADR-0081). The layer goes first: it stays on the
+    /// service, and the fade must not draw a frame on the previous one.
+    /// </summary>
+    internal static void StartScreenFade(ScreenEffectService effects, UIScreenActionData action)
+    {
+        var from = action.From.Value;
+        var to = action.To.Value;
+
+        effects.Layer = action.Layer.Value;
+        effects.StartFade(from.R, from.G, from.B, from.A, to.R, to.G, to.B, to.A, action.DurationSeconds.Value, action.BlendMode.Value);
+    }
+
+    private void StartScreenFade(UIScreenActionData action) => StartScreenFade(_game.ScreenEffectComponent.Service, action);
+
+    private bool IsScreenFadeRunning() => _game.ScreenEffectComponent.Service.IsFading;
 
     /// <summary>
     /// The resolution screens are written at (ADR-0079). Only a project that sets <c>ScaleUI</c> has one, and the

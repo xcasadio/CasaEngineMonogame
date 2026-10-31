@@ -119,13 +119,14 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 - Commit : `feat(ui): add fade actions to the UIScreen envelope`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4621/4621. Deux tests existants prenaient `wait_fade` comme exemple de type inconnu : ils passent à `shake_screen`, leur sens ne change pas. Jusqu'à T1.2, `DataDrivenScreen` refuse ces deux actions au chargement, sans rien lancer.
 
-### 🚧 T1.2 — Liste suspendue dans `DataDrivenScreen`
+### ✅ T1.2 — Liste suspendue dans `DataDrivenScreen`
 
 - Objectif : exécuter les actions, reprendre la liste, couper clavier et manette.
-- Fichiers : `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine/Framework/UI/UINavigationInput.cs`, `CasaEngine/Framework/UI/UIRoot.cs`, `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `CasaEngine.Tests/UI/ProjectScreenAssetTests.cs`, `CasaEngine.Tests/UI/UINavigationInputTests.cs`, `CasaEngine.Tests/UI/ScreenFadeWiringTests.cs`, `CasaEngine.Tests/Rendering/ScreenEffects/`.
+- Fichiers : `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine/Framework/UI/UINavigationInput.cs`, `CasaEngine/Framework/UI/UIRoot.cs`, `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `CasaEngine.Tests/UI/ProjectScreenAssetTests.cs`, `CasaEngine.Tests/UI/UINavigationInputTests.cs`, `CasaEngine.Tests/UI/ScreenFadeWiringTests.cs`, `CasaEngine.Tests/Rendering/ScreenEffects/ScreenEffectServiceTests.cs`.
 - Étapes : D3, D4, D5, C1, C3, C5, C7, C8.
 - Validation : liste suspendue sur plusieurs images, `Hide` et `Dispose` pendant une attente, double confirmer, chemin brut et mapping, câblage du service, pas exact à cadence fixe.
 - Commit : `feat(ui): run screen fades and suspend a command until they end`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4662/4662. Quatre mutations constatées, avec reconstruction : `Remember` sans le contrôle de la commande en cours (2 tests échouent), pas de `SuspendNavigation` (1), `Dispose` qui ne vide rien (2), `UINavigationInput` qui ignore `IsSuspended` (5). Mesuré par une sonde hors commit : `new Game().TargetElapsedTime.Ticks` vaut 166667, la valeur que prend `AFadeInFrames_StepsExactly_WhenTheStepDivides255`. La ligne de `UIRoot` et les délégués réels de `GameManager` ne sont prouvés que par la course de T2.1 : `UIRoot` exige un device.
 
 ## Phase 2 — Sample et documentation
 

@@ -60,7 +60,8 @@ public sealed class UINavigationInput
     private ulong _heldInputs;
     private ulong _repeatingInputs;
 
-    // Held when this object first read the devices: an input in here counts once it has been released.
+    // Held when this object first read the devices, or while it was suspended: an input in here counts once it has
+    // been released.
     private ulong _ignoredInputs;
     private bool _hasReadDevices;
 
@@ -99,6 +100,13 @@ public sealed class UINavigationInput
     /// </summary>
     public Action CancelNotHandled { get; set; }
 
+    /// <summary>
+    /// While true, nothing reaches the desktop and the focus stays where it is (ADR-0081). The devices are still read:
+    /// an input held here counts as one held when this object was built, so it fires nothing once this turns false,
+    /// until it is released.
+    /// </summary>
+    public bool IsSuspended { get; set; }
+
     /// <summary>Reads the devices through the desktop's input tracker, and acts on what changed.</summary>
     /// <param name="now">The total elapsed time of the frame.</param>
     public void Update(TimeSpan now) => Update(now, _isHeldOnDevices);
@@ -110,10 +118,10 @@ public sealed class UINavigationInput
     {
         ulong held = ReadHeldInputs(isHeld);
 
-        if (!_hasReadDevices)
+        if (!_hasReadDevices || IsSuspended)
         {
             _hasReadDevices = true;
-            _ignoredInputs = held;
+            _ignoredInputs |= held;
         }
 
         _ignoredInputs &= held;

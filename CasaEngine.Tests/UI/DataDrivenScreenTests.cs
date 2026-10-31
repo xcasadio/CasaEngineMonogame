@@ -1,3 +1,4 @@
+using System.Globalization;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
@@ -49,6 +50,8 @@ public sealed class DataDrivenScreenTests : IDisposable
     private readonly HeadlessUiTestHarness.HeadlessRuntime _runtime;
     private readonly UIScreenActionContext _context;
     private bool _isTop = true;
+    private bool _isFadeRunning;
+    private bool _doesAFadeRun;
     private int _frame;
     private Action<IUIScreen> _onClose = static _ => { };
 
@@ -79,6 +82,12 @@ public sealed class DataDrivenScreenTests : IDisposable
             ChangeWorld = name => _calls.Add($"world:{name}"),
             PlaySound = sound => _calls.Add($"sound:{sound.Name}"),
             Quit = () => _calls.Add("quit"),
+            StartFade = action =>
+            {
+                _calls.Add(string.Create(CultureInfo.InvariantCulture, $"fade:{action.Layer}:{action.BlendMode}:{action.DurationSeconds}"));
+                _isFadeRunning = _isFadeRunning || _doesAFadeRun;
+            },
+            IsFadeRunning = () => _isFadeRunning,
         };
     }
 
@@ -947,6 +956,8 @@ public sealed class DataDrivenScreenTests : IDisposable
             ChangeWorld = _context.ChangeWorld,
             PlaySound = _context.PlaySound,
             Quit = () => throw new InvalidOperationException("boom"),
+            StartFade = _context.StartFade,
+            IsFadeRunning = _context.IsFadeRunning,
         };
 
         var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(1024, 768);
@@ -967,6 +978,348 @@ public sealed class DataDrivenScreenTests : IDisposable
 
         Assert.Throws<InvalidOperationException>(() => failingScreen.Update(new GameTime()));
         Assert.True(handle.IsDisposed);
+    }
+
+    // ADR-0081: a list that waits for a fade.
+
+    private static readonly JObject Fade = JObject.Parse("""
+        { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 0, 0, 0 ], "to": [ 255, 255, 255 ], "duration_seconds": 0.5 }
+        """);
+
+    private static readonly JObject Wait = JObject.Parse("""{ "type": "wait_fade" }""");
+
+    private static JObject CommandOf(params JObject[] actions)
+        => new() { ["name"] = "Play", ["actions"] = new JArray(actions) };
+
+    private static JObject Action(string type, string? target = null)
+        => target == null ? new JObject { ["type"] = type } : new JObject { ["type"] = type, ["target"] = target };
+
+    private static JObject FadeWith(string field, JToken? value)
+    {
+        var fade = (JObject)Fade.DeepClone();
+
+        if (value == null)
+        {
+            fade.Remove(field);
+        }
+        else
+        {
+            fade[field] = value;
+        }
+
+        return fade;
+    }
+
+    /// <summary>A list that plays a sound, fades, waits, then changes world, with the fade running once it started.</summary>
+    private DataDrivenScreen BuildFadeOut(UIScreenAsset? asset = null)
+    {
+        var screen = Build(asset ?? new UIScreenAsset(), CommandOf(Action("play_sound", "Confirm"), Fade, Wait, Action("change_world", "Level1.world")));
+        Settle(screen);
+        return screen;
+    }
+
+    private void RunUntilSuspended(DataDrivenScreen screen)
+    {
+        _isFadeRunning = true;
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        Assert.True(screen.IsCommandSuspended);
+    }
+
+    private const string StartedFade = "fade:AboveUI:Subtractive:0.5";
+
+    [Fact]
+    public void AFade_ReachesTheGame_AndAWaitWithNoFadeRunning_DoesNotStopTheList()
+    {
+        var screen = BuildFadeOut();
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+
+        Assert.Equal(new[] { "sound:Confirm", StartedFade, "world:Level1.world" }, _calls);
+        Assert.False(screen.IsCommandSuspended);
+    }
+
+    [Fact]
+    public void AList_WaitsAcrossFrames_ThenGoesOnFromTheNextAction()
+    {
+        var screen = BuildFadeOut();
+
+        RunUntilSuspended(screen);
+        Assert.Equal(new[] { "sound:Confirm", StartedFade }, _calls);
+
+        for (int i = 0; i < 5; i++)
+        {
+            Step(Away, screen);
+        }
+
+        Assert.Equal(new[] { "sound:Confirm", StartedFade }, _calls);
+        Assert.True(screen.IsCommandSuspended);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+
+        Assert.Equal(new[] { "sound:Confirm", StartedFade, "world:Level1.world" }, _calls);
+        Assert.False(screen.IsCommandSuspended);
+    }
+
+    [Fact]
+    public void AListThatEnded_DoesNotRunAgain_AndACommandCanFollow()
+    {
+        var screen = BuildFadeOut();
+        RunUntilSuspended(screen);
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Step(Away, screen);
+        Assert.Equal(3, _calls.Count);
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+
+        Assert.Equal(6, _calls.Count);
+    }
+
+    [Fact]
+    public void AListCanWaitTwice()
+    {
+        _doesAFadeRun = true;
+        var screen = Build(new UIScreenAsset(), CommandOf(Fade, Wait, Fade, Wait, Action("quit")));
+        Settle(screen);
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        Assert.Equal(new[] { StartedFade }, _calls);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Assert.Equal(new[] { StartedFade, StartedFade }, _calls);
+        Assert.True(screen.IsCommandSuspended);
+
+        Step(Away, screen);
+        Assert.Equal(new[] { StartedFade, StartedFade }, _calls);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Assert.Equal(new[] { StartedFade, StartedFade, "quit" }, _calls);
+    }
+
+    [Fact]
+    public void ASecondConfirmDuringAWait_IsRefused()
+    {
+        var screen = BuildFadeOut();
+        RunUntilSuspended(screen);
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        PressEnter(Away, screen);
+        Step(Away, screen);
+
+        Assert.Equal(new[] { "sound:Confirm", StartedFade }, _calls);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Step(Away, screen);
+
+        Assert.Equal(new[] { "sound:Confirm", StartedFade, "world:Level1.world" }, _calls);
+    }
+
+    [Fact]
+    public void ACancelDuringAWait_IsRefused()
+    {
+        var back = Named("Back", ("quit", null));
+        var screen = BuildOn(_desktop, _runtime, new UIScreenAsset { CancelCommand = "Back" }, Mapped(), CommandOf(Fade, Wait), back);
+        Settle(screen);
+        RunUntilSuspended(screen);
+
+        screen.ReportCancel();
+        Step(Away, screen);
+
+        Assert.Equal(new[] { StartedFade }, _calls);
+    }
+
+    [Fact]
+    public void AHideDuringAWait_DisposesAtOnce_AndTheListIsDropped()
+    {
+        var screen = BuildFadeOut();
+        RunUntilSuspended(screen);
+
+        screen.Hide();
+
+        Assert.False(screen.IsCommandSuspended);
+        Assert.True(Assert.Single(_soundHandles).IsDisposed);
+        Assert.True(_desktop.UseRawNavigationInput);
+        Assert.Equal(new[] { "sound:Confirm", StartedFade }, _calls);
+    }
+
+    [Fact]
+    public void ADisposeDuringAWait_ClearsTheList_AndGivesTheKeyboardBack()
+    {
+        var screen = BuildFadeOut();
+        RunUntilSuspended(screen);
+
+        screen.Dispose();
+
+        Assert.False(screen.IsCommandSuspended);
+        Assert.True(_desktop.UseRawNavigationInput);
+    }
+
+    [Fact]
+    public void DuringAWait_MGUIsOwnPathStops_AndTheFocusStays()
+    {
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait));
+        Settle(screen);
+        var play = Button(screen, "btnPlay");
+
+        _isFadeRunning = true;
+        PressEnter(Away, screen);
+        Assert.True(screen.IsCommandSuspended);
+        Assert.False(_desktop.UseRawNavigationInput);
+
+        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Up));
+        Step(Away, screen);
+        Step(Away, screen);
+
+        Assert.Same(play, _desktop.FocusedKeyboardHandler);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Assert.True(_desktop.UseRawNavigationInput);
+
+        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Up));
+        Step(Away, screen);
+        Step(Away, screen);
+
+        Assert.Same(Button(screen, "btnPlain"), _desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
+    public void AWait_LeavesTheValueItFound()
+    {
+        var screen = BuildFadeOut();
+        _desktop.UseRawNavigationInput = false;
+
+        RunUntilSuspended(screen);
+        Assert.False(_desktop.UseRawNavigationInput);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+
+        Assert.False(_desktop.UseRawNavigationInput);
+    }
+
+    [Fact]
+    public void DuringAWait_AMappedProjectIgnoresItsKeys_AndTheFocusStays()
+    {
+        var desktop = NewDesktop(out var runtime);
+        var navigation = NavigationOf(desktop);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset { DefaultFocus = "btnPlay" }, Mapped(), CommandOf(Fade, Wait, Action("quit")));
+        Settle(navigation, screen);
+
+        _isFadeRunning = true;
+        Tap(navigation, screen, Keys.Z);
+        Assert.True(screen.IsCommandSuspended);
+
+        // What UIRoot does each frame.
+        navigation.IsSuspended = screen.IsCommandSuspended;
+        Tap(navigation, screen, Keys.Up);
+        Tap(navigation, screen, Keys.Z);
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Equal(new[] { StartedFade }, _calls);
+
+        _isFadeRunning = false;
+        NavigationStep(navigation, screen, default);
+        navigation.IsSuspended = screen.IsCommandSuspended;
+        Assert.Equal(new[] { StartedFade, "quit" }, _calls);
+
+        Tap(navigation, screen, Keys.Up);
+        Assert.Equal("btnPlain", FocusedName());
+    }
+
+    [Fact]
+    public void AnActionThatFailsAfterAWait_EndsTheList_AndGivesTheKeyboardBack()
+    {
+        var failing = new UIScreenActionContext
+        {
+            ScreenExists = _context.ScreenExists,
+            WorldExists = _context.WorldExists,
+            AcquireSound = _context.AcquireSound,
+            IsTopScreen = _context.IsTopScreen,
+            OpenScreen = _context.OpenScreen,
+            CloseScreen = _context.CloseScreen,
+            ChangeWorld = _context.ChangeWorld,
+            PlaySound = _context.PlaySound,
+            Quit = () => throw new InvalidOperationException("boom"),
+            StartFade = _context.StartFade,
+            IsFadeRunning = _context.IsFadeRunning,
+        };
+        var screen = BuildOn(_desktop, _runtime, new UIScreenAsset(), failing, CommandOf(Fade, Wait, Action("quit")));
+        Settle(screen);
+        RunUntilSuspended(screen);
+
+        _isFadeRunning = false;
+        Assert.Throws<InvalidOperationException>(() => Step(Away, screen));
+
+        Assert.False(screen.IsCommandSuspended);
+        Assert.True(_desktop.UseRawNavigationInput);
+        Step(Away, screen);
+    }
+
+    public static TheoryData<string, JObject, string> RefusedFades => new()
+    {
+        { "no layer", FadeWith("layer", null), "'layer'" },
+        { "no blend mode", FadeWith("blend_mode", null), "'blend_mode'" },
+        { "no start", FadeWith("from", null), "'from'" },
+        { "no end", FadeWith("to", null), "'to'" },
+        { "no duration", FadeWith("duration_seconds", null), "'duration_seconds'" },
+        { "a negative duration", FadeWith("duration_seconds", -1f), "'duration_seconds'" },
+        { "a duration that is no number", FadeWith("duration_seconds", new JValue(float.NaN)), "'duration_seconds'" },
+        { "an endless duration", FadeWith("duration_seconds", new JValue(float.PositiveInfinity)), "'duration_seconds'" },
+        { "a target on a fade", FadeWith("target", "Level1.world"), "takes none" },
+        { "a target on a wait", Action("wait_fade", "Level1.world"), "takes none" },
+    };
+
+    [Theory]
+    [MemberData(nameof(RefusedFades))]
+    public void AnInvalidFade_IsRefusedAtLoad(string description, JObject action, string expected)
+    {
+        var exception = Assert.Throws<InvalidOperationException>(() => Build(new UIScreenAsset(), CommandOf(action)));
+
+        Assert.True(exception.Message.Contains(expected, StringComparison.Ordinal), description);
+        Assert.Contains("menu.uiscreen", exception.Message);
+    }
+
+    [Fact]
+    public void AMalformedFadeField_IsRefusedAtLoad_ThroughTheFormatErrors()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(new JObject
+        {
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "menu",
+            ["source_xaml_file"] = "menu.xaml",
+            ["ui_commands"] = new JArray(CommandOf(FadeWith("layer", "Sideways"))),
+        });
+
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+        Assert.Contains("actions[0].layer", exception.Message);
+    }
+
+    [Theory]
+    [InlineData("open_screen", "Options")]
+    [InlineData("close_screen", null)]
+    [InlineData("change_world", "Level1.world")]
+    [InlineData("quit", null)]
+    public void AWaitAfterAnActionThatEndsTheScreen_IsRefusedAtLoad(string type, string? target)
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => Build(new UIScreenAsset(), CommandOf(Fade, Action(type, target), Wait)));
+
+        Assert.Contains($"'wait_fade' after '{type}'", exception.Message);
+    }
+
+    [Fact]
+    public void AnActionAfterAWait_IsLegal_WhateverItDoes()
+    {
+        var screen = Build(new UIScreenAsset(), CommandOf(
+            Action("play_sound", "Confirm"), Fade, Wait, Action("open_screen", "Options"), Action("close_screen"), Action("quit")));
+
+        Assert.NotNull(screen);
     }
 
     [Fact]
@@ -1344,6 +1697,8 @@ public sealed class DataDrivenScreenTests : IDisposable
             ChangeWorld = _context.ChangeWorld,
             PlaySound = _context.PlaySound,
             Quit = _context.Quit,
+            StartFade = _context.StartFade,
+            IsFadeRunning = _context.IsFadeRunning,
             DesignResolution = designResolution,
             AcquireFont = acquireFont!,
             HasUIInputMapping = hasUIInputMapping,

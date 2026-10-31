@@ -27,6 +27,9 @@ namespace CasaEngine.Framework.UI;
 /// <para/>
 /// <b>Navigation comes from the envelope too</b> (ADR-0080): the focus can wrap at the ends, and a Cancel nothing
 /// consumed and a focus move can each run a command.
+/// <para/>
+/// <b>A command can wait for a screen fade</b> (ADR-0081): <see cref="Update"/> then goes on with its list on a later
+/// frame. Meanwhile no other command runs, and the keyboard and the gamepad do nothing while the focus stays.
 /// </summary>
 public sealed class DataDrivenScreen : XamlUIScreenBase
 {
@@ -41,6 +44,16 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // What may take the focus, in order of preference. Emptied once the question is settled.
     private readonly List<MGElement> _focusCandidates = new();
     private UIScreenCommandData _pendingCommand;
+
+    // The command whose list has begun and not ended, and the action it goes on with. Outside the call that runs it,
+    // this is a list waiting for a fade.
+    private UIScreenCommandData _runningCommand;
+    private int _nextActionIndex;
+
+    // What UseRawNavigationInput was when a list began to wait, null when none waits.
+    private bool? _rawNavigationBeforeWait;
+
+    // True only inside the call that runs actions: a Hide outside it, a wait included, disposes at once.
     private bool _isRunningCommand;
     private bool _wasHiddenByItsCommand;
 
@@ -84,6 +97,12 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     public override bool IsModal => Asset.IsModal;
 
     /// <summary>
+    /// True while a list of actions waits for a screen fade. <see cref="UIRoot"/> reads it to stop the navigation of a
+    /// project with a mapping (ADR-0081).
+    /// </summary>
+    public bool IsCommandSuspended => _runningCommand != null;
+
+    /// <summary>
     /// Holds the fonts of the envelope, then loads the window. <see cref="OnWindowLoaded"/> would be too late: a text
     /// element resolves its family while the XAML loads, and one nobody holds falls back to the default font for good.
     /// </summary>
@@ -115,8 +134,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     protected override void OnScreenBoundsChanged(Rectangle bounds) => ApplyDesignScale(bounds);
 
     /// <summary>
-    /// Gives the default focus, sets the wrap up, and runs the command a click, a Submit, a Cancel or a focus move left.
-    /// A move is looked at first: the default focus it must not count is only asked for afterwards.
+    /// Gives the default focus, sets the wrap up, and runs the command a click, a Submit, a Cancel or a focus move left,
+    /// or goes on with the one waiting for a fade. A move is looked at first: the default focus it must not count is
+    /// only asked for afterwards.
     /// </summary>
     public override void Update(GameTime gameTime)
     {
@@ -127,9 +147,14 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
         if (_pendingCommand != null)
         {
-            var command = _pendingCommand;
+            _runningCommand = _pendingCommand;
+            _nextActionIndex = 0;
             _pendingCommand = null;
-            Run(command);
+        }
+
+        if (_runningCommand != null)
+        {
+            RunCommand();
         }
     }
 
@@ -165,6 +190,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <inheritdoc/>
     public override void Dispose()
     {
+        _runningCommand = null;
+        RestoreNavigation();
+
         foreach (var sound in _sounds.Values)
         {
             sound.Dispose();
@@ -225,6 +253,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
                 PrepareAction(command, action);
             }
 
+            CheckWaits(command);
             resources.AddCommand(command.Name, _ => Remember(command));
         }
     }
@@ -289,12 +318,13 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
             case UIScreenActionType.CloseScreen:
             case UIScreenActionType.Quit:
-                if (!string.IsNullOrWhiteSpace(action.Target))
-                {
-                    throw InvalidEnvelope(
-                        $"Command '{command.Name}' gives the target '{action.Target}' to '{UIScreenActionTypeNames.ToName(action.Type)}', which takes none.");
-                }
+            case UIScreenActionType.WaitFade:
+                RefuseTarget(command, action);
+                break;
 
+            case UIScreenActionType.FadeScreen:
+                RefuseTarget(command, action);
+                CheckFade(command, action);
                 break;
 
             default:
@@ -309,6 +339,64 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         {
             throw InvalidEnvelope(
                 $"Command '{command.Name}' has a '{UIScreenActionTypeNames.ToName(action.Type)}' action with no target.");
+        }
+    }
+
+    private void RefuseTarget(UIScreenCommandData command, UIScreenActionData action)
+    {
+        if (!string.IsNullOrWhiteSpace(action.Target))
+        {
+            throw InvalidEnvelope(
+                $"Command '{command.Name}' gives the target '{action.Target}' to '{UIScreenActionTypeNames.ToName(action.Type)}', which takes none.");
+        }
+    }
+
+    /// <summary>A fade has no default: a field the file left out is an error, and the load reported any other.</summary>
+    private void CheckFade(UIScreenCommandData command, UIScreenActionData action)
+    {
+        RequireFadeField(command, action.Layer.HasValue, "layer");
+        RequireFadeField(command, action.BlendMode.HasValue, "blend_mode");
+        RequireFadeField(command, action.From.HasValue, "from");
+        RequireFadeField(command, action.To.HasValue, "to");
+        RequireFadeField(command, action.DurationSeconds.HasValue, "duration_seconds");
+
+        float duration = action.DurationSeconds.Value;
+        if (!float.IsFinite(duration) || duration < 0f)
+        {
+            throw InvalidEnvelope($"Command '{command.Name}' has a 'fade_screen' action with a 'duration_seconds' of {duration}: it must be zero or more.");
+        }
+    }
+
+    private void RequireFadeField(UIScreenCommandData command, bool hasValue, string field)
+    {
+        if (!hasValue)
+        {
+            throw InvalidEnvelope($"Command '{command.Name}' has a 'fade_screen' action with no '{field}'.");
+        }
+    }
+
+    /// <summary>
+    /// Only what leaves the screen running may come before a wait: a modal screen opened by the list freezes this one,
+    /// and a list that closed it, changed the world or quit has nobody left to resume it. It would die with no sign.
+    /// </summary>
+    private void CheckWaits(UIScreenCommandData command)
+    {
+        UIScreenActionData blocker = null;
+
+        foreach (var action in command.Actions)
+        {
+            if (action.Type == UIScreenActionType.WaitFade)
+            {
+                if (blocker != null)
+                {
+                    throw InvalidEnvelope(
+                        $"Command '{command.Name}' has a 'wait_fade' after '{UIScreenActionTypeNames.ToName(blocker.Type)}': only 'play_sound' and 'fade_screen' can come before a wait.");
+                }
+            }
+            else if (action.Type is not (UIScreenActionType.PlaySound or UIScreenActionType.FadeScreen))
+            {
+                blocker ??= action;
+            }
         }
     }
 
@@ -528,35 +616,92 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <summary>
     /// A screen frozen under a modal one receives no <see cref="Update"/>: a click kept for it would run when the
-    /// modal one closes, so a click off the top of the stack is dropped.
+    /// modal one closes, so a click off the top of the stack is dropped. So is anything that arrives while a list
+    /// waits for a fade, which also settles a second confirm during that fade.
     /// </summary>
     private void Remember(UIScreenCommandData command)
     {
-        if (_pendingCommand == null && _context.IsTopScreen(this))
+        if (_pendingCommand == null && _runningCommand == null && _context.IsTopScreen(this))
         {
             _pendingCommand = command;
         }
     }
 
-    private void Run(UIScreenCommandData command)
+    /// <summary>
+    /// Runs the running command from where it stopped. An action that throws ends the list: it is not resumed on the
+    /// next frame.
+    /// </summary>
+    private void RunCommand()
     {
+        bool isWaiting = false;
         _isRunningCommand = true;
 
         try
         {
-            for (int i = 0; i < command.Actions.Count; i++)
-            {
-                Execute(command.Actions[i]);
-            }
+            isWaiting = RunUntilWait();
         }
         finally
         {
             _isRunningCommand = false;
 
+            if (isWaiting)
+            {
+                SuspendNavigation();
+            }
+            else
+            {
+                _runningCommand = null;
+                RestoreNavigation();
+            }
+
             if (_wasHiddenByItsCommand)
             {
                 Dispose();
             }
+        }
+    }
+
+    /// <returns>True when the list stopped on a fade that is still running.</returns>
+    private bool RunUntilWait()
+    {
+        var actions = _runningCommand.Actions;
+
+        while (_nextActionIndex < actions.Count)
+        {
+            var action = actions[_nextActionIndex];
+
+            if (action.Type == UIScreenActionType.WaitFade && _context.IsFadeRunning())
+            {
+                return true;
+            }
+
+            _nextActionIndex++;
+            Execute(action);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Stops MGUI's own reading of the keyboard and the gamepad. On a project with a mapping that reading is already
+    /// off, and <see cref="UIRoot"/> stops <see cref="UINavigationInput"/>. Neither touches the focus, unlike
+    /// <c>IsEnabled</c> on the window, which would clear it.
+    /// </summary>
+    private void SuspendNavigation()
+    {
+        if (_rawNavigationBeforeWait == null)
+        {
+            _rawNavigationBeforeWait = Window.Desktop.UseRawNavigationInput;
+            Window.Desktop.UseRawNavigationInput = false;
+        }
+    }
+
+    private void RestoreNavigation()
+    {
+        if (_rawNavigationBeforeWait is { } rawNavigation)
+        {
+            Window.Desktop.UseRawNavigationInput = rawNavigation;
+            _rawNavigationBeforeWait = null;
         }
     }
 
@@ -583,6 +728,12 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             case UIScreenActionType.Quit:
                 _context.Quit();
                 break;
+
+            case UIScreenActionType.FadeScreen:
+                _context.StartFade(action);
+                break;
+
+            // WaitFade does nothing here: reaching this line means no fade runs.
         }
     }
 
