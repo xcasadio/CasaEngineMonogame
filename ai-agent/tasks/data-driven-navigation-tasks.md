@@ -173,13 +173,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Reste 🧪, à vérifier par l'auteur : **le son du déplacement à l'oreille** (le log montre le `.wav` chargé au premier déplacement, rien de plus) et **toute la manette** : croix, A, B, répétition, sticks. Aucune manette n'a été branchée, et la répétition n'a été exercée que par états injectés. Le passage par `UseExternalViewManagement` n'a pas été lancé : `LoadUIInputMapping` y retourne null d'après le code.
 - Ajouts hors liste : le bouton OPTIONS et l'écran `options` du sample, seul moyen de montrer `focus_wrap` en ligne et `cancel_command` ; `ThePixelSampleMapping_PassesTheChecksOfTheUI`.
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Objectif : format, limites.
 - Fichiers : `docs/engine/data-driven-screens.md`, `docs/README.md`.
 - Étapes : usage, table des actions, erreurs, limites.
 - Validation : relecture contre le code et T2.1.
 - Commit : `docs(ui): document data-driven navigation`
+- Validation faite le 2026-10-31 : relu contre `UINavigationInput`, `DataDrivenScreen` et T2.1. La doc affirme que `focus_wrap` marche sans mapping : un test manquait, `AWrap_NeedsNoMapping_AndWorksOnMGUIsOwnPathToo` est ajouté. Hors `docs/`, ce test est le seul code de ce commit. `CasaEngine.Tests` 4599/4599.
 
 ### ⏳ T2.3 — Clôture
 

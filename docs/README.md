@@ -79,7 +79,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.
-- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts` et `ui_commands` du `.uiscreen`, actions, écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079).
+- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command` et `move_command` du `.uiscreen`, actions, navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080).
 - [casaengine-mgui-backend-extensibility.md](engine/casaengine-mgui-backend-extensibility.md) — backend MonoGame extensible (Apos.Shapes, NvgSharp).
 
 ## Éditeur (`editor/`)

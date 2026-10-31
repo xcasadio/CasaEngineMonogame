@@ -252,6 +252,19 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Fact]
+    public void AWrap_NeedsNoMapping_AndWorksOnMGUIsOwnPathToo()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnOne", FocusWrap = UIScreenFocusWrap.Vertical });
+        Settle(screen);
+
+        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Up));
+        Step(Away, screen);
+
+        Assert.Equal("btnThree", FocusedName());
+    }
+
+    [Fact]
     public void AWrap_WaitsForTheFocus_SoTheFirstKeyOfAScreenWithoutADefaultFocusDoesNotWrap()
     {
         File.WriteAllText(Path.Combine(_root, "menu.xaml"), ThreeButtons);
