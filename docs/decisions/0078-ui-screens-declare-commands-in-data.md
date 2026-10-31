@@ -52,5 +52,5 @@
   - A click on a frozen screen moves the keyboard focus to it: its command is dropped, and only the mouse can then reach the modal screen.
   - Closing a window with MGUI's own close button does not pop its screen, so a screen hides that button (`IsCloseButtonVisible="False"`).
   - A window's exit effect does not show: `ScreenStack` removes the window at once.
-  - A screen with a button takes the keyboard from the game: MGUI's auto-focus gives the focus to its first button at the first key press, or at once if the last input was a key, and `PlayerInput` then stops reading the keyboard. This is MGUI's behaviour for any screen, and these screens are menus, not a HUD over a playable world.
+  - A screen with a button takes the keyboard from the game: unless a control is hovered, MGUI's auto-focus gives the focus to its first navigable control at the first key press, or at once if the last input was a key, and `PlayerInput` then stops reading the keyboard. This is MGUI's behaviour for any screen, and these screens are menus, not a HUD over a playable world.
   - `default_focus` is not restored when a screen on top closes.

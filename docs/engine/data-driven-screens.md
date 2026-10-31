@@ -83,6 +83,6 @@ An unknown action type stays in the asset with its JSON, so saving an envelope k
 - A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it. It also moves the keyboard focus, and only the mouse can then reach the screen on top.
 - Closing a window with MGUI's close button does not close its screen. Set `IsCloseButtonVisible="False"` on the window: `CanCloseWindow="False"` alone leaves the button shown.
 - A window's exit effect does not show: the window is removed at once.
-- A screen with a button takes the keyboard from the game. MGUI's auto-focus gives the focus to its first button at the first key press, or at once if the last input was a key, and `PlayerInput` then stops reading the keyboard. These screens are menus: do not use one with a button as a HUD over a playable world.
+- A screen with a button takes the keyboard from the game. Unless a control is hovered, MGUI's auto-focus gives the focus to its first navigable control at the first key press, or at once if the last input was a key, and `PlayerInput` then stops reading the keyboard. These screens are menus: do not use one with a button as a HUD over a playable world.
 - A keyboard press is ignored while the game window is inactive.
 - Gamepad input has not been tested.

@@ -172,7 +172,7 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 
 ## Phase 3 — Clôture
 
-### 🚧 T3.1 — Vérification et archive
+### ✅ T3.1 — Vérification et archive
 
 - Objectif : vérification par un sous-agent neuf en lecture seule (rôle `verifier`, `AGENTS.md` §8, modèle opus ; aucune définition n'existe dans `.claude/agents`), plan archivé.
 - Fichiers : ce plan, `ai-agent/README.md`.
@@ -196,6 +196,13 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
   - P2 : `BringToBack` ne couvrait ni la fenêtre seule ni une fenêtre `IsTopmost`, qui se redonnait le focus en fermant et coupait le clavier du jeu. Remplacé par `Window.IsEnabled = false` avant `TryCloseWindow` : tous les chemins d'auto-focus passent par `IsNavigationTarget`, qui lit `DerivedIsEnabled`, donc aucun élément de la fenêtre n'est candidat. La cause restait la même aux trois passages : `ScreenStack` retire une fenêtre sans fermeture MGUI.
   - P2 : l'ADR, la doc et un commentaire affirmaient qu'un écran « laisse le clavier au joueur ». C'est faux, l'auto-focus de MGUI prend le premier bouton à la première touche. Ce comportement préexiste : les phrases sont retirées et la limite est écrite. Le message du commit de ce correctif contient encore cette affirmation.
   - Laissé en l'état, P3 : deux écrans ouverts dans la même image, où le repli ne voit pas un focus déjà en file.
+- Quatrième passage, vérificateur neuf en lecture seule : **CONFIRMED**, aucun P0 à P2. Deux P3 de formulation corrigés (commentaire de `CloseWindow`, limite du clavier dans l'ADR et la doc). Les trois vérifications sont des lectures de code : tests et smoke ont été exécutés à part.
+- Validation globale après ce passage : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4470/4470 ; quatre parcours du Launcher rejoués. Mutations constatées, avec reconstruction : sans `Window.IsEnabled = false`, deux tests échouent.
+- Avis laissés en l'état, sans décision à prendre ici :
+  - P3 : un focus tenu dans une fenêtre enfant ou un menu contextuel de la fenêtre fermée n'est pas libéré, ce que la branche n'aggrave pas. `Window.ModalWindow` en XAML y mène.
+  - P4 : avec un effet de sortie, `DefaultFocusElement` passe avant l'historique du focus, sans effet aujourd'hui, car rien ne le pose.
+  - P4 : le cas `IsTopmost` n'a pas de test propre ; il suit le même chemin que la fenêtre seule, qui en a un.
+- Plan gardé dans `tasks/`, comme les autres plans à 🧪 : T2.2 attend la recette de l'auteur, puis le plan passe en archive.
 - O7 vérifié : la PR 7 de `ui-integration.md` prévoit `GameScreenState`, `IGameScreen` et ses écrans ; cette branche n'en crée aucun et ne touche pas `GameScreenManager`.
 - Constats laissés en l'état, sans décision à prendre ici : l'appel à `OpenFirstScreen` dans `UpdateWorld` et le contexte réel ne sont prouvés que par le smoke, car `UpdateWorld` exige un jeu ; le gel sous un modal reste non testé, car `ScreenStack` exige un `UIRoot` ; un `DataDrivenScreen` repoussé par du code après `Hide` échoue tard, usage que la classe documente comme interdit ; `open_screen` refuse une enveloppe `.screen`, format hérité qu'aucun code ne lit (ADR-0035).
 

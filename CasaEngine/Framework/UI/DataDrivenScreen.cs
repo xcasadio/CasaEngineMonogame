@@ -260,7 +260,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// the user's close button, not for the screen.
     /// <para/>
     /// A window with an exit effect, its own or its theme's, gives the focus away while it is still on the desktop, and
-    /// could give it to one of its own elements, which nothing would ever take back since <see cref="ScreenStack"/>
+    /// could give it to one of its own elements, which no key press would take back since <see cref="ScreenStack"/>
     /// removes the window right after this. Disabled, none of them is a candidate. The effect does not show.
     /// </summary>
     private void CloseWindow()
