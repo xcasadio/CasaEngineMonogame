@@ -29,6 +29,7 @@ public static class ProjectSettingsHelper
         projectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
         projectSettings.GameplayCsprojName = rootElement["GameplayCsprojName"]?.GetString() ?? string.Empty;
         projectSettings.DialogueScreenAsset = rootElement["DialogueScreenAsset"]?.GetString() ?? string.Empty;
+        projectSettings.UIInputMapping = rootElement["UIInputMapping"]?.GetString() ?? string.Empty;
         projectSettings.ExternalToolsDirectory = rootElement["ExternalToolsDirectory"]?.GetString() ?? projectSettings.ExternalToolsDirectory;
 
         // Absent means false, not "keep the previous value": otherwise opening an unmuted
@@ -153,6 +154,11 @@ public static class ProjectSettingsHelper
         if (!string.IsNullOrWhiteSpace(settings.DialogueScreenAsset))
         {
             rootElement["DialogueScreenAsset"] = settings.DialogueScreenAsset;
+        }
+
+        if (!string.IsNullOrWhiteSpace(settings.UIInputMapping))
+        {
+            rootElement["UIInputMapping"] = settings.UIInputMapping;
         }
 
         if (settings.IsAudioMuted)

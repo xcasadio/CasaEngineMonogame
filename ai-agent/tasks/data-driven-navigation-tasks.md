@@ -124,13 +124,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Commit : `feat(ui): add a mapping-driven UI navigation input`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4559/4559, dont `UINavigationInputTests` 41/41 en sans-affichage, sur un vrai `MGDesktop`. Le chemin réel du clavier passe par `InputTracker` dans deux tests, la manette reste injectée. Une image sans changement n'alloue rien (`AllocationWindow`). Mutations constatées, avec reconstruction : sans remise à zéro de la minuterie, 3 tests échouent ; sans le garde de zone de texte, 1 ; sans la lecture de la première image, 1 ; Submit répété sous une direction tenue, 1. Ce dernier cas n'était d'abord pas couvert : le premier test laissait le focus quitter le bouton, le mutant passait, le test a été corrigé.
 
-### ⏳ T1.3 — Champ projet et câblage
+### ✅ T1.3 — Champ projet et câblage
 
 - Objectif : D2, C8.
 - Fichiers : `CasaEngine/Framework/Configuration/Project/ProjectSettings.cs`, `ProjectSettingsHelper.cs`, `CasaEngine/Framework/Application/CasaEngineGame.cs`, `GameManager.cs`, `CasaEngine/Framework/UI/UIRoot.cs`, tests de configuration.
-- Étapes : champ optionnel, chargement une fois après le mixer, type de catalogue contrôlé, `UIRoot` crée et appelle, `CancelNotHandled` vers le sommet de la pile.
+- Étapes : champ optionnel, chargement une fois après le mixer, type de catalogue contrôlé, `UIRoot` crée et appelle. `CancelNotHandled` se branche en T1.5, avec la méthode de l'écran qu'il appelle.
 - Validation : champ absent non réécrit, aller-retour, nom inconnu et autre type refusés. Le câblage réel est prouvé par T2.1, car `UIRoot` exige un device.
 - Commit : `feat(project): load the UI input mapping a project names`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4566/4566. Testés : `ProjectSettingsUIInputMappingTests` et `FindButtonsMappingAsset`. `LoadUIInputMapping` et `UIRoot` ne sont pas testables sans device : à prouver par T2.1, aucune mapping n'étant encore nommée par un projet du dépôt.
 
 ### ⏳ T1.4 — Champs de l'enveloppe
 

@@ -45,6 +45,15 @@ public class ProjectSettings
     public string DialogueScreenAsset { get; set; } = string.Empty;
 
     /// <summary>
+    /// Optional id or name of a <c>.buttonsMapping</c> asset the UI reads its navigation from (ADR-0080): it then
+    /// replaces MGUI's fixed keys and buttons, and sets the repeat of a held direction. Empty keeps MGUI's own reading.
+    /// Has no effect under external view management, where the editor owns the input. No user interface, edited
+    /// directly in the project file.
+    /// </summary>
+    [Category("UI")]
+    public string UIInputMapping { get; set; } = string.Empty;
+
+    /// <summary>
     /// Mutes the <see cref="CasaEngine.Framework.Audio.Mixing.AudioBusNames.Master"/> bus for this
     /// project (ADR-0040). Applied at startup and, in the editor, on every project load; no user
     /// interface, edited directly in the project file.

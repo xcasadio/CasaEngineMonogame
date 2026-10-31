@@ -19,6 +19,7 @@ public class GameManager
     private const string WorldAssetType = "world";
     private const string SoundAssetType = "sound";
     private const string FontAssetType = "fnt";
+    private const string ButtonsMappingAssetType = "buttonsmapping";
 
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
@@ -252,6 +253,17 @@ public class GameManager
         return IsCataloguedAs(assetInfo, FontAssetType)
             ? assetInfo
             : throw new InvalidOperationException($"No bitmap font asset '{assetIdOrName}' is registered in this project.");
+    }
+
+    /// <summary>The buttons mapping the name or id designates (ADR-0080).</summary>
+    /// <exception cref="InvalidOperationException">The project has no such mapping.</exception>
+    internal static AssetInfo FindButtonsMappingAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, ButtonsMappingAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No buttons mapping asset '{assetIdOrName}' is registered in this project.");
     }
 
     private static AssetInfo FindAsset(string assetIdOrName)

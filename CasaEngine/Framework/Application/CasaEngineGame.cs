@@ -50,6 +50,12 @@ public class CasaEngineGame : Game, IObservableUpdate
 
     /// <summary>The bitmap fonts held for the UI, given to every UI text engine (ADR-0036).</summary>
     public UIFontRegistry UIFonts { get; private set; }
+
+    /// <summary>
+    /// The mapping a <see cref="UIRoot"/> reads its navigation from (ADR-0080), or null when the project names none
+    /// or the editor owns the input. Read once in <see cref="Initialize"/>, before any view exists.
+    /// </summary>
+    public ButtonsMapping UIInputMapping { get; private set; }
     internal byte[] DefaultFontSystemTtfData { get; private set; } = Array.Empty<byte>();
     public SpriteBatch SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
@@ -492,6 +498,9 @@ public class CasaEngineGame : Game, IObservableUpdate
         // Order: settings and catalog (loaded above) -> audio component -> asset loaders -> mixer asset, which needs all three.
         AudioSystemComponent.ApplyProjectMixerAsset();
 
+        // Needs the loaders, and comes before base.Initialize(): a UIRoot reads it when its view is added.
+        UIInputMapping = LoadUIInputMapping();
+
         // Keep the raw TTF bytes so MGUI can share the same FontSystem instance and sizing calibration.
         DefaultFontSystemTtfData = File.ReadAllBytes(Path.Combine(Content.RootDirectory, "Fonts", "tahoma.ttf"));
         FontSystem.AddFont(DefaultFontSystemTtfData);
@@ -504,6 +513,22 @@ public class CasaEngineGame : Game, IObservableUpdate
         }
 
         base.Initialize();
+    }
+
+    /// <summary>
+    /// A copy, so that the game alone owns it and no asset collection can take it away (ADR-0037).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The project names a mapping it does not have, or that cannot be read.</exception>
+    private ButtonsMapping LoadUIInputMapping()
+    {
+        string mappingName = RuntimeContext.ProjectSettings.UIInputMapping;
+
+        if (ExecutionPolicy.UseExternalViewManagement || string.IsNullOrWhiteSpace(mappingName))
+        {
+            return null;
+        }
+
+        return AssetContentManager.LoadCopy<ButtonsMapping>(GameManager.FindButtonsMappingAsset(mappingName).Id);
     }
 
     protected override void LoadContent()

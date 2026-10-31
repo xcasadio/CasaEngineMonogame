@@ -16,6 +16,7 @@ public sealed class ScreenAssetLookupTests : IDisposable
     private static readonly Guid WorldId = Guid.Parse("22222222-aaaa-4aaa-8aaa-222222222222");
     private static readonly Guid SoundId = Guid.Parse("33333333-aaaa-4aaa-8aaa-333333333333");
     private static readonly Guid FontId = Guid.Parse("44444444-aaaa-4aaa-8aaa-444444444444");
+    private static readonly Guid MappingId = Guid.Parse("55555555-aaaa-4aaa-8aaa-555555555555");
 
     public ScreenAssetLookupTests()
     {
@@ -24,6 +25,7 @@ public sealed class ScreenAssetLookupTests : IDisposable
         AssetCatalog.AddInternal(new AssetInfo(WorldId) { Name = "Level", FileName = "level.world", AssetType = "world" });
         AssetCatalog.AddInternal(new AssetInfo(SoundId) { Name = "Click", FileName = "click.sound", AssetType = "sound" });
         AssetCatalog.AddInternal(new AssetInfo(FontId) { Name = "Block", FileName = "block.fnt", AssetType = "fnt" });
+        AssetCatalog.AddInternal(new AssetInfo(MappingId) { Name = "Keys", FileName = "keys.buttonsMapping", AssetType = "buttonsmapping" });
     }
 
     public void Dispose() => AssetCatalog.ClearInternal();
@@ -94,6 +96,24 @@ public sealed class ScreenAssetLookupTests : IDisposable
     public void AFontThatIsNotOne_IsRefused(string target)
     {
         var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindFontAsset(target));
+
+        Assert.Contains($"'{target}'", error.Message);
+    }
+
+    [Fact]
+    public void AButtonsMapping_IsFoundByNameAndById()
+    {
+        Assert.Equal(MappingId, GameManager.FindButtonsMappingAsset("Keys").Id);
+        Assert.Equal(MappingId, GameManager.FindButtonsMappingAsset(MappingId.ToString()).Id);
+    }
+
+    [Theory]
+    [InlineData("Nope")]
+    [InlineData("Menu")]
+    [InlineData("11111111-aaaa-4aaa-8aaa-111111111111")]
+    public void AButtonsMappingThatIsNotOne_IsRefused(string target)
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindButtonsMappingAsset(target));
 
         Assert.Contains($"'{target}'", error.Message);
     }

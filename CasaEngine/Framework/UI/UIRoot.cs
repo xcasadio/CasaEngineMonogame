@@ -29,6 +29,9 @@ public sealed class UIRoot : IUIViewRuntime
     private readonly UIFontRegistry _fonts;
     private readonly FontStashSharpTextEngine _textEngine;
 
+    // Null when the project names no UI input mapping: MGUI then reads the keyboard and the gamepad itself.
+    private readonly UINavigationInput _navigationInput;
+
     /// <summary>The backend runtime that powers this MGUI desktop.</summary>
     public IUIDesktopRuntime Runtime { get; }
 
@@ -88,6 +91,12 @@ public sealed class UIRoot : IUIViewRuntime
         // ADR-0036: the bitmap fonts the game holds reach this text engine by reference, now and while it lives.
         _fonts = game.UIFonts;
         _fonts?.Attach(_textEngine);
+
+        // ADR-0080: throws on a mapping it refuses, which stops the game when its first view is created.
+        if (game.UIInputMapping != null)
+        {
+            _navigationInput = new UINavigationInput(Desktop, game.UIInputMapping);
+        }
     }
 
     private FontStashSharpTextEngine CreateFontStashSharpTextEngine(CasaEngineGame game)
@@ -129,6 +138,10 @@ public sealed class UIRoot : IUIViewRuntime
         // Desktop.Update() reads the current input snapshot that was refreshed
         // when PreviewUpdate fired on the UI host/runtime bridge.
         Desktop.Update();
+
+        // After the desktop, which has the new input state, and before the screens, so that a command this input
+        // leaves runs on the same frame.
+        _navigationInput?.Update(gameTime.TotalGameTime);
 
         // The view's rectangle follows the window (virtual resolution, ADR-0048): screens that placed their
         // window from the bounds at load time place it again.
