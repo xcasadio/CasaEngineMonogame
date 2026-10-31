@@ -161,13 +161,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Reste 🧪 pour l'auteur : entendre le son, car seul son chargement est prouvé ; manette, non testée (O5) ; passage humain. Visuel du focus (O5) : visible en mode navigation (bouton plus clair), rien au démarrage tant que la souris reste le mode actif. Si Entrée ne répond pas juste après le lancement, activer d'abord la fenêtre : `MonoGameWindowInputSource` coupe le clavier d'une fenêtre inactive.
 - Ajouts hors liste : `Projects/SampleProject/README.md` (règle des samples), test `EverySampleMenuScreen_PassesTheChecksOfADataDrivenScreen`.
 
-### ⏳ T2.3 — Documentation
+### ✅ T2.3 — Documentation
 
 - Objectif : format et limites.
 - Fichiers : `docs/engine/data-driven-screens.md`, `docs/README.md`.
 - Étapes : usage, limites.
 - Validation : relecture.
 - Commit : `docs(ui): document data-driven screens`
+- Validation faite le 2026-10-31 : relu contre `DataDrivenScreen`, `GameManager` et le smoke de T2.2. Le maintien du son après la fermeture de l'écran vient de la lecture du code, il n'a pas été écouté.
 
 ## Phase 3 — Clôture
 
