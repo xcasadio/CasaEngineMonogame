@@ -1,0 +1,17 @@
+{
+  "id": "0f6b451e-5510-4e03-8e72-cf640f85296f",
+  "name": "cursor-shade",
+  "sprite_sheet_asset_id": "1ad28add-c56b-4e81-90a7-1ace3d414cf2",
+  "location": {
+    "x": 16,
+    "y": 0,
+    "w": 16,
+    "h": 16
+  },
+  "hotspot": {
+    "x": 0,
+    "y": 0
+  },
+  "collisions": [],
+  "sockets": []
+}

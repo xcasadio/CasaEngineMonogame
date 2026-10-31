@@ -26,6 +26,14 @@
       ]
     },
     {
+      "name": "FadeOut",
+      "actions": [
+        { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 0, 0, 0 ], "to": [ 255, 255, 255 ], "duration_seconds": 1.5 },
+        { "type": "wait_fade" },
+        { "type": "change_world", "target": "BlackWorld.world" }
+      ]
+    },
+    {
       "name": "Quit",
       "actions": [
         { "type": "quit" }

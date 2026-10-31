@@ -130,13 +130,22 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample et course réelle
+### 🧪 T2.1 — Sample et course réelle
 
 - Objectif : sample obligatoire, D7 et D9.
-- Fichiers : `Projects/PixelUiSample/`.
+- Fichiers : `Projects/PixelUiSample/`, `CasaEngine.Tests/UI/UINavigationInputTests.cs`.
 - Étapes : curseur et script qui le génère, bouton, monde noir, caméra 2D dans les deux mondes.
 - Validation : Launcher, captures pendant et après le fondu, touches pendant l'attente, log sans exception.
 - Commit : `feat(sample): fade the pixel sample to a black world`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, vert. Vrai Launcher, gestes injectés, captures relues et pixels lus dans les PNG, fenêtre 960x540 sauf mention :
+  - curseur à l'échelle 3 : corps opaque (255,216,64), ombre (96,64,16) sur le fond (208,176,128), soit 112 retirés de chaque canal, exact ;
+  - clic sur `FADE OUT`, fondu de 1,5 s : pendant, monde, texte, boutons et curseur s'assombrissent ensemble, le voile est bien au-dessus de l'UI ; après, image noire uniforme, seuls les coins arrondis de la fenêtre Windows diffèrent ; `BlackWorld` chargé une fois, aucune exception ni avertissement ;
+  - clavier sur une copie à 6 s, projet à mapping : Bas, Bas, Z sur `FADE OUT`, puis Haut, Haut, Z, X pendant le fondu. Le bouton garde son reflet de focus (bleu 63 contre 56 aux autres sous le même voile), rien ne repart, `BlackWorld` une fois. La ligne de `UIRoot` et les délégués de `GameManager` sont donc prouvés ;
+  - même parcours sur une copie sans mapping, chemin brut de MGUI : Haut, Haut, Entrée pendant le fondu, focus intact (104 contre 97), `BlackWorld` une fois ;
+  - fenêtre 1000x600, k = 3, image centrée : les coins de la vue sont couverts, les bandes restent noires ;
+  - copie sans caméra dans les mondes (D7) : ici le voile a couvert toute la vue, avec une `CameraLookAtComponent` par défaut et l'avertissement « No camera found ». C'est une seule mesure, à cette taille : ADR-0033 ne la garantit pas, D7 reste la règle.
+- Défaut trouvé par la course, dans le sample : un bouton étroit à côté du curseur sortait de la navigation, Bas depuis `OPTIONS` allait sur `QUIT` par la géométrie, et Z quittait le jeu. Le curseur est maintenant dans le bouton, en pleine largeur.
+- À vérifier par l'auteur, 🧪 : manette réelle pendant un fondu. `Suspended_TheGamepadReachesNothing_Either` le prouve sur des états injectés, pour le chemin à mapping ; le chemin brut ne l'est que par lecture (`MGDesktop.cs:1580`). Aucun son dans ce parcours.
 
 ### ⏳ T2.2 — Documentation
 

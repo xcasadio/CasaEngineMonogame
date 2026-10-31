@@ -1,0 +1,17 @@
+{
+  "id": "5382de6b-9286-4a58-ba6b-fc9bba7061e7",
+  "name": "cursor-body",
+  "sprite_sheet_asset_id": "1ad28add-c56b-4e81-90a7-1ace3d414cf2",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 16
+  },
+  "hotspot": {
+    "x": 0,
+    "y": 0
+  },
+  "collisions": [],
+  "sockets": []
+}

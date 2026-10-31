@@ -13,6 +13,12 @@
       "asset_type": "world"
     },
     {
+      "id": "68a4d330-3774-4511-a131-708ffb584eb9",
+      "name": "BlackWorld",
+      "file_name": "BlackWorld.world",
+      "asset_type": "world"
+    },
+    {
       "id": "d05f3295-1236-4ceb-a766-0987c8d64a27",
       "name": "Title",
       "file_name": "Screens\\title.uiscreen",
@@ -35,6 +41,30 @@
       "name": "pixel-block-page",
       "file_name": "Fonts\\pixel-block.png",
       "asset_type": "png"
+    },
+    {
+      "id": "f3a02dc0-b47f-4aaa-921f-595a5f6cf2e3",
+      "name": "cursor-sheet",
+      "file_name": "Cursor\\cursor.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "1ad28add-c56b-4e81-90a7-1ace3d414cf2",
+      "name": "cursor",
+      "file_name": "Cursor\\cursor.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "5382de6b-9286-4a58-ba6b-fc9bba7061e7",
+      "name": "cursor-body",
+      "file_name": "Cursor\\cursor-body.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "0f6b451e-5510-4e03-8e72-cf640f85296f",
+      "name": "cursor-shade",
+      "file_name": "Cursor\\cursor-shade.sprite",
+      "asset_type": "sprite"
     },
     {
       "id": "90f95427-c427-4c9a-bc21-a357ece175cd",

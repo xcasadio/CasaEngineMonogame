@@ -9,6 +9,15 @@
     <Button Name="btnOptions" CommandName="Options">
       <TextBlock FontFamily="pixel-block" Foreground="White" Text="OPTIONS" />
     </Button>
+    <Button Name="btnFade" CommandName="FadeOut">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <OverlayPanel Background="rgb(208,176,128)" VerticalAlignment="Center">
+          <Image SourceName="cursor-body" Stretch="None" />
+          <Image SourceName="cursor-shade" Stretch="None" BlendType="Subtractive" />
+        </OverlayPanel>
+        <TextBlock FontFamily="pixel-block" Foreground="White" VerticalAlignment="Center" Text="FADE OUT" />
+      </StackPanel>
+    </Button>
     <Button Name="btnQuit" CommandName="Quit">
       <TextBlock FontFamily="pixel-block" Foreground="White" Text="QUIT" />
     </Button>

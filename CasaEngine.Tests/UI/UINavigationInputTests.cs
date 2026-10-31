@@ -348,6 +348,24 @@ public sealed class UINavigationInputTests
     }
 
     [Fact]
+    public void Suspended_TheGamepadReachesNothing_Either()
+    {
+        var navigation = Ready(Mapping());
+        navigation.IsSuspended = true;
+
+        foreach (var button in new[] { Buttons.DPadDown, Buttons.A })
+        {
+            _pad.Add(button);
+            Step(navigation);
+            _pad.Clear();
+            Step(navigation);
+        }
+
+        Assert.Equal("btnA", Focused());
+        Assert.Equal(0, _commandCount);
+    }
+
+    [Fact]
     public void AnInputHeldThroughASuspension_NeitherFiresNorRepeats_UntilItIsPressedAgain()
     {
         var navigation = Ready(Mapping(initialDelayMs: 10, intervalMs: 10));

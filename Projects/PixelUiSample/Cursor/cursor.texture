@@ -1,0 +1,22 @@
+{
+  "id": "1ad28add-c56b-4e81-90a7-1ace3d414cf2",
+  "name": "cursor",
+  "texture_asset_id": "f3a02dc0-b47f-4aaa-921f-595a5f6cf2e3",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}
