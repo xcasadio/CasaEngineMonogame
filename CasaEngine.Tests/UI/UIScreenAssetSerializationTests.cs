@@ -230,6 +230,70 @@ public class UIScreenAssetSerializationTests
         Assert.Empty(asset.CommandFormatErrors);
     }
 
+    [Fact]
+    public void AnEnvelopeWithoutFonts_LoadsAnEmptyList_AndDoesNotGainTheKeyWhenSaved()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(JObject.Parse(EnvelopeWithoutDesignTimeData));
+
+        Assert.Empty(asset.Fonts);
+        Assert.Empty(asset.CommandFormatErrors);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(asset, out var document));
+        Assert.False(document.ContainsKey("fonts"));
+    }
+
+    [Fact]
+    public void Fonts_RoundTrip_InTheirWrittenOrder()
+    {
+        var original = WithIdentity("""{ "fonts": [ "title-font", "3f2b9e5c-9a1d-4f0b-9c3a-6d7e8f901235" ] }""");
+        var loaded = new UIScreenAsset();
+        loaded.Load(original);
+
+        Assert.Equal(new[] { "title-font", "3f2b9e5c-9a1d-4f0b-9c3a-6d7e8f901235" }, loaded.Fonts);
+        Assert.Empty(loaded.CommandFormatErrors);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.True(JToken.DeepEquals(original["fonts"], document["fonts"]));
+    }
+
+    [Fact]
+    public void AnEmptyFontList_IsNotWrittenBack()
+    {
+        var loaded = new UIScreenAsset();
+        loaded.Load(WithIdentity("""{ "fonts": [] }"""));
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+
+        Assert.False(document.ContainsKey("fonts"));
+    }
+
+    [Theory]
+    [InlineData("""{ "fonts": "title-font" }""", "'fonts'")]
+    [InlineData("""{ "fonts": {} }""", "'fonts'")]
+    [InlineData("""{ "fonts": null }""", "'fonts'")]
+    [InlineData("""{ "fonts": [ 3 ] }""", "fonts[0]")]
+    [InlineData("""{ "fonts": [ "a", null ] }""", "fonts[1]")]
+    public void AMalformedFontList_DoesNotThrowFromLoad_AndIsReportedWithItsPlace(string json, string location)
+    {
+        var asset = new UIScreenAsset();
+
+        asset.Load(WithIdentity(json));
+
+        Assert.Contains(asset.CommandFormatErrors, error => error.Contains(location, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void LoadingAgain_ForgetsThePreviousFonts()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(WithIdentity("""{ "fonts": [ "title-font" ] }"""));
+
+        asset.Load(JObject.Parse(EnvelopeWithoutDesignTimeData));
+
+        Assert.Empty(asset.Fonts);
+    }
+
     private static JObject EnvelopeWith(JObject action)
     {
         var envelope = WithIdentity("{}");

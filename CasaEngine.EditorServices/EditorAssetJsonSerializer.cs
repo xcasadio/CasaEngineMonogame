@@ -566,6 +566,11 @@ internal static class EditorAssetJsonSerializer
             node.Add("default_focus", uiScreenAsset.DefaultFocus);
         }
 
+        if (uiScreenAsset.Fonts.Count > 0)
+        {
+            node.Add("fonts", new JArray(uiScreenAsset.Fonts));
+        }
+
         if (uiScreenAsset.UICommands.Count > 0)
         {
             var commandsNode = new JArray();

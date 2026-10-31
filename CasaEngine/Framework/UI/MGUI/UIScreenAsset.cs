@@ -36,6 +36,12 @@ public sealed class UIScreenAsset : ObjectBase
     public List<UIScreenCommandData> UICommands { get; } = new();
 
     /// <summary>
+    /// Catalogue names or ids of the <c>.fnt</c> assets a screen built from this envelope alone holds for its lifetime
+    /// (ADR-0079). Its XAML names their <c>face</c> in <c>FontFamily</c>.
+    /// </summary>
+    public List<string> Fonts { get; } = new();
+
+    /// <summary>
     /// What <see cref="Load"/> could not read in the fields above. It reports here instead of throwing because
     /// <c>AssetLoader</c> swallows what a load throws and returns a null asset, which would lose the cause.
     /// <see cref="DataDrivenScreen"/> refuses an envelope with an entry here; other screens never read those fields.
@@ -86,6 +92,7 @@ public sealed class UIScreenAsset : ObjectBase
         }
 
         DefaultFocus = ReadOptionalString(element, "default_focus", "'default_focus'");
+        LoadFonts(element);
 
         if (element["ui_commands"] is not { } commands)
         {
@@ -107,6 +114,34 @@ public sealed class UIScreenAsset : ObjectBase
             else
             {
                 CommandFormatErrors.Add($"ui_commands[{i}] must be an object, but is a {commandArray[i].Type}.");
+            }
+        }
+    }
+
+    private void LoadFonts(JObject element)
+    {
+        Fonts.Clear();
+
+        if (element["fonts"] is not { } fonts)
+        {
+            return;
+        }
+
+        if (fonts is not JArray fontArray)
+        {
+            CommandFormatErrors.Add($"'fonts' must be an array, but is a {fonts.Type}.");
+            return;
+        }
+
+        for (int i = 0; i < fontArray.Count; i++)
+        {
+            if (fontArray[i].Type == JTokenType.String)
+            {
+                Fonts.Add(fontArray[i].GetString());
+            }
+            else
+            {
+                CommandFormatErrors.Add($"fonts[{i}] must be a string, but is a {fontArray[i].Type}.");
             }
         }
     }

@@ -106,13 +106,14 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - Commit : `feat(ui): scale data-driven screens to the design resolution`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4491/4491, dont 11 cas neufs dans `DataDrivenScreenTests` et un dans `FirstScreenTests`. Le test de clic calcule le point d'écran à la main, sans passer par la conversion de MGUI, et vérifie aussi qu'un clic au point non mis à l'échelle ne déclenche rien. Le rendu n'est pas prouvé ici : le harnais n'a pas de device, voir T2.1.
 
-### ⏳ T1.3 — Champ `fonts` de l'enveloppe
+### ✅ T1.3 — Champ `fonts` de l'enveloppe
 
 - Objectif : D5.
 - Fichiers : `CasaEngine/Framework/UI/MGUI/UIScreenAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/UI/UIScreenAssetSerializationTests.cs`.
 - Étapes : liste `Fonts` ; lecture avec rapport dans `CommandFormatErrors` ; écriture si non vide.
 - Validation : absent, liste vide et clé non réécrite ; aller-retour dans l'ordre ; chaque valeur mal formée signalée avec sa place ; nouveau chargement sans le champ le vide.
 - Commit : `feat(ui): add the fonts field to the UIScreen envelope`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4500/4500, dont 9 cas neufs dans `UIScreenAssetSerializationTests`. Limite héritée de T1.1 d'E1 : une entrée mal formée n'est pas réécrite par une sauvegarde de l'enveloppe.
 
 ### ⏳ T1.4 — Tenir les polices d'un écran
 
