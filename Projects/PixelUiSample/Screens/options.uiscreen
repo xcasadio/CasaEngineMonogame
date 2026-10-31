@@ -1,0 +1,31 @@
+{
+  "id": "bd94bfb6-5667-4649-8e8e-889b153681c2",
+  "name": "Options",
+  "source_xaml_file": "options.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 320,
+    "y": 180
+  },
+  "resource_files": [],
+  "is_modal": true,
+  "default_focus": "btnOne",
+  "focus_wrap": "horizontal",
+  "cancel_command": "Back",
+  "move_command": "Move",
+  "fonts": [ "pixel-block" ],
+  "ui_commands": [
+    {
+      "name": "Back",
+      "actions": [
+        { "type": "close_screen" }
+      ]
+    },
+    {
+      "name": "Move",
+      "actions": [
+        { "type": "play_sound", "target": "cursor_move" }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,7 @@
   "FirstWorldLoaded": "TitleWorld.world",
   "GameplayDllName": "",
   "ExternalToolsDirectory": "ExternalTools",
+  "UIInputMapping": "ui-input",
   "VirtualResolution": {
     "Width": 320,
     "Height": 180,

@@ -155,13 +155,23 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 
 ## Phase 2 — Sample, doc
 
-### ⏳ T2.1 — `PixelUiSample` et course réelle
+### 🧪 T2.1 — `PixelUiSample` et course réelle
 
 - Objectif : sample obligatoire, gestes réels.
 - Fichiers : `Projects/PixelUiSample/` (`.buttonsMapping`, projet, écrans, son copié de `Projects/SampleProject/Audio`, catalogue, `README.md`), `CasaEngine.Tests/UI/ProjectScreenAssetTests.cs`.
 - Étapes : mapping aux touches non standard pour prouver qu'elle agit, `focus_wrap`, `cancel_command`, `move_command`.
 - Validation : Launcher au clavier avec captures ; le script de pilotage tient une touche 200 ms, une tenue plus longue passe par une copie du script dans le scratchpad. 🧪 pour son et manette.
 - Commit : `feat(sample): drive the pixel sample through a buttons mapping`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4598/4598. Course réelle sur le Launcher, gestes injectés dans la fenêtre, captures relues, aucune exception dans les logs :
+  - Bouclage vertical du titre : Haut depuis START va à QUIT, Bas depuis QUIT va à START. Bouclage horizontal du popup : Gauche depuis ONE va à BACK, Droite depuis BACK va à ONE.
+  - Touches de la mapping : Entrée ne fait rien, `Z` ouvre OPTIONS. Échap ne fait rien, `X` ferme le popup et le focus revient sur OPTIONS. `X` sur le titre, qui n'a pas de `cancel_command`, ne fait rien. `Z` sur BACK ferme aussi. `Z` sur START charge `NextWorld`, et `Z` là-bas ne fait rien. `Z` sur QUIT : code de sortie 0.
+  - Repli : Tab depuis QUIT va à START.
+  - Répétition, touche Bas tenue, sur une copie hors dépôt réglée à 1000 ms et 1000 ms pour que les captures suivent : OPTIONS à 400 et 800 ms, QUIT à 1300 et 1700 ms, START à 2200 et 2600 ms, soit un pas par seconde en bouclant, et plus rien après le relâchement. Le script de pilotage tient une touche 200 ms : la tenue passe par une copie du script dans le scratchpad, hors dépôt, avec `down:` et `up:`.
+  - Souris : clic sur OPTIONS puis sur BACK, les deux fonctionnent.
+  - `Projects/SampleProject`, sans mapping : Bas, Entrée ouvre le popup, Entrée le ferme, comme avant. Chemin brut inchangé.
+  - Refus au chargement, sur des copies hors dépôt : entrée analogique (« UI action 'Submit' is an analog input », le jeu s'arrête), nom de mapping inconnu (« No buttons mapping asset 'nope' », le jeu s'arrête), `cancel_command` sans mapping (exception à l'ouverture de l'écran, nommant l'enveloppe).
+- Reste 🧪, à vérifier par l'auteur : **le son du déplacement à l'oreille** (le log montre le `.wav` chargé au premier déplacement, rien de plus) et **toute la manette** : croix, A, B, répétition, sticks. Aucune manette n'a été branchée, et la répétition n'a été exercée que par états injectés. Le passage par `UseExternalViewManagement` n'a pas été lancé : `LoadUIInputMapping` y retourne null d'après le code.
+- Ajouts hors liste : le bouton OPTIONS et l'écran `options` du sample, seul moyen de montrer `focus_wrap` en ligne et `cancel_command` ; `ThePixelSampleMapping_PassesTheChecksOfTheUI`.
 
 ### ⏳ T2.2 — Documentation
 

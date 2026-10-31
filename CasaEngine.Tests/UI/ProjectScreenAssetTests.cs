@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Fonts;
 using CasaEngine.Framework.Audio;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
@@ -150,11 +151,14 @@ public class ProjectScreenAssetTests
     }
 
     /// <summary>
-    /// The screen of PixelUiSample is valid against that project's own catalogue and resolution, and its font is what
-    /// the XAML names (ADR-0079). The font itself needs a graphics device: it is proved by running the sample.
+    /// The screens of PixelUiSample are valid against that project's own catalogue, resolution and mapping, and their
+    /// font is what the XAML names (ADR-0079, ADR-0080). The font itself needs a graphics device: it is proved by
+    /// running the sample.
     /// </summary>
-    [Fact]
-    public void ThePixelSampleScreen_PassesTheChecksOfADataDrivenScreen()
+    [Theory]
+    [InlineData("title")]
+    [InlineData("options")]
+    public void ThePixelSampleScreens_PassTheChecksOfADataDrivenScreen(string screenName)
     {
         var projectPath = Path.Combine(FindRepositoryRoot(), "Projects", "PixelUiSample");
         var catalog = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "AssetInfos.json")))["asset_infos"]!;
@@ -165,12 +169,18 @@ public class ProjectScreenAssetTests
         Assert.Equal(string.Empty, (string?)project["GameplayDllName"]);
         Assert.True((bool?)project["VirtualResolution"]?["ScaleUI"]);
 
+        var assets = new AssetContentManager();
+        var soundId = Guid.NewGuid();
+        using var soundHold = assets.Register(soundId, new SoundAsset());
+
         var heldFonts = new List<string>();
         var context = new UIScreenActionContext
         {
             ScreenExists = name => Find("name", name, "uiscreen") != null,
             WorldExists = worldFile => Find("file_name", worldFile, "world") != null,
-            AcquireSound = name => throw new InvalidOperationException($"No sound '{name}'."),
+            AcquireSound = name => Find("name", name, "sound") != null
+                ? assets.Acquire<SoundAsset>(soundId)
+                : throw new InvalidOperationException($"No sound '{name}'."),
             IsTopScreen = static _ => true,
             OpenScreen = static _ => { },
             CloseScreen = static _ => { },
@@ -184,10 +194,11 @@ public class ProjectScreenAssetTests
                 heldFonts.Add(name);
                 return new MemoryStream();
             },
+            HasUIInputMapping = !string.IsNullOrEmpty((string?)project["UIInputMapping"]),
         };
 
         var (desktop, _) = HeadlessUiTestHarness.NewDesktop(960, 540);
-        var envelopePath = Path.Combine(projectPath, "Screens", "title.uiscreen");
+        var envelopePath = Path.Combine(projectPath, "Screens", screenName + ".uiscreen");
         var screen = new DataDrivenScreen(ReadEnvelope(envelopePath), envelopePath, context);
 
         var window = screen.BuildWindow(desktop);
@@ -198,11 +209,38 @@ public class ProjectScreenAssetTests
 
         var fontFileName = (string)Find("name", font, "fnt")!["file_name"]!;
         var descriptor = BitmapFontDescriptor.Parse(File.ReadAllText(Path.Combine(projectPath, fontFileName)), fontFileName);
-        Assert.Contains($"FontFamily=\"{descriptor.Face}\"", File.ReadAllText(Path.Combine(projectPath, "Screens", "title.xaml")));
+        Assert.Contains($"FontFamily=\"{descriptor.Face}\"", File.ReadAllText(Path.Combine(projectPath, "Screens", screenName + ".xaml")));
 
         var pageFileName = BitmapFontDescriptor.CatalogFileNameNextTo(
             projectPath, Path.Combine(projectPath, fontFileName), Assert.Single(descriptor.PageFiles));
         Assert.NotNull(Find("file_name", pageFileName, "png"));
+    }
+
+    /// <summary>
+    /// The mapping PixelUiSample names is catalogued and passes the checks of the UI (ADR-0080), and its sound reaches
+    /// a catalogued file. Reading it on a real device is proved by running the sample.
+    /// </summary>
+    [Fact]
+    public void ThePixelSampleMapping_PassesTheChecksOfTheUI()
+    {
+        var projectPath = Path.Combine(FindRepositoryRoot(), "Projects", "PixelUiSample");
+        var catalog = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "AssetInfos.json")))["asset_infos"]!;
+        var project = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, "PixelUiSample.json")));
+
+        var mappingInfo = catalog.Single(info => (string?)info["name"] == (string?)project["UIInputMapping"]);
+        Assert.Equal("buttonsmapping", (string?)mappingInfo["asset_type"]);
+
+        var mapping = new ButtonsMapping();
+        mapping.Load(JObject.Parse(File.ReadAllText(Path.Combine(projectPath, (string)mappingInfo["file_name"]!))));
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        _ = new UINavigationInput(desktop, mapping);
+
+        Assert.False(desktop.UseRawNavigationInput);
+
+        var soundInfo = catalog.Single(info => (string?)info["asset_type"] == "sound");
+        var sound = JObject.Parse(File.ReadAllText(Path.Combine(projectPath, (string)soundInfo["file_name"]!)));
+        Assert.Contains(catalog, info => (string?)info["id"] == (string?)sound["audio_file_asset_id"]);
     }
 
     private static UIScreenAsset ReadEnvelope(string envelopePath)

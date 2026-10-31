@@ -1,0 +1,10 @@
+{
+  "id": "bf7d4168-3500-4321-b4e5-62a71c827279",
+  "name": "cursor_move",
+  "audio_file_asset_id": "099ffa52-678b-494a-9721-0520fe04233c",
+  "volume": 1.0,
+  "pitch": 0.0,
+  "is_looped": false,
+  "bus_name": "Sfx",
+  "is_streaming": false
+}

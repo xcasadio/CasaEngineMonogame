@@ -19,6 +19,12 @@
       "asset_type": "uiscreen"
     },
     {
+      "id": "bd94bfb6-5667-4649-8e8e-889b153681c2",
+      "name": "Options",
+      "file_name": "Screens\\options.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
       "id": "2ef68f1e-04c1-4bf6-b01e-173b7702bb09",
       "name": "pixel-block",
       "file_name": "Fonts\\pixel-block.fnt",
@@ -29,6 +35,24 @@
       "name": "pixel-block-page",
       "file_name": "Fonts\\pixel-block.png",
       "asset_type": "png"
+    },
+    {
+      "id": "90f95427-c427-4c9a-bc21-a357ece175cd",
+      "name": "ui-input",
+      "file_name": "ui-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
+    },
+    {
+      "id": "099ffa52-678b-494a-9721-0520fe04233c",
+      "name": "menu_screenclick",
+      "file_name": "Audio\\menu_screenclick.wav",
+      "asset_type": "wav"
+    },
+    {
+      "id": "bf7d4168-3500-4321-b4e5-62a71c827279",
+      "name": "cursor_move",
+      "file_name": "Audio\\cursor_move.sound",
+      "asset_type": "sound"
     }
   ]
 }

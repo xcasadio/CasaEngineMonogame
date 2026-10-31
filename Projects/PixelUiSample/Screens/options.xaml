@@ -1,0 +1,17 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="40" Top="116" Width="240" Height="60" WindowStyle="None" IsCloseButtonVisible="False" CanCloseWindow="False">
+  <StackPanel Orientation="Vertical" Spacing="6" Padding="8">
+    <TextBlock Name="lblOptions" FontFamily="pixel-block" Foreground="Yellow" Text="LEFT AND RIGHT WRAP" />
+    <StackPanel Orientation="Horizontal" Spacing="6">
+      <Button Name="btnOne">
+        <TextBlock FontFamily="pixel-block" Foreground="White" Text="ONE" />
+      </Button>
+      <Button Name="btnTwo">
+        <TextBlock FontFamily="pixel-block" Foreground="White" Text="TWO" />
+      </Button>
+      <Button Name="btnBack" CommandName="Back">
+        <TextBlock FontFamily="pixel-block" Foreground="White" Text="BACK" />
+      </Button>
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -9,6 +9,8 @@
   },
   "resource_files": [],
   "default_focus": "btnStart",
+  "focus_wrap": "vertical",
+  "move_command": "Move",
   "fonts": [ "pixel-block" ],
   "ui_commands": [
     {
@@ -18,9 +20,21 @@
       ]
     },
     {
+      "name": "Options",
+      "actions": [
+        { "type": "open_screen", "target": "Options" }
+      ]
+    },
+    {
       "name": "Quit",
       "actions": [
         { "type": "quit" }
+      ]
+    },
+    {
+      "name": "Move",
+      "actions": [
+        { "type": "play_sound", "target": "cursor_move" }
       ]
     }
   ]
