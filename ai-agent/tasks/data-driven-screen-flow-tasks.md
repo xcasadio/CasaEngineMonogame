@@ -120,13 +120,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `feat(ui): add data-driven XAML screen`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4425/4425, dont `DataDrivenScreenTests` 33/33 en sans-affichage. Gestes réels renvoyés à T2.2. Fichier hors liste : `XamlUIScreenBase.cs` gagne deux accesseurs protégés additifs, `Asset` et `AssetFilePath`, seul moyen de lire l'enveloppe acquise par le constructeur à gestionnaire d'assets. O4 appliqué : un clic hors sommet est abandonné, pas différé. Ajouts conformes à P3 : une cible sur `close_screen` ou `quit`, et un `default_focus` non focalisable, sont refusés au chargement. `Hide` pendant la liste qui ferme l'écran reporte `Dispose` à la fin de la liste, car `AssetHandle.Asset` lève après `Dispose` et un `play_sound` peut suivre `close_screen`.
 
-### ⏳ T1.3 — Consommer `FirstScreenName`
+### ✅ T1.3 — Consommer `FirstScreenName`
 
 - Objectif : ouvrir le premier écran sans code.
 - Fichiers : `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/FirstScreenTests.cs`.
 - Étapes : méthode interne, `IUIViewRuntime` factice (`InputRouterTests.cs:291`), politique d'exécution passée en paramètre (`_game` est nul en test, `GameManager.cs:54-57`) ; vide : rien ; sous `UseExternalViewManagement` (`GameplayExecutionPolicy.cs:44,58`, édition et Play-in-Editor) : rien, ni écran ni exception, testé avant la recherche de vue ; sans vue active : exception (Runtime uniquement).
 - Validation : tests ; clés vides sans effet ; `EditorPreview` et `EditorSimulation` : aucun écran poussé malgré une vue active et `FirstScreenName` renseigné, aucune exception sans vue active.
 - Commit : `feat(app): open the project's first screen from data`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4437/4437, dont `FirstScreenTests` 12/12. `OpenFirstScreen` est testé directement, car `UpdateWorld` exige un jeu : l'appel réel dans `UpdateWorld` et le contexte d'actions construit par `GameManager` restent à prouver par le smoke de T2.2. O1 et O3 appliqués : aucun écran à l'entrée d'un autre monde, rien dans l'éditeur. `open_screen` et `change_world` vérifient aussi le type du catalogue (`uiscreen`, `world`).
 
 ## Phase 2 — Éditeur, sample, doc
 
