@@ -52,6 +52,6 @@
   - No action removes the overlay. It outlives `change_world`, so a list that fades out ends on a world that stays hidden, which is why the sample goes to a black one.
   - `Layer` stays on the service once set, as it did for any caller.
   - The mouse is not blocked during a wait: hover goes on, a click can move the focus, and commands stay refused.
-  - A focused control that reads keys itself still sees them on MGUI's path: only navigation stops.
+  - A focused control that reads keys itself still sees them: only navigation stops. This comes from reading the code.
   - A screen pushed by code on top of a suspended one takes the stop of `UINavigationInput` away from it, and on MGUI's path it stays without the keyboard until the wait ends.
 - MGUI's branch must reach `develop` before this one reaches `main`: until then the pointer names a commit that is only on a chantier branch.

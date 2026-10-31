@@ -180,11 +180,40 @@ fabrique de coroutines, qui appelle la commodité `StartFade` du service au prem
 
 Hors cette action de cutscene, la feature **n'a pas de surface éditeur** en V1 — choix explicite.
 
+### 5.1 UI screens: the `fade_screen` action
+
+A project with no DLL reaches the same service from a `.uiscreen` (ADR-0081, [data-driven-screens.md](data-driven-screens.md#fades)). `fade_screen` sets `Layer`, then calls `StartFade`, and `wait_fade` holds the rest of the list while `IsFading` is true.
+
+| | Cutscene `FadeScreen` | UI `fade_screen` |
+|---|---|---|
+| Waiting | The action blocks | A separate `wait_fade` action |
+| Layer | Not set | `layer`, required |
+| Start color | The current color | `from`, required |
+| Alpha | 255 | Fourth value of `from` and `to`, 255 when left out |
+| A missing or invalid field | Default value | Refused when the screen opens |
+
+### 5.2 Exact steps per frame
+
+The service has no step of its own: it interpolates from the elapsed time and rounds. A project that wants an exact step per frame gets it from data:
+
+- it sets `"IsFixedTimeStep": true` in its project file;
+- it writes `duration_seconds` as a number of frames over the rate.
+
+The engine does not set `TargetElapsedTime`, so the rate is MonoGame's default: 166667 ticks, read from `new Game().TargetElapsedTime`, about 60 updates a second. A subtractive fade from 0 to 255 by 15 per frame lasts 17 frames, so `duration_seconds` is 17 / 60, written as `0.283333`. `ScreenEffectServiceTests.AFadeInFrames_StepsExactly_WhenTheStepDivides255` proves the values on that step, for steps of 5, 15, 17 and 51.
+
+Limits:
+
+- A step is only exact when it divides 255. 16 per frame over 16 frames gives values that are not all multiples of 16, ending on 255.
+- A duration rounded up ends one frame late: 0.2834 instead of 0.283333 finishes on frame 18, not 17.
+- The first step shows on the frame of the action, not the next one, when the fade starts from the UI: the UI updates before `ScreenEffectComponent`. Against a target that draws its first step one frame after the input, this is one frame early.
+- The last value is `to`. A target whose last visible value is lower ends higher here.
+- What a late frame does under a fixed step has not been measured.
+
 ---
 
 ## 6. Limites connues (V1)
 
-- **Pas de surface éditeur**, hormis l'action de cutscene `FadeScreen` (pas d'inspecteur dédié).
+- **Pas de surface éditeur**, hormis l'action de cutscene `FadeScreen` et l'action d'écran `fade_screen` (pas d'inspecteur dédié).
 - **Une seule couche** : le service ne gère qu'un overlay plein écran, pas une pile d'effets.
 - **Aucune caméra autre que `ViewManager.ActiveView` n'est consultée.** Un jeu avec plusieurs vues
   actives simultanément ne recevrait qu'une seule position caméra pour l'overlay.

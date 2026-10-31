@@ -1,6 +1,6 @@
 # Data-driven screens
 
-A project with no gameplay DLL can open a XAML screen, wire its buttons to actions and change world from its data alone. The decisions are ADR-0078, ADR-0079 and ADR-0080. `Projects/SampleProject` is the working example, and `Projects/PixelUiSample` adds a design resolution, a bitmap font and its own keys.
+A project with no gameplay DLL can open a XAML screen, wire its buttons to actions and change world from its data alone. The decisions are ADR-0078, ADR-0079, ADR-0080 and ADR-0081. `Projects/SampleProject` is the working example, and `Projects/PixelUiSample` adds a design resolution, a bitmap font, its own keys, a screen fade and a subtractive image.
 
 A project with a DLL keeps every existing path: a `XamlUIScreenBase` subclass reads none of the fields below. `FirstScreenName` applies to every project, though: a value left in a project with a DLL now opens that screen, and one that names no screen stops the game when the first world loads.
 
@@ -54,7 +54,7 @@ A button with no `CommandName` is legal and does nothing.
 
 ## Actions
 
-A command runs its actions in order, on the `Update` that follows the click or the Enter key. A list has neither conditions nor waits.
+A command runs its actions in order, on the `Update` that follows the click or the Enter key. A list has no conditions, and the only thing it can wait for is a screen fade.
 
 | `type` | `target` | Effect |
 |---|---|---|
@@ -63,6 +63,60 @@ A command runs its actions in order, on the `Update` that follows the click or t
 | `change_world` | World file, as written in the catalogue | Loads that world. Its screens close with the old view |
 | `play_sound` | Sound asset name or id | Plays the sound. It goes on after the screen closes |
 | `quit` | None | Quits the game |
+| `fade_screen` | None | Starts a screen fade. See [Fades](#fades) |
+| `wait_fade` | None | Holds the rest of the list until no fade runs |
+
+## Fades
+
+```json
+{
+  "name": "Start",
+  "actions": [
+    { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 0, 0, 0 ], "to": [ 255, 255, 255 ], "duration_seconds": 1.5 },
+    { "type": "wait_fade" },
+    { "type": "change_world", "target": "BlackWorld.world" }
+  ]
+}
+```
+
+`fade_screen` drives the service described in [screen-effects.md](screen-effects.md). All its fields are required, and none has a default:
+
+- `layer`: `AboveUI` darkens the UI with the world, `BelowUI` leaves the UI on top.
+- `blend_mode`: `Opaque`, `AlphaBlend`, `Additive` or `Subtractive`.
+- `from`, `to`: `[r, g, b]` or `[r, g, b, a]`, whole numbers from 0 to 255. Without the fourth value the alpha is 255. A subtractive fade to black goes from `[0, 0, 0]`, which changes nothing on screen, to `[255, 255, 255]`. An alpha fade goes from `[0, 0, 0, 0]` to `[0, 0, 0, 255]` with `AlphaBlend`.
+- `duration_seconds`: zero or more. Zero applies `to` at once, and a `wait_fade` after it does not wait.
+
+`wait_fade` waits for any fade of the service, not only the one of its own list. With no fade running it goes straight on.
+
+Only `play_sound` and `fade_screen` can come before a `wait_fade`, along with another `wait_fade`. What comes after it is free. The other actions take the screen out of the loop that would resume the list, so the file is refused rather than the list dying with no sign.
+
+While a list waits:
+
+- no command runs: a second confirm, a Cancel and a focus move are dropped;
+- the keyboard and the gamepad do nothing, and the focus stays where it is;
+- a key held through the wait fires nothing when the wait ends, until it is released;
+- a screen that closes drops the rest of its list, a change of world from code included.
+
+The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs.
+
+A world used with a fade above the UI declares an entity with a `Camera2dComponent`, like `Projects/PixelUiSample/TitleWorld.world`: the veil is only placed for that camera. A world with no camera gets a 3D one. The sample without its camera was still fully covered at 960x540, but that is one measure and nothing guarantees it (ADR-0033).
+
+A step of exactly so much per frame is described in [screen-effects.md](screen-effects.md), section 5.2.
+
+## Subtractive images
+
+An `Image` takes a `BlendType` (MGUI's ADR-0024). `Subtractive` takes the color of each texel from what is below it, saturates at 0, and leaves the destination alpha alone. The attribute is optional, and left out the image draws as before.
+
+```xml
+<OverlayPanel>
+  <Image SourceName="cursor-body" Stretch="None" />
+  <Image SourceName="cursor-shade" Stretch="None" BlendType="Subtractive" />
+</OverlayPanel>
+```
+
+`Subtractive` ignores the alpha of the texture: every texel with a color subtracts, whatever its alpha. So an image that mixes opaque and subtractive texels is two sprites stacked as above, each with the other's texels transparent black. In `Projects/PixelUiSample`, a shade of 112 on a background of (208, 176, 128) gives (96, 64, 16) exactly, under a window scaled by 3.
+
+With a `BlendType` other than `AlphaBlend`, a `Brightness` above 1 draws as at 1.
 
 ## Pixel screens
 
@@ -186,7 +240,9 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a window placed by alignment under a design resolution;
 - a `focus_wrap` that is neither `vertical` nor `horizontal`;
 - a `cancel_command` or a `move_command` that names no entry of `ui_commands`;
-- a `cancel_command` in a project with no `UIInputMapping`.
+- a `cancel_command` in a project with no `UIInputMapping`;
+- a `fade_screen` with a field missing or malformed, a negative or endless `duration_seconds`, or a target;
+- a `wait_fade` with a target, or after anything other than `play_sound`, `fade_screen` or `wait_fade`.
 
 An unknown action type stays in the asset with its JSON, so saving an envelope keeps it.
 
@@ -201,7 +257,12 @@ A project's mapping stops the game when it loads, for one of these reasons:
 
 - Actions are edited by hand in the JSON: the editor has no panel for them.
 - A world does not open a screen when it loads. `FirstScreenName` runs once.
-- A list cannot wait, so a fade before `change_world` cannot be expressed.
+- No fade runs when a screen opens: nothing starts a command then, and a screen draws one frame before its first `Update`.
+- No action removes a fade. Its overlay outlives `change_world` and stays on the last value, so a list that fades out ends on a world that stays hidden. `Projects/PixelUiSample` goes to a black world for that reason. `layer` also stays on the service.
+- The mouse is not blocked during a wait: hover goes on, and a click can move the focus. Commands stay refused.
+- A focused control that reads keys itself, such as a text box, still sees them during a wait: only navigation stops. This comes from reading the code and has not been run.
+- During a wait, a screen pushed by code on top of the waiting one gets no navigation on a project with no mapping, until the wait ends. On a project with a mapping, it does, and the waiting screen is no longer protected by the stop.
+- A wait has not been tried with a real gamepad: a mapped project's gamepad is proved on injected states, and MGUI's own path by reading the code.
 - The focus is given once. When a screen on top closes, MGUI chooses it: in the sample it returned to the button that opened the popup.
 - A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it. It also moves the keyboard focus, and only the mouse can then reach the screen on top.
 - Closing a window with MGUI's close button does not close its screen. Set `IsCloseButtonVisible="False"` on the window: `CanCloseWindow="False"` alone leaves the button shown.

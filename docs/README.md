@@ -61,7 +61,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 ### Rendu 2D
 
-- [screen-effects.md](engine/screen-effects.md) — fondu/teinte plein écran V1 : `ScreenEffectService` (rampe sans MonoGame), `ScreenEffectComponent` (cran `RenderPass2D.ScreenEffects`, formule de placement caméra-annulée), `SpriteBlendMode.Additive`/`.Subtractive`, action de cutscene `FadeScreen`.
+- [screen-effects.md](engine/screen-effects.md) — fondu/teinte plein écran V1 : `ScreenEffectService` (rampe sans MonoGame), `ScreenEffectComponent` (cran `RenderPass2D.ScreenEffects`, formule de placement caméra-annulée), `SpriteBlendMode.Additive`/`.Subtractive`, action de cutscene `FadeScreen`, action d'écran `fade_screen`, pas exact par image.
 - [save-games.md](engine/save-games.md) — service de sauvegarde de partie au runtime (ADR-0044) : `SaveGameService` (`GameSettings.SaveGames`), objet `ISaveGameData` sérialisé par une archive symétrique, formats JSON et binaire, résultats, contrat de validation par le jeu.
 - [scrolling-layers.md](engine/scrolling-layers.md) — mécanisme des couches défilantes V1 : `ScrollingLayerService` (parallaxe/auto-défilement/cadence par tick entier, sans type GPU), `ScrollingLayerComponent` (résolution des textures, ciseaux en paramètre, soumission des quads couvrants), politique Z = 0.
 - [cellular-layers.md](engine/cellular-layers.md) — mécanisme des couches à cellules V1 (le second mode de fond d'Alundra) : `CellularLayerService` (dérive/période/parallaxe par cellule, `WaveX` sans état, cadence V-animation et `WaveTick`, sans type GPU), `CellularLayerComponent` (résolution des planches par `PalDex`, soumission cellule par cellule), mécanisme parallèle à `scrolling-layers.md` et non une extension.
@@ -79,7 +79,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.
-- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command` et `move_command` du `.uiscreen`, actions, navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080).
+- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command` et `move_command` du `.uiscreen`, actions, fondus et attente (`fade_screen`, `wait_fade`), image soustractive (`BlendType`), navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080, ADR-0081).
 - [casaengine-mgui-backend-extensibility.md](engine/casaengine-mgui-backend-extensibility.md) — backend MonoGame extensible (Apos.Shapes, NvgSharp).
 
 ## Éditeur (`editor/`)

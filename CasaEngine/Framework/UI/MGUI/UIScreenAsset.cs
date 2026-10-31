@@ -282,7 +282,7 @@ public sealed class UIScreenAsset : ObjectBase
 
             while (read < channels.Count && channels[read] is JValue { Value: >= 0L and <= 255L })
             {
-                color[read] = channels[read].Value<byte>();
+                color[read] = channels[read].GetByte();
                 read++;
             }
 
@@ -305,7 +305,7 @@ public sealed class UIScreenAsset : ObjectBase
 
         if (value.Type is JTokenType.Float or JTokenType.Integer)
         {
-            return value.Value<float>();
+            return value.GetSingle();
         }
 
         CommandFormatErrors.Add($"{location}.{key} must be a number, but is a {value.Type}.");

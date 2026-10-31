@@ -147,13 +147,14 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 - Défaut trouvé par la course, dans le sample : un bouton étroit à côté du curseur sortait de la navigation, Bas depuis `OPTIONS` allait sur `QUIT` par la géométrie, et Z quittait le jeu. Le curseur est maintenant dans le bouton, en pleine largeur.
 - À vérifier par l'auteur, 🧪 : manette réelle pendant un fondu. `Suspended_TheGamepadReachesNothing_Either` le prouve sur des états injectés, pour le chemin à mapping ; le chemin brut ne l'est que par lecture (`MGDesktop.cs:1580`). Aucun son dans ce parcours.
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Objectif : format, limites, pas exact.
-- Fichiers : `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, `docs/README.md`.
+- Fichiers : `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, `docs/README.md`, `docs/decisions/0081-screen-fades-and-waits-in-data-driven-commands.md`.
 - Étapes : actions, erreurs, limites D5 à D8.
 - Validation : relecture contre le code et T2.1.
 - Commit : `docs(ui): document screen fades in data-driven commands`
+- Validation faite le 2026-11-01 : relu contre `DataDrivenScreen`, `UINavigationInput`, `CutsceneAssetJsonSerializer`, `CutsceneActionCoroutineFactory` et les mesures de T2.1. Les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4663/4663. Hors `docs/`, seul code de ce commit : `UIScreenAsset` passe par `GetByte` et `GetSingle`, les aides JSON du fichier. La limite sur un contrôle qui lit lui-même le clavier vient de la lecture du code : elle est écrite comme telle, et ADR-0081 est corrigé, il la disait propre au chemin brut.
 
 ### ⏳ T2.3 — Clôture
 
