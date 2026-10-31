@@ -555,6 +555,59 @@ internal static class EditorAssetJsonSerializer
         {
             node.Add("design_time_data_file", uiScreenAsset.DesignTimeDataFile);
         }
+
+        if (uiScreenAsset.IsModal)
+        {
+            node.Add("is_modal", true);
+        }
+
+        if (!string.IsNullOrWhiteSpace(uiScreenAsset.DefaultFocus))
+        {
+            node.Add("default_focus", uiScreenAsset.DefaultFocus);
+        }
+
+        if (uiScreenAsset.UICommands.Count > 0)
+        {
+            var commandsNode = new JArray();
+            foreach (var command in uiScreenAsset.UICommands)
+            {
+                commandsNode.Add(SaveUIScreenCommand(command));
+            }
+
+            node.Add("ui_commands", commandsNode);
+        }
+    }
+
+    private static JObject SaveUIScreenCommand(UIScreenCommandData command)
+    {
+        var actionsNode = new JArray();
+        foreach (var action in command.Actions)
+        {
+            actionsNode.Add(SaveUIScreenAction(action));
+        }
+
+        return new JObject
+        {
+            ["name"] = command.Name,
+            ["actions"] = actionsNode,
+        };
+    }
+
+    private static JObject SaveUIScreenAction(UIScreenActionData action)
+    {
+        if (action.Type == UIScreenActionType.Unknown)
+        {
+            return action.UnknownData != null ? (JObject)action.UnknownData.DeepClone() : new JObject();
+        }
+
+        var node = new JObject { ["type"] = UIScreenActionTypeNames.ToName(action.Type) };
+
+        if (!string.IsNullOrWhiteSpace(action.Target))
+        {
+            node.Add("target", action.Target);
+        }
+
+        return node;
     }
 
     private static void SaveMaterialAsset(MaterialAsset materialAsset, JObject node)

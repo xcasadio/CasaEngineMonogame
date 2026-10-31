@@ -102,13 +102,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 
 ## Phase 1 — Format et runtime
 
-### ⏳ T1.1 — Commandes dans l'enveloppe
+### ✅ T1.1 — Commandes dans l'enveloppe
 
 - Objectif : charger et sauver les champs de P1.
 - Fichiers : `CasaEngine/Framework/UI/MGUI/UIScreenAsset.cs`, `CasaEngine/Framework/UI/MGUI/UIScreenCommandData.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/UI/UIScreenAssetSerializationTests.cs`.
 - Étapes : types et enum avec `Unknown` ; lecture optionnelle sans exception ; écriture hors défaut.
 - Validation : champs absents non réécrits ; aller-retour ; `Unknown` préservé.
 - Commit : `feat(ui): add declarative commands to the UIScreen envelope`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4392/4392, dont 20 dans `UIScreenAssetSerializationTests`. Choix de mise en œuvre : `UIScreenAsset.Load` ne lève pas sur ces champs, car `AssetLoader` avalerait l'exception ; une valeur mal formée va dans `CommandFormatErrors`, que `DataDrivenScreen` refusera en T1.2. Limite : une entrée mal formée n'est pas réécrite par une sauvegarde de l'enveloppe. Aucun chemin de l'éditeur n'écrit aujourd'hui un `.uiscreen` existant : `UIScreenEditorSession.Save` n'écrit que le XAML.
 
 ### ⏳ T1.2 — `DataDrivenScreen`
 
