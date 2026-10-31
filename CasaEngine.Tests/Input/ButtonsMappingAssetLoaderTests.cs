@@ -82,6 +82,67 @@ public class ButtonsMappingAssetLoaderTests
         }
     }
 
+    [Fact]
+    public void AMappingWithoutTheRepeatFields_LoadsNulls_AndDoesNotGainThemWhenSaved()
+    {
+        var mapping = new ButtonsMapping();
+        mapping.Load(JObject.Parse(File.ReadAllText(Path.Combine(FindRepoRoot(), "Projects", "RPGDemo", "buttonsMapping.buttonsMapping"))));
+
+        Assert.Null(mapping.RepeatInitialDelayMs);
+        Assert.Null(mapping.RepeatIntervalMs);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(mapping, out var document));
+        Assert.False(document.ContainsKey("repeat_initial_delay_ms"));
+        Assert.False(document.ContainsKey("repeat_interval_ms"));
+    }
+
+    [Fact]
+    public void TheRepeatFields_RoundTrip_EachOnItsOwn()
+    {
+        var original = WithIdentity("""{ "buttons": [], "repeat_initial_delay_ms": 333 }""");
+        var mapping = new ButtonsMapping();
+        mapping.Load(original);
+
+        Assert.Equal(333, mapping.RepeatInitialDelayMs);
+        Assert.Null(mapping.RepeatIntervalMs);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(mapping, out var document));
+        Assert.Equal(333, document["repeat_initial_delay_ms"]!.Value<int>());
+        Assert.False(document.ContainsKey("repeat_interval_ms"));
+
+        var both = new ButtonsMapping();
+        both.Load(WithIdentity("""{ "buttons": [], "repeat_initial_delay_ms": 0, "repeat_interval_ms": 66 }"""));
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(both, out var bothDocument));
+
+        var reloaded = new ButtonsMapping();
+        reloaded.Load(bothDocument);
+        Assert.Equal(0, reloaded.RepeatInitialDelayMs);
+        Assert.Equal(66, reloaded.RepeatIntervalMs);
+    }
+
+    [Theory]
+    [InlineData("""{ "buttons": [], "repeat_initial_delay_ms": "120" }""", "repeat_initial_delay_ms")]
+    [InlineData("""{ "buttons": [], "repeat_initial_delay_ms": 1.5 }""", "repeat_initial_delay_ms")]
+    [InlineData("""{ "buttons": [], "repeat_interval_ms": true }""", "repeat_interval_ms")]
+    [InlineData("""{ "buttons": [], "repeat_interval_ms": null }""", "repeat_interval_ms")]
+    public void ARepeatFieldThatIsNotAnInteger_FailsTheLoad_NamingTheField(string json, string field)
+    {
+        var mapping = new ButtonsMapping();
+
+        var error = Assert.Throws<InvalidDataException>(() => mapping.Load(WithIdentity(json)));
+
+        Assert.Contains(field, error.Message);
+    }
+
+    // ObjectBase.Load requires both keys.
+    private static JObject WithIdentity(string json)
+    {
+        var document = JObject.Parse(json);
+        document["id"] = "15eedf05-d2ad-4a26-b7f2-1f95c482fb17";
+        document["name"] = "Mapping";
+        return document;
+    }
+
     private static string CreateTempDirectory()
     {
         string directory = Path.Combine(Path.GetTempPath(), "CasaEngineMonogame", Guid.NewGuid().ToString("N"));

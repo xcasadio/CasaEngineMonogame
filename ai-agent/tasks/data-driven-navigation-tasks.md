@@ -106,13 +106,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 
 ## Phase 1 — Format et runtime
 
-### ⏳ T1.1 — Répétition dans `.buttonsMapping`
+### ✅ T1.1 — Répétition dans `.buttonsMapping`
 
 - Objectif : lire et réécrire les deux champs de D5.
 - Fichiers : `CasaEngine/Framework/Input/ButtonsMapping.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/Input/ButtonsMappingAssetLoaderTests.cs`.
 - Étapes : deux `int?` ; lecture stricte (entier JSON) ; écriture seulement si posés.
 - Validation : absent non réécrit, aller-retour, valeur non entière levée, `Projects/RPGDemo` inchangé.
 - Commit : `feat(input): add optional repeat timings to buttons mappings`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4518/4518. Le fichier de `Projects/RPGDemo` charge sans les clés et ne les gagne pas à la sauvegarde. La plage des valeurs n'est pas contrôlée ici : c'est le lecteur qui les applique (C7, T1.2).
 
 ### ⏳ T1.2 — `UINavigationInput`
 

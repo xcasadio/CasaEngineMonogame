@@ -145,6 +145,16 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("buttons", buttonsArrayNode);
+
+        if (buttonsMapping.RepeatInitialDelayMs.HasValue)
+        {
+            node.Add("repeat_initial_delay_ms", buttonsMapping.RepeatInitialDelayMs.Value);
+        }
+
+        if (buttonsMapping.RepeatIntervalMs.HasValue)
+        {
+            node.Add("repeat_interval_ms", buttonsMapping.RepeatIntervalMs.Value);
+        }
     }
 
     private static void SaveInputMapping(InputMapping inputMapping, JObject node)
