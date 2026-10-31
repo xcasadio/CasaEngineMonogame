@@ -64,7 +64,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Validation : tests du format et de l'écran, dont une attente qui coupe les commandes dès l'ouverture.
 - Commit : `feat(ui): run a command when a data-driven screen opens`.
 
-### ⏳ T1.3 — `focus_markers`
+### ✅ T1.3 — `focus_markers`
 
 - Fichiers : mêmes fichiers.
 - Validation : marqueur caché au chargement, visible avec le focus, refus des noms inconnus.

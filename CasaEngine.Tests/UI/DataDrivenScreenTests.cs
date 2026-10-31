@@ -1038,6 +1038,77 @@ public sealed class DataDrivenScreenTests : IDisposable
     private static JObject Open(params JObject[] actions)
         => new() { ["name"] = "Open", ["actions"] = new JArray(actions) };
 
+    private const string MarkerMarkup = """
+        <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+                Left="0" Top="0" Width="320" Height="200">
+          <StackPanel Orientation="Vertical" Spacing="8" Padding="16">
+            <TextBlock Name="lblFirst" Text=">" />
+            <TextBlock Name="lblSecond" Text=">" />
+            <Button Name="btnPlain" Content="Plain" />
+            <Button Name="btnPlay" CommandName="Play" Content="Play" />
+          </StackPanel>
+        </Window>
+        """;
+
+    private DataDrivenScreen BuildMarked()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), MarkerMarkup);
+
+        var asset = new UIScreenAsset { DefaultFocus = "btnPlain" };
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblFirst" });
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlay", Marker = "lblSecond" });
+        return Build(asset, CommandOf(Action("quit")));
+    }
+
+    private static Visibility VisibilityOf(MGWindow window, string name)
+    {
+        Assert.True(window.TryGetElementByName(name, out MGElement element));
+        return element.Visibility;
+    }
+
+    [Fact]
+    public void AMarker_IsHiddenAtLoad()
+    {
+        var screen = BuildMarked();
+        var window = Assert.Single(screen.GetWindows());
+
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblSecond"));
+    }
+
+    [Fact]
+    public void AMarker_FollowsTheFocus()
+    {
+        var screen = BuildMarked();
+        var window = Assert.Single(screen.GetWindows());
+        Settle(screen);
+
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblSecond"));
+
+        Assert.True(window.TryGetElementByName("btnPlay", out MGElement play));
+        play.Focus(KeyboardFocusSource.Programmatic);
+        Settle(screen);
+
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblSecond"));
+    }
+
+    [Theory]
+    [InlineData("btnMissing", "lblTitle", "element 'btnMissing'")]
+    [InlineData("btnPlain", "lblMissing", "marker 'lblMissing'")]
+    [InlineData("lblTitle", "btnPlain", "cannot take the focus")]
+    public void AFocusMarker_ThatNamesNothingUsable_IsRefused(string element, string marker, string expected)
+    {
+        var asset = new UIScreenAsset();
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = element, Marker = marker });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Build(asset, CommandOf(Action("quit"))));
+
+        Assert.Contains(_envelopePath, exception.Message);
+        Assert.Contains(expected, exception.Message);
+    }
+
     [Fact]
     public void AnOpenCommand_StartsAtLoad_BeforeAnyUpdate()
     {

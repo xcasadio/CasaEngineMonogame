@@ -597,6 +597,17 @@ internal static class EditorAssetJsonSerializer
             node.Add("on_open_command", uiScreenAsset.OnOpenCommand);
         }
 
+        if (uiScreenAsset.FocusMarkers.Count > 0)
+        {
+            var markersNode = new JArray();
+            foreach (var marker in uiScreenAsset.FocusMarkers)
+            {
+                markersNode.Add(new JObject { ["element"] = marker.Element, ["marker"] = marker.Marker });
+            }
+
+            node.Add("focus_markers", markersNode);
+        }
+
         if (uiScreenAsset.Fonts.Count > 0)
         {
             node.Add("fonts", new JArray(uiScreenAsset.Fonts));

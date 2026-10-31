@@ -452,6 +452,37 @@ public class UIScreenAssetSerializationTests
     }
 
     [Fact]
+    public void TheFocusMarkers_RoundTrip_AndAreNotWrittenWhenThereAreNone()
+    {
+        var original = WithIdentity("""{ "focus_markers": [ { "element": "btnStart", "marker": "cursorStart" } ] }""");
+
+        var loaded = new UIScreenAsset();
+        loaded.Load(original);
+        Assert.Equal("btnStart", Assert.Single(loaded.FocusMarkers).Element);
+        Assert.Equal("cursorStart", loaded.FocusMarkers[0].Marker);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.True(JToken.DeepEquals(original["focus_markers"], document["focus_markers"]));
+
+        var empty = new UIScreenAsset();
+        empty.Load(JObject.Parse(EnvelopeWithoutDesignTimeData));
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(empty, out var emptyDocument));
+        Assert.False(emptyDocument.ContainsKey("focus_markers"));
+    }
+
+    [Theory]
+    [InlineData("""{ "focus_markers": "cursor" }""", "'focus_markers'")]
+    [InlineData("""{ "focus_markers": [ "cursor" ] }""", "focus_markers[0]")]
+    [InlineData("""{ "focus_markers": [ { "element": 1, "marker": "cursor" } ] }""", "focus_markers[0].element")]
+    public void AMalformedFocusMarker_IsReported(string envelope, string expected)
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(WithIdentity(envelope));
+
+        Assert.Contains(asset.CommandFormatErrors, error => error.Contains(expected));
+    }
+
+    [Fact]
     public void AnOpenCommandThatIsNotAString_IsReported()
     {
         var asset = new UIScreenAsset();

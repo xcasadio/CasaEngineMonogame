@@ -62,6 +62,12 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     private bool _isFocusWrapPending;
 
+    // The pairs of focus_markers, resolved at load: element, then marker.
+    private readonly List<(MGElement Element, MGElement Marker)> _focusMarkers = new();
+
+    // The focus the markers last showed.
+    private MGElement _markedFocus;
+
     // Where the focus was at the last Update, whichever window held it.
     private MGElement _lastFocused;
 
@@ -125,6 +131,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         ResolveNavigationCommands();
         CollectFocusCandidates(window);
         CheckButtons(window);
+        ResolveFocusMarkers(window);
         PrepareDesignScale(window);
         _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
         StartOnOpenCommand();
@@ -144,6 +151,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         WatchFocusMove();
         ApplyDefaultFocus();
         ApplyFocusWrap();
+        ShowFocusMarkers();
 
         if (_pendingCommand != null)
         {
@@ -205,6 +213,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         _fonts.Clear();
+        _focusMarkers.Clear();
+        _markedFocus = null;
         _lastFocused = null;
         base.Dispose();
     }
@@ -494,6 +504,50 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             {
                 throw InvalidEnvelope($"A button names command '{button.CommandName}', which 'ui_commands' does not declare.");
             }
+        }
+    }
+
+    /// <summary>Every marker starts hidden: no focus has arrived yet, and Hidden keeps its place in the layout.</summary>
+    private void ResolveFocusMarkers(MGWindow window)
+    {
+        foreach (var pair in Asset.FocusMarkers)
+        {
+            if (!window.TryGetElementByName(pair.Element, out MGElement element))
+            {
+                throw InvalidEnvelope($"'focus_markers' names element '{pair.Element}', which the XAML does not declare.");
+            }
+
+            if (!element.CanHandleKeyboardInput)
+            {
+                throw InvalidEnvelope($"'focus_markers' names element '{pair.Element}', a {element.GetType().Name} that cannot take the focus.");
+            }
+
+            if (!window.TryGetElementByName(pair.Marker, out MGElement marker))
+            {
+                throw InvalidEnvelope($"'focus_markers' names marker '{pair.Marker}', which the XAML does not declare.");
+            }
+
+            marker.Visibility = Visibility.Hidden;
+            _focusMarkers.Add((element, marker));
+        }
+    }
+
+    /// <summary>Writes only when the focus changed: this runs every frame, and a marker is not expected to change otherwise.</summary>
+    private void ShowFocusMarkers()
+    {
+        var focused = Window.Desktop.FocusedKeyboardHandler;
+
+        if (focused == _markedFocus)
+        {
+            return;
+        }
+
+        _markedFocus = focused;
+
+        for (int i = 0; i < _focusMarkers.Count; i++)
+        {
+            var (element, marker) = _focusMarkers[i];
+            marker.Visibility = element == focused ? Visibility.Visible : Visibility.Hidden;
         }
     }
 

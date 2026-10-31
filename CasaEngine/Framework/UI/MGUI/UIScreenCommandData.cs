@@ -166,3 +166,11 @@ public sealed class UIScreenCommandData
 
     public List<UIScreenActionData> Actions { get; } = new();
 }
+
+/// <summary>Two XAML names: <see cref="Marker"/> is visible only while <see cref="Element"/> holds the focus (ADR-0082).</summary>
+public sealed class UIScreenFocusMarkerData
+{
+    public string Element { get; set; } = string.Empty;
+
+    public string Marker { get; set; } = string.Empty;
+}

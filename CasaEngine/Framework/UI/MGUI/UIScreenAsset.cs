@@ -64,6 +64,9 @@ public sealed class UIScreenAsset : ObjectBase
     /// </summary>
     public string OnOpenCommand { get; set; } = string.Empty;
 
+    /// <summary>The elements of a screen built from this envelope alone that show which element holds the focus (ADR-0082).</summary>
+    public List<UIScreenFocusMarkerData> FocusMarkers { get; } = new();
+
     /// <summary>
     /// What <see cref="Load"/> could not read in the fields above. It reports here instead of throwing because
     /// <c>AssetLoader</c> swallows what a load throws and returns a null asset, which would lose the cause.
@@ -119,6 +122,7 @@ public sealed class UIScreenAsset : ObjectBase
         MoveCommand = ReadOptionalString(element, "move_command", "'move_command'");
         OnOpenCommand = ReadOptionalString(element, "on_open_command", "'on_open_command'");
         LoadFocusWrap(element);
+        LoadFocusMarkers(element);
         LoadFonts(element);
 
         if (element["ui_commands"] is not { } commands)
@@ -163,6 +167,37 @@ public sealed class UIScreenAsset : ObjectBase
         {
             CommandFormatErrors.Add(
                 $"'focus_wrap' is '{name}', which is neither '{UIScreenFocusWrapNames.Vertical}' nor '{UIScreenFocusWrapNames.Horizontal}'.");
+        }
+    }
+
+    private void LoadFocusMarkers(JObject element)
+    {
+        FocusMarkers.Clear();
+
+        if (element["focus_markers"] is not { } markers)
+        {
+            return;
+        }
+
+        if (markers is not JArray markerArray)
+        {
+            CommandFormatErrors.Add($"'focus_markers' must be an array, but is a {markers.Type}.");
+            return;
+        }
+
+        for (int i = 0; i < markerArray.Count; i++)
+        {
+            if (markerArray[i] is not JObject marker)
+            {
+                CommandFormatErrors.Add($"focus_markers[{i}] must be an object, but is a {markerArray[i].Type}.");
+                continue;
+            }
+
+            FocusMarkers.Add(new UIScreenFocusMarkerData
+            {
+                Element = ReadOptionalString(marker, "element", $"focus_markers[{i}].element"),
+                Marker = ReadOptionalString(marker, "marker", $"focus_markers[{i}].marker"),
+            });
         }
     }
 
