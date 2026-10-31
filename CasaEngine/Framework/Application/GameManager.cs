@@ -1,6 +1,7 @@
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Input;
@@ -13,11 +14,16 @@ namespace CasaEngine.Framework.Application;
 
 public class GameManager
 {
+    private const string ScreenAssetType = "uiscreen";
+    private const string WorldAssetType = "world";
+    private const string SoundAssetType = "sound";
+
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
     private Scene.World.World _currentWorld;
     private string _worldToLoad;
     private bool _isNewWorld;
+    private bool _firstScreenOpened;
     private float _scaledTotalTime;
     private float _timeScale = 1f;
     private long _frameIndex;
@@ -141,6 +147,7 @@ public class GameManager
             _isNewWorld = false;
             OnWorldChange();
             WorldLoaded?.Invoke(this, EventArgs.Empty);
+            OpenFirstScreen(_game.ExecutionPolicy, GameSettings.ProjectSettings.FirstScreenName, CreateDataDrivenScreen);
         }
 
         float unscaledElapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
@@ -149,6 +156,91 @@ public class GameManager
 
         FrameTime frameTime = GameTimeHelper.CreateFrameTime(gameTime, TimeScale, _scaledTotalTime, _frameIndex);
         CurrentWorld?.Update(frameTime);
+    }
+
+    /// <summary>
+    /// Opens the project's first screen on the active view, the first time it is called with a name (ADR-0078). The
+    /// policy and the factory are parameters because <c>_game</c> is null in tests.
+    /// </summary>
+    /// <param name="policy">The running policy: under external view management the editor owns the views, so nothing opens.</param>
+    /// <param name="firstScreenName">The screen asset's id or name; empty opens nothing.</param>
+    /// <param name="createScreen">Builds the screen for a view.</param>
+    /// <exception cref="InvalidOperationException">A screen is named but no active view hosts a UI.</exception>
+    internal void OpenFirstScreen(GameplayExecutionPolicy policy, string firstScreenName, Func<string, IUIViewRuntime, IUIScreen> createScreen)
+    {
+        if (_firstScreenOpened || string.IsNullOrWhiteSpace(firstScreenName) || policy.UseExternalViewManagement)
+        {
+            return;
+        }
+
+        var view = ViewManager.GetActiveUIView()
+            ?? throw new InvalidOperationException($"First screen '{firstScreenName}' needs an active view that hosts a UI, and there is none.");
+
+        _firstScreenOpened = true;
+        PushNewScreen(view, createScreen(firstScreenName, view));
+    }
+
+    /// <summary>A screen that never reached the stack has no one to dispose it.</summary>
+    private static void PushNewScreen(IUIViewRuntime view, IUIScreen screen)
+    {
+        try
+        {
+            view.PushScreen(screen);
+        }
+        catch
+        {
+            (screen as IDisposable)?.Dispose();
+            throw;
+        }
+    }
+
+    private DataDrivenScreen CreateDataDrivenScreen(string assetIdOrName, IUIViewRuntime view)
+        => new(_game.AssetContentManager, assetIdOrName, CreateScreenActionContext(view));
+
+    private UIScreenActionContext CreateScreenActionContext(IUIViewRuntime view)
+        => new()
+        {
+            ScreenExists = IsScreenAsset,
+            WorldExists = IsWorldAsset,
+            AcquireSound = AcquireSound,
+            IsTopScreen = screen => view is UIRoot root && ReferenceEquals(root.ScreenStack.Top, screen),
+            OpenScreen = assetIdOrName => PushNewScreen(view, CreateDataDrivenScreen(assetIdOrName, view)),
+            CloseScreen = view.RemoveScreen,
+            ChangeWorld = SetWorldToLoad,
+            PlaySound = PlaySound,
+            Quit = _game.Exit,
+        };
+
+    internal static bool IsScreenAsset(string assetIdOrName) => IsCataloguedAs(FindAsset(assetIdOrName), ScreenAssetType);
+
+    internal static bool IsWorldAsset(string fileName) => IsCataloguedAs(AssetCatalog.GetByFileName(fileName), WorldAssetType);
+
+    /// <summary>
+    /// The sound the name or id designates. The type is checked here because <c>SoundAssetLoader</c> would read any
+    /// catalogued JSON as a silent sound, and leave that instance in the cache under the id of another asset.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The project has no such sound.</exception>
+    internal static AssetInfo FindSoundAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, SoundAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No sound asset '{assetIdOrName}' is registered in this project.");
+    }
+
+    private static AssetInfo FindAsset(string assetIdOrName)
+        => Guid.TryParse(assetIdOrName, out var assetId) ? AssetCatalog.Get(assetId) : AssetCatalog.Get(assetIdOrName);
+
+    private static bool IsCataloguedAs(AssetInfo assetInfo, string assetType)
+        => assetInfo != null && string.Equals(assetInfo.AssetType, assetType, StringComparison.OrdinalIgnoreCase);
+
+    private AssetHandle<SoundAsset> AcquireSound(string assetIdOrName)
+        => _game.AssetContentManager.Acquire<SoundAsset>(FindSoundAsset(assetIdOrName).Id);
+
+    private void PlaySound(SoundAsset sound)
+    {
+        _game.AudioSystemComponent?.Service?.PlaySound(sound);
     }
 
     public void SetWorldToLoad(string worldNameToLoad)

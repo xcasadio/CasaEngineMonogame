@@ -1,0 +1,17 @@
+{
+  "id": "a3f1c2d4-6b7e-4e19-8c55-0d2e7f9b1a36",
+  "name": "NextWorld",
+  "entity_references": [],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 20,
+      "g": 60,
+      "b": 40,
+      "a": 255
+    }
+  }
+}

@@ -47,6 +47,7 @@ public sealed class UIPropertyRegistry
         ["Button"] = new[]
         {
             new UIPropertyDescriptor("Content", "Content", "Button", typeof(string)),
+            new UIPropertyDescriptor("CommandName", "Command", "Button", typeof(string)),
         },
         ["TextBlock"] = new[]
         {

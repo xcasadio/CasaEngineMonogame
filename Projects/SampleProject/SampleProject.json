@@ -1,10 +1,10 @@
 {
   "WindowTitle": "Sample Project",
   "ProjectName": "SampleProject",
-  "FirstScreenName": "",
+  "FirstScreenName": "Main Menu",
   "AllowUserResizing": false,
   "IsFixedTimeStep": false,
-  "IsMouseVisible": false,
+  "IsMouseVisible": true,
   "FirstWorldLoaded": "DefaultWorld.world",
   "GameplayDllName": "",
   "ExternalToolsDirectory": "ExternalTools",

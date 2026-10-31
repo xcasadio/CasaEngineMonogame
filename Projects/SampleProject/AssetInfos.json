@@ -7,6 +7,30 @@
       "asset_type": "uiscreen"
     },
     {
+      "id": "e7b04c19-2f3a-4d68-9a71-5c8d1e6f2b07",
+      "name": "Menu Popup",
+      "file_name": "Screens\\menu-popup.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "a3f1c2d4-6b7e-4e19-8c55-0d2e7f9b1a36",
+      "name": "NextWorld",
+      "file_name": "NextWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "3f8c1b52-9a47-4c6e-a0d5-1e7b24c9f018",
+      "name": "menu_screenclick",
+      "file_name": "Audio\\menu_screenclick.wav",
+      "asset_type": "wav"
+    },
+    {
+      "id": "b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4",
+      "name": "menu_click",
+      "file_name": "Audio\\menu_click.sound",
+      "asset_type": "sound"
+    },
+    {
       "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
       "name": "DefaultWorld",
       "file_name": "DefaultWorld.world",

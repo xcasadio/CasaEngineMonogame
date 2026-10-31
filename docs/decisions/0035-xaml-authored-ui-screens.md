@@ -1,6 +1,6 @@
 # ADR-0035: UI screens are authored in XAML and loaded at runtime
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0078 (a screen with no code declares its commands in its envelope)
 - **Date**: 2026-09-20
 - **Source**: this chantier: `ai-agent/tasks/xaml-runtime-bridge-tasks.md`, branch
   `chantier/xaml-runtime-bridge`. Born of a rule the author set on 2026-09-20: everything that is UI, and

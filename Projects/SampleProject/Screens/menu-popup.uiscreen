@@ -1,0 +1,22 @@
+{
+  "id": "e7b04c19-2f3a-4d68-9a71-5c8d1e6f2b07",
+  "name": "Menu Popup",
+  "source_xaml_file": "menu-popup.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 1920,
+    "y": 1080
+  },
+  "resource_files": [],
+  "is_modal": true,
+  "default_focus": "btnBack",
+  "ui_commands": [
+    {
+      "name": "Back",
+      "actions": [
+        { "type": "play_sound", "target": "menu_click" },
+        { "type": "close_screen" }
+      ]
+    }
+  ]
+}

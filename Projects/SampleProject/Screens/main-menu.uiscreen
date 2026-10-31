@@ -7,5 +7,28 @@
     "x": 1920,
     "y": 1080
   },
-  "resource_files": []
+  "resource_files": [],
+  "default_focus": "btnPlay",
+  "ui_commands": [
+    {
+      "name": "Play",
+      "actions": [
+        { "type": "play_sound", "target": "menu_click" },
+        { "type": "change_world", "target": "NextWorld.world" }
+      ]
+    },
+    {
+      "name": "Options",
+      "actions": [
+        { "type": "play_sound", "target": "menu_click" },
+        { "type": "open_screen", "target": "Menu Popup" }
+      ]
+    },
+    {
+      "name": "Quit",
+      "actions": [
+        { "type": "quit" }
+      ]
+    }
+  ]
 }

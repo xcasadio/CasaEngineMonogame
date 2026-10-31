@@ -1,0 +1,7 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="160" Top="120" Width="320" Height="160" TitleText="Menu Popup" IsCloseButtonVisible="False" CanCloseWindow="False">
+  <StackPanel Orientation="Vertical" Spacing="8" Padding="16">
+    <TextBlock Text="A second screen, opened from data." />
+    <Button Name="btnBack" CommandName="Back" Content="Back" />
+  </StackPanel>
+</Window>
