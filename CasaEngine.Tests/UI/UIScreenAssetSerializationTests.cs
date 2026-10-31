@@ -294,6 +294,74 @@ public class UIScreenAssetSerializationTests
         Assert.Empty(asset.Fonts);
     }
 
+    [Fact]
+    public void AnEnvelopeWithoutTheNavigationFields_LoadsDefaults_AndDoesNotGainThemWhenSaved()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(JObject.Parse(EnvelopeWithoutDesignTimeData));
+
+        Assert.Equal(UIScreenFocusWrap.None, asset.FocusWrap);
+        Assert.Equal(string.Empty, asset.CancelCommand);
+        Assert.Equal(string.Empty, asset.MoveCommand);
+        Assert.Empty(asset.CommandFormatErrors);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(asset, out var document));
+        Assert.False(document.ContainsKey("focus_wrap"));
+        Assert.False(document.ContainsKey("cancel_command"));
+        Assert.False(document.ContainsKey("move_command"));
+    }
+
+    [Theory]
+    [InlineData("vertical", UIScreenFocusWrap.Vertical)]
+    [InlineData("horizontal", UIScreenFocusWrap.Horizontal)]
+    public void TheNavigationFields_RoundTrip(string name, UIScreenFocusWrap expected)
+    {
+        var original = WithIdentity(
+            $$"""{ "focus_wrap": "{{name}}", "cancel_command": "Back", "move_command": "Tick" }""");
+        var loaded = new UIScreenAsset();
+        loaded.Load(original);
+
+        Assert.Equal(expected, loaded.FocusWrap);
+        Assert.Equal("Back", loaded.CancelCommand);
+        Assert.Equal("Tick", loaded.MoveCommand);
+        Assert.Empty(loaded.CommandFormatErrors);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.True(JToken.DeepEquals(original["focus_wrap"], document["focus_wrap"]));
+        Assert.True(JToken.DeepEquals(original["cancel_command"], document["cancel_command"]));
+        Assert.True(JToken.DeepEquals(original["move_command"], document["move_command"]));
+    }
+
+    [Theory]
+    [InlineData("""{ "focus_wrap": "both" }""", "'focus_wrap'")]
+    [InlineData("""{ "focus_wrap": "Vertical" }""", "'focus_wrap'")]
+    [InlineData("""{ "focus_wrap": 1 }""", "'focus_wrap'")]
+    [InlineData("""{ "focus_wrap": null }""", "'focus_wrap'")]
+    [InlineData("""{ "cancel_command": 3 }""", "'cancel_command'")]
+    [InlineData("""{ "move_command": true }""", "'move_command'")]
+    public void AMalformedNavigationField_DoesNotThrowFromLoad_AndIsReportedWithItsPlace(string json, string location)
+    {
+        var asset = new UIScreenAsset();
+
+        asset.Load(WithIdentity(json));
+
+        Assert.Contains(asset.CommandFormatErrors, error => error.Contains(location, StringComparison.Ordinal));
+        Assert.Equal(UIScreenFocusWrap.None, asset.FocusWrap);
+    }
+
+    [Fact]
+    public void LoadingAgain_ForgetsThePreviousNavigationFields()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(WithIdentity("""{ "focus_wrap": "vertical", "cancel_command": "Back", "move_command": "Tick" }"""));
+
+        asset.Load(JObject.Parse(EnvelopeWithoutDesignTimeData));
+
+        Assert.Equal(UIScreenFocusWrap.None, asset.FocusWrap);
+        Assert.Equal(string.Empty, asset.CancelCommand);
+        Assert.Equal(string.Empty, asset.MoveCommand);
+    }
+
     private static JObject EnvelopeWith(JObject action)
     {
         var envelope = WithIdentity("{}");

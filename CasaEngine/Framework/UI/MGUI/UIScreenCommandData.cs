@@ -62,6 +62,56 @@ public static class UIScreenActionTypeNames
         };
 }
 
+/// <summary>Which way the focus of a screen wraps at its ends (ADR-0080).</summary>
+public enum UIScreenFocusWrap
+{
+    /// <summary>The focus stops at the ends.</summary>
+    None,
+
+    /// <summary>Up from the first element reaches the last, down from the last reaches the first.</summary>
+    Vertical,
+
+    /// <summary>Left from the first element reaches the last, right from the last reaches the first.</summary>
+    Horizontal,
+}
+
+/// <summary>The names of <see cref="UIScreenFocusWrap"/> in a <c>.uiscreen</c> file.</summary>
+public static class UIScreenFocusWrapNames
+{
+    public const string Vertical = "vertical";
+    public const string Horizontal = "horizontal";
+
+    /// <summary>Reads a file name. <see cref="UIScreenFocusWrap.None"/> has no name.</summary>
+    /// <returns>False when the name stands for no way of wrapping.</returns>
+    public static bool TryParse(string name, out UIScreenFocusWrap focusWrap)
+    {
+        switch (name)
+        {
+            case Vertical:
+                focusWrap = UIScreenFocusWrap.Vertical;
+                return true;
+
+            case Horizontal:
+                focusWrap = UIScreenFocusWrap.Horizontal;
+                return true;
+
+            default:
+                focusWrap = UIScreenFocusWrap.None;
+                return false;
+        }
+    }
+
+    /// <summary>The file name of <paramref name="focusWrap"/>.</summary>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="focusWrap"/> has no name of its own.</exception>
+    public static string ToName(UIScreenFocusWrap focusWrap)
+        => focusWrap switch
+        {
+            UIScreenFocusWrap.Vertical => Vertical,
+            UIScreenFocusWrap.Horizontal => Horizontal,
+            _ => throw new ArgumentOutOfRangeException(nameof(focusWrap), focusWrap, "This value has no name in a file."),
+        };
+}
+
 /// <summary>One step of a <see cref="UIScreenCommandData"/>.</summary>
 public sealed class UIScreenActionData
 {

@@ -41,6 +41,21 @@ public sealed class UIScreenAsset : ObjectBase
     /// </summary>
     public List<string> Fonts { get; } = new();
 
+    /// <summary>Which way the focus of a screen built from this envelope alone wraps at its ends (ADR-0080).</summary>
+    public UIScreenFocusWrap FocusWrap { get; set; }
+
+    /// <summary>
+    /// Name of the entry of <see cref="UICommands"/> a screen built from this envelope alone runs on a Cancel nothing
+    /// consumed (ADR-0080). Empty runs nothing.
+    /// </summary>
+    public string CancelCommand { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Name of the entry of <see cref="UICommands"/> a screen built from this envelope alone runs when the keyboard or
+    /// the gamepad moves the focus inside its window (ADR-0080). Empty runs nothing.
+    /// </summary>
+    public string MoveCommand { get; set; } = string.Empty;
+
     /// <summary>
     /// What <see cref="Load"/> could not read in the fields above. It reports here instead of throwing because
     /// <c>AssetLoader</c> swallows what a load throws and returns a null asset, which would lose the cause.
@@ -92,6 +107,9 @@ public sealed class UIScreenAsset : ObjectBase
         }
 
         DefaultFocus = ReadOptionalString(element, "default_focus", "'default_focus'");
+        CancelCommand = ReadOptionalString(element, "cancel_command", "'cancel_command'");
+        MoveCommand = ReadOptionalString(element, "move_command", "'move_command'");
+        LoadFocusWrap(element);
         LoadFonts(element);
 
         if (element["ui_commands"] is not { } commands)
@@ -115,6 +133,27 @@ public sealed class UIScreenAsset : ObjectBase
             {
                 CommandFormatErrors.Add($"ui_commands[{i}] must be an object, but is a {commandArray[i].Type}.");
             }
+        }
+    }
+
+    private void LoadFocusWrap(JObject element)
+    {
+        FocusWrap = UIScreenFocusWrap.None;
+
+        string name = ReadOptionalString(element, "focus_wrap", "'focus_wrap'");
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        if (UIScreenFocusWrapNames.TryParse(name, out var focusWrap))
+        {
+            FocusWrap = focusWrap;
+        }
+        else
+        {
+            CommandFormatErrors.Add(
+                $"'focus_wrap' is '{name}', which is neither '{UIScreenFocusWrapNames.Vertical}' nor '{UIScreenFocusWrapNames.Horizontal}'.");
         }
     }
 

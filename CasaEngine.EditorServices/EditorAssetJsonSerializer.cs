@@ -576,6 +576,21 @@ internal static class EditorAssetJsonSerializer
             node.Add("default_focus", uiScreenAsset.DefaultFocus);
         }
 
+        if (uiScreenAsset.FocusWrap != UIScreenFocusWrap.None)
+        {
+            node.Add("focus_wrap", UIScreenFocusWrapNames.ToName(uiScreenAsset.FocusWrap));
+        }
+
+        if (!string.IsNullOrWhiteSpace(uiScreenAsset.CancelCommand))
+        {
+            node.Add("cancel_command", uiScreenAsset.CancelCommand);
+        }
+
+        if (!string.IsNullOrWhiteSpace(uiScreenAsset.MoveCommand))
+        {
+            node.Add("move_command", uiScreenAsset.MoveCommand);
+        }
+
         if (uiScreenAsset.Fonts.Count > 0)
         {
             node.Add("fonts", new JArray(uiScreenAsset.Fonts));

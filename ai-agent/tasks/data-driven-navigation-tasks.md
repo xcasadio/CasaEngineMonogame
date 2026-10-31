@@ -133,13 +133,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Commit : `feat(project): load the UI input mapping a project names`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4566/4566. Testés : `ProjectSettingsUIInputMappingTests` et `FindButtonsMappingAsset`. `LoadUIInputMapping` et `UIRoot` ne sont pas testables sans device : à prouver par T2.1, aucune mapping n'étant encore nommée par un projet du dépôt.
 
-### ⏳ T1.4 — Champs de l'enveloppe
+### ✅ T1.4 — Champs de l'enveloppe
 
 - Objectif : charger et sauver les champs de D6 à D8.
 - Fichiers : `CasaEngine/Framework/UI/MGUI/UIScreenAsset.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/UI/UIScreenAssetSerializationTests.cs`.
 - Étapes : enum `UIScreenFocusWrap`, deux chaînes ; erreurs dans `CommandFormatErrors` ; écriture hors défaut.
 - Validation : absent non réécrit, aller-retour, valeur inconnue signalée.
 - Commit : `feat(ui): add navigation fields to the UIScreen envelope`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4576/4576. Limite héritée de `UIScreenAsset` : une valeur mal formée n'est pas réécrite par une sauvegarde de l'enveloppe, et `DataDrivenScreen` refuse le fichier. `focus_wrap` est sensible à la casse, comme les types d'action.
 
 ### ⏳ T1.5 — `DataDrivenScreen`
 
