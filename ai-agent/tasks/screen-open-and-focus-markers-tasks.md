@@ -58,7 +58,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Fichiers : ce plan, `ai-agent/README.md`, `docs/decisions/0082-screens-run-a-command-on-open-and-mark-the-focus.md`, `docs/decisions/README.md`.
 - Commit : `docs(decisions): record the open command and the focus markers (ADR-0082)`.
 
-### ⏳ T1.2 — `on_open_command`
+### ✅ T1.2 — `on_open_command`
 
 - Fichiers : `UIScreenAsset.cs`, `EditorAssetJsonSerializer.cs`, `DataDrivenScreen.cs`, `UIScreenAssetSerializationTests.cs`, `DataDrivenScreenTests.cs`.
 - Validation : tests du format et de l'écran, dont une attente qui coupe les commandes dès l'ouverture.

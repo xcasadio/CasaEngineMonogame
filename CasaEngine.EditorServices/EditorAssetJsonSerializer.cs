@@ -592,6 +592,11 @@ internal static class EditorAssetJsonSerializer
             node.Add("move_command", uiScreenAsset.MoveCommand);
         }
 
+        if (!string.IsNullOrWhiteSpace(uiScreenAsset.OnOpenCommand))
+        {
+            node.Add("on_open_command", uiScreenAsset.OnOpenCommand);
+        }
+
         if (uiScreenAsset.Fonts.Count > 0)
         {
             node.Add("fonts", new JArray(uiScreenAsset.Fonts));

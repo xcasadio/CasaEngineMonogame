@@ -58,6 +58,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // The entries of ui_commands the envelope names, null when it names none.
     private UIScreenCommandData _cancelCommand;
     private UIScreenCommandData _moveCommand;
+    private UIScreenCommandData _onOpenCommand;
 
     private bool _isFocusWrapPending;
 
@@ -126,6 +127,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         CheckButtons(window);
         PrepareDesignScale(window);
         _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
+        StartOnOpenCommand();
     }
 
     /// <inheritdoc/>
@@ -259,10 +261,48 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     {
         _cancelCommand = FindCommand("cancel_command", Asset.CancelCommand);
         _moveCommand = FindCommand("move_command", Asset.MoveCommand);
+        _onOpenCommand = FindCommand("on_open_command", Asset.OnOpenCommand);
 
         if (_cancelCommand != null && !_context.HasUIInputMapping)
         {
             throw InvalidEnvelope("'cancel_command' needs a project with a UIInputMapping: nothing else reports a Cancel.");
+        }
+
+        CheckOnOpenCommand();
+    }
+
+    /// <summary>
+    /// The screen is not on the stack yet when this command starts, so nothing here may change the stack or the world:
+    /// what that would do has no meaning before the screen exists for the game.
+    /// </summary>
+    private void CheckOnOpenCommand()
+    {
+        if (_onOpenCommand == null)
+        {
+            return;
+        }
+
+        foreach (var action in _onOpenCommand.Actions)
+        {
+            if (action.Type is not (UIScreenActionType.PlaySound or UIScreenActionType.FadeScreen or UIScreenActionType.WaitFade))
+            {
+                throw InvalidEnvelope(
+                    $"'on_open_command' names '{_onOpenCommand.Name}', which has a '{UIScreenActionTypeNames.ToName(action.Type)}' action: only 'play_sound', 'fade_screen' and 'wait_fade' can run when a screen opens.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Runs here and not in <see cref="Update"/>: a screen draws one frame before its first update, and that frame must
+    /// already show the fade. The caller disposes the screen if an action throws.
+    /// </summary>
+    private void StartOnOpenCommand()
+    {
+        if (_onOpenCommand != null)
+        {
+            _runningCommand = _onOpenCommand;
+            _nextActionIndex = 0;
+            RunCommand();
         }
     }
 

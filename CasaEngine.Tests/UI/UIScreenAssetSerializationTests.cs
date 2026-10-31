@@ -428,12 +428,36 @@ public class UIScreenAssetSerializationTests
         Assert.Equal(UIScreenFocusWrap.None, asset.FocusWrap);
         Assert.Equal(string.Empty, asset.CancelCommand);
         Assert.Equal(string.Empty, asset.MoveCommand);
+        Assert.Equal(string.Empty, asset.OnOpenCommand);
         Assert.Empty(asset.CommandFormatErrors);
 
         Assert.True(EditorAssetJsonSerializer.TrySerialize(asset, out var document));
         Assert.False(document.ContainsKey("focus_wrap"));
         Assert.False(document.ContainsKey("cancel_command"));
         Assert.False(document.ContainsKey("move_command"));
+        Assert.False(document.ContainsKey("on_open_command"));
+    }
+
+    [Fact]
+    public void TheOpenCommand_RoundTrips()
+    {
+        var original = WithIdentity("""{ "on_open_command": "Open" }""");
+
+        var loaded = new UIScreenAsset();
+        loaded.Load(original);
+        Assert.Equal("Open", loaded.OnOpenCommand);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(loaded, out var document));
+        Assert.True(JToken.DeepEquals(original["on_open_command"], document["on_open_command"]));
+    }
+
+    [Fact]
+    public void AnOpenCommandThatIsNotAString_IsReported()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(WithIdentity("""{ "on_open_command": 1 }"""));
+
+        Assert.Contains(asset.CommandFormatErrors, error => error.Contains("'on_open_command'"));
     }
 
     [Theory]

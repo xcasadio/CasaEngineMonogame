@@ -59,6 +59,12 @@ public sealed class UIScreenAsset : ObjectBase
     public string MoveCommand { get; set; } = string.Empty;
 
     /// <summary>
+    /// Name of the entry of <see cref="UICommands"/> a screen built from this envelope alone starts when it loads,
+    /// before its first frame (ADR-0082). Empty runs nothing.
+    /// </summary>
+    public string OnOpenCommand { get; set; } = string.Empty;
+
+    /// <summary>
     /// What <see cref="Load"/> could not read in the fields above. It reports here instead of throwing because
     /// <c>AssetLoader</c> swallows what a load throws and returns a null asset, which would lose the cause.
     /// <see cref="DataDrivenScreen"/> refuses an envelope with an entry here; other screens never read those fields.
@@ -111,6 +117,7 @@ public sealed class UIScreenAsset : ObjectBase
         DefaultFocus = ReadOptionalString(element, "default_focus", "'default_focus'");
         CancelCommand = ReadOptionalString(element, "cancel_command", "'cancel_command'");
         MoveCommand = ReadOptionalString(element, "move_command", "'move_command'");
+        OnOpenCommand = ReadOptionalString(element, "on_open_command", "'on_open_command'");
         LoadFocusWrap(element);
         LoadFonts(element);
 

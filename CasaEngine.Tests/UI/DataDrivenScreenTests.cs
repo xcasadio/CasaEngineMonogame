@@ -1035,6 +1035,82 @@ public sealed class DataDrivenScreenTests : IDisposable
 
     private const string StartedFade = "fade:AboveUI:Subtractive:0.5";
 
+    private static JObject Open(params JObject[] actions)
+        => new() { ["name"] = "Open", ["actions"] = new JArray(actions) };
+
+    [Fact]
+    public void AnOpenCommand_StartsAtLoad_BeforeAnyUpdate()
+    {
+        _isFadeRunning = true;
+
+        var screen = Build(new UIScreenAsset { OnOpenCommand = "Open" }, Open(Fade, Wait), CommandOf(Action("quit")));
+
+        Assert.Equal(new[] { StartedFade }, _calls);
+        Assert.True(screen.IsCommandSuspended);
+    }
+
+    [Fact]
+    public void WhileAnOpenCommandWaits_NoOtherCommandRuns_ThenTheScreenWorks()
+    {
+        _isFadeRunning = true;
+        var screen = Build(new UIScreenAsset { OnOpenCommand = "Open" }, Open(Fade, Wait), CommandOf(Action("quit")));
+        Settle(screen);
+        _calls.Clear();
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        Assert.Empty(_calls);
+
+        _isFadeRunning = false;
+        Step(Away, screen);
+        Assert.False(screen.IsCommandSuspended);
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+        Assert.Equal(new[] { "quit" }, _calls);
+    }
+
+    [Fact]
+    public void AnOpenCommand_WithNoWait_EndsAtLoad()
+    {
+        var screen = Build(new UIScreenAsset { OnOpenCommand = "Open" }, Open(Fade), CommandOf(Action("quit")));
+
+        Assert.Equal(new[] { StartedFade }, _calls);
+        Assert.False(screen.IsCommandSuspended);
+    }
+
+    [Fact]
+    public void NoOpenCommand_RunsNothingAtLoad()
+    {
+        var screen = Build(new UIScreenAsset(), Open(Fade), CommandOf(Action("quit")));
+
+        Settle(screen);
+
+        Assert.Empty(_calls);
+    }
+
+    [Theory]
+    [InlineData("quit", null)]
+    [InlineData("close_screen", null)]
+    [InlineData("change_world", "Level1.world")]
+    [InlineData("open_screen", "Options")]
+    public void AnOpenCommand_RefusesWhatChangesTheStackOrTheWorld(string type, string? target)
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => Build(new UIScreenAsset { OnOpenCommand = "Open" }, Open(Action(type, target))));
+
+        Assert.Contains("on_open_command", exception.Message);
+        Assert.Contains(_envelopePath, exception.Message);
+        Assert.Contains(type, exception.Message);
+    }
+
+    [Fact]
+    public void AnOpenCommand_TheEnvelopeDoesNotDeclare_IsRefused()
+    {
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => Build(new UIScreenAsset { OnOpenCommand = "Missing" }, Open(Fade)));
+
+        Assert.Contains("'on_open_command' names command 'Missing'", exception.Message);
+    }
+
     [Fact]
     public void AFade_ReachesTheGame_AndAWaitWithNoFadeRunning_DoesNotStopTheList()
     {
