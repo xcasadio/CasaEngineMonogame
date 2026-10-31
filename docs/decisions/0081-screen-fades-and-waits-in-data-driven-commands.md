@@ -49,7 +49,8 @@
   - the list resumes on the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs.
 - A step per frame is exact only when it divides 255: the service interpolates from the elapsed time and rounds, so a step that does not divide 255 gives values that are not its multiples.
 - Known limits, accepted:
-  - No fade runs when a screen opens: nothing starts a command then, and a screen draws one frame before its first `Update`.
+  - No fade runs when a screen opens. ADR-0082 lifts this limit with `on_open_command`.
+  - Without a mapping, a button held through a `change_world` counts as a new press on the next world, because that world builds a new `UIRoot` and its tracker starts from nothing. Reaching this needs a screen pushed by code.
   - No action removes the overlay. It outlives `change_world`, so a list that fades out ends on a world that stays hidden, which is why the sample goes to a black one.
   - `Layer` stays on the service once set, as it did for any caller.
   - The mouse is not blocked during a wait: hover goes on, a click can move the focus, and commands stay refused.

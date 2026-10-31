@@ -11,8 +11,19 @@
   "default_focus": "btnStart",
   "focus_wrap": "vertical",
   "move_command": "Move",
+  "on_open_command": "Open",
+  "focus_markers": [
+    { "element": "btnFade", "marker": "cursorFade" }
+  ],
   "fonts": [ "pixel-block" ],
   "ui_commands": [
+    {
+      "name": "Open",
+      "actions": [
+        { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 255, 255, 255 ], "to": [ 0, 0, 0 ], "duration_seconds": 0.75 },
+        { "type": "wait_fade" }
+      ]
+    },
     {
       "name": "Start",
       "actions": [

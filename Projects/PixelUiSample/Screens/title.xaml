@@ -11,7 +11,7 @@
     </Button>
     <Button Name="btnFade" CommandName="FadeOut">
       <StackPanel Orientation="Horizontal" Spacing="4">
-        <OverlayPanel Background="rgb(208,176,128)" VerticalAlignment="Center">
+        <OverlayPanel Name="cursorFade" Background="rgb(208,176,128)" VerticalAlignment="Center">
           <Image SourceName="cursor-body" Stretch="None" />
           <Image SourceName="cursor-shade" Stretch="None" BlendType="Subtractive" />
         </OverlayPanel>

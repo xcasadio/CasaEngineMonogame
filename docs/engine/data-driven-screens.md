@@ -16,7 +16,7 @@ The engine opens it once, after the first `WorldLoaded`, on the active view. In 
 
 ## The envelope
 
-A `.uiscreen` gains seven optional fields. A field left out keeps its default and is not written back.
+A `.uiscreen` gains nine optional fields. A field left out keeps its default and is not written back.
 
 ```json
 {
@@ -43,6 +43,8 @@ A `.uiscreen` gains seven optional fields. A field left out keeps its default an
 - `fonts`: the catalogue names or ids of the `.fnt` assets the screen holds for its lifetime. See [Pixel screens](#pixel-screens).
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
+- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait.
+- `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit anywhere in the window, such as beside its button on a `Canvas` (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
 
@@ -94,7 +96,7 @@ While a list waits:
 
 - no command runs: a second confirm, a Cancel and a focus move are dropped;
 - the keyboard and the gamepad do nothing, and the focus stays where it is, for as long as the waiting screen is at the top;
-- a key or a button held through the wait fires nothing when the wait ends, until it is released;
+- a key or a button held through the wait fires nothing when the wait ends, until it is released, with one exception listed in [Limits](#limits) for a change of world;
 - a screen that closes drops the rest of its list, a change of world from code included.
 
 The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs.
@@ -257,7 +259,8 @@ A project's mapping stops the game when it loads, for one of these reasons:
 
 - Actions are edited by hand in the JSON: the editor has no panel for them.
 - A world does not open a screen when it loads. `FirstScreenName` runs once.
-- No fade runs when a screen opens: nothing starts a command then, and a screen draws one frame before its first `Update`.
+- A marker of `focus_markers` jumps with the focus, nothing slides it, and it stays hidden until a focus arrives, a frame or two after the load.
+- Without a mapping, a button held through a `change_world` counts as a new press on the next world: the world builds a new `UIRoot`, whose input tracker starts from nothing. Reaching this needs a screen pushed by code on that world, because `FirstScreenName` runs once. A mapping ignores a held input at its creation.
 - No action removes a fade. Its overlay outlives `change_world` and stays on the last value, so a list that fades out ends on a world that stays hidden. `Projects/PixelUiSample` goes to a black world for that reason. `layer` also stays on the service.
 - The mouse is not blocked during a wait: hover goes on, and a click can move the focus. Commands stay refused.
 - A focused control that reads keys itself, such as a text box, still sees them during a wait: only navigation stops. This comes from reading the code and has not been run.

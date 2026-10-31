@@ -26,6 +26,8 @@ dotnet run --project CasaEngine.Launcher -- Projects/PixelUiSample/PixelUiSample
 - `Screens/options.uiscreen`: a modal screen with `focus_wrap` on a row and a `cancel_command`.
 - `Screens/title.xaml`: everything is in design pixels, including `Left` and `Top`. A text element names the font in its `FontFamily`, and a button holds a `TextBlock` to carry it.
 - `Screens/title.uiscreen`, command `FadeOut`: `fade_screen`, `wait_fade`, `change_world`.
+- `Screens/title.uiscreen`, field `on_open_command`: the screen fades in when it opens, and takes no key until that ends.
+- `Screens/title.uiscreen`, field `focus_markers`: the cursor shows only while `FADE OUT` holds the focus.
 - `Screens/title.xaml`, button `btnFade`: the cursor is two sprites stacked in an `OverlayPanel`, the second with `BlendType="Subtractive"`. Its shadow takes 112 from each channel of what is below it.
 - `TitleWorld.world` and `BlackWorld.world`: each declares an entity with a `Camera2dComponent`, which a fade above the UI relies on.
 - `Cursor/`: the cursor, drawn for this sample. `cursor.source.txt` is its source, and `make-cursor.ps1` writes `cursor.png` from it, the body on the left and the shade on the right. A texel of one is transparent black in the other.

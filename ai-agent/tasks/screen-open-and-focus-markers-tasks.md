@@ -72,7 +72,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 
 ## Phase 2 — Preuve
 
-### ⏳ T2.1 — Sample et documentation
+### ✅ T2.1 — Sample et documentation
 
 - Fichiers : `Projects/PixelUiSample`, `docs/engine/data-driven-screens.md`, ADR-0081 (limite levée), ce plan, `ai-agent/README.md`.
 - Validation : Launcher, captures lues.
@@ -81,3 +81,9 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 ## Points ouverts
 
 - Aucun.
+
+## Résultat
+
+- Les deux `.sln` : 0 erreur. `CasaEngine.Tests` : 4688/4688, reconstruit.
+- Launcher sur `Projects/PixelUiSample` : le curseur n'apparaît que sur `FADE OUT`, et disparaît quand le focus passe à `QUIT`. Aucune exception dans le log.
+- Limite ajoutée à ADR-0081 après vérification de `chantier/screen-fade-actions` : sans mapping, un bouton tenu à travers `change_world` compte comme un nouvel appui sur le monde suivant. Il faut un écran poussé par du code pour l'atteindre. Le comportement n'est pas corrigé.
