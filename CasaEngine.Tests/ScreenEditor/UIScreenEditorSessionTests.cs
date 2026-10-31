@@ -1,4 +1,5 @@
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
+using CasaEngine.EditorServices.ScreenEditor.Inspector;
 using CasaEngine.EditorServices.ScreenEditor.Session;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.UI.MGUI;
@@ -172,6 +173,57 @@ public class UIScreenEditorSessionTests
             Assert.Null(session.PreviewMarkup);
             Assert.False(string.IsNullOrWhiteSpace(session.LastErrorMessage));
             Assert.Same(asset, session.CurrentAsset);
+        }
+        finally
+        {
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void TheButtonInspector_OffersAnEditableCommandName()
+    {
+        var descriptor = Assert.Single(
+            UIPropertyRegistry.Default.GetDescriptors("Button"), candidate => candidate.Name == "CommandName");
+
+        Assert.True(descriptor.IsEditable);
+    }
+
+    [Fact]
+    public void OpenSaveReload_KeepsAButtonsCommandName()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string assetPath = Path.Combine(tempDirectory, "CommandScreen.uiscreen");
+        string xamlPath = Path.Combine(tempDirectory, "CommandScreen.xaml");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            File.WriteAllText(xamlPath, """
+<?xml version="1.0" encoding="utf-8"?>
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Button Name="btnPlay" CommandName="Play" Content="Play" />
+</Window>
+""");
+
+            var asset = CreateAsset("CommandScreen", "CommandScreen.uiscreen", "CommandScreen.xaml");
+            WriteAsset(assetPath, asset);
+
+            var session = new UIScreenEditorSession();
+            session.Open(asset, assetPath);
+
+            var button = Assert.Single(session.Document!.Root!.Children);
+            Assert.Equal("Play", button.Properties["CommandName"].SerializedValue);
+
+            button.SetProperty("CommandName", "Quit");
+            session.MarkDirty();
+            session.Save();
+            session.Reload();
+
+            Assert.Equal("Quit", Assert.Single(session.Document!.Root!.Children).Properties["CommandName"].SerializedValue);
+            Assert.Contains("CommandName=\"Quit\"", File.ReadAllText(xamlPath));
         }
         finally
         {

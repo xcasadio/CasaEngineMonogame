@@ -131,13 +131,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 
 ## Phase 2 — Éditeur, sample, doc
 
-### ⏳ T2.1 — `CommandName` dans l'inspecteur
+### ✅ T2.1 — `CommandName` dans l'inspecteur
 
 - Objectif : éditer le nom, prouver sa survie.
 - Fichiers : `CasaEngine.EditorServices/ScreenEditor/Inspector/UIPropertyRegistry.cs`, `CasaEngine.Tests/ScreenEditor/UIScreenEditorSessionTests.cs`.
 - Étapes : ajouter le descripteur.
 - Validation : aller-retour XAML.
 - Commit : `feat(editor): expose Button CommandName`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4439/4439. Aller-retour XAML prouvé par `UIScreenEditorSessionTests` : le nom survit à l'ouverture, à la modification, à la sauvegarde et au rechargement. La ligne de l'inspecteur n'a pas été regardée dans l'éditeur lancé.
 
 ### ⏳ T2.2 — SampleProject sans DLL
 
