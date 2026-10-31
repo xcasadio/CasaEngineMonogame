@@ -156,13 +156,14 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 - Commit : `docs(ui): document screen fades in data-driven commands`
 - Validation faite le 2026-11-01 : relu contre `DataDrivenScreen`, `UINavigationInput`, `CutsceneAssetJsonSerializer`, `CutsceneActionCoroutineFactory` et les mesures de T2.1. Les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4663/4663. Hors `docs/`, seul code de ce commit : `UIScreenAsset` passe par `GetByte` et `GetSingle`, les aides JSON du fichier. La limite sur un contrôle qui lit lui-même le clavier vient de la lecture du code : elle est écrite comme telle, et ADR-0081 est corrigé, il la disait propre au chemin brut.
 
-### ⏳ T2.3 — Clôture
+### ✅ T2.3 — Clôture
 
 - Objectif : validation globale, plan et tableau à jour.
 - Fichiers : ce plan, `ai-agent/README.md`.
 - Étapes : builds, tests, relecture du diff complet, recherche de noms interdits dans le diff.
 - Validation : tout vert. Le plan reste dans `tasks/` tant qu'un 🧪 attend l'auteur.
 - Commit : `docs(plan): close screen fade actions`
+- Validation faite le 2026-11-01 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4663/4663 ; `MGUI.Tests` 3214/3214, GPU compris, sur `7e1dd328`. Diff complet depuis `fc4359b1` relu, 37 fichiers, et diff MGUI depuis `3db3c769` : aucun nom interdit (recherche dans les diffs et les messages de commit). Pas de vérificateur neuf : aucun outil de délégation n'était disponible dans cette session. Plan laissé dans `tasks/` pour le 🧪 de T2.1. Le pointeur `MGUI` vise `chantier/image-blend-mode`, non fusionnée dans `develop` : à fusionner avant de porter cette branche sur `main`.
 
 ---
 
