@@ -91,13 +91,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `docs(adr): record data-driven UI screen commands`
 - Validation faite le 2026-10-31 : relu contre P1 à P4, O1 à O4 et le code cité. ADR-0035 et ADR-0038 : seul le statut change, index mis à jour. Format retenu pour P2 : une action porte `type` et `target`.
 
-### ⏳ T0.3 — Figer le comportement MGUI
+### ✅ T0.3 — Figer le comportement MGUI
 
 - Objectif : tester le socle de la conception.
 - Fichiers : `CasaEngine.Tests/UI/XamlCommandFocusTests.cs`.
 - Étapes : partir de la sonde hors dépôt ; commande au clic et à Entrée ; premier Entrée ; Entrée sous survol ; `Focus` avant la première mise à jour : perdu, file vidée (`MGDesktop.cs:1091,1565`) ; `Focus` après une seule mise à jour : perdu aussi, la première mise à jour de la fenêtre passe des bornes nulles à ses enfants (`MGElement.cs:3971-3995`, `MGWindow.cs:1709,1735`) ; `Focus` dès que `CanReceiveKeyboardInput()` est vrai : appliqué à la frame suivante.
 - Validation : tests verts ; comportement différent : ⚠️.
 - Commit : `test(ui): pin command and first-focus behaviour`
+- Validation faite le 2026-10-31 : 8 tests verts, écrits sur un XAML en ligne avec `CommandName`, le chemin réel d'E1, sans dépendre de `MainMenuScreen`. Les mesures de la section Vérifications tiennent. Fait précisé par le premier passage : sans focus ni survol, le premier Entrée n'est pas perdu, l'auto-focus prend le premier bouton et sa commande s'exécute (`UIFocusNavigationService.cs:298-310`) ; sous un bouton survolé, rien ne s'exécute. Mon attente initiale était fausse, pas le plan, qui ne traite que du survol. `default_focus` reste nécessaire : survol, et cible autre que le premier bouton. ADR-0078 précisé en conséquence.
 
 ## Phase 1 — Format et runtime
 
