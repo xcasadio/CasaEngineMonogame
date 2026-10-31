@@ -91,6 +91,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0075](0075-script-objects-by-full-name-from-the-gameplay-assembly.md) | Script objects are created by full name, from the gameplay assembly only | Accepted | 2026-10-17 |
 | [ADR-0076](0076-an-entity-lives-in-a-world-list-or-under-a-parent-never-both.md) | An entity lives in a world's entity list or under a parent entity, never both | Accepted | 2026-10-17 |
 | [ADR-0077](0077-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it (numbered ADR-0076 until 2026-10-17) | Accepted | 2026-10-17 |
-| [ADR-0078](0078-ui-screens-declare-commands-in-data.md) | UI screens declare their commands in data | Accepted (amended by ADR-0079, ADR-0080) | 2026-10-31 |
+| [ADR-0078](0078-ui-screens-declare-commands-in-data.md) | UI screens declare their commands in data | Accepted (amended by ADR-0079, ADR-0080, ADR-0081) | 2026-10-31 |
 | [ADR-0079](0079-data-driven-screens-follow-the-design-resolution-and-hold-their-fonts.md) | Data-driven screens follow the design resolution and hold their fonts | Accepted | 2026-10-31 |
 | [ADR-0080](0080-data-driven-navigation-through-a-ui-input-mapping.md) | Data-driven navigation through a UI input mapping | Accepted | 2026-10-31 |
+| [ADR-0081](0081-screen-fades-and-waits-in-data-driven-commands.md) | Screen fades and waits in data-driven commands | Accepted | 2026-10-31 |
