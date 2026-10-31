@@ -1,6 +1,6 @@
 # ADR-0078: UI screens declare their commands in data
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0079 (the envelope gains `fonts`; a data-driven screen follows the design resolution)
 - **Date**: 2026-10-31
 - **Source**: this chantier: `ai-agent/tasks/data-driven-screen-flow-tasks.md` (decisions D1 to D3, P1 to P4, open points O1 to O7 settled by the author on 2026-10-31), branch `chantier/data-driven-screen-flow`. Amends ADR-0035 and ADR-0038.
 
