@@ -32,6 +32,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // Held for the screen's lifetime, so that a sound plays without a load in the middle of a menu.
     private readonly Dictionary<string, AssetHandle<SoundAsset>> _sounds = new(StringComparer.Ordinal);
 
+    // Held for the screen's lifetime: the family of a font must stay known to the UI while the screen shows it.
+    private readonly List<IDisposable> _fonts = new();
+
     // What may take the focus, in order of preference. Emptied once the question is settled.
     private readonly List<MGElement> _focusCandidates = new();
     private UIScreenCommandData _pendingCommand;
@@ -64,6 +67,17 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <inheritdoc/>
     public override bool IsModal => Asset.IsModal;
+
+    /// <summary>
+    /// Holds the fonts of the envelope, then loads the window. <see cref="OnWindowLoaded"/> would be too late: a text
+    /// element resolves its family while the XAML loads, and one nobody holds falls back to the default font for good.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">A font cannot be held.</exception>
+    protected override MGWindow LoadWindow(MGDesktop desktop)
+    {
+        HoldFonts();
+        return base.LoadWindow(desktop);
+    }
 
     /// <inheritdoc/>
     /// <exception cref="InvalidOperationException">The envelope is invalid.</exception>
@@ -123,7 +137,36 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         _sounds.Clear();
+
+        for (int i = 0; i < _fonts.Count; i++)
+        {
+            _fonts[i].Dispose();
+        }
+
+        _fonts.Clear();
         base.Dispose();
+    }
+
+    private void HoldFonts()
+    {
+        for (int i = 0; i < Asset.Fonts.Count; i++)
+        {
+            string font = Asset.Fonts[i];
+
+            if (_context.AcquireFont == null)
+            {
+                throw InvalidEnvelope($"'fonts' names '{font}', but this host offers no fonts.");
+            }
+
+            try
+            {
+                _fonts.Add(_context.AcquireFont(font));
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidOperationException($"UIScreen asset '{AssetFilePath}': font '{font}' cannot be loaded.", exception);
+            }
+        }
     }
 
     private void RegisterCommands(MGWindow window)

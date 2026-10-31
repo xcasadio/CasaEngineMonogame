@@ -41,4 +41,10 @@ public sealed class UIScreenActionContext
     /// to leave the window as the XAML declares it.
     /// </summary>
     public Point? DesignResolution { get; init; }
+
+    /// <summary>
+    /// Takes a hold on the bitmap font the name or id designates, which gives its family to the UI (ADR-0079). Throws
+    /// when there is none. Left null by a host that offers no fonts: an envelope that declares one then fails at load.
+    /// </summary>
+    public Func<string, IDisposable> AcquireFont { get; init; }
 }

@@ -2,8 +2,11 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
+using FontStashSharp;
 using MGUI.Core.UI;
+using MGUI.FontStashSharp;
 using MGUI.Shared.Rendering;
+using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
@@ -37,6 +40,7 @@ public sealed class DataDrivenScreenTests : IDisposable
     private readonly AssetContentManager _assets = new();
     private readonly Dictionary<string, Guid> _soundIds = new();
     private readonly List<IDisposable> _ownHolds = new();
+    private readonly List<FontHold> _fontHolds = new();
     private readonly MGDesktop _desktop;
     private readonly HeadlessUiTestHarness.HeadlessRuntime _runtime;
     private readonly UIScreenActionContext _context;
@@ -741,6 +745,123 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.True(Assert.Single(screen.GetWindows()).HasScreenPlacement);
     }
 
+    [Fact]
+    public void TheFonts_AreHeldInOrder_AndGivenBackWhenTheScreenIsHidden()
+    {
+        var asset = new UIScreenAsset();
+        asset.Fonts.Add("first");
+        asset.Fonts.Add("second");
+
+        var screen = BuildOn(_desktop, _runtime, asset, HoldingFonts(), PlayCommand(("quit", null)));
+
+        Assert.Equal(new[] { "first", "second" }, _fontHolds.Select(hold => hold.Name));
+        Assert.All(_fontHolds, hold => Assert.False(hold.IsDisposed));
+
+        screen.Hide();
+
+        Assert.All(_fontHolds, hold => Assert.True(hold.IsDisposed));
+    }
+
+    [Fact]
+    public void AFontFamily_IsFoundByTheXaml_BecauseTheFontIsHeldBeforeItLoads()
+    {
+        const string family = "block-font";
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""<TextBlock Name="lblTitle" """, $"""<TextBlock Name="lblTitle" FontFamily="{family}" """));
+
+        var ttf = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Content", "Fonts", "ttf", "arial.ttf"));
+        var fontSystem = new FontSystem();
+        fontSystem.AddFont(ttf);
+        var engine = new FontStashSharpTextEngine();
+        engine.AddFontSystem(_runtime.DefaultFontFamily, CustomFontStyles.Normal, fontSystem);
+        _desktop.TextEngine = engine;
+        var context = ContextWith(null, _ =>
+        {
+            engine.AddStaticFont(family, CustomFontStyles.Normal, fontSystem.GetFont(8));
+            return new FontHold(family);
+        });
+
+        var asset = new UIScreenAsset();
+        asset.Fonts.Add(family);
+        var screen = BuildOn(_desktop, _runtime, asset, context, PlayCommand(("quit", null)));
+
+        Assert.True(Assert.Single(screen.GetWindows()).TryGetElementByName("lblTitle", out MGTextBlock title));
+        Assert.Equal(family, title.FontFamily);
+    }
+
+    [Fact]
+    public void AFontThatCannotBeHeld_FailsAtLoad_NamingTheEnvelopeAndTheFont_AndTheOthersAreGivenBack()
+    {
+        var context = ContextWith(null, name =>
+        {
+            if (name == "missing")
+            {
+                throw new InvalidOperationException("no such font");
+            }
+
+            var hold = new FontHold(name);
+            _fontHolds.Add(hold);
+            return hold;
+        });
+        var asset = new UIScreenAsset { SourceXamlFile = "menu.xaml" };
+        asset.Fonts.Add("first");
+        asset.Fonts.Add("missing");
+        var screen = new DataDrivenScreen(asset, _envelopePath, context);
+
+        var error = Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("'missing'", error.Message);
+        Assert.Equal("no such font", error.InnerException?.Message);
+
+        // What the caller of a screen that never reached a stack does.
+        screen.Dispose();
+        Assert.True(Assert.Single(_fontHolds).IsDisposed);
+    }
+
+    [Fact]
+    public void AFont_WithAHostThatOffersNone_FailsAtLoad()
+    {
+        var asset = new UIScreenAsset { SourceXamlFile = "menu.xaml" };
+        asset.Fonts.Add("first");
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        var error = Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("'first'", error.Message);
+    }
+
+    [Fact]
+    public void AMalformedFontList_FailsAtLoad_WithWhatLoadReported()
+    {
+        var asset = new UIScreenAsset();
+        asset.Load(JObject.Parse("""{ "id": "3f2b9e5c-9a1d-4f0b-9c3a-6d7e8f901234", "name": "n", "fonts": [ 3 ] }"""));
+        asset.SourceXamlFile = "menu.xaml";
+        asset.UICommands.Add(ToCommand(PlayCommand(("quit", null))));
+
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+        var error = Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+
+        Assert.Contains(_envelopePath, error.Message);
+        Assert.Contains("fonts[0]", error.Message);
+    }
+
+    [Fact]
+    public void TheHolds_AreGivenBack_WhenTheXamlCannotLoad()
+    {
+        File.Delete(Path.Combine(_root, "menu.xaml"));
+        var asset = new UIScreenAsset { SourceXamlFile = "menu.xaml" };
+        asset.Fonts.Add("first");
+        var screen = new DataDrivenScreen(asset, _envelopePath, HoldingFonts());
+
+        Assert.Throws<FileNotFoundException>(() => screen.BuildWindow(_desktop));
+        screen.Dispose();
+
+        Assert.True(Assert.Single(_fontHolds).IsDisposed);
+    }
+
     private sealed class EnvelopeLoader : IAssetLoader
     {
         public object LoadAsset(string fileName, AssetContentManager assetContentManager)
@@ -797,7 +918,10 @@ public sealed class DataDrivenScreenTests : IDisposable
         => BuildOn(desktop, runtime, asset, _context, commands);
 
     /// <summary>The recording context, for a project that scales its screens to 320x180.</summary>
-    private UIScreenActionContext Scaled()
+    private UIScreenActionContext Scaled() => ContextWith(new Point(320, 180), null);
+
+    /// <summary>The recording context, with the two optional members set.</summary>
+    private UIScreenActionContext ContextWith(Point? designResolution, Func<string, IDisposable>? acquireFont)
         => new()
         {
             ScreenExists = _context.ScreenExists,
@@ -809,8 +933,27 @@ public sealed class DataDrivenScreenTests : IDisposable
             ChangeWorld = _context.ChangeWorld,
             PlaySound = _context.PlaySound,
             Quit = _context.Quit,
-            DesignResolution = new Point(320, 180),
+            DesignResolution = designResolution,
+            AcquireFont = acquireFont!,
         };
+
+    /// <summary>A context that records what it holds in <see cref="_fontHolds"/>, in order.</summary>
+    private UIScreenActionContext HoldingFonts()
+        => ContextWith(null, name =>
+        {
+            var hold = new FontHold(name);
+            _fontHolds.Add(hold);
+            return hold;
+        });
+
+    private sealed class FontHold(string name) : IDisposable
+    {
+        public string Name { get; } = name;
+
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose() => IsDisposed = true;
+    }
 
     /// <summary>Replaces the attributes of the Window element in the screen's XAML.</summary>
     private void UseWindowAttributes(string attributes)

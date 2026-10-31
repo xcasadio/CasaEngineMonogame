@@ -18,6 +18,7 @@ public class GameManager
     private const string ScreenAssetType = "uiscreen";
     private const string WorldAssetType = "world";
     private const string SoundAssetType = "sound";
+    private const string FontAssetType = "fnt";
 
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
@@ -211,6 +212,7 @@ public class GameManager
             PlaySound = PlaySound,
             Quit = _game.Exit,
             DesignResolution = DesignResolutionOf(_game.ActiveVirtualResolution),
+            AcquireFont = AcquireFont,
         };
 
     /// <summary>
@@ -238,6 +240,20 @@ public class GameManager
             : throw new InvalidOperationException($"No sound asset '{assetIdOrName}' is registered in this project.");
     }
 
+    /// <summary>
+    /// The bitmap font the name or id designates. The type is checked here because <c>BitmapFontLoader</c> would read
+    /// any catalogued text file, and fail on a message that does not name what the screen asked for.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The project has no such font.</exception>
+    internal static AssetInfo FindFontAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, FontAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No bitmap font asset '{assetIdOrName}' is registered in this project.");
+    }
+
     private static AssetInfo FindAsset(string assetIdOrName)
         => Guid.TryParse(assetIdOrName, out var assetId) ? AssetCatalog.Get(assetId) : AssetCatalog.Get(assetIdOrName);
 
@@ -246,6 +262,9 @@ public class GameManager
 
     private AssetHandle<SoundAsset> AcquireSound(string assetIdOrName)
         => _game.AssetContentManager.Acquire<SoundAsset>(FindSoundAsset(assetIdOrName).Id);
+
+    private IDisposable AcquireFont(string assetIdOrName)
+        => _game.UIFonts.Acquire(FindFontAsset(assetIdOrName).Id);
 
     private void PlaySound(SoundAsset sound)
     {

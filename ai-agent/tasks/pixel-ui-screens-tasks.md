@@ -115,13 +115,14 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - Commit : `feat(ui): add the fonts field to the UIScreen envelope`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4500/4500, dont 9 cas neufs dans `UIScreenAssetSerializationTests`. Limite héritée de T1.1 d'E1 : une entrée mal formée n'est pas réécrite par une sauvegarde de l'enveloppe.
 
-### ⏳ T1.4 — Tenir les polices d'un écran
+### ✅ T1.4 — Tenir les polices d'un écran
 
 - Objectif : D6, D7.
 - Fichiers : `CasaEngine/Framework/UI/UIScreenActionContext.cs`, `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/Application/GameManager.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `CasaEngine.Tests/UI/ScreenAssetLookupTests.cs`.
 - Étapes : membre optionnel `AcquireFont` ; surcharge de `LoadWindow` ; rendu dans `Dispose` ; recherche et contrôle de type dans `GameManager`.
 - Validation : headless : prises avant le chargement du XAML, dans l'ordre ; rendues à `Hide` ; rendues si le chargement échoue ; police inconnue : chemin de l'enveloppe et nom ; `fonts` sans `AcquireFont` : erreur claire ; autre type de catalogue refusé.
 - Commit : `feat(ui): hold the bitmap fonts a data-driven screen declares`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4511/4511, dont 6 tests neufs dans `DataDrivenScreenTests` et 5 cas dans `ScreenAssetLookupTests`. Mutation constatée, avec reconstruction : acquérir après `base.LoadWindow` fait échouer `AFontFamily_IsFoundByTheXaml_BecauseTheFontIsHeldBeforeItLoads`, dont la famille reste celle par défaut, et `TheHolds_AreGivenBack_WhenTheXamlCannotLoad`. Ce test utilise le vrai `FontStashSharpTextEngine` sur une police TTF, car un `.fnt` exige un device (`BitmapFontLoaderTests.cs:11-13`) : le vrai `.fnt` est prouvé en T2.1.
 
 ## Phase 2 — Sample et documentation
 

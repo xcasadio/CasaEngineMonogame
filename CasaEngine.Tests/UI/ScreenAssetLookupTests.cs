@@ -15,6 +15,7 @@ public sealed class ScreenAssetLookupTests : IDisposable
     private static readonly Guid ScreenId = Guid.Parse("11111111-aaaa-4aaa-8aaa-111111111111");
     private static readonly Guid WorldId = Guid.Parse("22222222-aaaa-4aaa-8aaa-222222222222");
     private static readonly Guid SoundId = Guid.Parse("33333333-aaaa-4aaa-8aaa-333333333333");
+    private static readonly Guid FontId = Guid.Parse("44444444-aaaa-4aaa-8aaa-444444444444");
 
     public ScreenAssetLookupTests()
     {
@@ -22,6 +23,7 @@ public sealed class ScreenAssetLookupTests : IDisposable
         AssetCatalog.AddInternal(new AssetInfo(ScreenId) { Name = "Menu", FileName = "menu.uiscreen", AssetType = "uiscreen" });
         AssetCatalog.AddInternal(new AssetInfo(WorldId) { Name = "Level", FileName = "level.world", AssetType = "world" });
         AssetCatalog.AddInternal(new AssetInfo(SoundId) { Name = "Click", FileName = "click.sound", AssetType = "sound" });
+        AssetCatalog.AddInternal(new AssetInfo(FontId) { Name = "Block", FileName = "block.fnt", AssetType = "fnt" });
     }
 
     public void Dispose() => AssetCatalog.ClearInternal();
@@ -75,5 +77,24 @@ public sealed class ScreenAssetLookupTests : IDisposable
         var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindSoundAsset(target));
 
         Assert.Contains(target, error.Message);
+    }
+
+    [Fact]
+    public void AFont_IsFoundByNameAndById()
+    {
+        Assert.Equal(FontId, GameManager.FindFontAsset("Block").Id);
+        Assert.Equal(FontId, GameManager.FindFontAsset(FontId.ToString()).Id);
+    }
+
+    [Theory]
+    [InlineData("Nope")]
+    [InlineData("")]
+    [InlineData("Menu")]
+    [InlineData("11111111-aaaa-4aaa-8aaa-111111111111")]
+    public void AFontThatIsNotOne_IsRefused(string target)
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindFontAsset(target));
+
+        Assert.Contains($"'{target}'", error.Message);
     }
 }
