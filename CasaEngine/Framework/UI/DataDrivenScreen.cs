@@ -29,7 +29,8 @@ namespace CasaEngine.Framework.UI;
 /// consumed and a focus move can each run a command.
 /// <para/>
 /// <b>A command can wait for a screen fade</b> (ADR-0081): <see cref="Update"/> then goes on with its list on a later
-/// frame. Meanwhile no other command runs, and the keyboard and the gamepad do nothing while the focus stays.
+/// frame. Meanwhile no other command runs, and while the screen is at the top <see cref="UIRoot"/> stops the keyboard
+/// and the gamepad with the focus left in place.
 /// </summary>
 public sealed class DataDrivenScreen : XamlUIScreenBase
 {
@@ -49,9 +50,6 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // this is a list waiting for a fade.
     private UIScreenCommandData _runningCommand;
     private int _nextActionIndex;
-
-    // What UseRawNavigationInput was when a list began to wait, null when none waits.
-    private bool? _rawNavigationBeforeWait;
 
     // True only inside the call that runs actions: a Hide outside it, a wait included, disposes at once.
     private bool _isRunningCommand;
@@ -97,8 +95,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     public override bool IsModal => Asset.IsModal;
 
     /// <summary>
-    /// True while a list of actions waits for a screen fade. <see cref="UIRoot"/> reads it to stop the navigation of a
-    /// project with a mapping (ADR-0081).
+    /// True while a list of actions waits for a screen fade, frozen under a modal screen or not. See
+    /// <see cref="ScreenStack.IsNavigationSuspended"/> (ADR-0081).
     /// </summary>
     public bool IsCommandSuspended => _runningCommand != null;
 
@@ -191,7 +189,6 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     public override void Dispose()
     {
         _runningCommand = null;
-        RestoreNavigation();
 
         foreach (var sound in _sounds.Values)
         {
@@ -644,14 +641,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         {
             _isRunningCommand = false;
 
-            if (isWaiting)
-            {
-                SuspendNavigation();
-            }
-            else
+            if (!isWaiting)
             {
                 _runningCommand = null;
-                RestoreNavigation();
             }
 
             if (_wasHiddenByItsCommand)
@@ -680,29 +672,6 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Stops MGUI's own reading of the keyboard and the gamepad. On a project with a mapping that reading is already
-    /// off, and <see cref="UIRoot"/> stops <see cref="UINavigationInput"/>. Neither touches the focus, unlike
-    /// <c>IsEnabled</c> on the window, which would clear it.
-    /// </summary>
-    private void SuspendNavigation()
-    {
-        if (_rawNavigationBeforeWait == null)
-        {
-            _rawNavigationBeforeWait = Window.Desktop.UseRawNavigationInput;
-            Window.Desktop.UseRawNavigationInput = false;
-        }
-    }
-
-    private void RestoreNavigation()
-    {
-        if (_rawNavigationBeforeWait is { } rawNavigation)
-        {
-            Window.Desktop.UseRawNavigationInput = rawNavigation;
-            _rawNavigationBeforeWait = null;
-        }
     }
 
     private void Execute(UIScreenActionData action)

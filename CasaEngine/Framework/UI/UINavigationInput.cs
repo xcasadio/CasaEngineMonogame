@@ -17,8 +17,8 @@ namespace CasaEngine.Framework.UI;
 /// <b>Repeat:</b> a direction moves when it is pressed, then repeats. There is one timer for all of them, started
 /// again whenever the set of held inputs changes. Every other action fires on its edge only.
 /// <para/>
-/// <b>Why the states are injected:</b> a test cannot give a <see cref="MGUI.Shared.Input.GamePad.GamePadTracker"/> a
-/// gamepad state, and repeat has to be proved on one. See <see cref="Update(TimeSpan, Func{KeyButton, bool})"/>.
+/// <b>Why the states are injected:</b> repeat has to be proved on a gamepad, and a test has none. See
+/// <see cref="Update(TimeSpan, Func{KeyButton, bool})"/>.
 /// </summary>
 public sealed class UINavigationInput
 {

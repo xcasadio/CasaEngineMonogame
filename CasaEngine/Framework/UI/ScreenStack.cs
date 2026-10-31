@@ -28,6 +28,13 @@ public sealed class ScreenStack
     public bool HasModalInput => _screens.Exists(static s => s.BlocksViewsBelow);
 
     /// <summary>
+    /// True while the screen at the top waits for a fade, which stops the keyboard and the gamepad (ADR-0081). Only the
+    /// top counts: a waiting screen with another one above it has no say over that one's navigation. Read every frame
+    /// rather than told, so nothing has to give the navigation back when a waiting screen is frozen or goes away.
+    /// </summary>
+    public bool IsNavigationSuspended => Top is DataDrivenScreen { IsCommandSuspended: true };
+
+    /// <summary>
     /// The highest-priority screen that blocks lower-priority consumers, or null when the stack is non-modal.
     /// Mirrors the same modal rule used by <see cref="Update(GameTime)"/>.
     /// </summary>
@@ -70,6 +77,15 @@ public sealed class ScreenStack
         _screens.Add(screen);
         screen.Show();
     }
+
+    /// <summary>
+    /// Puts a screen the caller built on the stack, with its window already on a desktop. For tests: <see cref="Push"/>
+    /// needs a <see cref="UIRoot"/>, and that needs a graphics device.
+    /// </summary>
+    internal void PushBuilt(IUIScreen screen) => _screens.Add(screen);
+
+    /// <summary>Takes a screen off the stack and nothing else. The other half of <see cref="PushBuilt"/>.</summary>
+    internal void RemoveBuilt(IUIScreen screen) => _screens.Remove(screen);
 
     /// <summary>
     /// Pops the topmost screen, calls <see cref="IUIScreen.Hide"/>, and removes

@@ -93,8 +93,8 @@ Only `play_sound` and `fade_screen` can come before a `wait_fade`, along with an
 While a list waits:
 
 - no command runs: a second confirm, a Cancel and a focus move are dropped;
-- the keyboard and the gamepad do nothing, and the focus stays where it is;
-- a key held through the wait fires nothing when the wait ends, until it is released;
+- the keyboard and the gamepad do nothing, and the focus stays where it is, for as long as the waiting screen is at the top;
+- a key or a button held through the wait fires nothing when the wait ends, until it is released;
 - a screen that closes drops the rest of its list, a change of world from code included.
 
 The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs.
@@ -261,8 +261,9 @@ A project's mapping stops the game when it loads, for one of these reasons:
 - No action removes a fade. Its overlay outlives `change_world` and stays on the last value, so a list that fades out ends on a world that stays hidden. `Projects/PixelUiSample` goes to a black world for that reason. `layer` also stays on the service.
 - The mouse is not blocked during a wait: hover goes on, and a click can move the focus. Commands stay refused.
 - A focused control that reads keys itself, such as a text box, still sees them during a wait: only navigation stops. This comes from reading the code and has not been run.
-- During a wait, a screen pushed by code on top of the waiting one gets no navigation on a project with no mapping, until the wait ends. On a project with a mapping, it does, and the waiting screen is no longer protected by the stop.
-- A wait has not been tried with a real gamepad: a mapped project's gamepad is proved on injected states, and MGUI's own path by reading the code.
+- During a wait, a screen pushed by code on top of the waiting one gets the keyboard and the gamepad at once, with or without a mapping. The waiting screen is no longer protected meanwhile, and its commands stay refused.
+- A modal screen pushed that way freezes the waiting one: its list goes on only once that screen has closed, however long ago the fade ended. Pushing one needs code, so this is proved on a real `ScreenStack` in a test, not in the Launcher.
+- A wait has not been tried with a real gamepad: both paths are proved on injected states.
 - The focus is given once. When a screen on top closes, MGUI chooses it: in the sample it returned to the button that opened the popup.
 - A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it. It also moves the keyboard focus, and only the mouse can then reach the screen on top.
 - Closing a window with MGUI's close button does not close its screen. Set `IsCloseButtonVisible="False"` on the window: `CanCloseWindow="False"` alone leaves the button shown.
@@ -277,7 +278,7 @@ A project's mapping stops the game when it loads, for one of these reasons:
 - A move that comes from nothing runs no `move_command`: without `default_focus`, the first key is silent.
 - The Apps key, and gamepad buttons the mapping does not name, do nothing under a mapping. X and the shoulders are examples.
 - Under a mapping, Ctrl+Tab does not exist, and a focused control that reads a key itself sees the key as well.
-- Without a mapping, from reading the code, a held A repeats Submit, so a held button can run a command again. That is MGUI's reading, and a mapping is what changes it. It has not been run.
+- Without a mapping, a held A repeats Submit, so a held button can run a command again, except across a wait. That is MGUI's reading, and a mapping is what changes it. It is proved on injected states, not on a real gamepad.
 - The threshold of a stick direction such as `LeftThumbstickUp` comes from MonoGame's `GamePadState.IsButtonDown`, and has not been read.
 - Nothing edits a `.buttonsMapping` for now: it is written by hand.
 - A mistyped `FontFamily` falls back to the default font without a message: MGUI does not report it, and the layout moves with the wider font. Telling it apart needs a change in MGUI.

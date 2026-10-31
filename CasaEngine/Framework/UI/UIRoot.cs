@@ -151,7 +151,7 @@ public sealed class UIRoot : IUIViewRuntime
         // leaves runs on the same frame.
         if (_navigationInput != null)
         {
-            _navigationInput.IsSuspended = ScreenStack.Top is DataDrivenScreen { IsCommandSuspended: true };
+            _navigationInput.IsSuspended = ScreenStack.IsNavigationSuspended;
             _navigationInput.Update(gameTime.TotalGameTime);
         }
 
@@ -159,6 +159,10 @@ public sealed class UIRoot : IUIViewRuntime
         // window from the bounds at load time place it again.
         ScreenStack.NotifyScreenBounds(Desktop.ValidScreenBounds);
         ScreenStack.Update(gameTime);
+
+        // After the screens and between two desktop updates, as MGUI asks: the next Desktop.Update acts on what they
+        // left, a button held through the wait being forgotten before the tracker can repeat it (ADR-0081).
+        Desktop.IsNavigationInputSuspended = ScreenStack.IsNavigationSuspended;
     }
 
     /// <summary>

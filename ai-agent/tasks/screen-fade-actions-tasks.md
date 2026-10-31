@@ -56,6 +56,7 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 | C6 | `StartFade` et `IsFadeRunning` sont `required` : un hôte qui n'offre pas de fondu n'existe pas à ce jour, et un délégué nul se verrait trop tard. |
 | C7 | `UINavigationInput` continue de lire les entrées quand elle est suspendue, et traite tout ce qui est tenu comme une touche déjà tenue à sa création (C6 d'E3) : ni front ni répétition à la fin de la liste pour une touche tenue pendant l'attente. |
 | C8 | `DataDrivenScreen.IsCommandSuspended`, public, dit qu'une liste attend. `UIRoot` le lit au sommet de la pile avant `UINavigationInput.Update`. |
+| C9 | Ajouté par T3.1, remplace la partie « chemin brut » de D5, seul point de D1 → D10 revu : aucun écran ne tient l'arrêt. `ScreenStack.IsNavigationSuspended` le dit d'après le sommet de la pile, `UIRoot` le recalcule à chaque image et pose `Desktop.IsNavigationInputSuspended` (ADR-0025 de MGUI), qui laisse `UseRawNavigationInput` tranquille et oublie ce qui est tenu quand il retombe. |
 
 ## Règles d'exécution pour l'agent
 
@@ -164,6 +165,32 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 - Validation : tout vert. Le plan reste dans `tasks/` tant qu'un 🧪 attend l'auteur.
 - Commit : `docs(plan): close screen fade actions`
 - Validation faite le 2026-11-01 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4663/4663 ; `MGUI.Tests` 3214/3214, GPU compris, sur `7e1dd328`. Diff complet depuis `fc4359b1` relu, 37 fichiers, et diff MGUI depuis `3db3c769` : aucun nom interdit (recherche dans les diffs et les messages de commit). Pas de vérificateur neuf : aucun outil de délégation n'était disponible dans cette session. Plan laissé dans `tasks/` pour le 🧪 de T2.1. Le pointeur `MGUI` vise `chantier/image-blend-mode`, non fusionnée dans `develop` : à fusionner avant de porter cette branche sur `main`.
+
+## Phase 3 — Corrections après vérificateur neuf
+
+### ✅ T3.1 — L'arrêt de la navigation se déduit de la pile
+
+- Objectif : traiter les deux constats P2 du vérificateur. Chacun a été revérifié dans le code : les deux sont réels, aucun n'est faux.
+  - Constat 1 : sans mapping, une entrée manette tenue pendant une attente se déclenche quand elle finit, contrairement à la doc. `GamePadTracker.Update` répète un bouton tenu quel que soit le lecteur, `TryDispatchGamePadNavigationActions` lit `WasTriggered`, vrai sur une répétition, et A vaut Submit. Le clavier brut n'a pas ce défaut : il suit le front `Pressed`, `Repeated` est un autre événement.
+  - Constat 2 : la limite « jusqu'à la fin de l'attente » est fausse sous un modal. `ScreenStack.Update` part du sommet bloquant, l'écran gelé ne reçoit plus d'`Update`, `RestoreNavigation` n'est jamais atteint, et un joueur à la manette seule reste bloqué sur le modal.
+- Cause commune : l'écran tenait un état global du desktop à travers une transition qu'il ne peut pas toujours achever. Corriger chaque cas aurait ajouté une transition de plus : c'est la transition qui disparaît (C9).
+- Fichiers MGUI, branche `chantier/navigation-input-suspension` depuis `7e1dd328` : `MGUI.Core/UI/MGDesktop.cs`, `MGUI.Shared/Input/GamePad/GamePadTracker.cs`, `MGUI.Shared/Properties/AssemblyInfo.cs`, `MGUI.Tests/Focus/NavigationInputSuspensionTests.cs`, `MGUI.Tests/Architecture/ResolvedPilotWriteSitesTests.cs`, `Docs/decisions/0025-pause-the-raw-navigation-path.md`, `Docs/decisions/README.md`, `Docs/input-architecture.md`.
+- Fichiers moteur : pointeur `MGUI`, `CasaEngine/Framework/UI/ScreenStack.cs`, `CasaEngine/Framework/UI/UIRoot.cs`, `CasaEngine/Framework/UI/DataDrivenScreen.cs`, `CasaEngine/Framework/UI/UINavigationInput.cs`, `CasaEngine.Tests/UI/DataDrivenScreenTests.cs`, `docs/decisions/0081-screen-fades-and-waits-in-data-driven-commands.md`, `docs/engine/data-driven-screens.md`, ce plan, `ai-agent/README.md`.
+- Étapes : côté MGUI, `IsNavigationInputSuspended` et `ForgetHeldButtons`, plus `StateOverride`, interne, pour nourrir le tracker en test. Côté moteur, `IsNavigationSuspended` et une ligne en fin de `UIRoot.Update` ; `DataDrivenScreen` perd `_rawNavigationBeforeWait`, `SuspendNavigation` et `RestoreNavigation`. Les tests passent sur une vraie `ScreenStack`, qui gèle réellement l'écran, avec `PushBuilt` et `RemoveBuilt`, internes, car `Push` exige un `UIRoot`.
+- Validation : mutations, build, tests, course réelle.
+- Commit : `fix(ui): work out the navigation stop from the stack each frame`
+- Validation faite le 2026-11-01 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4668/4668 ; `MGUI.Tests` 3225/3225, GPU compris, sur `62498f75`.
+- Mutations, chacune avec un `dotnet test` simple qui reconstruit, puis retirée :
+  - `MGUI.Tests`, pas de `ForgetHeldButtons` à la levée : 2 tests échouent ; `IsNavigationInputSuspended` ignoré par le chemin brut : 5 tests échouent ;
+  - `CasaEngine.Tests`, pas de `ForgetHeldButtons` : `AButtonHeldThroughAWait_RunsNothingWhenItEnds_UntilItIsPressedAgain` et `AButtonHeldThroughAWait_DoesNotConfirmTheScreenItOpens` échouent, la liste repart seule et `quit` part sur l'écran ouvert, soit le scénario du constat 1 ;
+  - `CasaEngine.Tests`, un écran en attente compte même gelé : `AModalPushedOverAWait_HasTheKeyboardAndTheGamepad_AndTheListResumesWhenItCloses` et `TheStopComesBack_WhenAScreenOverAWaitClosesBeforeTheFadeEnds` échouent, sur l'assertion du modal.
+- Course réelle, vrai Launcher, fondu de 4 s jusqu'à 128 sur des copies du sample, pixels lus dans les captures, aucune exception dans les logs :
+  - copie sans mapping, puis `open_screen` : Entrée tenue depuis le confirmer jusqu'après l'attente, Haut, Haut pendant le fondu. Le focus reste sur `FADE OUT` (0,72,161 contre 0,48,154 aux autres), le popup s'ouvre, reste ouvert touche tenue avec son focus sur `BACK` (0,4,93 contre 0,0,86), puis Droite va sur `ONE`, puis `TWO` : le clavier est rendu ;
+  - copie sans mapping, liste qui laisse l'écran : Haut, Haut pendant le fondu sans effet, puis Haut fait passer le focus de `FADE OUT` à `OPTIONS`, et Entrée ouvre le popup ;
+  - copie à mapping, même parcours avec Z tenu : mêmes valeurs ;
+  - `Projects/PixelUiSample` tel quel : `FADE OUT` au clavier, écran noir, `BlackWorld` chargé une fois.
+- Non prouvé par une course : le modal poussé pendant une attente exige du code, donc pas de projet sans DLL. Il est prouvé sur une vraie `ScreenStack`, sans `UIRoot`. La ligne de `UIRoot` elle-même est prouvée par les courses ci-dessus, car `UIRoot` exige un device. Manette réelle : toujours à vérifier par l'auteur, voir T2.1 ; le chemin brut est désormais prouvé sur états injectés, et non plus seulement par lecture.
+- `ResolvedPilotWriteSitesTests` a échoué en cours de route, à raison : cette garde épingle les écritures par ligne, et `var MinHeight` est passé de 980 à 1001. Entrée mise à jour, avec sa raison, comme chaque décalage précédent ; la garde n'est pas assouplie. Le pointeur `MGUI` vise maintenant `chantier/navigation-input-suspension` `62498f75`, qui contient `chantier/image-blend-mode` : c'est elle qu'il faut fusionner dans `develop`.
 
 ---
 

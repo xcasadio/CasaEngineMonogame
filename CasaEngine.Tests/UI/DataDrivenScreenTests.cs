@@ -54,6 +54,10 @@ public sealed class DataDrivenScreenTests : IDisposable
     private bool _doesAFadeRun;
     private int _frame;
     private Action<IUIScreen> _onClose = static _ => { };
+    private Action<string> _onOpen = static _ => { };
+
+    // Set by the tests that need a screen frozen by a real stack: the top of the stack then answers IsTopScreen.
+    private ScreenStack? _stack;
 
     public DataDrivenScreenTests()
     {
@@ -72,8 +76,12 @@ public sealed class DataDrivenScreenTests : IDisposable
                 _soundHandles.Add(handle);
                 return handle;
             },
-            IsTopScreen = _ => _isTop,
-            OpenScreen = name => _calls.Add($"open:{name}"),
+            IsTopScreen = screen => _stack != null ? ReferenceEquals(_stack.Top, screen) : _isTop,
+            OpenScreen = name =>
+            {
+                _calls.Add($"open:{name}");
+                _onOpen(name);
+            },
             CloseScreen = screen =>
             {
                 _calls.Add("close");
@@ -1141,7 +1149,6 @@ public sealed class DataDrivenScreenTests : IDisposable
 
         Assert.False(screen.IsCommandSuspended);
         Assert.True(Assert.Single(_soundHandles).IsDisposed);
-        Assert.True(_desktop.UseRawNavigationInput);
         Assert.Equal(new[] { "sound:Confirm", StartedFade }, _calls);
     }
 
@@ -1149,41 +1156,154 @@ public sealed class DataDrivenScreenTests : IDisposable
     public void ADisposeDuringAWait_ClearsTheList_AndGivesTheKeyboardBack()
     {
         var screen = BuildFadeOut();
+        var stack = StackOf(screen);
         RunUntilSuspended(screen);
+        Assert.True(stack.IsNavigationSuspended);
 
         screen.Dispose();
 
         Assert.False(screen.IsCommandSuspended);
-        Assert.True(_desktop.UseRawNavigationInput);
+        Assert.False(stack.IsNavigationSuspended);
     }
 
     [Fact]
     public void DuringAWait_MGUIsOwnPathStops_AndTheFocusStays()
     {
         var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait));
-        Settle(screen);
+        var stack = StackOf(screen);
         var play = Button(screen, "btnPlay");
 
         _isFadeRunning = true;
-        PressEnter(Away, screen);
+        TapRoot(stack, Keys.Enter);
         Assert.True(screen.IsCommandSuspended);
-        Assert.False(_desktop.UseRawNavigationInput);
+        Assert.True(_desktop.IsNavigationInputSuspended);
 
-        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Up));
-        Step(Away, screen);
-        Step(Away, screen);
+        TapRoot(stack, Keys.Up);
 
         Assert.Same(play, _desktop.FocusedKeyboardHandler);
 
         _isFadeRunning = false;
-        Step(Away, screen);
-        Assert.True(_desktop.UseRawNavigationInput);
+        RootStep(stack);
+        Assert.False(_desktop.IsNavigationInputSuspended);
 
-        Step(Away, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Up));
-        Step(Away, screen);
-        Step(Away, screen);
+        TapRoot(stack, Keys.Up);
 
         Assert.Same(Button(screen, "btnPlain"), _desktop.FocusedKeyboardHandler);
+    }
+
+    /// <summary>The failure this guards: the tracker repeats a held button whoever reads it, and A is Submit.</summary>
+    [Fact]
+    public void AButtonHeldThroughAWait_RunsNothingWhenItEnds_UntilItIsPressedAgain()
+    {
+        var screen = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait));
+        var stack = StackOf(screen);
+        _isFadeRunning = true;
+
+        RootStep(stack, gamePad: HoldingA);
+        Assert.True(screen.IsCommandSuspended);
+
+        RootSteps(stack, FramesPastARepeat, HoldingA);
+        _isFadeRunning = false;
+        RootSteps(stack, FramesPastARepeat, HoldingA);
+
+        Assert.False(screen.IsCommandSuspended);
+        Assert.Equal(new[] { StartedFade }, _calls);
+
+        RootStep(stack);
+        RootStep(stack, gamePad: HoldingA);
+        RootStep(stack);
+
+        Assert.Equal(new[] { StartedFade, StartedFade }, _calls);
+    }
+
+    [Fact]
+    public void AButtonHeldThroughAWait_DoesNotConfirmTheScreenItOpens()
+    {
+        var title = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait, Action("open_screen", "Options")));
+        var stack = StackOf(title);
+        _onOpen = _ => stack.PushBuilt(Build(new UIScreenAsset { IsModal = true, DefaultFocus = "btnPlay" }, PlayCommand(("quit", null))));
+        _isFadeRunning = true;
+
+        RootStep(stack, gamePad: HoldingA);
+        RootSteps(stack, FramesPastARepeat, HoldingA);
+        _isFadeRunning = false;
+        RootSteps(stack, FramesPastARepeat, HoldingA);
+
+        Assert.Equal(new[] { StartedFade, "open:Options" }, _calls);
+
+        RootStep(stack);
+        RootStep(stack, gamePad: HoldingA);
+        RootStep(stack);
+
+        Assert.Equal(new[] { StartedFade, "open:Options", "quit" }, _calls);
+    }
+
+    /// <summary>A frozen screen runs nothing, so nothing it would do at the end of its wait can give the input back.</summary>
+    [Fact]
+    public void AModalPushedOverAWait_HasTheKeyboardAndTheGamepad_AndTheListResumesWhenItCloses()
+    {
+        var title = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait, Action("quit")));
+        var stack = StackOf(title);
+        _isFadeRunning = true;
+        TapRoot(stack, Keys.Enter);
+        Assert.True(_desktop.IsNavigationInputSuspended);
+
+        var modal = Build(new UIScreenAsset { IsModal = true, DefaultFocus = "btnPlay" }, PlayCommand(("play_sound", "Confirm")));
+        stack.PushBuilt(modal);
+        RootSteps(stack, 4);
+        Assert.False(_desktop.IsNavigationInputSuspended);
+
+        TapRoot(stack, Keys.Enter);
+        Assert.Equal(new[] { StartedFade, "sound:Confirm" }, _calls);
+
+        _isFadeRunning = false;
+        RootSteps(stack, FramesPastARepeat);
+        Assert.True(title.IsCommandSuspended);
+        Assert.False(_desktop.IsNavigationInputSuspended);
+
+        RootStep(stack, gamePad: HoldingA);
+        RootStep(stack);
+        Assert.Equal(new[] { StartedFade, "sound:Confirm", "sound:Confirm" }, _calls);
+
+        CloseOn(stack, modal);
+        RootStep(stack);
+
+        Assert.False(title.IsCommandSuspended);
+        Assert.Equal(new[] { StartedFade, "sound:Confirm", "sound:Confirm", "quit" }, _calls);
+    }
+
+    [Fact]
+    public void TheStopComesBack_WhenAScreenOverAWaitClosesBeforeTheFadeEnds()
+    {
+        var title = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, CommandOf(Fade, Wait));
+        var stack = StackOf(title);
+        _isFadeRunning = true;
+        TapRoot(stack, Keys.Enter);
+
+        var modal = Build(new UIScreenAsset { IsModal = true }, PlayCommand(("quit", null)));
+        stack.PushBuilt(modal);
+        RootStep(stack);
+        Assert.False(_desktop.IsNavigationInputSuspended);
+
+        CloseOn(stack, modal);
+        RootStep(stack);
+
+        Assert.True(_desktop.IsNavigationInputSuspended);
+    }
+
+    [Fact]
+    public void AWaitingScreenThatLeavesTheStack_LeavesTheNavigationFree()
+    {
+        var screen = Build(new UIScreenAsset(), CommandOf(Fade, Wait));
+        var stack = StackOf(screen);
+        RunUntilSuspended(screen);
+        RootStep(stack);
+        Assert.True(_desktop.IsNavigationInputSuspended);
+
+        CloseOn(stack, screen);
+        RootStep(stack);
+
+        Assert.False(_desktop.IsNavigationInputSuspended);
     }
 
     [Fact]
@@ -1247,14 +1367,14 @@ public sealed class DataDrivenScreenTests : IDisposable
             IsFadeRunning = _context.IsFadeRunning,
         };
         var screen = BuildOn(_desktop, _runtime, new UIScreenAsset(), failing, CommandOf(Fade, Wait, Action("quit")));
-        Settle(screen);
+        var stack = StackOf(screen);
         RunUntilSuspended(screen);
 
         _isFadeRunning = false;
         Assert.Throws<InvalidOperationException>(() => Step(Away, screen));
 
         Assert.False(screen.IsCommandSuspended);
-        Assert.True(_desktop.UseRawNavigationInput);
+        Assert.False(stack.IsNavigationSuspended);
         Step(Away, screen);
     }
 
@@ -1801,6 +1921,55 @@ public sealed class DataDrivenScreenTests : IDisposable
         Step(mouse, screen, desktop, runtime, ButtonState.Released, new KeyboardState(Keys.Enter));
         Step(mouse, screen, desktop, runtime);
         Step(mouse, screen, desktop, runtime);
+    }
+
+    private const int FramesPastARepeat = 40; // At 16 ms a frame: a held button repeats after 350 ms, then every 120.
+
+    private static readonly GamePadState NoButton = new(Vector2.Zero, Vector2.Zero, 0f, 0f, Array.Empty<Buttons>());
+    private static readonly GamePadState HoldingA = new(Vector2.Zero, Vector2.Zero, 0f, 0f, Buttons.A);
+
+    /// <summary>Puts a settled screen on a stack of its own: from here on the stack says who is at the top.</summary>
+    private ScreenStack StackOf(DataDrivenScreen screen)
+    {
+        Settle(screen);
+        _stack = new ScreenStack(null);
+        _stack.PushBuilt(screen);
+        return _stack;
+    }
+
+    /// <summary>What <see cref="ScreenStack.Remove"/> does, with no <see cref="UIRoot"/>.</summary>
+    private void CloseOn(ScreenStack stack, DataDrivenScreen screen)
+    {
+        stack.RemoveBuilt(screen);
+        screen.Hide();
+        _activeDesktop!.Windows.Remove(Assert.Single(screen.GetWindows()));
+    }
+
+    /// <summary>One frame of a project with no mapping, in the order of <see cref="UIRoot.Update"/>.</summary>
+    private void RootStep(ScreenStack stack, KeyboardState keyboard = default, GamePadState? gamePad = null)
+    {
+        var desktop = _activeDesktop!;
+        var runtime = _activeRuntime!;
+        _frame++;
+        runtime.Input.GamePad.StateOverride = gamePad ?? NoButton;
+        runtime.ApplyFrame(Frame(Away, ButtonState.Released, keyboard));
+        desktop.Update();
+        stack.Update(new GameTime());
+        desktop.IsNavigationInputSuspended = stack.IsNavigationSuspended;
+    }
+
+    private void RootSteps(ScreenStack stack, int count, GamePadState? gamePad = null)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            RootStep(stack, gamePad: gamePad);
+        }
+    }
+
+    private void TapRoot(ScreenStack stack, Keys key)
+    {
+        RootStep(stack, new KeyboardState(key));
+        RootStep(stack);
     }
 
     private void Step(Point mouse, DataDrivenScreen screen) => Step(mouse, screen, _activeDesktop!, _activeRuntime!);
