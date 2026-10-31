@@ -38,7 +38,7 @@ A `.uiscreen` gains three optional fields. A field left out keeps its default an
 ```
 
 - `is_modal`: the screen blocks the screens below it. They stay drawn and receive no `Update`. A click on a data-driven screen below is dropped; a screen with its own class still handles its clicks.
-- `default_focus`: the name of the XAML element that takes the keyboard focus. Left out, the first button takes it.
+- `default_focus`: the name of the XAML element that takes the keyboard focus. Left out, MGUI decides, except when another screen holds the focus: the first button able to take it does. A screen shown over the game therefore leaves the keyboard to the player.
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
@@ -82,5 +82,6 @@ An unknown action type stays in the asset with its JSON, so saving an envelope k
 - The focus is given once. When a screen on top closes, MGUI chooses it: in the sample it returned to the button that opened the popup.
 - A click on a screen under another one is dropped, even when that screen is not modal. It still raises the window, which can hide a non-modal screen above it. It also moves the keyboard focus, and only the mouse can then reach the screen on top.
 - Closing a window with MGUI's close button does not close its screen. Set `IsCloseButtonVisible="False"` on the window: `CanCloseWindow="False"` alone leaves the button shown.
+- A window's exit effect does not show: the window is removed at once.
 - A keyboard press is ignored while the game window is inactive.
 - Gamepad input has not been tested.

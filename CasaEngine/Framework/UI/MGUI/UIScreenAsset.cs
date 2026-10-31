@@ -28,7 +28,7 @@ public sealed class UIScreenAsset : ObjectBase
 
     /// <summary>
     /// Name of the XAML element a screen built from this envelope alone gives the keyboard focus to (ADR-0078).
-    /// Empty gives it to the first button.
+    /// Empty leaves the focus to MGUI, except that the first usable button takes it from another screen holding it.
     /// </summary>
     public string DefaultFocus { get; set; } = string.Empty;
 

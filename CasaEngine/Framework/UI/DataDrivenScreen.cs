@@ -28,8 +28,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     // Held for the screen's lifetime, so that a sound plays without a load in the middle of a menu.
     private readonly Dictionary<string, AssetHandle<SoundAsset>> _sounds = new(StringComparer.Ordinal);
 
-    // Null once the focus has been given, or when the screen has nothing to give it to.
-    private MGElement _pendingFocus;
+    // What may take the focus, in order of preference. Emptied once the question is settled.
+    private readonly List<MGElement> _focusCandidates = new();
     private UIScreenCommandData _pendingCommand;
     private bool _isRunningCommand;
     private bool _wasHiddenByItsCommand;
@@ -68,7 +68,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
 
         RegisterCommands(window);
-        _pendingFocus = ResolveDefaultFocus(window);
+        CollectFocusCandidates(window);
         CheckButtons(window);
     }
 
@@ -212,11 +212,17 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
     }
 
-    private MGElement ResolveDefaultFocus(MGWindow window)
+    /// <summary>
+    /// Without <c>default_focus</c> the candidates are the buttons, in order: which of them can take the focus is only
+    /// known once the layout has run. Components are skipped because the window's close button is one.
+    /// </summary>
+    private void CollectFocusCandidates(MGWindow window)
     {
         if (string.IsNullOrWhiteSpace(Asset.DefaultFocus))
         {
-            return FirstFocusableButton(window);
+            _focusCandidates.AddRange(window.TraverseVisualTree<MGButton>(
+                includeComponents: false, includeToolTips: false, includeContextMenus: false));
+            return;
         }
 
         if (!window.TryGetElementByName(Asset.DefaultFocus, out MGElement element))
@@ -229,25 +235,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             throw InvalidEnvelope($"'default_focus' names '{Asset.DefaultFocus}', a {element.GetType().Name} that cannot take the focus.");
         }
 
-        return element;
-    }
-
-    /// <summary>
-    /// MGUI gives a screen no focus of its own while a screen below holds it, and keyboard navigation stays inside the
-    /// focused window: without a focus here, a screen opened from the keyboard could only be reached with the mouse.
-    /// Components are skipped because the window's close button is one.
-    /// </summary>
-    private static MGElement FirstFocusableButton(MGWindow window)
-    {
-        foreach (var button in window.TraverseVisualTree<MGButton>(includeComponents: false))
-        {
-            if (button.CanHandleKeyboardInput)
-            {
-                return button;
-            }
-        }
-
-        return null;
+        _focusCandidates.Add(element);
     }
 
     /// <summary>
@@ -268,14 +256,19 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <summary>
     /// <see cref="ScreenStack"/> takes the window off the desktop without telling MGUI it closed, so the focus would
     /// stay on an element nothing updates, which leaves the keyboard dead for the screen below, and the desktop's focus
-    /// history would keep the window alive. Closing it through MGUI does both. <c>CanCloseWindow</c> only speaks for
+    /// history would keep the window alive. Closing it through MGUI settles both. <c>CanCloseWindow</c> only speaks for
     /// the user's close button, not for the screen.
+    /// <para/>
+    /// A window with an exit effect, its own or its theme's, gives the focus away while it is still on the desktop, to
+    /// the top window: going to the back keeps that from being itself. The effect does not show, since
+    /// <see cref="ScreenStack"/> removes the window right after this.
     /// </summary>
     private void CloseWindow()
     {
         if (Window != null)
         {
             Window.CanCloseWindow = true;
+            Window.Desktop.BringToBack(Window);
             Window.TryCloseWindow();
         }
     }
@@ -294,16 +287,35 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <summary>
     /// Asking for the focus before the target can receive keyboard input loses the request, and the frame that
-    /// becomes true is not known in advance (<c>XamlCommandFocusTests</c>), hence the polling. It stops after one call.
+    /// becomes true is not known in advance (<c>XamlCommandFocusTests</c>), hence the polling. It stops at the first
+    /// candidate able to take the focus.
     /// </summary>
     private void ApplyDefaultFocus()
     {
-        if (_pendingFocus != null && ((IKeyboardHandlerHost)_pendingFocus).CanReceiveKeyboardInput())
+        for (int i = 0; i < _focusCandidates.Count; i++)
         {
-            _pendingFocus.Focus(KeyboardFocusSource.Programmatic);
-            _pendingFocus = null;
+            var candidate = _focusCandidates[i];
+            if (((IKeyboardHandlerHost)candidate).CanReceiveKeyboardInput())
+            {
+                if (!string.IsNullOrWhiteSpace(Asset.DefaultFocus) || IsFocusHeldByAnotherWindow())
+                {
+                    candidate.Focus(KeyboardFocusSource.Programmatic);
+                }
+
+                _focusCandidates.Clear();
+                return;
+            }
         }
     }
+
+    /// <summary>
+    /// A screen that names no focus only takes it from another screen: MGUI gives none to a window opened while another
+    /// one holds it, keyboard navigation stays inside the focused window, and a command below the top is dropped, so
+    /// this screen could only be reached with the mouse. Otherwise the focus is left to MGUI, so that a screen shown
+    /// over the game does not take the keyboard from the player.
+    /// </summary>
+    private bool IsFocusHeldByAnotherWindow()
+        => Window.Desktop.FocusedKeyboardHandler is { } focused && focused.SelfOrParentWindow != Window;
 
     /// <summary>
     /// A screen frozen under a modal one receives no <see cref="Update"/>: a click kept for it would run when the

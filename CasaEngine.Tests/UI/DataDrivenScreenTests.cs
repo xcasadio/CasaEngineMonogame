@@ -438,6 +438,59 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Same(Button(above, "btnPlain"), _desktop.FocusedKeyboardHandler);
     }
 
+    [Theory]
+    [InlineData("IsEnabled=\"False\"")]
+    [InlineData("Visibility=\"Collapsed\"")]
+    public void AScreenWithoutADefaultFocus_SkipsAButtonThatCannotTakeIt(string attribute)
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        Settle(below);
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""<Button Name="btnPlain" """, $"""<Button Name="btnPlain" {attribute} """));
+
+        var above = Build(new UIScreenAsset(), PlayCommand(("open_screen", "Options")));
+        Settle(above);
+
+        Assert.Same(Button(above, "btnPlay"), _desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
+    public void AScreenWithoutADefaultFocus_TakesNothing_WhenNoOtherScreenHoldsTheFocus()
+    {
+        var screen = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+
+        Settle(screen);
+
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
+    public void AScreenWithAnExitEffect_DoesNotKeepTheFocusWhenItCloses()
+    {
+        var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        Settle(below);
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            Markup.Replace("""Left="0" Top="0" """, """Left="0" Top="0" ExitEffect="Fade" """));
+        var closing = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("close_screen", null)));
+        Settle(closing);
+        var closingWindow = Assert.Single(closing.GetWindows());
+        _onClose = closed =>
+        {
+            closed.Hide();
+            _desktop.Windows.Remove(closingWindow);
+        };
+
+        // Enter leaves the desktop in navigation mode, the only mode where MGUI picks a new focus on a close.
+        PressEnter(Away, closing);
+        Step(Away, below);
+        Step(Away, below);
+
+        Assert.Equal(new[] { "close" }, _calls);
+        Assert.Same(Assert.Single(below.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+    }
+
     [Fact]
     public void AScreenWithNoButton_LeavesTheFocusAlone()
     {
