@@ -99,13 +99,14 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
 - Commit : `docs(adr): record screen fades and waits in data-driven commands`
 - Validation faite le 2026-10-31 : relu contre D1 à D10 et le code cité. Aucun code touché. Le pointeur `MGUI`, déjà déplacé dans l'arbre, n'entre pas dans ce commit : il va avec T0.2.
 
-### ⏳ T0.2 — Pointeur MGUI et table de blend
+### ✅ T0.2 — Pointeur MGUI et table de blend
 
 - Objectif : l'image soustractive marche sur le backend du moteur.
 - Fichiers : `MGUI` (pointeur), `CasaEngine/Framework/UI/Backend/MonoGame/CasaMonoGameRenderInterop.cs`, `CasaEngine.Tests/UI/CasaMonoGameRenderInteropTests.cs`.
 - Étapes : pointeur sur `7e1dd328` ; entrée `Subtractive` ; test des facteurs.
 - Validation : les deux `.sln`, tests.
 - Commit : `feat(ui): pick up the image blend mode of MGUI`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4601/4601, dont `CasaMonoGameRenderInteropTests` 2/2, qui couvre toutes les valeurs de `BlendType`.
 
 ## Phase 1 — Actions
 
