@@ -82,13 +82,14 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `docs(plan): record zero-DLL baseline`
 - Validation faite le 2026-10-31 à `92d8e847` : `dotnet build CasaEngine.Launcher/CasaEngine.Launcher.csproj` 0 erreur (110 avertissements). `CasaEngine.Launcher.exe Projects/SampleProject/SampleProject.json` tourne encore après 15 s, fenêtre « Sample Project » 1024x768 (`GameplayDllName` vide). Le log charge `DefaultWorld.world` et ses entités (dont `camera`, `light1`, `light2`), aucune exception ni erreur sur 28 lignes. Capture : scène dessinée, fond CornflowerBlue dans le bas de l'image. La scène n'a pas été comparée à une référence.
 
-### ⏳ T0.2 — ADR-0078
+### ✅ T0.2 — ADR-0078
 
 - Objectif : enregistrer format, actions et sens de `FirstScreenName`.
 - Fichiers : `docs/decisions/0078-ui-screens-declare-commands-in-data.md`, `docs/decisions/0035-xaml-authored-ui-screens.md`, `docs/decisions/0038-game-screens-are-assets-bound-to-view-models.md`, `docs/decisions/README.md`.
 - Étapes : ADR-0078 amende ADR-0035 (abonnements) et ADR-0038 (view model) : statut des deux fichiers en `Accepted. Amended by ADR-0078 (...)`, corps inchangé, ligne d'index mise à jour ; poser que la donnée remplace la politique de la DLL ; justifier l'écart avec ADR-0042.
 - Validation : relecture.
 - Commit : `docs(adr): record data-driven UI screen commands`
+- Validation faite le 2026-10-31 : relu contre P1 à P4, O1 à O4 et le code cité. ADR-0035 et ADR-0038 : seul le statut change, index mis à jour. Format retenu pour P2 : une action porte `type` et `target`.
 
 ### ⏳ T0.3 — Figer le comportement MGUI
 

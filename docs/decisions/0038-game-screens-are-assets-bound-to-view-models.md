@@ -1,6 +1,6 @@
 # ADR-0038: Game screens are catalogued assets bound to observable view models
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0078 (a screen with no code has no view model)
 - **Date**: 2026-09-24
 - **Source**: this chantier: `ai-agent/tasks/bound-screens-tasks.md`, branch `chantier/bound-screens`. Decided with
   the author from 2026-09-22 to 2026-09-24, after the Alundra port found that its screens could not be opened

@@ -48,10 +48,10 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0032](0032-language-policy-and-adr-practice.md) | Language policy and ADR practice | Accepted | 2026-09-06 |
 | [ADR-0033](0033-screen-effect-above-ui-layer.md) | Screen effect above-UI layer | Accepted | 2026-09-19 |
 | [ADR-0034](0034-screen-effect-alpha-and-depthless-veil.md) | Screen effect alpha channel and a veil that ignores depth | Accepted | 2026-09-20 |
-| [ADR-0035](0035-xaml-authored-ui-screens.md) | UI screens are authored in XAML and loaded at runtime | Accepted | 2026-09-20 |
+| [ADR-0035](0035-xaml-authored-ui-screens.md) | UI screens are authored in XAML and loaded at runtime | Accepted (amended by ADR-0078) | 2026-09-20 |
 | [ADR-0036](0036-reference-counted-asset-handles-and-bitmap-fonts.md) | Reference-counted asset handles with deferred release, and bitmap fonts as assets | Accepted (compatibility clause superseded by ADR-0037) | 2026-09-21 |
 | [ADR-0037](0037-counted-handles-replace-load-and-categories.md) | Counted handles replace Load and asset categories | Accepted | 2026-09-21 |
-| [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted | 2026-09-24 |
+| [ADR-0038](0038-game-screens-are-assets-bound-to-view-models.md) | Game screens are catalogued assets bound to observable view models | Accepted (amended by ADR-0078) | 2026-09-24 |
 | [ADR-0039](0039-software-stereo-voices.md) | Software stereo voices with exact left/right gains | Accepted (game-thread path superseded in part by ADR-0056 under the software backend) | 2026-09-25 |
 | [ADR-0040](0040-project-audio-mute-setting.md) | The audio mute is a project setting | Accepted | 2026-09-25 |
 | [ADR-0041](0041-editor-message-boxes-are-mgui.md) | Editor message boxes are MGUI message boxes, answered asynchronously | Accepted | 2026-09-25 |
@@ -91,3 +91,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0075](0075-script-objects-by-full-name-from-the-gameplay-assembly.md) | Script objects are created by full name, from the gameplay assembly only | Accepted | 2026-10-17 |
 | [ADR-0076](0076-an-entity-lives-in-a-world-list-or-under-a-parent-never-both.md) | An entity lives in a world's entity list or under a parent entity, never both | Accepted | 2026-10-17 |
 | [ADR-0077](0077-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it (numbered ADR-0076 until 2026-10-17) | Accepted | 2026-10-17 |
+| [ADR-0078](0078-ui-screens-declare-commands-in-data.md) | UI screens declare their commands in data | Accepted | 2026-10-31 |
