@@ -140,7 +140,7 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
 - Commit : `feat(editor): expose Button CommandName`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4439/4439. Aller-retour XAML prouvé par `UIScreenEditorSessionTests` : le nom survit à l'ouverture, à la modification, à la sauvegarde et au rechargement. La ligne de l'inspecteur n'a pas été regardée dans l'éditeur lancé.
 
-### 🧪 T2.2 — SampleProject sans DLL
+### ✅ T2.2 — SampleProject sans DLL
 
 - Objectif : sample obligatoire.
 - Fichiers : `Projects/SampleProject/` : `main-menu.*`, écran secondaire, monde vide, son copié de `CasaEngine.Demos/Content/Audio`, `AssetInfos.json`, `SampleProject.json`.
@@ -158,7 +158,7 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
   - Après la fermeture d'un écran, le focus restait sur son élément retiré, ce qui coupait tout le clavier. `Hide` ferme maintenant la fenêtre par MGUI. La cause est plus large : `ScreenStack` retire une fenêtre sans prévenir MGUI, donc les autres écrans y restent exposés (hors périmètre).
   - `CanCloseWindow="False"` laisse le bouton de fermeture affiché. Ce correctif-là est dans le XAML du sample, qui pose aussi `IsCloseButtonVisible="False"`, pas dans `DataDrivenScreen`.
 - Faux défauts écartés, dus à l'injection : SDL ignore une touche sans code de scan, et les flèches exigent le drapeau de touche étendue.
-- Reste 🧪 pour l'auteur : entendre le son, car seul son chargement est prouvé ; manette, non testée (O5) ; passage humain. Visuel du focus (O5) : visible en mode navigation (bouton plus clair), rien au démarrage tant que la souris reste le mode actif. Si Entrée ne répond pas juste après le lancement, activer d'abord la fenêtre : `MonoGameWindowInputSource` coupe le clavier d'une fenêtre inactive.
+- Recette de l'auteur déclarée faite le 2026-10-31 (« Oui, fusionne », en réponse à « Ta recette de T2.2 est-elle faite ? »). Sa réponse ne détaille ni le son ni la manette (O5). Visuel du focus (O5) : visible en mode navigation (bouton plus clair), rien au démarrage tant que la souris reste le mode actif. Si Entrée ne répond pas juste après le lancement, activer d'abord la fenêtre : `MonoGameWindowInputSource` coupe le clavier d'une fenêtre inactive.
 - Ajouts hors liste : `Projects/SampleProject/README.md` (règle des samples), test `EverySampleMenuScreen_PassesTheChecksOfADataDrivenScreen`.
 
 ### ✅ T2.3 — Documentation
@@ -202,7 +202,7 @@ Conception retenue : commandes dans le `.uiscreen`. L'asset de flux ajoute type,
   - P3 : un focus tenu dans une fenêtre enfant ou un menu contextuel de la fenêtre fermée n'est pas libéré, ce que la branche n'aggrave pas. `Window.ModalWindow` en XAML y mène.
   - P4 : avec un effet de sortie, `DefaultFocusElement` passe avant l'historique du focus, sans effet aujourd'hui, car rien ne le pose.
   - P4 : le cas `IsTopmost` n'a pas de test propre ; il suit le même chemin que la fenêtre seule, qui en a un.
-- Plan gardé dans `tasks/`, comme les autres plans à 🧪 : T2.2 attend la recette de l'auteur, puis le plan passe en archive.
+- Recette de T2.2 déclarée faite par l'auteur : plan archivé, branche fusionnée dans `main` à sa demande, sans push.
 - O7 vérifié : la PR 7 de `ui-integration.md` prévoit `GameScreenState`, `IGameScreen` et ses écrans ; cette branche n'en crée aucun et ne touche pas `GameScreenManager`.
 - Constats laissés en l'état, sans décision à prendre ici : l'appel à `OpenFirstScreen` dans `UpdateWorld` et le contexte réel ne sont prouvés que par le smoke, car `UpdateWorld` exige un jeu ; le gel sous un modal reste non testé, car `ScreenStack` exige un `UIRoot` ; un `DataDrivenScreen` repoussé par du code après `Hide` échoue tard, usage que la classe documente comme interdit ; `open_screen` refuse une enveloppe `.screen`, format hérité qu'aucun code ne lit (ADR-0035).
 
