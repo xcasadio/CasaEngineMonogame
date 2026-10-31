@@ -157,13 +157,15 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 
 ## Phase 3 — Clôture
 
-### ⏳ T3.1 — Validation globale
+### ✅ T3.1 — Validation globale
 
 - Objectif : rejouer la validation globale depuis un build complet, relire le diff entier, chercher les noms interdits.
 - Fichiers : ce plan, `ai-agent/README.md`.
 - Étapes : builds, tests reconstruits, parcours du Launcher, `git diff main --stat`, recherche de termes interdits dans le diff.
 - Validation : tout vert, arbre propre.
 - Commit : `docs(plan): close pixel UI screens`
+- Validation faite le 2026-10-31 sur `c9f22cb1` : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4512/4512, contre 4470 au départ. Launcher reconstruit : `PixelUiSample` à 960x540 (clavier, Bas puis Entrée, code 0) et à 1280x720 (clic sur QUIT, code 0), mesure de grille exacte aux deux tailles ; `SampleProject` sans régression, Entrée sur Play charge `NextWorld`. Aucune exception dans les `log`. MGUI à `3db3c769`, sans modification. Aucun nom interdit dans le diff ni dans les messages de commit. Arbre propre.
+- Vérification par relecture de l'agent qui a écrit le code : aucun vérificateur neuf n'a été lancé, un sous-agent n'en dispose pas ici. Le plan reste dans `tasks/` à cause du 🧪 de T2.1 (manette), à archiver après recette.
 
 ---
 
