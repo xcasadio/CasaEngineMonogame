@@ -115,13 +115,14 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
 - Commit : `feat(input): add optional repeat timings to buttons mappings`
 - Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4518/4518. Le fichier de `Projects/RPGDemo` charge sans les clés et ne les gagne pas à la sauvegarde. La plage des valeurs n'est pas contrôlée ici : c'est le lecteur qui les applique (C7, T1.2).
 
-### ⏳ T1.2 — `UINavigationInput`
+### ✅ T1.2 — `UINavigationInput`
 
 - Objectif : D1, D3, D4, D5, C1 à C7.
 - Fichiers : `CasaEngine/Framework/UI/UINavigationInput.cs`, `CasaEngine.Tests/UI/UINavigationInputTests.cs`.
 - Étapes : compiler la mapping en table de liaisons ; `Update(TimeSpan)` public qui lit `InputTracker` par un délégué conservé, surcharge interne à état injecté ; masque des entrées, fronts, minuterie unique ; `CancelNotHandled`.
 - Validation : headless : fronts, répétition à la milliseconde près, minuterie remise à zéro, Submit et Cancel sans répétition, repli Tab, Shift+Tab, chaque refus, zone de texte, touche tenue à la création.
 - Commit : `feat(ui): add a mapping-driven UI navigation input`
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` 4559/4559, dont `UINavigationInputTests` 41/41 en sans-affichage, sur un vrai `MGDesktop`. Le chemin réel du clavier passe par `InputTracker` dans deux tests, la manette reste injectée. Une image sans changement n'alloue rien (`AllocationWindow`). Mutations constatées, avec reconstruction : sans remise à zéro de la minuterie, 3 tests échouent ; sans le garde de zone de texte, 1 ; sans la lecture de la première image, 1 ; Submit répété sous une direction tenue, 1. Ce dernier cas n'était d'abord pas couvert : le premier test laissait le focus quitter le bouton, le mutant passait, le test a été corrigé.
 
 ### ⏳ T1.3 — Champ projet et câblage
 
