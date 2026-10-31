@@ -319,6 +319,76 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Fact]
+    public void AModalScreen_ComesBackInFront_WhenAWindowBelowIsRaised()
+    {
+        var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        var modal = Build(new UIScreenAsset { IsModal = true }, PlayCommand(("quit", null)));
+
+        // What a click on the window below does in MGUI.
+        _desktop.BringToFront(Assert.Single(below.GetWindows()));
+        modal.Update(new GameTime());
+
+        Assert.Same(Assert.Single(modal.GetWindows()), _desktop.Windows[^1]);
+    }
+
+    [Fact]
+    public void AModalScreen_ThatIsNotOnTop_LeavesTheOrderAlone()
+    {
+        var modal = Build(new UIScreenAsset { IsModal = true }, PlayCommand(("quit", null)));
+        var above = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        _isTop = false;
+
+        modal.Update(new GameTime());
+
+        Assert.Same(Assert.Single(above.GetWindows()), _desktop.Windows[^1]);
+    }
+
+    [Fact]
+    public void ANonModalScreen_LeavesTheOrderAlone()
+    {
+        var first = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        var second = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+
+        first.Update(new GameTime());
+
+        Assert.Same(Assert.Single(second.GetWindows()), _desktop.Windows[^1]);
+    }
+
+    [Fact]
+    public void AClosedScreen_GivesTheKeyboardBackToTheScreenBelow()
+    {
+        var below = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        var closing = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        Settle(closing);
+        var closingWindow = Assert.Single(closing.GetWindows());
+        Assert.Same(closingWindow, _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+
+        // What ScreenStack.Remove does.
+        closing.Hide();
+        _desktop.Windows.Remove(closingWindow);
+
+        Step(Away, below);
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+
+        PressEnter(Away, below);
+
+        Assert.Same(Assert.Single(below.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+    }
+
+    [Fact]
+    public void AHiddenScreen_LeavesAFocusOutsideItsWindowAlone()
+    {
+        var kept = Build(new UIScreenAsset { DefaultFocus = "btnPlay" }, PlayCommand(("quit", null)));
+        var hidden = Build(new UIScreenAsset(), PlayCommand(("quit", null)));
+        Settle(kept);
+
+        hidden.Hide();
+        Step(Away, kept);
+
+        Assert.Same(Button(kept, "btnPlay"), _desktop.FocusedKeyboardHandler);
+    }
+
+    [Fact]
     public void TheSound_IsHeldOnceForTheScreen_AndGivenBackWhenItIsHidden()
     {
         var screen = Build(new UIScreenAsset(), PlayCommand(("play_sound", "Confirm"), ("play_sound", "Confirm")));

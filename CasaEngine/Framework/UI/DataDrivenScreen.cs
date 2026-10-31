@@ -75,6 +75,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <summary>Gives the default focus, and runs the command a click or a Submit left.</summary>
     public override void Update(GameTime gameTime)
     {
+        KeepModalWindowInFront();
         ApplyDefaultFocus();
 
         if (_pendingCommand != null)
@@ -91,6 +92,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// </summary>
     public override void Hide()
     {
+        ReleaseKeyboardFocus();
+
         if (_isRunningCommand)
         {
             _wasHiddenByItsCommand = true;
@@ -241,6 +244,31 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             {
                 throw InvalidEnvelope($"A button names command '{button.CommandName}', which 'ui_commands' does not declare.");
             }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="ScreenStack"/> takes the window off the desktop without telling MGUI it closed, so the focus would
+    /// stay on an element nothing updates, which keeps the auto-focus away and leaves the keyboard dead for the screen
+    /// below. A focused element that can no longer take the focus is dropped at the next desktop update.
+    /// </summary>
+    private void ReleaseKeyboardFocus()
+    {
+        if (Window?.Desktop.FocusedKeyboardHandler is { } focused && focused.SelfOrParentWindow == Window)
+        {
+            focused.IsFocusable = false;
+        }
+    }
+
+    /// <summary>
+    /// MGUI raises a window that is clicked, so a click on a frozen screen would bury the modal one under a window that
+    /// drops its clicks, and nothing could close it any more. Runs before the frame is drawn, so nothing shows.
+    /// </summary>
+    private void KeepModalWindowInFront()
+    {
+        if (IsModal && _context.IsTopScreen(this))
+        {
+            Window.Desktop.BringToFront(Window);
         }
     }
 
