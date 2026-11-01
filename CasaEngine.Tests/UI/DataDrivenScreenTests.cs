@@ -1221,6 +1221,66 @@ public sealed class DataDrivenScreenTests : IDisposable
     }
 
     [Fact]
+    public void AMarker_NamedByTwoPairs_IsRefused()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), MarkerMarkup);
+        var asset = new UIScreenAsset();
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblFirst" });
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlay", Marker = "lblFirst" });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Build(asset, CommandOf(Action("quit"))));
+
+        Assert.Contains(_envelopePath, exception.Message);
+        Assert.Contains("marker 'lblFirst' in two pairs", exception.Message);
+        Assert.Contains("'btnPlain'", exception.Message);
+        Assert.Contains("'btnPlay'", exception.Message);
+    }
+
+    /// <summary>
+    /// One pair's marker against the other pair's element, with the guilty marker first and then last. Its own element
+    /// is outside it each time, so only a check across the pairs can see it.
+    /// </summary>
+    [Theory]
+    [InlineData("btnPlain", "btnPlay", "btnPlay", "lblSecond", "btnPlay", "btnPlay")]
+    [InlineData("btnPlay", "lblSecond", "btnPlain", "btnPlay", "btnPlay", "btnPlay")]
+    [InlineData("btnPlain", "rowPlay", "btnPlay", "lblSecond", "rowPlay", "btnPlay")]
+    [InlineData("btnPlay", "lblSecond", "btnPlain", "rowPlay", "rowPlay", "btnPlay")]
+    public void AMarker_ThatIsOrContainsTheElementOfAnotherPair_IsRefused(
+        string firstElement, string firstMarker, string secondElement, string secondMarker, string guiltyMarker, string otherElement)
+    {
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            MarkerMarkup.Replace(
+                """<Button Name="btnPlay" CommandName="Play" Content="Play" />""",
+                """<StackPanel Name="rowPlay"><Button Name="btnPlay" CommandName="Play" Content="Play" /></StackPanel>"""));
+        var asset = new UIScreenAsset();
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = firstElement, Marker = firstMarker });
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = secondElement, Marker = secondMarker });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Build(asset, CommandOf(Action("quit"))));
+
+        Assert.Contains(_envelopePath, exception.Message);
+        Assert.Contains($"marker '{guiltyMarker}'", exception.Message);
+        Assert.Contains($"element '{otherElement}'", exception.Message);
+    }
+
+    [Fact]
+    public void AnElement_WithTwoMarkers_ShowsThemBoth()
+    {
+        File.WriteAllText(Path.Combine(_root, "menu.xaml"), MarkerMarkup);
+        var asset = new UIScreenAsset { DefaultFocus = "btnPlain" };
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblFirst" });
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblSecond" });
+
+        var screen = Build(asset, CommandOf(Action("quit")));
+        Settle(screen);
+
+        var window = Assert.Single(screen.GetWindows());
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblSecond"));
+    }
+
+    [Fact]
     public void AMarker_InsideItsElement_IsLegal_AndTheFocusStillArrives()
     {
         File.WriteAllText(

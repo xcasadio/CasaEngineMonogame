@@ -190,12 +190,28 @@ Deux constats de revue sur la branche MGUI `chantier/navigation-input-suspension
 - Validation : voir le résultat de la phase 6 ci-dessous.
 - Commit : `chore(mgui): bump MGUI to the held button repeat test`.
 
+## Phase 7 — Trois points de la dernière revue
+
+Trois petits points restants, un commit chacun, en commits neufs. Les commits du dessous ne sont pas réécrits.
+
+### ✅ T7.1 — `focus_markers` : deux formes refusées au chargement
+
+- Constat, vrai : le refus ne regardait que sa propre paire. `CheckFocusMarker` compare maintenant toutes les paires, une fois résolues : un marqueur nommé par deux paires est refusé, et un marqueur qui est ou contient l'élément de n'importe quelle paire aussi, avec le chemin de l'enveloppe. Le message dit désormais « hiding the marker would hide that element too », vrai dans tous les cas, au lieu de « keep the focus from that element for good ». Un élément avec deux marqueurs reste légal.
+- Mesuré sur bureau sans affichage, refus retiré, trace temporaire : deux paires sur `lblFirst`, focus sur le premier élément, marqueur caché, puis visible au second. Cause du second point, que T4.1 laissait ouverte : le focus atteint le second bouton sur l'image de la touche, `ShowFocusMarkers` cache le panneau, l'image suivante vide le focus (`SanitizeKeyboardFocusState`), celle d'après le rend au premier bouton.
+- Constat sur `CanHandleInputsWhileHidden`, vrai : le motif d'ADR-0082 ne valait que pour un marqueur égal à son élément. Même mesure : un marqueur égal à son élément avec ce drapeau n'est jamais atteint par la navigation, et `default_focus` le lui donne une fois, perdu au premier déplacement. Un ancêtre avec ce drapeau fonctionne : le focus entre, sort et revient, et le marqueur suit. Il reste refusé, comme règle simple, et ADR-0082 le dit : tant qu'il est caché, l'élément n'est pas dessiné (`MGElement.Draw`, lu dans le code).
+- Fichiers : `DataDrivenScreen.cs`, `DataDrivenScreenTests.cs`, ADR-0082, `docs/engine/data-driven-screens.md`, ce plan, `ai-agent/README.md`.
+- Validation : 7 mutations, toutes tuées puis restaurées, dont le contrôle limité à sa propre paire (4 cas), aux paires suivantes (2), aux paires précédentes (2), et l'égalité à la place de l'ancêtre (3). Le seul projet du dépôt qui utilise `focus_markers` est `Projects/PixelUiSample`, avec une paire : il charge (test `ThePixelSampleScreens_PassTheChecksOfADataDrivenScreen`, et Launcher). Trace temporaire retirée, vérifié par `git diff`.
+- Commit : `fix(ui): refuse a focus marker named twice or covering another pair's element`.
+
+### ⏳ T7.2 — Le popup d'options de `Projects/PixelUiSample`
+
+### ⏳ T7.3 — Un exemple de fondu neutre
+
 ## Points ouverts
 
-Vus pendant T4.1, hors de la demande, non corrigés :
+Vu pendant T7.1, hors de la demande, non corrigé :
 
-- Deux paires de `focus_markers` qui nomment le même marqueur : seule la dernière le pilote, parce que `ShowFocusMarkers` écrit la visibilité paire par paire. Mesuré : focus sur le premier élément, marqueur caché.
-- Un marqueur qui contient l'élément d'une autre paire est accepté. Mesuré : avec le second bouton dans le panneau marqueur du premier, trois appuis sur Bas laissent le focus sur le premier bouton. La cause n'a pas été analysée.
+- Un marqueur placé dans le marqueur d'une autre paire est accepté. Quand son élément tient le focus, il est `Visible`, mais rien ne le dessine : `MGElement.Draw` s'arrête à l'ancêtre caché. Lu dans le code, non exécuté.
 
 ## Résultat
 

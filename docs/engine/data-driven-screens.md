@@ -44,7 +44,7 @@ A `.uiscreen` gains nine optional fields. A field left out keeps its default and
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
 - `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades). The command starts before the first `Update` of any screen: a first screen draws one frame before that `Update`, and a screen opened by `open_screen` gets it on the frame it opens, inside the loop that ran the action.
-- `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit beside its button on a `Canvas` or inside the button, but it cannot be the element or contain it: hidden, it would keep the focus from the element for good, so the load refuses it (ADR-0082).
+- `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit beside its button on a `Canvas` or inside the button, and one element can have several markers. The load refuses a marker named by two pairs, because only the last pair would drive it, and a marker that is, or contains, the element of any pair, its own or another one: hiding it would hide that element too and take its keyboard input. `CanHandleInputsWhileHidden` does not lift this refusal (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
 
@@ -248,7 +248,8 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a `cancel_command` or a `move_command` that names no entry of `ui_commands`;
 - a `cancel_command` in a project with no `UIInputMapping`;
 - a `fade_screen` with a field missing or malformed, a negative or endless `duration_seconds`, or a target;
-- a `wait_fade` with a target, or after anything other than `play_sound`, `fade_screen` or `wait_fade`.
+- a `wait_fade` with a target, or after anything other than `play_sound`, `fade_screen` or `wait_fade`;
+- a `focus_markers` pair that names nothing, an element that cannot take the focus, a marker named by two pairs, or a marker that is or contains the element of any pair.
 
 An unknown action type stays in the asset with its JSON, so saving an envelope keeps it.
 

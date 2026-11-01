@@ -511,9 +511,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
-    /// Every marker starts hidden: no focus has arrived yet, and Hidden keeps its place in the layout. A marker that is
-    /// its element, or holds it, is refused: hidden, it takes the keyboard input from all it holds, so the focus that
-    /// would show it could never arrive.
+    /// Every marker starts hidden: no focus has arrived yet, and Hidden keeps its place in the layout. The pairs are
+    /// checked against each other once all of them are resolved.
     /// </summary>
     private void ResolveFocusMarkers(MGWindow window)
     {
@@ -534,14 +533,39 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
                 throw InvalidEnvelope($"'focus_markers' names marker '{pair.Marker}', which the XAML does not declare.");
             }
 
-            if (marker.IsSelfOrAncestorOf(element))
+            _focusMarkers.Add((element, marker));
+        }
+
+        for (int i = 0; i < _focusMarkers.Count; i++)
+        {
+            CheckFocusMarker(i);
+            _focusMarkers[i].Marker.Visibility = Visibility.Hidden;
+        }
+    }
+
+    /// <summary>
+    /// Refuses the two shapes that would make a marker lie with no error. A marker named twice: <see cref="ShowFocusMarkers"/>
+    /// writes it pair by pair, so only the last pair would drive it. A marker that is, or holds, the element of any pair:
+    /// hiding it would hide that element too, and would take its keyboard input (ADR-0082).
+    /// </summary>
+    private void CheckFocusMarker(int index)
+    {
+        var marker = _focusMarkers[index].Marker;
+        string markerName = Asset.FocusMarkers[index].Marker;
+
+        for (int i = 0; i < _focusMarkers.Count; i++)
+        {
+            if (i != index && _focusMarkers[i].Marker == marker)
             {
                 throw InvalidEnvelope(
-                    $"'focus_markers' names marker '{pair.Marker}', which is element '{pair.Element}' or contains it: hidden, it would keep the focus from that element for good.");
+                    $"'focus_markers' names marker '{markerName}' in two pairs, for elements '{Asset.FocusMarkers[index].Element}' and '{Asset.FocusMarkers[i].Element}': only the last pair would drive it.");
             }
 
-            marker.Visibility = Visibility.Hidden;
-            _focusMarkers.Add((element, marker));
+            if (marker.IsSelfOrAncestorOf(_focusMarkers[i].Element))
+            {
+                throw InvalidEnvelope(
+                    $"'focus_markers' names marker '{markerName}', which is element '{Asset.FocusMarkers[i].Element}' or contains it: hiding the marker would hide that element too.");
+            }
         }
     }
 
