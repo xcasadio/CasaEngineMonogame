@@ -359,9 +359,23 @@ public partial class PsxSpuTests
         for (var n = EnvelopeFrames; n < output.Length; n++)
         {
             // history at frame n: oldest s[n], older s[n+1], old s[n+2], new s[n+3]
-            var expected = ((0x4000 * s[n + 2]) >> 15) + ((0x2000 * s[n]) >> 15);
+            var expected = (((0x4000 * s[n + 2]) >> 14) + ((0x2000 * s[n]) >> 14)) >> 1;
             Assert.Equal(Scale(expected, 0x7FFE), output[n]);
         }
+    }
+
+    [Fact]
+    public void Gaussian_ShiftsEachTermBy14ThenTheSumBy1()
+    {
+        // Worked out by hand. 2001h * 3 = 24579, which is 1.5 * 4000h: a term is 1 after a shift of 14, and the sum of
+        // three is 1 after a shift of 1. Shifting each term by 15 gives 0, shifting the whole sum by 15 gives 2.
+        var table = new short[512];
+        table[0xFF] = 0x2001;
+        table[0x1FF] = 0x2001;
+        table[0x100] = 0x2001;
+        var interpolator = new PsxGaussianInterpolator(new PsxSpuHardwareTables(Positive, Negative, gaussian: table));
+
+        Assert.Equal(1, interpolator.Interpolate(3, 3, 3, 0, 0));
     }
 
     [Fact]

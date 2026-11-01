@@ -42,7 +42,8 @@ public sealed class PsxCubicInterpolator : IPsxSpuInterpolator
 
 /// <summary>
 /// Gaussian interpolation from psx-spx ("4-Point Gaussian Interpolation"): each tap is the product of a table entry
-/// and a sample, arithmetically shifted right by 15, the four terms being added.
+/// and a sample. The published captures keep one more bit than psx-spx writes: each tap is shifted right by 14, and the
+/// sum of the four by 1 (ADR-0084).
 /// </summary>
 public sealed class PsxGaussianInterpolator : IPsxSpuInterpolator
 {
@@ -58,10 +59,10 @@ public sealed class PsxGaussianInterpolator : IPsxSpuInterpolator
 
     public int Interpolate(int oldest, int older, int old, int newest, int index)
     {
-        var sum = ((_table[0xFF - index] * oldest) >> 15)
-                  + ((_table[0x1FF - index] * older) >> 15)
-                  + ((_table[0x100 + index] * old) >> 15)
-                  + ((_table[index] * newest) >> 15);
+        var sum = (((_table[0xFF - index] * oldest) >> 14)
+                   + ((_table[0x1FF - index] * older) >> 14)
+                   + ((_table[0x100 + index] * old) >> 14)
+                   + ((_table[index] * newest) >> 14)) >> 1;
         // AMBIGUOUS (psx-spx): the page gives no saturation of the interpolated sum; clamped to 16 bit here.
         return Math.Clamp(sum, short.MinValue, short.MaxValue);
     }
