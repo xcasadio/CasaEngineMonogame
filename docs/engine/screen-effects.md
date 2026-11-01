@@ -208,7 +208,7 @@ Limits:
 - The first step shows on the frame of the action, not the next one, when the fade starts from the UI: the UI updates before `ScreenEffectComponent`. Against a target that draws its first step one frame after the input, this is one frame early.
 - A fade started when a world starts shows `from` on its first frame and its first step on the second, because a world's time starts at its first frame (ADR-0082). It reaches `to` on frame N + 1 for N steps, one frame later than a fade started from the UI: 255, 250, then 5 by 5 down to 0 on frame 52 for the fade above. A screen opened by `open_screen` during a world counts like the UI. A `BelowUI` fade stacks two quads on that first frame, see [data-driven-screens.md](data-driven-screens.md#limits).
 - The last value is `to`. A target whose last visible value is lower ends higher here.
-- A late frame loses steps. Under a fixed step MonoGame replays the time as Updates with no `Draw`, up to `Game.MaxElapsedTime`, which reads 500 ms, so 30 Updates at this rate. The fade advances on each of them, so a frame 4 steps late draws 255, 250, then 225. Only the first two frames of a world are protected, by `LoadTimeDiscard` (ADR-0082).
+- A late frame loses steps. Under a fixed step MonoGame replays the time as Updates with no `Draw`, up to `Game.MaxElapsedTime`, which reads 500 ms, so 29 Updates at this rate. The fade advances on each of them, so a frame 4 steps late draws 255, 250, then 225. Only the first two frames of a world are protected, by `LoadTimeDiscard` (ADR-0082).
 
 ---
 

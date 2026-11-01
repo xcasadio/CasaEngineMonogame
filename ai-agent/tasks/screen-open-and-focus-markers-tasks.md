@@ -258,7 +258,7 @@ Aucun comportement ne change. Chaque limite a été vérifiée contre le code, p
 - g, vraie, mesurée : sous un modal sans élément focalisable, Haut change la sélection d'un `ComboBox` et Entrée ouvre sa liste. Aucune commande.
 - h, vraie, mesurée sur les quatre cas : seul le cas sans mapping et avec souris perd la commande.
 - i, vraie, mesurée sur un vrai `ScreenStack`, avec des écrans qui comptent leurs `Update`. Trouvé en plus : `open_screen` puis `close_screen` dans une liste donne le même résultat, mesuré aussi, et il n'y faut aucun code. C'est le seul cas que change le démarrage au chargement de T7.4. Corrigé en T7.6 : sur cette image seul l'overlay en profite, aucune fenêtre n'y est dessinée.
-- j, vraie à moitié : la pause n'est pas posée sur ce premier `Desktop.Update`, mais la conséquence du constat n'a pas été vue. Une touche sur cette image n'a donné aucun focus, n'a rien bougé et n'a rien lancé, comme avec un mapping. La limite le dit. La cause n'est pas établie.
+- j, vraie à moitié : la pause n'est pas posée sur ce premier `Desktop.Update`, mais la conséquence du constat n'a pas été vue. Une touche sur cette image n'a donné aucun focus, n'a rien bougé et n'a rien lancé, comme avec un mapping. La limite le dit. Cause lue en T7.7.
 - Mesures : traces et sondes de T7.4, plus une sonde pour `open_screen` puis `close_screen`, retirée par `git checkout`.
 - Fichiers : `DataDrivenScreen.cs` (commentaire), ADR-0078, ADR-0080, ADR-0081, ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, ce plan, `ai-agent/README.md`.
 - Commit : `docs(ui): write the known limits of the open command and the focus`.
@@ -278,11 +278,30 @@ Aucun comportement ne change : un commentaire et des documents. Le constat vient
 - Fichiers : `DataDrivenScreen.cs` (commentaire), ADR-0082, `docs/engine/data-driven-screens.md`, ce plan, `ai-agent/README.md`.
 - Commit : `docs(ui): say a window opened by a command is drawn from the next frame`.
 
+### ✅ T7.7 — Six phrases de la dernière vérification
+
+Aucun comportement ne change : un commentaire et des documents. Tous les constats ont été relus contre le code, aucun n'est faux.
+
+- Rattrapage : 29 `Update`, pas 30. 500 ms font 5000000 ticks, 30 pas en demanderaient 5000010. Le 30 du tableau d'ADR-0082 compte l'`Update` d'avant la boucle, et 255 - 29 × 5 donne bien le 110 mesuré.
+- Image sans fenêtre : « aucune UI » ne vaut que si l'écran fermé était seul sur la pile. `ScreenStack.Remove` ne retire que ses fenêtres. Lu, non exécuté.
+- Mesure de cette image : les fenêtres et les valeurs viennent des deux sortes de pas, le comptage de pixels du pas fixe seul.
+- « Une seule différence » du démarrage au chargement : vrai pour un fondu. Un `play_sound` de premier écran bouge aussi.
+- Limite j : aucun élément n'a eu d'`Update` sur cette image, donc `_CanReceiveKeyboardInput` vaut faux et aucun ne peut prendre le focus. La touche pose quand même le mode d'entrée (`MGDesktop.cs:1591`), donc le focus devrait arriver à l'image suivante sans autre touche. Lu, non exécuté.
+- ADR-0082 disait qu'un écran prend le focus d'un autre sans condition, contre la limite d'ADR-0078 : un bouton ou un `default_focus` est nécessaire.
+- Les valeurs de T7.4 à T7.6 écrites dans la section Measures d'ADR-0082 et absentes de ce plan n'ont pas d'autre rapport écrit : leurs traces ne sont pas versionnées.
+- Fichiers : `DataDrivenScreen.cs` (commentaire), ADR-0081, ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, ce plan.
+- Validation : voir le résultat de la phase 7.
+- Commit : `docs(ui): correct the last statements of the verification`.
+
 ## Points ouverts
 
 Vu pendant T7.1, hors de la demande, non corrigé :
 
 - Un marqueur placé dans le marqueur d'une autre paire est accepté. Quand son élément tient le focus, il est `Visible`, mais rien ne le dessine : `MGElement.Draw` s'arrête à l'ancêtre caché. Lu dans le code, non exécuté.
+
+Vu pendant la dernière vérification, à trancher par l'auteur avant une fusion :
+
+- `d50ba581` et `3ce34f21` gardent l'ancien exemple chiffré de fondu, retiré à la tête par `cad4aaa0`, et `3ce34f21` le cite dans son message. Les messages de `2cb48c51` et `69458722` gardent chacun une phrase inexacte. Aucun commit n'a été réécrit.
 
 ## Résultat
 
@@ -297,3 +316,4 @@ Vu pendant T7.1, hors de la demande, non corrigé :
 - Phase 7, T7.4 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI à `a3c42cb0`. Seuls des commentaires et des documents changent, donc aucun test neuf. Sur les 11 constats, 9 sont vrais tels quels, le 6 l'est sauf un lieu, le 7 à moitié, aucun n'est faux. Mesures de T7.4 : voir cette tâche.
 - Phase 7, T7.5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI à `a3c42cb0`. Launcher sur `Projects/PixelUiSample`, sur le binaire sans trace : le popup est identique à l'octet aux captures de T7.2 et de T7.3, le retour au titre à celle de T7.3, aucune exception dans le log, aucun garde déclenché, aucun processus Launcher restant. Sur les 10 limites, 9 sont vraies et la j l'est à moitié.
 - Phase 7, T7.6 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI inchangé à `a3c42cb0`. Launcher sur `Projects/PixelUiSample`, sur le binaire sans trace : popup et retour au titre identiques à l'octet aux captures de T7.4, aucune exception dans le log, aucun garde déclenché, aucun processus Launcher restant. Le constat est vrai.
+- Phase 7, T7.7 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit. Un commentaire et des documents seulement : aucun test neuf, aucun Launcher.
