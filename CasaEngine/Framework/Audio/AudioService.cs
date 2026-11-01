@@ -307,6 +307,7 @@ public sealed class AudioService : IDisposable
         entry.Owner = owner;
         entry.InUse = true;
         entry.Priority = priority;
+        entry.ExclusionGroup = IsEditorBus(busName) ? null : start.Asset?.ExclusionGroup;
         entry.StartSequence = ++_voiceStartCounter;
         WriteStartModulation(entry, in start, mode, hasCapability, startGain, startPan, startRate);
         if (bindingCount > 0)
@@ -649,6 +650,10 @@ public sealed class AudioService : IDisposable
     /// strictly lower priority (lowest first, oldest on a tie) and takes its place. A voice without priority,
     /// a streamed voice and a backend stereo voice are never stolen. Stealing counts in
     /// <see cref="StolenVoiceCount"/>; there are no virtual voices.
+    /// <para/>
+    /// Exclusion: a sound with a <see cref="SoundAsset.ExclusionGroup"/> stops the voices of that group once its clip is
+    /// resolved, whichever asset started them and whatever their owner, bus or priority (ADR-0083). This does not count
+    /// as stealing. The Editor bus stays out of the groups.
     /// </remarks>
     public AudioVoiceHandle PlaySound(SoundAsset asset, object owner = null)
     {
@@ -703,7 +708,62 @@ public sealed class AudioService : IDisposable
         var parameters = draw.ApplyTo(overrides.ApplyTo(asset.CreateVoiceParameters()));
         var busName = overrides.ResolveBus(asset.BusName);
 
+        StopExclusionGroup(asset, busName);
+
         return PlayClipCore(clip, busName, parameters, owner, overrides.ResolvePriority(asset.Priority), new VoiceModulationStart(asset, hasPosition, position));
+    }
+
+    /// <summary>
+    /// Stops the voices of the group of <paramref name="asset"/> before it starts (ADR-0083). A voice already fading out
+    /// to a stop is left alone. A paused voice stops at once, and a finished voice is released. On a full backend every
+    /// stop is immediate, or the incoming voice would be refused. The Editor bus stays out of the rule.
+    /// </summary>
+    private void StopExclusionGroup(SoundAsset asset, string busName)
+    {
+        var group = asset.ExclusionGroup;
+
+        if (group.Length == 0 || IsEditorBus(busName))
+        {
+            return;
+        }
+
+        var isBackendFull = _backend.ActiveVoiceCount >= _backend.VoiceCapacity;
+        var fadeSeconds = isBackendFull ? 0f : asset.ExclusionFadeSeconds;
+
+        for (var i = 0; i < _voices.Count; i++)
+        {
+            var entry = _voices[i];
+            if (!entry.InUse || !string.Equals(entry.ExclusionGroup, group, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var state = _backend.GetState(entry.Handle);
+            if (state == AudioVoiceState.Stopped)
+            {
+                ReleaseEntry(entry);
+                continue;
+            }
+
+            if (!isBackendFull && entry.IsFading && entry.FadeCompletion == AudioFadeCompletion.Stop)
+            {
+                continue;
+            }
+
+            if (fadeSeconds > 0f && state != AudioVoiceState.Paused)
+            {
+                FadeVoice(entry.Handle, AudioVoiceParameters.MinVolume, fadeSeconds, AudioFadeCompletion.Stop);
+                continue;
+            }
+
+            _backend.Stop(entry.Handle);
+            ReleaseEntry(entry);
+        }
+    }
+
+    private static bool IsEditorBus(string busName)
+    {
+        return string.Equals(busName, AudioBusNames.Editor, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -2378,6 +2438,9 @@ public sealed class AudioService : IDisposable
         /// <summary>Steal priority, 0 for a voice that is never stolen. Only <see cref="PlayClipCore"/> sets it.</summary>
         public int Priority;
 
+        /// <summary>Exclusion group of the sound, null for a voice outside the groups. Only <see cref="PlayClipCore"/> sets it.</summary>
+        public string ExclusionGroup;
+
         /// <summary>Order of start, to find the oldest voice among equal priorities.</summary>
         public long StartSequence;
 
@@ -2459,6 +2522,7 @@ public sealed class AudioService : IDisposable
             IsStreaming = false;
             IsBackendStereo = false;
             Priority = 0;
+            ExclusionGroup = null;
             StartSequence = 0;
             StereoLeftGain = 0f;
             StereoRightGain = 0f;

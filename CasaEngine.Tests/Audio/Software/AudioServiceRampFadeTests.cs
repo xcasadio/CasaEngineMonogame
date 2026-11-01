@@ -127,6 +127,46 @@ public class AudioServiceRampFadeTests
     }
 
     [Fact]
+    public void AnExclusionGroupFade_EndsTheOldVoiceLikeTheFallback()
+    {
+        using var soft = new Rig(true);
+        using var fake = new Rig(false);
+
+        static (AudioVoiceHandle Old, AudioVoiceHandle New) PlayTwo(Rig rig)
+        {
+            IAudioClip clip = new FakeAudioClip();
+            if (rig.IsSoftware)
+            {
+                var samples = new short[2 * 400000];
+                Array.Fill(samples, (short)16384);
+                clip = new PcmAudioClip(samples, 48000, 2);
+            }
+
+            var first = new SoundAsset { AudioFileAssetId = rig.Provider.Register(clip), ExclusionGroup = "group" };
+            var second = new SoundAsset { AudioFileAssetId = rig.Provider.Register(clip), ExclusionGroup = "group", ExclusionFadeSeconds = 0.5f };
+            var oldVoice = rig.Service.PlaySound(first);
+            rig.Tick(2);
+            return (oldVoice, rig.Service.PlaySound(second));
+        }
+
+        var softVoices = PlayTwo(soft);
+        var fakeVoices = PlayTwo(fake);
+
+        for (var tick = 0; tick < 60; tick++)
+        {
+            soft.Tick();
+            fake.Tick();
+
+            Assert.Equal(fake.Service.IsFading(fakeVoices.Old), soft.Service.IsFading(softVoices.Old));
+            Assert.Equal(fake.Service.IsAlive(fakeVoices.Old), soft.Service.IsAlive(softVoices.Old));
+        }
+
+        Assert.False(soft.Service.IsAlive(softVoices.Old));
+        Assert.True(soft.Service.IsPlaying(softVoices.New));
+        Assert.Equal(1, soft.Service.ActiveVoiceCount);
+    }
+
+    [Fact]
     public void CancelFade_KeepsTheValueReached_AndTheVoiceAlive_AndTheAudioStopsThere()
     {
         using var soft = new Rig(true);
