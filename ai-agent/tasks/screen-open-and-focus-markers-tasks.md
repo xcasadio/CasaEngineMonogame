@@ -164,6 +164,32 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : `docs/engine/data-driven-screens.md` relu contre le code sur ces points. Validation globale ci-dessous.
 - Commit : `docs(ui): make the load, open and wait statements exact`.
 
+## Phase 6 — Constats sur MGUI
+
+Deux constats de revue sur la branche MGUI `chantier/navigation-input-suspension`. L'objectif de ce plan écarte tout changement de MGUI : cette phase n'y change aucune ligne de production, seulement un test et un mot d'ADR. T6.1 et T6.2 se committent dans MGUI, qui ne contient pas ce plan : elles sont enregistrées ici dans le commit de T6.3.
+
+### ✅ T6.1 — Un bouton tenu se répète encore quand `false` est écrit à chaque image
+
+- Constat, vrai, mesuré : sans `_IsNavigationInputSuspended &&` dans le setter d'`IsNavigationInputSuspended` (`MGDesktop.cs:727`), `MGUI.Tests` restait à 3225/3225 et `CasaEngine.Tests` à 4736/4736. Or `UIRoot.RunFrame` écrit cette propriété à chaque image.
+- Test ajouté : `FalseWrittenEveryFrame_LeavesAHeldButtonRepeating`. Il compte les validations d'un bouton tenu 40 images sans écriture, puis exige le même nombre avec `false` écrit entre deux `Update`, là où `UIRoot.RunFrame` l'écrit.
+- Fichiers (MGUI) : `MGUI.Tests/Focus/NavigationInputSuspensionTests.cs`.
+- Validation : avec la mutation, ce test échoue seul sur 3226, 4 validations attendues, 1 obtenue : l'appui reste, toutes les répétitions sont perdues. Code restauré, vérifié par `git diff` : 3226/3226. Reconstruit à chaque passage. Les états de manette sont injectés : aucune vraie manette essayée, comme le dit ADR-0025 de MGUI. `CasaEngine.Tests` ne voit toujours pas cette mutation : le test qui la tient est dans MGUI.
+- Commit (MGUI) : `64a458b1`, `test(input): keep a held button repeating when false is written every frame`.
+
+### ✅ T6.2 — ADR-0025 de MGUI nomme le bon événement
+
+- Constat, vrai : `KeyboardHandler` n'a pas d'événement `Repeated`, le sien est `KeyRepeat` (`KeyboardHandler.cs:109`). Dans MGUI, `Repeated` n'est qu'une valeur d'`InputActionPhase` et un événement de `UIAnimation`. Le reste de la phrase est vrai : le chemin brut s'abonne à `Pressed` (`MGDesktop.cs:1458`).
+- Fichiers (MGUI) : `Docs/decisions/0025-pause-the-raw-navigation-path.md`.
+- Validation : code lu, aucune autre citation de cet événement sous ce nom dans `Docs/`.
+- Commit (MGUI) : `83bda51f`, `docs(decisions): name the KeyRepeat event in ADR-0025`.
+
+### ✅ T6.3 — Pointeur MGUI
+
+- Le pointeur `MGUI` passe de `62498f75` à `83bda51f`, toujours sur `chantier/navigation-input-suspension`, à fusionner dans `develop`.
+- Fichiers : `MGUI` (pointeur), ce plan, `ai-agent/README.md`.
+- Validation : voir le résultat de la phase 6 ci-dessous.
+- Commit : `chore(mgui): bump MGUI to the held button repeat test`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :
@@ -179,3 +205,4 @@ Vus pendant T4.1, hors de la demande, non corrigés :
 - T3.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4700/4700, reconstruit. Launcher sur un projet à pas fixe : 255, 240, puis de 15 en 15 jusqu'à 0 à l'image 18, une seule image à 2 Updates (la première). Fondu sortant : 15 à 255 sur 17 images, 255 dessiné avant le changement de monde.
 - T4.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4711/4711, reconstruit, `MGUI.Tests` 3225/3225. Launcher sur le sample : focus au troisième `Update`, curseur sur `FADE OUT` puis disparu sur `QUIT`, aucune exception. Sur une copie sans `default_focus` : 930 `Update` sans focus ni marqueur, puis marqueur à la première touche. Sur une copie où le marqueur est son élément : le jeu s'arrête au chargement sur le message qui nomme l'enveloppe. Sur un projet externe qui utilise `focus_markers` : chargement sans erreur.
 - Phase 5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3225/3225, MGUI inchangé à `62498f75`. 15 mutations, toutes tuées et restaurées (T5.2, T5.3, T5.5). Pour a, b, f et h, les tests neufs ont été vus en échec avant le correctif. Launcher sur le sample : voir T5.6. Sur un projet externe, avec mapping et pas fixe : chargement, deux touches et deux redimensionnements, aucune exception. Aucun nom interdit dans le diff ni dans les messages de commit depuis `d9cff5e6`.
+- Phase 6 : les deux `.sln` à 0 erreur, recompilés sans incrémental, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3226/3226, MGUI à `83bda51f`. 1 mutation, tuée et restaurée. Aucun Launcher : ni le code de production de MGUI ni celui du moteur ne change.
