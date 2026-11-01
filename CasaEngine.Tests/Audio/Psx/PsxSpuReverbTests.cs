@@ -56,7 +56,7 @@ public class PsxSpuReverbTests
         var bytes = new byte[16];
         bytes[0] = 0x00; // filter 0, shift field 0 -> nibble << 12
         bytes[1] = 0x01; // loop end without repeat: plays once then mutes
-        bytes[2] = 0x07; // first sample 7000h, then zeros
+        bytes[4] = 0x07; // fifth sample 7000h, the rest zeros: it plays once the envelope is up
         return bytes;
     }
 

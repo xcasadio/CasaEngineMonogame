@@ -94,10 +94,10 @@ public class PsxSpuDefaultTablesTests
             old = s;
         }
 
-        for (var n = 3; n < 3 + 25; n++)
+        for (var n = 3; n < 25; n++) // the end flag mutes the voice at frame 25
         {
             var lvol = (Math.Min(0x7FFF, 0x3800 * n) * 0x7FFE) >> 15;
-            var want = Math.Clamp((expected[n - 3] * lvol) >> 15, -0x8000, 0x7FFF);
+            var want = Math.Clamp((expected[n + 1] * lvol) >> 15, -0x8000, 0x7FFF);
             Assert.Equal(want, buffer[n * 2]);
         }
     }
@@ -134,7 +134,7 @@ public class PsxSpuDefaultTablesTests
         var spu = new PsxSpu(PsxSpuHardwareTables.CreateDefault());
         var block = new byte[16];
         block[1] = 0x01;
-        block[2] = 0x07; // one sample of 7000h
+        block[4] = 0x07; // one sample of 7000h, the fifth: it plays once the envelope is up
         spu.WriteRam(0x100 * 8, block);
         spu.SetStartAddress(0, 0x100);
         spu.SetPitch(0, 0x1000);

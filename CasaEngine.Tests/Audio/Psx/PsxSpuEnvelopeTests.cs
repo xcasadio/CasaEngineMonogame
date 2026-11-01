@@ -173,7 +173,7 @@ public partial class PsxSpuTests
             var envBefore = model.Level;
             Assert.Equal(envBefore, spu.GetEnvx(0));
             spu.Render(buffer, 1);
-            var expected = n < Delay ? 0 : Scale(samples[n - Delay], 0x7FFE, envBefore);
+            var expected = Scale(samples[n + Lead], 0x7FFE, envBefore);
             Assert.Equal(expected, buffer[0]);
             model.Tick();
             Assert.Equal(model.Level, spu.GetEnvx(0));
@@ -369,7 +369,7 @@ public partial class PsxSpuTests
         var bufferB = new short[2];
 
         var counter1 = 0;
-        var pushed1 = 0;
+        var pushed1 = 4; // key on decoded the first four samples
         var sawNegativeFactor = false;
         var sawModulatedStep = false;
         for (var n = 0; n < frames; n++)
@@ -379,12 +379,12 @@ public partial class PsxSpuTests
 
             // voice 0: pitch 1000h, never modulated, one new sample per frame.
             var env = FullEnvelopeAt(n);
-            var sample0 = n == 0 ? 0 : s0[n - 1];
+            var sample0 = s0[n + 3];
             Assert.Equal(Scale(sample0, 0x7FFE, env), bufferA[1]);
             Assert.Equal(bufferB[1], bufferA[1]);
 
             // voice 1: the output uses the samples pushed so far.
-            var sample1 = pushed1 == 0 ? 0 : s1[pushed1 - 1];
+            var sample1 = s1[pushed1 - 1];
             Assert.Equal(Scale(sample1, 0x7FFE, env), bufferA[0]);
             Assert.Equal(bufferB[0], bufferA[0]); // same samples at frame n: the sequences diverge only through the step
 

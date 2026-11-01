@@ -29,6 +29,7 @@ public sealed class PsxSpu
 
     private const int RamMask = RamSize - 1;
     private const int BlockSamples = 28;
+    private const int InterpolationSamples = 4;
     private const int AddressUnitsPerBlock = 2; // a 16 byte block is two 8 byte units
     private const int AddressUnitMask = 0xFFFF;
 
@@ -266,12 +267,16 @@ public sealed class PsxSpu
         return _envx[voice];
     }
 
-    /// <summary>ENDX: bit n set once voice n reached a loop end flag, cleared by the next key on of that voice.</summary>
+    /// <summary>
+    /// ENDX: bit n set once voice n reached a loop end flag, cleared by the next key on of that voice. Key on decodes the
+    /// first block, so a sample of one block sets it again at once. No capture fixes that moment (ADR-0084).
+    /// </summary>
     public uint ReadEndx() => _endx;
 
     /// <summary>
     /// Key on for the voices whose bit is set (bits 0-23): the current address takes the start address, ENDX is cleared,
-    /// the decoder history and pitch counter are reset and the envelope restarts its attack from 0.
+    /// the decoder history and pitch counter are reset, the first four samples are decoded so the first output
+    /// interpolates them, and the envelope restarts its attack from 0. The sample and the addresses must be set before.
     /// </summary>
     public void KeyOn(uint voiceMask)
     {
@@ -288,7 +293,8 @@ public sealed class PsxSpu
             _nextSampleIndex[v] = BlockSamples;
             _counter[v] = 0;
             _endx &= ~(1u << v);
-            // AMBIGUOUS (psx-spx): the initial decoder history and interpolation history at key on are not specified; zero.
+            // Zero, although the start of captures adpcm_edge_predictor_1 to _4 depends on what played before: replaying
+            // that does not reproduce them (ADR-0084).
             _old[v] = 0;
             _older[v] = 0;
             _history[v * 4] = _history[v * 4 + 1] = _history[v * 4 + 2] = _history[v * 4 + 3] = 0;
@@ -297,6 +303,12 @@ public sealed class PsxSpu
             _phase[v] = PhaseAttack;
             // AMBIGUOUS (psx-spx): the envelope counter at key on is not specified; zero.
             _adsrCounter[v] = 0;
+
+            // The first output interpolates the first samples: sine_pitch_1500, sine_pitch_2000 and the start of the captures.
+            for (var sample = 0; sample < InterpolationSamples; sample++)
+            {
+                PushNextSample(v);
+            }
         }
     }
 
@@ -354,8 +366,8 @@ public sealed class PsxSpu
 
                 // Lvol = (ENVX * VOLXL) >> 15 (psx-spx), the sample is then scaled by Lvol the same way.
                 var env = _envx[v];
-                // AMBIGUOUS (psx-spx): VxOUTX is "the output after ADSR"; taken as the sample scaled by ENVX, before the
-                // voice volume, and the factor of PMON uses the value of the previous voice computed in this same frame.
+                // VxOUTX is the sample scaled by ENVX, before the voice volume: this is what the captures hold.
+                // AMBIGUOUS (psx-spx): the factor of PMON uses the value of the previous voice computed in this same frame.
                 _outx[v] = (sample * env) >> 15;
                 var lvol = (env * _volumeLevel[v * 2]) >> 15;
                 var rvol = (env * _volumeLevel[v * 2 + 1]) >> 15;

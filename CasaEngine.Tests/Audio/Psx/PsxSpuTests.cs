@@ -13,11 +13,13 @@ public partial class PsxSpuTests
     private static readonly int[] Positive = { 0, 16, 32, 48, -24 };
     private static readonly int[] Negative = { 0, -8, -16, 12, 20 };
 
-    private const int Delay = 3; // frames before the first decoded sample reaches the cubic output at pitch 1000h
+    // A voice starts on its first four samples and the cubic output at index 0 is the second: frame n plays sample n + Lead.
+    private const int Lead = 1;
+    private const int EnvelopeFrames = 3; // frames before FullEnvelope reaches 7FFFh
     private const int MaxVolumeRegister = 0x3FFF; // direct volume register: level +7FFEh
 
     // ADSR word for the T4.1 tests: attack linear, shift 0, step 0 (+7 << 11 = 3800h per frame, ENVX 0, 3800h, 7000h, 7FFFh
-    // from the third frame, i.e. the Delay), decay shift 0 with sustain level Fh (ends at once), sustain increase with
+    // from the third frame), decay shift 0 with sustain level Fh (ends at once), sustain increase with
     // shift 1Fh and step 3 (all bits set: never steps), so the envelope stays at 7FFFh.
     private const uint FullEnvelope = 0x1FC0000F;
 
@@ -136,7 +138,7 @@ public partial class PsxSpuTests
 
         for (var n = 0; n < output.Length; n++)
         {
-            var expected = n < Delay ? 0 : Scale(expectedSamples[n - Delay], 0x7FFE);
+            var expected = Scale(expectedSamples[n + Lead], 0x7FFE, FullEnvelopeAt(n));
             Assert.Equal(expected, output[n]);
         }
     }
@@ -145,7 +147,7 @@ public partial class PsxSpuTests
     public void Adpcm_ShiftsEachPredictorTermBeforeTheSum()
     {
         // Filter 4 of the default tables, a single nibble of 7 at shift 8, then silence. Worked out by hand: adding the
-        // two products before the shift gives 372 at the fourth value, the old division gives 369.
+        // two products before the shift gives 374 at the fourth value, the old division 377.
         var nibbles = new int[28];
         nibbles[8] = 7;
         var spu = NewSpu(0, 0x100, new[] { new Block(8, 4, 0, nibbles) }, 0x1000, out _, PsxSpuHardwareTables.CreateDefault());
@@ -156,7 +158,7 @@ public partial class PsxSpuTests
         int[] expected = { 112, 213, 301, 373, 428, 465, 484, 486 };
         for (var i = 0; i < expected.Length; i++)
         {
-            Assert.Equal(Scale(expected[i], 0x7FFE), output[8 + Delay + i]);
+            Assert.Equal(Scale(expected[i], 0x7FFE), output[8 - Lead + i]);
         }
     }
 
@@ -174,9 +176,9 @@ public partial class PsxSpuTests
 
         var output = RenderLeft(spu, 28);
 
-        Assert.Equal(Scale(-128, 0x7FFE), output[8 + Delay]);
-        Assert.Equal(0, output[9 + Delay]);
-        Assert.Equal(0, output[10 + Delay]);
+        Assert.Equal(Scale(-128, 0x7FFE), output[8 - Lead]);
+        Assert.Equal(0, output[9 - Lead]);
+        Assert.Equal(0, output[10 - Lead]);
     }
 
     [Fact]
@@ -188,12 +190,12 @@ public partial class PsxSpuTests
         spu.KeyOn(1);
         var expectedSamples = DecodeSequence(blocks);
 
-        var output = RenderLeft(spu, 56 + Delay);
+        var output = RenderLeft(spu, 56 - Lead);
 
         Assert.Contains(expectedSamples, s => s == short.MaxValue);
-        for (var n = Delay; n < output.Length; n++)
+        for (var n = EnvelopeFrames; n < output.Length; n++)
         {
-            Assert.Equal(Scale(expectedSamples[n - Delay], 0x7FFE), output[n]);
+            Assert.Equal(Scale(expectedSamples[n + Lead], 0x7FFE), output[n]);
         }
     }
 
@@ -211,9 +213,9 @@ public partial class PsxSpuTests
 
         // The decoder history is kept across the jump from C back to B.
         var expectedSamples = DecodeSequence(new[] { a, b, c, b, c, b, c, b });
-        for (var n = Delay; n < output.Length; n++)
+        for (var n = EnvelopeFrames; n < output.Length; n++)
         {
-            Assert.Equal(Scale(expectedSamples[n - Delay], 0x7FFE), output[n]);
+            Assert.Equal(Scale(expectedSamples[n + Lead], 0x7FFE), output[n]);
         }
 
         Assert.Equal(0x102, spu.GetRepeatAddress(2));
@@ -238,13 +240,35 @@ public partial class PsxSpuTests
 
         for (var n = 0; n < output.Length; n++)
         {
-            var expected = n < Delay || n >= 29 ? 0 : Scale(expectedSamples[n - Delay], 0x7FFE);
+            var expected = n >= 25 ? 0 : Scale(expectedSamples[n + Lead], 0x7FFE, FullEnvelopeAt(n));
             Assert.Equal(expected, output[n]);
         }
 
         Assert.Equal(1u, spu.ReadEndx());
         Assert.Equal(0x200, spu.GetCurrentAddress(0));
         Assert.Equal(0, spu.GetEnvx(0));
+    }
+
+    [Fact]
+    public void KeyOn_DecodesTheFirstBlock_SoASampleOfOneBlockSetsEndxAtOnce()
+    {
+        var spu = NewSpu(0, 0x100, new[] { MakeBlock(10, 0, 7, 81) }, 0x1000, out _);
+
+        spu.KeyOn(1);
+
+        Assert.Equal(1u, spu.ReadEndx());
+    }
+
+    [Fact]
+    public void KeyOn_ReadsTheLoopStartOfTheFirstBlock_SoALaterRepeatWriteStands()
+    {
+        var spu = NewSpu(0, 0x100, new[] { MakeBlock(10, 0, 7, 82) }, 0x1000, out _);
+        spu.KeyOn(1);
+        Assert.Equal(0x100, spu.GetRepeatAddress(0));
+
+        spu.SetRepeatAddress(0, 0x300);
+
+        Assert.Equal(0x300, spu.GetRepeatAddress(0));
     }
 
     [Fact]
@@ -284,8 +308,8 @@ public partial class PsxSpuTests
 
         for (var n = 0; n < frames; n++)
         {
-            var index = samplesPerFrame * n - Delay;
-            var expected = index < 0 ? 0 : Scale(expectedSamples[index], 0x7FFE, FullEnvelopeAt(n));
+            var index = samplesPerFrame * n + Lead;
+            var expected = Scale(expectedSamples[index], 0x7FFE, FullEnvelopeAt(n));
             Assert.Equal(expected, output[n]);
         }
     }
@@ -303,8 +327,8 @@ public partial class PsxSpuTests
         spu.SetPitch(0, 0);
         var held = RenderLeft(spu, 100);
 
-        // After frame 9 the history is s6..s9: the output holds the interpolated value of that history.
-        Assert.All(held, s => Assert.Equal(Scale(expectedSamples[7], 0x7FFE), s));
+        // After frame 9 the history is s10..s13: the output holds the interpolated value of that history.
+        Assert.All(held, s => Assert.Equal(Scale(expectedSamples[11], 0x7FFE), s));
         Assert.Equal(addressBefore, spu.GetCurrentAddress(0));
     }
 
@@ -332,10 +356,10 @@ public partial class PsxSpuTests
 
         var output = RenderLeft(spu, 40);
 
-        for (var n = 4; n < output.Length; n++)
+        for (var n = EnvelopeFrames; n < output.Length; n++)
         {
-            // history at frame n: oldest s[n-4], older s[n-3], old s[n-2], new s[n-1]
-            var expected = ((0x4000 * s[n - 2]) >> 15) + ((0x2000 * s[n - 4]) >> 15);
+            // history at frame n: oldest s[n], older s[n+1], old s[n+2], new s[n+3]
+            var expected = ((0x4000 * s[n + 2]) >> 15) + ((0x2000 * s[n]) >> 15);
             Assert.Equal(Scale(expected, 0x7FFE), output[n]);
         }
     }
@@ -356,10 +380,10 @@ public partial class PsxSpuTests
         Assert.Equal(-0x2000, spu.GetCurrentVolume(0, false));
         Assert.Equal(0x2000, spu.GetCurrentVolume(0, true));
         var sawNonZero = false;
-        for (var n = Delay; n < 50; n++)
+        for (var n = EnvelopeFrames; n < 50; n++)
         {
-            Assert.Equal(Scale(s[n - Delay], -0x2000), buffer[n * 2]);
-            Assert.Equal(Scale(s[n - Delay], 0x2000), buffer[n * 2 + 1]);
+            Assert.Equal(Scale(s[n + Lead], -0x2000), buffer[n * 2]);
+            Assert.Equal(Scale(s[n + Lead], 0x2000), buffer[n * 2 + 1]);
             sawNonZero |= buffer[n * 2 + 1] != 0;
             Assert.True(buffer[n * 2] == -buffer[n * 2 + 1] || Math.Abs(buffer[n * 2] + buffer[n * 2 + 1]) <= 1);
         }
@@ -577,9 +601,9 @@ public partial class PsxSpuTests
 
         var output = RenderLeft(spu, 31);
 
-        for (var n = Delay; n < 28 + Delay; n++)
+        for (var n = EnvelopeFrames; n < 28 - Lead; n++)
         {
-            Assert.Equal(Scale(s[n - Delay], 0x7FFE), output[n]);
+            Assert.Equal(Scale(s[n + Lead], 0x7FFE), output[n]);
         }
     }
 
