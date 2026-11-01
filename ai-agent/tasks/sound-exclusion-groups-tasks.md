@@ -106,7 +106,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 - Commit : `feat(audio): add exclusion group fields to sound assets`
 - Note : les deux `.sln` à 0 erreur, `dotnet test` 4755/4755 (avec T1.2, développée en même temps).
 
-### ⏳ T1.2 — Écriture éditeur
+### ✅ T1.2 — Écriture éditeur
 
 - Objectif : écrire les clés hors défaut seulement.
 - Fichiers : `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Tests/Audio/SoundAssetEditorSerializationTests.cs`.
@@ -115,8 +115,9 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
   2. Tests : aller-retour, absence au défaut, ordre des clés existantes inchangé.
 - Validation : les deux `.sln` à 0 erreur, `dotnet test` vert.
 - Commit : `feat(editor): write sound exclusion group keys`
+- Note : validé avec T1.1, 4755/4755.
 
-### ⏳ T1.3 — Arrêt dans `AudioService`
+### ✅ T1.3 — Arrêt dans `AudioService`
 
 - Objectif : appliquer la règle au lancement.
 - Fichiers : `CasaEngine/Framework/Audio/AudioService.cs`, `CasaEngine.Tests/Audio/AudioServicePlaySoundTests.cs`, `CasaEngine.Tests/Audio/Software/AudioServiceRampFadeTests.cs`.
@@ -127,8 +128,9 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
   4. Tests : deux assets du même groupe, casse différente, groupes différents, groupe vide, clip manquant qui ne coupe rien, fondu sur les deux backends, voix en fondu d'arrêt, voix en fondu ordinaire arrêtée, `CancelFade` puis arrêt, voix en pause, `PauseAllExceptBus` sans relance après l'arrêt, voix finie non recyclée, backend plein (`RefusedVoiceCount` à 0), bus muet, priorité haute coupée, voix du monde coupée, `PlaySoundAt`, preview du bus Editor dans les deux sens.
 - Validation : `dotnet test` vert. Vérifier par lecture qu'aucune allocation n'est ajoutée sur ce chemin pour un son sans groupe.
 - Commit : `feat(audio): stop the voices of an exclusion group on play`
+- Note : `dotnet build CasaEngine.MonoGame.sln` à 0 erreur, `dotnet test` 4781/4781, dont 32 tests de groupe. Tests dans `AudioServiceExclusionGroupTests.cs`, nouveau fichier, et `AudioServiceRampFadeTests.cs`. Une voix en pause s'arrête net même avec un fondu : elle est muette.
 
-### ⏳ T1.4 — Inspecteur
+### 🧪 T1.4 — Inspecteur
 
 - Objectif : éditer les deux champs.
 - Fichiers : `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`, `CasaEngine.Tests/Editor/SoundAssetInspectorPanelTests.cs`.
@@ -139,12 +141,13 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
   4. Tests : édition des deux champs.
 - Validation : `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur, `dotnet test` vert. Clic dans l'éditeur à la charge de l'auteur : 🧪 si non fait.
 - Commit : `feat(editor): edit sound exclusion groups in the inspector`
+- Note : `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur, `dotnet test` 4784/4784. Reste : clic dans l'éditeur par l'auteur.
 
 ---
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample et documents
+### 🧪 T2.1 — Sample et documents
 
 - Objectif : montrer la feature et la documenter.
 - Fichiers : `Projects/PixelUiSample/Audio/cursor_move.sound`, `Projects/PixelUiSample/README.md`, `docs/engine/audio-system.md` (table `.sound`, liste de l'inspecteur, section preview), `docs/engine/data-driven-screens.md`, `ai-agent/README.md`.
@@ -154,6 +157,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
   3. Lancer `PixelUiSample` au Launcher. Tout pilote d'entrées refuse d'agir sans handle valide, jeu au premier plan et jeu sous le pointeur.
 - Validation : le sample charge sans avertissement audio au journal. L'écoute revient à l'auteur : tâche en 🧪 jusqu'à sa recette.
 - Commit : `docs(audio): document sound exclusion groups`
+- Note : `PixelUiSample` lancé 8 s au Launcher, sans entrée : le son se charge, aucun avertissement au journal. `dotnet test` 4784/4784. Reste : écoute par l'auteur, direction tenue dans le menu.
 
 ---
 

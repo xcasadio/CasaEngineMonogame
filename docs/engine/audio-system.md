@@ -324,6 +324,8 @@ ci-dessus.
 | `variation_volume_min` / `variation_volume_max` | 1 / 1 | facteur de volume tiré dans [min, max], borné à [0, 1] : la variation ne fait qu'atténuer |
 | `variation_pitch_min` / `variation_pitch_max` | 0 / 0 | décalage de pitch en octaves tiré dans [min, max], borné à [-1, 1] |
 | `priority` | 0 | priorité de vol de voix, 0..100 ; 0 = aucune (§4) |
+| `exclusion_group` | vide | groupe de sons qui ne se superposent pas : lancer un son du groupe arrête les voix de ce groupe, quel que soit l'asset (ADR-0083). Casse ignorée, sans effet sur un flux |
+| `exclusion_fade_seconds` | 0 | fondu que le son qui arrive donne aux voix qu'il arrête ; 0 = arrêt net. L'arrêt est net aussi si le backend est plein. Sous le repli MonoGame, le fondu avance par image |
 | `spatial_mode` | `None` | `None`, `Spatial2D` ou `Spatial3D` (§5 quater) |
 | `distance_model` | `InverseDistanceClamped` | modèle de distance d'OpenAL 1.1 (§5 quater) |
 | `reference_distance` / `max_distance` / `rolloff_factor` | 1 / sans limite / 1 | réglages du modèle, en unités monde |
@@ -347,7 +349,7 @@ résident l'ignore. L'inspecteur n'a pas de ligne pour ce champ (son champ numé
 le fichier `.sound` ; la copie d'aperçu de l'inspecteur le garde.
 
 Dans l'éditeur : clic droit sur un dossier → **Create Sound**, puis double-clic pour ouvrir
-l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, loop,
+l'inspecteur (fichier, fichiers de variation, volume, pitch, plages de variation, priorité, groupe d'exclusion, loop,
 bus, mode spatial, modèle et distances, Doppler, nombre de liaisons, streaming, preview). La liste
 des bus propose les quatre bus du moteur puis les autres bus de l'asset de mixeur du projet (§2 ter) ;
 un bus du `.sound` absent des deux s'affiche « (unknown bus) » sans être sélectionnable. La ligne
@@ -650,6 +652,7 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   audible pendant une session ;
 - la preview de l'inspecteur de son joue **sans priorité** : elle ne vole jamais une voix du jeu,
   et elle est refusée quand toutes les voix sont prises. Elle tire les variations à chaque appui.
+  Le bus `Editor` reste hors des groupes d'exclusion : une preview n'arrête aucune voix du jeu, et un son du jeu n'arrête pas une preview ;
 
 ---
 

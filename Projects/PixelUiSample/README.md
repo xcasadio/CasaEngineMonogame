@@ -24,6 +24,7 @@ dotnet run --project CasaEngine.Launcher -- Projects/PixelUiSample/PixelUiSample
 - `ui-input.buttonsMapping`: the UI actions, each with a key and a gamepad button, and the repeat in milliseconds.
 - `Screens/title.uiscreen`: `fonts` holds the font for the screen's lifetime, `focus_wrap` joins the ends, `move_command` plays a sound when the focus moves.
 - `Screens/options.uiscreen`: a modal screen with `focus_wrap` on a row and a `cancel_command`.
+- `Audio/cursor_move.sound`: `exclusion_group` stops the previous move sound, so a held direction never stacks it.
 - `Screens/title.xaml`: everything is in design pixels, including `Left` and `Top`. A text element names the font in its `FontFamily`, and a button holds a `TextBlock` to carry it.
 - `Screens/title.uiscreen`, command `FadeOut`: `fade_screen`, `wait_fade`, `change_world`.
 - `Screens/title.uiscreen`, field `on_open_command`: the screen fades in when it opens, and takes no key until that ends.
