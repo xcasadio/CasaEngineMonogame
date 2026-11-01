@@ -304,11 +304,11 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <summary>
     /// Runs here and not in <see cref="Update"/> because loading is the one place every way of opening a screen goes
-    /// through, so the first frame drawn shows the fade whichever way the screen opened. No frame order asks for this
-    /// on most screens: a first screen gets its first update before its first draw, and a screen opened by
-    /// <c>open_screen</c> gets it on the frame it opens, inside the loop of <see cref="ScreenStack.Update"/>. It matters
-    /// for a screen that gets no update on the frame it opens, see the limits of ADR-0082. The caller disposes the
-    /// screen if an action throws.
+    /// through, so the fade runs from the frame the screen opens. No frame order asks for this on most screens: a first
+    /// screen gets its first update before its first draw, and a screen opened by <c>open_screen</c> gets it on the
+    /// frame it opens, inside the loop of <see cref="ScreenStack.Update"/>. It changes one case, a screen that gets no
+    /// update on the frame it opens: the overlay still draws on that frame, which has no window of this screen in any
+    /// case, see the limits of ADR-0082. The caller disposes the screen if an action throws.
     /// </summary>
     private void StartOnOpenCommand()
     {
