@@ -7,7 +7,7 @@
 ## Context
 
 - ADR-0081 accepts as a limit that no fade runs when a screen opens: nothing starts a command then, and a screen draws one frame before its first `Update`, so a fade in started from `Update` would show the screen once, unfaded.
-- A menu drawn as text rows needs a cursor beside the focused row. MGUI has no data binding to the focus: `HasKeyboardFocus` is an explicit interface member with no change notification. Its focus visuals are colors of the element itself.
+- A menu drawn as text rows needs a cursor beside the focused row. MGUI's focus visuals are colors of the element itself, and an element has no property that says it holds the focus: `HasKeyboardFocus` is an explicit interface method, and `VisualState` says Focused only outside the Pointer input mode. The desktop does report every change, through `MGDesktop.FocusedKeyboardHandlerChanged`, but that event knows nothing of screens: it also fires for a screen frozen under a modal one, which has to keep its marker. That is why the screen polls, see the decision on `Update` below.
 - A cursor can be taller than a row, so two cursors in their own buttons would overlap the neighbouring button.
 
 ## Decision
@@ -50,8 +50,9 @@
 
   `marker` is visible only while `element` holds the keyboard focus. The pair is explicit because a marker can be a sibling of its element on a `Canvas`, outside the button it follows.
 - **A hidden marker keeps its place.** It uses `Visibility.Hidden`, so the layout does not move with the focus.
-- **`Update` compares the focus with the last one it saw,** with no subscription and no allocation, and only then writes the visibility. A screen frozen under a modal one keeps its marker.
+- **`Update` compares the focus with the last one it saw,** with no subscription and no allocation, and only then writes the visibility. A screen frozen under a modal one keeps its marker: the modal screen takes the focus, and only `Update` stops with the screen (`ScreenStack.Update`). The comparison then catches up on its own when the modal screen closes. It also reads the field `WatchFocusMove` reads anyway, and leaves nothing to release when the screen ends.
 - **A name the XAML does not declare, or an `element` that cannot take the focus, is refused at load.**
+- **A `marker` that is its `element`, or an ancestor of it, is refused at load.** `Visibility.Hidden` takes the keyboard input from an element and all it contains (`MGElement.Update`), so the focus that would show the marker could never arrive. Measured before the refusal: 120 frames and three key presses left the element without the focus, the marker hidden and no error. The refusal ignores `CanHandleInputsWhileHidden`: that flag keeps the keyboard, but keyboard navigation still skips a hidden element (`MGDesktop.IsNavigationTarget`).
 
 ## Consequences
 
@@ -59,7 +60,7 @@
 - The format is additive: envelopes without these fields load and save unchanged. An older engine ignores both fields, so the screen would open without its fade and with every marker showing.
 - A fade started at open shows `from` on the first frame and its first step on the second. A fade of N steps reaches `to` on frame N + 1, one frame later than a fade that shows one step on its first frame, such as one started by a confirm from the UI.
 - Nothing that follows the elapsed time advances during the start of a world: the Update that loads it and the first frame's Update run at time zero, as MonoGame's first Update always did.
-- Markers are all hidden until a focus arrives, which takes a frame or two after the load.
+- Markers are all hidden until a focus arrives. With `default_focus` that is the third `Update` after the load. Without it, no focus arrives by itself: `MGDesktop.ActiveInputMode` starts as Pointer, and MGUI gives no focus in that mode (`UIFocusNavigationService.QueueAutoFocusIfNeeded`). The markers of such a screen wait for the first key or gamepad press, or a click (see [Measures](#measures)). A screen opened while another one holds the focus takes it without any input, and so does a screen opened after a key press.
 - Known limits, accepted:
   - A marker jumps with the focus: nothing slides it.
   - A marker follows one element. An element inside a focused group does not count as the group.
@@ -93,4 +94,5 @@ Where the time went, in the same runs:
 - Physics skips a zero elapsed time, so its first step lands on the first Update that receives time. This is what the second frame of the discard covers. Why that step is slow has not been measured.
 - A fade out to `to` followed by `change_world` draws 15, 30, then 15 by 15 up to 255 on 17 frames, and 255 is drawn before the world changes. The first frame of the next world still draws 255. The same sequence was measured before the discard, which only removes the 9 to 29 Updates that followed the change.
 - A reset made from inside an Update ends the catch-up of the running `Game.Tick`, which reads the accumulated time on each pass of its loop. With a world change delayed by 1200 ms, one frame after the change had 29 Updates before the discard. With it, every frame has 1. `LoadTimeDiscardGameLoopTests` holds this against the package.
+- When the focus arrives, in the Launcher on `Projects/PixelUiSample`, Debug build, with a temporary trace of each screen `Update`: with `default_focus`, on `Update` 3. On a copy with that field removed, the mode stayed Pointer and no focus came for 930 `Update`s, until the first key. `DataDrivenScreenTests` gives the same results on a headless desktop.
 - Not measured: a Release build, and when the operating system first shows frame 1 on screen.

@@ -44,7 +44,7 @@ A `.uiscreen` gains nine optional fields. A field left out keeps its default and
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
 - `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades).
-- `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit anywhere in the window, such as beside its button on a `Canvas` (ADR-0082).
+- `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit beside its button on a `Canvas` or inside the button, but it cannot be the element or contain it: hidden, it would keep the focus from the element for good, so the load refuses it (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
 
@@ -263,7 +263,7 @@ A project's mapping stops the game when it loads, for one of these reasons:
 
 - Actions are edited by hand in the JSON: the editor has no panel for them.
 - A world does not open a screen when it loads. `FirstScreenName` runs once.
-- A marker of `focus_markers` jumps with the focus, nothing slides it, and it stays hidden until a focus arrives, a frame or two after the load.
+- A marker of `focus_markers` jumps with the focus, nothing slides it, and it stays hidden until a focus arrives. With `default_focus`, that is the third `Update` after the load. Without it, a first screen gets no focus before the first key or gamepad press or a click: MGUI's input mode starts as Pointer, and MGUI gives no focus in that mode.
 - Without a mapping, a button held through a `change_world` counts as a new press on the next world: the world builds a new `UIRoot`, whose input tracker starts from nothing. Reaching this needs a screen pushed by code on that world, because `FirstScreenName` runs once. A mapping ignores a held input at its creation.
 - No action removes a fade. Its overlay outlives `change_world` and stays on the last value, so a list that fades out ends on a world that stays hidden. `Projects/PixelUiSample` goes to a black world for that reason. `layer` also stays on the service.
 - The mouse is not blocked during a wait: hover goes on, and a click can move the focus. Commands stay refused.

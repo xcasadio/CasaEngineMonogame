@@ -18,7 +18,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - `git log -1` : la branche part de `chantier/screen-fade-actions` `c5ffe054`.
 - ADR-0081 liste comme limite « No fade runs when a screen opens » : rien ne lance une commande à l'ouverture, et un écran dessine une image avant son premier `Update`.
 - `DataDrivenScreen.OnWindowLoaded` tourne avant l'entrée de l'écran sur la pile (`DataDrivenScreen.cs:116`).
-- MGUI n'offre aucun lien de données vers le focus : `HasKeyboardFocus` est une implémentation explicite (`MGElement.cs:2918`) sans notification.
+- Un élément MGUI n'a pas de propriété qui dise qu'il tient le focus : `HasKeyboardFocus` est une méthode d'interface explicite (`MGElement.cs:2918`). Le bureau signale pourtant chaque changement par `MGDesktop.FocusedKeyboardHandlerChanged` (`MGDesktop.cs:1261`) : corrigé en T4.2, la version d'origine de cette ligne l'ignorait.
 - `MGDesktop.FocusedKeyboardHandler` se lit sans allocation, et `DataDrivenScreen.WatchFocusMove` compare déjà sa valeur d'une image à l'autre.
 
 ## Décisions verrouillées
@@ -89,9 +89,24 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Validation : séquences dessinées dans ADR-0082, trace temporaire retirée (vérifié par `git diff`), cinq mutations qui font toutes échouer un test. Le branchement dans `CasaEngineGame` et `UpdateWorld` n'a pas de test : aucun test ne construit ce jeu, le Launcher le prouve.
 - Commit : `fix(runtime): keep the start of a world off the game clock`.
 
+## Phase 4 — Revue d'ADR-0082
+
+### ✅ T4.1 — Fermer les constats de la revue d'ADR-0082
+
+- Constat 1, vrai : un marqueur égal à son élément, ou ancêtre de celui-ci, était accepté. Caché, il retire l'entrée clavier à tout ce qu'il contient (`MGElement.Update`), donc le focus qui le montrerait n'arrive jamais. Mesuré avant le correctif : 120 images et trois touches, élément sans focus, marqueur caché, aucune erreur. Il est refusé au chargement avec le chemin de l'enveloppe. Une fenêtre nommée n'était pas en cause : son propre nom n'est pas indexé, le chargement la refusait déjà (mesuré).
+- Constat 2, vrai : « une image ou deux après le chargement » était faux sans `default_focus`. Le mode d'entrée de MGUI démarre en Pointer et aucun focus n'arrive avant la première touche, le premier appui manette ou un clic. Avec `default_focus`, le focus arrive au troisième `Update`. Mêmes résultats sur bureau sans affichage et au Launcher : 930 `Update` sans focus sur une copie du sample sans `default_focus`.
+- Constat 3, vrai : le contexte d'ADR-0082 ignorait `MGDesktop.FocusedKeyboardHandlerChanged`. La vraie raison du polling : cet événement touche aussi un écran gelé sous un modal, qui doit garder son marqueur. L'ancienne phrase « aucun lien de données vers le focus » a aussi été retirée : `VisualState` est public et notifié, seulement il ne dit Focused qu'hors du mode Pointer. Un binding dessus n'a pas été essayé.
+- Constat 4, vrai : tests ajoutés pour un marqueur gelé sous un modal et pour une action qui lève pendant `on_open_command`. Ce dernier passe par le vrai `GameManager.PushNewScreen`, avec une vue de remplacement : aucun test ne construit un `UIRoot`.
+- Fichiers : `DataDrivenScreen.cs`, `DataDrivenScreenTests.cs`, `FirstScreenTests.cs`, ADR-0082, `docs/engine/data-driven-screens.md`, ce plan, `ai-agent/README.md`.
+- Validation : 13 mutations, toutes tuées par le test visé, dont 2 dans MGUI, restaurées. La première version du test « aucun focus avant la première touche » survivait à celle qui fait démarrer MGUI en Navigation : son premier pas déplaçait la souris, ce qui rend le mode Pointer de toute façon. Le test garde maintenant la souris immobile. Trace temporaire retirée (vérifié par `git diff`).
+- Commit : `fix(ui): refuse a focus marker that hides its element and correct ADR-0082`.
+
 ## Points ouverts
 
-- Aucun.
+Vus pendant T4.1, hors de la demande, non corrigés :
+
+- Deux paires de `focus_markers` qui nomment le même marqueur : seule la dernière le pilote, parce que `ShowFocusMarkers` écrit la visibilité paire par paire. Mesuré : focus sur le premier élément, marqueur caché.
+- Un marqueur qui contient l'élément d'une autre paire est accepté. Mesuré : avec le second bouton dans le panneau marqueur du premier, trois appuis sur Bas laissent le focus sur le premier bouton. La cause n'a pas été analysée.
 
 ## Résultat
 
@@ -99,3 +114,4 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Launcher sur `Projects/PixelUiSample` : le curseur n'apparaît que sur `FADE OUT`, et disparaît quand le focus passe à `QUIT`. Aucune exception dans le log.
 - Limite ajoutée à ADR-0081 après vérification de `chantier/screen-fade-actions` : sans mapping, un bouton tenu à travers `change_world` compte comme un nouvel appui sur le monde suivant. Il faut un écran poussé par du code pour l'atteindre. Le comportement n'est pas corrigé.
 - T3.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4700/4700, reconstruit. Launcher sur un projet à pas fixe : 255, 240, puis de 15 en 15 jusqu'à 0 à l'image 18, une seule image à 2 Updates (la première). Fondu sortant : 15 à 255 sur 17 images, 255 dessiné avant le changement de monde.
+- T4.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4711/4711, reconstruit, `MGUI.Tests` 3225/3225. Launcher sur le sample : focus au troisième `Update`, curseur sur `FADE OUT` puis disparu sur `QUIT`, aucune exception. Sur une copie sans `default_focus` : 930 `Update` sans focus ni marqueur, puis marqueur à la première touche. Sur une copie où le marqueur est son élément : le jeu s'arrête au chargement sur le message qui nomme l'enveloppe. Sur un projet externe qui utilise `focus_markers` : chargement sans erreur.

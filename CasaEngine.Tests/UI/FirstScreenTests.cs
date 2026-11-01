@@ -1,8 +1,11 @@
 using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.UI;
+using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -120,6 +123,99 @@ public class FirstScreenTests
         Assert.True(screen.IsDisposed);
     }
 
+    /// <summary>
+    /// A real screen on the real caller: <c>on_open_command</c> runs inside the push (ADR-0082), so an action that throws
+    /// leaves a screen that never reached a stack, and whatever it held is given back by the caller.
+    /// </summary>
+    [Fact]
+    public void AnOpenCommandThatThrows_LeavesTheScreenDisposedByItsCaller_AndNoHoldBehind()
+    {
+        string root = Directory.CreateTempSubdirectory("first-screen-").FullName;
+
+        try
+        {
+            var assetId = Guid.NewGuid();
+            var info = new AssetInfo(assetId) { Name = "Menu", FileName = "menu.uiscreen" };
+            File.WriteAllText(Path.Combine(root, "menu.xaml"), """
+                <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core" Left="0" Top="0" Width="320" Height="200">
+                  <Button Name="btnPlay" Content="Play" />
+                </Window>
+                """);
+            File.WriteAllText(Path.Combine(root, "menu.uiscreen"), $$"""
+                {
+                  "id": "{{assetId}}",
+                  "name": "Menu",
+                  "source_xaml_file": "menu.xaml",
+                  "on_open_command": "Open",
+                  "fonts": [ "pixel" ],
+                  "ui_commands": [
+                    {
+                      "name": "Open",
+                      "actions": [
+                        { "type": "play_sound", "target": "Confirm" },
+                        { "type": "fade_screen", "layer": "AboveUI", "blend_mode": "Subtractive", "from": [ 0, 0, 0 ], "to": [ 255, 255, 255 ], "duration_seconds": 0.5 }
+                      ]
+                    }
+                  ]
+                }
+                """);
+
+            var manager = new AssetContentManager
+            {
+                RuntimeContext = new EngineRuntimeContext(new ProjectSettings(), root, id => id == assetId ? info : null),
+            };
+            manager.RegisterAssetLoader(typeof(UIScreenAsset), new DataDrivenScreenTests.EnvelopeLoader());
+
+            var soundId = Guid.NewGuid();
+            using var soundOwner = manager.Register(soundId, new SoundAsset { Name = "Confirm" });
+            AssetHandle<SoundAsset>? sound = null;
+            var font = new FontHold();
+            var context = new UIScreenActionContext
+            {
+                ScreenExists = static _ => false,
+                WorldExists = static _ => false,
+                AcquireSound = _ => sound = manager.Acquire<SoundAsset>(soundId),
+                AcquireFont = _ => font,
+                IsTopScreen = static _ => false,
+                OpenScreen = static _ => { },
+                CloseScreen = static _ => { },
+                ChangeWorld = static _ => { },
+                PlaySound = static _ => { },
+                Quit = static () => { },
+                StartFade = static _ => throw new InvalidOperationException("Fade refused."),
+                IsFadeRunning = static () => false,
+            };
+
+            var (desktop, _) = HeadlessUiTestHarness.NewDesktop(1024, 768);
+            var view = AddView();
+            view.OnPush = screen => ((XamlUIScreenBase)screen).BuildWindow(desktop); // What ScreenStack.Push does first.
+
+            var error = Assert.Throws<InvalidOperationException>(
+                () => _gameManager.OpenFirstScreen(
+                    GameplayExecutionPolicies.Runtime,
+                    "Menu",
+                    (_, _) => new DataDrivenScreen(manager, assetId.ToString(), context)));
+
+            Assert.Equal("Fade refused.", error.Message);
+            Assert.Empty(view.Pushed);
+            Assert.Empty(desktop.Windows);
+            Assert.True(sound!.IsDisposed);
+            Assert.True(font.IsDisposed);
+            Assert.Equal(1, manager.CollectUnreferenced()); // The envelope: the sound still has its owner.
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private sealed class FontHold : IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose() => IsDisposed = true;
+    }
+
     private IUIScreen Create(string name, IUIViewRuntime view)
     {
         _created.Add(name);
@@ -234,6 +330,8 @@ public class FirstScreenTests
 
         public Exception? PushFailure { get; set; }
 
+        public Action<IUIScreen>? OnPush { get; set; }
+
         public bool IsPointerOverUI => false;
 
         public bool IsPointerCaptured => false;
@@ -266,6 +364,7 @@ public class FirstScreenTests
                 throw PushFailure;
             }
 
+            OnPush?.Invoke(screen);
             Pushed.Add(screen);
         }
 

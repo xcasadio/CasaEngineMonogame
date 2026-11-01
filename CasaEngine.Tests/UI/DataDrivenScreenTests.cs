@@ -1050,11 +1050,11 @@ public sealed class DataDrivenScreenTests : IDisposable
         </Window>
         """;
 
-    private DataDrivenScreen BuildMarked()
+    private DataDrivenScreen BuildMarked(string? defaultFocus = "btnPlain")
     {
         File.WriteAllText(Path.Combine(_root, "menu.xaml"), MarkerMarkup);
 
-        var asset = new UIScreenAsset { DefaultFocus = "btnPlain" };
+        var asset = new UIScreenAsset { DefaultFocus = defaultFocus };
         asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblFirst" });
         asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlay", Marker = "lblSecond" });
         return Build(asset, CommandOf(Action("quit")));
@@ -1107,6 +1107,180 @@ public sealed class DataDrivenScreenTests : IDisposable
 
         Assert.Contains(_envelopePath, exception.Message);
         Assert.Contains(expected, exception.Message);
+    }
+
+    /// <summary>Hidden, such a marker keeps the focus from its element for good: nothing would ever show it.</summary>
+    [Theory]
+    [InlineData("btnPlain", "btnPlain")]
+    [InlineData("btnPlain", "panel")]
+    public void AMarker_ThatIsItsElementOrContainsIt_IsRefused(string element, string marker)
+    {
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            MarkerMarkup.Replace("""<StackPanel Orientation""", """<StackPanel Name="panel" Orientation"""));
+        var asset = new UIScreenAsset();
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = element, Marker = marker });
+
+        var exception = Assert.Throws<InvalidOperationException>(() => Build(asset, CommandOf(Action("quit"))));
+
+        Assert.Contains(_envelopePath, exception.Message);
+        Assert.Contains($"marker '{marker}'", exception.Message);
+        Assert.Contains($"element '{element}'", exception.Message);
+    }
+
+    [Fact]
+    public void AMarker_InsideItsElement_IsLegal_AndTheFocusStillArrives()
+    {
+        File.WriteAllText(
+            Path.Combine(_root, "menu.xaml"),
+            MarkerMarkup.Replace(
+                """<Button Name="btnPlain" Content="Plain" />""",
+                """<Button Name="btnPlain"><TextBlock Name="lblInside" Text=">" /></Button>"""));
+        var asset = new UIScreenAsset { DefaultFocus = "btnPlain" };
+        asset.FocusMarkers.Add(new UIScreenFocusMarkerData { Element = "btnPlain", Marker = "lblInside" });
+
+        var screen = Build(asset, CommandOf(Action("quit")));
+        Settle(screen);
+
+        Assert.Equal("btnPlain", FocusedName());
+        Assert.Equal(Visibility.Visible, VisibilityOf(Assert.Single(screen.GetWindows()), "lblInside"));
+    }
+
+    [Fact]
+    public void WithADefaultFocus_AMarkerShows_OnTheThirdUpdateAfterTheLoad()
+    {
+        var screen = BuildMarked();
+        var window = Assert.Single(screen.GetWindows());
+
+        Step(Away, screen);
+        Step(Away, screen);
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+
+        Step(Away, screen);
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblFirst"));
+    }
+
+    /// <summary>
+    /// The mouse stays where the tracker starts: a mouse that moves would switch MGUI to Pointer by itself, and this
+    /// would no longer show the mode a desktop starts in.
+    /// </summary>
+    [Fact]
+    public void WithoutADefaultFocus_NoFocusArrivesBeforeTheFirstKey_AndTheMarkerWaitsForIt()
+    {
+        var screen = BuildMarked(defaultFocus: null);
+        var window = Assert.Single(screen.GetWindows());
+
+        for (int i = 0; i < 300; i++)
+        {
+            Step(Point.Zero, screen);
+        }
+
+        Assert.Equal(UIInputMode.Pointer, _desktop.ActiveInputMode);
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblSecond"));
+
+        Step(Point.Zero, screen, _desktop, _runtime, ButtonState.Released, new KeyboardState(Keys.Down));
+
+        // MGUI gives the first button the focus, and the same key moves it on.
+        Assert.Equal(UIInputMode.Navigation, _desktop.ActiveInputMode);
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblSecond"));
+    }
+
+    [Fact]
+    public void WithoutADefaultFocus_AScreenOpenedAfterAKeyPress_GetsTheFocusWithNoInput()
+    {
+        RunEmptyDesktopFrame(default);
+        RunEmptyDesktopFrame(new KeyboardState(Keys.Down));
+        RunEmptyDesktopFrame(default);
+        Assert.Equal(UIInputMode.Navigation, _desktop.ActiveInputMode);
+
+        var screen = BuildMarked(defaultFocus: null);
+        Settle(screen);
+
+        Assert.Equal("btnPlain", FocusedName());
+        Assert.Equal(Visibility.Visible, VisibilityOf(Assert.Single(screen.GetWindows()), "lblFirst"));
+    }
+
+    private void RunEmptyDesktopFrame(KeyboardState keyboard)
+    {
+        _frame++;
+        _runtime.ApplyFrame(Frame(Away, ButtonState.Released, keyboard));
+        _desktop.Update();
+    }
+
+    [Fact]
+    public void WithoutADefaultFocus_AGamepadPress_ShowsTheMarker()
+    {
+        var screen = BuildMarked(defaultFocus: null);
+        var window = Assert.Single(screen.GetWindows());
+        _runtime.Input.GamePad.StateOverride = NoButton;
+        Settle(screen);
+
+        _runtime.Input.GamePad.StateOverride = HoldingA;
+        Step(Away, screen);
+
+        Assert.Equal("btnPlain", FocusedName());
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblFirst"));
+    }
+
+    [Fact]
+    public void WithoutADefaultFocus_AClick_ShowsTheMarker()
+    {
+        var screen = BuildMarked(defaultFocus: null);
+        var window = Assert.Single(screen.GetWindows());
+        Settle(screen);
+
+        Click(ButtonCentre(screen, "btnPlay"), screen);
+
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblSecond"));
+    }
+
+    /// <summary>The focus leaves for the modal screen, and only the Update the frozen screen no longer gets would see that.</summary>
+    [Fact]
+    public void AMarker_FrozenUnderAModalScreen_KeepsItsState_ThenCatchesUpWhenItCloses()
+    {
+        var title = BuildMarked();
+        var window = Assert.Single(title.GetWindows());
+        var stack = StackOf(title);
+        var modal = Build(new UIScreenAsset { IsModal = true, DefaultFocus = "btnPlay" }, CommandOf(Action("quit")));
+        stack.PushBuilt(modal);
+
+        RootSteps(stack, 4);
+
+        Assert.Same(Assert.Single(modal.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblSecond"));
+
+        CloseOn(stack, modal);
+        RootSteps(stack, 2);
+
+        // With the mouse as the last input, MGUI gives no focus back.
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+    }
+
+    [Fact]
+    public void AMarker_UnderAModalScreenThatCloses_FollowsTheFocusThatComesBack()
+    {
+        var title = BuildMarked();
+        var window = Assert.Single(title.GetWindows());
+        var stack = StackOf(title);
+        TapRoot(stack, Keys.Down);
+        Assert.Equal("btnPlay", FocusedName());
+        var modal = Build(new UIScreenAsset { IsModal = true, DefaultFocus = "btnPlain" }, CommandOf(Action("quit")));
+        stack.PushBuilt(modal);
+        RootSteps(stack, 4);
+
+        CloseOn(stack, modal);
+        RootSteps(stack, 2);
+
+        Assert.Same(window, _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Equal(Visibility.Hidden, VisibilityOf(window, "lblFirst"));
+        Assert.Equal(Visibility.Visible, VisibilityOf(window, "lblSecond"));
     }
 
     [Fact]
@@ -1812,7 +1986,7 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.True(Assert.Single(_fontHolds).IsDisposed);
     }
 
-    private sealed class EnvelopeLoader : IAssetLoader
+    internal sealed class EnvelopeLoader : IAssetLoader
     {
         public object LoadAsset(string fileName, AssetContentManager assetContentManager)
         {

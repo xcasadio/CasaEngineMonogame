@@ -507,7 +507,11 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         }
     }
 
-    /// <summary>Every marker starts hidden: no focus has arrived yet, and Hidden keeps its place in the layout.</summary>
+    /// <summary>
+    /// Every marker starts hidden: no focus has arrived yet, and Hidden keeps its place in the layout. A marker that is
+    /// its element, or holds it, is refused: hidden, it takes the keyboard input from all it holds, so the focus that
+    /// would show it could never arrive.
+    /// </summary>
     private void ResolveFocusMarkers(MGWindow window)
     {
         foreach (var pair in Asset.FocusMarkers)
@@ -527,12 +531,22 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
                 throw InvalidEnvelope($"'focus_markers' names marker '{pair.Marker}', which the XAML does not declare.");
             }
 
+            if (marker.IsSelfOrAncestorOf(element))
+            {
+                throw InvalidEnvelope(
+                    $"'focus_markers' names marker '{pair.Marker}', which is element '{pair.Element}' or contains it: hidden, it would keep the focus from that element for good.");
+            }
+
             marker.Visibility = Visibility.Hidden;
             _focusMarkers.Add((element, marker));
         }
     }
 
-    /// <summary>Writes only when the focus changed: this runs every frame, and a marker is not expected to change otherwise.</summary>
+    /// <summary>
+    /// Writes only when the focus changed: this runs every frame, and a marker is not expected to change otherwise.
+    /// This reads the focus rather than listening to <see cref="MGDesktop.FocusedKeyboardHandlerChanged"/>, which also
+    /// fires for a screen frozen under a modal one: that screen gets no <see cref="Update"/>, so it keeps its markers.
+    /// </summary>
     private void ShowFocusMarkers()
     {
         var focused = Window.Desktop.FocusedKeyboardHandler;
