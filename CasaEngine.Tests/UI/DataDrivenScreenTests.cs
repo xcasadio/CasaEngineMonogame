@@ -1925,6 +1925,28 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Equal(14, window.Top);
     }
 
+    /// <summary>
+    /// The bounds change after the desktop's update and the frame is drawn from what that left: the transform takes the
+    /// new corner at once, so the elements must not wait for the next update to move with it.
+    /// </summary>
+    [Fact]
+    public void AChangeOfBounds_MovesTheElementsAtOnce_AndOnlyOnce()
+    {
+        UseWindowAttributes("""Left="5" Top="7" Width="300" Height="170" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(960, 540);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+        Settle(screen);
+        var button = Button(screen, "btnPlay");
+        var before = button.LayoutBounds;
+        var moved = new Rectangle(before.X + 5, before.Y + 7, before.Width, before.Height);
+
+        screen.NotifyScreenBounds(new Rectangle(0, 0, 1280, 720));
+        Assert.Equal(moved, button.LayoutBounds);
+
+        Settle(screen);
+        Assert.Equal(moved, button.LayoutBounds);
+    }
+
     [Fact]
     public void AScaleInTheXaml_IsOverwritten_UnderADesignResolution()
     {

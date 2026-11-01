@@ -588,7 +588,8 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <summary>
     /// <see cref="MGWindow.Scale"/> scales from the window's top-left corner and leaves that corner in screen pixels,
     /// so the position is scaled here. It is written first, because <see cref="MGWindow.Scale"/> builds its transforms
-    /// from it.
+    /// from it. Writing it does not move the elements, and the bounds change after the desktop's update: without the
+    /// validation, the next frame would draw them under the new transform at their old place.
     /// </summary>
     private void ApplyDesignScale(Rectangle bounds)
     {
@@ -601,6 +602,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         Window.Left = _designTopLeft.X * scale;
         Window.Top = _designTopLeft.Y * scale;
         Window.Scale = scale;
+        Window.ValidateWindowSizeAndPosition();
     }
 
     /// <summary>

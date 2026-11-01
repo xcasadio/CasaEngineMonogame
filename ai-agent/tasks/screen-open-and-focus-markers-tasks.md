@@ -145,6 +145,15 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : 6 mutations, toutes tuées, une par ligne câblée.
 - Commit : `test(ui): build the context of a screen without a game`.
 
+### ✅ T5.6 — Une image dessinée sur des bornes périmées quand k change (h)
+
+- Constat h, vrai : le setter `Left` ne déplace rien, seul `ValidateWindowSizeAndPosition` lève `OnWindowPositionChanged`, qui translate les éléments. `UIRoot` notifie les bornes après `Desktop.Update`, donc l'image suivante dessinait les éléments à leur ancienne place sous la nouvelle transformation. Mesuré sur un bouton, de k = 3 à k = 4 : (38, 114) au lieu de (43, 121). `ApplyDesignScale` appelle maintenant `ValidateWindowSizeAndPosition` après `Window.Scale`.
+- Fichiers : `DataDrivenScreen.cs`, `DataDrivenScreenTests.cs`, ce plan.
+- Validation : le test neuf échoue sans le correctif, et vérifie aussi que l'`Update` suivant ne translate pas une seconde fois.
+- Launcher, redimensionnement à chaud du même processus sur `Projects/PixelUiSample` : 960x540, 1280x720, 640x360, 1000x600, puis 960x540. À marge de 12 px des bords, chaque capture compte 5 couleurs et tous les changements tombent en phase avec la grille de `k` : phase 0 à k = 3, 4 et 2, phase 2 en x et 0 en y à 1000x600, dont l'image part de (20, 30). La capture de retour à 960x540 est identique à l'octet à la première. Sans cette marge, 36 pixels de 11 couleurs rares restent hors phase. Ils sont tous à moins de 9 px d'un coin, en même nombre à chaque taille. Leur cause n'est pas prouvée.
+- Le même run prouve les lectures de `_game` de T5.5 : échelle, police bitmap, puis fondu `FADE OUT` jusqu'à `BlackWorld`, aucune exception dans le log. L'image transitoire elle-même n'a pas été observée au Launcher : seul le test la mesure.
+- Commit : `fix(ui): move a scaled window's elements on the frame k changes`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :
