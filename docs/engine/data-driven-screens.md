@@ -201,7 +201,7 @@ The UI then reads that file instead of MGUI's tables. An entry whose name is tha
 - `Submit`, `Cancel`, `NavigateUp`, `NavigateDown`, `NavigateLeft` and `NavigateRight` are required. The other UI actions, such as `NavigateNext` or `OpenContext`, are optional.
 - An entry has two inputs, `key_button` and `alternative_key_button`, usually a key and a gamepad button.
 - Tab, Home, End, PageUp and PageDown keep their usual meaning when the mapping does not bind them, Shift+Tab included.
-- While an editable text box has the focus, a key MGUI's tables do not know stays text: a letter bound to Cancel does not cancel.
+- While an editable text box has the focus, a key MGUI's tables do not know stays text: a letter bound to Cancel does not cancel. A key the focused text box reserves stays its own too: a space bound to Cancel is a space.
 
 ### Repeat
 
@@ -256,7 +256,7 @@ A project's mapping stops the game when it loads, for one of these reasons:
 
 - `UIInputMapping` names no `.buttonsMapping` of the catalogue, or the file cannot be read;
 - a required action is missing, or binds no input;
-- a UI action is an analog input, is declared twice, binds a mouse button, or reads a gamepad other than the first;
+- a UI action is an analog input, is declared twice, even with an entry that binds no input, binds a mouse button, or reads a gamepad other than the first;
 - `repeat_initial_delay_ms` is negative, or `repeat_interval_ms` is not positive.
 
 ## Limits

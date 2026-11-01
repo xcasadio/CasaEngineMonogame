@@ -101,6 +101,18 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Validation : 13 mutations, toutes tuées par le test visé, dont 2 dans MGUI, restaurées. La première version du test « aucun focus avant la première touche » survivait à celle qui fait démarrer MGUI en Navigation : son premier pas déplaçait la souris, ce qui rend le mode Pointer de toute façon. Le test garde maintenant la souris immobile. Trace temporaire retirée (vérifié par `git diff`).
 - Commit : `fix(ui): refuse a focus marker that hides its element and correct ADR-0082`.
 
+## Phase 5 — Revues d'E2, E3 et E4
+
+Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés ici en commits neufs, sans réécrire l'historique des branches du dessous. Les lettres sont celles de la demande.
+
+### ✅ T5.1 — Navigation : les touches d'une zone de texte et les doublons de mapping (a, b)
+
+- Constat a, vrai : `TryDispatchNavigationAction` rend faux quand `ShouldPreserveTextEntryKey(key)` est vrai, et `Fire` prenait tout faux sur Cancel pour un Cancel non consommé. Avec Espace lié à Cancel et une zone de texte éditable focalisée, taper un espace lançait `cancel_command`. Espace et Entrée sont dans `InputActionMapper`, donc `IsTextForAFocusedTextBox` ne les arrêtait pas. `Fire` demande maintenant à la zone de texte avant de signaler le Cancel. Seul ce signalement change : `TryHandleInputAction` est toujours appelé, le mode d'entrée de MGUI ne bouge pas.
+- Constat b, vrai : le contrôle de doublon lisait les slots construits, et une entrée sans entrée physique n'en construit aucun. `Submit` vide puis `Submit` sur Z passait, alors qu'`InputMappingManager` lit la première entrée. Les actions déclarées ont maintenant leur propre ensemble.
+- Fichiers : `UINavigationInput.cs`, `UINavigationInputTests.cs`, ADR-0080, `docs/engine/data-driven-screens.md`, ce plan.
+- Validation : les 4 tests neufs échouent sans le correctif et passent avec. Le mapping du sample, celui de `RPGDemo` et celui du projet externe n'ont aucun doublon (lu avec `jq`).
+- Commit : `fix(ui): keep a text box's keys out of Cancel and refuse an empty duplicate action`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :

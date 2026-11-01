@@ -571,6 +571,65 @@ public sealed class UINavigationInputTests
         Assert.Equal(1, _cancelCount);
     }
 
+    /// <summary>
+    /// MGUI drops a key a text box keeps before any control sees the action, and answers false as it does for a Cancel
+    /// nothing consumed. These keys are in the mapper, so the check on letters does not stop them.
+    /// </summary>
+    [Theory]
+    [InlineData(Keys.Space, false)]
+    [InlineData(Keys.Enter, true)]
+    public void AKeyATextBoxKeeps_IsNoCancel_WhenItIsBoundToCancel(Keys key, bool acceptsReturn)
+    {
+        var mapping = Mapping();
+        mapping.Buttons[1] = Entry("Cancel", new KeyButton(key));
+        var navigation = Ready(mapping);
+        Assert.True(_window.TryGetElementByName("panel", out MGStackPanel panel));
+        var textBox = new MGTextBox(_window) { AcceptsReturn = acceptsReturn };
+        Assert.True(panel.TryAddChild(textBox));
+        Settle(navigation);
+        textBox.Focus();
+        Step(navigation);
+        Assert.Same(textBox, _desktop.FocusedKeyboardHandler);
+
+        _keys.Add(key);
+        Step(navigation);
+
+        Assert.Equal(0, _cancelCount);
+    }
+
+    [Fact]
+    public void ASpaceBoundToCancel_Cancels_WhenTheFocusedTextBoxDoesNotKeepIt()
+    {
+        var mapping = Mapping();
+        mapping.Buttons[1] = Entry("Cancel", new KeyButton(Keys.Space));
+        var navigation = Ready(mapping);
+        Assert.True(_window.TryGetElementByName("panel", out MGStackPanel panel));
+        var textBox = new MGTextBox(_window) { IsReadonly = true, IsFocusable = true };
+        Assert.True(panel.TryAddChild(textBox));
+        Settle(navigation);
+        textBox.Focus();
+        Step(navigation);
+        Assert.Same(textBox, _desktop.FocusedKeyboardHandler);
+
+        _keys.Add(Keys.Space);
+        Step(navigation);
+
+        Assert.Equal(1, _cancelCount);
+    }
+
+    [Fact]
+    public void ASpaceBoundToCancel_Cancels_WithAButtonFocused()
+    {
+        var mapping = Mapping();
+        mapping.Buttons[1] = Entry("Cancel", new KeyButton(Keys.Space));
+        var navigation = Ready(mapping);
+
+        _keys.Add(Keys.Space);
+        Step(navigation);
+
+        Assert.Equal(1, _cancelCount);
+    }
+
     [Theory]
     [InlineData("Submit")]
     [InlineData("Cancel")]
@@ -635,6 +694,30 @@ public sealed class UINavigationInputTests
         var error = Assert.Throws<InvalidOperationException>(() => new UINavigationInput(_desktop, mapping));
 
         Assert.Contains("'Submit' is declared twice", error.Message);
+    }
+
+    /// <summary>An entry with no input builds nothing, and <c>InputMappingManager</c> would still read it first.</summary>
+    [Fact]
+    public void AUIActionDeclaredTwice_IsRefused_WhenItsFirstEntryBindsNothing()
+    {
+        var mapping = Mapping();
+        mapping.Buttons.Insert(0, Entry("Submit", new KeyButton()));
+
+        var error = Assert.Throws<InvalidOperationException>(() => new UINavigationInput(_desktop, mapping));
+
+        Assert.Contains("'Submit' is declared twice", error.Message);
+    }
+
+    [Fact]
+    public void AnOptionalUIActionDeclaredTwice_IsRefused_WithNoInputOnEither()
+    {
+        var mapping = Mapping();
+        mapping.Buttons.Add(Entry("NavigateHome", new KeyButton()));
+        mapping.Buttons.Add(Entry("NavigateHome", new KeyButton()));
+
+        var error = Assert.Throws<InvalidOperationException>(() => new UINavigationInput(_desktop, mapping));
+
+        Assert.Contains("'NavigateHome' is declared twice", error.Message);
     }
 
     [Fact]

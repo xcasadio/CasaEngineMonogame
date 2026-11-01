@@ -219,7 +219,9 @@ public sealed class UINavigationInput
             isRepeat,
             key);
 
-        if (!_desktop.TryHandleInputAction(new InputActionEvent(action, context)) && action == InputAction.Cancel)
+        bool isHandled = _desktop.TryHandleInputAction(new InputActionEvent(action, context));
+
+        if (!isHandled && action == InputAction.Cancel && !IsKeptByAFocusedTextBox(key))
         {
             CancelNotHandled?.Invoke();
         }
@@ -233,6 +235,15 @@ public sealed class UINavigationInput
         => _desktop.FocusedKeyboardHandler is ITextEntryHost { IsReadonly: false }
            && !InputActionMapper.TryMapKeyboardAction(key, false, out _);
 
+    /// <summary>
+    /// MGUI drops a key the focused text box reserves before any control sees the action, and answers false as it does
+    /// for a Cancel nothing consumed. That key was never a Cancel: a space bound to it is still a space.
+    /// </summary>
+    private bool IsKeptByAFocusedTextBox(Keys? key)
+        => key is { } typed
+           && _desktop.FocusedKeyboardHandler is ITextEntryHost textBox
+           && textBox.ShouldPreserveTextEntryKey(typed);
+
     private bool IsHeldOnDevices(KeyButton input)
         => input.InputDevice switch
         {
@@ -245,6 +256,9 @@ public sealed class UINavigationInput
     {
         var slots = new List<Slot>(RequiredActions.Length + FallbackKeys.Length);
 
+        // Apart from the slots: an entry that binds nothing builds none, and it still is the one a name resolves to.
+        var declared = new HashSet<InputAction>();
+
         foreach (var entry in mapping.Buttons)
         {
             if (!TryGetUIAction(entry.Name, out var action))
@@ -252,7 +266,7 @@ public sealed class UINavigationInput
                 continue;
             }
 
-            if (slots.Exists(slot => slot.Action == action))
+            if (!declared.Add(action))
             {
                 throw Refused(mapping, $"UI action '{action}' is declared twice.");
             }
