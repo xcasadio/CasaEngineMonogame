@@ -759,6 +759,88 @@ public class SoundAssetTests
         Assert.Empty(asset.ParameterBindings);
     }
 
+    // ---- exclusion group (ADR-0083) ----
+
+    [Fact]
+    public void Load_WithoutTheExclusionKeys_KeepsNoGroup()
+    {
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, CreateDocument(Guid.NewGuid(), Guid.NewGuid()));
+
+        Assert.Empty(warnings);
+        Assert.Equal(string.Empty, asset.ExclusionGroup);
+        Assert.Equal(0f, asset.ExclusionFadeSeconds);
+    }
+
+    [Fact]
+    public void Load_ReadsTheExclusionKeys()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["exclusion_group"] = "  interface ";
+        document["exclusion_fade_seconds"] = 0.25;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Empty(warnings);
+        Assert.Equal("interface", asset.ExclusionGroup);
+        Assert.Equal(0.25f, asset.ExclusionFadeSeconds);
+    }
+
+    [Fact]
+    public void Load_AnExclusionGroupThatIsNotAString_KeepsNoGroupAndWarnsOnce()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["exclusion_group"] = 12;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Single(warnings);
+        Assert.Contains("exclusion_group", warnings[0]);
+        Assert.Equal(string.Empty, asset.ExclusionGroup);
+    }
+
+    [Fact]
+    public void Load_AnExclusionFadeThatIsNotANumber_KeepsZeroAndWarnsOnce()
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["exclusion_fade_seconds"] = "short";
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Single(warnings);
+        Assert.Contains("exclusion_fade_seconds", warnings[0]);
+        Assert.Equal(0f, asset.ExclusionFadeSeconds);
+    }
+
+    [Theory]
+    [InlineData(null, "")]
+    [InlineData("", "")]
+    [InlineData("   ", "")]
+    [InlineData("group ", "group")]
+    [InlineData("Group", "Group")]
+    public void ExclusionGroup_CleansTheName(string written, string expected)
+    {
+        var asset = new SoundAsset { ExclusionGroup = written };
+
+        Assert.Equal(expected, asset.ExclusionGroup);
+    }
+
+    [Theory]
+    [InlineData(float.NaN)]
+    [InlineData(-1f)]
+    public void ExclusionFadeSeconds_KeepsThePreviousValueWhenInvalid(float written)
+    {
+        var asset = new SoundAsset { ExclusionFadeSeconds = 0.5f };
+
+        asset.ExclusionFadeSeconds = written;
+
+        Assert.Equal(0.5f, asset.ExclusionFadeSeconds);
+    }
+
     // ---- loop_start_sample (plan E19.L-a, ADR-0074) ----
 
     [Theory]

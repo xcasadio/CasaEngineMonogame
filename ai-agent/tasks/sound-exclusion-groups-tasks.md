@@ -94,7 +94,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 
 ## Phase 1 — Moteur et éditeur
 
-### ⏳ T1.1 — `SoundAsset`
+### ✅ T1.1 — `SoundAsset`
 
 - Objectif : porter et lire les deux clés.
 - Fichiers : `CasaEngine/Framework/Audio/SoundAsset.cs`, `CasaEngine.Tests/Audio/SoundAssetTests.cs`.
@@ -104,6 +104,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
   3. Tests : défauts, valeurs lues, type invalide, NaN et négatif, chaîne de blancs, espace finale.
 - Validation : `dotnet test` vert.
 - Commit : `feat(audio): add exclusion group fields to sound assets`
+- Note : les deux `.sln` à 0 erreur, `dotnet test` 4755/4755 (avec T1.2, développée en même temps).
 
 ### ⏳ T1.2 — Écriture éditeur
 
