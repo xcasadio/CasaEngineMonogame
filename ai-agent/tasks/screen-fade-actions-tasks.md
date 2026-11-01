@@ -147,6 +147,7 @@ Compléments fixés à la lecture du code, là où D1 → D10 ne disent rien. Ch
   - copie sans caméra dans les mondes (D7) : ici le voile a couvert toute la vue, avec une `CameraLookAtComponent` par défaut et l'avertissement « No camera found ». C'est une seule mesure, à cette taille : ADR-0033 ne la garantit pas, D7 reste la règle.
 - Défaut trouvé par la course, dans le sample : un bouton étroit à côté du curseur sortait de la navigation, Bas depuis `OPTIONS` allait sur `QUIT` par la géométrie, et Z quittait le jeu. Le curseur est maintenant dans le bouton, en pleine largeur.
 - À vérifier par l'auteur, 🧪 : manette réelle pendant un fondu. `Suspended_TheGamepadReachesNothing_Either` le prouve sur des états injectés, pour le chemin à mapping ; le chemin brut ne l'est que par lecture (`MGDesktop.cs:1580`). Aucun son dans ce parcours.
+- Recette de l'auteur le 2026-11-01 : fondus acceptés à l'œil. Reste 🧪 : la manette pendant un fondu, reportée par l'auteur.
 
 ### ✅ T2.2 — Documentation
 

@@ -171,6 +171,7 @@ Compléments fixés à la lecture du code, là où D1 → D9 ne disent rien. Cha
   - `Projects/SampleProject`, sans mapping : Bas, Entrée ouvre le popup, Entrée le ferme, comme avant. Chemin brut inchangé.
   - Refus au chargement, sur des copies hors dépôt : entrée analogique (« UI action 'Submit' is an analog input », le jeu s'arrête), nom de mapping inconnu (« No buttons mapping asset 'nope' », le jeu s'arrête), `cancel_command` sans mapping (exception à l'ouverture de l'écran, nommant l'enveloppe).
 - Reste 🧪, à vérifier par l'auteur : **le son du déplacement à l'oreille** (le log montre le `.wav` chargé au premier déplacement, rien de plus) et **toute la manette** : croix, A, B, répétition, sticks. Aucune manette n'a été branchée, et la répétition n'a été exercée que par états injectés. Le passage par `UseExternalViewManagement` n'a pas été lancé : `LoadUIInputMapping` y retourne null d'après le code.
+- Recette de l'auteur le 2026-11-01 : navigation au clavier et son du déplacement acceptés. Reste 🧪 : toute la manette, reportée par l'auteur.
 - Ajouts hors liste : le bouton OPTIONS et l'écran `options` du sample, seul moyen de montrer `focus_wrap` en ligne et `cancel_command` ; `ThePixelSampleMapping_PassesTheChecksOfTheUI`.
 
 ### ✅ T2.2 — Documentation

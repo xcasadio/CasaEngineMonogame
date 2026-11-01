@@ -145,6 +145,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
   - Sur des copies temporaires : police inconnue, fenêtre alignée, page PNG absente : le jeu s'arrête, `log` avec le chemin de l'enveloppe et la cause. Sans `ScaleUI` : fenêtre à (40, 20) à l'échelle 1, comportement antérieur. Faute de frappe sur `FontFamily` : police par défaut lissée et mise en page décalée, aucun message (D8). Fenêtre 200x150 : `k` = 1, l'écran part du coin haut-gauche et le reste est coupé.
   - `log` : aucune exception sur les parcours valides. Seul avertissement : `No camera found in the world TitleWorld. Create default one`, normal pour un monde sans entité.
 - Reste 🧪 : manette, pas de moyen d'injection ici. Le sample n'a pas de son. Coins arrondis de Windows exclus de la mesure (10 pixels en bas de capture).
+- Recette de l'auteur le 2026-11-01 : acceptée au clavier. Reste 🧪 : la manette, reportée par l'auteur.
 
 ### ✅ T2.2 — Documentation
 
