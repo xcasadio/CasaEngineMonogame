@@ -62,6 +62,7 @@ public sealed class PsxSpu
     private readonly uint[] _adsr = new uint[VoiceCount]; // ADSR1 in the low 16 bits, ADSR2 in the high 16 bits
     private readonly byte[] _phase = new byte[VoiceCount];
     private readonly int[] _adsrCounter = new int[VoiceCount];
+    private readonly bool[] _envelopeWaits = new bool[VoiceCount];
     private readonly int[] _outx = new int[VoiceCount]; // voice output after the envelope, before the volume
     private readonly int[] _old = new int[VoiceCount];
     private readonly int[] _older = new int[VoiceCount];
@@ -303,6 +304,7 @@ public sealed class PsxSpu
             _phase[v] = PhaseAttack;
             // AMBIGUOUS (psx-spx): the envelope counter at key on is not specified; zero.
             _adsrCounter[v] = 0;
+            _envelopeWaits[v] = true;
 
             // The first output interpolates the first samples: sine_pitch_1500, sine_pitch_2000 and the start of the captures.
             for (var sample = 0; sample < InterpolationSamples; sample++)
@@ -445,12 +447,19 @@ public sealed class PsxSpu
     }
 
     // One envelope step of a voice (psx-spx "ADSR Register" and "Envelope Operation"), once per output frame after the
-    // voice output was produced. AMBIGUOUS (psx-spx): the tick order against the output is not specified; the output of a
-    // frame uses the level before that frame's step. The phase switches are evaluated at the start of the step from the
-    // current level: attack to decay once the level is 7FFFh, decay to sustain once the level is at or below
-    // (N+1)*800h (a sustain level of Fh, 8000h, thus ends the decay at once).
+    // voice output was produced, so the output of a frame uses the level before that frame's step. The first step comes
+    // one frame after key on: the captures read 3800h, 7000h, 7FFFh, 3FFFh from the first non-zero output. The attack
+    // leaves for the decay once the level is 7FFFh. The decay leaves for the sustain only after a step was taken, when the
+    // level is strictly below (N+1)*800h: table adsr_sustain_level, word 5FE004A0, which reaches 800h and stays in decay,
+    // and adsr_release_linear, whose sustain level of Fh keeps the level until the first step.
     private void StepAdsr(int v)
     {
+        if (_envelopeWaits[v])
+        {
+            _envelopeWaits[v] = false;
+            return;
+        }
+
         var register = _adsr[v];
         var level = _envx[v];
         var phase = _phase[v];
@@ -460,29 +469,29 @@ public sealed class PsxSpu
             phase = PhaseDecay;
         }
 
-        if (phase == PhaseDecay && level <= (((int)register & 0xF) + 1) * 0x800)
-        {
-            phase = PhaseSustain;
-        }
-
         _phase[v] = phase;
 
         // AMBIGUOUS (psx-spx): the counter carries over from one phase to the next (it is only reset at key on).
         switch (phase)
         {
             case PhaseAttack:
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x8000) != 0, false, false, (int)(register >> 10) & 0x1F, (int)(register >> 8) & 3, true);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x8000) != 0, false, false, (int)(register >> 10) & 0x1F, (int)(register >> 8) & 3, true, out _);
                 break;
             case PhaseDecay:
                 // Decay: fixed exponential decrease, step value 0 ("-8").
-                level = StepEnvelope(level, ref _adsrCounter[v], true, true, false, (int)(register >> 4) & 0xF, 0, true);
+                level = StepEnvelope(level, ref _adsrCounter[v], true, true, false, (int)(register >> 4) & 0xF, 0, true, out var stepped);
+                if (stepped && level < (((int)register & 0xF) + 1) * 0x800)
+                {
+                    _phase[v] = PhaseSustain;
+                }
+
                 break;
             case PhaseSustain:
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x80000000) != 0, (register & 0x40000000) != 0, false, (int)(register >> 24) & 0x1F, (int)(register >> 22) & 3, true);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x80000000) != 0, (register & 0x40000000) != 0, false, (int)(register >> 24) & 0x1F, (int)(register >> 22) & 3, true, out _);
                 break;
             default:
                 // Release: decrease, step value 0 ("-8"), mode and shift from the register.
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x200000) != 0, true, false, (int)(register >> 16) & 0x1F, 0, true);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x200000) != 0, true, false, (int)(register >> 16) & 0x1F, 0, true, out _);
                 break;
         }
 
@@ -606,12 +615,13 @@ public sealed class PsxSpu
             (register & 0x1000) != 0,
             (register >> 2) & 0x1F,
             register & 3,
-            false);
+            false,
+            out _);
     }
 
     // The psx-spx "Envelope Operation depending on Shift/Step/Mode/Direction", shared by the volume sweep and the ADSR:
-    // one step per output frame, the counter is carried by the caller; returns the new level.
-    private static int StepEnvelope(int level, ref int counterRef, bool exponential, bool decreasing, bool phaseNegative, int shift, int stepValue, bool isAdsr)
+    // one step per output frame, the counter is carried by the caller; returns the new level, and whether a step was taken.
+    private static int StepEnvelope(int level, ref int counterRef, bool exponential, bool decreasing, bool phaseNegative, int shift, int stepValue, bool isAdsr, out bool stepped)
     {
         var adsrStep = 7 - stepValue;
         if (decreasing ^ phaseNegative)
@@ -650,6 +660,7 @@ public sealed class PsxSpu
             counterIncrement = Math.Max(counterIncrement, 1);
         }
 
+        stepped = false;
         var counter = counterRef + counterIncrement;
         if ((counter & 0x8000) == 0)
         {
@@ -659,6 +670,7 @@ public sealed class PsxSpu
 
         // AMBIGUOUS (psx-spx): the pseudo code does not say what happens to the counter once a step is taken; reset to 0.
         counterRef = 0;
+        stepped = true;
 
         level += adsrStep;
         if (!decreasing)

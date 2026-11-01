@@ -22,12 +22,15 @@ public partial class PsxSpuTests
         return (high << 16) | low;
     }
 
-    // Plain psx-spx envelope model: "Envelope Operation" evaluated from scratch on every tick.
+    // Plain psx-spx envelope model: "Envelope Operation" evaluated from scratch on every tick, with the first step one
+    // tick late and the decay threshold after a step, as the published tables show (ADR-0084).
     private sealed class EnvelopeModel
     {
         private readonly uint _word;
         private int _counter;
         private int _phase; // 0 attack, 1 decay, 2 sustain, 3 release
+
+        public bool Waits = true;
 
         public int Level;
 
@@ -37,15 +40,16 @@ public partial class PsxSpuTests
 
         public void Tick()
         {
+            if (Waits)
+            {
+                Waits = false;
+                return;
+            }
+
             var sustainLevel = ((int)(_word & 0xF) + 1) * 0x800;
             if (_phase == 0 && Level >= 0x7FFF)
             {
                 _phase = 1;
-            }
-
-            if (_phase == 1 && Level <= sustainLevel)
-            {
-                _phase = 2;
             }
 
             bool exponential, decrease;
@@ -121,6 +125,10 @@ public partial class PsxSpuTests
             _counter = 0;
             Level += adsrStep;
             Level = decrease ? Math.Max(Level, 0) : Math.Min(Level, 0x7FFF);
+            if (_phase == 1 && Level < sustainLevel)
+            {
+                _phase = 2;
+            }
         }
     }
 
@@ -190,7 +198,7 @@ public partial class PsxSpuTests
         var spu = LoopingVoiceSpu(word, out _, 100);
         spu.KeyOn(1);
 
-        RenderLeft(spu, 3);
+        RenderLeft(spu, 4);
         Assert.Equal(0x7FFF, spu.GetEnvx(0));
 
         RenderLeft(spu, 1);
@@ -201,6 +209,60 @@ public partial class PsxSpuTests
     }
 
     [Fact]
+    public void Adsr_TheCaptureWordFallsToHalfAfterItsAttack()
+    {
+        var spu = LoopingVoiceSpu(FullEnvelope, out _, 100);
+        spu.KeyOn(1);
+        int[] expected = { 0, 0x3800, 0x7000, 0x7FFF, 0x3FFF, 0x3FFF };
+
+        foreach (var level in expected)
+        {
+            RenderLeft(spu, 1);
+            Assert.Equal(level, spu.GetEnvx(0));
+        }
+    }
+
+    [Fact]
+    public void Adsr_ALevelEqualToTheSustainThresholdStaysInDecay()
+    {
+        // Decay shift 10, sustain level 0: this decay lands on 800h exactly. With a threshold at or below 800h it would
+        // stop there; strictly below, it takes one more step and the sustain, which never steps, holds 7FFh.
+        var word = Adsr(false, 0, 0, 10, 0x0, false, false, 31, 3, false, 0);
+        var spu = LoopingVoiceSpu(word, out _, 100);
+        var model = new EnvelopeModel(word);
+        spu.KeyOn(1);
+        var buffer = new short[2];
+        var reachedThreshold = false;
+
+        for (var n = 0; n < 8000; n++)
+        {
+            spu.Render(buffer, 1);
+            model.Tick();
+            Assert.Equal(model.Level, spu.GetEnvx(0));
+            reachedThreshold |= model.Level == 0x800;
+        }
+
+        Assert.True(reachedThreshold);
+        Assert.Equal(0x7FF, spu.GetEnvx(0));
+    }
+
+    [Fact]
+    public void Adsr_ATickWithoutAStepKeepsTheDecay()
+    {
+        // Decay shift 15 steps every eighth of the counter: a level of 7FFFh with a sustain level of Fh must wait for the
+        // first step instead of leaving for the sustain on the tick after the attack.
+        var word = Adsr(false, 0, 0, 15, 0xF, false, false, 31, 3, false, 0);
+        var spu = LoopingVoiceSpu(word, out _, 100);
+        spu.KeyOn(1);
+
+        RenderLeft(spu, 5);
+        Assert.Equal(0x7FFF, spu.GetEnvx(0));
+
+        RenderLeft(spu, 40);
+        Assert.InRange(spu.GetEnvx(0), 0x7F00, 0x7FFE);
+    }
+
+    [Fact]
     public void Adsr_KeyOnRestartsTheAttackFromZero()
     {
         var word = Adsr(false, 4, 0, 0, 0xF, false, false, 31, 3, false, 0);
@@ -208,7 +270,7 @@ public partial class PsxSpuTests
         spu.KeyOn(1);
         Assert.Equal(0, spu.GetEnvx(0));
         RenderLeft(spu, 200);
-        Assert.Equal(0x7FFF, spu.GetEnvx(0));
+        Assert.Equal(0x3FFF, spu.GetEnvx(0));
 
         spu.KeyOn(1);
 
@@ -227,7 +289,7 @@ public partial class PsxSpuTests
         Assert.InRange(peak, 1, 0x7FFE);
 
         spu.KeyOff(1);
-        var model = new EnvelopeModel(word) { Level = peak };
+        var model = new EnvelopeModel(word) { Level = peak, Waits = false };
         model.KeyOff();
         for (var n = 0; n < 700; n++)
         {
@@ -251,7 +313,7 @@ public partial class PsxSpuTests
         spu.KeyOn(1);
 
         RenderLeft(spu, 20);
-        Assert.Equal(0x7FFF, spu.GetEnvx(0));
+        Assert.Equal(HeldEnvelope, spu.GetEnvx(0));
         RenderLeft(spu, 20);
 
         Assert.Equal(0, spu.GetEnvx(0));

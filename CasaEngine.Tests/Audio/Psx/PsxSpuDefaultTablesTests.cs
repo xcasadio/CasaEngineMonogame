@@ -94,9 +94,9 @@ public class PsxSpuDefaultTablesTests
             old = s;
         }
 
-        for (var n = 3; n < 25; n++) // the end flag mutes the voice at frame 25
+        for (var n = 5; n < 25; n++) // the envelope is settled, and the end flag mutes the voice at frame 25
         {
-            var lvol = (Math.Min(0x7FFF, 0x3800 * n) * 0x7FFE) >> 15;
+            var lvol = (0x3FFF * 0x7FFE) >> 15;
             var want = Math.Clamp((expected[n + 1] * lvol) >> 15, -0x8000, 0x7FFF);
             Assert.Equal(want, buffer[n * 2]);
         }

@@ -125,7 +125,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
 
 ## Phase 1 — Décodage et interpolation
 
-### ⏳ T1.1 — Prédicteur et shifts
+### ✅ T1.1 — Prédicteur et shifts
 
 - Objectif : `predictor_1` à `_4`, `state_carry` et `shift_12_15` à l'égalité, sur la plage définie plus haut.
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpu.cs`, `CasaEngine.Tests/Audio/Psx/PsxSpuTests.cs`, `PsxSpuDefaultTablesTests.cs`.
@@ -135,8 +135,9 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   3. Tests synthétiques : valeurs négatives où division et décalage diffèrent, shifts 13 à 15 sur les nibbles -8 et 7.
 - Validation : `dotnet test` vert, comptes du banc notés.
 - Commit : `fix(audio): match the SPU ADPCM predictor to the captures`
+- Note : `dotnet test` 4746/4746, `CasaEngine.MonoGame.sln` à 0 erreur. Banc à enveloppe fixe : 26 captures sur 27 à ±1 LSB, contre 20 au départ. L'égalité attend T1.2, T1.3 et la phase 2. `AudioDemo` 10 s en mode stress : underruns=0.
 
-### ⏳ T1.2 — Départ à `KeyOn`
+### ✅ T1.2 — Départ à `KeyOn`
 
 - Objectif : la première sortie interpole les quatre premiers échantillons. Preuves : `sine_pitch_1500` et `sine_pitch_2000` à l'égalité, et les débuts de 21 captures.
 - Fichiers : `PsxSpu.cs`, `PsxSpuTests.cs` (`Delay=3` en `:16` devient une avance), `PsxSpuEnvelopeTests.cs`, `PsxSpuReverbTests.cs`, `PsxSpuDefaultTablesTests.cs`.
@@ -146,8 +147,9 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   3. Mesurer la dernière trame non nulle de `flag_end_mute`.
 - Validation : `dotnet test` vert, comptes du banc notés, `adpcm_edge_flag_*` et `loop_t*` sans régression.
 - Commit : `fix(audio): start an SPU voice on its first decoded samples`
+- Note : `dotnet test` 4748/4748, `AudioDemo` 10 s : underruns=0. Banc à enveloppe fixe : 27 captures sur 27 à ±1 LSB. `flag_end_mute` : dernier échantillon non nul 51 dans la capture, trame 52 dans le moteur, soit 8 trames de retard une fois le décalage de 7 retiré (P6). Tests changés parce que la capture les contredit : la trame n joue l'échantillon n + 1, et l'impulsion de réverbe passe au cinquième échantillon, le premier n'étant jamais entendu seul avec la cubique.
 
-### ⏳ T1.3 — Arrondi de l'interpolation gaussienne
+### ✅ T1.3 — Arrondi de l'interpolation gaussienne
 
 - Objectif : passer de ±1 LSB à l'égalité.
 - Fichiers : `CasaEngine/Framework/Audio/Psx/PsxSpuInterpolation.cs`, `PsxSpuTests.cs`.
@@ -156,12 +158,13 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   2. Test à échantillons impairs où l'ancienne et la nouvelle règle diffèrent, vérifié en mutation : le test de `PsxSpuTests.cs:285` ne les distingue pas.
 - Validation : `dotnet test` vert, comptes du banc notés.
 - Commit : `fix(audio): match the SPU Gaussian rounding to the captures`
+- Note : `dotnet test` 4749/4749. Banc à enveloppe fixe : 27 captures sur 27 exactes. `AudioDemo` lancé : il emploie la cubique, cette classe ne le touche pas.
 
 ---
 
 ## Phase 2 — Enveloppe
 
-### ⏳ T2.1 — Décroissance exponentielle de l'ADSR
+### ✅ T2.1 — Décroissance exponentielle de l'ADSR
 
 - Objectif : arrondi vers le bas pour l'ADSR, sans figeage à 0FFFh. Sweeps inchangés (P5).
 - Fichiers : `PsxSpu.cs`, `PsxSpuEnvelopeTests.cs`.
@@ -170,8 +173,9 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   2. Tests : ADSR décroissant négatif, sweep inchangé.
 - Validation : `dotnet test` vert, tables comparées, comptes notés. Les tests de sweep passent sans changement.
 - Commit : `fix(audio): match the SPU ADSR exponential decrease to the captures`
+- Note : `dotnet test` 4750/4750, `AudioDemo` 10 s lancé. Banc : 23 tables sur 39, 138 contrôles sur 690 en échec, contre 17 et 256. Les tests de sweep passent sans changement (P5).
 
-### ⏳ T2.2 — Seuil de decay et première marche
+### ✅ T2.2 — Seuil de decay et première marche
 
 - Objectif : tenir 3FFFh après l'attaque, sur `1FC0000F`, et 39 tables sans échec.
 - Fichiers : `PsxSpu.cs`, `PsxSpuEnvelopeTests.cs`, `PsxSpuTests.cs` (`:19-21`), `PsxSpuDefaultTablesTests.cs`, `CasaEngine.Tests/Audio/Software/SoftwareAudioBackendPsxSpuTests.cs` (`:18`, `:106`, `:361`).
@@ -182,6 +186,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   4. Réécrire `PsxSpu.cs:438-439` et les commentaires « sustain au sommet ».
 - Validation : `dotnet test` vert, 27 captures et 39 tables sans échec au banc.
 - Commit : `fix(audio): apply the SPU decay threshold after a step`
+- Note : `dotnet test` 4753/4753, `AudioDemo` 10 s : underruns=0. Banc : 27 captures exactes de bout en bout, 39 tables sur 39, 0 contrôle en échec sur 690. Débuts de captures : 23 sur 24 exacts sur 6 échantillons, contre 5 sur 24 sans la première marche retardée. Tests changés parce que les captures les contredisent : le mot `1FC0000F` tient 3FFFh et non 7FFFh, le modèle d'enveloppe suit la même règle.
 
 ---
 

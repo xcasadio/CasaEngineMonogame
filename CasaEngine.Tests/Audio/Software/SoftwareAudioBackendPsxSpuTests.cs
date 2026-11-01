@@ -15,7 +15,7 @@ namespace CasaEngine.Tests.Audio.Software;
 public class SoftwareAudioBackendPsxSpuTests
 {
     private const int Block = 480;
-    private const uint FullEnvelope = 0x1FC0000F; // see PsxSpuTests: fast attack, sustain at the top, release 4000h per frame
+    private const uint FullEnvelope = 0x1FC0000F; // see PsxSpuTests: fast attack, one decay step to half, release 4000h per frame
     private const ushort MaxVolumeRegister = 0x3FFF;
     private const int SoundAddress = 0x1000;
     private const int RamSize = PsxSpu.RamSize;
@@ -103,7 +103,7 @@ public class SoftwareAudioBackendPsxSpuTests
         output.Pump(Block);
         var peak = PumpBlocks(output, 3);
         Assert.True(peak > 0.1f, $"peak {peak}");
-        Assert.Equal(0x7FFF, port.GetEnvx(0));
+        Assert.Equal(0x3FFF, port.GetEnvx(0));
 
         Assert.True(port.TryKeyOff(1));
         var silent = PumpBlocks(output, 3);
@@ -358,7 +358,7 @@ public class SoftwareAudioBackendPsxSpuTests
         stop.Cancel();
         audio.Wait();
         Assert.True(pumps >= 200, $"only {pumps} blocks rendered");
-        Assert.Equal(0x7FFF, port.GetEnvx(0));
+        Assert.Equal(0x3FFF, port.GetEnvx(0));
     }
 
     // The limits of the plan, mirrored here so a change of the constants is a visible test change.

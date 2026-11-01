@@ -15,12 +15,14 @@ public partial class PsxSpuTests
 
     // A voice starts on its first four samples and the cubic output at index 0 is the second: frame n plays sample n + Lead.
     private const int Lead = 1;
-    private const int EnvelopeFrames = 3; // frames before FullEnvelope reaches 7FFFh
+    private const int EnvelopeFrames = 5; // frames before FullEnvelope settles on HeldEnvelope
+    private const int HeldEnvelope = 0x3FFF;
     private const int MaxVolumeRegister = 0x3FFF; // direct volume register: level +7FFEh
 
-    // ADSR word for the T4.1 tests: attack linear, shift 0, step 0 (+7 << 11 = 3800h per frame, ENVX 0, 3800h, 7000h, 7FFFh
-    // from the third frame), decay shift 0 with sustain level Fh (ends at once), sustain increase with
-    // shift 1Fh and step 3 (all bits set: never steps), so the envelope stays at 7FFFh.
+    // ADSR word for the T4.1 tests, the one of the published captures: attack linear, shift 0, step 0 (+7 << 11 = 3800h per
+    // frame, ENVX 0, 0, 3800h, 7000h, 7FFFh, the first step coming one frame late), decay shift 0 with sustain level Fh (one
+    // step of -4000h, then the sustain), sustain increase with
+    // shift 1Fh and step 3 (all bits set: never steps), so the envelope stays at 3FFFh.
     private const uint FullEnvelope = 0x1FC0000F;
 
     private sealed record Block(int Shift, int Filter, int Flags, int[] Nibbles);
@@ -75,10 +77,10 @@ public partial class PsxSpuTests
         return samples.ToArray();
     }
 
-    // ENVX seen by the output of frame n with FullEnvelope (the envelope steps after the output of each frame).
-    private static int FullEnvelopeAt(int frame) => Math.Min(0x7FFF, 0x3800 * frame);
+    // ENVX seen by the output of frame n with FullEnvelope (the envelope steps after the output of each frame, from the second).
+    private static int FullEnvelopeAt(int frame) => frame switch { 0 or 1 => 0, 2 => 0x3800, 3 => 0x7000, 4 => 0x7FFF, _ => HeldEnvelope };
 
-    private static int Scale(int sample, int level, int envx = 0x7FFF)
+    private static int Scale(int sample, int level, int envx = HeldEnvelope)
     {
         var lvol = (envx * level) >> 15;
         return Math.Clamp((sample * lvol) >> 15, -0x8000, 0x7FFF);
@@ -278,11 +280,9 @@ public partial class PsxSpuTests
         spu.SetAdsr(0, FullEnvelope); // release linear, shift 0: -8 << 11 = -4000h per frame
         spu.KeyOn(1);
         Assert.Contains(RenderLeft(spu, 20), s => s != 0);
-        Assert.Equal(0x7FFF, spu.GetEnvx(0));
+        Assert.Equal(HeldEnvelope, spu.GetEnvx(0));
 
         spu.KeyOff(1);
-        RenderLeft(spu, 1);
-        Assert.Equal(0x3FFF, spu.GetEnvx(0));
         RenderLeft(spu, 1);
         Assert.Equal(0, spu.GetEnvx(0));
 
