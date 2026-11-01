@@ -324,7 +324,7 @@ public class FirstScreenTests
         }
     }
 
-    private sealed class StubUIViewRuntime : IUIViewRuntime
+    internal sealed class StubUIViewRuntime : IUIViewRuntime
     {
         public List<IUIScreen> Pushed { get; } = new();
 

@@ -137,6 +137,14 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : le test neuf échoue sans le correctif et passe avec.
 - Commit : `fix(ui): say which asset a font name landed on`.
 
+### ✅ T5.5 — Le contexte d'un écran se construit sans jeu (g)
+
+- Constat g, vrai : `CreateScreenActionContext` lisait `_game`, et `Quit = _game.Exit` levait dès la construction avec un jeu nul. Les lignes de `DesignResolution`, `AcquireFont`, `StartFade` et `IsFadeRunning` n'avaient aucun test. Le type interne `ScreenGameServices` porte ce que le contexte prend au jeu, et `CreateScreenActionContext` devient interne : aucune API publique ne change. Le service de fondu reste lu à l'usage, pas à la construction.
+- Reste hors de portée d'un test : `ReadScreenGameServices`, les cinq lectures de `_game`. Aucun test ne construit ce jeu. Le Launcher les prouve : échelle, police et fondu sur `Projects/PixelUiSample`, vus en T5.6.
+- Fichiers : `ScreenGameServices.cs`, `GameManager.cs`, `ScreenActionContextWiringTests.cs`, `FirstScreenTests.cs` (bouchon de vue devenu `internal`), `ScreenFadeWiringTests.cs` (commentaire), ce plan.
+- Validation : 6 mutations, toutes tuées, une par ligne câblée.
+- Commit : `test(ui): build the context of a screen without a game`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :

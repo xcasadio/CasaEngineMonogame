@@ -7,7 +7,7 @@ using Xunit;
 
 namespace CasaEngine.Tests.UI;
 
-/// <summary>What a <c>fade_screen</c> action does to the service (ADR-0081). The delegate itself needs a game.</summary>
+/// <summary>What a <c>fade_screen</c> action does to the service (ADR-0081). <see cref="ScreenActionContextWiringTests"/> covers the delegate.</summary>
 public class ScreenFadeWiringTests
 {
     private static UIScreenActionData Fade(float durationSeconds = 1f) => new()

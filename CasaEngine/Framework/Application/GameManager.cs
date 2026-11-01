@@ -213,9 +213,18 @@ public class GameManager
     }
 
     private DataDrivenScreen CreateDataDrivenScreen(string assetIdOrName, IUIViewRuntime view)
-        => new(_game.AssetContentManager, assetIdOrName, CreateScreenActionContext(view));
+        => new(_game.AssetContentManager, assetIdOrName, CreateScreenActionContext(view, ReadScreenGameServices()));
 
-    private UIScreenActionContext CreateScreenActionContext(IUIViewRuntime view)
+    private ScreenGameServices ReadScreenGameServices()
+        => new(
+            () => _game.ScreenEffectComponent.Service,
+            _game.ActiveVirtualResolution,
+            fontId => _game.UIFonts.Acquire(fontId),
+            _game.UIInputMapping != null,
+            _game.Exit);
+
+    /// <summary>What a data-driven screen asks of the game. <paramref name="game"/> is a parameter because <c>_game</c> is null in tests.</summary>
+    internal UIScreenActionContext CreateScreenActionContext(IUIViewRuntime view, ScreenGameServices game)
         => new()
         {
             ScreenExists = IsScreenAsset,
@@ -226,12 +235,12 @@ public class GameManager
             CloseScreen = view.RemoveScreen,
             ChangeWorld = SetWorldToLoad,
             PlaySound = PlaySound,
-            Quit = _game.Exit,
-            StartFade = StartScreenFade,
-            IsFadeRunning = IsScreenFadeRunning,
-            DesignResolution = DesignResolutionOf(_game.ActiveVirtualResolution),
-            AcquireFont = AcquireFont,
-            HasUIInputMapping = _game.UIInputMapping != null,
+            Quit = game.Quit,
+            StartFade = action => StartScreenFade(game.ScreenEffects(), action),
+            IsFadeRunning = () => game.ScreenEffects().IsFading,
+            DesignResolution = DesignResolutionOf(game.VirtualResolution),
+            AcquireFont = assetIdOrName => game.HoldFont(FindFontAsset(assetIdOrName).Id),
+            HasUIInputMapping = game.HasUIInputMapping,
         };
 
     /// <summary>
@@ -246,10 +255,6 @@ public class GameManager
         effects.Layer = action.Layer.Value;
         effects.StartFade(from.R, from.G, from.B, from.A, to.R, to.G, to.B, to.A, action.DurationSeconds.Value, action.BlendMode.Value);
     }
-
-    private void StartScreenFade(UIScreenActionData action) => StartScreenFade(_game.ScreenEffectComponent.Service, action);
-
-    private bool IsScreenFadeRunning() => _game.ScreenEffectComponent.Service.IsFading;
 
     /// <summary>
     /// The resolution screens are written at (ADR-0079). Only a project that sets <c>ScaleUI</c> has one, and the
@@ -316,9 +321,6 @@ public class GameManager
 
     private AssetHandle<SoundAsset> AcquireSound(string assetIdOrName)
         => _game.AssetContentManager.Acquire<SoundAsset>(FindSoundAsset(assetIdOrName).Id);
-
-    private IDisposable AcquireFont(string assetIdOrName)
-        => _game.UIFonts.Acquire(FindFontAsset(assetIdOrName).Id);
 
     private void PlaySound(SoundAsset sound)
     {
