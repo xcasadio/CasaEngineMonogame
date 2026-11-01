@@ -277,8 +277,8 @@ public sealed class PsxSpu
 
     /// <summary>
     /// Key on for the voices whose bit is set (bits 0-23): the current address takes the start address, ENDX is cleared,
-    /// the decoder history and pitch counter are reset, the first four samples are decoded so the first output
-    /// interpolates them, and the envelope restarts its attack from 0. The sample and the addresses must be set before.
+    /// the decoder history and pitch counter are reset, four samples are decoded into the interpolation window, and the
+    /// envelope restarts its attack from 0. The sample and the addresses must be set before.
     /// </summary>
     public void KeyOn(uint voiceMask)
     {
@@ -307,7 +307,7 @@ public sealed class PsxSpu
             _adsrCounter[v] = 0;
             _envelopeWaits[v] = true;
 
-            // The first output interpolates the first samples: sine_pitch_1500, sine_pitch_2000 and the start of the captures.
+            // A voice starts with four samples already in its window: sine_pitch_1500, sine_pitch_2000 and the start of the captures.
             for (var sample = 0; sample < InterpolationSamples; sample++)
             {
                 PushNextSample(v);

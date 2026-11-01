@@ -1,6 +1,6 @@
 # ADR-0061: Author's decisions for the audio game layer, the mixer asset and the PSX module
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0084 (published captures judge the SPU readings they cover, before any listening)
 - **Date**: 2026-10-06 (decided by the author, answering the open questions of the audio plan)
 - **Source**: `ai-agent/tasks/audio-modern-tasks.md`, decisions D5 to D30, answering open questions O4, O11, O12, O13,
   O16, O19, O23, O24, O25 and task T2.6. Supersedes in part ADR-0058 (hardware tables: D25). Each slice that implements

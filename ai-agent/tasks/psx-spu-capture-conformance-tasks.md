@@ -102,7 +102,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
 
 - `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : tous verts.
-- Banc du dépôt parent, ADSR de `PsxSpu` actif, table de Gauss de psx-spx injectée : 27 captures à l'égalité, au sens défini plus haut, et 39 tables ENVX sans échec.
+- Banc du dépôt parent, ADSR de `PsxSpu` actif, table de Gauss de psx-spx injectée : 27 captures à l'égalité, au sens défini plus haut, 23 débuts de captures et 39 tables ENVX sans échec.
 - `AudioDemo` : baisse attendue de 6 dB sur les voix au mot `1FC0000F`, pas d'autre écart à l'oreille de l'auteur.
 
 ---
@@ -115,11 +115,11 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
 - Fichiers : `docs/decisions/0084-the-software-spu-follows-published-captures.md`, `docs/decisions/README.md`, ce plan, la ligne de ce plan dans `ai-agent/README.md`.
 - Étapes :
   1. Écrire l'ADR : référence, licence, limites P3 à P6, provenance des captures. Dire « vérifié par les captures » : elles n'ont pas dérivé chaque règle, et d'autres implémentations ont été lues.
-  2. Écrire les réserves : provenance d'après les commentaires seulement, `spu-adsr.c:132-138` contre `spu.c:50-53` sur `adsr_decay_shift`, goldens `adpcm_edge` sur option. `adsr_sustain_level` reste la preuve principale de l'ADSR.
+  2. Écrire les réserves : provenance d'après les commentaires seulement, `spu-adsr.c:132-138` contre `spu.c:50-53` sur `adsr_decay_shift` et `adsr_sustain_down_linear`, goldens `adpcm_edge` sur option. `adsr_sustain_level` reste la preuve principale de l'ADSR.
   3. Marquer ADR-0058 et ADR-0061 comme amendés dans l'index.
 - Validation : relecture, aucun lien cassé, `git show --stat` ne contient pas l'autre plan.
 - Commit : `docs(audio): decide that the software SPU follows published captures (ADR-0084)`
-- Note : plan et points approuvés par l'auteur le 2026-11-01. Le banc est dans `tools/spu-check` du dépôt parent, ce qui ferme O1. Sur le code de départ, il redonne 17 tables sur 39 et 256 contrôles sur 690 en échec.
+- Note : plan et points approuvés par l'auteur le 2026-11-01. Le banc est dans `tools/spu-check` du dépôt parent, ce qui ferme O1. Sur le code de départ, il redonne 17 tables sur 39 et 256 contrôles sur 690 en échec. La marque d'ADR-0058 dans l'index est arrivée avec le commit de T1.1.
 
 ---
 
@@ -135,7 +135,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   3. Tests synthétiques : valeurs négatives où division et décalage diffèrent, shifts 13 à 15 sur les nibbles -8 et 7.
 - Validation : `dotnet test` vert, comptes du banc notés.
 - Commit : `fix(audio): match the SPU ADPCM predictor to the captures`
-- Note : `dotnet test` 4746/4746, `CasaEngine.MonoGame.sln` à 0 erreur. Banc à enveloppe fixe : 26 captures sur 27 à ±1 LSB, contre 20 au départ. L'égalité attend T1.2, T1.3 et la phase 2. `AudioDemo` 10 s en mode stress : underruns=0.
+- Note : `dotnet test` 4746/4746, `CasaEngine.MonoGame.sln` à 0 erreur. Banc à enveloppe fixe : 26 captures sur 27 à ±1 LSB, contre 20 au départ. L'égalité attend T1.2, T1.3 et la phase 2. `AudioDemo` 10 s en mode stress : underruns=0. Tests changés parce que `predictor_1` à `_4` et `state_carry` contredisent l'ancien attendu : `DecodeSequence` et le test des tables par défaut.
 
 ### ✅ T1.2 — Départ à `KeyOn`
 
@@ -158,7 +158,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   2. Test à échantillons impairs où l'ancienne et la nouvelle règle diffèrent, vérifié en mutation : le test de `PsxSpuTests.cs:285` ne les distingue pas.
 - Validation : `dotnet test` vert, comptes du banc notés.
 - Commit : `fix(audio): match the SPU Gaussian rounding to the captures`
-- Note : `dotnet test` 4749/4749. Banc à enveloppe fixe : 27 captures sur 27 exactes. `AudioDemo` lancé : il emploie la cubique, cette classe ne le touche pas.
+- Note : `dotnet test` 4749/4749. Banc à enveloppe fixe : 27 captures sur 27 exactes. `AudioDemo` lancé : il emploie la cubique, cette classe ne le touche pas. Test changé parce que l'égalité des 27 captures contredit l'ancien attendu : celui de l'interpolation gaussienne.
 
 ---
 
@@ -173,7 +173,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   2. Tests : ADSR décroissant négatif, sweep inchangé.
 - Validation : `dotnet test` vert, tables comparées, comptes notés. Les tests de sweep passent sans changement.
 - Commit : `fix(audio): match the SPU ADSR exponential decrease to the captures`
-- Note : `dotnet test` 4750/4750, `AudioDemo` 10 s lancé. Banc : 23 tables sur 39, 138 contrôles sur 690 en échec, contre 17 et 256. Les tests de sweep passent sans changement (P5).
+- Note : `dotnet test` 4750/4750, `AudioDemo` 10 s lancé. Banc : 23 tables sur 39, 138 contrôles sur 690 en échec, contre 17 et 256. Les tests de sweep passent sans changement (P5). Test changé parce que `adsr_sustain_level` contredit l'ancien attendu : le modèle d'enveloppe.
 
 ### ✅ T2.2 — Seuil de decay et première marche
 
@@ -186,7 +186,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   4. Réécrire `PsxSpu.cs:438-439` et les commentaires « sustain au sommet ».
 - Validation : `dotnet test` vert, 27 captures et 39 tables sans échec au banc.
 - Commit : `fix(audio): apply the SPU decay threshold after a step`
-- Note : `dotnet test` 4753/4753, `AudioDemo` 10 s : underruns=0. Banc : 27 captures exactes de bout en bout, 39 tables sur 39, 0 contrôle en échec sur 690. Débuts de captures : 23 sur 24 exacts sur 6 échantillons, contre 5 sur 24 sans la première marche retardée. Tests changés parce que les captures les contredisent : le mot `1FC0000F` tient 3FFFh et non 7FFFh, le modèle d'enveloppe suit la même règle.
+- Note : `dotnet test` 4753/4753, `AudioDemo` 10 s : underruns=0. Banc : 27 captures exactes de bout en bout, 39 tables sur 39, 0 contrôle en échec sur 690. Débuts de captures : 23 sur 23 exacts sur 6 échantillons, contre 5 sur 23 sans la première marche retardée. `loop_t1` est écartée de cette mesure, car elle est prise longtemps après sa touche ; avec elle, 23 sur 24. Les 21 annoncés plus haut venaient d'une liste plus courte. Tests changés parce que les captures les contredisent : le mot `1FC0000F` tient 3FFFh et non 7FFFh, le modèle d'enveloppe suit la même règle.
 
 ---
 
@@ -202,7 +202,18 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   3. Lancer la validation globale.
 - Validation : tous les points sauf l'écoute. Tâche en 🧪 jusqu'à l'écoute de l'auteur.
 - Commit : `docs(audio): record the SPU capture conformance`
-- Note : toutes les validations automatiques faites, voir le rapport de la branche. Reste : écoute d'`AudioDemo` par l'auteur, baisse de 6 dB attendue sur les voix au mot `1FC0000F`.
+- Note : les deux `.sln` à 0 erreur, `dotnet test` 4763/4763, banc à 27 captures exactes, 23 débuts et 39 tables. Reste : écoute d'`AudioDemo` par l'auteur, baisse de 6 dB attendue sur les voix au mot `1FC0000F`.
+
+## Vérification indépendante
+
+Faite le 2026-11-01 sur le code, par mutation et sur les règles : aucun défaut dans `PsxSpu` ni `PsxGaussianInterpolator`. Le banc, passé à 13 mutants et comparé à `main`, ne passe pas par construction. Suites données dans le commit `test(audio): lock the capture rules and close the review gaps` :
+
+- `PsxSpuCaptureRulesTests.cs` : nouveau KeyOn sur une voix jouée, tous les nibbles des shifts 13 à 15, filtres 5 à 7, Gauss négatif à un index non nul, saturation, borne d'attaque. Ces tests tuent les mutants qui survivaient.
+- Le banc exige aussi les débuts de captures, et les totaux attendus : un parseur vide ne passe plus.
+- ADR-0058 et ADR-0061 portent leur amendement, la réserve d'ADR-0084 cite les deux tests concernés.
+- Une phrase de commentaire reprenait six mots d'un fichier MPL lu pendant le chantier : reformulée dans `PsxSpu.cs` et ADR-0084. Le reste du diff n'est que de l'arithmétique sans autre écriture naturelle.
+
+**Écart accepté :** les statuts de T1.1, T1.2, T1.3 et T2.1 sont arrivés avec le commit de T2.2, pas dans le commit de leur tâche. L'historique n'a pas été réécrit.
 
 ---
 
@@ -212,7 +223,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Le banc vit-il déjà dans le dépôt parent à l'heure de T1.1 ? Sinon il faut l'y mettre d'abord. | T1.1 |
+| O1 | Fermé : le banc vit dans le dépôt parent, voir la note de T0.1. | T1.1 |
 
 ## Hors périmètre
 

@@ -23,7 +23,7 @@ public partial class PsxSpuTests
     }
 
     // Plain psx-spx envelope model: "Envelope Operation" evaluated from scratch on every tick, with the first step one
-    // tick late and the decay threshold after a step, as the published tables show (ADR-0084).
+    // tick late and the decay threshold after a step, as the published captures and tables show (ADR-0084).
     private sealed class EnvelopeModel
     {
         private readonly uint _word;
@@ -249,7 +249,7 @@ public partial class PsxSpuTests
     [Fact]
     public void Adsr_ATickWithoutAStepKeepsTheDecay()
     {
-        // Decay shift 15 steps every eighth of the counter: a level of 7FFFh with a sustain level of Fh must wait for the
+        // Decay shift 15 steps every 16 frames: a level of 7FFFh with a sustain level of Fh must wait for the
         // first step instead of leaving for the sustain on the tick after the attack.
         var word = Adsr(false, 0, 0, 15, 0xF, false, false, 31, 3, false, 0);
         var spu = LoopingVoiceSpu(word, out _, 100);
