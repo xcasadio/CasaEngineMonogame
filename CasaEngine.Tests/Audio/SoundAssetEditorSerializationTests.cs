@@ -306,4 +306,25 @@ public class SoundAssetEditorSerializationTests
         Assert.False(Serialize(new SoundAsset()).ContainsKey("loop_start_sample"));
         Assert.False(Serialize(new SoundAsset { IsStreaming = true, IsLooped = true }).ContainsKey("loop_start_sample"));
     }
+
+    [Fact]
+    public void SaveThenLoad_KeepsTheExclusionKeys()
+    {
+        var document = Serialize(new SoundAsset { ExclusionGroup = "interface", ExclusionFadeSeconds = 0.25f });
+
+        var loaded = new SoundAsset();
+        loaded.Load(document);
+
+        Assert.Equal("interface", loaded.ExclusionGroup);
+        Assert.Equal(0.25f, loaded.ExclusionFadeSeconds);
+    }
+
+    [Fact]
+    public void Serialize_WritesNoExclusionKeyAtItsDefault()
+    {
+        var document = Serialize(new SoundAsset());
+
+        Assert.False(document.ContainsKey("exclusion_group"));
+        Assert.False(document.ContainsKey("exclusion_fade_seconds"));
+    }
 }

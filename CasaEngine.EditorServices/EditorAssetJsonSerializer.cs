@@ -961,6 +961,16 @@ internal static class EditorAssetJsonSerializer
             node.Add("priority", soundAsset.Priority);
         }
 
+        if (soundAsset.ExclusionGroup.Length > 0)
+        {
+            node.Add("exclusion_group", soundAsset.ExclusionGroup);
+        }
+
+        if (soundAsset.ExclusionFadeSeconds > 0f)
+        {
+            node.Add("exclusion_fade_seconds", soundAsset.ExclusionFadeSeconds);
+        }
+
         var variationIds = new JArray();
         foreach (var variationId in soundAsset.VariationAudioFileAssetIds)
         {
