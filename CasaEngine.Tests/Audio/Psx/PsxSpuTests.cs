@@ -52,7 +52,7 @@ public partial class PsxSpuTests
         return bytes;
     }
 
-    // psx-spx formula: s = (t << (12 - shift)) + ((old*f0 + older*f1 + 32) / 64), clamped to 16 bit.
+    // The decoder of ADR-0084: each term shifted by 5, then the sum by 1, clamped to 16 bit.
     private static short[] DecodeSequence(IEnumerable<Block> blocks)
     {
         var samples = new List<short>();
@@ -62,7 +62,7 @@ public partial class PsxSpuTests
         {
             foreach (var t in block.Nibbles)
             {
-                var s = (t << (12 - block.Shift)) + ((old * Positive[block.Filter] + older * Negative[block.Filter] + 32) / 64);
+                var s = (t << (12 - block.Shift)) + (((old * Positive[block.Filter] >> 5) + (older * Negative[block.Filter] >> 5)) >> 1);
                 s = Math.Clamp(s, -0x8000, 0x7FFF);
                 samples.Add((short)s);
                 older = old;
@@ -84,9 +84,9 @@ public partial class PsxSpuTests
 
     private static ushort VolumeRegisterFor(int level) => (ushort)((level / 2) & 0x7FFF);
 
-    private static PsxSpu NewSpu(int voice, int unitAddress, IEnumerable<Block> blocks, ushort pitch, out int blockCount)
+    private static PsxSpu NewSpu(int voice, int unitAddress, IEnumerable<Block> blocks, ushort pitch, out int blockCount, PsxSpuHardwareTables tables = null)
     {
-        var spu = new PsxSpu(Tables());
+        var spu = new PsxSpu(tables ?? Tables());
         var address = unitAddress * 8;
         blockCount = 0;
         foreach (var block in blocks)
@@ -139,6 +139,44 @@ public partial class PsxSpuTests
             var expected = n < Delay ? 0 : Scale(expectedSamples[n - Delay], 0x7FFE);
             Assert.Equal(expected, output[n]);
         }
+    }
+
+    [Fact]
+    public void Adpcm_ShiftsEachPredictorTermBeforeTheSum()
+    {
+        // Filter 4 of the default tables, a single nibble of 7 at shift 8, then silence. Worked out by hand: adding the
+        // two products before the shift gives 372 at the fourth value, the old division gives 369.
+        var nibbles = new int[28];
+        nibbles[8] = 7;
+        var spu = NewSpu(0, 0x100, new[] { new Block(8, 4, 0, nibbles) }, 0x1000, out _, PsxSpuHardwareTables.CreateDefault());
+        spu.KeyOn(1);
+
+        var output = RenderLeft(spu, 28);
+
+        int[] expected = { 112, 213, 301, 373, 428, 465, 484, 486 };
+        for (var i = 0; i < expected.Length; i++)
+        {
+            Assert.Equal(Scale(expected[i], 0x7FFE), output[8 + Delay + i]);
+        }
+    }
+
+    [Theory]
+    [InlineData(13)]
+    [InlineData(14)]
+    [InlineData(15)]
+    public void Adpcm_AShiftAbove12KeepsOnlyTheSignOfTheNibble(int shift)
+    {
+        var nibbles = new int[28];
+        nibbles[8] = -8;
+        nibbles[10] = 7;
+        var spu = NewSpu(0, 0x100, new[] { new Block(shift, 0, 0, nibbles) }, 0x1000, out _);
+        spu.KeyOn(1);
+
+        var output = RenderLeft(spu, 28);
+
+        Assert.Equal(Scale(-128, 0x7FFE), output[8 + Delay]);
+        Assert.Equal(0, output[9 + Delay]);
+        Assert.Equal(0, output[10 + Delay]);
     }
 
     [Fact]

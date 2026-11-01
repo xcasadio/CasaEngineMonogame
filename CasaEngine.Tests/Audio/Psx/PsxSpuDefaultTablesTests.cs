@@ -87,7 +87,7 @@ public class PsxSpuDefaultTablesTests
         int old = 0, older = 0;
         for (var i = 0; i < 28; i++)
         {
-            var s = (nibbles[i] << (12 - 8)) + ((old * SourcePositive[filter] + older * SourceNegative[filter] + 32) / 64);
+            var s = (nibbles[i] << (12 - 8)) + (((old * SourcePositive[filter] >> 5) + (older * SourceNegative[filter] >> 5)) >> 1);
             s = Math.Clamp(s, -0x8000, 0x7FFF);
             expected[i] = s;
             older = old;

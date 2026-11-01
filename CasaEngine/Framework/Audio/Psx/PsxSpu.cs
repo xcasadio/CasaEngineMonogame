@@ -518,17 +518,9 @@ public sealed class PsxSpu
             _endx |= 1u << v;
         }
 
-        var shiftField = header & 0xF;
-        // AMBIGUOUS (psx-spx): shift values 13..15 are documented for XA ("same as 9") and the SPU decoder is said to be
-        // the same algorithm; applied here as 9.
-        if (shiftField > 12)
-        {
-            shiftField = 9;
-        }
-
-        var shift = 12 - shiftField;
-        // AMBIGUOUS (psx-spx): the SPU header holds a filter index 0..4 (3 bits, bits 4-6); indices 5..7 are not
-        // described, treated as filter 0 (no prediction).
+        // A negative shift is a header value above 12: see the nibble below.
+        var shift = 12 - (header & 0xF);
+        // The header holds a filter index of 3 bits. Indices 5..7 act as filter 0 (capture adpcm_edge_invalid_predictor_5_7).
         var filter = (header >> 4) & 7;
         if (filter >= PsxSpuHardwareTables.AdpcmFilterCount)
         {
@@ -547,10 +539,12 @@ public sealed class PsxSpu
             var nibble = (j & 1) == 0 ? packed & 0xF : packed >> 4; // low nibble is the 1st sample
             var t = (nibble << 28) >> 28; // signed 4 bit
 
-            // s = (t << shift) + ((old*f0 + older*f1 + 32) / 64), clamped to 16 bit.
-            // AMBIGUOUS (psx-spx): written "/64" in the CD-XA pseudo code; read literally as an integer division
-            // truncating toward zero, not an arithmetic shift.
-            var s = (t << shift) + ((old * f0 + older * f1 + 32) / 64);
+            // Above a shift of 12 only the sign is left: capture adpcm_edge_shift_12_15, for the nibbles -8 and 7.
+            // AMBIGUOUS: no capture plays the other nibbles, the rule is extended to them (ADR-0084).
+            var scaled = shift >= 0 ? t << shift : t < 0 ? -128 : 0;
+
+            // Each term is shifted before the sum: captures adpcm_edge_predictor_1 to _4 and adpcm_edge_state_carry.
+            var s = scaled + (((old * f0 >> 5) + (older * f1 >> 5)) >> 1);
             s = Math.Clamp(s, short.MinValue, short.MaxValue);
             _decoded[baseIndex + j] = (short)s;
             older = old;
