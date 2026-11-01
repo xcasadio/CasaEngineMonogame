@@ -1719,19 +1719,40 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.False(_desktop.IsNavigationInputSuspended);
     }
 
-    [Fact]
-    public void AWait_LeavesTheValueItFound()
+    /// <summary>A wait pauses MGUI's own path: who reads the inputs stays what it was, during the wait and after it.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AWait_LeavesTheChoiceOfTheInputPathAlone(bool readsRawInput)
     {
         var screen = BuildFadeOut();
-        _desktop.UseRawNavigationInput = false;
+        var stack = StackOf(screen);
+        _desktop.UseRawNavigationInput = readsRawInput;
 
         RunUntilSuspended(screen);
-        Assert.False(_desktop.UseRawNavigationInput);
+        RootStep(stack);
+        Assert.True(_desktop.IsNavigationInputSuspended);
+        Assert.Equal(readsRawInput, _desktop.UseRawNavigationInput);
 
         _isFadeRunning = false;
-        Step(Away, screen);
+        RootStep(stack);
 
-        Assert.False(_desktop.UseRawNavigationInput);
+        Assert.False(_desktop.IsNavigationInputSuspended);
+        Assert.Equal(readsRawInput, _desktop.UseRawNavigationInput);
+    }
+
+    [Fact]
+    public void UnderAMapping_ACommandRuns_OnTheFrameOfItsInput()
+    {
+        var desktop = NewDesktop(out var runtime);
+        var navigation = NavigationOf(desktop);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset { DefaultFocus = "btnPlay" }, Mapped(), PlayCommand(("quit", null)));
+        var stack = StackOf(screen);
+        RootSteps(stack, 2, navigation: navigation);
+
+        RootStep(stack, new KeyboardState(Keys.Z), navigation: navigation);
+
+        Assert.Equal(new[] { "quit" }, _calls);
     }
 
     [Fact]
@@ -1740,25 +1761,23 @@ public sealed class DataDrivenScreenTests : IDisposable
         var desktop = NewDesktop(out var runtime);
         var navigation = NavigationOf(desktop);
         var screen = BuildOn(desktop, runtime, new UIScreenAsset { DefaultFocus = "btnPlay" }, Mapped(), CommandOf(Fade, Wait, Action("quit")));
-        Settle(navigation, screen);
+        var stack = StackOf(screen);
+        RootSteps(stack, 2, navigation: navigation);
 
         _isFadeRunning = true;
-        Tap(navigation, screen, Keys.Z);
+        TapRoot(stack, Keys.Z, navigation);
         Assert.True(screen.IsCommandSuspended);
 
-        // What UIRoot does each frame.
-        navigation.IsSuspended = screen.IsCommandSuspended;
-        Tap(navigation, screen, Keys.Up);
-        Tap(navigation, screen, Keys.Z);
+        TapRoot(stack, Keys.Up, navigation);
+        TapRoot(stack, Keys.Z, navigation);
         Assert.Equal("btnPlay", FocusedName());
         Assert.Equal(new[] { StartedFade }, _calls);
 
         _isFadeRunning = false;
-        NavigationStep(navigation, screen, default);
-        navigation.IsSuspended = screen.IsCommandSuspended;
+        RootStep(stack, navigation: navigation);
         Assert.Equal(new[] { StartedFade, "quit" }, _calls);
 
-        Tap(navigation, screen, Keys.Up);
+        TapRoot(stack, Keys.Up, navigation);
         Assert.Equal("btnPlain", FocusedName());
     }
 
@@ -2358,31 +2377,28 @@ public sealed class DataDrivenScreenTests : IDisposable
         _activeDesktop!.Windows.Remove(Assert.Single(screen.GetWindows()));
     }
 
-    /// <summary>One frame of a project with no mapping, in the order of <see cref="UIRoot.Update"/>.</summary>
-    private void RootStep(ScreenStack stack, KeyboardState keyboard = default, GamePadState? gamePad = null)
+    /// <summary>One frame through the code <see cref="UIRoot.Update"/> runs, with no mapping unless one is given.</summary>
+    private void RootStep(ScreenStack stack, KeyboardState keyboard = default, GamePadState? gamePad = null, UINavigationInput? navigation = null)
     {
-        var desktop = _activeDesktop!;
         var runtime = _activeRuntime!;
         _frame++;
         runtime.Input.GamePad.StateOverride = gamePad ?? NoButton;
         runtime.ApplyFrame(Frame(Away, ButtonState.Released, keyboard));
-        desktop.Update();
-        stack.Update(new GameTime());
-        desktop.IsNavigationInputSuspended = stack.IsNavigationSuspended;
+        UIRoot.RunFrame(_activeDesktop!, navigation!, stack, new GameTime(TimeSpan.FromMilliseconds(16 * _frame), TimeSpan.FromMilliseconds(16)));
     }
 
-    private void RootSteps(ScreenStack stack, int count, GamePadState? gamePad = null)
+    private void RootSteps(ScreenStack stack, int count, GamePadState? gamePad = null, UINavigationInput? navigation = null)
     {
         for (int i = 0; i < count; i++)
         {
-            RootStep(stack, gamePad: gamePad);
+            RootStep(stack, gamePad: gamePad, navigation: navigation);
         }
     }
 
-    private void TapRoot(ScreenStack stack, Keys key)
+    private void TapRoot(ScreenStack stack, Keys key, UINavigationInput? navigation = null)
     {
-        RootStep(stack, new KeyboardState(key));
-        RootStep(stack);
+        RootStep(stack, new KeyboardState(key), navigation: navigation);
+        RootStep(stack, navigation: navigation);
     }
 
     private void Step(Point mouse, DataDrivenScreen screen) => Step(mouse, screen, _activeDesktop!, _activeRuntime!);

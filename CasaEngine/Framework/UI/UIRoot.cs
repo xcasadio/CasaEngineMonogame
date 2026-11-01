@@ -143,26 +143,39 @@ public sealed class UIRoot : IUIViewRuntime
             return;
         }
 
+        RunFrame(Desktop, _navigationInput, ScreenStack, gameTime);
+    }
+
+    /// <summary>
+    /// One frame of a view's UI. Apart from <see cref="Update"/> so that a test runs this very order: it has a desktop
+    /// and a stack, but no <see cref="UIRoot"/>, which needs a graphics device.
+    /// </summary>
+    /// <param name="desktop">The view's desktop.</param>
+    /// <param name="navigationInput">The navigation read from a mapping, or null when MGUI reads its own tables.</param>
+    /// <param name="screenStack">The view's screens.</param>
+    /// <param name="gameTime">The time of the frame.</param>
+    internal static void RunFrame(MGDesktop desktop, UINavigationInput navigationInput, ScreenStack screenStack, GameTime gameTime)
+    {
         // Desktop.Update() reads the current input snapshot that was refreshed
         // when PreviewUpdate fired on the UI host/runtime bridge.
-        Desktop.Update();
+        desktop.Update();
 
         // After the desktop, which has the new input state, and before the screens, so that a command this input
         // leaves runs on the same frame.
-        if (_navigationInput != null)
+        if (navigationInput != null)
         {
-            _navigationInput.IsSuspended = ScreenStack.IsNavigationSuspended;
-            _navigationInput.Update(gameTime.TotalGameTime);
+            navigationInput.IsSuspended = screenStack.IsNavigationSuspended;
+            navigationInput.Update(gameTime.TotalGameTime);
         }
 
         // The view's rectangle follows the window (virtual resolution, ADR-0048): screens that placed their
         // window from the bounds at load time place it again.
-        ScreenStack.NotifyScreenBounds(Desktop.ValidScreenBounds);
-        ScreenStack.Update(gameTime);
+        screenStack.NotifyScreenBounds(desktop.ValidScreenBounds);
+        screenStack.Update(gameTime);
 
         // After the screens and between two desktop updates, as MGUI asks: the next Desktop.Update acts on what they
         // left, a button held through the wait being forgotten before the tracker can repeat it (ADR-0081).
-        Desktop.IsNavigationInputSuspended = ScreenStack.IsNavigationSuspended;
+        desktop.IsNavigationInputSuspended = screenStack.IsNavigationSuspended;
     }
 
     /// <summary>

@@ -121,6 +121,15 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : 4 mutations, toutes tuées, dont `previous != null` à la place de la clause de fenêtre, tuée par le test du popup seul.
 - Commit : `fix(ui): keep a frozen screen's view of the focus current`.
 
+### ✅ T5.3 — Les tests suivent l'ordre réel de `UIRoot` (l, m)
+
+- Constat m, vrai : `RootStep` recopiait la ligne de `UIRoot` qui pose la suspension, donc la déplacer ne faisait rien échouer. Le corps de `UIRoot.Update` passe dans `UIRoot.RunFrame`, interne et statique, qui prend le bureau, la navigation et la pile : `RootStep` l'appelle. Aucune API publique ne change. Le test du chemin avec mapping, qui recopiait lui aussi `navigation.IsSuspended`, passe par là.
+- Constat l, vrai : `AWait_LeavesTheValueItFound` ne pouvait plus échouer, plus rien n'écrivant ce drapeau pendant une attente. Remplacé par `AWait_LeavesTheChoiceOfTheInputPathAlone`, sur les deux valeurs de `UseRawNavigationInput`, pendant l'attente et après, à travers le vrai `RunFrame`.
+- Ajouté : `UnderAMapping_ACommandRuns_OnTheFrameOfItsInput`. Rien ne fixait la place de la navigation avant la pile, écrite dans ADR-0080.
+- Fichiers : `UIRoot.cs`, `DataDrivenScreenTests.cs`, ce plan.
+- Validation : 5 mutations, toutes tuées : ligne de suspension retirée (8 tests), placée avant la pile (3 tests), ligne de suspension du mapping retirée, navigation déplacée après la pile, écriture de `UseRawNavigationInput` pendant une attente. Une première version de la mutation d'ordre laissait le bloc d'origine en place et ne mutait donc rien : refaite. `UIRoot.Update` lui-même garde son seul garde `_disposed` et n'a pas de test : aucun test ne construit un `UIRoot`.
+- Commit : `test(ui): run the frame order of UIRoot in the screen tests`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :
