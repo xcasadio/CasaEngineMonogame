@@ -4,9 +4,10 @@ namespace CasaEngine.Framework.Audio.Psx;
 /// Software PlayStation SPU core (tasks T4.1 and T4.2): 512 KB of SPU RAM, 24 ADPCM voices, pitch, pitch modulation,
 /// fixed and sweeping volumes, ADSR envelopes (ENVX), the noise generator, key on/off and ENDX, rendered at 44100 Hz
 /// into 16 bit stereo. Written from the psx-spx description of the SPU
-/// (https://psx-spx.consoledev.net/ps1/spu/soundprocessingunitspu/ and, for the sample decoding formula the SPU shares
-/// with CD-XA, https://psx-spx.consoledev.net/ps1/cdr/cdromformat/), decision P17: no hardware table is built in,
-/// see <see cref="PsxSpuHardwareTables"/>.
+/// (https://psx-spx.consoledev.net/soundprocessingunitspu/ and, for the sample decoding the SPU shares with CD-XA,
+/// https://psx-spx.consoledev.net/cdromformat/), decision P17: no hardware table is built in, see
+/// <see cref="PsxSpuHardwareTables"/>. The decoder, the start of a voice and the ADSR follow published captures
+/// where psx-spx leaves them open or differs (ADR-0084).
 ///
 /// The ADSR, the volume sweep and the noise generator are formula only (psx-spx sections "Volume and ADSR Generator",
 /// "ADSR Register", "SPU Noise Generator"): no table is needed. The reverb unit (T4.3, see <c>PsxSpuReverb</c>) is

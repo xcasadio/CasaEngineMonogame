@@ -3,8 +3,8 @@
 A software PlayStation sound processing unit in the engine (`CasaEngine.Framework.Audio.Psx`, ADR-0058). A game
 drives it with register writes from the game thread, as a PlayStation sound driver would, and hears it mixed with the
 rest of the engine audio by the software backend (ADR-0055). It is written from the psx-spx description of the SPU
-(<https://psx-spx.consoledev.net/ps1/spu/soundprocessingunitspu/>); no third-party code and no hardware table ship
-with it.
+(<https://psx-spx.consoledev.net/soundprocessingunitspu/>) and checked against the published captures of the nugget
+project (ADR-0084); no third-party code and no hardware table ship with it.
 
 ## What it emulates
 
@@ -85,11 +85,22 @@ if (audioService.TryCreatePsxSpu(tables, AudioBusNames.Music, out var spu))
 
 ## Accuracy
 
-psx-spx leaves several points open (rounding of the ADPCM division, timing of the envelope against the output,
-noise generator start, reverb resampling layout and gain, and others). Each choice is marked
-`AMBIGUOUS (psx-spx)` in the code and listed in open question O19 of `ai-agent/tasks/audio-modern-tasks.md`. The
-tests recompute the psx-spx formulas with synthetic tables, so a misreading would be reproduced by them: the choices
-are to be confirmed by listening against a recording of the console (ADR-0061). Known consequences: the reverb may
+The ADPCM decoder, the start of a voice, the Gaussian rounding and the ADSR follow the captures and ENVX tables of
+`nugget/tests/spu` (MIT): with a Gaussian table supplied, all 27 comparable captures and all 39 tables match, compared
+outside this repository (ADR-0084). The captures fix these limits:
+
+- The decoder history stays at zero at key on, which the start of `adpcm_edge_predictor_1` to `_4` contradicts.
+- Shifts 13 to 15 are measured on the nibbles -8 and 7 only.
+- `flag_end_mute` goes silent 8 frames earlier than the engine.
+- Key on decodes a block, so ENDX and the repeat address move earlier. No capture fixes that moment.
+
+The hardware origin of the captures rests on their comments. The default cubic interpolation is not what they show,
+and the voice volume sweeps and the reverb have no capture.
+
+The other points psx-spx leaves open (noise generator start, reverb resampling layout and gain, and others) stay marked
+`AMBIGUOUS (psx-spx)` in the code and listed in open question O19 of `ai-agent/tasks/audio-modern-tasks.md`. For them, the
+tests recompute the psx-spx formulas with synthetic tables, so a misreading would be reproduced by them. Known
+consequences: the reverb may
 come out about half as loud as on the console (output FIR gain not compensated), and with the default tables its
 tone is approximate (formula FIR).
 

@@ -5,7 +5,7 @@ namespace CasaEngine.Tests.Audio.Psx;
 
 /// <summary>
 /// Tests of the default SPU tables (T7.1, D25). ADPCM expectations: psx-spx, "Pos/neg Tables" of the CD-XA ADPCM
-/// section (https://psx-spx.consoledev.net/ps1/cdr/cdromformat/). The FIR is checked on its frequency response.
+/// section (https://psx-spx.consoledev.net/cdromformat/). The FIR is checked on its frequency response.
 /// </summary>
 public class PsxSpuDefaultTablesTests
 {

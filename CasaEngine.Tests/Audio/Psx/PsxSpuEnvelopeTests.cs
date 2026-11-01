@@ -4,7 +4,7 @@ using Xunit;
 namespace CasaEngine.Tests.Audio.Psx;
 
 // Tests of task T4.2: ADSR, ENVX, noise generator and pitch modulation. The expectations are recomputed here from the
-// psx-spx formulas (https://psx-spx.consoledev.net/ps1/spu/soundprocessingunitspu/), independently of PsxSpu.
+// psx-spx formulas (https://psx-spx.consoledev.net/soundprocessingunitspu/), independently of PsxSpu.
 public partial class PsxSpuTests
 {
     // Test interpolator: the newest decoded sample, so the expected output follows the pushed samples directly.

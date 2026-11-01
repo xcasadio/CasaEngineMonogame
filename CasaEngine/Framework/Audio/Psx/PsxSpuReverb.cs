@@ -2,7 +2,7 @@ namespace CasaEngine.Framework.Audio.Psx;
 
 /// <summary>
 /// Reverb unit of the software SPU (task T4.3), written from psx-spx
-/// (https://psx-spx.consoledev.net/ps1/spu/soundprocessingunitspu/, sections "SPU Reverb Registers", "SPU Reverb Formula"
+/// (https://psx-spx.consoledev.net/soundprocessingunitspu/, sections "SPU Reverb Registers", "SPU Reverb Formula"
 /// with its notes "Reverb Disable" and "Reverb Precision", and "SPU Reverb Buffer Resampling"). Driven only by registers:
 /// no preset is built in. The 39 FIR coefficients come from <see cref="PsxSpuHardwareTables"/>; without them the unit is
 /// bypassed (no output, no work area write, no state change).

@@ -192,7 +192,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
 
 ## Phase 3 — Clôture
 
-### ⏳ T3.1 — Documents et validation globale
+### 🧪 T3.1 — Documents et validation globale
 
 - Objectif : dire ce qui est prouvé et ce qui ne l'est pas.
 - Fichiers : `docs/engine/psx-spu.md`, `ai-agent/tasks/audio-modern-tasks.md` (O19), `ai-agent/README.md`, ce plan, et les commentaires qui citent l'URL morte.
@@ -202,6 +202,7 @@ Tests qui fixent l'ancien comportement, mesurés sur une copie par `dotnet test 
   3. Lancer la validation globale.
 - Validation : tous les points sauf l'écoute. Tâche en 🧪 jusqu'à l'écoute de l'auteur.
 - Commit : `docs(audio): record the SPU capture conformance`
+- Note : toutes les validations automatiques faites, voir le rapport de la branche. Reste : écoute d'`AudioDemo` par l'auteur, baisse de 6 dB attendue sur les voix au mot `1FC0000F`.
 
 ---
 
