@@ -203,7 +203,12 @@ Trois petits points restants, un commit chacun, en commits neufs. Les commits du
 - Validation : 7 mutations, toutes tuées puis restaurées, dont le contrôle limité à sa propre paire (4 cas), aux paires suivantes (2), aux paires précédentes (2), et l'égalité à la place de l'ancêtre (3). Le seul projet du dépôt qui utilise `focus_markers` est `Projects/PixelUiSample`, avec une paire : il charge (test `ThePixelSampleScreens_PassTheChecksOfADataDrivenScreen`, et Launcher). Trace temporaire retirée, vérifié par `git diff`.
 - Commit : `fix(ui): refuse a focus marker named twice or covering another pair's element`.
 
-### ⏳ T7.2 — Le popup d'options de `Projects/PixelUiSample`
+### ✅ T7.2 — Le popup d'options de `Projects/PixelUiSample`
+
+- Constat, vrai, vu sur capture au Launcher : le texte du popup chevauchait `QUIT`. À 960x540, ses pixels jaunes tenaient les lignes 375 à 395, et le bouton `QUIT` tient les lignes 360 à 407, depuis que `bfc4319a` a ajouté `FADE OUT` à la colonne.
+- Correctif : `Screens/options.xaml`, `Top="116" Height="60"` devient `Top="132" Height="48"`. Le contenu fait 48 pixels de design, marges comprises : la fenêtre finit à 180, le bas de la résolution de design. Aucun autre fichier du sample ne change.
+- Validation : capture du popup ouvert, lue : le texte tient les lignes 423 à 443, les boutons 468 à 515. Mêmes touches au Launcher avant et après le correctif, mêmes résultats : Haut et Bas ne bougent pas le focus, ni avant ni après ; Droite va à `TWO`, `BACK`, puis revient à `ONE` ; Gauche revient à `BACK` ; Z sur `BACK` et X ferment le popup. Les captures après Z et après X sont identiques à l'octet à celle du titre avec le focus sur `OPTIONS`. Aucune exception dans les logs.
+- Commit : `fix(sample): move the options popup below the QUIT row`.
 
 ### ⏳ T7.3 — Un exemple de fondu neutre
 
