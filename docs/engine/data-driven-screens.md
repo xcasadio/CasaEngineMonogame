@@ -101,9 +101,9 @@ While a list waits:
 
 The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs. The first frame of the next world still shows the overlay at `to`.
 
-A fade started when the world starts, by `on_open_command` on the first screen for instance, counts one frame later, because a world's time starts at its first frame (ADR-0082): the first frame shows `from`, the second shows the first step, and a fade of N steps reaches `to` on frame N + 1. Under a fixed step, 17 steps of 15 draw 255, 240, then 15 by 15 down to 0 on frame 18.
+A fade started when the world starts, by `on_open_command` on the first screen for instance, counts one frame later, because a world's time starts at its first frame (ADR-0082): the first frame shows `from`, the second shows the first step, and a fade of N steps reaches `to` on frame N + 1. Under a fixed step, 51 steps of 5 draw 255, 250, then 5 by 5 down to 0 on frame 52.
 
-Nothing of what the world took to start is replayed: without that, the 30 Updates MonoGame runs after a load are enough to end a fade of 17 frames before the first frame is drawn. A late frame later on is not protected, see [screen-effects.md](screen-effects.md), section 5.2.
+Nothing of what the world took to start is replayed: without that, MonoGame runs 30 Updates before the first frame and 26 before the second, so a fade of 51 steps shows on one frame at 110, then at 0. A late frame later on is not protected, see [screen-effects.md](screen-effects.md), section 5.2.
 
 A world used with a fade above the UI declares an entity with a `Camera2dComponent`, like `Projects/PixelUiSample/TitleWorld.world`: the veil is only placed for that camera. A world with no camera gets a 3D one. The sample without its camera was still fully covered at 960x540, but that is one measure and nothing guarantees it (ADR-0033).
 

@@ -199,16 +199,16 @@ The service has no step of its own: it interpolates from the elapsed time and ro
 - it sets `"IsFixedTimeStep": true` in its project file;
 - it writes `duration_seconds` as a number of frames over the rate.
 
-The engine does not set `TargetElapsedTime`, so the rate is MonoGame's default: 166667 ticks, read from `new Game().TargetElapsedTime`, about 60 updates a second. A subtractive fade from 0 to 255 by 15 per frame lasts 17 frames, so `duration_seconds` is 17 / 60, written as `0.283333`. `ScreenEffectServiceTests.AFadeInFrames_StepsExactly_WhenTheStepDivides255` proves the values on that step, for steps of 5, 15, 17 and 51.
+The engine does not set `TargetElapsedTime`, so the rate is MonoGame's default: 166667 ticks, read from `new Game().TargetElapsedTime`, about 60 updates a second. A subtractive fade from 255 to 0 by 5 per frame lasts 51 frames, so `duration_seconds` is 51 / 60, written as `0.85`. `ScreenEffectServiceTests.AFadeInFrames_StepsExactly_WhenTheStepDivides255` proves the values on that step, for steps of 5, 15, 17 and 51.
 
 Limits:
 
 - A step is only exact when it divides 255. 16 per frame over 16 frames gives values that are not all multiples of 16, ending on 255.
-- A duration rounded up ends one frame late: 0.2834 instead of 0.283333 finishes on frame 18, not 17.
+- A duration rounded up ends one frame late: 0.8501 instead of 0.85 finishes on frame 52, not 51.
 - The first step shows on the frame of the action, not the next one, when the fade starts from the UI: the UI updates before `ScreenEffectComponent`. Against a target that draws its first step one frame after the input, this is one frame early.
-- A fade started when a world starts shows `from` on its first frame and its first step on the second, because a world's time starts at its first frame (ADR-0082). It reaches `to` on frame N + 1 for N steps, one frame later than a fade started from the UI: 255, 240, then 15 by 15 down to 0 on frame 18 for the fade above.
+- A fade started when a world starts shows `from` on its first frame and its first step on the second, because a world's time starts at its first frame (ADR-0082). It reaches `to` on frame N + 1 for N steps, one frame later than a fade started from the UI: 255, 250, then 5 by 5 down to 0 on frame 52 for the fade above.
 - The last value is `to`. A target whose last visible value is lower ends higher here.
-- A late frame loses steps. Under a fixed step MonoGame replays the time as Updates with no `Draw`, up to `Game.MaxElapsedTime`, which reads 500 ms, so 30 Updates at this rate. The fade advances on each of them, so a frame 4 steps late draws 255, 240, then 165. Only the first two frames of a world are protected, by `LoadTimeDiscard` (ADR-0082).
+- A late frame loses steps. Under a fixed step MonoGame replays the time as Updates with no `Draw`, up to `Game.MaxElapsedTime`, which reads 500 ms, so 30 Updates at this rate. The fade advances on each of them, so a frame 4 steps late draws 255, 250, then 225. Only the first two frames of a world are protected, by `LoadTimeDiscard` (ADR-0082).
 
 ---
 
