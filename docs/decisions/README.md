@@ -74,7 +74,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0058](0058-a-software-playstation-spu-hosted-by-the-software-audio-backend.md) | A software PlayStation SPU hosted by the software audio backend | Accepted (hardware tables policy superseded in part by ADR-0061 and ADR-0062) | 2026-10-06 |
 | [ADR-0059](0059-a-bus-graph-with-effects-mixed-by-the-software-audio-backend.md) | A bus graph with effects, sends, ramps and snapshots mixed by the software audio backend | Accepted | 2026-10-06 |
 | [ADR-0060](0060-lock-free-bus-metering-and-a-read-only-audio-profiler-panel.md) | Lock-free bus metering and a read-only audio profiler panel | Accepted | 2026-10-06 |
-| [ADR-0061](0061-author-decisions-for-the-audio-game-layer-mixer-asset-and-psx-module.md) | Author's decisions for the audio game layer, the mixer asset and the PSX module | Accepted | 2026-10-06 |
+| [ADR-0061](0061-author-decisions-for-the-audio-game-layer-mixer-asset-and-psx-module.md) | Author's decisions for the audio game layer, the mixer asset and the PSX module | Accepted (amended by ADR-0084) | 2026-10-06 |
 | [ADR-0062](0062-default-spu-tables-and-a-project-switch-for-the-master-limiter.md) | Default SPU tables and a project switch for the Master limiter | Accepted | 2026-10-06 |
 | [ADR-0063](0063-sound-variations-and-voice-priorities.md) | Sound variations and voice priorities | Accepted | 2026-10-06 |
 | [ADR-0064](0064-listener-spatial-audio-doppler-and-game-parameters.md) | Listener, spatial audio, Doppler and game parameters | Accepted | 2026-10-06 |
@@ -96,3 +96,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0080](0080-data-driven-navigation-through-a-ui-input-mapping.md) | Data-driven navigation through a UI input mapping | Accepted | 2026-10-31 |
 | [ADR-0081](0081-screen-fades-and-waits-in-data-driven-commands.md) | Screen fades and waits in data-driven commands | Accepted (amended by ADR-0082) | 2026-10-31 |
 | [ADR-0082](0082-screens-run-a-command-on-open-and-mark-the-focus.md) | Screens run a command on open and mark the focus | Accepted | 2026-11-01 |
+| [ADR-0084](0084-the-software-spu-follows-published-captures.md) | The software SPU follows published captures | Accepted | 2026-11-01 |
