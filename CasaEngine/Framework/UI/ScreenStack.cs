@@ -160,6 +160,14 @@ public sealed class ScreenStack
         // Find the lowest blocking screen (blocks everything below it).
         int startIndex = TopBlockingScreen != null ? _screens.IndexOf(TopBlockingScreen) : 0;
 
+        for (int i = 0; i < startIndex; i++)
+        {
+            if (_screens[i] is DataDrivenScreen frozen)
+            {
+                frozen.FollowFocusWhileFrozen();
+            }
+        }
+
         for (int i = startIndex; i < _screens.Count; i++)
             _screens[i].Update(gameTime);
     }

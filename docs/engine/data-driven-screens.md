@@ -228,7 +228,7 @@ Repeat follows the game time, checked once a frame, so a real interval is rounde
 
 - `focus_wrap`, `vertical` or `horizontal`: the first and the last focusable element are joined, up and down or left and right. The order is MGUI's: `TabIndex`, then top, then left. It works with or without a mapping.
 - `cancel_command`: the entry of `ui_commands` that runs when Cancel reaches the screen at the top of the stack and nothing consumed it. An open combo box closes first. It needs a project with a `UIInputMapping`.
-- `move_command`: the entry of `ui_commands` that runs when the keyboard or the gamepad moves the focus between two elements of this window, a wrap included. A move that stops at an edge moves nothing, so it runs nothing. It does not run for a default focus, for a focus that arrives from another screen, or in pointer mode. It works with or without a mapping.
+- `move_command`: the entry of `ui_commands` that runs when the keyboard or the gamepad moves the focus between two elements of this window, a wrap included. A move that stops at an edge moves nothing, so it runs nothing. It does not run for a default focus, for a focus that arrives from another screen, or in pointer mode. A move made while a modal screen freezes this one, which needs a modal screen with nothing to focus, runs nothing either, then or later. It works with or without a mapping.
 
 A command keeps its usual rules: the top of the stack only, run in `Update`, one at a time. A click, a Submit or a Cancel already waiting on that frame takes precedence over a move, which is then dropped.
 

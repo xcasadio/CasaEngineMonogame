@@ -113,6 +113,14 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : les 4 tests neufs échouent sans le correctif et passent avec. Le mapping du sample, celui de `RPGDemo` et celui du projet externe n'ont aucun doublon (lu avec `jq`).
 - Commit : `fix(ui): keep a text box's keys out of Cancel and refuse an empty duplicate action`.
 
+### ✅ T5.2 — `move_command` : le retour du focus et l'écran gelé (c, d)
+
+- Constat c, vrai : le test « le focus arrive d'un autre écran » est arrêté par le garde du focus par défaut, pas par `previous?.SelfOrParentWindow == Window`. Test ajouté : le focus revient à un écran non modal quand le popup au-dessus se ferme, sans focus par défaut à l'œuvre.
+- Constat d, vrai, mesuré avant le correctif : sous un modal sans élément focalisable, la navigation de MGUI déplace le focus dans l'écran gelé, et son premier `Update` après la fermeture jouait `move_command` sur une image où rien ne bougeait. `ScreenStack.Update` appelle maintenant `FollowFocusWhileFrozen` sur les écrans gelés, sans allocation. Ce suivi consomme aussi `_isDefaultFocusArriving` : un focus par défaut arrivé pendant le gel avalait sinon le premier vrai déplacement, mesuré aussi.
+- Fichiers : `DataDrivenScreen.cs`, `ScreenStack.cs`, `DataDrivenScreenTests.cs`, ADR-0080, `docs/engine/data-driven-screens.md`, ce plan.
+- Validation : 4 mutations, toutes tuées, dont `previous != null` à la place de la clause de fenêtre, tuée par le test du popup seul.
+- Commit : `fix(ui): keep a frozen screen's view of the focus current`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :

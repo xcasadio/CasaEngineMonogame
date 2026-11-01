@@ -36,6 +36,13 @@ public sealed class DataDrivenScreenTests : IDisposable
         </Window>
         """;
 
+    private const string NothingToFocus = """
+        <Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+                Left="400" Top="400" Width="200" Height="100" IsCloseButtonVisible="False">
+          <TextBlock Name="lblMessage" Text="Wait" />
+        </Window>
+        """;
+
     private static readonly Point Away = new(-100, -100);
 
     private readonly string _root = Directory.CreateTempSubdirectory("data-driven-screen-").FullName;
@@ -506,6 +513,91 @@ public sealed class DataDrivenScreenTests : IDisposable
 
         Assert.Same(Assert.Single(above.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
         Assert.Empty(_calls);
+    }
+
+    /// <summary>
+    /// The screen under a non-modal popup goes on being updated, so it sees the focus leave and come back. No default
+    /// focus is at work on the way back: only the window the focus came from tells this apart from a move.
+    /// </summary>
+    [Fact]
+    public void AMoveCommand_DoesNotRun_WhenTheFocusComesBackFromAPopupThatCloses()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        var stack = StackOf(below);
+        TapRoot(stack, Keys.Down);
+        Assert.Equal("btnPlay", FocusedName());
+        _calls.Clear();
+
+        var popup = Build(new UIScreenAsset { DefaultFocus = "btnPlain" }, PlayCommand(("quit", null)));
+        stack.PushBuilt(popup);
+        RootSteps(stack, 4);
+        Assert.Same(Assert.Single(popup.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+
+        CloseOn(stack, popup);
+        RootSteps(stack, 2);
+
+        Assert.Same(Assert.Single(below.GetWindows()), _desktop.FocusedKeyboardHandler?.SelfOrParentWindow);
+        Assert.Empty(_calls);
+    }
+
+    /// <summary>
+    /// A frozen screen gets no Update, and MGUI still moves the focus inside it when the modal screen has nothing to
+    /// focus. The first Update after the modal closes would otherwise take that move for one of its own frame.
+    /// </summary>
+    [Fact]
+    public void AMoveCommand_DoesNotRun_ForAMoveMadeWhileTheScreenWasFrozen()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        var stack = StackOf(below);
+        var modal = BuildNothingToFocus(new UIScreenAsset { IsModal = true });
+        stack.PushBuilt(modal);
+        RootSteps(stack, 4);
+
+        TapRoot(stack, Keys.Down);
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Empty(_calls);
+
+        CloseOn(stack, modal);
+        RootSteps(stack, 2);
+
+        Assert.Empty(_calls);
+
+        TapRoot(stack, Keys.Up);
+
+        Assert.Equal("btnPlain", FocusedName());
+        Assert.Equal(new[] { "sound:Confirm" }, _calls);
+    }
+
+    /// <summary>The default focus was asked for, then the screen froze: it arrives unseen, and must not swallow the next real move.</summary>
+    [Fact]
+    public void ADefaultFocusThatArrivesWhileTheScreenIsFrozen_DoesNotHideTheNextMove()
+    {
+        var below = Build(new UIScreenAsset { DefaultFocus = "btnPlain", MoveCommand = "Tick" }, PlayCommand(("quit", null)), Named("Tick", ("play_sound", "Confirm")));
+        _stack = new ScreenStack(null);
+        _stack.PushBuilt(below);
+        RootSteps(_stack, 2);
+        Assert.Null(_desktop.FocusedKeyboardHandler);
+
+        var modal = BuildNothingToFocus(new UIScreenAsset { IsModal = true });
+        _stack.PushBuilt(modal);
+        RootStep(_stack);
+        Assert.Equal("btnPlain", FocusedName());
+
+        CloseOn(_stack, modal);
+        TapRoot(_stack, Keys.Down);
+
+        Assert.Equal("btnPlay", FocusedName());
+        Assert.Equal(new[] { "sound:Confirm" }, _calls);
+    }
+
+    private DataDrivenScreen BuildNothingToFocus(UIScreenAsset asset)
+    {
+        string xaml = Path.Combine(_root, "menu.xaml");
+        string markup = File.ReadAllText(xaml);
+        File.WriteAllText(xaml, NothingToFocus);
+        var screen = Build(asset);
+        File.WriteAllText(xaml, markup);
+        return screen;
     }
 
     [Fact]

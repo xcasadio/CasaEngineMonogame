@@ -712,6 +712,17 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
+    /// Stands in for <see cref="WatchFocusMove"/> on a frame a modal screen freezes this one. MGUI's navigation can
+    /// still move the focus here when that screen has nothing to focus, and the first <see cref="Update"/> after it
+    /// would take that for a move of its own frame. A move nothing watched runs no <c>move_command</c>.
+    /// </summary>
+    internal void FollowFocusWhileFrozen()
+    {
+        _lastFocused = Window.Desktop.FocusedKeyboardHandler;
+        _isDefaultFocusArriving = false;
+    }
+
+    /// <summary>
     /// A screen that names no focus only takes it from another screen: MGUI gives none to a window opened while another
     /// one holds it, keyboard navigation stays inside the focused window, and a command below the top is dropped, so
     /// this screen could only be reached with the mouse. Otherwise the focus is left to MGUI.
