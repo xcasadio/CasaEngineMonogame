@@ -130,6 +130,13 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Validation : 5 mutations, toutes tuées : ligne de suspension retirée (8 tests), placée avant la pile (3 tests), ligne de suspension du mapping retirée, navigation déplacée après la pile, écriture de `UseRawNavigationInput` pendant une attente. Une première version de la mutation d'ordre laissait le bloc d'origine en place et ne mutait donc rien : refaite. `UIRoot.Update` lui-même garde son seul garde `_disposed` et n'a pas de test : aucun test ne construit un `UIRoot`.
 - Commit : `test(ui): run the frame order of UIRoot in the screen tests`.
 
+### ✅ T5.4 — Un nom de police qui tombe sur un autre asset (f)
+
+- Constat f, vrai : `AssetCatalog` indexe les noms par écrasement (`_assetInfosByName[assetInfo.Name] = assetInfo`), la dernière entrée lue gagne. Un PNG de page au nom de son `.fnt` fait résoudre le nom vers le PNG, et le message disait qu'aucune police n'est enregistrée. Le message nomme maintenant le fichier et le type trouvés, et la cause. Un nom inconnu garde le message d'avant, au mot près. `docs/engine/data-driven-screens.md` le dit aussi.
+- Fichiers : `GameManager.cs`, `ScreenAssetLookupTests.cs`, `docs/engine/data-driven-screens.md`, ce plan.
+- Validation : le test neuf échoue sans le correctif et passe avec.
+- Commit : `fix(ui): say which asset a font name landed on`.
+
 ## Points ouverts
 
 Vus pendant T4.1, hors de la demande, non corrigés :

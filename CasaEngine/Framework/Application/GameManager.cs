@@ -278,16 +278,23 @@ public class GameManager
 
     /// <summary>
     /// The bitmap font the name or id designates. The type is checked here because <c>BitmapFontLoader</c> would read
-    /// any catalogued text file, and fail on a message that does not name what the screen asked for.
+    /// any catalogued text file, and fail on a message that does not name what the screen asked for. A name that lands
+    /// on something else is told apart: the catalogue keeps the last asset of a name, so a page PNG named like its
+    /// <c>.fnt</c> hides a font that is registered.
     /// </summary>
     /// <exception cref="InvalidOperationException">The project has no such font.</exception>
     internal static AssetInfo FindFontAsset(string assetIdOrName)
     {
         var assetInfo = FindAsset(assetIdOrName);
 
-        return IsCataloguedAs(assetInfo, FontAssetType)
-            ? assetInfo
-            : throw new InvalidOperationException($"No bitmap font asset '{assetIdOrName}' is registered in this project.");
+        if (IsCataloguedAs(assetInfo, FontAssetType))
+        {
+            return assetInfo;
+        }
+
+        throw new InvalidOperationException(assetInfo == null
+            ? $"No bitmap font asset '{assetIdOrName}' is registered in this project."
+            : $"'{assetIdOrName}' designates '{assetInfo.FileName}', of type '{assetInfo.AssetType}', and not a bitmap font. The catalogue keeps one asset per name, the last it reads: if a font has this name too, a page PNG for instance has to be renamed.");
     }
 
     /// <summary>The buttons mapping the name or id designates (ADR-0080).</summary>

@@ -101,6 +101,28 @@ public sealed class ScreenAssetLookupTests : IDisposable
     }
 
     [Fact]
+    public void AFontNameThatLandsOnAnotherAsset_SaysWhichOne_AndWhy()
+    {
+        AssetCatalog.AddInternal(new AssetInfo(Guid.NewGuid()) { Name = "Block", FileName = "block.png", AssetType = "texture" });
+
+        var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindFontAsset("Block"));
+
+        Assert.Contains("'Block'", error.Message);
+        Assert.Contains("'block.png'", error.Message);
+        Assert.Contains("'texture'", error.Message);
+        Assert.Contains("one asset per name", error.Message);
+        Assert.DoesNotContain("registered", error.Message);
+    }
+
+    [Fact]
+    public void AFontNameTheCatalogueDoesNotHave_SaysSo()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => GameManager.FindFontAsset("Nope"));
+
+        Assert.Equal("No bitmap font asset 'Nope' is registered in this project.", error.Message);
+    }
+
+    [Fact]
     public void AButtonsMapping_IsFoundByNameAndById()
     {
         Assert.Equal(MappingId, GameManager.FindButtonsMappingAsset("Keys").Id);

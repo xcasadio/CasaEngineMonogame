@@ -154,7 +154,7 @@ A screen names its fonts in `fonts`, by catalogue name or id, and a text element
 <TextBlock FontFamily="pixel-block" Foreground="White" Text="PIXEL UI SAMPLE" />
 ```
 
-The screen takes its holds before its XAML loads and gives them back when it closes, through the game's `UIFontRegistry` (ADR-0036). Catalogue the `.fnt` with the type `fnt`, and its page PNG next to it: a `.fnt` names its pages relative to itself. A bitmap font keeps its own size, so `FontSize` has no effect on it.
+The screen takes its holds before its XAML loads and gives them back when it closes, through the game's `UIFontRegistry` (ADR-0036). Catalogue the `.fnt` with the type `fnt`, and its page PNG next to it: a `.fnt` names its pages relative to itself. Give the PNG a catalogue name of its own: the catalogue keeps one asset per name, the last it reads, so a PNG named like its `.fnt` hides the font, and the error then names the PNG. A bitmap font keeps its own size, so `FontSize` has no effect on it.
 
 Things measured on `Projects/PixelUiSample`, in the Launcher:
 
@@ -242,7 +242,7 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a command with no name, or declared twice;
 - a `default_focus` that names nothing, or an element that cannot take the focus;
 - a button whose `CommandName` resolves to no command;
-- a font the project does not have, an asset of another type, or a font that cannot be loaded, such as one whose page is missing;
+- a font the project does not have, a name or id that designates an asset of another type, which the message names, or a font that cannot be loaded, such as one whose page is missing;
 - a window placed by alignment under a design resolution;
 - a `focus_wrap` that is neither `vertical` nor `horizontal`;
 - a `cancel_command` or a `move_command` that names no entry of `ui_commands`;
