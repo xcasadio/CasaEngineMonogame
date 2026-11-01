@@ -303,8 +303,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
-    /// Runs here and not in <see cref="Update"/>: a screen draws one frame before its first update, and that frame must
-    /// already show the fade. The caller disposes the screen if an action throws.
+    /// Runs here and not in <see cref="Update"/>: a project's first screen draws one frame before its first update, and
+    /// that frame must already show the fade. A screen opened by <c>open_screen</c> gets that update on the frame it
+    /// opens, inside the loop of <see cref="ScreenStack.Update"/>. The caller disposes the screen if an action throws.
     /// </summary>
     private void StartOnOpenCommand()
     {
@@ -423,8 +424,10 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
-    /// Only what leaves the screen running may come before a wait: a modal screen opened by the list freezes this one,
-    /// and a list that closed it, changed the world or quit has nobody left to resume it. It would die with no sign.
+    /// Only what surely leaves the screen running may come before a wait: a modal screen opened by the list freezes
+    /// this one, and a list that closed it, changed the world or quit has nobody left to resume it. It would die with
+    /// no sign. A non-modal screen would not stop it and is refused all the same: this reads the type of the action,
+    /// not the screen it opens.
     /// </summary>
     private void CheckWaits(UIScreenCommandData command)
     {

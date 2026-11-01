@@ -6,7 +6,7 @@
 
 ## Context
 
-- ADR-0081 accepts as a limit that no fade runs when a screen opens: nothing starts a command then, and a screen draws one frame before its first `Update`, so a fade in started from `Update` would show the screen once, unfaded.
+- ADR-0081 accepts as a limit that no fade runs when a screen opens: nothing starts a command then, and a project's first screen, which `UpdateWorld` opens after the views have updated, draws one frame before its first `Update`, so a fade in started from `Update` would show the screen once, unfaded. A screen opened by `open_screen` is not in that case: the action runs inside the loop of `ScreenStack.Update`, which reaches the new screen on the same frame.
 - A menu drawn as text rows needs a cursor beside the focused row. MGUI's focus visuals are colors of the element itself, and an element has no property that says it holds the focus: `HasKeyboardFocus` is an explicit interface method, and `VisualState` says Focused only outside the Pointer input mode. The desktop does report every change, through `MGDesktop.FocusedKeyboardHandlerChanged`, but that event knows nothing of screens: it also fires for a screen frozen under a modal one, which has to keep its marker. That is why the screen polls, see the decision on `Update` below.
 - A cursor can be taller than a row, so two cursors in their own buttons would overlap the neighbouring button.
 

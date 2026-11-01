@@ -16,7 +16,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 ## État vérifié du dépôt (2026-11-01)
 
 - `git log -1` : la branche part de `chantier/screen-fade-actions` `c5ffe054`.
-- ADR-0081 liste comme limite « No fade runs when a screen opens » : rien ne lance une commande à l'ouverture, et un écran dessine une image avant son premier `Update`.
+- ADR-0081 liste comme limite « No fade runs when a screen opens » : rien ne lance une commande à l'ouverture, et le premier écran d'un projet dessine une image avant son premier `Update`. Corrigé en T5.7 : la version d'origine disait « un écran », or un écran ouvert par `open_screen` reçoit le sien sur l'image de son ouverture.
 - `DataDrivenScreen.OnWindowLoaded` tourne avant l'entrée de l'écran sur la pile (`DataDrivenScreen.cs:116`).
 - Un élément MGUI n'a pas de propriété qui dise qu'il tient le focus : `HasKeyboardFocus` est une méthode d'interface explicite (`MGElement.cs:2918`). Le bureau signale pourtant chaque changement par `MGDesktop.FocusedKeyboardHandlerChanged` (`MGDesktop.cs:1261`) : corrigé en T4.2, la version d'origine de cette ligne l'ignorait.
 - `MGDesktop.FocusedKeyboardHandler` se lit sans allocation, et `DataDrivenScreen.WatchFocusMove` compare déjà sa valeur d'une image à l'autre.
@@ -140,7 +140,7 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 ### ✅ T5.5 — Le contexte d'un écran se construit sans jeu (g)
 
 - Constat g, vrai : `CreateScreenActionContext` lisait `_game`, et `Quit = _game.Exit` levait dès la construction avec un jeu nul. Les lignes de `DesignResolution`, `AcquireFont`, `StartFade` et `IsFadeRunning` n'avaient aucun test. Le type interne `ScreenGameServices` porte ce que le contexte prend au jeu, et `CreateScreenActionContext` devient interne : aucune API publique ne change. Le service de fondu reste lu à l'usage, pas à la construction.
-- Reste hors de portée d'un test : `ReadScreenGameServices`, les cinq lectures de `_game`. Aucun test ne construit ce jeu. Le Launcher les prouve : échelle, police et fondu sur `Projects/PixelUiSample`, vus en T5.6.
+- Reste hors de portée d'un test : `ReadScreenGameServices`, les cinq lectures de `_game`. Aucun test ne construit ce jeu. Le Launcher les prouve sur `Projects/PixelUiSample`, voir T5.6.
 - Fichiers : `ScreenGameServices.cs`, `GameManager.cs`, `ScreenActionContextWiringTests.cs`, `FirstScreenTests.cs` (bouchon de vue devenu `internal`), `ScreenFadeWiringTests.cs` (commentaire), ce plan.
 - Validation : 6 mutations, toutes tuées, une par ligne câblée.
 - Commit : `test(ui): build the context of a screen without a game`.
@@ -151,8 +151,18 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Fichiers : `DataDrivenScreen.cs`, `DataDrivenScreenTests.cs`, ce plan.
 - Validation : le test neuf échoue sans le correctif, et vérifie aussi que l'`Update` suivant ne translate pas une seconde fois.
 - Launcher, redimensionnement à chaud du même processus sur `Projects/PixelUiSample` : 960x540, 1280x720, 640x360, 1000x600, puis 960x540. À marge de 12 px des bords, chaque capture compte 5 couleurs et tous les changements tombent en phase avec la grille de `k` : phase 0 à k = 3, 4 et 2, phase 2 en x et 0 en y à 1000x600, dont l'image part de (20, 30). La capture de retour à 960x540 est identique à l'octet à la première. Sans cette marge, 36 pixels de 11 couleurs rares restent hors phase. Ils sont tous à moins de 9 px d'un coin, en même nombre à chaque taille. Leur cause n'est pas prouvée.
-- Le même run prouve les lectures de `_game` de T5.5 : échelle, police bitmap, puis fondu `FADE OUT` jusqu'à `BlackWorld`, aucune exception dans le log. L'image transitoire elle-même n'a pas été observée au Launcher : seul le test la mesure.
+- Le même run et un second prouvent les cinq lectures de `_game` de T5.5 : l'échelle, la police bitmap, le fondu `FADE OUT` jusqu'à `BlackWorld` (capture finale entièrement noire), le popup d'options, qui a un `cancel_command` et n'aurait pas chargé sans mapping, fermé par X avec le focus rendu à `OPTIONS`, et `QUIT` avec le code 0. Aucune exception dans les logs. L'image transitoire elle-même n'a pas été observée au Launcher : seul le test la mesure.
 - Commit : `fix(ui): move a scaled window's elements on the frame k changes`.
+
+### ✅ T5.7 — Documents exacts (e, i, j, k)
+
+- Constat e, vrai : `CasaEngineGame` lit le fichier à l'initialisation, mais le contenu est contrôlé dans le constructeur de `UINavigationInput`, que `UIRoot` appelle quand sa vue est ajoutée, donc pendant le `UpdateWorld` du premier monde (`BootstrapViews`). ADR-0080 et `docs/engine/data-driven-screens.md` distinguent maintenant les deux moments.
+- Constat i, vrai sur le fond, inexact sur le lieu : la phrase n'est ni dans ADR-0081 ni dans `data-driven-screens.md`. Elle est dans ADR-0082, dans le commentaire de `StartOnOpenCommand` et en ligne 19 de ce plan, corrigés tous les trois. La liste d'`open_screen` tourne dans la boucle de `ScreenStack.Update`, dont la borne relit `_screens.Count` : le nouvel écran reçoit son `Update` sur la même image. `data-driven-screens.md` le dit désormais pour `on_open_command`. Lu dans le code, pas mesuré. La seconde partie est vraie : `CheckWaits` lit le type de l'action, donc un `open_screen` non modal est refusé lui aussi. Corrigé dans `data-driven-screens.md`, ADR-0081 et le commentaire de `CheckWaits`.
+- Constat j, vrai : `StartFade` et `IsFadeRunning` sont `required` sur un type public. Écrit dans les conséquences d'ADR-0081.
+- Constat k, vrai au commit que la section décrit : `fc4359b1` a 150 lignes et `Update` y est en 137-149. La citation `154-165` n'est juste qu'à partir de `c5ffe054`, à une ligne près. Corrigée, avec le commit nommé.
+- Fichiers : ADR-0080, ADR-0081, ADR-0082, `docs/engine/data-driven-screens.md`, `DataDrivenScreen.cs` (commentaires seulement), `screen-fade-actions-tasks.md`, ce plan, `ai-agent/README.md`.
+- Validation : `docs/engine/data-driven-screens.md` relu contre le code sur ces points. Validation globale ci-dessous.
+- Commit : `docs(ui): make the load, open and wait statements exact`.
 
 ## Points ouverts
 
@@ -168,3 +178,4 @@ Vus pendant T4.1, hors de la demande, non corrigés :
 - Limite ajoutée à ADR-0081 après vérification de `chantier/screen-fade-actions` : sans mapping, un bouton tenu à travers `change_world` compte comme un nouvel appui sur le monde suivant. Il faut un écran poussé par du code pour l'atteindre. Le comportement n'est pas corrigé.
 - T3.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4700/4700, reconstruit. Launcher sur un projet à pas fixe : 255, 240, puis de 15 en 15 jusqu'à 0 à l'image 18, une seule image à 2 Updates (la première). Fondu sortant : 15 à 255 sur 17 images, 255 dessiné avant le changement de monde.
 - T4.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4711/4711, reconstruit, `MGUI.Tests` 3225/3225. Launcher sur le sample : focus au troisième `Update`, curseur sur `FADE OUT` puis disparu sur `QUIT`, aucune exception. Sur une copie sans `default_focus` : 930 `Update` sans focus ni marqueur, puis marqueur à la première touche. Sur une copie où le marqueur est son élément : le jeu s'arrête au chargement sur le message qui nomme l'enveloppe. Sur un projet externe qui utilise `focus_markers` : chargement sans erreur.
+- Phase 5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3225/3225, MGUI inchangé à `62498f75`. 19 mutations, toutes tuées et restaurées. Launcher sur le sample : voir T5.6. Sur un projet externe, avec mapping et pas fixe : chargement, deux touches et deux redimensionnements, aucune exception. Aucun nom interdit dans le diff ni dans les messages de commit depuis `d9cff5e6`.

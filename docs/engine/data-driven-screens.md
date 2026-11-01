@@ -43,7 +43,7 @@ A `.uiscreen` gains nine optional fields. A field left out keeps its default and
 - `fonts`: the catalogue names or ids of the `.fnt` assets the screen holds for its lifetime. See [Pixel screens](#pixel-screens).
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
-- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades).
+- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades). The command starts before the first `Update` of any screen: a first screen draws one frame before that `Update`, and a screen opened by `open_screen` gets it on the frame it opens, inside the loop that ran the action.
 - `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit beside its button on a `Canvas` or inside the button, but it cannot be the element or contain it: hidden, it would keep the focus from the element for good, so the load refuses it (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
@@ -90,7 +90,7 @@ A command runs its actions in order, on the `Update` that follows the click or t
 
 `wait_fade` waits for any fade of the service, not only the one of its own list. With no fade running it goes straight on.
 
-Only `play_sound` and `fade_screen` can come before a `wait_fade`, along with another `wait_fade`. What comes after it is free. The other actions take the screen out of the loop that would resume the list, so the file is refused rather than the list dying with no sign.
+Only `play_sound` and `fade_screen` can come before a `wait_fade`, along with another `wait_fade`. What comes after it is free. `close_screen`, `change_world`, `quit` and an `open_screen` that opens a modal screen would leave nothing to resume the list, so the file is refused rather than the list dying with no sign. An `open_screen` that opens a non-modal screen would not stop the list, and is refused all the same: the check reads the type of the action, not the screen it opens.
 
 While a list waits:
 
@@ -252,9 +252,8 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 
 An unknown action type stays in the asset with its JSON, so saving an envelope keeps it.
 
-A project's mapping stops the game when it loads, for one of these reasons:
+A project's mapping stops the game at one of two moments. While the game initializes, when `UIInputMapping` names no `.buttonsMapping` of the catalogue or the file cannot be read. Its content is only checked when the first view is created, as the first world loads, for one of these reasons:
 
-- `UIInputMapping` names no `.buttonsMapping` of the catalogue, or the file cannot be read;
 - a required action is missing, or binds no input;
 - a UI action is an analog input, is declared twice, even with an entry that binds no input, binds a mouse button, or reads a gamepad other than the first;
 - `repeat_initial_delay_ms` is negative, or `repeat_interval_ms` is not positive.

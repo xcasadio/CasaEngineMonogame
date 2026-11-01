@@ -24,7 +24,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - `ScreenEffectComponent` est créé sans condition (`CasaEngineGame.cs:416`). `IsFixedTimeStep` vient du projet (`:492`). `TargetElapsedTime` n'est posé nulle part dans le moteur.
 - `UseRawNavigationInput` à faux coupe le clavier et la manette du chemin brut, seuls lieux où il est lu (`MGDesktop.cs:1439,1580`), sans toucher au focus.
 - `UIRoot.Update` appelle `_navigationInput?.Update` entre `Desktop.Update` et la pile (`UIRoot.cs:148-157`).
-- `ScreenStack.Update` ne met à jour que le sommet bloquant et au-dessus (`ScreenStack.cs:154-165`) : une liste suspendue sous un modal ne reprendrait pas.
+- `ScreenStack.Update` ne met à jour que le sommet bloquant et au-dessus (`ScreenStack.cs:137-149` à `fc4359b1`) : une liste suspendue sous un modal ne reprendrait pas.
 - Un monde sans caméra reçoit une `CameraLookAtComponent` (`DefaultRuntimeViewBootstrapper.cs:30-35`, `World.cs:492-504`). ADR-0033 dit le quad fiable seulement derrière une `Camera2dComponent`.
 - `new UIScreenActionContext` : `GameManager`, `DataDrivenScreenTests` (2), `ProjectScreenAssetTests` (2).
 - `CutsceneAssetJsonSerializer.ParseBlendMode` retombe sur une valeur par défaut : à ne pas reprendre.
