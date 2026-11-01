@@ -104,7 +104,7 @@ public partial class PsxSpuTests
             }
             else if (exponential && decrease)
             {
-                adsrStep = adsrStep * Level / 0x8000;
+                adsrStep = (adsrStep * Level) >> 15;
             }
 
             if ((step | (shift << 2)) != 0x7F)
@@ -179,6 +179,25 @@ public partial class PsxSpuTests
             Assert.Equal(model.Level, spu.GetEnvx(0));
             Assert.InRange(spu.GetEnvx(0), 0, 0x7FFF);
         }
+    }
+
+    [Fact]
+    public void Adsr_AnExponentialDecreaseRoundsDown()
+    {
+        // Decay shift 0, sustain level 0: a step of -4000h scaled by the level. Worked out by hand: from 7FFFh the exact
+        // step is -3FFF.8h, so rounding down gives 3FFFh and a truncation 4000h, then 1FFFh against 2000h.
+        var word = Adsr(false, 0, 0, 0, 0x0, false, false, 31, 3, false, 0);
+        var spu = LoopingVoiceSpu(word, out _, 100);
+        spu.KeyOn(1);
+
+        RenderLeft(spu, 3);
+        Assert.Equal(0x7FFF, spu.GetEnvx(0));
+
+        RenderLeft(spu, 1);
+        Assert.Equal(0x3FFF, spu.GetEnvx(0));
+
+        RenderLeft(spu, 1);
+        Assert.Equal(0x1FFF, spu.GetEnvx(0));
     }
 
     [Fact]

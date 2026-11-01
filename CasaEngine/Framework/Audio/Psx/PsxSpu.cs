@@ -471,18 +471,18 @@ public sealed class PsxSpu
         switch (phase)
         {
             case PhaseAttack:
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x8000) != 0, false, false, (int)(register >> 10) & 0x1F, (int)(register >> 8) & 3);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x8000) != 0, false, false, (int)(register >> 10) & 0x1F, (int)(register >> 8) & 3, true);
                 break;
             case PhaseDecay:
                 // Decay: fixed exponential decrease, step value 0 ("-8").
-                level = StepEnvelope(level, ref _adsrCounter[v], true, true, false, (int)(register >> 4) & 0xF, 0);
+                level = StepEnvelope(level, ref _adsrCounter[v], true, true, false, (int)(register >> 4) & 0xF, 0, true);
                 break;
             case PhaseSustain:
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x80000000) != 0, (register & 0x40000000) != 0, false, (int)(register >> 24) & 0x1F, (int)(register >> 22) & 3);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x80000000) != 0, (register & 0x40000000) != 0, false, (int)(register >> 24) & 0x1F, (int)(register >> 22) & 3, true);
                 break;
             default:
                 // Release: decrease, step value 0 ("-8"), mode and shift from the register.
-                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x200000) != 0, true, false, (int)(register >> 16) & 0x1F, 0);
+                level = StepEnvelope(level, ref _adsrCounter[v], (register & 0x200000) != 0, true, false, (int)(register >> 16) & 0x1F, 0, true);
                 break;
         }
 
@@ -605,12 +605,13 @@ public sealed class PsxSpu
             (register & 0x2000) != 0,
             (register & 0x1000) != 0,
             (register >> 2) & 0x1F,
-            register & 3);
+            register & 3,
+            false);
     }
 
     // The psx-spx "Envelope Operation depending on Shift/Step/Mode/Direction", shared by the volume sweep and the ADSR:
     // one step per output frame, the counter is carried by the caller; returns the new level.
-    private static int StepEnvelope(int level, ref int counterRef, bool exponential, bool decreasing, bool phaseNegative, int shift, int stepValue)
+    private static int StepEnvelope(int level, ref int counterRef, bool exponential, bool decreasing, bool phaseNegative, int shift, int stepValue, bool isAdsr)
     {
         var adsrStep = 7 - stepValue;
         if (decreasing ^ phaseNegative)
@@ -639,8 +640,9 @@ public sealed class PsxSpu
         }
         else if (exponential && decreasing)
         {
-            // AMBIGUOUS (psx-spx): "/" on a possibly negative product, read as truncation toward zero.
-            adsrStep = adsrStep * level / 0x8000;
+            // The ADSR rounds toward minus infinity: table adsr_sustain_level, and adsr_sustain_down_exponential.
+            // AMBIGUOUS (psx-spx): no capture covers a sweep, which keeps the truncation toward zero of the "/" of the page.
+            adsrStep = isAdsr ? (adsrStep * level) >> 15 : adsrStep * level / 0x8000;
         }
 
         if ((stepValue | (shift << 2)) != 0x7F)
