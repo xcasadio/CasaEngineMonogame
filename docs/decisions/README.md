@@ -96,3 +96,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0080](0080-data-driven-navigation-through-a-ui-input-mapping.md) | Data-driven navigation through a UI input mapping | Accepted | 2026-10-31 |
 | [ADR-0081](0081-screen-fades-and-waits-in-data-driven-commands.md) | Screen fades and waits in data-driven commands | Accepted (amended by ADR-0082) | 2026-10-31 |
 | [ADR-0082](0082-screens-run-a-command-on-open-and-mark-the-focus.md) | Screens run a command on open and mark the focus | Accepted | 2026-11-01 |
+| [ADR-0083](0083-sounds-declare-an-exclusion-group.md) | Sounds declare an exclusion group | Accepted | 2026-11-01 |
