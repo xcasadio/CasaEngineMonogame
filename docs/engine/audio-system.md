@@ -325,7 +325,7 @@ ci-dessus.
 | `variation_pitch_min` / `variation_pitch_max` | 0 / 0 | décalage de pitch en octaves tiré dans [min, max], borné à [-1, 1] |
 | `priority` | 0 | priorité de vol de voix, 0..100 ; 0 = aucune (§4) |
 | `exclusion_group` | vide | groupe de sons qui ne se superposent pas : lancer un son du groupe arrête les voix de ce groupe, quel que soit l'asset (ADR-0083). Casse ignorée, sans effet sur un flux |
-| `exclusion_fade_seconds` | 0 | fondu que le son qui arrive donne aux voix qu'il arrête ; 0 = arrêt net. L'arrêt est net aussi si le backend est plein. Sous le repli MonoGame, le fondu avance par image |
+| `exclusion_fade_seconds` | 0 | fondu que le son qui arrive donne aux voix qu'il arrête, 10 s au plus ; 0 = arrêt net. L'arrêt est net aussi si le backend est plein ou si la voix est en pause. Sous le repli MonoGame, le fondu avance par image |
 | `spatial_mode` | `None` | `None`, `Spatial2D` ou `Spatial3D` (§5 quater) |
 | `distance_model` | `InverseDistanceClamped` | modèle de distance d'OpenAL 1.1 (§5 quater) |
 | `reference_distance` / `max_distance` / `rolloff_factor` | 1 / sans limite / 1 | réglages du modèle, en unités monde |

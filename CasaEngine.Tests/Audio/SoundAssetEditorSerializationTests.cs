@@ -320,6 +320,20 @@ public class SoundAssetEditorSerializationTests
     }
 
     [Fact]
+    public void Serialize_KeepsTheOrderOfTheKeys_WithTheExclusionKeysAfterThePriority()
+    {
+        var document = Serialize(new SoundAsset { Priority = 5, ExclusionGroup = "interface", ExclusionFadeSeconds = 0.25f });
+
+        var keys = document.Properties().Select(property => property.Name).ToList();
+        var soundKeys = keys.Skip(keys.IndexOf("audio_file_asset_id")).Take(8).ToArray();
+
+        Assert.Equal(
+            new[] { "audio_file_asset_id", "volume", "pitch", "is_looped", "bus_name", "is_streaming", "priority", "exclusion_group" },
+            soundKeys);
+        Assert.Equal(keys.IndexOf("exclusion_group") + 1, keys.IndexOf("exclusion_fade_seconds"));
+    }
+
+    [Fact]
     public void Serialize_WritesNoExclusionKeyAtItsDefault()
     {
         var document = Serialize(new SoundAsset());

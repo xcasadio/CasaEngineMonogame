@@ -142,10 +142,127 @@ public class AudioServiceExclusionGroupTests
         Assert.True(service.IsPlaying(second));
         Assert.Equal(2, service.ActiveVoiceCount);
 
-        service.Update(0.6f);
+        service.Update(0.4f);
+        Assert.True(service.IsAlive(first));
 
+        service.Update(0.2f);
         Assert.False(service.IsAlive(first));
         Assert.True(service.IsPlaying(second));
+    }
+
+    [Fact]
+    public void AFade_LowersTheOldVoice()
+    {
+        var service = CreateService(out _, out var provider);
+        var first = service.PlaySound(CreateAsset(provider));
+
+        service.PlaySound(CreateAsset(provider, fadeSeconds: 1f));
+        service.Update(0.5f);
+
+        Assert.Equal(0.5f, service.GetVoiceVolume(first), 3);
+    }
+
+    [Fact]
+    public void AVoiceLeftAlone_DoesNotShieldTheNextVoice()
+    {
+        var service = CreateService(out _, out var provider);
+        var first = service.PlaySound(CreateAsset(provider));
+        var second = service.PlaySound(CreateAsset(provider, fadeSeconds: 1f));
+
+        service.PlaySound(CreateAsset(provider));
+
+        Assert.True(service.IsFading(first));
+        Assert.False(service.IsAlive(second));
+    }
+
+    [Fact]
+    public void AFinishedVoice_DoesNotShieldTheNextVoice()
+    {
+        var service = CreateService(out var backend, out var provider);
+        var first = service.PlaySound(CreateAsset(provider));
+        var second = service.PlaySound(CreateAsset(provider, fadeSeconds: 0.5f));
+        backend.CompleteVoice(first);
+
+        service.PlaySound(CreateAsset(provider));
+
+        Assert.False(service.IsAlive(first));
+        Assert.False(service.IsAlive(second));
+    }
+
+    private static (AudioVoiceHandle First, AudioVoiceHandle Second) PlayTwoActiveVoices(AudioService service, FakeAudioClipProvider provider)
+    {
+        var first = service.PlaySound(CreateAsset(provider));
+        service.StopWithFade(first, 1f);
+        var second = service.PlaySound(CreateAsset(provider));
+        service.CancelFade(first);
+        return (first, second);
+    }
+
+    [Fact]
+    public void EveryVoiceOfTheGroupStops()
+    {
+        var service = CreateService(out _, out var provider);
+        var voices = PlayTwoActiveVoices(service, provider);
+
+        service.PlaySound(CreateAsset(provider));
+
+        Assert.False(service.IsAlive(voices.First));
+        Assert.False(service.IsAlive(voices.Second));
+    }
+
+    [Fact]
+    public void EveryVoiceOfTheGroupFades()
+    {
+        var service = CreateService(out _, out var provider);
+        var voices = PlayTwoActiveVoices(service, provider);
+
+        service.PlaySound(CreateAsset(provider, fadeSeconds: 1f));
+
+        Assert.True(service.IsFading(voices.First));
+        Assert.True(service.IsFading(voices.Second));
+    }
+
+    [Fact]
+    public void OnAFullBackend_EveryVoiceOfTheGroupStops()
+    {
+        var service = CreateService(out _, out var provider, voiceCapacity: 2);
+        var first = service.PlaySound(CreateAsset(provider));
+        service.StopWithFade(first, 1f);
+        var second = service.PlaySound(CreateAsset(provider));
+
+        var third = service.PlaySound(CreateAsset(provider));
+
+        Assert.False(service.IsAlive(first));
+        Assert.False(service.IsAlive(second));
+        Assert.True(service.IsPlaying(third));
+    }
+
+    [Fact]
+    public void AStreamOnARecycledSlot_HasNoGroup()
+    {
+        var service = CreateService(out _, out var provider);
+        var asset = CreateAsset(provider);
+        var grouped = service.PlaySound(asset);
+        service.Stop(grouped);
+        var stream = service.PlayStream(44100, 2, AudioBusNames.Music, AudioVoiceParameters.Default);
+        service.StartVoice(stream);
+        Assert.Equal(grouped.Index, stream.Index);
+
+        service.PlaySound(asset);
+
+        Assert.True(service.IsPlaying(stream));
+    }
+
+    [Fact]
+    public void ABusNamedEditorInAnotherCase_StaysOutOfTheGroups()
+    {
+        var service = CreateService(out _, out var provider);
+        var game = service.PlaySound(CreateAsset(provider));
+
+        var preview = service.PlaySound(CreateAsset(provider), new SoundPlaybackOverrides(busName: "EDITOR"));
+
+        Assert.True(service.IsPlaying(game));
+        Assert.True(service.IsPlaying(preview));
     }
 
     [Fact]

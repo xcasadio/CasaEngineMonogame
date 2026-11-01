@@ -841,6 +841,21 @@ public class SoundAssetTests
         Assert.Equal(0.5f, asset.ExclusionFadeSeconds);
     }
 
+    [Theory]
+    [InlineData(1e39)]
+    [InlineData(1000.0)]
+    public void Load_AnExclusionFadeAboveTheLimit_IsBroughtBackToIt(double written)
+    {
+        var document = CreateDocument(Guid.NewGuid(), Guid.NewGuid());
+        document["exclusion_fade_seconds"] = written;
+        var asset = new SoundAsset();
+
+        var warnings = LoadWithWarnings(asset, document);
+
+        Assert.Empty(warnings);
+        Assert.Equal(SoundAsset.MaxExclusionFadeSeconds, asset.ExclusionFadeSeconds);
+    }
+
     // ---- loop_start_sample (plan E19.L-a, ADR-0074) ----
 
     [Theory]

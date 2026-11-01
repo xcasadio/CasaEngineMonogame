@@ -531,6 +531,16 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
     }
 
     [Fact]
+    public void TheExclusionGroup_ShowsALongName()
+    {
+        var asset = CreateAsset();
+        asset.ExclusionGroup = new string('g', 300);
+        var rig = Open(asset);
+
+        Assert.Equal(asset.ExclusionGroup, TextBoxOfRow(rig.Content, "Exclusion group").Text);
+    }
+
+    [Fact]
     public void TheExclusionGroup_WritesTheAsset()
     {
         var rig = Open(CreateAsset());

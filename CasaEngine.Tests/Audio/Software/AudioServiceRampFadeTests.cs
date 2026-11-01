@@ -127,6 +127,26 @@ public class AudioServiceRampFadeTests
     }
 
     [Fact]
+    public void AStereoVoiceOnARecycledSlot_HasNoExclusionGroup()
+    {
+        var provider = new FakeAudioClipProvider();
+        using var service = new AudioService(new SoftwareAudioBackend(new OfflineAudioOutput(), 16)) { ClipProvider = provider };
+        var samples = new short[48000];
+        Array.Fill(samples, (short)16384);
+        var clip = new PcmAudioClip(samples, 48000, 1);
+        var asset = new SoundAsset { AudioFileAssetId = provider.Register(clip), ExclusionGroup = "group" };
+
+        var grouped = service.PlaySound(asset);
+        service.Stop(grouped);
+        var stereo = service.PlayClipStereo(clip, AudioBusNames.Sfx, AudioVoiceParameters.Default, 1f, 1f);
+        Assert.Equal(grouped.Index, stereo.Index);
+
+        service.PlaySound(asset);
+
+        Assert.True(service.IsPlaying(stereo));
+    }
+
+    [Fact]
     public void AnExclusionGroupFade_EndsTheOldVoiceLikeTheFallback()
     {
         using var soft = new Rig(true);

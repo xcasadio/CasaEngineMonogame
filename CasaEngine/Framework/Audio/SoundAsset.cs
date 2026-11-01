@@ -40,6 +40,9 @@ public class SoundAsset : ObjectBase
     /// <summary>Most parameter bindings an asset keeps; the extra ones are dropped with a warning.</summary>
     public const int MaxParameterBindings = 8;
 
+    /// <summary>Longest fade <see cref="ExclusionFadeSeconds"/> keeps: a voice fading out is out of its group's reach.</summary>
+    public const float MaxExclusionFadeSeconds = 10f;
+
     public SoundAsset()
     {
         Name = $"Sound {Id}";
@@ -113,12 +116,13 @@ public class SoundAsset : ObjectBase
 
     /// <summary>
     /// Seconds this sound takes to fade out the voices of its <see cref="ExclusionGroup"/> when it starts; 0 stops them
-    /// at once. A NaN or negative value keeps the previous one.
+    /// at once. A NaN or negative value keeps the previous one, and a value above <see cref="MaxExclusionFadeSeconds"/>
+    /// is brought back to it.
     /// </summary>
     public float ExclusionFadeSeconds
     {
         get => _exclusionFadeSeconds;
-        set => _exclusionFadeSeconds = SanitizeNonNegative(value, _exclusionFadeSeconds);
+        set => _exclusionFadeSeconds = Math.Min(SanitizeNonNegative(value, _exclusionFadeSeconds), MaxExclusionFadeSeconds);
     }
 
     /// <summary>

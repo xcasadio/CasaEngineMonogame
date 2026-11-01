@@ -1,7 +1,7 @@
 # Plan agent IA — Groupes d'exclusion de lecture dans `.sound`
 
 Plan d'exécution du chantier « un son coupe le son en cours du même groupe ».
-La décision D1 ci-dessous a été arbitrée avec l'auteur le 2026-11-01 : **ce plan l'applique, il ne la rediscute pas**. Les points P1 → P7 sont proposés par l'agent et attendent l'approbation du plan.
+La décision D1 ci-dessous a été arbitrée avec l'auteur le 2026-11-01 : **ce plan l'applique, il ne la rediscute pas**. Les points P1 → P7, proposés par l'agent, ont été approuvés par l'auteur le 2026-11-01.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
@@ -35,14 +35,14 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 | D1 | Le groupe d'exclusion se déclare dans `.sound`. |
 | D2 | Le moteur reste générique : ni exemple, ni nombre, ni nom tiré d'un jeu dans le code, les documents ou les tests. Données synthétiques. |
 
-## Points à valider
+## Points validés
 
 | Réf | Proposition |
 |---|---|
 | P1 | Clé additive `exclusion_group`, chaîne, vide par défaut. Comparaison `OrdinalIgnoreCase`, comme les bus. Le setter ramène null et les blancs à vide, et applique `Trim`. Un son du groupe arrête la voix du même groupe, quel que soit l'asset. |
 | P2 | Clé additive `exclusion_fade_seconds`, nombre positif, 0 par défaut : 0 arrête net, une valeur positive arrête par `StopWithFade`. Elle se lit sur le son qui arrive. Limite : sous le repli MonoGame, le fondu avance par image. |
 | P3 | L'arrêt se fait après la résolution du clip, juste avant `PlayClipCore` : un fichier manquant ne coupe rien. Si le backend est plein, l'arrêt est net même avec un fondu, sinon la nouvelle voix serait refusée. |
-| P4 | Une voix n'est ignorée que si elle s'éteint déjà : `IsFading` et `FadeCompletion == Stop`. Une voix en pause, y compris par le système, compte et s'arrête, comme pour le vol de voix. Une voix finie non recyclée est libérée. |
+| P4 | Une voix n'est ignorée que si elle s'éteint déjà : `IsFading` et `FadeCompletion == Stop`, sauf si le backend est plein. Une voix en pause, y compris par le système, compte et s'arrête, comme pour le vol de voix. Une voix finie non recyclée est libérée. |
 | P5 | Le groupe vaut pour tout le service : ni le propriétaire, ni le bus, ni un bus muet, ni la priorité ne protègent une voix. Une voix lancée par `PlayClip` ou `PlayClipStereo` n'a pas de groupe. Un `SoundEmitterComponent` qui rejoue coupe net sa propre voix avant la règle. |
 | P6 | **Le bus Editor reste hors de la règle** : une preview ne coupe aucune voix du jeu, un son du jeu ne coupe pas une preview. Sinon la promesse de `SoundAssetInspectorPanel.cs:284` tomberait. |
 | P7 | Branche `chantier/sound-exclusion-groups` depuis `main`. Boucle `for` sur `_voices`, sans allocation. |
@@ -160,6 +160,17 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 - Note : `PixelUiSample` lancé 8 s au Launcher, sans entrée : le son se charge, aucun avertissement au journal. `dotnet test` 4784/4784. Reste : écoute par l'auteur, direction tenue dans le menu.
 
 ---
+
+## Vérification indépendante
+
+Faite le 2026-11-01 sur le code, par mutation et sur les règles : aucun P0 ni P1 sur le code. Suites données dans le commit `fix(audio): bound the exclusion fade and close the review gaps` :
+
+- `exclusion_fade_seconds` borné à `SoundAsset.MaxExclusionFadeSeconds`, 10 s : sans borne, un fondu sans fin laissait l'ancienne voix hors du groupe.
+- Le champ de l'inspecteur n'a plus de limite de caractères : il affichait vide un groupe trop long. Un nom avec un saut de ligne reste affiché vide, limite écrite dans ADR-0083.
+- ADR-0083 et `audio-system.md` disent les deux exceptions du code : backend plein, voix en pause.
+- 13 tests ajoutés pour les mutants survivants, l'ordre des clés et le nom long.
+
+**Écart accepté :** les statuts de T1.2, T1.3 et T1.4 sont arrivés avec le commit de T2.1, pas dans le commit de leur tâche. L'historique n'a pas été réécrit.
 
 ## Points ouverts
 

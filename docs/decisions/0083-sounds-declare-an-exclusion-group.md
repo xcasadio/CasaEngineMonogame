@@ -16,8 +16,8 @@
 - **`.sound` gains two additive keys.** `exclusion_group` is a string, empty by default. `exclusion_fade_seconds` is a non-negative number, 0 by default. Neither is written at its default.
 - **A group name is compared with `OrdinalIgnoreCase`,** like bus names. Null and blank names become empty, and names are trimmed when they are set.
 - **Starting a sound stops the voices of its group, whichever asset started them.** The stop happens after the clip is resolved and before the voice starts, so a missing file cuts nothing.
-- **`exclusion_fade_seconds` is read on the incoming sound.** 0 stops at once. A positive value stops through `StopWithFade`, unless the backend is full: the stop is then immediate, otherwise the new voice would be refused.
-- **A voice already fading out to a stop is left alone.** A voice under an ordinary fade is stopped. A paused voice counts and stops, including one paused by the system, as voice stealing already does. A finished voice that was not recycled yet is released.
+- **`exclusion_fade_seconds` is read on the incoming sound.** 0 stops at once. A positive value stops through `StopWithFade`, up to `SoundAsset.MaxExclusionFadeSeconds`, 10 s, because a voice fading out no longer answers to its group. The stop is immediate on a full backend, otherwise the new voice would be refused, and for a paused voice, which is silent.
+- **A voice already fading out to a stop is left alone, unless the backend is full.** On a full backend every voice of the group stops at once, even if one free slot would do. A voice under an ordinary fade is stopped. A paused voice counts and stops, including one paused by the system, as voice stealing already does. A finished voice that was not recycled yet is released.
 - **The group holds across the whole service.** Neither the owner, nor the bus, nor a muted bus, nor the priority protects a voice.
 - **The Editor bus stays out of the rule.** A preview stops no game voice, and a game sound stops no preview.
 
@@ -29,4 +29,5 @@
 - A `SoundEmitterComponent` that plays again stops its own voice before the rule, without the group's fade.
 - With the MonoGame fallback backend, a fade advances once per frame: a fade shorter than a frame leaves the old voice at full volume, then stops it at the first `Update`.
 - A sound on a muted bus still stops an audible voice of its group.
+- A group name with a line break works at run time, but the inspector shows it as empty: `MGTextBox` refuses that text.
 - An immediate stop can click. The discontinuity can be measured from an offline render, and judging it by ear stays with the author of each project.
