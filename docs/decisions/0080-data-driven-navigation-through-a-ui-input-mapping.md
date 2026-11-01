@@ -40,6 +40,7 @@
   - `focus_wrap` joins the first and the last element. It covers one row or one column, not a grid.
   - The list is taken once. An element added, shown or enabled later is not in it, and an end disabled later stops wrapping there.
   - Without `default_focus`, the first key gives the focus, so that key does not wrap yet.
+  - Without a mapping, `move_command` is lost on a frame where the mouse also moves: the mouse wins the input mode, so `WatchFocusMove` reads pointer mode. A mapping sets the mode with each action and keeps the command. Both measured on a headless desktop.
   - Ctrl+Tab does not exist on this path: `InputActionContext` carries no modifier. A focused control that reserves Tab keeps it.
   - On this path a key is not marked as handled before the windows see it, so a focused control that reads the key itself sees it as well.
   - Gamepad buttons the mapping does not name, X and the shoulders for instance, do nothing here: only the five keys above fall back.

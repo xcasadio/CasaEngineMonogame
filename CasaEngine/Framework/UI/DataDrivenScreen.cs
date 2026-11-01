@@ -745,8 +745,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     /// <summary>
     /// Stands in for <see cref="WatchFocusMove"/> on a frame a modal screen freezes this one. MGUI's navigation can
-    /// still move the focus here when that screen has nothing to focus, and the first <see cref="Update"/> after it
-    /// would take that for a move of its own frame. A move nothing watched runs no <c>move_command</c>.
+    /// still move the focus here, when that screen has nothing to focus or after a click on this one brought the focus
+    /// here, and the first <see cref="Update"/> after it would take that for a move of its own frame. A move nothing
+    /// watched runs no <c>move_command</c>.
     /// </summary>
     internal void FollowFocusWhileFrozen()
     {

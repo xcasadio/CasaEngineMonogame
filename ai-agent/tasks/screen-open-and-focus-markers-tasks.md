@@ -245,6 +245,24 @@ Chaque constat a été vérifié contre le code avant toute correction, puis mes
 - Commit (MGUI) : `a3c42cb0`, `docs(input): say what a pause of the navigation leaves running`.
 - Commit : `docs(ui): make the open, time and wait statements exact`.
 
+### ✅ T7.5 — Les limites connues
+
+Aucun comportement ne change. Chaque limite a été vérifiée contre le code, puis mesurée, ce qui va au-delà de la demande : presque toutes sont écrites comme mesurées, et ce qui reste lu est dit tel quel. Les lettres sont celles de la demande.
+
+- a, vraie, mesurée : au Launcher, sur les deux sortes de pas, deux runs chacune, 2 quads sur l'image 1, puis 1. L'effet sur les pixels n'a pas été capturé : il est écrit comme lu dans le code.
+- b, vraie, mesurée : l'action tourne 389 et 404 ms avant que l'image 1 soit présentée, et l'IL de `SdlGamePlatform.RunLoop` montre la fenêtre dans la boucle. Le moment où le son s'entend n'est pas mesuré.
+- c, vraie, mesurée : `Game.SuppressDraw` sur les 300 premiers `Update`, temps à 0 sur tous, fondu resté à `from`, horloge de MGUI qui avance, temps qui repart à la première image présentée. Le cas de `BeginDraw` n'est que lu dans l'IL de `Game.DoDraw`.
+- d, vraie, mesurée avec une touche, avec et sans mapping : confirmer lance le premier bouton sur la même image, une direction le saute. Le conseil `default_focus` est écrit.
+- e, vraie, mesurée avec un `TextBox`, sur un écran modal et sur un écran qui ne l'est pas.
+- f, vraie, mesurée : après le clic, focus sur le second bouton et premier marqueur toujours affiché. La phrase de `data-driven-screens.md`, le commentaire de `FollowFocusWhileFrozen` et la prémisse d'ADR-0082 sont corrigés.
+- g, vraie, mesurée : sous un modal sans élément focalisable, Haut change la sélection d'un `ComboBox` et Entrée ouvre sa liste. Aucune commande.
+- h, vraie, mesurée sur les quatre cas : seul le cas sans mapping et avec souris perd la commande.
+- i, vraie, mesurée sur un vrai `ScreenStack`, avec des écrans qui comptent leurs `Update`. Trouvé en plus : `open_screen` puis `close_screen` dans une liste donne le même résultat, mesuré aussi, et il n'y faut aucun code. C'est le cas qui justifie encore le démarrage au chargement de T7.4.
+- j, vraie à moitié : la pause n'est pas posée sur ce premier `Desktop.Update`, mais la conséquence du constat n'a pas été vue. Une touche sur cette image n'a donné aucun focus, n'a rien bougé et n'a rien lancé, comme avec un mapping. La limite le dit. La cause n'est pas établie.
+- Mesures : traces et sondes de T7.4, plus une sonde pour `open_screen` puis `close_screen`, retirée par `git checkout`.
+- Fichiers : `DataDrivenScreen.cs` (commentaire), ADR-0078, ADR-0080, ADR-0081, ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, ce plan, `ai-agent/README.md`.
+- Commit : `docs(ui): write the known limits of the open command and the focus`.
+
 ## Points ouverts
 
 Vu pendant T7.1, hors de la demande, non corrigé :
@@ -262,3 +280,4 @@ Vu pendant T7.1, hors de la demande, non corrigé :
 - Phase 6 : les deux `.sln` à 0 erreur, recompilés sans incrémental, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3226/3226, MGUI à `83bda51f`. 1 mutation, tuée et restaurée. Aucun Launcher : ni le code de production de MGUI ni celui du moteur ne change.
 - Phase 7, T7.1 à T7.3 : les deux `.sln` à 0 erreur et `CasaEngine.Tests` 4742/4742, reconstruit, après chaque tâche. MGUI inchangé à `83bda51f`, `MGUI.Tests` non relancé. 7 mutations, toutes tuées et restaurées (T7.1). Launcher sur le sample et sur la copie à pas fixe, aucune exception dans les logs, aucun garde de saisie déclenché, aucun processus Launcher restant.
 - Phase 7, T7.4 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI à `a3c42cb0`. Seuls des commentaires et des documents changent, donc aucun test neuf. Sur les 11 constats, 9 sont vrais tels quels, le 6 l'est sauf un lieu, le 7 à moitié, aucun n'est faux. Mesures de T7.4 : voir cette tâche.
+- Phase 7, T7.5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI à `a3c42cb0`. Launcher sur `Projects/PixelUiSample`, sur le binaire sans trace : le popup est identique à l'octet aux captures de T7.2 et de T7.3, le retour au titre à celle de T7.3, aucune exception dans le log, aucun garde déclenché, aucun processus Launcher restant. Sur les 10 limites, 9 sont vraies et la j l'est à moitié.
