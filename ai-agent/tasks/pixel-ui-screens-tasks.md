@@ -133,7 +133,7 @@ Ce que le chantier ne livre pas est dans « Hors périmètre ».
 - Étapes : dessiner la police ; générer PNG et `.fnt` ; écrire le projet ; lancer le Launcher à deux tailles, plus une taille sans multiple entier.
 - Validation : captures relues et mesurées, clic et clavier réels, `log` sans exception ; 🧪 pour ce que seul un humain peut vérifier.
 - Commit : `feat(sample): add a pixel UI sample with its own bitmap font`
-- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4512/4512, dont `ThePixelSampleScreen_PassesTheChecksOfADataDrivenScreen`. Course réelle sur le Launcher, captures relues et mesurées pixel par pixel :
+- Validation faite le 2026-10-31 : les deux `.sln` 0 erreur ; `CasaEngine.Tests` reconstruit, 4512/4512, dont le test aujourd'hui nommé `ThePixelSampleScreens_PassTheChecksOfADataDrivenScreen` (renommé par `19e1a540`). Course réelle sur le Launcher, captures relues et mesurées pixel par pixel :
   - Premier vrai `.fnt` rendu dans ce dépôt : le PNG et le `.fnt` se chargent, le texte s'affiche. O1 : les glyphes tombent à la bonne place, chaque ligne de texte a la hauteur et la position attendues. La boîte de ligne d'un `.fnt` vaut son `lineHeight`.
   - 960x540, `k` = 3 : cinq couleurs seulement sur toute l'image hors coins arrondis de la fenêtre Windows, aucune teinte intermédiaire ; tous les changements de couleur tombent sur des multiples de 3, en x comme en y. Vidage du titre : blocs exacts de 3x3 pixels. `Left*k`, `Top*k` : fenêtre à (120, 60), bouton de 144 à 816 en x.
   - 1280x720, `k` = 4 : mêmes cinq couleurs, tous les changements sur des multiples de 4.

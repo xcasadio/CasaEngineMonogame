@@ -6,7 +6,7 @@
 
 ## Context
 
-- ADR-0081 accepts as a limit that no fade runs when a screen opens: nothing starts a command then, and a project's first screen, which `UpdateWorld` opens after the views have updated, draws one frame before its first `Update`, so a fade in started from `Update` would show the screen once, unfaded. A screen opened by `open_screen` is not in that case: the action runs inside the loop of `ScreenStack.Update`, which reaches the new screen on the same frame.
+- ADR-0081 accepts as a limit that no fade runs when a screen opens: nothing starts a command then.
 - A menu drawn as text rows needs a cursor beside the focused row. MGUI's focus visuals are colors of the element itself, and an element has no property that says it holds the focus: `HasKeyboardFocus` is an explicit interface method, and `VisualState` says Focused only outside the Pointer input mode. The desktop does report every change, through `MGDesktop.FocusedKeyboardHandlerChanged`, but that event knows nothing of screens: it also fires for a screen frozen under a modal one, which has to keep its marker. That is why the screen polls, see the decision on `Update` below.
 - A cursor can be taller than a row, so two cursors in their own buttons would overlap the neighbouring button.
 
@@ -29,11 +29,13 @@
   }
   ```
 
-- **It starts at the end of `OnWindowLoaded`,** so the first frame drawn already shows the fade. A `wait_fade` then suspends it as in any list (ADR-0081), and `Update` resumes it.
+- **It starts at the end of `OnWindowLoaded`,** because loading is the one place every way of opening a screen goes through, so the first frame drawn shows the fade whichever way the screen opened. A `wait_fade` then suspends it as in any list (ADR-0081), and `Update` resumes it.
+  - No frame order asks for this on most screens. A first screen opens in the Update that `Game.Run` runs before its loop, and the first Update of the loop reaches it before the first Draw. A screen opened by `open_screen` gets its `Update` on the frame it opens, inside the loop of `ScreenStack.Update`. A trace of the Launcher showed both orders.
+  - It matters for a screen that gets no `Update` on the frame it opens, see the known limits.
 - **It accepts only `play_sound`, `fade_screen` and `wait_fade`.** The screen is not on the stack yet at that point, so anything that changes the stack or the world is refused at load, with the path of the envelope.
 - **A world's time starts at its first frame.** The fade above is started inside the Update that loads the world, and that time would otherwise be replayed before anything is drawn (see [Measures](#measures)). So once a world is ready, its first screen included, `LoadTimeDiscard` drops the elapsed time over two frames, in the runtime only:
-  1. The first frame runs at time zero, so a fade started at open shows `from`.
-  2. The second frame gets one normal step.
+  1. The first frame runs at time zero, so a fade started with the world, by the `on_open_command` of its first screen, shows `from`.
+  2. Under a fixed step, the second frame gets one normal step. Under a variable step, the default (`ProjectSettings.IsFixedTimeStep`), it gets what passed since the first frame was presented, which is a short gap (see [Measures](#measures)).
   3. What each of them took is dropped once it is presented, with `Game.ResetElapsedTime`. Then time runs normally.
 
   This applies to every world, not only to one with a first screen.
@@ -64,8 +66,13 @@
 
 - A project with no DLL can fade a menu in and show a cursor on its focused row.
 - The format is additive: envelopes without these fields load and save unchanged. An older engine ignores both fields, so the screen would open without its fade and with every marker showing.
-- A fade started at open shows `from` on the first frame and its first step on the second. A fade of N steps reaches `to` on frame N + 1, one frame later than a fade that shows one step on its first frame, such as one started by a confirm from the UI.
-- Nothing that follows the elapsed time advances during the start of a world: the Update that loads it and the first frame's Update run at time zero, as MonoGame's first Update always did.
+- A fade started with a world, by the `on_open_command` of its first screen, shows `from` on the first frame. Under a fixed step it shows its first step on the second, and a fade of N steps reaches `to` on frame N + 1, one frame later than a fade that shows one step on its first frame, such as one started by a confirm from the UI.
+- A screen opened by `open_screen` is not at the start of a world: its frame has a normal elapsed time, so a fade of its `on_open_command` shows its first step on its first frame and reaches `to` on frame N.
+- What follows `GameTime.ElapsedGameTime` in an Update does not advance during the start of a world: the Update that loads it, from the moment the world is ready, and on the first world the Update of the first frame, run at time zero, as MonoGame's first Update always did. That holds for `GameManager.UpdateWorld` and the `GameComponent`s, fades included. It does not hold for what follows:
+  - `Game.ResetElapsedTime` leaves `GameTime.TotalGameTime` alone, and `Game.Tick` has already added the time of the frame to it. MGUI's clock comes from there: `CasaDesktopRuntime` derives `FrameElapsed` from it, which drives `MGDesktop.Animations`, `MGTimer`, `MGStopWatch` and `MGImage`. So do the repeat of `UINavigationInput` and `FrameTime.UnscaledTotalTime`. See [Measures](#measures) for what MGUI reads on frame 1.
+  - `Game.Tick` writes the elapsed time again before `Draw`, so under a fixed step `Draw` reads one step on frame 1, and 0 under a variable step (measured).
+  - A game class that reads `gameTime` in its `Update` before it calls `base.Update` runs before the reset. `DemosGame` does. This comes from reading the code.
+  - A new `UIRoot` starts its clock from zero, so after a change of world its first `FrameElapsed` is all of `TotalGameTime` (see [Measures](#measures)). The discard has no part in this. A timer or an animation that runs on that frame takes the whole of it, which comes from reading the code.
 - Markers are all hidden until a focus arrives. With `default_focus` that is the third `Update` after the load. Without it, no focus arrives by itself: `MGDesktop.ActiveInputMode` starts as Pointer, and MGUI gives no focus in that mode (`UIFocusNavigationService.QueueAutoFocusIfNeeded`). The markers of such a screen wait for the first key or gamepad press, or a click (see [Measures](#measures)). A screen opened while another one holds the focus takes it without any input, and so does a screen opened after a key press.
 - Known limits, accepted:
   - A marker jumps with the focus: nothing slides it.
@@ -100,5 +107,9 @@ Where the time went. This table comes from an earlier measure on another project
 - Physics skips a zero elapsed time, so its first step lands on the first Update that receives time. This is what the second frame of the discard covers. Why that step is slow has not been measured.
 - A fade out to `to` followed by `change_world`, also of `0.85` seconds, draws 5, 10, then 5 by 5 up to 255 on 51 frames, and 255 is drawn before the world changes. The first frame of the next world still draws 255. With no discard the sequence is the same, and the only difference is one frame with 10 Updates just after the change. With the discard every frame has 1. Each case was run twice.
 - A reset made from inside an Update ends the catch-up of the running `Game.Tick`, which reads the accumulated time on each pass of its loop. With a world change delayed by 1200 ms, one frame after the change had 29 Updates before the discard. With it, every frame has 1. `LoadTimeDiscardGameLoopTests` holds this against the package.
+- A variable step, the default, on the same copy with `"IsFixedTimeStep": false`, four runs, two of them with the fade `BelowUI`. The elapsed time of the Update of frame 2 read 1.7 to 3.0 ms, and that of frame 3 read 0.2 to 0.4 ms. The fade drew 255, 254, 254, then 250 or 251. One Update of 78 to 98 ms came on frame 4 or 5, the size of the first physics step above, though these runs did not trace physics.
+- What MGUI read on frame 1, with the game's elapsed time at 0: 16.667 ms under a fixed step, two runs, and 46 to 63 ms under a variable step, the four runs above. From frame 2 the two clocks agree, because a reset made after a presentation empties the time before `Game.Tick` adds it to `TotalGameTime`.
+- After a `change_world`, one run on each kind of step, the first `FrameElapsed` of the new `UIRoot` read 7967 ms and 8066 ms: all of `TotalGameTime`, about the length of the run.
+- A popup opened by `open_screen`, with a fade of 51 steps in its `on_open_command`, under a fixed step, two runs: its first frame draws 250, then 5 by 5 down to 0 on frame 51 of the popup. In the run that traced it, its first `Update` came before that frame's Draw.
 - When the focus arrives, in the Launcher on `Projects/PixelUiSample`, Debug build, with a temporary trace of each screen `Update`: with `default_focus`, on `Update` 3. On a copy with that field removed, the mode stayed Pointer and no focus came for 930 `Update`s, until the first key. `DataDrivenScreenTests` gives the same results on a headless desktop.
 - Not measured: a Release build, and when the operating system first shows frame 1 on screen.

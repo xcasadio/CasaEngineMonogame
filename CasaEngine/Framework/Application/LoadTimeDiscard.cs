@@ -2,17 +2,20 @@ namespace CasaEngine.Framework.Application;
 
 /// <summary>
 /// Keeps the time a world takes to start off the game clock: a world's time begins at its first frame. Without this,
-/// MonoGame replays that time as Updates with no Draw, up to <c>Game.MaxElapsedTime</c>, and everything driven by the
-/// elapsed time, a screen fade first of all, ends before anyone sees it.
+/// MonoGame replays that time, up to <c>Game.MaxElapsedTime</c>, as Updates with no Draw under a fixed step and as one
+/// long Update under a variable step, and everything driven by the elapsed time, a screen fade first of all, ends
+/// before anyone sees it.
 /// <para/>
 /// Resetting once when the world is ready is not enough, because the load is only the first delay. The first Update of
 /// the views and the first Draw come after it, and the first Update that receives time is slow too, since what skips a
 /// zero elapsed time, physics for one, does its first work there. So the time is dropped over two frames:
 /// <list type="number">
-/// <item>The first frame runs at time zero, so it shows every timed value where it started.</item>
-/// <item>The second frame gets one normal step, and what it took is dropped once it is presented.</item>
+/// <item>The first frame runs at time zero, so what follows the elapsed time shows where it started.</item>
+/// <item>The second frame gets one normal step under a fixed step. Under a variable step, the default, it gets what
+/// passed since the first frame was presented, a short gap. What it took is dropped once it is presented.</item>
 /// </list>
-/// A slow frame after those two is an ordinary late frame.
+/// A slow frame after those two is an ordinary late frame. <c>Game.ResetElapsedTime</c> leaves
+/// <c>GameTime.TotalGameTime</c> alone, so what reads that clock, MGUI first of all, is not held back (ADR-0082).
 /// <para/>
 /// Knows no MonoGame type, like <see cref="Rendering.ScreenEffects.ScreenEffectService"/>: <see cref="CasaEngineGame"/>
 /// drives it from the loop it owns. Under external view management that loop is not the game's, so it stays unused.

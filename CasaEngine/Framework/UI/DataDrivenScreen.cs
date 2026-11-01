@@ -29,8 +29,8 @@ namespace CasaEngine.Framework.UI;
 /// consumed and a focus move can each run a command.
 /// <para/>
 /// <b>A command can wait for a screen fade</b> (ADR-0081): <see cref="Update"/> then goes on with its list on a later
-/// frame. Meanwhile no other command runs, and while the screen is at the top <see cref="UIRoot"/> stops the keyboard
-/// and the gamepad with the focus left in place.
+/// frame. Meanwhile no other command runs, and while the screen is at the top <see cref="UIRoot"/> stops the navigation
+/// of the keyboard and the gamepad, which leaves a focus that exists in place.
 /// </summary>
 public sealed class DataDrivenScreen : XamlUIScreenBase
 {
@@ -303,9 +303,12 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     }
 
     /// <summary>
-    /// Runs here and not in <see cref="Update"/>: a project's first screen draws one frame before its first update, and
-    /// that frame must already show the fade. A screen opened by <c>open_screen</c> gets that update on the frame it
-    /// opens, inside the loop of <see cref="ScreenStack.Update"/>. The caller disposes the screen if an action throws.
+    /// Runs here and not in <see cref="Update"/> because loading is the one place every way of opening a screen goes
+    /// through, so the first frame drawn shows the fade whichever way the screen opened. No frame order asks for this
+    /// on most screens: a first screen gets its first update before its first draw, and a screen opened by
+    /// <c>open_screen</c> gets it on the frame it opens, inside the loop of <see cref="ScreenStack.Update"/>. It matters
+    /// for a screen that gets no update on the frame it opens, see the limits of ADR-0082. The caller disposes the
+    /// screen if an action throws.
     /// </summary>
     private void StartOnOpenCommand()
     {

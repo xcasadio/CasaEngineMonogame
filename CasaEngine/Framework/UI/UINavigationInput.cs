@@ -101,9 +101,10 @@ public sealed class UINavigationInput
     public Action CancelNotHandled { get; set; }
 
     /// <summary>
-    /// While true, nothing reaches the desktop and the focus stays where it is (ADR-0081). The devices are still read:
-    /// an input held here counts as one held when this object was built, so it fires nothing once this turns false,
-    /// until it is released.
+    /// While true, nothing goes from here to the desktop, so a focus that exists stays where it is (ADR-0081). The
+    /// desktop's own auto-focus does not stop: with nothing focused, a key or a button gives the focus. The devices are
+    /// still read: an input held here counts as one held when this object was built, so it fires nothing once this
+    /// turns false, until it is released.
     /// </summary>
     public bool IsSuspended { get; set; }
 

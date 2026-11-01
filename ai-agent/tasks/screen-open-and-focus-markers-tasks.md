@@ -16,7 +16,7 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 ## État vérifié du dépôt (2026-11-01)
 
 - `git log -1` : la branche part de `chantier/screen-fade-actions` `c5ffe054`.
-- ADR-0081 liste comme limite « No fade runs when a screen opens » : rien ne lance une commande à l'ouverture, et le premier écran d'un projet dessine une image avant son premier `Update`. Corrigé en T5.7 : la version d'origine disait « un écran », or un écran ouvert par `open_screen` reçoit le sien sur l'image de son ouverture.
+- ADR-0081 liste comme limite « No fade runs when a screen opens » : rien ne lance une commande à l'ouverture. Corrigé en T7.4 : cette ligne disait aussi que le premier écran d'un projet dessine une image avant son premier `Update`, ce qui est faux. Son premier `Update` précède son premier `Draw`.
 - `DataDrivenScreen.OnWindowLoaded` tourne avant l'entrée de l'écran sur la pile (`DataDrivenScreen.cs:116`).
 - Un élément MGUI n'a pas de propriété qui dise qu'il tient le focus : `HasKeyboardFocus` est une méthode d'interface explicite (`MGElement.cs:2918`). Le bureau signale pourtant chaque changement par `MGDesktop.FocusedKeyboardHandlerChanged` (`MGDesktop.cs:1261`) : corrigé en T4.2, la version d'origine de cette ligne l'ignorait.
 - `MGDesktop.FocusedKeyboardHandler` se lit sans allocation, et `DataDrivenScreen.WatchFocusMove` compare déjà sa valeur d'une image à l'autre.
@@ -110,7 +110,7 @@ Constats restants des revues indépendantes des chantiers E2, E3 et E4, fermés 
 - Constat a, vrai : `TryDispatchNavigationAction` rend faux quand `ShouldPreserveTextEntryKey(key)` est vrai, et `Fire` prenait tout faux sur Cancel pour un Cancel non consommé. Avec Espace lié à Cancel et une zone de texte éditable focalisée, taper un espace lançait `cancel_command`. Espace et Entrée sont dans `InputActionMapper`, donc `IsTextForAFocusedTextBox` ne les arrêtait pas. `Fire` demande maintenant à la zone de texte avant de signaler le Cancel. Seul ce signalement change : `TryHandleInputAction` est toujours appelé, le mode d'entrée de MGUI ne bouge pas.
 - Constat b, vrai : le contrôle de doublon lisait les slots construits, et une entrée sans entrée physique n'en construit aucun. `Submit` vide puis `Submit` sur Z passait, alors qu'`InputMappingManager` lit la première entrée. Les actions déclarées ont maintenant leur propre ensemble.
 - Fichiers : `UINavigationInput.cs`, `UINavigationInputTests.cs`, ADR-0080, `docs/engine/data-driven-screens.md`, ce plan.
-- Validation : les 4 tests neufs échouent sans le correctif et passent avec. Le mapping du sample, celui de `RPGDemo` et celui du projet externe n'ont aucun doublon (lu avec `jq`).
+- Validation : 5 méthodes de test neuves, 6 cas. 4 cas échouent sans le correctif et passent avec. Les deux `ASpaceBoundToCancel_Cancels_*` passent aussi sans lui : ils gardent contre un correctif trop large, et échouent tous les deux quand chaque Cancel non consommé est gardé (compté en T7.4, la version d'origine de cette ligne parlait de 4 tests neufs). Le mapping du sample, celui de `RPGDemo` et celui du projet externe n'ont aucun doublon (lu avec `jq`).
 - Commit : `fix(ui): keep a text box's keys out of Cancel and refuse an empty duplicate action`.
 
 ### ✅ T5.2 — `move_command` : le retour du focus et l'écran gelé (c, d)
@@ -190,9 +190,9 @@ Deux constats de revue sur la branche MGUI `chantier/navigation-input-suspension
 - Validation : voir le résultat de la phase 6 ci-dessous.
 - Commit : `chore(mgui): bump MGUI to the held button repeat test`.
 
-## Phase 7 — Trois points de la dernière revue
+## Phase 7 — Constats restants de la dernière revue
 
-Trois petits points restants, un commit chacun, en commits neufs. Les commits du dessous ne sont pas réécrits.
+Un commit par tâche, en commits neufs. Les commits du dessous ne sont pas réécrits. T7.4 touche un commentaire de MGUI et son ADR, à la demande, malgré l'objectif de ce plan : aucune ligne de production n'y change.
 
 ### ✅ T7.1 — `focus_markers` : deux formes refusées au chargement
 
@@ -224,6 +224,27 @@ Trois petits points restants, un commit chacun, en commits neufs. Les commits du
 - Fichiers : ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, ce plan, `ai-agent/README.md`.
 - Commit : `docs(ui): use a neutral fade as the worked example`.
 
+### ✅ T7.4 — Des documents exacts
+
+Chaque constat a été vérifié contre le code avant toute correction, puis mesuré quand c'était possible. Les numéros sont ceux de la demande. Aucun comportement ne change.
+
+- Constat 1, vrai : « un premier écran dessine une image avant son premier `Update` » était faux. Dans la trace du Launcher, le premier `Update` de l'écran tombe dans le premier `Update` de la boucle, avant le premier `Draw`. Aucune raison d'ordre ne tient pour un premier écran ni pour un `open_screen` ordinaire. La raison écrite est celle que la demande prévoyait : le chargement est le seul endroit par où passe toute ouverture d'écran, et la première image dessinée montre le fondu. Elle compte pour un écran sans `Update` sur l'image de son ouverture, voir T7.5. Le message de `2cb48c51` garde la phrase fausse : il n'est pas réécrit.
+- Constat 2, vrai : à pas fixe, deux runs, un popup ouvert par `open_screen` avec un fondu de 51 pas dans son `on_open_command` dessine 250 sur sa première image et atteint 0 sur sa 51e. `from` ne se voit qu'au démarrage d'un monde.
+- Constat 3, vrai : IL de `Game.Tick` lu, puis mesuré en pas variable, quatre runs. L'image 2 reçoit 1,7 à 3,0 ms, l'image 3 reçoit 0,2 à 0,4 ms, et le fondu dessine 255, 254, 254, puis 250 ou 251. Trouvé en plus, même confusion : `LoadTimeDiscard.cs` et `data-driven-screens.md` disaient que MonoGame rejoue le temps en Updates sans Draw, ce qui n'est vrai qu'à pas fixe. Corrigés.
+- Constat 4, vrai : `ResetElapsedTime` ne touche pas `TotalGameTime` (IL). Ce qui le lit n'est pas retenu : l'horloge de MGUI, la répétition d'`UINavigationInput`, `FrameTime.UnscaledTotalTime`. Mesuré sur l'image 1, le temps du jeu étant à 0 : 16,667 ms à pas fixe, 46 à 63 ms en pas variable. Les 500 ms de la revue sont la borne de `MaxElapsedTime`, pas une mesure. Trouvé en plus et écrit dans ADR-0082 : `Draw` lit un pas sur l'image 1 à pas fixe, et après `change_world` le premier `FrameElapsed` du nouveau `UIRoot` vaut tout `TotalGameTime`, 7967 et 8066 ms mesurés. Ce dernier point ne vient pas du discard et n'est pas corrigé.
+- Constat 5, vrai, mesuré avec une touche sur bureau sans affichage, avec et sans mapping : rien n'ayant le focus pendant une attente, la première touche le donne au premier bouton et montre son marqueur, les suivantes ne bougent rien, et confirmer ne lance rien. MGUI : `a3c42cb0`, doc XML d'`IsNavigationInputSuspended` et ADR-0025. `MGDesktop.cs` garde son nombre de lignes, donc `ResolvedPilotWriteSitesTests` n'a pas bougé. Même phrase trouvée en plus et corrigée : `UINavigationInput.IsSuspended` et le résumé de `DataDrivenScreen`.
+- Constat 6, vrai, sauf un lieu : `docs/decisions/README.md` disait déjà les deux amendements, il ne change pas. ADR-0078, ADR-0081, `data-driven-screens.md`, `docs/README.md` et le README du sample sont corrigés.
+- Constat 7, vrai à moitié : `focus_markers` et ses refus sont déjà dans la liste à la tête, T7.1 les y a mis. Seul `on_open_command` manquait : son nom inconnu et son action refusée y sont.
+- Constat 8, vrai : `screen-effects.md` donnait à `fade_screen` une surface éditeur que `data-driven-screens.md` et ADR-0078 lui refusent.
+- Constat 9, vrai : le test a été renommé par `19e1a540`.
+- Constat 10, vrai, compté : 4 cas sur 6 échouent sans le correctif de T5.1, et les deux autres échouent quand le correctif est trop large. T5.1 et le résultat de la phase 5 sont corrigés.
+- Constat 11, vrai : les citations d'ADR-0078, d'ADR-0081 et de `screen-effects.md` deviennent des membres nommés.
+- Mesures : Launcher Debug, piloté par le script gardé, traces temporaires dans `CasaEngineGame`, `GameManager`, `ScreenEffectComponent`, `SpriteRendererComponent` et `DataDrivenScreen`. Aucun garde déclenché, aucun processus Launcher restant. Sondes de `DataDrivenScreenTests` et mutations de `UINavigationInput` jetables. Tout est retiré par `git checkout` des fichiers, qui leur donne la date courante : `git status` vide, recherche de la trace vide.
+- Fichiers (moteur) : `DataDrivenScreen.cs`, `UINavigationInput.cs`, `LoadTimeDiscard.cs`, ADR-0078, ADR-0081, ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, `docs/README.md`, `Projects/PixelUiSample/README.md`, `pixel-ui-screens-tasks.md`, ce plan, `ai-agent/README.md`, `MGUI` (pointeur).
+- Fichiers (MGUI) : `MGUI.Core/UI/MGDesktop.cs` (commentaire), `Docs/decisions/0025-pause-the-raw-navigation-path.md`.
+- Commit (MGUI) : `a3c42cb0`, `docs(input): say what a pause of the navigation leaves running`.
+- Commit : `docs(ui): make the open, time and wait statements exact`.
+
 ## Points ouverts
 
 Vu pendant T7.1, hors de la demande, non corrigé :
@@ -237,6 +258,7 @@ Vu pendant T7.1, hors de la demande, non corrigé :
 - Limite ajoutée à ADR-0081 après vérification de `chantier/screen-fade-actions` : sans mapping, un bouton tenu à travers `change_world` compte comme un nouvel appui sur le monde suivant. Il faut un écran poussé par du code pour l'atteindre. Le comportement n'est pas corrigé.
 - T3.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4700/4700, reconstruit. Launcher sur un projet à pas fixe : séquences mesurées de nouveau en T7.3 sur un fondu de 0,85 s : 255, 250, puis de 5 en 5 jusqu'à 0 à l'image 52, une seule image à 2 Updates (la première). Fondu sortant : 5 à 255 sur 51 images, 255 dessiné avant le changement de monde.
 - T4.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4711/4711, reconstruit, `MGUI.Tests` 3225/3225. Launcher sur le sample : focus au troisième `Update`, curseur sur `FADE OUT` puis disparu sur `QUIT`, aucune exception. Sur une copie sans `default_focus` : 930 `Update` sans focus ni marqueur, puis marqueur à la première touche. Sur une copie où le marqueur est son élément : le jeu s'arrête au chargement sur le message qui nomme l'enveloppe. Sur un projet externe qui utilise `focus_markers` : chargement sans erreur.
-- Phase 5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3225/3225, MGUI inchangé à `62498f75`. 15 mutations, toutes tuées et restaurées (T5.2, T5.3, T5.5). Pour a, b, f et h, les tests neufs ont été vus en échec avant le correctif. Launcher sur le sample : voir T5.6. Sur un projet externe, avec mapping et pas fixe : chargement, deux touches et deux redimensionnements, aucune exception. Aucun nom interdit dans le diff ni dans les messages de commit depuis `d9cff5e6`.
+- Phase 5 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3225/3225, MGUI inchangé à `62498f75`. 15 mutations, toutes tuées et restaurées (T5.2, T5.3, T5.5). Pour a et b, 4 des 6 cas neufs ont été vus en échec avant le correctif, voir T5.1. Pour f et h, le test neuf a été vu en échec. Launcher sur le sample : voir T5.6. Sur un projet externe, avec mapping et pas fixe : chargement, deux touches et deux redimensionnements, aucune exception. Aucun nom interdit dans le diff ni dans les messages de commit depuis `d9cff5e6`.
 - Phase 6 : les deux `.sln` à 0 erreur, recompilés sans incrémental, `CasaEngine.Tests` 4736/4736, reconstruit, `MGUI.Tests` 3226/3226, MGUI à `83bda51f`. 1 mutation, tuée et restaurée. Aucun Launcher : ni le code de production de MGUI ni celui du moteur ne change.
-- Phase 7 : les deux `.sln` à 0 erreur et `CasaEngine.Tests` 4742/4742, reconstruit, après T7.1, T7.2 et T7.3. MGUI inchangé à `83bda51f`, `MGUI.Tests` non relancé. 7 mutations, toutes tuées et restaurées (T7.1). Launcher sur le sample et sur la copie à pas fixe, aucune exception dans les logs, aucun garde de saisie déclenché, aucun processus Launcher restant.
+- Phase 7, T7.1 à T7.3 : les deux `.sln` à 0 erreur et `CasaEngine.Tests` 4742/4742, reconstruit, après chaque tâche. MGUI inchangé à `83bda51f`, `MGUI.Tests` non relancé. 7 mutations, toutes tuées et restaurées (T7.1). Launcher sur le sample et sur la copie à pas fixe, aucune exception dans les logs, aucun garde de saisie déclenché, aucun processus Launcher restant.
+- Phase 7, T7.4 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4742/4742, reconstruit, `MGUI.Tests` 3226/3226, reconstruit, MGUI à `a3c42cb0`. Seuls des commentaires et des documents changent, donc aucun test neuf. Sur les 11 constats, 9 sont vrais tels quels, le 6 l'est sauf un lieu, le 7 à moitié, aucun n'est faux. Mesures de T7.4 : voir cette tâche.

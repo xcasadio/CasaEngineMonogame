@@ -1,6 +1,6 @@
 # PixelUiSample
 
-A project with no gameplay DLL whose screens are written in design pixels and stay pixel-exact at any window size, with a bitmap font the screen declares (ADR-0079), whose navigation comes from a buttons mapping (ADR-0080), and that fades to black from a button, with a cursor made of an opaque and a subtractive sprite (ADR-0081).
+A project with no gameplay DLL whose screens are written in design pixels and stay pixel-exact at any window size, with a bitmap font the screen declares (ADR-0079), whose navigation comes from a buttons mapping (ADR-0080), that fades to black from a button, with a cursor made of an opaque and a subtractive sprite (ADR-0081), and that fades in when it opens, with that cursor shown only while its button holds the focus (ADR-0082).
 
 ## Run
 

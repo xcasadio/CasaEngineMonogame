@@ -1,6 +1,6 @@
 # Data-driven screens
 
-A project with no gameplay DLL can open a XAML screen, wire its buttons to actions and change world from its data alone. The decisions are ADR-0078, ADR-0079, ADR-0080 and ADR-0081. `Projects/SampleProject` is the working example, and `Projects/PixelUiSample` adds a design resolution, a bitmap font, its own keys, a screen fade and a subtractive image.
+A project with no gameplay DLL can open a XAML screen, wire its buttons to actions and change world from its data alone. The decisions are ADR-0078, ADR-0079, ADR-0080, ADR-0081 and ADR-0082. `Projects/SampleProject` is the working example, and `Projects/PixelUiSample` adds a design resolution, a bitmap font, its own keys, a screen fade, a subtractive image, a fade when a screen opens and a marker on the focused button.
 
 A project with a DLL keeps every existing path: a `XamlUIScreenBase` subclass reads none of the fields below. `FirstScreenName` applies to every project, though: a value left in a project with a DLL now opens that screen, and one that names no screen stops the game when the first world loads.
 
@@ -43,7 +43,7 @@ A `.uiscreen` gains nine optional fields. A field left out keeps its default and
 - `fonts`: the catalogue names or ids of the `.fnt` assets the screen holds for its lifetime. See [Pixel screens](#pixel-screens).
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
-- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades). The command starts before the first `Update` of any screen: a first screen draws one frame before that `Update`, and a screen opened by `open_screen` gets it on the frame it opens, inside the loop that ran the action.
+- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. A fade started here shows `from` on its first frame on a project's first screen only: a screen opened by `open_screen` opens on a frame with a normal elapsed time, so its fade shows a first step at once, see [Fades](#fades). The command starts at load because every way of opening a screen goes through it, so the first frame drawn shows the fade whichever way the screen opened. A first screen gets its first `Update` before its first frame, and a screen opened by `open_screen` gets it on the frame it opens, inside the loop that ran the action.
 - `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit beside its button on a `Canvas` or inside the button, and one element can have several markers. The load refuses a marker named by two pairs, because only the last pair would drive it, and a marker that is, or contains, the element of any pair, its own or another one: hiding it would hide that element too and take its keyboard input. `CanHandleInputsWhileHidden` does not lift this refusal (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
@@ -95,15 +95,20 @@ Only `play_sound` and `fade_screen` can come before a `wait_fade`, along with an
 While a list waits:
 
 - no command runs: a second confirm, a Cancel and a focus move are dropped;
-- the keyboard and the gamepad do nothing, and the focus stays where it is, for as long as the waiting screen is at the top;
+- the keyboard and the gamepad run nothing and move no focus, for as long as the waiting screen is at the top, so a focus that exists stays where it is. With nothing focused, a key or a button still gives the focus, as outside a wait, and the marker of that element shows, because MGUI's input mode and auto-focus do not stop. Measured with a key on a headless desktop, with and without a mapping: the first key gives the focus to the first button, and the next ones move nothing;
 - a key or a button held through the wait fires nothing when the wait ends, until it is released, with one exception listed in [Limits](#limits) for a change of world;
 - a screen that closes drops the rest of its list, a change of world from code included.
 
 The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs. The first frame of the next world still shows the overlay at `to`.
 
-A fade started when the world starts, by `on_open_command` on the first screen for instance, counts one frame later, because a world's time starts at its first frame (ADR-0082): the first frame shows `from`, the second shows the first step, and a fade of N steps reaches `to` on frame N + 1. Under a fixed step, 51 steps of 5 draw 255, 250, then 5 by 5 down to 0 on frame 52.
+A fade started when the world starts, by `on_open_command` on the first screen for instance, starts later, because a world's time starts at its first frame (ADR-0082). The first frame shows `from` on either kind of step.
 
-Nothing of what the world took to start is replayed: without that, MonoGame runs 30 Updates before the first frame and 26 before the second, so a fade of 51 steps shows on one frame at 110, then at 0. A late frame later on is not protected, see [screen-effects.md](screen-effects.md), section 5.2.
+- Under a fixed step the second frame shows the first step, and a fade of N steps reaches `to` on frame N + 1: 51 steps of 5 draw 255, 250, then 5 by 5 down to 0 on frame 52.
+- Under a variable step, the default, the next two frames get only the gap since the last one was presented, so the first visible step is small and comes later. Over four runs in the Launcher those gaps read 0.2 to 3 ms, and a fade of 0.85 seconds drew 255, 254, 254, then 250 or 251.
+
+A screen opened by `open_screen` is not at the start of a world, so its fade counts like one started from the UI: a popup with the fade above drew 250 on its first frame, then 5 by 5 down to 0 on its frame 51, under a fixed step.
+
+Nothing of what the world took to start is replayed. Under a fixed step, MonoGame would otherwise run 30 Updates before the first frame and 26 before the second, so a fade of 51 steps would show on one frame at 110, then at 0. A late frame later on is not protected, see [screen-effects.md](screen-effects.md), section 5.2.
 
 A world used with a fade above the UI declares an entity with a `Camera2dComponent`, like `Projects/PixelUiSample/TitleWorld.world`: the veil is only placed for that camera. A world with no camera gets a 3D one. The sample without its camera was still fully covered at 960x540, but that is one measure and nothing guarantees it (ADR-0033).
 
@@ -245,8 +250,9 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a font the project does not have, a name or id that designates an asset of another type, which the message names, or a font that cannot be loaded, such as one whose page is missing;
 - a window placed by alignment under a design resolution;
 - a `focus_wrap` that is neither `vertical` nor `horizontal`;
-- a `cancel_command` or a `move_command` that names no entry of `ui_commands`;
+- a `cancel_command`, a `move_command` or an `on_open_command` that names no entry of `ui_commands`;
 - a `cancel_command` in a project with no `UIInputMapping`;
+- an `on_open_command` with an action other than `play_sound`, `fade_screen` or `wait_fade`;
 - a `fade_screen` with a field missing or malformed, a negative or endless `duration_seconds`, or a target;
 - a `wait_fade` with a target, or after anything other than `play_sound`, `fade_screen` or `wait_fade`;
 - a `focus_markers` pair that names nothing, an element that cannot take the focus, a marker named by two pairs, or a marker that is or contains the element of any pair.

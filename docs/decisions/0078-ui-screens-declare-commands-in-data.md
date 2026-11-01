@@ -1,14 +1,14 @@
 # ADR-0078: UI screens declare their commands in data
 
-- **Status**: Accepted. Amended by ADR-0079 (the envelope gains `fonts`; a data-driven screen follows the design resolution), ADR-0080 (the envelope gains `focus_wrap`, `cancel_command` and `move_command`) and ADR-0081 (the actions `fade_screen` and `wait_fade`; a list can wait for a fade)
+- **Status**: Accepted. Amended by ADR-0079 (the envelope gains `fonts`; a data-driven screen follows the design resolution), ADR-0080 (the envelope gains `focus_wrap`, `cancel_command` and `move_command`), ADR-0081 (the actions `fade_screen` and `wait_fade`; a list can wait for a fade) and ADR-0082 (the envelope gains `on_open_command` and `focus_markers`)
 - **Date**: 2026-10-31
 - **Source**: this chantier: `ai-agent/tasks/data-driven-screen-flow-tasks.md` (decisions D1 to D3, P1 to P4, open points O1 to O7 settled by the author on 2026-10-31), branch `chantier/data-driven-screen-flow`. Amends ADR-0035 and ADR-0038.
 
 ## Context
 
 - `XamlUIScreenBase` is abstract (`CasaEngine/Framework/UI/XamlUIScreenBase.cs:23`) and every subclass is C# code, so opening a screen needs code in a gameplay DLL or in a host.
-- `ProjectSettings.FirstScreenName` is read and written (`ProjectSettingsHelper.cs:23,123`) but nothing consumes it.
-- A project with an empty `GameplayDllName` runs: the load is skipped (`ProjectSettingsHelper.cs:57-59`) and a world without script is accepted (`World.cs:357-360`). `SampleProject` was run that way before this chantier: it shows its world and logs no exception.
+- `ProjectSettings.FirstScreenName` is read and written (`ProjectSettingsHelper.Load` and `Save`) but nothing consumes it.
+- A project with an empty `GameplayDllName` runs: the load is skipped (`ProjectSettingsHelper.Load`) and a world without script is accepted (`World.cs:357-360`). `SampleProject` was run that way before this chantier: it shows its world and logs no exception.
 - `MGButton.CommandName` looks its command up in the resources of its scope, and a window owns a resource scope (`MGButton.cs:299`, `MGWindow.cs:1640`). A left click and Submit run the same path (`MGButton.cs:239-248,274-280`). `MGResources.AddCommand` is called by `MGUI.Samples`, by no engine code.
 - ADR-0035 gives event subscriptions to the screen's code. ADR-0038 has the screen's code set a view model. Neither leaves a place for a screen with no code.
 - ADR-0075 forbids naming engine types in data: they are created by code.

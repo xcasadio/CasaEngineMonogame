@@ -84,8 +84,8 @@ There are now two ways to fade the screen:
   toward an arbitrary target colour, blending `lerp(scene, Color(R,G,B), A/255)`.
   `ScreenEffectComponent.SubmitOverlay` draws the overlay quad with `new Color(Service.R, Service.G,
   Service.B, Service.A)`
-  (`CasaEngine/Framework/Application/Components/ScreenEffectComponent.cs:234`) over an opaque white
-  1×1 pixel (`:279`), so the sprite
+  (`CasaEngine/Framework/Application/Components/ScreenEffectComponent.cs`) over an opaque white
+  1×1 pixel (`GetOrCreatePixelTexture`), so the sprite
   shader's non-premultiplied output (`texel * Color`, see `SpriteBlendMode.AlphaBlend`'s doc comment,
   `CasaEngine/Framework/Rendering/Depth/SpriteBlendMode.cs:14-20`) is exactly `Color`, and
   `BlendState.NonPremultiplied` (`SourceAlpha`/`InverseSourceAlpha`) blends it against the
@@ -214,7 +214,7 @@ Limits:
 
 ## 6. Limites connues (V1)
 
-- **Pas de surface éditeur**, hormis l'action de cutscene `FadeScreen` et l'action d'écran `fade_screen` (pas d'inspecteur dédié).
+- **No editor surface**, apart from the cutscene action `FadeScreen` (no dedicated inspector). The UI action `fade_screen` is written by hand in the JSON: the editor has no panel for actions (ADR-0078).
 - **Une seule couche** : le service ne gère qu'un overlay plein écran, pas une pile d'effets.
 - **Aucune caméra autre que `ViewManager.ActiveView` n'est consultée.** Un jeu avec plusieurs vues
   actives simultanément ne recevrait qu'une seule position caméra pour l'overlay.
