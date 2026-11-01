@@ -153,6 +153,7 @@ public class GameManager
             OnWorldChange();
             WorldLoaded?.Invoke(this, EventArgs.Empty);
             OpenFirstScreen(_game.ExecutionPolicy, GameSettings.ProjectSettings.FirstScreenName, CreateDataDrivenScreen);
+            DiscardLoadTime(_game.ExecutionPolicy, _game.LoadTimeDiscard);
         }
 
         float unscaledElapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
@@ -183,6 +184,18 @@ public class GameManager
 
         _firstScreenOpened = true;
         PushNewScreen(view, createScreen(firstScreenName, view));
+    }
+
+    /// <summary>
+    /// Starts the discard of what the new world took to start. Under external view management the editor runs the loop:
+    /// this game is never run, so it has no catch-up to stop and no frame that would end the discard.
+    /// </summary>
+    internal static void DiscardLoadTime(GameplayExecutionPolicy policy, LoadTimeDiscard loadTimeDiscard)
+    {
+        if (!policy.UseExternalViewManagement)
+        {
+            loadTimeDiscard.WorldReady();
+        }
     }
 
     /// <summary>A screen that never reached the stack has no one to dispose it.</summary>

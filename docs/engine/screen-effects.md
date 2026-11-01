@@ -206,8 +206,9 @@ Limits:
 - A step is only exact when it divides 255. 16 per frame over 16 frames gives values that are not all multiples of 16, ending on 255.
 - A duration rounded up ends one frame late: 0.2834 instead of 0.283333 finishes on frame 18, not 17.
 - The first step shows on the frame of the action, not the next one, when the fade starts from the UI: the UI updates before `ScreenEffectComponent`. Against a target that draws its first step one frame after the input, this is one frame early.
+- A fade started when a world starts shows `from` on its first frame and its first step on the second, because a world's time starts at its first frame (ADR-0082). It reaches `to` on frame N + 1 for N steps, one frame later than a fade started from the UI: 255, 240, then 15 by 15 down to 0 on frame 18 for the fade above.
 - The last value is `to`. A target whose last visible value is lower ends higher here.
-- What a late frame does under a fixed step has not been measured.
+- A late frame loses steps. Under a fixed step MonoGame replays the time as Updates with no `Draw`, up to `Game.MaxElapsedTime`, which reads 500 ms, so 30 Updates at this rate. The fade advances on each of them, so a frame 4 steps late draws 255, 240, then 165. Only the first two frames of a world are protected, by `LoadTimeDiscard` (ADR-0082).
 
 ---
 

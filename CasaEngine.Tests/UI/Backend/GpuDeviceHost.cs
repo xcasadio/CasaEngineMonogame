@@ -23,6 +23,12 @@ internal sealed class HeadlessGame : Game, IObservableUpdate
     public event EventHandler<TimeSpan> PreviewUpdate;
     public event EventHandler<EventArgs> EndUpdate;
 
+    /// <summary>Runs first in each Update, for a test that drives the game loop with <see cref="Game.Tick"/>.</summary>
+    public Action UpdateStarted { get; set; }
+
+    /// <summary>Runs after each presentation, for a test that drives the game loop with <see cref="Game.Tick"/>.</summary>
+    public Action FramePresented { get; set; }
+
     public HeadlessGame()
     {
         Gdm = new GraphicsDeviceManager(this)
@@ -34,6 +40,18 @@ internal sealed class HeadlessGame : Game, IObservableUpdate
         };
         Content.RootDirectory = "Content";
         IsFixedTimeStep = false;
+    }
+
+    protected override void Update(GameTime gameTime)
+    {
+        UpdateStarted?.Invoke();
+        base.Update(gameTime);
+    }
+
+    protected override void EndDraw()
+    {
+        base.EndDraw();
+        FramePresented?.Invoke();
     }
 }
 

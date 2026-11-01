@@ -43,7 +43,7 @@ A `.uiscreen` gains nine optional fields. A field left out keeps its default and
 - `fonts`: the catalogue names or ids of the `.fnt` assets the screen holds for its lifetime. See [Pixel screens](#pixel-screens).
 - `ui_commands`: the commands the screen offers. A command name is unique within a screen, and two screens may use the same name.
 - `focus_wrap`, `cancel_command`, `move_command`: how the screen reacts to navigation. See [Navigation](#navigation).
-- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait.
+- `on_open_command`: the name of a command that starts when the screen loads, before its first frame. It accepts only `play_sound`, `fade_screen` and `wait_fade`: the screen is not on the stack yet, so anything else is refused at load (ADR-0082). A `wait_fade` here blocks the screen until the fade ends, like any wait. Such a fade shows `from` on its first frame, see [Fades](#fades).
 - `focus_markers`: pairs `{ "element": "btnStart", "marker": "cursorStart" }` of XAML names. The marker is visible only while the element holds the keyboard focus, and it keeps its place when hidden. A marker can sit anywhere in the window, such as beside its button on a `Canvas` (ADR-0082).
 
 A button reaches a command with its existing XAML property, also shown in the screen editor's inspector:
@@ -99,7 +99,11 @@ While a list waits:
 - a key or a button held through the wait fires nothing when the wait ends, until it is released, with one exception listed in [Limits](#limits) for a change of world;
 - a screen that closes drops the rest of its list, a change of world from code included.
 
-The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs.
+The frames, counting the frame of `fade_screen` as the first: the service updates after the UI, so the first step of the fade shows on that frame. The list goes on during the frame after the one that reached `to`, so that frame is drawn at `to` before `change_world` runs. The first frame of the next world still shows the overlay at `to`.
+
+A fade started when the world starts, by `on_open_command` on the first screen for instance, counts one frame later, because a world's time starts at its first frame (ADR-0082): the first frame shows `from`, the second shows the first step, and a fade of N steps reaches `to` on frame N + 1. Under a fixed step, 17 steps of 15 draw 255, 240, then 15 by 15 down to 0 on frame 18.
+
+Nothing of what the world took to start is replayed: without that, the 30 Updates MonoGame runs after a load are enough to end a fade of 17 frames before the first frame is drawn. A late frame later on is not protected, see [screen-effects.md](screen-effects.md), section 5.2.
 
 A world used with a fade above the UI declares an entity with a `Camera2dComponent`, like `Projects/PixelUiSample/TitleWorld.world`: the veil is only placed for that camera. A world with no camera gets a 3D one. The sample without its camera was still fully covered at 960x540, but that is one measure and nothing guarantees it (ADR-0033).
 

@@ -80,6 +80,9 @@ public class CasaEngineGame : Game, IObservableUpdate
     public RenderTargetPool RenderTargetPool { get; private set; }
     public GameplayExecutionPolicy ExecutionPolicy { get; set; } = GameplayExecutionPolicies.Runtime;
 
+    /// <summary>Keeps the time a world takes to start off the game clock.</summary>
+    internal LoadTimeDiscard LoadTimeDiscard { get; }
+
     /// <summary>
     /// The project's virtual resolution (ADR-0048) when this game manages its own window, null when the project has
     /// none or an external host (the editor) manages the views.
@@ -152,6 +155,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         MaterialCache = RuntimeContext.MaterialCache ?? new MaterialCache();
         RuntimeContext.MaterialCache = MaterialCache;
         RuntimeContext.MaterialAuthoringCache ??= new MaterialAuthoringAssetCache();
+        LoadTimeDiscard = new LoadTimeDiscard(ResetElapsedTime);
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = RuntimeContext.UIViewRuntimeFactory;
         DefaultUICompositionService = RuntimeContext.UICompositionService;
@@ -557,6 +561,8 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         try
         {
+            LoadTimeDiscard.UpdateStarting();
+
             if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource { CaptureAutomatically: true } frameCachedWindowInputSource)
             {
                 frameCachedWindowInputSource.CaptureFrameInput();
@@ -725,6 +731,13 @@ public class CasaEngineGame : Game, IObservableUpdate
                     (float)gameTime.ElapsedGameTime.TotalSeconds);
             }
         }
+    }
+
+    /// <summary>Here and not at the end of <see cref="Draw"/>: the presentation is part of what the first frame costs.</summary>
+    protected override void EndDraw()
+    {
+        base.EndDraw();
+        LoadTimeDiscard.FramePresented();
     }
 
     /// <summary>

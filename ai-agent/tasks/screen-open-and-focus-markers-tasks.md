@@ -78,6 +78,17 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Validation : Launcher, captures lues.
 - Commit : `docs(ui): show the open command and the focus markers in the pixel sample`.
 
+## Phase 3 — Temps de démarrage d'un monde
+
+### ✅ T3.1 — Le démarrage d'un monde ne mange plus le fondu d'ouverture
+
+- Défaut mesuré au Launcher sur un projet à pas fixe : le fondu d'ouverture de 17 pas n'était jamais vu. 30 Updates avant la première image, qui dessinait déjà 0.
+- Un seul `ResetElapsedTime` à la fin du bloc `_isNewWorld` ne suffit pas (mesuré : 210 puis 0). Quatre retards se suivent : le chargement, le premier `Update` des vues, le premier `Draw`, le premier pas de physique. La cause de ce dernier coût n'est pas mesurée.
+- Décision : le temps d'un monde commence à sa première image. `LoadTimeDiscard` jette le temps sur deux images, en runtime seulement ; l'éditeur fait tourner la boucle et ne lance jamais son jeu hébergé, donc rien n'y change.
+- Fichiers : `LoadTimeDiscard.cs`, `GameManager.cs`, `CasaEngineGame.cs`, `LoadTimeDiscardTests.cs`, `LoadTimeDiscardGameLoopTests.cs`, `GpuDeviceHost.cs`, ADR-0082, `docs/engine/data-driven-screens.md`, `docs/engine/screen-effects.md`, ce plan, `ai-agent/README.md`.
+- Validation : séquences dessinées dans ADR-0082, trace temporaire retirée (vérifié par `git diff`), cinq mutations qui font toutes échouer un test. Le branchement dans `CasaEngineGame` et `UpdateWorld` n'a pas de test : aucun test ne construit ce jeu, le Launcher le prouve.
+- Commit : `fix(runtime): keep the start of a world off the game clock`.
+
 ## Points ouverts
 
 - Aucun.
@@ -87,3 +98,4 @@ Hors périmètre : un curseur qui glisse d'une ligne à l'autre, une animation d
 - Les deux `.sln` : 0 erreur. `CasaEngine.Tests` : 4688/4688, reconstruit.
 - Launcher sur `Projects/PixelUiSample` : le curseur n'apparaît que sur `FADE OUT`, et disparaît quand le focus passe à `QUIT`. Aucune exception dans le log.
 - Limite ajoutée à ADR-0081 après vérification de `chantier/screen-fade-actions` : sans mapping, un bouton tenu à travers `change_world` compte comme un nouvel appui sur le monde suivant. Il faut un écran poussé par du code pour l'atteindre. Le comportement n'est pas corrigé.
+- T3.1 : les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4700/4700, reconstruit. Launcher sur un projet à pas fixe : 255, 240, puis de 15 en 15 jusqu'à 0 à l'image 18, une seule image à 2 Updates (la première). Fondu sortant : 15 à 255 sur 17 images, 255 dessiné avant le changement de monde.
