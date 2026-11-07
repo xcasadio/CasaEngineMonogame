@@ -114,7 +114,39 @@ public sealed class TiledMapImporter
 
     private static TiledMapImportDocument ImportTmj(string sourceFilePath)
     {
-        var mapObject = JObject.Parse(File.ReadAllText(sourceFilePath));
+        return ImportJson(File.ReadAllText(sourceFilePath), sourceFilePath, ReadExternalTilesetFromFile);
+    }
+
+    private static TiledTilesetReference ReadExternalTilesetFromFile(TiledExternalTilesetRequest request)
+    {
+        return ReadTilesetJson(
+            File.ReadAllText(request.FilePath),
+            request.FilePath,
+            request.FirstGid,
+            request.MapTileWidth,
+            request.MapTileHeight);
+    }
+
+    /// <summary>
+    /// Imports a Tiled JSON map (.tmj) from its text. No file is read: <paramref name="mapFilePath"/> is the logical path of the map,
+    /// used for <see cref="TiledMapImportDocument.SourceFilePath"/> and to resolve the relative paths of the tilesets and images.
+    /// Each external tileset ("source" entry) is obtained from <paramref name="resolveExternalTileset"/>, which returns the import model.
+    /// The resolver must return a non-null <see cref="TiledTilesetReference"/> whose tile size and FirstGid match the request:
+    /// a null return throws <see cref="InvalidOperationException"/> ("The resolver returned no tileset for '&lt;source&gt;'."), a tile size
+    /// mismatch throws <see cref="NotSupportedException"/>, a FirstGid mismatch throws <see cref="InvalidOperationException"/>.
+    /// An exception thrown by the resolver propagates unchanged (a caller that wants the path entry's <see cref="FileNotFoundException"/>
+    /// throws it itself).
+    /// </summary>
+    public static TiledMapImportDocument ImportJson(
+        string mapJsonText,
+        string mapFilePath,
+        Func<TiledExternalTilesetRequest, TiledTilesetReference> resolveExternalTileset)
+    {
+        ArgumentNullException.ThrowIfNull(mapJsonText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(mapFilePath);
+        ArgumentNullException.ThrowIfNull(resolveExternalTileset);
+
+        var mapObject = JObject.Parse(mapJsonText);
 
         var orientation = ReadRequiredString(mapObject, "orientation", "map");
         if (!string.Equals(orientation, "orthogonal", StringComparison.OrdinalIgnoreCase))
@@ -132,9 +164,9 @@ public sealed class TiledMapImporter
         var tileWidth = ReadRequiredInt(mapObject, "tilewidth", "map");
         var tileHeight = ReadRequiredInt(mapObject, "tileheight", "map");
 
-        var tilesetReferences = ReadTilesetsJson(sourceFilePath, mapObject, tileWidth, tileHeight);
+        var tilesetReferences = ReadTilesetsJson(mapFilePath, mapObject, tileWidth, tileHeight, resolveExternalTileset);
         var result = new TiledMapImportDocument(
-            sourceFilePath,
+            mapFilePath,
             mapWidth,
             mapHeight,
             tileWidth,
@@ -291,7 +323,12 @@ public sealed class TiledMapImporter
             warnings);
     }
 
-    private static List<TiledTilesetReference> ReadTilesetsJson(string mapFilePath, JObject mapObject, int mapTileWidth, int mapTileHeight)
+    private static List<TiledTilesetReference> ReadTilesetsJson(
+        string mapFilePath,
+        JObject mapObject,
+        int mapTileWidth,
+        int mapTileHeight,
+        Func<TiledExternalTilesetRequest, TiledTilesetReference> resolveExternalTileset)
     {
         var tilesetArray = mapObject["tilesets"] as JArray
             ?? throw new InvalidDataException("Tiled JSON map requires a 'tilesets' array.");
@@ -308,13 +345,18 @@ public sealed class TiledMapImporter
                 throw new InvalidDataException("Tiled JSON tileset entry must be an object.");
             }
 
-            tilesets.Add(ReadTilesetReferenceJson(mapFilePath, tilesetObject, mapTileWidth, mapTileHeight));
+            tilesets.Add(ReadTilesetReferenceJson(mapFilePath, tilesetObject, mapTileWidth, mapTileHeight, resolveExternalTileset));
         }
 
         return tilesets;
     }
 
-    private static TiledTilesetReference ReadTilesetReferenceJson(string mapFilePath, JObject tilesetObject, int mapTileWidth, int mapTileHeight)
+    private static TiledTilesetReference ReadTilesetReferenceJson(
+        string mapFilePath,
+        JObject tilesetObject,
+        int mapTileWidth,
+        int mapTileHeight,
+        Func<TiledExternalTilesetRequest, TiledTilesetReference> resolveExternalTileset)
     {
         if (tilesetObject == null)
         {
@@ -323,15 +365,59 @@ public sealed class TiledMapImporter
 
         var firstGid = ReadOptionalInt(tilesetObject, "firstgid", 1);
         var source = ReadOptionalString(tilesetObject, "source", string.Empty);
-        var tilesetFilePath = mapFilePath;
-        var tilesetRoot = tilesetObject;
 
-        if (!string.IsNullOrWhiteSpace(source))
+        if (string.IsNullOrWhiteSpace(source))
         {
-            tilesetFilePath = ResolvePath(mapFilePath, source);
-            tilesetRoot = JObject.Parse(File.ReadAllText(tilesetFilePath));
+            return ReadTilesetJsonObject(tilesetObject, mapFilePath, firstGid, mapTileWidth, mapTileHeight);
         }
 
+        var request = new TiledExternalTilesetRequest(
+            source,
+            ResolvePath(mapFilePath, source),
+            firstGid,
+            mapTileWidth,
+            mapTileHeight);
+        var resolved = resolveExternalTileset(request)
+            ?? throw new InvalidOperationException($"The resolver returned no tileset for '{source}'.");
+
+        if (resolved.TileWidth != mapTileWidth || resolved.TileHeight != mapTileHeight)
+        {
+            throw new NotSupportedException($"Tileset tile size {resolved.TileWidth}x{resolved.TileHeight} does not match map tile size {mapTileWidth}x{mapTileHeight}.");
+        }
+
+        // The path entry passes request.FirstGid to ReadTilesetJson, so this check can never fire there; it guards a hand-built reference.
+        if (resolved.FirstGid != firstGid)
+        {
+            throw new InvalidOperationException($"The resolver returned a tileset for '{source}' with FirstGid {resolved.FirstGid}, expected {firstGid}.");
+        }
+
+        return resolved;
+    }
+
+    /// <summary>
+    /// Parses the JSON text of an external Tiled tileset (.tsj) into the import model.
+    /// <paramref name="tilesetFilePath"/> is the logical path of the tileset, against which its image path is resolved.
+    /// </summary>
+    public static TiledTilesetReference ReadTilesetJson(
+        string tilesetJsonText,
+        string tilesetFilePath,
+        int firstGid,
+        int mapTileWidth,
+        int mapTileHeight)
+    {
+        ArgumentNullException.ThrowIfNull(tilesetJsonText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tilesetFilePath);
+
+        return ReadTilesetJsonObject(JObject.Parse(tilesetJsonText), tilesetFilePath, firstGid, mapTileWidth, mapTileHeight);
+    }
+
+    private static TiledTilesetReference ReadTilesetJsonObject(
+        JObject tilesetRoot,
+        string tilesetFilePath,
+        int firstGid,
+        int mapTileWidth,
+        int mapTileHeight)
+    {
         var tileWidth = ReadRequiredInt(tilesetRoot, "tilewidth", "tileset");
         var tileHeight = ReadRequiredInt(tilesetRoot, "tileheight", "tileset");
         if (tileWidth != mapTileWidth || tileHeight != mapTileHeight)
@@ -1169,6 +1255,31 @@ public sealed class TiledObject
     public float Width { get; }
     public float Height { get; }
     public Dictionary<string, string> CustomProperties { get; }
+}
+
+/// <summary>
+/// An external tileset ("source" entry) of a Tiled JSON map that the caller of <see cref="TiledMapImporter.ImportJson"/> must resolve.
+/// </summary>
+public sealed class TiledExternalTilesetRequest
+{
+    public TiledExternalTilesetRequest(string source, string filePath, int firstGid, int mapTileWidth, int mapTileHeight)
+    {
+        Source = source;
+        FilePath = filePath;
+        FirstGid = firstGid;
+        MapTileWidth = mapTileWidth;
+        MapTileHeight = mapTileHeight;
+    }
+
+    /// <summary>The raw "source" string of the map's tileset entry.</summary>
+    public string Source { get; }
+
+    /// <summary>The full path of the tileset, resolved against the map's logical path.</summary>
+    public string FilePath { get; }
+
+    public int FirstGid { get; }
+    public int MapTileWidth { get; }
+    public int MapTileHeight { get; }
 }
 
 public sealed class TiledTilesetReference
