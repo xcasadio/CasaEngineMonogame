@@ -81,6 +81,49 @@ public static class EditorAssetImportService
         EnsureFileAssetRegistered(destinationFilePath);
 
         var tiledMap = new TiledMapImporter().Import(sourceFilePath);
+        return ImportTiledMapDocument(tiledMap, destinationFilePath, null);
+    }
+
+    /// <summary>
+    /// Imports a Tiled JSON map (.tmj) from its text, without reading any file of the source. Produces the same assets as
+    /// <see cref="ImportTiledMap"/> given the same map, tilesets and images.
+    /// The bytes returned by <paramref name="readImage"/> are always written to the destination texture file, overwriting an existing
+    /// file, even when the logical image path is that destination path (the path entry skips the copy in that case).
+    /// The resolver must return a non-null <see cref="TiledTilesetReference"/> whose tile size and FirstGid match the request: a null
+    /// return throws <see cref="InvalidOperationException"/> ("The resolver returned no tileset for '&lt;source&gt;'."), a FirstGid
+    /// mismatch throws <see cref="InvalidOperationException"/>, a tile size mismatch <see cref="NotSupportedException"/>. An exception
+    /// thrown by the resolver propagates unchanged (a caller that wants the path entry's <see cref="FileNotFoundException"/> throws it itself).
+    /// </summary>
+    /// <param name="mapJsonText">The text of the .tmj.</param>
+    /// <param name="mapFilePath">The logical path of the map, used to resolve the relative tileset and image paths.</param>
+    /// <param name="resolveExternalTileset">Returns the import model of an external tileset (see <see cref="TiledMapImporter.ReadTilesetJson"/>).</param>
+    /// <param name="readImage">Receives <see cref="TiledTilesetReference.ImageFilePath"/> and returns the image bytes, or null when the image does not exist.</param>
+    /// <param name="destinationFilePath">The destination .tmj path in the project; the imported assets are written next to it.</param>
+    public static TiledMapImportResult ImportTiledMapContent(
+        string mapJsonText,
+        string mapFilePath,
+        Func<TiledExternalTilesetRequest, TiledTilesetReference> resolveExternalTileset,
+        Func<string, byte[]?> readImage,
+        string destinationFilePath)
+    {
+        ArgumentNullException.ThrowIfNull(mapJsonText);
+        ArgumentException.ThrowIfNullOrWhiteSpace(mapFilePath);
+        ArgumentNullException.ThrowIfNull(resolveExternalTileset);
+        ArgumentNullException.ThrowIfNull(readImage);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
+
+        EnsureFileAssetRegistered(destinationFilePath);
+
+        var tiledMap = TiledMapImporter.ImportJson(mapJsonText, mapFilePath, resolveExternalTileset);
+        return ImportTiledMapDocument(tiledMap, destinationFilePath, readImage);
+    }
+
+    // readImage null: the images are files, read and copied from disc. Otherwise the bytes come from readImage.
+    private static TiledMapImportResult ImportTiledMapDocument(
+        TiledMapImportDocument tiledMap,
+        string destinationFilePath,
+        Func<string, byte[]?>? readImage)
+    {
         var mapBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
         var importedAssetsDirectory = Path.GetDirectoryName(destinationFilePath)!;
         Directory.CreateDirectory(importedAssetsDirectory);
@@ -100,7 +143,8 @@ public static class EditorAssetImportService
                 mapBaseName,
                 importedTexturesBySourcePath,
                 usedTextureFileNames,
-                true);
+                true,
+                readImage);
 
             if (textureAssetId == Guid.Empty)
             {
@@ -677,16 +721,30 @@ public static class EditorAssetImportService
         string modelBaseName,
         Dictionary<string, Guid> importedTexturesBySourcePath,
         HashSet<string> usedTextureFileNames,
-        bool avoidExistingDestinationFileCollisions = false)
+        bool avoidExistingDestinationFileCollisions = false,
+        Func<string, byte[]?>? readImage = null)
     {
         if (importedTexturesBySourcePath.TryGetValue(sourceTexturePath, out var existingTextureAssetId))
         {
             return existingTextureAssetId;
         }
 
-        if (!File.Exists(sourceTexturePath))
+        // readImage null: the source is a file; otherwise its bytes come from readImage.
+        byte[]? imageBytes = null;
+        if (readImage == null)
         {
-            return Guid.Empty;
+            if (!File.Exists(sourceTexturePath))
+            {
+                return Guid.Empty;
+            }
+        }
+        else
+        {
+            imageBytes = readImage(sourceTexturePath);
+            if (imageBytes == null)
+            {
+                return Guid.Empty;
+            }
         }
 
         if (!Texture2DLoader.IsTextureFile(sourceTexturePath))
@@ -698,7 +756,13 @@ public static class EditorAssetImportService
             ? CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), texturesDirectory, sourceTexturePath, usedTextureFileNames)
             : CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
         string copiedTextureFullPath = Path.Combine(texturesDirectory, copiedTextureFileName);
-        if (!IsSameFullPath(sourceTexturePath, copiedTextureFullPath))
+        if (imageBytes != null)
+        {
+            // Content mode: the returned bytes are the source of truth, always written (an existing file is overwritten),
+            // even when the logical image path is the destination path.
+            File.WriteAllBytes(copiedTextureFullPath, imageBytes);
+        }
+        else if (!IsSameFullPath(sourceTexturePath, copiedTextureFullPath))
         {
             File.Copy(sourceTexturePath, copiedTextureFullPath, !avoidExistingDestinationFileCollisions);
         }
