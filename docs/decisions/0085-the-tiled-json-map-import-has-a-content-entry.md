@@ -1,6 +1,6 @@
-# ADR-0078: The Tiled JSON map import has a content entry beside the path entry
+# ADR-0085: The Tiled JSON map import has a content entry beside the path entry
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0078 until 2026-11-07: renumbered when main was merged into the branch carrying the data-driven screens, whose ADR-0078 records that UI screens declare their commands in data; the decision is unchanged)
 - **Date**: 2026-11-07
 - **Source**: this chantier: `ai-agent/tasks/project-generator-tasks.md` of the parent repository (decisions D1 and D5, task T2.1)
 
