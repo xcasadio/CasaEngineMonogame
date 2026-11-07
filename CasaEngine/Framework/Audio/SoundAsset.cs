@@ -21,6 +21,8 @@ public class SoundAsset : ObjectBase
     private float _pitch;
     private string _busName = AudioBusNames.Sfx;
     private int _priority;
+    private string _exclusionGroup = string.Empty;
+    private float _exclusionFadeSeconds;
     private long _loopStartSample;
     private float _variationVolumeMin = 1f;
     private float _variationVolumeMax = 1f;
@@ -37,6 +39,9 @@ public class SoundAsset : ObjectBase
 
     /// <summary>Most parameter bindings an asset keeps; the extra ones are dropped with a warning.</summary>
     public const int MaxParameterBindings = 8;
+
+    /// <summary>Longest fade <see cref="ExclusionFadeSeconds"/> keeps: a voice fading out is out of its group's reach.</summary>
+    public const float MaxExclusionFadeSeconds = 10f;
 
     public SoundAsset()
     {
@@ -96,6 +101,28 @@ public class SoundAsset : ObjectBase
     {
         get => _priority;
         set => _priority = Math.Clamp(value, 0, MaxPriority);
+    }
+
+    /// <summary>
+    /// Group of sounds that do not overlap: starting this sound stops the voices of the same group, whichever asset
+    /// started them. Empty means no group. Compared without regard to case; null and blank names become empty, and a
+    /// name is trimmed. See ADR-0083.
+    /// </summary>
+    public string ExclusionGroup
+    {
+        get => _exclusionGroup;
+        set => _exclusionGroup = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+    }
+
+    /// <summary>
+    /// Seconds this sound takes to fade out the voices of its <see cref="ExclusionGroup"/> when it starts; 0 stops them
+    /// at once. A NaN or negative value keeps the previous one, and a value above <see cref="MaxExclusionFadeSeconds"/>
+    /// is brought back to it.
+    /// </summary>
+    public float ExclusionFadeSeconds
+    {
+        get => _exclusionFadeSeconds;
+        set => _exclusionFadeSeconds = Math.Min(SanitizeNonNegative(value, _exclusionFadeSeconds), MaxExclusionFadeSeconds);
     }
 
     /// <summary>
@@ -254,6 +281,8 @@ public class SoundAsset : ObjectBase
 
         var priority = ReadNumber(element, "priority", 0f);
         Priority = float.IsNaN(priority) ? 0 : (int)Math.Clamp(priority, 0f, MaxPriority);
+        ExclusionGroup = ReadText(element, "exclusion_group");
+        ExclusionFadeSeconds = ReadNumber(element, "exclusion_fade_seconds", 0f);
         VariationVolumeMin = ReadNumber(element, "variation_volume_min", 1f);
         VariationVolumeMax = ReadNumber(element, "variation_volume_max", 1f);
         VariationPitchMin = ReadNumber(element, "variation_pitch_min", 0f);
@@ -373,6 +402,23 @@ public class SoundAsset : ObjectBase
         }
 
         return (float)token;
+    }
+
+    /// <summary>Reads a text key; anything but a JSON string gives an empty text and warns.</summary>
+    private string ReadText(JObject element, string key)
+    {
+        if (!element.TryGetValue(key, out var token))
+        {
+            return string.Empty;
+        }
+
+        if (token.Type != JTokenType.String)
+        {
+            Logs.WriteWarning($"Sound asset '{Name}': key '{key}' is not a string, it is ignored.");
+            return string.Empty;
+        }
+
+        return (string)token;
     }
 
     /// <summary>

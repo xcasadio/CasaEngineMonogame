@@ -96,5 +96,6 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0080](0080-data-driven-navigation-through-a-ui-input-mapping.md) | Data-driven navigation through a UI input mapping | Accepted | 2026-10-31 |
 | [ADR-0081](0081-screen-fades-and-waits-in-data-driven-commands.md) | Screen fades and waits in data-driven commands | Accepted (amended by ADR-0082) | 2026-10-31 |
 | [ADR-0082](0082-screens-run-a-command-on-open-and-mark-the-focus.md) | Screens run a command on open and mark the focus | Accepted | 2026-11-01 |
+| [ADR-0083](0083-sounds-declare-an-exclusion-group.md) | Sounds declare an exclusion group | Accepted | 2026-11-01 |
 | [ADR-0084](0084-the-software-spu-follows-published-captures.md) | The software SPU follows published captures | Accepted | 2026-11-01 |
 | [ADR-0085](0085-the-tiled-json-map-import-has-a-content-entry.md) | The Tiled JSON map import has a content entry beside the path entry (numbered ADR-0078 until 2026-11-07) | Accepted | 2026-11-07 |

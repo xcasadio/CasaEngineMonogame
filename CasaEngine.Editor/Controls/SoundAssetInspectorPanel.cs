@@ -403,7 +403,10 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         _fieldStack.TryAddChild(CreatePitchVariationRow());
         _fieldStack.TryAddChild(CreatePriorityRow());
         _fieldStack.TryAddChild(CreateHelpText("Priority 0 = none: never stolen, never steals."));
-        _fieldStack.TryAddChild(CreateHelpText("Variations and priority are ignored for a streaming asset."));
+        _fieldStack.TryAddChild(CreateExclusionGroupRow());
+        _fieldStack.TryAddChild(CreateNumericRow("Exclusion fade", SoundAsset.MaxExclusionFadeSeconds, 0.01f, _soundAsset.ExclusionFadeSeconds, value => _soundAsset.ExclusionFadeSeconds = MathF.Round(value, 2)));
+        _fieldStack.TryAddChild(CreateHelpText("A sound stops the voices of its group when it starts. Empty = no group."));
+        _fieldStack.TryAddChild(CreateHelpText("Variations, priority and exclusion group are ignored for a streaming asset."));
         _fieldStack.TryAddChild(CreateCheckBoxRow("Looped", _soundAsset.IsLooped, value =>
         {
             _soundAsset.IsLooped = value;
@@ -669,6 +672,32 @@ public sealed class SoundAssetInspectorPanel : IDisposable
             1f,
             _soundAsset.Priority,
             value => _soundAsset.Priority = (int)MathF.Round(value)));
+        return row;
+    }
+
+    private MGElement CreateExclusionGroupRow()
+    {
+        var row = CreateRow("Exclusion group");
+        // No limit: the box refuses a longer text without a word, and would show a group as empty.
+        var textBox = new MGTextBox(_window, CharacterLimit: null)
+        {
+            HasStableTextFootprint = true,
+            AcceptsReturn = false,
+            AcceptsTab = false,
+            MinWidth = 140,
+        };
+        textBox.TextChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            _soundAsset.ExclusionGroup = args.NewValue;
+            SetDirty(true);
+        };
+        textBox.SetText(_soundAsset.ExclusionGroup);
+        row.TryAddChild(textBox);
         return row;
     }
 

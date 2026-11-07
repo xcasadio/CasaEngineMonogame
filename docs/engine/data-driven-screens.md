@@ -63,7 +63,7 @@ A command runs its actions in order, on the `Update` that follows the click or t
 | `open_screen` | Screen asset name or id | Opens a new screen on top of the others |
 | `close_screen` | None | Closes the screen running the action |
 | `change_world` | World file, as written in the catalogue | Loads that world. Its screens close with the old view |
-| `play_sound` | Sound asset name or id | Plays the sound. It goes on after the screen closes |
+| `play_sound` | Sound asset name or id | Plays the sound. It goes on after the screen closes. A sound with an `exclusion_group` stops the voices of that group (ADR-0083) |
 | `quit` | None | Quits the game |
 | `fade_screen` | None | Starts a screen fade. See [Fades](#fades) |
 | `wait_fade` | None | Holds the rest of the list until no fade runs |

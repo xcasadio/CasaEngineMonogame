@@ -238,7 +238,7 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
             new[]
             {
                 "Audio file", "Waveform", "Variation 1", "Variation 2", "Variations", "Volume", "Pitch",
-                "Volume variation", "Pitch variation", "Priority", "Bus", "Spatial", "Distance model",
+                "Volume variation", "Pitch variation", "Priority", "Exclusion group", "Exclusion fade", "Bus", "Spatial", "Distance model",
                 "Reference distance", "Max distance", "Rolloff", "Doppler factor",
             },
             rowLabels);
@@ -510,6 +510,57 @@ public sealed class SoundAssetInspectorPanelTests : IDisposable
         field.Value = -3f;
         Assert.Equal(0f, field.Value);
         Assert.Equal(0, rig.Asset.Priority);
+    }
+
+    private static MGTextBox TextBoxOfRow(MGElement content, string rowLabel)
+    {
+        var label = content.TraverseVisualTree().OfType<MGTextBlock>().First(text => text.Text == rowLabel);
+        var row = Assert.IsAssignableFrom<MGStackPanel>(label.Parent);
+        return Assert.Single(row.TraverseVisualTree().OfType<MGTextBox>());
+    }
+
+    [Fact]
+    public void TheExclusionGroup_ShowsTheAssetValue_WithoutMarkingItDirty()
+    {
+        var asset = CreateAsset();
+        asset.ExclusionGroup = "interface";
+        var rig = Open(asset);
+
+        Assert.Equal("interface", TextBoxOfRow(rig.Content, "Exclusion group").Text);
+        Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void TheExclusionGroup_ShowsALongName()
+    {
+        var asset = CreateAsset();
+        asset.ExclusionGroup = new string('g', 300);
+        var rig = Open(asset);
+
+        Assert.Equal(asset.ExclusionGroup, TextBoxOfRow(rig.Content, "Exclusion group").Text);
+    }
+
+    [Fact]
+    public void TheExclusionGroup_WritesTheAsset()
+    {
+        var rig = Open(CreateAsset());
+
+        TextBoxOfRow(rig.Content, "Exclusion group").SetText("interface");
+
+        Assert.Equal("interface", rig.Asset.ExclusionGroup);
+        Assert.True(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void TheExclusionFade_WritesTheAsset_Rounded()
+    {
+        var rig = Open(CreateAsset());
+        var field = Assert.Single(FieldsOfRow(rig.Content, "Exclusion fade"));
+
+        field.Value = 0.254f;
+
+        Assert.Equal(0.25f, rig.Asset.ExclusionFadeSeconds);
+        Assert.True(rig.Panel.IsDirty);
     }
 
     [Fact]

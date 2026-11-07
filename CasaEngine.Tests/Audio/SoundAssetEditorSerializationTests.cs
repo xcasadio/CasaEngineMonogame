@@ -306,4 +306,39 @@ public class SoundAssetEditorSerializationTests
         Assert.False(Serialize(new SoundAsset()).ContainsKey("loop_start_sample"));
         Assert.False(Serialize(new SoundAsset { IsStreaming = true, IsLooped = true }).ContainsKey("loop_start_sample"));
     }
+
+    [Fact]
+    public void SaveThenLoad_KeepsTheExclusionKeys()
+    {
+        var document = Serialize(new SoundAsset { ExclusionGroup = "interface", ExclusionFadeSeconds = 0.25f });
+
+        var loaded = new SoundAsset();
+        loaded.Load(document);
+
+        Assert.Equal("interface", loaded.ExclusionGroup);
+        Assert.Equal(0.25f, loaded.ExclusionFadeSeconds);
+    }
+
+    [Fact]
+    public void Serialize_KeepsTheOrderOfTheKeys_WithTheExclusionKeysAfterThePriority()
+    {
+        var document = Serialize(new SoundAsset { Priority = 5, ExclusionGroup = "interface", ExclusionFadeSeconds = 0.25f });
+
+        var keys = document.Properties().Select(property => property.Name).ToList();
+        var soundKeys = keys.Skip(keys.IndexOf("audio_file_asset_id")).Take(8).ToArray();
+
+        Assert.Equal(
+            new[] { "audio_file_asset_id", "volume", "pitch", "is_looped", "bus_name", "is_streaming", "priority", "exclusion_group" },
+            soundKeys);
+        Assert.Equal(keys.IndexOf("exclusion_group") + 1, keys.IndexOf("exclusion_fade_seconds"));
+    }
+
+    [Fact]
+    public void Serialize_WritesNoExclusionKeyAtItsDefault()
+    {
+        var document = Serialize(new SoundAsset());
+
+        Assert.False(document.ContainsKey("exclusion_group"));
+        Assert.False(document.ContainsKey("exclusion_fade_seconds"));
+    }
 }
