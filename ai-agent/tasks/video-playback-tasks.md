@@ -176,7 +176,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 1 — Décodeur et conteneur, sans GPU
 
-### ⚠️ T1.1 — Spécification du format MDEC
+### ✅ T1.1 — Spécification du format MDEC
 
 - Objectif : écrire, avant tout code, la spécification exacte que le décodeur suit, en nos propres mots, d'après psx-spx.
 - Fichiers : `docs/engine/video.md` (nouveau), section « MDEC bitstream ».
@@ -198,6 +198,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Validation : relecture contre psx-spx. Un point que psx-spx contredit, ou laisse ouvert alors qu'il change la sortie, passe en ⚠️ avec la question dans « Points ouverts ».
 - Commit : `docs(video): specify the MDEC bitstream the engine decodes`
 - Note : `docs/engine/video.md` §1 écrite d'après les pages psx-spx (MDEC, BS Headers, DC, AC, Versions), chaque règle citée. Table AC contrôlée (préfixes libres, espace de codes plein sauf le préfixe inutilisé). Choix moteur marqués : matrice de quantification par défaut, ordre des macroblocs par colonnes, signe du DC v3, arrondis IDCT et couleur, recadrage (voir O2 à O4). Relecture : la matrice par défaut de psx-spx (BS fraquant) donne qt[0] = 2, corrigé (le texte disait 8 et « aucune matrice »). Disposition après revue : psx-spx laisse ouverts deux points qui changent l'image (entrées 4 à 62 de la matrice de quantification, ordre des macroblocs) ; la règle de la Validation impose ⚠️, la tâche est bloquée et O2 et O3 sont des questions à l'auteur ; T1.2 et T1.3 ne démarrent pas avant sa réponse. O4 reste un choix moteur couvert par C2 (arrondis) et par les plages de psx-spx (signe du DC v3). Si l'auteur accepte les deux choix, noter la réponse ici et repasser en ✅. Doc seule : pas de build ni de test touché.
+- Note : bloqué sur O2 et O3, puis débloqué par l'auteur le 2026-11-08 : matrice MPEG-1 avec 2 en tête, une seule table pour les six blocs (« MPEG-1, 2 en tête ») ; macroblocs colonne par colonne (« Colonne par colonne »). `docs/engine/video.md` les note comme décisions de l'auteur, et intègre les précisions des relectures : le mot `FE00` testé avant la règle du dépassement de 63, la règle de bourrage limitée à une entrée RLE brute, le recadrage cité d'après la section « STR Resolution » de psx-spx, la borne de l'IDCT (4018).
 
 ### ⏳ T1.2 — Lecture du flux BS
 
@@ -392,8 +393,8 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | La comparaison locale avec la référence de lecture, sur les mêmes flux, se fait hors des dépôts, par le projet consommateur, après la fusion. Ses résultats ne vont pas dans ce dépôt (D7) | Après T5.2 |
-| O2 | **Question à l'auteur.** psx-spx ne donne que 02h,10h,10h,13h,..,53h pour la matrice par défaut (BS fraquant) et aucune table de 64 entrées ; le conteneur C1 n'en porte pas. Le moteur utilise-t-il la matrice intra par défaut d'MPEG-1 avec l'entrée 0 à 2, pour les six blocs (psx-spx fraquant applique une seule table à la luma et à la chroma) ? Les entrées 4 à 62 viennent d'MPEG-1 par inférence, pas de psx-spx. Une vidéo encodée pour une autre matrice sera fausse | T1.1 (bloquant), T1.3 |
-| O3 | **Question à l'auteur.** psx-spx dit seulement que les macroblocs sont « généralement verticaux ». Le moteur lit-il les macroblocs colonne par colonne, de haut en bas, colonne de gauche d'abord ? C'est une inférence | T1.1 (bloquant), T1.2, T1.3 |
+| O2 | **Tranché par l'auteur le 2026-11-08 : « MPEG-1, 2 en tête », une seule table.** Question d'origine : psx-spx ne donne que 02h,10h,10h,13h,..,53h pour la matrice par défaut (BS fraquant) et aucune table de 64 entrées ; le conteneur C1 n'en porte pas. Le moteur utilise-t-il la matrice intra par défaut d'MPEG-1 avec l'entrée 0 à 2, pour les six blocs (psx-spx fraquant applique une seule table à la luma et à la chroma) ? Les entrées 4 à 62 viennent d'MPEG-1 par inférence, pas de psx-spx. Une vidéo encodée pour une autre matrice sera fausse | T1.1 (bloquant), T1.3 |
+| O3 | **Tranché par l'auteur le 2026-11-08 : « Colonne par colonne ».** Question d'origine : psx-spx dit seulement que les macroblocs sont « généralement verticaux ». Le moteur lit-il les macroblocs colonne par colonne, de haut en bas, colonne de gauche d'abord ? C'est une inférence | T1.1 (bloquant), T1.2, T1.3 |
 | O4 | Sens des bits de magnitude négative du DC v3 (`n = 0` = plus grande magnitude, choix moteur déduit des plages données) et arrondis de l'IDCT et de la couleur (psx-spx : matériel non reproduit au bit près) | T1.2, T1.3 |
 
 ## Hors périmètre
