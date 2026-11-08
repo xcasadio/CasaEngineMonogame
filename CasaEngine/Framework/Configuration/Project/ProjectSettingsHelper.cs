@@ -89,7 +89,8 @@ public static class ProjectSettingsHelper
         if (modeName != null && (!Enum.TryParse(modeName, ignoreCase: false, out mode) || !Enum.IsDefined(mode)))
         {
             throw new InvalidDataException(
-                $"Project setting 'VirtualResolution.Mode' is '{modeName}'; the supported mode is '{nameof(VirtualResolutionMode.IntegerFit)}'.");
+                $"Project setting 'VirtualResolution.Mode' is '{modeName}'; the supported modes are '{nameof(VirtualResolutionMode.IntegerFit)}', "
+                + $"'{nameof(VirtualResolutionMode.BufferedIntegerFit)}' and '{nameof(VirtualResolutionMode.BufferedFit)}'.");
         }
 
         return new VirtualResolutionSettings { Width = width, Height = height, Mode = mode, ScaleUI = ReadScaleUI(declaration) };

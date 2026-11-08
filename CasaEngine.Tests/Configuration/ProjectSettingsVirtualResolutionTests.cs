@@ -78,6 +78,58 @@ public class ProjectSettingsVirtualResolutionTests
         });
     }
 
+    // ADR-0086: the two buffered modes are read like IntegerFit, and every mode survives a save and a load.
+    [Theory]
+    [InlineData("IntegerFit", VirtualResolutionMode.IntegerFit)]
+    [InlineData("BufferedIntegerFit", VirtualResolutionMode.BufferedIntegerFit)]
+    [InlineData("BufferedFit", VirtualResolutionMode.BufferedFit)]
+    public void Load_ThenSave_RoundTripsEveryMode(string modeName, VirtualResolutionMode expected)
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json",
+                new JObject { ["Width"] = 320, ["Height"] = 240, ["Mode"] = modeName });
+
+            ProjectSettingsHelper.Load(fileName);
+            Assert.Equal(expected, GameSettings.ProjectSettings.VirtualResolution.Mode);
+
+            string saved = Path.Combine(directory, "Saved.json");
+            ProjectSettingsHelper.Save(saved);
+            Assert.Equal(modeName, (string)JObject.Parse(File.ReadAllText(saved))["VirtualResolution"]?["Mode"]);
+
+            GameSettings.ProjectSettings.VirtualResolution = null;
+            ProjectSettingsHelper.Load(saved);
+            Assert.Equal(expected, GameSettings.ProjectSettings.VirtualResolution.Mode);
+        });
+    }
+
+    [Theory]
+    [InlineData(VirtualResolutionMode.IntegerFit, false)]
+    [InlineData(VirtualResolutionMode.BufferedIntegerFit, true)]
+    [InlineData(VirtualResolutionMode.BufferedFit, true)]
+    public void IsBuffered_IsTrueOnlyForTheBufferedModes(VirtualResolutionMode mode, bool expected)
+    {
+        Assert.Equal(expected, mode.IsBuffered());
+    }
+
+    [Fact]
+    public void Load_WithAnUnknownMode_ListsTheSupportedModes()
+    {
+        string directory = NewDirectory();
+        WithCleanGlobals(directory, () =>
+        {
+            string fileName = WriteProject(directory, "P.json",
+                new JObject { ["Width"] = 320, ["Height"] = 240, ["Mode"] = "Stretch" });
+
+            var error = Assert.Throws<InvalidDataException>(() => ProjectSettingsHelper.Load(fileName));
+
+            Assert.Contains("IntegerFit", error.Message);
+            Assert.Contains("BufferedIntegerFit", error.Message);
+            Assert.Contains("BufferedFit", error.Message);
+        });
+    }
+
     [Fact]
     public void Load_WithoutTheMode_DefaultsToIntegerFit()
     {

@@ -122,7 +122,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 
 ## Phase 1 — Réglages et format
 
-### ⏳ T1.1 — Deux nouveaux modes dans `VirtualResolutionMode`
+### ✅ T1.1 — Deux nouveaux modes dans `VirtualResolutionMode`
 
 - Objectif : `BufferedIntegerFit` et `BufferedFit` sont lus et écrits dans la `VirtualResolution` du projet.
 - Fichiers :
@@ -138,6 +138,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
      - un ancien projet sans `Mode` lu en `IntegerFit`.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert.
 - Commit : `feat(rendering): add buffered virtual resolution modes`
+- Note de validation (2026-11-08) : enum à trois membres, `IntegerFit` garde sa valeur, extension `IsBuffered`. Message d'erreur qui liste les trois modes. 7 tests ajoutés (aller-retour de chaque mode, `IsBuffered`, mode inconnu). Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4842/4842.
 
 ### ⏳ T1.2 — Bloc `virtual_resolution` du `.world`
 
