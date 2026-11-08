@@ -1,6 +1,6 @@
 # ADR-0079: Data-driven screens follow the design resolution and hold their fonts
 
-- **Status**: Accepted
+- **Status**: Accepted. Amended by ADR-0086 (the design resolution is the one of the loaded world, which may declare its own; in a buffered mode a screen draws at scale 1 into the target)
 - **Date**: 2026-10-31
 - **Source**: this chantier: `ai-agent/tasks/pixel-ui-screens-tasks.md` (decisions D1 to D10, delegated to and settled by the author on 2026-10-31), branch `chantier/pixel-ui-screens`. Amends ADR-0048 and ADR-0078.
 

@@ -98,7 +98,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 
 ## Phase 0 — Décision
 
-### ⏳ T0.1 — ADR-0086 : résolution de conception par monde et présentation d'un buffer
+### ✅ T0.1 — ADR-0086 : résolution de conception par monde et présentation d'un buffer
 
 - Objectif : enregistrer D1 à D5 avant le code.
 - Fichiers :
@@ -118,6 +118,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   3. Mettre à jour l'index et les lignes de statut d'ADR-0048 et d'ADR-0079 (« amended by ADR-0086 »).
 - Validation : relecture. L'ADR ne nomme aucun projet consommateur (D6). Ses liens relatifs s'ouvrent.
 - Commit : `docs(decisions): record per-world design resolution and buffered presentation`
+- Note de validation (2026-11-08) : 0086 libre dans le dossier et l'index. ADR écrite d'après le modèle, index et statuts d'ADR-0048 et d'ADR-0079 mis à jour. Aucun nom de projet consommateur ni nombre tiré de lui (D6). Arrondi du mode libre fixé dans l'ADR : taille entière par le bas, centrage comme `Compute` (O3).
 
 ## Phase 1 — Réglages et format
 

@@ -61,7 +61,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0045](0045-a-blocked-field-step-advances-to-contact.md) | A blocked step on the cell collision field advances to the contact | Accepted | 2026-09-29 |
 | [ADR-0046](0046-a-logical-tick-clock-for-2d-animation-ends.md) | A logical tick clock for the ends of 2D animations | Accepted | 2026-10-01 |
 | [ADR-0047](0047-dynamic-movement-obstacles-in-the-character-controller-field-stage.md) | Dynamic movement obstacles in the character controller field stage | Accepted | 2026-10-02 |
-| [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted (amended by ADR-0054, ADR-0079) | 2026-10-03 |
+| [ADR-0048](0048-virtual-resolution-with-integer-fit-and-black-bands.md) | A project virtual resolution fitted at an integer factor with black bands | Accepted (amended by ADR-0054, ADR-0079, ADR-0086) | 2026-10-03 |
 | [ADR-0049](0049-background-layers-can-be-switched-off-by-identifier.md) | Background layers can be switched off by identifier, frozen and not drawn | Accepted | 2026-10-03 |
 | [ADR-0050](0050-cellular-layers-follow-the-originals-period-drawn-position-and-c-rand.md) | Cellular layers follow the original's period, drawn position and C library rand | Accepted | 2026-10-03 |
 | [ADR-0051](0051-psx-semi-transparency-of-sprites-as-two-disjoint-passes.md) | PSX semi-transparency of sprites as two disjoint passes | Accepted | 2026-10-03 |
@@ -92,10 +92,11 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0076](0076-an-entity-lives-in-a-world-list-or-under-a-parent-never-both.md) | An entity lives in a world's entity list or under a parent entity, never both | Accepted | 2026-10-17 |
 | [ADR-0077](0077-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it (numbered ADR-0076 until 2026-10-17) | Accepted | 2026-10-17 |
 | [ADR-0078](0078-ui-screens-declare-commands-in-data.md) | UI screens declare their commands in data | Accepted (amended by ADR-0079, ADR-0080, ADR-0081, ADR-0082) | 2026-10-31 |
-| [ADR-0079](0079-data-driven-screens-follow-the-design-resolution-and-hold-their-fonts.md) | Data-driven screens follow the design resolution and hold their fonts | Accepted | 2026-10-31 |
+| [ADR-0079](0079-data-driven-screens-follow-the-design-resolution-and-hold-their-fonts.md) | Data-driven screens follow the design resolution and hold their fonts | Accepted (amended by ADR-0086) | 2026-10-31 |
 | [ADR-0080](0080-data-driven-navigation-through-a-ui-input-mapping.md) | Data-driven navigation through a UI input mapping | Accepted | 2026-10-31 |
 | [ADR-0081](0081-screen-fades-and-waits-in-data-driven-commands.md) | Screen fades and waits in data-driven commands | Accepted (amended by ADR-0082) | 2026-10-31 |
 | [ADR-0082](0082-screens-run-a-command-on-open-and-mark-the-focus.md) | Screens run a command on open and mark the focus | Accepted | 2026-11-01 |
 | [ADR-0083](0083-sounds-declare-an-exclusion-group.md) | Sounds declare an exclusion group | Accepted | 2026-11-01 |
 | [ADR-0084](0084-the-software-spu-follows-published-captures.md) | The software SPU follows published captures | Accepted | 2026-11-01 |
 | [ADR-0085](0085-the-tiled-json-map-import-has-a-content-entry.md) | The Tiled JSON map import has a content entry beside the path entry (numbered ADR-0078 until 2026-11-07) | Accepted | 2026-11-07 |
+| [ADR-0086](0086-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md) | A world declares its design resolution and may render into a buffer | Accepted | 2026-11-08 |
