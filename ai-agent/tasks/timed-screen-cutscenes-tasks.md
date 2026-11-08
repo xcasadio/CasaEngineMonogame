@@ -172,7 +172,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 
 ## Phase 1 — Runtime
 
-### ⏳ T1.1 — Rampe de fondu comptée en images
+### ✅ T1.1 — Rampe de fondu comptée en images
 
 - Objectif : `ScreenEffectService.StartFadeFrames` selon C3.
 - Fichiers :
@@ -192,6 +192,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
   - Les tests existants du service passent sans être modifiés.
   - Build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(rendering): ramp a screen fade over a number of frames`
+- Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` 4915 verts, 0 échec. Les 8 nouvelles méthodes de test (10 cas) prouvent : N = 4 de (0,0,0,255) à alpha 0, valeur attendue (formule de C2) après chaque `Update` et cible exacte au 4e, avec un temps écoulé de 0 et de 10 s ; les quatre canaux ; N = 1 ; N = 0 et négatif ; `StartFade`, `SetOverlay` et `Clear` annulent la rampe en images ; aucune allocation par `Update`.
 
 ### ⏳ T1.2 — Actions `WaitFrames` et `FadeScreenFrames`
 

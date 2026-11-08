@@ -308,4 +308,144 @@ public class ScreenEffectServiceTests
 
         Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
     }
+
+    private static byte Expected(byte from, byte to, int k, int n)
+    {
+        return (byte)Math.Clamp(MathF.Round(from + ((to - from) * (k / (float)n))), 0f, 255f);
+    }
+
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(10f)]
+    public void StartFadeFrames_ReachesEachValueAndTheExactTarget_WhateverTheElapsedTime(float elapsed)
+    {
+        const int n = 4;
+        var service = new ScreenEffectService();
+
+        service.StartFadeFrames(0, 0, 0, 255, 0, 0, 0, 0, n, SpriteBlendMode.AlphaBlend);
+
+        Assert.True(service.Active);
+        Assert.True(service.IsFading);
+        Assert.Equal(255, service.A);
+        for (var k = 1; k <= n; k++)
+        {
+            service.Update(elapsed);
+            Assert.Equal(Expected(255, 0, k, n), service.A);
+            Assert.Equal(k < n, service.IsFading);
+        }
+
+        Assert.Equal(0, service.A);
+        Assert.Equal(SpriteBlendMode.AlphaBlend, service.Blend);
+    }
+
+    [Fact]
+    public void StartFadeFrames_InterpolatesEveryChannelLikeTheSecondsRamp()
+    {
+        const int n = 7;
+        var service = new ScreenEffectService();
+
+        service.StartFadeFrames(10, 200, 30, 5, 250, 20, 31, 255, n, SpriteBlendMode.Additive);
+
+        for (var k = 1; k <= n; k++)
+        {
+            service.Update(0.016f);
+            Assert.Equal(Expected(10, 250, k, n), service.R);
+            Assert.Equal(Expected(200, 20, k, n), service.G);
+            Assert.Equal(Expected(30, 31, k, n), service.B);
+            Assert.Equal(Expected(5, 255, k, n), service.A);
+        }
+    }
+
+    [Fact]
+    public void StartFadeFrames_OfOneFrame_ReachesTheTargetOnTheFirstUpdate()
+    {
+        var service = new ScreenEffectService();
+
+        service.StartFadeFrames(0, 0, 0, 255, 9, 8, 7, 6, 1, SpriteBlendMode.AlphaBlend);
+
+        Assert.True(service.IsFading);
+        Assert.Equal(255, service.A);
+        service.Update(0f);
+
+        Assert.False(service.IsFading);
+        Assert.Equal((9, 8, 7, 6), (service.R, service.G, service.B, service.A));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-3)]
+    public void StartFadeFrames_OfZeroOrLess_AppliesTheTargetImmediately(int frames)
+    {
+        var service = new ScreenEffectService();
+
+        service.StartFadeFrames(0, 0, 0, 255, 9, 8, 7, 6, frames, SpriteBlendMode.Additive);
+
+        Assert.True(service.Active);
+        Assert.False(service.IsFading);
+        Assert.Equal((9, 8, 7, 6), (service.R, service.G, service.B, service.A));
+    }
+
+    [Fact]
+    public void AFadeInSeconds_CancelsAFrameRamp_AndRunsOnTime()
+    {
+        var service = new ScreenEffectService();
+        service.StartFadeFrames(0, 0, 0, 255, 255, 255, 255, 255, 4, SpriteBlendMode.AlphaBlend);
+        service.Update(0f);
+
+        service.StartFade(0, 0, 0, 100, 100, 100, 1f, SpriteBlendMode.Additive);
+        service.Update(0f);
+        Assert.Equal(0, service.R);
+
+        service.Update(0.5f);
+        Assert.Equal(50, service.R);
+        service.Update(0.5f);
+        Assert.Equal(100, service.R);
+        Assert.False(service.IsFading);
+    }
+
+    [Fact]
+    public void SetOverlay_CancelsAFrameRamp()
+    {
+        var service = new ScreenEffectService();
+        service.StartFadeFrames(0, 0, 0, 255, 255, 255, 255, 255, 4, SpriteBlendMode.AlphaBlend);
+        service.Update(0f);
+
+        service.SetOverlay(1, 2, 3, SpriteBlendMode.Additive);
+        service.Update(0f);
+
+        Assert.False(service.IsFading);
+        Assert.Equal((1, 2, 3, 255), (service.R, service.G, service.B, service.A));
+    }
+
+    [Fact]
+    public void Clear_CancelsAFrameRamp()
+    {
+        var service = new ScreenEffectService();
+        service.StartFadeFrames(0, 0, 0, 255, 255, 255, 255, 255, 4, SpriteBlendMode.AlphaBlend);
+        service.Update(0f);
+
+        service.Clear();
+        var r = service.R;
+        service.Update(0f);
+
+        Assert.False(service.Active);
+        Assert.False(service.IsFading);
+        Assert.Equal(r, service.R);
+    }
+
+    [Fact]
+    public void FrameRampUpdate_DoesNotAllocate()
+    {
+        var service = new ScreenEffectService();
+        service.StartFadeFrames(0, 0, 0, 255, 255, 255, 255, 0, 100000, SpriteBlendMode.AlphaBlend);
+        service.Update(0f);
+
+        var before = AllocationWindow.Start();
+        for (var i = 0; i < 1000; i++)
+        {
+            service.Update(0.016f);
+        }
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
 }

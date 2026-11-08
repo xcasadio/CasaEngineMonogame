@@ -29,6 +29,8 @@ public sealed class ScreenEffectService
     private byte _fadeToA;
     private float _fadeDuration;
     private float _fadeElapsed;
+    private int _fadeFrameCount;
+    private int _fadeFrameStep;
 
     /// <summary>False when no overlay should be submitted this frame.</summary>
     public bool Active { get; private set; }
@@ -147,6 +149,7 @@ public sealed class ScreenEffectService
         B = fromB;
         A = fromA;
 
+        _fadeFrameCount = 0;
         _fadeFromR = fromR;
         _fadeFromG = fromG;
         _fadeFromB = fromB;
@@ -160,7 +163,52 @@ public sealed class ScreenEffectService
         _isFading = true;
     }
 
-    /// <summary>Advances the ramp started by <see cref="StartFade"/>, if any. Allocation free.</summary>
+    /// <summary>
+    /// Ramps the overlay colour and opacity from <paramref name="fromR"/>/<paramref name="fromG"/>/
+    /// <paramref name="fromB"/>/<paramref name="fromA"/> to <paramref name="toR"/>/
+    /// <paramref name="toG"/>/<paramref name="toB"/>/<paramref name="toA"/> over
+    /// <paramref name="frames"/> calls of <see cref="Update"/>, whatever the elapsed time they are given.
+    /// The starting colour is the ramp's frame 0 and is only held until the first <see cref="Update"/>;
+    /// the k-th <see cref="Update"/> sets the colour to the starting colour interpolated by k / frames
+    /// (rounded exactly like the seconds ramp), and the <paramref name="frames"/>-th sets the exact
+    /// target and ends the ramp. A count of zero or less applies the target immediately - no ramp is
+    /// started. <see cref="StartFade(byte,byte,byte,byte,byte,byte,byte,byte,float,SpriteBlendMode)"/>,
+    /// <see cref="SetOverlay(byte,byte,byte,byte,SpriteBlendMode)"/> and <see cref="Clear"/> cancel it.
+    /// </summary>
+    public void StartFadeFrames(byte fromR, byte fromG, byte fromB, byte fromA, byte toR, byte toG, byte toB, byte toA, int frames, SpriteBlendMode blend)
+    {
+        Blend = blend;
+        Active = true;
+
+        if (frames <= 0)
+        {
+            R = toR;
+            G = toG;
+            B = toB;
+            A = toA;
+            _isFading = false;
+            return;
+        }
+
+        R = fromR;
+        G = fromG;
+        B = fromB;
+        A = fromA;
+
+        _fadeFromR = fromR;
+        _fadeFromG = fromG;
+        _fadeFromB = fromB;
+        _fadeFromA = fromA;
+        _fadeToR = toR;
+        _fadeToG = toG;
+        _fadeToB = toB;
+        _fadeToA = toA;
+        _fadeFrameCount = frames;
+        _fadeFrameStep = 0;
+        _isFading = true;
+    }
+
+    /// <summary>Advances the ramp started by <see cref="StartFade"/> or <see cref="StartFadeFrames"/>, if any. Allocation free.</summary>
     public void Update(float elapsedSeconds)
     {
         if (!_isFading)
@@ -168,11 +216,22 @@ public sealed class ScreenEffectService
             return;
         }
 
-        _fadeElapsed += elapsedSeconds;
+        float progress;
+        if (_fadeFrameCount > 0)
+        {
+            _fadeFrameStep++;
+            progress = _fadeFrameStep >= _fadeFrameCount
+                ? 1f
+                : _fadeFrameStep / (float)_fadeFrameCount;
+        }
+        else
+        {
+            _fadeElapsed += elapsedSeconds;
 
-        var progress = _fadeElapsed >= _fadeDuration
-            ? 1f
-            : _fadeElapsed / _fadeDuration;
+            progress = _fadeElapsed >= _fadeDuration
+                ? 1f
+                : _fadeElapsed / _fadeDuration;
+        }
 
         R = Lerp(_fadeFromR, _fadeToR, progress);
         G = Lerp(_fadeFromG, _fadeToG, progress);
