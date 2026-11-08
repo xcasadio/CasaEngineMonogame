@@ -16,16 +16,16 @@ namespace CasaEngine.Framework.Cutscenes;
 
 internal static class CutsceneActionCoroutineFactory
 {
-    public static IEnumerator Create(CutsceneActionData action, World world, CutsceneDirector owner)
+    public static IEnumerator Create(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(owner);
 
-        return ExecuteAction(action, world, owner);
+        return ExecuteAction(action, world, owner, playToken);
     }
 
-    private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner)
+    private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
         switch (action)
         {
@@ -55,7 +55,7 @@ internal static class CutsceneActionCoroutineFactory
             case NavigateToCutsceneActionData navigateToAction:
                 if (!TryStartNavigateTo(navigateToAction, world, out NavigationAgentComponent navigationAgent, out string failureReason))
                 {
-                    owner.MarkRuntimeFailure(failureReason);
+                    owner.MarkRuntimeFailure(failureReason, playToken);
                     yield break;
                 }
 
@@ -67,7 +67,7 @@ internal static class CutsceneActionCoroutineFactory
                     owner.UpdateNavigationAction(navigationAgent, navigationInstruction.State, navigationInstruction.StopReason);
                     if (!navigationInstruction.ReachedDestination)
                     {
-                        owner.MarkRuntimeFailure(navigationInstruction.StopReason);
+                        owner.MarkRuntimeFailure(navigationInstruction.StopReason, playToken);
                         yield break;
                     }
                 }
@@ -146,8 +146,8 @@ internal static class CutsceneActionCoroutineFactory
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
-                    yield return ExecuteAction(sequenceAction.Actions[index], world, owner);
-                    if (owner.HasRuntimeFailure)
+                    yield return ExecuteAction(sequenceAction.Actions[index], world, owner, playToken);
+                    if (owner.IsPlayAborted(playToken))
                     {
                         yield break;
                     }
@@ -165,7 +165,7 @@ internal static class CutsceneActionCoroutineFactory
                 for (int index = 0; index < parallelAction.Actions.Count; index++)
                 {
                     CoroutineHandle handle = world.RuntimeSystems.CoroutineManager.StartCoroutine(
-                        ExecuteAction(parallelAction.Actions[index], world, owner),
+                        ExecuteAction(parallelAction.Actions[index], world, owner, playToken),
                         owner,
                         $"Cutscene.Parallel[{index}]");
                     handles.Add(handle);
@@ -174,7 +174,7 @@ internal static class CutsceneActionCoroutineFactory
                 for (int index = 0; index < handles.Count; index++)
                 {
                     yield return handles[index];
-                    if (owner.HasRuntimeFailure)
+                    if (owner.IsPlayAborted(playToken))
                     {
                         yield break;
                     }

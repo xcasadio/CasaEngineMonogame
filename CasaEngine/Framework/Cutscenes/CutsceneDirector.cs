@@ -1,4 +1,5 @@
 using System.Collections;
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting.Coroutines;
@@ -19,11 +20,26 @@ public sealed class CutsceneDirector
     private Vector3? _activeActionDestination;
     private string _activeActionState;
     private string _activeActionStopReason;
+    private int _playToken;
+    private bool _endRaised = true;
 
     public CutsceneDirector(World world)
     {
         _world = world ?? throw new ArgumentNullException(nameof(world));
     }
+
+    /// <summary>
+    /// Raised once per started play, after the state is set: with Completed or Failed when the play finishes,
+    /// with Stopped when a running play is stopped (including by <c>World.Clear</c> or a replacing <see cref="Play"/>).
+    /// A play of an invalid asset starts nothing and raises nothing.
+    /// Failed is raised once the play unwinds to its end, after every branch it still runs is stopped, or when a failed
+    /// play is stopped or replaced before that.
+    /// An exception thrown by a handler is logged with its context, like a coroutine exception, and does not interrupt
+    /// the director; it is rethrown only when <see cref="CoroutineManager.ThrowCoroutineExceptionsInDebug"/> is set.
+    /// A handler may call <see cref="Play"/>: when it does so while a replacing <see cref="Play"/> stops the previous
+    /// play, the play started by the handler stands and the replacing call starts nothing.
+    /// </summary>
+    public event EventHandler<CutsceneEndedEventArgs> Ended;
 
     public bool IsPlaying => _activeHandle.IsValid && _world.RuntimeSystems.CoroutineManager.IsRunning(_activeHandle);
 
@@ -31,12 +47,20 @@ public sealed class CutsceneDirector
     {
         ArgumentNullException.ThrowIfNull(asset);
 
-        if (IsPlaying)
+        if (IsPlaying || IsFailureAwaitingEnd)
         {
+            int tokenBeforeStop = _playToken;
             Stop();
+            if (tokenBeforeStop != _playToken)
+            {
+                // An Ended handler re-entered Play while the previous play was being stopped: that newer play stands.
+                return;
+            }
         }
 
         _currentAsset = asset;
+        _playToken++;
+        _endRaised = true;
         ResetActiveActionDebug();
         _lastValidation = asset.Validate();
         if (!_lastValidation.IsValid)
@@ -47,21 +71,28 @@ public sealed class CutsceneDirector
         }
 
         _state = CutsceneRuntimeState.Playing;
-        _activeHandle = _world.RuntimeSystems.CoroutineManager.StartCoroutine(RunAsset(asset), this, $"Cutscene:{asset.Name}");
+        _endRaised = false;
+        _activeHandle = _world.RuntimeSystems.CoroutineManager.StartCoroutine(RunAsset(asset, _playToken), this, $"Cutscene:{asset.Name}");
     }
 
     public void Stop()
     {
-        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && !_world.RuntimeSystems.CharacterMotion.HasRequestsFor(this))
+        bool failureAwaitingEnd = IsFailureAwaitingEnd;
+        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && !failureAwaitingEnd && !_world.RuntimeSystems.CharacterMotion.HasRequestsFor(this))
         {
             return;
         }
 
-        _world.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
-        _world.RuntimeSystems.CharacterMotion.CancelOwner(this);
-        CancelActiveNavigationAgents("Cancelled");
+        // A failed play keeps the reason of its failure in the debug state; a stopped one is cancelled.
+        StopOwnedWork(failureAwaitingEnd ? _activeActionStopReason : "Cancelled");
         _activeHandle = CoroutineHandle.Invalid;
-        _state = CutsceneRuntimeState.Stopped;
+        if (!failureAwaitingEnd)
+        {
+            _state = CutsceneRuntimeState.Stopped;
+        }
+
+        // A failed play torn down before it unwound still owes its Ended, and it is Failed, not Stopped.
+        RaiseEnded(_state);
     }
 
     public CutsceneDebugSnapshot GetDebugSnapshot()
@@ -86,18 +117,72 @@ public sealed class CutsceneDirector
         return nameof(CutsceneDirector);
     }
 
-    private IEnumerator RunAsset(CutsceneAsset asset)
+    private IEnumerator RunAsset(CutsceneAsset asset, int playToken)
     {
-        yield return CutsceneActionCoroutineFactory.Create(asset.RootAction!, _world, this);
+        yield return CutsceneActionCoroutineFactory.Create(asset.RootAction!, _world, this, playToken);
+
+        if (playToken != _playToken)
+        {
+            // A newer play owns the director state now (started from an Ended handler).
+            yield break;
+        }
 
         _activeHandle = CoroutineHandle.Invalid;
         if (_state == CutsceneRuntimeState.Playing)
         {
             _state = CutsceneRuntimeState.Completed;
         }
+        else if (_state == CutsceneRuntimeState.Failed)
+        {
+            // A parallel branch started after the failing one may still run: nothing of a failed play outlives its end.
+            StopOwnedWork(_activeActionStopReason);
+        }
+
+        RaiseEnded(_state);
     }
 
-    internal bool HasRuntimeFailure => _state == CutsceneRuntimeState.Failed;
+    private void StopOwnedWork(string navigationStopReason)
+    {
+        _world.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
+        _world.RuntimeSystems.CharacterMotion.CancelOwner(this);
+        CancelActiveNavigationAgents(navigationStopReason);
+    }
+
+    private void RaiseEnded(CutsceneRuntimeState state)
+    {
+        if (_endRaised)
+        {
+            return;
+        }
+
+        _endRaised = true;
+        EventHandler<CutsceneEndedEventArgs> handler = Ended;
+        if (handler == null)
+        {
+            return;
+        }
+
+        CutsceneAsset asset = _currentAsset;
+        try
+        {
+            handler(this, new CutsceneEndedEventArgs(state, asset));
+        }
+        catch (Exception exception)
+        {
+            // Treated like an exception thrown by a coroutine: logged with its context, so that Stop, a replacing Play
+            // and World.Clear always finish their work.
+            Logs.WriteException(new Exception($"A handler of CutsceneDirector.Ended threw for cutscene '{asset?.Name}' ({state}).", exception));
+            if (_world.RuntimeSystems.CoroutineManager.ThrowCoroutineExceptionsInDebug)
+            {
+                throw;
+            }
+        }
+    }
+
+    private bool IsFailureAwaitingEnd => _state == CutsceneRuntimeState.Failed && !_endRaised;
+
+    /// <summary>True once the play identified by <paramref name="playToken"/> failed or was superseded by a newer play.</summary>
+    internal bool IsPlayAborted(int playToken) => playToken != _playToken || _state == CutsceneRuntimeState.Failed;
 
     internal void BeginNavigationAction(NavigateToCutsceneActionData action, NavigationAgentComponent navigationAgent)
     {
@@ -128,8 +213,14 @@ public sealed class CutsceneDirector
         }
     }
 
-    internal void MarkRuntimeFailure(string reason)
+    internal void MarkRuntimeFailure(string reason, int playToken)
     {
+        if (playToken != _playToken)
+        {
+            // A superseded play must not fail the one that replaced it.
+            return;
+        }
+
         _state = CutsceneRuntimeState.Failed;
         _activeActionState = "Failed";
         _activeActionStopReason = reason;

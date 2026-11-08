@@ -429,6 +429,440 @@ public sealed class CutsceneDirectorTests
         Assert.Equal(CutsceneRuntimeState.Stopped, world.CutsceneDirector.GetDebugSnapshot().State);
     }
 
+    [Fact]
+    public void Ended_RaisesOnceWithCompletedAtNormalEnd()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateSequenceAsset();
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(asset);
+        AdvanceUntilNotPlaying(world, 10);
+        world.CoroutineManager.Update(Context(11));
+
+        CutsceneEndedEventArgs single = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Completed, single.State);
+        Assert.Same(asset, single.Asset);
+    }
+
+    [Fact]
+    public void Ended_RaisesOnceWithStoppedOnStop()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateParallelAsset(10f, 10f);
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(asset);
+        world.CoroutineManager.Update(Context(1));
+        world.CutsceneDirector.Stop();
+        world.CutsceneDirector.Stop();
+        world.CoroutineManager.Update(Context(2));
+
+        CutsceneEndedEventArgs single = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Stopped, single.State);
+        Assert.Same(asset, single.Asset);
+    }
+
+    [Fact]
+    public void Ended_RaisesStoppedOnRuntimeSystemsClear()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateParallelAsset(10f, 10f);
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(asset);
+        world.CoroutineManager.Update(Context(1));
+        world.RuntimeSystems.Clear();
+
+        CutsceneEndedEventArgs single = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Stopped, single.State);
+    }
+
+    [Fact]
+    public void Ended_RaisesOnceWithFailedWhenNavigateToEntityIsMissing()
+    {
+        var world = new World();
+        var asset = new CutsceneAsset
+        {
+            Name = "NavigateMissingEntity",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Nobody",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            }
+        };
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(asset);
+        AdvanceWorld(world, 1);
+        AdvanceWorld(world, 2);
+        world.CutsceneDirector.Stop();
+
+        CutsceneEndedEventArgs single = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.State);
+        Assert.Same(asset, single.Asset);
+        Assert.Equal(CutsceneRuntimeState.Failed, world.CutsceneDirector.GetDebugSnapshot().State);
+    }
+
+    [Fact]
+    public void Ended_PlayWhilePlayingRaisesStoppedThenCompleted()
+    {
+        var world = new World();
+        CutsceneAsset first = CreateParallelAsset(10f, 10f);
+        CutsceneAsset second = CreateSequenceAsset();
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(first);
+        world.CoroutineManager.Update(Context(1));
+        world.CutsceneDirector.Play(second);
+
+        CutsceneEndedEventArgs afterReplace = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Stopped, afterReplace.State);
+        Assert.Same(first, afterReplace.Asset);
+
+        AdvanceUntilNotPlaying(world, 10);
+
+        Assert.Equal(2, ended.Count);
+        Assert.Equal(CutsceneRuntimeState.Completed, ended[1].State);
+        Assert.Same(second, ended[1].Asset);
+    }
+
+    [Fact]
+    public void Ended_InvalidAssetRaisesNothing()
+    {
+        var world = new World();
+        var asset = new CutsceneAsset
+        {
+            Name = "Invalid",
+            RootAction = new WaitCutsceneActionData { Seconds = -1f }
+        };
+        int endedCount = 0;
+        world.CutsceneDirector.Ended += (_, _) => endedCount++;
+
+        world.CutsceneDirector.Play(asset);
+        world.CutsceneDirector.Stop();
+
+        Assert.Equal(0, endedCount);
+    }
+
+    [Fact]
+    public void Ended_StopAfterEndRaisesNothingMore()
+    {
+        var world = new World();
+        int endedCount = 0;
+        world.CutsceneDirector.Ended += (_, _) => endedCount++;
+
+        world.CutsceneDirector.Play(CreateSequenceAsset());
+        AdvanceUntilNotPlaying(world, 10);
+        world.CutsceneDirector.Stop();
+        world.CoroutineManager.Update(Context(11));
+
+        Assert.Equal(1, endedCount);
+    }
+
+    [Fact]
+    public void Ended_HandlersSeeDebugSnapshotStateEqualToEventState()
+    {
+        var world = new World();
+        var observed = new List<(CutsceneRuntimeState Event, CutsceneRuntimeState Snapshot)>();
+        world.CutsceneDirector.Ended += (_, args) =>
+            observed.Add((args.State, world.CutsceneDirector.GetDebugSnapshot().State));
+
+        world.CutsceneDirector.Play(CreateSequenceAsset());
+        AdvanceUntilNotPlaying(world, 10);
+        world.CutsceneDirector.Play(CreateParallelAsset(10f, 10f));
+        world.CoroutineManager.Update(Context(20));
+        world.CutsceneDirector.Stop();
+
+        Assert.Equal(2, observed.Count);
+        Assert.All(observed, pair => Assert.Equal(pair.Event, pair.Snapshot));
+        Assert.Equal(CutsceneRuntimeState.Completed, observed[0].Event);
+        Assert.Equal(CutsceneRuntimeState.Stopped, observed[1].Event);
+    }
+
+    [Fact]
+    public void Ended_PlayFromFailedHandlerKeepsTheNewPlayInControl()
+    {
+        var world = new World();
+        CutsceneAsset next = CreateSequenceAsset();
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) =>
+        {
+            ended.Add(args);
+            if (args.State == CutsceneRuntimeState.Failed)
+            {
+                world.CutsceneDirector.Play(next);
+            }
+        };
+
+        world.CutsceneDirector.Play(CreateMissingEntityNavigateAsset());
+        for (int frameIndex = 1; frameIndex <= 12; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Equal(2, ended.Count);
+        Assert.Equal(CutsceneRuntimeState.Failed, ended[0].State);
+        Assert.Equal(CutsceneRuntimeState.Completed, ended[1].State);
+        Assert.Same(next, ended[1].Asset);
+        CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+        Assert.Equal(CutsceneRuntimeState.Completed, snapshot.State);
+        Assert.Equal(next.Name, snapshot.AssetName);
+    }
+
+    [Fact]
+    public void Ended_PlayFromStoppedHandlerDuringReplacementKeepsTheNewestPlay()
+    {
+        var world = new World();
+        CutsceneAsset first = CreateParallelAsset(10f, 10f);
+        CutsceneAsset second = CreateParallelAsset(10f, 10f);
+        CutsceneAsset third = CreateSequenceAsset();
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) =>
+        {
+            ended.Add(args);
+            if (args.State == CutsceneRuntimeState.Stopped && ReferenceEquals(args.Asset, first))
+            {
+                world.CutsceneDirector.Play(third);
+            }
+        };
+
+        world.CutsceneDirector.Play(first);
+        world.CoroutineManager.Update(Context(1));
+        world.CutsceneDirector.Play(second);
+        AdvanceUntilNotPlaying(world, 10);
+
+        Assert.Equal(2, ended.Count);
+        Assert.Equal(CutsceneRuntimeState.Stopped, ended[0].State);
+        Assert.Same(first, ended[0].Asset);
+        Assert.Equal(CutsceneRuntimeState.Completed, ended[1].State);
+        Assert.Same(third, ended[1].Asset);
+        Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
+    }
+
+    [Fact]
+    public void Ended_ParallelBranchFailureStoppedBeforeUnwindingRaisesFailedOnce()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateParallelFailureAsset(failingBranchFirst: false);
+        var observed = new List<(CutsceneRuntimeState Event, CutsceneRuntimeState Snapshot)>();
+        world.CutsceneDirector.Ended += (_, args) =>
+            observed.Add((args.State, world.CutsceneDirector.GetDebugSnapshot().State));
+
+        world.CutsceneDirector.Play(asset);
+        for (int frameIndex = 1; frameIndex <= 3; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        // The failure is reported at frame 2, but the play waits on its 5 s branch: it has not unwound.
+        Assert.Empty(observed);
+        Assert.Equal(CutsceneRuntimeState.Failed, world.CutsceneDirector.GetDebugSnapshot().State);
+        Assert.NotEmpty(world.CutsceneDirector.GetDebugSnapshot().ActiveCoroutines);
+
+        world.CutsceneDirector.Stop();
+
+        (CutsceneRuntimeState Event, CutsceneRuntimeState Snapshot) single = Assert.Single(observed);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.Event);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.Snapshot);
+        Assert.Empty(world.CutsceneDirector.GetDebugSnapshot().ActiveCoroutines);
+
+        world.Clear();
+
+        Assert.Single(observed);
+    }
+
+    [Fact]
+    public void Ended_ParallelBranchFailureClearedBeforeUnwindingRaisesFailedOnce()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateParallelFailureAsset(failingBranchFirst: false);
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(asset);
+        for (int frameIndex = 1; frameIndex <= 3; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Empty(ended);
+
+        world.RuntimeSystems.Clear();
+
+        CutsceneEndedEventArgs single = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.State);
+        Assert.Same(asset, single.Asset);
+    }
+
+    [Fact]
+    public void Ended_ParallelBranchFailureReplacedBeforeUnwindingRaisesFailedThenCompleted()
+    {
+        var world = new World();
+        CutsceneAsset failing = CreateParallelFailureAsset(failingBranchFirst: false);
+        CutsceneAsset healthy = CreateSequenceAsset();
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) => ended.Add(args);
+
+        world.CutsceneDirector.Play(failing);
+        for (int frameIndex = 1; frameIndex <= 3; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Empty(ended);
+
+        world.CutsceneDirector.Play(healthy);
+
+        CutsceneEndedEventArgs afterReplace = Assert.Single(ended);
+        Assert.Equal(CutsceneRuntimeState.Failed, afterReplace.State);
+        Assert.Same(failing, afterReplace.Asset);
+
+        for (int frameIndex = 4; frameIndex <= 12; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Equal(2, ended.Count);
+        Assert.Equal(CutsceneRuntimeState.Completed, ended[1].State);
+        Assert.Same(healthy, ended[1].Asset);
+        Assert.Empty(world.CutsceneDirector.GetDebugSnapshot().ActiveCoroutines);
+    }
+
+    [Fact]
+    public void Ended_FailedAtTheEndOfThePlay_StopsTheLaterParallelBranchesFirst()
+    {
+        var world = new World();
+        CutsceneAsset asset = CreateParallelFailureAsset(failingBranchFirst: true);
+        var observed = new List<(CutsceneRuntimeState Event, CutsceneRuntimeState Snapshot, int ActiveCoroutines)>();
+        world.CutsceneDirector.Ended += (_, args) =>
+        {
+            CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+            observed.Add((args.State, snapshot.State, snapshot.ActiveCoroutines.Count));
+        };
+
+        world.CutsceneDirector.Play(asset);
+        for (int frameIndex = 1; frameIndex <= 3; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        // Frame 2 fails the first branch, frame 3 unwinds the play to its end while the 5 s branch still waits.
+        (CutsceneRuntimeState Event, CutsceneRuntimeState Snapshot, int ActiveCoroutines) single = Assert.Single(observed);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.Event);
+        Assert.Equal(CutsceneRuntimeState.Failed, single.Snapshot);
+        Assert.Equal(0, single.ActiveCoroutines);
+
+        for (int frameIndex = 4; frameIndex <= 8; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Empty(world.CutsceneDirector.GetDebugSnapshot().ActiveCoroutines);
+        world.CutsceneDirector.Stop();
+        Assert.Single(observed);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Ended_PlayFromFailedHandlerStopsTheRemainingActionsOfTheFailedPlay(bool trailingWait)
+    {
+        var world = new World();
+        CutsceneAsset healthy = CreateSequenceAsset();
+        CutsceneActionData trailing = trailingWait
+            ? new WaitCutsceneActionData { Seconds = 5f }
+            : new NavigateToCutsceneActionData
+            {
+                EntityName = "Nobody2",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            };
+        var failing = new CutsceneAsset
+        {
+            Name = "FailingThenMore",
+            RootAction = new SequenceCutsceneActionData
+            {
+                Actions =
+                {
+                    new NavigateToCutsceneActionData
+                    {
+                        EntityName = "Nobody",
+                        Destination = new Vector3(2.5f, 0f, 0.5f),
+                        StoppingDistance = 0.05f,
+                    },
+                    trailing,
+                }
+            }
+        };
+        var ended = new List<CutsceneEndedEventArgs>();
+        world.CutsceneDirector.Ended += (_, args) =>
+        {
+            ended.Add(args);
+            if (args.State == CutsceneRuntimeState.Failed)
+            {
+                world.CutsceneDirector.Play(healthy);
+            }
+        };
+
+        world.CutsceneDirector.Play(failing);
+        for (int frameIndex = 1; frameIndex <= 12; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+        }
+
+        Assert.Equal(2, ended.Count);
+        Assert.Equal(CutsceneRuntimeState.Failed, ended[0].State);
+        Assert.Same(failing, ended[0].Asset);
+        Assert.Equal(CutsceneRuntimeState.Completed, ended[1].State);
+        Assert.Same(healthy, ended[1].Asset);
+        CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+        Assert.Equal(CutsceneRuntimeState.Completed, snapshot.State);
+        Assert.Equal(healthy.Name, snapshot.AssetName);
+        Assert.Empty(snapshot.ActiveCoroutines);
+    }
+
+    private static CutsceneAsset CreateParallelFailureAsset(bool failingBranchFirst)
+    {
+        CutsceneActionData failingBranch = new NavigateToCutsceneActionData
+        {
+            EntityName = "Nobody",
+            Destination = new Vector3(2.5f, 0f, 0.5f),
+            StoppingDistance = 0.05f,
+        };
+        CutsceneActionData waitingBranch = new WaitCutsceneActionData { Seconds = 5f };
+
+        var parallel = new ParallelCutsceneActionData();
+        parallel.Actions.Add(failingBranchFirst ? failingBranch : waitingBranch);
+        parallel.Actions.Add(failingBranchFirst ? waitingBranch : failingBranch);
+
+        return new CutsceneAsset
+        {
+            Name = "ParallelFailure",
+            RootAction = parallel
+        };
+    }
+
+    private static CutsceneAsset CreateMissingEntityNavigateAsset()
+    {
+        return new CutsceneAsset
+        {
+            Name = "NavigateMissingEntity",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Nobody",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            }
+        };
+    }
+
     private static int AdvanceUntilNotPlaying(World world, int maxFrameCount)
     {
         for (int frameIndex = 1; frameIndex <= maxFrameCount; frameIndex++)
