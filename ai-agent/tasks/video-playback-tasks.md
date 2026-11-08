@@ -233,7 +233,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Commit : `feat(video): turn MDEC blocks into RGBA frames`
 - Note : `MdecFrameDecoder` (statique, sans état, blocs sur la pile, sans allocation) dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.7 à 1.11 : déquantification (matrice par défaut, échelle 0 sans zig-zag, saturation), IDCT entière à deux passes, couleur en virgule fixe, macroblocs colonne par colonne, recadrage en haut à gauche. 31 tests : DC seul calculé à la main, un coefficient AC par position (3 échelles), macrobloc complet et trames aléatoires contre une référence écrite dans le test, IDCT contre une IDCT en `double` (tolérance 2,5), échelle 0, saturation, tailles non multiples de 16, erreurs nommant l'image, `AllocationWindow` à 0 octet, chaîne complète avec `MdecBitstreamDecoder` pour les versions 1 à 3.
 
-### ⏳ T1.4 — Conteneur `.mdecvideo`
+### ✅ T1.4 — Conteneur `.mdecvideo`
 
 - Objectif : le type d'asset de C1, chargé par son en-tête et sa table seulement.
 - Fichiers :
@@ -247,6 +247,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - la section audio est lue comme des bornes, pas comme un son ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(video): load MDEC video containers`
+- Note : `MdecVideoAsset` (en-tête de 32 octets et table, lecture à la demande des images ensuite) et `MdecVideoAssetLoader` dans `CasaEngine/Framework/Video/`, constante `.mdecvideo`, une ligne dans `AssetLoaderRegistry` ; `asset_type` `mdecvideo` déduit de l'extension par `InferAssetType`. Erreurs `InvalidDataException` qui nomment le fichier et le champ. Choix local : l'offset 0 doit suivre l'en-tête et la table, et une section audio (offset, 0) est refusée. Écrivain de conteneur de test `MdecTestContainerWriter`. 28 tests (aller-retour avec et sans audio, un cas par champ invalide, chargeur sur disque, registre). Build des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5182 réussis.
 
 ---
 
