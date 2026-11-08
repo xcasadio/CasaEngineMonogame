@@ -15,6 +15,9 @@
   whichever of the two registered first.
 - The game decides when a transition starts in an `Update`; the `Draw` of the same tour comes after. The image the original game shows is
   the one drawn by the tour **before** the arming `Update`.
+- Related decisions, none modified: ADR-0034 (the veil above the user interface ignores depth), ADR-0048 (the virtual resolution, the integer fit and the
+  black bands: the retained rectangle is the view rectangle), ADR-0068 and ADR-0071 (free quads and the pattern "the engine draws, the game pushes the state":
+  the component follows it, the game DLL pushes the request).
 
 ## Decision
 
