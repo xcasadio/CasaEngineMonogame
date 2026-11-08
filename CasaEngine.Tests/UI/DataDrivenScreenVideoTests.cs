@@ -336,6 +336,21 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
         Assert.True(video.IsDisposed);
     }
 
+    [Fact]
+    public void WhenALaterElementFailsToLoad_TheVideosAlreadyCreatedAreDisposed()
+    {
+        FakeVideo.Last = null;
+        var markup = Markup("""<Video Name="vid" SourceName="clip" /><TabItem Header="x" />""");
+        File.WriteAllText(Path.Combine(_root, "failing.xaml"), markup);
+        var asset = new UIScreenAsset { SourceXamlFile = "failing.xaml", DefaultFocus = "btnPlay" };
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        Assert.ThrowsAny<Exception>(() => screen.BuildWindow(_desktop));
+
+        Assert.NotNull(FakeVideo.Last);
+        Assert.True(FakeVideo.Last!.IsDisposed);
+    }
+
     private static string SkippableVideo()
         => Markup("""<Video Name="vid" SourceName="clip" IsSkippable="True" />""");
 
@@ -440,8 +455,14 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
     private static InputMapping Entry(string name, Keys key)
         => new() { Name = name, KeyButton = new KeyButton(key), AlternativeKeyButton = new KeyButton() };
 
-    private sealed class VideoProvider(IUIAssetProvider inner) : IUIAssetProvider
+    private sealed class VideoProvider(IUIAssetProvider inner) : IUIAssetProvider, IUIVideoCreationScope
     {
+        private List<IUIVideo>? _scope;
+
+        public void BeginVideoCreationScope(List<IUIVideo> created) => _scope = created;
+
+        public void EndVideoCreationScope() => _scope = null;
+
         public IUIImageResource LoadImage(string assetName) => inner.LoadImage(assetName);
 
         public bool TryLoadImage(string assetName, out IUIImageResource image) => inner.TryLoadImage(assetName, out image);
@@ -449,6 +470,7 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
         public bool TryCreateVideo(string name, out IUIVideo video)
         {
             video = FakeVideo.Last = new FakeVideo();
+            _scope?.Add(video);
             return true;
         }
     }

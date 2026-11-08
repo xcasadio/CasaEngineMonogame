@@ -401,6 +401,13 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5239 réussis ; `MGUI.Tests` 3243 réussis.
   - P4 laissés en différé : type d'exception d'un tampon trop petit ; raisons supplémentaires dans les tests d'erreur ; bornes 2 GiB du conteneur ; hypothèses de lecture du flux ; tick de fin aux cadences extrêmes ; décalage des valeurs de `MGElementType` ; `MGVideo` retiré d'un arbre hors écrans de données non disposé par MGUI ; profondeur du test de correspondance ; chemin de régénération du clip.
 
+### ✅ T4.4 — Correction du vérificateur
+
+- Objectif : libérer les vidéos créées par un écran dont le XAML échoue au chargement.
+- Validation : build des deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
+- Commit : `fix(video): release videos created by a screen whose XAML fails to load`
+- Note : constat P2 du vérificateur neuf : un `<Video>` crée son lecteur pendant la construction du XAML (le constructeur de `MGVideo` fixe `SourceName`). Si un élément suivant échoue (par exemple `<TabItem Header="x"/>` hors d'un `TabControl`), `OnWindowLoaded` n'est jamais atteint, `CollectVideos` ne tourne pas, et le lecteur (texture et fichier ouvert) restait dans le fournisseur jusqu'à sa libération. Correctif : interface interne `IUIVideoCreationScope` (`BeginVideoCreationScope(List<IUIVideo>)`, `EndVideoCreationScope()`), implémentée par `CasaUIAssetProvider` (les scopes imbriqués se restituent : la liste précédente est rétablie à la fin) ; `DataDrivenScreen.LoadWindow` ouvre un scope autour de `base.LoadWindow` quand le fournisseur de `desktop.Resources.AssetProvider` l'implémente, libère les vidéos du scope si le chargement lève, puis relève l'exception, et ferme le scope dans `finally`. Un fournisseur sans l'interface garde l'ancien comportement. P4 traité en même temps : `TryCreateVideo` renvoie false après `Dispose` du fournisseur. Tests ajoutés : `WhenALaterElementFailsToLoad_TheVideosAlreadyCreatedAreDisposed` (échec de `BuildWindow`, vidéo libérée sans `screen.Dispose`) et `VideoCreationScope_RecordsTheVideosCreatedInside_NotTheOnesOutside_AndDisposedProviderCreatesNone`. Docs `video.md` et `data-driven-screens.md` mises à jour. Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5242 réussis.
+
 ---
 
 ## Phase 5 — Vérification et recette

@@ -3,6 +3,7 @@ using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
+using MGUI.Shared.Assets;
 using MGUI.Shared.Input.Keyboard;
 using Microsoft.Xna.Framework;
 
@@ -122,7 +123,33 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     protected override MGWindow LoadWindow(MGDesktop desktop)
     {
         HoldFonts();
-        return base.LoadWindow(desktop);
+
+        // A Video element creates its player while the XAML is built. If a later element fails, OnWindowLoaded never
+        // runs and nothing collects those players: the scope lets this load dispose them.
+        if (desktop.Resources.AssetProvider is not IUIVideoCreationScope scope)
+        {
+            return base.LoadWindow(desktop);
+        }
+
+        var created = new List<IUIVideo>();
+        scope.BeginVideoCreationScope(created);
+        try
+        {
+            return base.LoadWindow(desktop);
+        }
+        catch
+        {
+            foreach (var video in created)
+            {
+                video.Dispose();
+            }
+
+            throw;
+        }
+        finally
+        {
+            scope.EndVideoCreationScope();
+        }
     }
 
     /// <inheritdoc/>

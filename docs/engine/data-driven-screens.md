@@ -343,7 +343,7 @@ A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvi
 - Each `Video` element gets its own player, which decodes into a texture of the clip's size. The container is described in [video.md](video.md).
 - A source the project cannot resolve (unknown name, an asset of another type, a file that cannot be opened) shows nothing and plays nothing; one warning per name is logged.
 - A collapsed `Video` does not advance. A `Video` that is collapsed, or that has no visible area (zero size, or fully clipped by its parent or the view), and that is not skippable therefore never ends: a `PlayVideo` on its screen keeps waiting. Nothing times the wait out.
-- The videos of a screen are disposed with it: when the screen is hidden or disposed, and when it fails to load. Each player's texture and open file are released then, so a looping `PlayVideo` does not accumulate them.
+- The videos of a screen are disposed with it: when the screen is hidden or disposed, and when it fails to load, including when a later element of the XAML fails after a `Video` was built. Each player's texture and open file are released then, so a looping `PlayVideo` does not accumulate them.
 - A `Video` that names a command `ui_commands` does not declare is refused when the screen opens, like a button (see [Errors](#errors)).
 
 ### Skipping a video

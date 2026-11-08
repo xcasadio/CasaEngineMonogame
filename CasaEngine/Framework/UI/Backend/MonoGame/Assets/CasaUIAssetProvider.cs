@@ -11,7 +11,7 @@ using MGUI.Shared.Text;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 
-public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
+public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScope, IDisposable
 {
     private static readonly string SpriteAssetType = Constants.FileNameExtensions.Sprite.TrimStart('.');
     private static readonly string Animation2dAssetType = Constants.FileNameExtensions.Animation2d.TrimStart('.');
@@ -57,6 +57,10 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
     private bool _releasingVideos;
 
     private bool _disposed;
+
+    // The list of the open video creation scope, null outside one; the previous lists of enclosing scopes wait here.
+    private List<IUIVideo> _videoScope;
+    private readonly Stack<List<IUIVideo>> _outerVideoScopes = new();
 
     public ContentManager Content { get; }
     public FontManager FontManager { get; }
@@ -246,6 +250,11 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
     {
         video = null;
 
+        if (_disposed)
+        {
+            return false;
+        }
+
         if (_assetContentManager == null)
         {
             WarnOnce(name, "no AssetContentManager was provided to this UI asset provider");
@@ -299,8 +308,28 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IDisposable
         }
 
         _createdVideos.Add(player);
+        _videoScope?.Add(player);
         video = player;
         return true;
+    }
+
+    /// <inheritdoc/>
+    public void BeginVideoCreationScope(List<IUIVideo> created)
+    {
+        ArgumentNullException.ThrowIfNull(created);
+        _outerVideoScopes.Push(_videoScope);
+        _videoScope = created;
+    }
+
+    /// <inheritdoc/>
+    public void EndVideoCreationScope()
+    {
+        if (_outerVideoScopes.Count == 0)
+        {
+            throw new InvalidOperationException("No video creation scope is open.");
+        }
+
+        _videoScope = _outerVideoScopes.Pop();
     }
 
     private void OnVideoDisposed(MdecVideoPlayer player)

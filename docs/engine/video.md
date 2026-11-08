@@ -312,7 +312,7 @@ In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVide
 * `Skip()` raises `Skipped` once and runs `SkippedCommandName`. It works only when `IsSkippable` is true and the video is playing (resolved, not ended, not skipped); otherwise it returns false. A skipped video stops advancing and keeps the frame it was on.
 * If the host cannot resolve the source, nothing is shown and nothing plays (`IsPlaying` is false).
 * The video is disposed when `SourceName` changes and when the element is disposed. `MGImage.Source` is stored but ignored: setting it neither replaces nor restarts the video.
-* A data-driven screen disposes the videos it holds with itself, when it is hidden or disposed and when it fails to load, so the texture and the open file of each player are released with the screen. An element removed from another tree is not disposed by MGUI (section 7).
+* A data-driven screen disposes the videos it holds with itself, when it is hidden or disposed and when it fails to load (a screen whose XAML fails to load disposes the videos its elements had already created, even though it never reaches a stack), so the texture and the open file of each player are released with the screen. An element removed from another tree is not disposed by MGUI (section 7).
 * A disposed player keeps `IsEnded` as it was, ignores `Advance` and `Restart`, and returns a null `CurrentImage`: an element that still holds it raises no `Ended` and draws nothing.
 
 ## 5. Skipping

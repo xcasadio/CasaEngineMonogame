@@ -522,4 +522,33 @@ public class MdecVideoPlayerTests : IDisposable
             Assert.Null(video.CurrentImage);
         });
     }
+
+    [GpuFact]
+    public void VideoCreationScope_RecordsTheVideosCreatedInside_NotTheOnesOutside_AndDisposedProviderCreatesNone()
+    {
+        var path = WriteVideo(2, 10, 1);
+        AssetCatalog.AddInternal(new AssetInfo(VideoId) { Name = "intro", FileName = "intro.mdecvideo", AssetType = "mdecvideo" });
+
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var provider = NewProvider(NewManager(GpuDeviceHost.Instance.GraphicsDevice, new VideoLoader(path)));
+            var scope = (CasaEngine.Framework.UI.IUIVideoCreationScope)provider;
+            var created = new List<IUIVideo>();
+
+            Assert.True(provider.TryCreateVideo("intro", out var before));
+            scope.BeginVideoCreationScope(created);
+            Assert.True(provider.TryCreateVideo("intro", out var inside));
+            scope.EndVideoCreationScope();
+            Assert.True(provider.TryCreateVideo("intro", out var after));
+
+            Assert.Equal(new[] { inside }, created);
+            Assert.DoesNotContain(before, created);
+            Assert.DoesNotContain(after, created);
+
+            provider.Dispose();
+
+            Assert.False(provider.TryCreateVideo("intro", out var late));
+            Assert.Null(late);
+        });
+    }
 }
