@@ -62,6 +62,9 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     private bool _isFocusWrapPending;
 
+    // The Video elements of the window, collected at load.
+    private readonly List<MGVideo> _videos = new();
+
     // The pairs of focus_markers, resolved at load: element, then marker.
     private readonly List<(MGElement Element, MGElement Marker)> _focusMarkers = new();
 
@@ -131,6 +134,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         ResolveNavigationCommands();
         CollectFocusCandidates(window);
         CheckButtons(window);
+        CollectVideos(window);
         ResolveFocusMarkers(window);
         PrepareDesignScale(window);
         _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
@@ -176,6 +180,23 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         {
             Remember(_cancelCommand);
         }
+    }
+
+    /// <summary>
+    /// Skips the videos of the screen that are playing and can be skipped. <see cref="UIRoot"/> asks this of the screen
+    /// at the top when a Submit or a Cancel is pressed.
+    /// </summary>
+    /// <returns>True when at least one video was skipped.</returns>
+    public bool SkipVideos()
+    {
+        bool isSkipped = false;
+
+        for (int i = 0; i < _videos.Count; i++)
+        {
+            isSkipped |= _videos[i].Skip();
+        }
+
+        return isSkipped;
     }
 
     /// <summary>
@@ -510,6 +531,28 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             {
                 throw InvalidEnvelope($"A button names command '{button.CommandName}', which 'ui_commands' does not declare.");
             }
+        }
+    }
+
+    /// <summary>
+    /// A video that names a command nobody declared is refused, like a button: the command would never run, with no
+    /// sign why.
+    /// </summary>
+    private void CollectVideos(MGWindow window)
+    {
+        foreach (var video in window.TraverseVisualTree<MGVideo>())
+        {
+            CheckVideoCommand(video, "ended", video.EndedCommandName);
+            CheckVideoCommand(video, "skipped", video.SkippedCommandName);
+            _videos.Add(video);
+        }
+    }
+
+    private void CheckVideoCommand(MGVideo video, string whenRun, string commandName)
+    {
+        if (!string.IsNullOrEmpty(commandName) && !video.GetResources().TryGetCommand(commandName, out _))
+        {
+            throw InvalidEnvelope($"A video names command '{commandName}' for when it is {whenRun}, which 'ui_commands' does not declare.");
         }
     }
 

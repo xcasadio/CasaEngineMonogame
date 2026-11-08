@@ -101,6 +101,13 @@ public sealed class UINavigationInput
     public Action CancelNotHandled { get; set; }
 
     /// <summary>
+    /// Called for each press of <see cref="InputAction.Submit"/> or <see cref="InputAction.Cancel"/> (phase
+    /// <see cref="InputActionPhase.Pressed"/>, never a repeat), before the desktop sees the action. When it returns
+    /// true the action is consumed: the desktop does not get it and <see cref="CancelNotHandled"/> is not called.
+    /// </summary>
+    public Func<bool> SubmitOrCancelPressed { get; set; }
+
+    /// <summary>
     /// While true, nothing goes from here to the desktop, so a focus that exists stays where it is (ADR-0081). The
     /// desktop's own auto-focus does not stop: with nothing focused, a key or a button gives the focus. The devices are
     /// still read: an input held here counts as one held when this object was built, so it fires nothing once this
@@ -211,6 +218,11 @@ public sealed class UINavigationInput
         if (slot.FollowsShift)
         {
             InputActionMapper.TryMapKeyboardAction(input.Key, isHeld(LeftShift) || isHeld(RightShift), out action);
+        }
+
+        if (!isRepeat && action is InputAction.Submit or InputAction.Cancel && SubmitOrCancelPressed?.Invoke() == true)
+        {
+            return;
         }
 
         var context = new InputActionContext(

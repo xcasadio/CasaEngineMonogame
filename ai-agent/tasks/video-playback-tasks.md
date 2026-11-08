@@ -304,7 +304,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Commit : `feat(video): play MDEC videos into a fixed texture`
 - Note : `MdecVideoPlayer` (`IUIVideo`, texture `Color` unique enveloppée une fois, `FileStream` sans tampon, tampons trame/mots/RGBA réutilisés, horloge en ticks entiers avec `Int128`, cadence rationnelle sans arrondi de la période, fin = `ceil` des ticks totaux, trame en retard non décodée, erreur de flux = fin + log une fois), `CasaUIAssetProvider.TryCreateVideo` (nom ou id, conteneur retenu une fois par nom, joueurs suivis et libérés avec le fournisseur, `WarnOnce`). Choix locaux : `CurrentFrameIndex` et `DecodedFrameCount` publics en lecture seule ; rappel optionnel à la libération. 12 tests `MdecVideoPlayerTests` (GPU réel, aucun ignoré) ; les deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5194 réussis, 0 échec.
 
-### ⏳ T3.2 — Écrans de données et saut
+### ✅ T3.2 — Écrans de données et saut
 
 - Objectif : C6.
 - Fichiers :
@@ -324,6 +324,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - les tests existants d'ADR-0080 restent verts sans être modifiés ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(ui): wire video commands and skips in data-driven screens`
+- Note : crochet `UINavigationInput.SubmitOrCancelPressed` (`Func<bool>`, Submit et Cancel en phase `Pressed` seulement, avant le bureau ; vrai = action consommée, pas de `CancelNotHandled`), `UIRoot.SkipVideosOfTopScreen(ScreenStack)` interne et statique, `DataDrivenScreen.SkipVideos()` et refus au chargement d'une `Video` dont `EndedCommandName` ou `SkippedCommandName` n'est pas déclarée. 12 tests `DataDrivenScreenVideoTests` (via `UIRoot.RunFrame` et la surcharge à `isHeld` injecté) ; les deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5206 réussis, 0 échec.
 
 ### ⏳ T3.3 — Action `PlayVideo`
 
