@@ -1,0 +1,10 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="4" Top="4" Width="48" Height="16"
+        IsTitleBarVisible="False"
+        IsUserResizable="False"
+        Padding="0">
+
+  <!-- The life gauge of the frozen frame demo: a small solid window at the top left of the view. Its fill is set by
+       FrozenFrameGaugeScreen (one colour per scene of the demo), so the demo reads the colour it posed. -->
+  <Border Name="gaugeFill" Width="48" Height="16" />
+</Window>
