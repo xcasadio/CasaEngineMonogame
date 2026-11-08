@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.FrozenFrames;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;
@@ -35,6 +36,12 @@ public sealed class RenderPipeline
     // Scene render target used when shadows are active on a back-buffer view.
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
+
+    /// <summary>
+    /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
+    /// Null (the editor, tests): the pipeline is exactly the one without it.
+    /// </summary>
+    internal FrameRetention Retention { get; set; }
 
     /// <summary>
     /// Optional debug overlay drawn on views that have <see cref="RenderView.ShowDebugOverlay"/> = true.
@@ -137,18 +144,40 @@ public sealed class RenderPipeline
             // WPF editor views already use a non-null initialRenderTarget (the D3D11Host
             // texture), so that path is unaffected.
             var shadowSettings = (view.EnvironmentOverride ?? view.World.EnvironmentSettings).Shadows;
-            bool useSceneRt = view.Surface.IsBackBuffer
-                && initialRenderTarget == null
-                && shadowSettings.Enabled
-                && view.ClearColorBuffer;
+            var retention = Retention;
+            var viewRectangle = view.Surface.ViewportRect;
+            var plan = FrameCapturePlanner.Plan(new FrameCaptureInputs(
+                ShadowsEnabled: shadowSettings.Enabled,
+                ClearColorBuffer: view.ClearColorBuffer,
+                InitialTargetIsBackBuffer: initialRenderTarget == null,
+                SurfaceIsBackBuffer: view.Surface.IsBackBuffer,
+                ViewRectangleIsEmpty: viewRectangle.Width <= 0 || viewRectangle.Height <= 0,
+                RetentionEnabled: retention is { Enabled: true },
+                IsTargetView: retention != null && ReferenceEquals(view, retention.TargetView),
+                CaptureRequested: retention != null && retention.Service.CaptureRequested,
+                RetainedFrameValid: retention != null && retention.IsRetainedFrameValid(viewRectangle.Width, viewRectangle.Height)));
+            bool useSceneRt = plan.UseSceneRt;
 
             using var guard = new GraphicsStateGuard(_graphicsDevice);
+
+            // E19.TR-4a: the retained frame still holds the previous frame here, before the scene target is
+            // bound and cleared; copy it to the captured image, or report the request unavailable (once).
+            if (plan.CopyRetainedFrameToCapture)
+            {
+                retention.CopyRetainedToCaptured(_graphicsDevice, _spriteBatch, viewRectangle.Width, viewRectangle.Height);
+            }
+            else if (plan.CaptureUnavailable)
+            {
+                retention.Service.FailCapture();
+            }
 
             if (useSceneRt)
             {
                 var vp = view.Surface.ViewportRect;
-                EnsureSceneRt(vp.Width, vp.Height);
-                _graphicsDevice.SetRenderTarget(_sceneRt);
+                var sceneTarget = plan.RetainThisFrame
+                    ? retention.EnsureRetained(_graphicsDevice, vp.Width, vp.Height)
+                    : EnsureSceneRt(vp.Width, vp.Height);
+                _graphicsDevice.SetRenderTarget(sceneTarget);
                 _graphicsDevice.Viewport = new Viewport(0, 0, vp.Width, vp.Height);
             }
             else
@@ -251,8 +280,23 @@ public sealed class RenderPipeline
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                     null, DepthStencilState.None, RasterizerState.CullNone);
-                _spriteBatch.Draw(_sceneRt, new Rectangle(0, 0, vp.Width, vp.Height), Color.White);
+                _spriteBatch.Draw(plan.RetainThisFrame ? retention.RetainedTarget : _sceneRt,
+                    new Rectangle(0, 0, vp.Width, vp.Height), Color.White);
                 _spriteBatch.End();
+            }
+
+            // The retained frame is complete only now, after the copy to the back buffer. A target view drawn
+            // without retention (option off, ineligible) leaves the retained frame stale.
+            if (retention != null && ReferenceEquals(view, retention.TargetView))
+            {
+                if (plan.RetainThisFrame)
+                {
+                    retention.MarkRetainedValid();
+                }
+                else
+                {
+                    retention.InvalidateRetained();
+                }
             }
 
             // 6. After an RT view, restore the initial render target so the next
@@ -389,12 +433,12 @@ public sealed class RenderPipeline
     /// Uses <see cref="RenderTargetUsage.PreserveContents"/> so that switching to the shadow-map
     /// atlas and back does not discard the scene content.
     /// </summary>
-    private void EnsureSceneRt(int width, int height)
+    private RenderTarget2D EnsureSceneRt(int width, int height)
     {
         if (_sceneRt != null && !_sceneRt.IsDisposed
             && _sceneRt.Width == width && _sceneRt.Height == height)
         {
-            return;
+            return _sceneRt;
         }
 
         _sceneRt?.Dispose();
@@ -407,6 +451,7 @@ public sealed class RenderPipeline
             DepthFormat.Depth24Stencil8,
             0,
             RenderTargetUsage.PreserveContents);
+        return _sceneRt;
     }
 
 #if DEBUG

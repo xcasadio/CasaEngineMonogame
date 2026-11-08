@@ -221,3 +221,5 @@ Limits:
 - Toute la fidélité PSX (16.16, échange de canaux, division tronquante, verrous de persistance,
   cadence par tick) est un problème de la DLL consommatrice, pas de ce mécanisme moteur — câblée
   côté jeu (chantier E10.b, hors de ce dépôt moteur).
+- **L'image figée** (garder la dernière image du jeu et la montrer sous le voile) est un autre mécanisme moteur,
+  décrit dans [frozen-frame.md](frozen-frame.md) (ADR-0086) ; elle se dessine sous ce voile (ordre -100 contre 0).

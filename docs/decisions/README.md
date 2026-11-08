@@ -99,3 +99,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0083](0083-sounds-declare-an-exclusion-group.md) | Sounds declare an exclusion group | Accepted | 2026-11-01 |
 | [ADR-0084](0084-the-software-spu-follows-published-captures.md) | The software SPU follows published captures | Accepted | 2026-11-01 |
 | [ADR-0085](0085-the-tiled-json-map-import-has-a-content-entry.md) | The Tiled JSON map import has a content entry beside the path entry (numbered ADR-0078 until 2026-11-07) | Accepted | 2026-11-07 |
+| [ADR-0086](0086-the-engine-keeps-the-last-frame-and-shows-it-frozen.md) | The engine keeps the last frame of the active view and shows it frozen (numbered ADR-0085 until 2026-11-08) | Accepted | 2026-11-08 |

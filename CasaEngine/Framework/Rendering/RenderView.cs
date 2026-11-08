@@ -171,6 +171,9 @@ public sealed class RenderView
     /// </summary>
     private List<IPostUIOverlay> _postUIOverlays;
 
+    /// <summary>The draw order of each overlay of <see cref="_postUIOverlays"/>, index for index.</summary>
+    private List<int> _postUIOverlayOrders;
+
     /// <summary>
     /// Post-UI overlays currently registered on this view, in registration order. Never null: an
     /// empty, shared array when none are registered, so composing this view never allocates.
@@ -182,14 +185,30 @@ public sealed class RenderView
     /// it is already registered. The backing list is a small preallocated one (capacity 4): several
     /// overlays may target the same view, and nothing here targets a view exclusively.
     /// </summary>
-    public void RegisterPostUIOverlay(IPostUIOverlay overlay)
+    /// <param name="overlay">The overlay.</param>
+    /// <param name="order">
+    /// Draw order, lower first, then registration order (E19.TR-4a, D-TR4A-4). A second registration of the
+    /// same overlay is ignored whatever its order.
+    /// </param>
+    public void RegisterPostUIOverlay(IPostUIOverlay overlay, int order = PostUIOverlayOrder.Default)
     {
         ArgumentNullException.ThrowIfNull(overlay);
         _postUIOverlays ??= new List<IPostUIOverlay>(4);
-        if (!_postUIOverlays.Contains(overlay))
+        _postUIOverlayOrders ??= new List<int>(4);
+        if (_postUIOverlays.Contains(overlay))
         {
-            _postUIOverlays.Add(overlay);
+            return;
         }
+
+        // Stable insertion: after every overlay of an order lower than or equal to this one.
+        var index = _postUIOverlayOrders.Count;
+        while (index > 0 && _postUIOverlayOrders[index - 1] > order)
+        {
+            index--;
+        }
+
+        _postUIOverlays.Insert(index, overlay);
+        _postUIOverlayOrders.Insert(index, order);
     }
 
     /// <summary>
@@ -197,7 +216,12 @@ public sealed class RenderView
     /// </summary>
     public void UnregisterPostUIOverlay(IPostUIOverlay overlay)
     {
-        _postUIOverlays?.Remove(overlay);
+        var index = _postUIOverlays?.IndexOf(overlay) ?? -1;
+        if (index >= 0)
+        {
+            _postUIOverlays.RemoveAt(index);
+            _postUIOverlayOrders.RemoveAt(index);
+        }
     }
 
     // ---- Debug ----
