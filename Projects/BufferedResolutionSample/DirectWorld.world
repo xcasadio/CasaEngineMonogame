@@ -1,0 +1,17 @@
+{
+  "id": "4b3ea582-5954-45a8-aadd-6277c5c2c11c",
+  "name": "DirectWorld",
+  "entity_references": [],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 20,
+      "g": 90,
+      "b": 50,
+      "a": 255
+    }
+  }
+}

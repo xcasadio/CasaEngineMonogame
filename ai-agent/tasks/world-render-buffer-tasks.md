@@ -294,7 +294,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 - Commit : `test(rendering): prove buffered integer presentation matches direct drawing`
 - Note de validation (2026-11-08) : le tampon arrière du jeu de test fait 256x192, donc la scène fait 64x48 et k vaut 4. Dessin direct au facteur 4 dans une cible de 256x192, contre dessin à l'échelle 1 dans la cible de 64x48 présentée par `VirtualResolutionPresenter` dans le tampon arrière (`GetBackBufferData`) : 0 pixel différent sur 49 152. L'image attendue contient bien le rouge, le jaune et le magenta de la scène. `BufferedFit` : 100x48 remplit la largeur, avec des bandes noires en haut et en bas. Tests réellement lancés ici, pas ignorés. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4905/4905.
 
-### ⏳ T3.2 — Sample `Projects/PixelUiSample`
+### 🧪 T3.2 — Sample `Projects/PixelUiSample`
 
 - Objectif : montrer les trois modes dans un même projet.
 - Fichiers :
@@ -305,7 +305,14 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   1. Ajouter les deux mondes et les commandes d'écran qui y mènent, sans toucher au monde de départ.
   2. Lancer le Launcher à 960x540 puis à une taille non multiple, et noter ce qui est observé (voir « Validation globale »).
 - Validation : `CasaEngine.Tests` vert, sample lancé. La recette visuelle de l'auteur reste à faire, donc 🧪 jusqu'à elle.
-- Commit : `feat(samples): show per-world buffered resolutions in the pixel UI sample`
+- Commit : `feat(samples): add a sample of per-world buffered resolutions`
+- Note de validation (2026-11-08) :
+  - **Écart au plan.** Un écran de données ne s'ouvre qu'avec le premier monde (`OpenFirstScreen`, une seule fois). Pour montrer l'UI et la souris dans un buffer, le premier monde doit donc être buffer. Faire cela dans `PixelUiSample` aurait changé son monde de départ et `ProjectScreenAssetTests`. Le sample est donc nouveau : `Projects/BufferedResolutionSample`, avec `TitleWorld` (`BufferedIntegerFit` 320x180 et écran titre), `FitWorld` (`BufferedFit` 200x150) et `DirectWorld` (sans bloc, donc l'`IntegerFit` du projet). `PixelUiSample` est inchangé.
+  - Mesuré au Launcher, par capture de la zone client :
+    - `TitleWorld` à 960x540 : image entière, et chacun de ses 960x540 pixels dans un bloc uniforme de 3x3 ;
+    - à 1000x600 : image de 960x540 en (20, 30), bandes noires, blocs de 3x3 uniformes ;
+    - `FitWorld` à 960x540, par une variante de projet hors dépôt : image de x=120 à 839, toute la hauteur (720x540), bandes noires.
+  - Reste 🧪 : la recette de l'auteur au Launcher (clic sur les boutons, changement de monde, redimensionnement à la main).
 
 ### ⏳ T3.3 — Documentation
 

@@ -1,0 +1,40 @@
+{
+  "asset_infos": [
+    {
+      "id": "3f154c95-1890-4f93-81db-9aa8e16e3a1e",
+      "name": "TitleWorld",
+      "file_name": "TitleWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "ef5a4a86-8d1b-4377-9456-59eb9aa257a9",
+      "name": "FitWorld",
+      "file_name": "FitWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "4b3ea582-5954-45a8-aadd-6277c5c2c11c",
+      "name": "DirectWorld",
+      "file_name": "DirectWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "571f1806-a546-472e-8eb6-4c087ca7f137",
+      "name": "Title",
+      "file_name": "Screens\\title.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "c2cc2f21-d30e-45ae-905e-63bed08ee024",
+      "name": "pixel-block",
+      "file_name": "Fonts\\pixel-block.fnt",
+      "asset_type": "fnt"
+    },
+    {
+      "id": "4c173416-b025-4b7e-a751-9e57022ea632",
+      "name": "pixel-block-page",
+      "file_name": "Fonts\\pixel-block.png",
+      "asset_type": "png"
+    }
+  ]
+}

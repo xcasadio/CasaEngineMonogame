@@ -1,0 +1,44 @@
+{
+  "id": "571f1806-a546-472e-8eb6-4c087ca7f137",
+  "name": "Title",
+  "source_xaml_file": "title.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 320,
+    "y": 180
+  },
+  "resource_files": [],
+  "default_focus": "btnFit",
+  "focus_wrap": "vertical",
+  "fonts": [
+    "pixel-block"
+  ],
+  "ui_commands": [
+    {
+      "name": "Fit",
+      "actions": [
+        {
+          "type": "change_world",
+          "target": "FitWorld.world"
+        }
+      ]
+    },
+    {
+      "name": "Direct",
+      "actions": [
+        {
+          "type": "change_world",
+          "target": "DirectWorld.world"
+        }
+      ]
+    },
+    {
+      "name": "Quit",
+      "actions": [
+        {
+          "type": "quit"
+        }
+      ]
+    }
+  ]
+}

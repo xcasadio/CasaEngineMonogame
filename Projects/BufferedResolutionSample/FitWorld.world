@@ -1,0 +1,22 @@
+{
+  "id": "ef5a4a86-8d1b-4377-9456-59eb9aa257a9",
+  "name": "FitWorld",
+  "entity_references": [],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 150,
+      "g": 80,
+      "b": 30,
+      "a": 255
+    }
+  },
+  "virtual_resolution": {
+    "width": 200,
+    "height": 150,
+    "mode": "BufferedFit"
+  }
+}

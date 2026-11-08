@@ -1,0 +1,16 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="40" Top="20" Width="240" Height="130" WindowStyle="None" IsCloseButtonVisible="False" CanCloseWindow="False">
+  <StackPanel Orientation="Vertical" Spacing="6" Padding="8">
+    <TextBlock Name="lblTitle" FontFamily="pixel-block" Foreground="White" Text="BUFFERED 320 X 180" />
+    <TextBlock Name="lblMode" FontFamily="pixel-block" Foreground="Yellow" Text="INTEGER FACTOR, POINT" />
+    <Button Name="btnFit" CommandName="Fit">
+      <TextBlock FontFamily="pixel-block" Foreground="White" Text="SMOOTH 200 X 150" />
+    </Button>
+    <Button Name="btnDirect" CommandName="Direct">
+      <TextBlock FontFamily="pixel-block" Foreground="White" Text="DIRECT 320 X 180" />
+    </Button>
+    <Button Name="btnQuit" CommandName="Quit">
+      <TextBlock FontFamily="pixel-block" Foreground="White" Text="QUIT" />
+    </Button>
+  </StackPanel>
+</Window>
