@@ -287,7 +287,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 3 — Intégration dans le moteur
 
-### ⏳ T3.1 — Lecteur et fournisseur
+### ✅ T3.1 — Lecteur et fournisseur
 
 - Objectif : C3 et C5.
 - Fichiers :
@@ -302,6 +302,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - le lecteur libère sa texture ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(video): play MDEC videos into a fixed texture`
+- Note : `MdecVideoPlayer` (`IUIVideo`, texture `Color` unique enveloppée une fois, `FileStream` sans tampon, tampons trame/mots/RGBA réutilisés, horloge en ticks entiers avec `Int128`, cadence rationnelle sans arrondi de la période, fin = `ceil` des ticks totaux, trame en retard non décodée, erreur de flux = fin + log une fois), `CasaUIAssetProvider.TryCreateVideo` (nom ou id, conteneur retenu une fois par nom, joueurs suivis et libérés avec le fournisseur, `WarnOnce`). Choix locaux : `CurrentFrameIndex` et `DecodedFrameCount` publics en lecture seule ; rappel optionnel à la libération. 12 tests `MdecVideoPlayerTests` (GPU réel, aucun ignoré) ; les deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5194 réussis, 0 échec.
 
 ### ⏳ T3.2 — Écrans de données et saut
 
