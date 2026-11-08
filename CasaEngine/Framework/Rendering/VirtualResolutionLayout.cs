@@ -84,6 +84,52 @@ public static class VirtualResolutionLayout
         return fit;
     }
 
+    /// <summary>
+    /// Where a buffered mode shows its target in the window (ADR-0086), not cropped by the window:
+    /// <list type="bullet">
+    ///   <item><see cref="VirtualResolutionMode.BufferedIntegerFit"/>: the integer factor of <see cref="Compute"/>, image
+    ///   <c>(virtual width * k) by (virtual height * k)</c>;</item>
+    ///   <item><see cref="VirtualResolutionMode.BufferedFit"/>: the factor <c>s = min(window width / virtual width,
+    ///   window height / virtual height)</c>, image <c>floor(virtual width * s) by floor(virtual height * s)</c>, at least 1
+    ///   pixel each way.</item>
+    /// </list>
+    /// In both cases the image is centered with offsets floored, as in <see cref="Compute"/>.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">A virtual dimension is not positive.</exception>
+    /// <exception cref="ArgumentException"><paramref name="mode"/> is not a buffered mode.</exception>
+    public static Rectangle ComputePresentation(
+        int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, VirtualResolutionMode mode)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(virtualWidth, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(virtualHeight, 0);
+
+        int imageWidth;
+        int imageHeight;
+        switch (mode)
+        {
+            case VirtualResolutionMode.BufferedIntegerFit:
+            {
+                int scale = Math.Max(1, Math.Min(windowWidth / virtualWidth, windowHeight / virtualHeight));
+                imageWidth = virtualWidth * scale;
+                imageHeight = virtualHeight * scale;
+                break;
+            }
+
+            case VirtualResolutionMode.BufferedFit:
+            {
+                double scale = Math.Min((double)Math.Max(0, windowWidth) / virtualWidth, (double)Math.Max(0, windowHeight) / virtualHeight);
+                imageWidth = Math.Max(1, (int)Math.Floor(virtualWidth * scale));
+                imageHeight = Math.Max(1, (int)Math.Floor(virtualHeight * scale));
+                break;
+            }
+
+            default:
+                throw new ArgumentException($"'{mode}' is not a buffered virtual resolution mode.", nameof(mode));
+        }
+
+        return new Rectangle(FloorHalf(windowWidth - imageWidth), FloorHalf(windowHeight - imageHeight), imageWidth, imageHeight);
+    }
+
     // Floor, not truncation: the offset of a window smaller than the image is negative.
     private static int FloorHalf(int value) => value >> 1;
 }

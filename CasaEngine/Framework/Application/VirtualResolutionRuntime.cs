@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Scene.Entities.Components;
 
 namespace CasaEngine.Framework.Application;
 
@@ -34,6 +35,54 @@ internal static class VirtualResolutionRuntime
 
         surface.ViewportRect = layoutArea;
         view.Camera?.OnScreenResized(layoutArea.Width, layoutArea.Height);
+    }
+
+    /// <summary>
+    /// Gives the camera of a buffered view (ADR-0086) a viewport of the virtual size at zoom 1, so it frames exactly the
+    /// target. Call it AFTER anything that sized the camera to the whole window (<c>World.OnScreenResized</c>).
+    /// </summary>
+    internal static void FrameBufferedCamera(CameraComponent camera, VirtualResolutionPresenter presenter)
+    {
+        if (camera == null)
+        {
+            return;
+        }
+
+        camera.OnScreenResized(presenter.VirtualWidth, presenter.VirtualHeight);
+        if (camera is Camera2dComponent camera2d)
+        {
+            camera2d.Zoom = 1f;
+        }
+    }
+
+    /// <summary>
+    /// The single view of a buffered mode (ADR-0086) after a window resize: the target keeps its virtual size, the
+    /// camera goes back to the virtual viewport at zoom 1 (the world sized it to the window just before), and the
+    /// presenter recomputes where it shows the target. Returns false when <paramref name="views"/> is not exactly one
+    /// view presented by a <see cref="VirtualResolutionPresenter"/>.
+    /// </summary>
+    internal static bool TryResizeBufferedView(IReadOnlyList<RenderView> views, int windowWidth, int windowHeight)
+    {
+        if (views.Count != 1 || views[0].Presenter is not VirtualResolutionPresenter presenter)
+        {
+            return false;
+        }
+
+        presenter.Resize(windowWidth, windowHeight);
+        FrameBufferedCamera(views[0].Camera, presenter);
+        return true;
+    }
+
+    /// <summary>
+    /// Releases what the default view of a buffered mode owns (ADR-0086) when that view is removed, for example by
+    /// <see cref="ViewManager.Clear"/> on a world change. Any other view is left as it was.
+    /// </summary>
+    internal static void ReleaseOwnedPresentation(RenderView view)
+    {
+        if (view?.Presenter is VirtualResolutionPresenter presenter)
+        {
+            presenter.Dispose();
+        }
     }
 
     /// <summary>

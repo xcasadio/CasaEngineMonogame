@@ -188,7 +188,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 - Commit : `feat(rendering): resolve the virtual resolution per loaded world`
 - Note de validation (2026-11-08) : règle de composition dans `WorldVirtualResolutionState`, testable sans GPU, calculée une fois par chargement de monde (aucune allocation par image). `CasaEngineGame.ActiveVirtualResolution` la lit, et `GameManager.UpdateWorld` l'alimente avant `ViewManager.Clear` et `BootstrapViews`. Un monde en `IntegerFit` avec bloc passe donc déjà par le dessin direct à sa propre taille. Les modes buffer arrivent en T2.2. 9 tests. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4867/4867.
 
-### ⏳ T2.2 — Vue sur buffer et présentation
+### ✅ T2.2 — Vue sur buffer et présentation
 
 - Objectif : en mode buffer, la vue par défaut rend dans une cible de rendu à la taille de conception, puis un présentateur la dessine dans la fenêtre selon D2.
 - Fichiers :
@@ -225,6 +225,14 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
      - `IntegerFit` identique à avant.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert.
 - Commit : `feat(rendering): render buffered worlds into a design-size target and present it`
+- Note de validation (2026-11-08) :
+  - O2 tranché : présentateur dédié `VirtualResolutionPresenter`, qui possède la cible et son `SpriteBatch` (créé à la première image). `BackBufferPresenter` reste intact (API publique).
+  - Calcul pur `VirtualResolutionLayout.ComputePresentation`, non rogné par la fenêtre.
+  - La présentation n'alloue rien par image et remet viewport, mélange, profondeur, raster et échantillonneur 0.
+  - `CreateDefaultView` crée la vue buffer quand le mode l'est. `OnScreenResized` passe par `TryResizeBufferedView` après `World.OnScreenResized`. `OnViewRemovedDisposeUIRuntime` libère la cible avec `ReleaseOwnedPresentation`.
+  - 21 tests, dont 3 sur GPU, réellement lancés ici. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4888/4888.
+  - Limite connue : les composants de la phase 3 de `CasaEngineGame.Draw` (`Line3d`, `PhysicsDebug`, `Axis`) dessinent après le pipeline, en coordonnées de fenêtre, donc par-dessus l'image présentée et non dans le buffer.
+  - O5 (ombres) reste ouvert : aucun monde avec ombres n'est testé ici.
 
 ### ⏳ T2.3 — UI et fondu dans le buffer
 

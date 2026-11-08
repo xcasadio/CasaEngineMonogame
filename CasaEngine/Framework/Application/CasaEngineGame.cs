@@ -325,10 +325,15 @@ public class CasaEngineGame : Game, IObservableUpdate
             }
         }
 
-        // Single backbuffer view: auto-resize both the surface and its camera to the layout area (the whole window
-        // unless the view manager has layout insets, ADR-0070).
-        if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
+        if (VirtualResolutionRuntime.TryResizeBufferedView(views, width, height))
         {
+            // A buffered mode (ADR-0086): the target keeps its virtual size, the camera goes back to it, and only the
+            // presentation follows the window. Runs after World.OnScreenResized, which sized every camera to the window.
+        }
+        else if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
+        {
+            // Single backbuffer view: auto-resize both the surface and its camera to the layout area (the whole window
+            // unless the view manager has layout insets, ADR-0070).
             // With a virtual resolution the view is the integer-fit image and its camera frames the virtual
             // resolution; this runs after World.OnScreenResized, which sized every camera to the window.
             VirtualResolutionRuntime.ResizeSingleBackBufferView(
@@ -840,6 +845,9 @@ public class CasaEngineGame : Game, IObservableUpdate
     {
         view.UIView?.Dispose();
         view.UIView = null;
+
+        // ADR-0086: the target a buffered default view owns goes with the view (world change, removal).
+        VirtualResolutionRuntime.ReleaseOwnedPresentation(view);
     }
 
     private static void SyncUIViewMetrics(RenderView view)

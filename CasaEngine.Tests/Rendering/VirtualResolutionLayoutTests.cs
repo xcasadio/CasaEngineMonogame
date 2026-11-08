@@ -10,6 +10,54 @@ namespace CasaEngine.Tests.Rendering;
 /// </summary>
 public class VirtualResolutionLayoutTests
 {
+    // ADR-0086: where a buffered mode shows its target, not cropped by the window.
+    [Theory]
+    [InlineData(1092, 720, 364, 240, 0, 0, 1092, 720)]
+    [InlineData(1092, 720, 640, 480, 226, 120, 640, 480)]
+    [InlineData(1092, 720, 320, 240, 66, 0, 960, 720)]
+    [InlineData(1280, 720, 320, 180, 0, 0, 1280, 720)]
+    [InlineData(500, 300, 640, 480, -70, -90, 640, 480)]
+    public void ComputePresentation_BufferedIntegerFit_UsesTheIntegerFactor(
+        int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, int x, int y, int width, int height)
+    {
+        var rect = VirtualResolutionLayout.ComputePresentation(
+            windowWidth, windowHeight, virtualWidth, virtualHeight, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedIntegerFit);
+
+        Assert.Equal(new Rectangle(x, y, width, height), rect);
+    }
+
+    [Theory]
+    [InlineData(1092, 720, 640, 480, 66, 0, 960, 720)]
+    [InlineData(1092, 720, 320, 240, 66, 0, 960, 720)]
+    [InlineData(1000, 600, 364, 240, 45, 0, 910, 600)]
+    [InlineData(1001, 751, 320, 240, 0, 0, 1001, 750)]
+    [InlineData(500, 300, 640, 480, 50, 0, 400, 300)]
+    public void ComputePresentation_BufferedFit_FillsTheLimitingSideAndFloorsTheSize(
+        int windowWidth, int windowHeight, int virtualWidth, int virtualHeight, int x, int y, int width, int height)
+    {
+        var rect = VirtualResolutionLayout.ComputePresentation(
+            windowWidth, windowHeight, virtualWidth, virtualHeight, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedFit);
+
+        Assert.Equal(new Rectangle(x, y, width, height), rect);
+    }
+
+    [Fact]
+    public void ComputePresentation_BufferedFit_InAnEmptyWindow_KeepsOnePixel()
+    {
+        var rect = VirtualResolutionLayout.ComputePresentation(
+            0, 0, 320, 240, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedFit);
+
+        Assert.Equal(1, rect.Width);
+        Assert.Equal(1, rect.Height);
+    }
+
+    [Fact]
+    public void ComputePresentation_RefusesTheDirectMode()
+    {
+        Assert.Throws<ArgumentException>(() => VirtualResolutionLayout.ComputePresentation(
+            1092, 720, 364, 240, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.IntegerFit));
+    }
+
     [Theory]
     [InlineData(1280, 960, 4, 0, 0, 1280, 960)]
     [InlineData(1280, 944, 3, 160, 112, 960, 720)]
