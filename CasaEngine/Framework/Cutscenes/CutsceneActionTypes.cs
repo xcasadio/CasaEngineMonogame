@@ -13,4 +13,6 @@ public static class CutsceneActionTypes
     public const string StopMusic = "StopMusic";
     public const string FadeMusic = "FadeMusic";
     public const string FadeScreen = "FadeScreen";
+    public const string WaitFrames = "WaitFrames";
+    public const string FadeScreenFrames = "FadeScreenFrames";
 }

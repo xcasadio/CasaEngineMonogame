@@ -10,6 +10,7 @@ using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Rendering.ScreenEffects;
 using CasaEngine.Framework.Scripting.Coroutines;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Cutscenes;
 
@@ -106,6 +107,38 @@ internal static class CutsceneActionCoroutineFactory
                 if (fadeScreenService != null)
                 {
                     yield return new FadeScreenInstruction(fadeScreenService, fadeScreenAction);
+                }
+
+                break;
+
+            case WaitFramesCutsceneActionData waitFramesAction:
+                if (waitFramesAction.Frames is > 0)
+                {
+                    yield return new WaitForFrames(waitFramesAction.Frames.Value);
+                }
+
+                break;
+
+            case FadeScreenFramesCutsceneActionData fadeFramesAction:
+                ScreenEffectService fadeFramesService = GetScreenEffectService(world);
+                if (fadeFramesService != null)
+                {
+                    // Unlike FadeScreen, the layer is set and the ramp started during this very update, so the
+                    // first value drawn already belongs to the ramp.
+                    Color fadeFrom = fadeFramesAction.From.GetValueOrDefault();
+                    Color fadeTo = fadeFramesAction.To.GetValueOrDefault();
+                    int fadeFrames = fadeFramesAction.Frames.GetValueOrDefault();
+                    fadeFramesService.Layer = fadeFramesAction.Layer.GetValueOrDefault();
+                    fadeFramesService.StartFadeFrames(
+                        fadeFrom.R, fadeFrom.G, fadeFrom.B, fadeFrom.A,
+                        fadeTo.R, fadeTo.G, fadeTo.B, fadeTo.A,
+                        fadeFrames,
+                        fadeFramesAction.BlendMode.GetValueOrDefault());
+
+                    if (fadeFrames > 0)
+                    {
+                        yield return new WaitForFrames(fadeFrames);
+                    }
                 }
 
                 break;

@@ -113,4 +113,46 @@ public sealed class CutsceneReadOnlyDocumentBuilderTests
         Assert.Equal(new Vector3(2f, 0f, 4f), document.ActiveActionDestination);
         Assert.Equal("Moving", document.ActiveActionState);
     }
+
+    [Fact]
+    public void Build_ShowsTheFieldsOfTheFrameActions()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "Frames",
+            RootAction = new SequenceCutsceneActionData
+            {
+                Actions =
+                {
+                    new WaitFramesCutsceneActionData { Frames = 6 },
+                    new FadeScreenFramesCutsceneActionData
+                    {
+                        From = new Color(1, 2, 3, 4),
+                        To = new Color(5, 6, 7, 8),
+                        Frames = 9,
+                        Layer = CasaEngine.Framework.Rendering.ScreenEffects.ScreenEffectLayer.AboveUI,
+                        BlendMode = CasaEngine.Framework.Rendering.Depth.SpriteBlendMode.AlphaBlend,
+                    },
+                    new FadeScreenFramesCutsceneActionData(),
+                },
+            },
+        };
+
+        var document = CutsceneReadOnlyDocumentBuilder.Build(asset);
+
+        var wait = document.RootAction.Children[0];
+        Assert.Equal(CutsceneActionTypes.WaitFrames, wait.Type);
+        Assert.Equal("frames", wait.Properties[0].Name);
+        Assert.Equal("6", wait.Properties[0].Value);
+
+        var fade = document.RootAction.Children[1];
+        Assert.Equal(CutsceneActionTypes.FadeScreenFrames, fade.Type);
+        Assert.Equal(
+            new[] { "from=1, 2, 3, 4", "to=5, 6, 7, 8", "frames=9", "layer=AboveUI", "blend_mode=AlphaBlend" },
+            fade.Properties.Select(property => $"{property.Name}={property.Value}").ToArray());
+
+        var empty = document.RootAction.Children[2];
+        Assert.All(empty.Properties, property => Assert.Equal(string.Empty, property.Value));
+        Assert.Equal(5, document.ValidationMessages.Count(message => message.Severity == CutsceneValidationSeverity.Error));
+    }
 }

@@ -1,5 +1,6 @@
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Rendering.Depth;
+using CasaEngine.Framework.Rendering.ScreenEffects;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -107,6 +108,42 @@ public static class CutsceneAssetJsonSerializer
                 node["duration_seconds"] = fadeScreenAction.DurationSeconds;
                 node["blend_mode"] = fadeScreenAction.BlendMode.ToString();
                 break;
+
+            case WaitFramesCutsceneActionData waitFramesAction:
+                if (waitFramesAction.Frames is { } waitFrames)
+                {
+                    node["frames"] = waitFrames;
+                }
+
+                break;
+
+            case FadeScreenFramesCutsceneActionData fadeFramesAction:
+                if (fadeFramesAction.From is { } from)
+                {
+                    node["from"] = SaveColor(from);
+                }
+
+                if (fadeFramesAction.To is { } to)
+                {
+                    node["to"] = SaveColor(to);
+                }
+
+                if (fadeFramesAction.Frames is { } fadeFrames)
+                {
+                    node["frames"] = fadeFrames;
+                }
+
+                if (fadeFramesAction.Layer is { } layer)
+                {
+                    node["layer"] = layer.ToString();
+                }
+
+                if (fadeFramesAction.BlendMode is { } blendMode)
+                {
+                    node["blend_mode"] = blendMode.ToString();
+                }
+
+                break;
         }
 
         return node;
@@ -175,10 +212,124 @@ public static class CutsceneAssetJsonSerializer
                 DurationSeconds = node["duration_seconds"]?.GetSingle() ?? 0f,
                 BlendMode = ParseBlendMode(node["blend_mode"]),
             },
+            CutsceneActionTypes.WaitFrames => LoadWaitFrames(node),
+            CutsceneActionTypes.FadeScreenFrames => LoadFadeScreenFrames(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             _ => new UnknownCutsceneActionData(actionType)
         };
+    }
+
+    private static WaitFramesCutsceneActionData LoadWaitFrames(JObject node)
+    {
+        var action = new WaitFramesCutsceneActionData();
+        action.Frames = ReadFrames(node, action.FormatErrors);
+        return action;
+    }
+
+    private static FadeScreenFramesCutsceneActionData LoadFadeScreenFrames(JObject node)
+    {
+        var action = new FadeScreenFramesCutsceneActionData();
+        action.From = ReadColor(node, "from", action.FormatErrors);
+        action.To = ReadColor(node, "to", action.FormatErrors);
+        action.Frames = ReadFrames(node, action.FormatErrors);
+        action.Layer = ReadEnum<ScreenEffectLayer>(node, "layer", action.FormatErrors);
+        action.BlendMode = ReadEnum<SpriteBlendMode>(node, "blend_mode", action.FormatErrors);
+        return action;
+    }
+
+    /// <summary>An integer. A negative one is kept, the validator refuses it.</summary>
+    private static int? ReadFrames(JObject node, Dictionary<string, string> errors)
+    {
+        if (node["frames"] is not { } value)
+        {
+            return null;
+        }
+
+        if (TryGetInteger(value, out long frames) && frames is >= int.MinValue and <= int.MaxValue)
+        {
+            return (int)frames;
+        }
+
+        errors["frames"] = $"frames must be an integer, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
+    /// <summary>An exact name of the enum: a number parses as an enum too.</summary>
+    private static TEnum? ReadEnum<TEnum>(JObject node, string key, Dictionary<string, string> errors)
+        where TEnum : struct, Enum
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value.Type == JTokenType.String && Enum.IsDefined(typeof(TEnum), value.GetString()))
+        {
+            return Enum.Parse<TEnum>(value.GetString());
+        }
+
+        errors[key] = $"{key} must be one of {string.Join(", ", Enum.GetNames<TEnum>())}, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
+    /// <summary><c>[r, g, b]</c>, opaque, or <c>[r, g, b, a]</c>, each an integer from 0 to 255.</summary>
+    private static Color? ReadColor(JObject node, string key, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is JArray { Count: 3 or 4 } channels)
+        {
+            var color = new byte[] { 0, 0, 0, byte.MaxValue };
+            int read = 0;
+
+            while (read < channels.Count && TryGetInteger(channels[read], out long channel) && channel is >= 0L and <= 255L)
+            {
+                color[read] = channels[read].GetByte();
+                read++;
+            }
+
+            if (read == channels.Count)
+            {
+                return new Color(color[0], color[1], color[2], color[3]);
+            }
+        }
+
+        errors[key] = $"{key} must be [r, g, b] or [r, g, b, a], each an integer from 0 to 255, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
+    /// <summary>An integer token, whether it was parsed from text (long) or built in memory (int, byte).</summary>
+    private static bool TryGetInteger(JToken token, out long value)
+    {
+        value = 0;
+        if (token is not JValue { Type: JTokenType.Integer } integer)
+        {
+            return false;
+        }
+
+        switch (integer.Value)
+        {
+            case long longValue:
+                value = longValue;
+                return true;
+            case int intValue:
+                value = intValue;
+                return true;
+            case byte byteValue:
+                value = byteValue;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static JArray SaveColor(Color color)
+    {
+        return new JArray(color.R, color.G, color.B, color.A);
     }
 
     private static SequenceCutsceneActionData LoadSequence(JObject node)

@@ -59,6 +59,18 @@ public static class CutsceneReadOnlyDocumentBuilder
                 AddChildren(node, parallelAction.Actions, path);
                 break;
 
+            case WaitFramesCutsceneActionData waitFramesAction:
+                AddFrames(node, waitFramesAction.Frames);
+                break;
+
+            case FadeScreenFramesCutsceneActionData fadeFramesAction:
+                node.AddProperty("from", FormatColor(fadeFramesAction.From));
+                node.AddProperty("to", FormatColor(fadeFramesAction.To));
+                AddFrames(node, fadeFramesAction.Frames);
+                node.AddProperty("layer", fadeFramesAction.Layer?.ToString() ?? string.Empty);
+                node.AddProperty("blend_mode", fadeFramesAction.BlendMode?.ToString() ?? string.Empty);
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 node.AddProperty("unknown_type", unknownAction.UnknownType);
                 break;
@@ -69,6 +81,18 @@ public static class CutsceneReadOnlyDocumentBuilder
         }
 
         return node;
+    }
+
+    private static void AddFrames(CutsceneReadOnlyActionNode node, int? frames)
+    {
+        node.AddProperty("frames", frames?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
+    }
+
+    private static string FormatColor(Microsoft.Xna.Framework.Color? color)
+    {
+        return color is { } value
+            ? string.Create(CultureInfo.InvariantCulture, $"{value.R}, {value.G}, {value.B}, {value.A}")
+            : string.Empty;
     }
 
     private static void AddChildren(CutsceneReadOnlyActionNode node, List<CutsceneActionData> actions, string path)

@@ -194,7 +194,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 - Commit : `feat(rendering): ramp a screen fade over a number of frames`
 - Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` 4915 verts, 0 échec. Les 8 nouvelles méthodes de test (10 cas) prouvent : N = 4 de (0,0,0,255) à alpha 0, valeur attendue (formule de C2) après chaque `Update` et cible exacte au 4e, avec un temps écoulé de 0 et de 10 s ; les quatre canaux ; N = 1 ; N = 0 et négatif ; `StartFade`, `SetOverlay` et `Clear` annulent la rampe en images ; aucune allocation par `Update`.
 
-### ⏳ T1.2 — Actions `WaitFrames` et `FadeScreenFrames`
+### ✅ T1.2 — Actions `WaitFrames` et `FadeScreenFrames`
 
 - Objectif : les deux actions, selon C2 et C7, sur les six endroits listés dans l'état vérifié.
 - Fichiers :
@@ -228,6 +228,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
   - le builder montre les champs ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(cutscenes): wait and fade the screen over a number of frames`
+- Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` tous verts (4948 après les nouveaux tests), 0 échec. Les nouveaux tests prouvent : l'aller-retour JSON des deux actions et la lecture de `[r,g,b]` ; une erreur du validateur par champ absent, couleur mal formée, énumération inconnue, `frames` non entier, hors plage ou négatif ; le temps de C2 mise à jour par mise à jour (`FadeScreenFrames` N = 4, `WaitFrames` 3, témoin à la mise à jour 8, valeur dessinée à chaque mise à jour, cible exacte à la 4e, `layer` posé avant la première valeur) ; `WaitFrames` 0 et `FadeScreenFrames` 0 qui enchaînent dans la même mise à jour ; l'indifférence au temps écoulé ; la fin immédiate sans service ; les champs du builder. Les champs mal formés sont gardés dans `FormatErrors` des classes de données, que le validateur rapporte.
 
 ### ⏳ T1.3 — Événement `Ended`
 

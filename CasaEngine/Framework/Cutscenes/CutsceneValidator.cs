@@ -125,6 +125,19 @@ public static class CutsceneValidator
                 }
 
                 break;
+
+            case WaitFramesCutsceneActionData waitFramesAction:
+                ValidateFrames(waitFramesAction.Frames, waitFramesAction.FormatErrors, path, "WaitFrames", result);
+                break;
+
+            case FadeScreenFramesCutsceneActionData fadeFramesAction:
+                ValidateRequired(fadeFramesAction.From, "from", fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
+                ValidateRequired(fadeFramesAction.To, "to", fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
+                ValidateFrames(fadeFramesAction.Frames, fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
+                ValidateRequired(fadeFramesAction.Layer, "layer", fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
+                ValidateRequired(fadeFramesAction.BlendMode, "blend_mode", fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;
@@ -141,6 +154,34 @@ public static class CutsceneValidator
                 result.AddError(path, $"Unsupported cutscene action data type: {action.GetType().FullName}.");
                 break;
         }
+    }
+
+    private static void ValidateFrames(int? frames, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (frames == null)
+        {
+            ReportMissing("frames", formatErrors, path, actionName, result);
+        }
+        else if (frames < 0)
+        {
+            result.AddError(path, $"{actionName}.frames must be greater than or equal to zero.");
+        }
+    }
+
+    private static void ValidateRequired<T>(T? value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+        where T : struct
+    {
+        if (value == null)
+        {
+            ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    private static void ReportMissing(string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        result.AddError(path, formatErrors.TryGetValue(key, out string message)
+            ? $"{actionName}.{message}"
+            : $"{actionName}.{key} is required.");
     }
 
     private static void ValidateActionList(List<CutsceneActionData> actions, string path, string actionName, CutsceneValidationResult result)
