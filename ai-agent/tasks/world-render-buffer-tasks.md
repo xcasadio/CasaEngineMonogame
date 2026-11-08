@@ -337,6 +337,10 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 | O3 | Arrondi du rectangle en mode libre (taille entière et centrage) : documenté dans l'ADR et testé | T0.1, T2.2 |
 | O4 | Le viewport de l'éditeur ignore la résolution par monde, comme aujourd'hui le réglage du projet, sous gestion externe des vues. À confirmer au code | T2.1 |
 | O5 | Avec les ombres activées, une vue sur cible de rendu n'utilise pas le détour `_sceneRt`. À vérifier, puis à écrire dans l'ADR | T2.2 |
+| O6 | Avis P3 du vérificateur (2026-11-08, CONFIRMED) : `TryResizeBufferedView` ne traite qu'une vue unique. Avec une seconde vue à côté de la vue buffer, la caméra buffer garderait la taille de la fenêtre au redimensionnement. Même limite que `IntegerFit` (`bbViews.Count == 1`). Non reproduit, reporté | — |
+| O7 | Avis P4 : un bloc `virtual_resolution` écrit sans `mode` reçoit `"mode": "IntegerFit"` au prochain enregistrement par l'éditeur. Les mondes sans bloc ne changent pas. Reporté | — |
+| O8 | Avis P4 : `Enum.TryParse` accepte aussi `"1"`, les espaces et les listes à virgules pour `mode`, dans le monde comme dans le projet. Reporté | — |
+| O9 | Avis P4, faible confiance : `Present` laisse la cible liée en `Textures[0]` après `SpriteBatch.End`, comme le blit existant de `_sceneRt`. Aucun symptôme constaté. Reporté | — |
 
 ## Hors périmètre
 
