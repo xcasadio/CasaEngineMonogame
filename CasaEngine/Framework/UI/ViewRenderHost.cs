@@ -62,15 +62,21 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     {
         var state = _windowInputSource.GetSnapshot().MouseState;
         var vp = _surface.ViewportRect;
+        var view = _game.GameManager.ViewManager.Views.FirstOrDefault(v => ReferenceEquals(v.Surface, _surface));
 
-        if (_game.GameManager.ViewManager.Views.FirstOrDefault(v => ReferenceEquals(v.Surface, _surface)) is { Host: IViewScreenBoundsHost screenBoundsHost })
+        if (view is { Host: IViewScreenBoundsHost screenBoundsHost })
         {
             vp = screenBoundsHost.ScreenBounds;
         }
 
+        // ADR-0086: a buffered view takes the mouse in virtual pixels, through the presenter that shows it.
+        var local = view is { Host: null, Presenter: VirtualResolutionPresenter presenter }
+            ? presenter.WindowToVirtualPixel(state.Position)
+            : new Point(state.X - vp.X, state.Y - vp.Y);
+
         return new MouseState(
-            state.X - vp.X,
-            state.Y - vp.Y,
+            local.X,
+            local.Y,
             state.ScrollWheelValue,
             state.LeftButton,
             state.MiddleButton,

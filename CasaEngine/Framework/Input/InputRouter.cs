@@ -193,8 +193,10 @@ public sealed class InputRouter
         var routedKeyboardState = routedSnapshot.KeyboardState;
         var screenMouseState = routedSnapshot.MouseState;
         var screenBounds = GetScreenBounds(targetView);
-        var routedMouseState = CreateLocalMouseState(screenMouseState, screenBounds);
-        context = CreateInputContext(targetView.Id, routedSnapshot.FrameId, routedKeyboardState, routedMouseState, screenBounds, routingState, isFallback: false);
+        var routedMouseState = CreateLocalMouseState(screenMouseState, targetView, screenBounds);
+        context = CreateInputContext(
+            targetView.Id, routedSnapshot.FrameId, routedKeyboardState, routedMouseState, screenBounds, routingState, isFallback: false,
+            screenPosition: screenMouseState.Position);
         CurrentInputContext = context;
         return true;
     }
@@ -206,7 +208,8 @@ public sealed class InputRouter
         MouseState mouseState,
         Rectangle screenBounds,
         InputRoutingState routingState,
-        bool isFallback)
+        bool isFallback,
+        Point? screenPosition = null)
     {
         var previousMouseState = isFallback
             ? _previousFallbackMouseState ?? mouseState
@@ -215,9 +218,10 @@ public sealed class InputRouter
                 : mouseState;
 
         var localPosition = mouseState.Position;
-        var screenPosition = viewId.IsEmpty
+        // A buffered view (ADR-0086) gives local positions in virtual pixels: its caller passes the window position.
+        var resolvedScreenPosition = screenPosition ?? (viewId.IsEmpty
             ? localPosition
-            : new Point(screenBounds.X + localPosition.X, screenBounds.Y + localPosition.Y);
+            : new Point(screenBounds.X + localPosition.X, screenBounds.Y + localPosition.Y));
 
         var context = new ViewInputContext(
             viewId,
@@ -225,7 +229,7 @@ public sealed class InputRouter
             keyboardState,
             mouseState,
             screenBounds,
-            screenPosition,
+            resolvedScreenPosition,
             localPosition,
             mouseState.ScrollWheelValue - previousMouseState.ScrollWheelValue,
             mouseState.HorizontalScrollWheelValue - previousMouseState.HorizontalScrollWheelValue,
@@ -245,16 +249,25 @@ public sealed class InputRouter
 
     private static Rectangle GetScreenBounds(RenderView view)
     {
-        return view.Host is IViewScreenBoundsHost screenBoundsHost
-            ? screenBoundsHost.ScreenBounds
-            : view.Surface.ViewportRect;
+        if (view.Host is IViewScreenBoundsHost screenBoundsHost)
+        {
+            return screenBoundsHost.ScreenBounds;
+        }
+
+        // ADR-0086: a buffered view is where its target is shown in the window.
+        return view.Presenter is VirtualResolutionPresenter presenter ? presenter.PresentedRect : view.Surface.ViewportRect;
     }
 
-    private static MouseState CreateLocalMouseState(MouseState screenMouseState, Rectangle screenBounds)
+    /// <summary>The mouse in view-local pixels: virtual pixels for a buffered view (ADR-0086), window pixels minus the origin otherwise.</summary>
+    internal static MouseState CreateLocalMouseState(MouseState screenMouseState, RenderView view, Rectangle screenBounds)
     {
+        var local = view.Host == null && view.Presenter is VirtualResolutionPresenter presenter
+            ? presenter.WindowToVirtualPixel(screenMouseState.Position)
+            : new Point(screenMouseState.X - screenBounds.X, screenMouseState.Y - screenBounds.Y);
+
         return new MouseState(
-            screenMouseState.X - screenBounds.X,
-            screenMouseState.Y - screenBounds.Y,
+            local.X,
+            local.Y,
             screenMouseState.ScrollWheelValue,
             screenMouseState.LeftButton,
             screenMouseState.MiddleButton,

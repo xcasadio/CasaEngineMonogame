@@ -254,7 +254,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   - `DataDrivenScreen` est inchangé : avec les bornes de la cible, son échelle vaut 1 (test ajouté).
   - 6 tests. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4894/4894.
 
-### ⏳ T2.4 — Souris dans le buffer
+### ✅ T2.4 — Souris dans le buffer
 
 - Objectif : un pointeur placé dans l'image présentée trouve la vue buffer et vise le bon pixel de conception, dans les deux modes buffer.
 - Fichiers :
@@ -274,6 +274,11 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
      - `IntegerFit` inchangé.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert.
 - Commit : `feat(input): map the window mouse into the presented buffer`
+- Note de validation (2026-11-08) :
+  - Une seule source : `VirtualResolutionPresenter.PresentedRect`, avec `WindowToVirtual` (exacte) et `WindowToVirtualPixel` (arrondie vers le bas).
+  - `ViewManager.GetScreenBounds` et `ScreenToView`, `InputRouter.GetScreenBounds` et `CreateLocalMouseState`, et `ViewRenderHost.GetMouseState` la lisent tous.
+  - `ViewInputContext` garde la position de fenêtre réelle pour une vue buffer. `ViewMouseViewport.IsInside` est inchangé, puisque les positions locales sont en pixels de conception.
+  - 9 tests : conversion, point dans l'image hors de (0,0,w,h), bande, routeur, clic réel sur un bouton à k=3 et à 1,5, `IntegerFit` inchangé. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4903/4903.
 
 ## Phase 3 — Preuves, sample, documentation
 

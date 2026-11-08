@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Configuration.Project;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;
@@ -57,6 +58,25 @@ public sealed class VirtualResolutionPresenter : IViewPresenter, IDisposable
     /// <summary>Recomputes <see cref="PresentedRect"/> for a new window size.</summary>
     public void Resize(int windowWidth, int windowHeight)
         => PresentedRect = VirtualResolutionLayout.ComputePresentation(windowWidth, windowHeight, VirtualWidth, VirtualHeight, Mode);
+
+    /// <summary>
+    /// The virtual position of a window position: <c>(window - origin) * virtual size / presented size</c>, exact. The
+    /// single conversion the view manager, the input router and the UI host use for a buffered view (ADR-0086).
+    /// </summary>
+    public Vector2 WindowToVirtual(Vector2 windowPosition)
+    {
+        var rect = PresentedRect;
+        return new Vector2(
+            (windowPosition.X - rect.X) * VirtualWidth / rect.Width,
+            (windowPosition.Y - rect.Y) * VirtualHeight / rect.Height);
+    }
+
+    /// <summary>The virtual pixel under a window pixel, rounded down (a point left of or above the image is negative).</summary>
+    public Point WindowToVirtualPixel(Point windowPoint)
+    {
+        var position = WindowToVirtual(new Vector2(windowPoint.X, windowPoint.Y));
+        return new Point((int)MathF.Floor(position.X), (int)MathF.Floor(position.Y));
+    }
 
     /// <inheritdoc/>
     public void Present(GraphicsDevice graphicsDevice, RenderView view)

@@ -273,7 +273,7 @@ public sealed class ViewManager
         if (InputCaptureView != null)
         {
             var vp = GetScreenBounds(InputCaptureView);
-            var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
+            var local = ToLocal(InputCaptureView, screenPoint, vp);
             return (InputCaptureView, local);
         }
 
@@ -289,7 +289,7 @@ public sealed class ViewManager
             var vp = GetScreenBounds(view);
             if (vp.Contains(screenPoint))
             {
-                var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
+                var local = ToLocal(view, screenPoint, vp);
                 return (view, local);
             }
         }
@@ -469,7 +469,24 @@ public sealed class ViewManager
             return screenBoundsHost.ScreenBounds;
         }
 
+        // ADR-0086: a buffered view is where its target is shown in the window, not the target's own (0,0,w,h).
+        if (view.Presenter is VirtualResolutionPresenter presenter)
+        {
+            return presenter.PresentedRect;
+        }
+
         return view.Surface.ViewportRect;
+    }
+
+    /// <summary>The view-local position of a screen point inside <paramref name="screenBounds"/>, in virtual pixels for a buffered view.</summary>
+    private static Vector2 ToLocal(RenderView view, Point screenPoint, Rectangle screenBounds)
+    {
+        if (view.Host == null && view.Presenter is VirtualResolutionPresenter presenter)
+        {
+            return presenter.WindowToVirtual(new Vector2(screenPoint.X, screenPoint.Y));
+        }
+
+        return new Vector2(screenPoint.X - screenBounds.X, screenPoint.Y - screenBounds.Y);
     }
 
     private static void RefreshHostState(RenderView view)

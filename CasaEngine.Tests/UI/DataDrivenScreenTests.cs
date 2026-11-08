@@ -2053,6 +2053,29 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Equal(new[] { "quit" }, _calls);
     }
 
+    // ADR-0086: a screen in a buffered view is laid out in virtual pixels; a window click goes through the presenter's
+    // conversion, at an integer factor and at a free one, and reaches the button.
+    [Theory]
+    [InlineData(CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedIntegerFit, 960, 540)]
+    [InlineData(CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedFit, 480, 270)]
+    public void AWindowClick_ThroughTheBufferedPresentation_ReachesTheButton(
+        CasaEngine.Framework.Configuration.Project.VirtualResolutionMode mode, int windowWidth, int windowHeight)
+    {
+        UseWindowAttributes("""Left="10" Top="6" Width="300" Height="170" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(320, 180);
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+        Settle(screen);
+        var centre = Button(screen, "btnPlay").LayoutBounds.Center;
+        var presenter = new CasaEngine.Framework.Rendering.VirtualResolutionPresenter(null, mode, 320, 180, windowWidth, windowHeight);
+        var shown = presenter.PresentedRect;
+        float factor = (float)shown.Width / 320;
+        var windowPoint = new Point(shown.X + (int)MathF.Round(centre.X * factor), shown.Y + (int)MathF.Round(centre.Y * factor));
+
+        Click(presenter.WindowToVirtualPixel(windowPoint), screen);
+
+        Assert.Equal(new[] { "quit" }, _calls);
+    }
+
     [Theory]
     [InlineData("""ScreenHorizontalAlignment="Center" """)]
     [InlineData("""ScreenVerticalAlignment="Bottom" """)]
