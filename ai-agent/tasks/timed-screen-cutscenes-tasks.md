@@ -360,11 +360,12 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 - Note : vérificateur neuf sur `147c3d64..84f7cc2c`, verdict REFUTED sur un seul point, F1 (P2, introduit en T1.3 par la session principale) : sur le chemin d'échec, une cutscene existante ne joue plus exactement comme avant (D5). Une lecture en échec arrête ses branches restantes de `Parallel` avant `Ended(Failed)` ; `Stop` sur une lecture en échec pas encore déroulée l'arrête et garde `Failed` ; les agents de navigation reçoivent la raison de l'échec au lieu de « Cancelled ». Confirmés : le temps de C2 image par image, ordre réel de `GameManager.UpdateWorld` et de `CasaEngineGame.Update` compris, C3, C4, C5, C6, C7, C8 amendé (O2), D6, builds des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5007 sur 5007, le sample. Avis A1 (P4, « au plus une fois » dans `data-driven-screens.md`) corrigé dans le commit de T2.2. Avis A2 (P4) : le sample n'a pas changé depuis les captures (`git diff 5b7ebcec 84f7cc2c -- Projects/` vide). Bloqué sur O3.
 - Note : relecture neuve de clôture sur `147c3d64..d48a8092`, après les décisions de l'auteur sur O3 (F1 gardé, exception écrite dans D5) et O2 (C8 amendé, confirmé) : CONFIRMED, aucun constat P0 à P2. Builds des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5007 sur 5007. Une sonde jetable hors dépôt a rejoué chaque cas limite de `Ended`, avec le comportement écrit. Avis P3 reporté : les lignes D3 et C8 gardent le texte approuvé (« une fois »), et l'amendement confirmé, « au plus une fois » avec deux exceptions, est écrit dans O2, dans ADR-0087 et dans la doc.
 
-### ⏳ T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample au Launcher et l'accepte.
 - Validation : accord de l'auteur, écrit ici, avec ses écarts éventuels. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the timed screen sample`
+- Note : recette de l'auteur acceptée le 2026-11-08 (« Recette OK »), sur `Projects/TimedScreenSample` au Launcher, sans écart signalé.
 
 ---
 
