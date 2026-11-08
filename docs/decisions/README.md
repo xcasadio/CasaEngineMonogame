@@ -92,4 +92,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0076](0076-an-entity-lives-in-a-world-list-or-under-a-parent-never-both.md) | An entity lives in a world's entity list or under a parent entity, never both | Accepted | 2026-10-17 |
 | [ADR-0077](0077-the-world-inspector-edits-the-world-game-mode.md) | The world inspector edits the world's game mode, and the project save writes it (numbered ADR-0076 until 2026-10-17) | Accepted | 2026-10-17 |
 | [ADR-0078](0078-the-tiled-json-map-import-has-a-content-entry.md) | The Tiled JSON map import has a content entry beside the path entry | Accepted | 2026-11-07 |
-| [ADR-0085](0085-the-engine-keeps-the-last-frame-and-shows-it-frozen.md) | The engine keeps the last frame of the active view and shows it frozen | Accepted | 2026-11-08 |
+| [ADR-0086](0086-the-engine-keeps-the-last-frame-and-shows-it-frozen.md) | The engine keeps the last frame of the active view and shows it frozen (numbered ADR-0085 until 2026-11-08) | Accepted | 2026-11-08 |

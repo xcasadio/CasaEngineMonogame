@@ -1,4 +1,4 @@
-# Frozen frame (E19.TR-4a, ADR-0085)
+# Frozen frame (E19.TR-4a, ADR-0086)
 
 The engine keeps the last composed frame of the active view and can show it frozen, below the screen effect veil. **Engine = mechanism,
 game DLL = policy**: the engine decides nothing about when to freeze; the game asks, shows and releases. The option is off by default and the

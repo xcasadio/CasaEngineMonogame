@@ -1,6 +1,6 @@
-# ADR-0085: The engine keeps the last frame of the active view and shows it frozen
+# ADR-0086: The engine keeps the last frame of the active view and shows it frozen
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0085 until 2026-11-08: renumbered when the branch was merged into main, whose ADR-0085 records that the Tiled JSON map import has a content entry; the decision is unchanged)
 - **Date**: 2026-11-08
 - **Source**: this chantier: `docs/plan-e19-opcodes.md` of the parent repository, section 1.5.19 (E19.TR-4a and E19.TR-4b (i)), decisions D-TR4A-1 to D-TR4A-14; the measurements are in `docs/plan-e19-theme3-annexe/tr-4a/` of the parent repository
 
