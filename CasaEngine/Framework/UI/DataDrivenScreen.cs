@@ -129,13 +129,14 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// <exception cref="InvalidOperationException">The envelope is invalid.</exception>
     protected override void OnWindowLoaded(MGWindow window)
     {
+        // First, so that any failure below still lets Dispose release the players the XAML load created.
+        CollectVideos(window);
+
         if (Asset.CommandFormatErrors.Count > 0)
         {
             throw InvalidEnvelope(string.Join(" ", Asset.CommandFormatErrors));
         }
 
-        // First, so that a failure below still lets Dispose release the players the XAML load created.
-        CollectVideos(window);
         RegisterCommands(window);
         ResolveNavigationCommands();
         CollectFocusCandidates(window);

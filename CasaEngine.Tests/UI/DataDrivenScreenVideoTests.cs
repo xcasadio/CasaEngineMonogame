@@ -319,6 +319,23 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
         Assert.True(video.IsDisposed);
     }
 
+    [Fact]
+    public void AScreenWhoseEnvelopeHasFormatErrors_StillReleasesItsVideos()
+    {
+        File.WriteAllText(Path.Combine(_root, "video.xaml"), Markup("""<Video Name="vid" SourceName="clip" />"""));
+        var asset = new UIScreenAsset { SourceXamlFile = "video.xaml", DefaultFocus = "btnPlay" };
+        asset.UICommands.Add(Command("Play", "quit"));
+        asset.CommandFormatErrors.Add("is_modal must be a boolean.");
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+        var video = FakeVideo.Last!;
+
+        screen.Dispose();
+
+        Assert.True(video.IsDisposed);
+    }
+
     private static string SkippableVideo()
         => Markup("""<Video Name="vid" SourceName="clip" IsSkippable="True" />""");
 

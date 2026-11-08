@@ -347,7 +347,7 @@ Tests: `CasaEngine.Tests/Cutscenes/PlayVideoCutsceneActionTests.cs`. A runnable 
 * **Not bit-exact with the console.** psx-spx says the hardware arithmetic is not reproduced bit for bit; the engine's formulas are its own (sections 1.9 and 1.10).
 * **Decoding runs on the game thread.** Section 8 gives the cost. A late frame is skipped, not decoded.
 * **Encrypted and other BS header variants** are refused (section 1.2).
-* **Collapsed element:** it does not advance, like an animated image. A collapsed or zero-size `Video` that is not skippable never ends, and a `PlayVideo` on its screen keeps waiting; nothing times the wait out.
+* **Collapsed element:** it does not advance, like an animated image. A `Video` that is collapsed or has no visible area (zero size, or fully clipped by its parent or the view) and is not skippable never ends, and a `PlayVideo` on its screen keeps waiting; nothing times the wait out.
 * **Outside data-driven screens:** MGUI does not dispose an `MGVideo` that is removed from a tree; the host calls `Dispose` on it.
 * **No skip while the navigation is suspended:** a screen whose command waits for a fade ignores the presses of Submit and Cancel meanwhile.
 * **Editor:** the asset has no editor.
