@@ -551,4 +551,35 @@ public class MdecVideoPlayerTests : IDisposable
             Assert.Null(late);
         });
     }
+
+    [GpuFact]
+    public void VideoCreationScopes_Nest_AndAnEndWithNoOpenScopeThrows()
+    {
+        var path = WriteVideo(2, 10, 1);
+        AssetCatalog.AddInternal(new AssetInfo(VideoId) { Name = "intro", FileName = "intro.mdecvideo", AssetType = "mdecvideo" });
+
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var provider = NewProvider(NewManager(GpuDeviceHost.Instance.GraphicsDevice, new VideoLoader(path)));
+            var scope = (CasaEngine.Framework.UI.IUIVideoCreationScope)provider;
+            var outer = new List<IUIVideo>();
+            var inner = new List<IUIVideo>();
+
+            scope.BeginVideoCreationScope(outer);
+            Assert.True(provider.TryCreateVideo("intro", out var first));
+            scope.BeginVideoCreationScope(inner);
+            Assert.True(provider.TryCreateVideo("intro", out var second));
+            scope.EndVideoCreationScope();
+            Assert.True(provider.TryCreateVideo("intro", out var third));
+            scope.EndVideoCreationScope();
+            Assert.True(provider.TryCreateVideo("intro", out var fourth));
+
+            Assert.Equal(new[] { first, third }, outer);
+            Assert.Equal(new[] { second }, inner);
+            Assert.DoesNotContain(fourth, outer);
+            Assert.Throws<InvalidOperationException>(() => scope.EndVideoCreationScope());
+
+            provider.Dispose();
+        });
+    }
 }

@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.UI;
 /// one owns a texture and an open file) can be disposed instead of staying in the provider until it is released.
 /// Engine-internal: it is not part of <see cref="IUIAssetProvider"/>.
 /// </summary>
-public interface IUIVideoCreationScope
+internal interface IUIVideoCreationScope
 {
     /// <summary>Starts recording into <paramref name="created"/> every video the provider creates. A scope opened while
     /// another is open takes over; <see cref="EndVideoCreationScope"/> then gives the previous one back.</summary>

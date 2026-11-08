@@ -245,7 +245,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScop
     /// returns a new, independent <see cref="MdecVideoPlayer"/> for it, which the caller disposes. The container
     /// header is loaded and held once per name, in this provider. Never throws: an unknown name, a non-video asset,
     /// a missing asset manager or graphics device, or a load failure all return false, logging one warning per
-    /// name.</summary>
+    /// name. Once the provider is disposed it creates nothing and returns false, without a warning.</summary>
     public bool TryCreateVideo(string name, out IUIVideo video)
     {
         video = null;
@@ -314,7 +314,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScop
     }
 
     /// <inheritdoc/>
-    public void BeginVideoCreationScope(List<IUIVideo> created)
+    void IUIVideoCreationScope.BeginVideoCreationScope(List<IUIVideo> created)
     {
         ArgumentNullException.ThrowIfNull(created);
         _outerVideoScopes.Push(_videoScope);
@@ -322,7 +322,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScop
     }
 
     /// <inheritdoc/>
-    public void EndVideoCreationScope()
+    void IUIVideoCreationScope.EndVideoCreationScope()
     {
         if (_outerVideoScopes.Count == 0)
         {

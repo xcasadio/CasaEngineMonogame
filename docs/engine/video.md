@@ -299,7 +299,7 @@ Tests: `CasaEngine.Tests/Video/MdecVideoAssetTests.cs`.
 * End: when the elapsed time covers every frame, the last frame is shown (decoded first if a late jump skipped it), `IsEnded` becomes true, and the last frame stays displayed.
 * `Restart` goes back to frame 0 and clears `IsEnded`.
 * A frame that cannot be read or decoded (`InvalidDataException` or `IOException`) ends the video, and one error is logged for the player, naming the file and the frame.
-* A player is created per element by `CasaUIAssetProvider.TryCreateVideo(name, out IUIVideo)`: `name` is an asset id or a catalogue name of an asset of type `mdecvideo`. The container header is loaded once per name and shared by the players of that name. An unknown name, an asset of another type, a load failure or a missing graphics device returns false and logs one warning per name.
+* A player is created per element by `CasaUIAssetProvider.TryCreateVideo(name, out IUIVideo)`: `name` is an asset id or a catalogue name of an asset of type `mdecvideo`. The container header is loaded once per name and shared by the players of that name. An unknown name, an asset of another type, a load failure or a missing graphics device returns false and logs one warning per name. A disposed provider creates nothing and returns false, without a warning.
 
 Tests: `CasaEngine.Tests/Video/` (bitstream, frame decoder and container tests on synthetic frames with exact expected output).
 
@@ -312,7 +312,7 @@ In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVide
 * `Skip()` raises `Skipped` once and runs `SkippedCommandName`. It works only when `IsSkippable` is true and the video is playing (resolved, not ended, not skipped); otherwise it returns false. A skipped video stops advancing and keeps the frame it was on.
 * If the host cannot resolve the source, nothing is shown and nothing plays (`IsPlaying` is false).
 * The video is disposed when `SourceName` changes and when the element is disposed. `MGImage.Source` is stored but ignored: setting it neither replaces nor restarts the video.
-* A data-driven screen disposes the videos it holds with itself, when it is hidden or disposed and when it fails to load (a screen whose XAML fails to load disposes the videos its elements had already created, even though it never reaches a stack), so the texture and the open file of each player are released with the screen. An element removed from another tree is not disposed by MGUI (section 7).
+* A data-driven screen disposes the videos it holds with itself, when it is hidden or disposed and when it fails to load (a screen whose XAML fails to load disposes the videos its elements had already created, even though it never reaches a stack; this needs the engine's own `CasaUIAssetProvider`, which records the videos created during the load, and a host provider of another kind leaves them to be released with itself), so the texture and the open file of each player are released with the screen. An element removed from another tree is not disposed by MGUI (section 7).
 * A disposed player keeps `IsEnded` as it was, ignores `Advance` and `Restart`, and returns a null `CurrentImage`: an element that still holds it raises no `Ended` and draws nothing.
 
 ## 5. Skipping
