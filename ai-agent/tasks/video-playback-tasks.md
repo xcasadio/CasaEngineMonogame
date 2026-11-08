@@ -253,7 +253,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 2 — MGUI
 
-### ⏳ T2.1 — Élément `Video` de MGUI (dans le sous-module)
+### ✅ T2.1 — Élément `Video` de MGUI (dans le sous-module)
 
 - Objectif : C4, sur la branche `chantier/video-element` de MGUI.
 - Fichiers, sous `MGUI/` :
@@ -273,13 +273,15 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - les tests d'inventaire par réflexion (`ThemeValueInvalidationInventoryTests`, `FillBrushLifecycleTests`) restent verts ;
   - `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj` vert, avec la build de MGUI.
 - Commit (dans MGUI) : `feat(video): add a Video element fed by host video sources`
+- Note : `IUIVideo`, `IUIAssetProvider.TryCreateVideo` (défaut), `MGVideo : MGImage` (hooks additifs dans `MGImage` : constructeur protégé, `UpdateActualSource` virtuelle, `ResolvesTextureNames`, `SetActualSource`), `MGElementType.Video` après `Image`, balise `<Video>`, ADR-0026 et son index. Choix locaux : `Skip()` renvoie un booléen, arrête la vidéo et ne lève jamais `Ended` ; `Restart()` ré-arme les deux événements ; `MGVideo` est `IDisposable` (MGElement ne l'est pas). Un test d'inventaire existant (`AssetProviderTests`, liste des membres de `IUIAssetProvider`) a dû recevoir `TryCreateVideo` dans sa liste attendue. Branche MGUI `chantier/video-element`. 15 tests `VideoElementTests` ; `MGUI.Tests` 3241 réussis, `MGUI.sln` à 0 erreur. Ce plan est commité par T2.2. Revue : alias `Video` ajouté à `ElementNameAliases` (chemin assaini), test sans xmlns ajouté ; 3242 tests MGUI verts.
 
-### ⏳ T2.2 — Pointeur MGUI du moteur
+### ✅ T2.2 — Pointeur MGUI du moteur
 
 - Objectif : le moteur pointe sur le commit de T2.1 et compile avec.
 - Fichiers : `MGUI` (pointeur) et ce plan.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert sans changement de code moteur.
 - Commit : `chore(mgui): point MGUI at the video element`
+- Note : pointeur MGUI sur `77db5373` (T2.1 plus sa revue), aucun code moteur modifié ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5182 réussis, 0 échec.
 
 ---
 
