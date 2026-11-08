@@ -1,6 +1,6 @@
 # TimedScreenSample
 
-A project with no gameplay DLL whose two worlds chain timed screens from data alone (ADR-0087). Each world starts a cutscene when it begins to play, through the `startup_cutscene_asset_id` key of its `.world`. The project's `FirstScreenName` is empty: both screens come from the cutscenes.
+A project with no gameplay DLL whose two worlds chain timed screens from data alone (ADR-0088). Each world starts a cutscene when it begins to play, through the `startup_cutscene_asset_id` key of its `.world`. The project's `FirstScreenName` is empty: both screens come from the cutscenes.
 
 Each cutscene is the same sequence, counted in frames (one frame is one `Game.Update`):
 

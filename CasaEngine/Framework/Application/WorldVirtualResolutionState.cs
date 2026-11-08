@@ -3,7 +3,7 @@ using CasaEngine.Framework.Configuration.Project;
 namespace CasaEngine.Framework.Application;
 
 /// <summary>
-/// The virtual resolution in force for the loaded world (ADR-0086): the world's own declaration when it has one,
+/// The virtual resolution in force for the loaded world (ADR-0087): the world's own declaration when it has one,
 /// composed with the project's <c>ScaleUI</c>, otherwise the project's setting. The composition is built once per world
 /// load, so reading it every frame allocates nothing.
 /// </summary>

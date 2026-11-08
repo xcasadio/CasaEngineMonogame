@@ -79,13 +79,13 @@ public sealed class World : ObjectBase
     public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
-    /// Id of the cutscene asset played when this world begins play (ADR-0087), or <see cref="Guid.Empty"/> for none.
+    /// Id of the cutscene asset played when this world begins play (ADR-0088), or <see cref="Guid.Empty"/> for none.
     /// Read from the <c>startup_cutscene_asset_id</c> key of the .world; absent means none, also on a reload.
     /// </summary>
     public Guid StartupCutsceneAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
-    /// The design resolution and mode this world declares (ADR-0086), or null to keep the project's
+    /// The design resolution and mode this world declares (ADR-0087), or null to keep the project's
     /// <see cref="Configuration.Project.ProjectSettings.VirtualResolution"/>. Its <c>ScaleUI</c> is not read here: it
     /// stays a project setting.
     /// </summary>

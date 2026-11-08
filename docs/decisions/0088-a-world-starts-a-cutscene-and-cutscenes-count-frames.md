@@ -1,8 +1,8 @@
-# ADR-0087: A world starts a cutscene, and cutscenes count frames, open screens and change worlds
+# ADR-0088: A world starts a cutscene, and cutscenes count frames, open screens and change worlds
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0087 until 2026-11-08: renumbered with the design-resolution ADR, now ADR-0087, when origin/main was merged into main; the decision is unchanged)
 - **Date**: 2026-11-08
-- **Source**: this chantier: `ai-agent/tasks/timed-screen-cutscenes-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-08, and choices C1 to C9, locked by the approval of the plan on 2026-11-08), branch `chantier/timed-screen-cutscenes`. Extends ADR-0020; follows ADR-0037, ADR-0078, ADR-0081 and ADR-0086.
+- **Source**: this chantier: `ai-agent/tasks/timed-screen-cutscenes-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-08, and choices C1 to C9, locked by the approval of the plan on 2026-11-08), branch `chantier/timed-screen-cutscenes`. Extends ADR-0020; follows ADR-0037, ADR-0078, ADR-0081 and ADR-0087.
 
 ## Context
 

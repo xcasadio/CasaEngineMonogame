@@ -72,6 +72,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public ScrollingLayerComponent ScrollingLayerComponent { get; private set; }
     public CellularLayerComponent CellularLayerComponent { get; private set; }
     public EffectQuadComponent EffectQuadComponent { get; private set; }
+    public FrozenFrameComponent FrozenFrameComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
@@ -84,7 +85,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     internal LoadTimeDiscard LoadTimeDiscard { get; }
 
     /// <summary>
-    /// The virtual resolution in force (ADR-0048, ADR-0086) when this game manages its own window: the loaded world's
+    /// The virtual resolution in force (ADR-0048, ADR-0087) when this game manages its own window: the loaded world's
     /// own declaration when it has one, otherwise the project's. Null when neither declares one or an external host
     /// (the editor) manages the views.
     /// </summary>
@@ -93,7 +94,7 @@ public class CasaEngineGame : Game, IObservableUpdate
 
     private readonly WorldVirtualResolutionState _worldVirtualResolution = new();
 
-    /// <summary>Takes the virtual resolution a newly loaded world declares, before its views are built (ADR-0086).</summary>
+    /// <summary>Takes the virtual resolution a newly loaded world declares, before its views are built (ADR-0087).</summary>
     internal void UseWorldVirtualResolution(Scene.World.World world)
         => _worldVirtualResolution.UseWorld(RuntimeContext.ProjectSettings.VirtualResolution, world?.VirtualResolution);
 
@@ -327,7 +328,7 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         if (VirtualResolutionRuntime.TryResizeBufferedView(views, width, height))
         {
-            // A buffered mode (ADR-0086): the target keeps its virtual size, the camera goes back to it, and only the
+            // A buffered mode (ADR-0087): the target keeps its virtual size, the camera goes back to it, and only the
             // presentation follows the window. Runs after World.OnScreenResized, which sized every camera to the window.
         }
         else if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
@@ -433,6 +434,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         ScrollingLayerComponent = new ScrollingLayerComponent(this);
         CellularLayerComponent = new CellularLayerComponent(this);
         EffectQuadComponent = new EffectQuadComponent(this);
+        FrozenFrameComponent = new FrozenFrameComponent(this);
         FontSystem = new FontSystem();
         UIFonts = new UIFontRegistry(AssetContentManager);
 
@@ -449,6 +451,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             Renderer2DComponent,
         }, SpriteBatch!);
         _renderPipeline.BeforeViewRender = view => PhysicsDebugViewRendererComponent.RenderForView(view);
+        _renderPipeline.Retention = FrozenFrameComponent.Retention;
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
         // targets to the pool instead of disposing them immediately.
@@ -846,7 +849,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         view.UIView?.Dispose();
         view.UIView = null;
 
-        // ADR-0086: the target a buffered default view owns goes with the view (world change, removal).
+        // ADR-0087: the target a buffered default view owns goes with the view (world change, removal).
         VirtualResolutionRuntime.ReleaseOwnedPresentation(view);
     }
 

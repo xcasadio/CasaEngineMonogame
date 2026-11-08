@@ -1,5 +1,7 @@
 # Plan agent IA — Résolution de conception par monde et rendu dans un buffer
 
+> **Renumérotation (2026-11-08).** À l'intégration d'`origin/main`, dont l'ADR-0086 enregistre l'image figée, l'ADR de ce plan est devenue ADR-0087 (avant ADR-0086). Les références de ce plan sont à jour ; les notes qui parlent d'un numéro libre gardent celui de leur date.
+
 Demande d'un projet consommateur, arbitrée avec l'auteur le 2026-11-08 : chaque écran est rendu dans un buffer à sa taille de conception, puis affiché dans la fenêtre, qui ne change pas de taille.
 Les décisions D1 → D6 ci-dessous ont été arbitrées avec l'auteur le 2026-11-08 : **ce plan les applique, il ne les rediscute pas**.
 
@@ -53,7 +55,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 | D2 | `BufferedIntegerFit` présente la cible au facteur entier k de `Compute`, échantillonnée au plus proche (`PointClamp`). `BufferedFit` la présente au plus grand facteur non entier qui tient dans la fenêtre en gardant les proportions, lissée (`LinearClamp`). Les deux remplissent les bandes en noir |
 | D3 | Un monde déclare sa résolution dans un bloc facultatif `virtual_resolution` de son `.world` : `width`, `height` et `mode`. Sans bloc, la `VirtualResolution` du projet s'applique. Le `Mode` du projet accepte aussi les deux nouveaux modes |
 | D4 | La résolution effective se fixe au chargement de chaque monde, quand les vues sont reconstruites. La fenêtre ne change pas de taille |
-| D5 | Le format change de façon additive : un ancien `.world` ou projet se charge et se rend à l'identique. ADR-0086 enregistre la décision |
+| D5 | Le format change de façon additive : un ancien `.world` ou projet se charge et se rend à l'identique. ADR-0087 enregistre la décision |
 | D6 | Rien dans ce plan, l'ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur |
 
 ## Règles d'exécution pour l'agent
@@ -98,11 +100,11 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 
 ## Phase 0 — Décision
 
-### ✅ T0.1 — ADR-0086 : résolution de conception par monde et présentation d'un buffer
+### ✅ T0.1 — ADR-0087 : résolution de conception par monde et présentation d'un buffer
 
 - Objectif : enregistrer D1 à D5 avant le code.
 - Fichiers :
-  - `docs/decisions/0086-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md` ;
+  - `docs/decisions/0087-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md` ;
   - `docs/decisions/README.md` ;
   - lignes de statut d'ADR-0048 et d'ADR-0079.
 - Étapes :
@@ -115,7 +117,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
        - ADR-0079 : une résolution de conception par monde.
        - ADR-0068 : en mode buffer, les quads libres sont dessinés au pixel de conception, puis agrandis.
        - ADR-0070 : une vue avec marges de layout reste refusée avec une résolution virtuelle, buffer compris.
-  3. Mettre à jour l'index et les lignes de statut d'ADR-0048 et d'ADR-0079 (« amended by ADR-0086 »).
+  3. Mettre à jour l'index et les lignes de statut d'ADR-0048 et d'ADR-0079 (« amended by ADR-0087 »).
 - Validation : relecture. L'ADR ne nomme aucun projet consommateur (D6). Ses liens relatifs s'ouvrent.
 - Commit : `docs(decisions): record per-world design resolution and buffered presentation`
 - Note de validation (2026-11-08) : 0086 libre dans le dossier et l'index. ADR écrite d'après le modèle, index et statuts d'ADR-0048 et d'ADR-0079 mis à jour. Aucun nom de projet consommateur ni nombre tiré de lui (D6). Arrondi du mode libre fixé dans l'ADR : taille entière par le bas, centrage comme `Compute` (O3).
@@ -322,7 +324,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   1. Résumé, exemple de bloc `virtual_resolution`, choix entre les trois modes, limites (D1, D2) et ce qui reste reporté.
 - Validation : relecture, liens relatifs ouverts, D6 respecté.
 - Commit : `docs(rendering): document per-world virtual resolution and buffered modes`
-- Note de validation (2026-11-08) : section « Résolution par monde et rendu dans un buffer (ADR-0086) » dans `docs/engine/rendering-2d-3d-spaces.md`, écrite en français comme la page : bloc, tableau des trois modes, présentation, souris, propriété de la cible, limites. La limite « une seule résolution par projet » de `docs/engine/data-driven-screens.md` est corrigée. Ligne d'index de `ai-agent/README.md` mise à jour. Contrôle D6 sur tout le diff de la branche : aucun nom de projet consommateur. Les tailles d'écran tirées de lui, qu'un premier jet des tests utilisait, sont remplacées par des tailles neutres dans un commit à part. Les commits antérieurs de la branche les contiennent encore dans leur historique.
+- Note de validation (2026-11-08) : section « Résolution par monde et rendu dans un buffer (ADR-0087) » dans `docs/engine/rendering-2d-3d-spaces.md`, écrite en français comme la page : bloc, tableau des trois modes, présentation, souris, propriété de la cible, limites. La limite « une seule résolution par projet » de `docs/engine/data-driven-screens.md` est corrigée. Ligne d'index de `ai-agent/README.md` mise à jour. Contrôle D6 sur tout le diff de la branche : aucun nom de projet consommateur. Les tailles d'écran tirées de lui, qu'un premier jet des tests utilisait, sont remplacées par des tailles neutres dans un commit à part. Les commits antérieurs de la branche les contiennent encore dans leur historique.
 
 ---
 

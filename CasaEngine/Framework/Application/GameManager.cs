@@ -133,7 +133,7 @@ public class GameManager
 
         if (_isNewWorld)
         {
-            // ADR-0086: the world's own virtual resolution is in force before its views and screens are built.
+            // ADR-0087: the world's own virtual resolution is in force before its views and screens are built.
             _game.UseWorldVirtualResolution(CurrentWorld);
 
             if (!_game.ExecutionPolicy.UseExternalViewManagement)

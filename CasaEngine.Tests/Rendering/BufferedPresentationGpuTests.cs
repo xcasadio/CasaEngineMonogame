@@ -10,7 +10,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// ADR-0086 on a real device. A scene on whole virtual pixels drawn straight at factor k, as <c>IntegerFit</c> does, and
+/// ADR-0087 on a real device. A scene on whole virtual pixels drawn straight at factor k, as <c>IntegerFit</c> does, and
 /// the same scene drawn at factor 1 into a target that a <see cref="VirtualResolutionPresenter"/> shows at factor k in
 /// <c>BufferedIntegerFit</c>, give the same pixels. <c>BufferedFit</c> fills the limiting side and leaves black bands. The
 /// test back buffer is 256x192, so the scene is 64x48 (k = 4). Skipped where no device can be created.

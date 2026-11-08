@@ -16,7 +16,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The optional <c>startup_cutscene_asset_id</c> key of a <c>.world</c> (ADR-0087): written only when an id is set,
+/// The optional <c>startup_cutscene_asset_id</c> key of a <c>.world</c> (ADR-0088): written only when an id is set,
 /// absent after a reload of a document without it, and played at the end of <c>World.BeginPlay</c> when the
 /// execution policy runs it.
 /// </summary>

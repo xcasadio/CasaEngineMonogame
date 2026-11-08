@@ -10,7 +10,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The default view of a buffered mode on a real device (ADR-0086): a render target of the virtual size, a
+/// The default view of a buffered mode on a real device (ADR-0087): a render target of the virtual size, a
 /// <see cref="VirtualResolutionPresenter"/> placed for the window, the camera at the virtual viewport and zoom 1, which a
 /// full resize keeps, and a target released on a world change. Skipped where no device can be created.
 /// </summary>

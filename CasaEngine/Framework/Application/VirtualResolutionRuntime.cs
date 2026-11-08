@@ -38,7 +38,7 @@ internal static class VirtualResolutionRuntime
     }
 
     /// <summary>
-    /// Gives the camera of a buffered view (ADR-0086) a viewport of the virtual size at zoom 1, so it frames exactly the
+    /// Gives the camera of a buffered view (ADR-0087) a viewport of the virtual size at zoom 1, so it frames exactly the
     /// target. Call it AFTER anything that sized the camera to the whole window (<c>World.OnScreenResized</c>).
     /// </summary>
     internal static void FrameBufferedCamera(CameraComponent camera, VirtualResolutionPresenter presenter)
@@ -56,7 +56,7 @@ internal static class VirtualResolutionRuntime
     }
 
     /// <summary>
-    /// The single view of a buffered mode (ADR-0086) after a window resize: the target keeps its virtual size, the
+    /// The single view of a buffered mode (ADR-0087) after a window resize: the target keeps its virtual size, the
     /// camera goes back to the virtual viewport at zoom 1 (the world sized it to the window just before), and the
     /// presenter recomputes where it shows the target. Returns false when <paramref name="views"/> is not exactly one
     /// view presented by a <see cref="VirtualResolutionPresenter"/>.
@@ -74,7 +74,7 @@ internal static class VirtualResolutionRuntime
     }
 
     /// <summary>
-    /// Releases what the default view of a buffered mode owns (ADR-0086) when that view is removed, for example by
+    /// Releases what the default view of a buffered mode owns (ADR-0087) when that view is removed, for example by
     /// <see cref="ViewManager.Clear"/> on a world change. Any other view is left as it was.
     /// </summary>
     internal static void ReleaseOwnedPresentation(RenderView view)

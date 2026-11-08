@@ -218,7 +218,7 @@ public sealed class InputRouter
                 : mouseState;
 
         var localPosition = mouseState.Position;
-        // A buffered view (ADR-0086) gives local positions in virtual pixels: its caller passes the window position.
+        // A buffered view (ADR-0087) gives local positions in virtual pixels: its caller passes the window position.
         var resolvedScreenPosition = screenPosition ?? (viewId.IsEmpty
             ? localPosition
             : new Point(screenBounds.X + localPosition.X, screenBounds.Y + localPosition.Y));
@@ -254,11 +254,11 @@ public sealed class InputRouter
             return screenBoundsHost.ScreenBounds;
         }
 
-        // ADR-0086: a buffered view is where its target is shown in the window.
+        // ADR-0087: a buffered view is where its target is shown in the window.
         return view.Presenter is VirtualResolutionPresenter presenter ? presenter.PresentedRect : view.Surface.ViewportRect;
     }
 
-    /// <summary>The mouse in view-local pixels: virtual pixels for a buffered view (ADR-0086), window pixels minus the origin otherwise.</summary>
+    /// <summary>The mouse in view-local pixels: virtual pixels for a buffered view (ADR-0087), window pixels minus the origin otherwise.</summary>
     internal static MouseState CreateLocalMouseState(MouseState screenMouseState, RenderView view, Rectangle screenBounds)
     {
         var local = view.Host == null && view.Presenter is VirtualResolutionPresenter presenter

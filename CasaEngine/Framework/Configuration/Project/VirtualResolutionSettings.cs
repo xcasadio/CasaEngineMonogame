@@ -1,6 +1,6 @@
 namespace CasaEngine.Framework.Configuration.Project;
 
-/// <summary>How a virtual resolution is scaled into the window (ADR-0048, ADR-0086).</summary>
+/// <summary>How a virtual resolution is scaled into the window (ADR-0048, ADR-0087).</summary>
 public enum VirtualResolutionMode
 {
     /// <summary>
@@ -11,13 +11,13 @@ public enum VirtualResolutionMode
 
     /// <summary>
     /// Rendered into a target of the virtual size, then shown at the largest whole factor that fits with point
-    /// sampling, the image centered, the rest of the window black (ADR-0086).
+    /// sampling, the image centered, the rest of the window black (ADR-0087).
     /// </summary>
     BufferedIntegerFit,
 
     /// <summary>
     /// Rendered into a target of the virtual size, then shown at the largest factor, whole or not, that fits while
-    /// keeping the aspect ratio, with linear sampling, the image centered, the rest of the window black (ADR-0086).
+    /// keeping the aspect ratio, with linear sampling, the image centered, the rest of the window black (ADR-0087).
     /// </summary>
     BufferedFit,
 }
@@ -25,7 +25,7 @@ public enum VirtualResolutionMode
 /// <summary>Helpers on <see cref="VirtualResolutionMode"/>.</summary>
 public static class VirtualResolutionModeExtensions
 {
-    /// <summary>True for the modes that render into a target of the virtual size before showing it (ADR-0086).</summary>
+    /// <summary>True for the modes that render into a target of the virtual size before showing it (ADR-0087).</summary>
     public static bool IsBuffered(this VirtualResolutionMode mode)
         => mode is VirtualResolutionMode.BufferedIntegerFit or VirtualResolutionMode.BufferedFit;
 }

@@ -85,7 +85,7 @@ public static class VirtualResolutionLayout
     }
 
     /// <summary>
-    /// Where a buffered mode shows its target in the window (ADR-0086), not cropped by the window:
+    /// Where a buffered mode shows its target in the window (ADR-0087), not cropped by the window:
     /// <list type="bullet">
     ///   <item><see cref="VirtualResolutionMode.BufferedIntegerFit"/>: the integer factor of <see cref="Compute"/>, image
     ///   <c>(virtual width * k) by (virtual height * k)</c>;</item>

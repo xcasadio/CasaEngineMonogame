@@ -1966,7 +1966,7 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Equal(7 * factor, window.Top);
     }
 
-    // ADR-0086: in a buffered mode the view is the target, so a screen gets the target's bounds -- the design size --
+    // ADR-0087: in a buffered mode the view is the target, so a screen gets the target's bounds -- the design size --
     // and keeps scale 1 and its XAML position, with or without ScaleUI.
     [Fact]
     public void InABufferedView_TheScreenGetsTheTargetBounds_AndKeepsScaleOne()
@@ -2053,7 +2053,7 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Equal(new[] { "quit" }, _calls);
     }
 
-    // ADR-0086: a screen in a buffered view is laid out in virtual pixels; a window click goes through the presenter's
+    // ADR-0087: a screen in a buffered view is laid out in virtual pixels; a window click goes through the presenter's
     // conversion, at an integer factor and at a free one, and reaches the button.
     [Theory]
     [InlineData(CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.BufferedIntegerFit, 960, 540)]

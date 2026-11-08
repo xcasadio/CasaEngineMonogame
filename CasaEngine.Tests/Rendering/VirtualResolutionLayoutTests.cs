@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.Rendering;
 /// </summary>
 public class VirtualResolutionLayoutTests
 {
-    // ADR-0086: where a buffered mode shows its target, not cropped by the window.
+    // ADR-0087: where a buffered mode shows its target, not cropped by the window.
     [Theory]
     [InlineData(1200, 720, 400, 240, 0, 0, 1200, 720)]
     [InlineData(1200, 720, 640, 480, 280, 120, 640, 480)]

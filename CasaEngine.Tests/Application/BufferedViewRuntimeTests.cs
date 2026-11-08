@@ -10,7 +10,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Application;
 
 /// <summary>
-/// The runtime side of a buffered view (ADR-0086) that needs no graphics device: after a window resize the camera goes
+/// The runtime side of a buffered view (ADR-0087) that needs no graphics device: after a window resize the camera goes
 /// back to the virtual viewport at zoom 1 and the presenter follows the window; the target the default view owns is
 /// released when the view is removed, including by <see cref="ViewManager.Clear"/> on a world change, and nothing else is.
 /// </summary>

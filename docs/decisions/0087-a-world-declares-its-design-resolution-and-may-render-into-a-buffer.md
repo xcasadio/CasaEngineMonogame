@@ -1,6 +1,6 @@
-# ADR-0086: A world declares its design resolution and may render into a buffer
+# ADR-0087: A world declares its design resolution and may render into a buffer
 
-- **Status**: Accepted
+- **Status**: Accepted (numbered ADR-0086 until 2026-11-08: renumbered when origin/main, whose ADR-0086 records that the engine keeps the last frame and shows it frozen, was merged into main; the decision is unchanged)
 - **Date**: 2026-11-08
 - **Source**: this chantier: `ai-agent/tasks/world-render-buffer-tasks.md` (decisions D1 to D6, settled with the author on 2026-11-08), branch `chantier/world-render-buffer`. Amends ADR-0048 and ADR-0079.
 

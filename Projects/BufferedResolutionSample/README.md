@@ -1,10 +1,10 @@
 # BufferedResolutionSample
 
-A project with no gameplay DLL whose worlds each declare their own virtual resolution (ADR-0086). Each world shows it a different way in a window that never changes size:
+A project with no gameplay DLL whose worlds each declare their own virtual resolution (ADR-0087). Each world shows it a different way in a window that never changes size:
 
 - `TitleWorld.world`: 320x180 in `BufferedIntegerFit`. The world and its title screen render into a 320x180 target, shown at the largest whole factor with point sampling and black bands. The title screen lays out and takes clicks in virtual pixels.
 - `FitWorld.world`: 200x150 in `BufferedFit`. The target is shown at the largest factor, whole or not, that keeps its proportions, with linear sampling and black bands.
-- `DirectWorld.world`: no `virtual_resolution` block, so the project's 320x180 `IntegerFit` applies: drawn straight into the window at a whole factor, as before ADR-0086.
+- `DirectWorld.world`: no `virtual_resolution` block, so the project's 320x180 `IntegerFit` applies: drawn straight into the window at a whole factor, as before ADR-0087.
 
 ## Run
 

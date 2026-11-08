@@ -42,7 +42,7 @@ public sealed class DefaultRuntimeViewBootstrapper : IRuntimeViewBootstrapper
     /// <summary>
     /// Creates the default view over the layout area of <paramref name="viewManager"/> (the whole window unless it has
     /// layout insets, ADR-0070), or -- with a virtual resolution -- over its integer-fit image (ADR-0048), the camera
-    /// framing exactly the virtual resolution. With a buffered mode (ADR-0086) the view renders into a target of the
+    /// framing exactly the virtual resolution. With a buffered mode (ADR-0087) the view renders into a target of the
     /// virtual size instead, its camera at zoom 1, and a <see cref="VirtualResolutionPresenter"/> that owns the target
     /// shows it in the window. Fitted before the view is registered so the UI runtime created on registration already
     /// sees the final rectangle.

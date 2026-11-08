@@ -239,7 +239,7 @@ A command keeps its usual rules: the top of the stack only, run in `Update`, one
 
 ## Timed screens from a cutscene
 
-A world can start a cutscene when it loads, and a cutscene can open a screen, wait a number of frames, fade the screen over a number of frames and change world, so a project with no gameplay DLL can chain timed screens from data. The decision is ADR-0087. `Projects/TimedScreenSample` is the working example: two worlds, each starting a cutscene that opens its screen, fades in, waits, fades out and loads the other world.
+A world can start a cutscene when it loads, and a cutscene can open a screen, wait a number of frames, fade the screen over a number of frames and change world, so a project with no gameplay DLL can chain timed screens from data. The decision is ADR-0088. `Projects/TimedScreenSample` is the working example: two worlds, each starting a cutscene that opens its screen, fades in, waits, fades out and loads the other world.
 
 ### The startup cutscene of a world
 
@@ -391,7 +391,7 @@ A project's mapping stops the game at one of two moments. While the game initial
 - The threshold of a stick direction such as `LeftThumbstickUp` comes from MonoGame's `GamePadState.IsButtonDown`, and has not been read.
 - Nothing edits a `.buttonsMapping` for now: it is written by hand.
 - A mistyped `FontFamily` falls back to the default font without a message: MGUI does not report it, and the layout moves with the wider font. Telling it apart needs a change in MGUI.
-- A screen follows the design resolution of the loaded world: a world may declare its own (ADR-0086), otherwise the project's applies. In a buffered mode the screen draws at scale 1 into the world's target, which is then shown in the window; `Projects/BufferedResolutionSample` shows it.
+- A screen follows the design resolution of the loaded world: a world may declare its own (ADR-0087), otherwise the project's applies. In a buffered mode the screen draws at scale 1 into the world's target, which is then shown in the window; `Projects/BufferedResolutionSample` shows it.
 - `ScaleUI` scales the window of a data-driven screen only. A screen with its own class, and the view's `UIScale`, do not change.
 - In a window smaller than the design resolution, `k` is 1 and the view shows the center of the image, while a screen draws from the view's top-left corner, so the right and the bottom of the screen are cut.
 - A window moved by a drag goes back to `Left * k`, `Top * k` at the next change of size.

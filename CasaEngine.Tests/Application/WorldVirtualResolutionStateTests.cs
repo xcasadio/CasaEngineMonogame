@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Application;
 
 /// <summary>
-/// The virtual resolution in force for the loaded world (ADR-0086): a world without a block keeps the project's
+/// The virtual resolution in force for the loaded world (ADR-0087): a world without a block keeps the project's
 /// setting, a world block keeps its size and mode with the project's <c>ScaleUI</c> (false without a project setting),
 /// a world change replaces it, and the editor has none.
 /// </summary>

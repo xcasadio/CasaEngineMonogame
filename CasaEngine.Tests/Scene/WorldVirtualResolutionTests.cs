@@ -8,7 +8,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The optional <c>virtual_resolution</c> object of a <c>.world</c> (ADR-0086): written only when the world declares it,
+/// The optional <c>virtual_resolution</c> object of a <c>.world</c> (ADR-0087): written only when the world declares it,
 /// read back with the same values, absent after a reload of a document without it, refused at load when invalid with
 /// the world and the key named, and kept by the play-mode snapshot.
 /// </summary>

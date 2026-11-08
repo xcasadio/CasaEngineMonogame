@@ -281,7 +281,7 @@ Limites : `IntegerFit` dessine droit dans le viewport du back-buffer (pas de cib
 cible sont décrits plus bas ; l'abonnement à `ClientSizeChanged` et l'effacement des bandes demandent un
 périphérique graphique et se vérifient dans un jeu qui tourne. Decisions: see ADR-0048, ADR-0054.
 
-## Résolution par monde et rendu dans un buffer (ADR-0086)
+## Résolution par monde et rendu dans un buffer (ADR-0087)
 
 Un monde peut déclarer sa propre résolution virtuelle dans son `.world`. Sans ce bloc, celle du projet s'applique :
 
@@ -319,7 +319,7 @@ un contenu sur des pixels virtuels entiers (`BufferedPresentationGpuTests`).
 Limites : `BufferedFit` est lissé, donc pas exact au pixel ; les composants dessinés après le pipeline (`Line3d`,
 `PhysicsDebug`, `Axis`) restent en coordonnées de fenêtre, par-dessus l'image présentée ; l'éditeur ignore le bloc du monde
 comme le réglage du projet, et ne l'affiche pas encore dans l'inspecteur ; l'effet des ombres sur une vue buffer n'est pas
-vérifié ; modes Fill et Stretch et couleur des bandes toujours reportés. Decision: see ADR-0086.
+vérifié ; modes Fill et Stretch et couleur des bandes toujours reportés. Decision: see ADR-0087.
 
 ---
 

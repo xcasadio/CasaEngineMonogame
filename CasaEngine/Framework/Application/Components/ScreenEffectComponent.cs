@@ -186,7 +186,7 @@ public class ScreenEffectComponent : GameComponent, IPostUIOverlay
 
     /// <summary>
     /// The scissor of the below-UI overlay, resolved in <see cref="Update"/>, outside any render pass. A view that renders
-    /// into a target, as a buffered virtual resolution does (ADR-0086), is bounded by its target. The device scissor
+    /// into a target, as a buffered virtual resolution does (ADR-0087), is bounded by its target. The device scissor
     /// read at update time belongs to the back buffer, and would cut the overlay in a window smaller than the target.
     /// A back-buffer view keeps <paramref name="deviceScissor"/>, as before.
     /// </summary>

@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
-/// Shows a view rendered into a target of its virtual size (ADR-0086). The whole back buffer is cleared to black, then
+/// Shows a view rendered into a target of its virtual size (ADR-0087). The whole back buffer is cleared to black, then
 /// the target is drawn into <see cref="PresentedRect"/>: at an integer factor with point sampling
 /// (<see cref="VirtualResolutionMode.BufferedIntegerFit"/>), or at a free factor with linear sampling
 /// (<see cref="VirtualResolutionMode.BufferedFit"/>).
@@ -61,7 +61,7 @@ public sealed class VirtualResolutionPresenter : IViewPresenter, IDisposable
 
     /// <summary>
     /// The virtual position of a window position: <c>(window - origin) * virtual size / presented size</c>, exact. The
-    /// single conversion the view manager, the input router and the UI host use for a buffered view (ADR-0086).
+    /// single conversion the view manager, the input router and the UI host use for a buffered view (ADR-0087).
     /// </summary>
     public Vector2 WindowToVirtual(Vector2 windowPosition)
     {

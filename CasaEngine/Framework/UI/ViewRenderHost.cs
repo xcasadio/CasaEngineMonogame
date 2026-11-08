@@ -69,7 +69,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
             vp = screenBoundsHost.ScreenBounds;
         }
 
-        // ADR-0086: a buffered view takes the mouse in virtual pixels, through the presenter that shows it.
+        // ADR-0087: a buffered view takes the mouse in virtual pixels, through the presenter that shows it.
         var local = view is { Host: null, Presenter: VirtualResolutionPresenter presenter }
             ? presenter.WindowToVirtualPixel(state.Position)
             : new Point(state.X - vp.X, state.Y - vp.Y);

@@ -130,6 +130,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new ViewManagerSandbox(), ThemeSceneAndViews);
         AddDemo(new UIOverlayDemo(), ThemeUI);
         AddDemo(new AudioDemo(), ThemeAudio);
+        AddDemo(new FrozenFrameDemo(), ThemeRendering);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)

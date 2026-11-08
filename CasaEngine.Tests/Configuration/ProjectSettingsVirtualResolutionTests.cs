@@ -78,7 +78,7 @@ public class ProjectSettingsVirtualResolutionTests
         });
     }
 
-    // ADR-0086: the two buffered modes are read like IntegerFit, and every mode survives a save and a load.
+    // ADR-0087: the two buffered modes are read like IntegerFit, and every mode survives a save and a load.
     [Theory]
     [InlineData("IntegerFit", VirtualResolutionMode.IntegerFit)]
     [InlineData("BufferedIntegerFit", VirtualResolutionMode.BufferedIntegerFit)]

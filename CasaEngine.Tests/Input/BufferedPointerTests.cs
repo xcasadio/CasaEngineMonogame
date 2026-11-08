@@ -11,7 +11,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Input;
 
 /// <summary>
-/// The pointer over a buffered view (ADR-0086): the presenter's rectangle is the view's place in the window, so a point
+/// The pointer over a buffered view (ADR-0087): the presenter's rectangle is the view's place in the window, so a point
 /// anywhere in the shown image -- not only inside the target's own (0,0,w,h) -- finds the view, its local position is in
 /// virtual pixels, and a point in a band finds no view. One conversion serves the view manager and the input router.
 /// </summary>

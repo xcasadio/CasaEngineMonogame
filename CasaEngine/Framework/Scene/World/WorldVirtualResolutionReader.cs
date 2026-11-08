@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.World;
 
 /// <summary>
-/// Reads the optional <c>virtual_resolution</c> object of a <c>.world</c> (ADR-0086): <c>width</c>, <c>height</c> and an
+/// Reads the optional <c>virtual_resolution</c> object of a <c>.world</c> (ADR-0087): <c>width</c>, <c>height</c> and an
 /// optional <c>mode</c>. An invalid declaration fails at load, naming the world and the key.
 /// </summary>
 internal static class WorldVirtualResolutionReader

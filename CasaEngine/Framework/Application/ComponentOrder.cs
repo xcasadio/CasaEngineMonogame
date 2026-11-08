@@ -45,7 +45,11 @@ public enum ComponentUpdateOrder
     // Same reasoning as CellularLayers - EffectQuadComponent.Update submits after the DLL has pushed this frame's effect quads to
     // its service from GameManager.UpdateWorld. The component does not sort (the sprite pass does, from each quad's sort key), so
     // its order against the other overlays does not matter - appended last purely to keep existing enum values stable.
-    EffectQuads
+    EffectQuads,
+
+    // Same reasoning as EffectQuads - FrozenFrameComponent only follows the service the DLL pushes to from GameManager.UpdateWorld
+    // (registration, retention flag, target view); it queues nothing in the sprite pass. Appended last to keep existing enum values stable.
+    FrozenFrames
 }
 
 public enum ComponentDrawOrder

@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.Cutscenes;
 /// <summary>
 /// An exception thrown by a <see cref="CutsceneDirector.Ended"/> handler is logged with its context, like a coroutine
 /// exception, and never interrupts the director: a world clear still stops every coroutine, a replacing play still
-/// starts, and a play that ends normally still completes (ADR-0087). Uses the engine's log seam
+/// starts, and a play that ends normally still completes (ADR-0088). Uses the engine's log seam
 /// (<see cref="Logs.AddLogger"/>/<see cref="Logs.Close"/>), so it runs in <see cref="ProjectEnvironmentCollection"/>.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]

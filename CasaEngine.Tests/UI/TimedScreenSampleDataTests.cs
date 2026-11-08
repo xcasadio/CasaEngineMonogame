@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.UI;
 
 /// <summary>
 /// Guards the data of Projects/TimedScreenSample, a project with no gameplay DLL whose worlds chain timed screens
-/// from their startup cutscenes (ADR-0087). Running it in the Launcher proves the timing; this proves the data
+/// from their startup cutscenes (ADR-0088). Running it in the Launcher proves the timing; this proves the data
 /// hangs together: every cutscene validates, and every id and target resolves in the sample's own catalogue.
 /// </summary>
 public class TimedScreenSampleDataTests

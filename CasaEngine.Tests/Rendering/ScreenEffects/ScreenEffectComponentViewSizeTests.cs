@@ -22,7 +22,7 @@ namespace CasaEngine.Tests.Rendering.ScreenEffects;
 /// </summary>
 public class ScreenEffectComponentViewSizeTests
 {
-    // ADR-0086: the camera of a buffered view frames the target at zoom 1, so the fade quad is the target size.
+    // ADR-0087: the camera of a buffered view frames the target at zoom 1, so the fade quad is the target size.
     [Fact]
     public void TryGetCameraViewSize_OfABufferedView_IsTheTargetSize()
     {

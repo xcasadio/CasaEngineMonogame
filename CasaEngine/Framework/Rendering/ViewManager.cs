@@ -469,7 +469,7 @@ public sealed class ViewManager
             return screenBoundsHost.ScreenBounds;
         }
 
-        // ADR-0086: a buffered view is where its target is shown in the window, not the target's own (0,0,w,h).
+        // ADR-0087: a buffered view is where its target is shown in the window, not the target's own (0,0,w,h).
         if (view.Presenter is VirtualResolutionPresenter presenter)
         {
             return presenter.PresentedRect;

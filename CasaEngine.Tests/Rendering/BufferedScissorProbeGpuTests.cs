@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// What a buffered view (ADR-0086) relies on: binding a <see cref="RenderTargetSurface"/> sets the device scissor to the
+/// What a buffered view (ADR-0087) relies on: binding a <see cref="RenderTargetSurface"/> sets the device scissor to the
 /// target, whatever the back-buffer scissor was, so the UI clips and the above-UI fade drawn into the target are bounded
 /// by the target, and restoring it gives the back-buffer scissor back. Skipped where no device can be created.
 /// </summary>
