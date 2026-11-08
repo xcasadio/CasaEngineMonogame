@@ -1,0 +1,34 @@
+{
+  "asset_infos": [
+    {
+      "id": "0eda5f07-19cb-4e2f-89e4-04fdb0279527",
+      "name": "VideoWorld",
+      "file_name": "VideoWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "40214792-4faf-440f-8a90-4eaa7947fd59",
+      "name": "PlayClip",
+      "file_name": "Cutscenes\\play.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "830c7b08-51e4-4aee-86eb-8b63be05660c",
+      "name": "ClipScreen",
+      "file_name": "Screens\\clip.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "73852b51-1541-4089-84ac-595080033a66",
+      "name": "clip",
+      "file_name": "Videos\\clip.mdecvideo",
+      "asset_type": "mdecvideo"
+    },
+    {
+      "id": "5b62b859-83e3-4d9d-9962-a735b8b94119",
+      "name": "ui-input",
+      "file_name": "ui-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
+    }
+  ]
+}

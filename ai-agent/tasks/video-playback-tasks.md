@@ -351,7 +351,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 4 — Sample, mesures et documentation
 
-### ⏳ T4.1 — Sample `Projects/VideoSample`
+### 🧪 T4.1 — Sample `Projects/VideoSample`
 
 - Objectif : D1, sans code C# de jeu.
 - Contenu :
@@ -364,6 +364,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - lancement au Launcher, avec des captures prises par un outil hors dépôt : images du clip qui changent à la cadence, saut par Submit, fin puis boucle ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(samples): add a sample that plays a synthetic MDEC clip`
+- Note : sample `Projects/VideoSample` écrit (projet sans DLL avec mapping `ui-input`, monde `VideoWorld` dont la cutscene de démarrage joue `PlayVideo` sur `ClipScreen` puis recharge le monde, `<Video IsSkippable="True">`, README) et clip synthétique de 160x112, 60 images à 15 par seconde, généré par `VideoSampleClip` (encodeur de C8) et commité. `VideoSampleDataTests` : 8 tests, dont clip commité identique octet pour octet à la sortie de l’encodeur. Build des deux .sln à 0 erreur, `CasaEngine.Tests` 5228 réussis. Launcher non lancé par cette tâche : lancement, captures, saut par Submit, fin et boucle (rechargement du monde par `ChangeWorld` sur lui-même) restent à vérifier en session principale, d’où 🧪.
 
 ### ⏳ T4.2 — Mesures et documentation
 
