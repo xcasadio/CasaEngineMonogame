@@ -91,7 +91,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 | D2 | Le fondu en images prend `from` et `to` (`[r, g, b]` ou `[r, g, b, a]`), `frames`, `layer` et `blend_mode`, comme le `fade_screen` des écrans (ADR-0081). Son résultat ne dépend pas de l'état laissé par un fondu précédent, et il peut passer au-dessus de l'UI |
 | D3 | `Ended` est levé à chaque fin d'une lecture démarrée, avec l'état final : `Completed`, `Stopped` ou `Failed`. Une exception levée par une action reste hors chantier et est écrite comme limite |
 | D4 | Le sample est neuf : `Projects/TimedScreenSample`. `Projects/BufferedResolutionSample` ne change pas |
-| D5 | Le format change de façon additive : un ancien `.world` ou `.cutscene` se charge et se joue à l'identique. ADR-0087 enregistre la décision |
+| D5 | Le format change de façon additive : un ancien `.world` ou `.cutscene` se charge et se joue à l'identique. ADR-0087 enregistre la décision. **Exception arbitrée par l'auteur le 2026-11-08 (O3, « Garder et l'écrire »)** : sur le chemin d'échec, une lecture en échec arrête ses branches restantes de `Parallel` avant de lever `Failed`, `Stop` sur une lecture en échec pas encore déroulée l'arrête et garde `Failed`, et les agents de navigation reçoivent la raison de l'échec au lieu de « Cancelled » |
 | D6 | Rien dans ce plan, l'ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur. Les données sont synthétiques |
 | D7 | Les changements restent simples et optimisés, comme dans un moteur moderne : pas d'allocation par image, aucun système parallèle aux cutscenes |
 
@@ -348,7 +348,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 
 ## Phase 3 — Vérification et recette
 
-### ⏳ T3.1 — Vérificateur neuf
+### ✅ T3.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur la branche entière. L'affirmation à vérifier :
   - C2, prouvé par les tests et par le sample ;
@@ -357,6 +357,8 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
   - D6.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of timed screen cutscenes`
+- Note : vérificateur neuf sur `147c3d64..84f7cc2c`, verdict REFUTED sur un seul point, F1 (P2, introduit en T1.3 par la session principale) : sur le chemin d'échec, une cutscene existante ne joue plus exactement comme avant (D5). Une lecture en échec arrête ses branches restantes de `Parallel` avant `Ended(Failed)` ; `Stop` sur une lecture en échec pas encore déroulée l'arrête et garde `Failed` ; les agents de navigation reçoivent la raison de l'échec au lieu de « Cancelled ». Confirmés : le temps de C2 image par image, ordre réel de `GameManager.UpdateWorld` et de `CasaEngineGame.Update` compris, C3, C4, C5, C6, C7, C8 amendé (O2), D6, builds des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5007 sur 5007, le sample. Avis A1 (P4, « au plus une fois » dans `data-driven-screens.md`) corrigé dans le commit de T2.2. Avis A2 (P4) : le sample n'a pas changé depuis les captures (`git diff 5b7ebcec 84f7cc2c -- Projects/` vide). Bloqué sur O3.
+- Note : relecture neuve de clôture sur `147c3d64..d48a8092`, après les décisions de l'auteur sur O3 (F1 gardé, exception écrite dans D5) et O2 (C8 amendé, confirmé) : CONFIRMED, aucun constat P0 à P2. Builds des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5007 sur 5007. Une sonde jetable hors dépôt a rejoué chaque cas limite de `Ended`, avec le comportement écrit. Avis P3 reporté : les lignes D3 et C8 gardent le texte approuvé (« une fois »), et l'amendement confirmé, « au plus une fois » avec deux exceptions, est écrit dans O2, dans ADR-0087 et dans la doc.
 
 ### ⏳ T3.2 — Recette de l'auteur
 
@@ -371,7 +373,8 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | `CasaEngineGame.Update` met à jour les UI des vues avant `GameManager.UpdateWorld` (`CasaEngineGame.cs:587-616`). Un écran poussé par une cutscene, comme celui de `FirstScreenName`, n'est donc mis à jour qu'à l'image suivante. T2.1 mesure s'il est dessiné vide pendant une image sous le noir. Le constat est écrit ici, sans correction dans ce plan. **Réponse (T2.1)** : pas mesurable à l'image près avec l'outil de capture (200 ms). Le code répond, et ADR-0082 l'a déjà mesuré (T7.6 du plan des marqueurs de focus) : une fenêtre poussée après la mise à jour des UI n'est dessinée qu'à partir de l'image suivante. Dans le sample, l'image du chargement est sous un noir d'environ 96 % (pas 1 sur 30 d'un fondu parti du noir opaque) : l'écran absent sur cette image ne se voit pas | T2.1 |
-| O2 | **Confirmation de l'auteur attendue.** En T1.3, la dernière puce de C8 est corrigée : une exception d'un abonné est loguée au lieu de remonter, car la première rédaction ne tenait pas pour `Stop` ni `World.Clear`. Deux règles de réentrance sont ajoutées dans ADR-0087 : un `Play` lancé par un abonné pendant un `Play` qui remplace l'emporte ; une lecture en échec arrêtée ou remplacée avant d'avoir fini de se dérouler lève `Failed` depuis `Stop` ; `Ended` est levé au plus une fois (et non exactement une fois) par lecture démarrée : un `Play` d'un abonné pendant `World.Clear` ne lève aucun `Ended` | T1.3, T2.2, T3.2 |
+| O2 | **Confirmé par l'auteur le 2026-11-08 (« Oui, je confirme »)**, après une explication des risques et une comparaison avec d'autres moteurs. Lever `Failed` quand une action lève une exception reste une suite possible, hors de ce plan. Question d'origine : En T1.3, la dernière puce de C8 est corrigée : une exception d'un abonné est loguée au lieu de remonter, car la première rédaction ne tenait pas pour `Stop` ni `World.Clear`. Deux règles de réentrance sont ajoutées dans ADR-0087 : un `Play` lancé par un abonné pendant un `Play` qui remplace l'emporte ; une lecture en échec arrêtée ou remplacée avant d'avoir fini de se dérouler lève `Failed` depuis `Stop` ; `Ended` est levé au plus une fois (et non exactement une fois) par lecture démarrée : un `Play` d'un abonné pendant `World.Clear` ne lève aucun `Ended` | T1.3, T2.2, T3.2 |
+| O3 | **Tranché le 2026-11-08 : « Garder et l'écrire »**, exception écrite dans D5 et dans ADR-0087. Question d'origine (F1 de T3.1) : D5 veut qu'une cutscene existante joue exactement comme avant. Sur le chemin d'échec, ce n'est plus le cas depuis T1.3 : une lecture en échec arrête ses branches restantes de `Parallel` avant de lever `Failed` (avant, elles continuaient) ; `Stop` sur une lecture en échec pas encore déroulée l'arrête et garde `Failed` (avant, `Stop` ne faisait rien dans ce cas) ; les agents de navigation reçoivent la raison de l'échec au lieu de « Cancelled ». Garder ces changements et les écrire dans D5, ou revenir au comportement d'avant : `Ended(Failed)` viendrait alors après la fin de la branche de `Parallel` qui bloque, ou pas du tout si le monde est effacé avant, et les branches restantes continueraient après `Ended` | T1.3, T3.1 |
 
 ## Hors périmètre
 
