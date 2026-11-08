@@ -294,7 +294,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 - Commit : `test(rendering): prove buffered integer presentation matches direct drawing`
 - Note de validation (2026-11-08) : le tampon arrière du jeu de test fait 256x192, donc la scène fait 64x48 et k vaut 4. Dessin direct au facteur 4 dans une cible de 256x192, contre dessin à l'échelle 1 dans la cible de 64x48 présentée par `VirtualResolutionPresenter` dans le tampon arrière (`GetBackBufferData`) : 0 pixel différent sur 49 152. L'image attendue contient bien le rouge, le jaune et le magenta de la scène. `BufferedFit` : 100x48 remplit la largeur, avec des bandes noires en haut et en bas. Tests réellement lancés ici, pas ignorés. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4905/4905.
 
-### 🧪 T3.2 — Sample `Projects/PixelUiSample`
+### ✅ T3.2 — Sample `Projects/PixelUiSample`
 
 - Objectif : montrer les trois modes dans un même projet.
 - Fichiers :
@@ -312,7 +312,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
     - `TitleWorld` à 960x540 : image entière, et chacun de ses 960x540 pixels dans un bloc uniforme de 3x3 ;
     - à 1000x600 : image de 960x540 en (20, 30), bandes noires, blocs de 3x3 uniformes ;
     - `FitWorld` à 960x540, par une variante de projet hors dépôt : image de x=120 à 839, toute la hauteur (720x540), bandes noires.
-  - Reste 🧪 : la recette de l'auteur au Launcher (clic sur les boutons, changement de monde, redimensionnement à la main).
+  - Recette de l'auteur au Launcher, le 2026-11-08 : « tout est OK », après deux lancements du sample : clics, changement de monde, redimensionnement à la main. Les deux journaux sont vides et les deux sorties ont le code 0.
 
 ### ✅ T3.3 — Documentation
 
