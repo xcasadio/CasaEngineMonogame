@@ -305,13 +305,15 @@ Tests: `CasaEngine.Tests/Video/` (bitstream, frame decoder and container tests o
 
 ## 4. The `Video` element
 
-In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVideo` (a subclass of `MGImage`, so it stretches and filters like an image). It asks the host for the video through `IUIAssetProvider.TryCreateVideo`; MGUI itself knows nothing about MDEC. See [Data-driven screens](data-driven-screens.md#video-and-playvideo) for the attributes.
+In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVideo` (a subclass of `MGImage`, so it stretches and filters like an image). It asks the host for the video through `IUIAssetProvider.TryCreateVideo`; MGUI itself knows nothing about MDEC. See [Data-driven screens](data-driven-screens.md#video-element-and-playvideo) for the attributes.
 
 * The element advances the video in its `UpdateSelf` by the elapsed time of the frame, so a collapsed element does not advance it.
 * When the video reaches its end by playing, it raises `Ended` once and runs the command named by `EndedCommandName`. A video that is skipped does not raise `Ended`.
 * `Skip()` raises `Skipped` once and runs `SkippedCommandName`. It works only when `IsSkippable` is true and the video is playing (resolved, not ended, not skipped); otherwise it returns false. A skipped video stops advancing and keeps the frame it was on.
 * If the host cannot resolve the source, nothing is shown and nothing plays (`IsPlaying` is false).
-* The video is disposed when `SourceName` changes and when the element is disposed.
+* The video is disposed when `SourceName` changes and when the element is disposed. `MGImage.Source` is stored but ignored: setting it neither replaces nor restarts the video.
+* A data-driven screen disposes the videos it holds with itself, when it is hidden or disposed and when it fails to load, so the texture and the open file of each player are released with the screen. An element removed from another tree is not disposed by MGUI (section 7).
+* A disposed player keeps `IsEnded` as it was, ignores `Advance` and `Restart`, and returns a null `CurrentImage`: an element that still holds it raises no `Ended` and draws nothing.
 
 ## 5. Skipping
 
@@ -330,6 +332,8 @@ Tests: `CasaEngine.Tests/UI/DataDrivenScreenVideoTests.cs`.
 
 * A screen that has no `Video` element fails the play.
 * A `Video` whose source the game could not resolve is not playing, so it does not hold the action back.
+* If the screen leaves its view's stack by another path while a video still plays (a `close_screen` action, a pop), the wait ends and the action completes.
+* The action removes the screen, which hides it and disposes its videos.
 * If the cut-scene is stopped before the end, the screen is removed anyway. When the world is cleared the views go with it and there is nothing to remove.
 
 Tests: `CasaEngine.Tests/Cutscenes/PlayVideoCutsceneActionTests.cs`. A runnable project: `Projects/VideoSample`.
@@ -343,7 +347,9 @@ Tests: `CasaEngine.Tests/Cutscenes/PlayVideoCutsceneActionTests.cs`. A runnable 
 * **Not bit-exact with the console.** psx-spx says the hardware arithmetic is not reproduced bit for bit; the engine's formulas are its own (sections 1.9 and 1.10).
 * **Decoding runs on the game thread.** Section 8 gives the cost. A late frame is skipped, not decoded.
 * **Encrypted and other BS header variants** are refused (section 1.2).
-* **Collapsed element:** it does not advance, like an animated image.
+* **Collapsed element:** it does not advance, like an animated image. A collapsed or zero-size `Video` that is not skippable never ends, and a `PlayVideo` on its screen keeps waiting; nothing times the wait out.
+* **Outside data-driven screens:** MGUI does not dispose an `MGVideo` that is removed from a tree; the host calls `Dispose` on it.
+* **No skip while the navigation is suspended:** a screen whose command waits for a fade ignores the presses of Submit and Cancel meanwhile.
 * **Editor:** the asset has no editor.
 
 ## 8. Measure

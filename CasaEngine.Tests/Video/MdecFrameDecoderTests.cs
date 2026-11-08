@@ -604,6 +604,21 @@ public class MdecFrameDecoderTests
     }
 
     [Fact]
+    public void AWordAfterALevelZeroWordPastPosition63_ThrowsAndNamesTheFrame()
+    {
+        var words = new List<ushort>();
+        AddBlock(words, 1, 0, new Ac(40, 5), new Ac(30, 0), new Ac(0, 3));
+        for (var i = 0; i < 5; i++)
+        {
+            AddBlock(words, 1, 0);
+        }
+
+        var ex = Assert.Throws<InvalidDataException>(() => Decode(words, 16, 16, frameIndex: 11));
+        Assert.Contains("frame 11", ex.Message);
+        Assert.Contains("position 63", ex.Message);
+    }
+
+    [Fact]
     public void ALevelZeroWordPastPosition63_IsIgnored()
     {
         var overflow = new List<ushort>();

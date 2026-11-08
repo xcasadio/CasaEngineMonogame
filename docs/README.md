@@ -36,7 +36,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [tilemaps-gestion-profondeur.md](engine/tilemaps-gestion-profondeur.md) — gestion moderne de la profondeur des TileMaps.
 - [particle-system-features.md](engine/particle-system-features.md) — spécification fonctionnelle du système de particules.
 - [particle-system-v1-v2-migration.md](engine/particle-system-v1-v2-migration.md) — migration particules V1 → V2.
-- [video.md](engine/video.md) — lecture de vidéos MDEC ([ADR-0089](decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)) : spécification du flux MDEC que le décodeur suit, conteneur `.mdecvideo`, lecteur, balise `<Video>`, saut, action `PlayVideo`, limites et mesure de décodage (en anglais). Le côté écrans de données est dans [data-driven-screens.md](engine/data-driven-screens.md#video-and-playvideo).
+- [video.md](engine/video.md) — lecture de vidéos MDEC ([ADR-0089](decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)) : spécification du flux MDEC que le décodeur suit, conteneur `.mdecvideo`, lecteur, balise `<Video>`, saut, action `PlayVideo`, limites et mesure de décodage (en anglais). Le côté écrans de données est dans [data-driven-screens.md](engine/data-driven-screens.md#video-element-and-playvideo).
 
 ### Physique et collision
 

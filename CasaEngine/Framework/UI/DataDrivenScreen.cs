@@ -62,8 +62,12 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
 
     private bool _isFocusWrapPending;
 
-    // The Video elements of the window, collected at load.
+    // The Video elements of the window, collected at load and disposed with the screen: each holds a player that owns
+    // a texture and an open file.
     private readonly List<MGVideo> _videos = new();
+
+    // Set when the screen leaves its stack (Hide): its videos no longer play, whatever disposes them later.
+    private bool _hasLeftTheStack;
 
     // The pairs of focus_markers, resolved at load: element, then marker.
     private readonly List<(MGElement Element, MGElement Marker)> _focusMarkers = new();
@@ -130,11 +134,13 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
             throw InvalidEnvelope(string.Join(" ", Asset.CommandFormatErrors));
         }
 
+        // First, so that a failure below still lets Dispose release the players the XAML load created.
+        CollectVideos(window);
         RegisterCommands(window);
         ResolveNavigationCommands();
         CollectFocusCandidates(window);
         CheckButtons(window);
-        CollectVideos(window);
+        CheckVideos();
         ResolveFocusMarkers(window);
         PrepareDesignScale(window);
         _isFocusWrapPending = Asset.FocusWrap != UIScreenFocusWrap.None;
@@ -210,6 +216,11 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     {
         get
         {
+            if (_hasLeftTheStack)
+            {
+                return false;
+            }
+
             for (int i = 0; i < _videos.Count; i++)
             {
                 if (_videos[i].IsPlaying)
@@ -228,6 +239,7 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// </summary>
     public override void Hide()
     {
+        _hasLeftTheStack = true;
         CloseWindow();
 
         if (_isRunningCommand)
@@ -260,6 +272,14 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         _focusMarkers.Clear();
         _markedFocus = null;
         _lastFocused = null;
+        _hasLeftTheStack = true;
+
+        for (int i = 0; i < _videos.Count; i++)
+        {
+            _videos[i].Dispose();
+        }
+
+        _videos.Clear();
         base.Dispose();
     }
 
@@ -561,12 +581,19 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
     /// A video that names a command nobody declared is refused, like a button: the command would never run, with no
     /// sign why.
     /// </summary>
+    private void CheckVideos()
+    {
+        foreach (var video in _videos)
+        {
+            CheckVideoCommand(video, "ended", video.EndedCommandName);
+            CheckVideoCommand(video, "skipped", video.SkippedCommandName);
+        }
+    }
+
     private void CollectVideos(MGWindow window)
     {
         foreach (var video in window.TraverseVisualTree<MGVideo>())
         {
-            CheckVideoCommand(video, "ended", video.EndedCommandName);
-            CheckVideoCommand(video, "skipped", video.SkippedCommandName);
             _videos.Add(video);
         }
     }

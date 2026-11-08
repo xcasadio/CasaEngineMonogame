@@ -62,18 +62,32 @@ public sealed class MdecVideoPlayer : IUIVideo
         _rgba = new byte[asset.Width * asset.Height * 4];
 
         _texture = new Texture2D(graphicsDevice, asset.Width, asset.Height, false, SurfaceFormat.Color);
-        _image = new CasaMonoGameImageResource(_texture);
-        _stream = new FileStream(asset.FileName, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.RandomAccess);
+        try
+        {
+            _image = new CasaMonoGameImageResource(_texture);
+            _stream = new FileStream(asset.FileName, FileMode.Open, FileAccess.Read, FileShare.Read, 1, FileOptions.RandomAccess);
 
-        ShowFrame(0);
+            ShowFrame(0);
+        }
+        catch
+        {
+            // The caller never gets the player, so nobody else can release what was created.
+            _stream?.Dispose();
+            _texture.Dispose();
+            throw;
+        }
     }
 
-    /// <summary>The texture, updated in place: the same instance for the whole life of the player.</summary>
-    public IUIImageResource CurrentImage => _image;
+    /// <summary>
+    /// The texture, updated in place: the same instance for the whole life of the player. Null once disposed, so that
+    /// an element still holding the player draws nothing instead of a disposed texture.
+    /// </summary>
+    public IUIImageResource CurrentImage => _isDisposed ? null : _image;
 
     /// <summary>Always null: the whole texture is the picture.</summary>
     public Rectangle? CurrentSourceRect => null;
 
+    /// <summary>True once the video reached its end or failed. Disposing the player does not change it.</summary>
     public bool IsEnded { get; private set; }
 
     /// <summary>Index of the frame currently in the texture.</summary>
@@ -157,7 +171,6 @@ public sealed class MdecVideoPlayer : IUIVideo
         }
 
         _isDisposed = true;
-        IsEnded = true;
         _stream.Dispose();
         _texture.Dispose();
         _disposed?.Invoke(this);

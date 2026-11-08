@@ -175,7 +175,8 @@ public static class MdecFrameDecoder
 
             if (finished)
             {
-                continue;
+                // Section 1.7, step 3: after a word that moved past 63, only the end-of-block word may follow.
+                throw Error(frameIndex, $"a word follows the one that moved past position 63 in block {block} of macroblock {macroblock}, before its end-of-block word");
             }
 
             var level = SignExtend10(word);

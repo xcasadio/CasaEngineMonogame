@@ -318,11 +318,11 @@ A handler may call `Play`:
 - An exception thrown by an action, for example `MoveTo` on a missing entity or a timeout, is caught by the coroutine manager, which stops the coroutine and logs it. When it comes from the root coroutine, including a `Sequence`, whose actions run inside it, the director stays `Playing` and `Ended` is not raised until a `Stop` or a world clear, which raise `Stopped`. A `Play` that replaces it raises nothing for it. When it comes from a branch of a `Parallel`, only that branch is stopped: the play goes on and can end `Completed`, with `Ended(Completed)`. This predates the actions above and is unchanged.
 - An `OpenScreen` whose screen cannot be built (an invalid envelope or XAML, see [Errors](#errors)) throws inside the action, so it falls under the limit above, not under `Failed`.
 - The screens' `fade_screen` stays in seconds, and the `FadeScreen` action in seconds is unchanged.
-- No action sets a sprite, waits for a key or loops. `PlayVideo` plays a video (see [`<Video>` and PlayVideo](#video-and-playvideo)).
+- No action sets a sprite, waits for a key or loops. `PlayVideo` plays a video (see [Video element and PlayVideo](#video-element-and-playvideo)).
 
 Tests: `CasaEngine.Tests/Cutscenes/FrameCutsceneActionsTests.cs` proves the timing above update by update, `CasaEngine.Tests/Scene/WorldStartupCutsceneTests.cs` the world key, and `CasaEngine.Tests/UI/TimedScreenSampleDataTests.cs` the data of the sample.
 
-## <Video> and PlayVideo
+## Video element and PlayVideo
 
 A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvideo`), and a cutscene can open such a screen and wait for the video to finish. The decision is ADR-0089, the container, the player and the measures are in [video.md](video.md), and `Projects/VideoSample` is the working example (a 160x112 synthetic clip, no sound).
 
@@ -342,7 +342,8 @@ A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvi
 
 - Each `Video` element gets its own player, which decodes into a texture of the clip's size. The container is described in [video.md](video.md).
 - A source the project cannot resolve (unknown name, an asset of another type, a file that cannot be opened) shows nothing and plays nothing; one warning per name is logged.
-- A collapsed `Video` does not advance.
+- A collapsed `Video` does not advance. A `Video` that is collapsed, or whose size is zero, and that is not skippable therefore never ends: a `PlayVideo` on its screen keeps waiting. Nothing times the wait out.
+- The videos of a screen are disposed with it: when the screen is hidden or disposed, and when it fails to load. Each player's texture and open file are released then, so a looping `PlayVideo` does not accumulate them.
 - A `Video` that names a command `ui_commands` does not declare is refused when the screen opens, like a button (see [Errors](#errors)).
 
 ### Skipping a video
@@ -352,6 +353,7 @@ With a `UIInputMapping` (see [The input mapping](#the-input-mapping)), each Subm
 - If at least one video was skipped, the press is consumed: no focused button is clicked and no `cancel_command` runs. The video raises its skip, and `SkippedCommandName` runs.
 - If none was skipped, nothing changes: Submit goes to the focused button, and a Cancel that nobody handled goes to the `cancel_command`.
 - Only the screen at the top is concerned. Without a mapping, no key skips a video.
+- No skip happens while the navigation is suspended (a command of the screen waits for a fade, [ADR-0081](../decisions/0081-screen-fades-and-waits-in-data-driven-commands.md)): the presses of that time are ignored.
 
 ### The `PlayVideo` action
 
@@ -369,6 +371,7 @@ At run time `PlayVideo`:
 - waits until every `Video` of the screen has ended or been skipped. A `Video` whose source could not be resolved is not playing, so it does not hold the action back;
 - removes the screen, then the next action runs;
 - fails the play, with the reason logged once, when the screen has no `Video` element;
+- stops waiting, and completes, when the screen leaves its view's stack by another path (a `close_screen` action, a pop) while a video still plays;
 - removes the screen too when the cutscene is stopped meanwhile, except when the world is cleared, whose views go with it.
 
 Chaining is plain data: `PlayVideo` then `OpenScreen` or `ChangeWorld`, as `Projects/VideoSample/Cutscenes/play.cutscene` does.

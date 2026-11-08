@@ -96,6 +96,41 @@ public class MdecBitstreamDecoderTests
             words);
     }
 
+    [Fact]
+    public void Version3_ClassSevenCodes_BothSigns_BothTables_GiveTheExpectedWords()
+    {
+        // Class 7 has 7 magnitude bits: positive = 128 + n, negative = n - 255. Scale 2 gives 0x0800 to every DC word.
+        // Cr  11111110 s=1 n=0       -> +128 -> predictor 512 (0x200)
+        // Cb  11111110 s=0 n=0       -> -255 -> -1020 -> predictor 4
+        // Y1  1111110  s=1 n=1       -> +129 -> 516 (0x204)
+        // Y2  1111110  s=0 n=127     -> -128 -> 516 - 512 = 4
+        // Y3  1111110  s=1 n=127     -> +255 -> 4 + 1020 = 1024 -> 0
+        // Y4  1111110  s=0 n=0       -> -255 -> -1020 -> 4
+        const string bits =
+            "11111110" + "1" + "0000000" + "10" +
+            "11111110" + "0" + "0000000" + "10" +
+            "1111110" + "1" + "0000001" + "10" +
+            "1111110" + "0" + "1111111" + "10" +
+            "1111110" + "1" + "1111111" + "10" +
+            "1111110" + "0" + "0000000" + "10" +
+            "1111111111";
+        var frame = MdecTestEncoder.FromBits(3, 2, bits);
+
+        var words = Decode(frame, 1);
+
+        Assert.Equal(
+            new ushort[]
+            {
+                0x0A00, Eob,
+                0x0804, Eob,
+                0x0A04, Eob,
+                0x0804, Eob,
+                0x0800, Eob,
+                0x0804, Eob,
+            },
+            words);
+    }
+
     // ---- encoder based cases ----
 
     [Theory]
@@ -346,6 +381,19 @@ public class MdecBitstreamDecoderTests
             var ex = Assert.Throws<InvalidDataException>(() => Decode(cut, 2, 42));
             Assert.Contains("frame 42", ex.Message);
         }
+    }
+
+    [Fact]
+    public void AFrameCutRightAfterADc_ReportsATruncation_NotAnInvalidCode()
+    {
+        // The DC fills ten bits of the only halfword: the six bits left are padding, too few for any AC code.
+        var frame = MdecTestEncoder.FromBits(2, 1, "0000000000");
+
+        var ex = Assert.Throws<InvalidDataException>(() => Decode(frame, 1, 5));
+
+        Assert.Contains("frame 5", ex.Message);
+        Assert.Contains("truncated", ex.Message);
+        Assert.DoesNotContain("invalid AC code", ex.Message);
     }
 
     [Fact]

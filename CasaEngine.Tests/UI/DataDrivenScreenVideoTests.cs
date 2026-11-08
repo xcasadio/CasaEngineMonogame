@@ -270,6 +270,55 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
         Assert.Equal(1, notHandled);
     }
 
+    [Fact]
+    public void HidingTheScreen_DisposesItsVideos()
+    {
+        var screen = Build("video.xaml", SkippableVideo());
+        var video = FakeVideo.Last!;
+        Open(screen);
+        Assert.False(video.IsDisposed);
+        Assert.Equal(1, screen.VideoCount);
+
+        screen.Hide();
+
+        Assert.True(video.IsDisposed);
+        Assert.Equal(0, screen.VideoCount);
+        Assert.False(screen.IsAnyVideoPlaying);
+    }
+
+    [Fact]
+    public void DisposingAScreen_ThatFailedToLoad_DisposesTheVideosItsXamlCreated()
+    {
+        File.WriteAllText(Path.Combine(_root, "video.xaml"), Markup("""<Video Name="vid" SourceName="clip" EndedCommandName="Missing" />"""));
+        var asset = new UIScreenAsset { SourceXamlFile = "video.xaml", DefaultFocus = "btnPlay" };
+        asset.UICommands.Add(Command("Play", "quit"));
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+        var video = FakeVideo.Last!;
+        Assert.False(video.IsDisposed);
+
+        screen.Dispose();
+
+        Assert.True(video.IsDisposed);
+    }
+
+    [Fact]
+    public void AScreenThatFailsBeforeItsVideosAreChecked_StillReleasesThem()
+    {
+        File.WriteAllText(Path.Combine(_root, "video.xaml"), Markup("""<Video Name="vid" SourceName="clip" />"""));
+        var asset = new UIScreenAsset { SourceXamlFile = "video.xaml", DefaultFocus = "btnPlay", CancelCommand = "Missing" };
+        asset.UICommands.Add(Command("Play", "quit"));
+        var screen = new DataDrivenScreen(asset, _envelopePath, _context);
+
+        Assert.Throws<InvalidOperationException>(() => screen.BuildWindow(_desktop));
+        var video = FakeVideo.Last!;
+
+        screen.Dispose();
+
+        Assert.True(video.IsDisposed);
+    }
+
     private static string SkippableVideo()
         => Markup("""<Video Name="vid" SourceName="clip" IsSkippable="True" />""");
 
@@ -406,8 +455,8 @@ public sealed class DataDrivenScreenVideoTests : IDisposable
 
         public void Restart() => Ends = false;
 
-        public void Dispose()
-        {
-        }
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose() => IsDisposed = true;
     }
 }

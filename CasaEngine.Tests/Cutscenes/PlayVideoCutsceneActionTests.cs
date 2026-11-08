@@ -235,6 +235,43 @@ public sealed class PlayVideoCutsceneActionTests : IDisposable
         Assert.Same(run.Screen, Assert.Single(view.Removed));
     }
 
+    [Fact]
+    public void WhenTheScreenLeavesTheStackByAnotherPath_TheWaitEnds()
+    {
+        var run = Start(out var view, """<Video Name="vid" SourceName="a" Width="50" Height="50" />""");
+        Step(run);
+        Assert.False(run.IsDone);
+
+        // Someone else removes the screen from its stack (a Close action, a Pop): the video never ends.
+        run.Screen!.Hide();
+        Step(run);
+
+        Assert.True(run.IsDone);
+        Assert.Same(run.Screen, Assert.Single(view.Removed));
+        Assert.Equal(CutsceneRuntimeState.Playing, run.Director.GetDebugSnapshot().State);
+    }
+
+    [Fact]
+    public void WhenTheActionEnds_TheScreenIsHidden_AndItsVideosAreDisposed()
+    {
+        var run = Start(out var view, """<Video Name="vid" SourceName="a" Width="50" Height="50" />""");
+        view.OnRemove = removed =>
+        {
+            _stack.RemoveBuilt(removed);
+            removed.Hide();
+        };
+        Step(run);
+        Assert.All(_videos, video => Assert.False(video.IsDisposed));
+
+        End("a");
+        Step(run);
+        Step(run);
+
+        Assert.True(run.IsDone);
+        Assert.NotEmpty(_videos);
+        Assert.All(_videos, video => Assert.True(video.IsDisposed));
+    }
+
     // ---- Helpers ----
 
     private Run Start(out ViewStub view, string content)
@@ -396,7 +433,9 @@ public sealed class PlayVideoCutsceneActionTests : IDisposable
 
         public void Restart() => Ends = false;
 
-        public void Dispose() { }
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose() => IsDisposed = true;
     }
 
     private sealed class StubRenderSurface : IRenderSurface

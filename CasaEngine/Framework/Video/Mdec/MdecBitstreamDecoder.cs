@@ -259,6 +259,13 @@ public static class MdecBitstreamDecoder
                     row = Row000000000001;
                     break;
                 default:
+                    // The peek pads with zero bits past the end: with fewer than twelve real bits left, the stream is
+                    // cut and this is no code. Skipping them reports the truncation.
+                    if (reader.BitsLeft < 12)
+                    {
+                        reader.Skip(12);
+                    }
+
                     throw Error(frameIndex, "invalid AC code (twelve zero bits)");
             }
 

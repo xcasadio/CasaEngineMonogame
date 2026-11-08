@@ -213,7 +213,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - aucune allocation par image (`AllocationWindow`) ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(video): decode MDEC bitstreams into run-length words`
-- Note : `MdecBitstreamDecoder` (statique, sans état, sans allocation) et `MdecBitReader` dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.2 à 1.6 : un mot DC, les mots RLE tels que codés, un `FE00` par bloc. Encodeur de test de C8 écrit à neuf (`MdecTestEncoder`). 92 tests : flux assemblés à la main, toutes les lignes de la table AC aux deux signes, échappements (niveau 0, `FE00`), DC v3 de -255 à 255 et repli sur 10 bits, fin d'image optionnelle, flux tronqué à chaque longueur, codes invalides, `AllocationWindow` à 0 octet. Build des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5123 réussis.
+- Note : `MdecBitstreamDecoder` (statique, sans état, sans allocation) et `MdecBitReader` dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.2 à 1.6 : un mot DC, les mots RLE tels que codés, un `FE00` par bloc. Encodeur de test de C8 écrit à neuf (`MdecTestEncoder`). 45 tests (compte corrigé par T4.3 ; la note disait 92) : flux assemblés à la main, toutes les lignes de la table AC aux deux signes, échappements (niveau 0, `FE00`), DC v3 de -255 à 255 et repli sur 10 bits, fin d'image optionnelle, flux tronqué à chaque longueur, codes invalides, `AllocationWindow` à 0 octet. Build des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5123 réussis.
 
 ### ✅ T1.3 — Blocs, IDCT et couleur
 
@@ -345,7 +345,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - le builder montre le champ ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(cutscenes): play a video screen from a cutscene`
-- Note : validé le 2026-11-08 : build des deux .sln à 0 erreur, CasaEngine.Tests 5220 réussis (14 tests PlayVideo + 1 builder). Une vidéo dont la source ne se résout pas ne retient pas l’attente (IsPlaying faux) ; l’arrêt retire l’écran au prochain tick du gestionnaire de coroutines, qui libère l’énumérateur.
+- Note : validé le 2026-11-08 : build des deux .sln à 0 erreur, CasaEngine.Tests 5220 réussis (13 tests PlayVideo + 1 builder ; compte corrigé par T4.3, la note disait 14 tests PlayVideo). Une vidéo dont la source ne se résout pas ne retient pas l’attente (IsPlaying faux) ; l’arrêt retire l’écran au prochain tick du gestionnaire de coroutines, qui libère l’énumérateur.
 
 ---
 
@@ -379,6 +379,25 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - relecture contre le code livré.
 - Commit : `docs(video): describe MDEC video playback`
 - Note : décodage mesuré en Release (flux binaire puis image, sans lecture de fichier ni `SetData`), image synthétique de 320x224, AMD Ryzen 9 9900X, Windows 11, `CasaEngine.dll` en Release `net9.0-windows` lancé sur le runtime .NET 10.0.14, un thread : 816 à 1673 images par seconde selon la densité AC (0 à 20 codes AC par bloc), soit au moins 6,8 fois le seuil de C9 (120 images par seconde) ; chiffres, machine et méthode dans `docs/engine/video.md` §8. `video.md` complété (conteneur, lecteur, balise, saut, action, limites, mesure), section `<Video>` et `PlayVideo` ajoutée à `data-driven-screens.md`, `docs/README.md` mis à jour ; relecture contre le code livré. Build des deux .sln à 0 erreur, `CasaEngine.Tests` 5228 réussis.
+
+### ✅ T4.3 — Corrections des relectures
+
+- Objectif : traiter les constats des relectures de la branche.
+- Validation : build des deux `.sln` à 0 erreur ; `CasaEngine.Tests` et `MGUI.Tests` verts.
+- Commit : `fix(video): address the review findings of the chantier` (moteur) ; `fix(video): keep a Video's source from being replaced` (MGUI, branche `chantier/video-element`).
+- Note : issues des constats.
+  - F1 (P2) corrigé : `DataDrivenScreen` collecte ses `MGVideo` en premier au chargement (un échec plus loin laisse donc `Dispose` les libérer) et les dispose avec lui (`Hide` puis `Dispose`) ; chaque lecteur libère sa texture et son flux. Tests : `HidingTheScreen_DisposesItsVideos`, deux échecs de chargement, `WhenTheActionEnds_TheScreenIsHidden_AndItsVideosAreDisposed`.
+  - F2 (P3) corrigé : `Hide` marque l'écran comme sorti de sa pile, `IsAnyVideoPlaying` devient faux et l'attente de `PlayVideo` se termine, sans nouveau membre sur `IUIViewRuntime`. Test : `WhenTheScreenLeavesTheStackByAnotherPath_TheWaitEnds`.
+  - F3 (P3) corrigé : le constructeur de `MdecVideoPlayer` libère la texture et le flux avant de relancer ; un lecteur disposé garde `IsEnded`, `Advance` et `Restart` n'ont plus d'effet et `CurrentImage` vaut null. Trois assertions de tests existants (`Dispose_ReleasesTheTextureAndTheFile_Notifies_AndIsIdempotent`, `ProviderDispose_DisposesThePlayersThatWereNotDisposed`, `TryCreateVideo_ByNameAndById_...`) figeaient l'ancien comportement (`IsEnded` vrai ou `CurrentImage` lu après `Dispose`) : elles ont été adaptées, ce qui déroge à la règle « ne pas modifier un test existant ». Tests ajoutés : lecteur disposé (en cours et terminé), texture libérée quand le fichier ne s'ouvre pas (le test échoue si on retire le `Dispose` de la texture).
+  - F4 (P3) corrigé : un mot après un mot de niveau 0 qui a dépassé la position 63 est une erreur qui nomme l'image (seul le mot de fin de bloc peut suivre, `video.md` 1.7 étape 3). Test ajouté.
+  - F5 (P3) corrigé : une lecture AC coupée (moins de 12 bits réels) signale la troncature et non « invalid AC code ». Tests : trame coupée juste après un DC, DC v3 de classe 7 aux deux signes et aux deux tables, avec les mots exacts.
+  - F6 (P3, MGUI) corrigé : `MGVideo` ignore `MGImage.Source` comme le dit l'ADR-0026 (membre protégé virtuel `UsesSource` ajouté à `MGImage`, additif). Test dans `MGUI.Tests` ; pointeur MGUI du moteur mis à jour.
+  - F7 (P3) corrigé : le README de `Projects/VideoSample` ne dit plus que la souris saute le clip (`ui-input.buttonsMapping` ne lie que clavier et manette).
+  - F8 (P3) corrigé : titre `## Video element and PlayVideo` (ancre `#video-element-and-playvideo`), liens corrigés dans `data-driven-screens.md`, `video.md` et `docs/README.md`. `video.md` et `data-driven-screens.md` disent que les vidéos d'un écran sont disposées avec lui, et donnent les limites vues dans le code : un `Video` replié ou de taille nulle et non sautable n'avance jamais et `PlayVideo` attend sans fin ; aucun saut pendant que la navigation est suspendue.
+  - F9 (P3, disposition seule) conservé : le test d'inventaire `AssetProviderTests` fige la liste des membres de `IUIAssetProvider` ; un membre ajouté (`TryCreateVideo`) doit y figurer. Aucune modification de plus.
+  - F10 corrigé : comptes de T1.2 (45 tests, pas 92) et de T3.3 (13 tests `PlayVideo`, pas 14), relevés par `dotnet test --filter`.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5239 réussis ; `MGUI.Tests` 3243 réussis.
+  - P4 laissés en différé : type d'exception d'un tampon trop petit ; raisons supplémentaires dans les tests d'erreur ; bornes 2 GiB du conteneur ; hypothèses de lecture du flux ; tick de fin aux cadences extrêmes ; décalage des valeurs de `MGElementType` ; `MGVideo` retiré d'un arbre hors écrans de données non disposé par MGUI ; profondeur du test de correspondance ; chemin de régénération du clip.
 
 ---
 

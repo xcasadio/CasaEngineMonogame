@@ -302,7 +302,6 @@ public class MdecVideoPlayerTests : IDisposable
             player.Dispose();
 
             Assert.True(image.IsDisposed);
-            Assert.True(player.IsEnded);
             Assert.Equal(1, notified);
 
             player.Advance(TimeSpan.FromSeconds(1));
@@ -312,6 +311,86 @@ public class MdecVideoPlayerTests : IDisposable
             File.Delete(path);
             Assert.False(File.Exists(path));
         });
+    }
+
+    [GpuFact]
+    public void ADisposedPlayer_KeepsIsEndedUnchanged_AdvancesNothing_AndShowsNoImage()
+    {
+        var path = WriteVideo(4, 10, 1);
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var player = new MdecVideoPlayer(GpuDeviceHost.Instance.GraphicsDevice, MdecVideoAsset.Load(path));
+            player.Advance(TimeSpan.FromMilliseconds(150));
+            var decoded = player.DecodedFrameCount;
+            var frame = player.CurrentFrameIndex;
+
+            player.Dispose();
+
+            Assert.False(player.IsEnded);
+            Assert.Null(player.CurrentImage);
+
+            player.Advance(TimeSpan.FromSeconds(10));
+            player.Restart();
+
+            Assert.False(player.IsEnded);
+            Assert.Equal(decoded, player.DecodedFrameCount);
+            Assert.Equal(frame, player.CurrentFrameIndex);
+        });
+    }
+
+    [GpuFact]
+    public void ADisposedPlayer_OfAnEndedVideo_StaysEnded()
+    {
+        var path = WriteVideo(2, 10, 1);
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var player = new MdecVideoPlayer(GpuDeviceHost.Instance.GraphicsDevice, MdecVideoAsset.Load(path));
+            player.Advance(TimeSpan.FromSeconds(10));
+            Assert.True(player.IsEnded);
+
+            player.Dispose();
+
+            Assert.True(player.IsEnded);
+        });
+    }
+
+    [GpuFact]
+    public void Constructor_WhenTheFileCannotBeOpened_DisposesTheTextureItCreated()
+    {
+        var path = WriteVideo(2, 10, 1);
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var device = GpuDeviceHost.Instance.GraphicsDevice;
+            var asset = MdecVideoAsset.Load(path);
+            File.Delete(path);
+            var before = LiveTextureCount(device);
+
+            Assert.ThrowsAny<IOException>(() => new MdecVideoPlayer(device, asset));
+
+            Assert.Equal(before, LiveTextureCount(device));
+        });
+    }
+
+    // The device keeps weak references to its resources: the textures it still has that nobody disposed. No collection
+    // runs here, since a collected texture would hide a leak.
+    private static int LiveTextureCount(GraphicsDevice device)
+    {
+        var field = typeof(GraphicsDevice).GetField("_resources", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        var resources = (System.Collections.IEnumerable)field.GetValue(device)!;
+        var count = 0;
+        lock (resources)
+        {
+            foreach (var entry in resources)
+            {
+                if (((WeakReference)entry).Target is Texture2D { IsDisposed: false })
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
     private sealed class VideoLoader : IAssetLoader
@@ -389,8 +468,9 @@ public class MdecVideoPlayerTests : IDisposable
             Assert.Equal(0, ((MdecVideoPlayer)byId).CurrentFrameIndex);
             Assert.Equal(1, loader.Loads); // one container per asset, shared by the three players
 
+            var nameImage = byName.CurrentImage;
             byName.Dispose();
-            Assert.True(byName.CurrentImage.IsDisposed);
+            Assert.True(nameImage.IsDisposed);
             Assert.False(byId.CurrentImage.IsDisposed);
         });
     }
@@ -434,11 +514,12 @@ public class MdecVideoPlayerTests : IDisposable
         {
             var provider = NewProvider(NewManager(GpuDeviceHost.Instance.GraphicsDevice, new VideoLoader(path)));
             Assert.True(provider.TryCreateVideo("intro", out var video));
+            var image = video.CurrentImage;
 
             provider.Dispose();
 
-            Assert.True(video.CurrentImage.IsDisposed);
-            Assert.True(video.IsEnded);
+            Assert.True(image.IsDisposed);
+            Assert.Null(video.CurrentImage);
         });
     }
 }

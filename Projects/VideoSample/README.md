@@ -14,12 +14,12 @@ Show the whole chain of the video feature with no code of the game:
 
 The project declares the `ui-input` mapping (`UIInputMapping`).
 
-| Action | Keyboard | Game pad | Mouse |
-|---|---|---|---|
-| Submit: skip the clip, then the sample loops | Z | A | Left button |
-| Cancel: skip the clip | X | B | |
+| Action | Keyboard | Game pad |
+|---|---|---|
+| Submit: skip the clip, then the sample loops | Z | A |
+| Cancel: skip the clip | X | B |
 
-Close the window to leave.
+The mouse is bound to nothing: `ui-input.buttonsMapping` gives each action a keyboard key and a game pad button only, so a click does not skip the clip. Close the window to leave.
 
 ## Run
 
