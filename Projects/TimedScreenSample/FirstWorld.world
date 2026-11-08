@@ -1,0 +1,80 @@
+{
+  "id": "32da3ca4-48f2-453d-a6ed-cbfbf1f26930",
+  "name": "FirstWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "249e8157-7344-4e8c-8cd5-65ca1a062f45",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera2dComponent",
+          "type": "Camera2dComponent",
+          "coordinates": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 10
+            },
+            "scale": {
+              "x": 1,
+              "y": 1,
+              "z": 1
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "children_component": [],
+          "view_distance": 0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 200,
+            "h": 150,
+            "min_depth": 1,
+            "max_depth": 1000
+          },
+          "target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "zoom": 1,
+          "pixel_snap": false
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 1,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    }
+  ],
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000",
+  "environment": {
+    "type": "None",
+    "background_mode": "SolidColor",
+    "background_color": {
+      "r": 150,
+      "g": 80,
+      "b": 30,
+      "a": 255
+    }
+  },
+  "startup_cutscene_asset_id": "11e8363c-0e16-4f5e-8a09-5ac78b803a86",
+  "virtual_resolution": {
+    "width": 200,
+    "height": 150,
+    "mode": "BufferedFit"
+  }
+}

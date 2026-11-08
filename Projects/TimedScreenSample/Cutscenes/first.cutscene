@@ -1,0 +1,78 @@
+{
+  "id": "11e8363c-0e16-4f5e-8a09-5ac78b803a86",
+  "name": "First Cutscene",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "FadeScreenFrames",
+        "from": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "to": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "frames": 0,
+        "layer": "AboveUI",
+        "blend_mode": "AlphaBlend"
+      },
+      {
+        "type": "OpenScreen",
+        "target": "FirstScreen"
+      },
+      {
+        "type": "FadeScreenFrames",
+        "from": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "to": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "frames": 30,
+        "layer": "AboveUI",
+        "blend_mode": "AlphaBlend"
+      },
+      {
+        "type": "WaitFrames",
+        "frames": 90
+      },
+      {
+        "type": "FadeScreenFrames",
+        "from": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "to": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "frames": 30,
+        "layer": "AboveUI",
+        "blend_mode": "AlphaBlend"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "SecondWorld.world"
+      }
+    ]
+  }
+}

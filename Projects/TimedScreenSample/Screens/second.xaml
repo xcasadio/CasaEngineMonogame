@@ -1,0 +1,6 @@
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+        Left="40" Top="60" Width="240" Height="60" WindowStyle="None" IsCloseButtonVisible="False" CanCloseWindow="False">
+  <StackPanel Orientation="Vertical" Spacing="6" Padding="8">
+    <TextBlock Name="lblWorld" FontFamily="pixel-block" Foreground="White" Text="SECOND WORLD" />
+  </StackPanel>
+</Window>

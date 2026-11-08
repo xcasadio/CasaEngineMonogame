@@ -1,0 +1,15 @@
+{
+  "id": "9b8c3b39-21f7-4467-8385-0fab8afe5310",
+  "name": "FirstScreen",
+  "source_xaml_file": "first.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 320,
+    "y": 180
+  },
+  "resource_files": [],
+  "fonts": [
+    "pixel-block"
+  ],
+  "ui_commands": []
+}

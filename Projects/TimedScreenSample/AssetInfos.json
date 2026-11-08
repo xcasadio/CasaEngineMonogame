@@ -1,0 +1,52 @@
+{
+  "asset_infos": [
+    {
+      "id": "32da3ca4-48f2-453d-a6ed-cbfbf1f26930",
+      "name": "FirstWorld",
+      "file_name": "FirstWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "8104813e-5fbc-432f-8463-45ecbb441ea0",
+      "name": "SecondWorld",
+      "file_name": "SecondWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "11e8363c-0e16-4f5e-8a09-5ac78b803a86",
+      "name": "FirstCutscene",
+      "file_name": "Cutscenes\\first.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "ddf71370-d9ca-4ca2-a79a-fc1e9c783409",
+      "name": "SecondCutscene",
+      "file_name": "Cutscenes\\second.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "9b8c3b39-21f7-4467-8385-0fab8afe5310",
+      "name": "FirstScreen",
+      "file_name": "Screens\\first.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "dc61a5f4-9445-45e8-8a55-1c2246b4106a",
+      "name": "SecondScreen",
+      "file_name": "Screens\\second.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
+      "id": "954422b0-79e8-447b-8e94-71accdfeb9cc",
+      "name": "pixel-block",
+      "file_name": "Fonts\\pixel-block.fnt",
+      "asset_type": "fnt"
+    },
+    {
+      "id": "b3a307f7-6c1c-4cb6-b1e8-ed63f4adabf1",
+      "name": "pixel-block-page",
+      "file_name": "Fonts\\pixel-block.png",
+      "asset_type": "png"
+    }
+  ]
+}

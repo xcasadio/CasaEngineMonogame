@@ -306,7 +306,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample `Projects/TimedScreenSample`
+### ✅ T2.1 — Sample `Projects/TimedScreenSample`
 
 - Objectif : montrer D1 sans code C# de jeu. Le second monde ouvre aussi son écran, ce que seul `FirstScreenName` permettait avant.
 - Fichiers :
@@ -332,6 +332,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
     - une fenêtre de taille inchangée ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(samples): add a sample whose worlds chain timed screens from data`
+- Note : sample `Projects/TimedScreenSample` écrit (deux mondes, deux cutscenes, deux écrans, police copiée, README) et `TimedScreenSampleDataTests` ajouté (8 tests : cutscenes valides sans erreur, `startup_cutscene_asset_id` au catalogue, cibles `OpenScreen`/`ChangeWorld` résolues, mondes bouclant l'un sur l'autre, projet sans DLL ni `FirstScreenName`, écrans construits en mode strict). Build des deux `.sln` à 0 erreur ; `CasaEngine.Tests` : 5007 réussis, 0 échec. Suite en session principale : deux défauts mineurs de la relecture corrigés (écran du premier monde ramené dans 200x150, `Left` 20 et `Width` 160 ; une entité `Camera2dComponent` par monde, comme dans `BufferedResolutionSample`). Launcher, fenêtre 960x540 : 48 captures toutes les 200 ms, analysées par un script hors dépôt. Premier monde en `BufferedFit` : image 720x540 entre deux bandes noires (25 % de noir), texte « FIRST WORLD ». Noir complet entre les mondes. Second monde en `IntegerFit` k = 3, plein cadre, texte « SECOND WORLD ». Retour au premier, trois cycles complets, fondus visibles en valeurs intermédiaires, fenêtre restée à 960x540, aucun avertissement dans la sortie du Launcher. `TimedScreenSampleDataTests` et `ProjectScreenAssetTests` : 22 sur 22 après les corrections. O1 : réponse dans « Points ouverts ».
 
 ### ⏳ T2.2 — Documentation
 
@@ -368,7 +369,8 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | `CasaEngineGame.Update` met à jour les UI des vues avant `GameManager.UpdateWorld` (`CasaEngineGame.cs:587-616`). Un écran poussé par une cutscene, comme celui de `FirstScreenName`, n'est donc mis à jour qu'à l'image suivante. T2.1 mesure s'il est dessiné vide pendant une image sous le noir. Le constat est écrit ici, sans correction dans ce plan | T2.1 |
+| O1 | `CasaEngineGame.Update` met à jour les UI des vues avant `GameManager.UpdateWorld` (`CasaEngineGame.cs:587-616`). Un écran poussé par une cutscene, comme celui de `FirstScreenName`, n'est donc mis à jour qu'à l'image suivante. T2.1 mesure s'il est dessiné vide pendant une image sous le noir. Le constat est écrit ici, sans correction dans ce plan. **Réponse (T2.1)** : pas mesurable à l'image près avec l'outil de capture (200 ms). Le code répond, et ADR-0082 l'a déjà mesuré (T7.6 du plan des marqueurs de focus) : une fenêtre poussée après la mise à jour des UI n'est dessinée qu'à partir de l'image suivante. Dans le sample, l'image du chargement est sous un noir d'environ 96 % (pas 1 sur 30 d'un fondu parti du noir opaque) : l'écran absent sur cette image ne se voit pas | T2.1 |
+| O2 | **Confirmation de l'auteur attendue.** En T1.3, la dernière puce de C8 est corrigée : une exception d'un abonné est loguée au lieu de remonter, car la première rédaction ne tenait pas pour `Stop` ni `World.Clear`. Deux règles de réentrance sont ajoutées dans ADR-0087 : un `Play` lancé par un abonné pendant un `Play` qui remplace l'emporte ; une lecture en échec arrêtée ou remplacée avant d'avoir fini de se dérouler lève `Failed` depuis `Stop` | T1.3, T3.2 |
 
 ## Hors périmètre
 
