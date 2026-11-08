@@ -57,6 +57,8 @@ supplémentaire, il ne fait que ramper entre les deux valeurs qu'on lui donne.
 
 `Update(elapsedSeconds)` avance la rampe ; sans rampe en cours, c'est un no-op sans allocation.
 
+`StartFadeFrames(…, int frames, blend)` ajoute une rampe comptée en appels d'`Update` : le pas k donne l'interpolation par k / `frames`, le pas `frames` pose la cible exacte, quel que soit le temps écoulé. `StartFade`, `SetOverlay` et `Clear` l'annulent. Elle sert l'action de cutscene `FadeScreenFrames` ; voir [data-driven-screens.md](data-driven-screens.md#timed-screens-from-a-cutscene) (ADR-0087).
+
 ### 2.1 Alpha channel (`A`, byte)
 
 `ScreenEffectService` also carries an alpha channel, `A` (byte, default `255` — fully opaque, the

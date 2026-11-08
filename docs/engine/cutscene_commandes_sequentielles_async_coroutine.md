@@ -98,6 +98,8 @@ Résultat : build OK ; warnings existants hors scope sur le repo
 
 Conséquence importante : une cutscene peut déjà être chargée, validée, jouée, arrêtée et inspectée, et elle peut maintenant déplacer visiblement un acteur si l’entité ciblée possède un `CharacterControllerComponent`. En revanche, le runtime cutscene n’utilise pas encore la navigation calculée (`NavigationAgentComponent` / `GridPathfinder2D`) et ne couvre ni caméra, ni dialogue, ni input, ni flags gameplay.
 
+Ajout de l’ADR-0087 : un monde lance une cutscene au chargement (clé `.world` `startup_cutscene_asset_id`), quatre actions `WaitFrames`, `FadeScreenFrames`, `OpenScreen` et `ChangeWorld` (une image y est une mise à jour du jeu), et l’événement `CutsceneDirector.Ended`, levé au plus une fois par lecture démarrée (exceptions : voir la section) avec l’état final `Completed`, `Stopped` ou `Failed`. Le détail est dans la section « Timed screens from a cutscene » de [data-driven-screens.md](data-driven-screens.md#timed-screens-from-a-cutscene).
+
 ---
 
 ## Bindings d’entités actuels et limites V2

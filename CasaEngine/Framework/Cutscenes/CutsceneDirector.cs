@@ -29,7 +29,7 @@ public sealed class CutsceneDirector
     }
 
     /// <summary>
-    /// Raised once per started play, after the state is set: with Completed or Failed when the play finishes,
+    /// Raised at most once per started play (see the exceptions below), after the state is set: with Completed or Failed when the play finishes,
     /// with Stopped when a running play is stopped (including by <c>World.Clear</c> or a replacing <see cref="Play"/>).
     /// A play of an invalid asset starts nothing and raises nothing.
     /// Failed is raised once the play unwinds to its end, after every branch it still runs is stopped, or when a failed
@@ -38,6 +38,9 @@ public sealed class CutsceneDirector
     /// the director; it is rethrown only when <see cref="CoroutineManager.ThrowCoroutineExceptionsInDebug"/> is set.
     /// A handler may call <see cref="Play"/>: when it does so while a replacing <see cref="Play"/> stops the previous
     /// play, the play started by the handler stands and the replacing call starts nothing.
+    /// A <see cref="Play"/> started by a handler while <c>World.Clear</c> runs does not run, because the clear stops every
+    /// coroutine: no Ended is raised for it, and the director stays Playing with <see cref="IsPlaying"/> false until a later
+    /// <see cref="Stop"/> raises Stopped.
     /// </summary>
     public event EventHandler<CutsceneEndedEventArgs> Ended;
 

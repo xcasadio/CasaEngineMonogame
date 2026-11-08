@@ -237,6 +237,91 @@ Repeat follows the game time, checked once a frame, so a real interval is rounde
 
 A command keeps its usual rules: the top of the stack only, run in `Update`, one at a time. A click, a Submit or a Cancel already waiting on that frame takes precedence over a move, which is then dropped.
 
+## Timed screens from a cutscene
+
+A world can start a cutscene when it loads, and a cutscene can open a screen, wait a number of frames, fade the screen over a number of frames and change world, so a project with no gameplay DLL can chain timed screens from data. The decision is ADR-0087. `Projects/TimedScreenSample` is the working example: two worlds, each starting a cutscene that opens its screen, fades in, waits, fades out and loads the other world.
+
+### The startup cutscene of a world
+
+The optional `.world` key `startup_cutscene_asset_id` holds the id of a `.cutscene` asset, read into `World.StartupCutsceneAssetId`:
+
+```json
+"startup_cutscene_asset_id": "11e8363c-0e16-4f5e-8a09-5ac78b803a86"
+```
+
+- A world without the key has `Guid.Empty`, also when it is loaded again over a world that had an id. The key is written only when an id is set, so an existing `.world` is unchanged.
+- The cutscene is read as a copy (`LoadCopy<CutsceneAsset>`) and played at the end of `World.BeginPlay`. `BeginPlay` does nothing when the execution policy's `RunBeginPlay` is false, so the cutscene plays in the game and in the editor's simulation, and not in the editor's preview.
+- In `GameManager.UpdateWorld`, `BeginPlay` runs before `OpenFirstScreen` and before the world's first update, so the first action of the cutscene runs in the update that loads the world, after the first screen has opened.
+- An id the project does not have throws an `InvalidOperationException` naming the world and the id.
+- An invalid cutscene does not throw: an error naming the world and the validator's messages is logged once, and the world runs without it.
+- The world inspector does not show the key.
+
+### Actions
+
+Four actions join `Wait`, `FadeScreen` and the others in a `.cutscene`. Every field below is required. A field that is missing or malformed is a validation error that names the action and the field, and a cutscene with a validation error does not play.
+
+```json
+{ "type": "WaitFrames", "frames": 90 }
+{ "type": "FadeScreenFrames", "from": [0, 0, 0, 255], "to": [0, 0, 0, 0], "frames": 30, "layer": "AboveUI", "blend_mode": "AlphaBlend" }
+{ "type": "OpenScreen", "target": "FirstScreen" }
+{ "type": "ChangeWorld", "target": "SecondWorld.world" }
+```
+
+| `type` | Fields | Fails validation when |
+|---|---|---|
+| `WaitFrames` | `frames` | `frames` is missing, not an integer or negative |
+| `FadeScreenFrames` | `from`, `to`, `frames`, `layer`, `blend_mode` | a colour is not `[r, g, b]` or `[r, g, b, a]` of integers from 0 to 255, `layer` or `blend_mode` is not an exact name of `ScreenEffectLayer` (`BelowUI`, `AboveUI`) or `SpriteBlendMode` (`Opaque`, `AlphaBlend`, `Additive`, `Subtractive`), or `frames` is missing, not an integer or negative |
+| `OpenScreen` | `target`: a screen asset name or id | `target` is missing, empty, blank or not text |
+| `ChangeWorld` | `target`: a world file name, as written in the catalogue | `target` is missing, empty, blank or not text |
+
+Without the fourth value a colour has an alpha of 255, like the `fade_screen` of a screen.
+
+At run time:
+
+- `OpenScreen` pushes the data-driven screen on the active UI view, like `FirstScreenName`, and leaves the open-once rule of `FirstScreenName` alone. Under external view management, in the editor, it opens nothing, logs it and completes.
+- `OpenScreen` fails the play when the project has no such screen, when no active view hosts a UI, or when the world has no game. `ChangeWorld` fails the play when the project has no such world, or when the world has no game. The reason is logged once as an error, the director's state becomes `Failed`, and `Ended` is raised.
+- `ChangeWorld` requests the world with `GameManager.SetWorldToLoad` and completes at once. The world changes at the next `UpdateWorld`. If the cutscene still plays then, clearing the old world stops it and `Ended` is raised with `Stopped`. It has no guard for the editor's simulation.
+- `FadeScreenFrames` completes at once when the game has no screen effect service.
+
+### Timing
+
+A frame is one game update (`Game.Update`): the world update, then the components. The frame-counted actions ignore the elapsed time and `TimeScale`. On a display that runs more updates per second, they last less in seconds: that is the intent, and the count is what stays exact.
+
+For an action reached at update U, with N frames:
+
+- `WaitFrames`: the next action runs at U+N. With N = 0 it runs at U.
+- `FadeScreenFrames`: the action sets `layer` and starts the ramp during update U, unlike `FadeScreen`, which starts one update later and does not set the layer. For k from 1 to N, the value drawn at U+k-1 is `Lerp(from, to, k/N)`, rounded like the ramp in seconds. `from` is frame 0 and is never drawn. The target is drawn exactly from U+N-1, and the next action runs at U+N. With N = 0 the target is set at once and the next action runs at U.
+
+The service behind it is `ScreenEffectService.StartFadeFrames`, which advances one step per `Update` call whatever the elapsed time. `StartFade`, `SetOverlay` and `Clear` cancel it. The service belongs to the game, not to the world, so an overlay left by a fade outlives `ChangeWorld`, as for the `fade_screen` of a screen: a fade to black before a world change stays black in the next world until something changes it. Each cutscene of the sample starts with a `FadeScreenFrames` of 0 frames that sets the overlay.
+
+A screen opened by `OpenScreen` is pushed during `UpdateWorld`, after the UI views have updated. By the same order as the first screen and as `open_screen`, whose window ADR-0082 measured as drawn from the next frame, it is first updated and drawn on the next frame (see [Limits](#limits)). This follows from the code and has not been measured frame by frame for `OpenScreen`.
+
+### The end of a play
+
+`CutsceneDirector.Ended` is an `EventHandler<CutsceneEndedEventArgs>`. The arguments carry `State` and `Asset`. It is raised at most once per started play, after the state is set, so `GetDebugSnapshot().State` already equals `State`. Two started plays raise none: a `Play` started by a handler during `World.Clear` (below), and a play whose root coroutine was stopped by an action exception and that a `Play` replaces (see "Known limits"). The states:
+
+- `Completed` when the play runs to its end.
+- `Failed` when an action reported a failure (`OpenScreen`, `ChangeWorld`, `NavigateTo`), once the play has unwound to its end. Unwinding can wait: a `Parallel` keeps waiting for the branch it is blocked on until that branch finishes by itself. Every branch the failed play still runs is then stopped, and `Failed` is raised. A failed play that is stopped or replaced before it unwound raises `Failed` from `Stop`.
+- `Stopped` when `Stop` stops a play in progress. That includes `World.Clear`, through `RuntimeSystems.Clear`, and a `Play` that replaces a play in progress.
+
+A `Play` of an invalid asset starts nothing and raises nothing, and a `Stop` after the end raises nothing.
+
+An exception thrown by a handler is logged with the cutscene and the state, like a coroutine exception, and does not interrupt `Stop`, a replacing `Play` or `World.Clear`. It is rethrown only when `CoroutineManager.ThrowCoroutineExceptionsInDebug` is set.
+
+A handler may call `Play`:
+
+- during a replacing `Play`, the play the handler started stands and the replacing call starts nothing;
+- during `World.Clear`, the new play does not run, because the clear stops every coroutine of the world, and no `Ended` is raised for it. The director stays `Playing` with `IsPlaying` false: a later `Stop` raises `Stopped` for it, and a later `Play` replaces it without raising anything. Every engine caller discards the cleared world.
+
+### Known limits
+
+- An exception thrown by an action, for example `MoveTo` on a missing entity or a timeout, is caught by the coroutine manager, which stops the coroutine and logs it. When it comes from the root coroutine, including a `Sequence`, whose actions run inside it, the director stays `Playing` and `Ended` is not raised until a `Stop` or a world clear, which raise `Stopped`. A `Play` that replaces it raises nothing for it. When it comes from a branch of a `Parallel`, only that branch is stopped: the play goes on and can end `Completed`, with `Ended(Completed)`. This predates the actions above and is unchanged.
+- An `OpenScreen` whose screen cannot be built (an invalid envelope or XAML, see [Errors](#errors)) throws inside the action, so it falls under the limit above, not under `Failed`.
+- The screens' `fade_screen` stays in seconds, and the `FadeScreen` action in seconds is unchanged.
+- No action sets a sprite, waits for a key, loops or plays a video.
+
+Tests: `CasaEngine.Tests/Cutscenes/FrameCutsceneActionsTests.cs` proves the timing above update by update, `CasaEngine.Tests/Scene/WorldStartupCutsceneTests.cs` the world key, and `CasaEngine.Tests/UI/TimedScreenSampleDataTests.cs` the data of the sample.
+
 ## Errors
 
 Invalid data throws an `InvalidOperationException` when the screen opens, naming the envelope and the problem:
@@ -268,9 +353,9 @@ A project's mapping stops the game at one of two moments. While the game initial
 ## Limits
 
 - Actions are edited by hand in the JSON: the editor has no panel for them.
-- A world does not open a screen when it loads. `FirstScreenName` runs once.
+- `FirstScreenName` runs once, on the first world. A world loaded later opens a screen from its startup cutscene, see [Timed screens from a cutscene](#timed-screens-from-a-cutscene).
 - A marker of `focus_markers` jumps with the focus, nothing slides it, and it stays hidden until a focus arrives. With `default_focus`, that is the third `Update` after the load. Without it, a first screen gets no focus before the first key or gamepad press or a click: MGUI's input mode starts as Pointer, and MGUI gives no focus in that mode.
-- Without a mapping, a button held through a `change_world` counts as a new press on the next world: the world builds a new `UIRoot`, whose input tracker starts from nothing. Reaching this needs a screen pushed by code on that world, because `FirstScreenName` runs once. A mapping ignores a held input at its creation.
+- Without a mapping, a button held through a `change_world` counts as a new press on the next world: the world builds a new `UIRoot`, whose input tracker starts from nothing. Reaching this needs a screen opened on a later world, by code or by the `OpenScreen` action of its startup cutscene. A mapping ignores a held input at its creation.
 - No action removes a fade. Its overlay outlives `change_world` and stays on the last value, so a list that fades out ends on a world that stays hidden. `Projects/PixelUiSample` goes to a black world for that reason. `layer` also stays on the service.
 - A `BelowUI` fade started by the `on_open_command` of a first screen stacks two quads on frame 1: in that layer `ScreenEffectComponent` submits one per `Update`, frame 1 has two, and the sprite queue only empties when it is drawn. Measured in the Launcher on both kinds of step, two runs each: 2 quads on frame 1, then 1. Both carry `from`, so from reading the code a value that does not saturate is applied twice on that frame. `AboveUI` draws one.
 - A `play_sound` in the `on_open_command` of a first screen starts before the window is shown: the command runs in the Update MonoGame runs before its loop, and the loop is what shows the window. The discard of ADR-0082 holds the game clock, not the audio. In the Launcher, two runs, the action ran 389 and 404 ms before frame 1 was presented. When the sound is heard has not been measured.
