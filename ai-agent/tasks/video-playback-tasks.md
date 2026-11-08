@@ -366,7 +366,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Commit : `feat(samples): add a sample that plays a synthetic MDEC clip`
 - Note : sample `Projects/VideoSample` écrit (projet sans DLL avec mapping `ui-input`, monde `VideoWorld` dont la cutscene de démarrage joue `PlayVideo` sur `ClipScreen` puis recharge le monde, `<Video IsSkippable="True">`, README) et clip synthétique de 160x112, 60 images à 15 par seconde, généré par `VideoSampleClip` (encodeur de C8) et commité. `VideoSampleDataTests` : 8 tests, dont clip commité identique octet pour octet à la sortie de l’encodeur. Build des deux .sln à 0 erreur, `CasaEngine.Tests` 5228 réussis. Launcher non lancé par cette tâche : lancement, captures, saut par Submit, fin et boucle (rechargement du monde par `ChangeWorld` sur lui-même) restent à vérifier en session principale, d’où 🧪.
 
-### ⏳ T4.2 — Mesures et documentation
+### ✅ T4.2 — Mesures et documentation
 
 - Objectif : C9, et la documentation.
 - Fichiers :
@@ -378,6 +378,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - si elle tombe sous le seuil de C9, ⚠️ ;
   - relecture contre le code livré.
 - Commit : `docs(video): describe MDEC video playback`
+- Note : décodage mesuré en Release (flux binaire puis image, sans lecture de fichier ni `SetData`), image synthétique de 320x224, AMD Ryzen 9 9900X, Windows 11, `CasaEngine.dll` en Release `net9.0-windows` lancé sur le runtime .NET 10.0.14, un thread : 816 à 1673 images par seconde selon la densité AC (0 à 20 codes AC par bloc), soit au moins 6,8 fois le seuil de C9 (120 images par seconde) ; chiffres, machine et méthode dans `docs/engine/video.md` §8. `video.md` complété (conteneur, lecteur, balise, saut, action, limites, mesure), section `<Video>` et `PlayVideo` ajoutée à `data-driven-screens.md`, `docs/README.md` mis à jour ; relecture contre le code livré. Build des deux .sln à 0 erreur, `CasaEngine.Tests` 5228 réussis.
 
 ---
 

@@ -1,11 +1,17 @@
 # Video playback
 
-The engine plays videos stored in the `.mdecvideo` container: a header, an offset table and one MDEC-compressed picture per frame (see [ADR-0089](../decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)). This document is the written specification the decoder follows. It is the first thing written for the feature: no decoder code exists before it.
+The engine plays videos stored in the `.mdecvideo` container: a header, an offset table and one MDEC-compressed picture per frame (see [ADR-0089](../decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)). Section 1 is the written specification the decoder follows, written before any code; the other sections describe what the engine delivers around it.
 
 Sections:
 
-1. [MDEC bitstream](#1-mdec-bitstream) (this document, written by task T1.1).
-2. Container, player, `<Video>` element and cut-scene action: added by the tasks that implement them.
+1. [MDEC bitstream](#1-mdec-bitstream): the decoder specification.
+2. [Container](#2-container).
+3. [Player](#3-player).
+4. [The `Video` element](#4-the-video-element).
+5. [Skipping](#5-skipping).
+6. [The `PlayVideo` cut-scene action](#6-the-playvideo-cut-scene-action).
+7. [Limits](#7-limits).
+8. [Measure](#8-measure).
 
 ## 1. MDEC bitstream
 
@@ -258,3 +264,103 @@ These engine choices change the decoded picture if they differ from what a real 
 3. **Negative magnitudes of the version 3 DC** (1.4): `n = 0` is the largest magnitude.
 4. **IDCT and colour rounding** (1.9, 1.10): psx-spx says the hardware is not reproduced bit for bit; the engine's formulas are exact and documented, so the output may differ from the hardware by small rounding differences.
 5. **DC when the scale is 0** (1.7): `s10 * 2`, as written by psx-spx, which marks the DC formula as uncertain.
+
+## 2. Container
+
+A `.mdecvideo` file (asset type `mdecvideo`, extension `.mdecvideo`) is little-endian. `MdecVideoAsset.Load` reads the header and the offset table only; frames are read on demand by the player. Every invalid field throws an `InvalidDataException` that names the file and the field.
+
+| Offset | Size | Field | Rule |
+|---|---|---|---|
+| 0 | 4 | Magic | `MDVC`. |
+| 4 | `u16` | Format version | 1. |
+| 6 | `u16` | Flags | Reserved, must be 0. |
+| 8 | `u16` | Width | Displayed width, 1 to 4096. |
+| 10 | `u16` | Height | Displayed height, 1 to 4096. |
+| 12 | `u32` | Frame count | At least 1. |
+| 16 | `u32` | Frame rate numerator | Non-zero. |
+| 20 | `u32` | Frame rate denominator | Non-zero. Frames per second = numerator / denominator. |
+| 24 | `u32` | Audio offset | From the start of the file. |
+| 28 | `u32` | Audio length | `(0, 0)` when there is no audio. An offset with a length of 0 is refused. |
+| 32 | `u32` x (frame count + 1) | Offset table | From the start of the file, strictly increasing. Frame `i` runs from offset `i` to offset `i + 1`. Offset 0 must not point inside the header or the table, and the last offset must not exceed the file. |
+
+Each frame is a BS frame as described in section 1.2. The audio section, a WAV file, is validated as a byte range only: it must lie inside the file and start at or after the end of the last frame. It is not played (section 7).
+
+Tests: `CasaEngine.Tests/Video/MdecVideoAssetTests.cs`.
+
+## 3. Player
+
+`MdecVideoPlayer` (namespace `CasaEngine.Framework.Video`) implements MGUI's `IUIVideo`.
+
+* It owns one `Texture2D` of the displayed size (`SurfaceFormat.Color`), the same instance for its whole life, and disposes it with itself. `CurrentImage` exposes it, `CurrentSourceRect` is always null.
+* It opens the container file once, with a `FileStream` kept open until `Dispose`, and reads each frame into one buffer sized by the longest frame.
+* It decodes on the calling thread (the game thread) into one reused RGBA buffer, then makes one `SetData` per newly shown frame. Nothing is allocated after the constructor.
+* Frame 0 is decoded by the constructor.
+* Clock: the time given to `Advance` is summed in integer ticks. Frame `k` is shown while the elapsed time is within `[k, k + 1)` frame periods (a period is `denominator / numerator` seconds, computed without rounding the period). A frame that is late is not decoded: only the frame due now is. `Advance` with a zero or negative time does nothing.
+* End: when the elapsed time covers every frame, the last frame is shown (decoded first if a late jump skipped it), `IsEnded` becomes true, and the last frame stays displayed.
+* `Restart` goes back to frame 0 and clears `IsEnded`.
+* A frame that cannot be read or decoded (`InvalidDataException` or `IOException`) ends the video, and one error is logged for the player, naming the file and the frame.
+* A player is created per element by `CasaUIAssetProvider.TryCreateVideo(name, out IUIVideo)`: `name` is an asset id or a catalogue name of an asset of type `mdecvideo`. The container header is loaded once per name and shared by the players of that name. An unknown name, an asset of another type, a load failure or a missing graphics device returns false and logs one warning per name.
+
+Tests: `CasaEngine.Tests/Video/` (bitstream, frame decoder and container tests on synthetic frames with exact expected output).
+
+## 4. The `Video` element
+
+In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVideo` (a subclass of `MGImage`, so it stretches and filters like an image). It asks the host for the video through `IUIAssetProvider.TryCreateVideo`; MGUI itself knows nothing about MDEC. See [Data-driven screens](data-driven-screens.md#video-and-playvideo) for the attributes.
+
+* The element advances the video in its `UpdateSelf` by the elapsed time of the frame, so a collapsed element does not advance it.
+* When the video reaches its end by playing, it raises `Ended` once and runs the command named by `EndedCommandName`. A video that is skipped does not raise `Ended`.
+* `Skip()` raises `Skipped` once and runs `SkippedCommandName`. It works only when `IsSkippable` is true and the video is playing (resolved, not ended, not skipped); otherwise it returns false. A skipped video stops advancing and keeps the frame it was on.
+* If the host cannot resolve the source, nothing is shown and nothing plays (`IsPlaying` is false).
+* The video is disposed when `SourceName` changes and when the element is disposed.
+
+## 5. Skipping
+
+A video with `IsSkippable="True"` is skipped by a Submit or a Cancel press of the project's UI input mapping ([ADR-0080](../decisions/0080-data-driven-navigation-through-a-ui-input-mapping.md) path, changed by ADR-0089).
+
+* `UINavigationInput` calls its `SubmitOrCancelPressed` hook for each Submit or Cancel press (phase Pressed, never a repeat), before the MGUI desktop sees the action.
+* `UIRoot` answers by asking the screen at the top of the stack, when it is a `DataDrivenScreen`, to skip its playing skippable videos.
+* When at least one video was skipped, the press is consumed: the desktop does not get it, so no focused button is clicked and no `cancel_command` runs. Otherwise nothing changes: Submit goes to the focused button and an unhandled Cancel goes to the `cancel_command`.
+* Only the screen at the top is concerned. Without a `UIInputMapping`, no key skips a video; `MGVideo.Skip()` can still be called by code.
+
+Tests: `CasaEngine.Tests/UI/DataDrivenScreenVideoTests.cs`.
+
+## 6. The `PlayVideo` cut-scene action
+
+`{"type": "PlayVideo", "target": "<screen id or name>"}`. It opens the screen the way `OpenScreen` does (same failures, same rule under external view management, where nothing opens and the action ends at once), waits until every `Video` of the screen has ended or been skipped, then removes the screen.
+
+* A screen that has no `Video` element fails the play.
+* A `Video` whose source the game could not resolve is not playing, so it does not hold the action back.
+* If the cut-scene is stopped before the end, the screen is removed anyway. When the world is cleared the views go with it and there is nothing to remove.
+
+Tests: `CasaEngine.Tests/Cutscenes/PlayVideoCutsceneActionTests.cs`. A runnable project: `Projects/VideoSample`.
+
+## 7. Limits
+
+* **No sound.** The container reserves an audio section, but the player does not play it and paces on the frame rate only. Syncing on the sound needs a playback position that the audio voices do not expose.
+* **No interleaved streams.** Only the `.mdecvideo` container is read; interleaved STR streams and their XA audio are not.
+* **24-bit colour only.** The output is RGBA with alpha 255; the 15-bit and monochrome macroblock outputs are not used.
+* **One quantisation matrix, no field to change it** (sections 1.7 and 1.12): a picture encoded for another matrix needs a container change.
+* **Not bit-exact with the console.** psx-spx says the hardware arithmetic is not reproduced bit for bit; the engine's formulas are its own (sections 1.9 and 1.10).
+* **Decoding runs on the game thread.** Section 8 gives the cost. A late frame is skipped, not decoded.
+* **Encrypted and other BS header variants** are refused (section 1.2).
+* **Collapsed element:** it does not advance, like an animated image.
+* **Editor:** the asset has no editor.
+
+## 8. Measure
+
+Plan choice C9: the decoding of a synthetic 320x224 frame, in frames per second, in Release, compared with 4 times the rate of a 30 frames per second video (120 frames per second).
+
+What is measured: `MdecBitstreamDecoder.Decode` followed by `MdecFrameDecoder.Decode` on one frame, in a loop on one thread, into reused buffers. The file read and the texture `SetData` are not included (the first is a small read of one frame, the second needs a graphics device).
+
+The frames are synthetic version 2 frames of 20 x 14 macroblocks, written by the test encoder (`CasaEngine.Tests/Video/MdecTestEncoder.cs`) with small AC levels and the same number of AC codes in each of the six blocks of every macroblock. The AC density sets the frame size, so the figure is given for several densities.
+
+Machine and configuration: AMD Ryzen 9 9900X (12 cores, 24 logical processors), Windows 11 (10.0.26300), `CasaEngine.dll` built in Release (target `net9.0-windows`), run by a console program on the .NET 10.0.14 runtime, workstation garbage collector, one thread. Method: 300 warm-up decodes, then 5 runs of 2 seconds each; the table gives the minimum, median and maximum of the 5 runs. The program was a throwaway console program outside the repository.
+
+| AC codes per block | Frame size (bytes) | Frames per second (min / median / max) |
+|---|---|---|
+| 0 (DC only) | 2 530 | 1656 / 1673 / 1685 |
+| 4 | 9 586 | 1290 / 1292 / 1294 |
+| 10 | 20 170 | 1076 / 1077 / 1082 |
+| 20 | 37 810 | 816 / 820 / 823 |
+
+The slowest case measured, 816 frames per second, is 6.8 times the 120 frames per second threshold of C9. At 30 frames per second a frame lasts 33.3 ms, and this decode takes about 1.2 ms at the slowest density measured. The figure holds for this machine only, and the frames are synthetic: it is not a measure of any particular video content.

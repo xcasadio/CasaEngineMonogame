@@ -318,9 +318,60 @@ A handler may call `Play`:
 - An exception thrown by an action, for example `MoveTo` on a missing entity or a timeout, is caught by the coroutine manager, which stops the coroutine and logs it. When it comes from the root coroutine, including a `Sequence`, whose actions run inside it, the director stays `Playing` and `Ended` is not raised until a `Stop` or a world clear, which raise `Stopped`. A `Play` that replaces it raises nothing for it. When it comes from a branch of a `Parallel`, only that branch is stopped: the play goes on and can end `Completed`, with `Ended(Completed)`. This predates the actions above and is unchanged.
 - An `OpenScreen` whose screen cannot be built (an invalid envelope or XAML, see [Errors](#errors)) throws inside the action, so it falls under the limit above, not under `Failed`.
 - The screens' `fade_screen` stays in seconds, and the `FadeScreen` action in seconds is unchanged.
-- No action sets a sprite, waits for a key, loops or plays a video.
+- No action sets a sprite, waits for a key or loops. `PlayVideo` plays a video (see [`<Video>` and PlayVideo](#video-and-playvideo)).
 
 Tests: `CasaEngine.Tests/Cutscenes/FrameCutsceneActionsTests.cs` proves the timing above update by update, `CasaEngine.Tests/Scene/WorldStartupCutsceneTests.cs` the world key, and `CasaEngine.Tests/UI/TimedScreenSampleDataTests.cs` the data of the sample.
+
+## <Video> and PlayVideo
+
+A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvideo`), and a cutscene can open such a screen and wait for the video to finish. The decision is ADR-0089, the container, the player and the measures are in [video.md](video.md), and `Projects/VideoSample` is the working example (a 160x112 synthetic clip, no sound).
+
+### The `Video` tag
+
+```xml
+<Video SourceName="clip" IsSkippable="True" EndedCommandName="next" SkippedCommandName="next" />
+```
+
+| Attribute | Meaning |
+|---|---|
+| `SourceName` | The catalogue name or the id of an asset of type `mdecvideo`. |
+| `Stretch` | Like an `Image`; absent, the element's default (`Uniform`). |
+| `IsSkippable` | `True` lets a Submit or Cancel press skip the video (see below). Absent, the video cannot be skipped. |
+| `EndedCommandName` | A command of `ui_commands`, run once when the video reaches its end by playing. |
+| `SkippedCommandName` | A command of `ui_commands`, run once when the video is skipped. |
+
+- Each `Video` element gets its own player, which decodes into a texture of the clip's size. The container is described in [video.md](video.md).
+- A source the project cannot resolve (unknown name, an asset of another type, a file that cannot be opened) shows nothing and plays nothing; one warning per name is logged.
+- A collapsed `Video` does not advance.
+- A `Video` that names a command `ui_commands` does not declare is refused when the screen opens, like a button (see [Errors](#errors)).
+
+### Skipping a video
+
+With a `UIInputMapping` (see [The input mapping](#the-input-mapping)), each Submit or Cancel press, not its repeats, asks the screen at the top of the stack to skip its playing videos that have `IsSkippable="True"`.
+
+- If at least one video was skipped, the press is consumed: no focused button is clicked and no `cancel_command` runs. The video raises its skip, and `SkippedCommandName` runs.
+- If none was skipped, nothing changes: Submit goes to the focused button, and a Cancel that nobody handled goes to the `cancel_command`.
+- Only the screen at the top is concerned. Without a mapping, no key skips a video.
+
+### The `PlayVideo` action
+
+```json
+{ "type": "PlayVideo", "target": "ClipScreen" }
+```
+
+| `type` | Fields | Fails validation when |
+|---|---|---|
+| `PlayVideo` | `target`: a screen asset name or id | `target` is missing, empty, blank or not text |
+
+At run time `PlayVideo`:
+
+- opens the screen like `OpenScreen`: same failures (no such screen, no active view that hosts a UI, no game), and under external view management it opens nothing, logs it and completes at once;
+- waits until every `Video` of the screen has ended or been skipped. A `Video` whose source could not be resolved is not playing, so it does not hold the action back;
+- removes the screen, then the next action runs;
+- fails the play, with the reason logged once, when the screen has no `Video` element;
+- removes the screen too when the cutscene is stopped meanwhile, except when the world is cleared, whose views go with it.
+
+Chaining is plain data: `PlayVideo` then `OpenScreen` or `ChangeWorld`, as `Projects/VideoSample/Cutscenes/play.cutscene` does.
 
 ## Errors
 
@@ -332,6 +383,7 @@ Invalid data throws an `InvalidOperationException` when the screen opens, naming
 - a command with no name, or declared twice;
 - a `default_focus` that names nothing, or an element that cannot take the focus;
 - a button whose `CommandName` resolves to no command;
+- a `Video` whose `EndedCommandName` or `SkippedCommandName` names no entry of `ui_commands`;
 - a font the project does not have, a name or id that designates an asset of another type, which the message names, or a font that cannot be loaded, such as one whose page is missing;
 - a window placed by alignment under a design resolution;
 - a `focus_wrap` that is neither `vertical` nor `horizontal`;

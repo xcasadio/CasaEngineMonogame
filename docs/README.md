@@ -36,7 +36,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [tilemaps-gestion-profondeur.md](engine/tilemaps-gestion-profondeur.md) — gestion moderne de la profondeur des TileMaps.
 - [particle-system-features.md](engine/particle-system-features.md) — spécification fonctionnelle du système de particules.
 - [particle-system-v1-v2-migration.md](engine/particle-system-v1-v2-migration.md) — migration particules V1 → V2.
-- [video.md](engine/video.md) — lecture de vidéos MDEC ([ADR-0089](decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)) : spécification du flux MDEC que le décodeur suit (en anglais).
+- [video.md](engine/video.md) — lecture de vidéos MDEC ([ADR-0089](decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)) : spécification du flux MDEC que le décodeur suit, conteneur `.mdecvideo`, lecteur, balise `<Video>`, saut, action `PlayVideo`, limites et mesure de décodage (en anglais). Le côté écrans de données est dans [data-driven-screens.md](engine/data-driven-screens.md#video-and-playvideo).
 
 ### Physique et collision
 
@@ -81,7 +81,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### UI runtime (MGUI)
 
 - [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.
-- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command`, `move_command`, `on_open_command` et `focus_markers` du `.uiscreen`, actions, fondus et attente (`fade_screen`, `wait_fade`), image soustractive (`BlendType`), navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080, ADR-0081, ADR-0082).
+- [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command`, `move_command`, `on_open_command` et `focus_markers` du `.uiscreen`, actions, fondus et attente (`fade_screen`, `wait_fade`), image soustractive (`BlendType`), navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), vidéo (`<Video>`, `PlayVideo`), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080, ADR-0081, ADR-0082, ADR-0089).
 - [casaengine-mgui-backend-extensibility.md](engine/casaengine-mgui-backend-extensibility.md) — backend MonoGame extensible (Apos.Shapes, NvgSharp).
 
 ## Éditeur (`editor/`)
