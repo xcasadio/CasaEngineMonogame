@@ -215,7 +215,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Commit : `feat(video): decode MDEC bitstreams into run-length words`
 - Note : `MdecBitstreamDecoder` (statique, sans état, sans allocation) et `MdecBitReader` dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.2 à 1.6 : un mot DC, les mots RLE tels que codés, un `FE00` par bloc. Encodeur de test de C8 écrit à neuf (`MdecTestEncoder`). 92 tests : flux assemblés à la main, toutes les lignes de la table AC aux deux signes, échappements (niveau 0, `FE00`), DC v3 de -255 à 255 et repli sur 10 bits, fin d'image optionnelle, flux tronqué à chaque longueur, codes invalides, `AllocationWindow` à 0 octet. Build des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5123 réussis.
 
-### ⏳ T1.3 — Blocs, IDCT et couleur
+### ✅ T1.3 — Blocs, IDCT et couleur
 
 - Objectif : des mots RLE à l'image RGBA recadrée, selon T1.1.
 - Fichiers : `CasaEngine/Framework/Video/Mdec/` et `CasaEngine.Tests/Video/`.
@@ -231,6 +231,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - aucune allocation par image ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(video): turn MDEC blocks into RGBA frames`
+- Note : `MdecFrameDecoder` (statique, sans état, blocs sur la pile, sans allocation) dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.7 à 1.11 : déquantification (matrice par défaut, échelle 0 sans zig-zag, saturation), IDCT entière à deux passes, couleur en virgule fixe, macroblocs colonne par colonne, recadrage en haut à gauche. 31 tests : DC seul calculé à la main, un coefficient AC par position (3 échelles), macrobloc complet et trames aléatoires contre une référence écrite dans le test, IDCT contre une IDCT en `double` (tolérance 2,5), échelle 0, saturation, tailles non multiples de 16, erreurs nommant l'image, `AllocationWindow` à 0 octet, chaîne complète avec `MdecBitstreamDecoder` pour les versions 1 à 3.
 
 ### ⏳ T1.4 — Conteneur `.mdecvideo`
 
