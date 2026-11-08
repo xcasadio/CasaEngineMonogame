@@ -200,7 +200,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Note : `docs/engine/video.md` §1 écrite d'après les pages psx-spx (MDEC, BS Headers, DC, AC, Versions), chaque règle citée. Table AC contrôlée (préfixes libres, espace de codes plein sauf le préfixe inutilisé). Choix moteur marqués : matrice de quantification par défaut, ordre des macroblocs par colonnes, signe du DC v3, arrondis IDCT et couleur, recadrage (voir O2 à O4). Relecture : la matrice par défaut de psx-spx (BS fraquant) donne qt[0] = 2, corrigé (le texte disait 8 et « aucune matrice »). Disposition après revue : psx-spx laisse ouverts deux points qui changent l'image (entrées 4 à 62 de la matrice de quantification, ordre des macroblocs) ; la règle de la Validation impose ⚠️, la tâche est bloquée et O2 et O3 sont des questions à l'auteur ; T1.2 et T1.3 ne démarrent pas avant sa réponse. O4 reste un choix moteur couvert par C2 (arrondis) et par les plages de psx-spx (signe du DC v3). Si l'auteur accepte les deux choix, noter la réponse ici et repasser en ✅. Doc seule : pas de build ni de test touché.
 - Note : bloqué sur O2 et O3, puis débloqué par l'auteur le 2026-11-08 : matrice MPEG-1 avec 2 en tête, une seule table pour les six blocs (« MPEG-1, 2 en tête ») ; macroblocs colonne par colonne (« Colonne par colonne »). `docs/engine/video.md` les note comme décisions de l'auteur, et intègre les précisions des relectures : le mot `FE00` testé avant la règle du dépassement de 63, la règle de bourrage limitée à une entrée RLE brute, le recadrage cité d'après la section « STR Resolution » de psx-spx, la borne de l'IDCT (4018).
 
-### ⏳ T1.2 — Lecture du flux BS
+### ✅ T1.2 — Lecture du flux BS
 
 - Objectif : du flux de bits aux mots RLE, pour les versions 1, 2 et 3, selon T1.1.
 - Fichiers :
@@ -213,6 +213,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - aucune allocation par image (`AllocationWindow`) ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(video): decode MDEC bitstreams into run-length words`
+- Note : `MdecBitstreamDecoder` (statique, sans état, sans allocation) et `MdecBitReader` dans `CasaEngine/Framework/Video/Mdec/`, selon `docs/engine/video.md` 1.2 à 1.6 : un mot DC, les mots RLE tels que codés, un `FE00` par bloc. Encodeur de test de C8 écrit à neuf (`MdecTestEncoder`). 92 tests : flux assemblés à la main, toutes les lignes de la table AC aux deux signes, échappements (niveau 0, `FE00`), DC v3 de -255 à 255 et repli sur 10 bits, fin d'image optionnelle, flux tronqué à chaque longueur, codes invalides, `AllocationWindow` à 0 octet. Build des deux `.sln` à 0 erreur, `CasaEngine.Tests` 5123 réussis.
 
 ### ⏳ T1.3 — Blocs, IDCT et couleur
 
