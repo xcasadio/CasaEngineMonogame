@@ -46,6 +46,12 @@ internal static class EditorEntityJsonSerializer
         world.EnvironmentSettings.Save(environmentNode);
         node.Add("environment", environmentNode);
 
+        // ADR-0087: written only when the world names a startup cutscene, so a world without one keeps its file unchanged.
+        if (world.StartupCutsceneAssetId != Guid.Empty)
+        {
+            node.Add("startup_cutscene_asset_id", world.StartupCutsceneAssetId);
+        }
+
         // ADR-0086: written only when the world declares it, so a world without it keeps its file unchanged.
         if (world.VirtualResolution is { } virtualResolution)
         {

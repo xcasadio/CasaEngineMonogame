@@ -282,7 +282,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 - Commit : `feat(cutscenes): open a screen and change the world from a cutscene`
 - Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` 4989 réussis sur 4989, 0 échec. Les nouveaux tests prouvent : l'aller-retour JSON des deux actions ; une erreur du validateur nommant l'action et `target` pour une cible absente, vide, blanche ou non textuelle ; `GameManager.OpenScreenFromCutscene` (écran poussé sur la vue active, par nom et par id, ouverture répétée, rien d'ouvert et aucune erreur sous les politiques d'éditeur, raison rendue sans vue, sans UI, pour un écran absent ou d'un autre type, `OpenFirstScreen` qui ouvre encore `FirstScreenName` après une ouverture par cutscene) ; la fabrique (sans jeu, `OpenScreen` et `ChangeWorld` finissent en `Failed` avec `Ended` et une seule erreur loguée ; `ChangeWorld` vers un monde absent finit en `Failed` sans rien demander ; vers un monde du catalogue, `PendingWorldToLoad` vaut le monde et la cutscene continue dans la même mise à jour) ; les champs du builder. Ajout interne : `GameManager.PendingWorldToLoad`, lu par les tests. `OpenScreen` réussi côté fabrique n'est pas testé (`_game` est nul dans les tests) : il l'est au niveau de la méthode de `GameManager`.
 
-### ⏳ T1.5 — Cutscene de démarrage d'un monde
+### ✅ T1.5 — Cutscene de démarrage d'un monde
 
 - Objectif : le champ `startup_cutscene_asset_id` selon C4.
 - Fichiers :
@@ -300,6 +300,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
   - La première action tourne au premier `World.Update` après `BeginPlay`.
   - Build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(world): start a cutscene when a world begins play`
+- Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` 4999 réussis sur 4999, 0 échec. Les 10 nouveaux tests (`WorldStartupCutsceneTests`) prouvent : l'aller-retour `SaveWorld` puis `World.Load` de `startup_cutscene_asset_id` ; l'absence de clé pour un monde sans id et `Guid.Empty` au chargement ; un rechargement sans la clé efface l'id précédent ; `BeginPlay` joue l'asset sous `Runtime` et `EditorSimulation` (instantané `Playing`, avec son id) et rien sous `EditorPreview` ni sans id ; un id inconnu lève une `InvalidOperationException` qui nomme le monde et l'id ; une cutscene invalide ne lève pas, laisse le directeur `Invalid` et logue une seule erreur nommant le monde et les messages du validateur ; la première action tourne au premier `World.Update` après `BeginPlay`.
 
 ---
 

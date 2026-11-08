@@ -79,6 +79,12 @@ public sealed class World : ObjectBase
     public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
+    /// Id of the cutscene asset played when this world begins play (ADR-0087), or <see cref="Guid.Empty"/> for none.
+    /// Read from the <c>startup_cutscene_asset_id</c> key of the .world; absent means none, also on a reload.
+    /// </summary>
+    public Guid StartupCutsceneAssetId { get; set; } = Guid.Empty;
+
+    /// <summary>
     /// The design resolution and mode this world declares (ADR-0086), or null to keep the project's
     /// <see cref="Configuration.Project.ProjectSettings.VirtualResolution"/>. Its <c>ScaleUI</c> is not read here: it
     /// stays a project setting.
@@ -531,6 +537,44 @@ public sealed class World : ObjectBase
         foreach (var entity in _entities)
         {
             entity.GameplayProxy?.OnBeginPlay(this);
+        }
+
+        StartStartupCutscene();
+    }
+
+    private void StartStartupCutscene()
+    {
+        if (StartupCutsceneAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        CutsceneAsset cutscene;
+        try
+        {
+            // ADR-0037: a cutscene is read as a copy that the director's play owns.
+            cutscene = Game.AssetContentManager.LoadCopy<CutsceneAsset>(StartupCutsceneAssetId);
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new InvalidOperationException(
+                $"World '{Name}': cannot load the startup cutscene with asset id '{StartupCutsceneAssetId}'. {exception.Message}",
+                exception);
+        }
+
+        CutsceneDirector.Play(cutscene);
+
+        CutsceneDebugSnapshot snapshot = CutsceneDirector.GetDebugSnapshot();
+        if (snapshot.State == CutsceneRuntimeState.Invalid)
+        {
+            var messages = new System.Text.StringBuilder();
+            for (int index = 0; index < snapshot.ValidationMessages.Count; index++)
+            {
+                CutsceneValidationMessage message = snapshot.ValidationMessages[index];
+                messages.Append(" | ").Append(message.Severity).Append(' ').Append(message.Path).Append(": ").Append(message.Message);
+            }
+
+            Logs.WriteError($"World '{Name}': the startup cutscene '{cutscene.Name}' ({StartupCutsceneAssetId}) is invalid and was not played.{messages}");
         }
     }
 
@@ -1025,6 +1069,11 @@ public sealed class World : ObjectBase
         {
             GameplayModeAssetId = element["gameplay_mode_asset_id"].GetGuid();
         }
+
+        // Absent means absent: a reload never keeps the id of the previous document.
+        StartupCutsceneAssetId = element.ContainsKey("startup_cutscene_asset_id")
+            ? element["startup_cutscene_asset_id"].GetGuid()
+            : Guid.Empty;
 
         if (element["environment"] is JObject environmentNode)
         {
