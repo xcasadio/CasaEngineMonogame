@@ -182,7 +182,12 @@ public sealed class RenderView
     /// it is already registered. The backing list is a small preallocated one (capacity 4): several
     /// overlays may target the same view, and nothing here targets a view exclusively.
     /// </summary>
-    public void RegisterPostUIOverlay(IPostUIOverlay overlay)
+    /// <param name="overlay">The overlay.</param>
+    /// <param name="order">
+    /// Draw order, lower first, then registration order (E19.TR-4a, D-TR4A-4).
+    /// SKELETON (T1a): ignored, the overlay is appended.
+    /// </param>
+    public void RegisterPostUIOverlay(IPostUIOverlay overlay, int order = PostUIOverlayOrder.Default)
     {
         ArgumentNullException.ThrowIfNull(overlay);
         _postUIOverlays ??= new List<IPostUIOverlay>(4);
