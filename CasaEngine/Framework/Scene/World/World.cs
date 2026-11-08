@@ -77,6 +77,14 @@ public sealed class World : ObjectBase
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
     private AssetHandle<PlayerStartupSettings> _playerStartupSettingsHandle;
     public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
+
+    /// <summary>
+    /// The design resolution and mode this world declares (ADR-0086), or null to keep the project's
+    /// <see cref="Configuration.Project.ProjectSettings.VirtualResolution"/>. Its <c>ScaleUI</c> is not read here: it
+    /// stays a project setting.
+    /// </summary>
+    public Configuration.Project.VirtualResolutionSettings VirtualResolution { get; set; }
+
     public GameplayModeRunner GameplayModeRunner { get; } = new();
     public GameplayEventBus GameplayEvents => GameplayModeRunner.Events;
     public int UpdateSequence { get; private set; }
@@ -1022,6 +1030,9 @@ public sealed class World : ObjectBase
         {
             EnvironmentSettings.Load(environmentNode);
         }
+
+        // Absent means absent: a reload never keeps the block of the previous document.
+        VirtualResolution = WorldVirtualResolutionReader.Read(element["virtual_resolution"], Name);
     }
 
     public bool IsPlayerController(Entity entity)

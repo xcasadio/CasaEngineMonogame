@@ -45,6 +45,17 @@ internal static class EditorEntityJsonSerializer
         var environmentNode = new JObject();
         world.EnvironmentSettings.Save(environmentNode);
         node.Add("environment", environmentNode);
+
+        // ADR-0086: written only when the world declares it, so a world without it keeps its file unchanged.
+        if (world.VirtualResolution is { } virtualResolution)
+        {
+            node.Add("virtual_resolution", new JObject
+            {
+                ["width"] = virtualResolution.Width,
+                ["height"] = virtualResolution.Height,
+                ["mode"] = virtualResolution.Mode.ToString(),
+            });
+        }
     }
 
     public static void SaveEntity(Entity entity, JObject node)

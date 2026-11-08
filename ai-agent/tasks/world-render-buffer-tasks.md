@@ -140,7 +140,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 - Commit : `feat(rendering): add buffered virtual resolution modes`
 - Note de validation (2026-11-08) : enum à trois membres, `IntegerFit` garde sa valeur, extension `IsBuffered`. Message d'erreur qui liste les trois modes. 7 tests ajoutés (aller-retour de chaque mode, `IsBuffered`, mode inconnu). Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4842/4842.
 
-### ⏳ T1.2 — Bloc `virtual_resolution` du `.world`
+### ✅ T1.2 — Bloc `virtual_resolution` du `.world`
 
 - Objectif : un monde déclare, de façon facultative, sa largeur, sa hauteur et son mode. Le bloc est lu au runtime, écrit par l'éditeur et gardé par l'instantané du mode jeu.
 - Fichiers :
@@ -161,6 +161,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
      - instantané du mode jeu qui garde le bloc.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert.
 - Commit : `feat(world): read and write an optional per-world virtual resolution`
+- Note de validation (2026-11-08) : propriété `World.VirtualResolution`, lecture dans `WorldVirtualResolutionReader` (runtime), écriture dans `SaveWorld` (éditeur) seulement si déclarée. Le chargeur d'assets ajoute déjà le nom du fichier au journal (`AssetLoader.cs:18-21`) ; le message nomme le monde et la clé. 16 tests (`WorldVirtualResolutionTests`, instantané du mode jeu compris). Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4858/4858.
 
 ## Phase 2 — Runtime
 
