@@ -413,17 +413,25 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 5 — Vérification et recette
 
-### ⏳ T5.1 — Vérificateur neuf
+### ✅ T5.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur les deux branches : C1 à C10, D2 à D8, la non-régression, D7, les builds et les tests.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of MDEC video playback`
+- Note : première passe (moteur à `902180de`) REFUTED sur un seul P2, une vidéo créée par un XAML qui échoue plus loin n'est jamais libérée ; corrigé en T4.4.
+- Note : passe de clôture le 2026-11-08, moteur `chantier/video-playback` à `d026eee5` (18 commits depuis `778f6aa8`), MGUI `chantier/video-element` à `a3d6c87d` (4 commits depuis `a3c42cb0`), pointeur MGUI du moteur égal : **CONFIRMED**, aucun P0 à P2.
+  - Correctif de T4.4 reproduit de bout en bout avec le vrai `CasaUIAssetProvider`, sonde hors dépôt : deux `<Video>` puis un `<TabItem>` hors `TabControl` font lever `BuildWindow`, et le fournisseur ne garde ensuite aucun lecteur ni aucune portée ouverte. Un XAML valide garde sa vidéo jusqu'au `Dispose` de l'écran, et un fournisseur libéré n'en crée plus.
+  - C1 à C10 revérifiés : décodeur relu ligne à ligne contre `video.md` §1, aucune trace de code copié ni de nom interdit (diffs, fichiers, messages de commit, clip compris), API additive, aucune API publique ajoutée par T4.4. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 5243 sur 5243, `MGUI.Tests` 3243 sur 3243. Launcher lancé 22 s sans touche depuis un dossier hors dépôt : clip chargé, changement de monde toutes les 4 à 5 s, aucun avertissement. L'image à l'écran repose sur la capture de T4.3 (capture refusée au vérificateur), le saut au clavier reste à vérifier en T5.2.
+  - A1 (P4, FIX par cette note) : le test d'inventaire existant `MGUI.Tests/Architecture/AssetProviderTests.cs` reçoit `TryCreateVideo` dans sa liste attendue (MGUI `41136603`). Écart forcé par le membre ajouté, noté en F9 mais pas dans la liste des tests modifiés : il rejoint les trois méthodes de `MdecVideoPlayerTests` de T4.3, à confirmer par l'auteur en T5.2.
+  - A2 (P4, DEFER) : une `Video` en `Visibility.Hidden` mais mise en page avance encore et peut finir, car `MGElement.Update` ne saute que les éléments repliés ou de taille nulle. Conforme à C4 et à la limite « sans surface visible » de la doc ; à changer seulement si l'auteur veut traiter `Hidden` comme replié.
+  - A3 (P4, DEFER) : la libération au chargement raté ne couvre que les écrans de données avec le fournisseur du moteur. Un autre `XamlUIScreenBase` ou un autre fournisseur garde le lecteur jusqu'à la libération du fournisseur. Limite écrite dans `video.md` §4 et `data-driven-screens.md`.
 
-### ⏳ T5.2 — Recette de l'auteur
+### 🧪 T5.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the video sample`
+- Note : en attente de l'auteur. À vérifier : le saut au clavier dans `Projects/VideoSample` (Z ou A pour Submit, X ou B pour Cancel), non prouvé au Launcher. À confirmer : les tests existants modifiés, trois méthodes de `MdecVideoPlayerTests` (T4.3, F3) et `AssetProviderTests` de MGUI (T5.1, A1).
 
 ---
 
