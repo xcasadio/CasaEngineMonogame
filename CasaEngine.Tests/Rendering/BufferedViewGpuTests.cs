@@ -23,20 +23,20 @@ public class BufferedViewGpuTests
         GpuDeviceHost.Instance.Invoke(() =>
         {
             var camera = new Camera2dComponent();
-            camera.OnScreenResized(1092, 720);
+            camera.OnScreenResized(1200, 720);
             camera.Zoom = 3f;
             var viewManager = new ViewManager();
             var settings = new VirtualResolutionSettings { Width = 640, Height = 480, Mode = VirtualResolutionMode.BufferedFit };
 
             var id = DefaultRuntimeViewBootstrapper.CreateDefaultView(
-                new World(), viewManager, camera, 1092, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
+                new World(), viewManager, camera, 1200, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
 
             Assert.True(viewManager.TryGetView(id, out var view));
             var surface = Assert.IsType<RenderTargetSurface>(view.Surface);
             Assert.Equal(640, surface.RenderTarget.Width);
             Assert.Equal(480, surface.RenderTarget.Height);
             var presenter = Assert.IsType<VirtualResolutionPresenter>(view.Presenter);
-            Assert.Equal(new Rectangle(66, 0, 960, 720), presenter.PresentedRect);
+            Assert.Equal(new Rectangle(120, 0, 960, 720), presenter.PresentedRect);
             Assert.Equal(640, camera.Viewport.Width);
             Assert.Equal(480, camera.Viewport.Height);
             Assert.Equal(1f, camera.Zoom);
@@ -55,7 +55,7 @@ public class BufferedViewGpuTests
             var viewManager = new ViewManager();
             var settings = new VirtualResolutionSettings { Width = 320, Height = 240, Mode = VirtualResolutionMode.BufferedIntegerFit };
             var id = DefaultRuntimeViewBootstrapper.CreateDefaultView(
-                new World(), viewManager, camera, 1092, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
+                new World(), viewManager, camera, 1200, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
             Assert.True(viewManager.TryGetView(id, out var view));
 
             // CasaEngineGame.OnScreenResized: the world first sizes every camera to the window, then the buffered view.
@@ -83,7 +83,7 @@ public class BufferedViewGpuTests
             viewManager.ViewRemoved += VirtualResolutionRuntime.ReleaseOwnedPresentation;
             var settings = new VirtualResolutionSettings { Width = 320, Height = 240, Mode = VirtualResolutionMode.BufferedIntegerFit };
             var id = DefaultRuntimeViewBootstrapper.CreateDefaultView(
-                new World(), viewManager, new Camera2dComponent(), 1092, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
+                new World(), viewManager, new Camera2dComponent(), 1200, 720, settings, GpuDeviceHost.Instance.GraphicsDevice);
             Assert.True(viewManager.TryGetView(id, out var view));
             var surface = (RenderTargetSurface)view.Surface;
 

@@ -12,9 +12,9 @@ public class VirtualResolutionLayoutTests
 {
     // ADR-0086: where a buffered mode shows its target, not cropped by the window.
     [Theory]
-    [InlineData(1092, 720, 364, 240, 0, 0, 1092, 720)]
-    [InlineData(1092, 720, 640, 480, 226, 120, 640, 480)]
-    [InlineData(1092, 720, 320, 240, 66, 0, 960, 720)]
+    [InlineData(1200, 720, 400, 240, 0, 0, 1200, 720)]
+    [InlineData(1200, 720, 640, 480, 280, 120, 640, 480)]
+    [InlineData(1200, 720, 320, 240, 120, 0, 960, 720)]
     [InlineData(1280, 720, 320, 180, 0, 0, 1280, 720)]
     [InlineData(500, 300, 640, 480, -70, -90, 640, 480)]
     public void ComputePresentation_BufferedIntegerFit_UsesTheIntegerFactor(
@@ -27,9 +27,9 @@ public class VirtualResolutionLayoutTests
     }
 
     [Theory]
-    [InlineData(1092, 720, 640, 480, 66, 0, 960, 720)]
-    [InlineData(1092, 720, 320, 240, 66, 0, 960, 720)]
-    [InlineData(1000, 600, 364, 240, 45, 0, 910, 600)]
+    [InlineData(1200, 720, 640, 480, 120, 0, 960, 720)]
+    [InlineData(1200, 720, 320, 240, 120, 0, 960, 720)]
+    [InlineData(1000, 600, 360, 240, 50, 0, 900, 600)]
     [InlineData(1001, 751, 320, 240, 0, 0, 1001, 750)]
     [InlineData(500, 300, 640, 480, 50, 0, 400, 300)]
     public void ComputePresentation_BufferedFit_FillsTheLimitingSideAndFloorsTheSize(
@@ -55,7 +55,7 @@ public class VirtualResolutionLayoutTests
     public void ComputePresentation_RefusesTheDirectMode()
     {
         Assert.Throws<ArgumentException>(() => VirtualResolutionLayout.ComputePresentation(
-            1092, 720, 364, 240, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.IntegerFit));
+            1200, 720, 400, 240, CasaEngine.Framework.Configuration.Project.VirtualResolutionMode.IntegerFit));
     }
 
     [Theory]

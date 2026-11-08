@@ -55,7 +55,7 @@ public class BufferedViewRuntimeTests
     public void AResize_PutsTheCameraBackToTheVirtualViewportAtZoomOne_AndMovesThePresentation()
     {
         var surface = new OwnedSurface();
-        var presenter = new VirtualResolutionPresenter(surface, VirtualResolutionMode.BufferedFit, 640, 480, 1092, 720);
+        var presenter = new VirtualResolutionPresenter(surface, VirtualResolutionMode.BufferedFit, 640, 480, 1200, 720);
         var camera = new Camera2dComponent();
         var viewManager = new ViewManager();
         AddBufferedView(viewManager, camera, presenter, surface);
@@ -79,7 +79,7 @@ public class BufferedViewRuntimeTests
     {
         var viewManager = new ViewManager();
         DefaultRuntimeViewBootstrapper.CreateDefaultView(
-            new World(), viewManager, new Camera2dComponent(), 1092, 720, new VirtualResolutionSettings { Width = 364, Height = 240 });
+            new World(), viewManager, new Camera2dComponent(), 1200, 720, new VirtualResolutionSettings { Width = 400, Height = 240 });
 
         Assert.False(VirtualResolutionRuntime.TryResizeBufferedView(viewManager.Views, 1280, 720));
     }
@@ -88,7 +88,7 @@ public class BufferedViewRuntimeTests
     public void RemovingTheView_ReleasesTheOwnedTarget()
     {
         var surface = new OwnedSurface();
-        var presenter = new VirtualResolutionPresenter(surface, VirtualResolutionMode.BufferedIntegerFit, 640, 480, 1092, 720);
+        var presenter = new VirtualResolutionPresenter(surface, VirtualResolutionMode.BufferedIntegerFit, 640, 480, 1200, 720);
         var viewManager = new ViewManager();
         viewManager.ViewRemoved += VirtualResolutionRuntime.ReleaseOwnedPresentation;
         var view = AddBufferedView(viewManager, new Camera2dComponent(), presenter, surface);
@@ -106,13 +106,13 @@ public class BufferedViewRuntimeTests
         viewManager.ViewRemoved += VirtualResolutionRuntime.ReleaseOwnedPresentation;
 
         var firstSurface = new OwnedSurface();
-        var first = new VirtualResolutionPresenter(firstSurface, VirtualResolutionMode.BufferedFit, 640, 480, 1092, 720);
+        var first = new VirtualResolutionPresenter(firstSurface, VirtualResolutionMode.BufferedFit, 640, 480, 1200, 720);
         AddBufferedView(viewManager, new Camera2dComponent(), first, firstSurface);
 
         // GameManager.UpdateWorld clears the views before the next world builds its own.
         viewManager.Clear();
         var secondSurface = new OwnedSurface();
-        var second = new VirtualResolutionPresenter(secondSurface, VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1092, 720);
+        var second = new VirtualResolutionPresenter(secondSurface, VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1200, 720);
         AddBufferedView(viewManager, new Camera2dComponent(), second, secondSurface);
 
         Assert.True(firstSurface.IsDisposed);
@@ -144,6 +144,6 @@ public class BufferedViewRuntimeTests
     public void ThePresenter_RefusesTheDirectMode()
     {
         Assert.Throws<ArgumentException>(() =>
-            new VirtualResolutionPresenter(null, VirtualResolutionMode.IntegerFit, 364, 240, 1092, 720));
+            new VirtualResolutionPresenter(null, VirtualResolutionMode.IntegerFit, 400, 240, 1200, 720));
     }
 }

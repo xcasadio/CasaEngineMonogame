@@ -63,11 +63,11 @@ public class ScreenEffectComponentViewSizeTests
     [Fact]
     public void ResolveOverlayScissor_OfABackBufferView_KeepsTheDeviceScissor()
     {
-        var backBuffer = new CasaEngine.Framework.Rendering.BackBufferSurface(new Rectangle(0, 0, 1092, 720));
+        var backBuffer = new CasaEngine.Framework.Rendering.BackBufferSurface(new Rectangle(0, 0, 1200, 720));
 
-        var scissor = ScreenEffectComponent.ResolveOverlayScissor(backBuffer, new Rectangle(0, 0, 1092, 720));
+        var scissor = ScreenEffectComponent.ResolveOverlayScissor(backBuffer, new Rectangle(0, 0, 1200, 720));
 
-        Assert.Equal(new Rectangle(0, 0, 1092, 720), scissor);
+        Assert.Equal(new Rectangle(0, 0, 1200, 720), scissor);
     }
 
     [Fact]

@@ -61,14 +61,14 @@ public class BufferedPointerTests
     }
 
     [Theory]
-    [InlineData(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 98, 61, 10, 20)]
-    [InlineData(VirtualResolutionMode.BufferedFit, 640, 480, 81, 30, 10, 20)]
-    [InlineData(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 10, 10, -19, 3)]
+    [InlineData(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 152, 61, 10, 20)]
+    [InlineData(VirtualResolutionMode.BufferedFit, 640, 480, 135, 30, 10, 20)]
+    [InlineData(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 10, 10, -37, 3)]
     public void WindowToVirtualPixel_UndoesThePresentation(
         VirtualResolutionMode mode, int virtualWidth, int virtualHeight, int windowX, int windowY, int x, int y)
     {
-        // Both images are 960x720 at (66,0) in a 1092x720 window: factor 3 for 320x240, 1.5 for 640x480.
-        var presenter = new VirtualResolutionPresenter(null, mode, virtualWidth, virtualHeight, 1092, 720);
+        // Both images are 960x720 at (120,0) in a 1200x720 window: factor 3 for 320x240, 1.5 for 640x480.
+        var presenter = new VirtualResolutionPresenter(null, mode, virtualWidth, virtualHeight, 1200, 720);
 
         Assert.Equal(new Point(x, y), presenter.WindowToVirtualPixel(new Point(windowX, windowY)));
     }
@@ -76,20 +76,20 @@ public class BufferedPointerTests
     [Fact]
     public void ScreenToView_InsideTheImageButOutsideTheTargetSize_FindsTheBufferedView_InVirtualPixels()
     {
-        var (viewManager, view) = BufferedView(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1092, 720);
+        var (viewManager, view) = BufferedView(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1200, 720);
 
-        // (566, 600) is inside the 960x720 image at (66,0), far outside (0,0,320,240).
-        var (found, local) = viewManager.ScreenToView(new Point(566, 600));
+        // (620, 600) is inside the 960x720 image at (120,0), far outside (0,0,320,240).
+        var (found, local) = viewManager.ScreenToView(new Point(620, 600));
 
         Assert.Same(view, found);
-        Assert.Equal((566f - 66f) / 3f, local.X, 3);
+        Assert.Equal((620f - 120f) / 3f, local.X, 3);
         Assert.Equal(600f / 3f, local.Y, 3);
     }
 
     [Fact]
     public void ScreenToView_InABand_FindsNoView()
     {
-        var (viewManager, _) = BufferedView(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1092, 720);
+        var (viewManager, _) = BufferedView(VirtualResolutionMode.BufferedIntegerFit, 320, 240, 1200, 720);
 
         var (found, _) = viewManager.ScreenToView(new Point(30, 300));
 
@@ -99,16 +99,16 @@ public class BufferedPointerTests
     [Fact]
     public void TheInputRouter_FindsTheSameView_AndRoutesTheMouseInVirtualPixels()
     {
-        var (viewManager, view) = BufferedView(VirtualResolutionMode.BufferedFit, 640, 480, 1092, 720);
+        var (viewManager, view) = BufferedView(VirtualResolutionMode.BufferedFit, 640, 480, 1200, 720);
         var router = new InputRouter(viewManager);
 
-        var (found, _) = router.RouteMouseToView(new Point(81, 30));
+        var (found, _) = router.RouteMouseToView(new Point(135, 30));
         Assert.Same(view, found);
 
         var local = InputRouter.CreateLocalMouseState(
-            new MouseState(81, 30, 0, ButtonState.Pressed, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released),
+            new MouseState(135, 30, 0, ButtonState.Pressed, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released),
             view,
-            new Rectangle(66, 0, 960, 720));
+            new Rectangle(120, 0, 960, 720));
 
         Assert.Equal(new Point(10, 20), local.Position);
         Assert.Equal(ButtonState.Pressed, local.LeftButton);
@@ -119,12 +119,12 @@ public class BufferedPointerTests
     {
         var viewManager = new ViewManager();
         Framework.Application.DefaultRuntimeViewBootstrapper.CreateDefaultView(
-            new World(), viewManager, new Camera2dComponent(), 1092, 720, new VirtualResolutionSettings { Width = 364, Height = 240 });
+            new World(), viewManager, new Camera2dComponent(), 1200, 720, new VirtualResolutionSettings { Width = 400, Height = 240 });
 
         var (found, local) = viewManager.ScreenToView(new Point(300, 200));
 
         Assert.NotNull(found);
         Assert.Equal(new Vector2(300, 200), local);
-        Assert.Equal(new Point(300, 200), InputRouter.CreateLocalMouseState(new MouseState(300, 200, 0, 0, 0, 0, 0, 0), found, new Rectangle(0, 0, 1092, 720)).Position);
+        Assert.Equal(new Point(300, 200), InputRouter.CreateLocalMouseState(new MouseState(300, 200, 0, 0, 0, 0, 0, 0), found, new Rectangle(0, 0, 1200, 720)).Position);
     }
 }
