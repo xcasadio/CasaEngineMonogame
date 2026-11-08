@@ -234,7 +234,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   - Limite connue : les composants de la phase 3 de `CasaEngineGame.Draw` (`Line3d`, `PhysicsDebug`, `Axis`) dessinent après le pipeline, en coordonnées de fenêtre, donc par-dessus l'image présentée et non dans le buffer.
   - O5 (ombres) reste ouvert : aucun monde avec ombres n'est testé ici.
 
-### ⏳ T2.3 — UI et fondu dans le buffer
+### ✅ T2.3 — UI et fondu dans le buffer
 
 - Objectif : les écrans MGUI et le fondu d'écran se dessinent dans la cible, à l'échelle 1, sans que la taille du tampon arrière n'intervienne.
 - Fichiers :
@@ -248,6 +248,11 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   3. Tests : taille du quad en mode buffer, et échelle des écrans à 1.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert.
 - Commit : `fix(ui): draw screens and screen fades at design scale inside the buffer`
+- Note de validation (2026-11-08) :
+  - Mesuré sur le GPU de test : lier une `RenderTargetSurface` met le ciseau du périphérique aux bornes de la cible, et la délier rend celui du tampon arrière. Le test `BufferedScissorProbeGpuTests` le garde. L'UI et le fondu au-dessus de l'UI, dessinés pendant la composition de la vue, sont donc bornés par la cible sans changement. `UiDeviceScissor` reste tel quel.
+  - Seul le fondu sous l'UI lisait le ciseau pendant `Update` : `ScreenEffectComponent.ResolveOverlayScissor` prend désormais les bornes de la cible pour une vue sur cible.
+  - `DataDrivenScreen` est inchangé : avec les bornes de la cible, son échelle vaut 1 (test ajouté).
+  - 6 tests. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4894/4894.
 
 ### ⏳ T2.4 — Souris dans le buffer
 

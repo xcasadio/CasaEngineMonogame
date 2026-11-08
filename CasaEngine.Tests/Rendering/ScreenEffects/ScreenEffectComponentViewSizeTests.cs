@@ -22,6 +22,60 @@ namespace CasaEngine.Tests.Rendering.ScreenEffects;
 /// </summary>
 public class ScreenEffectComponentViewSizeTests
 {
+    // ADR-0086: the camera of a buffered view frames the target at zoom 1, so the fade quad is the target size.
+    [Fact]
+    public void TryGetCameraViewSize_OfABufferedView_IsTheTargetSize()
+    {
+        var camera = new Camera2dComponent();
+        camera.OnScreenResized(640, 480);
+        camera.Zoom = 1f;
+
+        Assert.True(ScreenEffectComponent.TryGetCameraViewSize(camera, out var width, out var height));
+        Assert.Equal(640, width);
+        Assert.Equal(480, height);
+    }
+
+    private sealed class TargetSurface : CasaEngine.Framework.Rendering.IRenderSurface
+    {
+        public bool IsBackBuffer => false;
+
+        public Rectangle ViewportRect => new(0, 0, 640, 480);
+
+        public RenderTarget2D RenderTarget => null;
+
+        public void Apply(GraphicsDevice graphicsDevice)
+        {
+        }
+
+        public void Restore(GraphicsDevice graphicsDevice)
+        {
+        }
+    }
+
+    [Fact]
+    public void ResolveOverlayScissor_OfAViewOnATarget_IsTheTarget_NotTheBackBufferScissor()
+    {
+        var scissor = ScreenEffectComponent.ResolveOverlayScissor(new TargetSurface(), new Rectangle(0, 0, 500, 300));
+
+        Assert.Equal(new Rectangle(0, 0, 640, 480), scissor);
+    }
+
+    [Fact]
+    public void ResolveOverlayScissor_OfABackBufferView_KeepsTheDeviceScissor()
+    {
+        var backBuffer = new CasaEngine.Framework.Rendering.BackBufferSurface(new Rectangle(0, 0, 1092, 720));
+
+        var scissor = ScreenEffectComponent.ResolveOverlayScissor(backBuffer, new Rectangle(0, 0, 1092, 720));
+
+        Assert.Equal(new Rectangle(0, 0, 1092, 720), scissor);
+    }
+
+    [Fact]
+    public void ResolveOverlayScissor_WithoutAView_KeepsTheDeviceScissor()
+    {
+        Assert.Equal(new Rectangle(1, 2, 3, 4), ScreenEffectComponent.ResolveOverlayScissor(null, new Rectangle(1, 2, 3, 4)));
+    }
+
     [Fact]
     public void TryGetCameraViewSize_WithA1280x944ViewportAndZoomFour_Returns320x236()
     {

@@ -1966,6 +1966,22 @@ public sealed class DataDrivenScreenTests : IDisposable
         Assert.Equal(7 * factor, window.Top);
     }
 
+    // ADR-0086: in a buffered mode the view is the target, so a screen gets the target's bounds -- the design size --
+    // and keeps scale 1 and its XAML position, with or without ScaleUI.
+    [Fact]
+    public void InABufferedView_TheScreenGetsTheTargetBounds_AndKeepsScaleOne()
+    {
+        UseWindowAttributes("""Left="5" Top="7" Width="100" Height="60" """);
+        var (desktop, runtime) = HeadlessUiTestHarness.NewDesktop(320, 180);
+
+        var screen = BuildOn(desktop, runtime, new UIScreenAsset(), Scaled(), PlayCommand(("quit", null)));
+
+        var window = Assert.Single(screen.GetWindows());
+        Assert.Equal(1f, window.Scale);
+        Assert.Equal(5, window.Left);
+        Assert.Equal(7, window.Top);
+    }
+
     [Fact]
     public void AChangeOfBounds_RescalesFromTheXamlPosition()
     {
