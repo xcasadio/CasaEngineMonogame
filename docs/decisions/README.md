@@ -100,3 +100,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0084](0084-the-software-spu-follows-published-captures.md) | The software SPU follows published captures | Accepted | 2026-11-01 |
 | [ADR-0085](0085-the-tiled-json-map-import-has-a-content-entry.md) | The Tiled JSON map import has a content entry beside the path entry (numbered ADR-0078 until 2026-11-07) | Accepted | 2026-11-07 |
 | [ADR-0086](0086-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md) | A world declares its design resolution and may render into a buffer | Accepted | 2026-11-08 |
+| [ADR-0087](0087-a-world-starts-a-cutscene-and-cutscenes-count-frames.md) | A world starts a cutscene, and cutscenes count frames, open screens and change worlds | Accepted | 2026-11-08 |
