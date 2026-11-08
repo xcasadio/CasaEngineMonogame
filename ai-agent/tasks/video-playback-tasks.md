@@ -176,7 +176,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 1 — Décodeur et conteneur, sans GPU
 
-### ⏳ T1.1 — Spécification du format MDEC
+### ✅ T1.1 — Spécification du format MDEC
 
 - Objectif : écrire, avant tout code, la spécification exacte que le décodeur suit, en nos propres mots, d'après psx-spx.
 - Fichiers : `docs/engine/video.md` (nouveau), section « MDEC bitstream ».
@@ -197,6 +197,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   3. Citer la section source de chaque règle. Là où psx-spx est incomplet ou laisse un choix, écrire le choix du moteur et marquer « engine choice ».
 - Validation : relecture contre psx-spx. Un point que psx-spx contredit, ou laisse ouvert alors qu'il change la sortie, passe en ⚠️ avec la question dans « Points ouverts ».
 - Commit : `docs(video): specify the MDEC bitstream the engine decodes`
+- Note : `docs/engine/video.md` §1 écrite d'après les pages psx-spx (MDEC, BS Headers, DC, AC, Versions), chaque règle citée. Table AC contrôlée (préfixes libres, espace de codes plein sauf le préfixe inutilisé). Choix moteur marqués : matrice de quantification par défaut, ordre des macroblocs par colonnes, signe du DC v3, arrondis IDCT et couleur, recadrage (voir O2 à O4). Doc seule : pas de build ni de test touché.
 
 ### ⏳ T1.2 — Lecture du flux BS
 
@@ -391,6 +392,9 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | La comparaison locale avec la référence de lecture, sur les mêmes flux, se fait hors des dépôts, par le projet consommateur, après la fusion. Ses résultats ne vont pas dans ce dépôt (D7) | Après T5.2 |
+| O2 | psx-spx ne donne aucune matrice de quantification par défaut et le conteneur C1 n'en porte pas. T1.1 fixe la matrice par défaut d'MPEG-1 (choix moteur). Une vidéo encodée pour une autre matrice sera fausse ; la comparaison de O1 le dira, et il faudra alors une extension du conteneur | T1.3, après T5.2 |
+| O3 | Ordre des macroblocs : psx-spx dit « généralement verticaux ». T1.1 fixe colonne par colonne, de haut en bas (choix moteur), à confirmer par O1 | T1.2, T1.3 |
+| O4 | Sens des bits de magnitude négative du DC v3 (`n = 0` = plus grande magnitude, choix moteur déduit des plages données) et arrondis de l'IDCT et de la couleur (psx-spx : matériel non reproduit au bit près) | T1.2, T1.3 |
 
 ## Hors périmètre
 
