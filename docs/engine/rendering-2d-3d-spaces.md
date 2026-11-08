@@ -277,9 +277,49 @@ périphérique est remis au tampon entier à chaque `ClientSizeChanged` (ADR-005
 recalcule dans `XamlUIScreenBase.OnScreenBoundsChanged(Rectangle)`, appelé par `UIRoot.Update` (via
 `ScreenStack.NotifyScreenBounds`, écrans gelés sous un modal compris) quand ces bornes changent.
 
-Limites : seul le mode `IntegerFit`, bandes noires ; le rendu va droit dans le viewport du back-buffer (pas de cible de rendu,
-`BackBufferPresenter` reste non branché) ; l'abonnement à `ClientSizeChanged` et l'effacement des bandes demandent un
+Limites : `IntegerFit` dessine droit dans le viewport du back-buffer (pas de cible de rendu) ; les modes qui passent par une
+cible sont décrits plus bas ; l'abonnement à `ClientSizeChanged` et l'effacement des bandes demandent un
 périphérique graphique et se vérifient dans un jeu qui tourne. Decisions: see ADR-0048, ADR-0054.
+
+## Résolution par monde et rendu dans un buffer (ADR-0086)
+
+Un monde peut déclarer sa propre résolution virtuelle dans son `.world`. Sans ce bloc, celle du projet s'applique :
+
+```json
+"virtual_resolution": { "width": 200, "height": 150, "mode": "BufferedFit" }
+```
+
+`mode` est facultatif (`IntegerFit` par défaut). Le `Mode` du projet accepte les mêmes valeurs. Le `ScaleUI` d'un monde qui
+a un bloc vient du projet, faux si le projet n'a pas de `VirtualResolution`. La résolution est fixée au chargement du monde,
+quand ses vues sont reconstruites (`WorldVirtualResolutionState`) ; la fenêtre ne change jamais de taille.
+
+| Mode | Rendu | Présentation |
+|---|---|---|
+| `IntegerFit` | Droit dans la fenêtre, caméra au zoom `k` (section précédente) | Facteur entier, bandes noires |
+| `BufferedIntegerFit` | Dans une cible de la taille virtuelle, caméra au zoom 1 | Facteur entier `k`, échantillonnage au plus proche, bandes noires |
+| `BufferedFit` | Dans une cible de la taille virtuelle, caméra au zoom 1 | Facteur `min(L / largeur, H / hauteur)`, taille arrondie par défaut, échantillonnage linéaire, bandes noires |
+
+Pour les deux modes buffer (`DefaultRuntimeViewBootstrapper.CreateDefaultView`, `VirtualResolutionPresenter`) :
+
+- la vue rend dans une `RenderTargetSurface` de la taille virtuelle, sans `Host` ; ses écrans MGUI et le fondu d'écran
+  s'y dessinent à l'échelle 1 : lier la cible met le ciseau du périphérique à ses bornes ;
+- `VirtualResolutionPresenter` efface tout le back-buffer en noir, puis y dessine la cible dans `PresentedRect`
+  (`VirtualResolutionLayout.ComputePresentation`, non rogné par la fenêtre). Il n'alloue rien par image et remet les états
+  qu'il change ;
+- à chaque redimensionnement, après `World.OnScreenResized`, la caméra revient au viewport virtuel au zoom 1 et seul le
+  rectangle présenté change ;
+- `PresentedRect` est la seule source du pointeur : `ViewManager.ScreenToView`, `InputRouter` et `ViewRenderHost` trouvent la
+  vue dans toute l'image et donnent des positions en pixels virtuels (`WindowToVirtual`) ; un point dans une bande n'a pas
+  de vue ;
+- la vue par défaut possède sa cible : elle est libérée quand la vue est retirée, par exemple au changement de monde.
+
+Exemple : `Projects/BufferedResolutionSample`. `BufferedIntegerFit` à `k` donne les mêmes pixels que `IntegerFit` à `k` pour
+un contenu sur des pixels virtuels entiers (`BufferedPresentationGpuTests`).
+
+Limites : `BufferedFit` est lissé, donc pas exact au pixel ; les composants dessinés après le pipeline (`Line3d`,
+`PhysicsDebug`, `Axis`) restent en coordonnées de fenêtre, par-dessus l'image présentée ; l'éditeur ignore le bloc du monde
+comme le réglage du projet, et ne l'affiche pas encore dans l'inspecteur ; l'effet des ombres sur une vue buffer n'est pas
+vérifié ; modes Fill et Stretch et couleur des bandes toujours reportés. Decision: see ADR-0086.
 
 ---
 

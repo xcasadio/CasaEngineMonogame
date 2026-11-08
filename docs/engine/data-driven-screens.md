@@ -306,7 +306,7 @@ A project's mapping stops the game at one of two moments. While the game initial
 - The threshold of a stick direction such as `LeftThumbstickUp` comes from MonoGame's `GamePadState.IsButtonDown`, and has not been read.
 - Nothing edits a `.buttonsMapping` for now: it is written by hand.
 - A mistyped `FontFamily` falls back to the default font without a message: MGUI does not report it, and the layout moves with the wider font. Telling it apart needs a change in MGUI.
-- A project has one `VirtualResolution`, so all its screens share one design resolution.
+- A screen follows the design resolution of the loaded world: a world may declare its own (ADR-0086), otherwise the project's applies. In a buffered mode the screen draws at scale 1 into the world's target, which is then shown in the window; `Projects/BufferedResolutionSample` shows it.
 - `ScaleUI` scales the window of a data-driven screen only. A screen with its own class, and the view's `UIScale`, do not change.
 - In a window smaller than the design resolution, `k` is 1 and the view shows the center of the image, while a screen draws from the view's top-left corner, so the right and the bottom of the screen are cut.
 - A window moved by a drag goes back to `Left * k`, `Top * k` at the next change of size.

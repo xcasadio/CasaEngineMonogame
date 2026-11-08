@@ -314,7 +314,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
     - `FitWorld` à 960x540, par une variante de projet hors dépôt : image de x=120 à 839, toute la hauteur (720x540), bandes noires.
   - Reste 🧪 : la recette de l'auteur au Launcher (clic sur les boutons, changement de monde, redimensionnement à la main).
 
-### ⏳ T3.3 — Documentation
+### ✅ T3.3 — Documentation
 
 - Objectif : documenter le champ et les modes.
 - Fichiers : la page moteur qui décrit la résolution virtuelle (sous `docs/engine/`, trouvée par recherche), `docs/README.md` si une page est ajoutée, `ai-agent/README.md` (état du plan).
@@ -322,6 +322,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   1. Résumé, exemple de bloc `virtual_resolution`, choix entre les trois modes, limites (D1, D2) et ce qui reste reporté.
 - Validation : relecture, liens relatifs ouverts, D6 respecté.
 - Commit : `docs(rendering): document per-world virtual resolution and buffered modes`
+- Note de validation (2026-11-08) : section « Résolution par monde et rendu dans un buffer (ADR-0086) » dans `docs/engine/rendering-2d-3d-spaces.md`, écrite en français comme la page : bloc, tableau des trois modes, présentation, souris, propriété de la cible, limites. La limite « une seule résolution par projet » de `docs/engine/data-driven-screens.md` est corrigée. Ligne d'index de `ai-agent/README.md` mise à jour. Contrôle D6 sur tout le diff de la branche : aucun nom de projet consommateur. Les tailles d'écran tirées de lui, qu'un premier jet des tests utilisait, sont remplacées par des tailles neutres dans un commit à part. Les commits antérieurs de la branche les contiennent encore dans leur historique.
 
 ---
 
