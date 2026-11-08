@@ -16,5 +16,6 @@ public static class CutsceneActionTypes
     public const string WaitFrames = "WaitFrames";
     public const string FadeScreenFrames = "FadeScreenFrames";
     public const string OpenScreen = "OpenScreen";
+    public const string PlayVideo = "PlayVideo";
     public const string ChangeWorld = "ChangeWorld";
 }

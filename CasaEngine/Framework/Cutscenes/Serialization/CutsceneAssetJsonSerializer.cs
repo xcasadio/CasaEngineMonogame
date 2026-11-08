@@ -153,6 +153,14 @@ public static class CutsceneAssetJsonSerializer
 
                 break;
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                if (playVideoAction.Target != null)
+                {
+                    node["target"] = playVideoAction.Target;
+                }
+
+                break;
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 if (changeWorldAction.Target != null)
                 {
@@ -231,6 +239,7 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.WaitFrames => LoadWaitFrames(node),
             CutsceneActionTypes.FadeScreenFrames => LoadFadeScreenFrames(node),
             CutsceneActionTypes.OpenScreen => new OpenScreenCutsceneActionData { Target = ReadTarget(node) },
+            CutsceneActionTypes.PlayVideo => new PlayVideoCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),

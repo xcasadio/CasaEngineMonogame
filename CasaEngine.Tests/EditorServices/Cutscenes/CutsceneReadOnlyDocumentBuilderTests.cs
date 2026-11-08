@@ -184,4 +184,25 @@ public sealed class CutsceneReadOnlyDocumentBuilderTests
         Assert.Equal(string.Empty, document.RootAction.Children[2].Properties[0].Value);
         Assert.Single(document.ValidationMessages, message => message.Severity == CutsceneValidationSeverity.Error);
     }
+
+    [Fact]
+    public void Build_ShowsTheTargetOfThePlayVideoAction()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "Chain",
+            RootAction = new SequenceCutsceneActionData
+            {
+                Actions = { new PlayVideoCutsceneActionData { Target = "Clip" }, new PlayVideoCutsceneActionData() },
+            },
+        };
+
+        var document = CutsceneReadOnlyDocumentBuilder.Build(asset);
+
+        var playVideo = document.RootAction.Children[0];
+        Assert.Equal(CutsceneActionTypes.PlayVideo, playVideo.Type);
+        Assert.Equal("target=Clip", $"{playVideo.Properties[0].Name}={playVideo.Properties[0].Value}");
+        Assert.Equal(string.Empty, document.RootAction.Children[1].Properties[0].Value);
+        Assert.Single(document.ValidationMessages, message => message.Severity == CutsceneValidationSeverity.Error);
+    }
 }

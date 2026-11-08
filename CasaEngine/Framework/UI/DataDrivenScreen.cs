@@ -199,6 +199,29 @@ public sealed class DataDrivenScreen : XamlUIScreenBase
         return isSkipped;
     }
 
+    /// <summary>How many <c>Video</c> elements the window holds.</summary>
+    internal int VideoCount => _videos.Count;
+
+    /// <summary>
+    /// True while a video of the screen is still playing: it has neither ended nor been skipped. A video whose source
+    /// the game could not resolve does not play, so it does not hold the <c>PlayVideo</c> cutscene action back.
+    /// </summary>
+    internal bool IsAnyVideoPlaying
+    {
+        get
+        {
+            for (int i = 0; i < _videos.Count; i++)
+            {
+                if (_videos[i].IsPlaying)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     /// <summary>
     /// Disposes the screen, or leaves that to the end of the command when one of its actions closed it: the actions
     /// after the closing one still need the sounds.

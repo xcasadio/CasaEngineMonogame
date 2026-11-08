@@ -10,6 +10,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
 using CasaEngine.Framework.Rendering.ScreenEffects;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scripting.Coroutines;
 using Microsoft.Xna.Framework;
 
@@ -159,6 +160,27 @@ internal static class CutsceneActionCoroutineFactory
                     break;
                 }
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                {
+                    GameManager playVideoManager = world.Game?.GameManager;
+                    if (playVideoManager == null)
+                    {
+                        FailPlay(owner, "PlayVideo needs a running game, and this world has none.", playToken);
+                        yield break;
+                    }
+
+                    yield return PlayVideoScreen(
+                        playVideoAction.Target,
+                        screenName =>
+                        {
+                            string failure = playVideoManager.OpenVideoScreenFromCutscene(screenName, out IUIScreen screen, out IUIViewRuntime view);
+                            return (failure, screen, view);
+                        },
+                        owner,
+                        playToken);
+                    break;
+                }
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 {
                     GameManager changeWorldManager = world.Game?.GameManager;
@@ -215,6 +237,47 @@ internal static class CutsceneActionCoroutineFactory
 
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
+        }
+    }
+
+    /// <summary>
+    /// The <c>PlayVideo</c> action: opens the screen, waits until none of its videos is playing, then removes it. The
+    /// removal is in a <c>finally</c> so that a stopped cutscene takes its screen away too. When the world is cleared
+    /// the views go with it and the removal finds nothing to do.
+    /// </summary>
+    /// <param name="open">Opens the screen: why it cannot, then the screen and the view it went on (both null when nothing opened).</param>
+    internal static IEnumerator PlayVideoScreen(
+        string target,
+        Func<string, (string Failure, IUIScreen Screen, IUIViewRuntime View)> open,
+        CutsceneDirector owner,
+        int playToken)
+    {
+        var (failure, screen, view) = open(target);
+        if (failure != null)
+        {
+            FailPlay(owner, failure, playToken);
+            yield break;
+        }
+
+        // Under external view management nothing opened, so there is nothing to wait for.
+        if (screen == null)
+        {
+            yield break;
+        }
+
+        try
+        {
+            if (screen is not DataDrivenScreen { VideoCount: > 0 } videoScreen)
+            {
+                FailPlay(owner, $"PlayVideo: screen '{target}' has no Video element.", playToken);
+                yield break;
+            }
+
+            yield return new WaitForVideosInstruction(videoScreen);
+        }
+        finally
+        {
+            view.RemoveScreen(screen);
         }
     }
 
@@ -457,6 +520,16 @@ internal static class CutsceneActionCoroutineFactory
             _elapsed += context.DeltaTime;
             return _elapsed >= _duration;
         }
+    }
+
+    /// <summary>Completes once no video of the screen is playing: each has ended or been skipped.</summary>
+    private sealed class WaitForVideosInstruction : ICoroutineInstruction
+    {
+        private readonly DataDrivenScreen _screen;
+
+        public WaitForVideosInstruction(DataDrivenScreen screen) => _screen = screen;
+
+        public bool IsCompleted(CoroutineUpdateContext context) => !_screen.IsAnyVideoPlaying;
     }
 
     private sealed class NavigateToCutsceneInstruction : ICoroutineInstruction

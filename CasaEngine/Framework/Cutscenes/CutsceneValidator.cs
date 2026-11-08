@@ -142,6 +142,10 @@ public static class CutsceneValidator
                 ValidateTarget(openScreenAction.Target, path, "OpenScreen", result);
                 break;
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                ValidateTarget(playVideoAction.Target, path, "PlayVideo", result);
+                break;
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 ValidateTarget(changeWorldAction.Target, path, "ChangeWorld", result);
                 break;

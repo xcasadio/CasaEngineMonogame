@@ -75,6 +75,10 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("target", openScreenAction.Target ?? string.Empty);
                 break;
 
+            case PlayVideoCutsceneActionData playVideoAction:
+                node.AddProperty("target", playVideoAction.Target ?? string.Empty);
+                break;
+
             case ChangeWorldCutsceneActionData changeWorldAction:
                 node.AddProperty("target", changeWorldAction.Target ?? string.Empty);
                 break;

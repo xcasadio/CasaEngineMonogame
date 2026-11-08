@@ -326,7 +326,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 - Commit : `feat(ui): wire video commands and skips in data-driven screens`
 - Note : crochet `UINavigationInput.SubmitOrCancelPressed` (`Func<bool>`, Submit et Cancel en phase `Pressed` seulement, avant le bureau ; vrai = action consommée, pas de `CancelNotHandled`), `UIRoot.SkipVideosOfTopScreen(ScreenStack)` interne et statique, `DataDrivenScreen.SkipVideos()` et refus au chargement d'une `Video` dont `EndedCommandName` ou `SkippedCommandName` n'est pas déclarée. 12 tests `DataDrivenScreenVideoTests` (via `UIRoot.RunFrame` et la surcharge à `isHeld` injecté) ; les deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5206 réussis, 0 échec.
 
-### ⏳ T3.3 — Action `PlayVideo`
+### ✅ T3.3 — Action `PlayVideo`
 
 - Objectif : C7, aux six endroits d'une action.
 - Fichiers :
@@ -345,6 +345,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - le builder montre le champ ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(cutscenes): play a video screen from a cutscene`
+- Note : validé le 2026-11-08 : build des deux .sln à 0 erreur, CasaEngine.Tests 5220 réussis (14 tests PlayVideo + 1 builder). Une vidéo dont la source ne se résout pas ne retient pas l’attente (IsPlaying faux) ; l’arrêt retire l’écran au prochain tick du gestionnaire de coroutines, qui libère l’énumérateur.
 
 ---
 
