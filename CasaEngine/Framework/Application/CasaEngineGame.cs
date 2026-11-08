@@ -66,6 +66,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public ScrollingLayerComponent ScrollingLayerComponent { get; private set; }
     public CellularLayerComponent CellularLayerComponent { get; private set; }
     public EffectQuadComponent EffectQuadComponent { get; private set; }
+    public FrozenFrameComponent FrozenFrameComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
@@ -411,6 +412,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         ScrollingLayerComponent = new ScrollingLayerComponent(this);
         CellularLayerComponent = new CellularLayerComponent(this);
         EffectQuadComponent = new EffectQuadComponent(this);
+        FrozenFrameComponent = new FrozenFrameComponent(this);
         FontSystem = new FontSystem();
         UIFonts = new UIFontRegistry(AssetContentManager);
 
@@ -427,6 +429,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             Renderer2DComponent,
         }, SpriteBatch!);
         _renderPipeline.BeforeViewRender = view => PhysicsDebugViewRendererComponent.RenderForView(view);
+        _renderPipeline.Retention = FrozenFrameComponent.Retention;
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
         // targets to the pool instead of disposing them immediately.
