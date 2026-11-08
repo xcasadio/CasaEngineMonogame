@@ -165,7 +165,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 
 ## Phase 2 — Runtime
 
-### ⏳ T2.1 — Résolution effective par monde
+### ✅ T2.1 — Résolution effective par monde
 
 - Objectif : au chargement d'un monde, la résolution effective est celle du monde, sinon celle du projet. Elle sert à la vue, à l'UI et aux bandes.
 - Fichiers :
@@ -186,6 +186,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
      - l'éditeur reste à null.
 - Validation : build des deux `.sln`, `CasaEngine.Tests` vert. Les tests existants des réglages restent verts sans changement de sens.
 - Commit : `feat(rendering): resolve the virtual resolution per loaded world`
+- Note de validation (2026-11-08) : règle de composition dans `WorldVirtualResolutionState`, testable sans GPU, calculée une fois par chargement de monde (aucune allocation par image). `CasaEngineGame.ActiveVirtualResolution` la lit, et `GameManager.UpdateWorld` l'alimente avant `ViewManager.Clear` et `BootstrapViews`. Un monde en `IntegerFit` avec bloc passe donc déjà par le dessin direct à sa propre taille. Les modes buffer arrivent en T2.2. 9 tests. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4867/4867.
 
 ### ⏳ T2.2 — Vue sur buffer et présentation
 

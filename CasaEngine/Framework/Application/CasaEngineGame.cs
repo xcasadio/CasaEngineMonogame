@@ -84,11 +84,18 @@ public class CasaEngineGame : Game, IObservableUpdate
     internal LoadTimeDiscard LoadTimeDiscard { get; }
 
     /// <summary>
-    /// The project's virtual resolution (ADR-0048) when this game manages its own window, null when the project has
-    /// none or an external host (the editor) manages the views.
+    /// The virtual resolution in force (ADR-0048, ADR-0086) when this game manages its own window: the loaded world's
+    /// own declaration when it has one, otherwise the project's. Null when neither declares one or an external host
+    /// (the editor) manages the views.
     /// </summary>
     public VirtualResolutionSettings ActiveVirtualResolution
-        => ExecutionPolicy.UseExternalViewManagement ? null : RuntimeContext.ProjectSettings.VirtualResolution;
+        => _worldVirtualResolution.Active(RuntimeContext.ProjectSettings.VirtualResolution, ExecutionPolicy.UseExternalViewManagement);
+
+    private readonly WorldVirtualResolutionState _worldVirtualResolution = new();
+
+    /// <summary>Takes the virtual resolution a newly loaded world declares, before its views are built (ADR-0086).</summary>
+    internal void UseWorldVirtualResolution(Scene.World.World world)
+        => _worldVirtualResolution.UseWorld(RuntimeContext.ProjectSettings.VirtualResolution, world?.VirtualResolution);
 
     private readonly MaterialDependencyIndex _materialDependencyIndex = new();
 
