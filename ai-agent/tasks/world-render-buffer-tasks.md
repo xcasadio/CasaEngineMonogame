@@ -282,7 +282,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
 
 ## Phase 3 — Preuves, sample, documentation
 
-### ⏳ T3.1 — Test GPU de non-régression et de présentation
+### ✅ T3.1 — Test GPU de non-régression et de présentation
 
 - Objectif : prouver au pixel près que `BufferedIntegerFit` à k=3 donne la même image que `IntegerFit` à k=3 sur une scène de test, et que `BufferedFit` remplit la hauteur.
 - Fichiers : nouveau `CasaEngine.Tests/Rendering/BufferedPresentationGpuTests.cs` (harnais `GpuDeviceHost`, `[GpuFact]`).
@@ -292,6 +292,7 @@ Lu sur `main` à `7ac0133e`, en lecture seule, par une découverte en quatre par
   3. Mode libre : vérifier le rectangle présenté et les bandes noires. Les pixels lissés ne sont pas comparés au pixel près.
 - Validation : `CasaEngine.Tests` vert. Le test est ignoré, pas en échec, sans GPU.
 - Commit : `test(rendering): prove buffered integer presentation matches direct drawing`
+- Note de validation (2026-11-08) : le tampon arrière du jeu de test fait 256x192, donc la scène fait 64x48 et k vaut 4. Dessin direct au facteur 4 dans une cible de 256x192, contre dessin à l'échelle 1 dans la cible de 64x48 présentée par `VirtualResolutionPresenter` dans le tampon arrière (`GetBackBufferData`) : 0 pixel différent sur 49 152. L'image attendue contient bien le rouge, le jaune et le magenta de la scène. `BufferedFit` : 100x48 remplit la largeur, avec des bandes noires en haut et en bas. Tests réellement lancés ici, pas ignorés. Les deux `.sln` à 0 erreur, `CasaEngine.Tests` 4905/4905.
 
 ### ⏳ T3.2 — Sample `Projects/PixelUiSample`
 
