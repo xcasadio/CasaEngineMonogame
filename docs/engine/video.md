@@ -159,10 +159,10 @@ End of block. A block ends at the first end-of-block word. `[BS-V: BS v1/v2/v3]`
 6. **Zig-zag.** When `q > 0` the value is stored at raster position `zagzig[k]` of the 8x8 block (row-major, `index = row * 8 + column`).
 7. The end-of-block word (`FE00`) finishes the block; remaining coefficients stay 0. `[M: data input format]`: an `FE00` at the very start of a block, or right after an end-of-block, is padding and is ignored; the decoder of 1.5 never produces one.
 
-**Quantisation matrix.** The matrix is not part of the BS data: the hardware gets it from a separate command, and psx-spx gives no default (it only says that a luminance table of 64 unsigned bytes is used for Y1..Y4, that an optional second table is used for Cr and Cb, and that entry `qt[k]` is the one the formula above uses for scan position `k`). **Engine choice**: one matrix for all six blocks, the default intra quantiser matrix of MPEG-1 (ISO/IEC 11172-2, "default intra quantizer matrix"), indexed in scan order `k`:
+**Quantisation matrix.** The matrix is not part of the BS data: the hardware gets it from a separate command, and psx-spx gives only the start and the end of the default table (`[BS-H: BS fraquant]`: "The decoder is using the default_quant_table (02h,10h,10h,13h,..,53h)"; the same sub-section says that header quant values 0001h..0003h "should give same results as for normal BS decoding", which ties normal decoding to that table). It also says that a luminance table of 64 unsigned bytes is used for Y1..Y4, that an optional second table is used for Cr and Cb, and that entry `qt[k]` is the one the formula above uses for scan position `k`). **Engine choice**: one matrix for all six blocks. Entry 0 is 2, as psx-spx lists it (the MPEG-1 value 8 would clip most of the DC range and contradict the scale-0 rule `s10 * 2`). Entries 1..63 are the default intra quantiser matrix of MPEG-1 (ISO/IEC 11172-2, "default intra quantizer matrix"), kept because they agree with the three other entries psx-spx lists (10h, 10h, 13h in scan order, and 53h = 83 last); entries 4..62 are not given by psx-spx. The table is indexed in scan order `k`:
 
 ```text
- 8 16 19 22 26 27 29 34
+ 2 16 19 22 26 27 29 34
 16 16 22 24 27 29 34 37
 19 22 26 27 29 34 34 38
 22 22 26 27 29 34 37 40
@@ -253,7 +253,7 @@ Monochrome macroblocks (`y_to_mono`) and the 15-bit output are not used.
 
 These engine choices change the decoded picture if they differ from what a real encoder and player used. They are the points to check first when a decoded frame is compared with a reference player; changing one is a change of this specification, of the tests that prove it, and of the ADR.
 
-1. **Quantisation matrix** (1.7): the MPEG-1 default intra matrix. The `.mdecvideo` container has no field for a matrix, so a picture encoded for another matrix needs a container change.
+1. **Quantisation matrix** (1.7): entry 0 is 2 (psx-spx), entries 1..63 are those of the MPEG-1 default intra matrix (entries 4..62 are not given by psx-spx). The `.mdecvideo` container has no field for a matrix, so a picture encoded for another matrix needs a container change.
 2. **Macroblock order** (1.11): column by column.
 3. **Negative magnitudes of the version 3 DC** (1.4): `n = 0` is the largest magnitude.
 4. **IDCT and colour rounding** (1.9, 1.10): psx-spx says the hardware is not reproduced bit for bit; the engine's formulas are exact and documented, so the output may differ from the hardware by small rounding differences.
