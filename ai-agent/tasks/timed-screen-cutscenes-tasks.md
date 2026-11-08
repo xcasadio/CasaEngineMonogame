@@ -250,7 +250,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
 - Commit : `feat(cutscenes): raise an event when a cutscene ends`
 - Note : repris en session principale après deux corrections de l'executor (la troisième relecture gardait deux constats P2). Corrections : une exception d'un abonné est loguée avec son contexte et n'interrompt plus `Stop`, un `Play` qui remplace ni `World.Clear` (C8 corrigé dans ce sens, voir sa dernière puce) ; une lecture en échec arrête toutes ses branches et ses déplacements avant de lever `Failed` à la fin de `RunAsset` ; une lecture en échec arrêtée, effacée ou remplacée avant d'avoir fini de se dérouler lève `Failed` depuis `Stop`. Règles écrites dans l'ADR-0087 et la doc XML : un `Play` lancé par un abonné pendant un `Play` qui remplace l'emporte ; un `Play` lancé par un abonné pendant `World.Clear` ne tourne pas. Tests : un `Ended` par fin pour `Completed`, `Stopped`, `RuntimeSystems.Clear`, `Failed`, `Play` pendant une lecture, aucun pour un asset invalide ou un `Stop` après la fin, état du `GetDebugSnapshot()` égal à celui des arguments dans l'abonné (`Completed`, `Stopped`, `Failed`), échec d'une branche de `Parallel` arrêté, effacé ou remplacé à l'image 3 avant la fin, branche suivante arrêtée avant `Failed`, `Play` depuis un abonné `Failed` ou `Stopped`, trois cas d'abonné qui lève (nouveau fichier `CutsceneEndedHandlerExceptionTests.cs`). Mutations vérifiées : sans l'arrêt des branches en fin d'échec, 1 test échoue ; avec une exception relancée, 3 tests échouent. Deux `.sln` à 0 erreur, `CasaEngine.Tests` 4967 réussis sur 4967.
 
-### ⏳ T1.4 — Actions `OpenScreen` et `ChangeWorld`
+### ✅ T1.4 — Actions `OpenScreen` et `ChangeWorld`
 
 - Objectif : les deux actions selon C5, C6 et C7.
 - Fichiers :
@@ -280,6 +280,7 @@ Lu sur `main` à `147c3d64`, égal au pointeur du projet consommateur, en lectur
     - vers un monde du catalogue, le monde demandé est en attente dans `GameManager` et la cutscene continue dans la même mise à jour ;
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(cutscenes): open a screen and change the world from a cutscene`
+- Note : builds des deux `.sln` à 0 erreur ; `CasaEngine.Tests` 4989 réussis sur 4989, 0 échec. Les nouveaux tests prouvent : l'aller-retour JSON des deux actions ; une erreur du validateur nommant l'action et `target` pour une cible absente, vide, blanche ou non textuelle ; `GameManager.OpenScreenFromCutscene` (écran poussé sur la vue active, par nom et par id, ouverture répétée, rien d'ouvert et aucune erreur sous les politiques d'éditeur, raison rendue sans vue, sans UI, pour un écran absent ou d'un autre type, `OpenFirstScreen` qui ouvre encore `FirstScreenName` après une ouverture par cutscene) ; la fabrique (sans jeu, `OpenScreen` et `ChangeWorld` finissent en `Failed` avec `Ended` et une seule erreur loguée ; `ChangeWorld` vers un monde absent finit en `Failed` sans rien demander ; vers un monde du catalogue, `PendingWorldToLoad` vaut le monde et la cutscene continue dans la même mise à jour) ; les champs du builder. Ajout interne : `GameManager.PendingWorldToLoad`, lu par les tests. `OpenScreen` réussi côté fabrique n'est pas testé (`_game` est nul dans les tests) : il l'est au niveau de la méthode de `GameManager`.
 
 ### ⏳ T1.5 — Cutscene de démarrage d'un monde
 

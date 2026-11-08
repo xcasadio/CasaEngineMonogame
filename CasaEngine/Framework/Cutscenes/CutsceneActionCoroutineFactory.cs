@@ -5,6 +5,7 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
@@ -143,6 +144,36 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case OpenScreenCutsceneActionData openScreenAction:
+                {
+                    GameManager openScreenManager = world.Game?.GameManager;
+                    string openScreenFailure = openScreenManager == null
+                        ? "OpenScreen needs a running game, and this world has none."
+                        : openScreenManager.OpenScreenFromCutscene(openScreenAction.Target);
+                    if (openScreenFailure != null)
+                    {
+                        FailPlay(owner, openScreenFailure, playToken);
+                        yield break;
+                    }
+
+                    break;
+                }
+
+            case ChangeWorldCutsceneActionData changeWorldAction:
+                {
+                    GameManager changeWorldManager = world.Game?.GameManager;
+                    string changeWorldFailure = changeWorldManager == null
+                        ? "ChangeWorld needs a running game, and this world has none."
+                        : changeWorldManager.RequestWorldFromCutscene(changeWorldAction.Target);
+                    if (changeWorldFailure != null)
+                    {
+                        FailPlay(owner, changeWorldFailure, playToken);
+                        yield break;
+                    }
+
+                    break;
+                }
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
@@ -188,6 +219,13 @@ internal static class CutsceneActionCoroutineFactory
     }
 
     private static AudioService GetAudioService(World world) => world.Game?.AudioSystemComponent?.Service;
+
+    /// <summary>Fails the play and logs the reason once: the action ends here, so this runs once per play.</summary>
+    private static void FailPlay(CutsceneDirector owner, string reason, int playToken)
+    {
+        Logs.WriteError($"Cutscene action failed: {reason}");
+        owner.MarkRuntimeFailure(reason, playToken);
+    }
 
     private static ScreenEffectService GetScreenEffectService(World world) => world.Game?.ScreenEffectComponent?.Service;
 

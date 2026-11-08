@@ -138,6 +138,14 @@ public static class CutsceneValidator
                 ValidateRequired(fadeFramesAction.BlendMode, "blend_mode", fadeFramesAction.FormatErrors, path, "FadeScreenFrames", result);
                 break;
 
+            case OpenScreenCutsceneActionData openScreenAction:
+                ValidateTarget(openScreenAction.Target, path, "OpenScreen", result);
+                break;
+
+            case ChangeWorldCutsceneActionData changeWorldAction:
+                ValidateTarget(changeWorldAction.Target, path, "ChangeWorld", result);
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;
@@ -165,6 +173,14 @@ public static class CutsceneValidator
         else if (frames < 0)
         {
             result.AddError(path, $"{actionName}.frames must be greater than or equal to zero.");
+        }
+    }
+
+    private static void ValidateTarget(string target, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            result.AddError(path, $"{actionName}.target is required and must not be empty.");
         }
     }
 

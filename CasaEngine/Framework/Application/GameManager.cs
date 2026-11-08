@@ -190,6 +190,57 @@ public class GameManager
     }
 
     /// <summary>
+    /// Opens a screen for the <c>OpenScreen</c> cutscene action. Unlike <see cref="OpenFirstScreen"/> it opens on every
+    /// call and leaves the one-time opening of <c>FirstScreenName</c> alone. The policy and the factory are parameters
+    /// because <c>_game</c> is null in tests.
+    /// </summary>
+    /// <returns>Null when the screen is open, or when nothing has to open under external view management; otherwise why it cannot open.</returns>
+    internal string OpenScreenFromCutscene(GameplayExecutionPolicy policy, string screenName, Func<string, IUIViewRuntime, IUIScreen> createScreen)
+    {
+        if (policy.UseExternalViewManagement)
+        {
+            Logs.WriteInfo($"OpenScreen '{screenName}' skipped: the editor manages the views.");
+            return null;
+        }
+
+        if (!IsScreenAsset(screenName))
+        {
+            return $"OpenScreen: no screen asset '{screenName}' is registered in this project.";
+        }
+
+        IUIViewRuntime view = ViewManager.GetActiveUIView();
+        if (view == null)
+        {
+            return $"OpenScreen: screen '{screenName}' needs an active view that hosts a UI, and there is none.";
+        }
+
+        PushNewScreen(view, createScreen(screenName, view));
+        return null;
+    }
+
+    /// <summary>Opens a screen for the <c>OpenScreen</c> cutscene action on the running game.</summary>
+    internal string OpenScreenFromCutscene(string screenName)
+        => _game == null
+            ? "OpenScreen needs a running game, and this manager has none."
+            : OpenScreenFromCutscene(_game.ExecutionPolicy, screenName, CreateDataDrivenScreen);
+
+    /// <summary>Asks for a world for the <c>ChangeWorld</c> cutscene action; the world loads at the next update.</summary>
+    /// <returns>Null when the world is requested; otherwise why it cannot be.</returns>
+    internal string RequestWorldFromCutscene(string worldFileName)
+    {
+        if (!IsWorldAsset(worldFileName))
+        {
+            return $"ChangeWorld: no world asset '{worldFileName}' is registered in this project.";
+        }
+
+        SetWorldToLoad(worldFileName);
+        return null;
+    }
+
+    /// <summary>The world name waiting for the next <see cref="UpdateWorld"/>, or null.</summary>
+    internal string PendingWorldToLoad => _worldToLoad;
+
+    /// <summary>
     /// Starts the discard of what the new world took to start. Under external view management the editor runs the loop:
     /// this game is never run, so it has no catch-up to stop and no frame that would end the discard.
     /// </summary>

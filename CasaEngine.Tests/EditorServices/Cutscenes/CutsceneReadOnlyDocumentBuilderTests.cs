@@ -155,4 +155,33 @@ public sealed class CutsceneReadOnlyDocumentBuilderTests
         Assert.All(empty.Properties, property => Assert.Equal(string.Empty, property.Value));
         Assert.Equal(5, document.ValidationMessages.Count(message => message.Severity == CutsceneValidationSeverity.Error));
     }
+
+    [Fact]
+    public void Build_ShowsTheTargetOfTheOpenScreenAndChangeWorldActions()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "Chain",
+            RootAction = new SequenceCutsceneActionData
+            {
+                Actions =
+                {
+                    new OpenScreenCutsceneActionData { Target = "Intro" },
+                    new ChangeWorldCutsceneActionData { Target = "second.world" },
+                    new ChangeWorldCutsceneActionData(),
+                },
+            },
+        };
+
+        var document = CutsceneReadOnlyDocumentBuilder.Build(asset);
+
+        var openScreen = document.RootAction.Children[0];
+        Assert.Equal(CutsceneActionTypes.OpenScreen, openScreen.Type);
+        Assert.Equal("target=Intro", $"{openScreen.Properties[0].Name}={openScreen.Properties[0].Value}");
+        var changeWorld = document.RootAction.Children[1];
+        Assert.Equal(CutsceneActionTypes.ChangeWorld, changeWorld.Type);
+        Assert.Equal("target=second.world", $"{changeWorld.Properties[0].Name}={changeWorld.Properties[0].Value}");
+        Assert.Equal(string.Empty, document.RootAction.Children[2].Properties[0].Value);
+        Assert.Single(document.ValidationMessages, message => message.Severity == CutsceneValidationSeverity.Error);
+    }
 }

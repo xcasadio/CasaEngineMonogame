@@ -71,6 +71,14 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("blend_mode", fadeFramesAction.BlendMode?.ToString() ?? string.Empty);
                 break;
 
+            case OpenScreenCutsceneActionData openScreenAction:
+                node.AddProperty("target", openScreenAction.Target ?? string.Empty);
+                break;
+
+            case ChangeWorldCutsceneActionData changeWorldAction:
+                node.AddProperty("target", changeWorldAction.Target ?? string.Empty);
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 node.AddProperty("unknown_type", unknownAction.UnknownType);
                 break;

@@ -144,6 +144,22 @@ public static class CutsceneAssetJsonSerializer
                 }
 
                 break;
+
+            case OpenScreenCutsceneActionData openScreenAction:
+                if (openScreenAction.Target != null)
+                {
+                    node["target"] = openScreenAction.Target;
+                }
+
+                break;
+
+            case ChangeWorldCutsceneActionData changeWorldAction:
+                if (changeWorldAction.Target != null)
+                {
+                    node["target"] = changeWorldAction.Target;
+                }
+
+                break;
         }
 
         return node;
@@ -214,6 +230,8 @@ public static class CutsceneAssetJsonSerializer
             },
             CutsceneActionTypes.WaitFrames => LoadWaitFrames(node),
             CutsceneActionTypes.FadeScreenFrames => LoadFadeScreenFrames(node),
+            CutsceneActionTypes.OpenScreen => new OpenScreenCutsceneActionData { Target = ReadTarget(node) },
+            CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             _ => new UnknownCutsceneActionData(actionType)
@@ -237,6 +255,10 @@ public static class CutsceneAssetJsonSerializer
         action.BlendMode = ReadEnum<SpriteBlendMode>(node, "blend_mode", action.FormatErrors);
         return action;
     }
+
+    /// <summary>The target text; anything but a string reads as absent, which the validator refuses.</summary>
+    private static string ReadTarget(JObject node)
+        => node["target"] is { Type: JTokenType.String } value ? value.GetString() : null;
 
     /// <summary>An integer. A negative one is kept, the validator refuses it.</summary>
     private static int? ReadFrames(JObject node, Dictionary<string, string> errors)
