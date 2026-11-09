@@ -316,11 +316,16 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Validation.** Les deux `.sln` sont à 0 erreur. Dernier passage complet de `CasaEngine.Tests` : 5440 réussis. Après le changement de `loop.cutscene` et du README, `SpriteCutsceneSampleDataTests` passe 16 sur 16.
   - **Statut.** La tâche reste 🧪 : la sortie par la touche Espace est à vérifier à la recette (T4.2).
 
-### ⏳ T3.2 — Documentation
+### ✅ T3.2 — Documentation
 
 - Objectif : C10.
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(cutscenes): describe the sprite, repeat and exit-on-input actions`
+- Note :
+  - **Documenté.** `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` gagne la section « Sprite, repeat and exit-on-input actions (ADR-0090) » (en anglais, dans un document par ailleurs en français) : champs, types et défauts des six actions, `color` en tableau, règle du temps, `Repeat` et sa garde, `ExitOnInput` (armement, durée de vie, ordre d'image mesuré en T2.4), échecs (validation, `Failed`, règles de T2.5) et limites O1, O2, O4, O5 et le `Repeat` fini à grand `count`. Aucune doc ne décrivait `StaticSpriteComponent` : nouveau `docs/engine/static-sprite-component.md` (champs JSON, résolution du nom, ordre de dessin, convention 2D mesurée en T3.1, mouvement et teinte), lié depuis `docs/README.md`. Un nouveau fichier plutôt qu'une section, car les docs de rendu 2D existantes sont en français.
+  - **Relecture contre le code** (`git diff e7a26748..HEAD`) : fabrique, directeur, veille, sérialiseur, validateur, composant, `Entity`, `World.Update`. Les liens vers le sample et ADR-0090 sont posés.
+  - **ADR-0090** relue contre le code livré : aucune erreur factuelle, aucune correction.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur.
 
 ---
 
