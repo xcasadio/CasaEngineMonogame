@@ -281,7 +281,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 3 — Sample et documentation
 
-### 🧪 T3.1 — Sample `Projects/SpriteCutsceneSample`
+### ✅ T3.1 — Sample `Projects/SpriteCutsceneSample`
 
 - Objectif : C8.
 - Fichiers : `Projects/SpriteCutsceneSample/` et un test de données sur le modèle de `VideoSampleDataTests`.
@@ -315,6 +315,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
     - **Sortie spontanée, expliquée.** Dans chaque lancement, la sortie s'est déclenchée une fois (vers 24 s, puis vers 5 s) sans touche envoyée par l'agent, puis le sample est revenu au premier monde. L'auteur jouait au même moment à un autre jeu avec une manette (« je suis en train de jouer a un jeu avec une manette ») : le bouton Start de sa manette a atteint la veille, car la manette est lue même quand la fenêtre n'a pas le focus. Ce n'est pas un défaut de `ExitOnInput` ; c'est un comportement antérieur du moteur, noté en O5.
   - **Validation.** Les deux `.sln` sont à 0 erreur. Dernier passage complet de `CasaEngine.Tests` : 5440 réussis. Après le changement de `loop.cutscene` et du README, `SpriteCutsceneSampleDataTests` passe 16 sur 16.
   - **Statut.** La tâche reste 🧪 : la sortie par la touche Espace est à vérifier à la recette (T4.2).
+- Note : passée en ✅ le 2026-11-09 par la recette de l’auteur (T4.2), qui couvre la sortie au clavier.
 
 ### ✅ T3.2 — Documentation
 
@@ -349,12 +350,12 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
     - A2, antérieur à la branche : `RemoveCollisions` ne vide pas `_collisionObjects`. Un `ShowSprite` avec `sprite` y passe plus souvent qu'avant, ce qui est sans effet sur un sprite sans collision. À traiter dans un chantier suivant si un sprite à collisions est rechargé.
     - A3, introduit, confiance faible : `is_visible` à faux s'écrit dans le monde. L'éditeur ne met `IsVisible` à faux que sur ses entités d'aperçu et de caméra, qui ne semblent pas sauvegardées dans le monde. Tous les chemins de sauvegarde n'ont pas été suivis.
 
-### 🧪 T4.2 — Recette de l'auteur
+### ✅ T4.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the sprite cutscene sample`
-- Note : en attente de l'auteur.
+- Note : recette de l'auteur acceptée le 2026-11-09 (« Recette OK »), sur `Projects/SpriteCutsceneSample` au Launcher. Lui étaient demandés les points ci-dessous ; il ne signale aucun écart.
   - À voir : les sprites qui entrent depuis les bords, se teintent puis s'éteignent, les mélanges additif et soustractif, et la boucle.
   - À vérifier : Espace (ou Start à la manette) lance le fondu, le monde de fin, puis le retour. Sans appui, rien ne sort. Pendant la recette, aucune autre application ne doit utiliser une manette (O5).
 
