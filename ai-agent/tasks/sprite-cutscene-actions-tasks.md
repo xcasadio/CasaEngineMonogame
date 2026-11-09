@@ -189,12 +189,17 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5268 réussis, 0 échec (25 nouveaux tests dans `CasaEngine.Tests/Scene/StaticSpriteComponentColorBlendTests.cs`, aucun test existant modifié).
   - **Écart** : aucun par rapport au plan. Le test « entité asset clonée » utilise `Entity.Clone()` sur une entité chargée du JSON (le chemin de `LoadCopy<Entity>(id).Clone()` sans le disque).
 
-### ⏳ T1.2 — Mouvement et teinte avancés par le temps
+### ✅ T1.2 — Mouvement et teinte avancés par le temps
 
 - Objectif : C2.
 - Fichiers : `StaticSpriteComponent.cs` et des tests.
 - Validation : tests de C9 sur le mouvement et la teinte, et absence d'allocation dans `Update` ; deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(sprites): move and tint a sprite component over time`
+- Note :
+  - **Fait** : `StaticSpriteComponent` gagne `StartMove(Vector2 cible, float vitesse)`, `StartTint(Color cible, float durée)`, `StopMove()`, `StopTint()`, `StopMotionAndTint()`, `IsMoving` et `IsTinting`. `Update` avance d'abord le mouvement puis la teinte avec le temps reçu (donc mis à l'échelle), avant le reste de l'`Update`. Le mouvement part de la position courante, suit la droite à vitesse constante (`départ + direction × min(vitesse × t, distance)`), laisse Z inchangé et pose la cible exactement à l'arrivée ; une cible égale à la position est posée tout de suite. La teinte est linéaire, arrondie à l'entier le plus proche par composante, posée exactement à la fin ; une durée 0 pose la cible tout de suite. Un nouvel appel remplace l'état en cours.
+  - **Pour T2.1** : `ShowSprite` et `HideSprite` appellent `StopMotionAndTint()` (le composant ne connaît pas `Entity.IsVisible`, que l'action pose). Une vitesse non strictement positive ou une durée négative ou non finie lève `ArgumentOutOfRangeException` (erreur de programmation) : le validateur de T2.x les refuse en amont.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5293 réussis, 0 échec (25 nouveaux tests dans `CasaEngine.Tests/Scene/StaticSpriteComponentMotionTintTests.cs`, dont l'absence d'allocation de `Update` mesurée avec `AllocationWindow` ; aucun test existant modifié).
+  - **Écart** : aucun. La règle « une action lancée à l'image U avance dès l'`Update` des entités de U » relève du monde et sera fixée par les tests de T2.2.
 
 ---
 

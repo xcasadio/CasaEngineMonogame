@@ -32,6 +32,22 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private SpriteRendererComponent _spriteRendererComponent;
     private DepthSortable2DComponent _depthSortable2DComponent;
     private readonly List<(Collision2d, PhysicsBody)> _collisionObjects = new();
+
+    // Motion in progress (C2): straight line to the target at a constant speed, advanced in Update by the received time.
+    private bool _isMoving;
+    private Vector3 _moveStart;
+    private Vector2 _moveDirection;
+    private Vector2 _moveTarget;
+    private float _moveSpeed;
+    private float _moveDistance;
+    private float _moveElapsed;
+
+    // Tint in progress (C2): linear from the start colour to the target over the duration.
+    private bool _isTinting;
+    private Color _tintStart;
+    private Color _tintTarget;
+    private float _tintDuration;
+    private float _tintElapsed;
     private IPhysicsWorld _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }
@@ -123,8 +139,138 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         return new StaticSpriteComponent(this);
     }
 
+    /// <summary>True while a motion started by <see cref="StartMove"/> has not arrived nor been stopped.</summary>
+    public bool IsMoving => _isMoving;
+
+    /// <summary>True while a tint started by <see cref="StartTint"/> has not ended nor been stopped.</summary>
+    public bool IsTinting => _isTinting;
+
+    /// <summary>
+    /// Moves the sprite from its current X and Y to the target at a constant speed, in world units per second of the
+    /// time received by <see cref="Update"/> (so the scaled game time). Z does not change. The target is set exactly on
+    /// arrival. Replaces a motion in progress. A target equal to the current position is set at once.
+    /// </summary>
+    public void StartMove(Vector2 target, float speed)
+    {
+        if (!(speed > 0.0f) || float.IsInfinity(speed))
+        {
+            throw new ArgumentOutOfRangeException(nameof(speed), speed, "The speed must be a finite number greater than 0.");
+        }
+
+        var start = Position;
+        var delta = target - new Vector2(start.X, start.Y);
+        var distance = delta.Length();
+        if (distance <= 0.0f)
+        {
+            _isMoving = false;
+            Position = new Vector3(target.X, target.Y, start.Z);
+            return;
+        }
+
+        _moveStart = start;
+        _moveTarget = target;
+        _moveDirection = delta / distance;
+        _moveDistance = distance;
+        _moveSpeed = speed;
+        _moveElapsed = 0.0f;
+        _isMoving = true;
+    }
+
+    /// <summary>
+    /// Changes <see cref="Color"/> linearly from its current value to the target over the duration in seconds of the
+    /// time received by <see cref="Update"/>. The target is set exactly at the end; a duration of 0 sets it at once.
+    /// Replaces a tint in progress.
+    /// </summary>
+    public void StartTint(Color target, float duration)
+    {
+        if (!(duration >= 0.0f) || float.IsInfinity(duration))
+        {
+            throw new ArgumentOutOfRangeException(nameof(duration), duration, "The duration must be a finite number of at least 0.");
+        }
+
+        if (duration == 0.0f)
+        {
+            _isTinting = false;
+            Color = target;
+            return;
+        }
+
+        _tintStart = Color;
+        _tintTarget = target;
+        _tintDuration = duration;
+        _tintElapsed = 0.0f;
+        _isTinting = true;
+    }
+
+    /// <summary>Stops the motion in progress, if any, where the sprite is.</summary>
+    public void StopMove()
+    {
+        _isMoving = false;
+    }
+
+    /// <summary>Stops the tint in progress, if any, on the current colour.</summary>
+    public void StopTint()
+    {
+        _isTinting = false;
+    }
+
+    /// <summary>Stops both the motion and the tint. A show or a hide of the sprite does this.</summary>
+    public void StopMotionAndTint()
+    {
+        _isMoving = false;
+        _isTinting = false;
+    }
+
+    private void AdvanceMove(float elapsedTime)
+    {
+        _moveElapsed += elapsedTime;
+        var travelled = _moveSpeed * _moveElapsed;
+        var z = _moveStart.Z;
+        if (travelled >= _moveDistance)
+        {
+            _isMoving = false;
+            Position = new Vector3(_moveTarget.X, _moveTarget.Y, z);
+            return;
+        }
+
+        Position = new Vector3(_moveStart.X + _moveDirection.X * travelled, _moveStart.Y + _moveDirection.Y * travelled, z);
+    }
+
+    private void AdvanceTint(float elapsedTime)
+    {
+        _tintElapsed += elapsedTime;
+        if (_tintElapsed >= _tintDuration)
+        {
+            _isTinting = false;
+            Color = _tintTarget;
+            return;
+        }
+
+        var t = _tintElapsed / _tintDuration;
+        Color = new Color(
+            LerpChannel(_tintStart.R, _tintTarget.R, t),
+            LerpChannel(_tintStart.G, _tintTarget.G, t),
+            LerpChannel(_tintStart.B, _tintTarget.B, t),
+            LerpChannel(_tintStart.A, _tintTarget.A, t));
+    }
+
+    private static byte LerpChannel(byte from, byte to, float t)
+    {
+        return (byte)MathF.Round(from + (to - from) * t, MidpointRounding.AwayFromZero);
+    }
+
     public override void Update(float elapsedTime)
     {
+        if (_isMoving)
+        {
+            AdvanceMove(elapsedTime);
+        }
+
+        if (_isTinting)
+        {
+            AdvanceTint(elapsedTime);
+        }
+
         foreach (var (collision2d, collisionObject) in _collisionObjects)
         {
             SpriteCollisionHelper.UpdateBodyTransformation(Position, Orientation, Scale,
