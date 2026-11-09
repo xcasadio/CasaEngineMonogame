@@ -221,11 +221,16 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5322 réussis, 0 échec (29 nouveaux tests dans `CasaEngine.Tests/Cutscenes/ShowHideSpriteCutsceneActionsTests.cs` : aller-retour, `color` en 3 et 4 entrées, refus d'un objet, de 2 ou 5 entrées, de 256, de -1 et d'un décimal, exécution, échecs, builder ; aucun test existant modifié).
   - **Écart** : aucun. Le chemin « sprite nommé chargé » à l'exécution n'est pas testé de bout en bout (il faut un jeu et un catalogue réels) ; seul le refus d'un sprite hors catalogue l'est.
 
-### ⏳ T2.2 — `MoveSprite` et `TintSprite`
+### ✅ T2.2 — `MoveSprite` et `TintSprite`
 
 - Objectif : C3 pour ces deux actions, et C6 et C7 pour elles. Les actions démarrent l'état de T1.2 et rendent la main à la même image.
 - Validation : comme T2.1, avec les mêmes tests d'aller-retour et de refus de `color` pour `TintSprite`, plus un test qui joue une cutscene `MoveSprite`, puis `Wait`, puis une assertion de position, avec des pas de temps choisis.
 - Commit : `feat(cutscenes): move and tint sprite entities from a cutscene`
+- Note :
+  - **Fait** : types `MoveSprite` et `TintSprite`, classes `MoveSpriteCutsceneActionData` (`EntityName`, `X`, `Y`, `Speed`, `FormatErrors`) et `TintSpriteCutsceneActionData` (`EntityName`, `Color`, `Duration`, `FormatErrors`), lecture et écriture JSON (`color` en tableau via `ReadColor` et `SaveColor`, nombres entiers ou décimaux lus en `float`), validateur (champs requis absents ou mal formés, vitesse non strictement positive, durée négative), fabrique et builder en lecture seule de l'éditeur.
+  - **Exécution** : les deux actions vérifient l'entité et son composant racine, puis appellent `StartMove` et `StartTint` de T1.2 et laissent la séquence continuer à la même image. Entité inconnue ou racine qui n'est pas un `StaticSpriteComponent` : `Failed`, message avec l'action, le champ et la valeur.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5355 réussis, 0 échec (33 nouveaux tests dans `CasaEngine.Tests/Cutscenes/MoveTintSpriteCutsceneActionsTests.cs` : aller-retour, `color` en 3 et 4 entrées, refus d'un objet, de 2 ou 5 entrées, de 256, de -1 et d'un décimal, champs requis, vitesse et durée, échecs, builder ; cutscene `MoveSprite` puis `Wait` avec pas de 0,5 s : X vaut 5, 10 puis 15 aux images 1, 2 et 3, la cutscene se termine à l'image 3 ; teinte à mi-durée et à l'arrivée ; remplacement d'un déplacement ; aucun test existant modifié).
+  - **Écart** : aucun. Les tests rejouent l'ordre d'une image (coroutines puis `Update` du composant) à la main plutôt que par `World.Update`.
 
 ### ⏳ T2.3 — `Repeat`
 

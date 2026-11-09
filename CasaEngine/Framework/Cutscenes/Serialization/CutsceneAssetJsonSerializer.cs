@@ -194,6 +194,47 @@ public static class CutsceneAssetJsonSerializer
 
                 break;
 
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                if (moveSpriteAction.EntityName != null)
+                {
+                    node["entity"] = moveSpriteAction.EntityName;
+                }
+
+                if (moveSpriteAction.X is { } moveX)
+                {
+                    node["x"] = moveX;
+                }
+
+                if (moveSpriteAction.Y is { } moveY)
+                {
+                    node["y"] = moveY;
+                }
+
+                if (moveSpriteAction.Speed is { } moveSpeed)
+                {
+                    node["speed"] = moveSpeed;
+                }
+
+                break;
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                if (tintSpriteAction.EntityName != null)
+                {
+                    node["entity"] = tintSpriteAction.EntityName;
+                }
+
+                if (tintSpriteAction.Color is { } tintColor)
+                {
+                    node["color"] = SaveColor(tintColor);
+                }
+
+                if (tintSpriteAction.Duration is { } tintDuration)
+                {
+                    node["duration"] = tintDuration;
+                }
+
+                break;
+
             case PlayVideoCutsceneActionData playVideoAction:
                 if (playVideoAction.Target != null)
                 {
@@ -284,6 +325,8 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.ShowSprite => LoadShowSprite(node),
             CutsceneActionTypes.HideSprite => LoadHideSprite(node),
+            CutsceneActionTypes.MoveSprite => LoadMoveSprite(node),
+            CutsceneActionTypes.TintSprite => LoadTintSprite(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             _ => new UnknownCutsceneActionData(actionType)
@@ -324,6 +367,25 @@ public static class CutsceneAssetJsonSerializer
     {
         var action = new HideSpriteCutsceneActionData();
         action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    private static MoveSpriteCutsceneActionData LoadMoveSprite(JObject node)
+    {
+        var action = new MoveSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.X = ReadNumber(node, "x", action.FormatErrors);
+        action.Y = ReadNumber(node, "y", action.FormatErrors);
+        action.Speed = ReadNumber(node, "speed", action.FormatErrors);
+        return action;
+    }
+
+    private static TintSpriteCutsceneActionData LoadTintSprite(JObject node)
+    {
+        var action = new TintSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.Color = ReadColor(node, "color", action.FormatErrors);
+        action.Duration = ReadNumber(node, "duration", action.FormatErrors);
         return action;
     }
 

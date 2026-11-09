@@ -221,6 +221,30 @@ internal static class CutsceneActionCoroutineFactory
                     break;
                 }
 
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, moveSpriteAction.EntityName, "MoveSprite", out _, out StaticSpriteComponent moveSprite, out string moveSpriteFailure))
+                    {
+                        FailPlay(owner, moveSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    moveSprite.StartMove(new Vector2(moveSpriteAction.X.Value, moveSpriteAction.Y.Value), moveSpriteAction.Speed.Value);
+                    break;
+                }
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, tintSpriteAction.EntityName, "TintSprite", out _, out StaticSpriteComponent tintSprite, out string tintSpriteFailure))
+                    {
+                        FailPlay(owner, tintSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    tintSprite.StartTint(tintSpriteAction.Color.Value, tintSpriteAction.Duration.Value);
+                    break;
+                }
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {

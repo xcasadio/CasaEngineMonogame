@@ -170,6 +170,33 @@ public static class CutsceneValidator
                 ValidateRequiredString(hideSpriteAction.EntityName, "entity", hideSpriteAction.FormatErrors, path, "HideSprite", result);
                 break;
 
+            case MoveSpriteCutsceneActionData moveSpriteAction:
+                ValidateRequiredString(moveSpriteAction.EntityName, "entity", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.X, "x", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.Y, "y", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                ValidateRequiredNumber(moveSpriteAction.Speed, "speed", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
+                if (moveSpriteAction.Speed is <= 0f)
+                {
+                    result.AddError(path, "MoveSprite.speed must be greater than zero.");
+                }
+
+                break;
+
+            case TintSpriteCutsceneActionData tintSpriteAction:
+                ValidateRequiredString(tintSpriteAction.EntityName, "entity", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                if (tintSpriteAction.Color == null)
+                {
+                    ReportMissing("color", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                }
+
+                ValidateRequiredNumber(tintSpriteAction.Duration, "duration", tintSpriteAction.FormatErrors, path, "TintSprite", result);
+                if (tintSpriteAction.Duration is < 0f)
+                {
+                    result.AddError(path, "TintSprite.duration must be greater than or equal to zero.");
+                }
+
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;
@@ -218,6 +245,14 @@ public static class CutsceneValidator
     }
 
     private static void ValidateRequiredString(string value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (value == null)
+        {
+            ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    private static void ValidateRequiredNumber(float? value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
     {
         if (value == null)
         {

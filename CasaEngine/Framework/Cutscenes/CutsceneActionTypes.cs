@@ -20,4 +20,6 @@ public static class CutsceneActionTypes
     public const string ChangeWorld = "ChangeWorld";
     public const string ShowSprite = "ShowSprite";
     public const string HideSprite = "HideSprite";
+    public const string MoveSprite = "MoveSprite";
+    public const string TintSprite = "TintSprite";
 }
