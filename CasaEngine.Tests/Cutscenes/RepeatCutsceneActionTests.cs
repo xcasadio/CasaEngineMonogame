@@ -128,28 +128,37 @@ public sealed class RepeatCutsceneActionTests
     [Fact]
     public void ACountedRepeat_PlaysItsChildrenInOrderEveryLap()
     {
-        var (world, _, sprite) = CreateWorldWithSprite("Star");
+        var (world, entity, sprite) = CreateWorldWithSprite("Star");
         var repeat = new RepeatCutsceneActionData { Count = 2 };
-        repeat.Actions.Add(new MoveSpriteCutsceneActionData { EntityName = "Star", X = 10f, Y = 0f, Speed = 1f });
+        repeat.Actions.Add(new ShowSpriteCutsceneActionData { EntityName = "Star", X = 1f, Y = 0f });
+        repeat.Actions.Add(new WaitCutsceneActionData { Seconds = 1f });
+        repeat.Actions.Add(new ShowSpriteCutsceneActionData { EntityName = "Star", X = 2f, Y = 0f });
         repeat.Actions.Add(new WaitCutsceneActionData { Seconds = 1f });
         repeat.Actions.Add(new HideSpriteCutsceneActionData { EntityName = "Star" });
+        repeat.Actions.Add(new WaitCutsceneActionData { Seconds = 1f });
         world.CutsceneDirector.Play(new CutsceneAsset { Name = "Order", RootAction = repeat });
 
-        int starts = 0;
+        // The state seen after each update, consecutive duplicates dropped: the children took effect in this order.
+        var trace = new List<(float X, bool Visible)>();
         for (long update = 1; update <= 20; update++)
         {
-            bool movingBefore = sprite.IsMoving;
             Step(world, update, 1f);
-            if (sprite.IsMoving && !movingBefore)
+            var state = (sprite.Position.X, entity.IsVisible);
+            if (trace.Count == 0 || trace[^1] != state)
             {
-                starts++;
+                trace.Add(state);
             }
-
-            sprite.StopMove();
         }
 
-        // Each lap started one move; after the second lap the cutscene is over.
-        Assert.Equal(2, starts);
+        // Each lap runs its children in order: shown at 1, moved on to 2, hidden, and the Wait at the end of the lap
+        // keeps the hidden state seen before the next lap shows the sprite again.
+        Assert.Equal(
+            new List<(float X, bool Visible)>
+            {
+                (1f, true), (2f, true), (2f, false),
+                (1f, true), (2f, true), (2f, false),
+            },
+            trace);
         Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
     }
 

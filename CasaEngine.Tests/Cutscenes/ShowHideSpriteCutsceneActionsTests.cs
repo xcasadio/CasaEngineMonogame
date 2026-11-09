@@ -66,6 +66,16 @@ public sealed class ShowHideSpriteCutsceneActionsTests
             LoadAction("{\"type\":\"ShowSprite\",\"entity\":\"A\",\"color\":[10,20,30]}"));
 
         Assert.Equal(new Color(10, 20, 30, 255), show.Color);
+
+        // Saved, it is written with four entries, and read back with alpha 255.
+        var node = new JObject();
+        CutsceneAssetJsonSerializer.Save(new CutsceneAsset { RootAction = show }, node);
+        var written = (JArray)node["root_action"]!["color"]!;
+        Assert.Equal(4, written.Count);
+        Assert.Equal(255, (int)written[3]);
+        var reloaded = new CutsceneAsset();
+        CutsceneAssetJsonSerializer.Load(reloaded, node);
+        Assert.Equal(new Color(10, 20, 30, 255), Assert.IsType<ShowSpriteCutsceneActionData>(reloaded.RootAction).Color);
     }
 
     [Fact]

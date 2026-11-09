@@ -593,7 +593,6 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, drawDebug, effects, GraphicsDevice.ScissorRectangle);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     /// <summary>
     /// Queues a sprite with an explicit <see cref="SpriteBlendMode"/> and no sort key: the entry keeps the
     /// z-order placement of an opaque sprite instead of joining the key-sorted entries (the comparator compares
@@ -618,6 +617,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug: true, effects, scissorRectangle);

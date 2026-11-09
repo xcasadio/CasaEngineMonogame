@@ -447,7 +447,14 @@ public static class CutsceneAssetJsonSerializer
 
         if (value is { Type: JTokenType.Integer or JTokenType.Float })
         {
-            return value.GetSingle();
+            float number = value.GetSingle();
+            if (float.IsFinite(number))
+            {
+                return number;
+            }
+
+            errors[key] = $"{key} must be a finite number, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+            return null;
         }
 
         errors[key] = $"{key} must be a number, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";

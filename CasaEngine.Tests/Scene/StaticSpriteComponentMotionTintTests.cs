@@ -145,6 +145,19 @@ public sealed class StaticSpriteComponentMotionTintTests
         Assert.Throws<ArgumentOutOfRangeException>(() => sprite.StartMove(new Vector2(1, 1), speed));
     }
 
+    [Theory]
+    [InlineData(float.NaN, 1.0f)]
+    [InlineData(1.0f, float.NaN)]
+    [InlineData(float.PositiveInfinity, 1.0f)]
+    [InlineData(1.0f, float.NegativeInfinity)]
+    public void Move_WithANonFiniteTarget_Throws(float x, float y)
+    {
+        var sprite = CreateAt(0, 0);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => sprite.StartMove(new Vector2(x, y), 1.0f));
+        Assert.False(sprite.IsMoving);
+    }
+
     [Fact]
     public void StopMove_LeavesTheSpriteWhereItIs()
     {

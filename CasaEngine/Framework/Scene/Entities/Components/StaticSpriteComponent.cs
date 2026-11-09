@@ -157,6 +157,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             throw new ArgumentOutOfRangeException(nameof(speed), speed, "The speed must be a finite number greater than 0.");
         }
 
+        if (!float.IsFinite(target.X) || !float.IsFinite(target.Y))
+        {
+            throw new ArgumentOutOfRangeException(nameof(target), target, "The target must be finite.");
+        }
+
         var start = Position;
         var delta = target - new Vector2(start.X, start.Y);
         var distance = delta.Length();
@@ -417,24 +422,37 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         var assetContentManager = Owner.World.Game.AssetContentManager;
 
-        ReleaseSpriteAssetHandles();
-
         var assetInfo = AssetCatalog.Get(spriteDataName);
         if (assetInfo == null)
         {
+            ReleaseSpriteAssetHandles();
             _spriteData = null;
             throw new InvalidDataException($"{nameof(StaticSpriteComponent)}: sprite '{spriteDataName}' is not in the asset catalog.");
         }
 
-        _spriteDataHandle = assetContentManager.Acquire<SpriteData>(assetInfo.Id);
-        _spriteData = _spriteDataHandle.Asset;
+        // The new sprite is made before the current one is given back: a sprite that fails to load leaves the current one in place.
+        var newHandle = assetContentManager.Acquire<SpriteData>(assetInfo.Id);
+        Sprite newSprite;
+        try
+        {
+            newSprite = Sprite.Create(newHandle.Asset, assetContentManager);
+        }
+        catch
+        {
+            newHandle.Dispose();
+            throw;
+        }
+
+        ReleaseSpriteAssetHandles();
+        _spriteDataHandle = newHandle;
+        _spriteData = newHandle.Asset;
         _spriteDataName = spriteDataName;
         if (_spriteData.AssetId != Guid.Empty)
         {
             SpriteAssetId = _spriteData.AssetId;
         }
 
-        _sprite = Sprite.Create(_spriteData, assetContentManager);
+        _sprite = newSprite;
         RemoveCollisions();
         AddCollisions();
         IsBoundingBoxDirty = true;

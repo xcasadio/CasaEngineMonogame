@@ -19,6 +19,9 @@ namespace CasaEngine.Framework.Cutscenes;
 
 internal static class CutsceneActionCoroutineFactory
 {
+    /// <summary>The asset type the catalogue infers for a <c>.sprite</c> file.</summary>
+    private const string SpriteAssetType = "sprite";
+
     public static IEnumerator Create(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -583,14 +586,28 @@ internal static class CutsceneActionCoroutineFactory
             return failure;
         }
 
-        if (action.Sprite != null && AssetCatalog.Get(action.Sprite) == null)
-        {
-            return $"ShowSprite: sprite '{action.Sprite}' is not in the asset catalog.";
-        }
-
         if (action.Sprite != null)
         {
-            sprite.TryLoadSpriteData(action.Sprite);
+            AssetInfo spriteInfo = AssetCatalog.Get(action.Sprite);
+            if (spriteInfo == null)
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' is not in the asset catalog.";
+            }
+
+            if (!string.Equals(spriteInfo.AssetType, SpriteAssetType, StringComparison.OrdinalIgnoreCase))
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' is not a sprite asset (it is catalogued as '{spriteInfo.AssetType}').";
+            }
+
+            try
+            {
+                // A sprite that fails to load leaves the current sprite of the entity in place.
+                sprite.TryLoadSpriteData(action.Sprite);
+            }
+            catch (Exception exception)
+            {
+                return $"ShowSprite: sprite '{action.Sprite}' cannot be loaded. {exception.Message}";
+            }
         }
 
         if (action.X is { } x && action.Y is { } y)
