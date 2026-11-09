@@ -102,6 +102,10 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("entity", hideSpriteAction.EntityName ?? string.Empty);
                 break;
 
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                node.AddProperty("entity", playVideoSpriteAction.EntityName ?? string.Empty);
+                break;
+
             case MoveSpriteCutsceneActionData moveSpriteAction:
                 node.AddProperty("entity", moveSpriteAction.EntityName ?? string.Empty);
                 node.AddProperty("x", moveSpriteAction.X?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);

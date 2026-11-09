@@ -225,6 +225,37 @@ internal static class CutsceneActionCoroutineFactory
                     break;
                 }
 
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                {
+                    if (!TryGetVideoSpriteEntity(world, playVideoSpriteAction.EntityName, out Entity videoEntity, out VideoSpriteComponent videoSprite, out string playVideoSpriteFailure))
+                    {
+                        FailPlay(owner, playVideoSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    // Shown and started in the same update; the last picture of the film, or the cleanup below, hides it.
+                    videoEntity.IsVisible = true;
+                    videoSprite.Play();
+                    try
+                    {
+                        while (videoSprite.IsPlaying)
+                        {
+                            yield return null;
+                        }
+                    }
+                    finally
+                    {
+                        // A cleared world has already released the component and dropped the entity: nothing to undo.
+                        if (videoSprite.HasPlayer && ReferenceEquals(FindEntityByName(world, videoEntity.Name), videoEntity))
+                        {
+                            videoSprite.Stop();
+                            videoEntity.IsVisible = false;
+                        }
+                    }
+
+                    break;
+                }
+
             case MoveSpriteCutsceneActionData moveSpriteAction:
                 {
                     if (!TryGetSpriteEntity(world, moveSpriteAction.EntityName, "MoveSprite", out _, out StaticSpriteComponent moveSprite, out string moveSpriteFailure))
@@ -571,6 +602,34 @@ internal static class CutsceneActionCoroutineFactory
         if (sprite == null)
         {
             failure = $"{actionName}: the root component of entity '{entityName}' is not a StaticSpriteComponent.";
+            return false;
+        }
+
+        failure = null;
+        return true;
+    }
+
+    /// <summary>Finds the entity and its root video component, or says why it cannot.</summary>
+    private static bool TryGetVideoSpriteEntity(World world, string entityName, out Entity entity, out VideoSpriteComponent video, out string failure)
+    {
+        video = null;
+        entity = FindEntityByName(world, entityName);
+        if (entity == null)
+        {
+            failure = $"PlayVideoSprite: entity '{entityName}' was not found in the world.";
+            return false;
+        }
+
+        video = entity.RootComponent as VideoSpriteComponent;
+        if (video == null)
+        {
+            failure = $"PlayVideoSprite: the root component of entity '{entityName}' is not a VideoSpriteComponent.";
+            return false;
+        }
+
+        if (!video.HasPlayer)
+        {
+            failure = $"PlayVideoSprite: the video of entity '{entityName}' is not loaded (the component was not initialized in a world).";
             return false;
         }
 

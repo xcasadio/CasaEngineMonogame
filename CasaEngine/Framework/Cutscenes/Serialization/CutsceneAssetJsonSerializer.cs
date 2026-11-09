@@ -203,6 +203,14 @@ public static class CutsceneAssetJsonSerializer
 
                 break;
 
+            case PlayVideoSpriteCutsceneActionData playVideoSpriteAction:
+                if (playVideoSpriteAction.EntityName != null)
+                {
+                    node["entity"] = playVideoSpriteAction.EntityName;
+                }
+
+                break;
+
             case MoveSpriteCutsceneActionData moveSpriteAction:
                 if (moveSpriteAction.EntityName != null)
                 {
@@ -354,6 +362,7 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.ShowSprite => LoadShowSprite(node),
             CutsceneActionTypes.HideSprite => LoadHideSprite(node),
+            CutsceneActionTypes.PlayVideoSprite => LoadPlayVideoSprite(node),
             CutsceneActionTypes.MoveSprite => LoadMoveSprite(node),
             CutsceneActionTypes.TintSprite => LoadTintSprite(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
@@ -397,6 +406,13 @@ public static class CutsceneAssetJsonSerializer
     private static HideSpriteCutsceneActionData LoadHideSprite(JObject node)
     {
         var action = new HideSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    private static PlayVideoSpriteCutsceneActionData LoadPlayVideoSprite(JObject node)
+    {
+        var action = new PlayVideoSpriteCutsceneActionData();
         action.EntityName = ReadString(node, "entity", action.FormatErrors);
         return action;
     }
