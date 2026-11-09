@@ -146,7 +146,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 1 — Film dans le monde
 
-### ⏳ T1.1 — `VideoSpriteComponent`
+### ✅ T1.1 — `VideoSpriteComponent`
 
 - Objectif : C1 et C2.
 - Fichiers : `CasaEngine/Framework/Video/MdecVideoPlayer.cs` (accès interne à la texture), `CasaEngine/Framework/Application/Components/SpriteRendererComponent.cs` (surcharge de C1), le nouveau composant, `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs`, et des tests.
@@ -158,6 +158,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
   - absence d'allocation dans `Update` ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(video): draw a video as a sprite of the world`
+- Note : Fait. `VideoSpriteComponent` (JSON `video` + `color`, nom retenu au `Load`, création dans `InitializeWithWorld` avec les cinq échecs et l'auto-libération, entité cachée, `Play`/`Stop`/`IsPlaying`/`IsEnded`, dessin sans clé avec `ignoresDepth`, copie, `Detach`/`Dispose`), accès interne `MdecVideoPlayer.Texture`, surcharge publique `DrawSprite(..., bool ignoresDepth)`, sauvegarde de l'éditeur. Validation : deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5481 verts (41 nouveaux : 27 sans GPU, 14 avec GPU), aucun test existant modifié. Le test GPU de pixels relit le film plus le sprite additif de Z plus petit, avec un témoin (film qui écrit la profondeur) où le sprite est rejeté. Écarts : (1) `GetBoundingBox` est surchargé (taille de l'image autour de la position), sinon le film serait coupé par le frustum du monde ; (2) un gestionnaire d'assets sans appareil graphique est un sixième échec de création, traité comme les autres (libération du handle) ; (3) `VideoName` est une propriété publique modifiable, nécessaire à la sauvegarde de l'éditeur et aux composants construits en code ; (4) l'origine est `(largeur/2, hauteur/2)` en entiers : demi-pixel de décalage pour une dimension impaire ; (5) le composant applique `Scale` du transform, comme `StaticSpriteComponent`.
 
 ### ⏳ T1.2 — Action `PlayVideoSprite`
 

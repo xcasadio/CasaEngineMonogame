@@ -268,6 +268,10 @@ internal static class EditorEntityJsonSerializer
                 SaveStaticSpriteComponent(staticSpriteComponent, node);
                 return;
 
+            case VideoSpriteComponent videoSpriteComponent:
+                SaveVideoSpriteComponent(videoSpriteComponent, node);
+                return;
+
             case TileMapComponent tileMapComponent:
                 SaveTileMapComponent(tileMapComponent, node);
                 return;
@@ -401,6 +405,20 @@ internal static class EditorEntityJsonSerializer
         if (component.BlendMode != SpriteBlendMode.Opaque)
         {
             node.Add("blend_mode", component.BlendMode.ToString());
+        }
+    }
+
+    private static void SaveVideoSpriteComponent(VideoSpriteComponent component, JObject node)
+    {
+        SaveSceneComponent(component, node);
+        node.Add("video", component.VideoName);
+
+        // Written only when it differs from the default.
+        if (component.Color != Color.White)
+        {
+            var colorNode = new JObject();
+            component.Color.Save(colorNode);
+            node.Add("color", colorNode);
         }
     }
 

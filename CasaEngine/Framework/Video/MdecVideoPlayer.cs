@@ -84,6 +84,12 @@ public sealed class MdecVideoPlayer : IUIVideo
     /// </summary>
     public IUIImageResource CurrentImage => _isDisposed ? null : _image;
 
+    /// <summary>
+    /// The texture itself, for a host that draws it as a world sprite (ADR-0091): the same instance for the whole life
+    /// of the player, updated in place. Null once disposed.
+    /// </summary>
+    internal Texture2D Texture => _isDisposed ? null : _texture;
+
     /// <summary>Always null: the whole texture is the picture.</summary>
     public Rectangle? CurrentSourceRect => null;
 

@@ -918,6 +918,20 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <summary>
+    /// Draws a raw texture sprite with no sort key, by the opaque path, ordered by <paramref name="z"/> like any sprite
+    /// without a key (the larger z is drawn first). With <paramref name="ignoresDepth"/> the entry neither tests nor
+    /// writes the depth buffer, so a sprite of a smaller z drawn after it is not rejected by the depth test (ADR-0091).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, SpriteEffects effects, bool ignoresDepth)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            GraphicsDevice.ScissorRectangle, drawDebug: false, hasSortKey: false, RenderSortKey2D.Default,
+            hasWorldTransform: false, worldTransform: default, blendMode: SpriteBlendMode.Opaque, ignoresDepth: ignoresDepth);
+    }
+
+    /// <summary>
     /// Draws a raw texture sprite with an explicit <see cref="RenderSortKey2D"/>, sorting it against
     /// every other keyed sprite in the scene instead of by depth. Used by non-<see cref="Sprite"/> asset
     /// sources (e.g. the tile map sorted overlay) that need the keyed sprite path.
