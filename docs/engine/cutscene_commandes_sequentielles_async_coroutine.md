@@ -110,7 +110,7 @@ Six actions let a `.cutscene` play a 2D sprite sequence from data alone: `ShowSp
 
 ### Fields
 
-Types read by the loader: `x`, `y`, `speed` and `duration` are JSON numbers, integer or decimal, read as `float`, and must be finite (`NaN`, an infinity or a literal out of the `float` range such as `1e39` is a format error naming the key). `count` is a JSON integer; a decimal such as `2.5`, a string or a boolean is refused. `entity`, `sprite`, `mapping`, `next_cutscene` and every element of `inputs` are non-empty strings.
+Types read by the loader: `x`, `y`, `speed` and `duration` are JSON numbers, integer or decimal, read as `float`, and must be finite (`NaN`, an infinity or a literal out of the `float` range such as `1e39` is a format error naming the key). `count` is a JSON integer; a decimal such as `2.5`, a string or a boolean is refused. `entity`, `sprite`, `mapping`, `next_cutscene` and every element of `inputs` are strings that are not blank: an empty or whitespace-only string is refused.
 
 `color` in an action (`ShowSprite`, `TintSprite`) follows the cutscene convention of `FadeScreenFrames`: an array `[r, g, b]` (alpha 255) or `[r, g, b, a]`, each an integer from 0 to 255. An object such as `{"r": ...}`, an array of 2 or 5 entries, a decimal or a value out of 0..255 is refused. The saver always writes four entries, so a `[r, g, b]` that is read and saved comes back as `[r, g, b, 255]`. This differs from the `color` of a sprite component in a `.world`, which is an object (see the component doc).
 
@@ -167,7 +167,7 @@ Example, the sprite actions of one lap:
 ### Failures
 
 - **Validation.** A cutscene with a validation error does not play: the director goes to the `Invalid` state and no `Ended` is raised for it. The validator refuses a missing required field, a field of a wrong type (see Fields), `speed` not above 0, a negative `duration` or `count`, a `color` that is not 3 or 4 integers of 0..255, `x` without `y` (or the opposite), an unknown `blend_mode`, and an empty `inputs` list. Each message names the action and the field.
-- **At run time** the play ends `Failed` (`Ended` raised once, the reason logged with the action, the field and the value, like `OpenScreen`) when the entity is not found in the world, its root component is not a `StaticSpriteComponent`, the `sprite` is not in the asset catalogue, a mapping, an input of the mapping or a cutscene cannot be found, or the world has no running game for `ExitOnInput`.
+- **At run time** the play ends `Failed` (`Ended` raised once, the reason logged with the action and, when there is one, the field and the value, like `OpenScreen`; the no-running-game case names only the action) when the entity is not found in the world, its root component is not a `StaticSpriteComponent`, the `sprite` is not in the asset catalogue, a mapping, an input of the mapping or a cutscene cannot be found, or the world has no running game for `ExitOnInput`.
 - **Catalogue entries and loading (`ShowSprite`).** A `sprite` whose catalogue entry is not a sprite asset fails the play, and the message gives the type it is catalogued as. A sprite that cannot be loaded also fails the play, and the entity keeps its current sprite: the component builds the new sprite before it gives the old one back. `ShowSprite` checks the entity, the component and the catalogue entry before it changes anything.
 
 ### Limits

@@ -14,6 +14,8 @@ All keys are on the component node, next to `spriteDataName`. Every new key is o
 
 The entity node gains `is_visible` (boolean, true when absent). `Entity.IsVisible` false cuts the entity's `Draw`, so an entity can start hidden and a cutscene shows it.
 
+The excerpt below shows only the keys this page covers. A loadable entity node also needs its `id`, the root component's `id`, `script_class_name` and `components`, as in `Projects/SpriteCutsceneSample/SpriteWorld.world`.
+
 ```json
 {
   "name": "orb-left",
