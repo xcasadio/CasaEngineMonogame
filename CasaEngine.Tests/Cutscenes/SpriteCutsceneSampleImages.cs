@@ -12,9 +12,6 @@ internal static class SpriteCutsceneSampleImages
     /// <summary>Side of the orb and of the ring, in pixels.</summary>
     public const int ShapeSize = 48;
 
-    public const int BackdropWidth = 320;
-    public const int BackdropHeight = 180;
-
     /// <summary>The shapes sheet: the orb on the left half, the ring on the right half.</summary>
     public const int ShapesWidth = 2 * ShapeSize;
 
@@ -40,16 +37,7 @@ internal static class SpriteCutsceneSampleImages
             : new Color(0, 0, 0, 0);
     }
 
-    /// <summary>An opaque light checkered gradient, so that a subtractive sprite has something to take colour from.</summary>
-    public static Color BackdropPixel(int x, int y)
-    {
-        var checker = ((x / 20) + (y / 20)) % 2 == 0 ? 12 : 0;
-        return new Color(110 + x * 40 / BackdropWidth + checker, 130 + y * 40 / BackdropHeight + checker, 170 + checker, 255);
-    }
-
     public static byte[] BuildShapesPng() => WritePng(ShapesWidth, ShapeSize, static (x, y) => x < ShapeSize ? OrbPixel(x, y) : RingPixel(x - ShapeSize, y));
-
-    public static byte[] BuildBackdropPng() => WritePng(BackdropWidth, BackdropHeight, BackdropPixel);
 
     // Squared distance to the centre of the shape, in half pixels, (2x - 47)^2 + (2y - 47)^2 for a 48 pixel shape. The disc radius is 24 pixels (48 half pixels).
     private const int MaxDistanceSquared = ShapeSize * ShapeSize;

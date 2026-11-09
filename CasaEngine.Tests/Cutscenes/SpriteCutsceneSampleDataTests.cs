@@ -26,12 +26,6 @@ public class SpriteCutsceneSampleDataTests
     }
 
     [Fact]
-    public void TheCommittedBackdrop_HoldsThePixelsOfTheGenerator()
-    {
-        AssertPixels("backdrop.png", SpriteCutsceneSampleImages.BackdropWidth, SpriteCutsceneSampleImages.BackdropHeight, SpriteCutsceneSampleImages.BackdropPixel);
-    }
-
-    [Fact]
     public void TheGeneratedPng_DecodesWithTheExpectedSizeAndTransparency()
     {
         var path = Path.Combine(Path.GetTempPath(), $"sprite-cutscene-sample-{Guid.NewGuid():N}.png");
@@ -161,7 +155,7 @@ public class SpriteCutsceneSampleDataTests
     }
 
     [Fact]
-    public void TheSpriteWorld_HoldsTheFourEntitiesHiddenAndWithoutADepthSortComponent()
+    public void TheSpriteWorld_HoldsTheFourEntitiesHiddenWithoutADepthSortComponentOnALightClear()
     {
         var entities = EntitiesOf("SpriteWorld.world");
 
@@ -174,15 +168,14 @@ public class SpriteCutsceneSampleDataTests
         }
 
         Assert.Equal("Camera2dComponent", (string?)entities["camera"]["root_component"]!["type"]);
-        Assert.Null(entities["backdrop"]["is_visible"]);
-        // A smaller world Z is farther from the camera: the opaque backdrop must stay behind every sprite.
-        float backdropZ = (float)entities["backdrop"]["root_component"]!["coordinates"]!["position"]!["z"]!;
-        foreach (var name in SpriteEntities)
-        {
-            Assert.True(backdropZ < (float)entities[name]["root_component"]!["coordinates"]!["position"]!["z"]!);
-        }
+        // No sprite stands behind the others: the renderer draws the larger Z first and every sprite writes depth, so a backdrop sprite would hide the blends.
+        // The frame clear is the light backdrop the additive and subtractive sprites act on.
+        Assert.DoesNotContain("backdrop", entities.Keys);
+        var world = JObject.Parse(File.ReadAllText(Path.Combine(ProjectPath(), "SpriteWorld.world")));
+        var color = world["environment"]!["background_color"]!;
+        Assert.Equal("SolidColor", (string?)world["environment"]!["background_mode"]);
+        Assert.True((int)color["r"]! >= 128 && (int)color["g"]! >= 128 && (int)color["b"]! >= 128);
 
-        Assert.Equal("StaticSpriteComponent", (string?)entities["backdrop"]["root_component"]!["type"]);
         Assert.DoesNotContain("DepthSortable2DComponent", File.ReadAllText(Path.Combine(ProjectPath(), "SpriteWorld.world")));
     }
 
@@ -232,7 +225,7 @@ public class SpriteCutsceneSampleDataTests
             }
         }
 
-        Assert.Equal(["backdrop-sprite", "orb", "ring"], names.Order());
+        Assert.Equal(["orb", "ring"], names.Order());
 
         foreach (var name in names)
         {

@@ -37,21 +37,9 @@
       "asset_type": "png"
     },
     {
-      "id": "543d1b51-3635-5ca0-b1e9-2b0efcfc5053",
-      "name": "backdrop-sheet",
-      "file_name": "Images\\backdrop.png",
-      "asset_type": "png"
-    },
-    {
       "id": "17c9a3c5-eebd-5dda-a53a-2c25b83ea5fd",
       "name": "shapes",
       "file_name": "Images\\shapes.texture",
-      "asset_type": "texture"
-    },
-    {
-      "id": "fb120ccf-0690-5a25-b4bd-4148b997be2b",
-      "name": "backdrop",
-      "file_name": "Images\\backdrop.texture",
       "asset_type": "texture"
     },
     {
@@ -64,12 +52,6 @@
       "id": "500146de-7c47-5827-ba85-a47f19c51eca",
       "name": "ring",
       "file_name": "Images\\ring.sprite",
-      "asset_type": "sprite"
-    },
-    {
-      "id": "8b368482-0a7f-57b7-b754-4b0b5f80a82d",
-      "name": "backdrop-sprite",
-      "file_name": "Images\\backdrop.sprite",
       "asset_type": "sprite"
     },
     {

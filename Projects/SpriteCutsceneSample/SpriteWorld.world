@@ -61,47 +61,6 @@
     {
       "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
-        "id": "fcac6e17-ab4c-52f1-a7bd-ac8595752111",
-        "name": "backdrop",
-        "root_component": {
-          "id": "00000000-0000-0000-0000-000000000000",
-          "name": "StaticSpriteComponent",
-          "type": "StaticSpriteComponent",
-          "coordinates": {
-            "position": {
-              "x": 0,
-              "y": 0,
-              "z": -5
-            },
-            "scale": {
-              "x": 1,
-              "y": 1,
-              "z": 1
-            },
-            "rotation": {
-              "x": 0,
-              "y": 0,
-              "z": 0,
-              "w": 1
-            }
-          },
-          "children_component": [],
-          "spriteDataName": "backdrop-sprite"
-        },
-        "components": [],
-        "script_class_name": null,
-        "flow_graph": {
-          "type": "sequence",
-          "id": 1,
-          "name": "sequence",
-          "description": null,
-          "nodes": []
-        }
-      }
-    },
-    {
-      "asset_id": "00000000-0000-0000-0000-000000000000",
-      "entity": {
         "id": "badf7354-c50c-527e-996a-7ec2d87fdc80",
         "name": "orb-left",
         "is_visible": false,
@@ -274,9 +233,9 @@
     "type": "None",
     "background_mode": "SolidColor",
     "background_color": {
-      "r": 10,
-      "g": 10,
-      "b": 30,
+      "r": 150,
+      "g": 170,
+      "b": 210,
       "a": 255
     }
   },
