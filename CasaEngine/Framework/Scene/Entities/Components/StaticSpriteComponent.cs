@@ -3,6 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Application.Components.Physics;
@@ -20,6 +21,10 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private Sprite _sprite;
     private SpriteData _spriteData;
 
+    // Name read from the data. It is resolved in InitializeWithWorld, once the world (and so the asset manager) is known:
+    // Load runs before the component is attached to its entity.
+    private string _spriteDataName;
+
     // ADR-0037: the sprite data is a shared asset, held through a counted handle for as long as the
     // component references it and given back in ReleaseSpriteAssetHandles (InitializeWithWorld's reset,
     // a reload, and Detach). The Sprite itself is disposed there too: it holds the sheet texture.
@@ -33,8 +38,18 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public HashSet<Collision> Collisions { get; }
 
-    public Color Color { get; set; }
+    /// <summary>Tint passed to the renderer. White (no tint) by default.</summary>
+    public Color Color { get; set; } = Color.White;
+
+    /// <summary>
+    /// Blend mode of the whole sprite. <see cref="SpriteBlendMode.Opaque"/> (the default) keeps the plain draw path;
+    /// any other mode is applied to the whole sprite, without the per-texel semi-transparency of <see cref="SpritePsxSemiTransparency"/>.
+    /// </summary>
+    public SpriteBlendMode BlendMode { get; set; } = SpriteBlendMode.Opaque;
     public SpriteEffects SpriteEffect { get; set; }
+
+    /// <summary>Name of the sprite read from the data, until the sprite itself is resolved in <see cref="InitializeWithWorld"/>.</summary>
+    internal string PendingSpriteDataName => _spriteDataName;
 
     /// <summary>
     /// Optional asset ID used to pre-configure the sprite when creating an entity
@@ -50,7 +65,10 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     public StaticSpriteComponent(StaticSpriteComponent other) : base(other)
     {
         _spriteData = other._spriteData;
+        _spriteDataName = other._spriteDataName;
         SpriteAssetId = other.SpriteAssetId;
+        Color = other.Color;
+        BlendMode = other.BlendMode;
     }
 
     protected override void InitializePrivate()
@@ -66,7 +84,16 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _physicsWorldContext = Owner.World.PhysicsWorld;
 
-        if (SpriteAssetId != Guid.Empty && _spriteData == null)
+        if (_sprite != null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(_spriteDataName))
+        {
+            LoadSpriteData(_spriteDataName);
+        }
+        else if (SpriteAssetId != Guid.Empty)
         {
             _spriteDataHandle = Owner.World.Game.AssetContentManager.Acquire<SpriteData>(SpriteAssetId);
             _spriteData = _spriteDataHandle.Asset;
@@ -125,16 +152,42 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             return;
         }
 
+        Submit(_spriteRendererComponent.GraphicsDevice.ScissorRectangle);
+    }
+
+    /// <summary>
+    /// Queues the sprite on the renderer. A sprite sorted by a <see cref="DepthSortable2DComponent"/> goes through its
+    /// sort key; any other goes through its z-order, with or without a blend mode.
+    /// </summary>
+    internal void Submit(Rectangle scissorRectangle)
+    {
         var position = new Vector2(Position.X, Position.Y);
         var scale = new Vector2(Scale.X, Scale.Y);
         if (_depthSortable2DComponent != null)
         {
             var sortKey = _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame);
-            _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color.White, Position.Z, sortKey);
+            if (BlendMode == SpriteBlendMode.Opaque)
+            {
+                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, in sortKey,
+                    SpriteEffects.None, scissorRectangle);
+            }
+            else
+            {
+                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, in sortKey,
+                    drawDebug: true, SpriteEffects.None, scissorRectangle, BlendMode);
+            }
+
             return;
         }
 
-        _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color.White, Position.Z);
+        if (BlendMode == SpriteBlendMode.Opaque)
+        {
+            _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z,
+                drawDebug: true, SpriteEffects.None, scissorRectangle);
+            return;
+        }
+
+        _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, BlendMode, scissorRectangle);
     }
 
     public override void OnEnabledValueChange()
@@ -155,12 +208,62 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         base.Load(element);
 
-        var spriteDataName = element["spriteDataName"].GetString();
+        var spriteDataName = element["spriteDataName"]?.GetString();
+        _spriteDataName = string.IsNullOrEmpty(spriteDataName) || string.Equals(spriteDataName, "null", StringComparison.CurrentCultureIgnoreCase)
+            ? null
+            : spriteDataName;
 
-        if (!string.Equals(spriteDataName, "null", StringComparison.CurrentCultureIgnoreCase))
+        Color = element.ContainsKey("color") ? ReadColor(element["color"]) : Color.White;
+        BlendMode = element.ContainsKey("blend_mode") ? ReadBlendMode(element["blend_mode"]) : SpriteBlendMode.Opaque;
+    }
+
+    private static Color ReadColor(JToken token)
+    {
+        if (token is not JObject node
+            || !TryReadChannel(node, "r", out var r) || !TryReadChannel(node, "g", out var g)
+            || !TryReadChannel(node, "b", out var b) || !TryReadChannel(node, "a", out var a))
         {
-            LoadSpriteData(spriteDataName);
+            throw new InvalidDataException(
+                $"{nameof(StaticSpriteComponent)}: invalid 'color' {token.ToString(Newtonsoft.Json.Formatting.None)}: expected an object with the integer keys r, g, b, a, each from 0 to 255.");
         }
+
+        return new Color(r, g, b, a);
+    }
+
+    private static bool TryReadChannel(JObject node, string key, out byte value)
+    {
+        value = 0;
+        if (!node.TryGetValue(key, out var token) || token.Type != JTokenType.Integer)
+        {
+            return false;
+        }
+
+        var channel = token.Value<long>();
+        if (channel is < 0 or > 255)
+        {
+            return false;
+        }
+
+        value = (byte)channel;
+        return true;
+    }
+
+    private static SpriteBlendMode ReadBlendMode(JToken token)
+    {
+        if (token.Type == JTokenType.String)
+        {
+            var name = token.Value<string>();
+            foreach (var candidate in Enum.GetValues<SpriteBlendMode>())
+            {
+                if (string.Equals(candidate.ToString(), name, StringComparison.Ordinal))
+                {
+                    return candidate;
+                }
+            }
+        }
+
+        throw new InvalidDataException(
+            $"{nameof(StaticSpriteComponent)}: invalid 'blend_mode' {token.ToString(Newtonsoft.Json.Formatting.None)}: expected one of {string.Join(", ", Enum.GetNames<SpriteBlendMode>())}.");
     }
 
     /// <summary>Resolves a sprite data by its catalog name, then holds it through a handle (P6).</summary>
@@ -171,18 +274,18 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         ReleaseSpriteAssetHandles();
 
         var assetInfo = AssetCatalog.Get(spriteDataName);
-        if (assetInfo != null)
-        {
-            _spriteDataHandle = assetContentManager.Acquire<SpriteData>(assetInfo.Id);
-            _spriteData = _spriteDataHandle.Asset;
-            if (_spriteData.AssetId != Guid.Empty)
-            {
-                SpriteAssetId = _spriteData.AssetId;
-            }
-        }
-        else
+        if (assetInfo == null)
         {
             _spriteData = null;
+            throw new InvalidDataException($"{nameof(StaticSpriteComponent)}: sprite '{spriteDataName}' is not in the asset catalog.");
+        }
+
+        _spriteDataHandle = assetContentManager.Acquire<SpriteData>(assetInfo.Id);
+        _spriteData = _spriteDataHandle.Asset;
+        _spriteDataName = spriteDataName;
+        if (_spriteData.AssetId != Guid.Empty)
+        {
+            SpriteAssetId = _spriteData.AssetId;
         }
 
         _sprite = Sprite.Create(_spriteData, assetContentManager);

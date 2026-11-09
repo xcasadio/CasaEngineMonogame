@@ -613,6 +613,17 @@ public class Entity : ObjectBase
             UpdatesEnabled = element["updates_enabled"]!.GetBoolean();
         }
 
+        if (element.TryGetValue("is_visible", out var isVisibleNode))
+        {
+            if (isVisibleNode.Type != JTokenType.Boolean)
+            {
+                throw new InvalidDataException(
+                    $"Entity '{Name}': invalid 'is_visible' {isVisibleNode.ToString(Newtonsoft.Json.Formatting.None)}: expected true or false.");
+            }
+
+            IsVisible = isVisibleNode.Value<bool>();
+        }
+
         GameplayProxyClassName = element["script_class_name"].GetString();
         _gameplayProxyState = element["script"] as JObject;
 

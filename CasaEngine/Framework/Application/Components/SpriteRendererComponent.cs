@@ -594,6 +594,30 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    /// <summary>
+    /// Queues a sprite with an explicit <see cref="SpriteBlendMode"/> and no sort key: the entry keeps the
+    /// z-order placement of an opaque sprite instead of joining the key-sorted entries (the comparator compares
+    /// keys as soon as one of two entries has one).
+    /// </summary>
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, blendMode, GraphicsDevice.ScissorRectangle);
+    }
+
+    internal void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, Rectangle scissorRectangle)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, SpriteEffects.None,
+            scissorRectangle, drawDebug: true, hasSortKey: false, RenderSortKey2D.Default, hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+
+        if (IsDrawCollisionsEnabled)
+        {
+            foreach (var collision2d in sprite.SpriteData.CollisionShapes)
+            {
+                DrawCollision(collision2d, pos, zOrder, sprite.SpriteData.Origin, scale);
+            }
+        }
+    }
+
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug: true, effects, scissorRectangle);

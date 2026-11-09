@@ -163,7 +163,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 1 — Composant sprite
 
-### ⏳ T1.1 — Couleur, mélange et visibilité au chargement
+### ✅ T1.1 — Couleur, mélange et visibilité au chargement
 
 - Objectif : C1.
 - Fichiers : `CasaEngine/Framework/Scene/Entities/Components/StaticSpriteComponent.cs`, `CasaEngine/Framework/Application/Components/SpriteRendererComponent.cs` (surcharge de C1), `CasaEngine/Framework/Scene/Entities/Entity.cs`, le chemin de sauvegarde des entités (à localiser), et des tests dans `CasaEngine.Tests`.
@@ -181,6 +181,13 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - refus avec contexte d'un `color` incomplet ou hors bornes, d'un `blend_mode` inconnu et d'un `is_visible` non booléen ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(sprites): let a sprite component carry a colour, a blend mode and a hidden start`
+- Note :
+  - **Convention 2D (étape 1)** : l'unité du monde est le pixel et Y monte (`Camera2dComponent.cs:11`). La caméra orthographique est centrée sur `Target` (`:84-87` projection, `:106` `CreateLookAt(..., Vector3.Up)`) et son volume vaut la taille du viewport divisée par le zoom. `position` d'un sprite est le point d'origine du sprite : le centre du quad est à `position.X - origin.X*scale + (w/2)*scale` et `position.Y + origin.Y*scale - (h/2)*scale` (`SpriteRendererComponent.cs:1066-1067`), donc le haut du sprite est à `position.Y + origin.Y` et Y croît vers le haut. L'ordre par Z : le Z le plus grand est dessiné en premier (`CompareSpriteDisplayData`, `:567`). T3.1 doit mesurer cette convention sur capture.
+  - **Fait** : `StaticSpriteComponent` gagne `Color` (blanc par défaut, copié, passé au rendu) et `BlendMode` (`Opaque` par défaut = chemins actuels). Nouvelle surcharge publique `SpriteRendererComponent.DrawSprite(Sprite, Vector2, float, Vector2, Color, float, SpriteBlendMode)` sans clé de tri (plus une jumelle `internal` qui prend le scissor, pour les tests sans GPU). Avec `DepthSortable2DComponent`, le sprite mélangé passe par la surcharge à clé. `Draw` délègue à `Submit(Rectangle)` interne.
+  - **Chargement du sprite nommé** : `Load` retient `spriteDataName` (absent ou `"null"` : pas de sprite), le nom est résolu dans `InitializeWithWorld` ; un nom introuvable lève une `InvalidDataException` qui nomme le sprite (aussi pour `TryLoadSpriteData`, qui levait avant une `NullReferenceException`). Le constructeur de copie reprend nom, id, couleur et mode ; `InitializeWithWorld` reconstruit le sprite tant que `_sprite` est nul, donc un clone se dessine.
+  - **JSON** : `color` (objet r,g,b,a de 0 à 255), `blend_mode` (nom exact) et `is_visible` (booléen) sont lus ; un champ malformé lève une `InvalidDataException` avec composant, champ et valeur. Écriture dans `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs` (`SaveEntity`, `SaveStaticSpriteComponent`) : seulement si la valeur diffère du défaut, pour qu'un fichier existant reste identique. Le nom de sprite encore non résolu est aussi réécrit.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5268 réussis, 0 échec (25 nouveaux tests dans `CasaEngine.Tests/Scene/StaticSpriteComponentColorBlendTests.cs`, aucun test existant modifié).
+  - **Écart** : aucun par rapport au plan. Le test « entité asset clonée » utilise `Entity.Clone()` sur une entité chargée du JSON (le chemin de `LoadCopy<Entity>(id).Clone()` sans le disque).
 
 ### ⏳ T1.2 — Mouvement et teinte avancés par le temps
 
