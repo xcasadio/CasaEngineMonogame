@@ -12,6 +12,7 @@ Sections:
 6. [The `PlayVideo` cut-scene action](#6-the-playvideo-cut-scene-action).
 7. [Limits](#7-limits).
 8. [Measure](#8-measure).
+9. [The world video component](#9-the-world-video-component).
 
 ## 1. MDEC bitstream
 
@@ -370,3 +371,79 @@ Machine and configuration: AMD Ryzen 9 9900X (12 cores, 24 logical processors), 
 | 20 | 37 810 | 816 / 820 / 823 |
 
 The slowest case measured, 816 frames per second, is 6.8 times the 120 frames per second threshold of C9. At 30 frames per second a frame lasts 33.3 ms, and this decode takes about 1.2 ms at the slowest density measured. The figure holds for this machine only, and the frames are synthetic: it is not a measure of any particular video content.
+
+## 9. The world video component
+
+[ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md). `PlayVideo` (section 6) shows a film in an MGUI screen, which is drawn after the scene and so covers every sprite of the world. `VideoSpriteComponent` draws a film as a sprite of the world instead, so sprites can be drawn over it. The working example is `Projects/VideoSpriteSample`.
+
+### 9.1 Component and JSON
+
+`VideoSpriteComponent` is a scene component, usually the root component of an entity of a `.world`.
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `video` | string | required | Name or id of a catalogued `mdecvideo` asset. |
+| `color` | object `{"r", "g", "b", "a"}` | white | Tint passed to the renderer as is. Four integer keys from 0 to 255 (the object format of the entities, not the array of cut-scene actions). |
+
+```json
+{
+  "name": "clip",
+  "root_component": {
+    "name": "VideoSpriteComponent",
+    "type": "VideoSpriteComponent",
+    "coordinates": { "position": { "x": 0, "y": 0, "z": 1 }, "scale": { "x": 1.5, "y": 1.5, "z": 1 }, "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 } },
+    "children_component": [],
+    "video": "clip"
+  }
+}
+```
+
+The excerpt shows the component keys only; a loadable entity node also needs the keys listed in [static-sprite-component.md](static-sprite-component.md#json).
+
+* A missing, blank or non-string `video`, or a `color` that is not an object with the four integer keys in 0..255, fails the load with an `InvalidDataException` naming the component, the field and the value.
+* `Load` only keeps the name. The asset is resolved in `InitializeWithWorld`, once the world is known.
+* **The entity is hidden at load.** `InitializeWithWorld` sets `Entity.IsVisible` to false whatever `is_visible` says. Only a cut-scene action shows it (section 9.4).
+* The copy constructor carries the name and the colour; each clone creates its own player and asset handle.
+* `Detach` and `Dispose` release the player and the asset handle. The editor save path writes `video`, and `color` only when it is not white.
+* The component applies the `Scale` of its transform. Its bounding box is the size of the picture around the position, so the world frustum does not cut the film.
+
+### 9.2 Creation failures
+
+All of them happen in `InitializeWithWorld`. The component releases whatever it had acquired (player, asset handle) itself, because the loader does not detach an entity that failed, then throws an `InvalidDataException` that names the component, the field `video` and the value, with the original exception as inner exception when there is one. The causes:
+
+1. the name or id is not in the asset catalogue (a blank name is the same failure);
+2. the catalogued asset is not of type `mdecvideo`;
+3. the asset cannot be acquired;
+4. the `MdecVideoPlayer` constructor throws (file missing or unreadable, texture creation failure, or an asset content manager without a graphics device);
+5. picture 0 cannot be decoded. The constructor does not throw in that case: it ends the player and logs once (section 3). The component detects an ended player right after construction and treats it as a failure.
+
+What happens next depends on the path that initialised the entity:
+
+| Path | Outcome |
+|---|---|
+| Loading a `.world` (`World.InternalAddEntities`) | The exception is logged and the entity is not added. It is absent from the world, and a `PlayVideoSprite` on its name fails like an unknown entity. |
+| Adding an entity reference or a child entity, or adding a component to an entity afterwards | The exception reaches the caller. |
+
+### 9.3 Playback, draw and depth rule
+
+* `Play()` puts the film back on picture 0 and starts it; `Stop()` stops it where it is; `IsPlaying` and `IsEnded` report the state. `Play()` on a component without a player throws `InvalidOperationException`.
+* `Update` advances the player by the received time (the scaled game time, as for the sprite actions of ADR-0090), only while the film plays. At the end, the playback stops and the last picture stays drawn as long as the entity is visible. `Update` and the draw do not allocate.
+* **Draw.** The whole texture of the player is the source and its centre is the origin, so the position is the centre of the film. The Z is `Position.Z`. The call is a key-less `SpriteRendererComponent.DrawSprite(Texture2D, Rectangle, Point, Vector2, float, Vector2, Color, float z, SpriteEffects, bool ignoresDepth)` (an additive overload) with `ignoresDepth: true`. Nothing is drawn while there is no player.
+* **Depth rule.** Sprites without a sort key are ordered by Z and the larger Z is drawn first; the 2D camera sits at a larger Z than its target, so a larger Z is nearer but is drawn earlier. The film neither tests nor writes the depth buffer: a sprite of a smaller Z, drawn after it, blends over it instead of being rejected by the depth test. A film of a smaller Z than a sprite is drawn after that sprite and covers it.
+* **Limit (O3).** Only the film leaves the depth test. Blended sprites of different Z still write depth in larger-Z-first order, so a sprite of a smaller Z drawn after a blended sprite of a larger Z fails under it. Sprites that must blend over each other keep one Z; their order at an equal Z is the order of the sort. See [static-sprite-component.md](static-sprite-component.md#draw-order-of-a-blended-sprite).
+* The film has no skip of its own (O1). A cut-scene leaves it with `ExitOnInput`.
+
+### 9.4 The `PlayVideoSprite` cut-scene action
+
+`{"type": "PlayVideoSprite", "entity": "<name>"}`. The action:
+
+1. finds the entity and checks that its root component is a `VideoSpriteComponent` with a player;
+2. makes the entity visible and calls `Play()`;
+3. waits until the film is no longer playing (its end);
+4. hides the entity.
+
+If the play stops before the end (stop, replacement by `ExitOnInput`, failure), the cleanup of the instruction stops the film and hides the entity, unless the component was already disposed or the entity removed from the world (the world is cleared). The cleanup of an interrupted play runs at the next update of the coroutine manager, so one game frame later.
+
+It fails the play (`Failed`, the message names the entity) when the entity is unknown (also when its creation failed, section 9.2), when its root component is not a `VideoSpriteComponent`, or when the component has no player (a defensive guard: no known load path reaches it). The validator refuses a missing or blank `entity`. Fields and timing are also in the [cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#playvideosprite-adr-0091).
+
+A runnable project: `Projects/VideoSpriteSample`.

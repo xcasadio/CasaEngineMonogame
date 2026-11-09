@@ -179,6 +179,24 @@ Example, the sprite actions of one lap:
 - **The blend applies to the whole sprite (O1),** not per texel: the per-texel semi-transparency of `SpriteData.PsxSemiTransparency` ([sprite-psx-semi-transparency.md](sprite-psx-semi-transparency.md)) is not tied to the `blend_mode` of an action.
 - Editing these actions in the editor is not done: the read-only inspector shows them.
 
+## PlayVideoSprite (ADR-0091)
+
+`PlayVideoSprite` plays a film that is drawn as a sprite of the world, so other sprites can be shown over it (for example a `ShowSprite` that fades in above the film, in a `Parallel`). The decision is [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md), the component, its JSON, its creation failures and the depth rule are in [video.md](video.md#9-the-world-video-component), and the working example is `Projects/VideoSpriteSample`.
+
+| Action | Field | Required | Meaning |
+|---|---|---|---|
+| `PlayVideoSprite` | `entity` | yes | Name of a world entity whose root component is a `VideoSpriteComponent`. A string that is not blank. |
+
+```json
+{ "type": "PlayVideoSprite", "entity": "clip" }
+```
+
+- **Wait.** The entity is made visible (`Entity.IsVisible`), the film starts from picture 0, and the action ends when the film has ended. The entity is then hidden. The wait is paced by the scaled game time, like the sprite actions.
+- **Cleanup.** If the play stops before the film ends (stop, replacement by `ExitOnInput`, failure), the film is stopped and the entity hidden, except when the component was already disposed or the entity removed from the world (the world is cleared). The cleanup of an interrupted play runs at the next update of the coroutine manager, one game frame later.
+- **Failures.** The play ends `Failed` (message naming the entity) when the entity is not in the world, when its root component is not a `VideoSpriteComponent`, or when the component has no player (it was never initialised in a world: a defensive guard, no known load path reaches it). An entity whose video could not be created is not in the world (see video.md, creation failures), so it fails as an unknown entity. The validator refuses a missing or blank `entity`.
+- **Measured frames** (`CasaEngine.Tests`, a film of 3 pictures at 10 pictures per second, so a step of 0.1 s; one game frame is the coroutines, then the `Update` of the entities). The film starts on picture 0 in the coroutine update of game frame 1, then the component `Update` of the same game frame advances it: it is on picture 1 at the end of game frame 1. The wait ends, and the entity is hidden, in game frame 4, the turn after the last picture of the film: the entity is visible during 3 game frames.
+- **Limits.** The only way out of the film is leaving the cut-scene, with `ExitOnInput`. Editing the action in the editor is not done: the read-only inspector shows it.
+
 ---
 
 ## Bindings d’entités actuels et limites V2

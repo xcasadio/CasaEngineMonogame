@@ -208,6 +208,24 @@ The UI then reads that file instead of MGUI's tables. An entry whose name is tha
 - Tab, Home, End, PageUp and PageDown keep their usual meaning when the mapping does not bind them, Shift+Tab included.
 - While an editable text box has the focus, a key MGUI's tables do not know stays text: a letter bound to Cancel does not cancel. A key the focused text box reserves stays its own too: a space bound to Cancel is a space.
 
+### The `AnyKey` device
+
+[ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md) adds the value `AnyKey` to `input_device`. An entry that carries it reacts to a new press of any key of the keyboard. It is meant for `ExitOnInput` ([cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#exitoninput)) and other readers of a mapping that go through `InputMapping`. `Projects/VideoSpriteSample` has an example mapping.
+
+The JSON format of `key_button` does not change: its four fields stay required, and a missing one fails the load as before. For `AnyKey`, `key`, `game_pad_button` and `mouse_button` are read and ignored; write them like this:
+
+```json
+"key_button": { "key": "None", "game_pad_button": "None", "mouse_button": "LeftButton", "input_device": "AnyKey" }
+```
+
+- **Press, not hold.** The input is pressed on the frame a key is down that was up on the previous frame of the `KeyboardManager`. A key that stays down gives nothing more.
+- **Keys that do not count.** Shift, Control, Alt and Windows (left and right) alone never count. Shift+A and Ctrl+A count (the letter is a new press). **While an Alt or a Windows key is held, nothing counts**, so Alt+Tab, Alt+F4 or Windows+D do not trigger the input.
+- **One edge for two consecutive presses.** The entry reports a press, and a reader that reacts to the edge (`Pressed` and not `PressedPreviousFrame`, as `ExitOnInput` does) sees one edge when new keys go down on two consecutive frames. This is a known limit.
+- **The arming rule of `ExitOnInput` is unchanged**: a key held when the watch is armed does not trigger it.
+- **UI navigation ignores it.** `UINavigationInput` binds only the `Keyboard` and `GamePad` devices, so an `AnyKey` entry named like a UI action binds nothing.
+- Reading it does not allocate: the `KeyboardManager` uses `GetPressedKeyCount` and `GetPressedKeys` on a reused array.
+- Not done: an "any button" of the game pad or of the mouse.
+
 ### Repeat
 
 A direction moves when it is pressed, then repeats. `repeat_initial_delay_ms` is the wait before the first repeat, 350 by default, and `repeat_interval_ms` the time between two repeats, 120 by default. Each is written back only when set.

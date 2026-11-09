@@ -61,3 +61,7 @@ Measured on a capture of `Projects/SpriteCutsceneSample` at the Launcher (320x18
 ## Motion and tint
 
 `StartMove(target, speed)`, `StartTint(color, duration)`, `StopMove()`, `StopTint()` and `StopMotionAndTint()` drive the component over time; the cutscene actions call them. `Update` advances them with the received time, without allocation. The rules (constant speed, exact arrival, linear rounded tint, replacement) are in the cutscene doc. Their state is on the component, so they continue if the cutscene that started them stops.
+
+## Video as a sprite
+
+`VideoSpriteComponent` draws a film in the world the way this component draws a sprite: see [video.md](video.md#9-the-world-video-component). The film neither tests nor writes depth, so a sprite of a smaller Z blends over it. Among the blended sprites of this page the depth test still applies: a smaller Z drawn after a larger Z fails under it (O3 of [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md)), so sprites that must blend over each other keep one Z.

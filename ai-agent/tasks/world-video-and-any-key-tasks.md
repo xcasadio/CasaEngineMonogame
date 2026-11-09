@@ -198,11 +198,12 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 - Commit : `feat(samples): add a sample that plays a video under a sprite`
 - Note : Données et test faits ; reste la recette au Launcher. `Projects/VideoSpriteSample` : monde à caméra 2D avec `clip` (`VideoSpriteComponent`, Z 1, échelle 1,5) et `orb` (sprite de Z 0, caché au chargement) ; mapping `sample-input` avec `exit` en `AnyKey` (JSON exact de C4) et Start de la manette en alternative ; cutscene de démarrage `ExitOnInput` puis `Repeat` sans fin d'un `Parallel` (`PlayVideoSprite` ; attente, `ShowSprite` additif noir, `TintSprite`) puis `HideSprite` ; sortie par fondu puis `ChangeWorld` vers un monde de fin qui revient ; clip copie octet pour octet de `VideoSample` (comparée à `VideoSampleClip`), feuille `shapes.png` identique à celle de `SpriteCutsceneSample` (générateur `SpriteCutsceneSampleImages`) ; README en anglais. Test `CasaEngine.Tests/Cutscenes/VideoSpriteSampleDataTests.cs` : 16 verts. **Reste à faire** : lancer le Launcher (annonce préalable à l'auteur, C9), captures hors dépôt (film, fondu du sprite par-dessus, boucle), sortie par une touche quelconque, absence de sortie sur Alt+Tab. Aucun Launcher lancé par l'agent. Écart : un seul sprite (`orb`) au lieu de plusieurs, suffisant pour le fondu.
 
-### ⏳ T3.2 — Documentation
+### ✅ T3.2 — Documentation
 
 - Objectif : C8.
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(video): describe the world video component and the any-key input`
+- Note : Fait. `docs/engine/video.md` gagne la section 9 (composant, JSON, caché au chargement, cinq échecs de création et issue selon le chemin, dessin, règle de profondeur et O3, action). La doc des cutscenes gagne `PlayVideoSprite` (champ, attente, nettoyage, échecs, images mesurées de T1.2). Le format `AnyKey`, la règle d'appui, la règle Alt/Windows, le front unique pour deux appuis consécutifs et l'ignorance par la navigation de l'UI sont documentés dans `docs/engine/data-driven-screens.md` (section « The input mapping », seule doc de `.buttonsMapping`), liée depuis `docs/README.md`. `static-sprite-component.md` renvoie vers le composant vidéo et O3. ADR-0091 relue contre le code livré (composant, fabrique, `KeyboardManager.IsAnyKeyJustPressed`, surcharge `DrawSprite`) : aucune erreur factuelle, non modifiée. Validation : relecture contre le code, contrôle D7 par `rg` sur le diff, deux `.sln` à 0 erreur, `CasaEngine.Tests` vert. Aucun écart au plan.
 
 ---
 
