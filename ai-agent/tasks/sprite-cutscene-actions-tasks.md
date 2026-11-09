@@ -312,7 +312,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
     - La convention de T1.1 est confirmée. Le centre mesuré d'`orb-left` est (300, 165) dans la capture en 960x540 (facteur 3), soit (-60, +35) en pixels du monde : Y vers le haut, caméra centrée sur l'origine, hotspot au centre du sprite.
     - Les mélanges sont visibles : les orbes additifs éclaircissent le fond, les anneaux soustractifs l'assombrissent de la teinte complémentaire. Chaque tour passe de la mi-teinte à la teinte pleine, puis au noir, puis cache les sprites. La boucle tourne, un tour dure environ 5,5 s.
     - La sortie (fondu vers le noir, monde de fin, retour au premier monde) s'enchaîne sans erreur.
-    - **Sortie spontanée, expliquée.** Dans chaque lancement, la sortie s'est déclenchée une fois (vers 24 s, puis vers 5 s) sans touche envoyée par l'agent, puis le sample est revenu au premier monde. L'auteur jouait au même moment à un autre jeu avec une manette (« je suis en train de jouer a un jeu avec une manette ») : le bouton Start de sa manette a atteint la veille, car la manette est lue même quand la fenêtre n'a pas le focus. Ce n'est pas un défaut de  ; c'est un comportement antérieur du moteur, noté en O5.
+    - **Sortie spontanée, expliquée.** Dans chaque lancement, la sortie s'est déclenchée une fois (vers 24 s, puis vers 5 s) sans touche envoyée par l'agent, puis le sample est revenu au premier monde. L'auteur jouait au même moment à un autre jeu avec une manette (« je suis en train de jouer a un jeu avec une manette ») : le bouton Start de sa manette a atteint la veille, car la manette est lue même quand la fenêtre n'a pas le focus. Ce n'est pas un défaut de `ExitOnInput` ; c'est un comportement antérieur du moteur, noté en O5.
   - **Validation.** Les deux `.sln` sont à 0 erreur. Dernier passage complet de `CasaEngine.Tests` : 5440 réussis. Après le changement de `loop.cutscene` et du README, `SpriteCutsceneSampleDataTests` passe 16 sur 16.
   - **Statut.** La tâche reste 🧪 : la sortie par la touche Espace est à vérifier à la recette (T4.2).
 
@@ -348,7 +348,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 | O2 | Un mouvement ou une teinte en cours continue sur l'entité après l'arrêt de la cutscene, puisque l'état est sur le composant. Si un consommateur veut les figer, ce sera une décision suivante | T1.2, T3.2 |
 | O3 | Le délai entre un appui et l'arrêt dépend de l'ordre d'une image (`InputComponent`, coroutines). T2.4 le mesure et le documente, sans le changer | T2.4 |
 | O4 | Le même appui peut atteindre la navigation de l'UI, par exemple le saut d'une vidéo. Documenté, sans changement | T2.4, T3.2 |
-| O5 | La manette est lue même quand la fenêtre n'a pas le focus : un appui sur Start dans une autre application déclenche la veille d' (constaté au Launcher en T3.1). Comportement antérieur du moteur, hors de ce chantier : ignorer l'entrée sans focus serait une décision de l'auteur | T3.1, T3.2 |
+| O5 | La manette est lue même quand la fenêtre n'a pas le focus : un appui sur Start dans une autre application déclenche la veille d'`ExitOnInput` (constaté au Launcher en T3.1). Comportement antérieur du moteur, hors de ce chantier : ignorer l'entrée sans focus serait une décision de l'auteur | T3.1, T3.2 |
 
 ## Hors périmètre
 
