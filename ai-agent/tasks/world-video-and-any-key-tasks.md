@@ -175,12 +175,13 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 2 — Touche quelconque
 
-### ⏳ T2.1 — Appareil `AnyKey`
+### ✅ T2.1 — Appareil `AnyKey`
 
 - Objectif : C4 et C5.
 - Fichiers : `CasaEngine/Engine/Input/InputDevices.cs`, `KeyButton.cs`, `KeyboardManager.cs`, et des tests (entrée, mapping, `ExitOnInput`).
 - Validation : tests de C7 sur la touche quelconque ; absence d'allocation dans sa lecture ; tests existants de `UINavigationInput` et des mappings verts sans modification ; deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(input): let a mapping entry react to any key`
+- Note : Fait. `InputDevices.AnyKey` ajouté en dernier ; `KeyButton.IsPressed` appelle `KeyboardManager.IsAnyKeyJustPressed()` (`GetPressedKeyCount`/`GetPressedKeys` sur un tableau de 256 réutilisé : vrai si une touche est enfoncée et ne l'était pas à l'état précédent, hors Maj/Ctrl/Alt/Windows, et faux dès qu'une touche Alt ou Windows est tenue). `KeyButton.Load` inchangé. Tests dans `CasaEngine.Tests/Input/AnyKeyInputTests.cs` (28 cas : appui, maintien, modificateurs seuls, Maj/Ctrl + lettre, Alt/Windows + touche, JSON exact de C4, `KeyButton` sans `key` en échec, entrée de mapping sur plusieurs images, absence d'allocation, `ExitOnInput` avec `AnyKey` dont une touche tenue à l'armement). Validation : deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5524 verts (28 nouveaux) ; aucun test existant modifié. Aucun écart au plan.
 
 ---
 
