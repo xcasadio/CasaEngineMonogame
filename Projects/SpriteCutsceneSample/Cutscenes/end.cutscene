@@ -12,6 +12,14 @@
         "seconds": 2
       },
       {
+        "type": "FadeScreen",
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "duration_seconds": 0,
+        "blend_mode": "Subtractive"
+      },
+      {
         "type": "ChangeWorld",
         "target": "SpriteWorld.world"
       }

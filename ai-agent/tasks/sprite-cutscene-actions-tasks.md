@@ -298,6 +298,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Reste à faire (session principale)** : lancer le Launcher, prendre les captures (entrée des sprites, teinte, mélanges additif et soustractif visibles, boucle), mesurer la position d'un sprite pour confirmer la convention de T1.1 (le hotspot est posé au centre, 24,24), vérifier la touche de sortie (Space) et le retour par le monde de fin. À surveiller : le chemin « sprite nommé chargé par `ShowSprite` » (non testé de bout en bout jusqu'ici) et l'ordre de dessin du fond (Z 5) face aux sprites (Z 0).
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5441 réussis, 0 échec (17 nouveaux tests, aucun test existant modifié). Launcher non lancé (réservé à la session principale).
   - **Écart** : aucun.
+  - **Relecture (corrections)** : (1) P2, le fond opaque à Z 5 passait devant les sprites à Z 0 (plus grand Z = plus près de la caméra, test de profondeur `LessEqual`) : le fond est maintenant à Z -5, et un test vérifie que son Z est inférieur à celui de chaque sprite. À confirmer sur capture du Launcher. (2) P2, la superposition `FadeScreen` soustractive blanche de la sortie appartient au jeu et survit au changement de monde, d'où un retour sur écran noir : `end.cutscene` lance un `FadeScreen` 0,0,0 soustractif de durée 0 avant `ChangeWorld` (soustraire du noir ne change rien), le README le dit, et le test de `end.cutscene` vérifie l'action et son ordre. Validation : voir le commit ; T3.1 reste 🧪.
 
 ### ⏳ T3.2 — Documentation
 

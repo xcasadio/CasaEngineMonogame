@@ -102,7 +102,12 @@ public class SpriteCutsceneSampleDataTests
 
         var wait = Assert.Single(actions.OfType<WaitCutsceneActionData>());
         var change = Assert.Single(actions.OfType<ChangeWorldCutsceneActionData>());
+        var reset = Assert.Single(actions.OfType<FadeScreenCutsceneActionData>());
         Assert.True(wait.Seconds > 0f);
+        // The exit overlay is owned by the game and survives a world change: subtracting black clears it.
+        Assert.Equal(SpriteBlendMode.Subtractive, reset.BlendMode);
+        Assert.Equal((0, 0, 0), (reset.R, reset.G, reset.B));
+        Assert.True(actions.IndexOf(reset) < actions.IndexOf(change));
         Assert.Equal("SpriteWorld.world", change.Target);
         Assert.True(actions.IndexOf(wait) < actions.IndexOf(change));
     }
@@ -170,6 +175,13 @@ public class SpriteCutsceneSampleDataTests
 
         Assert.Equal("Camera2dComponent", (string?)entities["camera"]["root_component"]!["type"]);
         Assert.Null(entities["backdrop"]["is_visible"]);
+        // A smaller world Z is farther from the camera: the opaque backdrop must stay behind every sprite.
+        float backdropZ = (float)entities["backdrop"]["root_component"]!["coordinates"]!["position"]!["z"]!;
+        foreach (var name in SpriteEntities)
+        {
+            Assert.True(backdropZ < (float)entities[name]["root_component"]!["coordinates"]!["position"]!["z"]!);
+        }
+
         Assert.Equal("StaticSpriteComponent", (string?)entities["backdrop"]["root_component"]!["type"]);
         Assert.DoesNotContain("DepthSortable2DComponent", File.ReadAllText(Path.Combine(ProjectPath(), "SpriteWorld.world")));
     }
