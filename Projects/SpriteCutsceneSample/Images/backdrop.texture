@@ -1,0 +1,22 @@
+{
+  "id": "fb120ccf-0690-5a25-b4bd-4148b997be2b",
+  "name": "backdrop",
+  "texture_asset_id": "543d1b51-3635-5ca0-b1e9-2b0efcfc5053",
+  "sampler_state": {
+    "texture_filter": "Point",
+    "address_u": "Clamp",
+    "address_v": "Clamp",
+    "address_w": "Clamp",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

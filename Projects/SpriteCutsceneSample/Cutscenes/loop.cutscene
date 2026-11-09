@@ -1,0 +1,216 @@
+{
+  "id": "18086f73-c97d-5066-a58f-34a8253ead66",
+  "name": "Sprite Loop",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "ExitOnInput",
+        "mapping": "sample-input",
+        "inputs": [
+          "exit"
+        ],
+        "next_cutscene": "SpriteExit"
+      },
+      {
+        "type": "Repeat",
+        "count": 0,
+        "actions": [
+          {
+            "type": "ShowSprite",
+            "entity": "orb-left",
+            "x": -190,
+            "y": 35,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "blend_mode": "Additive"
+          },
+          {
+            "type": "ShowSprite",
+            "entity": "orb-right",
+            "sprite": "orb",
+            "x": 190,
+            "y": 35,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "blend_mode": "Additive"
+          },
+          {
+            "type": "ShowSprite",
+            "entity": "ring-left",
+            "sprite": "ring",
+            "x": -190,
+            "y": -35,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "blend_mode": "Subtractive"
+          },
+          {
+            "type": "ShowSprite",
+            "entity": "ring-right",
+            "x": 190,
+            "y": -35,
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "blend_mode": "Subtractive"
+          },
+          {
+            "type": "MoveSprite",
+            "entity": "orb-left",
+            "x": -60,
+            "y": 35,
+            "speed": 120
+          },
+          {
+            "type": "MoveSprite",
+            "entity": "orb-right",
+            "x": 60,
+            "y": 35,
+            "speed": 120
+          },
+          {
+            "type": "MoveSprite",
+            "entity": "ring-left",
+            "x": -60,
+            "y": -35,
+            "speed": 120
+          },
+          {
+            "type": "MoveSprite",
+            "entity": "ring-right",
+            "x": 60,
+            "y": -35,
+            "speed": 120
+          },
+          {
+            "type": "Wait",
+            "seconds": 1.3
+          },
+          {
+            "type": "TintSprite",
+            "entity": "orb-left",
+            "color": [
+              255,
+              200,
+              70
+            ],
+            "duration": 0.8
+          },
+          {
+            "type": "TintSprite",
+            "entity": "orb-right",
+            "color": [
+              70,
+              160,
+              255
+            ],
+            "duration": 0.8
+          },
+          {
+            "type": "TintSprite",
+            "entity": "ring-left",
+            "color": [
+              255,
+              110,
+              30
+            ],
+            "duration": 0.8
+          },
+          {
+            "type": "TintSprite",
+            "entity": "ring-right",
+            "color": [
+              30,
+              200,
+              110
+            ],
+            "duration": 0.8
+          },
+          {
+            "type": "Wait",
+            "seconds": 2.5
+          },
+          {
+            "type": "TintSprite",
+            "entity": "orb-left",
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "duration": 1
+          },
+          {
+            "type": "TintSprite",
+            "entity": "orb-right",
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "duration": 1
+          },
+          {
+            "type": "TintSprite",
+            "entity": "ring-left",
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "duration": 1
+          },
+          {
+            "type": "TintSprite",
+            "entity": "ring-right",
+            "color": [
+              0,
+              0,
+              0
+            ],
+            "duration": 1
+          },
+          {
+            "type": "Wait",
+            "seconds": 1.2
+          },
+          {
+            "type": "HideSprite",
+            "entity": "orb-left"
+          },
+          {
+            "type": "HideSprite",
+            "entity": "orb-right"
+          },
+          {
+            "type": "HideSprite",
+            "entity": "ring-left"
+          },
+          {
+            "type": "HideSprite",
+            "entity": "ring-right"
+          },
+          {
+            "type": "Wait",
+            "seconds": 0.6
+          }
+        ]
+      }
+    ]
+  }
+}

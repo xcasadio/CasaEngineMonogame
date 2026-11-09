@@ -1,0 +1,29 @@
+{
+  "id": "f2c55cf2-76d5-5061-9883-6e62a9ad4977",
+  "name": "sample-input",
+  "buttons": [
+    {
+      "id": "535abeb2-3f35-50e5-8ded-1d56a661a79c",
+      "name": "exit",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Start",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    }
+  ],
+  "repeat_initial_delay_ms": 300,
+  "repeat_interval_ms": 150
+}

@@ -1,0 +1,82 @@
+{
+  "asset_infos": [
+    {
+      "id": "b13d6927-7b17-5c79-b4b9-731f1fe43f8c",
+      "name": "SpriteWorld",
+      "file_name": "SpriteWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "da11a620-552e-58fc-b14e-8d8cde7bb64b",
+      "name": "EndWorld",
+      "file_name": "EndWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "18086f73-c97d-5066-a58f-34a8253ead66",
+      "name": "SpriteLoop",
+      "file_name": "Cutscenes\\loop.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "5edf5fa1-7daf-51f0-8644-74ce71dcf5dd",
+      "name": "SpriteExit",
+      "file_name": "Cutscenes\\exit.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "4c31f126-c210-5738-9cb1-edeae0cb4a32",
+      "name": "SpriteEnd",
+      "file_name": "Cutscenes\\end.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "da5c7155-40bc-561e-a347-da1478123b06",
+      "name": "shapes-sheet",
+      "file_name": "Images\\shapes.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "543d1b51-3635-5ca0-b1e9-2b0efcfc5053",
+      "name": "backdrop-sheet",
+      "file_name": "Images\\backdrop.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "17c9a3c5-eebd-5dda-a53a-2c25b83ea5fd",
+      "name": "shapes",
+      "file_name": "Images\\shapes.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "fb120ccf-0690-5a25-b4bd-4148b997be2b",
+      "name": "backdrop",
+      "file_name": "Images\\backdrop.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "d84df1ec-aed5-5458-9ff0-00adc2acd916",
+      "name": "orb",
+      "file_name": "Images\\orb.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "500146de-7c47-5827-ba85-a47f19c51eca",
+      "name": "ring",
+      "file_name": "Images\\ring.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "8b368482-0a7f-57b7-b754-4b0b5f80a82d",
+      "name": "backdrop-sprite",
+      "file_name": "Images\\backdrop.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "f2c55cf2-76d5-5061-9883-6e62a9ad4977",
+      "name": "sample-input",
+      "file_name": "sample-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
+    }
+  ]
+}

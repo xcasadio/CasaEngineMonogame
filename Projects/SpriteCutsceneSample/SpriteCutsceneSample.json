@@ -1,0 +1,21 @@
+{
+  "WindowTitle": "Sprite Cutscene Sample",
+  "ProjectName": "SpriteCutsceneSample",
+  "FirstScreenName": "",
+  "AllowUserResizing": true,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": true,
+  "FirstWorldLoaded": "SpriteWorld.world",
+  "GameplayDllName": "",
+  "ExternalToolsDirectory": "ExternalTools",
+  "VirtualResolution": {
+    "Width": 320,
+    "Height": 180,
+    "Mode": "IntegerFit",
+    "ScaleUI": true
+  },
+  "DebugIsFullScreen": false,
+  "DebugHeight": 540,
+  "DebugWidth": 960,
+  "VSyncEnabled": true
+}

@@ -281,7 +281,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 3 — Sample et documentation
 
-### ⏳ T3.1 — Sample `Projects/SpriteCutsceneSample`
+### 🧪 T3.1 — Sample `Projects/SpriteCutsceneSample`
 
 - Objectif : C8.
 - Fichiers : `Projects/SpriteCutsceneSample/` et un test de données sur le modèle de `VideoSampleDataTests`.
@@ -292,6 +292,12 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - la sortie par la touche est vérifiée, sinon notée pour la recette (T4.2) ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(samples): add a sample that drives sprites from a cutscene`
+- Note :
+  - **Fait** : `Projects/SpriteCutsceneSample/` (projet sans DLL, 320x180 `IntegerFit`) : `SpriteWorld.world` (caméra 2D, un sprite `backdrop` opaque visible pour que le mélange soustractif ait une image à soustraire, quatre entités sprite cachées au chargement sans `DepthSortable2DComponent`, dont deux nomment leur sprite dans le monde et deux le reçoivent de `ShowSprite`), `EndWorld.world`, mapping `sample-input` (entrée `exit` : Space au clavier, Start à la manette), `loop.cutscene` (`ExitOnInput` puis `Repeat` sans fin : `ShowSprite`, `MoveSprite`, `TintSprite`, `HideSprite`, `Wait`), `exit.cutscene` (`FadeScreen` soustractif blanc, donc vers le noir, puis `ChangeWorld`), `end.cutscene` (`Wait` 2 s puis retour au premier monde), images PNG synthétiques, README en anglais.
+  - **Tests** : `CasaEngine.Tests/Cutscenes/SpriteCutsceneSampleImages.cs` (générateur d'images, PNG écrit à la main) et `SpriteCutsceneSampleDataTests.cs` (17 tests : pixels des PNG commités égaux à la sortie du générateur, validation des trois cutscenes, références de mondes, cutscenes, mapping, entités, sprites, textures et images, fichiers du catalogue, projet).
+  - **Reste à faire (session principale)** : lancer le Launcher, prendre les captures (entrée des sprites, teinte, mélanges additif et soustractif visibles, boucle), mesurer la position d'un sprite pour confirmer la convention de T1.1 (le hotspot est posé au centre, 24,24), vérifier la touche de sortie (Space) et le retour par le monde de fin. À surveiller : le chemin « sprite nommé chargé par `ShowSprite` » (non testé de bout en bout jusqu'ici) et l'ordre de dessin du fond (Z 5) face aux sprites (Z 0).
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5441 réussis, 0 échec (17 nouveaux tests, aucun test existant modifié). Launcher non lancé (réservé à la session principale).
+  - **Écart** : aucun.
 
 ### ⏳ T3.2 — Documentation
 

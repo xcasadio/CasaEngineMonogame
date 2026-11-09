@@ -1,0 +1,24 @@
+{
+  "id": "5edf5fa1-7daf-51f0-8644-74ce71dcf5dd",
+  "name": "Sprite Exit",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "FadeScreen",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "duration_seconds": 1,
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "EndWorld.world"
+      }
+    ]
+  }
+}

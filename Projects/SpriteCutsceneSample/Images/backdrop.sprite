@@ -1,0 +1,17 @@
+{
+  "id": "8b368482-0a7f-57b7-b754-4b0b5f80a82d",
+  "name": "backdrop-sprite",
+  "sprite_sheet_asset_id": "fb120ccf-0690-5a25-b4bd-4148b997be2b",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 320,
+    "h": 180
+  },
+  "hotspot": {
+    "x": 160,
+    "y": 90
+  },
+  "collisions": [],
+  "sockets": []
+}

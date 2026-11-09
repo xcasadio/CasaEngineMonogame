@@ -1,0 +1,20 @@
+{
+  "id": "4c31f126-c210-5738-9cb1-edeae0cb4a32",
+  "name": "Sprite End",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 2
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "SpriteWorld.world"
+      }
+    ]
+  }
+}
