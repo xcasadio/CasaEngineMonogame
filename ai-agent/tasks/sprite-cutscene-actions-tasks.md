@@ -232,11 +232,16 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5355 réussis, 0 échec (33 nouveaux tests dans `CasaEngine.Tests/Cutscenes/MoveTintSpriteCutsceneActionsTests.cs` : aller-retour, `color` en 3 et 4 entrées, refus d'un objet, de 2 ou 5 entrées, de 256, de -1 et d'un décimal, champs requis, vitesse et durée, échecs, builder ; cutscene `MoveSprite` puis `Wait` avec pas de 0,5 s : X vaut 5, 10 puis 15 aux images 1, 2 et 3, la cutscene se termine à l'image 3 ; teinte à mi-durée et à l'arrivée ; remplacement d'un déplacement ; aucun test existant modifié).
   - **Écart** : aucun. Les tests rejouent l'ordre d'une image (coroutines puis `Update` du composant) à la main plutôt que par `World.Update`.
 
-### ⏳ T2.3 — `Repeat`
+### ✅ T2.3 — `Repeat`
 
 - Objectif : C4, C6 et C7.
 - Validation : tests de C9 sur `Repeat`, plus le refus d'un `count` absent et d'un `count` décimal ; deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(cutscenes): repeat a list of cutscene actions`
+- Note :
+  - **Fait** : type `Repeat`, classe `RepeatCutsceneActionData` (`Count`, `Actions`, `FormatErrors`), lecture et écriture JSON (`count` entier, `actions`), validateur (`count` absent, décimal, chaîne ou booléen refusé ; `count` négatif refusé ; liste vide en avertissement comme `Sequence`), fabrique et builder en lecture seule de l'éditeur. La lecture de `frames` passe maintenant par un `ReadInteger` commun, au message identique.
+  - **Exécution** : chaque tour joue les enfants en séquence. `Repeat` pilote lui-même la pile des énumérateurs de chaque enfant : un énumérateur imbriqué est suivi, tout autre `yield` (image, instruction, handle) compte comme une image qui passe. Un tour sans fin (`count` 0) qui se termine sans image fait échouer la lecture (`Failed`, message « Repeat: … without a frame passing »), y compris une liste vide sans fin. Un `count` N avec une liste vide se termine tout de suite. Un enfant en échec ou une lecture remplacée termine le `Repeat`. L'arrêt pendant un tour libère les énumérateurs (`finally`) et plus rien ne s'exécute.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5378 réussis, 0 échec (23 nouveaux tests dans `CasaEngine.Tests/Cutscenes/RepeatCutsceneActionTests.cs` : aller-retour, refus de `count`, avertissement, N tours égaux à la séquence écrite N fois, ordre des enfants, tours instantanés, tour sans fin avec image imbriquée, tour sans image en échec, enfant en échec, arrêt pendant un tour, builder ; aucun test existant modifié).
+  - **Écart** : aucun. Le tour est alloué par tour (pile et énumérateurs des enfants), hors des chemins chauds listés (pas dans `Update` du sprite ni dans la veille).
 
 ### ⏳ T2.4 — `ExitOnInput`
 

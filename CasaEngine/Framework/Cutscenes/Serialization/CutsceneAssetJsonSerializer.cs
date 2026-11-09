@@ -80,6 +80,15 @@ public static class CutsceneAssetJsonSerializer
                 node["actions"] = SaveActions(parallelAction.Actions);
                 break;
 
+            case RepeatCutsceneActionData repeatAction:
+                if (repeatAction.Count is { } repeatCount)
+                {
+                    node["count"] = repeatCount;
+                }
+
+                node["actions"] = SaveActions(repeatAction.Actions);
+                break;
+
             case PlaySoundCutsceneActionData playSoundAction:
                 node["sound_asset_id"] = playSoundAction.SoundAssetId.ToString();
                 node["volume"] = playSoundAction.Volume;
@@ -329,6 +338,7 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.TintSprite => LoadTintSprite(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
+            CutsceneActionTypes.Repeat => LoadRepeat(node),
             _ => new UnknownCutsceneActionData(actionType)
         };
     }
@@ -429,18 +439,22 @@ public static class CutsceneAssetJsonSerializer
 
     /// <summary>An integer. A negative one is kept, the validator refuses it.</summary>
     private static int? ReadFrames(JObject node, Dictionary<string, string> errors)
+        => ReadInteger(node, "frames", errors);
+
+    /// <summary>An integer, not a decimal number. A negative one is kept, the validator refuses it.</summary>
+    private static int? ReadInteger(JObject node, string key, Dictionary<string, string> errors)
     {
-        if (node["frames"] is not { } value)
+        if (node[key] is not { } value)
         {
             return null;
         }
 
-        if (TryGetInteger(value, out long frames) && frames is >= int.MinValue and <= int.MaxValue)
+        if (TryGetInteger(value, out long integer) && integer is >= int.MinValue and <= int.MaxValue)
         {
-            return (int)frames;
+            return (int)integer;
         }
 
-        errors["frames"] = $"frames must be an integer, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        errors[key] = $"{key} must be an integer, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
         return null;
     }
 
@@ -531,6 +545,14 @@ public static class CutsceneAssetJsonSerializer
     private static ParallelCutsceneActionData LoadParallel(JObject node)
     {
         var action = new ParallelCutsceneActionData();
+        LoadActions(node, action.Actions);
+        return action;
+    }
+
+    private static RepeatCutsceneActionData LoadRepeat(JObject node)
+    {
+        var action = new RepeatCutsceneActionData();
+        action.Count = ReadInteger(node, "count", action.FormatErrors);
         LoadActions(node, action.Actions);
         return action;
     }

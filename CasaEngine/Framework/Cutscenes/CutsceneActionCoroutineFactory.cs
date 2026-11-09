@@ -257,6 +257,69 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case RepeatCutsceneActionData repeatAction:
+                {
+                    int repeatCount = repeatAction.Count.Value;
+                    bool endless = repeatCount == 0;
+                    if (!endless && repeatAction.Actions.Count == 0)
+                    {
+                        break;
+                    }
+
+                    for (int lap = 0; endless || lap < repeatCount; lap++)
+                    {
+                        bool framePassed = false;
+                        for (int index = 0; index < repeatAction.Actions.Count; index++)
+                        {
+                            // The child is driven here, to see whether it yields to the coroutine manager: a nested
+                            // enumerator is followed, anything else it yields lets a frame pass.
+                            var stack = new Stack<IEnumerator>();
+                            stack.Push(ExecuteAction(repeatAction.Actions[index], world, owner, playToken));
+                            try
+                            {
+                                while (stack.Count > 0)
+                                {
+                                    IEnumerator current = stack.Peek();
+                                    if (!current.MoveNext())
+                                    {
+                                        (stack.Pop() as IDisposable)?.Dispose();
+                                        continue;
+                                    }
+
+                                    if (current.Current is IEnumerator nested)
+                                    {
+                                        stack.Push(nested);
+                                        continue;
+                                    }
+
+                                    framePassed = true;
+                                    yield return current.Current;
+                                }
+                            }
+                            finally
+                            {
+                                while (stack.Count > 0)
+                                {
+                                    (stack.Pop() as IDisposable)?.Dispose();
+                                }
+                            }
+
+                            if (owner.IsPlayAborted(playToken))
+                            {
+                                yield break;
+                            }
+                        }
+
+                        if (endless && !framePassed)
+                        {
+                            FailPlay(owner, "Repeat: a lap of an endless repeat ended without a frame passing; add a Wait or another action that takes time.", playToken);
+                            yield break;
+                        }
+                    }
+
+                    break;
+                }
+
             case ParallelCutsceneActionData parallelAction:
                 if (parallelAction.Actions.Count == 0)
                 {

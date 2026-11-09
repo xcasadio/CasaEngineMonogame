@@ -59,6 +59,12 @@ public static class CutsceneReadOnlyDocumentBuilder
                 AddChildren(node, parallelAction.Actions, path);
                 break;
 
+            case RepeatCutsceneActionData repeatAction:
+                node.AddProperty("count", repeatAction.Count?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("children", repeatAction.Actions.Count.ToString(CultureInfo.InvariantCulture));
+                AddChildren(node, repeatAction.Actions, path);
+                break;
+
             case WaitFramesCutsceneActionData waitFramesAction:
                 AddFrames(node, waitFramesAction.Frames);
                 break;

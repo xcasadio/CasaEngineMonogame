@@ -22,4 +22,5 @@ public static class CutsceneActionTypes
     public const string HideSprite = "HideSprite";
     public const string MoveSprite = "MoveSprite";
     public const string TintSprite = "TintSprite";
+    public const string Repeat = "Repeat";
 }

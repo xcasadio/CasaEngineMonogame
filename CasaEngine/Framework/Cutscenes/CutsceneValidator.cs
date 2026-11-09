@@ -205,6 +205,16 @@ public static class CutsceneValidator
                 ValidateActionList(parallelAction.Actions, path, "Parallel", result);
                 break;
 
+            case RepeatCutsceneActionData repeatAction:
+                ValidateRequired(repeatAction.Count, "count", repeatAction.FormatErrors, path, "Repeat", result);
+                if (repeatAction.Count is < 0)
+                {
+                    result.AddError(path, "Repeat.count must be greater than or equal to zero (0 repeats without end).");
+                }
+
+                ValidateActionList(repeatAction.Actions, path, "Repeat", result);
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 result.AddError(path, $"Unknown cutscene action type: {unknownAction.UnknownType}.");
                 break;
