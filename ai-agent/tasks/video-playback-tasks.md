@@ -351,7 +351,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 4 — Sample, mesures et documentation
 
-### 🧪 T4.1 — Sample `Projects/VideoSample`
+### ✅ T4.1 — Sample `Projects/VideoSample`
 
 - Objectif : D1, sans code C# de jeu.
 - Contenu :
@@ -365,6 +365,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - build des deux `.sln` et `CasaEngine.Tests`.
 - Commit : `feat(samples): add a sample that plays a synthetic MDEC clip`
 - Note : sample `Projects/VideoSample` écrit (projet sans DLL avec mapping `ui-input`, monde `VideoWorld` dont la cutscene de démarrage joue `PlayVideo` sur `ClipScreen` puis recharge le monde, `<Video IsSkippable="True">`, README) et clip synthétique de 160x112, 60 images à 15 par seconde, généré par `VideoSampleClip` (encodeur de C8) et commité. `VideoSampleDataTests` : 8 tests, dont clip commité identique octet pour octet à la sortie de l’encodeur. Build des deux .sln à 0 erreur, `CasaEngine.Tests` 5228 réussis. Launcher non lancé par cette tâche : lancement, captures, saut par Submit, fin et boucle (rechargement du monde par `ChangeWorld` sur lui-même) restent à vérifier en session principale, d’où 🧪.
+- Note : passée en ✅ le 2026-11-09 par la recette de l'auteur (T5.2), qui couvre le saut au clavier que le Launcher n'avait pas prouvé (T4.3). Le reste est vu au Launcher en T4.3 et en T5.1.
 
 ### ✅ T4.2 — Mesures et documentation
 
@@ -426,12 +427,14 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - A2 (P4, DEFER) : une `Video` en `Visibility.Hidden` mais mise en page avance encore et peut finir, car `MGElement.Update` ne saute que les éléments repliés ou de taille nulle. Conforme à C4 et à la limite « sans surface visible » de la doc ; à changer seulement si l'auteur veut traiter `Hidden` comme replié.
   - A3 (P4, DEFER) : la libération au chargement raté ne couvre que les écrans de données avec le fournisseur du moteur. Un autre `XamlUIScreenBase` ou un autre fournisseur garde le lecteur jusqu'à la libération du fournisseur. Limite écrite dans `video.md` §4 et `data-driven-screens.md`.
 
-### 🧪 T5.2 — Recette de l'auteur
+### ✅ T5.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the video sample`
-- Note : en attente de l'auteur. À vérifier : le saut au clavier dans `Projects/VideoSample` (Z ou A pour Submit, X ou B pour Cancel), non prouvé au Launcher. À confirmer : les tests existants modifiés, trois méthodes de `MdecVideoPlayerTests` (T4.3, F3) et `AssetProviderTests` de MGUI (T5.1, A1).
+- Note : recette de l'auteur acceptée le 2026-11-09 (« Recette OK ») sur `Projects/VideoSample` au Launcher. Lui étaient demandés : le clip qui s'affiche puis boucle, le saut par Z (A) et par X (B), et aucun effet du clic. Il ne signale aucun écart.
+- Note : le même jour, l'auteur accepte l'écart à la règle « ne pas modifier un test existant » (« J'accepte ») pour les trois méthodes de `MdecVideoPlayerTests` (T4.3, F3) et `AssetProviderTests` de MGUI (T5.1, A1).
+- Note : fusion locale demandée par l'auteur (« Oui, tout en local ») : `main` du moteur en avance rapide sur cette branche, `develop` de MGUI créé en local sur `chantier/video-element` (seul `origin/develop` existait, à `a3c42cb0`). Rien n'est poussé.
 
 ---
 
