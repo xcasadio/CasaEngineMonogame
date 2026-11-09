@@ -150,6 +150,26 @@ public static class CutsceneValidator
                 ValidateTarget(changeWorldAction.Target, path, "ChangeWorld", result);
                 break;
 
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                ValidateRequiredString(showSpriteAction.EntityName, "entity", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("sprite", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("x", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("y", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("color", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                ReportFormatError("blend_mode", showSpriteAction.FormatErrors, path, "ShowSprite", result);
+                if (showSpriteAction.X.HasValue != showSpriteAction.Y.HasValue
+                    && !showSpriteAction.FormatErrors.ContainsKey("x")
+                    && !showSpriteAction.FormatErrors.ContainsKey("y"))
+                {
+                    result.AddError(path, "ShowSprite.x and ShowSprite.y must be given together.");
+                }
+
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                ValidateRequiredString(hideSpriteAction.EntityName, "entity", hideSpriteAction.FormatErrors, path, "HideSprite", result);
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;
@@ -194,6 +214,23 @@ public static class CutsceneValidator
         if (value == null)
         {
             ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    private static void ValidateRequiredString(string value, string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (value == null)
+        {
+            ReportMissing(key, formatErrors, path, actionName, result);
+        }
+    }
+
+    /// <summary>Reports what the loader found malformed in an optional field.</summary>
+    private static void ReportFormatError(string key, Dictionary<string, string> formatErrors, string path, string actionName, CutsceneValidationResult result)
+    {
+        if (formatErrors.TryGetValue(key, out string message))
+        {
+            result.AddError(path, $"{actionName}.{message}");
         }
     }
 

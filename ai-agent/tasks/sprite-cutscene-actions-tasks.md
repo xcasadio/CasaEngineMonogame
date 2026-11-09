@@ -205,7 +205,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 2 — Actions de cutscene
 
-### ⏳ T2.1 — `ShowSprite` et `HideSprite`
+### ✅ T2.1 — `ShowSprite` et `HideSprite`
 
 - Objectif : C3 pour ces deux actions, et C6 et C7 pour elles.
 - Fichiers : les six endroits d'une action (« État vérifié »), et des tests.
@@ -215,6 +215,11 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - refus d'un objet `{"r", …}`, d'un tableau de 2 ou 5 entrées et d'une composante hors de 0..255 ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(cutscenes): show and hide sprite entities from a cutscene`
+- Note :
+  - **Fait** : types `ShowSprite` et `HideSprite`, classes `ShowSpriteCutsceneActionData` (`EntityName`, `Sprite`, `X`, `Y`, `Color`, `BlendMode`, `FormatErrors`) et `HideSpriteCutsceneActionData`, lecture et écriture JSON (`entity`, `sprite`, `x`, `y`, `color` en tableau via `ReadColor` et `SaveColor`, `blend_mode`), validateur (entité requise et non vide, champs malformés par `FormatErrors`, `x` sans `y` refusé), fabrique et builder en lecture seule de l'éditeur.
+  - **Exécution** : `ShowSprite` vérifie tout avant de modifier (entité, composant racine, sprite au catalogue), puis charge le sprite, pose X et Y (Z gardé), couleur et mode, arrête mouvement et teinte (`StopMotionAndTint`) et rend l'entité visible. `HideSprite` rend l'entité invisible et arrête mouvement et teinte. Entité inconnue, racine qui n'est pas un `StaticSpriteComponent` ou sprite hors catalogue : `Failed`, message avec le champ et la valeur. Les deux actions sont instantanées.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5322 réussis, 0 échec (29 nouveaux tests dans `CasaEngine.Tests/Cutscenes/ShowHideSpriteCutsceneActionsTests.cs` : aller-retour, `color` en 3 et 4 entrées, refus d'un objet, de 2 ou 5 entrées, de 256, de -1 et d'un décimal, exécution, échecs, builder ; aucun test existant modifié).
+  - **Écart** : aucun. Le chemin « sprite nommé chargé » à l'exécution n'est pas testé de bout en bout (il faut un jeu et un catalogue réels) ; seul le refus d'un sprite hors catalogue l'est.
 
 ### ⏳ T2.2 — `MoveSprite` et `TintSprite`
 

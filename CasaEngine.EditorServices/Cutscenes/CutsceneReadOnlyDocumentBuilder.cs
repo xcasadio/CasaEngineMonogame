@@ -83,6 +83,19 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("target", changeWorldAction.Target ?? string.Empty);
                 break;
 
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                node.AddProperty("entity", showSpriteAction.EntityName ?? string.Empty);
+                node.AddProperty("sprite", showSpriteAction.Sprite ?? string.Empty);
+                node.AddProperty("x", showSpriteAction.X?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("y", showSpriteAction.Y?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
+                node.AddProperty("color", FormatColor(showSpriteAction.Color));
+                node.AddProperty("blend_mode", showSpriteAction.BlendMode?.ToString() ?? string.Empty);
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                node.AddProperty("entity", hideSpriteAction.EntityName ?? string.Empty);
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 node.AddProperty("unknown_type", unknownAction.UnknownType);
                 break;

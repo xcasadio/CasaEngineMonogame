@@ -18,4 +18,6 @@ public static class CutsceneActionTypes
     public const string OpenScreen = "OpenScreen";
     public const string PlayVideo = "PlayVideo";
     public const string ChangeWorld = "ChangeWorld";
+    public const string ShowSprite = "ShowSprite";
+    public const string HideSprite = "HideSprite";
 }

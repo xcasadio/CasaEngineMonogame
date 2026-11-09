@@ -196,6 +196,31 @@ internal static class CutsceneActionCoroutineFactory
                     break;
                 }
 
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                {
+                    string showSpriteFailure = ShowSprite(showSpriteAction, world);
+                    if (showSpriteFailure != null)
+                    {
+                        FailPlay(owner, showSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    break;
+                }
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                {
+                    if (!TryGetSpriteEntity(world, hideSpriteAction.EntityName, "HideSprite", out Entity hideEntity, out StaticSpriteComponent hideSprite, out string hideSpriteFailure))
+                    {
+                        FailPlay(owner, hideSpriteFailure, playToken);
+                        yield break;
+                    }
+
+                    hideEntity.IsVisible = false;
+                    hideSprite.StopMotionAndTint();
+                    break;
+                }
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
@@ -423,6 +448,66 @@ internal static class CutsceneActionCoroutineFactory
                 ControlMode = CharacterControlMode.Cutscene,
             },
             owner);
+    }
+
+    /// <summary>Finds the entity and its root sprite component, or says why it cannot.</summary>
+    private static bool TryGetSpriteEntity(World world, string entityName, string actionName, out Entity entity, out StaticSpriteComponent sprite, out string failure)
+    {
+        sprite = null;
+        entity = FindEntityByName(world, entityName);
+        if (entity == null)
+        {
+            failure = $"{actionName}: entity '{entityName}' was not found in the world.";
+            return false;
+        }
+
+        sprite = entity.RootComponent as StaticSpriteComponent;
+        if (sprite == null)
+        {
+            failure = $"{actionName}: the root component of entity '{entityName}' is not a StaticSpriteComponent.";
+            return false;
+        }
+
+        failure = null;
+        return true;
+    }
+
+    /// <summary>Applies a ShowSprite action. Everything is checked before anything changes. Returns why it failed, or null.</summary>
+    private static string ShowSprite(ShowSpriteCutsceneActionData action, World world)
+    {
+        if (!TryGetSpriteEntity(world, action.EntityName, "ShowSprite", out Entity entity, out StaticSpriteComponent sprite, out string failure))
+        {
+            return failure;
+        }
+
+        if (action.Sprite != null && AssetCatalog.Get(action.Sprite) == null)
+        {
+            return $"ShowSprite: sprite '{action.Sprite}' is not in the asset catalog.";
+        }
+
+        if (action.Sprite != null)
+        {
+            sprite.TryLoadSpriteData(action.Sprite);
+        }
+
+        if (action.X is { } x && action.Y is { } y)
+        {
+            sprite.Position = new Vector3(x, y, sprite.Position.Z);
+        }
+
+        if (action.Color is { } color)
+        {
+            sprite.Color = color;
+        }
+
+        if (action.BlendMode is { } blendMode)
+        {
+            sprite.BlendMode = blendMode;
+        }
+
+        sprite.StopMotionAndTint();
+        entity.IsVisible = true;
+        return null;
     }
 
     private static Entity FindEntityByName(World world, string entityName)

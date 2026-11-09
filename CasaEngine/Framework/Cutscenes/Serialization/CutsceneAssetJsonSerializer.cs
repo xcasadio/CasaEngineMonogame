@@ -153,6 +153,47 @@ public static class CutsceneAssetJsonSerializer
 
                 break;
 
+            case ShowSpriteCutsceneActionData showSpriteAction:
+                if (showSpriteAction.EntityName != null)
+                {
+                    node["entity"] = showSpriteAction.EntityName;
+                }
+
+                if (showSpriteAction.Sprite != null)
+                {
+                    node["sprite"] = showSpriteAction.Sprite;
+                }
+
+                if (showSpriteAction.X is { } showX)
+                {
+                    node["x"] = showX;
+                }
+
+                if (showSpriteAction.Y is { } showY)
+                {
+                    node["y"] = showY;
+                }
+
+                if (showSpriteAction.Color is { } showColor)
+                {
+                    node["color"] = SaveColor(showColor);
+                }
+
+                if (showSpriteAction.BlendMode is { } showBlendMode)
+                {
+                    node["blend_mode"] = showBlendMode.ToString();
+                }
+
+                break;
+
+            case HideSpriteCutsceneActionData hideSpriteAction:
+                if (hideSpriteAction.EntityName != null)
+                {
+                    node["entity"] = hideSpriteAction.EntityName;
+                }
+
+                break;
+
             case PlayVideoCutsceneActionData playVideoAction:
                 if (playVideoAction.Target != null)
                 {
@@ -241,6 +282,8 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.OpenScreen => new OpenScreenCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.PlayVideo => new PlayVideoCutsceneActionData { Target = ReadTarget(node) },
             CutsceneActionTypes.ChangeWorld => new ChangeWorldCutsceneActionData { Target = ReadTarget(node) },
+            CutsceneActionTypes.ShowSprite => LoadShowSprite(node),
+            CutsceneActionTypes.HideSprite => LoadHideSprite(node),
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             _ => new UnknownCutsceneActionData(actionType)
@@ -263,6 +306,59 @@ public static class CutsceneAssetJsonSerializer
         action.Layer = ReadEnum<ScreenEffectLayer>(node, "layer", action.FormatErrors);
         action.BlendMode = ReadEnum<SpriteBlendMode>(node, "blend_mode", action.FormatErrors);
         return action;
+    }
+
+    private static ShowSpriteCutsceneActionData LoadShowSprite(JObject node)
+    {
+        var action = new ShowSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        action.Sprite = ReadString(node, "sprite", action.FormatErrors);
+        action.X = ReadNumber(node, "x", action.FormatErrors);
+        action.Y = ReadNumber(node, "y", action.FormatErrors);
+        action.Color = ReadColor(node, "color", action.FormatErrors);
+        action.BlendMode = ReadEnum<SpriteBlendMode>(node, "blend_mode", action.FormatErrors);
+        return action;
+    }
+
+    private static HideSpriteCutsceneActionData LoadHideSprite(JObject node)
+    {
+        var action = new HideSpriteCutsceneActionData();
+        action.EntityName = ReadString(node, "entity", action.FormatErrors);
+        return action;
+    }
+
+    /// <summary>A non-empty string; anything else is a format error, a missing key reads as absent.</summary>
+    private static string ReadString(JObject node, string key, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is { Type: JTokenType.String } && !string.IsNullOrWhiteSpace(value.GetString()))
+        {
+            return value.GetString();
+        }
+
+        errors[key] = $"{key} must be a non-empty string, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
+    }
+
+    /// <summary>A number, integer or decimal.</summary>
+    private static float? ReadNumber(JObject node, string key, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return null;
+        }
+
+        if (value is { Type: JTokenType.Integer or JTokenType.Float })
+        {
+            return value.GetSingle();
+        }
+
+        errors[key] = $"{key} must be a number, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+        return null;
     }
 
     /// <summary>The target text; anything but a string reads as absent, which the validator refuses.</summary>
