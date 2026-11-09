@@ -244,6 +244,26 @@ public static class CutsceneAssetJsonSerializer
 
                 break;
 
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                if (exitOnInputAction.Mapping != null)
+                {
+                    node["mapping"] = exitOnInputAction.Mapping;
+                }
+
+                var exitInputs = new JArray();
+                for (int index = 0; index < exitOnInputAction.Inputs.Count; index++)
+                {
+                    exitInputs.Add(exitOnInputAction.Inputs[index]);
+                }
+
+                node["inputs"] = exitInputs;
+                if (exitOnInputAction.NextCutscene != null)
+                {
+                    node["next_cutscene"] = exitOnInputAction.NextCutscene;
+                }
+
+                break;
+
             case PlayVideoCutsceneActionData playVideoAction:
                 if (playVideoAction.Target != null)
                 {
@@ -339,6 +359,7 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             CutsceneActionTypes.Repeat => LoadRepeat(node),
+            CutsceneActionTypes.ExitOnInput => LoadExitOnInput(node),
             _ => new UnknownCutsceneActionData(actionType)
         };
     }
@@ -555,6 +576,44 @@ public static class CutsceneAssetJsonSerializer
         action.Count = ReadInteger(node, "count", action.FormatErrors);
         LoadActions(node, action.Actions);
         return action;
+    }
+
+    private static ExitOnInputCutsceneActionData LoadExitOnInput(JObject node)
+    {
+        var action = new ExitOnInputCutsceneActionData();
+        action.Mapping = ReadString(node, "mapping", action.FormatErrors);
+        action.NextCutscene = ReadString(node, "next_cutscene", action.FormatErrors);
+        ReadStringList(node, "inputs", action.Inputs, action.FormatErrors);
+        return action;
+    }
+
+    /// <summary>A list of non-empty strings; anything else is a format error, a missing key reads as an empty list.</summary>
+    private static void ReadStringList(JObject node, string key, List<string> values, Dictionary<string, string> errors)
+    {
+        if (node[key] is not { } value)
+        {
+            return;
+        }
+
+        if (value is not JArray array)
+        {
+            errors[key] = $"{key} must be a list of non-empty strings, but is {value.ToString(Newtonsoft.Json.Formatting.None)}.";
+            return;
+        }
+
+        for (int index = 0; index < array.Count; index++)
+        {
+            JToken item = array[index];
+            if (item is { Type: JTokenType.String } && !string.IsNullOrWhiteSpace(item.GetString()))
+            {
+                values.Add(item.GetString());
+            }
+            else
+            {
+                errors[key] = $"{key}[{index}] must be a non-empty string, but is {item.ToString(Newtonsoft.Json.Formatting.None)}.";
+                return;
+            }
+        }
     }
 
     private static void LoadActions(JObject node, List<CutsceneActionData> actions)

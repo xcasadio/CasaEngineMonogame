@@ -215,6 +215,20 @@ public static class CutsceneValidator
                 ValidateActionList(repeatAction.Actions, path, "Repeat", result);
                 break;
 
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                ValidateRequiredString(exitOnInputAction.Mapping, "mapping", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                ValidateRequiredString(exitOnInputAction.NextCutscene, "next_cutscene", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                if (exitOnInputAction.FormatErrors.ContainsKey("inputs"))
+                {
+                    ReportFormatError("inputs", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
+                }
+                else if (exitOnInputAction.Inputs.Count == 0)
+                {
+                    result.AddError(path, "ExitOnInput.inputs must name at least one input.");
+                }
+
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 result.AddError(path, $"Unknown cutscene action type: {unknownAction.UnknownType}.");
                 break;

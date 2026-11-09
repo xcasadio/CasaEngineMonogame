@@ -115,6 +115,12 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("duration", tintSpriteAction.Duration?.ToString("0.###", CultureInfo.InvariantCulture) ?? string.Empty);
                 break;
 
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                node.AddProperty("mapping", exitOnInputAction.Mapping ?? string.Empty);
+                node.AddProperty("inputs", string.Join(", ", exitOnInputAction.Inputs));
+                node.AddProperty("next_cutscene", exitOnInputAction.NextCutscene ?? string.Empty);
+                break;
+
             case UnknownCutsceneActionData unknownAction:
                 node.AddProperty("unknown_type", unknownAction.UnknownType);
                 break;

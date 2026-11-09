@@ -243,7 +243,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5378 réussis, 0 échec (23 nouveaux tests dans `CasaEngine.Tests/Cutscenes/RepeatCutsceneActionTests.cs` : aller-retour, refus de `count`, avertissement, N tours égaux à la séquence écrite N fois, ordre des enfants, tours instantanés, tour sans fin avec image imbriquée, tour sans image en échec, enfant en échec, arrêt pendant un tour, builder ; aucun test existant modifié).
   - **Écart** : aucun. Le tour est alloué par tour (pile et énumérateurs des enfants), hors des chemins chauds listés (pas dans `Update` du sprite ni dans la veille).
 
-### ⏳ T2.4 — `ExitOnInput`
+### ✅ T2.4 — `ExitOnInput`
 
 - Objectif : C5, C6 et C7.
 - Fichiers : les six endroits d'une action (« État vérifié »), `CasaEngine/Framework/Cutscenes/CutsceneDirector.cs` (handle de la veille et son arrêt à chaque fin), et des tests.
@@ -252,6 +252,13 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
   2. Implémenter la veille, puis mesurer par un test l'image de l'appui, celle de l'arrêt et celle du premier pas de la suite.
 - Validation : tests de C9 sur la veille, et absence d'allocation dans son pas ; deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(cutscenes): leave a cutscene for another one on a named input`
+- Note :
+  - **Ordre d'une image (étape 1)** : dans `CasaEngineGame.Update`, la mise à jour de l'UI (`view.UIView?.Update`, `CasaEngineGame.cs:595`, dont `UINavigationInput`) passe d'abord, puis `world.UpdateWorldUI` (`:616`), puis `GameManager.UpdateWorld` (`:619`). Celui-ci appelle `World.Update` (`GameManager.cs:168`), qui met à jour les systèmes, coroutines comprises (`World.cs:618`, `WorldRuntimeSystems.cs:21`), puis les entités (`World.cs:635`). Les composants du jeu viennent ensuite par `base.Update` (`CasaEngineGame.cs:636`), dont l'`InputComponent` (`UpdateOrder` `Input`, `InputComponent.cs:40`, mise à jour des gestionnaires `:99-104`). La veille lit donc l'état des appareils de l'image précédente.
+  - **Images mesurées (O3)**, par `ExitOnInputCutsceneActionTests` : appui lu par l'`InputComponent` à l'image P, arrêt de la cutscene (`Ended` à `Stopped`) à P+1, premier pas de la suite à P+2. L'armement a lieu à l'image U (action), le premier pas de la veille à U+1 (il n'enregistre que l'état).
+  - **Fait** : type `ExitOnInput`, classe `ExitOnInputCutsceneActionData` (`Mapping`, `Inputs`, `NextCutscene`, `FormatErrors`), JSON (`mapping`, `inputs`, `next_cutscene`), validateur (champs requis, chaînes non vides, `inputs` liste de chaînes non vides, au moins une), builder en lecture seule. `CutsceneInputWatch` (coroutine du directeur) garde son propre `InputMappingManager` limité aux entrées listées, sans allocation par pas, et réagit à `Pressed && !PressedPreviousFrame`, la première mise à jour ne faisant qu'enregistrer. À l'exécution, la fabrique lit les appareils de l'`InputComponent`, copie le mapping (`LoadCopy<ButtonsMapping>`) et la cutscene de suite (`GameManager.FindCutsceneAsset`, nouveau, sur le modèle de `FindButtonsMappingAsset`) ; absence de jeu, mapping, entrée ou cutscene introuvables : `Failed` avec le champ et la valeur.
+  - **Directeur** : `ArmInputWatch` remplace la veille en cours et ne fait rien sur une lecture remplacée ou en échec ; `RaiseEnded` arrête le handle de la veille avant de lever `Ended`, donc à chaque fin (`Completed`, `Failed`, `Stopped`, remplacement par `Play`). `Play` appelé depuis la veille est sûr (testé avec `ThrowCoroutineExceptionsInDebug`). Le point d'entrée interne `ExitOnInputResolver` du directeur permet aux tests sans jeu de fournir les appareils.
+  - **Validation** : `dotnet build` des deux `.sln` à 0 erreur ; `dotnet test CasaEngine.Tests` : 5406 réussis, 0 échec (28 nouveaux tests dans `CasaEngine.Tests/Cutscenes/ExitOnInputCutsceneActionTests.cs` : aller-retour, validation, builder, échecs, appui et images mesurées, maintien sans effet, touche tenue avant et pendant l'armement, appui sur l'image d'armement, remplacement de la veille, cutscene terminée puis appui, arrêt de la veille avant `Ended` pour les quatre fins, `Play` depuis la veille, absence d'allocation du pas ; aucun test existant modifié).
+  - **Écart** : aucun. Le chemin réel (mapping et cutscene lus du catalogue d'un jeu) n'est pas testé de bout en bout, faute de jeu en test ; seul le refus sans jeu l'est. Il sera exercé par le sample (T3.1).
 
 ---
 

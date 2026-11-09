@@ -14,6 +14,7 @@ public sealed class CutsceneDirector
     private CutsceneAsset _currentAsset;
     private CutsceneValidationResult _lastValidation = new();
     private CoroutineHandle _activeHandle = CoroutineHandle.Invalid;
+    private CoroutineHandle _inputWatchHandle = CoroutineHandle.Invalid;
     private CutsceneRuntimeState _state = CutsceneRuntimeState.Idle;
     private string _activeActionType;
     private string _activeActionEntityName;
@@ -43,6 +44,12 @@ public sealed class CutsceneDirector
     /// <see cref="Stop"/> raises Stopped.
     /// </summary>
     public event EventHandler<CutsceneEndedEventArgs> Ended;
+
+    /// <summary>
+    /// How an ExitOnInput action finds its devices, mapping and next cutscene. Null reads them from the running game;
+    /// tests set it. Returns the watch, or why it cannot be built.
+    /// </summary>
+    internal Func<ExitOnInputCutsceneActionData, (CutsceneInputWatch Watch, string Failure)> ExitOnInputResolver { get; set; }
 
     public bool IsPlaying => _activeHandle.IsValid && _world.RuntimeSystems.CoroutineManager.IsRunning(_activeHandle);
 
@@ -144,6 +151,33 @@ public sealed class CutsceneDirector
         RaiseEnded(_state);
     }
 
+    /// <summary>
+    /// Starts the watch of an ExitOnInput action for the rest of the play, in place of the one in progress. A superseded
+    /// or failed play arms nothing.
+    /// </summary>
+    internal void ArmInputWatch(CutsceneInputWatch watch, int playToken)
+    {
+        ArgumentNullException.ThrowIfNull(watch);
+
+        if (IsPlayAborted(playToken))
+        {
+            return;
+        }
+
+        StopInputWatch();
+        _inputWatchHandle = _world.RuntimeSystems.CoroutineManager.StartCoroutine(watch.Run(), this, "CutsceneInputWatch");
+    }
+
+    /// <summary>Stops the watch, if any. Called before every Ended, so that no watch survives its play.</summary>
+    private void StopInputWatch()
+    {
+        if (_inputWatchHandle.IsValid)
+        {
+            _world.RuntimeSystems.CoroutineManager.StopCoroutine(_inputWatchHandle);
+            _inputWatchHandle = CoroutineHandle.Invalid;
+        }
+    }
+
     private void StopOwnedWork(string navigationStopReason)
     {
         _world.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
@@ -159,6 +193,7 @@ public sealed class CutsceneDirector
         }
 
         _endRaised = true;
+        StopInputWatch();
         EventHandler<CutsceneEndedEventArgs> handler = Ended;
         if (handler == null)
         {

@@ -9,6 +9,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Audio;
 using CasaEngine.Framework.Audio.Mixing;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.ScreenEffects;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scripting.Coroutines;
@@ -242,6 +243,21 @@ internal static class CutsceneActionCoroutineFactory
                     }
 
                     tintSprite.StartTint(tintSpriteAction.Color.Value, tintSpriteAction.Duration.Value);
+                    break;
+                }
+
+            case ExitOnInputCutsceneActionData exitOnInputAction:
+                {
+                    (CutsceneInputWatch watch, string exitOnInputFailure) = owner.ExitOnInputResolver != null
+                        ? owner.ExitOnInputResolver(exitOnInputAction)
+                        : ResolveExitOnInput(exitOnInputAction, world, owner);
+                    if (watch == null)
+                    {
+                        FailPlay(owner, exitOnInputFailure, playToken);
+                        yield break;
+                    }
+
+                    owner.ArmInputWatch(watch, playToken);
                     break;
                 }
 
@@ -595,6 +611,59 @@ internal static class CutsceneActionCoroutineFactory
         sprite.StopMotionAndTint();
         entity.IsVisible = true;
         return null;
+    }
+
+    /// <summary>Reads the devices of the running game, the mapping and the next cutscene of an ExitOnInput action, or says why it cannot.</summary>
+    private static (CutsceneInputWatch Watch, string Failure) ResolveExitOnInput(ExitOnInputCutsceneActionData action, World world, CutsceneDirector owner)
+    {
+        CasaEngineGame game = world.Game;
+        if (game?.InputComponent == null)
+        {
+            return (null, "ExitOnInput needs a running game, and this world has none.");
+        }
+
+        ButtonsMapping mapping;
+        try
+        {
+            mapping = game.AssetContentManager.LoadCopy<ButtonsMapping>(GameManager.FindButtonsMappingAsset(action.Mapping).Id);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return (null, $"ExitOnInput: mapping '{action.Mapping}' cannot be used. {exception.Message}");
+        }
+
+        var inputs = new List<InputMapping>(action.Inputs.Count);
+        for (int index = 0; index < action.Inputs.Count; index++)
+        {
+            InputMapping found = null;
+            for (int buttonIndex = 0; buttonIndex < mapping.Buttons.Count && found == null; buttonIndex++)
+            {
+                if (string.Equals(mapping.Buttons[buttonIndex].Name, action.Inputs[index], StringComparison.Ordinal))
+                {
+                    found = mapping.Buttons[buttonIndex];
+                }
+            }
+
+            if (found == null)
+            {
+                return (null, $"ExitOnInput: input '{action.Inputs[index]}' is not in mapping '{action.Mapping}'.");
+            }
+
+            inputs.Add(found);
+        }
+
+        CutsceneAsset next;
+        try
+        {
+            // ADR-0037: a cutscene is read as a copy that the director's play owns.
+            next = game.AssetContentManager.LoadCopy<CutsceneAsset>(GameManager.FindCutsceneAsset(action.NextCutscene).Id);
+        }
+        catch (InvalidOperationException exception)
+        {
+            return (null, $"ExitOnInput: next_cutscene '{action.NextCutscene}' cannot be used. {exception.Message}");
+        }
+
+        return (new CutsceneInputWatch(owner, inputs, game.InputComponent.KeyboardManager, game.InputComponent.MouseManager, game.InputComponent.GamePadManager, next), null);
     }
 
     private static Entity FindEntityByName(World world, string entityName)

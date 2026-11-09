@@ -22,6 +22,7 @@ public class GameManager
     private const string SoundAssetType = "sound";
     private const string FontAssetType = "fnt";
     private const string ButtonsMappingAssetType = "buttonsmapping";
+    private const string CutsceneAssetType = "cutscene";
 
     private readonly CasaEngineGame _game;
     private readonly AssetContentManager _assetContentManager;
@@ -398,6 +399,17 @@ public class GameManager
         return IsCataloguedAs(assetInfo, ButtonsMappingAssetType)
             ? assetInfo
             : throw new InvalidOperationException($"No buttons mapping asset '{assetIdOrName}' is registered in this project.");
+    }
+
+    /// <summary>The cutscene the name or id designates.</summary>
+    /// <exception cref="InvalidOperationException">The project has no such cutscene.</exception>
+    internal static AssetInfo FindCutsceneAsset(string assetIdOrName)
+    {
+        var assetInfo = FindAsset(assetIdOrName);
+
+        return IsCataloguedAs(assetInfo, CutsceneAssetType)
+            ? assetInfo
+            : throw new InvalidOperationException($"No cutscene asset '{assetIdOrName}' is registered in this project.");
     }
 
     private static AssetInfo FindAsset(string assetIdOrName)
