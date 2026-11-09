@@ -1,0 +1,24 @@
+{
+  "id": "359ea917-b86d-45c0-a88b-b8ff634c6590",
+  "name": "Video Sprite Exit",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "FadeScreen",
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "duration_seconds": 1,
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "EndWorld.world"
+      }
+    ]
+  }
+}

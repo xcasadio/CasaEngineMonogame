@@ -187,7 +187,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 3 — Sample et documentation
 
-### ⏳ T3.1 — Sample `Projects/VideoSpriteSample`
+### 🧪 T3.1 — Sample `Projects/VideoSpriteSample`
 
 - Objectif : C6.
 - Validation :
@@ -196,6 +196,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
   - la sortie par une touche quelconque, et l'absence de sortie sur Alt+Tab, sont vérifiées, sinon notées pour la recette (T4.2) ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(samples): add a sample that plays a video under a sprite`
+- Note : Données et test faits ; reste la recette au Launcher. `Projects/VideoSpriteSample` : monde à caméra 2D avec `clip` (`VideoSpriteComponent`, Z 1, échelle 1,5) et `orb` (sprite de Z 0, caché au chargement) ; mapping `sample-input` avec `exit` en `AnyKey` (JSON exact de C4) et Start de la manette en alternative ; cutscene de démarrage `ExitOnInput` puis `Repeat` sans fin d'un `Parallel` (`PlayVideoSprite` ; attente, `ShowSprite` additif noir, `TintSprite`) puis `HideSprite` ; sortie par fondu puis `ChangeWorld` vers un monde de fin qui revient ; clip copie octet pour octet de `VideoSample` (comparée à `VideoSampleClip`), feuille `shapes.png` identique à celle de `SpriteCutsceneSample` (générateur `SpriteCutsceneSampleImages`) ; README en anglais. Test `CasaEngine.Tests/Cutscenes/VideoSpriteSampleDataTests.cs` : 16 verts. **Reste à faire** : lancer le Launcher (annonce préalable à l'auteur, C9), captures hors dépôt (film, fondu du sprite par-dessus, boucle), sortie par une touche quelconque, absence de sortie sur Alt+Tab. Aucun Launcher lancé par l'agent. Écart : un seul sprite (`orb`) au lieu de plusieurs, suffisant pour le fondu.
 
 ### ⏳ T3.2 — Documentation
 

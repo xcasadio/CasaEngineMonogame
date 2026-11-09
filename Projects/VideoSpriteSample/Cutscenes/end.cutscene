@@ -1,0 +1,28 @@
+{
+  "id": "fe473794-5f0b-4331-b2b8-1ec58dfb7a8e",
+  "name": "Video Sprite End",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 2
+      },
+      {
+        "type": "FadeScreen",
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "duration_seconds": 0,
+        "blend_mode": "Subtractive"
+      },
+      {
+        "type": "ChangeWorld",
+        "target": "VideoSpriteWorld.world"
+      }
+    ]
+  }
+}

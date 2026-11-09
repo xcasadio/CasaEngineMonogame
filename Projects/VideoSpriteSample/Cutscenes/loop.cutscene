@@ -1,0 +1,92 @@
+{
+  "id": "fe28463f-744b-4c46-a66c-9eed82f2b297",
+  "name": "Video Sprite Loop",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "ExitOnInput",
+        "mapping": "sample-input",
+        "inputs": [
+          "exit"
+        ],
+        "next_cutscene": "VideoSpriteExit"
+      },
+      {
+        "type": "Repeat",
+        "count": 0,
+        "actions": [
+          {
+            "type": "Parallel",
+            "actions": [
+              {
+                "type": "PlayVideoSprite",
+                "entity": "clip"
+              },
+              {
+                "type": "Sequence",
+                "actions": [
+                  {
+                    "type": "Wait",
+                    "seconds": 1
+                  },
+                  {
+                    "type": "ShowSprite",
+                    "entity": "orb",
+                    "x": 0,
+                    "y": 0,
+                    "color": [
+                      0,
+                      0,
+                      0
+                    ],
+                    "blend_mode": "Additive"
+                  },
+                  {
+                    "type": "TintSprite",
+                    "entity": "orb",
+                    "color": [
+                      255,
+                      200,
+                      70
+                    ],
+                    "duration": 1.5
+                  },
+                  {
+                    "type": "Wait",
+                    "seconds": 1.5
+                  },
+                  {
+                    "type": "TintSprite",
+                    "entity": "orb",
+                    "color": [
+                      0,
+                      0,
+                      0
+                    ],
+                    "duration": 0.5
+                  },
+                  {
+                    "type": "Wait",
+                    "seconds": 0.5
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "HideSprite",
+            "entity": "orb"
+          },
+          {
+            "type": "Wait",
+            "seconds": 0.6
+          }
+        ]
+      }
+    ]
+  }
+}

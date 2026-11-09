@@ -1,0 +1,64 @@
+{
+  "asset_infos": [
+    {
+      "id": "a9333d90-8e1e-4f9b-a57e-296c6d1eb305",
+      "name": "VideoSpriteWorld",
+      "file_name": "VideoSpriteWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "ce36f41f-899b-4cbf-9532-1f44218ec50f",
+      "name": "EndWorld",
+      "file_name": "EndWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "fe28463f-744b-4c46-a66c-9eed82f2b297",
+      "name": "VideoSpriteLoop",
+      "file_name": "Cutscenes\\loop.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "359ea917-b86d-45c0-a88b-b8ff634c6590",
+      "name": "VideoSpriteExit",
+      "file_name": "Cutscenes\\exit.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "fe473794-5f0b-4331-b2b8-1ec58dfb7a8e",
+      "name": "VideoSpriteEnd",
+      "file_name": "Cutscenes\\end.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "3469d8c9-e2e7-4a59-8f80-a1bfbe1f6bda",
+      "name": "shapes-sheet",
+      "file_name": "Images\\shapes.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "a8e32fd4-c6c7-4349-a183-32558cd90e0d",
+      "name": "shapes",
+      "file_name": "Images\\shapes.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "13251a02-d2c1-4ce1-a602-0bcea5b3487a",
+      "name": "orb",
+      "file_name": "Images\\orb.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "a429b5fd-949f-4016-8e31-7cc2f9f45f6e",
+      "name": "sample-input",
+      "file_name": "sample-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
+    },
+    {
+      "id": "8fa4647e-3a0b-4429-999b-12e075c4582b",
+      "name": "clip",
+      "file_name": "Videos\\clip.mdecvideo",
+      "asset_type": "mdecvideo"
+    }
+  ]
+}
