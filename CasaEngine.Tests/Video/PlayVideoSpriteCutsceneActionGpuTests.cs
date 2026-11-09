@@ -181,9 +181,15 @@ public sealed class PlayVideoSpriteCutsceneActionGpuTests : IDisposable
             // What World.Clear does to the coroutines, then to the entities (the physics part needs a full game).
             harness.World.RuntimeSystems.Clear();
             harness.World.ClearEntities(true);
+            var visibleBeforeCleanup = entity.IsVisible;
+
+            // The stopped coroutine's cleanup runs at the next update of the coroutine manager: with the world
+            // cleared, its guard must leave the released component and the discarded entity untouched.
+            harness.World.CoroutineManager.Update(new CoroutineUpdateContext(Step, Step, 1f, 10));
 
             Assert.False(video.HasPlayer);
             Assert.False(video.IsPlaying);
+            Assert.Equal(visibleBeforeCleanup, entity.IsVisible);
         });
     }
 
