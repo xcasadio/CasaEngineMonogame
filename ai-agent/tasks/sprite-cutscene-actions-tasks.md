@@ -331,17 +331,32 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 4 — Vérification et recette
 
-### ⏳ T4.1 — Vérificateur neuf
+### ✅ T4.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur la branche : C1 à C10, D2 à D8, la non-régression, D7, les builds et les tests.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of the sprite cutscene actions`
+- Note : passe du 2026-11-09 sur `da5c75af..8b595728` : **CONFIRMED**, aucun P0 à P2.
+  - Lancé par le vérificateur :
+    - les deux `.sln` à 0 erreur ;
+    - `CasaEngine.Tests` : 5440 réussis, 0 échec, 0 ignoré ;
+    - tous les fichiers de test de la branche sont nouveaux, donc aucun test existant n'est modifié.
+  - C1 à C10 sont revérifiés dans le code. En particulier, les anciens appels de dessin restent les mêmes avec le mode par défaut, la veille s'arrête dans `RaiseEnded` à chaque fin, et l'ordre mesuré des images (appui en P, arrêt en P+1, premier pas de la suite en P+2) est égal à la doc.
+  - D6, D7 et D8 tiennent. La seule occurrence de « PSX » est le nom d'API moteur existant et la citation de l'auteur en D3.
+  - Le Launcher n'a pas été lancé. L'écran repose sur la note de T3.1, et la sortie au clavier est laissée à la recette.
+  - Avis, tous P4 et DEFER :
+    - A1, introduit : un tour de `Repeat` sans fin alloue une pile et les énumérateurs de ses enfants. C'est par tour, pas par image, et hors des chemins de D8. Déjà noté en T2.3.
+    - A2, antérieur à la branche : `RemoveCollisions` ne vide pas `_collisionObjects`. Un `ShowSprite` avec `sprite` y passe plus souvent qu'avant, ce qui est sans effet sur un sprite sans collision. À traiter dans un chantier suivant si un sprite à collisions est rechargé.
+    - A3, introduit, confiance faible : `is_visible` à faux s'écrit dans le monde. L'éditeur ne met `IsVisible` à faux que sur ses entités d'aperçu et de caméra, qui ne semblent pas sauvegardées dans le monde. Tous les chemins de sauvegarde n'ont pas été suivis.
 
-### ⏳ T4.2 — Recette de l'auteur
+### 🧪 T4.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the sprite cutscene sample`
+- Note : en attente de l'auteur.
+  - À voir : les sprites qui entrent depuis les bords, se teintent puis s'éteignent, les mélanges additif et soustractif, et la boucle.
+  - À vérifier : Espace (ou Start à la manette) lance le fondu, le monde de fin, puis le retour. Sans appui, rien ne sort. Pendant la recette, aucune autre application ne doit utiliser une manette (O5).
 
 ---
 
