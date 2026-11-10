@@ -53,6 +53,12 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     /// <summary>True once <see cref="InitializeWithWorld"/> created the player, until <see cref="Detach"/> or <see cref="Dispose"/>.</summary>
     internal bool HasPlayer => _player != null;
 
+    /// <summary>
+    /// Incremented by each <see cref="Play"/>. A caller that started the film keeps the value it read: when it differs,
+    /// a later play owns the film and the earlier caller must leave it alone.
+    /// </summary>
+    internal int PlayGeneration { get; private set; }
+
     /// <summary>The texture the film is drawn from, null without a player.</summary>
     internal Texture2D Texture => _player?.Texture;
 
@@ -163,6 +169,7 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
 
         _player.Restart();
         _isPlaying = true;
+        PlayGeneration++;
     }
 
     /// <summary>Stops the film where it is. The current picture stays drawn.</summary>

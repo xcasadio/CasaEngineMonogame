@@ -236,17 +236,23 @@ internal static class CutsceneActionCoroutineFactory
                     // Shown and started in the same update; the last picture of the film, or the cleanup below, hides it.
                     videoEntity.IsVisible = true;
                     videoSprite.Play();
+                    int playGeneration = videoSprite.PlayGeneration;
                     try
                     {
-                        while (videoSprite.IsPlaying)
+                        // A later play of the same film (another cutscene, or this one replaced) takes it over.
+                        while (videoSprite.IsPlaying && videoSprite.PlayGeneration == playGeneration)
                         {
                             yield return null;
                         }
                     }
                     finally
                     {
-                        // A cleared world has already released the component and dropped the entity: nothing to undo.
-                        if (videoSprite.HasPlayer && ReferenceEquals(FindEntityByName(world, videoEntity.Name), videoEntity))
+                        // A cleared world has already released the component and dropped the entity, and a later play
+                        // owns the film it started: in both cases there is nothing to undo here. A stopped coroutine
+                        // runs this at the end of a later coroutine update, after a replacing play may have started.
+                        if (videoSprite.PlayGeneration == playGeneration
+                            && videoSprite.HasPlayer
+                            && ReferenceEquals(FindEntityByName(world, videoEntity.Name), videoEntity))
                         {
                             videoSprite.Stop();
                             videoEntity.IsVisible = false;

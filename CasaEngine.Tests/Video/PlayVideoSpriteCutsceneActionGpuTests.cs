@@ -166,6 +166,47 @@ public sealed class PlayVideoSpriteCutsceneActionGpuTests : IDisposable
     }
 
     [GpuFact]
+    public void APlayReplacedOutsideTheCoroutineUpdate_ByAPlayOfTheSameFilm_LeavesTheNewPlayAlone()
+    {
+        var path = NewVideo(30);
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            var harness = NewHarness(path);
+            var entity = AddFilm(harness);
+            var video = Video(entity);
+            Play(harness.World, new PlayVideoSpriteCutsceneActionData { EntityName = "Film" });
+            long frame = 0;
+            Frame(harness.World, entity, ref frame);
+            Frame(harness.World, entity, ref frame);
+            Assert.True(video.IsPlaying);
+
+            // Game code replaces the play between two updates: the first play's cleanup runs late, inside the update
+            // that starts the second play, and must not stop or hide the film the second play has just started.
+            Play(harness.World, new PlayVideoSpriteCutsceneActionData { EntityName = "Film" });
+            Frame(harness.World, entity, ref frame);
+            Assert.True(entity.IsVisible);
+            Assert.True(video.IsPlaying);
+            Assert.Equal(1, video.CurrentFrameIndex);
+
+            Frame(harness.World, entity, ref frame);
+            Assert.True(entity.IsVisible);
+            Assert.True(video.IsPlaying);
+            Assert.Equal(2, video.CurrentFrameIndex);
+            Assert.Equal(CutsceneRuntimeState.Playing, harness.World.CutsceneDirector.GetDebugSnapshot().State);
+
+            // The second play still ends with its film and hides the entity then.
+            while (harness.World.CutsceneDirector.GetDebugSnapshot().State == CutsceneRuntimeState.Playing && frame < 60)
+            {
+                Frame(harness.World, entity, ref frame);
+            }
+
+            Assert.Equal(CutsceneRuntimeState.Completed, harness.World.CutsceneDirector.GetDebugSnapshot().State);
+            Assert.False(entity.IsVisible);
+            Assert.True(video.IsEnded);
+        });
+    }
+
+    [GpuFact]
     public void AClearedWorld_LeavesTheReleasedComponentAlone()
     {
         var path = NewVideo(30);

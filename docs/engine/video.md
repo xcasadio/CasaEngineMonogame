@@ -445,6 +445,6 @@ What happens next depends on the path that initialised the entity:
 
 If the play stops before the end (stop, replacement by `ExitOnInput`, failure), the cleanup of the instruction stops the film and hides the entity, unless the component was already disposed or the entity removed from the world (the world is cleared). The cleanup of an interrupted play runs at the next update of the coroutine manager, so one game frame later.
 
-It fails the play (`Failed`, the message names the entity) when the entity is unknown (also when its creation failed, section 9.2), when its root component is not a `VideoSpriteComponent`, or when the component has no player (a defensive guard: no known load path reaches it). The validator refuses a missing or blank `entity`. Fields and timing are also in the [cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#playvideosprite-adr-0091).
+It fails the play (`Failed`, the message names the entity) when the entity is unknown (also when its creation failed, section 9.2), when its root component is not a `VideoSpriteComponent`, or when the component has no player (an entity listed in the world before its `InitializeWithWorld` failed, as the editor's immediate entity reference `World.AddEntityReferenceImmediate` can leave it; a `.world` load drops such an entity instead). The validator refuses a missing or blank `entity`. Fields and timing are also in the [cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#playvideosprite-adr-0091).
 
 A runnable project: `Projects/VideoSpriteSample`.
