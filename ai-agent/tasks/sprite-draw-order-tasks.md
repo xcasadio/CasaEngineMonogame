@@ -115,7 +115,7 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 
 ## Phase 1 — Ordre de dessin
 
-### ⏳ T1.1 — File du renderer et surcharges
+### ✅ T1.1 — File du renderer et surcharges
 
 - Objectif : C1 et C2.
 - Fichiers : `SpriteRendererComponent.cs` et des tests.
@@ -125,6 +125,13 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
   - la liste des membres publics de `SpriteRendererComponent` avant et après, qui ne diffère que par les ajouts 1, 2 et 4 de C2 ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(sprites): order sprites of equal depth by a draw order, then by submission`
+- Note : fait le 2026-11-10.
+  - Code : `SpriteDisplayData` gagne `DrawOrder` et `Submission`, affectés sur chaque entrée par le `DrawSprite` privé du cœur (`drawOrder` facultatif, 0) et par `QueuePsxQuad` (`DrawOrder = 0`, `Submission` = rang dans la file). Comparateur sans clé : plus grand Z, puis plus petit `DrawOrder`, puis plus petit `Submission`. Les quatre surcharges de C2 sont ajoutées (trois publiques, une interne) ; les surcharges existantes à découpe déléguent aux nouvelles avec 0, sans changer de signature.
+  - Tests : `CasaEngine.Tests/Rendering/SpriteRendererComponentDrawOrderTests.cs`, 14 tests (64 entrées sur les deux chemins et entrelacés, rang de soumission, ordre à Z égal, Z différents, surcharges, pool, entrées à clé, zéro allocation).
+  - Exécutions consignées, 64 entrées : sans la comparaison de `Submission`, les trois tests de 64 entrées échouent (sprite, PSX, entrelacé) ; sans l'affectation de `Submission` dans `QueuePsxQuad`, la variante PSX et l'entrelacée échouent (et les tests de rang) ; avec tout en place, 14 sur 14 passent.
+  - Exécutions consignées, pool : sans `DrawOrder = 0` dans `QueuePsxQuad`, `ReusedEntries_NeverKeepTheDrawOrderOfAPreviousFrame` échoue (1 échec) ; sans `DrawOrder = drawOrder` dans le cœur, ce test échoue aussi (avec trois autres tests d'ordre) ; avec les deux, il passe. Écart : la recette du plan (deux entrées périmées créées par des appels à `draw_order` non nul) ne suffit pas pour la variante du cœur, car sans l'affectation du cœur ces entrées n'ont jamais de valeur non nulle. Le test empoisonne donc le pool par réflexion (`DrawOrder` 77, `Submission` 99 sur chaque entrée libre) après le vidage de la file.
+  - Membres publics de `SpriteRendererComponent`, listés dans le source avant et après : seules les surcharges 1, 2 et 4 de C2 apparaissent (la 3 est interne) ; les deux champs de la structure privée `SpriteDisplayData` apparaissent aussi dans la liste mais ne sont pas des membres de la classe.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5555 réussis sur 5555, aucun test existant modifié.
 
 ### ⏳ T1.2 — Champ `draw_order` des composants
 

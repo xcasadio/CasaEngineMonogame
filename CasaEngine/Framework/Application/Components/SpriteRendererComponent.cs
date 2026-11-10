@@ -41,6 +41,12 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         // entry, so a pooled entry never keeps them from a previous use.
         public bool NoCull;
         public bool PsxQuad;
+
+        // ADR-0092: the data-chosen order of an entry without a sort key at equal z (the smaller is drawn first), given by the
+        // call (0 when it carries none), and the rank of the entry in the queue of the frame. Both are assigned on every entry:
+        // the pool hands entries back without resetting them.
+        public int DrawOrder;
+        public int Submission;
     }
 
     private const int NbSprites = 10000;
@@ -560,12 +566,19 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         var xZ = x.WorldMatrix.Translation.Z;
         var yZ = y.WorldMatrix.Translation.Z;
 
-        if (xZ == yZ)
+        if (xZ != yZ)
         {
-            return 0;
+            return xZ > yZ ? -1 : 1;
         }
 
-        return xZ > yZ ? -1 : 1;
+        // ADR-0092: at equal z, the smaller draw order first, then the earlier submission, so the order never depends on the
+        // (unstable) sort.
+        if (x.DrawOrder != y.DrawOrder)
+        {
+            return x.DrawOrder < y.DrawOrder ? -1 : 1;
+        }
+
+        return x.Submission.CompareTo(y.Submission);
     }
 
 
@@ -603,10 +616,25 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         DrawSprite(sprite, pos, rot, scale, color, zOrder, blendMode, GraphicsDevice.ScissorRectangle);
     }
 
+    /// <summary>
+    /// The overload with an explicit blend mode and no sort key, with a <paramref name="drawOrder"/> (ADR-0092): at equal z the
+    /// smaller draw order is drawn first. Without a sort key only; a keyed entry ignores it.
+    /// </summary>
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, int drawOrder)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, blendMode, GraphicsDevice.ScissorRectangle, drawOrder);
+    }
+
     internal void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, Rectangle scissorRectangle)
     {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, blendMode, scissorRectangle, 0);
+    }
+
+    internal void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, Rectangle scissorRectangle, int drawOrder)
+    {
         DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, SpriteEffects.None,
-            scissorRectangle, drawDebug: true, hasSortKey: false, RenderSortKey2D.Default, hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+            scissorRectangle, drawDebug: true, hasSortKey: false, RenderSortKey2D.Default, hasWorldTransform: false, worldTransform: default, blendMode: blendMode,
+            drawOrder: drawOrder);
 
         if (IsDrawCollisionsEnabled)
         {
@@ -626,7 +654,17 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, drawDebug);
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug, effects, scissorRectangle, 0);
+    }
+
+    /// <summary>
+    /// The default path of a sprite without a sort key, with a <paramref name="drawOrder"/> (ADR-0092): at equal z the smaller
+    /// draw order is drawn first. Without a sort key only; a keyed entry ignores it.
+    /// </summary>
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, int drawOrder)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, drawDebug,
+            hasSortKey: false, RenderSortKey2D.Default, drawOrder: drawOrder);
 
         if (drawDebug && IsDrawCollisionsEnabled)
         {
@@ -814,6 +852,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         spriteDisplayData.IgnoresDepth = false;
         spriteDisplayData.NoCull = true;
         spriteDisplayData.PsxQuad = true;
+        spriteDisplayData.DrawOrder = 0;
+        spriteDisplayData.Submission = _spriteDatas.Count;
         _spriteDatas.Add(spriteDisplayData);
     }
 
@@ -932,6 +972,20 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <summary>
+    /// The overload of <paramref name="ignoresDepth"/> with a <paramref name="drawOrder"/> (ADR-0092): at equal z the smaller
+    /// draw order is drawn first.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, SpriteEffects effects, bool ignoresDepth, int drawOrder)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            GraphicsDevice.ScissorRectangle, drawDebug: false, hasSortKey: false, RenderSortKey2D.Default,
+            hasWorldTransform: false, worldTransform: default, blendMode: SpriteBlendMode.Opaque, ignoresDepth: ignoresDepth,
+            drawOrder: drawOrder);
+    }
+
+    /// <summary>
     /// Draws a raw texture sprite with an explicit <see cref="RenderSortKey2D"/>, sorting it against
     /// every other keyed sprite in the scene instead of by depth. Used by non-<see cref="Sprite"/> asset
     /// sources (e.g. the tile map sorted overlay) that need the keyed sprite path.
@@ -1040,7 +1094,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
         bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque, bool ignoresDepth = false,
-        float alphaMin = NeutralAlphaMin, float alphaMax = NeutralAlphaMax)
+        float alphaMin = NeutralAlphaMin, float alphaMax = NeutralAlphaMax, int drawOrder = 0)
     {
         if (texture2d == null)
         {
@@ -1094,6 +1148,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         spriteDisplayData.AlphaMax = alphaMax;
         spriteDisplayData.NoCull = false;
         spriteDisplayData.PsxQuad = false;
+        spriteDisplayData.DrawOrder = drawOrder;
+        spriteDisplayData.Submission = _spriteDatas.Count;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)
