@@ -1,0 +1,40 @@
+{
+  "asset_infos": [
+    {
+      "id": "073b9c8f-661e-5b8e-99df-9a86a5ee02a6",
+      "name": "DrawOrderWorld",
+      "file_name": "DrawOrderWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "25b8cc50-ec93-574b-be39-bb154a6f6575",
+      "name": "discs-sheet",
+      "file_name": "Images\\discs.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "8b96280f-c45a-5328-8844-dc2d6bca16f6",
+      "name": "discs",
+      "file_name": "Images\\discs.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "3a61c829-7a0b-5fdc-948a-451efa35e7c5",
+      "name": "disc-red",
+      "file_name": "Images\\disc-red.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "87110392-78be-5744-91a3-5eb8fddd56c0",
+      "name": "disc-green",
+      "file_name": "Images\\disc-green.sprite",
+      "asset_type": "sprite"
+    },
+    {
+      "id": "a16ed175-ed9a-5e2a-bcf0-a30b690cddae",
+      "name": "disc-blue",
+      "file_name": "Images\\disc-blue.sprite",
+      "asset_type": "sprite"
+    }
+  ]
+}

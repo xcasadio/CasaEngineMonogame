@@ -51,7 +51,7 @@ internal static class SpriteCutsceneSampleImages
     }
 
     /// <summary>A minimal PNG writer: 8 bit RGBA, no interlacing, filter 0 on every row.</summary>
-    private static byte[] WritePng(int width, int height, Func<int, int, Color> pixel)
+    internal static byte[] WritePng(int width, int height, Func<int, int, Color> pixel)
     {
         var raw = new byte[height * (1 + width * 4)];
         var offset = 0;

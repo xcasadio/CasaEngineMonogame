@@ -149,11 +149,15 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample `Projects/SpriteDrawOrderSample`
+### 🧪 T2.1 — Sample `Projects/SpriteDrawOrderSample`
 
 - Objectif : C6.
 - Validation : le test de données passe. Au Launcher, après annonce à l'auteur (C7), une capture hors dépôt montre l'empilement attendu ; sinon, c'est noté pour la recette. Deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(samples): add a sample that orders sprites of equal depth`
+- Note : fait le 2026-11-10, sans lancer le Launcher.
+  - Sample `Projects/SpriteDrawOrderSample` : projet sans DLL, monde `DrawOrderWorld.world` à caméra 2D et fond clair, trois sprites `AlphaBlend` qui se recouvrent au même Z 0 (`disc-red`, `disc-green`, `disc-blue`, listés dans cet ordre dans le `.world`) avec `draw_order` 2, 1, 0, donc dans l'ordre inverse. Image `Images/discs.png` générée par `CasaEngine.Tests/Cutscenes/SpriteDrawOrderSampleImages.cs` (qui réutilise l'écriture PNG de `SpriteCutsceneSampleImages`, passée de `private` à `internal`, sans toucher à un test). README en anglais.
+  - Test de données `SpriteDrawOrderSampleDataTests` : 9 tests (pixels, PNG généré, couleurs, trois sprites au même Z qui se recouvrent, `draw_order` inverses de l'ordre du monde, caméra 2D sans `DepthSortable2DComponent`, références sprite/texture/image, catalogue, projet).
+  - Reste à faire : l'exécution du Launcher (annoncée d'abord à l'auteur, C7) et le contrôle visuel de l'empilement (rouge au-dessus du vert, au-dessus du bleu), à noter pour la recette T3.2.
 
 ### ⏳ T2.2 — Documentation
 
