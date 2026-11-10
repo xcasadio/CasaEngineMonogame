@@ -405,7 +405,7 @@ The excerpt shows the component keys only; a loadable entity node also needs the
 * `Load` only keeps the name. The asset is resolved in `InitializeWithWorld`, once the world is known.
 * **The entity is hidden at load.** `InitializeWithWorld` sets `Entity.IsVisible` to false whatever `is_visible` says. Only a cut-scene action shows it (section 9.4).
 * The copy constructor carries the name and the colour; each clone creates its own player and asset handle.
-* `Detach` and `Dispose` release the player and the asset handle. The editor save path writes `video`, and `color` and `draw_order` only when they are not white and not 0. The copy constructor also carries `draw_order`.
+* `Detach` and `Dispose` release the player and the asset handle. The editor save path writes `video`, `color` only when it is not white, and `draw_order` only when it is not 0. The copy constructor also carries `draw_order`.
 * The component applies the `Scale` of its transform. Its bounding box is the size of the picture around the position, so the world frustum does not cut the film.
 
 ### 9.2 Creation failures

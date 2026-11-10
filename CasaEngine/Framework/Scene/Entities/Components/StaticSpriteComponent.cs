@@ -393,9 +393,10 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     private static int ReadDrawOrder(JToken token)
     {
-        if (token.Type == JTokenType.Integer && token.Value<long>() is >= int.MinValue and <= int.MaxValue)
+        // An integer outside the Int64 range is held as a BigInteger: it falls through to the error below.
+        if (token is JValue { Type: JTokenType.Integer, Value: long value } && value is >= int.MinValue and <= int.MaxValue)
         {
-            return token.Value<int>();
+            return (int)value;
         }
 
         throw new InvalidDataException(

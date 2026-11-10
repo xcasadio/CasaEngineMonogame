@@ -118,6 +118,7 @@ public sealed class SpriteComponentDrawOrderTests : IDisposable
 
     [Theory]
     [InlineData("1.5")]
+    [InlineData("99999999999999999999")]
     [InlineData("2.0")]
     [InlineData("\"3\"")]
     [InlineData("true")]
@@ -140,6 +141,7 @@ public sealed class SpriteComponentDrawOrderTests : IDisposable
 
     [Theory]
     [InlineData("1.5")]
+    [InlineData("99999999999999999999")]
     [InlineData("2.0")]
     [InlineData("\"3\"")]
     [InlineData("true")]

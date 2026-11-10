@@ -170,6 +170,21 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
   - `docs/engine/video.md` §9 : clé `draw_order` (§9.1, sauvegarde et copie comprises), surcharge à `drawOrder` (§9.3), règle de départage, limite O3 mise à jour (l'ordre à Z égal suit `draw_order` et non plus le tri).
   - Validation : relecture contre le code ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5602 réussis sur 5602. Aucun code touché, aucune exécution en échec demandée.
 
+### ✅ T2.3 — Corrections des relectures
+
+- Objectif : traiter les constats non bloquants des relectures par tâche, en session principale, le 2026-11-10.
+- Validation : deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
+- Commit : `fix(sprites): address the per-task reviews of the draw order chantier`
+- Note :
+  - **FIX** :
+    - P3 de T1.2 : un entier JSON hors des bornes d'`Int64` dans `draw_order` (par exemple 99999999999999999999) levait une `InvalidCastException`, puisque Newtonsoft le garde en `BigInteger`. Les deux `ReadDrawOrder` ne lisent plus que la valeur `long` d'un `JValue` entier dans les bornes d'`int`, et tout autre cas lève l'`InvalidDataException` de C3. Un cas est ajouté aux deux théories de valeurs malformées.
+    - P4 de T2.2 : la phrase de `video.md` §9.1 sur la sauvegarde, ambiguë, dit maintenant « `color` seulement s'il n'est pas blanc, et `draw_order` seulement s'il n'est pas 0 ».
+    - P4 de T2.2 : `static-sprite-component.md` nommait une surcharge sans découpe. Il nomme maintenant les surcharges sans clé avec mélange réellement appelées.
+  - **DEFER** :
+    - P4 de T1.2 : le test d'ordre au niveau des composants trie par `List.Sort` avec le comparateur du renderer, par réflexion, au lieu de passer par `FillVertices`. Le comportement est prouvé par les tests de T1.1.
+    - P4 de T2.1 : les tests de données du sample lisent le JSON par ses clés, sans charger le monde par le moteur. Le chargement relève de la recette au Launcher.
+  - **Validation** : deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5604 réussis, 0 échec.
+
 ---
 
 ## Phase 3 — Vérification et recette

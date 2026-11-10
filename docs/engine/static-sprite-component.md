@@ -48,7 +48,7 @@ A `color` without one of the four keys, with a non-integer or a value outside 0.
 - `Opaque` (the default) keeps the plain draw path, with `Color` as the tint.
 - Any other mode applies to the whole sprite. The per-texel semi-transparency of `SpriteData.PsxSemiTransparency` ([sprite-psx-semi-transparency.md](sprite-psx-semi-transparency.md)) is a separate path and is not tied to `blend_mode`.
 - **With a `DepthSortable2DComponent`** on the entity, the sprite goes through the renderer overload that takes a sort key, with its blend mode, like an opaque sorted sprite.
-- **Without it**, the sprite goes through `SpriteRendererComponent.DrawSprite(Sprite, Vector2, float, Vector2, Color, float zOrder, SpriteBlendMode)`, which queues it without a sort key. It keeps its order by Z, like an opaque sprite. The reason: the comparator compares sort keys as soon as one of the two entries has one (`CompareSpriteDisplayData`), so a keyed entry leaves the Z order. Among entries without a key, the larger Z is drawn first.
+- **Without it**, the sprite goes through the key-less blended overloads of `SpriteRendererComponent.DrawSprite` (the internal one with a scissor rectangle, and its twin with a `drawOrder` when `draw_order` is not 0), which queue it without a sort key. It keeps its order by Z, like an opaque sprite. The reason: the comparator compares sort keys as soon as one of the two entries has one (`CompareSpriteDisplayData`), so a keyed entry leaves the Z order. Among entries without a key, the larger Z is drawn first.
 
 ## Draw order of sprites of equal depth
 
