@@ -105,3 +105,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0089](0089-the-engine-plays-mdec-videos-through-a-video-element.md) | The engine plays MDEC videos through a Video element | Accepted | 2026-11-08 |
 | [ADR-0090](0090-cutscene-actions-drive-named-sprite-entities-over-time.md) | Cutscene actions drive named sprite entities over time | Accepted | 2026-11-09 |
 | [ADR-0091](0091-a-world-video-component-and-an-any-key-input.md) | A world video component plays under sprites, and an input entry can react to any key | Accepted | 2026-11-09 |
+| [ADR-0092](0092-sprites-of-equal-depth-follow-a-draw-order.md) | Sprites of equal depth follow a draw order, then their submission | Accepted | 2026-11-10 |
