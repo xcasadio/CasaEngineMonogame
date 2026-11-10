@@ -232,17 +232,33 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 4 — Vérification et recette
 
-### ⏳ T4.1 — Vérificateur neuf
+### ✅ T4.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur la branche : C1 à C9, D2 à D8, la non-régression, D7, les builds et les tests.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of the world video and any-key input`
+- Note : première passe le 2026-11-10 sur `5600f4d3..c58c3191` : REFUTED sur un P2 (F1), corrigé en T3.3.
+- Note : passe de clôture le 2026-11-10 sur `5600f4d3..a85dd643` : **CONFIRMED**, aucun P0 à P2.
+  - **F1 corrigé et prouvé.** Le test de T3.3 échoue sur l'ancien code de l'action et passe sur le nouveau. Une sonde hors dépôt rejoue le cas : avant la correction, la nouvelle lecture finit au bout de 2 images ; maintenant, elle reste visible et joue jusqu'à la fin de son film.
+  - **Nettoyages contrôlés par des sondes.** Remplacement par `ExitOnInput` avec une entrée `AnyKey`, remplacement par une lecture qui échoue, arrêt puis relance, deux `PlayVideoSprite` en `Parallel` sur la même entité.
+  - **C1 à C9 et D6 à D8 revérifiés.** Les deux `.sln` sont à 0 erreur, `CasaEngine.Tests` passe 5541 tests, 0 échec, 0 ignoré. Tous les fichiers de test de la branche sont nouveaux. Le contrôle D7 couvre les ajouts, les messages de commit et les fichiers binaires du sample.
+  - **Écran non vérifié.** Le Launcher n'a pas été lancé, et le rendu à l'écran est laissé à la recette.
+  - **Avis P4, DEFER**, sans toucher à ce qui est confirmé :
+    - A-1 : la doc ne dit pas encore qu'une lecture plus récente du même film reprend la main, ni que l'action plus ancienne cesse alors d'attendre et laisse le film. Seuls le code et la note de T3.3 le disent.
+    - A-2 : quand `ExitOnInput` mène à une cutscene qui relance le même film, l'entité est cachée pendant une image entre les deux lectures. C'est conforme au nettoyage qui tourne une image plus tard.
 
-### ⏳ T4.2 — Recette de l'auteur
+### 🧪 T4.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte, y compris la sortie par une touche quelconque et l'absence de sortie sur Alt+Tab.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the world video sample`
+- Note : en attente de l'auteur. Lancer `dotnet run --project CasaEngine.Launcher -- Projects/VideoSpriteSample/VideoSpriteSample.json` depuis `src/CasaEngineMonogame`.
+  - À voir : le film, l'orbe qui apparaît en fondu par-dessus, puis la boucle.
+  - À vérifier :
+    - n'importe quelle touche du clavier, ou Start à la manette, lance le fondu, puis le monde de fin, puis le retour ;
+    - Alt+Tab ne fait pas sortir ;
+    - sans appui, rien ne sort.
+  - Les captures prises par l'agent étant noires (T3.1), cette recette est la seule vérification de l'écran.
 
 ---
 
