@@ -159,11 +159,16 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
   - Test de données `SpriteDrawOrderSampleDataTests` : 9 tests (pixels, PNG généré, couleurs, trois sprites au même Z qui se recouvrent, `draw_order` inverses de l'ordre du monde, caméra 2D sans `DepthSortable2DComponent`, références sprite/texture/image, catalogue, projet).
   - Reste à faire : l'exécution du Launcher (annoncée d'abord à l'auteur, C7) et le contrôle visuel de l'empilement (rouge au-dessus du vert, au-dessus du bleu), à noter pour la recette T3.2.
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Objectif : C5.
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(sprites): describe the draw order of sprites of equal depth`
+- Note : fait le 2026-11-10.
+  - ADR-0092 relue contre le code livré (comparateur, affectations de `DrawOrder` et `Submission`, surcharges publiques et interne, JSON, sauvegarde de l'éditeur, appels des deux composants) : aucune correction nécessaire, aucun changement de l'ADR.
+  - `docs/engine/static-sprite-component.md` : clé `draw_order` dans le tableau JSON et dans les champs malformés ; nouvelle section « Draw order of sprites of equal depth » (champ, règle du comparateur, sprites à clé sans effet, O1, profondeur) ; renvoi vers la vidéo.
+  - `docs/engine/video.md` §9 : clé `draw_order` (§9.1, sauvegarde et copie comprises), surcharge à `drawOrder` (§9.3), règle de départage, limite O3 mise à jour (l'ordre à Z égal suit `draw_order` et non plus le tri).
+  - Validation : relecture contre le code ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5602 réussis sur 5602. Aucun code touché, aucune exécution en échec demandée.
 
 ---
 

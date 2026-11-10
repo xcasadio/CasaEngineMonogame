@@ -11,6 +11,7 @@ All keys are on the component node, next to `spriteDataName`. Every new key is o
 | `spriteDataName` | string | none | Name of a catalogued `.sprite`. Absent, empty or `"null"` means no sprite. |
 | `color` | object `{"r", "g", "b", "a"}` | white | Tint passed to the renderer. Four integer keys from 0 to 255. |
 | `blend_mode` | string | `Opaque` | Exact name of `SpriteBlendMode`: `Opaque`, `AlphaBlend`, `Additive`, `Subtractive`. |
+| `draw_order` | integer | `0` | Order of the sprite among sprites of equal Z and no sort key (see [Draw order of sprites of equal depth](#draw-order-of-sprites-of-equal-depth)). |
 
 The entity node gains `is_visible` (boolean, true when absent). `Entity.IsVisible` false cuts the entity's `Draw`, so an entity can start hidden and a cutscene shows it.
 
@@ -36,7 +37,7 @@ Note the two colour formats: the component uses the object of the entities, a cu
 
 ### Malformed fields
 
-A `color` without one of the four keys, with a non-integer or a value outside 0..255, a `blend_mode` that is not an exact enum name, or an `is_visible` that is not a boolean, fails the load with an `InvalidDataException` that names the component or the entity, the field and the value. There is no silent default.
+A `color` without one of the four keys, with a non-integer or a value outside 0..255, a `blend_mode` that is not an exact enum name, a `draw_order` that is not a JSON integer of the `int` range (a decimal, a string, a boolean, `null`, an array or an object), or an `is_visible` that is not a boolean, fails the load with an `InvalidDataException` that names the component or the entity, the field and the value. There is no silent default.
 
 ### Sprite name resolution
 
@@ -48,6 +49,16 @@ A `color` without one of the four keys, with a non-integer or a value outside 0.
 - Any other mode applies to the whole sprite. The per-texel semi-transparency of `SpriteData.PsxSemiTransparency` ([sprite-psx-semi-transparency.md](sprite-psx-semi-transparency.md)) is a separate path and is not tied to `blend_mode`.
 - **With a `DepthSortable2DComponent`** on the entity, the sprite goes through the renderer overload that takes a sort key, with its blend mode, like an opaque sorted sprite.
 - **Without it**, the sprite goes through `SpriteRendererComponent.DrawSprite(Sprite, Vector2, float, Vector2, Color, float zOrder, SpriteBlendMode)`, which queues it without a sort key. It keeps its order by Z, like an opaque sprite. The reason: the comparator compares sort keys as soon as one of the two entries has one (`CompareSpriteDisplayData`), so a keyed entry leaves the Z order. Among entries without a key, the larger Z is drawn first.
+
+## Draw order of sprites of equal depth
+
+[ADR-0092](../decisions/0092-sprites-of-equal-depth-follow-a-draw-order.md). `SpriteRendererComponent` sorts its queue with `List<T>.Sort`, which is not stable, so the order of sprites of the same Z used to be left to the sort. The `draw_order` field lets data choose it. The working example is `Projects/SpriteDrawOrderSample`.
+
+* **Field.** `draw_order` is an optional JSON integer on the component node, 0 when absent. `StaticSpriteComponent.DrawOrder` holds it and the copy constructor carries it. The editor save path writes it only when it is not 0. With `DrawOrder` 0 the component makes the same renderer calls as before; with another value it uses the overloads that take a final `int drawOrder`.
+* **Comparator rule** for two entries without a sort key: the larger Z is drawn first (as above); at an equal Z, the smaller `draw_order` is drawn first, so the sprite drawn later is on top; at an equal `draw_order`, the smaller submission rank is drawn first. The submission rank is the position of the entry in the queue of the frame, which makes each frame deterministic instead of left to the sort.
+* **Sprites with a sort key are unaffected.** With a `DepthSortable2DComponent`, the entries are compared by their keys and the `draw_order` has no effect, whatever its value. An order for keyed sprites is outside the scope of ADR-0092.
+* **Limit (O1).** At an equal Z and an equal `draw_order`, the submission rank comes from the world, which submits its visible entities in the order of a query on its octree. That order depends on the cells and can change when a sprite moves, so such sprites are ordered the same way within a frame but not necessarily from one frame to the next. Data that needs a fixed order gives the overlapping sprites different `draw_order` values.
+* **Depth.** Sorted sprites still test and write depth with `LessEqual`, so the order only matters for sprites of the same Z, which blend over each other in the order above.
 
 ## 2D convention
 
@@ -64,4 +75,4 @@ Measured on a capture of `Projects/SpriteCutsceneSample` at the Launcher (320x18
 
 ## Video as a sprite
 
-`VideoSpriteComponent` draws a film in the world the way this component draws a sprite: see [video.md](video.md#9-the-world-video-component). The film neither tests nor writes depth, so a sprite of a smaller Z blends over it. Among the blended sprites of this page the depth test still applies: a smaller Z drawn after a larger Z fails under it (O3 of [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md)), so sprites that must blend over each other keep one Z.
+`VideoSpriteComponent` draws a film in the world the way this component draws a sprite: see [video.md](video.md#9-the-world-video-component). The film neither tests nor writes depth, so a sprite of a smaller Z blends over it. Among the blended sprites of this page the depth test still applies: a smaller Z drawn after a larger Z fails under it (O3 of [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md)), so sprites that must blend over each other keep one Z and take different `draw_order` values (`VideoSpriteComponent` carries the same field: see [video.md](video.md#93-playback-draw-and-depth-rule)).

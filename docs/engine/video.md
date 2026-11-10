@@ -384,6 +384,7 @@ The slowest case measured, 816 frames per second, is 6.8 times the 120 frames pe
 |---|---|---|---|
 | `video` | string | required | Name or id of a catalogued `mdecvideo` asset. |
 | `color` | object `{"r", "g", "b", "a"}` | white | Tint passed to the renderer as is. Four integer keys from 0 to 255 (the object format of the entities, not the array of cut-scene actions). |
+| `draw_order` | integer | `0` | Order of the film among sprites of equal Z (section 9.3). A JSON integer; any other shape fails the load. |
 
 ```json
 {
@@ -400,11 +401,11 @@ The slowest case measured, 816 frames per second, is 6.8 times the 120 frames pe
 
 The excerpt shows the component keys only; a loadable entity node also needs the keys listed in [static-sprite-component.md](static-sprite-component.md#json).
 
-* A missing, blank or non-string `video`, or a `color` that is not an object with the four integer keys in 0..255, fails the load with an `InvalidDataException` naming the component, the field and the value.
+* A missing, blank or non-string `video`, a `color` that is not an object with the four integer keys in 0..255, or a `draw_order` that is not a JSON integer of the `int` range, fails the load with an `InvalidDataException` naming the component, the field and the value.
 * `Load` only keeps the name. The asset is resolved in `InitializeWithWorld`, once the world is known.
 * **The entity is hidden at load.** `InitializeWithWorld` sets `Entity.IsVisible` to false whatever `is_visible` says. Only a cut-scene action shows it (section 9.4).
 * The copy constructor carries the name and the colour; each clone creates its own player and asset handle.
-* `Detach` and `Dispose` release the player and the asset handle. The editor save path writes `video`, and `color` only when it is not white.
+* `Detach` and `Dispose` release the player and the asset handle. The editor save path writes `video`, and `color` and `draw_order` only when they are not white and not 0. The copy constructor also carries `draw_order`.
 * The component applies the `Scale` of its transform. Its bounding box is the size of the picture around the position, so the world frustum does not cut the film.
 
 ### 9.2 Creation failures
@@ -429,9 +430,10 @@ What happens next depends on the path that initialised the entity:
 * `Play()` puts the film back on picture 0 and starts it; `Stop()` stops it where it is; `IsPlaying` and `IsEnded` report the state. `Play()` on a component without a player throws `InvalidOperationException`.
 * `Update` advances the player by the received time (the scaled game time, as for the sprite actions of ADR-0090), only while the film plays. At the end, the playback stops and the last picture stays drawn as long as the entity is visible. `Update` and the draw do not allocate.
 * **First picture shown.** `PlayVideoSprite` starts the film in the coroutine update, and the component's `Update` advances it in the same game frame, before the draw. The first picture drawn is therefore the one reached after the first game step: picture 0 is skipped when a game step is at least one film frame long (for example a 15 fps film under a game step of 1/15 s or more). At 60 updates per second, a 15 fps film shows picture 0.
-* **Draw.** The whole texture of the player is the source and its centre is the origin, so the position is the centre of the film. The Z is `Position.Z`. The call is a key-less `SpriteRendererComponent.DrawSprite(Texture2D, Rectangle, Point, Vector2, float, Vector2, Color, float z, SpriteEffects, bool ignoresDepth)` (an additive overload) with `ignoresDepth: true`. Nothing is drawn while there is no player.
+* **Draw.** The whole texture of the player is the source and its centre is the origin, so the position is the centre of the film. The Z is `Position.Z`. The call is a key-less `SpriteRendererComponent.DrawSprite(Texture2D, Rectangle, Point, Vector2, float, Vector2, Color, float z, SpriteEffects, bool ignoresDepth)` (an additive overload) with `ignoresDepth: true`. With a `draw_order` other than 0 it calls the overload that takes a final `int drawOrder`. Nothing is drawn while there is no player.
 * **Depth rule.** Sprites without a sort key are ordered by Z and the larger Z is drawn first; the 2D camera sits at a larger Z than its target, so a larger Z is nearer but is drawn earlier. The film neither tests nor writes the depth buffer: a sprite of a smaller Z, drawn after it, blends over it instead of being rejected by the depth test. A film of a smaller Z than a sprite is drawn after that sprite and covers it.
-* **Limit (O3).** Only the film leaves the depth test. Blended sprites of different Z still write depth in larger-Z-first order, so a sprite of a smaller Z drawn after a blended sprite of a larger Z fails under it. Sprites that must blend over each other keep one Z; their order at an equal Z is the order of the sort. See [static-sprite-component.md](static-sprite-component.md#draw-order-of-a-blended-sprite).
+* **Limit (O3).** Only the film leaves the depth test. Blended sprites of different Z still write depth in larger-Z-first order, so a sprite of a smaller Z drawn after a blended sprite of a larger Z fails under it. Sprites that must blend over each other keep one Z; their order at an equal Z follows `draw_order` (see below). See [static-sprite-component.md](static-sprite-component.md#draw-order-of-a-blended-sprite).
+* **Draw order ([ADR-0092](../decisions/0092-sprites-of-equal-depth-follow-a-draw-order.md)).** At an equal Z, the entry with the smaller `draw_order` is drawn first, so the film (`draw_order` 0 by default) is covered by a sprite of the same Z with a larger `draw_order` and covers one with a smaller value. At an equal `draw_order`, the submission rank of the frame decides; it comes from the world's octree query and can change when an entity moves, so overlapping entities of the same Z should be given different `draw_order` values. Entries with a sort key are not affected. See [static-sprite-component.md](static-sprite-component.md#draw-order-of-sprites-of-equal-depth).
 * The film has no skip of its own (O1). A cut-scene leaves it with `ExitOnInput`.
 
 ### 9.4 The `PlayVideoSprite` cut-scene action
