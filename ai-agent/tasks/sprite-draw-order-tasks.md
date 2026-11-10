@@ -189,17 +189,31 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 
 ## Phase 3 — Vérification et recette
 
-### ⏳ T3.1 — Vérificateur neuf
+### ✅ T3.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur la branche : C1 à C7, D2 à D6, la non-régression, D4, les builds et les tests.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of the sprite draw order`
+- Note : passe du 2026-11-10 sur `e93a4049..162ed315` : **CONFIRMED**, aucun P0 à P3.
+  - Exécutions en échec refaites sur une copie hors dépôt :
+    - sans la comparaison de `Submission`, les trois tests de 64 entrées échouent ;
+    - sans l'affectation de `Submission` dans `QueuePsxQuad`, cinq tests échouent ;
+    - sans `DrawOrder = 0` dans `QueuePsxQuad`, le test du pool échoue ;
+    - sans l'affectation du cœur, les tests du pool, de l'ordre et des composants échouent ;
+    - fichier restauré, 65 tests sur 65 passent.
+  - C1 à C6 et D3 à D5 revérifiés : quatre surcharges exactes, aucune signature changée, appels inchangés à `DrawOrder` 0, refus de tous les `draw_order` malformés, 0 octet alloué une fois le pool chaud. Le contrôle D4 couvre le diff, les messages et l'image du sample : aucun nom.
+  - Non-régression : seul fichier de test existant modifié, `SpriteCutsceneSampleImages.cs` (une méthode passée de `private` à `internal`, aucun test changé). Deux `.sln` à 0 erreur ; `CasaEngine.Tests` 5604 réussis, 0 échec.
+  - Avis P4, DEFER :
+    - A1 : l'empilement à l'écran n'est pas vérifié, puisque le Launcher n'a pas été lancé ;
+    - A2 : les tests de données du sample lisent le JSON sans charger le monde, ce qui est déjà noté en T2.3.
+  - Les deux relèvent de la recette (T3.2).
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the sprite draw order sample`
+- Note : en attente de l'auteur. Lancer `dotnet run --project CasaEngine.Launcher -- Projects/SpriteDrawOrderSample/SpriteDrawOrderSample.json` depuis `src/CasaEngineMonogame`. À voir : trois carrés qui se recouvrent, au même Z, empilés selon leur `draw_order` et non selon leur ordre dans le `.world`.
 
 ---
 
