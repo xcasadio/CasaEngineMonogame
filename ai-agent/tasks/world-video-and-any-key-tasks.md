@@ -188,7 +188,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 3 — Sample et documentation
 
-### 🧪 T3.1 — Sample `Projects/VideoSpriteSample`
+### ✅ T3.1 — Sample `Projects/VideoSpriteSample`
 
 - Objectif : C6.
 - Validation :
@@ -204,6 +204,7 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
   - **Captures.** Les 150 captures sont entièrement noires. Un contrôle sur `Projects/SpriteCutsceneSample`, capturé normalement la veille, donne lui aussi du noir. C'est donc l'outil de capture qui ne voit plus la fenêtre, probablement parce que la session est verrouillée ou l'écran éteint (inférence). Rien n'a été contourné.
   - **Preuve du mélange.** Le test GPU de T1.1 relit les pixels : un sprite additif de Z plus petit se mélange au film, avec un témoin où le sprite est rejeté.
   - **Reste pour la recette (T4.2).** À l'écran : le film, l'orbe qui apparaît en fondu par-dessus, la boucle. Au clavier : la sortie par une touche quelconque, et aucune sortie sur Alt+Tab.
+- Note : passée en ✅ le 2026-11-10 par la recette de l'auteur (T4.2), qui a vérifié à l'écran ce que les captures n'avaient pas montré : le film, l'orbe en fondu par-dessus, la boucle, la sortie par une touche quelconque et l'absence de sortie sur Alt+Tab.
 
 ### ✅ T3.2 — Documentation
 
@@ -247,12 +248,12 @@ Lu sur `main` à `5600f4d3`, égal au pointeur du projet consommateur. Lecture s
     - A-1 : la doc ne dit pas encore qu'une lecture plus récente du même film reprend la main, ni que l'action plus ancienne cesse alors d'attendre et laisse le film. Seuls le code et la note de T3.3 le disent.
     - A-2 : quand `ExitOnInput` mène à une cutscene qui relance le même film, l'entité est cachée pendant une image entre les deux lectures. C'est conforme au nettoyage qui tourne une image plus tard.
 
-### 🧪 T4.2 — Recette de l'auteur
+### ✅ T4.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance le sample et l'accepte, y compris la sortie par une touche quelconque et l'absence de sortie sur Alt+Tab.
 - Validation : accord de l'auteur, écrit ici. La tâche reste 🧪 jusque-là.
 - Commit : `docs(ai-agent): record the accepted check of the world video sample`
-- Note : en attente de l'auteur. Lancer `dotnet run --project CasaEngine.Launcher -- Projects/VideoSpriteSample/VideoSpriteSample.json` depuis `src/CasaEngineMonogame`.
+- Note : recette de l'auteur acceptée le 2026-11-10 (« Recette OK »), sur `Projects/VideoSpriteSample` au Launcher. L'auteur ne signale aucun écart. Points qui lui étaient demandés : lancer `dotnet run --project CasaEngine.Launcher -- Projects/VideoSpriteSample/VideoSpriteSample.json` depuis `src/CasaEngineMonogame`.
   - À voir : le film, l'orbe qui apparaît en fondu par-dessus, puis la boucle.
   - À vérifier :
     - n'importe quelle touche du clavier, ou Start à la manette, lance le fondu, puis le monde de fin, puis le retour ;
