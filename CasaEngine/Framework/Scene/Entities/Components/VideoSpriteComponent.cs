@@ -41,6 +41,12 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     /// <summary>Tint passed to the renderer, as is. White (no tint) by default.</summary>
     public Color Color { get; set; } = Color.White;
 
+    /// <summary>
+    /// Order among sprites of the same z (ADR-0092): at equal z the smaller value is drawn first, so the larger one is drawn
+    /// over it. 0 by default, which keeps the plain draw calls. No effect on a sprite sorted by a sort key.
+    /// </summary>
+    public int DrawOrder { get; set; }
+
     /// <summary>Name or id of the catalogued <c>mdecvideo</c> asset. Resolved in <see cref="InitializeWithWorld"/>.</summary>
     public string VideoName { get; set; }
 
@@ -73,6 +79,7 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     {
         VideoName = other.VideoName;
         Color = other.Color;
+        DrawOrder = other.DrawOrder;
     }
 
     public override VideoSpriteComponent Clone()
@@ -209,6 +216,14 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
 
         var position = Position;
         var scale = Scale;
+        if (DrawOrder != 0)
+        {
+            _spriteRendererComponent.DrawSprite(texture, texture.Bounds, new Point(texture.Width / 2, texture.Height / 2),
+                new Vector2(position.X, position.Y), 0.0f, new Vector2(scale.X, scale.Y), Color, position.Z,
+                SpriteEffects.None, ignoresDepth: true, DrawOrder);
+            return;
+        }
+
         _spriteRendererComponent.DrawSprite(texture, texture.Bounds, new Point(texture.Width / 2, texture.Height / 2),
             new Vector2(position.X, position.Y), 0.0f, new Vector2(scale.X, scale.Y), Color, position.Z,
             SpriteEffects.None, ignoresDepth: true);
@@ -238,6 +253,18 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
 
         VideoName = videoToken.Value<string>();
         Color = element.ContainsKey("color") ? ReadColor(element["color"]) : Color.White;
+        DrawOrder = element.ContainsKey("draw_order") ? ReadDrawOrder(element["draw_order"]) : 0;
+    }
+
+    private static int ReadDrawOrder(JToken token)
+    {
+        if (token.Type == JTokenType.Integer && token.Value<long>() is >= int.MinValue and <= int.MaxValue)
+        {
+            return token.Value<int>();
+        }
+
+        throw new InvalidDataException(
+            $"{nameof(VideoSpriteComponent)}: invalid 'draw_order' {token.ToString(Newtonsoft.Json.Formatting.None)}: expected a JSON integer.");
     }
 
     private static Color ReadColor(JToken token)

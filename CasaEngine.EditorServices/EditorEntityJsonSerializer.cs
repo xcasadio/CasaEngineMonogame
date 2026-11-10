@@ -406,6 +406,11 @@ internal static class EditorEntityJsonSerializer
         {
             node.Add("blend_mode", component.BlendMode.ToString());
         }
+
+        if (component.DrawOrder != 0)
+        {
+            node.Add("draw_order", component.DrawOrder);
+        }
     }
 
     private static void SaveVideoSpriteComponent(VideoSpriteComponent component, JObject node)
@@ -419,6 +424,11 @@ internal static class EditorEntityJsonSerializer
             var colorNode = new JObject();
             component.Color.Save(colorNode);
             node.Add("color", colorNode);
+        }
+
+        if (component.DrawOrder != 0)
+        {
+            node.Add("draw_order", component.DrawOrder);
         }
     }
 

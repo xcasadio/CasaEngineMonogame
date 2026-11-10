@@ -62,6 +62,12 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     /// any other mode is applied to the whole sprite, without the per-texel semi-transparency of <see cref="SpritePsxSemiTransparency"/>.
     /// </summary>
     public SpriteBlendMode BlendMode { get; set; } = SpriteBlendMode.Opaque;
+
+    /// <summary>
+    /// Order among sprites of the same z (ADR-0092): at equal z the smaller value is drawn first, so the larger one is drawn
+    /// over it. 0 by default, which keeps the plain draw calls. No effect on a sprite sorted by a sort key.
+    /// </summary>
+    public int DrawOrder { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
 
     /// <summary>Name of the sprite read from the data, until the sprite itself is resolved in <see cref="InitializeWithWorld"/>.</summary>
@@ -85,6 +91,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         SpriteAssetId = other.SpriteAssetId;
         Color = other.Color;
         BlendMode = other.BlendMode;
+        DrawOrder = other.DrawOrder;
     }
 
     protected override void InitializePrivate()
@@ -331,6 +338,21 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             return;
         }
 
+        if (DrawOrder != 0)
+        {
+            if (BlendMode == SpriteBlendMode.Opaque)
+            {
+                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z,
+                    drawDebug: true, SpriteEffects.None, scissorRectangle, DrawOrder);
+            }
+            else
+            {
+                _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, BlendMode, scissorRectangle, DrawOrder);
+            }
+
+            return;
+        }
+
         if (BlendMode == SpriteBlendMode.Opaque)
         {
             _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z,
@@ -366,6 +388,18 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
         Color = element.ContainsKey("color") ? ReadColor(element["color"]) : Color.White;
         BlendMode = element.ContainsKey("blend_mode") ? ReadBlendMode(element["blend_mode"]) : SpriteBlendMode.Opaque;
+        DrawOrder = element.ContainsKey("draw_order") ? ReadDrawOrder(element["draw_order"]) : 0;
+    }
+
+    private static int ReadDrawOrder(JToken token)
+    {
+        if (token.Type == JTokenType.Integer && token.Value<long>() is >= int.MinValue and <= int.MaxValue)
+        {
+            return token.Value<int>();
+        }
+
+        throw new InvalidDataException(
+            $"{nameof(StaticSpriteComponent)}: invalid 'draw_order' {token.ToString(Newtonsoft.Json.Formatting.None)}: expected a JSON integer.");
     }
 
     private static Color ReadColor(JToken token)

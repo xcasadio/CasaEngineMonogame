@@ -133,12 +133,17 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
   - Membres publics de `SpriteRendererComponent`, listés dans le source avant et après : seules les surcharges 1, 2 et 4 de C2 apparaissent (la 3 est interne) ; les deux champs de la structure privée `SpriteDisplayData` apparaissent aussi dans la liste mais ne sont pas des membres de la classe.
   - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5555 réussis sur 5555, aucun test existant modifié.
 
-### ⏳ T1.2 — Champ `draw_order` des composants
+### ✅ T1.2 — Champ `draw_order` des composants
 
 - Objectif : C3.
 - Fichiers : `StaticSpriteComponent.cs`, `VideoSpriteComponent.cs`, `CasaEngine.EditorServices/EditorEntityJsonSerializer.cs`, et des tests.
 - Validation : tests de C4 sur le JSON et sur les appels des deux composants ; deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(sprites): let sprite and video components carry a draw order`
+- Note : fait le 2026-11-10.
+  - Code : propriété `DrawOrder` (0 par défaut, copiée par le constructeur de copie) sur `StaticSpriteComponent` et `VideoSpriteComponent`. JSON `draw_order` : entier JSON seulement, absent = 0 ; toute autre forme (décimal, chaîne, booléen, null, tableau, objet, hors de l'intervalle d'un `int`) lève une `InvalidDataException` qui nomme le composant, `'draw_order'` et la valeur. La sauvegarde de l'éditeur l'écrit seulement s'il n'est pas 0.
+  - Appels : avec `DrawOrder = 0`, les appels sont ceux d'avant. Sinon, le sprite statique sans clé passe par les surcharges 1 (opaque) ou 3 (mélange, interne) de C2, et le film par la surcharge 4. Le chemin à clé (`DepthSortable2DComponent`) est inchangé : l'ordre n'y a pas d'effet.
+  - Tests : `CasaEngine.Tests/Scene/SpriteComponentDrawOrderTests.cs` (JSON des deux composants, valeurs malformées, copie, entrée mise en file par le sprite statique, tri à Z égal, chemin à clé) et `CasaEngine.Tests/Video/VideoSpriteComponentDrawOrderGpuTests.cs` (entrée du film, ordres 0, 5 et -8). Aucun test existant modifié. Aucune exécution en échec consignée : le plan n'en demande pas pour cette tâche.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5593 réussis sur 5593 (5555 avant, 38 nouveaux).
 
 ---
 
