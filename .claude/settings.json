@@ -23,9 +23,6 @@
       "Bash(git push *)"
     ]
   },
-  "env": {
-    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
-  },
   "hooks": {
     "PreToolUse": [
       {
