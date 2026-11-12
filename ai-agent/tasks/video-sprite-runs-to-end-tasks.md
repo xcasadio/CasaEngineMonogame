@@ -225,11 +225,30 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Phase 3 — Vérification et recette
 
-### ⏳ T3.1 — Vérificateur neuf
+### ✅ T3.1 — Vérificateur neuf
 
 - Objectif : une passe de `verifier` neuf sur la branche : D1 à D6, C1 à C9, les trois cas, la non-régression de `PlayVideoSprite`, D6, les builds et les tests.
 - Validation : verdict CONFIRMED. Chaque constat est traité en `FIX`, `DEFER` ou `REJECT` selon sa priorité, et noté ici.
 - Commit : `docs(ai-agent): record the verification of the world video that runs to its end`
+- Note : passe du 2026-11-12 sur `fd831709..752d84db` : **CONFIRMED**, aucun P0 à P3.
+  - Exécuté par le vérificateur :
+    - `CasaEngine.Tests` : 5647 sur 5647, tests GPU compris ;
+    - `CasaEngine.Editor.MonoGame.sln` : 0 erreur ;
+    - `CasaEngine.MonoGame.sln` : aucune erreur de compilation. Deux erreurs de copie (MSB3027, MSB3021) viennent de `CasaEngine.dll`, que verrouille la fenêtre du Launcher restée ouverte depuis T2.1. Tous les autres projets compilent.
+  - Points confirmés :
+    - pas de `yield` ni de `finally` dans l'action ;
+    - entité cachée dans l'update de la fin, avant le dessin ;
+    - fin sur une image qui ne se décode pas ;
+    - garde par `PlayGeneration` dans les deux ordres possibles du `finally` tardif d'un `PlayVideoSprite` arrêté ;
+    - mise à jour d'une entité cachée, indépendante de `IsVisible` ;
+    - tous les points d'entrée d'un type d'action ;
+    - messages de `PlayVideoSprite` identiques ;
+    - aucun test existant modifié ;
+    - sample conforme à C8, clip identique au voisin ;
+    - doc conforme au code ;
+    - contrôle D6 vide sur le diff et les messages.
+  - **DEFER**, P4 : aucun test ne remplace une lecture qui attend dans un `PlayVideoSprite` par une cutscene qui commence par `StartVideoSprite`. Ce cas est celui du `finally` tardif. Il est correct à la lecture dans les deux ordres, grâce à la garde par `PlayGeneration`.
+  - **DEFER**, P4 : le sample n'est pas vu à l'écran. C'est la recette T3.2.
 
 ### ⏳ T3.2 — Recette de l'auteur
 
