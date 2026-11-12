@@ -1,0 +1,46 @@
+{
+  "asset_infos": [
+    {
+      "id": "117e393d-a303-4f76-9c5e-f41646730763",
+      "name": "ExitFilmWorld",
+      "file_name": "ExitFilmWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "9c2482c6-523d-4945-b963-4cda8e92c22b",
+      "name": "EndWorld",
+      "file_name": "EndWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "a23e6cf4-f4e6-423e-b5b7-c57d641c073d",
+      "name": "ExitFilmLoop",
+      "file_name": "Cutscenes\\loop.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "d3a05ca1-38ce-4a42-8104-5d74d0eb1793",
+      "name": "ExitFilmExit",
+      "file_name": "Cutscenes\\exit.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "4d87db18-c1ce-4ee4-893f-c6e473220860",
+      "name": "ExitFilmEnd",
+      "file_name": "Cutscenes\\end.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
+      "id": "e01278ec-9263-4e7c-948e-1b61bde3cb06",
+      "name": "sample-input",
+      "file_name": "sample-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
+    },
+    {
+      "id": "fcb6a691-d23f-449f-9c68-ad0f910fbd26",
+      "name": "clip",
+      "file_name": "Videos\\clip.mdecvideo",
+      "asset_type": "mdecvideo"
+    }
+  ]
+}

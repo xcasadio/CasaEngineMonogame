@@ -195,7 +195,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Phase 2 — Sample et documentation
 
-### ⏳ T2.1 — Sample `Projects/VideoSpriteExitSample`
+### 🧪 T2.1 — Sample `Projects/VideoSpriteExitSample`
 
 - Objectif : C8.
 - Validation :
@@ -203,6 +203,11 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - au Launcher, après annonce à l'auteur (C9), une observation ou une capture hors dépôt montre, après une touche pendant le film, le film qui continue sous le voile jusqu'à sa dernière image, puis l'entité cachée. Sinon, c'est noté pour la recette ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(samples): add a sample where a world video runs to its end after an exit`
+- Note : faite le 2026-11-12, reste 🧪 jusqu'à la recette.
+  - Sample `Projects/VideoSpriteExitSample`. Projet sans DLL, monde `ExitFilmWorld.world` (caméra 2D, fond noir, entité `clip` cachée, `VideoSpriteComponent` à l'échelle 1,5) et monde `EndWorld.world`. Trois cutscenes, comme en C8 : boucle `StartVideoSprite` puis `Wait` de 5 s ; sortie par un voile soustractif de 128 en 1 s, une attente de 5 s, puis `ChangeWorld` ; fin qui attend 2 s, efface le voile et revient. Le mapping est `AnyKey` plus Start de la manette. Le clip est copié de `Projects/VideoSpriteSample`. Les GUID sont neufs. README en anglais.
+  - Test de données `CasaEngine.Tests/Cutscenes/VideoSpriteExitSampleDataTests.cs`, 13 tests. Le clip est égal au générateur et à la copie voisine, et les cutscenes se valident. Les attentes dépassent la durée du clip, lue dans son conteneur (4 s). Le test couvre aussi le voile soustractif de 128, le mapping, les mondes, les cibles de `ChangeWorld`, le catalogue et le projet.
+  - Launcher, annoncé avant (C9) : lancé 20 s sur le sample. La fenêtre « Video Sprite Exit Sample » s'ouvre, et la sortie de la console ne montre aucune erreur. L'agent ne voit pas l'écran : le contrôle visuel reste à la recette (T3.2). La fermeture de la fenêtre par l'agent a été refusée par le contrôle de sécurité de la session ; la fenêtre est restée ouverte pour l'auteur.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5647 réussis sur 5647.
 
 ### ⏳ T2.2 — Documentation
 

@@ -1,0 +1,34 @@
+{
+  "id": "a23e6cf4-f4e6-423e-b5b7-c57d641c073d",
+  "name": "Exit Film Loop",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "ExitOnInput",
+        "mapping": "sample-input",
+        "inputs": [
+          "exit"
+        ],
+        "next_cutscene": "ExitFilmExit"
+      },
+      {
+        "type": "Repeat",
+        "count": 0,
+        "actions": [
+          {
+            "type": "StartVideoSprite",
+            "entity": "clip"
+          },
+          {
+            "type": "Wait",
+            "seconds": 5
+          }
+        ]
+      }
+    ]
+  }
+}
