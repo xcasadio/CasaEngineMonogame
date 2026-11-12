@@ -106,3 +106,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0090](0090-cutscene-actions-drive-named-sprite-entities-over-time.md) | Cutscene actions drive named sprite entities over time | Accepted | 2026-11-09 |
 | [ADR-0091](0091-a-world-video-component-and-an-any-key-input.md) | A world video component plays under sprites, and an input entry can react to any key | Accepted | 2026-11-09 |
 | [ADR-0092](0092-sprites-of-equal-depth-follow-a-draw-order.md) | Sprites of equal depth follow a draw order, then their submission | Accepted | 2026-11-10 |
+| [ADR-0093](0093-a-world-video-can-run-to-its-end-after-its-cutscene.md) | A world video can run to its end after the cutscene that started it | Accepted | 2026-11-12 |
