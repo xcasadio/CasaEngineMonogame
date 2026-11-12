@@ -209,11 +209,17 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - Launcher, annoncé avant (C9) : lancé 20 s sur le sample. La fenêtre « Video Sprite Exit Sample » s'ouvre, et la sortie de la console ne montre aucune erreur. L'agent ne voit pas l'écran : le contrôle visuel reste à la recette (T3.2). La fermeture de la fenêtre par l'agent a été refusée par le contrôle de sécurité de la session ; la fenêtre est restée ouverte pour l'auteur.
   - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5647 réussis sur 5647.
 
-### ⏳ T2.2 — Documentation
+### ✅ T2.2 — Documentation
 
 - Objectif : C7.
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(video): describe the StartVideoSprite action`
+- Note : faite le 2026-11-12.
+  - `docs/engine/video.md` : le §9.3 gagne `Play(bool hideWhenEnded)` et la fin cachée, et sa note sur la première image vaut pour les deux actions. Nouveau §9.5 « The `StartVideoSprite` cut-scene action ».
+  - `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` : section `StartVideoSprite` (champ, absence d'attente et de nettoyage, fin, relance, cohabitation, échecs, images mesurées par les tests de T1.2, limites).
+  - `docs/README.md` : la ligne de `video.md` cite l'action et ADR-0093.
+  - ADR-0093 relue contre le code livré : aucune correction.
+  - Validation : relecture contre le code et les mesures des tests ; aucun code touché depuis T2.1, dont les deux `.sln` étaient à 0 erreur.
 
 ---
 

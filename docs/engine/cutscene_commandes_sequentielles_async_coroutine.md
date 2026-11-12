@@ -197,6 +197,27 @@ Example, the sprite actions of one lap:
 - **Measured frames** (`CasaEngine.Tests`, a film of 3 pictures at 10 pictures per second, so a step of 0.1 s; one game frame is the coroutines, then the `Update` of the entities). The film starts on picture 0 in the coroutine update of game frame 1, then the component `Update` of the same game frame advances it: it is on picture 1 at the end of game frame 1. The wait ends, and the entity is hidden, in game frame 4, the turn after the last picture of the film: the entity is visible during 3 game frames.
 - **Limits.** The only way out of the film is leaving the cut-scene, with `ExitOnInput`. Editing the action in the editor is not done: the read-only inspector shows it.
 
+## StartVideoSprite (ADR-0093)
+
+`StartVideoSprite` starts the film of a world video entity and returns at once. The film then belongs to its component, like a sprite movement or tint (ADR-0090): it runs to its end whatever happens to the cut-scene, and the component hides the entity in the update where it ends. Use it when leaving the cut-scene (for example with `ExitOnInput`) must let the film run on under the exit fade. The decision is [ADR-0093](../decisions/0093-a-world-video-can-run-to-its-end-after-its-cutscene.md), the component side is in [video.md](video.md#95-the-startvideosprite-cut-scene-action), and the working example is `Projects/VideoSpriteExitSample`.
+
+| Action | Field | Required | Meaning |
+|---|---|---|---|
+| `StartVideoSprite` | `entity` | yes | Name of a world entity whose root component is a `VideoSpriteComponent`. A string that is not blank. |
+
+```json
+{ "type": "StartVideoSprite", "entity": "clip" }
+```
+
+- **No wait.** The entity is made visible, the film starts from picture 0 with `Play(hideWhenEnded: true)`, and the action ends in the same update: it yields no frame, so the next action of a `Sequence` runs at once. In an endless `Repeat`, a lap that holds only this action lets no frame pass and fails the play: add a `Wait` (for example as long as the film, or longer).
+- **No cleanup.** Nothing of the cut-scene stays with the film: a stop, a replacement by another play (`ExitOnInput` among them), a failure or the normal end of the play leaves it running. Only clearing the world stops it.
+- **End.** The component hides the entity in the update where the film ends (a picture that cannot be decoded ends it too). The last picture is drawn exactly its duration, one game frame less than with `PlayVideoSprite`.
+- **Restart.** Another `StartVideoSprite` on the same entity, for example at the next lap of a `Repeat`, starts the film again from picture 0, even before its end, and shows the entity.
+- **With `PlayVideoSprite`.** A `StartVideoSprite` on a film a `PlayVideoSprite` waits for takes it over: the older action ends without stopping or hiding it. A `PlayVideoSprite` on a film started by `StartVideoSprite` owns it, and its cleanup applies.
+- **Failures.** Same as `PlayVideoSprite`, with messages that begin with `StartVideoSprite:`. The validator refuses a missing or blank `entity`.
+- **Measured frames** (`CasaEngine.Tests`, same film and steps as `PlayVideoSprite` above). Started in game frame 1, the film of 3 pictures ends, and the entity is hidden, in game frame 3: the entity is visible during 2 game frames.
+- **Limits.** No action stops or hides a film started this way from another cut-scene. Editing the action in the editor is not done: the read-only inspector shows it.
+
 ---
 
 ## Bindings d’entités actuels et limites V2
