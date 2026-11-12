@@ -151,7 +151,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - Exécutions en échec consignées : sans la ligne qui cache l'entité, 3 tests échouent (la fin, l'image corrompue, l'allocation, qui vérifie aussi l'entité cachée) ; sans la remise à faux dans `Stop()`, le test `Stop()` échoue ; avec un `|=` au lieu de l'affectation dans `Play(bool)`, le test `Play(true)` puis `Play()` échoue. Avec le code livré, 7 sur 7 passent.
   - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5611 réussis sur 5611, aucun test existant modifié.
 
-### ⏳ T1.2 — Action `StartVideoSprite`
+### ✅ T1.2 — Action `StartVideoSprite`
 
 - Objectif : C1, C3, C4 et C5.
 - Fichiers :
@@ -179,6 +179,17 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 - Exécutions à consigner dans la note : chaque test du cas 1 échoue quand l'action délègue au cas `PlayVideoSprite` ; le test du cas 2 échoue sans l'appel `Play(hideWhenEnded: true)`, remplacé par `Play()`. Avec le code livré, tout passe.
 - Validation : deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert, sans test existant modifié.
 - Commit : `feat(cutscenes): add a StartVideoSprite action that lets the film run to its end`
+- Note : fait le 2026-11-12.
+  - Code : constante `CutsceneActionTypes.StartVideoSprite` et classe `StartVideoSpriteCutsceneActionData`, ajoutées au chargement, à la sauvegarde, au validateur et au constructeur en lecture seule. Le cas de la fabrique fait les contrôles, rend l'entité visible et appelle `Play(hideWhenEnded: true)`, sans `yield` ni `finally`. `TryGetVideoSpriteEntity` reçoit le nom de l'action, et `PlayVideoSprite` lui passe `"PlayVideoSprite"`.
+  - Tests sans GPU : `CasaEngine.Tests/Cutscenes/StartVideoSpriteCutsceneActionTests.cs`, 12 tests. Ils couvrent l'aller-retour JSON, le refus d'un `entity` absent ou malformé (4 formes) et le constructeur en lecture seule. Ils vérifient le texte exact des trois échecs, et les trois messages de `PlayVideoSprite`, inchangés à l'octet.
+  - Tests GPU : `CasaEngine.Tests/Video/StartVideoSpriteCutsceneActionGpuTests.cs`, 11 tests.
+    - Aucune image n'est cédée : un `HideSprite` qui suit agit dans la même update.
+    - Cas 2 : film de 3 images à 10 images par seconde, lancé à l'update 1. L'entité est cachée à l'update 3 et visible après 2 updates ; le même film par `PlayVideoSprite` est caché à l'update 4.
+    - Cas 1, par `ExitOnInput` (vraie veille, touche Espace du `KeyboardManager` de test), par une autre lecture, par `Stop()` et par un échec : le film avance et reste visible deux updates après l'arrêt, puis l'entité est cachée à l'update 30, la fin d'un film de 30 images.
+    - Cas 3 : deux tours plus longs que le film donnent deux suites de 2 updates visibles et `PlayGeneration` + 2. Un tour plus court remet le film à l'image 0 une fois et l'entité reste visible jusqu'à la dernière fin. Un `Repeat` sans fin de l'action seule échoue.
+    - C4 dans les deux sens, et un monde effacé sans erreur.
+  - Exécutions en échec consignées. Quand l'action délègue au cas `PlayVideoSprite`, 11 tests GPU échouent, dont les quatre variantes du cas 1. Avec `Play()` au lieu de `Play(hideWhenEnded: true)`, 9 tests GPU échouent, dont le cas 2. Avec le code livré, 23 sur 23 passent.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5634 réussis sur 5634, aucun test existant modifié.
 
 ---
 

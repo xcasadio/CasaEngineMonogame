@@ -174,6 +174,10 @@ public static class CutsceneValidator
                 ValidateRequiredString(playVideoSpriteAction.EntityName, "entity", playVideoSpriteAction.FormatErrors, path, "PlayVideoSprite", result);
                 break;
 
+            case StartVideoSpriteCutsceneActionData startVideoSpriteAction:
+                ValidateRequiredString(startVideoSpriteAction.EntityName, "entity", startVideoSpriteAction.FormatErrors, path, "StartVideoSprite", result);
+                break;
+
             case MoveSpriteCutsceneActionData moveSpriteAction:
                 ValidateRequiredString(moveSpriteAction.EntityName, "entity", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
                 ValidateRequiredNumber(moveSpriteAction.X, "x", moveSpriteAction.FormatErrors, path, "MoveSprite", result);
