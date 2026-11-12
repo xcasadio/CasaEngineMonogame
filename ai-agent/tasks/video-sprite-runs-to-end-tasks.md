@@ -131,7 +131,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Phase 1 — Action et composant
 
-### ⏳ T1.1 — Composant : `Play(bool hideWhenEnded)`
+### ✅ T1.1 — Composant : `Play(bool hideWhenEnded)`
 
 - Objectif : C2.
 - Fichiers : `VideoSpriteComponent.cs` et des tests GPU dans `CasaEngine.Tests/Video/`.
@@ -145,6 +145,11 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 - Exécutions à consigner dans la note : le test de la fin cachée échoue sans la ligne qui cache l'entité ; le test `Stop()` échoue sans la remise à faux dans `Stop()` ; le test `Play(true)` puis `Play()` échoue sans la remise à faux dans `Play()`. Avec tout en place, tout passe.
 - Validation : deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert, sans test existant modifié.
 - Commit : `feat(video): let a world video hide its entity when it ends`
+- Note : fait le 2026-11-12.
+  - Code : `VideoSpriteComponent` gagne le champ `_hideWhenEnded`, la surcharge publique `Play(bool hideWhenEnded)`, à laquelle `Play()` délègue avec `false`, et l'accesseur interne `HidesWhenEnded`. `Stop()` remet le drapeau à faux. Dans `Update`, quand le lecteur finit pendant la lecture, le drapeau repasse à faux et `Owner.IsVisible` à faux.
+  - Tests : `CasaEngine.Tests/Video/VideoSpriteHideWhenEndedGpuTests.cs`, 7 tests. Film de 3 images à 10 images par seconde, update de 0,1 s : l'entité est visible avant les updates 1 à 3 et cachée à l'update 3, celle où `IsEnded` devient vrai. `Play()` et `Play(false)` laissent l'entité visible. `Stop()` remet le drapeau. `Play(true)` puis `Play()` laissent l'entité visible. Une image 1 corrompue cache l'entité dès l'update 1. Enfin, 0 octet alloué sur 32 updates qui comprennent la fin. Écart de calcul du test : 1/30 s arrondi en ticks donne 32 updates un peu plus courtes que 32 images, donc la fenêtre compte 32 updates après 2 updates de chauffe.
+  - Exécutions en échec consignées : sans la ligne qui cache l'entité, 3 tests échouent (la fin, l'image corrompue, l'allocation, qui vérifie aussi l'entité cachée) ; sans la remise à faux dans `Stop()`, le test `Stop()` échoue ; avec un `|=` au lieu de l'affectation dans `Play(bool)`, le test `Play(true)` puis `Play()` échoue. Avec le code livré, 7 sur 7 passent.
+  - Validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5611 réussis sur 5611, aucun test existant modifié.
 
 ### ⏳ T1.2 — Action `StartVideoSprite`
 

@@ -35,6 +35,7 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     private MdecVideoPlayer _player;
     private SpriteRendererComponent _spriteRendererComponent;
     private bool _isPlaying;
+    private bool _hideWhenEnded;
     private int _width;
     private int _height;
 
@@ -64,6 +65,9 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     /// a later play owns the film and the earlier caller must leave it alone.
     /// </summary>
     internal int PlayGeneration { get; private set; }
+
+    /// <summary>True while the current play hides the entity at the end of the film (<see cref="Play(bool)"/>).</summary>
+    internal bool HidesWhenEnded => _hideWhenEnded;
 
     /// <summary>The texture the film is drawn from, null without a player.</summary>
     internal Texture2D Texture => _player?.Texture;
@@ -165,9 +169,20 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
             $"{nameof(VideoSpriteComponent)}: invalid 'video' '{VideoName}': {reason}", innerException);
     }
 
-    /// <summary>Puts the film back to its first picture and starts it.</summary>
+    /// <summary>Puts the film back to its first picture and starts it. Same as <c>Play(false)</c>.</summary>
     /// <exception cref="InvalidOperationException">There is no player: <see cref="InitializeWithWorld"/> did not run.</exception>
     public void Play()
+    {
+        Play(false);
+    }
+
+    /// <summary>
+    /// Puts the film back to its first picture and starts it (ADR-0093). With <paramref name="hideWhenEnded"/>, the
+    /// component hides its entity in the update where the film ends, a decode failure included, so the last picture is
+    /// drawn exactly its duration. Each play sets the flag again; <see cref="Stop"/> clears it.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">There is no player: <see cref="InitializeWithWorld"/> did not run.</exception>
+    public void Play(bool hideWhenEnded)
     {
         if (_player == null)
         {
@@ -176,13 +191,15 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
 
         _player.Restart();
         _isPlaying = true;
+        _hideWhenEnded = hideWhenEnded;
         PlayGeneration++;
     }
 
-    /// <summary>Stops the film where it is. The current picture stays drawn.</summary>
+    /// <summary>Stops the film where it is. The current picture stays drawn, and the entity is no longer hidden at the end.</summary>
     public void Stop()
     {
         _isPlaying = false;
+        _hideWhenEnded = false;
     }
 
     public override void Update(float elapsedTime)
@@ -198,6 +215,11 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
         if (_player.IsEnded)
         {
             _isPlaying = false;
+            if (_hideWhenEnded)
+            {
+                _hideWhenEnded = false;
+                Owner.IsVisible = false;
+            }
         }
     }
 
