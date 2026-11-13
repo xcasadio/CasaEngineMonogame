@@ -1,7 +1,7 @@
 ---
 name: gameplay-samples
 description: Développeur de démos et de samples. Crée des scènes jouables qui montrent une feature d'UI, de rendu, de physique ou de gameplay.
-tools: Read, Glob, Grep, Edit, Write, Bash
+tools: Read, Glob, Grep, Edit, Write, Bash, mcp__serena__*, mcp__codegraph__*
 model: sonnet
 ---
 

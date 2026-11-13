@@ -17,12 +17,17 @@
       "Bash(git worktree *)",
       "Bash(git checkout -b *)",
       "Bash(dotnet build *)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "mcp__codegraph__*"
     ],
     "deny": [
       "Bash(git push *)"
     ]
   },
+  "enabledMcpjsonServers": [
+    "serena",
+    "codegraph"
+  ],
   "env": {
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
   },
