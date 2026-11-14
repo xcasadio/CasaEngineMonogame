@@ -48,6 +48,8 @@ public readonly struct ResolvedEnvironmentSettings
 
     public float SpecularIntensity { get; init; }
 
+    public AmbientSource AmbientSource { get; init; }
+
     public bool UsesLegacyClearColor { get; init; }
 
     public bool UsesLegacyLighting { get; init; }
@@ -59,6 +61,9 @@ public readonly struct ResolvedEnvironmentSettings
     public bool HasLocalReflectionProbe => PrimaryReflectionProbeCubemap is not null && LocalReflectionProbeInfluence > 0.0f;
 
     public Vector3 EffectiveAmbientColor => AmbientColor * AmbientIntensity;
+
+    /// <summary>True when the ambient term must be the flat ambient colour even if an environment cube is bound.</summary>
+    public bool UsesFlatAmbient => AmbientSource == AmbientSource.Flat;
 
     public static ResolvedEnvironmentSettings CreateLegacy(Color clearColor, Vector3 ambientColor)
     {

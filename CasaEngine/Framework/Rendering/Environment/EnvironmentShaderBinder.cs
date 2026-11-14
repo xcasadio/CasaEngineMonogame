@@ -11,6 +11,7 @@ public static class EnvironmentShaderBinder
         shader.SetParameter(ShaderParameterNames.EnvironmentAmbientColor, environment.EffectiveAmbientColor);
         shader.SetParameter(ShaderParameterNames.EnvironmentSpecularIntensity, environment.SpecularIntensity);
         shader.SetParameter(ShaderParameterNames.HasEnvironmentCubeTexture, environment.SpecularEnvironmentCubemap is not null ? 1.0f : 0.0f);
+        shader.SetParameter(ShaderParameterNames.UseFlatAmbientSource, environment.UsesFlatAmbient ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.HasLocalReflectionProbeTexture, environment.PrimaryReflectionProbeCubemap is not null ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.HasSecondaryLocalReflectionProbeTexture, environment.SecondaryReflectionProbeCubemap is not null ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.LocalReflectionProbeWeight, environment.PrimaryReflectionProbeWeight);

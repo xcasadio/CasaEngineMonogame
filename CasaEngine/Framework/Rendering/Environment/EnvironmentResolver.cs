@@ -112,6 +112,7 @@ public static class EnvironmentResolver
             AmbientColor = usesLegacyLighting ? LegacyAmbientColor : ambientColor,
             AmbientIntensity = usesLegacyLighting ? 1.0f : ambientIntensity,
             SpecularIntensity = usesLegacyLighting ? 1.0f : specularIntensity,
+            AmbientSource = source.AmbientSource,
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };

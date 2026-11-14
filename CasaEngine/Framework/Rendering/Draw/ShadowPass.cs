@@ -60,6 +60,7 @@ public sealed class ShadowPass : RenderPass
             context.Frame.CameraPosition,
             context.Lighting.DirectionalLights[directionalLightIndex].Direction,
             context.Shadows.Settings.MaxDistance,
+            context.Shadows.Settings.DepthRange,
             resolution);
 
         context.Shadows.AddVisibleLight(new ShadowLight(
@@ -224,7 +225,29 @@ public sealed class ShadowPass : RenderPass
         return -1;
     }
 
+    /// <summary>
+    /// Half-side, in world units, of the square the shadow map covers around the camera: the maximum distance, at least 1.
+    /// </summary>
+    internal static float ResolveLateralExtent(float maxDistance)
+        => MathF.Max(1.0f, maxDistance);
+
+    /// <summary>
+    /// Distance, in world units, from the centre of the shadow map back to the light and (doubled) to the far plane: the
+    /// depth range when it is positive (at least 1), otherwise the lateral extent.
+    /// </summary>
+    internal static float ResolveDepthExtent(float lateralExtent, float depthRange)
+        => depthRange > 0.0f ? MathF.Max(1.0f, depthRange) : lateralExtent;
+
     internal static Matrix BuildDirectionalShadowViewProjection(Vector3 cameraPosition, Vector3 lightDirection, float maxDistance, int resolution)
+        => BuildDirectionalShadowViewProjection(cameraPosition, lightDirection, maxDistance, 0.0f, resolution);
+
+    /// <summary>
+    /// Builds the orthographic light matrix of the shadow map. The map covers a square of half-side <paramref name="maxDistance"/>
+    /// (the lateral extent) around the camera. With a <paramref name="depthRange"/> of 0 the light and the far plane follow the
+    /// lateral extent; with a positive value the light is placed <paramref name="depthRange"/> upstream of the camera and the far
+    /// plane at twice that distance, the lateral extent staying <paramref name="maxDistance"/>.
+    /// </summary>
+    internal static Matrix BuildDirectionalShadowViewProjection(Vector3 cameraPosition, Vector3 lightDirection, float maxDistance, float depthRange, int resolution)
     {
         Vector3 direction = lightDirection;
         if (direction.LengthSquared() <= 0.0001f)
@@ -236,9 +259,10 @@ public sealed class ShadowPass : RenderPass
             direction.Normalize();
         }
 
-        float clampedDistance = MathF.Max(1.0f, maxDistance);
+        float clampedDistance = ResolveLateralExtent(maxDistance);
+        float depthExtent = ResolveDepthExtent(clampedDistance, depthRange);
         Vector3 target = cameraPosition;
-        Vector3 position = target - direction * clampedDistance;
+        Vector3 position = target - direction * depthExtent;
         Vector3 up = MathF.Abs(Vector3.Dot(direction, Vector3.Up)) > 0.99f ? Vector3.Forward : Vector3.Up;
 
         Matrix view = Matrix.CreateLookAt(position, target, up);
@@ -249,7 +273,7 @@ public sealed class ShadowPass : RenderPass
         view.M41 = MathF.Round(view.M41 / texelSize) * texelSize;
         view.M42 = MathF.Round(view.M42 / texelSize) * texelSize;
 
-        Matrix projection = Matrix.CreateOrthographic(clampedDistance * 2.0f, clampedDistance * 2.0f, 0.1f, clampedDistance * 2.0f);
+        Matrix projection = Matrix.CreateOrthographic(clampedDistance * 2.0f, clampedDistance * 2.0f, 0.1f, depthExtent * 2.0f);
         return view * projection;
     }
 }

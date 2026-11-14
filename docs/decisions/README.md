@@ -102,3 +102,8 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0086](0086-the-engine-keeps-the-last-frame-and-shows-it-frozen.md) | The engine keeps the last frame of the active view and shows it frozen (numbered ADR-0085 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0087](0087-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md) | A world declares its design resolution and may render into a buffer (numbered ADR-0086 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0088](0088-a-world-starts-a-cutscene-and-cutscenes-count-frames.md) | A world starts a cutscene, and cutscenes count frames, open screens and change worlds (numbered ADR-0087 until 2026-11-08) | Accepted | 2026-11-08 |
+| [ADR-0089](0089-the-ambient-term-applies-the-surface-colour-once.md) | The ambient term applies the surface colour once | Accepted | 2026-11-14 |
+| [ADR-0090](0090-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md) | A world may use a flat ambient term while keeping a reflection cube | Accepted | 2026-11-14 |
+| [ADR-0091](0091-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture | Accepted | 2026-11-14 |
+| [ADR-0092](0092-the-texture-loader-can-build-a-mipmap-chain.md) | The texture loader can build a mipmap chain | Accepted | 2026-11-14 |
+| [ADR-0093](0093-shadow-settings-mode-colour-filter-fade-and-depth-range.md) | Shadow settings: application mode and colour, filter radius, fade distance and depth range | Accepted | 2026-11-14 |

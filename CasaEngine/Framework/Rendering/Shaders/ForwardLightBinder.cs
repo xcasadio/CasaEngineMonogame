@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shadows;
 using Microsoft.Xna.Framework;
 
@@ -50,6 +51,10 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
+            out float shadowFilterRadius,
+            out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         shader.SetParameter(ShaderParameterNames.ActiveDirectionalLightCount, (float)activeDirectionalLightCount);
@@ -61,6 +66,10 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.ShadowDepthBias, shadowDepthBias);
         shader.SetParameter(ShaderParameterNames.ShadowNormalBias, shadowNormalBias);
         shader.SetParameter(ShaderParameterNames.ShadowMapTexelSize, shadowMapTexelSize);
+        shader.SetParameter(ShaderParameterNames.ShadowApplyMode, shadowApplyMode);
+        shader.SetParameter(ShaderParameterNames.ShadowTintColor, shadowTintColor);
+        shader.SetParameter(ShaderParameterNames.ShadowFilterRadius, shadowFilterRadius);
+        shader.SetParameter(ShaderParameterNames.ShadowFadeWidth, shadowFadeWidth);
         shader.SetTextureParameter(ShaderParameterNames.ShadowMapTexture, shadowMapTexture, stats);
 
         for (int i = 0; i < LightingContext.MaxDirectionalLights; i++)
@@ -123,6 +132,10 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
+            out float shadowFilterRadius,
+            out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         snapshot.ActiveDirectionalLightCount = activeDirectionalLightCount;
@@ -135,6 +148,10 @@ public sealed class ForwardLightBinder
         snapshot.ShadowDepthBias = shadowDepthBias;
         snapshot.ShadowNormalBias = shadowNormalBias;
         snapshot.ShadowMapTexelSize = shadowMapTexelSize;
+        snapshot.ShadowApplyMode = shadowApplyMode;
+        snapshot.ShadowTintColor = shadowTintColor;
+        snapshot.ShadowFilterRadius = shadowFilterRadius;
+        snapshot.ShadowFadeWidth = shadowFadeWidth;
         return snapshot;
     }
 
@@ -161,6 +178,10 @@ public sealed class ForwardLightBinder
         out float shadowDepthBias,
         out float shadowNormalBias,
         out Vector2 shadowMapTexelSize,
+        out float shadowApplyMode,
+        out Vector3 shadowTintColor,
+        out float shadowFilterRadius,
+        out float shadowFadeWidth,
         out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture)
     {
         activeDirectionalLightCount = lighting is null
@@ -179,6 +200,10 @@ public sealed class ForwardLightBinder
         shadowDepthBias = 0.0f;
         shadowNormalBias = 0.0f;
         shadowMapTexelSize = Vector2.Zero;
+        shadowApplyMode = 0.0f;
+        shadowTintColor = Vector3.Zero;
+        shadowFilterRadius = 0.0f;
+        shadowFadeWidth = 0.0f;
         shadowMapTexture = null;
 
         if (shadows is not null
@@ -196,6 +221,13 @@ public sealed class ForwardLightBinder
                 shadowMapTexelSize = new Vector2(
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Width),
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Height));
+                shadowApplyMode = shadows.Settings.Mode == ShadowMode.MultiplyLitColor ? 1.0f : 0.0f;
+                shadowTintColor = shadows.Settings.ShadowColor;
+                shadowFilterRadius = shadows.Settings.FilterRadius;
+
+                // Fade band as a fraction of the half-extent of the map (the map covers +-extent around the camera).
+                float lateralExtent = ShadowPass.ResolveLateralExtent(shadows.Settings.MaxDistance);
+                shadowFadeWidth = Math.Min(shadows.Settings.FadeDistance, lateralExtent) / lateralExtent;
                 shadowMapTexture = shadows.ShadowMapAtlas;
             }
         }
@@ -269,6 +301,10 @@ internal sealed class ForwardLightBindingSnapshot
     public float ShadowDepthBias { get; set; }
     public float ShadowNormalBias { get; set; }
     public Vector2 ShadowMapTexelSize { get; set; }
+    public float ShadowApplyMode { get; set; }
+    public Vector3 ShadowTintColor { get; set; }
+    public float ShadowFilterRadius { get; set; }
+    public float ShadowFadeWidth { get; set; }
 
     public Vector3[] DirectionalLightDirections { get; } = new Vector3[LightingContext.MaxDirectionalLights];
     public Vector3[] DirectionalLightDiffuseColors { get; } = new Vector3[LightingContext.MaxDirectionalLights];

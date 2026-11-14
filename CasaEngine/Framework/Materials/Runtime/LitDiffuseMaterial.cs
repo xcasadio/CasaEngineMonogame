@@ -18,6 +18,8 @@ public class LitDiffuseMaterial : MaterialBase
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
     public Texture2D NormalMap { get; set; }
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
+    public Texture2D DetailTexture { get; set; }
+    public Guid DetailTextureAssetId { get; set; } = Guid.Empty;
     public Guid ReflectionCubeAssetId { get; set; } = Guid.Empty;
     public XnaTextureCube ReflectionCube { get; set; }
     public bool UseSceneReflectionCube { get; set; }
@@ -32,6 +34,18 @@ public class LitDiffuseMaterial : MaterialBase
     public float ReflectionAddAmount { get; set; } = 1.0f;
     public float ReflectionMultiplyBase { get; set; } = 1.0f;
     public float ReflectionMultiplyFactor { get; set; }
+
+    private float _detailTiling = 1.0f;
+
+    /// <summary>
+    /// Number of times the detail texture repeats per unit of the base texture coordinates. A value that is not finite
+    /// or not strictly positive is replaced by 1.
+    /// </summary>
+    public float DetailTiling
+    {
+        get => _detailTiling;
+        set => _detailTiling = float.IsFinite(value) && value > 0.0f ? value : 1.0f;
+    }
 
     private static bool HasReflection(in RenderContext context, ShaderFeature features)
         => (features & ShaderFeature.Reflection) != 0;
@@ -133,6 +147,15 @@ public class LitDiffuseMaterial : MaterialBase
             shader.SetTextureParameter(ShaderParameterNames.NormalTexture, NormalMap, context.Stats);
         }
 
+        // The detail texture modulates the base texture only: without a base texture the shader never reads it.
+        var hasDetailTexture = DetailTexture is not null && BasColor is not null;
+        shader.SetParameter(ShaderParameterNames.HasDetailTexture, hasDetailTexture ? 1.0f : 0.0f);
+        shader.SetParameter(ShaderParameterNames.DetailTiling, DetailTiling);
+        if (hasDetailTexture)
+        {
+            shader.SetTextureParameter(ShaderParameterNames.DetailTexture, DetailTexture, context.Stats);
+        }
+
     }
 
     public override MaterialShaderCapabilities GetShaderCapabilities()
@@ -156,6 +179,16 @@ public class LitDiffuseMaterial : MaterialBase
         if (element["normal_map_asset_id"] is { } nm)
         {
             NormalMapAssetId = Guid.Parse(nm.Value<string>()!);
+        }
+
+        if (element["texture_detail_asset_id"] is { } detail)
+        {
+            DetailTextureAssetId = Guid.Parse(detail.Value<string>()!);
+        }
+
+        if (element["detail_tiling"] is { } detailTiling)
+        {
+            DetailTiling = detailTiling.Value<float>();
         }
 
         if (element["texture_reflection_asset_id"] is { } rt)

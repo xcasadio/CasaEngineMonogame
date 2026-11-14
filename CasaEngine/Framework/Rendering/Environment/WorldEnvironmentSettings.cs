@@ -42,6 +42,13 @@ public sealed class WorldEnvironmentSettings
 
     public ShadowSettings Shadows { get; } = new();
 
+    /// <summary>
+    /// Where the ambient term comes from. <see cref="AmbientSource.Auto"/> (default) keeps the historical behaviour;
+    /// <see cref="AmbientSource.Flat"/> uses the flat ambient colour even when a reflection cube is bound.
+    /// Serialized as <c>ambient_source</c>, omitted when <see cref="AmbientSource.Auto"/>.
+    /// </summary>
+    public AmbientSource AmbientSource { get; set; } = AmbientSource.Auto;
+
     public Vector3 AmbientColor
     {
         get => _ambientColor;
@@ -80,6 +87,7 @@ public sealed class WorldEnvironmentSettings
         SpecularEnvironmentCubemap = null;
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f);
         AmbientIntensity = 1.0f;
+        AmbientSource = AmbientSource.Auto;
         SpecularIntensity = 1.0f;
         Shadows.ResetToDefaults();
         IsDirty = false;
@@ -156,6 +164,11 @@ public sealed class WorldEnvironmentSettings
             SpecularIntensity = specularIntensityNode.GetSingle();
         }
 
+        if (element.TryGetValue("ambient_source", StringComparison.OrdinalIgnoreCase, out var ambientSourceNode))
+        {
+            AmbientSource = ambientSourceNode.GetEnum<AmbientSource>();
+        }
+
         if (element.TryGetValue("shadows", StringComparison.OrdinalIgnoreCase, out var shadowsNode))
         {
             Shadows.Load(shadowsNode as JObject);
@@ -179,6 +192,15 @@ public sealed class WorldEnvironmentSettings
         element["ambient_color"] = SaveVector3(AmbientColor);
         element["ambient_intensity"] = AmbientIntensity;
         element["specular_intensity"] = SpecularIntensity;
+
+        if (AmbientSource != AmbientSource.Auto)
+        {
+            element["ambient_source"] = AmbientSource.ToString();
+        }
+        else
+        {
+            element.Remove("ambient_source");
+        }
 
         var shadowsNode = new JObject();
         Shadows.Save(shadowsNode);
@@ -215,6 +237,7 @@ public sealed class WorldEnvironmentSettings
             AmbientColor = AmbientColor,
             AmbientIntensity = AmbientIntensity,
             SpecularIntensity = SpecularIntensity,
+            AmbientSource = AmbientSource,
         };
 
         clone.Shadows.CopyFrom(Shadows);
@@ -240,6 +263,7 @@ public sealed class WorldEnvironmentSettings
         AmbientColor = other.AmbientColor;
         AmbientIntensity = other.AmbientIntensity;
         SpecularIntensity = other.SpecularIntensity;
+        AmbientSource = other.AmbientSource;
         Shadows.CopyFrom(other.Shadows);
         if (other.IsDirty)
         {

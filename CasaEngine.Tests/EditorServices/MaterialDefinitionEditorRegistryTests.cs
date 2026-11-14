@@ -12,7 +12,7 @@ public class MaterialDefinitionEditorRegistryTests
 
         var descriptors = registry.GetDescriptors("lit-diffuse");
 
-        Assert.Equal(9, descriptors.Count);
+        Assert.Equal(11, descriptors.Count);
 
         var baseColor = GetDescriptor(descriptors, "base_color_texture");
         Assert.Equal("Surface", baseColor.Category);
@@ -64,7 +64,7 @@ public class MaterialDefinitionEditorRegistryTests
             surface =>
             {
                 Assert.Equal("Surface", surface.Key);
-                Assert.Equal(new[] { "base_color_texture", "diffuse_color", "alpha_cutoff" }, GetKeys(surface));
+                Assert.Equal(new[] { "base_color_texture", "diffuse_color", "alpha_cutoff", "detail_texture", "detail_tiling" }, GetKeys(surface));
             },
             normals =>
             {

@@ -42,6 +42,9 @@ struct ColorPair
 {
     float3 Diffuse;
     float3 Specular;
+    // Visibility of the shadow-casting directional light at the pixel (1 = lit, 0 = fully shadowed); 1 when the pixel has no
+    // shadow. Computed once per pixel; ComputeLights only applies it to the light when ShadowApplyMode is 0.
+    float ShadowFactor;
 };
 
 
@@ -126,16 +129,52 @@ float3 SampleEnvironmentDiffuse(float3 worldNormal)
 
 
 #ifdef HAS_FORWARD_SHADOW_BINDINGS
+// Fixed Poisson disc (unit disc, 12 points) used when ShadowFilterRadius > 0: the taps are scaled by the radius in texels.
+static const int ShadowPoissonTapCount = 12;
+static const float2 ShadowPoissonDisc[12] =
+{
+    float2(-0.326212f, -0.405805f),
+    float2(-0.840144f, -0.073580f),
+    float2(-0.695914f,  0.457137f),
+    float2(-0.203345f,  0.620716f),
+    float2( 0.962340f, -0.194983f),
+    float2( 0.473434f, -0.480026f),
+    float2( 0.519456f,  0.767022f),
+    float2( 0.185461f, -0.893124f),
+    float2( 0.507431f,  0.064425f),
+    float2( 0.896420f,  0.412458f),
+    float2(-0.321940f, -0.932615f),
+    float2(-0.791559f, -0.597705f)
+};
+
+
 float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
 {
     float visibility = 0.0f;
 
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+    if (ShadowFilterRadius > 0.0f)
+    {
+        float2 radiusUv = ShadowMapTexelSize * ShadowFilterRadius;
 
-    return visibility * 0.25f;
+        [unroll]
+        for (int tap = 0; tap < ShadowPoissonTapCount; tap++)
+        {
+            visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowPoissonDisc[tap] * radiusUv, 0.0f).r);
+        }
+
+        visibility *= 1.0f / ShadowPoissonTapCount;
+    }
+    else
+    {
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+
+        visibility *= 0.25f;
+    }
+
+    return visibility;
 }
 
 
@@ -172,12 +211,49 @@ float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
         return 1.0f;
     }
 
-    return SampleDirectionalShadowPcf(shadowUv, shadowDepth);
+    float visibility = SampleDirectionalShadowPcf(shadowUv, shadowDepth);
+
+    // Fade to "lit" over the outer ShadowFadeWidth of the half-extent of the map, measured from the centre of the map in its
+    // own plane as a square (the shape of the map): 0 at the start of the band, 1 at the edge. 0 (default) means no fade.
+    if (ShadowFadeWidth > 0.0f)
+    {
+        float edgeDistance = max(abs(shadowNdc.x), abs(shadowNdc.y));
+        visibility = lerp(visibility, 1.0f, saturate((edgeDistance - (1.0f - ShadowFadeWidth)) / ShadowFadeWidth));
+    }
+
+    return visibility;
 }
 #else
 float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
 {
     return 1.0f;
+}
+#endif
+
+
+// Shadow colour tint (ShadowApplyMode = 1, ShadowSettings.Mode = MultiplyLitColor). The pixel colour excluding the emissive
+// part is multiplied by lerp(1, ShadowTintColor, 1 - shadowFactor). The emissive colour is never tinted. With
+// ShadowApplyMode = 0 (default) the colour is returned unchanged.
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+float3 ComputeShadowTint(float shadowFactor)
+{
+    return lerp(float3(1.0f, 1.0f, 1.0f), ShadowTintColor, 1.0f - shadowFactor);
+}
+
+
+float3 ApplyShadowTint(float3 litColor, float3 emissiveColor, float shadowFactor)
+{
+    if (ShadowApplyMode > 0.5f)
+    {
+        litColor += (ComputeShadowTint(shadowFactor) - 1.0f) * (litColor - emissiveColor);
+    }
+
+    return litColor;
+}
+#else
+float3 ApplyShadowTint(float3 litColor, float3 emissiveColor, float shadowFactor)
+{
+    return litColor;
 }
 #endif
 
@@ -349,6 +425,7 @@ ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 
     ColorPair result;
     result.Diffuse = EmissiveColor;
     result.Specular = 0;
+    result.ShadowFactor = 1.0f;
 
     [unroll]
     for (int directionalIndex = 0; directionalIndex < MaxDirectionalLights; directionalIndex++)
@@ -377,6 +454,18 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
     result.Diffuse = EmissiveColor;
     result.Specular = 0;
 
+    // The shadow factor is computed once, outside the light loop. In the default mode it scales the shadowed light; in
+    // MultiplyLitColor mode the light is left alone and the pixel shader tints the final colour with ShadowFactor.
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, worldNormal);
+    float lightOcclusionFactor = ShadowApplyMode > 0.5f ? 1.0f : shadowFactor;
+#else
+    float shadowFactor = 1.0f;
+    float lightOcclusionFactor = 1.0f;
+#endif
+    // A shadow-casting light that this variant does not shade (one-light techniques) casts no tint either.
+    result.ShadowFactor = (int)ShadowedDirectionalLightIndex < numDirectionalLights ? shadowFactor : 1.0f;
+
     [unroll]
     for (int i = 0; i < MaxDirectionalLights; i++)
     {
@@ -388,13 +477,7 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
         float3 lightDirection = GetDirectionalLightDirection(i);
         float3 lightDiffuse = GetDirectionalLightDiffuseColor(i);
         float3 lightSpecular = GetDirectionalLightSpecularColor(i);
-#ifdef HAS_FORWARD_SHADOW_BINDINGS
-        float directionalShadowFactor = i == (int)ShadowedDirectionalLightIndex
-            ? ComputeDirectionalShadowFactor(worldPosition, worldNormal)
-            : 1.0f;
-#else
-        float directionalShadowFactor = 1.0f;
-#endif
+        float directionalShadowFactor = i == (int)ShadowedDirectionalLightIndex ? lightOcclusionFactor : 1.0f;
         AccumulateLight(result, eyeVector, worldNormal, -lightDirection, directionalShadowFactor, lightDiffuse, lightSpecular);
     }
 

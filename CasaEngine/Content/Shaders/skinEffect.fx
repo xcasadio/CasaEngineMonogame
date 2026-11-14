@@ -132,6 +132,7 @@ BEGIN_CONSTANTS
     float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
+    float UseFlatAmbientSource _ps(c36) _cb(c32.z);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
@@ -143,6 +144,10 @@ BEGIN_CONSTANTS
     float ShadowNormalBias _ps(c100) _cb(c90.w);
     float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
     float ReceiveShadows _ps(c101) _cb(c91.z);
+    float ShadowApplyMode _ps(c101) _cb(c91.w);
+    float3 ShadowTintColor _ps(c106) _cb(c96);
+    float ShadowFilterRadius _ps(c106) _cb(c96.w);
+    float ShadowFadeWidth _ps(c107) _cb(c97.x);
 
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
@@ -165,14 +170,15 @@ END_CONSTANTS
 #include "Lighting.fxh"
 
 
-float3 ComputeSkinnedAmbientContribution(float3 baseColor, float3 worldNormal)
+float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
 {
     // Same formula as LitForward.fx's ComputeBaseAmbientTerm: environment (or flat)
-    // ambient color modulated by the material's own ambient tint.
-    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+    // ambient color modulated by the material's own ambient tint and DiffuseColor.
+    // The base (texture) colour is not applied here: ComposeLitSurfaceColor applies it once.
+    float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
-    return baseColor * DiffuseColor.rgb * ambientTerm;
+    return DiffuseColor.rgb * ambientTerm;
 }
 
 
@@ -376,9 +382,10 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 
     float4 color = texelColor;
     float3 directDiffuse = max(lightResult.Diffuse - EmissiveColor, 0.0f);
-    float3 ambientContribution = ComputeSkinnedAmbientContribution(color.rgb, worldNormal);
+    float3 ambientContribution = ComputeSkinnedAmbientContribution(worldNormal);
     color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
 
     return color;
 }

@@ -33,6 +33,9 @@ public static class ShaderParameterNames
     public const string AlphaCutoff = "AlphaCutoff";
     public const string OpacityTexture = "OpacityTexture";
     public const string NormalTexture = "NormalTexture";
+    public const string DetailTexture = "DetailTexture";
+    public const string HasDetailTexture = "HasDetailTexture";
+    public const string DetailTiling = "DetailTiling";
     public const string ColorMultiplier = "ColorMultiplier";
     public const string SolidColor = "SolidColor";
 
@@ -45,6 +48,7 @@ public static class ShaderParameterNames
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+    public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";
     public const string SecondaryLocalReflectionProbeCubeTexture = "SecondaryLocalReflectionProbeCubeTexture";
     public const string HasLocalReflectionProbeTexture = "HasLocalReflectionProbeTexture";
@@ -161,6 +165,10 @@ public static class ShaderParameterNames
     public const string ShadowNormalBias = "ShadowNormalBias";
     public const string ShadowMapTexelSize = "ShadowMapTexelSize";
     public const string ReceiveShadows = "ReceiveShadows";
+    public const string ShadowApplyMode = "ShadowApplyMode";
+    public const string ShadowTintColor = "ShadowTintColor";
+    public const string ShadowFilterRadius = "ShadowFilterRadius";
+    public const string ShadowFadeWidth = "ShadowFadeWidth";
 
     // --- Skinning ---
     public const string Bones = "Bones";

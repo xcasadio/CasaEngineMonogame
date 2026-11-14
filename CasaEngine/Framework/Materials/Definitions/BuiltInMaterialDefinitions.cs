@@ -16,7 +16,7 @@ internal static class BuiltInMaterialDefinitions
             id: "lit-diffuse",
             displayName: "Lit Diffuse",
             runtimeMaterialType: typeof(LitDiffuseMaterial),
-            description: "Lambert + specular material with optional base color and normal map textures.",
+            description: "Lambert + specular material with optional base color, normal map and detail textures.",
             properties: new[]
             {
                 new MaterialPropertyDefinition(
@@ -106,6 +106,25 @@ internal static class BuiltInMaterialDefinitions
                     minValue: 0.0f,
                     maxValue: 128.0f,
                     step: 1.0f),
+                new MaterialPropertyDefinition(
+                    key: "detail_texture",
+                    displayName: "Detail Texture",
+                    valueType: MaterialPropertyType.Texture,
+                    group: MaterialPropertyGroup.Textures,
+                    flags: MaterialPropertyFlags.AssetReference | MaterialPropertyFlags.SupportsOverrides,
+                    defaultValue: Guid.Empty,
+                    description: "Optional detail texture multiplied with the base color as base * 2 * detail (mid grey leaves the base color unchanged). Not supported by skinned meshes.",
+                    legacyAliases: new[] { "texture_detail_asset_id" },
+                    assetKind: "texture"),
+                new MaterialPropertyDefinition(
+                    key: "detail_tiling",
+                    displayName: "Detail Tiling",
+                    valueType: MaterialPropertyType.Float,
+                    group: MaterialPropertyGroup.Textures,
+                    flags: MaterialPropertyFlags.SupportsOverrides,
+                    defaultValue: 1.0f,
+                    description: "Number of times the detail texture repeats over the base texture coordinates. A value that is not finite or not above zero is read as 1.",
+                    minValue: 0.0f),
             });
 
     private static MaterialDefinition CreateUnlitTextureDefinition()

@@ -299,7 +299,25 @@ public sealed class GltfStaticModelReader
             indexList.Add((uint)triangle.B);
         }
 
-        modelMesh.SetData(vertices, indexList.ToArray());
+        var tangents = ReadTangents(primitive, vertexCount);
+        if (tangents != null)
+        {
+            var tangentVertices = new VertexPositionNormalTextureTangent[vertexCount];
+            for (int k = 0; k < vertexCount; k++)
+            {
+                tangentVertices[k] = new VertexPositionNormalTextureTangent(
+                    vertices[k].Position,
+                    vertices[k].Normal,
+                    vertices[k].TextureCoordinate,
+                    tangents[k]);
+            }
+
+            modelMesh.SetData(tangentVertices, indexList.ToArray());
+        }
+        else
+        {
+            modelMesh.SetData(vertices, indexList.ToArray());
+        }
 
         if (modelMesh.MaterialIndex >= 0 && modelMesh.MaterialIndex < importedMaterials.Count)
         {
@@ -307,6 +325,35 @@ public sealed class GltfStaticModelReader
         }
 
         return modelMesh;
+    }
+
+    /// <summary>
+    /// Reads the optional TANGENT accessor (VEC4: xyz tangent, w handedness sign). Returns null when the
+    /// primitive has none or when it does not provide exactly one entry per vertex. The xyz part is
+    /// normalized, w is kept as authored. Tangents are used as authored even when the normals were generated.
+    /// </summary>
+    private static Vector4[] ReadTangents(MeshPrimitive primitive, int vertexCount)
+    {
+        var source = primitive.GetVertexAccessor("TANGENT")?.AsVector4Array();
+        if (source == null || vertexCount == 0 || source.Count != vertexCount)
+        {
+            return null;
+        }
+
+        var tangents = new Vector4[vertexCount];
+        for (int k = 0; k < vertexCount; k++)
+        {
+            var t = source[k];
+            var xyz = new Vector3(t.X, t.Y, t.Z);
+            if (xyz.LengthSquared() > 1e-12f)
+            {
+                xyz = Vector3.Normalize(xyz);
+            }
+
+            tangents[k] = new Vector4(xyz, t.W);
+        }
+
+        return tangents;
     }
 
     /// <summary>
