@@ -1205,6 +1205,54 @@
       "name": "demo_mixer",
       "file_name": "Audio\\demo_mixer.audioMixer",
       "asset_type": "audiomixer"
+    },
+    {
+      "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+      "name": "EditorWorld",
+      "file_name": "EditorWorld\\EditorWorld.world",
+      "asset_type": "world"
+    },
+    {
+      "id": "1961629e-6215-47be-961b-854befa6c235",
+      "name": "Box",
+      "file_name": "EditorWorld\\Entities\\Box.entity",
+      "asset_type": "entity"
+    },
+    {
+      "id": "8abc0021-e27b-4c2b-aa58-640ea42369d1",
+      "name": "camera",
+      "file_name": "EditorWorld\\Entities\\camera.entity",
+      "asset_type": "entity"
+    },
+    {
+      "id": "cdf432c1-0e33-434f-8a96-466d519baa9b",
+      "name": "checkboard",
+      "file_name": "EditorWorld\\Textures\\checkboard.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+      "name": "checkboard",
+      "file_name": "EditorWorld\\Textures\\checkboard.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
+      "name": "Box",
+      "file_name": "EditorWorld\\Entities\\Box.staticModel",
+      "asset_type": "staticmodel"
+    },
+    {
+      "id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1",
+      "name": "NewLitDiffuseMaterial",
+      "file_name": "EditorWorld\\NewLitDiffuseMaterial.material",
+      "asset_type": "material"
+    },
+    {
+      "id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
+      "name": "ground_ground1",
+      "file_name": "EditorWorld\\Models\\ground_ground1.staticModel",
+      "asset_type": "staticmodel"
     }
   ]
 }

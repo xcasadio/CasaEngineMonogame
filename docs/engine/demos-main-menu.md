@@ -41,7 +41,7 @@ The themes and their demos are a learning path, in this order (ADR-0090). The re
 
 | Theme | Demos |
 | --- | --- |
-| Getting started | Hello world, Moving an entity, Loading a model: the minimal, commented demos to read first. |
+| Getting started | Hello world, Moving an entity, Loading a model, World made in the editor: the minimal, commented demos to read first. |
 | Rendering | Static model, Material system, Particle system, Environment showcase |
 | Animation | Skinned mesh, Animation blend, Animation IK, Skeletal animation blending |
 | Physics | Collision 3d basic, Collision 2d basic, Top down elevation |
@@ -51,6 +51,26 @@ The themes and their demos are a learning path, in this order (ADR-0090). The re
 | UI | MGUI UI Overlay, World-space UI |
 | Audio | Audio demo |
 | Engine validation | Static shadow validation, ViewManager v2 Sandbox, Frozen frame: scenes that check the engine rather than teach a feature. |
+
+## A world made in the editor
+
+"World made in the editor" is the one demo that builds nothing in code. `Demo.CreateWorld` returns the world of a demo:
+a new empty `World` by default, and for this demo a copy loaded from the asset catalogue, the way the engine loads
+`FirstWorldLoaded`:
+
+```csharp
+AssetInfo worldAsset = AssetCatalog.GetByFileName(@"EditorWorld\EditorWorld.world");
+return game.AssetContentManager.LoadCopy<World>(worldAsset.Id);
+```
+
+- The world and its assets are in `CasaEngine.Demos/Content/EditorWorld/`, listed in `Content/AssetInfos.json`. They are
+  a copy of the first world of `Projects/SampleProject` (a ground with a collider, three instances of `Box.entity`, two
+  lights, a camera).
+- The demo creates no camera: the view shows the camera saved in the world, and `InitializeCamera` receives it. That
+  camera was saved under the ground, so the demo frames the scene and gives it the demos' camera script.
+- `CasaEngine.Demos/Content/DemosGame.json` is the project file to open in the editor to change the world.
+- Limit: the editor automation has no command that creates a world or an entity, so this world could not be authored
+  by a script; it is a copy.
 
 ## Adding a demo
 

@@ -28,6 +28,12 @@ public abstract class Demo
     /// <summary>Repository-relative path of the page that documents the feature ("docs/engine/audio-system.md"), or empty.</summary>
     public virtual string DocumentationPath => string.Empty;
 
+    /// <summary>
+    /// Creates the world of this demo, before <see cref="Initialize"/>. The default is a new, empty world that the demo
+    /// fills in code; a demo overrides this to load a world made in the editor.
+    /// </summary>
+    public virtual World CreateWorld(CasaEngineGame game) => new World();
+
     public abstract void Initialize(CasaEngineGame game);
 
     public virtual void ConfigureSceneLighting(World world)

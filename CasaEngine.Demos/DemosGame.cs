@@ -128,6 +128,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new HelloWorldDemo(), ThemeGettingStarted);
         AddDemo(new MovingAnEntityDemo(), ThemeGettingStarted);
         AddDemo(new LoadingAModelDemo(), ThemeGettingStarted);
+        AddDemo(new EditorWorldDemo(), ThemeGettingStarted);
 
         AddDemo(new StaticModelDemo(), ThemeRendering);
         AddDemo(new MaterialDemo(), ThemeRendering);
@@ -248,13 +249,14 @@ public class DemosGame : CasaEngineGame
         // The new world is the current world from this call on. It loads in the next GameManager.UpdateWorld (in
         // base.Update, at the end of this update, or in the first update at startup), which clears the views, loads the
         // world, builds its views from its entities and raises WorldLoaded.
-        var world = new World();
+        // The demo supplies that world: a new empty one, or one loaded from a file made in the editor.
+        _currentDemo = _demos[_currentDemoIndex];
+        var world = _currentDemo.CreateWorld(this);
         GameManager.SetWorldToLoad(world);
 
         // The demo builds its scene before the world loads: World.LoadContent adds its entities (AddEntity only queues
         // them), creates the physics context with the space policy the demo set, and the view bootstrapper picks the
         // demo's camera among them.
-        _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(world);
         _pendingDemoCamera = _currentDemo.CreateCamera(this);
@@ -347,7 +349,9 @@ public class DemosGame : CasaEngineGame
             return;
         }
 
-        var demoCamera = _pendingDemoCamera;
+        // A demo whose world comes from a file creates no camera: the view then shows the camera saved in that world,
+        // and the demo may still frame it.
+        var demoCamera = _pendingDemoCamera ?? GameManager.ViewManager.ActiveView?.Camera;
         if (demoCamera != null)
         {
             _currentDemo.InitializeCamera(demoCamera);

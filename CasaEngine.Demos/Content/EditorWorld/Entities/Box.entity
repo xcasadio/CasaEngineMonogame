@@ -1,0 +1,115 @@
+{
+  "id": "1961629e-6215-47be-961b-854befa6c235",
+  "name": "Box",
+  "root_component": {
+    "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+    "name": "unknown",
+    "type": "StaticModelComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [
+      {
+        "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+        "name": "unknown",
+        "type": "CollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "friction": 0.5,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "apply_gravity": true,
+          "debug_color": "null"
+        },
+        "fixtures": [
+          {
+            "shape": {
+              "id": "721d4cd0-0afe-58fe-8466-8dd45a08f85e",
+              "name": "Object 721d4cd0-0afe-58fe-8466-8dd45a08f85e",
+              "shape_type": "Box",
+              "w": 1.0,
+              "h": 1.0,
+              "l": 1.0
+            },
+            "local_position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "local_rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "collision_profile": null,
+            "tag": null
+          }
+        ]
+      }
+    ],
+    "static_model_asset_id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
+    "material_slot_overrides": [
+      {
+        "slot_name": "Mesh",
+        "slot_index": 0,
+        "material_asset_id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1"
+      }
+    ]
+  },
+  "components": [],
+  "script_class_name": null,
+  "flow_graph": {
+    "type": "sequence",
+    "id": 13,
+    "name": "sequence",
+    "description": null,
+    "nodes": []
+  }
+}

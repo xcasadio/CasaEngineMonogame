@@ -1,7 +1,7 @@
 # Plan agent IA — Démos lisibles par un nouvel utilisateur
 
 Plan d'exécution du chantier issu de l'analyse de `CasaEngine.Demos` faite en session le 2026-11-14 (pas de fichier d'audit : les constats sont repris dans « État vérifié du dépôt »).
-Les décisions D1 → D10 ci-dessous ont été arbitrées avec l'auteur le 2026-11-14 : **ce plan les applique, il ne les rediscute pas**. Les points P1 → P7 sont des arbitrages proposés par l'agent, validés par l'auteur à l'approbation du plan le 2026-11-14 (« Approuvé, lance-le », mode AUTO).
+Les décisions D1 → D11 ci-dessous ont été arbitrées avec l'auteur le 2026-11-14 : **ce plan les applique, il ne les rediscute pas**. Les points P1 → P7 sont des arbitrages proposés par l'agent, validés par l'auteur à l'approbation du plan le 2026-11-14 (« Approuvé, lance-le », mode AUTO).
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
@@ -44,6 +44,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 | D8 | En fin de chantier, toutes les démos lisent leurs entrées par la configuration d'entrées du moteur, pour que chaque action ait sa correspondance clavier et manette ; le panneau d'aide et la fiche affichent les deux. Bouton `Start` pour le panneau d'aide. |
 | D9 | La démo de sauvegarde est dans le plan : elle écrit son fichier dans le dossier de l'exécutable lancé (`AppContext.BaseDirectory`, le dossier `bin/…` du build), pas dans le dossier par utilisateur ni dans le répertoire courant du processus. Remplace la réponse précédente (« pas de vrai fichier »). |
 | D10 | La branche `chantier/demos-onboarding` part de `chantier/unreal-viewport-camera`, pas de `main` : exception à `AGENTS.md` §4 décidée par l'auteur le 2026-11-14. Ce chantier ne fusionne dans `main` qu'après le chantier caméra. |
+| D11 | Le monde de la démo éditeur est une copie de `Projects/SampleProject/DefaultWorld.world` et de ses assets dans `CasaEngine.Demos/Content/` (réponse à O1 du 2026-11-14, « copie sampleproject »). Remplace D7. À garder en mémoire : donner plus tard à l'éditeur le moyen de créer ce monde (commandes d'automatisation), dans un chantier à part. |
 
 ## Points à valider (arbitrages de l'agent)
 
@@ -142,7 +143,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): replace the back hint with a collapsible help panel`
 - Note de validation (2026-11-14) : panneau `demo-help.xaml` / `DemoHelpOverlay` en bas à droite (titre, contrôles, caméra par défaut si la démo garde `ScriptArcBallCamera`, à observer), visible au lancement, replié par F1 ou Start. Écart au plan : `demo-hint.xaml` est gardé comme ligne de rappel (« F1 / Start: help, Esc / Select: back to the menu », 440 px) au lieu d'être remplacé. Contrôles de caméra lus dans `docs/editor/viewport-camera-controls.md`. Aucune démo ne lit F1 ni Start (`rg`). Les HUD existants sont en haut à gauche ou à droite : pas de recouvrement vu sur Collision 3d et Audio (captures avec la nouvelle variable `CASAENGINE_DEMO_SHOW_HELP`, qui garde le panneau dans une capture). Build 0 erreur ; tests du menu et des écrans 58/58 ; `CASAENGINE_DEMO_CYCLE=60` : PASS, 101 étapes, code 0. Constat hors tâche : dans le cycle, la seconde visite de Frozen frame journalise `FAIL D6c` (CaptureCount 4 au lieu de 2) ; la démo seule donne `result=PASS`. Non corrigé.
 
-### 🧪 T1.4 — Fiches des 25 démos
+### ✅ T1.4 — Fiches des 25 démos
 
 - Objectif : chaque démo a une description en trois temps (ce que ça montre, quoi essayer, quelles classes regarder), ses contrôles vérifiés dans son `Update`, ses points « à observer » et son lien doc quand un fichier de `docs/engine/` existe. La colonne manette des contrôles est remplie en T6.1.
 - Fichiers : les 25 `CasaEngine.Demos/Demos/*Demo.cs` et `ViewManagerSandbox.cs`.
@@ -153,7 +154,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   4. Appliquer P5 à Scene management.
 - Validation : build ; `CASAENGINE_DEMO_CYCLE=60` à 0 ; relecture par l'auteur d'au moins une fiche par thème (🧪 tant que non faite).
 - Commit : `docs(demos): rewrite every demo sheet for a first-time user`
-- Note de validation (2026-11-14) : les 25 démos ont une description réécrite, leurs contrôles relevés dans leur `Update` (et dans `PlayerComponent` pour Tile map), leurs points à observer et leur page de doc quand elle existe ; identifiants internes et « Validates » retirés ; Scene management décrit ce que fait le code (P5). Affirmations vérifiées dans le code une à une, cinq corrigées après relecture. Build 0 erreur ; `CASAENGINE_DEMO_CYCLE=30` : PASS, 101 étapes ; capture d'Animation IK avec le panneau rempli. Colonne manette vide jusqu'à T6.1. Reste à faire par l'auteur : relire une fiche par thème.
+- Note de validation (2026-11-14) : les 25 démos ont une description réécrite, leurs contrôles relevés dans leur `Update` (et dans `PlayerComponent` pour Tile map), leurs points à observer et leur page de doc quand elle existe ; identifiants internes et « Validates » retirés ; Scene management décrit ce que fait le code (P5). Affirmations vérifiées dans le code une à une, cinq corrigées après relecture. Build 0 erreur ; `CASAENGINE_DEMO_CYCLE=30` : PASS, 101 étapes ; capture d'Animation IK avec le panneau rempli. Colonne manette vide jusqu'à T6.1. Recette de l'auteur acceptée le 2026-11-14 (« recette OK »).
 
 ### ✅ T1.5 — Docs contradictoires et README racine
 
@@ -191,14 +192,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): add the Hello world demo`
 - Note de validation (2026-11-14) : `HelloWorldDemo` (thème « Getting started », index 0, le menu s'ouvre dessus) : une entité cube, un material, une lumière directionnelle et la caméra écrites en clair et commentées ; le cube tourne (captures à 1,2 s et 2 s différentes). La lumière vient du côté de la caméra : sans autre lumière, une face non éclairée est noire, et régler `AmbientColor` sur le material seul ou sur le monde seul n'avait rien changé à l'écran. Élucidé le 2026-11-14 : le terme ambiant est le produit des deux (`Lighting.fxh:53-55`, `ComputeAmbientTerm`), `LitDiffuseMaterial.AmbientColor` vaut zéro par défaut et l'ambiante par défaut du monde vaut 0.05 (`EnvironmentResolver.LegacyAmbientColor`) ; chaque essai laissait un facteur nul ou presque. La démo règle maintenant les deux et le commente ; capture avec l'ancienne lumière : la face auparavant noire est brun foncé. Build 0 erreur ; cycle PASS avec 26 démos.
 
-### 🧪 T2.3 — Démo « Moving an entity »
+### ✅ T2.3 — Démo « Moving an entity »
 
 - Objectif : déplacer une entité au clavier et à la manette, avec le pas de temps, commentée.
 - Fichiers : `CasaEngine.Demos/Demos/MovingAnEntityDemo.cs`, `DemosGame.cs`, doc.
 - Étapes : lire le clavier par `DemoKeyboard.Read` ; lire `docs/engine/player-input.md` pour ne pas doublonner la démo d'input de T5.1 (ici : lecture directe, la plus simple) ; la manette arrive avec T6.1.
 - Validation : build ; lancement ; cycle à 0.
 - Commit : `feat(demos): add the Moving an entity demo`
-- Note de validation (2026-11-14) : `MovingAnEntityDemo` (thème « Getting started ») : flèches, Maj gauche pour courir, Origine pour recentrer ; boucle lecture de l'entrée, direction normalisée, vitesse × temps écoulé, position bornée au sol, cube orienté dans le sens du déplacement ; lecture par `DemoKeyboard.Read`, manette en T6.1. Build 0 erreur ; capture : sol et cube affichés ; cycle PASS avec 27 démos. Reste à faire par l'auteur : l'automatisation n'appuie sur aucune touche, donc le déplacement, la course et l'orientation n'ont pas été vus à l'écran.
+- Note de validation (2026-11-14) : `MovingAnEntityDemo` (thème « Getting started ») : flèches, Maj gauche pour courir, Origine pour recentrer ; boucle lecture de l'entrée, direction normalisée, vitesse × temps écoulé, position bornée au sol, cube orienté dans le sens du déplacement ; lecture par `DemoKeyboard.Read`, manette en T6.1. Build 0 erreur ; capture : sol et cube affichés ; cycle PASS avec 27 démos. L'automatisation n'appuie sur aucune touche ; recette de l'auteur acceptée le 2026-11-14 (« recette OK »).
 
 ### ✅ T2.4 — Démo « Loading a model »
 
@@ -222,14 +223,15 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `docs(ai-agent): record how a demo can load an editor-made world`
 - Note de validation (2026-11-14) : Runtime : `GameManager.UpdateWorld` charge un monde nommé par `AssetContentManager.LoadCopy<World>(assetInfo.Id)` après `AssetCatalog.GetByFileName` (`GameManager.cs:109-131`) ; une démo peut faire la même copie et la donner à `SetWorldToLoad(World)` (`:389`). `DemosGame.ChangeDemo` crée aujourd'hui `new World()` avant `Demo.Initialize` (`DemosGame.cs`, `ChangeDemo`) : il faut un point d'extension additif dans `Demo` (par exemple `CreateWorld`, par défaut `new World()`), dans `CasaEngine.Demos` seulement, aucune modification de `CasaEngine/`. Le monde doit être dans `Content/AssetInfos.json` ; `Content/DefaultWorld.world` existe et est vide (`entity_references: []`). `DemoCycleAutomation.OnWorldLoaded` contrôle que la caméra créée par la démo est dans une vue : la démo garde donc `CreateCamera`, ou le contrôle est adapté. Éditeur : `EditorAutomationOptions` n'a aucune commande qui crée un monde, une entité ou un composant (`--project`, `--entity` et `--component` sélectionnent, `--save-project` enregistre le monde ouvert, le reste concerne particules, materials, écrans, docking) : l'automatisation ne peut pas créer le monde demandé par D7. Voir O1.
 
-### ⚠️ T3.2 — Démo « World made in the editor »
+### 🧪 T3.2 — Démo « World made in the editor »
 
 - Objectif : une démo charge un `.world` de `CasaEngine.Demos/Content/` ; sa fiche et sa doc disent comment l'ouvrir et le modifier dans l'éditeur (D4).
 - Fichiers : `CasaEngine.Demos/Content/<monde>.world` et ses assets, `CasaEngine.Demos/Demos/EditorWorldDemo.cs`, `DemosGame.cs`, `docs/engine/demos-main-menu.md`, une page `docs/editor/`.
 - Étapes : dépend de T3.1. L'agent crée le monde par l'automatisation de l'éditeur (D7) : lire d'abord `docs/editor/` et le code d'automatisation de `CasaEngine.Editor` pour établir ce qu'elle permet ; si elle ne permet pas de créer et d'enregistrer un monde, passer en ⚠️ Blocked. Le `.world` n'est jamais écrit à la main.
 - Validation : build ; lancement ; cycle à 0 ; l'auteur ouvre le monde dans l'éditeur, le modifie, relance la démo et voit le changement (🧪 tant que non fait).
 - Commit : `feat(demos): add a demo that loads a world made in the editor`
-- Note de validation (2026-11-14) : bloquée par O1 : l'automatisation de l'éditeur ne sait pas créer un monde ni y ajouter une entité (T3.1). Rien n'est écrit.
+- Note de validation (2026-11-14) : D11 : `Content/EditorWorld/` contient la copie de `Projects/SampleProject/DefaultWorld.world` (renommé `EditorWorld.world`, contenu inchangé) et des sept assets qu'il nomme (fermeture calculée par identifiants : `Box.entity`, `Box.staticModel`, `camera.entity`, `ground_ground1.staticModel`, `NewLitDiffuseMaterial.material`, `checkboard.texture`, `checkboard.png`) ; huit entrées ajoutées à `Content/AssetInfos.json`, aucun identifiant en commun avec le catalogue des démos. `Demo.CreateWorld` (additif, `new World()` par défaut) ; `EditorWorldDemo` charge le monde par `AssetCatalog.GetByFileName` + `LoadCopy<World>` et ne crée rien. Constat : la caméra enregistrée dans ce monde est sous le sol ; la démo la recadre dans `InitializeCamera` et lui donne `ScriptArcBallCamera` (`DemosGame` passe la caméra de la vue active quand la démo n'en crée pas). Doc : section « A world made in the editor » de `docs/engine/demos-main-menu.md`, pas de page `docs/editor/` séparée. Build 0 erreur ; capture : sol, boîtes et lumières ; cycle PASS avec 29 démos. Reste à faire par l'auteur : ouvrir `Content/DemosGame.json` dans l'éditeur, modifier le monde, relancer la démo (non vérifié par l'agent).
+
 
 ---
 
@@ -331,7 +333,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | — | O1 à O4 du premier jet, puis base de la branche et dossier de sauvegarde : tranchés par l'auteur le 2026-11-14, voir D6 à D10. | — |
-| O1 | D7 demande que l'agent crée le `.world` par l'automatisation de l'éditeur, qui n'a aucune commande pour créer un monde ou une entité (`CasaEngine.Editor/EditorAutomationOptions.cs`). Que faire : (a) l'auteur crée le monde dans l'éditeur et l'agent écrit la démo ; (b) l'agent copie un monde déjà fait dans l'éditeur (`Projects/SampleProject/DefaultWorld.world`, 7 entités) avec ses assets dans `CasaEngine.Demos/Content/` ; (c) l'agent ajoute des commandes d'automatisation à l'éditeur (hors périmètre actuel : touche `CasaEngine.Editor`) ; (d) l'agent génère le monde en code par `EditorWorldWriter.SaveWorld` (le fichier n'est alors pas « fait dans l'éditeur »). | T3.2 |
+| — | O1 (monde de la démo éditeur) tranché par l'auteur le 2026-11-14 : copie de SampleProject, voir D11. | — |
 
 ## Hors périmètre
 
