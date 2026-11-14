@@ -313,7 +313,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 
 ## Phase 6 — Clôture
 
-### ⏳ T6.1 — Entrées des démos par la configuration du moteur
+### ⚠️ T6.1 — Entrées des démos par la configuration du moteur
 
 - Objectif : chaque action de chaque démo, du menu et du panneau d'aide passe par la configuration d'entrées du moteur, avec une touche et un bouton de manette ; la fiche et le panneau affichent les deux (D8).
 - Fichiers : toutes les démos qui lisent une entrée, `DemosGame.cs`, `DemoKeyboard.cs`, le type de ligne de contrôle de T1.1, la configuration d'entrées des démos dans `CasaEngine.Demos/Content/`, `docs/engine/demos-main-menu.md`, tests du menu.
@@ -324,6 +324,8 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
   4. Remplir la colonne manette des fiches depuis la configuration, pas à la main.
 - Validation : build, tests ; cycle à 0 ; contrôle `rg` de « Validation globale » ; manette réelle à vérifier par l'auteur (🧪 tant que non faite).
 - Commit : `feat(demos): read every demo action through the engine input mapping`
+- Note (2026-11-14), étape 1, chemin retenu, lu dans le code : un asset `.buttonsMapping` dans `CasaEngine.Demos/Content/` (format de `Projects/PixelUiSample/ui-input.buttonsMapping`), chargé par `AssetContentManager.LoadCopy<ButtonsMapping>`, chaque `InputMapping` ajouté à `game.InputComponent.InputMappingManager` (`AddInputMapping`), lu par `GetButtonState(nom)` ; la fiche lit `KeyButton.Key` et `AlternativeKeyButton.GamePadButton`. Aucune modification de `CasaEngine/` n'est nécessaire. Les démos n'ont pas de `PlayerController` : elles lisent le gestionnaire de la partie, pas `PlayerInput`. Limites du mécanisme (`InputMapping.cs:27-58`) : une action = une touche et une alternative, pas de combinaison (modificateur + bouton) ; `GetButtonState` lève une exception sur un nom inconnu.
+- Note (2026-11-14), étape 2 : **bloquée par O4**. Une manette offre 12 boutons libres (A, B, X, Y, LB, RB, LS, RS, croix x4 ; Start et Select sont pris par l'aide et le retour au menu), deux sticks et les gâchettes. Démos dont les actions n'y tiennent pas, touches relevées par `rg "Keys."` : `AudioDemo` 26 touches (B C D G H I J K L M N O P Q R S T U V, Espace, flèches, PageUp/PageDown) ; `AnimationBlendDemo` 21 (A D E Q R S W, 1 2 3 et pavé 1 2 3, Tab, Maj, Retour arrière, Espace, flèches) ; `AnimationIkDemo` 12 (I O P R V, Espace, Retour arrière, PageUp/PageDown, flèches) ; `ViewManagerSandbox` 8 (F5 à F9, Tab, Retour arrière, Espace). Les autres démos tiennent : au plus 6 actions chacune. Rien n'est modifié.
 
 ### ⏳ T6.2 — Doc, README et vérification
 
@@ -345,6 +347,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 | — | O1 (monde de la démo éditeur) tranché par l'auteur le 2026-11-14 : copie de SampleProject, voir D11. | — |
 | O2 | `SkinnedMeshDemo` règle `CastShadows` et `ReceiveShadows` par paire mais n'active pas `EnvironmentSettings.Shadows.Enabled` (éteint par défaut) : aucune ombre ne s'affiche. Un essai en activant les ombres avec les réglages de `StaticShadowValidationDemo` a montré de l'auto-ombrage mais pas d'ombre portée nette sur les personnages du fond (capture) ; l'essai est annulé. La fiche et `docs/engine/demos-check-notes.md` décrivent maintenant ce qui se voit. Faut-il faire de cette démo une vraie démo d'ombres (sol receveur, ombres activées), ou la laisser démo d'animation ? `docs/engine/light-component.md` la cite pour valider les ombres. | T1.4 |
 | O3 | D9 demande une sauvegarde dans le dossier de l'exécutable, mais `SaveGameService` n'a aucun constructeur public (`SaveGameService.cs:21-32`, `internal`) ; seul `GameSettings.SaveGames` existe, sous `LocalApplicationData`. Que faire : (a) rendre public `SaveGameService(string folderPath)` (changement additif de l'API du moteur, à noter dans ADR-0044) ; (b) la démo utilise `GameSettings.SaveGames` et écrit sous `LocalApplicationData/DemosGame/SaveGames` (contraire à D9) ; (c) pas de démo de sauvegarde. **Résolu le 2026-11-14 : (a), « Oui, rends-le public ».** | T5.4 |
+| O4 | T6.1 : quatre démos ont plus d'actions qu'une manette n'a de boutons (`AudioDemo` 26, `AnimationBlendDemo` 21, `AnimationIkDemo` 12, `ViewManagerSandbox` 8 dont F5 à F9), et `InputMapping` ne sait pas lire une combinaison. Que faire : (a) toutes les démos passent par la configuration d'entrées ; dans ces quatre démos, seules les actions principales reçoivent un bouton, les autres restent au clavier et la fiche laisse la colonne manette vide ; (b) ces quatre démos restent telles quelles (clavier direct), T6.1 ne couvre que les autres ; (c) ajouter les combinaisons à `InputMapping` (modification du moteur et du format `.buttonsMapping`, hors périmètre du chantier). | T6.1, T6.2 |
 
 ## Hors périmètre
 
