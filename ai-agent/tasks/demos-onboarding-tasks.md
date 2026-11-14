@@ -337,6 +337,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 |---|---|---|
 | — | O1 à O4 du premier jet, puis base de la branche et dossier de sauvegarde : tranchés par l'auteur le 2026-11-14, voir D6 à D10. | — |
 | — | O1 (monde de la démo éditeur) tranché par l'auteur le 2026-11-14 : copie de SampleProject, voir D11. | — |
+| O2 | `SkinnedMeshDemo` règle `CastShadows` et `ReceiveShadows` par paire mais n'active pas `EnvironmentSettings.Shadows.Enabled` (éteint par défaut) : aucune ombre ne s'affiche. Un essai en activant les ombres avec les réglages de `StaticShadowValidationDemo` a montré de l'auto-ombrage mais pas d'ombre portée nette sur les personnages du fond (capture) ; l'essai est annulé. La fiche et `docs/engine/demos-check-notes.md` décrivent maintenant ce qui se voit. Faut-il faire de cette démo une vraie démo d'ombres (sol receveur, ombres activées), ou la laisser démo d'animation ? `docs/engine/light-component.md` la cite pour valider les ombres. | T1.4 |
 
 ## Hors périmètre
 

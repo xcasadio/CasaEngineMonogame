@@ -33,14 +33,15 @@ public class SkinnedMeshDemo : Demo
 
     public override string Title => "Skinned mesh demo";
     public override string Description =>
-        "Animated skinned characters with shadows, in three columns: a caster shadowing a receiver, the same " +
-        "with ReceiveShadows off on the receiver, and the same with CastShadows off on the caster.";
+        "Animated skinned characters, in three pairs: a large one in front (linear blend skinning) and a small one " +
+        "behind (dual quaternion skinning). Every 2.5 seconds all of them change animation, alternating a " +
+        "cross-fade and an inertialized transition. Each pair sets CastShadows and ReceiveShadows differently.";
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
     {
-        "Left: the animated character casts its shadow on the receiver.",
-        "Centre: the receiver ignores shadows. Right: the character casts none.",
+        "All six characters change clip together, with a smooth transition instead of a pop.",
         "The left character is tinted orange by a per-component material override.",
+        "The shadow flags differ per pair, but this world does not turn shadows on: the pairs look alike.",
     };
 
     public override string DocumentationPath => "docs/engine/light-component.md";

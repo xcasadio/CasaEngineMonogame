@@ -45,13 +45,16 @@ dotnet run --project CasaEngine.Demos/CasaEngine.Demos.csproj -c Debug --no-buil
 
 ## Skinned mesh demo
 
-Animated skinned characters with forward shadows, in three columns (`SkinnedMeshDemo.cs`). Every character uses
-linear blend skinning.
+Animated skinned characters in three pairs (`SkinnedMeshDemo.cs`): a large character in front, with linear blend
+skinning, and a small one behind, with dual quaternion skinning. Every 2.5 seconds all of them change animation,
+alternating a cross-fade and an inertialized transition.
 
-- Left: the character casts its shadow on the receiver. Its material is a per-component override, tinted orange
+- Left pair: the front character has a per-component material override, tinted orange
   (`SkinnedMeshComponent.Material`).
-- Centre: same caster, `ReceiveShadows` off on the receiver.
-- Right: `CastShadows` off on the caster.
+- The pairs set `CastShadows` and `ReceiveShadows` differently (left: cast and receive; centre: `ReceiveShadows` off
+  on the back character; right: `CastShadows` off on the front character).
+- Limit: the demo does not set `EnvironmentSettings.Shadows.Enabled`, which is off by default, so no shadow shows and
+  the three pairs look alike. `StaticShadowValidationDemo` does turn shadows on.
 
 Start it with `CASAENGINE_START_DEMO=Skinned mesh demo`; add `CASAENGINE_CAPTURE_SCREENSHOT_PATH` to capture a frame
 and exit.
