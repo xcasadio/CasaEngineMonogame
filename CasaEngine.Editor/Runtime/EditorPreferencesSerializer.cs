@@ -148,8 +148,20 @@ internal static class EditorPreferencesSerializer
     private static bool TryReadNumber(JToken token, out double value)
     {
         value = 0;
-        return token.Type is JTokenType.Float or JTokenType.Integer
-            && double.TryParse(token.ToString(Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        if (token.Type is not (JTokenType.Float or JTokenType.Integer))
+        {
+            return false;
+        }
+
+        // A double already read by Newtonsoft (including 1e400, Infinity and NaN, which it writes back quoted) is used
+        // as is, so EditorPreferences.Clamp bounds it; other numbers (BigInteger beyond Int64) go through their text.
+        if (token is JValue { Value: double number })
+        {
+            value = number;
+            return true;
+        }
+
+        return double.TryParse(token.ToString(Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
     }
 
     private static bool ReadBool(JObject block, string key, bool fallback, Action<string> warn)

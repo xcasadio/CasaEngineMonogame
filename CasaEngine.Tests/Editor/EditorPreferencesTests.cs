@@ -107,6 +107,31 @@ public sealed class EditorPreferencesTests : IDisposable
         Assert.Equal(3, warnings.Count);
     }
 
+    /// <summary>Verifier finding F2: infinite literals are clamped like any out-of-range value, with a range warning.</summary>
+    [Theory]
+    [InlineData("1e400", 1000f)]
+    [InlineData("-1e400", 0.1f)]
+    [InlineData("Infinity", 1000f)]
+    [InlineData("-Infinity", 0.1f)]
+    [InlineData("NaN", 0.1f)]
+    public void Serializer_InfiniteLiterals_AreClamped(string literal, float expected)
+    {
+        var warnings = new List<string>();
+
+        Assert.True(EditorPreferencesSerializer.TryRead("{\"camera_3d\":{\"fly_speed\":" + literal + "}}", warnings.Add, out var read));
+
+        Assert.Equal(expected, read.Camera3d.FlySpeed);
+        Assert.Contains("outside", Assert.Single(warnings));
+    }
+
+    [Fact]
+    public void Serializer_InfiniteZoomSteps_AreClampedToTheMaximum()
+    {
+        Assert.True(EditorPreferencesSerializer.TryRead("{\"camera_2d\":{\"zoom_steps_per_notch\":1e400}}", null, out var read));
+
+        Assert.Equal(5, read.Camera2d.ZoomStepsPerNotch);
+    }
+
     /// <summary>Verifier finding F1: integer literals beyond Int64 / Int32 used to throw instead of being clamped.</summary>
     [Fact]
     public void Serializer_HugeIntegerLiterals_AreClampedOrReported_NotThrown()
