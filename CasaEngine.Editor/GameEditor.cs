@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Logging;
+using CasaEngine.Editor.Remote;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.ContentBrowser.Models;
@@ -60,7 +61,7 @@ using Thickness = MonoGame.Extended.Thickness;
 
 namespace CasaEngine.Editor;
 
-public class GameEditor : Game, IObservableUpdate
+public partial class GameEditor : Game, IObservableUpdate
 {
     private readonly record struct AssetDocumentRoute(string Extension, Func<string, bool> TryOpenDocument);
 
@@ -160,6 +161,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly EditorDirtyStateService _editorDirtyState = EditorDirtyStateService.Current;
     private HostedEditorGameAdapter _editorRuntime;
     private EditorPlayModeService _playModeService;
+    private EditorRemoteControl _remoteControl;
     private EditorPlaySessionController _playSessionController;
     private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private EditorProjectAudioMuteSync _projectAudioMuteSync;
@@ -474,6 +476,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             // Companion viewport state only: the docking layout keeps its explicit save command.
             SavePersistedViewportViewState();
+            _remoteControl?.Dispose();
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             EditorProjectAuthoringService.ProjectClosed -= OnProjectClosedDetachAudioMixers;
@@ -561,6 +564,15 @@ public class GameEditor : Game, IObservableUpdate
             item.Submenu.AddButton("Reset Layout", _ => ResetDockLayout());
         });
 
+        // Tools menu: remote control for the casa-editor CLI and the MCP server (ADR-0092), off by default.
+        _menuBar.AddItem("Tools", item =>
+        {
+            item.Submenu = new MGContextMenu(_mainWindow, null)
+            {
+                ItemsFactory = BuildToolsMenu,
+            };
+        });
+
         // Help menu
         _menuBar.AddItem("Help", item =>
         {
@@ -583,6 +595,27 @@ public class GameEditor : Game, IObservableUpdate
         menu.AddButton("Cut", _ => ExecuteCut());
         menu.AddButton("Copy", _ => ExecuteCopy());
         menu.AddButton("Paste", _ => ExecutePaste());
+    }
+
+    private void BuildToolsMenu(MGContextMenu menu)
+    {
+        MGContextMenuToggle remoteToggle = menu.AddCheckBox("Remote Control", _remoteControl?.IsRunning == true);
+        remoteToggle.OnToggled += (_, isChecked) =>
+        {
+            if (_remoteControl == null)
+            {
+                return;
+            }
+
+            if (isChecked)
+            {
+                _remoteControl.Start();
+            }
+            else
+            {
+                _remoteControl.Stop();
+            }
+        };
     }
 
     private static string BuildHistoryMenuLabel(string prefix, string description)
@@ -1071,9 +1104,10 @@ public class GameEditor : Game, IObservableUpdate
 
     private void UpdateWindowTitle()
     {
-        Window.Title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
+        string title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
             ? "CasaEngine Editor"
             : $"CasaEngine Editor - {GameSettings.ProjectSettings.ProjectName}";
+        Window.Title = _remoteControl?.IsRunning == true ? title + " [Remote Control]" : title;
     }
 
     private void ApplyEditorTheme()
@@ -1123,6 +1157,14 @@ public class GameEditor : Game, IObservableUpdate
             : EditorPreferencesStore.DefaultFilePath;
         _editorRuntime.Preferences = new EditorPreferencesStore(preferencesPath);
         _editorRuntime.Preferences.Load();
+
+        // ADR-0092: remote control for the casa-editor CLI and the MCP server, off unless --remote or the Tools menu.
+        _remoteControl = new EditorRemoteControl(new GameEditorRemoteHost(this));
+        _remoteControl.RunningChanged += UpdateWindowTitle;
+        if (_automationOptions.StartRemoteControl)
+        {
+            _remoteControl.Start();
+        }
 
         _editorRuntime.ContentPath = Path.Combine(AppContext.BaseDirectory, "Content");
 
@@ -2898,6 +2940,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _editorRuntime?.Preferences?.Flush();
+        _remoteControl?.Stop();
         base.OnExiting(sender, args);
     }
 
@@ -6421,6 +6464,9 @@ public class GameEditor : Game, IObservableUpdate
         {
             ProcessPendingProjectLauncherAction();
         }
+
+        // ADR-0092: remote commands run here, before the runtime and the panels update, so they see the change this frame.
+        _remoteControl?.Pump();
 
         using (EditorPerformanceProbe.BeginPhase("ShaderHotReload.Process"))
         {
