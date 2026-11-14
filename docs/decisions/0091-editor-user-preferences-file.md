@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
-- **Source**: this chantier: `ai-agent/tasks/editor-mouse-preferences-tasks.md` (decisions D1 to D5 and proposals P1 to P8, settled with the author on 2026-11-14), branch `chantier/editor-mouse-preferences`. Follows ADR-0089. Numbered ADR-0091 because ADR-0090 is taken on branch `chantier/demos-onboarding`.
+- **Source**: this chantier: `ai-agent/tasks/archive/editor-mouse-preferences-tasks.md` (decisions D1 to D5 and proposals P1 to P8, settled with the author on 2026-11-14), branch `chantier/editor-mouse-preferences`. Follows ADR-0089. Numbered ADR-0091 because ADR-0090 is taken on branch `chantier/demos-onboarding`.
 
 ## Context
 

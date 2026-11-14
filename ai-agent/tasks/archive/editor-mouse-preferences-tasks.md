@@ -1,6 +1,6 @@
 # Plan agent IA — Préférences souris et caméra de l'éditeur
 
-Suite du chantier [unreal-viewport-camera-tasks.md](archive/unreal-viewport-camera-tasks.md) (ADR-0089), demandée par l'auteur le 2026-11-14 : « rajouter un panneau de config dans l'éditeur pour paramétrer la souris de l'éditeur avec un fichier JSON de paramètres pour l'éditeur ».
+Suite du chantier [unreal-viewport-camera-tasks.md](unreal-viewport-camera-tasks.md) (ADR-0089), demandée par l'auteur le 2026-11-14 : « rajouter un panneau de config dans l'éditeur pour paramétrer la souris de l'éditeur avec un fichier JSON de paramètres pour l'éditeur ».
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur le 2026-11-14 : **ce plan les applique, il ne les rediscute pas**.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
@@ -112,7 +112,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 
 ## Phase 1 — Application aux caméras
 
-### 🧪 T1.1 — Caméra 3D : réglages, inversion de Y, vitesse de vol mémorisée
+### ✅ T1.1 — Caméra 3D : réglages, inversion de Y, vitesse de vol mémorisée
 
 - Objectif : D2 pour le viewport 3D.
 - Fichiers : `CasaEngine/Framework/Scene/Cameras/ViewportCameraNavigation.cs` (`InvertY`, additif, P5), `CasaEngine.Tests/Scene/ViewportCameraNavigationTests.cs`, `CasaEngine.Editor/Runtime/EditorViewportCameraController.cs` (`ApplyPreferences(Camera3dPreferences)`, vitesse de vol remontée quand elle change), `CasaEngine.Editor/Runtime/HostedEditorGameAdapter.cs` (propriété `Preferences`, P8), `CasaEngine.Editor/Controls/WorldViewportPanel.cs` (application à la création, abonnement à `Changed`, désabonnement dans `Dispose`), `CasaEngine.Editor/GameEditor.cs` (création et chargement du magasin au lancement, `FlushIfDue` dans `Update`, `Flush` à la fermeture). Les trois autres sites de création (`GameEditor.cs:3586`, `Animation2dAssetInspectorPanel.cs:261`, `EntityAssetEditorPanel.cs:82`) passent déjà le même `HostedEditorGameAdapter` : vérifier qu'ils n'ont rien à changer.
@@ -124,7 +124,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 - Commit : `feat(editor): apply the user preferences to the 3D viewport camera`
 - Note de validation (2026-11-14) : `ViewportCameraNavigation.InvertY` (additif) et 2 tests ; `EditorViewportCameraController.ApplyPreferences` et `FlySpeed`, 2 tests ; `HostedEditorGameAdapter.Preferences` ; chaque `WorldViewportPanel` applique les préférences à sa création, s'abonne à `Changed` par un délégué mis en cache, se désabonne dans `Dispose`, et remonte la vitesse de vol au magasin après la caméra. Les trois autres sites de création passent déjà le même adaptateur : rien à changer. `GameEditor` crée et charge le magasin juste après l'adaptateur, appelle `FlushIfDue` au début d'`Update` et `Flush` dans `OnExiting`. Ajout non prévu par le plan : en mode automatisation, fichier temporaire (`%TEMP%/CasaEngine/editor.preferences.automation.json`) pour ne pas toucher au fichier de l'utilisateur. Le désabonnement est couvert par le test du magasin, pas par un test du panneau (il demande une fenêtre MGUI). Les deux `.sln` buildent ; `CasaEngine.Tests` 5129/5129. **Manque** : smoke (viewport monde et aperçu d'entité), reporté à la recette T3.2.
 
-### 🧪 T1.2 — Caméra 2D : vitesse de pan, crans de zoom, inversion de Y
+### ✅ T1.2 — Caméra 2D : vitesse de pan, crans de zoom, inversion de Y
 
 - Objectif : D2 pour la vue 2D.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewport2dCameraController.cs`, ses tests s'ils existent (`rg -l EditorViewport2dCameraController CasaEngine.Tests`), `CasaEngine.Editor/Controls/WorldViewportPanel.cs`.
@@ -137,7 +137,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 
 ## Phase 2 — Panneau
 
-### 🧪 T2.1 — Panneau dockable « Editor Preferences »
+### ✅ T2.1 — Panneau dockable « Editor Preferences »
 
 - Objectif : D3.
 - Fichiers : `CasaEngine.Editor/Controls/EditorPreferencesPanel.cs` (nouveau), `CasaEngine.Editor/Workspaces/EditorPanelIds.cs` (`EditorPreferences`), `CasaEngine.Editor/GameEditor.cs` (`Windows > Editor Preferences`, ouverture comme `OpenAudioProfilerPanel`).
@@ -162,12 +162,12 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 - Commit : `docs(editor): document the editor preferences panel and file`
 - Note de validation (2026-11-14) : `docs/editor/editor-preferences.md` (panneau, fichier, tableau des clés avec défauts et bornes, lecture tolérante, écriture différée, limites) ; renvois dans `docs/editor/viewport-camera-controls.md` ; ligne dans `docs/README.md`.
 
-### 🧪 T3.2 — Vérification indépendante et recette de l'auteur
+### ✅ T3.2 — Vérification indépendante et recette de l'auteur
 
 - Étapes : validation globale ; vérificateur neuf (`verifier`) sur la branche (format tolérant, bornes, aucun accès disque par image, runtime indépendant du fichier, défauts identiques à l'existant) ; recette de l'auteur.
 - Validation : CONFIRMED et accord de l'auteur ; sinon 🧪 avec ce qui manque.
 - Commit : `docs(ai-agent): record the check of the editor preferences`
-- Note de validation (2026-11-14) : trois passes de vérificateur neuf. Passe 1 **REFUTED** : F1 (P2), un entier au-delà d'Int64 ou une `version` au-delà d'Int32 levait une exception jusqu'à l'ouverture du projet ; corrigé en `59f90efc` (nombres lus depuis leur texte, filet dans `Load`, avertissements en culture invariante). Passe 2 **REFUTED** : F2 (P2), `1e400` et `Infinity` pris pour « pas un nombre » au lieu d'être bornés ; corrigé en `4d0221f1`. Passe 3 **CONFIRMED** sur `4d0221f1` : contrat d'ADR-0091 tenu, rien d'autre changé, les deux `.sln` buildent, `CasaEngine.Tests` 5141/5141, le vrai `%APPDATA%/CasaEngine` jamais écrit. Avis P4 reportés : `zoom_steps_per_notch` arrondi sans avertissement et affiché saturé dans l'avertissement, `version` non entière lue comme 1, avertissement `invert_y` sans le nom du bloc, `version` infinie affichée entre guillemets, extensions Newtonsoft (hexadécimal, commentaires) acceptées. **Manque** : recette de l'auteur (T1.1, T1.2, T2.1), éditeur lancé depuis le worktree hors de l'app Claude.
+- Note de validation (2026-11-14) : trois passes de vérificateur neuf. Passe 1 **REFUTED** : F1 (P2), un entier au-delà d'Int64 ou une `version` au-delà d'Int32 levait une exception jusqu'à l'ouverture du projet ; corrigé en `59f90efc` (nombres lus depuis leur texte, filet dans `Load`, avertissements en culture invariante). Passe 2 **REFUTED** : F2 (P2), `1e400` et `Infinity` pris pour « pas un nombre » au lieu d'être bornés ; corrigé en `4d0221f1`. Passe 3 **CONFIRMED** sur `4d0221f1` : contrat d'ADR-0091 tenu, rien d'autre changé, les deux `.sln` buildent, `CasaEngine.Tests` 5141/5141, le vrai `%APPDATA%/CasaEngine` jamais écrit. Avis P4 reportés : `zoom_steps_per_notch` arrondi sans avertissement et affiché saturé dans l'avertissement, `version` non entière lue comme 1, avertissement `invert_y` sans le nom du bloc, `version` infinie affichée entre guillemets, extensions Newtonsoft (hexadécimal, commentaires) acceptées. Recette de l’auteur acceptée le 2026-11-14 (« recette ok »), éditeur lancé depuis le worktree ; seul retour : il manquait une barre de défilement verticale au panneau, ajoutée en `b94f2583`.
 
 ---
 
