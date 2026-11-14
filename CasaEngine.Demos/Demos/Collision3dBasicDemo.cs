@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Engine.Geometry;
+using System.Collections.Generic;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
@@ -14,7 +15,17 @@ namespace CasaEngine.Demos.Demos;
 public class Collision3dBasicDemo : Demo
 {
     public override string Title => "Collision 3d basic demo";
-    public override string Description => "Demonstrates basic 3D collision detection between dynamic rigid bodies (spheres, boxes) with gravity and restitution.";
+    public override string Description =>
+        "Rigid bodies in 3D: a stack of dynamic boxes falls on a static ground. Each box is an entity with a " +
+        "mesh and a CollisionComponent; the physics world moves the entity.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The green wireframes are the physics debug view: the collider of each body, as the physics world sees it.",
+        "The ground is a static body (mass 0); the boxes are dynamic bodies (mass 1).",
+    };
+
+    public override string DocumentationPath => "docs/engine/collision-2d-3d-architecture.md";
 
     public override void Initialize(CasaEngineGame game)
     {

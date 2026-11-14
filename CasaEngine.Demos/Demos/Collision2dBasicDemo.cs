@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
@@ -15,7 +16,16 @@ namespace CasaEngine.Demos.Demos;
 public class Collision2dBasicDemo : Demo
 {
     public override string Title => "Collision 2d basic demo";
-    public override string Description => "Demonstrates basic 2D collision detection and physics response between sprites and static surfaces.";
+    public override string Description =>
+        "Rigid bodies in 2D: boxes kept in a plane fall on static surfaces and pile up.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The same CollisionComponent as in 3D: LinearFactor and AngularFactor keep each body in the plane.",
+        "The wireframes are the physics debug view.",
+    };
+
+    public override string DocumentationPath => "docs/engine/collision-2d-3d-architecture.md";
 
     const int ARRAY_SIZE_X = 5;
     const int ARRAY_SIZE_Y = 5;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Application;
@@ -29,7 +30,24 @@ public sealed class CutsceneNavigateToDemo : Demo
 
     public override string Title => "Cutscene NavigateTo demo";
 
-    public override string Description => "Validates the cutscene NavigateTo action through NavigationAgentComponent and CharacterControllerNavigationDriverComponent. [Space]/[R] restart from start, [S] stops playback.";
+    public override string Description =>
+        "A cutscene asset sends an actor through a navigation grid: the NavigateTo action asks the cube's " +
+        "NavigationAgentComponent for a path, and a CharacterControllerNavigationDriverComponent walks it.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Space", "restart the cutscene from the start"),
+        new("S", "stop the cutscene where it is"),
+        new("R", "put the actor back on the start marker and restart"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The cube follows the path of a NavigationGrid2D, not a straight line.",
+        "The cutscene is data: Content/Cutscenes/navigate_to_grid.cutscene.",
+    };
+
+    public override string DocumentationPath => "docs/engine/navigation-engine-features.md";
 
     public override void Initialize(CasaEngineGame game)
     {

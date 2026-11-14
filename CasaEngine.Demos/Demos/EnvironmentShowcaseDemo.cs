@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Environment;
@@ -24,8 +25,23 @@ public sealed class EnvironmentShowcaseDemo : Demo
     public override string Title => "Environment showcase";
 
     public override string Description =>
-        "Global environment cubemap with explicit separation between visible background and environment-driven ambient/specular response. " +
-        "B = toggle sky background, E = cycle environment cubemap, L = toggle environment lighting contribution.";
+        "One environment cubemap lights the scene (ambient and reflections) while the visible background is " +
+        "chosen separately. Switch each of them and watch what changes.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("B", "switch the background between the cubemap and a plain colour"),
+        new("E", "cycle the environment cubemap"),
+        new("L", "turn the environment lighting on or off"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "With B the background changes but the reflections keep the current cubemap.",
+        "With L the ambient and specular response changes but the background stays.",
+    };
+
+    public override string DocumentationPath => "docs/engine/environment-system-v1.md";
 
     public override void Initialize(CasaEngineGame game)
     {

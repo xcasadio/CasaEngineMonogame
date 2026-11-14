@@ -78,7 +78,30 @@ public class AnimationBlendDemo : Demo
 
     public override string Title => "Animation blend demo";
 
-    public override string Description => "Animation showcase for the modern runtime: linear blend trees, 1D/2D blend spaces, baseline and advanced cross-fades, masked upper-body override layers with events, additive breathing, and root-motion observe/apply. Use Tab to cycle the showcase pages.";
+    public override string Description =>
+        "The animation runtime, page by page: blend trees, 1D and 2D blend spaces, cross-fades, an upper-body " +
+        "layer with events, additive breathing and root motion. The text on screen names the current page and " +
+        "its keys.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Tab", "next page (Shift + Tab: previous page)"),
+        new("Backspace", "put the character back at the origin"),
+        new("W", "walk (Shift + W: run); W A D explore the directions on the 2D blend page"),
+        new("1 2 3", "choose the target clip (cross-fade pages)"),
+        new("E, R", "cycle the easing, keep or drop the velocity (advanced cross-fade page)"),
+        new("Q, E", "lower or raise the layer weight (upper-body page)"),
+        new("Space", "trigger the upper-body action or the root-motion burst"),
+        new("R", "observe or apply the root motion (root-motion page)"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The on-screen text shows the live blend weights of each clip.",
+        "On the root-motion page the character moves by the motion of its animation.",
+    };
+
+    public override string DocumentationPath => "docs/engine/animation-blend-demo.md";
 
     public override void Initialize(CasaEngineGame game)
     {

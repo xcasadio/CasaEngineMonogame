@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Primitives.ThreeD;
+using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -28,7 +29,16 @@ public class RenderToTextureDemo : Demo
     private CasaEngineGame? _game;
 
     public override string Title => "Render-to-texture demo";
-    public override string Description => "Renders a 3D scene into a RenderTarget2D and then displays that texture on a quad in the main scene.";
+    public override string Description =>
+        "A second camera renders the scene into a texture, and that texture is shown on a quad inside the " +
+        "main scene.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The quad shows the scene from another point of view, live.",
+    };
+
+    public override string DocumentationPath => "docs/engine/rendering-2d-3d-spaces.md";
 
     public override void Initialize(CasaEngineGame game)
     {

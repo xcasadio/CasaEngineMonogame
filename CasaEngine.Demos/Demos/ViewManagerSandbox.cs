@@ -54,7 +54,24 @@ public class ViewManagerSandbox : Demo
     private float _displayFps;
 
     public override string Title => "ViewManager v2 Sandbox";
-    public override string Description => "Comprehensive sandbox for the ViewManager v2 system: multi-view split screen, dynamic add/remove views, UpdateMode cycling (RealTime/Throttled/OnDemand), and debug overlays.";
+    public override string Description =>
+        "A sandbox for views: add and remove views at run time, change how often each one is redrawn (every " +
+        "frame, throttled, on demand) and show the debug overlay.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Tab", "add a view (up to 4)"),
+        new("Backspace", "remove the last view"),
+        new("F6 to F9", "cycle the update mode of view 1 to 4"),
+        new("F5", "show or hide the debug overlay of view 1"),
+        new("Space", "redraw the views that are on demand"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "An on-demand view keeps its last image until you press Space.",
+        "The render-target count stays stable when views are added and removed.",
+    };
 
     // ---- Demo lifecycle ----
 

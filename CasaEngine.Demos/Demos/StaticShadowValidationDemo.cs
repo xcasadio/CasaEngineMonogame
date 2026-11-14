@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Environment;
@@ -17,7 +18,17 @@ public sealed class StaticShadowValidationDemo : Demo
 
     public override string Title => "Static shadow validation demo";
 
-    public override string Description => "Validates forward directional shadows on static meshes with three columns: left keeps normal cast/receive, center disables ReceiveShadows on the receivers, and right disables CastShadows on the caster while keeping the same world shadow-map settings.";
+    public override string Description =>
+        "Directional shadows on static meshes, in three columns: normal cast and receive, ReceiveShadows off " +
+        "on the receivers, CastShadows off on the caster. The reference scene for checking shadow rendering.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "Left: the shadow of the caster lies on the receivers.",
+        "Centre: no shadow on the receivers. Right: the caster casts none.",
+    };
+
+    public override string DocumentationPath => "docs/engine/light-component.md";
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {

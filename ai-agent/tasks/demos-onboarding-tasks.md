@@ -142,7 +142,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): replace the back hint with a collapsible help panel`
 - Note de validation (2026-11-14) : panneau `demo-help.xaml` / `DemoHelpOverlay` en bas à droite (titre, contrôles, caméra par défaut si la démo garde `ScriptArcBallCamera`, à observer), visible au lancement, replié par F1 ou Start. Écart au plan : `demo-hint.xaml` est gardé comme ligne de rappel (« F1 / Start: help, Esc / Select: back to the menu », 440 px) au lieu d'être remplacé. Contrôles de caméra lus dans `docs/editor/viewport-camera-controls.md`. Aucune démo ne lit F1 ni Start (`rg`). Les HUD existants sont en haut à gauche ou à droite : pas de recouvrement vu sur Collision 3d et Audio (captures avec la nouvelle variable `CASAENGINE_DEMO_SHOW_HELP`, qui garde le panneau dans une capture). Build 0 erreur ; tests du menu et des écrans 58/58 ; `CASAENGINE_DEMO_CYCLE=60` : PASS, 101 étapes, code 0. Constat hors tâche : dans le cycle, la seconde visite de Frozen frame journalise `FAIL D6c` (CaptureCount 4 au lieu de 2) ; la démo seule donne `result=PASS`. Non corrigé.
 
-### ⏳ T1.4 — Fiches des 25 démos
+### 🧪 T1.4 — Fiches des 25 démos
 
 - Objectif : chaque démo a une description en trois temps (ce que ça montre, quoi essayer, quelles classes regarder), ses contrôles vérifiés dans son `Update`, ses points « à observer » et son lien doc quand un fichier de `docs/engine/` existe. La colonne manette des contrôles est remplie en T6.1.
 - Fichiers : les 25 `CasaEngine.Demos/Demos/*Demo.cs` et `ViewManagerSandbox.cs`.
@@ -153,6 +153,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   4. Appliquer P5 à Scene management.
 - Validation : build ; `CASAENGINE_DEMO_CYCLE=60` à 0 ; relecture par l'auteur d'au moins une fiche par thème (🧪 tant que non faite).
 - Commit : `docs(demos): rewrite every demo sheet for a first-time user`
+- Note de validation (2026-11-14) : les 25 démos ont une description réécrite, leurs contrôles relevés dans leur `Update` (et dans `PlayerComponent` pour Tile map), leurs points à observer et leur page de doc quand elle existe ; identifiants internes et « Validates » retirés ; Scene management décrit ce que fait le code (P5). Affirmations vérifiées dans le code une à une, cinq corrigées après relecture. Build 0 erreur ; `CASAENGINE_DEMO_CYCLE=30` : PASS, 101 étapes ; capture d'Animation IK avec le panneau rempli. Colonne manette vide jusqu'à T6.1. Reste à faire par l'auteur : relire une fiche par thème.
 
 ### ⏳ T1.5 — Docs contradictoires et README racine
 

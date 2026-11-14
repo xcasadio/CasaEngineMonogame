@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
@@ -27,7 +28,25 @@ public sealed class CutsceneMoveToDemo : Demo
 
     public override string Title => "Cutscene MoveTo demo";
 
-    public override string Description => "Validates the cutscene asset pipeline with a direct MoveTo action driving a CharacterController. [Space]/[R] restart from start, [S] stops the current playback.";
+    public override string Description =>
+        "A cutscene asset moves an actor: the red cube walks from the blue marker to the yellow one, driven " +
+        "by a MoveTo action on its CharacterController. Restart it, stop it halfway, and see the cube come " +
+        "back under player control.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Space", "restart the cutscene from the start"),
+        new("S", "stop the cutscene where it is"),
+        new("R", "put the actor back on the start marker and restart"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The cutscene is data: Content/Cutscenes/move_to_direct.cutscene, played by a CutsceneDirector.",
+        "Stopping leaves the actor where it is, with its control mode restored.",
+    };
+
+    public override string DocumentationPath => "docs/engine/cutscene_commandes_sequentielles_async_coroutine.md";
 
     public override void Initialize(CasaEngineGame game)
     {

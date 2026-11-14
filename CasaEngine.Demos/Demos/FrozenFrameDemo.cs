@@ -67,7 +67,17 @@ public class FrozenFrameDemo : Demo
     public override string Title => "Frozen frame demo";
 
     public override string Description =>
-        "E19.TR-4a: the engine keeps the image of the previous frame and shows it frozen, user interface included. A scripted run (virtual resolution 320 x 240, a resize while the image is shown, a veil, a second request, the option turned off) reads the back buffer and checks it against predictions drawn from the colours it poses.";
+        "The engine can keep the image of the previous frame and show it frozen, user interface included, " +
+        "while the scene behind it changes. This demo runs a scripted sequence and checks the back buffer by " +
+        "itself; there is nothing to press.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The picture stops while the scene colours keep changing behind it, then the live scene comes back.",
+        "The result of the checks is written to log.txt (result=PASS).",
+    };
+
+    public override string DocumentationPath => "docs/engine/frozen-frame.md";
 
     public override void Initialize(CasaEngineGame game)
     {

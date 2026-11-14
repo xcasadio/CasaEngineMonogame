@@ -1,4 +1,5 @@
 using System.IO;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Dialogue.Assets;
 using CasaEngine.Framework.Dialogue.Runtime;
@@ -45,7 +46,22 @@ public class UIOverlayDemo : Demo
     private KeyboardState    _previousKeyboard;
 
     public override string Title => "MGUI UI Overlay Demo (HUD + Modal Screens)";
-    public override string Description => "Demonstrates the MGUI per-view UI overlay system: a persistent HUD panel, modal pause menu, and modal dialogue screen. Press D in this demo to toggle the dialogue test line.";
+    public override string Description =>
+        "Game UI over a scene: a HUD that stays on screen, a modal pause menu and a modal dialogue. A modal " +
+        "screen takes the input until it closes.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Mouse", "use the HUD buttons (pause menu, dialogue)"),
+        new("D", "open or close the dialogue line"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "While a modal screen is open, the HUD buttons below it do not react.",
+    };
+
+    public override string DocumentationPath => "docs/engine/casaengine-mgui-backend.md";
 
     // ---- Demo lifecycle ----
 

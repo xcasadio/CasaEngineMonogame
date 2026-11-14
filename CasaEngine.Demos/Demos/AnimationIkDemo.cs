@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 using CasaEngine.Framework.Animations;
@@ -53,7 +54,28 @@ public class AnimationIkDemo : Demo
 
     public override string Title => "Animation IK demo";
 
-    public override string Description => "Real skinned-character IK showcase: a live two-bone chain is selected from the skeleton, then driven by a movable target with 3D debug visualization and runtime weight control.";
+    public override string Description =>
+        "Inverse kinematics on a skinned character: a two-bone chain of the skeleton reaches a target that " +
+        "orbits by itself or that you move.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Space", "start or stop the automatic orbit of the target"),
+        new("Arrows, Page Up, Page Down", "move the target by hand"),
+        new("I", "turn the IK on or off"),
+        new("O, P", "lower or raise the IK weight"),
+        new("V", "show or hide the skeleton"),
+        new("Backspace", "put the target back on the current pose"),
+        new("R", "reset the character and the target"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The debug lines show the chain, the target and the pole direction.",
+        "At weight 0 the arm plays its animation; at weight 1 it reaches the target.",
+    };
+
+    public override string DocumentationPath => "docs/engine/animation-ik-demo.md";
 
     public override void Initialize(CasaEngineGame game)
     {

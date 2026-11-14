@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Particles;
@@ -21,7 +22,16 @@ public sealed class ParticleSystemDemo : Demo
     public override string Title => "Particle system demo";
 
     public override string Description =>
-        "CPU particle runtime with looping additive fire, recurring spark bursts, alpha smoke puffs, billboards, sorting and per-view render stats.";
+        "The CPU particle system: a looping additive fire, recurring spark bursts and alpha-blended smoke " +
+        "puffs, drawn as sorted billboards.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "Three emitters, three blend setups: additive fire and sparks, alpha smoke.",
+        "The billboards always face the camera: orbit around the fire to see it.",
+    };
+
+    public override string DocumentationPath => "docs/engine/particle-system-features.md";
 
     public override void Initialize(CasaEngineGame game)
     {

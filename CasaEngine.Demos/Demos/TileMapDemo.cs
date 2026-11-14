@@ -33,7 +33,24 @@ public class TileMapDemo : Demo
     private enum FadeSmokeState { Idle, FadingOut, FadingIn }
 
     public override string Title => "Tile map demo";
-    public override string Description => "Renders a tile map loaded from sprite and 2D animation assets using the CasaEngine tile map system. Press 1/2 for the above-UI screen effect smoke (T2.2), a modern alpha fade to black and back (SpriteBlendMode.AlphaBlend): 1 fades BelowUI (default, the HUD below stays lit), 2 fades AboveUI (the HUD darkens with the scene).";
+    public override string Description =>
+        "A tile map loaded from assets, with an animated character you walk around it; a 2D camera frames the " +
+        "map. Keys 1 and 2 fade the screen to black and back, below or above the HUD.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Arrow keys", "walk the character"),
+        new("1", "fade to black and back below the UI (the HUD stays lit)"),
+        new("2", "fade to black and back above the UI (the HUD darkens too)"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The map, its tile set and the character's animations are assets, not code.",
+        "The character is a physics body: the arrow keys set its velocity, not its position.",
+    };
+
+    public override string DocumentationPath => "docs/engine/screen-effects.md";
 
     private CasaEngineGame? _game;
     private ScreenEffectSmokeHudScreen? _fadeSmokeScreen;

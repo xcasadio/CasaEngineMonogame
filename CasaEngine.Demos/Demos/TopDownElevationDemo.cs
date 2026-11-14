@@ -1,4 +1,5 @@
 using CasaEngine.Core.Logging;
+using System.Collections.Generic;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application;
@@ -39,7 +40,16 @@ public class TopDownElevationDemo : Demo
     public override string Title => "Top down elevation demo";
 
     public override string Description =>
-        "A world whose simulation space is (x, ground depth, elevation): two boxes overlapping on screen at different elevations never collide, co-located ones do.";
+        "A top-down world whose physics space is (x, ground depth, elevation): two boxes that overlap on " +
+        "screen at different elevations never collide, two boxes at the same elevation do.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "Two boxes overlap on screen and do not collide: they are sixteen units apart in elevation.",
+        "A third box, at the same place as the lower one, does collide with it; the log reports both pairs.",
+    };
+
+    public override string DocumentationPath => "docs/engine/collision-2d-3d-architecture.md";
 
     public override void Initialize(CasaEngineGame game)
     {

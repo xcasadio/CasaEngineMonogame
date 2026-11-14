@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using CasaEngine.Core.Logging;
@@ -185,9 +186,31 @@ public class AudioDemo : Demo
     public override string Title => "Audio demo";
 
     public override string Description =>
-        "Sound effects (one-shot, looping, fade out) and music streamed from disk (fade in/out, crossfade), "
-        + "routed through the named mixing buses Master, Sfx and Music; a spatial loop orbits the listener "
-        + "(distance, pan, Doppler, game parameter).";
+        "Sound effects (one-shot, looping, fade out) and streamed music (fade, crossfade) routed through the " +
+        "Master, Sfx and Music buses, with effects and a spatial loop that orbits the listener. The text on " +
+        "screen shows the state of the mixer.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Space", "play a one-shot sound"),
+        new("L", "start or stop a loop (U: fade it out)"),
+        new("S", "stop every sound"),
+        new("P", "start or stop the music (C: crossfade to the other track)"),
+        new("Up, Down", "Master volume (M: mute)"),
+        new("Left, Right", "Sfx volume (N: mute)"),
+        new("Page Up, Page Down", "Music volume"),
+        new("R, T, D", "reverb, low-pass on Music, ducking of Music by Sfx"),
+        new("O, K, I", "spatial orbit, Doppler, intensity parameter"),
+        new("B, V, H, J, Q, G", "stereo test, varied click, priority and voice-stealing tests, loop point, GC stress"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "With ducking on, the music drops while a sound effect plays.",
+        "With the orbit on, the loop pans from one ear to the other and its volume follows the distance.",
+    };
+
+    public override string DocumentationPath => "docs/engine/audio-system.md";
 
     public override void Initialize(CasaEngineGame game)
     {

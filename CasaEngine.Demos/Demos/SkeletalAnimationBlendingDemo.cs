@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
@@ -82,7 +83,21 @@ public class SkeletalAnimationBlendingDemo : Demo
     public override string Title => "Skeletal animation blending";
 
     public override string Description =>
-        "Port of the three.js skeletal animation blending example: blends idle/walk/run on a kid character with a Controls panel for visibility, activation, pausing/stepping, crossfading, blend weights and speed.";
+        "Idle, walk and run blended on one character, driven by a Controls panel: show or hide the model and " +
+        "skeleton, pause and step, cross-fade between clips, set the blend weights and the time scale.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Mouse", "use the Controls panel on the right"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The three weights always describe the pose on screen: move a slider and watch the gait change.",
+        "The cross-fade buttons of the panel take the character from one gait to the next.",
+    };
+
+    public override string DocumentationPath => "docs/engine/animation-blend-demo.md";
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {

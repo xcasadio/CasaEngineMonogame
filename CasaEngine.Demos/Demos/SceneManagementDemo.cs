@@ -16,7 +16,15 @@ public class SceneManagementDemo : Demo
     private const int gridSize = 10;
     private const float transF = 1f;
     public override string Title => "Scene management demo";
-    public override string Description => "Shows scene management with a grid of rotating entities added and removed at runtime.";
+    public override string Description =>
+        "A world holding several hundred entities: one grid of cubes turns around the vertical axis, another " +
+        "moves away, and the world's space partitioning is drawn over them.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The drawn boxes are the cells of the world's space partitioning.",
+        "Every cube is an entity whose position the demo writes each frame.",
+    };
 
     public override void Initialize(CasaEngineGame game)
     {

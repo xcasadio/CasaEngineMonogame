@@ -22,7 +22,18 @@ public class SkinnedMeshDemo : Demo
     private bool _useInertializeTransition;
 
     public override string Title => "Skinned mesh demo";
-    public override string Description => "Displays animated skinned meshes with forward shadows. Left column shows a skinned caster shadowing a receiver, center keeps the caster but disables ReceiveShadows on the receiver, and right disables CastShadows on the caster. The left caster also uses a per-component Material override (tinted orange) to exercise SkinnedMeshComponent.Material instead of the renderer's default material.";
+    public override string Description =>
+        "Animated skinned characters with shadows, in three columns: a caster shadowing a receiver, the same " +
+        "with ReceiveShadows off on the receiver, and the same with CastShadows off on the caster.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "Left: the animated character casts its shadow on the receiver.",
+        "Centre: the receiver ignores shadows. Right: the character casts none.",
+        "The left character is tinted orange by a per-component material override.",
+    };
+
+    public override string DocumentationPath => "docs/engine/light-component.md";
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {

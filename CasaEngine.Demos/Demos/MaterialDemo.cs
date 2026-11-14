@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Scene.Entities;
@@ -43,10 +44,23 @@ public class MaterialDemo : Demo
     public override string Title => "Material system demo";
 
     public override string Description =>
-        "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
-        "alpha-test cutout, tangent-space normal map, transparent render queue, shared sky background plus scene reflection cube, ambient-vs-emissive reference, " +
-        "neutral legacy import-profile samples, hints-only imported-material presentation mapping, and an explicit LightComponent rig (directional + point + spot).  " +
-        "T = cycle sphere tints.";
+        "The material system on a row of spheres and panels: unlit and lit materials, per-instance colours, " +
+        "alpha-test cutout, normal map, transparency, environment reflection and an explicit light rig " +
+        "(directional, point and spot).";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("T", "cycle the tint of the spheres"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The tint changes per instance (MaterialPropertyBlock): the spheres share one material.",
+        "Cutout and transparent panels sort correctly against the opaque scene.",
+        "The reflection on the glossy spheres comes from the scene's environment cubemap.",
+    };
+
+    public override string DocumentationPath => "docs/engine/materials-workflow.md";
 
     // -----------------------------------------------------------------------
     //  Runtime state
