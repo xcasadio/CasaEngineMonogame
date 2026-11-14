@@ -295,7 +295,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 - Étapes propres : si les deux systèmes ne tiennent pas dans une scène lisible, faire deux démos et le noter.
 - Commit : `feat(demos): add the 2D layers demo`
 
-### ⏳ T5.4 — Démo sauvegarde de partie
+### ⚠️ T5.4 — Démo sauvegarde de partie
 
 - Fichiers : `CasaEngine.Demos/Demos/SaveGameDemo.cs`, `DemosGame.cs`, doc. Sources : `docs/engine/save-games.md`, `CasaEngine/Framework/SaveGames`, ADR-0044.
 - Étapes propres :
@@ -303,6 +303,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
   2. La fiche et le panneau affichent le chemin complet du fichier écrit ; une action de la démo le supprime.
   3. Vérifier que le dossier écrit est ignoré par git (`git status` propre après un lancement).
 - Commit : `feat(demos): add the save game demo`
+- Note de validation (2026-11-14) : bloquée par O3 : les trois constructeurs de `SaveGameService` sont `internal` (`CasaEngine/Framework/SaveGames/SaveGameService.cs:21`, `:27`, `:32`) et la seule instance publique est `GameSettings.SaveGames`, qui écrit sous `LocalApplicationData/<ProjectName>/SaveGames`. Une démo ne peut donc pas diriger le service vers le dossier de l'exécutable (D9) sans modifier `CasaEngine/`. Rien n'est écrit.
 
 ---
 
@@ -339,6 +340,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 | — | O1 à O4 du premier jet, puis base de la branche et dossier de sauvegarde : tranchés par l'auteur le 2026-11-14, voir D6 à D10. | — |
 | — | O1 (monde de la démo éditeur) tranché par l'auteur le 2026-11-14 : copie de SampleProject, voir D11. | — |
 | O2 | `SkinnedMeshDemo` règle `CastShadows` et `ReceiveShadows` par paire mais n'active pas `EnvironmentSettings.Shadows.Enabled` (éteint par défaut) : aucune ombre ne s'affiche. Un essai en activant les ombres avec les réglages de `StaticShadowValidationDemo` a montré de l'auto-ombrage mais pas d'ombre portée nette sur les personnages du fond (capture) ; l'essai est annulé. La fiche et `docs/engine/demos-check-notes.md` décrivent maintenant ce qui se voit. Faut-il faire de cette démo une vraie démo d'ombres (sol receveur, ombres activées), ou la laisser démo d'animation ? `docs/engine/light-component.md` la cite pour valider les ombres. | T1.4 |
+| O3 | D9 demande une sauvegarde dans le dossier de l'exécutable, mais `SaveGameService` n'a aucun constructeur public (`SaveGameService.cs:21-32`, `internal`) ; seul `GameSettings.SaveGames` existe, sous `LocalApplicationData`. Que faire : (a) rendre public `SaveGameService(string folderPath)` (changement additif de l'API du moteur, à noter dans ADR-0044) ; (b) la démo utilise `GameSettings.SaveGames` et écrit sous `LocalApplicationData/DemosGame/SaveGames` (contraire à D9) ; (c) pas de démo de sauvegarde. | T5.4 |
 
 ## Hors périmètre
 
