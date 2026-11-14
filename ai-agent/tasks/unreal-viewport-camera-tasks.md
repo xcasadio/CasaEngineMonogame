@@ -124,7 +124,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 
 ## Phase 1 — Éditeur
 
-### ⏳ T1.1 — `EditorViewportCameraController` délègue à la navigation partagée
+### ✅ T1.1 — `EditorViewportCameraController` délègue à la navigation partagée
 
 - Objectif : D4 et D7 dans le viewport perspective de l'éditeur ; touche F.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewportCameraController.cs`, `CasaEngine.Editor/Controls/WorldViewportPanel.cs`, `CasaEngine.Tests/Editor/EditorViewportCameraControllerTests.cs`.
@@ -137,6 +137,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   5. Adapter les trois tests existants au nouveau schéma (le vol au clavier exige le clic droit).
 - Validation : `dotnet build CasaEngine.Editor.MonoGame.sln` ; tests verts.
 - Commit : `feat(editor): drive the 3D viewport camera with the Unreal-style navigation`
+- Note de validation (2026-11-14) : le contrôleur délègue à `ViewportCameraNavigation`, capture la vue sur tout bouton, renvoie `null` sans mouvement libre ; F appelle `FocusEntity` sur l'entité sélectionnée. Ajout : pas de delta souris au tout premier appel (plus de saut depuis (0, 0)). Tests du contrôleur réécrits et complétés (10 cas). `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; tests caméra 40/40. Smoke dans l'éditeur lancé : à faire en T3.2.
 
 ### ⏳ T1.2 — Sélection au clic relâché, poignées de gizmo prioritaires
 

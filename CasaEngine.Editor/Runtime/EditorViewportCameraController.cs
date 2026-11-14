@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Scene.Entities.Components;
 using System;
 using CasaEngine.Framework.Input;
@@ -25,24 +26,36 @@ internal readonly struct EditorViewportCameraState
     public Vector3 Target { get; }
 }
 
+/// <summary>
+/// Perspective camera of the editor viewport. The gestures are those of Unreal's perspective viewport, computed by
+/// the shared <see cref="ViewportCameraNavigation"/> (ADR-0089). This controller owns the pivot, distance, yaw and
+/// pitch (focus, play-mode capture and restore) and writes them to the <see cref="ArcBallCameraComponent"/>; the
+/// field of view stays on the component.
+/// </summary>
 internal sealed class EditorViewportCameraController
 {
-    private const float OrbitSensitivity = 0.005f;
-    private const float PanSensitivity = 0.01f;
-    private const float ZoomSensitivity = 1.1f;
     private const float MinDistance = 0.5f;
     private const float MaxDistance = 1000f;
     private const float DefaultDistance = 10f;
-    private const float KeyboardMoveSpeed = 10f;
+
+    private readonly ViewportCameraNavigation _navigation = new()
+    {
+        MinDistance = MinDistance,
+        MaxDistance = MaxDistance,
+    };
 
     private MouseState _previousMouseState;
-    private bool _isMiddleDragCapturing;
-    private bool _isRightDragCapturing;
+    private KeyboardState _previousKeyboardState;
+    private bool _isCapturing;
+    private bool _hasPreviousMouseState;
 
     public float Yaw { get; private set; } = MathHelper.PiOver4;
     public float Pitch { get; private set; } = -MathHelper.Pi / 6f;
     public float Distance { get; private set; } = DefaultDistance;
     public Vector3 Target { get; private set; } = Vector3.Zero;
+
+    /// <summary>True while a mouse gesture of the navigation (or a gizmo press it waits on) is in progress.</summary>
+    public bool IsGestureActive => _navigation.IsGestureActive;
 
     public ArcBallCameraComponent CreateCameraComponent()
     {
@@ -76,10 +89,7 @@ internal sealed class EditorViewportCameraController
     public void SetState(float yaw, float pitch, float distance, Vector3 target)
     {
         Yaw = yaw;
-        Pitch = Math.Clamp(
-            pitch,
-            -MathHelper.PiOver2 + 0.01f,
-            MathHelper.PiOver2 - 0.01f);
+        Pitch = Math.Clamp(pitch, ViewportCameraNavigation.MinPitch, ViewportCameraNavigation.MaxPitch);
         Distance = Math.Clamp(distance, MinDistance, MaxDistance);
         Target = target;
     }
@@ -94,7 +104,13 @@ internal sealed class EditorViewportCameraController
         }
     }
 
-    public void Update(
+    /// <summary>
+    /// Runs one frame of navigation. Returns <c>null</c> when free camera movement is off (front-2D view): the
+    /// navigation does not run and the caller keeps its previous selection behaviour.
+    /// </summary>
+    /// <param name="leftPressedOnGizmoHandle">The gizmo hovers a handle (previous frame's hover): a left press
+    /// there belongs to the gizmo and moves no camera.</param>
+    public ViewportNavigationResult? Update(
         GameTime gameTime,
         ArcBallCameraComponent camera,
         ViewInputContext inputContext,
@@ -103,226 +119,128 @@ internal sealed class EditorViewportCameraController
         bool allowFreeCameraMovement,
         bool canHandleKeyboardInput,
         Action<bool> activateView,
-        Action releaseInput)
+        Action releaseInput,
+        bool leftPressedOnGizmoHandle = false)
     {
-        if (!receivesInput && !isKeyboardFocused)
-        {
-            if (_isMiddleDragCapturing && inputContext.MouseState.MiddleButton == ButtonState.Released)
-            {
-                _isMiddleDragCapturing = false;
-                ReleaseInputIfIdle(inputContext.MouseState, releaseInput);
-            }
-
-            if (_isRightDragCapturing && inputContext.MouseState.RightButton == ButtonState.Released)
-            {
-                _isRightDragCapturing = false;
-                ReleaseInputIfIdle(inputContext.MouseState, releaseInput);
-            }
-
-            _previousMouseState = inputContext.MouseState;
-            return;
-        }
-
         var mouseState = inputContext.MouseState;
         var keyboardState = inputContext.KeyboardState;
 
-        if (allowFreeCameraMovement && receivesInput && mouseState.MiddleButton == ButtonState.Pressed && _previousMouseState.MiddleButton == ButtonState.Released)
+        if (!allowFreeCameraMovement || (!receivesInput && !isKeyboardFocused))
         {
-            activateView(true);
-            _isMiddleDragCapturing = true;
-        }
-
-        if (allowFreeCameraMovement && receivesInput && mouseState.RightButton == ButtonState.Pressed && _previousMouseState.RightButton == ButtonState.Released)
-        {
-            activateView(true);
-            _isRightDragCapturing = true;
-        }
-
-        if (allowFreeCameraMovement && _isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Pressed)
-        {
-            var dx = mouseState.X - _previousMouseState.X;
-            var dy = mouseState.Y - _previousMouseState.Y;
-            if (dx != 0 || dy != 0)
+            if (!allowFreeCameraMovement || ReadButtons(mouseState) == ViewportMouseButtons.None)
             {
-                ApplyMiddleMouseDrag(camera, keyboardState, dx, dy);
+                // A gesture whose buttons came up outside the view is forgotten, not reported as a click.
+                _navigation.Reset();
+            }
+
+            ReleaseCaptureIfIdle(mouseState, releaseInput);
+            _previousMouseState = mouseState;
+            _previousKeyboardState = keyboardState;
+            _hasPreviousMouseState = true;
+            return allowFreeCameraMovement ? new ViewportNavigationResult() : null;
+        }
+
+        var buttons = ViewportMouseButtons.None;
+        float dx = 0f;
+        float dy = 0f;
+        float wheelNotches = 0f;
+
+        if (receivesInput)
+        {
+            buttons = ReadButtons(mouseState);
+            if ((buttons & ~ReadButtons(_previousMouseState)) != 0)
+            {
+                activateView(true);
+                _isCapturing = true;
+            }
+
+            // The first frame has no previous pointer position: no movement rather than a jump from (0, 0).
+            if (_hasPreviousMouseState)
+            {
+                dx = mouseState.X - _previousMouseState.X;
+                dy = mouseState.Y - _previousMouseState.Y;
+            }
+
+            if (inputContext.VerticalWheelDelta != 0)
+            {
+                activateView(false);
+                wheelNotches = EditorViewport2dCameraController.WheelDeltaToSteps(inputContext.VerticalWheelDelta);
             }
         }
 
-        if (allowFreeCameraMovement && _isRightDragCapturing && mouseState.RightButton == ButtonState.Pressed)
+        var keys = ViewportNavigationKeys.None;
+        if (canHandleKeyboardInput && (receivesInput || isKeyboardFocused))
         {
-            var dx = mouseState.X - _previousMouseState.X;
-            var dy = mouseState.Y - _previousMouseState.Y;
-            if (dx != 0 || dy != 0)
+            // The letter keys stay free for the editor's Ctrl shortcuts (Ctrl+S saves, Ctrl+D duplicates): while Ctrl
+            // is held they neither fly the camera nor frame the selection.
+            bool controlHeld = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+            keys = ViewportCameraNavigation.ReadKeys(keyboardState, _previousKeyboardState, !controlHeld);
+            if (!isKeyboardFocused)
             {
-                ApplyLookDrag(camera, dx, dy);
+                keys &= ~ViewportNavigationKeys.FocusPressed;
             }
         }
 
-        if (_isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Released)
+        var input = new ViewportNavigationInput
         {
-            _isMiddleDragCapturing = false;
-            ReleaseInputIfIdle(mouseState, releaseInput);
-        }
+            Buttons = buttons,
+            Alt = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt),
+            MouseDeltaX = dx,
+            MouseDeltaY = dy,
+            WheelNotches = wheelNotches,
+            Keys = keys,
+            LeftPressedOnGizmoHandle = leftPressedOnGizmoHandle,
+            ElapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds,
+        };
 
-        if (_isRightDragCapturing && mouseState.RightButton == ButtonState.Released)
-        {
-            _isRightDragCapturing = false;
-            ReleaseInputIfIdle(mouseState, releaseInput);
-        }
+        var state = new ViewportCameraState(Target, Distance, Yaw, Pitch);
+        ViewportNavigationResult result = _navigation.Update(ref state, input);
 
-        if (allowFreeCameraMovement && receivesInput && inputContext.VerticalWheelDelta != 0)
+        if (result.CameraChanged)
         {
-            activateView(false);
-            ApplyScroll(inputContext.VerticalWheelDelta);
+            SetState(state.Yaw, state.Pitch, state.Distance, state.Pivot);
             ApplyTo(camera);
         }
 
-        if (allowFreeCameraMovement && canHandleKeyboardInput && (receivesInput || isKeyboardFocused))
+        if (result.FieldOfViewDelta != 0f)
         {
-            HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing || isKeyboardFocused);
+            camera.FieldOfView += result.FieldOfViewDelta;
         }
 
+        ReleaseCaptureIfIdle(mouseState, releaseInput);
         _previousMouseState = mouseState;
+        _previousKeyboardState = keyboardState;
+        _hasPreviousMouseState = true;
+        return result;
     }
 
-    private void ApplyMiddleMouseDrag(ArcBallCameraComponent camera, KeyboardState keyboardState, int dx, int dy)
+    private void ReleaseCaptureIfIdle(MouseState mouseState, Action releaseInput)
     {
-        bool isShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-
-        if (isShift)
+        if (_isCapturing && ReadButtons(mouseState) == ViewportMouseButtons.None)
         {
-            var right = Vector3.Cross(Vector3.Up, ComputeCameraDirection());
-            right.Normalize();
-            Target -= right * dx * PanSensitivity * Distance;
-            Target += Vector3.Up * dy * PanSensitivity * Distance;
-        }
-        else
-        {
-            Yaw += dx * OrbitSensitivity;
-            Pitch = Math.Clamp(
-                Pitch - dy * OrbitSensitivity,
-                -MathHelper.PiOver2 + 0.01f,
-                MathHelper.PiOver2 - 0.01f);
-        }
-
-        ApplyTo(camera);
-    }
-
-    private void ApplyLookDrag(ArcBallCameraComponent camera, int dx, int dy)
-    {
-        Yaw += dx * OrbitSensitivity;
-        Pitch = Math.Clamp(
-            Pitch - dy * OrbitSensitivity,
-            -MathHelper.PiOver2 + 0.01f,
-            MathHelper.PiOver2 - 0.01f);
-
-        ApplyTo(camera);
-    }
-
-    private void ApplyScroll(int scrollDelta)
-    {
-        if (scrollDelta > 0)
-        {
-            Distance = Math.Max(MinDistance, Distance / ZoomSensitivity);
-        }
-        else if (scrollDelta < 0)
-        {
-            Distance = Math.Min(MaxDistance, Distance * ZoomSensitivity);
-        }
-    }
-
-    private void HandleKeyboardCameraInput(ArcBallCameraComponent camera, KeyboardState keyboardState, float elapsedSeconds, bool allowClassicKeys)
-    {
-        if (elapsedSeconds <= 0f)
-        {
-            return;
-        }
-
-        var move = Vector3.Zero;
-
-        if (keyboardState.IsKeyDown(Keys.Right))
-        {
-            move += camera.Right;
-        }
-        else if (keyboardState.IsKeyDown(Keys.Left))
-        {
-            move -= camera.Right;
-        }
-
-        if (keyboardState.IsKeyDown(Keys.Up))
-        {
-            move += camera.Direction;
-        }
-        else if (keyboardState.IsKeyDown(Keys.Down))
-        {
-            move -= camera.Direction;
-        }
-
-        if (keyboardState.IsKeyDown(Keys.PageUp))
-        {
-            move += camera.Up;
-        }
-        else if (keyboardState.IsKeyDown(Keys.PageDown))
-        {
-            move -= camera.Up;
-        }
-
-        // The letter keys stay free for the editor's Ctrl shortcuts (Ctrl+S saves, Ctrl+D duplicates): while Ctrl is
-        // held they do not move the camera. The arrows and Page Up/Down above are not shortcuts and still move it.
-        bool controlHeld = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
-        if (allowClassicKeys && !controlHeld)
-        {
-            if (keyboardState.IsKeyDown(Keys.D))
-            {
-                move += camera.Right;
-            }
-            else if (keyboardState.IsKeyDown(Keys.A))
-            {
-                move -= camera.Right;
-            }
-
-            if (keyboardState.IsKeyDown(Keys.W))
-            {
-                move += camera.Direction;
-            }
-            else if (keyboardState.IsKeyDown(Keys.S))
-            {
-                move -= camera.Direction;
-            }
-
-            if (keyboardState.IsKeyDown(Keys.E))
-            {
-                move += camera.Up;
-            }
-            else if (keyboardState.IsKeyDown(Keys.Q))
-            {
-                move -= camera.Up;
-            }
-        }
-
-        if (move == Vector3.Zero)
-        {
-            return;
-        }
-
-        move.Normalize();
-        Target += move * KeyboardMoveSpeed * elapsedSeconds;
-        ApplyTo(camera);
-    }
-
-    private static void ReleaseInputIfIdle(MouseState mouseState, Action releaseInput)
-    {
-        if (mouseState.MiddleButton == ButtonState.Released && mouseState.RightButton == ButtonState.Released)
-        {
+            _isCapturing = false;
             releaseInput();
         }
     }
 
-    private Vector3 ComputeCameraDirection()
+    private static ViewportMouseButtons ReadButtons(MouseState mouseState)
     {
-        return new Vector3(
-            (float)(Math.Cos(Pitch) * Math.Sin(Yaw)),
-            (float)Math.Sin(Pitch),
-            (float)(Math.Cos(Pitch) * Math.Cos(Yaw)));
+        var buttons = ViewportMouseButtons.None;
+        if (mouseState.LeftButton == ButtonState.Pressed)
+        {
+            buttons |= ViewportMouseButtons.Left;
+        }
+
+        if (mouseState.RightButton == ButtonState.Pressed)
+        {
+            buttons |= ViewportMouseButtons.Right;
+        }
+
+        if (mouseState.MiddleButton == ButtonState.Pressed)
+        {
+            buttons |= ViewportMouseButtons.Middle;
+        }
+
+        return buttons;
     }
 }

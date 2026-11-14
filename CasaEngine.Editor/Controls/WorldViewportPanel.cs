@@ -10,6 +10,7 @@ using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -549,7 +550,7 @@ public class WorldViewportPanel : IDisposable
         }
         else if (_camera != null)
         {
-            _cameraController.Update(
+            ViewportNavigationResult? navigationResult = _cameraController.Update(
                 gameTime,
                 _camera,
                 inputContext,
@@ -559,6 +560,13 @@ public class WorldViewportPanel : IDisposable
                 !editorShellCapturesKeyboard,
                 ActivateThisView,
                 _releaseViewInputAction);
+
+            // F frames the selection (ADR-0089); with the right button held F flies down instead, and the
+            // navigation then reports no focus request.
+            if (navigationResult.HasValue && navigationResult.Value.FocusRequested && _selectedEntity != null)
+            {
+                FocusEntity(_selectedEntity);
+            }
         }
 
         if (!HasWorldOverride)
