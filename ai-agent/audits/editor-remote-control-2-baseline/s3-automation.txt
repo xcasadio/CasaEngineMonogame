@@ -1,0 +1,3 @@
+[Info] [Automation] Opened asset='Particles/FireLoop_Minimal.particle'
+[Info] [Automation] Updated particle property 'maxparticles'='500'
+[Info] [Automation] Particle undo/redo smoke undo=True redo=True

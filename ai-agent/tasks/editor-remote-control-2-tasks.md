@@ -88,7 +88,7 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
 - Note de validation (2026-11-14) : ADR-0093 passée en Accepted et ajoutée à l'index ; plan ajouté au tableau d'`ai-agent/README.md`.
 - Commit : `docs(editor): record the second remote control decision and plan`
 
-### ⏳ T0.2 — Référence des smokes d'automatisation (avant toute modification)
+### ✅ T0.2 — Référence des smokes d'automatisation (avant toute modification)
 
 - Objectif : enregistrer le comportement actuel des options de contenu, avant la phase 2, pour la comparaison de T3.1 (P9).
 - Smokes, chacun sur une copie neuve de `Projects/SampleProject` (`<copie>`), éditeur construit depuis `main` :
@@ -102,6 +102,7 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
   - S8 : `--project … --entity ground --play-smoke --diagnostics-out s8.txt`
 - Artefacts comparés : lignes `[Automation]` et `[PlaySmoke]` du diagnostic (horodatage retiré) ; empreinte SHA-256 de chaque fichier de la copie après la sortie (fichiers restaurés ou non) ; liste des fichiers créés et supprimés. Les commandes exactes et les artefacts sont rangés dans `ai-agent/audits/editor-remote-control-2-baseline/` (lecture seule ensuite).
 - Validation : les huit smokes tournent et leurs artefacts sont enregistrés ; un smoke qui échoue déjà est noté tel quel.
+- Note de validation (2026-11-14) : script `Tools/automation-smokes.sh` (copie neuve par smoke, artefacts normalisés) ; les huit smokes sortent en 0 ; référence et lecture des résultats dans `ai-agent/audits/editor-remote-control-2-baseline/README.md` : S2 à S6 et S8 laissent le projet identique à S1 (modifications restaurées, asset créé supprimé), S7 réécrit seulement `DefaultWorld.world`.
 - Commit : `docs(ai-agent): record the automation baseline before the remote control slice`
 
 ## Phase 1 — Transport et monde
