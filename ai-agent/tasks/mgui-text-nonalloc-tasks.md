@@ -117,7 +117,7 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
 - À vérifier dans T1.3 (constat de l'agent, cause non vérifiée) : le chemin local `SetText(ContentOnly)` coûte plus que
   le setter suivi d'une mesure, sans doute parce que `CachedTextMeasurementsStillMatch` refait chaque mesure du cache.
 
-### 🚧 T1.1 — Surcharges `ReadOnlySpan<char>` des moteurs de texte (D2)
+### ✅ T1.1 — Surcharges `ReadOnlySpan<char>` des moteurs de texte (D2)
 
 - Fichiers (MGUI) : `MGUI.Shared/Text/Engines/ITextMeasurementEngine.cs`, `ITextDrawEngine.cs`,
   `MGUI.Shared/Rendering/IUIDrawContext.cs`, `MGUI.MonoGame.Integration` (`SpriteFontTextEngine`, `DrawTransaction`),
@@ -138,6 +138,17 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   GPU utilisable : ⚠️ et arrêt.
 - Commits : MGUI `feat(text): measure and draw a span of characters` ; moteur `feat(ui): draw a span of characters
   through the engine backend`, avec la référence du sous-module.
+- **Fait le 2026-11-14** (MGUI `c24158d1`, ADR-0026 de MGUI). O2 levé : les deux polices mesurent et dessinent un
+  `StringBuilder`, que chaque moteur garde et remplit depuis le span.
+  - `MGUI.Tests/Integration/TextSpanGpuTests.cs` : 8 réussis, 0 sauté (taille égale, pixels égaux, zéro à la mesure et
+    au dessin, pour `SpriteFontTextEngine` et `FontStashSharpTextEngine` à travers `DrawTransaction`). Contre-épreuve :
+    avec les implémentations par défaut, les 4 tests de zéro échouent (9600 octets pour 200 appels).
+  - `CasaEngine.Tests/UI/Backend/TextSpanGpuTests.cs` : 2 réussis, 0 sauté (`CasaDrawTransaction`, moteur
+    FontStashSharp). Contre-épreuve : avec un repli sur `string`, le test de zéro échoue (9600 octets).
+  - `MGUI.Tests` 3264 verts, `CasaEngine.Tests` 5455 verts, aucun sauté ; les deux solutions du moteur : 0 erreur.
+  - `HostRuntimeContractTests` de MGUI attend maintenant deux surcharges `DrawText`.
+  - La référence du sous-module passe de `a3c42cb0` à `c24158d1` : elle embarque aussi les deux commits de `develop`
+    que l'auteur avait déjà dans son arbre (O3).
 
 ### ⏳ T1.2 — Texte sans balise : changement de texte sans allocation (D3, D5)
 

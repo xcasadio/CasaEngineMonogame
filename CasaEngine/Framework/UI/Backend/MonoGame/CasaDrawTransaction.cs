@@ -239,6 +239,27 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         TextRenderer.DrawText(this, Font, Text, Position, Color, Origin, Scale, Rotation, Depth, Flip);
     }
 
+    /// <summary>Draws a span of characters through the active text engine, without building a string (MGUI ADR-0026).</summary>
+    public void DrawTextViaEngine(
+        ResolvedFont Font,
+        ReadOnlySpan<char> Text,
+        Vector2 Position,
+        Color Color,
+        Vector2 Origin,
+        float Scale,
+        float Rotation = 0f,
+        float Depth = 0f,
+        UIDrawFlip Flip = UIDrawFlip.None)
+    {
+        if (Text.IsEmpty || Font?.NativeFont == null)
+        {
+            return;
+        }
+
+        BeginDraw(DrawContext.Sprites);
+        TextRenderer.DrawText(this, Font, Text, Position, Color, Origin, Scale, Rotation, Depth, Flip);
+    }
+
     public void DrawTextViaEngine(
         ResolvedFont Font,
         string Text,
