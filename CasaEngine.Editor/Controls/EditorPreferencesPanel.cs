@@ -87,7 +87,9 @@ internal sealed class EditorPreferencesPanel
         _store.Changed += Refresh;
         Refresh(_store.Current);
 
-        _rootContent = stack;
+        var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
+        scrollViewer.SetContent(stack);
+        _rootContent = scrollViewer;
         return _rootContent;
     }
 
