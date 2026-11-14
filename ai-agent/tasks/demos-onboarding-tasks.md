@@ -246,13 +246,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): make the 3D collision demo interactive`
 - Note de validation (2026-11-14) : `Collision3dBasicDemo` réécrite en trois parties commentées : corps statique et dynamiques, lancer d'une balle (Espace : position écrite, `SyncTransformFromScene`, puis `Velocity`), requête physique (`IPhysicsWorld.ShapeSweep` depuis la caméra, point et normale dessinés par `Line3dRendererComponent`). Douze balles créées avec la scène et réutilisées, forme de requête créée une fois : rien n'est alloué en jeu. `WorldRayCast` ne rend pas le corps touché, d'où le balayage. Vérifié par une capture avec un tir automatique temporaire (retiré avant commit) : balles lancées, pile dispersée, marqueur jaune sur le premier corps devant la caméra. Build 0 erreur ; cycle PASS. La touche Espace elle-même n'a pas été pressée par l'agent.
 
-### ⏳ T4.2 — Collision 2d interactive et triggers
+### ✅ T4.2 — Collision 2d interactive et triggers
 
 - Objectif : lever le `//TODO` de `Collision2dBasicDemo.cs:91` (tir de boîtes) et montrer un volume déclencheur avec sa réaction visible.
 - Fichiers : `CasaEngine.Demos/Demos/Collision2dBasicDemo.cs`.
 - Étapes : lire `docs/engine/collision-2d-3d-architecture.md` et l'API de trigger existante avant d'écrire.
 - Validation : build ; lancement ; cycle à 0.
 - Commit : `feat(demos): add shooting and a trigger volume to the 2D collision demo`
+- Note de validation (2026-11-14) : `Collision2dBasicDemo` réécrite et commentée, code mort et `//TODO` retirés : `KeepInPlane` (facteurs linéaire et angulaire), lancer de balles (Espace, huit balles réutilisées), zone déclencheur (`CollisionComponent` cinétique au profil `CollisionProfileNames.Trigger`, comme `SimulationSpacePolicyTests`) lue par `Collisions.Count` pour allumer une lampe. Vérifié par deux captures, la seconde avec un tir automatique temporaire (retiré avant commit) : lampe grise sans corps dans la zone, verte avec des balles dedans, les balles traversent la zone, la vue de debug la dessine. Build 0 erreur ; cycle PASS. La vitesse de lancer a été baissée après la capture (non revue à l'écran) ; la touche Espace n'a pas été pressée par l'agent.
 
 ### ⏳ T4.3 — Commentaires des démos muettes
 
