@@ -78,7 +78,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     /// </summary>
     public bool IsHoveringHandle => _gizmo != null
         && _gizmo.Gizmo.ActiveAxis != GizmoAxis.None
-        && _gizmo.CurrentSelection.Count > 0;
+        && _gizmo.Gizmo.Selection.Count > 0; // Not CurrentSelection: it builds a list on each read (hot path).
 
     public bool AllowDeleteSelection { get; set; } = true;
 
