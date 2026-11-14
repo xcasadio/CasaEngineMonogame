@@ -16,14 +16,28 @@ internal sealed class DemoHintOverlay : XamlUIScreenBase
     public override UILayer Layer   => UILayer.HUD;
     public override bool    IsModal => false;
 
-    public DemoHintOverlay()
+    private readonly string _text;
+
+    /// <param name="help">What the "help" action of the input configuration is bound to.</param>
+    /// <param name="back">What the "back to the menu" action is bound to.</param>
+    public DemoHintOverlay(DemoBinding help, DemoBinding back)
         : base(DemoScreenXaml.Source("demo-hint.xaml"))
     {
+        _text = "[color=lightgray][i]" + Describe(help) + ": help    " + Describe(back) + ": back to the menu[/i][/color]";
+    }
+
+    // "[b]F1[/b] / [b]Start[/b]": the key, then the button when the action has one.
+    private static string Describe(DemoBinding binding)
+    {
+        string text = "[b]" + DemoBindingText.KeyLabel(binding.Key) + "[/b]";
+        string button = DemoBindingText.ButtonLabel(binding.Button);
+        return button.Length == 0 ? text : text + " / [b]" + button + "[/b]";
     }
 
     protected override void OnWindowLoaded(MGWindow window)
     {
-        // Nothing to wire: the document places it and carries its one line of text.
+        // The document places the line and holds a default text; the keys come from the input configuration.
+        FindControl<MGTextBlock>("lblHint").Text = _text;
     }
 
     /// <summary>Shows or hides this overlay's window without removing it from the stack.</summary>

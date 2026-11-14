@@ -241,6 +241,8 @@ public class DemoScreenXamlTests
     private static string ScreensDirectory()
         => Path.Combine(FindRepositoryRoot(), "CasaEngine.Demos", "Content", "Screens");
 
+    internal static string RepositoryRoot() => FindRepositoryRoot();
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -51,7 +51,6 @@ public class PlayerInputDemo : Demo
     private PlayerInput? _input;
     private LitDiffuseMaterial? _lampMaterial;
     private int _possessedIndex;
-    private KeyboardState _previousKeyboard;
 
     public override string Title => "Player input and possession demo";
 
@@ -62,9 +61,9 @@ public class PlayerInputDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Arrow keys", "move the possessed pawn", "Left stick"),
-        new("Tab", "possess the next pawn", "Y"),
-        new("I", "enable or disable the player's input", "X"),
+        DemoControl.ForActions("move the possessed pawn", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("possess the next pawn", "PlayerInput.NextPawn"),
+        DemoControl.ForActions("enable or disable the input of the player", "PlayerInput.ToggleInput"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -175,36 +174,36 @@ public class PlayerInputDemo : Demo
             return;
         }
 
-        // 1. Demo commands. They are read from the raw devices of the game on purpose: they must still work when the
-        //    player's input is cut, as a pause menu does.
+        // 1. Demo commands. They do not go through the gate of the player on purpose: they must still work when the
+        //    input of the player is cut, as a pause menu does.
         ReadDemoCommands();
 
-        // 2. Gameplay input, read through the player's facade. Every read returns "nothing" while the input is
-        //    disabled or a UI holds the keyboard, so this code needs no test of its own.
+        // 2. Gameplay input. The player's facade is the gate: it says no while the input is disabled, or while a UI
+        //    holds the keyboard and no gamepad is connected. PlayerInput.GetButtonState(name) applies the same gate to
+        //    one action, but returns a new object at each call: fine for a press, avoided here where four directions
+        //    are read every frame.
         Vector2 intent = Vector2.Zero;
-        if (_input.IsGamePadConnected)
+        if (_input.IsInputEnabled && (_input.IsKeyboardAvailable || _input.IsGamePadConnected))
         {
-            intent = _input.ThumbStickLeft;
-        }
+            if (DemoInput.IsDown(_game!, DemoInput.MoveLeft))
+            {
+                intent.X -= 1f;
+            }
 
-        if (_input.IsKeyPressed(Keys.Left))
-        {
-            intent.X -= 1f;
-        }
+            if (DemoInput.IsDown(_game!, DemoInput.MoveRight))
+            {
+                intent.X += 1f;
+            }
 
-        if (_input.IsKeyPressed(Keys.Right))
-        {
-            intent.X += 1f;
-        }
+            if (DemoInput.IsDown(_game!, DemoInput.MoveUp))
+            {
+                intent.Y += 1f;
+            }
 
-        if (_input.IsKeyPressed(Keys.Up))
-        {
-            intent.Y += 1f;
-        }
-
-        if (_input.IsKeyPressed(Keys.Down))
-        {
-            intent.Y -= 1f;
+            if (DemoInput.IsDown(_game!, DemoInput.MoveDown))
+            {
+                intent.Y -= 1f;
+            }
         }
 
         // 3. The player drives whatever it possesses. X of the intent is world X, Y is "away from the camera" (-Z);
@@ -217,10 +216,7 @@ public class PlayerInputDemo : Demo
 
     private void ReadDemoCommands()
     {
-        KeyboardState keyboard = DemoKeyboard.Read(_game!);
-        var gamePad = _game!.InputComponent.GamePadManager.GetGamePad(PlayerIndex.One);
-
-        if (WasPressed(keyboard, Keys.Tab) || gamePad.ButtonJustPressed(Buttons.Y))
+        if (DemoInput.WasPressed(_game!, "PlayerInput.NextPawn"))
         {
             // Possessing another entity releases the current one first: its control mode is restored (Disabled), and
             // the new pawn gets the mode of a player controller (Player).
@@ -228,17 +224,10 @@ public class PlayerInputDemo : Demo
             _player!.Possess(_pawns[_possessedIndex]);
         }
 
-        if (WasPressed(keyboard, Keys.I) || gamePad.ButtonJustPressed(Buttons.X))
+        if (DemoInput.WasPressed(_game!, "PlayerInput.ToggleInput"))
         {
             _player!.IsInputEnable = !_player.IsInputEnable;
         }
-
-        _previousKeyboard = keyboard;
-    }
-
-    private bool WasPressed(KeyboardState keyboard, Keys key)
-    {
-        return keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
     }
 
     /// <summary>Colours only: each pawn shows its control mode, the lamp shows the input gate.</summary>
@@ -259,7 +248,6 @@ public class PlayerInputDemo : Demo
         _player = null;
         _input = null;
         _game = null;
-        _previousKeyboard = default;
         _lampMaterial = null;
         _possessedIndex = 0;
 

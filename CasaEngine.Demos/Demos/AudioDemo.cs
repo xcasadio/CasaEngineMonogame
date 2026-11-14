@@ -148,7 +148,6 @@ public partial class AudioDemo : Demo
     private MusicTrackHandle _musicTrack = MusicTrackHandle.None;
     private MusicTrackHandle _loopPointTrack = MusicTrackHandle.None;
     private bool _pitchedMusicPlaying;
-    private KeyboardState _previousKeyboard;
     private DynamicSpriteFont? _font;
     private Texture2D? _panelBackground;
     private string _lastAction = "ready";
@@ -192,16 +191,19 @@ public partial class AudioDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Space", "play a one-shot sound"),
-        new("L", "start or stop a loop (U: fade it out)"),
-        new("S", "stop every sound"),
-        new("P", "start or stop the music (C: crossfade to the other track)"),
-        new("Up, Down", "Master volume (M: mute)"),
-        new("Left, Right", "Sfx volume (N: mute)"),
-        new("Page Up, Page Down", "Music volume"),
-        new("R, T, D", "reverb, low-pass on Music, ducking of Music by Sfx"),
-        new("O, K, I", "spatial orbit, Doppler, intensity parameter"),
-        new("B, V, H, J, Q, G", "stereo test, varied click, priority and voice-stealing tests, loop point, GC stress"),
+        DemoControl.ForActions("play a one-shot sound", "Audio.OneShot"),
+        DemoControl.ForActions("start or stop a loop", "Audio.Loop"),
+        DemoControl.ForActions("fade the loop out", "Audio.FadeLoop"),
+        DemoControl.ForActions("stop every sound", "Audio.StopAll"),
+        DemoControl.ForActions("start or stop the music", "Audio.Music"),
+        DemoControl.ForActions("crossfade to the other track", "Audio.Crossfade"),
+        DemoControl.ForActions("Master volume up or down", "Audio.MasterUp", "Audio.MasterDown"),
+        DemoControl.ForActions("Sfx volume down or up", "Audio.SfxDown", "Audio.SfxUp"),
+        DemoControl.ForActions("Music volume up or down", "Audio.MusicUp", "Audio.MusicDown"),
+        DemoControl.ForActions("mute Master, mute Sfx", "Audio.MuteMaster", "Audio.MuteSfx"),
+        DemoControl.ForActions("reverb, low-pass on Music, ducking of Music by Sfx", "Audio.Reverb", "Audio.LowPass", "Audio.Ducking"),
+        DemoControl.ForActions("spatial orbit, Doppler, intensity parameter", "Audio.Orbit", "Audio.Doppler", "Audio.Intensity"),
+        DemoControl.ForActions("stereo test, varied click, priority and voice-stealing tests, loop point, GC stress", "Audio.StereoTest", "Audio.VariedClick", "Audio.PriorityTest", "Audio.VoiceStealTest", "Audio.LoopPoint", "Audio.Stress"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -215,7 +217,6 @@ public partial class AudioDemo : Demo
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
-        _previousKeyboard = DemoKeyboard.Read(game);
 
         _clickSoundHandle = TryAcquire(game, ClickSoundAssetId);
         _clickSound = _clickSoundHandle?.Asset;
@@ -357,31 +358,29 @@ public partial class AudioDemo : Demo
             return;
         }
 
-        var keyboard = DemoKeyboard.Read(_game);
         var audio = _game.AudioSystemComponent;
 
         if (audio == null || _clickSound == null)
         {
-            _previousKeyboard = keyboard;
             return;
         }
 
         var service = audio.Service;
 
-        if (WasJustPressed(keyboard, Keys.G))
+        if (DemoInput.WasPressed(_game, "Audio.Stress"))
         {
             ToggleStress(service);
         }
 
         UpdateStress(service);
 
-        if (WasJustPressed(keyboard, Keys.Space))
+        if (DemoInput.WasPressed(_game, "Audio.OneShot"))
         {
             var voice = service.PlaySound(_clickSound, _game.GameManager.CurrentWorld);
             _lastAction = voice.IsValid ? "one-shot played" : "one-shot refused (no voice left)";
         }
 
-        if (WasJustPressed(keyboard, Keys.L))
+        if (DemoInput.WasPressed(_game, "Audio.Loop"))
         {
             if (service.IsAlive(_loopingVoice))
             {
@@ -399,29 +398,29 @@ public partial class AudioDemo : Demo
             }
         }
 
-        if (WasJustPressed(keyboard, Keys.U) && service.IsAlive(_loopingVoice))
+        if (DemoInput.WasPressed(_game, "Audio.FadeLoop") && service.IsAlive(_loopingVoice))
         {
             service.StopWithFade(_loopingVoice, 1f);
             _loopingVoice = AudioVoiceHandle.None;
             _lastAction = "loop fading out over 1s";
         }
 
-        if (WasJustPressed(keyboard, Keys.V))
+        if (DemoInput.WasPressed(_game, "Audio.VariedClick"))
         {
             PlayVariedClick(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.J))
+        if (DemoInput.WasPressed(_game, "Audio.VoiceStealTest"))
         {
             FillFreeVoices(service, _clickSound);
         }
 
-        if (WasJustPressed(keyboard, Keys.H))
+        if (DemoInput.WasPressed(_game, "Audio.PriorityTest"))
         {
             PlayHighPriorityClick(service, _clickSound);
         }
 
-        if (WasJustPressed(keyboard, Keys.S))
+        if (DemoInput.WasPressed(_game, "Audio.StopAll"))
         {
             service.StopAll();
             _loopingVoice = AudioVoiceHandle.None;
@@ -430,101 +429,99 @@ public partial class AudioDemo : Demo
             _lastAction = "everything stopped";
         }
 
-        if (WasJustPressed(keyboard, Keys.B))
+        if (DemoInput.WasPressed(_game, "Audio.StereoTest"))
         {
             PlayStereoBeep(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.P))
+        if (DemoInput.WasPressed(_game, "Audio.Music"))
         {
             TogglePlayMusic(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.C))
+        if (DemoInput.WasPressed(_game, "Audio.Crossfade"))
         {
             CrossfadeMusic(service);
         }
 
         var mixer = service.Mixer;
 
-        if (WasJustPressed(keyboard, Keys.Q))
+        if (DemoInput.WasPressed(_game, "Audio.LoopPoint"))
         {
             ToggleLoopPointDemo(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.PageUp))
+        if (DemoInput.WasPressed(_game, "Audio.MusicUp"))
         {
             ChangeVolume(mixer, AudioBusNames.Music, VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.PageDown))
+        if (DemoInput.WasPressed(_game, "Audio.MusicDown"))
         {
             ChangeVolume(mixer, AudioBusNames.Music, -VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.Up))
+        if (DemoInput.WasPressed(_game, "Audio.MasterUp"))
         {
             ChangeVolume(mixer, AudioBusNames.Master, VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.Down))
+        if (DemoInput.WasPressed(_game, "Audio.MasterDown"))
         {
             ChangeVolume(mixer, AudioBusNames.Master, -VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.Right))
+        if (DemoInput.WasPressed(_game, "Audio.SfxUp"))
         {
             ChangeVolume(mixer, AudioBusNames.Sfx, VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.Left))
+        if (DemoInput.WasPressed(_game, "Audio.SfxDown"))
         {
             ChangeVolume(mixer, AudioBusNames.Sfx, -VolumeStep);
         }
 
-        if (WasJustPressed(keyboard, Keys.M))
+        if (DemoInput.WasPressed(_game, "Audio.MuteMaster"))
         {
             ToggleMute(mixer, AudioBusNames.Master);
         }
 
-        if (WasJustPressed(keyboard, Keys.N))
+        if (DemoInput.WasPressed(_game, "Audio.MuteSfx"))
         {
             ToggleMute(mixer, AudioBusNames.Sfx);
         }
 
-        if (WasJustPressed(keyboard, Keys.R))
+        if (DemoInput.WasPressed(_game, "Audio.Reverb"))
         {
             ToggleDemoReverb(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.T))
+        if (DemoInput.WasPressed(_game, "Audio.LowPass"))
         {
             ToggleDemoFilter(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.D))
+        if (DemoInput.WasPressed(_game, "Audio.Ducking"))
         {
             ToggleDemoDucking(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.O))
+        if (DemoInput.WasPressed(_game, "Audio.Orbit"))
         {
             ToggleOrbit(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.K))
+        if (DemoInput.WasPressed(_game, "Audio.Doppler"))
         {
             ToggleDoppler(service);
         }
 
-        if (WasJustPressed(keyboard, Keys.I))
+        if (DemoInput.WasPressed(_game, "Audio.Intensity"))
         {
             CycleIntensity(service);
         }
 
         UpdateOrbit(service, (float)gameTime.ElapsedGameTime.TotalSeconds);
-
-        _previousKeyboard = keyboard;
     }
 
     public override void Clean()
@@ -908,10 +905,5 @@ public partial class AudioDemo : Demo
         var bus = mixer.GetBus(busName);
         bus.IsMuted = !bus.IsMuted;
         _lastAction = $"{busName} {(bus.IsMuted ? "muted" : "unmuted")}";
-    }
-
-    private bool WasJustPressed(KeyboardState keyboard, Keys key)
-    {
-        return keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
     }
 }

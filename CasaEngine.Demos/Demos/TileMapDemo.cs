@@ -39,9 +39,10 @@ public class TileMapDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Arrow keys", "walk the character"),
-        new("1", "fade to black and back below the UI (the HUD stays lit)"),
-        new("2", "fade to black and back above the UI (the HUD darkens too)"),
+        DemoControl.ForActions("walk the character", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("previous or next animation of the character", "TileMap.PreviousAnimation", "TileMap.NextAnimation"),
+        DemoControl.ForActions("fade to black and back below the UI (the HUD stays lit)", "TileMap.FadeBelowUi"),
+        DemoControl.ForActions("fade to black and back above the UI (the HUD darkens too)", "TileMap.FadeAboveUi"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -54,7 +55,6 @@ public class TileMapDemo : Demo
 
     private CasaEngineGame? _game;
     private ScreenEffectSmokeHudScreen? _fadeSmokeScreen;
-    private KeyboardState _previousKeyboard;
     private FadeSmokeState _fadeState = FadeSmokeState.Idle;
     private float _fadeStateElapsed;
 
@@ -157,21 +157,17 @@ public class TileMapDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var keyboard = DemoKeyboard.Read(_game);
-
         if (_fadeState == FadeSmokeState.Idle)
         {
-            if (keyboard.IsKeyDown(Keys.D1) && !_previousKeyboard.IsKeyDown(Keys.D1))
+            if (DemoInput.WasPressed(_game, "TileMap.FadeBelowUi"))
             {
                 StartFadeSmoke(ScreenEffectLayer.BelowUI);
             }
-            else if (keyboard.IsKeyDown(Keys.D2) && !_previousKeyboard.IsKeyDown(Keys.D2))
+            else if (DemoInput.WasPressed(_game, "TileMap.FadeAboveUi"))
             {
                 StartFadeSmoke(ScreenEffectLayer.AboveUI);
             }
         }
-
-        _previousKeyboard = keyboard;
 
         AdvanceFadeSmoke((float)gameTime.ElapsedGameTime.TotalSeconds);
     }

@@ -50,7 +50,7 @@ public partial class MaterialDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("T", "cycle the tint of the spheres"),
+        DemoControl.ForActions("cycle the tint of the spheres", "Material.Tint"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -65,8 +65,6 @@ public partial class MaterialDemo : Demo
     // -----------------------------------------------------------------------
     //  Runtime state
     // -----------------------------------------------------------------------
-
-    private KeyboardState _prevKb;
 
     // Per-instance PropertyBlocks for the two demo spheres
     private readonly MaterialPropertyBlock _propBlockA = new();
@@ -402,16 +400,12 @@ public partial class MaterialDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var kb = DemoKeyboard.Read(_game);
-
         // T — cycle per-sphere instance tints
-        if (kb.IsKeyDown(Keys.T) && !_prevKb.IsKeyDown(Keys.T))
+        if (DemoInput.WasPressed(_game, "Material.Tint"))
         {
             _tintIndex = (_tintIndex + 1) % TintCycles.Length;
             ApplyTints();
         }
-
-        _prevKb = kb;
 
     }
 

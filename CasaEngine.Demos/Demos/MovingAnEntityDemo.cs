@@ -39,9 +39,9 @@ public class MovingAnEntityDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Arrow keys", "move the cube on the ground"),
-        new("Left Shift", "run while held"),
-        new("Home", "put the cube back at the centre"),
+        DemoControl.ForActions("move the cube on the ground", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("run while held", "MovingAnEntity.Run"),
+        DemoControl.ForActions("put the cube back at the centre", "MovingAnEntity.Recentre"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -99,10 +99,9 @@ public class MovingAnEntityDemo : Demo
             return;
         }
 
-        // 1. Read the input. DemoKeyboard returns an empty state while the window is not the active one.
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-
-        if (keyboard.IsKeyDown(Keys.Home))
+        // 1. Read the input. A demo reads named actions (DemoInput), not keys: the input configuration of the demos
+        //    binds each action to a key and to a gamepad button. Nothing is read while the window is not the active one.
+        if (DemoInput.IsDown(_game, "MovingAnEntity.Recentre"))
         {
             _cube.Position = new Vector3(0f, 0.5f, 0f);
             return;
@@ -110,22 +109,22 @@ public class MovingAnEntityDemo : Demo
 
         // 2. Turn the keys into a direction on the ground plane (X to the right, -Z away from the camera).
         Vector3 direction = Vector3.Zero;
-        if (keyboard.IsKeyDown(Keys.Left))
+        if (DemoInput.IsDown(_game, DemoInput.MoveLeft))
         {
             direction.X -= 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(_game, DemoInput.MoveRight))
         {
             direction.X += 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Up))
+        if (DemoInput.IsDown(_game, DemoInput.MoveUp))
         {
             direction.Z -= 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Down))
+        if (DemoInput.IsDown(_game, DemoInput.MoveDown))
         {
             direction.Z += 1f;
         }
@@ -139,7 +138,7 @@ public class MovingAnEntityDemo : Demo
         direction.Normalize();
 
         // 3. Move by velocity x elapsed time. The elapsed time is the duration of the last frame, in seconds.
-        float speed = keyboard.IsKeyDown(Keys.LeftShift) ? RunSpeed : WalkSpeed;
+        float speed = DemoInput.IsDown(_game, "MovingAnEntity.Run") ? RunSpeed : WalkSpeed;
         float elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
         Vector3 position = _cube.Position + direction * speed * elapsedSeconds;
 

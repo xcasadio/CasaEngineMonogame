@@ -59,7 +59,6 @@ public partial class AnimationBlendDemo : Demo
     private BoneMask _upperBodyMask;
     private BoneMask _rootMotionMask;
     private DemoMode _demoMode;
-    private KeyboardState _previousKeyboardState;
     private float _blendParameter1D;
     private Vector2 _blendParameter2D;
     private float _upperBodyActionTimeRemaining;
@@ -85,14 +84,16 @@ public partial class AnimationBlendDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Tab", "next page (Shift + Tab: previous page)"),
-        new("Backspace", "put the character back at the origin"),
-        new("W", "walk (Shift + W: run); W A D explore the directions on the 2D blend page"),
-        new("1 2 3", "choose the target clip (cross-fade pages)"),
-        new("E, R", "cycle the easing, keep or drop the velocity (advanced cross-fade page)"),
-        new("Q, E", "lower or raise the layer weight (upper-body page)"),
-        new("Space", "trigger the upper-body action or the root-motion burst"),
-        new("R", "observe or apply the root motion (root-motion page)"),
+        DemoControl.ForActions("next page", "Blend.NextPage"),
+        DemoControl.ForActions("previous page (on the keyboard: Shift + next page)", "Blend.PreviousPage"),
+        DemoControl.ForActions("put the character back at the origin", "Blend.Reset"),
+        DemoControl.ForActions("walk; with Shift held, run", "Blend.Forward", "Blend.Shift"),
+        DemoControl.ForActions("explore the directions on the 2D blend page, with W A S D too", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("choose the target clip (cross-fade pages); the numpad works too", "Blend.Clip1", "Blend.Clip2", "Blend.Clip3"),
+        DemoControl.ForActions("cycle the easing, keep or drop the velocity (advanced cross-fade page)", "Blend.Easing", "Blend.KeepVelocity"),
+        DemoControl.ForActions("lower or raise the layer weight (upper-body page)", "Blend.WeightDown", "Blend.WeightUp"),
+        DemoControl.ForActions("trigger the upper-body action or the root-motion burst", "Blend.Action"),
+        DemoControl.ForActions("observe or apply the root motion (root-motion page)", "Blend.RootMotion"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -144,13 +145,17 @@ public partial class AnimationBlendDemo : Demo
             return;
         }
 
-        var keyboardState = DemoKeyboard.Read(_game);
-        if (IsNewKeyPress(keyboardState, Keys.Tab))
+        // The previous page has its own action for the gamepad; on the keyboard it is Shift + the next-page key.
+        if (DemoInput.WasPressed(_game, "Blend.PreviousPage"))
         {
-            CycleDemoMode(IsShiftPressed(keyboardState) ? -1 : 1);
+            CycleDemoMode(-1);
+        }
+        else if (DemoInput.WasPressed(_game, "Blend.NextPage"))
+        {
+            CycleDemoMode(DemoInput.IsDown(_game, "Blend.Shift") ? -1 : 1);
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.Back))
+        if (DemoInput.WasPressed(_game, "Blend.Reset"))
         {
             ResetCharacterTransform();
         }
@@ -161,31 +166,31 @@ public partial class AnimationBlendDemo : Demo
         switch (_demoMode)
         {
             case DemoMode.LinearBlendTree:
-                UpdateLinearBlendTree(keyboardState, elapsedSeconds);
+                UpdateLinearBlendTree(elapsedSeconds);
                 break;
 
             case DemoMode.BlendSpace1D:
-                UpdateOneDimensionalBlend(keyboardState, elapsedSeconds);
+                UpdateOneDimensionalBlend(elapsedSeconds);
                 break;
 
             case DemoMode.BlendSpace2D:
-                UpdateTwoDimensionalBlend(keyboardState, elapsedSeconds);
+                UpdateTwoDimensionalBlend(elapsedSeconds);
                 break;
 
             case DemoMode.CrossFade:
-                UpdateCrossFadeMode(keyboardState);
+                UpdateCrossFadeMode();
                 break;
 
             case DemoMode.AdvancedCrossFade:
-                UpdateAdvancedCrossFadeMode(keyboardState);
+                UpdateAdvancedCrossFadeMode();
                 break;
 
             case DemoMode.LayeredUpperBody:
-                UpdateLayeredUpperBodyMode(keyboardState, elapsedSeconds);
+                UpdateLayeredUpperBodyMode(elapsedSeconds);
                 break;
 
             case DemoMode.AdditiveRootMotion:
-                UpdateAdditiveRootMotionMode(keyboardState, elapsedSeconds);
+                UpdateAdditiveRootMotionMode(elapsedSeconds);
                 break;
         }
 
@@ -194,8 +199,6 @@ public partial class AnimationBlendDemo : Demo
             ConsumeRootMotionForShowcase();
             DrawRootMotionTrail();
         }
-
-        _previousKeyboardState = keyboardState;
     }
 
     public override void Clean()
@@ -219,7 +222,6 @@ public partial class AnimationBlendDemo : Demo
         _blendParameter1D = 0f;
         _blendParameter2D = Vector2.Zero;
         _configuredBlendSpace2DParameter = null;
-        _previousKeyboardState = new KeyboardState();
         _rootMotionTrailPoints.Clear();
         _lastObservedRootMotionDelta = RootMotionDelta.Identity;
         _latestEventMessage = string.Empty;
@@ -366,41 +368,41 @@ public partial class AnimationBlendDemo : Demo
         SetTransientMessage($"Showcase: {GetModeLabel(_demoMode)}");
     }
 
-    private void UpdateLinearBlendTree(KeyboardState keyboardState, float elapsedSeconds)
+    private void UpdateLinearBlendTree(float elapsedSeconds)
     {
-        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(keyboardState), elapsedSeconds * OneDimensionalBlendSpeed);
+        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(), elapsedSeconds * OneDimensionalBlendSpeed);
         _linearBlendTree!.Parameter = _blendParameter1D;
     }
 
-    private void UpdateOneDimensionalBlend(KeyboardState keyboardState, float elapsedSeconds)
+    private void UpdateOneDimensionalBlend(float elapsedSeconds)
     {
-        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(keyboardState), elapsedSeconds * OneDimensionalBlendSpeed);
+        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(), elapsedSeconds * OneDimensionalBlendSpeed);
         _blendSpace1D!.Parameter = _blendParameter1D;
     }
 
-    private void UpdateTwoDimensionalBlend(KeyboardState keyboardState, float elapsedSeconds)
+    private void UpdateTwoDimensionalBlend(float elapsedSeconds)
     {
         var target = Vector2.Zero;
         var hasDirectionalInput = false;
-        if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
+        if (DemoInput.IsDown(_game, "Blend.Left") || DemoInput.IsDown(_game, DemoInput.MoveLeft))
         {
             target.X -= 1f;
             hasDirectionalInput = true;
         }
 
-        if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(_game, "Blend.Right") || DemoInput.IsDown(_game, DemoInput.MoveRight))
         {
             target.X += 1f;
             hasDirectionalInput = true;
         }
 
-        if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
+        if (DemoInput.IsDown(_game, "Blend.Forward") || DemoInput.IsDown(_game, DemoInput.MoveUp))
         {
             target.Y = 1f;
             hasDirectionalInput = true;
         }
 
-        if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down))
+        if (DemoInput.IsDown(_game, "Blend.Backward") || DemoInput.IsDown(_game, DemoInput.MoveDown))
         {
             target.Y = 0f;
             hasDirectionalInput = true;
@@ -415,41 +417,41 @@ public partial class AnimationBlendDemo : Demo
         _blendSpace2D!.Parameter = _blendParameter2D;
     }
 
-    private void UpdateCrossFadeMode(KeyboardState keyboardState)
+    private void UpdateCrossFadeMode()
     {
         if (_skinnedMeshComponent == null)
         {
             return;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.D1) || IsNewKeyPress(keyboardState, Keys.NumPad1))
+        if (DemoInput.WasPressed(_game, "Blend.Clip1") || DemoInput.WasPressed(_game, "Blend.Clip1Numpad"))
         {
             _skinnedMeshComponent.CrossFadeToAnimation(0, CrossFadeDurationSeconds);
         }
-        else if (IsNewKeyPress(keyboardState, Keys.D2) || IsNewKeyPress(keyboardState, Keys.NumPad2))
+        else if (DemoInput.WasPressed(_game, "Blend.Clip2") || DemoInput.WasPressed(_game, "Blend.Clip2Numpad"))
         {
             _skinnedMeshComponent.CrossFadeToAnimation(1, CrossFadeDurationSeconds);
         }
-        else if (IsNewKeyPress(keyboardState, Keys.D3) || IsNewKeyPress(keyboardState, Keys.NumPad3))
+        else if (DemoInput.WasPressed(_game, "Blend.Clip3") || DemoInput.WasPressed(_game, "Blend.Clip3Numpad"))
         {
             _skinnedMeshComponent.CrossFadeToAnimation(2, CrossFadeDurationSeconds);
         }
     }
 
-    private void UpdateAdvancedCrossFadeMode(KeyboardState keyboardState)
+    private void UpdateAdvancedCrossFadeMode()
     {
         if (_riggedModel?.AnimationController == null)
         {
             return;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.E))
+        if (DemoInput.WasPressed(_game, "Blend.Easing"))
         {
             CycleAdvancedCrossFadeEasingMode();
             SetTransientMessage($"Advanced cross-fade easing: {GetTransitionEasingLabel(_advancedCrossFadeEasingMode)}");
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.R))
+        if (DemoInput.WasPressed(_game, "Blend.KeepVelocity"))
         {
             _advancedCrossFadePreserveRootVelocity = !_advancedCrossFadePreserveRootVelocity;
             SetTransientMessage(_advancedCrossFadePreserveRootVelocity
@@ -457,36 +459,36 @@ public partial class AnimationBlendDemo : Demo
                 : "Advanced cross-fade now uses pose-only blending");
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.D1) || IsNewKeyPress(keyboardState, Keys.NumPad1))
+        if (DemoInput.WasPressed(_game, "Blend.Clip1") || DemoInput.WasPressed(_game, "Blend.Clip1Numpad"))
         {
             TriggerAdvancedCrossFade(0);
         }
-        else if (IsNewKeyPress(keyboardState, Keys.D2) || IsNewKeyPress(keyboardState, Keys.NumPad2))
+        else if (DemoInput.WasPressed(_game, "Blend.Clip2") || DemoInput.WasPressed(_game, "Blend.Clip2Numpad"))
         {
             TriggerAdvancedCrossFade(1);
         }
-        else if (IsNewKeyPress(keyboardState, Keys.D3) || IsNewKeyPress(keyboardState, Keys.NumPad3))
+        else if (DemoInput.WasPressed(_game, "Blend.Clip3") || DemoInput.WasPressed(_game, "Blend.Clip3Numpad"))
         {
             TriggerAdvancedCrossFade(2);
         }
     }
 
-    private void UpdateLayeredUpperBodyMode(KeyboardState keyboardState, float elapsedSeconds)
+    private void UpdateLayeredUpperBodyMode(float elapsedSeconds)
     {
-        UpdateOneDimensionalBlend(keyboardState, elapsedSeconds);
+        UpdateOneDimensionalBlend(elapsedSeconds);
 
-        if (keyboardState.IsKeyDown(Keys.Q))
+        if (DemoInput.IsDown(_game, "Blend.WeightDown"))
         {
             _upperBodyLayerWeight = Math.Clamp(_upperBodyLayerWeight - elapsedSeconds, 0f, 1f);
             _skinnedMeshComponent!.SetAnimationLayerWeight(UpperBodyLayerIndex, _upperBodyLayerWeight);
         }
-        else if (keyboardState.IsKeyDown(Keys.E))
+        else if (DemoInput.IsDown(_game, "Blend.WeightUp"))
         {
             _upperBodyLayerWeight = Math.Clamp(_upperBodyLayerWeight + elapsedSeconds, 0f, 1f);
             _skinnedMeshComponent!.SetAnimationLayerWeight(UpperBodyLayerIndex, _upperBodyLayerWeight);
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.Space))
+        if (DemoInput.WasPressed(_game, "Blend.Action"))
         {
             _skinnedMeshComponent!.SetAnimationLayer(
                 UpperBodyLayerIndex,
@@ -500,18 +502,18 @@ public partial class AnimationBlendDemo : Demo
         }
     }
 
-    private void UpdateAdditiveRootMotionMode(KeyboardState keyboardState, float elapsedSeconds)
+    private void UpdateAdditiveRootMotionMode(float elapsedSeconds)
     {
-        UpdateOneDimensionalBlend(keyboardState, elapsedSeconds);
+        UpdateOneDimensionalBlend(elapsedSeconds);
 
-        if (IsNewKeyPress(keyboardState, Keys.R))
+        if (DemoInput.WasPressed(_game, "Blend.RootMotion"))
         {
             _applyRootMotionToEntity = !_applyRootMotionToEntity;
             _skinnedMeshComponent!.RootMotionMode = _applyRootMotionToEntity ? RootMotionMode.Apply : RootMotionMode.Observe;
             SetTransientMessage(_applyRootMotionToEntity ? "Root motion now applies to the entity" : "Root motion now stays in observe-only mode");
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.Space))
+        if (DemoInput.WasPressed(_game, "Blend.Action"))
         {
             _skinnedMeshComponent!.SetAnimationLayer(
                 RootMotionLayerIndex,
@@ -655,11 +657,11 @@ public partial class AnimationBlendDemo : Demo
         _latestEventTimeRemaining = 2.5f;
     }
 
-    private static float GetLocomotionBlendTarget(KeyboardState keyboardState)
+    private float GetLocomotionBlendTarget()
     {
-        if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
+        if (DemoInput.IsDown(_game, "Blend.Forward") || DemoInput.IsDown(_game, DemoInput.MoveUp))
         {
-            return keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)
+            return DemoInput.IsDown(_game, "Blend.Shift")
                 ? 2f
                 : 1f;
         }
@@ -698,15 +700,6 @@ public partial class AnimationBlendDemo : Demo
         _advancedCrossFadeEasingMode = easingModes[nextIndex];
     }
 
-    private static bool IsShiftPressed(KeyboardState keyboardState)
-    {
-        return keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-    }
-
-    private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)
-    {
-        return keyboardState.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
-    }
 
     private static bool HasMeaningfulRootMotion(RootMotionDelta rootMotionDelta)
     {

@@ -24,7 +24,6 @@ namespace CasaEngine.Demos.Demos;
 public sealed class EnvironmentShowcaseDemo : Demo
 {
     private CasaEngineGame? _game;
-    private KeyboardState _previousKeyboard;
     private TextureCube? _warmCubemap;
     private TextureCube? _studioCubemap;
     private int _environmentIndex;
@@ -39,9 +38,9 @@ public sealed class EnvironmentShowcaseDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("B", "switch the background between the cubemap and a plain colour"),
-        new("E", "cycle the environment cubemap"),
-        new("L", "turn the environment lighting on or off"),
+        DemoControl.ForActions("switch the background between the cubemap and a plain colour", "Environment.Background"),
+        DemoControl.ForActions("cycle the environment cubemap", "Environment.Cubemap"),
+        DemoControl.ForActions("turn the environment lighting on or off", "Environment.Lighting"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -104,28 +103,25 @@ public sealed class EnvironmentShowcaseDemo : Demo
             return;
         }
 
-        var keyboard = DemoKeyboard.Read(_game);
         var environmentSettings = _game.GameManager.CurrentWorld.EnvironmentSettings;
 
-        if (IsNewKeyPress(keyboard, Keys.B))
+        if (DemoInput.WasPressed(_game, "Environment.Background"))
         {
             _showEnvironmentBackground = !_showEnvironmentBackground;
             ApplyEnvironment(environmentSettings);
         }
 
-        if (IsNewKeyPress(keyboard, Keys.E))
+        if (DemoInput.WasPressed(_game, "Environment.Cubemap"))
         {
             _environmentIndex = (_environmentIndex + 1) % 2;
             ApplyEnvironment(environmentSettings);
         }
 
-        if (IsNewKeyPress(keyboard, Keys.L))
+        if (DemoInput.WasPressed(_game, "Environment.Lighting"))
         {
             _environmentLightingEnabled = !_environmentLightingEnabled;
             ApplyEnvironment(environmentSettings);
         }
-
-        _previousKeyboard = keyboard;
     }
 
     // The environment belongs to the world, not to the demo: put it back to the engine defaults so the next demo does not
@@ -256,9 +252,6 @@ public sealed class EnvironmentShowcaseDemo : Demo
             Quaternion.CreateFromYawPitchRoll(0f, MathHelper.PiOver2, 0f),
             reflectivePanelMaterial);
     }
-
-    private bool IsNewKeyPress(KeyboardState keyboard, Keys key)
-        => keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
 
     private static void SpawnStaticModel(
         string name,

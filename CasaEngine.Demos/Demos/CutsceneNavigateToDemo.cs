@@ -35,7 +35,6 @@ public sealed class CutsceneNavigateToDemo : Demo
     private NavigationAgentComponent _navigationAgent;
     private CharacterControllerNavigationDriverComponent _navigationDriver;
     private CutsceneAsset _cutsceneAsset;
-    private KeyboardState _previousKeyboard;
     private bool _autoPlayPending;
 
     public override string Title => "Cutscene NavigateTo demo";
@@ -46,9 +45,9 @@ public sealed class CutsceneNavigateToDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Space", "restart the cutscene from the start"),
-        new("S", "stop the cutscene where it is"),
-        new("R", "put the actor back on the start marker and restart"),
+        DemoControl.ForActions("restart the cutscene from the start", "Cutscene.Restart"),
+        DemoControl.ForActions("stop the cutscene where it is", "Cutscene.Stop"),
+        DemoControl.ForActions("put the actor back on the start marker and restart", "Cutscene.Reset"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -108,27 +107,24 @@ public sealed class CutsceneNavigateToDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var keyboard = DemoKeyboard.Read(_game);
         var world = _hero?.World;
 
         TryAutoPlay();
 
-        if (world != null && IsPressed(keyboard, Keys.Space))
+        if (world != null && DemoInput.WasPressed(_game, "Cutscene.Restart"))
         {
             PlayFromStart(world);
         }
 
-        if (world != null && IsPressed(keyboard, Keys.S))
+        if (world != null && DemoInput.WasPressed(_game, "Cutscene.Stop"))
         {
             world.RuntimeSystems.CutsceneDirector.Stop();
         }
 
-        if (world != null && IsPressed(keyboard, Keys.R))
+        if (world != null && DemoInput.WasPressed(_game, "Cutscene.Reset"))
         {
             PlayFromStart(world);
         }
-
-        _previousKeyboard = keyboard;
     }
 
     public override void Clean()
@@ -175,10 +171,6 @@ public sealed class CutsceneNavigateToDemo : Demo
     }
 
     // True only on the frame the key goes down, so holding a key restarts the cutscene once.
-    private bool IsPressed(KeyboardState keyboard, Keys key)
-    {
-        return keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
-    }
 
     // Starts the first play once the hero has a world; Initialize only raises the flag.
     private void TryAutoPlay()

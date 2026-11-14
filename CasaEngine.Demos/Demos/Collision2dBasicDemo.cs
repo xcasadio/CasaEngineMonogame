@@ -44,7 +44,6 @@ public class Collision2dBasicDemo : Demo
     private CasaEngineGame? _game;
     private CollisionComponent? _triggerZone;
     private LitDiffuseMaterial? _lampMaterial;
-    private KeyboardState _previousKeyboard;
 
     public override string Title => "Collision 2d basic demo";
     public override string Description =>
@@ -54,7 +53,7 @@ public class Collision2dBasicDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Space", "throw a ball at the pile, from the left"),
+        DemoControl.ForActions("throw a ball at the pile, from the left", "Collision.Throw"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -232,13 +231,10 @@ public class Collision2dBasicDemo : Demo
             return;
         }
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-        if (keyboard.IsKeyDown(Keys.Space) && !_previousKeyboard.IsKeyDown(Keys.Space))
+        if (DemoInput.WasPressed(_game, "Collision.Throw"))
         {
             ThrowBall();
         }
-
-        _previousKeyboard = keyboard;
 
         // Reading the trigger: the physics world keeps the list of what overlaps the zone up to date.
         if (_triggerZone != null && _lampMaterial != null)
@@ -265,6 +261,5 @@ public class Collision2dBasicDemo : Demo
         _lampMaterial = null;
         _game = null;
         _nextBall = 0;
-        _previousKeyboard = default;
     }
 }

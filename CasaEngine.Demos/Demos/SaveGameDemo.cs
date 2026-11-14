@@ -46,7 +46,6 @@ public class SaveGameDemo : Demo
     private StaticModelComponent? _cube;
     private StaticModelComponent? _savedMarker;
     private LitDiffuseMaterial? _lampMaterial;
-    private KeyboardState _previousKeyboard;
 
     /// <summary>
     /// What this game saves: where the cube is. The same calls, in the same order, write the fields when saving and
@@ -77,10 +76,10 @@ public class SaveGameDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Arrow keys", "move the cube on the ground"),
-        new("F5", "save the position of the cube to the slot"),
-        new("F9", "load the slot: the cube goes back to the saved position"),
-        new("Delete", "delete the slot file"),
+        DemoControl.ForActions("move the cube on the ground", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("save the position of the cube to the slot", "SaveGame.Save"),
+        DemoControl.ForActions("load the slot: the cube goes back to the saved position", "SaveGame.Load"),
+        DemoControl.ForActions("delete the slot file", "SaveGame.Delete"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -167,53 +166,44 @@ public class SaveGameDemo : Demo
             return;
         }
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-
-        MoveCube(keyboard, (float)gameTime.ElapsedGameTime.TotalSeconds);
+        MoveCube((float)gameTime.ElapsedGameTime.TotalSeconds);
 
         // Saving and loading read and write a file: they run on a key press, never every frame.
-        if (WasPressed(keyboard, Keys.F5))
+        if (DemoInput.WasPressed(_game, "SaveGame.Save"))
         {
             SaveGame();
         }
 
-        if (WasPressed(keyboard, Keys.F9))
+        if (DemoInput.WasPressed(_game, "SaveGame.Load"))
         {
             LoadGame();
         }
 
-        if (WasPressed(keyboard, Keys.Delete))
+        if (DemoInput.WasPressed(_game, "SaveGame.Delete"))
         {
             DeleteSave();
         }
-
-        _previousKeyboard = keyboard;
     }
 
-    private bool WasPressed(KeyboardState keyboard, Keys key)
-    {
-        return keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
-    }
-
-    private void MoveCube(KeyboardState keyboard, float elapsedSeconds)
+    private void MoveCube(float elapsedSeconds)
     {
         Vector3 direction = Vector3.Zero;
-        if (keyboard.IsKeyDown(Keys.Left))
+        if (DemoInput.IsDown(_game, DemoInput.MoveLeft))
         {
             direction.X -= 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(_game, DemoInput.MoveRight))
         {
             direction.X += 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Up))
+        if (DemoInput.IsDown(_game, DemoInput.MoveUp))
         {
             direction.Z -= 1f;
         }
 
-        if (keyboard.IsKeyDown(Keys.Down))
+        if (DemoInput.IsDown(_game, DemoInput.MoveDown))
         {
             direction.Z += 1f;
         }
@@ -304,6 +294,5 @@ public class SaveGameDemo : Demo
         _savedMarker = null;
         _lampMaterial = null;
         _game = null;
-        _previousKeyboard = default;
     }
 }

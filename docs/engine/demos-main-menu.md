@@ -22,7 +22,8 @@ demo, Esc or the gamepad Select (Back) button returns to the main screen. Every 
 | Main screen | Quit, closing the window | Quits. Esc and Back do not quit from the main screen. |
 | Demo | Esc, Select (Back) | Returns to the main screen. |
 
-The demo's own keys are listed in its description and in its HUD.
+The keys and buttons of a demo are on its sheet and in its help panel; both are written from the input configuration
+(see "Input" below).
 
 ## Worlds
 
@@ -83,11 +84,47 @@ AddDemo(new MyDemo(), ThemeRendering);
 
 - `Title` is the tree entry and the sheet title, `Description` the sheet text (plain text, no MGUI markup).
 - Build the scene in `Initialize` on `game.GameManager.CurrentWorld`: it is the demo's new world, not yet loaded.
-- Read the keyboard with `DemoKeyboard.Read(game)`, not `Keyboard.GetState()`. Esc belongs to the demos app.
+- Read input with `DemoInput.IsDown(game, action)` and `DemoInput.WasPressed(game, action)`, never a key or a button:
+  add the action to `Content/demos-input.buttonsMapping`, and name it in `Controls` with `DemoControl.ForActions`.
+  Esc, F1 and Enter belong to the demos app.
 - Release in `Clean` what the world does not own; the world itself is already cleared when `Clean` runs.
 - Keep the demo file for what the demo teaches. A text overlay, a stress run or meshes built in code go in a
   neighbour file of the same partial class: `AudioDemo.Hud.cs`, `AudioDemo.Stress.cs`, `AnimationBlendDemo.Hud.cs`,
   `MaterialDemo.Procedural.cs`.
+
+## Input
+
+Every demo, the main screen and the help panel read named actions; the keys and the gamepad buttons are in one file,
+`CasaEngine.Demos/Content/demos-input.buttonsMapping`. It is an ordinary `.buttonsMapping` asset of the engine:
+`DemoInput.Load` reads it with `AssetContentManager.LoadCopy<ButtonsMapping>` and adds its actions to the game's
+`InputMappingManager`, which the engine updates once per frame.
+
+```csharp
+if (DemoInput.WasPressed(game, "Collision.Throw")) { ... }   // the frame the key or the button goes down
+if (DemoInput.IsDown(game, DemoInput.MoveLeft)) { ... }      // while it is held
+
+public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+{
+    DemoControl.ForActions("throw a ball", "Collision.Throw"),                 // sheet: "Space / A: throw a ball"
+    DemoControl.ForActions("move the cube", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+};
+```
+
+- To change a key or a button, edit the file: the demo and its sheet follow. An action is `Group.Name`
+  (`Move.Left`, `Audio.OneShot`); `key_button` is its key, `alternative_key_button` its gamepad button, a second
+  key, or nothing (`NoDevice`).
+- An action holds one key and one alternative, and no combination of keys. Four demos have more actions than a
+  gamepad has buttons: the Audio, Animation blend and Animation IK demos give a button to their main actions only,
+  and the rest stay on the keyboard (their sheet then shows a key alone).
+- Nothing is read while the window is inactive.
+- While a demo shows a modal screen (the pause menu of the UI overlay demo), the engine routes the keyboard to that
+  screen only, so the demo's actions do not answer. The three actions of the app (back to the menu, help, launch) take
+  their key and button from the same file but read the devices themselves, so that leaving a demo always works.
+- Not in the file: the mouse and W A S D of the default camera (`ScriptArcBallCamera`, engine code), the navigation
+  of the tree of the main screen (MGUI), the footer line of the main screen (`main-menu.xaml`) and the key names that the Audio and Animation blend demos print in their own
+  text overlay.
+- `CasaEngine.Tests/UI/DemoInputConfigurationTests.cs` checks that every action a demo names is in the file and that
+  every action of the file is read.
 
 ## Automation
 

@@ -42,25 +42,27 @@ public class PlayerComponent : EntityComponent
         var velocityX = 0f;
         var velocityY = 0f;
         string animationName = "";
-        var keyboardState = DemoKeyboard.Read(Owner?.World.Game);
 
-        if (keyboardState.IsKeyDown(Keys.Down))
+        // Named actions of the demos' input configuration (DemoInput); nothing is read without a game.
+        var game = Owner?.World?.Game;
+
+        if (DemoInput.IsDown(game, DemoInput.MoveDown))
         {
             velocityY = -velocity;
             animationName = "swordman_walk_down";
         }
-        else if (keyboardState.IsKeyDown(Keys.Up))
+        else if (DemoInput.IsDown(game, DemoInput.MoveUp))
         {
             velocityY = velocity;
             animationName = "swordman_walk_up";
         }
 
-        if (keyboardState.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(game, DemoInput.MoveRight))
         {
             velocityX = velocity;
             animationName = "swordman_walk_right";
         }
-        else if (keyboardState.IsKeyDown(Keys.Left))
+        else if (DemoInput.IsDown(game, DemoInput.MoveLeft))
         {
             velocityX = -velocity;
             animationName = "swordman_walk_left";
@@ -78,13 +80,13 @@ public class PlayerComponent : EntityComponent
             _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Replace("walk", "stand"), true);
         }
 
-        if (keyboardState.IsKeyDown(Keys.Add))
+        if (DemoInput.IsDown(game, "TileMap.NextAnimation"))
         {
             index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count - 1);
             _animatedSpriteComponent.SetCurrentAnimation(index, true);
         }
 
-        if (keyboardState.IsKeyDown(Keys.Subtract))
+        if (DemoInput.IsDown(game, "TileMap.PreviousAnimation"))
         {
             index = MathHelper.Max(index - 1, 0);
             _animatedSpriteComponent.SetCurrentAnimation(index, true);

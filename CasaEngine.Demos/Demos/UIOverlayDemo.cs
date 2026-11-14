@@ -43,7 +43,6 @@ public class UIOverlayDemo : Demo
     private DialogueScreen?  _dialogueScreen;
     private DialogueAsset?       _dialogueAsset;
     private YarnDialogueRunner?  _dialogueRunner;
-    private KeyboardState    _previousKeyboard;
 
     public override string Title => "MGUI UI Overlay Demo (HUD + Modal Screens)";
     public override string Description =>
@@ -53,7 +52,7 @@ public class UIOverlayDemo : Demo
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
         new("Mouse", "use the HUD buttons (pause menu, dialogue)"),
-        new("D", "open or close the dialogue line"),
+        DemoControl.ForActions("open or close the dialogue line", "UIOverlay.Dialogue"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -131,13 +130,10 @@ public class UIOverlayDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-        if (keyboard.IsKeyDown(Keys.D) && !_previousKeyboard.IsKeyDown(Keys.D))
+        if (DemoInput.WasPressed(_game, "UIOverlay.Dialogue"))
         {
             ToggleDialogue();
         }
-
-        _previousKeyboard = keyboard;
     }
 
     public override void OnScreenResized(CasaEngineGame game, int width, int height)

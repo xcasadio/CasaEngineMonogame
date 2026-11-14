@@ -1253,6 +1253,12 @@
       "name": "ground_ground1",
       "file_name": "EditorWorld\\Models\\ground_ground1.staticModel",
       "asset_type": "staticmodel"
+    },
+    {
+      "id": "e3669370-961a-73b6-0ae9-f6d541ba3489",
+      "name": "demos-input",
+      "file_name": "demos-input.buttonsMapping",
+      "asset_type": "buttonsmapping"
     }
   ]
 }

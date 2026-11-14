@@ -56,6 +56,9 @@ public class DemosGame : CasaEngineGame
     private int _pendingDemoIndex = -1;
     private KeyboardState _prevKeyboard;
     private GamePadState _prevGamePad;
+
+    // Created once: the sheets ask it what each action is bound to.
+    private Func<string, DemoBinding> _describeAction;
     private bool _automationScreenshotCaptured;
 
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
@@ -124,6 +127,10 @@ public class DemosGame : CasaEngineGame
     {
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
+        // The input configuration of the demos: loaded before any sheet is built, because the sheets show its bindings.
+        DemoInput.Load(this);
+        _describeAction = action => DemoInput.Describe(this, action);
+
         // The registration order is the order of the main screen: a learning path (ADR-0090). It is also the index
         // CASAENGINE_START_DEMO accepts, so documentation and scripts name a demo by its title, which is stable.
         AddDemo(new HelloWorldDemo(), ThemeGettingStarted);
@@ -180,7 +187,7 @@ public class DemosGame : CasaEngineGame
                 _demos[i].Title,
                 _demos[i].Description,
                 _demoThemes[i],
-                DemoSheetText.FormatControls(_demos[i].Controls),
+                DemoSheetText.FormatControls(_demos[i].Controls, _describeAction),
                 DemoSheetText.FormatHighlights(_demos[i].Highlights),
                 _demos[i].DocumentationPath);
         }
@@ -384,14 +391,14 @@ public class DemosGame : CasaEngineGame
         var uiView = GetUIView();
         if (uiView == null) return;
 
-        _demoHintOverlay = new DemoHintOverlay();
+        _demoHintOverlay = new DemoHintOverlay(_describeAction(DemoInput.Help), _describeAction(DemoInput.Back));
         uiView.PushScreen(_demoHintOverlay);
 
         // The camera lines show only when the demo kept the default camera script.
         bool defaultCamera = demoCamera?.Owner?.GameplayProxy is ScriptArcBallCamera;
         _demoHelpOverlay = new DemoHelpOverlay(
             _currentDemo.Title,
-            DemoSheetText.FormatControls(_currentDemo.Controls),
+            DemoSheetText.FormatControls(_currentDemo.Controls, _describeAction),
             defaultCamera ? DefaultCameraControlsText : string.Empty,
             DemoSheetText.FormatHighlights(_currentDemo.Highlights));
         uiView.PushScreen(_demoHelpOverlay);
@@ -425,32 +432,31 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Esc and the gamepad Back (Select) button ask to return to the main screen during a demo (decision D5); on the main
+    /// All three are actions of the input configuration (<see cref="DemoInput"/>). Esc and the gamepad Back (Select) button ask to return to the main screen during a demo (decision D5); on the main
     /// screen they do nothing (decision D4). F1 and Start hide or show the help panel of the demo. Enter and the A button launch the demo selected on the main screen, which
     /// MGTreeView does not do. Pressed edges only, read while the window is active.
     /// </summary>
     private void ReadMenuInput()
     {
+        // Which key and which button: the input configuration. The devices are read here, not through the engine's
+        // mappings: see DemoInput.IsBoundDown.
         var keyboard = IsActive ? Keyboard.GetState() : new KeyboardState();
         var gamePad = IsActive ? GamePad.GetState(PlayerIndex.One) : new GamePadState();
 
-        bool backPressed = (keyboard.IsKeyDown(Keys.Escape) && !_prevKeyboard.IsKeyDown(Keys.Escape))
-            || (gamePad.Buttons.Back == ButtonState.Pressed && _prevGamePad.Buttons.Back != ButtonState.Pressed);
+        bool backPressed = WasAppActionPressed(DemoInput.Back, keyboard, gamePad);
         if (backPressed && _currentDemo != null)
         {
             _returnToMenuRequested = true;
         }
 
-        bool helpPressed = (keyboard.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))
-            || (gamePad.Buttons.Start == ButtonState.Pressed && _prevGamePad.Buttons.Start != ButtonState.Pressed);
+        bool helpPressed = WasAppActionPressed(DemoInput.Help, keyboard, gamePad);
         if (helpPressed && _currentDemo != null)
         {
             _demoHelpVisible = !_demoHelpVisible;
             UpdateDemoHintVisibility();
         }
 
-        bool launchPressed = (keyboard.IsKeyDown(Keys.Enter) && !_prevKeyboard.IsKeyDown(Keys.Enter))
-            || (gamePad.Buttons.A == ButtonState.Pressed && _prevGamePad.Buttons.A != ButtonState.Pressed);
+        bool launchPressed = WasAppActionPressed(DemoInput.Launch, keyboard, gamePad);
         if (launchPressed && _mainMenu != null && _launchingDemoIndex < 0 && _mainMenu.TryGetSelectedDemo(out int selectedDemo))
         {
             RequestDemo(selectedDemo);
@@ -458,6 +464,12 @@ public class DemosGame : CasaEngineGame
 
         _prevKeyboard = keyboard;
         _prevGamePad = gamePad;
+    }
+
+    private bool WasAppActionPressed(string action, in KeyboardState keyboard, in GamePadState gamePad)
+    {
+        return DemoInput.IsBoundDown(this, action, keyboard, gamePad)
+            && !DemoInput.IsBoundDown(this, action, _prevKeyboard, _prevGamePad);
     }
 
     /// <summary>

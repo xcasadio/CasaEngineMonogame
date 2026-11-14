@@ -35,6 +35,7 @@
     <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\DemoScreenXaml.cs" Link="Demos\DemoScreenXaml.cs" />
     <Compile Include="..\CasaEngine.Demos\DemoControl.cs" Link="Demos\DemoControl.cs" />
     <Compile Include="..\CasaEngine.Demos\DemoSheetText.cs" Link="Demos\DemoSheetText.cs" />
+    <Compile Include="..\CasaEngine.Demos\DemoBindingText.cs" Link="Demos\DemoBindingText.cs" />
     <None Include="..\CasaEngine.Demos\Content\Screens\main-menu.xaml" Link="Content\Screens\main-menu.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

@@ -46,7 +46,6 @@ public class Layers2dDemo : Demo
     private readonly List<IDisposable> _registeredTextures = new();
     private CasaEngineGame? _game;
     private Vector3 _cameraTarget;
-    private KeyboardState _previousKeyboard;
     private int _scrollX;
     private bool _travel = true;
     private bool _snow = true;
@@ -77,9 +76,9 @@ public class Layers2dDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Left / Right", "move the camera along the landscape"),
-        new("Space", "start or stop the automatic travel"),
-        new("S", "show or hide the snow layer"),
+        DemoControl.ForActions("move the camera along the landscape", DemoInput.MoveLeft, DemoInput.MoveRight),
+        DemoControl.ForActions("start or stop the automatic travel", "Layers2d.Travel"),
+        DemoControl.ForActions("show or hide the snow layer", "Layers2d.Snow"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -226,28 +225,24 @@ public class Layers2dDemo : Demo
             return;
         }
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-
-        if (keyboard.IsKeyDown(Keys.Space) && !_previousKeyboard.IsKeyDown(Keys.Space))
+        if (DemoInput.WasPressed(_game, "Layers2d.Travel"))
         {
             _travel = !_travel;
         }
 
-        if (keyboard.IsKeyDown(Keys.S) && !_previousKeyboard.IsKeyDown(Keys.S))
+        if (DemoInput.WasPressed(_game, "Layers2d.Snow"))
         {
             _snow = !_snow;
             // Layers are switched by the id the game gave them.
             _game.CellularLayerComponent.Service.SetLayerActive(SnowLayerId, _snow);
         }
 
-        _previousKeyboard = keyboard;
-
         // The camera scroll, in pixels of the layer picture. In a game it comes from the camera that follows the player.
-        if (keyboard.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(_game, DemoInput.MoveRight))
         {
             _scrollX += 3;
         }
-        else if (keyboard.IsKeyDown(Keys.Left))
+        else if (DemoInput.IsDown(_game, DemoInput.MoveLeft))
         {
             _scrollX -= 3;
         }
@@ -284,7 +279,6 @@ public class Layers2dDemo : Demo
         }
 
         _registeredTextures.Clear();
-        _previousKeyboard = default;
         _scrollX = 0;
         _travel = true;
         _snow = true;

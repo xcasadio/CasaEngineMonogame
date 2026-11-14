@@ -52,7 +52,6 @@ public class CoroutineDemo : Demo
     private StaticModelComponent? _cube;
     private LitDiffuseMaterial? _cubeMaterial;
     private CoroutineHandle _patrol = CoroutineHandle.Invalid;
-    private KeyboardState _previousKeyboard;
     private bool _continueRequested;
     private float _frameSeconds;
 
@@ -73,8 +72,8 @@ public class CoroutineDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Space", "let the patrol go on when the cube is green"),
-        new("S", "stop the coroutine where it is, or start it again"),
+        DemoControl.ForActions("let the patrol go on when the cube is green", "Coroutine.Continue"),
+        DemoControl.ForActions("stop the coroutine where it is, or start it again", "Coroutine.StopOrStart"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -198,15 +197,13 @@ public class CoroutineDemo : Demo
 
         _frameSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-
         // The demo only records the key: the coroutine reads the flag at its own pace.
-        if (keyboard.IsKeyDown(Keys.Space) && !_previousKeyboard.IsKeyDown(Keys.Space))
+        if (DemoInput.WasPressed(_game, "Coroutine.Continue"))
         {
             _continueRequested = true;
         }
 
-        if (keyboard.IsKeyDown(Keys.S) && !_previousKeyboard.IsKeyDown(Keys.S))
+        if (DemoInput.WasPressed(_game, "Coroutine.StopOrStart"))
         {
             CoroutineManager coroutines = _game.GameManager.CurrentWorld.CoroutineManager;
             if (coroutines.IsRunning(_patrol))
@@ -220,8 +217,6 @@ public class CoroutineDemo : Demo
                 StartPatrol();
             }
         }
-
-        _previousKeyboard = keyboard;
     }
 
     public override void Clean()
@@ -232,6 +227,5 @@ public class CoroutineDemo : Demo
         _cubeMaterial = null;
         _game = null;
         _continueRequested = false;
-        _previousKeyboard = default;
     }
 }

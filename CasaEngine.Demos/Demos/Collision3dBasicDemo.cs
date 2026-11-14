@@ -43,7 +43,6 @@ public class Collision3dBasicDemo : Demo
     private CasaEngineGame? _game;
     private ArcBallCameraComponent? _camera;
     private PhysicsQueryShape? _probeShape;
-    private KeyboardState _previousKeyboard;
 
     public override string Title => "Collision 3d basic demo";
     public override string Description =>
@@ -53,7 +52,7 @@ public class Collision3dBasicDemo : Demo
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
-        new("Space", "throw a ball from the camera, where it looks"),
+        DemoControl.ForActions("throw a ball from the camera, where it looks", "Collision.Throw"),
     };
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
@@ -185,13 +184,10 @@ public class Collision3dBasicDemo : Demo
             return;
         }
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
-        if (keyboard.IsKeyDown(Keys.Space) && !_previousKeyboard.IsKeyDown(Keys.Space))
+        if (DemoInput.WasPressed(_game, "Collision.Throw"))
         {
             ThrowBall();
         }
-
-        _previousKeyboard = keyboard;
 
         ProbeFromCamera();
     }
@@ -255,6 +251,5 @@ public class Collision3dBasicDemo : Demo
         _camera = null;
         _game = null;
         _nextBall = 0;
-        _previousKeyboard = default;
     }
 }
