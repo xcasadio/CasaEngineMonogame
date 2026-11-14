@@ -1,5 +1,7 @@
 # Plan agent IA — Démos lisibles par un nouvel utilisateur
 
+**Terminé le 2026-11-14.** Recette de l'auteur le 2026-11-14 (« recette OK, pousse la branche ») : elle clôt T3.2 et T6.1, que l'agent avait laissées en 🧪 faute d'avoir pu ouvrir l'éditeur et presser une touche ou un bouton. Remarques P4 de la passe `verifier` (A1 à A3, sous T6.2) non traitées.
+
 Plan d'exécution du chantier issu de l'analyse de `CasaEngine.Demos` faite en session le 2026-11-14 (pas de fichier d'audit : les constats sont repris dans « État vérifié du dépôt »).
 Les décisions D1 → D11 ci-dessous ont été arbitrées avec l'auteur le 2026-11-14 : **ce plan les applique, il ne les rediscute pas**. Les points P1 → P7 sont des arbitrages proposés par l'agent, validés par l'auteur à l'approbation du plan le 2026-11-14 (« Approuvé, lance-le », mode AUTO).
 
@@ -223,7 +225,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `docs(ai-agent): record how a demo can load an editor-made world`
 - Note de validation (2026-11-14) : Runtime : `GameManager.UpdateWorld` charge un monde nommé par `AssetContentManager.LoadCopy<World>(assetInfo.Id)` après `AssetCatalog.GetByFileName` (`GameManager.cs:109-131`) ; une démo peut faire la même copie et la donner à `SetWorldToLoad(World)` (`:389`). `DemosGame.ChangeDemo` crée aujourd'hui `new World()` avant `Demo.Initialize` (`DemosGame.cs`, `ChangeDemo`) : il faut un point d'extension additif dans `Demo` (par exemple `CreateWorld`, par défaut `new World()`), dans `CasaEngine.Demos` seulement, aucune modification de `CasaEngine/`. Le monde doit être dans `Content/AssetInfos.json` ; `Content/DefaultWorld.world` existe et est vide (`entity_references: []`). `DemoCycleAutomation.OnWorldLoaded` contrôle que la caméra créée par la démo est dans une vue : la démo garde donc `CreateCamera`, ou le contrôle est adapté. Éditeur : `EditorAutomationOptions` n'a aucune commande qui crée un monde, une entité ou un composant (`--project`, `--entity` et `--component` sélectionnent, `--save-project` enregistre le monde ouvert, le reste concerne particules, materials, écrans, docking) : l'automatisation ne peut pas créer le monde demandé par D7. Voir O1.
 
-### 🧪 T3.2 — Démo « World made in the editor »
+### ✅ T3.2 — Démo « World made in the editor »
 
 - Objectif : une démo charge un `.world` de `CasaEngine.Demos/Content/` ; sa fiche et sa doc disent comment l'ouvrir et le modifier dans l'éditeur (D4).
 - Fichiers : `CasaEngine.Demos/Content/<monde>.world` et ses assets, `CasaEngine.Demos/Demos/EditorWorldDemo.cs`, `DemosGame.cs`, `docs/engine/demos-main-menu.md`, une page `docs/editor/`.
@@ -313,7 +315,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 
 ## Phase 6 — Clôture
 
-### 🧪 T6.1 — Entrées des démos par la configuration du moteur
+### ✅ T6.1 — Entrées des démos par la configuration du moteur
 
 - Objectif : chaque action de chaque démo, du menu et du panneau d'aide passe par la configuration d'entrées du moteur, avec une touche et un bouton de manette ; la fiche et le panneau affichent les deux (D8).
 - Fichiers : toutes les démos qui lisent une entrée, `DemosGame.cs`, `DemoKeyboard.cs`, le type de ligne de contrôle de T1.1, la configuration d'entrées des démos dans `CasaEngine.Demos/Content/`, `docs/engine/demos-main-menu.md`, tests du menu.

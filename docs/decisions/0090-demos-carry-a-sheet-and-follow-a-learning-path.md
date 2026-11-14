@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
-- **Source**: this chantier: `ai-agent/tasks/demos-onboarding-tasks.md` (decisions D2 to D5, D8, D9, points P1 to P3)
+- **Source**: this chantier: `ai-agent/tasks/archive/demos-onboarding-tasks.md` (decisions D2 to D5, D8, D9, points P1 to P3)
 
 ## Context
 
