@@ -38,7 +38,7 @@ internal static class DemoSceneLightRig
             1.0f);
     }
 
-    private static void AddDirectionalLight(
+    internal static void AddDirectionalLight(
         World world,
         string entityName,
         Vector3 direction,

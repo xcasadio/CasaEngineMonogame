@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Logging;
@@ -11,6 +12,7 @@ using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -131,6 +133,8 @@ public class DemosGame : CasaEngineGame
         AddDemo(new UIOverlayDemo(), ThemeUI);
         AddDemo(new AudioDemo(), ThemeAudio);
         AddDemo(new FrozenFrameDemo(), ThemeRendering);
+        // Registered last on purpose: it moves no index that CASAENGINE_START_DEMO or a script may use.
+        AddDemo(new ColorPipelineDemo(), ThemeRendering);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)
@@ -218,6 +222,7 @@ public class DemosGame : CasaEngineGame
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(world);
         _pendingDemoCamera = _currentDemo.CreateCamera(this);
+        ApplyColorPipelineHarness(world);
 
         Window.Title = _currentDemo.Title;
     }
@@ -569,6 +574,66 @@ public class DemosGame : CasaEngineGame
             Logs.WriteException(ex);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Harness variables that put any demo in another colour pipeline (ADR-0095): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
+    /// (<c>Legacy</c> or <c>LinearHdr</c>), <c>CASAENGINE_DEMO_TONEMAPPER</c> (<c>AcesApprox</c> or <c>Reinhard</c>) and
+    /// <c>CASAENGINE_DEMO_EXPOSURE</c> (a number, invariant culture). Applied to the world of the demo once the demo has
+    /// built its scene, lighting and camera, then followed by <c>MarkDirty</c>. Without any variable nothing changes; an
+    /// unreadable value is logged and ignored.
+    /// </summary>
+    private static void ApplyColorPipelineHarness(World world)
+    {
+        var modeText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_COLOR_PIPELINE");
+        var tonemapperText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_TONEMAPPER");
+        var exposureText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_EXPOSURE");
+        if (string.IsNullOrWhiteSpace(modeText)
+            && string.IsNullOrWhiteSpace(tonemapperText)
+            && string.IsNullOrWhiteSpace(exposureText))
+        {
+            return;
+        }
+
+        var settings = world.EnvironmentSettings;
+        if (!string.IsNullOrWhiteSpace(modeText))
+        {
+            if (Enum.TryParse<ColorPipelineMode>(modeText, true, out var mode))
+            {
+                settings.ColorPipeline.Mode = mode;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_COLOR_PIPELINE '{modeText}' is not Legacy or LinearHdr; ignored.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(tonemapperText))
+        {
+            if (Enum.TryParse<TonemapOperator>(tonemapperText, true, out var tonemapper))
+            {
+                settings.ColorPipeline.Tonemapper = tonemapper;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_TONEMAPPER '{tonemapperText}' is not AcesApprox or Reinhard; ignored.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(exposureText))
+        {
+            if (float.TryParse(exposureText, NumberStyles.Float, CultureInfo.InvariantCulture, out var exposure))
+            {
+                settings.ColorPipeline.Exposure = exposure;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_EXPOSURE '{exposureText}' is not a number; ignored.");
+            }
+        }
+
+        settings.MarkDirty();
+        Logs.WriteInfo($"[DemosGame] Colour pipeline harness: {settings.ColorPipeline.Mode}, {settings.ColorPipeline.Tonemapper}, exposure {settings.ColorPipeline.Exposure}.");
     }
 
     private static string? ResolveAutomationScreenshotPath()

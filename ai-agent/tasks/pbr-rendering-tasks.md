@@ -258,7 +258,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 - Commit : `feat(rendering): add per-world colour pipeline settings with a legacy default (ADR-0095)`
 - Note de validation (2026-11-15) : `dotnet build CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 5225 réussis, 0 échec (5207 au départ + 18 de `ColorPipelineSettingsTests`) ; un monde sans la clé `color_pipeline` se charge en `Legacy` (test). `Exposure` : NaN, infini et négatif donnent 0 (l'infini est ajouté à la consigne par cohérence avec `ShadowSettings`). `ResolvedEnvironmentSettings.CreateLegacy` pose `Exposure = 1` (un `default` vaut 0, jamais lu pour l'instant). Captures de T0.2 (`capture.sh`) : sept démos déterministes sur huit identiques à la base ; **`ui-overlay` rend d'abord `c94bfa52754c67b6` au lieu de `d226df79b82cf4b2`, sans lien avec la tâche** : seul le chiffre du compteur « Time: 1,5s » de l'interface (rectangle 77,52 - 84,64) change, la base ayant été prise quand la démo affichait 1,5 s à 1500 ms et la machine affichant maintenant 1,4 s ; le même hash `c94bfa52754c67b6` sort à l'identique sans aucune modification de la tâche (changements écartés par `git stash`, `CasaEngine.Demos` reconstruit). Avec `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS=1600` (ou 1550) et les changements de la tâche, la capture vaut `d226df79b82cf4b2`, soit la base : **comparer `ui-overlay` avec ce délai** ; les sept autres sont comparées avec le délai par défaut.
 
-### ⏳ T1.2 — Variables de harnais et scène de mesure
+### ✅ T1.2 — Variables de harnais et scène de mesure
 
 - Objectif : pouvoir mettre n'importe quelle démo en `LinearHdr` dès la tâche suivante, et disposer de la scène de mesure de la phase.
 - Fichiers : `CasaEngine.Demos/DemosGame.cs` ; nouveau `CasaEngine.Demos/Demos/ColorPipelineDemo.cs` (+ `AddDemo` **en dernière position**, pour ne déplacer aucun index) ; `docs/engine/demos-main-menu.md` si la liste y figure.
@@ -268,6 +268,20 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   3. Écrire dans le fichier de la démo les coordonnées des pixels de mesure : gris 128, sphère éclairée (trois points sur sa moitié éclairée), émissif, bord d'émissif à 8 px, interface, texte.
 - Validation : builds ; la démo se lance par son titre exact et se capture ; captures de T0.2 identiques ; en `Legacy`, le pixel gris 128 vaut 128 ± 1.
 - Commit : `feat(demos): add colour pipeline harness variables and a measurement demo`
+- Note de validation (2026-11-15) : builds des deux solutions : 0 erreur ; `dotnet test` : 5226 réussis, 0 échec ; `capture.sh` après la tâche : les huit démos déterministes identiques à la base (material 7fe3d57bb10f7128, environment 043ad52894e18395, static-model 3ee7cd655db47386, static-shadow c7d6c867b3de4ad9, render-to-texture f35395822a585e9e, ui-overlay d226df79b82cf4b2, frozen-frame eb25f3917cfa6a0c, tile-map 355772772016e47f ; `ui-overlay` dépend du compteur « Time » de son interface, voir la note de T1.1 : cette fois-ci il est tombé sur la base avec le délai par défaut), aucune ligne « was not found ». Démo ajoutée **en dernière position** de `DemosGame` (aucun index déplacé), lancée par son titre exact `Colour pipeline demo`, capture 1024 × 768 par `CASAENGINE_START_DEMO="Colour pipeline demo" CASAENGINE_CAPTURE_SCREENSHOT_PATH=<chemin>.png ./CasaEngine.Demos.exe`. Variables : `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGINE_DEMO_TONEMAPPER`, `CASAENGINE_DEMO_EXPOSURE` (appliquées dans `DemosGame.ChangeDemo` après `CreateCamera`, journal `Colour pipeline harness: …` ; sans variable aucun effet), `CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY` (défaut 1), `CASAENGINE_COLOR_DEMO_BUFFERED=1` (résolution virtuelle `BufferedFit` 1024 × 768, journal `Virtual resolution in force: BufferedFit` ; l'échelle valant 1, **les pixels de mesure sont les mêmes avec et sans tampon, et la capture `Legacy` à tampon est identique au bit à celle sans tampon**, hash 6ca4add123c5b4b4). Texte d'écran : `Renderer2DComponent.DrawText` avec une `SpriteFont` à un seul glyphe plein (bloc), pour ne dépendre d'aucun fichier de police ; il doit être redemandé à chaque image (la file est vidée à chaque `Flush`).
+  - **Pixels de mesure** (coordonnées fenêtre, constantes `ColorPipelineDemo.*Pixel`), valeurs `Legacy` mesurées sur la capture, lumière d'intensité 1 :
+
+    | Mesure | Pixel (x, y) | Valeur `Legacy` |
+    |---|---|---|
+    | Gris 128 (plan x 462-561, y 201-300) | 512, 251 | 128, 128, 128 (mesuré 128) |
+    | Rampe 0, 64, 128, 191, 255 | 279, 395, 512, 628, 744 ; y 251 | 0, 64, 128, 191, 255 |
+    | Sphère grise, moitié éclairée (haut droite ; centre 278, 467, rayon environ 45) | 298, 440 ; 292, 452 ; 310, 460 | 120 ; 128 ; 111 |
+    | Émissif (x 645-778, y 425-508, `EmissiveColor` 4) | 712, 467 | 255, 255, 255 |
+    | Bord d'émissif, fond à 8 px du dernier pixel émissif (x 778) | 786, 467 | 20, 20, 20 (fond) |
+    | Interface (panneau MGUI plein, x 16-175, y 16-79, bordure noire) | 96, 48 | 200, 60, 60 |
+    | Texte (bloc, x 24-279, y 112-135) | 150, 124 | 60, 200, 240 |
+
+  - Vérifications : `CASAENGINE_DEMO_COLOR_PIPELINE=LinearHdr` seul ne change pas l'image (rien ne lit encore le réglage) ; `CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY=4` fait passer les trois points de la sphère à 255 ; la touche M, T, +/- règle mode, opérateur et exposition (non exercée en capture).
 
 ### ⏳ T1.3 — `Tonemap.fx` et son enregistrement
 
