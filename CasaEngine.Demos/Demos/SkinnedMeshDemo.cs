@@ -13,6 +13,16 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
 
+/// <summary>
+/// Animated skinned characters under directional shadows. One <see cref="SkinnedMesh"/> is loaded once and shared by six
+/// <see cref="SkinnedMeshComponent"/>s, laid out in three columns that differ only in their shadow flags (the same
+/// layout as the static shadow reference scene).
+/// <para/>
+/// Types to look at: <see cref="SkinnedMeshComponent"/> (plays and cross-fades animations, has per-component
+/// <c>CastShadows</c>, <c>ReceiveShadows</c>, <c>SkinningModeSelection</c> and a <c>Material</c> override),
+/// <see cref="SkinningModeSelection"/> and <see cref="AnimationCrossFadeSettings"/> with
+/// <see cref="AnimationTransitionMode"/>.
+/// </summary>
 public class SkinnedMeshDemo : Demo
 {
     private CasaEngineGame? _game;
@@ -35,6 +45,8 @@ public class SkinnedMeshDemo : Demo
 
     public override string DocumentationPath => "docs/engine/light-component.md";
 
+    // The base Demo creates an arc-ball camera and its InitializeCamera casts to that type, so a demo that wants another
+    // camera overrides both methods together. A fixed look-at camera keeps the view the same from run to run.
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity { Name = "SkinnedShadowValidationCamera" };
@@ -45,6 +57,9 @@ public class SkinnedMeshDemo : Demo
         return camera;
     }
 
+    // Called by the demos app right after Initialize. It replaces the default light rig: the scene is lit by the two
+    // lights below. No environment cubemap, a plain background and a fixed ambient, so only the lights shape the
+    // shading.
     public override void ConfigureSceneLighting(CasaEngine.Framework.Scene.World.World world)
     {
         var environmentSettings = world.EnvironmentSettings;
@@ -58,6 +73,9 @@ public class SkinnedMeshDemo : Demo
         environmentSettings.SpecularIntensity = 0.2f;
         environmentSettings.MarkDirty();
 
+        // The key light is the one that casts shadows; the fill light from another direction does not and only keeps the
+        // unlit sides from going black. The direction of a directional light is its component's forward vector, so the
+        // orientation is built from the direction wanted (see CreateOrientationFromForward).
         var keyLight = new LightComponent
         {
             Type = LightType.Directional,
@@ -94,6 +112,7 @@ public class SkinnedMeshDemo : Demo
 
     public override void Initialize(CasaEngineGame game)
     {
+        // Reset the demo's state in case the same demo object is entered again.
         _game = game;
         var world = game.GameManager.CurrentWorld;
         _skinnedMeshComponents.Clear();
@@ -101,6 +120,9 @@ public class SkinnedMeshDemo : Demo
         _nextAnimationIndex = 1;
         _useInertializeTransition = false;
 
+        // The character comes straight from a model file (relative to the project root) rather than from the asset
+        // catalogue. Initialize then resolves the rigged model and its animation clips through the content manager; it is
+        // done once, and the six components below share the result.
         var skinnedMesh = game.AssetContentManager.LoadFromFile<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
 
@@ -114,11 +136,16 @@ public class SkinnedMeshDemo : Demo
             SpecularPower = 16.0f,
         };
 
+        // Three columns 9 units apart on X, each with a caster and a receiver: left is the reference (both flags on, the
+        // caster tinted), centre turns receiving off on the receiver, right turns casting off on the caster.
         CreateShadowValidationColumn(world, skinnedMesh, "ReceiveShadow", -9.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial);
         CreateShadowValidationColumn(world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
         CreateShadowValidationColumn(world, skinnedMesh, "NoCastShadow", 9.0f, casterCastShadows: false, receiverReceiveShadows: true);
     }
 
+    // Every 2.5 seconds all the characters cross-fade to the next animation clip of the model, cycling through its
+    // clips. Nothing happens when the model has fewer than two clips. All components share one mesh, so the first one
+    // stands for the clip count of all.
     public override void Update(GameTime gameTime)
     {
         if (_skinnedMeshComponents.Count == 0)
@@ -146,6 +173,7 @@ public class SkinnedMeshDemo : Demo
         // Alternates transition modes every cycle so both the smooth pose cross-fade and the
         // pop-free inertialization ("offset decay") transition are exercised in this demo.
         _useInertializeTransition = !_useInertializeTransition;
+        // The 0.35 passed below is the transition duration in seconds (the durationSeconds parameter).
         var transitionSettings = new AnimationCrossFadeSettings
         {
             TransitionMode = _useInertializeTransition ? AnimationTransitionMode.Inertialize : AnimationTransitionMode.CrossFade,
@@ -160,6 +188,7 @@ public class SkinnedMeshDemo : Demo
         _nextAnimationIndex++;
     }
 
+    // The environment belongs to the world: reset it to the engine defaults so the next demo does not inherit this one's.
     public override void Clean()
     {
         if (_game?.GameManager.CurrentWorld is { } world)
@@ -175,6 +204,9 @@ public class SkinnedMeshDemo : Demo
         _useInertializeTransition = false;
     }
 
+    // One column: a caster (larger scale) and a receiver (smaller) placed apart in depth. The two use different skinning
+    // modes (LinearBlend and DualQuaternion), so both are on screen. The caster always receives shadows; the receiver
+    // never casts. The column's two flags are applied to the caster's CastShadows and the receiver's ReceiveShadows.
     private void CreateShadowValidationColumn(
         CasaEngine.Framework.Scene.World.World world,
         SkinnedMesh skinnedMesh,
@@ -217,6 +249,8 @@ public class SkinnedMeshDemo : Demo
         float uniformScale = 0.1f,
         LitDiffuseMaterial materialOverride = null)
     {
+        // The component is the entity's root and draws the shared mesh. Material, when not null, replaces the renderer's
+        // default skinned material for this component only. The uniform scale sets the size on screen; the caster is drawn a little larger than the receiver.
         var entity = new Entity { Name = entityName };
         var skinnedMeshComponent = new SkinnedMeshComponent
         {
@@ -232,11 +266,14 @@ public class SkinnedMeshDemo : Demo
     entity.RootComponent.LocalOrientation = Quaternion.Identity;
     entity.RootComponent.LocalScale = new Vector3(uniformScale, uniformScale, uniformScale);
 
+        // Start on the first clip; Update moves on to the next ones. The list lets Update reach every component.
         skinnedMeshComponent.PlayAnimation(0);
         _skinnedMeshComponents.Add(skinnedMeshComponent);
         world.AddEntity(entity);
     }
 
+    // Turns a direction into the rotation that takes Vector3.Forward onto it. The two special cases are the ones where the
+    // cross product used for the axis is zero: already aligned, or exactly opposite (a half turn around Up).
     private static Quaternion CreateOrientationFromForward(Vector3 forward)
     {
         if (forward.LengthSquared() <= 0.0001f)

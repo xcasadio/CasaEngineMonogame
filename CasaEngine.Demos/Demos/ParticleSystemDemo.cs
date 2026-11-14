@@ -11,9 +11,22 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
 
+/// <summary>
+/// Builds three particle effects in code and plays them: a looping fire, a one-shot spark burst and a one-shot smoke
+/// puff. An effect is data (a <see cref="ParticleEffectAsset"/> holding emitter definitions); an entity plays it through
+/// a <see cref="ParticleSystemComponent"/>.
+/// <para/>
+/// Types to look at: <see cref="ParticleEmitterDefinition"/> (emission, shape, initial values, simulation and renderer
+/// modules), <see cref="FloatCurve"/> and <see cref="ColorGradient"/> (values over a particle's lifetime) and
+/// <see cref="ParticleBlendMode"/>. The same data can be authored in the editor and loaded from a file; here it is built
+/// in code so everything is visible in one place.
+/// </summary>
 public sealed class ParticleSystemDemo : Demo
 {
+    // Longer than the one-shot effects' durations (0.8 s for the sparks, 1.25 s for the smoke), so each has ended
+    // when Update restarts it.
     private const float BurstIntervalSeconds = 1.35f;
+    // Id of the soft round sprite in the demo's asset catalogue (Textures\soft_particle.texture in AssetInfos.json).
     private static readonly Guid SoftParticleTextureAssetId = new("2af8c1e7-8d4e-4a87-b146-8b84d888fff2");
     private ParticleSystemComponent? _sparkBurst;
     private ParticleSystemComponent? _smokePuff;
@@ -37,18 +50,25 @@ public sealed class ParticleSystemDemo : Demo
     {
         var world = game.GameManager.CurrentWorld;
 
+        // A dark ground so the additive effects stand out. Then three entities, one effect each, side by side. Only the
+        // spark and smoke components are kept: Update restarts them, while the fire loops by itself.
         AddGround(game);
         AddParticleEntity(world, "Fire Loop", new Vector3(0.0f, 0.1f, 0.0f), CreateFireLoop(), playOnStart: true, out _);
         AddParticleEntity(world, "Spark Burst", new Vector3(-2.4f, 0.35f, 0.0f), CreateSparkBurst(), playOnStart: true, out _sparkBurst);
         AddParticleEntity(world, "Smoke Puff", new Vector3(2.4f, 0.35f, 0.0f), CreateSmokePuff(), playOnStart: true, out _smokePuff);
+        // Start the timer full so the first Update restarts the bursts at once instead of waiting a whole interval.
         _burstTimer = BurstIntervalSeconds;
     }
 
+    // The base Demo creates an arc-ball camera, which is why this cast is safe. The view is close to the fire; orbit to see
+    // that the particles are billboards.
     public override void InitializeCamera(CameraComponent camera)
     {
         ((ArcBallCameraComponent)camera).SetCamera(new Vector3(0.0f, 1.8f, 4.6f), new Vector3(0.0f, 0.65f, 0.0f), Vector3.Up);
     }
 
+    // The two one-shot effects play once and stop, so Update restarts them on a timer; Restart(clearParticles: true)
+    // drops the particles still alive so every burst starts clean.
     public override void Update(GameTime gameTime)
     {
         _burstTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -71,6 +91,7 @@ public sealed class ParticleSystemDemo : Demo
 
     private static void AddGround(CasaEngineGame game)
     {
+        // A plain lit box with no specular, so the ground does not compete with the particles.
         var entity = new Entity { Name = "particle demo ground" };
         var meshComponent = new StaticModelComponent();
         entity.RootComponent = meshComponent;
@@ -94,6 +115,9 @@ public sealed class ParticleSystemDemo : Demo
         bool playOnStart,
         out ParticleSystemComponent component)
     {
+        // The component is the entity's root, so LocalPosition places the emitter. Looping is copied from the asset's first
+        // emitter because the component writes its own Looping value into every emitter when the effect is set, and the
+        // properties must be assigned before SetParticleEffectAsset for that reason (PlayOnStart is also read then).
         var entity = new Entity { Name = name };
         component = new ParticleSystemComponent
         {
@@ -109,6 +133,9 @@ public sealed class ParticleSystemDemo : Demo
 
     private static ParticleEffectAsset CreateFireLoop()
     {
+        // The fire: a looping emitter with a steady rate. Emission decides when particles appear, Shape where and in which
+        // direction, Initial their starting values (each a random range), Simulation how they change, Renderer how they
+        // are drawn.
         var asset = new ParticleEffectAsset { Name = "FireLoop_Minimal" };
         var emitter = new ParticleEmitterDefinition
         {
@@ -128,6 +155,9 @@ public sealed class ParticleSystemDemo : Demo
         emitter.Initial.AngularVelocity = new FloatRange(-1.2f, 1.2f);
         emitter.Initial.Size = new Vector2Range(new Vector2(0.14f, 0.2f), new Vector2(0.28f, 0.42f));
         emitter.Initial.StartColor = CreateFireLoopStartColor();
+        // World space: a particle's position is transformed by the entity's world matrix when it is born and simulated in
+        // world coordinates afterwards, so it does not follow the entity. Each frame the velocity gains Gravity times
+        // GravityScale; here that is upward (positive Y), which makes the flames rise.
         emitter.Simulation.SimulationSpace = ParticleSimulationSpace.World;
         emitter.Simulation.Gravity = new Vector3(0.0f, 1.6f, 0.0f);
         emitter.Simulation.GravityScale = 0.45f;
@@ -136,6 +166,9 @@ public sealed class ParticleSystemDemo : Demo
         emitter.Simulation.AlphaOverLifetime = CreateFireLoopAlphaOverLifetime();
         emitter.Simulation.VelocityOverLifetime = CreateFireLoopVelocityOverLifetime();
         emitter.Simulation.ColorOverLifetime = CreateFireLoopColorOverLifetime();
+        // Additive blending adds the colour to what is behind it, which suits light. Sorting by distance orders the quads
+        // of this effect from far to near. RenderQueue orders whole effects against each other: the smoke (3000) is drawn
+        // before the fire (3050), which is drawn before the sparks (3100).
         emitter.Renderer.TextureAssetId = SoftParticleTextureAssetId;
         emitter.Renderer.Flipbook.FrameOverLifetime = CreateFireLoopFrameOverLifetime();
         emitter.Renderer.BlendMode = ParticleBlendMode.Additive;
@@ -145,6 +178,8 @@ public sealed class ParticleSystemDemo : Demo
         return asset;
     }
 
+    // The helpers below build the fire's curves and gradients. Each key is (position along the particle's life from 0 to
+    // 1, value).
     private static ColorGradient CreateFireLoopStartColor()
     {
         var gradient = new ColorGradient();
@@ -202,6 +237,8 @@ public sealed class ParticleSystemDemo : Demo
 
     private static ParticleEffectAsset CreateSparkBurst()
     {
+        // The sparks: a non-looping emitter with one burst at time 0 (28 to 40 particles) instead of a rate. Update
+        // restarts it to fire the burst again.
         var asset = new ParticleEffectAsset { Name = "Demo_SparkBurst" };
         var emitter = new ParticleEmitterDefinition
         {
@@ -221,6 +258,8 @@ public sealed class ParticleSystemDemo : Demo
         emitter.Initial.AngularVelocity = new FloatRange(-2.0f, 2.0f);
         emitter.Initial.Size = new Vector2Range(new Vector2(0.04f), new Vector2(0.09f));
         emitter.Initial.StartColor = ColorGradient.Fire();
+        // Gravity points down here (negative Y), reduced by GravityScale, so the sparks are pulled down gently. Queue 3100
+        // is the highest of the three effects, so the sparks are drawn last.
         emitter.Simulation.SimulationSpace = ParticleSimulationSpace.World;
         emitter.Simulation.Gravity = new Vector3(0.0f, -9.8f, 0.0f);
         emitter.Simulation.GravityScale = 0.18f;
@@ -239,6 +278,8 @@ public sealed class ParticleSystemDemo : Demo
 
     private static ParticleEffectAsset CreateSmokePuff()
     {
+        // The smoke: also a one-shot burst, but with ParticleBlendMode.Alpha (the other two are additive), and it rises
+        // slowly under a small upward gravity. Its queue is the lowest of the three, so it is drawn first.
         var asset = new ParticleEffectAsset { Name = "Demo_SmokePuff" };
         var emitter = new ParticleEmitterDefinition
         {

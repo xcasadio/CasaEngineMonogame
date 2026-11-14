@@ -255,13 +255,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): add shooting and a trigger volume to the 2D collision demo`
 - Note de validation (2026-11-14) : `Collision2dBasicDemo` réécrite et commentée, code mort et `//TODO` retirés : `KeepInPlane` (facteurs linéaire et angulaire), lancer de balles (Espace, huit balles réutilisées), zone déclencheur (`CollisionComponent` cinétique au profil `CollisionProfileNames.Trigger`, comme `SimulationSpacePolicyTests`) lue par `Collisions.Count` pour allumer une lampe. Vérifié par deux captures, la seconde avec un tir automatique temporaire (retiré avant commit) : lampe grise sans corps dans la zone, verte avec des balles dedans, les balles traversent la zone, la vue de debug la dessine. Build 0 erreur ; cycle PASS. La vitesse de lancer a été baissée après la capture (non revue à l'écran) ; la touche Espace n'a pas été pressée par l'agent.
 
-### ⏳ T4.3 — Commentaires des démos muettes
+### ✅ T4.3 — Commentaires des démos muettes
 
 - Objectif : les six démos sans commentaire expliquent chaque bloc de `Initialize` (pourquoi, pas quoi) ; les séparateurs `//===` deviennent des phrases.
 - Fichiers : `CutsceneMoveToDemo.cs`, `CutsceneNavigateToDemo.cs`, `EnvironmentShowcaseDemo.cs`, `ParticleSystemDemo.cs`, `SceneManagementDemo.cs`, `StaticShadowValidationDemo.cs`, `SkinnedMeshDemo.cs`.
 - Étapes : commentaires seulement, aucun changement de comportement.
 - Validation : build ; `git diff` ne montre que des commentaires.
 - Commit : `docs(demos): explain the scene setup of the uncommented demos`
+- Note de validation (2026-11-14) : commentaires ajoutés par un exécutant (sonnet) dans les sept fichiers : résumé de classe et commentaires de bloc, 20 à 41 lignes par fichier. Contrôle de la session principale : chaque fichier est identique à `HEAD` une fois les lignes de commentaire retirées (md5) ; build 0 erreur ; échantillon relu. Constat remonté par l'exécutant et confirmé par capture : `SkinnedMeshDemo` n'active pas `Shadows.Enabled` et n'affiche aucune ombre, alors que sa fiche (T1.4) et `docs/engine/demos-check-notes.md` en décrivent ; traité à part, voir la note sous T1.4.
 
 ### ⏳ T4.4 — Grosses démos allégées
 
