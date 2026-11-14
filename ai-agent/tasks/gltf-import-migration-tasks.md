@@ -161,10 +161,10 @@ Checked:
   - `kid_idle.FBX`, `kid_walk.FBX`: skeleton, 1 clip (`Take_001`) and `.model` written, with their PNG textures beside the source.
   - `Car.x` (RacingGame, deleted by `1ccc9238`): **failed** with `InvalidOperationException: Needs to be in SRT representation` in `GltfStaticModelReader.BuildNode`. Cause: the converted glb stores its nodes as matrices and the reader read their rotation without decomposing them. Fixed in both readers (`GetDecomposed()`), with a test; `Car.staticModel` and 6 `.material` are now written. This answers R2 for this file.
 
-Found, not fixed (outside this task):
+Found during the run, fixed on 2026-11-14 at the author's request (branch `chantier/gltf-import-fixes`):
 
-- A source whose texture file is missing does not import: the converter throws `Image Content is missing` when it saves the glb. Seen on the kid FBX without their PNG files.
-- `TryImportSeparatedAnimationAssets` swallows every exception of the rigged read (`catch { return false; }`), so the error reported is the one of the static path that runs next.
+- A source whose texture file is missing does not import: the converter throws `Image Content is missing` when it saves the glb. Seen on the kid FBX without their PNG files. Fix: the converter embeds a 1x1 white placeholder in place of the missing file and logs a warning naming it; the model imports. Test: `Convert_ObjWithMissingTexture_StillProducesAGlbWithAPlaceholder`.
+- `TryImportSeparatedAnimationAssets` swallows every exception of the rigged read (`catch { return false; }`), so the error reported is the one of the static path that runs next. Fix: the exception is logged as a warning with the source path before the static path runs. No test: the log has no sink a test can read.
 
 Not checked:
 
