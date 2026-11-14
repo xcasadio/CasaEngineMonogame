@@ -6,6 +6,7 @@ using System.Reflection;
 using CasaEngine.Editor.History;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -188,6 +189,39 @@ internal static class EditorWorldOperations
         EditorWorldEditingService.AttachEntity(world, entity, parent);
         entity.IsEnabled = enabled;
         entity.IsVisible = visible;
+    }
+
+    /// <summary>
+    /// Sets (or, with <see cref="Guid.Empty"/>, clears) the material override of a static model slot, as the static model
+    /// editor does (ADR-0093 P6). Returns false, without a history entry, when nothing changes.
+    /// </summary>
+    public static bool SetMaterialOverride(EditorHistoryContext context, StaticModelComponent component, StaticModelMaterialSlot slot, Guid materialAssetId)
+    {
+        ArgumentNullException.ThrowIfNull(component);
+        Guid previous = component.GetMaterialOverrideAssetId(slot);
+        if (previous == materialAssetId)
+        {
+            return false;
+        }
+
+        Execute(
+            context,
+            "Edit Static Model Material",
+            () => ApplyMaterialOverride(component, slot, materialAssetId),
+            () => ApplyMaterialOverride(component, slot, previous));
+        return true;
+    }
+
+    private static void ApplyMaterialOverride(StaticModelComponent component, StaticModelMaterialSlot slot, Guid materialAssetId)
+    {
+        if (materialAssetId == Guid.Empty)
+        {
+            component.ClearMaterialOverride(slot);
+        }
+        else
+        {
+            component.SetMaterialOverride(slot, materialAssetId);
+        }
     }
 
     /// <summary>Returns false, without a history entry, when the name does not change.</summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
@@ -242,6 +243,78 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
 
         LoadAsset(materialAsset, fullPath);
+        return true;
+    }
+
+    /// <summary>One property of the loaded material, as the remote commands read it (ADR-0093).</summary>
+    public readonly record struct PropertySnapshot(
+        string Key,
+        string DisplayName,
+        MaterialPropertyType Type,
+        string Value,
+        bool IsLocal,
+        float? MinValue,
+        float? MaxValue,
+        IReadOnlyList<string> Options);
+
+    /// <summary>The properties of the material's definition with their effective value, as the inspector shows them.</summary>
+    public IReadOnlyList<PropertySnapshot> GetPropertySnapshots()
+    {
+        var snapshots = new List<PropertySnapshot>();
+        if (_materialAsset == null)
+        {
+            return snapshots;
+        }
+
+        foreach (var propertyDefinition in _materialAsset.GetRequiredDefinition().Properties)
+        {
+            PropertyDisplayState state = ResolvePropertyState(propertyDefinition);
+            snapshots.Add(new PropertySnapshot(
+                propertyDefinition.Key,
+                propertyDefinition.DisplayName,
+                propertyDefinition.ValueType,
+                FormatTextValue(propertyDefinition, state.EffectiveValue),
+                _materialAsset.HasLocalPropertyValue(propertyDefinition.Key),
+                propertyDefinition.MinValue,
+                propertyDefinition.MaxValue,
+                propertyDefinition.Options.Select(option => option.Value).ToList()));
+        }
+
+        return snapshots;
+    }
+
+    /// <summary>
+    /// Sets a property from its text form through the undo history of this panel, as an edit in the inspector does
+    /// (ADR-0093 P5). <paramref name="validate"/> returns null when the parsed value is allowed, otherwise the reason.
+    /// </summary>
+    public bool TryApplyPropertyValue(string propertyKey, string rawValue, Func<MaterialPropertyDefinition, MaterialValue, string> validate, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(validate);
+        if (_materialAsset == null)
+        {
+            error = "No material loaded.";
+            return false;
+        }
+
+        if (!TryFindPropertyDefinition(propertyKey, out var propertyDefinition))
+        {
+            error = $"Property '{propertyKey}' not found.";
+            return false;
+        }
+
+        if (!TryCreateAutomationValue(propertyDefinition, rawValue ?? string.Empty, out var value))
+        {
+            error = $"Unable to parse '{rawValue}' for property '{propertyDefinition.Key}'.";
+            return false;
+        }
+
+        error = validate(propertyDefinition, value);
+        if (error != null)
+        {
+            return false;
+        }
+
+        ApplyPropertyValue(propertyDefinition, value, refreshEditorValue: true);
         return true;
     }
 

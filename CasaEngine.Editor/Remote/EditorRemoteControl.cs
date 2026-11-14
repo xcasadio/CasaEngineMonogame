@@ -83,6 +83,20 @@ internal interface IEditorRemoteHost
 
     /// <summary>Refreshes the views of a history context after an undo or redo, as the Edit menu does.</summary>
     void RefreshAfterHistory(CasaEngine.Editor.History.EditorHistoryContext context);
+
+    /// <summary>The properties of an open material panel, or null when the material is not open.</summary>
+    IReadOnlyList<CasaEngine.Editor.Controls.MaterialAssetInspectorPanel.PropertySnapshot> GetMaterialProperties(Guid assetId);
+
+    /// <summary>Sets a property of an open material through its panel's history; <paramref name="validate"/> returns null when the value is allowed.</summary>
+    bool TrySetMaterialProperty(
+        Guid assetId,
+        string property,
+        string rawValue,
+        Func<CasaEngine.Framework.Materials.Definitions.MaterialPropertyDefinition, CasaEngine.Framework.Materials.Runtime.MaterialValue, string> validate,
+        out string error);
+
+    /// <summary>Saves one open asset (material, particle or sound panel) and marks its history saved.</summary>
+    bool TrySaveAsset(Guid assetId, out string error);
 }
 
 /// <summary>
@@ -114,6 +128,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteEditCommands.Register(Registry, host);
         EditorRemoteViewCommands.Register(Registry, host, NewCapturePath);
         EditorRemoteAssetCommands.Register(Registry, host);
+        EditorRemoteMaterialCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

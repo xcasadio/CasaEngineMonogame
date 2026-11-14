@@ -306,6 +306,67 @@ public partial class GameEditor
 
         public void RefreshAfterHistory(EditorHistoryContext context) => _editor.RefreshViewsAfterHistoryCommand(context);
 
+        public IReadOnlyList<Controls.MaterialAssetInspectorPanel.PropertySnapshot> GetMaterialProperties(Guid assetId)
+        {
+            string panelId = EditorPanelIds.MaterialAssetDocumentPrefix + assetId.ToString("N");
+            return _editor._materialInspectorPanels.TryGetValue(panelId, out var panel) ? panel.GetPropertySnapshots() : null;
+        }
+
+        public bool TrySetMaterialProperty(
+            Guid assetId,
+            string property,
+            string rawValue,
+            Func<Framework.Materials.Definitions.MaterialPropertyDefinition, Framework.Materials.Runtime.MaterialValue, string> validate,
+            out string error)
+        {
+            string panelId = EditorPanelIds.MaterialAssetDocumentPrefix + assetId.ToString("N");
+            if (!_editor._materialInspectorPanels.TryGetValue(panelId, out var panel))
+            {
+                error = "The material is not open.";
+                return false;
+            }
+
+            return panel.TryApplyPropertyValue(property, rawValue, validate, out error);
+        }
+
+        /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
+        public bool TrySaveAsset(Guid assetId, out string error)
+        {
+            string id = assetId.ToString("N");
+            string materialPanel = EditorPanelIds.MaterialAssetDocumentPrefix + id;
+            if (_editor._materialInspectorPanels.TryGetValue(materialPanel, out var material))
+            {
+                if (!material.TrySaveLoadedAsset(out error))
+                {
+                    return false;
+                }
+
+                _editor._editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, materialPanel));
+                return true;
+            }
+
+            string particlePanel = EditorPanelIds.ParticleAssetDocumentPrefix + id;
+            if (_editor._particleInspectorPanels.TryGetValue(particlePanel, out var particle))
+            {
+                if (!particle.TrySaveLoadedAsset(out error))
+                {
+                    return false;
+                }
+
+                _editor._editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, particlePanel));
+                return true;
+            }
+
+            string soundPanel = EditorPanelIds.SoundAssetDocumentPrefix + id;
+            if (_editor._soundInspectorPanels.TryGetValue(soundPanel, out var sound))
+            {
+                return sound.TrySaveLoadedAsset(out error);
+            }
+
+            error = "The asset is not open.";
+            return false;
+        }
+
         /// <summary>The id of the open panel of an asset among the four asset panel kinds, or null.</summary>
         private string FindAssetPanelId(Guid assetId)
         {

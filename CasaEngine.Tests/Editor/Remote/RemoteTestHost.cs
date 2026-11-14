@@ -145,4 +145,36 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         => AssetContexts.TryGetValue(assetId, out context);
 
     public void RefreshAfterHistory(CasaEngine.Editor.History.EditorHistoryContext context) => RefreshedContexts.Add(context);
+
+    public List<(Guid AssetId, string Property, string RawValue)> MaterialSets { get; } = new();
+
+    /// <summary>What the material panel would answer for a set: null to accept (after the validator), otherwise the error.</summary>
+    public Func<CasaEngine.Framework.Materials.Definitions.MaterialPropertyDefinition, CasaEngine.Framework.Materials.Runtime.MaterialValue, string> LastMaterialValidator { get; private set; }
+
+    public string MaterialSetError { get; set; }
+
+    public List<Guid> SavedAssets { get; } = new();
+
+    public IReadOnlyList<CasaEngine.Editor.Controls.MaterialAssetInspectorPanel.PropertySnapshot> GetMaterialProperties(Guid assetId)
+        => Array.Empty<CasaEngine.Editor.Controls.MaterialAssetInspectorPanel.PropertySnapshot>();
+
+    public bool TrySetMaterialProperty(
+        Guid assetId,
+        string property,
+        string rawValue,
+        Func<CasaEngine.Framework.Materials.Definitions.MaterialPropertyDefinition, CasaEngine.Framework.Materials.Runtime.MaterialValue, string> validate,
+        out string error)
+    {
+        LastMaterialValidator = validate;
+        MaterialSets.Add((assetId, property, rawValue));
+        error = MaterialSetError;
+        return error == null;
+    }
+
+    public bool TrySaveAsset(Guid assetId, out string error)
+    {
+        SavedAssets.Add(assetId);
+        error = null;
+        return true;
+    }
 }
