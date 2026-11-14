@@ -89,7 +89,7 @@ Validation de chaque tâche MGUI : `dotnet build MGUI/MGUI.sln`, `dotnet test MG
 Chaque tâche qui change le pipeline garde le rendu identique : mêmes runs, mêmes lignes, mêmes tailles mesurées, mêmes
 appels de dessin sur un corpus de textes (nombre court, longueur variable, plusieurs lignes, coupure en mots, balises).
 
-### ⏳ T0.1 — Banc de mesure par étape, et corpus de rendu
+### ✅ T0.1 — Banc de mesure par étape, et corpus de rendu
 
 - Objectif : un test d'allocation par étape (setter, `UpdateRuns`, mesure, `UpdateLines`, dessin) sur le corpus, et les
   tests de rendu identique qui serviront de garde à toutes les tâches suivantes. La mesure du dessin passe par
@@ -97,8 +97,27 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   `MGUI.Tests/Controls/SliderDrawAllocationTests.cs`. Les tests de mesure écrivent leurs chiffres sans affirmer zéro.
 - Fin : les chiffres par étape sont écrits sous cette tâche ; aucun code de production touché.
 - Commit (MGUI) : `test(text): measure the MGTextBlock pipeline step by step`
+- **Fait le 2026-11-14** (MGUI `dbeacc95`, par un agent `executor`, relu). `MGUI.Tests` : 3256 verts, aucun sauté.
+  Banc : `MGUI.Tests/Text/TextBlockAllocationMeasurements.cs` ; garde de rendu (runs, lignes, taille mesurée, appels de
+  dessin, valeurs figées sur le code actuel) : `MGUI.Tests/Text/TextBlockRenderingCorpusTests.cs`. Octets par
+  opération, `AllowsInlineFormatting` faux puis vrai :
 
-### ⏳ T1.1 — Surcharges `ReadOnlySpan<char>` des moteurs de texte (D2)
+  | Texte | Setter `Text` | `SetText(ContentOnly)` | Mesure après changement | `DrawSelf` inchangé |
+  |---|---|---|---|---|
+  | Nombre court | 2104 / 3208 | 9040 / 10144 | 3488 | 120 |
+  | Phrase d'une ligne | 2312 / 4312 | 17552 / 19552 | 7796 | 120 |
+  | Plusieurs lignes | 14464 / 16496 | 33064 / 35096 | 10604 | 200 |
+  | Phrase coupée en mots | 2432 / 6624 | 60088 / 64280 | 30332 | 240 |
+  | Texte à balises | 2360 / 46384 | 15248 / 66360 | 6432 / 9976 | 120 |
+
+  `UpdateLines` vaut la mesure plus 24 octets. Cycle complet (changement, `Update`, `Draw`) d'un nombre court : environ
+  12 000 octets, dont 2921 pour une image sans changement (plan du bureau).
+- Limites : `UpdateRuns` est privé, son coût est dans les lignes du setter ; la mesure passe par `MeasureSelfOverride`.
+  Le moteur de texte de test mesure 6 px par caractère, gras ou non : les largeurs de la garde de rendu en dépendent.
+- À vérifier dans T1.3 (constat de l'agent, cause non vérifiée) : le chemin local `SetText(ContentOnly)` coûte plus que
+  le setter suivi d'une mesure, sans doute parce que `CachedTextMeasurementsStillMatch` refait chaque mesure du cache.
+
+### 🚧 T1.1 — Surcharges `ReadOnlySpan<char>` des moteurs de texte (D2)
 
 - Fichiers (MGUI) : `MGUI.Shared/Text/Engines/ITextMeasurementEngine.cs`, `ITextDrawEngine.cs`,
   `MGUI.Shared/Rendering/IUIDrawContext.cs`, `MGUI.MonoGame.Integration` (`SpriteFontTextEngine`, `DrawTransaction`),
