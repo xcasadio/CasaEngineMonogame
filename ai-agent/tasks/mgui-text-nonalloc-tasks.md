@@ -2,8 +2,8 @@
 
 Plan préparé par T3.1 de [mgui-slider-nonalloc-tasks.md](mgui-slider-nonalloc-tasks.md) (décision D7 du 2026-10-06 :
 « tout le pipeline de `MGTextBlock` devient sans allocation, dans un chantier séparé avec son propre plan »).
-**État : questions posées à l'auteur (section « Questions à l'auteur »), plan à compléter avec ses réponses, puis à
-approuver. Aucune modification de code avant approbation.**
+**État : questions tranchées par l'auteur le 2026-11-14 (D2 à D6, « Fait ça et fais l'implémentation de manière autonome »), tâches figées, exécution en mode AUTO. Branches `chantier/mgui-nonalloc` dans le moteur (depuis `main` `f6f8006a`) et dans MGUI (depuis `develop` `e9d6a95d`).** Relu READY le 2026-11-14 (troisième relecture).
+
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
@@ -66,6 +66,11 @@ Sites lus dans le code (lecture par un agent `scout`, points décisifs relus) :
 | Réf | Décision |
 |---|---|
 | D1 | (D7 du plan du slider) Tout le pipeline de `MGTextBlock` devient sans allocation, dans ce chantier séparé. |
+| D2 | (Q1, 2026-11-14) (c) : surcharges `ReadOnlySpan<char>` ajoutées à `ITextMeasurementEngine`, `ITextDrawEngine` et `IUIDrawContext`, sans retirer les surcharges `string` ; implémentées dans chaque backend (`SpriteFontTextEngine`, `FontStashSharpTextEngine`, `DrawTransaction`, `CasaDrawTransaction`). Si un backend ne peut ni mesurer ni dessiner sans `string`, la tâche passe en ⚠️ et le repli est (a). |
+| D3 | (Q2) (b) : représentation interne réutilisable ; `Runs` et `Lines` gardent leur type et leur contenu, construits seulement quand on les lit. |
+| D4 | (Q3) (c) : ici seulement la mesure du `MGTextBlock` ; le layout du parent est dans le plan du bureau (sa D5, T2.1). |
+| D5 | (Q4) (b) : texte sans balise d'abord (phase 1), balises ensuite (phase 2). |
+| D6 | (Q5) (a) : révélation progressive et listes de bornes dans ce chantier, en dernier (phase 3). |
 
 ## Règles d'exécution pour l'agent
 
@@ -78,27 +83,114 @@ allocation imprévue. Langue : plan en français, code et commits en anglais.
 - `MGUI.Tests` vert, nouveaux tests d'allocation nuls (changement de texte, mesure, dessin) et contre-éprouvés ;
   `MGUI.Samples` sans erreur ; les deux solutions du moteur sans erreur ; `CasaEngine.Tests` vert ; `verifier` frais.
 
-## Tâches (provisoires, à figer après les réponses)
+## Tâches
 
-### ⏳ T0.1 — Banc de mesure par étape
+Validation de chaque tâche MGUI : `dotnet build MGUI/MGUI.sln`, `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj`.
+Chaque tâche qui change le pipeline garde le rendu identique : mêmes runs, mêmes lignes, mêmes tailles mesurées, mêmes
+appels de dessin sur un corpus de textes (nombre court, longueur variable, plusieurs lignes, coupure en mots, balises).
 
-- Objectif : un test d'allocation par étape (setter, `UpdateRuns`, mesure, `UpdateLines`, dessin) sur des textes
-  représentatifs (nombre court, nombre de longueur variable, texte avec balises, texte coupé en mots), pour classer les
-  sites mesurés avant tout changement. Le runtime de test recrée une transaction de dessin enregistreuse à chaque
-  `Draw` : la mesure du dessin passe par `DrawSelf` avec une transaction réutilisée et vidée, comme
-  `MGUI.Tests/Controls/SliderDrawAllocationTests.cs`.
+### ⏳ T0.1 — Banc de mesure par étape, et corpus de rendu
 
-### ⏳ T1.x — Selon Q1 à Q5
+- Objectif : un test d'allocation par étape (setter, `UpdateRuns`, mesure, `UpdateLines`, dessin) sur le corpus, et les
+  tests de rendu identique qui serviront de garde à toutes les tâches suivantes. La mesure du dessin passe par
+  `DrawSelf` avec une transaction réutilisée et vidée (`DrawTextCalls` compris), comme
+  `MGUI.Tests/Controls/SliderDrawAllocationTests.cs`. Les tests de mesure écrivent leurs chiffres sans affirmer zéro.
+- Fin : les chiffres par étape sont écrits sous cette tâche ; aucun code de production touché.
+- Commit (MGUI) : `test(text): measure the MGTextBlock pipeline step by step`
 
-Une tâche par étape du pipeline (runs, tokenizer, lignes et coupure, mesure, dessin, révélation), chacune avec son test
-d'allocation contre-éprouvé et des tests de rendu identique (runs, lignes, tailles mesurées, appels de dessin) sur un
-corpus de textes.
+### ⏳ T1.1 — Surcharges `ReadOnlySpan<char>` des moteurs de texte (D2)
+
+- Fichiers (MGUI) : `MGUI.Shared/Text/Engines/ITextMeasurementEngine.cs`, `ITextDrawEngine.cs`,
+  `MGUI.Shared/Rendering/IUIDrawContext.cs`, `MGUI.MonoGame.Integration` (`SpriteFontTextEngine`, `DrawTransaction`),
+  `MGUI.FontStashSharp/FontStashSharpTextEngine.cs`, runtimes de test ; ADR de MGUI.
+  Fichiers (runtime du moteur) : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs`.
+  Tests : `MGUI.Tests` avec `MGUI.Tests/Integration/GpuDeviceHost.cs` pour `SpriteFontTextEngine`,
+  `FontStashSharpTextEngine` et `DrawTransaction` ; un fichier de `CasaEngine.Tests/UI/Backend/` (hôte GPU
+  `GpuDeviceHost.cs`, comme `UiClipViewSpaceGpuTests.cs`) pour `CasaDrawTransaction`.
+- Les membres ajoutés aux interfaces ont une implémentation par défaut qui retombe sur la surcharge `string` : un
+  backend externe continue de compiler. Les moteurs et transactions de test utilisés par un test de zéro
+  implémentent la surcharge eux-mêmes.
+- Fin : mesurer et dessiner un `ReadOnlySpan<char>` n'alloue rien dans les deux moteurs de texte et les deux
+  transactions, chacun prouvé par un test de zéro après chauffe, contre-éprouvé (il échoue avec l'implémentation par
+  défaut) ; même largeur et même rendu que la surcharge `string` ; les deux solutions du moteur compilent ;
+  `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` vert. Les tests de zéro passent par un GPU (`[GpuFact]`, qui
+  saute le test sans GPU) : la tâche n'est ✅ que si les quatre tests de zéro et leurs contre-épreuves ont tourné et
+  réussi, aucun sauté, dans les deux projets de test ; les comptes (réussis, sautés) sont écrits sous la tâche. Sans
+  GPU utilisable : ⚠️ et arrêt.
+- Commits : MGUI `feat(text): measure and draw a span of characters` ; moteur `feat(ui): draw a span of characters
+  through the engine backend`, avec la référence du sous-module.
+
+### ⏳ T1.2 — Texte sans balise : changement de texte sans allocation (D3, D5)
+
+- Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`SetTextCore`, `ApplyTextMutation`, `UpdateRuns`), `Text/MGTextRun.cs`.
+- Fin : deux surcharges nouvelles, `public void SetText(ReadOnlySpan<char> Value)` (mode `RelayoutParent`, comme le
+  setter `Text`) et `public void SetText(ReadOnlySpan<char> Value, MGTextInvalidationMode InvalidationMode)`, qui suit
+  les règles de résolution de `SetText(string, MGTextInvalidationMode)` (`AllowLegacyLocalInvalidation` faux,
+  `MGTextBlock.cs:910-911`, `:993-1006`). Elles copient le texte dans un tampon gardé ; la `string` de `Text` n'est
+  construite qu'à sa lecture. Zéro prouvé ici, sans abonné à `PropertyChanged`, quand `AllowsInlineFormatting` est faux et que le
+  changement ne lance pas le calcul des lignes dans le setter (mode `RelayoutParent`) ; les modes locaux (`ContentOnly`,
+  `ReflowLocal`), qui appellent `UpdateLines` et la mesure depuis `ApplyTextMutation`, sont prouvés à zéro par T1.3 ; le setter `Text` (`string`) ne garde que ce que `Text`, `Runs` et `Lines`
+  demandent à la lecture ; un texte inchangé ne fait rien. `Lines` reste `null` tant que les lignes ne sont pas
+  calculées (des tests et `MGTextBlock` lisent ce `null`).
+- Commit (MGUI) : `perf(text): change a plain text without allocating`
+
+### ⏳ T1.3 — Texte sans balise : mesure et lignes sans allocation (D4)
+
+- Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (mesure, `UpdateLines`), `Text/MGTextLine.cs` (`ParseLines`, coupure en
+  mots).
+- Fin : mesure et découpe en lignes d'un texte sans balise sans allocation, une ligne et plusieurs lignes, avec et sans
+  coupure en mots. `SetText(span, mode)` dans les modes locaux (`ContentOnly`, `ReflowLocal`) : zéro, setter compris, sur un
+  `MGTextBlock` avec `HasStableTextFootprint = true` et une largeur de layout connue (`HasKnownTextLayoutWidth()`), et le
+  test vérifie que `ApplyTextMutation` a bien pris la branche locale (`UpdateLines`, `:985`) : pas de `LayoutChanged`
+  levé pour un texte de même taille.
+- Commit (MGUI) : `perf(text): measure and wrap a plain text without allocating`
+
+### ⏳ T1.4 — Texte sans balise : dessin sans allocation
+
+- Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`DrawSelf`), `Text/TextRenderInfo.cs`.
+- Fin : `DrawSelf` d'un texte sans balise n'alloue rien, texte inchangé ou changé à chaque image par `SetText` ; test
+  de bout en bout : changement, mesure, dessin d'un nombre au format `F2` à chaque image, zéro octet.
+- Commit (MGUI) : `perf(text): draw a plain text without allocating`
+
+### ⏳ T2.1 — Balises : tokenizer et runs sans allocation (D5)
+
+- Fichiers : `Text/FormattedTextTokenizer.cs`, `Text/FormattedTextParser.cs`, `Text/MGTextRun.cs`,
+  `MGUI.Core/UI/MGTextBlock.cs` (branche à balises de `UpdateRuns`, `SanitizeRuns`).
+- Fin : changer un texte à balises (`[b]`, `[color=…]`, actions, infobulles) n'alloue rien hors des objets que la
+  lecture de `Runs` demande.
+- Commit (MGUI) : `perf(text): tokenize and parse formatted text without allocating`
+
+### ⏳ T2.2 — Balises : lignes et dessin sans allocation
+
+- Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (mesure et `DrawSelf`, branche à balises, dont `Foreground.AsFillBrush()` qui
+  crée un `MGSolidFillBrush` par dessin), `Text/MGTextLine.cs`, `Text/TextRenderInfo.cs`.
+- Fin : mesure, découpe et dessin d'un texte à balises sans allocation, le fond et le soulignement étant des brosses
+  unies fournies par le test. Les classes de brosses ne sont pas modifiées : si le `Draw` d'une brosse unie alloue, la
+  mesure est écrite ici, la tâche passe en ⚠️ et s'arrête.
+- Commit (MGUI) : `perf(text): wrap and draw formatted text without allocating`
+
+### ⏳ T3.1 — Révélation progressive et listes de bornes (D6)
+
+- Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`TextProgress` `:1600`, `ActionBounds` `:1671`, `ToolTipBounds` `:1683`).
+- Fin : une révélation progressive pilotée par des écritures directes de `TextProgress` à chaque image n'alloue rien
+  (setter, mesure, dessin) ; les listes de bornes sont réutilisées. Hors de cette preuve : le pilotage par
+  `TextCharactersPerSecond` (tick du moteur d'animation, `TextRevealRun` recréé à chaque resynchronisation), listé
+  comme suite.
+- Commit (MGUI) : `perf(text): reveal text and track its bounds without allocating`
+
+### ⏳ T4.1 — Documentation et clôture
+
+- Fin : `MGUI/docs` (texte) et `docs/engine` du moteur disent quand utiliser `SetText(ReadOnlySpan<char>)` ; ADR de
+  MGUI indexé ; `verifier` frais sur le chantier ; les deux solutions et `CasaEngine.Tests` verts.
+- Commit : `docs(text): document the allocation-free text path`
 
 ## Points ouverts
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Les mesures ci-dessus viennent du runtime de test ; refaire la mesure du dessin avec une transaction non enregistreuse (T0.1). | T0.1 |
+| O2 | `SpriteFont` de MonoGame et FontStashSharp n'ont pas été vus accepter un `ReadOnlySpan<char>` ; la voie prévue passe par leurs surcharges `StringBuilder`, à vérifier dans T1.1 (voir D2 pour le repli). | T1.1 |
+| O3 | Référence du sous-module MGUI : voir O2 du plan du bureau. | T1.1 |
 
 ## Hors périmètre
 
