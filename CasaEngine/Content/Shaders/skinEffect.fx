@@ -144,6 +144,8 @@ BEGIN_CONSTANTS
     float ShadowNormalBias _ps(c100) _cb(c90.w);
     float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
     float ReceiveShadows _ps(c101) _cb(c91.z);
+    float ShadowApplyMode _ps(c101) _cb(c91.w);
+    float3 ShadowTintColor _ps(c106) _cb(c96);
 
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
@@ -381,6 +383,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 ambientContribution = ComputeSkinnedAmbientContribution(worldNormal);
     color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
 
     return color;
 }

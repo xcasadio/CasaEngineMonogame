@@ -143,6 +143,8 @@ BEGIN_CONSTANTS
     float ShadowNormalBias _ps(c100) _cb(c90.w);
     float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
     float ReceiveShadows _ps(c101) _cb(c91.z);
+    float ShadowApplyMode _ps(c101) _cb(c91.w);
+    float3 ShadowTintColor _ps(c106) _cb(c96);
 
     float4x4 World _vs(c34) _cb(c33);
     float3x3 WorldInverseTranspose _vs(c38) _cb(c37);
@@ -215,6 +217,24 @@ float3 ApplyReflectionContribution(float3 surfaceColor, float3 reflectionContrib
 {
     return surfaceColor * (ReflectionMultiplyBase + reflectionContribution * ReflectionMultiplyFactor)
         + reflectionContribution * ReflectionAddAmount;
+}
+
+
+// ApplyReflectionContribution, then the shadow tint on the non-emissive part of its linear form
+// surface * (base + reflection * factor) + reflection * add: the emissive part of the surface is carried by
+// emissiveColor * (base + reflection * factor) and is left untinted. With ShadowApplyMode = 0 the result is exactly
+// ApplyReflectionContribution.
+float3 ApplyReflectionContributionWithShadowTint(float3 surfaceColor, float3 emissiveColor, float3 reflectionContribution, float shadowFactor)
+{
+    float3 reflected = ApplyReflectionContribution(surfaceColor, reflectionContribution);
+
+    if (ShadowApplyMode > 0.5f)
+    {
+        float3 emissiveReflected = emissiveColor * (ReflectionMultiplyBase + reflectionContribution * ReflectionMultiplyFactor);
+        reflected += (ComputeShadowTint(shadowFactor) - 1.0f) * (reflected - emissiveReflected);
+    }
+
+    return reflected;
 }
 
 
@@ -486,8 +506,8 @@ float4 PSBasicVertexLightingTx(VSOutputTx pin) : SV_Target0
 }
 
 
-// Pixel shader: pixel lighting.
-float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
+// Untinted pixel lighting colour; shadowFactor is the visibility of the shadow-casting light for the shadow tint.
+float4 ShadePixelLighting(VSOutputPixelLighting pin, out float shadowFactor)
 {
     float4 color = pin.Diffuse;
 
@@ -505,13 +525,25 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
     ApplyAlphaTest(color.a);
     
     AddSpecular(color, lightResult.Specular);
-    
+
+    shadowFactor = lightResult.ShadowFactor;
     return color;
 }
 
 
-// Pixel shader: pixel lighting + texture.
-float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
+// Pixel shader: pixel lighting.
+float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
+{
+    float shadowFactor;
+    float4 color = ShadePixelLighting(pin, shadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, shadowFactor);
+
+    return color;
+}
+
+
+// Untinted pixel lighting + texture colour.
+float4 ShadePixelLightingTx(VSOutputPixelLightingTx pin, out float shadowFactor)
 {
     float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
     
@@ -529,7 +561,19 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
     ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
-    
+
+    shadowFactor = lightResult.ShadowFactor;
+    return color;
+}
+
+
+// Pixel shader: pixel lighting + texture.
+float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
+{
+    float shadowFactor;
+    float4 color = ShadePixelLightingTx(pin, shadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, shadowFactor);
+
     return color;
 }
 
@@ -553,6 +597,7 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
     ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
 
     return color;
 }
@@ -577,6 +622,7 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
     ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
 
     return color;
 }
@@ -626,6 +672,7 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
         EmissiveColor);
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
+    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
 
     return color;
 }
@@ -633,11 +680,12 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
 
 float4 PSBasicPixelLightingReflection(VSOutputPixelLighting pin) : SV_Target0
 {
-    float4 color = PSBasicPixelLighting(pin);
+    float shadowFactor;
+    float4 color = ShadePixelLighting(pin, shadowFactor);
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
 
     return color;
 }
@@ -645,11 +693,12 @@ float4 PSBasicPixelLightingReflection(VSOutputPixelLighting pin) : SV_Target0
 
 float4 PSBasicPixelLightingTxReflection(VSOutputPixelLightingTx pin) : SV_Target0
 {
-    float4 color = PSBasicPixelLightingTx(pin);
+    float shadowFactor;
+    float4 color = ShadePixelLightingTx(pin, shadowFactor);
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
 
     return color;
 }
@@ -678,7 +727,7 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
 
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), lightResult.ShadowFactor);
 
     return color;
 }

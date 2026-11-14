@@ -1,4 +1,6 @@
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using CasaEngine.Core.Serialization;
 
 namespace CasaEngine.Framework.Rendering.Shadows;
 
@@ -12,6 +14,7 @@ public sealed class ShadowSettings
     private float _depthBias = 0.001f;
     private float _normalBias;
     private float _maxDistance = 100.0f;
+    private Vector3 _shadowColor = Vector3.Zero;
 
     public bool Enabled { get; set; } = false;
 
@@ -39,6 +42,22 @@ public sealed class ShadowSettings
         set => _maxDistance = NormalizeNonNegative(value);
     }
 
+    /// <summary>
+    /// How the shadow factor is applied to lit surfaces. <see cref="ShadowMode.OccludeDirectLight"/> (default) is the
+    /// historical behaviour.
+    /// </summary>
+    public ShadowMode Mode { get; set; } = ShadowMode.OccludeDirectLight;
+
+    /// <summary>
+    /// Colour a fully shadowed pixel is multiplied by in <see cref="ShadowMode.MultiplyLitColor"/> (default black). Each
+    /// component is kept in [0, 1]; a non-finite component becomes 0.
+    /// </summary>
+    public Vector3 ShadowColor
+    {
+        get => _shadowColor;
+        set => _shadowColor = NormalizeColor(value);
+    }
+
     public void ResetToDefaults()
     {
         Enabled = false;
@@ -46,6 +65,8 @@ public sealed class ShadowSettings
         DepthBias = 0.001f;
         NormalBias = 0.0f;
         MaxDistance = 100.0f;
+        Mode = ShadowMode.OccludeDirectLight;
+        ShadowColor = Vector3.Zero;
     }
 
     public void Load(JObject element)
@@ -81,6 +102,16 @@ public sealed class ShadowSettings
         {
             MaxDistance = maxDistanceNode.Value<float>();
         }
+
+        if (element.TryGetValue("mode", StringComparison.OrdinalIgnoreCase, out var modeNode))
+        {
+            Mode = modeNode.GetEnum<ShadowMode>();
+        }
+
+        if (element.TryGetValue("shadow_color", StringComparison.OrdinalIgnoreCase, out var shadowColorNode))
+        {
+            ShadowColor = shadowColorNode.GetVector3();
+        }
     }
 
     public void Save(JObject element)
@@ -92,6 +123,31 @@ public sealed class ShadowSettings
         element["depth_bias"] = DepthBias;
         element["normal_bias"] = NormalBias;
         element["max_distance"] = MaxDistance;
+
+        // The shadow mode and colour are optional in the file: written only when they differ from the defaults, so
+        // existing worlds keep their format, and a stale key is removed.
+        if (Mode != ShadowMode.OccludeDirectLight)
+        {
+            element["mode"] = Mode.ToString();
+        }
+        else
+        {
+            element.Remove("mode");
+        }
+
+        if (ShadowColor != Vector3.Zero)
+        {
+            element["shadow_color"] = new JObject
+            {
+                ["x"] = ShadowColor.X,
+                ["y"] = ShadowColor.Y,
+                ["z"] = ShadowColor.Z,
+            };
+        }
+        else
+        {
+            element.Remove("shadow_color");
+        }
     }
 
     public void CopyFrom(ShadowSettings other)
@@ -103,10 +159,25 @@ public sealed class ShadowSettings
         DepthBias = other.DepthBias;
         NormalBias = other.NormalBias;
         MaxDistance = other.MaxDistance;
+        Mode = other.Mode;
+        ShadowColor = other.ShadowColor;
     }
 
     private static int NormalizeResolution(int value)
         => Math.Max(1, value);
+
+    private static Vector3 NormalizeColor(Vector3 value)
+        => new(NormalizeUnit(value.X), NormalizeUnit(value.Y), NormalizeUnit(value.Z));
+
+    private static float NormalizeUnit(float value)
+    {
+        if (float.IsNaN(value) || float.IsInfinity(value))
+        {
+            return 0.0f;
+        }
+
+        return MathF.Min(1.0f, MathF.Max(0.0f, value));
+    }
 
     private static float NormalizeNonNegative(float value)
     {

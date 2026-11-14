@@ -10,6 +10,7 @@ using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -836,6 +837,24 @@ public sealed class EntityDetailsPanel
             static (s, distance) => s.Shadows.MaxDistance = distance,
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Max Distance", shadowMaxDistanceEditor);
+
+        var shadowModeCombo = CreateStringCombo(Enum.GetNames<ShadowMode>(), settings.Shadows.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Mode",
+                static s => s.Shadows.Mode,
+                static (s, mode) => s.Shadows.Mode = mode,
+                Enum.Parse<ShadowMode>(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Mode", shadowModeCombo);
+
+        var shadowColorEditor = new Vector3ColorEditor(_window, settings.Shadows.ShadowColor);
+        shadowColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Color",
+            static s => s.Shadows.ShadowColor,
+            static (s, color) => s.Shadows.ShadowColor = color,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Shadow Color", shadowColorEditor);
 
         _detailsContent.TryAddChild(shadowGrid);
 

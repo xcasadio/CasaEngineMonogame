@@ -1,15 +1,15 @@
 # Plan agent IA — Lumière ambiante et ombres (chantier RacingGame S2)
 
-Plan d'exécution des tâches moteur de la tranche S2 « lumière et ombres » du chantier de fidélité 3D de RacingGame, décrite dans `RacingGame/ai-agent/tasks/rgce-3d-lighting-shadows-tasks.md` (révision 5, amendements A1 à A8). Ce plan en recopie les tâches moteur E0 → E6, sans en changer le contenu.
+Plan d'exécution des tâches moteur de la tranche S2 « lumière et ombres » du chantier de fidélité 3D de RacingGame, décrite dans `RacingGame/ai-agent/tasks/rgce-3d-lighting-shadows-tasks.md` (révision 5, amendements A1 à A8). Ce plan en recopie les tâches moteur E0 → E6 et E5b ; pour les ombres (E3 → E6) il en donne la synthèse du contrat effectif (amendements du plan de RacingGame), voir la phase 2.
 Les décisions D1 → D3, D5 → D8 ci-dessous ont été arbitrées avec l'auteur : **ce plan les applique, il ne les rediscute pas**.
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
-> **Périmètre approuvé : E0, E1 et E2 uniquement (ambiant).** E3 → E6 (ombres) ne sont **pas approuvées** : elles repassent en revue indépendante puis devant l'auteur avec les mesures de S2a. **Ne pas les exécuter.**
+> **Périmètre.** E0, E1, E2 (ambiant) et E7, E8 (matériaux) sont terminées. E3, E4, E5, E5b et E6 (ombres, phase 2) sont exécutées sur la demande de l'auteur du 2026-11-14 d'exécuter les tâches qui suivent le plan des matériaux pendant son absence ; elles n'ont pas passé de revue de plan indépendante concluante (voir la phase 2).
 
 ## Objectif
 
-Le moteur calcule l'ambiant comme `texture × DiffuseColor × (N·L × lumière + ambiant du monde × ambiant du matériau) + émissif` (E1), peut garder un ambiant plat quand un cube de réflexion est lié au monde (E2) et, après approbation de S2b, sait appliquer l'ombre comme l'original de RacingGame : couleur éclairée multipliée par une teinte, bord doux, fondu à distance (E3 → E5, documentation E6).
+Le moteur calcule l'ambiant comme `texture × DiffuseColor × (N·L × lumière + ambiant du monde × ambiant du matériau) + émissif` (E1), peut garder un ambiant plat quand un cube de réflexion est lié au monde (E2) et sait appliquer l'ombre comme l'original de RacingGame : couleur éclairée multipliée par une teinte, bord doux, fondu à distance, profondeur de carte indépendante de son étendue (E3 → E5b, documentation E6).
 
 Hors périmètre : réajustement des scènes existantes du moteur après E1, spéculaire, réflexions, ciel, post-traitement, push, merge.
 
@@ -27,9 +27,9 @@ Hors périmètre : réajustement des scènes existantes du moteur après E1, sp�
 
 | Réf | Décision |
 |---|---|
-| D1 | Ombre : `ShadowSettings.Mode`, `OccludeDirectLight` (défaut, comportement actuel) ou `MultiplyLitColor` (la couleur éclairée entière est multipliée par `lerp(1, ShadowColor, ombre)`), plus `ShadowColor` (défaut noir). **S2b, non approuvée.** |
-| D2 | Douceur : `ShadowSettings.FilterRadius` en texels (0 = les 4 échantillons actuels ; au-delà, disque de Poisson fixe). **S2b, non approuvée.** |
-| D3 | Fondu : `ShadowSettings.FadeDistance` (0 = coupure nette actuelle). **S2b, non approuvée.** |
+| D1 | Ombre : `ShadowSettings.Mode`, `OccludeDirectLight` (défaut, comportement actuel) ou `MultiplyLitColor` (la couleur éclairée entière est multipliée par `lerp(1, ShadowColor, ombre)`), plus `ShadowColor` (défaut noir). |
+| D2 | Douceur : `ShadowSettings.FilterRadius` en texels (0 = les 4 échantillons actuels ; au-delà, disque de Poisson fixe). |
+| D3 | Fondu : `ShadowSettings.FadeDistance` (0 = coupure nette actuelle). |
 | D5 | Branche dédiée `chantier/racinggame-lighting` depuis `chantier/gltf-static-tangents`, un commit par tâche, aucun push, aucun merge. Le pointeur du sous-module dans RacingGame reste à l'auteur. |
 | D6 | Ces tâches sont recopiées ici (règle du moteur : plan dans son dépôt), sans changer leur contenu. |
 | D7 | Ambiant : correction pour tous les appelants. `ComputeBaseAmbientTerm` et `ComputeSkinnedAmbientContribution` ne multiplient plus par la texture ; `DiffuseColor` reste dans l'ambiant (teinte de base du matériau) ; `ComposeLitSurfaceColor` applique seule la couleur de surface. Toute scène existante voit son ambiant s'éclaircir (facteur 1 / texture) : traité comme un bug, avec ADR et note de migration. |
@@ -66,9 +66,10 @@ Sans variable, la démo est inchangée (capture identique octet pour octet, vér
 | `CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat\|Auto` | (avec la configuration de mesure) valeur de `WorldEnvironmentSettings.AmbientSource` | E2 |
 | `CASAENGINE_SHADOW_DEMO_DETAIL=1` | (avec la configuration de mesure) lie au receveur une texture de détail unie de valeur 64 / 255 (générée en mémoire), pavage 4 | E7 |
 | `CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK=1` | (indépendante de la configuration de mesure) vérifie `Texture2DLoader.GenerateMipmaps` sur la carte graphique et journalise le verdict | E8 |
-| `CASAENGINE_SHADOW_DEMO_MODE`, `…_COLOR` | Mode d'ombre et teinte | E3 (non approuvée) |
-| `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS` | Rayon de filtre | E4 (non approuvée) |
-| `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` | Distance de fondu | E5 (non approuvée) |
+| `CASAENGINE_SHADOW_DEMO_MODE=OccludeDirectLight|MultiplyLitColor`, `CASAENGINE_SHADOW_DEMO_COLOR=r,g,b` | (avec la configuration de mesure) mode d'ombre et teinte (composantes entre 0 et 1, point décimal) | E3 |
+| `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS` | Rayon de filtre | E4 |
+| `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE`, `CASAENGINE_SHADOW_DEMO_MAX_DISTANCE` | Distance de fondu ; distance maximale de la carte (défaut 48) | E5 |
+| `CASAENGINE_SHADOW_DEMO_DEPTH_RANGE` | Profondeur de la carte (`DepthRange`) | E5b |
 
 ### Pixels mesurés (capture 1024 × 768)
 
@@ -187,34 +188,66 @@ Les trois pixels sont stables d'une exécution à l'autre (deux captures de la d
 
 ---
 
-## Phase 2 — Ombres (S2b) — NON APPROUVÉE, NE PAS EXÉCUTER
+## Phase 2 — Ombres (S2b)
 
-Exigences déjà retenues : en `MultiplyLitColor`, le spéculaire de la lumière qui projette l'ombre et la contribution de réflexion sont multipliés par la même teinte que la couleur éclairée (l'original multiplie l'image entière) ; E3, E4 et E5 prouvent chacun leur comportement non par défaut par une capture de démo pilotée par variable d'environnement, valeurs de pixel notées.
+Exécutée sur la demande de l'auteur du 2026-11-14 (exécuter les tâches qui suivent le plan des matériaux pendant son absence), sans nouvelle revue de plan : la revue de clôture de S2b du plan de RacingGame (`ai-agent/tasks/rgce-3d-lighting-shadows-tasks.md`, révision 4) n'a pas rendu READY (un point de priorité 2 sur l'étendue de la carte, resserré par l'amendement F1, côté jeu). La vérification indépendante de fin de tranche (T4, côté jeu) reste obligatoire.
 
-### ⏳ E3 — Mode d'application et teinte de l'ombre (D1)
+**Contrat effectif.** Précédence dans le plan de RacingGame : amendements F (révision 4) > D (révision 3) > C (révision 2) > B > notes de la phase 4 > textes d'origine E3 → E6 > décisions D1 → D3. Les tâches ci-dessous en sont la synthèse (amendements C10 et F9) ; elles remplacent les textes d'origine. Écarts entre couches, tranchés selon cette précédence :
 
-- Objectif : `ShadowSettings.Mode` (`OccludeDirectLight` par défaut, `MultiplyLitColor`) et `ShadowSettings.ShadowColor` ; lus et écrits de façon optionnelle (`mode`, `shadow_color`), copiés par `CopyFrom`, remis par `ResetToDefaults` ; liés par `ForwardLightBinder` ; déclarés dans `LitForward.fx` et `skinEffect.fx` (registres sans collision) ; appliqués dans `Lighting.fxh`. En `MultiplyLitColor`, la lumière directe n'est plus occultée et la couleur éclairée (direct + ambiant, hors émissif) est multipliée par `lerp(1, ShadowColor, ombre)`. La démo gagne `CASAENGINE_SHADOW_DEMO_MODE` et `CASAENGINE_SHADOW_DEMO_COLOR`.
-- Un seul ADR couvre D1, D2 et D3.
-- Tests : chargement, sauvegarde, copie et défauts de `ShadowSettings` ; `LightingShaderCoverageTests` : nouveaux uniformes dans les deux shaders, assertion « l'ambiant n'est pas ombré » restreinte au mode par défaut.
-- Validation : builds, tests ; démo identique à celle de E2 avec les défauts ; avec `MultiplyLitColor` et une teinte grise, l'ombre n'est plus noire.
+- La couleur multipliée comprend le spéculaire et la contribution de réflexion (B2, C6, F7), pas seulement « direct + ambiant » (texte d'origine de E3).
+- Largeur de transition de E4 : au moins 2 fois (D4), pas 3 fois (B4). Disque de 12 points d'origine, réductible à 8 puis 5 par la limite de shader (C7).
+- Preuve de E5b : test unitaire de matrice et affirmation de démo réduite (D3), pas la validation de C4.
+- Biais de profondeur de E5b : `2 × DepthBias × (2 × DepthRange − 0,1)` sous DesktopGL (F6) ; la formule de D2 (sans le facteur 2) est corrigée. Vérifiée dans les shaders : `ShadowDepth.fx` (`EncodeShadowDepth`) et `Lighting.fxh` (`ComputeDirectionalShadowFactor`) appliquent sous `#if OPENGL` la même transformation affine `× 0,5 + 0,5` à la profondeur écrite et à la profondeur comparée, toutes deux dans [0, 1] côté HLSL : un biais `b` sur la profondeur comparée vaut un écart `2 b` de profondeur normalisée, soit `2 b × (plan lointain − plan proche)` = `2 × DepthBias × (2 × DepthRange − 0,1)` mètres. Sous DirectX le facteur 2 disparaît.
+- E6 documente les réglages d'ombre ; la source d'ambiant l'est déjà (E2). Message de commit de E6 : `docs(engine): document the shadow settings`.
+
+Champs sérialisés (tous optionnels, écrits seulement s'ils diffèrent du défaut, copiés par `CopyFrom`, remis par `ResetToDefaults`, présents dans le panneau de monde de l'éditeur) : `mode`, `shadow_color` (E3), `filter_radius` (E4), `fade_distance` (E5), `depth_range` (E5b). Un seul ADR (ADR-0093) couvre E3, E4, E5 et E5b : écrit en E3, complété à chaque tâche.
+
+### ✅ E3 — Mode d'application et teinte de l'ombre (D1)
+
+- Objectif : `ShadowSettings.Mode` (`ShadowMode.OccludeDirectLight` par défaut, `MultiplyLitColor`) et `ShadowSettings.ShadowColor` (`Vector3`, défaut noir, composantes bornées à [0, 1], non fini → 0) ; clés optionnelles `mode` et `shadow_color` ; `Load`, `Save`, `CopyFrom`, `ResetToDefaults` ; uniformes `ShadowApplyMode` et `ShadowTintColor` liés par `ForwardLightBinder`, déclarés dans `LitForward.fx` et `skinEffect.fx` ; appliqués dans `Lighting.fxh` et les pixel shaders. En `MultiplyLitColor`, la lumière directe (diffus et spéculaire) n'est pas occultée ; la couleur finale hors émissif (couleur éclairée, spéculaire, contribution de réflexion) est multipliée par `lerp(1, ShadowColor, 1 − facteur d'ombre)`, le facteur étant calculé une fois, hors de la boucle des lumières (`ColorPair.ShadowFactor`) ; alpha intact ; dans les trois pixel shaders à réflexion la teinte suit `ApplyReflectionContribution` et ne porte que sur la part non émissive de sa forme linéaire (`ApplyReflectionContributionWithShadowTint`). Aucune teinte en éclairage par sommet, avec `ReceiveShadows = false` ni sans lumière ombrée ; avec plusieurs lumières la teinte multiplie toutes les contributions (ADR, documentation).
+- Fichiers : `CasaEngine/Framework/Rendering/Shadows/ShadowMode.cs` (nouveau), `ShadowSettings.cs`, `CasaEngine/Framework/Rendering/Shaders/ForwardLightBinder.cs`, `ShaderParameterNames.cs`, `CasaEngine/Content/Shaders/Lighting.fxh`, `LitForward.fx`, `skinEffect.fx`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` (liste « Mode » et sélecteur « Shadow Color », annulables), `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `CasaEngine.Tests/Rendering/ShadowSettingsTests.cs` (nouveau), `LightingShaderCoverageTests.cs`, `ForwardLightBinderTests.cs`, `docs/decisions/0093-shadow-settings-mode-colour-filter-fade-and-depth-range.md`, `docs/decisions/README.md`, `ai-agent/README.md`, ce plan.
+- Démo : `CASAENGINE_SHADOW_DEMO_MODE=MultiplyLitColor` et `CASAENGINE_SHADOW_DEMO_COLOR=0.25,0.26,0.27` (point décimal), lues en configuration de mesure.
+- Autres lieux qui énumèrent les réglages d'ombre : `StaticMeshRendererComponent.ApplyShadowSettings` (passe par `CopyFrom`) et `WorldEnvironmentSettings` (`Save`, `Load`, `Clone`, `CopyFrom` passent par `ShadowSettings`) : inchangés. `ShadowLight` (biais par lumière) n'est pas étendu : mode et teinte sont lus dans `ForwardShadowResources.Settings` par le binder, seulement quand une lumière ombrée est visible.
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5166 réussis (5153 + 13 : 10 de `ShadowSettingsTests`, 3 de source), 0 échec.
+  - Captures prises dans cette session avant la modification (au `HEAD` précédent) et après, hors dépôt (`engine-captures/e3-*`) : démo sans variable, configuration de mesure, configuration de mesure avec cube lié : identiques octet pour octet (`cmp`) avant et après.
+  - Configuration de mesure, `MultiplyLitColor`, teinte (0,25 ; 0,26 ; 0,27) (par canal R, G, B) :
+
+    | Pixel | défaut (`OccludeDirectLight`) | prédit | mesuré |
+    |---|---|---|---|
+    | `eclaire` (240, 435) | 223, 215, 198 | inchangé | 223, 215, 198 |
+    | `ombre` (310, 420) | 64, 64, 64 | valeur `eclaire` du même receveur × teinte = 55,8 ; 55,9 ; 53,5 (±3) | 56, 56, 53 |
+    | `reflet` (520, 490), hors ombre | 165, 157, 139 | inchangé | 165, 157, 139 |
+
+    Teinte noire (défaut) : `ombre` = 0, 0, 0. Avec le cube lié : `eclaire` 172, 190, 198 ; `ombre` prédit 43,0 ; 49,4 ; 53,5, mesuré 43, 49, 53.
+  - Spéculaire à l'ombre : la démo n'a aucune surface réfléchissante ni brillante dans l'ombre (le receveur est sans spéculaire, la sphère réfléchissante est hors de l'ombre, `reflet` ne change pas). Contrôle fait à part, par une modification temporaire non commitée de la démo (spéculaire du receveur 0,2, puissance 2) : le pixel `ombre` vaut 64 en `OccludeDirectLight` (spéculaire occulté) ; en `MultiplyLitColor` avec une teinte blanche, il vaut le pixel éclairé (R saturé à 255, G 249, B 232) ; avec la teinte (0,25 ; 0,26 ; 0,27) il vaut 64, 65, 63, soit `249 × 0,26 = 64,7` et `232 × 0,27 = 62,6` : le reflet du soleil est teinté comme le reste (un reflet non teinté donnerait environ 90 en G). Non vérifié sur capture : les pixel shaders à réflexion avec texture ou normal map (la démo n'en utilise pas) et le shader d'os (`skinEffect.fx`) : couverts par assertion de source et compilation seulement.
 - Commit : `feat(rendering): add a shadow mode that multiplies the lit colour by a shadow colour`
 
 ### ⏳ E4 — Bord doux (D2)
 
-- Objectif : `ShadowSettings.FilterRadius` (texels, 0 = filtrage actuel) ; au-delà, disque de Poisson fixe de 12 points mis à l'échelle par le rayon, dans `Lighting.fxh`, uniforme déclaré dans les deux shaders ; valeur négative ou non finie ramenée à 0 ; démo `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS`.
-- Validation : démo identique à E3 avec le défaut ; avec un rayon de 3, la transition s'étale sur plusieurs pixels (largeur mesurée).
+- Objectif : `ShadowSettings.FilterRadius` (texels, 0 par défaut = les 4 échantillons actuels, valeur négative ou non finie ramenée à 0, clé `filter_radius`) ; au-delà de 0, le receveur échantillonne un disque de Poisson fixe de 12 points mis à l'échelle par le rayon, dans `Lighting.fxh`, uniforme déclaré dans les deux shaders, champ dans l'éditeur. Aucune allocation, aucun état GPU changé. Limite de shader (C7) : le contenu DesktopGL doit compiler toutes les techniques de `LitForward.fx` (ps_3_0) avec la texture de détail ; si la limite d'instructions est atteinte, 8 puis 5 points (choix noté) ; en dessous de 5 : ⚠️.
+- Démo : `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS`.
+- Validation (D4) : captures identiques avec le défaut ; ligne de pixels traversant un bord d'ombre définie avant la capture ; largeur de transition entre 10 % et 90 % de l'écart ombre / lumière pour le rayon 0 et le rayon 3 ; critère : largeur(3) ≥ 2 × largeur(0).
 - Commit : `feat(rendering): add a shadow filter radius for soft shadow edges`
 
 ### ⏳ E5 — Fondu à la distance maximale (D3)
 
-- Objectif : `ShadowSettings.FadeDistance` (0 par défaut) ; l'ombre passe linéairement à « éclairé » entre `MaxDistance − FadeDistance` et `MaxDistance` ; uniforme dans les deux shaders ; démo `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` (deux distances).
-- Validation : démo identique à E4 avec le défaut.
+- Objectif : `ShadowSettings.FadeDistance` (0 par défaut, borné à `MaxDistance`, clé `fade_distance`) ; l'ombre passe linéairement à « éclairé » entre `MaxDistance − FadeDistance` et `MaxDistance` du centre de la carte, distance mesurée dans le plan de la carte, en carré (même forme que la carte, C8) ; uniforme dans les deux shaders ; champ dans l'éditeur.
+- Démo : `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` et `CASAENGINE_SHADOW_DEMO_MAX_DISTANCE`.
+- Validation (C8, D5) : captures identiques avec le défaut ; `MAX_DISTANCE` autour de 28 (l'ombre du sol de la colonne de gauche est à environ 26 m de l'axe dans le plan de la lumière) et fondu de quelques mètres ; fraction de fondu attendue calculée et notée avant la capture pour deux pixels du même sol à l'ombre (un hors de la bande, un dedans) ; mesure à ±3 ; avec fondu 0 les deux pixels sont égaux.
 - Commit : `feat(rendering): fade shadows out before the shadow distance`
+
+### ⏳ E5b — Profondeur de la carte séparée de son étendue latérale (C4, D3)
+
+- Objectif : `ShadowSettings.DepthRange` (0 par défaut = la profondeur suit `MaxDistance` ; clé `depth_range` ; borné ≥ 0) : positif, la lumière est placée à `DepthRange` en amont et le plan lointain à 2 × `DepthRange`, l'étendue latérale restant `MaxDistance`. Alimente seulement la matrice de `ShadowPass` : aucun uniforme de shader. Champ dans l'éditeur.
+- Test obligatoire sur `ShadowPass.BuildDirectionalShadowViewProjection` (surcharge ; `ShadowPassTexelSnappingTests` doit continuer à compiler) : (1) `DepthRange` 0 : matrice identique au bit près à l'actuelle ; (2) `DepthRange` > `MaxDistance` : un point en amont de la caméra d'une distance d, `MaxDistance` < d < `DepthRange`, a une profondeur dans ]0, 1[ alors qu'il était coupé ; (3) coordonnées latérales et alignement sur les texels inchangés, à une tolérance près (F8).
+- Démo : `CASAENGINE_SHADOW_DEMO_DEPTH_RANGE` ; affirmation réduite : capture identique octet pour octet sans la variable ; avec elle, l'ombre de la colonne de gauche est toujours présente (valeurs de pixel notées).
+- ADR et documentation : relation entre le biais de profondeur et `DepthRange`, facteur DesktopGL compris (F6, voir plus haut).
+- Commit : `feat(rendering): separate the shadow depth range from its lateral extent`
 
 ### ⏳ E6 — Documentation
 
-- Objectif : `docs/engine/` décrit les réglages d'ombre et la source d'ambiant ; index `docs/README.md` à jour ; plan clos.
-- Commit : `docs(engine): document the shadow and ambient lighting settings`
+- Objectif : `docs/engine/` décrit les réglages d'ombre (mode, teinte, rayon de filtre, fondu, profondeur : résumé, extrait d'usage, limites) ; index `docs/README.md` à jour ; plan clos pour E3 → E6.
+- Commit : `docs(engine): document the shadow settings`
 
 ---
 
@@ -223,7 +256,7 @@ Exigences déjà retenues : en `MultiplyLitColor`, le spéculaire de la lumière
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | E1 éclaircit l'ambiant de toutes les scènes du moteur (démos, jeux d'exemple, éditeur). Leur réajustement n'est pas dans ce plan : il est listé dans l'ADR comme suite. | E1 |
-| O2 | Approbation de S2b (E3 → E6) par l'auteur, après revue indépendante. | E3 → E6 |
+| O2 | S2b (E3 → E6) n'a pas passé de revue de plan indépendante concluante (la revue de clôture n'a pas rendu READY) : exécutée sur la demande de l'auteur du 2026-11-14 ; la vérification indépendante de fin de tranche (T4, côté jeu) reste à faire. | E3 → E6 |
 
 ## Hors périmètre
 

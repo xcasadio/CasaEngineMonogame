@@ -50,6 +50,8 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         shader.SetParameter(ShaderParameterNames.ActiveDirectionalLightCount, (float)activeDirectionalLightCount);
@@ -61,6 +63,8 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.ShadowDepthBias, shadowDepthBias);
         shader.SetParameter(ShaderParameterNames.ShadowNormalBias, shadowNormalBias);
         shader.SetParameter(ShaderParameterNames.ShadowMapTexelSize, shadowMapTexelSize);
+        shader.SetParameter(ShaderParameterNames.ShadowApplyMode, shadowApplyMode);
+        shader.SetParameter(ShaderParameterNames.ShadowTintColor, shadowTintColor);
         shader.SetTextureParameter(ShaderParameterNames.ShadowMapTexture, shadowMapTexture, stats);
 
         for (int i = 0; i < LightingContext.MaxDirectionalLights; i++)
@@ -123,6 +127,8 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
+            out float shadowApplyMode,
+            out Vector3 shadowTintColor,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         snapshot.ActiveDirectionalLightCount = activeDirectionalLightCount;
@@ -135,6 +141,8 @@ public sealed class ForwardLightBinder
         snapshot.ShadowDepthBias = shadowDepthBias;
         snapshot.ShadowNormalBias = shadowNormalBias;
         snapshot.ShadowMapTexelSize = shadowMapTexelSize;
+        snapshot.ShadowApplyMode = shadowApplyMode;
+        snapshot.ShadowTintColor = shadowTintColor;
         return snapshot;
     }
 
@@ -161,6 +169,8 @@ public sealed class ForwardLightBinder
         out float shadowDepthBias,
         out float shadowNormalBias,
         out Vector2 shadowMapTexelSize,
+        out float shadowApplyMode,
+        out Vector3 shadowTintColor,
         out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture)
     {
         activeDirectionalLightCount = lighting is null
@@ -179,6 +189,8 @@ public sealed class ForwardLightBinder
         shadowDepthBias = 0.0f;
         shadowNormalBias = 0.0f;
         shadowMapTexelSize = Vector2.Zero;
+        shadowApplyMode = 0.0f;
+        shadowTintColor = Vector3.Zero;
         shadowMapTexture = null;
 
         if (shadows is not null
@@ -196,6 +208,8 @@ public sealed class ForwardLightBinder
                 shadowMapTexelSize = new Vector2(
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Width),
                     1.0f / Math.Max(1, shadows.ShadowMapAtlas.Height));
+                shadowApplyMode = shadows.Settings.Mode == ShadowMode.MultiplyLitColor ? 1.0f : 0.0f;
+                shadowTintColor = shadows.Settings.ShadowColor;
                 shadowMapTexture = shadows.ShadowMapAtlas;
             }
         }
@@ -269,6 +283,8 @@ internal sealed class ForwardLightBindingSnapshot
     public float ShadowDepthBias { get; set; }
     public float ShadowNormalBias { get; set; }
     public Vector2 ShadowMapTexelSize { get; set; }
+    public float ShadowApplyMode { get; set; }
+    public Vector3 ShadowTintColor { get; set; }
 
     public Vector3[] DirectionalLightDirections { get; } = new Vector3[LightingContext.MaxDirectionalLights];
     public Vector3[] DirectionalLightDiffuseColors { get; } = new Vector3[LightingContext.MaxDirectionalLights];

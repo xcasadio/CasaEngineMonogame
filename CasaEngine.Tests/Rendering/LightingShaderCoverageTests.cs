@@ -107,7 +107,7 @@ public class LightingShaderCoverageTests
     }
 
     [Fact]
-    public void LitForwardShader_ConsumesDirectionalShadowBindingsWithoutShadowingAmbientOrEnvironment()
+    public void LitForwardShader_ConsumesDirectionalShadowBindingsWithoutShadowingAmbientOrEnvironmentInTheDefaultMode()
     {
         string litForwardSource = LoadShaderSource("LitForward.fx");
         string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
@@ -125,6 +125,10 @@ public class LightingShaderCoverageTests
         Assert.Contains("directionalShadowFactor", lightingIncludeSource);
         Assert.DoesNotContain("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor) * ComputeDirectionalShadowFactor", lightingIncludeSource);
         Assert.DoesNotContain("ComputeEnvironmentDiffuseTerm", lightingIncludeSource[lightingIncludeSource.IndexOf("ComputeDirectionalShadowFactor", StringComparison.Ordinal)..]);
+
+        // Default mode only: the shadow factor scales the shadowed light, never the ambient term. In MultiplyLitColor mode the
+        // light is left alone and the tint (which does cover the ambient part of the colour) is applied by the pixel shaders.
+        Assert.Contains("float lightOcclusionFactor = ShadowApplyMode > 0.5f ? 1.0f : shadowFactor;", lightingIncludeSource);
     }
 
     [Fact]
@@ -224,6 +228,58 @@ public class LightingShaderCoverageTests
 
         // Reflections keep following the cube: the flag only concerns the ambient term.
         Assert.DoesNotContain("UseFlatAmbientSource", lightingIncludeSource);
+    }
+
+    [Theory]
+    [InlineData("LitForward.fx")]
+    [InlineData("skinEffect.fx")]
+    public void ShadowStyleUniforms_AreDeclaredInBothShadersWithoutSharingASlot(string shaderFileName)
+    {
+        string source = LoadShaderSource(shaderFileName);
+
+        Assert.Equal("ShadowApplyMode", ShaderParameterNames.ShadowApplyMode);
+        Assert.Equal("ShadowTintColor", ShaderParameterNames.ShadowTintColor);
+        Assert.Contains($"float {ShaderParameterNames.ShadowApplyMode} _ps(c101) _cb(c91.w);", source);
+        Assert.Contains($"float3 {ShaderParameterNames.ShadowTintColor} _ps(c106) _cb(c96);", source);
+
+        Assert.Equal(1, CountOccurrences(source, "_cb(c91.w)"));
+        Assert.Equal(1, CountOccurrences(source, "_cb(c96)"));
+    }
+
+    [Fact]
+    public void ShadowTint_IsAppliedByEveryShadowReceivingPixelShaderAndNeverToTheEmissiveColour()
+    {
+        string litForwardSource = LoadShaderSource("LitForward.fx");
+        string skinnedSource = LoadShaderSource("skinEffect.fx");
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        // The tint takes the emissive colour so that it can leave it out; it is skipped entirely in the default mode.
+        Assert.Contains("float3 ApplyShadowTint(float3 litColor, float3 emissiveColor, float shadowFactor)", lightingIncludeSource);
+        Assert.Contains("if (ShadowApplyMode > 0.5f)", lightingIncludeSource);
+        Assert.Contains("litColor += (ComputeShadowTint(shadowFactor) - 1.0f) * (litColor - emissiveColor);", lightingIncludeSource);
+
+        // The shadow factor is computed once per pixel, outside the light loop, and handed to the pixel shader.
+        Assert.Equal(1, CountOccurrences(lightingIncludeSource, "ComputeDirectionalShadowFactor(worldPosition, worldNormal);"));
+        Assert.Contains("result.ShadowFactor = ", lightingIncludeSource);
+
+        // Pixel-lighting pixel shaders of LitForward: the plain ones tint after the specular, the reflection ones tint inside
+        // the reflection helper (so nothing is tinted twice and the emissive part of the reflection scale is left alone).
+        Assert.Equal(5, CountOccurrences(litForwardSource, "ApplyShadowTint(color.rgb, EmissiveColor,"));
+        Assert.Equal(3, CountOccurrences(litForwardSource, "ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor,"));
+        Assert.Equal(1, CountOccurrences(litForwardSource, "ApplyReflectionContribution(surfaceColor, reflectionContribution)"));
+        Assert.DoesNotContain("color.rgb = ApplyReflectionContribution(", litForwardSource);
+
+        // The reflection helper tints only the non-emissive part of the linear form.
+        Assert.Contains("float3 emissiveReflected = emissiveColor * (ReflectionMultiplyBase + reflectionContribution * ReflectionMultiplyFactor);", litForwardSource);
+        Assert.Contains("reflected += (ComputeShadowTint(shadowFactor) - 1.0f) * (reflected - emissiveReflected);", litForwardSource);
+
+        // The skinned pixel shader tints after the specular too.
+        Assert.Equal(1, CountOccurrences(skinnedSource, "ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor)"));
+
+        // Vertex-lighting techniques have no shadows: their pixel shaders never tint.
+        int vertexLightingStart = litForwardSource.IndexOf("float4 PSBasicVertexLighting(", StringComparison.Ordinal);
+        int vertexLightingEnd = litForwardSource.IndexOf("// Untinted pixel lighting colour", StringComparison.Ordinal);
+        Assert.DoesNotContain("ShadowTint", litForwardSource[vertexLightingStart..vertexLightingEnd]);
     }
 
     [Fact]

@@ -165,6 +165,8 @@ public static class ShaderParameterNames
     public const string ShadowNormalBias = "ShadowNormalBias";
     public const string ShadowMapTexelSize = "ShadowMapTexelSize";
     public const string ReceiveShadows = "ReceiveShadows";
+    public const string ShadowApplyMode = "ShadowApplyMode";
+    public const string ShadowTintColor = "ShadowTintColor";
 
     // --- Skinning ---
     public const string Bones = "Bones";

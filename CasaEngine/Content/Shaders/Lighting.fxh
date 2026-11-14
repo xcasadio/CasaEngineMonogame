@@ -42,6 +42,9 @@ struct ColorPair
 {
     float3 Diffuse;
     float3 Specular;
+    // Visibility of the shadow-casting directional light at the pixel (1 = lit, 0 = fully shadowed); 1 when the pixel has no
+    // shadow. Computed once per pixel; ComputeLights only applies it to the light when ShadowApplyMode is 0.
+    float ShadowFactor;
 };
 
 
@@ -178,6 +181,33 @@ float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
 float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
 {
     return 1.0f;
+}
+#endif
+
+
+// Shadow colour tint (ShadowApplyMode = 1, ShadowSettings.Mode = MultiplyLitColor). The pixel colour excluding the emissive
+// part is multiplied by lerp(1, ShadowTintColor, 1 - shadowFactor). The emissive colour is never tinted. With
+// ShadowApplyMode = 0 (default) the colour is returned unchanged.
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+float3 ComputeShadowTint(float shadowFactor)
+{
+    return lerp(float3(1.0f, 1.0f, 1.0f), ShadowTintColor, 1.0f - shadowFactor);
+}
+
+
+float3 ApplyShadowTint(float3 litColor, float3 emissiveColor, float shadowFactor)
+{
+    if (ShadowApplyMode > 0.5f)
+    {
+        litColor += (ComputeShadowTint(shadowFactor) - 1.0f) * (litColor - emissiveColor);
+    }
+
+    return litColor;
+}
+#else
+float3 ApplyShadowTint(float3 litColor, float3 emissiveColor, float shadowFactor)
+{
+    return litColor;
 }
 #endif
 
@@ -349,6 +379,7 @@ ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 
     ColorPair result;
     result.Diffuse = EmissiveColor;
     result.Specular = 0;
+    result.ShadowFactor = 1.0f;
 
     [unroll]
     for (int directionalIndex = 0; directionalIndex < MaxDirectionalLights; directionalIndex++)
@@ -377,6 +408,18 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
     result.Diffuse = EmissiveColor;
     result.Specular = 0;
 
+    // The shadow factor is computed once, outside the light loop. In the default mode it scales the shadowed light; in
+    // MultiplyLitColor mode the light is left alone and the pixel shader tints the final colour with ShadowFactor.
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, worldNormal);
+    float lightOcclusionFactor = ShadowApplyMode > 0.5f ? 1.0f : shadowFactor;
+#else
+    float shadowFactor = 1.0f;
+    float lightOcclusionFactor = 1.0f;
+#endif
+    // A shadow-casting light that this variant does not shade (one-light techniques) casts no tint either.
+    result.ShadowFactor = (int)ShadowedDirectionalLightIndex < numDirectionalLights ? shadowFactor : 1.0f;
+
     [unroll]
     for (int i = 0; i < MaxDirectionalLights; i++)
     {
@@ -388,13 +431,7 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
         float3 lightDirection = GetDirectionalLightDirection(i);
         float3 lightDiffuse = GetDirectionalLightDiffuseColor(i);
         float3 lightSpecular = GetDirectionalLightSpecularColor(i);
-#ifdef HAS_FORWARD_SHADOW_BINDINGS
-        float directionalShadowFactor = i == (int)ShadowedDirectionalLightIndex
-            ? ComputeDirectionalShadowFactor(worldPosition, worldNormal)
-            : 1.0f;
-#else
-        float directionalShadowFactor = 1.0f;
-#endif
+        float directionalShadowFactor = i == (int)ShadowedDirectionalLightIndex ? lightOcclusionFactor : 1.0f;
         AccumulateLight(result, eyeVector, worldNormal, -lightDirection, directionalShadowFactor, lightDiffuse, lightSpecular);
     }
 

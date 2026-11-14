@@ -106,3 +106,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0090](0090-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md) | A world may use a flat ambient term while keeping a reflection cube | Accepted | 2026-11-14 |
 | [ADR-0091](0091-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture | Accepted | 2026-11-14 |
 | [ADR-0092](0092-the-texture-loader-can-build-a-mipmap-chain.md) | The texture loader can build a mipmap chain | Accepted | 2026-11-14 |
+| [ADR-0093](0093-shadow-settings-mode-colour-filter-fade-and-depth-range.md) | Shadow settings: application mode and colour, filter radius, fade distance and depth range | Accepted | 2026-11-14 |
