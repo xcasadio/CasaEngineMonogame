@@ -51,10 +51,13 @@ alternating a cross-fade and an inertialized transition.
 
 - Left pair: the front character has a per-component material override, tinted orange
   (`SkinnedMeshComponent.Material`).
-- The pairs set `CastShadows` and `ReceiveShadows` differently (left: cast and receive; centre: `ReceiveShadows` off
-  on the back character; right: `CastShadows` off on the front character).
-- Limit: the demo does not set `EnvironmentSettings.Shadows.Enabled`, which is off by default, so no shadow shows and
-  the three pairs look alike. `StaticShadowValidationDemo` does turn shadows on.
+- The world turns shadows on (`EnvironmentSettings.Shadows.Enabled`) and the key light casts them. Each pair stands
+  on its own ground and sets `CastShadows` and `ReceiveShadows` differently:
+  - left: the front character casts, the ground and the back character receive. Its shadow shows on both and follows
+    the animation;
+  - centre: `ReceiveShadows` is off on the ground and on the back character. No shadow shows on them;
+  - right: `CastShadows` is off on the front character. It has no shadow.
+- Check: the three pairs differ as described; the shadow of the left pair moves with the character.
 
 Start it with `CASAENGINE_START_DEMO=Skinned mesh demo`; add `CASAENGINE_CAPTURE_SCREENSHOT_PATH` to capture a frame
 and exit.

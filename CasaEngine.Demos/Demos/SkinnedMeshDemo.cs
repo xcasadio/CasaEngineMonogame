@@ -1,6 +1,7 @@
 using CasaEngine.Core.Logging;
 ﻿using System;
 using System.Collections.Generic;
+using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Materials.Runtime;
@@ -27,6 +28,14 @@ public class SkinnedMeshDemo : Demo
 {
     private CasaEngineGame? _game;
     private readonly List<SkinnedMeshComponent> _skinnedMeshComponents = new();
+    // Where the two characters of a column stand, from the centre of the column. The receiver is behind the caster and
+    // to its right, on the path of the key light, so that the shadow of the caster falls on it.
+    private static readonly Vector3 CasterOffset = new(-1.6f, 0f, 3.0f);
+    private static readonly Vector3 ReceiverOffset = new(1.0f, 0f, -0.2f);
+    private const float GroundWidth = 8.0f;
+    private const float GroundDepth = 14.0f;
+    private const float GroundCentreZ = 0.5f;
+
     private float _animationSwitchTimer;
     private int _nextAnimationIndex = 1;
     private bool _useInertializeTransition;
@@ -35,13 +44,16 @@ public class SkinnedMeshDemo : Demo
     public override string Description =>
         "Animated skinned characters, in three pairs: a large one in front (linear blend skinning) and a small one " +
         "behind (dual quaternion skinning). Every 2.5 seconds all of them change animation, alternating a " +
-        "cross-fade and an inertialized transition. Each pair sets CastShadows and ReceiveShadows differently.";
+        "cross-fade and an inertialized transition. The key light casts shadows, and each pair sets CastShadows and " +
+        "ReceiveShadows differently: compare the ground and the small character of the three pairs.";
 
     public override IReadOnlyList<string> Highlights { get; } = new[]
     {
         "All six characters change clip together, with a smooth transition instead of a pop.",
         "The left character is tinted orange by a per-component material override.",
-        "The shadow flags differ per pair, but this world does not turn shadows on: the pairs look alike.",
+        "Left: the large character casts a shadow on the ground and on the small one, and the shadow follows the animation.",
+        "Centre: ReceiveShadows is off on the ground and on the small character, so no shadow shows on them.",
+        "Right: CastShadows is off on the large character, so it has no shadow at all.",
     };
 
     public override string DocumentationPath => "docs/engine/light-component.md";
@@ -72,6 +84,16 @@ public class SkinnedMeshDemo : Demo
         environmentSettings.AmbientColor = new Vector3(0.24f, 0.26f, 0.3f);
         environmentSettings.AmbientIntensity = 1.2f;
         environmentSettings.SpecularIntensity = 0.2f;
+
+        // Shadows are off by default in the engine: the world turns them on. Without this line the CastShadows and
+        // ReceiveShadows flags below have no effect. Resolution is the size of the shadow map; the two biases offset the
+        // depth comparison so that a lit surface does not shadow itself; MaxDistance is how far from the camera shadows
+        // are drawn (the camera stands about 40 units from the characters).
+        environmentSettings.Shadows.Enabled = true;
+        environmentSettings.Shadows.Resolution = 2048;
+        environmentSettings.Shadows.DepthBias = 0.001f;
+        environmentSettings.Shadows.NormalBias = 0.002f;
+        environmentSettings.Shadows.MaxDistance = 64.0f;
         environmentSettings.MarkDirty();
 
         // The key light is the one that casts shadows; the fill light from another direction does not and only keeps the
@@ -108,7 +130,7 @@ public class SkinnedMeshDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        camera.SetPositionAndTarget(new Vector3(0f, 8.5f, 38.0f), new Vector3(0f, 2.0f, 0f));
+        camera.SetPositionAndTarget(new Vector3(0f, 14.0f, 31.0f), new Vector3(0f, 1.5f, 0f));
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -137,11 +159,11 @@ public class SkinnedMeshDemo : Demo
             SpecularPower = 16.0f,
         };
 
-        // Three columns 9 units apart on X, each with a caster and a receiver: left is the reference (both flags on, the
-        // caster tinted), centre turns receiving off on the receiver, right turns casting off on the caster.
-        CreateShadowValidationColumn(world, skinnedMesh, "ReceiveShadow", -9.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial);
-        CreateShadowValidationColumn(world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
-        CreateShadowValidationColumn(world, skinnedMesh, "NoCastShadow", 9.0f, casterCastShadows: false, receiverReceiveShadows: true);
+        // Three columns 12 units apart on X, far enough for a shadow not to reach the next column, each with a caster and
+        // a receiver: left is the reference (both flags on, the caster tinted), centre turns receiving off on the receiver, right turns casting off on the caster.
+        CreateShadowValidationColumn(game, world, skinnedMesh, "ReceiveShadow", -12.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial);
+        CreateShadowValidationColumn(game, world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
+        CreateShadowValidationColumn(game, world, skinnedMesh, "NoCastShadow", 12.0f, casterCastShadows: false, receiverReceiveShadows: true);
     }
 
     // Every 2.5 seconds all the characters cross-fade to the next animation clip of the model, cycling through its
@@ -209,6 +231,7 @@ public class SkinnedMeshDemo : Demo
     // modes (LinearBlend and DualQuaternion), so both are on screen. The caster always receives shadows; the receiver
     // never casts. The column's two flags are applied to the caster's CastShadows and the receiver's ReceiveShadows.
     private void CreateShadowValidationColumn(
+        CasaEngine.Framework.Application.CasaEngineGame game,
         CasaEngine.Framework.Scene.World.World world,
         SkinnedMesh skinnedMesh,
         string columnName,
@@ -217,11 +240,32 @@ public class SkinnedMeshDemo : Demo
         bool receiverReceiveShadows,
         LitDiffuseMaterial casterMaterialOverride = null)
     {
+        // A ground under the pair: a static mesh that never casts and takes the column's receive flag, like the receiver.
+        // It is what the shadow of the caster falls on.
+        StaticModel groundModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(GroundWidth, 0.25f, GroundDepth));
+        groundModel.Meshes[0].Initialize(game.GraphicsDevice);
+        groundModel.Meshes[0].Material = new LitDiffuseMaterial
+        {
+            DiffuseColor = new Color(120, 124, 118),
+            AmbientColor = new Vector3(0.35f),
+        };
+
+        var groundEntity = new Entity { Name = $"{columnName}Ground" };
+        var ground = new StaticModelComponent
+        {
+            StaticModel = groundModel,
+            CastShadows = false,
+            ReceiveShadows = receiverReceiveShadows,
+        };
+        groundEntity.RootComponent = ground;
+        ground.LocalPosition = new Vector3(centerX, -0.125f, GroundCentreZ);
+        world.AddEntity(groundEntity);
+
         CreateSkinnedMeshEntity(
             world,
             skinnedMesh,
             $"{columnName}Caster",
-            new Vector3(centerX - 2.4f, 0f, 5.2f),
+            CasterOffset + new Vector3(centerX, 0f, 0f),
             SkinningModeSelection.LinearBlend,
             castShadows: casterCastShadows,
             receiveShadows: true,
@@ -232,7 +276,7 @@ public class SkinnedMeshDemo : Demo
             world,
             skinnedMesh,
             $"{columnName}Receiver",
-            new Vector3(centerX + 2.4f, 0f, -3.5f),
+            ReceiverOffset + new Vector3(centerX, 0f, 0f),
             SkinningModeSelection.DualQuaternion,
             castShadows: false,
             receiveShadows: receiverReceiveShadows,
