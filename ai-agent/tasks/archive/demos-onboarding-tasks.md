@@ -2,6 +2,15 @@
 
 **Terminé le 2026-11-14.** Recette de l'auteur le 2026-11-14 (« recette OK, pousse la branche ») : elle clôt T3.2 et T6.1, que l'agent avait laissées en 🧪 faute d'avoir pu ouvrir l'éditeur et presser une touche ou un bouton. Remarques P4 de la passe `verifier` (A1 à A3, sous T6.2) non traitées.
 
+**Suites du 2026-11-14, à la demande de l'auteur** (« corrige le 1, corrige le 2 et laisse le 3 », puis « corriges aussi » les deux constats hors périmètre) :
+
+- A1 corrigée : `DemoInputConfigurationTests` contrôle aussi un nom d'action écrit hors d'un appel (tableau, constante) dès que son groupe est un groupe de la configuration. Preuve : une faute introduite dans `ViewModeActions` de `ViewManagerSandbox` fait échouer le test (« Sandbox.View3Modee »), puis retirée.
+- A2 corrigée : `PlayerInputDemo` ouvre la porte par périphérique. Clavier fermé (entrée coupée ou UI qui tient le clavier) : seul le bouton de manette de l'action est lu, par `DemoInput.IsButtonDown` (nouveau). Non vérifié par un appui réel.
+- A3 laissée, sur décision de l'auteur.
+- « Frozen frame » : le cycle montrait huit contrôles en échec dès la première visite, pas seulement D6c à la seconde. Cause des huit : le panneau d'aide ajouté par ce chantier couvrait un repère que la démo relit dans son image (régression de T1.x, invisible parce que le cycle ne compte pas les contrôles propres à une démo). Correctif : `Demo.ReadsItsOwnImage` (additif), que `FrozenFrameDemo` surcharge ; l'app n'y dessine ni rappel ni panneau. Cause de D6c : `FrozenFrameService.CaptureCount` appartient au jeu et n'est jamais remis à zéro ; la démo compte maintenant depuis la valeur lue dans `Initialize`. Cycle : `result=PASS` aux deux visites.
+- `docs/engine/sprite-psx-semi-transparency.md` : les trois démos citées et `PSX free quads` ont été supprimées par l'auteur le 2026-10-08 (`07e354d0`) ; la doc le dit et cite les tests qui restent. Les ADR 0051, 0053 et 0068, qui citent ces démos comme preuve d'époque, ne sont pas modifiés.
+- Validation : build 0 erreur, `CasaEngine.Tests` 5137/5137, cycle PASS (33 démos).
+
 Plan d'exécution du chantier issu de l'analyse de `CasaEngine.Demos` faite en session le 2026-11-14 (pas de fichier d'audit : les constats sont repris dans « État vérifié du dépôt »).
 Les décisions D1 → D11 ci-dessous ont été arbitrées avec l'auteur le 2026-11-14 : **ce plan les applique, il ne les rediscute pas**. Les points P1 → P7 sont des arbitrages proposés par l'agent, validés par l'auteur à l'approbation du plan le 2026-11-14 (« Approuvé, lance-le », mode AUTO).
 
