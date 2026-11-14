@@ -65,6 +65,7 @@ Sans variable, la démo est inchangée (capture identique octet pour octet, vér
 | `CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE=1` | (avec la configuration de mesure) cube uni `(0.2, 0.6, 1.0)` généré par la démo et lié comme cube d'environnement spéculaire du monde | E0 |
 | `CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat\|Auto` | (avec la configuration de mesure) valeur de `WorldEnvironmentSettings.AmbientSource` | E2 |
 | `CASAENGINE_SHADOW_DEMO_DETAIL=1` | (avec la configuration de mesure) lie au receveur une texture de détail unie de valeur 64 / 255 (générée en mémoire), pavage 4 | E7 |
+| `CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK=1` | (indépendante de la configuration de mesure) vérifie `Texture2DLoader.GenerateMipmaps` sur la carte graphique et journalise le verdict | E8 |
 | `CASAENGINE_SHADOW_DEMO_MODE`, `…_COLOR` | Mode d'ombre et teinte | E3 (non approuvée) |
 | `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS` | Rayon de filtre | E4 (non approuvée) |
 | `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` | Distance de fondu | E5 (non approuvée) |
@@ -164,6 +165,25 @@ Les trois pixels sont stables d'une exécution à l'autre (deux captures de la d
     | `eclaire` | 223, 215, 198 | × 0,502 = 112,0 ; 107,9 ; 99,4 (±3) | 112, 108, 99 |
     | `reflet` | 165, 157, 139 | inchangé | 165, 157, 139 |
 - Commit : `feat(materials): add a detail texture to the lit diffuse material`
+
+### ✅ E8 — Le chargeur de textures peut construire une chaîne de mipmaps (D5)
+
+- Objectif : `Texture2DLoader.GenerateMipmaps` (propriété d'instance publique, défaut `false` = comportement actuel). Vrai : `LoadAsset` rend une texture `Color` avec la chaîne complète (`floor(log2(max(l, h))) + 1` niveaux de taille `max(1, dim >> i)`, convention de MonoGame), niveau 0 identique au bit près à `Texture2D.FromStream`, chaque niveau suivant étant la moyenne 2 × 2 du précédent (arrondi au plus proche, moitiés vers le haut ; alpha droit, moyenné comme les canaux de couleur ; sur une dimension impaire la dernière ligne ou colonne n'entre dans aucun bloc ; sur un axe de longueur 1 le bloc fait 1 pixel).
+- Fonction publique (amendement A1) : type statique pur `CasaEngine.Framework.Assets.Loaders.MipmapChain` plutôt qu'une méthode du chargeur, pour qu'un appelant sans fichier (texture peinte à l'exécution) puisse l'utiliser : `GetLevelCount`, `GetLevelSize`, `ComputeNextLevel` (tableau et `Span`), `ComputeLevels`, et `UploadChain(Texture2D, Color[])` qui écrit le niveau 0 et tous les niveaux calculés dans une texture `Color` créée avec `mipMap: true` (à rappeler après une repeinte).
+- ADR `docs/decisions/0092-the-texture-loader-can-build-a-mipmap-chain.md` (API publique, défaut désactivé et pourquoi, comportement de l'alpha, coût : temps de chargement et +33 % de mémoire) ; page `docs/engine/texture-mipmaps.md` ; index mis à jour.
+- Fichiers : `CasaEngine/Framework/Assets/Loaders/Texture2DLoader.cs`, `CasaEngine/Framework/Assets/Loaders/MipmapChain.cs` (nouveau), `CasaEngine.Tests/Assets/MipmapChainTests.cs` (nouveau), `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `docs/decisions/0092-…`, `docs/decisions/README.md`, `docs/engine/texture-mipmaps.md`, `docs/README.md`, ce plan.
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5153 réussis (5117 + 36 : tailles de niveaux pour dimensions paires, impaires, non carrées et 1 × N, jusqu'à 1 × 1 ; valeurs moyennées et arrondi ; alpha droit ; niveau 0 inchangé ; arguments invalides), 0 échec.
+  - Démo sans variable : capture identique octet pour octet avant et après (aucun appelant du moteur n'active l'option) ; configuration de mesure : identique à celle de E7 (`cmp`).
+  - Preuve sur carte graphique (amendement A2), `CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK=1`, journal de la démo (`log.txt`), fichiers temporaires générés puis supprimés (aucun reste dans le dossier temporaire) :
+
+    ```
+    [MipmapCheck] file=odd.png size=37x19 LevelCount=6 expected=6 levels=37x19,18x9,9x4,4x2,2x1,1x1 level0IdenticalToFromStream=True levelsMatchCpuChain=True defaultLoaderLevelCount=1 passed=True
+    [MipmapCheck] file=even.tga size=64x32 LevelCount=7 expected=7 levels=64x32,32x16,16x8,8x4,4x2,2x1,1x1 level0IdenticalToFromStream=True levelsMatchCpuChain=True defaultLoaderLevelCount=1 passed=True
+    [MipmapCheck] verdict=PASS
+    ```
+
+    Le niveau attendu est recalculé dans la démo sans `MipmapChain` ; chaque niveau est relu par `GetData` (qui refuse une taille de niveau fausse) et comparé à la chaîne calculée sur le processeur ; le chargeur par défaut rend 1 niveau. Le dépôt ne contient aucun fichier TGA : les deux images sont générées (PNG 37 × 19 impair et non carré, TGA 64 × 32 non compressé 32 bits).
+- Commit : `feat(assets): let the texture loader build a mipmap chain`
 
 ---
 

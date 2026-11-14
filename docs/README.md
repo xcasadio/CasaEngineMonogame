@@ -30,6 +30,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [environment-system-v1.md](engine/environment-system-v1.md) — système d'environnement V1.
 - [lit-ambient-and-ambient-source.md](engine/lit-ambient-and-ambient-source.md) — terme ambiant des matériaux éclairés (couleur de surface appliquée une fois) et source d'ambiant `AmbientSource` (`Auto` / `Flat`) d'un monde.
 - [lit-detail-texture.md](engine/lit-detail-texture.md) — texture de détail de `LitDiffuseMaterial` (`DetailTexture`, `DetailTiling`, formule `base * 2 * détail`, limites).
+- [texture-mipmaps.md](engine/texture-mipmaps.md) — chaîne de mipmaps du chargeur de textures (`Texture2DLoader.GenerateMipmaps`, `MipmapChain`, rafraîchissement d'une texture peinte à l'exécution).
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
 - [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).
 
