@@ -272,9 +272,11 @@ Champs sérialisés (tous optionnels, écrits seulement s'ils diffèrent du déf
   - Biais (F6), vérifié contre les shaders : `2 × DepthBias × (2 × DepthRange − 0,1)` mètres sous DesktopGL ; la formule de D2 du plan de RacingGame (sans le facteur 2) est incomplète, la formule de F6 est correcte (justification dans le contrat effectif plus haut et dans l'ADR-0093).
 - Commit : `feat(rendering): separate the shadow depth range from its lateral extent`
 
-### ⏳ E6 — Documentation
+### ✅ E6 — Documentation
 
 - Objectif : `docs/engine/` décrit les réglages d'ombre (mode, teinte, rayon de filtre, fondu, profondeur : résumé, extrait d'usage, limites) ; index `docs/README.md` à jour ; plan clos pour E3 → E6.
+- Fichiers : `docs/engine/shadow-settings.md` (nouveau), `docs/README.md`, `ai-agent/README.md`, ce plan. L'ADR-0093 (écrit en E3, complété en E4, E5 et E5b) renvoie à cette page. La source d'ambiant est documentée depuis E2 (`docs/engine/lit-ambient-and-ambient-source.md`).
+- Résultat (2026-11-14) : documentation seule ; aucun code touché, builds et tests inchangés par rapport à E5b (5207 réussis, 0 échec).
 - Commit : `docs(engine): document the shadow settings`
 
 ---
@@ -284,7 +286,7 @@ Champs sérialisés (tous optionnels, écrits seulement s'ils diffèrent du déf
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | E1 éclaircit l'ambiant de toutes les scènes du moteur (démos, jeux d'exemple, éditeur). Leur réajustement n'est pas dans ce plan : il est listé dans l'ADR comme suite. | E1 |
-| O2 | S2b (E3 → E6) n'a pas passé de revue de plan indépendante concluante (la revue de clôture n'a pas rendu READY) : exécutée sur la demande de l'auteur du 2026-11-14 ; la vérification indépendante de fin de tranche (T4, côté jeu) reste à faire. | E3 → E6 |
+| O2 | S2b (E3 → E6, E5b) n'a pas passé de revue de plan indépendante concluante (la revue de clôture n'a pas rendu READY) : exécutée sur la demande de l'auteur du 2026-11-14. Terminée côté moteur ; la vérification indépendante de fin de tranche (T4, côté jeu) reste à faire. | E3 → E6 |
 
 ## Hors périmètre
 
