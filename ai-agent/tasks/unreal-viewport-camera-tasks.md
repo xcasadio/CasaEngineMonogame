@@ -104,7 +104,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `docs(adr): record ADR-0089, Unreal-style viewport camera navigation`
 - Note de validation (2026-11-14) : ADR-0089 écrite et ajoutée à l'index `docs/decisions/README.md` ; pas de code touché.
 
-### ⏳ T0.2 — Classe pure `ViewportCameraNavigation` et ses tests
+### ✅ T0.2 — Classe pure `ViewportCameraNavigation` et ses tests
 
 - Objectif : une logique de navigation unique, sans dépendance à l'éditeur ni à MonoGame `Game`, testable sans GPU.
 - Fichiers : `CasaEngine/Framework/Scene/Cameras/ViewportCameraNavigation.cs` (nouveau : `ViewportCameraNavigation`, qui ne garde que l'état du geste et la vitesse de vol ; `ViewportNavigationInput`, `ViewportCameraState` (pivot, distance, lacet, tangage, **sans** champ de vision, P6) et `ViewportNavigationResult` en `struct`) ; `CasaEngine.Tests/Scene/ViewportCameraNavigationTests.cs` (nouveau).
@@ -118,6 +118,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   7. Tests : un test par ligne de D7 ; le pivot ne bouge pas à la molette tant que la distance reste au-dessus du minimum ; poussée au minimum ; l'œil ne bouge pas en regardant ; clic contre glisser autour du seuil ; poignée de gizmo = aucun mouvement ; tangage borné ; F seul = demande de cadrage, bouton droit + F = descente locale sans demande de cadrage (P7) ; `ApplyTo` ne touche pas `FieldOfView` (P6).
 - Validation : `dotnet build CasaEngine.MonoGame.sln` ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` vert.
 - Commit : `feat(camera): add a shared Unreal-style viewport camera navigation`
+- Note de validation (2026-11-14) : `ViewportCameraNavigation` et 29 tests (`CasaEngine.Tests/Scene/ViewportCameraNavigationTests.cs`), dont la position de l'œil identique à celle d'`ArcBallCameraComponent`. `dotnet build CasaEngine.MonoGame.sln` réussi ; `CasaEngine.Tests` 5107/5107. Constante non donnée par P4 : vitesse de Z/C = π/4 rad/s (`FieldOfViewRate`). Alt + glisser droit : le zoom suit `dx - dy`.
 
 ---
 
