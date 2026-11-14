@@ -62,8 +62,11 @@ internal sealed class EditorPreferencesStore
             {
                 EditorPreferencesSerializer.TryRead(File.ReadAllText(_filePath), WarnWithPath, out loaded);
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            // Conversion errors are a last resort: the serializer already reports bad values per key. A broken file
+            // must never stop the editor from opening a project.
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidCastException or OverflowException or FormatException)
             {
+                loaded = EditorPreferences.Default;
                 WarnWithPath($"cannot be read, defaults are used: {ex.Message}");
             }
         }

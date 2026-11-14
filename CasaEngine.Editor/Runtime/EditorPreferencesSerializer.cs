@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -70,10 +71,12 @@ internal static class EditorPreferencesSerializer
             return false;
         }
 
-        int version = json[VersionKey]?.Type == JTokenType.Integer ? json[VersionKey].Value<int>() : EditorPreferences.CurrentVersion;
-        if (version != EditorPreferences.CurrentVersion)
+        JToken versionToken = json[VersionKey];
+        if (versionToken != null
+            && (!TryReadNumber(versionToken, out double version) || version != EditorPreferences.CurrentVersion))
         {
-            warn?.Invoke($"Editor preferences version {version} is not {EditorPreferences.CurrentVersion}: known keys are read, others are ignored.");
+            warn?.Invoke(FormattableString.Invariant(
+                $"Editor preferences version {versionToken.ToString(Formatting.None)} is not {EditorPreferences.CurrentVersion}: known keys are read, others are ignored."));
         }
 
         var defaults3d = new Camera3dPreferences();
@@ -131,13 +134,22 @@ internal static class EditorPreferencesSerializer
             return fallback;
         }
 
-        if (token.Type is JTokenType.Float or JTokenType.Integer)
+        // Parsed from the literal: an integer beyond Int64 is a BigInteger that Value<float>() cannot convert.
+        // A huge value becomes infinity and is clamped by EditorPreferences.Clamp.
+        if (TryReadNumber(token, out double value))
         {
-            return token.Value<float>();
+            return (float)value;
         }
 
-        warn?.Invoke($"Editor preference '{key}' is not a number: {fallback} is used.");
+        warn?.Invoke(FormattableString.Invariant($"Editor preference '{key}' is not a number: {fallback} is used."));
         return fallback;
+    }
+
+    private static bool TryReadNumber(JToken token, out double value)
+    {
+        value = 0;
+        return token.Type is JTokenType.Float or JTokenType.Integer
+            && double.TryParse(token.ToString(Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
     }
 
     private static bool ReadBool(JObject block, string key, bool fallback, Action<string> warn)
@@ -153,7 +165,7 @@ internal static class EditorPreferencesSerializer
             return token.Value<bool>();
         }
 
-        warn?.Invoke($"Editor preference '{key}' is not true or false: {fallback} is used.");
+        warn?.Invoke(FormattableString.Invariant($"Editor preference '{key}' is not true or false: {fallback} is used."));
         return fallback;
     }
 }

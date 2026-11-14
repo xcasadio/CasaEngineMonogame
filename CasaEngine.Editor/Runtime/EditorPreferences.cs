@@ -79,7 +79,7 @@ internal readonly struct EditorPreferenceRange
         if (float.IsNaN(value) || value < Min || value > Max)
         {
             float clamped = float.IsNaN(value) ? Min : Math.Clamp(value, Min, Max);
-            warn?.Invoke($"Editor preference '{Key}' = {value} is outside [{Min}, {Max}]: {clamped} is used.");
+            warn?.Invoke(FormattableString.Invariant($"Editor preference '{Key}' = {value} is outside [{Min}, {Max}]: {clamped} is used."));
             return clamped;
         }
 

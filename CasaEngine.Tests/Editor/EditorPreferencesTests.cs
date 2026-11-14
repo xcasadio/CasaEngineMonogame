@@ -1,3 +1,4 @@
+using System.Globalization;
 using CasaEngine.Editor.Runtime;
 using Xunit;
 
@@ -104,6 +105,54 @@ public sealed class EditorPreferencesTests : IDisposable
         Assert.False(read.Camera3d.InvertY);
         Assert.Equal(new Camera2dPreferences(), read.Camera2d);
         Assert.Equal(3, warnings.Count);
+    }
+
+    /// <summary>Verifier finding F1: integer literals beyond Int64 / Int32 used to throw instead of being clamped.</summary>
+    [Fact]
+    public void Serializer_HugeIntegerLiterals_AreClampedOrReported_NotThrown()
+    {
+        var warnings = new List<string>();
+
+        Assert.True(EditorPreferencesSerializer.TryRead("{\"camera_3d\":{\"fly_speed\":100000000000000000000000}}", warnings.Add, out var read));
+        Assert.Equal(1000f, read.Camera3d.FlySpeed);
+        Assert.Contains(warnings, w => w.Contains("fly_speed"));
+
+        warnings.Clear();
+        Assert.True(EditorPreferencesSerializer.TryRead("{\"version\":3000000000}", warnings.Add, out read));
+        Assert.Equal(EditorPreferences.Default, read);
+        Assert.Contains(warnings, w => w.Contains("3000000000"));
+    }
+
+    [Fact]
+    public void Store_FileWithAHugeInteger_LoadsWithoutThrowing()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+        File.WriteAllText(FilePath, "{\"version\":3000000000,\"camera_3d\":{\"fly_speed\":100000000000000000000000}}");
+        var warnings = new List<string>();
+        var store = CreateStore(warnings);
+
+        store.Load();
+
+        Assert.Equal(1000f, store.Current.Camera3d.FlySpeed);
+        Assert.Equal(2, warnings.Count);
+    }
+
+    [Fact]
+    public void Serializer_Warnings_UseTheInvariantCulture()
+    {
+        var warnings = new List<string>();
+        CultureInfo previous = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
+        try
+        {
+            EditorPreferencesSerializer.TryRead("{\"camera_3d\":{\"wheel_step_ratio\":0.001}}", warnings.Add, out _);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+
+        Assert.Contains("0.001", Assert.Single(warnings));
     }
 
     [Fact]
