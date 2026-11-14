@@ -88,6 +88,9 @@ AddDemo(new MyDemo(), ThemeRendering);
   add the action to `Content/demos-input.buttonsMapping`, and name it in `Controls` with `DemoControl.ForActions`.
   Esc, F1 and Enter belong to the demos app.
 - Release in `Clean` what the world does not own; the world itself is already cleared when `Clean` runs.
+- A demo that reads its own back buffer to check itself overrides `ReadsItsOwnImage`: the app then draws neither the
+  reminder nor the help panel over it (the Frozen frame demo). Count from the state found in `Initialize`, not from
+  zero: a service of the game keeps its counters from one visit of the demo to the next.
 - Keep the demo file for what the demo teaches. A text overlay, a stress run or meshes built in code go in a
   neighbour file of the same partial class: `AudioDemo.Hud.cs`, `AudioDemo.Stress.cs`, `AnimationBlendDemo.Hud.cs`,
   `MaterialDemo.Procedural.cs`.

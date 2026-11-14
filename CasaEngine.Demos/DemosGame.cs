@@ -407,13 +407,14 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// The reminder and the help panel show in every demo, never during an automation run that captures or probes the back buffer, so the
-    /// image is the one the demo draws.
+    /// The reminder and the help panel show in every demo, except during an automation run that captures or probes the back buffer
+    /// and in a demo that reads its own image (<see cref="Demo.ReadsItsOwnImage"/>), so that the image is the one the demo draws.
     /// </summary>
     private void UpdateDemoHintVisibility()
     {
         bool automation = !string.IsNullOrWhiteSpace(_automationScreenshotPath)
-            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"));
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"))
+            || _currentDemo?.ReadsItsOwnImage == true;
 
         // CASAENGINE_DEMO_SHOW_HELP keeps both in a capture, to check or document the panel itself.
         if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SHOW_HELP")))

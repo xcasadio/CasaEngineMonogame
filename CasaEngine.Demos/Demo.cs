@@ -29,6 +29,12 @@ public abstract class Demo
     public virtual string DocumentationPath => string.Empty;
 
     /// <summary>
+    /// True for a demo that reads its own back buffer to check itself. The app then draws neither the reminder nor the
+    /// help panel over it: they would be part of the image the demo reads. Esc and Select still return to the menu.
+    /// </summary>
+    public virtual bool ReadsItsOwnImage => false;
+
+    /// <summary>
     /// Creates the world of this demo, before <see cref="Initialize"/>. The default is a new, empty world that the demo
     /// fills in code; a demo overrides this to load a world made in the editor.
     /// </summary>
