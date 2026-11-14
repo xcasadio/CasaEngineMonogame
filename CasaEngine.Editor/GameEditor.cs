@@ -1114,6 +1114,14 @@ public class GameEditor : Game, IObservableUpdate
             ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,
         };
 
+        // ADR-0091: one per-user preferences store, created before any viewport panel. Automation runs keep the
+        // user's file untouched and use a temporary one.
+        string preferencesPath = _automationOptions.HasAutomation
+            ? Path.Combine(Path.GetTempPath(), "CasaEngine", "editor.preferences.automation.json")
+            : EditorPreferencesStore.DefaultFilePath;
+        _editorRuntime.Preferences = new EditorPreferencesStore(preferencesPath);
+        _editorRuntime.Preferences.Load();
+
         _editorRuntime.ContentPath = Path.Combine(AppContext.BaseDirectory, "Content");
 
         _editorRuntime.GameManager.WorldLoaded += OnAutomationWorldLoaded;
@@ -2857,6 +2865,7 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        _editorRuntime?.Preferences?.Flush();
         base.OnExiting(sender, args);
     }
 
@@ -6252,6 +6261,9 @@ public class GameEditor : Game, IObservableUpdate
         {
             EditorPerformanceProbe.SetContext(CreateEditorPerformanceContext());
         }
+
+        // ADR-0091: writes the preferences once, a second after the last change; a bool test when idle.
+        _editorRuntime?.Preferences?.FlushIfDue();
 
         using (EditorPerformanceProbe.BeginPhase("Input.CaptureAndPreview"))
         {

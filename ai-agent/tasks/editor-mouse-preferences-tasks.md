@@ -112,7 +112,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 
 ## Phase 1 — Application aux caméras
 
-### ⏳ T1.1 — Caméra 3D : réglages, inversion de Y, vitesse de vol mémorisée
+### 🧪 T1.1 — Caméra 3D : réglages, inversion de Y, vitesse de vol mémorisée
 
 - Objectif : D2 pour le viewport 3D.
 - Fichiers : `CasaEngine/Framework/Scene/Cameras/ViewportCameraNavigation.cs` (`InvertY`, additif, P5), `CasaEngine.Tests/Scene/ViewportCameraNavigationTests.cs`, `CasaEngine.Editor/Runtime/EditorViewportCameraController.cs` (`ApplyPreferences(Camera3dPreferences)`, vitesse de vol remontée quand elle change), `CasaEngine.Editor/Runtime/HostedEditorGameAdapter.cs` (propriété `Preferences`, P8), `CasaEngine.Editor/Controls/WorldViewportPanel.cs` (application à la création, abonnement à `Changed`, désabonnement dans `Dispose`), `CasaEngine.Editor/GameEditor.cs` (création et chargement du magasin au lancement, `FlushIfDue` dans `Update`, `Flush` à la fermeture). Les trois autres sites de création (`GameEditor.cs:3586`, `Animation2dAssetInspectorPanel.cs:261`, `EntityAssetEditorPanel.cs:82`) passent déjà le même `HostedEditorGameAdapter` : vérifier qu'ils n'ont rien à changer.
@@ -122,6 +122,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
   3. Vitesse de vol : quand le clic droit + molette la change dans un viewport, le contrôleur la remonte au magasin (`Update`), qui l'applique à tous les viewports ; l'écriture suit P4.
 - Validation : `dotnet build` des deux `.sln` ; tests verts ; test du contrôleur : `ApplyPreferences` change la rotation et inverse Y ; test du magasin : deux abonnés reçoivent un changement, un abonné désabonné ne le reçoit plus ; smoke : un réglage changé s'applique au viewport monde **et** à l'aperçu d'un asset entité ouvert ; fermer l'éditeur d'asset ne laisse pas d'abonné (compteur d'abonnés du magasin, exposé pour le test).
 - Commit : `feat(editor): apply the user preferences to the 3D viewport camera`
+- Note de validation (2026-11-14) : `ViewportCameraNavigation.InvertY` (additif) et 2 tests ; `EditorViewportCameraController.ApplyPreferences` et `FlySpeed`, 2 tests ; `HostedEditorGameAdapter.Preferences` ; chaque `WorldViewportPanel` applique les préférences à sa création, s'abonne à `Changed` par un délégué mis en cache, se désabonne dans `Dispose`, et remonte la vitesse de vol au magasin après la caméra. Les trois autres sites de création passent déjà le même adaptateur : rien à changer. `GameEditor` crée et charge le magasin juste après l'adaptateur, appelle `FlushIfDue` au début d'`Update` et `Flush` dans `OnExiting`. Ajout non prévu par le plan : en mode automatisation, fichier temporaire (`%TEMP%/CasaEngine/editor.preferences.automation.json`) pour ne pas toucher au fichier de l'utilisateur. Le désabonnement est couvert par le test du magasin, pas par un test du panneau (il demande une fenêtre MGUI). Les deux `.sln` buildent ; `CasaEngine.Tests` 5129/5129. **Manque** : smoke (viewport monde et aperçu d'entité), reporté à la recette T3.2.
 
 ### ⏳ T1.2 — Caméra 2D : vitesse de pan, crans de zoom, inversion de Y
 

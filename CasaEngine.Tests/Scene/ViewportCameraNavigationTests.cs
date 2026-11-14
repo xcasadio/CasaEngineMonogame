@@ -348,6 +348,21 @@ public class ViewportCameraNavigationTests
         AssertVector(new Vector3(0f, -1f, 0f), state.Pivot);
     }
 
+    [Theory]
+    [InlineData(ViewportMouseButtons.Right, false)]
+    [InlineData(ViewportMouseButtons.Left, true)]
+    public void InvertY_InvertsLookAndOrbit(ViewportMouseButtons button, bool alt)
+    {
+        var navigation = new ViewportCameraNavigation { InvertY = true };
+        var state = CreateState();
+
+        Step(navigation, ref state, button, alt: alt);
+        Step(navigation, ref state, button, dy: -20f, alt: alt);
+
+        // Mouse up looks down when Y is inverted.
+        Assert.Equal(-0.2f - 20f * 0.005f, state.Pitch, Tolerance);
+    }
+
     [Fact]
     public void Pitch_IsClamped()
     {

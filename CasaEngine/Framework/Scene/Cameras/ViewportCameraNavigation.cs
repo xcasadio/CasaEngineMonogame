@@ -181,6 +181,9 @@ public sealed class ViewportCameraNavigation
     /// <summary>Field of view change per second while Z or C is held, in radians.</summary>
     public float FieldOfViewRate { get; set; } = MathHelper.PiOver4;
 
+    /// <summary>Inverts the vertical mouse axis for looking around and Alt orbit (ADR-0091).</summary>
+    public bool InvertY { get; set; }
+
     /// <summary>True while a camera gesture (or a gizmo press) owns the mouse.</summary>
     public bool IsGestureActive => _gesture != Gesture.None;
 
@@ -460,7 +463,7 @@ public sealed class ViewportCameraNavigation
 
         Vector3 eye = state.Eye;
         state.Yaw = WrapYaw(state.Yaw + dx * RotationSensitivity);
-        state.Pitch = Math.Clamp(state.Pitch - dy * RotationSensitivity, MinPitch, MaxPitch);
+        state.Pitch = Math.Clamp(state.Pitch - PitchDelta(dy), MinPitch, MaxPitch);
         state.Pivot = eye + ComputeForward(state.Yaw, state.Pitch) * state.Distance;
         return true;
     }
@@ -473,7 +476,7 @@ public sealed class ViewportCameraNavigation
         }
 
         state.Yaw = WrapYaw(state.Yaw + dx * RotationSensitivity);
-        state.Pitch = Math.Clamp(state.Pitch - dy * RotationSensitivity, MinPitch, MaxPitch);
+        state.Pitch = Math.Clamp(state.Pitch - PitchDelta(dy), MinPitch, MaxPitch);
         return true;
     }
 
@@ -576,6 +579,12 @@ public sealed class ViewportCameraNavigation
         }
 
         return delta;
+    }
+
+    private float PitchDelta(float dy)
+    {
+        float delta = dy * RotationSensitivity;
+        return InvertY ? -delta : delta;
     }
 
     private static float WrapYaw(float yaw)
