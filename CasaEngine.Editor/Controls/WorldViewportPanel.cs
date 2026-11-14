@@ -378,6 +378,9 @@ public class WorldViewportPanel : IDisposable
     /// <summary>True while a play-in-editor session drives this viewport.</summary>
     public bool IsPlayModeActive => _isPlayModeActive;
 
+    /// <summary>The render target the viewport draws into, for the remote viewport capture (ADR-0092); null before the first view.</summary>
+    internal Microsoft.Xna.Framework.Graphics.RenderTarget2D ViewportRenderTarget => _surface?.RenderTarget;
+
     /// <summary>
     /// Enters play mode: the editor camera state is saved, the player is routed to this
     /// view and the gizmo is deactivated. The game camera is bound later, once the play

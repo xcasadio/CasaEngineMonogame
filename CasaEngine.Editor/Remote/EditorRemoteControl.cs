@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
@@ -51,6 +52,20 @@ internal interface IEditorRemoteHost
 
     /// <summary>Starts loading a catalogued world without any dialog; false when it cannot.</summary>
     bool BeginOpenWorld(string fullPath);
+
+    /// <summary>Play mode state in lower case: editing, starting, playing, paused or stopping.</summary>
+    string PlayState { get; }
+
+    /// <summary>Starts play mode as the toolbar button does (scripts built first); failures are logged.</summary>
+    void StartPlay();
+
+    void StopPlay();
+
+    /// <summary>Asks for a capture (<c>window</c> or <c>viewport</c>) written to <paramref name="path"/> at the end of the next frame.</summary>
+    bool RequestCapture(string kind, string path, out string error);
+
+    /// <summary>The result of the capture of <paramref name="path"/>, once taken.</summary>
+    bool TryTakeCaptureResult(string path, out RemoteCaptureResult result);
 }
 
 /// <summary>
@@ -79,6 +94,42 @@ internal sealed class EditorRemoteControl : IDisposable
         RegisterBuiltInCommands();
         EditorRemoteReadCommands.Register(Registry, host, () => _logReader);
         EditorRemoteEditCommands.Register(Registry, host);
+        EditorRemoteViewCommands.Register(Registry, host, NewCapturePath);
+    }
+
+    /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>
+    public static string DefaultCaptureDirectory => Path.Combine(Path.GetTempPath(), "CasaEngine", "editor-remote");
+
+    public string CaptureDirectory { get; init; } = DefaultCaptureDirectory;
+
+    private readonly List<string> _capturePaths = new();
+
+    private string NewCapturePath()
+    {
+        string path = Path.Combine(CaptureDirectory, "capture-" + Guid.NewGuid().ToString("N") + ".png");
+        _capturePaths.Add(path);
+        return path;
+    }
+
+    /// <summary>Deletes the captures of this editor session (plan P8: cleaned when the editor closes).</summary>
+    private void DeleteCaptures()
+    {
+        for (int i = 0; i < _capturePaths.Count; i++)
+        {
+            try
+            {
+                if (File.Exists(_capturePaths[i]))
+                {
+                    File.Delete(_capturePaths[i]);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Logs.WriteWarning($"[Remote] Could not delete the capture '{_capturePaths[i]}': {ex.Message}");
+            }
+        }
+
+        _capturePaths.Clear();
     }
 
     public EditorRemoteCommandRegistry Registry { get; }
@@ -184,6 +235,7 @@ internal sealed class EditorRemoteControl : IDisposable
     public void Dispose()
     {
         Stop();
+        DeleteCaptures();
         _logReader?.Dispose();
     }
 

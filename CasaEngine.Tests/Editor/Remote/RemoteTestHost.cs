@@ -68,4 +68,32 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         OpenedWorlds.Add(fullPath);
         return OpenSucceeds;
     }
+
+    public string PlayState => IsPlaySessionActive ? "playing" : "editing";
+
+    public bool PlayStarts { get; set; } = true;
+
+    public int StartPlayCount { get; private set; }
+
+    public void StartPlay()
+    {
+        StartPlayCount++;
+        IsPlaySessionActive = PlayStarts;
+    }
+
+    public void StopPlay() => IsPlaySessionActive = false;
+
+    public List<(string Kind, string Path)> CaptureRequests { get; } = new();
+
+    public Dictionary<string, RemoteCaptureResult> CaptureResults { get; } = new();
+
+    public bool RequestCapture(string kind, string path, out string error)
+    {
+        CaptureRequests.Add((kind, path));
+        error = null;
+        return true;
+    }
+
+    public bool TryTakeCaptureResult(string path, out RemoteCaptureResult result)
+        => CaptureResults.Remove(path, out result);
 }

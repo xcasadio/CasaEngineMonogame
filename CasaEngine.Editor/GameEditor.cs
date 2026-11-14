@@ -6907,18 +6907,8 @@ public partial class GameEditor : Game, IObservableUpdate
             Directory.CreateDirectory(directory);
             string path = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(basePath)}-{suffix}.png");
 
-            int width = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferWidth);
-            int height = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferHeight);
-
-            using var renderTarget = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
-            var previousTargets = GraphicsDevice.GetRenderTargets();
-            GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.Transparent);
-            _desktop?.Draw();
-            GraphicsDevice.SetRenderTargets(previousTargets);
-
-            using var fileStream = File.OpenWrite(path);
-            renderTarget.SaveAsPng(fileStream, width, height);
+            // FileMode.Create truncates: File.OpenWrite left the end of a larger previous image in the file.
+            SaveDesktopAsPng(path, FileMode.Create, out _, out _);
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Screenshot saved to '{path}'");
         }
         catch (Exception ex)
@@ -8992,6 +8982,9 @@ public partial class GameEditor : Game, IObservableUpdate
         {
             base.Draw(gameTime);
         }
+
+        // ADR-0092: a remote capture is taken once the frame is drawn.
+        ProcessRemoteCapture();
     }
 
     /// <summary>
