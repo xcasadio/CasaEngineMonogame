@@ -197,7 +197,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `docs(editor): document the Unreal-style viewport camera controls`
 - Note de validation (2026-11-14) : `docs/editor/viewport-camera-controls.md` écrit (souris, clavier, F, W/E/R, sélection, vues 2D, limites) et ajouté à `docs/README.md`. `CasaEngine.Demos` n'a pas de README général qui liste les contrôles : rien à mettre à jour.
 
-### ⏳ T3.2 — Vérification indépendante et recette de l'auteur
+### 🧪 T3.2 — Vérification indépendante et recette de l'auteur
 
 - Objectif : vérifier le chantier entier avant de le déclarer fini.
 - Étapes :
@@ -206,6 +206,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   3. Recette de l'auteur dans l'éditeur et les démos.
 - Validation : verdict CONFIRMED et accord de l'auteur ; sinon 🧪 avec ce qui manque.
 - Commit : `docs(ai-agent): record the check of the Unreal-style viewport camera`
+- Note de validation (2026-11-14) : vérificateur neuf **CONFIRMED** sur `main..HEAD` (les deux `.sln` 0 erreur, `CasaEngine.Tests` 5111/5111, sonde hors dépôt : 1,3 million d'appels de `Update` sans allocation par image). Avis non bloquants, reportés : A1 (P3) `IsHoveringHandle` lit `CurrentSelection`, qui alloue une liste par LINQ à chaque image où la souris survole une poignée (éditeur seulement ; correction proposée : `_gizmo.Gizmo.Selection.Count`) ; A2 (P4) relâcher le droit et appuyer le gauche dans la même image donne une image de pan ; A3 (P4) vue avec focus clavier sans input pointeur : un clic théorique, ignoré par le gizmo ; A4 (P4) saut possible à la sortie du mode Play si un bouton est tenu, comportement antérieur ; A5 (P4) sélection et W/E/R sans test unitaire (le contrôleur du gizmo demande un `GraphicsDevice`). **Manque** : recette de l'auteur dans l'éditeur et les démos (T1.2, T1.3, T2.1), et réponse à O3.
 
 ---
 
