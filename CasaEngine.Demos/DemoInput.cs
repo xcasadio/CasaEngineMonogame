@@ -59,6 +59,22 @@ internal static class DemoInput
         return Get(game, action).Pressed;
     }
 
+    /// <summary>
+    /// True while the gamepad button of <paramref name="action"/> is held; its key is not looked at. For a reader that
+    /// must tell the two devices apart: gameplay that may use the gamepad while a UI holds the keyboard.
+    /// </summary>
+    public static bool IsButtonDown(CasaEngineGame game, string action)
+    {
+        if (game == null || !game.IsActive)
+        {
+            return false;
+        }
+
+        InputMapping mapping = Get(game, action);
+        return mapping.AlternativeKeyButton.InputDevice == InputDevices.GamePad
+            && game.InputComponent.GamePadManager.GetGamePad(mapping.GamePadNumber).ButtonPressed(mapping.AlternativeKeyButton.GamePadButton);
+    }
+
     /// <summary>True on the frame the key or the button of <paramref name="action"/> goes down.</summary>
     public static bool WasPressed(CasaEngineGame game, string action)
     {

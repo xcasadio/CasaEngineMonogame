@@ -178,29 +178,33 @@ public class PlayerInputDemo : Demo
         //    input of the player is cut, as a pause menu does.
         ReadDemoCommands();
 
-        // 2. Gameplay input. The player's facade is the gate: it says no while the input is disabled, or while a UI
-        //    holds the keyboard and no gamepad is connected. PlayerInput.GetButtonState(name) applies the same gate to
-        //    one action, but returns a new object at each call: fine for a press, avoided here where four directions
-        //    are read every frame.
+        // 2. Gameplay input. The facade of the player is the gate, one device at a time: the keyboard is closed while
+        //    the input is disabled or a UI holds the keyboard; the gamepad is closed only while the input is disabled.
+        //    An action has a key and a button, so with the keyboard closed only its button is read.
+        //    (PlayerInput.GetButtonState(name) reads one action through the facade, but returns a new object at each
+        //    call and does not tell the devices apart: fine for a press, avoided here.)
+        bool keyboardOpen = _input.IsKeyboardAvailable;
+        bool gamePadOpen = _input.IsGamePadAvailable && _input.IsGamePadConnected;
+
         Vector2 intent = Vector2.Zero;
-        if (_input.IsInputEnabled && (_input.IsKeyboardAvailable || _input.IsGamePadConnected))
+        if (keyboardOpen || gamePadOpen)
         {
-            if (DemoInput.IsDown(_game!, DemoInput.MoveLeft))
+            if (IsMoveDown(DemoInput.MoveLeft, keyboardOpen))
             {
                 intent.X -= 1f;
             }
 
-            if (DemoInput.IsDown(_game!, DemoInput.MoveRight))
+            if (IsMoveDown(DemoInput.MoveRight, keyboardOpen))
             {
                 intent.X += 1f;
             }
 
-            if (DemoInput.IsDown(_game!, DemoInput.MoveUp))
+            if (IsMoveDown(DemoInput.MoveUp, keyboardOpen))
             {
                 intent.Y += 1f;
             }
 
-            if (DemoInput.IsDown(_game!, DemoInput.MoveDown))
+            if (IsMoveDown(DemoInput.MoveDown, keyboardOpen))
             {
                 intent.Y -= 1f;
             }
@@ -212,6 +216,11 @@ public class PlayerInputDemo : Demo
         pawn?.GetComponent<CharacterControllerComponent>()?.SetMoveIntent(intent);
 
         ShowState();
+    }
+
+    private bool IsMoveDown(string action, bool keyboardOpen)
+    {
+        return keyboardOpen ? DemoInput.IsDown(_game!, action) : DemoInput.IsButtonDown(_game!, action);
     }
 
     private void ReadDemoCommands()
