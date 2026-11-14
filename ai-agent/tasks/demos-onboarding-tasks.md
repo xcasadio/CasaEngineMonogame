@@ -191,13 +191,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): add the Hello world demo`
 - Note de validation (2026-11-14) : `HelloWorldDemo` (thème « Getting started », index 0, le menu s'ouvre dessus) : une entité cube, un material, une lumière directionnelle et la caméra écrites en clair et commentées ; le cube tourne (captures à 1,2 s et 2 s différentes). La lumière vient du côté de la caméra : sans autre lumière, une face non éclairée est noire, et régler `AmbientColor` sur le material ou sur le monde n'a rien changé à l'écran (non élucidé, retiré du code). Build 0 erreur ; cycle PASS avec 26 démos.
 
-### ⏳ T2.3 — Démo « Moving an entity »
+### 🧪 T2.3 — Démo « Moving an entity »
 
 - Objectif : déplacer une entité au clavier et à la manette, avec le pas de temps, commentée.
 - Fichiers : `CasaEngine.Demos/Demos/MovingAnEntityDemo.cs`, `DemosGame.cs`, doc.
 - Étapes : lire le clavier par `DemoKeyboard.Read` ; lire `docs/engine/player-input.md` pour ne pas doublonner la démo d'input de T5.1 (ici : lecture directe, la plus simple) ; la manette arrive avec T6.1.
 - Validation : build ; lancement ; cycle à 0.
 - Commit : `feat(demos): add the Moving an entity demo`
+- Note de validation (2026-11-14) : `MovingAnEntityDemo` (thème « Getting started ») : flèches, Maj gauche pour courir, Origine pour recentrer ; boucle lecture de l'entrée, direction normalisée, vitesse × temps écoulé, position bornée au sol, cube orienté dans le sens du déplacement ; lecture par `DemoKeyboard.Read`, manette en T6.1. Build 0 erreur ; capture : sol et cube affichés ; cycle PASS avec 27 démos. Reste à faire par l'auteur : l'automatisation n'appuie sur aucune touche, donc le déplacement, la course et l'orientation n'ont pas été vus à l'écran.
 
 ### ⏳ T2.4 — Démo « Loading a model »
 
