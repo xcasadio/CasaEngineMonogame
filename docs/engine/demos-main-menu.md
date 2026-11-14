@@ -85,6 +85,9 @@ AddDemo(new MyDemo(), ThemeRendering);
 - Build the scene in `Initialize` on `game.GameManager.CurrentWorld`: it is the demo's new world, not yet loaded.
 - Read the keyboard with `DemoKeyboard.Read(game)`, not `Keyboard.GetState()`. Esc belongs to the demos app.
 - Release in `Clean` what the world does not own; the world itself is already cleared when `Clean` runs.
+- Keep the demo file for what the demo teaches. A text overlay, a stress run or meshes built in code go in a
+  neighbour file of the same partial class: `AudioDemo.Hud.cs`, `AudioDemo.Stress.cs`, `AnimationBlendDemo.Hud.cs`,
+  `MaterialDemo.Procedural.cs`.
 
 ## Automation
 

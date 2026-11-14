@@ -264,13 +264,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `docs(demos): explain the scene setup of the uncommented demos`
 - Note de validation (2026-11-14) : commentaires ajoutés par un exécutant (sonnet) dans les sept fichiers : résumé de classe et commentaires de bloc, 20 à 41 lignes par fichier. Contrôle de la session principale : chaque fichier est identique à `HEAD` une fois les lignes de commentaire retirées (md5) ; build 0 erreur ; échantillon relu. Constat remonté par l'exécutant et confirmé par capture : `SkinnedMeshDemo` n'active pas `Shadows.Enabled` et n'affiche aucune ombre, alors que sa fiche (T1.4) et `docs/engine/demos-check-notes.md` en décrivent ; traité à part, voir la note sous T1.4.
 
-### ⏳ T4.4 — Grosses démos allégées
+### ✅ T4.4 — Grosses démos allégées
 
 - Objectif : dans Audio, AnimationBlend et Material, `Initialize` se lit comme un tutoriel ; le HUD et la validation vivent dans des fichiers voisins (P7).
 - Fichiers : `AudioDemo.cs`, `AnimationBlendDemo.cs`, `MaterialDemo.cs` et leurs nouveaux fichiers voisins.
 - Étapes : capture de référence de chaque démo avant ; déplacement de code sans changement ; capture après.
 - Validation : build ; captures avant et après identiques tant que la scène est statique (limite écrite dans `docs/engine/demos-main-menu.md`) ; cycle à 0. Une tâche par démo si le diff d'une seule dépasse ce qu'un commit lisible supporte : le dire dans la note.
 - Commit : `refactor(demos): split HUD and validation out of the large demos`
+- Note de validation (2026-11-14) : classes rendues `partial`, méthodes entières déplacées par script, sans modification de leur contenu (contrôle : les lignes retirées des trois fichiers sont exactement celles des nouveaux fichiers ; seul ajout dans les fichiers d'origine : le mot `partial`). `AudioDemo.Hud.cs` (`PostDraw`, `DrawLine`, `EffectsNote`), `AudioDemo.Stress.cs` (stress GC, SPU et réverbération de stress, compteur d'underruns, log OpenAL), `AnimationBlendDemo.Hud.cs` (`PostDraw`, libellés, réglages lus dans l'environnement). `MaterialDemo` n'a ni HUD ni validation : ce sont ses constructeurs de maillages et de textures procéduraux qui partent dans `MaterialDemo.Procedural.cs` (écart à P7, même but : lire `Initialize`). Tailles : Audio 1220 → 917 lignes, AnimationBlend 1175 → 1038, Material 837 → 648 ; les `Initialize` eux-mêmes ne sont pas réécrits. Un seul commit. Build 0 erreur ; captures avant et après identiques à l'octet pour Audio et Material, identiques à l'œil pour AnimationBlend (scène animée) ; cycle PASS (31 démos).
 
 ---
 

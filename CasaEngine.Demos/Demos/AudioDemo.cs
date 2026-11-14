@@ -80,7 +80,7 @@ namespace CasaEngine.Demos.Demos;
 /// initialized, logs the backend and its underrun count every second, then logs a summary after
 /// n seconds and exits the game.
 /// </summary>
-public class AudioDemo : Demo
+public partial class AudioDemo : Demo
 {
     private static readonly Guid ClickSoundAssetId = new("b41f0a6c-2d58-4a19-9f73-0c5e8a91d2b4");
     private static readonly Guid VariedClickSoundAssetId = new("f5c920e0-ab46-45d8-81c0-feb6f481b27d");
@@ -527,87 +527,6 @@ public class AudioDemo : Demo
         _previousKeyboard = keyboard;
     }
 
-    public override void PostDraw(CasaEngineGame game, GameTime gameTime)
-    {
-        var audio = game.AudioSystemComponent;
-        if (audio == null)
-        {
-            return;
-        }
-
-        _font ??= game.FontSystem.GetFont(14);
-        if (_panelBackground == null)
-        {
-            _panelBackground = new Texture2D(game.GraphicsDevice, 1, 1);
-            _panelBackground.SetData([new Color(0, 0, 0, 170)]);
-        }
-
-        var service = audio.Service;
-        var mixer = service.Mixer;
-        var master = mixer.GetBus(AudioBusNames.Master);
-        var sfx = mixer.GetBus(AudioBusNames.Sfx);
-        var music = mixer.GetBus(AudioBusNames.Music);
-
-        var spriteBatch = game.SpriteBatch;
-        spriteBatch.Begin();
-        spriteBatch.Draw(_panelBackground, new Rectangle(10, 10, 520, 614), Color.White);
-
-        var y = 16f;
-        DrawLine(spriteBatch, ref y, audio.IsAudioAvailable
-            ? "Audio device: available"
-            : "Audio device: NOT available (everything is silent)");
-        DrawLine(spriteBatch, ref y, $"Backend: {service.Backend.GetType().Name}   active voices: {service.ActiveVoiceCount}"
-            + (_stressActive ? "   STRESS ON" : string.Empty));
-        DrawLine(spriteBatch, ref y, _spuPort != null
-            ? $"SPU: active   refused writes {_spuPort.RefusedWriteCount}"
-            : _spuTried ? "SPU: unavailable" : "SPU: not started (the stress starts it)");
-        if (service.Backend is SoftwareAudioBackend software)
-        {
-            DrawLine(spriteBatch, ref y, $"Lead {software.LeadMilliseconds} ms   output {software.OutputSampleRate} Hz"
-                + $"   underruns {software.UnderrunCount}");
-        }
-
-        DrawLine(spriteBatch, ref y, $"Master  volume {master.Volume:0.00}  muted {master.IsMuted}  gain {master.EffectiveGain:0.00}");
-        DrawLine(spriteBatch, ref y, $"Sfx     volume {sfx.Volume:0.00}  muted {sfx.IsMuted}  gain {sfx.EffectiveGain:0.00}");
-        DrawLine(spriteBatch, ref y, $"Music   volume {music.Volume:0.00}  muted {music.IsMuted}  gain {music.EffectiveGain:0.00}");
-        DrawLine(spriteBatch, ref y, $"Voices: {service.ActiveVoiceCount} active, {service.RefusedVoiceCount} refused, {service.StolenVoiceCount} stolen"
-            + $"   Music tracks: {service.Music.ActiveTrackCount}");
-        DrawLine(spriteBatch, ref y, service.Music.IsAlive(_musicTrack)
-            ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
-              + $"  queued buffers {service.Music.GetPendingBufferCount(_musicTrack)}"
-            : "Music stopped");
-        DrawLine(spriteBatch, ref y, service.Music.IsAlive(_loopPointTrack)
-            ? $"Loop point (Q) position {service.Music.GetPosition(_loopPointTrack).TotalSeconds:0.0} s"
-              + $"  queued buffers {service.Music.GetPendingBufferCount(_loopPointTrack)}"
-            : "Loop point (Q) stopped");
-        DrawLine(spriteBatch, ref y, service.Backend is IAudioBusBackend
-            ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
-              + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
-            : "Effects (R, T, D) absent on this backend (software backend only)");
-        DrawLine(spriteBatch, ref y, SpatialModeText);
-        DrawLine(spriteBatch, ref y, service.IsAlive(_orbitVoice)
-            ? $"Orbit (O) ON   distance {NumericsVector3.Distance(_orbitPosition, ListenerPosition):0.0}"
-              + $"   x {_orbitPosition.X:0.0}  z {_orbitPosition.Z:0.0}"
-            : "Orbit (O) off");
-        var intensity = service.GetGameParameter(_intensityParameter);
-        DrawLine(spriteBatch, ref y, $"Doppler (K) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
-            + (float.IsNaN(intensity) ? "   intensity (I) unset" : $"   intensity (I) {intensity:0.0}"));
-        DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
-        DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   U fade out   S stop all");
-        DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
-        DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
-        DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");
-        DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
-        DrawLine(spriteBatch, ref y, "Q loop point: tone once, then beeps (loops from 1 s)");
-        DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
-        DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
-        DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
-        DrawLine(spriteBatch, ref y, "O spatial orbit on/off   K Doppler on/off   I intensity 0/0.5/1");
-        DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
-
-        spriteBatch.End();
-    }
-
     public override void Clean()
     {
         var service = _game?.AudioSystemComponent?.Service;
@@ -653,34 +572,6 @@ public class AudioDemo : Demo
         _stressStarted = false;
         _stressGarbageSink = [];
         _game = null;
-    }
-
-    private void DrawLine(SpriteBatch spriteBatch, ref float y, string text)
-    {
-        spriteBatch.DrawString(_font, text, new Vector2(20f, y), Color.White);
-        y += 22f;
-    }
-
-    private void ToggleStress(AudioService service)
-    {
-        if (_stressActive)
-        {
-            _stressActive = false;
-            _stressStarted = false;
-            _stressGarbageSink = [];
-            StopSpu();
-            StopStressReverb(service);
-            service.StopAll();
-            _loopingVoice = AudioVoiceHandle.None;
-            _musicTrack = MusicTrackHandle.None;
-            _lastAction = "stress stopped";
-            return;
-        }
-
-        _stressDurationSeconds = 0;
-        _stressExitWhenDone = false;
-        _stressActive = true;
-        _stressStarted = false;
     }
 
     private void ToggleDemoReverb(AudioService service)
@@ -837,11 +728,6 @@ public class AudioDemo : Demo
             ListenerPosition.Z - radius * MathF.Cos(angle));
     }
 
-    private static string EffectsNote(AudioService service)
-    {
-        return service.Backend is IAudioBusBackend ? string.Empty : " (no effect on this backend)";
-    }
-
     private void StopDemoEffects(AudioService service)
     {
         var mixer = service.Mixer;
@@ -864,195 +750,6 @@ public class AudioDemo : Demo
         _demoReverbOn = false;
         _demoFilter = null;
         _demoDucking = null;
-    }
-
-    private static int GetUnderrunCount(AudioService service)
-    {
-        return service.Backend is SoftwareAudioBackend software ? software.UnderrunCount : 0;
-    }
-
-    private static void LogMonoGameOpenAlState()
-    {
-        // Reads the private field on purpose: the public Instance property would initialize OpenAL.
-        try
-        {
-            var type = typeof(Microsoft.Xna.Framework.Audio.SoundEffect).Assembly.GetType("Microsoft.Xna.Framework.Audio.OpenALSoundController");
-            if (type == null)
-            {
-                Logs.WriteInfo("Audio stress: monogame-openal-initialized=unknown (type OpenALSoundController not found)");
-                return;
-            }
-
-            var field = type.GetField("_instance", BindingFlags.NonPublic | BindingFlags.Static);
-            if (field == null)
-            {
-                Logs.WriteInfo("Audio stress: monogame-openal-initialized=unknown (static field _instance not found)");
-                return;
-            }
-
-            Logs.WriteInfo($"Audio stress: monogame-openal-initialized={(field.GetValue(null) != null ? "true" : "false")}");
-        }
-        catch (Exception exception)
-        {
-            Logs.WriteInfo($"Audio stress: monogame-openal-initialized=unknown ({exception.GetType().Name}: {exception.Message})");
-        }
-    }
-
-    private void UpdateStress(AudioService service)
-    {
-        if (!_stressActive || _game == null)
-        {
-            return;
-        }
-
-        var backendName = service.Backend.GetType().Name;
-
-        if (!_stressStarted)
-        {
-            LogMonoGameOpenAlState();
-
-            if (!service.IsAlive(_loopingVoice) && _clickSound != null)
-            {
-                _loopingVoice = service.PlaySound(
-                    _clickSound,
-                    new SoundPlaybackOverrides(isLooped: true),
-                    _game.GameManager.CurrentWorld);
-            }
-
-            if (!service.Music.IsAlive(_musicTrack) && _music != null)
-            {
-                _musicTrack = service.Music.Play(_music, MusicFadeInSeconds, _game.GameManager.CurrentWorld);
-                _pitchedMusicPlaying = false;
-            }
-
-            _stressGcCount = 0;
-            _stressLoggedSeconds = 0;
-            _stressLastGcMilliseconds = 0;
-            _stressClock.Restart();
-            _stressStarted = true;
-            StartSpu(service);
-            StartStressReverb(service);
-            _lastAction = "stress running";
-            return;
-        }
-
-        // Garbage: large short-lived arrays, which live on the large object heap and need gen 2.
-        for (var i = 0; i < StressArrayCount; i++)
-        {
-            _stressGarbageSink = new byte[StressArrayBytes];
-        }
-
-        var elapsedMilliseconds = _stressClock.ElapsedMilliseconds;
-        if (elapsedMilliseconds - _stressLastGcMilliseconds >= StressGcIntervalMilliseconds)
-        {
-            GC.Collect(2, GCCollectionMode.Forced, true);
-            _stressGcCount++;
-            _stressLastGcMilliseconds = elapsedMilliseconds;
-        }
-
-        var elapsedSeconds = (int)(elapsedMilliseconds / 1000);
-        while (_stressLoggedSeconds < elapsedSeconds)
-        {
-            _stressLoggedSeconds++;
-            Logs.WriteInfo($"Audio stress: backend={backendName} elapsed={_stressLoggedSeconds} underruns={GetUnderrunCount(service)}");
-        }
-
-        if (_stressDurationSeconds > 0 && elapsedSeconds >= _stressDurationSeconds)
-        {
-            Logs.WriteInfo($"Audio stress done: backend={backendName} seconds={_stressDurationSeconds}"
-                + $" underruns={GetUnderrunCount(service)} gc={_stressGcCount}");
-            _stressActive = false;
-            _stressStarted = false;
-            _stressGarbageSink = [];
-            StopSpu();
-            StopStressReverb(service);
-
-            if (_stressExitWhenDone)
-            {
-                _game.Exit();
-            }
-        }
-    }
-
-    // The stress also runs a reverb send (Sfx and Music to a return bus holding a Freeverb) and the Master limiter, so the
-    // 60 second run covers them (T5.4). Without the bus capability the sends and the limiter are absent (one log line).
-    private void StartStressReverb(AudioService service)
-    {
-        var mixer = service.Mixer;
-
-        if (_stressReverbBus == null && !mixer.TryGetBus(StressReverbBusName, out _stressReverbBus))
-        {
-            _stressReverbBus = mixer.CreateBus(StressReverbBusName, AudioBusNames.Master);
-            _stressReverbBus.AddEffect(new ReverbEffect(0.8f));
-        }
-
-        mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0.4f);
-        mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0.3f);
-        Logs.WriteInfo($"Audio stress: reverb send on, master limiter enabled={service.MasterLimiter.IsEnabled} ceiling={service.MasterLimiter.CeilingDb} dB");
-    }
-
-    private void StopStressReverb(AudioService service)
-    {
-        if (_stressReverbBus == null)
-        {
-            return;
-        }
-
-        service.Mixer.GetBus(AudioBusNames.Sfx).SetSend(_stressReverbBus, 0f);
-        service.Mixer.GetBus(AudioBusNames.Music).SetSend(_stressReverbBus, 0f);
-    }
-
-    // One synthetic ADPCM block (shift 0, filter 0) looping on itself: 14 samples of 7000h then 14 of -8000h, a square
-    // wave of 28 samples (1575 Hz at pitch 1000h). The SPU uses the engine's default tables (ADPCM
-    // filters from psx-spx, formula reverb FIR, no Gaussian table); the block uses filter 0.
-    private void StartSpu(AudioService service)
-    {
-        _spuTried = true;
-        if (_spuPort != null)
-        {
-            return;
-        }
-
-        var tables = PsxSpuHardwareTables.CreateDefault();
-        if (!service.TryCreatePsxSpu(tables, AudioBusNames.Sfx, out var port))
-        {
-            return;
-        }
-
-        const int soundAddress = 0x1000;
-        const ushort modestVolume = 0x0800; // fixed volume register: level 1000h of 7FFFh, about 1/8
-        var block = new byte[16];
-        block[1] = 7; // loop start, loop end, repeat
-        Array.Fill(block, (byte)0x77, 2, 7);
-        Array.Fill(block, (byte)0x88, 9, 7);
-        ushort[] pitches = [0x1000, 0x1430, 0x1800, 0x0C00];
-
-        var accepted = port.TryUpload(soundAddress, block);
-        for (var voice = 0; voice < pitches.Length; voice++)
-        {
-            accepted &= port.TrySetStartAddress(voice, soundAddress / 8);
-            accepted &= port.TrySetPitch(voice, pitches[voice]);
-            accepted &= port.TrySetAdsr(voice, 0x1FC0000F);
-            accepted &= port.TrySetVolume(voice, false, modestVolume);
-            accepted &= port.TrySetVolume(voice, true, modestVolume);
-        }
-
-        accepted &= port.TryKeyOn(0xF);
-        _spuPort = port;
-        Logs.WriteInfo($"Audio demo: SPU started, {pitches.Length} voices, all writes accepted={accepted}");
-    }
-
-    private void StopSpu()
-    {
-        if (_spuPort == null)
-        {
-            return;
-        }
-
-        Logs.WriteInfo($"Audio demo: SPU stopped, refused writes={_spuPort.RefusedWriteCount}");
-        _spuPort.TryKeyOff(0xF);
-        _spuPort.Dispose();
-        _spuPort = null;
     }
 
     private void PlayVariedClick(AudioService service)
