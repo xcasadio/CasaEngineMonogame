@@ -146,6 +146,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new TopDownElevationDemo(), ThemePhysics);
 
         AddDemo(new CoroutineDemo(), ThemeGameplay);
+        AddDemo(new SaveGameDemo(), ThemeGameplay);
 
         AddDemo(new SceneManagementDemo(), ThemeSceneAndViews);
         AddDemo(new SplitScreenDemo(), ThemeSceneAndViews);
