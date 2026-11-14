@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.Remote;
@@ -36,9 +37,15 @@ public partial class GameEditor
         using var renderTarget = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
         var previousTargets = GraphicsDevice.GetRenderTargets();
         GraphicsDevice.SetRenderTarget(renderTarget);
-        GraphicsDevice.Clear(Color.Transparent);
-        _desktop?.Draw();
-        GraphicsDevice.SetRenderTargets(previousTargets);
+        try
+        {
+            GraphicsDevice.Clear(Color.Transparent);
+            _desktop?.Draw();
+        }
+        finally
+        {
+            GraphicsDevice.SetRenderTargets(previousTargets);
+        }
 
         using var fileStream = new FileStream(path, mode, FileAccess.Write, FileShare.None);
         renderTarget.SaveAsPng(fileStream, width, height);
@@ -78,8 +85,10 @@ public partial class GameEditor
 
             request.Result = new RemoteCaptureResult { Succeeded = true, Width = width, Height = height };
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        catch (Exception ex)
         {
+            // Reported to the client and logged, never thrown out of Draw (verifier finding A3).
+            Logs.WriteWarning($"[Remote] Capture failed: {ex}");
             request.Result = new RemoteCaptureResult { Error = $"The capture failed: {ex.Message}" };
         }
     }

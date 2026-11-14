@@ -114,6 +114,12 @@ internal sealed class EditorRemoteDispatcher
 
     private void Execute(EditorRemoteCall call)
     {
+        if (call.IsCompleted)
+        {
+            // Answered already (the pipe thread timed it out): never run it late.
+            return;
+        }
+
         if (!_registry.TryGet(call.Method, out EditorRemoteCommand command))
         {
             call.Fail(new RemoteError { Code = RemoteErrorCodes.MethodNotFound, Message = $"Unknown command '{call.Method}'. Call '{RemoteProtocol.ListCommandsMethod}' for the list." });

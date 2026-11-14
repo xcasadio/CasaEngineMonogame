@@ -164,4 +164,37 @@ public sealed class EditorMcpServerTests : IDisposable
         stopPump.Cancel();
         pump.Join();
     }
+
+    /// <summary>Verifier finding F1: the MCP server releases the editor's only pipe after each call, so the CLI gets in.</summary>
+    [Fact]
+    public async Task Connection_ReleasesThePipe_AfterEachCall()
+    {
+        var host = new RemoteTestHost();
+        using var control = new EditorRemoteControl(host, _directory);
+        Assert.True(control.Start(refuseWhenElevated: false));
+        using var stopPump = new CancellationTokenSource();
+        var pump = new Thread(() =>
+        {
+            while (!stopPump.IsCancellationRequested)
+            {
+                control.Pump();
+                Thread.Sleep(5);
+            }
+        })
+        { IsBackground = true };
+        pump.Start();
+
+        await using (var connection = new EditorConnection(null, _directory))
+        {
+            var (commands, _) = await connection.ListCommandsAsync(CancellationToken.None);
+            Assert.NotNull(commands);
+
+            RemoteDiscoveryRecord record = Assert.Single(RemoteDiscovery.ReadAll(_directory));
+            await using RemoteEditorClient other = await RemoteEditorClient.ConnectAsync(record, TimeSpan.FromSeconds(10), CancellationToken.None);
+            Assert.NotNull(other.Hello);
+        }
+
+        stopPump.Cancel();
+        pump.Join();
+    }
 }

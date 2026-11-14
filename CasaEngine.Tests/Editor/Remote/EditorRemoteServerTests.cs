@@ -188,6 +188,64 @@ public sealed class EditorRemoteServerTests : IDisposable
         Assert.Equal(RemoteErrorCodes.MethodNotFound, response.Error!.Code);
     }
 
+    /// <summary>Verifier finding A1: a call the server answered as timed out is never run afterwards.</summary>
+    [Fact]
+    public async Task TimedOutCall_IsNotRunLater()
+    {
+        string name = RemoteDiscovery.CreatePipeName();
+        var registry = new EditorRemoteCommandRegistry();
+        int runs = 0;
+        registry.Register(new EditorRemoteCommand("slow.count", "test", null, true, false, call =>
+        {
+            runs++;
+            call.Succeed(runs);
+        }));
+        var dispatcher = new EditorRemoteDispatcher(registry);
+        using var server = new EditorRemoteServer(dispatcher, name, TimeSpan.FromSeconds(30), answerTimeout: TimeSpan.FromMilliseconds(200));
+        server.Start();
+
+        await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        await client.ConnectAsync(5000);
+        await RemoteMessageCodec.WriteAsync(client, new RemoteRequest { Id = 1, Method = "slow.count" }, CancellationToken.None);
+        using var readTimeout = new CancellationTokenSource(Timeout);
+        RemoteLine line = await new RemoteLineReader(client).ReadLineAsync(readTimeout.Token);
+
+        Assert.True(RemoteMessageCodec.TryDecodeResponse(line.Text, out RemoteResponse response));
+        Assert.Equal(RemoteErrorReasons.Timeout, response.Error!.Data!.Reason);
+
+        dispatcher.Pump();
+        Assert.Equal(0, runs);
+    }
+
+    /// <summary>Verifier finding A2: an answer over the line limit becomes a clear error instead of a line the client refuses.</summary>
+    [Fact]
+    public async Task OversizedAnswer_IsReplacedByAnError()
+    {
+        string name = RemoteDiscovery.CreatePipeName();
+        var registry = new EditorRemoteCommandRegistry();
+        registry.Register(new EditorRemoteCommand("huge", "test", null, true, false, call => call.Succeed(new string('x', RemoteProtocol.MaxMessageBytes + 10))));
+        var dispatcher = new EditorRemoteDispatcher(registry);
+        using var server = new EditorRemoteServer(dispatcher, name, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        server.Start();
+
+        await using var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        await client.ConnectAsync(5000);
+        await RemoteMessageCodec.WriteAsync(client, new RemoteRequest { Id = 7, Method = "huge" }, CancellationToken.None);
+        using var stop = new CancellationTokenSource(Timeout);
+        Task<RemoteLine> pending = new RemoteLineReader(client).ReadLineAsync(stop.Token);
+        while (!pending.IsCompleted)
+        {
+            dispatcher.Pump();
+            await Task.Delay(5);
+        }
+
+        RemoteLine line = await pending;
+        Assert.Equal(RemoteLineStatus.Line, line.Status);
+        Assert.True(RemoteMessageCodec.TryDecodeResponse(line.Text, out RemoteResponse response));
+        Assert.Equal(7, response.Id);
+        Assert.Equal(RemoteErrorReasons.MessageTooLong, response.Error!.Data!.Reason);
+    }
+
     [Fact]
     public void Start_TwiceAndStop_AreSafe()
     {

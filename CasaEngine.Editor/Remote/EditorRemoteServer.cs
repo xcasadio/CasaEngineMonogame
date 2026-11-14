@@ -56,7 +56,7 @@ internal sealed class EditorRemoteServer : IDisposable
         }
 
         _pipe = CreatePipe(PipeName);
-        _loop = Task.Run(() => AcceptLoopAsync(_stop.Token));
+        _loop = Task.Run(() => RunAcceptLoopAsync(_stop.Token));
     }
 
     public void Dispose()
@@ -96,6 +96,19 @@ internal sealed class EditorRemoteServer : IDisposable
             inBufferSize: 0,
             outBufferSize: 0,
             CreatePipeSecurity());
+
+    /// <summary>The accept loop never ends in silence: an unexpected error is logged, and <see cref="IsRunning"/> turns false (verifier finding A4).</summary>
+    private async Task RunAcceptLoopAsync(CancellationToken stop)
+    {
+        try
+        {
+            await AcceptLoopAsync(stop).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _dispatcher.PostLog(LogVerbosity.Error, $"[Remote] Remote control stopped after an unexpected error: {ex}");
+        }
+    }
 
     private async Task AcceptLoopAsync(CancellationToken stop)
     {
@@ -214,7 +227,17 @@ internal sealed class EditorRemoteServer : IDisposable
                 response = await RunAsync(request, stop).ConfigureAwait(false);
             }
 
-            await RemoteMessageCodec.WriteAsync(_pipe, response, stop).ConfigureAwait(false);
+            byte[] encoded = RemoteMessageCodec.Encode(response);
+            if (encoded.Length > RemoteProtocol.MaxMessageBytes + 1)
+            {
+                // The client refuses longer lines: say so instead of sending one (verifier finding A2).
+                encoded = RemoteMessageCodec.Encode(RemoteResponse.Failure(response.Id, RemoteError.Refused(
+                    RemoteErrorReasons.MessageTooLong,
+                    $"The answer is longer than {RemoteProtocol.MaxMessageBytes} bytes: ask for less (for instance entity.get per entity).")));
+            }
+
+            await _pipe.WriteAsync(encoded, stop).ConfigureAwait(false);
+            await _pipe.FlushAsync(stop).ConfigureAwait(false);
         }
     }
 
@@ -230,6 +253,10 @@ internal sealed class EditorRemoteServer : IDisposable
         }
 
         stop.ThrowIfCancellationRequested();
-        return RemoteResponse.Failure(request.Id, RemoteError.Refused(RemoteErrorReasons.Timeout, $"The editor did not answer '{request.Method}' in time."));
+
+        // Complete the call so the dispatcher drops it instead of running it after the client was told it timed out
+        // (verifier finding A1). A handler already running on the game thread finishes, but its answer is ignored.
+        call.Fail(RemoteError.Refused(RemoteErrorReasons.Timeout, $"The editor did not answer '{request.Method}' in time."));
+        return await call.Completion.ConfigureAwait(false);
     }
 }

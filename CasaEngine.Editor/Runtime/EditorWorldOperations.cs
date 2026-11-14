@@ -320,6 +320,11 @@ internal static class EditorWorldOperations
                 {
                     entity.RootComponent = null;
                 }
+                else
+                {
+                    // No longer the root (replaced since): fall back to the component list, as the details panel did.
+                    entity.RemoveComponent(component);
+                }
 
                 break;
             default:

@@ -136,7 +136,8 @@ internal sealed class EditorRemoteControl : IDisposable
 
     public EditorRemoteDispatcher Dispatcher { get; }
 
-    public bool IsRunning => _server != null;
+    /// <summary>True while the pipe server accepts clients; false again if its loop stopped on an error.</summary>
+    public bool IsRunning => _server?.IsRunning == true;
 
     public string PipeName => _server?.PipeName;
 
@@ -186,7 +187,13 @@ internal sealed class EditorRemoteControl : IDisposable
     {
         if (_server != null)
         {
-            return true;
+            if (_server.IsRunning)
+            {
+                return true;
+            }
+
+            // The previous server stopped on an error: release it before starting a fresh one.
+            Stop();
         }
 
         if (refuseWhenElevated && IsProcessElevated())

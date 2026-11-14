@@ -84,7 +84,8 @@ Rules:
 
 ## Limits
 
-- One client at a time; the next one waits. A client idle for 10 minutes is dropped.
+- One client at a time; the next one waits. A client idle for 10 minutes is dropped. The MCP server connects for each call and releases the pipe right after, so the CLI and several agents can share one editor.
+- An answer longer than 1 MiB is refused with `message_too_long`: read a large world with `entity.get` per entity.
 - An editor that crashes leaves its discovery file and captures behind; the tools ignore the stale file.
 - Editor automation flags (`EditorAutomationOptions`) are not commands yet.
 - No reparenting, no editing of assets other than the world, no docking or panel control.
