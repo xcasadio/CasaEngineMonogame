@@ -20,20 +20,26 @@ namespace CasaEngine.Demos.Demos;
 /// material ambient 1, no specular), and a reflective sphere with a material ambient of 0 that uses the scene reflection
 /// cube. <c>CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE=1</c> (in that configuration) binds a solid (0.2, 0.6, 1.0) cube
 /// generated in memory as the world's specular environment cube. <c>CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat|Auto</c> (in that
-/// configuration) sets <see cref="WorldEnvironmentSettings.AmbientSource"/>. Without these variables the scene is unchanged.
+/// configuration) sets <see cref="WorldEnvironmentSettings.AmbientSource"/>. <c>CASAENGINE_SHADOW_DEMO_DETAIL=1</c> (in that
+/// configuration) binds a solid detail texture of value 64/255 with a tiling of 4 to the receiver
+/// (<see cref="LitDiffuseMaterial.DetailTexture"/>). Without these variables the scene is unchanged.
 /// </summary>
 public sealed class StaticShadowValidationDemo : Demo
 {
     private const string ValidationVariable = "CASAENGINE_SHADOW_DEMO_VALIDATION";
     private const string ReflectionCubeVariable = "CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE";
     private const string AmbientSourceVariable = "CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE";
+    private const string DetailVariable = "CASAENGINE_SHADOW_DEMO_DETAIL";
 
     private static readonly Color MeasurementReceiverTextureColor = new(128, 128, 128, 255);
     private static readonly Color MeasurementCubeColor = new(51, 153, 255, 255);
+    private static readonly Color MeasurementDetailTextureColor = new(64, 64, 64, 255);
+    private const float MeasurementDetailTiling = 4.0f;
 
     private CasaEngineGame? _game;
     private bool _measurementConfiguration;
     private Texture2D? _measurementReceiverTexture;
+    private Texture2D? _measurementDetailTexture;
     private TextureCube? _measurementReflectionCube;
 
     public override string Title => "Static shadow validation demo";
@@ -112,6 +118,12 @@ public sealed class StaticShadowValidationDemo : Demo
         if (_measurementConfiguration)
         {
             _measurementReceiverTexture = CreateSolidTexture(game.GraphicsDevice, MeasurementReceiverTextureColor);
+            if (IsVariableSet(DetailVariable))
+            {
+                _measurementDetailTexture = CreateSolidTexture(game.GraphicsDevice, MeasurementDetailTextureColor);
+                _measurementDetailTexture.Name = "MeasurementDetailTexture";
+            }
+
             if (IsVariableSet(ReflectionCubeVariable))
             {
                 _measurementReflectionCube = CreateSolidCube(game.GraphicsDevice, MeasurementCubeColor);
@@ -143,6 +155,8 @@ public sealed class StaticShadowValidationDemo : Demo
 
         _measurementReceiverTexture?.Dispose();
         _measurementReceiverTexture = null;
+        _measurementDetailTexture?.Dispose();
+        _measurementDetailTexture = null;
         _measurementReflectionCube?.Dispose();
         _measurementReflectionCube = null;
         _measurementConfiguration = false;
@@ -223,6 +237,8 @@ public sealed class StaticShadowValidationDemo : Demo
             {
                 Name = $"{columnName}Ground",
                 BasColor = _measurementReceiverTexture,
+                DetailTexture = _measurementDetailTexture,
+                DetailTiling = MeasurementDetailTiling,
                 DiffuseColor = Color.White,
                 AmbientColor = Vector3.One,
                 SpecularColor = Vector3.Zero,

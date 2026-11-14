@@ -1086,6 +1086,8 @@ internal static class EditorAssetJsonSerializer
         node["type"] = nameof(LitDiffuseMaterial);
         node["BasColor_asset_id"] = material.BasColorAssetId.ToString();
         node["normal_map_asset_id"] = material.NormalMapAssetId.ToString();
+        node["texture_detail_asset_id"] = material.DetailTextureAssetId.ToString();
+        node["detail_tiling"] = material.DetailTiling;
         node["diffuse_color"] = new JObject
         {
             ["r"] = material.DiffuseColor.R,

@@ -297,6 +297,9 @@ public sealed class MaterialCompiler
         material.BasColor = resolvedTextures["base_color_texture"];
         material.NormalMapAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
         material.NormalMap = resolvedTextures["normal_texture"];
+        material.DetailTextureAssetId = GetTextureId(effectiveValues["detail_texture"], "detail_texture");
+        material.DetailTexture = resolvedTextures["detail_texture"];
+        material.DetailTiling = GetFloat(effectiveValues["detail_tiling"], "detail_tiling");
         material.ReflectionCubeAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
         material.ReflectionCube = ResolveTextureCubeResource(material.ReflectionCubeAssetId, assetContentManager, textureHolds);
         material.DiffuseColor = GetColor(effectiveValues["diffuse_color"], "diffuse_color");

@@ -64,6 +64,7 @@ Sans variable, la démo est inchangée (capture identique octet pour octet, vér
 | `CASAENGINE_SHADOW_DEMO_VALIDATION=1` | Configuration de mesure (amendement A1) : ambiant du monde `(0.5, 0.5, 0.5)`, intensité 1 ; lumière d'appoint éteinte ; les trois sols deviennent le receveur texturé (texture unie 128 / 255 générée en mémoire, `DiffuseColor` blanc, ambiant du matériau 1, spéculaire 0) ; une sphère réfléchissante (`UseSceneReflectionCube`, ambiant du matériau 0, devant la colonne centrale) | E0 |
 | `CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE=1` | (avec la configuration de mesure) cube uni `(0.2, 0.6, 1.0)` généré par la démo et lié comme cube d'environnement spéculaire du monde | E0 |
 | `CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat\|Auto` | (avec la configuration de mesure) valeur de `WorldEnvironmentSettings.AmbientSource` | E2 |
+| `CASAENGINE_SHADOW_DEMO_DETAIL=1` | (avec la configuration de mesure) lie au receveur une texture de détail unie de valeur 64 / 255 (générée en mémoire), pavage 4 | E7 |
 | `CASAENGINE_SHADOW_DEMO_MODE`, `…_COLOR` | Mode d'ombre et teinte | E3 (non approuvée) |
 | `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS` | Rayon de filtre | E4 (non approuvée) |
 | `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` | Distance de fondu | E5 (non approuvée) |
@@ -141,6 +142,28 @@ Les trois pixels sont stables d'une exécution à l'autre (deux captures de la d
     | `eclaire` | 172, 190, 198 | 223, 215, 198 | `Flat` = valeur de E1 sans cube |
     | `reflet` | 168, 166, 155 | 168, 166, 155 | identique dans les deux (ambiant du matériau nul) ; les réflexions suivent toujours le cube (165, 157, 139 sans cube) |
 - Commit : `feat(rendering): let a world use a flat ambient term while keeping a reflection cube`
+
+## Phase 1b — Matériaux et chargeur de textures (tranche S3 de RacingGame, `ai-agent/tasks/rgce-3d-materials-base-tasks.md`, décisions D1, D3, D5, amendements A1, A2, A3, A8)
+
+> E7 et E8 sont approuvées par l'auteur avec le plan de la tranche S3 ; elles ne dépendent pas de E3 → E6.
+
+### ✅ E7 — Texture de détail sur `LitDiffuseMaterial` (D1)
+
+- Objectif : `LitDiffuseMaterial.DetailTexture` (`Texture2D`), `DetailTextureAssetId` (`Guid`), `DetailTiling` (`float`, défaut 1 ; valeur non finie ou ≤ 0 ramenée à 1). `SampleBaseTexture` de `LitForward.fx` rend `texture.rgb × 2 × détail(coordonnées × DetailTiling).rgb` (alpha inchangé) quand une texture de détail est liée ; uniformes `HasDetailTexture` et `DetailTiling`, échantillonneur `DetailTexture` sur l'emplacement 7 ; aucune nouvelle technique ; sans texture de détail, sortie identique. `skinEffect.fx` et la passe d'ombres ne sont pas modifiés.
+- Sérialisation : définition `lit-diffuse` : `detail_texture` (texture, défaut vide, alias `texture_detail_asset_id`, amendement A8) et `detail_tiling` (flottant, défaut 1, minimum 0), ajoutées en fin de liste (les indices des propriétés existantes ne bougent pas). Clés JSON du matériau d'exécution : `texture_detail_asset_id`, `detail_tiling`. Un asset sans ces clés se charge comme avant.
+- ADR `docs/decisions/0091-a-lit-diffuse-material-may-carry-a-detail-texture.md` (formule, neutre = gris moyen, multiplication avant l'éclairage, maillages animés non pris en charge, impact éditeur, échantillonneur du périphérique par défaut en DesktopGL : amendement A3) ; page `docs/engine/lit-detail-texture.md` ; index mis à jour.
+- Fichiers : `CasaEngine/Content/Shaders/LitForward.fx`, `CasaEngine/Framework/Materials/Runtime/LitDiffuseMaterial.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderParameterNames.cs`, `CasaEngine/Framework/Materials/Definitions/BuiltInMaterialDefinitions.cs`, `CasaEngine/Framework/Materials/Compilation/MaterialCompiler.cs`, `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`, `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `CasaEngine.Tests/Rendering/LitDiffuseDetailTextureTests.cs` (nouveau), `CasaEngine.Tests/Rendering/LightingShaderCoverageTests.cs`, `CasaEngine.Tests/EditorServices/MaterialDefinitionEditorRegistryTests.cs`, `docs/decisions/0091-…`, `docs/decisions/README.md`, `docs/engine/lit-detail-texture.md`, `docs/README.md`, `ai-agent/README.md`.
+- Lieux où la gestion de la normal map a été reprise : `LitDiffuseMaterial` (propriétés, `Bind` — liée seulement avec une texture de base —, `Load`), définition `lit-diffuse`, `MaterialCompiler.CreateLitDiffuseMaterial`, `EditorAssetJsonSerializer.SaveLitDiffuseMaterial`, `ShaderParameterNames`. Volontairement non repris : `GetShaderCapabilities`, `RenderFeatureResolver`, `GetTechniqueName` (le détail ne change ni technique ni variante de shader) ; `EditorAssetImportService` (l'import glTF ne produit pas de texture de détail) ; `MaterialInstancePropertyBlockMapper` (ne traite aucune texture) ; `StaticModelMaterialResolver`, `GameEditor` (description de diagnostic).
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur (l'effet `LitForward.fx` compile sous DesktopGL avec le sampler supplémentaire, aucun message du compilateur d'effets) ; `dotnet test` : 5117 réussis (5097 + 20 : 18 cas de `LitDiffuseDetailTextureTests`, 2 de source), 0 échec. Le test de l'éditeur qui comptait les 9 propriétés de `lit-diffuse` passe à 11.
+  - Captures prises dans cette session (hors dépôt, `engine-captures/e7-*`) : sans variable et en configuration de mesure sans détail, identiques octet pour octet avant (au `HEAD` précédent) et après (`cmp`), et à `e2-default` / `e2-validation`.
+  - Configuration de mesure + détail (par canal R, G, B) :
+
+    | Pixel | sans détail | prédit | mesuré |
+    |---|---|---|---|
+    | `ombre` | 64, 64, 64 | `64 × 2 × 64 / 255` = 32 (±3) | 32, 32, 32 |
+    | `eclaire` | 223, 215, 198 | × 0,502 = 112,0 ; 107,9 ; 99,4 (±3) | 112, 108, 99 |
+    | `reflet` | 165, 157, 139 | inchangé | 165, 157, 139 |
+- Commit : `feat(materials): add a detail texture to the lit diffuse material`
 
 ---
 

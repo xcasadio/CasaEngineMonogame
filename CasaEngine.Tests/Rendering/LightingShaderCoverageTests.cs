@@ -226,6 +226,42 @@ public class LightingShaderCoverageTests
         Assert.DoesNotContain("UseFlatAmbientSource", lightingIncludeSource);
     }
 
+    [Fact]
+    public void DetailTexture_IsDeclaredInLitForwardAndMultipliesTheBaseColourInsideSampleBaseTexture()
+    {
+        string source = LoadShaderSource("LitForward.fx");
+
+        // The sampler takes the next free texture slot (0 to 6 are taken) and the two uniforms are bound by name.
+        Assert.Contains("DECLARE_TEXTURE(DetailTexture, 7);", source);
+        Assert.Contains($"float {ShaderParameterNames.HasDetailTexture} ", source);
+        Assert.Contains($"float {ShaderParameterNames.DetailTiling} ", source);
+        Assert.Equal(1, CountOccurrences(source, "DECLARE_TEXTURE(DetailTexture,"));
+        Assert.Equal(1, CountOccurrences(source, "HasDetailTexture _ps("));
+        Assert.Equal(1, CountOccurrences(source, "DetailTiling _ps("));
+
+        // The multiplication lives in SampleBaseTexture, guarded by the flag, on the colour channels only.
+        int definitionStart = source.IndexOf("float4 SampleBaseTexture(", StringComparison.Ordinal);
+        Assert.True(definitionStart >= 0, "SampleBaseTexture is not defined in LitForward.fx.");
+        string definition = source[definitionStart..source.IndexOf("\n}", definitionStart, StringComparison.Ordinal)];
+        Assert.Contains("if (HasDetailTexture > 0.5f)", definition);
+        Assert.Contains("baseColor.rgb *= 2.0f * SAMPLE_TEXTURE(DetailTexture, texCoord * DetailTiling).rgb;", definition);
+        Assert.DoesNotContain("baseColor.a", definition);
+        Assert.Equal(1, CountOccurrences(source, "SAMPLE_TEXTURE(DetailTexture,"));
+
+        // Every textured pixel shader goes through SampleBaseTexture: no direct read of the base texture elsewhere.
+        Assert.Equal(1, CountOccurrences(source, "SAMPLE_TEXTURE(Texture,"));
+    }
+
+    [Fact]
+    public void DetailTexture_IsNotSupportedByTheSkinnedShaderNorTheShadowPass()
+    {
+        string skinnedSource = LoadShaderSource("skinEffect.fx");
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.DoesNotContain("DetailTexture", skinnedSource);
+        Assert.DoesNotContain("DetailTexture", lightingIncludeSource);
+    }
+
     private static int CountOccurrences(string text, string value)
     {
         int count = 0;

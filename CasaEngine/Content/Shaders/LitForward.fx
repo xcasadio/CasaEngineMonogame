@@ -15,6 +15,7 @@ DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
 DECLARE_CUBEMAP(LocalReflectionProbeCubeTexture, 4);
 DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
 DECLARE_TEXTURE(ShadowMapTexture, 6);
+DECLARE_TEXTURE(DetailTexture, 7);
 
 
 BEGIN_CONSTANTS
@@ -134,6 +135,8 @@ BEGIN_CONSTANTS
     float ReflectionAddAmount _ps(c39) _cb(c35.x);
     float ReflectionMultiplyBase _ps(c39) _cb(c35.y);
     float ReflectionMultiplyFactor _ps(c39) _cb(c35.z);
+    float HasDetailTexture _ps(c39) _cb(c35.w);
+    float DetailTiling _ps(c40) _cb(c36.x);
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
     float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
     float ShadowDepthBias _ps(c100) _cb(c90.z);
@@ -167,9 +170,17 @@ void ApplyAlphaTest(float alpha)
 }
 
 
+// The base colour, modulated by the optional detail texture: texture * 2 * detail(texCoord * DetailTiling) on the colour
+// channels, so a mid-grey detail texel leaves the base colour unchanged. The alpha channel is left untouched.
 float4 SampleBaseTexture(float2 texCoord)
 {
-    return SAMPLE_TEXTURE(Texture, texCoord);
+    float4 baseColor = SAMPLE_TEXTURE(Texture, texCoord);
+    if (HasDetailTexture > 0.5f)
+    {
+        baseColor.rgb *= 2.0f * SAMPLE_TEXTURE(DetailTexture, texCoord * DetailTiling).rgb;
+    }
+
+    return baseColor;
 }
 
 
