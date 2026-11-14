@@ -74,6 +74,12 @@ internal static class EditorRemoteAssetCreation
         return new RemoteNewAssetFile(relativeFile.Replace('/', Path.DirectorySeparatorChar), fullPath, name);
     }
 
+    /// <summary>
+    /// Creates the new file empty, failing if it appeared in the meantime, so that a type's usual writer (which
+    /// overwrites) then fills a file this command owns.
+    /// </summary>
+    public static void Reserve(string fullPath) => WriteNew(fullPath, string.Empty);
+
     /// <summary>Writes the new file, failing if it appeared in the meantime.</summary>
     public static void WriteNew(string fullPath, string content)
     {

@@ -54,6 +54,7 @@ internal static class EditorRemoteMaterialCommands
                 MaterialAssetJsonSerializer.Save(material, document);
                 EditorRemoteAssetCreation.WriteNew(file.FullPath, document.ToString(Newtonsoft.Json.Formatting.Indented));
                 EditorAssetCatalogService.Add(material);
+                host.SaveAssetCatalog();
                 call.Succeed(new { asset_id = material.Id, file = file.RelativeFile.Replace('\\', '/') });
             }));
 

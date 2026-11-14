@@ -177,4 +177,34 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         error = null;
         return true;
     }
+
+    public List<(string RelativeFile, string Preset)> CreatedParticles { get; } = new();
+
+    public CasaEngine.Framework.Particles.Authoring.ParticleEffectAsset ParticleAsset { get; set; }
+
+    public List<(Guid AssetId, string Property, string RawValue)> ParticleSets { get; } = new();
+
+    public Func<string, string, string> LastParticleValidator { get; private set; }
+
+    public int CatalogSaves { get; private set; }
+
+    public bool CreateParticleAsset(RemoteNewAssetFile file, string preset, out Guid assetId, out string error)
+    {
+        CreatedParticles.Add((file.RelativeFile, preset));
+        assetId = Guid.NewGuid();
+        error = null;
+        return true;
+    }
+
+    public CasaEngine.Framework.Particles.Authoring.ParticleEffectAsset GetParticleAsset(Guid assetId) => ParticleAsset;
+
+    public bool TrySetParticleProperty(Guid assetId, string property, string rawValue, Func<string, string, string> validate, out string error)
+    {
+        LastParticleValidator = validate;
+        ParticleSets.Add((assetId, property, rawValue));
+        error = null;
+        return true;
+    }
+
+    public void SaveAssetCatalog() => CatalogSaves++;
 }

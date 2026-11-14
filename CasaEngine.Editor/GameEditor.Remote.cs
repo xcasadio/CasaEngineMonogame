@@ -329,6 +329,55 @@ public partial class GameEditor
             return panel.TryApplyPropertyValue(property, rawValue, validate, out error);
         }
 
+        public void SaveAssetCatalog() => EditorAssetCatalogService.Save();
+
+        /// <summary>The particle creation of the content browser, at a file the command reserved first (ADR-0093 P4).</summary>
+        public bool CreateParticleAsset(RemoteNewAssetFile file, string preset, out Guid assetId, out string error)
+        {
+            assetId = Guid.Empty;
+            if (!TryParseParticlePreset(preset, out var presetKind))
+            {
+                error = $"'{preset}' is not a particle preset.";
+                return false;
+            }
+
+            EditorRemoteAssetCreation.Reserve(file.FullPath);
+            var particleAsset = CreateParticleEffectAsset(file.Name, file.RelativeFile, presetKind);
+            try
+            {
+                EditorAssetCatalogService.Add(particleAsset);
+                EditorAssetWriterService.SaveAsset(file.RelativeFile, particleAsset, EditorAssetSaveSource.ParticleEffectEditorPanel);
+                EditorAssetCatalogService.Save();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                EditorAssetCatalogService.Remove(particleAsset.Id);
+                File.Delete(file.FullPath);
+                error = $"'{file.RelativeFile}' could not be written: {ex.Message}";
+                return false;
+            }
+
+            assetId = particleAsset.Id;
+            error = null;
+            return true;
+        }
+
+        public Framework.Particles.Authoring.ParticleEffectAsset GetParticleAsset(Guid assetId)
+            => _editor._particleInspectorPanels.TryGetValue(EditorPanelIds.ParticleAssetDocumentPrefix + assetId.ToString("N"), out var panel)
+                ? panel.LoadedAsset
+                : null;
+
+        public bool TrySetParticleProperty(Guid assetId, string property, string rawValue, Func<string, string, string> validate, out string error)
+        {
+            if (!_editor._particleInspectorPanels.TryGetValue(EditorPanelIds.ParticleAssetDocumentPrefix + assetId.ToString("N"), out var panel))
+            {
+                error = "The particle asset is not open.";
+                return false;
+            }
+
+            return panel.TryApplyPropertyValue(property, rawValue, validate, out error);
+        }
+
         /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
         public bool TrySaveAsset(Guid assetId, out string error)
         {

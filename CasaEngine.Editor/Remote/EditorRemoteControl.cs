@@ -97,6 +97,18 @@ internal interface IEditorRemoteHost
 
     /// <summary>Saves one open asset (material, particle or sound panel) and marks its history saved.</summary>
     bool TrySaveAsset(Guid assetId, out string error);
+
+    /// <summary>Creates a particle asset from a preset at a prepared new file (reserved first, never overwriting).</summary>
+    bool CreateParticleAsset(RemoteNewAssetFile file, string preset, out Guid assetId, out string error);
+
+    /// <summary>The effect loaded in an open particle panel, or null.</summary>
+    CasaEngine.Framework.Particles.Authoring.ParticleEffectAsset GetParticleAsset(Guid assetId);
+
+    /// <summary>Sets a particle property through its open panel's history; <paramref name="validate"/> gets the normalised key and the text.</summary>
+    bool TrySetParticleProperty(Guid assetId, string property, string rawValue, Func<string, string, string> validate, out string error);
+
+    /// <summary>Writes the asset catalog of the project (AssetInfos.json), as the content browser does after a creation.</summary>
+    void SaveAssetCatalog();
 }
 
 /// <summary>
@@ -129,6 +141,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteViewCommands.Register(Registry, host, NewCapturePath);
         EditorRemoteAssetCommands.Register(Registry, host);
         EditorRemoteMaterialCommands.Register(Registry, host);
+        EditorRemoteParticleCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

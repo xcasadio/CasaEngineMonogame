@@ -6,6 +6,7 @@ using System.Reflection;
 using CasaEngine.Editor.History;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
+using CasaEngine.EditorServices.Particles;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -222,6 +223,56 @@ internal static class EditorWorldOperations
         {
             component.SetMaterialOverride(slot, materialAssetId);
         }
+    }
+
+    /// <summary>
+    /// Puts a particle asset on an entity, as dropping it on the entity does (ADR-0093 P6): an existing particle system
+    /// component takes the asset, otherwise a new one is attached. One undoable entry; returns the component.
+    /// </summary>
+    public static ParticleSystemComponent DropParticleAsset(
+        EditorHistoryContext context,
+        Entity entity,
+        Guid particleAssetId,
+        Action<EntityComponent> select = null,
+        Action restoreSelection = null)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        var existing = entity.GetComponent<ParticleSystemComponent>();
+        if (existing != null)
+        {
+            Guid previousAssetId = existing.ParticleEffectAssetId;
+            Execute(
+                context,
+                "Update Particle System Component",
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existing, particleAssetId);
+                    select?.Invoke(existing);
+                },
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existing, previousAssetId);
+                    restoreSelection?.Invoke();
+                });
+            return existing;
+        }
+
+        var component = EditorParticleSystemComponentService.CreateParticleComponent(particleAssetId, Microsoft.Xna.Framework.Vector3.Zero);
+        var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
+        Execute(
+            context,
+            "Add Particle System Component",
+            () =>
+            {
+                EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
+                select?.Invoke(component);
+            },
+            () =>
+            {
+                EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
+                restoreSelection?.Invoke();
+            });
+        return component;
     }
 
     /// <summary>Returns false, without a history entry, when the name does not change.</summary>
