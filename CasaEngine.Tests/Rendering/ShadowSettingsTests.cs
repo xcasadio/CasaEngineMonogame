@@ -16,6 +16,7 @@ public class ShadowSettingsTests
         Assert.Equal(ShadowMode.OccludeDirectLight, settings.Mode);
         Assert.Equal(Vector3.Zero, settings.ShadowColor);
         Assert.Equal(0.0f, settings.FilterRadius);
+        Assert.Equal(0.0f, settings.FadeDistance);
     }
 
     [Fact]
@@ -193,5 +194,66 @@ public class ShadowSettingsTests
         var world = new WorldEnvironmentSettings();
         world.Shadows.FilterRadius = 1.5f;
         Assert.Equal(1.5f, world.Clone().Shadows.FilterRadius);
+    }
+    [Theory]
+    [InlineData(-3.0f, 0.0f)]
+    [InlineData(float.NaN, 0.0f)]
+    [InlineData(float.PositiveInfinity, 0.0f)]
+    [InlineData(0.0f, 0.0f)]
+    [InlineData(6.0f, 6.0f)]
+    [InlineData(100.0f, 40.0f)]
+    public void FadeDistance_NegativeOrNonFiniteBecomesZeroAndIsClampedToMaxDistance(float value, float expected)
+    {
+        var settings = new ShadowSettings { MaxDistance = 40.0f, FadeDistance = value };
+
+        Assert.Equal(expected, settings.FadeDistance);
+    }
+
+    [Fact]
+    public void FadeDistance_IsClampedWhateverTheOrderOfAssignment()
+    {
+        var settings = new ShadowSettings { FadeDistance = 30.0f };
+        settings.MaxDistance = 20.0f;
+
+        Assert.Equal(20.0f, settings.FadeDistance);
+    }
+
+    [Fact]
+    public void FadeDistance_IsOptionalInTheFileAndRoundTrips()
+    {
+        var saved = new JObject();
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("fade_distance"));
+
+        new ShadowSettings { MaxDistance = 50.0f, FadeDistance = 8.0f }.Save(saved);
+        Assert.Equal(8.0f, (float?)saved["fade_distance"]);
+
+        var loaded = new ShadowSettings();
+        loaded.Load(saved);
+        Assert.Equal(8.0f, loaded.FadeDistance);
+
+        loaded.Load(new JObject { ["enabled"] = true });
+        Assert.Equal(0.0f, loaded.FadeDistance);
+
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("fade_distance"));
+    }
+
+    [Fact]
+    public void FadeDistance_IsCopiedAndReset()
+    {
+        var customised = new ShadowSettings { MaxDistance = 60.0f, FadeDistance = 15.0f };
+        var target = new ShadowSettings();
+
+        target.CopyFrom(customised);
+        Assert.Equal(15.0f, target.FadeDistance);
+
+        target.ResetToDefaults();
+        Assert.Equal(0.0f, target.FadeDistance);
+
+        var world = new WorldEnvironmentSettings();
+        world.Shadows.MaxDistance = 60.0f;
+        world.Shadows.FadeDistance = 15.0f;
+        Assert.Equal(15.0f, world.Clone().Shadows.FadeDistance);
     }
 }

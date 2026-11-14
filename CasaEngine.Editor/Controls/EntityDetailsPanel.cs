@@ -868,6 +868,18 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Radius", shadowFilterRadiusEditor);
 
+        var shadowFadeDistanceEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FadeDistance,
+        };
+        shadowFadeDistanceEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Fade Distance",
+            static s => s.Shadows.FadeDistance,
+            static (s, distance) => s.Shadows.FadeDistance = distance,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Fade Distance", shadowFadeDistanceEditor);
+
         _detailsContent.TryAddChild(shadowGrid);
 
         var rebuildButton = new MGButton(_window, _ =>

@@ -312,6 +312,35 @@ public class LightingShaderCoverageTests
         Assert.Equal(12, CountOccurrences(table, "float2("));
     }
 
+    [Theory]
+    [InlineData("LitForward.fx")]
+    [InlineData("skinEffect.fx")]
+    public void ShadowFadeWidth_IsDeclaredInBothShadersAndFadesTheFactorToLitOnASquareBand(string shaderFileName)
+    {
+        string source = LoadShaderSource(shaderFileName);
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.Equal("ShadowFadeWidth", ShaderParameterNames.ShadowFadeWidth);
+        Assert.Contains($"float {ShaderParameterNames.ShadowFadeWidth} _ps(c107) _cb(c97.x);", source);
+        Assert.Equal(1, CountOccurrences(source, "_cb(c97.x)"));
+
+        int definitionStart = lightingIncludeSource.IndexOf("float ComputeDirectionalShadowFactor(", StringComparison.Ordinal);
+        string definition = lightingIncludeSource[definitionStart..lightingIncludeSource.IndexOf("\n}", definitionStart, StringComparison.Ordinal)];
+        Assert.Contains("if (ShadowFadeWidth > 0.0f)", definition);
+        Assert.Contains("max(abs(shadowNdc.x), abs(shadowNdc.y))", definition);
+        Assert.Contains("visibility = lerp(visibility, 1.0f, saturate((edgeDistance - (1.0f - ShadowFadeWidth)) / ShadowFadeWidth));", definition);
+    }
+
+    [Theory]
+    [InlineData(48.0f, 48.0f)]
+    [InlineData(1.0f, 1.0f)]
+    [InlineData(0.25f, 1.0f)]
+    [InlineData(0.0f, 1.0f)]
+    public void ShadowPass_LateralExtentIsTheMaximumDistanceAtLeastOne(float maxDistance, float expected)
+    {
+        Assert.Equal(expected, CasaEngine.Framework.Rendering.Draw.ShadowPass.ResolveLateralExtent(maxDistance));
+    }
+
     [Fact]
     public void DetailTexture_IsDeclaredInLitForwardAndMultipliesTheBaseColourInsideSampleBaseTexture()
     {

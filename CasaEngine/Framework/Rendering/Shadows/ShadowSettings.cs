@@ -16,6 +16,7 @@ public sealed class ShadowSettings
     private float _maxDistance = 100.0f;
     private Vector3 _shadowColor = Vector3.Zero;
     private float _filterRadius;
+    private float _fadeDistance;
 
     public bool Enabled { get; set; } = false;
 
@@ -69,6 +70,17 @@ public sealed class ShadowSettings
         set => _filterRadius = NormalizeNonNegative(value);
     }
 
+    /// <summary>
+    /// Width, in world units, of the band before <see cref="MaxDistance"/> over which the shadow fades linearly to "lit",
+    /// measured from the centre of the shadow map as a square. 0 (default) keeps the sharp cut at the edge of the map. A
+    /// negative or non-finite value becomes 0 and a value above <see cref="MaxDistance"/> reads back as <see cref="MaxDistance"/>.
+    /// </summary>
+    public float FadeDistance
+    {
+        get => MathF.Min(_fadeDistance, _maxDistance);
+        set => _fadeDistance = NormalizeNonNegative(value);
+    }
+
     public void ResetToDefaults()
     {
         Enabled = false;
@@ -79,6 +91,7 @@ public sealed class ShadowSettings
         Mode = ShadowMode.OccludeDirectLight;
         ShadowColor = Vector3.Zero;
         FilterRadius = 0.0f;
+        FadeDistance = 0.0f;
     }
 
     public void Load(JObject element)
@@ -129,6 +142,11 @@ public sealed class ShadowSettings
         {
             FilterRadius = filterRadiusNode.Value<float>();
         }
+
+        if (element.TryGetValue("fade_distance", StringComparison.OrdinalIgnoreCase, out var fadeDistanceNode))
+        {
+            FadeDistance = fadeDistanceNode.Value<float>();
+        }
     }
 
     public void Save(JObject element)
@@ -174,6 +192,15 @@ public sealed class ShadowSettings
         {
             element.Remove("filter_radius");
         }
+
+        if (FadeDistance > 0.0f)
+        {
+            element["fade_distance"] = FadeDistance;
+        }
+        else
+        {
+            element.Remove("fade_distance");
+        }
     }
 
     public void CopyFrom(ShadowSettings other)
@@ -188,6 +215,7 @@ public sealed class ShadowSettings
         Mode = other.Mode;
         ShadowColor = other.ShadowColor;
         FilterRadius = other.FilterRadius;
+        FadeDistance = other.FadeDistance;
     }
 
     private static int NormalizeResolution(int value)

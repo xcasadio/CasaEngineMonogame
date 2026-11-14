@@ -211,7 +211,17 @@ float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
         return 1.0f;
     }
 
-    return SampleDirectionalShadowPcf(shadowUv, shadowDepth);
+    float visibility = SampleDirectionalShadowPcf(shadowUv, shadowDepth);
+
+    // Fade to "lit" over the outer ShadowFadeWidth of the half-extent of the map, measured from the centre of the map in its
+    // own plane as a square (the shape of the map): 0 at the start of the band, 1 at the edge. 0 (default) means no fade.
+    if (ShadowFadeWidth > 0.0f)
+    {
+        float edgeDistance = max(abs(shadowNdc.x), abs(shadowNdc.y));
+        visibility = lerp(visibility, 1.0f, saturate((edgeDistance - (1.0f - ShadowFadeWidth)) / ShadowFadeWidth));
+    }
+
+    return visibility;
 }
 #else
 float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)

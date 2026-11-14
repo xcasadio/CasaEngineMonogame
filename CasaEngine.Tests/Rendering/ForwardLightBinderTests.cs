@@ -54,6 +54,8 @@ public class ForwardLightBinderTests
         Assert.Equal(Vector4.Zero, snapshot.SpotLightPositionAndRangeData[0]);
         Assert.Equal(0.0f, snapshot.ShadowApplyMode);
         Assert.Equal(Vector3.Zero, snapshot.ShadowTintColor);
+        Assert.Equal(0.0f, snapshot.ShadowFilterRadius);
+        Assert.Equal(0.0f, snapshot.ShadowFadeWidth);
     }
 
     [Fact]

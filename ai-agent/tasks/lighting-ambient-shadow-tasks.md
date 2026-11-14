@@ -242,11 +242,22 @@ Champs sérialisés (tous optionnels, écrits seulement s'ils diffèrent du déf
   - Non vérifié : le rendu du disque sur le shader d'os et sur les techniques à texture ou normal map (la démo n'en utilise pas) : compilation et assertions de source seulement.
 - Commit : `feat(rendering): add a shadow filter radius for soft shadow edges`
 
-### ⏳ E5 — Fondu à la distance maximale (D3)
+### ✅ E5 — Fondu à la distance maximale (D3)
 
-- Objectif : `ShadowSettings.FadeDistance` (0 par défaut, borné à `MaxDistance`, clé `fade_distance`) ; l'ombre passe linéairement à « éclairé » entre `MaxDistance − FadeDistance` et `MaxDistance` du centre de la carte, distance mesurée dans le plan de la carte, en carré (même forme que la carte, C8) ; uniforme dans les deux shaders ; champ dans l'éditeur.
-- Démo : `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` et `CASAENGINE_SHADOW_DEMO_MAX_DISTANCE`.
-- Validation (C8, D5) : captures identiques avec le défaut ; `MAX_DISTANCE` autour de 28 (l'ombre du sol de la colonne de gauche est à environ 26 m de l'axe dans le plan de la lumière) et fondu de quelques mètres ; fraction de fondu attendue calculée et notée avant la capture pour deux pixels du même sol à l'ombre (un hors de la bande, un dedans) ; mesure à ±3 ; avec fondu 0 les deux pixels sont égaux.
+- Objectif : `ShadowSettings.FadeDistance` (0 par défaut, borné à `MaxDistance` à la lecture quel que soit l'ordre d'affectation, valeur négative ou non finie → 0, clé `fade_distance`) ; l'ombre passe linéairement à « éclairé » entre `MaxDistance − FadeDistance` et `MaxDistance` du centre de la carte, distance mesurée dans le plan de la carte, en carré (même forme que la carte, C8) : `max(|x_ndc|, |y_ndc|) × demi-côté`. Uniforme `ShadowFadeWidth` (la bande en fraction du demi-côté de la carte ; 0 = pas de fondu), déclaré dans les deux shaders (`_ps(c107)` / `_cb(c97.x)`) ; champ « Fade Distance » dans l'éditeur. Le demi-côté vient de `ShadowPass.ResolveLateralExtent` (`MaxDistance`, au moins 1), aussi utilisé par la matrice de la passe.
+- Fichiers : `CasaEngine/Content/Shaders/Lighting.fxh`, `LitForward.fx`, `skinEffect.fx`, `CasaEngine/Framework/Rendering/Draw/ShadowPass.cs`, `Shadows/ShadowSettings.cs`, `Shaders/ForwardLightBinder.cs`, `ShaderParameterNames.cs`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`, `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `CasaEngine.Tests/Rendering/ShadowSettingsTests.cs`, `LightingShaderCoverageTests.cs`, `ForwardLightBinderTests.cs`, `docs/decisions/0093-…`, ce plan.
+- Démo : `CASAENGINE_SHADOW_DEMO_FADE_DISTANCE` et `CASAENGINE_SHADOW_DEMO_MAX_DISTANCE` (distance maximale de la carte, 48 par défaut), configuration de mesure.
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5190 réussis (5175 + 15 : bornes, sérialisation, copie, remise à zéro de `FadeDistance`, étendue latérale de la passe, 2 cas de source), 0 échec.
+  - Fondu 0 (défaut) : démo sans variable, configuration de mesure, avec cube lié, `MultiplyLitColor`, rayon de filtre 3 : captures identiques octet pour octet à celles de E4 (`cmp`).
+  - Prédiction (C8, D5), calculée et notée **avant** la capture par un petit programme hors dépôt qui reproduit la caméra de la démo (position (0 ; 11 ; 28), cible (0 ; 1,8 ; 0), champ de vision 60° pour 1024 × 768 : coins du sol projetés aux pixels de la capture) et `BuildDirectionalShadowViewProjection` (résolution 2048, carte alignée sur les texels), rétroprojette un pixel sur le plan du sol (y = 0), le projette dans la carte et mesure `max(|x_ndc|, |y_ndc|) × MaxDistance`. Réglages : `MAX_DISTANCE` 28, `FADE_DISTANCE` 2, bande de 26 à 28 m. Les deux pixels sont sur le sol de la colonne de gauche, dans l'ombre de la caisse (valeur d'ombre 64, valeur éclairée du même sol 223, 215, 198). Valeur attendue = ombre + fraction × (éclairé − ombre) :
+
+    | Pixel | distance au centre de la carte | fraction de fondu attendue | attendu (R, G, B) | mesuré |
+    |---|---|---|---|---|
+    | A (316, 426) | 25,53 m, hors bande | 0 | 64, 64, 64 | 64, 64, 64 |
+    | B (290, 421) | 26,91 m, dans la bande | 0,456 | 136,5 ; 132,9 ; 125,1 | 137, 133, 125 |
+
+    Avec fondu 0 (`MAX_DISTANCE` 28 seul) : A et B valent 64, 64, 64 (égaux). `eclaire` (240, 435) inchangé (223, 215, 198). Deuxième réglage, prédit puis capturé : `FADE_DISTANCE` 6 (bande de 22 à 28 m) : A 25,53 m, fraction 0,589, attendu 157,6 ; 152,9 ; 142,9, mesuré 158, 153, 143 ; B fraction 0,819, attendu 194,2 ; 187,6 ; 173,7, mesuré 194, 188, 173.
+  - Non vérifié : le fondu sur le shader d'os et sur les techniques à texture ou normal map (la démo n'en utilise pas) : compilation et assertions de source seulement.
 - Commit : `feat(rendering): fade shadows out before the shadow distance`
 
 ### ⏳ E5b — Profondeur de la carte séparée de son étendue latérale (C4, D3)

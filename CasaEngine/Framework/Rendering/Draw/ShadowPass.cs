@@ -224,6 +224,12 @@ public sealed class ShadowPass : RenderPass
         return -1;
     }
 
+    /// <summary>
+    /// Half-side, in world units, of the square the shadow map covers around the camera: the maximum distance, at least 1.
+    /// </summary>
+    internal static float ResolveLateralExtent(float maxDistance)
+        => MathF.Max(1.0f, maxDistance);
+
     internal static Matrix BuildDirectionalShadowViewProjection(Vector3 cameraPosition, Vector3 lightDirection, float maxDistance, int resolution)
     {
         Vector3 direction = lightDirection;
@@ -236,7 +242,7 @@ public sealed class ShadowPass : RenderPass
             direction.Normalize();
         }
 
-        float clampedDistance = MathF.Max(1.0f, maxDistance);
+        float clampedDistance = ResolveLateralExtent(maxDistance);
         Vector3 target = cameraPosition;
         Vector3 position = target - direction * clampedDistance;
         Vector3 up = MathF.Abs(Vector3.Dot(direction, Vector3.Up)) > 0.99f ? Vector3.Forward : Vector3.Up;
