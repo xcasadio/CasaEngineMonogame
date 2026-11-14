@@ -103,3 +103,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0087](0087-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md) | A world declares its design resolution and may render into a buffer (numbered ADR-0086 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0088](0088-a-world-starts-a-cutscene-and-cutscenes-count-frames.md) | A world starts a cutscene, and cutscenes count frames, open screens and change worlds (numbered ADR-0087 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0089](0089-viewport-camera-navigation-follows-unreal.md) | Viewport camera navigation follows Unreal's perspective viewport, through one shared runtime class | Accepted | 2026-11-14 |
+| [ADR-0090](0090-demos-carry-a-sheet-and-follow-a-learning-path.md) | Demos carry a sheet (controls, things to observe, documentation) and follow a learning path | Accepted | 2026-11-14 |

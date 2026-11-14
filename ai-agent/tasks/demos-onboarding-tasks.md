@@ -91,7 +91,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 ## Phase 0 — Cadre
 
-### ⏳ T0.1 — ADR du contrat de démo et du parcours
+### ✅ T0.1 — ADR du contrat de démo et du parcours
 
 - Objectif : enregistrer D2 à D5 et les points P validés (fiche enrichie, panneau d'aide, thèmes « Getting started » et « Engine validation », index non stables).
 - Fichiers : `docs/decisions/<numéro libre>-demos-onboarding-contract.md`, `docs/decisions/README.md`.
@@ -100,6 +100,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   2. Rédiger selon `docs/decisions/template.md` (skill `adr`), en citant ADR-0072.
 - Validation : l'ADR est dans l'index ; aucun lien cassé.
 - Commit : `docs(decisions): record the demo sheet contract and onboarding path`
+- Note de validation (2026-11-14) : ADR-0090 écrite (`docs/decisions/0090-demos-carry-a-sheet-and-follow-a-learning-path.md`), ajoutée à l'index ; ADR-0089 est celle du chantier caméra.
 
 ---
 
