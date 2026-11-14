@@ -736,6 +736,16 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Intensity", ambientIntensityEditor);
 
+        var ambientSourceCombo = CreateStringCombo(Enum.GetNames<AmbientSource>(), settings.AmbientSource.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Environment Ambient Source",
+                static s => s.AmbientSource,
+                static (s, selectedSource) => s.AmbientSource = selectedSource,
+                Enum.Parse<AmbientSource>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Source", ambientSourceCombo);
+
         var specularIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,

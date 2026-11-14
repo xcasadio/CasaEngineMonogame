@@ -1,4 +1,5 @@
 using System;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Environment;
@@ -18,12 +19,14 @@ namespace CasaEngine.Demos.Demos;
 /// off, the grounds replaced by a textured receiver (a solid 128/255 texture generated in memory, white diffuse colour,
 /// material ambient 1, no specular), and a reflective sphere with a material ambient of 0 that uses the scene reflection
 /// cube. <c>CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE=1</c> (in that configuration) binds a solid (0.2, 0.6, 1.0) cube
-/// generated in memory as the world's specular environment cube. Without these variables the scene is unchanged.
+/// generated in memory as the world's specular environment cube. <c>CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat|Auto</c> (in that
+/// configuration) sets <see cref="WorldEnvironmentSettings.AmbientSource"/>. Without these variables the scene is unchanged.
 /// </summary>
 public sealed class StaticShadowValidationDemo : Demo
 {
     private const string ValidationVariable = "CASAENGINE_SHADOW_DEMO_VALIDATION";
     private const string ReflectionCubeVariable = "CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE";
+    private const string AmbientSourceVariable = "CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE";
 
     private static readonly Color MeasurementReceiverTextureColor = new(128, 128, 128, 255);
     private static readonly Color MeasurementCubeColor = new(51, 153, 255, 255);
@@ -61,6 +64,11 @@ public sealed class StaticShadowValidationDemo : Demo
         if (_measurementReflectionCube is not null)
         {
             environmentSettings.SpecularEnvironmentCubemap = _measurementReflectionCube;
+        }
+
+        if (_measurementConfiguration)
+        {
+            environmentSettings.AmbientSource = ReadAmbientSource();
         }
 
         environmentSettings.Shadows.Enabled = true;
@@ -139,6 +147,23 @@ public sealed class StaticShadowValidationDemo : Demo
         _measurementReflectionCube = null;
         _measurementConfiguration = false;
         _game = null;
+    }
+
+    private static AmbientSource ReadAmbientSource()
+    {
+        var value = Environment.GetEnvironmentVariable(AmbientSourceVariable);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return AmbientSource.Auto;
+        }
+
+        if (Enum.TryParse(value, true, out AmbientSource ambientSource))
+        {
+            return ambientSource;
+        }
+
+        Logs.WriteWarning($"[StaticShadowValidationDemo] {AmbientSourceVariable}='{value}' is not Auto or Flat; using Auto.");
+        return AmbientSource.Auto;
     }
 
     private static bool IsVariableSet(string name)

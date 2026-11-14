@@ -121,13 +121,25 @@ Les trois pixels sont stables d'une exécution à l'autre (deux captures de la d
   - Avec le cube lié (`Auto`) : `ombre` 6, 19, 32 → 13, 38, 64 (prédit `0,502 × (0,2 ; 0,6 ; 1,0) × 0,5 × 255 = 12,8 ; 38,4 ; 64`) ; `reflet` inchangé (168, 166, 155).
 - Commit : `fix(rendering): apply the surface colour to the ambient term only once`
 
-### ⏳ E2 — Source d'ambiant plate même avec un cube de réflexion (D8)
+### ✅ E2 — Source d'ambiant plate même avec un cube de réflexion (D8)
 
 - Objectif : `WorldEnvironmentSettings.AmbientSource` (`Auto` par défaut, `Flat`), sérialisé de façon optionnelle (absent = `Auto`), géré par `Clone`, `CopyFrom`, `ResetToDefaults`, `Load`, `Save`, résolu par `EnvironmentResolver`, lié aux shaders par un uniforme distinct de `HasEnvironmentCubeTexture`, déclaré dans `LitForward.fx` et `skinEffect.fx` avec des registres sans collision. En `Flat`, l'ambiant vaut `AmbientColor × ambiant du matériau` ; les réflexions du cube sont inchangées.
 - ADR ; documentation courte dans `docs/engine/` (index à jour).
 - Tests : sérialisation, défaut, `Clone`, `CopyFrom`, `ResetToDefaults` de `AmbientSource` ; résolution (`Flat` avec cube lié donne la voie plate, `Auto` garde le comportement actuel) ; assertions de source dans `LightingShaderCoverageTests`.
 - Démo : `CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat|Auto` dans la configuration de mesure.
 - Validation : builds, tests ; démo sans variable : capture identique à celle de E1 ; configuration de mesure avec le cube lié, deux captures (`Auto`, `Flat`) : `Flat` donne `ombre` = 64 (±3) ; `Auto` en diffère de plus de 12 sur au moins un canal et vaut `64 × (0,2 ; 0,6 ; 1,0)` (soit (12,8 ; 38,4 ; 64)) ; `reflet` identique dans les deux.
+- Fichiers : `CasaEngine/Framework/Rendering/Environment/AmbientSource.cs` (nouveau), `WorldEnvironmentSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs`, `EnvironmentShaderBinder.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderParameterNames.cs`, `CasaEngine/Content/Shaders/LitForward.fx`, `skinEffect.fx`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` (liste déroulante « Ambient Source » annulable, à côté des autres champs d'environnement), `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `CasaEngine.Tests/Rendering/AmbientSourceTests.cs` (nouveau), `LightingShaderCoverageTests.cs`, `docs/engine/lit-ambient-and-ambient-source.md`, `docs/README.md`, `docs/decisions/0090-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md`, `docs/decisions/README.md`.
+- Choix : le champ est écrit sous la clé `ambient_source` seulement quand il n'est pas `Auto` (les mondes existants gardent leur format octet pour octet) ; absent = `Auto` ; `Load` remet `Auto` avant de lire. Uniforme `UseFlatAmbientSource`, déclaré dans les deux shaders au même emplacement `_ps(c36)` / `_cb(c32.z)` (c36 ne contient que `HasEnvironmentCubeTexture` x et `HasMaterialReflectionCube` y dans `LitForward.fx`, seulement `HasEnvironmentCubeTexture` dans `skinEffect.fx` ; `c32.z` est libre dans les deux). Les annotations `_vs/_ps/_cb` se développent en rien (`Macros.fxh:24-26`) : ce sont des indications, la collision réelle est impossible, l'emplacement est tout de même laissé sans doublon (assertion de source).
+- Autres lieux qui énumèrent les réglages d'environnement : `EnvironmentAsset` et son sérialiseur (asset séparé, hors champ), `PreviewEnvironmentFactory` (copie nommée, défaut `Auto`), `ResolvedEnvironmentCache` (clé par version, pas par champ) : inchangés.
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5097 réussis (5082 + 13 tests d'`AmbientSourceTests` + 2 cas de source), 0 échec.
+  - Démo sans variable, configuration de mesure sans cube et configuration de mesure avec cube en `Auto` : captures identiques octet pour octet à celles de E1 (`cmp`).
+  - Configuration de mesure + cube lié :
+
+    | Pixel | `Auto` | `Flat` | prédit |
+    |---|---|---|---|
+    | `ombre` | 13, 38, 64 | 64, 64, 64 | `Flat` : 64 (±3, valeur de E1) ; `Auto` : `64 × (0,2 ; 0,6 ; 1,0) = (12,8 ; 38,4 ; 64)`, écart à 64 de 51 et 26 sur R et G (> 12) |
+    | `eclaire` | 172, 190, 198 | 223, 215, 198 | `Flat` = valeur de E1 sans cube |
+    | `reflet` | 168, 166, 155 | 168, 166, 155 | identique dans les deux (ambiant du matériau nul) ; les réflexions suivent toujours le cube (165, 157, 139 sans cube) |
 - Commit : `feat(rendering): let a world use a flat ambient term while keeping a reflection cube`
 
 ---

@@ -125,6 +125,7 @@ BEGIN_CONSTANTS
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
     float HasMaterialReflectionCube _ps(c36) _cb(c32.y);
+    float UseFlatAmbientSource _ps(c36) _cb(c32.z);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
@@ -176,7 +177,7 @@ float4 SampleBaseTexture(float2 texCoord)
 // ComposeLitSurfaceColor multiplies (direct + ambient) by the base colour, once.
 float3 ComputeBaseAmbientTerm(float3 worldNormal)
 {
-    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+    float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
     return DiffuseColor.rgb * ambientTerm;

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Xunit;
 
 namespace CasaEngine.Tests.Rendering;
@@ -196,6 +197,46 @@ public class LightingShaderCoverageTests
 
         // The surface colour is applied by exactly one place: ComposeLitSurfaceColor.
         Assert.Contains("return albedo * (directDiffuse + ambientTerm) + emissiveColor;", lightingIncludeSource);
+    }
+
+    [Theory]
+    [InlineData("LitForward.fx", "float3 ComputeBaseAmbientTerm(")]
+    [InlineData("skinEffect.fx", "float3 ComputeSkinnedAmbientContribution(")]
+    public void AmbientSource_IsDeclaredInBothShadersAndSelectsTheFlatAmbientPath(string shaderFileName, string definitionPrefix)
+    {
+        string source = LoadShaderSource(shaderFileName);
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        // The flag has its own uniform, distinct from HasEnvironmentCubeTexture, bound by name from the engine.
+        Assert.Contains($"float {ShaderParameterNames.UseFlatAmbientSource} _ps(c36) _cb(c32.z);", source);
+        Assert.Equal("UseFlatAmbientSource", ShaderParameterNames.UseFlatAmbientSource);
+
+        // Its slot is not shared with another parameter of the same shader.
+        Assert.Equal(1, CountOccurrences(source, "_cb(c32.z)"));
+        Assert.Equal(1, CountOccurrences(source, "UseFlatAmbientSource _ps("));
+
+        // The ambient helper falls back to the flat path when the flag is set, even with a cube bound.
+        int definitionStart = source.IndexOf(definitionPrefix, StringComparison.Ordinal);
+        Assert.True(definitionStart >= 0, $"{definitionPrefix} is not defined in {shaderFileName}.");
+        string definition = source[definitionStart..source.IndexOf("\n}", definitionStart, StringComparison.Ordinal)];
+        Assert.Contains("(HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)", definition);
+        Assert.Contains("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor)", definition);
+
+        // Reflections keep following the cube: the flag only concerns the ambient term.
+        Assert.DoesNotContain("UseFlatAmbientSource", lightingIncludeSource);
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        int count = 0;
+        int index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     private static string LoadShaderSource(string shaderFileName)

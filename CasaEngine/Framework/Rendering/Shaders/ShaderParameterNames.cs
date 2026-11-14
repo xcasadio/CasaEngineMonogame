@@ -45,6 +45,7 @@ public static class ShaderParameterNames
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+    public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";
     public const string SecondaryLocalReflectionProbeCubeTexture = "SecondaryLocalReflectionProbeCubeTexture";
     public const string HasLocalReflectionProbeTexture = "HasLocalReflectionProbeTexture";

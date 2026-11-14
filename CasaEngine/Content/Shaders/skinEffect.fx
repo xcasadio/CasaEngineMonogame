@@ -132,6 +132,7 @@ BEGIN_CONSTANTS
     float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
+    float UseFlatAmbientSource _ps(c36) _cb(c32.z);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
@@ -170,7 +171,7 @@ float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
     // Same formula as LitForward.fx's ComputeBaseAmbientTerm: environment (or flat)
     // ambient color modulated by the material's own ambient tint and DiffuseColor.
     // The base (texture) colour is not applied here: ComposeLitSurfaceColor applies it once.
-    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+    float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
     return DiffuseColor.rgb * ambientTerm;
