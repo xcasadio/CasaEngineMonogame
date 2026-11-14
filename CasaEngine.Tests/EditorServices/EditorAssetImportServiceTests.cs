@@ -576,6 +576,83 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_ObjStaticMeshIsConvertedAndAuthorsAStaticModelAsset()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string objPath = Path.Combine(tempDirectory, "tri.obj");
+            File.WriteAllText(objPath, "o Tri\nv 0 0 0\nv 1 0 0\nv 0 1 0\nvn 0 0 1\nf 1//1 2//1 3//1\n");
+
+            bool imported = EditorAssetImportService.ImportFile(objPath, objPath);
+
+            Assert.True(imported);
+            string staticModelPath = Path.Combine(tempDirectory, "tri" + Constants.FileNameExtensions.StaticModel);
+            Assert.True(File.Exists(staticModelPath), "The import did not write the static model asset.");
+            var staticModelDocument = JObject.Parse(File.ReadAllText(staticModelPath));
+            Assert.Equal("tri", (string?)staticModelDocument["name"]);
+            Assert.Empty(Directory.GetFiles(tempDirectory, "*" + Constants.FileNameExtensions.Skeleton));
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_RiggedGlbAuthorsSkeletonAndAnimationClipAssets()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string sourcePath = Path.Combine(FindRepositoryRoot(), "CasaEngine.Demos", "Content", "SkinnedMesh", "Soldier.glb");
+            string glbPath = Path.Combine(tempDirectory, "Soldier.glb");
+            File.Copy(sourcePath, glbPath);
+
+            bool imported = EditorAssetImportService.ImportFile(glbPath, glbPath);
+
+            Assert.True(imported);
+            string skeletonPath = Path.Combine(tempDirectory, "Soldier" + Constants.FileNameExtensions.Skeleton);
+            Assert.True(File.Exists(skeletonPath), "The import did not write the skeleton asset.");
+            Assert.NotEmpty(Directory.GetFiles(tempDirectory, "*" + Constants.FileNameExtensions.SkeletonAnimation));
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "CasaEngine.MonoGame.sln")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("CasaEngine repository root was not found.");
+    }
+
     private static string CreateTempDirectory()
     {
         string directory = Path.Combine(Path.GetTempPath(), "CasaEngineMonogame", Guid.NewGuid().ToString("N"));

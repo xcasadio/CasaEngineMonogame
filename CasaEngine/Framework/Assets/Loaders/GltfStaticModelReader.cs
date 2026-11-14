@@ -354,7 +354,8 @@ public sealed class GltfStaticModelReader
     {
         var node = new StaticModelNode { Name = gltfNode.Name ?? string.Empty };
 
-        var transform = gltfNode.LocalTransform;
+        // A node written as a matrix has no rotation or scale to read until it is decomposed.
+        var transform = gltfNode.LocalTransform.GetDecomposed();
         node.Position = new Vector3(transform.Translation.X, transform.Translation.Y, transform.Translation.Z);
         node.Rotation = new Quaternion(transform.Rotation.X, transform.Rotation.Y, transform.Rotation.Z, transform.Rotation.W);
         node.Scale = new Vector3(transform.Scale.X, transform.Scale.Y, transform.Scale.Z);

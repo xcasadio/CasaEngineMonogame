@@ -193,6 +193,32 @@ public class GltfStaticModelReaderTests
         return buffer;
     }
 
+    [Fact]
+    public void ReadWithMetadata_DecomposesANodeWrittenAsAMatrix()
+    {
+        string modelPath = CreateMinimalGltfProbe(roughnessFactor: 0.25f);
+
+        try
+        {
+            string json = File.ReadAllText(modelPath);
+            string matrixNode = "\"nodes\": [ { \"mesh\": 0, \"matrix\": [ 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 2, 3, 1 ] } ]";
+            string withMatrix = json.Replace("\"nodes\": [ { \"mesh\": 0 } ]", matrixNode);
+            Assert.NotEqual(json, withMatrix);
+            File.WriteAllText(modelPath, withMatrix);
+
+            var result = new GltfStaticModelReader().ReadWithMetadata(modelPath);
+
+            Assert.NotNull(result.Model.RootNode);
+            Assert.Equal(new Microsoft.Xna.Framework.Vector3(1f, 2f, 3f), result.Model.RootNode.Position);
+            Assert.Equal(new Microsoft.Xna.Framework.Vector3(2f, 2f, 2f), result.Model.RootNode.Scale);
+            Assert.Equal(Microsoft.Xna.Framework.Quaternion.Identity, result.Model.RootNode.Rotation);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
     private static void DeleteProbeDirectory(string modelPath)
     {
         string? directory = Path.GetDirectoryName(modelPath);
