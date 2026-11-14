@@ -118,6 +118,18 @@ internal interface IEditorRemoteHost
     /// preview; the value has been validated by the command.
     /// </summary>
     bool TrySetScreenProperty(Guid assetId, CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenNode node, string property, string value, out string error);
+
+    /// <summary>Creates a sound asset with default settings at a prepared new file (reserved first, never overwriting).</summary>
+    bool CreateSoundAsset(RemoteNewAssetFile file, out Guid assetId, out string error);
+
+    /// <summary>The sound loaded in an open sound panel, or null.</summary>
+    CasaEngine.Framework.Audio.SoundAsset GetSoundAsset(Guid assetId);
+
+    /// <summary>True when the open sound panel has unsaved changes.</summary>
+    bool IsSoundModified(Guid assetId);
+
+    /// <summary>Applies a validated change to an open sound through its panel, without history (the panel is marked modified).</summary>
+    bool TrySetSoundProperty(Guid assetId, Action<CasaEngine.Framework.Audio.SoundAsset> change, out string error);
 }
 
 /// <summary>
@@ -152,6 +164,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteMaterialCommands.Register(Registry, host);
         EditorRemoteParticleCommands.Register(Registry, host);
         EditorRemoteScreenCommands.Register(Registry, host);
+        EditorRemoteSoundCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

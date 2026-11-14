@@ -404,6 +404,57 @@ public partial class GameEditor
             return true;
         }
 
+        /// <summary>The sound creation of the content browser, at a file the command reserved first (ADR-0093 P4).</summary>
+        public bool CreateSoundAsset(RemoteNewAssetFile file, out Guid assetId, out string error)
+        {
+            assetId = Guid.Empty;
+            EditorRemoteAssetCreation.Reserve(file.FullPath);
+            var soundAsset = new Framework.Audio.SoundAsset
+            {
+                Name = file.Name,
+                FileName = file.RelativeFile,
+            };
+            try
+            {
+                EditorAssetCatalogService.Add(soundAsset);
+                EditorAssetWriterService.SaveAsset(file.RelativeFile, soundAsset, EditorAssetSaveSource.SoundEditorPanel);
+                EditorAssetCatalogService.Save();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                EditorAssetCatalogService.Remove(soundAsset.Id);
+                File.Delete(file.FullPath);
+                error = $"'{file.RelativeFile}' could not be written: {ex.Message}";
+                return false;
+            }
+
+            assetId = soundAsset.Id;
+            error = null;
+            return true;
+        }
+
+        public Framework.Audio.SoundAsset GetSoundAsset(Guid assetId)
+            => _editor._soundInspectorPanels.TryGetValue(EditorPanelIds.SoundAssetDocumentPrefix + assetId.ToString("N"), out var panel)
+                ? panel.LoadedSoundAsset
+                : null;
+
+        public bool IsSoundModified(Guid assetId)
+            => _editor._soundInspectorPanels.TryGetValue(EditorPanelIds.SoundAssetDocumentPrefix + assetId.ToString("N"), out var panel)
+                && panel.IsDirty;
+
+        public bool TrySetSoundProperty(Guid assetId, Action<Framework.Audio.SoundAsset> change, out string error)
+        {
+            if (!_editor._soundInspectorPanels.TryGetValue(EditorPanelIds.SoundAssetDocumentPrefix + assetId.ToString("N"), out var panel)
+                || !panel.ApplyChange(change))
+            {
+                error = "The sound is not open.";
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
+
         /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
         public bool TrySaveAsset(Guid assetId, out string error)
         {

@@ -221,4 +221,31 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         error = null;
         return true;
     }
+
+    public List<string> CreatedSounds { get; } = new();
+
+    public CasaEngine.Framework.Audio.SoundAsset SoundAsset { get; set; }
+
+    public bool SoundModified { get; set; }
+
+    public bool CreateSoundAsset(RemoteNewAssetFile file, out Guid assetId, out string error)
+    {
+        CreatedSounds.Add(file.RelativeFile);
+        assetId = Guid.NewGuid();
+        error = null;
+        return true;
+    }
+
+    public CasaEngine.Framework.Audio.SoundAsset GetSoundAsset(Guid assetId) => SoundAsset;
+
+    public bool IsSoundModified(Guid assetId) => SoundModified;
+
+    /// <summary>Mirrors the sound panel: the change applies to the loaded sound and marks it modified.</summary>
+    public bool TrySetSoundProperty(Guid assetId, Action<CasaEngine.Framework.Audio.SoundAsset> change, out string error)
+    {
+        change(SoundAsset);
+        SoundModified = true;
+        error = null;
+        return true;
+    }
 }
