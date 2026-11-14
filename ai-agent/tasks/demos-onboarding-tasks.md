@@ -182,13 +182,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `refactor(demos): order the demos as a learning path`
 - Note de validation (2026-11-14) : thèmes « Getting started » (vide jusqu'à T2.2, donc absent de l'arbre) et « Engine validation » (Static shadow validation, ViewManager v2 Sandbox, Frozen frame) ; `AddDemo` dans l'ordre du menu ; commentaire historique retiré. `docs/engine/demos-main-menu.md` et `render-stats-demo-workflow.md` nomment les démos par leur titre : `rg "START_DEMOW+[0-9]" docs` vide. Les sept titres cités dans `docs/` démarrent leur démo ; « PSX sprite semi-transparency » (`docs/engine/sprite-psx-semi-transparency.md:92`) ne correspond à aucune démo enregistrée, déjà avant ce chantier : non corrigé. Build 0 erreur ; cycle PASS.
 
-### ⏳ T2.2 — Démo « Hello world »
+### ✅ T2.2 — Démo « Hello world »
 
 - Objectif : la plus petite scène possible, chaque ligne commentée : entité, composant racine, mesh primitif, material, lumière, caméra.
 - Fichiers : `CasaEngine.Demos/Demos/HelloWorldDemo.cs`, `DemosGame.cs`, `docs/engine/demos-main-menu.md`.
 - Étapes : partir des API déjà utilisées par `Collision3dBasicDemo.cs` et `StaticModelDemo.cs` ; enregistrer à l'index 0.
 - Validation : build ; lancement par titre ; capture ; cycle à 0.
 - Commit : `feat(demos): add the Hello world demo`
+- Note de validation (2026-11-14) : `HelloWorldDemo` (thème « Getting started », index 0, le menu s'ouvre dessus) : une entité cube, un material, une lumière directionnelle et la caméra écrites en clair et commentées ; le cube tourne (captures à 1,2 s et 2 s différentes). La lumière vient du côté de la caméra : sans autre lumière, une face non éclairée est noire, et régler `AmbientColor` sur le material ou sur le monde n'a rien changé à l'écran (non élucidé, retiré du code). Build 0 erreur ; cycle PASS avec 26 démos.
 
 ### ⏳ T2.3 — Démo « Moving an entity »
 

@@ -125,6 +125,8 @@ public class DemosGame : CasaEngineGame
 
         // The registration order is the order of the main screen: a learning path (ADR-0090). It is also the index
         // CASAENGINE_START_DEMO accepts, so documentation and scripts name a demo by its title, which is stable.
+        AddDemo(new HelloWorldDemo(), ThemeGettingStarted);
+
         AddDemo(new StaticModelDemo(), ThemeRendering);
         AddDemo(new MaterialDemo(), ThemeRendering);
         AddDemo(new ParticleSystemDemo(), ThemeRendering);

@@ -41,7 +41,7 @@ The themes and their demos are a learning path, in this order (ADR-0090). The re
 
 | Theme | Demos |
 | --- | --- |
-| Getting started | The minimal, commented demos to read first. |
+| Getting started | Hello world: the minimal, commented demos to read first. |
 | Rendering | Static model, Material system, Particle system, Environment showcase |
 | Animation | Skinned mesh, Animation blend, Animation IK, Skeletal animation blending |
 | Physics | Collision 3d basic, Collision 2d basic, Top down elevation |
