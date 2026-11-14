@@ -62,6 +62,6 @@ git clone https://github.com/xcasadio/CasaEngineMonogame.git
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)
 ![Sprite Editor](/github/screenshot_sprite_editor.jpg)
-![Demos main screen](/github/demos_main_menu.png)
+![Demos main screen](/github/demos_main_menu.jpg)
 ![Demo physics 2d](/github/demo_physics_2d.jpg)
 ![Demo physics 3d](/github/demo_physics_3d.jpg)

@@ -131,7 +131,7 @@ public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
 - `CASAENGINE_START_DEMO` (title, or index) starts that demo directly, without the main screen. Use the title: the
   index of a demo is its place in the learning path and is not stable (ADR-0090).
 - `CASAENGINE_CAPTURE_SCREENSHOT_PATH` (and `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS`) captures the main screen, or the
-  demo started by `CASAENGINE_START_DEMO`, then quits. The in-demo reminder "Esc / Select: back to the menu" is hidden
+  demo started by `CASAENGINE_START_DEMO`, then quits. A path ending in `.jpg` or `.jpeg` writes a JPEG, any other a PNG. The in-demo reminder "Esc / Select: back to the menu" is hidden
   while the back buffer is captured or probed (`CASAENGINE_DEMO_PIXELS_PATH`).
 - `CASAENGINE_DEMO_CYCLE=<frames>` goes from the main screen to every demo and back, twice, `<frames>` frames per world
   (default 60). It checks every world change and exits with code 0, or 1 when a check failed or an error was logged:

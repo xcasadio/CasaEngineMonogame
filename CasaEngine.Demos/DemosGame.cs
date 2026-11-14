@@ -649,7 +649,17 @@ public class DemosGame : CasaEngineGame
             screenshot.SetData(backBuffer);
 
             using FileStream stream = File.Create(fullOutputPath);
-            screenshot.SaveAsPng(stream, width, height);
+            // The extension of the path chooses the format: .jpg or .jpeg writes a JPEG, anything else a PNG.
+            string extension = Path.GetExtension(fullOutputPath);
+            if (extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+            {
+                screenshot.SaveAsJpeg(stream, width, height);
+            }
+            else
+            {
+                screenshot.SaveAsPng(stream, width, height);
+            }
+
             Logs.WriteInfo($"[DemosGame] Screenshot saved: {fullOutputPath}");
             return true;
         }
