@@ -58,7 +58,14 @@ public class HelloWorldDemo : Demo
         cubeModel.Meshes[0].Initialize(game.GraphicsDevice);
 
         // 2. The material: how the mesh reacts to light. No texture here, only a colour.
-        cubeModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = new Color(230, 140, 60) };
+        cubeModel.Meshes[0].Material = new LitDiffuseMaterial
+        {
+            DiffuseColor = new Color(230, 140, 60),
+            // How much of the world's ambient light this material takes, per channel. It is zero by default, and the
+            // ambient a face shows is this value times the world's ambient (see ConfigureSceneLighting): both must
+            // be set, or a face no light reaches stays black.
+            AmbientColor = new Vector3(0.9f, 0.55f, 0.24f),
+        };
 
         // 3. The entity. Its root component is the one that places it in the world.
         var cubeEntity = new Entity { Name = "cube" };
@@ -91,6 +98,11 @@ public class HelloWorldDemo : Demo
 
         world.AddEntity(lightEntity);
 
+        // The ambient light of the world: what reaches every face, lit or not. A material multiplies it by its own
+        // AmbientColor.
+        world.EnvironmentSettings.AmbientColor = new Vector3(0.35f, 0.35f, 0.4f);
+        world.EnvironmentSettings.AmbientIntensity = 1f;
+        world.EnvironmentSettings.MarkDirty();
     }
 
     /// <summary>
