@@ -150,7 +150,7 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   - La référence du sous-module passe de `a3c42cb0` à `c24158d1` : elle embarque aussi les deux commits de `develop`
     que l'auteur avait déjà dans son arbre (O3).
 
-### ⏳ T1.2 — Texte sans balise : changement de texte sans allocation (D3, D5)
+### ✅ T1.2 — Texte sans balise : changement de texte sans allocation (D3, D5)
 
 - Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`SetTextCore`, `ApplyTextMutation`, `UpdateRuns`), `Text/MGTextRun.cs`.
 - Fin : deux surcharges nouvelles, `public void SetText(ReadOnlySpan<char> Value)` (mode `RelayoutParent`, comme le
@@ -163,8 +163,11 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   demandent à la lecture ; un texte inchangé ne fait rien. `Lines` reste `null` tant que les lignes ne sont pas
   calculées (des tests et `MGTextBlock` lisent ce `null`).
 - Commit (MGUI) : `perf(text): change a plain text without allocating`
+- **Fait le 2026-11-15** (MGUI `2723447e`, par un agent `executor`). `PlainTextSetTextTests` : zéro pour les deux
+  surcharges ; contre-épreuve : 2104 octets par changement avec le setter `string`, 32 avec un repli sur `ToString()`.
+  `Text`, `Runs` et `Lines` relus égaux à ceux du setter `string`.
 
-### ⏳ T1.3 — Texte sans balise : mesure et lignes sans allocation (D4)
+### ✅ T1.3 — Texte sans balise : mesure et lignes sans allocation (D4)
 
 - Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (mesure, `UpdateLines`), `Text/MGTextLine.cs` (`ParseLines`, coupure en
   mots).
@@ -174,13 +177,37 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   test vérifie que `ApplyTextMutation` a bien pris la branche locale (`UpdateLines`, `:985`) : pas de `LayoutChanged`
   levé pour un texte de même taille.
 - Commit (MGUI) : `perf(text): measure and wrap a plain text without allocating`
+- **Fait le 2026-11-15** (MGUI `09d9ff12`). Nouveau `MGUI.Core/UI/Text/PlainTextLayout.cs` : listes de lignes et de
+  morceaux réutilisées, qui refont `MGTextLine.ParseLines` pour un texte sans balise. `PlainTextAllocationTests` : zéro
+  pour la mesure et les lignes (7 cas) et pour les modes locaux (6 cas, branche locale vérifiée par l'absence de
+  `LayoutChanged`) ; contre-épreuves sur l'ancien chemin : 63 312 octets par itération (phrase coupée), 9072 par
+  changement local. Le constat de T0.1 était juste : `CachedTextMeasurementsStillMatch` refaisait chaque mesure.
+- `PlainTextDifferentialTests` : 41 textes fixes et 260 pseudo-aléatoires, plus de 20 000 layouts comparés à
+  `ParseLines`, tailles mesurées, invalidations locales et appels de dessin comparés à l'ancien chemin, gardé
+  appelable par `internal bool ForceLegacyTextPath`.
 
-### ⏳ T1.4 — Texte sans balise : dessin sans allocation
+### ✅ T1.4 — Texte sans balise : dessin sans allocation
 
 - Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`DrawSelf`), `Text/TextRenderInfo.cs`.
 - Fin : `DrawSelf` d'un texte sans balise n'alloue rien, texte inchangé ou changé à chaque image par `SetText` ; test
   de bout en bout : changement, mesure, dessin d'un nombre au format `F2` à chaque image, zéro octet.
 - Commit (MGUI) : `perf(text): draw a plain text without allocating`
+- **Fait le 2026-11-15** (MGUI `31b859a8`, correctif `a05134f6`). `DrawSelf` sans balise : zéro (10 cas, ombre et
+  `TextProgress` compris) ; bout en bout d'un nombre `F2` : zéro, contre 5586 octets par itération avant la tâche.
+  Un fond ou un soulignement renvoie à l'ancienne boucle, qui alloue (T2.2).
+- **Vérification indépendante (T1.2 à T1.4)** : premier verdict REFUTED sur un constat P2, introduit : `Lines`,
+  construit à la lecture, était mesuré avec la police du moment de la lecture après un changement de police. Corrigé
+  (`KeepLinesOfTheCurrentFont`, test de régression qui échouait avant) ; second vérificateur neuf : **CONFIRMED**
+  (24 séquences aléatoires de 1500 opérations, changements de police compris, égales à l'ancien chemin ; les 24
+  échouent sur le code d'avant le correctif).
+- Validation : `MGUI.Tests` 3344 verts, `CasaEngine.Tests` 5455 verts, aucun sauté ; les deux solutions : 0 erreur.
+- Constats P4 reportés, non corrigés : après un changement de moteur de texte (ou un `TextEngineOverride` posé sur un
+  ancêtre), `Lines` lu avant le layout suivant est mesuré par le nouveau moteur (dans ce dépôt le moteur ne change
+  qu'à l'initialisation) ; le premier changement de police après un layout alloue environ 11,7 Ko, donc un zoom qui
+  change la police à chaque image (`MGGraphControls`) alloue ; les tampons d'un bloc ne rétrécissent jamais.
+- Bizarreries de `ParseLines` reproduites telles quelles, non corrigées : une ligne vide se dessine avec la police
+  normale même si le bloc est gras ; après un mot coupé, la suite ignore la largeur du morceau resté sur la ligne ; si
+  `-` est plus large que la ligne, le reste du texte est abandonné.
 
 ### ⏳ T2.1 — Balises : tokenizer et runs sans allocation (D5)
 
