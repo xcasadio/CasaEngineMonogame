@@ -188,13 +188,14 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Doc des contrôles de caméra
+### ✅ T3.1 — Doc des contrôles de caméra
 
 - Objectif : documenter D7, D8, P1 à P5 pour l'éditeur et les démos.
 - Fichiers : `docs/editor/viewport-camera-controls.md` (nouveau), `docs/README.md`, README de `CasaEngine.Demos` s'il liste des contrôles.
 - Étapes : tableau des contrôles, différences avec Unreal (pas de sélection rectangle, pas de déplacement temporaire du pivot du gizmo, vues 2D inchangées), limites.
 - Validation : relecture ; liens valides.
 - Commit : `docs(editor): document the Unreal-style viewport camera controls`
+- Note de validation (2026-11-14) : `docs/editor/viewport-camera-controls.md` écrit (souris, clavier, F, W/E/R, sélection, vues 2D, limites) et ajouté à `docs/README.md`. `CasaEngine.Demos` n'a pas de README général qui liste les contrôles : rien à mettre à jour.
 
 ### ⏳ T3.2 — Vérification indépendante et recette de l'auteur
 

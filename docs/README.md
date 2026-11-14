@@ -90,6 +90,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-message-boxes.md](editor/editor-message-boxes.md) — boîtes de message MGUI de l'éditeur : file, libellés, questions d'enregistrement asynchrones (fermer un écran, quitter, ouvrir un monde), sélecteurs natifs gardés.
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
+- [viewport-camera-controls.md](editor/viewport-camera-controls.md) — contrôles de la caméra perspective du viewport et des démos, style Unreal (souris, vol au clic droit, F, W/E/R, sélection au clic relâché, ADR-0089).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
 - [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).
