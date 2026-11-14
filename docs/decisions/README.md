@@ -106,3 +106,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0090](0090-demos-carry-a-sheet-and-follow-a-learning-path.md) | Demos carry a sheet (controls, things to observe, documentation) and follow a learning path | Accepted | 2026-11-14 |
 | [ADR-0091](0091-editor-user-preferences-file.md) | The editor keeps per-user mouse and camera preferences in one JSON file | Accepted | 2026-11-14 |
 | [ADR-0092](0092-editor-remote-control-for-tools-and-ai-agents.md) | The running editor exposes typed commands to a CLI and an MCP server over a local pipe | Accepted | 2026-11-14 |
+| [ADR-0093](0093-editor-remote-control-covers-assets-panels-and-automation.md) | Editor remote control covers assets, panels and the command-line automation | Accepted | 2026-11-14 |
