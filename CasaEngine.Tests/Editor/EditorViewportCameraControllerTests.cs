@@ -191,6 +191,36 @@ public sealed class EditorViewportCameraControllerTests
         Assert.Equal(Vector3.Zero, controller.Target);
     }
 
+    /// <summary>ADR-0091: the user's rotation sensitivity and Y inversion drive the look gesture.</summary>
+    [Theory]
+    [InlineData(false, 1f)]
+    [InlineData(true, -1f)]
+    public void ApplyPreferences_SetsTheRotationSensitivityAndInvertY(bool invertY, float pitchSign)
+    {
+        var controller = new EditorViewportCameraController();
+        var camera = controller.CreateCameraComponent();
+        controller.ApplyPreferences(new Camera3dPreferences { RotationSensitivity = 0.01f, InvertY = invertY, FlySpeed = 25f });
+        float pitch = controller.Pitch;
+
+        void Frame(int y) => controller.Update(
+            CreateGameTime(),
+            camera,
+            CreateContext(new KeyboardState(), new MouseState(20, y, 0, ButtonState.Released, ButtonState.Released, ButtonState.Pressed, ButtonState.Released, ButtonState.Released, 0)),
+            receivesInput: true,
+            isKeyboardFocused: true,
+            allowFreeCameraMovement: true,
+            canHandleKeyboardInput: true,
+            activateView: _ => { },
+            releaseInput: () => { });
+
+        Frame(30);
+        Frame(20);
+
+        // 10 pixels up at 0.01 rad per pixel.
+        Assert.Equal(pitch + pitchSign * 0.1f, controller.Pitch, 1e-4f);
+        Assert.Equal(25f, controller.FlySpeed);
+    }
+
     private static GameTime CreateGameTime()
         => new(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 

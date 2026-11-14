@@ -92,6 +92,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
 - [viewport-camera-controls.md](editor/viewport-camera-controls.md) — contrôles de la caméra perspective du viewport et des démos, style Unreal (souris, vol au clic droit, F, W/E/R, sélection au clic relâché, ADR-0089).
+- [editor-preferences.md](editor/editor-preferences.md) — panneau « Editor Preferences » et fichier `%APPDATA%/CasaEngine/editor.preferences.json` : sensibilités des caméras 3D et 2D, vitesse de vol mémorisée, inversion de Y, bornes et lecture tolérante (ADR-0091).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
 - [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).

@@ -193,6 +193,8 @@ public class WorldViewportPanel : IDisposable
     private readonly EditorViewport2dCameraController _camera2dController = new();
     private readonly EditorViewportGizmoController _gizmoController;
     private readonly Action _releaseViewInputAction;
+    private readonly EditorPreferencesStore _preferences;
+    private readonly Action<EditorPreferences> _applyPreferencesAction;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
     private EditorViewportCameraState? _savedPlayModeCameraState;
     private CameraComponent _playModeCamera;
@@ -217,6 +219,36 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.DeleteEntitiesRequested += OnGizmoDeleteEntitiesRequested;
         _gizmoController.ActiveModeChanged += OnGizmoActiveModeChanged;
         _gizmoController.ActiveSpaceChanged += OnGizmoActiveSpaceChanged;
+
+        // ADR-0091: every viewport follows the one preferences store, and leaves it in Dispose.
+        _preferences = editorRuntime?.Preferences;
+        if (_preferences != null)
+        {
+            _applyPreferencesAction = ApplyPreferences;
+            _preferences.Changed += _applyPreferencesAction;
+            ApplyPreferences(_preferences.Current);
+        }
+    }
+
+    private void ApplyPreferences(EditorPreferences preferences)
+    {
+        _cameraController.ApplyPreferences(preferences.Camera3d);
+        _camera2dController.ApplyPreferences(preferences.Camera2d);
+    }
+
+    /// <summary>Right button + wheel changed this viewport's fly speed: share it through the store (written later).</summary>
+    private void SyncFlySpeedToPreferences()
+    {
+        if (_preferences == null)
+        {
+            return;
+        }
+
+        EditorPreferences current = _preferences.Current;
+        if (_cameraController.FlySpeed != current.Camera3d.FlySpeed)
+        {
+            _preferences.Update(current with { Camera3d = current.Camera3d with { FlySpeed = _cameraController.FlySpeed } });
+        }
     }
 
     public MGElement CreateContent()
@@ -567,6 +599,8 @@ public class WorldViewportPanel : IDisposable
                 ActivateThisView,
                 _releaseViewInputAction,
                 gizmoReceivesInput && _gizmoController.IsHoveringHandle);
+
+            SyncFlySpeedToPreferences();
 
             // F frames the selection (ADR-0089); with the right button held F flies down instead, and the
             // navigation then reports no focus request.
@@ -2118,6 +2152,11 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.SelectedEntityChanged -= OnGizmoSelectedEntityChanged;
         _gizmoController.ActiveModeChanged -= OnGizmoActiveModeChanged;
         _gizmoController.ActiveSpaceChanged -= OnGizmoActiveSpaceChanged;
+
+        if (_preferences != null)
+        {
+            _preferences.Changed -= _applyPreferencesAction;
+        }
 
         if (_viewportHost != null)
         {

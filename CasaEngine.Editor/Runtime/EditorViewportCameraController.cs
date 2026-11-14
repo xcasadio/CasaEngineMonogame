@@ -57,6 +57,23 @@ internal sealed class EditorViewportCameraController
     /// <summary>True while a mouse gesture of the navigation (or a gizmo press it waits on) is in progress.</summary>
     public bool IsGestureActive => _navigation.IsGestureActive;
 
+    /// <summary>Current fly speed; right button + wheel changes it.</summary>
+    public float FlySpeed => _navigation.FlySpeed;
+
+    /// <summary>Applies the user's 3D camera preferences (ADR-0091).</summary>
+    public void ApplyPreferences(Camera3dPreferences preferences)
+    {
+        ArgumentNullException.ThrowIfNull(preferences);
+        _navigation.RotationSensitivity = preferences.RotationSensitivity;
+        _navigation.PanSensitivity = preferences.PanSensitivity;
+        _navigation.WheelStepRatio = preferences.WheelStepRatio;
+        _navigation.FlySpeed = preferences.FlySpeed;
+        _navigation.FlySpeedWheelFactor = preferences.FlySpeedWheelFactor;
+        _navigation.FieldOfViewRate = MathHelper.ToRadians(preferences.FieldOfViewRateDegrees);
+        _navigation.DragThresholdPixels = preferences.DragThresholdPixels;
+        _navigation.InvertY = preferences.InvertY;
+    }
+
     public ArcBallCameraComponent CreateCameraComponent()
     {
         return new ArcBallCameraComponent

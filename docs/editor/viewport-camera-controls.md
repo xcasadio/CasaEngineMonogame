@@ -1,6 +1,6 @@
 # Viewport camera controls
 
-The perspective view of the editor's world viewport and the default camera of `CasaEngine.Demos` (`ScriptArcBallCamera`) share the controls of Unreal Engine's perspective viewport ([Viewport Controls, UE 5.9](https://dev.epicgames.com/documentation/unreal-engine/viewport-controls-in-unreal-engine)). Both run the same code, `ViewportCameraNavigation` (`CasaEngine/Framework/Scene/Cameras`). Decision: [ADR-0089](../decisions/0089-viewport-camera-navigation-follows-unreal.md).
+The perspective view of the editor's world viewport and the default camera of `CasaEngine.Demos` (`ScriptArcBallCamera`) share the controls of Unreal Engine's perspective viewport ([Viewport Controls, UE 5.9](https://dev.epicgames.com/documentation/unreal-engine/viewport-controls-in-unreal-engine)). Both run the same code, `ViewportCameraNavigation` (`CasaEngine/Framework/Scene/Cameras`). Decision: [ADR-0089](../decisions/0089-viewport-camera-navigation-follows-unreal.md). The values below are the defaults; the editor lets each user change them ([editor-preferences.md](editor-preferences.md)).
 
 ## Mouse
 
@@ -49,4 +49,4 @@ The 2D camera and the front-2D view keep their own navigation (see [editor-2d-vi
 - The gizmo handle under the cursor is the one hovered at the previous frame.
 - A Z/C field-of-view change is lost when the viewport is resized: the camera recomputes its field of view from the aspect ratio. Play mode does not save it.
 - In the demos, the camera reads and writes its `ArcBallCameraComponent` each frame, so a demo can set the initial camera on the component.
-- Not implemented: marquee selection, Space and Q of Unreal, vertex snapping, moving the pivot with the middle button, user-editable sensitivities.
+- Not implemented: marquee selection, Space and Q of Unreal, vertex snapping, moving the pivot with the middle button. In the editor, sensitivities, fly speed and Y inversion are user preferences: see [editor-preferences.md](editor-preferences.md).
