@@ -96,6 +96,16 @@ internal sealed class EditorRemoteDispatcher
         }
     }
 
+    /// <summary>
+    /// Game thread: runs one call at once, for the in-process executor of the automation options (ADR-0093 P9). A
+    /// deferred call joins the deferred list like any other.
+    /// </summary>
+    public void ExecuteNow(EditorRemoteCall call)
+    {
+        ArgumentNullException.ThrowIfNull(call);
+        Execute(call);
+    }
+
     /// <summary>Fails every call still waiting, for instance when the server stops.</summary>
     public void CancelAll(string message)
     {

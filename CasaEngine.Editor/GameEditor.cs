@@ -7201,7 +7201,13 @@ public partial class GameEditor : Game, IObservableUpdate
             return true;
         }
 
-        ActivateDockPanel(panelId);
+        if (!TryRunAutomationCommand("panel.activate", new { panel_id = panelId }, out _, out string activateError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Dock panel '{panelId}' was not activated: {activateError}");
+            return true;
+        }
+
         _automationPanelActivatedAt = totalGameTime;
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Automation] Activated dock panel '{panelId}'.");
@@ -7380,7 +7386,13 @@ public partial class GameEditor : Game, IObservableUpdate
     private bool TryApplyAutomationContentFolderSelection(TimeSpan totalGameTime)
     {
         ApplyAutomationProjectDirectory();
-        string folderPath = ResolveAutomationAssetPath(_automationOptions.ContentBrowserFolderPath!);
+        if (!TryResolveAutomationProjectPath(_automationOptions.ContentBrowserFolderPath!, out string folderPath, out _, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Content folder '{_automationOptions.ContentBrowserFolderPath}' refused: {pathError}");
+            return true;
+        }
+
         if (!Directory.Exists(folderPath))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
@@ -7672,8 +7684,15 @@ public partial class GameEditor : Game, IObservableUpdate
 
         _automationAssetOpenAttempted = true;
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
-        if (TryOpenEditorAsset(fullPath))
+        ApplyAutomationProjectDirectory();
+        if (!TryResolveAutomationProjectPath(_automationOptions.OpenAssetPath, out string fullPath, out string relativePath, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}': {pathError}");
+            return;
+        }
+
+        if (TryOpenAutomationAsset(fullPath, relativePath))
         {
             _automationAssetOpened = true;
             _automationAssetOpenedAt = totalGameTime;
@@ -7684,6 +7703,27 @@ public partial class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
+    }
+
+    /// <summary>
+    /// ADR-0093 P9: the four asset types of <c>asset.open</c> go through that command; a world and the other asset
+    /// types keep the editor's own route (<c>world.open</c> answers later, and <c>asset.open</c> has a closed list).
+    /// </summary>
+    private bool TryOpenAutomationAsset(string fullPath, string relativePath)
+    {
+        string assetType = AssetInfo.InferAssetType(fullPath);
+        if (!EditorRemoteAssetTypes.IsOpenable(assetType))
+        {
+            return TryOpenEditorAsset(fullPath);
+        }
+
+        if (TryRunAutomationCommand("asset.open", new { asset = relativePath.Replace('\\', '/') }, out _, out string error))
+        {
+            return true;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, $"[Automation] asset.open refused '{relativePath}': {error}");
+        return false;
     }
 
     private void TryOpenStartupAssetIfRequested()
@@ -7720,21 +7760,43 @@ public partial class GameEditor : Game, IObservableUpdate
         }
 
         ApplyAutomationProjectDirectory();
-        string folderPath = ResolveAutomationAssetPath(_automationOptions.CreateParticleAssetFolder);
-        if (!TryCreateParticleAssetInFolder(folderPath, presetKind, out var fullPath, out var relativePath, out var errorMessage))
+        if (!TryResolveAutomationProjectPath(_automationOptions.CreateParticleAssetFolder, out string folderPath, out string folderRelativePath, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': {pathError}");
+            return;
+        }
+
+        if (!Directory.Exists(folderPath))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': Cannot create particle asset because folder '{folderPath}' does not exist.");
+            return;
+        }
+
+        // ADR-0093 P9: particle.create, under the unique name the content browser would choose.
+        string assetName = Path.GetFileNameWithoutExtension(CreateUniqueParticleAssetPath(folderPath, presetKind));
+        if (!TryRunAutomationCommand(
+                "particle.create",
+                new { name = assetName, folder = folderRelativePath.Replace('\\', '/'), preset = _automationOptions.CreateParticlePresetName },
+                out var created,
+                out string errorMessage))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': {errorMessage}");
             return;
         }
 
+        string relativePath = created.GetProperty("file").GetString()!.Replace('/', Path.DirectorySeparatorChar);
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, relativePath);
         _automationParticleAssetCreated = true;
         _automationCreatedParticleAssetFullPath = fullPath;
         _automationCreatedParticleAssetRelativePath = relativePath;
+        RecordAutomationWrittenFile(fullPath);
         _ = GetOrCreateContentBrowserContent();
         _contentBrowserPanel?.Refresh();
 
-        if (TryOpenEditorAsset(fullPath))
+        if (TryOpenAutomationAsset(fullPath, relativePath))
         {
             _automationAssetOpened = true;
             _automationAssetOpenedAt = totalGameTime;
@@ -7769,14 +7831,19 @@ public partial class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
-                _automationOptions.SetMaterialPropertyKey,
-                _automationOptions.SetMaterialPropertyValue,
-                out string statusMessage))
+        // ADR-0093 P9 and P13: material.set_property (the bounds of P5, the material history) then material.save.
+        string materialAsset = inspectorPanel.LoadedRelativePath.Replace('\\', '/');
+        string statusMessage = null;
+        if (TryRunAutomationCommand(
+                "material.set_property",
+                new { asset = materialAsset, property = _automationOptions.SetMaterialPropertyKey, value = _automationOptions.SetMaterialPropertyValue },
+                out _,
+                out statusMessage)
+            && TryRunAutomationCommand("material.save", new { asset = materialAsset }, out _, out statusMessage))
         {
+            RecordAutomationWrittenFile(Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath));
             if (TryGetMaterialInspectorPanelId(inspectorPanel, out var panelId))
             {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
                 UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
             }
 
@@ -7821,11 +7888,21 @@ public partial class GameEditor : Game, IObservableUpdate
 
         string propertyName = _automationOptions.SetScreenPropertyName;
         string oldValue = node.TryGetProperty(propertyName, out var existing) ? existing?.SerializedValue : null;
+        string screenError = "the active screen has no asset id";
 
-        // Go through the panel's own command stack -- the same path a live inspector edit takes -- so this
-        // edit is undoable and marks the panel's EditorHistoryContext dirty, exactly like a real one.
-        var commandStack = GetOrCreateScreenCommandStack(_editorContext.ActiveDocument.Id);
-        commandStack.Execute(new SetPropertyCommand(node, propertyName, _automationOptions.SetScreenPropertyValue));
+        // ADR-0093 P9 and P12: screen.set_property, the panel's own command stack (undoable, marks the screen
+        // modified), restricted to the inspector's property registry.
+        if (!TryGetAssetIdFromPanelId(EditorPanelIds.UIScreenDocumentPrefix, _editorContext.ActiveDocument.Id, out Guid screenAssetId)
+            || !TryRunAutomationCommand(
+                "screen.set_property",
+                new { asset = screenAssetId.ToString(), node = node.Id.Value.ToString(), property = propertyName, value = _automationOptions.SetScreenPropertyValue },
+                out _,
+                out screenError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update screen property '{_automationOptions.SetScreenPropertyNodeName}.{propertyName}': {screenError}");
+            return;
+        }
 
         _automationScreenEdited = true;
         _automationScreenEditedAt = totalGameTime;
@@ -7882,7 +7959,12 @@ public partial class GameEditor : Game, IObservableUpdate
                     _editorDirtyState.IsDirty(context)));
             }
 
-            SaveCurrentProject();
+            // ADR-0093 P9: project.save, which also reports a world left unsaved.
+            if (!TryRunAutomationCommand("project.save", null, out _, out string saveError))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, $"[Automation] project.save failed: {saveError}");
+            }
+
             _automationSaveProjectFramesRemaining = 60;
             return;
         }
@@ -7928,14 +8010,19 @@ public partial class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
-                _automationOptions.SetParticlePropertyKey,
-                _automationOptions.SetParticlePropertyValue,
-                out string statusMessage))
+        // ADR-0093 P9 and P13: particle.set_property (the bounds of P5, the particle history) then particle.save.
+        string particleAsset = inspectorPanel.LoadedRelativePath.Replace('\\', '/');
+        string statusMessage = null;
+        if (TryRunAutomationCommand(
+                "particle.set_property",
+                new { asset = particleAsset, property = _automationOptions.SetParticlePropertyKey, value = _automationOptions.SetParticlePropertyValue },
+                out _,
+                out statusMessage)
+            && TryRunAutomationCommand("particle.save", new { asset = particleAsset }, out _, out statusMessage))
         {
+            RecordAutomationWrittenFile(Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath));
             if (TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
             {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
                 UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
             }
 
@@ -8002,7 +8089,13 @@ public partial class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.DropParticleAssetPath);
+        if (!TryResolveAutomationProjectPath(_automationOptions.DropParticleAssetPath, out string fullPath, out _, out string pathError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to resolve particle asset drop '{_automationOptions.DropParticleAssetPath}': {pathError}");
+            return;
+        }
+
         if (!TryResolveAutomationAssetInfo(fullPath, Constants.FileNameExtensions.Particle, out var assetInfo, out string resolveError))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
@@ -8010,45 +8103,18 @@ public partial class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        var previousEntity = _editorSelection.SelectedEntity;
-        var previousComponent = _editorSelection.SelectedComponent;
-        var existingComponent = entity.GetComponent<ParticleSystemComponent>();
-        if (existingComponent != null)
+        // ADR-0093 P9: particle.drop (one undoable world change), then the dropped component is selected as before.
+        if (!TryRunAutomationCommand("particle.drop", new { entity_id = entity.Id, asset = assetInfo.Id.ToString() }, out _, out string dropError))
         {
-            Guid previousAssetId = existingComponent.ParticleEffectAssetId;
-            EditorHistoryService.Current.Execute(
-                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
-                new EditorDelegateCommand(
-                    "Update Particle System Component",
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, assetInfo.Id);
-                        SelectAutomationParticleDropTarget(entity, existingComponent);
-                    },
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, previousAssetId);
-                        RestoreAutomationSelection(previousEntity, previousComponent);
-                    }));
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to drop particle asset '{assetInfo.FileName}' on entity='{entity.Name}': {dropError}");
+            return;
         }
-        else
+
+        var dropped = entity.GetComponent<ParticleSystemComponent>();
+        if (dropped != null)
         {
-            var component = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, Vector3.Zero);
-            var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
-            EditorHistoryService.Current.Execute(
-                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
-                new EditorDelegateCommand(
-                    "Add Particle System Component",
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
-                        SelectAutomationParticleDropTarget(entity, component);
-                    },
-                    () =>
-                    {
-                        EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
-                        RestoreAutomationSelection(previousEntity, previousComponent);
-                    }));
+            SelectAutomationParticleDropTarget(entity, dropped);
         }
 
         _automationParticleDropped = true;
@@ -8061,17 +8127,6 @@ public partial class GameEditor : Game, IObservableUpdate
     {
         _editorSelection.SetSelectedEntity(entity);
         _editorSelection.SetSelectedComponent(component);
-        SynchronizeAutomationWorldViewportSelection();
-    }
-
-    private void RestoreAutomationSelection(Entity entity, EntityComponent component)
-    {
-        _editorSelection.SetSelectedEntity(entity);
-        if (component != null)
-        {
-            _editorSelection.SetSelectedComponent(component);
-        }
-
         SynchronizeAutomationWorldViewportSelection();
     }
 
@@ -8140,6 +8195,10 @@ public partial class GameEditor : Game, IObservableUpdate
         {
             string fullPath = pair.Key;
             string originalContent = pair.Value;
+            if (!IsAutomationFileUnchangedSinceWrite(fullPath))
+            {
+                continue;
+            }
 
             if (!File.Exists(fullPath) || !string.Equals(File.ReadAllText(fullPath), originalContent, StringComparison.Ordinal))
             {
@@ -8157,7 +8216,8 @@ public partial class GameEditor : Game, IObservableUpdate
         if (!_automationOptions.ExitAfterCapture
             || !_automationParticleAssetCreated
             || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetFullPath)
-            || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetRelativePath))
+            || string.IsNullOrWhiteSpace(_automationCreatedParticleAssetRelativePath)
+            || !IsAutomationFileUnchangedSinceWrite(_automationCreatedParticleAssetFullPath))
         {
             return;
         }
@@ -8360,14 +8420,20 @@ public partial class GameEditor : Game, IObservableUpdate
             return false;
         }
 
-        bool selectionChanged = !ReferenceEquals(_editorSelection.SelectedEntity, entity);
-        _editorSelection.SetSelectedEntity(entity);
-
         var component = FindAutomationComponent(entity);
+        bool selectionChanged = !ReferenceEquals(_editorSelection.SelectedEntity, entity)
+            || (component != null && !ReferenceEquals(_editorSelection.SelectedComponent, component));
+
+        // ADR-0093 P9: the selection goes through selection.set, with the ids the name and index lookup found.
+        if (!TryRunAutomationCommand("selection.set", new { entity_id = entity.Id, component_id = component?.Id }, out _, out string selectError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to select entity='{entity.Name}': {selectError}");
+            return false;
+        }
+
         if (component != null)
         {
-            selectionChanged |= !ReferenceEquals(_editorSelection.SelectedComponent, component);
-            _editorSelection.SetSelectedComponent(component);
             if (selectionChanged)
             {
                 EditorDiagnosticsBuffer.Append(LogVerbosity.Info,

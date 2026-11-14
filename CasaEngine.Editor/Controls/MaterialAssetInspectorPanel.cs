@@ -318,52 +318,6 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         return true;
     }
 
-    public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
-    {
-        statusMessage = string.Empty;
-
-        if (_materialAsset == null)
-        {
-            statusMessage = "No material loaded.";
-            return false;
-        }
-
-        if (!TryFindPropertyDefinition(propertyKey, out var propertyDefinition))
-        {
-            statusMessage = $"Property '{propertyKey}' not found.";
-            return false;
-        }
-
-        if (!TryCreateAutomationValue(propertyDefinition, rawValue, out var value))
-        {
-            statusMessage = $"Unable to parse '{rawValue}' for property '{propertyDefinition.Key}'.";
-            return false;
-        }
-
-        try
-        {
-            _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
-            UpdateDirtyStateFromCurrentMaterial();
-            if (!TrySaveLoadedAsset(out string saveError))
-            {
-                statusMessage = saveError ?? "Unable to save material asset.";
-                return false;
-            }
-
-            RefreshEditedProperty(propertyDefinition, refreshEditorValue: true);
-            statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
-                ? $"Saved property '{propertyDefinition.Key}'."
-                : $"Saved {EscapeMarkup(_loadedRelativePath)} ({propertyDefinition.Key}={rawValue})";
-            return true;
-        }
-        catch (Exception exception)
-        {
-            Logs.WriteException(exception);
-            statusMessage = exception.Message;
-            return false;
-        }
-    }
-
     private void RefreshInspector()
     {
         if (_propertiesStack == null || _headerText == null || _sourceText == null || _statusText == null)

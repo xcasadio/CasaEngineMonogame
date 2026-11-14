@@ -206,6 +206,29 @@ internal sealed class EditorRemoteControl : IDisposable
 
     public EditorRemoteDispatcher Dispatcher { get; }
 
+    /// <summary>
+    /// Game thread: the in-process executor of the automation options (ADR-0093 P9). Runs a registered command at once
+    /// with the arguments a pipe client would send; it is a C# method only, never a command, so no pipe client reaches
+    /// it, and the commands it calls check their arguments exactly as for a client. Works whether or not the pipe
+    /// server runs. A deferred command is refused: the automation uses immediate commands only.
+    /// </summary>
+    public RemoteResponse Invoke(string method, object parameters = null)
+    {
+        var call = new EditorRemoteCall(new RemoteRequest
+        {
+            Id = 0,
+            Method = method,
+            Params = parameters == null ? null : RemoteMessageCodec.ToElement(parameters),
+        });
+        Dispatcher.ExecuteNow(call);
+        if (!call.IsCompleted)
+        {
+            call.Fail(RemoteError.Refused(RemoteErrorReasons.Failed, $"'{method}' does not answer at once: the automation executor runs immediate commands only."));
+        }
+
+        return call.Completion.Result;
+    }
+
     /// <summary>True while the pipe server accepts clients; false again if its loop stopped on an error.</summary>
     public bool IsRunning => _server?.IsRunning == true;
 

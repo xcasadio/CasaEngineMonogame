@@ -97,6 +97,93 @@ public partial class GameEditor
         }
     }
 
+    /// <summary>
+    /// Contents the automation itself wrote to a file (after its own save or creation): the end-of-run restore and
+    /// delete only touch a file still holding them, so a change made meanwhile through the remote control is kept
+    /// (ADR-0093 P9).
+    /// </summary>
+    private readonly Dictionary<string, string> _automationWrittenFileContents = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Runs a registered command for an automation option through the in-process executor (ADR-0093 P9).</summary>
+    private bool TryRunAutomationCommand(string method, object parameters, out System.Text.Json.JsonElement result, out string error)
+    {
+        Editor.Remote.Protocol.RemoteResponse response = _remoteControl.Invoke(method, parameters);
+        if (response.Error != null)
+        {
+            result = default;
+            error = response.Error.Message;
+            return false;
+        }
+
+        result = response.Result ?? default;
+        error = null;
+        return true;
+    }
+
+    /// <summary>
+    /// The path rule of ADR-0093 P11 for <c>--open-asset</c>, <c>--content-folder</c>, <c>--create-particle-asset</c>
+    /// and <c>--drop-particle-asset</c>: relative to the project, or absolute inside it (made relative); a path outside
+    /// the project is refused. <paramref name="relativePath"/> is empty for the project folder itself.
+    /// </summary>
+    private static bool TryResolveAutomationProjectPath(string optionPath, out string fullPath, out string relativePath, out string error)
+    {
+        fullPath = ResolveAutomationAssetPath(optionPath);
+        string projectPath = Path.GetFullPath(EngineEnvironment.ProjectPath);
+        relativePath = Path.GetRelativePath(projectPath, fullPath);
+        if (relativePath == ".")
+        {
+            relativePath = string.Empty;
+        }
+
+        if (Path.IsPathRooted(relativePath)
+            || relativePath == ".."
+            || relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            error = $"'{optionPath}' is outside the project folder '{projectPath}': automation asset paths must be inside the project (ADR-0093 P11).";
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    /// <summary>The asset id an asset document panel id ends with (<c>prefix + id:N</c>).</summary>
+    private static bool TryGetAssetIdFromPanelId(string prefix, string panelId, out Guid assetId)
+    {
+        assetId = Guid.Empty;
+        return panelId != null
+            && panelId.StartsWith(prefix, StringComparison.Ordinal)
+            && Guid.TryParseExact(panelId.Substring(prefix.Length), "N", out assetId);
+    }
+
+    /// <summary>Remembers what the automation wrote to <paramref name="fullPath"/>, for the end-of-run restore rule.</summary>
+    private void RecordAutomationWrittenFile(string fullPath)
+    {
+        if (File.Exists(fullPath))
+        {
+            _automationWrittenFileContents[fullPath] = File.ReadAllText(fullPath);
+        }
+    }
+
+    /// <summary>
+    /// True when the end of the automation may restore or delete <paramref name="fullPath"/>: it still holds what the
+    /// automation wrote, or the automation recorded nothing for it. Otherwise logs that the file is kept.
+    /// </summary>
+    private bool IsAutomationFileUnchangedSinceWrite(string fullPath)
+    {
+        if (!_automationWrittenFileContents.TryGetValue(fullPath, out string written)
+            || !File.Exists(fullPath)
+            || string.Equals(File.ReadAllText(fullPath), written, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+            $"[Automation] Kept '{fullPath}': it changed after the automation wrote it (remote control).");
+        return false;
+    }
+
     private sealed class GameEditorRemoteHost : IEditorRemoteHost
     {
         private readonly GameEditor _editor;
@@ -253,6 +340,16 @@ public partial class GameEditor
 
         public string OpenAsset(string fullPath, string type)
         {
+            // An open panel is brought to the front, never reloaded: reopening reads the file again and would drop
+            // the unsaved edits (and, for a screen, the node ids) of earlier commands.
+            AssetInfo openInfo = FindCatalogInfo(fullPath);
+            string openPanelId = openInfo != null ? FindAssetPanelId(openInfo.Id) : null;
+            if (openPanelId != null)
+            {
+                _editor.ActivateDockPanel(openPanelId);
+                return openPanelId;
+            }
+
             bool opened = type switch
             {
                 EditorRemoteAssetTypes.Material => _editor.TryOpenMaterialAsset(fullPath),
@@ -266,10 +363,15 @@ public partial class GameEditor
                 return null;
             }
 
-            string relative = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
-            AssetInfo info = AssetCatalog.GetByFileName(relative)
-                ?? AssetCatalog.GetByFileName(relative.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            AssetInfo info = FindCatalogInfo(fullPath);
             return info != null ? FindAssetPanelId(info.Id) : null;
+        }
+
+        private static AssetInfo FindCatalogInfo(string fullPath)
+        {
+            string relative = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+            return AssetCatalog.GetByFileName(relative)
+                ?? AssetCatalog.GetByFileName(relative.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         }
 
         public bool TryGetAssetHistoryContext(Guid assetId, out EditorHistoryContext context)

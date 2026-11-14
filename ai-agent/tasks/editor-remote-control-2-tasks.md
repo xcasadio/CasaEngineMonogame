@@ -167,7 +167,7 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
 
 ## Phase 3 — Automatisation
 
-### ⏳ T3.1 — Options de contenu sur le registre
+### ✅ T3.1 — Options de contenu sur le registre
 
 - Objectif : P9 : exécuteur interne et options de contenu réécrites en appels de commandes. P11, P12 et P13 appliqués ; restauration et suppression de fin limitées à ce que l'automatisation a créé ou modifié. Correspondance (la sauvegarde instantanée et la restauration de fin restent celles d'aujourd'hui) :
   - `--entity`, `--entity-index`, `--component` → `selection.set` (la recherche par nom et index reste l'actuelle `FindAutomationEntity`, qui produit les identifiants) ;
@@ -184,6 +184,7 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
 - Fichiers : `GameEditor.cs` (`RunAutomation` et ses étapes), `CasaEngine.Editor/Remote/*`, tests.
 - Validation : smokes S1 à S8 de T0.2 rejoués, artefacts identiques à la référence (seules différences admises : celles qu'annoncent P11 à P13, notées) ; un smoke de plus avec `--remote` vérifie que la fin d'automatisation ne restaure ni ne supprime une modification faite par commande à distance ; tests ; build.
 - Commit : `refactor(editor): run the content automation flags through the command registry`
+- Note de validation (2026-11-14) : exécuteur interne `EditorRemoteControl.Invoke` (méthode C#, jamais une commande, donc injoignable par le tube ; serveur démarré ou non ; commande différée refusée) sur `EditorRemoteDispatcher.ExecuteNow`. Étapes réécrites selon la correspondance ; écarts : `--open-asset` d'un monde **et des autres types** (sprite, animation…) garde la route de l'éditeur (`world.open` est différé, `asset.open` a une liste fermée) ; après `particle.drop`, le composant déposé est sélectionné comme avant (hors historique). Anciennes routes sans bornes supprimées (`TryApplyAutomationPropertyOverrideAndSave` des panneaux de matériau et de particules, `RestoreAutomationSelection`). P11 (`TryResolveAutomationProjectPath`), P12 et P13 appliqués. Fin d'automatisation : restauration et suppression seulement si le fichier contient encore ce que l'automatisation a écrit (`_automationWrittenFileContents`), sinon ligne `Kept '…'`. **Défaut trouvé et corrigé** : rouvrir un asset déjà ouvert le rechargeait depuis le disque (modifications non sauvegardées perdues, nouveaux ids de nœuds d'écran) ; `OpenAsset` de l'hôte active désormais le panneau ouvert (S6 échouait avant ce correctif ; touchait aussi les commandes de T2.x enchaînées). Validation : S1 à S8 rejoués après correctif, **artefacts identiques à la référence** (automatisation, empreintes, codes de sortie) ; smoke `--remote` (option de matériau à 0,5 puis, pendant le délai de capture, `material.set_property` 0,25 et `material.save` par la CLI) : fichier à 0,25 après la sortie ; refus sur le vrai éditeur, projet inchangé : `--open-asset C:/Windows/win.ini` (P11), `--set-screen-property btnPlay:Grid.Row=2` (P12), `--set-material-property alpha_cutoff=NaN` et `--set-particle-property maxparticles=2147483647` (P13). 2 tests de l'exécuteur. `CasaEngine.Tests` 5448/5448, `CasaEngine.Editor.MonoGame.sln` 0 erreur.
 
 ## Phase 4 — Documentation et vérification
 

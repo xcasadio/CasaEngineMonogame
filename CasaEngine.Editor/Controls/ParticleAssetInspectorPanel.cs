@@ -309,39 +309,6 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         return true;
     }
 
-    public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
-    {
-        statusMessage = string.Empty;
-
-        if (_particleAsset == null)
-        {
-            statusMessage = "No particle asset loaded.";
-            return false;
-        }
-
-        if (!TryApplyAutomationProperty(propertyKey, rawValue, out statusMessage))
-        {
-            return false;
-        }
-
-        if (!TrySaveLoadedAsset(out string saveError))
-        {
-            statusMessage = saveError ?? "Unable to save particle asset.";
-            return false;
-        }
-
-        if (!ReloadFromDisk())
-        {
-            statusMessage = "Particle property was saved, but reload from disk failed.";
-            return false;
-        }
-
-        statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
-            ? $"Saved particle property '{propertyKey}'."
-            : $"Saved {_loadedRelativePath} ({propertyKey}={rawValue})";
-        return true;
-    }
-
     public void Dispose()
     {
         _particlePreview?.Dispose();
