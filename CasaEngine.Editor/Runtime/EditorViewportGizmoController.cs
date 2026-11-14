@@ -278,17 +278,24 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         _gizmo.IsActiveViewport = receivesInput;
 
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D1))
+        // Gizmo modes on W, E and R like Unreal (ADR-0089). With the right button held these keys fly the camera,
+        // and with Ctrl held they are left to the editor's Ctrl shortcuts.
+        bool modeKeysEnabled = isKeyboardFocused
+            && mouseState.RightButton == ButtonState.Released
+            && !keyboardState.IsKeyDown(Keys.LeftControl)
+            && !keyboardState.IsKeyDown(Keys.RightControl);
+
+        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.W))
         {
             ActiveMode = GizmoMode.Translate;
         }
 
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D2))
+        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.E))
         {
             ActiveMode = GizmoMode.Rotate;
         }
 
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D3))
+        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.R))
         {
             ActiveMode = GizmoMode.NonUniformScale;
         }

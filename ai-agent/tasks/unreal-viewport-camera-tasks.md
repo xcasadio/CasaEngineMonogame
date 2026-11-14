@@ -155,7 +155,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `feat(editor): select on click release and keep the left drag for the camera`
 - Note de validation (2026-11-14) : ordre P8 en place dans `WorldViewportPanel.Update` (`IsHoveringHandle` lu avant la caméra, résultat passé au gizmo) ; perspective : sélection au clic relâché, Ctrl ou Shift ajoute ; vues 2D : résultat `null`, sélection à l'appui inchangée. La décision clic/glisser et la poignée sont couvertes par `ViewportCameraNavigationTests` ; le contrôleur du gizmo demande un `GraphicsDevice`, pas de test unitaire ajouté. `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; `CasaEngine.Tests` 5111/5111. **Manque** : smoke (a) à (e) dans l'éditeur lancé, reporté à la recette T3.2.
 
-### ⏳ T1.3 — Modes du gizmo sur W, E, R
+### 🧪 T1.3 — Modes du gizmo sur W, E, R
 
 - Objectif : D10.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewportGizmoController.cs`, `CasaEngine.Editor/Controls/WorldViewportPanel.cs` si l'état du bouton droit doit être transmis, docs qui citent 1/2/3 (`rg -n "\b[123]\b.*(Translate|Rotate|Scale)" docs/editor`).
@@ -165,6 +165,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   3. Vérifier qu'aucun autre raccourci de l'éditeur n'utilise W, E ou R seuls (`rg -n "Keys\.(W|E|R)\b" CasaEngine.Editor` au 2026-11-14 : seulement le vol clavier de `EditorViewportCameraController`).
 - Validation : build éditeur ; tests verts ; smoke : W/E/R changent le mode, clic droit + W avance sans changer de mode.
 - Commit : `feat(editor): switch gizmo modes with W, E and R like Unreal`
+- Note de validation (2026-11-14) : W/E/R remplacent 1/2/3, 4 inchangé ; ignorés bouton droit tenu ou Ctrl tenu. Aucune doc de `docs/editor` ne citait 1/2/3. `dotnet build CasaEngine.Editor.MonoGame.sln` réussi. **Manque** : smoke dans l'éditeur lancé, reporté à la recette T3.2.
 
 ---
 
