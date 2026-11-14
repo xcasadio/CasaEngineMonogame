@@ -83,6 +83,10 @@ internal static class EditorRemoteParticleCommands
         ["velocitycurve"] = (ValueKind.PanelChecked, 0, 0),
         ["velocityoverlifetime"] = (ValueKind.PanelChecked, 0, 0),
         ["velocitycurvepreset"] = (ValueKind.PanelChecked, 0, 0),
+        ["colorlifetime"] = (ValueKind.PanelChecked, 0, 0),
+        ["coloroverlifetime"] = (ValueKind.PanelChecked, 0, 0),
+        ["colorgradient"] = (ValueKind.PanelChecked, 0, 0),
+        ["colorgradientpreset"] = (ValueKind.PanelChecked, 0, 0),
     };
 
     public static void Register(EditorRemoteCommandRegistry registry, IEditorRemoteHost host)

@@ -167,20 +167,36 @@ public partial class GameEditor
     }
 
     /// <summary>
-    /// True when the end of the automation may restore or delete <paramref name="fullPath"/>: it still holds what the
-    /// automation wrote, or the automation recorded nothing for it. Otherwise logs that the file is kept.
+    /// True when the end of the automation may restore or delete <paramref name="fullPath"/>: the automation wrote it
+    /// and it still holds what the automation wrote. A file the automation did not write (its edit was refused or not
+    /// saved) is never touched; a file changed since is kept, and that is logged.
     /// </summary>
     private bool IsAutomationFileUnchangedSinceWrite(string fullPath)
     {
-        if (!_automationWrittenFileContents.TryGetValue(fullPath, out string written)
-            || !File.Exists(fullPath)
-            || string.Equals(File.ReadAllText(fullPath), written, StringComparison.Ordinal))
+        if (!_automationWrittenFileContents.TryGetValue(fullPath, out string written))
+        {
+            return false;
+        }
+
+        if (!File.Exists(fullPath) || string.Equals(File.ReadAllText(fullPath), written, StringComparison.Ordinal))
         {
             return true;
         }
 
-        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
-            $"[Automation] Kept '{fullPath}': it changed after the automation wrote it (remote control).");
+        string message = $"[Automation] Kept '{fullPath}': it changed after the automation wrote it (remote control).";
+        Logs.WriteWarning(message);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, message);
+
+        // The diagnostics file is written before the end-of-run restore: the line is appended to it.
+        try
+        {
+            File.AppendAllText(ResolveAutomationDiagnosticsPath(), $"[Warning] {message}{Environment.NewLine}");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logs.WriteWarning($"[Automation] Could not append to the diagnostics file: {ex.Message}");
+        }
+
         return false;
     }
 

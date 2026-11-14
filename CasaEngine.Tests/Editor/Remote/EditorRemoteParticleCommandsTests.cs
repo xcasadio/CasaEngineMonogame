@@ -109,6 +109,7 @@ public sealed class EditorRemoteParticleCommandsTests : IDisposable
     [InlineData("flipbookcolumns", "64")]
     [InlineData("looping", "false")]
     [InlineData("flipbookcurve", "linear")]
+    [InlineData("colorlifetime", "fire")]
     public void Validate_AcceptsValuesInsideTheBounds(string key, string value)
     {
         Assert.Null(EditorRemoteParticleCommands.Validate(Normalize(key), value));
