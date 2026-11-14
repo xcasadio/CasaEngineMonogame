@@ -102,11 +102,12 @@ Un agent IA (ou un script) pilote l'éditeur **ouvert** : il lit son état, cré
 
 ## Phase 1 — Protocole et serveur
 
-### ⏳ T1.1 — Projet de protocole
+### ✅ T1.1 — Projet de protocole
 
 - Objectif : enveloppes requête, réponse et erreur, lecture et écriture d'un message par ligne, codes d'erreur, version du protocole, fichier de découverte (P1, P3).
 - Fichiers : `Tools/CasaEngine.Editor.Remote.Protocol/*` (nouveau projet), `CasaEngine.Editor.MonoGame.sln`, `CasaEngine.Tests/CasaEngine.Tests.csproj` (référence au projet de protocole ; `CasaEngine.Tests` n'est dans aucune des deux `.sln`), tests dans `CasaEngine.Tests/Editor/Remote/`.
 - Validation : tests d'aller-retour des messages, d'une ligne invalide (erreur `parse_error`, pas d'exception), d'une ligne de plus de 1 Mio (refusée sans tout lire), d'un fichier de découverte falsifié (nom de tube `\\autre\pipe\x`, nom hors expression régulière, processus mort ou heure de démarrage différente : ignoré) ; build.
+- Note de validation (2026-11-14) : projet `Tools/CasaEngine.Editor.Remote.Protocol` (net9.0, sans dépendance) : enveloppes JSON-RPC en snake_case, codes et raisons d'erreur, `RemoteLineReader` borné à 1 Mio (ligne trop longue sautée, lecteur toujours utilisable), `RemoteMessageCodec` qui ne lève jamais sur une entrée invalide, `RemoteDiscovery` (écriture atomique, lecture qui refuse nom de tube, jeton, nom de fichier, processus ou heure de démarrage qui ne correspondent pas), `RemoteEditorClient` (serveur `.` seulement, `CurrentUserOnly`, `Identification`, contrôle du jeton) partagé par les deux outils et testé en T1.2. 20 tests `Editor.Remote` verts ; `CasaEngine.Editor.MonoGame.sln` 0 erreur.
 - Commit : `feat(tools): add the editor remote control protocol`
 
 ### ⏳ T1.2 — Serveur de l'éditeur et registre de commandes

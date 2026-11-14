@@ -45,6 +45,7 @@
     <ProjectReference Include="..\CasaEngine.Editor\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
     <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
+    <ProjectReference Include="..\Tools\CasaEngine.Editor.Remote.Protocol\CasaEngine.Editor.Remote.Protocol.csproj" />
   </ItemGroup>
 
 </Project>
