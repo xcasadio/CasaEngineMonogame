@@ -1,6 +1,6 @@
 # Editor remote control (CLI and MCP)
 
-A running editor can be driven from outside: by the `casa-editor` command line, or by an AI agent through the `casa-editor-mcp` MCP server. Both call the same typed commands, served by the editor on a local pipe. Decision: [ADR-0092](../decisions/0092-editor-remote-control-for-tools-and-ai-agents.md).
+A running editor can be driven from outside: by the `casa-editor` command line, or by an AI agent through the `casa-editor-mcp` MCP server. Both call the same typed commands, served by the editor on a local pipe. Decisions: [ADR-0092](../decisions/0092-editor-remote-control-for-tools-and-ai-agents.md) (world, entities, captures, play) and [ADR-0093](../decisions/0093-editor-remote-control-covers-assets-panels-and-automation.md) (assets, panels, reparenting, automation flags).
 
 ## Start it
 
@@ -61,9 +61,20 @@ Without a serving editor the server lists a single tool, `editor_connection`, th
 | `entity.create` / `entity.delete` / `entity.rename` / `entity.duplicate` | Entity edits. | Yes |
 | `component.add` / `component.remove` | Component edits (rules below). | Yes |
 | `property.set` | Sets an editable component property. | Yes |
-| `history.undo` / `history.redo` | Steps the world history. | — |
+| `entity.reparent` | Moves an entity under another one, or to the root; refuses a cycle. | Yes |
+| `history.undo` / `history.redo` | Steps a history: the world (default) or an open asset panel (`context` = the asset id). | — |
 | `capture.window` / `capture.viewport` | PNG of the editor window or of the world viewport. | — |
 | `play.status` / `play.start` / `play.stop` | Play mode. `play.start` builds and runs the project's code. | — |
+| `asset.list` | Catalogued assets, optionally of one type; 500 at most, then `truncated` and `total`. | — |
+| `asset.open` | Opens a `.material`, `.particle`, `.uiscreen` or `.sound` in its panel; returns the panel id. | — |
+| `panel.list` / `panel.activate` | Open panels (id, title, kind, active, modified); brings one to the front. | — |
+| `panel.close` | Closes a material, particle, UI screen or sound panel; refused when it has unsaved changes. | — |
+| `material.create` / `material.get` / `material.set_property` / `material.save` | Material assets (default definition `lit-diffuse`). | Set: yes |
+| `component.material_override` | Sets or clears the material of a static model slot. | Yes |
+| `particle.create` / `particle.get` / `particle.set_property` / `particle.save` | Particle assets, from a preset. | Set: yes |
+| `particle.drop` | Puts a particle asset on an entity (its particle system takes it, or one is added). | Yes |
+| `screen.get` / `screen.set_property` | UI screen node tree; sets an inspector property of a node. | Yes |
+| `sound.create` / `sound.get` / `sound.set_property` / `sound.save` | Sound assets. | **No** |
 
 Rules:
 
@@ -72,6 +83,24 @@ Rules:
 - `component.add`: with `parent_component_id` the new SceneComponent becomes its child; without it a SceneComponent becomes the root, refused when the entity already has one; any other component goes in the component list. `component.remove` refuses a SceneComponent that has children.
 - `property.set` reaches what the inspector edits, and only its types: numbers, `true`/`false`, strings (4096 characters at most), `[x, y, z]` vectors, `[r, g, b]` or `[r, g, b, a]` colours, GUID strings, enum names.
 - Errors are JSON-RPC errors; refusals carry a `reason`: `play_mode_active`, `unsaved_changes`, `not_found`, `invalid_argument`, `timeout`, `failed`.
+
+Assets:
+
+- An asset is named by its catalog id or its project-relative file. A reference whose catalog file name leaves the project, or of another type than the command expects, is refused.
+- `*.create` takes a `name` (letters, digits, space, `_`, `-`, 64 characters at most) and an existing project `folder` (`''` for the root); it refuses a name already in the catalog (any type, any case) and never writes over a file.
+- Material, particle and UI screen edits go through the asset panel's own history: `history.undo` with `context` = the asset id undoes them, like Ctrl+Z in that panel. A context with no open panel is refused. `*.save` writes the asset; until then the panel shows it modified.
+- **Sounds have no history**, like the sound inspector: `sound.set_property` answers `undoable: false`, marks the panel modified, and only `sound.save` writes the file.
+- Values are bounded like the inspector fields: finite numbers inside the field bounds (material bounds come from its definition), enum values by name (never a number), texts of 4096 characters at most, texture and audio references to catalogued assets of the right type. `particle.get` and `sound.get` list the keys `*.set_property` accepts.
+- `screen.set_property` sets only the properties the UI screen inspector lists as editable for the node's control type. Property names with `{`, `:` or `.` and values starting with `{` (markup, bindings) are refused. A node is named by its id or by a name no other node has.
+
+## Automation flags
+
+The content flags of the editor automation (`EditorAutomationOptions`) run through the same commands, called in process on the game thread (never through the pipe): `--entity`/`--entity-index`/`--component` → `selection.set`; `--open-asset` → `asset.open` (worlds and other asset types keep the editor's own route); `--activate-panel` → `panel.activate`; `--create-particle-asset` → `particle.create`; `--set-particle-property` → `particle.set_property` + `particle.save`; `--set-material-property` → `material.set_property` + `material.save`; `--drop-particle-asset` → `particle.drop`; `--set-screen-property` → `screen.set_property`; `--save-project` → `project.save`. The other flags are unchanged. Behaviour changes:
+
+- `--open-asset`, `--content-folder`, `--create-particle-asset` and `--drop-particle-asset` refuse a path outside the project (an absolute path inside it still works). `--project`, `--diagnostics-out` and `--screenshot-out` are not concerned.
+- `--set-screen-property` refuses a property the UI screen inspector does not list for the node.
+- `--set-material-property` and `--set-particle-property` apply the value bounds above: NaN, infinity, out-of-range values, numeric enums and unknown or wrongly typed texture ids are refused.
+- At the end of a run the automation restores the files it edited and deletes the particle asset it created only if they still hold what it wrote: with `--remote`, a change an agent made meanwhile is kept (a `Kept '…'` line is logged).
 
 ## Security
 
@@ -84,9 +113,8 @@ Rules:
 
 ## Limits
 
-- One client at a time; the next one waits. A client idle for 10 minutes is dropped. The MCP server connects for each call and releases the pipe right after, so the CLI and several agents can share one editor.
+- Up to 4 clients at once (a fifth waits); their commands run one at a time on the editor's game thread. A client idle for 10 minutes is dropped. The MCP server connects for each call and releases the pipe right after; when the editor is busy it keeps its tool list.
 - An answer longer than 1 MiB is refused with `message_too_long`: read a large world with `entity.get` per entity.
 - An editor that crashes leaves its discovery file and captures behind; the tools ignore the stale file.
-- Editor automation flags (`EditorAutomationOptions`) are not commands yet.
-- No reparenting, no editing of assets other than the world, no docking or panel control.
+- Only materials, particles, UI screens and sounds are editable assets; sprites, animations, TileMaps, audio mixers and models are not. No docking or panel resizing. Properties hidden by the specialised inspectors stay reachable through `property.set`.
 - An editor started from inside the Claude desktop app writes `%LOCALAPPDATA%` and `%TEMP%` in a virtualised location: start the editor and the tools from the same side.
