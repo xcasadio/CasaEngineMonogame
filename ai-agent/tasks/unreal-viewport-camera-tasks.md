@@ -171,7 +171,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 
 ## Phase 2 — Démos runtime
 
-### ⏳ T2.1 — `ScriptArcBallCamera` utilise la navigation partagée
+### 🧪 T2.1 — `ScriptArcBallCamera` utilise la navigation partagée
 
 - Objectif : D1 et D7 dans les démos et `SandBoxGame`, ce qui corrige le pivot qui bouge à la molette.
 - Fichiers : `CasaEngine/Framework/Scripting/ScriptArcBallCamera.cs`, tests associés (`CasaEngine.Tests/Scripting/EngineOwnedScriptObjectsTests.cs` si `Clone` change).
@@ -182,6 +182,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   4. Vérifier les démos qui lisent les mêmes touches sans clic droit (`AnimationIkDemo` flèches et Page Up/Down, `AnimationBlendDemo` WASD) : avec D7, la caméra ne les lit plus qu'au clic droit ; noter tout conflit restant.
 - Validation : `dotnet build CasaEngine.MonoGame.sln` ; tests verts ; smoke démos, dont `WorldSpaceUIDemo` qui s'ouvre sur sa caméra initiale (`InitialCameraTarget`, `InitialCameraDistance`, `InitialCameraYaw`, `InitialCameraPitch`).
 - Commit : `feat(scripting): give ScriptArcBallCamera the Unreal-style navigation`
+- Note de validation (2026-11-14) : `ScriptArcBallCamera` lit l'état du composant à chaque `Update` et le réécrit (P6) ; un bouton ne rejoint le geste que s'il est appuyé hors UI ; propriétés publiques gardées et reliées à la navigation (P5) ; nouvelle propriété `FocusPoint` (P3), copiée par `Clone`. Conflit restant : `AudioDemo` utilise F (boucle sonore) avec la caméra par défaut, donc F recentre aussi la caméra (O3). Les touches des autres démos (flèches, Page Up/Down, WASD, R, Q) ne bougent plus la caméra sans clic droit. Pas de test unitaire du script : son `Update` lit l'`InputComponent` du jeu. `dotnet build CasaEngine.MonoGame.sln` réussi ; `CasaEngine.Tests` 5111/5111. **Manque** : smoke dans `CasaEngine.Demos` (dont `WorldSpaceUIDemo` sur sa caméra initiale), reporté à la recette T3.2.
 
 ---
 
@@ -214,6 +215,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Résolu le 2026-11-14 : P1, P3 à P8 validés, P2 remplacé par D10. | T0.1 |
+| O3 | `AudioDemo` lie F à sa boucle sonore : F y recentre aussi la caméra. Garder, ou changer la touche de la démo ? | T2.1 |
 | O2 | Le glisser gauche bouge-t-il la caméra quand l'appui tombe sur une entité déjà sélectionnée mais hors poignée ? Proposition : oui, comme Unreal en perspective (seule la poignée prend le glisser). | T1.2 |
 
 ## Hors périmètre
