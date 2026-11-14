@@ -109,8 +109,15 @@ public class DemoInputConfigurationTests
         string demosDirectory = Path.Combine(DemoScreenXamlTests.RepositoryRoot(), "CasaEngine.Demos");
         HashSet<string> declared = ReadDeclaredActions(Path.Combine(demosDirectory, "Content", "demos-input.buttonsMapping"));
 
-        // An action name is a string literal "Group.Name" in the demos' sources; nothing else there has that shape
-        // except file names and type names, which the configuration tells apart.
+        // An action name is a string literal "Group.Name". Two kinds of literal are checked: one written inside a call
+        // that takes actions, whatever its group, and one written anywhere else (an array of names read in a loop, a
+        // constant) whose group is a group of the configuration.
+        var groups = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string action in declared)
+        {
+            groups.Add(action.Substring(0, action.IndexOf('.')));
+        }
+
         var literal = new Regex("\"([A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*)\"");
         var call = new Regex("(?:DemoInput\\.(?:IsDown|WasPressed)\\([^,]+,|DemoControl\\.ForActions\\(\"[^\"]*\",)([^;]*)");
         var used = new HashSet<string>(StringComparer.Ordinal);
@@ -126,9 +133,22 @@ public class DemoInputConfigurationTests
 
             string source = File.ReadAllText(file);
             bool isDemoInput = Path.GetFileName(file) == "DemoInput.cs";
-            foreach (Match match in isDemoInput ? literal.Matches(source) : MatchesInsideCalls(call, literal, source))
+            var insideCalls = new HashSet<string>(StringComparer.Ordinal);
+            foreach (Match match in MatchesInsideCalls(call, literal, source))
+            {
+                insideCalls.Add(match.Groups[1].Value);
+            }
+
+            foreach (Match match in literal.Matches(source))
             {
                 string action = match.Groups[1].Value;
+                string group = action.Substring(0, action.IndexOf('.'));
+                if (!isDemoInput && !insideCalls.Contains(action) && !groups.Contains(group))
+                {
+                    // Some other text of that shape (a type name in a message): not an action.
+                    continue;
+                }
+
                 used.Add(action);
                 if (!declared.Contains(action))
                 {
