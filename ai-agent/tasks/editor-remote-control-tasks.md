@@ -156,11 +156,12 @@ Un agent IA (ou un script) pilote l'éditeur **ouvert** : il lit son état, cré
 
 ## Phase 4 — Outils
 
-### ⏳ T4.1 — CLI `casa-editor`
+### ✅ T4.1 — CLI `casa-editor`
 
 - Objectif : `casa-editor editors` (éditeurs trouvés), `casa-editor commands`, `casa-editor call <commande> [json]`, `casa-editor run <script.json>` (suite d'appels, arrêt à la première erreur). Option `--pid` quand plusieurs éditeurs servent. Sortie JSON, code de sortie non nul en cas d'erreur.
 - Fichiers : `Tools/CasaEngine.Editor.Cli/*` (nouveau), `.sln`, `CasaEngine.Tests/CasaEngine.Tests.csproj` (référence au projet CLI), tests de l'analyse des arguments et du script.
 - Validation : tests ; build ; appel réel au smoke T5.1.
+- Note de validation (2026-11-14) : `Tools/CasaEngine.Editor.Cli` (exécutable `casa-editor`, net9.0, dépend du seul projet de protocole) : `editors` (sans le jeton), `commands`, `call <commande> [json]`, `run <script.json>` (1000 étapes au plus, arrêt à la première erreur), options `--pid` et `--timeout` ; sortie JSON ; codes de sortie 0, 1 (commande refusée), 2 (usage), 3 (pas d'éditeur ou connexion perdue). Ajouté à la `.sln` à la main (l'outil `dotnet sln` échouait sur le dossier « Tools ») et à `CasaEngine.Tests.csproj`. **Défaut du serveur (T1.2) trouvé par le test de bout en bout et corrigé** : après la fermeture d'un client, le tube peut être « Broken » avec `IsConnected` faux ; le serveur sautait alors `Disconnect()`, l'attente du client suivant levait une `InvalidOperationException` non interceptée et la tâche du serveur s'arrêtait sans bruit. `Disconnect()` est maintenant toujours appelé, et une erreur de connexion est journalisée sans arrêter la boucle. 26 tests (arguments, script, choix de l'éditeur, pas d'éditeur, usage, `editors` sans jeton, appel et script contre un vrai serveur, deux connexions successives). Suite complète trois fois de suite : `CasaEngine.Tests` 5343/5343 ; `CasaEngine.Editor.MonoGame.sln` 0 erreur.
 - Commit : `feat(tools): add the casa-editor command line`
 
 ### ⏳ T4.2 — Serveur MCP

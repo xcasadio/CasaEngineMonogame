@@ -121,21 +121,28 @@ internal sealed class EditorRemoteServer : IDisposable
             {
                 return;
             }
-            catch (IOException ex)
+            catch (Exception ex) when (ex is IOException or InvalidOperationException)
             {
                 _dispatcher.PostLog(LogVerbosity.Warning, $"[Remote] Client connection ended: {ex.Message}");
             }
 
+            // Always disconnect: once the client has closed, the pipe can be Broken with IsConnected false, and waiting
+            // for the next client without a Disconnect throws and would end this loop for good.
             try
             {
-                if (_pipe.IsConnected)
-                {
-                    _pipe.Disconnect();
-                }
+                _pipe.Disconnect();
             }
-            catch (Exception ex) when (ex is IOException or InvalidOperationException or ObjectDisposedException)
+            catch (ObjectDisposedException)
             {
                 return;
+            }
+            catch (InvalidOperationException)
+            {
+                // Not connected: nothing to release.
+            }
+            catch (IOException ex)
+            {
+                _dispatcher.PostLog(LogVerbosity.Warning, $"[Remote] Could not release the client connection: {ex.Message}");
             }
         }
     }
