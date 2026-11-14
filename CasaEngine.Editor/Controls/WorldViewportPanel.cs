@@ -233,6 +233,7 @@ public class WorldViewportPanel : IDisposable
     private void ApplyPreferences(EditorPreferences preferences)
     {
         _cameraController.ApplyPreferences(preferences.Camera3d);
+        _camera2dController.ApplyPreferences(preferences.Camera2d);
     }
 
     /// <summary>Right button + wheel changed this viewport's fly speed: share it through the store (written later).</summary>

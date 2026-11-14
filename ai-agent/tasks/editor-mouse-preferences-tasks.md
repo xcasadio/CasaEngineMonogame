@@ -124,13 +124,14 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 - Commit : `feat(editor): apply the user preferences to the 3D viewport camera`
 - Note de validation (2026-11-14) : `ViewportCameraNavigation.InvertY` (additif) et 2 tests ; `EditorViewportCameraController.ApplyPreferences` et `FlySpeed`, 2 tests ; `HostedEditorGameAdapter.Preferences` ; chaque `WorldViewportPanel` applique les préférences à sa création, s'abonne à `Changed` par un délégué mis en cache, se désabonne dans `Dispose`, et remonte la vitesse de vol au magasin après la caméra. Les trois autres sites de création passent déjà le même adaptateur : rien à changer. `GameEditor` crée et charge le magasin juste après l'adaptateur, appelle `FlushIfDue` au début d'`Update` et `Flush` dans `OnExiting`. Ajout non prévu par le plan : en mode automatisation, fichier temporaire (`%TEMP%/CasaEngine/editor.preferences.automation.json`) pour ne pas toucher au fichier de l'utilisateur. Le désabonnement est couvert par le test du magasin, pas par un test du panneau (il demande une fenêtre MGUI). Les deux `.sln` buildent ; `CasaEngine.Tests` 5129/5129. **Manque** : smoke (viewport monde et aperçu d'entité), reporté à la recette T3.2.
 
-### ⏳ T1.2 — Caméra 2D : vitesse de pan, crans de zoom, inversion de Y
+### 🧪 T1.2 — Caméra 2D : vitesse de pan, crans de zoom, inversion de Y
 
 - Objectif : D2 pour la vue 2D.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewport2dCameraController.cs`, ses tests s'ils existent (`rg -l EditorViewport2dCameraController CasaEngine.Tests`), `CasaEngine.Editor/Controls/WorldViewportPanel.cs`.
 - Étapes : `ApplyPreferences(Camera2dPreferences)` ; pan multiplié par `pan_speed`, vertical inversé si `invert_y` ; crans de zoom multipliés par `zoom_steps_per_notch`, toujours bornés par `MinimumZoomStep`/`MaximumZoomStep`. Valeurs par défaut = comportement actuel inchangé.
 - Validation : build éditeur ; tests verts, dont un test « valeurs par défaut = comportement d'avant ».
 - Commit : `feat(editor): apply the user preferences to the 2D viewport camera`
+- Note de validation (2026-11-14) : `EditorViewport2dCameraController.ApplyPreferences`, `PanSpeed`, `ZoomStepsPerNotch`, `InvertY` ; `Pan` multiplié et inversé, crans de molette multipliés puis bornés comme avant ; le panneau applique aussi les préférences 2D. 3 tests, dont « préférences par défaut = comportement d'avant » ; les tests 2D existants passent sans changement. Build éditeur réussi ; `CasaEngine.Tests` 5132/5132. **Manque** : smoke en vue 2D, reporté à la recette T3.2.
 
 ---
 
