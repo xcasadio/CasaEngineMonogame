@@ -71,9 +71,9 @@ public sealed class RenderTargetPool : IDisposable
             return queue.Dequeue();
         }
 
-        // Create a brand-new RT
-        TotalCount++;
-        return new RenderTarget2D(
+        // Create a brand-new RT. The count grows once the target exists: a format the device refuses throws from the
+        // constructor and must not leave a phantom target in the count (the colour pipeline probes HDR formats).
+        var renderTarget = new RenderTarget2D(
             _graphicsDevice,
             Math.Max(1, width),
             Math.Max(1, height),
@@ -82,6 +82,8 @@ public sealed class RenderTargetPool : IDisposable
             depthFormat,
             0,
             RenderTargetUsage.PreserveContents);
+        TotalCount++;
+        return renderTarget;
     }
 
     /// <summary>

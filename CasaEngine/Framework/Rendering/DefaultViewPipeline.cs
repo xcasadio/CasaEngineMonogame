@@ -18,13 +18,35 @@ namespace CasaEngine.Framework.Rendering;
 /// Surface clearing and render target management are handled by
 /// <see cref="RenderPipeline"/> before and after this pipeline is invoked.
 /// </summary>
-public sealed class DefaultViewPipeline : IViewRenderPipeline
+public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPipeline
 {
     /// <summary>Singleton instance for shared usage.</summary>
     public static readonly DefaultViewPipeline Instance = new();
 
     /// <inheritdoc/>
     public void RenderView(
+        GraphicsDevice                        graphicsDevice,
+        RenderView                            view,
+        in RenderFrame                        frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        RenderScene(graphicsDevice, view, in frame, renderers);
+
+        // 3. Compose the UI phase on top of the 3D scene while the view's
+        //    render target and viewport are still active.
+        long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
+
+        (view.UICompositionService ?? DefaultUICompositionService.Instance)
+            .Compose(graphicsDevice, view, in frame);
+
+        view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
+    }
+
+    /// <summary>
+    /// Steps 1 and 2 of <see cref="RenderView"/>: the world draw and the renderer flushes, without the UI phase
+    /// (<see cref="IScenePhaseViewPipeline"/>).
+    /// </summary>
+    public void RenderScene(
         GraphicsDevice                        graphicsDevice,
         RenderView                            view,
         in RenderFrame                        frame,
@@ -46,15 +68,6 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
         }
 
         view.RenderStats.RendererFlushCpuMilliseconds += GetElapsedMilliseconds(rendererFlushStartTimestamp);
-
-        // 3. Compose the UI phase on top of the 3D scene while the view's
-        //    render target and viewport are still active.
-        long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
-
-        (view.UICompositionService ?? DefaultUICompositionService.Instance)
-            .Compose(graphicsDevice, view, in frame);
-
-        view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
     }
 
     private static double GetElapsedMilliseconds(long startTimestamp)

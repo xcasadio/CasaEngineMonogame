@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Rendering;
 /// <summary>
 /// Wraps an existing view pipeline with a simple sky background pass driven by <see cref="SkySettings"/>.
 /// </summary>
-public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
+public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline, IScenePhaseViewPipeline
 {
     private readonly IViewRenderPipeline _inner;
 
@@ -34,6 +34,29 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
         EnsureResources(graphicsDevice);
         DrawBackground(in frame);
         _inner.RenderView(graphicsDevice, view, in frame, renderers);
+    }
+
+    /// <summary>
+    /// True when the wrapped pipeline can render its scene alone (<see cref="IScenePhaseViewPipeline"/>); otherwise this
+    /// pipeline cannot split its scene from the interface and is treated as one that does not implement the interface.
+    /// </summary>
+    public bool SupportsScenePhase => _inner is IScenePhaseViewPipeline { SupportsScenePhase: true };
+
+    /// <summary>The sky background, then the scene of the wrapped pipeline without its interface.</summary>
+    public void RenderScene(
+        GraphicsDevice graphicsDevice,
+        RenderView view,
+        in RenderFrame frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        if (_inner is not IScenePhaseViewPipeline { SupportsScenePhase: true } innerScene)
+        {
+            throw new InvalidOperationException("The wrapped view pipeline cannot render its scene without its interface.");
+        }
+
+        EnsureResources(graphicsDevice);
+        DrawBackground(in frame);
+        innerScene.RenderScene(graphicsDevice, view, in frame, renderers);
     }
 
     private void EnsureResources(GraphicsDevice graphicsDevice)

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.FrozenFrames;
@@ -41,6 +42,21 @@ public sealed class RenderPipeline
     // Tonemapping shader of the linear HDR colour pipeline (ADR-0096). Loaded by the game once its content root is set;
     // null until then (the editor, tests), which only matters for a view in LinearHdr.
     private ShaderWrapper _tonemapShader;
+
+    private const string ReinhardTechniqueName = "Tonemap_Reinhard";
+    private const string AcesApproxTechniqueName = "Tonemap_AcesApprox";
+
+    // Format of the HDR scene target of the linear HDR colour pipeline; falls back once, logged, when the device refuses it.
+    private SurfaceFormat _hdrFormat = SurfaceFormat.HalfVector4;
+    private bool _tonemapMissingLogged;
+    private int _renderIndex;
+    private readonly HashSet<Type> _unadaptedPipelineWarnings = new();
+
+    /// <summary>
+    /// Number of HDR scene targets created since the start (a target is created once per view size and format, then
+    /// reused from <see cref="RenderTargetPool"/>).
+    /// </summary>
+    internal int HdrTargetCreationCount { get; private set; }
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -149,6 +165,8 @@ public sealed class RenderPipeline
     /// <param name="deltaSeconds">Elapsed time (seconds) since last frame, used for throttling.</param>
     public void Render(IReadOnlyList<RenderView> views, float deltaSeconds = 0f)
     {
+        _renderIndex++;
+
         foreach (var world in views.Select(static view => view.World).Distinct())
         {
             world.DrawWorldUIToTextures();
@@ -200,6 +218,17 @@ public sealed class RenderPipeline
                 RetainedFrameValid: retention != null && retention.IsRetainedFrameValid(viewRectangle.Width, viewRectangle.Height)));
             bool useSceneRt = plan.UseSceneRt;
 
+            // The colour pipeline is read ahead, like the shadow settings, because it decides how the view's target is
+            // bound. Legacy (the default) never takes the HDR path: every line below behaves as before it existed.
+            var colorPlan = ColorPipelinePlanner.Plan(new ColorPipelineInputs(
+                (view.EnvironmentOverride ?? view.World.EnvironmentSettings).ColorPipeline.Mode,
+                view.ClearColorBuffer,
+                viewRectangle.Width <= 0 || viewRectangle.Height <= 0,
+                view.Surface.IsBackBuffer,
+                plan));
+            bool useHdr = colorPlan.UseHdrSceneTarget && HasTonemapShader();
+            RenderTarget2D hdrTarget = null;
+
             using var guard = new GraphicsStateGuard(_graphicsDevice);
 
             // E19.TR-4a: the retained frame still holds the previous frame here, before the scene target is
@@ -213,7 +242,14 @@ public sealed class RenderPipeline
                 retention.Service.FailCapture();
             }
 
-            if (useSceneRt)
+            if (useHdr)
+            {
+                // The scene goes into a pooled HDR target; the destination of the view is bound after the scene.
+                hdrTarget = AcquireHdrTarget(viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.SetRenderTarget(hdrTarget);
+                _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+            }
+            else if (useSceneRt)
             {
                 var vp = view.Surface.ViewportRect;
                 var sceneTarget = plan.RetainThisFrame
@@ -256,7 +292,13 @@ public sealed class RenderPipeline
             // independent textures, not shared with other views).
             long clearStartTimestamp = Stopwatch.GetTimestamp();
 
-            if (useSceneRt)
+            if (useHdr)
+            {
+                _graphicsDevice.Clear(
+                    ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil,
+                    resolvedClearColor, 1.0f, 0);
+            }
+            else if (useSceneRt)
             {
                 // sceneRt is a dedicated surface; Device.Clear is safe (no viewport restriction issue).
                 _graphicsDevice.Clear(
@@ -308,7 +350,14 @@ public sealed class RenderPipeline
             // 5. Delegate to the per-view pipeline (or the shared default)
             var pipeline = view.Pipeline ?? _defaultPipeline;
             long pipelineStartTimestamp = Stopwatch.GetTimestamp();
-            pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            if (useHdr)
+            {
+                RenderHdrView(view, pipeline, in frame, in colorPlan, in plan, hdrTarget, initialRenderTarget);
+            }
+            else
+            {
+                pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            }
             view.RenderStats.RenderedThisFrame = true;
             view.RenderStats.TotalCpuMilliseconds += GetElapsedMilliseconds(pipelineStartTimestamp);
 
@@ -317,7 +366,14 @@ public sealed class RenderPipeline
                 // Blit sceneRt to the swap-chain back buffer. This is the single write to the
                 // DXGI surface; all shadow-pass RT switches happened between non-back-buffer
                 // surfaces so no content was discarded.
-                _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                if (useHdr)
+                {
+                    BindInitialTargetKeepingBackBuffer(initialRenderTarget);
+                }
+                else
+                {
+                    _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                }
                 view.Surface.Apply(_graphicsDevice);
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
@@ -394,6 +450,196 @@ public sealed class RenderPipeline
         _graphicsDevice.SetRenderTarget(initialRenderTarget);
         var pp = _graphicsDevice.PresentationParameters;
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
+    }
+
+    // ---- Linear HDR colour pipeline (ADR-0096) ----
+
+    private bool HasTonemapShader()
+    {
+        if (_tonemapShader != null)
+        {
+            return true;
+        }
+
+        if (!_tonemapMissingLogged)
+        {
+            _tonemapMissingLogged = true;
+            Logs.WriteWarning("[ColorPipeline] The tonemap shader is not loaded: views in LinearHdr are drawn by the legacy path.");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes the HDR scene target of a view from <see cref="RenderTargetPool"/>. The key of the pool holds the format, so a
+    /// target is created once per view size; creation is logged. A format the device refuses falls back to the next one
+    /// (HalfVector4, HdrBlendable, Color), logged once.
+    /// </summary>
+    private RenderTarget2D AcquireHdrTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _hdrFormat, DepthFormat.Depth24Stencil8);
+                break;
+            }
+            catch (Exception exception) when (_hdrFormat != SurfaceFormat.Color)
+            {
+                var fallback = _hdrFormat == SurfaceFormat.HalfVector4 ? SurfaceFormat.HdrBlendable : SurfaceFormat.Color;
+                Logs.WriteWarning($"[ColorPipeline] HDR scene target format {_hdrFormat} refused ({exception.Message}); falling back to {fallback}.");
+                _hdrFormat = fallback;
+            }
+        }
+
+        if (pool.TotalCount != countBefore)
+        {
+            HdrTargetCreationCount++;
+            Logs.WriteInfo($"[ColorPipeline] HDR scene target created: {width}x{height} {target.Format}, render {_renderIndex}, total {HdrTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Renders the scene of a view into <paramref name="hdrTarget"/> (already bound and cleared), then tonemaps it into the
+    /// destination the legacy path would have drawn to, then composes the interface on top of the tonemapped image.
+    /// </summary>
+    private void RenderHdrView(
+        RenderView view,
+        IViewRenderPipeline pipeline,
+        in RenderFrame frame,
+        in ColorPipelinePlan colorPlan,
+        in FrameCapturePlan capturePlan,
+        RenderTarget2D hdrTarget,
+        RenderTarget2D initialRenderTarget)
+    {
+        try
+        {
+            bool composeInterfaceAfter = false;
+            if (pipeline is IScenePhaseViewPipeline scenePipeline && scenePipeline.SupportsScenePhase)
+            {
+                scenePipeline.RenderScene(_graphicsDevice, view, in frame, _renderers);
+                composeInterfaceAfter = true;
+            }
+            else
+            {
+                if (_unadaptedPipelineWarnings.Add(pipeline.GetType()))
+                {
+                    Logs.WriteWarning(
+                        $"[ColorPipeline] View pipeline {pipeline.GetType().Name} does not implement IScenePhaseViewPipeline: its interface is rendered into the HDR target and tonemapped with the scene.");
+                }
+
+                pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            }
+
+            var viewRectangle = view.Surface.ViewportRect;
+            BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
+            DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+
+            if (composeInterfaceAfter)
+            {
+                long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
+
+                (view.UICompositionService ?? DefaultUICompositionService.Instance)
+                    .Compose(_graphicsDevice, view, in frame);
+
+                view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
+            }
+        }
+        finally
+        {
+            RenderTargetPool.Shared.Release(hdrTarget);
+        }
+    }
+
+    /// <summary>
+    /// Binds what the legacy path would have bound to draw the view (target, surface, viewport) and clears its depth the
+    /// way the legacy path does, so the interface composed after the tonemapping meets the state it always met.
+    /// </summary>
+    private void BindHdrDestination(
+        RenderView view,
+        ColorPipelineDestination destination,
+        in FrameCapturePlan capturePlan,
+        RenderTarget2D initialRenderTarget,
+        Rectangle viewRectangle)
+    {
+        switch (destination)
+        {
+            case ColorPipelineDestination.SceneRt:
+            case ColorPipelineDestination.RetainedTarget:
+                var sceneTarget = capturePlan.RetainThisFrame
+                    ? Retention.EnsureRetained(_graphicsDevice, viewRectangle.Width, viewRectangle.Height)
+                    : EnsureSceneRt(viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.SetRenderTarget(sceneTarget);
+                _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+                _graphicsDevice.Clear(ClearOptions.DepthBuffer, Color.Black, 1.0f, 0);
+                break;
+
+            case ColorPipelineDestination.InitialTarget:
+                BindInitialTargetKeepingBackBuffer(initialRenderTarget);
+                view.Surface.Apply(_graphicsDevice);
+                ClearDestinationDepth(view);
+                break;
+
+            case ColorPipelineDestination.ViewSurface:
+                view.Surface.Apply(_graphicsDevice);
+                ClearDestinationDepth(view);
+                break;
+
+            default:
+                throw new InvalidOperationException($"No destination to tonemap into: {destination}.");
+        }
+    }
+
+    /// <summary>
+    /// Binds the initial target after the scene (or the HDR target) was drawn elsewhere. Binding the back buffer from a
+    /// render target clears it when its <see cref="RenderTargetUsage"/> is <c>DiscardContents</c> (the default of the
+    /// presentation parameters; the clear happens at the binding, see ADR-0086), which would erase the views already drawn
+    /// to the same back buffer (split-screen). The usage is read at each binding, so it is set to
+    /// <c>PreserveContents</c> for this binding only and put back at once; the legacy path never calls this.
+    /// </summary>
+    private void BindInitialTargetKeepingBackBuffer(RenderTarget2D initialRenderTarget)
+    {
+        var presentationParameters = _graphicsDevice.PresentationParameters;
+        var previousUsage = presentationParameters.RenderTargetUsage;
+        presentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
+        try
+        {
+            _graphicsDevice.SetRenderTarget(initialRenderTarget);
+        }
+        finally
+        {
+            presentationParameters.RenderTargetUsage = previousUsage;
+        }
+    }
+
+    private void ClearDestinationDepth(RenderView view)
+    {
+        var depthClear = BuildDepthClearOptions(view);
+        if (depthClear != 0)
+        {
+            _graphicsDevice.Clear(depthClear, Color.Black, 1.0f, 0);
+        }
+    }
+
+    /// <summary>
+    /// Draws the HDR target 1:1 into the current viewport through the tonemap effect: opaque, no depth, every texel
+    /// replaced by its tonemapped and display-encoded colour.
+    /// </summary>
+    private void DrawTonemap(RenderTarget2D hdrTarget, int width, int height, TonemapOperator tonemapper, float exposure)
+    {
+        _tonemapShader.SelectTechnique(tonemapper == TonemapOperator.Reinhard ? ReinhardTechniqueName : AcesApproxTechniqueName);
+        _tonemapShader.SetParameter(ShaderParameterNames.Exposure, exposure);
+
+        _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, _tonemapShader.Effect);
+        _spriteBatch.Draw(hdrTarget, new Rectangle(0, 0, width, height), Color.White);
+        _spriteBatch.End();
     }
 
     // ---- Throttle / update mode ----
