@@ -51,6 +51,7 @@ git clone https://github.com/xcasadio/CasaEngineMonogame.git
     * Select the CasaEngine.Demos project as startup project
     * Compile and launch: the main screen lists the demos by theme, with their controls and what to look at
     * In a demo, F1 shows or hides the help panel and Esc returns to the main screen
+    * Keyboard or gamepad: each demo lists its keys and buttons, read from `CasaEngine.Demos/Content/demos-input.buttonsMapping`
 
 ## Documentation
 - Index: [docs/README.md](docs/README.md)
@@ -61,5 +62,6 @@ git clone https://github.com/xcasadio/CasaEngineMonogame.git
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)
 ![Sprite Editor](/github/screenshot_sprite_editor.jpg)
+![Demos main screen](/github/demos_main_menu.png)
 ![Demo physics 2d](/github/demo_physics_2d.jpg)
 ![Demo physics 3d](/github/demo_physics_3d.jpg)

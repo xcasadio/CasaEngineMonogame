@@ -113,7 +113,7 @@ public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
 - To change a key or a button, edit the file: the demo and its sheet follow. An action is `Group.Name`
   (`Move.Left`, `Audio.OneShot`); `key_button` is its key, `alternative_key_button` its gamepad button, a second
   key, or nothing (`NoDevice`).
-- An action holds one key and one alternative, and no combination of keys. Four demos have more actions than a
+- An action holds one key and one alternative, and no combination of keys. Three demos have more actions than a
   gamepad has buttons: the Audio, Animation blend and Animation IK demos give a button to their main actions only,
   and the rest stay on the keyboard (their sheet then shows a key alone).
 - Nothing is read while the window is inactive.

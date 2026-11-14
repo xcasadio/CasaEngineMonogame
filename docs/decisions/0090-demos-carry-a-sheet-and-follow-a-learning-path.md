@@ -32,7 +32,7 @@
 - **Demo actions go through the engine input configuration.** Each action has a keyboard key and a gamepad button,
   and the sheet lists both.
   Amended on 2026-11-14 (author's answer "Oui, option (a)", plan `demos-onboarding`, O4): an input mapping holds
-  one key and one alternative, with no key combination, and four demos have more actions than a gamepad has
+  one key and one alternative, with no key combination, and three demos (Audio, Animation blend, Animation IK) have more actions than a gamepad has
   buttons. Every demo still reads its actions from the configuration (`Content/demos-input.buttonsMapping`), but in
   those demos only the main actions get a button; the others stay on the keyboard and their sheet shows a key alone.
 - **A demo may write a file only beside the executable.** The save-game demo writes under
