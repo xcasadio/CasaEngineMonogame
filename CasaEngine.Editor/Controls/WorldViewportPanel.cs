@@ -532,6 +532,12 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
+        // Per-frame order (ADR-0089, plan P8): the gizmo's hovered handle (refreshed by the previous frame's gizmo
+        // update) is read first, the camera runs with it, then the camera result reaches the gizmo, which selects on a
+        // click release. The 2D views pass no result and keep their press-time selection (D9).
+        ViewportNavigationResult? navigationResult = null;
+        bool gizmoReceivesInput = !HasWorldOverride || EnablePreviewGizmo;
+
         if (UsesCamera2d)
         {
             if (_camera2d != null)
@@ -550,7 +556,7 @@ public class WorldViewportPanel : IDisposable
         }
         else if (_camera != null)
         {
-            ViewportNavigationResult? navigationResult = _cameraController.Update(
+            navigationResult = _cameraController.Update(
                 gameTime,
                 _camera,
                 inputContext,
@@ -559,7 +565,8 @@ public class WorldViewportPanel : IDisposable
                 !UseFront2dCamera,
                 !editorShellCapturesKeyboard,
                 ActivateThisView,
-                _releaseViewInputAction);
+                _releaseViewInputAction,
+                gizmoReceivesInput && _gizmoController.IsHoveringHandle);
 
             // F frames the selection (ADR-0089); with the right button held F flies down instead, and the
             // navigation then reports no focus request.
@@ -569,13 +576,9 @@ public class WorldViewportPanel : IDisposable
             }
         }
 
-        if (!HasWorldOverride)
+        if (gizmoReceivesInput)
         {
-            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
-        }
-        else if (EnablePreviewGizmo)
-        {
-            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused, navigationResult);
         }
     }
 
@@ -2093,9 +2096,9 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.Synchronize(ActiveCamera, _surface, _renderView?.World);
     }
 
-    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused)
+    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused, ViewportNavigationResult? navigationResult)
     {
-        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, ActiveCamera, _surface, _renderView?.World);
+        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, ActiveCamera, _surface, _renderView?.World, navigationResult);
     }
 
     private bool ShouldSynchronizeGizmo()

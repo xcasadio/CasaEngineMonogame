@@ -4,6 +4,7 @@ using System.Linq;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application.Components.DebugTools;
@@ -70,6 +71,14 @@ internal sealed class EditorViewportGizmoController : IDisposable
     }
 
     public bool AllowSelectionPicking { get; set; } = true;
+
+    /// <summary>
+    /// The pointer hovers a handle of the visible gizmo, as of the last <see cref="Update"/> (the gizmo refreshes its
+    /// hovered axis while the buttons are up). Read before the camera runs so a left press there belongs to the gizmo.
+    /// </summary>
+    public bool IsHoveringHandle => _gizmo != null
+        && _gizmo.Gizmo.ActiveAxis != GizmoAxis.None
+        && _gizmo.CurrentSelection.Count > 0;
 
     public bool AllowDeleteSelection { get; set; } = true;
 
@@ -237,7 +246,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
         bool isKeyboardFocused,
         CameraComponent camera,
         RenderTargetSurface surface,
-        World world)
+        World world,
+        ViewportNavigationResult? navigationResult = null)
     {
         if (_gizmo == null || camera == null || surface == null)
         {
@@ -323,19 +333,29 @@ internal sealed class EditorViewportGizmoController : IDisposable
         bool leftJustReleased = mouseState.LeftButton == ButtonState.Released
             && _previousMouseState.LeftButton == ButtonState.Pressed;
 
+        bool controlHeld = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+
         if (leftJustPressed)
         {
             BeginManipulationIfNeeded();
 
-            if (AllowSelectionPicking)
+            // 2D camera and front-2D views (no navigation result): selection on press, Ctrl adds, Alt removes (D9).
+            if (AllowSelectionPicking && !navigationResult.HasValue)
             {
-                bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
                 bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-                _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
+                _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), controlHeld, removeFromSelection);
             }
         }
 
         _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
+
+        // Perspective view: the left drag belongs to the camera, so selection waits for a click release
+        // (ADR-0089); Ctrl or Shift adds, nothing removes.
+        if (AllowSelectionPicking && navigationResult.HasValue && navigationResult.Value.LeftClickReleased)
+        {
+            bool shiftHeld = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), controlHeld || shiftHeld, false);
+        }
 
         if (leftJustReleased)
         {

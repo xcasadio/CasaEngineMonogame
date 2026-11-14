@@ -139,7 +139,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `feat(editor): drive the 3D viewport camera with the Unreal-style navigation`
 - Note de validation (2026-11-14) : le contrôleur délègue à `ViewportCameraNavigation`, capture la vue sur tout bouton, renvoie `null` sans mouvement libre ; F appelle `FocusEntity` sur l'entité sélectionnée. Ajout : pas de delta souris au tout premier appel (plus de saut depuis (0, 0)). Tests du contrôleur réécrits et complétés (10 cas). `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; tests caméra 40/40. Smoke dans l'éditeur lancé : à faire en T3.2.
 
-### ⏳ T1.2 — Sélection au clic relâché, poignées de gizmo prioritaires
+### 🧪 T1.2 — Sélection au clic relâché, poignées de gizmo prioritaires
 
 - Objectif : D2 et D8.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewportGizmoController.cs`, `CasaEngine.Editor/Controls/WorldViewportPanel.cs`, éventuellement `GizmoTool/Gizmo.cs` (exposer, sans changer, ce qu'il faut pour savoir si l'appui est sur une poignée : `ActiveAxis` est déjà public).
@@ -153,6 +153,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
   5. Test unitaire si la décision clic/glisser est isolable sans GPU ; sinon le dire dans la note de validation.
 - Validation : build éditeur ; tests verts ; smoke éditeur : (a) glisser gauche commencé sur une poignée = l'entité bouge, `Target` et `Yaw` de la caméra inchangés ; (b) clic dans le vide avec une sélection = sélection vidée **au relâchement**, pas à l'appui ; (c) Ctrl + clic et Shift + clic ajoutent ; (d) glisser gauche ne change pas la sélection ; (e) en vue 2D et en vue de face 2D, un clic sélectionne à l'appui comme avant (Ctrl ajoute, Alt retire) et un glisser gauche ne bouge pas la caméra. Test unitaire du contrôleur : `allowFreeCameraMovement = false` renvoie `null` et ne change ni pivot, ni distance, ni angles.
 - Commit : `feat(editor): select on click release and keep the left drag for the camera`
+- Note de validation (2026-11-14) : ordre P8 en place dans `WorldViewportPanel.Update` (`IsHoveringHandle` lu avant la caméra, résultat passé au gizmo) ; perspective : sélection au clic relâché, Ctrl ou Shift ajoute ; vues 2D : résultat `null`, sélection à l'appui inchangée. La décision clic/glisser et la poignée sont couvertes par `ViewportCameraNavigationTests` ; le contrôleur du gizmo demande un `GraphicsDevice`, pas de test unitaire ajouté. `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; `CasaEngine.Tests` 5111/5111. **Manque** : smoke (a) à (e) dans l'éditeur lancé, reporté à la recette T3.2.
 
 ### ⏳ T1.3 — Modes du gizmo sur W, E, R
 
