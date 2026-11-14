@@ -11,9 +11,27 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Demos.Demos;
 
+/// <summary>
+/// Validates forward directional shadows on static meshes. With <c>CASAENGINE_SHADOW_DEMO_VALIDATION=1</c> the scene
+/// switches to a measurement configuration used to check the lighting maths pixel by pixel (see
+/// <c>ai-agent/tasks/lighting-ambient-shadow-tasks.md</c>): world ambient (0.5, 0.5, 0.5) at intensity 1, the fill light
+/// off, the grounds replaced by a textured receiver (a solid 128/255 texture generated in memory, white diffuse colour,
+/// material ambient 1, no specular), and a reflective sphere with a material ambient of 0 that uses the scene reflection
+/// cube. <c>CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE=1</c> (in that configuration) binds a solid (0.2, 0.6, 1.0) cube
+/// generated in memory as the world's specular environment cube. Without these variables the scene is unchanged.
+/// </summary>
 public sealed class StaticShadowValidationDemo : Demo
 {
+    private const string ValidationVariable = "CASAENGINE_SHADOW_DEMO_VALIDATION";
+    private const string ReflectionCubeVariable = "CASAENGINE_SHADOW_DEMO_REFLECTION_CUBE";
+
+    private static readonly Color MeasurementReceiverTextureColor = new(128, 128, 128, 255);
+    private static readonly Color MeasurementCubeColor = new(51, 153, 255, 255);
+
     private CasaEngineGame? _game;
+    private bool _measurementConfiguration;
+    private Texture2D? _measurementReceiverTexture;
+    private TextureCube? _measurementReflectionCube;
 
     public override string Title => "Static shadow validation demo";
 
@@ -37,9 +55,14 @@ public sealed class StaticShadowValidationDemo : Demo
         environmentSettings.BackgroundColor = new Color(30, 36, 44);
         environmentSettings.BackgroundCubemap = null;
         environmentSettings.SpecularEnvironmentCubemap = null;
-        environmentSettings.AmbientColor = new Vector3(0.1f, 0.11f, 0.13f);
-        environmentSettings.AmbientIntensity = 0.55f;
+        environmentSettings.AmbientColor = _measurementConfiguration ? new Vector3(0.5f) : new Vector3(0.1f, 0.11f, 0.13f);
+        environmentSettings.AmbientIntensity = _measurementConfiguration ? 1.0f : 0.55f;
         environmentSettings.SpecularIntensity = 0.12f;
+        if (_measurementReflectionCube is not null)
+        {
+            environmentSettings.SpecularEnvironmentCubemap = _measurementReflectionCube;
+        }
+
         environmentSettings.Shadows.Enabled = true;
         environmentSettings.Shadows.Resolution = 2048;
         environmentSettings.Shadows.DepthBias = 0.001f;
@@ -56,13 +79,16 @@ public sealed class StaticShadowValidationDemo : Demo
             1.55f,
             castShadows: true);
 
-        AddDirectionalLight(
-            world,
-            "StaticShadowFillLight",
-            new Vector3(-0.2f, -0.55f, 0.82f),
-            new Color(116, 132, 156),
-            new Color(92, 102, 120),
-            0.22f);
+        if (!_measurementConfiguration)
+        {
+            AddDirectionalLight(
+                world,
+                "StaticShadowFillLight",
+                new Vector3(-0.2f, -0.55f, 0.82f),
+                new Color(116, 132, 156),
+                new Color(92, 102, 120),
+                0.22f);
+        }
     }
 
     public override void InitializeCamera(CameraComponent camera)
@@ -73,11 +99,26 @@ public sealed class StaticShadowValidationDemo : Demo
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
+        _measurementConfiguration = IsVariableSet(ValidationVariable);
+
+        if (_measurementConfiguration)
+        {
+            _measurementReceiverTexture = CreateSolidTexture(game.GraphicsDevice, MeasurementReceiverTextureColor);
+            if (IsVariableSet(ReflectionCubeVariable))
+            {
+                _measurementReflectionCube = CreateSolidCube(game.GraphicsDevice, MeasurementCubeColor);
+            }
+        }
 
         var world = game.GameManager.CurrentWorld;
         CreateValidationColumn(world, game.GraphicsDevice, "CastReceive", -9.0f, casterCastShadows: true, receiverReceiveShadows: true);
         CreateValidationColumn(world, game.GraphicsDevice, "NoReceive", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
         CreateValidationColumn(world, game.GraphicsDevice, "NoCast", 9.0f, casterCastShadows: false, receiverReceiveShadows: true);
+
+        if (_measurementConfiguration)
+        {
+            CreateMeasurementReflectiveSphere(world, game.GraphicsDevice);
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -92,12 +133,78 @@ public sealed class StaticShadowValidationDemo : Demo
             world.EnvironmentSettings.MarkDirty();
         }
 
+        _measurementReceiverTexture?.Dispose();
+        _measurementReceiverTexture = null;
+        _measurementReflectionCube?.Dispose();
+        _measurementReflectionCube = null;
+        _measurementConfiguration = false;
         _game = null;
     }
 
-    private static void CreateValidationColumn(World world, GraphicsDevice graphicsDevice, string columnName, float centerX, bool casterCastShadows, bool receiverReceiveShadows)
+    private static bool IsVariableSet(string name)
     {
-        var groundMaterial = new LitDiffuseMaterial
+        return Environment.GetEnvironmentVariable(name) == "1";
+    }
+
+    private static Texture2D CreateSolidTexture(GraphicsDevice graphicsDevice, Color color)
+    {
+        var texture = new Texture2D(graphicsDevice, 2, 2, false, SurfaceFormat.Color) { Name = "MeasurementReceiverTexture" };
+        texture.SetData(new[] { color, color, color, color });
+        return texture;
+    }
+
+    private static TextureCube CreateSolidCube(GraphicsDevice graphicsDevice, Color color)
+    {
+        var cube = new TextureCube(graphicsDevice, 2, false, SurfaceFormat.Color) { Name = "MeasurementReflectionCube" };
+        var faceData = new[] { color, color, color, color };
+        for (int face = 0; face < 6; face++)
+        {
+            cube.SetData((CubeMapFace)face, faceData);
+        }
+
+        return cube;
+    }
+
+    private void CreateMeasurementReflectiveSphere(World world, GraphicsDevice graphicsDevice)
+    {
+        var reflectiveMaterial = new LitDiffuseMaterial
+        {
+            Name = "MeasurementReflective",
+            DiffuseColor = new Color(200, 200, 200),
+            AmbientColor = Vector3.Zero,
+            SpecularColor = new Vector3(0.5f),
+            SpecularPower = 16.0f,
+            UseSceneReflectionCube = true,
+        };
+
+        SpawnStaticPrimitive(
+            world,
+            graphicsDevice,
+            "MeasurementReflectiveEntity",
+            new SpherePrimitive(2.4f, 24),
+            new Vector3(0.0f, 1.2f, 8.5f),
+            Quaternion.Identity,
+            reflectiveMaterial,
+            castShadows: false,
+            receiveShadows: true);
+    }
+
+    private LitDiffuseMaterial CreateGroundMaterial(string columnName)
+    {
+        if (_measurementConfiguration)
+        {
+            // Measurement receiver: texture x white diffuse x (light + world ambient x 1), no specular.
+            return new LitDiffuseMaterial
+            {
+                Name = $"{columnName}Ground",
+                BasColor = _measurementReceiverTexture,
+                DiffuseColor = Color.White,
+                AmbientColor = Vector3.One,
+                SpecularColor = Vector3.Zero,
+            };
+        }
+
+        return new LitDiffuseMaterial
         {
             Name = $"{columnName}Ground",
             DiffuseColor = new Color(184, 176, 154),
@@ -105,6 +212,11 @@ public sealed class StaticShadowValidationDemo : Demo
             SpecularColor = new Vector3(0.06f),
             SpecularPower = 6.0f,
         };
+    }
+
+    private void CreateValidationColumn(World world, GraphicsDevice graphicsDevice, string columnName, float centerX, bool casterCastShadows, bool receiverReceiveShadows)
+    {
+        var groundMaterial = CreateGroundMaterial(columnName);
 
         var casterMaterial = new LitDiffuseMaterial
         {
