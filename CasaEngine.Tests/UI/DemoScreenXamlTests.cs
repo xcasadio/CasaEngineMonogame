@@ -144,6 +144,11 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName("lblTheme", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("lblDescription", out MGTextBlock description));
         Assert.False(description.AllowsInlineFormatting);
+        Assert.True(window.TryGetElementByName("lblControlsHeader", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblControls", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblHighlightsHeader", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblHighlights", out MGTextBlock _));
+        Assert.True(window.TryGetElementByName("lblDocumentation", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("lblStatus", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("btnLaunch", out MGButton _));
         Assert.True(window.TryGetElementByName("btnQuit", out MGButton _));

@@ -117,7 +117,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): add controls, highlights and doc link to the Demo contract`
 - Note de validation (2026-11-14) : `Demo` porte `Controls`, `Highlights` et `DocumentationPath` (valeurs par défaut vides), type `DemoControl` (clavier, effet, manette) ; `dotnet build CasaEngine.MonoGame.sln` : 0 erreur, aucune démo modifiée.
 
-### ⏳ T1.2 — Fiche du menu
+### ✅ T1.2 — Fiche du menu
 
 - Objectif : la fiche affiche contrôles, « à observer » et chemin de la doc de la démo sélectionnée.
 - Fichiers : `CasaEngine.Demos/Content/Screens/main-menu.xaml`, `Demos/DemoUI/MainMenuScreen.cs`, `DemosGame.cs` (construction des `Entry`), `CasaEngine.Tests/UI/DemoScreenXamlTests.cs`, `DemoMainMenuTests.cs`.
@@ -126,6 +126,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   2. Mettre à jour `TheMainMenu_DeclaresWhatItsScreenLooksUp` et ajouter un test du remplissage de la fiche.
 - Validation : build, tests ; capture du menu par `CASAENGINE_CAPTURE_SCREENSHOT_PATH`.
 - Commit : `feat(demos): show controls and highlights on the main screen sheet`
+- Note de validation (2026-11-14) : fiche étendue (`lblControls`, `lblHighlights`, `lblDocumentation` et leurs titres, repliés quand la démo n'a rien), texte formaté une fois par `DemoSheetText` ; build 0 erreur ; tests `MainMenu`, `DemoSheet`, `DemoScreenXaml` 56/56 ; capture du menu : sections vides invisibles, mise en page inchangée.
 
 ### ⏳ T1.3 — Panneau d'aide en démo
 

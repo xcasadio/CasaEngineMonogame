@@ -135,7 +135,13 @@ public class DemosGame : CasaEngineGame
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)
         {
-            _mainMenuEntries[i] = new MainMenuScreen.Entry(_demos[i].Title, _demos[i].Description, _demoThemes[i]);
+            _mainMenuEntries[i] = new MainMenuScreen.Entry(
+                _demos[i].Title,
+                _demos[i].Description,
+                _demoThemes[i],
+                DemoSheetText.FormatControls(_demos[i].Controls),
+                DemoSheetText.FormatHighlights(_demos[i].Highlights),
+                _demos[i].DocumentationPath);
         }
 
         // Decision D6: CASAENGINE_START_DEMO starts that demo directly; otherwise the game starts on the main screen.
