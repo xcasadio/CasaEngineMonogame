@@ -213,21 +213,23 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 ## Phase 3 — Monde de l'éditeur
 
-### ⏳ T3.1 — Chemin de chargement d'un `.world` dans une démo
+### ✅ T3.1 — Chemin de chargement d'un `.world` dans une démo
 
 - Objectif : établir, par lecture du code, comment une démo du menu peut charger un `.world` de `Content/` à la place du monde neuf construit en code (ADR-0072), et ce que `DemoCycleAutomation` en vérifie.
 - Sources : `DemosGame.cs` (changement de monde), `GameManager.SetWorldToLoad`, `Content/DefaultWorld.world`, `Content/DemosGame.json`, `docs/engine/demos-main-menu.md`.
 - Étapes : écrire le résultat sous cette tâche ; si le chargement demande une modification de `CasaEngine/` ou contredit ADR-0072, passer en ⚠️ Blocked.
 - Validation : note écrite, avec fichier:ligne.
 - Commit : `docs(ai-agent): record how a demo can load an editor-made world`
+- Note de validation (2026-11-14) : Runtime : `GameManager.UpdateWorld` charge un monde nommé par `AssetContentManager.LoadCopy<World>(assetInfo.Id)` après `AssetCatalog.GetByFileName` (`GameManager.cs:109-131`) ; une démo peut faire la même copie et la donner à `SetWorldToLoad(World)` (`:389`). `DemosGame.ChangeDemo` crée aujourd'hui `new World()` avant `Demo.Initialize` (`DemosGame.cs`, `ChangeDemo`) : il faut un point d'extension additif dans `Demo` (par exemple `CreateWorld`, par défaut `new World()`), dans `CasaEngine.Demos` seulement, aucune modification de `CasaEngine/`. Le monde doit être dans `Content/AssetInfos.json` ; `Content/DefaultWorld.world` existe et est vide (`entity_references: []`). `DemoCycleAutomation.OnWorldLoaded` contrôle que la caméra créée par la démo est dans une vue : la démo garde donc `CreateCamera`, ou le contrôle est adapté. Éditeur : `EditorAutomationOptions` n'a aucune commande qui crée un monde, une entité ou un composant (`--project`, `--entity` et `--component` sélectionnent, `--save-project` enregistre le monde ouvert, le reste concerne particules, materials, écrans, docking) : l'automatisation ne peut pas créer le monde demandé par D7. Voir O1.
 
-### ⏳ T3.2 — Démo « World made in the editor »
+### ⚠️ T3.2 — Démo « World made in the editor »
 
 - Objectif : une démo charge un `.world` de `CasaEngine.Demos/Content/` ; sa fiche et sa doc disent comment l'ouvrir et le modifier dans l'éditeur (D4).
 - Fichiers : `CasaEngine.Demos/Content/<monde>.world` et ses assets, `CasaEngine.Demos/Demos/EditorWorldDemo.cs`, `DemosGame.cs`, `docs/engine/demos-main-menu.md`, une page `docs/editor/`.
 - Étapes : dépend de T3.1. L'agent crée le monde par l'automatisation de l'éditeur (D7) : lire d'abord `docs/editor/` et le code d'automatisation de `CasaEngine.Editor` pour établir ce qu'elle permet ; si elle ne permet pas de créer et d'enregistrer un monde, passer en ⚠️ Blocked. Le `.world` n'est jamais écrit à la main.
 - Validation : build ; lancement ; cycle à 0 ; l'auteur ouvre le monde dans l'éditeur, le modifie, relance la démo et voit le changement (🧪 tant que non fait).
 - Commit : `feat(demos): add a demo that loads a world made in the editor`
+- Note de validation (2026-11-14) : bloquée par O1 : l'automatisation de l'éditeur ne sait pas créer un monde ni y ajouter une entité (T3.1). Rien n'est écrit.
 
 ---
 
@@ -329,6 +331,7 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | — | O1 à O4 du premier jet, puis base de la branche et dossier de sauvegarde : tranchés par l'auteur le 2026-11-14, voir D6 à D10. | — |
+| O1 | D7 demande que l'agent crée le `.world` par l'automatisation de l'éditeur, qui n'a aucune commande pour créer un monde ou une entité (`CasaEngine.Editor/EditorAutomationOptions.cs`). Que faire : (a) l'auteur crée le monde dans l'éditeur et l'agent écrit la démo ; (b) l'agent copie un monde déjà fait dans l'éditeur (`Projects/SampleProject/DefaultWorld.world`, 7 entités) avec ses assets dans `CasaEngine.Demos/Content/` ; (c) l'agent ajoute des commandes d'automatisation à l'éditeur (hors périmètre actuel : touche `CasaEngine.Editor`) ; (d) l'agent génère le monde en code par `EditorWorldWriter.SaveWorld` (le fichier n'est alors pas « fait dans l'éditeur »). | T3.2 |
 
 ## Hors périmètre
 
