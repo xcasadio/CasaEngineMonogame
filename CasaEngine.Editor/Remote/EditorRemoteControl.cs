@@ -150,6 +150,37 @@ internal sealed class EditorRemoteControl : IDisposable
         return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
     }
 
+    /// <summary>Rewrites the discovery file with the project now open; the server may start before a project is loaded.</summary>
+    public void RefreshDiscovery()
+    {
+        if (_server == null)
+        {
+            return;
+        }
+
+        try
+        {
+            WriteDiscovery(_server.PipeName);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logs.WriteWarning($"[Remote] Remote control could not update its discovery file: {ex.Message}");
+        }
+    }
+
+    private void WriteDiscovery(string pipeName)
+    {
+        using Process process = Process.GetCurrentProcess();
+        RemoteDiscovery.Write(_discoveryDirectory, new RemoteDiscoveryRecord
+        {
+            ProcessId = Environment.ProcessId,
+            ProcessStartUtcTicks = process.StartTime.ToUniversalTime().Ticks,
+            PipeName = pipeName,
+            Token = _token,
+            ProjectPath = _host.ProjectFilePath,
+        });
+    }
+
     /// <summary>Starts the pipe server and writes the discovery file. Returns false, with a warning, when it cannot.</summary>
     public bool Start(bool refuseWhenElevated = true)
     {
@@ -180,15 +211,7 @@ internal sealed class EditorRemoteControl : IDisposable
         _token = RemoteDiscovery.CreateToken();
         try
         {
-            using Process process = Process.GetCurrentProcess();
-            RemoteDiscovery.Write(_discoveryDirectory, new RemoteDiscoveryRecord
-            {
-                ProcessId = Environment.ProcessId,
-                ProcessStartUtcTicks = process.StartTime.ToUniversalTime().Ticks,
-                PipeName = pipeName,
-                Token = _token,
-                ProjectPath = _host.ProjectFilePath,
-            });
+            WriteDiscovery(pipeName);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

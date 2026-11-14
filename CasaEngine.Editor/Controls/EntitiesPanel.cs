@@ -45,6 +45,7 @@ public sealed class EntitiesPanel
     private int _selectedEntityCount;
     private string _filterText = string.Empty;
     private bool _suppressSelectionChanged;
+    private bool _isRebuildingTree;
 
     public EntitiesPanel(MGWindow window, Func<World> getCurrentWorld)
     {
@@ -159,6 +160,14 @@ public sealed class EntitiesPanel
 
             if (!_entityToItem.TryGetValue(entity, out var item))
             {
+                // RebuildTree ends by calling this method again: an entity missing from the shown world (an edit-world
+                // entity while play mode shows its copy) would rebuild forever. Rebuild once, then give up.
+                if (_isRebuildingTree)
+                {
+                    _treeView.ClearSelection();
+                    return;
+                }
+
                 RebuildTree();
                 if (!_entityToItem.TryGetValue(entity, out item))
                 {
@@ -460,7 +469,15 @@ public sealed class EntitiesPanel
         _treeView.AddItem(_worldRootItem);
 
         UpdateSummary();
-        SetSelectionState(_selectedWorld, _selectedEntity, _selectedEntityCount);
+        _isRebuildingTree = true;
+        try
+        {
+            SetSelectionState(_selectedWorld, _selectedEntity, _selectedEntityCount);
+        }
+        finally
+        {
+            _isRebuildingTree = false;
+        }
     }
 
     private MGElement BuildWorldHeader(World world)

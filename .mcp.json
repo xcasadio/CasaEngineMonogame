@@ -19,6 +19,11 @@
         "serve",
         "--mcp"
       ]
+    },
+    "casa-editor": {
+      "type": "stdio",
+      "command": "Tools/CasaEngine.Editor.Mcp/bin/Debug/net9.0/casa-editor-mcp.exe",
+      "args": []
     }
   }
 }

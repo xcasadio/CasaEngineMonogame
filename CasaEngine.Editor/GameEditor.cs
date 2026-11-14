@@ -1090,6 +1090,7 @@ public partial class GameEditor : Game, IObservableUpdate
         ActivateDockPanel(EditorPanelIds.ContentBrowser);
         LoadInitialWorldIntoEditorRuntime();
         UpdateWindowTitle();
+        _remoteControl?.RefreshDiscovery();
     }
 
     private void EnsureShellChromeInitialized()
