@@ -17,6 +17,7 @@ public sealed class ShadowSettings
     private Vector3 _shadowColor = Vector3.Zero;
     private float _filterRadius;
     private float _fadeDistance;
+    private float _depthRange;
 
     public bool Enabled { get; set; } = false;
 
@@ -81,6 +82,17 @@ public sealed class ShadowSettings
         set => _fadeDistance = NormalizeNonNegative(value);
     }
 
+    /// <summary>
+    /// Depth extent of the shadow map, in world units, kept separate from its lateral extent (<see cref="MaxDistance"/>). 0
+    /// (default) makes the depth follow <see cref="MaxDistance"/> as in earlier versions; a positive value places the light that
+    /// far upstream of the camera and the far plane at twice that distance (at least 1). A negative or non-finite value becomes 0.
+    /// </summary>
+    public float DepthRange
+    {
+        get => _depthRange;
+        set => _depthRange = NormalizeNonNegative(value);
+    }
+
     public void ResetToDefaults()
     {
         Enabled = false;
@@ -92,6 +104,7 @@ public sealed class ShadowSettings
         ShadowColor = Vector3.Zero;
         FilterRadius = 0.0f;
         FadeDistance = 0.0f;
+        DepthRange = 0.0f;
     }
 
     public void Load(JObject element)
@@ -147,6 +160,11 @@ public sealed class ShadowSettings
         {
             FadeDistance = fadeDistanceNode.Value<float>();
         }
+
+        if (element.TryGetValue("depth_range", StringComparison.OrdinalIgnoreCase, out var depthRangeNode))
+        {
+            DepthRange = depthRangeNode.Value<float>();
+        }
     }
 
     public void Save(JObject element)
@@ -201,6 +219,15 @@ public sealed class ShadowSettings
         {
             element.Remove("fade_distance");
         }
+
+        if (DepthRange > 0.0f)
+        {
+            element["depth_range"] = DepthRange;
+        }
+        else
+        {
+            element.Remove("depth_range");
+        }
     }
 
     public void CopyFrom(ShadowSettings other)
@@ -216,6 +243,7 @@ public sealed class ShadowSettings
         ShadowColor = other.ShadowColor;
         FilterRadius = other.FilterRadius;
         FadeDistance = other.FadeDistance;
+        DepthRange = other.DepthRange;
     }
 
     private static int NormalizeResolution(int value)

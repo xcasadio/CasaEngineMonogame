@@ -880,6 +880,18 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Fade Distance", shadowFadeDistanceEditor);
 
+        var shadowDepthRangeEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.DepthRange,
+        };
+        shadowDepthRangeEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Depth Range",
+            static s => s.Shadows.DepthRange,
+            static (s, range) => s.Shadows.DepthRange = range,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Depth Range", shadowDepthRangeEditor);
+
         _detailsContent.TryAddChild(shadowGrid);
 
         var rebuildButton = new MGButton(_window, _ =>

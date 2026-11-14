@@ -17,6 +17,7 @@ public class ShadowSettingsTests
         Assert.Equal(Vector3.Zero, settings.ShadowColor);
         Assert.Equal(0.0f, settings.FilterRadius);
         Assert.Equal(0.0f, settings.FadeDistance);
+        Assert.Equal(0.0f, settings.DepthRange);
     }
 
     [Fact]
@@ -255,5 +256,53 @@ public class ShadowSettingsTests
         world.Shadows.MaxDistance = 60.0f;
         world.Shadows.FadeDistance = 15.0f;
         Assert.Equal(15.0f, world.Clone().Shadows.FadeDistance);
+    }
+    [Theory]
+    [InlineData(-3.0f, 0.0f)]
+    [InlineData(float.NaN, 0.0f)]
+    [InlineData(float.PositiveInfinity, 0.0f)]
+    [InlineData(0.0f, 0.0f)]
+    [InlineData(150.0f, 150.0f)]
+    public void DepthRange_NegativeOrNonFiniteBecomesZero(float value, float expected)
+    {
+        var settings = new ShadowSettings { DepthRange = value };
+
+        Assert.Equal(expected, settings.DepthRange);
+    }
+
+    [Fact]
+    public void DepthRange_IsOptionalInTheFileAndRoundTrips()
+    {
+        var saved = new JObject();
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("depth_range"));
+
+        new ShadowSettings { DepthRange = 150.0f }.Save(saved);
+        Assert.Equal(150.0f, (float?)saved["depth_range"]);
+
+        var loaded = new ShadowSettings();
+        loaded.Load(saved);
+        Assert.Equal(150.0f, loaded.DepthRange);
+
+        loaded.Load(new JObject { ["enabled"] = true });
+        Assert.Equal(0.0f, loaded.DepthRange);
+
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("depth_range"));
+    }
+
+    [Fact]
+    public void DepthRange_IsCopiedAndReset()
+    {
+        var target = new ShadowSettings();
+        target.CopyFrom(new ShadowSettings { DepthRange = 150.0f });
+        Assert.Equal(150.0f, target.DepthRange);
+
+        target.ResetToDefaults();
+        Assert.Equal(0.0f, target.DepthRange);
+
+        var world = new WorldEnvironmentSettings();
+        world.Shadows.DepthRange = 150.0f;
+        Assert.Equal(150.0f, world.Clone().Shadows.DepthRange);
     }
 }
