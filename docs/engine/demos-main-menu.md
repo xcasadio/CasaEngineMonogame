@@ -36,21 +36,27 @@ The demo's own keys are listed in its description and in its HUD.
 
 ## Themes
 
+The themes and their demos are a learning path, in this order (ADR-0090). The registration order in
+`DemosGame.LoadContentPrivate` is the order of the tree.
+
 | Theme | Demos |
 | --- | --- |
-| Rendering | Static model, Material system, Particle system, Environment showcase, Static shadow validation |
+| Getting started | The minimal, commented demos to read first. |
+| Rendering | Static model, Material system, Particle system, Environment showcase |
 | Animation | Skinned mesh, Animation blend, Animation IK, Skeletal animation blending |
 | Physics | Collision 3d basic, Collision 2d basic, Top down elevation |
-| Scene and views | Scene management, Split-screen (2 views), Render-to-texture, ViewManager v2 Sandbox |
+| Scene and views | Scene management, Split-screen (2 views), Render-to-texture |
 | Cutscenes | Cutscene MoveTo, Cutscene NavigateTo |
 | 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen |
-| UI | World-space UI, MGUI UI Overlay |
+| UI | MGUI UI Overlay, World-space UI |
 | Audio | Audio demo |
+| Engine validation | Static shadow validation, ViewManager v2 Sandbox, Frozen frame: scenes that check the engine rather than teach a feature. |
 
 ## Adding a demo
 
 ```csharp
-// DemosGame.LoadContentPrivate: the registration order is the index CASAENGINE_START_DEMO uses.
+// DemosGame.LoadContentPrivate: the registration order is the order of the main screen. Name a demo by its title in
+// scripts and documentation: its index changes when a demo is added before it.
 AddDemo(new MyDemo(), ThemeRendering);
 ```
 
@@ -61,7 +67,8 @@ AddDemo(new MyDemo(), ThemeRendering);
 
 ## Automation
 
-- `CASAENGINE_START_DEMO` (index or title) starts that demo directly, without the main screen.
+- `CASAENGINE_START_DEMO` (title, or index) starts that demo directly, without the main screen. Use the title: the
+  index of a demo is its place in the learning path and is not stable (ADR-0090).
 - `CASAENGINE_CAPTURE_SCREENSHOT_PATH` (and `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS`) captures the main screen, or the
   demo started by `CASAENGINE_START_DEMO`, then quits. The in-demo reminder "Esc / Select: back to the menu" is hidden
   while the back buffer is captured or probed (`CASAENGINE_DEMO_PIXELS_PATH`).

@@ -20,18 +20,18 @@ Le premier build valide le moteur principal. Le second est necessaire quand le h
 
 La variable d'environnement `CASAENGINE_START_DEMO` accepte soit :
 
-- un index numerique dans la liste `_demos` de `DemosGame`
-- un fragment de titre insensible a la casse
+- un titre ou un fragment de titre, insensible a la casse (a preferer : le titre est stable)
+- un index numerique dans la liste `_demos` de `DemosGame` (instable : c'est la place de la demo dans le parcours du menu, ADR-0090)
 
 Exemple PowerShell pour lancer directement `SplitScreenDemo` :
 
 ```powershell
 Set-Location CasaEngine.Demos
-$env:CASAENGINE_START_DEMO = '6'
+$env:CASAENGINE_START_DEMO = 'Split-screen demo (2 views)'
 dotnet run --project CasaEngine.Demos.csproj -c Debug --no-build
 ```
 
-Exemple equivalent avec un fragment de titre :
+Exemple avec un fragment de titre :
 
 ```powershell
 Set-Location CasaEngine.Demos
@@ -63,7 +63,7 @@ Lancement direct :
 
 ```powershell
 Set-Location CasaEngine.Demos
-$env:CASAENGINE_START_DEMO = '9'
+$env:CASAENGINE_START_DEMO = 'ViewManager v2 Sandbox'
 dotnet run --project CasaEngine.Demos.csproj -c Debug --no-build
 ```
 

@@ -27,6 +27,7 @@ public class DemosGame : CasaEngineGame
     private readonly List<string> _demoThemes = new();
 
     // Themes of the main screen, in the order of its tree.
+    private const string ThemeGettingStarted = "Getting started";
     private const string ThemeRendering = "Rendering";
     private const string ThemeAnimation = "Animation";
     private const string ThemePhysics = "Physics";
@@ -35,9 +36,11 @@ public class DemosGame : CasaEngineGame
     private const string ThemeTileMaps = "2D and tile maps";
     private const string ThemeUI = "UI";
     private const string ThemeAudio = "Audio";
+    private const string ThemeEngineValidation = "Engine validation";
     private static readonly string[] ThemeOrder =
     {
-        ThemeRendering, ThemeAnimation, ThemePhysics, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI, ThemeAudio,
+        ThemeGettingStarted, ThemeRendering, ThemeAnimation, ThemePhysics, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI,
+        ThemeAudio, ThemeEngineValidation,
     };
     private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
     private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
@@ -120,36 +123,44 @@ public class DemosGame : CasaEngineGame
     {
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
-        AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
-        AddDemo(new CutsceneNavigateToDemo(), ThemeCutscenes);
-        AddDemo(new Collision3dBasicDemo(), ThemePhysics);
-        AddDemo(new Collision2dBasicDemo(), ThemePhysics);
-        AddDemo(new TopDownElevationDemo(), ThemePhysics);
+        // The registration order is the order of the main screen: a learning path (ADR-0090). It is also the index
+        // CASAENGINE_START_DEMO accepts, so documentation and scripts name a demo by its title, which is stable.
         AddDemo(new StaticModelDemo(), ThemeRendering);
         AddDemo(new MaterialDemo(), ThemeRendering);
         AddDemo(new ParticleSystemDemo(), ThemeRendering);
         AddDemo(new EnvironmentShowcaseDemo(), ThemeRendering);
-        // Re-enabled for T2.2 (ai-agent/tasks/screen-effect-above-ui-tasks.md): it was disabled
-        // since 2026-05-24 (commit 9d73f9460, an unrelated runtime/editor separation pass), and its
-        // Camera2dComponent is the only supported camera for the above-UI screen effect quad's
-        // placement formula (ScreenEffectComponent.cs:53-67), so it is also the only demo that can
-        // host that smoke.
-        AddDemo(new TileMapDemo(), ThemeTileMaps);
-        AddDemo(new TileMap3dDemo(), ThemeTileMaps);
-        AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+
         AddDemo(new SkinnedMeshDemo(), ThemeAnimation);
-        AddDemo(new StaticShadowValidationDemo(), ThemeRendering);
         AddDemo(new AnimationBlendDemo(), ThemeAnimation);
         AddDemo(new AnimationIkDemo(), ThemeAnimation);
         AddDemo(new SkeletalAnimationBlendingDemo(), ThemeAnimation);
+
+        AddDemo(new Collision3dBasicDemo(), ThemePhysics);
+        AddDemo(new Collision2dBasicDemo(), ThemePhysics);
+        AddDemo(new TopDownElevationDemo(), ThemePhysics);
+
         AddDemo(new SceneManagementDemo(), ThemeSceneAndViews);
         AddDemo(new SplitScreenDemo(), ThemeSceneAndViews);
         AddDemo(new RenderToTextureDemo(), ThemeSceneAndViews);
-        AddDemo(new WorldSpaceUIDemo(), ThemeUI);
-        AddDemo(new ViewManagerSandbox(), ThemeSceneAndViews);
+
+        AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
+        AddDemo(new CutsceneNavigateToDemo(), ThemeCutscenes);
+
+        // TileMapDemo's Camera2dComponent is the only camera the above-UI screen effect quad supports
+        // (ScreenEffectComponent), so it is the demo that hosts that effect.
+        AddDemo(new TileMapDemo(), ThemeTileMaps);
+        AddDemo(new TileMap3dDemo(), ThemeTileMaps);
+        AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+
         AddDemo(new UIOverlayDemo(), ThemeUI);
+        AddDemo(new WorldSpaceUIDemo(), ThemeUI);
+
         AddDemo(new AudioDemo(), ThemeAudio);
-        AddDemo(new FrozenFrameDemo(), ThemeRendering);
+
+        // Scenes whose purpose is to check the engine rather than to teach a feature.
+        AddDemo(new StaticShadowValidationDemo(), ThemeEngineValidation);
+        AddDemo(new ViewManagerSandbox(), ThemeEngineValidation);
+        AddDemo(new FrozenFrameDemo(), ThemeEngineValidation);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)

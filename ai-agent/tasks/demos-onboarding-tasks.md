@@ -170,7 +170,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 ## Phase 2 — Parcours débutant
 
-### ⏳ T2.1 — Thèmes et ordre d'enregistrement
+### ✅ T2.1 — Thèmes et ordre d'enregistrement
 
 - Objectif : « Getting started » en tête, « Engine validation » en fin (P2, P3) ; l'ordre d'enregistrement suit l'ordre du menu (D2).
 - Fichiers : `CasaEngine.Demos/DemosGame.cs`, `docs/engine/demos-main-menu.md`, `docs/engine/render-stats-demo-workflow.md` (index `'6'` et `'9'` remplacés par des titres).
@@ -180,6 +180,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   3. `rg "START_DEMO\W+[0-9]"` hors `ai-agent/` : plus aucun index numérique dans `docs/`.
 - Validation : build, tests ; `CASAENGINE_DEMO_CYCLE=60` à 0 ; chaque titre cité dans `docs/` démarre la bonne démo (journal).
 - Commit : `refactor(demos): order the demos as a learning path`
+- Note de validation (2026-11-14) : thèmes « Getting started » (vide jusqu'à T2.2, donc absent de l'arbre) et « Engine validation » (Static shadow validation, ViewManager v2 Sandbox, Frozen frame) ; `AddDemo` dans l'ordre du menu ; commentaire historique retiré. `docs/engine/demos-main-menu.md` et `render-stats-demo-workflow.md` nomment les démos par leur titre : `rg "START_DEMOW+[0-9]" docs` vide. Les sept titres cités dans `docs/` démarrent leur démo ; « PSX sprite semi-transparency » (`docs/engine/sprite-psx-semi-transparency.md:92`) ne correspond à aucune démo enregistrée, déjà avant ce chantier : non corrigé. Build 0 erreur ; cycle PASS.
 
 ### ⏳ T2.2 — Démo « Hello world »
 
