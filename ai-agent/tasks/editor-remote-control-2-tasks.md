@@ -125,11 +125,12 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
 
 ## Phase 2 — Assets et panneaux
 
-### ⏳ T2.1 — Commandes génériques d'assets et de panneaux
+### ✅ T2.1 — Commandes génériques d'assets et de panneaux
 
 - Objectif : P3 et P7 : `asset.list`, `asset.open`, `panel.list`, `panel.activate`, `panel.close` ; `history.undo` / `history.redo` avec `context` (P5).
 - Fichiers : `CasaEngine.Editor/Remote/*`, `GameEditor.Remote.cs` (accès au dock et aux routes), tests.
 - Validation : tests (référence hors projet ou de mauvais type refusée, y compris par un `FileName` du catalogue qui sort du projet ; `asset.open` sur un `.world` refusé ; panneaux de matériau, de particules, d'écran et de son modifiés non fermés ; panneau fixe et panneau inconnu non fermés ; contexte d'annulation inexistant refusé ; plafond de `asset.list` : 501 entrées correspondantes au catalogue → 500 rendues, `truncated: true`, `total: 501`) ; build.
+- Note de validation (2026-11-14) : `EditorRemoteAssets.Resolve` (P3 : id ou fichier ; entrée et `FileName` du catalogue contenus dans le projet, type déclaré cohérent avec l'extension, type attendu, fichier présent), `EditorRemoteAssetCommands` (`asset.list` 500 au plus avec `truncated` et `total`, `asset.open` limité aux quatre types, `panel.list`, `panel.activate`, `panel.close`), `history.undo` / `history.redo` avec `context` (`world` ou l'id d'un asset dont le panneau est ouvert, jamais créé ; plus de `GetOrCreate` pour le monde non plus). Côté éditeur (`GameEditor.Remote.cs`) : panneaux lus dans les groupes d'onglets du dock ; fermeture limitée aux panneaux de matériau, particules, écran et son, refusée s'ils sont modifiés (indicateur de l'inspecteur et contexte d'historique) ; ouverture par les `TryOpen…Asset` existants ; identifiant de panneau = préfixe du type + id de l'asset. 7 tests (ouverture par id et par fichier, refus du monde, d'un autre type, d'un chemin et d'une entrée de catalogue hors projet, d'un fichier absent ; plafond 501 → 500 ; fermeture par liste fermée et refus d'un panneau modifié ; contexte d'annulation d'asset, contexte inconnu refusé sans création). Les refus dans le vrai éditeur sont rejoués au smoke T4.1. `CasaEngine.Tests` 5372/5372, `CasaEngine.Editor.MonoGame.sln` 0 erreur.
 - Commit : `feat(editor): add the remote asset and panel commands`
 
 ### ⏳ T2.2 — Matériaux

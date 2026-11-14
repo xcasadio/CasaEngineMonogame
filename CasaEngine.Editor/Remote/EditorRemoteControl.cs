@@ -66,6 +66,23 @@ internal interface IEditorRemoteHost
 
     /// <summary>The result of the capture of <paramref name="path"/>, once taken.</summary>
     bool TryTakeCaptureResult(string path, out RemoteCaptureResult result);
+
+    /// <summary>The open dock panels.</summary>
+    IReadOnlyList<RemotePanelInfo> ListPanels();
+
+    bool ActivatePanel(string panelId);
+
+    /// <summary>Closes an asset panel of the closed list when it has no unsaved changes.</summary>
+    RemotePanelCloseResult ClosePanel(string panelId);
+
+    /// <summary>Opens a resolved asset of an openable type in its panel; returns the panel id, or null.</summary>
+    string OpenAsset(string fullPath, string type);
+
+    /// <summary>The history context of the open panel of an asset, when it has one (materials, particles, UI screens).</summary>
+    bool TryGetAssetHistoryContext(Guid assetId, out CasaEngine.Editor.History.EditorHistoryContext context);
+
+    /// <summary>Refreshes the views of a history context after an undo or redo, as the Edit menu does.</summary>
+    void RefreshAfterHistory(CasaEngine.Editor.History.EditorHistoryContext context);
 }
 
 /// <summary>
@@ -96,6 +113,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteReadCommands.Register(Registry, host, () => _logReader);
         EditorRemoteEditCommands.Register(Registry, host);
         EditorRemoteViewCommands.Register(Registry, host, NewCapturePath);
+        EditorRemoteAssetCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

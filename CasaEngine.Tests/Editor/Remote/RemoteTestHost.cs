@@ -96,4 +96,53 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
 
     public bool TryTakeCaptureResult(string path, out RemoteCaptureResult result)
         => CaptureResults.Remove(path, out result);
+
+    public List<RemotePanelInfo> Panels { get; } = new();
+
+    public List<string> ClosedPanels { get; } = new();
+
+    public List<(string FullPath, string Type)> OpenedAssets { get; } = new();
+
+    public Dictionary<Guid, CasaEngine.Editor.History.EditorHistoryContext> AssetContexts { get; } = new();
+
+    public List<CasaEngine.Editor.History.EditorHistoryContext> RefreshedContexts { get; } = new();
+
+    public IReadOnlyList<RemotePanelInfo> ListPanels() => Panels;
+
+    public bool ActivatePanel(string panelId) => Panels.Exists(p => p.Id == panelId);
+
+    /// <summary>Mirrors the editor's rule: only the four asset kinds, never a modified one.</summary>
+    public RemotePanelCloseResult ClosePanel(string panelId)
+    {
+        RemotePanelInfo panel = Panels.Find(p => p.Id == panelId);
+        if (panel == null)
+        {
+            return RemotePanelCloseResult.NotFound;
+        }
+
+        if (panel.Kind == "other")
+        {
+            return RemotePanelCloseResult.NotClosable;
+        }
+
+        if (panel.Modified)
+        {
+            return RemotePanelCloseResult.Modified;
+        }
+
+        Panels.Remove(panel);
+        ClosedPanels.Add(panelId);
+        return RemotePanelCloseResult.Closed;
+    }
+
+    public string OpenAsset(string fullPath, string type)
+    {
+        OpenedAssets.Add((fullPath, type));
+        return "panel_" + type + "_test";
+    }
+
+    public bool TryGetAssetHistoryContext(Guid assetId, out CasaEngine.Editor.History.EditorHistoryContext context)
+        => AssetContexts.TryGetValue(assetId, out context);
+
+    public void RefreshAfterHistory(CasaEngine.Editor.History.EditorHistoryContext context) => RefreshedContexts.Add(context);
 }

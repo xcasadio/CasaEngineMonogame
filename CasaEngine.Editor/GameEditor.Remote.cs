@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using CasaEngine.Editor.History;
+using CasaEngine.Editor.Workspaces;
+using CasaEngine.Framework.Assets;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Environment;
@@ -183,6 +187,198 @@ public partial class GameEditor
         }
 
         public bool BeginOpenWorld(string fullPath) => _editor.OpenWorldAsset(fullPath, unsavedChangesHandled: true);
+
+        public IReadOnlyList<RemotePanelInfo> ListPanels()
+        {
+            var panels = new List<RemotePanelInfo>();
+            if (_editor._dockHost?.LayoutModel == null)
+            {
+                return panels;
+            }
+
+            foreach (var group in _editor._dockHost.LayoutModel.GetAllTabGroups())
+            {
+                foreach (var panel in group.Panels)
+                {
+                    string kind = GetAssetPanelKind(panel.Id, out bool modified);
+                    panels.Add(new RemotePanelInfo
+                    {
+                        Id = panel.Id,
+                        Title = EditorRemoteWorldModel.Truncate(panel.Title),
+                        Kind = kind ?? "other",
+                        Active = string.Equals(group.ActivePanelId, panel.Id, StringComparison.Ordinal),
+                        Modified = modified,
+                    });
+                }
+            }
+
+            return panels;
+        }
+
+        public bool ActivatePanel(string panelId)
+        {
+            if (FindPanel(panelId) == null)
+            {
+                return false;
+            }
+
+            _editor.ActivateDockPanel(panelId);
+            return true;
+        }
+
+        /// <summary>
+        /// Closing by code raises no closing event (the dock only asks for user closes), so the unsaved check is done
+        /// here, per kind, and only the four asset document panels may close (ADR-0093 P7, security review S2-3).
+        /// </summary>
+        public RemotePanelCloseResult ClosePanel(string panelId)
+        {
+            var panel = FindPanel(panelId);
+            if (panel == null)
+            {
+                return RemotePanelCloseResult.NotFound;
+            }
+
+            if (GetAssetPanelKind(panelId, out bool modified) == null)
+            {
+                return RemotePanelCloseResult.NotClosable;
+            }
+
+            if (modified)
+            {
+                return RemotePanelCloseResult.Modified;
+            }
+
+            return _editor._dockHost.ClosePanel(panel) ? RemotePanelCloseResult.Closed : RemotePanelCloseResult.NotFound;
+        }
+
+        public string OpenAsset(string fullPath, string type)
+        {
+            bool opened = type switch
+            {
+                EditorRemoteAssetTypes.Material => _editor.TryOpenMaterialAsset(fullPath),
+                EditorRemoteAssetTypes.Particle => _editor.TryOpenParticleAsset(fullPath),
+                EditorRemoteAssetTypes.UIScreen => _editor.TryOpenUIScreenAsset(fullPath),
+                EditorRemoteAssetTypes.Sound => _editor.TryOpenSoundAsset(fullPath),
+                _ => false,
+            };
+            if (!opened)
+            {
+                return null;
+            }
+
+            string relative = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+            AssetInfo info = AssetCatalog.GetByFileName(relative)
+                ?? AssetCatalog.GetByFileName(relative.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            return info != null ? FindAssetPanelId(info.Id) : null;
+        }
+
+        public bool TryGetAssetHistoryContext(Guid assetId, out EditorHistoryContext context)
+        {
+            string panelId = FindAssetPanelId(assetId);
+            context = default;
+            if (panelId == null)
+            {
+                return false;
+            }
+
+            EditorHistoryContextKind kind;
+            if (_editor._materialInspectorPanels.ContainsKey(panelId))
+            {
+                kind = EditorHistoryContextKind.Material;
+            }
+            else if (_editor._particleInspectorPanels.ContainsKey(panelId))
+            {
+                kind = EditorHistoryContextKind.Particle;
+            }
+            else if (_editor._screenPreviewPanels.ContainsKey(panelId))
+            {
+                kind = EditorHistoryContextKind.UIScreen;
+            }
+            else
+            {
+                // Sounds have no history (ADR-0093).
+                return false;
+            }
+
+            context = new EditorHistoryContext(kind, panelId);
+            return true;
+        }
+
+        public void RefreshAfterHistory(EditorHistoryContext context) => _editor.RefreshViewsAfterHistoryCommand(context);
+
+        /// <summary>The id of the open panel of an asset among the four asset panel kinds, or null.</summary>
+        private string FindAssetPanelId(Guid assetId)
+        {
+            string[] candidates =
+            {
+                EditorPanelIds.MaterialAssetDocumentPrefix + assetId.ToString("N"),
+                EditorPanelIds.ParticleAssetDocumentPrefix + assetId.ToString("N"),
+                EditorPanelIds.UIScreenDocumentPrefix + assetId.ToString("N"),
+                EditorPanelIds.SoundAssetDocumentPrefix + assetId.ToString("N"),
+            };
+
+            foreach (string candidate in candidates)
+            {
+                if (GetAssetPanelKind(candidate, out _) != null)
+                {
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>The kind of an open asset panel of the closed list, with its unsaved state; null for any other panel.</summary>
+        private string GetAssetPanelKind(string panelId, out bool modified)
+        {
+            if (_editor._materialInspectorPanels.TryGetValue(panelId, out var material))
+            {
+                modified = material.IsDirty || _editor._editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
+                return EditorRemoteAssetTypes.Material;
+            }
+
+            if (_editor._particleInspectorPanels.TryGetValue(panelId, out var particle))
+            {
+                modified = particle.IsDirty || _editor._editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
+                return EditorRemoteAssetTypes.Particle;
+            }
+
+            if (_editor._screenPreviewPanels.ContainsKey(panelId))
+            {
+                modified = _editor._editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId));
+                return EditorRemoteAssetTypes.UIScreen;
+            }
+
+            if (_editor._soundInspectorPanels.TryGetValue(panelId, out var sound))
+            {
+                modified = sound.IsDirty;
+                return EditorRemoteAssetTypes.Sound;
+            }
+
+            modified = false;
+            return null;
+        }
+
+        private MGUI.Core.UI.Docking.DockLayout.DockPanelNode FindPanel(string panelId)
+        {
+            if (_editor._dockHost?.LayoutModel == null)
+            {
+                return null;
+            }
+
+            foreach (var group in _editor._dockHost.LayoutModel.GetAllTabGroups())
+            {
+                foreach (var panel in group.Panels)
+                {
+                    if (string.Equals(panel.Id, panelId, StringComparison.Ordinal))
+                    {
+                        return panel;
+                    }
+                }
+            }
+
+            return null;
+        }
 
         public string PlayState => (_editor._playModeService?.State ?? EditorPlayModeState.Editing).ToString().ToLowerInvariant();
 

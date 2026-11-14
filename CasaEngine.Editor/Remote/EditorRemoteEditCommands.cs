@@ -305,16 +305,16 @@ internal static class EditorRemoteEditCommands
 
         registry.Register(new EditorRemoteCommand(
             "history.undo",
-            "Undoes the last change of the world history (remote commands and world panels alike), whatever panel has the focus.",
-            null,
+            "Undoes the last change of a history, whatever panel has the focus: the world (default) or the open panel of a material, particle or UI screen asset (context = its asset id).",
+            HistorySchema,
             readOnly: false,
             destructive: false,
             call => StepHistory(call, host, undo: true)));
 
         registry.Register(new EditorRemoteCommand(
             "history.redo",
-            "Redoes the last undone change of the world history.",
-            null,
+            "Redoes the last undone change of a history: the world (default) or an open asset panel (context = its asset id).",
+            HistorySchema,
             readOnly: false,
             destructive: false,
             call => StepHistory(call, host, undo: false)));
@@ -349,11 +349,29 @@ internal static class EditorRemoteEditCommands
         call.Succeed(result);
     }
 
+    private const string HistorySchema =
+        "{\"type\":\"object\",\"properties\":{\"context\":{\"type\":\"string\",\"description\":\"'world' (default) or the asset id of an open material, particle or UI screen panel.\"}},\"additionalProperties\":false}";
+
     private static void StepHistory(EditorRemoteCall call, IEditorRemoteHost host, bool undo)
     {
         RequireEditable(host);
-        EditorHistoryStack stack = EditorHistoryService.Current.GetOrCreate(WorldContext);
-        if (undo ? !stack.CanUndo : !stack.CanRedo)
+        string contextArgument = call.GetOptionalString("context", 64) ?? "world";
+        EditorHistoryContext context;
+        if (string.Equals(contextArgument, "world", StringComparison.Ordinal))
+        {
+            context = WorldContext;
+        }
+        else if (!Guid.TryParse(contextArgument, out Guid assetId))
+        {
+            throw new EditorRemoteArgumentException("Argument 'context' must be 'world' or an asset id.");
+        }
+        else if (!host.TryGetAssetHistoryContext(assetId, out context))
+        {
+            // Only the context of an open panel: never create one (security review S2-10).
+            throw new EditorRemoteRefusedException(RemoteErrorReasons.NotFound, $"No open material, particle or UI screen panel for asset {assetId}.");
+        }
+
+        if (!EditorHistoryService.Current.TryGet(context, out EditorHistoryStack stack) || (undo ? !stack.CanUndo : !stack.CanRedo))
         {
             call.Succeed(new { done = false });
             return;
@@ -369,7 +387,14 @@ internal static class EditorRemoteEditCommands
             stack.Redo();
         }
 
-        Completed(call, host, new { done = true, description });
+        if (context.Equals(WorldContext))
+        {
+            Completed(call, host, new { done = true, description });
+            return;
+        }
+
+        host.RefreshAfterHistory(context);
+        call.Succeed(new { done = true, description });
     }
 
     private static void DeferUntilWorldLoaded(EditorRemoteCall call, IEditorRemoteHost host, string fileName)
