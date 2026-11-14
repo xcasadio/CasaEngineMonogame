@@ -237,13 +237,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 ## Phase 4 — Interactivité et lisibilité
 
-### ⏳ T4.1 — Collision 3d interactive
+### ✅ T4.1 — Collision 3d interactive
 
 - Objectif : tirer une boîte depuis la caméra et désigner un corps par un rayon, avec debug draw ; code commenté (rôle du collider enfant, masse du sol).
 - Fichiers : `CasaEngine.Demos/Demos/Collision3dBasicDemo.cs`.
 - Étapes : lire d'abord l'API de requêtes de `IPhysicsWorld` (`rg RayCast CasaEngine`) ; plafonner le nombre de boîtes tirées, liste réutilisée.
 - Validation : build ; lancement ; cycle à 0.
 - Commit : `feat(demos): make the 3D collision demo interactive`
+- Note de validation (2026-11-14) : `Collision3dBasicDemo` réécrite en trois parties commentées : corps statique et dynamiques, lancer d'une balle (Espace : position écrite, `SyncTransformFromScene`, puis `Velocity`), requête physique (`IPhysicsWorld.ShapeSweep` depuis la caméra, point et normale dessinés par `Line3dRendererComponent`). Douze balles créées avec la scène et réutilisées, forme de requête créée une fois : rien n'est alloué en jeu. `WorldRayCast` ne rend pas le corps touché, d'où le balayage. Vérifié par une capture avec un tir automatique temporaire (retiré avant commit) : balles lancées, pile dispersée, marqueur jaune sur le premier corps devant la caméra. Build 0 erreur ; cycle PASS. La touche Espace elle-même n'a pas été pressée par l'agent.
 
 ### ⏳ T4.2 — Collision 2d interactive et triggers
 
