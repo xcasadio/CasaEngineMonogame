@@ -94,7 +94,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 - Commit : `docs(adr): record ADR-0091, per-user editor preferences file`
 - Note de validation (2026-11-14) : worktree créé, sous-modules initialisés (MGUI `a3c42cb0`, NvgSharp `9c0da031`), les deux `.sln` buildent dans le worktree. `0091` libre. ADR-0091 écrite et indexée ; plan déplacé du dossier principal vers le worktree ; ligne ajoutée au tableau.
 
-### ⏳ T0.2 — Modèle `EditorPreferences` et son sérialiseur
+### ✅ T0.2 — Modèle `EditorPreferences` et son sérialiseur
 
 - Objectif : charger, borner, enregistrer les préférences (P1 à P4), testé sans fichier réel.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorPreferences.cs` (nouveau : `EditorPreferences`, `Camera3dPreferences`, `Camera2dPreferences`, valeurs par défaut, `Clamp`), `CasaEngine.Editor/Runtime/EditorPreferencesSerializer.cs` (nouveau : `Read(string json, Action<string> warn)`, `Write(EditorPreferences)`), `CasaEngine.Editor/Runtime/EditorPreferencesStore.cs` (nouveau : chemin et horloge injectables, `Load`, `Update(...)` qui borne, applique et marque « à écrire », `FlushIfDue(now)`, `Flush()`, événement `Changed`), `CasaEngine.Tests/Editor/EditorPreferencesSerializerTests.cs` et `EditorPreferencesStoreTests.cs` (nouveaux, fichiers dans un dossier temporaire du test).
@@ -106,6 +106,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
   5. Tests : aller-retour, défauts sur fichier absent ou vide, bornes et avertissement par clé, JSON illisible non écrasé au chargement, stabilité de la sortie ; **cinq `Update` successifs (une valeur tapée caractère par caractère) puis `FlushIfDue` après le délai = exactement une écriture** (compteur d'écritures) ; aucune écriture avant le délai.
 - Validation : build éditeur ; tests verts.
 - Commit : `feat(editor): add the per-user editor preferences model and file`
+- Note de validation (2026-11-14) : `EditorPreferences` (records, bornes `EditorPreferenceBounds`), `EditorPreferencesSerializer` (Newtonsoft, snake_case, ordre stable, lecture tolérante), `EditorPreferencesStore` (horloge et chemin injectables, `Update`, `FlushIfDue`, `Flush`, `ChangedSubscriberCount`, `WriteCount`). 14 tests dans `CasaEngine.Tests/Editor/EditorPreferencesTests.cs` (fichiers dans un dossier temporaire), dont « valeur tapée caractère par caractère = une seule écriture ». Build éditeur réussi (via le projet de tests) ; `CasaEngine.Tests` 5125/5125. Corrigé aussi : chemin du worktree dans la ligne d'`ai-agent/README.md` (antislashs perdus en T0.1).
 
 ---
 
