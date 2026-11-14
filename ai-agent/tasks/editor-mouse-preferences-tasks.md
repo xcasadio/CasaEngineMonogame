@@ -154,12 +154,13 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : documenter le panneau, le fichier, les bornes.
 - Fichiers : `docs/editor/editor-preferences.md` (nouveau), `docs/editor/viewport-camera-controls.md` (renvoi, retirer « user-editable sensitivities » des non-implémentés), `docs/README.md`.
 - Validation : relecture ; liens valides.
 - Commit : `docs(editor): document the editor preferences panel and file`
+- Note de validation (2026-11-14) : `docs/editor/editor-preferences.md` (panneau, fichier, tableau des clés avec défauts et bornes, lecture tolérante, écriture différée, limites) ; renvois dans `docs/editor/viewport-camera-controls.md` ; ligne dans `docs/README.md`.
 
 ### ⏳ T3.2 — Vérification indépendante et recette de l'auteur
 
