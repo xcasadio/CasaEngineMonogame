@@ -191,7 +191,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 - Commit : `docs(ai-agent): replace the PBR plan and record its extended scope (ADR-0094)`
 - Note de validation (2026-11-15) : ancien plan déplacé dans `archive/` avec sa note ; ADR-0094 écrit et indexé ; ADR-0013 amendé (statut et chemins de source) ; la recherche de la validation ne rend aucune ligne hors `tasks/archive/` ; aucun fichier de `ai-agent/audits/` modifié.
 
-### ⏳ T0.2 — Captures de base épinglées
+### ✅ T0.2 — Captures de base épinglées
 
 - Objectif : la référence `Legacy` de tout le chantier, épinglée au commit de départ.
 - Fichiers : aucun fichier suivi hors ce plan ; captures dans `CasaEngine/artifacts/pbr-baseline/` (ignoré par git).
@@ -203,6 +203,26 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   5. Relevé `RenderStats` : lancer `Material system demo` en `Legacy` avec `CASAENGINE_SHOW_DEBUG_OVERLAY=1`, capture dans un fichier à part exclu de la comparaison d'empreintes ; noter dans le tableau les valeurs Draws et State lues sur l'overlay (`DebugOverlay.cs:101-102`) et la commande exacte.
 - Validation : aucune ligne « Startup demo … was not found » dans les journaux ; les empreintes des démos déterministes sont deux à deux distinctes ; au moins `Material system demo`, `Static shadow validation demo` et `Static model demo` sont déterministes, sinon ⚠️ Blocked (la non-régression au bit n'est pas prouvable).
 - Commit : `chore(ai-agent): pin the legacy baseline captures of the PBR work`
+- Note de validation (2026-11-15), commit de base e237fa3f, `CasaEngine.Demos` en Debug, 1024 × 768 :
+  - Commande, depuis `CasaEngine.Demos/bin/Debug/net9.0-windows`, par démo et par passage : `CASAENGINE_START_DEMO="<titre exact>" CASAENGINE_CAPTURE_SCREENSHOT_PATH="<dossier>\<nom>-<n>.png" ./CasaEngine.Demos.exe` (délai de capture par défaut, 1500 ms ; la démo se ferme seule après la capture). `Static shadow validation demo` ajoute `CASAENGINE_SHADOW_DEMO_VALIDATION=1`. Captures et journaux dans `CasaEngine/artifacts/pbr-baseline/legacy/`.
+  - Aucune ligne « was not found » et aucune exception dans les 22 journaux.
+
+  | Titre | Fichier | SHA-256 (16 premiers) | Déterministe |
+  |---|---|---|---|
+  | Material system demo | material | 7fe3d57bb10f7128 | oui |
+  | Environment showcase | environment | 043ad52894e18395 | oui |
+  | Static model demo | static-model | 3ee7cd655db47386 | oui |
+  | Static shadow validation demo | static-shadow | c7d6c867b3de4ad9 | oui |
+  | Render-to-texture demo | render-to-texture | f35395822a585e9e | oui |
+  | MGUI UI Overlay Demo (HUD + Modal Screens) | ui-overlay | d226df79b82cf4b2 | oui |
+  | Frozen frame demo | frozen-frame | eb25f3917cfa6a0c | oui |
+  | Tile map demo | tile-map | 355772772016e47f | oui |
+  | Skinned mesh demo | skinned | b42a675f99a32850 / 6ec7ac32c8220a0f | **non** |
+  | Particle system demo | particles | 2062d28ec745685c / 0b8628bf485a9068 | **non** |
+  | Split-screen demo (2 views) | split-screen | ef1cefef35595583 / 272c6fe9f348081c | **non** |
+
+  - Les huit empreintes déterministes sont deux à deux distinctes. Les trois démos non déterministes sortent de la comparaison au bit et restent contrôlées à l'œil (🧪) en fin de phase ; conséquence : la non-régression `Legacy` du chemin skinné et de l'écran partagé repose sur les tests et sur ce contrôle visuel, pas sur une empreinte.
+  - `RenderStats` de `Material system demo` (même commande plus `CASAENGINE_SHOW_DEBUG_OVERLAY=1`, fichier `material-overlay.png`, hors comparaison d'empreintes) : **Draws 14, FX 2, Tex 32, State 3, O 13, T 1**, « RT pool: 0 active / 0 free ».
 
 ### ✅ T0.3 — Relevé du backend graphique et de la chaîne de compilation des shaders
 
