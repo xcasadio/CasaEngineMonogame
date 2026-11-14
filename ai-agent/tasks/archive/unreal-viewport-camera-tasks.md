@@ -139,7 +139,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `feat(editor): drive the 3D viewport camera with the Unreal-style navigation`
 - Note de validation (2026-11-14) : le contrôleur délègue à `ViewportCameraNavigation`, capture la vue sur tout bouton, renvoie `null` sans mouvement libre ; F appelle `FocusEntity` sur l'entité sélectionnée. Ajout : pas de delta souris au tout premier appel (plus de saut depuis (0, 0)). Tests du contrôleur réécrits et complétés (10 cas). `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; tests caméra 40/40. Smoke dans l'éditeur lancé : à faire en T3.2.
 
-### 🧪 T1.2 — Sélection au clic relâché, poignées de gizmo prioritaires
+### ✅ T1.2 — Sélection au clic relâché, poignées de gizmo prioritaires
 
 - Objectif : D2 et D8.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewportGizmoController.cs`, `CasaEngine.Editor/Controls/WorldViewportPanel.cs`, éventuellement `GizmoTool/Gizmo.cs` (exposer, sans changer, ce qu'il faut pour savoir si l'appui est sur une poignée : `ActiveAxis` est déjà public).
@@ -154,8 +154,9 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Validation : build éditeur ; tests verts ; smoke éditeur : (a) glisser gauche commencé sur une poignée = l'entité bouge, `Target` et `Yaw` de la caméra inchangés ; (b) clic dans le vide avec une sélection = sélection vidée **au relâchement**, pas à l'appui ; (c) Ctrl + clic et Shift + clic ajoutent ; (d) glisser gauche ne change pas la sélection ; (e) en vue 2D et en vue de face 2D, un clic sélectionne à l'appui comme avant (Ctrl ajoute, Alt retire) et un glisser gauche ne bouge pas la caméra. Test unitaire du contrôleur : `allowFreeCameraMovement = false` renvoie `null` et ne change ni pivot, ni distance, ni angles.
 - Commit : `feat(editor): select on click release and keep the left drag for the camera`
 - Note de validation (2026-11-14) : ordre P8 en place dans `WorldViewportPanel.Update` (`IsHoveringHandle` lu avant la caméra, résultat passé au gizmo) ; perspective : sélection au clic relâché, Ctrl ou Shift ajoute ; vues 2D : résultat `null`, sélection à l'appui inchangée. La décision clic/glisser et la poignée sont couvertes par `ViewportCameraNavigationTests` ; le contrôleur du gizmo demande un `GraphicsDevice`, pas de test unitaire ajouté. `dotnet build CasaEngine.Editor.MonoGame.sln` réussi ; `CasaEngine.Tests` 5111/5111. **Manque** : smoke (a) à (e) dans l'éditeur lancé, reporté à la recette T3.2.
+- Recette de l'auteur acceptée le 2026-11-14 (« recette ok »).
 
-### 🧪 T1.3 — Modes du gizmo sur W, E, R
+### ✅ T1.3 — Modes du gizmo sur W, E, R
 
 - Objectif : D10.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorViewportGizmoController.cs`, `CasaEngine.Editor/Controls/WorldViewportPanel.cs` si l'état du bouton droit doit être transmis, docs qui citent 1/2/3 (`rg -n "\b[123]\b.*(Translate|Rotate|Scale)" docs/editor`).
@@ -166,12 +167,13 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Validation : build éditeur ; tests verts ; smoke : W/E/R changent le mode, clic droit + W avance sans changer de mode.
 - Commit : `feat(editor): switch gizmo modes with W, E and R like Unreal`
 - Note de validation (2026-11-14) : W/E/R remplacent 1/2/3, 4 inchangé ; ignorés bouton droit tenu ou Ctrl tenu. Aucune doc de `docs/editor` ne citait 1/2/3. `dotnet build CasaEngine.Editor.MonoGame.sln` réussi. **Manque** : smoke dans l'éditeur lancé, reporté à la recette T3.2.
+- Recette de l'auteur acceptée le 2026-11-14 (« recette ok »).
 
 ---
 
 ## Phase 2 — Démos runtime
 
-### 🧪 T2.1 — `ScriptArcBallCamera` utilise la navigation partagée
+### ✅ T2.1 — `ScriptArcBallCamera` utilise la navigation partagée
 
 - Objectif : D1 et D7 dans les démos et `SandBoxGame`, ce qui corrige le pivot qui bouge à la molette.
 - Fichiers : `CasaEngine/Framework/Scripting/ScriptArcBallCamera.cs`, tests associés (`CasaEngine.Tests/Scripting/EngineOwnedScriptObjectsTests.cs` si `Clone` change).
@@ -183,6 +185,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Validation : `dotnet build CasaEngine.MonoGame.sln` ; tests verts ; smoke démos, dont `WorldSpaceUIDemo` qui s'ouvre sur sa caméra initiale (`InitialCameraTarget`, `InitialCameraDistance`, `InitialCameraYaw`, `InitialCameraPitch`).
 - Commit : `feat(scripting): give ScriptArcBallCamera the Unreal-style navigation`
 - Note de validation (2026-11-14) : `ScriptArcBallCamera` lit l'état du composant à chaque `Update` et le réécrit (P6) ; un bouton ne rejoint le geste que s'il est appuyé hors UI ; propriétés publiques gardées et reliées à la navigation (P5) ; nouvelle propriété `FocusPoint` (P3), copiée par `Clone`. Conflit restant : `AudioDemo` utilise F (boucle sonore) avec la caméra par défaut, donc F recentre aussi la caméra (O3). Les touches des autres démos (flèches, Page Up/Down, WASD, R, Q) ne bougent plus la caméra sans clic droit. Pas de test unitaire du script : son `Update` lit l'`InputComponent` du jeu. `dotnet build CasaEngine.MonoGame.sln` réussi ; `CasaEngine.Tests` 5111/5111. **Manque** : smoke dans `CasaEngine.Demos` (dont `WorldSpaceUIDemo` sur sa caméra initiale), reporté à la recette T3.2.
+- Recette de l'auteur acceptée le 2026-11-14 (« recette ok »).
 
 ---
 
@@ -197,7 +200,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Commit : `docs(editor): document the Unreal-style viewport camera controls`
 - Note de validation (2026-11-14) : `docs/editor/viewport-camera-controls.md` écrit (souris, clavier, F, W/E/R, sélection, vues 2D, limites) et ajouté à `docs/README.md`. `CasaEngine.Demos` n'a pas de README général qui liste les contrôles : rien à mettre à jour.
 
-### 🧪 T3.2 — Vérification indépendante et recette de l'auteur
+### ✅ T3.2 — Vérification indépendante et recette de l'auteur
 
 - Objectif : vérifier le chantier entier avant de le déclarer fini.
 - Étapes :
@@ -207,6 +210,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 - Validation : verdict CONFIRMED et accord de l'auteur ; sinon 🧪 avec ce qui manque.
 - Commit : `docs(ai-agent): record the check of the Unreal-style viewport camera`
 - Note de validation (2026-11-14) : vérificateur neuf **CONFIRMED** sur `main..HEAD` (les deux `.sln` 0 erreur, `CasaEngine.Tests` 5111/5111, sonde hors dépôt : 1,3 million d'appels de `Update` sans allocation par image). Avis non bloquants, reportés : A1 (P3) `IsHoveringHandle` lit `CurrentSelection`, qui alloue une liste par LINQ à chaque image où la souris survole une poignée (éditeur seulement ; **corrigé le 2026-11-14** à la demande de l'auteur : `_gizmo.Gizmo.Selection.Count`, build éditeur réussi, `CasaEngine.Tests` 5111/5111) ; A2 (P4) relâcher le droit et appuyer le gauche dans la même image donne une image de pan ; A3 (P4) vue avec focus clavier sans input pointeur : un clic théorique, ignoré par le gizmo ; A4 (P4) saut possible à la sortie du mode Play si un bouton est tenu, comportement antérieur ; A5 (P4) sélection et W/E/R sans test unitaire (le contrôleur du gizmo demande un `GraphicsDevice`). **Manque** : recette de l'auteur dans l'éditeur et les démos (T1.2, T1.3, T2.1), et réponse à O3.
+- Recette de l'auteur acceptée le 2026-11-14 (« recette ok »).
 
 ---
 
