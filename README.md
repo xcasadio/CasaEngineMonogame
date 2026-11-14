@@ -48,12 +48,15 @@ git clone https://github.com/xcasadio/CasaEngineMonogame.git
 
 4. Launch a demo
     * Select Debug or Release in the configuration Manager
-    * Select the DemosGame project as startup project
-    * Compile and launch
+    * Select the CasaEngine.Demos project as startup project
+    * Compile and launch: the main screen lists the demos by theme, with their controls and what to look at
+    * In a demo, F1 shows or hides the help panel and Esc returns to the main screen
 
 ## Documentation
-- Materials workflow: [docs/rendering/materials-workflow.md](docs/rendering/materials-workflow.md)
-- Render stats validation workflow: [docs/rendering/render-stats-demo-workflow.md](docs/rendering/render-stats-demo-workflow.md)
+- Index: [docs/README.md](docs/README.md)
+- Demos main screen: [docs/engine/demos-main-menu.md](docs/engine/demos-main-menu.md)
+- Materials workflow: [docs/engine/materials-workflow.md](docs/engine/materials-workflow.md)
+- Render stats validation workflow: [docs/engine/render-stats-demo-workflow.md](docs/engine/render-stats-demo-workflow.md)
 
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)

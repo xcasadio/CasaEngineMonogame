@@ -155,7 +155,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `docs(demos): rewrite every demo sheet for a first-time user`
 - Note de validation (2026-11-14) : les 25 démos ont une description réécrite, leurs contrôles relevés dans leur `Update` (et dans `PlayerComponent` pour Tile map), leurs points à observer et leur page de doc quand elle existe ; identifiants internes et « Validates » retirés ; Scene management décrit ce que fait le code (P5). Affirmations vérifiées dans le code une à une, cinq corrigées après relecture. Build 0 erreur ; `CASAENGINE_DEMO_CYCLE=30` : PASS, 101 étapes ; capture d'Animation IK avec le panneau rempli. Colonne manette vide jusqu'à T6.1. Reste à faire par l'auteur : relire une fiche par thème.
 
-### ⏳ T1.5 — Docs contradictoires et README racine
+### ✅ T1.5 — Docs contradictoires et README racine
 
 - Objectif : plus aucun texte ne contredit le code.
 - Fichiers : `CasaEngine.Demos/Demos/SkinnedMeshDemo.README.md`, `EnvironmentShowcaseDemo.README.md`, `CutsceneMoveToDemo.md`, `CutsceneNavigateToDemo.md` (déplacés en anglais dans `docs/engine/` selon P6), `docs/README.md`, `README.md`.
@@ -164,6 +164,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   2. README racine : projet `CasaEngine.Demos`, liens `docs/engine/…`, renvoi vers `docs/engine/demos-main-menu.md`.
 - Validation : tous les liens modifiés pointent vers un fichier existant (`fd`).
 - Commit : `docs(demos): fix demo notes and README entries that contradict the code`
+- Note de validation (2026-11-14) : les quatre `.md` posés à côté des démos sont remplacés par `docs/engine/demos-check-notes.md` (anglais, indexé dans `docs/README.md`) ; la note de Skinned mesh décrit les trois colonnes d'ombres du code, en linear blend ; README racine : projet `CasaEngine.Demos`, liens `docs/engine/…` vérifiés par `ls`. Aucun code touché.
 
 ---
 

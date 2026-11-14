@@ -76,6 +76,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 ### Démos
 
 - [demos-main-menu.md](engine/demos-main-menu.md) — écran principal de `CasaEngine.Demos` dans un monde « menu » (liste des démos par thème et fiche, thème Dark de MGUI), un monde neuf par démo, retour au menu par Échap ou Select, ajout d'une démo, automatisation (`CASAENGINE_START_DEMO`, `CASAENGINE_DEMO_CYCLE`), limites (ADR-0072).
+- [demos-check-notes.md](engine/demos-check-notes.md) — ce qu'il faut vérifier à l'œil dans les démos Cutscene MoveTo, Cutscene NavigateTo, Environment showcase et Skinned mesh (remplace les `.md` posés à côté des démos).
 
 ### UI runtime (MGUI)
 
