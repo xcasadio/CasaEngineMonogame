@@ -162,11 +162,12 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 - Commit : `docs(editor): document the editor preferences panel and file`
 - Note de validation (2026-11-14) : `docs/editor/editor-preferences.md` (panneau, fichier, tableau des clés avec défauts et bornes, lecture tolérante, écriture différée, limites) ; renvois dans `docs/editor/viewport-camera-controls.md` ; ligne dans `docs/README.md`.
 
-### ⏳ T3.2 — Vérification indépendante et recette de l'auteur
+### 🧪 T3.2 — Vérification indépendante et recette de l'auteur
 
 - Étapes : validation globale ; vérificateur neuf (`verifier`) sur la branche (format tolérant, bornes, aucun accès disque par image, runtime indépendant du fichier, défauts identiques à l'existant) ; recette de l'auteur.
 - Validation : CONFIRMED et accord de l'auteur ; sinon 🧪 avec ce qui manque.
 - Commit : `docs(ai-agent): record the check of the editor preferences`
+- Note de validation (2026-11-14) : trois passes de vérificateur neuf. Passe 1 **REFUTED** : F1 (P2), un entier au-delà d'Int64 ou une `version` au-delà d'Int32 levait une exception jusqu'à l'ouverture du projet ; corrigé en `59f90efc` (nombres lus depuis leur texte, filet dans `Load`, avertissements en culture invariante). Passe 2 **REFUTED** : F2 (P2), `1e400` et `Infinity` pris pour « pas un nombre » au lieu d'être bornés ; corrigé en `4d0221f1`. Passe 3 **CONFIRMED** sur `4d0221f1` : contrat d'ADR-0091 tenu, rien d'autre changé, les deux `.sln` buildent, `CasaEngine.Tests` 5141/5141, le vrai `%APPDATA%/CasaEngine` jamais écrit. Avis P4 reportés : `zoom_steps_per_notch` arrondi sans avertissement et affiché saturé dans l'avertissement, `version` non entière lue comme 1, avertissement `invert_y` sans le nom du bloc, `version` infinie affichée entre guillemets, extensions Newtonsoft (hexadécimal, commentaires) acceptées. **Manque** : recette de l'auteur (T1.1, T1.2, T2.1), éditeur lancé depuis le worktree hors de l'app Claude.
 
 ---
 
