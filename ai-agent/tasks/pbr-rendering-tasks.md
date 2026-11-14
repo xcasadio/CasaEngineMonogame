@@ -204,13 +204,20 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 - Validation : aucune ligne « Startup demo … was not found » dans les journaux ; les empreintes des démos déterministes sont deux à deux distinctes ; au moins `Material system demo`, `Static shadow validation demo` et `Static model demo` sont déterministes, sinon ⚠️ Blocked (la non-régression au bit n'est pas prouvable).
 - Commit : `chore(ai-agent): pin the legacy baseline captures of the PBR work`
 
-### ⏳ T0.3 — Relevé du backend graphique et de la chaîne de compilation des shaders
+### ✅ T0.3 — Relevé du backend graphique et de la chaîne de compilation des shaders
 
 - Objectif : savoir quel backend exécute les shaders et quel fichier de contenu les compile, avant d'écrire un shader.
 - Sources : `Directory.Packages.props:18` (tous les projets référencent `MonoGame.Framework.DesktopGL` 3.8.5.1), `CasaEngine/Content/Content.mgcb:6` (`/platform:Windows`), `CasaEngine.Shaders/Content/Content.mgcb:6` (`/platform:DesktopGL`), `CasaEngine.Shaders/CasaEngine.Shaders.csproj` (`mgfxc` embarqué), `Macros.fxh:9-14, 46-56` (`OPENGL` : `vs_3_0`/`ps_3_0`, et `SAMPLE_TEXTURE_LEVEL` y ignore le niveau), `EffectLoader.cs` (`.mgfxc`), les `.csproj` des démos.
 - Étapes : établir, par lecture puis par une exécution d'une démo, (a) quel `Content.mgcb` produit les `.mgfxc` chargés par `CasaEngine.Demos`, (b) si `OPENGL` est défini à leur compilation, (c) le modèle de shader effectif et le nombre de samplers de pixel disponibles, (d) comment un nouveau `.fx` doit être déclaré pour être compilé et chargé (une ou deux entrées `mgcb`). Écrire le relevé sous cette tâche. Si le backend est OpenGL : noter que l'échantillonnage de cube par niveau exige une macro nouvelle (`texCUBElod`) à valider en T6.1, et corriger dans ce plan toute mention de `ps_5_0`.
 - Validation : relevé écrit avec fichiers, lignes et sortie de commande ; les tâches T1.3, T3.2 et T6.1 sont ajustées dans le même commit si le relevé les contredit.
 - Commit : `docs(ai-agent): record the graphics backend and the shader build chain`
+- Note de validation (2026-11-15) — relevé :
+  - **Backend effectif : OpenGL (MonoGame DesktopGL 3.8.5.1).** Le shader chargé par les démos, `CasaEngine.Demos/bin/Debug/net9.0-windows/Content/Shaders/LitForward.xnb`, a la même empreinte SHA-256 (`a08fca0b…`) que `CasaEngine/Content/bin/DesktopGL/Content/Shaders/LitForward.xnb` ; son en-tête est `XNBd` (DesktopGL), il pèse 1 222 441 octets et date du dernier build (2026-11-14 20:46). La variante `CasaEngine/Content/bin/Windows/…` (`XNBw`, 80 468 octets) date du 2026-04-18 : elle est périmée et n'est chargée par rien.
+  - (a) Un seul fichier de contenu compile les shaders du runtime : `CasaEngine/Content/Content.mgcb`. Sa ligne `/platform:Windows` est remplacée au build par la plateforme du paquet référencé (sortie dans `bin/DesktopGL`). `CasaEngine.Shaders/Content/Content.mgcb` ne contient aucune entrée.
+  - (b) `OPENGL` est donc défini à la compilation : `Macros.fxh` choisit `vs_3_0`/`ps_3_0`, `DECLARE_TEXTURE` et `DECLARE_CUBEMAP` déclarent des `sampler_state` sans registre, et `SAMPLE_TEXTURE_LEVEL` **ignore le niveau**. Les macros `_vs`, `_ps`, `_cb` sont vides dans tous les cas (`Macros.fxh:24-26`) : les « emplacements » de constantes de `LitForward.fx` sont de la documentation épinglée par les tests de texte, pas une contrainte du compilateur.
+  - (c) Modèle de shader effectif : 3.0, traduit en GLSL ; 16 samplers de pixel au plus, donc les neuf textures de `LitPbr.fx` tiennent (O5 levé).
+  - (d) Un nouveau `.fx` se déclare par **une** entrée dans `CasaEngine/Content/Content.mgcb`, copiée sur une entrée voisine ; il doit porter la variante `OPENGL` de tout ce qu'il écrit hors macros.
+  - Conséquences inscrites dans ce plan : le commentaire « D3D11 » de `RenderPipeline.cs:139-145` est périmé (le comportement de changement de cible reste celui que l'ADR-0086 décrit pour DesktopGL) ; l'échantillonnage d'un cube par niveau exige une macro nouvelle (`texCUBElod`) dont le support par la chaîne OpenGL de MonoGame n'est pas établi : T6.1 le vérifie en premier et prévoit un repli.
 
 ---
 
@@ -458,6 +465,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 - Fichiers : nouveaux `CasaEngine/Content/Shaders/IblConvolution.fx`, `CasaEngine/Framework/Rendering/Environment/IblCubeGenerator.cs` ; `Content.mgcb`, `BuiltInShaderCatalog.cs` ; `Macros.fxh` (`SAMPLE_CUBEMAP_LEVEL`, variante `OPENGL` comprise) ; tests.
 - Étapes :
   1. Vérifier que `TextureCube` accepte `mipMap: true` et `SetData` par face et par niveau dans la version de MonoGame du dépôt (lire la signature dans le paquet référencé) ; sinon ⚠️ Blocked.
+  1b. **Avant tout autre travail de la phase** (backend OpenGL, T0.3) : écrire `SAMPLE_CUBEMAP_LEVEL` (`texCUBElod(sampler, float4(dir, level))` sous `OPENGL`) et prouver par un shader d'essai, sur un cube à mips dont chaque niveau porte une couleur unie distincte, que le niveau demandé est bien celui lu (pixel mesuré pour les niveaux 0, 2 et 4). Si la chaîne OpenGL de MonoGame refuse ou ignore le niveau : repli sans niveau de mip — les niveaux de rugosité sont rangés dans **une texture 2D** (un bandeau latitude-longitude par niveau, empilés), échantillonnée par `tex2D` avec interpolation manuelle entre deux bandeaux ; l'écrire ici, en ADR-0099, et adapter T6.2, T6.3 et T7.1 dans le même commit.
   2. `IblConvolution.fx` : `Irradiance` (convolution cosinus, échantillonnage fixe) et `PrefilterGgx` (échantillonnage d'importance, 64 échantillons, rugosité en paramètre).
   3. `IblCubeGenerator` : pour chaque face et niveau, rendre dans une `RenderTarget2D` `Vector4`, relire par `GetData`, écrire par `SetData`. Irradiance 32 px sans mips ; spéculaire 128 px, 6 niveaux, rugosité `niveau / 5`. États restaurés.
   4. Tests : fonctions pures (direction par face et par texel, rugosité par niveau, nombre de niveaux).
@@ -605,8 +613,8 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 | O2 | Origine linéaire ou encodée de chaque cube d'environnement (panorama `.hdr`, ciel procédural, atmosphère physique, DDS). Défaut : tout est décodé sauf `.hdr` si l'origine est connue du resolver. | T1.5 |
 | O3 | `Renderer2DComponent` vidé après le tonemapping perd le test de profondeur contre la scène en `LinearHdr`. Acceptable ? Défaut : oui, documenté. | T1.6 |
 | O4 | Les mipmaps (ADR-0092) sont moyennées en espace encodé : léger assombrissement des textures contrastées en `LinearHdr`. Défaut : non traité, documenté. | T1.7 |
-| O5 | Limite de samplers de la cible de compilation pour `LitPbr.fx` (neuf textures prévues). | T3.2 |
-| O6 | `TextureCube` à mips et `SetData` par niveau dans la version de MonoGame du dépôt. | T6.1 |
+| O5 | Levé par T0.3 : modèle 3.0 sur OpenGL, 16 samplers de pixel. | T3.2 |
+| O6 | `TextureCube` à mips, `SetData` par niveau, et lecture d'un niveau de cube choisi (`texCUBElod`) sur le backend OpenGL ; repli en texture 2D prévu. | T6.1 |
 | O7 | Un maillage skinné peut-il porter un `LitPbrMaterial` sans changer de format ? | T8.1 |
 | O8 | État réel de la migration d'import glTF, dont les statuts se contredisent. | T9.2 |
 | O9 | Dessin double des projeteurs d'ombre skinnés (`SkinnedMeshRendererComponent.cs:99` et `:170`) : hors périmètre, signalé. | — |
