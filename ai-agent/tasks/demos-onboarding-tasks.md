@@ -200,13 +200,14 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): add the Moving an entity demo`
 - Note de validation (2026-11-14) : `MovingAnEntityDemo` (thème « Getting started ») : flèches, Maj gauche pour courir, Origine pour recentrer ; boucle lecture de l'entrée, direction normalisée, vitesse × temps écoulé, position bornée au sol, cube orienté dans le sens du déplacement ; lecture par `DemoKeyboard.Read`, manette en T6.1. Build 0 erreur ; capture : sol et cube affichés ; cycle PASS avec 27 démos. Reste à faire par l'auteur : l'automatisation n'appuie sur aucune touche, donc le déplacement, la course et l'orientation n'ont pas été vus à l'écran.
 
-### ⏳ T2.4 — Démo « Loading a model »
+### ✅ T2.4 — Démo « Loading a model »
 
 - Objectif : charger un modèle de `Content/` par le chemin d'assets du moteur, lui donner un material, expliquer `AssetCatalog` / `AssetContentManager` tels qu'utilisés par les démos existantes.
 - Fichiers : `CasaEngine.Demos/Demos/LoadingAModelDemo.cs`, `DemosGame.cs`, doc.
 - Étapes : reprendre le chemin de chargement de `SkinnedMeshDemo.cs` ou `SoldierLocomotionModelFactory.cs` après lecture ; aucun nouvel asset si un `.glb` existant convient.
 - Validation : build ; lancement ; capture ; cycle à 0.
 - Commit : `feat(demos): add the Loading a model demo`
+- Note de validation (2026-11-14) : `LoadingAModelDemo` (thème « Getting started ») : charge `SkinnedMesh/kid_idle.model` par `AssetContentManager.LoadFromFile`, comme `SkinnedMeshDemo`, l'affiche par un `SkinnedMeshComponent` et joue son premier clip ; l'en-tête explique la chaîne `.glb` → `.model` → `AssetInfos.json`. Aucun nouvel asset. Écart : `Content/` ne contient pas de modèle statique en fichier, la démo charge donc un modèle animé. Build 0 erreur ; capture : personnage texturé affiché ; cycle PASS avec 28 démos.
 
 ---
 

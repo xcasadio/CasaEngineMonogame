@@ -127,6 +127,7 @@ public class DemosGame : CasaEngineGame
         // CASAENGINE_START_DEMO accepts, so documentation and scripts name a demo by its title, which is stable.
         AddDemo(new HelloWorldDemo(), ThemeGettingStarted);
         AddDemo(new MovingAnEntityDemo(), ThemeGettingStarted);
+        AddDemo(new LoadingAModelDemo(), ThemeGettingStarted);
 
         AddDemo(new StaticModelDemo(), ThemeRendering);
         AddDemo(new MaterialDemo(), ThemeRendering);
