@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
-- **Source**: this chantier: `ai-agent/tasks/editor-remote-control-tasks.md` (decisions D1 to D4 settled with the author on 2026-11-14, proposals P1 to P11), branch `chantier/editor-remote-control`.
+- **Source**: this chantier: `ai-agent/tasks/archive/editor-remote-control-tasks.md` (decisions D1 to D4 settled with the author on 2026-11-14, proposals P1 to P11), branch `chantier/editor-remote-control`.
 
 ## Context
 
