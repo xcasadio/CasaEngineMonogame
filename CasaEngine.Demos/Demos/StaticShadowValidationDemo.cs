@@ -26,7 +26,7 @@ namespace CasaEngine.Demos.Demos;
 /// generated in memory as the world's specular environment cube. <c>CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat|Auto</c> (in that
 /// configuration) sets <see cref="WorldEnvironmentSettings.AmbientSource"/>. <c>CASAENGINE_SHADOW_DEMO_DETAIL=1</c> (in that
 /// configuration) binds a solid detail texture of value 64/255 with a tiling of 4 to the receiver
-/// (<see cref="LitDiffuseMaterial.DetailTexture"/>). <c>CASAENGINE_SHADOW_DEMO_MODE=MultiplyLitColor</c> and <c>CASAENGINE_SHADOW_DEMO_COLOR=r,g,b</c> (in that configuration) set <see cref="ShadowSettings.Mode"/> and <see cref="ShadowSettings.ShadowColor"/>. Without these variables the scene is unchanged.
+/// (<see cref="LitDiffuseMaterial.DetailTexture"/>). <c>CASAENGINE_SHADOW_DEMO_MODE=MultiplyLitColor</c> and <c>CASAENGINE_SHADOW_DEMO_COLOR=r,g,b</c> (in that configuration) set <see cref="ShadowSettings.Mode"/> and <see cref="ShadowSettings.ShadowColor"/>. <c>CASAENGINE_SHADOW_DEMO_FILTER_RADIUS</c> (in that configuration) sets <see cref="ShadowSettings.FilterRadius"/>. Without these variables the scene is unchanged.
 /// <para><c>CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK=1</c> additionally runs a real-device check of <see cref="Texture2DLoader.GenerateMipmaps"/>: it
 /// writes a PNG (odd, non-square) and a TGA to a temporary folder, loads them with the option on, logs the level count and
 /// sizes, compares level 0 with <c>Texture2D.FromStream</c> and every level with the CPU chain, logs a verdict, and deletes the files.</para>
@@ -39,6 +39,7 @@ public sealed class StaticShadowValidationDemo : Demo
     private const string DetailVariable = "CASAENGINE_SHADOW_DEMO_DETAIL";
     private const string ModeVariable = "CASAENGINE_SHADOW_DEMO_MODE";
     private const string ColorVariable = "CASAENGINE_SHADOW_DEMO_COLOR";
+    private const string FilterRadiusVariable = "CASAENGINE_SHADOW_DEMO_FILTER_RADIUS";
     private const string MipmapCheckVariable = "CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK";
 
     private static readonly Color MeasurementReceiverTextureColor = new(128, 128, 128, 255);
@@ -360,6 +361,19 @@ public sealed class StaticShadowValidationDemo : Demo
             else
             {
                 Logs.WriteWarning($"[StaticShadowValidationDemo] {ColorVariable}='{colorValue}' is not three comma-separated numbers; using black.");
+            }
+        }
+
+        var filterRadiusValue = Environment.GetEnvironmentVariable(FilterRadiusVariable);
+        if (!string.IsNullOrWhiteSpace(filterRadiusValue))
+        {
+            if (float.TryParse(filterRadiusValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var filterRadius))
+            {
+                shadows.FilterRadius = filterRadius;
+            }
+            else
+            {
+                Logs.WriteWarning($"[StaticShadowValidationDemo] {FilterRadiusVariable}='{filterRadiusValue}' is not a number; using 0.");
             }
         }
     }

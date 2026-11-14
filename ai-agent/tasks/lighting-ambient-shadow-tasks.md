@@ -222,11 +222,24 @@ Champs sérialisés (tous optionnels, écrits seulement s'ils diffèrent du déf
   - Spéculaire à l'ombre : la démo n'a aucune surface réfléchissante ni brillante dans l'ombre (le receveur est sans spéculaire, la sphère réfléchissante est hors de l'ombre, `reflet` ne change pas). Contrôle fait à part, par une modification temporaire non commitée de la démo (spéculaire du receveur 0,2, puissance 2) : le pixel `ombre` vaut 64 en `OccludeDirectLight` (spéculaire occulté) ; en `MultiplyLitColor` avec une teinte blanche, il vaut le pixel éclairé (R saturé à 255, G 249, B 232) ; avec la teinte (0,25 ; 0,26 ; 0,27) il vaut 64, 65, 63, soit `249 × 0,26 = 64,7` et `232 × 0,27 = 62,6` : le reflet du soleil est teinté comme le reste (un reflet non teinté donnerait environ 90 en G). Non vérifié sur capture : les pixel shaders à réflexion avec texture ou normal map (la démo n'en utilise pas) et le shader d'os (`skinEffect.fx`) : couverts par assertion de source et compilation seulement.
 - Commit : `feat(rendering): add a shadow mode that multiplies the lit colour by a shadow colour`
 
-### ⏳ E4 — Bord doux (D2)
+### ✅ E4 — Bord doux (D2)
 
-- Objectif : `ShadowSettings.FilterRadius` (texels, 0 par défaut = les 4 échantillons actuels, valeur négative ou non finie ramenée à 0, clé `filter_radius`) ; au-delà de 0, le receveur échantillonne un disque de Poisson fixe de 12 points mis à l'échelle par le rayon, dans `Lighting.fxh`, uniforme déclaré dans les deux shaders, champ dans l'éditeur. Aucune allocation, aucun état GPU changé. Limite de shader (C7) : le contenu DesktopGL doit compiler toutes les techniques de `LitForward.fx` (ps_3_0) avec la texture de détail ; si la limite d'instructions est atteinte, 8 puis 5 points (choix noté) ; en dessous de 5 : ⚠️.
-- Démo : `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS`.
-- Validation (D4) : captures identiques avec le défaut ; ligne de pixels traversant un bord d'ombre définie avant la capture ; largeur de transition entre 10 % et 90 % de l'écart ombre / lumière pour le rayon 0 et le rayon 3 ; critère : largeur(3) ≥ 2 × largeur(0).
+- Objectif : `ShadowSettings.FilterRadius` (texels, 0 par défaut = les 4 échantillons actuels, valeur négative ou non finie ramenée à 0, clé `filter_radius`) ; au-delà de 0, le receveur échantillonne un disque de Poisson fixe de 12 points mis à l'échelle par le rayon, dans `Lighting.fxh` (`SampleDirectionalShadowPcf`), uniforme `ShadowFilterRadius` déclaré dans les deux shaders (`_ps(c106)` / `_cb(c96.w)`), champ « Filter Radius » dans l'éditeur. Aucune allocation, aucun état GPU changé. Limite de shader (C7) : le contenu DesktopGL doit compiler toutes les techniques de `LitForward.fx` (ps_3_0) avec la texture de détail ; si la limite d'instructions est atteinte, 8 puis 5 points (choix noté) ; en dessous de 5 : ⚠️.
+- Fichiers : `CasaEngine/Content/Shaders/Lighting.fxh`, `LitForward.fx`, `skinEffect.fx`, `CasaEngine/Framework/Rendering/Shadows/ShadowSettings.cs`, `ForwardLightBinder.cs`, `ShaderParameterNames.cs`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`, `CasaEngine.Demos/Demos/StaticShadowValidationDemo.cs`, `CasaEngine.Tests/Rendering/ShadowSettingsTests.cs`, `LightingShaderCoverageTests.cs`, `docs/decisions/0093-…`, ce plan.
+- Démo : `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS` (configuration de mesure).
+- **Choix C7 : 12 points conservés.** Le contenu (`LitForward.fx`, 24 techniques, et `skinEffect.fx`) compile sous DesktopGL avec le disque de 12 points et la texture de détail, sans erreur ni avertissement de limite d'instructions ; `LitForward.xnb` passe de 1 172 279 à 1 216 891 octets. Le disque est un tableau fixe de 12 points dans le disque unité (rayons de 0,51 à 0,99, distance minimale entre deux points 0,50).
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5175 réussis (5166 + 9 : cas de `ShadowSettingsTests` et 2 cas de source), 0 échec.
+  - Rayon 0 (défaut) : démo sans variable, configuration de mesure, avec cube lié, et `MultiplyLitColor` : captures identiques octet pour octet à celles de E3 (`cmp`).
+  - Mesure de transition (D4), ligne définie avant la capture du rayon 3, d'après la capture du rayon 0 : colonne de pixels x = 310, y de 421 à 436, canal R, configuration de mesure (ombre 64, lumière 223 : seuils de 10 % et 90 % à 79,9 et 207,1), qui traverse le bord inférieur de l'ombre de la caisse au sol. Position interpolée linéairement entre pixels voisins :
+
+    | Rayon | valeurs y = 427 … 430 | y à 10 % | y à 90 % | largeur 10 % – 90 % |
+    |---|---|---|---|---|
+    | 0 | 64, 64, 223, 223 (y = 428 à 429) | 428,10 | 428,90 | 0,80 px |
+    | 3 | 64, 117, 157, 223 | 427,30 | 429,76 | 2,46 px |
+    | 6 (donnée en plus) | — | 426,40 | 430,89 | 4,50 px |
+
+    Critère : largeur(3) ≥ 2 × largeur(0) : 2,46 ≥ 1,60, rapport 3,1 : atteint. Même mesure en `MultiplyLitColor` (56 / 223) : 0,80 et 2,46 px.
+  - Non vérifié : le rendu du disque sur le shader d'os et sur les techniques à texture ou normal map (la démo n'en utilise pas) : compilation et assertions de source seulement.
 - Commit : `feat(rendering): add a shadow filter radius for soft shadow edges`
 
 ### ⏳ E5 — Fondu à la distance maximale (D3)

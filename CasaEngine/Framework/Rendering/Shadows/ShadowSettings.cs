@@ -15,6 +15,7 @@ public sealed class ShadowSettings
     private float _normalBias;
     private float _maxDistance = 100.0f;
     private Vector3 _shadowColor = Vector3.Zero;
+    private float _filterRadius;
 
     public bool Enabled { get; set; } = false;
 
@@ -58,6 +59,16 @@ public sealed class ShadowSettings
         set => _shadowColor = NormalizeColor(value);
     }
 
+    /// <summary>
+    /// Radius, in shadow-map texels, of the Poisson-disc filter that softens shadow edges. 0 (default) keeps the 4-tap filter
+    /// of earlier versions; a negative or non-finite value becomes 0.
+    /// </summary>
+    public float FilterRadius
+    {
+        get => _filterRadius;
+        set => _filterRadius = NormalizeNonNegative(value);
+    }
+
     public void ResetToDefaults()
     {
         Enabled = false;
@@ -67,6 +78,7 @@ public sealed class ShadowSettings
         MaxDistance = 100.0f;
         Mode = ShadowMode.OccludeDirectLight;
         ShadowColor = Vector3.Zero;
+        FilterRadius = 0.0f;
     }
 
     public void Load(JObject element)
@@ -112,6 +124,11 @@ public sealed class ShadowSettings
         {
             ShadowColor = shadowColorNode.GetVector3();
         }
+
+        if (element.TryGetValue("filter_radius", StringComparison.OrdinalIgnoreCase, out var filterRadiusNode))
+        {
+            FilterRadius = filterRadiusNode.Value<float>();
+        }
     }
 
     public void Save(JObject element)
@@ -124,8 +141,8 @@ public sealed class ShadowSettings
         element["normal_bias"] = NormalBias;
         element["max_distance"] = MaxDistance;
 
-        // The shadow mode and colour are optional in the file: written only when they differ from the defaults, so
-        // existing worlds keep their format, and a stale key is removed.
+        // The fields below are optional in the file: written only when they differ from the defaults, so existing worlds keep
+        // their format, and a stale key is removed.
         if (Mode != ShadowMode.OccludeDirectLight)
         {
             element["mode"] = Mode.ToString();
@@ -148,6 +165,15 @@ public sealed class ShadowSettings
         {
             element.Remove("shadow_color");
         }
+
+        if (FilterRadius > 0.0f)
+        {
+            element["filter_radius"] = FilterRadius;
+        }
+        else
+        {
+            element.Remove("filter_radius");
+        }
     }
 
     public void CopyFrom(ShadowSettings other)
@@ -161,6 +187,7 @@ public sealed class ShadowSettings
         MaxDistance = other.MaxDistance;
         Mode = other.Mode;
         ShadowColor = other.ShadowColor;
+        FilterRadius = other.FilterRadius;
     }
 
     private static int NormalizeResolution(int value)

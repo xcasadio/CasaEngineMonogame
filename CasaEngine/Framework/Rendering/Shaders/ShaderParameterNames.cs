@@ -167,6 +167,7 @@ public static class ShaderParameterNames
     public const string ReceiveShadows = "ReceiveShadows";
     public const string ShadowApplyMode = "ShadowApplyMode";
     public const string ShadowTintColor = "ShadowTintColor";
+    public const string ShadowFilterRadius = "ShadowFilterRadius";
 
     // --- Skinning ---
     public const string Bones = "Bones";

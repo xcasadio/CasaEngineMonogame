@@ -282,6 +282,36 @@ public class LightingShaderCoverageTests
         Assert.DoesNotContain("ShadowTint", litForwardSource[vertexLightingStart..vertexLightingEnd]);
     }
 
+    [Theory]
+    [InlineData("LitForward.fx")]
+    [InlineData("skinEffect.fx")]
+    public void ShadowFilterRadius_IsDeclaredInBothShadersAndDrivesAFixedPoissonDisc(string shaderFileName)
+    {
+        string source = LoadShaderSource(shaderFileName);
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.Equal("ShadowFilterRadius", ShaderParameterNames.ShadowFilterRadius);
+        Assert.Contains($"float {ShaderParameterNames.ShadowFilterRadius} _ps(c106) _cb(c96.w);", source);
+        Assert.Equal(1, CountOccurrences(source, "_cb(c96.w)"));
+
+        // A radius of 0 keeps the 4 point samples; above 0 the receiver walks a fixed table of points scaled by the radius.
+        int definitionStart = lightingIncludeSource.IndexOf("float SampleDirectionalShadowPcf(", StringComparison.Ordinal);
+        Assert.True(definitionStart >= 0, "SampleDirectionalShadowPcf is not defined in Lighting.fxh.");
+        string definition = lightingIncludeSource[definitionStart..lightingIncludeSource.IndexOf("\n}", definitionStart, StringComparison.Ordinal)];
+        Assert.Contains("if (ShadowFilterRadius > 0.0f)", definition);
+        Assert.Contains("ShadowMapTexelSize * ShadowFilterRadius", definition);
+        Assert.Contains("ShadowPoissonDisc[tap] * radiusUv", definition);
+        Assert.Contains("float2(-0.5f, -0.5f)", definition);
+        Assert.Contains("float2(0.5f, 0.5f)", definition);
+        Assert.Contains("visibility *= 0.25f;", definition);
+
+        int tableStart = lightingIncludeSource.IndexOf("ShadowPoissonDisc[", StringComparison.Ordinal);
+        string table = lightingIncludeSource[tableStart..lightingIncludeSource.IndexOf("};", tableStart, StringComparison.Ordinal)];
+        Assert.Contains("static const float2 ShadowPoissonDisc[12]", lightingIncludeSource);
+        Assert.Contains("static const int ShadowPoissonTapCount = 12;", lightingIncludeSource);
+        Assert.Equal(12, CountOccurrences(table, "float2("));
+    }
+
     [Fact]
     public void DetailTexture_IsDeclaredInLitForwardAndMultipliesTheBaseColourInsideSampleBaseTexture()
     {

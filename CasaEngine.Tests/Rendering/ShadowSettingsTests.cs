@@ -15,6 +15,7 @@ public class ShadowSettingsTests
 
         Assert.Equal(ShadowMode.OccludeDirectLight, settings.Mode);
         Assert.Equal(Vector3.Zero, settings.ShadowColor);
+        Assert.Equal(0.0f, settings.FilterRadius);
     }
 
     [Fact]
@@ -143,5 +144,54 @@ public class ShadowSettingsTests
         var copy = new WorldEnvironmentSettings();
         copy.CopyFrom(world);
         Assert.Equal(new Vector3(0.25f, 0.26f, 0.27f), copy.Shadows.ShadowColor);
+    }
+    [Theory]
+    [InlineData(-3.0f, 0.0f)]
+    [InlineData(float.NaN, 0.0f)]
+    [InlineData(float.PositiveInfinity, 0.0f)]
+    [InlineData(0.0f, 0.0f)]
+    [InlineData(2.5f, 2.5f)]
+    public void FilterRadius_NegativeOrNonFiniteBecomesZero(float value, float expected)
+    {
+        var settings = new ShadowSettings { FilterRadius = value };
+
+        Assert.Equal(expected, settings.FilterRadius);
+    }
+
+    [Fact]
+    public void FilterRadius_IsOptionalInTheFileAndRoundTrips()
+    {
+        var saved = new JObject();
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("filter_radius"));
+
+        var customised = new ShadowSettings { FilterRadius = 3.0f };
+        customised.Save(saved);
+        Assert.Equal(3.0f, (float?)saved["filter_radius"]);
+
+        var loaded = new ShadowSettings();
+        loaded.Load(saved);
+        Assert.Equal(3.0f, loaded.FilterRadius);
+
+        loaded.Load(new JObject { ["enabled"] = true });
+        Assert.Equal(0.0f, loaded.FilterRadius);
+
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("filter_radius"));
+    }
+
+    [Fact]
+    public void FilterRadius_IsCopiedAndReset()
+    {
+        var target = new ShadowSettings();
+        target.CopyFrom(new ShadowSettings { FilterRadius = 2.0f });
+        Assert.Equal(2.0f, target.FilterRadius);
+
+        target.ResetToDefaults();
+        Assert.Equal(0.0f, target.FilterRadius);
+
+        var world = new WorldEnvironmentSettings();
+        world.Shadows.FilterRadius = 1.5f;
+        Assert.Equal(1.5f, world.Clone().Shadows.FilterRadius);
     }
 }

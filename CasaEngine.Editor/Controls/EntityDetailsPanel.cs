@@ -856,6 +856,18 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Shadow Color", shadowColorEditor);
 
+        var shadowFilterRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.5f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FilterRadius,
+        };
+        shadowFilterRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Filter Radius",
+            static s => s.Shadows.FilterRadius,
+            static (s, radius) => s.Shadows.FilterRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Radius", shadowFilterRadiusEditor);
+
         _detailsContent.TryAddChild(shadowGrid);
 
         var rebuildButton = new MGButton(_window, _ =>

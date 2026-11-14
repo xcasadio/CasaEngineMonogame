@@ -129,16 +129,52 @@ float3 SampleEnvironmentDiffuse(float3 worldNormal)
 
 
 #ifdef HAS_FORWARD_SHADOW_BINDINGS
+// Fixed Poisson disc (unit disc, 12 points) used when ShadowFilterRadius > 0: the taps are scaled by the radius in texels.
+static const int ShadowPoissonTapCount = 12;
+static const float2 ShadowPoissonDisc[12] =
+{
+    float2(-0.326212f, -0.405805f),
+    float2(-0.840144f, -0.073580f),
+    float2(-0.695914f,  0.457137f),
+    float2(-0.203345f,  0.620716f),
+    float2( 0.962340f, -0.194983f),
+    float2( 0.473434f, -0.480026f),
+    float2( 0.519456f,  0.767022f),
+    float2( 0.185461f, -0.893124f),
+    float2( 0.507431f,  0.064425f),
+    float2( 0.896420f,  0.412458f),
+    float2(-0.321940f, -0.932615f),
+    float2(-0.791559f, -0.597705f)
+};
+
+
 float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
 {
     float visibility = 0.0f;
 
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
-    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+    if (ShadowFilterRadius > 0.0f)
+    {
+        float2 radiusUv = ShadowMapTexelSize * ShadowFilterRadius;
 
-    return visibility * 0.25f;
+        [unroll]
+        for (int tap = 0; tap < ShadowPoissonTapCount; tap++)
+        {
+            visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowPoissonDisc[tap] * radiusUv, 0.0f).r);
+        }
+
+        visibility *= 1.0f / ShadowPoissonTapCount;
+    }
+    else
+    {
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+
+        visibility *= 0.25f;
+    }
+
+    return visibility;
 }
 
 
