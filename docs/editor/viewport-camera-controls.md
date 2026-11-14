@@ -49,5 +49,4 @@ The 2D camera and the front-2D view keep their own navigation (see [editor-2d-vi
 - The gizmo handle under the cursor is the one hovered at the previous frame.
 - A Z/C field-of-view change is lost when the viewport is resized: the camera recomputes its field of view from the aspect ratio. Play mode does not save it.
 - In the demos, the camera reads and writes its `ArcBallCameraComponent` each frame, so a demo can set the initial camera on the component.
-- `AudioDemo` also uses F for its looping voice, so F recentres its camera too.
 - Not implemented: marquee selection, Space and Q of Unreal, vertex snapping, moving the pivot with the middle button, user-editable sensitivities.

@@ -26,7 +26,7 @@ namespace CasaEngine.Demos.Demos;
 /// Sound effect keys:
 ///   Space      play the sound effect once
 ///   L          start or stop the looping sound effect
-///   F          fade the looping sound out over one second
+///   U          fade the looping sound out over one second
 ///   S          stop every sound
 ///   B          play a mono beep on a software stereo voice (ADR-0039): left only, then right
 ///              only, then both channels, one step per press
@@ -376,7 +376,7 @@ public class AudioDemo : Demo
             }
         }
 
-        if (WasJustPressed(keyboard, Keys.F) && service.IsAlive(_loopingVoice))
+        if (WasJustPressed(keyboard, Keys.U) && service.IsAlive(_loopingVoice))
         {
             service.StopWithFade(_loopingVoice, 1f);
             _loopingVoice = AudioVoiceHandle.None;
@@ -570,7 +570,7 @@ public class AudioDemo : Demo
         DrawLine(spriteBatch, ref y, $"Doppler (K) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
             + (float.IsNaN(intensity) ? "   intensity (I) unset" : $"   intensity (I) {intensity:0.0}"));
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
-        DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   F fade out   S stop all");
+        DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   U fade out   S stop all");
         DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
         DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
         DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");

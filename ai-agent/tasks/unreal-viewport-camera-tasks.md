@@ -217,7 +217,7 @@ Problème d'origine : dans les démos, la molette déplace la cible de l'orbite 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Résolu le 2026-11-14 : P1, P3 à P8 validés, P2 remplacé par D10. | T0.1 |
-| O3 | `AudioDemo` lie F à sa boucle sonore : F y recentre aussi la caméra. Garder, ou changer la touche de la démo ? | T2.1 |
+| O3 | Résolu le 2026-11-14 (« change la touche de AudioDemo ») : le fondu de la boucle sonore d'`AudioDemo` passe de F à U (code, aide à l'écran, `docs/engine/audio-system.md`). | T2.1 |
 | O2 | Le glisser gauche bouge-t-il la caméra quand l'appui tombe sur une entité déjà sélectionnée mais hors poignée ? Proposition : oui, comme Unreal en perspective (seule la poignée prend le glisser). | T1.2 |
 
 ## Hors périmètre
