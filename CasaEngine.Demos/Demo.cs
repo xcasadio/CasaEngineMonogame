@@ -1,4 +1,6 @@
 ﻿using CasaEngine.Framework.Application;
+using System;
+using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -13,6 +15,18 @@ public abstract class Demo
 
     /// <summary>Short English description of what this demo demonstrates.</summary>
     public virtual string Description => string.Empty;
+
+    /// <summary>
+    /// The inputs this demo reads itself, in the order the player should try them. Leave out "back to the menu" and the
+    /// default camera: the demos app adds them. The list is static data, built once.
+    /// </summary>
+    public virtual IReadOnlyList<DemoControl> Controls => Array.Empty<DemoControl>();
+
+    /// <summary>What to look at while the demo runs, one short sentence per entry.</summary>
+    public virtual IReadOnlyList<string> Highlights => Array.Empty<string>();
+
+    /// <summary>Repository-relative path of the page that documents the feature ("docs/engine/audio-system.md"), or empty.</summary>
+    public virtual string DocumentationPath => string.Empty;
 
     public abstract void Initialize(CasaEngineGame game);
 

@@ -106,7 +106,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 ## Phase 1 — Aide et fiches
 
-### ⏳ T1.1 — Contrat `Demo` enrichi
+### ✅ T1.1 — Contrat `Demo` enrichi
 
 - Objectif : `Demo` porte, en plus de `Title` et `Description`, la liste des contrôles, les points « à observer » et le chemin de la doc ; valeurs par défaut vides (D5).
 - Fichiers : `CasaEngine.Demos/Demo.cs`, un fichier voisin pour le type d'une ligne de contrôle (entrée, effet).
@@ -115,6 +115,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   2. Doc XML courte en anglais.
 - Validation : build ; les 25 démos compilent sans modification.
 - Commit : `feat(demos): add controls, highlights and doc link to the Demo contract`
+- Note de validation (2026-11-14) : `Demo` porte `Controls`, `Highlights` et `DocumentationPath` (valeurs par défaut vides), type `DemoControl` (clavier, effet, manette) ; `dotnet build CasaEngine.MonoGame.sln` : 0 erreur, aucune démo modifiée.
 
 ### ⏳ T1.2 — Fiche du menu
 
