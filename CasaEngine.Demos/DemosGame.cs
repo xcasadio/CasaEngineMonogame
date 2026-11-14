@@ -10,6 +10,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.Rendering;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
@@ -67,6 +68,24 @@ public class DemosGame : CasaEngineGame
 
     // ---- Reminder shown in the scene: how to go back to the main screen ----
     private DemoHintOverlay _demoHintOverlay;
+
+    // ---- Help panel shown in the scene (ADR-0090): visible when a demo starts, F1 or Start hides and shows it ----
+    private DemoHelpOverlay _demoHelpOverlay;
+    private bool _demoHelpVisible = true;
+
+    // The default demo camera (Demo.CreateCamera: ScriptArcBallCamera), as docs/editor/viewport-camera-controls.md
+    // describes it. Formatted once.
+    private static readonly DemoControl[] DefaultCameraControls =
+    {
+        new("Right mouse drag", "look around"),
+        new("Right mouse + W A S D, Q E", "fly"),
+        new("Alt + left mouse drag", "orbit around the pivot"),
+        new("Middle mouse drag", "pan"),
+        new("Mouse wheel", "zoom on the pivot"),
+        new("F", "put the pivot back on the scene"),
+    };
+
+    private static readonly string DefaultCameraControlsText = DemoSheetText.FormatControls(DefaultCameraControls);
 
     // The demos content folder is a regular editor project (DemosGame.json + AssetInfos.json).
     // Passing the project file to the base constructor lets CasaEngineGame.Initialize load it
@@ -321,7 +340,7 @@ public class DemosGame : CasaEngineGame
         }
 
         ApplyAutomationViewSettings();
-        RefreshDemoUI();
+        RefreshDemoUI(demoCamera);
         _demoCycle?.OnWorldLoaded(GameManager, _currentDemo.Title, demoCamera, isMenu: false, mainScreen: null, _currentDemoIndex);
     }
 
@@ -331,28 +350,47 @@ public class DemosGame : CasaEngineGame
         => GameManager.ViewManager.GetActiveUIView();
 
     /// <summary>
-    /// (Re)creates the reminder of how to go back to the main screen on the current UI view. Called after every demo
-    /// change because each world change rebuilds the views and their UI runtimes.
+    /// (Re)creates the reminder line and the help panel of the current demo on the current UI view. Called after every
+    /// demo change because each world change rebuilds the views and their UI runtimes. The panel is visible again at
+    /// every launch (ADR-0090).
     /// </summary>
-    private void RefreshDemoUI()
+    private void RefreshDemoUI(CameraComponent demoCamera)
     {
         var uiView = GetUIView();
         if (uiView == null) return;
 
         _demoHintOverlay = new DemoHintOverlay();
         uiView.PushScreen(_demoHintOverlay);
+
+        // The camera lines show only when the demo kept the default camera script.
+        bool defaultCamera = demoCamera?.Owner?.GameplayProxy is ScriptArcBallCamera;
+        _demoHelpOverlay = new DemoHelpOverlay(
+            _currentDemo.Title,
+            DemoSheetText.FormatControls(_currentDemo.Controls),
+            defaultCamera ? DefaultCameraControlsText : string.Empty,
+            DemoSheetText.FormatHighlights(_currentDemo.Highlights));
+        uiView.PushScreen(_demoHelpOverlay);
+        _demoHelpVisible = true;
         UpdateDemoHintVisibility();
     }
 
     /// <summary>
-    /// The reminder shows in every demo, never during an automation run that captures or probes the back buffer, so the
+    /// The reminder and the help panel show in every demo, never during an automation run that captures or probes the back buffer, so the
     /// image is the one the demo draws.
     /// </summary>
     private void UpdateDemoHintVisibility()
     {
         bool automation = !string.IsNullOrWhiteSpace(_automationScreenshotPath)
             || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"));
+
+        // CASAENGINE_DEMO_SHOW_HELP keeps both in a capture, to check or document the panel itself.
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SHOW_HELP")))
+        {
+            automation = false;
+        }
+
         _demoHintOverlay?.SetVisible(!automation);
+        _demoHelpOverlay?.SetVisible(!automation && _demoHelpVisible);
     }
 
     /// <summary>Asks for a demo change; it happens at the start of the next update, outside any UI callback.</summary>
@@ -363,7 +401,7 @@ public class DemosGame : CasaEngineGame
 
     /// <summary>
     /// Esc and the gamepad Back (Select) button ask to return to the main screen during a demo (decision D5); on the main
-    /// screen they do nothing (decision D4). Enter and the A button launch the demo selected on the main screen, which
+    /// screen they do nothing (decision D4). F1 and Start hide or show the help panel of the demo. Enter and the A button launch the demo selected on the main screen, which
     /// MGTreeView does not do. Pressed edges only, read while the window is active.
     /// </summary>
     private void ReadMenuInput()
@@ -376,6 +414,14 @@ public class DemosGame : CasaEngineGame
         if (backPressed && _currentDemo != null)
         {
             _returnToMenuRequested = true;
+        }
+
+        bool helpPressed = (keyboard.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))
+            || (gamePad.Buttons.Start == ButtonState.Pressed && _prevGamePad.Buttons.Start != ButtonState.Pressed);
+        if (helpPressed && _currentDemo != null)
+        {
+            _demoHelpVisible = !_demoHelpVisible;
+            UpdateDemoHintVisibility();
         }
 
         bool launchPressed = (keyboard.IsKeyDown(Keys.Enter) && !_prevKeyboard.IsKeyDown(Keys.Enter))

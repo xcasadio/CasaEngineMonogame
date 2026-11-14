@@ -128,7 +128,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 - Commit : `feat(demos): show controls and highlights on the main screen sheet`
 - Note de validation (2026-11-14) : fiche étendue (`lblControls`, `lblHighlights`, `lblDocumentation` et leurs titres, repliés quand la démo n'a rien), texte formaté une fois par `DemoSheetText` ; build 0 erreur ; tests `MainMenu`, `DemoSheet`, `DemoScreenXaml` 56/56 ; capture du menu : sections vides invisibles, mise en page inchangée.
 
-### ⏳ T1.3 — Panneau d'aide en démo
+### ✅ T1.3 — Panneau d'aide en démo
 
 - Objectif : un panneau MGUI commun remplace le rappel « Esc / Select » : titre, contrôles (dont retour au menu et caméra par défaut), « à observer » ; affiché au lancement, replié par la touche de P1 (D3).
 - Fichiers : `Content/Screens/demo-help.xaml` (remplace `demo-hint.xaml`), `Demos/DemoUI/DemoHelpOverlay.cs` (remplace `DemoHintOverlay.cs`), `DemosGame.cs`, `DemoCycleAutomation.cs` si ses contrôles nomment l'ancien écran, `CasaEngine.Tests/UI/DemoScreenXamlTests.cs`.
@@ -140,6 +140,7 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
   5. Vérifier que le panneau ne recouvre pas les HUD existants (Audio, Animation blend, Animation IK, ViewManager Sandbox, UI Overlay, Skeletal blending) ; sinon le replier d'office pour ces démos et le dire dans la note.
 - Validation : build, tests ; `CASAENGINE_DEMO_CYCLE=60` à 0 ; une capture référence d'une démo par automatisation identique à avant (panneau caché).
 - Commit : `feat(demos): replace the back hint with a collapsible help panel`
+- Note de validation (2026-11-14) : panneau `demo-help.xaml` / `DemoHelpOverlay` en bas à droite (titre, contrôles, caméra par défaut si la démo garde `ScriptArcBallCamera`, à observer), visible au lancement, replié par F1 ou Start. Écart au plan : `demo-hint.xaml` est gardé comme ligne de rappel (« F1 / Start: help, Esc / Select: back to the menu », 440 px) au lieu d'être remplacé. Contrôles de caméra lus dans `docs/editor/viewport-camera-controls.md`. Aucune démo ne lit F1 ni Start (`rg`). Les HUD existants sont en haut à gauche ou à droite : pas de recouvrement vu sur Collision 3d et Audio (captures avec la nouvelle variable `CASAENGINE_DEMO_SHOW_HELP`, qui garde le panneau dans une capture). Build 0 erreur ; tests du menu et des écrans 58/58 ; `CASAENGINE_DEMO_CYCLE=60` : PASS, 101 étapes, code 0. Constat hors tâche : dans le cycle, la seconde visite de Frozen frame journalise `FAIL D6c` (CaptureCount 4 au lieu de 2) ; la démo seule donne `result=PASS`. Non corrigé.
 
 ### ⏳ T1.4 — Fiches des 25 démos
 

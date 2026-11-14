@@ -107,8 +107,8 @@ public class DemoScreenXamlTests
     [Theory]
     // pause menu: centred, 300x200.
     [InlineData("pause-menu.xaml", (640 - 300) / 2, (480 - 200) / 2, 300, 200)]
-    // demo hint (Esc / Select: back to the menu): centred horizontally, 14px above the bottom, 300x36.
-    [InlineData("demo-hint.xaml", (640 - 300) / 2, 480 - 36 - 14, 300, 36)]
+    // demo hint (F1 / Start: help, Esc / Select: back to the menu): centred horizontally, 14px above the bottom, 440x36.
+    [InlineData("demo-hint.xaml", (640 - 440) / 2, 480 - 36 - 14, 440, 36)]
     // blending controls: same corner, but 560 does NOT fit in 480 -- the height is capped to the space the
     // margin leaves, which is exactly what Math.Min(560, viewport - 20) used to do.
     [InlineData("blending-controls.xaml", 640 - 320 - 10, 10, 320, 480 - 20)]
@@ -152,6 +152,24 @@ public class DemoScreenXamlTests
         Assert.True(window.TryGetElementByName("lblStatus", out MGTextBlock _));
         Assert.True(window.TryGetElementByName("btnLaunch", out MGButton _));
         Assert.True(window.TryGetElementByName("btnQuit", out MGButton _));
+    }
+
+    [Fact]
+    public void TheHelpPanel_DeclaresWhatItsScreenLooksUp_AtTheBottomRight()
+    {
+        // DemoHelpOverlay finds these by name (ADR-0090); the panel sits at the bottom right, above the reminder line.
+        var (desktop, _) = HeadlessUiTestHarness.NewDesktop();
+
+        var window = UIScreenLoader.Load(desktop, XamlDocumentSource.FromFile(ScreenPath("demo-help.xaml")));
+
+        Assert.True(window.HasScreenPlacement);
+        Assert.Equal(360, window.WindowWidth);
+        Assert.Equal(640 - 360 - 10, window.Left);
+        foreach (var name in new[] { "lblHelpTitle", "lblHelpControlsHeader", "lblHelpControls", "lblHelpCameraHeader", "lblHelpCamera", "lblHelpHighlightsHeader", "lblHelpHighlights" })
+        {
+            Assert.True(window.TryGetElementByName(name, out MGTextBlock block), $"'{name}' is not declared.");
+            Assert.False(block.AllowsInlineFormatting);
+        }
     }
 
     [Fact]

@@ -5,7 +5,8 @@ namespace CasaEngine.Demos.Demos;
 
 /// <summary>
 /// Small bottom-center overlay displayed in the scene of every demo.
-/// Reminds the player how to go back to the main screen (Esc, or Select on a gamepad).
+/// Reminds the player how to show the help panel (F1, or Start on a gamepad) and how to go back to the main screen
+/// (Esc, or Select on a gamepad).
 /// Toggle visibility with <see cref="SetVisible"/>.
 /// <para/>
 /// Its tree lives in `Content/Screens/demo-hint.xaml`, where it sits included.
