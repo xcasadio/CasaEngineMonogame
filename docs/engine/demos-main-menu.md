@@ -48,7 +48,7 @@ The themes and their demos are a learning path, in this order (ADR-0090). The re
 | Gameplay | Player input and possession demo, Coroutine demo, Save game demo |
 | Scene and views | Scene management, Split-screen (2 views), Render-to-texture |
 | Cutscenes | Cutscene MoveTo, Cutscene NavigateTo |
-| 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen |
+| 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen, 2D layers demo |
 | UI | MGUI UI Overlay, World-space UI |
 | Audio | Audio demo |
 | Engine validation | Static shadow validation, ViewManager v2 Sandbox, Frozen frame: scenes that check the engine rather than teach a feature. |

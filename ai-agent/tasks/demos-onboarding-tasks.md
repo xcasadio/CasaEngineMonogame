@@ -291,11 +291,12 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 - Commit : `feat(demos): add the coroutine demo`
 - Note de validation (2026-11-14) : `CoroutineDemo` dans un nouveau thème « Gameplay » : une patrouille écrite en une méthode (`World.CoroutineManager.StartCoroutine`), coroutine imbriquée `MoveTo` (`yield return null`), `WaitForSeconds`, `WaitUntil` (délégué créé une fois), arrêt par `CoroutineHandle` ; la couleur du cube dit quelle ligne s'exécute. Captures à 0,8 s, 2,2 s et 9,5 s : cube en mouvement, jaune au deuxième coin (attente minutée), vert revenu au départ (attente de touche). Build 0 erreur ; cycle PASS avec 30 démos. Espace et S n'ont pas été pressés par l'agent.
 
-### ⏳ T5.3 — Démo couches 2D
+### ✅ T5.3 — Démo couches 2D
 
 - Fichiers : `CasaEngine.Demos/Demos/Layers2dDemo.cs`, `DemosGame.cs`, doc. Sources : `docs/engine/scrolling-layers.md`, `docs/engine/cellular-layers.md`, `Content/PsxBackdropLayers`.
 - Étapes propres : si les deux systèmes ne tiennent pas dans une scène lisible, faire deux démos et le noter.
 - Commit : `feat(demos): add the 2D layers demo`
+- Note de validation (2026-11-14) : une seule démo, `Layers2dDemo` (thème « 2D and tile maps »), les deux systèmes tiennent dans une scène : quatre couches défilantes (ciel fixe, nuages en parallaxe 1/8 avec auto-défilement, collines 1/4 et 1/1) et une couche à cellules (40 flocons `FallRespawn`). Textures dessinées dans le code et enregistrées par id (`AssetContentManager.Register`) : `Content/PsxBackdropLayers` n'est pas utilisé (planches de test PSX, illisibles pour un débutant). Caméra 2D zoomée pour que l'image 320 x 240 remplisse la fenêtre. La démo fournit `CellularLayerComponent.RandomSource` (générateur à graine fixe) et remet l'ancien dans `Clean`. Gauche / Droite : caméra ; Espace : trajet automatique ; S : `SetLayerActive` sur la neige. Captures à 0,6 s, 3 s et 6 s : parallaxe visible entre les deux rangées de collines, nuages déplacés, flocons répartis après réapparition. Build 0 erreur ; cycle PASS avec 33 démos, sans l'avertissement `RandomSource is not wired`. Aucune touche pressée par l'agent.
 
 ### ✅ T5.4 — Démo sauvegarde de partie
 

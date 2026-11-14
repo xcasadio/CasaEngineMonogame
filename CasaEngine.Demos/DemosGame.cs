@@ -161,6 +161,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new TileMapDemo(), ThemeTileMaps);
         AddDemo(new TileMap3dDemo(), ThemeTileMaps);
         AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+        AddDemo(new Layers2dDemo(), ThemeTileMaps);
 
         AddDemo(new UIOverlayDemo(), ThemeUI);
         AddDemo(new WorldSpaceUIDemo(), ThemeUI);
