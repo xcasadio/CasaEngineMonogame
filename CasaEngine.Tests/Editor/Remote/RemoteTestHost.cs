@@ -207,4 +207,18 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
     }
 
     public void SaveAssetCatalog() => CatalogSaves++;
+
+    public CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenDocument ScreenDocument { get; set; }
+
+    /// <summary>The command stack screen sets run on, as the editor's screen panel does; bound to the history context of the screen.</summary>
+    public CasaEngine.EditorServices.ScreenEditor.Commands.UICommandStack ScreenStack { get; set; }
+
+    public CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenDocument GetScreenDocument(Guid assetId) => ScreenDocument;
+
+    public bool TrySetScreenProperty(Guid assetId, CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenNode node, string property, string value, out string error)
+    {
+        ScreenStack.Execute(new CasaEngine.EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, property, value));
+        error = null;
+        return true;
+    }
 }

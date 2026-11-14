@@ -109,6 +109,15 @@ internal interface IEditorRemoteHost
 
     /// <summary>Writes the asset catalog of the project (AssetInfos.json), as the content browser does after a creation.</summary>
     void SaveAssetCatalog();
+
+    /// <summary>The document shown by an open UI screen panel, or null.</summary>
+    CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenDocument GetScreenDocument(Guid assetId);
+
+    /// <summary>
+    /// Sets a property of a screen node through the screen panel's command stack (its undo history), then refreshes the
+    /// preview; the value has been validated by the command.
+    /// </summary>
+    bool TrySetScreenProperty(Guid assetId, CasaEngine.EditorServices.ScreenEditor.DocumentModel.UIScreenNode node, string property, string value, out string error);
 }
 
 /// <summary>
@@ -142,6 +151,7 @@ internal sealed class EditorRemoteControl : IDisposable
         EditorRemoteAssetCommands.Register(Registry, host);
         EditorRemoteMaterialCommands.Register(Registry, host);
         EditorRemoteParticleCommands.Register(Registry, host);
+        EditorRemoteScreenCommands.Register(Registry, host);
     }
 
     /// <summary><c>%TEMP%/CasaEngine/editor-remote</c>: captures, under names the client cannot choose (plan P8).</summary>

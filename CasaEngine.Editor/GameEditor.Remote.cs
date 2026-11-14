@@ -378,6 +378,32 @@ public partial class GameEditor
             return panel.TryApplyPropertyValue(property, rawValue, validate, out error);
         }
 
+        public EditorServices.ScreenEditor.DocumentModel.UIScreenDocument GetScreenDocument(Guid assetId)
+            => _editor._screenPreviewPanels.TryGetValue(EditorPanelIds.UIScreenDocumentPrefix + assetId.ToString("N"), out var panel)
+                ? panel.CurrentDocument
+                : null;
+
+        /// <summary>The path of a live inspector edit: the panel's command stack, then the preview and the screen views.</summary>
+        public bool TrySetScreenProperty(Guid assetId, EditorServices.ScreenEditor.DocumentModel.UIScreenNode node, string property, string value, out string error)
+        {
+            string panelId = EditorPanelIds.UIScreenDocumentPrefix + assetId.ToString("N");
+            if (!_editor._screenPreviewPanels.TryGetValue(panelId, out var panel))
+            {
+                error = "The UI screen is not open.";
+                return false;
+            }
+
+            _editor.GetOrCreateScreenCommandStack(panelId).Execute(new EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, property, value));
+            if (!panel.TryApplyPropertyUpdate(node.Id, property, value))
+            {
+                panel.RefreshPreviewOnly();
+            }
+
+            _editor.RefreshScreenViews();
+            error = null;
+            return true;
+        }
+
         /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
         public bool TrySaveAsset(Guid assetId, out string error)
         {
