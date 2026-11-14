@@ -50,6 +50,13 @@ public readonly struct ResolvedEnvironmentSettings
 
     public AmbientSource AmbientSource { get; init; }
 
+    public ColorPipelineMode ColorPipelineMode { get; init; }
+
+    public TonemapOperator Tonemapper { get; init; }
+
+    /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
+    public float Exposure { get; init; }
+
     public bool UsesLegacyClearColor { get; init; }
 
     public bool UsesLegacyLighting { get; init; }
@@ -65,6 +72,9 @@ public readonly struct ResolvedEnvironmentSettings
     /// <summary>True when the ambient term must be the flat ambient colour even if an environment cube is bound.</summary>
     public bool UsesFlatAmbient => AmbientSource == AmbientSource.Flat;
 
+    /// <summary>True when the view is rendered in <see cref="Environment.ColorPipelineMode.LinearHdr"/>.</summary>
+    public bool IsLinearHdr => ColorPipelineMode == ColorPipelineMode.LinearHdr;
+
     public static ResolvedEnvironmentSettings CreateLegacy(Color clearColor, Vector3 ambientColor)
     {
         return new ResolvedEnvironmentSettings
@@ -75,6 +85,7 @@ public readonly struct ResolvedEnvironmentSettings
             AmbientColor = ambientColor,
             AmbientIntensity = 1.0f,
             SpecularIntensity = 1.0f,
+            Exposure = ColorPipelineSettings.DefaultExposure,
             UsesLegacyClearColor = true,
             UsesLegacyLighting = true,
         };

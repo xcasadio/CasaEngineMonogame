@@ -759,6 +759,38 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Specular Intensity", specularIntensityEditor);
 
+        var colorPipelineModeCombo = CreateStringCombo(Enum.GetNames<ColorPipelineMode>(), settings.ColorPipeline.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Color Pipeline Mode",
+                static s => s.ColorPipeline.Mode,
+                static (s, mode) => s.ColorPipeline.Mode = mode,
+                Enum.Parse<ColorPipelineMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Color Pipeline", colorPipelineModeCombo);
+
+        var tonemapperCombo = CreateStringCombo(Enum.GetNames<TonemapOperator>(), settings.ColorPipeline.Tonemapper.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Tonemapper",
+                static s => s.ColorPipeline.Tonemapper,
+                static (s, tonemapper) => s.ColorPipeline.Tonemapper = tonemapper,
+                Enum.Parse<TonemapOperator>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Tonemapper", tonemapperCombo);
+
+        var exposureEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.Exposure,
+        };
+        exposureEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Exposure",
+            static s => s.ColorPipeline.Exposure,
+            static (s, exposure) => s.ColorPipeline.Exposure = exposure,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Exposure", exposureEditor);
+
         _detailsContent.TryAddChild(grid);
 
         _detailsContent.TryAddChild(new MGTextBlock(_window, "[b]Directional Shadows (V1)[/b]")

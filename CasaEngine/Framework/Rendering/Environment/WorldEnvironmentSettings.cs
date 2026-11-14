@@ -43,6 +43,12 @@ public sealed class WorldEnvironmentSettings
     public ShadowSettings Shadows { get; } = new();
 
     /// <summary>
+    /// Colour pipeline of the world (<see cref="ColorPipelineMode.Legacy"/> by default). Serialized as
+    /// <c>color_pipeline</c>, omitted while every field has its default value.
+    /// </summary>
+    public ColorPipelineSettings ColorPipeline { get; } = new();
+
+    /// <summary>
     /// Where the ambient term comes from. <see cref="AmbientSource.Auto"/> (default) keeps the historical behaviour;
     /// <see cref="AmbientSource.Flat"/> uses the flat ambient colour even when a reflection cube is bound.
     /// Serialized as <c>ambient_source</c>, omitted when <see cref="AmbientSource.Auto"/>.
@@ -90,6 +96,7 @@ public sealed class WorldEnvironmentSettings
         AmbientSource = AmbientSource.Auto;
         SpecularIntensity = 1.0f;
         Shadows.ResetToDefaults();
+        ColorPipeline.ResetToDefaults();
         IsDirty = false;
     }
 
@@ -173,6 +180,11 @@ public sealed class WorldEnvironmentSettings
         {
             Shadows.Load(shadowsNode as JObject);
         }
+
+        if (element.TryGetValue("color_pipeline", StringComparison.OrdinalIgnoreCase, out var colorPipelineNode))
+        {
+            ColorPipeline.Load(colorPipelineNode as JObject);
+        }
     }
 
     public void Save(JObject element)
@@ -205,6 +217,17 @@ public sealed class WorldEnvironmentSettings
         var shadowsNode = new JObject();
         Shadows.Save(shadowsNode);
         element["shadows"] = shadowsNode;
+
+        if (!ColorPipeline.IsDefault)
+        {
+            var colorPipelineNode = new JObject();
+            ColorPipeline.Save(colorPipelineNode);
+            element["color_pipeline"] = colorPipelineNode;
+        }
+        else
+        {
+            element.Remove("color_pipeline");
+        }
     }
 
     public void MarkDirty()
@@ -241,6 +264,7 @@ public sealed class WorldEnvironmentSettings
         };
 
         clone.Shadows.CopyFrom(Shadows);
+        clone.ColorPipeline.CopyFrom(ColorPipeline);
         return clone;
     }
 
@@ -265,6 +289,7 @@ public sealed class WorldEnvironmentSettings
         SpecularIntensity = other.SpecularIntensity;
         AmbientSource = other.AmbientSource;
         Shadows.CopyFrom(other.Shadows);
+        ColorPipeline.CopyFrom(other.ColorPipeline);
         if (other.IsDirty)
         {
             MarkDirty();

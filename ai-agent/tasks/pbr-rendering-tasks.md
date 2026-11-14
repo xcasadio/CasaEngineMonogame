@@ -243,7 +243,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 
 ## Phase 1 — Pipeline couleur : linéaire, HDR, tonemapping
 
-### ⏳ T1.1 — `ColorPipelineSettings` dans les réglages d'environnement
+### ✅ T1.1 — `ColorPipelineSettings` dans les réglages d'environnement
 
 - Objectif : un réglage par monde, sérialisé, résolu et porté jusqu'à l'image, sans changer aucun rendu.
 - Fichiers : nouveaux `CasaEngine/Framework/Rendering/Environment/ColorPipelineSettings.cs`, `ColorPipelineMode.cs`, `TonemapOperator.cs` ; `WorldEnvironmentSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs` ; `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ; nouveau `CasaEngine.Tests/Rendering/ColorPipelineSettingsTests.cs` ; ADR-0095.
@@ -256,6 +256,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   6. ADR-0095 : pipeline couleur par monde, clé `color_pipeline`, défaut `Legacy`.
 - Validation : builds ; tests verts ; un monde existant se charge en `Legacy` (test) ; captures de T0.2 identiques.
 - Commit : `feat(rendering): add per-world colour pipeline settings with a legacy default (ADR-0095)`
+- Note de validation (2026-11-15) : `dotnet build CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 5225 réussis, 0 échec (5207 au départ + 18 de `ColorPipelineSettingsTests`) ; un monde sans la clé `color_pipeline` se charge en `Legacy` (test). `Exposure` : NaN, infini et négatif donnent 0 (l'infini est ajouté à la consigne par cohérence avec `ShadowSettings`). `ResolvedEnvironmentSettings.CreateLegacy` pose `Exposure = 1` (un `default` vaut 0, jamais lu pour l'instant). Captures de T0.2 (`capture.sh`) : sept démos déterministes sur huit identiques à la base ; **`ui-overlay` rend d'abord `c94bfa52754c67b6` au lieu de `d226df79b82cf4b2`, sans lien avec la tâche** : seul le chiffre du compteur « Time: 1,5s » de l'interface (rectangle 77,52 - 84,64) change, la base ayant été prise quand la démo affichait 1,5 s à 1500 ms et la machine affichant maintenant 1,4 s ; le même hash `c94bfa52754c67b6` sort à l'identique sans aucune modification de la tâche (changements écartés par `git stash`, `CasaEngine.Demos` reconstruit). Avec `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS=1600` (ou 1550) et les changements de la tâche, la capture vaut `d226df79b82cf4b2`, soit la base : **comparer `ui-overlay` avec ce délai** ; les sept autres sont comparées avec le délai par défaut.
 
 ### ⏳ T1.2 — Variables de harnais et scène de mesure
 
