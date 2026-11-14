@@ -1,5 +1,9 @@
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Log;
 using CasaEngine.Editor.Remote;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 
@@ -29,5 +33,13 @@ public partial class GameEditor
         public bool IsPlaySessionActive => _editor._playModeService?.IsPlaySessionActive == true;
 
         public bool HasUnsavedWorldChanges => _editor._editorDirtyState.IsDirty(RemoteWorldHistoryContext);
+
+        public World CurrentWorld => _editor._editorRuntime?.GameManager.CurrentWorld;
+
+        public Entity SelectedEntity => EditorSelection.Current.SelectedEntity;
+
+        public EntityComponent SelectedComponent => EditorSelection.Current.SelectedComponent;
+
+        public LoggerEditor Logger => _editor._loggerEditor;
     }
 }

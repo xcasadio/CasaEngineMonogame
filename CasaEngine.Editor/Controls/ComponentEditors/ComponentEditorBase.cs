@@ -22,23 +22,8 @@ public abstract class ComponentEditorBase
 {
     private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
 
-    protected static readonly HashSet<string> DefaultUnsupportedPropertyNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        nameof(EntityComponent.Owner),
-        nameof(SceneComponent.Children),
-        nameof(SceneComponent.Parent),
-        nameof(SceneComponent.Forward),
-        nameof(SceneComponent.Up),
-        nameof(SceneComponent.BoundingBox),
-        nameof(SceneComponent.WorldMatrixWithScale),
-        nameof(SceneComponent.WorldMatrixNoParentScale),
-        nameof(SceneComponent.WorldMatrixNoScale),
-        nameof(SceneComponent.WorldInvertTransposeMatrix),
-        nameof(PhysicsBaseComponent.PhysicsDefinition),
-        nameof(StaticModelComponent.StaticModel),
-        nameof(PhysicsBaseComponent.Collisions),
-        nameof(EntityComponent.Name),
-    };
+    /// <summary>Shared with the remote commands (<see cref="EditorPropertyRules"/>, ADR-0092).</summary>
+    protected static readonly HashSet<string> DefaultUnsupportedPropertyNames = EditorPropertyRules.UnsupportedPropertyNames;
 
     protected MGWindow Window { get; }
     protected EntityComponent Component { get; }

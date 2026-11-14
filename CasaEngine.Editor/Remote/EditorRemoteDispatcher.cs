@@ -30,7 +30,18 @@ internal sealed class EditorRemoteDispatcher
         _warn = warn ?? Logs.WriteWarning;
     }
 
+    private readonly ConcurrentQueue<(LogVerbosity Verbosity, string Message)> _pendingLogs = new();
+
     public int DeferredCount => _deferred.Count;
+
+    /// <summary>
+    /// Thread-safe: queues a log line written by the next <see cref="Pump"/> on the game thread. The pipe thread logs
+    /// through here because the editor logger is not thread-safe.
+    /// </summary>
+    public void PostLog(LogVerbosity verbosity, string message)
+    {
+        _pendingLogs.Enqueue((verbosity, message));
+    }
 
     /// <summary>Thread-safe: called by the pipe thread.</summary>
     public void Enqueue(EditorRemoteCall call)
@@ -42,9 +53,21 @@ internal sealed class EditorRemoteDispatcher
     /// <summary>Game thread, once per frame.</summary>
     public void Pump()
     {
-        if (_incoming.IsEmpty && _deferred.Count == 0)
+        if (_incoming.IsEmpty && _deferred.Count == 0 && _pendingLogs.IsEmpty)
         {
             return;
+        }
+
+        while (_pendingLogs.TryDequeue(out (LogVerbosity Verbosity, string Message) log))
+        {
+            if (log.Verbosity >= LogVerbosity.Warning)
+            {
+                _warn(log.Message);
+            }
+            else
+            {
+                Logs.WriteInfo(log.Message);
+            }
         }
 
         for (int i = 0; i < MaxCallsPerPump && _incoming.TryDequeue(out EditorRemoteCall call); i++)

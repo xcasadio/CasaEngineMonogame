@@ -33,6 +33,14 @@ public sealed class EditorRemoteServerTests : IDisposable
         public bool IsPlaySessionActive => false;
 
         public bool HasUnsavedWorldChanges => true;
+
+        public CasaEngine.Framework.Scene.World.World CurrentWorld => null;
+
+        public CasaEngine.Framework.Scene.Entities.Entity SelectedEntity => null;
+
+        public CasaEngine.Framework.Scene.Entities.Components.EntityComponent SelectedComponent => null;
+
+        public CasaEngine.Editor.Log.LoggerEditor Logger => null;
     }
 
     /// <summary>Stands in for the editor's game loop: pumps the dispatcher every few milliseconds.</summary>

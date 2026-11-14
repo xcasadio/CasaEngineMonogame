@@ -201,6 +201,20 @@ public sealed class EditorRemoteDispatcherTests
         Assert.Equal(RemoteErrorReasons.Failed, queued.Completion.Result.Error!.Data!.Reason);
     }
 
+    /// <summary>The pipe thread logs through the dispatcher: lines are written by the next pump, on the game thread.</summary>
+    [Fact]
+    public async Task PostLog_IsWrittenByThePump()
+    {
+        var (_, dispatcher) = Create();
+
+        await Task.Run(() => dispatcher.PostLog(CasaEngine.Core.Logging.LogVerbosity.Warning, "from the pipe"));
+        Assert.Empty(_warnings);
+
+        dispatcher.Pump();
+
+        Assert.Equal("from the pipe", Assert.Single(_warnings));
+    }
+
     [Fact]
     public void Registry_RejectsDuplicatesAndNonObjectSchemas()
     {

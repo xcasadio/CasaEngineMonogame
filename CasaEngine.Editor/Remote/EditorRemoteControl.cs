@@ -3,7 +3,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using CasaEngine.Core.Logging;
+using CasaEngine.Editor.Log;
 using CasaEngine.Editor.Remote.Protocol;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.Editor.Remote;
 
@@ -20,6 +24,15 @@ internal interface IEditorRemoteHost
 
     /// <summary>The world history context has changes not saved yet.</summary>
     bool HasUnsavedWorldChanges { get; }
+
+    World CurrentWorld { get; }
+
+    Entity SelectedEntity { get; }
+
+    EntityComponent SelectedComponent { get; }
+
+    /// <summary>The editor log already registered with <c>Logs</c>; null when there is none.</summary>
+    LoggerEditor Logger { get; }
 }
 
 /// <summary>
@@ -33,6 +46,7 @@ internal sealed class EditorRemoteControl : IDisposable
 
     private readonly IEditorRemoteHost _host;
     private readonly string _discoveryDirectory;
+    private readonly EditorRemoteLogReader _logReader;
     private EditorRemoteServer _server;
     private string _token;
 
@@ -43,7 +57,9 @@ internal sealed class EditorRemoteControl : IDisposable
         _discoveryDirectory = discoveryDirectory ?? RemoteDiscovery.DefaultDirectory;
         Registry = new EditorRemoteCommandRegistry();
         Dispatcher = new EditorRemoteDispatcher(Registry, clockSeconds);
+        _logReader = host.Logger != null ? new EditorRemoteLogReader(host.Logger) : null;
         RegisterBuiltInCommands();
+        EditorRemoteReadCommands.Register(Registry, host, () => _logReader);
     }
 
     public EditorRemoteCommandRegistry Registry { get; }
@@ -146,7 +162,11 @@ internal sealed class EditorRemoteControl : IDisposable
     /// <summary>Game thread, once per frame.</summary>
     public void Pump() => Dispatcher.Pump();
 
-    public void Dispose() => Stop();
+    public void Dispose()
+    {
+        Stop();
+        _logReader?.Dispose();
+    }
 
     private void RegisterBuiltInCommands()
     {

@@ -110,7 +110,7 @@ internal sealed class EditorRemoteServer : IDisposable
                 }
                 else
                 {
-                    Logs.WriteWarning("[Remote] Refused a client that came through the network redirector.");
+                    _dispatcher.PostLog(LogVerbosity.Warning, "[Remote] Refused a client that came through the network redirector.");
                 }
             }
             catch (OperationCanceledException) when (stop.IsCancellationRequested)
@@ -123,7 +123,7 @@ internal sealed class EditorRemoteServer : IDisposable
             }
             catch (IOException ex)
             {
-                Logs.WriteWarning($"[Remote] Client connection ended: {ex.Message}");
+                _dispatcher.PostLog(LogVerbosity.Warning, $"[Remote] Client connection ended: {ex.Message}");
             }
 
             try
@@ -178,7 +178,7 @@ internal sealed class EditorRemoteServer : IDisposable
                 }
                 catch (OperationCanceledException) when (!stop.IsCancellationRequested)
                 {
-                    Logs.WriteInfo("[Remote] Idle client disconnected.");
+                    _dispatcher.PostLog(LogVerbosity.Info, "[Remote] Idle client disconnected.");
                     return;
                 }
             }

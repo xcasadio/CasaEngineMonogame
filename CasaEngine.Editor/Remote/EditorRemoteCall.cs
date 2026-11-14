@@ -126,6 +126,17 @@ internal sealed class EditorRemoteCall
         };
     }
 
+    public long GetLong(string name, long min, long max)
+    {
+        JsonElement value = GetArgument(name);
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt64(out long number) || number < min || number > max)
+        {
+            throw new EditorRemoteArgumentException(string.Create(CultureInfo.InvariantCulture, $"Argument '{name}' must be an integer from {min} to {max}."));
+        }
+
+        return number;
+    }
+
     public int GetOptionalInt(string name, int fallback, int min, int max)
     {
         if (!HasArgument(name))
