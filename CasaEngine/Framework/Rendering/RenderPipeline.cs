@@ -2,6 +2,7 @@ using System.Diagnostics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.FrozenFrames;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;
@@ -36,6 +37,10 @@ public sealed class RenderPipeline
     // Scene render target used when shadows are active on a back-buffer view.
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
+
+    // Tonemapping shader of the linear HDR colour pipeline (ADR-0096). Loaded by the game once its content root is set;
+    // null until then (the editor, tests), which only matters for a view in LinearHdr.
+    private ShaderWrapper _tonemapShader;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -87,6 +92,43 @@ public sealed class RenderPipeline
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
+    }
+
+    /// <summary>
+    /// Gives the pipeline the compiled <c>Tonemap</c> effect (<see cref="BuiltInShaderCatalog.TonemapContentName"/>) used
+    /// to bring the HDR scene target to the display range. Called once by the game after its content root is set.
+    /// </summary>
+    public void SetTonemapEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_tonemapShader == null)
+        {
+            _tonemapShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _tonemapShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Hot reload of the tonemapping shader: takes <paramref name="effect"/> when <paramref name="contentName"/> names it.
+    /// </summary>
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (!string.Equals(
+                BuiltInShaderCatalog.NormalizeContentName(contentName),
+                BuiltInShaderCatalog.TonemapContentName,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        SetTonemapEffect(effect);
+        return true;
     }
 
     /// <summary>

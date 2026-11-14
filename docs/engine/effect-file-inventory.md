@@ -10,6 +10,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | `UnlitTexture.fx` | material-facing | `StaticMeshRendererComponent` | unlit material effect for textured or colored draws | medium |
 | `skinEffect.fx` | material-facing | `SkinnedMeshRendererComponent` | skinned mesh effect with its own techniques and lighting bindings | high |
 | `SpriteBatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
+| `Tonemap.fx` | utility/post-process | `RenderPipeline` (ADR-0096) | pixel-only effect that tonemaps the HDR scene target into the view destination, drawn through `SpriteBatch`; techniques `Tonemap_Reinhard` and `Tonemap_AcesApprox`, parameter `Exposure` | low |
 | `TexturedPrimitive.fx` | utility/2D | `CasaDrawTransaction` (CasaEngine MGUI backend) | unlit textured vertex-color triangle lists, for UI textured paints mapped onto rounded box geometry | low |
 | `DebugPrimitiveColor.fx` | debug utility | `Line3dRendererComponent`, `DebugGridComponent`, `DebugAxisComponent`, editor gizmo line/selection path | shared vertex-color debug primitive shader | medium |
 | `DebugSolidColor.fx` | debug utility | editor gizmo solid meshes/quads | shared solid-color debug shader | medium |

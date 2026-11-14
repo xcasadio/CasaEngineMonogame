@@ -283,7 +283,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 
   - Vérifications : `CASAENGINE_DEMO_COLOR_PIPELINE=LinearHdr` seul ne change pas l'image (rien ne lit encore le réglage) ; `CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY=4` fait passer les trois points de la sphère à 255 ; la touche M, T, +/- règle mode, opérateur et exposition (non exercée en capture).
 
-### ⏳ T1.3 — `Tonemap.fx` et son enregistrement
+### ✅ T1.3 — `Tonemap.fx` et son enregistrement
 
 - Objectif : le shader de tonemapping compilé, enregistré et rechargeable, pas encore branché.
 - Fichiers : nouveau `CasaEngine/Content/Shaders/Tonemap.fx` ; le ou les `Content.mgcb` désignés par T0.3 ; `BuiltInShaderCatalog.cs` ; `CasaEngineGame.cs` (`ReloadBuiltInShader`) ; `RenderPipeline.cs` (champ `ShaderWrapper` et son chargement) ; `ShaderParameterNames.cs` ; nouveau `CasaEngine.Tests/Rendering/TonemapShaderCoverageTests.cs` ; `docs/engine/effect-file-inventory.md`.
@@ -294,6 +294,9 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   4. Tests par lecture du texte : les deux techniques existent ; `Exposure` et la texture source sont déclarés ; le fichier de contenu contient l'entrée ; le catalogue contient le descripteur.
 - Validation : builds des deux solutions (la compilation du shader fait foi) ; tests verts ; captures de T0.2 identiques.
 - Commit : `feat(rendering): add the tonemap shader and register it as a built-in`
+- Note de validation (2026-11-15) : `dotnet build CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur (la compilation du shader fait foi : `CasaEngine/Content/bin/DesktopGL/Content/Shaders/Tonemap.xnb`, 4 759 octets, copié dans `CasaEngine.Demos/bin/Debug/net9.0-windows/Content/Shaders/`) ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 5233 réussis, 0 échec (5226 + 7 de `TonemapShaderCoverageTests`). `capture.sh` après la tâche (dossier `artifacts/pbr-baseline/t13`) : les huit démos déterministes identiques à la base (material 7fe3d57bb10f7128, environment 043ad52894e18395, static-model 3ee7cd655db47386, static-shadow c7d6c867b3de4ad9, render-to-texture f35395822a585e9e, ui-overlay d226df79b82cf4b2, frozen-frame eb25f3917cfa6a0c, tile-map 355772772016e47f), aucune ligne « was not found », aucune exception.
+  - **Forme du shader.** `SpriteBatch.fx` et `PsxQuad.fx` ne sont pas des effets de `SpriteBatch.Begin(effect:)` : ce sont des effets de quad 3D avec leur propre vertex shader (`World`, `ViewProj`). `Tonemap.fx` suit donc la forme documentée par MonoGame pour un effet de `SpriteBatch` : **pixel shader seul** (aucun `VertexShader` dans les techniques), entrée de pixel identique à la sortie du vertex shader de `SpriteBatch` (`SV_POSITION`, `COLOR0`, `TEXCOORD0`), texture lue par le sampler 0 que `SpriteBatch` lie ; échantillonneur déclaré point et clamp. Variante `OPENGL` : `ps_3_0` (même bloc de macros que `SpriteBatch.fx`).
+  - Techniques `Tonemap_Reinhard` et `Tonemap_AcesApprox` ; paramètres `Exposure` (défaut 1) et `SceneTexture` ; `Exposure` appliqué avant l'opérateur, valeurs négatives ramenées à 0, sortie `pow(saturate(c), 1/2.2)`, alpha 1. Constantes `ShaderParameterNames.Exposure` et `SceneTexture`. Enregistrement : une entrée dans `CasaEngine/Content/Content.mgcb`, `BuiltInShaderCatalog.TonemapContentName` + descripteur, `RenderPipeline` tient le `ShaderWrapper` (`SetTonemapEffect`, `TryReloadBuiltInShader`), chargé par `CasaEngineGame.Initialize` juste après `Content.RootDirectory` (le pipeline est construit avant que la racine de contenu soit posée), cas dans `ReloadBuiltInShader`. Le shader n'est pas encore utilisé pour dessiner.
 
 ### ⏳ T1.4 — Cible de scène HDR, tonemapping, interface après
 

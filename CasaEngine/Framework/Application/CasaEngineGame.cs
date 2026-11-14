@@ -503,6 +503,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         AssetContentManager.Initialize(GraphicsDevice);
 
         Content.RootDirectory = ContentPath;
+        _renderPipeline.SetTonemapEffect(Content.Load<Effect>(BuiltInShaderCatalog.TonemapContentName));
         if (!ExecutionPolicy.UseExternalViewManagement)
         {
             Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
@@ -980,6 +981,14 @@ public class CasaEngineGame : Game, IObservableUpdate
             case BuiltInShaderCatalog.SpriteBatchContentName:
                 if (SpriteRendererComponent is not null
                     && TryReloadBuiltInShaderClone(baseEffect, effect => SpriteRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+
+            case BuiltInShaderCatalog.TonemapContentName:
+                if (_renderPipeline is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => _renderPipeline.TryReloadBuiltInShader(normalizedContentName, effect)))
                 {
                     reloadedConsumerCount++;
                 }

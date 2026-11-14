@@ -39,6 +39,10 @@ public static class ShaderParameterNames
     public const string ColorMultiplier = "ColorMultiplier";
     public const string SolidColor = "SolidColor";
 
+    // --- Colour pipeline ---
+    public const string Exposure = "Exposure";
+    public const string SceneTexture = "SceneTexture";
+
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
     public const string ActiveDirectionalLightCount = "ActiveDirectionalLightCount";
