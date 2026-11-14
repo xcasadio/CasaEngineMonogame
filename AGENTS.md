@@ -43,7 +43,7 @@ Source unique des règles pour tous les agents IA qui travaillent dans ce dépô
 - Tests : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` dès qu'une tâche touche du code testé. Ajouter ou mettre à jour des tests quand un projet de test existe pour le système touché, quand la tâche change une logique, corrige un bug, change la sérialisation, ajoute un importeur ou un exporteur, ou change le layout, l'input ou le rendu de façon testable. Validation préférée : tests unitaires pour la logique pure, fichiers golden pour l'import et l'export, petite démo ou écran pour une feature éditeur, build complet pour un changement transverse. Si un test ne peut pas être ajouté, dire pourquoi.
 - Samples : un sample ou une démo minimal est obligatoire pour toute feature visible non triviale. Si un sample existe pour la zone touchée, le lancer au moins une fois avant de rendre la tâche.
 
-## 7. Outils shell et Serena
+## 7. Outils shell, Serena et codegraph
 
 Le dépôt est développé sous Windows. Outils installés : `rg` (recherche de code), `fd` (découverte de fichiers), `jq` (JSON), `yq` (YAML, XML, INI, CSV), `ast-grep` (recherche structurelle C# quand la recherche textuelle est trop bruyante). Leur vérification en début de tâche (`<outil> --version`) est facultative.
 
@@ -59,6 +59,12 @@ Le dépôt est développé sous Windows. Outils installés : `rg` (recherche de 
 - Les fichiers créés après le démarrage du serveur de langage ne sont pas indexés : redémarrer Serena après création de fichiers sources.
 - `.serena/`, configuration, cache et mémoires Serena, n'est indexé dans un commit que sur demande explicite de l'auteur.
 - Installation et mise à jour de Serena (`uv tool install` / `uv tool upgrade serena-agent`) uniquement depuis un terminal lancé hors de l'app Claude : les écritures sous AppData faites depuis l'app sont virtualisées et invisibles ailleurs.
+
+**codegraph (MCP, graphe de code pré-indexé).** Déclaré pour ce dépôt dans `.mcp.json` (Claude Code) et `.vscode/mcp.json` (Copilot dans VS Code), à côté de Serena.
+
+- Usage : `codegraph_explore` pour une question de structure (qui appelle quoi, dépendances d'un type, point d'entrée d'une feature) avant de lire les fichiers un par un. Serena pour la lecture et l'édition par symbole, `rg` pour le texte.
+- Index local dans `.codegraph/` (ignoré par git via son propre `.gitignore`), construit par `codegraph init` et tenu à jour automatiquement pendant que le serveur tourne. Si l'index est absent (clone neuf) : `codegraph init` à la racine du dépôt.
+- Installation et mise à jour (`irm https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.ps1 | iex`, `codegraph upgrade`) depuis un terminal lancé hors de l'app Claude, pour la même raison que Serena.
 
 ## 8. Délégation à des sous-agents
 

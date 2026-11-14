@@ -1,7 +1,7 @@
 ---
 name: editor-mgui
 description: Développeur de l'éditeur CasaEngine en MGUI. Implémente docking, multi-vues, sélection, gizmos, undo/redo et l'outillage d'édition.
-tools: Read, Glob, Grep, Edit, Write, Bash
+tools: Read, Glob, Grep, Edit, Write, Bash, mcp__serena__*, mcp__codegraph__*
 model: sonnet
 ---
 
