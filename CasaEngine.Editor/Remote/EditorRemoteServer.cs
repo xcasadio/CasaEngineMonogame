@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
@@ -13,21 +14,27 @@ using Microsoft.Win32.SafeHandles;
 namespace CasaEngine.Editor.Remote;
 
 /// <summary>
-/// The editor end of the pipe (ADR-0092, plan P1 and P10). One background task accepts one client at a time, reads
-/// bounded lines, hands each request to the <see cref="EditorRemoteDispatcher"/> and writes the answer itself: the
-/// game thread never waits on the pipe.
+/// The editor end of the pipe (ADR-0092 P1 and P10, ADR-0093 P1). Up to <see cref="MaxClients"/> pipe instances each
+/// serve one client at a time: an instance reads bounded lines, hands each request to the
+/// <see cref="EditorRemoteDispatcher"/> and writes the answer itself, so the game thread never waits on the pipe, and a
+/// slow or stuck client never hides the editor from the others.
 /// <para/>
-/// The pipe is created as the first instance of its name (a squatted name fails), with an ACL that grants the
-/// current user and denies network logons.
+/// Every instance is created by <see cref="CreatePipe"/> with the same ACL (current user, network logons denied) and
+/// the same instance limit. The first instance is created with <see cref="PipeOptions.FirstPipeInstance"/> (a squatted
+/// name fails) and the others while it exists; instances are reused through <c>Disconnect</c>, never recreated, so the
+/// name is never free while the server runs (security review S2-7).
 /// </summary>
 internal sealed class EditorRemoteServer : IDisposable
 {
+    /// <summary>Clients served at the same time.</summary>
+    public const int MaxClients = 4;
+
     private readonly EditorRemoteDispatcher _dispatcher;
     private readonly TimeSpan _idleTimeout;
     private readonly TimeSpan _answerTimeout;
     private readonly CancellationTokenSource _stop = new();
-    private NamedPipeServerStream _pipe;
-    private Task _loop;
+    private readonly List<NamedPipeServerStream> _instances = new();
+    private readonly List<Task> _loops = new();
 
     public EditorRemoteServer(EditorRemoteDispatcher dispatcher, string pipeName, TimeSpan idleTimeout, TimeSpan answerTimeout)
     {
@@ -45,31 +52,74 @@ internal sealed class EditorRemoteServer : IDisposable
 
     public string PipeName { get; }
 
-    public bool IsRunning => _loop != null && !_loop.IsCompleted;
+    /// <summary>True while at least one instance still accepts clients.</summary>
+    public bool IsRunning
+    {
+        get
+        {
+            for (int i = 0; i < _loops.Count; i++)
+            {
+                if (!_loops[i].IsCompleted)
+                {
+                    return true;
+                }
+            }
 
-    /// <summary>Creates the pipe. Throws <see cref="IOException"/> when the name already exists.</summary>
+            return false;
+        }
+    }
+
+    /// <summary>The pipe instances, for the tests that read their security.</summary>
+    internal IReadOnlyList<NamedPipeServerStream> Instances => _instances;
+
+    /// <summary>Creates every instance. Throws <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> when the name already exists.</summary>
     public void Start()
     {
-        if (_pipe != null)
+        if (_instances.Count != 0)
         {
             throw new InvalidOperationException("The remote server is already started.");
         }
 
-        _pipe = CreatePipe(PipeName);
-        _loop = Task.Run(() => RunAcceptLoopAsync(_stop.Token));
+        try
+        {
+            for (int i = 0; i < MaxClients; i++)
+            {
+                _instances.Add(CreatePipe(PipeName, firstInstance: i == 0));
+            }
+        }
+        catch
+        {
+            for (int i = 0; i < _instances.Count; i++)
+            {
+                _instances[i].Dispose();
+            }
+
+            _instances.Clear();
+            throw;
+        }
+
+        for (int i = 0; i < _instances.Count; i++)
+        {
+            NamedPipeServerStream pipe = _instances[i];
+            _loops.Add(Task.Run(() => RunAcceptLoopAsync(pipe, _stop.Token)));
+        }
     }
 
     public void Dispose()
     {
         _stop.Cancel();
-        _pipe?.Dispose();
+        for (int i = 0; i < _instances.Count; i++)
+        {
+            _instances[i].Dispose();
+        }
+
         try
         {
-            _loop?.Wait(TimeSpan.FromSeconds(2));
+            Task.WaitAll(_loops.ToArray(), TimeSpan.FromSeconds(2));
         }
         catch (AggregateException)
         {
-            // The loop ends by cancellation or by the disposed pipe.
+            // The loops end by cancellation or by their disposed instance.
         }
 
         _stop.Dispose();
@@ -86,40 +136,41 @@ internal sealed class EditorRemoteServer : IDisposable
         return security;
     }
 
-    private static NamedPipeServerStream CreatePipe(string pipeName)
+    /// <summary>The only way instances are made: same ACL, same instance limit; the first one must be the first of its name.</summary>
+    private static NamedPipeServerStream CreatePipe(string pipeName, bool firstInstance)
         => NamedPipeServerStreamAcl.Create(
             pipeName,
             PipeDirection.InOut,
-            maxNumberOfServerInstances: 1,
+            MaxClients,
             PipeTransmissionMode.Byte,
-            PipeOptions.Asynchronous | PipeOptions.FirstPipeInstance,
+            firstInstance ? PipeOptions.Asynchronous | PipeOptions.FirstPipeInstance : PipeOptions.Asynchronous,
             inBufferSize: 0,
             outBufferSize: 0,
             CreatePipeSecurity());
 
-    /// <summary>The accept loop never ends in silence: an unexpected error is logged, and <see cref="IsRunning"/> turns false (verifier finding A4).</summary>
-    private async Task RunAcceptLoopAsync(CancellationToken stop)
+    /// <summary>An accept loop never ends in silence: an unexpected error is logged (verifier finding A4).</summary>
+    private async Task RunAcceptLoopAsync(NamedPipeServerStream pipe, CancellationToken stop)
     {
         try
         {
-            await AcceptLoopAsync(stop).ConfigureAwait(false);
+            await AcceptLoopAsync(pipe, stop).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _dispatcher.PostLog(LogVerbosity.Error, $"[Remote] Remote control stopped after an unexpected error: {ex}");
+            _dispatcher.PostLog(LogVerbosity.Error, $"[Remote] A remote control pipe instance stopped after an unexpected error: {ex}");
         }
     }
 
-    private async Task AcceptLoopAsync(CancellationToken stop)
+    private async Task AcceptLoopAsync(NamedPipeServerStream pipe, CancellationToken stop)
     {
         while (!stop.IsCancellationRequested)
         {
             try
             {
-                await _pipe.WaitForConnectionAsync(stop).ConfigureAwait(false);
-                if (IsLocalClient(_pipe))
+                await pipe.WaitForConnectionAsync(stop).ConfigureAwait(false);
+                if (IsLocalClient(pipe))
                 {
-                    await ServeClientAsync(stop).ConfigureAwait(false);
+                    await ServeClientAsync(pipe, stop).ConfigureAwait(false);
                 }
                 else
                 {
@@ -143,7 +194,7 @@ internal sealed class EditorRemoteServer : IDisposable
             // for the next client without a Disconnect throws and would end this loop for good.
             try
             {
-                _pipe.Disconnect();
+                pipe.Disconnect();
             }
             catch (ObjectDisposedException)
             {
@@ -183,10 +234,10 @@ internal sealed class EditorRemoteServer : IDisposable
         return Marshal.GetLastWin32Error() == ErrorPipeLocal;
     }
 
-    private async Task ServeClientAsync(CancellationToken stop)
+    private async Task ServeClientAsync(NamedPipeServerStream pipe, CancellationToken stop)
     {
-        var reader = new RemoteLineReader(_pipe);
-        while (!stop.IsCancellationRequested && _pipe.IsConnected)
+        var reader = new RemoteLineReader(pipe);
+        while (!stop.IsCancellationRequested && pipe.IsConnected)
         {
             RemoteLine line;
             using (var idle = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -236,8 +287,8 @@ internal sealed class EditorRemoteServer : IDisposable
                     $"The answer is longer than {RemoteProtocol.MaxMessageBytes} bytes: ask for less (for instance entity.get per entity).")));
             }
 
-            await _pipe.WriteAsync(encoded, stop).ConfigureAwait(false);
-            await _pipe.FlushAsync(stop).ConfigureAwait(false);
+            await pipe.WriteAsync(encoded, stop).ConfigureAwait(false);
+            await pipe.FlushAsync(stop).ConfigureAwait(false);
         }
     }
 

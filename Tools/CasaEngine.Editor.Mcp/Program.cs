@@ -24,7 +24,7 @@ for (int i = 0; i < args.Length; i++)
 }
 
 await using var connection = new EditorConnection(processId);
-var catalog = new ToolCatalogState();
+var catalog = new EditorToolCatalogState();
 using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
 {
@@ -53,9 +53,12 @@ var options = new McpServerOptions
             if (toolName == EditorToolCatalog.StatusToolName)
             {
                 await catalog.RefreshAsync(connection, cancellationToken);
-                return catalog.IsConnected
-                    ? new CallToolResult { Content = new List<ContentBlock> { new TextContentBlock { Text = "An editor serves remote control: its tools are listed." } } }
-                    : EditorToolCatalog.Failure(EditorToolCatalog.NoEditorMessage);
+                return catalog.LastStatus switch
+                {
+                    EditorCallStatus.Answered => new CallToolResult { Content = new List<ContentBlock> { new TextContentBlock { Text = "An editor serves remote control: its tools are listed." } } },
+                    EditorCallStatus.Busy => EditorToolCatalog.Failure(EditorConnection.BusyMessage),
+                    _ => EditorToolCatalog.Failure(EditorToolCatalog.NoEditorMessage),
+                };
             }
 
             string? command = catalog.FindCommand(toolName);
@@ -67,13 +70,18 @@ var options = new McpServerOptions
 
             if (command == null)
             {
-                return EditorToolCatalog.Failure(catalog.IsConnected
-                    ? $"Unknown tool '{toolName}'."
-                    : EditorToolCatalog.NoEditorMessage);
+                return EditorToolCatalog.Failure(catalog.LastStatus switch
+                {
+                    EditorCallStatus.Busy => EditorConnection.BusyMessage,
+                    EditorCallStatus.NoEditor => EditorToolCatalog.NoEditorMessage,
+                    _ => $"Unknown tool '{toolName}'.",
+                });
             }
 
-            var (result, error) = await connection.CallAsync(command, EditorToolCatalog.ToParams(request.Params?.Arguments), cancellationToken);
-            return result.HasValue ? EditorToolCatalog.Success(result.Value) : EditorToolCatalog.Failure(error ?? "The editor did not answer.");
+            EditorCallResult call = await connection.CallAsync(command, EditorToolCatalog.ToParams(request.Params?.Arguments), cancellationToken);
+            return call.Status == EditorCallStatus.Answered
+                ? EditorToolCatalog.Success(call.Result!.Value)
+                : EditorToolCatalog.Failure(call.Error ?? "The editor did not answer.");
         },
     },
 };
@@ -109,50 +117,3 @@ await server.RunAsync(stop.Token);
 stop.Cancel();
 return 0;
 
-/// <summary>The current tool list and its command names, rebuilt from the editor.</summary>
-internal sealed class ToolCatalogState
-{
-    private readonly object _lock = new();
-    private Dictionary<string, string> _commandByTool = new(StringComparer.Ordinal);
-    private string _signature = string.Empty;
-
-    public List<Tool> Tools { get; private set; } = new() { EditorToolCatalog.StatusTool() };
-
-    public bool IsConnected { get; private set; }
-
-    public string? FindCommand(string toolName)
-    {
-        lock (_lock)
-        {
-            return _commandByTool.TryGetValue(toolName, out string? command) ? command : null;
-        }
-    }
-
-    /// <summary>Reads the editor's commands; true when the tool list changed.</summary>
-    public async Task<bool> RefreshAsync(EditorConnection connection, CancellationToken cancellationToken)
-    {
-        var (commands, _) = await connection.ListCommandsAsync(cancellationToken);
-        List<Tool> tools;
-        Dictionary<string, string> commandByTool;
-        if (commands == null)
-        {
-            tools = new List<Tool> { EditorToolCatalog.StatusTool() };
-            commandByTool = new Dictionary<string, string>(StringComparer.Ordinal);
-        }
-        else
-        {
-            (tools, commandByTool) = EditorToolCatalog.Build(commands);
-        }
-
-        string signature = string.Join('|', tools.Select(t => t.Name));
-        lock (_lock)
-        {
-            bool changed = signature != _signature;
-            _signature = signature;
-            Tools = tools;
-            _commandByTool = commandByTool;
-            IsConnected = commands != null;
-            return changed;
-        }
-    }
-}

@@ -13,6 +13,6 @@ Commande : `bash Tools/automation-smokes.sh <dossier>` (copie neuve de `Projects
 | S5 | `--entity ground --drop-particle-asset Particles/SparkBurst_Additive.particle` | asset déposé sur `ground` (monde non sauvegardé) ; projet identique à S1 |
 | S6 | `--open-asset Screens/main-menu.uiscreen --set-screen-property btnPlay:Content=Start` | `btnPlay.Content` passé de `Play` à `Start`, non sauvegardé ; projet identique à S1 |
 | S7 | `--entity ground --save-project` | `DefaultWorld.world` réécrit (seul fichier différent de S1) |
-| S8 | `--entity ground --play-smoke` | 21 lignes `[PlaySmoke]` (toutes PASS) ; projet identique à S1 |
+| S8 | `--entity ground --play-smoke` | 21 lignes `[PlaySmoke]`, dont 15 `PASS` et aucun `FAIL` ; projet identique à S1 |
 
 Fichiers par smoke : `sN-automation.txt` (lignes `[Automation]` et `[PlaySmoke]`, horodatage et chemins de la copie retirés), `sN-hashes.txt` (SHA-256 de chaque fichier de la copie après la sortie, `.casaeditor/` exclu), `sN-exit.txt` (code de sortie, 0 pour les huit).

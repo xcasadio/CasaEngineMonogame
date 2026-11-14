@@ -119,10 +119,60 @@ public sealed class EditorMcpServerTests : IDisposable
     {
         await using var connection = new EditorConnection(null, _directory);
 
-        var (commands, error) = await connection.ListCommandsAsync(CancellationToken.None);
+        var (commands, call) = await connection.ListCommandsAsync(CancellationToken.None);
 
         Assert.Null(commands);
-        Assert.Contains("--remote", error);
+        Assert.Equal(EditorCallStatus.NoEditor, call.Status);
+        Assert.Contains("--remote", call.Error);
+    }
+
+    /// <summary>ADR-0093 P2: a live editor that does not accept the connection in time is busy, not absent.</summary>
+    [Fact]
+    public async Task Connection_ToALiveEditorThatDoesNotAccept_IsBusy()
+    {
+        // A discovery record for this very process, whose pipe nobody serves: the process is alive, the pipe never answers.
+        using var current = System.Diagnostics.Process.GetCurrentProcess();
+        RemoteDiscovery.Write(_directory, new RemoteDiscoveryRecord
+        {
+            ProcessId = Environment.ProcessId,
+            ProcessStartUtcTicks = current.StartTime.ToUniversalTime().Ticks,
+            PipeName = RemoteDiscovery.CreatePipeName(),
+            Token = RemoteDiscovery.CreateToken(),
+        });
+        await using var connection = new EditorConnection(null, _directory, connectTimeout: TimeSpan.FromMilliseconds(300));
+
+        var (commands, call) = await connection.ListCommandsAsync(CancellationToken.None);
+
+        Assert.Null(commands);
+        Assert.Equal(EditorCallStatus.Busy, call.Status);
+    }
+
+    [Fact]
+    public void CatalogState_KeepsItsToolsWhileTheEditorIsBusy_AndDropsThemWhenItIsGone()
+    {
+        var state = new EditorToolCatalogState();
+        var commands = new[] { Command("entity.get", true, false) };
+
+        Assert.True(state.Apply(commands, EditorCallStatus.Answered));
+        Assert.Equal("entity_get", Assert.Single(state.Tools).Name);
+
+        Assert.False(state.Apply(null, EditorCallStatus.Busy));
+        Assert.Equal("entity_get", Assert.Single(state.Tools).Name);
+        Assert.Equal("entity.get", state.FindCommand("entity_get"));
+        Assert.Equal(EditorCallStatus.Busy, state.LastStatus);
+
+        Assert.True(state.Apply(null, EditorCallStatus.NoEditor));
+        Assert.Equal(EditorToolCatalog.StatusToolName, Assert.Single(state.Tools).Name);
+        Assert.Null(state.FindCommand("entity_get"));
+    }
+
+    [Fact]
+    public async Task Connection_AfterDispose_RefusesCalls()
+    {
+        var connection = new EditorConnection(null, _directory);
+        await connection.DisposeAsync();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => connection.CallAsync("editor.status", null, CancellationToken.None));
     }
 
     [Fact]
@@ -150,15 +200,15 @@ public sealed class EditorMcpServerTests : IDisposable
             Assert.Contains(tools, t => t.Name == "entity_create" && t.Annotations!.ReadOnlyHint == false);
             Assert.Contains(tools, t => t.Name == "play_start" && t.Annotations!.DestructiveHint == true);
 
-            var (status, _) = await connection.CallAsync(commandByTool["editor_status"], null, CancellationToken.None);
-            Assert.Equal("Level", status!.Value.GetProperty("world_name").GetString());
+            EditorCallResult status = await connection.CallAsync(commandByTool["editor_status"], null, CancellationToken.None);
+            Assert.Equal("Level", status.Result!.Value.GetProperty("world_name").GetString());
 
-            var (refused, error) = await connection.CallAsync("entity.get", EditorToolCatalog.ToParams(new Dictionary<string, JsonElement>
+            EditorCallResult refused = await connection.CallAsync("entity.get", EditorToolCatalog.ToParams(new Dictionary<string, JsonElement>
             {
                 ["entity_id"] = JsonDocument.Parse("\"nope\"").RootElement.Clone(),
             }), CancellationToken.None);
-            Assert.Null(refused);
-            Assert.Contains("invalid_argument", error);
+            Assert.Equal(EditorCallStatus.Failed, refused.Status);
+            Assert.Contains("invalid_argument", refused.Error);
         }
 
         stopPump.Cancel();

@@ -246,6 +246,115 @@ public sealed class EditorRemoteServerTests : IDisposable
         Assert.Equal(RemoteErrorReasons.MessageTooLong, response.Error!.Data!.Reason);
     }
 
+    /// <summary>ADR-0093 P1: a client that holds an instance without talking does not keep another client out.</summary>
+    [Fact]
+    public async Task IdleClient_DoesNotKeepASecondClientOut()
+    {
+        string name = RemoteDiscovery.CreatePipeName();
+        var registry = new EditorRemoteCommandRegistry();
+        registry.Register(new EditorRemoteCommand("ping", "test", null, true, false, call => call.Succeed("pong")));
+        var dispatcher = new EditorRemoteDispatcher(registry);
+        using var server = new EditorRemoteServer(dispatcher, name, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        server.Start();
+
+        await using var idle = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        await idle.ConnectAsync(5000);
+
+        await using var active = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        await active.ConnectAsync(5000);
+        await RemoteMessageCodec.WriteAsync(active, new RemoteRequest { Id = 1, Method = "ping" }, CancellationToken.None);
+        using var stop = new CancellationTokenSource(Timeout);
+        Task<RemoteLine> pending = new RemoteLineReader(active).ReadLineAsync(stop.Token);
+        while (!pending.IsCompleted)
+        {
+            dispatcher.Pump();
+            await Task.Delay(5);
+        }
+
+        Assert.True(RemoteMessageCodec.TryDecodeResponse((await pending).Text, out RemoteResponse response));
+        Assert.Equal("pong", response.Result!.Value.GetString());
+    }
+
+    /// <summary>Security review S2-7: every instance carries the same ACL, and none is missing while the server runs.</summary>
+    [Fact]
+    public void EveryInstance_HasTheCurrentUserOnlyAcl()
+    {
+        string name = RemoteDiscovery.CreatePipeName();
+        using var server = new EditorRemoteServer(new EditorRemoteDispatcher(new EditorRemoteCommandRegistry()), name, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        server.Start();
+
+        Assert.Equal(EditorRemoteServer.MaxClients, server.Instances.Count);
+        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+        var network = new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.NetworkSid, null);
+        foreach (NamedPipeServerStream instance in server.Instances)
+        {
+            var rules = instance.GetAccessControl()
+                .GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier))
+                .Cast<System.IO.Pipes.PipeAccessRule>()
+                .ToList();
+            Assert.Contains(rules, r => r.IdentityReference == identity.User && r.AccessControlType == System.Security.AccessControl.AccessControlType.Allow);
+            Assert.Contains(rules, r => r.IdentityReference == network && r.AccessControlType == System.Security.AccessControl.AccessControlType.Deny);
+            Assert.DoesNotContain(rules, r => r.AccessControlType == System.Security.AccessControl.AccessControlType.Allow && r.IdentityReference != identity.User);
+        }
+    }
+
+    /// <summary>Security review S2-7: clients that come through the network redirector are dropped on every instance.</summary>
+    [Fact]
+    public async Task RedirectorClients_AreDroppedOnEveryInstance()
+    {
+        string name = RemoteDiscovery.CreatePipeName();
+        var registry = new EditorRemoteCommandRegistry();
+        int runs = 0;
+        registry.Register(new EditorRemoteCommand(RemoteProtocol.HelloMethod, "test", null, true, false, call =>
+        {
+            runs++;
+            call.Succeed(new RemoteHelloResult());
+        }));
+        var dispatcher = new EditorRemoteDispatcher(registry);
+        using var server = new EditorRemoteServer(dispatcher, name, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        server.Start();
+
+        var clients = new List<NamedPipeClientStream>();
+        try
+        {
+            for (int i = 0; i < EditorRemoteServer.MaxClients; i++)
+            {
+                var client = new NamedPipeClientStream("localhost", name, PipeDirection.InOut, PipeOptions.Asynchronous);
+                clients.Add(client);
+                await client.ConnectAsync(5000);
+                await Record.ExceptionAsync(() => RemoteMessageCodec.WriteAsync(client, new RemoteRequest { Id = 1, Method = RemoteProtocol.HelloMethod }, CancellationToken.None));
+            }
+
+            dispatcher.Pump();
+            foreach (NamedPipeClientStream client in clients)
+            {
+                using var readTimeout = new CancellationTokenSource(Timeout);
+                var buffer = new byte[16];
+                int read;
+                try
+                {
+                    read = await client.ReadAsync(buffer, readTimeout.Token);
+                }
+                catch (IOException)
+                {
+                    read = 0; // A broken pipe also means the server dropped the client.
+                }
+
+                Assert.Equal(0, read);
+            }
+
+            dispatcher.Pump();
+            Assert.Equal(0, runs);
+        }
+        finally
+        {
+            foreach (NamedPipeClientStream client in clients)
+            {
+                await client.DisposeAsync();
+            }
+        }
+    }
+
     [Fact]
     public void Start_TwiceAndStop_AreSafe()
     {

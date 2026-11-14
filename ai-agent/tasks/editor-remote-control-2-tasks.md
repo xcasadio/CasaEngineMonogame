@@ -107,11 +107,12 @@ Reconnaissance du 2026-11-14 (scout en lecture seule), faits porteurs relus.
 
 ## Phase 1 — Transport et monde
 
-### ⏳ T1.1 — Plusieurs clients, MCP « occupé », reliquats P4
+### ✅ T1.1 — Plusieurs clients, MCP « occupé », reliquats P4
 
 - Objectif : P1 et P2.
 - Fichiers : `CasaEngine.Editor/Remote/EditorRemoteServer.cs`, `EditorRemoteControl.cs`, `Tools/CasaEngine.Editor.Mcp/*`, `GameEditor.cs`, tests.
 - Validation : tests : deux clients servis en même temps ; un client qui ne lit plus ne bloque pas un second ; une instance squattée reste refusée ; client par le redirecteur refusé sur chaque instance ; ACL lue sur chaque instance ; nombre d'instances jamais à zéro tant que le serveur tourne ; MCP qui garde ses outils quand l'éditeur est occupé ; titre mis à jour quand la boucle s'arrête ; build.
+- Note de validation (2026-11-14) : `EditorRemoteServer` crée ses 4 instances par une seule fabrique (même ACL, même nombre maximal ; la première en `FirstPipeInstance`, les suivantes pendant qu'elle existe), une boucle d'acceptation par instance, réutilisation par `Disconnect`, `IsLocalClient` sur chaque instance ; `EditorRemoteControl.Pump` signale une fois un serveur dont toutes les boucles sont mortes (titre mis à jour). MCP : `EditorConnection` rend un statut (`Answered`, `Failed`, `NoEditor`, `Busy`) ; un éditeur vivant qui n'accepte pas la connexion à temps est « occupé » ; `EditorToolCatalogState` (sorti de `Program`) garde ses outils quand l'éditeur est occupé ; `DisposeAsync` prend le verrou. 7 tests ajoutés (client inactif qui ne bloque pas un second, ACL de chaque instance, clients du redirecteur coupés sur chaque instance, éditeur occupé, catalogue gardé puis vidé, appel après fermeture). `CasaEngine.Tests` 5362/5362 deux fois, `CasaEngine.Editor.MonoGame.sln` 0 erreur.
 - Commit : `feat(editor): serve several remote clients at once`
 
 ### ⏳ T1.2 — `entity.reparent`

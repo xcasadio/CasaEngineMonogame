@@ -81,6 +81,7 @@ internal sealed class EditorRemoteControl : IDisposable
     private readonly string _discoveryDirectory;
     private readonly EditorRemoteLogReader _logReader;
     private EditorRemoteServer _server;
+    private bool _stopReported;
     private string _token;
 
     public EditorRemoteControl(IEditorRemoteHost host, string discoveryDirectory = null, Func<double> clockSeconds = null)
@@ -229,6 +230,7 @@ internal sealed class EditorRemoteControl : IDisposable
         }
 
         _server = server;
+        _stopReported = false;
         Logs.WriteInfo($"[Remote] Remote control started on pipe '{pipeName}'.");
         RunningChanged?.Invoke();
         return true;
@@ -259,8 +261,16 @@ internal sealed class EditorRemoteControl : IDisposable
         RunningChanged?.Invoke();
     }
 
-    /// <summary>Game thread, once per frame.</summary>
-    public void Pump() => Dispatcher.Pump();
+    /// <summary>Game thread, once per frame. Also reports, once, a server whose pipe instances all stopped (ADR-0093 P2).</summary>
+    public void Pump()
+    {
+        Dispatcher.Pump();
+        if (_server != null && !_stopReported && !_server.IsRunning)
+        {
+            _stopReported = true;
+            RunningChanged?.Invoke();
+        }
+    }
 
     public void Dispose()
     {
