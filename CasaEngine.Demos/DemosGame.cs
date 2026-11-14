@@ -145,6 +145,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new Collision2dBasicDemo(), ThemePhysics);
         AddDemo(new TopDownElevationDemo(), ThemePhysics);
 
+        AddDemo(new PlayerInputDemo(), ThemeGameplay);
         AddDemo(new CoroutineDemo(), ThemeGameplay);
         AddDemo(new SaveGameDemo(), ThemeGameplay);
 

@@ -279,10 +279,11 @@ Faire de `CasaEngine.Demos` le point d'entrée d'un nouvel utilisateur : chaque 
 
 Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une démo minimale et commentée, remplir sa fiche (T1.1), l'enregistrer dans son thème, l'ajouter à `docs/engine/demos-main-menu.md`. Validation commune : build ; lancement par titre ; cycle à 0.
 
-### ⏳ T5.1 — Démo input et possession
+### ✅ T5.1 — Démo input et possession
 
 - Fichiers : `CasaEngine.Demos/Demos/PlayerInputDemo.cs`, `DemosGame.cs`, doc. Sources : `docs/engine/player-input.md`, `docs/engine/gameplay-possession.md`.
 - Commit : `feat(demos): add the player input and possession demo`
+- Note de validation (2026-11-14) : `PlayerInputDemo` (thème « Gameplay ») : trois pions (`Entity` + `CharacterControllerComponent`, mode `Disabled` au départ), un `PlayerController` créé à la main avec son `PlayerInput` (`PlayerController.Input` a un setter `internal` : la démo garde la façade dans un champ, comme `docs/engine/player-input.md` le prévoit pour un contrôleur manuel). Flèches ou stick gauche : `SetMoveIntent` sur le pion possédé ; Tab / Y : `Possess` du pion suivant ; I / X : `IsInputEnable`. Couleur du pion = `ControlMode`, lampe = porte d'entrée. Vérifié par un crochet temporaire (retiré avant commit) : `IsKeyboardAvailable` vaut `True` dans une démo ; le pion 0 avance puis s'arrête et grise quand le pion 1 est possédé ; le pion 1 s'arrête quand l'entrée est coupée (lampe rouge). Limite : rien ne retient un pion au bord du sol (pas de collider). Build 0 erreur ; cycle PASS avec 32 démos. Aucune touche ni manette pressée par l'agent.
 
 ### ✅ T5.2 — Démo coroutines
 

@@ -45,7 +45,7 @@ The themes and their demos are a learning path, in this order (ADR-0090). The re
 | Rendering | Static model, Material system, Particle system, Environment showcase |
 | Animation | Skinned mesh, Animation blend, Animation IK, Skeletal animation blending |
 | Physics | Collision 3d basic, Collision 2d basic, Top down elevation |
-| Gameplay | Coroutine demo, Save game demo |
+| Gameplay | Player input and possession demo, Coroutine demo, Save game demo |
 | Scene and views | Scene management, Split-screen (2 views), Render-to-texture |
 | Cutscenes | Cutscene MoveTo, Cutscene NavigateTo |
 | 2D and tile maps | Tile map, Tile map 3d, Tile map surface screen |
