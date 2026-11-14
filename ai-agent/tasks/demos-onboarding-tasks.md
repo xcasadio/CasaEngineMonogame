@@ -283,10 +283,11 @@ Chaque tâche : lire la doc citée et le code de la fonctionnalité, écrire une
 - Fichiers : `CasaEngine.Demos/Demos/PlayerInputDemo.cs`, `DemosGame.cs`, doc. Sources : `docs/engine/player-input.md`, `docs/engine/gameplay-possession.md`.
 - Commit : `feat(demos): add the player input and possession demo`
 
-### ⏳ T5.2 — Démo coroutines
+### ✅ T5.2 — Démo coroutines
 
 - Fichiers : `CasaEngine.Demos/Demos/CoroutineDemo.cs`, `DemosGame.cs`, doc. Source : `docs/engine/coroutines_specifications.md`.
 - Commit : `feat(demos): add the coroutine demo`
+- Note de validation (2026-11-14) : `CoroutineDemo` dans un nouveau thème « Gameplay » : une patrouille écrite en une méthode (`World.CoroutineManager.StartCoroutine`), coroutine imbriquée `MoveTo` (`yield return null`), `WaitForSeconds`, `WaitUntil` (délégué créé une fois), arrêt par `CoroutineHandle` ; la couleur du cube dit quelle ligne s'exécute. Captures à 0,8 s, 2,2 s et 9,5 s : cube en mouvement, jaune au deuxième coin (attente minutée), vert revenu au départ (attente de touche). Build 0 erreur ; cycle PASS avec 30 démos. Espace et S n'ont pas été pressés par l'agent.
 
 ### ⏳ T5.3 — Démo couches 2D
 

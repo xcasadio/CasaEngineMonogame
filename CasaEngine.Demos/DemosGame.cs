@@ -31,6 +31,7 @@ public class DemosGame : CasaEngineGame
     private const string ThemeRendering = "Rendering";
     private const string ThemeAnimation = "Animation";
     private const string ThemePhysics = "Physics";
+    private const string ThemeGameplay = "Gameplay";
     private const string ThemeSceneAndViews = "Scene and views";
     private const string ThemeCutscenes = "Cutscenes";
     private const string ThemeTileMaps = "2D and tile maps";
@@ -39,7 +40,7 @@ public class DemosGame : CasaEngineGame
     private const string ThemeEngineValidation = "Engine validation";
     private static readonly string[] ThemeOrder =
     {
-        ThemeGettingStarted, ThemeRendering, ThemeAnimation, ThemePhysics, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI,
+        ThemeGettingStarted, ThemeRendering, ThemeAnimation, ThemePhysics, ThemeGameplay, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI,
         ThemeAudio, ThemeEngineValidation,
     };
     private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
@@ -143,6 +144,8 @@ public class DemosGame : CasaEngineGame
         AddDemo(new Collision3dBasicDemo(), ThemePhysics);
         AddDemo(new Collision2dBasicDemo(), ThemePhysics);
         AddDemo(new TopDownElevationDemo(), ThemePhysics);
+
+        AddDemo(new CoroutineDemo(), ThemeGameplay);
 
         AddDemo(new SceneManagementDemo(), ThemeSceneAndViews);
         AddDemo(new SplitScreenDemo(), ThemeSceneAndViews);
