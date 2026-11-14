@@ -156,6 +156,7 @@ public class LightingShaderCoverageTests
             "ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)",
             skinnedSource);
         Assert.Contains("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor)", skinnedSource);
+        Assert.Contains("ComputeSkinnedAmbientContribution(worldNormal)", skinnedSource);
         Assert.Contains("ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor)", skinnedSource);
 
         // Alpha test uses the same AlphaCutoff parameter/convention as LitForward.fx
@@ -164,6 +165,37 @@ public class LightingShaderCoverageTests
         Assert.Contains("if (AlphaCutoff > 0.0f)", skinnedSource);
         Assert.Contains("clip(alpha - AlphaCutoff)", skinnedSource);
         Assert.Contains("ApplySkinnedAlphaTest(texelColor.a)", skinnedSource);
+    }
+
+    [Theory]
+    [InlineData("LitForward.fx", "float3 ComputeBaseAmbientTerm(", "ComputeBaseAmbientTerm(")]
+    [InlineData("skinEffect.fx", "float3 ComputeSkinnedAmbientContribution(", "ComputeSkinnedAmbientContribution(")]
+    public void AmbientTerm_DoesNotApplyTheBaseColor_BecauseComposeLitSurfaceColorAppliesItOnce(
+        string shaderFileName,
+        string definitionPrefix,
+        string callPrefix)
+    {
+        string source = LoadShaderSource(shaderFileName);
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        int definitionStart = source.IndexOf(definitionPrefix, StringComparison.Ordinal);
+        Assert.True(definitionStart >= 0, $"{definitionPrefix} is not defined in {shaderFileName}.");
+        int bodyEnd = source.IndexOf("\n}", definitionStart, StringComparison.Ordinal);
+        string definition = source[definitionStart..bodyEnd];
+
+        // The ambient term takes only the normal: it has no base colour to multiply by.
+        Assert.Contains("(float3 worldNormal)", definition);
+        Assert.DoesNotContain("baseColor", definition);
+        Assert.DoesNotContain("color.rgb", definition);
+        Assert.Contains("return DiffuseColor.rgb * ambientTerm;", definition);
+
+        // No caller hands the surface colour to the ambient term.
+        Assert.DoesNotContain(callPrefix + "color.rgb", source);
+        Assert.DoesNotContain(callPrefix + "baseColor", source);
+        Assert.DoesNotContain(callPrefix + "texelColor", source);
+
+        // The surface colour is applied by exactly one place: ComposeLitSurfaceColor.
+        Assert.Contains("return albedo * (directDiffuse + ambientTerm) + emissiveColor;", lightingIncludeSource);
     }
 
     private static string LoadShaderSource(string shaderFileName)

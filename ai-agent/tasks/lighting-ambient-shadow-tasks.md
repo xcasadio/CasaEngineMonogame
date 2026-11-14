@@ -100,12 +100,25 @@ Les trois pixels sont stables d'une exécution à l'autre (deux captures de la d
   - Valeurs attendues pour E1 (`ombre` 64 ; `eclaire` : `tex × (direct + 0,5)` = (223,3 ; 215,2 ; 197,6), soit +32 par canal, la part d'ambiant `tex × (1 − tex) × 0,5 × 255 = 31,9`).
 - Commit : `chore(demos): add a measurement configuration to the static shadow demo`
 
-### ⏳ E1 — L'ambiant n'est multiplié qu'une fois par la couleur de surface (D7)
+### ✅ E1 — L'ambiant n'est multiplié qu'une fois par la couleur de surface (D7)
 
 - Objectif : dans `LitForward.fx` (`ComputeBaseAmbientTerm`) et `skinEffect.fx` (`ComputeSkinnedAmbientContribution`), le terme ambiant ne contient plus la couleur de surface ; `ComposeLitSurfaceColor` reste seule à l'appliquer. Résultat : `texture × DiffuseColor × (N·L × lumière + ambiant du monde × ambiant du matériau) + émissif`. Vérifier les autres appelants et chemins.
 - ADR dans `docs/decisions/` (numéro suivant, index mis à jour) : la correction, son impact visible sur les scènes existantes, la note de migration, la suite (réajustement des scènes existantes hors de ce plan).
 - Tests : `LightingShaderCoverageTests` mis à jour, avec une assertion de source sur les deux shaders qui échoue si le terme ambiant reprend la couleur de surface.
 - Validation : builds des deux solutions, tests ; démo sans variable : capture identique à `e0-default` (matériaux sans texture) ; configuration de mesure : `ombre` passe de 32 à 64 (±3), `eclaire` ne change que de la part d'ambiant (+32).
+- Fichiers : `CasaEngine/Content/Shaders/LitForward.fx` (`ComputeBaseAmbientTerm(worldNormal)`, six appels mis à jour), `CasaEngine/Content/Shaders/skinEffect.fx` (`ComputeSkinnedAmbientContribution(worldNormal)`, un appel), `CasaEngine.Tests/Rendering/LightingShaderCoverageTests.cs`, `docs/decisions/0089-the-ambient-term-applies-the-surface-colour-once.md`, `docs/decisions/README.md`.
+- Autres chemins vérifiés : `Lighting.fxh` ne contient que `ComputeAmbientTerm` et `ComputeEnvironmentDiffuseTerm` (couleur fois couleur) et `ComposeLitSurfaceColor` ; les techniques à éclairage par sommet de `LitForward.fx` ne calculent aucun ambiant ; `LitDiffuseMaterial` ne lie que `MaterialAmbientColor`, `DiffuseColor`, `EmissiveColor` ; aucun autre shader ni chemin CPU du dépôt ne compose ce terme. Les effets sont reconstruits par le build du projet `CasaEngine` (pipeline de contenu) : le `LitForward.xnb` de la démo est régénéré.
+- Résultats (2026-11-14) : builds des deux solutions 0 erreur ; `dotnet test` : 5082 réussis (5080 + 2 cas de la nouvelle assertion), 0 échec.
+  - Démo sans variable : capture identique octet pour octet à `e0-default` (`cmp`) ; ses matériaux n'ont pas de texture.
+  - Configuration de mesure (par canal R, G, B) :
+
+    | Pixel | E0 | prédit E1 | mesuré E1 |
+    |---|---|---|---|
+    | `ombre` | 32, 32, 32 | 64 | 64, 64, 64 |
+    | `eclaire` | 191, 183, 166 | 223,3 ; 215,2 ; 197,6 (+32, part d'ambiant) | 223, 215, 198 |
+    | `reflet` | 165, 157, 139 | inchangé (ambiant du matériau nul) | 165, 157, 139 |
+
+  - Avec le cube lié (`Auto`) : `ombre` 6, 19, 32 → 13, 38, 64 (prédit `0,502 × (0,2 ; 0,6 ; 1,0) × 0,5 × 255 = 12,8 ; 38,4 ; 64`) ; `reflet` inchangé (168, 166, 155).
 - Commit : `fix(rendering): apply the surface colour to the ambient term only once`
 
 ### ⏳ E2 — Source d'ambiant plate même avec un cube de réflexion (D8)

@@ -165,14 +165,15 @@ END_CONSTANTS
 #include "Lighting.fxh"
 
 
-float3 ComputeSkinnedAmbientContribution(float3 baseColor, float3 worldNormal)
+float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
 {
     // Same formula as LitForward.fx's ComputeBaseAmbientTerm: environment (or flat)
-    // ambient color modulated by the material's own ambient tint.
+    // ambient color modulated by the material's own ambient tint and DiffuseColor.
+    // The base (texture) colour is not applied here: ComposeLitSurfaceColor applies it once.
     float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
-    return baseColor * DiffuseColor.rgb * ambientTerm;
+    return DiffuseColor.rgb * ambientTerm;
 }
 
 
@@ -376,7 +377,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 
     float4 color = texelColor;
     float3 directDiffuse = max(lightResult.Diffuse - EmissiveColor, 0.0f);
-    float3 ambientContribution = ComputeSkinnedAmbientContribution(color.rgb, worldNormal);
+    float3 ambientContribution = ComputeSkinnedAmbientContribution(worldNormal);
     color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
     AddSpecular(color, lightResult.Specular);
 
