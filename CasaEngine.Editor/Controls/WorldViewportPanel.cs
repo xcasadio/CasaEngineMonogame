@@ -454,6 +454,9 @@ public class WorldViewportPanel : IDisposable
         _playModeCamera = null;
         SetPlayModeBorderVisible(false);
 
+        // Notice A4: the camera controller did not run during play; a button still held must not jump the camera.
+        _cameraController.ResetInput();
+
         if (_renderView != null)
         {
             _editorRuntime.InputComponent.InputRouter?.UnassignPlayer(PlayerIndex.One);

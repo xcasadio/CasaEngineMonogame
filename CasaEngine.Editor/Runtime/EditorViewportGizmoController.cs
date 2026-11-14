@@ -278,31 +278,15 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         _gizmo.IsActiveViewport = receivesInput;
 
-        // Gizmo modes on W, E and R like Unreal (ADR-0089). With the right button held these keys fly the camera,
-        // and with Ctrl held they are left to the editor's Ctrl shortcuts.
-        bool modeKeysEnabled = isKeyboardFocused
-            && mouseState.RightButton == ButtonState.Released
-            && !keyboardState.IsKeyDown(Keys.LeftControl)
-            && !keyboardState.IsKeyDown(Keys.RightControl);
-
-        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.W))
+        // Gizmo modes on W, E, R and 4 (ADR-0089), rules in EditorViewportGizmoInput.
+        GizmoMode? requestedMode = EditorViewportGizmoInput.ReadModeKey(
+            keyboardState,
+            _previousKeyboardState,
+            isKeyboardFocused,
+            mouseState.RightButton == ButtonState.Pressed);
+        if (requestedMode.HasValue)
         {
-            ActiveMode = GizmoMode.Translate;
-        }
-
-        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.E))
-        {
-            ActiveMode = GizmoMode.Rotate;
-        }
-
-        if (modeKeysEnabled && IsNewKeyPress(keyboardState, Keys.R))
-        {
-            ActiveMode = GizmoMode.NonUniformScale;
-        }
-
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D4))
-        {
-            ActiveMode = GizmoMode.UniformScale;
+            ActiveMode = requestedMode.Value;
         }
 
         _gizmo.Gizmo.PrecisionModeEnabled = isKeyboardFocused && (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
@@ -340,28 +324,28 @@ internal sealed class EditorViewportGizmoController : IDisposable
         bool leftJustReleased = mouseState.LeftButton == ButtonState.Released
             && _previousMouseState.LeftButton == ButtonState.Pressed;
 
-        bool controlHeld = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+        // 2D views pick on the press, the perspective view on a released click (D9, ADR-0089).
+        ViewportSelectionRequest selection = EditorViewportGizmoInput.ReadSelection(
+            keyboardState,
+            leftJustPressed,
+            navigationResult,
+            AllowSelectionPicking);
 
         if (leftJustPressed)
         {
             BeginManipulationIfNeeded();
+        }
 
-            // 2D camera and front-2D views (no navigation result): selection on press, Ctrl adds, Alt removes (D9).
-            if (AllowSelectionPicking && !navigationResult.HasValue)
-            {
-                bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-                _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), controlHeld, removeFromSelection);
-            }
+        if (selection.Pick == ViewportSelectionPick.OnPress)
+        {
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), selection.AddToSelection, selection.RemoveFromSelection);
         }
 
         _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
 
-        // Perspective view: the left drag belongs to the camera, so selection waits for a click release
-        // (ADR-0089); Ctrl or Shift adds, nothing removes.
-        if (AllowSelectionPicking && navigationResult.HasValue && navigationResult.Value.LeftClickReleased)
+        if (selection.Pick == ViewportSelectionPick.OnClickRelease)
         {
-            bool shiftHeld = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), controlHeld || shiftHeld, false);
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), selection.AddToSelection, selection.RemoveFromSelection);
         }
 
         if (leftJustReleased)

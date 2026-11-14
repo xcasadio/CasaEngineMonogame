@@ -1,4 +1,5 @@
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
@@ -220,6 +221,71 @@ public sealed class EditorViewportCameraControllerTests
         Assert.Equal(pitch + pitchSign * 0.1f, controller.Pitch, 1e-4f);
         Assert.Equal(25f, controller.FlySpeed);
     }
+
+    /// <summary>Notice A3: a left press whose pointer input goes away, the view keeping the keyboard focus, is not a click.</summary>
+    [Fact]
+    public void Update_PointerInputLostDuringALeftPress_ReportsNoClick()
+    {
+        var controller = new EditorViewportCameraController();
+        var camera = controller.CreateCameraComponent();
+
+        ViewportNavigationResult? Frame(ButtonState left, bool receivesInput)
+            => controller.Update(
+                CreateGameTime(),
+                camera,
+                CreateContext(new KeyboardState(), CreateMouseState(20, 30, left, ButtonState.Released)),
+                receivesInput,
+                isKeyboardFocused: true,
+                allowFreeCameraMovement: true,
+                canHandleKeyboardInput: true,
+                activateView: _ => { },
+                releaseInput: () => { });
+
+        Frame(ButtonState.Released, receivesInput: true);
+        Frame(ButtonState.Pressed, receivesInput: true);
+        ViewportNavigationResult? lost = Frame(ButtonState.Released, receivesInput: false);
+        Frame(ButtonState.Pressed, receivesInput: true);
+        ViewportNavigationResult? click = Frame(ButtonState.Released, receivesInput: true);
+
+        Assert.False(lost.Value.LeftClickReleased);
+        Assert.True(click.Value.LeftClickReleased);
+    }
+
+    /// <summary>Notice A4: after play mode, a button still held and a pointer that moved do not jump the camera.</summary>
+    [Fact]
+    public void ResetInput_HeldButtonsWaitForRelease_AndThePointerDoesNotJump()
+    {
+        var controller = new EditorViewportCameraController();
+        var camera = controller.CreateCameraComponent();
+
+        void Frame(int x, int y, ButtonState right)
+            => controller.Update(
+                CreateGameTime(),
+                camera,
+                CreateContext(new KeyboardState(), CreateMouseState(x, y, ButtonState.Released, right)),
+                receivesInput: true,
+                isKeyboardFocused: true,
+                allowFreeCameraMovement: true,
+                canHandleKeyboardInput: true,
+                activateView: _ => { },
+                releaseInput: () => { });
+
+        Frame(20, 30, ButtonState.Released);
+        float yaw = controller.Yaw;
+        controller.ResetInput();
+
+        Frame(300, 200, ButtonState.Pressed);
+        Frame(320, 200, ButtonState.Pressed);
+        Assert.Equal(yaw, controller.Yaw);
+
+        Frame(320, 200, ButtonState.Released);
+        Frame(320, 200, ButtonState.Pressed);
+        Frame(330, 200, ButtonState.Pressed);
+        Assert.NotEqual(yaw, controller.Yaw);
+    }
+
+    private static MouseState CreateMouseState(int x, int y, ButtonState left, ButtonState right)
+        => new(x, y, 0, left, ButtonState.Released, right, ButtonState.Released, ButtonState.Released, 0);
 
     private static GameTime CreateGameTime()
         => new(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));

@@ -48,6 +48,8 @@ internal sealed class EditorViewportCameraController
     private KeyboardState _previousKeyboardState;
     private bool _isCapturing;
     private bool _hasPreviousMouseState;
+    private bool _ignoreHeldButtonsOnNextUpdate;
+    private ViewportMouseButtons _ignoredButtons;
 
     public float Yaw { get; private set; } = MathHelper.PiOver4;
     public float Pitch { get; private set; } = -MathHelper.Pi / 6f;
@@ -72,6 +74,17 @@ internal sealed class EditorViewportCameraController
         _navigation.FieldOfViewRate = MathHelper.ToRadians(preferences.FieldOfViewRateDegrees);
         _navigation.DragThresholdPixels = preferences.DragThresholdPixels;
         _navigation.InvertY = preferences.InvertY;
+    }
+
+    /// <summary>
+    /// Forgets the input history, for instance after play mode, during which this controller did not run: the next
+    /// update moves nothing, and the buttons held at that moment start no gesture until they are released.
+    /// </summary>
+    public void ResetInput()
+    {
+        _navigation.Reset();
+        _hasPreviousMouseState = false;
+        _ignoreHeldButtonsOnNextUpdate = true;
     }
 
     public ArcBallCameraComponent CreateCameraComponent()
@@ -142,6 +155,17 @@ internal sealed class EditorViewportCameraController
         var mouseState = inputContext.MouseState;
         var keyboardState = inputContext.KeyboardState;
 
+        if (_ignoreHeldButtonsOnNextUpdate)
+        {
+            // Notice A4: the previous states are stale; held buttons and keys must not read as fresh presses.
+            _ignoreHeldButtonsOnNextUpdate = false;
+            _ignoredButtons = ReadButtons(mouseState);
+            _previousMouseState = mouseState;
+            _previousKeyboardState = keyboardState;
+        }
+
+        _ignoredButtons &= ReadButtons(mouseState);
+
         if (!allowFreeCameraMovement || (!receivesInput && !isKeyboardFocused))
         {
             if (!allowFreeCameraMovement || ReadButtons(mouseState) == ViewportMouseButtons.None)
@@ -164,7 +188,7 @@ internal sealed class EditorViewportCameraController
 
         if (receivesInput)
         {
-            buttons = ReadButtons(mouseState);
+            buttons = ReadButtons(mouseState) & ~_ignoredButtons;
             if ((buttons & ~ReadButtons(_previousMouseState)) != 0)
             {
                 activateView(true);
@@ -209,6 +233,13 @@ internal sealed class EditorViewportCameraController
             LeftPressedOnGizmoHandle = leftPressedOnGizmoHandle,
             ElapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds,
         };
+
+        if (!receivesInput && _navigation.IsGestureActive)
+        {
+            // Notice A3: keyboard focus without pointer input reads every button as up. A gesture whose pointer input
+            // went away is forgotten rather than ended as a click that the view never received.
+            _navigation.Reset();
+        }
 
         var state = new ViewportCameraState(Target, Distance, Yaw, Pitch);
         ViewportNavigationResult result = _navigation.Update(ref state, input);

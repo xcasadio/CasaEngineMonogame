@@ -352,19 +352,13 @@ public sealed class ViewportCameraNavigation
                 }
                 else if (leftPressed)
                 {
-                    if (input.LeftPressedOnGizmoHandle)
-                    {
-                        _gesture = Gesture.WaitForRelease;
-                    }
-                    else if (rightHeld)
+                    if (rightHeld && !input.LeftPressedOnGizmoHandle)
                     {
                         _gesture = Gesture.Pan;
                     }
                     else
                     {
-                        _gesture = Gesture.PendingLeftClick;
-                        _pendingDragX = 0f;
-                        _pendingDragY = 0f;
+                        StartLeftPress(input);
                     }
                 }
                 else if (rightPressed)
@@ -377,24 +371,36 @@ public sealed class ViewportCameraNavigation
                 }
 
                 break;
+            // A button released and another pressed in the same frame hand over directly, without a frame of pan.
             case Gesture.PendingLeftClick:
             case Gesture.LeftDrag:
-                if (rightPressed)
+                if (!leftHeld)
+                {
+                    _gesture = rightHeld && !middleHeld ? Gesture.Look : Gesture.Pan;
+                }
+                else if (rightPressed)
                 {
                     _gesture = Gesture.Pan;
-                }
-                else if (!leftHeld)
-                {
-                    _gesture = rightHeld ? Gesture.Look : Gesture.Pan;
                 }
 
                 break;
             case Gesture.Look:
-                if (leftPressed)
+                if (!rightHeld)
                 {
-                    _gesture = Gesture.Pan;
+                    if (middleHeld)
+                    {
+                        _gesture = Gesture.Pan;
+                    }
+                    else if (leftPressed)
+                    {
+                        StartLeftPress(input);
+                    }
+                    else
+                    {
+                        _gesture = Gesture.LeftDrag;
+                    }
                 }
-                else if (!rightHeld)
+                else if (leftPressed)
                 {
                     _gesture = Gesture.Pan;
                 }
@@ -436,6 +442,20 @@ public sealed class ViewportCameraNavigation
 
                 break;
         }
+    }
+
+    // A fresh left press: it belongs to the gizmo when it lands on a handle, otherwise it is a click until it drags.
+    private void StartLeftPress(in ViewportNavigationInput input)
+    {
+        if (input.LeftPressedOnGizmoHandle)
+        {
+            _gesture = Gesture.WaitForRelease;
+            return;
+        }
+
+        _gesture = Gesture.PendingLeftClick;
+        _pendingDragX = 0f;
+        _pendingDragY = 0f;
     }
 
     private bool MoveAndTurn(ref ViewportCameraState state, float dx, float dy)

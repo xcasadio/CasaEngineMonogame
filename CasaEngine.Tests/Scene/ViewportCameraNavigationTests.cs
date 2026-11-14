@@ -393,4 +393,58 @@ public class ViewportCameraNavigationTests
         var noLetters = ViewportCameraNavigation.ReadKeys(current, previous, includeLetterKeys: false);
         Assert.Equal(ViewportNavigationKeys.WorldUp, noLetters);
     }
+
+    /// <summary>Notice A2: right released and left pressed in the same frame is a fresh left press, not a frame of pan.</summary>
+    [Fact]
+    public void RightReleasedAndLeftPressedTogether_StartsAClick_WithoutPanning()
+    {
+        var navigation = new ViewportCameraNavigation();
+        var state = CreateState();
+        Step(navigation, ref state, ViewportMouseButtons.Right);
+        ViewportCameraState before = state;
+
+        var moved = Step(navigation, ref state, ViewportMouseButtons.Left, dx: 2f, dy: 1f);
+        var released = Step(navigation, ref state, ViewportMouseButtons.None);
+
+        Assert.False(moved.CameraChanged);
+        AssertVector(before.Pivot, state.Pivot);
+        Assert.True(released.LeftClickReleased);
+    }
+
+    /// <summary>Notice A2, other way round: left released and right pressed in the same frame looks at once.</summary>
+    [Fact]
+    public void LeftReleasedAndRightPressedTogether_LooksAround_WithoutPanning()
+    {
+        var reference = new ViewportCameraNavigation();
+        var expected = CreateState();
+        Step(reference, ref expected, ViewportMouseButtons.Right);
+        Step(reference, ref expected, ViewportMouseButtons.Right, dx: 2f, dy: 1f);
+
+        var navigation = new ViewportCameraNavigation();
+        var state = CreateState();
+        Step(navigation, ref state, ViewportMouseButtons.Left);
+        Step(navigation, ref state, ViewportMouseButtons.Right, dx: 2f, dy: 1f);
+
+        AssertVector(expected.Pivot, state.Pivot);
+        Assert.Equal(expected.Yaw, state.Yaw, Tolerance);
+        Assert.Equal(expected.Pitch, state.Pitch, Tolerance);
+    }
+
+    /// <summary>A left press handed over from a look still belongs to the gizmo when it lands on a handle.</summary>
+    [Fact]
+    public void RightReleasedAndLeftPressedOnAHandle_MovesNothingUntilRelease()
+    {
+        var navigation = new ViewportCameraNavigation();
+        var state = CreateState();
+        Step(navigation, ref state, ViewportMouseButtons.Right);
+        ViewportCameraState before = state;
+
+        Step(navigation, ref state, ViewportMouseButtons.Left, onHandle: true);
+        Step(navigation, ref state, ViewportMouseButtons.Left, dx: 50f, dy: 20f);
+        var released = Step(navigation, ref state, ViewportMouseButtons.None);
+
+        AssertVector(before.Pivot, state.Pivot);
+        Assert.Equal(before.Yaw, state.Yaw, Tolerance);
+        Assert.False(released.LeftClickReleased);
+    }
 }
