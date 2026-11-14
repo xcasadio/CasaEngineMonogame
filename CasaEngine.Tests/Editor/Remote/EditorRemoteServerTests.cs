@@ -22,26 +22,12 @@ public sealed class EditorRemoteServerTests : IDisposable
         }
     }
 
-    private sealed class FakeHost : IEditorRemoteHost
+    private static RemoteTestHost CreateHost() => new()
     {
-        public string EditorVersion => "9.9.9";
-
-        public string ProjectFilePath => "C:/projects/sample/sample.casaproject";
-
-        public string CurrentWorldName => "DefaultWorld";
-
-        public bool IsPlaySessionActive => false;
-
-        public bool HasUnsavedWorldChanges => true;
-
-        public CasaEngine.Framework.Scene.World.World CurrentWorld => null;
-
-        public CasaEngine.Framework.Scene.Entities.Entity SelectedEntity => null;
-
-        public CasaEngine.Framework.Scene.Entities.Components.EntityComponent SelectedComponent => null;
-
-        public CasaEngine.Editor.Log.LoggerEditor Logger => null;
-    }
+        ProjectFilePath = "C:/projects/sample/sample.casaproject",
+        CurrentWorld = new CasaEngine.Framework.Scene.World.World { Name = "DefaultWorld" },
+        HasUnsavedWorldChanges = true,
+    };
 
     /// <summary>Stands in for the editor's game loop: pumps the dispatcher every few milliseconds.</summary>
     private void PumpInBackground(EditorRemoteControl control)
@@ -60,7 +46,7 @@ public sealed class EditorRemoteServerTests : IDisposable
     [Fact]
     public async Task Client_FindsTheEditor_Handshakes_AndCallsCommands()
     {
-        using var control = new EditorRemoteControl(new FakeHost(), _directory);
+        using var control = new EditorRemoteControl(CreateHost(), _directory);
         Assert.True(control.Start(refuseWhenElevated: false));
         PumpInBackground(control);
 
@@ -88,7 +74,7 @@ public sealed class EditorRemoteServerTests : IDisposable
     [Fact]
     public async Task Client_WithAWrongToken_IsRejected()
     {
-        using var control = new EditorRemoteControl(new FakeHost(), _directory);
+        using var control = new EditorRemoteControl(CreateHost(), _directory);
         Assert.True(control.Start(refuseWhenElevated: false));
         PumpInBackground(control);
         RemoteDiscoveryRecord record = Assert.Single(RemoteDiscovery.ReadAll(_directory));
@@ -205,7 +191,7 @@ public sealed class EditorRemoteServerTests : IDisposable
     [Fact]
     public void Start_TwiceAndStop_AreSafe()
     {
-        using var control = new EditorRemoteControl(new FakeHost(), _directory);
+        using var control = new EditorRemoteControl(CreateHost(), _directory);
         int changes = 0;
         control.RunningChanged += () => changes++;
 

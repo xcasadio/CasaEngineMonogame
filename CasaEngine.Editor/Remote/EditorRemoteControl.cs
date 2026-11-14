@@ -33,6 +33,24 @@ internal interface IEditorRemoteHost
 
     /// <summary>The editor log already registered with <c>Logs</c>; null when there is none.</summary>
     LoggerEditor Logger { get; }
+
+    /// <summary>Folder of the open project; null when none is open.</summary>
+    string ProjectDirectory { get; }
+
+    /// <summary>Selects in the editor's panels, as a click in the hierarchy or the inspector would.</summary>
+    void Select(Entity entity, EntityComponent component);
+
+    /// <summary>Refreshes the hierarchy, inspector and viewport after a world change made outside the panels.</summary>
+    void RefreshWorldViews();
+
+    /// <summary>Saves the project and the world; false, with a reason, when something was not written.</summary>
+    bool SaveProject(out string error);
+
+    /// <summary>Writes a new empty world file and adds it to the asset catalog.</summary>
+    bool CreateWorld(string worldName, string fileName, out string error);
+
+    /// <summary>Starts loading a catalogued world without any dialog; false when it cannot.</summary>
+    bool BeginOpenWorld(string fullPath);
 }
 
 /// <summary>
@@ -60,6 +78,7 @@ internal sealed class EditorRemoteControl : IDisposable
         _logReader = host.Logger != null ? new EditorRemoteLogReader(host.Logger) : null;
         RegisterBuiltInCommands();
         EditorRemoteReadCommands.Register(Registry, host, () => _logReader);
+        EditorRemoteEditCommands.Register(Registry, host);
     }
 
     public EditorRemoteCommandRegistry Registry { get; }

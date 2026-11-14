@@ -14,7 +14,7 @@ namespace CasaEngine.Tests.Editor.Remote;
 public sealed class EditorRemoteReadCommandsTests : IDisposable
 {
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "casa-remote-read-" + Guid.NewGuid().ToString("N"));
-    private readonly TestHost _host = new();
+    private readonly RemoteTestHost _host = new();
     private readonly EditorRemoteControl _control;
 
     public EditorRemoteReadCommandsTests()
@@ -29,27 +29,6 @@ public sealed class EditorRemoteReadCommandsTests : IDisposable
         {
             Directory.Delete(_directory, recursive: true);
         }
-    }
-
-    internal sealed class TestHost : IEditorRemoteHost
-    {
-        public string EditorVersion => "1.0";
-
-        public string ProjectFilePath => null;
-
-        public string CurrentWorldName => CurrentWorld?.Name;
-
-        public bool IsPlaySessionActive { get; set; }
-
-        public bool HasUnsavedWorldChanges { get; set; }
-
-        public World CurrentWorld { get; set; }
-
-        public Entity SelectedEntity { get; set; }
-
-        public EntityComponent SelectedComponent { get; set; }
-
-        public LoggerEditor Logger { get; } = new() { MaxEntries = 10 };
     }
 
     private RemoteResponse Call(string method, object parameters = null)
