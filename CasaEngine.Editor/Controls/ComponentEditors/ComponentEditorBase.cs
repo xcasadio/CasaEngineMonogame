@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
@@ -234,24 +235,13 @@ public abstract class ComponentEditorBase
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(property);
 
-        var currentValue = property.GetValue(target);
-        if (Equals(currentValue, newValue))
-        {
-            return;
-        }
-
-        ExecuteHistoryCommand(
+        EditorWorldOperations.SetProperty(
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
             BuildComponentCommandDescription(property.DisplayName),
-            () =>
-            {
-                property.SetValue(target, newValue);
-                afterApply?.Invoke();
-            },
-            () =>
-            {
-                property.SetValue(target, currentValue);
-                afterApply?.Invoke();
-            });
+            target,
+            property,
+            newValue,
+            afterApply);
     }
 
     protected void ApplyValueChange<T>(string description, Func<T> getter, Action<T> setter, T newValue, Action afterApply = null)

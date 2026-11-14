@@ -6,6 +6,7 @@ using System.Reflection;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
@@ -27,8 +28,6 @@ namespace CasaEngine.Editor.Controls;
 public sealed class EntityDetailsPanel
 {
     private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
-
-    private static readonly Lazy<IReadOnlyDictionary<string, Type>> ComponentTypes = new(CreateComponentTypeLookup);
 
     private readonly MGWindow _window;
     private readonly bool _includeComponentTree;
@@ -1327,7 +1326,7 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        var componentNames = ComponentTypes.Value.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        var componentNames = EditorWorldOperations.ComponentTypes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
         if (componentNames.Count == 0)
         {
             return;
@@ -1370,7 +1369,7 @@ public sealed class EntityDetailsPanel
         var addButton = new MGButton(dialog, _ =>
         {
             var selectedName = listBox.SelectedValue;
-            if (selectedName == null || !ComponentTypes.Value.TryGetValue(selectedName, out var componentType))
+            if (selectedName == null || !EditorWorldOperations.ComponentTypes.TryGetValue(selectedName, out var componentType))
             {
                 return;
             }
@@ -1407,23 +1406,21 @@ public sealed class EntityDetailsPanel
         }
 
         var entity = _selectedEntity;
-        var previousComponent = _selectedComponent;
         var selectedSceneComponent = _selectedComponent as SceneComponent;
         bool attachAsChild = selectedSceneComponent != null && component is SceneComponent;
         bool attachAsRoot = !attachAsChild && component is SceneComponent && entity.RootComponent == null;
+        ComponentPlacement placement = attachAsChild ? ComponentPlacement.Child
+            : attachAsRoot ? ComponentPlacement.Root
+            : ComponentPlacement.List;
 
-        ExecuteHistoryCommand(
-            "Add Component",
-            () =>
-            {
-                AttachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
-                ApplyComponentMutationSelection(component);
-            },
-            () =>
-            {
-                DetachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
-                ApplyComponentMutationSelection(previousComponent);
-            });
+        EditorWorldOperations.AddComponent(
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
+            entity,
+            component,
+            placement,
+            selectedSceneComponent,
+            _selectedComponent,
+            ApplyComponentMutationSelection);
     }
 
     private void ExecuteHistoryCommand(string description, Action execute, Action undo)
@@ -1439,45 +1436,6 @@ public sealed class EntityDetailsPanel
         RebuildComponentTree();
         SetSelectedComponent(component);
         SelectedComponentChanged?.Invoke(component);
-    }
-
-    private static void AttachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
-    {
-        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
-        {
-            selectedSceneComponent.AddChildComponent(childSceneComponent);
-        }
-        else if (attachAsRoot && component is SceneComponent rootSceneComponent)
-        {
-            entity.RootComponent = rootSceneComponent;
-        }
-        else
-        {
-            entity.AddComponent(component);
-        }
-
-        component.Initialize();
-        if (entity.World != null)
-        {
-            component.InitializeWithWorld(entity.World);
-        }
-    }
-
-    private static void DetachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
-    {
-        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
-        {
-            selectedSceneComponent.RemoveChildComponent(childSceneComponent);
-            return;
-        }
-
-        if (attachAsRoot && component is SceneComponent rootSceneComponent && ReferenceEquals(entity.RootComponent, rootSceneComponent))
-        {
-            entity.RootComponent = null;
-            return;
-        }
-
-        entity.RemoveComponent(component);
     }
 
     private void UpdateSummary()
@@ -1530,42 +1488,6 @@ public sealed class EntityDetailsPanel
                 yield return nested;
             }
         }
-    }
-
-    private static IReadOnlyDictionary<string, Type> CreateComponentTypeLookup()
-    {
-        var componentType = typeof(EntityComponent);
-
-        return AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(GetLoadableTypes)
-            .Where(type => type is { IsClass: true, IsAbstract: false, IsGenericType: false }
-                && type.IsSubclassOf(componentType)
-                && type.GetConstructor(Type.EmptyTypes) != null
-                && IsAddableComponentType(type))
-            .Select(type => new
-            {
-                Type = type,
-                Name = type.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? type.Name,
-            })
-            .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(group => group.Key, group => group.First().Type, StringComparer.OrdinalIgnoreCase);
-    }
-
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException e)
-        {
-            return e.Types.Where(type => type != null)!;
-        }
-    }
-
-    private static bool IsAddableComponentType(Type type)
-    {
-        return type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
     }
 
     private static string GetDisplayName(EntityComponent component)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
@@ -748,25 +749,12 @@ public sealed class EntitiesPanel
             return;
         }
 
-        var world = _currentWorld;
-        var previousSelection = _selectedEntity;
         var entity = new Entity
         {
             Name = GenerateUniqueEntityName("Entity"),
         };
 
-        ExecuteWorldCommand(
-            "Add Entity",
-            () =>
-            {
-                EditorWorldEditingService.AttachEntity(world, entity, parent);
-                ApplySelectionAfterMutation(entity);
-            },
-            () =>
-            {
-                EditorWorldEditingService.DetachEntity(world, entity);
-                ApplySelectionAfterMutation(previousSelection);
-            });
+        EditorWorldOperations.AddEntity(WorldHistoryContext, _currentWorld, entity, parent, _selectedEntity, ApplySelectionAfterMutation);
     }
 
     private void DuplicateSelectedEntity()
@@ -784,24 +772,10 @@ public sealed class EntitiesPanel
             return;
         }
 
-        var world = _currentWorld;
-        var parent = entity.Parent;
-        var previousSelection = _selectedEntity;
         var duplicate = entity.Clone();
         duplicate.Name = GenerateUniqueEntityName($"{entity.Name} Copy");
 
-        ExecuteWorldCommand(
-            "Duplicate Entity",
-            () =>
-            {
-                EditorWorldEditingService.AttachEntity(world, duplicate, parent);
-                ApplySelectionAfterMutation(duplicate);
-            },
-            () =>
-            {
-                EditorWorldEditingService.DetachEntity(world, duplicate);
-                ApplySelectionAfterMutation(previousSelection ?? entity);
-            });
+        EditorWorldOperations.DuplicateEntity(WorldHistoryContext, _currentWorld, duplicate, entity.Parent, _selectedEntity ?? entity, ApplySelectionAfterMutation);
     }
 
     private void DeleteSelectedEntity()
@@ -819,22 +793,7 @@ public sealed class EntitiesPanel
             return;
         }
 
-        var world = _currentWorld;
-        var parent = entity.Parent;
-        var nextSelection = parent;
-
-        ExecuteWorldCommand(
-            "Delete Entity",
-            () =>
-            {
-                EditorWorldEditingService.DetachEntity(world, entity);
-                ApplySelectionAfterMutation(nextSelection);
-            },
-            () =>
-            {
-                EditorWorldEditingService.AttachEntity(world, entity, parent);
-                ApplySelectionAfterMutation(entity);
-            });
+        EditorWorldOperations.DeleteEntity(WorldHistoryContext, _currentWorld, entity, ApplySelectionAfterMutation);
     }
 
     private void RenameEntity(Entity entity)
@@ -842,34 +801,14 @@ public sealed class EntitiesPanel
         ShowNameEditor(
             "Rename Entity",
             entity.Name,
-            value =>
-            {
-                var previousName = entity.Name;
-                if (string.Equals(previousName, value, StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                ExecuteWorldCommand(
-                    "Rename Entity",
-                    () =>
-                    {
-                        entity.Name = value;
-                        ApplySelectionAfterMutation(entity);
-                    },
-                    () =>
-                    {
-                        entity.Name = previousName;
-                        ApplySelectionAfterMutation(entity);
-                    });
-            });
+            value => EditorWorldOperations.RenameEntity(WorldHistoryContext, entity, value, ApplySelectionAfterMutation));
     }
+
+    private static readonly EditorHistoryContext WorldHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
 
     private void ExecuteWorldCommand(string description, Action execute, Action undo)
     {
-        EditorHistoryService.Current.Execute(
-            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
-            new EditorDelegateCommand(description, execute, undo));
+        EditorHistoryService.Current.Execute(WorldHistoryContext, new EditorDelegateCommand(description, execute, undo));
     }
 
     private void ApplySelectionAfterMutation(Entity entity)

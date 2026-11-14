@@ -120,11 +120,12 @@ Un agent IA (ou un script) pilote l'éditeur **ouvert** : il lit son état, cré
 
 ## Phase 2 — Opérations partagées et lecture
 
-### ⏳ T2.1 — Service `EditorWorldOperations`
+### 🧪 T2.1 — Service `EditorWorldOperations`
 
 - Objectif : sortir des panneaux les opérations avec historique : créer, supprimer, dupliquer, renommer une entité ; ajouter un composant avec un placement explicite (parent, racine ou liste, P5) ; lister les types de composants (liste blanche) ; changer une propriété par `PropertyDescriptor`. Ajouter le retrait d'un composant (avec historique, règles de P5). Chaque opération prend le contexte d'historique en paramètre : les panneaux passent le leur (comportement inchangé), les commandes passent le contexte du monde. Les panneaux appellent le service (P6) ; `EntityDetailsPanel` calcule le placement depuis sa sélection comme aujourd'hui.
 - Fichiers : `CasaEngine.Editor/Runtime/EditorWorldOperations.cs` (nouveau), `Controls/EntitiesPanel.cs`, `Controls/EntityDetailsPanel.cs`, `Controls/ComponentEditors/ComponentEditorBase.cs` si nécessaire, tests.
 - Validation : tests du service sur un `World` en mémoire, chaque opération suivie d'Undo et de Redo : création, suppression, duplication, renommage ; ajout comme racine, comme enfant, dans la liste ; retrait de la racine sans enfant, retrait refusé d'un `SceneComponent` qui a des enfants, retrait d'un enfant puis Undo qui le remet sous le même parent ; build ; panneaux inchangés à l'usage (recette de l'auteur en fin de chantier).
+- Note de validation (2026-11-14) : `CasaEngine.Editor/Runtime/EditorWorldOperations.cs` (ajout, duplication, suppression, renommage d'entité ; ajout de composant à une place explicite `List`, `Root` ou `Child` validée ; `TryGetPlacement` ; `TryRemoveComponent` qui refuse un `SceneComponent` avec enfants et remet le composant à sa place à l'annulation ; `SetProperty` ; liste blanche `ComponentTypes` et `TryCreateComponent` déplacées depuis `EntityDetailsPanel`). Chaque opération prend le contexte d'historique et un rappel de sélection. `EntitiesPanel`, `EntityDetailsPanel` (placement calculé depuis sa sélection comme avant) et `ComponentEditorBase.ApplyPropertyChange` passent par le service. 12 tests sur un `World` en mémoire, chacun suivi d'Undo et de Redo ; `"Process"`, un type `[Browsable(false)]` ou abstrait refusés. `CasaEngine.Tests` 5246/5246, `CasaEngine.Editor.MonoGame.sln` 0 erreur. **Manque** : vérifier à la main que les panneaux d'entités et de détails se comportent comme avant (recette T5.2).
 - Commit : `refactor(editor): share the world editing operations of the panels`
 
 ### ⏳ T2.2 — Commandes de lecture
