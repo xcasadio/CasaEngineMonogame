@@ -26,7 +26,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0010](0010-shader-naming-convention.md) | Shader naming convention and applied renames | Accepted | 2026-09-06 (backfill) |
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
-| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted | 2026-08-09 |
+| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted, amended by ADR-0094 | 2026-08-09 |
 | [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted | 2026-06-13 |
 | [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
@@ -107,3 +107,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0091](0091-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture | Accepted | 2026-11-14 |
 | [ADR-0092](0092-the-texture-loader-can-build-a-mipmap-chain.md) | The texture loader can build a mipmap chain | Accepted | 2026-11-14 |
 | [ADR-0093](0093-shadow-settings-mode-colour-filter-fade-and-depth-range.md) | Shadow settings: application mode and colour, filter radius, fade distance and depth range | Accepted | 2026-11-14 |
+| [ADR-0094](0094-pbr-scope-extends-to-bloom-transparency-skinning-and-local-probes.md) | PBR scope extends to bloom, transparency, skinning and local probes | Accepted | 2026-11-14 |

@@ -1,0 +1,623 @@
+# Plan agent IA — Rendu PBR (metallic-roughness), pipeline couleur HDR, bloom, IBL
+
+Plan d'exécution du chantier PBR du moteur. Il remplace [pbr-rendering-implementation-plan.md](archive/pbr-rendering-implementation-plan.md) (2026-08-09, aucune tâche commencée), devenu inexécutable après les ADR-0086 à ADR-0093. L'analyse de départ est le relevé du code du 2026-11-14 résumé dans « État vérifié du dépôt ».
+Les décisions D1 → D12 ci-dessous ont été arbitrées avec l'auteur (ADR-0013 le 2026-08-09, réponses du 2026-11-14) : **ce plan les applique, il ne les rediscute pas**. Les arbitrages P1 → P12 sont proposés par l'agent ; l'auteur a demandé le 2026-11-14 d'écrire ce plan puis de l'exécuter en autonomie, ils sont donc appliqués tels quels et restent révisables.
+
+Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
+
+## Objectif
+
+Livrer dans CasaEngine un rendu PBR metallic-roughness **en complément** du Blinn-Phong existant, choisi par matériau (`lit-pbr` à côté de `lit-diffuse`) :
+
+1. un pipeline couleur par monde (`Legacy` par défaut, `LinearHdr`) : cible de scène HDR, tonemapping, interface composée après le tonemapping ;
+2. un bloom sur la cible HDR ;
+3. un BRDF GGX en éclairage direct, opaque, alpha-test et transparent ;
+4. un éclairage par l'image : irradiance, spéculaire préfiltré par rugosité, table BRDF, sondes de réflexion locales préfiltrées ;
+5. le PBR sur les maillages skinnés ;
+6. un import glTF qui garde les canaux PBR ;
+7. une démo de référence et la documentation.
+
+Contrainte transverse : en mode `Legacy`, toute image existante reste identique au bit près.
+
+## Tranches
+
+Chaque phase est une tranche approuvable, vérifiable et réversible seule (une suite de commits sur la branche). La phase 1 est la première tranche exécutable ; les phases suivantes dépendent d'elle selon le tableau.
+
+| Phase | Tranche | Dépend de | Preuve de fin |
+|---|---|---|---|
+| 0 | Préparation | — | Ancien plan archivé, ADR-0094, captures de base épinglées, backend graphique et chaîne de shaders relevés |
+| 1 | Pipeline couleur | 0 | `Legacy` identique au bit ; `LinearHdr` : gris 128 rendu à 117 ± 2 (`Reinhard`) et 154 ± 2 (`AcesApprox`), valeurs calculées |
+| 2 | Bloom | 1 | Pixel à 8 px de l'émissif plus clair d'au moins 10 niveaux, pixel d'interface inchangé ; bloom coupé = référence `LinearHdr` archivée par T1.7 |
+| 3 | BRDF direct | 1 | `LitPbr.fx` compile ; tests de couverture ; la famille `LitPbr` résout le shader `LitPbr` ; empreintes `Legacy` identiques |
+| 4 | Matériau `lit-pbr` | 3 | Aller-retour `.material`, compilation, surcharges, masque d'ombre alpha-test fourni par le matériau (test `ShadowMaskTests`) ; sphères rugosité 0,1 → 0,9 : largeur du reflet strictement croissante |
+| 5 | PBR transparent | 4 | Sphère de verre : fond visible, reflet spéculaire conservé |
+| 6 | IBL | 4 | Table BRDF et cache testés ; une génération par changement, hors de la boucle des vues ; écran partagé intact sur l'image de génération ; contraste normalisé du reflet à rugosité 0,6 ≤ 50 % de sa valeur à niveau de mip forcé à 0 |
+| 7 | Sondes locales | 6 | Dans la zone d'une sonde, contraste normalisé du reflet à rugosité 0,6 ≤ 50 % de sa valeur à niveau de mip forcé à 0, teinte de la sonde reconnaissable |
+| 8 | PBR skinné | 4, 6 | Technique PBR skinnée résolue (test, deux modes de skinning) ; écart de pixel mesuré entre Blinn-Phong et PBR sur `Soldier.glb` ; pixel d'ombre plus sombre que le sol éclairé |
+| 9 | Import glTF | 4 | Lecture des canaux PBR, `.material` `lit-pbr` générés |
+| 10 | Démo, docs, clôture | toutes | `PbrMaterialDemo`, non-régression finale, coût mesuré |
+
+## État vérifié du dépôt (2026-11-14, `main` a200f12b, branche `chantier/pbr-rendering`)
+
+Relevé par huit lectures indépendantes, chaque fait relu par un second lecteur. Chemins relatifs à la racine du dépôt ; le code du moteur est sous `CasaEngine/`.
+
+**Image**
+- `RenderPipeline.Render` (`CasaEngine/Framework/Rendering/RenderPipeline.cs:108`) : par vue, `FrameCapturePlanner.Plan` (`FrozenFrames/FrameCapturePlanner.cs:11-38`, interne, testé par `FrameCapturePlannerTests`) décide `UseSceneRt` : ombres actives sur une vue back buffer effacée, ou rétention (ADR-0086).
+- La cible de scène `_sceneRt` est `SurfaceFormat.Color` + `Depth24Stencil8`, `PreserveContents` (`RenderPipeline.cs:436-455`), hors `RenderTargetPool`. Le seul blit est un `SpriteBatch` opaque sans shader (`:273-286`), dont la source est `_sceneRt` ou la cible retenue (`:283`).
+- `DefaultViewPipeline.RenderView` (`DefaultViewPipeline.cs:27-58`) enchaîne `World.Draw`, le `Flush` de chaque `IViewFlushableRenderer`, puis la composition de l'interface : **l'interface est dessinée dans la même cible que la scène, avant le blit**. Trois pipelines de vue enveloppent ou remplacent ce chemin : `SkyBackgroundViewPipeline`, `OverlayViewPipeline` (éditeur), et ceux des jeux.
+- Ordre des renderers (`CasaEngineGame.cs:444-452`) : maillages statiques, skinnés, sprites, particules, lignes 3D, `Renderer2DComponent` (un `SpriteBatch.Begin` sans effet, `Renderer2DComponent.cs:128`).
+- Le debug overlay est dessiné après le blit (`RenderPipeline.cs:309-328`), dans la cible de la vue pour une vue à cible propre.
+- Vues à tampon (ADR-0087) : `RenderTargetSurface` `Color`/`Depth24` créée par `DefaultRuntimeViewBootstrapper.cs:67-68`, présentée par `VirtualResolutionPresenter`. `ViewManager.cs:473, 484` teste ce type de presenter. `TexturePresenter` ne dessine rien ; `BackBufferPresenter` n'est construit nulle part.
+- Image figée : cibles retenue et capturée en `Color` (`FrameRetention.cs:93-95, 114-116`). Back buffer en `Color` (`CasaEngineGame.cs:185`).
+- `RenderFrame` (`RenderFrame.cs:11-28`) porte vue, projection, caméra, viewport, `ResolvedEnvironmentSettings`, `LightingContext`, `ShadowSettings` ; rien sur l'espace couleur.
+- Trois pools : `Framework/Rendering/RenderTargetPool.cs` (clé avec format), et deux pools d'interface dont la clé force `Color` (`MGUI.MonoGame.Integration/Rendering/RenderTargetPool.cs:64-66`, `Framework/UI/Backend/MonoGame/CasaRenderTargetPool.cs:77-82`).
+- Aucun code sRGB, linéaire, HDR, tonemap, bloom ou passe plein écran dans `.cs`, `.fx`, `.fxh`.
+
+**Environnement**
+- `WorldEnvironmentSettings` (`Rendering/Environment/WorldEnvironmentSettings.cs:12`) : ajouter une propriété touche `ResetToDefaults` (:74), `Load` (:96), `Save` (:178), `Clone` (:221), `CopyFrom` (:247). Aucun setter n'appelle `MarkDirty` ; `ResetToDefaults` remet `IsDirty` à faux sans changer `_version`. Exemple complet : `AmbientSource` (ADR-0090), testé par `AmbientSourceTests` (12 tests).
+- `EnvironmentResolver.Resolve` (`EnvironmentResolver.cs:14-123`) : la source est `view.EnvironmentOverride ?? view.World.EnvironmentSettings`, remplacée en bloc, mise en cache par `ResolvedEnvironmentCache` (valide tant que `IsDirty` est faux et que les versions n'ont pas changé).
+- L'intensité ambiante est repliée une seule fois : `EffectiveAmbientColor = AmbientColor * AmbientIntensity` (`ResolvedEnvironmentSettings.cs:63`), envoyée dans `AmbientColor` (`ForwardLightBinder.cs:106`) et `EnvironmentAmbientColor` (`EnvironmentShaderBinder.cs:11`). Le sanitizer ne plafonne pas les intensités.
+- `EnvironmentShaderBinder.Bind` est appelé par `ShaderBindCache.BindGlobals` (`ShaderBindCache.cs:34`), une fois par changement de shader, remis à zéro par `ResetFrame`.
+- Cubes : aucun n'a de mips. `TextureCubeLoader` refuse les DDS à mips (`:47-50`) et tout format hors DXT1/3/5 et RGB(A) 8 bits (`:204-221`). Cubes générés en `Vector4` sans mips (`PanoramaEnvironmentGenerator.cs:128`, génération CPU face par face, cache par `GeneratedAssetHandleCache`). `.hdr` lu en flottant (`:229-242`).
+- `SampleEnvironmentDiffuse` échantillonne le cube spéculaire non convolué à la normale (`Lighting.fxh:102-110`). `Macros.fxh:53` : `SAMPLE_CUBEMAP` n'a pas d'argument de niveau.
+- Sondes locales : `ReflectionProbe` (runtime seulement, non sérialisé), `ReflectionProbeResolver`, mélange primaire/secondaire, cubes aux emplacements t4 et t5.
+- Le ciel lit `BackgroundCubemap` par nom de paramètre, hors `ShaderWrapper` (`SkyCubemapRenderer.cs:62-65`).
+
+**Shaders**
+- `CasaEngine/Content/Shaders` : `Lighting.fxh`, `Macros.fxh`, `Structures.fxh`, `LitForward.fx` (24 techniques, `:741-769`), `skinEffect.fx` (copies locales des aides d'éclairage, `:173-207`), `UnlitTexture.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx`, `ShadowDepth.fx`, `TexturedPrimitive.fx`, `PsxQuad.fx`, `SpriteBatch.fx`, `DebugSolidColor.fx`, `DebugPrimitiveColor.fx`. Deux fichiers de contenu existent : `CasaEngine/Content/Content.mgcb` (`/platform:Windows`, une entrée par `.fx`) et `CasaEngine.Shaders/Content/Content.mgcb` (`/platform:DesktopGL`) ; tous les projets référencent `MonoGame.Framework.DesktopGL` 3.8.5.1 (`Directory.Packages.props:18`). `Macros.fxh:9-14` : `vs_3_0`/`ps_3_0` sous `OPENGL`, `vs_5_0`/`ps_5_0` sinon ; sous `OPENGL`, `SAMPLE_TEXTURE_LEVEL` ignore le niveau (`:46-56`). **Lequel est effectif n'est pas établi : c'est l'objet de T0.3.**
+- Constantes et textures numérotées à la main. `LitForward.fx` : textures t0 base, t1 normale, t2 cube de réflexion du matériau, t3 cube d'environnement, t4 et t5 sondes, t6 ombres, t7 détail ; constantes jusqu'à c36, `_cb(c32.w)` paraît libre. Toute constante utilisée par `Lighting.fxh` doit être déclarée dans chaque `.fx` qui l'inclut.
+- `HAS_ENVIRONMENT_BINDINGS` et `HAS_FORWARD_SHADOW_BINDINGS` doivent être définis avant l'inclusion ; sinon environnement et ombres valent silencieusement 0 et 1.
+- L'ombre ne s'applique qu'à `ShadowedDirectionalLightIndex`, en éclairage au pixel (`Lighting.fxh:467, 480`). `ComputeLights` met l'émissif dans `Diffuse` et `ComputeDirectDiffuse` le retire (`LitForward.fx:204`).
+- Tests qui lisent le texte des shaders : `LightingShaderCoverageTests` (emplacements exacts, par exemple `_cb(c32.z)` une seule fois), `ShaderTechniqueCoverageTests` (seulement `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`), `ShadowPipelineCoverageTests` (chaînes dans `ShadowPass.cs`, `OpaqueAndTransparentPasses.cs`, `Content.mgcb`).
+
+**Sélection de shader**
+- `BuiltInShaderCatalog.RuntimeShaders` (7 entrées) alimente le rechargement à chaud de l'éditeur ; `CasaEngineGame.ReloadBuiltInShader` (`:949-994`) ignore tout nom absent de son `switch` ; `StaticMeshRendererComponent.TryReloadBuiltInShader` (`:154-198`) n'accepte que Lit, Unlit, ShadowDepth, Sky.
+- `EffectiveShaderResolver` : tout matériau de famille `Lit` sans `ShaderAssetId` reçoit `LitForward` ; un maillage skinné reçoit le shader de skinning **avant** l'examen de la famille (`:73-76`). `MaterialShaderFamily` n'a que `Unknown`, `Lit`, `Unlit`.
+- `ShaderFeature` s'arrête à `Reflection = 1 << 8`. `NormalMap`, `Reflection`, `Emissive` n'entrent pas dans le nom de technique canonique (`ShaderVariantLibrary.cs:45-51`) : c'est `LitDiffuseMaterial.GetTechniqueName` (`:53-83`) qui choisit, via `RequiresMaterialTechniqueSelection`.
+- `ShaderWrapper.SetParameter` ne fait rien pour un nom absent ; `SelectTechnique` journalise et garde la technique courante.
+- `StaticMeshRendererComponent` charge et enregistre les shaders (`:114-146`) et applique `ApplyLitForwardDefaults` (`:200-212`).
+- `ShaderFeature.Instanced` n'est posé par aucun code de production : le chemin instancié est dormant.
+
+**Matériaux**
+- Définitions intégrées `lit-diffuse` et `unlit-texture` (`Materials/Definitions/BuiltInMaterialDefinitions.cs:14-19`). `MaterialDefinitionRegistry.Register(definition, factory, overrideMapper)` ; une classe runtime ne sert qu'une définition (`:108-113`).
+- `MaterialCompiler` : la fabrique `lit-diffuse` est appelée en direct et reçoit les handles comptés (ADR-0037) ; une fabrique enregistrée ne reçoit pas de `holds` (`:11-16, 268-275`). Le cube n'est reconnu que pour la clé `reflection_texture` en `dds` (`:412-414`). Définition sans fabrique : `NotSupportedException` (`:260-261`).
+- Transparence : seules les propriétés marquées `AffectsTransparency` comptent (`MaterialRenderStateResolver.cs:87`) ; `MaterialBase.CreateShaderCapabilities` (`:135-149`).
+- `LitDiffuseMaterial.Bind` pose tous les paramètres à chaque appel ; `AlphaCutoff` vaut 0 hors file `AlphaTest` (`:132`).
+- `ShadowPass` : le masque alpha des projeteurs n'existe que pour `LitDiffuseMaterial` et `UnlitTextureMaterial` (`ShadowPass.cs:144-158`).
+- Éditeur : `MaterialDefinitionEditorRegistry` classe par mots-clés avant le groupe (`:103-149`) ; `GameEditor.cs:8681-8694` ne décrit que deux classes ; `MaterialPreviewViewport.cs:513` compile sans garder les handles.
+- Tests liés à `lit-diffuse` : `MaterialCompilerTests`, `MaterialDefinitionRegistryTests`, `MaterialDefinitionEditorRegistryTests` (compte 11), `MaterialInstancePropertyBlockMapperTests`, `MaterialRuntimeResolverTests`, `MaterialAssetJsonSerializerTests` (compte 2), `CompiledMaterialTests`, `MaterialCacheTests`.
+
+**Passes et skinning**
+- `ForwardRenderPipeline` : ShadowPass, SkyPass, OpaquePass, TransparentPass (`ForwardRenderPipeline.cs:25-31`) ; `InsertPass`, `AddPass`. Aucune passe plein écran.
+- Transparents triés par distance à l'origine de l'objet, quantifiée (`SortKeyGenerator.cs:55`) ; même chemin `DrawItem` que les opaques, l'état de mélange vient de `RenderStateCache`.
+- Maillages skinnés : hors `ForwardRenderPipeline`, dessinés par `SkinnedMeshRendererComponent.Flush` (`:140-200`), sans gestion de file ; projeteurs d'ombre à technique fixe (`:420-431`), dessinés deux fois par image (`:99` et `:170`).
+
+**Import**
+- `GltfStaticModelReader` lit couleur de base (8 bits), émissif, texture de normale, tangentes, et seulement `RoughnessFactor`, converti en puissance spéculaire (`:197-213`) ; ni métal, ni texture metallic-roughness, ni occlusion, ni mode alpha, ni double face ; images embarquées ignorées (`:225-231`). `StaticModelImportedMaterial` (`StaticModelImportResult.cs:26-61`) n'a aucun champ PBR.
+- `GltfRiggedModelReader` : tangente en `Vector3` (signe perdu, `:308`), mode alpha et double face lus, images embarquées décodées.
+- `EditorAssetImportService.ApplyMaterialImports` (`:646-716`) écrit toujours des `.material` `lit-diffuse`.
+- `MipmapChain` moyenne les octets stockés (ADR-0092). Aucune métadonnée d'espace couleur sur les textures.
+- Aucun `.gltf` avec matériaux dans le dépôt ; seuls `.glb` : `CasaEngine.Demos/Content/SkinnedMesh/Soldier.glb` et `kid_*.glb`.
+
+**Démos et règles**
+- `DemosGame` : `CASAENGINE_START_DEMO`, `CASAENGINE_CAPTURE_SCREENSHOT_PATH`, `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS`, `CASAENGINE_DEMO_PIXELS_PATH` (`DemosGame.cs:142, 348, 576, 587`). Enregistrement par `AddDemo` (`:104-133`).
+- `CasaEngine/artifacts/` est ignoré par git (`.gitignore:61`).
+- Prochain ADR libre : 0094. Types de commit autorisés : `feat`, `fix`, `refactor`, `docs`, `chore`, `perf`, `test`.
+- Arbre de travail : ` M MGUI` (sous-module modifié par l'auteur) : ne jamais l'indexer.
+
+## Décisions verrouillées
+
+| Réf | Décision |
+|---|---|
+| D1 | PBR choisi par matériau : `lit-pbr` s'ajoute à `lit-diffuse`, qui reste intact ; aucune régression visuelle du contenu existant (ADR-0013). |
+| D2 | Workflow metallic-roughness, aligné sur glTF (ADR-0013). |
+| D3 | Forward seulement, dans `ForwardRenderPipeline` ; ni différé ni clustered (ADR-0013). |
+| D4 | Plafonds de lumières inchangés : 8 directionnelles, 8 ponctuelles, 8 spots (ADR-0013). |
+| D5 | `LitPbr.fx` en éclairage au pixel uniquement (ADR-0013). |
+| D6 | Le pipeline couleur est un réglage par monde, par vue via la surcharge d'environnement ; défaut `Legacy`, comportement actuel inchangé (ADR-0013). |
+| D7 | Conventions de techniques et de macros de `Macros.fxh` et cibles de compilation de `LitForward.fx` respectées (ADR-0013). |
+| D8 | Le bloom entre dans ce plan (auteur, 2026-11-14). |
+| D9 | Le PBR transparent entre dans ce plan (auteur, 2026-11-14). |
+| D10 | Le PBR sur maillages skinnés entre dans ce plan ; ceci remplace le point « hors périmètre V1 » de l'ADR-0013 (auteur, 2026-11-14). Il reste forward, dans le chemin de dessin skinné existant (`SkinnedMeshRendererComponent`), hors `ForwardRenderPipeline` : D3 est amendée pour les seuls maillages skinnés (ADR-0094). |
+| D11 | Le préfiltrage des sondes de réflexion locales entre dans ce plan (auteur, 2026-11-14). |
+| D12 | Le plan s'arrête au moteur, validé par une démo du moteur ; la bascule de RacingGame fait l'objet d'un plan du jeu séparé. L'ancien plan est archivé et remplacé (auteur, 2026-11-14). |
+
+## Arbitrages proposés par l'agent
+
+| Réf | Arbitrage | Tâche |
+|---|---|---|
+| P1 | En `LinearHdr`, toute vue rend sa scène dans une cible HDR de la taille de la vue, prise dans `RenderTargetPool` et rendue en fin de vue (`HalfVector4`, repli `HdrBlendable` puis `Color`), puis un passage de tonemapping écrit dans la destination habituelle de la vue (back buffer, cible retenue ou cible propre). En `Legacy`, aucun chemin ne change. | T1.4 |
+| P2 | L'interface est composée après le tonemapping grâce à une interface additive `IScenePhaseViewPipeline` (`RenderScene` sans interface utilisateur). `DefaultViewPipeline` et `SkyBackgroundViewPipeline` l'implémentent. Un pipeline de vue qui ne l'implémente pas est rendu en entier dans la cible HDR, interface comprise, avec un avertissement journalisé une fois au premier rendu. | T1.4 |
+| P3 | Décodage sRGB dans les shaders (`pow(c, 2.2)`), piloté par une constante `ColorPipelineIsLinear`, sous une branche qui laisse la valeur intacte à 0. Les couleurs qui arrivent au shader déjà multipliées par une intensité (lumières, ambiant) et les facteurs (couleur d'ombre) sont décodés côté CPU, avant le produit. Encodage `pow(c, 1/2.2)` dans `Tonemap.fx`. Pas de format de surface sRGB. | T1.5 |
+| P4 | En `LinearHdr`, toute couleur existante est traitée comme une couleur d'affichage et décodée : textures de couleur, couleurs de matériau, couleurs de lumière, ambiant, couleur d'effacement, cubes. Exception : un cube issu d'un panorama `.hdr` est déjà linéaire. Les normales et données non colorées ne sont jamais décodées. | T1.5 |
+| P5 | `Renderer2DComponent` (sprites d'écran et texte, `SpriteBatch` sans effet) est vidé après le tonemapping, avec l'interface, via un marqueur additif `IPostTonemapRenderer`. Ce vidage force `DepthStencilState.None`. Limite : en `LinearHdr`, il ne teste plus la profondeur de la scène. Particules, sprites 3D et lignes restent dans la scène et décodent dans leurs shaders. | T1.6 |
+| P6 | Opérateurs de tonemapping : `Reinhard` et `AcesApprox` (approximation de Narkowicz), exposition scalaire. Pas d'exposition automatique. | T1.3 |
+| P7 | Bloom : seuil, intensité, rayon ; passe-haut, chaîne de réductions floues, recomposition additive avant tonemapping. Réglages dans `ColorPipelineSettings`, coupé par défaut, sans effet en `Legacy`. | T2.1 |
+| P8 | `lit-pbr` est une définition intégrée, appelée en direct par `MaterialCompiler` comme `lit-diffuse`, donc avec les handles comptés. Nouvelle famille `MaterialShaderFamily.LitPbr`. Le matériau choisit sa technique, comme `LitDiffuseMaterial`. | T4.1, T4.2 |
+| P9 | IBL généré sur le GPU : chaque face et chaque niveau est rendu dans une `RenderTarget2D` par un shader de convolution, relu, puis écrit dans un `TextureCube` à mips. Fonctionne quel que soit le format du cube source. Cache par cube source ; aucune génération par image. La génération ne s'exécute **jamais pendant qu'une cible de vue est liée** : elle est demandée quand un shader qui déclare les paramètres IBL est lié pour un cube pas encore généré, mise en file, puis exécutée au début de `RenderPipeline.Render` (à côté de `DrawWorldUIToTextures`), avec restauration de la cible et du viewport initiaux. Tant qu'un cube n'est pas généré, le matériau PBR utilise le terme plat. Un monde sans matériau PBR ne génère rien. | T6.1, T6.2 |
+| P10 | Transparent PBR : mélange alpha où seule la part diffuse est atténuée par l'alpha ; le spéculaire est conservé (sortie prémultipliée). Pas de transmission ni de réfraction. | T5.1 |
+| P11 | PBR skinné : techniques PBR ajoutées à `skinEffect.fx`, qui partage déjà `Lighting.fxh`. Pas de normal map skinnée dans cette version. | T8.1 |
+| P12 | Les images embarquées des `.glb` statiques restent hors périmètre. | T9.1 |
+
+## Règles d'exécution pour l'agent
+
+- **Branche dédiée `chantier/pbr-rendering`**, créée depuis `main` (a200f12b). Ne jamais committer sur `main`.
+- **Une seule tâche à la fois.** Avant de commencer une tâche, remplacer son icône `⏳` par `🚧`. À la fin, lancer la validation indiquée, remplacer l'icône par `✅`, `🧪` ou `⚠️`, ajouter une courte note de validation sous la tâche, puis **créer un commit dédié** qui inclut la mise à jour de ce fichier.
+- **Un commit par tâche**, atomique et compilable, message en anglais au format `type(area): summary`.
+- **Ne jamais pousser.** Le merge sur `main` reste une décision humaine.
+- **Ne rien inventer** : toute API, tout fichier, toute règle utilisée existe dans le dépôt, vient d'une réponse de l'auteur, ou d'une doc officielle citée (URL). Sinon : passer la tâche en ⚠️ Blocked, écrire la question dans « Points ouverts », et **s'arrêter**. Les numéros de ligne de ce plan datent du 2026-11-14 : relire le code avant d'éditer.
+- **Build obligatoire** avant ✅ dès que du code est touché : `dotnet build CasaEngine.MonoGame.sln` et, dès qu'un shader, un service d'édition ou l'éditeur est touché, `dotnet build CasaEngine.Editor.MonoGame.sln`. **Tests** : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj`.
+- Si une vérification visuelle ou manuelle manque, utiliser `🧪 Needs testing` et noter précisément ce qui manque.
+- **Ne jamais laisser une tâche en 🚧** à la fin d'une session.
+- **Ne jamais indexer** les modifications préexistantes de l'auteur (` M MGUI`) : `git add` fichier par fichier.
+- **Langue** : ce plan en français ; code, messages de commit, docs de `docs/` et ADR en anglais.
+- **ADR** : chaque décision d'architecture, de format ou d'API prise par une tâche est enregistrée dans `docs/decisions/` (skill `adr`), statut `Proposed`, dans le commit de la tâche.
+- **Non-régression `Legacy`** : toute tâche qui touche un shader ou le chemin d'image recapture les démos de T0.2 et compare les empreintes SHA-256. Une différence bloque la tâche.
+- Rappel moteur : pas d'allocation, de LINQ ni de closure dans les chemins chauds ; restaurer tout état GPU modifié ; le runtime ne dépend pas de l'éditeur ; sérialisation additive ; journaliser au chargement, jamais dans `Draw`.
+- **Budget** : par tâche, deux passes de correction au plus sur une différence d'empreinte `Legacy`, un test rouge ou une mesure manquée ; à la troisième, ⚠️ Blocked et arrêt de la phase. Les phases indépendantes de la phase bloquée peuvent continuer.
+- **Revue** : chaque phase est relue avant exécution (lecture seule) et vérifiée après (exécution des tests et de la preuve de fin) par un agent sans le contexte de l'auteur du code.
+
+## Légende des statuts
+
+- ⏳ Todo : pas encore commencé.
+- 🚧 In progress : en cours de modification locale.
+- 🧪 Needs testing : code écrit, validation incomplète ou en attente.
+- ✅ Done : code validé, build/tests OK, commit effectué.
+- ⚠️ Blocked : bloqué par une erreur non résolue ou une décision manquante.
+
+## Validation globale
+
+- `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 5207 tests au départ, 0 échec, plus les tests ajoutés.
+- Démos de T0.2 en `Legacy` : empreintes identiques à la base.
+- `PbrMaterialDemo` : mesures de pixels de T10.1 tenues.
+
+---
+
+## Phase 0 — Préparation
+
+Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesure manquée, deux passes de correction au plus par tâche ; à la troisième, ⚠️ Blocked et arrêt de la phase.
+
+### ✅ T0.1 — Archiver l'ancien plan et enregistrer le périmètre étendu
+
+- Objectif : un seul plan PBR vivant ; les décisions D8 à D12 enregistrées.
+- Fichiers : `ai-agent/tasks/pbr-rendering-implementation-plan.md` → `ai-agent/tasks/archive/` (`git mv`), `ai-agent/README.md`, `docs/decisions/0094-pbr-scope-extends-to-bloom-transparency-skinning-and-local-probes.md`, `docs/decisions/README.md`, `docs/decisions/0013-pbr-rendering-decisions.md` (ligne de statut et chemin de source seulement).
+- Étapes :
+  1. Déplacer l'ancien plan dans `archive/` et ajouter en tête une note : remplacé par `pbr-rendering-tasks.md` le 2026-11-14, aucune tâche exécutée.
+  2. Mettre à jour la ligne du tableau de `ai-agent/README.md` : nouveau fichier, sujet, reste à faire.
+  3. Écrire l'ADR-0094 (statut `Accepted`, décision de l'auteur) : D8 à D12. Il amende deux points de l'ADR-0013 : le skinning PBR entre dans le périmètre, et il reste forward **dans le chemin de dessin skinné existant, hors `ForwardRenderPipeline`** (amendement du point « forward only » pour les seuls maillages skinnés). Dans l'ADR-0013, passer le statut à `Accepted, amended by ADR-0094` et corriger le chemin de la source vers `archive/`.
+  4. Ajouter l'ADR-0094 à l'index.
+- Validation : dans l'ADR-0013, **chaque** renvoi `(source: ai-agent/tasks/pbr-rendering-implementation-plan.md…)` est redirigé vers `ai-agent/tasks/archive/…` (remplacement de chemin seulement). `rg -n "pbr-rendering-implementation-plan" . --glob "!ai-agent/tasks/archive/**" --glob "!ai-agent/audits/**" --glob "!ai-agent/tasks/pbr-rendering-tasks.md"` ne rend que des lignes contenant `tasks/archive/`. Les audits de `ai-agent/audits/` sont en lecture seule et gardent l'ancien chemin : `git diff --stat` du commit ne liste aucun fichier sous `ai-agent/audits/`. Liens de l'index ouverts.
+- Commit : `docs(ai-agent): replace the PBR plan and record its extended scope (ADR-0094)`
+- Note de validation (2026-11-15) : ancien plan déplacé dans `archive/` avec sa note ; ADR-0094 écrit et indexé ; ADR-0013 amendé (statut et chemins de source) ; la recherche de la validation ne rend aucune ligne hors `tasks/archive/` ; aucun fichier de `ai-agent/audits/` modifié.
+
+### ⏳ T0.2 — Captures de base épinglées
+
+- Objectif : la référence `Legacy` de tout le chantier, épinglée au commit de départ.
+- Fichiers : aucun fichier suivi hors ce plan ; captures dans `CasaEngine/artifacts/pbr-baseline/` (ignoré par git).
+- Étapes :
+  1. Construire `CasaEngine.Demos` sur le commit de T0.1.
+  2. Capturer **deux fois** chaque démo, sélectionnée par son **titre exact** dans `CASAENGINE_START_DEMO` (la sélection retombe sur la démo 0 si le nom est inconnu, `DemosGame.cs:176-198`) : `Material system demo`, `Environment showcase`, `Static model demo`, `Static shadow validation demo` (avec `CASAENGINE_SHADOW_DEMO_VALIDATION=1`), `Skinned mesh demo`, `Particle system demo`, `Split-screen demo (2 views)`, `Render-to-texture demo`, `MGUI UI Overlay Demo (HUD + Modal Screens)`, `Frozen frame demo`, `Tile map demo`.
+  3. Calculer le SHA-256 de chaque capture. Une démo dont les deux captures diffèrent est classée « non déterministe » et sort de la comparaison au bit ; elle reste contrôlée à l'œil (🧪) en fin de phase.
+  4. Écrire sous cette tâche le tableau : titre, résolution, empreinte, déterministe ou non, et la commande exacte.
+  5. Relevé `RenderStats` : lancer `Material system demo` en `Legacy` avec `CASAENGINE_SHOW_DEBUG_OVERLAY=1`, capture dans un fichier à part exclu de la comparaison d'empreintes ; noter dans le tableau les valeurs Draws et State lues sur l'overlay (`DebugOverlay.cs:101-102`) et la commande exacte.
+- Validation : aucune ligne « Startup demo … was not found » dans les journaux ; les empreintes des démos déterministes sont deux à deux distinctes ; au moins `Material system demo`, `Static shadow validation demo` et `Static model demo` sont déterministes, sinon ⚠️ Blocked (la non-régression au bit n'est pas prouvable).
+- Commit : `chore(ai-agent): pin the legacy baseline captures of the PBR work`
+
+### ⏳ T0.3 — Relevé du backend graphique et de la chaîne de compilation des shaders
+
+- Objectif : savoir quel backend exécute les shaders et quel fichier de contenu les compile, avant d'écrire un shader.
+- Sources : `Directory.Packages.props:18` (tous les projets référencent `MonoGame.Framework.DesktopGL` 3.8.5.1), `CasaEngine/Content/Content.mgcb:6` (`/platform:Windows`), `CasaEngine.Shaders/Content/Content.mgcb:6` (`/platform:DesktopGL`), `CasaEngine.Shaders/CasaEngine.Shaders.csproj` (`mgfxc` embarqué), `Macros.fxh:9-14, 46-56` (`OPENGL` : `vs_3_0`/`ps_3_0`, et `SAMPLE_TEXTURE_LEVEL` y ignore le niveau), `EffectLoader.cs` (`.mgfxc`), les `.csproj` des démos.
+- Étapes : établir, par lecture puis par une exécution d'une démo, (a) quel `Content.mgcb` produit les `.mgfxc` chargés par `CasaEngine.Demos`, (b) si `OPENGL` est défini à leur compilation, (c) le modèle de shader effectif et le nombre de samplers de pixel disponibles, (d) comment un nouveau `.fx` doit être déclaré pour être compilé et chargé (une ou deux entrées `mgcb`). Écrire le relevé sous cette tâche. Si le backend est OpenGL : noter que l'échantillonnage de cube par niveau exige une macro nouvelle (`texCUBElod`) à valider en T6.1, et corriger dans ce plan toute mention de `ps_5_0`.
+- Validation : relevé écrit avec fichiers, lignes et sortie de commande ; les tâches T1.3, T3.2 et T6.1 sont ajustées dans le même commit si le relevé les contredit.
+- Commit : `docs(ai-agent): record the graphics backend and the shader build chain`
+
+---
+
+## Phase 1 — Pipeline couleur : linéaire, HDR, tonemapping
+
+### ⏳ T1.1 — `ColorPipelineSettings` dans les réglages d'environnement
+
+- Objectif : un réglage par monde, sérialisé, résolu et porté jusqu'à l'image, sans changer aucun rendu.
+- Fichiers : nouveaux `CasaEngine/Framework/Rendering/Environment/ColorPipelineSettings.cs`, `ColorPipelineMode.cs`, `TonemapOperator.cs` ; `WorldEnvironmentSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs` ; `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ; nouveau `CasaEngine.Tests/Rendering/ColorPipelineSettingsTests.cs` ; ADR-0095.
+- Étapes :
+  1. `ColorPipelineSettings` (classe, sur le modèle de `ShadowSettings` : `ResetToDefaults`, `Load`, `Save`, `CopyFrom`) : `Mode` (`Legacy` par défaut, `LinearHdr`), `Tonemapper` (`AcesApprox` par défaut, `Reinhard`), `Exposure` (1, assaini : NaN et négatif → 0).
+  2. `WorldEnvironmentSettings.ColorPipeline` (lecture seule, comme `Shadows`) : `ResetToDefaults`, `Load` et `Save` sous la clé `color_pipeline`, écrite seulement si un champ diffère du défaut et retirée sinon (comme `ambient_source`), `Clone`, `CopyFrom`.
+  3. `ResolvedEnvironmentSettings` : propriétés `ColorPipelineMode`, `Tonemapper`, `Exposure`, et `IsLinearHdr`. `EnvironmentResolver` les copie depuis la source ; la surcharge de vue remplace en bloc, comme le reste. Le cache `ResolvedEnvironmentCache` n'a pas de clé à étendre : il repose sur `IsDirty` et les versions, donc un changement de réglage suivi de `MarkDirty` l'invalide (test).
+  4. Éditeur : combo du mode, combo de l'opérateur, champ d'exposition, sur le modèle exact du combo `AmbientSource` (`MarkDirty` après chaque édition, annulation comprise).
+  5. Tests, sur le modèle d'`AmbientSourceTests` : défauts ; `Clone` ; `CopyFrom` dans les deux sens ; `Save` omet la clé au défaut ; aller-retour `Save`/`Load` ; clé périmée supprimée ; `Load` insensible à la casse ; le resolver porte les valeurs ; la surcharge de vue l'emporte ; `ResetToDefaults` revient à `Legacy` ; changement puis `MarkDirty` → le resolver rend la nouvelle valeur.
+  6. ADR-0095 : pipeline couleur par monde, clé `color_pipeline`, défaut `Legacy`.
+- Validation : builds ; tests verts ; un monde existant se charge en `Legacy` (test) ; captures de T0.2 identiques.
+- Commit : `feat(rendering): add per-world colour pipeline settings with a legacy default (ADR-0095)`
+
+### ⏳ T1.2 — Variables de harnais et scène de mesure
+
+- Objectif : pouvoir mettre n'importe quelle démo en `LinearHdr` dès la tâche suivante, et disposer de la scène de mesure de la phase.
+- Fichiers : `CasaEngine.Demos/DemosGame.cs` ; nouveau `CasaEngine.Demos/Demos/ColorPipelineDemo.cs` (+ `AddDemo` **en dernière position**, pour ne déplacer aucun index) ; `docs/engine/demos-main-menu.md` si la liste y figure.
+- Étapes :
+  1. `CASAENGINE_DEMO_COLOR_PIPELINE` (`LinearHdr`, `Legacy`), `CASAENGINE_DEMO_TONEMAPPER`, `CASAENGINE_DEMO_EXPOSURE` : appliqués au monde courant après `Initialize`, `ConfigureSceneLighting` et `CreateCamera` de la démo (`DemosGame.cs:218-220`), suivis de `MarkDirty` ; sans variable, aucun effet.
+  2. `ColorPipelineDemo` (titre `Colour pipeline demo`) : caméra fixe ; rampe de cinq plans gris en `unlit-texture` (0, 64, 128, 191, 255), dont le plan 128 occupe un rectangle d'écran noté dans le fichier ; trois sphères `lit-diffuse` sous une directionnelle d'intensité 1, 4 et 16 (un monde par capture n'est pas nécessaire : trois lumières ne conviennent pas, donc l'intensité est choisie par `CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY`, défaut 1) ; un plan émissif fort ; un panneau d'interface MGUI et un texte d'écran. Touches : mode, opérateur, exposition ±. `CASAENGINE_COLOR_DEMO_BUFFERED=1` lance la démo dans une résolution virtuelle à tampon (`VirtualResolutionMode.BufferedFit`, posée comme `FrozenFrameDemo.cs:87-91` pose `ProjectSettings.VirtualResolution`) : la vue passe alors par une `RenderTargetSurface` et `VirtualResolutionPresenter`, interface et texte compris. `Clean` restaure les réglages d'environnement et la résolution virtuelle.
+  3. Écrire dans le fichier de la démo les coordonnées des pixels de mesure : gris 128, sphère éclairée (trois points sur sa moitié éclairée), émissif, bord d'émissif à 8 px, interface, texte.
+- Validation : builds ; la démo se lance par son titre exact et se capture ; captures de T0.2 identiques ; en `Legacy`, le pixel gris 128 vaut 128 ± 1.
+- Commit : `feat(demos): add colour pipeline harness variables and a measurement demo`
+
+### ⏳ T1.3 — `Tonemap.fx` et son enregistrement
+
+- Objectif : le shader de tonemapping compilé, enregistré et rechargeable, pas encore branché.
+- Fichiers : nouveau `CasaEngine/Content/Shaders/Tonemap.fx` ; le ou les `Content.mgcb` désignés par T0.3 ; `BuiltInShaderCatalog.cs` ; `CasaEngineGame.cs` (`ReloadBuiltInShader`) ; `RenderPipeline.cs` (champ `ShaderWrapper` et son chargement) ; `ShaderParameterNames.cs` ; nouveau `CasaEngine.Tests/Rendering/TonemapShaderCoverageTests.cs` ; `docs/engine/effect-file-inventory.md`.
+- Étapes :
+  1. Lire `SpriteBatch.fx` et `PsxQuad.fx` pour reprendre la forme d'un shader utilisable par `SpriteBatch.Begin(effect:)`, variante `OPENGL` comprise.
+  2. `Tonemap.fx` : techniques `Tonemap_Reinhard` (`c / (1 + c)`) et `Tonemap_AcesApprox` (`(c(2.51c + 0.03)) / (c(2.43c + 0.59) + 0.14)`, bornée à [0,1]) ; paramètre `Exposure` appliqué avant l'opérateur ; sortie encodée `pow(c, 1/2.2)`, alpha 1.
+  3. Entrée de contenu copiée sur celle de `SpriteBatch.fx`. Descripteur et constante de nom dans `BuiltInShaderCatalog`. `RenderPipeline` tient le `ShaderWrapper`, chargé à l'initialisation ; cas dans le `switch` de `ReloadBuiltInShader` qui lui remet l'effet rechargé.
+  4. Tests par lecture du texte : les deux techniques existent ; `Exposure` et la texture source sont déclarés ; le fichier de contenu contient l'entrée ; le catalogue contient le descripteur.
+- Validation : builds des deux solutions (la compilation du shader fait foi) ; tests verts ; captures de T0.2 identiques.
+- Commit : `feat(rendering): add the tonemap shader and register it as a built-in`
+
+### ⏳ T1.4 — Cible de scène HDR, tonemapping, interface après
+
+- Objectif : en `LinearHdr`, la scène est rendue en HDR, tonemappée vers la destination de la vue, et l'interface est composée ensuite. En `Legacy`, rien ne change.
+- Fichiers : `RenderPipeline.cs`, `DefaultViewPipeline.cs`, `SkyBackgroundViewPipeline.cs` ; nouveaux `IScenePhaseViewPipeline.cs`, `ColorPipelinePlanner.cs` (pur, interne) ; nouveau `ColorPipelinePlannerTests.cs` ; ADR-0096. `FrameCapturePlanner` et ses types ne sont pas modifiés.
+- Étapes :
+  1. Relire `RenderPipeline.Render` en entier et écrire sous cette tâche la liste des chemins de destination : back buffer direct, back buffer via `_sceneRt`, cible retenue, cible propre (`RenderTargetSurface`), éditeur (`initialRenderTarget` non nul), plusieurs vues back buffer partageant la cible avec des rectangles distincts (écran partagé).
+  2. Lire le mode en avance : `(view.EnvironmentOverride ?? view.World.EnvironmentSettings).ColorPipeline.Mode`, au même endroit que la lecture des ombres (`:146`). L'appel à `EnvironmentResolver.Resolve` ne bouge pas.
+  3. `ColorPipelinePlanner` (fonction pure, testée) : à partir du mode, du plan de capture et du type de surface, rend `UseHdrSceneTarget` et la destination du tonemapping (celle que le chemin `Legacy` aurait liée pour dessiner : back buffer ou cible initiale, `_sceneRt`, cible retenue, ou cible propre de la vue). En `Legacy` : `UseHdrSceneTarget` faux, et aucune ligne du chemin existant n'est exécutée différemment.
+  4. Cible HDR **par vue**, prise dans `RenderTargetPool` (`Acquire` avec `HalfVector4` et `Depth24Stencil8`, `Release` en fin de vue ; la clé du pool contient le format) à la taille du rectangle de la vue après `ApplyResolutionScale`. Repli de format `HdrBlendable` puis `Color` si l'acquisition échoue, journalisé une fois. Aucune création de cible après la première image de chaque taille.
+  5. `IScenePhaseViewPipeline.RenderScene(graphicsDevice, view, in frame, renderers)` : les étapes 1 et 2 de `DefaultViewPipeline.RenderView`, sans l'interface. `DefaultViewPipeline.RenderView` appelle `RenderScene` puis compose l'interface (comportement inchangé). `SkyBackgroundViewPipeline` l'implémente en dessinant son fond puis en déléguant à son pipeline intérieur s'il l'implémente aussi ; sinon il ne l'expose pas.
+  6. Chemin `LinearHdr`, par vue : (a) lier la cible HDR, viewport plein, effacer couleur et profondeur ; (b) `RenderScene`, ou `RenderView` complet pour un pipeline qui n'implémente pas l'interface, avec l'avertissement de P2 journalisé une fois ; (c) lier la destination exactement comme le chemin `Legacy` (cible, surface, viewport) et y effacer la profondeur selon `BuildDepthClearOptions` ; (d) dessiner la cible HDR dans le rectangle de la vue par `SpriteBatch` opaque avec `Tonemap.fx` (technique et exposition résolues), `DepthStencilState.None` ; (e) si `RenderScene` a été utilisé, composer l'interface sur la destination ; (f) reprendre le chemin existant : blit de `_sceneRt` ou de la cible retenue, rétention, debug overlay, presenter.
+  7. Image figée : la cible retenue reçoit l'image tonemappée par (d) ; son format reste `Color`. Vérifier avec `Frozen frame demo` en `LinearHdr`.
+  8. Restaurer cible, viewport et états ; aucun `new` par image.
+  9. Tests : `ColorPipelinePlannerTests` (table de vérité des chemins de l'étape 1 × deux modes) ; `FrameCapturePlannerTests` inchangés et verts.
+  10. ADR-0096 : cible HDR par vue, tonemapping avant l'interface, `IScenePhaseViewPipeline`, repli de format, comportement des pipelines de vue non adaptés.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; avec `CASAENGINE_DEMO_COLOR_PIPELINE=LinearHdr`, lancement et capture sans exception de `Colour pipeline demo` (back buffer), de la même démo avec `CASAENGINE_COLOR_DEMO_BUFFERED=1` (vue à tampon : le pixel d'interface y vaut sa valeur `Legacy` de la même configuration ± 2, preuve que l'interface est composée après le tonemapping dans la cible de la vue), `Render-to-texture demo` (cible propre sans interface), `Split-screen demo (2 views)` (un pixel non noir mesuré dans chacune des deux vues) et `Frozen frame demo` ; compteur de créations de cible HDR nul après la dixième image sur 300 images de `Render-to-texture demo` (journal ou compteur de débogage, noté ici). **Marqueur positif obligatoire par exécution `LinearHdr`** (une image `Legacy` ne peut pas le produire) : sur `Colour pipeline demo`, en back buffer et en mode à tampon, le pixel gris 128 vaut **205 ± 2** (`AcesApprox`, exposition 1, sans décodage : 0,502 → 0,6176 → 205), dans la même capture que le pixel d'interface ; sur `Render-to-texture demo`, `Split-screen demo (2 views)` (chaque vue) et `Frozen frame demo`, au moins une création de cible HDR par taille de vue est relevée (`RenderTargetPool.TotalCount` ou journal de création unique) avant le contrôle « zéro après la dixième image ». Sans la variable de harnais, ces contrôles échouent. L'image `LinearHdr` est encore fausse en couleur (pas de décodage) : attendu, noté.
+- Commit : `feat(rendering): render the scene into an HDR target and tonemap before the UI (ADR-0096)`
+
+### ⏳ T1.5 — Décodage des couleurs en mode linéaire
+
+- Objectif : en `LinearHdr`, les couleurs d'entrée sont linéarisées avant l'éclairage ; en `Legacy`, sortie identique au bit.
+- Fichiers : `Macros.fxh` ou `Lighting.fxh` (aide `DecodeColor`), `LitForward.fx`, `skinEffect.fx`, `UnlitTexture.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx` ; `ShaderParameterNames.cs`, `EnvironmentShaderBinder.cs`, `ForwardLightBinder.cs`, `ResolvedEnvironmentSettings.cs`, `SkyCubemapRenderer.cs`, `RenderPipeline.cs` (couleur d'effacement) ; nouveaux `ColorSpace.cs` (aide pure `Decode`), `ColorPipelineShaderCoverageTests.cs`, `ColorPipelineBindingTests.cs` ; `LightingShaderCoverageTests.cs` si une assertion doit être étendue.
+- Étapes :
+  1. Relever dans chaque `.fx` concerné les constantes libres ; choisir un emplacement pour `ColorPipelineIsLinear` qui ne déplace aucune constante existante (`_cb(c32.w)` dans `LitForward.fx` si la relecture le confirme libre). Le noter ici.
+  2. `float3 DecodeColor(float3 c)` : `if (ColorPipelineIsLinear > 0.5) c = pow(abs(c), 2.2); return c;`.
+  3. **Côté shader**, décoder : la couleur de base **après** sa modulation par la texture de détail (le produit `base *= 2.0 * detail` de `LitForward.fx:177-184` est neutre à 0,5 en espace d'affichage : ne jamais décoder l'échantillon de détail seul), la couleur de sommet, `DiffuseColor`, `EmissiveColor`, `SpecularColor`, `MaterialAmbientColor`, le cube de réflexion du matériau, le cube d'environnement et les sondes. Ne pas décoder la texture de normale ni la carte d'ombres.
+  4. **Côté CPU**, parce que ces valeurs arrivent déjà multipliées par leur intensité (`ForwardLightBinder.cs:241-242, 258-259, 276-278` ; `ResolvedEnvironmentSettings.cs:63`) : en `LinearHdr`, décoder la couleur de chaque lumière **avant** le produit par l'intensité ; `EffectiveAmbientColor` devient `Decode(AmbientColor) × AmbientIntensity` ; la couleur d'ombre (`ShadowColor`, un facteur) et la couleur d'effacement sont décodées. Le mode vient de `context.Environment` (`ShaderBindCache.cs:33`). En `Legacy`, les valeurs liées sont celles d'aujourd'hui, à l'identique.
+  5. `UnlitTexture.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx` : décoder texture et couleur.
+  6. Cube issu d'un `.hdr` (P4) : chercher comment le resolver connaît l'origine du cube ; ajouter une constante `EnvironmentCubeIsLinear` si l'origine est connue, sinon traiter tout cube comme encodé et l'écrire en « Points ouverts » (O2).
+  7. Lier `ColorPipelineIsLinear` dans `EnvironmentShaderBinder.Bind` (globaux par changement de shader) et dans `SkyCubemapRenderer`.
+  8. Tests : (texte) la constante est déclarée dans chaque shader concerné et dans `ShaderParameterNames` ; `DecodeColor` enveloppe la couleur de base modulée et n'enveloppe pas l'appel `SAMPLE_TEXTURE(DetailTexture,` ; la texture de normale n'est pas décodée ; les assertions d'emplacement existantes restent vertes. (Liaison) en `LinearHdr`, une lumière grise 0,5 d'intensité 4 lie `4 × 0,5^2,2` ; en `Legacy`, les valeurs liées égalent celles d'avant ; même paire de tests pour l'ambiant.
+  9. Mesure sur `Colour pipeline demo` en `LinearHdr`, exposition 1 : le pixel gris 128 vaut **117 ± 2 en `Reinhard`** et **154 ± 2 en `AcesApprox`** (128 → 0,2195 linéaire ; Reinhard 0,180 ; ACES 0,330 ; ré-encodés). Noter les deux valeurs mesurées.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; mesures de l'étape 9 tenues.
+- Commit : `feat(rendering): decode display colours when the linear pipeline is active`
+
+### ⏳ T1.6 — Renderers 2D, particules, sprites, lignes et fond de ciel en mode linéaire
+
+- Objectif : aucun renderer ne produit de couleur doublement encodée en `LinearHdr`.
+- Fichiers : `TexturedPrimitive.fx`, `PsxQuad.fx`, `DebugSolidColor.fx`, `DebugPrimitiveColor.fx`, `SpriteBatch.fx` (si utilisé dans la scène) ; `ParticleRendererComponent.cs`, `SpriteRendererComponent.cs`, `Line3dRendererComponent.cs`, `SkyBackgroundViewPipeline.cs` ; nouveau `IPostTonemapRenderer.cs` ; `Renderer2DComponent.cs`, `DefaultViewPipeline.cs`, `RenderPipeline.cs`.
+- Étapes :
+  1. Pour chaque renderer, lire comment son effet est chargé et lié, et où `SpriteBatch.fx` est utilisé. Écrire le relevé sous cette tâche.
+  2. Ajouter `ColorPipelineIsLinear` et le décodage aux shaders de particules, de sprites 3D et de lignes ; chaque renderer lie la constante depuis `frame.Environment`. Étendre `ColorPipelineShaderCoverageTests` : pour chacun de ces shaders, la constante est déclarée et `DecodeColor` enveloppe la couleur échantillonnée et la couleur de sommet. Ajouter à `Colour pipeline demo` un sprite 3D gris 128 et une particule fixe gris 128, à des pixels de mesure notés dans le fichier.
+  3. `SkyBackgroundViewPipeline` dessine son dégradé et son soleil par un `SpriteBatch` sans effet (`:72-74, 109-112`) dans la cible de scène : en `LinearHdr`, décoder côté CPU les couleurs qu'il passe au `SpriteBatch` ; si une texture non décodable entre en jeu, l'écrire comme limite dans la doc de T1.7.
+  4. `IPostTonemapRenderer` (marqueur) sur `Renderer2DComponent` : en `LinearHdr`, `RenderScene` saute ces renderers et `RenderPipeline` les vide après le tonemapping, avant l'interface, avec `DepthStencilState.None` forcé pour ce vidage (la profondeur de la scène vit dans la cible HDR). En `Legacy`, ordre et états inchangés.
+  5. Écrire la limite de P5 dans la doc de T1.7.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; en `LinearHdr`, sur `Colour pipeline demo` en back buffer puis avec `CASAENGINE_COLOR_DEMO_BUFFERED=1` (vue à cible propre) : le pixel de texte et le pixel d'interface valent leur valeur `Legacy` de la même configuration ± 2, valeurs notées ici, et dans chacune de ces captures le pixel gris 128 vaut 154 ± 2 (preuve que la capture est bien `LinearHdr`) ; le pixel du sprite 3D gris 128 et celui de la particule gris 128 valent 154 ± 2 (preuve que ces renderers lient la constante) ; les lignes 3D ne sont couvertes que par le test de texte, limite écrite dans la doc de T1.7 ; sur `Particle system demo` : lancement sans exception et capture archivée ; sur `Material system demo` : un pixel du fond de ciel vaut la valeur attendue du pixel `Legacy` décodé, tonemappé et ré-encodé ± 2, ou la limite est écrite.
+- Commit : `feat(rendering): keep 2D, particle, sprite, line and sky background colours correct in the linear pipeline`
+
+### ⏳ T1.7 — Clôture de la phase 1 : non-régression et documentation
+
+- Objectif : verrouiller la phase avant tout shader PBR.
+- Fichiers : nouveau `docs/engine/color-pipeline.md` ; `docs/README.md` ; `docs/engine/effect-file-inventory.md` ; ce plan.
+- Étapes :
+  1. Recapturer toutes les démos de T0.2 en `Legacy` : empreintes identiques.
+  1b. Référence de la phase 2 : capturer **deux fois** `Colour pipeline demo` en `LinearHdr`, réglages par défaut (`AcesApprox`, exposition 1, intensité 1, back buffer), dans `CasaEngine/artifacts/pbr-baseline/linear/colour-pipeline-default-{1,2}.png` ; noter ici la commande exacte, les deux empreintes et si elles sont égales (déterministe ou non).
+  2. Capturer en `LinearHdr` les démos de T0.2 par leur titre exact : aucune exception, image plausible ; archiver.
+  3. `Colour pipeline demo`, intensité de lumière 16 : en `LinearHdr`, les trois points de mesure de la sphère éclairée ont trois valeurs distinctes ; en `Legacy`, au moins deux sont écrêtés à la même valeur. Noter les valeurs.
+  4. `RenderStats` en `Legacy` sur `Material system demo` : appels de dessin et changements d'état égaux aux valeurs notées en T0.2 étape 5, par la même commande.
+  5. Documentation : modes, clé `color_pipeline`, ordre de l'image, ce qui est décodé et où (shader ou CPU), limites (P2, P5, O4, émissif traité comme couleur d'affichage, repli de format), renvoi aux ADR-0095 et ADR-0096.
+- Validation : résultats notés ici ; toute différence `Legacy` passe la tâche en ⚠️.
+- Commit : `docs(engine): document the colour pipeline and close its validation`
+
+---
+
+## Phase 2 — Bloom
+
+### ⏳ T2.1 — Réglages et shader de bloom
+
+- Objectif : réglages sérialisés et shader compilé.
+- Fichiers : `ColorPipelineSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs`, `EntityDetailsPanel.cs`, `ColorPipelineSettingsTests.cs` ; nouveau `CasaEngine/Content/Shaders/Bloom.fx` ; `Content.mgcb`, `BuiltInShaderCatalog.cs`, `CasaEngineGame.cs` ; ADR-0097.
+- Étapes :
+  1. `BloomEnabled` (faux), `BloomThreshold` (1), `BloomIntensity` (0,5), `BloomRadius` (1) sous `color_pipeline`, mêmes règles de sérialisation et mêmes tests que T1.1.
+  2. `Bloom.fx` : techniques `Bloom_BrightPass` (seuil doux), `Bloom_Downsample`, `Bloom_BlurHorizontal`, `Bloom_BlurVertical` (poids normalisés, somme 1 vérifiée par test), `Bloom_Composite` (additif).
+  3. Enregistrement comme T1.3. ADR-0097.
+- Validation : builds ; tests verts ; captures de T0.2 identiques.
+- Commit : `feat(rendering): add bloom settings and the bloom shader (ADR-0097)`
+
+### ⏳ T2.2 — Passe de bloom avant le tonemapping
+
+- Objectif : le bloom agit sur la cible HDR, avant le tonemapping, donc jamais sur l'interface.
+- Fichiers : nouveau `CasaEngine/Framework/Rendering/PostProcess/BloomRenderer.cs` ; `RenderPipeline.cs` ; `RenderStats.cs` (compteur additif si utile) ; `ColorPipelineDemo.cs`.
+- Étapes :
+  1. `BloomRenderer` : cibles HDR à la moitié, au quart et au huitième, prises dans `RenderTargetPool` (clé avec format) ; passe-haut, réductions, flou séparable, recomposition dans la cible HDR. États restaurés ; aucune allocation par image.
+  2. Appel dans le chemin `LinearHdr` entre la scène et le tonemapping, si `BloomEnabled`.
+  3. Démo : touche de bascule ; l'émissif fort de `ColorPipelineDemo` sert de mesure.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; bloom coupé : la capture `LinearHdr` de `Colour pipeline demo` prise par la commande notée en T1.7 étape 1b a la même empreinte que `colour-pipeline-default-1.png` (si T1.7 a classé cette capture non déterministe : écart absolu maximal par canal ≤ 1 sur toute l'image, noté) ; bloom actif : un pixel à 8 px du bord de l'émissif est plus clair d'au moins 10 niveaux, un pixel d'interface est inchangé.
+- Commit : `feat(rendering): apply bloom to the HDR scene before tonemapping`
+
+---
+
+## Phase 3 — BRDF GGX en éclairage direct
+
+### ⏳ T3.1 — `Pbr.fxh`
+
+- Objectif : le BRDF isolé dans un include, branché sur les lumières de `Lighting.fxh`.
+- Fichiers : nouveau `CasaEngine/Content/Shaders/Pbr.fxh` ; nouveau `CasaEngine.Tests/Rendering/PbrShaderCoverageTests.cs`.
+- Étapes :
+  1. Distribution GGX, visibilité de Smith corrélée en hauteur, Fresnel de Schlick, `F0 = lerp(0.04, baseColor, metallic)`, diffus de Lambert `(1 - F)(1 - metallic) baseColor / π`, `alpha = roughness²` avec rugosité bornée à 0,045 au minimum.
+  2. `EvaluatePbrLights(...)` : parcourt directionnelles, ponctuelles et spots avec les mêmes déclarations, atténuations et plafonds que `Lighting.fxh`, sans les dupliquer ; applique le facteur d'ombre à `ShadowedDirectionalLightIndex` seulement ; rend diffus et spéculaire séparés.
+  3. Tests par lecture du texte : fonctions présentes, aucune redéclaration des tableaux de lumières.
+- Validation : `LitForward.fx` et `skinEffect.fx` compilent toujours ; captures de T0.2 identiques.
+- Commit : `feat(shaders): add the shared GGX BRDF include`
+
+### ⏳ T3.2 — `LitPbr.fx`
+
+- Objectif : le shader PBR des maillages statiques.
+- Fichiers : nouveau `CasaEngine/Content/Shaders/LitPbr.fx` ; `Content.mgcb` ; `ShaderParameterNames.cs` ; `PbrShaderCoverageTests.cs`.
+- Étapes :
+  1. Déclarer, avec leurs emplacements écrits dans l'en-tête du fichier : les constantes de lumières, d'ombres (mode, couleur, rayon de filtre, fondu, profondeur) et d'environnement exigées par `Lighting.fxh`, `ColorPipelineIsLinear`, et `BaseColor`, `Metallic`, `Roughness`, `EmissiveColor`, `OcclusionStrength`, `AlphaCutoff`, `NormalScale`. Définir `HAS_ENVIRONMENT_BINDINGS` et `HAS_FORWARD_SHADOW_BINDINGS`.
+  2. Textures : t0 couleur de base, t1 normale, t2 metallic-roughness (G rugosité, B métal, convention glTF), t3 cube d'environnement, t4 et t5 sondes, t6 ombres, t7 occlusion (R), t8 émissif. Vérifier d'abord la limite de samplers de la cible ; si elle est dépassée, fusionner occlusion dans le canal R de t2 et l'écrire ici.
+  3. Techniques : `LitPbr`, `LitPbr_NormalMap`, chacune avec ou sans `_AlphaTest` ; présence des textures pilotée par des constantes `Has…` (comme `HasDetailTexture`), pas par des techniques.
+  4. Ambiant de cette phase : terme plat `AmbientColor × occlusion × baseColor diffus`, isolé dans `ComputePbrAmbient` pour la phase 6 ; `UseFlatAmbientSource` déjà honoré.
+  5. Ombres : mêmes fonctions que `LitForward.fx` ; le mode `MultiplyLitColor` (ADR-0093) s'applique au pixel entier hors émissif.
+  6. Sortie non bornée ; alpha = alpha de la couleur de base.
+  7. Tests : techniques présentes ; les deux macros définies avant l'inclusion ; chaque constante de `ShaderParameterNames` utilisée par le matériau PBR est déclarée dans le fichier.
+- Validation : builds des deux solutions ; tests verts ; captures de T0.2 identiques.
+- Commit : `feat(shaders): add the static PBR lit shader`
+
+### ⏳ T3.3 — Enregistrement et sélection de `LitPbr`
+
+- Objectif : `LitPbr.fx` chargé, sélectionnable et rechargeable.
+- Fichiers : `BuiltInShaderCatalog.cs`, `EffectiveShaderResolver.cs`, `MaterialShaderCapabilities.cs` (`MaterialShaderFamily.LitPbr`), `StaticMeshRendererComponent.cs`, `CasaEngineGame.cs`, `ShaderVariantLibrary.cs` si nécessaire ; tests `EffectiveShaderResolverTests` (ou le fichier existant qui couvre le resolver), `ShaderTechniqueCoverageTests.cs`.
+- Étapes :
+  1. Descripteur, nom de contenu et identifiant de shader `LitPbr`.
+  2. `EffectiveShaderResolver` : famille `LitPbr` → shader `LitPbr`, avant le repli vers `LitForward`. Le cas skinné reste traité en phase 8 : d'ici là, un matériau PBR sur maillage skinné garde le shader de skinning (noté dans la doc).
+  3. `StaticMeshRendererComponent` : chargement, enregistrement dans `ShaderManager` et `RenderShaderSelector`, cas dans `TryReloadBuiltInShader` ; ne pas passer `LitPbr` par `ApplyLitForwardDefaults`. Cas dans `ReloadBuiltInShader`.
+  4. Tests : une capacité de famille `LitPbr` résout `LitPbr` ; une famille `Lit` résout toujours `LitForward` ; `ShaderTechniqueCoverageTests` couvre `LitPbr.fx`.
+- Validation : builds ; tests verts ; captures de T0.2 identiques.
+- Commit : `feat(rendering): register the PBR shader and resolve it for PBR materials`
+
+---
+
+## Phase 4 — Matériau `lit-pbr`
+
+### ⏳ T4.1 — `LitPbrMaterial`
+
+- Objectif : la classe runtime qui lie les paramètres PBR.
+- Fichiers : nouveau `CasaEngine/Framework/Materials/Runtime/LitPbrMaterial.cs` ; nouveau `CasaEngine.Tests/Rendering/LitPbrMaterialTests.cs`.
+- Étapes :
+  1. Propriétés : `BaseColor`, `Metallic`, `Roughness`, `EmissiveColor`, `AlphaCutoff`, `OcclusionStrength`, `NormalScale`, textures couleur de base, normale, metallic-roughness, occlusion, émissif.
+  2. `GetShaderCapabilities` : famille `LitPbr`, drapeaux de texture, alpha-test et transparence selon la file et l'alpha de `BaseColor` (même règle que `LitDiffuseMaterial.cs:161-168`).
+  3. `RequiresMaterialTechniqueSelection` et `GetTechniqueName` : `LitPbr[_NormalMap][_AlphaTest]` ; la normal map exige des tangentes (même règle que `RenderFeatureResolver.cs:40-43`), sans exiger de texture de base.
+  4. `Bind` : tous les paramètres, `AlphaCutoff` à 0 hors file `AlphaTest`, constantes `Has…`.
+- Validation : builds ; tests : capacités et nom de technique pour chaque combinaison.
+- Commit : `feat(materials): add the PBR runtime material`
+
+### ⏳ T4.2 — Définition `lit-pbr`, compilation, surcharges
+
+- Objectif : la définition intégrée, compilée et surchargeable par instance.
+- Fichiers : `BuiltInMaterialDefinitions.cs`, `MaterialCompiler.cs`, `MaterialInstancePropertyBlockMapper.cs`, `MaterialRenderStateResolver.cs` si nécessaire, `StaticModelMaterialResolver.cs` (lecture seule sauf besoin) ; tests frères de ceux de `lit-diffuse` ; ADR-0098.
+- Étapes :
+  1. Définition `lit-pbr` : clés `base_color_texture`, `normal_texture`, `metallic_roughness_texture`, `occlusion_texture`, `emissive_texture`, `base_color` (marquée `AffectsTransparency`), `metallic`, `roughness`, `emissive_color`, `alpha_cutoff`, `occlusion_strength`, `normal_scale` ; groupes, bornes, pas et indices d'éditeur sur le modèle de `lit-diffuse`. Vérifier qu'aucun alias n'entre en collision.
+  2. `MaterialCompiler` : fabrique directe `CreateLitPbrMaterial` recevant les `holds`, à côté de celle de `lit-diffuse`.
+  3. Surcharges par instance : `base_color`, `metallic`, `roughness`, `emissive_color`.
+  4. Tests : identifiants intégrés (3) ; aller-retour `.material` ; compilation → file et technique attendues (opaque, alpha-test, transparent) ; surcharge appliquée ; les comptes de `MaterialDefinitionEditorRegistryTests` et `MaterialAssetJsonSerializerTests` mis à jour avec leur justification.
+  5. ADR-0098 : définition `lit-pbr`, clés, famille, choix de technique par le matériau.
+- Validation : builds ; tests verts ; captures de T0.2 identiques.
+- Commit : `feat(materials): add the lit-pbr definition, its compilation and overrides (ADR-0098)`
+
+### ⏳ T4.3 — Ombres portées alpha-test et premier rendu
+
+- Objectif : un matériau PBR alpha-test projette une ombre découpée ; première image PBR mesurée.
+- Fichiers : `ShadowPass.cs` ; `MaterialBase.cs` (membre virtuel additif) ; `ShadowPipelineCoverageTests.cs` si une chaîne épinglée bouge ; `ColorPipelineDemo.cs` ou démo provisoire.
+- Étapes :
+  1. Remplacer le test de type de `ShadowPass.cs:144-158` par un membre virtuel de `MaterialBase` rendant la texture de masque (nul par défaut), surchargé par `LitDiffuseMaterial`, `UnlitTextureMaterial` et `LitPbrMaterial` ; comportement identique pour les deux premiers.
+  2. Rangée de cinq sphères `lit-pbr` non métalliques, rugosité 0,1 à 0,9, sous une directionnelle, en `LinearHdr` : mesurer la largeur du reflet (pixels au-dessus de la moitié du maximum) ; elle doit croître strictement avec la rugosité.
+- Validation : builds ; tests verts ; captures de T0.2 identiques (les ombres de `StaticShadowValidation` comprises) ; mesure notée. Test `ShadowMaskTests` (passant par le nouveau membre virtuel) : un `LitPbrMaterial` en file `AlphaTest` avec texture de couleur de base fournit cette texture comme masque d'ombre, avec son `AlphaCutoff` ; hors `AlphaTest` ou sans texture, il n'en fournit pas ; `LitDiffuseMaterial` et `UnlitTextureMaterial` fournissent exactement ce qu'ils fournissent aujourd'hui.
+- Commit : `feat(rendering): let any material provide its shadow mask and validate the first PBR image`
+
+### ⏳ T4.4 — Éditeur
+
+- Objectif : créer et éditer un `.material` `lit-pbr` dans l'éditeur.
+- Fichiers : `CasaEngine.Editor` : `MaterialDefinitionEditorRegistry.cs`, `GameEditor.cs` (description de type), flux de création de matériau, `MaterialPreviewViewport.cs`.
+- Étapes :
+  1. Vérifier le classement par mots-clés des nouvelles clés (`occlusion_texture`, `metallic_roughness_texture`) ; corriger seulement ce qui range une clé dans le mauvais groupe.
+  2. Description de type pour `LitPbrMaterial` ; choix de la définition à la création.
+  3. Aperçu : le matériau PBR s'affiche ; rechargement à chaud de `LitPbr.fx`.
+- Validation : build de la solution éditeur ; tests de registre verts ; contrôle manuel dans l'éditeur → 🧪 tant que l'auteur ne l'a pas fait.
+- Commit : `feat(editor): edit and preview lit-pbr materials`
+
+---
+
+## Phase 5 — PBR transparent
+
+### ⏳ T5.1 — Mélange transparent PBR
+
+- Objectif : verre et vitres en `lit-pbr`.
+- Fichiers : `LitPbr.fx`, `LitPbrMaterial.cs`, `MaterialRenderStateResolver.cs` ou `RenderStateCache.cs` selon ce qui porte l'état de mélange ; tests ; démo.
+- Étapes :
+  1. Lire comment la file `Transparent` obtient son état de mélange et sa profondeur (`RenderStateCache.cs:51`).
+  2. Technique `LitPbr_Transparent` (et `_NormalMap`) : sortie `float4(diffus × alpha + spéculaire + émissif, alpha)` avec un état de mélange prémultiplié ; écriture de profondeur coupée.
+  3. Démo : sphère de verre (alpha 0,25, rugosité 0,05) devant un damier.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; mesure : derrière la sphère le damier reste lisible (contraste ≥ 50 % du contraste sans sphère) et le pixel du reflet spéculaire dépasse 200 après tonemapping.
+- Commit : `feat(rendering): add transparent PBR with preserved specular`
+
+---
+
+## Phase 6 — Éclairage par l'image
+
+### ⏳ T6.1 — Générateur de cubes convolués sur le GPU
+
+- Objectif : produire un `TextureCube` à mips à partir d'un cube source, quel que soit son format.
+- Fichiers : nouveaux `CasaEngine/Content/Shaders/IblConvolution.fx`, `CasaEngine/Framework/Rendering/Environment/IblCubeGenerator.cs` ; `Content.mgcb`, `BuiltInShaderCatalog.cs` ; `Macros.fxh` (`SAMPLE_CUBEMAP_LEVEL`, variante `OPENGL` comprise) ; tests.
+- Étapes :
+  1. Vérifier que `TextureCube` accepte `mipMap: true` et `SetData` par face et par niveau dans la version de MonoGame du dépôt (lire la signature dans le paquet référencé) ; sinon ⚠️ Blocked.
+  2. `IblConvolution.fx` : `Irradiance` (convolution cosinus, échantillonnage fixe) et `PrefilterGgx` (échantillonnage d'importance, 64 échantillons, rugosité en paramètre).
+  3. `IblCubeGenerator` : pour chaque face et niveau, rendre dans une `RenderTarget2D` `Vector4`, relire par `GetData`, écrire par `SetData`. Irradiance 32 px sans mips ; spéculaire 128 px, 6 niveaux, rugosité `niveau / 5`. États restaurés.
+  4. Tests : fonctions pures (direction par face et par texel, rugosité par niveau, nombre de niveaux).
+- Validation : builds ; tests verts ; temps de génération mesuré et noté (seuil d'alerte : 500 ms par cube).
+- Commit : `feat(rendering): generate irradiance and prefiltered cubes on the GPU`
+
+### ⏳ T6.2 — Cache et liaison de l'IBL
+
+- Objectif : les cubes IBL de l'environnement résolu, générés une fois par changement.
+- Fichiers : `EnvironmentResolver.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentShaderBinder.cs`, `ShaderParameterNames.cs`, nouveau `IblCache.cs` ; tests ; ADR-0099.
+- Étapes :
+  1. `IblCache` : clé = instance du cube spéculaire source ; rend irradiance et préfiltré s'ils existent, sinon enregistre une demande ; libère à la disparition de la source (suivre `GeneratedAssetHandleCache`). Les demandes sont exécutées par `RenderPipeline.Render` avant toute vue (P9), jamais dans `EnvironmentResolver.Resolve` ni pendant qu'une cible de vue est liée. Compteur de générations et indicateur « générée hors boucle des vues » exposés pour les tests et la démo.
+  2. `ResolvedEnvironmentSettings` : `IrradianceCubemap`, `PrefilteredSpecularCubemap`, nombre de niveaux. Sans cube source : nuls.
+  3. Liaison dans `EnvironmentShaderBinder`, sous des noms nouveaux ; `LitForward.fx` ne les déclare pas et n'est pas modifié.
+  4. Table BRDF : texture 2D 64×64 calculée une fois sur le CPU (intégration numérique), format `Vector2` ou `Color` selon le support ; test de quelques valeurs de référence calculées par la même formule en double précision.
+  5. ADR-0099 : génération GPU, tailles, cache, table BRDF.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; tests unitaires de `IblCache` (demande mise en file, une seule génération par source, libération) et de la table BRDF. Aucun shader ne déclare encore les paramètres IBL : les mesures de génération en situation sont en T6.3.
+- Commit : `feat(rendering): cache and bind the IBL cubes and the BRDF table (ADR-0099)`
+
+### ⏳ T6.3 — IBL dans `LitPbr.fx`
+
+- Objectif : l'ambiant PBR complet.
+- Fichiers : `Pbr.fxh`, `LitPbr.fx`, `LitPbrMaterial.cs`, tests de couverture.
+- Étapes :
+  1. `ComputePbrAmbient` : `irradiance × diffus + préfiltré(R, rugosité) × (F0 × A + B)`, modulé par l'occlusion et par `EnvironmentAmbientColor` et `EnvironmentSpecularIntensity`.
+  2. `UseFlatAmbientSource` (ADR-0090) : diffus plat, spéculaire par le cube. Sans cube : terme plat de T3.2.
+  3. Emplacements de texture pour l'irradiance et la table BRDF : les prendre parmi ceux relevés libres en T3.2 et les noter.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; mesures, sur une scène d'essai hors liste de T0.2 (la démo de T10.1 n'existe pas encore : scène ajoutée à `Colour pipeline demo` derrière `CASAENGINE_COLOR_DEMO_PBR=1`, coupée par défaut) : (a) sphère métal 1 rugosité 0 reflète l'environnement (écart moyen au ciel réfléchi ≤ 10 niveaux sur 5 pixels) ; (b) **preuve du préfiltrage** : une constante de débogage `IblForceBaseLevel` (0 par défaut, pilotée par `CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL=1`) force l'échantillonnage au niveau 0 ; sur la sphère métal 1 rugosité 0,6, le contraste normalisé du reflet (écart max − min divisé par la moyenne, sur une ligne de 20 pixels) vaut au plus 50 % de celui de la même sphère avec le niveau forcé ; les deux valeurs sont notées. Un échantillonnage qui ignore le niveau échoue à cette mesure ; (c) compteur : une génération par changement d'environnement sur 600 images, exécutée hors de la boucle des vues ; (d) `Split-screen demo (2 views)` lancée avec `CASAENGINE_SPLIT_DEMO_PBR=1` (variable nouvelle, coupée par défaut, qui ajoute un cube d'environnement et une sphère `lit-pbr` ; sans elle la démo et son empreinte de T0.2 sont inchangées) : sur l'image où la génération a lieu, un pixel non noir est mesuré dans chacune des deux vues (capture déclenchée sur cette image par le compteur).
+- Commit : `feat(shaders): light PBR materials from the environment`
+
+---
+
+## Phase 7 — Sondes de réflexion locales
+
+### ⏳ T7.1 — Sondes préfiltrées
+
+- Objectif : les sondes locales suivent la rugosité.
+- Fichiers : `ReflectionProbeResolver.cs`, `ResolvedReflectionProbe.cs`, `EnvironmentShaderBinder.cs`, `LitPbr.fx`, tests.
+- Étapes :
+  1. Passer les cubes des sondes primaire et secondaire par `IblCache`, avec la même mise en file que T6.2 : une sonde vue pour la première fois est générée au début de l'image suivante ; d'ici là elle est échantillonnée non préfiltrée.
+  2. `LitPbr.fx` : échantillonner les sondes au niveau de rugosité et les mélanger avec le cube global par `LocalReflectionProbeInfluence`, comme `SampleEnvironmentReflection`.
+  3. `LitForward.fx` reçoit toujours les cubes non préfiltrés : chemin inchangé.
+- Validation : builds ; tests verts ; captures de T0.2 identiques ; scène à deux sondes de couleurs distinctes : la sphère change de reflet en traversant la zone de mélange, sans génération par image (compteur, génération hors boucle des vues) ; dans la zone d'une seule sonde, une sphère métallique de rugosité 0,6 : son contraste normalisé (écart max − min divisé par la moyenne, ligne de 20 pixels) vaut au plus 50 % de celui obtenu avec `IblForceBaseLevel` (T6.3), et la teinte dominante de la sonde se retrouve dans les deux cas. Noter les deux valeurs. Scène derrière une variable coupée par défaut, hors liste de T0.2.
+- Commit : `feat(rendering): prefilter local reflection probes for PBR materials`
+
+---
+
+## Phase 8 — PBR sur maillages skinnés
+
+### ⏳ T8.1 — Relevé du chemin skinné
+
+- Objectif : savoir précisément comment un maillage skinné reçoit son matériau et son shader.
+- Sources : `SkinnedMeshRendererComponent.cs`, `skinEffect.fx`, `SkinningModeShaderResolver`, `RiggedModel` et ses matériaux, `GltfRiggedModelReader.cs`.
+- Étapes : écrire sous cette tâche le type de matériau porté par un maillage skinné, le point où le shader est résolu, les techniques existantes et leurs constantes libres. Si un maillage skinné ne peut pas porter un `LitPbrMaterial` sans changement de format : ⚠️ Blocked et question en « Points ouverts ».
+- Validation : relevé écrit, avec fichiers et lignes.
+- Commit : `docs(ai-agent): record how skinned meshes get their material and shader`
+
+### ⏳ T8.2 — Techniques PBR skinnées
+
+- Objectif : `Soldier.glb` rendu en PBR.
+- Fichiers : `skinEffect.fx`, `SkinnedMeshRendererComponent.cs`, `EffectiveShaderResolver.cs`, tests de couverture, `SkinnedMeshDemo.cs` (bascule).
+- Étapes :
+  1. Techniques PBR dans `skinEffect.fx` (skinning linéaire et dual quaternion), utilisant `Pbr.fxh` ; sans normal map (P11).
+  2. Résolution : famille `LitPbr` + skinné → technique PBR skinnée.
+  3. Démo : bascule Blinn-Phong / PBR.
+- Validation : builds ; tests verts ; captures de T0.2 identiques (SkinnedMesh comprise si déterministe) ; test : un maillage skinné portant un matériau de famille `LitPbr` résout la technique PBR skinnée nommée, pour les deux modes de skinning, et cette technique existe dans `skinEffect.fx` (`SelectTechnique` garde en silence la technique courante si le nom manque) ; mesure : avec la bascule de la démo, l'écart absolu moyen entre Blinn-Phong et PBR sur un rectangle du `Soldier` dépasse 8 niveaux ; un pixel d'ombre portée est plus sombre d'au moins 20 niveaux que le sol éclairé voisin. Noter noms de technique, écart et valeurs.
+- Commit : `feat(rendering): add PBR techniques for skinned meshes`
+
+---
+
+## Phase 9 — Import glTF
+
+### ⏳ T9.1 — Lecture des canaux PBR
+
+- Objectif : garder les données PBR au chargement.
+- Fichiers : `StaticModelImportResult.cs`, `GltfStaticModelReader.cs`, `GltfStaticModelReaderTests.cs` ; ADR-0100.
+- Étapes :
+  1. Champs additifs sur `StaticModelImportedMaterial` : `MetallicFactor`, `RoughnessFactor`, chemins metallic-roughness, occlusion, émissif, `NormalScale`, `OcclusionStrength`, `AlphaMode`, `AlphaCutoff`, `DoubleSided`.
+  2. Lecture depuis SharpGLTF ; la conversion en puissance spéculaire reste, inchangée (le test qui l'épingle reste vert).
+  3. Tests : construire le glTF d'essai comme le font les tests existants ; vérifier chaque champ.
+  4. ADR-0100.
+- Validation : builds ; tests verts.
+- Commit : `feat(assets): read the PBR material channels of glTF static models (ADR-0100)`
+
+### ⏳ T9.2 — Matériaux `lit-pbr` à l'import
+
+- Objectif : l'import de l'éditeur produit des `.material` `lit-pbr`.
+- Fichiers : `CasaEngine.EditorServices/EditorAssetImportService.cs`, ses options d'import, `EditorAssetImportServiceTests.cs`.
+- Étapes :
+  1. Lire l'état réel de `ai-agent/tasks/gltf-import-migration-tasks.md` (ses statuts se contredisent) et le code d'import ; noter ici ce qui est en place.
+  2. Option d'import « modèle de matériau » : `lit-diffuse` (défaut, comportement inchangé) ou `lit-pbr`.
+  3. En `lit-pbr` : écrire les propriétés et importer les textures metallic-roughness, occlusion et émissif ; mode alpha → file et seuil ; double face → état de culling.
+- Validation : builds ; tests : import en `lit-pbr` produit les clés attendues ; import par défaut identique à avant (fichier de référence).
+- Commit : `feat(editor): import glTF materials as lit-pbr on request`
+
+---
+
+## Phase 10 — Démo, documentation, clôture
+
+### ⏳ T10.1 — `PbrMaterialDemo`
+
+- Objectif : la démo de référence.
+- Fichiers : nouveau `CasaEngine.Demos/Demos/PbrMaterialDemo.cs`, enregistrement.
+- Étapes : grille 5×5 métal × rugosité par surcharges d'instance sur un seul matériau ; sphère de verre ; sphère émissive avec bloom ; un maillage skinné ; cube d'environnement, une directionnelle avec ombres ; `LinearHdr` + `AcesApprox`. Touches : IBL, bloom, opérateur, exposition. `Clean` restaure tout. Variables de mesure sur le modèle de `StaticShadowValidationDemo`.
+- Validation : capture archivée ; mesures notées (reflet croissant avec la rugosité, métal coloré par la couleur de base, compteur IBL à 1).
+- Commit : `feat(demos): add the PBR material demo`
+
+### ⏳ T10.2 — Non-régression finale et coût
+
+- Objectif : verrouiller l'ensemble.
+- Étapes :
+  1. Builds des deux solutions, suite de tests complète.
+  2. Démos de T0.2 en `Legacy` : empreintes identiques.
+  3. Coût : `RenderStats` et temps d'image moyens sur 600 images de `PbrMaterialDemo`, avec et sans bloom, avec et sans IBL ; et de `MaterialDemo` en `Legacy` contre la base. Noter les chiffres.
+- Validation : résultats notés ici.
+- Commit : `test(rendering): record the final regression pass and cost of the PBR work`
+
+### ⏳ T10.3 — Documentation et clôture
+
+- Objectif : documenter et rendre le plan.
+- Fichiers : nouveau `docs/engine/pbr-rendering.md` ; `docs/engine/materials-workflow.md`, `effect-file-inventory.md`, `environment-system-v1.md`, `docs/README.md`, `ai-agent/README.md`.
+- Étapes : workflow, clés `lit-pbr`, IBL et caches, bloom, transparent, skinné, import, limites, renvois aux ADR-0094 à 0100 ; rapport de fin (`AGENTS.md` §12) ; tableau du README.
+- Validation : liens des index ouverts.
+- Commit : `docs(engine): document PBR rendering and close the plan`
+
+---
+
+## Journal de revue du plan
+
+| Époque | Unité | Verdict | Constats et disposition |
+|---|---|---|---|
+| 1 | Enveloppe | REVISE | 5 × P2 : preuve de la phase 3 hors de la phase ; génération IBL pendant qu'une cible de vue est liée ; D3 contre le skinning hors `ForwardRenderPipeline` ; preuves des phases 7 et 8 insuffisantes. Tous **FIX**. |
+| 1 | Phases 0–1 | REVISE | 1 × P1 (décodage des lumières et de l'ambiant après le produit par l'intensité) et 8 × P2 (détail décodé seul, ordre des tâches, preuve à ± 2 inatteignable, sélection des démos, cible HDR recréée, fond de ciel oublié, profondeur du vidage 2D, budget). Tous **FIX**. Ajout de T0.3 (backend et chaîne de shaders non établis). |
+| 2 | Enveloppe | REVISE | 3 × P2 : preuves IBL rattachées à une tâche où aucun shader ne déclare les paramètres ; mesures de rugosité passables sans préfiltrage ; référence du bloom produite par aucune tâche. Tous **FIX** (mesures déplacées en T6.3, constante `IblForceBaseLevel`, référence archivée en T1.7). |
+| 2 | Phases 0–1 | REVISE | 2 × P2 : validation de T0.1 contre les audits en lecture seule ; aucune preuve de l'interface sur une vue à cible propre. Tous **FIX** (globs et redirection de l'ADR-0013, mode à tampon de la démo de mesure). |
+| 3 | Enveloppe | REVISE (clôture) | 1 × P2 : aucune tâche ne prouve le masque d'ombre alpha-test du matériau PBR. **FIX** (test `ShadowMaskTests` en T4.3). Aucun P0 ni P1. |
+| 3 | Phases 0–1 | REVISE (clôture) | 3 × P2 : les contrôles `LinearHdr` de T1.4 passent aussi en `Legacy` ; particules, sprites 3D et lignes non prouvés en T1.6 ; référence `RenderStats` enregistrée par aucune tâche. Tous **FIX** (marqueur gris 205 ± 2 et création de cible relevée, pixels de mesure sprite et particule, relevé en T0.2). Aucun P0 ni P1. |
+| — | Décision | — | La boucle de revue automatique est close sans verdict READY (plafond atteint). Les constats restants étaient tous de priorité 2 et portaient sur la force des preuves ; ils sont corrigés ci-dessus sans nouvelle relecture, par arbitrage de la session principale en mode AUTO. Chaque phase reste relue avant son exécution et vérifiée après. |
+
+## Points ouverts
+
+| Réf | Sujet | Tâche concernée |
+|---|---|---|
+| O1 | Les pipelines de vue qui n'implémentent pas `IScenePhaseViewPipeline` (éditeur `OverlayViewPipeline`, jeux) voient leur interface tonemappée en `LinearHdr`. Faut-il les adapter dans ce plan ? Défaut : non, avertissement journalisé. | T1.4 |
+| O2 | Origine linéaire ou encodée de chaque cube d'environnement (panorama `.hdr`, ciel procédural, atmosphère physique, DDS). Défaut : tout est décodé sauf `.hdr` si l'origine est connue du resolver. | T1.5 |
+| O3 | `Renderer2DComponent` vidé après le tonemapping perd le test de profondeur contre la scène en `LinearHdr`. Acceptable ? Défaut : oui, documenté. | T1.6 |
+| O4 | Les mipmaps (ADR-0092) sont moyennées en espace encodé : léger assombrissement des textures contrastées en `LinearHdr`. Défaut : non traité, documenté. | T1.7 |
+| O5 | Limite de samplers de la cible de compilation pour `LitPbr.fx` (neuf textures prévues). | T3.2 |
+| O6 | `TextureCube` à mips et `SetData` par niveau dans la version de MonoGame du dépôt. | T6.1 |
+| O7 | Un maillage skinné peut-il porter un `LitPbrMaterial` sans changer de format ? | T8.1 |
+| O8 | État réel de la migration d'import glTF, dont les statuts se contredisent. | T9.2 |
+| O9 | Dessin double des projeteurs d'ombre skinnés (`SkinnedMeshRendererComponent.cs:99` et `:170`) : hors périmètre, signalé. | — |
+
+## Hors périmètre
+
+- La bascule de RacingGame vers `lit-pbr` et `LinearHdr` (plan du jeu séparé, D12).
+- Rendu différé ou clustered, cascades d'ombres, exposition automatique.
+- Transmission, réfraction, clearcoat, sheen et autres extensions glTF.
+- Normal map sur maillages skinnés ; images embarquées des `.glb` statiques.
+- Chargement de cubes DDS à mips ou HDR (BC6H, DX10).
+- Lens flare (appartient au jeu, sur la base de la phase 1).
+- Le chemin instancié dormant (`ShaderFeature.Instanced`).
+- Toute modification de `lit-diffuse` autre que le décodage couleur de T1.5.
