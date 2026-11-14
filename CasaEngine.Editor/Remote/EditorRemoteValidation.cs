@@ -49,12 +49,22 @@ internal static partial class EditorRemoteValidation
     public static string GetWorldFileName(string worldName) => worldName + Constants.FileNameExtensions.World;
 
     /// <summary>
-    /// Resolves a project-relative path. False when it is rooted, holds ':' or leaves the project once normalised; the
-    /// containment test compares relative paths, so a sibling folder sharing a prefix (<c>C:\proj-x</c>) is outside.
+    /// Resolves a project-relative path. False when it is rooted, holds ':', leaves the project once normalised or
+    /// crosses a link below the project root (ADR-0093, A3); the containment test compares relative paths, so a sibling
+    /// folder sharing a prefix (<c>C:\proj-x</c>) is outside.
     /// </summary>
     public static bool TryResolveInsideProject(string projectDirectory, string relativePath, out string fullPath)
+        => TryResolveInsideProject(projectDirectory, relativePath, out fullPath, out _);
+
+    /// <summary>
+    /// <see cref="TryResolveInsideProject(string, string, out string)"/>, telling a link refusal apart:
+    /// <paramref name="linkPath"/> names the existing component below the project root that is a link (or cannot be
+    /// read, see <see cref="IsFreeOfLinksBelowRoot"/>); it is null when the refusal is textual (rooted, ':' or outside).
+    /// </summary>
+    public static bool TryResolveInsideProject(string projectDirectory, string relativePath, out string fullPath, out string linkPath)
     {
         fullPath = null;
+        linkPath = null;
         if (string.IsNullOrWhiteSpace(projectDirectory)
             || string.IsNullOrWhiteSpace(relativePath)
             || Path.IsPathRooted(relativePath)
@@ -71,7 +81,157 @@ internal static partial class EditorRemoteValidation
             return false;
         }
 
+        if (!IsFreeOfLinksBelowRoot(root, candidate, out linkPath))
+        {
+            return false;
+        }
+
         fullPath = candidate;
+        return true;
+    }
+
+    /// <summary>The refusal of a path that crosses a link inside the project (ADR-0093, A3), naming the link.</summary>
+    public static EditorRemoteArgumentException LinkRefusal(string path, string linkPath)
+        => new($"'{path}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project: paths under a link are refused (ADR-0093, A3).");
+
+    /// <summary>
+    /// ADR-0093 A3: true when no existing component of <paramref name="fullPath"/> strictly below <paramref name="root"/>
+    /// is a symbolic link, a junction or a mount point; the root and its ancestors are not checked. The walk stops at the
+    /// first missing component (the rest is to be created). A component whose attributes cannot be read is refused (fail
+    /// closed). <paramref name="linkPath"/> names the refused component. Both are full paths, <paramref name="fullPath"/>
+    /// inside <paramref name="root"/>. A hard link carries no reparse attribute and is not detected.
+    /// </summary>
+    public static bool IsFreeOfLinksBelowRoot(string root, string fullPath, out string linkPath)
+    {
+        linkPath = null;
+        string relative = Path.GetRelativePath(root, fullPath);
+        if (relative == ".")
+        {
+            return true;
+        }
+
+        if (Path.IsPathRooted(relative) || relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"'{fullPath}' is not inside '{root}'.", nameof(fullPath));
+        }
+
+        string[] segments = relative.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        string current = root;
+        for (int i = 0; i < segments.Length; i++)
+        {
+            current = Path.Combine(current, segments[i]);
+            if (IsLinkOrUnreadable(current, out bool missing))
+            {
+                linkPath = current;
+                return false;
+            }
+
+            if (missing)
+            {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// True when <paramref name="path"/> is a link (a reparse point with a link target) or its attributes cannot be read;
+    /// <paramref name="missing"/> is true when it does not exist. The attributes are those of the entry itself: its last
+    /// component is not followed.
+    /// </summary>
+    private static bool IsLinkOrUnreadable(string path, out bool missing)
+    {
+        missing = false;
+        FileAttributes attributes;
+        try
+        {
+            attributes = File.GetAttributes(path);
+        }
+        catch (FileNotFoundException)
+        {
+            missing = true;
+            return false;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            missing = true;
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return true;
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+
+        if ((attributes & FileAttributes.ReparsePoint) == 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            FileSystemInfo entry = (attributes & FileAttributes.Directory) != 0 ? new DirectoryInfo(path) : new FileInfo(path);
+            return entry.LinkTarget != null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return true;
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// The path rule of ADR-0093 P11 for the automation flags and the startup <c>--open-asset</c>: the resolved
+    /// <paramref name="fullPath"/> must be inside <paramref name="projectPath"/>, hold no ':' below it (alternate data
+    /// streams) and cross no link below it (A3). <paramref name="relativePath"/> is empty for the project folder itself.
+    /// </summary>
+    public static bool TryResolveAutomationPath(string projectPath, string fullPath, out string relativePath, out string error)
+    {
+        relativePath = null;
+        if (string.IsNullOrWhiteSpace(projectPath) || string.IsNullOrWhiteSpace(fullPath))
+        {
+            error = "no project folder or no path: automation asset paths must be inside the project (ADR-0093 P11).";
+            return false;
+        }
+
+        string root = Path.GetFullPath(projectPath);
+        string candidate = Path.GetFullPath(fullPath);
+        string relative = Path.GetRelativePath(root, candidate);
+        if (relative == ".")
+        {
+            relative = string.Empty;
+        }
+
+        if (Path.IsPathRooted(relative)
+            || relative == ".."
+            || relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || relative.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            error = $"'{candidate}' is outside the project folder '{root}': automation asset paths must be inside the project (ADR-0093 P11).";
+            return false;
+        }
+
+        if (relative.Contains(':', StringComparison.Ordinal))
+        {
+            error = $"'{candidate}' holds ':' inside the project folder '{root}': alternate data streams are refused (ADR-0093 P11).";
+            return false;
+        }
+
+        if (!IsFreeOfLinksBelowRoot(root, candidate, out string linkPath))
+        {
+            error = $"'{candidate}' crosses '{linkPath}', a link (or an entry that cannot be read) inside the project folder '{root}': paths under a link are refused (ADR-0093 P11, A3).";
+            return false;
+        }
+
+        relativePath = relative;
+        error = null;
         return true;
     }
 

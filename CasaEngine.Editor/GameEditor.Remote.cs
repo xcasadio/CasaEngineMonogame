@@ -121,31 +121,16 @@ public partial class GameEditor
     }
 
     /// <summary>
-    /// The path rule of ADR-0093 P11 for <c>--open-asset</c>, <c>--content-folder</c>, <c>--create-particle-asset</c>
-    /// and <c>--drop-particle-asset</c>: relative to the project, or absolute inside it (made relative); a path outside
-    /// the project is refused. <paramref name="relativePath"/> is empty for the project folder itself.
+    /// The path rule of ADR-0093 P11 for <c>--open-asset</c> (automation and startup), <c>--content-folder</c>,
+    /// <c>--create-particle-asset</c> and <c>--drop-particle-asset</c>: relative to the project, or absolute inside it
+    /// (made relative); a path outside the project, holding ':' or crossing a link inside it (A3) is refused, see
+    /// <see cref="EditorRemoteValidation.TryResolveAutomationPath"/>. <paramref name="relativePath"/> is empty for the
+    /// project folder itself.
     /// </summary>
     private static bool TryResolveAutomationProjectPath(string optionPath, out string fullPath, out string relativePath, out string error)
     {
         fullPath = ResolveAutomationAssetPath(optionPath);
-        string projectPath = Path.GetFullPath(EngineEnvironment.ProjectPath);
-        relativePath = Path.GetRelativePath(projectPath, fullPath);
-        if (relativePath == ".")
-        {
-            relativePath = string.Empty;
-        }
-
-        if (Path.IsPathRooted(relativePath)
-            || relativePath == ".."
-            || relativePath.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal)
-            || relativePath.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal))
-        {
-            error = $"'{optionPath}' is outside the project folder '{projectPath}': automation asset paths must be inside the project (ADR-0093 P11).";
-            return false;
-        }
-
-        error = null;
-        return true;
+        return EditorRemoteValidation.TryResolveAutomationPath(EngineEnvironment.ProjectPath, fullPath, out relativePath, out error);
     }
 
     /// <summary>The asset id an asset document panel id ends with (<c>prefix + id:N</c>).</summary>

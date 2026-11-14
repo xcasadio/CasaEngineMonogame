@@ -44,8 +44,13 @@ internal static class EditorRemoteEditCommands
                 }
 
                 string fileName = EditorRemoteValidation.GetWorldFileName(name);
-                if (!EditorRemoteValidation.TryResolveInsideProject(host.ProjectDirectory, fileName, out string fullPath))
+                if (!EditorRemoteValidation.TryResolveInsideProject(host.ProjectDirectory, fileName, out string fullPath, out string linkPath))
                 {
+                    if (linkPath != null)
+                    {
+                        throw EditorRemoteValidation.LinkRefusal(fileName, linkPath);
+                    }
+
                     throw new EditorRemoteRefusedException(RemoteErrorReasons.NotFound, "No project is open.");
                 }
 
@@ -73,10 +78,13 @@ internal static class EditorRemoteEditCommands
                 RequireEditable(host);
                 RequireSaved(host);
                 string file = call.GetString("file", 260).Replace('\\', '/');
+                string linkPath = null;
                 if (!file.EndsWith(".world", StringComparison.OrdinalIgnoreCase)
-                    || !EditorRemoteValidation.TryResolveInsideProject(host.ProjectDirectory, file, out string fullPath))
+                    || !EditorRemoteValidation.TryResolveInsideProject(host.ProjectDirectory, file, out string fullPath, out linkPath))
                 {
-                    throw new EditorRemoteArgumentException($"'{file}' is not a .world file inside the project.");
+                    throw linkPath != null
+                        ? EditorRemoteValidation.LinkRefusal(file, linkPath)
+                        : new EditorRemoteArgumentException($"'{file}' is not a .world file inside the project.");
                 }
 
                 if (!host.BeginOpenWorld(fullPath))
