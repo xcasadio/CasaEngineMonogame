@@ -102,6 +102,94 @@ internal static class EditorWorldOperations
             });
     }
 
+    /// <summary>
+    /// Moves <paramref name="entity"/> under <paramref name="newParent"/>, or to the world root when it is null (ADR-0093
+    /// P8). Refused, without a history entry, for a cycle (the entity itself or one of its descendants as parent), a
+    /// destroyed parent or an unchanged parent. The entity keeps its local transform, its enabled and visible state and
+    /// its components; Undo puts it back under its previous parent. Redo checks the rule again and skips the move when
+    /// it no longer holds.
+    /// </summary>
+    public static bool TryReparentEntity(EditorHistoryContext context, World world, Entity entity, Entity newParent, out string error, Action<Entity> select = null)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(entity);
+
+        error = CheckReparent(entity, newParent);
+        if (error != null)
+        {
+            return false;
+        }
+
+        Entity previousParent = entity.Parent;
+        Execute(
+            context,
+            "Reparent Entity",
+            () =>
+            {
+                MoveEntity(world, entity, newParent);
+                select?.Invoke(entity);
+            },
+            () =>
+            {
+                MoveEntity(world, entity, previousParent);
+                select?.Invoke(entity);
+            });
+        return true;
+    }
+
+    private static string CheckReparent(Entity entity, Entity newParent)
+    {
+        if (ReferenceEquals(entity.Parent, newParent))
+        {
+            return "The entity already has this parent.";
+        }
+
+        if (newParent == null)
+        {
+            return null;
+        }
+
+        if (newParent.ToBeRemoved)
+        {
+            return "The new parent is deleted.";
+        }
+
+        for (Entity ancestor = newParent; ancestor != null; ancestor = ancestor.Parent)
+        {
+            if (ReferenceEquals(ancestor, entity))
+            {
+                return "An entity cannot be moved under itself or one of its children.";
+            }
+        }
+
+        return null;
+    }
+
+    private static void MoveEntity(World world, Entity entity, Entity parent)
+    {
+        // Undo and Redo replay the move: check again, a later edit may have made it a cycle (Entity.AddChild checks nothing).
+        if (ReferenceEquals(entity.Parent, parent))
+        {
+            return;
+        }
+
+        string error = CheckReparent(entity, parent);
+        if (error != null)
+        {
+            CasaEngine.Core.Logging.Logs.WriteWarning($"[Editor] Reparent of '{entity.Name}' skipped: {error}");
+            return;
+        }
+
+        // The detach and attach primitives destroy then reactivate the entity, as Delete and its Undo do; keep the
+        // entity's own enabled and visible state across the move.
+        bool enabled = entity.IsEnabled;
+        bool visible = entity.IsVisible;
+        EditorWorldEditingService.DetachEntity(world, entity);
+        EditorWorldEditingService.AttachEntity(world, entity, parent);
+        entity.IsEnabled = enabled;
+        entity.IsVisible = visible;
+    }
+
     /// <summary>Returns false, without a history entry, when the name does not change.</summary>
     public static bool RenameEntity(EditorHistoryContext context, Entity entity, string name, Action<Entity> select = null)
     {

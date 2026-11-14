@@ -160,6 +160,26 @@ internal static class EditorRemoteEditCommands
             }));
 
         registry.Register(new EditorRemoteCommand(
+            "entity.reparent",
+            "Moves an entity under another entity, or to the world root when parent_id is omitted or null. Keeps its local transform. Refuses cycles. Undoable.",
+            "{\"type\":\"object\",\"properties\":{\"entity_id\":" + GuidSchema + ",\"parent_id\":{\"type\":[\"string\",\"null\"],\"description\":\"GUID of the new parent; null or omitted for the world root.\"}},\"required\":[\"entity_id\"],\"additionalProperties\":false}",
+            readOnly: false,
+            destructive: false,
+            call =>
+            {
+                RequireEditable(host);
+                World world = EditorRemoteReadCommands.RequireWorld(host);
+                Entity entity = EditorRemoteReadCommands.RequireEntity(host, call.GetGuid("entity_id"));
+                Entity parent = call.GetOptionalGuid("parent_id") is { } parentId ? EditorRemoteReadCommands.RequireEntity(host, parentId) : null;
+                if (!EditorWorldOperations.TryReparentEntity(WorldContext, world, entity, parent, out string error, e => host.Select(e, null)))
+                {
+                    throw new EditorRemoteArgumentException(error);
+                }
+
+                Completed(call, host, new { entity_id = entity.Id, parent_id = parent?.Id });
+            }));
+
+        registry.Register(new EditorRemoteCommand(
             "entity.duplicate",
             "Duplicates an entity next to it. Returns the new id. Undoable.",
             EntitySchema(),

@@ -194,6 +194,79 @@ public sealed class EditorWorldOperationsTests : IDisposable
         Assert.Equal(3, applied);
     }
 
+    /// <summary>ADR-0093 P8: root to child, child to root and child to another parent, each undone and redone.</summary>
+    [Fact]
+    public void Reparent_MovesAndUndoes_KeepingComponentsAndState()
+    {
+        Entity a = AddEntity("A");
+        Entity b = AddEntity("B");
+        Entity moved = AddEntity("Moved");
+        var component = new WorldOperationsTestComponent { Speed = 2f };
+        EditorWorldOperations.AddComponent(Context, moved, component, ComponentPlacement.List, null, null);
+        moved.IsEnabled = false;
+
+        Assert.True(EditorWorldOperations.TryReparentEntity(Context, _world, moved, a, out _));
+        UndoRedo(() => Assert.Same(a, moved.Parent), () => Assert.Null(moved.Parent));
+
+        Assert.True(EditorWorldOperations.TryReparentEntity(Context, _world, moved, b, out _));
+        UndoRedo(() => Assert.Same(b, moved.Parent), () => Assert.Same(a, moved.Parent));
+
+        Assert.True(EditorWorldOperations.TryReparentEntity(Context, _world, moved, null, out _));
+        UndoRedo(() => Assert.Null(moved.Parent), () => Assert.Same(b, moved.Parent));
+
+        Assert.Contains(moved, _world.Entities);
+        Assert.Same(component, Assert.Single(moved.Components));
+        Assert.Equal(2f, component.Speed);
+        Assert.False(moved.IsEnabled);
+        Assert.False(moved.ToBeRemoved);
+    }
+
+    [Fact]
+    public void Reparent_RefusesCycles_ADeletedParent_AndAnUnchangedParent()
+    {
+        Entity parent = AddEntity("Parent");
+        Entity child = AddEntity("Child", parent);
+        Entity grandChild = AddEntity("GrandChild", child);
+        Entity deleted = AddEntity("Deleted");
+        EditorWorldOperations.DeleteEntity(Context, _world, deleted);
+        long revision = History.CurrentRevision;
+
+        Assert.False(EditorWorldOperations.TryReparentEntity(Context, _world, parent, parent, out string self));
+        Assert.False(EditorWorldOperations.TryReparentEntity(Context, _world, parent, grandChild, out string cycle));
+        Assert.False(EditorWorldOperations.TryReparentEntity(Context, _world, child, deleted, out string removed));
+        Assert.False(EditorWorldOperations.TryReparentEntity(Context, _world, child, parent, out string same));
+
+        Assert.All(new[] { self, cycle, removed, same }, error => Assert.False(string.IsNullOrEmpty(error)));
+        Assert.Equal(revision, History.CurrentRevision);
+        Assert.Same(parent, child.Parent);
+        Assert.Same(child, grandChild.Parent);
+    }
+
+    /// <summary>A Redo that would now make a cycle is skipped, not applied.</summary>
+    [Fact]
+    public void Reparent_RedoThatBecameACycle_IsSkipped()
+    {
+        var other = new EditorHistoryContext(EditorHistoryContextKind.World, "editor-world-operations-tests-other");
+        try
+        {
+            Entity a = AddEntity("A");
+            Entity b = AddEntity("B");
+            Assert.True(EditorWorldOperations.TryReparentEntity(Context, _world, a, b, out _));
+            History.Undo();
+
+            // b goes under a in another history: redoing "a under b" would now be a cycle.
+            Assert.True(EditorWorldOperations.TryReparentEntity(other, _world, b, a, out _));
+            History.Redo();
+
+            Assert.Same(a, b.Parent);
+            Assert.Null(a.Parent);
+        }
+        finally
+        {
+            EditorHistoryService.Current.Remove(other);
+        }
+    }
+
     [Fact]
     public void ComponentTypes_OnlyCreateAllowedTypes()
     {

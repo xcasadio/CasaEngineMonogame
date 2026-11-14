@@ -93,6 +93,7 @@ public sealed class EditorRemoteEditCommandsTests : IDisposable
     [InlineData("history.undo")]
     [InlineData("world.create")]
     [InlineData("world.open")]
+    [InlineData("entity.reparent")]
     public void EveryEditCommand_IsRefusedDuringPlay(string method)
     {
         _host.IsPlaySessionActive = true;
