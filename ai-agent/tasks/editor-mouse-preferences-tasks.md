@@ -137,7 +137,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
 
 ## Phase 2 — Panneau
 
-### ⏳ T2.1 — Panneau dockable « Editor Preferences »
+### 🧪 T2.1 — Panneau dockable « Editor Preferences »
 
 - Objectif : D3.
 - Fichiers : `CasaEngine.Editor/Controls/EditorPreferencesPanel.cs` (nouveau), `CasaEngine.Editor/Workspaces/EditorPanelIds.cs` (`EditorPreferences`), `CasaEngine.Editor/GameEditor.cs` (`Windows > Editor Preferences`, ouverture comme `OpenAudioProfilerPanel`).
@@ -148,6 +148,7 @@ Un panneau dockable « Editor Preferences » dans l'éditeur règle la souris et
   4. Vérifier que le layout sauvegardé (`layout.editor.json`) accepte le nouveau panneau sans casser un layout existant.
 - Validation : build éditeur ; tests verts ; smoke éditeur de la validation globale.
 - Commit : `feat(editor): add the Editor Preferences panel`
+- Note de validation (2026-11-14) : `EditorPreferencesPanel` (groupes 3D et 2D, un `NumericField` borné par valeur, deux cases `Invert Y`, `Reset to defaults`, chemin du fichier affiché), `EditorPanelIds.EditorPreferences`, descripteur de panneau outil et `Windows > Editor Preferences` sur le modèle de `Windows > Audio`. Chaque `ValueChanged` passe par `EditorPreferencesStore.Update` ; le panneau suit `Changed` (vitesse de vol au clic droit + molette) sans reboucler ; `NumericField` n'est pas modifié. « Une frappe = pas d'écriture » est prouvé par le test du magasin (T0.2). Un layout sauvegardé sans ce panneau reste valide : les panneaux outils ne sont ajoutés qu'à la demande. Build éditeur réussi ; `CasaEngine.Tests` 5132/5132. **Manque** : smoke dans l'éditeur, reporté à la recette T3.2.
 
 ---
 

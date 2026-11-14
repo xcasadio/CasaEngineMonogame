@@ -252,6 +252,7 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _audioProfilerContent;
     // True while the "Audio" tool panel is in the dock (docked, floating or hidden in a tab): only then are the meters read.
     private bool _isAudioProfilerPresent;
+    private EditorPreferencesPanel _editorPreferencesPanel;
     private Action _pendingProjectLauncherAction;
     private FrameCachedWindowInputSource _windowInputSource;
     private string _editorInputProbePath;
@@ -552,6 +553,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             item.Submenu = new MGContextMenu(_mainWindow, null);
             item.Submenu.AddButton("Audio", _ => OpenAudioProfilerPanel());
+            item.Submenu.AddButton("Editor Preferences", _ => OpenEditorPreferencesPanel());
             item.Submenu.AddSeparator();
             item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
             item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
@@ -2165,6 +2167,29 @@ public class GameEditor : Game, IObservableUpdate
         return _logsContent;
     }
 
+    private MGElement GetOrCreateEditorPreferencesContent()
+    {
+        // ADR-0091: the store is created with the editor runtime, before the dock layout is built.
+        _editorPreferencesPanel ??= new EditorPreferencesPanel(_mainWindow, _editorRuntime.Preferences);
+        return _editorPreferencesPanel.CreateContent();
+    }
+
+    /// <summary>Windows &gt; Editor Preferences: docks the tool panel like Windows &gt; Audio, or makes it the active tab.</summary>
+    private void OpenEditorPreferencesPanel()
+    {
+        if (_dockHost?.LayoutModel == null)
+        {
+            return;
+        }
+
+        if (!IsDockPanelPresent(EditorPanelIds.EditorPreferences))
+        {
+            EnsureContextualToolPanelPresent(EditorPanelIds.EditorPreferences);
+        }
+
+        ActivateDockPanel(EditorPanelIds.EditorPreferences);
+    }
+
     private MGElement GetOrCreateAudioProfilerContent()
     {
         // The single audio service of the editor, which the play-in-editor session shares.
@@ -2280,6 +2305,13 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Audio",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateAudioProfilerContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.EditorPreferences,
+                Title = "Editor Preferences",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = GetOrCreateEditorPreferencesContent,
             },
             new EditorPanelDescriptor
             {
