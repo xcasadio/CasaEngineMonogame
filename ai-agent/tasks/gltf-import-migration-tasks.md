@@ -148,7 +148,7 @@ Two facts force a change to the original ordering:
 - ✅ **E1 — Migrate Assimp tests.** Rework `RiggedModelMorphImportTests.cs` (currently builds `Assimp.Scene`) to use SharpGLTF or move to an editor-converter test. Commit. Closed another way by the cutover (`726b2f5a`): `RiggedModelMorphImportTests` was deleted, not migrated. No test covers morph targets through SharpGLTF (see E4, "Not checked").
 - ✅ **E2 — Pipeline tests.** Update `StaticModelImporterTests.cs` and `EditorAssetImportServiceTests.cs` for the convert→SharpGLTF pipeline; fix the missing `Projects/SampleProject/Skinned/kid_idle.FBX` fixture (provide a small source or retarget). Commit. Closed on 2026-11-14: `StaticModelImporterTests` was deleted by the cutover; `EditorAssetImportServiceTests` now imports an OBJ (conversion path) and `Soldier.glb` (rigged path) through `ImportFile`, and no test refers to the missing `kid_idle.FBX` fixture any more.
 - ✅ **E3 — Drop AssimpNet.** Remove the `AssimpNet` entry from `Directory.Packages.props` (now unreferenced). Restore/build. Commit. Done by the cutover (Option A, commit `726b2f5a`); status reconciled with the code on 2026-11-14.
-- 🧪 **E4 — Full validation.** Build `CasaEngine.MonoGame.sln` and `CasaEngine.Editor.MonoGame.sln`; run skinned demos (`SkinnedMeshDemo`, `AnimationBlendDemo`, soldier locomotion) and the editor import path once. Record results. Commit any fixes. Run on 2026-11-14, results below; stays 🧪 until the author imports a model by hand in the editor and looks at the rigs.
+- ⚠️ **E4 — Full validation.** Build `CasaEngine.MonoGame.sln` and `CasaEngine.Editor.MonoGame.sln`; run skinned demos (`SkinnedMeshDemo`, `AnimationBlendDemo`, soldier locomotion) and the editor import path once. Record results. Commit any fixes. Run on 2026-11-14, results below; second run on 2026-11-15 below: blocked, a rigged model imported from FBX does not load (see Open questions).
 
 ### E4 results (2026-11-14, branch `chantier/gltf-import-validation`)
 
@@ -172,6 +172,17 @@ Not checked:
 - R1 in full: no comparison with the old Assimp output (bind pose, offset matrices); the captures show a correct rig at one instant only. Morph targets have no test.
 - The imported assets were not loaded back and drawn; only their files were written.
 
+### E4 second run (2026-11-15, branch `chantier/gltf-e4-check`, `main` `703025c9`)
+
+Run for the author, who could not import by hand. The import used `FileOperationService.TryImportOperation`, the call behind the content browser's import dialog and drop, on a copy of `Projects/SampleProject`; the assets were then placed and drawn in the editor through the remote control.
+
+- Import: `Soldier.fbx`, `kid_idle.FBX`, `kid_walk.FBX` and `Car.x` from the git history, all `ok`. Written: `Soldier.model` + skeleton + 4 clips, `kid_idle.model` / `kid_walk.model` + skeleton + 1 clip each, `Car.staticModel` + 6 materials.
+- `Car.staticModel` in a Static Model component: loads and draws, whole and lit, but untextured (white). Capture checked.
+- **`Soldier.model` in a Skinned Mesh component: does not load.** Its `geometry_asset_id` is the copied source `Imports/Soldier.fbx`; the runtime reads geometry with SharpGLTF and fails (`SchemaException: 'K' is an invalid start of a value`, then `IAssetLoader can't load ...Soldier.fbx`). Cause: `EditorAssetImportService.ImportSeparatedAnimationAssets` sets `GeometryAssetId = rawAssetInfo.Id` (the destination source file), while the glb converted from a non-glTF source is a temporary file deleted after the import. Any rigged FBX/X import is affected (the kid models take the same path); a `.glb`/`.gltf` source is not.
+- Remote control, seen on the way: `property.set` of `SkinnedMeshAssetId` or `StaticModelAssetId` does not load the mesh until the world is reloaded (`InitializeWithWorld`), and a Skinned Mesh whose mesh is not loaded is saved with `skinned_mesh_id` empty (`EditorEntityJsonSerializer` writes `SkinnedMesh?.RiggedModelAssetId`).
+
+Still not checked: the gesture itself (dialog or drop in the window), the rigs of the imported models (blocked by the defect above), R1 parity.
+
 ---
 
 ## Open risks / to confirm during execution
@@ -180,3 +191,7 @@ Not checked:
 - **R2** — Legacy `.X` / RacingGame effect metadata is a non-glTF concern; after migration it only flows through the editor convert path. Confirm those scenery assets still import.
 - **R3** — `dude.fbx` may be unused; confirm before converting/deleting.
 - **R4** — AssimpNetter (6.0.4) keeps the `Assimp` namespace but switched math types to `System.Numerics`, so it is **not** a drop-in for the legacy AssimpNet 4.1 runtime code, and the two packages cannot coexist in one compilation (CS0433). Handled by the Sequencing correction above. Verified at A3/B1.
+
+## Open questions
+
+- **Q-E4 (2026-11-15)** — A rigged model imported from a non-glTF source (FBX, X) points its geometry at the source file, which the runtime cannot read. Proposed fix: keep the converted glb next to the source (`<name>.glb`, registered in the catalog) and use it as `GeometryAssetId`. This adds one file per rigged import and changes what the importer writes: author decision before coding.
