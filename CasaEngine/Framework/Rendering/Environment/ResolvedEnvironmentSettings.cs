@@ -54,6 +54,9 @@ public readonly struct ResolvedEnvironmentSettings
 
     public TonemapOperator Tonemapper { get; init; }
 
+    /// <summary>Anti-aliasing requested for the view (ADR-0112). <see cref="AntiAliasingMode.None"/> in <see cref="CreateLegacy"/>.</summary>
+    public AntiAliasingMode AntiAliasing { get; init; }
+
     /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
     public float Exposure { get; init; }
 

@@ -837,6 +837,16 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Radius", bloomRadiusEditor);
 
+        var antiAliasingCombo = CreateStringCombo(Enum.GetNames<AntiAliasingMode>(), settings.ColorPipeline.AntiAliasing.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Anti-Aliasing",
+                static s => s.ColorPipeline.AntiAliasing,
+                static (s, antiAliasing) => s.ColorPipeline.AntiAliasing = antiAliasing,
+                Enum.Parse<AntiAliasingMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Anti-Aliasing", antiAliasingCombo);
+
         _detailsContent.TryAddChild(grid);
 
         _detailsContent.TryAddChild(new MGTextBlock(_window, "[b]Directional Shadows (V1)[/b]")

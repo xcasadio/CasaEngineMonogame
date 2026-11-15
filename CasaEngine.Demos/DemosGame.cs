@@ -795,6 +795,7 @@ public class DemosGame : CasaEngineGame
         if (string.IsNullOrWhiteSpace(modeText)
             && string.IsNullOrWhiteSpace(tonemapperText)
             && string.IsNullOrWhiteSpace(exposureText)
+            && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_AA"))
             && !HasBloomHarnessVariable())
         {
             return;
@@ -838,6 +839,7 @@ public class DemosGame : CasaEngineGame
         }
 
         ApplyBloomHarness(settings.ColorPipeline);
+        ApplyAntiAliasingHarness(settings.ColorPipeline);
         settings.MarkDirty();
         Logs.WriteInfo($"[DemosGame] Colour pipeline harness: {settings.ColorPipeline.Mode}, {settings.ColorPipeline.Tonemapper}, exposure {settings.ColorPipeline.Exposure}.");
     }
@@ -895,6 +897,29 @@ public class DemosGame : CasaEngineGame
         }
 
         Logs.WriteInfo($"[DemosGame] Bloom harness: enabled {colorPipeline.BloomEnabled}, threshold {colorPipeline.BloomThreshold}, intensity {colorPipeline.BloomIntensity}, radius {colorPipeline.BloomRadius}.");
+    }
+
+    /// <summary>
+    /// Harness variable of the anti-aliasing (ADR-0112): <c>CASAENGINE_DEMO_AA</c> = <c>Fxaa</c> or <c>None</c>. Without it nothing
+    /// changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static void ApplyAntiAliasingHarness(ColorPipelineSettings colorPipeline)
+    {
+        var text = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_AA");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        if (Enum.TryParse<AntiAliasingMode>(text, true, out var antiAliasing) && Enum.IsDefined(antiAliasing))
+        {
+            colorPipeline.AntiAliasing = antiAliasing;
+            Logs.WriteInfo($"[DemosGame] Anti-aliasing harness: {colorPipeline.AntiAliasing}.");
+        }
+        else
+        {
+            Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_AA '{text}' is not Fxaa or None; ignored.");
+        }
     }
 
     private static bool TryReadFloatVariable(string name, out float value)

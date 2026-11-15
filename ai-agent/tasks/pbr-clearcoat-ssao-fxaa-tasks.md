@@ -137,7 +137,7 @@ Points arbitrés par l'agent, à valider par l'auteur :
 
 ## Phase 1 — FXAA
 
-### ⏳ T1.1 — Réglage d'anti-crénelage
+### ✅ T1.1 — Réglage d'anti-crénelage
 
 - Objectif : un réglage additif, sans effet tant que la passe n'existe pas.
 - Fichiers : nouveau `CasaEngine/Framework/Rendering/Environment/AntiAliasingMode.cs` ; `ColorPipelineSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`, `CasaEngine.Demos/DemosGame.cs`, `ColorPipelineSettingsTests.cs`.
@@ -147,6 +147,12 @@ Points arbitrés par l'agent, à valider par l'auteur :
   3. Éditeur : liste déroulante à la suite du bloom, sur le modèle de `Tonemapper`.
   4. Démo : `CASAENGINE_DEMO_AA=Fxaa|None`, lue là où le sont les variables de bloom.
 - Validation : builds ; tests : valeur par défaut, aller-retour, un fichier sans la clé se relit `None`, `color_pipeline` reste omis quand tout est par défaut ; non-régression fonctions coupées.
+- **Note de validation (2026-11-15).** Builds `Debug` des deux solutions : 0 erreur (188 et 204 avertissements). Tests : 5945 verts (5941 + 4 nouveaux) ; l'hôte s'est interrompu sans test en échec aux deux premiers lancements (dernier test en cours : `EntityDetailsScriptRowTests`), passage complet au troisième lancement.
+  - Code : `AntiAliasingMode { None, Fxaa }` ; `ColorPipelineSettings.AntiAliasing` (clé `anti_aliasing`, écrite par nom, lue sans tenir compte de la casse ; `IsDefault`, `ResetToDefaults`, `Load`, `Save`, `CopyFrom` complétés) ; `ResolvedEnvironmentSettings.AntiAliasing` copié par `EnvironmentResolver` (`None` dans `CreateLegacy`) ; liste déroulante « Anti-Aliasing » après le bloom dans `EntityDetailsPanel` ; `CASAENGINE_DEMO_AA=Fxaa|None` dans `DemosGame` (valeur illisible : avertissement, ignorée). Aucun effet de rendu tant que T1.2 n'existe pas. Pas d'ADR dans cette tâche : l'ADR-0112 couvre le réglage, l'ADR-0113 vient avec la passe.
+  - Tests ajoutés (`ColorPipelineSettingsTests`, 4) : défaut `None` et `IsDefault` ; clé écrite par nom et relue (casse libre) ; un `color_pipeline` écrit avant la clé se relit `None` ; seul ce champ différent écrit `color_pipeline`, et le retour à `None` l'omet à nouveau. L'aller-retour, `Clone`, `CopyFrom` et le résolveur (vue, surcharge de vue, `CreateLegacy`) couvrent le champ via le jeu de valeurs non défaut.
+  - Non-régression, fonctions coupées (sans recapture, 0 exception, 0 « was not found ») : `capture-v2.sh` `Legacy` égal à T0.1 pour les huit captures déterministes (material `b73dfdd2684a8615`, environment `0cf97b7e08cc0871`, static-model `312dda61e950f6b9`, static-shadow `add5db24fbd43814`, render-to-texture `d45bc1b2d6630553`, ui-overlay `307d01b87c81303d`, frozen-frame `eb25f3917cfa6a0c`, tile-map `355772772016e47f`, deux passages identiques) ; `lin-v2.sh` `LinearHdr` `0ba208b099b28b67` (16 premiers caractères, égal à T0.1) ; `pbrdemo.sh` validation `LinearHdr` `00847b5d4e85ef3b` (deux passages) et `Legacy` `a844109b0a2bfd5f` (deux passages).
+  - Contrôle de la variable : `CASAENGINE_DEMO_AA=Fxaa` journalise « Anti-aliasing harness: Fxaa » et laisse les empreintes inchangées (`lin-v2.sh` `0ba208b099b28b67`, `pbrdemo.sh` `00847b5d4e85ef3b`), ce qui est attendu avant T1.2.
+  - Non vérifié : l'éditeur (liste déroulante) a été compilé mais pas lancé.
 - Commit : `feat(rendering): add the anti-aliasing setting of the colour pipeline`
 
 ### ⏳ T1.2 — Passe FXAA

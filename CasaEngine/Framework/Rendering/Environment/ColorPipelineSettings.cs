@@ -27,6 +27,12 @@ public sealed class ColorPipelineSettings
     public TonemapOperator Tonemapper { get; set; } = TonemapOperator.AcesApprox;
 
     /// <summary>
+    /// Screen-space anti-aliasing applied after the tonemapping (ADR-0112). <see cref="AntiAliasingMode.None"/> by default,
+    /// and without any effect in <see cref="ColorPipelineMode.Legacy"/>.
+    /// </summary>
+    public AntiAliasingMode AntiAliasing { get; set; } = AntiAliasingMode.None;
+
+    /// <summary>
     /// Scalar exposure applied to the scene colour before the tonemapping operator. A negative or non-finite value
     /// becomes 0.
     /// </summary>
@@ -72,6 +78,7 @@ public sealed class ColorPipelineSettings
     /// <summary>True when every field has its default value.</summary>
     public bool IsDefault => Mode == ColorPipelineMode.Legacy
         && Tonemapper == TonemapOperator.AcesApprox
+        && AntiAliasing == AntiAliasingMode.None
         && _exposure == DefaultExposure
         && !BloomEnabled
         && _bloomThreshold == DefaultBloomThreshold
@@ -82,6 +89,7 @@ public sealed class ColorPipelineSettings
     {
         Mode = ColorPipelineMode.Legacy;
         Tonemapper = TonemapOperator.AcesApprox;
+        AntiAliasing = AntiAliasingMode.None;
         Exposure = DefaultExposure;
         BloomEnabled = false;
         BloomThreshold = DefaultBloomThreshold;
@@ -106,6 +114,11 @@ public sealed class ColorPipelineSettings
         if (element.TryGetValue("tonemapper", StringComparison.OrdinalIgnoreCase, out var tonemapperNode))
         {
             Tonemapper = tonemapperNode.GetEnum<TonemapOperator>();
+        }
+
+        if (element.TryGetValue("anti_aliasing", StringComparison.OrdinalIgnoreCase, out var antiAliasingNode))
+        {
+            AntiAliasing = antiAliasingNode.GetEnum<AntiAliasingMode>();
         }
 
         if (element.TryGetValue("exposure", StringComparison.OrdinalIgnoreCase, out var exposureNode))
@@ -140,6 +153,7 @@ public sealed class ColorPipelineSettings
 
         element["mode"] = Mode.ToString();
         element["tonemapper"] = Tonemapper.ToString();
+        element["anti_aliasing"] = AntiAliasing.ToString();
         element["exposure"] = Exposure;
         element["bloom_enabled"] = BloomEnabled;
         element["bloom_threshold"] = BloomThreshold;
@@ -153,6 +167,7 @@ public sealed class ColorPipelineSettings
 
         Mode = other.Mode;
         Tonemapper = other.Tonemapper;
+        AntiAliasing = other.AntiAliasing;
         Exposure = other.Exposure;
         BloomEnabled = other.BloomEnabled;
         BloomThreshold = other.BloomThreshold;

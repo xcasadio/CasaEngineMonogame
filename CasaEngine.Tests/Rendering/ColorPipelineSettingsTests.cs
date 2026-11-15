@@ -170,6 +170,7 @@ public class ColorPipelineSettingsTests
 
         Assert.Equal(ColorPipelineMode.LinearHdr, resolved.ColorPipelineMode);
         Assert.Equal(TonemapOperator.Reinhard, resolved.Tonemapper);
+        Assert.Equal(AntiAliasingMode.Fxaa, resolved.AntiAliasing);
         Assert.Equal(2.5f, resolved.Exposure);
         Assert.True(resolved.IsLinearHdr);
     }
@@ -199,6 +200,7 @@ public class ColorPipelineSettingsTests
 
         Assert.True(resolved.IsLinearHdr);
         Assert.Equal(TonemapOperator.Reinhard, resolved.Tonemapper);
+        Assert.Equal(AntiAliasingMode.Fxaa, resolved.AntiAliasing);
         Assert.Equal(2.5f, resolved.Exposure);
     }
 
@@ -226,6 +228,7 @@ public class ColorPipelineSettingsTests
         var legacy = ResolvedEnvironmentSettings.CreateLegacy(Color.Black, Vector3.Zero);
         Assert.False(legacy.IsLinearHdr);
         Assert.Equal(1.0f, legacy.Exposure);
+        Assert.Equal(AntiAliasingMode.None, legacy.AntiAliasing);
     }
 
     [Fact]
@@ -402,6 +405,66 @@ public class ColorPipelineSettingsTests
         AssertNonDefault(CreateNonDefault().Clone());
     }
 
+    [Fact]
+    public void AntiAliasing_DefaultsToNoneAndIsPartOfIsDefault()
+    {
+        var settings = new ColorPipelineSettings();
+
+        Assert.Equal(AntiAliasingMode.None, settings.AntiAliasing);
+        Assert.True(settings.IsDefault);
+
+        settings.AntiAliasing = AntiAliasingMode.Fxaa;
+        Assert.False(settings.IsDefault);
+
+        settings.ResetToDefaults();
+        Assert.Equal(AntiAliasingMode.None, settings.AntiAliasing);
+        Assert.True(settings.IsDefault);
+    }
+
+    [Fact]
+    public void AntiAliasing_IsSavedByNameAndReadBackCaseInsensitively()
+    {
+        var saved = new JObject();
+        CreateNonDefault().Save(saved);
+
+        var node = Assert.IsType<JObject>(saved["color_pipeline"]);
+        Assert.Equal("Fxaa", (string?)node["anti_aliasing"]);
+
+        var loaded = new WorldEnvironmentSettings();
+        loaded.Load(new JObject { ["color_pipeline"] = new JObject { ["ANTI_ALIASING"] = "fxaa" } });
+        Assert.Equal(AntiAliasingMode.Fxaa, loaded.ColorPipeline.AntiAliasing);
+    }
+
+    [Fact]
+    public void AntiAliasing_LoadOfAColourPipelineWrittenBeforeTheKeyReadsNone()
+    {
+        var settings = new WorldEnvironmentSettings();
+        settings.ColorPipeline.AntiAliasing = AntiAliasingMode.Fxaa;
+
+        settings.Load(new JObject
+        {
+            ["color_pipeline"] = new JObject { ["mode"] = "LinearHdr", ["tonemapper"] = "Reinhard", ["exposure"] = 2.0f },
+        });
+
+        Assert.Equal(ColorPipelineMode.LinearHdr, settings.ColorPipeline.Mode);
+        Assert.Equal(AntiAliasingMode.None, settings.ColorPipeline.AntiAliasing);
+    }
+
+    [Fact]
+    public void AntiAliasing_WhenOnlyThatFieldDiffersTheKeyIsWritten_AndBackToNoneOmitsColorPipeline()
+    {
+        var settings = new WorldEnvironmentSettings();
+        settings.ColorPipeline.AntiAliasing = AntiAliasingMode.Fxaa;
+        var saved = new JObject();
+
+        settings.Save(saved);
+        Assert.True(saved.ContainsKey("color_pipeline"));
+
+        settings.ColorPipeline.AntiAliasing = AntiAliasingMode.None;
+        settings.Save(saved);
+        Assert.False(saved.ContainsKey("color_pipeline"));
+    }
+
     private static WorldEnvironmentSettings CreateNonDefault()
     {
         var settings = new WorldEnvironmentSettings();
@@ -418,6 +481,7 @@ public class ColorPipelineSettingsTests
         settings.ColorPipeline.BloomThreshold = 2.0f;
         settings.ColorPipeline.BloomIntensity = 0.25f;
         settings.ColorPipeline.BloomRadius = 3.0f;
+        settings.ColorPipeline.AntiAliasing = AntiAliasingMode.Fxaa;
     }
 
     private static void AssertNonDefault(WorldEnvironmentSettings settings)
@@ -429,6 +493,7 @@ public class ColorPipelineSettingsTests
         Assert.Equal(2.0f, settings.ColorPipeline.BloomThreshold);
         Assert.Equal(0.25f, settings.ColorPipeline.BloomIntensity);
         Assert.Equal(3.0f, settings.ColorPipeline.BloomRadius);
+        Assert.Equal(AntiAliasingMode.Fxaa, settings.ColorPipeline.AntiAliasing);
     }
 
     private sealed class StubRenderSurface : IRenderSurface

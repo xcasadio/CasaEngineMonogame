@@ -126,6 +126,7 @@ public static class EnvironmentResolver
             AmbientSource = source.AmbientSource,
             ColorPipelineMode = source.ColorPipeline.Mode,
             Tonemapper = source.ColorPipeline.Tonemapper,
+            AntiAliasing = source.ColorPipeline.AntiAliasing,
             Exposure = source.ColorPipeline.Exposure,
             BloomEnabled = source.ColorPipeline.BloomEnabled,
             BloomThreshold = source.ColorPipeline.BloomThreshold,
