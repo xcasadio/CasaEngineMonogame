@@ -15,7 +15,7 @@
 // HasDetailTexture in LitForward.fx), not by techniques. The normal map is driven by the technique: the NormalMap techniques
 // always sample NormalTexture.
 //
-// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 12 are used):
+// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 14 are used):
 //   t0 Texture                           base colour (display colour, alpha = opacity)
 //   t1 NormalTexture                     tangent-space normal
 //   t2 MetallicRoughnessTexture          G = roughness, B = metallic (glTF convention)
@@ -28,8 +28,12 @@
 //   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0107)
 //   t10 PrefilteredSpecularAtlasTexture  prefiltered specular atlas of the IBL (2D, six roughness bands, linear light)
 //   t11 BrdfLookupTexture                split-sum BRDF table (x = NoV, y = roughness, channels A and B)
-// (t12 and t13 are reserved for the prefiltered local probes.) The three IBL textures are bound by EnvironmentShaderBinder
-// only because this shader declares HasIbl (ADR-0107).
+//   t12 PrefilteredLocalReflectionProbeAtlasTexture           prefiltered atlas of the primary local probe (same layout as t10)
+//   t13 PrefilteredSecondaryLocalReflectionProbeAtlasTexture   prefiltered atlas of the secondary local probe
+// The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0107). The probe atlases
+// are generated like the global one (IblCache.TryGetPrefilteredAtlas); while one does not exist yet its Has... flag
+// (HasPrefilteredLocalReflectionProbe, HasPrefilteredSecondaryLocalReflectionProbe) is 0 and the probe is sampled unprefiltered
+// from its cube (t4, t5).
 //
 // Constant layout. The _vs/_ps/_cb macros are empty (Macros.fxh), so the slots are documentation pinned by
 // PbrShaderCoverageTests, as in LitForward.fx. The shared lighting block (lights, counts, eye, ambient, environment, probes,
@@ -50,7 +54,8 @@
 //   _cb(c35.w)  HasEmissiveTexture
 // DiffuseColor, SpecularColor and SpecularPower are declared because Lighting.fxh reads them; the PBR shading never uses them.
 // HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
-// IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0. Neither has a
+// IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0 (probes included).
+// HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder. None has a
 // fixed slot: the compiler places them.
 //
 // Colours: BaseColor, EmissiveColor and the colour textures are display colours. They are decoded to linear light ONCE per
@@ -73,6 +78,8 @@ DECLARE_TEXTURE(EmissiveTexture, 8);
 DECLARE_CUBEMAP(IrradianceCubeTexture, 9);
 DECLARE_TEXTURE(PrefilteredSpecularAtlasTexture, 10);
 DECLARE_TEXTURE(BrdfLookupTexture, 11);
+DECLARE_TEXTURE(PrefilteredLocalReflectionProbeAtlasTexture, 12);
+DECLARE_TEXTURE(PrefilteredSecondaryLocalReflectionProbeAtlasTexture, 13);
 
 
 BEGIN_CONSTANTS
@@ -200,6 +207,8 @@ BEGIN_CONSTANTS
     float HasEmissiveTexture _cb(c35.w);
     float HasIbl;
     float IblForceBaseLevel;
+    float HasPrefilteredLocalReflectionProbe;
+    float HasPrefilteredSecondaryLocalReflectionProbe;
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
     float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
     float ShadowDepthBias _ps(c100) _cb(c90.z);
@@ -275,19 +284,33 @@ float3 IblToViewSpace(float3 linearLight)
 }
 
 
-// One band of the prefiltered atlas at the latitude-longitude coordinate uv (the mapping of
+// One band of a prefiltered atlas at the latitude-longitude coordinate uv (the mapping of
 // PanoramaEnvironmentGenerator.GetPanoramaUv, twin of IblCubeGenerator.GetAtlasUv). The vertical coordinate stays half a texel
-// inside the band so that the bilinear footprint never reaches the neighbouring band.
-float3 SampleIblPrefilteredBand(float2 uv, float band)
+// inside the band so that the bilinear footprint never reaches the neighbouring band. source picks the atlas: 0 the global one
+// (t10), 1 the atlas of the primary local probe (t12), 2 the one of the secondary local probe (t13); all three have the same layout.
+float3 SampleIblPrefilteredBand(float2 uv, float band, float source)
 {
     float localV = clamp(uv.y, IblBandHalfTexel, 1.0f - IblBandHalfTexel);
-    return SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, float2(uv.x, (band + localV) / IblBandCount)).rgb;
+    float2 coord = float2(uv.x, (band + localV) / IblBandCount);
+
+    float3 result = SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, coord).rgb;
+    if (source > 1.5f)
+    {
+        result = SAMPLE_TEXTURE(PrefilteredSecondaryLocalReflectionProbeAtlasTexture, coord).rgb;
+    }
+    else if (source > 0.5f)
+    {
+        result = SAMPLE_TEXTURE(PrefilteredLocalReflectionProbeAtlasTexture, coord).rgb;
+    }
+
+    return result;
 }
 
 
-// The prefiltered radiance along direction for a perceptual roughness: two bands floor(b) and min(floor(b) + 1, 5) with
-// b = roughness * 5, interpolated by frac(b). IblForceBaseLevel (a debug constant) forces band 0.
-float3 SampleIblPrefiltered(float3 direction, float roughness)
+// The prefiltered radiance of an atlas (see SampleIblPrefilteredBand for source) along direction for a perceptual roughness: two
+// bands floor(b) and min(floor(b) + 1, 5) with b = roughness * 5, interpolated by frac(b). IblForceBaseLevel (a debug constant)
+// forces band 0. The global atlas and the probe atlases are all read by this function, once.
+float3 SampleIblPrefiltered(float3 direction, float roughness, float source)
 {
     float2 uv;
     uv.x = 0.5f + atan2(direction.x, -direction.z) * IblInverseTwoPi;
@@ -301,8 +324,8 @@ float3 SampleIblPrefiltered(float3 direction, float roughness)
 
     float lowBand = floor(b);
     float highBand = min(lowBand + 1.0f, IblBandMax);
-    float3 low = SampleIblPrefilteredBand(uv, lowBand);
-    float3 high = SampleIblPrefilteredBand(uv, highBand);
+    float3 low = SampleIblPrefilteredBand(uv, lowBand, source);
+    float3 high = SampleIblPrefilteredBand(uv, highBand, source);
     return lerp(low, high, frac(b));
 }
 
@@ -341,7 +364,8 @@ PbrAmbient ComputePbrFlatAmbient(float3 worldNormal, float3 diffuseAlbedo, float
 
 // The ambient of the surface: with the IBL generated (HasIbl = 1) the irradiance times the diffuse albedo (the irradiance cube
 // holds E / pi, so no further division) plus the prefiltered radiance times (F0 * A + B), both times the occlusion; the diffuse
-// part is modulated by EnvironmentAmbientColor and the specular part by EnvironmentSpecularIntensity. With UseFlatAmbientSource
+// part is modulated by EnvironmentAmbientColor and the specular part by EnvironmentSpecularIntensity. The specular radiance is the
+// global prefiltered atlas blended with the local probes (T7.1). With UseFlatAmbientSource
 // the diffuse part stays the flat ambient colour and only the specular part comes from the atlas. Without the IBL: the flat
 // ambient of phase 3.
 PbrAmbient ComputePbrAmbient(PbrSurface surface, float occlusion)
@@ -359,7 +383,44 @@ PbrAmbient ComputePbrAmbient(PbrSurface surface, float occlusion)
         diffuseAmbient = IblToViewSpace(SAMPLE_CUBEMAP(IrradianceCubeTexture, surface.Normal).rgb) * EnvironmentAmbientColor;
     }
 
-    float3 prefiltered = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness));
+    float3 prefiltered = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 0.0f));
+
+    // The local reflection probes replace the global radiance by their weighted blend, scaled by LocalReflectionProbeInfluence,
+    // as SampleEnvironmentReflection does in Lighting.fxh. A probe whose prefiltered atlas exists is read by the same function as
+    // the global atlas (HasPrefiltered... = 1); until then (the atlas is generated at the start of the next frame) it is sampled
+    // unprefiltered from its cube, with the decoding of Lighting.fxh.
+    float3 localReflection = 0;
+    float localWeightTotal = 0;
+    if (HasLocalReflectionProbeTexture > 0.5f)
+    {
+        float3 probe = DecodeColor(SAMPLE_CUBEMAP(LocalReflectionProbeCubeTexture, reflectionVector).rgb);
+        if (HasPrefilteredLocalReflectionProbe > 0.5f)
+        {
+            probe = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 1.0f));
+        }
+
+        localReflection += probe * LocalReflectionProbeWeight;
+        localWeightTotal += LocalReflectionProbeWeight;
+    }
+
+    if (HasSecondaryLocalReflectionProbeTexture > 0.5f)
+    {
+        float3 probe = DecodeColor(SAMPLE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, reflectionVector).rgb);
+        if (HasPrefilteredSecondaryLocalReflectionProbe > 0.5f)
+        {
+            probe = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 2.0f));
+        }
+
+        localReflection += probe * SecondaryLocalReflectionProbeWeight;
+        localWeightTotal += SecondaryLocalReflectionProbeWeight;
+    }
+
+    if (localWeightTotal > 0.0f)
+    {
+        localReflection /= max(localWeightTotal, 0.0001f);
+        prefiltered = lerp(prefiltered, localReflection, saturate(LocalReflectionProbeInfluence));
+    }
+
     float2 brdf = SampleIblBrdf(surface.NoV, surface.PerceptualRoughness);
 
     PbrAmbient result;

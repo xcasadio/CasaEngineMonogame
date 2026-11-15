@@ -91,6 +91,14 @@ public static class ShaderParameterNames
     public const string HasIbl = "HasIbl";
     /// <summary>Debug constant of the PBR shader: 1 forces the prefiltered band 0 (<c>LitPbrMaterial.DebugForceIblBaseLevel</c>).</summary>
     public const string IblForceBaseLevel = "IblForceBaseLevel";
+    /// <summary>Prefiltered specular atlas of the primary local reflection probe (2D, same layout as the global atlas, t12).</summary>
+    public const string PrefilteredLocalReflectionProbeAtlasTexture = "PrefilteredLocalReflectionProbeAtlasTexture";
+    /// <summary>Prefiltered specular atlas of the secondary local reflection probe (2D, t13).</summary>
+    public const string PrefilteredSecondaryLocalReflectionProbeAtlasTexture = "PrefilteredSecondaryLocalReflectionProbeAtlasTexture";
+    /// <summary>1 when the prefiltered atlas of the primary probe is bound; 0 keeps the unprefiltered cube of slot t4.</summary>
+    public const string HasPrefilteredLocalReflectionProbe = "HasPrefilteredLocalReflectionProbe";
+    /// <summary>1 when the prefiltered atlas of the secondary probe is bound; 0 keeps the unprefiltered cube of slot t5.</summary>
+    public const string HasPrefilteredSecondaryLocalReflectionProbe = "HasPrefilteredSecondaryLocalReflectionProbe";
 
     public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";

@@ -332,8 +332,8 @@ public class PbrShaderCoverageTests
                 $"LitPbr.fx does not declare the constant '{name}'.");
         }
 
-        // Twelve textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are kept for the
-        // prefiltered local probes of phase 7).
+        // Fourteen textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are the
+        // prefiltered atlases of the local probes, T7.1).
         string[] textures =
         {
             ShaderParameterNames.BasColorTexture,
@@ -348,6 +348,8 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.IrradianceCubeTexture,
             ShaderParameterNames.PrefilteredSpecularAtlasTexture,
             ShaderParameterNames.BrdfLookupTexture,
+            ShaderParameterNames.PrefilteredLocalReflectionProbeAtlasTexture,
+            ShaderParameterNames.PrefilteredSecondaryLocalReflectionProbeAtlasTexture,
         };
         for (int index = 0; index < textures.Length; index++)
         {
@@ -414,7 +416,8 @@ public class PbrShaderCoverageTests
         string source = LoadShaderSource("LitPbr.fx");
         string shade = ExtractFunctionBody(source, "float4 ShadePbr(");
 
-        Assert.Equal(2, CountOccurrences(source, "DecodeColor("));
+        // The two uses of ShadePbr plus the two decodings of the unprefiltered probe cubes (display colours, T7.1).
+        Assert.Equal(4, CountOccurrences(source, "DecodeColor("));
         Assert.Contains("float3 linearBaseColor = DecodeColor(baseColor.rgb);", shade);
         Assert.Contains("emissive = DecodeColor(emissive);", shade);
 
@@ -461,7 +464,7 @@ public class PbrShaderCoverageTests
 
         // prefiltered(R, roughness) x (F0 * A + B), modulated by EnvironmentSpecularIntensity and by the occlusion.
         Assert.Contains("reflect(-surface.EyeVector, surface.Normal)", ambient);
-        Assert.Contains("SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness)", ambient);
+        Assert.Contains("SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 0.0f)", ambient);
         Assert.Contains("SampleIblBrdf(surface.NoV, surface.PerceptualRoughness)", ambient);
         Assert.Contains("result.Specular = prefiltered * (surface.F0 * brdf.x + brdf.y) * (EnvironmentSpecularIntensity * occlusion);", ambient);
 
@@ -498,7 +501,49 @@ public class PbrShaderCoverageTests
         Assert.Contains("uv.y = 0.5f - asin(clamp(direction.y, -1.0f, 1.0f)) * IblInversePi;", prefiltered);
         Assert.Contains("static const float IblBandHalfTexel = 0.5f / 256.0f;", source);
         Assert.Contains("float localV = clamp(uv.y, IblBandHalfTexel, 1.0f - IblBandHalfTexel);", band);
-        Assert.Contains("SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, float2(uv.x, (band + localV) / IblBandCount)).rgb", band);
+        Assert.Contains("float2 coord = float2(uv.x, (band + localV) / IblBandCount);", band);
+        Assert.Contains("SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, coord).rgb", band);
+    }
+
+    [Fact]
+    public void LitPbrEffect_ReadsThePrefilteredLocalProbesByTheSameFunctionAsTheGlobalAtlas()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string constants = ConstantsBlock(source);
+
+        // The probe atlases take t12 and t13 (the slot test above pins the DECLARE lines); their flags are plain constants.
+        Assert.Equal("PrefilteredLocalReflectionProbeAtlasTexture", ShaderParameterNames.PrefilteredLocalReflectionProbeAtlasTexture);
+        Assert.Equal("PrefilteredSecondaryLocalReflectionProbeAtlasTexture", ShaderParameterNames.PrefilteredSecondaryLocalReflectionProbeAtlasTexture);
+        Assert.Matches(new Regex(@"^\s*float\s+HasPrefilteredLocalReflectionProbe;", RegexOptions.Multiline), constants);
+        Assert.Matches(new Regex(@"^\s*float\s+HasPrefilteredSecondaryLocalReflectionProbe;", RegexOptions.Multiline), constants);
+
+        // One band reader serves the three atlases, picked by the source argument: 0 global (t10), 1 primary probe (t12), 2 secondary (t13).
+        string band = Normalize(ExtractFunctionBody(source, "float3 SampleIblPrefilteredBand("));
+        Assert.Contains("SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, coord).rgb", band);
+        Assert.Contains("SAMPLE_TEXTURE(PrefilteredLocalReflectionProbeAtlasTexture, coord).rgb", band);
+        Assert.Contains("SAMPLE_TEXTURE(PrefilteredSecondaryLocalReflectionProbeAtlasTexture, coord).rgb", band);
+        Assert.Equal(1, CountOccurrences(source, "float3 SampleIblPrefiltered("));
+        Assert.Equal(1, CountOccurrences(source, "PrefilteredLocalReflectionProbeAtlasTexture, coord"));
+
+        // Each probe is read once, by that function, with the roughness of the surface, and only when its atlas exists; otherwise the
+        // unprefiltered cube is read. The IBL colour rule is applied once (IblToViewSpace around the call, nothing inside).
+        string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
+        Assert.Contains("if (HasPrefilteredLocalReflectionProbe > 0.5f) { probe = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 1.0f)); }", ambient);
+        Assert.Contains("if (HasPrefilteredSecondaryLocalReflectionProbe > 0.5f) { probe = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 2.0f)); }", ambient);
+
+        // The blend with the global radiance is the one of SampleEnvironmentReflection (Lighting.fxh): weights normalised by their
+        // total, then lerp by LocalReflectionProbeInfluence.
+        Assert.Contains("localReflection /= max(localWeightTotal, 0.0001f);", ambient);
+        Assert.Contains("prefiltered = lerp(prefiltered, localReflection, saturate(LocalReflectionProbeInfluence));", ambient);
+
+        // The forced band applies to the probes too: it lives in SampleIblPrefiltered, not at the call sites.
+        Assert.Contains("if (IblForceBaseLevel > 0.5f) { b = 0.0f; }", Normalize(ExtractFunctionBody(source, "float3 SampleIblPrefiltered(")));
+
+        // LitForward keeps the unprefiltered path: it declares none of the new names.
+        string forward = LoadShaderSource("LitForward.fx");
+        Assert.DoesNotContain("PrefilteredLocalReflectionProbe", forward);
+        Assert.DoesNotContain("HasPrefiltered", forward);
+        Assert.DoesNotContain("HasPrefiltered", LoadShaderSource("Lighting.fxh"));
     }
 
     [Fact]
@@ -513,9 +558,9 @@ public class PbrShaderCoverageTests
         Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", pbr);
 
         // The generated cubes are linear light: nothing of the IBL is decoded. DecodeColor stays at its two uses of ShadePbr.
-        Assert.Equal(2, CountOccurrences(source, "DecodeColor("));
+        Assert.Equal(4, CountOccurrences(source, "DecodeColor("));
         Assert.DoesNotContain("DecodeEnvironmentCube", source);
-        foreach (string function in new[] { "float3 SampleIblPrefilteredBand(", "float3 SampleIblPrefiltered(", "float2 SampleIblBrdf(", "PbrAmbient ComputePbrAmbient(" })
+        foreach (string function in new[] { "float3 SampleIblPrefilteredBand(", "float3 SampleIblPrefiltered(", "float2 SampleIblBrdf(" })
         {
             string body = ExtractFunctionBody(source, function);
             Assert.DoesNotContain("DecodeColor", body);
@@ -528,7 +573,11 @@ public class PbrShaderCoverageTests
         Assert.Contains("static const float IblLegacyEncodeExponent = 1.0f / 2.2f;", source);
         string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
         Assert.Contains("IblToViewSpace(SAMPLE_CUBEMAP(IrradianceCubeTexture, surface.Normal).rgb)", ambient);
-        Assert.Contains("IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness))", ambient);
+        Assert.Contains("IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness, 0.0f))", ambient);
+        // The only decodings left in the ambient are those of the unprefiltered cubes of the local probes (slots t4 and t5).
+        Assert.Equal(2, CountOccurrences(ambient, "DecodeColor("));
+        Assert.Contains("DecodeColor(SAMPLE_CUBEMAP(LocalReflectionProbeCubeTexture, reflectionVector).rgb)", ambient);
+        Assert.Contains("DecodeColor(SAMPLE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, reflectionVector).rgb)", ambient);
     }
 
     [Fact]

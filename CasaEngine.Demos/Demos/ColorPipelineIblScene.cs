@@ -61,6 +61,32 @@ internal static class ColorPipelineIblScene
         return faces;
     }
 
+    /// <summary>
+    /// The texels of the six faces of a cube whose every face carries the same 8 x 8 checkerboard: light cells of
+    /// <paramref name="tint"/>, dark cells at 10 % of it (T7.1, the three cubes of the probe scene: red, blue and green).
+    /// </summary>
+    public static Color[][] BuildUniformTintFacePixels(Color tint)
+    {
+        var faces = new Color[FaceCount][];
+        int cell = FaceSize / CellsPerSide;
+        var dark = new Color((byte)(tint.R / 10), (byte)(tint.G / 10), (byte)(tint.B / 10));
+        for (int face = 0; face < FaceCount; face++)
+        {
+            var pixels = new Color[FaceSize * FaceSize];
+            for (int y = 0; y < FaceSize; y++)
+            {
+                for (int x = 0; x < FaceSize; x++)
+                {
+                    pixels[(y * FaceSize) + x] = (((x / cell) + (y / cell)) % 2 == 0) ? tint : dark;
+                }
+            }
+
+            faces[face] = pixels;
+        }
+
+        return faces;
+    }
+
     public static TextureCube CreateCube(GraphicsDevice graphicsDevice, Color[][] facePixels, string name)
     {
         var cube = new TextureCube(graphicsDevice, FaceSize, false, SurfaceFormat.Color) { Name = name };

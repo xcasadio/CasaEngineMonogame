@@ -49,6 +49,16 @@ public static class EnvironmentShaderBinder
         shader.SetTextureCubeParameter(ShaderParameterNames.IrradianceCubeTexture, irradiance, stats);
         shader.SetTextureParameter(ShaderParameterNames.PrefilteredSpecularAtlasTexture, atlas, stats);
         shader.SetTextureParameter(ShaderParameterNames.BrdfLookupTexture, brdfTable, stats);
+
+        // The local reflection probes (T7.1): the prefiltered atlas of each selected probe cube, requested from the same cache. Until
+        // an atlas exists its flag stays 0 and the shader samples the unprefiltered cube of slot t4 / t5. Probe cubes are display
+        // colours (Lighting.fxh decodes them), so they are generated as non-linear sources.
+        bool hasPrefilteredPrimary = TryResolvePrefilteredProbe(environment.PrimaryReflectionProbeCubemap, ibl, out Texture2D primaryAtlas);
+        bool hasPrefilteredSecondary = TryResolvePrefilteredProbe(environment.SecondaryReflectionProbeCubemap, ibl, out Texture2D secondaryAtlas);
+        shader.SetParameter(ShaderParameterNames.HasPrefilteredLocalReflectionProbe, hasPrefilteredPrimary ? 1.0f : 0.0f);
+        shader.SetParameter(ShaderParameterNames.HasPrefilteredSecondaryLocalReflectionProbe, hasPrefilteredSecondary ? 1.0f : 0.0f);
+        shader.SetTextureParameter(ShaderParameterNames.PrefilteredLocalReflectionProbeAtlasTexture, primaryAtlas, stats);
+        shader.SetTextureParameter(ShaderParameterNames.PrefilteredSecondaryLocalReflectionProbeAtlasTexture, secondaryAtlas, stats);
     }
 
     /// <summary>
@@ -64,5 +74,17 @@ public static class EnvironmentShaderBinder
         return ibl is not null
             && environment.SpecularEnvironmentCubemap is not null
             && ibl.TryGet(environment.SpecularEnvironmentCubemap, environment.SpecularEnvironmentCubemapIsLinear, out irradiance, out atlas, out brdfTable);
+    }
+
+    /// <summary>
+    /// The prefiltered atlas of a probe cube, or false (and a request registered with <paramref name="ibl"/>) while it does not
+    /// exist yet. False without a probe cube or without a cache.
+    /// </summary>
+    internal static bool TryResolvePrefilteredProbe(TextureCube probeCube, IblCache ibl, out Texture2D atlas)
+    {
+        atlas = null;
+        return ibl is not null
+            && probeCube is not null
+            && ibl.TryGetPrefilteredAtlas(probeCube, false, out atlas);
     }
 }

@@ -57,6 +57,15 @@ namespace CasaEngine.Demos.Demos;
 /// logs every change of the generation counter of the IBL cache and a summary at frame 600. Everything is off by default: without
 /// the variable the scene is unchanged.
 /// </para>
+/// <para>
+/// <c>CASAENGINE_COLOR_DEMO_PROBES=1</c> measures the prefiltered local reflection probes of <c>lit-pbr</c> (plan T7.1, ADR-0107).
+/// The world gets a green checkerboard environment cube, two reflection probes (a red cube and a blue cube, <see cref="ProbeRadius"/>,
+/// <see cref="ProbeBlendDistance"/>) and one metal sphere of roughness 0.6 (<see cref="IblRoughSphereCentre"/>, measured on
+/// <see cref="IblRoughMeasurementLine"/>). <c>CASAENGINE_COLOR_DEMO_PROBE_CASE=A|blend|B</c> places the two probe volumes so that the fixed
+/// camera is in probe A alone (influence 1), in the blend zone of both, or in probe B alone.
+/// <c>CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL=1</c> forces the prefiltered band 0 for the probes too. The demo logs the generation
+/// counter of the IBL cache and a summary at frame 600. Off by default: without the variable the scene is unchanged.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
@@ -67,6 +76,8 @@ public sealed class ColorPipelineDemo : Demo
     private const string IblVariable = "CASAENGINE_COLOR_DEMO_IBL";
     private const string IblForceBaseLevelVariable = "CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL";
     private const string IblChangeEnvironmentVariable = "CASAENGINE_COLOR_DEMO_IBL_CHANGE_ENVIRONMENT";
+    private const string ProbesVariable = "CASAENGINE_COLOR_DEMO_PROBES";
+    private const string ProbeCaseVariable = "CASAENGINE_COLOR_DEMO_PROBE_CASE";
     private const int VirtualWidth = 1024;
     private const int VirtualHeight = 768;
     private const float ExposureStep = 0.25f;
@@ -177,6 +188,27 @@ public sealed class ColorPipelineDemo : Demo
     private const int IblEnvironmentChangeSecondFrame = 400;
     private const int IblSummaryFrame = 600;
 
+    // ---- Reflection probe scene (CASAENGINE_COLOR_DEMO_PROBES=1) ----
+
+    /// <summary>Influence radius of both probes, in world units.</summary>
+    public const float ProbeRadius = 10.0f;
+
+    /// <summary>Blend distance of both probes: the weight is 1 up to <c>ProbeRadius - ProbeBlendDistance</c> from the probe, then fades to 0.</summary>
+    public const float ProbeBlendDistance = 4.0f;
+
+    // The camera of the demo is at (0, 0, 20). A probe at the camera is in its full-weight zone; a probe 40 units away is out of range.
+    private static readonly Vector3 ProbeAtCamera = new(0.0f, 0.0f, 20.0f);
+    private static readonly Vector3 ProbeOutOfRange = new(40.0f, 0.0f, 20.0f);
+
+    // Blend case: the camera is 8 units from each probe, in the fade zone (6 to 10 units) where each raw weight is 0.5.
+    private static readonly Vector3 ProbeBlendA = new(-8.0f, 0.0f, 20.0f);
+    private static readonly Vector3 ProbeBlendB = new(8.0f, 0.0f, 20.0f);
+
+    // Light-cell tints of the three cubes (display colours): the dark cells are 10 % of them.
+    private static readonly Color ProbeGlobalTint = new(40, 230, 40);
+    private static readonly Color ProbeATint = new(230, 40, 40);
+    private static readonly Color ProbeBTint = new(40, 40, 230);
+
     // ---- Glass scene (CASAENGINE_COLOR_DEMO_GLASS=1) ----
 
     /// <summary>A horizontal measurement segment of the glass scene: row, first and last pixel (window coordinates, 1024 x 768).</summary>
@@ -229,6 +261,8 @@ public sealed class ColorPipelineDemo : Demo
     private Texture2D? _checkerTexture;
     private SpriteFont? _font;
     private bool _iblEnabled;
+    private bool _probesEnabled;
+    private TextureCube?[]? _probeCubes;
     private TextureCube?[]? _iblCubes;
     private Color[][][]? _iblFacePixels;
     private int _iblCubeIndex;
@@ -340,6 +374,12 @@ public sealed class ColorPipelineDemo : Demo
             AddIblScene(world, game.GraphicsDevice);
         }
 
+        _probesEnabled = Environment.GetEnvironmentVariable(ProbesVariable) == "1";
+        if (_probesEnabled)
+        {
+            AddProbeScene(world, game.GraphicsDevice);
+        }
+
         if (Environment.GetEnvironmentVariable(GlassVariable) == "1")
         {
             AddGlassScene(world, game.GraphicsDevice);
@@ -367,6 +407,13 @@ public sealed class ColorPipelineDemo : Demo
         {
             // The specular cube of the world is the procedural checkerboard cube; its intensity is 1 so the reference is the texel itself.
             environmentSettings.SpecularEnvironmentCubemap = _iblCubes[0];
+            environmentSettings.SpecularIntensity = 1.0f;
+        }
+
+        if (_probesEnabled && _probeCubes is not null)
+        {
+            // The global cube of the probe scene is the green one; the probes override it where they have influence.
+            environmentSettings.SpecularEnvironmentCubemap = _probeCubes[0];
             environmentSettings.SpecularIntensity = 1.0f;
         }
 
@@ -427,6 +474,10 @@ public sealed class ColorPipelineDemo : Demo
         if (_iblEnabled)
         {
             UpdateIblScene(_game);
+        }
+        else if (_probesEnabled)
+        {
+            UpdateProbeScene(_game);
         }
 
         var settings = _game.GameManager.CurrentWorld.EnvironmentSettings;
@@ -556,6 +607,17 @@ public sealed class ColorPipelineDemo : Demo
             }
         }
 
+        if (_probeCubes != null)
+        {
+            _game?.GameManager.CurrentWorld.ReflectionProbes.Clear();
+            foreach (TextureCube? cube in _probeCubes)
+            {
+                cube?.Dispose();
+            }
+        }
+
+        _probeCubes = null;
+        _probesEnabled = false;
         _iblCubes = null;
         _iblFacePixels = null;
         _iblEnabled = false;
@@ -656,6 +718,98 @@ public sealed class ColorPipelineDemo : Demo
             new SpherePrimitive(IblSphereRadius * 2.0f, 32),
             IblRoughSphereCentre,
             new LitPbrMaterial { Name = "IblRough", BaseColor = Color.White, Metallic = 1.0f, Roughness = IblRoughSphereRoughness });
+    }
+
+    /// <summary>
+    /// The probe scene (plan T7.1): the three cubes (green global, red probe A, blue probe B), the two probes placed according to
+    /// <c>CASAENGINE_COLOR_DEMO_PROBE_CASE</c> and one metal sphere of roughness 0.6.
+    /// </summary>
+    private void AddProbeScene(World world, GraphicsDevice graphicsDevice)
+    {
+        _probeCubes = new TextureCube?[]
+        {
+            ColorPipelineIblScene.CreateCube(graphicsDevice, ColorPipelineIblScene.BuildUniformTintFacePixels(ProbeGlobalTint), "ColorPipelineProbeGlobalCube"),
+            ColorPipelineIblScene.CreateCube(graphicsDevice, ColorPipelineIblScene.BuildUniformTintFacePixels(ProbeATint), "ColorPipelineProbeACube"),
+            ColorPipelineIblScene.CreateCube(graphicsDevice, ColorPipelineIblScene.BuildUniformTintFacePixels(ProbeBTint), "ColorPipelineProbeBCube"),
+        };
+
+        LitPbrMaterial.DebugForceIblBaseLevel = Environment.GetEnvironmentVariable(IblForceBaseLevelVariable) == "1";
+
+        string probeCase = Environment.GetEnvironmentVariable(ProbeCaseVariable) ?? "A";
+        Vector3 positionA;
+        Vector3 positionB;
+        switch (probeCase.ToLowerInvariant())
+        {
+            case "blend":
+                positionA = ProbeBlendA;
+                positionB = ProbeBlendB;
+                break;
+            case "b":
+                positionA = ProbeOutOfRange;
+                positionB = ProbeAtCamera;
+                break;
+            default:
+                if (!string.Equals(probeCase, "A", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logs.WriteWarning($"[ColorPipelineDemo] {ProbeCaseVariable} '{probeCase}' is not A, blend or B; A is used.");
+                }
+
+                positionA = ProbeAtCamera;
+                positionB = ProbeOutOfRange;
+                break;
+        }
+
+        world.ReflectionProbes.Add(new ReflectionProbe
+        {
+            Name = "Probe A (red)",
+            Position = positionA,
+            InfluenceRadius = ProbeRadius,
+            BlendDistance = ProbeBlendDistance,
+            SpecularCubemap = _probeCubes[1],
+        });
+        world.ReflectionProbes.Add(new ReflectionProbe
+        {
+            Name = "Probe B (blue)",
+            Position = positionB,
+            InfluenceRadius = ProbeRadius,
+            BlendDistance = ProbeBlendDistance,
+            SpecularCubemap = _probeCubes[2],
+        });
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "Probe rough sphere",
+            new SpherePrimitive(IblSphereRadius * 2.0f, 32),
+            IblRoughSphereCentre,
+            new LitPbrMaterial { Name = "ProbeRough", BaseColor = Color.White, Metallic = 1.0f, Roughness = IblRoughSphereRoughness });
+
+        Logs.WriteInfo($"[ColorPipelineDemo] Probe scene, case {probeCase}: probe A at {positionA}, probe B at {positionB}, radius {ProbeRadius}, blend distance {ProbeBlendDistance}.");
+    }
+
+    /// <summary>
+    /// Per frame work of the probe scene: the log of every change of the generation counter of the IBL cache (once per change,
+    /// never per frame) and a summary at frame 600.
+    /// </summary>
+    private void UpdateProbeScene(CasaEngineGame game)
+    {
+        _frame++;
+        var cache = game.IblCache;
+        if (cache == null)
+        {
+            return;
+        }
+
+        if (cache.GenerationCount != _lastLoggedIblGenerationCount)
+        {
+            _lastLoggedIblGenerationCount = cache.GenerationCount;
+            Logs.WriteInfo($"[ColorPipelineDemo] Probe scene generation count {cache.GenerationCount} at frame {_frame}, outside the view loop: {cache.GeneratedOutsideViewLoop}.");
+        }
+
+        if (_frame == IblSummaryFrame)
+        {
+            Logs.WriteInfo($"[ColorPipelineDemo] Probe scene after {_frame} frames: {cache.GenerationCount} generation(s) for {cache.EntryCount} source cube(s), outside the view loop: {cache.GeneratedOutsideViewLoop}.");
+        }
     }
 
     /// <summary>

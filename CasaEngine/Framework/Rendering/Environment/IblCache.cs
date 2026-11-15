@@ -29,6 +29,10 @@ public sealed class IblCache : IDisposable
     private sealed class Entry
     {
         public bool SourceIsLinear;
+
+        // True once the cube is used as an environment cube (irradiance wanted); a reflection probe cube only wants its atlas.
+        public bool WantsIrradiance;
+        public bool Queued;
         public TextureCube Irradiance;
         public Texture2D Atlas;
         public bool Failed;
@@ -85,11 +89,19 @@ public sealed class IblCache : IDisposable
                     brdfTable = _brdfTable;
                     return true;
                 }
+
+                // A cube first met as a reflection probe (atlas only) that is now used as an environment cube needs its irradiance too.
+                if (!entry.WantsIrradiance)
+                {
+                    entry.WantsIrradiance = true;
+                    Enqueue(source, entry);
+                }
             }
             else
             {
-                _entries.Add(source, new Entry { SourceIsLinear = sourceIsLinear });
-                _pending.Add(source);
+                var added = new Entry { SourceIsLinear = sourceIsLinear, WantsIrradiance = true };
+                _entries.Add(source, added);
+                Enqueue(source, added);
             }
         }
 
@@ -97,6 +109,47 @@ public sealed class IblCache : IDisposable
         atlas = null;
         brdfTable = null;
         return false;
+    }
+
+    /// <summary>
+    /// The prefiltered atlas of a reflection probe cube (T7.1, ADR-0107): same generation and same queue as <see cref="TryGet"/>,
+    /// but only the atlas is generated, the irradiance of a probe is never used. When the atlas exists, returns true; otherwise
+    /// returns false and, the first time, registers a request that the next <see cref="Flush"/> executes (the shader samples the
+    /// unprefiltered cube until then). <paramref name="sourceIsLinear"/> is kept with the request.
+    /// </summary>
+    public bool TryGetPrefilteredAtlas(TextureCube source, bool sourceIsLinear, out Texture2D atlas)
+    {
+        if (!_disposed && source is not null && !source.IsDisposed)
+        {
+            if (_entries.TryGetValue(source, out Entry entry))
+            {
+                if (entry.Atlas is not null && !entry.Atlas.IsDisposed)
+                {
+                    atlas = entry.Atlas;
+                    return true;
+                }
+            }
+            else
+            {
+                var added = new Entry { SourceIsLinear = sourceIsLinear };
+                _entries.Add(source, added);
+                Enqueue(source, added);
+            }
+        }
+
+        atlas = null;
+        return false;
+    }
+
+    private void Enqueue(TextureCube source, Entry entry)
+    {
+        if (entry.Queued)
+        {
+            return;
+        }
+
+        entry.Queued = true;
+        _pending.Add(source);
     }
 
     /// <summary>
@@ -140,6 +193,14 @@ public sealed class IblCache : IDisposable
             Generate(generator, source, entry);
         }
 
+        for (int i = 0; i < _pending.Count; i++)
+        {
+            if (_entries.TryGetValue(_pending[i], out Entry queued))
+            {
+                queued.Queued = false;
+            }
+        }
+
         _pending.Clear();
     }
 
@@ -175,11 +236,20 @@ public sealed class IblCache : IDisposable
                 Logs.WriteInfo($"[IblCache] Computed the BRDF table ({BrdfLookupTable.Size} x {BrdfLookupTable.Size}, {BrdfLookupTable.SampleCount} samples per texel) in {BrdfTableMilliseconds:F1} ms.");
             }
 
+            bool generateIrradiance = entry.WantsIrradiance && entry.Irradiance is null;
+            double irradianceMilliseconds = 0.0;
+            if (generateIrradiance)
+            {
+                entry.Irradiance = generator.GenerateIrradiance(source, entry.SourceIsLinear);
+                irradianceMilliseconds = generator.LastGenerationMilliseconds;
+            }
 
-            entry.Irradiance = generator.GenerateIrradiance(source, entry.SourceIsLinear);
-            double irradianceMilliseconds = generator.LastGenerationMilliseconds;
-            entry.Atlas = generator.GeneratePrefiltered(source, entry.SourceIsLinear);
-            double atlasMilliseconds = generator.LastGenerationMilliseconds;
+            double atlasMilliseconds = 0.0;
+            if (entry.Atlas is null)
+            {
+                entry.Atlas = generator.GeneratePrefiltered(source, entry.SourceIsLinear);
+                atlasMilliseconds = generator.LastGenerationMilliseconds;
+            }
 
             GenerationCount++;
             if (ViewLoopActive)
@@ -187,7 +257,9 @@ public sealed class IblCache : IDisposable
                 GeneratedOutsideViewLoop = false;
             }
 
-            Logs.WriteInfo($"[IblCache] Generated the IBL textures of an environment cube: irradiance {irradianceMilliseconds:F1} ms, prefiltered atlas {atlasMilliseconds:F1} ms.");
+            Logs.WriteInfo(generateIrradiance
+                ? $"[IblCache] Generated the IBL textures of an environment cube: irradiance {irradianceMilliseconds:F1} ms, prefiltered atlas {atlasMilliseconds:F1} ms."
+                : $"[IblCache] Generated the prefiltered atlas of a reflection probe cube: {atlasMilliseconds:F1} ms.");
         }
         catch (Exception exception)
         {
