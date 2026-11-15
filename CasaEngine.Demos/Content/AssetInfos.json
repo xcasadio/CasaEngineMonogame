@@ -1259,6 +1259,12 @@
       "name": "demos-input",
       "file_name": "demos-input.buttonsMapping",
       "asset_type": "buttonsmapping"
+    },
+    {
+      "id": "5b0c5e0e-3a6e-4d0b-9d52-7a1f0c9e2b41",
+      "name": "PbrSample",
+      "file_name": "Materials\\pbr-sample.material",
+      "asset_type": "material"
     }
   ]
 }

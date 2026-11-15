@@ -1,0 +1,32 @@
+{
+  "id": "5b0c5e0e-3a6e-4d0b-9d52-7a1f0c9e2b41",
+  "name": "PbrSample",
+  "definition_id": "lit-pbr",
+  "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+  "is_transparent": false,
+  "queue": "Opaque",
+  "cast_shadows": true,
+  "receive_shadows": true,
+  "blend_state": "Opaque",
+  "depth_stencil_state": "Default",
+  "rasterizer_state": "CullCounterClockwise",
+  "sampler_state": "AnisotropicClamp",
+  "properties": {
+    "base_color": {
+      "r": 200,
+      "g": 120,
+      "b": 60,
+      "a": 255
+    },
+    "metallic": 0.8,
+    "roughness": 0.35,
+    "emissive_color": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "occlusion_strength": 1.0,
+    "normal_scale": 1.0,
+    "alpha_cutoff": 0.5
+  }
+}

@@ -132,7 +132,8 @@ public sealed class MaterialDefinitionEditorRegistry
         if (key.Contains("specular", StringComparison.OrdinalIgnoreCase)
             || key.Contains("roughness", StringComparison.OrdinalIgnoreCase)
             || key.Contains("metal", StringComparison.OrdinalIgnoreCase)
-            || key.Contains("reflection", StringComparison.OrdinalIgnoreCase))
+            || key.Contains("reflection", StringComparison.OrdinalIgnoreCase)
+            || key.Contains("occlusion", StringComparison.OrdinalIgnoreCase))
         {
             return "PBR";
         }

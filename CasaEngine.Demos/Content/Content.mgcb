@@ -58,6 +58,9 @@
 #begin Maps/tile1.tileset
 /copy:Maps/tile1.tileset
 
+#begin Materials/pbr-sample.material
+/copy:Materials/pbr-sample.material
+
 #begin paper_box_texture.jpg
 /copy:paper_box_texture.jpg
 
