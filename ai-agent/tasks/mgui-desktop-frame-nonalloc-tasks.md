@@ -487,6 +487,174 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   Lu dans le code, non mesuré : `CasaLegacyShapeRenderer2D.cs:86-93` crée un `Vector2[4]` par `FillRectangle` en
   contexte `Primitives`. Le constat P3 de T3.1 sur `WithRasterizerType` vaut aussi ici.
 
+### Suite O7 — Transaction de dessin gardée par le runtime (plan du 2026-11-15)
+
+Demande de l'auteur le 2026-11-15 : « écris le plan pour O7 et enchaîne toutes les tâches », en mode AUTO.
+
+Relectures : première REVISE (retrait des vues, exceptions), corrigée ; seconde REVISE, T3.3 et T3.4 sans blocage,
+trois précisions sur T3.5 (test par réflexion, plan historique dans la recherche, retour arrière), corrigées ; une
+relecture de clôture de T3.5 avant son exécution.
+
+**Décision D8** (révisée le 2026-11-15 après la consigne de l'auteur : « un design moderne avec de la performance. Si
+il faut casser l'API on la casse et on ne garde pas une fonctionnalité si elle est obsolète »). `CasaDesktopRuntime`
+possède une seule `CasaDrawTransaction` pour toute sa vie. `CreateDrawTransaction` l'ouvre (réarmée : elle se
+comporte comme une transaction neuve) ; `Dispose` la ferme. **Pas de chemin de repli** : demander une transaction
+pendant que celle du runtime est ouverte lève `InvalidOperationException` (usage invalide, échec immédiat), au lieu de
+créer en silence un second objet. C'est une rupture de comportement de `CreateDrawTransaction`. Enregistrée en
+ADR-0097 du moteur par T3.4 (0095 et 0096 sont pris par `main`).
+
+**Faits lus dans le code (2026-11-15).**
+
+- Sites de création : `CasaDesktopRuntime.cs:127` (`CreateDrawTransaction`, appelé à chaque image par
+  `MGDesktop.Draw`, `MGUI/MGUI.Core/UI/MGDesktop.cs:1878`) et `:151` (`DrawViews`). Aucun autre `new
+  CasaDrawTransaction` hors des tests.
+- État fixé par le constructeur (`CasaDrawTransaction.cs:99-113`) : `PrimitiveProjectionMatrix` (calculée depuis le
+  viewport courant, propriété en lecture seule, recopiée dans `CasaDrawStateController`) ; `CasaDrawStateController`
+  (`CurrentSettings` = réglages initiaux, `PreviousSettings` = `DrawSettings.Default`, `CurrentContext` = `None`) ;
+  `CasaRenderTargetService` (sans état) ; renderer de formes, créé par `Options.CreateShapeRenderer` (option publique)
+  ou `CasaLegacyShapeRenderer2D` ; `CasaClipManager` (compteurs de `ClipDiagnostics`, `_stencilDepth` et
+  `MaxObservedDepth` de l'exécuteur de stencil, compteurs et état de l'exécuteur de masque, emplacements de clip
+  réutilisables) ; `PrimitiveDrawing`. Puis `BeginDraw(DefaultContext)` si `DeferBegin` est faux.
+- `Dispose` (`:876`) ne fait que `EndDraw(CurrentContext)`.
+- Deux renderers de formes dans le dépôt : `CasaLegacyShapeRenderer2D` et `CasaAposShapeRenderer2D`
+  (`CasaEngine.AposShapes`). Leur état propre n'a pas été lu : T3.3 commence par là.
+- `ClipDiagnostics` n'est lu que par `CasaDrawTransaction` (texte de debug) et par `DesktopFrameGpuAllocationTests`.
+- Des tests gardent une transaction rendue par `CreateDrawTransaction` sur plusieurs images sans la libérer
+  (`DesktopFrameGpuAllocationTests.cs:112`, `TextSpanGpuTests.cs:63`).
+- Appelants du dessin dans le code produit : `UIRoot.cs:193`, `WorldUIComponent.cs:112`,
+  `DefaultUICompositionService.cs:15`, `CasaEngineGame.cs:731`, `GameEditor.cs:9047` et `:9099`,
+  `GameEditor.Remote.cs:47`. Qu'aucun ne dessine un bureau pendant qu'un autre du même runtime est ouvert n'a pas été
+  vérifié : T3.4 commence par là.
+- `DrawViews` (`CasaDesktopRuntime.cs:149`) n'a aucun appelant trouvé par `rg` dans `CasaEngine`, `CasaEngine.Editor`,
+  `CasaEngine.EditorServices` et `CasaEngine.Demos`.
+- État par transaction omis par la première version de cette liste (relecture du 2026-11-15) :
+  `CasaDrawTransaction.cs:771-773` (`_FreeScissorClipSlots`, `_RasterizerVariantA`, `_RasterizerVariantB` : une
+  variante gardée après un réarmement peut changer l'identité et l'égalité de `CurrentSettings` et de
+  `PreviousSettings` par rapport à une transaction neuve, à cause du cache privé d'inverse noté en T3.1) ; `:517-518`
+  (`TexturedVertexBuffer`, `TexturedIndexBuffer`) ; `CasaDrawStateController.cs:11` (`_primitiveProjectionMatrix` en
+  lecture seule) ; `Clipping/CasaClipManager.cs:13-16` (`_FreeNoClipSlots`, trois compteurs) ;
+  `Clipping/CasaMaskClipExecutor.cs:18-19` (compteurs ; un clip à masque laissé ouvert garde sa cible de rendu louée) ;
+  `CasaAposShapeRenderer2D.cs:29-31` (`_fallback`, `_batchDepth` remis dans un `finally`).
+- Chaque `UIRoot` et l'éditeur construisent leur propre runtime (`UIRoot.cs:83-86`, `GameEditor.cs:389`) ; les
+  dessins de capture et d'export de l'éditeur (`GameEditor.cs:9099`, `GameEditor.Remote.cs:47`) suivent le dessin
+  normal, ils ne sont pas imbriqués, et sont dans un `try`/`catch` : l'éditeur continue après une exception de dessin.
+- `IUIDesktopRuntime` (`MGUI/MGUI.Shared/Rendering/IUIDesktopRuntime.cs:21-22`) ne déclare que
+  `CreateDrawTransaction` et `RegisterView`. `DrawViews`, `UpdateViews` et `UnregisterView` de `CasaDesktopRuntime`
+  n'ont pas d'appelant dans le code produit. Le test `CasaMguiBackendOwnershipTests.cs:155` cherche dans
+  `docs/engine/casaengine-mgui-backend.md` la ligne « RegisterView / UnregisterView / Views / UpdateViews / DrawViews ».
+
+**Hors périmètre.** `MGUI/` (dont son propre `MainRenderer`, qui crée aussi une transaction par image) ; le clip à
+stencil, `SetDrawSettingsTemporary`, `SetTransformTemporary` (mesures de T3.2) ; rendre la transaction du `MainRenderer`
+de MGUI réutilisable (T3.5 ne fait que le renommer).
+
+**Retour arrière.** Chaque tâche est un commit du moteur : `git revert` du commit de T3.4 rend la création par image ;
+celui de T3.3 retire la méthode de réarmement. T3.5 fait deux commits : `git revert` du commit du moteur d'abord
+(il rend l'ancienne référence du sous-module, donc `IUIDesktopRuntime.CreateDrawTransaction`), puis, si on veut aussi
+le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-module.
+
+### ⏳ T3.3 — Une transaction réarmable
+
+- Résultat : `CasaDrawTransaction` a une méthode `internal` de réarmement (réglages initiaux, `DeferBegin`, contexte
+  par défaut) après laquelle elle est dans l'état d'une transaction neuve construite avec les mêmes arguments au même
+  moment. Le constructeur passe par le même code. Le runtime n'est pas modifié : aucun changement de comportement.
+- Fichiers (runtime) : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs`,
+  `CasaDrawStateController.cs`, `Clipping/CasaClipManager.cs`, `Clipping/CasaStencilClipExecutor.cs`,
+  `Clipping/CasaMaskClipExecutor.cs`, `Primitives/CasaLegacyShapeRenderer2D.cs` ;
+  `CasaEngine.AposShapes/Framework/UI/Backend/MonoGame/Primitives/CasaAposShapeRenderer2D.cs` en lecture, modifié
+  seulement s'il garde un état par transaction ; test nouveau
+  `CasaEngine.Tests/UI/Backend/DrawTransactionRearmGpuTests.cs`.
+- Étapes : (1) lister chaque champ d'instance de la transaction et de ses cinq objets, avec sa valeur à la
+  construction et ce qui le modifie, liste écrite sous la tâche ; (2) écrire le réarmement, qui remet chaque champ de
+  la liste ; (3) tests.
+- Fin, prouvée sur GPU réel, une transaction réarmée contre une transaction neuve, même scénario : mêmes
+  `CurrentSettings`, `PreviousSettings`, `CurrentClipBounds`, `ClipDiagnostics`, même état du `GraphicsDevice`
+  (rasterizer, blend, depth-stencil, scissor, viewport, render target) à chaque étape, mêmes pixels, dans ces cas :
+  usage précédent terminé proprement ; usage précédent laissé avec des réglages changés, un clip rectangulaire non
+  libéré, un clip à stencil non libéré, un clip à masque non libéré (sa cible de rendu louée est rendue ou le fait
+  est écrit ici), une variante de rasterizer en cache ; taille de viewport différente entre les deux usages (la projection des
+  primitives suit) ; `DeferBegin` vrai puis faux ; réglages initiaux différents. Réarmer puis dessiner l'image de
+  T3.2 : 0 octet, réarmement compris.
+- Renderer de formes : il est gardé avec la transaction. Si l'un des deux renderers du dépôt garde un état par
+  transaction qui ne peut pas être remis, ou si garder le renderer d'un projet externe (`CreateShapeRenderer`) change
+  ce qu'il dessine, la tâche s'arrête (⚠️) avec le fait écrit ici.
+- Validation : les deux solutions 0 erreur, `CasaEngine.Tests` vert sans test sauté.
+- Commit (moteur) : `refactor(ui): let a draw transaction be re-armed`
+
+### ⏳ T3.4 — Le runtime possède sa transaction
+
+- Prérequis : T3.3 ✅.
+- Résultat : `CasaDesktopRuntime` crée sa transaction une fois ; `CreateDrawTransaction` l'ouvre, réarmée ; `Dispose` la ferme ; une demande pendant qu'elle est ouverte lève `InvalidOperationException` avec un
+  message qui dit quoi faire. Le constructeur public de `CasaDrawTransaction` devient `internal` si aucun projet du
+  dépôt ne l'appelle hors de `CasaEngine` et de ses tests (rupture d'API acceptée par D8, notée dans l'ADR).
+- Étape préalable, en lecture : pour chaque appelant du dessin listé plus haut, vérifier qu'il ne peut pas demander
+  une transaction au runtime pendant qu'une autre du même runtime est ouverte (UI en espace monde dessinée dans une
+  cible de rendu, éditeur, capture à distance). Si un appelant du code produit le fait, la tâche s'arrête (⚠️) avec
+  le fait écrit ici : le choix entre une pile de transactions et un changement de cet appelant revient à l'auteur.
+- Vues : `DrawViews`, `UpdateViews` et `UnregisterView` sont retirés de `CasaDesktopRuntime` (aucun appelant,
+  hors interface : fonctionnalité obsolète, D8), noté dans l'ADR. `RegisterView` reste (membre de
+  `IUIDesktopRuntime`) ; `Views` et `MutableViews` restent s'ils ont un lecteur dans les deux solutions, sinon ils
+  sont retirés avec le reste et `RegisterView` garde le seul comportement que l'interface exige (fait écrit ici).
+  La ligne du tableau de `docs/engine/casaengine-mgui-backend.md` et l'affirmation de
+  `CasaMguiBackendOwnershipTests.cs:155` sont remplacées ensemble par la ligne des membres qui existent encore :
+  remplacement prévu, pas un affaiblissement au sens de la règle d'arrêt.
+- Exceptions : l'état « ouverte » est remis à « fermée » dans un `finally` de `Dispose`, que `EndDraw` réussisse ou
+  lève ; un réarmement ou un `BeginDraw` qui lève dans `CreateDrawTransaction` laisse la transaction fermée. Après
+  une exception de dessin, l'image suivante se dessine normalement (c'est le comportement d'aujourd'hui, où chaque
+  image a une transaction neuve).
+- Fichiers (runtime) : `CasaDesktopRuntime.cs`, `CasaDrawTransaction.cs` ; tests
+  `CasaEngine.Tests/UI/Backend/DesktopFrameGpuAllocationTests.cs`, `DrawTransactionRearmGpuTests.cs`, `CasaEngine.Tests/UI/CasaMguiBackendOwnershipTests.cs` (la ligne des vues), et les tests
+  existants qui ouvrent deux transactions du même runtime à la fois, adaptés pour fermer la première (liste écrite
+  ici ; une affirmation existante n'est ni retirée ni affaiblie) ; `docs/decisions/0097-…md` et son index ;
+  `docs/engine/casaengine-mgui-backend.md`.
+- Fin : sur GPU réel, `MGDesktop.Update()` puis `MGDesktop.Draw()` (le chemin réel, qui demande sa transaction au
+  runtime) de la fixture de T3.2 : 0 octet par image au repos et en glissement, total exact sur la fenêtre mesurée
+  (pas de division) ; contre-éprouvé sur le code d'avant (2304 attendus) ; pixels égaux aux valeurs figées de T3.2 ;
+  une seconde demande pendant que la transaction est ouverte lève, et la première reste utilisable (état du device et
+  pixels inchangés) ; après `Dispose`, la demande suivante rend le même objet, réarmé ; changement de taille du
+  viewport entre deux images : pixels égaux à ceux d'un runtime neuf.
+- Fin, exceptions (GPU réel) : (1) un dessin lève dans la transaction du runtime ; après `Dispose`, et aussi après un
+  `Dispose` qui lève lui-même (par exemple une texture libérée restée dans le lot de sprites), la demande suivante
+  réussit, rend le même objet réarmé, et l'image suivante a les pixels de référence de T3.2 ; (2) une demande avec
+  `deferBegin: false` dont le début lève laisse la demande suivante réussir.
+- Fin, vues : `BackendParityDocument_Lists_MainRendererResponsibilities` passe, la ligne étant la même dans le
+  document et dans le test et correspondant aux membres présents ; aucune autre affirmation retirée.
+- Contrat écrit dans l'ADR et la doc XML : une transaction par runtime, une seule ouverte à la fois, à ne plus
+  utiliser après son `Dispose` ; le renderer de formes de `CreateShapeRenderer` est créé une fois par runtime et non
+  plus une fois par image.
+- Arrêt : si une affirmation d'un test existant doit être retirée ou affaiblie, ou si un appelant du dépôt utilise une
+  transaction après son `Dispose`, la tâche s'arrête (⚠️) avec le fait écrit ici.
+- Validation : les deux solutions 0 erreur, `CasaEngine.Tests` vert sans test sauté ; `verifier` frais sur T3.3 à
+  T3.5 après T3.5 ; T3.2 passe alors en ✅ et O7 est fermé.
+- Commit (moteur) : `perf(ui): let the desktop runtime own its draw transaction`
+
+### ⏳ T3.5 — `CreateDrawTransaction` renommé dans MGUI
+
+Demande de l'auteur le 2026-11-15 : « renomme aussi CreateDrawTransaction dans MGUI ».
+
+- Prérequis : T3.4 ✅.
+- Résultat : `IUIDesktopRuntime.CreateDrawTransaction` s'appelle `BeginDrawTransaction` (nom choisi par l'agent :
+  la méthode ouvre une transaction que `Dispose` ferme, elle n'en crée plus forcément une ; à changer si l'auteur en
+  préfère un autre). Même signature, même comportement. Rupture d'API publique de MGUI et du moteur, sans
+  alias `[Obsolete]` (D8).
+- Fichiers : dans `MGUI/`, l'interface (`MGUI.Shared/Rendering/IUIDesktopRuntime.cs`), `MainRenderer` (ses trois
+  surcharges, publique et interne), `MGUI.Core/UI/MGDesktop.cs:1878`, `MGUI.Samples`, les implémentations et appels de
+  `MGUI.Tests`, la documentation de `MGUI/Docs/` qui cite le nom, un ADR de MGUI (numéro suivant) ; dans le moteur,
+  `CasaDesktopRuntime.cs`, les implémentations et appels de `CasaEngine.Tests`, `docs/` qui cite le nom, l'ADR-0097
+  complété. Tout autre projet des deux solutions qui implémente ou appelle la méthode.
+- Fin : `rg "CreateDrawTransaction"` ne rend plus rien dans les deux dépôts, hors de ce plan, des ADR qui racontent
+  le renommage, de `ai-agent/tasks/archive/`, de `ai-agent/audits/` (lecture seule) et de
+  `ai-agent/tasks/casaengine-mgui-renderer-tasks.md` (plan historique, lignes 92 et 199, laissé tel quel) ;
+  `MGUI.sln`, les deux solutions du moteur 0 erreur ; `MGUI.Tests` et `CasaEngine.Tests` verts, mêmes nombres de
+  tests qu'avant la tâche, aucun sauté ; `MainRenderer_ImplementsSmallDesktopRuntimeContract` passe avec
+  `{ "BeginDrawTransaction", "RegisterView" }`.
+- Arrêt : un test qui nomme la méthode est mis à jour dans le même commit, par remplacement du nom seulement
+  (remplacement prévu) : chaîne cherchée dans une source ou un document (`MGUI.Tests/Architecture/
+  HostRuntimeContractTests.cs:82`, `UIViewTests.cs:47`), nom comparé par réflexion (`HostRuntimeContractTests.cs:143`),
+  `cref` de documentation (`DesktopFrameAllocationMeasurements.cs:19`), implémentation ou appel. Tout autre changement
+  de test arrête la tâche.
+- Commits : MGUI `refactor(rendering)!: rename CreateDrawTransaction to BeginDrawTransaction` ; moteur
+  `refactor(ui)!: take the renamed BeginDrawTransaction of MGUI`, avec la référence du sous-module.
+
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
 - Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
