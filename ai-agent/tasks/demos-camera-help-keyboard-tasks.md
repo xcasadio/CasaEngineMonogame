@@ -108,7 +108,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 3 — Clavier par position
 
-### ⏳ T3.1 — Traduction des positions de touche selon la disposition
+### ✅ T3.1 — Traduction des positions de touche selon la disposition
 
 - Objectif : un service moteur qui traduit une touche QWERTY US en touche de la disposition active, par sa position physique. C'est l'identité sur QWERTY.
 - Fichiers : `CasaEngine/Framework/Input/KeyboardLayout.cs` (nom à confirmer), tests.
@@ -118,6 +118,11 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   3. Table calculée une fois, sans allocation à la lecture ; identité si la détection échoue, avec un message dans le journal.
 - Validation : tests avec une disposition simulée (QWERTY = identité ; AZERTY : W→Z, A→Q, Q→A, Z→W, M→« , ») ; builds ; tests.
 - Commit : `feat(input): translate key positions to the active keyboard layout`
+- Validation faite (2026-11-15) :
+  - O1 tranché : Win32 `GetKeyboardLayout` + `MapVirtualKeyEx` (le moteur cible déjà Windows et appelle `user32` dans `Win32WindowInputSource`). Ailleurs, identité, avec un avertissement dans le journal.
+  - `KeyboardLayout.FromQwertyPosition` lit une table de 256 entrées, construite une fois. `UseLayout` sert aux tests, `Reset` force une relecture.
+  - Tests `KeyboardLayoutTests` : QWERTY = identité sur les 256 codes ; AZERTY simulé : W→Z, A→Q, Q→A, Z→W, M→« , », ;→M, 1 inchangé ; F1, Échap, Entrée, Espace, flèches, pavé numérique, Maj inchangés. 19/19.
+  - Lecture réelle sur la machine de l'agent, qui est en AZERTY : W→Z et A→Q.
 
 ### ⏳ T3.2 — Le mapping et la caméra lisent les touches par position
 
