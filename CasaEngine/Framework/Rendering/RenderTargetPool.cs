@@ -126,6 +126,30 @@ public sealed class RenderTargetPool : IDisposable
     }
 
     /// <summary>
+    /// Disposes the free (not acquired) render targets of one exact (width, height, format, depth) key and returns how many
+    /// were disposed. Targets of other keys, and targets currently acquired, are left alone.
+    /// </summary>
+    public int TrimFree(int width, int height, SurfaceFormat surfaceFormat, DepthFormat depthFormat)
+    {
+        var key = (width, height, surfaceFormat, depthFormat);
+        if (!_pool.TryGetValue(key, out var queue))
+        {
+            return 0;
+        }
+
+        int disposed = 0;
+        while (queue.TryDequeue(out var rt))
+        {
+            TotalCount--;
+            disposed++;
+            rt.Dispose();
+        }
+
+        _pool.Remove(key);
+        return disposed;
+    }
+
+    /// <summary>
     /// Disposes all render targets in the pool (does not affect acquired RTs).
     /// Should be called on game exit or device reset.
     /// </summary>

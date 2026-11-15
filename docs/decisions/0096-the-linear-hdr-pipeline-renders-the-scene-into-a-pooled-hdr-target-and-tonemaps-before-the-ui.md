@@ -31,4 +31,5 @@ Verified on the code and by measurement (MonoGame DesktopGL 3.8.5.1, ADR-0086, t
 - Screen sprites and text drawn by `Renderer2DComponent` are still flushed with the scene, so they are tonemapped until a later decision moves them after the tonemapping.
 - A view with `ClearColorBuffer` false is not rendered in HDR.
 - The format of the retained and captured frozen-frame targets stays `Color`: they receive the tonemapped image.
+- The HDR scene target of a size that no view has rendered with for more than four consecutive `RenderPipeline.Render` calls is disposed at the end of the `Render` in which it becomes stale (`HdrTargetEviction`, `RenderTargetPool.TrimFree`), so GPU memory follows the sizes in use and a window resize leaves no target behind; a size used every render keeps its target, and the creation and release of a target are logged at Debug level.
 - The `RenderTargetUsage` toggle depends on MonoGame reading that setting at each binding of the back buffer (true in DesktopGL 3.8.5.1); another backend needs the same check.

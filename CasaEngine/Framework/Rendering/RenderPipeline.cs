@@ -58,6 +58,14 @@ public sealed class RenderPipeline
     /// </summary>
     internal int HdrTargetCreationCount { get; private set; }
 
+    /// <summary>Number of HDR scene targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int HdrTargetDisposalCount { get; private set; }
+
+    // Render index of the last use of each HDR target key (width, height, format). Filled when a size is first seen, so no
+    // allocation at constant size; swept once per Render.
+    private readonly Dictionary<(int, int, SurfaceFormat), long> _hdrLastUsedRender = new();
+    private readonly List<(int, int, SurfaceFormat)> _hdrStaleKeys = new();
+
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
     /// Null (the editor, tests): the pipeline is exactly the one without it.
@@ -456,6 +464,8 @@ public sealed class RenderPipeline
             // GraphicsStateGuard.Dispose() restores all state here (using block end).
         }
 
+        ReleaseUnusedHdrTargets();
+
         // After all views: restore initial target + full-screen viewport.
         _graphicsDevice.SetRenderTarget(initialRenderTarget);
         var pp = _graphicsDevice.PresentationParameters;
@@ -478,6 +488,34 @@ public sealed class RenderPipeline
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Disposes the free HDR scene targets of the sizes no view has rendered with for <see cref="HdrTargetEviction.MaxIdleRenders"/>
+    /// renders, so GPU memory follows the sizes in use (a window resize leaves no target behind). Once per Render, after the
+    /// views have released their targets; only the HDR keys tracked here are touched, never the other users of the shared pool.
+    /// </summary>
+    private void ReleaseUnusedHdrTargets()
+    {
+        if (_hdrLastUsedRender.Count == 0)
+        {
+            return;
+        }
+
+        _hdrStaleKeys.Clear();
+        HdrTargetEviction.CollectStale(_hdrLastUsedRender, _renderIndex, _hdrStaleKeys);
+
+        for (int i = 0; i < _hdrStaleKeys.Count; i++)
+        {
+            var key = _hdrStaleKeys[i];
+            _hdrLastUsedRender.Remove(key);
+            int disposed = RenderTargetPool.Shared.TrimFree(key.Item1, key.Item2, key.Item3, DepthFormat.Depth24Stencil8);
+            if (disposed > 0)
+            {
+                HdrTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[ColorPipeline] HDR scene target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {HdrTargetDisposalCount}, alive {HdrTargetCreationCount - HdrTargetDisposalCount}");
+            }
+        }
     }
 
     /// <summary>
@@ -506,10 +544,12 @@ public sealed class RenderPipeline
             }
         }
 
+        _hdrLastUsedRender[(width, height, target.Format)] = _renderIndex;
+
         if (pool.TotalCount != countBefore)
         {
             HdrTargetCreationCount++;
-            Logs.WriteInfo($"[ColorPipeline] HDR scene target created: {width}x{height} {target.Format}, render {_renderIndex}, total {HdrTargetCreationCount}");
+            Logs.WriteDebug($"[ColorPipeline] HDR scene target created: {width}x{height} {target.Format}, render {_renderIndex}, total {HdrTargetCreationCount}");
         }
 
         return target;
