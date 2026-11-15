@@ -273,7 +273,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
                 propertyDefinition.Key,
                 propertyDefinition.DisplayName,
                 propertyDefinition.ValueType,
-                FormatTextValue(propertyDefinition, state.EffectiveValue),
+                FormatSnapshotValue(propertyDefinition.ValueType, state.EffectiveValue),
                 _materialAsset.HasLocalPropertyValue(propertyDefinition.Key),
                 propertyDefinition.MinValue,
                 propertyDefinition.MaxValue,
@@ -1132,6 +1132,45 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// The text of a value as <c>material.get</c> returns it, in the form <see cref="TryApplyPropertyValue"/> parses back:
+    /// invariant numbers, <c>true</c>/<c>false</c>, <c>r,g,b,a</c> bytes for a colour, comma-separated components for a
+    /// vector, the asset id for a texture. Empty when there is no value.
+    /// </summary>
+    internal static string FormatSnapshotValue(MaterialPropertyType type, MaterialValue value)
+    {
+        if (value == null)
+        {
+            return string.Empty;
+        }
+
+        switch (type)
+        {
+            case MaterialPropertyType.Float when value.TryGetFloat(out float floatValue):
+                return floatValue.ToString("R", CultureInfo.InvariantCulture);
+            case MaterialPropertyType.Integer when value.TryGetInteger(out int intValue):
+                return intValue.ToString(CultureInfo.InvariantCulture);
+            case MaterialPropertyType.Boolean when value.TryGetBoolean(out bool boolValue):
+                return boolValue ? "true" : "false";
+            case MaterialPropertyType.Color when value.TryGetColor(out Color color):
+                return string.Create(CultureInfo.InvariantCulture, $"{color.R},{color.G},{color.B},{color.A}");
+            case MaterialPropertyType.Vector2 when value.TryGetVector2(out Vector2 vector2):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector2.X:R},{vector2.Y:R}");
+            case MaterialPropertyType.Vector3 when value.TryGetVector3(out Vector3 vector3):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector3.X:R},{vector3.Y:R},{vector3.Z:R}");
+            case MaterialPropertyType.Vector4 when value.TryGetVector4(out Vector4 vector4):
+                return string.Create(CultureInfo.InvariantCulture, $"{vector4.X:R},{vector4.Y:R},{vector4.Z:R},{vector4.W:R}");
+            case MaterialPropertyType.Texture when value.TryGetTextureId(out Guid textureId):
+                return textureId == Guid.Empty ? string.Empty : textureId.ToString("D");
+            case MaterialPropertyType.Enum when value.TryGetEnum(out string enumValue):
+                return enumValue ?? string.Empty;
+            case MaterialPropertyType.String when value.TryGetString(out string text):
+                return text ?? string.Empty;
+            default:
+                return string.Empty;
+        }
     }
 
     private static bool TryParseTextValue(MaterialPropertyDefinition propertyDefinition, string rawValue, out MaterialValue value)
