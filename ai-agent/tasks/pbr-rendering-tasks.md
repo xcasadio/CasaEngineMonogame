@@ -404,6 +404,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ---
 
 ## Phase 2 — Bloom
+> **Vérification indépendante de la phase 2 (2026-11-15) : CONFIRMED**, six affirmations sur six, aucun constat P0–P2. Bloom coupé : empreinte c15f8d93… ; bloom actif : (786,467) 11 → 243, interface et texte inchangés, coins sombres à 11, halo symétrique et monotone ; cibles de bloom 12 créées / 6 libérées / 6 vivantes sur `Frozen frame demo` ; 5322 tests. Avis P4 reportés : un monde réenregistré écrit tous les champs de `color_pipeline` dès qu'un seul diffère du défaut ; un `null` JSON dans un champ lève une exception au chargement (comme l'exposition) ; avec le seuil 1, le genou doux fait déjà contribuer les couleurs vers 0,5 linéaire (réglage à revoir par jeu).
 
 ### ✅ T2.1 — Réglages et shader de bloom
 
@@ -470,6 +471,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   5. Ombres : mêmes fonctions que `LitForward.fx` ; le mode `MultiplyLitColor` (ADR-0093) s'applique au pixel entier hors émissif.
   6. Sortie non bornée ; alpha = alpha de la couleur de base.
   7. Tests : techniques présentes ; les deux macros définies avant l'inclusion ; chaque constante de `ShaderParameterNames` utilisée par le matériau PBR est déclarée dans le fichier.
+  8. **Précisions de revue.** `LitPbr.fx` déclare aussi `DiffuseColor`, `SpecularColor` et `SpecularPower`, que `Lighting.fxh` lit. La tenue de 24 emplacements de lumière GGX dans les limites du modèle 3.0 n'est pas établie : si le compilateur refuse le shader, réduire d'abord le coût par emplacement (termes communs calculés une fois par pixel) ; si cela ne suffit pas, ⚠️ Blocked avec la mesure (D4 interdit de baisser les plafonds de lumières sans l'auteur). Le premier build qui compile `Pbr.fxh` est celui de cette tâche.
 - Validation : builds des deux solutions ; tests verts ; captures de T0.2 identiques.
 - Commit : `feat(shaders): add the static PBR lit shader`
 
@@ -530,13 +532,13 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 
 ### ⏳ T4.4 — Éditeur
 
-- Objectif : créer et éditer un `.material` `lit-pbr` dans l'éditeur.
-- Fichiers : `CasaEngine.Editor` : `MaterialDefinitionEditorRegistry.cs`, `GameEditor.cs` (description de type), flux de création de matériau, `MaterialPreviewViewport.cs`.
+- Objectif : ouvrir, éditer et prévisualiser un `.material` `lit-pbr` existant dans l'éditeur. **La création d'un matériau depuis l'éditeur n'existe pour aucune définition aujourd'hui** (le menu du navigateur de contenu n'offre que « New Folder », `ContentContextMenu.cs:34, 92` ; tout `new MaterialAsset(` de l'éditeur charge un fichier ou vient de l'import) : elle sort de ce plan (point ouvert O13).
+- Fichiers : `CasaEngine.EditorServices/Materials/MaterialDefinitionEditorRegistry.cs`, `CasaEngine.Editor/GameEditor.cs` (description de type), `CasaEngine.Editor/Controls/MaterialPreviewViewport.cs` ; fichier d'essai `CasaEngine.Demos/Content/Materials/pbr-sample.material` (`"definition_id": "lit-pbr"`, écrit à la main selon le format produit par les tests de T4.2).
 - Étapes :
   1. Vérifier le classement par mots-clés des nouvelles clés (`occlusion_texture`, `metallic_roughness_texture`) ; corriger seulement ce qui range une clé dans le mauvais groupe.
-  2. Description de type pour `LitPbrMaterial` ; choix de la définition à la création.
+  2. Description de type pour `LitPbrMaterial`.
   3. Aperçu : le matériau PBR s'affiche ; rechargement à chaud de `LitPbr.fx`.
-- Validation : build de la solution éditeur ; tests de registre verts ; contrôle manuel dans l'éditeur → 🧪 tant que l'auteur ne l'a pas fait.
+- Validation : build de la solution éditeur ; tests de registre verts, dont un test qui charge `pbr-sample.material` par `MaterialAssetJsonSerializer`, le compile et obtient un `LitPbrMaterial` ; contrôle manuel dans l'éditeur (ouvrir `pbr-sample.material`, modifier métal et rugosité, voir l'aperçu changer, modifier `LitPbr.fx` et voir le rechargement) → 🧪 tant que l'auteur ne l'a pas fait.
 - Commit : `feat(editor): edit and preview lit-pbr materials`
 
 ---
@@ -705,6 +707,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 | — | Décision | — | La boucle de revue automatique est close sans verdict READY (plafond atteint). Les constats restants étaient tous de priorité 2 et portaient sur la force des preuves ; ils sont corrigés ci-dessus sans nouvelle relecture, par arbitrage de la session principale en mode AUTO. Chaque phase reste relue avant son exécution et vérifiée après. |
 | 4 | Phase 2 | REVISE × 2 | 4 × P2 sur T2.2 : durée de vie des cibles de bloom ; validation exigeant un appui de touche ; contrôle de redimensionnement sans procédure enregistrée ; format des cibles de bloom en cas de repli. Tous **FIX**. Exécution lancée sans troisième relecture (arbitrage P2 de la session principale, mode AUTO) ; la phase est vérifiée après exécution. |
 | 5 | Phases 3–4 | REVISE | 5 × P2 : route d'écriture de `Pbr.fxh` sans toucher `Lighting.fxh` ; couleur de lumière du lobe spéculaire ; table d'alias de technique `LitPbr` ; règle du bit `NormalMap` contre le resolver partagé ; protocole de mesure de T4.3. Tous **FIX** (précisions de revue dans T3.1, T3.3, T4.1, T4.3). |
+| 6 | Phases 3–4 | REVISE | 1 × P2 : T4.4 demandait un flux de création de matériau qui n'existe pas dans l'éditeur. **FIX** : T4.4 resserrée à ouvrir, éditer, prévisualiser ; création en point ouvert O13. Notes P3/P4 intégrées à T3.2. Exécution lancée (arbitrage P2 de la session principale, mode AUTO). |
 
 ## Points ouverts
 
@@ -719,6 +722,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 | O7 | Un maillage skinné peut-il porter un `LitPbrMaterial` sans changer de format ? | T8.1 |
 | O8 | État réel de la migration d'import glTF, dont les statuts se contredisent. | T9.2 |
 | O9 | Dessin double des projeteurs d'ombre skinnés (`SkinnedMeshRendererComponent.cs:99` et `:170`) : hors périmètre, signalé. | — |
+| O13 | Créer un matériau depuis l'éditeur (aucune définition ne le permet aujourd'hui) : point d'entrée, nommage, définition par défaut. Décision de produit de l'auteur, hors de ce plan. | T4.4 |
 | O10 | Le décodage des couleurs de matériau dans chacun des 24 emplacements de lumière a donné une image `Legacy` fausse sur OpenGL, même avec la constante à 0 (cause non trouvée). Les nouveaux shaders doivent décoder les couleurs de matériau une seule fois par pixel. | T3.1, T3.2 |
 | O11 | La forme à sélection de `DecodeColor` évalue aussi `pow` en `Legacy` : petit coût par pixel pour une sortie identique au bit, à mesurer en T10.2. | T10.2 |
 | O12 | Levé par T1.7 (étape 3) : à l'intensité de lumière 16, en `LinearHdr` avec `AcesApprox` et exposition 1, deux des trois points de mesure de la sphère valent 250 (250 ; 251 ; 250) au lieu de trois valeurs distinctes, alors que `Legacy` les écrête tous à 255 et que `Reinhard` donne 226 ; 227 ; 224. Faut-il admettre le critère comme trop strict (le tonemapper compresse les hautes valeurs, l'information HDR est conservée : 244 à 251 sur la sphère) ou le reformuler (autre exposition ou autre tonemapper) ? Défaut : aucune modification du moteur. | T1.7 |
