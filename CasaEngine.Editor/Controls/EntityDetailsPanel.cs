@@ -791,6 +791,53 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Exposure", exposureEditor);
 
+        var bloomEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.BloomEnabled,
+        };
+        bloomEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle Bloom",
+            static s => s.ColorPipeline.BloomEnabled,
+            static (s, enabled) => s.ColorPipeline.BloomEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom", bloomEnabledCheckBox);
+
+        var bloomThresholdEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomThreshold,
+        };
+        bloomThresholdEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Threshold",
+            static s => s.ColorPipeline.BloomThreshold,
+            static (s, threshold) => s.ColorPipeline.BloomThreshold = threshold,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Threshold", bloomThresholdEditor);
+
+        var bloomIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomIntensity,
+        };
+        bloomIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Intensity",
+            static s => s.ColorPipeline.BloomIntensity,
+            static (s, intensity) => s.ColorPipeline.BloomIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Intensity", bloomIntensityEditor);
+
+        var bloomRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomRadius,
+        };
+        bloomRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Radius",
+            static s => s.ColorPipeline.BloomRadius,
+            static (s, radius) => s.ColorPipeline.BloomRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Radius", bloomRadiusEditor);
+
         _detailsContent.TryAddChild(grid);
 
         _detailsContent.TryAddChild(new MGTextBlock(_window, "[b]Directional Shadows (V1)[/b]")

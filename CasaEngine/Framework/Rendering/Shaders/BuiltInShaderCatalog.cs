@@ -14,6 +14,7 @@ public static class BuiltInShaderCatalog
     public const string SpriteBatchContentName = "Shaders\\SpriteBatch";
     public const string DebugPrimitiveColorContentName = "Shaders\\DebugPrimitiveColor";
     public const string TonemapContentName = "Shaders\\Tonemap";
+    public const string BloomContentName = "Shaders\\Bloom";
     /// <summary>Content name of the unlit textured vertex-colour effect. Deliberately absent from <see cref="RuntimeShaders"/>:
     /// that list drives the editor shader-source watcher, and no consumer implements a live rebind for this effect yet,
     /// so watching it would only report a reload that never happened (same choice as Shaders\DebugSolidColor).</summary>
@@ -29,6 +30,7 @@ public static class BuiltInShaderCatalog
         new("Shaders/SpriteBatch.fx", SpriteBatchContentName),
         new("Shaders/DebugPrimitiveColor.fx", DebugPrimitiveColorContentName),
         new("Shaders/Tonemap.fx", TonemapContentName),
+        new("Shaders/Bloom.fx", BloomContentName),
     ];
 
     private static readonly Dictionary<string, BuiltInShaderDescriptor> DescriptorsByContentName = BuildDescriptorsByContentName();

@@ -99,6 +99,13 @@
 /processorParam:Defines=
 /build:Shaders/Tonemap.fx
 
+#begin Shaders/Bloom.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Bloom.fx
+
 #begin Shaders/PsxQuad.fx
 /importer:EffectImporter
 /processor:EffectProcessor

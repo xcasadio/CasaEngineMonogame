@@ -122,6 +122,10 @@ public static class EnvironmentResolver
             ColorPipelineMode = source.ColorPipeline.Mode,
             Tonemapper = source.ColorPipeline.Tonemapper,
             Exposure = source.ColorPipeline.Exposure,
+            BloomEnabled = source.ColorPipeline.BloomEnabled,
+            BloomThreshold = source.ColorPipeline.BloomThreshold,
+            BloomIntensity = source.ColorPipeline.BloomIntensity,
+            BloomRadius = source.ColorPipeline.BloomRadius,
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };

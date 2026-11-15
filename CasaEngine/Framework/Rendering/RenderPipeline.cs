@@ -43,6 +43,9 @@ public sealed class RenderPipeline
     // null until then (the editor, tests), which only matters for a view in LinearHdr.
     private ShaderWrapper _tonemapShader;
 
+    // Bloom shader (ADR-0099), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
+    private ShaderWrapper _bloomShader;
+
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
     private const string AcesApproxTechniqueName = "Tonemap_AcesApprox";
 
@@ -137,22 +140,45 @@ public sealed class RenderPipeline
     }
 
     /// <summary>
-    /// Hot reload of the tonemapping shader: takes <paramref name="effect"/> when <paramref name="contentName"/> names it.
+    /// Gives the pipeline the compiled <c>Bloom</c> effect (<see cref="BuiltInShaderCatalog.BloomContentName"/>) used by the
+    /// bloom of a view that asks for it (ADR-0099). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetBloomEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_bloomShader == null)
+        {
+            _bloomShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _bloomShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
+    /// Hot reload of the tonemapping and bloom shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
+    /// names one of them.
     /// </summary>
     public bool TryReloadBuiltInShader(string contentName, Effect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
 
-        if (!string.Equals(
-                BuiltInShaderCatalog.NormalizeContentName(contentName),
-                BuiltInShaderCatalog.TonemapContentName,
-                StringComparison.OrdinalIgnoreCase))
+        string normalizedName = BuiltInShaderCatalog.NormalizeContentName(contentName);
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.TonemapContentName, StringComparison.OrdinalIgnoreCase))
         {
-            return false;
+            SetTonemapEffect(effect);
+            return true;
         }
 
-        SetTonemapEffect(effect);
-        return true;
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.BloomContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetBloomEffect(effect);
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -228,6 +228,180 @@ public class ColorPipelineSettingsTests
         Assert.Equal(1.0f, legacy.Exposure);
     }
 
+    [Fact]
+    public void Bloom_DefaultsAreOffWithThresholdOneIntensityHalfRadiusOne()
+    {
+        var settings = new WorldEnvironmentSettings().ColorPipeline;
+
+        Assert.False(settings.BloomEnabled);
+        Assert.Equal(1.0f, settings.BloomThreshold);
+        Assert.Equal(0.5f, settings.BloomIntensity);
+        Assert.Equal(1.0f, settings.BloomRadius);
+    }
+
+    [Fact]
+    public void Bloom_NaNInfinityAndNegativeValuesBecomeZero()
+    {
+        var settings = new ColorPipelineSettings
+        {
+            BloomThreshold = float.NaN,
+            BloomIntensity = -1.0f,
+            BloomRadius = float.PositiveInfinity,
+        };
+
+        Assert.Equal(0.0f, settings.BloomThreshold);
+        Assert.Equal(0.0f, settings.BloomIntensity);
+        Assert.Equal(0.0f, settings.BloomRadius);
+
+        settings.BloomThreshold = 2.0f;
+        settings.BloomIntensity = 0.25f;
+        settings.BloomRadius = 3.0f;
+        Assert.Equal(2.0f, settings.BloomThreshold);
+        Assert.Equal(0.25f, settings.BloomIntensity);
+        Assert.Equal(3.0f, settings.BloomRadius);
+    }
+
+    [Fact]
+    public void Bloom_SaveWritesTheKeysAdditivelyAndLoadReadsThemBack()
+    {
+        var saved = new JObject();
+        CreateNonDefault().Save(saved);
+
+        var node = Assert.IsType<JObject>(saved["color_pipeline"]);
+        Assert.True((bool?)node["bloom_enabled"]);
+        Assert.Equal(2.0f, (float?)node["bloom_threshold"]);
+        Assert.Equal(0.25f, (float?)node["bloom_intensity"]);
+        Assert.Equal(3.0f, (float?)node["bloom_radius"]);
+
+        var loaded = new WorldEnvironmentSettings();
+        loaded.Load(saved);
+        AssertNonDefault(loaded);
+    }
+
+    [Fact]
+    public void Bloom_LoadOfAColourPipelineWrittenBeforeBloomKeepsTheBloomDefaults()
+    {
+        var settings = new WorldEnvironmentSettings();
+
+        settings.Load(new JObject
+        {
+            ["color_pipeline"] = new JObject { ["mode"] = "LinearHdr", ["tonemapper"] = "Reinhard", ["exposure"] = 2.0f },
+        });
+
+        Assert.Equal(ColorPipelineMode.LinearHdr, settings.ColorPipeline.Mode);
+        Assert.False(settings.ColorPipeline.BloomEnabled);
+        Assert.Equal(1.0f, settings.ColorPipeline.BloomThreshold);
+        Assert.Equal(0.5f, settings.ColorPipeline.BloomIntensity);
+        Assert.Equal(1.0f, settings.ColorPipeline.BloomRadius);
+    }
+
+    [Theory]
+    [InlineData("enabled")]
+    [InlineData("threshold")]
+    [InlineData("intensity")]
+    [InlineData("radius")]
+    public void Bloom_SaveWritesTheKeyWhenOnlyOneBloomFieldDiffers(string field)
+    {
+        var settings = new WorldEnvironmentSettings();
+        switch (field)
+        {
+            case "enabled": settings.ColorPipeline.BloomEnabled = true; break;
+            case "threshold": settings.ColorPipeline.BloomThreshold = 2.0f; break;
+            case "intensity": settings.ColorPipeline.BloomIntensity = 0.75f; break;
+            default: settings.ColorPipeline.BloomRadius = 2.0f; break;
+        }
+
+        var saved = new JObject();
+        settings.Save(saved);
+
+        Assert.True(saved.ContainsKey("color_pipeline"));
+        Assert.False(settings.ColorPipeline.IsDefault);
+    }
+
+    [Fact]
+    public void Bloom_LoadReadsTheKeysCaseInsensitively()
+    {
+        var settings = new WorldEnvironmentSettings();
+
+        settings.Load(new JObject
+        {
+            ["color_pipeline"] = new JObject
+            {
+                ["BLOOM_ENABLED"] = true,
+                ["Bloom_Threshold"] = 3.0f,
+                ["bloom_INTENSITY"] = 0.1f,
+                ["Bloom_Radius"] = 2.0f,
+            },
+        });
+
+        Assert.True(settings.ColorPipeline.BloomEnabled);
+        Assert.Equal(3.0f, settings.ColorPipeline.BloomThreshold);
+        Assert.Equal(0.1f, settings.ColorPipeline.BloomIntensity);
+        Assert.Equal(2.0f, settings.ColorPipeline.BloomRadius);
+    }
+
+    [Fact]
+    public void Bloom_ResolverCarriesTheValuesAndTheViewOverrideWins()
+    {
+        var world = new World();
+        ApplyNonDefault(world.EnvironmentSettings);
+        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+
+        var resolved = EnvironmentResolver.Resolve(view);
+
+        Assert.True(resolved.BloomEnabled);
+        Assert.Equal(2.0f, resolved.BloomThreshold);
+        Assert.Equal(0.25f, resolved.BloomIntensity);
+        Assert.Equal(3.0f, resolved.BloomRadius);
+
+        var overridden = new RenderView(new World(), new ArcBallCameraComponent(), new StubRenderSurface())
+        {
+            EnvironmentOverride = CreateNonDefault(),
+        };
+        Assert.True(EnvironmentResolver.Resolve(overridden).BloomEnabled);
+    }
+
+    [Fact]
+    public void Bloom_ResolverIsOffByDefaultAndFollowsAChangeFollowedByMarkDirty()
+    {
+        var world = new World();
+        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        Assert.False(EnvironmentResolver.Resolve(view).BloomEnabled);
+
+        world.EnvironmentSettings.ColorPipeline.BloomEnabled = true;
+        world.EnvironmentSettings.ColorPipeline.BloomIntensity = 0.9f;
+        world.EnvironmentSettings.MarkDirty();
+
+        var resolved = EnvironmentResolver.Resolve(view);
+        Assert.True(resolved.BloomEnabled);
+        Assert.Equal(0.9f, resolved.BloomIntensity);
+    }
+
+    [Fact]
+    public void Bloom_CreateLegacyHasBloomOffAndTheDefaultValues()
+    {
+        var legacy = ResolvedEnvironmentSettings.CreateLegacy(Color.Black, Vector3.Zero);
+
+        Assert.False(legacy.BloomEnabled);
+        Assert.Equal(ColorPipelineSettings.DefaultBloomThreshold, legacy.BloomThreshold);
+        Assert.Equal(ColorPipelineSettings.DefaultBloomIntensity, legacy.BloomIntensity);
+        Assert.Equal(ColorPipelineSettings.DefaultBloomRadius, legacy.BloomRadius);
+        Assert.False(default(ResolvedEnvironmentSettings).BloomEnabled);
+    }
+
+    [Fact]
+    public void Bloom_CopyFromAndCloneCarryTheBloomFields()
+    {
+        var target = new WorldEnvironmentSettings();
+        target.CopyFrom(CreateNonDefault());
+        AssertNonDefault(target);
+
+        target.CopyFrom(new WorldEnvironmentSettings());
+        Assert.True(target.ColorPipeline.IsDefault);
+
+        AssertNonDefault(CreateNonDefault().Clone());
+    }
+
     private static WorldEnvironmentSettings CreateNonDefault()
     {
         var settings = new WorldEnvironmentSettings();
@@ -240,6 +414,10 @@ public class ColorPipelineSettingsTests
         settings.ColorPipeline.Mode = ColorPipelineMode.LinearHdr;
         settings.ColorPipeline.Tonemapper = TonemapOperator.Reinhard;
         settings.ColorPipeline.Exposure = 2.5f;
+        settings.ColorPipeline.BloomEnabled = true;
+        settings.ColorPipeline.BloomThreshold = 2.0f;
+        settings.ColorPipeline.BloomIntensity = 0.25f;
+        settings.ColorPipeline.BloomRadius = 3.0f;
     }
 
     private static void AssertNonDefault(WorldEnvironmentSettings settings)
@@ -247,6 +425,10 @@ public class ColorPipelineSettingsTests
         Assert.Equal(ColorPipelineMode.LinearHdr, settings.ColorPipeline.Mode);
         Assert.Equal(TonemapOperator.Reinhard, settings.ColorPipeline.Tonemapper);
         Assert.Equal(2.5f, settings.ColorPipeline.Exposure);
+        Assert.True(settings.ColorPipeline.BloomEnabled);
+        Assert.Equal(2.0f, settings.ColorPipeline.BloomThreshold);
+        Assert.Equal(0.25f, settings.ColorPipeline.BloomIntensity);
+        Assert.Equal(3.0f, settings.ColorPipeline.BloomRadius);
     }
 
     private sealed class StubRenderSurface : IRenderSurface

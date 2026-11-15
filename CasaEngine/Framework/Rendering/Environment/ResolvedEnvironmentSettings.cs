@@ -57,6 +57,15 @@ public readonly struct ResolvedEnvironmentSettings
     /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
     public float Exposure { get; init; }
 
+    /// <summary>Bloom is requested for the view (ADR-0099). False in <see cref="CreateLegacy"/>.</summary>
+    public bool BloomEnabled { get; init; }
+
+    public float BloomThreshold { get; init; }
+
+    public float BloomIntensity { get; init; }
+
+    public float BloomRadius { get; init; }
+
     /// <summary>
     /// True when this view is drawn through the HDR scene target in this frame (ADR-0097), so its display colours must be
     /// decoded to linear light. It is not the resolved mode: a view in <see cref="Environment.ColorPipelineMode.LinearHdr"/>
@@ -106,6 +115,9 @@ public readonly struct ResolvedEnvironmentSettings
             AmbientIntensity = 1.0f,
             SpecularIntensity = 1.0f,
             Exposure = ColorPipelineSettings.DefaultExposure,
+            BloomThreshold = ColorPipelineSettings.DefaultBloomThreshold,
+            BloomIntensity = ColorPipelineSettings.DefaultBloomIntensity,
+            BloomRadius = ColorPipelineSettings.DefaultBloomRadius,
             UsesLegacyClearColor = true,
             UsesLegacyLighting = true,
         };
