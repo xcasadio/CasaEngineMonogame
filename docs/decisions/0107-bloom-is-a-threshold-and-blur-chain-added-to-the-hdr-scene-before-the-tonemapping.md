@@ -3,7 +3,7 @@
 - **Status**: Proposed
 - **Date**: 2026-11-15
 - **Source**: this chantier: `ai-agent/tasks/pbr-rendering-tasks.md` (decision D8, arbitration P7, tasks T2.1 and T2.2)
-- Renumbered from ADR-0099 on 2026-11-15 when origin/main was merged (ADR-0095 to ADR-0099 now carry the renumbered lighting decisions)
+- Renumbered from ADR-0099 on 2026-11-15 when origin/main was merged (the renumbered lighting decisions are ADR-0097 to ADR-0101 today)
 
 ## Context
 
