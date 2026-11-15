@@ -158,11 +158,52 @@ public sealed class GltfStaticModelReader
                 SpecularPower = ResolveSpecularPower(material),
             };
 
+            ReadPbrChannels(importedMaterial, material, filePath);
+
             ApplyLegacyImportProfile(importedMaterial, filePath, legacyMaterialImportProfile);
             result.Add(importedMaterial);
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Copies the glTF PBR channels (ADR-0109). A material without a metallic-roughness channel
+    /// reads the glTF defaults (metallic 1, roughness 1), except an unlit one which is a rough non-metal. Factors are stored as authored, in linear space.
+    /// </summary>
+    private static void ReadPbrChannels(StaticModelImportedMaterial importedMaterial, GltfMaterial material, string modelFilePath)
+    {
+        var metallicRoughness = material.FindChannel("MetallicRoughness");
+        if (metallicRoughness != null)
+        {
+            importedMaterial.MetallicFactor = Math.Clamp(metallicRoughness.Value.GetFactor("MetallicFactor"), 0.0f, 1.0f);
+            importedMaterial.RoughnessFactor = Math.Clamp(metallicRoughness.Value.GetFactor("RoughnessFactor"), 0.0f, 1.0f);
+        }
+        else
+        {
+            // glTF defaults when pbrMetallicRoughness is absent (metallic 1, roughness 1); an unlit material is no metal.
+            importedMaterial.MetallicFactor = material.Unlit ? 0.0f : 1.0f;
+            importedMaterial.RoughnessFactor = 1.0f;
+        }
+
+        importedMaterial.MetallicRoughnessTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "MetallicRoughness");
+        importedMaterial.OcclusionTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "Occlusion");
+        importedMaterial.EmissiveTextureFilePath = ResolveTextureFilePath(material, modelFilePath, "Emissive");
+
+        var normal = material.FindChannel("Normal");
+        importedMaterial.NormalScale = normal != null ? normal.Value.GetFactor("NormalScale") : 1.0f;
+
+        var occlusion = material.FindChannel("Occlusion");
+        importedMaterial.OcclusionStrength = occlusion != null ? occlusion.Value.GetFactor("OcclusionStrength") : 1.0f;
+
+        importedMaterial.AlphaMode = material.Alpha switch
+        {
+            AlphaMode.MASK => StaticModelAlphaMode.Mask,
+            AlphaMode.BLEND => StaticModelAlphaMode.Blend,
+            _ => StaticModelAlphaMode.Opaque,
+        };
+        importedMaterial.AlphaCutoff = material.AlphaCutoff;
+        importedMaterial.DoubleSided = material.DoubleSided;
     }
 
     private static Color ResolveBaseColor(GltfMaterial material)

@@ -122,3 +122,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0106](0106-lit-pbr-is-a-built-in-material-definition-that-names-its-own-technique.md) | lit-pbr is a built-in material definition that names its own technique | Proposed | 2026-11-15 |
 | [ADR-0107](0107-image-based-lighting-is-generated-on-the-gpu-and-the-specular-part-is-a-roughness-atlas.md) | Image-based lighting is generated on the GPU and its specular part is stored as a roughness atlas | Proposed | 2026-11-15 |
 | [ADR-0108](0108-a-skinned-mesh-may-carry-a-lit-pbr-material.md) | A skinned mesh may carry a lit-pbr material | Proposed | 2026-11-15 |
+| [ADR-0109](0109-the-gltf-static-model-reader-keeps-the-gltf-pbr-material-channels.md) | The glTF static model reader keeps the glTF PBR material channels | Proposed | 2026-11-15 |

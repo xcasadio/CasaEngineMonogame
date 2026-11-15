@@ -356,6 +356,214 @@ public class GltfStaticModelReaderTests
         }
     }
 
+    [Fact]
+    public void ReadWithMetadata_ReadsEveryPbrChannelOfAMaterial()
+    {
+        string modelPath = CreatePbrGltfProbe();
+
+        try
+        {
+            var result = new GltfStaticModelReader().ReadWithMetadata(modelPath);
+            string directory = Path.GetDirectoryName(modelPath)!;
+
+            Assert.Equal(6, result.Materials.Count);
+            var opaque = result.Materials[0];
+
+            Assert.Equal(0.3f, opaque.MetallicFactor, 4);
+            Assert.Equal(0.6f, opaque.RoughnessFactor, 4);
+            Assert.Equal(0.7f, opaque.NormalScale, 4);
+            Assert.Equal(0.4f, opaque.OcclusionStrength, 4);
+            Assert.Equal(StaticModelAlphaMode.Opaque, opaque.AlphaMode);
+            Assert.False(opaque.DoubleSided);
+
+            Assert.Equal(Path.Combine(directory, "base.png"), opaque.DiffuseTextureFilePath);
+            Assert.Equal(Path.Combine(directory, "normal.png"), opaque.NormalTextureFilePath);
+            Assert.Equal(Path.Combine(directory, "mr.png"), opaque.MetallicRoughnessTextureFilePath);
+            Assert.Equal(Path.Combine(directory, "occlusion.png"), opaque.OcclusionTextureFilePath);
+            Assert.Equal(Path.Combine(directory, "emissive.png"), opaque.EmissiveTextureFilePath);
+
+            // The fields that were already read keep their values: 0.5 -> byte 127, emissive factor as authored.
+            Assert.Equal(127, opaque.DiffuseColor.R);
+            Assert.Equal(0.5f, opaque.EmissiveColor.X, 4);
+            Assert.Equal(0.5f, opaque.EmissiveColor.Z, 4);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    [Fact]
+    public void ReadWithMetadata_ReadsAlphaModeCutoffAndDoubleSided()
+    {
+        string modelPath = CreatePbrGltfProbe();
+
+        try
+        {
+            var result = new GltfStaticModelReader().ReadWithMetadata(modelPath);
+
+            var masked = result.Materials[1];
+            Assert.Equal(StaticModelAlphaMode.Mask, masked.AlphaMode);
+            Assert.Equal(0.35f, masked.AlphaCutoff, 4);
+            Assert.True(masked.DoubleSided);
+            Assert.Equal(0.9f, masked.MetallicFactor, 4);
+            Assert.Equal(0.1f, masked.RoughnessFactor, 4);
+
+            var blended = result.Materials[2];
+            Assert.Equal(StaticModelAlphaMode.Blend, blended.AlphaMode);
+            Assert.False(blended.DoubleSided);
+
+            var opaqueDoubleSided = result.Materials[3];
+            Assert.Equal(StaticModelAlphaMode.Opaque, opaqueDoubleSided.AlphaMode);
+            Assert.True(opaqueDoubleSided.DoubleSided);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    [Fact]
+    public void ReadWithMetadata_UsesTheGltfDefaultsAndNoTexturePathForAPlainMaterial()
+    {
+        string modelPath = CreatePbrGltfProbe();
+
+        try
+        {
+            var plain = new GltfStaticModelReader().ReadWithMetadata(modelPath).Materials[4];
+
+            Assert.Equal(1.0f, plain.MetallicFactor, 4);
+            Assert.Equal(1.0f, plain.RoughnessFactor, 4);
+            Assert.Equal(1.0f, plain.NormalScale, 4);
+            Assert.Equal(1.0f, plain.OcclusionStrength, 4);
+            Assert.Equal(StaticModelAlphaMode.Opaque, plain.AlphaMode);
+            Assert.Equal(0.5f, plain.AlphaCutoff, 4);
+            Assert.False(plain.DoubleSided);
+            Assert.Null(plain.MetallicRoughnessTextureFilePath);
+            Assert.Null(plain.OcclusionTextureFilePath);
+            Assert.Null(plain.EmissiveTextureFilePath);
+            Assert.Null(plain.NormalTextureFilePath);
+            Assert.Null(plain.DiffuseTextureFilePath);
+
+            var unlit = new GltfStaticModelReader().ReadWithMetadata(modelPath).Materials[5];
+            Assert.Equal(0.0f, unlit.MetallicFactor, 4);
+            Assert.Equal(1.0f, unlit.RoughnessFactor, 4);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    [Theory]
+    [InlineData(0.0f, 128.0f)]
+    [InlineData(0.25f, 30.0f)]
+    [InlineData(0.6f, 3.5556f)]
+    [InlineData(1.0f, 0.0f)]
+    public void ReadWithMetadata_KeepsTheRoughnessToSpecularPowerConversionNextToTheNewFields(float roughness, float expectedPower)
+    {
+        string modelPath = CreateMinimalGltfProbe(roughnessFactor: roughness);
+
+        try
+        {
+            var material = Assert.Single(new GltfStaticModelReader().ReadWithMetadata(modelPath).Materials);
+
+            Assert.Equal(expectedPower, material.SpecularPower, 2);
+            Assert.Equal(roughness, material.RoughnessFactor, 4);
+            Assert.Equal(0.8f, material.MetallicFactor, 4);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    /// <summary>
+    /// A glTF with six materials: a fully textured opaque one with non-default factors, a masked double-sided one,
+    /// a blended one, an opaque double-sided one a plain one that relies on every glTF default and an unlit one.
+    /// The five external images exist on disk as 1x1 PNG files.
+    /// </summary>
+    private static string CreatePbrGltfProbe()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "CasaEngineTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+
+        byte[] png = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==");
+        string[] imageNames = ["base.png", "normal.png", "mr.png", "occlusion.png", "emissive.png"];
+        foreach (string imageName in imageNames)
+        {
+            File.WriteAllBytes(Path.Combine(directory, imageName), png);
+        }
+
+        string encodedBuffer = Convert.ToBase64String(CreateTriangleBuffer());
+        string gltfPath = Path.Combine(directory, "pbr.gltf");
+
+        string json = $$"""
+        {
+          "asset": { "version": "2.0" },
+          "extensionsUsed": [ "KHR_materials_unlit" ],
+          "scene": 0,
+          "scenes": [ { "nodes": [ 0 ] } ],
+          "nodes": [ { "mesh": 0 } ],
+          "meshes": [
+            { "primitives": [ { "attributes": { "POSITION": 0 }, "indices": 1, "material": 0 } ] }
+          ],
+          "images": [
+            { "uri": "base.png" }, { "uri": "normal.png" }, { "uri": "mr.png" }, { "uri": "occlusion.png" }, { "uri": "emissive.png" }
+          ],
+          "textures": [
+            { "source": 0 }, { "source": 1 }, { "source": 2 }, { "source": 3 }, { "source": 4 }
+          ],
+          "materials": [
+            {
+              "name": "Opaque",
+              "pbrMetallicRoughness": {
+                "baseColorFactor": [ 0.5, 0.5, 0.5, 1.0 ],
+                "baseColorTexture": { "index": 0 },
+                "metallicFactor": 0.3,
+                "roughnessFactor": 0.6,
+                "metallicRoughnessTexture": { "index": 2 }
+              },
+              "normalTexture": { "index": 1, "scale": 0.7 },
+              "occlusionTexture": { "index": 3, "strength": 0.4 },
+              "emissiveTexture": { "index": 4 },
+              "emissiveFactor": [ 0.5, 0.5, 0.5 ],
+              "alphaMode": "OPAQUE"
+            },
+            {
+              "name": "Masked",
+              "pbrMetallicRoughness": { "metallicFactor": 0.9, "roughnessFactor": 0.1 },
+              "alphaMode": "MASK",
+              "alphaCutoff": 0.35,
+              "doubleSided": true
+            },
+            {
+              "name": "Blended",
+              "pbrMetallicRoughness": { "baseColorFactor": [ 1.0, 1.0, 1.0, 0.5 ] },
+              "alphaMode": "BLEND"
+            },
+            { "name": "OpaqueDoubleSided", "doubleSided": true },
+            { "name": "Plain" },
+            { "name": "Unlit", "extensions": { "KHR_materials_unlit": {} } }
+          ],
+          "buffers": [
+            { "uri": "data:application/octet-stream;base64,{{encodedBuffer}}", "byteLength": 42 }
+          ],
+          "bufferViews": [
+            { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+            { "buffer": 0, "byteOffset": 36, "byteLength": 6, "target": 34963 }
+          ],
+          "accessors": [
+            { "bufferView": 0, "byteOffset": 0, "componentType": 5126, "count": 3, "type": "VEC3", "max": [ 1.0, 1.0, 0.0 ], "min": [ 0.0, 0.0, 0.0 ] },
+            { "bufferView": 1, "byteOffset": 0, "componentType": 5123, "count": 3, "type": "SCALAR", "max": [ 2 ], "min": [ 0 ] }
+          ]
+        }
+        """;
+
+        File.WriteAllText(gltfPath, json);
+        return gltfPath;
+    }
+
     private static void DeleteProbeDirectory(string modelPath)
     {
         string? directory = Path.GetDirectoryName(modelPath);

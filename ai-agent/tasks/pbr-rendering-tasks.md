@@ -816,7 +816,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 
 ## Phase 9 — Import glTF
 
-### ⏳ T9.1 — Lecture des canaux PBR
+### ✅ T9.1 — Lecture des canaux PBR
 
 - Objectif : garder les données PBR au chargement.
 - Fichiers : `StaticModelImportResult.cs`, `GltfStaticModelReader.cs`, `GltfStaticModelReaderTests.cs` ; ADR-0109.
@@ -827,6 +827,12 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   4. ADR-0109.
 - Validation : builds ; tests verts.
 - Commit : `feat(assets): read the PBR material channels of glTF static models (ADR-0109)`
+- Note de validation (2026-11-15, `GltfStaticModelReader`, SharpGLTF.Core 1.0.6) :
+  - **Champs ajoutés** à `StaticModelImportedMaterial` (tous additifs) : `MetallicFactor`, `RoughnessFactor`, `MetallicRoughnessTextureFilePath`, `OcclusionTextureFilePath`, `EmissiveTextureFilePath`, `NormalScale`, `OcclusionStrength`, `AlphaMode` (nouvel enum `StaticModelAlphaMode` : `Opaque`, `Mask`, `Blend`), `AlphaCutoff`, `DoubleSided`. Lus par `ReadPbrChannels` (`FindChannel("MetallicRoughness")`, `"Normal"`, `"Occlusion"`, `"Emissive"` ; `material.Alpha`, `AlphaCutoff`, `DoubleSided`). La conversion rugosité vers puissance spéculaire, `DiffuseColor` et `EmissiveColor` sont inchangées ; `GetTextureFilePaths` n'est pas modifié (l'import par défaut copie les mêmes fichiers). ADR-0109 écrit (statut `Proposed`) et indexé ; T9.2 le complétera.
+  - **Tests** : 7 ajoutés (3 faits, 1 théorie à 4 cas) sur un glTF d'essai à six matériaux avec cinq images externes : (a) matériau opaque, métal 0,3, rugosité 0,6, `normalTexture.scale` 0,7, `occlusionTexture.strength` 0,4, cinq chemins de texture attendus, `baseColorFactor` 0,5 lu en octet 127, `emissiveFactor` 0,5 ; (b) MASK `alphaCutoff` 0,35 double face, BLEND simple face, OPAQUE double face ; (c) matériau sans aucun bloc : défauts glTF (métal 1, rugosité 1, échelle 1, force 1, OPAQUE, seuil 0,5, simple face, aucun chemin), et matériau `KHR_materials_unlit` : métal 0, rugosité 1 ; (d) la puissance spéculaire reste 128, 30, 3,556 et 0 pour les rugosités 0, 0,25, 0,6 et 1 (le test d'origine, rugosité 0,25 vers 30, reste vert).
+  - **Builds et tests.** `dotnet build CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m` : 5900 réussis, 0 échec, 0 ignoré, **une seule exécution** (1 min 32 s, aucun blocage de l'hôte) ; 7 tests ajoutés (5893 au départ).
+  - **Non-régression `Legacy`** : aucun shader, aucun chemin d'image ni aucune démo touché (lecteur d'import seulement) ; les captures n'ont pas été refaites.
+  - **Décision notée** : sans bloc `pbrMetallicRoughness`, le lecteur applique les défauts de la spécification (métal 1, rugosité 1), sauf pour un matériau `KHR_materials_unlit` (métal 0). Les matériaux spéculaire-brillance ne reçoivent pas de traitement particulier.
 
 ### ⏳ T9.2 — Matériaux `lit-pbr` à l'import
 
