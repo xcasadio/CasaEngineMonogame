@@ -152,7 +152,7 @@ public class CasaMguiBackendOwnershipTests
             "| Host / raw input / surface |",
             "| GraphicsDevice / SpriteBatch / PrimitiveBatch |",
             "| ContentManager / FontManager / AssetProvider / TextEngine |",
-            "| RegisterView / UnregisterView / Views / UpdateViews / DrawViews |",
+            "| RegisterView |",
             "| ScrollMarker / solid color cache / circle cache |",
             "| Draw transaction |",
             "| Rectangle / stencil / mask clipping |",

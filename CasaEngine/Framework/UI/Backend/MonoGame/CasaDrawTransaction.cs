@@ -92,11 +92,13 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public DrawSettings PreviousSettings => DrawState.PreviousSettings;
     public ClipDiagnosticsSnapshot ClipDiagnostics => ClipManager.GetDiagnostics();
 
+    /// <summary>Created by <see cref="CasaDesktopRuntime.CreateDrawTransaction"/> only: a runtime has one transaction, opened and closed for each draw.
+    /// The constructor is internal since the runtime owns the transaction (ADR-0097).</summary>
     /// <param name="Settings">See also: <see cref="DrawSettings.Default"/></param>
     /// <param name="DeferBegin">If true, <see cref="SpriteBatch.Begin(SpriteSortMode, BlendState, SamplerState, DepthStencilState, RasterizerState, Effect, Matrix?)"/> or <see cref="PrimitiveBatch.Begin(ref Matrix, ref Matrix, BlendState)"/><para/>
     /// will not be invoked until you call a draw-related function within <see cref="CasaDrawTransaction"/>, such as <see cref="DrawTextureTo(Texture2D, Rectangle?, Rectangle)"/></param>
     /// <param name="DefaultContext">Only relevant if <paramref name="DeferBegin"/>==false. The default drawing context to immediately start.</param>
-    public CasaDrawTransaction(CasaDesktopRuntime Renderer, DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
+    internal CasaDrawTransaction(CasaDesktopRuntime Renderer, DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
     {
         this.Renderer = Renderer ?? throw new ArgumentNullException(nameof(Renderer));
         PrimitiveDrawing = new PrimitiveDrawing(PrimitiveBatch);
@@ -927,8 +929,17 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         }
     }
 
+    /// <summary>Ends the batch and closes the transaction: the runtime hands this same object to its next draw, so it is not to be used after
+    /// this call. The transaction is closed whether ending the batch succeeds or throws.</summary>
     public void Dispose()
     {
-        EndDraw(CurrentContext);
+        try
+        {
+            EndDraw(CurrentContext);
+        }
+        finally
+        {
+            Renderer.CloseDrawTransaction(this);
+        }
     }
 }

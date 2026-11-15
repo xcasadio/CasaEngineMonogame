@@ -609,7 +609,7 @@ le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-mo
 - Non vérifié : les champs de `PrimitiveDrawing` (classe de MonoGame.Extended, non lue ; ses pixels sont identiques
   entre neuf et réarmé) ; un renderer de formes d'un projet externe.
 
-### ⏳ T3.4 — Le runtime possède sa transaction
+### ✅ T3.4 — Le runtime possède sa transaction
 
 - Prérequis : T3.3 ✅.
 - Résultat : `CasaDesktopRuntime` crée sa transaction une fois ; `CreateDrawTransaction` l'ouvre, réarmée ; `Dispose` la ferme ; une demande pendant qu'elle est ouverte lève `InvalidOperationException` avec un
@@ -655,6 +655,37 @@ le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-mo
 - Validation : les deux solutions 0 erreur, `CasaEngine.Tests` vert sans test sauté ; `verifier` frais sur T3.3 à
   T3.5 après T3.5 ; T3.2 passe alors en ✅ et O7 est fermé.
 - Commit (moteur) : `perf(ui): let the desktop runtime own its draw transaction`
+- **Fait le 2026-11-15** (ADR-0097). Validation : les deux solutions 0 erreur, `CasaEngine.Tests` 5549 verts (5540
+  et 9 nouveaux), aucun sauté.
+- Appelants vérifiés, aucun n'imbrique deux dessins sur un même runtime : chaque `UIRoot` a son runtime
+  (`UIRoot.cs:83-86`, dont `_windowUI` de `CasaEngineGame.cs:731`) ; `WorldUIComponent.cs:112` et
+  `DefaultUICompositionService.cs:15` dessinent en séquence ; `GameEditor.cs:9047` une fois par image ; l'export PNG
+  (`:9099`) et la capture (`GameEditor.Remote.cs:47`) s'exécutent pendant `Update` ou après le dessin. Dans MGUI, seul
+  `MGDesktop.cs:1878` demande une transaction.
+- Retiré : `DrawViews`, `UpdateViews`, `UnregisterView`, `Views`, `MutableViews` (aucun appelant, aucun lecteur) ;
+  `RegisterView` (interface) ne fait plus que le contrôle d'argument : l'ancienne liste n'avait pas de lecteur et
+  gardait les vues en vie. Le constructeur de `CasaDrawTransaction` est `internal`. La ligne du document et celle de
+  `CasaMguiBackendOwnershipTests.cs:155` sont remplacées ensemble par `| RegisterView |`.
+- Réalisation : transaction créée à la première demande, réarmée ensuite ; `Dispose` remet l'état « fermée » dans un
+  `finally` ; une demande pendant qu'elle est ouverte lève `InvalidOperationException` (« already open … dispose the
+  transaction returned by the previous CreateDrawTransaction call »).
+- Mesures, GPU réel, chemin réel (`MGDesktop.Draw(1.0f, réglages gardés)`), total exact sur 500 images : 0 octet en
+  `Update` et en `Draw`, au repos et en glissement. Contre-épreuve sur le code d'avant : 2152 octets par image (et non
+  les 2304 annoncés par T3.2, mesurés avec `Desktop.Draw()` sans argument : 2344). Pixels égaux aux valeurs figées de
+  T3.2.
+- Cas prouvés : seconde demande pendant l'ouverture (lève, état du device inchangé, la première dessine les pixels de
+  référence) ; après `Dispose`, même objet réarmé ; changement de taille de viewport, pixels égaux à ceux d'un runtime
+  neuf ; un dessin qui lève (`DrawTextureTo` d'une texture nulle) ; un `Dispose` qui lève ; un début qui lève avec
+  `deferBegin: false`, à la première demande et à une demande ultérieure. Six des neuf tests échouent sur le code
+  d'avant ; les trois autres prouvent l'égalité de comportement.
+- Test existant adapté : `WhatTheFrameStillAllocates` ferme la transaction du harnais avant de mesurer
+  `Desktop.Draw()` ; aucune affirmation retirée.
+- Écarts : une texture libérée restée dans le lot ne fait pas lever `Dispose` sur ce backend ; le test provoque
+  l'échec par un `SpriteBatch.End()` externe. Le test du chemin réel passe des réglages gardés, voir T3.6.
+- **Reste trouvé : `MGDesktop.Draw()` sans argument alloue 192 octets par image**, parce que `DrawSettings.Default`
+  (`MGUI/MGUI.Shared/Rendering/DrawSettings.cs:104`) crée un objet à chaque lecture et que `MGDesktop.cs:1878` le lit
+  à chaque image. C'est l'appel de `UIRoot.cs:193` et de l'éditeur : l'image réelle du moteur n'est donc pas encore à
+  zéro. Traité par T3.6.
 
 ### ⏳ T3.5 — `CreateDrawTransaction` renommé dans MGUI
 
@@ -683,6 +714,21 @@ Demande de l'auteur le 2026-11-15 : « renomme aussi CreateDrawTransaction dans 
   de test arrête la tâche.
 - Commits : MGUI `refactor(rendering)!: rename CreateDrawTransaction to BeginDrawTransaction` ; moteur
   `refactor(ui)!: take the renamed BeginDrawTransaction of MGUI`, avec la référence du sous-module.
+
+### ⏳ T3.6 — `MGDesktop.Draw()` sans argument sans allocation
+
+Ajoutée le 2026-11-15 après la mesure de T3.4 ; dans le périmètre du chantier (D2, `MGDesktop.cs`), exécutée par la
+session principale, vue par la vérification finale.
+
+- Résultat : `MGDesktop.Draw(float, DrawSettings)` appelé sans réglages n'alloue plus de `DrawSettings` par image : le
+  bureau garde ses réglages par défaut. `DrawSettings.Default` n'est pas modifié.
+- Fichiers : `MGUI/MGUI.Core/UI/MGDesktop.cs` ; test MGUI dans `MGUI.Tests/Architecture/DesktopFrameZeroAllocationTests.cs` ;
+  test moteur dans `CasaEngine.Tests/UI/Backend/DesktopFrameGpuAllocationTests.cs` (le chemin réel par
+  `Desktop.Draw()` sans argument : 0 octet, total exact, pixels de référence).
+- Fin : les deux tests à 0, contre-éprouvés (192 attendus côté moteur) ; `MGUI.Tests` et `CasaEngine.Tests` verts ;
+  T3.2 passe en ✅ et O7 est fermé.
+- Commits : MGUI `perf(desktop): keep the default draw settings of a desktop` ; moteur
+  `perf(ui): draw a real desktop frame without allocating`, avec la référence du sous-module.
 
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 

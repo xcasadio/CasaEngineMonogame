@@ -110,3 +110,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0094](0094-converted-rigged-imports-keep-their-glb.md) | A rigged model imported from a non-glTF source keeps its converted glb | Accepted | 2026-11-15 |
 | [ADR-0095](0095-3d-camera-keeps-its-vertical-field-of-view.md) | The 3d camera keeps its vertical field of view | Accepted | 2026-11-15 |
 | [ADR-0096](0096-keyboard-bindings-are-key-positions.md) | Keyboard bindings are key positions | Accepted | 2026-11-15 |
+| [ADR-0097](0097-desktop-runtime-owns-its-draw-transaction.md) | The desktop runtime owns its draw transaction | Accepted | 2026-11-15 |
