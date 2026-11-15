@@ -376,7 +376,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   - **Mesures** (`Colour pipeline demo`, `LinearHdr`, `AcesApprox`, exposition 1 ; lecture PNG jetable) : gris 128 (512,251), sprite 3D (842,251), particule (852,457) = **154, 154, 154** (cible 154 ± 2) dans les deux configurations, back buffer et `CASAENGINE_COLOR_DEMO_BUFFERED=1` ; panneau d'interface (96,48) = **200, 60, 60** et texte (150,124) = **60, 200, 240** dans les deux, égaux à leurs valeurs `Legacy` (cible ± 2), dans la même capture que le gris à 154 (avant T1.6 le texte valait 159, 223, 229 : il est bien vidé après le tonemapping) ; fond (786,467) = 11. `Particle system demo` en `LinearHdr` : lancement et capture sans exception (archive `artifacts/pbr-baseline/linear/particle-system-linear-t16.png`). `Material system demo` en `LinearHdr` (`AcesApprox`, exposition 1) : pixel de ciel (40,20) `Legacy` 64, 91, 133 → mesuré 60, 102, 160 = attendu par v=(L/255)^2,2, ACES, ré-encodage (60, 102, 160) ; (40,100) 75, 99, 136 → 77, 114, 163 (attendu 77, 114, 163) ; (40,200) 103, 119, 143 → 120, 143, 171 (attendu 120, 143, 171) ; (40,250) 127, 135, 149 → 153, 162, 177 (attendu 153, 162, 177) : écart 0 (archive `linear/material-linear-t16.png`).
   - **Limites à écrire dans la doc de T1.7 (étape 5).** P5/O3 : en `LinearHdr`, `Renderer2DComponent` (sprites d'écran, texte, lignes 2D) ne teste plus la profondeur de la scène et est dessiné sur l'image tonemappée, avec l'interface ; une vue dont le pipeline n'implémente pas `IScenePhaseViewPipeline` le garde dans la cible HDR, tonemappé avec la scène. Lignes 3D (`Line3dRendererComponent`) : couvertes par le test de texte seulement, aucune ligne 3D dans la démo de mesure. `LegacySkyCube.fx` : constante à lier par le jeu. `DebugSolidColor.fx` (gizmo de l'éditeur) non décodé. Atmosphère physique à soleil > 1 décodée comme un cube d'affichage (ADR-0097).
 
-### ⏳ T1.7 — Clôture de la phase 1 : non-régression et documentation
+### ⚠️ T1.7 — Clôture de la phase 1 : non-régression et documentation
 
 - Objectif : verrouiller la phase avant tout shader PBR.
 - Fichiers : nouveau `docs/engine/color-pipeline.md` ; `docs/README.md` ; `docs/engine/effect-file-inventory.md` ; ce plan.
@@ -389,6 +389,15 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
   5. Documentation : modes, clé `color_pipeline`, ordre de l'image, ce qui est décodé et où (shader ou CPU), limites (P2, P5, O4, émissif traité comme couleur d'affichage, repli de format), renvoi aux ADR-0095 à ADR-0098 ; reprendre les limites écrites sous T1.5 (O2, atmosphère à soleil > 1) et T1.6 (P5/O3, lignes 3D, `LegacySkyCube.fx`, gizmo).
 - Validation : résultats notés ici ; toute différence `Legacy` passe la tâche en ⚠️.
 - Commit : `docs(engine): document the colour pipeline and close its validation`
+- Note de validation (2026-11-15), `CasaEngine.Demos` en Debug, 1024 × 768 ; captures et journaux sous `CasaEngine/artifacts/pbr-baseline/` ; lecture de pixels par un programme jeté (`System.Drawing`, non committé) :
+  - **Étape 1, `Legacy`** : `bash CasaEngine/artifacts/pbr-baseline/capture.sh D:/development/repo/RacingGame/CasaEngine/CasaEngine/artifacts/pbr-baseline/t17legacy` (dossier `t17legacy`). Les huit démos déterministes sont identiques à la base, deux passages chacune, `ui-overlay` compris (délai par défaut) : material 7fe3d57bb10f7128, environment 043ad52894e18395, static-model 3ee7cd655db47386, static-shadow c7d6c867b3de4ad9, render-to-texture f35395822a585e9e, ui-overlay d226df79b82cf4b2, frozen-frame eb25f3917cfa6a0c, tile-map 355772772016e47f. Aucune ligne « was not found », aucune exception. Non déterministes (empreintes différentes à chaque passage, comme en T0.2) : skinned f14733ff… / d3434438…, particles 9a145d30… / b6faba31…, split-screen 3734996d… / e1b50c39…. Comparaison pixel à pixel à la base `legacy/*-1.png` : skinned et particles, écarts confinés au rectangle des personnages (189,249 - 743,444) et à celui des particules (493,332 - 874,469), soit les zones où les deux captures de la base diffèrent déjà entre elles ; split-screen, écarts dans les blocs de statistiques (chiffres de temps, largeur du cadre de texte), même géométrie de scène. **Relu à l'œil par l'agent (images ouvertes côte à côte avec leur base) : rien d'autre que la phase d'animation, la phase des particules et les chiffres de statistiques ne diffère. Ce contrôle repose sur le regard de l'agent : à confirmer par l'auteur (🧪).**
+  - **Étape 1b, référence de la phase 2** : depuis `CasaEngine.Demos/bin/Debug/net9.0-windows`, `CASAENGINE_START_DEMO="Colour pipeline demo" CASAENGINE_DEMO_COLOR_PIPELINE=LinearHdr CASAENGINE_DEMO_TONEMAPPER=AcesApprox CASAENGINE_DEMO_EXPOSURE=1 CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY=1 CASAENGINE_CAPTURE_SCREENSHOT_PATH="D:\development\repo\RacingGame\CasaEngine\CasaEngine\artifacts\pbr-baseline\linear\colour-pipeline-default-<n>.png" ./CasaEngine.Demos.exe` (n = 1, 2 ; sans `BUFFERED`, donc back buffer). SHA-256 des deux captures : `c15f8d93912b84697807ed8218a0b4e1b1dd6b879de9f33ba107d68a21f3c490` pour `-1` et pour `-2` : **égales, capture déterministe** (comparaison au bit possible en T2.2). Journal : `Colour pipeline harness: LinearHdr, AcesApprox, exposure 1.`
+  - **Étape 2, `LinearHdr`** : `bash CasaEngine/artifacts/pbr-baseline/capture.sh D:/development/repo/RacingGame/CasaEngine/CasaEngine/artifacts/pbr-baseline/t17linear CASAENGINE_DEMO_COLOR_PIPELINE=LinearHdr` (dossier `t17linear`, archivé). Les 11 journaux portent `Colour pipeline harness: LinearHdr`, aucune exception, aucune ligne « was not found ». Seul avertissement : `[FrozenFrame] Capture unavailable: no retained frame` (attendu une fois par la démo de la capture figée). Empreintes (identiques sur les deux passages) : material 1ff1539d464e5029, environment 249c511e72fc3311, static-model 93c965b8334e4482, static-shadow 52e9323017f899da, render-to-texture e904ba554e6d04c0, ui-overlay 1f28e04394e177ed, frozen-frame d834bf0fff6094a9, tile-map 3efaf629d127e5f8 ; skinned, particles, split-screen non déterministes. **Plausibilité, jugée à l'œil par l'agent (🧪, à confirmer par l'auteur)** : aucune image noire ni délavée ; luminance moyenne `LinearHdr` / `Legacy` : material 150 / 127, environment 157 / 143, static-model 165 / 157, static-shadow 30 / 41, skinned 30 / 41, render-to-texture 163 / 153, ui-overlay 158 / 141, frozen-frame 134 / 144, tile-map 162 / 151, particles 117 / 116, split-screen 99 / 97. Par démo : `material` plausible, sans écrêtage de la sphère et du cube blancs (sol plus clair et plus plat, tache de la lumière ponctuelle plus pâle : attendu d'un éclairage fait pour l'affichage, rendu en linéaire) ; `environment` plausible (ciel violet, damier lisible, sphère réfléchissante) ; `static-model` plausible, damier un peu moins contrasté ; `static-shadow` plausible, ombre portée présente, scène plus sombre ; `skinned` plausible, fond plus sombre ; `particles` plausible, la bande sombre du bas du plateau n'est plus distincte du plateau ; `split-screen` plausible, cadre de statistiques lisible, `RT pool: 0 active / 1 free` (la cible HDR est rendue au pool) ; `render-to-texture` plausible, la vignette de la cible reste lisible ; `ui-overlay` plausible, panneau et boutons lisibles ; `frozen-frame` plausible, couleurs vives un peu assombries et désaturées (effet attendu du décodage puis du tonemapping de fonds unis) ; `tile-map` plausible, carte et fenêtre de texte lisibles. Aucun défaut relevé.
+  - **Étape 3, intensité de lumière 16** (`CASAENGINE_START_DEMO="Colour pipeline demo" CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY=16 CASAENGINE_DEMO_COLOR_PIPELINE=<mode>`, `AcesApprox`, exposition 1, dossier `t17int16`) : points (298,440), (292,452), (310,460) : **`LinearHdr` 250 ; 251 ; 250** (gris, trois canaux égaux), **`Legacy` 255 ; 255 ; 255**. Attendu en `Legacy` tenu (trois points écrêtés à 255). **Attendu en `LinearHdr` non tenu au sens strict : deux des trois points valent 250 (trois valeurs distinctes attendues).** La compression de `AcesApprox` aplatit les hautes valeurs vers 255 ; l'information HDR n'est pourtant pas perdue : en `LinearHdr` la sphère va de 244 à 251 (points (278,467) 250, (300,430) 247, (320,450) 244, (285,445) 251) alors qu'elle est plate à 255 en `Legacy` ; avec `Reinhard` (`CASAENGINE_DEMO_TONEMAPPER=Reinhard`, même intensité) les trois points valent 226 ; 227 ; 224, trois valeurs distinctes. Aucun code modifié : voir O12.
+  - **Étape 4, `RenderStats`** : `CASAENGINE_START_DEMO="Material system demo" CASAENGINE_SHOW_DEBUG_OVERLAY=1 CASAENGINE_CAPTURE_SCREENSHOT_PATH=...\t17stats\material-overlay.png ./CasaEngine.Demos.exe` (`Legacy`, depuis `CasaEngine.Demos/bin/Debug/net9.0-windows`) : overlay lu sur l'image, **Draws 14, FX 2, Tex 32, State 3, O 13, T 1**, « RT pool: 0 active / 0 free » : égal aux valeurs de T0.2.
+  - **Étape 5** : nouveau `docs/engine/color-pipeline.md` (modes, clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, `LinearColorActive`, vidage après tonemapping, toutes les limites dont O1, O3, O4, O10, O11, repli de format), ajouté à `docs/README.md` ; `docs/engine/effect-file-inventory.md` : `Tonemap.fx` y figurait déjà, `ColorPipeline.fxh` ajouté.
+  - **Étapes 6 et 7** : ADR-0097 (décodage) et ADR-0098 (renderers 2D) ayant été pris par T1.5 et T1.6, les ADR prévus plus loin sont décalés de deux : bloom ADR-0099 (T2.1), `lit-pbr` ADR-0100 (T4.2), IBL ADR-0101 (T6.2), import glTF ADR-0102 (T9.1), renvoi de T10.3 « ADR-0094 à ADR-0102 » ; les notes de T1.1 à T1.6 et les fichiers d'ADR sont inchangés. Points ouverts O10 et O11 ajoutés, plus O12 (étape 3).
+  - **Statut ⚠️** : la mesure de l'étape 3 en `LinearHdr` n'a pas tenu (O12) ; en plus, les contrôles visuels de l'étape 1 (trois démos non déterministes) et de l'étape 2 (plausibilité) reposent sur le seul regard de l'agent. Tout le reste est tenu : empreintes `Legacy`, `RenderStats`, déterminisme de la référence de la phase 2 ; `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : 5288 réussis, 0 échec.
 
 ---
 
@@ -397,13 +406,13 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ### ⏳ T2.1 — Réglages et shader de bloom
 
 - Objectif : réglages sérialisés et shader compilé.
-- Fichiers : `ColorPipelineSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs`, `EntityDetailsPanel.cs`, `ColorPipelineSettingsTests.cs` ; nouveau `CasaEngine/Content/Shaders/Bloom.fx` ; `Content.mgcb`, `BuiltInShaderCatalog.cs`, `CasaEngineGame.cs` ; ADR-0097.
+- Fichiers : `ColorPipelineSettings.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentResolver.cs`, `EntityDetailsPanel.cs`, `ColorPipelineSettingsTests.cs` ; nouveau `CasaEngine/Content/Shaders/Bloom.fx` ; `Content.mgcb`, `BuiltInShaderCatalog.cs`, `CasaEngineGame.cs` ; ADR-0099.
 - Étapes :
   1. `BloomEnabled` (faux), `BloomThreshold` (1), `BloomIntensity` (0,5), `BloomRadius` (1) sous `color_pipeline`, mêmes règles de sérialisation et mêmes tests que T1.1.
   2. `Bloom.fx` : techniques `Bloom_BrightPass` (seuil doux), `Bloom_Downsample`, `Bloom_BlurHorizontal`, `Bloom_BlurVertical` (poids normalisés, somme 1 vérifiée par test), `Bloom_Composite` (additif).
-  3. Enregistrement comme T1.3. ADR-0097.
+  3. Enregistrement comme T1.3. ADR-0099.
 - Validation : builds ; tests verts ; captures de T0.2 identiques.
-- Commit : `feat(rendering): add bloom settings and the bloom shader (ADR-0097)`
+- Commit : `feat(rendering): add bloom settings and the bloom shader (ADR-0099)`
 
 ### ⏳ T2.2 — Passe de bloom avant le tonemapping
 
@@ -477,15 +486,15 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ### ⏳ T4.2 — Définition `lit-pbr`, compilation, surcharges
 
 - Objectif : la définition intégrée, compilée et surchargeable par instance.
-- Fichiers : `BuiltInMaterialDefinitions.cs`, `MaterialCompiler.cs`, `MaterialInstancePropertyBlockMapper.cs`, `MaterialRenderStateResolver.cs` si nécessaire, `StaticModelMaterialResolver.cs` (lecture seule sauf besoin) ; tests frères de ceux de `lit-diffuse` ; ADR-0098.
+- Fichiers : `BuiltInMaterialDefinitions.cs`, `MaterialCompiler.cs`, `MaterialInstancePropertyBlockMapper.cs`, `MaterialRenderStateResolver.cs` si nécessaire, `StaticModelMaterialResolver.cs` (lecture seule sauf besoin) ; tests frères de ceux de `lit-diffuse` ; ADR-0100.
 - Étapes :
   1. Définition `lit-pbr` : clés `base_color_texture`, `normal_texture`, `metallic_roughness_texture`, `occlusion_texture`, `emissive_texture`, `base_color` (marquée `AffectsTransparency`), `metallic`, `roughness`, `emissive_color`, `alpha_cutoff`, `occlusion_strength`, `normal_scale` ; groupes, bornes, pas et indices d'éditeur sur le modèle de `lit-diffuse`. Vérifier qu'aucun alias n'entre en collision.
   2. `MaterialCompiler` : fabrique directe `CreateLitPbrMaterial` recevant les `holds`, à côté de celle de `lit-diffuse`.
   3. Surcharges par instance : `base_color`, `metallic`, `roughness`, `emissive_color`.
   4. Tests : identifiants intégrés (3) ; aller-retour `.material` ; compilation → file et technique attendues (opaque, alpha-test, transparent) ; surcharge appliquée ; les comptes de `MaterialDefinitionEditorRegistryTests` et `MaterialAssetJsonSerializerTests` mis à jour avec leur justification.
-  5. ADR-0098 : définition `lit-pbr`, clés, famille, choix de technique par le matériau.
+  5. ADR-0100 : définition `lit-pbr`, clés, famille, choix de technique par le matériau.
 - Validation : builds ; tests verts ; captures de T0.2 identiques.
-- Commit : `feat(materials): add the lit-pbr definition, its compilation and overrides (ADR-0098)`
+- Commit : `feat(materials): add the lit-pbr definition, its compilation and overrides (ADR-0100)`
 
 ### ⏳ T4.3 — Ombres portées alpha-test et premier rendu
 
@@ -533,7 +542,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 - Fichiers : nouveaux `CasaEngine/Content/Shaders/IblConvolution.fx`, `CasaEngine/Framework/Rendering/Environment/IblCubeGenerator.cs` ; `Content.mgcb`, `BuiltInShaderCatalog.cs` ; `Macros.fxh` (`SAMPLE_CUBEMAP_LEVEL`, variante `OPENGL` comprise) ; tests.
 - Étapes :
   1. Vérifier que `TextureCube` accepte `mipMap: true` et `SetData` par face et par niveau dans la version de MonoGame du dépôt (lire la signature dans le paquet référencé) ; sinon ⚠️ Blocked.
-  1b. **Avant tout autre travail de la phase** (backend OpenGL, T0.3) : écrire `SAMPLE_CUBEMAP_LEVEL` (`texCUBElod(sampler, float4(dir, level))` sous `OPENGL`) et prouver par un shader d'essai, sur un cube à mips dont chaque niveau porte une couleur unie distincte, que le niveau demandé est bien celui lu (pixel mesuré pour les niveaux 0, 2 et 4). Si la chaîne OpenGL de MonoGame refuse ou ignore le niveau : repli sans niveau de mip — les niveaux de rugosité sont rangés dans **une texture 2D** (un bandeau latitude-longitude par niveau, empilés), échantillonnée par `tex2D` avec interpolation manuelle entre deux bandeaux ; l'écrire ici, en ADR-0099, et adapter T6.2, T6.3 et T7.1 dans le même commit.
+  1b. **Avant tout autre travail de la phase** (backend OpenGL, T0.3) : écrire `SAMPLE_CUBEMAP_LEVEL` (`texCUBElod(sampler, float4(dir, level))` sous `OPENGL`) et prouver par un shader d'essai, sur un cube à mips dont chaque niveau porte une couleur unie distincte, que le niveau demandé est bien celui lu (pixel mesuré pour les niveaux 0, 2 et 4). Si la chaîne OpenGL de MonoGame refuse ou ignore le niveau : repli sans niveau de mip — les niveaux de rugosité sont rangés dans **une texture 2D** (un bandeau latitude-longitude par niveau, empilés), échantillonnée par `tex2D` avec interpolation manuelle entre deux bandeaux ; l'écrire ici, en ADR-0101, et adapter T6.2, T6.3 et T7.1 dans le même commit.
   2. `IblConvolution.fx` : `Irradiance` (convolution cosinus, échantillonnage fixe) et `PrefilterGgx` (échantillonnage d'importance, 64 échantillons, rugosité en paramètre).
   3. `IblCubeGenerator` : pour chaque face et niveau, rendre dans une `RenderTarget2D` `Vector4`, relire par `GetData`, écrire par `SetData`. Irradiance 32 px sans mips ; spéculaire 128 px, 6 niveaux, rugosité `niveau / 5`. États restaurés.
   4. Tests : fonctions pures (direction par face et par texel, rugosité par niveau, nombre de niveaux).
@@ -543,15 +552,15 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ### ⏳ T6.2 — Cache et liaison de l'IBL
 
 - Objectif : les cubes IBL de l'environnement résolu, générés une fois par changement.
-- Fichiers : `EnvironmentResolver.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentShaderBinder.cs`, `ShaderParameterNames.cs`, nouveau `IblCache.cs` ; tests ; ADR-0099.
+- Fichiers : `EnvironmentResolver.cs`, `ResolvedEnvironmentSettings.cs`, `EnvironmentShaderBinder.cs`, `ShaderParameterNames.cs`, nouveau `IblCache.cs` ; tests ; ADR-0101.
 - Étapes :
   1. `IblCache` : clé = instance du cube spéculaire source ; rend irradiance et préfiltré s'ils existent, sinon enregistre une demande ; libère à la disparition de la source (suivre `GeneratedAssetHandleCache`). Les demandes sont exécutées par `RenderPipeline.Render` avant toute vue (P9), jamais dans `EnvironmentResolver.Resolve` ni pendant qu'une cible de vue est liée. Compteur de générations et indicateur « générée hors boucle des vues » exposés pour les tests et la démo.
   2. `ResolvedEnvironmentSettings` : `IrradianceCubemap`, `PrefilteredSpecularCubemap`, nombre de niveaux. Sans cube source : nuls.
   3. Liaison dans `EnvironmentShaderBinder`, sous des noms nouveaux ; `LitForward.fx` ne les déclare pas et n'est pas modifié.
   4. Table BRDF : texture 2D 64×64 calculée une fois sur le CPU (intégration numérique), format `Vector2` ou `Color` selon le support ; test de quelques valeurs de référence calculées par la même formule en double précision.
-  5. ADR-0099 : génération GPU, tailles, cache, table BRDF.
+  5. ADR-0101 : génération GPU, tailles, cache, table BRDF.
 - Validation : builds ; tests verts ; captures de T0.2 identiques ; tests unitaires de `IblCache` (demande mise en file, une seule génération par source, libération) et de la table BRDF. Aucun shader ne déclare encore les paramètres IBL : les mesures de génération en situation sont en T6.3.
-- Commit : `feat(rendering): cache and bind the IBL cubes and the BRDF table (ADR-0099)`
+- Commit : `feat(rendering): cache and bind the IBL cubes and the BRDF table (ADR-0101)`
 
 ### ⏳ T6.3 — IBL dans `LitPbr.fx`
 
@@ -609,14 +618,14 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ### ⏳ T9.1 — Lecture des canaux PBR
 
 - Objectif : garder les données PBR au chargement.
-- Fichiers : `StaticModelImportResult.cs`, `GltfStaticModelReader.cs`, `GltfStaticModelReaderTests.cs` ; ADR-0100.
+- Fichiers : `StaticModelImportResult.cs`, `GltfStaticModelReader.cs`, `GltfStaticModelReaderTests.cs` ; ADR-0102.
 - Étapes :
   1. Champs additifs sur `StaticModelImportedMaterial` : `MetallicFactor`, `RoughnessFactor`, chemins metallic-roughness, occlusion, émissif, `NormalScale`, `OcclusionStrength`, `AlphaMode`, `AlphaCutoff`, `DoubleSided`.
   2. Lecture depuis SharpGLTF ; la conversion en puissance spéculaire reste, inchangée (le test qui l'épingle reste vert).
   3. Tests : construire le glTF d'essai comme le font les tests existants ; vérifier chaque champ.
-  4. ADR-0100.
+  4. ADR-0102.
 - Validation : builds ; tests verts.
-- Commit : `feat(assets): read the PBR material channels of glTF static models (ADR-0100)`
+- Commit : `feat(assets): read the PBR material channels of glTF static models (ADR-0102)`
 
 ### ⏳ T9.2 — Matériaux `lit-pbr` à l'import
 
@@ -655,7 +664,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 
 - Objectif : documenter et rendre le plan.
 - Fichiers : nouveau `docs/engine/pbr-rendering.md` ; `docs/engine/materials-workflow.md`, `effect-file-inventory.md`, `environment-system-v1.md`, `docs/README.md`, `ai-agent/README.md`.
-- Étapes : workflow, clés `lit-pbr`, IBL et caches, bloom, transparent, skinné, import, limites, renvois aux ADR-0094 à 0100 ; rapport de fin (`AGENTS.md` §12) ; tableau du README.
+- Étapes : workflow, clés `lit-pbr`, IBL et caches, bloom, transparent, skinné, import, limites, renvois aux ADR-0094 à ADR-0102 ; rapport de fin (`AGENTS.md` §12) ; tableau du README.
 - Validation : liens des index ouverts.
 - Commit : `docs(engine): document PBR rendering and close the plan`
 
@@ -686,6 +695,9 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 | O7 | Un maillage skinné peut-il porter un `LitPbrMaterial` sans changer de format ? | T8.1 |
 | O8 | État réel de la migration d'import glTF, dont les statuts se contredisent. | T9.2 |
 | O9 | Dessin double des projeteurs d'ombre skinnés (`SkinnedMeshRendererComponent.cs:99` et `:170`) : hors périmètre, signalé. | — |
+| O10 | Le décodage des couleurs de matériau dans chacun des 24 emplacements de lumière a donné une image `Legacy` fausse sur OpenGL, même avec la constante à 0 (cause non trouvée). Les nouveaux shaders doivent décoder les couleurs de matériau une seule fois par pixel. | T3.1, T3.2 |
+| O11 | La forme à sélection de `DecodeColor` évalue aussi `pow` en `Legacy` : petit coût par pixel pour une sortie identique au bit, à mesurer en T10.2. | T10.2 |
+| O12 | Levé par T1.7 (étape 3) : à l'intensité de lumière 16, en `LinearHdr` avec `AcesApprox` et exposition 1, deux des trois points de mesure de la sphère valent 250 (250 ; 251 ; 250) au lieu de trois valeurs distinctes, alors que `Legacy` les écrête tous à 255 et que `Reinhard` donne 226 ; 227 ; 224. Faut-il admettre le critère comme trop strict (le tonemapper compresse les hautes valeurs, l'information HDR est conservée : 244 à 251 sur la sphère) ou le reformuler (autre exposition ou autre tonemapper) ? Défaut : aucune modification du moteur. | T1.7 |
 
 ## Hors périmètre
 

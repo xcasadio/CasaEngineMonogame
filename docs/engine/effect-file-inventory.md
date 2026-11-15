@@ -22,6 +22,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | `Macros.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `TexturedPrimitive.fx` | shared macros, texture declarations, technique helpers | high |
 | `Structures.fxh` | `LitForward.fx` | shared vertex/pixel structs used by the lit static effect | medium |
 | `Lighting.fxh` | `LitForward.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
+| `ColorPipeline.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx`, `TexturedPrimitive.fx`, `SpriteBatch.fx`, `PsxQuad.fx`, `DebugPrimitiveColor.fx` | `DecodeColor` / `DecodeColor4`: display-to-linear decoding of the linear colour pipeline, a select on `ColorPipelineIsLinear` that returns the input untouched when 0 (ADR-0097, ADR-0098); see `color-pipeline.md` | medium |
 
 ## Consumer notes
 

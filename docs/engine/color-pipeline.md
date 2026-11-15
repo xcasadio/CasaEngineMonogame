@@ -1,0 +1,99 @@
+# Colour pipeline
+
+How a world renders in linear light with a high dynamic range target and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098.
+
+## Modes
+
+| Mode | What it does |
+|---|---|
+| `Legacy` (default) | Today's behaviour. Every colour is a display colour, lit and written in display space straight into the target of the view. Images are bit-identical to those of an engine without the colour pipeline. |
+| `LinearHdr` | The scene is lit in linear light into a half-float target, tonemapped, and written to the destination of the view; the interface is drawn after, untouched. |
+
+## Settings: the `color_pipeline` key
+
+The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSettings`), are resolved by `EnvironmentResolver` into `ResolvedEnvironmentSettings` (`ColorPipelineMode`, `Tonemapper`, `Exposure`, `IsLinearHdr`) and can be replaced per view by the environment override (the override replaces the settings as a whole).
+
+| Field | Key | Default | Effect |
+|---|---|---|---|
+| `Mode` | `mode` | `Legacy` | `Legacy` or `LinearHdr`. |
+| `Tonemapper` | `tonemapper` | `AcesApprox` | `AcesApprox` (Narkowicz fit) or `Reinhard`. |
+| `Exposure` | `exposure` | 1 | Scalar multiplier applied before the tonemapper. A negative, NaN or infinite value becomes 0. No automatic exposure. |
+
+The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo and an exposure field.
+
+```csharp
+var colorPipeline = world.EnvironmentSettings.ColorPipeline;
+colorPipeline.Mode = ColorPipelineMode.LinearHdr;
+colorPipeline.Tonemapper = TonemapOperator.AcesApprox;
+colorPipeline.Exposure = 1.0f;
+world.EnvironmentSettings.MarkDirty();
+```
+
+```json
+"color_pipeline": { "mode": "LinearHdr", "tonemapper": "AcesApprox", "exposure": 1.0 }
+```
+
+## Frame order in `LinearHdr`
+
+For a view that really uses the HDR target (`RenderPipeline.RenderHdrView`):
+
+1. The scene is rendered into a target taken from `RenderTargetPool` (`HalfVector4`, `Depth24Stencil8`, the size of the view rectangle after the resolution scale). The clear colour is decoded in floating point.
+2. The destination of the legacy path is bound (back buffer, editor host texture, scene target, retained target of the frozen frame, or the render target of the view's own surface) and its depth cleared the way the legacy path clears it.
+3. `Tonemap.fx` (`Tonemap_Reinhard` or `Tonemap_AcesApprox`, parameter `Exposure`) is drawn full-rectangle and opaque through a `SpriteBatch`. It tonemaps then encodes with `pow(c, 1 / 2.2)`.
+4. The post-tonemap flush: renderers implementing `IPostTonemapRenderer` (`Renderer2DComponent`: screen sprites, text, 2D lines) are flushed on the tonemapped image, with `DepthStencilState.None`.
+5. The interface (`IUICompositionService`) is composed on top, untouched.
+6. The HDR target goes back to the pool. The existing copy to the back buffer, the frozen-frame retention, the debug overlay and the presenter run after, unchanged.
+
+A split-screen of back-buffer views works because the back buffer's `RenderTargetUsage` is set to `PreserveContents` for the one binding of the destination, then restored (ADR-0096).
+
+## What is decoded, and where
+
+The colours the engine knows are display colours. In `LinearHdr` they are decoded to linear light with the 2.2 power law (`c^2.2`, the inverse of the encoding of `Tonemap.fx`) where they are read. Normal maps, shadow maps and any non-colour data are never decoded.
+
+| Value | Decoded by | Where |
+|---|---|---|
+| Base colour (texture times detail, after the modulation), vertex colours, `DiffuseColor`, `EmissiveColor`, `SpecularColor`, `MaterialAmbientColor` | `DecodeColor` of `ColorPipeline.fxh` | Shader (lit, unlit, skinned) |
+| Environment cube, material reflection cube, local probes, sky cubes and their tint | `DecodeColor` | Shader (`EnvironmentCubeIsLinear` skips it for a cube known to be linear) |
+| Particles, 3D sprites, 3D lines: texture times vertex or constant colour | `DecodeColor4` | Shader (`TexturedPrimitive.fx`, `SpriteBatch.fx`, `PsxQuad.fx`, `DebugPrimitiveColor.fx`) |
+| Light colours | `ColorSpace.Decode`, before the multiply by intensity | CPU (`ForwardLightBinder`) |
+| Ambient colour | `Decode(AmbientColor) * AmbientIntensity` | CPU (`ResolvedEnvironmentSettings.EffectiveAmbientColor`) |
+| Shadow colour | `ColorSpace.Decode` | CPU |
+| Clear colour of the HDR target | `ColorSpace.Decode` in floating point (`Vector4` overload of `Clear`) | CPU |
+| Sky background gradient and sun colour (`SkyBackgroundViewPipeline`) | The gradient is drawn from a second `HalfVector4` texture built from the decoded colours; the sun colour is decoded before its 0.65 factor | CPU |
+
+Only a cube built from a `.hdr` panorama is linear (`BackgroundCubemapIsLinear`, `SpecularEnvironmentCubemapIsLinear`, decided by the file extension). The procedural sky, the physical atmosphere, DDS and authored cubes, probes and the material reflection cube are decoded.
+
+### Which views decode: `LinearColorActive`
+
+`ResolvedEnvironmentSettings.LinearColorActive` is set by `RenderPipeline.Render`, on its own copy of the resolved environment, only when the planner chose the HDR target and the tonemap shader is loaded. Everything built from that copy carries it, and the shaders' `ColorPipelineIsLinear` constant is bound from it (`EnvironmentShaderBinder`, `ForwardLightBinder`, `SkyCubemapRenderer`, the particle, sprite and line renderers). The resolved mode (`IsLinearHdr`) is never used to decode: a view of a `LinearHdr` world that stays on the legacy path (see below) keeps its legacy colours. A copy of the environment made elsewhere (editor previews, tests) keeps the value false.
+
+A view stays on the legacy path when it keeps the previous content of its colour buffer (`ClearColorBuffer` false), has an empty rectangle, or when `Tonemap.fx` is missing (logged once).
+
+## Usage
+
+A game selects the pipeline per world (snippet above) or per view with the environment override. A renderer that draws display-ready colours (HUD, fonts) implements `IPostTonemapRenderer`; a renderer that draws scene colours declares `float ColorPipelineIsLinear;` before including `ColorPipeline.fxh` in its effect and binds it from `frame.Environment.LinearColorActive`.
+
+For the demos, the harness variables `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGINE_DEMO_TONEMAPPER` and `CASAENGINE_DEMO_EXPOSURE` apply a mode to any demo, and `Colour pipeline demo` (with `CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY` and `CASAENGINE_COLOR_DEMO_BUFFERED`) is the measurement scene.
+
+## Known limits
+
+- **View pipelines without `IScenePhaseViewPipeline` (open point O1).** The interface is composed after the tonemapping only for a pipeline implementing `IScenePhaseViewPipeline` (`DefaultViewPipeline`, `SkyBackgroundViewPipeline` when its inner pipeline does). Any other pipeline (the editor's `OverlayViewPipeline`, a game's own pipeline) is rendered whole, interface included, into the HDR target and tonemapped with the scene; a warning is logged once per pipeline type.
+- **`Renderer2DComponent` loses the scene depth test (open point O3).** In `LinearHdr` the screen sprites, text and 2D lines are flushed after the tonemapping: the depth of the scene lives in the HDR target, not in the destination, so they never test it and are drawn over the scene like the interface. A pipeline without `IScenePhaseViewPipeline` keeps them in the HDR target, tonemapped with the scene.
+- **Mipmaps are averaged in encoded space (open point O4).** The mip chain (ADR-0092) is built from display values; a high-contrast texture is slightly darker in `LinearHdr` when minified.
+- **Emissive colours are treated as display colours.** `EmissiveColor` is decoded like any colour, so an emissive colour is a display colour (at most 1 per channel), not a radiance that can exceed 1; a material cannot yet emit more than white.
+- **3D lines are covered by a text test only.** `Line3dRendererComponent` binds the constant (proved by a test on the shader text); no demo draws 3D lines in the measurement scene.
+- **`TexturedPrimitive.fx` is shared with the UI backend.** The particle renderer uses its own clone of the effect and binds the constant; the MGUI backend keeps its own instance and never binds it, so the interface keeps its display colours.
+- **`DebugSolidColor.fx` is not decoded.** It is the editor's transform gizmo, drawn over the view by the editor.
+- **`LegacySkyCube.fx` is bound only by a game.** The engine does not draw it; it exposes `ColorPipelineIsLinear`, and a game drawing it in `LinearHdr` must bind the constant.
+- **Format fallback.** If the device refuses `HalfVector4`, the pipeline falls back to `HdrBlendable`, then to `Color`, logged once. With `Color` the target clips above 1 and cannot hold a decoded dark value: the image is then neither HDR nor accurate in the darks.
+- **Physical atmosphere.** A cube from the physical atmosphere with a sun intensity above 1 is decoded like any display cube (ADR-0097).
+- **Material colours are decoded once per pixel, not inside each light slot.** Decoding the material diffuse and specular colours inside each of the 24 unrolled light slots of `Lighting.fxh` produced a wrong `Legacy` image on the OpenGL backend even with `ColorPipelineIsLinear` at 0. The cause was not found (open point O10). The colours are therefore computed once per pixel in static variables of `Lighting.fxh`; new shaders must do the same.
+- **Small `Legacy` cost of the select form (open point O11).** `DecodeColor` is a select, not a branch, so that the constant at 0 returns the colour bit for bit; the GPU evaluates the `pow` on both sides, so a `Legacy` pixel pays the extra `pow` calls (base colour, material diffuse, specular and emissive, ambient tint) for an identical result. Not measured yet; to be measured in the final cost task.
+- **Format of the retained frozen frame.** The retained and captured frozen-frame targets stay `Color`: they receive the tonemapped image.
+- **A view with `ClearColorBuffer` false is not rendered in HDR.**
+
+## Cost
+
+Each `LinearHdr` view costs one pooled HDR target (8 bytes per pixel plus depth, created once per view size) and one full-rectangle tonemapping draw.
+
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098.
