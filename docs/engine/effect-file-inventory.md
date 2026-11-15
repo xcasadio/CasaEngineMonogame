@@ -7,6 +7,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | File | Type | Current consumers | Role | Refactor risk |
 | --- | --- | --- | --- | --- |
 | `LitForward.fx` | material-facing | `StaticMeshRendererComponent` | main lit static-mesh effect with many technique permutations | high |
+| `LitPbr.fx` | material-facing | none yet (registered by the engine, drawn by no material until the `lit-pbr` material of phase 4) | static-mesh PBR effect (metallic-roughness, glTF conventions), per-pixel lighting, forward: techniques `LitPbr`, `LitPbr_AlphaTest`, `LitPbr_NormalMap`, `LitPbr_NormalMap_AlphaTest`; built on `Lighting.fxh` and `Pbr.fxh`; 9 textures (base colour, normal, metallic-roughness, environment cube, two probes, shadow map, occlusion, emissive), `Has...` flags for the optional ones; unclamped linear output | high |
 | `UnlitTexture.fx` | material-facing | `StaticMeshRendererComponent` | unlit material effect for textured or colored draws | medium |
 | `skinEffect.fx` | material-facing | `SkinnedMeshRendererComponent` | skinned mesh effect with its own techniques and lighting bindings | high |
 | `SpriteBatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
@@ -20,14 +21,15 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 
 | File | Included by | Role | Refactor risk |
 | --- | --- | --- | --- |
-| `Macros.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `TexturedPrimitive.fx` | shared macros, texture declarations, technique helpers | high |
-| `Structures.fxh` | `LitForward.fx` | shared vertex/pixel structs used by the lit static effect | medium |
-| `Lighting.fxh` | `LitForward.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
-| `ColorPipeline.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx`, `TexturedPrimitive.fx`, `SpriteBatch.fx`, `PsxQuad.fx`, `DebugPrimitiveColor.fx` | `DecodeColor` / `DecodeColor4`: display-to-linear decoding of the linear colour pipeline, a select on `ColorPipelineIsLinear` that returns the input untouched when 0 (ADR-0097, ADR-0098); see `color-pipeline.md` | medium |
-| `Pbr.fxh` | none yet (`LitPbr.fx`, next task) | GGX BRDF (distribution, height-correlated Smith visibility, Schlick Fresnel, Lambert diffuse) and `EvaluatePbrLights`: walks the directional, point and spot lights of `Lighting.fxh` with the same attenuation formulas and slot lists restated (pinned by `PbrShaderCoverageTests`), both lobes lit by the diffuse colour of the light, diffuse and specular returned apart | medium |
+| `Macros.fxh` | `LitForward.fx`, `LitPbr.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `TexturedPrimitive.fx` | shared macros, texture declarations, technique helpers | high |
+| `Structures.fxh` | `LitForward.fx`, `LitPbr.fx` | shared vertex/pixel structs used by the lit static effect | medium |
+| `Lighting.fxh` | `LitForward.fx`, `LitPbr.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
+| `ColorPipeline.fxh` | `LitForward.fx`, `LitPbr.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx`, `TexturedPrimitive.fx`, `SpriteBatch.fx`, `PsxQuad.fx`, `DebugPrimitiveColor.fx` | `DecodeColor` / `DecodeColor4`: display-to-linear decoding of the linear colour pipeline, a select on `ColorPipelineIsLinear` that returns the input untouched when 0 (ADR-0097, ADR-0098); see `color-pipeline.md` | medium |
+| `Pbr.fxh` | `LitPbr.fx` | GGX BRDF (distribution, height-correlated Smith visibility, Schlick Fresnel, Lambert diffuse) and `EvaluatePbrLights`: walks the directional, point and spot lights of `Lighting.fxh` with the same attenuation formulas and slot lists restated (pinned by `PbrShaderCoverageTests`), both lobes lit by the diffuse colour of the light, diffuse and specular returned apart | medium |
 
 ## Consumer notes
 
+- `LitPbr.fx` is the PBR counterpart of `LitForward.fx` for static meshes. Its light, environment and shadow constants keep the slots of `LitForward.fx` (a text test pins it), so the same binders fill both. A PBR material on a skinned mesh keeps the skinning shader until phase 8.
 - `LitForward.fx` is the critical static-rendering shader and now carries a semantic name distinct from MonoGame `BasicEffect`.
 - `skinEffect.fx` is still isolated from the main material/shader policy: it is loaded directly by the skinned renderer instead of being resolved through the same path as static materials.
 - `DebugPrimitiveColor.fx` is now the shared replacement for former MonoGame `BasicEffect` usages in debug/runtime overlays.

@@ -39,6 +39,21 @@ public static class ShaderParameterNames
     public const string ColorMultiplier = "ColorMultiplier";
     public const string SolidColor = "SolidColor";
 
+    // --- PBR material (LitPbr.fx). EmissiveColor, AlphaCutoff, Texture (base colour) and NormalTexture are shared with the
+    // constants above; the Has... flags tell the shader which optional textures are bound. ---
+    public const string BaseColor = "BaseColor";
+    public const string Metallic = "Metallic";
+    public const string Roughness = "Roughness";
+    public const string OcclusionStrength = "OcclusionStrength";
+    public const string NormalScale = "NormalScale";
+    public const string MetallicRoughnessTexture = "MetallicRoughnessTexture";
+    public const string OcclusionTexture = "OcclusionTexture";
+    public const string EmissiveTexture = "EmissiveTexture";
+    public const string HasBaseColorTexture = "HasBaseColorTexture";
+    public const string HasMetallicRoughnessTexture = "HasMetallicRoughnessTexture";
+    public const string HasOcclusionTexture = "HasOcclusionTexture";
+    public const string HasEmissiveTexture = "HasEmissiveTexture";
+
     // --- Colour pipeline ---
     public const string Exposure = "Exposure";
     public const string SceneTexture = "SceneTexture";
