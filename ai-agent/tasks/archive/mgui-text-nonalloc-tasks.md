@@ -305,8 +305,24 @@ Plan accepté par l'auteur le 2026-11-15, avec la demande de corriger les défau
   une fois). Tests : `FormattedTextMarkupFixesTests`, `TheDefaultUnderline_HasTheColorOfTheText`. Validation :
   `MGUI.Tests` 3663 verts, `CasaEngine.Tests` 5550 verts, les trois solutions 0 erreur. Pas de vérification
   indépendante.
-- Reste à décider par l'auteur : le `[` sans balise valide (comportement cible à choisir) et, lié, le constat P3 ;
-  les paires de barres obliques inverses ne sont pas changées (règle cohérente avec `EscapeMarkdown` et ses tests).
+- `[` sans balise valide : décidé par l'auteur le 2026-11-15 (« Oui, littéral ») et fait (MGUI `907b76f0`, MGUI
+  ADR-0030). Un `[` qui n'ouvre pas une balise bien formée est un caractère littéral et la lecture reprend juste
+  après ; plus aucun balisage ne fait lever `Text`, `SetText` ou `MGTextRun.ParseRuns`, donc le constat P3 (runs
+  gardés après un balisage invalide) n'a plus d'objet. Ruptures : `FTTokenizer.TryTokenize` retiré, `Tokenize` ne
+  rend plus `InvalidToken`. Règle ajoutée pendant la vérification, **choisie par l'agent et à valider par
+  l'auteur** : une balise finit au premier `]` et ne contient ni saut de ligne ni autre `[` (`[tt=]a]` et
+  `[tt=a[b]`, que le code historique lisait comme des infobulles, sont maintenant du texte ; aucun balisage de
+  cette forme trouvé dans MGUI ni CasaEngine).
+- Vérification indépendante du `[` littéral : deux verdicts REFUTED sur un constat P2 introduit (lecture
+  quadratique : 4 à 6 s, puis 8 à 13 s, pour 20 000 caractères mal formés), corrigé deux fois (lecture sur place,
+  puis candidat de balise borné au prochain `[`) ; troisième vérificateur neuf, ciblé : **CONFIRMED** (ces textes
+  en 1 à 15 ms à 20 000 et 40 000 caractères ; 36 478 textes aléatoires sous `en-US` et `tr-TR`, mêmes runs par les
+  deux chemins, aucune exception ; 20 résultats changés par la borne, tous avec un `[` dans la balise). Validation :
+  `MGUI.Tests` 3684 verts, `CasaEngine.Tests` 5550 verts, les trois solutions 0 erreur.
+- Non changé : les paires de barres obliques inverses (règle cohérente avec `EscapeMarkdown` et ses tests). Constats
+  antérieurs relevés par les vérificateurs, non corrigés : le code historique est quadratique sur une longue suite
+  de barres obliques inverses devant un `[` (6 s pour 20 000) et copie le reste du texte à chaque jeton d'une balise
+  valide ; une valeur refusée (`[color=NotAColor]`) coûte une exception rattrapée à chaque lecture.
 - Les limites qui allouent encore (caches de 64 et 128 entrées, bloc souligné ou à fond sans balise, changement de
   police, tampons qui ne rétrécissent pas) restent des limites documentées.
 
