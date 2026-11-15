@@ -236,7 +236,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Sites vus pour la suite, non mesurés : `MGWindow.cs:2429` (`_NestedWindows.OrderBy` dans `Draw`) ;
   `MGResizeGrip.cs:98` (abonnement à `OnBeginUpdateContents` de la fenêtre hôte).
 
-### ⏳ T1.3 — Une fenêtre nue
+### ✅ T1.3 — Une fenêtre nue
 
 - Fixture : `AnIdleFrame(BareWindow)` (fenêtre sans barre de titre ni contenu ; aujourd'hui `Update` 1400, `Draw`
   1673).
@@ -248,8 +248,29 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - La transaction de test rend le même `ClipScope` à chaque `Push` : le coût du clip d'un backend réel n'est pas dans
   cette preuve (T3.1).
 - Commit (MGUI) : `perf(window): update and draw a bare window without allocating`
+- **Fait le 2026-11-15** (MGUI `72aba460`). `Draw` : 1369 octets par image avant, 0 après, souris dehors et souris
+  immobile sur la fenêtre ; `Update` était déjà à 0 (ces deux tests ne peuvent pas être vus échouer). Contre-épreuve
+  des deux tests `Draw` sur `fda5cd1f` : 1369 octets chacun. Caractérisation sur 5 images : 130 lignes, préfixe
+  `7465221FAD2D49C8`, figée sur le code d'avant, identique après. Suite : 3595 verts, aucun sauté.
+- Sites (octets par image, estimés par type d'allocation échantillonné, somme 1369) : `MGElement.cs` ~5295 à 5311,
+  quatre `ClipDefinition` par image (410), gardées par élément tant que bornes et nom sont inchangés ; noms de clip
+  interpolés dans `MGElement.cs` et `MGBorder.cs:260` (214), construits une fois ; `MGResizeGrip.cs:257`, une
+  `List<Vector2>` par image (332), gardée dans un champ ; `MGElement.cs:5322`, un `MGElementDrawEventArgs` par élément
+  dessiné (178), créé seulement s'il y a un abonné ; `MGWindow.cs:2417`, `ParentWindows.Any` (57), boucle ;
+  `MGWindow.cs:2429`, `_NestedWindows.OrderBy` (89), `MGDesktop.FillDrawOrder` ; `MGContentHost.cs:214` et `:355`,
+  itérateur de `GetChildren` (89).
+- **Écart au plan, décidé en session principale** : `Containers/MGContentHost.cs` (classe de base des conteneurs, D2)
+  est ajouté aux fichiers de T1.3 et T1.4. La tâche s'était arrêtée sur ce site (règle d'arrêt). `MGSingleContentHost`
+  dessine `Content` directement quand le type d'exécution ne redéfinit pas `GetChildren` ; sinon la boucle d'origine
+  est gardée. La réponse est calculée une fois par type (réflexion, cache statique). Aucun membre public ou protégé
+  ajouté.
+- Écart de forme : le test `ResolvedPilotWriteSitesTests` fige la ligne 338 de `MGContentHost.cs` ; le code ajouté
+  est donc placé en fin de fichier dans des déclarations `partial` des trois classes, sans déplacer les lignes
+  existantes.
+- Le commit du sous-agent a été refusé par le hook (« depot cible non resolu », forme de la commande) ; la session
+  principale a relu le diff, relancé la suite et commité elle-même, par le même hook.
 
-### ⏳ T1.4 — La barre de titre (D6)
+### ✅ T1.4 — La barre de titre (D6)
 
 - Fixture : `AnIdleFrame(DefaultWindow)` (fenêtre par défaut sans contenu ; aujourd'hui `Draw` 2745).
 - Fichiers : `MGUI/MGUI.Core/UI/MGWindow.cs` (barre de titre), `MGButton.cs`, `Containers/MGDockPanel.cs` ; pour
@@ -259,6 +280,20 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   titre, et souris au-dessus du bouton de fermeture (état survolé) ; contre-éprouvé ; caractérisation identique dans
   ces trois états. Un clic sur le bouton n'est pas dans la preuve (fermer une fenêtre alloue légitimement).
 - Commit (MGUI) : `perf(window): draw the title bar without allocating`
+- **Fait le 2026-11-15** (MGUI `89910c84`). `Draw` : 2441 octets par image avant T1.3, 40 après T1.3, 0 après cette
+  tâche, dans les trois états ; `Update` déjà à 0. Contre-épreuve sur `72aba460` : les trois tests `Draw` échouent à
+  40 octets. Le survol du bouton est établi par hit-test (`Harness.FindTitleBarPoints` vérifie `HoveredElement` et
+  l'état `Hovered`). Caractérisation sur 7 images : 322 lignes, préfixe `CA21F30ACC8E2699` ; fixture `Full` sur 5
+  images : 340 lignes, préfixe `4EA6EED126EC08FA` ; figées sur `fda5cd1f`. Suite : 3605 verts, aucun sauté.
+- Seul site : l'énumérateur boxé de la collection d'enfants de `MGDockPanel` (`MGContentHost.cs:229`, boucle `:214`).
+  `MGMultiContentHost` parcourt `_Children` par index quand le type ne redéfinit pas `GetChildren`. `MGButton.cs`,
+  `MGDockPanel.cs` et `MGTextBlock.cs` ne sont pas modifiés.
+- **Différence de comportement, cas d'erreur seulement** : un enfant qui ajoute ou retire des enfants de son parent
+  pendant son propre `Draw` faisait lever `InvalidOperationException` par l'énumérateur ; la boucle par index ne lève
+  plus et continue à l'indice suivant de la collection modifiée. Pas de test écrit pour ce cas.
+- Mesuré à cet état, à prouver par T1.5 : `WindowWithStackPanel`, `…AndTextBlock`, `…AndSlider`, `Full` et le
+  glissement sont à 0 octet en `Update` et en `Draw`.
+- Validation moteur à `89910c84` : les deux solutions 0 erreur, `CasaEngine.Tests` 5480 verts, aucun sauté.
 
 ### ⏳ T1.5 — Conteneurs, et preuve de bout en bout sans invalidation
 
