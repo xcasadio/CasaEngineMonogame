@@ -242,6 +242,7 @@ Budget des phases 0 et 1 : sur une différence d'empreinte `Legacy` ou une mesur
 ---
 
 ## Phase 1 — Pipeline couleur : linéaire, HDR, tonemapping
+> **Vérification indépendante de la phase 1 (2026-11-15).** Premier passage sur 998e7997 : cinq affirmations confirmées (identité `Legacy` au bit, sérialisation additive, couleurs `LinearHdr` mesurées, intensité linéaire, builds et 5288 tests), une réfutée par un constat P2 introduit par la phase — les cibles HDR n'étaient jamais libérées (21 créées, 0 libérée sur 20 redimensionnements). Corrigé par f2467650 (éviction après 4 rendus sans usage) ; contre-vérification ciblée **CONFIRMED** : 21 créées, 20 libérées, 1 vivante ; taille fixe : une création par taille ; empreintes `Legacy` et référence `LinearHdr` inchangées ; 5296 tests. Avis P4 reportés : valeur d'énumération invalide dans un fichier de monde (exception sans contexte, comportement déjà celui de `ambient_source`) ; `Tonemap.xnb` absent d'un dossier de contenu externe ferait échouer le chargement ; une autre clé HDR identique dans le pool partagé pourrait voir ses cibles libres élaguées.
 
 ### ✅ T1.1 — `ColorPipelineSettings` dans les réglages d'environnement
 
