@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // ColorPipeline.fxh
 //
-// Display-colour decoding of the linear colour pipeline (ADR-0102).
+// Display-colour decoding of the linear colour pipeline (ADR-0103).
 //
 // The including effect declares `float ColorPipelineIsLinear;` BEFORE including this file. The engine binds it to 1 only
 // for a view that really draws through the HDR scene target in this frame, and to 0 otherwise. With 0 every function here

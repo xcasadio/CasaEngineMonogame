@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Environment;
 
 /// <summary>
-/// Generates the two convolved textures of the image-based lighting from an environment cube, on the GPU (ADR-0106): the diffuse
+/// Generates the two convolved textures of the image-based lighting from an environment cube, on the GPU (ADR-0107): the diffuse
 /// irradiance cube and the specular prefiltered atlas. Each one is drawn by <c>IblConvolution.fx</c> with a full-screen quad into
 /// a <see cref="SurfaceFormat.Vector4"/> render target, read back with <see cref="Texture2D.GetData{T}(T[], int, int)"/> and
 /// written into the result texture with <c>SetData</c>, so the result does not live in a render target. It works whatever the

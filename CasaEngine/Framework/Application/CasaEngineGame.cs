@@ -105,7 +105,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     private RenderPipeline _renderPipeline;
 
     /// <summary>
-    /// The image-based-lighting cache of the render pipeline (ADR-0106), or null before the pipeline exists. Read by the demos and
+    /// The image-based-lighting cache of the render pipeline (ADR-0107), or null before the pipeline exists. Read by the demos and
     /// the harness for its generation counters.
     /// </summary>
     public IblCache IblCache => _renderPipeline?.IblCache;

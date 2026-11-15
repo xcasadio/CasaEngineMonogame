@@ -437,7 +437,7 @@ public class PbrShaderCoverageTests
         string flat = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrFlatAmbient("));
         string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
 
-        // HasIbl = 0: exactly the flat ambient of T3.2 (UseFlatAmbientSource honoured, ADR-0095), no specular part.
+        // HasIbl = 0: exactly the flat ambient of T3.2 (UseFlatAmbientSource honoured, ADR-0096), no specular part.
         Assert.Contains("(HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)", flat);
         Assert.Contains("SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor", flat);
         Assert.Contains(": AmbientColor;", flat);
@@ -507,7 +507,7 @@ public class PbrShaderCoverageTests
         string source = LoadShaderSource("LitPbr.fx");
         string pbr = LoadShaderSource("Pbr.fxh");
 
-        // The OpenGL chain ignores the level of a cube sample (ADR-0106): the IBL never uses it.
+        // The OpenGL chain ignores the level of a cube sample (ADR-0107): the IBL never uses it.
         Assert.DoesNotContain("texCUBElod", source);
         Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", source);
         Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", pbr);
@@ -569,7 +569,7 @@ public class PbrShaderCoverageTests
         Assert.DoesNotContain("float SampleDirectionalShadowPcf(", source);
         Assert.DoesNotContain("float3 ApplyShadowTint(", source);
 
-        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0098): the pixel colour excluding
+        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0099): the pixel colour excluding
         // the emissive part is tinted, with the factor the light evaluation computed.
         Assert.Contains("(int)ActiveDirectionalLightCount", shade);
         Assert.Contains("color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);", shade);

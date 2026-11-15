@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Environment;
 
 /// <summary>
-/// The split-sum BRDF table of the image-based lighting (ADR-0106): a small 2D texture, computed once on the CPU by numerical
+/// The split-sum BRDF table of the image-based lighting (ADR-0107): a small 2D texture, computed once on the CPU by numerical
 /// integration, that gives for a view angle and a roughness the scale <c>A</c> and the bias <c>B</c> applied to the specular
 /// reflectance at normal incidence: <c>F0 * A + B</c>.
 /// <para/>

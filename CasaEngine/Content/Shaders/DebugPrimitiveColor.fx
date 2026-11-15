@@ -9,7 +9,7 @@
 float4x4 WorldViewProj;
 float4 ColorMultiplier = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
-// 1 when the view renders in the linear colour pipeline (ADR-0102): the vertex colour is a display colour.
+// 1 when the view renders in the linear colour pipeline (ADR-0103): the vertex colour is a display colour.
 float ColorPipelineIsLinear = 0.0f;
 
 #include "ColorPipeline.fxh"

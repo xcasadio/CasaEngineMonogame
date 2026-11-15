@@ -9,7 +9,7 @@ namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
 /// T6.1 of the PBR plan, parts that need no device: the pure functions of the IBL generator (directions of the texels of a face and
-/// of an atlas band, roughness of a band, size of the atlas) and the registration of <c>IblConvolution.fx</c> (ADR-0106). The
+/// of an atlas band, roughness of a band, size of the atlas) and the registration of <c>IblConvolution.fx</c> (ADR-0107). The
 /// real-GPU checks are in <see cref="IblCubeGeneratorGpuTests"/>.
 /// </summary>
 public class IblCubeGeneratorTests

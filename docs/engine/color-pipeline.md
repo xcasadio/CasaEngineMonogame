@@ -1,6 +1,6 @@
 # Colour pipeline
 
-How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0100, ADR-0101, ADR-0102, ADR-0103, ADR-0104.
+How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0101, ADR-0102, ADR-0103, ADR-0104, ADR-0105.
 
 ## Modes
 
@@ -18,7 +18,7 @@ The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSet
 | `Mode` | `mode` | `Legacy` | `Legacy` or `LinearHdr`. |
 | `Tonemapper` | `tonemapper` | `AcesApprox` | `AcesApprox` (Narkowicz fit) or `Reinhard`. |
 | `Exposure` | `exposure` | 1 | Scalar multiplier applied before the tonemapper. A negative, NaN or infinite value becomes 0. No automatic exposure. |
-| `BloomEnabled` | `bloom_enabled` | false | Adds a glow around the bright parts of the scene before the tonemapping (ADR-0104). No effect in `Legacy`. |
+| `BloomEnabled` | `bloom_enabled` | false | Adds a glow around the bright parts of the scene before the tonemapping (ADR-0105). No effect in `Legacy`. |
 | `BloomThreshold` | `bloom_threshold` | 1 | Scene luminance (linear light, largest colour component) above which a pixel feeds the bloom; soft knee of half the threshold. |
 | `BloomIntensity` | `bloom_intensity` | 0.5 | Scale of the glow added to the scene. |
 | `BloomRadius` | `bloom_radius` | 1 | Scale of the blur tap spacing; larger values spread the glow further. |
@@ -49,7 +49,7 @@ For a view that really uses the HDR target (`RenderPipeline.RenderHdrView`):
 6. The interface (`IUICompositionService`) is composed on top, untouched.
 7. The HDR target goes back to the pool. The existing copy to the back buffer, the frozen-frame retention, the debug overlay and the presenter run after, unchanged.
 
-A split-screen of back-buffer views works because the back buffer's `RenderTargetUsage` is set to `PreserveContents` for the one binding of the destination, then restored (ADR-0101).
+A split-screen of back-buffer views works because the back buffer's `RenderTargetUsage` is set to `PreserveContents` for the one binding of the destination, then restored (ADR-0102).
 
 ## What is decoded, and where
 
@@ -76,7 +76,7 @@ A view stays on the legacy path when it keeps the previous content of its colour
 
 ## Bloom
 
-`BloomRenderer` (ADR-0104) works on the HDR target of the view, before the tonemapping, so the interface and the screen sprites are never touched. From the scene: a bright pass to half size (per texel, the part above `BloomThreshold` with a soft knee), two 2 x 2 downsamples (quarter and eighth size), a separable 9-tap Gaussian blur of each level (horizontal into a partner target, then vertical back), then the three levels are added to the scene target with `BloomIntensity` shared between them. The shader is `Bloom.fx` (`Bloom_BrightPass`, `Bloom_Downsample`, `Bloom_BlurHorizontal`, `Bloom_BlurVertical`, `Bloom_Composite`), drawn through `SpriteBatch`, hot reloadable like `Tonemap.fx`.
+`BloomRenderer` (ADR-0105) works on the HDR target of the view, before the tonemapping, so the interface and the screen sprites are never touched. From the scene: a bright pass to half size (per texel, the part above `BloomThreshold` with a soft knee), two 2 x 2 downsamples (quarter and eighth size), a separable 9-tap Gaussian blur of each level (horizontal into a partner target, then vertical back), then the three levels are added to the scene target with `BloomIntensity` shared between them. The shader is `Bloom.fx` (`Bloom_BrightPass`, `Bloom_Downsample`, `Bloom_BlurHorizontal`, `Bloom_BlurVertical`, `Bloom_Composite`), drawn through `SpriteBatch`, hot reloadable like `Tonemap.fx`.
 
 - The bloom targets have the format of the HDR target (`HalfVector4` unless it fell back) and no depth buffer, and come from `RenderTargetPool.Shared`. Their keys (width, height, format, depth format) are tracked with the HDR keys and released by the same rule (`HdrTargetEviction`): a size no view has used for more than four renders is disposed, so a resize leaves no bloom chain behind. Creations and releases are logged at Debug level.
 - If the HDR target fell back to `Color`, bloom is skipped for the view with one warning: no value above 1 survives for the threshold to work on.
@@ -93,14 +93,14 @@ For the demos, the harness variables `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGI
 
 - **View pipelines without `IScenePhaseViewPipeline` (open point O1).** The interface is composed after the tonemapping only for a pipeline implementing `IScenePhaseViewPipeline` (`DefaultViewPipeline`, `SkyBackgroundViewPipeline` when its inner pipeline does). Any other pipeline (the editor's `OverlayViewPipeline`, a game's own pipeline) is rendered whole, interface included, into the HDR target and tonemapped with the scene; a warning is logged once per pipeline type.
 - **`Renderer2DComponent` loses the scene depth test (open point O3).** In `LinearHdr` the screen sprites, text and 2D lines are flushed after the tonemapping: the depth of the scene lives in the HDR target, not in the destination, so they never test it and are drawn over the scene like the interface. A pipeline without `IScenePhaseViewPipeline` keeps them in the HDR target, tonemapped with the scene.
-- **Mipmaps are averaged in encoded space (open point O4).** The mip chain (ADR-0097) is built from display values; a high-contrast texture is slightly darker in `LinearHdr` when minified.
+- **Mipmaps are averaged in encoded space (open point O4).** The mip chain (ADR-0098) is built from display values; a high-contrast texture is slightly darker in `LinearHdr` when minified.
 - **Emissive colours are treated as display colours.** `EmissiveColor` is decoded like any colour, so an emissive colour is a display colour (at most 1 per channel), not a radiance that can exceed 1; a material cannot yet emit more than white.
 - **3D lines are covered by a text test only.** `Line3dRendererComponent` binds the constant (proved by a test on the shader text); no demo draws 3D lines in the measurement scene.
 - **`TexturedPrimitive.fx` is shared with the UI backend.** The particle renderer uses its own clone of the effect and binds the constant; the MGUI backend keeps its own instance and never binds it, so the interface keeps its display colours.
 - **`DebugSolidColor.fx` is not decoded.** It is the editor's transform gizmo, drawn over the view by the editor.
 - **`LegacySkyCube.fx` is bound only by a game.** The engine does not draw it; it exposes `ColorPipelineIsLinear`, and a game drawing it in `LinearHdr` must bind the constant.
 - **Format fallback.** If the device refuses `HalfVector4`, the pipeline falls back to `HdrBlendable`, then to `Color`, logged once. With `Color` the target clips above 1 and cannot hold a decoded dark value: the image is then neither HDR nor accurate in the darks.
-- **Physical atmosphere.** A cube from the physical atmosphere with a sun intensity above 1 is decoded like any display cube (ADR-0102).
+- **Physical atmosphere.** A cube from the physical atmosphere with a sun intensity above 1 is decoded like any display cube (ADR-0103).
 - **Material colours are decoded once per pixel, not inside each light slot.** Decoding the material diffuse and specular colours inside each of the 24 unrolled light slots of `Lighting.fxh` produced a wrong `Legacy` image on the OpenGL backend even with `ColorPipelineIsLinear` at 0. The cause was not found (open point O10). The colours are therefore computed once per pixel in static variables of `Lighting.fxh`; new shaders must do the same.
 - **Small `Legacy` cost of the select form (open point O11).** `DecodeColor` is a select, not a branch, so that the constant at 0 returns the colour bit for bit; the GPU evaluates the `pow` on both sides, so a `Legacy` pixel pays the extra `pow` calls (base colour, material diffuse, specular and emissive, ambient tint) for an identical result. Not measured yet; to be measured in the final cost task.
 - **Format of the retained frozen frame.** The retained and captured frozen-frame targets stay `Color`: they receive the tonemapped image.
@@ -112,4 +112,4 @@ Each `LinearHdr` view costs one pooled HDR target (8 bytes per pixel plus depth,
 
 Bloom adds, for a view that enables it, ten `SpriteBatch` passes on targets of at most a quarter of the view pixels and six pooled targets of the HDR format.
 
-Decisions: see ADR-0100, ADR-0101, ADR-0102, ADR-0103, ADR-0104.
+Decisions: see ADR-0101, ADR-0102, ADR-0103, ADR-0104, ADR-0105.

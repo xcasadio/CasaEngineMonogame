@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Environment;
 
 /// <summary>
-/// Cache of the image-based-lighting textures (ADR-0106): for every specular environment cube it holds the diffuse irradiance
+/// Cache of the image-based-lighting textures (ADR-0107): for every specular environment cube it holds the diffuse irradiance
 /// cube and the prefiltered specular atlas generated from it by <see cref="IblCubeGenerator"/>, plus the BRDF table shared by
 /// all of them.
 /// <para/>

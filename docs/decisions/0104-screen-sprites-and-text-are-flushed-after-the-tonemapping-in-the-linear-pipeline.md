@@ -1,13 +1,13 @@
-# ADR-0103: Screen sprites and text are flushed after the tonemapping in the linear pipeline
+# ADR-0104: Screen sprites and text are flushed after the tonemapping in the linear pipeline
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
 - **Source**: this chantier: `ai-agent/tasks/pbr-rendering-tasks.md` (arbitration P5, task T1.6)
-- Renumbered from ADR-0098 on 2026-11-15 when origin/main was merged (ADR-0094 to ADR-0098 now carry the renumbered lighting decisions)
+- Renumbered from ADR-0098 on 2026-11-15 when origin/main was merged (ADR-0095 to ADR-0099 now carry the renumbered lighting decisions)
 
 ## Context
 
-ADR-0101 tonemaps the HDR scene target, then composes the interface; ADR-0102 decodes the display colours the scene reads. The renderers of the view do not all produce scene colours (verified on the code):
+ADR-0102 tonemaps the HDR scene target, then composes the interface; ADR-0103 decodes the display colours the scene reads. The renderers of the view do not all produce scene colours (verified on the code):
 
 - `ParticleRendererComponent` draws `TexturedPrimitive.fx` (its own clone, shared with the MGUI backend which keeps its own instance), `SpriteRendererComponent` draws `SpriteBatch.fx` and `PsxQuad.fx`, `Line3dRendererComponent` draws `DebugPrimitiveColor.fx`: all three draw in the scene, with depth.
 - `Renderer2DComponent` draws screen sprites, text and 2D lines through an XNA `SpriteBatch` without an effect. Those are display colours already (a HUD, a font): decoding them in the scene and tonemapping them would change them. It is flushed last by `DefaultViewPipeline`, with `DepthStencilState.Default` (or the one of `GraphicsSettings`) set by its own `Flush`.
@@ -25,5 +25,5 @@ ADR-0101 tonemaps the HDR scene target, then composes the interface; ADR-0102 de
 ## Consequences
 
 - A `LinearHdr` view keeps the interface, the screen text and the screen sprites at their legacy colours (measured within 2 levels on the measurement demo, back buffer and buffered view), while particles, 3D sprites and the sky are decoded then tonemapped like the lit scene.
-- A view pipeline that does not implement `IScenePhaseViewPipeline` (ADR-0101) is rendered whole: its `Renderer2DComponent` content is still flushed inside the HDR target and tonemapped with the scene, as the interface of such a pipeline is.
+- A view pipeline that does not implement `IScenePhaseViewPipeline` (ADR-0102) is rendered whole: its `Renderer2DComponent` content is still flushed inside the HDR target and tonemapped with the scene, as the interface of such a pipeline is.
 - A new renderer that draws display-ready colours implements `IPostTonemapRenderer`; one that draws scene colours binds `ColorPipelineIsLinear` from the frame.

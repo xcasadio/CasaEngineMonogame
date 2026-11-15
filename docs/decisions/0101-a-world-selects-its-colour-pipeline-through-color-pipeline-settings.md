@@ -1,13 +1,13 @@
-# ADR-0100: A world selects its colour pipeline through colour pipeline settings
+# ADR-0101: A world selects its colour pipeline through colour pipeline settings
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
 - **Source**: this chantier: `ai-agent/tasks/pbr-rendering-tasks.md` (decision D6, task T1.1)
-- Renumbered from ADR-0095 on 2026-11-15 when origin/main was merged (ADR-0094 to ADR-0098 now carry the renumbered lighting decisions)
+- Renumbered from ADR-0095 on 2026-11-15 when origin/main was merged (ADR-0095 to ADR-0099 now carry the renumbered lighting decisions)
 
 ## Context
 
-Every image is lit and written in display space straight into the view's target: nothing in the engine knows about linear light, high dynamic range or tonemapping (`ai-agent/tasks/pbr-rendering-tasks.md`, section "State of the repository"). The PBR chantier needs a linear HDR path, but ADR-0013 requires that existing content never changes: the new path must be chosen explicitly, per world, and per view through the environment override. World-level rendering settings already follow one pattern: a mutable `WorldEnvironmentSettings`, resolved by `EnvironmentResolver` (view override replaces the world settings as a whole) into the immutable `ResolvedEnvironmentSettings`, cached while `IsDirty` is false and the versions are unchanged (`AmbientSource`, ADR-0095; `ShadowSettings`, ADR-0098).
+Every image is lit and written in display space straight into the view's target: nothing in the engine knows about linear light, high dynamic range or tonemapping (`ai-agent/tasks/pbr-rendering-tasks.md`, section "State of the repository"). The PBR chantier needs a linear HDR path, but ADR-0013 requires that existing content never changes: the new path must be chosen explicitly, per world, and per view through the environment override. World-level rendering settings already follow one pattern: a mutable `WorldEnvironmentSettings`, resolved by `EnvironmentResolver` (view override replaces the world settings as a whole) into the immutable `ResolvedEnvironmentSettings`, cached while `IsDirty` is false and the versions are unchanged (`AmbientSource`, ADR-0096; `ShadowSettings`, ADR-0099).
 
 ## Decision
 

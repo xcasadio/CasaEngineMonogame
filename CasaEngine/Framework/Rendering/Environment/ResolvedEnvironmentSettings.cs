@@ -57,7 +57,7 @@ public readonly struct ResolvedEnvironmentSettings
     /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
     public float Exposure { get; init; }
 
-    /// <summary>Bloom is requested for the view (ADR-0104). False in <see cref="CreateLegacy"/>.</summary>
+    /// <summary>Bloom is requested for the view (ADR-0105). False in <see cref="CreateLegacy"/>.</summary>
     public bool BloomEnabled { get; init; }
 
     public float BloomThreshold { get; init; }
@@ -67,9 +67,9 @@ public readonly struct ResolvedEnvironmentSettings
     public float BloomRadius { get; init; }
 
     /// <summary>
-    /// True when this view is drawn through the HDR scene target in this frame (ADR-0102), so its display colours must be
+    /// True when this view is drawn through the HDR scene target in this frame (ADR-0103), so its display colours must be
     /// decoded to linear light. It is not the resolved mode: a view in <see cref="Environment.ColorPipelineMode.LinearHdr"/>
-    /// that the planner leaves on the legacy path (ADR-0101) keeps this false. Set by the render pipeline after resolution
+    /// that the planner leaves on the legacy path (ADR-0102) keeps this false. Set by the render pipeline after resolution
     /// (the resolved value is cached per view), false everywhere else.
     /// </summary>
     public bool LinearColorActive { get; init; }

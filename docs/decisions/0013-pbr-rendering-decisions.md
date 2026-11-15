@@ -1,6 +1,6 @@
 # ADR-0013: PBR rendering decisions
 
-- **Status**: Accepted, amended by ADR-0099
+- **Status**: Accepted, amended by ADR-0100
 - **Date**: 2026-08-09
 - **Source**: `ai-agent/tasks/archive/pbr-rendering-implementation-plan.md:25-32`
 

@@ -1,6 +1,6 @@
 # Detail texture on the lit diffuse material
 
-`LitDiffuseMaterial` can multiply its base colour by a second, tiled texture. Decision: ADR-0096.
+`LitDiffuseMaterial` can multiply its base colour by a second, tiled texture. Decision: ADR-0097.
 
 ## Formula
 
@@ -31,7 +31,7 @@ In a material asset (`lit-diffuse` definition): `detail_texture` (texture asset,
 
 - The detail texture is read only together with a base texture. Without a base texture it is ignored.
 - Skinned meshes (`skinEffect.fx`) do not support it. The shadow pass ignores it.
-- The detail sampler uses the device's default sampler state under DesktopGL (linear with mip filtering, wrap). The texture should have mipmaps when the tiling is high, otherwise the distance shows moire. `Texture2DLoader.GenerateMipmaps` (ADR-0097) builds them when loading from a file.
+- The detail sampler uses the device's default sampler state under DesktopGL (linear with mip filtering, wrap). The texture should have mipmaps when the tiling is high, otherwise the distance shows moire. `Texture2DLoader.GenerateMipmaps` (ADR-0098) builds them when loading from a file.
 - The detail texture costs one more texture fetch per pixel and one sampler slot (slot 7) of `LitForward.fx`.
 
 ## Measuring it

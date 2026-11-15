@@ -27,7 +27,7 @@ public readonly struct RenderFrame
     /// <summary>Effective forward shadow-map settings for the current view.</summary>
     public ShadowSettings Shadows { get; init; }
 
-    /// <summary>Cache of the image-based-lighting textures, set by <see cref="RenderPipeline"/> (ADR-0106); null otherwise.</summary>
+    /// <summary>Cache of the image-based-lighting textures, set by <see cref="RenderPipeline"/> (ADR-0107); null otherwise.</summary>
     public IblCache Ibl { get; init; }
 
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)

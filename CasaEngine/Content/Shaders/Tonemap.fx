@@ -6,7 +6,7 @@
 #define DEBUG_PS_SHADERMODEL ps_4_0
 #endif
 
-// Tonemapping of the high-dynamic-range scene target (ADR-0101). It is a pixel-shader-only effect drawn through
+// Tonemapping of the high-dynamic-range scene target (ADR-0102). It is a pixel-shader-only effect drawn through
 // SpriteBatch.Begin(effect:): SpriteBatch keeps its own vertex shader and binds the scene target as texture 0, so the
 // technique declares no vertex shader and the pixel input mirrors the SpriteBatch vertex output.
 //

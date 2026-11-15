@@ -27,7 +27,7 @@
 
 float4x4 WorldViewProj;
 
-// 1 when the view renders in the linear colour pipeline (ADR-0102): the texture and the vertex colour are display colours.
+// 1 when the view renders in the linear colour pipeline (ADR-0103): the texture and the vertex colour are display colours.
 // Only a renderer of the scene (the particle renderer, on its own clone of this effect) binds it; the UI backend never does,
 // so the UI keeps its display colours.
 float ColorPipelineIsLinear = 0.0f;

@@ -1,4 +1,4 @@
-# ADR-0098: Shadow settings: application mode and colour, filter radius, fade distance and depth range
+# ADR-0099: Shadow settings: application mode and colour, filter radius, fade distance and depth range
 
 - **Status**: Accepted
 - **Date**: 2026-11-14

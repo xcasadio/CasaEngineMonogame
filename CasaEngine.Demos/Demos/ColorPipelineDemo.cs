@@ -19,7 +19,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// The measurement scene of the colour pipeline (ADR-0100, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
+/// The measurement scene of the colour pipeline (ADR-0101, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
 /// camera looks at a ramp of five grey planes (<c>unlit-texture</c>, 0, 64, 128, 191 and 255), three <c>lit-diffuse</c>
 /// spheres under one directional light, a strong emissive plane on a dark background, a solid MGUI panel and a block of
 /// screen text drawn by the 2D renderer. Every measurement pixel is a constant below; the colour pipeline is chosen by the
@@ -46,7 +46,7 @@ namespace CasaEngine.Demos.Demos;
 /// <c>CASAENGINE_COLOR_DEMO_PBR</c>; without it the scene is unchanged. Measurement constants: <see cref="GlassBehindSegment"/>, <see cref="GlassControlSegment"/> and <see cref="GlassHighlightPixel"/>.
 /// </para>
 /// <para>
-/// <c>CASAENGINE_COLOR_DEMO_IBL=1</c> measures the image-based lighting of <c>lit-pbr</c> (plan T6.3, ADR-0106). The world gets a
+/// <c>CASAENGINE_COLOR_DEMO_IBL=1</c> measures the image-based lighting of <c>lit-pbr</c> (plan T6.3, ADR-0107). The world gets a
 /// procedural specular environment cube (64 texels per face, an 8 x 8 checkerboard whose light cells carry a tint of their own per
 /// face and whose dark cells are 10 % of it) and two metal spheres with a white base colour are added on the left of the scene: one
 /// of roughness 0 (a mirror, <see cref="IblSmoothSphereCentre"/>), one of roughness 0.6 (<see cref="IblRoughSphereCentre"/>). The

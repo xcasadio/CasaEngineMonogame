@@ -26,7 +26,7 @@ public sealed class ForwardLightBinder
 
     /// <param name="decodeColors">
     /// True when the view renders in the linear colour pipeline (<c>ResolvedEnvironmentSettings.LinearColorActive</c>): light
-    /// colours and the shadow tint are decoded to linear light BEFORE they are multiplied by their intensity (ADR-0102). The
+    /// colours and the shadow tint are decoded to linear light BEFORE they are multiplied by their intensity (ADR-0103). The
     /// ambient colour of <paramref name="lighting"/> is already decoded when it was collected. False binds today's values.
     /// </param>
     public void Bind(ShaderWrapper shader, LightingContext lighting, ForwardShadowResources shadows, RenderStats stats = null, bool decodeColors = false)
