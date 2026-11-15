@@ -209,15 +209,27 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   normale même si le bloc est gras ; après un mot coupé, la suite ignore la largeur du morceau resté sur la ligne ; si
   `-` est plus large que la ligne, le reste du texte est abandonné.
 
-### ⏳ T2.1 — Balises : tokenizer et runs sans allocation (D5)
+### ✅ T2.1 — Balises : tokenizer et runs sans allocation (D5)
 
 - Fichiers : `Text/FormattedTextTokenizer.cs`, `Text/FormattedTextParser.cs`, `Text/MGTextRun.cs`,
   `MGUI.Core/UI/MGTextBlock.cs` (branche à balises de `UpdateRuns`, `SanitizeRuns`).
 - Fin : changer un texte à balises (`[b]`, `[color=…]`, actions, infobulles) n'alloue rien hors des objets que la
   lecture de `Runs` demande.
 - Commit (MGUI) : `perf(text): tokenize and parse formatted text without allocating`
+- **Fait le 2026-11-15** (MGUI `b7d2ecfc`, correctif `1080e587`). Le tokenizer et le parser historiques ne sont pas
+  modifiés : un lecteur en une passe (`Text/FormattedTextScanner.cs`, sans Regex ni sous-chaîne) écrit dans des runs
+  réutilisés (`Text/FormattedTextRuns.cs`). Les valeurs de balise sont interprétées par les fonctions historiques,
+  rendues partagées dans `MGTextRun.cs`, puis gardées dans un cache par bloc (128 entrées par sorte, vidé quand il
+  est plein). `Runs` est construit à la lecture depuis ces enregistrements.
+- Mesures : `SetText` (chaîne ou span) sur 11 familles de balises : zéro, contre 46 600 octets par changement avant.
+  Une valeur jamais vue alloue une fois (7512 octets pour 7 valeurs), puis zéro.
+- Textes laissés au code historique (ils allouent, environ 9,5 Ko par changement) : balisage où il lève une
+  exception (même type et même message qu'avant), caractère non ASCII là où la grammaire compare des lettres ou des
+  chiffres, image sans taille quand le bloc n'a pas de bureau, et type de balise écrit avec un `I` majuscule quand le
+  processus a démarré sous une culture turque ou azérie.
+- Changement annexe : `IsTrackingMouseClicks` garde son délégué (64 octets par bascule avant).
 
-### ⏳ T2.2 — Balises : lignes et dessin sans allocation
+### ✅ T2.2 — Balises : lignes et dessin sans allocation
 
 - Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (mesure et `DrawSelf`, branche à balises, dont `Foreground.AsFillBrush()` qui
   crée un `MGSolidFillBrush` par dessin), `Text/MGTextLine.cs`, `Text/TextRenderInfo.cs`.
@@ -225,8 +237,15 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   unies fournies par le test. Les classes de brosses ne sont pas modifiées : si le `Draw` d'une brosse unie alloue, la
   mesure est écrite ici, la tâche passe en ⚠️ et s'arrête.
 - Commit (MGUI) : `perf(text): wrap and draw formatted text without allocating`
+- **Fait le 2026-11-15** (MGUI `0e11f6ca`). `Text/FormattedTextLayout.cs` porte `MGTextLine.ParseLines` pas à pas
+  (runs de réglages différents, images, mots qui continuent d'un run à l'autre) ; `MGTextLine.cs` n'est pas modifié.
+  Le soulignement par défaut passe par `DrawUnderline`, qui remplit le rectangle qu'un `MGSolidFillBrush` remplirait ;
+  l'ancienne boucle utilise la même fonction. Le `Draw` d'une brosse unie n'alloue pas.
+- Mesures : mesure et `UpdateLines` après un changement : zéro, contre 85 832 octets avant ; `ContentOnly` et
+  `ReflowLocal` : zéro, contre 59 896 ; `DrawSelf` (fond, soulignement, ombre, opacité, images, retour à la ligne) :
+  zéro, contre 200 octets par dessin.
 
-### ⏳ T3.1 — Révélation progressive et listes de bornes (D6)
+### ✅ T3.1 — Révélation progressive et listes de bornes (D6)
 
 - Fichiers : `MGUI.Core/UI/MGTextBlock.cs` (`TextProgress` `:1600`, `ActionBounds` `:1671`, `ToolTipBounds` `:1683`).
 - Fin : une révélation progressive pilotée par des écritures directes de `TextProgress` à chaque image n'alloue rien
@@ -234,8 +253,40 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   `TextCharactersPerSecond` (tick du moteur d'animation, `TextRevealRun` recréé à chaque resynchronisation), listé
   comme suite.
 - Commit (MGUI) : `perf(text): reveal text and track its bounds without allocating`
+- **Fait le 2026-11-15** (MGUI `b1f5a50b`). `Text/TextBoundsTracker.cs` remplace les deux dictionnaires de bornes et
+  garde leur ordre d'énumération. `TryInvokeActionAt` est extrait de `Mouse_ReleasedInside` (même ordre, même sortie
+  anticipée) pour qu'un test clique sur une action.
+- Mesures : `TextProgress` écrit à chaque image : zéro, contre 231 octets (sans balise) et 300 octets (à balises) par
+  image avant ; bornes reconstruites à chaque dessin, clic et recherche d'infobulle : zéro.
+- **Vérification indépendante (T2.1 à T3.1)** : premier verdict REFUTED sur un constat P2, introduit : sous une
+  culture turque ou azérie, l'ancien tokenizer ne lit pas `[I]`, `[ITALIC]` ou `[IMG=…]` comme des balises (ses
+  expressions régulières ignorent la casse selon la culture du moment où il est créé), et le lecteur les lisait
+  (351 écarts sur 200 séquences aléatoires sous `tr-TR`). Corrigé (MGUI `1080e587` : le lecteur interroge le
+  tokenizer une fois et, s'il ne replie pas `I`, laisse ces textes au code historique ; tests
+  `FormattedTextCultureTests`). Second vérificateur neuf : **CONFIRMED** (0 écart sur 900 séquences sous `tr-TR` et
+  `az-Latn-AZ`, 70 textes écrits à la main ; aucune autre lettre ASCII n'est concernée, sur 890 cultures ; zéro
+  allocation inchangé sous `fr-FR` et `en-US`).
+- Couverture différentielle contre `ForceLegacyTextPath` : 609 textes (290 fixes, 320 générés), 47 040 layouts,
+  24 670 appels de dessin, 32 780 sondes de bornes ; le premier vérificateur y a ajouté environ 140 000 opérations
+  aléatoires sans écart introduit. API publique de MGUI inchangée par ces commits.
+- Constats reportés, non corrigés :
+  - P3, antérieur à ces tâches (présent à `a05134f6`) : après un balisage invalide posé pendant que
+    `AllowsInlineFormatting` passe de faux à vrai, `Runs` et `Lines` montrent le dernier texte (`[bold=y`) quand
+    l'ancien chemin garde le précédent (`[bold=x`) ;
+  - P3 : le zéro tient tant qu'un bloc utilise au plus 64 noms d'infobulles ou d'actions et au plus 128 valeurs par
+    sorte de balise ; au-delà, le cache vidé réalloue (résultats toujours égaux à l'ancien chemin) ;
+  - P4 : sous une culture turque ou azérie, un texte dont un type de balise contient un `I` majuscule alloue (environ
+    11 Ko par changement) ;
+  - un bloc sans balise avec `IsUnderlined` ou un fond repasse par l'ancienne boucle de dessin, qui alloue ;
+  - un bloc à balises garde un lecteur, deux tampons de runs et deux layouts (environ 4 à 5 Ko par bloc) ;
+  - les moteurs réels (SpriteFont, FontStashSharp) sont prouvés à zéro par T1.1, le bloc par les moteurs de test :
+    aucun test ne mesure les deux ensemble.
+- Bizarreries du code historique reproduites telles quelles, non corrigées : tout ce qui suit un `[` sans type connu
+  devient un seul littéral, sauts de ligne compris ; les paires de barres obliques inverses ne sont réduites que
+  devant un `[` ; `[/u]` sans ouverture donne un soulignement désactivé de hauteur 0 ; le soulignement par défaut
+  applique l'opacité deux fois ; `[shadow=Red 1,2]` retombe sur le décalage (1,1).
 
-### ⏳ T4.1 — Documentation et clôture
+### 🚧 T4.1 — Documentation et clôture
 
 - Fin : `MGUI/docs` (texte) et `docs/engine` du moteur disent quand utiliser `SetText(ReadOnlySpan<char>)` ; ADR de
   MGUI indexé ; `verifier` frais sur le chantier ; les deux solutions et `CasaEngine.Tests` verts.
