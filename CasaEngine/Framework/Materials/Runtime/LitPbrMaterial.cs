@@ -13,6 +13,14 @@ namespace CasaEngine.Framework.Materials.Runtime;
 /// </summary>
 public class LitPbrMaterial : MaterialBase
 {
+    /// <summary>
+    /// Debug switch of the image-based lighting (plan T6.3): when true every <see cref="LitPbrMaterial"/> samples the prefiltered
+    /// specular atlas at band 0 whatever its roughness, which isolates the effect of the prefiltering. Not serialized, not a
+    /// material property: a process-wide harness setting, false by default (the demos set it from
+    /// <c>CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL=1</c>).
+    /// </summary>
+    public static bool DebugForceIblBaseLevel { get; set; }
+
     /// <summary>Base colour factor (alpha = opacity), multiplied with <see cref="BaseColorTexture"/> when one is bound.</summary>
     public Color BaseColor { get; set; } = Color.White;
 
@@ -95,6 +103,7 @@ public class LitPbrMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.OcclusionStrength, OcclusionStrength);
         shader.SetParameter(ShaderParameterNames.NormalScale, NormalScale);
+        shader.SetParameter(ShaderParameterNames.IblForceBaseLevel, DebugForceIblBaseLevel ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
 
         BindOptionalTexture(shader, ShaderParameterNames.BasColorTexture, ShaderParameterNames.HasBaseColorTexture, BaseColorTexture, in context);

@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.Backend.MonoGame;
@@ -102,6 +103,12 @@ public class CasaEngineGame : Game, IObservableUpdate
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline _renderPipeline;
+
+    /// <summary>
+    /// The image-based-lighting cache of the render pipeline (ADR-0106), or null before the pipeline exists. Read by the demos and
+    /// the harness for its generation counters.
+    /// </summary>
+    public IblCache IblCache => _renderPipeline?.IblCache;
 
     // ---- Window-level UI (ADR-0070) ----
     private IUIViewRuntime _windowUI;

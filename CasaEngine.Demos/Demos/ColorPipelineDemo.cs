@@ -45,6 +45,18 @@ namespace CasaEngine.Demos.Demos;
 /// the glass and the specular highlight must stay bright (transparent PBR keeps the specular, plan T5.1). Independent of
 /// <c>CASAENGINE_COLOR_DEMO_PBR</c>; without it the scene is unchanged. Measurement constants: <see cref="GlassBehindSegment"/>, <see cref="GlassControlSegment"/> and <see cref="GlassHighlightPixel"/>.
 /// </para>
+/// <para>
+/// <c>CASAENGINE_COLOR_DEMO_IBL=1</c> measures the image-based lighting of <c>lit-pbr</c> (plan T6.3, ADR-0106). The world gets a
+/// procedural specular environment cube (64 texels per face, an 8 x 8 checkerboard whose light cells carry a tint of their own per
+/// face and whose dark cells are 10 % of it) and two metal spheres with a white base colour are added on the left of the scene: one
+/// of roughness 0 (a mirror, <see cref="IblSmoothSphereCentre"/>), one of roughness 0.6 (<see cref="IblRoughSphereCentre"/>). The
+/// demo logs the reference colour of five pixels of the mirror (<see cref="IblSmoothSpherePixels"/>), computed on the CPU from the
+/// source cube. <c>CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL=1</c> forces the prefiltered band 0 (debug constant of the shader) to
+/// show the effect of the prefiltering on the rough sphere (<see cref="IblRoughMeasurementLine"/>).
+/// <c>CASAENGINE_COLOR_DEMO_IBL_CHANGE_ENVIRONMENT=1</c> replaces the specular cube by another one at frames 200 and 400; the demo
+/// logs every change of the generation counter of the IBL cache and a summary at frame 600. Everything is off by default: without
+/// the variable the scene is unchanged.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
@@ -52,6 +64,9 @@ public sealed class ColorPipelineDemo : Demo
     private const string BufferedVariable = "CASAENGINE_COLOR_DEMO_BUFFERED";
     private const string PbrVariable = "CASAENGINE_COLOR_DEMO_PBR";
     private const string GlassVariable = "CASAENGINE_COLOR_DEMO_GLASS";
+    private const string IblVariable = "CASAENGINE_COLOR_DEMO_IBL";
+    private const string IblForceBaseLevelVariable = "CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL";
+    private const string IblChangeEnvironmentVariable = "CASAENGINE_COLOR_DEMO_IBL_CHANGE_ENVIRONMENT";
     private const int VirtualWidth = 1024;
     private const int VirtualHeight = 768;
     private const float ExposureStep = 0.25f;
@@ -132,6 +147,36 @@ public sealed class ColorPipelineDemo : Demo
         new(612, 247, 307), new(612, 364, 424), new(611, 481, 541), new(607, 598, 658), new(604, 715, 775),
     };
 
+    // ---- Image-based lighting scene (CASAENGINE_COLOR_DEMO_IBL=1) ----
+
+    /// <summary>World position of the mirror sphere (metal 1, white base colour, roughness 0), left of the other objects.</summary>
+    public static readonly Vector3 IblSmoothSphereCentre = new(-11.5f, -1.0f, 0.0f);
+
+    /// <summary>World position of the rough sphere (metal 1, white base colour, roughness <see cref="IblRoughSphereRoughness"/>).</summary>
+    public static readonly Vector3 IblRoughSphereCentre = new(-11.5f, -6.0f, 0.0f);
+
+    /// <summary>Radius of the two spheres, in world units (the primitive takes the diameter).</summary>
+    public const float IblSphereRadius = 2.0f;
+
+    /// <summary>Roughness of the second sphere.</summary>
+    public const float IblRoughSphereRoughness = 0.6f;
+
+    /// <summary>
+    /// Five pixels of the mirror sphere (window coordinates, 1024 x 768), each inside one cell of the reflected checkerboard, not on
+    /// an edge. The demo logs the reference colour of each one when <c>CASAENGINE_COLOR_DEMO_IBL=1</c>.
+    /// </summary>
+    public static readonly Point[] IblSmoothSpherePixels =
+    {
+        new(104, 414), new(114, 414), new(132, 462), new(114, 378), new(172, 422),
+    };
+
+    /// <summary>A line of 20 pixels through the centre of the rough sphere, on which the contrast of the reflection is measured.</summary>
+    public static readonly MeasurementLine IblRoughMeasurementLine = new(585, 116, 135);
+
+    private const int IblEnvironmentChangeFirstFrame = 200;
+    private const int IblEnvironmentChangeSecondFrame = 400;
+    private const int IblSummaryFrame = 600;
+
     // ---- Glass scene (CASAENGINE_COLOR_DEMO_GLASS=1) ----
 
     /// <summary>A horizontal measurement segment of the glass scene: row, first and last pixel (window coordinates, 1024 x 768).</summary>
@@ -183,6 +228,14 @@ public sealed class ColorPipelineDemo : Demo
     private Texture2D? _whiteTexture;
     private Texture2D? _checkerTexture;
     private SpriteFont? _font;
+    private bool _iblEnabled;
+    private TextureCube?[]? _iblCubes;
+    private Color[][][]? _iblFacePixels;
+    private int _iblCubeIndex;
+    private CameraComponent? _camera;
+    private int _frame;
+    private int _lastLoggedIblGenerationCount;
+    private int _iblEnvironmentChanges;
 
     public override string Title => "Colour pipeline demo";
 
@@ -281,6 +334,12 @@ public sealed class ColorPipelineDemo : Demo
             }
         }
 
+        _iblEnabled = Environment.GetEnvironmentVariable(IblVariable) == "1";
+        if (_iblEnabled)
+        {
+            AddIblScene(world, game.GraphicsDevice);
+        }
+
         if (Environment.GetEnvironmentVariable(GlassVariable) == "1")
         {
             AddGlassScene(world, game.GraphicsDevice);
@@ -303,6 +362,14 @@ public sealed class ColorPipelineDemo : Demo
         environmentSettings.AmbientColor = new Vector3(0.1f);
         environmentSettings.AmbientIntensity = 1.0f;
         environmentSettings.SpecularIntensity = 0.0f;
+
+        if (_iblEnabled && _iblCubes is not null)
+        {
+            // The specular cube of the world is the procedural checkerboard cube; its intensity is 1 so the reference is the texel itself.
+            environmentSettings.SpecularEnvironmentCubemap = _iblCubes[0];
+            environmentSettings.SpecularIntensity = 1.0f;
+        }
+
         environmentSettings.MarkDirty();
 
         // Light travelling to the left, down and away from the camera: the right half of each sphere is lit.
@@ -327,6 +394,7 @@ public sealed class ColorPipelineDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
+        _camera = camera;
         camera.SetPositionAndTarget(new Vector3(0.0f, 0.0f, 20.0f), Vector3.Zero);
         Logs.WriteInfo($"[ColorPipelineDemo] Virtual resolution in force: {_game?.ActiveVirtualResolution?.Mode.ToString() ?? "none"}.");
 
@@ -355,6 +423,11 @@ public sealed class ColorPipelineDemo : Demo
         }
 
         SubmitMeasurementSpriteAndParticle();
+
+        if (_iblEnabled)
+        {
+            UpdateIblScene(_game);
+        }
 
         var settings = _game.GameManager.CurrentWorld.EnvironmentSettings;
         var colorPipeline = settings.ColorPipeline;
@@ -475,6 +548,23 @@ public sealed class ColorPipelineDemo : Demo
         _whiteTexture = null;
         _checkerTexture?.Dispose();
         _checkerTexture = null;
+        if (_iblCubes != null)
+        {
+            foreach (TextureCube? cube in _iblCubes)
+            {
+                cube?.Dispose();
+            }
+        }
+
+        _iblCubes = null;
+        _iblFacePixels = null;
+        _iblEnabled = false;
+        _iblCubeIndex = 0;
+        _iblEnvironmentChanges = 0;
+        _lastLoggedIblGenerationCount = 0;
+        _frame = 0;
+        _camera = null;
+        LitPbrMaterial.DebugForceIblBaseLevel = false;
         _previousVirtualResolution = null;
         _virtualResolutionChanged = false;
         _game = null;
@@ -529,6 +619,112 @@ public sealed class ColorPipelineDemo : Demo
                 BlendState = BlendState.AlphaBlend,
                 DepthStencilState = DepthStencilState.DepthRead,
             });
+    }
+
+    /// <summary>
+    /// The procedural environment cubes (three, with the tints rotated, for the environment changes), the two metal spheres and the
+    /// debug switch of the prefiltering.
+    /// </summary>
+    private void AddIblScene(World world, GraphicsDevice graphicsDevice)
+    {
+        _iblFacePixels = new[]
+        {
+            ColorPipelineIblScene.BuildFacePixels(0),
+            ColorPipelineIblScene.BuildFacePixels(1),
+            ColorPipelineIblScene.BuildFacePixels(2),
+        };
+        _iblCubes = new TextureCube?[_iblFacePixels.Length];
+        for (int i = 0; i < _iblFacePixels.Length; i++)
+        {
+            _iblCubes[i] = ColorPipelineIblScene.CreateCube(graphicsDevice, _iblFacePixels[i], $"ColorPipelineIblCube{i}");
+        }
+
+        LitPbrMaterial.DebugForceIblBaseLevel = Environment.GetEnvironmentVariable(IblForceBaseLevelVariable) == "1";
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "IBL mirror sphere",
+            new SpherePrimitive(IblSphereRadius * 2.0f, 32),
+            IblSmoothSphereCentre,
+            new LitPbrMaterial { Name = "IblMirror", BaseColor = Color.White, Metallic = 1.0f, Roughness = 0.0f });
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "IBL rough sphere",
+            new SpherePrimitive(IblSphereRadius * 2.0f, 32),
+            IblRoughSphereCentre,
+            new LitPbrMaterial { Name = "IblRough", BaseColor = Color.White, Metallic = 1.0f, Roughness = IblRoughSphereRoughness });
+    }
+
+    /// <summary>
+    /// Per frame work of the IBL scene: the environment changes asked for, the log of every change of the generation counter of the
+    /// IBL cache (once per change, never per frame) and, at frame 3, the reference colour of the pixels of the mirror sphere.
+    /// </summary>
+    private void UpdateIblScene(CasaEngineGame game)
+    {
+        _frame++;
+        var settings = game.GameManager.CurrentWorld.EnvironmentSettings;
+
+        if (Environment.GetEnvironmentVariable(IblChangeEnvironmentVariable) == "1" && _iblCubes is not null
+            && (_frame == IblEnvironmentChangeFirstFrame || _frame == IblEnvironmentChangeSecondFrame))
+        {
+            _iblCubeIndex = _frame == IblEnvironmentChangeFirstFrame ? 1 : 2;
+            settings.SpecularEnvironmentCubemap = _iblCubes[_iblCubeIndex];
+            settings.MarkDirty();
+            _iblEnvironmentChanges++;
+            Logs.WriteInfo($"[ColorPipelineDemo] IBL environment change {_iblEnvironmentChanges} at frame {_frame}: cube {_iblCubeIndex}.");
+        }
+
+        var cache = game.IblCache;
+        if (cache != null && cache.GenerationCount != _lastLoggedIblGenerationCount)
+        {
+            _lastLoggedIblGenerationCount = cache.GenerationCount;
+            Logs.WriteInfo($"[ColorPipelineDemo] IBL generation count {cache.GenerationCount} at frame {_frame}, outside the view loop: {cache.GeneratedOutsideViewLoop}.");
+        }
+
+        if (_frame == IblSummaryFrame && cache != null)
+        {
+            Logs.WriteInfo($"[ColorPipelineDemo] IBL after {_frame} frames: {cache.GenerationCount} generation(s) for {_iblEnvironmentChanges} environment change(s) (plus the first environment), outside the view loop: {cache.GeneratedOutsideViewLoop}.");
+        }
+
+        if (_frame == 3)
+        {
+            LogIblReferences(game, settings);
+        }
+    }
+
+    /// <summary>
+    /// The reference colour of each pixel of <see cref="IblSmoothSpherePixels"/>: the texel of the source cube read on the CPU along
+    /// the reflection of the camera ray, decoded, multiplied by the specular intensity of the environment, tonemapped and encoded
+    /// like the view does (plan T6.3 (a)).
+    /// </summary>
+    private void LogIblReferences(CasaEngineGame game, WorldEnvironmentSettings settings)
+    {
+        if (_camera == null || _iblFacePixels == null)
+        {
+            return;
+        }
+
+        var pipeline = settings.ColorPipeline;
+        var presentation = game.GraphicsDevice.PresentationParameters;
+        foreach (Point pixel in IblSmoothSpherePixels)
+        {
+            if (!ColorPipelineIblScene.TryComputeReflection(
+                    _camera.ViewMatrix, _camera.ProjectionMatrix, presentation.BackBufferWidth, presentation.BackBufferHeight,
+                    pixel, IblSmoothSphereCentre, IblSphereRadius, out Vector3 reflection))
+            {
+                Logs.WriteWarning($"[ColorPipelineDemo] IBL reference pixel ({pixel.X}, {pixel.Y}) misses the mirror sphere.");
+                continue;
+            }
+
+            Vector3 reference = ColorPipelineIblScene.ReferenceColor(
+                _iblFacePixels[0], reflection, pipeline.Mode, pipeline.Tonemapper, pipeline.Exposure, settings.SpecularIntensity);
+            Logs.WriteInfo(string.Create(
+                CultureInfo.InvariantCulture,
+                $"[ColorPipelineDemo] IBL reference pixel ({pixel.X}, {pixel.Y}) = {MathF.Round(reference.X * 255.0f)}, {MathF.Round(reference.Y * 255.0f)}, {MathF.Round(reference.Z * 255.0f)}."));
+        }
     }
 
     private static float ReadLightIntensity()

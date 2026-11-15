@@ -62,6 +62,10 @@ public class DemosGame : CasaEngineGame
     // Created once: the sheets ask it what each action is bound to.
     private Func<string, DemoBinding> _describeAction;
     private bool _automationScreenshotCaptured;
+    // CASAENGINE_CAPTURE_ON_IBL_GENERATION=1 (plan T6.3): one more capture, suffix "-gen", at the end of the first frame in which the
+    // generation counter of the IBL cache has increased. The usual delayed capture still happens.
+    private readonly bool _captureOnIblGeneration = Environment.GetEnvironmentVariable("CASAENGINE_CAPTURE_ON_IBL_GENERATION") == "1";
+    private bool _generationCaptured;
 
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
     private const string MainScreenTitle = "CasaEngine demos";
@@ -574,6 +578,8 @@ public class DemosGame : CasaEngineGame
     {
         base.Draw(gameTime);
 
+        TryCaptureOnIblGeneration();
+
         // Captured once the whole frame is drawn: a demo that switches render targets discards what the back buffer held
         // before AfterRenderPipeline.
         TryCaptureAutomationScreenshot(gameTime);
@@ -612,6 +618,28 @@ public class DemosGame : CasaEngineGame
         _currentDemo?.Update(gameTime);
 
         base.Update(gameTime);
+    }
+
+    /// <summary>
+    /// With <c>CASAENGINE_CAPTURE_ON_IBL_GENERATION=1</c> and a capture path, saves the back buffer of the first frame in which the
+    /// IBL cache has generated something (its counter is above 0 at the end of the frame), next to the usual capture and with
+    /// the suffix <c>-gen</c> before the extension. That frame is the first one drawn with the generated textures.
+    /// </summary>
+    private void TryCaptureOnIblGeneration()
+    {
+        if (!_captureOnIblGeneration
+            || _generationCaptured
+            || string.IsNullOrWhiteSpace(_automationScreenshotPath)
+            || (IblCache?.GenerationCount ?? 0) == 0)
+        {
+            return;
+        }
+
+        _generationCaptured = true;
+        string extension = Path.GetExtension(_automationScreenshotPath);
+        string generationPath = Path.ChangeExtension(_automationScreenshotPath, null) + "-gen" + extension;
+        CaptureScreenshot(generationPath);
+        Logs.WriteInfo($"[DemosGame] Capture on IBL generation (counter {IblCache!.GenerationCount}): {generationPath}");
     }
 
     private void TryCaptureAutomationScreenshot(GameTime gameTime)

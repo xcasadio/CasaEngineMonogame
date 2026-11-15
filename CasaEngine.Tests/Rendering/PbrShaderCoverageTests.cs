@@ -232,9 +232,10 @@ public class PbrShaderCoverageTests
 
         // Diffuse (direct and ambient) scaled by the opacity; specular and emissive added as they are; the tint comes after.
         string shade = Normalize(ExtractFunctionBody(source, "float4 ShadePbr("));
-        Assert.Contains("lightResult.Diffuse * diffuseOpacity + lightResult.Specular + ComputePbrAmbient(worldNormal, surface.DiffuseAlbedo, occlusion) * diffuseOpacity + emissive;", shade);
+        Assert.Contains("PbrAmbient ambient = ComputePbrAmbient(surface, occlusion);", shade);
+        Assert.Contains("lightResult.Diffuse * diffuseOpacity + lightResult.Specular + ambient.Diffuse * diffuseOpacity + ambient.Specular + emissive;", shade);
         Assert.True(
-            shade.IndexOf("* diffuseOpacity + emissive;", StringComparison.Ordinal) < shade.IndexOf("ApplyShadowTint(", StringComparison.Ordinal),
+            shade.IndexOf("+ ambient.Specular + emissive;", StringComparison.Ordinal) < shade.IndexOf("ApplyShadowTint(", StringComparison.Ordinal),
             "The diffuse attenuation must happen before ApplyShadowTint.");
         Assert.Contains("return float4(color, baseColor.a);", shade);
     }
@@ -331,7 +332,8 @@ public class PbrShaderCoverageTests
                 $"LitPbr.fx does not declare the constant '{name}'.");
         }
 
-        // Nine textures, in the documented sampler order (16 pixel samplers are available on this backend).
+        // Twelve textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are kept for the
+        // prefiltered local probes of phase 7).
         string[] textures =
         {
             ShaderParameterNames.BasColorTexture,
@@ -343,6 +345,9 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.ShadowMapTexture,
             ShaderParameterNames.OcclusionTexture,
             ShaderParameterNames.EmissiveTexture,
+            ShaderParameterNames.IrradianceCubeTexture,
+            ShaderParameterNames.PrefilteredSpecularAtlasTexture,
+            ShaderParameterNames.BrdfLookupTexture,
         };
         for (int index = 0; index < textures.Length; index++)
         {
@@ -426,16 +431,131 @@ public class PbrShaderCoverageTests
     }
 
     [Fact]
-    public void LitPbrEffect_IsolatesTheFlatAmbientAndHonoursUseFlatAmbientSource()
+    public void LitPbrEffect_KeepsTheFlatAmbientOfPhase3AsTheFallbackWhileTheIblIsNotGenerated()
     {
         string source = LoadShaderSource("LitPbr.fx");
-        string ambient = Normalize(ExtractFunctionBody(source, "float3 ComputePbrAmbient("));
+        string flat = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrFlatAmbient("));
+        string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
 
-        Assert.Contains("(HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)", ambient);
-        Assert.Contains("SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor", ambient);
-        Assert.Contains(": AmbientColor;", ambient);
-        Assert.Contains("return ambient * occlusion * diffuseAlbedo;", ambient);
-        Assert.Contains("ComputePbrAmbient(worldNormal, surface.DiffuseAlbedo, occlusion)", source);
+        // HasIbl = 0: exactly the flat ambient of T3.2 (UseFlatAmbientSource honoured, ADR-0095), no specular part.
+        Assert.Contains("(HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)", flat);
+        Assert.Contains("SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor", flat);
+        Assert.Contains(": AmbientColor;", flat);
+        Assert.Contains("result.Diffuse = ambient * occlusion * diffuseAlbedo;", flat);
+        Assert.Contains("result.Specular = 0.0f;", flat);
+        Assert.Contains("if (HasIbl < 0.5f) { return ComputePbrFlatAmbient(surface.Normal, surface.DiffuseAlbedo, occlusion); }", ambient);
+        Assert.Contains("ComputePbrAmbient(surface, occlusion)", source);
+    }
+
+    [Fact]
+    public void LitPbrEffect_CombinesIrradianceAndPrefilteredRadianceWithTheSplitSumTerm()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
+
+        // irradiance x diffuse albedo (the irradiance cube holds E / pi: no further division), modulated by EnvironmentAmbientColor;
+        // UseFlatAmbientSource keeps the flat diffuse colour and only the specular part comes from the atlas.
+        Assert.Contains("float3 diffuseAmbient = AmbientColor; if (UseFlatAmbientSource < 0.5f) {", ambient);
+        Assert.Contains("SAMPLE_CUBEMAP(IrradianceCubeTexture, surface.Normal).rgb) * EnvironmentAmbientColor;", ambient);
+        Assert.Contains("result.Diffuse = diffuseAmbient * occlusion * surface.DiffuseAlbedo;", ambient);
+
+        // prefiltered(R, roughness) x (F0 * A + B), modulated by EnvironmentSpecularIntensity and by the occlusion.
+        Assert.Contains("reflect(-surface.EyeVector, surface.Normal)", ambient);
+        Assert.Contains("SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness)", ambient);
+        Assert.Contains("SampleIblBrdf(surface.NoV, surface.PerceptualRoughness)", ambient);
+        Assert.Contains("result.Specular = prefiltered * (surface.F0 * brdf.x + brdf.y) * (EnvironmentSpecularIntensity * occlusion);", ambient);
+
+        // The table is read at (NoV, roughness) kept half a texel inside (A in x, B in y).
+        string brdf = Normalize(ExtractFunctionBody(source, "float2 SampleIblBrdf("));
+        Assert.Contains("clamp(float2(noV, roughness), IblBrdfHalfTexel, 1.0f - IblBrdfHalfTexel)", brdf);
+        Assert.Contains("static const float IblBrdfHalfTexel = 0.5f / 64.0f;", source);
+        Assert.Contains("SAMPLE_TEXTURE(BrdfLookupTexture, uv).rg", brdf);
+    }
+
+    [Fact]
+    public void LitPbrEffect_ReadsThePrefilteredAtlasByRoughnessTimesFiveWithAManualInterpolationBetweenTwoBands()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string prefiltered = Normalize(ExtractFunctionBody(source, "float3 SampleIblPrefiltered("));
+        string band = Normalize(ExtractFunctionBody(source, "float3 SampleIblPrefilteredBand("));
+
+        // b = roughness * 5, the 5 being the number of bands minus one (a constant of the shader, never a texture size, never
+        // LevelCount - 1); the bands floor(b) and min(floor(b) + 1, 5), interpolated by frac(b).
+        Assert.Contains("static const float IblBandMax = 5.0f;", source);
+        Assert.Contains("static const float IblBandCount = 6.0f;", source);
+        Assert.Contains("float b = roughness * IblBandMax;", prefiltered);
+        Assert.Contains("float lowBand = floor(b);", prefiltered);
+        Assert.Contains("float highBand = min(lowBand + 1.0f, IblBandMax);", prefiltered);
+        Assert.Contains("return lerp(low, high, frac(b));", prefiltered);
+        Assert.DoesNotContain("LevelCount", source);
+
+        // The debug constant forces band 0.
+        Assert.Contains("if (IblForceBaseLevel > 0.5f) { b = 0.0f; }", prefiltered);
+
+        // The latitude-longitude mapping of PanoramaEnvironmentGenerator.GetPanoramaUv (twin of IblCubeGenerator.GetAtlasUv) and the
+        // band offset, the vertical coordinate kept half a texel of the 256-row band inside it.
+        Assert.Contains("uv.x = 0.5f + atan2(direction.x, -direction.z) * IblInverseTwoPi;", prefiltered);
+        Assert.Contains("uv.y = 0.5f - asin(clamp(direction.y, -1.0f, 1.0f)) * IblInversePi;", prefiltered);
+        Assert.Contains("static const float IblBandHalfTexel = 0.5f / 256.0f;", source);
+        Assert.Contains("float localV = clamp(uv.y, IblBandHalfTexel, 1.0f - IblBandHalfTexel);", band);
+        Assert.Contains("SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, float2(uv.x, (band + localV) / IblBandCount)).rgb", band);
+    }
+
+    [Fact]
+    public void LitPbrEffect_NeverReadsTheIblThroughACubeLevelNorDecodesAnIblSample()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string pbr = LoadShaderSource("Pbr.fxh");
+
+        // The OpenGL chain ignores the level of a cube sample (ADR-0106): the IBL never uses it.
+        Assert.DoesNotContain("texCUBElod", source);
+        Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", source);
+        Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", pbr);
+
+        // The generated cubes are linear light: nothing of the IBL is decoded. DecodeColor stays at its two uses of ShadePbr.
+        Assert.Equal(2, CountOccurrences(source, "DecodeColor("));
+        Assert.DoesNotContain("DecodeEnvironmentCube", source);
+        foreach (string function in new[] { "float3 SampleIblPrefilteredBand(", "float3 SampleIblPrefiltered(", "float2 SampleIblBrdf(", "PbrAmbient ComputePbrAmbient(" })
+        {
+            string body = ExtractFunctionBody(source, function);
+            Assert.DoesNotContain("DecodeColor", body);
+            Assert.DoesNotContain("DecodeEnvironmentCube", body);
+        }
+
+        // Legacy re-encodes the linear IBL samples to display colours before combining them; LinearHdr leaves them alone.
+        string toView = Normalize(ExtractFunctionBody(source, "float3 IblToViewSpace("));
+        Assert.Contains("return ColorPipelineIsLinear > 0.5f ? linearLight : pow(max(linearLight, 0.0f), IblLegacyEncodeExponent);", toView);
+        Assert.Contains("static const float IblLegacyEncodeExponent = 1.0f / 2.2f;", source);
+        string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
+        Assert.Contains("IblToViewSpace(SAMPLE_CUBEMAP(IrradianceCubeTexture, surface.Normal).rgb)", ambient);
+        Assert.Contains("IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness))", ambient);
+    }
+
+    [Fact]
+    public void LitPbrEffect_DeclaresTheIblConstantsAndKeepsLitForwardWithoutThem()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string constants = ConstantsBlock(source);
+
+        Assert.Matches(new Regex(@"^\s*float\s+HasIbl;", RegexOptions.Multiline), constants);
+        Assert.Matches(new Regex(@"^\s*float\s+IblForceBaseLevel;", RegexOptions.Multiline), constants);
+        Assert.Equal("HasIbl", ShaderParameterNames.HasIbl);
+        Assert.Equal("IblForceBaseLevel", ShaderParameterNames.IblForceBaseLevel);
+
+        // The binder serves only shaders that declare HasIbl: LitForward (and Lighting.fxh) never do.
+        Assert.DoesNotContain("HasIbl", LoadShaderSource("LitForward.fx"));
+        Assert.DoesNotContain("HasIbl", LoadShaderSource("Lighting.fxh"));
+        Assert.DoesNotContain("IrradianceCubeTexture", LoadShaderSource("LitForward.fx"));
+
+        // PbrSurface carries the roughness the material gives (not the raised one), which the atlas and the table read.
+        string pbr = LoadShaderSource("Pbr.fxh");
+        Assert.Contains("surface.PerceptualRoughness = roughness;", pbr);
+    }
+
+    [Fact]
+    public void LitPbrMaterial_OffersTheDebugForceBaseLevelSwitch_OffByDefault()
+    {
+        Assert.False(CasaEngine.Framework.Materials.Runtime.LitPbrMaterial.DebugForceIblBaseLevel);
     }
 
     [Fact]

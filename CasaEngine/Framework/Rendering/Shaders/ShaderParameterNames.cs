@@ -89,6 +89,8 @@ public static class ShaderParameterNames
     public const string BrdfLookupTexture = "BrdfLookupTexture";
     /// <summary>1 when the three IBL textures above are bound, 0 for the flat ambient.</summary>
     public const string HasIbl = "HasIbl";
+    /// <summary>Debug constant of the PBR shader: 1 forces the prefiltered band 0 (<c>LitPbrMaterial.DebugForceIblBaseLevel</c>).</summary>
+    public const string IblForceBaseLevel = "IblForceBaseLevel";
 
     public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";

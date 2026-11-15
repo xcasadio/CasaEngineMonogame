@@ -40,6 +40,7 @@ struct PbrSurface
     float3 DiffuseAlbedo;     // baseColor * (1 - metallic)
     float3 F0;                // lerp(0.04, baseColor, metallic)
     float NoV;
+    float PerceptualRoughness; // the roughness as the material gives it (not raised to PbrMinRoughness): read by the image-based lighting
     float Alpha2;             // alpha^2 where alpha = roughness^2
     float AlphaSquaredOverPi; // the numerator of the GGX distribution
     float SmithViewTerm;      // sqrt(NoV * (NoV - NoV * alpha^2) + alpha^2), the light-independent half of the visibility
@@ -60,6 +61,7 @@ PbrSurface ComputePbrSurface(float3 baseColor, float metallic, float roughness, 
     surface.DiffuseAlbedo = baseColor * (1.0f - metallic);
     surface.F0 = lerp(float3(PbrDielectricF0, PbrDielectricF0, PbrDielectricF0), baseColor, metallic);
     surface.NoV = noV;
+    surface.PerceptualRoughness = roughness;
     surface.Alpha2 = alpha2;
     surface.AlphaSquaredOverPi = alpha2 / PbrPi;
     surface.SmithViewTerm = sqrt((noV - alpha2 * noV) * noV + alpha2);

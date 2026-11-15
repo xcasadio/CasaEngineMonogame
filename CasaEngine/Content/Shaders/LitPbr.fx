@@ -15,7 +15,7 @@
 // HasDetailTexture in LitForward.fx), not by techniques. The normal map is driven by the technique: the NormalMap techniques
 // always sample NormalTexture.
 //
-// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 9 are used):
+// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 12 are used):
 //   t0 Texture                           base colour (display colour, alpha = opacity)
 //   t1 NormalTexture                     tangent-space normal
 //   t2 MetallicRoughnessTexture          G = roughness, B = metallic (glTF convention)
@@ -25,6 +25,11 @@
 //   t6 ShadowMapTexture                  directional shadow map
 //   t7 OcclusionTexture                  R = ambient occlusion (glTF convention)
 //   t8 EmissiveTexture                   emissive colour (display colour)
+//   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0106)
+//   t10 PrefilteredSpecularAtlasTexture  prefiltered specular atlas of the IBL (2D, six roughness bands, linear light)
+//   t11 BrdfLookupTexture                split-sum BRDF table (x = NoV, y = roughness, channels A and B)
+// (t12 and t13 are reserved for the prefiltered local probes.) The three IBL textures are bound by EnvironmentShaderBinder
+// only because this shader declares HasIbl (ADR-0106).
 //
 // Constant layout. The _vs/_ps/_cb macros are empty (Macros.fxh), so the slots are documentation pinned by
 // PbrShaderCoverageTests, as in LitForward.fx. The shared lighting block (lights, counts, eye, ambient, environment, probes,
@@ -44,6 +49,9 @@
 //   _cb(c35.z)  HasOcclusionTexture
 //   _cb(c35.w)  HasEmissiveTexture
 // DiffuseColor, SpecularColor and SpecularPower are declared because Lighting.fxh reads them; the PBR shading never uses them.
+// HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
+// IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0. Neither has a
+// fixed slot: the compiler places them.
 //
 // Colours: BaseColor, EmissiveColor and the colour textures are display colours. They are decoded to linear light ONCE per
 // pixel, in ShadePbr, never inside the light slots (plan open point O10). Light colours, the ambient and the shadow tint arrive
@@ -62,6 +70,9 @@ DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
 DECLARE_TEXTURE(ShadowMapTexture, 6);
 DECLARE_TEXTURE(OcclusionTexture, 7);
 DECLARE_TEXTURE(EmissiveTexture, 8);
+DECLARE_CUBEMAP(IrradianceCubeTexture, 9);
+DECLARE_TEXTURE(PrefilteredSpecularAtlasTexture, 10);
+DECLARE_TEXTURE(BrdfLookupTexture, 11);
 
 
 BEGIN_CONSTANTS
@@ -187,6 +198,8 @@ BEGIN_CONSTANTS
     float HasMetallicRoughnessTexture _cb(c35.y);
     float HasOcclusionTexture _cb(c35.z);
     float HasEmissiveTexture _cb(c35.w);
+    float HasIbl;
+    float IblForceBaseLevel;
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
     float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
     float ShadowDepthBias _ps(c100) _cb(c90.z);
@@ -240,16 +253,119 @@ void ApplyAlphaTest(float alpha)
 }
 
 
-// The ambient term of this phase: the flat ambient colour (or, when an environment cube is bound and the world does not ask
-// for the flat source, its diffuse sample) times the occlusion times the diffuse albedo. Isolated here so the image-based
-// lighting of phase 6 replaces it without touching the shading.
-float3 ComputePbrAmbient(float3 worldNormal, float3 diffuseAlbedo, float occlusion)
+// ---- Image-based lighting (ADR-0106, plan T6.3) ----------------------------------------------------------------------------
+// The specular result of the IBL is a 2D atlas, not a cube with mips: the OpenGL chain ignores the level of a cube sample, so a
+// cube is never read at an explicit level for it. The atlas holds six latitude-longitude bands of 256 rows, band n
+// prefiltered for the roughness n / 5.
+static const float IblBandMax = 5.0f;           // number of prefiltered bands minus one: the band of roughness 1
+static const float IblBandCount = 6.0f;         // bands stacked in the atlas
+static const float IblBandHalfTexel = 0.5f / 256.0f; // half a texel of a band, in the vertical coordinate of the band
+static const float IblBrdfHalfTexel = 0.5f / 64.0f;  // half a texel of the BRDF table
+static const float IblInverseTwoPi = 0.15915494f;
+static const float IblInversePi = 0.31830989f;
+// The generated textures are linear light. The Legacy colour pipeline works in display colours: they are re-encoded there.
+static const float IblLegacyEncodeExponent = 1.0f / 2.2f;
+
+
+// Linear light of the IBL in the space of the view: unchanged when the colour pipeline is linear, re-encoded to display colour
+// otherwise (the approximation is written in ADR-0106). It never decodes: nothing of the IBL is a display colour.
+float3 IblToViewSpace(float3 linearLight)
+{
+    return ColorPipelineIsLinear > 0.5f ? linearLight : pow(max(linearLight, 0.0f), IblLegacyEncodeExponent);
+}
+
+
+// One band of the prefiltered atlas at the latitude-longitude coordinate uv (the mapping of
+// PanoramaEnvironmentGenerator.GetPanoramaUv, twin of IblCubeGenerator.GetAtlasUv). The vertical coordinate stays half a texel
+// inside the band so that the bilinear footprint never reaches the neighbouring band.
+float3 SampleIblPrefilteredBand(float2 uv, float band)
+{
+    float localV = clamp(uv.y, IblBandHalfTexel, 1.0f - IblBandHalfTexel);
+    return SAMPLE_TEXTURE(PrefilteredSpecularAtlasTexture, float2(uv.x, (band + localV) / IblBandCount)).rgb;
+}
+
+
+// The prefiltered radiance along direction for a perceptual roughness: two bands floor(b) and min(floor(b) + 1, 5) with
+// b = roughness * 5, interpolated by frac(b). IblForceBaseLevel (a debug constant) forces band 0.
+float3 SampleIblPrefiltered(float3 direction, float roughness)
+{
+    float2 uv;
+    uv.x = 0.5f + atan2(direction.x, -direction.z) * IblInverseTwoPi;
+    uv.y = 0.5f - asin(clamp(direction.y, -1.0f, 1.0f)) * IblInversePi;
+
+    float b = roughness * IblBandMax;
+    if (IblForceBaseLevel > 0.5f)
+    {
+        b = 0.0f;
+    }
+
+    float lowBand = floor(b);
+    float highBand = min(lowBand + 1.0f, IblBandMax);
+    float3 low = SampleIblPrefilteredBand(uv, lowBand);
+    float3 high = SampleIblPrefilteredBand(uv, highBand);
+    return lerp(low, high, frac(b));
+}
+
+
+// The split-sum scale A and bias B, read at (NoV, roughness) with the coordinates kept half a texel inside the table.
+float2 SampleIblBrdf(float noV, float roughness)
+{
+    float2 uv = clamp(float2(noV, roughness), IblBrdfHalfTexel, 1.0f - IblBrdfHalfTexel);
+    return SAMPLE_TEXTURE(BrdfLookupTexture, uv).rg;
+}
+
+
+// The ambient lighting of the surface, kept in two parts so a transparent surface scales only the diffuse one.
+struct PbrAmbient
+{
+    float3 Diffuse;
+    float3 Specular;
+};
+
+
+// The flat ambient of phase 3 (and the fallback while the IBL is not generated, HasIbl = 0): the flat ambient colour (or, when
+// an environment cube is bound and the world does not ask for the flat source, its diffuse sample) times the occlusion times the
+// diffuse albedo; no specular part.
+PbrAmbient ComputePbrFlatAmbient(float3 worldNormal, float3 diffuseAlbedo, float occlusion)
 {
     float3 ambient = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor
         : AmbientColor;
 
-    return ambient * occlusion * diffuseAlbedo;
+    PbrAmbient result;
+    result.Diffuse = ambient * occlusion * diffuseAlbedo;
+    result.Specular = 0.0f;
+    return result;
+}
+
+
+// The ambient of the surface: with the IBL generated (HasIbl = 1) the irradiance times the diffuse albedo (the irradiance cube
+// holds E / pi, so no further division) plus the prefiltered radiance times (F0 * A + B), both times the occlusion; the diffuse
+// part is modulated by EnvironmentAmbientColor and the specular part by EnvironmentSpecularIntensity. With UseFlatAmbientSource
+// the diffuse part stays the flat ambient colour and only the specular part comes from the atlas. Without the IBL: the flat
+// ambient of phase 3.
+PbrAmbient ComputePbrAmbient(PbrSurface surface, float occlusion)
+{
+    if (HasIbl < 0.5f)
+    {
+        return ComputePbrFlatAmbient(surface.Normal, surface.DiffuseAlbedo, occlusion);
+    }
+
+    float3 reflectionVector = reflect(-surface.EyeVector, surface.Normal);
+
+    float3 diffuseAmbient = AmbientColor;
+    if (UseFlatAmbientSource < 0.5f)
+    {
+        diffuseAmbient = IblToViewSpace(SAMPLE_CUBEMAP(IrradianceCubeTexture, surface.Normal).rgb) * EnvironmentAmbientColor;
+    }
+
+    float3 prefiltered = IblToViewSpace(SampleIblPrefiltered(reflectionVector, surface.PerceptualRoughness));
+    float2 brdf = SampleIblBrdf(surface.NoV, surface.PerceptualRoughness);
+
+    PbrAmbient result;
+    result.Diffuse = diffuseAmbient * occlusion * surface.DiffuseAlbedo;
+    result.Specular = prefiltered * (surface.F0 * brdf.x + brdf.y) * (EnvironmentSpecularIntensity * occlusion);
+    return result;
 }
 
 
@@ -302,10 +418,14 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float4 b
 
     // diffuseOpacity is 1 for the opaque and alpha-test techniques. The transparent techniques pass the alpha of the base colour:
     // the diffuse parts (direct and ambient) are attenuated by it, the specular and the emissive parts are not, so a glass
-    // surface keeps its highlights. The output is premultiplied (the blend state is One, InverseSourceAlpha).
+    // surface keeps its highlights, the specular part of the ambient included. The output is premultiplied (the blend state is One,
+    // InverseSourceAlpha).
+    PbrAmbient ambient = ComputePbrAmbient(surface, occlusion);
+
     float3 color = lightResult.Diffuse * diffuseOpacity
         + lightResult.Specular
-        + ComputePbrAmbient(worldNormal, surface.DiffuseAlbedo, occlusion) * diffuseOpacity
+        + ambient.Diffuse * diffuseOpacity
+        + ambient.Specular
         + emissive;
 
     // The shadow tint (ShadowApplyMode = 1, ADR-0098) applies to the whole pixel except the emissive part.
