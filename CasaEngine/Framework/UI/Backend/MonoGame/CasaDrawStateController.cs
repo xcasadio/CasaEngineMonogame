@@ -9,10 +9,9 @@ internal sealed class CasaDrawStateController
 {
     private readonly CasaDesktopRuntime _renderer;
     private Matrix _primitiveProjectionMatrix;
-    // The default settings handed out as PreviousSettings, and a twin that nothing reads or hands out: a settings object caches its inverse
-    // transform when it is read, which makes it differ from a new one, so a kept default is reused only while it still equals its twin.
-    private DrawSettings _defaultPreviousSettings;
-    private DrawSettings _defaultPreviousSettingsTwin;
+    // The default settings handed out as PreviousSettings at each re-arm: settings hold nothing but their parameters (MGUI ADR-0029), so a
+    // kept object cannot be told from a new one.
+    private readonly DrawSettings _defaultPreviousSettings;
 
     public CasaDrawStateController(CasaDesktopRuntime renderer, DrawSettings initialSettings, Matrix primitiveProjectionMatrix)
     {
@@ -34,13 +33,6 @@ internal sealed class CasaDrawStateController
         _primitiveProjectionMatrix = primitiveProjectionMatrix;
         CurrentContext = DrawContext.None;
         CurrentSettings = initialSettings;
-
-        if (_defaultPreviousSettingsTwin == null || !_defaultPreviousSettings.Equals(_defaultPreviousSettingsTwin))
-        {
-            _defaultPreviousSettings = DrawSettings.Default;
-            _defaultPreviousSettingsTwin = DrawSettings.Default;
-        }
-
         PreviousSettings = _defaultPreviousSettings;
     }
 

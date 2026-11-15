@@ -801,7 +801,7 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
 - Hors périmètre : la transaction du `MainRenderer` de MGUI (reste une suite à planifier) ; `DrawSettings.Default`
   (crée toujours un objet par lecture).
 
-### ⏳ T3.7 — Retirer le cache d'inverse de `DrawSettings` (MGUI)
+### ✅ T3.7 — Retirer le cache d'inverse de `DrawSettings` (MGUI)
 
 - Résultat : `DrawSettings` ne porte plus que ses paramètres et `UsesScissorTest` ; deux réglages de mêmes valeurs
   sont égaux quel que soit leur passé.
@@ -810,8 +810,11 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
 - Fin : `MGUI.sln` 0 erreur ; `MGUI.Tests` vert ; le test prouve l'égalité de deux `Default`, d'une copie `with { }`
   et l'inégalité sur chaque paramètre.
 - Commit (MGUI) : `refactor(rendering)!: drop the inverse transform cache of DrawSettings`.
+- **Fait le 2026-11-15** (MGUI `c8781dae`, ADR-0029 de MGUI). `DrawSettings` n'a plus que ses dix paramètres et
+  `UsesScissorTest`. Cinq tests nouveaux, dont un qui échoue si un champ d'instance autre qu'un paramètre revient
+  dans le record. Validation : `MGUI.sln` 0 erreur ; `MGUI.Tests` 3654 verts (3649 et 5 nouveaux), aucun sauté.
 
-### ⏳ T3.8 — Retirer les jumeaux du réarmement (moteur)
+### 🧪 T3.8 — Retirer les jumeaux du réarmement (moteur)
 
 - Résultat : le réarmement garde toujours la paire de variantes de rasterizer et les réglages précédents par défaut ;
   plus de copie témoin, plus de drapeau `_WasRearmed`. Le constat P4 « lire `InverseTransform` à chaque image » n'a
@@ -824,6 +827,14 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
   du chemin réel ; vérification indépendante de T3.7 et T3.8.
 - Retour arrière : `git revert` des deux commits (moteur puis MGUI).
 - Commit (moteur) : `refactor(ui): drop the re-arm twins of the draw settings`, avec la référence du sous-module.
+- **Code fait le 2026-11-15, tâche en 🧪 jusqu'à la vérification indépendante.** Retirés : les deux jumeaux des
+  variantes, le jumeau des réglages précédents par défaut, le drapeau `_WasRearmed` ; `_defaultPreviousSettings` est
+  `readonly`. Les variantes créées avant le premier réarmement sont maintenant gardées aussi.
+- Tests : `Rearm_AfterRasterizerVariantsThatWereRead_IsLikeANewTransaction` devient
+  `Rearm_AfterRasterizerVariantsWereCreated_IsLikeANewTransaction` (sans lecture d'inverse, le membre n'existe plus) ;
+  `…ThatWereNotRead_KeepsThem…` devient `Rearm_KeepsTheRasterizerVariantsAndTheDefaultPreviousSettings` et part de
+  l'usage du constructeur. Aucune autre affirmation retirée.
+- Validation : les deux solutions du moteur 0 erreur ; `CasaEngine.Tests` 5549 verts, aucun sauté.
 
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 

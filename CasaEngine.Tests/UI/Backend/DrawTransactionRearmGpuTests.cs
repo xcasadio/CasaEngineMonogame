@@ -480,10 +480,10 @@ public class DrawTransactionRearmGpuTests
         });
     }
 
-    /// <summary>The settings that a clip that turns the scissor test off hands out are kept by the transaction, and a settings object remembers
-    /// the inverse transform it was asked for: a variant that was read must not come back after a re-arm, a new transaction never has one.</summary>
+    /// <summary>The settings that a clip that turns the scissor test off hands out are kept by the transaction across a re-arm: settings hold
+    /// nothing but their parameters (MGUI ADR-0029), so the kept ones behave as the ones a new transaction would create.</summary>
     [GpuFact]
-    public void Rearm_AfterRasterizerVariantsThatWereRead_IsLikeANewTransaction()
+    public void Rearm_AfterRasterizerVariantsWereCreated_IsLikeANewTransaction()
     {
         DrawSettings initial = DrawSettings.Default;
         AssertRearmedLikeNew(new Case
@@ -491,23 +491,17 @@ public class DrawTransactionRearmGpuTests
             Initial = initial,
             PreviousUse = (transaction, lab) =>
             {
-                //  The first re-arm starts the bookkeeping of the variants and of the default previous settings; the use that follows creates the
-                //  variants and reads them, and the re-arm that follows this use is the one under test. The initial settings are not read: they
-                //  belong to the caller, and a new transaction would copy them as they are.
-                transaction.Rearm(initial, true);
-                _ = transaction.PreviousSettings.InverseTransform;
                 using (transaction.PushRectangleClip(null, false))
                 {
                     Assert.False(transaction.CurrentSettings.UsesScissorTest);
                     Assert.NotSame(initial, transaction.CurrentSettings);
-                    _ = transaction.CurrentSettings.InverseTransform;
                 }
             },
         });
     }
 
     [GpuFact]
-    public void Rearm_AfterRasterizerVariantsThatWereNotRead_KeepsThemAndStillIsLikeANewTransaction()
+    public void Rearm_KeepsTheRasterizerVariantsAndTheDefaultPreviousSettings()
     {
         DrawSettings initial = DrawSettings.Default;
         GpuDeviceHost.Instance.Invoke(() =>
@@ -522,8 +516,12 @@ public class DrawTransactionRearmGpuTests
                 DrawSettings noClipSettings = null;
                 for (int use = 0; use < 4; use++)
                 {
-                    //  The first re-arm starts the bookkeeping, so the first use creates the variants and the later ones find them.
-                    transaction.Rearm(initial, true);
+                    //  The first use is the one of the constructor: it creates the variants, and every re-armed use finds them.
+                    if (use > 0)
+                    {
+                        transaction.Rearm(initial, true);
+                    }
+
                     Assert.Same(initial, transaction.CurrentSettings);
                     Assert.True(DrawSettings.Default.Equals(transaction.PreviousSettings));
                     if (use == 0)
