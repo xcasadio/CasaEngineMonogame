@@ -33,6 +33,8 @@ public class LitPbrMaterial : MaterialBase
 
     public Texture2D BaseColorTexture { get; set; }
     public Guid BaseColorTextureAssetId { get; set; } = Guid.Empty;
+
+    public override Texture2D ShadowMaskTexture => Queue == RenderQueue.AlphaTest ? BaseColorTexture : null;
     public Texture2D NormalTexture { get; set; }
     public Guid NormalTextureAssetId { get; set; } = Guid.Empty;
     public Texture2D MetallicRoughnessTexture { get; set; }

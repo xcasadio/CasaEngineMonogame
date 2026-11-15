@@ -141,21 +141,12 @@ public sealed class ShadowPass : RenderPass
 
     private bool ConfigureMaterialMask(MaterialBase material, RenderStats stats, out float alphaCutoff)
     {
-        if (material.Queue == RenderQueue.AlphaTest)
+        Texture2D maskTexture = material.ShadowMaskTexture;
+        if (maskTexture is not null)
         {
             alphaCutoff = material.AlphaCutoff;
-
-            if (material is LitDiffuseMaterial litDiffuseMaterial && litDiffuseMaterial.BasColor is not null)
-            {
-                ShadowShader!.SetTextureParameter(ShaderParameterNames.BasColorTexture, litDiffuseMaterial.BasColor, stats);
-                return true;
-            }
-
-            if (material is UnlitTextureMaterial unlitTextureMaterial && unlitTextureMaterial.BasColor is not null)
-            {
-                ShadowShader!.SetTextureParameter(ShaderParameterNames.BasColorTexture, unlitTextureMaterial.BasColor, stats);
-                return true;
-            }
+            ShadowShader!.SetTextureParameter(ShaderParameterNames.BasColorTexture, maskTexture, stats);
+            return true;
         }
 
         alphaCutoff = 0.0f;

@@ -16,6 +16,9 @@ public class LitDiffuseMaterial : MaterialBase
 {
     public Texture2D BasColor { get; set; }
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
+
+    public override Texture2D ShadowMaskTexture => Queue == RenderQueue.AlphaTest ? BasColor : null;
+
     public Texture2D NormalMap { get; set; }
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
     public Texture2D DetailTexture { get; set; }

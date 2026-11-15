@@ -33,11 +33,17 @@ namespace CasaEngine.Demos.Demos;
 /// included. Keys: M changes the mode, T the operator, = / + raises the exposure by 0.25 and - lowers it, B toggles the
 /// bloom (<c>CASAENGINE_DEMO_BLOOM=1</c> starts with it on).
 /// </para>
+/// <para>
+/// <c>CASAENGINE_COLOR_DEMO_PBR=1</c> adds a row of five black dielectric <c>lit-pbr</c> spheres (roughness 0.1 to 0.9) below the
+/// others, to measure the width of the specular highlight; without it the scene is the one above, unchanged. Their centres and
+/// measurement lines are the constants <see cref="PbrSphereCentres"/> and <see cref="PbrMeasurementLines"/>.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
     private const string LightIntensityVariable = "CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY";
     private const string BufferedVariable = "CASAENGINE_COLOR_DEMO_BUFFERED";
+    private const string PbrVariable = "CASAENGINE_COLOR_DEMO_PBR";
     private const int VirtualWidth = 1024;
     private const int VirtualHeight = 768;
     private const float ExposureStep = 0.25f;
@@ -87,6 +93,36 @@ public sealed class ColorPipelineDemo : Demo
     /// Legacy value 128, 128, 128. In LinearHdr it reads like the grey 128 plane: it proves the particle renderer binds the constant.
     /// </summary>
     public static readonly Point ParticleGrey128Pixel = new(852, 457);
+
+    /// <summary>Perceptual roughness of the five <c>lit-pbr</c> spheres of <c>CASAENGINE_COLOR_DEMO_PBR=1</c>, left to right.</summary>
+    public static readonly float[] PbrRoughness = { 0.1f, 0.3f, 0.5f, 0.7f, 0.9f };
+
+    /// <summary>
+    /// World position of the first PBR sphere and the step to the next one: below the other spheres (world y -7), on the same
+    /// columns, radius 1.3 like them.
+    /// </summary>
+    private static readonly Vector3 PbrFirstSpherePosition = new(-7.0f, -7.0f, 0.0f);
+    private const float PbrSphereSpacing = 3.5f;
+
+    /// <summary>Centre pixel of each PBR sphere (window coordinates, 1024 x 768).</summary>
+    public static readonly Point[] PbrSphereCentres =
+    {
+        new(277, 617), new(394, 617), new(511, 617), new(628, 617), new(745, 617),
+    };
+
+    /// <summary>One horizontal measurement line of a PBR sphere: row, first and last pixel (both on the sphere).</summary>
+    public readonly record struct MeasurementLine(int Y, int XStart, int XEnd);
+
+    /// <summary>
+    /// Measurement line of each PBR sphere. The width of the highlight of a sphere is the number of pixels of its line whose
+    /// luminance is above half of the maximum of that line. Each line
+    /// runs 30 px either side of the sphere centre (all of it on the sphere) on the row of the brightest pixel inside the disk of
+    /// radius 30 around the centre, found by capturing with light intensity 1, Reinhard, exposure 1.
+    /// </summary>
+    public static readonly MeasurementLine[] PbrMeasurementLines =
+    {
+        new(612, 247, 307), new(612, 364, 424), new(611, 481, 541), new(607, 598, 658), new(604, 715, 775),
+    };
 
     private static readonly Vector2 TextBlockPosition = new(24.0f, 112.0f);
     private static readonly Vector2 SpriteWorldPosition = new(8.5f, 5.5f);
@@ -181,6 +217,27 @@ public sealed class ColorPipelineDemo : Demo
                 SpecularColor = Vector3.Zero,
                 EmissiveColor = new Vector3(4.0f),
             });
+
+
+        if (Environment.GetEnvironmentVariable(PbrVariable) == "1")
+        {
+            for (int i = 0; i < PbrRoughness.Length; i++)
+            {
+                AddPrimitive(
+                    world,
+                    game.GraphicsDevice,
+                    $"PBR sphere {i}",
+                    new SpherePrimitive(2.6f, 32),
+                    PbrFirstSpherePosition + new Vector3(PbrSphereSpacing * i, 0.0f, 0.0f),
+                    new LitPbrMaterial
+                    {
+                        Name = $"PbrSphere{i}",
+                        BaseColor = Color.Black,
+                        Metallic = 0.0f,
+                        Roughness = PbrRoughness[i],
+                    });
+            }
+        }
 
         CreateBlockFont(game.GraphicsDevice);
 
