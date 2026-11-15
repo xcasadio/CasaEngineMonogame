@@ -553,6 +553,8 @@ public sealed class RenderPipeline
 
             if (composeInterfaceAfter)
             {
+                FlushPostTonemapRenderers(view, in frame);
+
                 long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
 
                 (view.UICompositionService ?? DefaultUICompositionService.Instance)
@@ -565,6 +567,27 @@ public sealed class RenderPipeline
         {
             RenderTargetPool.Shared.Release(hdrTarget);
         }
+    }
+
+    /// <summary>
+    /// Flushes the renderers that draw display-ready colours (<see cref="IPostTonemapRenderer"/>, the screen sprites and text)
+    /// on the tonemapped destination, before the interface (ADR-0098). The depth of the scene lives in the HDR target, so the
+    /// depth test is off for these flushes.
+    /// </summary>
+    private void FlushPostTonemapRenderers(RenderView view, in RenderFrame frame)
+    {
+        long flushStartTimestamp = Stopwatch.GetTimestamp();
+
+        _graphicsDevice.DepthStencilState = DepthStencilState.None;
+        for (int index = 0; index < _renderers.Count; index++)
+        {
+            if (_renderers[index] is IPostTonemapRenderer postTonemapRenderer)
+            {
+                postTonemapRenderer.FlushPostTonemap(in frame, view.RenderStats);
+            }
+        }
+
+        view.RenderStats.RendererFlushCpuMilliseconds += GetElapsedMilliseconds(flushStartTimestamp);
     }
 
     /// <summary>

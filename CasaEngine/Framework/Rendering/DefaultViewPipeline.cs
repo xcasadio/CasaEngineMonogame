@@ -30,7 +30,7 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPi
         in RenderFrame                        frame,
         IReadOnlyList<IViewFlushableRenderer> renderers)
     {
-        RenderScene(graphicsDevice, view, in frame, renderers);
+        RenderSceneCore(view, in frame, renderers, skipPostTonemapRenderers: false);
 
         // 3. Compose the UI phase on top of the 3D scene while the view's
         //    render target and viewport are still active.
@@ -44,13 +44,24 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPi
 
     /// <summary>
     /// Steps 1 and 2 of <see cref="RenderView"/>: the world draw and the renderer flushes, without the UI phase
-    /// (<see cref="IScenePhaseViewPipeline"/>).
+    /// (<see cref="IScenePhaseViewPipeline"/>). In a view that really draws through the HDR target the renderers that are
+    /// <see cref="IPostTonemapRenderer"/> are not flushed here: <see cref="RenderPipeline"/> flushes them after the tonemapping
+    /// (ADR-0098). Without that colour pipeline every renderer is flushed, in the order of the legacy pipeline.
     /// </summary>
     public void RenderScene(
         GraphicsDevice                        graphicsDevice,
         RenderView                            view,
         in RenderFrame                        frame,
         IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        RenderSceneCore(view, in frame, renderers, skipPostTonemapRenderers: frame.Environment.LinearColorActive);
+    }
+
+    private static void RenderSceneCore(
+        RenderView                            view,
+        in RenderFrame                        frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers,
+        bool                                  skipPostTonemapRenderers)
     {
         long worldDrawStartTimestamp = Stopwatch.GetTimestamp();
 
@@ -64,6 +75,11 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPi
 
         foreach (var renderer in renderers)
         {
+            if (skipPostTonemapRenderers && renderer is IPostTonemapRenderer)
+            {
+                continue;
+            }
+
             renderer.Flush(in frame, view.RenderStats);
         }
 

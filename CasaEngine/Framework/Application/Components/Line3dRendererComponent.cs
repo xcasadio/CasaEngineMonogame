@@ -116,7 +116,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
 
         _vertexBuffer.SetData(_vertices, 0, lineCount * 2);
-        Draw(Matrix.Identity, frame.View, frame.Projection, stats, lineCount);
+        Draw(Matrix.Identity, frame.View, frame.Projection, stats, lineCount, frame.Environment.LinearColorActive);
 
         FrameFlushedLineCount += lineCount;
         FrameFlushDurationMs += (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
@@ -124,7 +124,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         Clear();
     }
 
-    private void Draw(Matrix world, Matrix view, Matrix projection, RenderStats stats, int lineCount)
+    private void Draw(Matrix world, Matrix view, Matrix projection, RenderStats stats, int lineCount, bool linearColor)
     {
         if (_effect == null)
         {
@@ -133,6 +133,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * view * projection);
         _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
+        _effect.Parameters[ShaderParameterNames.ColorPipelineIsLinear]?.SetValue(linearColor ? 1.0f : 0.0f);
 
         Draw(_effect, stats, lineCount);
     }

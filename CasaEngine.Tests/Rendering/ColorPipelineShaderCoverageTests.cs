@@ -157,6 +157,36 @@ public class ColorPipelineShaderCoverageTests
         Assert.Contains("DecodeColor(TintColor.rgb)", source);
     }
 
+    [Theory]
+    [InlineData("TexturedPrimitive.fx", "DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexCoord) * input.Color)")]
+    [InlineData("SpriteBatch.fx", "return DecodeColor4(texel);")]
+    [InlineData("PsxQuad.fx", "return DecodeColor4(result);")]
+    [InlineData("DebugPrimitiveColor.fx", "return DecodeColor4(input.color);")]
+    public void ParticleSpriteAndLineShaders_DeclareTheConstantAndDecodeTheSampledAndVertexColours(string shaderFileName, string decodedReturn)
+    {
+        string source = LoadShaderSource(shaderFileName);
+
+        // The constant defaults to 0 (the UI backend, which shares TexturedPrimitive.fx, never binds it) and is declared
+        // before the decoder is included.
+        Assert.Contains("float ColorPipelineIsLinear = 0.0f;", source);
+        int declaration = source.IndexOf("float ColorPipelineIsLinear", StringComparison.Ordinal);
+        int include = source.IndexOf("#include \"ColorPipeline.fxh\"", StringComparison.Ordinal);
+        Assert.True(declaration >= 0 && include > declaration, $"{shaderFileName} must declare the constant before including the decoder.");
+
+        // DecodeColor wraps the colour that leaves the pixel shader: the sampled colour times the vertex colour or colour
+        // constant (the power law is multiplicative), alpha untouched (DecodeColor4).
+        Assert.Contains(decodedReturn, source);
+        Assert.Equal(1, CountOccurrences(source, "DecodeColor4("));
+    }
+
+    [Fact]
+    public void TheEditorGizmoShader_IsNotPartOfTheSceneRenderers()
+    {
+        // DebugSolidColor.fx draws the editor transform gizmo on top of the view (an editor overlay, not a scene renderer):
+        // it is not decoded, so it never takes the constant.
+        Assert.DoesNotContain("ColorPipelineIsLinear", LoadShaderSource("DebugSolidColor.fx"));
+    }
+
     [Fact]
     public void SkyShaders_DecodeTheSampledCubeAndTheTint()
     {

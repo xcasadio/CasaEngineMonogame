@@ -24,6 +24,11 @@ float4x4 ViewProj;
 float4x4 World;
 float4 Color;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0097): the texel and the colour are display colours.
+float ColorPipelineIsLinear = 0.0f;
+
+#include "ColorPipeline.fxh"
+
 // Half a screen pixel in clip space, to the right and down: (1 / viewport width, -1 / viewport height).
 float2 HalfPixel;
 
@@ -83,7 +88,7 @@ float4 PS(VS_OUTPUT input) : COLOR
         discard;
     }
 
-    return result;
+    return DecodeColor4(result);
 }
 
 technique Simple

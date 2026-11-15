@@ -27,7 +27,14 @@
 
 float4x4 WorldViewProj;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0097): the texture and the vertex colour are display colours.
+// Only a renderer of the scene (the particle renderer, on its own clone of this effect) binds it; the UI backend never does,
+// so the UI keeps its display colours.
+float ColorPipelineIsLinear = 0.0f;
+
 DECLARE_TEXTURE(Texture, 0);
+
+#include "ColorPipeline.fxh"
 
 // --- VS ---
 
@@ -58,7 +65,7 @@ VS_OUTPUT VS_Main(VS_INPUT input)
 
 float4 PS_Main(VS_OUTPUT input) : SV_TARGET
 {
-    return SAMPLE_TEXTURE(Texture, input.TexCoord) * input.Color;
+    return DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexCoord) * input.Color);
 }
 
 // --- Techniques ---

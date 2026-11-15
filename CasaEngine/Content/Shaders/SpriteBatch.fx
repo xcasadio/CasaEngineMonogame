@@ -10,6 +10,11 @@ float4x4 ViewProj;
 float4x4 World;
 float4 Color;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0097): the texel and the colour are display colours.
+float ColorPipelineIsLinear = 0.0f;
+
+#include "ColorPipeline.fxh"
+
 // Raw-alpha window (min, max] of the texels this draw keeps (ADR-0051). A texel whose own alpha, before the Color
 // product, is outside the window is discarded. The neutral window (-1, 2) keeps everything, so a draw that does not set
 // the window behaves exactly as before it existed. The test reads the sampled alpha as it is stored: it assumes the point
@@ -57,7 +62,7 @@ float4 PS(VS_OUTPUT input) : COLOR
 	    discard;
     }
 
-    return texel;
+    return DecodeColor4(texel);
 }
 
 technique Simple

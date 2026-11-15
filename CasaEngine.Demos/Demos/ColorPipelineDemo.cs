@@ -5,6 +5,8 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.Particles;
+using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
@@ -73,7 +75,22 @@ public sealed class ColorPipelineDemo : Demo
     /// <summary>Inside the screen text block (x 24-279, y 112-135). Legacy value 60, 200, 240.</summary>
     public static readonly Point TextPixel = new(150, 124);
 
+    /// <summary>
+    /// Centre of the 3D sprite (a 3 x 3 world-unit quad at world (10, 4), drawn by the sprite renderer in the scene, grey 128).
+    /// Legacy value 128, 128, 128. In LinearHdr it reads like the grey 128 plane: it proves the sprite renderer binds the constant.
+    /// </summary>
+    public static readonly Point Sprite3dGrey128Pixel = new(842, 251);
+
+    /// <summary>
+    /// A pixel of the fixed particle (a 2 x 2 world-unit billboard at world (10, -2.5), grey 128, flipbook frame on the white
+    /// texel of the fallback texture): 10 px right of and 10 px above its centre (842, 467), where the texture is plain white.
+    /// Legacy value 128, 128, 128. In LinearHdr it reads like the grey 128 plane: it proves the particle renderer binds the constant.
+    /// </summary>
+    public static readonly Point ParticleGrey128Pixel = new(852, 457);
+
     private static readonly Vector2 TextBlockPosition = new(24.0f, 112.0f);
+    private static readonly Vector2 SpriteWorldPosition = new(8.5f, 5.5f);
+    private static readonly Color Grey128 = new(128, 128, 128);
 
     private static readonly Color BackgroundColor = new(20, 20, 20);
     private static readonly Color PanelColor = new(200, 60, 60);
@@ -86,6 +103,7 @@ public sealed class ColorPipelineDemo : Demo
     private float _lightIntensity = 1.0f;
     private ColorPipelinePanelScreen? _panel;
     private Texture2D? _fontTexture;
+    private Texture2D? _whiteTexture;
     private SpriteFont? _font;
     private KeyboardState _previousKeyboard;
 
@@ -157,6 +175,9 @@ public sealed class ColorPipelineDemo : Demo
             });
 
         CreateBlockFont(game.GraphicsDevice);
+
+        _whiteTexture = new Texture2D(game.GraphicsDevice, 1, 1);
+        _whiteTexture.SetData(new[] { Color.White });
     }
 
     public override void ConfigureSceneLighting(World world)
@@ -221,6 +242,8 @@ public sealed class ColorPipelineDemo : Demo
             _game.Renderer2DComponent.DrawText(_font, "AAAAAAAA", TextBlockPosition, 0.0f, new Vector2(4.0f, 2.0f), TextColor, 0.0f);
         }
 
+        SubmitMeasurementSpriteAndParticle();
+
         KeyboardState keyboard = DemoKeyboard.Read(_game);
         var settings = _game.GameManager.CurrentWorld.EnvironmentSettings;
         var colorPipeline = settings.ColorPipeline;
@@ -259,6 +282,49 @@ public sealed class ColorPipelineDemo : Demo
         }
     }
 
+    /// <summary>
+    /// The 3D sprite and the fixed particle are queued every frame (the renderers clear their queues at each flush). The sprite is
+    /// a 3 x 3 quad centred on world (10, 4): position is its top-left corner, the origin is (0, 0).
+    /// </summary>
+    private void SubmitMeasurementSpriteAndParticle()
+    {
+        if (_game == null)
+        {
+            return;
+        }
+
+        if (_whiteTexture != null)
+        {
+            _game.SpriteRendererComponent.DrawSprite(
+                _whiteTexture,
+                new Rectangle(0, 0, 1, 1),
+                Point.Zero,
+                SpriteWorldPosition,
+                0.0f,
+                new Vector2(3.0f, 3.0f),
+                Grey128,
+                0.0f,
+                SpriteEffects.None);
+        }
+
+        // The fallback texture of the particle renderer is 2 x 2 (magenta, white / white, magenta): frame 1 of a 2 x 2 flipbook
+        // is the top-right quarter, centred on its white texel.
+        _game.ParticleRendererComponent.Submit(new ParticleRenderPacket
+        {
+            Position = new Vector3(10.0f, -2.5f, 0.0f),
+            Size = new Vector2(2.0f, 2.0f),
+            Color = Grey128,
+            Alpha = 1.0f,
+            TextureAssetId = Guid.Empty,
+            FlipbookColumns = 2,
+            FlipbookRows = 2,
+            FlipbookFrameIndex = 1,
+            BlendMode = ParticleBlendMode.Alpha,
+            DepthTest = false,
+            DepthWrite = false,
+        });
+    }
+
     public override void OnScreenResized(CasaEngineGame game, int width, int height)
     {
         game.GameManager.ViewManager.ApplyBackBufferLayout(width, height);
@@ -290,6 +356,8 @@ public sealed class ColorPipelineDemo : Demo
         _font = null;
         _fontTexture?.Dispose();
         _fontTexture = null;
+        _whiteTexture?.Dispose();
+        _whiteTexture = null;
         _previousVirtualResolution = null;
         _virtualResolutionChanged = false;
         _game = null;
