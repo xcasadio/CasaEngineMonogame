@@ -298,6 +298,15 @@ Plan accepté par l'auteur le 2026-11-15, avec la demande de corriger les défau
   `Runs`/`Lines` après un balisage invalide posé pendant le passage de `AllowsInlineFormatting` à vrai ; les
   bizarreries du code historique reproduites telles quelles (`[` sans type connu, barres obliques inverses, `[/u]`
   sans ouverture, opacité du soulignement appliquée deux fois, `[shadow=Red 1,2]`).
+- Corrigé ensuite à la demande de l'auteur (« Oui, corrige », 2026-11-15 ; MGUI `67b74d2d`), dans le code historique
+  et dans le lecteur, qui restent égaux : `[shadow=Red 1,2]` donne le décalage (1,2) ; une balise fermante sans
+  ouverture (`[/u]`, `[/shadow]`, `[/o]`, `[/color]`, `[/bg]`) garde le réglage courant au lieu d'une valeur fixe (un
+  bloc souligné ou ombré le reste) ; le soulignement par défaut a la couleur du texte de son run (opacité appliquée
+  une fois). Tests : `FormattedTextMarkupFixesTests`, `TheDefaultUnderline_HasTheColorOfTheText`. Validation :
+  `MGUI.Tests` 3663 verts, `CasaEngine.Tests` 5550 verts, les trois solutions 0 erreur. Pas de vérification
+  indépendante.
+- Reste à décider par l'auteur : le `[` sans balise valide (comportement cible à choisir) et, lié, le constat P3 ;
+  les paires de barres obliques inverses ne sont pas changées (règle cohérente avec `EscapeMarkdown` et ses tests).
 - Les limites qui allouent encore (caches de 64 et 128 entrées, bloc souligné ou à fond sans balise, changement de
   police, tampons qui ne rétrécissent pas) restent des limites documentées.
 
