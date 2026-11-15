@@ -37,6 +37,12 @@ public class SkinnedMeshDemo : Demo
     private const float GroundDepth = 14.0f;
     private const float GroundCentreZ = 0.5f;
 
+    /// <summary>
+    /// Floor pixel at the foot of the middle character (plan T3.3, ADR-0115; window coordinates, 1024 x 768) of the frozen frame
+    /// (<c>CASAENGINE_SKINNED_DEMO_FREEZE=1</c>, LinearHdr): 170, 168, 145 without SSAO, 147, 145, 122 with <c>CASAENGINE_DEMO_SSAO=1</c> (23 levels darker).
+    /// </summary>
+    public static readonly Point SsaoFootPixel = new(465, 462);
+
     // Measurement switch (plan T8.2). With CASAENGINE_SKINNED_DEMO_FREEZE=1 every character is paused at the same instant of
     // its first clip and never changes clip, so two captures of the same configuration are identical. The camera is already
     // fixed. Without the variable the demo plays as before.

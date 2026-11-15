@@ -70,6 +70,16 @@ public static class ShaderParameterNames
     public const string FxaaTexelSize = "FxaaTexelSize";
     public const string FxaaSourceTexture = "FxaaSourceTexture";
 
+    // --- Screen-space ambient occlusion (ADR-0115) ---
+    public const string SsaoTexelSize = "SsaoTexelSize";
+    public const string SsaoProjectionScale = "SsaoProjectionScale";
+    public const string SsaoRadius = "SsaoRadius";
+    public const string SsaoBias = "SsaoBias";
+    public const string SsaoIntensity = "SsaoIntensity";
+    public const string SsaoSkyThreshold = "SsaoSkyThreshold";
+    public const string SsaoSourceTexture = "SsaoSourceTexture";
+    public const string SsaoDepthTexture = "SsaoDepthTexture";
+
     /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0105).</summary>
     public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
 

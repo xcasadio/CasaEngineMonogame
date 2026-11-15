@@ -23,6 +23,16 @@ namespace CasaEngine.Demos.Demos;
 public class SplitScreenDemo : Demo
 {
     private const int ProbeFrames = 20;
+
+    // Measurement pixels of the SSAO check (plan T3.3, ADR-0115; window coordinates, 1024 x 768, LinearHdr), one per view, in a flat
+    // area of the ground far from every object: the grey is the same with and without CASAENGINE_DEMO_SSAO=1 (174, 166, 138), while
+    // the SSAO count of each view (RenderStats.SsaoPasses, written at the capture) proves the composition ran in that view.
+
+    /// <summary>Uniform ground pixel of the left view (view 0).</summary>
+    public static readonly Point SsaoUniformPixelLeftView = new(250, 700);
+
+    /// <summary>Uniform ground pixel of the right view (view 1).</summary>
+    public static readonly Point SsaoUniformPixelRightView = new(700, 700);
     private const string PbrVariable = "CASAENGINE_SPLIT_DEMO_PBR";
 
     // CASAENGINE_SPLIT_DEMO_PBR=1 (plan T6.3): a procedural environment cube and one metal lit-pbr sphere in front of each camera, on

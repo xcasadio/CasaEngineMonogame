@@ -50,6 +50,9 @@ public sealed class RenderPipeline : IDisposable
     // FXAA shader (ADR-0113), loaded with the tonemap shader; null until then, which only matters for a view with FXAA.
     private ShaderWrapper _fxaaShader;
 
+    // SSAO shader (ADR-0115), loaded with the tonemap shader; null until then, which only matters for a view with SSAO.
+    private ShaderWrapper _ssaoShader;
+
     // Generator of the IBL cubes (ADR-0109), created when the game gives the pipeline the IblConvolution effect; null until then
     // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
     private IblCubeGenerator _iblCubeGenerator;
@@ -99,8 +102,17 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>Number of views rendered with their scene depth pre-pass active since the start.</summary>
     internal int SceneDepthPrepassCount { get; private set; }
 
+    /// <summary>Number of SSAO targets (occlusion and blur, one channel, no depth buffer) created since the start (ADR-0115).</summary>
+    internal int SsaoTargetCreationCount { get; private set; }
+
+    /// <summary>Number of SSAO targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int SsaoTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of SSAO compositions since the start (see <see cref="SsaoRenderer"/>).</summary>
+    internal int SsaoDrawCount => _ssaoRenderer.PassCount;
+
     // Render index of the last use of each tracked target key (width, height, format, depth format): the HDR scene targets
-    // (with depth), the bloom targets (without depth) and the FXAA targets (Color, without depth). Filled when a key is first seen, so no allocation at constant size; swept
+    // (with depth), the bloom targets (without depth), the FXAA targets (Color, without depth), the scene depth targets (Depth24) and the SSAO targets (Single or HalfSingle, without depth). Filled when a key is first seen, so no allocation at constant size; swept
     // once per Render.
     private readonly Dictionary<(int, int, SurfaceFormat, DepthFormat), long> _hdrLastUsedRender = new();
     private readonly List<(int, int, SurfaceFormat, DepthFormat)> _hdrStaleKeys = new();
@@ -117,6 +129,13 @@ public sealed class RenderPipeline : IDisposable
     private readonly SceneDepthPrepass _sceneDepth = new();
     private SurfaceFormat _sceneDepthFormat = SurfaceFormat.Single;
     private bool _sceneDepthUnavailable;
+
+    // Occlusion and blur targets of the SSAO (ADR-0115): Single, then HalfSingle, no depth buffer; never a HDR format. When neither
+    // can be created SSAO is switched off for good with one warning.
+    private readonly SsaoRenderer _ssaoRenderer;
+    private SurfaceFormat _ssaoFormat = SurfaceFormat.Single;
+    private bool _ssaoUnavailable;
+    private bool _ssaoShaderMissingLogged;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -166,6 +185,7 @@ public sealed class RenderPipeline : IDisposable
         _spriteBatch    = spriteBatch;
         _bloomRenderer  = new BloomRenderer(graphicsDevice, spriteBatch);
         _fxaaRenderer   = new FxaaRenderer(graphicsDevice, spriteBatch);
+        _ssaoRenderer   = new SsaoRenderer(graphicsDevice, spriteBatch);
         _iblCache       = new IblCache(graphicsDevice);
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
@@ -228,6 +248,24 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
+    /// Gives the pipeline the compiled <c>Ssao</c> effect (<see cref="BuiltInShaderCatalog.SsaoContentName"/>) used by the
+    /// ambient occlusion of a view that asks for it (ADR-0115). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetSsaoEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_ssaoShader == null)
+        {
+            _ssaoShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _ssaoShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
     /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
     /// and builds the generator of the IBL cubes from it (ADR-0109). Called once by the game after its content root is set; a
     /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
@@ -277,6 +315,12 @@ public sealed class RenderPipeline : IDisposable
         if (string.Equals(normalizedName, BuiltInShaderCatalog.FxaaContentName, StringComparison.OrdinalIgnoreCase))
         {
             SetFxaaEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.SsaoContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetSsaoEffect(effect);
             return true;
         }
 
@@ -719,6 +763,128 @@ public sealed class RenderPipeline : IDisposable
         return target;
     }
 
+    private bool HasSsaoShader()
+    {
+        if (_ssaoShader != null)
+        {
+            return true;
+        }
+
+        if (!_ssaoShaderMissingLogged)
+        {
+            _ssaoShaderMissingLogged = true;
+            Logs.WriteWarning("[Ssao] The SSAO shader is not loaded: ambient occlusion is skipped.");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes an occlusion or blur target of the SSAO (the size of the view, <see cref="SurfaceFormat.Single"/> then
+    /// <see cref="SurfaceFormat.HalfSingle"/>, <see cref="DepthFormat.None"/>) from <see cref="RenderTargetPool"/> and stamps its key
+    /// so <see cref="ReleaseUnusedHdrTargets"/> frees it after a size change. Never a HDR format: when neither one-channel format
+    /// can be created, SSAO is switched off with one warning and null is returned. A creation is counted in
+    /// <see cref="SsaoTargetCreationCount"/>.
+    /// </summary>
+    private RenderTarget2D AcquireSsaoTarget(int width, int height)
+    {
+        if (_ssaoUnavailable)
+        {
+            return null;
+        }
+
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _ssaoFormat, DepthFormat.None);
+                break;
+            }
+            catch (Exception exception) when (_ssaoFormat == SurfaceFormat.Single)
+            {
+                Logs.WriteWarning($"[Ssao] occlusion target format {_ssaoFormat} refused ({exception.Message}); falling back to {SurfaceFormat.HalfSingle}.");
+                _ssaoFormat = SurfaceFormat.HalfSingle;
+            }
+            catch (Exception exception)
+            {
+                _ssaoUnavailable = true;
+                Logs.WriteWarning($"[Ssao] no one-channel floating-point format can be created for the occlusion targets ({exception.Message}): ambient occlusion is switched off.");
+                return null;
+            }
+        }
+
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.None)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            SsaoTargetCreationCount++;
+            Logs.WriteDebug($"[Ssao] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {SsaoTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Multiplies the HDR scene target of the view by its ambient occlusion (ADR-0115), between the scene and the bloom. Called only
+    /// for a view whose scene depth pre-pass is active (its four conditions, see <see cref="RenderHdrView"/>), so a view that renders
+    /// scene and interface in one go is never darkened. Skipped, with one warning, when the SSAO shader is not loaded, and when the
+    /// intensity is not positive (the multiplication would be by 1).
+    /// </summary>
+    private void ApplySsao(RenderTarget2D hdrTarget, in RenderFrame frame, Rectangle viewRectangle, RenderStats stats)
+    {
+        if (!HasSsaoShader() || frame.Environment.SsaoIntensity <= 0.0f)
+        {
+            return;
+        }
+
+        var depthTarget = _sceneDepth.Target;
+        if (depthTarget == null)
+        {
+            return;
+        }
+
+        var occlusion = AcquireSsaoTarget(viewRectangle.Width, viewRectangle.Height);
+        if (occlusion == null)
+        {
+            return;
+        }
+
+        RenderTarget2D partner = null;
+        try
+        {
+            partner = AcquireSsaoTarget(viewRectangle.Width, viewRectangle.Height);
+            if (partner == null)
+            {
+                return;
+            }
+
+            _ssaoRenderer.Render(
+                hdrTarget,
+                depthTarget,
+                occlusion,
+                partner,
+                _ssaoShader,
+                1.0f / frame.Projection.M11,
+                1.0f / frame.Projection.M22,
+                frame.Environment.SsaoRadius,
+                frame.Environment.SsaoBias,
+                frame.Environment.SsaoIntensity);
+            stats.SsaoPasses++;
+        }
+        finally
+        {
+            RenderTargetPool.Shared.Release(occlusion);
+            if (partner != null)
+            {
+                RenderTargetPool.Shared.Release(partner);
+            }
+        }
+    }
+
     /// <summary>
     /// Activates the scene depth pre-pass for the view being rendered: acquires its target, clears it to the background depth and
     /// binds the scene target again. Called by <see cref="RenderHdrView"/> before the scene, once its four conditions hold. Returns
@@ -768,6 +934,14 @@ public sealed class RenderPipeline : IDisposable
                 // atlas of that size would be counted here.
                 SceneDepthTargetDisposalCount += disposed;
                 Logs.WriteDebug($"[SceneDepth] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {SceneDepthTargetDisposalCount}, alive {SceneDepthTargetCreationCount - SceneDepthTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None && (key.Item3 == SurfaceFormat.Single || key.Item3 == SurfaceFormat.HalfSingle))
+            {
+                // The SSAO occlusion and blur targets: one channel, no depth. Placed before the bloom branch, which takes every other
+                // key without depth; the bloom targets have the format of the HDR scene target (never a one-channel format) and the
+                // FXAA ones are Color.
+                SsaoTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Ssao] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {SsaoTargetDisposalCount}, alive {SsaoTargetCreationCount - SsaoTargetDisposalCount}");
             }
             else if (key.Item4 == DepthFormat.None && key.Item3 == SurfaceFormat.Color)
             {
@@ -870,12 +1044,20 @@ public sealed class RenderPipeline : IDisposable
                 pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
             }
 
+            var viewRectangle = view.Surface.ViewportRect;
+
+            // SSAO (ADR-0115) multiplies the scene target by the occlusion, between the scene and the bloom. It runs only when the
+            // scene depth pre-pass is active for this view, hence only when composeInterfaceAfter holds: the interface is not in
+            // the HDR target yet and is never darkened.
+            if (sceneDepthActive)
+            {
+                ApplySsao(hdrTarget, in frame, viewRectangle, view.RenderStats);
+            }
+
             if (frame.Environment.BloomEnabled)
             {
                 ApplyBloom(hdrTarget, in frame);
             }
-
-            var viewRectangle = view.Surface.ViewportRect;
 
             // FXAA (ADR-0113) filters the scene only when the interface is composed afterwards, so the interface is never
             // filtered: a view whose pipeline renders everything in one go (composeInterfaceAfter false) is not anti-aliased.

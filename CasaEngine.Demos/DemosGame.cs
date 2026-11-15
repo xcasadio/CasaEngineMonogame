@@ -731,6 +731,7 @@ public class DemosGame : CasaEngineGame
         _automationScreenshotCaptured = true;
         LogFxaaPassCounts();
         LogSceneDepthCounts();
+        LogSsaoPassCounts();
         bool succeeded = CaptureScreenshot(_automationScreenshotPath);
         Environment.ExitCode = succeeded ? 0 : 1;
         Exit();
@@ -777,6 +778,26 @@ public class DemosGame : CasaEngineGame
         }
 
         Logs.WriteInfo($"[DemosGame] Scene depth draws at capture: static {staticTotal}, skinned {skinnedTotal} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many SSAO compositions each view drew in the frame just rendered
+    /// (ADR-0115): a capture measurement of the ambient occlusion is only valid when the count of the views it concerns is at least 1
+    /// (and 0 without SSAO), because a measurement that holds as well when the SSAO never runs proves nothing.
+    /// </summary>
+    private void LogSsaoPassCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int total = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int passes = views[i].RenderStats.SsaoPasses;
+            total += passes;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": ").Append(passes);
+        }
+
+        Logs.WriteInfo($"[DemosGame] SSAO passes at capture: total {total} ({perView}).");
     }
 
     private bool CaptureScreenshot(string outputPath)

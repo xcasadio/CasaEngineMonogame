@@ -19,6 +19,9 @@ public class RenderStats
     /// <summary>Number of FXAA passes drawn for the view in the frame (ADR-0113): 1 when the view was anti-aliased, 0 otherwise.</summary>
     public int FxaaPasses { get; set; }
 
+    /// <summary>Number of SSAO compositions drawn for the view in the frame (ADR-0115): 1 when the occlusion was multiplied into the scene, 0 otherwise.</summary>
+    public int SsaoPasses { get; set; }
+
     /// <summary>
     /// Static mesh items the scene depth pre-pass drew for the view in the frame (ADR-0115): equals <see cref="OpaqueItems"/> of the same
     /// flush when the pre-pass was active (the filter is the one of the opaque pass), 0 otherwise.
@@ -49,6 +52,7 @@ public class RenderStats
         LineCount = 0;
         RenderedThisFrame = false;
         FxaaPasses = 0;
+        SsaoPasses = 0;
         SceneDepthStaticDraws = 0;
         SceneDepthSkinnedDraws = 0;
         TotalCpuMilliseconds = 0.0;

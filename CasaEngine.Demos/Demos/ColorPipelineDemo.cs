@@ -71,6 +71,13 @@ namespace CasaEngine.Demos.Demos;
 /// measurement constants are <see cref="FxaaTextBorderRect"/>, <see cref="FxaaPanelBorderRect"/> and <see cref="FxaaEdgeSegment"/>; the
 /// demo writes the number of FXAA passes of each view at the moment of the capture.
 /// </para>
+/// <para>
+/// <c>CASAENGINE_COLOR_DEMO_SSAO=1</c> adds the measurement scene of the screen-space ambient occlusion (plan T3.3, ADR-0115): a wide
+/// wall seen face on along the bottom of the image (the floor), a cube standing against it and a glass sphere in front of the foot of
+/// the cube. It is independent of the other scene variables; <c>CASAENGINE_DEMO_SSAO=1</c> turns the SSAO on. Measurement constants:
+/// <see cref="SsaoFootPixel"/>, <see cref="SsaoTopPixel"/>, <see cref="SsaoFarFloorPixel"/>, <see cref="SsaoSkyPixel"/> and
+/// <see cref="SsaoGlassHollowPixel"/>. The demo writes the number of SSAO compositions of each view at the moment of the capture.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
@@ -78,6 +85,7 @@ public sealed class ColorPipelineDemo : Demo
     private const string BufferedVariable = "CASAENGINE_COLOR_DEMO_BUFFERED";
     private const string PbrVariable = "CASAENGINE_COLOR_DEMO_PBR";
     private const string GlassVariable = "CASAENGINE_COLOR_DEMO_GLASS";
+    private const string SsaoVariable = "CASAENGINE_COLOR_DEMO_SSAO";
     private const string IblVariable = "CASAENGINE_COLOR_DEMO_IBL";
     private const string IblForceBaseLevelVariable = "CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL";
     private const string IblChangeEnvironmentVariable = "CASAENGINE_COLOR_DEMO_IBL_CHANGE_ENVIRONMENT";
@@ -273,6 +281,39 @@ public sealed class ColorPipelineDemo : Demo
     private const int GlassCheckerRows = 6;
     private const int GlassCheckerCellSize = 8;
 
+    // ---- SSAO scene (CASAENGINE_COLOR_DEMO_SSAO=1, plan T3.3, ADR-0115; window coordinates, 1024 x 768) ----
+
+    // The floor is a wide wall seen face on, the cube stands against it, the glass sphere is in front of the foot of the cube.
+    private static readonly Vector3 SsaoFloorPosition = new(0.0f, -6.5f, -2.05f);
+    private const float SsaoFloorWidth = 40.0f;
+    private const float SsaoFloorHeight = 4.0f;
+    private static readonly Vector3 SsaoCubePosition = new(-5.0f, -6.4f, -1.0f);
+    private const float SsaoCubeSize = 2.0f;
+    private static readonly Vector3 SsaoGlassPosition = new(-2.8f, -6.9f, 1.2f);
+    private const float SsaoGlassDiameter = 2.0f;
+
+    // Measurement pixels of the SSAO scene. Measured in LinearHdr, AcesApprox, exposure 1, light intensity 1, with and without
+    // CASAENGINE_DEMO_SSAO=1 (radius 0.5, intensity 1, bias 0.02): the levels are the grey level of the pixel, off then on.
+
+    /// <summary>Floor just right of the cube's right face, at mid height, at the foot of the cube: 176 without SSAO, 153 with (23 levels darker).</summary>
+    public static readonly Point SsaoFootPixel = new(345, 650);
+
+    /// <summary>Floor just above the top edge of the cube: 176 without SSAO, 151 with (25 levels darker).</summary>
+    public static readonly Point SsaoTopPixel = new(285, 610);
+
+    /// <summary>Floor far from every object: 176 with and without SSAO.</summary>
+    public static readonly Point SsaoFarFloorPixel = new(800, 650);
+
+    /// <summary>Background (sky): 11 with and without SSAO.</summary>
+    public static readonly Point SsaoSkyPixel = new(600, 350);
+
+    /// <summary>
+    /// A pixel seen through the glass sphere, over the floor in the hollow beside the cube: 164 without SSAO, 143 with (21 levels
+    /// darker, as the floor it covers, 23 at <see cref="SsaoFootPixel"/>). The occlusion is multiplied into the whole scene target, so a
+    /// transparent surface in front of a hollow is darkened with what is behind it (a written limit, ADR-0115).
+    /// </summary>
+    public static readonly Point SsaoGlassHollowPixel = new(345, 690);
+
     private static readonly Vector2 TextBlockPosition = new(24.0f, 112.0f);
     private static readonly Vector2 SpriteWorldPosition = new(8.5f, 5.5f);
     private static readonly Color Grey128 = new(128, 128, 128);
@@ -414,6 +455,11 @@ public sealed class ColorPipelineDemo : Demo
         if (Environment.GetEnvironmentVariable(GlassVariable) == "1")
         {
             AddGlassScene(world, game.GraphicsDevice);
+        }
+
+        if (Environment.GetEnvironmentVariable(SsaoVariable) == "1")
+        {
+            AddSsaoScene(world, game.GraphicsDevice);
         }
 
         CreateBlockFont(game.GraphicsDevice);
@@ -714,6 +760,47 @@ public sealed class ColorPipelineDemo : Demo
             });
     }
 
+
+    /// <summary>
+    /// The SSAO scene (plan T3.3, ADR-0115): a wide wall facing the camera along the bottom of the image (the "floor" of the
+    /// measurement: a surface seen face on), a cube standing on it and a glass sphere (<see cref="LitPbrMaterial"/> in the transparent
+    /// queue) in front of the foot of the cube. The camera is the fixed one of the demo, so every pixel below is the same each run.
+    /// </summary>
+    private static void AddSsaoScene(World world, GraphicsDevice graphicsDevice)
+    {
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "SSAO floor",
+            new BoxPrimitive(SsaoFloorWidth, SsaoFloorHeight, 0.1f),
+            SsaoFloorPosition,
+            new LitDiffuseMaterial { Name = "SsaoFloor", DiffuseColor = new Color(170, 170, 170), SpecularColor = Vector3.Zero });
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "SSAO cube",
+            new BoxPrimitive(SsaoCubeSize, SsaoCubeSize, SsaoCubeSize),
+            SsaoCubePosition,
+            new LitDiffuseMaterial { Name = "SsaoCube", DiffuseColor = new Color(200, 110, 60), SpecularColor = Vector3.Zero });
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "SSAO glass sphere",
+            new SpherePrimitive(SsaoGlassDiameter, 32),
+            SsaoGlassPosition,
+            new LitPbrMaterial
+            {
+                Name = "SsaoGlass",
+                BaseColor = new Color(255, 255, 255, 64),
+                Metallic = 0.0f,
+                Roughness = 0.05f,
+                Queue = RenderQueue.Transparent,
+                BlendState = BlendState.AlphaBlend,
+                DepthStencilState = DepthStencilState.DepthRead,
+            });
+    }
     /// <summary>
     /// The procedural environment cubes (three, with the tints rotated, for the environment changes), the two metal spheres and the
     /// debug switch of the prefiltering.

@@ -126,6 +126,13 @@
 /processorParam:Defines=
 /build:Shaders/SceneDepth.fx
 
+#begin Shaders/Ssao.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/Ssao.fx
+
 #begin Shaders/IblConvolution.fx
 /importer:EffectImporter
 /processor:EffectProcessor
