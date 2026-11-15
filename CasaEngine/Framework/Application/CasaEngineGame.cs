@@ -962,6 +962,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             case BuiltInShaderCatalog.LitForwardContentName:
             case BuiltInShaderCatalog.UnlitTextureContentName:
+            case BuiltInShaderCatalog.LitPbrContentName:
             case BuiltInShaderCatalog.ShadowDepthContentName:
             case BuiltInShaderCatalog.SkyCubemapContentName:
                 if (MeshRendererComponent is not null

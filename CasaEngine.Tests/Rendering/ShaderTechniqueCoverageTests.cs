@@ -102,6 +102,10 @@ public class ShaderTechniqueCoverageTests
             LoadTechniqueNames("UnlitTexture.fx"),
             "UnlitTexture.fx");
         AssertAliasMapResolvesToExistingTechniques(
+            ShaderVariantLibrary.BuildLitPbrAliases(),
+            LoadTechniqueNames("LitPbr.fx"),
+            "LitPbr.fx");
+        AssertAliasMapResolvesToExistingTechniques(
             ShaderVariantLibrary.BuildSkinnedEffectAliases(),
             LoadTechniqueNames("skinEffect.fx"),
             "skinEffect.fx");
@@ -115,6 +119,7 @@ public class ShaderTechniqueCoverageTests
             (Name: "LitForward.fx", Aliases: ShaderVariantLibrary.BuildLitForwardAliases()),
             (Name: "UnlitTexture.fx", Aliases: ShaderVariantLibrary.BuildUnlitTextureAliases()),
             (Name: "skinEffect.fx", Aliases: ShaderVariantLibrary.BuildSkinnedEffectAliases()),
+            (Name: "LitPbr.fx", Aliases: ShaderVariantLibrary.BuildLitPbrAliases()),
         };
 
         foreach (var features in EnumerateCanonicalFeatureSets())
@@ -129,6 +134,39 @@ public class ShaderTechniqueCoverageTests
                     $"Alias map for '{aliasMap.Name}' does not define canonical technique '{canonicalTechnique}' for features '{features}'.");
             }
         }
+    }
+
+    [Fact]
+    public void LitPbrAliases_SendTheAlphaTestCanonicalNamesToTheAlphaTestTechniqueAndTheOthersToTheOpaqueOne()
+    {
+        var aliases = ShaderVariantLibrary.BuildLitPbrAliases();
+        var techniques = LoadTechniqueNames("LitPbr.fx");
+
+        foreach (var features in EnumerateCanonicalFeatureSets())
+        {
+            string canonical = ShaderVariantLibrary.BuildTechniqueName(features)!;
+            bool alphaTest = canonical.StartsWith("AlphaTest", StringComparison.Ordinal);
+            string expected = alphaTest ? "LitPbr_AlphaTest" : "LitPbr";
+
+            Assert.True(aliases.TryGetValue(canonical, out var actual), $"No LitPbr alias for '{canonical}'.");
+            Assert.Equal(expected, actual);
+            Assert.Contains(actual!, techniques);
+        }
+
+        // The normal map techniques are chosen by the material, never by a canonical name.
+        Assert.DoesNotContain("LitPbr_NormalMap", aliases.Values);
+        Assert.DoesNotContain("LitPbr_NormalMap_AlphaTest", aliases.Values);
+        Assert.Contains("LitPbr_NormalMap", techniques);
+        Assert.Contains("LitPbr_NormalMap_AlphaTest", techniques);
+
+        // The same lookup the variant library performs for a draw item: the canonical name of AlphaTest | BasColorTexture,
+        // then the alias table of the LitPbr shader.
+        string canonicalName = ShaderVariantLibrary.BuildTechniqueName(ShaderFeature.AlphaTest | ShaderFeature.BasColorTexture)!;
+        Assert.Equal("AlphaTest_Textured", canonicalName);
+        Assert.Equal("LitPbr_AlphaTest", aliases[canonicalName]);
+
+        // The legacy tables are untouched: LitForward still maps the same name to its own technique.
+        Assert.Equal("LitForward_PixelLighting_Texture", ShaderVariantLibrary.BuildLitForwardAliases()[canonicalName]);
     }
 
     private static IEnumerable<ShaderFeature> EnumerateCanonicalFeatureSets()

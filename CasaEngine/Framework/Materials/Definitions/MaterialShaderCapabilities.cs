@@ -5,6 +5,9 @@ public enum MaterialShaderFamily
     Unknown,
     Lit,
     Unlit,
+
+    /// <summary>The static-mesh PBR shader (LitPbr.fx). A skinned draw keeps the skinning shader until phase 8 of the PBR plan.</summary>
+    LitPbr,
 }
 
 public readonly struct MaterialShaderCapabilities

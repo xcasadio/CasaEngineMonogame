@@ -137,4 +137,86 @@ public class EffectiveShaderResolverTests
         Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardShaderId, resolved.ShaderId);
         Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardContentName, resolved.ContentName);
     }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void Resolve_MapsTheLitPbrFamilyToTheLitPbrShader(bool hasBasColorTexture, bool isAlphaTest)
+    {
+        var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(
+            MaterialShaderFamily.LitPbr,
+            hasBasColorTexture: hasBasColorTexture,
+            isAlphaTest: isAlphaTest));
+
+        var resolved = EffectiveShaderResolver.Resolve(material);
+
+        Assert.Equal(EffectiveShaderResolver.LitPbrShaderId, resolved.ShaderId);
+        Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.LitPbrContentName, resolved.ContentName);
+        Assert.Equal("Shaders\\LitPbr", resolved.ContentName);
+    }
+
+    [Fact]
+    public void Resolve_LitPbrFamilyWinsOverTheReflectionCapabilityOfTheLitFamily()
+    {
+        var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(
+            MaterialShaderFamily.LitPbr,
+            hasReflection: true));
+
+        var resolved = EffectiveShaderResolver.Resolve(material);
+
+        Assert.Equal(EffectiveShaderResolver.LitPbrShaderId, resolved.ShaderId);
+    }
+
+    [Fact]
+    public void Resolve_KeepsTheLitFamilyOnLitForward_AndTheLitPbrIdsApart()
+    {
+        var lit = new CustomCapabilityMaterial(new MaterialShaderCapabilities(MaterialShaderFamily.Lit, hasBasColorTexture: true));
+
+        var resolved = EffectiveShaderResolver.Resolve(lit);
+
+        Assert.Equal(EffectiveShaderResolver.LitForwardShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.LitForwardContentName, resolved.ContentName);
+        Assert.NotEqual(EffectiveShaderResolver.LitForwardShaderId, EffectiveShaderResolver.LitPbrShaderId);
+        Assert.NotEqual(EffectiveShaderResolver.ReflectiveLitForwardShaderId, EffectiveShaderResolver.LitPbrShaderId);
+        Assert.NotEqual(EffectiveShaderResolver.UnlitTextureShaderId, EffectiveShaderResolver.LitPbrShaderId);
+        Assert.NotEqual(EffectiveShaderResolver.SkinnedEffectShaderId, EffectiveShaderResolver.LitPbrShaderId);
+        Assert.NotEqual(EffectiveShaderResolver.DualQuaternionSkinnedEffectShaderId, EffectiveShaderResolver.LitPbrShaderId);
+
+        // A built-in material that has no capability family of its own still resolves to LitForward.
+        Assert.Equal(EffectiveShaderResolver.LitForwardShaderId, EffectiveShaderResolver.Resolve(new LitDiffuseMaterial()).ShaderId);
+    }
+
+    [Fact]
+    public void Resolve_KeepsTheSkinningShaderForALitPbrFamilyMaterialOnASkinnedMesh()
+    {
+        // Until phase 8 of the PBR plan a PBR material drawn on a skinned mesh keeps the skinning shader.
+        var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(MaterialShaderFamily.LitPbr));
+
+        var resolved = EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned);
+
+        Assert.Equal(EffectiveShaderResolver.SkinnedEffectShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.SkinnedEffectContentName, resolved.ContentName);
+    }
+
+    [Fact]
+    public void BuiltInShaderCatalog_ListsLitPbrByContentNameAndSourcePath()
+    {
+        Assert.Equal(EffectiveShaderResolver.LitPbrContentName, BuiltInShaderCatalog.LitPbrContentName);
+
+        Assert.True(BuiltInShaderCatalog.TryGetByContentName("Shaders\\LitPbr", out var byContentName));
+        Assert.Equal("Shaders/LitPbr.fx", byContentName.SourceRelativePath);
+        Assert.True(BuiltInShaderCatalog.TryGetByContentName("Shaders/LitPbr", out var byAltContentName));
+        Assert.Equal(byContentName, byAltContentName);
+        Assert.True(BuiltInShaderCatalog.TryGetBySourceRelativePath("Shaders/LitPbr.fx", out var bySource));
+        Assert.Equal(byContentName, bySource);
+        Assert.Contains(byContentName, BuiltInShaderCatalog.RuntimeShaders);
+
+        // The other built-in shaders are still listed once each.
+        Assert.True(BuiltInShaderCatalog.TryGetByContentName(BuiltInShaderCatalog.LitForwardContentName, out _));
+        Assert.Equal(
+            BuiltInShaderCatalog.RuntimeShaders.Count,
+            BuiltInShaderCatalog.RuntimeShaders.Select(shader => shader.ContentName).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
 }

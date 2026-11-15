@@ -35,6 +35,7 @@ public static class EffectiveShaderResolver
 {
     public static readonly Guid LitForwardShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
+    public static readonly Guid LitPbrShaderId = Guid.Parse("30bbfb09-d48d-4728-9dc0-9d6800643a9d");
     public static readonly Guid ReflectiveLitForwardShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
     public static readonly Guid LinearBlendSkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
     public static readonly Guid DualQuaternionSkinnedEffectShaderId = Guid.Parse("aa34bc72-1b22-4680-aa56-31c7d0aaf1a7");
@@ -42,6 +43,7 @@ public static class EffectiveShaderResolver
 
     public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
+    public const string LitPbrContentName = "Shaders\\LitPbr";
     public const string ReflectiveLitForwardContentName = LitForwardContentName;
     public const string LinearBlendSkinnedEffectContentName = "Shaders\\skinEffect";
     public const string DualQuaternionSkinnedEffectContentName = LinearBlendSkinnedEffectContentName;
@@ -80,6 +82,7 @@ public static class EffectiveShaderResolver
         return capabilities.ShaderFamily switch
         {
             MaterialShaderFamily.Unlit => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
+            MaterialShaderFamily.LitPbr => new EffectiveShaderReference(LitPbrShaderId, LitPbrContentName),
             MaterialShaderFamily.Lit when capabilities.HasReflection
                 => new EffectiveShaderReference(ReflectiveLitForwardShaderId, ReflectiveLitForwardContentName),
             MaterialShaderFamily.Lit => new EffectiveShaderReference(LitForwardShaderId, LitForwardContentName),

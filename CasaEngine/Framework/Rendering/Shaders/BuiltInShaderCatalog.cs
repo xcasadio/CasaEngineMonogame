@@ -8,6 +8,7 @@ public static class BuiltInShaderCatalog
 {
     public const string LitForwardContentName = EffectiveShaderResolver.LitForwardContentName;
     public const string UnlitTextureContentName = EffectiveShaderResolver.UnlitTextureContentName;
+    public const string LitPbrContentName = EffectiveShaderResolver.LitPbrContentName;
     public const string SkinEffectContentName = EffectiveShaderResolver.LinearBlendSkinnedEffectContentName;
     public const string ShadowDepthContentName = "Shaders\\ShadowDepth";
     public const string SkyCubemapContentName = "Shaders\\SkyCubemap";
@@ -24,6 +25,7 @@ public static class BuiltInShaderCatalog
     [
         new("Shaders/LitForward.fx", LitForwardContentName),
         new("Shaders/UnlitTexture.fx", UnlitTextureContentName),
+        new("Shaders/LitPbr.fx", LitPbrContentName),
         new("Shaders/skinEffect.fx", SkinEffectContentName),
         new("Shaders/ShadowDepth.fx", ShadowDepthContentName),
         new("Shaders/SkyCubemap.fx", SkyCubemapContentName),
