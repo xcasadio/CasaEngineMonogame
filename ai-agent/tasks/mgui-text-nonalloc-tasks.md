@@ -286,11 +286,23 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   devant un `[` ; `[/u]` sans ouverture donne un soulignement désactivé de hauteur 0 ; le soulignement par défaut
   applique l'opacité deux fois ; `[shadow=Red 1,2]` retombe sur le décalage (1,1).
 
-### 🚧 T4.1 — Documentation et clôture
+### ✅ T4.1 — Documentation et clôture
 
 - Fin : `MGUI/docs` (texte) et `docs/engine` du moteur disent quand utiliser `SetText(ReadOnlySpan<char>)` ; ADR de
   MGUI indexé ; `verifier` frais sur le chantier ; les deux solutions et `CasaEngine.Tests` verts.
 - Commit : `docs(text): document the allocation-free text path`
+- **Fait le 2026-11-15** (MGUI `06b5c965`). Section « Texte sans allocation (MGTextBlock) » de
+  `MGUI/Docs/text-architecture.md` (usage, ce qui est à zéro, limites) ; section « Allocation-free text » de
+  `docs/engine/casaengine-mgui-backend.md`, signalée dans `docs/README.md` ; ADR-0026 de MGUI indexé depuis T1.1.
+  Vérification de clôture : celle de T2.1 à T3.1 ci-dessus (CONFIRMED sur MGUI `1080e587` ; seule la documentation a
+  changé depuis).
+- Validation sur MGUI `06b5c965` : `MGUI.Tests` 3543 verts (sur `1080e587`), `CasaEngine.Tests` 5455 verts, aucun
+  sauté ; `MGUI.sln`, `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` : 0 erreur.
+- Suites possibles, hors de ce plan : faire passer par le chemin sans allocation le bloc sans balise souligné ou avec
+  fond ; `TextCharactersPerSecond` sans `TextRevealRun` par changement ; le reste de l'image du bureau (plan du
+  bureau).
+- Le plan reste dans `tasks/` jusqu'à l'acceptation de l'auteur ; la branche `chantier/mgui-nonalloc` (moteur et
+  MGUI) n'est ni poussée ni fusionnée.
 
 ## Points ouverts
 
