@@ -363,38 +363,58 @@ public static class EditorAssetImportService
     private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)
     {
         var riggedModelReader = new GltfRiggedModelReader(null, null);
-        if (!riggedModelReader.IsFileSupported(sourceFilePath) && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
+        bool requiresConversion = !riggedModelReader.IsFileSupported(sourceFilePath);
+        if (requiresConversion && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
         {
             return false;
         }
 
-        RiggedModel riggedModel;
-
+        string? temporaryGlbPath = requiresConversion ? CreateTemporaryGlbPath() : null;
         try
         {
-            riggedModel = ReadRiggedModelWithConversion(riggedModelReader, sourceFilePath);
-        }
-        catch (Exception exception)
-        {
-            // Not every model can be read as a rig: the caller then imports it as a static model.
-            Logs.WriteWarning($"Model '{sourceFilePath}' could not be read as a rigged model, importing it as a static model: {exception.Message}");
-            return false;
-        }
+            RiggedModel riggedModel;
 
-        if (riggedModel == null)
-        {
-            return false;
-        }
+            try
+            {
+                if (temporaryGlbPath == null)
+                {
+                    riggedModel = riggedModelReader.LoadAsset(sourceFilePath);
+                }
+                else
+                {
+                    AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
+                    riggedModel = riggedModelReader.LoadAsset(temporaryGlbPath);
+                }
+            }
+            catch (Exception exception)
+            {
+                // Not every model can be read as a rig: the caller then imports it as a static model.
+                Logs.WriteWarning($"Model '{sourceFilePath}' could not be read as a rigged model, importing it as a static model: {exception.Message}");
+                return false;
+            }
 
-        bool hasRealBones = riggedModel.NumberOfBonesInUse > 1;
-        bool hasAnimations = riggedModel.AnimationClips.Count > 0 || riggedModel.OriginalAnimations.Count > 0;
-        if (!hasRealBones && !hasAnimations)
-        {
-            return false;
-        }
+            if (riggedModel == null)
+            {
+                return false;
+            }
 
-        ImportSeparatedAnimationAssets(destinationFilePath, riggedModel);
-        return true;
+            bool hasRealBones = riggedModel.NumberOfBonesInUse > 1;
+            bool hasAnimations = riggedModel.AnimationClips.Count > 0 || riggedModel.OriginalAnimations.Count > 0;
+            if (!hasRealBones && !hasAnimations)
+            {
+                return false;
+            }
+
+            ImportSeparatedAnimationAssets(destinationFilePath, riggedModel, temporaryGlbPath);
+            return true;
+        }
+        finally
+        {
+            if (temporaryGlbPath != null)
+            {
+                TryDeleteFile(temporaryGlbPath);
+            }
+        }
     }
 
     /// <summary>
@@ -415,28 +435,6 @@ public static class EditorAssetImportService
         {
             AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
             return reader.ReadWithMetadata(temporaryGlbPath, legacyMaterialImportProfile);
-        }
-        finally
-        {
-            TryDeleteFile(temporaryGlbPath);
-        }
-    }
-
-    /// <summary>
-    /// Reads a rigged model, converting non-glTF sources to a temporary <c>.glb</c> first.
-    /// </summary>
-    private static RiggedModel ReadRiggedModelWithConversion(GltfRiggedModelReader reader, string sourceFilePath)
-    {
-        if (reader.IsFileSupported(sourceFilePath))
-        {
-            return reader.LoadAsset(sourceFilePath);
-        }
-
-        string temporaryGlbPath = CreateTemporaryGlbPath();
-        try
-        {
-            AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
-            return reader.LoadAsset(temporaryGlbPath);
         }
         finally
         {
@@ -466,14 +464,29 @@ public static class EditorAssetImportService
         }
     }
 
-    private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel)
+    /// <summary>
+    /// Writes the skeleton, animation clip and skinned mesh assets of <paramref name="riggedModel"/> next to
+    /// <paramref name="destinationFilePath"/>. The runtime reads the geometry as glTF only: when the source was
+    /// converted, <paramref name="convertedGlbPath"/> is kept next to the source as <c>&lt;name&gt;.glb</c>, registered
+    /// in the catalog, and becomes the geometry of the skinned mesh; otherwise the source itself is the geometry.
+    /// </summary>
+    private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel, string? convertedGlbPath)
     {
         ArgumentNullException.ThrowIfNull(riggedModel);
 
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
-        string rawAssetRelativePath = GetRelativeProjectPath(destinationFilePath);
-        var rawAssetInfo = AssetCatalog.GetByFileName(rawAssetRelativePath)
-            ?? EnsureAssetInfo(rawAssetRelativePath, modelBaseName);
+        string geometryFullPath = destinationFilePath;
+        if (convertedGlbPath != null)
+        {
+            geometryFullPath = Path.ChangeExtension(destinationFilePath, ".glb");
+            Directory.CreateDirectory(Path.GetDirectoryName(geometryFullPath)!);
+            File.Copy(convertedGlbPath, geometryFullPath, overwrite: true);
+            EnsureFileAssetRegistered(geometryFullPath);
+        }
+
+        string geometryRelativePath = GetRelativeProjectPath(geometryFullPath);
+        var geometryAssetInfo = AssetCatalog.GetByFileName(geometryRelativePath)
+            ?? EnsureAssetInfo(geometryRelativePath, modelBaseName);
 
         Guid skeletonAssetId = Guid.Empty;
         string animationDirectory = Path.GetDirectoryName(destinationFilePath)!;
@@ -533,7 +546,7 @@ public static class EditorAssetImportService
             Name = modelAssetInfo.Name,
             FileName = modelRelativePath,
             SkeletonAssetId = skeletonAssetId,
-            GeometryAssetId = rawAssetInfo.Id,
+            GeometryAssetId = geometryAssetInfo.Id,
             DefaultAnimationClipAssetId = clipAssetIds.Count > 0 ? clipAssetIds[0] : Guid.Empty,
         };
 
