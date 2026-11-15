@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -373,8 +374,10 @@ public static class EditorAssetImportService
         {
             riggedModel = ReadRiggedModelWithConversion(riggedModelReader, sourceFilePath);
         }
-        catch
+        catch (Exception exception)
         {
+            // Not every model can be read as a rig: the caller then imports it as a static model.
+            Logs.WriteWarning($"Model '{sourceFilePath}' could not be read as a rigged model, importing it as a static model: {exception.Message}");
             return false;
         }
 

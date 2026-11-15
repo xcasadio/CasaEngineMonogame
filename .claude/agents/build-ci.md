@@ -1,7 +1,7 @@
 ---
 name: build-ci
 description: Agent build et CI. Assure le build des solutions, la configuration éditeur et jeu, le pipeline de contenu, les tests ; améliore les scripts et leur robustesse.
-tools: Read, Glob, Grep, Edit, Write, Bash
+tools: Read, Glob, Grep, Edit, Write, Bash, mcp__serena__*, mcp__codegraph__*
 model: sonnet
 ---
 

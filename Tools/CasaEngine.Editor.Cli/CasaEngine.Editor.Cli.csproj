@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ADR-0092: casa-editor, the command line that drives a running editor started with remote control. -->
+  <PropertyGroup>
+    <TargetFramework>$(BaseTargetFramework)</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>casa-editor</AssemblyName>
+    <RootNamespace>CasaEngine.Editor.Cli</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CasaEngine.Editor.Remote.Protocol\CasaEngine.Editor.Remote.Protocol.csproj" />
+  </ItemGroup>
+</Project>

@@ -4,7 +4,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// Text coverage of the colour decoding in the shaders (ADR-0097): the constant exists everywhere a display colour is read,
+/// Text coverage of the colour decoding in the shaders (ADR-0102): the constant exists everywhere a display colour is read,
 /// the decoding wraps the right values and never the normal map, the shadow map or the detail sample alone.
 /// </summary>
 public class ColorPipelineShaderCoverageTests

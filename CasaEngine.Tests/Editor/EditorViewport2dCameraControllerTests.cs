@@ -138,6 +138,58 @@ public sealed class EditorViewport2dCameraControllerTests
         Assert.NotEqual(0f, controller.Target.X);
     }
 
+    /// <summary>ADR-0091: the default preferences keep the previous 2D behaviour.</summary>
+    [Fact]
+    public void DefaultPreferences_KeepThePreviousBehaviour()
+    {
+        var controller = new EditorViewport2dCameraController();
+        controller.ApplyPreferences(new Camera2dPreferences());
+        controller.SetState(Vector3.Zero, 1);
+
+        controller.Pan(10, 6);
+
+        Assert.Equal(-5f, controller.Target.X, 5);
+        Assert.Equal(3f, controller.Target.Y, 5);
+    }
+
+    /// <summary>ADR-0091: pan speed scales the drag and invert Y flips its vertical part.</summary>
+    [Fact]
+    public void Preferences_ScaleAndInvertThePan()
+    {
+        var controller = new EditorViewport2dCameraController();
+        controller.ApplyPreferences(new Camera2dPreferences { PanSpeed = 2f, InvertY = true });
+        controller.SetState(Vector3.Zero, 1);
+
+        controller.Pan(10, 6);
+
+        Assert.Equal(-10f, controller.Target.X, 5);
+        Assert.Equal(-6f, controller.Target.Y, 5);
+    }
+
+    /// <summary>ADR-0091: one wheel notch applies several zoom steps, still clamped to the step range.</summary>
+    [Fact]
+    public void Preferences_ZoomStepsPerNotch_MultiplyTheWheel()
+    {
+        var controller = new EditorViewport2dCameraController();
+        controller.ApplyPreferences(new Camera2dPreferences { ZoomStepsPerNotch = 3 });
+        var camera = controller.CreateCameraComponent();
+        var bounds = new Rectangle(0, 0, 640, 480);
+        var mouseState = CreateMouseState(320, 240, ButtonState.Released);
+
+        controller.Update(
+            CreateGameTime(),
+            camera,
+            CreateContext(mouseState, bounds, new Point(320, 240), verticalWheelDelta: 120),
+            receivesInput: true,
+            isKeyboardFocused: false,
+            allowFreeCameraMovement: true,
+            canHandleKeyboardInput: false,
+            activateView: _ => { },
+            releaseInput: () => { });
+
+        Assert.Equal(3, controller.ZoomStep);
+    }
+
     [Fact]
     public void CaptureState_RoundTripsThroughRestoreState()
     {

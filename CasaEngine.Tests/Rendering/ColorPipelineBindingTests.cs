@@ -7,7 +7,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// CPU-side decoding of the linear colour pipeline (ADR-0097): lights are decoded BEFORE their intensity, the ambient is
+/// CPU-side decoding of the linear colour pipeline (ADR-0102): lights are decoded BEFORE their intensity, the ambient is
 /// Decode(AmbientColor) x AmbientIntensity, and the legacy values are exactly the ones bound before the pipeline existed.
 /// </summary>
 public class ColorPipelineBindingTests
@@ -97,7 +97,7 @@ public class ColorPipelineBindingTests
         Assert.False(environment.LinearColorActive);
         Assert.Equal(new Vector3(0.5f, 0.25f, 0.125f) * 2.0f, environment.EffectiveAmbientColor);
 
-        // Mode alone does not decode: only a view that really draws through the HDR target does (ADR-0097).
+        // Mode alone does not decode: only a view that really draws through the HDR target does (ADR-0102).
         var asked = environment with { ColorPipelineMode = ColorPipelineMode.LinearHdr };
         Assert.Equal(new Vector3(0.5f, 0.25f, 0.125f) * 2.0f, asked.EffectiveAmbientColor);
     }

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
-/// The eviction rule of the HDR scene targets (ADR-0096) and of the bloom targets (ADR-0099): a target key (width, height,
+/// The eviction rule of the HDR scene targets (ADR-0101) and of the bloom targets (ADR-0104): a target key (width, height,
 /// surface format, depth format) is released once no view has rendered with it for
 /// more than <see cref="MaxIdleRenders"/> renders. The rule itself is pure, so it is tested without a GPU.
 /// </summary>

@@ -50,6 +50,10 @@ IReadOnlyList<SaveGameSlotInfo> slots = saves.ListSlots(); // name, format, vers
 saves.Delete("slot1");
 ```
 
+`GameSettings.SaveGames` writes in the per-user folder. A game or a tool that wants another folder builds its
+own service: `new SaveGameService(folderPath)`; nothing is created on disk until the first save. The
+"Save game demo" of `CasaEngine.Demos` does so, with a `SaveGames` folder beside the executable.
+
 - `Value` exists for `bool`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `float`, `string`, and for
   fixed-length arrays of `byte`, `short`, `ushort`, `int`, `uint` and `long`. `BeginObject` / `EndObject`
   nest fields (at most `SaveGameArchive.MaxObjectDepth`, 32 levels).

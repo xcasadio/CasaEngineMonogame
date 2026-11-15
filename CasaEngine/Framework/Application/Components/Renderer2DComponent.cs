@@ -113,7 +113,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
     }
 
     /// <summary>
-    /// Linear HDR colour pipeline (ADR-0098): the sprites, texts and lines are flushed on the tonemapped destination, where
+    /// Linear HDR colour pipeline (ADR-0103): the sprites, texts and lines are flushed on the tonemapped destination, where
     /// the depth of the scene is not available, so nothing is tested against depth.
     /// </summary>
     public void FlushPostTonemap(in RenderFrame frame, RenderStats stats = null)

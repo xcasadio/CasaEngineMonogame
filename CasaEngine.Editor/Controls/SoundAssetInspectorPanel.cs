@@ -335,6 +335,30 @@ public sealed class SoundAssetInspectorPanel : IDisposable
         return _editorRuntime?.AudioSystemComponent?.Service;
     }
 
+    /// <summary>
+    /// Applies an already validated change to the loaded sound the way an inspector field does: no history, the panel
+    /// marked dirty, the fields rebuilt (remote control, ADR-0093). False when no sound is loaded.
+    /// </summary>
+    internal bool ApplyChange(Action<SoundAsset> change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        if (_soundAsset == null)
+        {
+            return false;
+        }
+
+        Guid audioFile = _soundAsset.AudioFileAssetId;
+        change(_soundAsset);
+        SetDirty(true);
+        if (_soundAsset.AudioFileAssetId != audioFile)
+        {
+            RecomputeWaveform();
+        }
+
+        RefreshInspector();
+        return true;
+    }
+
     /// <summary>Appends an empty variation file entry to the asset and rebuilds the inspector.</summary>
     internal void AddVariationFile()
     {

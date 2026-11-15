@@ -117,6 +117,32 @@ public class MainMenuScreenTests
         Assert.True(menu.Control<MGButton>("btnLaunch").IsEnabled);
     }
 
+    [Fact]
+    public void TheSheet_ShowsControlsHighlightsAndDocumentation_AndCollapsesWhatADemoLeavesEmpty()
+    {
+        var entries = new MainMenuScreen.Entry[]
+        {
+            new("Full", "Everything.", "Rendering", "Space / A: jump", "- the box lands", "docs/engine/full.md"),
+            new("Bare", "Nothing more.", "Rendering"),
+        };
+
+        var menu = Open(0, entries);
+
+        Assert.Equal(Visibility.Visible, menu.Control<MGTextBlock>("lblControlsHeader").Visibility);
+        Assert.Equal("Space / A: jump", menu.Control<MGTextBlock>("lblControls").Text);
+        Assert.Equal(Visibility.Visible, menu.Control<MGTextBlock>("lblHighlightsHeader").Visibility);
+        Assert.Equal("- the box lands", menu.Control<MGTextBlock>("lblHighlights").Text);
+        Assert.Equal("Documentation: docs/engine/full.md", menu.Control<MGTextBlock>("lblDocumentation").Text);
+
+        menu.Tree.SelectItem(DemoItem(menu, "Rendering", "Bare"));
+
+        Assert.Equal(Visibility.Collapsed, menu.Control<MGTextBlock>("lblControlsHeader").Visibility);
+        Assert.Equal(Visibility.Collapsed, menu.Control<MGTextBlock>("lblControls").Visibility);
+        Assert.Equal(Visibility.Collapsed, menu.Control<MGTextBlock>("lblHighlightsHeader").Visibility);
+        Assert.Equal(Visibility.Collapsed, menu.Control<MGTextBlock>("lblHighlights").Visibility);
+        Assert.Equal(Visibility.Collapsed, menu.Control<MGTextBlock>("lblDocumentation").Visibility);
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(4)]

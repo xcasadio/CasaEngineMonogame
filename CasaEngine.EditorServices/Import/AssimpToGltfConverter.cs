@@ -1,4 +1,5 @@
 using Assimp;
+using CasaEngine.Core.Logging;
 using SharpGLTF.Schema2;
 using SharpGLTF.Validation;
 
@@ -91,11 +92,18 @@ public static class AssimpToGltfConverter
         // source directory) so the final glb is fully self-contained. Validation is skipped
         // because Assimp's exporter emits inverse-bind matrices that fail strict glTF validation
         // yet are correct for linear-blend skinning.
-        var readContext = ReadContext.Create(assetName => ResolveAsset(assetName, sourceDirectory));
+        var missingTextureNames = new List<string>();
+        var readContext = ReadContext.Create(assetName => ResolveAsset(assetName, sourceDirectory, missingTextureNames));
         readContext.Validation = ValidationMode.Skip;
         using var intermediateStream = new MemoryStream(intermediateGlb.Data, writable: false);
         var model = readContext.ReadBinarySchema2(intermediateStream);
         model.SaveGLB(destinationGlbPath, new WriteSettings { Validation = ValidationMode.Skip });
+
+        for (int i = 0; i < missingTextureNames.Count; i++)
+        {
+            Logs.WriteWarning($"Model '{sourceFilePath}': texture '{missingTextureNames[i]}' was not found; a white placeholder was embedded in its place.");
+        }
+
         return destinationGlbPath;
     }
 
@@ -118,7 +126,12 @@ public static class AssimpToGltfConverter
         return Convert(sourceFilePath, destinationGlbPath);
     }
 
-    private static ArraySegment<byte> ResolveAsset(string assetName, string sourceDirectory)
+    // A 1x1 white PNG, embedded in place of a texture file that cannot be found: the glb cannot be
+    // written with an image that has no content, and a missing texture must not lose the model.
+    private static readonly byte[] MissingTexturePlaceholder = System.Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+    private static ArraySegment<byte> ResolveAsset(string assetName, string sourceDirectory, List<string> missingTextureNames)
     {
         // External textures referenced by an absolute path, as DCC tools often write them.
         if (Path.IsPathRooted(assetName) && File.Exists(assetName))
@@ -137,6 +150,12 @@ public static class AssimpToGltfConverter
             }
         }
 
-        return new ArraySegment<byte>(Array.Empty<byte>());
+        if (Path.GetExtension(assetName).Equals(".bin", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ArraySegment<byte>(Array.Empty<byte>());
+        }
+
+        missingTextureNames.Add(assetName);
+        return new ArraySegment<byte>(MissingTexturePlaceholder);
     }
 }

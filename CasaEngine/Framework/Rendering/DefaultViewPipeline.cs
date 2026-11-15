@@ -46,7 +46,7 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPi
     /// Steps 1 and 2 of <see cref="RenderView"/>: the world draw and the renderer flushes, without the UI phase
     /// (<see cref="IScenePhaseViewPipeline"/>). In a view that really draws through the HDR target the renderers that are
     /// <see cref="IPostTonemapRenderer"/> are not flushed here: <see cref="RenderPipeline"/> flushes them after the tonemapping
-    /// (ADR-0098). Without that colour pipeline every renderer is flushed, in the order of the legacy pipeline.
+    /// (ADR-0103). Without that colour pipeline every renderer is flushed, in the order of the legacy pipeline.
     /// </summary>
     public void RenderScene(
         GraphicsDevice                        graphicsDevice,

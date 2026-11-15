@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.PostProcess;
 
 /// <summary>
-/// Bloom of the HDR scene target of a view, applied before the tonemapping (ADR-0099). From the scene target: a bright pass
+/// Bloom of the HDR scene target of a view, applied before the tonemapping (ADR-0104). From the scene target: a bright pass
 /// to half size, two downsamples (quarter and eighth size), a separable blur of each level through a partner target of the
 /// same size, then the three blurred levels are added back to the scene target. Every pass is a <see cref="SpriteBatch"/>
 /// draw of a texture with <c>Bloom.fx</c>.

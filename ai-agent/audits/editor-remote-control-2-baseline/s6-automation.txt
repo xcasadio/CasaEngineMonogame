@@ -1,0 +1,2 @@
+[Info] [Automation] Opened asset='Screens/main-menu.uiscreen'
+[Info] [Automation] Updated screen property 'btnPlay.Content' from 'Play' to 'Start'

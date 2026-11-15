@@ -3,7 +3,7 @@
 float4x4 InverseViewProjection;
 float3 EyePosition;
 
-// 1 when the view renders in the linear colour pipeline (ADR-0097); EnvironmentCubeIsLinear is 1 for a cube built from a .hdr
+// 1 when the view renders in the linear colour pipeline (ADR-0102); EnvironmentCubeIsLinear is 1 for a cube built from a .hdr
 // panorama, which already holds linear light and is not decoded.
 float ColorPipelineIsLinear = 0.0f;
 float EnvironmentCubeIsLinear = 0.0f;

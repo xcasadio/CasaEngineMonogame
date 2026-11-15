@@ -40,11 +40,11 @@ public sealed class RenderPipeline
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
 
-    // Tonemapping shader of the linear HDR colour pipeline (ADR-0096). Loaded by the game once its content root is set;
+    // Tonemapping shader of the linear HDR colour pipeline (ADR-0101). Loaded by the game once its content root is set;
     // null until then (the editor, tests), which only matters for a view in LinearHdr.
     private ShaderWrapper _tonemapShader;
 
-    // Bloom shader (ADR-0099), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
+    // Bloom shader (ADR-0104), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
     private ShaderWrapper _bloomShader;
 
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
@@ -154,7 +154,7 @@ public sealed class RenderPipeline
 
     /// <summary>
     /// Gives the pipeline the compiled <c>Bloom</c> effect (<see cref="BuiltInShaderCatalog.BloomContentName"/>) used by the
-    /// bloom of a view that asks for it (ADR-0099). Called once by the game after its content root is set.
+    /// bloom of a view that asks for it (ADR-0104). Called once by the game after its content root is set.
     /// </summary>
     public void SetBloomEffect(Effect effect)
     {
@@ -322,7 +322,7 @@ public sealed class RenderPipeline
             {
                 // The resolved value is cached per view and says only what the world asks for. The view really draws through the
                 // HDR target in this frame only when the planner said so: that is what lets the binders decode display colours
-                // (ADR-0097). Everything built from this copy (lights, frame, binders) sees the same decision.
+                // (ADR-0102). Everything built from this copy (lights, frame, binders) sees the same decision.
                 resolvedEnvironment = resolvedEnvironment with { LinearColorActive = true };
             }
 
@@ -511,7 +511,7 @@ public sealed class RenderPipeline
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }
 
-    // ---- Linear HDR colour pipeline (ADR-0096) ----
+    // ---- Linear HDR colour pipeline (ADR-0101) ----
 
     private bool HasTonemapShader()
     {
@@ -657,7 +657,7 @@ public sealed class RenderPipeline
     }
 
     /// <summary>
-    /// Adds the bloom of the view to its HDR scene target (ADR-0099), after the scene and before the tonemapping, so the
+    /// Adds the bloom of the view to its HDR scene target (ADR-0104), after the scene and before the tonemapping, so the
     /// interface composed afterwards is never touched. Skipped, with one warning, when the bloom shader is not loaded.
     /// </summary>
     private void ApplyBloom(RenderTarget2D hdrTarget, in RenderFrame frame)
@@ -685,7 +685,7 @@ public sealed class RenderPipeline
 
     /// <summary>
     /// Flushes the renderers that draw display-ready colours (<see cref="IPostTonemapRenderer"/>, the screen sprites and text)
-    /// on the tonemapped destination, before the interface (ADR-0098). The depth of the scene lives in the HDR target, so the
+    /// on the tonemapped destination, before the interface (ADR-0103). The depth of the scene lives in the HDR target, so the
     /// depth test is off for these flushes.
     /// </summary>
     private void FlushPostTonemapRenderers(RenderView view, in RenderFrame frame)

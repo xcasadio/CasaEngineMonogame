@@ -32,7 +32,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [lit-detail-texture.md](engine/lit-detail-texture.md) — texture de détail de `LitDiffuseMaterial` (`DetailTexture`, `DetailTiling`, formule `base * 2 * détail`, limites).
 - [shadow-settings.md](engine/shadow-settings.md) — réglages d'ombre directionnelle du monde (`ShadowSettings` : mode `OccludeDirectLight` / `MultiplyLitColor` et teinte, rayon de filtre, fondu, profondeur de carte, biais de profondeur, limites).
 - [texture-mipmaps.md](engine/texture-mipmaps.md) — chaîne de mipmaps du chargeur de textures (`Texture2DLoader.GenerateMipmaps`, `MipmapChain`, rafraîchissement d'une texture peinte à l'exécution).
-- [color-pipeline.md](engine/color-pipeline.md) — pipeline couleur `Legacy` / `LinearHdr` (clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, tonemapping, limites connues ; ADR-0095 à ADR-0098).
+- [color-pipeline.md](engine/color-pipeline.md) — pipeline couleur `Legacy` / `LinearHdr` (clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, tonemapping, limites connues ; ADR-0100 à ADR-0103).
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
 - [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).
 
@@ -80,7 +80,8 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 ### Démos
 
-- [demos-main-menu.md](engine/demos-main-menu.md) — écran principal de `CasaEngine.Demos` dans un monde « menu » (liste des démos par thème et fiche, thème Dark de MGUI), un monde neuf par démo, retour au menu par Échap ou Select, ajout d'une démo, automatisation (`CASAENGINE_START_DEMO`, `CASAENGINE_DEMO_CYCLE`), limites (ADR-0072).
+- [demos-main-menu.md](engine/demos-main-menu.md) — écran principal de `CasaEngine.Demos` dans un monde « menu » (liste des démos par thème et fiche, thème Dark de MGUI), un monde neuf par démo, retour au menu par Échap ou Select, fiche et panneau d'aide de chaque démo, parcours par thèmes, entrées clavier et manette par la configuration `demos-input.buttonsMapping`, ajout d'une démo, automatisation (`CASAENGINE_START_DEMO`, `CASAENGINE_DEMO_CYCLE`), limites (ADR-0072, ADR-0090).
+- [demos-check-notes.md](engine/demos-check-notes.md) — ce qu'il faut vérifier à l'œil dans les démos Cutscene MoveTo, Cutscene NavigateTo, Environment showcase et Skinned mesh (remplace les `.md` posés à côté des démos).
 
 ### UI runtime (MGUI)
 
@@ -95,6 +96,9 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-message-boxes.md](editor/editor-message-boxes.md) — boîtes de message MGUI de l'éditeur : file, libellés, questions d'enregistrement asynchrones (fermer un écran, quitter, ouvrir un monde), sélecteurs natifs gardés.
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
+- [viewport-camera-controls.md](editor/viewport-camera-controls.md) — contrôles de la caméra perspective du viewport et des démos, style Unreal (souris, vol au clic droit, F, W/E/R, sélection au clic relâché, ADR-0089).
+- [editor-preferences.md](editor/editor-preferences.md) — panneau « Editor Preferences » et fichier `%APPDATA%/CasaEngine/editor.preferences.json` : sensibilités des caméras 3D et 2D, vitesse de vol mémorisée, inversion de Y, bornes et lecture tolérante (ADR-0091).
+- [editor-remote-control.md](editor/editor-remote-control.md) — pilotage de l'éditeur ouvert par la CLI `casa-editor` et le serveur MCP `casa-editor-mcp` : activation, commandes, règles d'annulation, sécurité (ADR-0092).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
 - [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).

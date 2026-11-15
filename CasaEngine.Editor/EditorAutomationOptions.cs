@@ -34,6 +34,10 @@ public sealed class EditorAutomationOptions
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
+
+    /// <summary><c>--remote</c>: starts the remote control pipe for the CLI and the MCP server (ADR-0092). Not an automation run.</summary>
+    public bool StartRemoteControl { get; private set; }
+
     private bool EntityIndexSpecified { get; set; }
     private bool CaptureDelaySpecified { get; set; }
 
@@ -214,6 +218,10 @@ public sealed class EditorAutomationOptions
 
                 case "--keep-open":
                     options.ExitAfterCapture = false;
+                    break;
+
+                case "--remote":
+                    options.StartRemoteControl = true;
                     break;
             }
         }

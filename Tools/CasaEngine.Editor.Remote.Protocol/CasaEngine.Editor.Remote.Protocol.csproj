@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ADR-0092: wire format shared by the editor, the casa-editor CLI and the MCP server. No engine or MonoGame
+       dependency, so the tools never load the editor. -->
+  <PropertyGroup>
+    <TargetFramework>$(BaseTargetFramework)</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

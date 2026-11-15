@@ -1,7 +1,7 @@
 ---
 name: rendering-pipeline
 description: Développeur du rendu 3D. Materials, variants de shaders, skinned mesh, passes de rendu, performance CPU et GPU.
-tools: Read, Glob, Grep, Edit, Write, Bash
+tools: Read, Glob, Grep, Edit, Write, Bash, mcp__serena__*, mcp__codegraph__*
 model: sonnet
 ---
 

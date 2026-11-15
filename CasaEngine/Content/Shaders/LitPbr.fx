@@ -303,7 +303,7 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float4 b
         + ComputePbrAmbient(worldNormal, surface.DiffuseAlbedo, occlusion)
         + emissive;
 
-    // The shadow tint (ShadowApplyMode = 1, ADR-0093) applies to the whole pixel except the emissive part.
+    // The shadow tint (ShadowApplyMode = 1, ADR-0098) applies to the whole pixel except the emissive part.
     color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);
 
     return float4(color, baseColor.a);

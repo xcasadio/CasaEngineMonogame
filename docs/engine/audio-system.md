@@ -735,7 +735,7 @@ V1 et y sont repris.
 |---|---|
 | `Espace` | joue le SFX une fois |
 | `L` | boucle le SFX / l'arrête |
-| `F` | fade out du SFX bouclé (1 s) |
+| `U` | fade out du SFX bouclé (1 s) |
 | `S` | arrête tout |
 | `B` | bip mono sur une voix stéréo logicielle : gauche seule, puis droite seule, puis les deux (un pas par appui) |
 | `P` | démarre la musique (fade in 1 s) / la fade out (2 s) |

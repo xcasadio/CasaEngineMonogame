@@ -58,13 +58,13 @@ public static class ShaderParameterNames
     public const string Exposure = "Exposure";
     public const string SceneTexture = "SceneTexture";
 
-    // --- Bloom (ADR-0099) ---
+    // --- Bloom (ADR-0104) ---
     public const string BloomThreshold = "BloomThreshold";
     public const string BloomIntensity = "BloomIntensity";
     public const string BloomTexelSize = "BloomTexelSize";
     public const string BloomSourceTexture = "BloomSourceTexture";
 
-    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0097).</summary>
+    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0102).</summary>
     public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
 
     /// <summary>1 when the environment cube already holds linear light (a cube built from a .hdr panorama).</summary>

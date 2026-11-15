@@ -4,6 +4,7 @@ using System.Linq;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Scene.Cameras;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application.Components.DebugTools;
@@ -70,6 +71,14 @@ internal sealed class EditorViewportGizmoController : IDisposable
     }
 
     public bool AllowSelectionPicking { get; set; } = true;
+
+    /// <summary>
+    /// The pointer hovers a handle of the visible gizmo, as of the last <see cref="Update"/> (the gizmo refreshes its
+    /// hovered axis while the buttons are up). Read before the camera runs so a left press there belongs to the gizmo.
+    /// </summary>
+    public bool IsHoveringHandle => _gizmo != null
+        && _gizmo.Gizmo.ActiveAxis != GizmoAxis.None
+        && _gizmo.Gizmo.Selection.Count > 0; // Not CurrentSelection: it builds a list on each read (hot path).
 
     public bool AllowDeleteSelection { get; set; } = true;
 
@@ -237,7 +246,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
         bool isKeyboardFocused,
         CameraComponent camera,
         RenderTargetSurface surface,
-        World world)
+        World world,
+        ViewportNavigationResult? navigationResult = null)
     {
         if (_gizmo == null || camera == null || surface == null)
         {
@@ -268,24 +278,15 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         _gizmo.IsActiveViewport = receivesInput;
 
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D1))
+        // Gizmo modes on W, E, R and 4 (ADR-0089), rules in EditorViewportGizmoInput.
+        GizmoMode? requestedMode = EditorViewportGizmoInput.ReadModeKey(
+            keyboardState,
+            _previousKeyboardState,
+            isKeyboardFocused,
+            mouseState.RightButton == ButtonState.Pressed);
+        if (requestedMode.HasValue)
         {
-            ActiveMode = GizmoMode.Translate;
-        }
-
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D2))
-        {
-            ActiveMode = GizmoMode.Rotate;
-        }
-
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D3))
-        {
-            ActiveMode = GizmoMode.NonUniformScale;
-        }
-
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D4))
-        {
-            ActiveMode = GizmoMode.UniformScale;
+            ActiveMode = requestedMode.Value;
         }
 
         _gizmo.Gizmo.PrecisionModeEnabled = isKeyboardFocused && (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
@@ -323,19 +324,29 @@ internal sealed class EditorViewportGizmoController : IDisposable
         bool leftJustReleased = mouseState.LeftButton == ButtonState.Released
             && _previousMouseState.LeftButton == ButtonState.Pressed;
 
+        // 2D views pick on the press, the perspective view on a released click (D9, ADR-0089).
+        ViewportSelectionRequest selection = EditorViewportGizmoInput.ReadSelection(
+            keyboardState,
+            leftJustPressed,
+            navigationResult,
+            AllowSelectionPicking);
+
         if (leftJustPressed)
         {
             BeginManipulationIfNeeded();
+        }
 
-            if (AllowSelectionPicking)
-            {
-                bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
-                bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-                _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
-            }
+        if (selection.Pick == ViewportSelectionPick.OnPress)
+        {
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), selection.AddToSelection, selection.RemoveFromSelection);
         }
 
         _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
+
+        if (selection.Pick == ViewportSelectionPick.OnClickRelease)
+        {
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), selection.AddToSelection, selection.RemoveFromSelection);
+        }
 
         if (leftJustReleased)
         {

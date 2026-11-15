@@ -1,6 +1,6 @@
 # Shadow settings
 
-How a world configures the forward directional shadow map and how the lit shaders (`LitForward.fx`, `skinEffect.fx`) apply it. Decision: ADR-0093. The settings live in `WorldEnvironmentSettings.Shadows` (`ShadowSettings`), are serialized with the world (`shadows` object) and are edited in the world panel of the editor ("Directional Shadows" section).
+How a world configures the forward directional shadow map and how the lit shaders (`LitForward.fx`, `skinEffect.fx`) apply it. Decision: ADR-0098. The settings live in `WorldEnvironmentSettings.Shadows` (`ShadowSettings`), are serialized with the world (`shadows` object) and are edited in the world panel of the editor ("Directional Shadows" section).
 
 ## The settings
 

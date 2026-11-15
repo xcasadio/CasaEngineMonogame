@@ -420,7 +420,7 @@ public class PbrShaderCoverageTests
         Assert.DoesNotContain("float SampleDirectionalShadowPcf(", source);
         Assert.DoesNotContain("float3 ApplyShadowTint(", source);
 
-        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0093): the pixel colour excluding
+        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0098): the pixel colour excluding
         // the emissive part is tinted, with the factor the light evaluation computed.
         Assert.Contains("(int)ActiveDirectionalLightCount", shade);
         Assert.Contains("color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);", shade);

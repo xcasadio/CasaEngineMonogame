@@ -17,7 +17,14 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// Validates forward directional shadows on static meshes. With <c>CASAENGINE_SHADOW_DEMO_VALIDATION=1</c> the scene
+/// A reference scene for shadows on static meshes. Three identical columns (ground, a tall caster, a small receiver)
+/// differ only in the shadow flags, so any change in the shadow renderer shows up as a difference between columns or
+/// against the expected picture.
+/// <para/>
+/// Types to look at: <see cref="WorldEnvironmentSettings"/> (<c>Shadows</c> switches the feature on for the world),
+/// <see cref="LightComponent"/> (<c>CastShadows</c> chooses which light casts) and <see cref="StaticModelComponent"/>
+/// (<c>CastShadows</c> and <c>ReceiveShadows</c> per mesh). A shadow appears only when all three agree.
+/// <para>With <c>CASAENGINE_SHADOW_DEMO_VALIDATION=1</c> the scene
 /// switches to a measurement configuration used to check the lighting maths pixel by pixel (see
 /// <c>ai-agent/tasks/lighting-ambient-shadow-tasks.md</c>): world ambient (0.5, 0.5, 0.5) at intensity 1, the fill light
 /// off, the grounds replaced by a textured receiver (a solid 128/255 texture generated in memory, white diffuse colour,
@@ -26,7 +33,7 @@ namespace CasaEngine.Demos.Demos;
 /// generated in memory as the world's specular environment cube. <c>CASAENGINE_SHADOW_DEMO_AMBIENT_SOURCE=Flat|Auto</c> (in that
 /// configuration) sets <see cref="WorldEnvironmentSettings.AmbientSource"/>. <c>CASAENGINE_SHADOW_DEMO_DETAIL=1</c> (in that
 /// configuration) binds a solid detail texture of value 64/255 with a tiling of 4 to the receiver
-/// (<see cref="LitDiffuseMaterial.DetailTexture"/>). <c>CASAENGINE_SHADOW_DEMO_MODE=MultiplyLitColor</c> and <c>CASAENGINE_SHADOW_DEMO_COLOR=r,g,b</c> (in that configuration) set <see cref="ShadowSettings.Mode"/> and <see cref="ShadowSettings.ShadowColor"/>. <c>CASAENGINE_SHADOW_DEMO_FILTER_RADIUS</c> (in that configuration) sets <see cref="ShadowSettings.FilterRadius"/>. <c>CASAENGINE_SHADOW_DEMO_FADE_DISTANCE</c> and <c>CASAENGINE_SHADOW_DEMO_MAX_DISTANCE</c> (in that configuration) set <see cref="ShadowSettings.FadeDistance"/> and <see cref="ShadowSettings.MaxDistance"/> (48 by default). <c>CASAENGINE_SHADOW_DEMO_DEPTH_RANGE</c> (in that configuration) sets <see cref="ShadowSettings.DepthRange"/>. Without these variables the scene is unchanged.
+/// (<see cref="LitDiffuseMaterial.DetailTexture"/>). <c>CASAENGINE_SHADOW_DEMO_MODE=MultiplyLitColor</c> and <c>CASAENGINE_SHADOW_DEMO_COLOR=r,g,b</c> (in that configuration) set <see cref="ShadowSettings.Mode"/> and <see cref="ShadowSettings.ShadowColor"/>. <c>CASAENGINE_SHADOW_DEMO_FILTER_RADIUS</c> (in that configuration) sets <see cref="ShadowSettings.FilterRadius"/>. <c>CASAENGINE_SHADOW_DEMO_FADE_DISTANCE</c> and <c>CASAENGINE_SHADOW_DEMO_MAX_DISTANCE</c> (in that configuration) set <see cref="ShadowSettings.FadeDistance"/> and <see cref="ShadowSettings.MaxDistance"/> (48 by default). <c>CASAENGINE_SHADOW_DEMO_DEPTH_RANGE</c> (in that configuration) sets <see cref="ShadowSettings.DepthRange"/>. Without these variables the scene is unchanged.</para>
 /// <para><c>CASAENGINE_SHADOW_DEMO_MIPMAP_CHECK=1</c> additionally runs a real-device check of <see cref="Texture2DLoader.GenerateMipmaps"/>: it
 /// writes a PNG (odd, non-square) and a TGA to a temporary folder, loads them with the option on, logs the level count and
 /// sizes, compares level 0 with <c>Texture2D.FromStream</c> and every level with the CPU chain, logs a verdict, and deletes the files.</para>
@@ -58,8 +65,21 @@ public sealed class StaticShadowValidationDemo : Demo
 
     public override string Title => "Static shadow validation demo";
 
-    public override string Description => "Validates forward directional shadows on static meshes with three columns: left keeps normal cast/receive, center disables ReceiveShadows on the receivers, and right disables CastShadows on the caster while keeping the same world shadow-map settings.";
+    public override string Description =>
+        "Directional shadows on static meshes, in three columns: normal cast and receive, ReceiveShadows off " +
+        "on the receivers, CastShadows off on the caster. The reference scene for checking shadow rendering.";
 
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "Left: the shadow of the caster lies on the receivers.",
+        "Centre: no shadow on the receivers. Right: the caster casts none.",
+    };
+
+    public override string DocumentationPath => "docs/engine/light-component.md";
+
+    // The base Demo creates an arc-ball camera and its InitializeCamera casts to that type, so a demo that wants another
+    // camera overrides both methods together. A fixed look-at camera keeps the view the same from run to run, which a
+    // reference scene needs.
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity { Name = "StaticShadowValidationCamera" };
@@ -70,8 +90,12 @@ public sealed class StaticShadowValidationDemo : Demo
         return camera;
     }
 
+    // Called by the demos app right after Initialize. It replaces the default light rig, so the scene is lit by exactly
+    // the two lights below and the shadow settings set here.
     public override void ConfigureSceneLighting(World world)
     {
+        // No environment cubemap: the background is a plain colour and the ambient is a fixed colour, so nothing but the
+        // two lights shapes the shading and the shadows are easy to read.
         var environmentSettings = world.EnvironmentSettings;
         environmentSettings.Type = EnvironmentType.None;
         environmentSettings.BackgroundMode = EnvironmentBackgroundMode.SolidColor;
@@ -91,6 +115,9 @@ public sealed class StaticShadowValidationDemo : Demo
             environmentSettings.AmbientSource = ReadAmbientSource();
         }
 
+        // Shadows are off by default in the engine, so this demo turns them on for the world. Resolution is the shadow
+        // map size; DepthBias and NormalBias offset the depth comparison; MaxDistance is given, with the camera position,
+        // to the code that builds the directional light's shadow projection.
         environmentSettings.Shadows.Enabled = true;
         environmentSettings.Shadows.Resolution = 2048;
         environmentSettings.Shadows.DepthBias = 0.001f;
@@ -104,6 +131,8 @@ public sealed class StaticShadowValidationDemo : Demo
 
         environmentSettings.MarkDirty();
 
+        // A strong key light that casts the shadows, and a weak fill light from the other side that does not, so the
+        // unlit sides are not black. Only a light with castShadows: true produces shadows.
         AddDirectionalLight(
             world,
             "StaticShadowKeyLight",
@@ -155,6 +184,8 @@ public sealed class StaticShadowValidationDemo : Demo
             }
         }
 
+        // Three columns spaced 9 units apart on X; only the two shadow flags change from one to the next: the middle one
+        // turns receiving off, the right one turns casting off. The left one is the reference.
         var world = game.GameManager.CurrentWorld;
         CreateValidationColumn(world, game.GraphicsDevice, "CastReceive", -9.0f, casterCastShadows: true, receiverReceiveShadows: true);
         CreateValidationColumn(world, game.GraphicsDevice, "NoReceive", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
@@ -170,6 +201,8 @@ public sealed class StaticShadowValidationDemo : Demo
     {
     }
 
+    // The environment (and so the shadow settings) belongs to the world: reset it to the engine defaults so the next demo
+    // does not inherit this one's.
     public override void Clean()
     {
         if (_game?.GameManager.CurrentWorld is { } world)
@@ -507,6 +540,7 @@ public sealed class StaticShadowValidationDemo : Demo
 
     private void CreateValidationColumn(World world, GraphicsDevice graphicsDevice, string columnName, float centerX, bool casterCastShadows, bool receiverReceiveShadows)
     {
+        // Three plain materials with different colours so the ground, the caster and the receiver can be told apart.
         var groundMaterial = CreateGroundMaterial(columnName);
 
         var casterMaterial = new LitDiffuseMaterial
@@ -527,6 +561,9 @@ public sealed class StaticShadowValidationDemo : Demo
             SpecularPower = 16.0f,
         };
 
+        // Ground and receiver never cast (they are only there to show shadows) and take the column's receive flag. The
+        // caster takes the column's cast flag and always receives. The caster is taller than the receiver and placed beside
+        // it, so the key light's shadow can fall on the ground and on the receiver.
         SpawnStaticPrimitive(
             world,
             graphicsDevice,
@@ -572,6 +609,8 @@ public sealed class StaticShadowValidationDemo : Demo
         bool castShadows,
         bool receiveShadows)
     {
+        // Build the mesh from the primitive's vertices and indices, then a one-node model around it. The placement is
+        // given to the component rather than to the node, so the shadow flags and the transform sit on the same object.
         var mesh = new StaticModelMesh
         {
             Name = entityName + "Mesh",
@@ -613,6 +652,8 @@ public sealed class StaticShadowValidationDemo : Demo
         float intensity,
         bool castShadows = false)
     {
+        // A light is an entity whose root component is a LightComponent; for a directional light the direction is the
+        // component's forward vector, so the orientation is what points it.
         var entity = new Entity { Name = entityName };
         entity.RootComponent = new LightComponent
         {
@@ -627,6 +668,8 @@ public sealed class StaticShadowValidationDemo : Demo
         world.AddEntity(entity);
     }
 
+    // Turns a direction into the rotation that takes Vector3.Forward onto it. The two special cases are the ones where the
+    // cross product used for the axis is zero: already aligned, or exactly opposite (a half turn around Up).
     private static Quaternion CreateOrientationFromForward(Vector3 forward)
     {
         if (forward.LengthSquared() <= 0.0001f)

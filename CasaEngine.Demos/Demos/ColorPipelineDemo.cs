@@ -15,12 +15,11 @@ using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// The measurement scene of the colour pipeline (ADR-0095, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
+/// The measurement scene of the colour pipeline (ADR-0100, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
 /// camera looks at a ramp of five grey planes (<c>unlit-texture</c>, 0, 64, 128, 191 and 255), three <c>lit-diffuse</c>
 /// spheres under one directional light, a strong emissive plane on a dark background, a solid MGUI panel and a block of
 /// screen text drawn by the 2D renderer. Every measurement pixel is a constant below; the colour pipeline is chosen by the
@@ -106,12 +105,20 @@ public sealed class ColorPipelineDemo : Demo
     private Texture2D? _fontTexture;
     private Texture2D? _whiteTexture;
     private SpriteFont? _font;
-    private KeyboardState _previousKeyboard;
 
     public override string Title => "Colour pipeline demo";
 
     public override string Description =>
         "Measurement scene of the colour pipeline: a grey ramp, three lit spheres, an emissive plane, an interface panel and a screen text. Choose the pipeline with CASAENGINE_DEMO_COLOR_PIPELINE, CASAENGINE_DEMO_TONEMAPPER and CASAENGINE_DEMO_EXPOSURE, or with M, T and +/- in the demo.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        DemoControl.ForActions("switch between the Legacy and the LinearHdr pipeline", "ColorPipeline.Mode"),
+        DemoControl.ForActions("switch the tonemapping operator (AcesApprox, Reinhard)", "ColorPipeline.Tonemapper"),
+        DemoControl.ForActions("raise the exposure by 0.25", "ColorPipeline.ExposureUp"),
+        DemoControl.ForActions("lower the exposure by 0.25", "ColorPipeline.ExposureDown"),
+        DemoControl.ForActions("turn the bloom on or off", "ColorPipeline.Bloom"),
+    };
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -245,42 +252,39 @@ public sealed class ColorPipelineDemo : Demo
 
         SubmitMeasurementSpriteAndParticle();
 
-        KeyboardState keyboard = DemoKeyboard.Read(_game);
         var settings = _game.GameManager.CurrentWorld.EnvironmentSettings;
         var colorPipeline = settings.ColorPipeline;
         bool changed = false;
 
-        if (WasPressed(keyboard, Keys.M))
+        if (DemoInput.WasPressed(_game, "ColorPipeline.Mode"))
         {
             colorPipeline.Mode = colorPipeline.Mode == ColorPipelineMode.Legacy ? ColorPipelineMode.LinearHdr : ColorPipelineMode.Legacy;
             changed = true;
         }
 
-        if (WasPressed(keyboard, Keys.T))
+        if (DemoInput.WasPressed(_game, "ColorPipeline.Tonemapper"))
         {
             colorPipeline.Tonemapper = colorPipeline.Tonemapper == TonemapOperator.AcesApprox ? TonemapOperator.Reinhard : TonemapOperator.AcesApprox;
             changed = true;
         }
 
-        if (WasPressed(keyboard, Keys.OemPlus) || WasPressed(keyboard, Keys.Add))
+        if (DemoInput.WasPressed(_game, "ColorPipeline.ExposureUp"))
         {
             colorPipeline.Exposure += ExposureStep;
             changed = true;
         }
 
-        if (WasPressed(keyboard, Keys.OemMinus) || WasPressed(keyboard, Keys.Subtract))
+        if (DemoInput.WasPressed(_game, "ColorPipeline.ExposureDown"))
         {
             colorPipeline.Exposure -= ExposureStep;
             changed = true;
         }
 
-        if (WasPressed(keyboard, Keys.B))
+        if (DemoInput.WasPressed(_game, "ColorPipeline.Bloom"))
         {
             colorPipeline.BloomEnabled = !colorPipeline.BloomEnabled;
             changed = true;
         }
-
-        _previousKeyboard = keyboard;
 
         if (changed)
         {
@@ -369,9 +373,6 @@ public sealed class ColorPipelineDemo : Demo
         _virtualResolutionChanged = false;
         _game = null;
     }
-
-    private bool WasPressed(KeyboardState keyboard, Keys key)
-        => keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
 
     private static float ReadLightIntensity()
     {
