@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -74,6 +75,10 @@ public class DemosGame : CasaEngineGame
     private int _thenDemoFrames;
     private bool _thenDemoRequested;
 
+    // CASAENGINE_DEMO_FRAME_STATS=1 (plan T10.2): cost of images 101 to 700, one log line at the end, then the game exits. Without
+    // vertical synchronisation and with a variable step, so the image time is not set by the refresh rate.
+    private readonly DemoFrameStats _frameStats = DemoFrameStats.IsRequested ? new DemoFrameStats() : null;
+
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
     private const string MainScreenTitle = "CasaEngine demos";
     private MainMenuScreen.Entry[] _mainMenuEntries;
@@ -121,6 +126,11 @@ public class DemosGame : CasaEngineGame
         Logs.AddLogger(new DebugLogger());
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
+
+        if (_frameStats != null)
+        {
+            RuntimeContext.ProjectSettings.VSyncEnabled = false;
+        }
 
         // Push demo UI screens whenever the engine finishes building views for a world.
         // On startup the first demo is prepared before GameManager loads the world, so
@@ -584,6 +594,13 @@ public class DemosGame : CasaEngineGame
 
     protected override void Draw(GameTime gameTime)
     {
+        long drawStart = 0;
+        if (_frameStats != null)
+        {
+            drawStart = Stopwatch.GetTimestamp();
+            _frameStats.BeginDraw(drawStart);
+        }
+
         base.Draw(gameTime);
 
         TryCaptureOnIblGeneration();
@@ -591,9 +608,34 @@ public class DemosGame : CasaEngineGame
         // Captured once the whole frame is drawn: a demo that switches render targets discards what the back buffer held
         // before AfterRenderPipeline.
         TryCaptureAutomationScreenshot(gameTime);
+
+        if (_frameStats != null)
+        {
+            _frameStats.EndDraw(drawStart, GameManager.ViewManager.Views, _currentDemo?.Title ?? "none",
+                GetDisplaySettings().IsVSyncEnabled, IsFixedTimeStep);
+            if (_frameStats.IsFinished)
+            {
+                Exit();
+            }
+        }
     }
 
     protected override void Update(GameTime gameTime)
+    {
+        if (_frameStats == null)
+        {
+            UpdateDemos(gameTime);
+            return;
+        }
+
+        long updateStart = Stopwatch.GetTimestamp();
+        IsFixedTimeStep = false;
+        _frameStats.BeginUpdate();
+        UpdateDemos(gameTime);
+        _frameStats.EndUpdate(updateStart);
+    }
+
+    private void UpdateDemos(GameTime gameTime)
     {
         if (_quitRequested)
         {

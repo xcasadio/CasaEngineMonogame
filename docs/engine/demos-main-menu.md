@@ -139,6 +139,10 @@ public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
 - `CASAENGINE_THEN_DEMO=<title>` switches, once, to that demo after `CASAENGINE_THEN_DEMO_FRAME` updates (default 120) of the demo
   started by `CASAENGINE_START_DEMO`, through the same path as a request from the menu. With a capture path, the capture is of
   the demo switched to, which proves what the first demo leaves behind.
+- `CASAENGINE_DEMO_FRAME_STATS=1` measures the cost of the demo started by `CASAENGINE_START_DEMO` (`DemoFrameStats`): vertical
+  synchronisation and the fixed step are off, updates 101 to 700 are added up (CPU time of `Update` and of `Draw`, wall time per
+  image, pipeline CPU time of the first view), one `[FrameStats]` line with the last image's `RenderStats` counters is logged
+  and the game quits. Meant for `Release` builds.
 - `CASAENGINE_DEMO_CYCLE=<frames>` goes from the main screen to every demo and back, twice, `<frames>` frames per world
   (default 60). It checks every world change and exits with code 0, or 1 when a check failed or an error was logged:
   - the new world is a new instance and the world left holds no entity;
