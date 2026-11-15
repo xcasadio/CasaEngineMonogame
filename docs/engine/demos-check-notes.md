@@ -58,6 +58,12 @@ alternating a cross-fade and an inertialized transition.
   - centre: `ReceiveShadows` is off on the ground and on the back character. No shadow shows on them;
   - right: `CastShadows` is off on the front character. It has no shadow.
 - Check: the three pairs differ as described; the shadow of the left pair moves with the character.
+- Press `P` (action `SkinnedMesh.Pbr`) to switch every character between Blinn-Phong and the PBR techniques of the
+  skinning effect (`SkinnedMeshComponent.PbrMaterial`, ADR-0108); the PBR look has no specular tint and darker lit
+  sides than the Blinn-Phong one, and the shadows are unchanged.
 
 Start it with `CASAENGINE_START_DEMO=Skinned mesh demo`; add `CASAENGINE_CAPTURE_SCREENSHOT_PATH` to capture a frame
-and exit.
+and exit. Measurement switches (all optional): `CASAENGINE_SKINNED_DEMO_FREEZE=1` pauses every character at the same
+instant of its first clip, so two captures of one mode are identical; `CASAENGINE_SKINNED_DEMO_PBR=1` starts in the
+PBR mode; `CASAENGINE_SKINNED_DEMO_SHADOWS=0` turns the shadows of the world off. The pixel rectangles and thresholds of
+the measurements are the constants of `SkinnedMeshDemo.Measurement`.

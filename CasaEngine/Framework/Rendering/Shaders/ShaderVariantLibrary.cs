@@ -114,6 +114,14 @@ public sealed class ShaderVariantLibrary
     public static Dictionary<string, string> BuildDualQuaternionSkinnedEffectAliases()
         => BuildCanonicalAliasMap(_ => "RiggedModelDrawDualQuaternion");
 
+    /// <summary>Returns alias map sending every canonical technique name to the lit-pbr linear blend skinning technique of skinEffect.fx.</summary>
+    public static Dictionary<string, string> BuildSkinnedPbrEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDrawPbr");
+
+    /// <summary>Returns alias map sending every canonical technique name to the lit-pbr dual quaternion skinning technique of skinEffect.fx.</summary>
+    public static Dictionary<string, string> BuildDualQuaternionSkinnedPbrEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDrawPbrDualQuaternion");
+
     // Lookup -------------------------------------------------------------
 
     /// <summary>

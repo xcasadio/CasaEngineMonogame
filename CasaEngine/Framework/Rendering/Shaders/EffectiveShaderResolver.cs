@@ -41,6 +41,15 @@ public static class EffectiveShaderResolver
     public static readonly Guid DualQuaternionSkinnedEffectShaderId = Guid.Parse("aa34bc72-1b22-4680-aa56-31c7d0aaf1a7");
     public static readonly Guid SkinnedEffectShaderId = LinearBlendSkinnedEffectShaderId;
 
+    /// <summary>
+    /// The same <c>skinEffect</c> effect as <see cref="LinearBlendSkinnedEffectShaderId"/>, registered under its own id so that the
+    /// variant library can map every canonical technique name of a lit-pbr skinned draw to <c>RiggedModelDrawPbr</c> (ADR-0108).
+    /// </summary>
+    public static readonly Guid LinearBlendSkinnedPbrEffectShaderId = Guid.Parse("3d4cb6e8-9404-4634-8097-2fef7fd8f963");
+
+    /// <summary>As <see cref="LinearBlendSkinnedPbrEffectShaderId"/>, for dual quaternion skinning (<c>RiggedModelDrawPbrDualQuaternion</c>).</summary>
+    public static readonly Guid DualQuaternionSkinnedPbrEffectShaderId = Guid.Parse("a60ccce5-5a8d-4bb8-a5cb-f284a6e75e36");
+
     public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
     public const string LitPbrContentName = "Shaders\\LitPbr";
@@ -72,12 +81,16 @@ public static class EffectiveShaderResolver
             return new EffectiveShaderReference(material.ShaderAssetId);
         }
 
+        var capabilities = material.GetShaderCapabilities();
+
         if ((features & ShaderFeature.Skinned) != 0)
         {
-            return SkinningModeShaderResolver.Resolve(skinningMode);
+            // A lit-pbr material on a skinned mesh takes the PBR techniques of the skinning effect; every other family keeps
+            // the Blinn-Phong ones (ADR-0108).
+            return capabilities.ShaderFamily == MaterialShaderFamily.LitPbr
+                ? SkinningModeShaderResolver.ResolvePbr(skinningMode)
+                : SkinningModeShaderResolver.Resolve(skinningMode);
         }
-
-        var capabilities = material.GetShaderCapabilities();
 
         return capabilities.ShaderFamily switch
         {

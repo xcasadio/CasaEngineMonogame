@@ -2,11 +2,13 @@
 // skinEffect.fx
 // Skinned (rigged) model shader with skeletal animation.
 //
-// Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelNormalDraw, SkinedDebugModelDraw
+// Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelDrawPbr, RiggedModelDrawPbrDualQuaternion,
+// RiggedModelNormalDraw, SkinedDebugModelDraw
 //
 // Uses the same direct-light model as LitForward.fx
 // (directional, point and spot lights via Lighting.fxh),
 // plus resolved environment ambient / reflection bindings.
+// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0108).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -151,6 +153,13 @@ BEGIN_CONSTANTS
     float ShadowFilterRadius _ps(c106) _cb(c96.w);
     float ShadowFadeWidth _ps(c107) _cb(c97.x);
 
+    // Material constants of the PBR techniques (RiggedModelDrawPbr*), written by LitPbrMaterial.Bind. The Blinn-Phong
+    // techniques never read them. No slot is pinned: the compiler places them. The base colour is a display colour.
+    float4 BaseColor;
+    float Metallic;
+    float Roughness;
+    float HasBaseColorTexture;
+
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
     float4x4 ShadowLightViewProjection _ps(c102) _cb(c92);
@@ -171,6 +180,7 @@ END_CONSTANTS
 #define HAS_FORWARD_SHADOW_BINDINGS 1
 #include "ColorPipeline.fxh"
 #include "Lighting.fxh"
+#include "Pbr.fxh"
 
 
 float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
@@ -414,6 +424,50 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDrawDualQuaternion(VsInputSkinnedQuad
 }
 
 TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDraw)
+
+
+//_______________________________________________________________
+// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0108)
+//
+// The skinning is the one of the Blinn-Phong techniques above. The shading is LitPbr.fx's, minus what a skinned mesh
+// does not carry in this version: direct lights and received shadows (Pbr.fxh), a flat ambient (no image-based lighting,
+// no probes), the emissive colour. No metallic-roughness, occlusion, emissive or normal texture, no transparency.
+// Like LitPbr.fx the output is linear light when the colour pipeline is linear, unclamped.
+//_______________________________________________________________
+
+float4 PixelShaderRiggedModelDrawPbr(VsOutputSkinnedQuad input) : COLOR0
+{
+    float4 baseColor = BaseColor;
+    if (HasBaseColorTexture > 0.5f)
+    {
+        baseColor *= SAMPLE_TEXTURE(Texture, input.TexureCoordinateA);
+    }
+
+    ApplySkinnedAlphaTest(baseColor.a);
+
+    float3 linearBaseColor = DecodeColor(baseColor.rgb);
+    float3 emissive = DecodeColor(EmissiveColor);
+
+    float3 worldNormal = normalize(input.Normal3D);
+    float3 eyeVector = normalize(EyePosition - input.Position3D);
+    PbrSurface surface = ComputePbrSurface(linearBaseColor, saturate(Metallic), saturate(Roughness), worldNormal, eyeVector);
+
+    ColorPair lightResult = EvaluatePbrLights(surface, input.Position3D, (int)ActiveDirectionalLightCount);
+
+    // The flat ambient of LitPbr.fx (ComputePbrFlatAmbient): the ambient colour, or the diffuse sample of the environment cube
+    // when one is bound and the world does not ask for the flat source, times the diffuse albedo.
+    float3 ambient = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
+        ? SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor
+        : AmbientColor;
+
+    float3 color = lightResult.Diffuse + lightResult.Specular + ambient * surface.DiffuseAlbedo + emissive;
+    color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);
+
+    return float4(color, baseColor.a);
+}
+
+TECHNIQUE(RiggedModelDrawPbr, VertexShaderRiggedModelDraw, PixelShaderRiggedModelDrawPbr)
+TECHNIQUE(RiggedModelDrawPbrDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDrawPbr)
 
 
 VsShadowDepthOutput VertexShaderRiggedModelShadowDepth(VsInputSkinnedQuad input)

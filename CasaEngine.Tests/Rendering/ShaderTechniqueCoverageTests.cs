@@ -109,6 +109,18 @@ public class ShaderTechniqueCoverageTests
             ShaderVariantLibrary.BuildSkinnedEffectAliases(),
             LoadTechniqueNames("skinEffect.fx"),
             "skinEffect.fx");
+        AssertAliasMapResolvesToExistingTechniques(
+            ShaderVariantLibrary.BuildDualQuaternionSkinnedEffectAliases(),
+            LoadTechniqueNames("skinEffect.fx"),
+            "skinEffect.fx");
+        AssertAliasMapResolvesToExistingTechniques(
+            ShaderVariantLibrary.BuildSkinnedPbrEffectAliases(),
+            LoadTechniqueNames("skinEffect.fx"),
+            "skinEffect.fx");
+        AssertAliasMapResolvesToExistingTechniques(
+            ShaderVariantLibrary.BuildDualQuaternionSkinnedPbrEffectAliases(),
+            LoadTechniqueNames("skinEffect.fx"),
+            "skinEffect.fx");
     }
 
     [Fact]
@@ -170,6 +182,41 @@ public class ShaderTechniqueCoverageTests
 
         // The legacy tables are untouched: LitForward still maps the same name to its own technique.
         Assert.Equal("LitForward_PixelLighting_Texture", ShaderVariantLibrary.BuildLitForwardAliases()[canonicalName]);
+    }
+
+    [Fact]
+    public void SkinnedPbrAliases_SendEveryCanonicalNameToTheirOwnTechniqueOfTheSkinningEffect()
+    {
+        var techniques = LoadTechniqueNames("skinEffect.fx");
+        var linear = ShaderVariantLibrary.BuildSkinnedPbrEffectAliases();
+        var dualQuaternion = ShaderVariantLibrary.BuildDualQuaternionSkinnedPbrEffectAliases();
+
+        Assert.Contains("RiggedModelDrawPbr", techniques);
+        Assert.Contains("RiggedModelDrawPbrDualQuaternion", techniques);
+
+        foreach (var features in EnumerateCanonicalFeatureSets())
+        {
+            string canonical = ShaderVariantLibrary.BuildTechniqueName(features)!;
+            Assert.Equal("RiggedModelDrawPbr", linear[canonical]);
+            Assert.Equal("RiggedModelDrawPbrDualQuaternion", dualQuaternion[canonical]);
+        }
+
+        // The Blinn-Phong tables are untouched.
+        Assert.Equal("RiggedModelDraw", ShaderVariantLibrary.BuildSkinnedEffectAliases()["Skinned_Textured"]);
+        Assert.Equal("RiggedModelDrawDualQuaternion", ShaderVariantLibrary.BuildDualQuaternionSkinnedEffectAliases()["Skinned_Textured"]);
+    }
+
+    [Fact]
+    public void SkinEffect_HasNoImageBasedLighting()
+    {
+        // ADR-0108: the skinned PBR techniques have no IBL, so the effect must never declare HasIbl (which is what makes
+        // EnvironmentShaderBinder generate the IBL textures for a shader).
+        string shaderPath = Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", "skinEffect.fx");
+        string source = File.ReadAllText(shaderPath);
+
+        Assert.DoesNotContain("HasIbl", source);
+        Assert.DoesNotContain("IrradianceCubeTexture", source);
+        Assert.DoesNotContain("PrefilteredSpecularAtlasTexture", source);
     }
 
     private static IEnumerable<ShaderFeature> EnumerateCanonicalFeatureSets()

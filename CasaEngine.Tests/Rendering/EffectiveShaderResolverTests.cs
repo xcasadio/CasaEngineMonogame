@@ -188,16 +188,59 @@ public class EffectiveShaderResolverTests
         Assert.Equal(EffectiveShaderResolver.LitForwardShaderId, EffectiveShaderResolver.Resolve(new LitDiffuseMaterial()).ShaderId);
     }
 
-    [Fact]
-    public void Resolve_KeepsTheSkinningShaderForALitPbrFamilyMaterialOnASkinnedMesh()
+    [Theory]
+    [InlineData(SkinningMode.LinearBlend)]
+    [InlineData(SkinningMode.DualQuaternion)]
+    public void Resolve_SendsALitPbrFamilyMaterialOnASkinnedMeshToThePbrIdOfTheSkinningEffect(SkinningMode skinningMode)
     {
-        // Until phase 8 of the PBR plan a PBR material drawn on a skinned mesh keeps the skinning shader.
+        // ADR-0108: the skinning effect is still the one drawn, under the id of its PBR techniques.
         var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(MaterialShaderFamily.LitPbr));
 
-        var resolved = EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned);
+        var resolved = EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned, skinningMode);
 
-        Assert.Equal(EffectiveShaderResolver.SkinnedEffectShaderId, resolved.ShaderId);
+        Guid expectedId = skinningMode == SkinningMode.LinearBlend
+            ? EffectiveShaderResolver.LinearBlendSkinnedPbrEffectShaderId
+            : EffectiveShaderResolver.DualQuaternionSkinnedPbrEffectShaderId;
+        Assert.Equal(expectedId, resolved.ShaderId);
         Assert.Equal(EffectiveShaderResolver.SkinnedEffectContentName, resolved.ContentName);
+        Assert.True(resolved.IsBuiltIn);
+    }
+
+    [Fact]
+    public void Resolve_KeepsTheBlinnPhongSkinningIdsForEveryOtherFamilyOnASkinnedMesh()
+    {
+        foreach (var family in new[] { MaterialShaderFamily.Lit, MaterialShaderFamily.Unlit })
+        {
+            var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(family));
+
+            Assert.Equal(
+                EffectiveShaderResolver.LinearBlendSkinnedEffectShaderId,
+                EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned, SkinningMode.LinearBlend).ShaderId);
+            Assert.Equal(
+                EffectiveShaderResolver.DualQuaternionSkinnedEffectShaderId,
+                EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned, SkinningMode.DualQuaternion).ShaderId);
+        }
+
+        Assert.Equal(
+            EffectiveShaderResolver.LinearBlendSkinnedEffectShaderId,
+            EffectiveShaderResolver.Resolve(new LitDiffuseMaterial(), ShaderFeature.Skinned, SkinningMode.LinearBlend).ShaderId);
+    }
+
+    [Fact]
+    public void SkinnedPbrIds_AreStableAndDistinctFromTheOtherShaderIds()
+    {
+        var ids = new[]
+        {
+            EffectiveShaderResolver.LinearBlendSkinnedEffectShaderId,
+            EffectiveShaderResolver.DualQuaternionSkinnedEffectShaderId,
+            EffectiveShaderResolver.LinearBlendSkinnedPbrEffectShaderId,
+            EffectiveShaderResolver.DualQuaternionSkinnedPbrEffectShaderId,
+            EffectiveShaderResolver.LitPbrShaderId,
+        };
+
+        Assert.Equal(ids.Length, ids.Distinct().Count());
+        Assert.Equal(Guid.Parse("3d4cb6e8-9404-4634-8097-2fef7fd8f963"), EffectiveShaderResolver.LinearBlendSkinnedPbrEffectShaderId);
+        Assert.Equal(Guid.Parse("a60ccce5-5a8d-4bb8-a5cb-f284a6e75e36"), EffectiveShaderResolver.DualQuaternionSkinnedPbrEffectShaderId);
     }
 
     [Fact]

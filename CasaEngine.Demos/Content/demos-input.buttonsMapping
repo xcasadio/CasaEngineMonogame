@@ -2080,6 +2080,28 @@
         "mouse_button": "LeftButton",
         "input_device": "NoDevice"
       }
+    },
+    {
+      "id": "21eefa2f-7e1e-4108-8d04-dba40bc7fb19",
+      "name": "SkinnedMesh.Pbr",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "P",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
     }
   ]
 }
+
