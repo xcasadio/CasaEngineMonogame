@@ -7737,7 +7737,13 @@ public partial class GameEditor : Game, IObservableUpdate
 
         _startupAssetOpenAttempted = true;
 
-        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
+        // ADR-0093 P11 and A3: the startup --open-asset follows the automation path rule.
+        if (!TryResolveAutomationProjectPath(_automationOptions.OpenAssetPath, out string fullPath, out _, out string pathError))
+        {
+            Logs.WriteWarning($"Unable to open startup asset '{_automationOptions.OpenAssetPath}': {pathError}");
+            return;
+        }
+
         if (!TryOpenEditorAsset(fullPath))
         {
             Logs.WriteWarning($"Unable to open startup asset '{_automationOptions.OpenAssetPath}' (resolved='{fullPath}').");

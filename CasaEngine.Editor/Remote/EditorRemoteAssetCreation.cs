@@ -32,9 +32,12 @@ internal static class EditorRemoteAssetCreation
 
         string folderPath = string.IsNullOrWhiteSpace(folder) || folder.Trim() is "." or "/" ? string.Empty : folder.Replace('\\', '/').Trim('/');
         string folderFull = Path.GetFullPath(projectDirectory);
-        if (folderPath.Length > 0 && !EditorRemoteValidation.TryResolveInsideProject(projectDirectory, folderPath, out folderFull))
+        string folderLinkPath = null;
+        if (folderPath.Length > 0 && !EditorRemoteValidation.TryResolveInsideProject(projectDirectory, folderPath, out folderFull, out folderLinkPath))
         {
-            throw new EditorRemoteArgumentException($"'{folder}' is not a folder inside the project.");
+            throw folderLinkPath != null
+                ? EditorRemoteValidation.LinkRefusal(folder, folderLinkPath)
+                : new EditorRemoteArgumentException($"'{folder}' is not a folder inside the project.");
         }
 
         if (!Directory.Exists(folderFull))
@@ -48,9 +51,11 @@ internal static class EditorRemoteAssetCreation
         }
 
         string relativeFile = (folderPath.Length > 0 ? folderPath + "/" : string.Empty) + name + EditorRemoteAssetTypes.Extension(type);
-        if (!EditorRemoteValidation.TryResolveInsideProject(projectDirectory, relativeFile, out string fullPath))
+        if (!EditorRemoteValidation.TryResolveInsideProject(projectDirectory, relativeFile, out string fullPath, out string fileLinkPath))
         {
-            throw new EditorRemoteArgumentException($"'{relativeFile}' is not inside the project.");
+            throw fileLinkPath != null
+                ? EditorRemoteValidation.LinkRefusal(relativeFile, fileLinkPath)
+                : new EditorRemoteArgumentException($"'{relativeFile}' is not inside the project.");
         }
 
         foreach (AssetInfo info in AssetCatalog.AssetInfos)

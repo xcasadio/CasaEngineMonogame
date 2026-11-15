@@ -44,9 +44,11 @@ internal static class EditorRemoteAssets
         else
         {
             string relative = reference.Replace('\\', '/');
-            if (!EditorRemoteValidation.TryResolveInsideProject(projectDirectory, relative, out _))
+            if (!EditorRemoteValidation.TryResolveInsideProject(projectDirectory, relative, out _, out string referenceLinkPath))
             {
-                throw new EditorRemoteArgumentException($"'{reference}' is not a file inside the project.");
+                throw referenceLinkPath != null
+                    ? EditorRemoteValidation.LinkRefusal(reference, referenceLinkPath)
+                    : new EditorRemoteArgumentException($"'{reference}' is not a file inside the project.");
             }
 
             info = AssetCatalog.GetByFileName(relative) ?? AssetCatalog.GetByFileName(relative.Replace('/', '\\'));
@@ -58,10 +60,13 @@ internal static class EditorRemoteAssets
         }
 
         // The catalog is project data: its file name is checked like an argument (S2-6).
+        string catalogLinkPath = null;
         if (string.IsNullOrWhiteSpace(info.FileName)
-            || !EditorRemoteValidation.TryResolveInsideProject(projectDirectory, info.FileName.Replace('\\', '/'), out string fullPath))
+            || !EditorRemoteValidation.TryResolveInsideProject(projectDirectory, info.FileName.Replace('\\', '/'), out string fullPath, out catalogLinkPath))
         {
-            throw new EditorRemoteArgumentException($"The catalog entry of '{reference}' points outside the project.");
+            throw catalogLinkPath != null
+                ? EditorRemoteValidation.LinkRefusal(info.FileName, catalogLinkPath)
+                : new EditorRemoteArgumentException($"The catalog entry of '{reference}' points outside the project.");
         }
 
         string type = AssetInfo.InferAssetType(info.FileName);

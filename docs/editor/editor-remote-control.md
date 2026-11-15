@@ -69,7 +69,7 @@ Without a serving editor the server lists a single tool, `editor_connection`, th
 | `asset.open` | Opens a `.material`, `.particle`, `.uiscreen` or `.sound` in its panel; returns the panel id. | — |
 | `panel.list` / `panel.activate` | Open panels (id, title, kind, active, modified); brings one to the front. | — |
 | `panel.close` | Closes a material, particle, UI screen or sound panel; refused when it has unsaved changes. | — |
-| `material.create` / `material.get` / `material.set_property` / `material.save` | Material assets (default definition `lit-diffuse`). | Set: yes |
+| `material.create` / `material.get` / `material.set_property` / `material.save` | Material assets (default definition `lit-diffuse`). `material.get` returns each value as text in the form `material.set_property` parses: invariant numbers, `r,g,b,a` bytes for a colour, comma-separated vector components, the asset id for a texture. | Set: yes |
 | `component.material_override` | Sets or clears the material of a static model slot. | Yes |
 | `particle.create` / `particle.get` / `particle.set_property` / `particle.save` | Particle assets, from a preset. | Set: yes |
 | `particle.drop` | Puts a particle asset on an entity (its particle system takes it, or one is added). | Yes |
@@ -118,3 +118,4 @@ The content flags of the editor automation (`EditorAutomationOptions`) run throu
 - An editor that crashes leaves its discovery file and captures behind; the tools ignore the stale file.
 - Only materials, particles, UI screens and sounds are editable assets; sprites, animations, TileMaps, audio mixers and models are not. No docking or panel resizing. Properties hidden by the specialised inspectors stay reachable through `property.set`.
 - An editor started from inside the Claude desktop app writes `%LOCALAPPDATA%` and `%TEMP%` in a virtualised location: start the editor and the tools from the same side.
+- Paths under a symbolic link, junction or mount point inside the project are refused by the commands, the automation flags and the startup `--open-asset`, with a message naming the link (ADR-0093, A3); the project folder itself may be a link. Hard links, a link created after the check, and later writes that never go through these checks (`project.save`, the automation restore) are not covered.
