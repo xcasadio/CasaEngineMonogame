@@ -74,7 +74,9 @@ public static class RenderFeatureResolver
             features |= ShaderFeature.BasColorTexture;
         }
 
-        if (capabilities.HasBasColorTexture && capabilities.HasNormalMap)
+        // lit-diffuse samples its normal map only next to a base texture; lit-pbr has no such coupling.
+        if (capabilities.HasNormalMap &&
+            (capabilities.HasBasColorTexture || capabilities.ShaderFamily == MaterialShaderFamily.LitPbr))
         {
             features |= ShaderFeature.NormalMap;
         }

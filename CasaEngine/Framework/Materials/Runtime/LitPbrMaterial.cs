@@ -1,0 +1,128 @@
+using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace CasaEngine.Framework.Materials.Runtime;
+
+/// <summary>
+/// Metallic-roughness PBR material (glTF conventions) drawn by <c>LitPbr.fx</c>. Colours (<see cref="BaseColor"/>,
+/// <see cref="EmissiveColor"/> and the colour textures) are display colours: the shader decodes them to linear light
+/// once per pixel when the colour pipeline is linear. The material picks its technique itself (normal map, then the
+/// alpha-test state), because the shader variant library alias table only knows the two techniques without a normal map.
+/// </summary>
+public class LitPbrMaterial : MaterialBase
+{
+    /// <summary>Base colour factor (alpha = opacity), multiplied with <see cref="BaseColorTexture"/> when one is bound.</summary>
+    public Color BaseColor { get; set; } = Color.White;
+
+    /// <summary>0 = dielectric, 1 = metal. Multiplied with the blue channel of <see cref="MetallicRoughnessTexture"/>.</summary>
+    public float Metallic { get; set; }
+
+    /// <summary>Perceptual roughness. Multiplied with the green channel of <see cref="MetallicRoughnessTexture"/>.</summary>
+    public float Roughness { get; set; } = 0.5f;
+
+    /// <summary>Emitted colour added on top of the lighting. Multiplied with <see cref="EmissiveTexture"/> when one is bound.</summary>
+    public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
+
+    /// <summary>Weight of the occlusion texture: 0 ignores it, 1 applies it fully.</summary>
+    public float OcclusionStrength { get; set; } = 1.0f;
+
+    /// <summary>Scale of the x and y components of the tangent-space normal.</summary>
+    public float NormalScale { get; set; } = 1.0f;
+
+    public Texture2D BaseColorTexture { get; set; }
+    public Guid BaseColorTextureAssetId { get; set; } = Guid.Empty;
+    public Texture2D NormalTexture { get; set; }
+    public Guid NormalTextureAssetId { get; set; } = Guid.Empty;
+    public Texture2D MetallicRoughnessTexture { get; set; }
+    public Guid MetallicRoughnessTextureAssetId { get; set; } = Guid.Empty;
+    public Texture2D OcclusionTexture { get; set; }
+    public Guid OcclusionTextureAssetId { get; set; } = Guid.Empty;
+    public Texture2D EmissiveTexture { get; set; }
+    public Guid EmissiveTextureAssetId { get; set; } = Guid.Empty;
+
+    /// <summary>
+    /// Technique of <c>LitPbr.fx</c> for the resolved features: <c>LitPbr[_NormalMap][_AlphaTest]</c>. The presence of the
+    /// other textures is carried by the Has... constants, not by the technique.
+    /// </summary>
+    internal static string GetTechniqueName(ShaderFeature features)
+    {
+        bool hasNormalMap = (features & ShaderFeature.NormalMap) != 0;
+        bool isAlphaTest = (features & ShaderFeature.AlphaTest) != 0;
+
+        return (hasNormalMap, isAlphaTest) switch
+        {
+            (true, true) => "LitPbr_NormalMap_AlphaTest",
+            (true, false) => "LitPbr_NormalMap",
+            (false, true) => "LitPbr_AlphaTest",
+            _ => "LitPbr",
+        };
+    }
+
+    /// <summary>
+    /// The alias table only names the two techniques without a normal map, so a normal-mapped draw always needs the
+    /// material to name its technique.
+    /// </summary>
+    public override bool RequiresMaterialTechniqueSelection(
+        bool techniqueSelectedBySelector,
+        in RenderContext context,
+        ShaderFeature features)
+        => !techniqueSelectedBySelector || (features & ShaderFeature.NormalMap) != 0;
+
+    public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
+        => shader.SelectTechnique(GetTechniqueName(features));
+
+    /// <summary>
+    /// LitPbr.fx defaults nothing: every material constant and every Has... flag is written on every bind, so a value left
+    /// by the previous draw never leaks into this one.
+    /// </summary>
+    public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
+    {
+        shader.SetParameter(ShaderParameterNames.WorldViewProj, world * context.Frame.ViewProjection);
+        shader.SetParameter(ShaderParameterNames.World, world);
+        shader.SetParameter(ShaderParameterNames.WorldInverseTranspose, Matrix.Transpose(Matrix.Invert(world)));
+        shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
+
+        shader.SetParameter(ShaderParameterNames.BaseColor, BaseColor.ToVector4());
+        shader.SetParameter(ShaderParameterNames.Metallic, Metallic);
+        shader.SetParameter(ShaderParameterNames.Roughness, Roughness);
+        shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
+        shader.SetParameter(ShaderParameterNames.OcclusionStrength, OcclusionStrength);
+        shader.SetParameter(ShaderParameterNames.NormalScale, NormalScale);
+        shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
+
+        BindOptionalTexture(shader, ShaderParameterNames.BasColorTexture, ShaderParameterNames.HasBaseColorTexture, BaseColorTexture, in context);
+        BindOptionalTexture(shader, ShaderParameterNames.MetallicRoughnessTexture, ShaderParameterNames.HasMetallicRoughnessTexture, MetallicRoughnessTexture, in context);
+        BindOptionalTexture(shader, ShaderParameterNames.OcclusionTexture, ShaderParameterNames.HasOcclusionTexture, OcclusionTexture, in context);
+        BindOptionalTexture(shader, ShaderParameterNames.EmissiveTexture, ShaderParameterNames.HasEmissiveTexture, EmissiveTexture, in context);
+
+        // The NormalMap techniques always sample NormalTexture; the others never read it.
+        if (NormalTexture is not null)
+        {
+            shader.SetTextureParameter(ShaderParameterNames.NormalTexture, NormalTexture, context.Stats);
+        }
+    }
+
+    private static void BindOptionalTexture(
+        ShaderWrapper shader,
+        string textureParameter,
+        string hasTextureParameter,
+        Texture2D texture,
+        in RenderContext context)
+    {
+        shader.SetParameter(hasTextureParameter, texture is not null ? 1.0f : 0.0f);
+        if (texture is not null)
+        {
+            shader.SetTextureParameter(textureParameter, texture, context.Stats);
+        }
+    }
+
+    public override MaterialShaderCapabilities GetShaderCapabilities()
+        => CreateShaderCapabilities(
+            MaterialShaderFamily.LitPbr,
+            hasBasColorTexture: BaseColorTexture is not null || BaseColorTextureAssetId != Guid.Empty,
+            hasNormalMap: NormalTexture is not null || NormalTextureAssetId != Guid.Empty,
+            hasEmissive: EmissiveColor != Vector3.Zero || EmissiveTexture is not null || EmissiveTextureAssetId != Guid.Empty,
+            isTransparent: BaseColor.A < byte.MaxValue);
+}
