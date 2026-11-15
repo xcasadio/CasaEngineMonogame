@@ -73,34 +73,28 @@ public partial class AudioDemo
             ? $"Music position {service.Music.GetPosition(_musicTrack):mm\\:ss}"
               + $"  queued buffers {service.Music.GetPendingBufferCount(_musicTrack)}"
             : "Music stopped");
+        var keys = _hudText ??= AudioHudText.Create(action => DemoBindingText.KeyLabel(DemoInput.Describe(game, action).Key));
         DrawLine(spriteBatch, ref y, service.Music.IsAlive(_loopPointTrack)
-            ? $"Loop point (Q) position {service.Music.GetPosition(_loopPointTrack).TotalSeconds:0.0} s"
+            ? $"Loop point ({keys.LoopPoint}) position {service.Music.GetPosition(_loopPointTrack).TotalSeconds:0.0} s"
               + $"  queued buffers {service.Music.GetPendingBufferCount(_loopPointTrack)}"
-            : "Loop point (Q) stopped");
+            : $"Loop point ({keys.LoopPoint}) stopped");
         DrawLine(spriteBatch, ref y, service.Backend is IAudioBusBackend
-            ? $"Reverb (R) {(_demoReverbOn ? "ON" : "off")}   Filter (T) {(_demoFilter != null ? "ON" : "off")}"
-              + $"   Ducking (D) {(_demoDucking != null ? "ON" : "off")}"
-            : "Effects (R, T, D) absent on this backend (software backend only)");
+            ? $"Reverb ({keys.Reverb}) {(_demoReverbOn ? "ON" : "off")}   Filter ({keys.LowPass}) {(_demoFilter != null ? "ON" : "off")}"
+              + $"   Ducking ({keys.Ducking}) {(_demoDucking != null ? "ON" : "off")}"
+            : $"Effects ({keys.Reverb}, {keys.LowPass}, {keys.Ducking}) absent on this backend (software backend only)");
         DrawLine(spriteBatch, ref y, SpatialModeText);
         DrawLine(spriteBatch, ref y, service.IsAlive(_orbitVoice)
-            ? $"Orbit (O) ON   distance {NumericsVector3.Distance(_orbitPosition, ListenerPosition):0.0}"
+            ? $"Orbit ({keys.Orbit}) ON   distance {NumericsVector3.Distance(_orbitPosition, ListenerPosition):0.0}"
               + $"   x {_orbitPosition.X:0.0}  z {_orbitPosition.Z:0.0}"
-            : "Orbit (O) off");
+            : $"Orbit ({keys.Orbit}) off");
         var intensity = service.GetGameParameter(_intensityParameter);
-        DrawLine(spriteBatch, ref y, $"Doppler (K) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
-            + (float.IsNaN(intensity) ? "   intensity (I) unset" : $"   intensity (I) {intensity:0.0}"));
+        DrawLine(spriteBatch, ref y, $"Doppler ({keys.Doppler}) {(_dopplerOn ? "ON" : "off")}   speed of sound {service.SpeedOfSound:0} u/s"
+            + (float.IsNaN(intensity) ? $"   intensity ({keys.Intensity}) unset" : $"   intensity ({keys.Intensity}) {intensity:0.0}"));
         DrawLine(spriteBatch, ref y, $"Last action: {_lastAction}");
-        DrawLine(spriteBatch, ref y, "Space one-shot   L loop on/off   U fade out   S stop all");
-        DrawLine(spriteBatch, ref y, "B stereo beep: left, then right, then both");
-        DrawLine(spriteBatch, ref y, "V varied click   H click with priority 10 (steals a voice)");
-        DrawLine(spriteBatch, ref y, "J fill free voices with priority-1 loops (S stops them)");
-        DrawLine(spriteBatch, ref y, "P music on/off   C crossfade      PageUp/PageDown Music");
-        DrawLine(spriteBatch, ref y, "Q loop point: tone once, then beeps (loops from 1 s)");
-        DrawLine(spriteBatch, ref y, "G GC stress on/off (loop + music + garbage + forced GC)");
-        DrawLine(spriteBatch, ref y, "R reverb on Sfx   T low-pass on Music   D ducking Music by Sfx");
-        DrawLine(spriteBatch, ref y, "Ducking: music on (P), then play a sound effect (Space or L)");
-        DrawLine(spriteBatch, ref y, "O spatial orbit on/off   K Doppler on/off   I intensity 0/0.5/1");
-        DrawLine(spriteBatch, ref y, "Up/Down Master   Left/Right Sfx   M mute Master   N mute Sfx");
+        for (int i = 0; i < keys.HelpLines.Length; i++)
+        {
+            DrawLine(spriteBatch, ref y, keys.HelpLines[i]);
+        }
 
         spriteBatch.End();
     }

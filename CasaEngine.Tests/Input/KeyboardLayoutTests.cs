@@ -20,7 +20,7 @@ public sealed class KeyboardLayoutTests : IDisposable
 
     public void Dispose()
     {
-        KeyboardLayout.Reset();
+        TestKeyboardLayout.UseQwerty();
     }
 
     [Fact]

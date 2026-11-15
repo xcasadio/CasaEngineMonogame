@@ -37,6 +37,8 @@
     <Compile Include="..\CasaEngine.Demos\DemoSheetText.cs" Link="Demos\DemoSheetText.cs" />
     <Compile Include="..\CasaEngine.Demos\DemoBindingText.cs" Link="Demos\DemoBindingText.cs" />
     <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\DemoHelpOverlay.cs" Link="Demos\DemoHelpOverlay.cs" />
+    <Compile Include="..\CasaEngine.Demos\Demos\AnimationHudText.cs" Link="Demos\AnimationHudText.cs" />
+    <Compile Include="..\CasaEngine.Demos\Demos\AudioHudText.cs" Link="Demos\AudioHudText.cs" />
     <None Include="..\CasaEngine.Demos\Content\Screens\main-menu.xaml" Link="Content\Screens\main-menu.xaml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\CasaEngine.Demos\Content\Screens\demo-help.xaml" Link="Content\Screens\demo-help.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

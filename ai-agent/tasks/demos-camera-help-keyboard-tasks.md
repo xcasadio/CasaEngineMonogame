@@ -124,7 +124,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   - Tests `KeyboardLayoutTests` : QWERTY = identité sur les 256 codes ; AZERTY simulé : W→Z, A→Q, Q→A, Z→W, M→« , », ;→M, 1 inchangé ; F1, Échap, Entrée, Espace, flèches, pavé numérique, Maj inchangés. 19/19.
   - Lecture réelle sur la machine de l'agent, qui est en AZERTY : W→Z et A→Q.
 
-### ⏳ T3.2 — Le mapping et la caméra lisent les touches par position
+### 🧪 T3.2 — Le mapping et la caméra lisent les touches par position
 
 - Objectif : les touches des `ButtonsMapping` et de `ViewportCameraNavigation` passent par la traduction, et les textes d'aide (actions des démos, lignes « Camera ») affichent la touche réelle.
 - Fichiers :
@@ -155,6 +155,29 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   
   Puis builds, tests, et démo lancée sur QWERTY sans changement. Sur AZERTY, la validation revient à l'auteur (🧪 jusque-là).
 - Commit : `feat(input): read keyboard bindings by key position`
+- Validation faite (2026-11-15) :
+  - Lecture par position (`KeyButton.KeyOnLayout()`), `KeyButton.Key` inchangé :
+    - `KeyButton.IsPressed`, donc boutons et `Axis` ;
+    - `UINavigationInput` : touche lue, contrôle de la zone de texte, Tab avec Maj, touches de repli déjà liées ;
+    - `ViewportCameraNavigation` : W A S D Q E Z C R F ;
+    - `DemoInput.Describe`, donc lecture des actions de l'appli et textes des fiches.
+  - Textes réécrits à partir des touches liées :
+    - ligne « Camera » du panneau d'aide (`DemosGame`) ;
+    - HUD d'Animation blend et d'Animation IK (`AnimationHudText`) ;
+    - HUD de la démo Audio (`AudioHudText`), oublié par la relecture du plan et traité ici, même cas.
+  - Ligne « W A S D too » de la fiche Animation blend : remplacée par une ligne liée aux actions `Blend.Forward/Left/Backward/Right`.
+  - RPGDemo : déplacements en W A S D (D7). Raccourcis de l'éditeur et `PlayerInput.IsKey*` inchangés (D5, D6).
+  - Étiquette « Comma » pour la touche virgule, où tombe la position de M sur AZERTY. Les autres ponctuations gardent leur nom : leur caractère change d'une disposition à l'autre.
+  - Tests :
+    - `KeyPositionBindingTests`, sous AZERTY simulé : bouton W→Z, axe A/D→Q/D, `PlayerInput.IsKeyPressed(W)` inchangé, caméra en avant sur Z, mapping chargé puis sauvé qui garde « W », HUD Animation et Audio ;
+    - `UINavigationInputTests.OnAzerty_AMappedLetterIsReadAtItsQwertyPosition`.
+  - Les 5 tests qui pressaient des lettres échouaient sur cette machine AZERTY. `TestKeyboardLayout` fixe donc le QWERTY pour tout l'assembly de tests ; les classes qui changent de disposition sont dans une collection jamais parallèle.
+  - Builds des deux solutions : 0 erreur. `CasaEngine.Tests` : 5513/5513.
+  - Captures, sur la machine de l'agent qui est en AZERTY :
+    - Hello world : « Right mouse + Z Q S D, A E: fly » ;
+    - Animation blend : « [Z] Walk [Shift+Z] Run », fiche « Z, Q, S, D: the same on the letter keys » ;
+    - Audio : « Loop point (A) ».
+  - Reste pour l'auteur : appuyer réellement sur les touches, faute d'injection clavier. Le code lit les touches par le même chemin que les tests.
 
 ---
 

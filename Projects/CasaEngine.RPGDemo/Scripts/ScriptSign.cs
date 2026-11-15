@@ -33,14 +33,14 @@ public class ScriptSign : GameplayProxy
 
         button = new InputMapping();
         button.Name = "MoveLeft";
-        button.KeyButton = new KeyButton(Keys.Q);
+        button.KeyButton = new KeyButton(Keys.A);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickLeft);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
         _inputComponent.InputMappingManager.AddInputMapping(button);
 
         button = new InputMapping();
         button.Name = "MoveUp";
-        button.KeyButton = new KeyButton(Keys.Z);
+        button.KeyButton = new KeyButton(Keys.W);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickUp);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
         _inputComponent.InputMappingManager.AddInputMapping(button);
