@@ -189,7 +189,7 @@ public class PbrShaderCoverageTests
         RegexOptions.Compiled);
 
     [Fact]
-    public void LitPbrEffect_DeclaresTheFourTechniques()
+    public void LitPbrEffect_DeclaresTheSixTechniques()
     {
         string source = LoadShaderSource("LitPbr.fx");
 
@@ -200,7 +200,11 @@ public class PbrShaderCoverageTests
         }
 
         Assert.Equal(
-            new[] { "LitPbr", "LitPbr_AlphaTest", "LitPbr_NormalMap", "LitPbr_NormalMap_AlphaTest" }.OrderBy(name => name),
+            new[]
+            {
+                "LitPbr", "LitPbr_AlphaTest", "LitPbr_NormalMap", "LitPbr_NormalMap_AlphaTest",
+                "LitPbr_Transparent", "LitPbr_NormalMap_Transparent",
+            }.OrderBy(name => name),
             techniques.OrderBy(name => name));
 
         // Per-pixel lighting only (decision D5): the normal map techniques read the tangent, the others do not.
@@ -208,6 +212,31 @@ public class PbrShaderCoverageTests
         Assert.Contains("TECHNIQUE(LitPbr_AlphaTest, VSLitPbr, PSLitPbrAlphaTest);", source);
         Assert.Contains("TECHNIQUE(LitPbr_NormalMap, VSLitPbrTangent, PSLitPbrNormalMap);", source);
         Assert.Contains("TECHNIQUE(LitPbr_NormalMap_AlphaTest, VSLitPbrTangent, PSLitPbrNormalMapAlphaTest);", source);
+        Assert.Contains("TECHNIQUE(LitPbr_Transparent, VSLitPbr, PSLitPbrTransparent);", source);
+        Assert.Contains("TECHNIQUE(LitPbr_NormalMap_Transparent, VSLitPbrTangent, PSLitPbrNormalMapTransparent);", source);
+    }
+
+    [Fact]
+    public void LitPbrEffect_TransparentTechniquesAttenuateOnlyTheDiffuseParts_BeforeTheShadowTint()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+
+        // Only the transparent pixel shaders pass the alpha of the base colour as the diffuse opacity.
+        Assert.Contains("baseColor, 1.0f);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbr(")));
+        Assert.Contains("baseColor, 1.0f);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbrAlphaTest(")));
+        Assert.Contains("baseColor, 1.0f);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbrNormalMap(")));
+        Assert.Contains("baseColor, 1.0f);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbrNormalMapAlphaTest(")));
+        Assert.Contains("baseColor, baseColor.a);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbrTransparent(")));
+        Assert.Contains("baseColor, baseColor.a);", Normalize(ExtractFunctionBody(source, "float4 PSLitPbrNormalMapTransparent(")));
+        Assert.DoesNotContain("ApplyAlphaTest", ExtractFunctionBody(source, "float4 PSLitPbrTransparent("));
+
+        // Diffuse (direct and ambient) scaled by the opacity; specular and emissive added as they are; the tint comes after.
+        string shade = Normalize(ExtractFunctionBody(source, "float4 ShadePbr("));
+        Assert.Contains("lightResult.Diffuse * diffuseOpacity + lightResult.Specular + ComputePbrAmbient(worldNormal, surface.DiffuseAlbedo, occlusion) * diffuseOpacity + emissive;", shade);
+        Assert.True(
+            shade.IndexOf("* diffuseOpacity + emissive;", StringComparison.Ordinal) < shade.IndexOf("ApplyShadowTint(", StringComparison.Ordinal),
+            "The diffuse attenuation must happen before ApplyShadowTint.");
+        Assert.Contains("return float4(color, baseColor.a);", shade);
     }
 
     [Fact]

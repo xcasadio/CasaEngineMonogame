@@ -231,6 +231,7 @@ public class LitPbrMaterialDefinitionTests
         Assert.Equal(RenderQueue.Transparent, compiled.Queue);
         Assert.Same(BlendState.AlphaBlend, compiled.BlendState);
         Assert.Same(DepthStencilState.DepthRead, compiled.DepthStencilState);
+        Assert.Equal("LitPbr_Transparent", LitPbrMaterial.GetTechniqueName(compiled.Features));
     }
 
     [Fact]
@@ -242,6 +243,7 @@ public class LitPbrMaterialDefinitionTests
 
         Assert.Equal(ShaderFeature.Transparent, compiled.Features);
         Assert.Equal(RenderQueue.Transparent, compiled.Queue);
+        Assert.Equal("LitPbr_Transparent", LitPbrMaterial.GetTechniqueName(compiled.Features));
     }
 
     [Fact]

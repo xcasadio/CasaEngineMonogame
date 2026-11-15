@@ -158,6 +158,9 @@ public class ShaderTechniqueCoverageTests
         Assert.DoesNotContain("LitPbr_NormalMap_AlphaTest", aliases.Values);
         Assert.Contains("LitPbr_NormalMap", techniques);
         Assert.Contains("LitPbr_NormalMap_AlphaTest", techniques);
+        Assert.Contains("LitPbr_Transparent", techniques);
+        Assert.Contains("LitPbr_NormalMap_Transparent", techniques);
+        Assert.DoesNotContain("LitPbr_Transparent", aliases.Values);
 
         // The same lookup the variant library performs for a draw item: the canonical name of AlphaTest | BasColorTexture,
         // then the alias table of the LitPbr shader.

@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Materials.Runtime;
 /// <summary>
 /// Metallic-roughness PBR material (glTF conventions) drawn by <c>LitPbr.fx</c>. Colours (<see cref="BaseColor"/>,
 /// <see cref="EmissiveColor"/> and the colour textures) are display colours: the shader decodes them to linear light
-/// once per pixel when the colour pipeline is linear. The material picks its technique itself (normal map, then the
+/// once per pixel when the colour pipeline is linear. The material picks its technique itself (normal map, blending, then the
 /// alpha-test state), because the shader variant library alias table only knows the two techniques without a normal map.
 /// </summary>
 public class LitPbrMaterial : MaterialBase
@@ -45,32 +45,35 @@ public class LitPbrMaterial : MaterialBase
     public Guid EmissiveTextureAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
-    /// Technique of <c>LitPbr.fx</c> for the resolved features: <c>LitPbr[_NormalMap][_AlphaTest]</c>. The presence of the
+    /// Technique of <c>LitPbr.fx</c> for the resolved features: <c>LitPbr[_NormalMap][_AlphaTest|_Transparent]</c>. The presence of the
     /// other textures is carried by the Has... constants, not by the technique.
     /// </summary>
     internal static string GetTechniqueName(ShaderFeature features)
     {
         bool hasNormalMap = (features & ShaderFeature.NormalMap) != 0;
         bool isAlphaTest = (features & ShaderFeature.AlphaTest) != 0;
+        bool isTransparent = !isAlphaTest && (features & ShaderFeature.Transparent) != 0;
 
-        return (hasNormalMap, isAlphaTest) switch
+        return (hasNormalMap, isAlphaTest, isTransparent) switch
         {
-            (true, true) => "LitPbr_NormalMap_AlphaTest",
-            (true, false) => "LitPbr_NormalMap",
-            (false, true) => "LitPbr_AlphaTest",
+            (true, true, _) => "LitPbr_NormalMap_AlphaTest",
+            (true, false, true) => "LitPbr_NormalMap_Transparent",
+            (true, false, false) => "LitPbr_NormalMap",
+            (false, true, _) => "LitPbr_AlphaTest",
+            (false, false, true) => "LitPbr_Transparent",
             _ => "LitPbr",
         };
     }
 
     /// <summary>
-    /// The alias table only names the two techniques without a normal map, so a normal-mapped draw always needs the
-    /// material to name its technique.
+    /// The alias table only names the two techniques without a normal map and without blending, so a normal-mapped or
+    /// a blended draw always needs the material to name its technique.
     /// </summary>
     public override bool RequiresMaterialTechniqueSelection(
         bool techniqueSelectedBySelector,
         in RenderContext context,
         ShaderFeature features)
-        => !techniqueSelectedBySelector || (features & ShaderFeature.NormalMap) != 0;
+        => !techniqueSelectedBySelector || (features & (ShaderFeature.NormalMap | ShaderFeature.Transparent)) != 0;
 
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
         => shader.SelectTechnique(GetTechniqueName(features));

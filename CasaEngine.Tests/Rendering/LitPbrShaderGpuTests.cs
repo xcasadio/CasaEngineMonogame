@@ -21,6 +21,8 @@ public class LitPbrShaderGpuTests
         "LitPbr_AlphaTest",
         "LitPbr_NormalMap",
         "LitPbr_NormalMap_AlphaTest",
+        "LitPbr_Transparent",
+        "LitPbr_NormalMap_Transparent",
     };
 
     [GpuFact]

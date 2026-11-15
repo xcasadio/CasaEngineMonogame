@@ -140,36 +140,49 @@ public class LitPbrMaterialTests
     [InlineData(ShaderFeature.NormalMap | ShaderFeature.BasColorTexture, "LitPbr_NormalMap")]
     [InlineData(ShaderFeature.NormalMap | ShaderFeature.AlphaTest, "LitPbr_NormalMap_AlphaTest")]
     [InlineData(ShaderFeature.NormalMap | ShaderFeature.AlphaTest | ShaderFeature.Emissive | ShaderFeature.VertexColor, "LitPbr_NormalMap_AlphaTest")]
-    [InlineData(ShaderFeature.Transparent | ShaderFeature.Emissive, "LitPbr")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.Emissive, "LitPbr_Transparent")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.BasColorTexture, "LitPbr_Transparent")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.NormalMap, "LitPbr_NormalMap_Transparent")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.NormalMap | ShaderFeature.BasColorTexture | ShaderFeature.Emissive, "LitPbr_NormalMap_Transparent")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.AlphaTest, "LitPbr_AlphaTest")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.NormalMap | ShaderFeature.AlphaTest, "LitPbr_NormalMap_AlphaTest")]
     public void GetTechniqueName_IsLitPbrWithItsNormalMapThenAlphaTestSuffixes(ShaderFeature features, string expected)
     {
         Assert.Equal(expected, LitPbrMaterial.GetTechniqueName(features));
     }
 
     [Fact]
-    public void GetTechniqueName_ProducesExactlyTheFourTechniquesOfTheShaderFile()
+    public void GetTechniqueName_ProducesExactlyTheSixTechniquesOfTheShaderFile()
     {
         var names = new SortedSet<string>(StringComparer.Ordinal);
-        for (uint bits = 0; bits < 4; bits++)
+        for (uint bits = 0; bits < 8; bits++)
         {
             var features = ShaderFeature.None;
             features |= (bits & 1) != 0 ? ShaderFeature.NormalMap : ShaderFeature.None;
+            features |= (bits & 4) != 0 ? ShaderFeature.Transparent : ShaderFeature.None;
             features |= (bits & 2) != 0 ? ShaderFeature.AlphaTest : ShaderFeature.None;
             names.Add(LitPbrMaterial.GetTechniqueName(features));
         }
 
         Assert.Equal(
-            new[] { "LitPbr", "LitPbr_AlphaTest", "LitPbr_NormalMap", "LitPbr_NormalMap_AlphaTest" },
+            new[]
+            {
+                "LitPbr", "LitPbr_AlphaTest", "LitPbr_NormalMap", "LitPbr_NormalMap_AlphaTest",
+                "LitPbr_NormalMap_Transparent", "LitPbr_Transparent",
+            },
             names);
     }
 
     [Fact]
-    public void RequiresMaterialTechniqueSelection_IsTrueForANormalMapOrWhenTheSelectorChoseNothing()
+    public void RequiresMaterialTechniqueSelection_IsTrueForANormalMapABlendedDrawOrWhenTheSelectorChoseNothing()
     {
         var material = new LitPbrMaterial();
         var context = default(RenderContext);
 
         Assert.False(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.BasColorTexture));
+        // A blended draw: the alias table has no transparent technique, the material names it.
+        Assert.True(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.Transparent));
+        Assert.True(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.Transparent | ShaderFeature.BasColorTexture));
         Assert.False(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.AlphaTest | ShaderFeature.BasColorTexture));
         Assert.True(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.NormalMap));
         Assert.True(material.RequiresMaterialTechniqueSelection(true, in context, ShaderFeature.NormalMap | ShaderFeature.BasColorTexture));
@@ -203,6 +216,23 @@ public class LitPbrMaterialTests
 
         Assert.Equal(ShaderFeature.None, features);
         Assert.Equal("LitPbr", LitPbrMaterial.GetTechniqueName(features));
+    }
+
+    [Fact]
+    public void Resolve_ABlendedNormalMappedMaterial_GivesTheTransparentNormalMapTechnique_AndABlendedOneTheTransparentTechnique()
+    {
+        var blendedNormalMapped = new LitPbrMaterial
+        {
+            BaseColor = new Color(255, 255, 255, 64),
+            NormalTextureAssetId = Guid.NewGuid(),
+        };
+        var blended = new LitPbrMaterial { BaseColor = new Color(255, 255, 255, 64) };
+        var mesh = CreateMesh(withTangents: true);
+
+        Assert.Equal(
+            "LitPbr_NormalMap_Transparent",
+            LitPbrMaterial.GetTechniqueName(RenderFeatureResolver.Resolve(blendedNormalMapped, mesh)));
+        Assert.Equal("LitPbr_Transparent", LitPbrMaterial.GetTechniqueName(RenderFeatureResolver.Resolve(blended, mesh)));
     }
 
     [Fact]

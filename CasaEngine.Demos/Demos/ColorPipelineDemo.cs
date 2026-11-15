@@ -38,12 +38,20 @@ namespace CasaEngine.Demos.Demos;
 /// others, to measure the width of the specular highlight; without it the scene is the one above, unchanged. Their centres and
 /// measurement lines are the constants <see cref="PbrSphereCentres"/> and <see cref="PbrMeasurementLines"/>.
 /// </para>
+/// <para>
+/// <c>CASAENGINE_COLOR_DEMO_GLASS=1</c> adds, above the other objects, a checkerboard quad (an <c>unlit-texture</c> material) and in
+/// front of its left half a glass sphere: a <c>lit-pbr</c> material in the transparent queue (base colour white, alpha 64,
+/// roughness 0.05). The right half of the checkerboard has no sphere and is the control: the checkerboard must stay readable behind
+/// the glass and the specular highlight must stay bright (transparent PBR keeps the specular, plan T5.1). Independent of
+/// <c>CASAENGINE_COLOR_DEMO_PBR</c>; without it the scene is unchanged. Measurement constants: <see cref="GlassBehindSegment"/>, <see cref="GlassControlSegment"/> and <see cref="GlassHighlightPixel"/>.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
     private const string LightIntensityVariable = "CASAENGINE_COLOR_DEMO_LIGHT_INTENSITY";
     private const string BufferedVariable = "CASAENGINE_COLOR_DEMO_BUFFERED";
     private const string PbrVariable = "CASAENGINE_COLOR_DEMO_PBR";
+    private const string GlassVariable = "CASAENGINE_COLOR_DEMO_GLASS";
     private const int VirtualWidth = 1024;
     private const int VirtualHeight = 768;
     private const float ExposureStep = 0.25f;
@@ -124,6 +132,39 @@ public sealed class ColorPipelineDemo : Demo
         new(612, 247, 307), new(612, 364, 424), new(611, 481, 541), new(607, 598, 658), new(604, 715, 775),
     };
 
+    // ---- Glass scene (CASAENGINE_COLOR_DEMO_GLASS=1) ----
+
+    /// <summary>A horizontal measurement segment of the glass scene: row, first and last pixel (window coordinates, 1024 x 768).</summary>
+    public readonly record struct GlassSegment(int Y, int XStart, int XEnd);
+
+    /// <summary>
+    /// The checkerboard of the glass scene starts at x 545 and its cells are 25 px wide; on the measured row the cells of odd column
+    /// number (counted from x 545) are the light ones. The two segments below are 3 cells wide and 8 cells (200 px) apart, so they
+    /// cross cells of the same parity: the first one is behind the glass sphere (centre about (658, 88), radius about 62 px), the
+    /// second one is the control, on the half of the board without a sphere. Measured with Reinhard, exposure 1, light intensity 1:
+    /// contrast behind 101, control 136.5 (ratio 0.74).
+    /// </summary>
+    public static readonly GlassSegment GlassBehindSegment = new(96, 620, 694);
+
+    /// <summary>Control segment of the glass scene, see <see cref="GlassBehindSegment"/>.</summary>
+    public static readonly GlassSegment GlassControlSegment = new(96, 820, 894);
+
+    /// <summary>Left edge of the first checkerboard column of the glass scene and the width of a cell, in pixels.</summary>
+    public const int GlassCheckerOriginX = 545;
+    public const int GlassCheckerCellWidth = 25;
+
+    /// <summary>The specular highlight of the glass sphere (upper right of the sphere). Reads 253, 253, 253 with the settings above.</summary>
+    public static readonly Point GlassHighlightPixel = new(678, 62);
+
+    private static readonly Vector3 GlassCheckerPosition = new(7.0f, 8.3f, 0.0f);
+    private static readonly Vector3 GlassSpherePosition = new(4.0f, 8.3f, 1.0f);
+    private const float GlassCheckerWidth = 12.0f;
+    private const float GlassCheckerHeight = 4.2f;
+    private const float GlassSphereDiameter = 3.6f;
+    private const int GlassCheckerColumns = 16;
+    private const int GlassCheckerRows = 6;
+    private const int GlassCheckerCellSize = 8;
+
     private static readonly Vector2 TextBlockPosition = new(24.0f, 112.0f);
     private static readonly Vector2 SpriteWorldPosition = new(8.5f, 5.5f);
     private static readonly Color Grey128 = new(128, 128, 128);
@@ -140,6 +181,7 @@ public sealed class ColorPipelineDemo : Demo
     private ColorPipelinePanelScreen? _panel;
     private Texture2D? _fontTexture;
     private Texture2D? _whiteTexture;
+    private Texture2D? _checkerTexture;
     private SpriteFont? _font;
 
     public override string Title => "Colour pipeline demo";
@@ -237,6 +279,11 @@ public sealed class ColorPipelineDemo : Demo
                         Roughness = PbrRoughness[i],
                     });
             }
+        }
+
+        if (Environment.GetEnvironmentVariable(GlassVariable) == "1")
+        {
+            AddGlassScene(world, game.GraphicsDevice);
         }
 
         CreateBlockFont(game.GraphicsDevice);
@@ -426,9 +473,62 @@ public sealed class ColorPipelineDemo : Demo
         _fontTexture = null;
         _whiteTexture?.Dispose();
         _whiteTexture = null;
+        _checkerTexture?.Dispose();
+        _checkerTexture = null;
         _previousVirtualResolution = null;
         _virtualResolutionChanged = false;
         _game = null;
+    }
+
+    /// <summary>
+    /// A checkerboard quad (light and dark cells) and, in front of its left half, a glass sphere: <see cref="LitPbrMaterial"/> in
+    /// the transparent queue, alpha-blended (premultiplied output), reading the depth buffer without writing it.
+    /// </summary>
+    private void AddGlassScene(World world, GraphicsDevice graphicsDevice)
+    {
+        int width = GlassCheckerColumns * GlassCheckerCellSize;
+        int height = GlassCheckerRows * GlassCheckerCellSize;
+        var light = new Color(230, 230, 230);
+        var dark = new Color(30, 30, 30);
+        var pixels = new Color[width * height];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int column = x / GlassCheckerCellSize;
+                int row = y / GlassCheckerCellSize;
+                pixels[(y * width) + x] = ((column + row) % 2 == 0) ? light : dark;
+            }
+        }
+
+        _checkerTexture = new Texture2D(graphicsDevice, width, height);
+        _checkerTexture.SetData(pixels);
+        _checkerTexture.Name = "GlassChecker";
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "Glass checkerboard",
+            new BoxPrimitive(GlassCheckerWidth, GlassCheckerHeight, 0.1f),
+            GlassCheckerPosition,
+            new UnlitTextureMaterial { Name = "GlassChecker", BasColor = _checkerTexture });
+
+        AddPrimitive(
+            world,
+            graphicsDevice,
+            "Glass sphere",
+            new SpherePrimitive(GlassSphereDiameter, 32),
+            GlassSpherePosition,
+            new LitPbrMaterial
+            {
+                Name = "GlassSphere",
+                BaseColor = new Color(255, 255, 255, 64),
+                Metallic = 0.0f,
+                Roughness = 0.05f,
+                Queue = RenderQueue.Transparent,
+                BlendState = BlendState.AlphaBlend,
+                DepthStencilState = DepthStencilState.DepthRead,
+            });
     }
 
     private static float ReadLightIntensity()
