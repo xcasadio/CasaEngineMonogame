@@ -1,6 +1,6 @@
 # ADR-0102: PBR scope extends to bloom, transparency, skinning and local probes
 
-- **Status**: Accepted
+- **Status**: Accepted, amended by ADR-0112 (clear coat enters the scope)
 - **Date**: 2026-11-14
 - **Source**: this chantier: `ai-agent/tasks/pbr-rendering-tasks.md` (decisions D8 to D12), from the author's answers of 2026-11-14
 - Renumbered from ADR-0094 on 2026-11-15 when origin/main was merged (the renumbered lighting decisions are ADR-0097 to ADR-0101 today)

@@ -94,7 +94,7 @@ Points arbitrés par l'agent, à valider par l'auteur :
 
 ## Phase 0 — Base et périmètre
 
-### ⏳ T0.1 — Base de référence et amendement du périmètre
+### ✅ T0.1 — Base de référence et amendement du périmètre
 
 - Objectif : figer la base de ce plan et enregistrer l'élargissement du périmètre.
 - Fichiers : ce plan ; `docs/decisions/0112-…md` (nouveau), `docs/decisions/README.md`, `docs/decisions/0102-…md` (ligne de statut « amended by ADR-0112 » seulement), `ai-agent/README.md` (ligne de ce plan).
@@ -104,6 +104,33 @@ Points arbitrés par l'agent, à valider par l'auteur :
   3. ADR-0112 : « PBR scope extends to clear coat, screen-space ambient occlusion and FXAA », qui amende l'ADR-0102 et reprend P1 et P2.
   4. **Précision de revue** : la base comprend aussi la démo PBR en `Legacy`, que rien ne couvrait : `pbrdemo.sh <dossier> <nom> CASAENGINE_DEMO_COLOR_PIPELINE=Legacy`, deux passages identiques. Cette empreinte fait partie de la « non-régression, fonctions coupées » de toutes les tâches et de la validation globale. Si la variable n'a pas d'effet sur cette démo (la démo force son pipeline), le noter, ne pas modifier la démo dans cette tâche, et ouvrir un point : T2.1 ajoutera alors la variable de démo nécessaire avant de toucher aux shaders. L'ADR-0112 reprend P1 tel qu'il est écrit (vernis dans les deux pipelines).
 - Validation : empreintes notées dans un tableau sous cette tâche ; ADR indexé ; aucun fichier de code modifié.
+- **Note de validation (2026-11-15).** Builds `Debug` des deux solutions : 0 erreur (188 et 204 avertissements). Aucun fichier de code modifié. Suite de tests non relancée (aucun code touché). Les captures ont tourné sans autre processus lourd, sans recapture nécessaire.
+  - Usage des scripts (sous `CasaEngine/artifacts/pbr-baseline/`, ignorés par git ; `BIN` par défaut = `CasaEngine.Demos/bin/Debug/net9.0-windows`, sauf `framestats.sh` = `bin/Release`). Tous font `cd "$BIN"` : le dossier de sortie doit être **absolu** (sinon les images tombent dans `$BIN`).
+    - `capture-v2.sh <dossier> [env…]` : onze démos par titre exact, chacune deux fois (`CASAENGINE_CAPTURE_SCREENSHOT_PATH`), imprime `slug sha1 sha2 notfound exceptions files`.
+    - `lin-v2.sh <dossier> <nom> [env…]` : « Colour pipeline demo » en `LinearHdr`, `AcesApprox`, exposition 1, intensité 1.
+    - `pbrdemo.sh <dossier> <nom> [env…]` : « PBR material demo » avec `CASAENGINE_PBR_DEMO_VALIDATION=1`, délai de capture 12000 ms (`DELAY`).
+    - `framestats.sh <dossier> <nom> <titre> [env…]` : lance avec `CASAENGINE_DEMO_FRAME_STATS=1` (mesure des mises à jour 101 à 700, puis sortie), imprime la ligne `[FrameStats]`. Ne prend aucune capture.
+  - Empreintes (SHA-256, 16 premiers caractères sauf mention), `Legacy` via `capture-v2.sh` (deux passages chacun) :
+
+    | Capture | Empreinte | Deux passages |
+    | --- | --- | --- |
+    | material | `b73dfdd2684a8615` | identiques |
+    | environment | `0cf97b7e08cc0871` | identiques |
+    | static-model | `312dda61e950f6b9` | identiques |
+    | static-shadow | `add5db24fbd43814` | identiques |
+    | render-to-texture | `d45bc1b2d6630553` | identiques |
+    | ui-overlay | `307d01b87c81303d` | identiques |
+    | frozen-frame | `eb25f3917cfa6a0c` | identiques |
+    | tile-map | `355772772016e47f` | identiques |
+    | skinned, particles, split-screen | non déterministes (deux passages différents : `d2eaab0dfff587d6`/`9384efdd102a7b22`, `31f5c240eb8830fa`/`05c3e412df2e4824`, `bf137ae5a2fa30d0`/`5d970c0fc495c75c`) | non comparés |
+    | `lin-v2.sh` `LinearHdr` | `0ba208b099b28b67ebf7cfbf4293c6fac4a45f9241698fbfcaae8a3bef05c39b` | un passage, égal à « État vérifié » |
+    | `pbrdemo.sh` validation, pipeline par défaut (`LinearHdr`) | `00847b5d4e85ef3b13002fd0bcb2f475ae06fb19b0bfa8fee33d24cf38427161` | identiques |
+    | `pbrdemo.sh` validation, `CASAENGINE_DEMO_COLOR_PIPELINE=Legacy` | `a844109b0a2bfd5fd1b000a3c6e676e5bbdcb7c50b1e09b306bc5a702eb85f35` | identiques |
+
+  - Les huit empreintes `Legacy` déterministes et l'empreinte `LinearHdr` égalent celles de « État vérifié » : pas de blocage. 0 exception, 0 « was not found » dans tous les journaux.
+  - Précision de revue 4 : la variable `CASAENGINE_DEMO_COLOR_PIPELINE=Legacy` **a un effet** sur la démo PBR (journal : « Colour pipeline harness: Legacy, AcesApprox, exposure 1. » ; empreinte différente de celle par défaut, dont le journal crée la cible HDR `1024x768 HalfVector4`). Aucun point ouvert, T2.1 n'a pas à ajouter de variable.
+  - ADR-0112 écrit (`docs/decisions/0112-pbr-scope-extends-to-clear-coat-screen-space-ambient-occlusion-and-fxaa.md`, `Proposed`, P1 et P2 repris), indexé dans `docs/decisions/README.md` ; ligne de statut de l'ADR-0102 (et de l'index) « amended by ADR-0112 » ; ligne de ce plan dans `ai-agent/README.md`.
+- **Précisions de clôture.** Revue de clôture de la tranche (blocage P2, tous **FIX**) : le texte de T4.1 est revu dans ce commit, sans code. T4.1 exige un `dotnet build CasaEngine.MonoGame.sln -c Release` juste avant la mesure de coût et, pour chaque configuration FXAA × SSAO × rangée vernie, la ligne `[FrameStats]` accompagnée de ses compteurs d'activation (passe FXAA, pré-passe SSAO statique et skinnée, ≥ 1 si active, 0 sinon) et d'une ligne `[DemoConfig]` de la même exécution ; `DemoFrameStats.cs` et `DemosGame.cs` entrent dans ses fichiers pour les écrire sans capture. Voir T4.1.
 - Commit : `docs(decisions): extend the PBR scope to clear coat, SSAO and FXAA (ADR-0112)`
 
 ---
@@ -252,12 +279,16 @@ Points arbitrés par l'agent, à valider par l'auteur :
 ### ⏳ T4.1 — Démo de référence et coût
 
 - Objectif : tout montrer ensemble et chiffrer.
-- Fichiers : `CasaEngine.Demos/Demos/PbrMaterialDemo.cs`, `CasaEngine.Demos/Content/demos-input.buttonsMapping`, `docs/engine/demos-main-menu.md`, ce plan.
+- Fichiers : `CasaEngine.Demos/Demos/PbrMaterialDemo.cs`, `CasaEngine.Demos/DemoFrameStats.cs`, `CasaEngine.Demos/DemosGame.cs`, `CasaEngine.Demos/Content/demos-input.buttonsMapping`, `docs/engine/demos-main-menu.md`, ce plan.
 - Étapes :
   1. Touches de la démo PBR : FXAA, SSAO (affichées sur la fiche) ; la rangée vernie de T2.2 visible par défaut **hors** mode de validation seulement (le mode de validation garde l'empreinte de T0.1 sans variable).
   2. Coût : `framestats.sh` en `Release`, démo PBR en validation, dans les combinaisons FXAA × SSAO × rangée vernie ; noter les temps moyens et les compteurs.
   3. Passe finale : builds, suite complète, non-régression fonctions coupées.
 - Validation : une ligne de journal par configuration notée ici ; empreintes identiques à T0.1 ; basculer chaque touche dans la démo est un contrôle manuel (🧪 s'il n'est pas observé).
+- **Précisions de clôture (revue de clôture, priment sur l'étape 2 et la ligne Validation).**
+  - **Binaire mesuré** : `dotnet build CasaEngine.MonoGame.sln -c Release` est lancé juste avant l'étape 2 (le `Release` existant date du plan précédent et n'a ni FXAA ni SSAO). La note de T4.1 écrit l'horodatage du binaire `CasaEngine.Demos/bin/Release/net9.0-windows/CasaEngine.Demos.dll` et celui du dernier build.
+  - **Preuve d'activation, dans le journal de la même exécution** (sans capture) : `framestats.sh` n'en prend pas, donc les compteurs de T1.2 (`FxaaRenderer`) et de T3.1 décision 6 (`SceneDepthPrepass`, dessins statiques et skinnés) ne seraient pas écrits « au moment de la capture ». T4.1 ajoute donc `CasaEngine.Demos/DemoFrameStats.cs` et `CasaEngine.Demos/DemosGame.cs` à ses fichiers : le rapport `[FrameStats]` de la dernière image mesurée (`DemoFrameStats.Report`) ajoute à la même ligne `fxaaDraws=`, `ssaoStaticDraws=`, `ssaoSkinnedDraws=` (lus sur le dernier rendu de la vue 0), et le banc de démo écrit, une fois, une ligne `[DemoConfig]` portant les variables effectives : `aa`, `ssao`, `clearCoatRow` (état de la rangée vernie lu dans `PbrMaterialDemo`). Le code n'écrit rien par image : lecture et écriture une seule fois, à la fin de la mesure.
+  - **Règle de validité** : chaque configuration FXAA × SSAO × rangée vernie est notée avec sa ligne `[FrameStats]` et sa ligne `[DemoConfig]` de la même exécution. Les compteurs doivent valoir ≥ 1 quand la fonction est active (FXAA : `fxaaDraws`; SSAO : `ssaoStaticDraws` et `ssaoSkinnedDraws` pour la part de la démo qui dessine cette géométrie ; si la démo PBR ne dessine pas de maillage skinné, `ssaoSkinnedDraws` attendu 0 est noté et le skinné est couvert par T3.2) et 0 quand elle est coupée ; `[DemoConfig]` doit afficher la rangée vernie dans l'état de la configuration. **Une configuration dont les compteurs ou la ligne `[DemoConfig]` ne correspondent pas à ses variables invalide sa ligne** : elle est relancée après correction, jamais notée.
 - Commit : `feat(demos): show clear coat, SSAO and FXAA in the PBR demo and record their cost`
 
 ### ⏳ T4.2 — Documentation et rapport
