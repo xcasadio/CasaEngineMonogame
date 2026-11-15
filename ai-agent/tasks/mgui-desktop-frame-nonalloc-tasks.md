@@ -4,9 +4,9 @@ Plan préparé par T3.2 de [mgui-slider-nonalloc-tasks.md](mgui-slider-nonalloc-
 du plan du slider a resserré sa preuve au chemin du slider lui-même et renvoyé ici le reste d'une image du bureau.
 **État : questions tranchées par l'auteur le 2026-11-14 (D2 à D5, « Fait ça et fais l'implémentation de manière autonome »), tâches figées, exécution en mode AUTO. Branches `chantier/mgui-nonalloc` dans le moteur (depuis `main` `f6f8006a`) et dans MGUI (depuis `develop` `e9d6a95d`).**
 
-**Relecture du 2026-11-14 : trois verdicts REVISE sur les tâches T1.1 à T1.4 de ce plan (voir O3) ; T0.1 jugée exécutable
-les trois fois. T0.1 s'exécute comme mesure ; T1.1 à T2.1 sont en pause jusqu'à la réponse de l'auteur à O3 et à une
-réécriture de ces tâches à partir de l'inventaire de T0.1.**
+**Relecture du 2026-11-14 : trois verdicts REVISE sur les tâches T1.1 à T1.4 ; elles ont été mises en pause sur O3, O4 et O5.**
+
+**2026-11-15 : l'auteur a répondu « Oui, les deux » à O3 et O5 (D6, D7), puis « et execute tout en mode auto car je pars dormir ». Les tâches T1.0 à T4.1 sont réécrites ci-dessous à partir de l'inventaire de T0.1 ; exécution en mode AUTO, sans push ni merge.**
 
 
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
@@ -60,6 +60,8 @@ Sites déjà connus :
 | D3 | (Q2) Ordre des fenêtres (b) : tri stable sans allocation à chaque image, dans une liste réutilisée ; pas de cache à invalider. |
 | D4 | (Q3) Mesure (b) : runtime de test de MGUI et renderer réel de CasaEngine. |
 | D5 | (Q4) Layout compris (b), en seconde phase : l'image sans invalidation d'abord (T1.x), puis le layout complet du bureau (T2.1). Le layout du parent d'un `MGTextBlock` dont le texte change est ici, pas dans le plan du texte (sa D4). |
+| D6 | (O3, 2026-11-15) Le périmètre D2 est étendu aux parties de la fenêtre elle-même : `MGBorder`, la barre de titre (`MGDockPanel`, `MGTextBlock`, `MGButton` au repos et survolé) et `MGResizeGrip`. |
+| D7 | (O5, 2026-11-15) `ClipScope` peut devenir réutilisable dans ce chantier : changement additif de l'API publique de `MGUI.Shared`, enregistré par un ADR de MGUI (T3.1). |
 
 ## Règles d'exécution pour l'agent
 
@@ -75,8 +77,7 @@ allocation imprévue. Langue : plan en français, code et commits en anglais.
 
 ## Tâches
 
-Ordre commun aux deux plans : T0.1 d'ici, puis le plan du texte jusqu'à sa T1.4 (sa T1.1 est le prérequis de T3.1
-d'ici), puis T1.x, T2.1 et T3.1 d'ici, puis le reste du texte, puis T4.1 d'ici. Validation de chaque tâche MGUI : `dotnet build MGUI/MGUI.sln`, `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj`.
+Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Validation de chaque tâche MGUI : `dotnet build MGUI/MGUI.sln`, `dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj`.
 
 ### ✅ T0.1 — Banc de mesure
 
@@ -115,74 +116,205 @@ d'ici), puis T1.x, T2.1 et T3.1 d'ici, puis le reste du texte, puis T4.1 d'ici. 
   - `Draw` : le bureau seul 88 ; une fenêtre nue 1585 de plus ; la barre de titre 1072 ; chaque élément ajouté coûte de
     370 à 600 octets alors que son `DrawSelf` vaut 0 (120 pour le texte) : le coût est dans le chemin commun
     `MGElement.Draw`, donc partagé par tous les contrôles, pas dans les conteneurs.
-- Limite de la mesure : la transaction de test rend le même `ClipScope` à chaque `Push`. `ClipScope` est une classe qui
+- Limite de la mesure : la transaction de test rend le même `ClipScope` à chaque `Push`. Un backend réel crée aussi une `ClipDefinition` (classe) par clip et un objet par changement temporaire de réglages ou de transformation (relecture du 2026-11-15). `ClipScope` est une classe qui
   prend un `Action` (`MGUI.Shared/Rendering/Clipping/ClipAbstractions.cs:87-106`) : un backend réel qui restaure le clip
   en alloue un par `Push`. Ce coût n'est pas dans le tableau ; il relève de T3.1.
 
-### ⚠️ T1.1 — Ordre des fenêtres sans allocation (D3)
+### Règles communes aux tâches T1.1 à T2.1 (réécriture du 2026-11-15)
 
-- Fichiers : `MGUI/MGUI.Core/UI/MGDesktop.cs` (tri de `Update` vers `:1623`, de `Draw` vers `:1760`).
-- Fin : les deux tris passent par une liste réutilisée et un tri stable sans LINQ ; tests d'ordre d'update, de dessin
-  et de hit-test (fenêtres `IsTopmost` et ordinaires mêlées) identiques avant et après ; test d'allocation nul sur ces
-  deux sites, contre-éprouvé (il échoue sur le code d'avant).
+- **Une affirmation de zéro par fixture, dans l'ordre.** Chaque tâche rend nulle la mesure d'une fixture du tableau de
+  T0.1, et cette fixture ne contient que du code traité par la tâche ou par une tâche antérieure. Le test de mesure
+  correspondant de `DesktopFrameAllocationMeasurements` devient une affirmation `Assert.Equal(0, …)`.
+- **Localisation par mesure.** Chaque tâche commence par localiser ses sites (retrait ou court-circuit temporaire d'un
+  appel, mesure, remise en place ; rien de temporaire n'est commité). La liste des sites (fichier, ligne, octets) est
+  écrite sous la tâche avant la correction.
+- **Contre-épreuve.** Chaque test de zéro est vu échouer sur le code d'avant la tâche (`git stash` des fichiers de
+  production, ou correction retirée à la main), avec le nombre d'octets noté sous la tâche.
+- **Comportement inchangé.** Avant de toucher au code de production, la tâche ajoute un test de caractérisation qui
+  passe sur le code d'avant : le journal ordonné de tous les appels de la transaction de T1.0
+  (`OrderedRecordingDrawTransaction`) pour sa fixture, image au repos, image de survol, image de glissement, comparé
+  au même journal produit après la tâche (valeur attendue figée dans le test, écrite depuis le code d'avant).
+  `GraphNoOpDrawTransaction` ne sert pas à cette preuve : elle ignore plusieurs appels et perd l'ordre entre les
+  sortes d'appels. Pour `Update` : ordre des appels `Update` des fenêtres, élément survolé, élément pressé et focus
+  après un scénario souris fixe.
+- **Arrêt.** Si un site est hors des fichiers de la tâche (brosses, `MGUI.Shared`, MonoGame, une classe de contrôle
+  hors de D2 et D6), ou si le corriger change une API publique ou un comportement observable, la tâche écrit la mesure
+  du site ici, passe en ⚠️ et s'arrête ; les tâches suivantes qui en dépendent ne commencent pas.
+- Aucune API publique de MGUI n'est modifiée ni retirée par T1.1 à T2.1. La seule tâche qui touche une API publique
+  est T3.1 (D7).
+- Validation de chaque tâche : `dotnet build MGUI.sln` 0 erreur, `dotnet test MGUI.Tests/MGUI.Tests.csproj` vert sans
+  test sauté, depuis `MGUI/`.
+
+### ⏳ T1.0 — Transaction de caractérisation
+
+- Fichiers (tests seulement) : `MGUI/MGUI.Tests/Graph/OrderedRecordingDrawTransaction.cs`,
+  `MGUI/MGUI.Tests/Architecture/OrderedRecordingDrawTransactionTests.cs`. Aucun code de production.
+- Travail : une transaction de test qui écrit, dans une seule suite ordonnée, une ligne par appel de chaque membre de
+  `IUIDrawTransaction` avec ses arguments : tous les membres de dessin (dont `StrokeRectangle`, `FillPoint`,
+  `FillPolygon`, `StrokeAndFillPolygon`, `FillCircle`, `StrokeCircle`, textes, textures, lignes, dégradés) ; chaque
+  `Push` de clip avec ses bornes et chaque `Dispose` du scope rendu ; `SetDrawSettingsTemporary` et
+  `SetTransformTemporary` avec leurs réglages et leur `Dispose` ; `SetRenderTargetTemporary` et son `Dispose`.
+- Fin : un test par réflexion vérifie que chaque membre de `IUIDrawTransaction` (et des interfaces qu'elle étend)
+  écrit une ligne ; sur la fixture `Full`, retirer un appel `StrokeRectangle` ou `FillRectangle` du journal attendu,
+  ou échanger deux appels de sortes différentes, fait échouer la comparaison (tests) ; deux images au repos
+  successives donnent le même journal.
+- Commit (MGUI) : `test(desktop): record every draw transaction call in order`
+
+### ⏳ T1.1 — Ordre des fenêtres sans allocation (D3)
+
+- Fichiers : `MGUI/MGUI.Core/UI/MGDesktop.cs` (phase `OrderedWindows` de `Update`, boucle des fenêtres de
+  `Draw(IUIDrawTransaction, float)`), test `MGUI/MGUI.Tests/Architecture/DesktopWindowOrderTests.cs`.
+- Travail : les deux expressions LINQ (`Windows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost).ToList()` et
+  `Windows.OrderBy(x => x.IsTopmost)`) sont remplacées par deux méthodes `internal static` qui remplissent une liste
+  fournie par l'appelant, par un tri stable écrit à la main (deux passes : une valeur de `IsTopmost`, puis l'autre).
+  `MGDesktop` garde une liste par site. Si `Update` ou `Draw` est rappelé pendant sa propre boucle (ré-entrance), le
+  site prend une liste neuve pour cet appel : la liste gardée n'est jamais modifiée pendant qu'elle est parcourue.
+  Les deux boucles continuent de parcourir une copie, comme aujourd'hui (une fenêtre ouverte ou fermée pendant la
+  boucle ne change pas le parcours en cours).
+- Fin :
+  - ordre : pour 2000 listes aléatoires de 0 à 12 fenêtres (graine fixe, `IsTopmost` mêlés), chaque méthode rend
+    exactement la séquence de l'expression LINQ qu'elle remplace ;
+  - zéro : chaque méthode, appelée seule 500 fois après chauffe sur une liste de 8 fenêtres, alloue 0 octet ;
+    contre-épreuve : le même test appliqué à l'expression LINQ d'origine alloue (nombre noté) ;
+  - caractérisation : ordre des `Update` et des `Draw` de 4 fenêtres mêlées, identique avant et après ; une fenêtre
+    fermée pendant son propre `Update` ne casse pas la boucle (test).
+- Hors de cette tâche : `MGDesktop.Update` entier n'est pas encore à zéro (T1.2 et T1.3).
 - Commit (MGUI) : `perf(desktop): order the windows without allocating`
 
-### ⚠️ T1.2 — Le travail propre de `MGDesktop.Update`
+### ⏳ T1.2 — Le bureau sans fenêtre de l'appelant
 
-- Périmètre : ce que `MGDesktop.Update` fait lui-même, hors du sous-arbre de `Window.Update` (qui appartient à T1.3 et
-  T1.4).
-- Fin : `MGDesktop.Update` d'un bureau sans fenêtre alloue 0 octet, au repos, contre-éprouvé (le test échoue sur le
-  code d'avant la tâche si T0.1 y a mesuré une allocation ; sinon la tâche se réduit à ce test et le dit).
-- Commit (MGUI) : `perf(desktop): update an idle desktop without allocating`
+- Fixture : `AnIdleFrame(NoWindow)` (aujourd'hui `Update` 1080 octets, `Draw` 88). Ce bureau n'est pas vide : à
+  chaque `Update`, `MGDesktop` insère sa fenêtre de surcouches privée (`OverlayWindow`, `MGDesktop.cs:1442-1448`,
+  `:1623-1624`), une `MGWindow` de style `None` dont le contenu est un `MGOverlayHost` (`MGOverlay.cs`), et appelle
+  son `Update`. Cette fenêtre fait partie de tout bureau : elle est dans l'objectif du plan (interprétation de la
+  session principale, notée ici ; elle n'ajoute aucun contrôle au périmètre de D2 et D6).
+- Fichiers : `MGUI/MGUI.Core/UI/MGDesktop.cs` et les classes de `MGUI.Core` que son `Update` et son `Draw` appellent
+  hors d'une fenêtre (suivi d'entrée, navigation, info-bulles, animations) ; `MGUI/MGUI.Core/UI/MGOverlay.cs` ; et le
+  chemin que la fenêtre de surcouches au repos parcourt dans `MGUI/MGUI.Core/UI/MGWindow.cs`, `MGElement.cs`
+  (`Update`, `Draw`, dont les deux `ClipDefinition` construites par élément vers `:5323`), les hôtes à contenu unique
+  dont `MGOverlayHost` dérive, `ElementDrawArgs.cs`, `ElementUpdateArgs.cs`. La liste exacte des sites est écrite sous
+  la tâche par la localisation.
+- Fin : `MGDesktop.Update()` et `MGDesktop.Draw(IUIDrawTransaction)` de cette fixture allouent 0 octet par image,
+  souris immobile puis souris en mouvement sans bouton ; contre-éprouvé ; caractérisation identique.
+- Commit (MGUI) : `perf(desktop): update and draw a desktop without windows without allocating`
 
-### ⚠️ T1.3 — `MGWindow` au repos
+### ⏳ T1.3 — Une fenêtre nue
 
-- Fin : `MGDesktop.Update` et `MGDesktop.Draw` d'un bureau dont la seule fenêtre n'a pas de contenu (barre de titre,
-  ombres, surcouches) allouent 0 octet pour une image sans invalidation ; tests d'allocation contre-éprouvés ; appels de dessin identiques (transaction enregistreuse).
-- Commit (MGUI) : `perf(window): update and draw an idle window without allocating`
+- Fixture : `AnIdleFrame(BareWindow)` (fenêtre sans barre de titre ni contenu ; aujourd'hui `Update` 1400, `Draw`
+  1673).
+- Fichiers : ceux de T1.2 (ce qu'une fenêtre visible parcourt de plus dans `MGWindow.cs` et `MGElement.cs` : fond,
+  bordure, ombre, états visuels), `MGUI/MGUI.Core/UI/MGBorder.cs` et `MGResizeGrip.cs` (parties de la fenêtre, D6).
+- Fin : `MGDesktop.Update()` et `MGDesktop.Draw(IUIDrawTransaction)` de cette fixture allouent 0 octet par image, au
+  repos (souris hors de la fenêtre) et souris immobile au-dessus de la fenêtre ; contre-éprouvé ; caractérisation des
+  appels de dessin identique.
+- La transaction de test rend le même `ClipScope` à chaque `Push` : le coût du clip d'un backend réel n'est pas dans
+  cette preuve (T3.1).
+- Commit (MGUI) : `perf(window): update and draw a bare window without allocating`
 
-### ⚠️ T1.4 — Conteneurs, et preuve de bout en bout
+### ⏳ T1.4 — La barre de titre (D6)
 
-- Fichiers : `MGStackPanel`, `MGGrid`, `MGDockPanel`, `MGDockHost`, et ce qui reste à zéro dans `MGTextBlock` et `MGSlider` au repos (update et dessin sans invalidation).
-- Fin : `MGDesktop.Update` entier et `MGDesktop.Draw` entier (les tests de mesure de T0.1 deviennent des affirmations
-  de zéro) : une image complète du bureau (fenêtre avec `MGStackPanel`, `MGGrid`, `MGDockPanel`, un `MGTextBlock` et un
-  `MGSlider`) n'alloue rien, au repos et pendant un glissement du slider ; même preuve pour un `MGDockHost` ; tests
-  contre-éprouvés.
-- Commit (MGUI) : `perf(layout): draw the slider's containers without allocating`
+- Fixture : `AnIdleFrame(DefaultWindow)` (fenêtre par défaut sans contenu ; aujourd'hui `Draw` 2745).
+- Fichiers : `MGUI/MGUI.Core/UI/MGWindow.cs` (barre de titre), `MGButton.cs`, `Containers/MGDockPanel.cs` ; pour
+  `MGTextBlock`, seulement ce que le plan du texte n'a pas traité (un texte sans balise au repos est à zéro depuis sa
+  T1.4 ; un écart mesuré ici est noté, pas corrigé dans `MGTextBlock.cs` sans le dire sous la tâche).
+- Fin : `Update` et `Draw` du bureau avec cette fenêtre : 0 octet par image, au repos, souris au-dessus de la barre de
+  titre, et souris au-dessus du bouton de fermeture (état survolé) ; contre-éprouvé ; caractérisation identique dans
+  ces trois états. Un clic sur le bouton n'est pas dans la preuve (fermer une fenêtre alloue légitimement).
+- Commit (MGUI) : `perf(window): draw the title bar without allocating`
 
-### ⚠️ T2.1 — Layout complet sans allocation (D5)
+### ⏳ T1.5 — Conteneurs, et preuve de bout en bout sans invalidation
 
-- Fin : après une invalidation de layout (taille d'un enfant, texte d'un `MGTextBlock` changé par le chemin du plan du
-  texte), la mesure et l'arrangement de la fenêtre et des conteneurs de D2 n'allouent rien ; tailles et positions
-  identiques avant et après sur un jeu de fenêtres de test.
+- Fixtures : `AnIdleFrame(WindowWithStackPanel)`, `…AndTextBlock`, `…AndSlider`, `AnIdleFrame(Full)`,
+  `ADragFrame_OnTheFullFixture` (aujourd'hui `Draw` de 3345 à 4241), plus trois fixtures nouvelles : la fixture
+  complète posée dans un `MGGrid` (2 lignes, 2 colonnes), dans un `MGDockPanel`, et dans un `MGDockHost` à un seul
+  groupe d'onglets.
+- Fichiers : `Containers/MGStackPanel.cs`, `Containers/Grids/MGGrid.cs`, `Containers/MGDockPanel.cs`, les fichiers de
+  `MGDockHost` et de ses parties (`Docking/Controls/`), ce qui reste dans `MGSlider.cs` au repos, et `MGTextBlock.cs`
+  si son `DrawSelf` au repos alloue encore (T0.1 y mesurait 120 octets avant le plan du texte ; à remesurer en début
+  de tâche).
+- Fin : tous les tests de mesure de T0.1 sont des affirmations de zéro, `Update` et `Draw`, au repos et pendant un
+  glissement du slider (texte du label inchangé) ; même preuve pour les trois fixtures nouvelles ; contre-éprouvés ;
+  caractérisation identique. Si `MGDockHost` demande plus que ses propres fichiers (onglets, boutons d'onglet hors de
+  D2 et D6), sa fixture est retirée de la preuve, sa mesure est notée ici et reportée dans T4.1 ; les autres fixtures
+  restent exigées.
+- Commit (MGUI) : `perf(layout): update and draw the slider's containers without allocating`
+
+### ⏳ T2.1 — Layout complet sans allocation (D5)
+
+- Prérequis : T1.5 ✅ ; plan du texte terminé (c'est le cas).
+- Fixture : la fixture complète, dont le `MGTextBlock` reçoit à chaque image un texte de longueur différente par
+  `SetText(ReadOnlySpan<char>)` en `RelayoutParent` (le plan du texte y a mesuré environ 2850 octets par image).
+- Fichiers : `MGElement.cs` (`UpdateMeasurement`, `UpdateLayout`, `InvokeLayoutChanged` et leurs caches),
+  `MGWindow.cs`, `Containers/MGStackPanel.cs`, `Containers/Grids/MGGrid.cs`, `Containers/MGDockPanel.cs`.
+- Fin : `Update` puis `Draw` du bureau, après chaque changement de texte, allouent 0 octet ; les `LayoutBounds` de
+  chaque élément de la fixture sont égaux, image par image, à ceux du code d'avant (suite figée de 50 textes) ;
+  contre-éprouvé. `MGGrid` et `MGDockPanel` sont prouvés par les fixtures de T1.5 avec le même changement de texte.
 - Commit (MGUI) : `perf(layout): measure and arrange the slider's containers without allocating`
 
-### ⏳ T3.1 — Mesure sur le renderer de CasaEngine (D4)
+### ⏳ T3.1 — `ClipScope` réutilisable (D7)
 
-- Fichiers (runtime) : `CasaEngine/Framework/UI/Backend/MonoGame/` ; test dans `CasaEngine.Tests/UI/`
-  (`HeadlessUiTestHarness`).
-- Fin : la même image du bureau mesurée avec `CasaDesktopRuntime` et `CasaDrawTransaction` ; ce qui alloue dans le
-  backend du moteur est corrigé ou listé avec sa mesure. Si le harnais sans GPU ne peut pas dessiner, la mesure se fait
-  dans une démo instrumentée et la tâche reste 🧪 avec les chiffres.
-- Validation : les deux solutions du moteur, `CasaEngine.Tests`.
+- Unité à risque (API publique de `MGUI.Shared`, MGUI et moteur) : `verifier` frais après T3.2.
+- Fichiers (MGUI) : `MGUI.Shared/Rendering/Clipping/ClipAbstractions.cs`,
+  `MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs` (`ClipScope` : `:1076`, `:1114` ; `ClipDefinition`, une
+  classe, créée à chaque appel : `:1074`, `:1099`),
+  `MGUI.MonoGame.Integration/Rendering/Clipping/ClipManager.cs` (`:38` pour la stratégie `None`, `:94`, `:121`,
+  `:162`), ADR `Docs/decisions/0027-reusable-clip-scope.md` et son index.
+- Les `ClipDefinition` de ces sites sont retirées sans toucher à un type public : une définition `None` gardée, et
+  une définition de rectangle gardée par profondeur de pile ou une surcharge interne qui évite l'objet.
+- Arrêt : si un site demande un changement public autre que celui de `ClipScope` (D7), par exemple sur
+  `ClipDefinition` ou `ClipResolveResult`, ou un changement de comportement observable, la tâche écrit la mesure du
+  site ici, passe en ⚠️ et s'arrête ; T3.2 ne commence pas.
+- Contrat : changement **additif**. Le constructeur `ClipScope(ClipResolveResult, Action)` et `Dispose()` gardent
+  leur signature et leur comportement ; tout code qui crée un `ClipScope` par `new` continue de compiler et de se
+  comporter comme avant. Un `ClipScope` gagne le moyen d'être rendu à son propriétaire après `Dispose` et réarmé avec
+  une nouvelle `Resolution` (forme exacte décidée dans la tâche et écrite dans l'ADR). `DrawTransaction` et
+  `ClipManager` gardent leurs scopes par profondeur de pile, avec leur action de restauration en cache.
+- Fin :
+  - `PushRectangleClip` (avec des bornes, et avec `null`), `PushClipTemporary` (rectangle, et stratégie `None`) et
+    leur `Dispose`, 500 paires après chauffe sur `DrawTransaction` (GPU réel, `[GpuFact]`, aucun test sauté sur cette
+    machine) : 0 octet ; contre-éprouvé ;
+  - `SetDrawSettingsTemporary` et `SetTransformTemporary` de `DrawTransaction` allouent un `TemporaryChange`
+    (`:1044-1052`) : hors de cette tâche, mesure écrite ici ;
+  - même rectangle de scissor et mêmes états du `GraphicsDevice` après chaque `Push` et chaque `Dispose` qu'avant,
+    sur une suite de clips imbriqués à 4 niveaux (rectangle, sans clip, intersection) ; un `Dispose` appelé deux
+    fois sur le même scope reste sans effet la seconde fois, tant que le scope n'a pas été réarmé ;
+  - les clips à stencil et à masque (`:121`, `:162`, `PushMask`) gardent leur comportement ; s'ils allouent encore,
+    leur mesure est écrite ici (ils ne sont pas dans l'image du bureau de D2).
+- Commit (MGUI) : `feat(clip): let a backend reuse its clip scopes`
+
+### ⏳ T3.2 — Mesure sur le renderer de CasaEngine (D4)
+
+- Prérequis : T1.5 ✅ et T3.1 ✅.
+- Fichiers (runtime) : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs` (`ClipScope` : `:676`,
+  `:706` ; `ClipDefinition` : `:674`, `:694` ; changements temporaires de réglages et de transformation),
+  `Clipping/CasaStencilClipExecutor.cs`, `Clipping/CasaMaskClipExecutor.cs`, `Clipping/CasaClipManager.cs` (`:38`) ; test
+  `CasaEngine.Tests/UI/Backend/DesktopFrameGpuAllocationTests.cs` (`GpuDeviceHost`, comme `TextSpanGpuTests`).
+- Fin : la fixture complète de T1.5 (fenêtre par défaut, `MGStackPanel`, `MGTextBlock`, `MGSlider`), mise à jour et
+  dessinée par `CasaDesktopRuntime` et `CasaDrawTransaction` sur GPU réel, moteur de texte FontStashSharp : 0 octet
+  par image au repos et pendant un glissement ; contre-éprouvé ; pixels de l'image égaux avant et après la tâche
+  (image de référence prise sur le code d'avant). Ce qui alloue dans le backend et ne peut pas être corrigé dans ces
+  fichiers est listé ici avec sa mesure, et la tâche reste 🧪.
+- Validation : les deux solutions du moteur 0 erreur, `CasaEngine.Tests` vert sans test sauté.
 - Commit (moteur) : `perf(ui): draw a desktop frame through the engine backend without allocating`, avec la référence
   du sous-module.
 
-### ⏳ T4.1 — Suite par famille de contrôles (D2)
+### ⏳ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
-- Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand T0.1 l'a donnée, est dans
-  `ai-agent/README.md` comme suite à planifier. Aucun code.
-- Commit (moteur) : `docs(ai-agent): list the control families left to make allocation-free`
+- Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
+  `ai-agent/README.md` comme suite à planifier ; `MGUI/Docs/layout-architecture.md` et
+  `docs/engine/casaengine-mgui-backend.md` disent ce qui est à zéro et ce qui ne l'est pas ; `verifier` frais sur le
+  chantier (T1.1 à T3.2) ; `MGUI.Tests`, les deux solutions du moteur et `CasaEngine.Tests` verts.
+- Commit (moteur) : `docs(ai-agent): close the allocation-free desktop frame and list what is left`
 
 ## Points ouverts
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Les chiffres ci-dessus incluent la transaction enregistreuse du banc de test ; ils servent d'ordre de grandeur seulement. | T0.1 |
-| O2 | L'arbre de l'auteur a déplacé la référence du sous-module MGUI de `a3c42cb0` à `e9d6a95d` (`develop`) sans la committer. La branche MGUI part de `develop` ; le commit de référence du moteur embarquera donc aussi ces deux commits de l'auteur. À confirmer par l'auteur avant tout merge. | T3.1 |
-| O3 | La barre de titre de `MGWindow` est visible par défaut et faite d'un `MGDockPanel`, d'un `MGTextBlock` et d'un `MGButton` (`MGWindow.cs:41-43`, `:1675-1680`). `MGButton` est hors du périmètre D2. Question à l'auteur : (a) étendre D2 aux parties de la fenêtre elle-même, `MGButton` au repos compris (recommandé : sans cela aucune fenêtre à barre de titre n'est à zéro) ; (b) garder D2 et prouver le zéro sur une fenêtre sans barre de titre. Les tâches T1.1 à T1.4 sont à réécrire ensuite pour que chaque affirmation de zéro ne couvre que le code de sa tâche ou d'une tâche antérieure (pour T1.1 : un tri appelable seul par le test). | T1.1 à T2.1 |
-| O4 | T0.1 montre que le coût du dessin est dans `MGElement.Draw` (commun à tous les contrôles) et dans `MGWindow.Draw`, pas dans les conteneurs : le découpage T1.3 / T1.4 par conteneur ne correspond pas aux sites. Proposition pour la réécriture : T1.1 tri des fenêtres ; T1.2 travail propre de `MGDesktop.Update` (1080) et `Draw` (88) ; T1.3 `MGElement.Draw` commun ; T1.4 `MGWindow.Update` et `Draw` ; T1.5 barre de titre selon O3. | T1.1 à T1.4 |
-| O5 | `ClipScope` (classe, `Action` par `Push`) force une allocation par clip dans tout backend réel. La rendre réutilisable change une API publique de `MGUI.Shared`. Question à l'auteur : l'autoriser dans ce chantier (recommandé, sinon le zéro n'existe que sur le banc de test) ? | T3.1 |
+| O1 | Les chiffres de « État vérifié » incluent la transaction enregistreuse du banc de test ; ceux de T0.1 non. | T0.1 |
+| O2 | L'arbre de l'auteur a déplacé la référence du sous-module MGUI de `a3c42cb0` à `e9d6a95d` (`develop`) sans la committer. La branche MGUI part de `develop` ; le commit de référence du moteur embarque donc aussi ces deux commits de l'auteur. À confirmer par l'auteur avant tout merge. | T3.2 |
+| O3 | Résolu le 2026-11-15 : D6. | — |
+| O4 | Résolu le 2026-11-15 : tâches T1.0 à T1.5 réécrites par fixture, dans l'ordre de l'inventaire de T0.1. | — |
+| O5 | Résolu le 2026-11-15 : D7. | — |
 
 ## Hors périmètre
 
