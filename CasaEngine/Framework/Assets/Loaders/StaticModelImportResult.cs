@@ -82,6 +82,12 @@ public sealed class StaticModelImportedMaterial
     /// <summary>glTF <c>occlusionTexture.strength</c> (default 1).</summary>
     public float OcclusionStrength { get; set; } = 1.0f;
 
+    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatFactor</c> (ADR-0114; 0 when the material has no clear coat).</summary>
+    public float ClearCoatFactor { get; set; }
+
+    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatRoughnessFactor</c> (0 when the material has no clear coat).</summary>
+    public float ClearCoatRoughnessFactor { get; set; }
+
     /// <summary>glTF <c>alphaMode</c> (default opaque).</summary>
     public StaticModelAlphaMode AlphaMode { get; set; } = StaticModelAlphaMode.Opaque;
 

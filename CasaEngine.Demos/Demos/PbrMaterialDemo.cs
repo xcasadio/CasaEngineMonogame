@@ -32,8 +32,11 @@ namespace CasaEngine.Demos.Demos;
 /// camera and freezes the skinned animation, so a capture needs no key press and two captures are identical;
 /// <c>CASAENGINE_PBR_DEMO_IBL=0</c> removes the specular environment cube from the lighting (the sky stays);
 /// <c>CASAENGINE_PBR_DEMO_BLOOM=0</c> switches the bloom off; <c>CASAENGINE_PBR_DEMO_GLASS=0</c> and
-/// <c>CASAENGINE_PBR_DEMO_SKINNED=0</c> remove the glass sphere and the skinned character. The measurement pixels and segments are
-/// the constants of <see cref="Measurement"/>.
+/// <c>CASAENGINE_PBR_DEMO_SKINNED=0</c> remove the glass sphere and the skinned character. <c>CASAENGINE_PBR_DEMO_CLEARCOAT=1</c>
+/// (plan T2.2, ADR-0114) adds a row of five red dielectric spheres on the ground between the grid and the probes, with <c>clear_coat</c> 0, 0.25, 0.5, 0.75
+/// and 1; <c>CASAENGINE_PBR_DEMO_CLEARCOAT=flat</c> adds the same row with every <c>clear_coat</c> at 0 (the control of the
+/// measurement). Without the variable the scene is unchanged. The measurement pixels and segments are the constants of
+/// <see cref="Measurement"/>.
 /// </para>
 /// </summary>
 public sealed class PbrMaterialDemo : Demo
@@ -43,6 +46,7 @@ public sealed class PbrMaterialDemo : Demo
     private const string BloomVariable = "CASAENGINE_PBR_DEMO_BLOOM";
     private const string GlassVariable = "CASAENGINE_PBR_DEMO_GLASS";
     private const string SkinnedVariable = "CASAENGINE_PBR_DEMO_SKINNED";
+    private const string ClearCoatVariable = "CASAENGINE_PBR_DEMO_CLEARCOAT";
     private const string IblAction = "PbrMaterial.Ibl";
     private const float ExposureStep = 0.25f;
     private const int IblSummaryFrame = 600;
@@ -77,6 +81,17 @@ public sealed class PbrMaterialDemo : Demo
     private const int CheckerColumns = 8;
     private const int CheckerRows = 6;
     private const int CheckerCellSize = 8;
+
+    // The clear coat row (plan T2.2): five spheres on the ground between the grid and the probes, a red dielectric of roughness 0.6 whose
+    // clear_coat is 0, 0.25, 0.5, 0.75 and 1 left to right. The base is rougher than the grid so its own highlight is wide and dim,
+    // and the sharp highlight of the coat (roughness 0.1) stands out of it.
+    private const int ClearCoatSphereCount = 5;
+    private const float ClearCoatSphereRadius = 1.2f;
+    private const float ClearCoatSphereSpacing = 2.6f;
+    private const float ClearCoatBaseRoughness = 0.6f;
+    private const float ClearCoatLayerRoughness = 0.1f;
+    private static readonly Color ClearCoatBaseColor = new(200, 40, 30);
+    private static readonly Vector3 ClearCoatFirstSphere = new(-5.2f, GroundTopY + ClearCoatSphereRadius, -4.0f);
 
     private static readonly Vector3 SkinnedPosition = new(16.2f, GroundTopY, 2.5f);
     private const float SkinnedScale = 0.065f;
@@ -145,10 +160,30 @@ public sealed class PbrMaterialDemo : Demo
         // demo logs the generation counter of the IBL cache at frame IblSummaryFrame (it must be 1).
         public static readonly Point MirrorPixel = new(385, 395);
         public const float MinimumIblDrop = 30.0f;
+
+        // (8) The clear coat row (CASAENGINE_PBR_DEMO_CLEARCOAT=1, together with CASAENGINE_PBR_DEMO_BLOOM=0): one disc per sphere,
+        // clear_coat 0, 0.25, 0.5, 0.75 and 1 from left to right, entirely inside the sphere (the spheres are about 36 px in radius,
+        // the discs 30 px). The maximum luminance in the disc of the last sphere is at least MinimumClearCoatGain levels above the
+        // one of the first sphere. The control is CASAENGINE_PBR_DEMO_CLEARCOAT=flat (every clear_coat at 0): the same two discs differ
+        // by at most MaximumClearCoatControlDifference levels. The visible growth is bounded by the display white (the highlight of
+        // the coat saturates from clear_coat 0.5); the strict growth of the coat with clear_coat is proved by the GPU test of plan T2.1.
+        public readonly record struct Disc(int CentreX, int CentreY, int Radius);
+
+        public static readonly Disc[] ClearCoatDiscs =
+        {
+            new(358, 529, 30), new(435, 529, 30), new(512, 529, 30), new(589, 529, 30), new(666, 529, 30),
+        };
+
+        public const float MinimumClearCoatGain = 20.0f;
+        public const float MaximumClearCoatControlDifference = 3.0f;
     }
+
+    /// <summary>The <c>clear_coat</c> of sphere <paramref name="index"/> of the clear coat row (0 on the left): 0, 0.25, 0.5, 0.75, 1.</summary>
+    public static float ClearCoatOfSphere(int index) => index / (float)(ClearCoatSphereCount - 1);
 
     private CasaEngineGame? _game;
     private bool _validation;
+    private ClearCoatRowMode _clearCoatRow;
     private bool _iblOn = true;
     private bool _bloomOn = true;
     private bool _glassOn = true;
@@ -220,6 +255,12 @@ public sealed class PbrMaterialDemo : Demo
         _bloomOn = Environment.GetEnvironmentVariable(BloomVariable) != "0";
         _glassOn = Environment.GetEnvironmentVariable(GlassVariable) != "0";
         _skinnedOn = Environment.GetEnvironmentVariable(SkinnedVariable) != "0";
+        _clearCoatRow = Environment.GetEnvironmentVariable(ClearCoatVariable) switch
+        {
+            "1" => ClearCoatRowMode.Graded,
+            "flat" => ClearCoatRowMode.Flat,
+            _ => ClearCoatRowMode.Off,
+        };
         _frame = 0;
         _lastLoggedGenerationCount = 0;
         _overridesApplied = false;
@@ -245,7 +286,12 @@ public sealed class PbrMaterialDemo : Demo
             AddSkinnedCharacter(game, world);
         }
 
-        Logs.WriteInfo($"[PbrMaterialDemo] validation {_validation}, IBL {_iblOn}, bloom {_bloomOn}, glass {_glassOn}, skinned {_skinnedOn}.");
+        if (_clearCoatRow != ClearCoatRowMode.Off)
+        {
+            AddClearCoatRow(world, graphicsDevice);
+        }
+
+        Logs.WriteInfo($"[PbrMaterialDemo] validation {_validation}, IBL {_iblOn}, bloom {_bloomOn}, glass {_glassOn}, skinned {_skinnedOn}, clear coat row {_clearCoatRow}.");
     }
 
     public override void ConfigureSceneLighting(World world)
@@ -374,6 +420,7 @@ public sealed class PbrMaterialDemo : Demo
         _bloomOn = true;
         _glassOn = true;
         _skinnedOn = true;
+        _clearCoatRow = ClearCoatRowMode.Off;
         _game = null;
     }
 
@@ -477,6 +524,41 @@ public sealed class PbrMaterialDemo : Demo
         }
 
         _overridesApplied = attached == _gridComponents.Count;
+    }
+
+    /// <summary>
+    /// The clear coat row: one material per sphere (a red dielectric of roughness 0.6), <c>clear_coat</c> from 0 to 1, or 0 on every
+    /// sphere in the <see cref="ClearCoatRowMode.Flat"/> control. The spheres do not cast shadows.
+    /// </summary>
+    private void AddClearCoatRow(World world, GraphicsDevice graphicsDevice)
+    {
+        for (int index = 0; index < ClearCoatSphereCount; index++)
+        {
+            float clearCoat = _clearCoatRow == ClearCoatRowMode.Graded ? ClearCoatOfSphere(index) : 0.0f;
+            AddPrimitive(
+                world,
+                graphicsDevice,
+                $"PBR clear coat {index}",
+                new SpherePrimitive(ClearCoatSphereRadius * 2.0f, 48),
+                ClearCoatFirstSphere + new Vector3(ClearCoatSphereSpacing * index, 0.0f, 0.0f),
+                new LitPbrMaterial
+                {
+                    Name = $"PbrClearCoat{index}",
+                    BaseColor = ClearCoatBaseColor,
+                    Metallic = 0.0f,
+                    Roughness = ClearCoatBaseRoughness,
+                    ClearCoat = clearCoat,
+                    ClearCoatRoughness = ClearCoatLayerRoughness,
+                },
+                castShadows: false);
+        }
+    }
+
+    private enum ClearCoatRowMode
+    {
+        Off,
+        Graded,
+        Flat,
     }
 
     private void AddGoldSphere(World world, GraphicsDevice graphicsDevice)

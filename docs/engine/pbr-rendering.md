@@ -12,7 +12,7 @@ Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-p
 4. **Add a directional light with shadows** as for any lit material; point and spot lights are evaluated by the same BRDF.
 5. **Optional**: turn bloom on, add local reflection probes, put a `PbrMaterial` on a skinned mesh.
 
-`CasaEngine.Demos` has `PBR material demo` (a metal and roughness grid, a glass sphere, an emissive sphere with bloom, a skinned character, IBL) and `Skinned mesh demo` (Blinn-Phong or PBR with the `P` key). Their bench variables are listed in [demos-check-notes.md](demos-check-notes.md) and [demos-main-menu.md](demos-main-menu.md).
+`CasaEngine.Demos` has `PBR material demo` (a metal and roughness grid, a glass sphere, an emissive sphere with bloom, a skinned character, IBL, and with `CASAENGINE_PBR_DEMO_CLEARCOAT=1` a row of five clear-coated spheres) and `Skinned mesh demo` (Blinn-Phong or PBR with the `P` key). Their bench variables are listed in [demos-check-notes.md](demos-check-notes.md) and [demos-main-menu.md](demos-main-menu.md).
 
 ## The `lit-pbr` material
 
@@ -79,6 +79,8 @@ A skinned mesh draws PBR when its `SkinnedMeshComponent.PbrMaterial` (a `LitPbrM
 ## glTF import
 
 `GltfStaticModelReader` keeps the PBR channels of a glTF material (ADR-0111): metallic and roughness factors, metallic-roughness, occlusion and emissive textures, normal scale, occlusion strength, alpha mode and cutoff, double-sided. A material without a `pbrMetallicRoughness` block gets the glTF defaults (metal 1, roughness 1), except `KHR_materials_unlit` (metal 0).
+
+The `KHR_materials_clearcoat` extension is read too (ADR-0114): SharpGLTF 1.0.6 exposes it as the `ClearCoat` channel (factor `ClearCoatFactor`) and the `ClearCoatRoughness` channel (factor `RoughnessFactor`), which become `StaticModelImportedMaterial.ClearCoatFactor` and `ClearCoatRoughnessFactor` (0 for a material without the extension). The `LitPbr` import writes `clear_coat` and `clear_coat_roughness` only when the factor is above 0, so every other material keeps the file it had; the `LitDiffuse` import ignores the extension. The clear coat texture, the clear coat normal texture and the clear coat roughness texture of the extension are not read (the clear coat has no texture).
 
 `EditorAssetImportService.ImportFile(..., EditorAssetImportOptions)` with `MaterialTemplate = ImportedMaterialTemplate.LitPbr` writes `lit-pbr` materials; the default stays `LitDiffuse` and its output is byte-identical to before (pinned by a reference file). In `LitPbr` the RGB of `baseColorFactor` and `emissiveFactor` (linear in glTF) is encoded with `c^(1/2.2)` so that `LinearHdr` gives back the glTF value; OPAQUE, MASK and BLEND become the `Opaque`, `AlphaTest` (with the cutoff) and `Transparent` queues; `doubleSided` becomes `CullNone`.
 

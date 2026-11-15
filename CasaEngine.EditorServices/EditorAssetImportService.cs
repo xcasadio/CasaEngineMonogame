@@ -832,6 +832,14 @@ public static class EditorAssetImportService
         material.SetPropertyValue("normal_scale", MaterialValue.FromFloat(importedMaterial.NormalScale));
         material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(importedMaterial.AlphaCutoff));
 
+        // KHR_materials_clearcoat (ADR-0114): the two keys are written only for a material that has a clear coat, so every other
+        // imported material keeps the file it had before.
+        if (importedMaterial.ClearCoatFactor > 0.0f)
+        {
+            material.SetPropertyValue("clear_coat", MaterialValue.FromFloat(importedMaterial.ClearCoatFactor));
+            material.SetPropertyValue("clear_coat_roughness", MaterialValue.FromFloat(importedMaterial.ClearCoatRoughnessFactor));
+        }
+
         int materialIndex = importedMaterial.MaterialIndex;
         SetTextureIfImported(material, "base_color_texture", importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex, materialIndex);
         SetTextureIfImported(material, "normal_texture", importedTextureAssets.NormalTextureAssetIdsByMaterialIndex, materialIndex);

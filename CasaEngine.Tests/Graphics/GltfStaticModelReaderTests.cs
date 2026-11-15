@@ -479,6 +479,93 @@ public class GltfStaticModelReaderTests
     }
 
     /// <summary>
+    /// Proof of T2.2 (plan clear coat, step 1): SharpGLTF 1.0.6 can write the KHR_materials_clearcoat extension through its own API
+    /// (<c>InitializePBRMetallicRoughness("ClearCoat")</c> then the <c>ClearCoat</c> channel, factor <c>ClearCoatFactor</c>, and the
+    /// <c>ClearCoatRoughness</c> channel, factor <c>RoughnessFactor</c>) and read it back; the reader
+    /// of the engine then sees the same factors.
+    /// </summary>
+    [Fact]
+    public void SharpGltf_WritesAndReadsTheClearCoatChannel_ThroughItsApi()
+    {
+        string modelPath = CreateMinimalGltfProbe(roughnessFactor: 0.5f);
+
+        try
+        {
+            string clearCoatPath = WriteClearCoatVariant(modelPath, clearCoatFactor: 0.8f, clearCoatRoughnessFactor: 0.2f);
+
+            var reloaded = SharpGLTF.Schema2.ModelRoot.Load(clearCoatPath);
+            var channel = reloaded.LogicalMaterials[0].FindChannel("ClearCoat");
+            var roughnessChannel = reloaded.LogicalMaterials[0].FindChannel("ClearCoatRoughness");
+
+            Assert.NotNull(channel);
+            Assert.Equal(0.8f, channel.Value.GetFactor("ClearCoatFactor"), 4);
+            Assert.NotNull(roughnessChannel);
+            Assert.Equal(0.2f, roughnessChannel.Value.GetFactor("RoughnessFactor"), 4);
+            Assert.Contains("KHR_materials_clearcoat", File.ReadAllText(clearCoatPath));
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    [Fact]
+    public void ReadWithMetadata_ReadsTheClearCoatFactorAndRoughness()
+    {
+        string modelPath = CreateMinimalGltfProbe(roughnessFactor: 0.5f);
+
+        try
+        {
+            string clearCoatPath = WriteClearCoatVariant(modelPath, clearCoatFactor: 0.8f, clearCoatRoughnessFactor: 0.2f);
+
+            var material = Assert.Single(new GltfStaticModelReader().ReadWithMetadata(clearCoatPath).Materials);
+
+            Assert.Equal(0.8f, material.ClearCoatFactor, 4);
+            Assert.Equal(0.2f, material.ClearCoatRoughnessFactor, 4);
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    [Fact]
+    public void ReadWithMetadata_LeavesTheClearCoatAtZeroForMaterialsWithoutTheExtension()
+    {
+        string modelPath = CreatePbrGltfProbe();
+
+        try
+        {
+            var result = new GltfStaticModelReader().ReadWithMetadata(modelPath);
+
+            Assert.Equal(6, result.Materials.Count);
+            foreach (var material in result.Materials)
+            {
+                Assert.Equal(0.0f, material.ClearCoatFactor);
+                Assert.Equal(0.0f, material.ClearCoatRoughnessFactor);
+            }
+        }
+        finally
+        {
+            DeleteProbeDirectory(modelPath);
+        }
+    }
+
+    private static string WriteClearCoatVariant(string sourcePath, float clearCoatFactor, float clearCoatRoughnessFactor)
+    {
+        var model = SharpGLTF.Schema2.ModelRoot.Load(sourcePath);
+        var material = model.LogicalMaterials[0];
+        material.InitializePBRMetallicRoughness("ClearCoat");
+        var channel = material.FindChannel("ClearCoat")!.Value;
+        channel.SetFactor("ClearCoatFactor", clearCoatFactor);
+        material.FindChannel("ClearCoatRoughness")!.Value.SetFactor("RoughnessFactor", clearCoatRoughnessFactor);
+
+        string path = Path.Combine(Path.GetDirectoryName(sourcePath)!, "clearcoat.gltf");
+        model.SaveGLTF(path);
+        return path;
+    }
+
+    /// <summary>
     /// A glTF with six materials: a fully textured opaque one with non-default factors, a masked double-sided one,
     /// a blended one, an opaque double-sided one a plain one that relies on every glTF default and an unlit one.
     /// The five external images exist on disk as 1x1 PNG files.

@@ -178,6 +178,71 @@ public class EditorAssetImportMaterialTemplateTests
         Assert.Equal(ImportedMaterialTemplate.LitDiffuse, new EditorAssetImportOptions().MaterialTemplate);
     }
 
+    [Fact]
+    public void ImportFile_LitPbrWritesTheClearCoatKeysOnlyForAMaterialThatHasAClearCoat()
+    {
+        WithProbe(
+            path =>
+            {
+                AddClearCoatToTheOpaqueMaterial(path, clearCoatFactor: 0.8f, clearCoatRoughnessFactor: 0.2f);
+                return EditorAssetImportService.ImportFile(path, path, null, new EditorAssetImportOptions { MaterialTemplate = ImportedMaterialTemplate.LitPbr });
+            },
+            directory =>
+            {
+                JToken coated = ReadMaterial(directory, "Opaque")["properties"]!;
+                Assert.Equal(0.8f, (float)coated["clear_coat"]!, FloatTolerance);
+                Assert.Equal(0.2f, (float)coated["clear_coat_roughness"]!, FloatTolerance);
+
+                // The other channels of the same material are read as before (roughness 0.6 set by the helper).
+                Assert.Equal(0.6f, (float)coated["roughness"]!, FloatTolerance);
+
+                foreach (string name in new[] { "Masked", "Blended", "OpaqueDoubleSided", "Plain", "Unlit" })
+                {
+                    JToken properties = ReadMaterial(directory, name)["properties"]!;
+                    Assert.Null(properties["clear_coat"]);
+                    Assert.Null(properties["clear_coat_roughness"]);
+                }
+
+                // The written document loads back as a lit-pbr material with the two values.
+                var loaded = new CasaEngine.Framework.Materials.Runtime.MaterialAsset();
+                loaded.Load(ReadMaterial(directory, "Opaque"));
+                Assert.True(loaded.GetPropertyValueOrDefault("clear_coat")!.TryGetFloat(out var loadedClearCoat));
+                Assert.Equal(0.8f, loadedClearCoat, FloatTolerance);
+            });
+    }
+
+    [Fact]
+    public void ImportFile_LitDiffuseIgnoresTheClearCoatOfTheGltf()
+    {
+        WithProbe(
+            path =>
+            {
+                AddClearCoatToTheOpaqueMaterial(path, clearCoatFactor: 0.8f, clearCoatRoughnessFactor: 0.2f);
+                return EditorAssetImportService.ImportFile(path, path, null, new EditorAssetImportOptions());
+            },
+            directory =>
+            {
+                string text = File.ReadAllText(ReadMaterialPath(directory, "Opaque"));
+                Assert.DoesNotContain("clear_coat", text);
+                Assert.Equal("lit-diffuse", (string?)ReadMaterial(directory, "Opaque")["definition_id"]);
+            });
+    }
+
+    private static void AddClearCoatToTheOpaqueMaterial(string gltfPath, float clearCoatFactor, float clearCoatRoughnessFactor)
+    {
+        var model = SharpGLTF.Schema2.ModelRoot.Load(gltfPath);
+        var material = model.LogicalMaterials.Single(candidate => candidate.Name == "Opaque");
+        // InitializePBRMetallicRoughness resets the metallic-roughness channel to the glTF defaults: the roughness is set again.
+        material.InitializePBRMetallicRoughness("ClearCoat");
+        material.FindChannel("MetallicRoughness")!.Value.SetFactor("RoughnessFactor", 0.6f);
+        material.FindChannel("ClearCoat")!.Value.SetFactor("ClearCoatFactor", clearCoatFactor);
+        material.FindChannel("ClearCoatRoughness")!.Value.SetFactor("RoughnessFactor", clearCoatRoughnessFactor);
+        model.SaveGLTF(gltfPath);
+    }
+
+    private static string ReadMaterialPath(string directory, string name)
+        => Path.Combine(directory, name + Constants.FileNameExtensions.Material);
+
     private static void AssertNoTextureKeys(JToken properties)
     {
         foreach (string key in new[] { "base_color_texture", "normal_texture", "metallic_roughness_texture", "occlusion_texture", "emissive_texture" })

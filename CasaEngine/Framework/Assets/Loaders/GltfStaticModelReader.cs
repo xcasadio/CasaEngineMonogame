@@ -196,6 +196,18 @@ public sealed class GltfStaticModelReader
         var occlusion = material.FindChannel("Occlusion");
         importedMaterial.OcclusionStrength = occlusion != null ? occlusion.Value.GetFactor("OcclusionStrength") : 1.0f;
 
+        // KHR_materials_clearcoat: SharpGLTF exposes the factor on the "ClearCoat" channel and the roughness on "ClearCoatRoughness".
+        // A material without the extension has no such channel and keeps 0 (no clear coat).
+        var clearCoat = material.FindChannel("ClearCoat");
+        if (clearCoat != null)
+        {
+            importedMaterial.ClearCoatFactor = Math.Clamp(clearCoat.Value.GetFactor("ClearCoatFactor"), 0.0f, 1.0f);
+            var clearCoatRoughness = material.FindChannel("ClearCoatRoughness");
+            importedMaterial.ClearCoatRoughnessFactor = clearCoatRoughness != null
+                ? Math.Clamp(clearCoatRoughness.Value.GetFactor("RoughnessFactor"), 0.0f, 1.0f)
+                : 0.0f;
+        }
+
         importedMaterial.AlphaMode = material.Alpha switch
         {
             AlphaMode.MASK => StaticModelAlphaMode.Mask,
