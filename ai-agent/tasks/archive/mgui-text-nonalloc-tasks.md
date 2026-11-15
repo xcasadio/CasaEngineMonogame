@@ -309,8 +309,7 @@ Plan accepté par l'auteur le 2026-11-15, avec la demande de corriger les défau
   ADR-0030). Un `[` qui n'ouvre pas une balise bien formée est un caractère littéral et la lecture reprend juste
   après ; plus aucun balisage ne fait lever `Text`, `SetText` ou `MGTextRun.ParseRuns`, donc le constat P3 (runs
   gardés après un balisage invalide) n'a plus d'objet. Ruptures : `FTTokenizer.TryTokenize` retiré, `Tokenize` ne
-  rend plus `InvalidToken`. Règle ajoutée pendant la vérification, **choisie par l'agent et à valider par
-  l'auteur** : une balise finit au premier `]` et ne contient ni saut de ligne ni autre `[` (`[tt=]a]` et
+  rend plus `InvalidToken`. Règle ajoutée pendant la vérification, choisie par l'agent puis **validée par l'auteur le 2026-11-15** : une balise finit au premier `]` et ne contient ni saut de ligne ni autre `[` (`[tt=]a]` et
   `[tt=a[b]`, que le code historique lisait comme des infobulles, sont maintenant du texte ; aucun balisage de
   cette forme trouvé dans MGUI ni CasaEngine).
 - Vérification indépendante du `[` littéral : deux verdicts REFUTED sur un constat P2 introduit (lecture
