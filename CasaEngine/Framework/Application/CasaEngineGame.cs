@@ -984,6 +984,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             case BuiltInShaderCatalog.UnlitTextureContentName:
             case BuiltInShaderCatalog.LitPbrContentName:
             case BuiltInShaderCatalog.ShadowDepthContentName:
+            case BuiltInShaderCatalog.SceneDepthContentName:
             case BuiltInShaderCatalog.SkyCubemapContentName:
                 if (MeshRendererComponent is not null
                     && TryReloadBuiltInShaderClone(baseEffect, effect => MeshRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))

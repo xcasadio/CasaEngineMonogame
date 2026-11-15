@@ -20,6 +20,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private ShaderWrapper _unlitShaderWrapper;
     private ShaderWrapper _pbrShaderWrapper;
     private ShaderWrapper _shadowDepthShaderWrapper;
+    private ShaderWrapper _sceneDepthShaderWrapper;
     private SkyCubemapRenderer _skyRenderer;
     private MaterialCache _materialCache;
 
@@ -121,6 +122,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _skyRenderer = new SkyCubemapRenderer(_skyEffect);
         _shadowDepthShaderWrapper = new ShaderWrapper(shadowDepthEffect);
         _pipeline.SetShadowShader(_shadowDepthShaderWrapper);
+        _sceneDepthShaderWrapper = new ShaderWrapper(Game.Content.Load<Effect>(BuiltInShaderCatalog.SceneDepthContentName));
+        _pipeline.SetSceneDepthShader(_sceneDepthShaderWrapper);
         _pipeline.SetSkyRenderer(_skyRenderer);
 
         ApplyLitForwardDefaults(_effect);
@@ -169,6 +172,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             || _unlitShaderWrapper is null
             || _pbrShaderWrapper is null
             || _shadowDepthShaderWrapper is null
+            || _sceneDepthShaderWrapper is null
             || _skyRenderer is null)
         {
             return false;
@@ -199,6 +203,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         if (string.Equals(normalizedContentName, BuiltInShaderCatalog.ShadowDepthContentName, StringComparison.OrdinalIgnoreCase))
         {
             _shadowDepthShaderWrapper.ReplaceEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.SceneDepthContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            _sceneDepthShaderWrapper.ReplaceEffect(effect);
             return true;
         }
 
@@ -283,6 +293,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Environment = frame.Environment,
             Shadows = _shadowResources,
             Ibl = frame.Ibl,
+            SceneDepth = frame.SceneDepth,
             Stats    = stats,
         };
 

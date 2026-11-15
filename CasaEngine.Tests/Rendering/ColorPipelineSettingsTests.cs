@@ -465,6 +465,121 @@ public class ColorPipelineSettingsTests
         Assert.False(saved.ContainsKey("color_pipeline"));
     }
 
+    [Fact]
+    public void Ssao_DefaultsToOffWithTheDecidedValues_AndIsPartOfIsDefault()
+    {
+        var settings = new ColorPipelineSettings();
+
+        Assert.False(settings.SsaoEnabled);
+        Assert.Equal(0.5f, settings.SsaoRadius);
+        Assert.Equal(1.0f, settings.SsaoIntensity);
+        Assert.Equal(0.02f, settings.SsaoBias);
+        Assert.True(settings.IsDefault);
+
+        foreach (var change in new Action<ColorPipelineSettings>[]
+                 {
+                     s => s.SsaoEnabled = true,
+                     s => s.SsaoRadius = 1.0f,
+                     s => s.SsaoIntensity = 2.0f,
+                     s => s.SsaoBias = 0.0f,
+                 })
+        {
+            var changed = new ColorPipelineSettings();
+            change(changed);
+            Assert.False(changed.IsDefault);
+
+            changed.ResetToDefaults();
+            Assert.True(changed.IsDefault);
+        }
+    }
+
+    [Fact]
+    public void Ssao_NaNInfinityAndNegativeValuesBecomeZero()
+    {
+        var settings = new ColorPipelineSettings { SsaoRadius = float.NaN, SsaoIntensity = -1.0f, SsaoBias = float.PositiveInfinity };
+
+        Assert.Equal(0.0f, settings.SsaoRadius);
+        Assert.Equal(0.0f, settings.SsaoIntensity);
+        Assert.Equal(0.0f, settings.SsaoBias);
+    }
+
+    [Fact]
+    public void Ssao_IsSavedUnderItsKeysAndReadBackCaseInsensitively()
+    {
+        var saved = new JObject();
+        CreateNonDefault().Save(saved);
+
+        var node = Assert.IsType<JObject>(saved["color_pipeline"]);
+        Assert.True((bool?)node["ssao_enabled"]);
+        Assert.Equal(1.5f, (float?)node["ssao_radius"]);
+        Assert.Equal(0.75f, (float?)node["ssao_intensity"]);
+        Assert.Equal(0.1f, (float?)node["ssao_bias"]);
+
+        var loaded = new WorldEnvironmentSettings();
+        loaded.Load(new JObject
+        {
+            ["color_pipeline"] = new JObject { ["SSAO_ENABLED"] = true, ["Ssao_Radius"] = 2.0f, ["ssao_intensity"] = 0.5f, ["ssao_bias"] = 0.05f },
+        });
+        Assert.True(loaded.ColorPipeline.SsaoEnabled);
+        Assert.Equal(2.0f, loaded.ColorPipeline.SsaoRadius);
+        Assert.Equal(0.5f, loaded.ColorPipeline.SsaoIntensity);
+        Assert.Equal(0.05f, loaded.ColorPipeline.SsaoBias);
+    }
+
+    [Fact]
+    public void Ssao_LoadOfAColourPipelineWrittenBeforeTheKeysReadsTheDefaults()
+    {
+        var settings = new WorldEnvironmentSettings();
+        settings.ColorPipeline.SsaoEnabled = true;
+        settings.ColorPipeline.SsaoRadius = 4.0f;
+
+        settings.Load(new JObject
+        {
+            ["color_pipeline"] = new JObject { ["mode"] = "LinearHdr", ["anti_aliasing"] = "Fxaa" },
+        });
+
+        Assert.Equal(ColorPipelineMode.LinearHdr, settings.ColorPipeline.Mode);
+        Assert.False(settings.ColorPipeline.SsaoEnabled);
+        Assert.Equal(ColorPipelineSettings.DefaultSsaoRadius, settings.ColorPipeline.SsaoRadius);
+        Assert.Equal(ColorPipelineSettings.DefaultSsaoIntensity, settings.ColorPipeline.SsaoIntensity);
+        Assert.Equal(ColorPipelineSettings.DefaultSsaoBias, settings.ColorPipeline.SsaoBias);
+    }
+
+    [Fact]
+    public void Ssao_WhenOnlyThatFieldDiffersTheKeysAreWritten_AndBackToDefaultOmitsColorPipeline()
+    {
+        var settings = new WorldEnvironmentSettings();
+        settings.ColorPipeline.SsaoEnabled = true;
+        var saved = new JObject();
+
+        settings.Save(saved);
+        Assert.True(saved.ContainsKey("color_pipeline"));
+
+        settings.ColorPipeline.SsaoEnabled = false;
+        settings.Save(saved);
+        Assert.False(saved.ContainsKey("color_pipeline"));
+    }
+
+    [Fact]
+    public void Ssao_ReachesTheResolvedEnvironment_AndIsOffInTheLegacyOne()
+    {
+        var world = new World();
+        world.EnvironmentSettings.ColorPipeline.SsaoEnabled = true;
+        world.EnvironmentSettings.ColorPipeline.SsaoRadius = 1.25f;
+        world.EnvironmentSettings.ColorPipeline.SsaoIntensity = 0.5f;
+        world.EnvironmentSettings.ColorPipeline.SsaoBias = 0.07f;
+        world.EnvironmentSettings.MarkDirty();
+
+        var view = new RenderView(world, new ArcBallCameraComponent(), new StubRenderSurface());
+        var resolved = EnvironmentResolver.Resolve(view);
+
+        Assert.True(resolved.SsaoEnabled);
+        Assert.Equal(1.25f, resolved.SsaoRadius);
+        Assert.Equal(0.5f, resolved.SsaoIntensity);
+        Assert.Equal(0.07f, resolved.SsaoBias);
+        Assert.False(ResolvedEnvironmentSettings.CreateLegacy(Color.Black, Vector3.Zero).SsaoEnabled);
+    }
+
     private static WorldEnvironmentSettings CreateNonDefault()
     {
         var settings = new WorldEnvironmentSettings();
@@ -482,6 +597,10 @@ public class ColorPipelineSettingsTests
         settings.ColorPipeline.BloomIntensity = 0.25f;
         settings.ColorPipeline.BloomRadius = 3.0f;
         settings.ColorPipeline.AntiAliasing = AntiAliasingMode.Fxaa;
+        settings.ColorPipeline.SsaoEnabled = true;
+        settings.ColorPipeline.SsaoRadius = 1.5f;
+        settings.ColorPipeline.SsaoIntensity = 0.75f;
+        settings.ColorPipeline.SsaoBias = 0.1f;
     }
 
     private static void AssertNonDefault(WorldEnvironmentSettings settings)
@@ -494,6 +613,10 @@ public class ColorPipelineSettingsTests
         Assert.Equal(0.25f, settings.ColorPipeline.BloomIntensity);
         Assert.Equal(3.0f, settings.ColorPipeline.BloomRadius);
         Assert.Equal(AntiAliasingMode.Fxaa, settings.ColorPipeline.AntiAliasing);
+        Assert.True(settings.ColorPipeline.SsaoEnabled);
+        Assert.Equal(1.5f, settings.ColorPipeline.SsaoRadius);
+        Assert.Equal(0.75f, settings.ColorPipeline.SsaoIntensity);
+        Assert.Equal(0.1f, settings.ColorPipeline.SsaoBias);
     }
 
     private sealed class StubRenderSurface : IRenderSurface

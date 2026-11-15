@@ -4,6 +4,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.PostProcess;
 using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -186,10 +187,12 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             Environment = frame.Environment,
             Shadows = _staticMeshRendererComponent?.ShadowResources,
             Ibl = frame.Ibl,
+            SceneDepth = frame.SceneDepth,
             Stats = stats,
         };
 
         DrawShadowCasters(in context);
+        DrawSceneDepth(in context);
 
         foreach (var meshInfo in _meshInfos)
         {
@@ -272,6 +275,146 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 effectiveSkinningMode,
                 shadowLight,
                 in context);
+        }
+    }
+
+    /// <summary>
+    /// Writes the view depth of every skinned mesh the colour pass will draw into the scene depth pre-pass target (ADR-0115), before
+    /// the colour draws; does nothing when the pre-pass of the view is not active. The meshes are the ones <see cref="DrawRiggedModel"/>
+    /// draws: those without a texture are skipped, as the colour pass skips them.
+    /// </summary>
+    private void DrawSceneDepth(in RenderContext context)
+    {
+        var prepass = context.SceneDepth;
+        if (prepass is null || !prepass.IsActive || !prepass.BeginDraw(context.Device))
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var meshInfo in _meshInfos)
+            {
+                if (meshInfo.SkinnedMesh == null || meshInfo.PoseProvider == null)
+                {
+                    continue;
+                }
+
+                SkinningMode effectiveSkinningMode = SkinningModeSelectionResolver.ResolveEffective(
+                    meshInfo.SkinningModeSelection,
+                    meshInfo.SkinnedMesh.SkinningMode,
+                    meshInfo.PoseProvider.CanUseDualQuaternionSkinning);
+
+                MaterialBase material = meshInfo.PbrMaterial ?? (MaterialBase)(meshInfo.Material ?? _defaultMaterial);
+                Texture2D materialTexture = meshInfo.PbrMaterial is not null
+                    ? meshInfo.PbrMaterial.BaseColorTexture
+                    : (meshInfo.Material ?? _defaultMaterial).BasColor;
+
+                var riggedModel = meshInfo.SkinnedMesh;
+                for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
+                {
+                    var mesh = riggedModel.Meshes[meshIndex];
+                    if (mesh.Texture == null)
+                    {
+                        continue;
+                    }
+
+                    // Same cutoff the colour pass ends up with: the per-mesh glTF cutoff wins, else the material's when it is alpha tested.
+                    float alphaCutoff = mesh.AlphaCutoff >= 0f
+                        ? mesh.AlphaCutoff
+                        : (material.Queue == RenderQueue.AlphaTest ? material.AlphaCutoff : 0.0f);
+
+                    DrawSceneDepthMesh(
+                        _shader,
+                        mesh,
+                        meshInfo.World,
+                        meshInfo.PoseProvider,
+                        effectiveSkinningMode,
+                        materialTexture ?? mesh.Texture,
+                        alphaCutoff,
+                        mesh.IsDoubleSided ? RasterizerState.CullNone : (material.RasterizerState ?? RasterizerState.CullCounterClockwise),
+                        mesh.UseNearestFiltering ? SamplerState.PointClamp : (material.SamplerState ?? SamplerState.AnisotropicClamp),
+                        in context);
+                }
+            }
+        }
+        finally
+        {
+            prepass.EndDraw(context.Device);
+        }
+    }
+
+    /// <summary>
+    /// Draws one skinned mesh into the scene depth pre-pass target with the <c>RiggedModelSceneDepth</c> technique of
+    /// <paramref name="shader"/> (<c>skinEffect.fx</c>) for the skinning mode: the view depth in the red channel, the pixels whose
+    /// texture alpha is under <paramref name="alphaCutoff"/> discarded (a value of 0 or less disables the cut). The pre-pass must be
+    /// between <see cref="SceneDepthPrepass.BeginDraw"/> and <see cref="SceneDepthPrepass.EndDraw"/>.
+    /// </summary>
+    internal static void DrawSceneDepthMesh(
+        ShaderWrapper shader,
+        RiggedModel.RiggedModelMesh mesh,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningMode skinningMode,
+        Texture2D maskTexture,
+        float alphaCutoff,
+        RasterizerState rasterizerState,
+        SamplerState samplerState,
+        in RenderContext context)
+    {
+        var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
+        mesh.Initialize(context.Device, vertexDeclaration);
+        if (mesh.IndexBuffer == null)
+        {
+            return;
+        }
+
+        var vertexBuffer = poseProvider.GetVertexBufferOverride(mesh, context.Device, vertexDeclaration) ?? mesh.VertexBuffer;
+        if (vertexBuffer == null)
+        {
+            return;
+        }
+
+        Matrix meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
+
+        context.Device.RasterizerState = rasterizerState;
+        context.Device.SamplerStates[0] = samplerState;
+
+        shader.SelectTechnique(skinningMode == SkinningMode.DualQuaternion
+            ? SceneDepthPrepass.SkinnedDualQuaternionTechniqueName
+            : SceneDepthPrepass.SkinnedTechniqueName);
+        shader.SetParameter(ShaderParameterNames.WorldViewProj, meshWorld * context.Frame.ViewProjection);
+        shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, maskTexture, context.Stats);
+        shader.SetParameter(ShaderParameterNames.AlphaCutoff, alphaCutoff);
+
+        if (skinningMode == SkinningMode.DualQuaternion && shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
+        {
+            shader.SetParameter(ShaderParameterNames.BonesDualQuaternion, poseProvider.DualQuaternionSkinningPalette);
+        }
+        else
+        {
+            shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+        }
+
+        context.Device.SetVertexBuffer(vertexBuffer);
+        context.Device.Indices = mesh.IndexBuffer;
+
+        for (int passIndex = 0; passIndex < shader.PassCount; passIndex++)
+        {
+            shader.ApplyPass(passIndex);
+            context.Device.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                mesh.NumberOfVertices,
+                0,
+                mesh.NumberOfIndices / 3);
+        }
+
+        if (context.Stats is not null)
+        {
+            context.Stats.SceneDepthSkinnedDraws++;
+            context.Stats.DrawCalls++;
         }
     }
 

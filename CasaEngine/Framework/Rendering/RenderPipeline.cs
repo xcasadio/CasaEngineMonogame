@@ -90,6 +90,15 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>Number of FXAA draws since the start (see <see cref="FxaaRenderer"/>).</summary>
     internal int FxaaDrawCount => _fxaaRenderer.DrawCount;
 
+    /// <summary>Number of scene depth pre-pass targets (view depth, 24-bit depth buffer) created since the start (ADR-0115).</summary>
+    internal int SceneDepthTargetCreationCount { get; private set; }
+
+    /// <summary>Number of scene depth pre-pass targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int SceneDepthTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of views rendered with their scene depth pre-pass active since the start.</summary>
+    internal int SceneDepthPrepassCount { get; private set; }
+
     // Render index of the last use of each tracked target key (width, height, format, depth format): the HDR scene targets
     // (with depth), the bloom targets (without depth) and the FXAA targets (Color, without depth). Filled when a key is first seen, so no allocation at constant size; swept
     // once per Render.
@@ -101,6 +110,13 @@ public sealed class RenderPipeline : IDisposable
     private bool _bloomShaderMissingLogged;
     private readonly FxaaRenderer _fxaaRenderer;
     private bool _fxaaShaderMissingLogged;
+
+    // Host of the scene depth pre-pass (ADR-0115), handed to the renderers through RenderFrame.SceneDepth. Its target is acquired per
+    // view in RenderHdrView and released there. The format falls back once, logged (Single, HalfSingle, HalfVector4); when none can be
+    // created the pre-pass is switched off for good with one warning.
+    private readonly SceneDepthPrepass _sceneDepth = new();
+    private SurfaceFormat _sceneDepthFormat = SurfaceFormat.Single;
+    private bool _sceneDepthUnavailable;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -478,7 +494,7 @@ public sealed class RenderPipeline : IDisposable
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings) with { Ibl = _iblCache };
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings) with { Ibl = _iblCache, SceneDepth = _sceneDepth };
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();
@@ -654,6 +670,79 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
+    /// Takes the scene depth pre-pass target of a view from <see cref="RenderTargetPool"/> (the size of the view, a floating-point
+    /// colour format, <see cref="DepthFormat.Depth24"/>) and stamps its key so <see cref="ReleaseUnusedHdrTargets"/> frees it after a
+    /// size change. A format the device refuses falls back to the next one (Single, HalfSingle, HalfVector4), logged once; when none
+    /// can be created the pre-pass is switched off with one warning and null is returned. A creation is counted in
+    /// <see cref="SceneDepthTargetCreationCount"/>.
+    /// </summary>
+    private RenderTarget2D AcquireSceneDepthTarget(int width, int height)
+    {
+        if (_sceneDepthUnavailable)
+        {
+            return null;
+        }
+
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        RenderTarget2D target;
+        while (true)
+        {
+            try
+            {
+                target = pool.Acquire(width, height, _sceneDepthFormat, DepthFormat.Depth24);
+                break;
+            }
+            catch (Exception exception) when (_sceneDepthFormat != SurfaceFormat.HalfVector4)
+            {
+                var fallback = _sceneDepthFormat == SurfaceFormat.Single ? SurfaceFormat.HalfSingle : SurfaceFormat.HalfVector4;
+                Logs.WriteWarning($"[SceneDepth] scene depth target format {_sceneDepthFormat} refused ({exception.Message}); falling back to {fallback}.");
+                _sceneDepthFormat = fallback;
+            }
+            catch (Exception exception)
+            {
+                _sceneDepthUnavailable = true;
+                Logs.WriteWarning($"[SceneDepth] no floating-point format can be created for the scene depth target ({exception.Message}): the scene depth pre-pass is switched off.");
+                return null;
+            }
+        }
+
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.Depth24)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            SceneDepthTargetCreationCount++;
+            Logs.WriteDebug($"[SceneDepth] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {SceneDepthTargetCreationCount}");
+        }
+
+        return target;
+    }
+
+    /// <summary>
+    /// Activates the scene depth pre-pass for the view being rendered: acquires its target, clears it to the background depth and
+    /// binds the scene target again. Called by <see cref="RenderHdrView"/> before the scene, once its four conditions hold. Returns
+    /// false, with nothing acquired, when the target cannot be created.
+    /// </summary>
+    private bool BeginSceneDepth(Rectangle viewRectangle)
+    {
+        var target = AcquireSceneDepthTarget(viewRectangle.Width, viewRectangle.Height);
+        if (target == null)
+        {
+            return false;
+        }
+
+        if (!_sceneDepth.Activate(_graphicsDevice, target))
+        {
+            RenderTargetPool.Shared.Release(target);
+            return false;
+        }
+
+        SceneDepthPrepassCount++;
+        return true;
+    }
+
+    /// <summary>
     /// Disposes the free HDR scene targets of the sizes no view has rendered with for <see cref="HdrTargetEviction.MaxIdleRenders"/>
     /// renders, so GPU memory follows the sizes in use (a window resize leaves no target behind). Once per Render, after the
     /// views have released their targets; only the HDR keys tracked here are touched, never the other users of the shared pool.
@@ -671,7 +760,16 @@ public sealed class RenderPipeline : IDisposable
         for (int i = 0; i < _releasedTargets.Count; i++)
         {
             var (key, disposed) = _releasedTargets[i];
-            if (key.Item4 == DepthFormat.None && key.Item3 == SurfaceFormat.Color)
+            if (key.Item4 == DepthFormat.Depth24)
+            {
+                // The scene depth pre-pass is the only tracked target with a Depth24 buffer (the HDR scene target always has
+                // Depth24Stencil8, the bloom and FXAA targets none). The shadow atlas has the same key (Single, Depth24) when its
+                // resolution equals the view size; it is acquired, not free, while in use, so the sweep does not touch it, but a freed
+                // atlas of that size would be counted here.
+                SceneDepthTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[SceneDepth] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {SceneDepthTargetDisposalCount}, alive {SceneDepthTargetCreationCount - SceneDepthTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None && key.Item3 == SurfaceFormat.Color)
             {
                 // The bloom has the format of the HDR target and skips a Color one, so a Color target without depth is the FXAA one.
                 FxaaTargetDisposalCount += disposed;
@@ -740,13 +838,26 @@ public sealed class RenderPipeline : IDisposable
         RenderTarget2D hdrTarget,
         RenderTarget2D initialRenderTarget)
     {
+        bool sceneDepthActive = false;
         try
         {
-            bool composeInterfaceAfter = false;
-            if (pipeline is IScenePhaseViewPipeline scenePipeline && scenePipeline.SupportsScenePhase)
+            var scenePipeline = pipeline as IScenePhaseViewPipeline;
+            bool composeInterfaceAfter = scenePipeline != null && scenePipeline.SupportsScenePhase;
+
+            // The scene depth pre-pass (ADR-0115) is active for the view only when all four conditions hold, evaluated here, before the
+            // scene is rendered: SSAO is on, the view renders through the HDR target (this method), its projection is perspective
+            // (M44 is exactly 0; the depth written is the clip-space w) and its pipeline separates the scene from the interface
+            // (composeInterfaceAfter, the condition of the FXAA pass). A view that renders everything in one go, the editor views
+            // (OverlayViewPipeline), has the grid, the handles and the interface in the HDR target: an effect that multiplies that
+            // target would darken them, so such a view has no pre-pass (a written limit, like FXAA's).
+            if (frame.Environment.SsaoEnabled && composeInterfaceAfter && frame.Projection.M44 == 0.0f)
+            {
+                sceneDepthActive = BeginSceneDepth(view.Surface.ViewportRect);
+            }
+
+            if (composeInterfaceAfter)
             {
                 scenePipeline.RenderScene(_graphicsDevice, view, in frame, _renderers);
-                composeInterfaceAfter = true;
             }
             else
             {
@@ -807,6 +918,15 @@ public sealed class RenderPipeline : IDisposable
         }
         finally
         {
+            if (sceneDepthActive)
+            {
+                var sceneDepthTarget = _sceneDepth.Deactivate();
+                if (sceneDepthTarget != null)
+                {
+                    RenderTargetPool.Shared.Release(sceneDepthTarget);
+                }
+            }
+
             RenderTargetPool.Shared.Release(hdrTarget);
         }
     }

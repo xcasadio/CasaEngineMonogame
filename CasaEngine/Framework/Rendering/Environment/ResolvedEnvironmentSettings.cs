@@ -69,6 +69,15 @@ public readonly struct ResolvedEnvironmentSettings
 
     public float BloomRadius { get; init; }
 
+    /// <summary>The scene depth pre-pass and the SSAO are requested for the view (ADR-0115). False in <see cref="CreateLegacy"/>.</summary>
+    public bool SsaoEnabled { get; init; }
+
+    public float SsaoRadius { get; init; }
+
+    public float SsaoIntensity { get; init; }
+
+    public float SsaoBias { get; init; }
+
     /// <summary>
     /// True when this view is drawn through the HDR scene target in this frame (ADR-0105), so its display colours must be
     /// decoded to linear light. It is not the resolved mode: a view in <see cref="Environment.ColorPipelineMode.LinearHdr"/>

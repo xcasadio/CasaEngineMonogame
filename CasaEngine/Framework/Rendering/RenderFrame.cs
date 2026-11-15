@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.PostProcess;
 using CasaEngine.Framework.Rendering.Shadows;
 
 namespace CasaEngine.Framework.Rendering;
@@ -29,6 +30,12 @@ public readonly struct RenderFrame
 
     /// <summary>Cache of the image-based-lighting textures, set by <see cref="RenderPipeline"/> (ADR-0109); null otherwise.</summary>
     public IblCache Ibl { get; init; }
+
+    /// <summary>
+    /// Host of the scene depth pre-pass (ADR-0115), set by <see cref="RenderPipeline"/>; null otherwise. It carries the state of the
+    /// view being rendered: the renderers draw their depth only when <see cref="SceneDepthPrepass.IsActive"/>.
+    /// </summary>
+    public SceneDepthPrepass SceneDepth { get; init; }
 
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)
         : this(view, projection, cameraPosition, viewportRect, default, null, null)

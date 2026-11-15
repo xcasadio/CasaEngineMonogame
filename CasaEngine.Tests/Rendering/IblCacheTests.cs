@@ -296,7 +296,7 @@ public class IblCacheCoverageTests
         Assert.True(renderStart > 0 && flush > renderStart, "the flush is inside Render");
         Assert.True(flush < firstTarget, "the flush comes before any other target work");
         Assert.True(flush < viewLoop, "the flush comes before the loop of the views");
-        Assert.Contains("with { Ibl = _iblCache }", pipeline);
+        Assert.Contains("with { Ibl = _iblCache, SceneDepth = _sceneDepth }", pipeline);
     }
 
     [Fact]

@@ -128,3 +128,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0112](0112-pbr-scope-extends-to-clear-coat-screen-space-ambient-occlusion-and-fxaa.md) | PBR scope extends to clear coat, screen-space ambient occlusion and FXAA | Proposed | 2026-11-15 |
 | [ADR-0113](0113-fxaa-filters-the-tonemapped-scene-before-the-post-tonemap-renderers-and-the-interface.md) | FXAA filters the tonemapped scene before the post-tonemap renderers and the interface | Proposed | 2026-11-15 |
 | [ADR-0114](0114-lit-pbr-carries-a-clear-coat-layer-evaluated-as-a-second-lobe.md) | lit-pbr carries a clear coat layer evaluated as a second lobe | Proposed | 2026-11-15 |
+| [ADR-0115](0115-a-scene-depth-pre-pass-feeds-screen-space-ambient-occlusion.md) | A scene depth pre-pass feeds screen-space ambient occlusion | Proposed | 2026-11-15 |

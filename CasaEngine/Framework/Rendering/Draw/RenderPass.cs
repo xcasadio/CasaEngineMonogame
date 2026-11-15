@@ -21,6 +21,11 @@ public enum RenderPassType
     OverlayPass,
     /// <summary>Renders shadow-casting geometry into a shadow map.</summary>
     ShadowPass,
+    /// <summary>
+    /// Writes the view depth, in world units, of the opaque and alpha-tested geometry into the scene depth pre-pass target
+    /// (ADR-0115). Not <see cref="DepthPrePass"/>, which is documented to write the depth buffer only and is not used.
+    /// </summary>
+    SceneDepthPass,
 }
 
 // ---------------------------------------------------------------------------

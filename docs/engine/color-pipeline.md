@@ -1,6 +1,6 @@
 # Colour pipeline
 
-How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113.
+How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113, ADR-0115.
 
 ## Modes
 
@@ -23,6 +23,10 @@ The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSet
 | `BloomIntensity` | `bloom_intensity` | 0.5 | Scale of the glow added to the scene. |
 | `BloomRadius` | `bloom_radius` | 1 | Scale of the blur tap spacing; larger values spread the glow further. |
 | `AntiAliasing` | `anti_aliasing` | `None` | `None` or `Fxaa`. `Fxaa` filters the tonemapped scene before the post-tonemap renderers and the interface (ADR-0113). No effect in `Legacy`, nor in a view that renders its interface with the scene (see the limits). |
+| `SsaoEnabled` | `ssao_enabled` | false | Draws a scene depth pre-pass for the view (ADR-0115), which the occlusion pass reads. No effect in `Legacy`, with an orthographic projection, nor in a view that renders its interface with the scene (see the limits). |
+| `SsaoRadius` | `ssao_radius` | 0.5 | Radius of the occlusion hemisphere, in world units. |
+| `SsaoIntensity` | `ssao_intensity` | 1 | Strength of the occlusion (0 leaves the image untouched). |
+| `SsaoBias` | `ssao_bias` | 0.02 | Depth bias, in world units, that keeps a flat surface from occluding itself. |
 
 The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo and an exposure field.
 
@@ -95,6 +99,14 @@ A view stays on the legacy path when it keeps the previous content of its colour
 - Demo: `CASAENGINE_DEMO_AA=Fxaa` applies it to any demo in `LinearHdr`. In `Colour pipeline demo` the measurement rectangles and segment are `FxaaTextBorderRect`, `FxaaPanelBorderRect` and `FxaaEdgeSegment`.
 - It blurs luminance edges only: it does not add sub-pixel detail (no TAA, no MSAA), and a thin bright line on a dark background can still shimmer when the camera moves.
 
+## Scene depth pre-pass (SSAO)
+
+When `SsaoEnabled` is set (ADR-0115), a `LinearHdr` view draws the opaque geometry of the static and skinned renderers a second time into a pooled floating-point target (`Single` with a 24-bit depth buffer, falling back to `HalfSingle` then `HalfVector4`, the size of the view), before and apart from the colour draws. Each pixel receives the **view depth in world units** (the distance along the camera axis, not normalised, no near or far plane needed); a pixel no geometry covers keeps `SceneDepthPrepass.BackgroundDepth` (60 000) and a reader treats depths of 30 000 or more as sky. The target is acquired in `RenderHdrView` before the scene is rendered, written by the static `SceneDepthPass` (after the shadow pass) and by `SkinnedMeshRendererComponent.DrawSceneDepth` during their own `Flush`, and released with the HDR target. The pre-pass alone changes no pixel of the image: the occlusion pass that reads it comes with the SSAO.
+
+The pre-pass is active for a view only when all four conditions hold, checked before the scene is rendered: SSAO is enabled, the view renders through the HDR target, the projection is perspective (`M44` is 0) and the view pipeline implements `IScenePhaseViewPipeline` (the `composeInterfaceAfter` condition of the FXAA pass). Per view and frame, `RenderStats.SceneDepthStaticDraws` equals `RenderStats.OpaqueItems` (the filter is the one of `OpaquePass`: an object that casts no shadow still occludes) and `SceneDepthSkinnedDraws` counts the skinned meshes; both are 0 when the pre-pass is not active. The target key is stamped for eviction and counted in `SceneDepthTargetCreationCount` and `SceneDepthTargetDisposalCount`, apart from the bloom and FXAA counters (the shadow atlas has the same key when its resolution equals the view size; a free atlas of that size would be counted as a pre-pass disposal).
+
+- Demo: `CASAENGINE_DEMO_SSAO=1` (with `_RADIUS`, `_INTENSITY`, `_BIAS`) applies it to any demo in `LinearHdr`; the harness writes the per-view draw counts once at capture time (`[DemosGame] Scene depth draws at capture`).
+
 ## Usage
 
 A game selects the pipeline per world (snippet above) or per view with the environment override. A renderer that draws display-ready colours (HUD, fonts) implements `IPostTonemapRenderer`; a renderer that draws scene colours declares `float ColorPipelineIsLinear;` before including `ColorPipeline.fxh` in its effect and binds it from `frame.Environment.LinearColorActive`.
@@ -119,6 +131,9 @@ For the demos, the harness variables `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGI
 - **A view with `ClearColorBuffer` false is not rendered in HDR.**
 - **FXAA is not applied to a view that renders its interface with the scene.** A pipeline without `IScenePhaseViewPipeline` (the editor views, `OverlayViewPipeline`) draws everything into the HDR target and is tonemapped in one draw; filtering it would blur its interface, so `AntiAliasing` has no effect there (ADR-0113). The destinations that hold the retained frozen frame and the editor host texture are not exercised by the engine measurements.
 
+- **No scene depth pre-pass in a view that renders its interface with the scene, nor with an orthographic projection.** The editor views (`OverlayViewPipeline`) have the grid, the handles and the interface in the HDR target, which a multiplication by an occlusion would darken, and the depth written is the clip-space w of a perspective projection, so `SsaoEnabled` has no effect there (ADR-0115).
+- **Cut-out depth and far geometry.** The pre-pass cuts alpha-tested static meshes on the texture alpha alone (the approximation of the shadow pass; the colour pass cuts on the product of the alpha factor and the texture alpha), and geometry farther than 30 000 units from the camera plane reads as sky. Transparent geometry and the other 3D draws (particles, 3D lines, sprites, tile maps) are not in the depth.
+
 ## Cost
 
 Each `LinearHdr` view costs one pooled HDR target (8 bytes per pixel plus depth, created once per view size) and one full-rectangle tonemapping draw.
@@ -127,4 +142,6 @@ Bloom adds, for a view that enables it, ten `SpriteBatch` passes on targets of a
 
 FXAA adds, for a view that enables it, one pooled `Color` target of the view size (4 bytes per pixel, no depth) and one full-rectangle `SpriteBatch` draw reading at most 34 texels per pixel.
 
-Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113.
+The scene depth pre-pass adds, for a view that enables SSAO, one pooled `Single` target of the view size (4 bytes per pixel plus a 24-bit depth buffer) and one more draw of every opaque static and skinned mesh with a minimal shader; the cost measurement of the three features together is in the plan task T4.1.
+
+Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113, ADR-0115.

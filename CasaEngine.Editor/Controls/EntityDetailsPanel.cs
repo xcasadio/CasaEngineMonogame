@@ -847,6 +847,53 @@ public sealed class EntityDetailsPanel
         });
         rowIndex = AddPropertyRow(grid, rowIndex, "Anti-Aliasing", antiAliasingCombo);
 
+        var ssaoEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.SsaoEnabled,
+        };
+        ssaoEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle SSAO",
+            static s => s.ColorPipeline.SsaoEnabled,
+            static (s, enabled) => s.ColorPipeline.SsaoEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO", ssaoEnabledCheckBox);
+
+        var ssaoRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoRadius,
+        };
+        ssaoRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Radius",
+            static s => s.ColorPipeline.SsaoRadius,
+            static (s, radius) => s.ColorPipeline.SsaoRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Radius", ssaoRadiusEditor);
+
+        var ssaoIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoIntensity,
+        };
+        ssaoIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Intensity",
+            static s => s.ColorPipeline.SsaoIntensity,
+            static (s, intensity) => s.ColorPipeline.SsaoIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Intensity", ssaoIntensityEditor);
+
+        var ssaoBiasEditor = new NumericField(_window, min: 0.0f, step: 0.01f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoBias,
+        };
+        ssaoBiasEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Bias",
+            static s => s.ColorPipeline.SsaoBias,
+            static (s, bias) => s.ColorPipeline.SsaoBias = bias,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Bias", ssaoBiasEditor);
+
         _detailsContent.TryAddChild(grid);
 
         _detailsContent.TryAddChild(new MGTextBlock(_window, "[b]Directional Shadows (V1)[/b]")

@@ -17,6 +17,7 @@ public static class BuiltInShaderCatalog
     public const string TonemapContentName = "Shaders\\Tonemap";
     public const string BloomContentName = "Shaders\\Bloom";
     public const string FxaaContentName = "Shaders\\Fxaa";
+    public const string SceneDepthContentName = "Shaders\\SceneDepth";
     public const string IblConvolutionContentName = "Shaders\\IblConvolution";
     /// <summary>Content name of the unlit textured vertex-colour effect. Deliberately absent from <see cref="RuntimeShaders"/>:
     /// that list drives the editor shader-source watcher, and no consumer implements a live rebind for this effect yet,
@@ -36,6 +37,7 @@ public static class BuiltInShaderCatalog
         new("Shaders/Tonemap.fx", TonemapContentName),
         new("Shaders/Bloom.fx", BloomContentName),
         new("Shaders/Fxaa.fx", FxaaContentName),
+        new("Shaders/SceneDepth.fx", SceneDepthContentName),
         new("Shaders/IblConvolution.fx", IblConvolutionContentName),
     ];
 

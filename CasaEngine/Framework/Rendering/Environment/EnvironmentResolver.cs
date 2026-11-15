@@ -132,6 +132,10 @@ public static class EnvironmentResolver
             BloomThreshold = source.ColorPipeline.BloomThreshold,
             BloomIntensity = source.ColorPipeline.BloomIntensity,
             BloomRadius = source.ColorPipeline.BloomRadius,
+            SsaoEnabled = source.ColorPipeline.SsaoEnabled,
+            SsaoRadius = source.ColorPipeline.SsaoRadius,
+            SsaoIntensity = source.ColorPipeline.SsaoIntensity,
+            SsaoBias = source.ColorPipeline.SsaoBias,
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };

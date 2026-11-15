@@ -13,6 +13,9 @@ public sealed class ColorPipelineSettings
     private float _bloomThreshold = DefaultBloomThreshold;
     private float _bloomIntensity = DefaultBloomIntensity;
     private float _bloomRadius = DefaultBloomRadius;
+    private float _ssaoRadius = DefaultSsaoRadius;
+    private float _ssaoIntensity = DefaultSsaoIntensity;
+    private float _ssaoBias = DefaultSsaoBias;
 
     public const float DefaultExposure = 1.0f;
 
@@ -21,6 +24,12 @@ public sealed class ColorPipelineSettings
     public const float DefaultBloomIntensity = 0.5f;
 
     public const float DefaultBloomRadius = 1.0f;
+
+    public const float DefaultSsaoRadius = 0.5f;
+
+    public const float DefaultSsaoIntensity = 1.0f;
+
+    public const float DefaultSsaoBias = 0.02f;
 
     public ColorPipelineMode Mode { get; set; } = ColorPipelineMode.Legacy;
 
@@ -75,6 +84,34 @@ public sealed class ColorPipelineSettings
         set => _bloomRadius = NormalizeNonNegative(value);
     }
 
+    /// <summary>
+    /// Screen-space ambient occlusion (ADR-0115): the view draws a scene depth pre-pass that the SSAO of a later task reads. Off by
+    /// default, and without any effect in <see cref="ColorPipelineMode.Legacy"/>, in a view with a non-perspective projection and in
+    /// a view that renders its scene and its interface in one go.
+    /// </summary>
+    public bool SsaoEnabled { get; set; }
+
+    /// <summary>Radius of the occlusion hemisphere, in world units. A negative or non-finite value becomes 0.</summary>
+    public float SsaoRadius
+    {
+        get => _ssaoRadius;
+        set => _ssaoRadius = NormalizeNonNegative(value);
+    }
+
+    /// <summary>Strength of the occlusion: 0 leaves the image untouched, 1 applies the full occlusion. A negative or non-finite value becomes 0.</summary>
+    public float SsaoIntensity
+    {
+        get => _ssaoIntensity;
+        set => _ssaoIntensity = NormalizeNonNegative(value);
+    }
+
+    /// <summary>Depth bias, in world units, that keeps a flat surface from occluding itself. A negative or non-finite value becomes 0.</summary>
+    public float SsaoBias
+    {
+        get => _ssaoBias;
+        set => _ssaoBias = NormalizeNonNegative(value);
+    }
+
     /// <summary>True when every field has its default value.</summary>
     public bool IsDefault => Mode == ColorPipelineMode.Legacy
         && Tonemapper == TonemapOperator.AcesApprox
@@ -83,7 +120,11 @@ public sealed class ColorPipelineSettings
         && !BloomEnabled
         && _bloomThreshold == DefaultBloomThreshold
         && _bloomIntensity == DefaultBloomIntensity
-        && _bloomRadius == DefaultBloomRadius;
+        && _bloomRadius == DefaultBloomRadius
+        && !SsaoEnabled
+        && _ssaoRadius == DefaultSsaoRadius
+        && _ssaoIntensity == DefaultSsaoIntensity
+        && _ssaoBias == DefaultSsaoBias;
 
     public void ResetToDefaults()
     {
@@ -95,6 +136,10 @@ public sealed class ColorPipelineSettings
         BloomThreshold = DefaultBloomThreshold;
         BloomIntensity = DefaultBloomIntensity;
         BloomRadius = DefaultBloomRadius;
+        SsaoEnabled = false;
+        SsaoRadius = DefaultSsaoRadius;
+        SsaoIntensity = DefaultSsaoIntensity;
+        SsaoBias = DefaultSsaoBias;
     }
 
     public void Load(JObject element)
@@ -145,6 +190,26 @@ public sealed class ColorPipelineSettings
         {
             BloomRadius = bloomRadiusNode.Value<float>();
         }
+
+        if (element.TryGetValue("ssao_enabled", StringComparison.OrdinalIgnoreCase, out var ssaoEnabledNode))
+        {
+            SsaoEnabled = ssaoEnabledNode.Value<bool>();
+        }
+
+        if (element.TryGetValue("ssao_radius", StringComparison.OrdinalIgnoreCase, out var ssaoRadiusNode))
+        {
+            SsaoRadius = ssaoRadiusNode.Value<float>();
+        }
+
+        if (element.TryGetValue("ssao_intensity", StringComparison.OrdinalIgnoreCase, out var ssaoIntensityNode))
+        {
+            SsaoIntensity = ssaoIntensityNode.Value<float>();
+        }
+
+        if (element.TryGetValue("ssao_bias", StringComparison.OrdinalIgnoreCase, out var ssaoBiasNode))
+        {
+            SsaoBias = ssaoBiasNode.Value<float>();
+        }
     }
 
     public void Save(JObject element)
@@ -159,6 +224,10 @@ public sealed class ColorPipelineSettings
         element["bloom_threshold"] = BloomThreshold;
         element["bloom_intensity"] = BloomIntensity;
         element["bloom_radius"] = BloomRadius;
+        element["ssao_enabled"] = SsaoEnabled;
+        element["ssao_radius"] = SsaoRadius;
+        element["ssao_intensity"] = SsaoIntensity;
+        element["ssao_bias"] = SsaoBias;
     }
 
     public void CopyFrom(ColorPipelineSettings other)
@@ -173,6 +242,10 @@ public sealed class ColorPipelineSettings
         BloomThreshold = other.BloomThreshold;
         BloomIntensity = other.BloomIntensity;
         BloomRadius = other.BloomRadius;
+        SsaoEnabled = other.SsaoEnabled;
+        SsaoRadius = other.SsaoRadius;
+        SsaoIntensity = other.SsaoIntensity;
+        SsaoBias = other.SsaoBias;
     }
 
     private static float NormalizeExposure(float value)

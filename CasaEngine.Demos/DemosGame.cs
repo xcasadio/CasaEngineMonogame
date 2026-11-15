@@ -730,6 +730,7 @@ public class DemosGame : CasaEngineGame
 
         _automationScreenshotCaptured = true;
         LogFxaaPassCounts();
+        LogSceneDepthCounts();
         bool succeeded = CaptureScreenshot(_automationScreenshotPath);
         Environment.ExitCode = succeeded ? 0 : 1;
         Exit();
@@ -753,6 +754,29 @@ public class DemosGame : CasaEngineGame
         }
 
         Logs.WriteInfo($"[DemosGame] FXAA passes at capture: total {total} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many static and skinned meshes the scene depth pre-pass drew for each
+    /// view in the frame just rendered (ADR-0115): a capture measurement of the SSAO is only valid when the counts of the views it
+    /// concerns show the pre-pass ran (at least 1 for the geometry the demo draws), and are 0 without SSAO.
+    /// </summary>
+    private void LogSceneDepthCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int staticTotal = 0;
+        int skinnedTotal = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int staticDraws = views[i].RenderStats.SceneDepthStaticDraws;
+            int skinnedDraws = views[i].RenderStats.SceneDepthSkinnedDraws;
+            staticTotal += staticDraws;
+            skinnedTotal += skinnedDraws;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": static ").Append(staticDraws).Append(" skinned ").Append(skinnedDraws);
+        }
+
+        Logs.WriteInfo($"[DemosGame] Scene depth draws at capture: static {staticTotal}, skinned {skinnedTotal} ({perView}).");
     }
 
     private bool CaptureScreenshot(string outputPath)
@@ -817,6 +841,7 @@ public class DemosGame : CasaEngineGame
             && string.IsNullOrWhiteSpace(tonemapperText)
             && string.IsNullOrWhiteSpace(exposureText)
             && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_AA"))
+            && !HasSsaoHarnessVariable()
             && !HasBloomHarnessVariable())
         {
             return;
@@ -861,6 +886,7 @@ public class DemosGame : CasaEngineGame
 
         ApplyBloomHarness(settings.ColorPipeline);
         ApplyAntiAliasingHarness(settings.ColorPipeline);
+        ApplySsaoHarness(settings.ColorPipeline);
         settings.MarkDirty();
         Logs.WriteInfo($"[DemosGame] Colour pipeline harness: {settings.ColorPipeline.Mode}, {settings.ColorPipeline.Tonemapper}, exposure {settings.ColorPipeline.Exposure}.");
     }
@@ -941,6 +967,61 @@ public class DemosGame : CasaEngineGame
         {
             Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_AA '{text}' is not Fxaa or None; ignored.");
         }
+    }
+
+    /// <summary>
+    /// Harness variables of the SSAO (ADR-0115): <c>CASAENGINE_DEMO_SSAO</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// optional <c>CASAENGINE_DEMO_SSAO_RADIUS</c>, <c>CASAENGINE_DEMO_SSAO_INTENSITY</c> and <c>CASAENGINE_DEMO_SSAO_BIAS</c> (numbers,
+    /// invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static bool HasSsaoHarnessVariable()
+    {
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_RADIUS"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_INTENSITY"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_BIAS"));
+    }
+
+    private static void ApplySsaoHarness(ColorPipelineSettings colorPipeline)
+    {
+        if (!HasSsaoHarnessVariable())
+        {
+            return;
+        }
+
+        var enabledText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO");
+        if (!string.IsNullOrWhiteSpace(enabledText))
+        {
+            if (enabledText == "1" || enabledText.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.SsaoEnabled = true;
+            }
+            else if (enabledText == "0" || enabledText.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.SsaoEnabled = false;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_SSAO '{enabledText}' is not 1, 0, true or false; ignored.");
+            }
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_RADIUS", out var radius))
+        {
+            colorPipeline.SsaoRadius = radius;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_INTENSITY", out var intensity))
+        {
+            colorPipeline.SsaoIntensity = intensity;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_BIAS", out var bias))
+        {
+            colorPipeline.SsaoBias = bias;
+        }
+
+        Logs.WriteInfo($"[DemosGame] SSAO harness: enabled {colorPipeline.SsaoEnabled}, radius {colorPipeline.SsaoRadius}, intensity {colorPipeline.SsaoIntensity}, bias {colorPipeline.SsaoBias}.");
     }
 
     private static bool TryReadFloatVariable(string name, out float value)

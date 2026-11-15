@@ -119,6 +119,13 @@
 /processorParam:Defines=
 /build:Shaders/Fxaa.fx
 
+#begin Shaders/SceneDepth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/processorParam:Defines=
+/build:Shaders/SceneDepth.fx
+
 #begin Shaders/IblConvolution.fx
 /importer:EffectImporter
 /processor:EffectProcessor

@@ -508,6 +508,61 @@ TECHNIQUE(RiggedModelShadowDepthDualQuaternion, VertexShaderRiggedModelShadowDep
 
 
 //_______________________________________________________________
+// RiggedModelSceneDepth / RiggedModelSceneDepthDualQuaternion — scene depth pre-pass (ADR-0115)
+// Writes the view depth, in world units (the clip-space w of a perspective projection), into the red channel of the pre-pass
+// target, as SceneDepth.fx does for the static meshes. The texture alpha is cut at AlphaCutoff like the colour pass does
+// (AlphaCutoff <= 0 disables the test), so a cut-out leaves the background value behind it. WorldViewProj is the world view
+// projection of the camera here, not of the light.
+//_______________________________________________________________
+
+struct VsSceneDepthOutput
+{
+    float4 Position : SV_Position;
+    float2 TexureCoordinateA : TEXCOORD0;
+    float ViewDepth : TEXCOORD1;
+};
+
+VsSceneDepthOutput VertexShaderRiggedModelSceneDepth(VsInputSkinnedQuad input)
+{
+    VsSceneDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.TexureCoordinateA = input.TexureCoordinateA;
+    output.ViewDepth = clipPosition.w;
+    return output;
+}
+
+VsSceneDepthOutput VertexShaderRiggedModelSceneDepthDualQuaternion(VsInputSkinnedQuad input)
+{
+    VsSceneDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneDualQuaternionTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.TexureCoordinateA = input.TexureCoordinateA;
+    output.ViewDepth = clipPosition.w;
+    return output;
+}
+
+float4 PixelShaderRiggedModelSceneDepth(VsSceneDepthOutput input) : COLOR0
+{
+    ApplySkinnedAlphaTest(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA).a);
+    return float4(input.ViewDepth, 0.0f, 0.0f, 1.0f);
+}
+
+TECHNIQUE(RiggedModelSceneDepth, VertexShaderRiggedModelSceneDepth, PixelShaderRiggedModelSceneDepth)
+TECHNIQUE(RiggedModelSceneDepthDualQuaternion, VertexShaderRiggedModelSceneDepthDualQuaternion, PixelShaderRiggedModelSceneDepth)
+
+
+//_______________________________________________________________
 // RiggedModelNormalDraw — debug: visualizes normals with lighting
 //_______________________________________________________________
 
