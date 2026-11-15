@@ -286,6 +286,21 @@ appels de dessin sur un corpus de textes (nombre court, longueur variable, plusi
   devant un `[` ; `[/u]` sans ouverture donne un soulignement désactivé de hauteur 0 ; le soulignement par défaut
   applique l'opacité deux fois ; `[shadow=Red 1,2]` retombe sur le décalage (1,1).
 
+### ✅ Acceptation et correctifs des constats reportés (2026-11-15)
+
+Plan accepté par l'auteur le 2026-11-15, avec la demande de corriger les défauts trouvés.
+
+- Corrigé (MGUI `e25b540e`) : les expressions régulières de `FTTokenizer` sont `CultureInvariant`. Sous une culture
+  turque ou azérie, `[I]`, `[ITALIC]` et `[IMG=…]` sont maintenant des balises comme ailleurs (changement de
+  comportement voulu), et le lecteur sans allocation ne renvoie plus ces textes au code historique : la garde
+  `FoldsUpperI` est retirée. Tests : `FormattedTextCultureTests` réécrit (tokenizer créé sous cinq cultures).
+- Non corrigé, à décider par l'auteur parce que le rendu ou le sens du balisage changerait : le constat P3 sur
+  `Runs`/`Lines` après un balisage invalide posé pendant le passage de `AllowsInlineFormatting` à vrai ; les
+  bizarreries du code historique reproduites telles quelles (`[` sans type connu, barres obliques inverses, `[/u]`
+  sans ouverture, opacité du soulignement appliquée deux fois, `[shadow=Red 1,2]`).
+- Les limites qui allouent encore (caches de 64 et 128 entrées, bloc souligné ou à fond sans balise, changement de
+  police, tampons qui ne rétrécissent pas) restent des limites documentées.
+
 ### ✅ T4.1 — Documentation et clôture
 
 - Fin : `MGUI/docs` (texte) et `docs/engine` du moteur disent quand utiliser `SetText(ReadOnlySpan<char>)` ; ADR de

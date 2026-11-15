@@ -849,6 +849,31 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
   rendrait une variante gardée périmée (aucun type n'en dérive) ; la paire de variantes garde en vie deux objets de
   réglages et leur `BackendEffect` jusqu'au prochain changement de paire.
 
+### ✅ Acceptation et correctifs des constats reportés (2026-11-15)
+
+Plan accepté par l'auteur le 2026-11-15, avec la demande de corriger les défauts trouvés. Corrigé :
+
+- `DrawSettings` est `sealed` (MGUI `77630db1`, ADR-0029 complété) : rupture d'API publique.
+- Le réarmement ne garde la paire de variantes de rasterizer que pour les réglages avec lesquels l'usage commence ;
+  une paire faite d'autres réglages est lâchée (test `Rearm_WithOtherInitialSettings_DropsTheRasterizerVariants`).
+- `MGTextBox` et `MGGridColorPicker` gardent leur nom de clip (MGUI `a1b77c9e`).
+- Tests (MGUI `3a7c4e66` et moteur) : les moyennes par image sont arrondies vers le haut (un total sous un octet par
+  image ne se lit plus 0) ; les images après un changement de texte affirment aussi `Draw` ; la souris est posée sur
+  le slider lu dans son layout (`IsHovered` affirmé) ; le test de glissement du chemin réel entrelace `Update` et
+  `Draw`.
+- Validation : `MGUI.Tests` 3656 verts, `CasaEngine.Tests` 5550 verts, les trois solutions 0 erreur, aucun sauté. Une
+  exécution a vu `AnimatedSpriteLogicalEndClockTests.L14_AdvancingAllocatesNothing` échouer une fois ; il passe seul
+  et dans l'exécution complète suivante (test d'allocation hors de ce chantier, non étudié).
+- Pas de vérification indépendante de ces correctifs.
+
+Non corrigé, avec la raison :
+
+- Une référence de `ClipScope` ou de transaction libérée une seconde fois après sa réutilisation : l'objet réutilisé
+  est le même, le second `Dispose` ne peut pas être reconnu sans remplacer ces objets par des poignées à génération
+  (changement d'API de `IUIDrawTransaction`, à décider par l'auteur).
+- `protected override DrawContents` de `MGSingleContentHost` et `MGMultiContentHost` : même signature, sans effet.
+- Les cas qui allouent encore (liste de `ai-agent/README.md`) sont des suites à planifier, pas des défauts.
+
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
 - Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
