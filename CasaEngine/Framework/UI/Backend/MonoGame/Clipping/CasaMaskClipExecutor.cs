@@ -18,6 +18,14 @@ internal sealed class CasaMaskClipExecutor
     public int TemporaryRenderTargetRentCount { get; private set; }
     public int TemporaryRenderTargetReuseCount { get; private set; }
 
+    /// <summary>Puts the executor in the state its constructor gives it. The render target that a mask clip left open rented is not returned
+    /// to the pool, as when the transaction that pushed that clip is dropped: only its closure holds it.</summary>
+    public void Rearm()
+    {
+        TemporaryRenderTargetRentCount = 0;
+        TemporaryRenderTargetReuseCount = 0;
+    }
+
     public ClipScope Push(ClipResolveResult resolution)
     {
         ClipGeometry geometry = resolution.Effective.Shape.Geometry ?? throw new InvalidOperationException(

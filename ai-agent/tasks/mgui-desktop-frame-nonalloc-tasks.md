@@ -552,7 +552,7 @@ celui de T3.3 retire la méthode de réarmement. T3.5 fait deux commits : `git r
 (il rend l'ancienne référence du sous-module, donc `IUIDesktopRuntime.CreateDrawTransaction`), puis, si on veut aussi
 le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-module.
 
-### ⏳ T3.3 — Une transaction réarmable
+### ✅ T3.3 — Une transaction réarmable
 
 - Résultat : `CasaDrawTransaction` a une méthode `internal` de réarmement (réglages initiaux, `DeferBegin`, contexte
   par défaut) après laquelle elle est dans l'état d'une transaction neuve construite avec les mêmes arguments au même
@@ -579,6 +579,35 @@ le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-mo
   ce qu'il dessine, la tâche s'arrête (⚠️) avec le fait écrit ici.
 - Validation : les deux solutions 0 erreur, `CasaEngine.Tests` vert sans test sauté.
 - Commit (moteur) : `refactor(ui): let a draw transaction be re-armed`
+- **Fait le 2026-11-15.** `CasaDrawTransaction.Rearm(DrawSettings, bool, DrawContext)` (`internal`). Aucun membre
+  public ajouté, changé ou retiré ; le runtime n'est pas modifié. Validation : les deux solutions 0 erreur,
+  `CasaEngine.Tests` 5540 verts (5521 et 19 nouveaux), aucun sauté.
+- Champs remis par le réarmement : matrice de projection (transaction et `CasaDrawStateController`), `CurrentContext`
+  (`None`), `CurrentSettings`, `PreviousSettings`, les trois compteurs de `CasaClipManager`, `_stencilDepth` et
+  `MaxObservedDepth`, les deux compteurs de l'exécuteur de masque. Gardés : les piles d'emplacements de clip libres et
+  les tampons de sommets (réserves sans effet observable), `PrimitiveDrawing`, `CasaRenderTargetService` et les deux
+  renderers de formes du dépôt (sans état par transaction ; `_batchDepth` d'Apos vaut 0 hors appel).
+- Variantes de rasterizer et `PreviousSettings` par défaut : gardés d'un usage à l'autre seulement tant qu'ils sont
+  `Equals` à un jumeau jamais exposé, sinon recréés. Raison : l'égalité générée de `DrawSettings` (MGUI) compare son
+  cache privé d'inverse ; les remettre à chaque réarmement ferait allouer à chaque image. Une transaction jamais
+  réarmée ne crée aucun jumeau.
+- Écart au plan : le constructeur ne passe pas entièrement par le code du réarmement (l'ordre de construction est
+  gardé pour que `CreateShapeRenderer` voie `CurrentSettings` rempli) ; le début du dessin, la projection et le
+  `PreviousSettings` par défaut sont partagés.
+- Précondition du réarmement : le `Dispose` de l'usage précédent a terminé le lot ; `CurrentContext` est remis à
+  `None` sans condition, ce qui rend utilisable une transaction dont le `Dispose` précédent a levé.
+- Clip à masque laissé ouvert : sa cible de rendu louée reste tenue par le scope, le réarmement ne la rend pas au
+  pool (comme aujourd'hui pour une transaction abandonnée). Un scope non libéré par l'usage précédent ne doit pas être
+  libéré après le réarmement.
+- Tests (`DrawTransactionRearmGpuTests`, 19, GPU réel) : même scénario (sprites, primitives, triangles texturés, clips
+  rectangle, nul, stencil, masque, réglages temporaires) sur une transaction neuve et sur une transaction réarmée, deux
+  runtimes au même historique ; réglages, clip, diagnostics et état du device comparés à chaque étape, puis pixels.
+  Tous les cas de la tâche. Zéro octet, réarmement compris, total exact sur 500 images : image de T3.2 et image avec
+  un clip qui coupe le scissor. Contre-épreuves : chaque champ non remis fait échouer au moins un test (projection : 2
+  tests ; `PreviousSettings` : 8 ; `CurrentSettings` : 5 ; compteurs : 5 et 6 ; profondeur de stencil : 1 ;
+  `CurrentContext` : 1).
+- Non vérifié : les champs de `PrimitiveDrawing` (classe de MonoGame.Extended, non lue ; ses pixels sont identiques
+  entre neuf et réarmé) ; un renderer de formes d'un projet externe.
 
 ### ⏳ T3.4 — Le runtime possède sa transaction
 

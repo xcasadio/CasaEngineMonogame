@@ -8,7 +8,11 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame;
 internal sealed class CasaDrawStateController
 {
     private readonly CasaDesktopRuntime _renderer;
-    private readonly Matrix _primitiveProjectionMatrix;
+    private Matrix _primitiveProjectionMatrix;
+    // The default settings handed out as PreviousSettings, and a twin that nothing reads or hands out: a settings object caches its inverse
+    // transform when it is read, which makes it differ from a new one, so a kept default is reused only while it still equals its twin.
+    private DrawSettings _defaultPreviousSettings;
+    private DrawSettings _defaultPreviousSettingsTwin;
 
     public CasaDrawStateController(CasaDesktopRuntime renderer, DrawSettings initialSettings, Matrix primitiveProjectionMatrix)
     {
@@ -18,6 +22,26 @@ internal sealed class CasaDrawStateController
         _renderer = renderer;
         _primitiveProjectionMatrix = primitiveProjectionMatrix;
         CurrentSettings = initialSettings;
+        _defaultPreviousSettings = PreviousSettings;
+    }
+
+    /// <summary>Puts the controller in the state its constructor gives it, for new initial settings and projection: no batch open, default
+    /// previous settings. A batch that is still open is not ended: the previous use of the transaction ended it.</summary>
+    public void Rearm(DrawSettings initialSettings, Matrix primitiveProjectionMatrix)
+    {
+        ArgumentNullException.ThrowIfNull(initialSettings);
+
+        _primitiveProjectionMatrix = primitiveProjectionMatrix;
+        CurrentContext = DrawContext.None;
+        CurrentSettings = initialSettings;
+
+        if (_defaultPreviousSettingsTwin == null || !_defaultPreviousSettings.Equals(_defaultPreviousSettingsTwin))
+        {
+            _defaultPreviousSettings = DrawSettings.Default;
+            _defaultPreviousSettingsTwin = DrawSettings.Default;
+        }
+
+        PreviousSettings = _defaultPreviousSettings;
     }
 
     public DrawContext CurrentContext { get; private set; } = DrawContext.None;

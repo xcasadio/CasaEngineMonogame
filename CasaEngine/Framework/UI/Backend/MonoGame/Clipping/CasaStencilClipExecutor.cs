@@ -18,6 +18,14 @@ internal sealed class CasaStencilClipExecutor
 
     public int MaxObservedDepth { get; private set; }
 
+    /// <summary>Puts the executor in the state its constructor gives it. A stencil clip left open by the previous use is forgotten: the next
+    /// push clears the stencil buffer, as the first push of a new executor does.</summary>
+    public void Rearm()
+    {
+        _stencilDepth = 0;
+        MaxObservedDepth = 0;
+    }
+
     public ClipScope Push(ClipResolveResult resolution)
     {
         ClipGeometry geometry = resolution.Effective.Shape.Geometry ?? throw new InvalidOperationException(

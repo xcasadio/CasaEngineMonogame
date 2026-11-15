@@ -60,7 +60,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// (Color can be specified in the 'Color' mask parameter of SpriteBatch.Draw(...))</summary>
     public SolidColorTexture WhitePixel => Renderer.GetOrCreateSolidColorTexture(Color.White);
 
-    private Matrix PrimitiveProjectionMatrix { get; }
+    private Matrix PrimitiveProjectionMatrix { get; set; }
     private CasaDrawStateController DrawState { get; }
     private CasaRenderTargetService RenderTargets { get; }
     private IShapeRenderer2D ShapeRenderer { get; }
@@ -101,12 +101,51 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         this.Renderer = Renderer ?? throw new ArgumentNullException(nameof(Renderer));
         PrimitiveDrawing = new PrimitiveDrawing(PrimitiveBatch);
 
-        PrimitiveProjectionMatrix = Matrix.CreateOrthographicOffCenter(0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+        PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState = new CasaDrawStateController(Renderer, Settings ?? throw new ArgumentNullException(nameof(Settings)), PrimitiveProjectionMatrix);
         RenderTargets = new CasaRenderTargetService(this);
         ShapeRenderer = Renderer.Options.CreateShapeRenderer?.Invoke(this) ?? new CasaLegacyShapeRenderer2D(this);
         ClipManager = new(this);
 
+        StartUse(DeferBegin, DefaultContext);
+    }
+
+    /// <summary>Puts the transaction in the state a new <see cref="CasaDrawTransaction"/> built with the same arguments would be in at this
+    /// moment: the initial settings, no previous settings, no batch open, the projection of the primitives from the current viewport, the clip
+    /// diagnostics at zero, and the context started unless <paramref name="DeferBegin"/>. What the previous use left on the
+    /// <see cref="GraphicsDevice"/> (render target, scissor, states) stays, as it does for a new transaction.<para/>
+    /// The previous use must have ended its batch (<see cref="Dispose"/>): an open batch is not ended here. Scopes that the previous use did not
+    /// dispose are abandoned; they must not be disposed afterwards. A mask clip left open keeps the render target it rented.<para/>
+    /// What is kept, because a new transaction could not tell it from what it creates: the shape renderer, the free clip slots, the buffers of
+    /// textured triangles, and the rasterizer variants of the settings while they are as they were created.</summary>
+    internal void Rearm(DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
+    {
+        ArgumentNullException.ThrowIfNull(Settings);
+
+        PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
+        DrawState.Rearm(Settings, PrimitiveProjectionMatrix);
+        ClipManager.Rearm();
+
+        bool KeepVariants = _RasterizerVariantTwinA != null
+            && _RasterizerVariantA.Equals(_RasterizerVariantTwinA)
+            && _RasterizerVariantB.Equals(_RasterizerVariantTwinB);
+        if (!KeepVariants)
+        {
+            _RasterizerVariantA = null;
+            _RasterizerVariantB = null;
+            _RasterizerVariantTwinA = null;
+            _RasterizerVariantTwinB = null;
+        }
+
+        _WasRearmed = true;
+        StartUse(DeferBegin, DefaultContext);
+    }
+
+    private Matrix CreatePrimitiveProjectionMatrix()
+        => Matrix.CreateOrthographicOffCenter(0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+
+    private void StartUse(bool DeferBegin, DrawContext DefaultContext)
+    {
         if (!DeferBegin)
         {
             BeginDraw(DefaultContext);
@@ -756,6 +795,18 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         DrawSettings Changed = Current with { RasterizerType = Type };
         _RasterizerVariantA = Current;
         _RasterizerVariantB = Changed;
+        if (_WasRearmed)
+        {
+            //  Copies that nothing reads or hands out: a variant that was read since (it caches its inverse transform) no longer equals its twin.
+            _RasterizerVariantTwinA = Current with { };
+            _RasterizerVariantTwinB = Changed with { };
+        }
+        else
+        {
+            _RasterizerVariantTwinA = null;
+            _RasterizerVariantTwinB = null;
+        }
+
         return Changed;
     }
 
@@ -771,6 +822,9 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     private readonly Stack<ScissorClipSlot> _FreeScissorClipSlots = new();
     private DrawSettings _RasterizerVariantA;
     private DrawSettings _RasterizerVariantB;
+    private DrawSettings _RasterizerVariantTwinA;
+    private DrawSettings _RasterizerVariantTwinB;
+    private bool _WasRearmed;
 
     /// <summary>A scissor clip's scope and what it restores, kept in fields so that a push creates no closure. A slot goes back to its transaction's
     /// free stack when its scope is disposed, so nested clips use one slot per level and any order of disposal stays correct.</summary>

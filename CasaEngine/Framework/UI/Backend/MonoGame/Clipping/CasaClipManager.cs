@@ -24,6 +24,17 @@ internal sealed class CasaClipManager
         _MaskExecutor = new CasaMaskClipExecutor(owner);
     }
 
+    /// <summary>Puts the manager in the state its constructor gives it: the counts and the depths the diagnostics report are back to zero.
+    /// The free slots are kept: a slot is only a place to build a scope, and one that a clip left open never comes back to it.</summary>
+    public void Rearm()
+    {
+        _ScissorClipCount = 0;
+        _StencilClipCount = 0;
+        _MaskClipCount = 0;
+        _StencilExecutor.Rearm();
+        _MaskExecutor.Rearm();
+    }
+
     public ClipResolveResult Resolve(ClipDefinition definition)
         => ClipStrategyResolver.Resolve(definition, _Capabilities);
 
