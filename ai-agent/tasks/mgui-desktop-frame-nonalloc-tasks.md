@@ -295,7 +295,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   glissement sont à 0 octet en `Update` et en `Draw`.
 - Validation moteur à `89910c84` : les deux solutions 0 erreur, `CasaEngine.Tests` 5480 verts, aucun sauté.
 
-### ⏳ T1.5 — Conteneurs, et preuve de bout en bout sans invalidation
+### ✅ T1.5 — Conteneurs, et preuve de bout en bout sans invalidation
 
 - Fixtures : `AnIdleFrame(WindowWithStackPanel)`, `…AndTextBlock`, `…AndSlider`, `AnIdleFrame(Full)`,
   `ADragFrame_OnTheFullFixture` (aujourd'hui `Draw` de 3345 à 4241), plus trois fixtures nouvelles : la fixture
@@ -311,8 +311,34 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   D2 et D6), sa fixture est retirée de la preuve, sa mesure est notée ici et reportée dans T4.1 ; les autres fixtures
   restent exigées.
 - Commit (MGUI) : `perf(layout): update and draw the slider's containers without allocating`
+- **Fait le 2026-11-15** (MGUI `43c398b0`). Les fixtures existantes étaient déjà à 0 après T1.4 ; les trois nouvelles
+  mesuraient, en octets par image (`Update` / `Draw`) : `FullInGrid` 0 / 56 au repos et 0 / 344 en glissement,
+  `FullInDockPanel` 0 / 0, `FullInDockHost` 192 / 120. Après : 0 partout, au repos, souris sur la fenêtre, souris en
+  mouvement et glissement. Toutes les mesures de T0.1 sont des affirmations de zéro. Suite : 3632 verts, aucun sauté.
+- Sites : `MGGrid.cs`, abonnement du constructeur à son propre `OnEndingDraw` (56, un `MGElementDrawEventArgs` par
+  `Draw`) et itérateur `GridSelection.GetCells` parcouru deux fois même pour une sélection de mode `None` (288) ;
+  `MGDockTabGroup.cs`, `MGDockTabItem.cs`, `MGDockDropIndicators.cs`, itérateur de `GetChildren` dans `DrawContents`
+  (40 chacun) ; `MGDockHost.UpdateSelf`, lecture de `IsControlDown` et `IsShiftDown` à chaque image (192, l'allocation
+  est dans `MGUI.Shared/Input/Keyboard/KeyboardTracker.cs:142-143`, non modifié).
+- Corrections : `MGElement.EndingDrawInternal` (`internal virtual`, appelée juste avant `OnEndingDraw`, même forme que
+  les méthodes de T1.2) redéfinie par `MGGrid` ; la sélection n'est parcourue que si son mode n'est pas `None` ; les
+  trois contrôles de docking dessinent leurs enfants dans l'ordre et sous les conditions de `GetChildren`, sans
+  itérateur ; `MGDockHost` lit Tab d'abord, puis Ctrl et Maj seulement si Tab vient d'être pressé.
+- Contre-épreuve (production d'avant) : `FullInGrid` `Draw` 56 et 344 ; `FullInDockHost` `Update` 192, `Draw` 120.
+  `FullInDockPanel`, `Full` et les autres étaient déjà à 0 : leurs tests ne peuvent pas être vus échouer.
+- Caractérisation, journaux figés sur le code d'avant : `Full` glissement 800 lignes `68E93B778DFA70A0` ; `FullInGrid`
+  350 `E313EED065EDC31C` et 820 `FEB8EB37392C2D41` ; `FullInDockPanel` 350 `02355343A2F879CC` et 820
+  `03BDAA5F77FFA1B3` ; `FullInDockHost` 575 `C2490D7D7541C9AD` et 1270 `52957F04D8CFA4E5`.
+- Écarts : `MGElement.cs` touché (hors de la liste de T1.5, pour la méthode ci-dessus). `MGDockTabItem.cs` et
+  `MGDockTabGroup.cs` gardent le texte `child?.Draw(DA);` dans une méthode privée `DrawChild`, parce que
+  `ControlTemplateInfrastructureTests.cs:184` et `:208` cherchent ce texte dans la source ; ce test n'est pas modifié.
+  À l'auteur de dire s'il préfère adapter le test. Commit fait par la session principale (hook, comme T1.3).
+- Reste, hors de la preuve, pour T4.1 : une `MGGrid` avec une sélection `Row`, `Column` ou `Cell` alloue encore
+  l'itérateur à chaque `Draw` (non mesuré) ; `MGDockSplitContainer`, `MGDockAutoHideStrip`, `MGDockAutoHideDrawer` et
+  `MGDockPreviewOverlay` gardent `foreach (GetChildren())` (un `MGDockHost` avec séparations ou panneaux masqués n'est
+  pas prouvé) ; `KeyboardTracker.IsControlDown` et `IsShiftDown` allouent quand Tab est pressé.
 
-### ⏳ T2.1 — Layout complet sans allocation (D5)
+### ✅ T2.1 — Layout complet sans allocation (D5)
 
 - Prérequis : T1.5 ✅ ; plan du texte terminé (c'est le cas).
 - Fixture : la fixture complète, dont le `MGTextBlock` reçoit à chaque image un texte de longueur différente par
@@ -323,6 +349,36 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   chaque élément de la fixture sont égaux, image par image, à ceux du code d'avant (suite figée de 50 textes) ;
   contre-éprouvé. `MGGrid` et `MGDockPanel` sont prouvés par les fixtures de T1.5 avec le même changement de texte.
 - Commit (MGUI) : `perf(layout): measure and arrange the slider's containers without allocating`
+- **Fait le 2026-11-15** (MGUI `0af01881`). Jeu de 50 textes de 5 à 84 caractères avec retour à la ligne (la hauteur
+  du `MGTextBlock` varie). Octets par image, `Update` / `Draw`, avant puis après : `Full` 0 / 92 puis 0 / 0 ;
+  `FullInDockPanel` 0 / 92 puis 0 / 0 ; `FullInGrid` 7248 / 184 puis 0 / 0. Deux preuves par fixture : 500 images
+  dans un autre ordre après réchauffe, et les 50 textes rejoués après une seule passe. Suite : 3649 verts, aucun sauté.
+  Moteur à `0af01881` : les deux solutions 0 erreur, `CasaEngine.Tests` 5480 verts.
+- Sites : `MGGrid.cs`, `ComputeDimensions` et `UpdateContentLayout` (7248 : dictionnaires de largeurs et de hauteurs
+  par passe, tri LINQ des colonnes et lignes restantes, listes temporaires, `HasFlag` qui boxe, `foreach` sur
+  interfaces, dictionnaire de `GetCellBounds`, `GeneralUtils.Min(a, b, c)` en `params`) ; `MGElement.cs`,
+  `ReuseRectangleClipDefinition` (92 à 184 : une `ClipDefinition` recréée à chaque changement de bornes).
+- Corrections : tableaux de dimensions gardés par la grille (une passe imbriquée prend des tableaux neufs) ; tri par
+  insertion stable sur les mêmes clés ; masque au lieu de `HasFlag` ; `Math.Min` ; `_CellBounds` reconstruit seulement
+  si une cellule a changé de bornes ; jusqu'à 8 `ClipDefinition` récentes gardées par élément, le tableau n'étant créé
+  qu'au premier changement de bornes.
+- Contre-épreuve (production d'avant) : `Full` et `FullInDockPanel`, `Draw` 4608 octets sur 50 images et 34 848 sur
+  500 ; `FullInGrid`, `Update` 362 400 et 3 624 000, `Draw` 9216 et environ 69 400.
+- Caractérisation figée sur le code d'avant (bornes de chaque élément, cellule, colonne et ligne, événements
+  `OnLayoutUpdated` et `OnLayoutBoundsChanged` avec arguments et ordre ; puis journal de dessin) : `Full` 580 lignes
+  `365EFA53674E1445` et 3421 `41F2D22E04C15451` ; `FullInGrid` 962 `844A5144A1858CF8` et 3568 `499E2F3D359CB059` ;
+  `FullInDockPanel` 730 `8F19D06C4E62E78D` et 3521 `12367A53E24DBF44` ; `FullInDockHost` 1630 `845AF18D5646C839` et
+  5771 `B5F7B15D0E65D0AB`. Test ajouté sur une grille riche (colonnes et lignes `Auto`, pixel, pondérées, min et max,
+  spans, espacements, `SizeToContent`) : 2806 lignes `DD5522217256FEFA`.
+- Écart : le site des `ClipDefinition` est dans le dessin de `MGElement.cs`, hors des méthodes citées.
+- Différences de comportement : une grille dont les bornes de cellules sont inchangées garde la même instance de
+  dictionnaire dans `CellBounds` (avant : un dictionnaire neuf de contenu égal) ; un élément retient jusqu'à 8
+  `ClipDefinition` de plus. Non couvert par un test : des définitions de ligne ou de colonne modifiées pendant leur
+  propre calcul.
+- Reste, hors de la preuve, pour T4.1 : `FullInDockHost` après un changement de texte, `Update` 32 octets par image
+  (`MGDockTabGroup.cs:343`, un `MGSolidFillBrush` par `SyncHeaderVisuals`) et `Draw` intermittent (jusqu'à environ 15
+  octets, cause non localisée) ; fenêtre en `SizeToContent` redimensionnée à chaque texte, `Draw` 488 à 1422 octets
+  (plus de 8 tailles de clip) ; grille dont les cellules changent de bornes (`_CellBounds` recréé).
 
 ### ✅ T3.1 — `ClipScope` réutilisable (D7)
 
