@@ -258,7 +258,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 
 ## Phase 1 — Dessin : poignées et clip à stencil
 
-### ⏳ T1.1 — ADR et types des poignées
+### ✅ T1.1 — ADR et types des poignées
 
 - Objectif : les poignées de D2 et D3 existent dans `MGUI.Shared`, décrites par un ADR de MGUI, sans appelant encore
   migré ; le mécanisme de `SetTransformTemporary` est choisi (O1).
@@ -277,6 +277,9 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   le fait est écrit ici, T1.3 passe en ⚠️ (O1) et le reste de la phase 1 continue : T1.2, T1.4, T1.5 et T1.6 ne
   dépendent pas d'O1.
 - Commit (MGUI) : `feat(rendering): add generation handles for temporary draw state and clips`
+- Validation (2026-11-16) : `MGUI.sln` 0 erreur ; `MGUI.Tests` 3718 verts (12 tests ajoutés, `Rendering/GenerationHandleTests.cs`), aucun sauté. Types : `DrawStateHandle` et `IDrawStateHandleOwner`, `ClipHandle` et `IClipHandleOwner`, `GenerationSlots<TState>` (emplacements partagés par les deux backends). ADR-0031 de MGUI.
+  - Relevé de l'étape 1 : aucun lecteur de `ClipScope.Resolution` hors tests dans le code produit ; un seul appelant garde un `IDisposable` dans une variable hors des backends (`MGElement.cs:5395`, `TempTransform`) ; les appelants de `MGUI.Core` écrivent `using (cond ? Push(...) : null)`, remplacé par `default`.
+  - O1 tranché : la transaction garde les réglages qu'elle a dérivés, retrouvés par l'identité des réglages de départ et la valeur (matrice ou effet), comme `WithRasterizerType` le fait déjà pour le scissor. Écartés : la pile de matrices (`CurrentSettings` ne serait plus les réglages en vigueur pour ceux qui le lisent ou le dérivent) et les objets réécrits (`DrawSettings` est immuable et des références sont gardées). Limite écrite dans l'ADR : une transformation dont la valeur est nouvelle (animée à chaque image) dérive encore un `DrawSettings` ; une transformation stable n'alloue rien. T1.3 n'est donc pas bloquée, avec cette limite.
 
 ### ⏳ T1.2 — Changements temporaires de réglages et de cible sans allocation
 
@@ -525,7 +528,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Mécanisme de `SetTransformTemporary` et de `SetEffectTemporary` sans objet par appel : pile de matrices et d'effets dans le contrôleur d'état, ou objets `DrawSettings` réutilisables. Choisi en T1.1 sur le critère écrit dans la tâche ; T1.3 en ⚠️ si aucun ne le tient, le reste de la phase 1 continue. | T1.1, T1.3 |
+| O1 | Tranché en T1.1 (ADR-0031 de MGUI) : réglages dérivés gardés par la transaction. Limite : une valeur nouvelle à chaque image dérive encore un `DrawSettings`. | T1.3 |
 | O2 | Le renderer de formes alloue-t-il pendant `DrawClipGeometry` ? Non lu. Mesuré en T1.5 avant toute modification. | T1.5 |
 | O3 | Résolu en T0.1 : les 32 octets sont pris une seule fois, à la première image après le changement de texte, puis 0. | T0.1 |
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
