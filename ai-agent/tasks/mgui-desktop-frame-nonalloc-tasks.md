@@ -750,6 +750,35 @@ session principale, vue par la vérification finale.
 - Validation : `MGUI.Tests` 3649 verts ; les deux solutions du moteur 0 erreur ; `CasaEngine.Tests` 5549 verts ; aucun
   sauté.
 
+### ✅ Vérification de la suite O7 (2026-11-15)
+
+- **Vérification indépendante de T3.3 à T3.6 : CONFIRMED**, aucun constat P0 à P2. Commandes d'acceptation relancées :
+  `MGUI.Tests` 3649 verts, `CasaEngine.Tests` 5549 verts, les trois solutions 0 erreur, aucun test sauté.
+- Sondes du vérificateur, ancien code (`8517f76b`, MGUI `c363749b`) contre nouveau, sur GPU réel : 5 graines, 1900
+  images aléatoires (dessins, clips rectangle, nul, stencil et masque, réglages, transformation et cible temporaires,
+  UI en espace monde par un second runtime, changements de viewport, fins d'image normales, scopes abandonnés, dessin
+  qui lève, `Dispose` qui lève, début qui lève) ; réglages, clips, diagnostics, état du device à chaque étape et
+  pixels : journaux identiques à l'octet. Zéro remesuré image par image, `Update` puis `Draw` entrelacés : 0 octet en
+  `Draw` au repos, souris sur le pouce, glissement, changement de texte du label, après un changement de taille ;
+  l'ancien code donne 2304 par `Draw`. Fuites : 20 000 images, cibles louées et emplacements stables.
+- Inventaire des champs par réflexion : seules différences entre un runtime neuf et un runtime réarmé, les réserves
+  voulues. `PrimitiveDrawing` (MonoGame.Extended 6.1.1) n'a qu'un champ, le lot de primitives du runtime : le point
+  « non vérifié » de T3.3 est levé.
+- Recherche dans le code produit des deux solutions : aucune demande imbriquée sur un même runtime, aucune
+  transaction gardée après son `Dispose`, aucune référence aux membres retirés ni au constructeur (code, réflexion,
+  XAML, scripts), aucun appelant qui comptait sur `RegisterView`. `CreateShapeRenderer` n'est affecté par aucun code
+  produit.
+- Constats reportés, non corrigés (P4) : lire `CurrentSettings.InverseTransform` à chaque image pendant qu'une
+  variante de rasterizer est courante ferait recréer la paire de variantes à chaque image (aucun code produit ne lit
+  `InverseTransform` ; lu dans le code, non reproduit) ; libérer une seconde fois la transaction d'une image
+  précédente ferme celle de l'image en cours (mauvais usage documenté par l'ADR-0097) ; le test de glissement mesure
+  500 `Draw` d'affilée sans `Update` entre eux (la sonde entrelacée du vérificateur donne 0).
+- Non vérifié : un renderer de formes d'un projet externe ; un autre GPU ou pilote ; le clip à masque par le
+  résolveur normal (inatteignable avec les capacités par défaut, poussé par réflexion).
+- Suite proposée à l'auteur, non faite : exclure le cache privé d'inverse de l'égalité de `DrawSettings` dans MGUI,
+  ce qui supprimerait les jumeaux du réarmement et les constats P3 et P4 liés à cette égalité ; rendre aussi
+  réutilisable la transaction du `MainRenderer` de MGUI.
+
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
 - Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
