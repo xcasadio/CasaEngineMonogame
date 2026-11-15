@@ -24,6 +24,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | `Structures.fxh` | `LitForward.fx` | shared vertex/pixel structs used by the lit static effect | medium |
 | `Lighting.fxh` | `LitForward.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
 | `ColorPipeline.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`, `SkyCubemap.fx`, `LegacySkyCube.fx`, `TexturedPrimitive.fx`, `SpriteBatch.fx`, `PsxQuad.fx`, `DebugPrimitiveColor.fx` | `DecodeColor` / `DecodeColor4`: display-to-linear decoding of the linear colour pipeline, a select on `ColorPipelineIsLinear` that returns the input untouched when 0 (ADR-0097, ADR-0098); see `color-pipeline.md` | medium |
+| `Pbr.fxh` | none yet (`LitPbr.fx`, next task) | GGX BRDF (distribution, height-correlated Smith visibility, Schlick Fresnel, Lambert diffuse) and `EvaluatePbrLights`: walks the directional, point and spot lights of `Lighting.fxh` with the same attenuation formulas and slot lists restated (pinned by `PbrShaderCoverageTests`), both lobes lit by the diffuse colour of the light, diffuse and specular returned apart | medium |
 
 ## Consumer notes
 
