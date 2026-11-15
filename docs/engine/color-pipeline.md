@@ -1,6 +1,6 @@
 # Colour pipeline
 
-How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107.
+How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113.
 
 ## Modes
 
@@ -22,6 +22,7 @@ The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSet
 | `BloomThreshold` | `bloom_threshold` | 1 | Scene luminance (linear light, largest colour component) above which a pixel feeds the bloom; soft knee of half the threshold. |
 | `BloomIntensity` | `bloom_intensity` | 0.5 | Scale of the glow added to the scene. |
 | `BloomRadius` | `bloom_radius` | 1 | Scale of the blur tap spacing; larger values spread the glow further. |
+| `AntiAliasing` | `anti_aliasing` | `None` | `None` or `Fxaa`. `Fxaa` filters the tonemapped scene before the post-tonemap renderers and the interface (ADR-0113). No effect in `Legacy`, nor in a view that renders its interface with the scene (see the limits). |
 
 The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo and an exposure field.
 
@@ -45,6 +46,7 @@ For a view that really uses the HDR target (`RenderPipeline.RenderHdrView`):
 2. If bloom is enabled for the view, `BloomRenderer` adds the glow to the HDR target (see below).
 3. The destination of the legacy path is bound (back buffer, editor host texture, scene target, retained target of the frozen frame, or the render target of the view's own surface) and its depth cleared the way the legacy path clears it.
 4. `Tonemap.fx` (`Tonemap_Reinhard` or `Tonemap_AcesApprox`, parameter `Exposure`) is drawn full-rectangle and opaque through a `SpriteBatch`. It tonemaps then encodes with `pow(c, 1 / 2.2)`.
+   With `AntiAliasing = Fxaa` (and the interface composed afterwards), steps 3 and 4 become: the tonemapping is drawn into a pooled `Color` target of the view size, then the destination is bound and `FxaaRenderer` draws that target 1:1 into it with `Fxaa.fx` (see below). The steps after are unchanged.
 5. The post-tonemap flush: renderers implementing `IPostTonemapRenderer` (`Renderer2DComponent`: screen sprites, text, 2D lines) are flushed on the tonemapped image, with `DepthStencilState.None`.
 6. The interface (`IUICompositionService`) is composed on top, untouched.
 7. The HDR target goes back to the pool. The existing copy to the back buffer, the frozen-frame retention, the debug overlay and the presenter run after, unchanged.
@@ -83,6 +85,16 @@ A view stays on the legacy path when it keeps the previous content of its colour
 - The glow reaches about one eighth-size level (a few dozen pixels at radius 1). A view whose pipeline does not implement `IScenePhaseViewPipeline` has its interface in the HDR target, so the bloom also catches it.
 - Demo: `CASAENGINE_DEMO_BLOOM=1` (and optionally `CASAENGINE_DEMO_BLOOM_THRESHOLD`, `_INTENSITY`, `_RADIUS`) apply bloom to any demo in `LinearHdr`; in `Colour pipeline demo` the B key toggles it.
 
+## FXAA
+
+`FxaaRenderer` (ADR-0113) is the anti-aliasing of a `LinearHdr` view, a post-process on the display-encoded colour. It sits **after** the tonemapping and **before** the post-tonemap flush and the interface, so screen text, sprites and the interface are never filtered. `Fxaa.fx` has one technique, `Fxaa` (parameter `FxaaTexelSize`), drawn through `SpriteBatch` with a linear clamped sampler, hot reloadable like `Tonemap.fx`. Per pixel it computes the luminance of the encoded colour, leaves a pixel alone when the local contrast is small, otherwise finds the orientation of the edge, follows it up to twelve texels each way, and reads the colour at a position displaced across the edge (the linear filter does the blend); a sub-pixel term catches isolated bright or dark pixels. No pixel is shifted: the output has the size of the input.
+
+- The tonemapped image goes into a `RenderTargetPool.Shared` target (`Color`, no depth, the size of the view rectangle), then the pass writes the destination. The key of that target is stamped like the bloom ones and released by the same rule (`HdrTargetEviction`); `FxaaTargetCreationCount` and `FxaaTargetDisposalCount` count it apart from the bloom. Without FXAA the path is the unchanged one: no intermediate target, no extra draw.
+- The pass runs only in a view whose pipeline implements `IScenePhaseViewPipeline` (the interface is composed after it). A view that renders everything in one block (the editor views, `OverlayViewPipeline`) is not filtered, so as not to blur its interface.
+- `RenderStats.FxaaPasses` is 1 for a view the pass filtered in the frame, 0 otherwise; the demo harness writes it per view at the moment of a capture (`[DemosGame] FXAA passes at capture`).
+- Demo: `CASAENGINE_DEMO_AA=Fxaa` applies it to any demo in `LinearHdr`. In `Colour pipeline demo` the measurement rectangles and segment are `FxaaTextBorderRect`, `FxaaPanelBorderRect` and `FxaaEdgeSegment`.
+- It blurs luminance edges only: it does not add sub-pixel detail (no TAA, no MSAA), and a thin bright line on a dark background can still shimmer when the camera moves.
+
 ## Usage
 
 A game selects the pipeline per world (snippet above) or per view with the environment override. A renderer that draws display-ready colours (HUD, fonts) implements `IPostTonemapRenderer`; a renderer that draws scene colours declares `float ColorPipelineIsLinear;` before including `ColorPipeline.fxh` in its effect and binds it from `frame.Environment.LinearColorActive`.
@@ -105,6 +117,7 @@ For the demos, the harness variables `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGI
 - **Small `Legacy` cost of the select form (open point O11).** `DecodeColor` is a select, not a branch, so that the constant at 0 returns the colour bit for bit; the GPU evaluates the `pow` on both sides, so a `Legacy` pixel pays the extra `pow` calls (base colour, material diffuse, specular and emissive, ambient tint) for an identical result. Measured in the final cost task: +0.12 ms of wall time (+5 %) on the `Material system demo`, CPU unchanged; accepted, not fixed (see [pbr-rendering.md](pbr-rendering.md)).
 - **Format of the retained frozen frame.** The retained and captured frozen-frame targets stay `Color`: they receive the tonemapped image.
 - **A view with `ClearColorBuffer` false is not rendered in HDR.**
+- **FXAA is not applied to a view that renders its interface with the scene.** A pipeline without `IScenePhaseViewPipeline` (the editor views, `OverlayViewPipeline`) draws everything into the HDR target and is tonemapped in one draw; filtering it would blur its interface, so `AntiAliasing` has no effect there (ADR-0113). The destinations that hold the retained frozen frame and the editor host texture are not exercised by the engine measurements.
 
 ## Cost
 
@@ -112,4 +125,6 @@ Each `LinearHdr` view costs one pooled HDR target (8 bytes per pixel plus depth,
 
 Bloom adds, for a view that enables it, ten `SpriteBatch` passes on targets of at most a quarter of the view pixels and six pooled targets of the HDR format.
 
-Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107.
+FXAA adds, for a view that enables it, one pooled `Color` target of the view size (4 bytes per pixel, no depth) and one full-rectangle `SpriteBatch` draw reading at most 34 texels per pixel.
+
+Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113.

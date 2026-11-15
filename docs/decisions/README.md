@@ -126,3 +126,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0110](0110-a-skinned-mesh-may-carry-a-lit-pbr-material.md) | A skinned mesh may carry a lit-pbr material | Proposed | 2026-11-15 |
 | [ADR-0111](0111-the-gltf-static-model-reader-keeps-the-gltf-pbr-material-channels.md) | The glTF static model reader keeps the glTF PBR material channels | Proposed | 2026-11-15 |
 | [ADR-0112](0112-pbr-scope-extends-to-clear-coat-screen-space-ambient-occlusion-and-fxaa.md) | PBR scope extends to clear coat, screen-space ambient occlusion and FXAA | Proposed | 2026-11-15 |
+| [ADR-0113](0113-fxaa-filters-the-tonemapped-scene-before-the-post-tonemap-renderers-and-the-interface.md) | FXAA filters the tonemapped scene before the post-tonemap renderers and the interface | Proposed | 2026-11-15 |

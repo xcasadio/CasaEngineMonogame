@@ -47,6 +47,9 @@ public sealed class RenderPipeline : IDisposable
     // Bloom shader (ADR-0107), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
     private ShaderWrapper _bloomShader;
 
+    // FXAA shader (ADR-0113), loaded with the tonemap shader; null until then, which only matters for a view with FXAA.
+    private ShaderWrapper _fxaaShader;
+
     // Generator of the IBL cubes (ADR-0109), created when the game gives the pipeline the IblConvolution effect; null until then
     // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
     private IblCubeGenerator _iblCubeGenerator;
@@ -78,8 +81,17 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>Number of bloom targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
     internal int BloomTargetDisposalCount { get; private set; }
 
+    /// <summary>Number of FXAA targets (the tonemapped colour read by the pass) created since the start.</summary>
+    internal int FxaaTargetCreationCount { get; private set; }
+
+    /// <summary>Number of FXAA targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int FxaaTargetDisposalCount { get; private set; }
+
+    /// <summary>Number of FXAA draws since the start (see <see cref="FxaaRenderer"/>).</summary>
+    internal int FxaaDrawCount => _fxaaRenderer.DrawCount;
+
     // Render index of the last use of each tracked target key (width, height, format, depth format): the HDR scene targets
-    // (with depth) and the bloom targets (without). Filled when a key is first seen, so no allocation at constant size; swept
+    // (with depth), the bloom targets (without depth) and the FXAA targets (Color, without depth). Filled when a key is first seen, so no allocation at constant size; swept
     // once per Render.
     private readonly Dictionary<(int, int, SurfaceFormat, DepthFormat), long> _hdrLastUsedRender = new();
     private readonly List<(int, int, SurfaceFormat, DepthFormat)> _hdrStaleKeys = new();
@@ -87,6 +99,8 @@ public sealed class RenderPipeline : IDisposable
 
     private readonly BloomRenderer _bloomRenderer;
     private bool _bloomShaderMissingLogged;
+    private readonly FxaaRenderer _fxaaRenderer;
+    private bool _fxaaShaderMissingLogged;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -135,6 +149,7 @@ public sealed class RenderPipeline : IDisposable
         _renderers      = renderers;
         _spriteBatch    = spriteBatch;
         _bloomRenderer  = new BloomRenderer(graphicsDevice, spriteBatch);
+        _fxaaRenderer   = new FxaaRenderer(graphicsDevice, spriteBatch);
         _iblCache       = new IblCache(graphicsDevice);
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
@@ -179,6 +194,24 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
+    /// Gives the pipeline the compiled <c>Fxaa</c> effect (<see cref="BuiltInShaderCatalog.FxaaContentName"/>) used by the
+    /// anti-aliasing pass of a view that asks for it (ADR-0113). Called once by the game after its content root is set.
+    /// </summary>
+    public void SetFxaaEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_fxaaShader == null)
+        {
+            _fxaaShader = new ShaderWrapper(effect);
+        }
+        else
+        {
+            _fxaaShader.ReplaceEffect(effect);
+        }
+    }
+
+    /// <summary>
     /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
     /// and builds the generator of the IBL cubes from it (ADR-0109). Called once by the game after its content root is set; a
     /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
@@ -205,7 +238,7 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
-    /// Hot reload of the tonemapping, bloom and IBL convolution shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
+    /// Hot reload of the tonemapping, bloom, FXAA and IBL convolution shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
     /// names one of them.
     /// </summary>
     public bool TryReloadBuiltInShader(string contentName, Effect effect)
@@ -222,6 +255,12 @@ public sealed class RenderPipeline : IDisposable
         if (string.Equals(normalizedName, BuiltInShaderCatalog.BloomContentName, StringComparison.OrdinalIgnoreCase))
         {
             SetBloomEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.FxaaContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetFxaaEffect(effect);
             return true;
         }
 
@@ -576,6 +615,44 @@ public sealed class RenderPipeline : IDisposable
         return false;
     }
 
+    private bool HasFxaaShader()
+    {
+        if (_fxaaShader != null)
+        {
+            return true;
+        }
+
+        if (!_fxaaShaderMissingLogged)
+        {
+            _fxaaShaderMissingLogged = true;
+            Logs.WriteWarning("[Fxaa] The FXAA shader is not loaded: anti-aliasing is skipped.");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes the display-colour target of the FXAA pass (<see cref="SurfaceFormat.Color"/>, no depth, the size of the view) from
+    /// <see cref="RenderTargetPool"/> and stamps its key so <see cref="ReleaseUnusedHdrTargets"/> frees it after a size change.
+    /// A creation is counted in <see cref="FxaaTargetCreationCount"/> and logged at Debug level.
+    /// </summary>
+    private RenderTarget2D AcquireFxaaTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        int countBefore = pool.TotalCount;
+
+        var target = pool.Acquire(width, height, SurfaceFormat.Color, DepthFormat.None);
+        _hdrLastUsedRender[(width, height, SurfaceFormat.Color, DepthFormat.None)] = _renderIndex;
+
+        if (pool.TotalCount != countBefore)
+        {
+            FxaaTargetCreationCount++;
+            Logs.WriteDebug($"[Fxaa] target created: {width}x{height} {target.Format}, render {_renderIndex}, total {FxaaTargetCreationCount}");
+        }
+
+        return target;
+    }
+
     /// <summary>
     /// Disposes the free HDR scene targets of the sizes no view has rendered with for <see cref="HdrTargetEviction.MaxIdleRenders"/>
     /// renders, so GPU memory follows the sizes in use (a window resize leaves no target behind). Once per Render, after the
@@ -594,7 +671,13 @@ public sealed class RenderPipeline : IDisposable
         for (int i = 0; i < _releasedTargets.Count; i++)
         {
             var (key, disposed) = _releasedTargets[i];
-            if (key.Item4 == DepthFormat.None)
+            if (key.Item4 == DepthFormat.None && key.Item3 == SurfaceFormat.Color)
+            {
+                // The bloom has the format of the HDR target and skips a Color one, so a Color target without depth is the FXAA one.
+                FxaaTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Fxaa] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {FxaaTargetDisposalCount}, alive {FxaaTargetCreationCount - FxaaTargetDisposalCount}");
+            }
+            else if (key.Item4 == DepthFormat.None)
             {
                 BloomTargetDisposalCount += disposed;
                 Logs.WriteDebug($"[Bloom] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {BloomTargetDisposalCount}, alive {BloomTargetCreationCount - BloomTargetDisposalCount}");
@@ -682,8 +765,33 @@ public sealed class RenderPipeline : IDisposable
             }
 
             var viewRectangle = view.Surface.ViewportRect;
-            BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
-            DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+
+            // FXAA (ADR-0113) filters the scene only when the interface is composed afterwards, so the interface is never
+            // filtered: a view whose pipeline renders everything in one go (composeInterfaceAfter false) is not anti-aliased.
+            if (composeInterfaceAfter && frame.Environment.AntiAliasing == AntiAliasingMode.Fxaa && HasFxaaShader())
+            {
+                // The tonemapping goes into a pooled display-colour target, then the FXAA pass writes the destination.
+                var displayTarget = AcquireFxaaTarget(viewRectangle.Width, viewRectangle.Height);
+                try
+                {
+                    _graphicsDevice.SetRenderTarget(displayTarget);
+                    _graphicsDevice.Viewport = new Viewport(0, 0, viewRectangle.Width, viewRectangle.Height);
+                    DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+
+                    BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
+                    _fxaaRenderer.Draw(_fxaaShader, displayTarget, viewRectangle.Width, viewRectangle.Height);
+                    view.RenderStats.FxaaPasses++;
+                }
+                finally
+                {
+                    RenderTargetPool.Shared.Release(displayTarget);
+                }
+            }
+            else
+            {
+                BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
+                DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
+            }
 
             if (composeInterfaceAfter)
             {

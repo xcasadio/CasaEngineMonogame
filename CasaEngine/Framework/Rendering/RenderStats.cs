@@ -15,6 +15,9 @@ public class RenderStats
     public int ParticleCount { get; set; }
     public int LineCount { get; set; }
     public bool RenderedThisFrame { get; set; }
+
+    /// <summary>Number of FXAA passes drawn for the view in the frame (ADR-0113): 1 when the view was anti-aliased, 0 otherwise.</summary>
+    public int FxaaPasses { get; set; }
     public double TotalCpuMilliseconds { get; set; }
     public double BeforeViewCpuMilliseconds { get; set; }
     public double ClearCpuMilliseconds { get; set; }
@@ -36,6 +39,7 @@ public class RenderStats
         ParticleCount = 0;
         LineCount = 0;
         RenderedThisFrame = false;
+        FxaaPasses = 0;
         TotalCpuMilliseconds = 0.0;
         BeforeViewCpuMilliseconds = 0.0;
         ClearCpuMilliseconds = 0.0;

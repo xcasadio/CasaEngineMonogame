@@ -64,6 +64,10 @@ public static class ShaderParameterNames
     public const string BloomTexelSize = "BloomTexelSize";
     public const string BloomSourceTexture = "BloomSourceTexture";
 
+    // --- FXAA (ADR-0113) ---
+    public const string FxaaTexelSize = "FxaaTexelSize";
+    public const string FxaaSourceTexture = "FxaaSourceTexture";
+
     /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0105).</summary>
     public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
 

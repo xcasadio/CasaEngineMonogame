@@ -729,9 +729,30 @@ public class DemosGame : CasaEngineGame
         }
 
         _automationScreenshotCaptured = true;
+        LogFxaaPassCounts();
         bool succeeded = CaptureScreenshot(_automationScreenshotPath);
         Environment.ExitCode = succeeded ? 0 : 1;
         Exit();
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many FXAA passes each view drew in the frame just rendered
+    /// (ADR-0113): a capture measurement of the anti-aliasing is only valid when the count of the views it concerns is at least 1
+    /// (and 0 without FXAA).
+    /// </summary>
+    private void LogFxaaPassCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int total = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int passes = views[i].RenderStats.FxaaPasses;
+            total += passes;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": ").Append(passes);
+        }
+
+        Logs.WriteInfo($"[DemosGame] FXAA passes at capture: total {total} ({perView}).");
     }
 
     private bool CaptureScreenshot(string outputPath)

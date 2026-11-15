@@ -66,6 +66,11 @@ namespace CasaEngine.Demos.Demos;
 /// <c>CASAENGINE_COLOR_DEMO_IBL_FORCE_BASE_LEVEL=1</c> forces the prefiltered band 0 for the probes too. The demo logs the generation
 /// counter of the IBL cache and a summary at frame 600. Off by default: without the variable the scene is unchanged.
 /// </para>
+/// <para>
+/// <c>CASAENGINE_DEMO_AA=Fxaa</c> (a harness variable of <see cref="DemosGame"/>) turns the FXAA pass on (plan T1.2, ADR-0113). The
+/// measurement constants are <see cref="FxaaTextBorderRect"/>, <see cref="FxaaPanelBorderRect"/> and <see cref="FxaaEdgeSegment"/>; the
+/// demo writes the number of FXAA passes of each view at the moment of the capture.
+/// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
 {
@@ -127,6 +132,32 @@ public sealed class ColorPipelineDemo : Demo
     /// Legacy value 128, 128, 128. In LinearHdr it reads like the grey 128 plane: it proves the particle renderer binds the constant.
     /// </summary>
     public static readonly Point ParticleGrey128Pixel = new(852, 457);
+
+    // ---- FXAA measurements (CASAENGINE_DEMO_AA=Fxaa, plan T1.2, ADR-0113; window coordinates, 1024 x 768) ----
+    // Found by capturing the demo in LinearHdr (AcesApprox, exposure 1, light intensity 1, scripts lin-v2.sh) with and without FXAA. In
+    // that capture the ramp planes start at y 128 and the lit white-ish sphere is centred on (351, 498), radius about 60.
+
+    /// <summary>
+    /// A rectangle over the top edge and the top corners of the screen text block (x 24-279, y 112-135) on the plain background of the
+    /// scene. The text is flushed after the FXAA pass, so every pixel must be the same with and without FXAA. It stops above the
+    /// scene objects the block hides (the ramp planes start at y 128 below it, and one of them reaches x 280 just right of the block).
+    /// </summary>
+    public static readonly Rectangle FxaaTextBorderRect = new(18, 106, 266, 20);
+
+    /// <summary>
+    /// A rectangle over the whole edge of the solid interface panel (x 19-173, y 19-77), outset by 9 px. The interface is composed
+    /// after the FXAA pass, so every pixel must be the same with and without FXAA.
+    /// </summary>
+    public static readonly Rectangle FxaaPanelBorderRect = new(10, 10, 172, 76);
+
+    /// <summary>A vertical segment of 10 pixels through the top edge of the lit sphere centred on (351, 498): the first pixel is the background.</summary>
+    public readonly record struct FxaaSegment(int X0, int Y0, int X1, int Y1);
+
+    /// <summary>
+    /// The segment crossing the top edge of that sphere (background, then the lit surface). The number of its pixels whose luminance
+    /// is strictly between the luminances of its two ends must rise by at least 1 with FXAA: 3 without, 4 with (measured).
+    /// </summary>
+    public static readonly FxaaSegment FxaaEdgeSegment = new(360, 434, 360, 443);
 
     /// <summary>Perceptual roughness of the five <c>lit-pbr</c> spheres of <c>CASAENGINE_COLOR_DEMO_PBR=1</c>, left to right.</summary>
     public static readonly float[] PbrRoughness = { 0.1f, 0.3f, 0.5f, 0.7f, 0.9f };
