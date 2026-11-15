@@ -183,7 +183,7 @@ public sealed class PbrMaterialDemo : Demo
         DemoControl.ForActions("lower the exposure by 0.25", "ColorPipeline.ExposureDown"),
     };
 
-    public override string DocumentationPath => "docs/engine/demos-check-notes.md";
+    public override string DocumentationPath => "docs/engine/pbr-rendering.md";
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
