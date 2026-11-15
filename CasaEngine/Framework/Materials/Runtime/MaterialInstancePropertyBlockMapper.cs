@@ -94,6 +94,8 @@ public static class MaterialInstancePropertyBlockMapper
             ["lit-diffuse"] = static (propertyBlock, materialAsset, definition, materialInstanceData, parentResolver)
                 => ApplyLitDiffuseOverrides(propertyBlock, definition, materialInstanceData),
             ["unlit-texture"] = ApplyUnlitTextureOverrides,
+            ["lit-pbr"] = static (propertyBlock, materialAsset, definition, materialInstanceData, parentResolver)
+                => ApplyLitPbrOverrides(propertyBlock, definition, materialInstanceData),
         };
 
     private static void ApplyLitDiffuseOverrides(
@@ -117,6 +119,39 @@ public static class MaterialInstancePropertyBlockMapper
             && specularPowerOverride.TryGetFloat(out var specularPower))
         {
             propertyBlock.SetFloat(ShaderParameterNames.SpecularPower, specularPower);
+        }
+    }
+
+    // Colour, metal, roughness and emission only: none of them changes the queue, the blend state or the technique, so they are
+    // safe to push after Bind. The override replaces the whole constant, alpha of base_color included (the transparency of the
+    // draw stays the one of the material).
+    private static void ApplyLitPbrOverrides(
+        MaterialPropertyBlock propertyBlock,
+        MaterialDefinition definition,
+        MaterialInstanceData materialInstanceData)
+    {
+        if (TryGetOverrideValue(definition, materialInstanceData, "base_color", out var baseColorOverride)
+            && baseColorOverride.TryGetColor(out var baseColor))
+        {
+            propertyBlock.SetColor(ShaderParameterNames.BaseColor, baseColor);
+        }
+
+        if (TryGetOverrideValue(definition, materialInstanceData, "metallic", out var metallicOverride)
+            && metallicOverride.TryGetFloat(out var metallic))
+        {
+            propertyBlock.SetFloat(ShaderParameterNames.Metallic, metallic);
+        }
+
+        if (TryGetOverrideValue(definition, materialInstanceData, "roughness", out var roughnessOverride)
+            && roughnessOverride.TryGetFloat(out var roughness))
+        {
+            propertyBlock.SetFloat(ShaderParameterNames.Roughness, roughness);
+        }
+
+        if (TryGetOverrideValue(definition, materialInstanceData, "emissive_color", out var emissiveOverride)
+            && emissiveOverride.TryGetVector3(out var emissiveColor))
+        {
+            propertyBlock.SetVector3(ShaderParameterNames.EmissiveColor, emissiveColor);
         }
     }
 
