@@ -28,4 +28,7 @@ public struct RenderContext
 
     /// <summary>Optional forward-shadow resources resolved for the current view.</summary>
     public ForwardShadowResources Shadows;
+
+    /// <summary>Cache of the image-based-lighting textures (ADR-0106); null when the pipeline has none, in which case no IBL is bound.</summary>
+    public IblCache Ibl;
 }

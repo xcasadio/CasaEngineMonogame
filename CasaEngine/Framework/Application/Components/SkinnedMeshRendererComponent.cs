@@ -164,6 +164,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
             Shadows = _staticMeshRendererComponent?.ShadowResources,
+            Ibl = frame.Ibl,
             Stats = stats,
         };
 

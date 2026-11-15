@@ -79,6 +79,17 @@ public static class ShaderParameterNames
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+
+    // --- Image-based lighting (ADR-0106): declared by the PBR shaders only, bound by EnvironmentShaderBinder ---
+    /// <summary>Diffuse irradiance cube (32 texels per face, linear light).</summary>
+    public const string IrradianceCubeTexture = "IrradianceCubeTexture";
+    /// <summary>Prefiltered specular atlas (2D, six roughness bands stacked, linear light).</summary>
+    public const string PrefilteredSpecularAtlasTexture = "PrefilteredSpecularAtlasTexture";
+    /// <summary>Split-sum BRDF table (2D, x = NoV, y = roughness, channels A and B).</summary>
+    public const string BrdfLookupTexture = "BrdfLookupTexture";
+    /// <summary>1 when the three IBL textures above are bound, 0 for the flat ambient.</summary>
+    public const string HasIbl = "HasIbl";
+
     public const string UseFlatAmbientSource = "UseFlatAmbientSource";
     public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";
     public const string SecondaryLocalReflectionProbeCubeTexture = "SecondaryLocalReflectionProbeCubeTexture";

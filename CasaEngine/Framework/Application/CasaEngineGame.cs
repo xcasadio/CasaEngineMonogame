@@ -831,6 +831,17 @@ public class CasaEngineGame : Game, IObservableUpdate
     {
     }
 
+    /// <summary>Releases what the render pipeline generated (image-based-lighting textures, BRDF table) before the device goes away.</summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _renderPipeline?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
     // ---- Per-view UI runtime lifecycle ----
 
     /// <summary>

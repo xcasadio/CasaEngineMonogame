@@ -29,7 +29,7 @@ namespace CasaEngine.Framework.Rendering;
 ///   <item><see cref="ViewUpdateMode.Throttled"/>  — rendered at <see cref="RenderView.TargetFrameRate"/> fps.</item>
 /// </list>
 /// </summary>
-public sealed class RenderPipeline
+public sealed class RenderPipeline : IDisposable
 {
     private readonly GraphicsDevice                       _graphicsDevice;
     private readonly IReadOnlyList<IViewFlushableRenderer> _renderers;
@@ -50,6 +50,9 @@ public sealed class RenderPipeline
     // Generator of the IBL cubes (ADR-0106), created when the game gives the pipeline the IblConvolution effect; null until then
     // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
     private IblCubeGenerator _iblCubeGenerator;
+
+    // Cache of the generated IBL textures and of the BRDF table (ADR-0106). Its requests run at the start of Render, before any view.
+    private readonly IblCache _iblCache;
 
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
     private const string AcesApproxTechniqueName = "Tonemap_AcesApprox";
@@ -132,6 +135,7 @@ public sealed class RenderPipeline
         _renderers      = renderers;
         _spriteBatch    = spriteBatch;
         _bloomRenderer  = new BloomRenderer(graphicsDevice, spriteBatch);
+        _iblCache       = new IblCache(graphicsDevice);
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -190,6 +194,16 @@ public sealed class RenderPipeline
     /// <summary>The generator of the IBL cubes, or null until <see cref="SetIblConvolutionEffect"/> has been called.</summary>
     public IblCubeGenerator IblCubeGenerator => _iblCubeGenerator;
 
+    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0106).</summary>
+    public IblCache IblCache => _iblCache;
+
+    /// <summary>Releases the IBL textures, the BRDF table and the generator.</summary>
+    public void Dispose()
+    {
+        _iblCache.Dispose();
+        _iblCubeGenerator?.Dispose();
+    }
+
     /// <summary>
     /// Hot reload of the tonemapping, bloom and IBL convolution shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
     /// names one of them.
@@ -240,6 +254,11 @@ public sealed class RenderPipeline
     {
         _renderIndex++;
 
+        // Image-based lighting requests registered by the binders during the previous frame run here, before any view and
+        // with no view target bound (decision P9): the generator restores the device state it touches.
+        _iblCache.ViewLoopActive = false;
+        _iblCache.Flush(_iblCubeGenerator);
+
         foreach (var world in views.Select(static view => view.World).Distinct())
         {
             world.DrawWorldUIToTextures();
@@ -259,6 +278,7 @@ public sealed class RenderPipeline
             .Where(v => v.Enabled && IsViewPresented(v) && !v.Surface.IsBackBuffer)
             .Concat(views.Where(v => v.Enabled && IsViewPresented(v) && v.Surface.IsBackBuffer));
 
+        _iblCache.ViewLoopActive = true;
         foreach (var view in orderedViews)
         {
             if (!ShouldRenderThisFrame(view, deltaSeconds))
@@ -419,7 +439,7 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings);
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings) with { Ibl = _iblCache };
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();
@@ -529,6 +549,7 @@ public sealed class RenderPipeline
             // GraphicsStateGuard.Dispose() restores all state here (using block end).
         }
 
+        _iblCache.ViewLoopActive = false;
         ReleaseUnusedHdrTargets();
 
         // After all views: restore initial target + full-screen viewport.

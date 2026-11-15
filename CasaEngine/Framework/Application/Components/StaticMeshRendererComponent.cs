@@ -282,6 +282,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
             Shadows = _shadowResources,
+            Ibl = frame.Ibl,
             Stats    = stats,
         };
 
