@@ -189,7 +189,8 @@ public class DesktopFrameGpuAllocationTests
         }
 
         long after = GC.GetAllocatedBytesForCurrentThread();
-        return (after - before) / MeasuredIterations;
+        //  Rounded up: a total under one byte per iteration must not read as zero.
+        return (after - before + MeasuredIterations - 1) / MeasuredIterations;
     }
 
     private static RenderTarget2D CreateTarget(GraphicsDevice device)
@@ -402,6 +403,32 @@ public class DesktopFrameGpuAllocationTests
         return GC.GetAllocatedBytesForCurrentThread() - before;
     }
 
+    /// <summary>Total bytes allocated by the updates and by the draws of <see cref="MeasuredIterations"/> frames, after a warm-up. Each frame
+    /// updates then draws, as a game does: a draw measured alone would draw the same state again and again.</summary>
+    private static (long Update, long Draw) MeasureFrames(Action update, Action draw)
+    {
+        for (int i = 0; i < WarmupIterations; i++)
+        {
+            update();
+            draw();
+        }
+
+        long updateBytes = 0;
+        long drawBytes = 0;
+        StartWindow();
+        for (int i = 0; i < MeasuredIterations; i++)
+        {
+            long a = GC.GetAllocatedBytesForCurrentThread();
+            update();
+            long b = GC.GetAllocatedBytesForCurrentThread();
+            draw();
+            updateBytes += b - a;
+            drawBytes += GC.GetAllocatedBytesForCurrentThread() - b;
+        }
+
+        return (updateBytes, drawBytes);
+    }
+
     private static void ClearTarget(GraphicsDevice device)
         => device.Clear(ClearOptions.Target | ClearOptions.Stencil | ClearOptions.DepthBuffer, Color.CornflowerBlue, 1.0f, 0);
 
@@ -466,8 +493,9 @@ public class DesktopFrameGpuAllocationTests
                 string blank = HashOf(target, device);
                 (Point first, Point second) = harness.StartDrag();
                 int frame = 0;
-                long updateBytes = MeasureTotal(() => harness.Update(frame++ % 2 == 0 ? first : second, ButtonState.Pressed));
-                long drawBytes = MeasureTotal(() => harness.Draw());
+                (long updateBytes, long drawBytes) = MeasureFrames(
+                    () => harness.Update(frame++ % 2 == 0 ? first : second, ButtonState.Pressed),
+                    () => harness.Draw());
                 return (updateBytes, drawBytes, harness.Slider.IsDraggingThumb, blank != HashOf(target, device));
             }
             finally

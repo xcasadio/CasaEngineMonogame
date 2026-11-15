@@ -127,6 +127,15 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState.Rearm(Settings, PrimitiveProjectionMatrix);
         ClipManager.Rearm();
+
+        //  The pair is kept only for the settings this use starts with: a pair made from other settings could not be found again, and would keep
+        //  those settings and their effect alive.
+        if (!ReferenceEquals(Settings, _RasterizerVariantA) && !ReferenceEquals(Settings, _RasterizerVariantB))
+        {
+            _RasterizerVariantA = null;
+            _RasterizerVariantB = null;
+        }
+
         StartUse(DeferBegin, DefaultContext);
     }
 

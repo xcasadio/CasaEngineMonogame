@@ -500,6 +500,46 @@ public class DrawTransactionRearmGpuTests
         });
     }
 
+    /// <summary>The pair is kept for the settings a use starts with only: a use that starts with other settings drops it, so the transaction
+    /// does not keep settings (and their effect) that it can no longer be asked for.</summary>
+    [GpuFact]
+    public void Rearm_WithOtherInitialSettings_DropsTheRasterizerVariants()
+    {
+        DrawSettings initial = DrawSettings.Default;
+        DrawSettings other = DrawSettings.Default with { BlendType = BlendType.Additive };
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            try
+            {
+                CasaDesktopRuntime runtime = CreateRuntime();
+                using Lab lab = new();
+                lab.ResetDevice(new Point(TargetWidth, TargetHeight));
+                CasaDrawTransaction transaction = new(runtime, initial, true);
+                DrawSettings firstNoClipSettings;
+                using (transaction.PushRectangleClip(null, false))
+                {
+                    firstNoClipSettings = transaction.CurrentSettings;
+                }
+
+                transaction.EndCurrentContext();
+                transaction.Rearm(other, true);
+                transaction.EndCurrentContext();
+                transaction.Rearm(initial, true);
+                using (transaction.PushRectangleClip(null, false))
+                {
+                    Assert.NotSame(firstNoClipSettings, transaction.CurrentSettings);
+                    Assert.Equal(firstNoClipSettings, transaction.CurrentSettings);
+                }
+
+                transaction.EndCurrentContext();
+            }
+            finally
+            {
+                GpuDeviceHost.Instance.GraphicsDevice.SetRenderTarget(null);
+            }
+        });
+    }
+
     [GpuFact]
     public void Rearm_KeepsTheRasterizerVariantsAndTheDefaultPreviousSettings()
     {
