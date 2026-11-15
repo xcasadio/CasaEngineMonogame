@@ -2,7 +2,7 @@
 
 Objective: demonstrate the modern animation runtime with a real showcase page flow over the existing `kid_idle`, `kid_walk`, and `kid_run` FBX clips plus a few procedural helper clips.
 
-Controls:
+Controls (letter keys are key positions on a US QWERTY keyboard, ADR-0096: `W` `A` `Q` are `Z` `Q` `A` on AZERTY, and the text overlay names the keys of the active layout):
 - `Tab`: move to the next showcase page.
 - `Shift + Tab`: move to the previous showcase page.
 - `Backspace`: reset the actor transform and the root-motion trail.

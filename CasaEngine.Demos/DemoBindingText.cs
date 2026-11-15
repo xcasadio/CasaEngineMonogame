@@ -33,6 +33,10 @@ internal static class DemoBindingText
             case Keys.RightShift: return "Right Shift";
             case Keys.Add: return "Numpad +";
             case Keys.Subtract: return "Numpad -";
+
+            // A letter position can land on it with another layout (ADR-0096): M is the comma key on AZERTY. The other
+            // punctuation keys carry a different character from one layout to the next, so they keep their key name.
+            case Keys.OemComma: return "Comma";
         }
 
         if (key >= Keys.D0 && key <= Keys.D9)
