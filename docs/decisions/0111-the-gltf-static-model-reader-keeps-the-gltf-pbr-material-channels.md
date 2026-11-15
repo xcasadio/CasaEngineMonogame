@@ -1,4 +1,4 @@
-# ADR-0109: The glTF static model reader keeps the glTF PBR material channels
+# ADR-0111: The glTF static model reader keeps the glTF PBR material channels
 
 - **Status**: Proposed
 - **Date**: 2026-11-15

@@ -11,7 +11,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The PBR techniques of the compiled skinning effect on a real device (ADR-0108): they exist, the resolver and the shader selector
+/// The PBR techniques of the compiled skinning effect on a real device (ADR-0110): they exist, the resolver and the shader selector
 /// mounted as <c>SkinnedMeshRendererComponent.LoadContent</c> mounts them leave the right technique current for a lit-pbr material in
 /// both skinning modes (and the Blinn-Phong one for a lit-diffuse material), and the mesh texture is bound for a lit-pbr material
 /// that carries none. Skipped where no device can be created.

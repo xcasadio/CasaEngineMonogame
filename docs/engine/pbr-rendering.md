@@ -2,7 +2,7 @@
 
 How CasaEngine renders metallic-roughness (PBR) surfaces next to the historical Blinn-Phong path: the `lit-pbr` material, the colour pipeline it relies on, bloom, transparency, image-based lighting (IBL), local reflection probes, skinned meshes and the glTF import. PBR is chosen per material; `lit-diffuse` is untouched and the default `Legacy` colour pipeline renders every existing image bit for bit as before.
 
-Decisions: ADR-0100 (scope), ADR-0101 to ADR-0104 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0105 (bloom), ADR-0106 (`lit-pbr`), ADR-0107 (IBL), ADR-0108 (skinned PBR), ADR-0109 (glTF PBR import). They live in [docs/decisions](../decisions/README.md).
+Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0107 (bloom), ADR-0108 (`lit-pbr`), ADR-0109 (IBL), ADR-0110 (skinned PBR), ADR-0111 (glTF PBR import). They live in [docs/decisions](../decisions/README.md).
 
 ## Workflow
 
@@ -16,7 +16,7 @@ Decisions: ADR-0100 (scope), ADR-0101 to ADR-0104 (colour pipeline, see [color-p
 
 ## The `lit-pbr` material
 
-`lit-pbr` is a built-in material definition (`BuiltInMaterialDefinitions.CreateLitPbrDefinition`). Its runtime class is `LitPbrMaterial`; it exists only compiled from a definition (no JSON of its own). A material names its own shader technique, `LitPbr[_NormalMap][_AlphaTest|_Transparent]`, because the technique cannot be derived from the family alone (ADR-0106).
+`lit-pbr` is a built-in material definition (`BuiltInMaterialDefinitions.CreateLitPbrDefinition`). Its runtime class is `LitPbrMaterial`; it exists only compiled from a definition (no JSON of its own). A material names its own shader technique, `LitPbr[_NormalMap][_AlphaTest|_Transparent]`, because the technique cannot be derived from the family alone (ADR-0108).
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
@@ -37,13 +37,13 @@ Per-instance overrides (`MaterialPropertyBlock`, same mechanism as `lit-diffuse`
 
 Units: the BRDF is Lambert divided by pi plus GGX (height-correlated Smith visibility, Schlick Fresnel, `F0 = lerp(0.04, base, metallic)`), summed over the same 24 light slots as `LitForward`. Both lobes use the diffuse colour of the light (its specular colour is ignored). At equal light intensity a `lit-pbr` surface is therefore pi times darker in its diffuse part than a `lit-diffuse` one; pick the light intensity accordingly (`PBR material demo` uses 1.4).
 
-Colours of the material are display colours, decoded once per pixel to linear light in `LinearHdr` (ADR-0103). An emissive colour is a display colour too, at most 1 per channel.
+Colours of the material are display colours, decoded once per pixel to linear light in `LinearHdr` (ADR-0105). An emissive colour is a display colour too, at most 1 per channel.
 
 ## Colour pipeline and bloom
 
 See [color-pipeline.md](color-pipeline.md) for the modes, the frame order, the decoding rules and the cost. In short: `LinearHdr` lights in linear light into a half-float target, adds the bloom, tonemaps (`AcesApprox` or `Reinhard`, with an exposure) and draws the interface after the tonemapping.
 
-Bloom (ADR-0105) is four keys of the `color_pipeline` object: `bloom_enabled` (false), `bloom_threshold` (1), `bloom_intensity` (0.5) and `bloom_radius` (1). It runs between the lighting and the tonemapping: a soft-knee bright pass at half size, two further reductions, a separable 9-tap Gaussian at each of the three levels, recombined with equal weight and added to the HDR target. It has no effect in `Legacy`. Its targets are pooled and released with the HDR target.
+Bloom (ADR-0107) is four keys of the `color_pipeline` object: `bloom_enabled` (false), `bloom_threshold` (1), `bloom_intensity` (0.5) and `bloom_radius` (1). It runs between the lighting and the tonemapping: a soft-knee bright pass at half size, two further reductions, a separable 9-tap Gaussian at each of the three levels, recombined with equal weight and added to the HDR target. It has no effect in `Legacy`. Its targets are pooled and released with the HDR target.
 
 ## Transparency
 
@@ -51,7 +51,7 @@ A `lit-pbr` material whose queue is `Transparent` (a `base_color` alpha below 25
 
 ## Image-based lighting
 
-The PBR ambient comes from the environment cube of the world (ADR-0107). Nothing is computed per frame:
+The PBR ambient comes from the environment cube of the world (ADR-0109). Nothing is computed per frame:
 
 - **Generation.** The first time a `lit-pbr` shader is bound with a source cube, `IblCache` queues a request; `RenderPipeline.Render` runs it at the very start of the frame, before any view, so no view target is bound. It produces a diffuse irradiance cube (32 texels per face, `E / pi`), a specular atlas and, once for all sources, a 64 by 64 BRDF table (CPU integration, `Vector2`). Replacing the cube of the environment (a new instance) generates again; the entries of a disposed source are released at the next flush. A generation that throws is logged once and leaves the flat ambient.
 - **Why an atlas.** The OpenGL chain of MonoGame ignores the level of a cube sample (`texCUBElod` is translated to a plain `textureCube`; a GPU test pins this). The prefiltered specular is therefore a 512 by 1536 `Texture2D`: six latitude-longitude bands for the perceptual roughness 0, 0.2, ..., 1, read with two `tex2D` and a linear interpolation. 12.6 MB per source cube.
@@ -66,11 +66,11 @@ A `ReflectionProbe` of the world (`World.ReflectionProbes`) refines the specular
 
 ## Skinned meshes
 
-A skinned mesh draws PBR when its `SkinnedMeshComponent.PbrMaterial` (a `LitPbrMaterial`, additive, not serialized, null by default) is set; nothing else changes for existing callers (ADR-0108). The two techniques `RiggedModelDrawPbr` (linear blend) and `RiggedModelDrawPbrDualQuaternion` live in `skinEffect.fx` and use the same `Pbr.fxh` as the static shader. When the material has no base texture, the texture of the mesh is bound for the draw. **No IBL, no probes, no normal map and no transparency on this path** (see the limitations).
+A skinned mesh draws PBR when its `SkinnedMeshComponent.PbrMaterial` (a `LitPbrMaterial`, additive, not serialized, null by default) is set; nothing else changes for existing callers (ADR-0110). The two techniques `RiggedModelDrawPbr` (linear blend) and `RiggedModelDrawPbrDualQuaternion` live in `skinEffect.fx` and use the same `Pbr.fxh` as the static shader. When the material has no base texture, the texture of the mesh is bound for the draw. **No IBL, no probes, no normal map and no transparency on this path** (see the limitations).
 
 ## glTF import
 
-`GltfStaticModelReader` keeps the PBR channels of a glTF material (ADR-0109): metallic and roughness factors, metallic-roughness, occlusion and emissive textures, normal scale, occlusion strength, alpha mode and cutoff, double-sided. A material without a `pbrMetallicRoughness` block gets the glTF defaults (metal 1, roughness 1), except `KHR_materials_unlit` (metal 0).
+`GltfStaticModelReader` keeps the PBR channels of a glTF material (ADR-0111): metallic and roughness factors, metallic-roughness, occlusion and emissive textures, normal scale, occlusion strength, alpha mode and cutoff, double-sided. A material without a `pbrMetallicRoughness` block gets the glTF defaults (metal 1, roughness 1), except `KHR_materials_unlit` (metal 0).
 
 `EditorAssetImportService.ImportFile(..., EditorAssetImportOptions)` with `MaterialTemplate = ImportedMaterialTemplate.LitPbr` writes `lit-pbr` materials; the default stays `LitDiffuse` and its output is byte-identical to before (pinned by a reference file). In `LitPbr` the RGB of `baseColorFactor` and `emissiveFactor` (linear in glTF) is encoded with `c^(1/2.2)` so that `LinearHdr` gives back the glTF value; OPAQUE, MASK and BLEND become the `Opaque`, `AlphaTest` (with the cutoff) and `Transparent` queues; `doubleSided` becomes `CullNone`.
 
@@ -80,16 +80,16 @@ Measured on the development machine in Release, 1024 by 768, no vsync, 600 frame
 
 ## Limitations
 
-- **Skinned PBR has no IBL, no probes, no normal map and no transparency.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0108). Normal maps on skinned meshes are out of scope.
-- **The prefiltered specular is a 2D atlas, not a cube with mips** (ADR-0107). It costs an extra sampler and 12.6 MB per source cube; it is not seamless at the poles of the latitude-longitude mapping; a high-frequency source at high roughness is noisy (64 samples, no filtered importance sampling). If a later MonoGame honours the cube level, a GPU test fails and the choice can be revisited.
+- **Skinned PBR has no IBL, no probes, no normal map and no transparency.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0110). Normal maps on skinned meshes are out of scope.
+- **The prefiltered specular is a 2D atlas, not a cube with mips** (ADR-0109). It costs an extra sampler and 12.6 MB per source cube; it is not seamless at the poles of the latitude-longitude mapping; a high-frequency source at high roughness is noisy (64 samples, no filtered importance sampling). If a later MonoGame honours the cube level, a GPU test fails and the choice can be revisited.
 - **Sampler budget.** `LitPbr.fx` uses 14 of the 16 pixel samplers of the target (t0 to t8 material, t9 to t11 IBL, t12 and t13 probe atlases).
 - **Deferred P3 defect: IBL generation image and display buffer.** On a frame where an IBL generation runs, the pipeline switches back to the display buffer with `DiscardContents`, which may clear for that one frame the virtual-resolution bars and the phase 1 drawing (inferred from the code, not observed). Not fixed.
 - **Deferred P3 defect: probe referenced by an asset id.** The probe blend is recomputed at every `Resolve`; for a probe referenced by an asset id (not by a run-time cube) that reaches a path that allocates (panorama) or logs (failed asset) every frame. No shipped content defines a probe today. Not fixed; use `ReflectionProbe.SpecularCubemap` meanwhile.
 - **Open P4 findings.**
   - The cut shadow of an alpha-tested `lit-pbr` is proved by properties and by a mask test, not by an image.
   - A normal texture whose asset is missing leaves the `NormalMap` technique reading an unbound sampler (same behaviour as `lit-diffuse`).
-  - Tangents are checked on the uncompiled path only (`RenderFeatureResolver`); a compiled material (`MaterialCompiler` computes the features without the mesh) with a normal texture on a mesh without tangents is not caught (ADR-0106).
-  - The "numbered ADR-00NN until" remarks of the ADRs do not mention the second renumbering; ADR-0107 overstates the independence from the sampler address mode.
+  - Tangents are checked on the uncompiled path only (`RenderFeatureResolver`); a compiled material (`MaterialCompiler` computes the features without the mesh) with a normal texture on a mesh without tangents is not caught (ADR-0108).
+  - The "numbered ADR-00NN until" remarks of the ADRs do not mention the second renumbering; ADR-0109 overstates the independence from the sampler address mode.
   - A reloaded `color_pipeline` writes all its fields as soon as one differs from the default; a JSON `null` in one of its fields throws at load (like `exposure`); with the threshold at 1 the soft knee makes colours around 0.5 linear contribute to the bloom.
 - **Colour pipeline limits** apply unchanged (view pipelines without `IScenePhaseViewPipeline`, screen sprites losing the scene depth test, mipmaps averaged in encoded space, emissive limited to display white, `Legacy` cost of the select form): see [color-pipeline.md](color-pipeline.md).
 - **`LinearHdr` bloom with `AcesApprox` at a light intensity of 16** does not keep three distinct values on the measured sphere (open point O12); the HDR information is kept (244 to 251) and the engine is unchanged.

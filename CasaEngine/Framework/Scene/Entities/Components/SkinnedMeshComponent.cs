@@ -82,7 +82,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     public LitDiffuseMaterial Material { get; set; }
 
     /// <summary>
-    /// Optional lit-pbr material (ADR-0108). When not null the renderer draws this component with the PBR techniques of the
+    /// Optional lit-pbr material (ADR-0110). When not null the renderer draws this component with the PBR techniques of the
     /// skinning effect and <see cref="Material"/> is ignored: direct lights, received shadows, flat ambient and emissive, no
     /// image-based lighting, no normal map. A null <see cref="LitPbrMaterial.BaseColorTexture"/> takes the texture of the mesh.
     /// Not serialized; set at runtime/authoring time.

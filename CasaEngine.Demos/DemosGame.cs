@@ -781,7 +781,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variables that put any demo in another colour pipeline (ADR-0101): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
+    /// Harness variables that put any demo in another colour pipeline (ADR-0103): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
     /// (<c>Legacy</c> or <c>LinearHdr</c>), <c>CASAENGINE_DEMO_TONEMAPPER</c> (<c>AcesApprox</c> or <c>Reinhard</c>) and
     /// <c>CASAENGINE_DEMO_EXPOSURE</c> (a number, invariant culture). Applied to the world of the demo once the demo has
     /// built its scene, lighting and camera, then followed by <c>MarkDirty</c>. Without any variable nothing changes; an
@@ -843,7 +843,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variables of the bloom (ADR-0105): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// Harness variables of the bloom (ADR-0107): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
     /// optional <c>CASAENGINE_DEMO_BLOOM_THRESHOLD</c>, <c>CASAENGINE_DEMO_BLOOM_INTENSITY</c> and <c>CASAENGINE_DEMO_BLOOM_RADIUS</c>
     /// (numbers, invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
     /// </summary>

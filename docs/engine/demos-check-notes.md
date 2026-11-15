@@ -59,7 +59,7 @@ alternating a cross-fade and an inertialized transition.
   - right: `CastShadows` is off on the front character. It has no shadow.
 - Check: the three pairs differ as described; the shadow of the left pair moves with the character.
 - Press `P` (action `SkinnedMesh.Pbr`) to switch every character between Blinn-Phong and the PBR techniques of the
-  skinning effect (`SkinnedMeshComponent.PbrMaterial`, ADR-0108); the PBR look has no specular tint and darker lit
+  skinning effect (`SkinnedMeshComponent.PbrMaterial`, ADR-0110); the PBR look has no specular tint and darker lit
   sides than the Blinn-Phong one, and the shadows are unchanged.
 
 Start it with `CASAENGINE_START_DEMO=Skinned mesh demo`; add `CASAENGINE_CAPTURE_SCREENSHOT_PATH` to capture a frame
@@ -70,7 +70,7 @@ the measurements are the constants of `SkinnedMeshDemo.Measurement`.
 
 ## PBR material demo
 
-The reference scene of the `lit-pbr` material (`PbrMaterialDemo.cs`, ADR-0106 to ADR-0109), in the `LinearHdr` colour
+The reference scene of the `lit-pbr` material (`PbrMaterialDemo.cs`, ADR-0108 to ADR-0111), in the `LinearHdr` colour
 pipeline with the `AcesApprox` operator, under a procedural grey studio cube (image-based lighting and sky) and one sun
 that casts shadows:
 
@@ -81,7 +81,7 @@ that casts shadows:
   on a sphere is the sun lobe (the highlight widens with the roughness);
 - a coloured smooth metal sphere (it reflects the studio in its own colour), an emissive sphere (the bloom adds its glow),
   a glass sphere in front of a checkerboard (transparent `lit-pbr`), and the skinned character of `SkinnedMeshDemo` drawn
-  by the PBR skinning techniques (direct light and shadows, no image-based lighting, ADR-0108).
+  by the PBR skinning techniques (direct light and shadows, no image-based lighting, ADR-0110).
 - Keys: `I` turns the image-based lighting on or off (off: no reflection and a flat ambient colour; the cube still draws
   the sky), `B` the bloom, `T` the tonemapping operator, `+` and `-` the exposure.
 

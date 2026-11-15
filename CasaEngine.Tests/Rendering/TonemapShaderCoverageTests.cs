@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T1.3 of the PBR plan: Tonemap.fx is compiled, registered as a built-in and hot reloadable (ADR-0102). The checks read
+/// T1.3 of the PBR plan: Tonemap.fx is compiled, registered as a built-in and hot reloadable (ADR-0104). The checks read
 /// the text of the shader, the content file and the catalog: the compiler itself is exercised by the build.
 /// </summary>
 public class TonemapShaderCoverageTests

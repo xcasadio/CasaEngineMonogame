@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T1.4 of the PBR plan (ADR-0102): the pure colour pipeline decision. The paths are the destinations of
+/// T1.4 of the PBR plan (ADR-0104): the pure colour pipeline decision. The paths are the destinations of
 /// <c>RenderPipeline.Render</c>: back buffer direct, back buffer through the scene target, retained target, the view's own
 /// target, the editor's host texture, and split-screen back-buffer views sharing the back buffer.
 /// </summary>

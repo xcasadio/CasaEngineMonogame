@@ -24,7 +24,7 @@ float4x4 ViewProj;
 float4x4 World;
 float4 Color;
 
-// 1 when the view renders in the linear colour pipeline (ADR-0103): the texel and the colour are display colours.
+// 1 when the view renders in the linear colour pipeline (ADR-0105): the texel and the colour are display colours.
 float ColorPipelineIsLinear = 0.0f;
 
 #include "ColorPipeline.fxh"

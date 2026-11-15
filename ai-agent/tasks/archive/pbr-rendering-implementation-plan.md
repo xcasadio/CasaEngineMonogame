@@ -1,6 +1,6 @@
 # Plan agent IA — Rendu PBR (metallic-roughness) dans CasaEngine
 
-> **Archivé le 2026-11-14.** Remplacé par [pbr-rendering-tasks.md](../pbr-rendering-tasks.md) : aucune tâche de ce plan n'a été exécutée. Ses décisions restent enregistrées dans l'ADR-0013, amendé par l'ADR-0100.
+> **Archivé le 2026-11-14.** Remplacé par [pbr-rendering-tasks.md](../pbr-rendering-tasks.md) : aucune tâche de ce plan n'a été exécutée. Ses décisions restent enregistrées dans l'ADR-0013, amendé par l'ADR-0102.
 
 Ce fichier est un plan d'execution pour un agent IA peu autonome. Il doit etre mis a jour pendant le travail : l'icone au debut de chaque tache indique son statut courant.
 

@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T6.2 of the PBR plan: the cache of the IBL textures (ADR-0107) on a real device. A request is registered by the binder, executed
+/// T6.2 of the PBR plan: the cache of the IBL textures (ADR-0109) on a real device. A request is registered by the binder, executed
 /// by <see cref="IblCache.Flush"/> outside the view loop, generated once per source and released with its source. Skipped where no
 /// device can be created.
 /// </summary>
@@ -267,7 +267,7 @@ public class IblCacheTests
 }
 
 /// <summary>
-/// T6.2, parts that need no device: where the requests are made and run (ADR-0107). The request point is the binder, never the
+/// T6.2, parts that need no device: where the requests are made and run (ADR-0109). The request point is the binder, never the
 /// resolver (its value is cached per view); the execution point is the start of <c>RenderPipeline.Render</c>, before the loop of
 /// the views; nothing but the pipeline flushes the cache.
 /// </summary>

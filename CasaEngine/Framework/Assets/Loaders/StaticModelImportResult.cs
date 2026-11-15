@@ -59,7 +59,7 @@ public sealed class StaticModelImportedMaterial
 
     public float SpecularPower { get; set; } = 16.0f;
 
-    // glTF PBR channels (ADR-0109). Additive: the legacy fields above keep their meaning.
+    // glTF PBR channels (ADR-0111). Additive: the legacy fields above keep their meaning.
 
     /// <summary>glTF <c>metallicFactor</c> (1 when the material has no metallic-roughness channel, 0 for an unlit one).</summary>
     public float MetallicFactor { get; set; } = 1.0f;

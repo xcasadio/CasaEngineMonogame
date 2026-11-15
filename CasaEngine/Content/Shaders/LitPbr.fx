@@ -25,12 +25,12 @@
 //   t6 ShadowMapTexture                  directional shadow map
 //   t7 OcclusionTexture                  R = ambient occlusion (glTF convention)
 //   t8 EmissiveTexture                   emissive colour (display colour)
-//   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0107)
+//   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0109)
 //   t10 PrefilteredSpecularAtlasTexture  prefiltered specular atlas of the IBL (2D, six roughness bands, linear light)
 //   t11 BrdfLookupTexture                split-sum BRDF table (x = NoV, y = roughness, channels A and B)
 //   t12 PrefilteredLocalReflectionProbeAtlasTexture           prefiltered atlas of the primary local probe (same layout as t10)
 //   t13 PrefilteredSecondaryLocalReflectionProbeAtlasTexture   prefiltered atlas of the secondary local probe
-// The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0107). The probe atlases
+// The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0109). The probe atlases
 // are generated like the global one (IblCache.TryGetPrefilteredAtlas); while one does not exist yet its Has... flag
 // (HasPrefilteredLocalReflectionProbe, HasPrefilteredSecondaryLocalReflectionProbe) is 0 and the probe is sampled unprefiltered
 // from its cube (t4, t5).
@@ -262,7 +262,7 @@ void ApplyAlphaTest(float alpha)
 }
 
 
-// ---- Image-based lighting (ADR-0107, plan T6.3) ----------------------------------------------------------------------------
+// ---- Image-based lighting (ADR-0109, plan T6.3) ----------------------------------------------------------------------------
 // The specular result of the IBL is a 2D atlas, not a cube with mips: the OpenGL chain ignores the level of a cube sample, so a
 // cube is never read at an explicit level for it. The atlas holds six latitude-longitude bands of 256 rows, band n
 // prefiltered for the roughness n / 5.
@@ -277,7 +277,7 @@ static const float IblLegacyEncodeExponent = 1.0f / 2.2f;
 
 
 // Linear light of the IBL in the space of the view: unchanged when the colour pipeline is linear, re-encoded to display colour
-// otherwise (the approximation is written in ADR-0107). It never decodes: nothing of the IBL is a display colour.
+// otherwise (the approximation is written in ADR-0109). It never decodes: nothing of the IBL is a display colour.
 float3 IblToViewSpace(float3 linearLight)
 {
     return ColorPipelineIsLinear > 0.5f ? linearLight : pow(max(linearLight, 0.0f), IblLegacyEncodeExponent);
@@ -489,7 +489,7 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float4 b
         + ambient.Specular
         + emissive;
 
-    // The shadow tint (ShadowApplyMode = 1, ADR-0099) applies to the whole pixel except the emissive part.
+    // The shadow tint (ShadowApplyMode = 1, ADR-0101) applies to the whole pixel except the emissive part.
     color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);
 
     return float4(color, baseColor.a);

@@ -1,6 +1,6 @@
 # Lit ambient term and ambient source
 
-How the lit forward shaders (`LitForward.fx`, `skinEffect.fx`) compute the ambient light of a material, and how a world picks where that ambient comes from. Decisions: ADR-0095 (surface colour applied once), ADR-0096 (ambient source).
+How the lit forward shaders (`LitForward.fx`, `skinEffect.fx`) compute the ambient light of a material, and how a world picks where that ambient comes from. Decisions: ADR-0097 (surface colour applied once), ADR-0098 (ambient source).
 
 ## The lit formula
 
@@ -14,7 +14,7 @@ colour = texture * DiffuseColor * (N.L * light + ambient_world * ambient_materia
 - `DiffuseColor` is the material's base tint; it multiplies the direct light and the ambient term.
 - `ambient_material` is `LitDiffuseMaterial.AmbientColor` (uniform `MaterialAmbientColor`).
 - `ambient_world` is the flat `AmbientColor * AmbientIntensity` of the world, or the environment cube sampled along the surface normal (see below).
-- Before ADR-0095 the ambient term was multiplied by the texture a second time: a textured material showed `texture^2 * ambient`. Scenes tuned against that look get a brighter ambient now; lower the world ambient or the material ambient to compensate.
+- Before ADR-0097 the ambient term was multiplied by the texture a second time: a textured material showed `texture^2 * ambient`. Scenes tuned against that look get a brighter ambient now; lower the world ambient or the material ambient to compensate.
 
 ## Ambient source
 

@@ -1,4 +1,4 @@
-# ADR-0106: lit-pbr is a built-in material definition that names its own technique
+# ADR-0108: lit-pbr is a built-in material definition that names its own technique
 
 - **Status**: Proposed
 - **Date**: 2026-11-15

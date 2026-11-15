@@ -37,7 +37,7 @@ public sealed class ColorPipelineSettings
     }
 
     /// <summary>
-    /// Adds a blurred copy of the bright part of the HDR scene before the tonemapping (ADR-0105). Off by default, and
+    /// Adds a blurred copy of the bright part of the HDR scene before the tonemapping (ADR-0107). Off by default, and
     /// without any effect in <see cref="ColorPipelineMode.Legacy"/>.
     /// </summary>
     public bool BloomEnabled { get; set; }

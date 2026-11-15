@@ -209,7 +209,7 @@ public class ShaderTechniqueCoverageTests
     [Fact]
     public void SkinEffect_HasNoImageBasedLighting()
     {
-        // ADR-0108: the skinned PBR techniques have no IBL, so the effect must never declare HasIbl (which is what makes
+        // ADR-0110: the skinned PBR techniques have no IBL, so the effect must never declare HasIbl (which is what makes
         // EnvironmentShaderBinder generate the IBL textures for a shader).
         string shaderPath = Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", "skinEffect.fx");
         string source = File.ReadAllText(shaderPath);

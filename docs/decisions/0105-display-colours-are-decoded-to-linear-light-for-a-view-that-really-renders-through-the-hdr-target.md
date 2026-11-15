@@ -1,4 +1,4 @@
-# ADR-0103: Display colours are decoded to linear light for a view that really renders through the HDR target
+# ADR-0105: Display colours are decoded to linear light for a view that really renders through the HDR target
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
@@ -7,11 +7,11 @@
 
 ## Context
 
-ADR-0102 renders a `LinearHdr` view into an HDR target and tonemaps it, but nothing decodes the colours yet: every colour the engine knows (textures, material colours, light colours, the ambient, the clear colour, cubes) is a display colour, and lighting it as if it were linear light then encoding the result again is wrong. Verified on the code:
+ADR-0104 renders a `LinearHdr` view into an HDR target and tonemaps it, but nothing decodes the colours yet: every colour the engine knows (textures, material colours, light colours, the ambient, the clear colour, cubes) is a display colour, and lighting it as if it were linear light then encoding the result again is wrong. Verified on the code:
 
 - The shaders read material colours from constants (`DiffuseColor`, `EmissiveColor`, `SpecularColor`, `MaterialAmbientColor`), samples (`Texture` times the optional detail texture, cubes, probes) and vertex colours.
 - Light colours and the ambient reach the shader already multiplied by their intensity (`ForwardLightBinder`, `ResolvedEnvironmentSettings.EffectiveAmbientColor`); the shadow colour is a factor.
-- A view whose mode resolves to `LinearHdr` can still be drawn by the legacy path (ADR-0102: `ClearColorBuffer` false, an empty rectangle, a missing tonemap shader). Decoding such a view without tonemapping it would be wrong.
+- A view whose mode resolves to `LinearHdr` can still be drawn by the legacy path (ADR-0104: `ClearColorBuffer` false, an empty rectangle, a missing tonemap shader). Decoding such a view without tonemapping it would be wrong.
 - `RenderPipeline` is the only place that knows whether a view really draws through the HDR target; the resolved environment is cached per view and cannot carry that decision.
 - An 8-bit `Color` cannot hold a decoded dark value (the clear colour 20/255 decodes to 0.0036, below half a level).
 

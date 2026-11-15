@@ -1,4 +1,4 @@
-# ADR-0096: A world may use a flat ambient term while keeping a reflection cube
+# ADR-0098: A world may use a flat ambient term while keeping a reflection cube
 
 - **Status**: Accepted
 - **Date**: 2026-11-14

@@ -26,7 +26,7 @@ public sealed class ReflectionProbe
 
     /// <summary>
     /// Cube supplied at run time (not serialized). When set it is used before <see cref="SpecularCubemapAssetId"/> and <see cref="EnvironmentAssetId"/>,
-    /// like <c>WorldEnvironmentSettings.SpecularEnvironmentCubemap</c> for the global environment (ADR-0107, section Reflection probes).
+    /// like <c>WorldEnvironmentSettings.SpecularEnvironmentCubemap</c> for the global environment (ADR-0109, section Reflection probes).
     /// </summary>
     public Microsoft.Xna.Framework.Graphics.TextureCube SpecularCubemap { get; set; }
 }

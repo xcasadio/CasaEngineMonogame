@@ -8,7 +8,7 @@
 // Uses the same direct-light model as LitForward.fx
 // (directional, point and spot lights via Lighting.fxh),
 // plus resolved environment ambient / reflection bindings.
-// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0108).
+// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0110).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -427,7 +427,7 @@ TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaterni
 
 
 //_______________________________________________________________
-// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0108)
+// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0110)
 //
 // The skinning is the one of the Blinn-Phong techniques above. The shading is LitPbr.fx's, minus what a skinned mesh
 // does not carry in this version: direct lights and received shadows (Pbr.fxh), a flat ambient (no image-based lighting,

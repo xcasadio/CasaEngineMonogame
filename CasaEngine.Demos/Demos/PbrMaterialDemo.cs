@@ -18,7 +18,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// The reference scene of the physically based material (plan T10.1, ADR-0106 to ADR-0109): a 5 x 5 grid of spheres that share ONE
+/// The reference scene of the physically based material (plan T10.1, ADR-0108 to ADR-0111): a 5 x 5 grid of spheres that share ONE
 /// <see cref="LitPbrMaterial"/> and differ only by per-instance property overrides (roughness from 0.1 to 0.9 along a row, metal from 0
 /// to 1 down a column), a coloured smooth metal sphere, an emissive sphere that feeds the bloom, a glass sphere in front of a
 /// checkerboard, a skinned character drawn by the PBR skinning techniques, and a directional light that casts shadows on a ground,

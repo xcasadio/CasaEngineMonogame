@@ -226,7 +226,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         PoseAlphaWindow(NeutralAlphaMin, NeutralAlphaMax);
 
         // The sprites of the scene decode their display colours only in a view that really draws through the HDR target
-        // (ADR-0103); the constant lives on the shared effects, so it is posed on every flush.
+        // (ADR-0105); the constant lives on the shared effects, so it is posed on every flush.
         PoseColorPipeline(_effect, _linearColor);
         var currentAlphaMin = NeutralAlphaMin;
         var currentAlphaMax = NeutralAlphaMax;

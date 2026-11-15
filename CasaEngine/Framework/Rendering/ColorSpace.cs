@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
-/// Display-colour to linear-light conversion of the linear colour pipeline (ADR-0103). The engine's colour encoding is the
+/// Display-colour to linear-light conversion of the linear colour pipeline (ADR-0105). The engine's colour encoding is the
 /// 2.2 power law, not the exact sRGB curve: <c>Decode(c) = c^2.2</c>, the inverse of the <c>pow(c, 1 / 2.2)</c> that
 /// <c>Tonemap.fx</c> writes. The shaders apply the same function (<c>DecodeColor</c>) to the values they read.
 /// </summary>

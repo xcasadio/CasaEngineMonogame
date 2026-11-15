@@ -40,18 +40,18 @@ public sealed class RenderPipeline : IDisposable
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
 
-    // Tonemapping shader of the linear HDR colour pipeline (ADR-0102). Loaded by the game once its content root is set;
+    // Tonemapping shader of the linear HDR colour pipeline (ADR-0104). Loaded by the game once its content root is set;
     // null until then (the editor, tests), which only matters for a view in LinearHdr.
     private ShaderWrapper _tonemapShader;
 
-    // Bloom shader (ADR-0105), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
+    // Bloom shader (ADR-0107), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
     private ShaderWrapper _bloomShader;
 
-    // Generator of the IBL cubes (ADR-0107), created when the game gives the pipeline the IblConvolution effect; null until then
+    // Generator of the IBL cubes (ADR-0109), created when the game gives the pipeline the IblConvolution effect; null until then
     // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
     private IblCubeGenerator _iblCubeGenerator;
 
-    // Cache of the generated IBL textures and of the BRDF table (ADR-0107). Its requests run at the start of Render, before any view.
+    // Cache of the generated IBL textures and of the BRDF table (ADR-0109). Its requests run at the start of Render, before any view.
     private readonly IblCache _iblCache;
 
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
@@ -162,7 +162,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>Bloom</c> effect (<see cref="BuiltInShaderCatalog.BloomContentName"/>) used by the
-    /// bloom of a view that asks for it (ADR-0105). Called once by the game after its content root is set.
+    /// bloom of a view that asks for it (ADR-0107). Called once by the game after its content root is set.
     /// </summary>
     public void SetBloomEffect(Effect effect)
     {
@@ -180,7 +180,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
-    /// and builds the generator of the IBL cubes from it (ADR-0107). Called once by the game after its content root is set; a
+    /// and builds the generator of the IBL cubes from it (ADR-0109). Called once by the game after its content root is set; a
     /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
     /// </summary>
     public void SetIblConvolutionEffect(Effect effect)
@@ -194,7 +194,7 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>The generator of the IBL cubes, or null until <see cref="SetIblConvolutionEffect"/> has been called.</summary>
     public IblCubeGenerator IblCubeGenerator => _iblCubeGenerator;
 
-    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0107).</summary>
+    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0109).</summary>
     public IblCache IblCache => _iblCache;
 
     /// <summary>Releases the IBL textures, the BRDF table and the generator.</summary>
@@ -368,7 +368,7 @@ public sealed class RenderPipeline : IDisposable
             {
                 // The resolved value is cached per view and says only what the world asks for. The view really draws through the
                 // HDR target in this frame only when the planner said so: that is what lets the binders decode display colours
-                // (ADR-0103). Everything built from this copy (lights, frame, binders) sees the same decision.
+                // (ADR-0105). Everything built from this copy (lights, frame, binders) sees the same decision.
                 resolvedEnvironment = resolvedEnvironment with { LinearColorActive = true };
             }
 
@@ -558,7 +558,7 @@ public sealed class RenderPipeline : IDisposable
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }
 
-    // ---- Linear HDR colour pipeline (ADR-0102) ----
+    // ---- Linear HDR colour pipeline (ADR-0104) ----
 
     private bool HasTonemapShader()
     {
@@ -704,7 +704,7 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
-    /// Adds the bloom of the view to its HDR scene target (ADR-0105), after the scene and before the tonemapping, so the
+    /// Adds the bloom of the view to its HDR scene target (ADR-0107), after the scene and before the tonemapping, so the
     /// interface composed afterwards is never touched. Skipped, with one warning, when the bloom shader is not loaded.
     /// </summary>
     private void ApplyBloom(RenderTarget2D hdrTarget, in RenderFrame frame)
@@ -732,7 +732,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Flushes the renderers that draw display-ready colours (<see cref="IPostTonemapRenderer"/>, the screen sprites and text)
-    /// on the tonemapped destination, before the interface (ADR-0104). The depth of the scene lives in the HDR target, so the
+    /// on the tonemapped destination, before the interface (ADR-0106). The depth of the scene lives in the HDR target, so the
     /// depth test is off for these flushes.
     /// </summary>
     private void FlushPostTonemapRenderers(RenderView view, in RenderFrame frame)

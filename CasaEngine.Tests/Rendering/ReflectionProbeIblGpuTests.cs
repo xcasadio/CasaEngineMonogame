@@ -11,7 +11,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T7.1 of the PBR plan: the local reflection probes of <c>lit-pbr</c> (ADR-0107, section Reflection probes). The blend of probes is
+/// T7.1 of the PBR plan: the local reflection probes of <c>lit-pbr</c> (ADR-0109, section Reflection probes). The blend of probes is
 /// recomputed at every resolution (it depends on the camera and on the probe collection, not on the cached environment), the
 /// probe cubes go through <see cref="IblCache"/> like the global one (atlas only), and a shader that declares the IBL receives the
 /// prefiltered atlas of a probe once it exists, the unprefiltered cube until then. The pixels are measured by the demo

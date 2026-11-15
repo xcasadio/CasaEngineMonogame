@@ -58,13 +58,13 @@ public static class ShaderParameterNames
     public const string Exposure = "Exposure";
     public const string SceneTexture = "SceneTexture";
 
-    // --- Bloom (ADR-0105) ---
+    // --- Bloom (ADR-0107) ---
     public const string BloomThreshold = "BloomThreshold";
     public const string BloomIntensity = "BloomIntensity";
     public const string BloomTexelSize = "BloomTexelSize";
     public const string BloomSourceTexture = "BloomSourceTexture";
 
-    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0103).</summary>
+    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0105).</summary>
     public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
 
     /// <summary>1 when the environment cube already holds linear light (a cube built from a .hdr panorama).</summary>
@@ -80,7 +80,7 @@ public static class ShaderParameterNames
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
 
-    // --- Image-based lighting (ADR-0107): declared by the PBR shaders only, bound by EnvironmentShaderBinder ---
+    // --- Image-based lighting (ADR-0109): declared by the PBR shaders only, bound by EnvironmentShaderBinder ---
     /// <summary>Diffuse irradiance cube (32 texels per face, linear light).</summary>
     public const string IrradianceCubeTexture = "IrradianceCubeTexture";
     /// <summary>Prefiltered specular atlas (2D, six roughness bands stacked, linear light).</summary>

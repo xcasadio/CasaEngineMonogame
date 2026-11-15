@@ -6,7 +6,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The eviction rule of the HDR scene targets (ADR-0102): a size unused for more than <see cref="HdrTargetEviction.MaxIdleRenders"/>
+/// The eviction rule of the HDR scene targets (ADR-0104): a size unused for more than <see cref="HdrTargetEviction.MaxIdleRenders"/>
 /// renders is stale. Pure, no GPU.
 /// </summary>
 public class HdrTargetEvictionTests
@@ -138,7 +138,7 @@ public class HdrTargetEvictionTests
 }
 
 /// <summary>
-/// The sweep of the tracked target keys on a real pool (ADR-0105): a stale bloom key (no depth) is released by
+/// The sweep of the tracked target keys on a real pool (ADR-0107): a stale bloom key (no depth) is released by
 /// <see cref="HdrTargetEviction.Sweep"/> with its own depth format, and the HDR key of the same size and format is untouched.
 /// Skipped where no device can be created.
 /// </summary>

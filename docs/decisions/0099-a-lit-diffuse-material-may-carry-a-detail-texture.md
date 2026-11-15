@@ -1,4 +1,4 @@
-# ADR-0097: A lit diffuse material may carry a detail texture
+# ADR-0099: A lit diffuse material may carry a detail texture
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
@@ -19,7 +19,7 @@ All the textured pixel shaders of `LitForward.fx` read the base colour through o
 - The detail texture is bound only together with a base texture (the shader never reads it otherwise), like the normal map.
 - Serialization: the `lit-diffuse` definition gains `detail_texture` (texture asset reference, default empty, legacy alias `texture_detail_asset_id`) and `detail_tiling` (float, default 1, minimum 0). `MaterialCompiler` reads them as it reads `normal_texture`. The runtime material's JSON keys are `texture_detail_asset_id` and `detail_tiling`, read by `LitDiffuseMaterial.Load` and written by the editor's `SaveLitDiffuseMaterial`. Both are optional on reading: an asset without them loads as before. Nothing that exists is renamed.
 - Editor impact: the material inspector is driven by the definition, so it shows the two new properties (an asset picker and a number box, in the "Surface" section after the existing ones) without any interface code change. The editor's material tests that count the properties of `lit-diffuse` are updated.
-- Sampler state (amendment A3): the engine only sets the sampler of slot 0 (`RenderStateCache`), and under DesktopGL `DECLARE_TEXTURE` ignores its slot index and declares no sampler state (`Macros.fxh`). The detail sampler therefore uses the device's default sampler state: linear filtering with mip filtering, and wrap addressing. The repetition the feature relies on thus depends on that default; a game that changes the device's default sampler state for that slot changes it. Without mipmaps on the detail texture a strong tiling shows moire (see ADR-0098 for the loader option that builds them).
+- Sampler state (amendment A3): the engine only sets the sampler of slot 0 (`RenderStateCache`), and under DesktopGL `DECLARE_TEXTURE` ignores its slot index and declares no sampler state (`Macros.fxh`). The detail sampler therefore uses the device's default sampler state: linear filtering with mip filtering, and wrap addressing. The repetition the feature relies on thus depends on that default; a game that changes the device's default sampler state for that slot changes it. Without mipmaps on the detail texture a strong tiling shows moire (see ADR-0100 for the loader option that builds them).
 
 ## Consequences
 

@@ -44,7 +44,7 @@ public class SkinnedMeshDemo : Demo
     private const float FrozenAnimationTimeSeconds = 0.4f;
 
     // With CASAENGINE_SKINNED_DEMO_PBR=1 the demo starts with every character drawn by the PBR techniques of the skinning effect
-    // (SkinnedMeshComponent.PbrMaterial, ADR-0108); the P key switches between Blinn-Phong and PBR at any time.
+    // (SkinnedMeshComponent.PbrMaterial, ADR-0110); the P key switches between Blinn-Phong and PBR at any time.
     private const string PbrVariable = "CASAENGINE_SKINNED_DEMO_PBR";
     private const string PbrAction = "SkinnedMesh.Pbr";
 

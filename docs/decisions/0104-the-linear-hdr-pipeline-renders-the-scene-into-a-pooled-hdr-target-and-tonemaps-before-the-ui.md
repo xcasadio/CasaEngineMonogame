@@ -1,4 +1,4 @@
-# ADR-0102: The linear HDR pipeline renders the scene into a pooled HDR target and tonemaps before the interface
+# ADR-0104: The linear HDR pipeline renders the scene into a pooled HDR target and tonemaps before the interface
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
@@ -7,7 +7,7 @@
 
 ## Context
 
-ADR-0101 lets a world select `LinearHdr`, but nothing reads the setting. `RenderPipeline.Render` draws every view straight into the destination of the view (the back buffer or the editor's host texture, the scene target `_sceneRt` when shadows are active on a cleared back-buffer view, the retained target of the frozen frame, or the render target of the view's own surface), and `DefaultViewPipeline` draws the interface into the same target as the scene. A `Color` target clips every value above 1 and cannot hold linear light, and the interface must not be tonemapped.
+ADR-0103 lets a world select `LinearHdr`, but nothing reads the setting. `RenderPipeline.Render` draws every view straight into the destination of the view (the back buffer or the editor's host texture, the scene target `_sceneRt` when shadows are active on a cleared back-buffer view, the retained target of the frozen frame, or the render target of the view's own surface), and `DefaultViewPipeline` draws the interface into the same target as the scene. A `Color` target clips every value above 1 and cannot hold linear light, and the interface must not be tonemapped.
 
 Verified on the code and by measurement (MonoGame DesktopGL 3.8.5.1, ADR-0086, task T0.3):
 

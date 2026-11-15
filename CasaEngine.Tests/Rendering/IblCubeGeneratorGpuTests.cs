@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
 /// The IBL convolution on a real device (plan T6.1): the level read by <c>SAMPLE_CUBEMAP_LEVEL</c> on the OpenGL chain (step 1b,
-/// which decides the atlas design of ADR-0107), the orientation of the faces and of the atlas, the colour space of the source,
+/// which decides the atlas design of ADR-0109), the orientation of the faces and of the atlas, the colour space of the source,
 /// the shape of the generated textures and the restoration of the device state. Skipped where no device can be created.
 /// </summary>
 [Collection(GpuDeviceCollection.Name)]
@@ -45,7 +45,7 @@ public class IblCubeGeneratorGpuTests
 
     // Step 1b. A cube with a full mip chain whose every level is a distinct solid colour; the shader requests one level and the
     // pixel it writes is measured. The levels are stored (GetData returns them) but the OpenGL chain reads level 0 whatever the
-    // request: the compiled GLSL is a plain textureCube. This pins the fact that decides the 2D atlas of ADR-0107; a MonoGame
+    // request: the compiled GLSL is a plain textureCube. This pins the fact that decides the 2D atlas of ADR-0109; a MonoGame
     // that honours the level would fail it, which is the signal to reconsider the atlas.
     [GpuFact]
     public void OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed()
