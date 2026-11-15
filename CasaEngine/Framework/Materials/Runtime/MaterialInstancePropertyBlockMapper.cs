@@ -122,7 +122,7 @@ public static class MaterialInstancePropertyBlockMapper
         }
     }
 
-    // Colour, metal, roughness and emission only: none of them changes the queue, the blend state or the technique, so they are
+    // Colour, metal, roughness, emission and clear coat only: none of them changes the queue, the blend state or the technique, so they are
     // safe to push after Bind. The override replaces the whole constant, alpha of base_color included (the transparency of the
     // draw stays the one of the material).
     private static void ApplyLitPbrOverrides(
@@ -152,6 +152,18 @@ public static class MaterialInstancePropertyBlockMapper
             && emissiveOverride.TryGetVector3(out var emissiveColor))
         {
             propertyBlock.SetVector3(ShaderParameterNames.EmissiveColor, emissiveColor);
+        }
+
+        if (TryGetOverrideValue(definition, materialInstanceData, "clear_coat", out var clearCoatOverride)
+            && clearCoatOverride.TryGetFloat(out var clearCoat))
+        {
+            propertyBlock.SetFloat(ShaderParameterNames.ClearCoat, clearCoat);
+        }
+
+        if (TryGetOverrideValue(definition, materialInstanceData, "clear_coat_roughness", out var clearCoatRoughnessOverride)
+            && clearCoatRoughnessOverride.TryGetFloat(out var clearCoatRoughness))
+        {
+            propertyBlock.SetFloat(ShaderParameterNames.ClearCoatRoughness, clearCoatRoughness);
         }
     }
 

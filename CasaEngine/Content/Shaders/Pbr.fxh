@@ -20,6 +20,32 @@
 //
 // The material colours reach this file already decoded to linear light (once per pixel, by the including effect): nothing
 // here decodes a colour, in particular nothing inside the light slots (plan open point O10).
+//
+// Clear coat (ADR-0114). This file is also included by skinEffect.fx, which has no clear coat (plan decision P5) and declares no
+// ClearCoat constant. The clear-coat code is therefore compiled ONLY when the including effect defines PBR_CLEAR_COAT before the
+// include (LitPbr.fx does); without the define the preprocessed text of this file is the one it had before the clear coat, so
+// skinEffect.fx compiles to the same bytes. The direct lobe is, with every symbol per light (N_g the geometric, interpolated
+// vertex normal, never the normal-mapped one; V the eye vector; L the light vector; H = normalize(V + L); NoH_c = saturate(N_g . H);
+// VoH = saturate(V . H) = LoH; irradiance = lightRadiance * NoL * attenuation, the very value of the base lobes, NoL from the
+// surface normal):
+//   alpha_c = max(ClearCoatRoughness, PbrMinRoughness)^2
+//   F_d     = 0.04 + 0.96 * (1 - VoH)^5                              Schlick, scalar, F0 = 0.04
+//   Fc      = ClearCoat * F_d                                        the lobe AND the attenuation of the base are weighted by ClearCoat
+//   V_c     = 0.25 / max(VoH^2, 0.0001)                              Kelemen visibility (the floor keeps it finite at grazing VoH)
+//   D_c     = alpha_c^2 / (pi * (NoH_c^2 * (alpha_c^2 - 1) + 1)^2)   GGX, the function of the base lobe
+//   coat    = D_c * V_c * Fc * irradiance                            added to the specular part, NOT scaled by a transparent alpha
+//   base    = (diffuse + specular) * (1 - Fc)                        both base lobes of the same light
+// Evaluation: the base walk (EvaluatePbrLights, AccumulatePbrLight) is NOT changed. When ClearCoat > 0 the including effect calls
+// EvaluatePbrClearCoatDirectional and EvaluatePbrClearCoatPointAndSpot after it: the same light slots walked a second time, each
+// adding the correction  coat - Fc * (base diffuse + base specular)  of AccumulatePbrClearCoatLight, which makes the sum equal to
+// the formulas above. With ClearCoat = 0 nothing of this runs and the result is the one of the shader without a clear coat.
+// Measured on the OpenGL chain (cause not found, like plan open point O10): the same lobe written inside AccumulatePbrLight,
+// even reduced to one extra dot product per slot, made every direct light vanish, and a second walk written as the [unroll]
+// for loop with a break of EvaluatePbrLights did nothing; the explicit slot lists below are the form that works.
+// The model is the clear-coat layer of Filament (https://google.github.io/filament/Filament.html#materialsystem/clearcoatmodel,
+// GGX lobe, Kelemen visibility, Schlick Fresnel at F0 0.04, base scaled by the coat Fresnel); the absence of a coat normal map,
+// the use of the slot irradiance and the PbrMinRoughness clamp are the author's arbitration (plan P4). Single scattering inside the
+// coat and the absorption of the base colour under the coat are not modelled.
 //-----------------------------------------------------------------------------
 
 #ifndef PBR_FXH
@@ -44,6 +70,14 @@ struct PbrSurface
     float Alpha2;             // alpha^2 where alpha = roughness^2
     float AlphaSquaredOverPi; // the numerator of the GGX distribution
     float SmithViewTerm;      // sqrt(NoV * (NoV - NoV * alpha^2) + alpha^2), the light-independent half of the visibility
+#ifdef PBR_CLEAR_COAT
+    float ClearCoat;          // weight of the clear coat, 0 to 1; 0 leaves every other clear-coat field unread
+    float3 CoatNormal;        // N_g, the geometric (interpolated vertex) normal
+    float CoatNoV;            // max(dot(N_g, V), 0.0001)
+    float CoatPerceptualRoughness; // ClearCoatRoughness as the material gives it: read by the image-based lighting
+    float CoatAlpha2;         // alpha_c^2 where alpha_c = max(ClearCoatRoughness, PbrMinRoughness)^2
+    float CoatAlphaSquaredOverPi;
+#endif
 };
 
 
@@ -66,8 +100,36 @@ PbrSurface ComputePbrSurface(float3 baseColor, float metallic, float roughness, 
     surface.AlphaSquaredOverPi = alpha2 / PbrPi;
     surface.SmithViewTerm = sqrt((noV - alpha2 * noV) * noV + alpha2);
 
+#ifdef PBR_CLEAR_COAT
+    surface.ClearCoat = 0.0f;
+    surface.CoatNormal = worldNormal;
+    surface.CoatNoV = noV;
+    surface.CoatPerceptualRoughness = 0.0f;
+    surface.CoatAlpha2 = 0.0f;
+    surface.CoatAlphaSquaredOverPi = 0.0f;
+#endif
+
     return surface;
 }
+
+
+#ifdef PBR_CLEAR_COAT
+// Fills the clear-coat fields of a surface. clearCoat and clearCoatRoughness are already saturated; geometricNormal is the
+// normalized interpolated vertex normal. The fields are always written; nothing reads them while ClearCoat is 0.
+void ApplyPbrClearCoat(inout PbrSurface surface, float clearCoat, float clearCoatRoughness, float3 geometricNormal)
+{
+    float alpha = max(clearCoatRoughness, PbrMinRoughness);
+    alpha = alpha * alpha;
+    float alpha2 = alpha * alpha;
+
+    surface.ClearCoat = clearCoat;
+    surface.CoatNormal = geometricNormal;
+    surface.CoatNoV = max(dot(geometricNormal, surface.EyeVector), 0.0001f);
+    surface.CoatPerceptualRoughness = clearCoatRoughness;
+    surface.CoatAlpha2 = alpha2;
+    surface.CoatAlphaSquaredOverPi = alpha2 / PbrPi;
+}
+#endif
 
 
 // GGX (Trowbridge-Reitz) normal distribution.
@@ -119,6 +181,40 @@ void AccumulatePbrLight(
     result.Diffuse += (1.0f - fresnel) * surface.DiffuseAlbedo * (irradiance / PbrPi);
     result.Specular += fresnel * (distribution * visibility) * irradiance;
 }
+
+
+#ifdef PBR_CLEAR_COAT
+// The clear-coat part of one light, added after AccumulatePbrLight for the same light and the same attenuation: it removes
+// Fc of the base lobes of that light and adds the coat lobe (see the header). The point and spot slots below restate the
+// attenuation of AccumulatePbrPointLightSlot and AccumulatePbrSpotLightSlot, identical, and PbrShaderCoverageTests pins them.
+void AccumulatePbrClearCoatLight(
+    inout ColorPair result,
+    in PbrSurface surface,
+    float3 surfaceToLight,
+    float attenuation,
+    float3 lightRadiance)
+{
+    float3 halfVector = normalize(surface.EyeVector + surfaceToLight);
+    float noL = saturate(dot(surface.Normal, surfaceToLight));
+    float noH = saturate(dot(surface.Normal, halfVector));
+    float voH = saturate(dot(surface.EyeVector, halfVector));
+
+    float3 fresnel = PbrFresnelSchlick(surface.F0, voH);
+    float distribution = PbrDistributionGgx(noH, surface.Alpha2, surface.AlphaSquaredOverPi);
+    float visibility = PbrVisibilitySmithGgxCorrelated(noL, surface.Alpha2, surface.NoV, surface.SmithViewTerm);
+    float3 irradiance = lightRadiance * (noL * attenuation);
+
+    float coatNoH = saturate(dot(surface.CoatNormal, halfVector));
+    float oneMinusVoH = 1.0f - voH;
+    float squaredOneMinusVoH = oneMinusVoH * oneMinusVoH;
+    float coatFresnel = surface.ClearCoat * (PbrDielectricF0 + (1.0f - PbrDielectricF0) * (squaredOneMinusVoH * squaredOneMinusVoH * oneMinusVoH));
+    float coatVisibility = 0.25f / max(voH * voH, 0.0001f);
+    float coatDistribution = PbrDistributionGgx(coatNoH, surface.CoatAlpha2, surface.CoatAlphaSquaredOverPi);
+
+    result.Diffuse -= coatFresnel * ((1.0f - fresnel) * surface.DiffuseAlbedo * (irradiance / PbrPi));
+    result.Specular += (coatDistribution * coatVisibility - fresnel * (distribution * visibility)) * coatFresnel * irradiance;
+}
+#endif
 
 
 void AccumulatePbrPointLightSlot(
@@ -252,5 +348,119 @@ ColorPair EvaluatePbrLights(in PbrSurface surface, float3 worldPosition, uniform
 
     return result;
 }
+
+
+#ifdef PBR_CLEAR_COAT
+// The clear coat of the directional lights, a second walk over the same lights after EvaluatePbrLights: it adds to
+// lightResult the correction of AccumulatePbrClearCoatLight for each light. directionalOcclusion is the factor EvaluatePbrLights
+// gave to the shadow-casting light (1 in the MultiplyLitColor mode, else lightResult.ShadowFactor).
+void AccumulatePbrClearCoatDirectionalSlot(inout ColorPair result, in PbrSurface surface, int slot, float directionalOcclusion)
+{
+    float3 lightDirection = GetDirectionalLightDirection(slot);
+    float3 lightDiffuse = GetDirectionalLightDiffuseColor(slot);
+    float directionalShadowFactor = slot == (int)ShadowedDirectionalLightIndex ? directionalOcclusion : 1.0f;
+    AccumulatePbrClearCoatLight(result, surface, -lightDirection, directionalShadowFactor, lightDiffuse);
+}
+
+
+void EvaluatePbrClearCoatDirectional(inout ColorPair result, in PbrSurface surface, int numDirectionalLights, float directionalOcclusion)
+{
+    if (numDirectionalLights > 0) AccumulatePbrClearCoatDirectionalSlot(result, surface, 0, directionalOcclusion);
+    if (numDirectionalLights > 1) AccumulatePbrClearCoatDirectionalSlot(result, surface, 1, directionalOcclusion);
+    if (numDirectionalLights > 2) AccumulatePbrClearCoatDirectionalSlot(result, surface, 2, directionalOcclusion);
+    if (numDirectionalLights > 3) AccumulatePbrClearCoatDirectionalSlot(result, surface, 3, directionalOcclusion);
+    if (numDirectionalLights > 4) AccumulatePbrClearCoatDirectionalSlot(result, surface, 4, directionalOcclusion);
+    if (numDirectionalLights > 5) AccumulatePbrClearCoatDirectionalSlot(result, surface, 5, directionalOcclusion);
+    if (numDirectionalLights > 6) AccumulatePbrClearCoatDirectionalSlot(result, surface, 6, directionalOcclusion);
+    if (numDirectionalLights > 7) AccumulatePbrClearCoatDirectionalSlot(result, surface, 7, directionalOcclusion);
+}
+
+
+void AccumulatePbrClearCoatPointLightSlot(
+    inout ColorPair result,
+    in PbrSurface surface,
+    float3 worldPosition,
+    float4 lightPositionAndRange,
+    float4 lightDiffuse)
+{
+    float3 toLight = lightPositionAndRange.xyz - worldPosition;
+    float distanceToLight = length(toLight);
+    float range = lightPositionAndRange.w;
+    if (distanceToLight <= 0.0001f || range <= 0.0f)
+    {
+        return;
+    }
+
+    float attenuation = saturate(1.0f - distanceToLight / range);
+    attenuation *= attenuation;
+    if (attenuation <= 0.0f)
+    {
+        return;
+    }
+
+    AccumulatePbrClearCoatLight(result, surface, toLight / distanceToLight, attenuation, lightDiffuse.xyz);
+}
+
+
+void AccumulatePbrClearCoatSpotLightSlot(
+    inout ColorPair result,
+    in PbrSurface surface,
+    float3 worldPosition,
+    float4 lightPositionAndRange,
+    float4 directionAndInnerConeCos,
+    float4 lightDiffuse,
+    float4 specularAndOuterConeCos)
+{
+    float3 toLight = lightPositionAndRange.xyz - worldPosition;
+    float distanceToLight = length(toLight);
+    float range = lightPositionAndRange.w;
+    if (distanceToLight <= 0.0001f || range <= 0.0f)
+    {
+        return;
+    }
+
+    float attenuation = saturate(1.0f - distanceToLight / range);
+    attenuation *= attenuation;
+    if (attenuation <= 0.0f)
+    {
+        return;
+    }
+
+    float3 surfaceToLight = toLight / distanceToLight;
+    float spotCos = dot(directionAndInnerConeCos.xyz, -surfaceToLight);
+    float coneAttenuation = saturate((spotCos - specularAndOuterConeCos.w) / max(directionAndInnerConeCos.w - specularAndOuterConeCos.w, 0.0001f));
+    attenuation *= coneAttenuation;
+    if (attenuation <= 0.0f)
+    {
+        return;
+    }
+
+    AccumulatePbrClearCoatLight(result, surface, surfaceToLight, attenuation, lightDiffuse.xyz);
+}
+
+
+void EvaluatePbrClearCoatPointAndSpot(inout ColorPair result, in PbrSurface surface, float3 worldPosition)
+{
+    int pointCount = (int)ActivePointLightCount;
+    if (pointCount > 0) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight0PositionAndRange, PointLight0DiffuseColor);
+    if (pointCount > 1) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight1PositionAndRange, PointLight1DiffuseColor);
+    if (pointCount > 2) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight2PositionAndRange, PointLight2DiffuseColor);
+    if (pointCount > 3) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight3PositionAndRange, PointLight3DiffuseColor);
+    if (pointCount > 4) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight4PositionAndRange, PointLight4DiffuseColor);
+    if (pointCount > 5) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight5PositionAndRange, PointLight5DiffuseColor);
+    if (pointCount > 6) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight6PositionAndRange, PointLight6DiffuseColor);
+    if (pointCount > 7) AccumulatePbrClearCoatPointLightSlot(result, surface, worldPosition, PointLight7PositionAndRange, PointLight7DiffuseColor);
+
+    int spotCount = (int)ActiveSpotLightCount;
+    if (spotCount > 0) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight0PositionAndRange, SpotLight0DirectionAndInnerConeCos, SpotLight0DiffuseColor, SpotLight0SpecularColorAndOuterConeCos);
+    if (spotCount > 1) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight1PositionAndRange, SpotLight1DirectionAndInnerConeCos, SpotLight1DiffuseColor, SpotLight1SpecularColorAndOuterConeCos);
+    if (spotCount > 2) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight2PositionAndRange, SpotLight2DirectionAndInnerConeCos, SpotLight2DiffuseColor, SpotLight2SpecularColorAndOuterConeCos);
+    if (spotCount > 3) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight3PositionAndRange, SpotLight3DirectionAndInnerConeCos, SpotLight3DiffuseColor, SpotLight3SpecularColorAndOuterConeCos);
+    if (spotCount > 4) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight4PositionAndRange, SpotLight4DirectionAndInnerConeCos, SpotLight4DiffuseColor, SpotLight4SpecularColorAndOuterConeCos);
+    if (spotCount > 5) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight5PositionAndRange, SpotLight5DirectionAndInnerConeCos, SpotLight5DiffuseColor, SpotLight5SpecularColorAndOuterConeCos);
+    if (spotCount > 6) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight6PositionAndRange, SpotLight6DirectionAndInnerConeCos, SpotLight6DiffuseColor, SpotLight6SpecularColorAndOuterConeCos);
+    if (spotCount > 7) AccumulatePbrClearCoatSpotLightSlot(result, surface, worldPosition, SpotLight7PositionAndRange, SpotLight7DirectionAndInnerConeCos, SpotLight7DiffuseColor, SpotLight7SpecularColorAndOuterConeCos);
+}
+#endif
 
 #endif

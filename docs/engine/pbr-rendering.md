@@ -31,13 +31,21 @@ Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-p
 | `emissive_color` | RGB | 0 | Emitted colour; also turns the emissive feature on. |
 | `occlusion_strength` | 0 to 1 | 1 | |
 | `normal_scale` | at least 0 | 1 | |
+| `clear_coat` | 0 to 1 | 0 | Weight of a clear varnish layer (car paint), ADR-0114. 0 renders exactly like a material without the layer. |
+| `clear_coat_roughness` | 0 to 1 | 0.1 | Perceptual roughness of the varnish, floored at 0.045 in the shader. |
 | `alpha_cutoff` | 0 to 1 | 0.5 | Used by the `AlphaTest` queue only (it is bound as 0 elsewhere). |
 
-Per-instance overrides (`MaterialPropertyBlock`, same mechanism as `lit-diffuse`) exist for `base_color`, `metallic`, `roughness` and `emissive_color`: one material and one model can draw a whole grid of different surfaces, as `PBR material demo` does. The block wins over the material for the draw, and the next bind restores the material values.
+Per-instance overrides (`MaterialPropertyBlock`, same mechanism as `lit-diffuse`) exist for `base_color`, `metallic`, `roughness`, `emissive_color`, `clear_coat` and `clear_coat_roughness`: one material and one model can draw a whole grid of different surfaces, as `PBR material demo` does. The block wins over the material for the draw, and the next bind restores the material values.
 
 Units: the BRDF is Lambert divided by pi plus GGX (height-correlated Smith visibility, Schlick Fresnel, `F0 = lerp(0.04, base, metallic)`), summed over the same 24 light slots as `LitForward`. Both lobes use the diffuse colour of the light (its specular colour is ignored). At equal light intensity a `lit-pbr` surface is therefore pi times darker in its diffuse part than a `lit-diffuse` one; pick the light intensity accordingly (`PBR material demo` uses 1.4).
 
 Colours of the material are display colours, decoded once per pixel to linear light in `LinearHdr` (ADR-0105). An emissive colour is a display colour too, at most 1 per channel.
+
+## Clear coat
+
+`clear_coat` and `clear_coat_roughness` (ADR-0114) add a dielectric varnish over the base: the second specular lobe of a car paint. The varnish follows the **geometric** normal (the interpolated vertex normal): there is no coat normal map, so a normal-mapped base keeps a smooth coat. The full closed form (GGX lobe at `F0 = 0.04`, Kelemen visibility, Schlick Fresnel `F_d` at `VoH`, base multiplied by `1 - clear_coat * F_d`) is the header of `Pbr.fxh`. With image-based lighting the coat reflects the global prefiltered atlas at `clear_coat_roughness`, weighted by `E = 0.04 * A + B` (BRDF table) and `clear_coat`, and the ambient of the base is multiplied by `1 - clear_coat * E`; with the flat ambient there is no coat reflection and the base ambient is multiplied by `1 - clear_coat * Schlick(0.04, NoV)`. A transparent surface keeps the coat lobe whole, as it keeps its other specular parts.
+
+A coat of 0 renders bit-identically to a material without the layer: the coat is a second walk over the light slots that runs only when `clear_coat > 0`, and the base walk has no coat code. The coat is compiled only for `LitPbr.fx` (`#define PBR_CLEAR_COAT`): the skinned effect has none (below).
 
 ## Colour pipeline and bloom
 
@@ -80,9 +88,10 @@ Measured on the development machine in Release, 1024 by 768, no vsync, 600 frame
 
 ## Limitations
 
-- **Skinned PBR has no IBL, no probes, no normal map and no transparency.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0110). Normal maps on skinned meshes are out of scope.
+- **Skinned PBR has no IBL, no probes, no normal map, no transparency and no clear coat.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0110). Normal maps on skinned meshes are out of scope.
 - **The prefiltered specular is a 2D atlas, not a cube with mips** (ADR-0109). It costs an extra sampler and 12.6 MB per source cube; it is not seamless at the poles of the latitude-longitude mapping; a high-frequency source at high roughness is noisy (64 samples, no filtered importance sampling). If a later MonoGame honours the cube level, a GPU test fails and the choice can be revisited.
 - **Sampler budget.** `LitPbr.fx` uses 14 of the 16 pixel samplers of the target (t0 to t8 material, t9 to t11 IBL, t12 and t13 probe atlases).
+- **Clear coat limits** (ADR-0114). The coat reflection reads the global atlas only, never a local probe; there is no coat texture and no coat normal map; the absorption of the base colour under the coat and the scattering between the layers are not modelled; `skinEffect.fx` has no coat (P5). The shipped `LitPbr.xnb` is 1 722 697 bytes (888 091 before the coat). Writing the coat lobe inside the 24 slots of the base walk broke the shading on the OpenGL chain (cause not found), so it is a separate walk: see the ADR before touching it.
 - **Deferred P3 defect: IBL generation image and display buffer.** On a frame where an IBL generation runs, the pipeline switches back to the display buffer with `DiscardContents`, which may clear for that one frame the virtual-resolution bars and the phase 1 drawing (inferred from the code, not observed). Not fixed.
 - **Deferred P3 defect: probe referenced by an asset id.** The probe blend is recomputed at every `Resolve`; for a probe referenced by an asset id (not by a run-time cube) that reaches a path that allocates (panorama) or logs (failed asset) every frame. No shipped content defines a probe today. Not fixed; use `ReflectionProbe.SpecularCubemap` meanwhile.
 - **Open P4 findings.**

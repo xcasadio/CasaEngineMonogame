@@ -40,6 +40,11 @@ public class SkinnedPbrShaderGpuTests
             // No image-based lighting in the skinning effect (P9): its IBL constants and textures do not exist.
             Assert.Null(effect.Parameters["HasIbl"]);
             Assert.Null(effect.Parameters["IrradianceCubeTexture"]);
+
+            // No clear coat either (plan decision P5, ADR-0114): Pbr.fxh compiles its clear-coat code only under PBR_CLEAR_COAT, which
+            // skinEffect.fx never defines, so the constants do not exist.
+            Assert.Null(effect.Parameters[ShaderParameterNames.ClearCoat]);
+            Assert.Null(effect.Parameters[ShaderParameterNames.ClearCoatRoughness]);
         });
     }
 

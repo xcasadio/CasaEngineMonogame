@@ -53,6 +53,8 @@ public static class ShaderParameterNames
     public const string HasMetallicRoughnessTexture = "HasMetallicRoughnessTexture";
     public const string HasOcclusionTexture = "HasOcclusionTexture";
     public const string HasEmissiveTexture = "HasEmissiveTexture";
+    public const string ClearCoat = "ClearCoat";
+    public const string ClearCoatRoughness = "ClearCoatRoughness";
 
     // --- Colour pipeline ---
     public const string Exposure = "Exposure";

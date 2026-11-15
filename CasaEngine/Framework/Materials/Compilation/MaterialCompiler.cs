@@ -345,6 +345,8 @@ public sealed class MaterialCompiler
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
         material.OcclusionStrength = GetFloat(effectiveValues["occlusion_strength"], "occlusion_strength");
         material.NormalScale = GetFloat(effectiveValues["normal_scale"], "normal_scale");
+        material.ClearCoat = GetFloat(effectiveValues["clear_coat"], "clear_coat");
+        material.ClearCoatRoughness = GetFloat(effectiveValues["clear_coat_roughness"], "clear_coat_roughness");
         material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
 
         return material;

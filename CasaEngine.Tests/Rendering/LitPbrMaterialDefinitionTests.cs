@@ -25,6 +25,8 @@ public class LitPbrMaterialDefinitionTests
         "emissive_color",
         "occlusion_strength",
         "normal_scale",
+        "clear_coat",
+        "clear_coat_roughness",
         "alpha_cutoff",
     };
 
@@ -87,6 +89,10 @@ public class LitPbrMaterialDefinitionTests
         Assert.Equal(defaults.OcclusionStrength, definition.GetRequiredProperty("occlusion_strength").GetDefaultValue<float>());
         Assert.Equal(defaults.NormalScale, definition.GetRequiredProperty("normal_scale").GetDefaultValue<float>());
         Assert.Equal(0.5f, definition.GetRequiredProperty("alpha_cutoff").GetDefaultValue<float>());
+        Assert.Equal(defaults.ClearCoat, definition.GetRequiredProperty("clear_coat").GetDefaultValue<float>());
+        Assert.Equal(defaults.ClearCoatRoughness, definition.GetRequiredProperty("clear_coat_roughness").GetDefaultValue<float>());
+        Assert.Equal(0.0f, defaults.ClearCoat);
+        Assert.Equal(0.1f, defaults.ClearCoatRoughness);
 
         foreach (var key in new[] { "base_color_texture", "normal_texture", "metallic_roughness_texture", "occlusion_texture", "emissive_texture" })
         {
@@ -310,6 +316,83 @@ public class LitPbrMaterialDefinitionTests
         Assert.Equal(1, block.PropertyCount);
         Assert.True(block.TryGetFloat(ShaderParameterNames.Roughness, out var roughness));
         Assert.Equal(0.1f, roughness);
+    }
+
+    [Fact]
+    public void MaterialFile_WithTheClearCoatKeys_RoundTrips_AndWithoutThemReadsTheDefaults()
+    {
+        var withCoat = new MaterialAsset("lit-pbr") { Name = "Car paint" };
+        withCoat.SetPropertyValue("clear_coat", MaterialValue.FromFloat(0.8f));
+        withCoat.SetPropertyValue("clear_coat_roughness", MaterialValue.FromFloat(0.25f));
+
+        var document = new JObject();
+        MaterialAssetJsonSerializer.Save(withCoat, document);
+
+        var propertiesNode = Assert.IsType<JObject>(document["properties"]);
+        Assert.Equal(2, propertiesNode.Count);
+        Assert.NotNull(propertiesNode["clear_coat"]);
+        Assert.NotNull(propertiesNode["clear_coat_roughness"]);
+
+        var loaded = new MaterialAsset();
+        loaded.Load(document);
+        Assert.True(loaded.GetPropertyValueOrDefault("clear_coat")!.TryGetFloat(out var coat));
+        Assert.Equal(0.8f, coat);
+        Assert.True(loaded.GetPropertyValueOrDefault("clear_coat_roughness")!.TryGetFloat(out var coatRoughness));
+        Assert.Equal(0.25f, coatRoughness);
+
+        // A file written before the clear coat existed carries neither key: it reads the defaults and compiles to a bare coat.
+        var legacyDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(new MaterialAsset("lit-pbr") { Name = "Old file" }, legacyDocument);
+        Assert.Null(((JObject)legacyDocument["properties"]!)["clear_coat"]);
+
+        var legacy = new MaterialAsset();
+        legacy.Load(legacyDocument);
+        Assert.True(legacy.GetPropertyValueOrDefault("clear_coat")!.TryGetFloat(out var defaultCoat));
+        Assert.Equal(0.0f, defaultCoat);
+        Assert.True(legacy.GetPropertyValueOrDefault("clear_coat_roughness")!.TryGetFloat(out var defaultCoatRoughness));
+        Assert.Equal(0.1f, defaultCoatRoughness);
+
+        var (_, runtime) = Compile(legacy);
+        var material = Assert.IsType<LitPbrMaterial>(runtime);
+        Assert.Equal(0.0f, material.ClearCoat);
+        Assert.Equal(0.1f, material.ClearCoatRoughness);
+    }
+
+    [Fact]
+    public void Compile_ClearCoatValues_ReachTheRuntimeMaterial()
+    {
+        var materialAsset = new MaterialAsset("lit-pbr");
+        materialAsset.SetPropertyValue("clear_coat", MaterialValue.FromFloat(0.6f));
+        materialAsset.SetPropertyValue("clear_coat_roughness", MaterialValue.FromFloat(0.3f));
+
+        var (compiled, runtime) = Compile(materialAsset);
+
+        var material = Assert.IsType<LitPbrMaterial>(runtime);
+        Assert.Equal(0.6f, material.ClearCoat);
+        Assert.Equal(0.3f, material.ClearCoatRoughness);
+
+        // The clear coat is two scalars: it changes neither the shader features nor the technique.
+        Assert.Equal(ShaderFeature.None, compiled.Features);
+        Assert.Equal("LitPbr", LitPbrMaterial.GetTechniqueName(compiled.Features));
+    }
+
+    [Fact]
+    public void OverrideMapper_MapsTheClearCoatKeysOntoTheShaderConstants()
+    {
+        var materialAsset = new MaterialAsset("lit-pbr");
+        var overrides = new MaterialInstanceData();
+        overrides.SetPropertyOverride("clear_coat", MaterialValue.FromFloat(0.9f));
+        overrides.SetPropertyOverride("clear_coat_roughness", MaterialValue.FromFloat(0.2f));
+
+        var block = MaterialInstancePropertyBlockMapper.Create(materialAsset, overrides);
+
+        Assert.Equal(2, block.PropertyCount);
+        Assert.True(block.TryGetFloat(ShaderParameterNames.ClearCoat, out var clearCoat));
+        Assert.Equal(0.9f, clearCoat);
+        Assert.True(block.TryGetFloat(ShaderParameterNames.ClearCoatRoughness, out var clearCoatRoughness));
+        Assert.Equal(0.2f, clearCoatRoughness);
+        Assert.Equal("ClearCoat", ShaderParameterNames.ClearCoat);
+        Assert.Equal("ClearCoatRoughness", ShaderParameterNames.ClearCoatRoughness);
     }
 
     [GpuFact]

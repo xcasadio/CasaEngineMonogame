@@ -55,7 +55,8 @@
 // DiffuseColor, SpecularColor and SpecularPower are declared because Lighting.fxh reads them; the PBR shading never uses them.
 // HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
 // IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0 (probes included).
-// HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder. None has a
+// HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder.
+// ClearCoat and ClearCoatRoughness (ADR-0114) are written by LitPbrMaterial.Bind every bind. None of the constants of this paragraph has a
 // fixed slot: the compiler places them.
 //
 // Colours: BaseColor, EmissiveColor and the colour textures are display colours. They are decoded to linear light ONCE per
@@ -209,6 +210,8 @@ BEGIN_CONSTANTS
     float IblForceBaseLevel;
     float HasPrefilteredLocalReflectionProbe;
     float HasPrefilteredSecondaryLocalReflectionProbe;
+    float ClearCoat;
+    float ClearCoatRoughness;
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
     float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
     float ShadowDepthBias _ps(c100) _cb(c90.z);
@@ -237,6 +240,8 @@ END_CONSTANTS
 #define HAS_FORWARD_SHADOW_BINDINGS 1
 #include "Structures.fxh"
 #include "Lighting.fxh"
+// Switches on the clear-coat code of Pbr.fxh (skinEffect.fx, which includes the same file, does not define it).
+#define PBR_CLEAR_COAT 1
 #include "Pbr.fxh"
 
 
@@ -430,6 +435,38 @@ PbrAmbient ComputePbrAmbient(PbrSurface surface, float occlusion)
 }
 
 
+// The clear coat of the ambient (ADR-0114, plan P4), applied to the ambient of the base after ComputePbrAmbient. surface.ClearCoat
+// is above 0 here. With the IBL (HasIbl = 1): E = 0.04 * A + B with A and B read from the BRDF table at (CoatNoV,
+// ClearCoatRoughness); the coat reflection is the GLOBAL prefiltered atlas read along the reflection of the geometric normal at
+// ClearCoatRoughness, times E, ClearCoat, EnvironmentSpecularIntensity and the occlusion (the local probes are not read: written
+// limit); the ambient of the base, diffuse and specular, is scaled by 1 - ClearCoat * E. Flat ambient (HasIbl = 0): no coat
+// reflection, the ambient of the base is scaled by 1 - ClearCoat * Schlick(0.04, CoatNoV).
+void ApplyPbrClearCoatAmbient(inout PbrAmbient ambient, PbrSurface surface, float occlusion)
+{
+    if (HasIbl < 0.5f)
+    {
+        float oneMinusNoV = 1.0f - surface.CoatNoV;
+        float squaredOneMinusNoV = oneMinusNoV * oneMinusNoV;
+        float coatFresnel = PbrDielectricF0 + (1.0f - PbrDielectricF0) * (squaredOneMinusNoV * squaredOneMinusNoV * oneMinusNoV);
+        float flatScale = 1.0f - surface.ClearCoat * coatFresnel;
+        ambient.Diffuse *= flatScale;
+        ambient.Specular *= flatScale;
+        return;
+    }
+
+    float2 brdf = SampleIblBrdf(surface.CoatNoV, surface.CoatPerceptualRoughness);
+    float coatEnergy = PbrDielectricF0 * brdf.x + brdf.y;
+
+    float3 coatReflectionVector = reflect(-surface.EyeVector, surface.CoatNormal);
+    float3 coatPrefiltered = IblToViewSpace(SampleIblPrefiltered(coatReflectionVector, surface.CoatPerceptualRoughness, 0.0f));
+
+    float baseScale = 1.0f - surface.ClearCoat * coatEnergy;
+    ambient.Diffuse *= baseScale;
+    ambient.Specular = ambient.Specular * baseScale
+        + coatPrefiltered * (coatEnergy * surface.ClearCoat * EnvironmentSpecularIntensity * occlusion);
+}
+
+
 // Tangent-space normal from the normal map, scaled by NormalScale on its xy components (glTF), to a world-space normal.
 float3 ComputePerturbedNormal(float2 texCoord, float3 normalWS, float3 tangentWS, float3 bitangentWS)
 {
@@ -444,9 +481,10 @@ float3 ComputePerturbedNormal(float2 texCoord, float3 normalWS, float3 tangentWS
 }
 
 
-// The shading shared by every technique. baseColor is the display colour with its alpha (see SamplePbrBaseColor); the
-// material colours are decoded here, once per pixel.
-float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float4 baseColor, float diffuseOpacity)
+// The shading shared by every technique. geometricNormal is the normalized interpolated vertex normal, the only normal of the
+// clear coat (worldNormal is the normal-mapped one in the NormalMap techniques). baseColor is the display colour with its alpha
+// (see SamplePbrBaseColor); the material colours are decoded here, once per pixel.
+float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float3 geometricNormal, float4 baseColor, float diffuseOpacity)
 {
     float3 linearBaseColor = DecodeColor(baseColor.rgb);
 
@@ -474,14 +512,25 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float4 b
 
     float3 eyeVector = normalize(EyePosition - positionWS);
     PbrSurface surface = ComputePbrSurface(linearBaseColor, saturate(metallic), saturate(roughness), worldNormal, eyeVector);
+    ApplyPbrClearCoat(surface, saturate(ClearCoat), saturate(ClearCoatRoughness), geometricNormal);
 
     ColorPair lightResult = EvaluatePbrLights(surface, positionWS, (int)ActiveDirectionalLightCount);
+    if (surface.ClearCoat > 0.0f)
+    {
+        float directionalOcclusion = ShadowApplyMode > 0.5f ? 1.0f : lightResult.ShadowFactor;
+        EvaluatePbrClearCoatDirectional(lightResult, surface, (int)ActiveDirectionalLightCount, directionalOcclusion);
+        EvaluatePbrClearCoatPointAndSpot(lightResult, surface, positionWS);
+    }
 
     // diffuseOpacity is 1 for the opaque and alpha-test techniques. The transparent techniques pass the alpha of the base colour:
     // the diffuse parts (direct and ambient) are attenuated by it, the specular and the emissive parts are not, so a glass
     // surface keeps its highlights, the specular part of the ambient included. The output is premultiplied (the blend state is One,
     // InverseSourceAlpha).
     PbrAmbient ambient = ComputePbrAmbient(surface, occlusion);
+    if (surface.ClearCoat > 0.0f)
+    {
+        ApplyPbrClearCoatAmbient(ambient, surface, occlusion);
+    }
 
     float3 color = lightResult.Diffuse * diffuseOpacity
         + lightResult.Specular
@@ -533,7 +582,7 @@ VSOutputPixelLightingTxTan VSLitPbrTangent(VSInputNmTxTan vin)
 float4 PSLitPbr(VSOutputPixelLightingTx pin) : SV_Target0
 {
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), baseColor, 1.0f);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), normalize(pin.NormalWS), baseColor, 1.0f);
 }
 
 
@@ -541,7 +590,7 @@ float4 PSLitPbrAlphaTest(VSOutputPixelLightingTx pin) : SV_Target0
 {
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
     ApplyAlphaTest(baseColor.a);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), baseColor, 1.0f);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), normalize(pin.NormalWS), baseColor, 1.0f);
 }
 
 
@@ -549,7 +598,7 @@ float4 PSLitPbrNormalMap(VSOutputPixelLightingTxTan pin) : SV_Target0
 {
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
     float3 worldNormal = ComputePerturbedNormal(pin.TexCoord, pin.NormalWS, pin.TangentWS, pin.BitangentWS);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, baseColor, 1.0f);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, normalize(pin.NormalWS), baseColor, 1.0f);
 }
 
 
@@ -558,14 +607,14 @@ float4 PSLitPbrNormalMapAlphaTest(VSOutputPixelLightingTxTan pin) : SV_Target0
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
     ApplyAlphaTest(baseColor.a);
     float3 worldNormal = ComputePerturbedNormal(pin.TexCoord, pin.NormalWS, pin.TangentWS, pin.BitangentWS);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, baseColor, 1.0f);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, normalize(pin.NormalWS), baseColor, 1.0f);
 }
 
 
 float4 PSLitPbrTransparent(VSOutputPixelLightingTx pin) : SV_Target0
 {
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), baseColor, baseColor.a);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, normalize(pin.NormalWS), normalize(pin.NormalWS), baseColor, baseColor.a);
 }
 
 
@@ -573,7 +622,7 @@ float4 PSLitPbrNormalMapTransparent(VSOutputPixelLightingTxTan pin) : SV_Target0
 {
     float4 baseColor = SamplePbrBaseColor(pin.TexCoord);
     float3 worldNormal = ComputePerturbedNormal(pin.TexCoord, pin.NormalWS, pin.TangentWS, pin.BitangentWS);
-    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, baseColor, baseColor.a);
+    return ShadePbr(pin.TexCoord, pin.PositionWS.xyz, worldNormal, normalize(pin.NormalWS), baseColor, baseColor.a);
 }
 
 

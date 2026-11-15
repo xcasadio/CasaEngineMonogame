@@ -36,6 +36,15 @@ public class LitPbrMaterial : MaterialBase
     /// <summary>Weight of the occlusion texture: 0 ignores it, 1 applies it fully.</summary>
     public float OcclusionStrength { get; set; } = 1.0f;
 
+    /// <summary>
+    /// Weight of the clear-coat layer (ADR-0114): 0 = none (the rendering is then identical to a material without the layer), 1 = a
+    /// full dielectric varnish (F0 0.04) over the base. The layer follows the geometric normal, not the normal map.
+    /// </summary>
+    public float ClearCoat { get; set; }
+
+    /// <summary>Perceptual roughness of the clear-coat layer. Values under 0.045 render as 0.045.</summary>
+    public float ClearCoatRoughness { get; set; } = 0.1f;
+
     /// <summary>Scale of the x and y components of the tangent-space normal.</summary>
     public float NormalScale { get; set; } = 1.0f;
 
@@ -103,6 +112,8 @@ public class LitPbrMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.OcclusionStrength, OcclusionStrength);
         shader.SetParameter(ShaderParameterNames.NormalScale, NormalScale);
+        shader.SetParameter(ShaderParameterNames.ClearCoat, ClearCoat);
+        shader.SetParameter(ShaderParameterNames.ClearCoatRoughness, ClearCoatRoughness);
         shader.SetParameter(ShaderParameterNames.IblForceBaseLevel, DebugForceIblBaseLevel ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
 

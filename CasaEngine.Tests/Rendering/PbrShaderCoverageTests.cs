@@ -274,6 +274,8 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.OcclusionStrength,
             ShaderParameterNames.AlphaCutoff,
             ShaderParameterNames.NormalScale,
+            ShaderParameterNames.ClearCoat,
+            ShaderParameterNames.ClearCoatRoughness,
             ShaderParameterNames.HasBaseColorTexture,
             ShaderParameterNames.HasMetallicRoughnessTexture,
             ShaderParameterNames.HasOcclusionTexture,
