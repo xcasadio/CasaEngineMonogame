@@ -196,7 +196,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   fermée ou ouverte pendant son propre `Update` ou `Draw`, `Update` ou `Draw` imbriqué appelé par une fenêtre.
 - Validation : `MGUI.Tests` 3557 verts à `1cb1442e`, aucun sauté.
 
-### ⚠️ T1.2 — Le bureau sans fenêtre de l'appelant
+### ✅ T1.2 — Le bureau sans fenêtre de l'appelant
 
 - Fixture : `AnIdleFrame(NoWindow)` (aujourd'hui `Update` 1080 octets, `Draw` 88). Ce bureau n'est pas vide : à
   chaque `Update`, `MGDesktop` insère sa fenêtre de surcouches privée (`OverlayWindow`, `MGDesktop.cs:1442-1448`,
@@ -212,8 +212,10 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Fin : `MGDesktop.Update()` et `MGDesktop.Draw(IUIDrawTransaction)` de cette fixture allouent 0 octet par image,
   souris immobile puis souris en mouvement sans bouton ; contre-éprouvé ; caractérisation identique.
 - Commit (MGUI) : `perf(desktop): update and draw a desktop without windows without allocating`
-- **En pause le 2026-11-15, voir O6.** Le travail est terminé mais non commité sur la branche du chantier : il est
-  rangé sur la branche MGUI `chantier/mgui-nonalloc-t1.2-parked` (`1c31be75`, commit de rangement, un test en échec).
+- **Fait le 2026-11-15** (MGUI `fda5cd1f`), après la réponse de l'auteur à O6. Le travail avait été rangé sur la
+  branche MGUI `chantier/mgui-nonalloc-t1.2-parked` (`1c31be75`), qui reste en place : sa suppression revient à l'auteur.
+  `FocusArchitectureTests.cs:87` cherche maintenant `MGDesktop.FillUpdateOrder(_NestedWindows,`. Suite à `fda5cd1f` :
+  3586 réussis, aucun échec, aucun sauté.
 - Sites localisés (octets par image, somme 856 = la mesure de `NoWindow` après T1.1) :
   - `Navigation/UIFocusNavigationService.cs:273-283`, `TryDispatchGamePadNavigationActions` : énumérateur boxé d'un
     `IReadOnlyList` (32) et une closure par itération, 16 itérations (384) ;
@@ -223,14 +225,14 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   - `MGWindow.cs:1874` : `_NestedWindows.Reverse().OrderByDescending(…)` dans `OnBeginUpdateContents`, par fenêtre,
     même sans fenêtre imbriquée (136) ;
   - `MGOverlay.cs:370` : `GetVisualTreeChildren(true, false)` crée une liste par image (32).
-- Corrections rangées : boucle manette sur un tableau avec appel direct ; quatre méthodes `internal virtual` de
+- Corrections : boucle manette sur un tableau avec appel direct ; quatre méthodes `internal virtual` de
   `MGElement.Update` (`BeginUpdateInternal`, `BeginUpdateContentsInternal`, `EndUpdateContentsInternal`,
   `EndUpdateInternal`), appelées juste avant l'événement correspondant, que `MGWindow` et `MGOverlayHost` redéfinissent
   au lieu de s'abonner à leurs propres événements ; ordre des fenêtres imbriquées par `MGDesktop.FillUpdateOrder` ;
   `MGOverlayHost.GetVisualTreeChildren` rend la liste de base quand il n'y a pas de surcouche inactive.
-- Mesures de l'arbre rangé : `Update` 0 octet sur toutes les fixtures (dont `Full` et le glissement) ; `Draw` :
+- Mesures : `Update` 0 octet sur toutes les fixtures (dont `Full` et le glissement) ; `Draw` :
   `BareWindow` 1369, `DefaultWindow` 2441, `WindowWithStackPanel` 3041, `…AndTextBlock` 3289, `…AndSlider` 3489,
-  `Full` 3697, glissement 3697. Suite : 3567 réussis, 1 échec (celui de O6), aucun sauté.
+  `Full` 3697, glissement 3697.
 - Sites vus pour la suite, non mesurés : `MGWindow.cs:2429` (`_NestedWindows.OrderBy` dans `Draw`) ;
   `MGResizeGrip.cs:98` (abonnement à `OnBeginUpdateContents` de la fenêtre hôte).
 
@@ -386,7 +388,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 | O3 | Résolu le 2026-11-15 : D6. | — |
 | O4 | Résolu le 2026-11-15 : tâches T1.0 à T1.5 réécrites par fixture, dans l'ordre de l'inventaire de T0.1. | — |
 | O5 | Résolu le 2026-11-15 : D7. | — |
-| O6 | T1.2 retire de `MGWindow.cs` la ligne `foreach (var Nested in _NestedWindows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost))`. Le test `MGUI.Tests/Focus/FocusArchitectureTests.cs:87` (`Window_Update_Source_Prioritizes_Modal_Window_Before_NonModal_Nested_Windows`) cherche cette ligne dans le texte du fichier et échoue. Ce fichier de test était hors du périmètre confié au sous-agent ; sa modification lui a été refusée par le système de permissions, et la session principale ne l'a pas faite à sa place. Question à l'auteur : autoriser le remplacement de la chaîne cherchée par `MGDesktop.FillUpdateOrder(_NestedWindows,` (le comportement, fenêtre modale avant les fenêtres imbriquées, est aussi couvert par un test de caractérisation de T1.2) ? T1.3 à T2.1 et T3.2 attendent cette réponse. | T1.2 |
+| O6 | T1.2 retire de `MGWindow.cs` la ligne `foreach (var Nested in _NestedWindows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost))`. Le test `MGUI.Tests/Focus/FocusArchitectureTests.cs:87` (`Window_Update_Source_Prioritizes_Modal_Window_Before_NonModal_Nested_Windows`) cherche cette ligne dans le texte du fichier et échoue. Ce fichier de test était hors du périmètre confié au sous-agent ; sa modification lui a été refusée par le système de permissions, et la session principale ne l'a pas faite à sa place. Question à l'auteur : autoriser le remplacement de la chaîne cherchée par `MGDesktop.FillUpdateOrder(_NestedWindows,` (le comportement, fenêtre modale avant les fenêtres imbriquées, est aussi couvert par un test de caractérisation de T1.2) ? T1.3 à T2.1 et T3.2 attendent cette réponse. **Réponse de l'auteur le 2026-11-15 : oui.** Fait dans `fda5cd1f`. | T1.2 |
 
 ## Hors périmètre
 
