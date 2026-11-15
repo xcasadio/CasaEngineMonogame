@@ -74,6 +74,7 @@ public partial class AnimationBlendDemo : Demo
     private string _latestEventMessage = string.Empty;
     private float _latestEventTimeRemaining;
     private readonly StringBuilder _hudBuilder = new(768);
+    private AnimationHudText.BlendLines _hudLines;
 
     public override string Title => "Animation blend demo";
 
@@ -88,7 +89,8 @@ public partial class AnimationBlendDemo : Demo
         DemoControl.ForActions("previous page (on the keyboard: Shift + next page)", "Blend.PreviousPage"),
         DemoControl.ForActions("put the character back at the origin", "Blend.Reset"),
         DemoControl.ForActions("walk; with Shift held, run", "Blend.Forward", "Blend.Shift"),
-        DemoControl.ForActions("explore the directions on the 2D blend page, with W A S D too", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("explore the directions on the 2D blend page", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("the same on the letter keys", "Blend.Forward", "Blend.Left", "Blend.Backward", "Blend.Right"),
         DemoControl.ForActions("choose the target clip (cross-fade pages); the numpad works too", "Blend.Clip1", "Blend.Clip2", "Blend.Clip3"),
         DemoControl.ForActions("cycle the easing, keep or drop the velocity (advanced cross-fade page)", "Blend.Easing", "Blend.KeepVelocity"),
         DemoControl.ForActions("lower or raise the layer weight (upper-body page)", "Blend.WeightDown", "Blend.WeightUp"),
@@ -107,6 +109,7 @@ public partial class AnimationBlendDemo : Demo
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
+        _hudLines = AnimationHudText.ForBlendDemo(action => DemoBindingText.KeyLabel(DemoInput.Describe(game, action).Key));
 
         var world = game.GameManager.CurrentWorld;
         var riggedModel = CreateRiggedModel(game);

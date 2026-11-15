@@ -105,8 +105,9 @@ internal static class DemoInput
     {
         InputMapping mapping = Get(game, action);
 
-        Keys key = mapping.KeyButton.InputDevice == InputDevices.Keyboard ? mapping.KeyButton.Key : Keys.None;
-        Keys alternativeKey = mapping.AlternativeKeyButton.InputDevice == InputDevices.Keyboard ? mapping.AlternativeKeyButton.Key : Keys.None;
+        // The keys the active layout puts at the bound positions (ADR-0096): what is read, and what the sheets show.
+        Keys key = mapping.KeyButton.InputDevice == InputDevices.Keyboard ? mapping.KeyButton.KeyOnLayout() : Keys.None;
+        Keys alternativeKey = mapping.AlternativeKeyButton.InputDevice == InputDevices.Keyboard ? mapping.AlternativeKeyButton.KeyOnLayout() : Keys.None;
         Buttons button = mapping.AlternativeKeyButton.InputDevice == InputDevices.GamePad ? mapping.AlternativeKeyButton.GamePadButton : 0;
         return new DemoBinding(key, alternativeKey, button);
     }

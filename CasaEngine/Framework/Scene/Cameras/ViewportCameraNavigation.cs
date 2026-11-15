@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using CasaEngine.Framework.Input;
 
 namespace CasaEngine.Framework.Scene.Cameras;
 
@@ -282,31 +283,33 @@ public sealed class ViewportCameraNavigation
 
     /// <summary>
     /// Reads the navigation keys from two keyboard states. Letter keys (W, A, S, D, E, Q, R, F, Z, C) are skipped
-    /// when <paramref name="includeLetterKeys"/> is false, so they stay free for Ctrl shortcuts.
+    /// when <paramref name="includeLetterKeys"/> is false, so they stay free for Ctrl shortcuts. They are key positions on
+    /// a US QWERTY keyboard, read on the active layout (ADR-0096): W A S D is Z Q S D on AZERTY.
     /// </summary>
     public static ViewportNavigationKeys ReadKeys(in KeyboardState current, in KeyboardState previous, bool includeLetterKeys)
     {
         var keys = ViewportNavigationKeys.None;
-        keys |= Read(current, Keys.Up, Keys.NumPad8, includeLetterKeys ? Keys.W : Keys.None, ViewportNavigationKeys.Forward);
-        keys |= Read(current, Keys.Down, Keys.NumPad2, includeLetterKeys ? Keys.S : Keys.None, ViewportNavigationKeys.Backward);
-        keys |= Read(current, Keys.Left, Keys.NumPad4, includeLetterKeys ? Keys.A : Keys.None, ViewportNavigationKeys.Left);
-        keys |= Read(current, Keys.Right, Keys.NumPad6, includeLetterKeys ? Keys.D : Keys.None, ViewportNavigationKeys.Right);
-        keys |= Read(current, Keys.PageUp, Keys.NumPad9, includeLetterKeys ? Keys.E : Keys.None, ViewportNavigationKeys.WorldUp);
-        keys |= Read(current, Keys.PageDown, Keys.NumPad7, includeLetterKeys ? Keys.Q : Keys.None, ViewportNavigationKeys.WorldDown);
-        keys |= Read(current, Keys.NumPad1, Keys.None, includeLetterKeys ? Keys.Z : Keys.None, ViewportNavigationKeys.FieldOfViewWider);
-        keys |= Read(current, Keys.NumPad3, Keys.None, includeLetterKeys ? Keys.C : Keys.None, ViewportNavigationKeys.FieldOfViewNarrower);
+        keys |= Read(current, Keys.Up, Keys.NumPad8, Letter(Keys.W, includeLetterKeys), ViewportNavigationKeys.Forward);
+        keys |= Read(current, Keys.Down, Keys.NumPad2, Letter(Keys.S, includeLetterKeys), ViewportNavigationKeys.Backward);
+        keys |= Read(current, Keys.Left, Keys.NumPad4, Letter(Keys.A, includeLetterKeys), ViewportNavigationKeys.Left);
+        keys |= Read(current, Keys.Right, Keys.NumPad6, Letter(Keys.D, includeLetterKeys), ViewportNavigationKeys.Right);
+        keys |= Read(current, Keys.PageUp, Keys.NumPad9, Letter(Keys.E, includeLetterKeys), ViewportNavigationKeys.WorldUp);
+        keys |= Read(current, Keys.PageDown, Keys.NumPad7, Letter(Keys.Q, includeLetterKeys), ViewportNavigationKeys.WorldDown);
+        keys |= Read(current, Keys.NumPad1, Keys.None, Letter(Keys.Z, includeLetterKeys), ViewportNavigationKeys.FieldOfViewWider);
+        keys |= Read(current, Keys.NumPad3, Keys.None, Letter(Keys.C, includeLetterKeys), ViewportNavigationKeys.FieldOfViewNarrower);
 
         if (includeLetterKeys)
         {
-            if (current.IsKeyDown(Keys.R))
+            if (current.IsKeyDown(KeyboardLayout.FromQwertyPosition(Keys.R)))
             {
                 keys |= ViewportNavigationKeys.LocalUp;
             }
 
-            if (current.IsKeyDown(Keys.F))
+            Keys focus = KeyboardLayout.FromQwertyPosition(Keys.F);
+            if (current.IsKeyDown(focus))
             {
                 keys |= ViewportNavigationKeys.LocalDown;
-                if (previous.IsKeyUp(Keys.F))
+                if (previous.IsKeyUp(focus))
                 {
                     keys |= ViewportNavigationKeys.FocusPressed;
                 }
@@ -315,6 +318,9 @@ public sealed class ViewportCameraNavigation
 
         return keys;
     }
+
+    private static Keys Letter(Keys qwertyKey, bool includeLetterKeys)
+        => includeLetterKeys ? KeyboardLayout.FromQwertyPosition(qwertyKey) : Keys.None;
 
     private static ViewportNavigationKeys Read(in KeyboardState state, Keys first, Keys second, Keys third, ViewportNavigationKeys flag)
     {

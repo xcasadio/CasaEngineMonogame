@@ -149,6 +149,7 @@ public partial class AudioDemo : Demo
     private MusicTrackHandle _loopPointTrack = MusicTrackHandle.None;
     private bool _pitchedMusicPlaying;
     private DynamicSpriteFont? _font;
+    private AudioHudText? _hudText;
     private Texture2D? _panelBackground;
     private string _lastAction = "ready";
 
@@ -569,6 +570,7 @@ public partial class AudioDemo : Demo
         _stressStarted = false;
         _stressGarbageSink = [];
         _game = null;
+        _hudText = null;
     }
 
     private void ToggleDemoReverb(AudioService service)

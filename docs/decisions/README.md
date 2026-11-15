@@ -108,6 +108,8 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0092](0092-editor-remote-control-for-tools-and-ai-agents.md) | The running editor exposes typed commands to a CLI and an MCP server over a local pipe | Accepted | 2026-11-14 |
 | [ADR-0093](0093-editor-remote-control-covers-assets-panels-and-automation.md) | Editor remote control covers assets, panels and the command-line automation | Accepted | 2026-11-14 |
 | [ADR-0094](0094-converted-rigged-imports-keep-their-glb.md) | A rigged model imported from a non-glTF source keeps its converted glb | Accepted | 2026-11-15 |
+| [ADR-0095](0095-3d-camera-keeps-its-vertical-field-of-view.md) | The 3d camera keeps its vertical field of view | Accepted | 2026-11-15 |
+| [ADR-0096](0096-keyboard-bindings-are-key-positions.md) | Keyboard bindings are key positions | Accepted | 2026-11-15 |
 | [ADR-0095](0095-the-ambient-term-applies-the-surface-colour-once.md) | The ambient term applies the surface colour once (numbered ADR-0089 until 2026-11-15) | Accepted | 2026-11-14 |
 | [ADR-0096](0096-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md) | A world may use a flat ambient term while keeping a reflection cube (numbered ADR-0090 until 2026-11-15) | Accepted | 2026-11-14 |
 | [ADR-0097](0097-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture (numbered ADR-0091 until 2026-11-15) | Accepted | 2026-11-14 |

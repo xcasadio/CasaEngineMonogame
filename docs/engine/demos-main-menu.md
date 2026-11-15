@@ -123,9 +123,12 @@ public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
 - While a demo shows a modal screen (the pause menu of the UI overlay demo), the engine routes the keyboard to that
   screen only, so the demo's actions do not answer. The three actions of the app (back to the menu, help, launch) take
   their key and button from the same file but read the devices themselves, so that leaving a demo always works.
-- Not in the file: the mouse and W A S D of the default camera (`ScriptArcBallCamera`, engine code), the navigation
-  of the tree of the main screen (MGUI), the footer line of the main screen (`main-menu.xaml`) and the key names that the Audio and Animation blend demos print in their own
-  text overlay.
+- A key in the file is a key position on a US QWERTY keyboard, read on the active layout (ADR-0096): `W` is the key
+  above `S` whatever it types, `Z` on AZERTY. The sheets, the help panel and the text overlays of the Audio, Animation
+  blend and Animation IK demos name the key of the active layout.
+- Not in the file: the mouse and W A S D of the default camera (`ScriptArcBallCamera`, engine code, also read by
+  position), the navigation of the tree of the main screen (MGUI) and the footer line of the main screen
+  (`main-menu.xaml`).
 - `CasaEngine.Tests/UI/DemoInputConfigurationTests.cs` checks that every action a demo names is in the file and that
   every action of the file is read.
 

@@ -25,6 +25,11 @@ public partial class AnimationBlendDemo
             return;
         }
 
+        if (_hudLines == null)
+        {
+            return;
+        }
+
         var font = game.FontSystem.GetFont(14);
         _hudBuilder.Clear();
         _hudBuilder.AppendLine("=== Animation Showcase ===");
@@ -35,42 +40,42 @@ public partial class AnimationBlendDemo
         {
             case DemoMode.LinearBlendTree:
                 _hudBuilder.AppendLine($"Blend: {_blendParameter1D:F2} (0=Idle, 1=Walk, 2=Run)");
-                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
-                _hudBuilder.AppendLine("[W] Walk  [Shift+W] Run  [Backspace] Reset actor");
+                _hudBuilder.AppendLine(_hudLines.Pages);
+                _hudBuilder.AppendLine(_hudLines.WalkAndReset);
                 break;
 
             case DemoMode.BlendSpace1D:
                 _hudBuilder.AppendLine($"Blend: {_blendParameter1D:F2} (0=Idle, 1=Walk, 2=Run)");
-                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
-                _hudBuilder.AppendLine("[W] Walk  [Shift+W] Run  [Backspace] Reset actor");
+                _hudBuilder.AppendLine(_hudLines.Pages);
+                _hudBuilder.AppendLine(_hudLines.WalkAndReset);
                 break;
 
             case DemoMode.BlendSpace2D:
                 _hudBuilder.AppendLine($"Blend: X={_blendParameter2D.X:F2}  Y={_blendParameter2D.Y:F2}");
-                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
-                _hudBuilder.AppendLine("[W/A/D] Explore strafe/forward directional locomotion  [Backspace] Reset actor");
+                _hudBuilder.AppendLine(_hudLines.Pages);
+                _hudBuilder.AppendLine(_hudLines.Explore);
                 break;
 
             case DemoMode.CrossFade:
-                _hudBuilder.AppendLine("[1] Idle  [2] Walk  [3] Run");
+                _hudBuilder.AppendLine(_hudLines.Clips);
                 _hudBuilder.AppendLine($"Cross-fade duration: {CrossFadeDurationSeconds:F2}s");
-                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
+                _hudBuilder.AppendLine(_hudLines.Pages);
                 break;
 
             case DemoMode.AdvancedCrossFade:
-                _hudBuilder.AppendLine("[1] Idle  [2] Walk  [3] Run");
+                _hudBuilder.AppendLine(_hudLines.Clips);
                 _hudBuilder.AppendLine($"Transition easing: {GetTransitionEasingLabel(_advancedCrossFadeEasingMode)}");
                 _hudBuilder.AppendLine($"Preserve root velocity: {(_advancedCrossFadePreserveRootVelocity ? "On" : "Off")}");
                 _hudBuilder.AppendLine($"Transition active: {(_riggedModel?.AnimationController?.IsCrossFading == true ? "Yes" : "No")}");
-                _hudBuilder.AppendLine("[E] Cycle easing  [R] Toggle velocity preservation");
-                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
+                _hudBuilder.AppendLine(_hudLines.EasingAndVelocity);
+                _hudBuilder.AppendLine(_hudLines.Pages);
                 break;
 
             case DemoMode.LayeredUpperBody:
                 _hudBuilder.AppendLine($"Base locomotion: {_blendParameter1D:F2}");
                 _hudBuilder.AppendLine($"Upper-body layer weight: {_upperBodyLayerWeight:F2}");
-                _hudBuilder.AppendLine("[W] Walk  [Shift+W] Run  [Space] Trigger upper-body action");
-                _hudBuilder.AppendLine("[Q]/[E] Decrease/Increase layer weight");
+                _hudBuilder.AppendLine(_hudLines.WalkAndUpperBodyAction);
+                _hudBuilder.AppendLine(_hudLines.LayerWeight);
                 break;
 
             case DemoMode.AdditiveRootMotion:
@@ -78,8 +83,8 @@ public partial class AnimationBlendDemo
                 _hudBuilder.AppendLine($"Additive breathing weight: {_additiveLayerWeight:F2}");
                 _hudBuilder.AppendLine($"Root motion mode: {(_applyRootMotionToEntity ? "Apply to entity" : "Observe only")}");
                 _hudBuilder.AppendLine($"Last delta: {_lastObservedRootMotionDelta.Translation.X:F2}, {_lastObservedRootMotionDelta.Translation.Y:F2}, {_lastObservedRootMotionDelta.Translation.Z:F2}");
-                _hudBuilder.AppendLine("[W] Walk  [Shift+W] Run  [Space] Trigger root-motion burst");
-                _hudBuilder.AppendLine("[R] Toggle observe/apply  [Backspace] Reset trail and actor");
+                _hudBuilder.AppendLine(_hudLines.WalkAndRootMotionBurst);
+                _hudBuilder.AppendLine(_hudLines.RootMotionAndReset);
                 break;
         }
 

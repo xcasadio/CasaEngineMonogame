@@ -10,6 +10,7 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting;
@@ -99,16 +100,19 @@ public class DemosGame : CasaEngineGame
     private bool _demoHelpVisible = true;
 
     // The default demo camera (Demo.CreateCamera: ScriptArcBallCamera), as docs/editor/viewport-camera-controls.md
-    // describes it. Formatted once.
+    // describes it. Formatted once. Its letter keys are key positions, named here by the key the active layout puts there
+    // (ADR-0096): W A S D on QWERTY, Z Q S D on AZERTY.
     private static readonly DemoControl[] DefaultCameraControls =
     {
         new("Right mouse drag", "look around"),
-        new("Right mouse + W A S D, Q E", "fly"),
+        new($"Right mouse + {OnLayout(Keys.W)} {OnLayout(Keys.A)} {OnLayout(Keys.S)} {OnLayout(Keys.D)}, {OnLayout(Keys.Q)} {OnLayout(Keys.E)}", "fly"),
         new("Alt + left mouse drag", "orbit around the pivot"),
         new("Middle mouse drag", "pan"),
         new("Mouse wheel", "zoom on the pivot"),
-        new("F", "put the pivot back on the scene"),
+        new(OnLayout(Keys.F), "put the pivot back on the scene"),
     };
+
+    private static string OnLayout(Keys qwertyKey) => DemoBindingText.KeyLabel(KeyboardLayout.FromQwertyPosition(qwertyKey));
 
     private static readonly string DefaultCameraControlsText = DemoSheetText.FormatControls(DefaultCameraControls);
 

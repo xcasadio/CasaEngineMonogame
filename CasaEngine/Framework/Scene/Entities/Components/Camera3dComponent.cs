@@ -6,8 +6,15 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 
 public abstract class Camera3dComponent : CameraComponent
 {
-    private float _fieldOfView;
+    /// <summary>Vertical field of view of a camera that does not set one, in radians (45 degrees).</summary>
+    public const float DefaultFieldOfView = MathHelper.PiOver4;
 
+    private float _fieldOfView = DefaultFieldOfView;
+
+    /// <summary>
+    /// The vertical field of view, in radians. It is kept whatever the shape of the viewport: a wider viewport shows more
+    /// on the sides, never less above and below (ADR-0095).
+    /// </summary>
     public float FieldOfView
     {
         get => _fieldOfView;
@@ -30,7 +37,12 @@ public abstract class Camera3dComponent : CameraComponent
     {
         base.InitializeWithWorld(world);
 
-        ComputeFieldOfView();
+        if (_fieldOfView <= 0f)
+        {
+            FieldOfView = DefaultFieldOfView;
+        }
+
+        _needToComputeProjectionMatrix = true;
     }
 
     protected override void ComputeProjectionMatrix()
@@ -42,18 +54,6 @@ public abstract class Camera3dComponent : CameraComponent
             _viewport.MaxDepth);
 
         _needToComputeProjectionMatrix = false;
-    }
-
-    public override void OnScreenResized(int width, int height)
-    {
-        base.OnScreenResized(width, height);
-        ComputeFieldOfView();
-    }
-
-    private void ComputeFieldOfView()
-    {
-        FieldOfView = MathHelper.PiOver4 * 1.777777777f /
-                      Viewport.AspectRatio; //1920 / 1080 = 1.777777777 => in angle = MathHelper.PiOver4
     }
 
     public override void Load(JObject element)

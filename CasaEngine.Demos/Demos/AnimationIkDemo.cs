@@ -50,6 +50,7 @@ public class AnimationIkDemo : Demo
     private bool _autoOrbit = true;
     private bool _showSkeleton = true;
     private readonly StringBuilder _hudBuilder = new(512);
+    private AnimationHudText.IkLines _hudLines;
 
     public override string Title => "Animation IK demo";
 
@@ -80,6 +81,7 @@ public class AnimationIkDemo : Demo
     public override void Initialize(CasaEngineGame game)
     {
         _game = game;
+        _hudLines = AnimationHudText.ForIkDemo(action => DemoBindingText.KeyLabel(DemoInput.Describe(game, action).Key));
 
         var world = game.GameManager.CurrentWorld;
         var entity = new Entity { Name = "Animation IK Character" };
@@ -168,6 +170,11 @@ public class AnimationIkDemo : Demo
             return;
         }
 
+        if (_hudLines == null)
+        {
+            return;
+        }
+
         var font = game.FontSystem.GetFont(14);
         _hudBuilder.Clear();
         _hudBuilder.AppendLine("=== Animation IK Demo ===");
@@ -176,9 +183,9 @@ public class AnimationIkDemo : Demo
         _hudBuilder.AppendLine($"Target (model): {_targetModelPosition.X:F2}, {_targetModelPosition.Y:F2}, {_targetModelPosition.Z:F2}");
         _hudBuilder.AppendLine($"Pole (model): {_poleModelPosition.X:F2}, {_poleModelPosition.Y:F2}, {_poleModelPosition.Z:F2}");
         _hudBuilder.AppendLine();
-        _hudBuilder.AppendLine("[Space] Toggle auto orbit  [I] Toggle IK  [V] Toggle skeleton  [Backspace] Reset target  [R] Reset actor");
+        _hudBuilder.AppendLine(_hudLines.Toggles);
         _hudBuilder.AppendLine("[Left/Right/Up/Down] Move target in-chain plane  [PageUp/PageDown] Vertical");
-        _hudBuilder.AppendLine("[O]/[P] Decrease/Increase IK weight");
+        _hudBuilder.AppendLine(_hudLines.Weight);
 
         spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
         font.DrawText(spriteBatch, _hudBuilder.ToString(), new Vector2(10f, 10f), Color.White);

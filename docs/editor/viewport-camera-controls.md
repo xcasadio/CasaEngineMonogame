@@ -19,6 +19,9 @@ A left press becomes a camera drag once the pointer has moved 4 pixels. Below th
 
 ## Keyboard (right button held)
 
+The letters are key positions on a US QWERTY keyboard, read on the active layout (ADR-0096): W A S D is Z Q S D on AZERTY.
+The gizmo keys (W / E / R) and the Ctrl shortcuts stay by letter.
+
 | Keys | Action |
 | --- | --- |
 | W / S, Up / Down, numpad 8 / 2 | Forward / back along the view. |
