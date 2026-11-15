@@ -26,7 +26,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0010](0010-shader-naming-convention.md) | Shader naming convention and applied renames | Accepted | 2026-09-06 (backfill) |
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
-| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted, amended by ADR-0094 | 2026-08-09 |
+| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted, amended by ADR-0099 | 2026-08-09 |
 | [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted | 2026-06-13 |
 | [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
