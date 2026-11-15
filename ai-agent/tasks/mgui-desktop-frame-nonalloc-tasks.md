@@ -446,7 +446,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   emplacements, réarmer ses scopes par `Reset` ou `ResetRectangle`, et éviter le `with` de ses réglages à chaque
   bascule de scissor.
 
-### 🧪 T3.2 — Mesure sur le renderer de CasaEngine (D4)
+### ✅ T3.2 — Mesure sur le renderer de CasaEngine (D4)
 
 - Prérequis : T1.5 ✅ et T3.1 ✅.
 - Fichiers (runtime) : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs` (`ClipScope` : `:676`,
@@ -461,7 +461,8 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Validation : les deux solutions du moteur 0 erreur, `CasaEngine.Tests` vert sans test sauté.
 - Commit (moteur) : `perf(ui): draw a desktop frame through the engine backend without allocating`, avec la référence
   du sous-module.
-- **Code fait le 2026-11-15, tâche en 🧪** : la preuve tient avec une transaction créée une fois ; le chemin réel
+- **✅ depuis T3.4 et T3.6 (2026-11-15)** : le runtime possède sa transaction et l'image réelle est à 0 octet. État
+  au moment de T3.2 : la preuve tient avec une transaction créée une fois ; le chemin réel
   du moteur crée une `CasaDrawTransaction` par image (`CasaDesktopRuntime.cs:127` et `:151`, hors des fichiers de la
   tâche), dont le constructeur alloue 2304 octets par image (5616 avant la tâche). Rendre cette transaction
   réutilisable est une décision de l'auteur (voir O7).
@@ -724,7 +725,7 @@ Demande de l'auteur le 2026-11-15 : « renomme aussi CreateDrawTransaction dans 
 - La commande groupée du sous-agent (`sed` sur 38 fichiers) a été refusée par le système de permissions ; la session
   principale ne l'a pas lancée à sa place, le renommage a été fait par éditions fichier par fichier.
 
-### ⏳ T3.6 — `MGDesktop.Draw()` sans argument sans allocation
+### ✅ T3.6 — `MGDesktop.Draw()` sans argument sans allocation
 
 Ajoutée le 2026-11-15 après la mesure de T3.4 ; dans le périmètre du chantier (D2, `MGDesktop.cs`), exécutée par la
 session principale, vue par la vérification finale.
@@ -738,6 +739,16 @@ session principale, vue par la vérification finale.
   T3.2 passe en ✅ et O7 est fermé.
 - Commits : MGUI `perf(desktop): keep the default draw settings of a desktop` ; moteur
   `perf(ui): draw a real desktop frame without allocating`, avec la référence du sous-module.
+- **Fait le 2026-11-15** (MGUI `7a3d1c97`). `MGDesktop` garde un `DrawSettings` par défaut dans un champ privé ;
+  `DrawSettings.Default` n'est pas modifié.
+- Preuve, GPU réel : le harnais du moteur appelle maintenant `Desktop.Draw()` sans argument sur le chemin réel (il
+  passait des réglages gardés) ; tous les tests du chemin réel de T3.4 (zéro au repos et en glissement, total exact
+  sur 500 images, pixels de référence, exceptions) passent par cet appel. Contre-épreuve sur MGUI `c0fca99d` : 96 000
+  octets sur 500 images, soit 192 par image, au repos et en glissement.
+- Écart : pas de test côté MGUI. Le runtime de test de MGUI crée une transaction par appel, donc `Draw()` sans
+  argument n'y est pas mesurable à zéro ; la preuve est le test GPU du moteur.
+- Validation : `MGUI.Tests` 3649 verts ; les deux solutions du moteur 0 erreur ; `CasaEngine.Tests` 5549 verts ; aucun
+  sauté.
 
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
@@ -784,7 +795,7 @@ session principale, vue par la vérification finale.
 | O4 | Résolu le 2026-11-15 : tâches T1.0 à T1.5 réécrites par fixture, dans l'ordre de l'inventaire de T0.1. | — |
 | O5 | Résolu le 2026-11-15 : D7. | — |
 | O6 | T1.2 retire de `MGWindow.cs` la ligne `foreach (var Nested in _NestedWindows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost))`. Le test `MGUI.Tests/Focus/FocusArchitectureTests.cs:87` (`Window_Update_Source_Prioritizes_Modal_Window_Before_NonModal_Nested_Windows`) cherche cette ligne dans le texte du fichier et échoue. Ce fichier de test était hors du périmètre confié au sous-agent ; sa modification lui a été refusée par le système de permissions, et la session principale ne l'a pas faite à sa place. Question à l'auteur : autoriser le remplacement de la chaîne cherchée par `MGDesktop.FillUpdateOrder(_NestedWindows,` (le comportement, fenêtre modale avant les fenêtres imbriquées, est aussi couvert par un test de caractérisation de T1.2) ? T1.3 à T2.1 et T3.2 attendent cette réponse. **Réponse de l'auteur le 2026-11-15 : oui.** Fait dans `fda5cd1f`. | T1.2 |
-| O7 | T3.2 : `CasaDesktopRuntime` crée une `CasaDrawTransaction` par image (`CasaDesktopRuntime.cs:127`, `:151`) ; son constructeur alloue 2304 octets par image. Le dessin lui-même est à 0. Question à l'auteur : autoriser une tâche qui garde et réutilise la transaction dans `CasaDesktopRuntime` (changement de durée de vie d'un objet du backend, hors des fichiers de T3.2) ? Sans cela, T3.2 reste 🧪. | T3.2 |
+| O7 | T3.2 : `CasaDesktopRuntime` crée une `CasaDrawTransaction` par image (`CasaDesktopRuntime.cs:127`, `:151`) ; son constructeur alloue 2304 octets par image. Le dessin lui-même est à 0. Question à l'auteur : autoriser une tâche qui garde et réutilise la transaction dans `CasaDesktopRuntime` (changement de durée de vie d'un objet du backend, hors des fichiers de T3.2) ? Sans cela, T3.2 reste 🧪. **Résolu le 2026-11-15** : D8, T3.3 à T3.6, ADR-0097. | — |
 
 ## Hors périmètre
 

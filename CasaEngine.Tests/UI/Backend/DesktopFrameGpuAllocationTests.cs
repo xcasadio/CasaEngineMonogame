@@ -81,9 +81,6 @@ public class DesktopFrameGpuAllocationTests
     private sealed class Harness
     {
         private readonly TestRenderHost _host;
-        //  Kept: DrawSettings.Default is a new object at each read (MGUI), which MGDesktop.Draw() with no settings reads at each frame (see
-        //  WhatTheFrameStillAllocates).
-        private readonly DrawSettings _settings = DrawSettings.Default;
         private int _elapsedMilliseconds;
 
         public CasaDesktopRuntime Runtime { get; }
@@ -138,7 +135,7 @@ public class DesktopFrameGpuAllocationTests
         {
             if (Transaction == null)
             {
-                Desktop.Draw(1.0f, _settings);
+                Desktop.Draw();
                 return;
             }
 
