@@ -400,7 +400,7 @@ public class EditorControlTemplateAssetLoadingTests
             _textEngine = new EditorThemeTestTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => new EditorThemeNoOpDrawTransaction(this, settings ?? DrawSettings.Default);
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)

@@ -104,7 +104,7 @@ internal sealed class ContentBrowserViewTestHarness
             _textEngine = new TestTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => throw new NotSupportedException($"{nameof(ContentBrowserViewTestHarness)} never draws.");
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)

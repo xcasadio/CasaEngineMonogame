@@ -95,7 +95,7 @@ internal static class HeadlessUiTestHarness
             _textEngine = new MeasuringTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => throw new NotSupportedException($"{nameof(HeadlessUiTestHarness)} never draws.");
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)

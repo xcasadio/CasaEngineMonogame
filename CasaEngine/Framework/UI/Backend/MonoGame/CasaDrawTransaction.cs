@@ -92,7 +92,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public DrawSettings PreviousSettings => DrawState.PreviousSettings;
     public ClipDiagnosticsSnapshot ClipDiagnostics => ClipManager.GetDiagnostics();
 
-    /// <summary>Created by <see cref="CasaDesktopRuntime.CreateDrawTransaction"/> only: a runtime has one transaction, opened and closed for each draw.
+    /// <summary>Created by <see cref="CasaDesktopRuntime.BeginDrawTransaction"/> only: a runtime has one transaction, opened and closed for each draw.
     /// The constructor is internal since the runtime owns the transaction (ADR-0097).</summary>
     /// <param name="Settings">See also: <see cref="DrawSettings.Default"/></param>
     /// <param name="DeferBegin">If true, <see cref="SpriteBatch.Begin(SpriteSortMode, BlendState, SamplerState, DepthStencilState, RasterizerState, Effect, Matrix?)"/> or <see cref="PrimitiveBatch.Begin(ref Matrix, ref Matrix, BlendState)"/><para/>

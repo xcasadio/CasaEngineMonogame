@@ -116,7 +116,7 @@ public class DesktopFrameGpuAllocationTests
 
             if (holdTheTransaction)
             {
-                Transaction = (CasaDrawTransaction)Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                Transaction = (CasaDrawTransaction)Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
             }
 
             Frame(Outside, ButtonState.Released);
@@ -522,12 +522,12 @@ public class DesktopFrameGpuAllocationTests
             {
                 Harness harness = new(holdTheTransaction: false);
                 using RenderTarget2D target = CreateTarget(device);
-                IUIDrawTransaction first = harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                IUIDrawTransaction first = harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 DeviceState stateBefore = DeviceState.Of(device);
                 InvalidOperationException request = Assert.Throws<InvalidOperationException>(
-                    () => harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false));
+                    () => harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false));
                 InvalidOperationException deferredRequest = Assert.Throws<InvalidOperationException>(
-                    () => harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true));
+                    () => harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true));
                 DeviceState stateAfter = DeviceState.Of(device);
 
                 harness.Desktop.Draw(first);
@@ -560,7 +560,7 @@ public class DesktopFrameGpuAllocationTests
                 using RenderTarget2D target = CreateTarget(device);
                 DrawSettings changed = DrawSettings.Default with { BlendType = BlendType.Opaque };
 
-                CasaDrawTransaction first = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                CasaDrawTransaction first = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 first.SetDrawSettings(changed);
                 using (first.PushRectangleClip(new Rectangle(10, 10, 50, 50), true))
                 {
@@ -571,14 +571,14 @@ public class DesktopFrameGpuAllocationTests
                 first.Dispose();
 
                 DrawSettings initial = DrawSettings.Default with { SamplerType = SamplerType.LinearClamp };
-                CasaDrawTransaction second = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(initial, deferBegin: true);
+                CasaDrawTransaction second = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(initial, deferBegin: true);
                 Assert.Same(first, second);
                 Assert.Same(initial, second.CurrentSettings);
                 Assert.Equal(DrawSettings.Default, second.PreviousSettings);
                 Assert.Equal(0, second.ClipDiagnostics.ScissorClipCount);
                 second.Dispose();
 
-                CasaDrawTransaction third = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                CasaDrawTransaction third = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 Assert.Same(first, third);
                 third.Dispose();
             }
@@ -635,16 +635,16 @@ public class DesktopFrameGpuAllocationTests
             try
             {
                 Harness harness = new(holdTheTransaction: false);
-                CasaDrawTransaction known = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                CasaDrawTransaction known = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 known.Dispose();
 
                 using RenderTarget2D target = CreateTarget(device);
-                CasaDrawTransaction failing = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                CasaDrawTransaction failing = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 failing.DrawTextureTo(failing.WhitePixel, null, new Rectangle(0, 0, 64, 64));
                 Assert.Throws<ArgumentNullException>(() => failing.DrawTextureTo((Texture2D)null, null, new Rectangle(0, 0, 8, 8)));
                 failing.Dispose();
 
-                CasaDrawTransaction next = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                CasaDrawTransaction next = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 bool sameObject = ReferenceEquals(known, failing) && ReferenceEquals(known, next);
                 next.Dispose();
 
@@ -673,11 +673,11 @@ public class DesktopFrameGpuAllocationTests
             try
             {
                 Harness harness = new(holdTheTransaction: false);
-                CasaDrawTransaction known = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                CasaDrawTransaction known = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 known.Dispose();
 
                 using RenderTarget2D target = CreateTarget(device);
-                CasaDrawTransaction failing = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                CasaDrawTransaction failing = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 failing.DrawTextureTo(failing.WhitePixel, null, new Rectangle(0, 0, 64, 64));
                 harness.Runtime.SpriteBatch.End();
                 bool threw = false;
@@ -690,7 +690,7 @@ public class DesktopFrameGpuAllocationTests
                     threw = true;
                 }
 
-                CasaDrawTransaction next = (CasaDrawTransaction)harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                CasaDrawTransaction next = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 bool sameObject = ReferenceEquals(known, failing) && ReferenceEquals(known, next);
                 next.Dispose();
 
@@ -722,26 +722,26 @@ public class DesktopFrameGpuAllocationTests
                 //  The first request of a runtime.
                 CasaDesktopRuntime fresh = CasaMonoGameBackendBootstrap.Create(new TestRenderHost(GpuDeviceHost.Instance.Game)).Runtime;
                 fresh.SpriteBatch.Begin();
-                Exception first = Assert.ThrowsAny<Exception>(() => fresh.CreateDrawTransaction(DrawSettings.Default, deferBegin: false));
+                Exception first = Assert.ThrowsAny<Exception>(() => fresh.BeginDrawTransaction(DrawSettings.Default, deferBegin: false));
                 Assert.DoesNotContain("already open", first.Message, StringComparison.OrdinalIgnoreCase);
                 fresh.SpriteBatch.End();
-                IUIDrawTransaction afterFirst = fresh.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                IUIDrawTransaction afterFirst = fresh.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 afterFirst.Dispose();
-                IUIDrawTransaction again = fresh.CreateDrawTransaction(DrawSettings.Default, deferBegin: false);
+                IUIDrawTransaction again = fresh.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
                 bool sameFirst = ReferenceEquals(afterFirst, again);
                 again.Dispose();
 
                 //  A later request.
                 Harness harness = new(holdTheTransaction: false);
-                IUIDrawTransaction known = harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                IUIDrawTransaction known = harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 known.Dispose();
                 harness.Runtime.SpriteBatch.Begin();
-                Exception later = Assert.ThrowsAny<Exception>(() => harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: false));
+                Exception later = Assert.ThrowsAny<Exception>(() => harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false));
                 Assert.DoesNotContain("already open", later.Message, StringComparison.OrdinalIgnoreCase);
                 harness.Runtime.SpriteBatch.End();
 
                 using RenderTarget2D target = CreateTarget(device);
-                IUIDrawTransaction next = harness.Runtime.CreateDrawTransaction(DrawSettings.Default, deferBegin: true);
+                IUIDrawTransaction next = harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
                 bool sameLater = ReferenceEquals(known, next);
                 next.Dispose();
                 harness.Draw();

@@ -687,7 +687,7 @@ le retirer de la branche de MGUI, `git revert` du commit de MGUI dans le sous-mo
   à chaque image. C'est l'appel de `UIRoot.cs:193` et de l'éditeur : l'image réelle du moteur n'est donc pas encore à
   zéro. Traité par T3.6.
 
-### ⏳ T3.5 — `CreateDrawTransaction` renommé dans MGUI
+### ✅ T3.5 — `CreateDrawTransaction` renommé dans MGUI
 
 Demande de l'auteur le 2026-11-15 : « renomme aussi CreateDrawTransaction dans MGUI ».
 
@@ -714,6 +714,15 @@ Demande de l'auteur le 2026-11-15 : « renomme aussi CreateDrawTransaction dans 
   de test arrête la tâche.
 - Commits : MGUI `refactor(rendering)!: rename CreateDrawTransaction to BeginDrawTransaction` ; moteur
   `refactor(ui)!: take the renamed BeginDrawTransaction of MGUI`, avec la référence du sous-module.
+- **Fait le 2026-11-15** (MGUI `c0fca99d`, ADR-0028 de MGUI ; ADR-0097 du moteur complété). 28 fichiers dans MGUI
+  (interface, `MainRenderer`, `MGDesktop.cs`, `MGUI.Samples`, 19 fichiers de test, deux documents, l'ADR et son
+  index) et 12 dans le moteur (`CasaDesktopRuntime.cs` avec le texte de son exception, un `cref` de
+  `CasaDrawTransaction.cs`, 8 fichiers de test, la documentation, l'ADR-0097). Aucun changement de test autre que le
+  nom. `rg "CreateDrawTransaction"` hors `ai-agent/` ne rend plus que les phrases du renommage des deux ADR.
+- Validation : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3649 verts, `CasaEngine.Tests` 5549
+  verts, mêmes nombres qu'avant, aucun sauté.
+- La commande groupée du sous-agent (`sed` sur 38 fichiers) a été refusée par le système de permissions ; la session
+  principale ne l'a pas lancée à sa place, le renommage a été fait par éditions fichier par fichier.
 
 ### ⏳ T3.6 — `MGDesktop.Draw()` sans argument sans allocation
 

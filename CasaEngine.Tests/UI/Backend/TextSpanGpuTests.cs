@@ -60,7 +60,7 @@ public class TextSpanGpuTests
     }
 
     private static CasaDrawTransaction CreateTransaction(CasaDesktopRuntime runtime)
-        => (CasaDrawTransaction)runtime.CreateDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true);
+        => (CasaDrawTransaction)runtime.BeginDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true);
 
     [GpuFact]
     public void DrawTextViaEngine_OfASpan_DrawsThePixelsOfTheSameString()

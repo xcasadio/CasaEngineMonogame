@@ -253,7 +253,7 @@ public class GridViewVirtualizationTests
             _textEngine = new GridViewTestTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => new GridViewNoOpDrawTransaction(this, settings ?? DrawSettings.Default);
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)

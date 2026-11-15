@@ -132,7 +132,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
     /// once per frame.<para/>
     /// If the re-arm or the begin of the batch throws, the transaction stays closed and the next call succeeds.</summary>
     /// <exception cref="InvalidOperationException">The transaction of this runtime is already open: dispose it first.</exception>
-    public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+    public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
@@ -140,7 +140,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
         {
             throw new InvalidOperationException(
                 $"The draw transaction of this {nameof(CasaDesktopRuntime)} is already open. A runtime has one transaction and one draw at a time: " +
-                "dispose the transaction returned by the previous CreateDrawTransaction call (or let the draw that holds it finish) before asking for another.");
+                "dispose the transaction returned by the previous BeginDrawTransaction call (or let the draw that holds it finish) before asking for another.");
         }
 
         if (_drawTransaction == null)
