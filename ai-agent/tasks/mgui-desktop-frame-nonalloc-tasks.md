@@ -814,7 +814,7 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
   `UsesScissorTest`. Cinq tests nouveaux, dont un qui échoue si un champ d'instance autre qu'un paramètre revient
   dans le record. Validation : `MGUI.sln` 0 erreur ; `MGUI.Tests` 3654 verts (3649 et 5 nouveaux), aucun sauté.
 
-### 🧪 T3.8 — Retirer les jumeaux du réarmement (moteur)
+### ✅ T3.8 — Retirer les jumeaux du réarmement (moteur)
 
 - Résultat : le réarmement garde toujours la paire de variantes de rasterizer et les réglages précédents par défaut ;
   plus de copie témoin, plus de drapeau `_WasRearmed`. Le constat P4 « lire `InverseTransform` à chaque image » n'a
@@ -827,7 +827,7 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
   du chemin réel ; vérification indépendante de T3.7 et T3.8.
 - Retour arrière : `git revert` des deux commits (moteur puis MGUI).
 - Commit (moteur) : `refactor(ui): drop the re-arm twins of the draw settings`, avec la référence du sous-module.
-- **Code fait le 2026-11-15, tâche en 🧪 jusqu'à la vérification indépendante.** Retirés : les deux jumeaux des
+- **Fait le 2026-11-15** (moteur `fdd7b215`), vérification CONFIRMED. Retirés : les deux jumeaux des
   variantes, le jumeau des réglages précédents par défaut, le drapeau `_WasRearmed` ; `_defaultPreviousSettings` est
   `readonly`. Les variantes créées avant le premier réarmement sont maintenant gardées aussi.
 - Tests : `Rearm_AfterRasterizerVariantsThatWereRead_IsLikeANewTransaction` devient
@@ -835,6 +835,19 @@ Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », 
   `…ThatWereNotRead_KeepsThem…` devient `Rearm_KeepsTheRasterizerVariantsAndTheDefaultPreviousSettings` et part de
   l'usage du constructeur. Aucune autre affirmation retirée.
 - Validation : les deux solutions du moteur 0 erreur ; `CasaEngine.Tests` 5549 verts, aucun sauté.
+
+### ✅ Vérification de la suite O8 (2026-11-15)
+
+- **Vérification indépendante de T3.7 et T3.8 : CONFIRMED**, aucun constat P0 à P2. Commandes relancées par le
+  vérificateur : `MGUI.Tests` 3654 verts, `CasaEngine.Tests` 5549 verts, les trois solutions 0 erreur, aucun sauté ;
+  les 19 tests de réarmement et les 15 tests du chemin réel sont parmi les verts.
+- Confirmé par lecture : aucun lecteur des deux membres retirés (code, XAML, scripts, noms en chaîne) ; une variante
+  gardée n'est rendue que si les réglages courants sont le même objet que l'autre variante de la paire, sinon une
+  nouvelle est créée ; aucun appelant de `SetDrawSettings` ne comptait sur l'inégalité de deux réglages de mêmes
+  valeurs ; aucune affirmation de test retirée.
+- Constats reportés, non corrigés (P4) : `DrawSettings` n'est pas `sealed`, un record dérivé avec un état modifiable
+  rendrait une variante gardée périmée (aucun type n'en dérive) ; la paire de variantes garde en vie deux objets de
+  réglages et leur `BackendEffect` jusqu'au prochain changement de paire.
 
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
