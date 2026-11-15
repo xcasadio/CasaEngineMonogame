@@ -487,13 +487,40 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   Lu dans le code, non mesuré : `CasaLegacyShapeRenderer2D.cs:86-93` crée un `Vector2[4]` par `FillRectangle` en
   contexte `Primitives`. Le constat P3 de T3.1 sur `WithRasterizerType` vaut aussi ici.
 
-### ⏳ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
+### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
 - Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
   `ai-agent/README.md` comme suite à planifier ; `MGUI/Docs/layout-architecture.md` et
   `docs/engine/casaengine-mgui-backend.md` disent ce qui est à zéro et ce qui ne l'est pas ; `verifier` frais sur le
   chantier (T1.1 à T3.2) ; `MGUI.Tests`, les deux solutions du moteur et `CasaEngine.Tests` verts.
 - Commit (moteur) : `docs(ai-agent): close the allocation-free desktop frame and list what is left`
+- **Fait le 2026-11-15.** Documentation : `MGUI/Docs/layout-architecture.md`, section « Image du bureau sans
+  allocation » ; `docs/engine/casaengine-mgui-backend.md`, section « Allocation-free desktop frame ». Suite à
+  planifier écrite dans `ai-agent/README.md`.
+- **Vérification indépendante du chantier (T1.2 à T3.2) : CONFIRMED**, aucun constat P0 à P2. Sondes du vérificateur,
+  ancien code contre nouveau, comparées à l'octet : 400 grilles aléatoires (315 712 lignes : dimensions, bornes des
+  cellules, journaux de dessin, sélections, abonné à `OnEndingDraw`, lignes et colonnes ajoutées ou retirées), hôtes
+  de contenu (redéfinitions de `GetChildren` à toute profondeur, masquage par `new`), cache de clips, fenêtres
+  imbriquées, docking (Ctrl+Tab), scopes de clip du backend et pixels : identiques. Zéro remesuré image par image sur
+  2000 images (`Full`, `FullInGrid`, `FullInDockPanel`, y compris `Draw` après changement de texte et souris réellement
+  sur le slider) et sur GPU réel. Membres publics et protégés listés par réflexion : rien de retiré ni de changé.
+- Constats reportés, non corrigés :
+  - P4, force des tests : les tests de zéro divisent le total par 500 (jusqu'à 499 octets sur la fenêtre mesurée se
+    liraient 0) ; les tests de changement de texte n'affirment que `Update` ; le point « souris sur le slider » des
+    tests est en fait sur le `MGStackPanel` ou la grille. Les sondes du vérificateur couvrent ces trois trous et
+    donnent 0.
+  - P3, introduit par T3.2 : une référence de `ClipScope` libérée de nouveau après la réutilisation de son
+    emplacement libère le clip plus récent (contrat documenté par l'ADR-0027 de MGUI ; aucun code des deux dépôts ne
+    garde un scope après sa libération).
+  - P4 : `MGSingleContentHost` et `MGMultiContentHost` déclarent maintenant `protected override DrawContents` (même
+    signature qu'avant ; le `base.DrawContents` d'une sous-classe s'y lie).
+  - P4 : `MGTextBox` et `MGGridColorPicker` passent un nom de clip neuf à chaque dessin : le cache de clips ne sert
+    jamais pour eux (une définition par dessin comme avant, plus un court parcours).
+  - Non vérifié : journaux de `MGDockDropIndicators` et `MGDockTabGroup` pendant un vrai glissement d'onglet (lus dans
+    le code seulement) ; un autre GPU ou pilote.
+- Validation finale : `MGUI.Tests` 3649 verts ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` 0
+  erreur ; `CasaEngine.Tests` 5486 verts ; aucun test sauté.
+- Le plan reste dans `tasks/` : T3.2 est 🧪 (O7) et l'auteur n'a pas encore accepté le chantier.
 
 ## Points ouverts
 

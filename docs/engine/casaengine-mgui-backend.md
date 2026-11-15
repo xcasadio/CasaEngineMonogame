@@ -41,6 +41,16 @@ if (score.TryFormat(_scoreChars, out int written))
 - What is covered, and the cases that still allocate (first sight of a markup value, invalid markup, `TextCharactersPerSecond`, a font change, the rest of the desktop frame), is listed in `MGUI/Docs/text-architecture.md`, section "Texte sans allocation".
 - Proof on the engine side: `CasaEngine.Tests/UI/Backend/TextSpanGpuTests.cs` (real GPU; equal pixels, zero bytes per draw).
 
+## Allocation-free desktop frame
+
+Drawing a desktop through `CasaDrawTransaction` allocates nothing for rectangle clips and shapes: a window with a title bar holding an `MGStackPanel`, an `MGTextBlock` and an `MGSlider`, updated and drawn on a real GPU with `FontStashSharpTextEngine`, costs zero bytes per frame at rest and while the slider is dragged, with the same pixels as before (4752 and 5472 bytes per `Draw` before).
+
+- The transaction keeps its scissor clip scopes and re-arms them (`ClipScope.ResetRectangle`, MGUI ADR-0027). A `ClipScope` reference must not be disposed again after the clip was released: the scope may already serve a newer clip, which the second `Dispose` would release.
+- **Limit: the transaction itself.** `CasaDesktopRuntime` creates one `CasaDrawTransaction` per frame, and its constructor allocates 2304 bytes. The zero above holds for a transaction created once; a real engine frame is not at zero until the runtime keeps its transaction.
+- Still allocating in the backend: a stencil clip (rounded or non-rectangular clip), 1112 bytes per push and dispose; `SetDrawSettingsTemporary`, 112 bytes; `SetTransformTemporary`, 304 bytes.
+- What MGUI itself guarantees, and the controls that still allocate, is listed in `MGUI/Docs/layout-architecture.md`, section "Image du bureau sans allocation".
+- Proof on the engine side: `CasaEngine.Tests/UI/Backend/DesktopFrameGpuAllocationTests.cs` (real GPU; zero bytes per frame, frozen pixel hashes, which are specific to the GPU and driver they were taken on).
+
 ## Validation executed
 
 - `dotnet build .\CasaEngine\CasaEngine.csproj -nologo -v:q`
