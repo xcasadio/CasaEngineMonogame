@@ -505,6 +505,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         Content.RootDirectory = ContentPath;
         _renderPipeline.SetTonemapEffect(Content.Load<Effect>(BuiltInShaderCatalog.TonemapContentName));
         _renderPipeline.SetBloomEffect(Content.Load<Effect>(BuiltInShaderCatalog.BloomContentName));
+        _renderPipeline.SetIblConvolutionEffect(Content.Load<Effect>(BuiltInShaderCatalog.IblConvolutionContentName));
         if (!ExecutionPolicy.UseExternalViewManagement)
         {
             Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
@@ -990,6 +991,7 @@ public class CasaEngineGame : Game, IObservableUpdate
 
             case BuiltInShaderCatalog.TonemapContentName:
             case BuiltInShaderCatalog.BloomContentName:
+            case BuiltInShaderCatalog.IblConvolutionContentName:
                 if (_renderPipeline is not null
                     && TryReloadBuiltInShaderClone(baseEffect, effect => _renderPipeline.TryReloadBuiltInShader(normalizedContentName, effect)))
                 {

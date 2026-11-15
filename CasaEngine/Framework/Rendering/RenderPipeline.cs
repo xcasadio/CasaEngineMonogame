@@ -47,6 +47,10 @@ public sealed class RenderPipeline
     // Bloom shader (ADR-0104), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
     private ShaderWrapper _bloomShader;
 
+    // Generator of the IBL cubes (ADR-0106), created when the game gives the pipeline the IblConvolution effect; null until then
+    // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
+    private IblCubeGenerator _iblCubeGenerator;
+
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
     private const string AcesApproxTechniqueName = "Tonemap_AcesApprox";
 
@@ -171,7 +175,23 @@ public sealed class RenderPipeline
     }
 
     /// <summary>
-    /// Hot reload of the tonemapping and bloom shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
+    /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
+    /// and builds the generator of the IBL cubes from it (ADR-0106). Called once by the game after its content root is set; a
+    /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
+    /// </summary>
+    public void SetIblConvolutionEffect(Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        _iblCubeGenerator?.Dispose();
+        _iblCubeGenerator = new IblCubeGenerator(_graphicsDevice, effect);
+    }
+
+    /// <summary>The generator of the IBL cubes, or null until <see cref="SetIblConvolutionEffect"/> has been called.</summary>
+    public IblCubeGenerator IblCubeGenerator => _iblCubeGenerator;
+
+    /// <summary>
+    /// Hot reload of the tonemapping, bloom and IBL convolution shaders: takes <paramref name="effect"/> when <paramref name="contentName"/>
     /// names one of them.
     /// </summary>
     public bool TryReloadBuiltInShader(string contentName, Effect effect)
@@ -188,6 +208,12 @@ public sealed class RenderPipeline
         if (string.Equals(normalizedName, BuiltInShaderCatalog.BloomContentName, StringComparison.OrdinalIgnoreCase))
         {
             SetBloomEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedName, BuiltInShaderCatalog.IblConvolutionContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            SetIblConvolutionEffect(effect);
             return true;
         }
 
