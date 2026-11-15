@@ -172,7 +172,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 
 ## Phase 0 — Mesure
 
-### ⏳ T0.1 — Fixtures et mesures des cas connus et des familles non mesurées
+### ✅ T0.1 — Fixtures et mesures des cas connus et des familles non mesurées
 
 - Objectif : un chiffre par image, `Update` et `Draw` séparés, pour chaque cas que les phases 1 à 3 visent. Aucun
   code produit n'est modifié.
@@ -198,6 +198,61 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 - Validation : les mesures tournent (`dotnet test MGUI/MGUI.Tests/MGUI.Tests.csproj --filter Measurements`), le
   tableau est dans le plan, les deux suites complètes restent vertes.
 - Commit : `test(ui): measure the frame of the control families and text cases left to bring to zero`
+- Validation (2026-11-16) : `MGUI.sln` 0 erreur ; `MGUI.Tests` 3706 verts (3684 + 22 mesures), aucun sauté ; mesures
+  relancées par la session principale, chiffres identiques sur trois lancements. Aucun code produit modifié, donc
+  ni build ni tests du moteur. Fichiers : `MGUI.Tests/Architecture/ControlFamilyAllocationMeasurements.cs` et
+  `MGUI.Tests/Text/TextCaseAllocationMeasurements.cs` (collection xunit non parallèle).
+
+  Octets par image, 500 images après 500 de chauffe :
+
+  | Cas | Update | Draw |
+  |---|---|---|
+  | `MGGrid` 3x3, une cellule sélectionnée, repos | 0 | 288 |
+  | `MGGrid`, sélection déplacée par un clic toutes les 2 images | 2060 | 288 |
+  | `MGDockHost` deux groupes et une séparation, repos | 160 | 40 |
+  | `MGDockHost`, un panneau en masquage automatique (bandeau), repos | 160 | 208 |
+  | `MGDockHost`, un onglet derrière l'onglet actif, repos | 160 | 40 |
+  | `MGDockHost`, glissement d'onglet avec aperçu de dépôt | 3248 | 848 |
+  | `MGDockHost` (un groupe), après un changement de texte | 0 | 0 |
+  | Fenêtre `SizeToContent` (`WidthAndHeight` et `Height`), repos | 0 | 0 |
+  | `MGScrollViewer`, repos | 136 | 210 |
+  | `MGScrollViewer`, molette | 192 | 331 |
+  | `MGListBox` 50 éléments, repos et survol | 272 | 210 |
+  | `MGListView` 50 éléments, repos et survol | 136 | 786 |
+  | `MGTreeView` 14 nœuds sur trois niveaux, repos et survol | 136 | 786 |
+  | `MGTabControl` trois onglets, repos | 0 | 0 |
+  | `MGTabControl`, survol des en-têtes | 88 | 0 |
+  | `MGContextMenu` ouvert, repos | 272 | 1178 |
+  | `MGContextMenu`, survol des entrées | 1280 | 1178 |
+  | `MGMenuBar`, aucun menu ouvert, repos | 0 | 56 |
+  | `MGMenuBar`, aucun menu ouvert, survol | 672 | 56 |
+  | `MGMenuBar`, premier menu ouvert, survol des entrées | 1280 | 874 |
+  | `MGTextBox` avec focus, repos (curseur clignotant ou fixe) | 0 | 0 |
+  | `MGTextBox`, une touche par image (A puis retour arrière) | 3876 | 0 |
+
+  | Cas de texte | Setter | Update | Draw |
+  |---|---|---|---|
+  | Bloc sans balise souligné, texte inchangé | — | 0 | 120 |
+  | Révélation à 20 caractères par seconde, changement toutes les 100 images | 608 par changement | 0 | 0 |
+  | `[color=NotAColor]` changé à chaque image | 2656 | 0 | 0 |
+  | Caractère non ASCII après un `[`, changé à chaque image | 10847 | 10104 | 120 |
+  | Référence : caractère ASCII après un `[`, changé à chaque image | 0 | 0 | 0 |
+
+  Constats qui changent la suite :
+  - O3 : les 32 octets d'un `MGDockHost` après un changement de texte sont pris une fois, à la première image après
+    le changement, puis 0 sur 500 images. Ce n'est pas un coût par image : le cas « après un changement de texte »
+    sort de T2.2.
+  - O4 : une fenêtre en `SizeToContent` lit 0 et 0 sur la fixture `Full`. Les 488 à 1422 octets notés à la clôture du
+    chantier précédent ne se reproduisent pas sur ce banc. T2.3 est fermée (D8).
+  - Un bloc sans balise ne peut pas avoir de fond de texte : `UpdatePlainRuns` part de `DefaultTextRunSettings`, dont
+    le fond est toujours par défaut, et seule une balise `[bg]` en pose un. T3.1 se réduit au soulignement.
+  - `MGListView` et `MGTreeView` lisent le même chiffre (136 et 786) et le survol n'ajoute rien aux listes : la cause
+    commune probable est le `MGScrollViewer` qu'ils contiennent (hypothèse, à vérifier en T2.4 avant T2.5 et T2.6).
+  - La sélection de `MGGrid` ne bouge qu'à l'appui ou au relâchement (`MGGrid.cs:998-1008`) : l'interaction mesurée est
+    un clic toutes les 2 images.
+  - Le curseur de `MGTextBox` lit `DateTime.Now` (`MGTextCaret.cs:43`), pas l'horloge de l'update.
+  - « Panneau masqué » a été mesuré dans ses deux lectures (masquage automatique, onglet derrière l'actif).
+  - Aucune tâche de la phase 2 autre que T2.3 n'est à zéro : `MGTabControl` et `MGTextBox` le sont au repos seulement.
 
 ---
 
@@ -351,7 +406,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   changement de texte.
 - Commit (MGUI) : `perf(docking): update and draw a dock host without allocating`
 
-### ⏳ T2.3 — Fenêtre en `SizeToContent`
+### ✅ T2.3 — Fenêtre en `SizeToContent`
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGWindow.cs` (`BeginUpdateInternal`, `RevalidateSizeToContent`,
   `ApplySizeToContent`).
@@ -361,6 +416,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Validation : 0 octet au repos ; la taille de la fenêtre suit toujours un changement de contenu (test existant ou
   ajouté).
 - Commit (MGUI) : `perf(window): keep a window sized to its content without allocating`
+- Validation (2026-11-16) : mesuré à zéro en T0.1 (Update 0, Draw 0, `WidthAndHeight` et `Height`). Fermée sans code (D8).
 
 ### ⏳ T2.4 — `MGScrollViewer`
 
@@ -471,8 +527,8 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 |---|---|---|
 | O1 | Mécanisme de `SetTransformTemporary` et de `SetEffectTemporary` sans objet par appel : pile de matrices et d'effets dans le contrôleur d'état, ou objets `DrawSettings` réutilisables. Choisi en T1.1 sur le critère écrit dans la tâche ; T1.3 en ⚠️ si aucun ne le tient, le reste de la phase 1 continue. | T1.1, T1.3 |
 | O2 | Le renderer de formes alloue-t-il pendant `DrawClipGeometry` ? Non lu. Mesuré en T1.5 avant toute modification. | T1.5 |
-| O3 | Cause des 32 octets par image d'un `MGDockHost` après un changement de texte : non localisée. | T0.1, T2.2 |
-| O4 | Cause des 488 à 1422 octets d'une fenêtre en `SizeToContent` : non localisée. | T0.1, T2.3 |
+| O3 | Résolu en T0.1 : les 32 octets sont pris une seule fois, à la première image après le changement de texte, puis 0. | T0.1 |
+| O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
 | O5 | Le moteur d'animation accepte-t-il de redémarrer une instance d'animation ? Non lu. | T3.2 |
 | O6 | Un appelant des samples ou de l'hôte d'éditeur de MGUI garde-t-il deux transactions ouvertes ? Non lu. | T1.6 |
 
