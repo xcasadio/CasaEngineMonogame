@@ -64,7 +64,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 1 — Caméra
 
-### ⏳ T1.1 — La caméra 3D garde son angle vertical
+### ✅ T1.1 — La caméra 3D garde son angle vertical
 
 - Objectif : `FieldOfView` est l'angle vertical. Il est conservé au chargement, à l'initialisation et au redimensionnement, et vaut π/4 quand il n'est pas renseigné (0).
 - Fichiers : `Camera3dComponent.cs`, les deux `camera.entity` de D8, tests dans `CasaEngine.Tests/Scene/`, ADR `docs/decisions/0095-*.md` et son index.
@@ -82,6 +82,12 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   - builds et tests ;
   - captures de Hello world et d'`EditorWorldDemo`.
 - Commit : `fix(camera): keep the vertical field of view of the 3d camera`
+- Validation faite (2026-11-15) :
+  - Mesure : à 1024×768, l'ancienne formule donnait 60° vertical (`π/4 × 1,7778 / 1,3333`) ; c'est désormais 45°.
+  - Tests : `Camera3dFieldOfViewTests` (16:9, 4:3, portrait, conservation au redimensionnement, deux `camera.entity` chargés) ; 143 tests caméra, puis `CasaEngine.Tests` 5485/5485. Builds des deux solutions : 0 erreur.
+  - Captures avant/après à 1024×768 : le cube de Hello world est un peu plus grand au centre ; dans Tile map 3d, le bord gauche du mur sort de l'écran à 4:3 (conséquence attendue de D1, notée dans l'ADR-0095).
+  - Appelants : `CameraTargeted2dComponent` calcule sa distance à partir de `FieldOfView`, il reste exact au pixel quel que soit l'angle ; l'éditeur écrit et lit `FieldOfView`, la valeur saisie s'applique maintenant.
+  - Trouvé en route, corrigé dans un commit à part (`f2f7f2b6`) : la démo « World made in the editor » plantait au démarrage, faute d'entrées `/copy` pour `Content/EditorWorld/` dans `Content.mgcb`. Un audit du catalogue face au `Content.mgcb` ne trouve pas d'autre fichier manquant. Après correction, la démo se charge et s'affiche.
 
 ## Phase 2 — Panneau d'aide
 
