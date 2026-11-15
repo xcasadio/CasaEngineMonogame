@@ -779,6 +779,52 @@ session principale, vue par la vérification finale.
   ce qui supprimerait les jumeaux du réarmement et les constats P3 et P4 liés à cette égalité ; rendre aussi
   réutilisable la transaction du `MainRenderer` de MGUI.
 
+### Suite O8 — `DrawSettings` sans cache d'inverse (plan du 2026-11-15)
+
+Demandée par l'auteur le 2026-11-15 (« Fais la suite de manière autonome », en réponse à la suite proposée ci-dessus).
+
+- **Décision D9.** `DrawSettings.InverseTransform` (et son champ privé `_InverseTransform`) et
+  `DrawSettings.IsIdentityTransform` sont **retirés** de MGUI, au lieu d'être exclus de l'égalité. Rupture d'API
+  publique, sans alias, selon la consigne de l'auteur du 2026-11-15 (design moderne, pas de fonctionnalité obsolète).
+  ADR-0029 de MGUI ; ADR-0097 du moteur complété.
+- Faits lus dans le code (2026-11-15) :
+  - `rg "InverseTransform|IsIdentityTransform"` sur les deux dépôts, tous types de fichiers hors `ai-agent/` : seuls
+    lecteurs, `DrawSettings.cs` lui-même et deux lignes de `DrawTransactionRearmGpuTests.cs:498`, `:503`, écrites pour
+    prouver les jumeaux. Aucun code produit ne lit ces deux membres.
+  - `DrawSettings` est un `record class` (`MGUI/MGUI.Shared/Rendering/DrawSettings.cs:84`) : son égalité générée
+    compare le champ `_InverseTransform`, donc un objet dont l'inverse a été lu diffère d'un objet neuf. C'est la
+    seule raison d'être des jumeaux du réarmement (`CasaDrawStateController.cs:12-15`, `CasaDrawTransaction.cs:131-140`,
+    `:800-810`, `:827-829`).
+  - Défaut latent du code actuel : `with { Transform = … }` (`CasaDrawTransaction.cs:714`,
+    `MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs:1051`) copie le champ `_InverseTransform` et la valeur de
+    `IsIdentityTransform` de l'original ; les deux seraient périmés sur la copie. Sans lecteur, sans effet aujourd'hui.
+- Hors périmètre : la transaction du `MainRenderer` de MGUI (reste une suite à planifier) ; `DrawSettings.Default`
+  (crée toujours un objet par lecture).
+
+### ⏳ T3.7 — Retirer le cache d'inverse de `DrawSettings` (MGUI)
+
+- Résultat : `DrawSettings` ne porte plus que ses paramètres et `UsesScissorTest` ; deux réglages de mêmes valeurs
+  sont égaux quel que soit leur passé.
+- Fichiers : `MGUI/MGUI.Shared/Rendering/DrawSettings.cs` ; test `MGUI/MGUI.Tests/Rendering/DrawSettingsEqualityTests.cs`
+  (nouveau) ; `MGUI/Docs/decisions/0029-draw-settings-without-inverse-cache.md` et l'index.
+- Fin : `MGUI.sln` 0 erreur ; `MGUI.Tests` vert ; le test prouve l'égalité de deux `Default`, d'une copie `with { }`
+  et l'inégalité sur chaque paramètre.
+- Commit (MGUI) : `refactor(rendering)!: drop the inverse transform cache of DrawSettings`.
+
+### ⏳ T3.8 — Retirer les jumeaux du réarmement (moteur)
+
+- Résultat : le réarmement garde toujours la paire de variantes de rasterizer et les réglages précédents par défaut ;
+  plus de copie témoin, plus de drapeau `_WasRearmed`. Le constat P4 « lire `InverseTransform` à chaque image » n'a
+  plus d'objet.
+- Fichiers : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs`, `CasaDrawStateController.cs` ;
+  `CasaEngine.Tests/UI/Backend/DrawTransactionRearmGpuTests.cs` (le test des variantes lues perd son objet et est
+  retiré ; celui des variantes gardées vérifie qu'elles le sont dès le premier usage) ;
+  `docs/decisions/0097-desktop-runtime-owns-its-draw-transaction.md` ; la référence du sous-module.
+- Fin : les deux solutions du moteur 0 erreur ; `CasaEngine.Tests` vert, dont tous les tests de réarmement et le zéro
+  du chemin réel ; vérification indépendante de T3.7 et T3.8.
+- Retour arrière : `git revert` des deux commits (moteur puis MGUI).
+- Commit (moteur) : `refactor(ui): drop the re-arm twins of the draw settings`, avec la référence du sous-module.
+
 ### ✅ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
 - Fin : la liste des familles de contrôles non couvertes, avec leur mesure quand une tâche l'a donnée, est dans
