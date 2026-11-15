@@ -1,0 +1,1980 @@
+{
+  "id": "e3669370-961a-73b6-0ae9-f6d541ba3489",
+  "name": "demos-input",
+  "buttons": [
+    {
+      "id": "92d94b2f-aa5b-a5f8-474d-ee08a5dc2e4f",
+      "name": "App.Back",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Escape",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Back",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "9eb29aec-5a3a-0a96-60bf-a8abb70c908c",
+      "name": "App.Help",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F1",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Start",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "1dee7564-f720-08d7-454d-baf6dcfc90d8",
+      "name": "App.Launch",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Enter",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "5028019c-82d1-739f-3f71-c246786438d3",
+      "name": "Move.Left",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Left",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadLeft",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "46b58986-1918-eb3f-fca6-e71b11ff5a06",
+      "name": "Move.Right",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Right",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadRight",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "75b90749-3b6f-0daa-3637-5fa0a84f9522",
+      "name": "Move.Up",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Up",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadUp",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "362c3488-22c1-e90d-e5cd-de06ab473d96",
+      "name": "Move.Down",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Down",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadDown",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "1c3a653e-0544-7ad8-4c1e-117776918e8a",
+      "name": "MovingAnEntity.Run",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "LeftShift",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "5b0b1464-c793-89a6-1497-fc5fdb3d65ff",
+      "name": "MovingAnEntity.Recentre",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Home",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "e7587f1f-d352-f793-75df-da4ee814b13f",
+      "name": "Collision.Throw",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "7ac41854-f311-2f4a-151e-6dc2fcb42748",
+      "name": "Coroutine.Continue",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "a3115150-a3a2-1baf-715b-ade8e2b25871",
+      "name": "Coroutine.StopOrStart",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "75750ae6-5589-13b0-5fd2-86f2556d95ad",
+      "name": "Cutscene.Restart",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "f6a74cd7-4a1d-3843-3abe-68c8587ba8d5",
+      "name": "Cutscene.Stop",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "03370e5f-0aa0-4008-e598-8f5b2bf4d496",
+      "name": "Cutscene.Reset",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "R",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "d58e980d-d4a5-ec9e-fdea-296c4d3fee5c",
+      "name": "Environment.Background",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "B",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "dd1d1839-3018-04bb-9b36-6f52a6d6a13a",
+      "name": "Environment.Cubemap",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "E",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "1b59ae1f-ab07-5c7d-385b-1beda6db7373",
+      "name": "Environment.Lighting",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "L",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3e3f7d37-e276-535e-a070-a1502a419577",
+      "name": "Layers2d.Travel",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "c39a1ec5-13c9-eed1-2d60-b35199c7e18f",
+      "name": "Layers2d.Snow",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "8a72ed9b-a75e-2b96-4727-300b29f8896e",
+      "name": "Material.Tint",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "T",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "10cb6978-86ad-53c6-1927-8fb7263d9396",
+      "name": "PlayerInput.NextPawn",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Tab",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3f061bf5-9a3f-66b1-19ae-a1e432386425",
+      "name": "PlayerInput.ToggleInput",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "I",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "60d3a08f-8fc0-493e-d5e3-a87f720a715d",
+      "name": "SaveGame.Save",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F5",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "261ad7f4-902e-0a92-3c95-a5514dcfb465",
+      "name": "SaveGame.Load",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F9",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "2194c257-3669-a9d3-d140-107bf22127a5",
+      "name": "SaveGame.Delete",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Delete",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "71cf128f-b4ed-0573-6de5-c3680dba6278",
+      "name": "TileMap.FadeBelowUi",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D1",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "eb77841f-d92a-c750-6ae0-a68db771c05b",
+      "name": "TileMap.FadeAboveUi",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D2",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "d679a4a2-8442-e17e-c4cc-8b347ab743c0",
+      "name": "TileMap.NextAnimation",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Add",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "16e1a517-76d3-5dc4-fbd4-aa4ca97e41e3",
+      "name": "TileMap.PreviousAnimation",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Subtract",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3f07968e-80ff-072d-a985-f0d87d8003a9",
+      "name": "UIOverlay.Dialogue",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3cd19226-3b80-9f37-b2f0-48cd950e0999",
+      "name": "Sandbox.AddView",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Tab",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "76173f67-3679-f947-b545-7fcb019cc167",
+      "name": "Sandbox.RemoveView",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Back",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "0313322b-7035-f9fe-ce4d-bae98e6a8fe3",
+      "name": "Sandbox.View1Mode",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F6",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadUp",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "29706ef6-4195-0b09-6ec0-49b36910e7cf",
+      "name": "Sandbox.View2Mode",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F7",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadRight",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3da194d5-d06e-fca7-6df9-bda9e0020947",
+      "name": "Sandbox.View3Mode",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F8",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadDown",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "2253493c-99fb-7e7b-e76a-c59884772ba8",
+      "name": "Sandbox.View4Mode",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F9",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadLeft",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "b4343f08-9cf3-4f0b-826a-8a9fd5ce0dd4",
+      "name": "Sandbox.Overlay",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F5",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "f7de7fc3-837f-0c95-ebe4-45131706a08d",
+      "name": "Sandbox.Redraw",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "c7d46464-d538-83fd-b332-534e0fa9757f",
+      "name": "Ik.Orbit",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ea124d0d-3963-f87f-4926-936278939d0c",
+      "name": "Ik.Toggle",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "I",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "4bad5f40-3957-d745-3e6a-715b6e479fda",
+      "name": "Ik.Skeleton",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "V",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "71ae95ee-4fc7-6c21-c954-0b18f6818970",
+      "name": "Ik.TargetToPose",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Back",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "30a29e60-2f35-1de2-4e53-b69747da6a3b",
+      "name": "Ik.Reset",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "R",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightStick",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "71cdf8c2-bcff-4c4b-658d-32807bb69cf5",
+      "name": "Ik.WeightDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "O",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "da8dace8-2747-f74f-8bf9-944dcf16e4dc",
+      "name": "Ik.WeightUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "P",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "a4f34d3b-9bf6-caad-2767-a0d07c9f8f4d",
+      "name": "Ik.TargetUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "PageUp",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "ec9eb4f4-cb22-4b69-a1b0-d06e9cf1ca8b",
+      "name": "Ik.TargetDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "PageDown",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "4fae455a-82c5-6abf-b172-13f935019f54",
+      "name": "Audio.OneShot",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "7e8609e0-7bd0-a28c-fae7-c20d829f9dbf",
+      "name": "Audio.Loop",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "L",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "23ef274b-9a80-3677-c4c3-4404a09323bd",
+      "name": "Audio.FadeLoop",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "U",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "bd2f84d9-914d-6ecc-db09-af6d000cee42",
+      "name": "Audio.StopAll",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ff4d9fab-da70-c678-45ce-253ff6d12064",
+      "name": "Audio.Music",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "P",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "aca5b3c5-849d-303d-ffb6-173b3cf62f1c",
+      "name": "Audio.Crossfade",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "C",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "7ec6ef19-e2f4-6cce-b9c7-e1464064f5c3",
+      "name": "Audio.MasterUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Up",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadUp",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ee2c1701-2713-aa51-e29d-eb6302bbc6ee",
+      "name": "Audio.MasterDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Down",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadDown",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ef1edfc5-10b6-4b5d-b576-b2f4b2bd0211",
+      "name": "Audio.SfxUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Right",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadRight",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "c806de2c-826c-a74a-9a40-f5c92bbde30c",
+      "name": "Audio.SfxDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Left",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "DPadLeft",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "e0862a62-31c0-94fb-996c-1a7f0bf023f5",
+      "name": "Audio.MusicUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "PageUp",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "d214815c-fbca-b141-d0dc-96eef093d108",
+      "name": "Audio.MusicDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "PageDown",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "d6a71e4b-a898-e30a-d8f4-0a9631fb08e6",
+      "name": "Audio.MuteMaster",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "M",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "5347cb9e-a676-e322-4f52-5387e4cc315c",
+      "name": "Audio.MuteSfx",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "N",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "3c226914-ea5b-a6bd-c44a-d0801850d05d",
+      "name": "Audio.Reverb",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "R",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "ac8c6560-822a-ab13-31b8-09d10d56a823",
+      "name": "Audio.LowPass",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "T",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "30952acd-b8ad-1a51-cf59-d0a431ecaa3d",
+      "name": "Audio.Ducking",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "64aeed4f-5dd1-fdf9-1dbb-5918f5eec5ef",
+      "name": "Audio.Orbit",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "O",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "1052a1ae-bf56-9abe-11a3-e9cde625772e",
+      "name": "Audio.Doppler",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "K",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "7246d305-97a4-b151-c67e-ae9b96f218e7",
+      "name": "Audio.Intensity",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "I",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "059500a2-604e-5cf9-c1ac-9b24aea40be1",
+      "name": "Audio.StereoTest",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "B",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "03c47c0e-ab84-233e-4b4f-84f38d485d50",
+      "name": "Audio.VariedClick",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "V",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "6511c6e3-671a-bafb-a736-477be45d6aaf",
+      "name": "Audio.PriorityTest",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "H",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "f1960525-b965-027e-f19f-2abf13d72a8f",
+      "name": "Audio.VoiceStealTest",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "J",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "7fb623ef-5590-cb0c-8516-939698eda1d1",
+      "name": "Audio.LoopPoint",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Q",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "c3f6478a-0a20-7e41-ff8d-dbf03c2db96a",
+      "name": "Audio.Stress",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "G",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "c91aac87-e119-0df6-72a4-150629494a68",
+      "name": "Blend.NextPage",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Tab",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "77c8f8ac-5b7b-7235-baaf-78c5981bd480",
+      "name": "Blend.PreviousPage",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftShoulder",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "13532e20-b32a-269e-723a-22421da8baa8",
+      "name": "Blend.Shift",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "LeftShift",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "RightShift",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      }
+    },
+    {
+      "id": "e3d1b0c6-e849-805d-1dab-8ed3742b0830",
+      "name": "Blend.Reset",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Back",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "RightStick",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "f40fca79-3130-ceaf-1871-7d34772e0744",
+      "name": "Blend.Forward",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "W",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "9be0caac-fd58-6ce6-2557-8004d6f6e3bc",
+      "name": "Blend.Backward",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "a4a0976c-1f81-ea0d-c359-abf514807bb4",
+      "name": "Blend.Left",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "A",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "eef133d6-1f19-c32b-349e-e0756e60498b",
+      "name": "Blend.Right",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "8e566504-9a7e-d156-325e-daa050fe850c",
+      "name": "Blend.Clip1",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D1",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "X",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "5a633f48-a7df-1e77-2f09-fd5529ed2c0f",
+      "name": "Blend.Clip2",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D2",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "Y",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "3f53aafb-e98a-c761-da53-dcd0fdfbab80",
+      "name": "Blend.Clip3",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D3",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "B",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "9405366e-41e1-a0ed-49a2-b635ba18a93c",
+      "name": "Blend.Clip1Numpad",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "NumPad1",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "b9c70202-d6af-7728-85b9-ef55ca092a17",
+      "name": "Blend.Clip2Numpad",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "NumPad2",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "6ccf351a-b9b1-aebb-ac7d-51ab543e4025",
+      "name": "Blend.Clip3Numpad",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "NumPad3",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "2e617f9f-09df-d852-eb2e-9740e9abd5cc",
+      "name": "Blend.Action",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Space",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "d1347be5-3b69-c4bc-cb74-a2993687f24f",
+      "name": "Blend.Easing",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "E",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "493e01d3-d7b5-9f38-9833-062e8b2f8d9a",
+      "name": "Blend.KeepVelocity",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "R",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "f41fdb57-f6e6-43f4-6c89-7ab430c17629",
+      "name": "Blend.WeightDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Q",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "86d8503c-a107-a8db-e38c-f3a2cd77ca4a",
+      "name": "Blend.WeightUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "E",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "c4c15407-dd82-4642-a089-571671d2c91e",
+      "name": "Blend.RootMotion",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "R",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    }
+  ]
+}

@@ -8,7 +8,8 @@ namespace CasaEngine.Demos.Demos;
 
 /// <summary>
 /// The demos main screen (<c>ai-agent/tasks/demos-main-menu-tasks.md</c>, decision D3): the themes and their demos in a
-/// tree on the left, the sheet of the selected demo on the right (title, theme, description), and the Launch and Quit
+/// tree on the left, the sheet of the selected demo on the right (title, theme, description, controls, what to look at,
+/// documentation page: ADR-0090), and the Launch and Quit
 /// buttons. It lives in the view of the menu world and is rebuilt every time the player comes back to it (decision D1).
 /// <para/>
 /// Choosing: the arrows and the D-pad move the selection (MGUI focus navigation on the tree, which has the focus), and
@@ -21,8 +22,15 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 internal sealed class MainMenuScreen : XamlUIScreenBase
 {
-    /// <summary>One demo as the main screen shows it.</summary>
-    internal readonly record struct Entry(string Title, string Description, string Theme);
+    /// <summary>One demo as the main screen shows it. <paramref name="Controls"/> and <paramref name="Highlights"/> are
+    /// already formatted, one line per entry; an empty part of the sheet is not shown.</summary>
+    internal readonly record struct Entry(
+        string Title,
+        string Description,
+        string Theme,
+        string Controls = "",
+        string Highlights = "",
+        string Documentation = "");
 
     private readonly IReadOnlyList<Entry> _entries;
     private readonly IReadOnlyList<string> _themeOrder;
@@ -37,6 +45,11 @@ internal sealed class MainMenuScreen : XamlUIScreenBase
     private MGTextBlock _titleLabel;
     private MGTextBlock _themeLabel;
     private MGTextBlock _descriptionLabel;
+    private MGTextBlock _controlsHeader;
+    private MGTextBlock _controlsLabel;
+    private MGTextBlock _highlightsHeader;
+    private MGTextBlock _highlightsLabel;
+    private MGTextBlock _documentationLabel;
     private MGTextBlock _statusLabel;
 
     // ---- Tree, built once ----
@@ -81,6 +94,11 @@ internal sealed class MainMenuScreen : XamlUIScreenBase
         _titleLabel = FindControl<MGTextBlock>("lblTitle");
         _themeLabel = FindControl<MGTextBlock>("lblTheme");
         _descriptionLabel = FindControl<MGTextBlock>("lblDescription");
+        _controlsHeader = FindControl<MGTextBlock>("lblControlsHeader");
+        _controlsLabel = FindControl<MGTextBlock>("lblControls");
+        _highlightsHeader = FindControl<MGTextBlock>("lblHighlightsHeader");
+        _highlightsLabel = FindControl<MGTextBlock>("lblHighlights");
+        _documentationLabel = FindControl<MGTextBlock>("lblDocumentation");
         _statusLabel = FindControl<MGTextBlock>("lblStatus");
         FindControl<MGTextBlock>("lblHeader").Text = $"CasaEngine demos ({_entries.Count})";
 
@@ -158,6 +176,9 @@ internal sealed class MainMenuScreen : XamlUIScreenBase
             _titleLabel.Text = entry.Title;
             _themeLabel.Text = entry.Theme;
             _descriptionLabel.Text = entry.Description;
+            ShowSection(_controlsHeader, _controlsLabel, entry.Controls);
+            ShowSection(_highlightsHeader, _highlightsLabel, entry.Highlights);
+            ShowSection(null, _documentationLabel, string.IsNullOrEmpty(entry.Documentation) ? string.Empty : "Documentation: " + entry.Documentation);
             _launchButton.IsEnabled = true;
         }
         else if (item != null && _themeSummaries.TryGetValue(item, out var summary))
@@ -165,8 +186,24 @@ internal sealed class MainMenuScreen : XamlUIScreenBase
             _titleLabel.Text = ((MGTextBlock)item.Header).Text;
             _themeLabel.Text = $"{item.Items.Count} demos";
             _descriptionLabel.Text = summary;
+            ShowSection(_controlsHeader, _controlsLabel, string.Empty);
+            ShowSection(_highlightsHeader, _highlightsLabel, string.Empty);
+            ShowSection(null, _documentationLabel, string.Empty);
             _launchButton.IsEnabled = false;
         }
+    }
+
+    /// <summary>Shows a part of the sheet with its header, or collapses both when the demo has nothing for it.</summary>
+    private static void ShowSection(MGTextBlock header, MGTextBlock body, string text)
+    {
+        Visibility visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+        if (header != null)
+        {
+            header.Visibility = visibility;
+        }
+
+        body.Text = text ?? string.Empty;
+        body.Visibility = visibility;
     }
 
     /// <summary>Selects a demo, expands its theme and scrolls to it; the sheet follows. An index out of range selects the

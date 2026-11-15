@@ -43,6 +43,24 @@ internal sealed class EditorViewport2dCameraController
 
     public Vector3 Target { get; private set; } = Vector3.Zero;
 
+    /// <summary>Pan multiplier (1 = the world follows the cursor exactly). User preference, ADR-0091.</summary>
+    public float PanSpeed { get; private set; } = 1f;
+
+    /// <summary>Zoom steps per wheel notch. User preference, ADR-0091.</summary>
+    public int ZoomStepsPerNotch { get; private set; } = 1;
+
+    /// <summary>Inverts the vertical pan. User preference, ADR-0091.</summary>
+    public bool InvertY { get; private set; }
+
+    /// <summary>Applies the user's 2D camera preferences (ADR-0091).</summary>
+    public void ApplyPreferences(Camera2dPreferences preferences)
+    {
+        ArgumentNullException.ThrowIfNull(preferences);
+        PanSpeed = preferences.PanSpeed;
+        ZoomStepsPerNotch = preferences.ZoomStepsPerNotch;
+        InvertY = preferences.InvertY;
+    }
+
     public int ZoomStep { get; private set; }
 
     /// <summary>
@@ -120,8 +138,9 @@ internal sealed class EditorViewport2dCameraController
             return;
         }
 
-        float zoom = Zoom;
-        Target = new Vector3(Target.X - dx / zoom, Target.Y + dy / zoom, Target.Z);
+        float scale = PanSpeed / Zoom;
+        float vertical = InvertY ? -dy : dy;
+        Target = new Vector3(Target.X - dx * scale, Target.Y + vertical * scale, Target.Z);
     }
 
     /// <summary>
@@ -224,7 +243,7 @@ internal sealed class EditorViewport2dCameraController
         {
             activateView(false);
             ZoomAtCursor(
-                WheelDeltaToSteps(inputContext.VerticalWheelDelta),
+                WheelDeltaToSteps(inputContext.VerticalWheelDelta) * ZoomStepsPerNotch,
                 inputContext.LocalPosition,
                 inputContext.ScreenBounds);
             ApplyTo(camera);

@@ -46,7 +46,6 @@ public class ViewManagerSandbox : Demo
     private SpriteBatch?                           _spriteBatch;
 
     // Keyboard debounce
-    private KeyboardState _prevKb;
 
     // HUD
     private float _fpsAccum;
@@ -54,7 +53,30 @@ public class ViewManagerSandbox : Demo
     private float _displayFps;
 
     public override string Title => "ViewManager v2 Sandbox";
-    public override string Description => "Comprehensive sandbox for the ViewManager v2 system: multi-view split screen, dynamic add/remove views, UpdateMode cycling (RealTime/Throttled/OnDemand), and debug overlays.";
+    public override string Description =>
+        "A sandbox for views: add and remove views at run time, change how often each one is redrawn (every " +
+        "frame, throttled, on demand) and show the debug overlay.";
+
+    // One action per view, in view order.
+    private static readonly string[] ViewModeActions =
+    {
+        "Sandbox.View1Mode", "Sandbox.View2Mode", "Sandbox.View3Mode", "Sandbox.View4Mode",
+    };
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        DemoControl.ForActions("add a view (up to 4)", "Sandbox.AddView"),
+        DemoControl.ForActions("remove the last view", "Sandbox.RemoveView"),
+        DemoControl.ForActions("cycle the update mode of view 1 to 4", "Sandbox.View1Mode", "Sandbox.View2Mode", "Sandbox.View3Mode", "Sandbox.View4Mode"),
+        DemoControl.ForActions("show or hide the debug overlay of view 1", "Sandbox.Overlay"),
+        DemoControl.ForActions("redraw the views that are on demand", "Sandbox.Redraw"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "An on-demand view keeps its last image until you press Space.",
+        "The render-target count stays stable when views are added and removed.",
+    };
 
     // ---- Demo lifecycle ----
 
@@ -180,15 +202,13 @@ public class ViewManagerSandbox : Demo
     }
 
 
-
     public override void Update(GameTime gameTime)
     {
-        var kb  = DemoKeyboard.Read(_game);
         var vm  = _game!.GameManager.ViewManager;
         var world = _game.GameManager.CurrentWorld;
 
         // ---- Add view (Tab) ----
-        if (kb.IsKeyDown(Keys.Tab) && !_prevKb.IsKeyDown(Keys.Tab))
+        if (DemoInput.WasPressed(_game, "Sandbox.AddView"))
         {
             var views = vm.Views;
             if (views.Count < MaxViews)
@@ -216,7 +236,7 @@ public class ViewManagerSandbox : Demo
         }
 
         // ---- Remove last view (Backspace) ----
-        if (kb.IsKeyDown(Keys.Back) && !_prevKb.IsKeyDown(Keys.Back))
+        if (DemoInput.WasPressed(_game, "Sandbox.RemoveView"))
         {
             var views = vm.Views;
             if (views.Count > 1)
@@ -232,11 +252,10 @@ public class ViewManagerSandbox : Demo
         }
 
         // ---- Cycle UpdateMode on view N (F6..F9) ----
-        var fKeys = new[] { Keys.F6, Keys.F7, Keys.F8, Keys.F9 };
         var allViews = vm.Views;
-        for (int i = 0; i < fKeys.Length && i < allViews.Count; i++)
+        for (int i = 0; i < ViewModeActions.Length && i < allViews.Count; i++)
         {
-            if (kb.IsKeyDown(fKeys[i]) && !_prevKb.IsKeyDown(fKeys[i]))
+            if (DemoInput.WasPressed(_game, ViewModeActions[i]))
             {
                 var v = allViews[i];
                 v.UpdateMode = v.UpdateMode switch
@@ -255,13 +274,13 @@ public class ViewManagerSandbox : Demo
         }
 
         // ---- Toggle debug overlay on view 1 (F5) ----
-        if (kb.IsKeyDown(Keys.F5) && !_prevKb.IsKeyDown(Keys.F5) && allViews.Count > 0)
+        if (DemoInput.WasPressed(_game, "Sandbox.Overlay") && allViews.Count > 0)
         {
             allViews[0].ShowDebugOverlay = !allViews[0].ShowDebugOverlay;
         }
 
         // ---- Invalidate all OnDemand views (Space) ----
-        if (kb.IsKeyDown(Keys.Space) && !_prevKb.IsKeyDown(Keys.Space))
+        if (DemoInput.WasPressed(_game, "Sandbox.Redraw"))
         {
             foreach (var v in allViews)
             {
@@ -271,8 +290,6 @@ public class ViewManagerSandbox : Demo
                 }
             }
         }
-
-        _prevKb = kb;
 
         // FPS tracking
         _fpsAccum   += (float)gameTime.ElapsedGameTime.TotalSeconds;

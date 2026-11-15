@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -30,7 +31,17 @@ public class SplitScreenDemo : Demo
     private bool _probed;
 
     public override string Title => "Split-screen demo (2 views)";
-    public override string Description => "Validates per-view render stats in split-screen: the left view sees a heavier textured/transparent cluster, the right view a lighter opaque cluster.";
+    public override string Description =>
+        "Two views of one world, side by side, each with its own camera and its own render statistics: the " +
+        "left view looks at a heavy textured and transparent cluster, the right view at a light opaque one.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The statistics at the top of each view differ: each view counts only what it draws.",
+        "The red panel belongs to the right view: a UI screen is placed in the view that owns it.",
+    };
+
+    public override string DocumentationPath => "docs/engine/render-stats-demo-workflow.md";
 
     public override void Initialize(CasaEngineGame game)
     {

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Assets;
+using System.Collections.Generic;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities;
@@ -21,7 +22,16 @@ public class TileMap3dDemo : Demo
     private const float MapHeight = 11 * 32 * MapScale;
 
     public override string Title => "Tile map 3d demo";
-    public override string Description => "Places the same tile map as a rotated ground plane and as a vertical wall under a free perspective camera.";
+    public override string Description =>
+        "The same tile map placed twice in a 3D scene, as a ground plane and as a vertical wall, under a free " +
+        "perspective camera.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "A tile map is a component with a transform: it can be rotated and placed like any mesh.",
+    };
+
+    public override string DocumentationPath => "docs/engine/rendering-2d-3d-spaces.md";
 
     public override void Initialize(CasaEngineGame game)
     {

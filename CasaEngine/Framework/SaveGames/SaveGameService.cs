@@ -5,11 +5,12 @@ namespace CasaEngine.Framework.SaveGames;
 /// <summary>
 /// The game's save-game API (ADR-0044, modeled on Unreal's <c>UGameplayStatics</c> save functions): named slots in
 /// a per-user folder, each holding one <see cref="ISaveGameData"/> object written whole. Use the engine instance,
-/// <see cref="CasaEngine.Framework.Application.GameSettings.SaveGames"/>.
+/// <see cref="CasaEngine.Framework.Application.GameSettings.SaveGames"/>, or build one on an explicit folder with
+/// <see cref="SaveGameService(string)"/>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Folder: <c>LocalApplicationData/&lt;ProjectName&gt;/SaveGames</c>, one <c>&lt;slot&gt;.sav</c> file per slot,
+/// Default folder: <c>LocalApplicationData/&lt;ProjectName&gt;/SaveGames</c>, one <c>&lt;slot&gt;.sav</c> file per slot,
 /// resolved at the first call that needs it, never at construction. Slot names are 1 to 32 characters among
 /// <c>a</c>-<c>z</c>, <c>0</c>-<c>9</c>, <c>_</c> and <c>-</c>, and not a Windows reserved device name.
 /// </para>
@@ -42,8 +43,13 @@ public sealed class SaveGameService
     {
     }
 
-    /// <summary>An explicit slot folder (tests, tools). Nothing is created until the first save.</summary>
-    internal SaveGameService(string folderPath)
+    /// <summary>
+    /// A service on an explicit slot folder, for a game or a tool that does not want the per-user folder of
+    /// <see cref="CasaEngine.Framework.Application.GameSettings.SaveGames"/>. Nothing is created until the first save.
+    /// </summary>
+    /// <param name="folderPath">The folder holding the slot files; a relative path is made absolute here.</param>
+    /// <exception cref="ArgumentException"><paramref name="folderPath"/> is null, empty or white space.</exception>
+    public SaveGameService(string folderPath)
         : this(new SaveGameFileStorage(folderPath))
     {
     }

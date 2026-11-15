@@ -27,6 +27,7 @@
     <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
     <ProjectReference Include="..\NvgSharp\src\XNA\NvgSharp.MonoGame.csproj" />
     <ProjectReference Include="..\NvgSharp\src\NvgSharp.Text\NvgSharp.Text.MonoGame.csproj" />
+    <ProjectReference Include="..\Tools\CasaEngine.Editor.Remote.Protocol\CasaEngine.Editor.Remote.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Content\UI\**\*.xaml">

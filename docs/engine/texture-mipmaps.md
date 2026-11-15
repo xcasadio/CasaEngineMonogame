@@ -1,6 +1,6 @@
 # Texture mipmaps from the loader
 
-`Texture2DLoader` can build the mipmap chain of the textures it loads. Decision: ADR-0092. Related: ADR-0091 (a tiled detail texture needs mipmaps at a distance).
+`Texture2DLoader` can build the mipmap chain of the textures it loads. Decision: ADR-0097. Related: ADR-0096 (a tiled detail texture needs mipmaps at a distance).
 
 ## Loading with mipmaps
 

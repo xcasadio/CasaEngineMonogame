@@ -57,6 +57,7 @@ public class FrozenFrameDemo : Demo
     private FrozenFrameScene? _scene;
     private FrozenFrameGaugeScreen? _gauge;
     private int _turn = -1;
+    private long _captureCountAtStart;
     private long _captureCountAtTurn24;
     private readonly Dictionary<int, Reading> _readings = new();
     private Point _gaugeCentreVirtual;
@@ -66,8 +67,22 @@ public class FrozenFrameDemo : Demo
 
     public override string Title => "Frozen frame demo";
 
+    // The demo compares its own back buffer with the colours it posed: nothing else may be drawn over the scene.
+    public override bool ReadsItsOwnImage => true;
+
     public override string Description =>
-        "E19.TR-4a: the engine keeps the image of the previous frame and shows it frozen, user interface included. A scripted run (virtual resolution 320 x 240, a resize while the image is shown, a veil, a second request, the option turned off) reads the back buffer and checks it against predictions drawn from the colours it poses.";
+        "The engine can keep the image of the previous frame and show it frozen, user interface included, " +
+        "while the scene behind it changes. This demo runs a scripted sequence and checks the back buffer by " +
+        "itself; there is nothing to press.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The picture stops while the scene colours keep changing behind it, then the live scene comes back.",
+        "The result of the checks is written to log.txt (result=PASS).",
+        "No help panel here: the demo reads its own image, so the app draws nothing over it. Esc returns to the menu.",
+    };
+
+    public override string DocumentationPath => "docs/engine/frozen-frame.md";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -108,6 +123,9 @@ public class FrozenFrameDemo : Demo
         var service = game.FrozenFrameComponent.Service;
         service.Release();
         service.RetainLastFrame = true;
+        // The service belongs to the game and its capture count is never reset: the checks count from here, so that the
+        // demo passes each time it is entered.
+        _captureCountAtStart = service.CaptureCount;
 
         _turn = -1;
         _loaded = false;
@@ -204,7 +222,7 @@ public class FrozenFrameDemo : Demo
             case 24:
                 frozen.Release();
                 frozen.RetainLastFrame = false;
-                _captureCountAtTurn24 = frozen.CaptureCount;
+                _captureCountAtTurn24 = frozen.CaptureCount - _captureCountAtStart;
                 break;
             case 26:
                 // The option is off: the request finds no retained image.
@@ -378,8 +396,8 @@ public class FrozenFrameDemo : Demo
         CheckLandmarks(Check, "D6a", r27, landmarksE, "turn 27 reads as the live scene E");
         Check("D6b", r27.Last == FrozenFrameCaptureState.Unavailable && !r27.HasImage,
             $"turn 27 LastCapture={r27.Last} (expected Unavailable), HasImage={r27.HasImage} (expected False)");
-        Check("D6c", r27.CaptureCount == _captureCountAtTurn24 && _captureCountAtTurn24 == 2,
-            $"CaptureCount is {_captureCountAtTurn24} at turn 24 (expected 2: turns 10 and 22) and {r27.CaptureCount} at turn 27 (unchanged)");
+        Check("D6c", r27.CaptureCount - _captureCountAtStart == _captureCountAtTurn24 && _captureCountAtTurn24 == 2,
+            $"this visit made {_captureCountAtTurn24} capture(s) by turn 24 (expected 2: turns 10 and 22) and {r27.CaptureCount - _captureCountAtStart} by turn 27 (unchanged)");
         Check("D6d", Warnings.Count == 1, $"the warning \"Capture unavailable\" was logged {Warnings.Count} time(s) (expected once)");
 
         // D7: the black bands.

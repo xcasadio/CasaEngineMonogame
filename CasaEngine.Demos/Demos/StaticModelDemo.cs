@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Primitives.ThreeD;
+using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -26,8 +27,14 @@ public class StaticModelDemo : Demo
 {
     public override string Title => "Static model demo";
     public override string Description =>
-        "Builds a StaticModel programmatically from box/sphere primitives and renders it " +
-        "through a StaticModelComponent with an auto-generated sub-mesh hierarchy.";
+        "A StaticModel built in code from box and sphere primitives, drawn by a StaticModelComponent. The " +
+        "starting point for showing any mesh.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "One model, several sub-meshes, each with its own material.",
+        "The hierarchy of sub-meshes is generated from the primitives.",
+    };
 
     public override void Initialize(CasaEngineGame game)
     {

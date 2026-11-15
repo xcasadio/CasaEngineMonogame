@@ -33,6 +33,9 @@
   <ItemGroup>
     <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\MainMenuScreen.cs" Link="Demos\MainMenuScreen.cs" />
     <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\DemoScreenXaml.cs" Link="Demos\DemoScreenXaml.cs" />
+    <Compile Include="..\CasaEngine.Demos\DemoControl.cs" Link="Demos\DemoControl.cs" />
+    <Compile Include="..\CasaEngine.Demos\DemoSheetText.cs" Link="Demos\DemoSheetText.cs" />
+    <Compile Include="..\CasaEngine.Demos\DemoBindingText.cs" Link="Demos\DemoBindingText.cs" />
     <None Include="..\CasaEngine.Demos\Content\Screens\main-menu.xaml" Link="Content\Screens\main-menu.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
@@ -42,6 +45,9 @@
     <ProjectReference Include="..\CasaEngine.Editor\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
     <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
+    <ProjectReference Include="..\Tools\CasaEngine.Editor.Remote.Protocol\CasaEngine.Editor.Remote.Protocol.csproj" />
+    <ProjectReference Include="..\Tools\CasaEngine.Editor.Cli\CasaEngine.Editor.Cli.csproj" />
+    <ProjectReference Include="..\Tools\CasaEngine.Editor.Mcp\CasaEngine.Editor.Mcp.csproj" />
   </ItemGroup>
 
 </Project>

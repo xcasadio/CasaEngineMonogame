@@ -14,6 +14,12 @@ internal sealed class HostedEditorGameAdapter : CasaEngineGame
     {
     }
 
+    /// <summary>
+    /// The editor's single preferences store (ADR-0091), shared by every viewport panel built on this adapter.
+    /// Null in hosts that do not load preferences.
+    /// </summary>
+    public EditorPreferencesStore Preferences { get; set; }
+
     public void InitializeHost()
     {
         Initialize();

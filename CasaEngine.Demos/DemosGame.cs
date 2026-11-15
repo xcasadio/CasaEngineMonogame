@@ -10,6 +10,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.Rendering;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
@@ -26,17 +27,21 @@ public class DemosGame : CasaEngineGame
     private readonly List<string> _demoThemes = new();
 
     // Themes of the main screen, in the order of its tree.
+    private const string ThemeGettingStarted = "Getting started";
     private const string ThemeRendering = "Rendering";
     private const string ThemeAnimation = "Animation";
     private const string ThemePhysics = "Physics";
+    private const string ThemeGameplay = "Gameplay";
     private const string ThemeSceneAndViews = "Scene and views";
     private const string ThemeCutscenes = "Cutscenes";
     private const string ThemeTileMaps = "2D and tile maps";
     private const string ThemeUI = "UI";
     private const string ThemeAudio = "Audio";
+    private const string ThemeEngineValidation = "Engine validation";
     private static readonly string[] ThemeOrder =
     {
-        ThemeRendering, ThemeAnimation, ThemePhysics, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI, ThemeAudio,
+        ThemeGettingStarted, ThemeRendering, ThemeAnimation, ThemePhysics, ThemeGameplay, ThemeSceneAndViews, ThemeCutscenes, ThemeTileMaps, ThemeUI,
+        ThemeAudio, ThemeEngineValidation,
     };
     private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
     private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
@@ -51,6 +56,9 @@ public class DemosGame : CasaEngineGame
     private int _pendingDemoIndex = -1;
     private KeyboardState _prevKeyboard;
     private GamePadState _prevGamePad;
+
+    // Created once: the sheets ask it what each action is bound to.
+    private Func<string, DemoBinding> _describeAction;
     private bool _automationScreenshotCaptured;
 
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
@@ -67,6 +75,24 @@ public class DemosGame : CasaEngineGame
 
     // ---- Reminder shown in the scene: how to go back to the main screen ----
     private DemoHintOverlay _demoHintOverlay;
+
+    // ---- Help panel shown in the scene (ADR-0090): visible when a demo starts, F1 or Start hides and shows it ----
+    private DemoHelpOverlay _demoHelpOverlay;
+    private bool _demoHelpVisible = true;
+
+    // The default demo camera (Demo.CreateCamera: ScriptArcBallCamera), as docs/editor/viewport-camera-controls.md
+    // describes it. Formatted once.
+    private static readonly DemoControl[] DefaultCameraControls =
+    {
+        new("Right mouse drag", "look around"),
+        new("Right mouse + W A S D, Q E", "fly"),
+        new("Alt + left mouse drag", "orbit around the pivot"),
+        new("Middle mouse drag", "pan"),
+        new("Mouse wheel", "zoom on the pivot"),
+        new("F", "put the pivot back on the scene"),
+    };
+
+    private static readonly string DefaultCameraControlsText = DemoSheetText.FormatControls(DefaultCameraControls);
 
     // The demos content folder is a regular editor project (DemosGame.json + AssetInfos.json).
     // Passing the project file to the base constructor lets CasaEngineGame.Initialize load it
@@ -101,41 +127,69 @@ public class DemosGame : CasaEngineGame
     {
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
-        AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
-        AddDemo(new CutsceneNavigateToDemo(), ThemeCutscenes);
-        AddDemo(new Collision3dBasicDemo(), ThemePhysics);
-        AddDemo(new Collision2dBasicDemo(), ThemePhysics);
-        AddDemo(new TopDownElevationDemo(), ThemePhysics);
+        // The input configuration of the demos: loaded before any sheet is built, because the sheets show its bindings.
+        DemoInput.Load(this);
+        _describeAction = action => DemoInput.Describe(this, action);
+
+        // The registration order is the order of the main screen: a learning path (ADR-0090). It is also the index
+        // CASAENGINE_START_DEMO accepts, so documentation and scripts name a demo by its title, which is stable.
+        AddDemo(new HelloWorldDemo(), ThemeGettingStarted);
+        AddDemo(new MovingAnEntityDemo(), ThemeGettingStarted);
+        AddDemo(new LoadingAModelDemo(), ThemeGettingStarted);
+        AddDemo(new EditorWorldDemo(), ThemeGettingStarted);
+
         AddDemo(new StaticModelDemo(), ThemeRendering);
         AddDemo(new MaterialDemo(), ThemeRendering);
         AddDemo(new ParticleSystemDemo(), ThemeRendering);
         AddDemo(new EnvironmentShowcaseDemo(), ThemeRendering);
-        // Re-enabled for T2.2 (ai-agent/tasks/screen-effect-above-ui-tasks.md): it was disabled
-        // since 2026-05-24 (commit 9d73f9460, an unrelated runtime/editor separation pass), and its
-        // Camera2dComponent is the only supported camera for the above-UI screen effect quad's
-        // placement formula (ScreenEffectComponent.cs:53-67), so it is also the only demo that can
-        // host that smoke.
-        AddDemo(new TileMapDemo(), ThemeTileMaps);
-        AddDemo(new TileMap3dDemo(), ThemeTileMaps);
-        AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+
         AddDemo(new SkinnedMeshDemo(), ThemeAnimation);
-        AddDemo(new StaticShadowValidationDemo(), ThemeRendering);
         AddDemo(new AnimationBlendDemo(), ThemeAnimation);
         AddDemo(new AnimationIkDemo(), ThemeAnimation);
         AddDemo(new SkeletalAnimationBlendingDemo(), ThemeAnimation);
+
+        AddDemo(new Collision3dBasicDemo(), ThemePhysics);
+        AddDemo(new Collision2dBasicDemo(), ThemePhysics);
+        AddDemo(new TopDownElevationDemo(), ThemePhysics);
+
+        AddDemo(new PlayerInputDemo(), ThemeGameplay);
+        AddDemo(new CoroutineDemo(), ThemeGameplay);
+        AddDemo(new SaveGameDemo(), ThemeGameplay);
+
         AddDemo(new SceneManagementDemo(), ThemeSceneAndViews);
         AddDemo(new SplitScreenDemo(), ThemeSceneAndViews);
         AddDemo(new RenderToTextureDemo(), ThemeSceneAndViews);
-        AddDemo(new WorldSpaceUIDemo(), ThemeUI);
-        AddDemo(new ViewManagerSandbox(), ThemeSceneAndViews);
+
+        AddDemo(new CutsceneMoveToDemo(), ThemeCutscenes);
+        AddDemo(new CutsceneNavigateToDemo(), ThemeCutscenes);
+
+        // TileMapDemo's Camera2dComponent is the only camera the above-UI screen effect quad supports
+        // (ScreenEffectComponent), so it is the demo that hosts that effect.
+        AddDemo(new TileMapDemo(), ThemeTileMaps);
+        AddDemo(new TileMap3dDemo(), ThemeTileMaps);
+        AddDemo(new TileMapSurfaceScreenDemo(), ThemeTileMaps);
+        AddDemo(new Layers2dDemo(), ThemeTileMaps);
+
         AddDemo(new UIOverlayDemo(), ThemeUI);
+        AddDemo(new WorldSpaceUIDemo(), ThemeUI);
+
         AddDemo(new AudioDemo(), ThemeAudio);
-        AddDemo(new FrozenFrameDemo(), ThemeRendering);
+
+        // Scenes whose purpose is to check the engine rather than to teach a feature.
+        AddDemo(new StaticShadowValidationDemo(), ThemeEngineValidation);
+        AddDemo(new ViewManagerSandbox(), ThemeEngineValidation);
+        AddDemo(new FrozenFrameDemo(), ThemeEngineValidation);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)
         {
-            _mainMenuEntries[i] = new MainMenuScreen.Entry(_demos[i].Title, _demos[i].Description, _demoThemes[i]);
+            _mainMenuEntries[i] = new MainMenuScreen.Entry(
+                _demos[i].Title,
+                _demos[i].Description,
+                _demoThemes[i],
+                DemoSheetText.FormatControls(_demos[i].Controls, _describeAction),
+                DemoSheetText.FormatHighlights(_demos[i].Highlights),
+                _demos[i].DocumentationPath);
         }
 
         // Decision D6: CASAENGINE_START_DEMO starts that demo directly; otherwise the game starts on the main screen.
@@ -208,13 +262,14 @@ public class DemosGame : CasaEngineGame
         // The new world is the current world from this call on. It loads in the next GameManager.UpdateWorld (in
         // base.Update, at the end of this update, or in the first update at startup), which clears the views, loads the
         // world, builds its views from its entities and raises WorldLoaded.
-        var world = new World();
+        // The demo supplies that world: a new empty one, or one loaded from a file made in the editor.
+        _currentDemo = _demos[_currentDemoIndex];
+        var world = _currentDemo.CreateWorld(this);
         GameManager.SetWorldToLoad(world);
 
         // The demo builds its scene before the world loads: World.LoadContent adds its entities (AddEntity only queues
         // them), creates the physics context with the space policy the demo set, and the view bootstrapper picks the
         // demo's camera among them.
-        _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(world);
         _pendingDemoCamera = _currentDemo.CreateCamera(this);
@@ -307,7 +362,9 @@ public class DemosGame : CasaEngineGame
             return;
         }
 
-        var demoCamera = _pendingDemoCamera;
+        // A demo whose world comes from a file creates no camera: the view then shows the camera saved in that world,
+        // and the demo may still frame it.
+        var demoCamera = _pendingDemoCamera ?? GameManager.ViewManager.ActiveView?.Camera;
         if (demoCamera != null)
         {
             _currentDemo.InitializeCamera(demoCamera);
@@ -315,7 +372,7 @@ public class DemosGame : CasaEngineGame
         }
 
         ApplyAutomationViewSettings();
-        RefreshDemoUI();
+        RefreshDemoUI(demoCamera);
         _demoCycle?.OnWorldLoaded(GameManager, _currentDemo.Title, demoCamera, isMenu: false, mainScreen: null, _currentDemoIndex);
     }
 
@@ -325,28 +382,48 @@ public class DemosGame : CasaEngineGame
         => GameManager.ViewManager.GetActiveUIView();
 
     /// <summary>
-    /// (Re)creates the reminder of how to go back to the main screen on the current UI view. Called after every demo
-    /// change because each world change rebuilds the views and their UI runtimes.
+    /// (Re)creates the reminder line and the help panel of the current demo on the current UI view. Called after every
+    /// demo change because each world change rebuilds the views and their UI runtimes. The panel is visible again at
+    /// every launch (ADR-0090).
     /// </summary>
-    private void RefreshDemoUI()
+    private void RefreshDemoUI(CameraComponent demoCamera)
     {
         var uiView = GetUIView();
         if (uiView == null) return;
 
-        _demoHintOverlay = new DemoHintOverlay();
+        _demoHintOverlay = new DemoHintOverlay(_describeAction(DemoInput.Help), _describeAction(DemoInput.Back));
         uiView.PushScreen(_demoHintOverlay);
+
+        // The camera lines show only when the demo kept the default camera script.
+        bool defaultCamera = demoCamera?.Owner?.GameplayProxy is ScriptArcBallCamera;
+        _demoHelpOverlay = new DemoHelpOverlay(
+            _currentDemo.Title,
+            DemoSheetText.FormatControls(_currentDemo.Controls, _describeAction),
+            defaultCamera ? DefaultCameraControlsText : string.Empty,
+            DemoSheetText.FormatHighlights(_currentDemo.Highlights));
+        uiView.PushScreen(_demoHelpOverlay);
+        _demoHelpVisible = true;
         UpdateDemoHintVisibility();
     }
 
     /// <summary>
-    /// The reminder shows in every demo, never during an automation run that captures or probes the back buffer, so the
-    /// image is the one the demo draws.
+    /// The reminder and the help panel show in every demo, except during an automation run that captures or probes the back buffer
+    /// and in a demo that reads its own image (<see cref="Demo.ReadsItsOwnImage"/>), so that the image is the one the demo draws.
     /// </summary>
     private void UpdateDemoHintVisibility()
     {
         bool automation = !string.IsNullOrWhiteSpace(_automationScreenshotPath)
-            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"));
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_PIXELS_PATH"))
+            || _currentDemo?.ReadsItsOwnImage == true;
+
+        // CASAENGINE_DEMO_SHOW_HELP keeps both in a capture, to check or document the panel itself.
+        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SHOW_HELP")))
+        {
+            automation = false;
+        }
+
         _demoHintOverlay?.SetVisible(!automation);
+        _demoHelpOverlay?.SetVisible(!automation && _demoHelpVisible);
     }
 
     /// <summary>Asks for a demo change; it happens at the start of the next update, outside any UI callback.</summary>
@@ -356,24 +433,31 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Esc and the gamepad Back (Select) button ask to return to the main screen during a demo (decision D5); on the main
-    /// screen they do nothing (decision D4). Enter and the A button launch the demo selected on the main screen, which
+    /// All three are actions of the input configuration (<see cref="DemoInput"/>). Esc and the gamepad Back (Select) button ask to return to the main screen during a demo (decision D5); on the main
+    /// screen they do nothing (decision D4). F1 and Start hide or show the help panel of the demo. Enter and the A button launch the demo selected on the main screen, which
     /// MGTreeView does not do. Pressed edges only, read while the window is active.
     /// </summary>
     private void ReadMenuInput()
     {
+        // Which key and which button: the input configuration. The devices are read here, not through the engine's
+        // mappings: see DemoInput.IsBoundDown.
         var keyboard = IsActive ? Keyboard.GetState() : new KeyboardState();
         var gamePad = IsActive ? GamePad.GetState(PlayerIndex.One) : new GamePadState();
 
-        bool backPressed = (keyboard.IsKeyDown(Keys.Escape) && !_prevKeyboard.IsKeyDown(Keys.Escape))
-            || (gamePad.Buttons.Back == ButtonState.Pressed && _prevGamePad.Buttons.Back != ButtonState.Pressed);
+        bool backPressed = WasAppActionPressed(DemoInput.Back, keyboard, gamePad);
         if (backPressed && _currentDemo != null)
         {
             _returnToMenuRequested = true;
         }
 
-        bool launchPressed = (keyboard.IsKeyDown(Keys.Enter) && !_prevKeyboard.IsKeyDown(Keys.Enter))
-            || (gamePad.Buttons.A == ButtonState.Pressed && _prevGamePad.Buttons.A != ButtonState.Pressed);
+        bool helpPressed = WasAppActionPressed(DemoInput.Help, keyboard, gamePad);
+        if (helpPressed && _currentDemo != null)
+        {
+            _demoHelpVisible = !_demoHelpVisible;
+            UpdateDemoHintVisibility();
+        }
+
+        bool launchPressed = WasAppActionPressed(DemoInput.Launch, keyboard, gamePad);
         if (launchPressed && _mainMenu != null && _launchingDemoIndex < 0 && _mainMenu.TryGetSelectedDemo(out int selectedDemo))
         {
             RequestDemo(selectedDemo);
@@ -381,6 +465,12 @@ public class DemosGame : CasaEngineGame
 
         _prevKeyboard = keyboard;
         _prevGamePad = gamePad;
+    }
+
+    private bool WasAppActionPressed(string action, in KeyboardState keyboard, in GamePadState gamePad)
+    {
+        return DemoInput.IsBoundDown(this, action, keyboard, gamePad)
+            && !DemoInput.IsBoundDown(this, action, _prevKeyboard, _prevGamePad);
     }
 
     /// <summary>
@@ -560,7 +650,17 @@ public class DemosGame : CasaEngineGame
             screenshot.SetData(backBuffer);
 
             using FileStream stream = File.Create(fullOutputPath);
-            screenshot.SaveAsPng(stream, width, height);
+            // The extension of the path chooses the format: .jpg or .jpeg writes a JPEG, anything else a PNG.
+            string extension = Path.GetExtension(fullOutputPath);
+            if (extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
+            {
+                screenshot.SaveAsJpeg(stream, width, height);
+            }
+            else
+            {
+                screenshot.SaveAsPng(stream, width, height);
+            }
+
             Logs.WriteInfo($"[DemosGame] Screenshot saved: {fullOutputPath}");
             return true;
         }

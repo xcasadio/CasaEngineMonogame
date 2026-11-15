@@ -22,6 +22,12 @@
         <TextBlock Name="lblTitle" Text="" AllowsInlineFormatting="False" IsBold="True" FontSize="18" WrapText="True" />
         <TextBlock Name="lblTheme" Text="" AllowsInlineFormatting="False" WrapText="True" />
         <TextBlock Name="lblDescription" Text="" AllowsInlineFormatting="False" WrapText="True" />
+        <!-- The rest of the sheet (ADR-0090); the screen collapses a part the selected demo leaves empty. -->
+        <TextBlock Name="lblControlsHeader" Text="Controls" AllowsInlineFormatting="False" IsBold="True" Margin="0,8,0,0" />
+        <TextBlock Name="lblControls" Text="" AllowsInlineFormatting="False" WrapText="True" />
+        <TextBlock Name="lblHighlightsHeader" Text="What to look at" AllowsInlineFormatting="False" IsBold="True" Margin="0,8,0,0" />
+        <TextBlock Name="lblHighlights" Text="" AllowsInlineFormatting="False" WrapText="True" />
+        <TextBlock Name="lblDocumentation" Text="" AllowsInlineFormatting="False" WrapText="True" Margin="0,8,0,0" />
       </StackPanel>
     </ScrollViewer>
 

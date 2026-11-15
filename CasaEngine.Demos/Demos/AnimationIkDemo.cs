@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 using CasaEngine.Framework.Animations;
@@ -36,7 +37,6 @@ public class AnimationIkDemo : Demo
     private CasaEngineGame _game;
     private SkinnedMeshComponent _skinnedMeshComponent;
     private IkChainSelection _chain;
-    private KeyboardState _previousKeyboardState;
     private Vector3 _targetModelPosition;
     private Vector3 _poleModelPosition;
     private Vector3 _orbitCenterModelPosition;
@@ -53,7 +53,29 @@ public class AnimationIkDemo : Demo
 
     public override string Title => "Animation IK demo";
 
-    public override string Description => "Real skinned-character IK showcase: a live two-bone chain is selected from the skeleton, then driven by a movable target with 3D debug visualization and runtime weight control.";
+    public override string Description =>
+        "Inverse kinematics on a skinned character: a two-bone chain of the skeleton reaches a target that " +
+        "orbits by itself or that you move.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        DemoControl.ForActions("start or stop the automatic orbit of the target", "Ik.Orbit"),
+        DemoControl.ForActions("move the target by hand", DemoInput.MoveLeft, DemoInput.MoveRight, DemoInput.MoveUp, DemoInput.MoveDown),
+        DemoControl.ForActions("raise or lower the target", "Ik.TargetUp", "Ik.TargetDown"),
+        DemoControl.ForActions("turn the IK on or off", "Ik.Toggle"),
+        DemoControl.ForActions("lower or raise the IK weight", "Ik.WeightDown", "Ik.WeightUp"),
+        DemoControl.ForActions("show or hide the skeleton", "Ik.Skeleton"),
+        DemoControl.ForActions("put the target back on the current pose", "Ik.TargetToPose"),
+        DemoControl.ForActions("reset the character and the target", "Ik.Reset"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The debug lines show the chain, the target and the pole direction.",
+        "At weight 0 the arm plays its animation; at weight 1 it reaches the target.",
+    };
+
+    public override string DocumentationPath => "docs/engine/animation-ik-demo.md";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -95,36 +117,35 @@ public class AnimationIkDemo : Demo
             return;
         }
 
-        var keyboard = DemoKeyboard.Read(_game);
         var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (IsNewKeyPress(keyboard, Keys.Space))
+        if (DemoInput.WasPressed(_game, "Ik.Orbit"))
         {
             _autoOrbit = !_autoOrbit;
         }
 
-        if (IsNewKeyPress(keyboard, Keys.I))
+        if (DemoInput.WasPressed(_game, "Ik.Toggle"))
         {
             _ikEnabled = !_ikEnabled;
         }
 
-        if (IsNewKeyPress(keyboard, Keys.V))
+        if (DemoInput.WasPressed(_game, "Ik.Skeleton"))
         {
             _showSkeleton = !_showSkeleton;
         }
 
-        if (IsNewKeyPress(keyboard, Keys.Back))
+        if (DemoInput.WasPressed(_game, "Ik.TargetToPose"))
         {
             ResetTargetFromCurrentPose();
         }
 
-        if (IsNewKeyPress(keyboard, Keys.R))
+        if (DemoInput.WasPressed(_game, "Ik.Reset"))
         {
             ResetCharacterTransform();
             ResetTargetFromCurrentPose();
         }
 
-        UpdateIkWeight(keyboard, elapsedSeconds);
+        UpdateIkWeight(elapsedSeconds);
 
         if (_autoOrbit)
         {
@@ -132,13 +153,11 @@ public class AnimationIkDemo : Demo
         }
         else
         {
-            UpdateManualTarget(keyboard, elapsedSeconds);
+            UpdateManualTarget(elapsedSeconds);
         }
 
         ApplyCurrentIkConstraint();
         DrawDebugVisualization();
-
-        _previousKeyboardState = keyboard;
     }
 
     public override void PostDraw(CasaEngineGame game, GameTime gameTime)
@@ -171,14 +190,14 @@ public class AnimationIkDemo : Demo
         _skinnedMeshComponent?.ClearTwoBoneIkConstraints();
     }
 
-    private void UpdateIkWeight(KeyboardState keyboard, float elapsedSeconds)
+    private void UpdateIkWeight(float elapsedSeconds)
     {
-        if (keyboard.IsKeyDown(Keys.O))
+        if (DemoInput.IsDown(_game, "Ik.WeightDown"))
         {
             _ikWeight = Math.Clamp(_ikWeight - WeightAdjustSpeed * elapsedSeconds, 0f, 1f);
         }
 
-        if (keyboard.IsKeyDown(Keys.P))
+        if (DemoInput.IsDown(_game, "Ik.WeightUp"))
         {
             _ikWeight = Math.Clamp(_ikWeight + WeightAdjustSpeed * elapsedSeconds, 0f, 1f);
         }
@@ -197,35 +216,35 @@ public class AnimationIkDemo : Demo
                                + _orbitForwardDirection * depth;
     }
 
-    private void UpdateManualTarget(KeyboardState keyboard, float elapsedSeconds)
+    private void UpdateManualTarget(float elapsedSeconds)
     {
         var movement = Vector3.Zero;
-        if (keyboard.IsKeyDown(Keys.Left))
+        if (DemoInput.IsDown(_game, DemoInput.MoveLeft))
         {
             movement -= _orbitSideDirection;
         }
 
-        if (keyboard.IsKeyDown(Keys.Right))
+        if (DemoInput.IsDown(_game, DemoInput.MoveRight))
         {
             movement += _orbitSideDirection;
         }
 
-        if (keyboard.IsKeyDown(Keys.Up))
+        if (DemoInput.IsDown(_game, DemoInput.MoveUp))
         {
             movement += _orbitForwardDirection;
         }
 
-        if (keyboard.IsKeyDown(Keys.Down))
+        if (DemoInput.IsDown(_game, DemoInput.MoveDown))
         {
             movement -= _orbitForwardDirection;
         }
 
-        if (keyboard.IsKeyDown(Keys.PageUp))
+        if (DemoInput.IsDown(_game, "Ik.TargetUp"))
         {
             movement += _orbitUpDirection;
         }
 
-        if (keyboard.IsKeyDown(Keys.PageDown))
+        if (DemoInput.IsDown(_game, "Ik.TargetDown"))
         {
             movement -= _orbitUpDirection;
         }
@@ -498,11 +517,6 @@ public class AnimationIkDemo : Demo
         }
 
         return score;
-    }
-
-    private bool IsNewKeyPress(KeyboardState keyboard, Keys key)
-    {
-        return keyboard.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
     }
 
     private static Vector3 SafeNormalize(Vector3 vector, Vector3 fallback)

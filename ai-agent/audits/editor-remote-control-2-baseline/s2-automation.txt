@@ -1,0 +1,2 @@
+[Info] [Automation] Opened asset='NewLitDiffuseMaterial.material'
+[Info] [Automation] Updated material property 'alpha_cutoff'='0.5'

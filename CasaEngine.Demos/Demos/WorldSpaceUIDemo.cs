@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -33,7 +34,21 @@ public sealed class WorldSpaceUIDemo : Demo
     private ProjectedMouseInputSource? _worldUiInputSource;
 
     public override string Title => "World-space UI demo";
-    public override string Description => "Renders a UI runtime offscreen and displays the resulting texture on a quad inside the 3D world.";
+    public override string Description =>
+        "A user interface rendered off-screen and shown on a quad inside the 3D world. It stays interactive: " +
+        "the mouse is projected onto the quad.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        new("Mouse", "click the buttons on the panel in the scene"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The buttons react although the panel is a textured quad seen in perspective.",
+    };
+
+    public override string DocumentationPath => "docs/engine/casaengine-mgui-backend.md";
 
     public override void Initialize(CasaEngineGame game)
     {

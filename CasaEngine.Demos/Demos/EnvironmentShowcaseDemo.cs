@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Environment;
@@ -11,10 +12,18 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Demos.Demos;
 
+/// <summary>
+/// Shows the two jobs of a world's environment: lighting (ambient and reflections) and background. They are separate
+/// settings, so each key in this demo changes one without the other.
+/// <para/>
+/// Types to look at: <see cref="WorldEnvironmentSettings"/> (the world's environment, reached through
+/// <c>world.EnvironmentSettings</c>), <see cref="EnvironmentBackgroundMode"/> and <see cref="LitDiffuseMaterial"/>
+/// (its <c>UseSceneReflectionCube</c> makes a surface reflect the world's specular cubemap). The cubemaps are built in
+/// code so the demo needs no asset.
+/// </summary>
 public sealed class EnvironmentShowcaseDemo : Demo
 {
     private CasaEngineGame? _game;
-    private KeyboardState _previousKeyboard;
     private TextureCube? _warmCubemap;
     private TextureCube? _studioCubemap;
     private int _environmentIndex;
@@ -24,8 +33,23 @@ public sealed class EnvironmentShowcaseDemo : Demo
     public override string Title => "Environment showcase";
 
     public override string Description =>
-        "Global environment cubemap with explicit separation between visible background and environment-driven ambient/specular response. " +
-        "B = toggle sky background, E = cycle environment cubemap, L = toggle environment lighting contribution.";
+        "One environment cubemap lights the scene (ambient and reflections) while the visible background is " +
+        "chosen separately. Switch each of them and watch what changes.";
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        DemoControl.ForActions("switch the background between the cubemap and a plain colour", "Environment.Background"),
+        DemoControl.ForActions("cycle the environment cubemap", "Environment.Cubemap"),
+        DemoControl.ForActions("turn the environment lighting on or off", "Environment.Lighting"),
+    };
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "With B the background changes but the reflections keep the current cubemap.",
+        "With L the ambient and specular response changes but the background stays.",
+    };
+
+    public override string DocumentationPath => "docs/engine/environment-system-v1.md";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -34,6 +58,8 @@ public sealed class EnvironmentShowcaseDemo : Demo
         var world = game.GameManager.CurrentWorld;
         var graphicsDevice = game.GraphicsDevice;
 
+        // Two cubemaps made in code (each face is a gradient between two colours), so the E key has something to switch
+        // between. The ??= creates each one only the first time this demo object is initialized.
         _warmCubemap ??= CreateEnvironmentCubemap(
             graphicsDevice,
             size: 32,
@@ -54,10 +80,14 @@ public sealed class EnvironmentShowcaseDemo : Demo
             positiveZ: (new Color(48, 134, 110), new Color(172, 244, 210)),
             negativeZ: (new Color(98, 104, 198), new Color(186, 204, 255)));
 
+        // The objects, then the first write of the environment into the world's settings. The same ApplyEnvironment is
+        // called again by every key.
         SpawnScene(world, graphicsDevice);
         ApplyEnvironment(world.EnvironmentSettings);
     }
 
+    // The base Demo creates an arc-ball camera; this demo keeps it and only picks the start view: a position a little
+    // above the ground and a target near the middle of the objects.
     public override void InitializeCamera(CameraComponent camera)
     {
         if (camera is ArcBallCameraComponent arcBallCamera)
@@ -73,30 +103,29 @@ public sealed class EnvironmentShowcaseDemo : Demo
             return;
         }
 
-        var keyboard = DemoKeyboard.Read(_game);
         var environmentSettings = _game.GameManager.CurrentWorld.EnvironmentSettings;
 
-        if (IsNewKeyPress(keyboard, Keys.B))
+        if (DemoInput.WasPressed(_game, "Environment.Background"))
         {
             _showEnvironmentBackground = !_showEnvironmentBackground;
             ApplyEnvironment(environmentSettings);
         }
 
-        if (IsNewKeyPress(keyboard, Keys.E))
+        if (DemoInput.WasPressed(_game, "Environment.Cubemap"))
         {
             _environmentIndex = (_environmentIndex + 1) % 2;
             ApplyEnvironment(environmentSettings);
         }
 
-        if (IsNewKeyPress(keyboard, Keys.L))
+        if (DemoInput.WasPressed(_game, "Environment.Lighting"))
         {
             _environmentLightingEnabled = !_environmentLightingEnabled;
             ApplyEnvironment(environmentSettings);
         }
-
-        _previousKeyboard = keyboard;
     }
 
+    // The environment belongs to the world, not to the demo: put it back to the engine defaults so the next demo does not
+    // inherit this cubemap and these intensities.
     public override void Clean()
     {
         if (_game?.GameManager.CurrentWorld is { } world)
@@ -108,6 +137,8 @@ public sealed class EnvironmentShowcaseDemo : Demo
         _game = null;
     }
 
+    // Writes the whole environment from the three switches (cubemap index, background, lighting). Every key calls it, so
+    // the settings always match the state fields and nothing is patched piecemeal.
     private void ApplyEnvironment(WorldEnvironmentSettings environmentSettings)
     {
         var environmentCubemap = _environmentIndex == 0 ? _warmCubemap : _studioCubemap;
@@ -118,16 +149,22 @@ public sealed class EnvironmentShowcaseDemo : Demo
             ? new Color(22, 18, 18)
             : new Color(16, 22, 28);
 
+        // Background: either the cubemap drawn behind the scene, or a plain colour. This does not touch the lighting.
         environmentSettings.Type = EnvironmentType.Cubemap;
         environmentSettings.BackgroundMode = _showEnvironmentBackground
             ? EnvironmentBackgroundMode.Environment
             : EnvironmentBackgroundMode.SolidColor;
         environmentSettings.BackgroundColor = backgroundColor;
+        // The cubemaps are passed as objects, not as catalogued assets, so the asset ids are cleared to avoid pointing at
+        // another cubemap. Background and specular use the same one here, but they are two separate settings.
         environmentSettings.EnvironmentAssetId = Guid.Empty;
         environmentSettings.BackgroundCubemapAssetId = Guid.Empty;
         environmentSettings.SpecularEnvironmentCubemapAssetId = Guid.Empty;
         environmentSettings.BackgroundCubemap = environmentCubemap;
         environmentSettings.SpecularEnvironmentCubemap = environmentCubemap;
+        // Lighting: the L key sets both intensities to zero, which removes the ambient and specular contribution without
+        // touching the background settings above. MarkDirty raises the settings' version, which is how the renderer's cached
+        // resolved environment knows to rebuild.
         environmentSettings.AmbientColor = ambientColor;
         environmentSettings.AmbientIntensity = _environmentLightingEnabled ? 1.25f : 0.0f;
         environmentSettings.SpecularIntensity = _environmentLightingEnabled ? 1.15f : 0.0f;
@@ -136,6 +173,9 @@ public sealed class EnvironmentShowcaseDemo : Demo
 
     private void SpawnScene(CasaEngine.Framework.Scene.World.World world, GraphicsDevice graphicsDevice)
     {
+        // Four materials, chosen to make the environment visible. Only the glossy sphere and the panel set
+        // UseSceneReflectionCube, so only they reflect the world's specular cubemap; the ground and the box react to
+        // ambient and the lights only.
         var groundMaterial = new LitDiffuseMaterial
         {
             Name = "EnvironmentShowcaseGround",
@@ -175,6 +215,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
             UseSceneReflectionCube = true,
         };
 
+        // One entity per object: a ground slab, a reflective sphere, a matte box and a reflective panel behind them.
         SpawnStaticModel(
             "EnvironmentGround",
             world,
@@ -212,9 +253,6 @@ public sealed class EnvironmentShowcaseDemo : Demo
             reflectivePanelMaterial);
     }
 
-    private bool IsNewKeyPress(KeyboardState keyboard, Keys key)
-        => keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
-
     private static void SpawnStaticModel(
         string name,
         CasaEngine.Framework.Scene.World.World world,
@@ -224,6 +262,8 @@ public sealed class EnvironmentShowcaseDemo : Demo
         Quaternion rotation,
         LitDiffuseMaterial material)
     {
+        // The placement is stored on the model's root node, not on the component: this is how the demo gives each object
+        // a position and rotation without a per-entity transform.
         var mesh = BuildMesh(name, primitive, graphicsDevice);
         mesh.Material = material;
 
@@ -253,6 +293,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
 
     private static Texture2D CreateCheckerTexture(GraphicsDevice graphicsDevice, int size, Color a, Color b)
     {
+        // An 8 by 8 checkerboard, so the ground has a texture and the reflections have something to bend across.
         int cellSize = size / 8;
         var texture = new Texture2D(graphicsDevice, size, size);
         var data = new Color[size * size];
@@ -279,6 +320,8 @@ public sealed class EnvironmentShowcaseDemo : Demo
         (Color start, Color end) positiveZ,
         (Color start, Color end) negativeZ)
     {
+        // A cubemap has six square faces; each gets a horizontal gradient between two colours (see FillCubeFace). The
+        // false argument means no mipmaps.
         var cubemap = new TextureCube(graphicsDevice, size, false, SurfaceFormat.Color);
         FillCubeFace(cubemap, CubeMapFace.PositiveX, size, positiveX.start, positiveX.end);
         FillCubeFace(cubemap, CubeMapFace.NegativeX, size, negativeX.start, negativeX.end);

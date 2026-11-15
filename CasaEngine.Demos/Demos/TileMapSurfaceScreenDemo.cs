@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Primitives.ThreeD;
+using System.Collections.Generic;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
@@ -39,7 +40,17 @@ public sealed class TileMapSurfaceScreenDemo : Demo
     private TileMapSurfaceComponent? _tileMapSurface;
 
     public override string Title => "Tile map surface screen demo";
-    public override string Description => "Renders a tile map offscreen in orthographic pixel space and displays the texture on a 3D arcade screen.";
+    public override string Description =>
+        "A tile map rendered off-screen in pixel-perfect orthographic space, then shown as a texture on the " +
+        "screen of a 3D arcade cabinet.";
+
+    public override IReadOnlyList<string> Highlights { get; } = new[]
+    {
+        "The 2D scene is drawn at its own resolution, whatever the size of the window.",
+        "Move the camera: the picture stays on the cabinet's screen.",
+    };
+
+    public override string DocumentationPath => "docs/engine/rendering-2d-3d-spaces.md";
 
     public override void Initialize(CasaEngineGame game)
     {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
@@ -21,23 +22,8 @@ public abstract class ComponentEditorBase
 {
     private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
 
-    protected static readonly HashSet<string> DefaultUnsupportedPropertyNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        nameof(EntityComponent.Owner),
-        nameof(SceneComponent.Children),
-        nameof(SceneComponent.Parent),
-        nameof(SceneComponent.Forward),
-        nameof(SceneComponent.Up),
-        nameof(SceneComponent.BoundingBox),
-        nameof(SceneComponent.WorldMatrixWithScale),
-        nameof(SceneComponent.WorldMatrixNoParentScale),
-        nameof(SceneComponent.WorldMatrixNoScale),
-        nameof(SceneComponent.WorldInvertTransposeMatrix),
-        nameof(PhysicsBaseComponent.PhysicsDefinition),
-        nameof(StaticModelComponent.StaticModel),
-        nameof(PhysicsBaseComponent.Collisions),
-        nameof(EntityComponent.Name),
-    };
+    /// <summary>Shared with the remote commands (<see cref="EditorPropertyRules"/>, ADR-0092).</summary>
+    protected static readonly HashSet<string> DefaultUnsupportedPropertyNames = EditorPropertyRules.UnsupportedPropertyNames;
 
     protected MGWindow Window { get; }
     protected EntityComponent Component { get; }
@@ -234,24 +220,13 @@ public abstract class ComponentEditorBase
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(property);
 
-        var currentValue = property.GetValue(target);
-        if (Equals(currentValue, newValue))
-        {
-            return;
-        }
-
-        ExecuteHistoryCommand(
+        EditorWorldOperations.SetProperty(
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
             BuildComponentCommandDescription(property.DisplayName),
-            () =>
-            {
-                property.SetValue(target, newValue);
-                afterApply?.Invoke();
-            },
-            () =>
-            {
-                property.SetValue(target, currentValue);
-                afterApply?.Invoke();
-            });
+            target,
+            property,
+            newValue,
+            afterApply);
     }
 
     protected void ApplyValueChange<T>(string description, Func<T> getter, Action<T> setter, T newValue, Action afterApply = null)
