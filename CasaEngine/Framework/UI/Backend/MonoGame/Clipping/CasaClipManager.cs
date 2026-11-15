@@ -1,4 +1,5 @@
 using MGUI.Shared.Rendering.Clipping;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Clipping;
 
@@ -9,6 +10,7 @@ internal sealed class CasaClipManager
     private readonly CasaScissorClipExecutor _ScissorExecutor;
     private readonly CasaStencilClipExecutor _StencilExecutor;
     private readonly CasaMaskClipExecutor _MaskExecutor;
+    private readonly Stack<NoClipSlot> _FreeNoClipSlots = new();
     private int _ScissorClipCount;
     private int _StencilClipCount;
     private int _MaskClipCount;
@@ -35,12 +37,27 @@ internal sealed class CasaClipManager
 
         return resolution.Strategy switch
         {
-            ClipStrategy.None => new(resolution, () => { }),
+            ClipStrategy.None => PushNoClip(resolution),
             ClipStrategy.Scissor => PushScissor(resolution),
             ClipStrategy.Stencil => PushStencil(resolution),
             ClipStrategy.Mask => PushMask(resolution),
             _ => throw new NotSupportedException($"Clip strategy '{resolution.Strategy}' is not available until the corresponding backend is installed.")
         };
+    }
+
+    /// <summary>Pushes the clip that <see cref="Push(ClipDefinition)"/> pushes for <see cref="ClipDefinition.Rectangle"/> (default strategy preference, scissor
+    /// available), counted the same, without creating the definition.</summary>
+    public ClipScope PushRectangle(Rectangle bounds, bool intersectWithCurrentClip)
+    {
+        _ScissorClipCount++;
+        return _Owner.PushRectangleClipCore(bounds, intersectWithCurrentClip);
+    }
+
+    private ClipScope PushNoClip(ClipResolveResult resolution)
+    {
+        NoClipSlot slot = _FreeNoClipSlots.Count > 0 ? _FreeNoClipSlots.Pop() : new NoClipSlot(this);
+        slot.Scope.Reset(resolution);
+        return slot.Scope;
     }
 
     private ClipScope PushScissor(ClipResolveResult resolution)
@@ -59,5 +76,20 @@ internal sealed class CasaClipManager
     {
         _MaskClipCount++;
         return _MaskExecutor.Push(resolution);
+    }
+
+    /// <summary>The scope of a clip that changes nothing, kept for reuse once disposed.</summary>
+    private sealed class NoClipSlot
+    {
+        private readonly CasaClipManager _Owner;
+        public readonly ClipScope Scope;
+
+        public NoClipSlot(CasaClipManager owner)
+        {
+            _Owner = owner;
+            Scope = new ClipScope(Release);
+        }
+
+        private void Release() => _Owner._FreeNoClipSlots.Push(this);
     }
 }

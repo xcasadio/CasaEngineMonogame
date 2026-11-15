@@ -372,9 +372,28 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     #endregion Draw Text
 
     #region Draw Geometry
-    /// <summary>Returns the first non-null, non-None <see cref="DrawContext"/> from given <paramref name="Values"/></summary>
-    private static DrawContext GetFirstValidDrawContext(params DrawContext?[] Values)
-        => Values == null ? DrawContext.Sprites : Values.First(x => x.HasValue && x != DrawContext.None).Value;
+    /// <summary>Returns the first non-null, non-None <see cref="DrawContext"/> of <paramref name="First"/>, <paramref name="Second"/> and <paramref name="Third"/>,
+    /// in that order, without the array that a variable number of arguments would create on every shape drawn.</summary>
+    /// <exception cref="InvalidOperationException">None of the three is valid.</exception>
+    private static DrawContext GetFirstValidDrawContext(DrawContext? First, DrawContext Second, DrawContext Third)
+    {
+        if (First.HasValue && First.Value != DrawContext.None)
+        {
+            return First.Value;
+        }
+
+        if (Second != DrawContext.None)
+        {
+            return Second;
+        }
+
+        if (Third != DrawContext.None)
+        {
+            return Third;
+        }
+
+        throw new InvalidOperationException("Sequence contains no matching element");
+    }
 
     #region Rectangles
     public void StrokeAndFillRectangle(Vector2 Origin, RectangleF Destination, Color StrokeColor, Color FillColor, int StrokeThickness, DrawContext? PreferredContext = null)
@@ -667,57 +686,112 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     {
         if (!Bounds.HasValue)
         {
-            Rectangle previousBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
-            bool previousScissorState = CurrentSettings.UsesScissorTest;
-            SetClipTarget(null, false);
-
-            ClipDefinition requested = ClipDefinition.None(false);
-            ClipResolveResult resolution = new(requested, requested, ClipStrategy.None, false);
-            return new ClipScope(resolution, () =>
-            {
-                EndDraw(CurrentContext);
-                SpriteBatch.GraphicsDevice.ScissorRectangle = previousBounds;
-
-                bool currentScissorState = CurrentSettings.UsesScissorTest;
-                if (previousScissorState && !currentScissorState)
-                {
-                    SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
-                }
-                else if (!previousScissorState && currentScissorState)
-                {
-                    SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
-                }
-            });
+            return PushScissorClip(null, false, NoClipResolution);
         }
 
-        ClipDefinition definition = Bounds.HasValue
-            ? ClipDefinition.Rectangle(Bounds.Value, IntersectWithCurrentClipTarget)
-            : ClipDefinition.None();
-        return PushClipTemporary(definition);
+        return ClipManager.PushRectangle(Bounds.Value, IntersectWithCurrentClipTarget);
     }
 
     internal ClipScope PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult Resolution)
+        => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, Resolution);
+
+    /// <summary>A scissor push whose scope reports the rectangle clip it was asked for, without creating the <see cref="ClipDefinition"/> that says so.</summary>
+    internal ClipScope PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget)
+        => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, null);
+
+    private ClipScope PushScissorClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult? Resolution)
     {
         Rectangle PreviousBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
         bool PreviousScissorState = CurrentSettings.UsesScissorTest;
 
         SetClipTarget(Bounds, IntersectWithCurrentClipTarget);
 
-        return new ClipScope(Resolution, () =>
-        {
-            EndDraw(CurrentContext);
-            SpriteBatch.GraphicsDevice.ScissorRectangle = PreviousBounds;
+        ScissorClipSlot Slot = _FreeScissorClipSlots.Count > 0 ? _FreeScissorClipSlots.Pop() : new ScissorClipSlot(this);
+        Slot.PreviousBounds = PreviousBounds;
+        Slot.PreviousScissorState = PreviousScissorState;
 
-            bool CurrentScissorState = CurrentSettings.UsesScissorTest;
-            if (PreviousScissorState && !CurrentScissorState)
-            {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
-            }
-            else if (!PreviousScissorState && CurrentScissorState)
-            {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
-            }
-        });
+        if (Resolution.HasValue)
+        {
+            Slot.Scope.Reset(Resolution.Value);
+        }
+        else
+        {
+            Slot.Scope.ResetRectangle(Bounds.Value, IntersectWithCurrentClipTarget);
+        }
+
+        return Slot.Scope;
+    }
+
+    private void RestoreScissor(Rectangle PreviousBounds, bool PreviousScissorState)
+    {
+        EndDraw(CurrentContext);
+        SpriteBatch.GraphicsDevice.ScissorRectangle = PreviousBounds;
+
+        bool CurrentScissorState = CurrentSettings.UsesScissorTest;
+        if (PreviousScissorState && !CurrentScissorState)
+        {
+            SetDrawSettings(WithRasterizerType(RasterizerType.SolidScissorTest));
+        }
+        else if (!PreviousScissorState && CurrentScissorState)
+        {
+            SetDrawSettings(WithRasterizerType(RasterizerType.Solid));
+        }
+    }
+
+    /// <summary>The current settings with another rasterizer type. The last pair of settings that differed by that alone is kept, so that a clip that
+    /// turns the scissor test off and a restore that turns it back on find each other's settings instead of creating new ones.</summary>
+    private DrawSettings WithRasterizerType(RasterizerType Type)
+    {
+        DrawSettings Current = CurrentSettings;
+        if (ReferenceEquals(Current, _RasterizerVariantA) && _RasterizerVariantB.RasterizerType == Type)
+        {
+            return _RasterizerVariantB;
+        }
+
+        if (ReferenceEquals(Current, _RasterizerVariantB) && _RasterizerVariantA.RasterizerType == Type)
+        {
+            return _RasterizerVariantA;
+        }
+
+        DrawSettings Changed = Current with { RasterizerType = Type };
+        _RasterizerVariantA = Current;
+        _RasterizerVariantB = Changed;
+        return Changed;
+    }
+
+    /// <summary>What <see cref="PushRectangleClip"/> reports when it is given no bounds.</summary>
+    private static readonly ClipResolveResult NoClipResolution = CreateNoClipResolution();
+
+    private static ClipResolveResult CreateNoClipResolution()
+    {
+        ClipDefinition None = ClipDefinition.None(false);
+        return new ClipResolveResult(None, None, ClipStrategy.None, false);
+    }
+
+    private readonly Stack<ScissorClipSlot> _FreeScissorClipSlots = new();
+    private DrawSettings _RasterizerVariantA;
+    private DrawSettings _RasterizerVariantB;
+
+    /// <summary>A scissor clip's scope and what it restores, kept in fields so that a push creates no closure. A slot goes back to its transaction's
+    /// free stack when its scope is disposed, so nested clips use one slot per level and any order of disposal stays correct.</summary>
+    private sealed class ScissorClipSlot
+    {
+        private readonly CasaDrawTransaction _Owner;
+        public readonly ClipScope Scope;
+        public Rectangle PreviousBounds;
+        public bool PreviousScissorState;
+
+        public ScissorClipSlot(CasaDrawTransaction Owner)
+        {
+            _Owner = Owner;
+            Scope = new ClipScope(Restore);
+        }
+
+        private void Restore()
+        {
+            _Owner.RestoreScissor(PreviousBounds, PreviousScissorState);
+            _Owner._FreeScissorClipSlots.Push(this);
+        }
     }
 
     /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering.</summary>
@@ -773,11 +847,11 @@ public class CasaDrawTransaction : IMonoGameDrawContext
             SpriteBatch.GraphicsDevice.ScissorRectangle = DeviceBounds ?? ToDeviceSpace(Renderer.GetViewport(0));
             if (ShouldScissorTest && !IsScissorTesting)
             {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
+                SetDrawSettings(WithRasterizerType(RasterizerType.SolidScissorTest));
             }
             else if (!ShouldScissorTest && IsScissorTesting)
             {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
+                SetDrawSettings(WithRasterizerType(RasterizerType.Solid));
             }
         }
     }

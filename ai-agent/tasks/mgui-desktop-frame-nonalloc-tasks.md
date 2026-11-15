@@ -446,7 +446,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   emplacements, réarmer ses scopes par `Reset` ou `ResetRectangle`, et éviter le `with` de ses réglages à chaque
   bascule de scissor.
 
-### ⏳ T3.2 — Mesure sur le renderer de CasaEngine (D4)
+### 🧪 T3.2 — Mesure sur le renderer de CasaEngine (D4)
 
 - Prérequis : T1.5 ✅ et T3.1 ✅.
 - Fichiers (runtime) : `CasaEngine/Framework/UI/Backend/MonoGame/CasaDrawTransaction.cs` (`ClipScope` : `:676`,
@@ -461,6 +461,31 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Validation : les deux solutions du moteur 0 erreur, `CasaEngine.Tests` vert sans test sauté.
 - Commit (moteur) : `perf(ui): draw a desktop frame through the engine backend without allocating`, avec la référence
   du sous-module.
+- **Code fait le 2026-11-15, tâche en 🧪** : la preuve tient avec une transaction créée une fois ; le chemin réel
+  du moteur crée une `CasaDrawTransaction` par image (`CasaDesktopRuntime.cs:127` et `:151`, hors des fichiers de la
+  tâche), dont le constructeur alloue 2304 octets par image (5616 avant la tâche). Rendre cette transaction
+  réutilisable est une décision de l'auteur (voir O7).
+- Mesures (GPU réel, FontStashSharp, 500 images après 500 de chauffe, transaction créée une fois), octets par image :
+  `Update` 0 avant et après ; `Draw` au repos 4752 puis 0 ; `Draw` en glissement 5472 puis 0. Contre-épreuve sur le
+  code d'avant : 4752 et 5472.
+- Sites : `CasaDrawTransaction.cs:376`, `GetFirstValidDrawContext` en `params` (48 par forme dessinée) ;
+  `PushRectangleClip` avec bornes (288 par paire) et sans bornes (672) : `ClipDefinition`, résolution, `ClipScope`,
+  closure, `with` des réglages ; `CasaClipManager.cs:38`, stratégie `None` (80 par paire).
+- Corrections, sur le modèle de T3.1 : emplacements de scissor réutilisables sur une pile d'emplacements libres,
+  réarmés par `ResetRectangle` ; résolution partagée pour le clip nul ; `WithRasterizerType` ; emplacement réutilisable
+  pour la stratégie `None` ; surcharge à trois paramètres sans tableau. `CasaStencilClipExecutor.cs` et
+  `CasaMaskClipExecutor.cs` ne sont pas modifiés.
+- Pixels : cible 640x360, SHA-256 des octets RGBA figé sur le code d'avant, repos `124E0E0F…438C9F36`, glissement
+  `A627D0D3…94D7BFA9` ; identiques sur 5 exécutions avant et 3 après. Ces valeurs sont propres à cette machine : un
+  autre GPU ou pilote peut en donner d'autres.
+- Tests ajoutés (6, `DesktopFrameGpuAllocationTests`) : deux zéros, un test de pixels, deux tests de clips imbriqués
+  à 4 niveaux (rectangle de scissor, `UsesScissorTest`, `CurrentClipBounds`, `Resolution`, réglages rendus à l'état
+  de départ ; passent aussi sur le code d'avant), une mesure sans affirmation.
+- Validation : les deux solutions 0 erreur ; `CasaEngine.Tests` 5486 verts, aucun sauté.
+- Ce qui alloue encore dans le backend, mesuré : clip à stencil 1112 octets par paire (non atteint par la fixture) ;
+  `SetDrawSettingsTemporary` 112 et `SetTransformTemporary` 304 par paire (`CasaDrawStateController.cs:115-116`).
+  Lu dans le code, non mesuré : `CasaLegacyShapeRenderer2D.cs:86-93` crée un `Vector2[4]` par `FillRectangle` en
+  contexte `Primitives`. Le constat P3 de T3.1 sur `WithRasterizerType` vaut aussi ici.
 
 ### ⏳ T4.1 — Suite par famille de contrôles (D2), documentation et clôture
 
@@ -480,6 +505,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 | O4 | Résolu le 2026-11-15 : tâches T1.0 à T1.5 réécrites par fixture, dans l'ordre de l'inventaire de T0.1. | — |
 | O5 | Résolu le 2026-11-15 : D7. | — |
 | O6 | T1.2 retire de `MGWindow.cs` la ligne `foreach (var Nested in _NestedWindows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost))`. Le test `MGUI.Tests/Focus/FocusArchitectureTests.cs:87` (`Window_Update_Source_Prioritizes_Modal_Window_Before_NonModal_Nested_Windows`) cherche cette ligne dans le texte du fichier et échoue. Ce fichier de test était hors du périmètre confié au sous-agent ; sa modification lui a été refusée par le système de permissions, et la session principale ne l'a pas faite à sa place. Question à l'auteur : autoriser le remplacement de la chaîne cherchée par `MGDesktop.FillUpdateOrder(_NestedWindows,` (le comportement, fenêtre modale avant les fenêtres imbriquées, est aussi couvert par un test de caractérisation de T1.2) ? T1.3 à T2.1 et T3.2 attendent cette réponse. **Réponse de l'auteur le 2026-11-15 : oui.** Fait dans `fda5cd1f`. | T1.2 |
+| O7 | T3.2 : `CasaDesktopRuntime` crée une `CasaDrawTransaction` par image (`CasaDesktopRuntime.cs:127`, `:151`) ; son constructeur alloue 2304 octets par image. Le dessin lui-même est à 0. Question à l'auteur : autoriser une tâche qui garde et réutilise la transaction dans `CasaDesktopRuntime` (changement de durée de vie d'un objet du backend, hors des fichiers de T3.2) ? Sans cela, T3.2 reste 🧪. | T3.2 |
 
 ## Hors périmètre
 
