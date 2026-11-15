@@ -1,0 +1,818 @@
+{
+  "files": [
+    "Blended.material",
+    "Masked.material",
+    "Opaque.material",
+    "OpaqueDoubleSided.material",
+    "Plain.material",
+    "Unlit.material",
+    "base.png",
+    "base.texture",
+    "emissive.png",
+    "mr.png",
+    "normal.png",
+    "normal.texture",
+    "occlusion.png",
+    "pbrprobe.gltf",
+    "pbrprobe.staticModel"
+  ],
+  "documents": {
+    "Blended.material": {
+      "id": "<guid-1>",
+      "name": "pbrprobe_Blended",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "diffuse_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 127
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 0.0
+      }
+    },
+    "Masked.material": {
+      "id": "<guid-2>",
+      "name": "pbrprobe_Masked",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "diffuse_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 128.0
+      }
+    },
+    "Opaque.material": {
+      "id": "<guid-3>",
+      "name": "pbrprobe_Opaque",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "base_color_texture": "<guid-4>",
+        "normal_texture": "<guid-5>",
+        "diffuse_color": {
+          "r": 127,
+          "g": 127,
+          "b": 127,
+          "a": 255
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 3.5555553
+      }
+    },
+    "OpaqueDoubleSided.material": {
+      "id": "<guid-6>",
+      "name": "pbrprobe_OpaqueDoubleSided",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "diffuse_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 16.0
+      }
+    },
+    "Plain.material": {
+      "id": "<guid-7>",
+      "name": "pbrprobe_Plain",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "diffuse_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 16.0
+      }
+    },
+    "Unlit.material": {
+      "id": "<guid-8>",
+      "name": "pbrprobe_Unlit",
+      "definition_id": "lit-diffuse",
+      "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+      "is_transparent": false,
+      "queue": "Opaque",
+      "cast_shadows": true,
+      "receive_shadows": true,
+      "blend_state": "Opaque",
+      "depth_stencil_state": "Default",
+      "rasterizer_state": "CullCounterClockwise",
+      "sampler_state": "AnisotropicWrap",
+      "properties": {
+        "diffuse_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "alpha_cutoff": 0.5,
+        "ambient_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "emissive_color": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "specular_color": {
+          "x": 0.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "specular_power": 16.0
+      }
+    },
+    "base.texture": {
+      "id": "<guid-4>",
+      "name": "pbrprobe_base",
+      "texture_asset_id": "<guid-9>",
+      "sampler_state": {
+        "texture_filter": "Anisotropic",
+        "address_u": "Wrap",
+        "address_v": "Wrap",
+        "address_w": "Wrap",
+        "border_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "max_anisotropy": 4,
+        "max_mip_level": 0,
+        "mip_map_level_of_detail_bias": 0.0,
+        "comparison_function": "Never",
+        "filter_mode": "Default"
+      }
+    },
+    "normal.texture": {
+      "id": "<guid-5>",
+      "name": "pbrprobe_normal",
+      "texture_asset_id": "<guid-10>",
+      "sampler_state": {
+        "texture_filter": "Anisotropic",
+        "address_u": "Wrap",
+        "address_v": "Wrap",
+        "address_w": "Wrap",
+        "border_color": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        },
+        "max_anisotropy": 4,
+        "max_mip_level": 0,
+        "mip_map_level_of_detail_bias": 0.0,
+        "comparison_function": "Never",
+        "filter_mode": "Default"
+      }
+    },
+    "pbrprobe.staticModel": {
+      "id": "<guid-11>",
+      "name": "pbrprobe",
+      "root_node": {
+        "name": "",
+        "mesh_index": 0,
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "children": [
+          {
+            "name": "Mesh 2 [Masked]",
+            "mesh_index": 1,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "children": []
+          },
+          {
+            "name": "Mesh 3 [Blended]",
+            "mesh_index": 2,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "children": []
+          },
+          {
+            "name": "Mesh 4 [OpaqueDoubleSided]",
+            "mesh_index": 3,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "children": []
+          },
+          {
+            "name": "Mesh 5 [Plain]",
+            "mesh_index": 4,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "children": []
+          },
+          {
+            "name": "Mesh 6 [Unlit]",
+            "mesh_index": 5,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "children": []
+          }
+        ]
+      },
+      "meshes": [
+        {
+          "name": "Mesh 1 [Opaque]",
+          "slot_name": "Mesh 1 [Opaque]",
+          "material_slot_index": 0,
+          "primitive_type": "TriangleList",
+          "material_index": 0,
+          "texture_asset_id": "<guid-4>",
+          "material_asset_id": "<guid-3>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Mesh 2 [Masked]",
+          "slot_name": "Mesh 2 [Masked]",
+          "material_slot_index": 1,
+          "primitive_type": "TriangleList",
+          "material_index": 1,
+          "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+          "material_asset_id": "<guid-2>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Mesh 3 [Blended]",
+          "slot_name": "Mesh 3 [Blended]",
+          "material_slot_index": 2,
+          "primitive_type": "TriangleList",
+          "material_index": 2,
+          "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+          "material_asset_id": "<guid-1>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Mesh 4 [OpaqueDoubleSided]",
+          "slot_name": "Mesh 4 [OpaqueDoubleSided]",
+          "material_slot_index": 3,
+          "primitive_type": "TriangleList",
+          "material_index": 3,
+          "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+          "material_asset_id": "<guid-6>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Mesh 5 [Plain]",
+          "slot_name": "Mesh 5 [Plain]",
+          "material_slot_index": 4,
+          "primitive_type": "TriangleList",
+          "material_index": 4,
+          "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+          "material_asset_id": "<guid-7>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Mesh 6 [Unlit]",
+          "slot_name": "Mesh 6 [Unlit]",
+          "material_slot_index": 5,
+          "primitive_type": "TriangleList",
+          "material_index": 5,
+          "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+          "material_asset_id": "<guid-8>",
+          "vertices": [
+            {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 1.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            },
+            {
+              "position": {
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+              },
+              "normal": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "texture_coordinate": {
+                "x": 0.0,
+                "y": 0.0
+              }
+            }
+          ],
+          "indices": [
+            0,
+            2,
+            1
+          ]
+        }
+      ]
+    }
+  }
+}
