@@ -145,7 +145,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Validation de chaque tâche : `dotnet build MGUI.sln` 0 erreur, `dotnet test MGUI.Tests/MGUI.Tests.csproj` vert sans
   test sauté, depuis `MGUI/`.
 
-### ⏳ T1.0 — Transaction de caractérisation
+### ✅ T1.0 — Transaction de caractérisation
 
 - Fichiers (tests seulement) : `MGUI/MGUI.Tests/Graph/OrderedRecordingDrawTransaction.cs`,
   `MGUI/MGUI.Tests/Architecture/OrderedRecordingDrawTransactionTests.cs`. Aucun code de production.
@@ -159,8 +159,14 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   ou échanger deux appels de sortes différentes, fait échouer la comparaison (tests) ; deux images au repos
   successives donnent le même journal.
 - Commit (MGUI) : `test(desktop): record every draw transaction call in order`
+- **Fait le 2026-11-15** (MGUI `7cb8f1dd`). Une ligne par appel, dans l'ordre, avec les arguments ; chaque `Push`
+  écrit un identifiant de scope et ses bornes, chaque `Dispose` sa ligne. Le journal attendu d'un test est figé par
+  son nombre de lignes et un préfixe SHA-256, le journal entier étant écrit en cas d'échec (`FrozenJournal`).
+- Écart : la fixture `Full` ne dessine aucun `StrokeRectangle` ; le test de mutation retire une ligne `FillRectangle`,
+  `StrokeLineSegment`, `DrawTextViaEngine` ou `FillPoint`, et échange deux lignes de sortes différentes ; chaque
+  mutation fait échouer la comparaison.
 
-### ⏳ T1.1 — Ordre des fenêtres sans allocation (D3)
+### ✅ T1.1 — Ordre des fenêtres sans allocation (D3)
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGDesktop.cs` (phase `OrderedWindows` de `Update`, boucle des fenêtres de
   `Draw(IUIDrawTransaction, float)`), test `MGUI/MGUI.Tests/Architecture/DesktopWindowOrderTests.cs`.
@@ -180,8 +186,17 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
     fermée pendant son propre `Update` ne casse pas la boucle (test).
 - Hors de cette tâche : `MGDesktop.Update` entier n'est pas encore à zéro (T1.2 et T1.3).
 - Commit (MGUI) : `perf(desktop): order the windows without allocating`
+- **Fait le 2026-11-15** (MGUI `1cb1442e`). `MGDesktop.FillUpdateOrder` et `FillDrawOrder` (`internal static`, deux
+  passes) ; une liste gardée par site avec un indicateur d'usage, vidée dans un `finally` ; un appel imbriqué prend une
+  liste neuve.
+- Mesures : chaque méthode, 500 appels sur 8 fenêtres : 0 octet ; les expressions LINQ d'origine : 552 octets (ordre
+  d'`Update`) et 384 octets (ordre de `Draw`) par appel. Sur `NoWindow`, `Update` passe de 1080 à 856 octets et `Draw`
+  de 88 à 0.
+- Caractérisation (écrite avant, verte avant et après) : ordre d'`Update` et de `Draw` de 4 fenêtres mêlées, fenêtre
+  fermée ou ouverte pendant son propre `Update` ou `Draw`, `Update` ou `Draw` imbriqué appelé par une fenêtre.
+- Validation : `MGUI.Tests` 3557 verts à `1cb1442e`, aucun sauté.
 
-### ⏳ T1.2 — Le bureau sans fenêtre de l'appelant
+### ⚠️ T1.2 — Le bureau sans fenêtre de l'appelant
 
 - Fixture : `AnIdleFrame(NoWindow)` (aujourd'hui `Update` 1080 octets, `Draw` 88). Ce bureau n'est pas vide : à
   chaque `Update`, `MGDesktop` insère sa fenêtre de surcouches privée (`OverlayWindow`, `MGDesktop.cs:1442-1448`,
@@ -197,6 +212,27 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 - Fin : `MGDesktop.Update()` et `MGDesktop.Draw(IUIDrawTransaction)` de cette fixture allouent 0 octet par image,
   souris immobile puis souris en mouvement sans bouton ; contre-éprouvé ; caractérisation identique.
 - Commit (MGUI) : `perf(desktop): update and draw a desktop without windows without allocating`
+- **En pause le 2026-11-15, voir O6.** Le travail est terminé mais non commité sur la branche du chantier : il est
+  rangé sur la branche MGUI `chantier/mgui-nonalloc-t1.2-parked` (`1c31be75`, commit de rangement, un test en échec).
+- Sites localisés (octets par image, somme 856 = la mesure de `NoWindow` après T1.1) :
+  - `Navigation/UIFocusNavigationService.cs:273-283`, `TryDispatchGamePadNavigationActions` : énumérateur boxé d'un
+    `IReadOnlyList` (32) et une closure par itération, 16 itérations (384) ;
+  - `MGOverlay.cs:244` : `MGOverlayHost` s'abonne à son propre `OnBeginUpdate`, donc `RaiseUpdateEvent` crée un
+    `ElementUpdateEventArgs` par image (136) ;
+  - `MGWindow.cs:1709` : même cause pour chaque fenêtre (136) ;
+  - `MGWindow.cs:1874` : `_NestedWindows.Reverse().OrderByDescending(…)` dans `OnBeginUpdateContents`, par fenêtre,
+    même sans fenêtre imbriquée (136) ;
+  - `MGOverlay.cs:370` : `GetVisualTreeChildren(true, false)` crée une liste par image (32).
+- Corrections rangées : boucle manette sur un tableau avec appel direct ; quatre méthodes `internal virtual` de
+  `MGElement.Update` (`BeginUpdateInternal`, `BeginUpdateContentsInternal`, `EndUpdateContentsInternal`,
+  `EndUpdateInternal`), appelées juste avant l'événement correspondant, que `MGWindow` et `MGOverlayHost` redéfinissent
+  au lieu de s'abonner à leurs propres événements ; ordre des fenêtres imbriquées par `MGDesktop.FillUpdateOrder` ;
+  `MGOverlayHost.GetVisualTreeChildren` rend la liste de base quand il n'y a pas de surcouche inactive.
+- Mesures de l'arbre rangé : `Update` 0 octet sur toutes les fixtures (dont `Full` et le glissement) ; `Draw` :
+  `BareWindow` 1369, `DefaultWindow` 2441, `WindowWithStackPanel` 3041, `…AndTextBlock` 3289, `…AndSlider` 3489,
+  `Full` 3697, glissement 3697. Suite : 3567 réussis, 1 échec (celui de O6), aucun sauté.
+- Sites vus pour la suite, non mesurés : `MGWindow.cs:2429` (`_NestedWindows.OrderBy` dans `Draw`) ;
+  `MGResizeGrip.cs:98` (abonnement à `OnBeginUpdateContents` de la fenêtre hôte).
 
 ### ⏳ T1.3 — Une fenêtre nue
 
@@ -251,7 +287,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   contre-éprouvé. `MGGrid` et `MGDockPanel` sont prouvés par les fixtures de T1.5 avec le même changement de texte.
 - Commit (MGUI) : `perf(layout): measure and arrange the slider's containers without allocating`
 
-### ⏳ T3.1 — `ClipScope` réutilisable (D7)
+### ✅ T3.1 — `ClipScope` réutilisable (D7)
 
 - Unité à risque (API publique de `MGUI.Shared`, MGUI et moteur) : `verifier` frais après T3.2.
 - Fichiers (MGUI) : `MGUI.Shared/Rendering/Clipping/ClipAbstractions.cs`,
@@ -281,6 +317,41 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
   - les clips à stencil et à masque (`:121`, `:162`, `PushMask`) gardent leur comportement ; s'ils allouent encore,
     leur mesure est écrite ici (ils ne sont pas dans l'image du bureau de D2).
 - Commit (MGUI) : `feat(clip): let a backend reuse its clip scopes`
+- **Fait le 2026-11-15** (MGUI `f9c2a408`, ADR-0027 de MGUI), exécutée avant T1.2 à T2.1 parce que ses fichiers sont
+  disjoints et que T1.2 attend O6. API publique ajoutée, sur `ClipScope` seulement : `ClipScope(Action)` (scope non
+  armé), `Reset(ClipResolveResult)` et `ResetRectangle(Rectangle, bool)` (réarment un scope libéré ; lèvent
+  `InvalidOperationException` sur un scope encore armé) ; `Resolution` est construite à la lecture après
+  `ResetRectangle`. Le constructeur d'origine et `Dispose` sont inchangés ; `ClipDefinition` et `ClipResolveResult`
+  ne sont pas touchés.
+- Réutilisation : `DrawTransaction` garde des emplacements (scope, rectangle et état de scissor précédents, action de
+  restauration créée une fois) sur une pile d'emplacements libres ; `ClipManager` fait de même pour la stratégie
+  `None`. Écart au plan : pile d'emplacements libres au lieu d'un emplacement par profondeur, pour qu'un `Dispose`
+  hors d'ordre ne rende jamais un scope encore armé (noté dans l'ADR, avec le risque d'une référence périmée :
+  libérer de nouveau un scope déjà réarmé libère le nouveau clip).
+- Changement non prévu, nécessaire au zéro : `SetClipTarget` et la restauration créaient un `DrawSettings` par
+  `CurrentSettings with {…}` ; une méthode privée `WithRasterizerType` garde la dernière paire de réglages qui ne
+  diffèrent que par le type de rasterizer.
+- Mesures (500 paires `Push` et `Dispose`, GPU réel) : `PushRectangleClip` avec bornes 136 000 octets avant, 0 après ;
+  `PushRectangleClip(null)` 328 000, 0 ; `PushClipTemporary` rectangle 88 000, 0 ; stratégie `None` 32 000, 0 ;
+  imbrication à 4 niveaux 0.
+- Ce qui alloue encore, mesuré, hors de la tâche : clip à stencil 1112 octets par paire ;
+  `SetDrawSettingsTemporary` 112 ; `SetTransformTemporary` 304. Le clip à masque n'est pas atteint par
+  `DrawTransaction` (le résolveur choisit toujours le stencil).
+- Validation : `MGUI.Tests` 3575 verts ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` 0 erreur ;
+  `CasaEngine.Tests` 5479 verts ; aucun test sauté.
+- **Vérification indépendante : CONFIRMED** (2026-11-15). Liste par réflexion des membres publics et protégés avant et
+  après : trois membres ajoutés, rien d'autre ; 100 séquences aléatoires de clips (environ 145 000 lignes d'état du
+  `GraphicsDevice`, des réglages, des diagnostics et des `Resolution`) identiques à l'octet entre l'ancien et le
+  nouveau code ; zéro remesuré par le vérificateur ; tests de zéro contre-éprouvés.
+- Constat P3 reporté, non corrigé : après `SetTransformTemporary`, un `PushRectangleClip(null)`, une lecture de
+  `CurrentSettings.InverseTransform` puis le `Dispose` du clip, les réglages rendus par `WithRasterizerType` ne sont
+  pas `Equals` à une copie neuve (l'égalité générée de `DrawSettings` compare aussi son cache privé d'inverse) :
+  `PreviousSettings` et le moment où le lot est vidé diffèrent de l'ancien code. L'état du `GraphicsDevice`, les
+  valeurs publiques des réglages et le rendu sont identiques ; aucun code de MGUI ni du moteur ne lit
+  `InverseTransform` ni `PreviousSettings`.
+- Pour T3.2 : le backend du moteur (`CasaDrawTransaction`, `CasaClipManager`, exécuteurs) doit garder ses propres
+  emplacements, réarmer ses scopes par `Reset` ou `ResetRectangle`, et éviter le `with` de ses réglages à chaque
+  bascule de scissor.
 
 ### ⏳ T3.2 — Mesure sur le renderer de CasaEngine (D4)
 
@@ -315,6 +386,7 @@ Le plan du texte est terminé. Ordre : T1.0 à T1.5, T2.1, T3.1, T3.2, T4.1. Val
 | O3 | Résolu le 2026-11-15 : D6. | — |
 | O4 | Résolu le 2026-11-15 : tâches T1.0 à T1.5 réécrites par fixture, dans l'ordre de l'inventaire de T0.1. | — |
 | O5 | Résolu le 2026-11-15 : D7. | — |
+| O6 | T1.2 retire de `MGWindow.cs` la ligne `foreach (var Nested in _NestedWindows.Reverse<MGWindow>().OrderByDescending(x => x.IsTopmost))`. Le test `MGUI.Tests/Focus/FocusArchitectureTests.cs:87` (`Window_Update_Source_Prioritizes_Modal_Window_Before_NonModal_Nested_Windows`) cherche cette ligne dans le texte du fichier et échoue. Ce fichier de test était hors du périmètre confié au sous-agent ; sa modification lui a été refusée par le système de permissions, et la session principale ne l'a pas faite à sa place. Question à l'auteur : autoriser le remplacement de la chaîne cherchée par `MGDesktop.FillUpdateOrder(_NestedWindows,` (le comportement, fenêtre modale avant les fenêtres imbriquées, est aussi couvert par un test de caractérisation de T1.2) ? T1.3 à T2.1 et T3.2 attendent cette réponse. | T1.2 |
 
 ## Hors périmètre
 
