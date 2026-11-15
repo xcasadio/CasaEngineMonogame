@@ -31,7 +31,8 @@ namespace CasaEngine.Demos.Demos;
 /// directional light. <c>CASAENGINE_COLOR_DEMO_BUFFERED=1</c> runs the demo in a buffered virtual resolution
 /// (<see cref="VirtualResolutionMode.BufferedFit"/>, 1024 x 768, so the pixels stay where they are without it): the view
 /// then draws into a <c>RenderTargetSurface</c> presented by <c>VirtualResolutionPresenter</c>, user interface and text
-/// included. Keys: M changes the mode, T the operator, = / + raises the exposure by 0.25 and - lowers it.
+/// included. Keys: M changes the mode, T the operator, = / + raises the exposure by 0.25 and - lowers it, B toggles the
+/// bloom (<c>CASAENGINE_DEMO_BLOOM=1</c> starts with it on).
 /// </para>
 /// </summary>
 public sealed class ColorPipelineDemo : Demo
@@ -273,12 +274,18 @@ public sealed class ColorPipelineDemo : Demo
             changed = true;
         }
 
+        if (WasPressed(keyboard, Keys.B))
+        {
+            colorPipeline.BloomEnabled = !colorPipeline.BloomEnabled;
+            changed = true;
+        }
+
         _previousKeyboard = keyboard;
 
         if (changed)
         {
             settings.MarkDirty();
-            Logs.WriteInfo($"[ColorPipelineDemo] {colorPipeline.Mode}, {colorPipeline.Tonemapper}, exposure {colorPipeline.Exposure}.");
+            Logs.WriteInfo($"[ColorPipelineDemo] {colorPipeline.Mode}, {colorPipeline.Tonemapper}, exposure {colorPipeline.Exposure}, bloom {colorPipeline.BloomEnabled}.");
         }
     }
 

@@ -3,6 +3,7 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.FrozenFrames;
+using CasaEngine.Framework.Rendering.PostProcess;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -64,10 +65,21 @@ public sealed class RenderPipeline
     /// <summary>Number of HDR scene targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
     internal int HdrTargetDisposalCount { get; private set; }
 
-    // Render index of the last use of each HDR target key (width, height, format). Filled when a size is first seen, so no
-    // allocation at constant size; swept once per Render.
-    private readonly Dictionary<(int, int, SurfaceFormat), long> _hdrLastUsedRender = new();
-    private readonly List<(int, int, SurfaceFormat)> _hdrStaleKeys = new();
+    /// <summary>Number of bloom targets created since the start (see <see cref="BloomRenderer"/>).</summary>
+    internal int BloomTargetCreationCount => _bloomRenderer.TargetCreationCount;
+
+    /// <summary>Number of bloom targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
+    internal int BloomTargetDisposalCount { get; private set; }
+
+    // Render index of the last use of each tracked target key (width, height, format, depth format): the HDR scene targets
+    // (with depth) and the bloom targets (without). Filled when a key is first seen, so no allocation at constant size; swept
+    // once per Render.
+    private readonly Dictionary<(int, int, SurfaceFormat, DepthFormat), long> _hdrLastUsedRender = new();
+    private readonly List<(int, int, SurfaceFormat, DepthFormat)> _hdrStaleKeys = new();
+    private readonly List<((int, int, SurfaceFormat, DepthFormat) Key, int Disposed)> _releasedTargets = new();
+
+    private readonly BloomRenderer _bloomRenderer;
+    private bool _bloomShaderMissingLogged;
 
     /// <summary>
     /// The frozen frame's GPU side (E19.TR-4a): keeps the last frame of the target view and copies it on request.
@@ -115,6 +127,7 @@ public sealed class RenderPipeline
         _graphicsDevice = graphicsDevice;
         _renderers      = renderers;
         _spriteBatch    = spriteBatch;
+        _bloomRenderer  = new BloomRenderer(graphicsDevice, spriteBatch);
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -528,15 +541,18 @@ public sealed class RenderPipeline
             return;
         }
 
-        _hdrStaleKeys.Clear();
-        HdrTargetEviction.CollectStale(_hdrLastUsedRender, _renderIndex, _hdrStaleKeys);
+        _releasedTargets.Clear();
+        HdrTargetEviction.Sweep(_hdrLastUsedRender, _renderIndex, _hdrStaleKeys, _releasedTargets, RenderTargetPool.Shared);
 
-        for (int i = 0; i < _hdrStaleKeys.Count; i++)
+        for (int i = 0; i < _releasedTargets.Count; i++)
         {
-            var key = _hdrStaleKeys[i];
-            _hdrLastUsedRender.Remove(key);
-            int disposed = RenderTargetPool.Shared.TrimFree(key.Item1, key.Item2, key.Item3, DepthFormat.Depth24Stencil8);
-            if (disposed > 0)
+            var (key, disposed) = _releasedTargets[i];
+            if (key.Item4 == DepthFormat.None)
+            {
+                BloomTargetDisposalCount += disposed;
+                Logs.WriteDebug($"[Bloom] target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {BloomTargetDisposalCount}, alive {BloomTargetCreationCount - BloomTargetDisposalCount}");
+            }
+            else
             {
                 HdrTargetDisposalCount += disposed;
                 Logs.WriteDebug($"[ColorPipeline] HDR scene target released: {key.Item1}x{key.Item2} {key.Item3}, render {_renderIndex}, disposed {HdrTargetDisposalCount}, alive {HdrTargetCreationCount - HdrTargetDisposalCount}");
@@ -570,7 +586,7 @@ public sealed class RenderPipeline
             }
         }
 
-        _hdrLastUsedRender[(width, height, target.Format)] = _renderIndex;
+        _hdrLastUsedRender[(width, height, target.Format, DepthFormat.Depth24Stencil8)] = _renderIndex;
 
         if (pool.TotalCount != countBefore)
         {
@@ -613,6 +629,11 @@ public sealed class RenderPipeline
                 pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
             }
 
+            if (frame.Environment.BloomEnabled)
+            {
+                ApplyBloom(hdrTarget, in frame);
+            }
+
             var viewRectangle = view.Surface.ViewportRect;
             BindHdrDestination(view, colorPlan.Destination, in capturePlan, initialRenderTarget, viewRectangle);
             DrawTonemap(hdrTarget, viewRectangle.Width, viewRectangle.Height, frame.Environment.Tonemapper, frame.Environment.Exposure);
@@ -633,6 +654,33 @@ public sealed class RenderPipeline
         {
             RenderTargetPool.Shared.Release(hdrTarget);
         }
+    }
+
+    /// <summary>
+    /// Adds the bloom of the view to its HDR scene target (ADR-0099), after the scene and before the tonemapping, so the
+    /// interface composed afterwards is never touched. Skipped, with one warning, when the bloom shader is not loaded.
+    /// </summary>
+    private void ApplyBloom(RenderTarget2D hdrTarget, in RenderFrame frame)
+    {
+        if (_bloomShader == null)
+        {
+            if (!_bloomShaderMissingLogged)
+            {
+                _bloomShaderMissingLogged = true;
+                Logs.WriteWarning("[Bloom] The bloom shader is not loaded: bloom is skipped.");
+            }
+
+            return;
+        }
+
+        _bloomRenderer.Render(
+            hdrTarget,
+            _bloomShader,
+            frame.Environment.BloomThreshold,
+            frame.Environment.BloomIntensity,
+            frame.Environment.BloomRadius,
+            _hdrLastUsedRender,
+            _renderIndex);
     }
 
     /// <summary>

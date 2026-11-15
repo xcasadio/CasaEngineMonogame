@@ -126,6 +126,40 @@ public class BloomShaderCoverageTests
         Assert.Contains("SetBloomEffect(Content.Load<Effect>(BuiltInShaderCatalog.BloomContentName))", game, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void BloomRenderer_UsesTheFormatOfTheSceneTargetAndNoDepth_AndSkipsAColorTarget()
+    {
+        string renderer = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(), "CasaEngine", "Framework", "Rendering", "PostProcess", "BloomRenderer.cs"));
+
+        Assert.Contains("var format = hdrTarget.Format;", renderer, StringComparison.Ordinal);
+        Assert.Contains("pool.Acquire(width, height, format, DepthFormat.None)", renderer, StringComparison.Ordinal);
+        Assert.Contains("lastUsedRender[(width, height, format, DepthFormat.None)] = renderIndex;", renderer, StringComparison.Ordinal);
+        Assert.Contains("hdrTarget.Format == SurfaceFormat.Color", renderer, StringComparison.Ordinal);
+        Assert.Equal(1, Regex.Matches(renderer, @"WriteWarning\(").Count);
+        Assert.Contains("_colorFormatWarningLogged", renderer, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RenderHdrView_AppliesTheBloomBetweenTheSceneAndTheTonemapping()
+    {
+        string source = File.ReadAllText(Path.Combine(
+            FindRepositoryRoot(), "CasaEngine", "Framework", "Rendering", "RenderPipeline.cs"));
+        int start = source.IndexOf("private void RenderHdrView(", StringComparison.Ordinal);
+        Assert.True(start >= 0);
+        string body = source[start..];
+
+        int scene = body.IndexOf("scenePipeline.RenderScene(", StringComparison.Ordinal);
+        int bloom = body.IndexOf("ApplyBloom(hdrTarget, in frame);", StringComparison.Ordinal);
+        int tonemap = body.IndexOf("DrawTonemap(hdrTarget,", StringComparison.Ordinal);
+        int interfaceCompose = body.IndexOf(".Compose(_graphicsDevice, view, in frame)", StringComparison.Ordinal);
+
+        Assert.True(scene >= 0 && scene < bloom);
+        Assert.True(bloom < tonemap);
+        Assert.True(tonemap < interfaceCompose);
+        Assert.Contains("if (frame.Environment.BloomEnabled)", body, StringComparison.Ordinal);
+    }
+
     private static string ReadShader()
     {
         return File.ReadAllText(Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", "Bloom.fx"));

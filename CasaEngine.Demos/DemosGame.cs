@@ -590,7 +590,8 @@ public class DemosGame : CasaEngineGame
         var exposureText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_EXPOSURE");
         if (string.IsNullOrWhiteSpace(modeText)
             && string.IsNullOrWhiteSpace(tonemapperText)
-            && string.IsNullOrWhiteSpace(exposureText))
+            && string.IsNullOrWhiteSpace(exposureText)
+            && !HasBloomHarnessVariable())
         {
             return;
         }
@@ -632,8 +633,82 @@ public class DemosGame : CasaEngineGame
             }
         }
 
+        ApplyBloomHarness(settings.ColorPipeline);
         settings.MarkDirty();
         Logs.WriteInfo($"[DemosGame] Colour pipeline harness: {settings.ColorPipeline.Mode}, {settings.ColorPipeline.Tonemapper}, exposure {settings.ColorPipeline.Exposure}.");
+    }
+
+    /// <summary>
+    /// Harness variables of the bloom (ADR-0099): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// optional <c>CASAENGINE_DEMO_BLOOM_THRESHOLD</c>, <c>CASAENGINE_DEMO_BLOOM_INTENSITY</c> and <c>CASAENGINE_DEMO_BLOOM_RADIUS</c>
+    /// (numbers, invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static bool HasBloomHarnessVariable()
+    {
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_THRESHOLD"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_INTENSITY"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_RADIUS"));
+    }
+
+    private static void ApplyBloomHarness(ColorPipelineSettings colorPipeline)
+    {
+        if (!HasBloomHarnessVariable())
+        {
+            return;
+        }
+
+        var enabledText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM");
+        if (!string.IsNullOrWhiteSpace(enabledText))
+        {
+            if (enabledText == "1" || enabledText.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.BloomEnabled = true;
+            }
+            else if (enabledText == "0" || enabledText.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.BloomEnabled = false;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_BLOOM '{enabledText}' is not 1, 0, true or false; ignored.");
+            }
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_THRESHOLD", out var threshold))
+        {
+            colorPipeline.BloomThreshold = threshold;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_INTENSITY", out var intensity))
+        {
+            colorPipeline.BloomIntensity = intensity;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_RADIUS", out var radius))
+        {
+            colorPipeline.BloomRadius = radius;
+        }
+
+        Logs.WriteInfo($"[DemosGame] Bloom harness: enabled {colorPipeline.BloomEnabled}, threshold {colorPipeline.BloomThreshold}, intensity {colorPipeline.BloomIntensity}, radius {colorPipeline.BloomRadius}.");
+    }
+
+    private static bool TryReadFloatVariable(string name, out float value)
+    {
+        value = 0.0f;
+        var text = Environment.GetEnvironmentVariable(name);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        {
+            return true;
+        }
+
+        Logs.WriteWarning($"[DemosGame] {name} '{text}' is not a number; ignored.");
+        return false;
     }
 
     private static string? ResolveAutomationScreenshotPath()

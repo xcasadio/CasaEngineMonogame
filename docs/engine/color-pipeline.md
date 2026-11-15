@@ -1,6 +1,6 @@
 # Colour pipeline
 
-How a world renders in linear light with a high dynamic range target and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098.
+How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099.
 
 ## Modes
 
@@ -18,6 +18,10 @@ The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSet
 | `Mode` | `mode` | `Legacy` | `Legacy` or `LinearHdr`. |
 | `Tonemapper` | `tonemapper` | `AcesApprox` | `AcesApprox` (Narkowicz fit) or `Reinhard`. |
 | `Exposure` | `exposure` | 1 | Scalar multiplier applied before the tonemapper. A negative, NaN or infinite value becomes 0. No automatic exposure. |
+| `BloomEnabled` | `bloom_enabled` | false | Adds a glow around the bright parts of the scene before the tonemapping (ADR-0099). No effect in `Legacy`. |
+| `BloomThreshold` | `bloom_threshold` | 1 | Scene luminance (linear light, largest colour component) above which a pixel feeds the bloom; soft knee of half the threshold. |
+| `BloomIntensity` | `bloom_intensity` | 0.5 | Scale of the glow added to the scene. |
+| `BloomRadius` | `bloom_radius` | 1 | Scale of the blur tap spacing; larger values spread the glow further. |
 
 The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo and an exposure field.
 
@@ -38,11 +42,12 @@ world.EnvironmentSettings.MarkDirty();
 For a view that really uses the HDR target (`RenderPipeline.RenderHdrView`):
 
 1. The scene is rendered into a target taken from `RenderTargetPool` (`HalfVector4`, `Depth24Stencil8`, the size of the view rectangle after the resolution scale). The clear colour is decoded in floating point.
-2. The destination of the legacy path is bound (back buffer, editor host texture, scene target, retained target of the frozen frame, or the render target of the view's own surface) and its depth cleared the way the legacy path clears it.
-3. `Tonemap.fx` (`Tonemap_Reinhard` or `Tonemap_AcesApprox`, parameter `Exposure`) is drawn full-rectangle and opaque through a `SpriteBatch`. It tonemaps then encodes with `pow(c, 1 / 2.2)`.
-4. The post-tonemap flush: renderers implementing `IPostTonemapRenderer` (`Renderer2DComponent`: screen sprites, text, 2D lines) are flushed on the tonemapped image, with `DepthStencilState.None`.
-5. The interface (`IUICompositionService`) is composed on top, untouched.
-6. The HDR target goes back to the pool. The existing copy to the back buffer, the frozen-frame retention, the debug overlay and the presenter run after, unchanged.
+2. If bloom is enabled for the view, `BloomRenderer` adds the glow to the HDR target (see below).
+3. The destination of the legacy path is bound (back buffer, editor host texture, scene target, retained target of the frozen frame, or the render target of the view's own surface) and its depth cleared the way the legacy path clears it.
+4. `Tonemap.fx` (`Tonemap_Reinhard` or `Tonemap_AcesApprox`, parameter `Exposure`) is drawn full-rectangle and opaque through a `SpriteBatch`. It tonemaps then encodes with `pow(c, 1 / 2.2)`.
+5. The post-tonemap flush: renderers implementing `IPostTonemapRenderer` (`Renderer2DComponent`: screen sprites, text, 2D lines) are flushed on the tonemapped image, with `DepthStencilState.None`.
+6. The interface (`IUICompositionService`) is composed on top, untouched.
+7. The HDR target goes back to the pool. The existing copy to the back buffer, the frozen-frame retention, the debug overlay and the presenter run after, unchanged.
 
 A split-screen of back-buffer views works because the back buffer's `RenderTargetUsage` is set to `PreserveContents` for the one binding of the destination, then restored (ADR-0096).
 
@@ -68,6 +73,15 @@ Only a cube built from a `.hdr` panorama is linear (`BackgroundCubemapIsLinear`,
 `ResolvedEnvironmentSettings.LinearColorActive` is set by `RenderPipeline.Render`, on its own copy of the resolved environment, only when the planner chose the HDR target and the tonemap shader is loaded. Everything built from that copy carries it, and the shaders' `ColorPipelineIsLinear` constant is bound from it (`EnvironmentShaderBinder`, `ForwardLightBinder`, `SkyCubemapRenderer`, the particle, sprite and line renderers). The resolved mode (`IsLinearHdr`) is never used to decode: a view of a `LinearHdr` world that stays on the legacy path (see below) keeps its legacy colours. A copy of the environment made elsewhere (editor previews, tests) keeps the value false.
 
 A view stays on the legacy path when it keeps the previous content of its colour buffer (`ClearColorBuffer` false), has an empty rectangle, or when `Tonemap.fx` is missing (logged once).
+
+## Bloom
+
+`BloomRenderer` (ADR-0099) works on the HDR target of the view, before the tonemapping, so the interface and the screen sprites are never touched. From the scene: a bright pass to half size (per texel, the part above `BloomThreshold` with a soft knee), two 2 x 2 downsamples (quarter and eighth size), a separable 9-tap Gaussian blur of each level (horizontal into a partner target, then vertical back), then the three levels are added to the scene target with `BloomIntensity` shared between them. The shader is `Bloom.fx` (`Bloom_BrightPass`, `Bloom_Downsample`, `Bloom_BlurHorizontal`, `Bloom_BlurVertical`, `Bloom_Composite`), drawn through `SpriteBatch`, hot reloadable like `Tonemap.fx`.
+
+- The bloom targets have the format of the HDR target (`HalfVector4` unless it fell back) and no depth buffer, and come from `RenderTargetPool.Shared`. Their keys (width, height, format, depth format) are tracked with the HDR keys and released by the same rule (`HdrTargetEviction`): a size no view has used for more than four renders is disposed, so a resize leaves no bloom chain behind. Creations and releases are logged at Debug level.
+- If the HDR target fell back to `Color`, bloom is skipped for the view with one warning: no value above 1 survives for the threshold to work on.
+- The glow reaches about one eighth-size level (a few dozen pixels at radius 1). A view whose pipeline does not implement `IScenePhaseViewPipeline` has its interface in the HDR target, so the bloom also catches it.
+- Demo: `CASAENGINE_DEMO_BLOOM=1` (and optionally `CASAENGINE_DEMO_BLOOM_THRESHOLD`, `_INTENSITY`, `_RADIUS`) apply bloom to any demo in `LinearHdr`; in `Colour pipeline demo` the B key toggles it.
 
 ## Usage
 
@@ -96,4 +110,6 @@ For the demos, the harness variables `CASAENGINE_DEMO_COLOR_PIPELINE`, `CASAENGI
 
 Each `LinearHdr` view costs one pooled HDR target (8 bytes per pixel plus depth, created once per view size) and one full-rectangle tonemapping draw.
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098.
+Bloom adds, for a view that enables it, ten `SpriteBatch` passes on targets of at most a quarter of the view pixels and six pooled targets of the HDR format.
+
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099.
