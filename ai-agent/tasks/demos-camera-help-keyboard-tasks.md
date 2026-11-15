@@ -91,7 +91,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 ## Phase 2 — Panneau d'aide
 
-### ⏳ T2.1 — Le panneau d'aide réapparaît entier
+### ✅ T2.1 — Le panneau d'aide réapparaît entier
 
 - Objectif : après F1 puis F1, le panneau a la même taille qu'au lancement de la démo.
 - Fichiers : `CasaEngine.Demos/Demos/DemoUI/DemoHelpOverlay.cs` (le sous-module `MGUI` n'est pas modifié), test si une fenêtre MGUI peut être chargée en test, sinon smoke.
@@ -100,6 +100,11 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   2. Corriger dans la démo : par exemple, redimensionner et replacer la fenêtre quand elle redevient visible.
 - Validation : démo lancée, panneau caché puis réaffiché par F1, capture comparée à celle du lancement.
 - Commit : `fix(demos): show the whole help panel again after F1`
+- Validation faite (2026-11-15) :
+  - Cause, reproduite sur un bureau MGUI sans GPU : quand la fenêtre est masquée (`Collapsed`), MGUI la réduit à sa hauteur minimale (50 px). Quand elle redevient visible, elle remonte à 110 px seulement au lieu de sa hauteur sur le texte : c'est le panneau tronqué de la capture de l'auteur.
+  - Correction dans la démo : `DemoHelpOverlay.SetVisible(true)` redimensionne la fenêtre sur son texte, puis la replace, quand elle était masquée. Le sous-module `MGUI` n'est pas modifié ; la sonde temporaire qui y avait été ajoutée a été retirée.
+  - Test : `DemoHelpOverlayTests` (masqué puis affiché, la fenêtre retrouve sa hauteur et sa position). Sans la correction, le test échoue (247 px attendus, 110 obtenus). `CasaEngine.MonoGame.sln` : 0 erreur ; `CasaEngine.Tests` : 5486/5486.
+  - Non fait : l'appui réel sur F1 dans la fenêtre de la démo, faute d'injection clavier. Le chemin de la touche (`ReadMenuInput` → `UpdateDemoHintVisibility` → `SetVisible`) n'a pas changé.
 
 ## Phase 3 — Clavier par position
 

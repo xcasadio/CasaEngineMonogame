@@ -36,7 +36,9 @@
     <Compile Include="..\CasaEngine.Demos\DemoControl.cs" Link="Demos\DemoControl.cs" />
     <Compile Include="..\CasaEngine.Demos\DemoSheetText.cs" Link="Demos\DemoSheetText.cs" />
     <Compile Include="..\CasaEngine.Demos\DemoBindingText.cs" Link="Demos\DemoBindingText.cs" />
+    <Compile Include="..\CasaEngine.Demos\Demos\DemoUI\DemoHelpOverlay.cs" Link="Demos\DemoHelpOverlay.cs" />
     <None Include="..\CasaEngine.Demos\Content\Screens\main-menu.xaml" Link="Content\Screens\main-menu.xaml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\CasaEngine.Demos\Content\Screens\demo-help.xaml" Link="Content\Screens\demo-help.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

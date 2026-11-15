@@ -40,9 +40,14 @@ internal sealed class DemoHelpOverlay : XamlUIScreenBase
         Fill("lblHelpCameraHeader", "lblHelpCamera", _camera);
         Fill("lblHelpHighlightsHeader", "lblHelpHighlights", _highlights);
 
-        // The window measured itself on its empty labels when it loaded: size it again on the text it now holds, then
-        // place it again, because its bottom edge is the one that is pinned. ApplySizeToContent caps the height to the
-        // room below Top, so the window is measured from the top of the screen.
+        // The window measured itself on its empty labels when it loaded: size it again on the text it now holds.
+        SizeToText(window);
+    }
+
+    // Sizes the window's height to its text, then places it again, because its bottom edge is the one that is pinned.
+    // ApplySizeToContent caps the height to the room below Top, so the window is measured from the top of the screen.
+    private static void SizeToText(MGWindow window)
+    {
         window.Top = 0;
         window.ApplySizeToContent(SizeToContent.Height, window.WindowWidth, 20, window.WindowWidth, null);
         window.ApplyScreenPlacement();
@@ -61,9 +66,19 @@ internal sealed class DemoHelpOverlay : XamlUIScreenBase
     /// <summary>Shows or hides this panel's window without removing it from the stack.</summary>
     public void SetVisible(bool visible)
     {
-        if (Window != null)
+        if (Window == null)
         {
-            Window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            return;
+        }
+
+        bool wasHidden = Window.Visibility != Visibility.Visible;
+        Window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+
+        // While collapsed, the window shrinks to its minimum height (MGUI), and becoming visible again does not give
+        // its height back: size it to its text again, or F1 twice shows a cut panel.
+        if (visible && wasHidden)
+        {
+            SizeToText(Window);
         }
     }
 }
