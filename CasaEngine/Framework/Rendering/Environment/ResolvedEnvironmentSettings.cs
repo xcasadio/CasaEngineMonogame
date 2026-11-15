@@ -57,6 +57,20 @@ public readonly struct ResolvedEnvironmentSettings
     /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
     public float Exposure { get; init; }
 
+    /// <summary>
+    /// True when this view is drawn through the HDR scene target in this frame (ADR-0097), so its display colours must be
+    /// decoded to linear light. It is not the resolved mode: a view in <see cref="Environment.ColorPipelineMode.LinearHdr"/>
+    /// that the planner leaves on the legacy path (ADR-0096) keeps this false. Set by the render pipeline after resolution
+    /// (the resolved value is cached per view), false everywhere else.
+    /// </summary>
+    public bool LinearColorActive { get; init; }
+
+    /// <summary>The background cube holds linear light (a cube built from a <c>.hdr</c> panorama), so it is not decoded.</summary>
+    public bool BackgroundCubemapIsLinear { get; init; }
+
+    /// <summary>The specular and diffuse environment cube holds linear light (a cube built from a <c>.hdr</c> panorama), so it is not decoded.</summary>
+    public bool SpecularEnvironmentCubemapIsLinear { get; init; }
+
     public bool UsesLegacyClearColor { get; init; }
 
     public bool UsesLegacyLighting { get; init; }
@@ -67,7 +81,13 @@ public readonly struct ResolvedEnvironmentSettings
 
     public bool HasLocalReflectionProbe => PrimaryReflectionProbeCubemap is not null && LocalReflectionProbeInfluence > 0.0f;
 
-    public Vector3 EffectiveAmbientColor => AmbientColor * AmbientIntensity;
+    /// <summary>
+    /// The ambient colour times its intensity. When <see cref="LinearColorActive"/> the colour is decoded first:
+    /// <c>Decode(AmbientColor) * AmbientIntensity</c> (the intensity is a linear multiplier and is never decoded).
+    /// </summary>
+    public Vector3 EffectiveAmbientColor => LinearColorActive
+        ? ColorSpace.Decode(AmbientColor) * AmbientIntensity
+        : AmbientColor * AmbientIntensity;
 
     /// <summary>True when the ambient term must be the flat ambient colour even if an environment cube is bound.</summary>
     public bool UsesFlatAmbient => AmbientSource == AmbientSource.Flat;

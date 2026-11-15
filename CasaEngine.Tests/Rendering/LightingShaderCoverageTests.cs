@@ -162,7 +162,7 @@ public class LightingShaderCoverageTests
             skinnedSource);
         Assert.Contains("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor)", skinnedSource);
         Assert.Contains("ComputeSkinnedAmbientContribution(worldNormal)", skinnedSource);
-        Assert.Contains("ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor)", skinnedSource);
+        Assert.Contains("ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, MaterialEmissiveColor())", skinnedSource);
 
         // Alpha test uses the same AlphaCutoff parameter/convention as LitForward.fx
         // (disabled when <= 0), applied in the lit pixel shader shared by both skinned techniques.
@@ -192,7 +192,7 @@ public class LightingShaderCoverageTests
         Assert.Contains("(float3 worldNormal)", definition);
         Assert.DoesNotContain("baseColor", definition);
         Assert.DoesNotContain("color.rgb", definition);
-        Assert.Contains("return DiffuseColor.rgb * ambientTerm;", definition);
+        Assert.Contains("return MaterialDiffuseColor() * ambientTerm;", definition);
 
         // No caller hands the surface colour to the ambient term.
         Assert.DoesNotContain(callPrefix + "color.rgb", source);
@@ -264,8 +264,8 @@ public class LightingShaderCoverageTests
 
         // Pixel-lighting pixel shaders of LitForward: the plain ones tint after the specular, the reflection ones tint inside
         // the reflection helper (so nothing is tinted twice and the emissive part of the reflection scale is left alone).
-        Assert.Equal(5, CountOccurrences(litForwardSource, "ApplyShadowTint(color.rgb, EmissiveColor,"));
-        Assert.Equal(3, CountOccurrences(litForwardSource, "ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor,"));
+        Assert.Equal(5, CountOccurrences(litForwardSource, "ApplyShadowTint(color.rgb, MaterialEmissiveColor(),"));
+        Assert.Equal(3, CountOccurrences(litForwardSource, "ApplyReflectionContributionWithShadowTint(color.rgb, MaterialEmissiveColor(),"));
         Assert.Equal(1, CountOccurrences(litForwardSource, "ApplyReflectionContribution(surfaceColor, reflectionContribution)"));
         Assert.DoesNotContain("color.rgb = ApplyReflectionContribution(", litForwardSource);
 
@@ -274,7 +274,7 @@ public class LightingShaderCoverageTests
         Assert.Contains("reflected += (ComputeShadowTint(shadowFactor) - 1.0f) * (reflected - emissiveReflected);", litForwardSource);
 
         // The skinned pixel shader tints after the specular too.
-        Assert.Equal(1, CountOccurrences(skinnedSource, "ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor)"));
+        Assert.Equal(1, CountOccurrences(skinnedSource, "ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor)"));
 
         // Vertex-lighting techniques have no shadows: their pixel shaders never tint.
         int vertexLightingStart = litForwardSource.IndexOf("float4 PSBasicVertexLighting(", StringComparison.Ordinal);

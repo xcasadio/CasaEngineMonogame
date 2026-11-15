@@ -21,7 +21,12 @@ float4   TintColor = float4(1, 1, 1, 1);
 float    Alpha     = 1.0f;
 float    AlphaCutoff = 0.0f;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0097): the texture and the tint are display colours.
+float    ColorPipelineIsLinear = 0.0f;
+
 DECLARE_TEXTURE(Texture, 0);
+
+#include "ColorPipeline.fxh"
 
 // --- VS ---
 
@@ -58,7 +63,8 @@ VS_OUTPUT VS_Main(VS_INPUT input)
 
 float4 PS_Textured(VS_OUTPUT input) : SV_TARGET
 {
-    float4 color = SAMPLE_TEXTURE(Texture, input.TexCoord) * TintColor;
+    // The product is decoded: texture and tint are both display colours (and the power law is multiplicative).
+    float4 color = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexCoord) * TintColor);
     color.a *= Alpha;
     ApplyAlphaTest(color.a);
     return color;
@@ -66,7 +72,7 @@ float4 PS_Textured(VS_OUTPUT input) : SV_TARGET
 
 float4 PS_Colored(VS_OUTPUT input) : SV_TARGET
 {
-    float4 color = float4(TintColor.rgb, TintColor.a * Alpha);
+    float4 color = float4(DecodeColor(TintColor.rgb), TintColor.a * Alpha);
     ApplyAlphaTest(color.a);
     return color;
 }

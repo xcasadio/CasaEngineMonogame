@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
@@ -13,6 +14,8 @@ public sealed class SkyCubemapRenderer
     private const string InverseViewProjectionParameter = "InverseViewProjection";
     private const string EyePositionParameter = "EyePosition";
     private const string EnvironmentCubeTextureParameter = "EnvironmentCubeTexture";
+    private const string ColorPipelineIsLinearParameter = ShaderParameterNames.ColorPipelineIsLinear;
+    private const string EnvironmentCubeIsLinearParameter = ShaderParameterNames.EnvironmentCubeIsLinear;
 
     private static readonly VertexPositionTexture[] Vertices =
     [
@@ -63,6 +66,8 @@ public sealed class SkyCubemapRenderer
             _effect.Parameters[InverseViewProjectionParameter]?.SetValue(inverseViewProjection);
             _effect.Parameters[EyePositionParameter]?.SetValue(context.Frame.CameraPosition);
             _effect.Parameters[EnvironmentCubeTextureParameter]?.SetValue(cubemap);
+            _effect.Parameters[ColorPipelineIsLinearParameter]?.SetValue(context.Environment.LinearColorActive ? 1.0f : 0.0f);
+            _effect.Parameters[EnvironmentCubeIsLinearParameter]?.SetValue(context.Environment.BackgroundCubemapIsLinear ? 1.0f : 0.0f);
 
             foreach (var pass in _effect.CurrentTechnique.Passes)
             {

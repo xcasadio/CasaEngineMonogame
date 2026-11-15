@@ -8,6 +8,8 @@ public static class EnvironmentShaderBinder
     {
         ArgumentNullException.ThrowIfNull(shader);
 
+        shader.SetParameter(ShaderParameterNames.ColorPipelineIsLinear, environment.LinearColorActive ? 1.0f : 0.0f);
+        shader.SetParameter(ShaderParameterNames.EnvironmentCubeIsLinear, environment.SpecularEnvironmentCubemapIsLinear ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.EnvironmentAmbientColor, environment.EffectiveAmbientColor);
         shader.SetParameter(ShaderParameterNames.EnvironmentSpecularIntensity, environment.SpecularIntensity);
         shader.SetParameter(ShaderParameterNames.HasEnvironmentCubeTexture, environment.SpecularEnvironmentCubemap is not null ? 1.0f : 0.0f);

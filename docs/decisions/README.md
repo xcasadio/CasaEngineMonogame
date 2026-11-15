@@ -110,3 +110,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0094](0094-pbr-scope-extends-to-bloom-transparency-skinning-and-local-probes.md) | PBR scope extends to bloom, transparency, skinning and local probes | Accepted | 2026-11-14 |
 | [ADR-0095](0095-a-world-selects-its-colour-pipeline-through-color-pipeline-settings.md) | A world selects its colour pipeline through colour pipeline settings | Proposed | 2026-11-15 |
 | [ADR-0096](0096-the-linear-hdr-pipeline-renders-the-scene-into-a-pooled-hdr-target-and-tonemaps-before-the-ui.md) | The linear HDR pipeline renders the scene into a pooled HDR target and tonemaps before the interface | Proposed | 2026-11-15 |
+| [ADR-0097](0097-display-colours-are-decoded-to-linear-light-for-a-view-that-really-renders-through-the-hdr-target.md) | Display colours are decoded to linear light for a view that really renders through the HDR target | Proposed | 2026-11-15 |

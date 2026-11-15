@@ -43,6 +43,12 @@ public static class ShaderParameterNames
     public const string Exposure = "Exposure";
     public const string SceneTexture = "SceneTexture";
 
+    /// <summary>1 when the view renders through the HDR target: shaders decode display colours to linear light (ADR-0097).</summary>
+    public const string ColorPipelineIsLinear = "ColorPipelineIsLinear";
+
+    /// <summary>1 when the environment cube already holds linear light (a cube built from a .hdr panorama).</summary>
+    public const string EnvironmentCubeIsLinear = "EnvironmentCubeIsLinear";
+
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
     public const string ActiveDirectionalLightCount = "ActiveDirectionalLightCount";

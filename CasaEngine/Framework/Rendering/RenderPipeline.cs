@@ -271,6 +271,14 @@ public sealed class RenderPipeline
             }
 
             var resolvedEnvironment = EnvironmentResolver.Resolve(view);
+            if (useHdr)
+            {
+                // The resolved value is cached per view and says only what the world asks for. The view really draws through the
+                // HDR target in this frame only when the planner said so: that is what lets the binders decode display colours
+                // (ADR-0097). Everything built from this copy (lights, frame, binders) sees the same decision.
+                resolvedEnvironment = resolvedEnvironment with { LinearColorActive = true };
+            }
+
             WorldLightCollector.Collect(view.World, view.Lighting, in resolvedEnvironment, view.Camera.Position);
             var resolvedClearColor = resolvedEnvironment.BackgroundMode == EnvironmentBackgroundMode.SolidColor
                 ? resolvedEnvironment.BackgroundColor
@@ -294,9 +302,11 @@ public sealed class RenderPipeline
 
             if (useHdr)
             {
+                // The clear colour is a display colour: it is decoded to linear light in floating point (an 8-bit Color would
+                // quantise dark backgrounds), because the HDR target is tonemapped and re-encoded afterwards.
                 _graphicsDevice.Clear(
                     ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil,
-                    resolvedClearColor, 1.0f, 0);
+                    ColorSpace.Decode(resolvedClearColor), 1.0f, 0);
             }
             else if (useSceneRt)
             {

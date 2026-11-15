@@ -133,6 +133,8 @@ BEGIN_CONSTANTS
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
     float UseFlatAmbientSource _ps(c36) _cb(c32.z);
+    float ColorPipelineIsLinear _vs(c29) _ps(c36) _cb(c32.w);
+    float EnvironmentCubeIsLinear _ps(c36) _cb(c32.y);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
@@ -167,6 +169,7 @@ END_CONSTANTS
 
 
 #define HAS_FORWARD_SHADOW_BINDINGS 1
+#include "ColorPipeline.fxh"
 #include "Lighting.fxh"
 
 
@@ -178,7 +181,7 @@ float3 ComputeSkinnedAmbientContribution(float3 worldNormal)
     float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
-    return DiffuseColor.rgb * ambientTerm;
+    return MaterialDiffuseColor() * ambientTerm;
 }
 
 
@@ -194,20 +197,20 @@ void ApplySkinnedAlphaTest(float alpha)
 
 float3 ComputeSkinnedDiffuseContribution(float3 baseColor, ColorPair lightResult)
 {
-    return baseColor * max(lightResult.Diffuse - EmissiveColor, 0.0f);
+    return baseColor * max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
 }
 
 
 float3 ComputeSkinnedEmissiveContribution(float3 baseColor)
 {
-    return baseColor * EmissiveColor;
+    return baseColor * MaterialEmissiveColor();
 }
 
 
 float3 ComputeSkinnedReflectionContribution(float3 eyeVector, float3 worldNormal)
 {
     float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
-    return SampleEnvironmentReflection(reflectionVector) * saturate(SpecularColor);
+    return SampleEnvironmentReflection(reflectionVector) * saturate(MaterialSpecularColor());
 }
 
 
@@ -372,7 +375,7 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     ApplySkinnedAlphaTest(texelColor.a);
 
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
@@ -381,11 +384,11 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
-    float3 directDiffuse = max(lightResult.Diffuse - EmissiveColor, 0.0f);
+    float3 directDiffuse = max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
     float3 ambientContribution = ComputeSkinnedAmbientContribution(worldNormal);
-    color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, EmissiveColor);
+    color.rgb = ComposeLitSurfaceColor(color.rgb, directDiffuse, ambientContribution, MaterialEmissiveColor());
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor);
 
     return color;
 }
@@ -461,7 +464,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
 
     ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount);
 
-    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);
     float4 result = (lightColor * 0.60f + texelColor * 0.40f);
     return result;
@@ -498,7 +501,7 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderDebugSkinnedDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 result = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
+    float4 result = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     return result;
 }
 

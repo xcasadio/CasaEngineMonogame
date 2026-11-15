@@ -12,6 +12,32 @@ void AddSpecular(inout float4 color, float3 specular)
 }
 
 
+// Material colours are display colours: they are decoded to linear light where they are used (the identity in the legacy
+// pipeline). The lights, the ambient and the shadow tint arrive already decoded from the CPU, before their intensity.
+float3 MaterialDiffuseColor()
+{
+    return DecodeColor(DiffuseColor.rgb);
+}
+
+
+float3 MaterialEmissiveColor()
+{
+    return DecodeColor(EmissiveColor);
+}
+
+
+float3 MaterialSpecularColor()
+{
+    return DecodeColor(SpecularColor);
+}
+
+
+// The decoded material diffuse and specular colours, computed once per pixel (or vertex) by the ComputeLights functions and
+// read by every light accumulation: the decoding is not repeated in each of the light slots.
+static float3 DecodedMaterialDiffuse;
+static float3 DecodedMaterialSpecular;
+
+
 struct CommonVSOutput
 {
     float4 Pos_ps;
@@ -25,7 +51,7 @@ CommonVSOutput ComputeCommonVSOutput(float4 position)
     CommonVSOutput vout;
     
     vout.Pos_ps = mul(position, WorldViewProj);
-    vout.Diffuse = DiffuseColor;
+    vout.Diffuse = float4(MaterialDiffuseColor(), DiffuseColor.a);
     vout.Specular = 0;
     
     return vout;
@@ -55,14 +81,26 @@ static const int MaxSpotLights = 8;
 
 float3 ComputeAmbientTerm(float3 globalAmbientColor, float3 materialAmbientColor)
 {
-    return globalAmbientColor * materialAmbientColor;
+    return globalAmbientColor * DecodeColor(materialAmbientColor);
 }
 
 
 #ifdef HAS_ENVIRONMENT_BINDINGS
+// The environment cube is a display colour unless it was built from a .hdr panorama (EnvironmentCubeIsLinear = 1).
+float3 DecodeEnvironmentCube(float3 c)
+{
+    if (EnvironmentCubeIsLinear < 0.5f)
+    {
+        c = DecodeColor(c);
+    }
+
+    return c;
+}
+
+
 float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float3 materialAmbientColor)
 {
-    return globalEnvironmentAmbientColor * materialAmbientColor;
+    return globalEnvironmentAmbientColor * DecodeColor(materialAmbientColor);
 }
 
 
@@ -71,7 +109,7 @@ float3 SampleEnvironmentReflection(float3 reflectionVector)
     float3 globalReflection = 0;
     if (HasEnvironmentCubeTexture > 0.5f)
     {
-        globalReflection = SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb;
+        globalReflection = DecodeEnvironmentCube(SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb);
     }
 
     float3 localReflection = 0;
@@ -79,13 +117,13 @@ float3 SampleEnvironmentReflection(float3 reflectionVector)
 
     if (HasLocalReflectionProbeTexture > 0.5f)
     {
-        localReflection += SAMPLE_CUBEMAP(LocalReflectionProbeCubeTexture, reflectionVector).rgb * LocalReflectionProbeWeight;
+        localReflection += DecodeColor(SAMPLE_CUBEMAP(LocalReflectionProbeCubeTexture, reflectionVector).rgb) * LocalReflectionProbeWeight;
         localWeightTotal += LocalReflectionProbeWeight;
     }
 
     if (HasSecondaryLocalReflectionProbeTexture > 0.5f)
     {
-        localReflection += SAMPLE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, reflectionVector).rgb * SecondaryLocalReflectionProbeWeight;
+        localReflection += DecodeColor(SAMPLE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, reflectionVector).rgb) * SecondaryLocalReflectionProbeWeight;
         localWeightTotal += SecondaryLocalReflectionProbeWeight;
     }
 
@@ -106,12 +144,12 @@ float3 SampleEnvironmentDiffuse(float3 worldNormal)
         return 0;
     }
 
-    return SAMPLE_CUBEMAP(EnvironmentCubeTexture, normalize(worldNormal)).rgb;
+    return DecodeEnvironmentCube(SAMPLE_CUBEMAP(EnvironmentCubeTexture, normalize(worldNormal)).rgb);
 }
 #else
 float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float3 materialAmbientColor)
 {
-    return globalEnvironmentAmbientColor * materialAmbientColor;
+    return globalEnvironmentAmbientColor * DecodeColor(materialAmbientColor);
 }
 
 
@@ -321,8 +359,8 @@ void AccumulateLight(
     float diffuse = zeroL * dotL * attenuation;
     float specular = pow(max(dot(halfVector, worldNormal), 0) * zeroL, SpecularPower) * attenuation;
 
-    result.Diffuse += diffuse * lightDiffuse * DiffuseColor.rgb;
-    result.Specular += specular * lightSpecular * SpecularColor;
+    result.Diffuse += diffuse * lightDiffuse * DecodedMaterialDiffuse;
+    result.Specular += specular * lightSpecular * DecodedMaterialSpecular;
 }
 
 
@@ -423,7 +461,9 @@ void AccumulateSpotLightSlots(inout ColorPair result, float3 eyeVector, float3 w
 ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 worldNormal, uniform int numDirectionalLights)
 {
     ColorPair result;
-    result.Diffuse = EmissiveColor;
+    DecodedMaterialDiffuse = MaterialDiffuseColor();
+    DecodedMaterialSpecular = MaterialSpecularColor();
+    result.Diffuse = MaterialEmissiveColor();
     result.Specular = 0;
     result.ShadowFactor = 1.0f;
 
@@ -451,7 +491,9 @@ ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 
 ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNormal, uniform int numDirectionalLights)
 {
     ColorPair result;
-    result.Diffuse = EmissiveColor;
+    DecodedMaterialDiffuse = MaterialDiffuseColor();
+    DecodedMaterialSpecular = MaterialSpecularColor();
+    result.Diffuse = MaterialEmissiveColor();
     result.Specular = 0;
 
     // The shadow factor is computed once, outside the light loop. In the default mode it scales the shadowed light; in

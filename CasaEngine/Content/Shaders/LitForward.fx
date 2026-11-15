@@ -127,11 +127,13 @@ BEGIN_CONSTANTS
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
     float HasMaterialReflectionCube _ps(c36) _cb(c32.y);
     float UseFlatAmbientSource _ps(c36) _cb(c32.z);
+    float ColorPipelineIsLinear _vs(c29) _ps(c36) _cb(c32.w);
     float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
     float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
     float SecondaryLocalReflectionProbeWeight _ps(c37) _cb(c33.w);
     float LocalReflectionProbeInfluence _ps(c38) _cb(c34.x);
+    float EnvironmentCubeIsLinear _ps(c38) _cb(c34.y);
     float ReflectionAddAmount _ps(c39) _cb(c35.x);
     float ReflectionMultiplyBase _ps(c39) _cb(c35.y);
     float ReflectionMultiplyFactor _ps(c39) _cb(c35.z);
@@ -159,6 +161,8 @@ MATRIX_CONSTANTS
 END_CONSTANTS
 
 
+#include "ColorPipeline.fxh"
+
 #define HAS_ENVIRONMENT_BINDINGS 1
 #define HAS_FORWARD_SHADOW_BINDINGS 1
 #include "Structures.fxh"
@@ -184,6 +188,10 @@ float4 SampleBaseTexture(float2 texCoord)
         baseColor.rgb *= 2.0f * SAMPLE_TEXTURE(DetailTexture, texCoord * DetailTiling).rgb;
     }
 
+    // The base colour is a display colour: it is decoded after its modulation by the detail texture, never the detail sample
+    // alone (mid-grey detail is neutral in display space only).
+    baseColor.rgb = DecodeColor(baseColor.rgb);
+
     return baseColor;
 }
 
@@ -195,13 +203,13 @@ float3 ComputeBaseAmbientTerm(float3 worldNormal)
     float3 ambientTerm = (HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)
         ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
         : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
-    return DiffuseColor.rgb * ambientTerm;
+    return MaterialDiffuseColor() * ambientTerm;
 }
 
 
 float3 ComputeDirectDiffuse(ColorPair lightResult)
 {
-    return max(lightResult.Diffuse - EmissiveColor, 0.0f);
+    return max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
 }
 
 
@@ -209,9 +217,9 @@ float3 ComputeReflectionContribution(float3 eyeVector, float3 worldNormal)
 {
     float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
     float3 reflectionColor = HasMaterialReflectionCube > 0.5f
-        ? SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb
+        ? DecodeColor(SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb)
         : SampleEnvironmentReflection(reflectionVector);
-    return reflectionColor * saturate(SpecularColor);
+    return reflectionColor * saturate(MaterialSpecularColor());
 }
 
 
@@ -260,7 +268,7 @@ VSOutput VSBasicVc(VSInputVc vin)
     CommonVSOutput cout = ComputeCommonVSOutput(vin.Position);
     SetCommonVSOutputParams;
     
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -289,7 +297,7 @@ VSOutputTx VSBasicTxVc(VSInputTxVc vin)
     SetCommonVSOutputParams;
     
     vout.TexCoord = vin.TexCoord;
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -315,7 +323,7 @@ VSOutput VSBasicVertexLightingVc(VSInputNmVc vin)
     CommonVSOutput cout = ComputeCommonVSOutputWithLighting(vin.Position, vin.Normal, 3);
     SetCommonVSOutputParams;
     
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -344,7 +352,7 @@ VSOutputTx VSBasicVertexLightingTxVc(VSInputNmTxVc vin)
     SetCommonVSOutputParams;
     
     vout.TexCoord = vin.TexCoord;
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -370,7 +378,7 @@ VSOutput VSBasicOneLightVc(VSInputNmVc vin)
     CommonVSOutput cout = ComputeCommonVSOutputWithLighting(vin.Position, vin.Normal, 1);
     SetCommonVSOutputParams;
     
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -399,7 +407,7 @@ VSOutputTx VSBasicOneLightTxVc(VSInputNmTxVc vin)
     SetCommonVSOutputParams;
     
     vout.TexCoord = vin.TexCoord;
-    vout.Diffuse *= vin.Color;
+    vout.Diffuse *= DecodeColor4(vin.Color);
     
     return vout;
 }
@@ -427,7 +435,7 @@ VSOutputPixelLighting VSBasicPixelLightingVc(VSInputNmVc vin)
     CommonVSOutputPixelLighting cout = ComputeCommonVSOutputPixelLighting(vin.Position, vin.Normal);
     SetCommonVSOutputParamsPixelLighting;
     
-    vout.Diffuse.rgb = vin.Color.rgb;
+    vout.Diffuse.rgb = DecodeColor(vin.Color.rgb);
     vout.Diffuse.a = vin.Color.a * DiffuseColor.a;
     
     return vout;
@@ -457,7 +465,7 @@ VSOutputPixelLightingTx VSBasicPixelLightingTxVc(VSInputNmTxVc vin)
     CommonVSOutputPixelLighting cout = ComputeCommonVSOutputPixelLighting(vin.Position, vin.Normal);
     SetCommonVSOutputParamsPixelLighting;
     
-    vout.Diffuse.rgb = vin.Color.rgb;
+    vout.Diffuse.rgb = DecodeColor(vin.Color.rgb);
     vout.Diffuse.a = vin.Color.a * DiffuseColor.a;
     vout.TexCoord = vin.TexCoord;
     
@@ -522,7 +530,7 @@ float4 ShadePixelLighting(VSOutputPixelLighting pin, out float shadowFactor)
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
 
     ApplyAlphaTest(color.a);
     
@@ -538,7 +546,7 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
 {
     float shadowFactor;
     float4 color = ShadePixelLighting(pin, shadowFactor);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, shadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), shadowFactor);
 
     return color;
 }
@@ -558,7 +566,7 @@ float4 ShadePixelLightingTx(VSOutputPixelLightingTx pin, out float shadowFactor)
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
 
     ApplyAlphaTest(color.a);
 
@@ -574,7 +582,7 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
 {
     float shadowFactor;
     float4 color = ShadePixelLightingTx(pin, shadowFactor);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, shadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), shadowFactor);
 
     return color;
 }
@@ -594,12 +602,12 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
 
     ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor);
 
     return color;
 }
@@ -619,12 +627,12 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
 
     ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor);
 
     return color;
 }
@@ -671,10 +679,10 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyShadowTint(color.rgb, EmissiveColor, lightResult.ShadowFactor);
+    color.rgb = ApplyShadowTint(color.rgb, MaterialEmissiveColor(), lightResult.ShadowFactor);
 
     return color;
 }
@@ -687,7 +695,7 @@ float4 PSBasicPixelLightingReflection(VSOutputPixelLighting pin) : SV_Target0
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, MaterialEmissiveColor(), ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
 
     return color;
 }
@@ -700,7 +708,7 @@ float4 PSBasicPixelLightingTxReflection(VSOutputPixelLightingTx pin) : SV_Target
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, MaterialEmissiveColor(), ComputeReflectionContribution(eyeVector, worldNormal), shadowFactor);
 
     return color;
 }
@@ -725,11 +733,11 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
         color.rgb,
         ComputeDirectDiffuse(lightResult),
         ComputeBaseAmbientTerm(worldNormal),
-        EmissiveColor);
+        MaterialEmissiveColor());
 
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
-    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, EmissiveColor, ComputeReflectionContribution(eyeVector, worldNormal), lightResult.ShadowFactor);
+    color.rgb = ApplyReflectionContributionWithShadowTint(color.rgb, MaterialEmissiveColor(), ComputeReflectionContribution(eyeVector, worldNormal), lightResult.ShadowFactor);
 
     return color;
 }

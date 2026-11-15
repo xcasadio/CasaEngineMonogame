@@ -3,7 +3,14 @@
 float4x4 InverseViewProjection;
 float3 EyePosition;
 
+// 1 when the view renders in the linear colour pipeline (ADR-0097); EnvironmentCubeIsLinear is 1 for a cube built from a .hdr
+// panorama, which already holds linear light and is not decoded.
+float ColorPipelineIsLinear = 0.0f;
+float EnvironmentCubeIsLinear = 0.0f;
+
 DECLARE_CUBEMAP(EnvironmentCubeTexture, 0);
+
+#include "ColorPipeline.fxh"
 
 struct VS_INPUT
 {
@@ -32,7 +39,13 @@ VS_OUTPUT VS_Main(VS_INPUT input)
 
 float4 PS_Main(VS_OUTPUT input) : SV_TARGET
 {
-    return float4(SAMPLE_CUBEMAP(EnvironmentCubeTexture, input.Direction).rgb, 1.0f);
+    float3 color = SAMPLE_CUBEMAP(EnvironmentCubeTexture, input.Direction).rgb;
+    if (EnvironmentCubeIsLinear < 0.5f)
+    {
+        color = DecodeColor(color);
+    }
+
+    return float4(color, 1.0f);
 }
 
 TECHNIQUE(SkyCubemap, VS_Main, PS_Main)
