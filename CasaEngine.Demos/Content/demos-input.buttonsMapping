@@ -2101,6 +2101,27 @@
         "mouse_button": "LeftButton",
         "input_device": "GamePad"
       }
+    },
+    {
+      "id": "6b1f2c0e-83a4-4d57-9a3e-2f5d1c7b9e41",
+      "name": "PbrMaterial.Ibl",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "I",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
     }
   ]
 }

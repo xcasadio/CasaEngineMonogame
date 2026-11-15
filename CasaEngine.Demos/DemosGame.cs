@@ -67,6 +67,13 @@ public class DemosGame : CasaEngineGame
     private readonly bool _captureOnIblGeneration = Environment.GetEnvironmentVariable("CASAENGINE_CAPTURE_ON_IBL_GENERATION") == "1";
     private bool _generationCaptured;
 
+    // CASAENGINE_THEN_DEMO="<exact title>" (plan T10.1, criterion 9): after CASAENGINE_THEN_DEMO_FRAME updates (default 120) of the first
+    // demo, asks for that demo, as the player would from the menu. It proves what a demo leaves behind when it is left.
+    private readonly string _thenDemoTitle = Environment.GetEnvironmentVariable("CASAENGINE_THEN_DEMO");
+    private readonly int _thenDemoFrame = int.TryParse(Environment.GetEnvironmentVariable("CASAENGINE_THEN_DEMO_FRAME"), out int thenFrame) && thenFrame > 0 ? thenFrame : 120;
+    private int _thenDemoFrames;
+    private bool _thenDemoRequested;
+
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
     private const string MainScreenTitle = "CasaEngine demos";
     private MainMenuScreen.Entry[] _mainMenuEntries;
@@ -187,6 +194,7 @@ public class DemosGame : CasaEngineGame
         AddDemo(new FrozenFrameDemo(), ThemeEngineValidation);
         // Registered last on purpose: it moves no index that CASAENGINE_START_DEMO or a script may use.
         AddDemo(new ColorPipelineDemo(), ThemeEngineValidation);
+        AddDemo(new PbrMaterialDemo(), ThemeEngineValidation);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)
@@ -612,12 +620,34 @@ public class DemosGame : CasaEngineGame
             }
         }
 
+        TryRequestThenDemo();
         ReadMenuInput();
         ApplyWorldRequests();
 
         _currentDemo?.Update(gameTime);
 
         base.Update(gameTime);
+    }
+
+    /// <summary>Harness of <c>CASAENGINE_THEN_DEMO</c>: one switch to the named demo once the first one has run its frames.</summary>
+    private void TryRequestThenDemo()
+    {
+        if (string.IsNullOrWhiteSpace(_thenDemoTitle) || _thenDemoRequested || _currentDemo == null || ++_thenDemoFrames < _thenDemoFrame)
+        {
+            return;
+        }
+
+        _thenDemoRequested = true;
+        for (int i = 0; i < _demos.Count; i++)
+        {
+            if (string.Equals(_demos[i].Title, _thenDemoTitle, StringComparison.OrdinalIgnoreCase))
+            {
+                RequestDemo(i);
+                return;
+            }
+        }
+
+        Logs.WriteWarning($"[DemosGame] CASAENGINE_THEN_DEMO '{_thenDemoTitle}' was not found.");
     }
 
     /// <summary>
