@@ -570,11 +570,29 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Effet sur les autres familles : `MGListView` et `MGTreeView` 136/786 → 0/576, `MGListBox` 272/210 → 136/0,
     `MGContextMenu` 272/1178 → 136/968, menu déroulant de `MGMenuBar` 1280/874 → 1144/664.
 
-### ⏳ T2.5 — Listes (`MGListBox`, `MGListView`)
+### ✅ T2.5 — Listes (`MGListBox`, `MGListView`)
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGListBox.cs`, `MGListView.cs`, et ce que T0.1 désigne.
 - Validation : 0 octet au repos et au survol des éléments, liste de 50 éléments dans un défilement.
 - Commit (MGUI) : `perf(lists): hover and draw list controls without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3758 verts (10 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale.
+
+  | Octets par image, repos et survol | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGListBox` 50 éléments (après T2.4) | 136 | 0 | 0 | 0 |
+  | `MGListView` 50 éléments (après T2.4) | 0 | 0 | 576 | 0 |
+
+  - Causes : abonnement à `OnBeginUpdate` dans `MGListBox` (un `ElementUpdateEventArgs` par update), remplacé par le
+    crochet `BeginUpdateInternal`, au même point de l'update ; `Enum.HasFlag` sur `GridLinesVisibility` dans le dessin
+    des lignes de `MGGrid.cs` (enum boxé, six appels), remplacé par le test de bit que le fichier utilise déjà.
+    `MGListView.cs` n'a pas changé.
+  - Appels de dessin inchangés : journaux figés pris sur le code d'avant (5876 et 4430 lignes, repos et survol des
+    deux éléments), identiques après.
+  - Hors chemin mesuré, laissés : `HasFlag` de `MGGrid.CheckIfOuterPaddingChanged` et de `MGUniformGrid.cs`.
+  - Une lecture isolée à 13 octets par image (update au survol de `MGListView`) vue une fois par l'agent pendant son
+    travail, non reproduite ensuite (3 passes de la classe et 2 suites complètes vertes).
 
 ### ⏳ T2.6 — `MGTreeView`
 
