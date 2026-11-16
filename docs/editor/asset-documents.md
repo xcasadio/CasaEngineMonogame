@@ -42,6 +42,8 @@ The logic without UI is `CasaEngine.EditorServices/Textures/TextureAssetDocument
 
 The logic without UI is `CasaEngine.EditorServices/StaticModels/StaticModelAssetDocument.cs`.
 
+A mesh may carry a `tangents` array next to `vertices`: one `{ "x", "y", "z", "w" }` entry per vertex, in the same order, written only for a mesh that has tangents. A mesh without it has no tangents and is drawn without its normal map. Decisions: see ADR-0123.
+
 ## Automation
 
 | Option | Effect |

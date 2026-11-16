@@ -82,12 +82,14 @@ Retour arrière : `git switch main` puis `git branch -D chantier/static-model-ta
 
 > Validation (2026-11-16) : `StaticModelMesh.GetTangentVertices()` ajouté ; `Load` lit `tangents` ; `SaveStaticModelMesh` l'écrit pour un maillage qui en a. Quatre tests dans `CasaEngine.Tests/EditorServices/StaticModelTangentSerializationTests.cs` (aller-retour, sans tangentes, nombre incohérent signalé par `Logs.WriteError`, asset existant `Box.staticModel`). Les deux solutions à 0 erreur. Tests : 6382 lancés, 6374 verts, les 8 échecs GPU connus et eux seuls.
 
-### ⏳ T2 — Décision et documentation
+### ✅ T2 — Décision et documentation
 
 - Objectif : la décision de format est écrite et le format est documenté.
 - Fichiers : `docs/decisions/0123-…md` (skill `adr`, numéro suivant de l'index), `docs/decisions/README.md`, la doc qui décrit `.staticModel` (`docs/editor/asset-documents.md`, section `.staticModel`), ce plan, `ai-agent/README.md`.
 - Validation : liens vérifiés par `rg` ; docs seulement, pas de build.
 - Commit : `docs(adr): record the tangents of the static model asset`
+
+> Validation (2026-11-16) : ADR-0123 écrit en `Proposed`, ajouté à l'index ; section `.staticModel` de `docs/editor/asset-documents.md` complétée ; liens vérifiés par `rg`. Vérification indépendante notée dans le plan du jeu (tranche S1d).
 
 ---
 

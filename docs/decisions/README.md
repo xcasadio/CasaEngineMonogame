@@ -136,3 +136,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0120](0120-preview-and-edit-documents-for-assets-without-one.md) | Assets without a document open in a read-only preview, and textures and static models get edit documents (numbered ADR-0073 until 2026-11-16) | Accepted | 2026-10-08 |
 | [ADR-0121](0121-editor-cameras-have-an-infinite-far-plane.md) | The editor cameras have an infinite far plane (numbered ADR-0074 until 2026-11-16) | Accepted | 2026-10-09 |
 | [ADR-0122](0122-the-editor-names-the-elements-and-components-it-creates.md) | The editor names the screen elements and components it creates (numbered ADR-0075 until 2026-11-16) | Accepted | 2026-10-09 |
+| [ADR-0123](0123-a-static-model-asset-keeps-the-tangents-of-its-meshes.md) | A static model asset keeps the tangents of its meshes | Proposed | 2026-11-16 |
