@@ -510,7 +510,9 @@ créé en T0.1), appels de dessin inchangés. Une tâche mesurée à 0 en T0.1 e
 notée « Commit (MGUI) » a aussi son commit du moteur (référence du sous-module et ce plan), comme le disent les
 règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
-### ⚠️ T2.1 — `MGGrid` avec sélection
+### ✅ T2.1 — `MGGrid` avec sélection
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : le reste de 464 octets par clic est retiré par T5.2 (0 mesuré). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/Containers/Grids/MGGrid.cs`.
 - Étapes : énumération de `GridSelection` sans itérateur (énumérateur `struct` ou boucle sur lignes et colonnes) ;
@@ -538,7 +540,9 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
     et de fin de glissement, séquence de clics et ses métadonnées). Preuve : la même suite de clics sur la même grille
     avec `SelectionMode = None` alloue exactement le même total, ce que le test affirme. Voir O10.
 
-### ⚠️ T2.2 — `MGDockHost`
+### ✅ T2.2 — `MGDockHost`
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : le reste de 80 octets par image du glissement est retiré par T5.7 (0 mesuré sur chaque sorte de cible). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/` (`MGDockHost.cs`, `MGDockDropIndicators.cs`, `MGDockPreviewOverlay.cs`,
   `DockDropCalculator.cs`, et les classes de séparation que la mesure désigne).
@@ -595,7 +599,9 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Commit (MGUI) : `perf(window): keep a window sized to its content without allocating`
 - Validation (2026-11-16) : mesuré à zéro en T0.1 (Update 0, Draw 0, `WidthAndHeight` et `Height`). Fermée sans code (D8).
 
-### ⚠️ T2.4 — `MGScrollViewer`
+### ✅ T2.4 — `MGScrollViewer`
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : les restes de la molette (56 octets) et des clips d'un contenu défilé sont retirés par T5.1 et T5.5 (0 mesuré). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGScrollViewer.cs`.
 - Étapes : nom de clip gardé (`:1233`) ; parcours des enfants sans énumérateur d'interface ; ce que la mesure montre
@@ -1571,7 +1577,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Non vérifié : `MGUI.Samples` et l'éditeur lancés à la main ; le chiffre de frappe d'avant (2600) non remesuré sur
     l'ancien code ; rien rejoué sur la première machine.
 
-### 🚧 T5.10 — Clôture de la phase 5
+### ✅ T5.10 — Clôture de la phase 5
 
 - Objectif : tableau final mis à jour (restes de la molette, du clic, de la frappe, du glissement, du défilement, des
   polygones), statut de T2.1, T2.2 et T2.4 revu selon ce que T5.2, T5.5 et T5.7 ont retiré, docs de MGUI à jour
@@ -1579,6 +1585,45 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   de `ai-agent/README.md`, `MGUI.Samples` lancé une fois, validation globale, rapport de fin (`AGENTS.md` §12).
 - Validation : section « Validation globale ».
 - Commit : `docs(ai-agent): close the follow-up decisions of the MGUI zero allocation chantier`
+- Validation (2026-11-16, seconde machine), sur le dernier état des deux branches (moteur `54494832` plus ce commit,
+  MGUI tête de `chantier/mgui-nonalloc-phase5`) : `dotnet build MGUI/MGUI.sln`, `CasaEngine.MonoGame.sln` et
+  `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `MGUI.Tests` 3990 verts, `CasaEngine.Tests` 6124 verts, aucun sauté,
+  tests GPU compris (suites rejouées par le vérificateur de T5.9 sur le code de T5.8 ; seul un fichier de doc de MGUI
+  a changé depuis). `MGUI.Samples` lancé une fois : démarre et tient 20 secondes sans sortie d'erreur. Le smoke à
+  l'œil (sample, éditeur : coins arrondis, dock, liste défilante, saisie dans une zone de texte, glissement d'onglet)
+  reste à faire par l'auteur. Rien n'est poussé ni fusionné.
+- À faire par l'auteur avant la fusion : rejouer les deux suites sur la première machine (les empreintes de pixels y
+  ont une autre entrée, O15) ; trancher O16.
+- Docs de MGUI : `input-architecture.md` (T5.1 à T5.3), `rendering-architecture.md` (T5.5, et `FillPolygon` ajouté
+  ici aux limites connues), `controls-architecture.md` (T5.7), `text-architecture.md` (T5.8) ; ADR de MGUI 0034
+  (entrée), 0035 (clips rectangulaires), 0036 (cible de dépôt), 0037 (géométrie du curseur). T5.6 n'a pas d'ADR :
+  aucune API ni comportement ne change.
+
+  Tableau final de la phase 5, octets par image à l'Update sauf mention (le dessin est à 0 partout sauf mention) :
+
+  | Cas | Avant la phase 5 | Après | Reste |
+  |---|---|---|---|
+  | `MGScrollViewer`, molette | 56 | 0 | — |
+  | Lecture d'un modificateur clavier | tableau et délégué par lecture | 0 | — |
+  | `MGGrid`, sélection par clic | 232 | 0 | — |
+  | `MGTextBox`, touches ignorées | 312 à 320 | 0 | — |
+  | `MGTextBox`, frappe | 3296 | 356 | géométrie gardée par le curseur (200 par changement), arguments de deux événements, `EscapeMarkdown`, chaîne de la touche |
+  | `MGScrollViewer`, défilement sur des décalages tous différents (dessin) | 9888 | 0 | — |
+  | `FillPolygon` d'un triangle, par appel (GPU réel, deux backends) | 424 | 376 | `DrawSolidPolygon` de MonoGame.Extended, O16 |
+  | `MGDockHost`, glissement d'onglet, cible stable | 80 à 576 | 0 | — |
+  | `MGDockHost`, glissement qui change de groupe à chaque image | 80 à 608 | 0 à 32 | cause non cherchée (bord de l'hôte à cheval sur deux groupes) |
+
+- Tâches de la phase 5 : 10 ✅. T2.1, T2.2 et T2.4 passent de ⚠️ à ✅ : leurs restes sont retirés par T5.1, T5.2, T5.5
+  et T5.7.
+- Points ouverts restants pour l'auteur : O16 (triangulation de MonoGame.Extended). O15 est répondu ; il en reste
+  la relance des suites sur la première machine.
+- Avis reportés des deux vérifications de la phase (T5.4 : appui gardé d'un `MGButton` sans relâchement, liens de
+  `RecentButtonClickedEvents` ; T5.9 : définition rectangulaire unique de `CreateBorderBackedContentsClipDefinition`,
+  `TransformedClipTests` sans l'élément qui pose le clip, chemin Apos de `FillPolygon` non exécuté, parts de 32 et 48
+  octets de la frappe non mesurées une à une).
+- Suites possibles, non planifiées : réutiliser les `LineRenderInfo` du curseur ; saisie de texte d'un caractère de
+  code 256 ou plus ; le triangle de `MGRatingControl` et le reste de la branche de progression de
+  `MGHighlightBorderBrush`, qui gardent du LINQ.
 
 ---
 
@@ -1600,7 +1645,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 à T5.9 faites (T5.9 : CONFIRMED). Prochaine tâche : **T5.10**.
+  T5.5 à T5.10 faites (T5.9 : CONFIRMED). Phase 5 terminée ; restent le smoke à l'œil de l'auteur, la relance des suites sur la première machine, la fusion et l'archivage du plan.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
