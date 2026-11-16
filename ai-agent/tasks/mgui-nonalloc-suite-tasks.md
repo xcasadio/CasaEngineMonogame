@@ -1235,7 +1235,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Reste : une saisie de texte native d'un caractère de code 256 ou plus (IME) crée encore sa chaîne, valeur que
     l'événement porte ; non mesuré.
 
-### ⏳ T5.4 — Vérification indépendante de l'entrée
+### ✅ T5.4 — Vérification indépendante de l'entrée
 
 - Objectif : un `verifier` neuf confirme ou réfute T5.1 à T5.3 : mêmes événements avec les mêmes valeurs qu'avant,
   durées de validité de D13 tenues (y compris pour un gestionnaire qui garde un appui jusqu'au relâchement), état
@@ -1244,6 +1244,33 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
 - Sources : diff de T5.1 à T5.3, ADR, scénarios figés.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(input): record the verification of the reused input events` (moteur, ce plan).
+- Validation (2026-11-16, seconde machine, branche `chantier/mgui-nonalloc-phase5`) : `verifier` neuf (opus), verdict
+  **CONFIRMED**, aucun constat P0 à P2. Aucun changement de code.
+  - Preuves du vérificateur : les deux scénarios figés, posés sur le code d'avant (`9881ff93`, extrait hors du dépôt),
+    y passent, donc ils viennent bien de l'ancien code ; leurs valeurs sont copiées au moment de chaque événement ;
+    ils contiennent les cas en gras de T5.2 et de T5.3. Une sonde différentielle écrite par le vérificateur (ancien et
+    nouveau code, mêmes séquences : clic puis appui long puis clic, doubles clics gauche et droit entrelacés,
+    glissement puis clic, deux appuis de saisie de texte seule puis un vrai appui, touche tenue avec focus déplacé,
+    modificateurs) rend les mêmes événements, valeurs, états « traité » et identifiants, aux deux avis ci-dessous
+    près. Chaque remplissage remet l'état « traité » à zéro ; séquence de clics et flux de touche repartent avec une
+    identité neuve. Les tests de zéro (molette, sélection de `MGGrid`, touches ignorées, modificateurs) passent à 0.
+    Aucun gardien hors durée de D13 dans les deux dépôts ; `InputTracker.Update` n'a qu'un appelant.
+  - Avis P4 reportés, tous deux déjà écrits dans l'ADR-0034 de MGUI : (A1) l'appui gardé d'un `MGButton` dont le
+    relâchement n'est jamais remis désigne l'appui suivant du même bouton ; seule la répétition le lit, et seulement
+    quand ce nouvel appui est dans le bouton ; jugé correct et sans effet visible atteignable. (A2) Les liens lus par
+    `MouseTracker.RecentButtonClickedEvents[bouton].ReleasedArgs` ou `.PressedArgs` après un relâchement ultérieur qui
+    n'est pas un clic désignent ce relâchement plus récent ; aucun lecteur de cette forme dans les deux dépôts.
+  - Suites sur cette machine : trois solutions 0 erreur ; `MGUI.Tests` 3938 verts, aucun sauté ; `CasaEngine.Tests`
+    6119 tests (la référence de 5556 date d'avant les fusions d'`origin/main`), 6111 verts, 0 sauté, **8 échecs
+    d'environnement** : six tests de `DesktopFrameGpuAllocationTests` et un de `DrawTransactionRearmGpuTests`
+    comparent l'image au repos à une empreinte de pixels prise sur la première machine (`124E0E0F…` attendu,
+    `D297B949…` obtenu ; le commentaire du test dit qu'un autre GPU ou pilote peut différer), et
+    `IblCubeGeneratorGpuTests.OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed` lit une autre couleur. Le
+    vérificateur a rejoué ces trois classes avec les binaires de MGUI d'avant T5.1 : mêmes 8 échecs, mêmes valeurs.
+    Ils ne viennent donc pas de T5.1 à T5.3. Voir O15.
+  - Non vérifié : l'empreinte absolue de l'image de glissement sur le GPU de la première machine (remplacée par une
+    comparaison ancien et nouveau MGUI sur cette machine, empreintes égales) ; aucun lancement de l'éditeur ni des
+    samples.
 
 ### ⏳ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
 
@@ -1393,6 +1420,9 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   écrit dans « Règles d'exécution pour l'agent ». Ne jamais committer sur `main` ni sur `develop`.
 - Faites : phases 0 à 4, puis T5.1, T5.2 et T5.3. Prochaine tâche : **T5.4** (vérification indépendante de l'entrée),
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
+- Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
+  T5.4 faite (CONFIRMED). Prochaine tâche : **T5.5**, en attente de la réponse de l'auteur à O15 (8 tests GPU en
+  échec sur cette machine avant tout changement).
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
@@ -1498,6 +1528,7 @@ Consigne à donner à la session qui reprend :
 | O12 | **Décidé le 2026-11-16 (D13 et D15), traité en T5.1 et T5.3.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
 | O13 | **Décidé le 2026-11-16 (D19), traité en T5.8.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
 | O14 | **Validé par l'auteur le 2026-11-16 (D20) : comportement livré gardé.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
+| O15 | **Ouvert le 2026-11-16, question à l'auteur.** Sur la seconde machine, 8 tests GPU de `CasaEngine.Tests` échouent avant tout changement (7 empreintes de pixels prises sur la première machine, 1 couleur d'IBL ; détail sous T5.4). La validation de T5.5 à T5.10 demande « deux suites vertes » et, pour T5.5 et T5.6, « pixels identiques sur les tests GPU existants » : elle ne peut pas être tenue à la lettre ici. Voies : (a) accepter comme référence de cette machine « les mêmes 8 échecs, rien d'autre » et prouver les pixels par comparaison avant et après sur cette machine ; (b) refiger les empreintes pour qu'elles ne dépendent plus de la machine (tâche hors plan) ; (c) faire T5.5 à T5.10 sur la première machine. Recommandation de l'agent : (a), avec les suites rejouées sur la première machine avant la fusion. | T5.5 à T5.10 |
 
 ## Hors périmètre
 
