@@ -441,7 +441,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   - Limite : la mesure pousse une définition de clip déjà construite ; la construction d'une `ClipDefinition` et de sa
     géométrie par un contrôle n'est pas dans cette tâche.
 
-### ⏳ T1.6 — Le `MainRenderer` de MGUI garde sa transaction
+### ✅ T1.6 — Le `MainRenderer` de MGUI garde sa transaction
 
 - Objectif : `MainRenderer.BeginDrawTransaction` et `DrawViews` réutilisent une `DrawTransaction` réarmée (D5).
 - Fichiers : `MGUI/MGUI.MonoGame.Integration/Rendering/MainRenderer.cs`, `DrawTransaction.cs`, `ClipManager.cs`,
@@ -452,6 +452,28 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 - Validation : image réelle du backend de MGUI à 0 octet au repos sur GPU réel ; mêmes pixels qu'avec une transaction
   neuve ; `MGUI.sln` 0 erreur.
 - Commit (MGUI) : `perf(rendering)!: keep one draw transaction per renderer`
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3743 verts (10 tests GPU ajoutés,
+  `Integration/MainRendererDrawTransactionGpuTests.cs`, écrits par un `executor`), `CasaEngine.Tests` 5556 verts, aucun
+  sauté. ADR-0032 de MGUI.
+  - Contrat porté d'ADR-0097 et testé sur GPU réel : une transaction par `MainRenderer`, réarmée ; seconde demande qui
+    lève et laisse la première utilisable ; même objet après `Dispose` ; dessin, `Dispose` ou début de lot qui lève ;
+    changement de viewport entre deux images ; changements temporaires et clips laissés ouverts oubliés par l'usage
+    suivant. Référence des pixels : un `MainRenderer` neuf par image de référence, sur le même bureau.
+  - O6 : aucun appelant de `MGUI.Samples`, `MGUI.Editor.Host` ou `MGUI.MiniGame` ne garde deux transactions ouvertes
+    (`rg "BeginDrawTransaction\("` : seuls `MGDesktop.Draw` et `MainRenderer.DrawViews` en ouvrent, sous `using`).
+  - Image réelle du backend de MGUI (`MGDesktop.Update` puis `MGDesktop.Draw`, fixture `Full`, GPU réel, 500 images) :
+
+    | | Update | Draw |
+    |---|---|---|
+    | Avant (transaction gardée, rien d'autre) | 0 | 6624 octets par image |
+    | Après | 0 | 0 |
+
+    Deux causes hors de la transaction, corrigées dans les fichiers de la tâche en portant ce que le moteur fait déjà :
+    `DrawTransaction.GetFirstValidDrawContext(params ...)` (un tableau de 48 octets par forme dessinée, 33 par image)
+    et `MainRenderer.GetOrCreateWhiteCircleTexture` (requête LINQ, 504 octets par point, 10 par image pour la poignée de
+    redimensionnement de la fenêtre).
+  - Sample : `MGUI.Samples.exe` (net9.0-windows) lancé 20 secondes, encore en vie à l'arrêt, aucune sortie d'erreur.
+    Le rendu n'a pas été jugé à l'œil.
 
 ### ⏳ T1.7 — Vérification indépendante de la phase 1
 
@@ -613,7 +635,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O3 | Résolu en T0.1 : les 32 octets sont pris une seule fois, à la première image après le changement de texte, puis 0. | T0.1 |
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
 | O5 | Le moteur d'animation accepte-t-il de redémarrer une instance d'animation ? Non lu. | T3.2 |
-| O6 | Un appelant des samples ou de l'hôte d'éditeur de MGUI garde-t-il deux transactions ouvertes ? Non lu. | T1.6 |
+| O6 | Résolu en T1.6 : aucun appelant ne garde deux transactions ouvertes. | T1.6 |
 
 ## Hors périmètre
 
