@@ -1114,7 +1114,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Le test de phase 2 de la molette affirme maintenant 0 ; journaux figés inchangés.
   - Reste noté : commentaire périmé de `MGDockHost.cs:542` sur les modificateurs, corrigé en T5.2.
 
-### ⏳ T5.2 — Événements de bouton de souris réutilisés
+### ✅ T5.2 — Événements de bouton de souris réutilisés
 
 - Objectif : un appui, un relâchement, un clic, un début et une fin de glissement n'allouent plus après le premier
   usage de chaque bouton (464 octets par clic mesurés), selon D13 et D14.
@@ -1153,6 +1153,33 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   de `MGGrid` par clic lit 0 et 0, et son test de phase 2 affirme 0 ; test « un appui gardé reste lisible jusqu'au
   relâchement » pour les quatre contrôles ; mêmes journaux figés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(input)!: reuse the mouse button events` (MGUI), puis `perf(ui)!: take the reused mouse button events of MGUI` (moteur).
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3927 verts (26 tests ajoutés), `CasaEngine.Tests`
+  5556 verts, aucun sauté. Écrit par un `executor`. ADR-0034 de MGUI complété.
+
+  | `MGGrid`, sélection par clic | Update avant | Update après | Draw |
+  |---|---|---|---|
+  | Octets par image | 232 | 0 | 0 |
+
+  - Changement (`MouseTracker.cs`, `MouseEventArgs.cs`) : un appui, un relâchement, un clic et une séquence gardés par
+    bouton, un début et une fin de glissement par condition et par bouton, créés au premier usage et remplis avec
+    l'état « traité » remis à zéro ; la séquence repart avec une identité neuve (identifiant, bouton, heure, cible
+    adoptée effacée) ; double clic détecté sur des valeurs gardées. `MouseHandler.cs`, `InputTracker.cs` et les
+    gardiens de `MGUI.Core` n'ont pas changé.
+  - Relevé des gardiens (deux dépôts, sur le code d'avant) : tous couverts par la durée de D13, aucun à corriger ;
+    aucun dans le moteur (16 gestionnaires de `CasaEngine.Editor` lisent pendant l'appel).
+  - Ruptures d'API : retirés `BaseMouseClickedEventArgs.PreviousClickInSequence` (et son paramètre de constructeur),
+    `MouseClickSequence.FirstClick` et `LatestClick` ; `MouseTracker.GetMultiClickCount` change de signature (valeurs
+    du clic précédent au lieu de l'objet) ; les membres réécrits par un remplissage ont un setter privé. Aucun usage
+    dans le moteur.
+  - Comportement : scénario figé sur le code d'avant (2397 lignes, six gestionnaires, valeurs copiées au moment de
+    chaque événement), rejoué à l'identique après ; il contient le double clic sur X puis sur Y. Sans l'effacement de
+    la cible adoptée, le rejeu et deux tests dédiés échouent (vérifié puis annulé). Tests de
+    `Focus/InputEnhancedTests.cs` adaptés (cinq) : ils comparent des identifiants relevés au moment de chaque clic.
+  - Le test de phase 2 de la grille affirme maintenant 0, avec et sans mode de sélection ; journaux de dessin figés
+    inchangés. Commentaire périmé de `MGDockHost.cs:542` corrigé.
+  - Différence restante, écrite dans l'ADR : si le relâchement n'est jamais remis à un `MGButton` à répétition, son
+    appui gardé désigne, au prochain appui du même bouton, cet appui plus récent (avant : l'ancien). Seule la
+    répétition le lit. Jugé correct par l'agent, laissé à l'avis du vérificateur de T5.4.
 
 ### ⏳ T5.3 — Événements de touche réutilisés
 
