@@ -619,11 +619,26 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
     dans `CasaLegacyShapeRenderer2D.cs:323-329` et `DrawTransaction.cs:792-800` de MGUI). Le banc, qui dessine dans
     une transaction de test, ne le voit pas. Voir O9.
 
-### ⏳ T2.7 — `MGTabControl`
+### ✅ T2.7 — `MGTabControl`
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGTabControl.cs`.
 - Validation : 0 octet au repos et au survol des en-têtes.
 - Commit (MGUI) : `perf(tabs): hover and draw a tab control without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3769 verts (6 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale.
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGTabControl` trois onglets, repos | 0 | 0 | 0 | 0 |
+  | Survol alterné de deux en-têtes | 88 | 0 | 0 | 0 |
+
+  - Cause : `MGTabControl.GetVisualTreeChildren` créait une liste à chaque appel, et la recherche de l'élément survolé
+    l'appelle à chaque mouvement de souris. La liste est gardée par combinaison d'arguments et revérifiée à chaque
+    appel contre les onglets et la sélection (aucun drapeau à oublier) ; une liste rendue n'est jamais modifiée, une
+    nouvelle la remplace quand le contenu change.
+  - Appels de dessin inchangés : journal figé de 1100 lignes pris sur le code d'avant. Test de sens du cache :
+    `TabControlWithThreeTabs_VisualTreeChildren_FollowTheSelection`.
 
 ### ⏳ T2.8 — Menus (`MGContextMenu`, `MGMenuBar`)
 
