@@ -971,6 +971,340 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
 ---
 
+## Phase 5 — Suites décidées par l'auteur (O7 à O14)
+
+Décision de l'auteur du 2026-11-16 : « pour ce qui reste, prends les recommandations et fais tâche par tâche ». Les
+recommandations des points ouverts O7 à O14 deviennent les décisions D13 à D20. Aucun code de cette phase avant
+l'approbation de ce découpage.
+
+État vérifié pour cette phase (trois éclaireurs en lecture seule le 2026-11-16, faits porteurs revérifiés par `rg`) :
+
+- Entrée souris (`MGUI/MGUI.Shared/Input/Mouse/MouseTracker.cs`, `MouseEventArgs.cs`) : `MouseTracker.Update` crée un
+  objet par événement : molette (`:409`), appui (`:443`), relâchement (`:462`), clic (`:473`), début de glissement
+  (`:451`, `:511`), fin de glissement (`:542`), séquence de clics (`:472`) avec ses métadonnées
+  (`MouseEventArgs.cs:75`) et une `WeakReference` (`:105`). Le déplacement et le glissement en cours sont déjà
+  réutilisés (`_ReusedMoveEvent` `:206`, `_ReusedDraggedEvents` `:343`), avec la règle « lire pendant l'événement, ne
+  pas garder » dans leur commentaire. Les objets sont liés entre eux : le relâchement tient l'appui, le clic tient le
+  relâchement, le clic précédent (`PreviousClickInSequence`) et sa séquence (`FirstClick`, `LatestClick`), la fin de
+  glissement tient le début.
+- Qui garde un objet d'entrée au-delà de l'image : le suivi lui-même (`_RecentButtonPressedEvents` `:209` jusqu'au
+  relâchement, `_RecentButtonClickedEvents` `:249` pour le double clic, `RecentDragStartEvents` `:270` jusqu'à la fin
+  du glissement) et quatre contrôles qui gardent l'appui jusqu'au relâchement (`PressedArgs` de `MGButton.cs:309`,
+  `MGCheckBox.cs:263`, `MGRadioButton.cs:134`, `MGToggleButton.cs:240`). Lecteurs des liens hors du dossier d'entrée :
+  `MGResizeGrip.cs:203` (`e.DragStartArgs.HandledBy`), `MGTextBox.cs:1214` (`e.PressedArgs.HandledBy`) ;
+  `PreviousClickInSequence` n'est lu que par des tests (`Focus/InputEnhancedTests.cs`). Les objets portent un état
+  modifiable (`SetHandledBy`, 25 appels dans `MouseHandler.cs`, remise à zéro `InputTracker.cs:43-48`).
+- Entrée clavier (`Keyboard/KeyboardTracker.cs`, `KeyboardEventArgs.cs`, `KeyboardHandler.cs`) : un flux et un appui
+  par touche (`KeyboardTracker.cs:195-196`, `:281-282`), un relâchement (`:212`), un clic (`:218`), une répétition
+  (`KeyboardHandler.cs:278`). `RecentKeyPressedEvents` (`:112`) garde l'appui tant que la touche est tenue.
+  `IsAnyPressed(params Keys[] Keys) => Keys.Any(x => IsPressed(x))` (`:136`) sert `IsShiftDown`, `IsControlDown`,
+  `IsAltDown` (`:142-144`), lus par 8 fichiers produit.
+- Deux cas du clavier qui portent la conception de T5.3 (relevés par le relecteur du plan, lus dans le code) :
+  la répétition n'est pas créée par le suivi mais par chaque `KeyboardHandler`, qui en fait sa propre instance à
+  chaque répétition due (`KeyboardHandler.cs:236-281`) ; la remise dépend de l'état « traité » de cette instance
+  (`:204-216`), donc chaque gestionnaire a aujourd'hui un état « traité » qui lui est propre. Et quand une touche est
+  relâchée à l'image où arrive une saisie de texte native non consommée pour la même touche,
+  `CreateTextInputOnlyPressedEvents` crée dans cette même image un nouvel appui et un nouveau flux pour cette touche
+  (`KeyboardTracker.cs:262-285`), alors que le relâchement déjà construit désigne l'appui tenu (`:204-227`) et que le
+  relâchement et le clic sont routés par le flux de cet appui (`KeyboardHandler.cs:190-195`, `:219-225`,
+  `KeyboardEventArgs.cs:116`, `:149`).
+- Identité de routage (relevée par le second relecteur du plan) : un flux de touche porte le gestionnaire qui l'a
+  adopté (`KeyboardHandler.AdoptStreamIfHandled`, `KeyboardHandler.cs:56-61`, `OwnerHandlerId`,
+  `KeyboardEventArgs.cs:46-55`), et le relâchement, la répétition et le clic sont routés par ce propriétaire avant le
+  focus (`KeyboardHandler.cs:191-195`, `:205-209`, `:220-225`). Une séquence de clics porte la cible qui l'a adoptée
+  (`MouseClickSequence.TryAdoptTarget`, `MouseEventArgs.cs:94-106`, refuse une seconde cible), et le double clic ne
+  va qu'à une cible qui correspond (`MouseHandler.cs:716-718`, `:143-164`). Aujourd'hui un flux neuf et une séquence
+  neuve naissent sans propriétaire (`KeyboardTracker.cs:195`, `:281`, `MouseTracker.cs:472`).
+- `MGButton` relit l'appui gardé aux images suivantes pour sa répétition (`MGButton.cs:330-333`) et ne l'efface que
+  dans ses gestionnaires de relâchement.
+- Le moteur lit ces arguments dans 16 fichiers de `CasaEngine.Editor` (`rg "Base(Mouse|Key)\w+EventArgs"`) ; aucun
+  champ de ces types n'y a été trouvé par les éclaireurs, recherche à refaire dans la tâche.
+- Clips d'élément (`MGUI/MGUI.Core/UI/MGElement.cs:5439-5465`) : les deux clips d'un élément passent par
+  `PushClipTemporary(ClipDefinition)`. Un clip rectangulaire résout toujours en scissor
+  (`ClipStrategyResolver.cs:19`), comme `PushRectangleClip`. `DebugName` n'est lu par le code produit que pour des
+  messages d'exception et comme clé de cache. Des tests en dépendent : 37 empreintes de journal figées dans 3 fichiers
+  (`ControlFamilyZeroAllocationTests.cs`, `DesktopFrameCharacterisationTests.cs`, `DesktopFrameLayoutTextTests.cs`),
+  `TransformedClipTests.cs:39-47` (cherche le clip nommé `ScrollViewer.Viewport`),
+  `GridColorPickerSwatchClipTests.cs:44` et `:74`, et 8 doublures qui font passer `PushRectangleClip` par
+  `PushClipTemporary`. `ElementClipRequest.cs` n'a aucun appelant.
+- `FillPolygon` : les deux backends font `Any()` puis `ToArray()` puis `PrimitiveDrawing.DrawSolidPolygon(origine,
+  tableau, couleur, false)` (`DrawTransaction.cs:790-801` de MGUI, `CasaLegacyShapeRenderer2D.cs:321-330`).
+  `DrawSolidPolygon` vient de MonoGame.Extended, son source n'est pas dans le dépôt : on ne sait pas s'il alloue.
+  Appelants qui passent déjà un tableau : `MGEllipse`, `MGPolygon`, `UISymbolDrawing` ; qui passent du LINQ :
+  `MGRatingControl.cs:648`, `MGHighlightBorderBrush.cs:794-796`, `MGDockedBorderBrush.cs:150-169`.
+- Cible de dépôt (`MGUI/MGUI.Core/UI/Docking/DockDropTarget.cs`, `MGDockHost.cs:2867-2897`) : classe publique à
+  propriétés modifiables, sans égalité de valeur ; `CurrentDropTarget` a un setter privé qui notifie quand la
+  référence change. Créations : `MGDockHost.cs:2927` et `:3007`, `DockDropCalculator.cs` (14 `new`, par zone et par
+  bord de l'hôte). Aucun abonné à `PropertyChanged` d'un `MGDockHost` et aucune lecture hors de `MGDockHost` et des
+  tests dans les deux dépôts ; le dépôt lit `CurrentDropTarget` une fois (`:890`).
+- Champs écrits après coup sur une cible (relevé par le relecteur de clôture du plan) : le calculateur ne remplit que
+  `TargetNode`, `Zone`, `HitRect` et `PreviewRect` (`DockDropCalculator.cs:111-198`, `:228-268`) ; l'hôte écrit ensuite
+  `IsSplitterDrop` et `SplitterNode` sur l'objet rendu pour une barre de séparation (`MGDockHost.cs:812-821`) et
+  `TabIndex` sur une cible de centre ou de réordonnancement (`:2958-2968`, `:2927-2947`, `:3007-3031`). Les autres
+  champs ne valent leur défaut (`TabIndex = -1`, `IsHostEdge`, `IsSplitterDrop` faux, `SplitterNode` nul,
+  `DockDropTarget.cs:40-60`) que parce que chaque cible est aujourd'hui un objet neuf ; `ExecuteDrop` lit ces champs.
+- Curseur de `MGTextBox` (`MGUI/MGUI.Core/UI/Text/TextRenderInfo.cs:86-206`) : il lit `MGTextBlock.Lines`, les runs de
+  texte de chaque ligne et `MGTextLine.OriginalCharacterIndices` (`MGTextLine.cs:48`), table que seul
+  `MGTextLine.ParseLines` remplit (tiret de césure qui partage l'index du caractère suivant, saut de ligne compté,
+  ligne d'espace ignorée). Les mises en page internes (`PlainTextLayout.cs`, `FormattedTextLayout.cs`) gardent des
+  morceaux qui pointent dans leur propre tampon, sans index dans le texte d'origine. Le bloc d'un `MGTextBox` est en
+  balisage activé avec un texte échappé (`MGTextBox.cs:236`, `EscapeMarkdown`) et retour à la ligne ;
+  `MGRichTextBox` et `MGPasswordBox` en dérivent. Aucun test ne vérifie la géométrie du curseur (position après
+  frappe, clic, sélection).
+- Deux lecteurs que T5.8 doit tenir (relevés par le relecteur du plan) : `MGTextCaret.MoveToApproximateScreenPosition`
+  choisit le bord gauche ou droit d'un caractère à partir de `CharInfo.Line.Source`, la `MGTextLine` gardée par
+  `LineRenderInfo`, et de ses runs (`MGTextCaret.cs:220-223`, `TextRenderInfo.cs:122`, `:257`) ; et un
+  `MGRichTextBox` qui a une sélection, des segments stylés ou un colorateur passe par `SetTextRuns`
+  (`MGRichTextBox.cs:376-386`), cas où `MGTextBlock.UpdateLines` prend sa troisième branche et construit les
+  `MGTextLine` directement, sans mise en page interne (`MGTextBlock.cs:1590-1618`).
+- Dossier de docs de MGUI : `Docs/` dans l'index git, `docs/` sur le disque ; un nouvel ADR s'indexe par le chemin
+  que `git status` montre, et `git ls-files` doit le lister sous `Docs/`.
+
+Décisions de cette phase :
+
+| Réf | Décision |
+|---|---|
+| D13 | (O7, O10, O12) Les arguments d'événement d'entrée de `MGUI.Shared/Input` sont réutilisés. Durée de validité, écrite dans un ADR de MGUI et dans le commentaire de chaque type : molette, pendant l'image ; appui, relâchement, clic, début et fin de glissement d'un bouton, jusqu'à l'événement suivant de la même sorte pour le même bouton (un appui reste donc valide tant que le bouton est tenu et pendant son relâchement) ; appui, relâchement et clic d'une touche, de même par touche. Deux instances restent séparées pour ne rien changer : la répétition d'une touche appartient à chaque gestionnaire (une instance par gestionnaire et par touche, avec son propre état « traité », comme aujourd'hui) ; l'appui créé pour une saisie de texte seule a sa propre instance et son propre flux, distincts de ceux de l'appui tenu, pour que le relâchement et le clic de la même image gardent leur appui, son heure et son flux. À chaque réutilisation, l'état « traité » est remis à zéro, et toute l'identité de l'objet repart comme celle d'un objet neuf : un flux de touche reçoit un nouvel identifiant, son heure de départ, son appui initial, et son propriétaire (`OwnerHandlerId`) est effacé ; une séquence de clics reçoit un nouvel identifiant, son bouton, son heure de départ, et sa cible adoptée (`ValidatedTargetId`, `ValidatedTargetHost`) est effacée. Une séquence de clics d'un bouton est valide jusqu'à la séquence suivante du même bouton. |
+| D14 | (O10) Les membres qui désigneraient une instance réécrite sont retirés sans alias : `BaseMouseClickedEventArgs.PreviousClickInSequence`, `MouseClickSequence.FirstClick` et `LatestClick`. `ClickCount` et la séquence restent ; si un appelant des deux dépôts a besoin d'une valeur du clic précédent, elle est exposée comme valeur. Rupture d'API (mémoire `modern-design-over-api-compat`). |
+| D15 | (O12) `KeyboardTracker.IsAnyPressed(params Keys[])` reste publique ; `IsShiftDown`, `IsControlDown` et `IsAltDown` ne passent plus par elle. |
+| D16 | (O8) Les clips rectangulaires d'un élément passent par `PushRectangleClip` (ADR de MGUI écrit en T5.5). Le journal des appels de dessin change pour ces clips (`PushRectangleClip/2` au lieu de `PushClipTemporary/1`, plus de nom) ; le rendu ne change pas. Les clips arrondis et à géométrie gardent `PushClipTemporary`. |
+| D17 | (O9) `FillPolygon` des deux backends ne copie plus ses sommets quand l'appelant passe un tableau ou une liste indexable. Si `PrimitiveDrawing.DrawSolidPolygon` alloue lui-même, le fait est mesuré et écrit, et la tâche s'arrête là : pas de remplacement de MonoGame.Extended dans cette phase. |
+| D18 | (O11) `MGDockHost` garde une instance de `DockDropTarget` pour `CurrentDropTarget` : ses valeurs sont réécrites à chaque recalcul et `PropertyChanged` n'est levé que quand une valeur change ou quand la cible apparaît ou disparaît. Chaque remplissage d'une cible gardée (emplacement du calculateur, cible de centre, cible de réordonnancement, instance de `CurrentDropTarget`) écrit les huit champs comme un objet neuf les aurait : `TargetNode`, `Zone`, `HitRect`, `PreviewRect`, `TabIndex` à -1 sauf valeur calculée, `IsHostEdge`, `IsSplitterDrop` faux et `SplitterNode` nul sauf barre de séparation. La valeur rendue par la méthode publique `GetDropTarget` est cette même instance. Changement de comportement observable : ADR de MGUI écrit en T5.7 et section Docking de `MGUI/Docs/controls-architecture.md`. |
+| D19 | (O13) Quand le bloc d'un `MGTextBox` a une mise en page interne (texte sans balise ou à balises), la géométrie du curseur ne relit plus `MGTextBlock.Lines` : la mise en page interne donne la table des index d'origine. Quand il n'en a pas (runs explicites d'un `MGRichTextBox` avec sélection, segments stylés ou colorateur), elle continue de lire `MGTextBlock.Lines`. ADR de MGUI écrit en T5.8. La table doit être identique à `MGTextLine.OriginalCharacterIndices` sur le corpus ; sinon la tâche s'arrête en ⚠️ avec le premier texte qui diffère. |
+| D20 | (O14) Validé par l'auteur : une balise d'image dont la taille est en chiffres non ASCII reste une image nommée par toute sa valeur, sans taille (ADR-0033 de MGUI). Aucun code. |
+
+Règles propres à cette phase, en plus des règles d'exécution du plan : les tâches sont indépendantes sauf mention (T5.2 et T5.3 s'appuient sur l'ADR écrit en T5.1) ;
+une tâche dont la preuve échoue s'arrête en ⚠️ sans bloquer les autres ; les tests d'égalité à un reste mesuré
+écrits en phase 2 (molette, clic, frappe, cible de dépôt) deviennent des affirmations à 0 dans la tâche qui retire ce
+reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
+
+### ⏳ T5.1 — ADR de l'entrée, molette et modificateurs
+
+- Objectif : l'ADR de D13 à D15 existe ; l'événement de molette est réutilisé ; `IsShiftDown`, `IsControlDown` et
+  `IsAltDown` n'allouent plus.
+- Fichiers : `MGUI/Docs/decisions/0034-*.md` et son index, `MGUI/Docs/input-architecture.md` ;
+  `MGUI/MGUI.Shared/Input/Mouse/MouseTracker.cs`, `MouseEventArgs.cs`, `MouseHandler.cs` (si la remise à zéro de
+  l'état « traité » le demande), `MGUI/MGUI.Shared/Input/InputTracker.cs`, `Keyboard/KeyboardTracker.cs` ;
+  `MGUI/MGUI.Core/UI/MGTextBox.cs` (son contournement `IsControlDown` redevient la propriété) ;
+  `MGUI/MGUI.Tests/Input/` et `Architecture/ControlFamilyZeroAllocationTests.cs`.
+- Étapes : écrire l'ADR ; une instance de `BaseMouseScrolledEventArgs` gardée par le suivi, remplie à chaque image où
+  la molette bouge, état « traité » remis à zéro ; chercher tout code des deux dépôts qui garde cet événement
+  (`rg` sur les champs, listes et fermetures) et l'écrire dans la note ; un gardien trouvé est corrigé pour copier les
+  valeurs, ou la tâche s'arrête en ⚠️ avec le site s'il ne peut pas l'être sans changer son comportement ;
+  modificateurs par deux `IsPressed`.
+- Validation : `ScrollViewerWithTallContent` à 0 et 0 pendant la molette, et son test de phase 2 affirme 0 ; test
+  « l'événement de molette est la même instance d'une image à l'autre, avec ses valeurs et un état non traité » ; test
+  de zéro des trois modificateurs ; mêmes journaux figés ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(input)!: reuse the scroll event and read modifiers without allocating` (MGUI), puis le commit du moteur.
+
+### ⏳ T5.2 — Événements de bouton de souris réutilisés
+
+- Objectif : un appui, un relâchement, un clic, un début et une fin de glissement n'allouent plus après le premier
+  usage de chaque bouton (464 octets par clic mesurés), selon D13 et D14.
+- Fichiers : `MGUI/MGUI.Shared/Input/Mouse/` (`MouseTracker.cs`, `MouseEventArgs.cs`, `MouseHandler.cs`),
+  `InputTracker.cs` ; lecteurs et gardiens dans `MGUI.Core` (`MGButton.cs`, `MGCheckBox.cs`, `MGRadioButton.cs`,
+  `MGToggleButton.cs`, `MGResizeGrip.cs`, `MGTextBox.cs` et ceux que le compilateur et `rg` désignent) et dans
+  `CasaEngine.Editor` s'il en reste ; tests `MGUI.Tests/Input/`, `Focus/InputEnhancedTests.cs`, `Focus/FocusTests.cs`,
+  `Architecture/ControlFamilyZeroAllocationTests.cs`.
+- Étapes :
+  1. Relever, avant tout changement, chaque endroit des deux dépôts qui garde un de ces objets après le retour du
+     gestionnaire ou qui lit un lien entre deux objets ; l'écrire dans la note de la tâche. Un gardien dont la durée
+     dépasse celle de D13 est corrigé pour copier les valeurs ; s'il ne peut pas l'être sans changer son
+     comportement, ⚠️ avec le site. Cas déjà connu à trancher ici : `MGButton` relit son appui gardé pour sa
+     répétition (`MGButton.cs:330-333`) et ne l'efface qu'au relâchement ; vérifier ce qu'il lit si le relâchement
+     ne lui est pas remis.
+  2. Figer le comportement avant le changement : rejouer un scénario scripté (appuis, relâchements, clics simples,
+     doubles et triples sur les trois boutons, clic sur un autre bouton entre deux clics, glissements par les deux
+     conditions de départ, relâchement hors de l'élément, clic traité par un parent, appui d'un bouton pendant qu'un
+     autre est tenu, **double clic du même bouton sur un élément X puis sur un autre élément Y**, qui doit recevoir
+     son double clic) et enregistrer, image par image,
+     les événements reçus par les gestionnaires avec leurs valeurs (bouton, position, temps, compteur de clics,
+     identifiant de séquence, traité par qui).
+  3. Instances gardées par bouton (et par condition pour le glissement), séquence et métadonnées réutilisées avec
+     leur identité remise à zéro à chaque nouvelle séquence (D13 : identifiant, bouton, heure de départ, cible
+     adoptée effacée), `WeakReference` réarmée par `SetTarget`, détection du double clic sur des valeurs gardées et non sur l'objet
+     précédent.
+  4. Retirer les membres de D14 et adapter leurs tests, ainsi que ceux qui affirment que deux séquences sont deux
+     objets (`Focus/InputEnhancedTests.cs:214`, `:239`) : ils affirment désormais deux identifiants différents,
+     relevés au moment de chaque clic et non relus sur la référence gardée (de même pour `:274-275`, qui relit
+     l'état « traité » du premier clic après le second). `MouseTracker.GetMultiClickCount` (publique, statique,
+     `MouseTracker.cs:562-569`) lit l'heure du relâchement du clic précédent : elle lit désormais la valeur gardée ;
+     l'ADR dit si sa signature change. La garde `withoutSelection.UpdateTotal > 0` du test de la grille
+     (`ControlFamilyZeroAllocationTests.cs:703`) devient fausse et est réécrite.
+- Validation : le scénario figé rejoue à l'identique (aux membres retirés près, nommés dans la note), y compris le cas
+  en gras ; un test dédié échoue si la cible adoptée d'une séquence survit dans la séquence suivante du même bouton ; la sélection
+  de `MGGrid` par clic lit 0 et 0, et son test de phase 2 affirme 0 ; test « un appui gardé reste lisible jusqu'au
+  relâchement » pour les quatre contrôles ; mêmes journaux figés ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(input)!: reuse the mouse button events` (MGUI), puis `perf(ui)!: take the reused mouse button events of MGUI` (moteur).
+
+### ⏳ T5.3 — Événements de touche réutilisés
+
+- Objectif : un appui, un relâchement, un clic et une répétition de touche n'allouent plus après le premier usage de
+  chaque touche (696 octets par touche mesurés), selon D13.
+- Fichiers : `MGUI/MGUI.Shared/Input/Keyboard/` (`KeyboardTracker.cs`, `KeyboardEventArgs.cs`, `KeyboardHandler.cs`) ;
+  lecteurs dans `MGUI.Core` et `CasaEngine.Editor` que `rg` désigne ; tests `MGUI.Tests/Input/`, `Focus/`,
+  `Architecture/ControlFamilyZeroAllocationTests.cs`.
+- Étapes : même méthode que T5.2. Relevé des gardiens. Scénario figé avant le changement, enregistré image par image
+  et par gestionnaire (qui a reçu quoi, heure d'appui, identifiant de flux, traité par qui) : touches seules, tenues
+  avec répétition, deux touches à la fois, modificateurs, saisie de texte, focus qui change pendant qu'une touche est
+  tenue, **une touche tenue dont la répétition va à deux gestionnaires dont l'un la marque traitée**, **le
+  relâchement d'une touche dans l'image où arrive une saisie de texte native de la même touche**, et **une touche
+  appuyée, traitée et relâchée par un gestionnaire A, puis le focus passé à B, puis la même touche appuyée, répétée
+  et relâchée**, que B doit recevoir. Puis : appui,
+  relâchement, clic, flux et métadonnées gardés par touche dans le suivi, créés à leur premier usage, le flux repartant
+  à chaque nouvel appui avec une identité neuve (D13 : identifiant, heure, appui initial, propriétaire effacé) ; répétition
+  gardée par gestionnaire et par touche ; appui et flux de saisie de texte seule gardés à part (D13).
+- Validation : le scénario figé rejoue à l'identique, y compris les trois cas en gras ; un test dédié échoue si le
+  propriétaire d'un flux survit dans le flux suivant de la même touche ; un test dédié pousse l'image
+  « relâchement et saisie de texte de la même touche » et affirme que le relâchement et le clic portent l'heure
+  d'appui, l'identifiant de flux et le propriétaire d'origine, et vont aux mêmes gestionnaires qu'avant ; la zone de
+  saisie qui ignore les touches lit 0 et 0, et la garde `ignored.UpdateTotal > 0` de
+  `ControlFamilyZeroAllocationTests.cs:1243`, qui devient fausse, est réécrite ; le test de frappe de phase 2 est
+  resserré au reste hors entrée (environ 2600 octets, objet de T5.8) ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(input)!: reuse the key events` (MGUI), puis le commit du moteur.
+
+### ⏳ T5.4 — Vérification indépendante de l'entrée
+
+- Objectif : un `verifier` neuf confirme ou réfute T5.1 à T5.3 : mêmes événements avec les mêmes valeurs qu'avant,
+  durées de validité de D13 tenues (y compris pour un gestionnaire qui garde un appui jusqu'au relâchement), état
+  « traité » jamais hérité d'un usage précédent, zéro allocation après chauffe, aucun code des deux dépôts qui garde
+  un objet au-delà de sa durée, aucune régression des deux suites.
+- Sources : diff de T5.1 à T5.3, ADR, scénarios figés.
+- Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
+- Commit : `docs(input): record the verification of the reused input events` (moteur, ce plan).
+
+### ⏳ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
+
+- Objectif : un élément dont le clip est un rectangle ne crée plus de `ClipDefinition`, quelles que soient ses bornes
+  (environ 120 octets par image pour un contenu défilé sur des décalages nouveaux), selon D16.
+- Fichiers : `MGUI/MGUI.Core/UI/MGElement.cs` (`Draw`, crochets de clip, cache et anneau des définitions
+  rectangulaires), les redéfinitions qui rendent un rectangle (`MGScrollViewer.cs`, `MGBorder.cs`, `MGTextBox.cs`,
+  `Adorners/MGAdorner.cs`, `MGEllipse.cs`, `MGPathLite.cs`, `MGPolygon.cs`, `MGGridColorPicker.cs`), celles qui rendent
+  `null` et que le compilateur fera suivre (`Docking/Controls/MGDockDropIndicators.cs`, `MGDockPreviewOverlay.cs`),
+  `Clipping/ElementClipRequest.cs` (retiré ou utilisé) ; tests : les trois fichiers d'empreintes,
+  `Animation/TransformedClipTests.cs`, `Architecture/GridColorPickerSwatchClipTests.cs`, les doublures qui notent le
+  nom d'un clip ; `MGUI/Docs/rendering-architecture.md`, `MGUI/Docs/decisions/0035-*.md` et son index.
+- Étapes :
+  1. Avant le changement, écrire un test qui normalise un journal : un `PushClipTemporary/1` d'une définition
+     rectangulaire **posée par les crochets de clip d'un élément** (nom en `.Self`, `.Contents` ou `.Viewport`)
+     devient la ligne `PushRectangleClip/2` de mêmes bornes. Les autres `PushClipTemporary` restent tels quels, en
+     particulier le clip des pastilles que `MGGridColorPicker.cs:883-886` pousse lui-même. Garder les 37 journaux
+     normalisés.
+  2. Faire rendre aux crochets soit un rectangle, soit une définition, sans objet pour le rectangle ; `Draw` appelle
+     `PushRectangleClip` pour le premier. Les crochets sont internes : aucune signature publique ne change, sauf
+     `CreateRectangleClipDefinition` (`protected`), gardée si un appelant externe à `MGUI.Core` existe dans les deux
+     dépôts, retirée sinon.
+  3. Vérifier que les 37 journaux d'après sont égaux aux journaux normalisés d'avant, puis refiger les empreintes.
+     Adapter les tests qui cherchent un clip par son nom à ce que le journal porte désormais (bornes), sans perdre
+     ce qu'ils prouvent. Écrire l'ADR (D16 : ce qui change dans le journal, ce qui ne change pas à l'écran, sort de
+     `CreateRectangleClipDefinition`).
+- Validation : journaux normalisés identiques (le test reste) ; mesure et test de zéro d'un défilement continu sur
+  500 décalages tous différents (0 au dessin) ; pixels identiques sur les tests GPU existants ; trois solutions
+  0 erreur, deux suites vertes.
+- Commit : `perf(rendering): push the rectangle clips of an element without a definition` (MGUI), puis le commit du moteur.
+
+### ⏳ T5.6 — `FillPolygon` des backends sans copie
+
+- Objectif : dessiner un polygone ou une flèche sur GPU réel n'alloue plus dans les deux backends, selon D17.
+- Fichiers : `MGUI/MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs`,
+  `CasaEngine/Framework/UI/Backend/MonoGame/Primitives/CasaLegacyShapeRenderer2D.cs` (et `IShapeRenderer2D.cs`,
+  `CasaEngine.AposShapes/.../CasaAposShapeRenderer2D.cs` s'ils doivent suivre), appelants de `MGUI.Core` qui passent
+  du LINQ à chaque dessin (`MGRatingControl.cs`, `Brushes/BorderBrushes/MGHighlightBorderBrush.cs`,
+  `MGDockedBorderBrush.cs`) ; tests GPU des deux dépôts.
+- Étapes : mesurer d'abord sur GPU réel un `FillPolygon` d'un tableau de trois sommets dans chaque backend, et
+  séparément `PrimitiveDrawing.DrawSolidPolygon` seul ; si ce dernier alloue, l'écrire et ne traiter que ce qui est
+  autour (D17). Vérifier au même moment, par un test, que `DrawSolidPolygon` ne modifie pas le tableau reçu et ne le
+  garde pas (tableau inchangé après l'appel ; mêmes pixels quand le tableau est réécrit après l'appel et avant la fin
+  du lot) : s'il modifie le tableau, un tampon gardé par longueur le remplace ; s'il le garde, ni le tableau de l'appelant ni un
+  tampon gardé ne sont sûrs (deux polygones de même longueur dans un lot partageraient le tampon) : la tâche
+  s'arrête en ⚠️ avec le fait, comme pour l'allocation (D17). Sinon : test de vide sans `Any()`, tableau passé tel quel quand l'appelant en donne un, tampon gardé
+  par longueur quand il donne une liste indexable, copie seulement pour une énumération quelconque ; appelants
+  LINQ remplacés par un tampon gardé, mêmes sommets dans le même ordre (`MGRatingControl` passe par
+  `StrokeAndFillPolygon` et calcule aussi un minimum et un maximum par lambda, `MGRatingControl.cs:648-658` : le
+  même traitement s'y applique). Ces réécritures d'appelants ne sont prouvées que par les journaux figés et les
+  pixels ; leur gain n'est mesuré que si une fixture existante les atteint, et la note le dit.
+- Validation : 0 octet par `FillPolygon` d'un tableau et d'une liste dans les deux backends (ou le reste dû à
+  MonoGame.Extended, écrit) ; pixels identiques sur un triangle, un polygone concave et une flèche ; journaux figés
+  inchangés ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(rendering): fill a polygon without copying its vertices` (MGUI), puis `perf(ui): fill a polygon without copying its vertices` (moteur).
+
+### ⏳ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
+
+- Objectif : un glissement d'onglet n'alloue plus de `DockDropTarget` à chaque recalcul (80 octets par image), selon D18.
+- Fichiers : `MGUI/MGUI.Core/UI/Docking/Controls/MGDockHost.cs`, `Docking/DockDropCalculator.cs`,
+  `Docking/DockDropTarget.cs` ; tests `MGUI.Tests/Docking/`, `Architecture/ControlFamilyZeroAllocationTests.cs` ;
+  `MGUI/Docs/controls-architecture.md` (section Docking), `MGUI/Docs/decisions/0036-*.md` et son index.
+- Étapes : figer avant le changement, pour un scénario de glissement qui passe par chaque sorte de cible (centre,
+  quatre zones de séparation, quatre bords de l'hôte, barre de séparation, réordonnancement d'onglet, aucune cible),
+  les huit champs de `CurrentDropTarget` image par image et la disposition après le dépôt. Le scénario contient
+  aussi, dans cet ordre, les deux suites où un champ écrit après coup pourrait survivre : **barre de séparation à
+  côté d'un groupe G du côté S, puis zone S du même groupe G, puis dépôt** ; et **cible de centre ou de
+  réordonnancement avec un `TabIndex` calculé, puis cible de centre sans index** (autre groupe, ou `GetDropTarget`
+  hors d'un glissement). Ensuite : instance gardée par l'hôte, remplie
+  par copie de valeurs ; listes de zones du calculateur gardées et remplies par de nouvelles surcharges internes de
+  `DockDropCalculator` (les méthodes publiques statiques `CalculateDropZones` et `CalculateHostEdgeZones`, qu'un test
+  appelle, ne changent pas) ; notification selon D18 ; ADR.
+- Validation : mêmes huit champs image par image et même disposition après dépôt que le scénario figé ; un test dédié
+  survole une barre de séparation, puis la zone S du même groupe, dépose, et affirme `IsSplitterDrop` faux,
+  `SplitterNode` nul et la disposition figée avant le changement ; un second affirme que le `TabIndex` d'une cible
+  ne se retrouve jamais dans la suivante ; 0 et 0 pendant le
+  glissement sur chaque sorte de cible, et le test de phase 2 affirme 0 ; test de la notification (levée au
+  changement de valeur, à l'apparition et à la disparition, pas à un recalcul identique) ; journaux figés
+  inchangés ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(docking)!: keep one drop target during a drag` (MGUI), puis le commit du moteur.
+
+### ⏳ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
+
+- Objectif : un changement de texte dans un `MGTextBox` dont le bloc a une mise en page interne (texte sans balise ou
+  à balises) ne refait plus la mise en lignes par `MGTextLine.ParseLines` (environ 1600 octets par touche estimés),
+  selon D19. Un `MGRichTextBox` en runs explicites garde le chemin d'aujourd'hui. Dépend de T5.3 seulement pour le chiffre affirmé par le test
+  de frappe.
+- Fichiers : `MGUI/MGUI.Core/UI/Text/PlainTextLayout.cs`, `FormattedTextLayout.cs`, `TextRenderInfo.cs`,
+  `MGUI/MGUI.Core/UI/MGTextBlock.cs` (accès interne aux mises en page), `Text/MGTextCaret.cs` (il lit
+  `LineRenderInfo.Source` et ses runs pour choisir le bord d'un caractère : ce qu'il lit à la place est fourni par
+  `LineRenderInfo` et écrit dans l'ADR) ; `MGTextBox.cs` seulement s'il lit ce qui change ; tests `MGUI.Tests/Text/` ;
+  `MGUI/Docs/text-architecture.md`, `MGUI/Docs/decisions/0037-*.md` et son index.
+- Étapes :
+  1. Écrire d'abord, sur le code d'avant, les tests de géométrie qui manquent (figés) : pour un corpus de textes de
+     zone de saisie (une ligne, plusieurs lignes, retour à la ligne, mot plus long que la ligne avec tiret, lignes
+     d'espace, caractères échappés `[` et `\`, texte vide, zone de saisie alignée au centre et à droite, `MGPasswordBox`, `MGRichTextBox` simple, `MGRichTextBox` avec
+     une sélection et avec des segments stylés gras et italique), la position, la largeur, l'index d'origine et
+     l'index analysé de chaque caractère de `TextRenderInfo` ; et, pour chaque point d'une grille de positions à
+     l'écran (moitié gauche et moitié droite de caractères, lignes vides, lignes d'espace), le caractère trouvé et
+     la position du curseur après `MGTextCaret.MoveToApproximateScreenPosition` (ligne, index d'origine, index
+     analysé, bornes).
+  2. Faire porter aux morceaux des mises en page internes l'index d'origine de leur premier caractère et la marque
+     d'un caractère inséré ; différentiel : la table reconstruite est égale à `OriginalCharacterIndices` du code
+     historique sur le corpus des tests du texte et sur un tirage aléatoire, avec et sans retour à la ligne.
+  3. `TextRenderInfo.UpdateLines` lit la mise en page interne quand le bloc en a une, `MGTextBlock.Lines` sinon (runs
+     explicites). `MGTextBlock.Lines` reste, pour ce cas et pour ses autres lecteurs. Écrire l'ADR.
+- Validation : géométrie et positions du curseur figées identiques, y compris les moitiés droites, les lignes vides et
+  le `MGRichTextBox` avec sélection et segments stylés ; différentiel de la table sans écart (sinon ⚠️ avec le premier texte qui
+  diffère, D19) ; mesure de la frappe écrite ici, le test de frappe affirme le nouveau reste et le nomme (la nouvelle
+  chaîne et ce que le curseur garde) ; journaux figés inchangés ; trois solutions 0 erreur, deux suites vertes.
+- Commit : `perf(textbox): compute the caret geometry from the text layouts` (MGUI), puis le commit du moteur.
+
+### ⏳ T5.9 — Vérification indépendante de T5.5 à T5.8
+
+- Objectif : un `verifier` neuf confirme ou réfute : rendu inchangé pour les clips rectangulaires et les polygones
+  (pixels sur GPU réel, journaux normalisés), cible de dépôt aux mêmes valeurs et même résultat de dépôt, géométrie
+  du curseur identique, zéros annoncés, aucune régression des deux suites.
+- Sources : diff de T5.5 à T5.8, tests et scénarios figés. Une tâche restée en ⚠️ est exclue de la revendication et
+  nommée.
+- Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
+- Commit : `docs(ui): record the verification of the follow-up of the MGUI zero allocation chantier` (moteur, ce plan).
+
+### ⏳ T5.10 — Clôture de la phase 5
+
+- Objectif : tableau final mis à jour (restes de la molette, du clic, de la frappe, du glissement, du défilement, des
+  polygones), statut de T2.1, T2.2 et T2.4 revu selon ce que T5.2, T5.5 et T5.7 ont retiré, docs de MGUI à jour
+  (`input-architecture.md`, `controls-architecture.md`, `rendering-architecture.md`, `text-architecture.md`), ligne
+  de `ai-agent/README.md`, `MGUI.Samples` lancé une fois, validation globale, rapport de fin (`AGENTS.md` §12).
+- Validation : section « Validation globale ».
+- Commit : `docs(ai-agent): close the follow-up decisions of the MGUI zero allocation chantier`
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
@@ -983,14 +1317,14 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
 | O5 | Résolu en T3.2 : oui, le moteur d'animation redémarre une instance. | T3.2 |
 | O6 | Résolu en T1.6 : aucun appelant ne garde deux transactions ouvertes. | T1.6 |
-| O7 | **Décision de l'auteur.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
-| O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
-| O9 | **Décision de l'auteur.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
-| O10 | **Décision de l'auteur.** Tout clic crée dans `MGUI.Shared/Input/Mouse` les événements d'appui, de relâchement, de clic, de début et de fin de glissement, une séquence de clics et ses métadonnées (464 octets par clic mesurés). Les réutiliser, comme pour le déplacement (`ba19985d`), change ce qu'un gestionnaire peut garder. Recommandation de l'agent : même contrat que le déplacement et la molette (O7), en une tâche de suite sur l'entrée. | T2.1 |
-| O11 | **Décision de l'auteur.** Pendant un glissement d'onglet, `MGDockHost` crée un `DockDropTarget` à chaque recalcul de la cible (80 octets par image). `CurrentDropTarget` est publique et notifie quand la référence change. Deux voies : réutiliser une instance et ne notifier que quand une valeur change (changement de comportement observable), ou laisser comme limite. Recommandation de l'agent : réutiliser et notifier sur changement de valeur. | T2.2 |
-| O12 | **Décision de l'auteur.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
-| O13 | **Décision de l'auteur.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
-| O14 | **À valider par l'auteur.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
+| O7 | **Décidé le 2026-11-16 (D13), traité en T5.1.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
+| O8 | **Décidé le 2026-11-16 (D16), traité en T5.5.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
+| O9 | **Décidé le 2026-11-16 (D17), traité en T5.6.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
+| O10 | **Décidé le 2026-11-16 (D13 et D14), traité en T5.2.** Tout clic crée dans `MGUI.Shared/Input/Mouse` les événements d'appui, de relâchement, de clic, de début et de fin de glissement, une séquence de clics et ses métadonnées (464 octets par clic mesurés). Les réutiliser, comme pour le déplacement (`ba19985d`), change ce qu'un gestionnaire peut garder. Recommandation de l'agent : même contrat que le déplacement et la molette (O7), en une tâche de suite sur l'entrée. | T2.1 |
+| O11 | **Décidé le 2026-11-16 (D18), traité en T5.7.** Pendant un glissement d'onglet, `MGDockHost` crée un `DockDropTarget` à chaque recalcul de la cible (80 octets par image). `CurrentDropTarget` est publique et notifie quand la référence change. Deux voies : réutiliser une instance et ne notifier que quand une valeur change (changement de comportement observable), ou laisser comme limite. Recommandation de l'agent : réutiliser et notifier sur changement de valeur. | T2.2 |
+| O12 | **Décidé le 2026-11-16 (D13 et D15), traité en T5.1 et T5.3.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
+| O13 | **Décidé le 2026-11-16 (D19), traité en T5.8.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
+| O14 | **Validé par l'auteur le 2026-11-16 (D20) : comportement livré gardé.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
 
 ## Hors périmètre
 
