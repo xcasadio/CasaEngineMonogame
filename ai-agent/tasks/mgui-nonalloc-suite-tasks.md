@@ -797,7 +797,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Non couvert par un test, par construction seulement : brosse, hauteur et décalage du soulignement, qui ne peuvent
     pas atteindre le chemin sans balise aujourd'hui.
 
-### ⏳ T3.2 — Révélation par `TextCharactersPerSecond`
+### ✅ T3.2 — Révélation par `TextCharactersPerSecond`
 
 - Fichiers : `MGTextBlock.cs` (`SyncTextProgressAnimation`, `TextRevealRun`).
 - Étapes : garder un `TextRevealRun` et le reconfigurer au lieu de le recréer, si le moteur d'animation accepte de
@@ -805,6 +805,30 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Validation : 0 octet par image pendant la révélation, et par redémarrage après un changement de texte ; les tests
   de révélation existants verts.
 - Commit (MGUI) : `perf(text): restart a text reveal without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3832 verts (10 tests
+  ajoutés), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`.
+
+  | Octets | Avant | Après |
+  |---|---|---|
+  | Image d'une révélation en cours (Update, Draw) | 0 | 0 |
+  | Changement de texte pendant une révélation (setter) | 608 | 0 |
+  | Changement de vitesse, écriture de `TextProgress` | non mesuré | 0 |
+
+  - O5 : oui, le moteur d'animation redémarre une instance (`UIAnimation.cs:143-160` et `:184-186`,
+    `UIAnimationManager.Start` `:108-187`, `UIAnimation.Begin` `:214-239`).
+  - Cause : deux `new TextRevealRun` de 304 octets par changement de texte (`SyncTextProgressAnimation` appelé deux
+    fois). Le bloc garde maintenant une instance, l'annule, la reconfigure et la redémarre. Une instance neuve est
+    encore créée dans trois cas où la réutilisation changerait l'ordre : la première fois, pendant le tick du moteur
+    d'animation, et quand l'instance est encore active dans le moteur d'un autre bureau. Ajout interne :
+    `UIAnimationManager.IsTicking`.
+  - Comportement : journal figé de 897 lignes pris sur le code d'avant, rejoué image par image (progression, nombre de
+    caractères révélés lu dans les appels de dessin, notifications et événements dans l'ordre) : changements de texte
+    et de vitesse en cours, écriture de `TextProgress`, fin puis relance, vitesse nulle ou négative, texte vide,
+    détachement et rattachement, pause de l'horloge, échelle de temps, changement de texte depuis le rappel d'une
+    autre animation. Sans la garde `IsTicking` le journal diffère (vérifié puis annulé).
+  - Différence restante, à connaître : un redémarrage lève `Cancelled` puis `Started` sur la même instance ; celui
+    qui gardait une référence prise dans `Animations.Active` voit l'animation repartir au lieu d'une animation
+    terminée.
 
 ### ⏳ T3.3 — Valeur de balise refusée gardée en cache (D11)
 
@@ -854,7 +878,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O2 | Résolu en T1.5 : `DrawClipGeometry` n'alloue pas. | T1.5 |
 | O3 | Résolu en T0.1 : les 32 octets sont pris une seule fois, à la première image après le changement de texte, puis 0. | T0.1 |
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
-| O5 | Le moteur d'animation accepte-t-il de redémarrer une instance d'animation ? Non lu. | T3.2 |
+| O5 | Résolu en T3.2 : oui, le moteur d'animation redémarre une instance. | T3.2 |
 | O6 | Résolu en T1.6 : aucun appelant ne garde deux transactions ouvertes. | T1.6 |
 | O7 | **Décision de l'auteur.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
 | O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
