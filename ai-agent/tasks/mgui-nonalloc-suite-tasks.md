@@ -857,7 +857,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Docs : puce de l'ADR-0030 de MGUI et ligne de `MGUI/Docs/text-architecture.md` réécrites. Trois lignes de ce
     fichier sont périmées par T3.1, T3.2 et le plafond de 128 : corrigées en T4.1.
 
-### ⏳ T3.4 — Grammaire des balises en ASCII (D9)
+### ✅ T3.4 — Grammaire des balises en ASCII (D9)
 
 - Fichiers : `Text/FormattedTextTokenizer.cs` (classes de caractères ASCII explicites à la place de `\d`, et casse
   ASCII), `Text/MGTextRun.cs` (`ShadowOffsetParser`) et tout autre motif de `MGUI.Core/UI/Text/` qui contient `\d`
@@ -872,6 +872,44 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   (`AreFormattedRunsKnown` vrai), mêmes runs que le code historique ; un texte avec un caractère non ASCII près d'un
   `[` changé à chaque image alloue 0 octet. Vérification indépendante (`verifier`) avant ✅.
 - Commit (MGUI) : `fix(text)!: read tag types and numbers as ASCII only`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3896 verts (31 tests
+  ajoutés), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor` ; verdict **CONFIRMED** d'un `verifier`
+  neuf (opus) avant le commit. ADR-0033 de MGUI.
+
+  | Texte avec un caractère non ASCII après un `[`, changé à chaque image | Avant | Après |
+  |---|---|---|
+  | Setter, octets par image | 10847 | 0 |
+  | Update | 10104 | 0 |
+  | Draw | 120 | 0 |
+
+  - Changement : dans `FormattedTextTokenizer.cs` et `MGTextRun.cs`, `\d` devient `[0-9]` (opacité, RGB, facteur de
+    couleur, décalage d'ombre, hauteur et décalage du soulignement, marge de fond, taille d'image) et les types de
+    balise sont écrits lettre par lettre (`[Bb][Oo][Ll][Dd]`) au lieu de `(?i)` ; dans `FormattedTextScanner.cs`,
+    l'ambiguïté (`IsAmbiguous`) est retirée. Le lecteur ne laisse plus un texte au code historique que pour une image
+    sans taille dans un bloc sans bureau. Aucun membre public ne change.
+  - Ce qui change de sens (ADR-0033), vérifié par le vérificateur sur 81 516 textes dans quatre cultures (0 différence
+    sur un texte tout en ASCII, 550 textes différents, tous de ces deux sortes) :
+    - `[bacKground=Red]` écrit avec le signe Kelvin (U+212A) n'est plus une balise : il devient du texte. C'était le
+      seul caractère non ASCII qu'un type acceptait ;
+    - **une taille d'image écrite en chiffres non ASCII** (`[img=Icon ١٦x١٦]`) : c'était du texte littéral, c'est
+      maintenant une image dont le nom est toute la valeur, sans taille, comme `[img=Inconnu]` l'était déjà. C'est la
+      conséquence des règles inchangées (« un nom est tout texte jusqu'au `]` »), mais elle va au-delà de « devient du
+      texte » écrit en D9. Voir O14.
+    - Les autres nombres en chiffres non ASCII (`[o=٠.٥]`, soulignement, ombre, marge, RGB, facteur) étaient déjà du
+      texte, parce que leur interprétation échouait ; ils le restent.
+  - Mêmes runs dans les deux chaînes : corpus porté à 390 textes sous `en-US`, `tr-TR`, `fr-FR` et la culture
+    invariante, différentiel aléatoire de 20 000 textes (graine 20261116), plus celui du vérificateur (autre
+    générateur, tous les chiffres décimaux Unicode, paires de substitution, lettres qui se replient sur de l'ASCII) :
+    0 écart, 0 exception, 0 refus du lecteur avec un bureau.
+  - Laissé sans décision, hors du dossier `Text/` : la recherche d'un nom de couleur dans une brosse
+    (`ColorStringConverter`, comparaison selon la culture courante, suffixe `F` d'un facteur accepté) et
+    `RGBColorRegex` de `IFillBrush.cs` (`\d`, sans effet : `int.Parse` refuse ensuite ces chiffres).
+  - Constats non bloquants du vérificateur, reportés : P4, les analyseurs publics `FTTokenizer.ParseUnderlineValue` et
+    `ParseBackgroundValue` appelés directement avec des chiffres non ASCII rendent une valeur vide au lieu de lever
+    (aucun appelant hors du texte) ; P3, `Update` et `Draw` à 0 ne sont affirmés par un test que pour le setter (le
+    vérificateur les a mesurés à 0).
+  - Docs : ADR-0033, puce de l'ADR-0030, `MGUI/Docs/text-architecture.md` (règle de grammaire, fin de l'ambiguïté, et
+    les trois lignes périmées par T3.1, T3.2 et le plafond de 128).
 
 ---
 
@@ -907,6 +945,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O11 | **Décision de l'auteur.** Pendant un glissement d'onglet, `MGDockHost` crée un `DockDropTarget` à chaque recalcul de la cible (80 octets par image). `CurrentDropTarget` est publique et notifie quand la référence change. Deux voies : réutiliser une instance et ne notifier que quand une valeur change (changement de comportement observable), ou laisser comme limite. Recommandation de l'agent : réutiliser et notifier sur changement de valeur. | T2.2 |
 | O12 | **Décision de l'auteur.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
 | O13 | **Décision de l'auteur.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
+| O14 | **À valider par l'auteur.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
 
 ## Hors périmètre
 
