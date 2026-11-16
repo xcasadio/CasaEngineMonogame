@@ -1181,7 +1181,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
     appui gardé désigne, au prochain appui du même bouton, cet appui plus récent (avant : l'ancien). Seule la
     répétition le lit. Jugé correct par l'agent, laissé à l'avis du vérificateur de T5.4.
 
-### ⏳ T5.3 — Événements de touche réutilisés
+### ✅ T5.3 — Événements de touche réutilisés
 
 - Objectif : un appui, un relâchement, un clic et une répétition de touche n'allouent plus après le premier usage de
   chaque touche (696 octets par touche mesurés), selon D13.
@@ -1206,6 +1206,34 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   `ControlFamilyZeroAllocationTests.cs:1243`, qui devient fausse, est réécrite ; le test de frappe de phase 2 est
   resserré au reste hors entrée (environ 2600 octets, objet de T5.8) ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(input)!: reuse the key events` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3938 verts (11 tests ajoutés), `CasaEngine.Tests`
+  5556 verts, aucun sauté. Écrit par un `executor`. ADR-0034 de MGUI complété. La vérification indépendante de
+  l'entrée (T5.4) n'est pas faite : arrêt demandé par l'auteur après cette tâche.
+
+  | `MGTextBox` avec focus, octets par image (Update) | Avant | Après |
+  |---|---|---|
+  | Touches ignorées (F1, F2) | environ 312 à 320 | 0 |
+  | Frappe (A puis retour arrière) | 2912 (dont environ 312 d'entrée clavier) | 2600 |
+
+  - Le chiffre d'avant est celui relevé au début de cette tâche, après T5.1 ; les 696 octets notés en T2.9
+    comprenaient les lectures de modificateurs retirées en T5.1.
+  - Changement (`KeyboardTracker.cs`, `KeyboardEventArgs.cs`, `KeyboardHandler.cs`) : appui, flux, relâchement et clic
+    gardés par touche dans le suivi ; un appui et un flux séparés par touche pour la saisie de texte seule ; la
+    répétition gardée par gestionnaire et par touche ; à chaque nouvel appui le flux repart avec une identité neuve
+    (identifiant, heure, appui initial, propriétaire effacé) ; les chaînes des caractères de code inférieur à 256
+    d'une saisie de texte sont gardées. Aucun membre public retiré, aucune signature changée.
+  - Relevé des gardiens (deux dépôts, sur le code d'avant) : aucun objet d'événement gardé ; `MGTextBox` garde des
+    identifiants de flux (des valeurs). Aucune correction.
+  - Comportement : scénario figé sur le code d'avant (1038 lignes, quatre gestionnaires, valeurs copiées au moment de
+    chaque événement), rejoué à l'identique. Il contient les trois cas du plan : répétition vers deux gestionnaires
+    dont l'un la marque traitée ; relâchement d'une touche dans l'image d'une saisie de texte native de la même
+    touche ; touche traitée par A, focus passé à B, même touche appuyée, répétée et relâchée. Deux mutations
+    vérifiées puis annulées : garder le propriétaire d'un flux au redémarrage, et réutiliser l'appui tenu pour la
+    saisie de texte seule, font échouer le rejeu et les tests dédiés.
+  - Le test de frappe de phase 2 affirme maintenant le seul reste hors entrée (1 300 000 octets sur 500 images,
+    inchangé, objet de T5.8) ; le test des touches ignorées affirme 0. Journaux de dessin figés inchangés.
+  - Reste : une saisie de texte native d'un caractère de code 256 ou plus (IME) crée encore sa chaîne, valeur que
+    l'événement porte ; non mesuré.
 
 ### ⏳ T5.4 — Vérification indépendante de l'entrée
 
