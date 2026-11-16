@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T6.2 of the PBR plan: the split-sum BRDF table (ADR-0109). The first four tests do not depend on the integrated formula: they
+/// T6.2 of the PBR plan: the split-sum BRDF table (ADR-0110). The first four tests do not depend on the integrated formula: they
 /// pin the limit of a smooth surface (analytic), the monotony, the range and the axes. The fifth compares a few texels with an
 /// independent double-precision integration at a high sample count.
 /// </summary>

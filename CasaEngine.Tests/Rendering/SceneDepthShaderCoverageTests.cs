@@ -9,7 +9,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T3.2 of the clear coat, SSAO and FXAA plan: the scene depth pre-pass (ADR-0115). SceneDepth.fx and the skinned techniques are
+/// T3.2 of the clear coat, SSAO and FXAA plan: the scene depth pre-pass (ADR-0116). SceneDepth.fx and the skinned techniques are
 /// compiled, registered and hot reloadable; the pass sits after the shadow pass and before the sky and the colour passes; the host is
 /// activated in <c>RenderHdrView</c> only when its four conditions hold, evaluated before the scene is rendered, and released in the
 /// <c>finally</c>; the target is stamped for eviction and counted apart from the bloom and the FXAA targets. The checks read the text of

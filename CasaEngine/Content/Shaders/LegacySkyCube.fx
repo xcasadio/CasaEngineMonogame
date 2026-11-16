@@ -4,7 +4,7 @@ float4x4 ViewProjection;
 float4 SkyTintColor = float4(0.91f, 0.91f, 0.91f, 1.0f);
 float SkyCubeScale = 100.0f;
 
-// 1 when the view renders in the linear colour pipeline (ADR-0105): the sky cube and its tint are display colours.
+// 1 when the view renders in the linear colour pipeline (ADR-0106): the sky cube and its tint are display colours.
 float ColorPipelineIsLinear = 0.0f;
 
 DECLARE_CUBEMAP(SkyCube, 0);

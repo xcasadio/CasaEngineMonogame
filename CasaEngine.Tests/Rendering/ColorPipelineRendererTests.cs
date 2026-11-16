@@ -6,7 +6,7 @@ namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
 /// The renderers of the scene (particles, 3D sprites, lines) bind the colour pipeline constant from the frame, and the
-/// screen sprites and text are flushed after the tonemapping (ADR-0105, ADR-0106).
+/// screen sprites and text are flushed after the tonemapping (ADR-0106, ADR-0107).
 /// </summary>
 public class ColorPipelineRendererTests
 {

@@ -28,11 +28,11 @@ public readonly struct RenderFrame
     /// <summary>Effective forward shadow-map settings for the current view.</summary>
     public ShadowSettings Shadows { get; init; }
 
-    /// <summary>Cache of the image-based-lighting textures, set by <see cref="RenderPipeline"/> (ADR-0109); null otherwise.</summary>
+    /// <summary>Cache of the image-based-lighting textures, set by <see cref="RenderPipeline"/> (ADR-0110); null otherwise.</summary>
     public IblCache Ibl { get; init; }
 
     /// <summary>
-    /// Host of the scene depth pre-pass (ADR-0115), set by <see cref="RenderPipeline"/>; null otherwise. It carries the state of the
+    /// Host of the scene depth pre-pass (ADR-0116), set by <see cref="RenderPipeline"/>; null otherwise. It carries the state of the
     /// view being rendered: the renderers draw their depth only when <see cref="SceneDepthPrepass.IsActive"/>.
     /// </summary>
     public SceneDepthPrepass SceneDepth { get; init; }

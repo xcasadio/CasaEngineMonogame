@@ -1,13 +1,13 @@
-# ADR-0102: PBR scope extends to bloom, transparency, skinning and local probes
+# ADR-0103: PBR scope extends to bloom, transparency, skinning and local probes
 
-- **Status**: Accepted, amended by ADR-0112 (clear coat enters the scope)
+- **Status**: Accepted, amended by ADR-0113 (clear coat enters the scope)
 - **Date**: 2026-11-14
 - **Source**: this chantier: `ai-agent/tasks/pbr-rendering-tasks.md` (decisions D8 to D12), from the author's answers of 2026-11-14
-- Renumbered from ADR-0094 on 2026-11-15 when origin/main was merged (the renumbered lighting decisions are ADR-0097 to ADR-0101 today)
+- Renumbered from ADR-0094 on 2026-11-15 when origin/main was merged (the renumbered lighting decisions are ADR-0098 to ADR-0102 today)
 
 ## Context
 
-ADR-0013 locked the scope of the PBR work on 2026-08-09. Its plan was never executed and went stale after ADR-0086, ADR-0087 and ADR-0097 to ADR-0101 (frozen frame, buffered views, ambient term, detail texture, mipmaps, shadow settings). A first consumer, the RacingGame port, needs glass, a glow and reflective props, which the 2026-08-09 scope left out. Skinned meshes are drawn by `SkinnedMeshRendererComponent`, outside `ForwardRenderPipeline`.
+ADR-0013 locked the scope of the PBR work on 2026-08-09. Its plan was never executed and went stale after ADR-0086, ADR-0087 and ADR-0098 to ADR-0102 (frozen frame, buffered views, ambient term, detail texture, mipmaps, shadow settings). A first consumer, the RacingGame port, needs glass, a glow and reflective props, which the 2026-08-09 scope left out. Skinned meshes are drawn by `SkinnedMeshRendererComponent`, outside `ForwardRenderPipeline`.
 
 ## Decision
 

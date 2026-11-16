@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.PostProcess;
 
 /// <summary>
-/// The FXAA pass (ADR-0113): draws a tonemapped, display-encoded colour texture 1:1 into the current render target with
+/// The FXAA pass (ADR-0114): draws a tonemapped, display-encoded colour texture 1:1 into the current render target with
 /// <c>Fxaa.fx</c>, smoothing the luminance edges. It is a single <see cref="SpriteBatch"/> draw, so the destination keeps its
 /// binding and viewport; the blend, depth, rasterizer and sampler states the draw sets are put back before it returns.
 /// </summary>

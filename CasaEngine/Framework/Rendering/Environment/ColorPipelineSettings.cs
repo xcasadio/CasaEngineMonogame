@@ -36,7 +36,7 @@ public sealed class ColorPipelineSettings
     public TonemapOperator Tonemapper { get; set; } = TonemapOperator.AcesApprox;
 
     /// <summary>
-    /// Screen-space anti-aliasing applied after the tonemapping (ADR-0112). <see cref="AntiAliasingMode.None"/> by default,
+    /// Screen-space anti-aliasing applied after the tonemapping (ADR-0113). <see cref="AntiAliasingMode.None"/> by default,
     /// and without any effect in <see cref="ColorPipelineMode.Legacy"/>.
     /// </summary>
     public AntiAliasingMode AntiAliasing { get; set; } = AntiAliasingMode.None;
@@ -52,7 +52,7 @@ public sealed class ColorPipelineSettings
     }
 
     /// <summary>
-    /// Adds a blurred copy of the bright part of the HDR scene before the tonemapping (ADR-0107). Off by default, and
+    /// Adds a blurred copy of the bright part of the HDR scene before the tonemapping (ADR-0108). Off by default, and
     /// without any effect in <see cref="ColorPipelineMode.Legacy"/>.
     /// </summary>
     public bool BloomEnabled { get; set; }
@@ -85,7 +85,7 @@ public sealed class ColorPipelineSettings
     }
 
     /// <summary>
-    /// Screen-space ambient occlusion (ADR-0115): the view draws a scene depth pre-pass that the SSAO pass reads. Off by
+    /// Screen-space ambient occlusion (ADR-0116): the view draws a scene depth pre-pass that the SSAO pass reads. Off by
     /// default, and without any effect in <see cref="ColorPipelineMode.Legacy"/>, in a view with a non-perspective projection and in
     /// a view that renders its scene and its interface in one go.
     /// </summary>

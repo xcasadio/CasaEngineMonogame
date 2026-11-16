@@ -209,7 +209,7 @@ public class DialogueScreenLayoutTests
             _textEngine = new TestTextEngine(DefaultFontFamily);
         }
 
-        public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
+        public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
             => throw new NotSupportedException($"{nameof(DialogueScreenLayoutTests)} never draws.");
 
         public void ApplyFrame(UpdateBaseArgs updateArgs)

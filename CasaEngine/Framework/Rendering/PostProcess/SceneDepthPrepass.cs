@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.PostProcess;
 
 /// <summary>
-/// Host of the scene depth pre-pass (ADR-0115). One instance is owned by <see cref="RenderPipeline"/> and handed to the renderers
+/// Host of the scene depth pre-pass (ADR-0116). One instance is owned by <see cref="RenderPipeline"/> and handed to the renderers
 /// through <see cref="RenderFrame.SceneDepth"/> and <see cref="RenderContext.SceneDepth"/>, as the IBL cache is.
 /// <para>
 /// For a view that asks for it, <see cref="RenderPipeline"/> acquires a floating-point target (<c>Single</c>, <c>HalfSingle</c> or

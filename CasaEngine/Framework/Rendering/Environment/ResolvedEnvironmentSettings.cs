@@ -54,13 +54,13 @@ public readonly struct ResolvedEnvironmentSettings
 
     public TonemapOperator Tonemapper { get; init; }
 
-    /// <summary>Anti-aliasing requested for the view (ADR-0112). <see cref="AntiAliasingMode.None"/> in <see cref="CreateLegacy"/>.</summary>
+    /// <summary>Anti-aliasing requested for the view (ADR-0113). <see cref="AntiAliasingMode.None"/> in <see cref="CreateLegacy"/>.</summary>
     public AntiAliasingMode AntiAliasing { get; init; }
 
     /// <summary>Scalar exposure applied before the tonemapping operator. 1 in <see cref="CreateLegacy"/>.</summary>
     public float Exposure { get; init; }
 
-    /// <summary>Bloom is requested for the view (ADR-0107). False in <see cref="CreateLegacy"/>.</summary>
+    /// <summary>Bloom is requested for the view (ADR-0108). False in <see cref="CreateLegacy"/>.</summary>
     public bool BloomEnabled { get; init; }
 
     public float BloomThreshold { get; init; }
@@ -69,7 +69,7 @@ public readonly struct ResolvedEnvironmentSettings
 
     public float BloomRadius { get; init; }
 
-    /// <summary>The scene depth pre-pass and the SSAO are requested for the view (ADR-0115). False in <see cref="CreateLegacy"/>.</summary>
+    /// <summary>The scene depth pre-pass and the SSAO are requested for the view (ADR-0116). False in <see cref="CreateLegacy"/>.</summary>
     public bool SsaoEnabled { get; init; }
 
     public float SsaoRadius { get; init; }
@@ -79,9 +79,9 @@ public readonly struct ResolvedEnvironmentSettings
     public float SsaoBias { get; init; }
 
     /// <summary>
-    /// True when this view is drawn through the HDR scene target in this frame (ADR-0105), so its display colours must be
+    /// True when this view is drawn through the HDR scene target in this frame (ADR-0106), so its display colours must be
     /// decoded to linear light. It is not the resolved mode: a view in <see cref="Environment.ColorPipelineMode.LinearHdr"/>
-    /// that the planner leaves on the legacy path (ADR-0104) keeps this false. Set by the render pipeline after resolution
+    /// that the planner leaves on the legacy path (ADR-0105) keeps this false. Set by the render pipeline after resolution
     /// (the resolved value is cached per view), false everywhere else.
     /// </summary>
     public bool LinearColorActive { get; init; }

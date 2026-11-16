@@ -96,7 +96,7 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline, IScenePhase
         int height = Math.Max(1, frame.ViewportRect.Height);
         var viewportRect = new Rectangle(0, 0, width, height);
 
-        // In the linear colour pipeline (ADR-0105) the gradient is a display image: it is drawn from a copy of its colours decoded
+        // In the linear colour pipeline (ADR-0106) the gradient is a display image: it is drawn from a copy of its colours decoded
         // to linear light, kept in a floating-point texture (decoding into 8 bits would crush the dark end of the gradient).
         bool linearColor = frame.Environment.LinearColorActive;
         Texture2D gradientTexture = linearColor ? EnsureLinearGradientTexture() : _gradientTexture;

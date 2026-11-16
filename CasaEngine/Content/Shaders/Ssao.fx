@@ -6,7 +6,7 @@
 #define DEBUG_PS_SHADERMODEL ps_4_0
 #endif
 
-// Screen-space ambient occlusion (ADR-0115). Four pixel-shader-only techniques drawn through SpriteBatch.Begin(effect:), like
+// Screen-space ambient occlusion (ADR-0116). Four pixel-shader-only techniques drawn through SpriteBatch.Begin(effect:), like
 // Tonemap.fx, Bloom.fx and Fxaa.fx: SpriteBatch keeps its own vertex shader and binds the texture it draws as texture 0.
 //
 //   Ssao_Occlusion      draws the scene depth target (the view depth in world units written by the scene depth pre-pass, the
@@ -30,7 +30,7 @@
 //      the pixel (the range check).
 //   4. The factor is 1 minus the mean of the counts. A pixel at or beyond the sky threshold is left at 1.
 //
-// Every read is a tex2D with a point filter (the OpenGL chain ignores a requested texture level, ADR-0109), and there is no
+// Every read is a tex2D with a point filter (the OpenGL chain ignores a requested texture level, ADR-0110), and there is no
 // early return, so every read stays in uniform flow control.
 
 // Size of one texel of the target: (1 / width, 1 / height).

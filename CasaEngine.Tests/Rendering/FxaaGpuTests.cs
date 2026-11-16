@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The FXAA pass on a real device (plan T1.2, ADR-0113): it smooths a sharp oblique edge, leaves a flat area alone, does not shift
+/// The FXAA pass on a real device (plan T1.2, ADR-0114): it smooths a sharp oblique edge, leaves a flat area alone, does not shift
 /// the image, puts the device states back, and the pipeline runs it only in the view that composes its interface afterwards, with
 /// its target evicted after a size change. Skipped where no device can be created.
 /// </summary>

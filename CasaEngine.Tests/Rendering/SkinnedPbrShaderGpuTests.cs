@@ -11,7 +11,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The PBR techniques of the compiled skinning effect on a real device (ADR-0110): they exist, the resolver and the shader selector
+/// The PBR techniques of the compiled skinning effect on a real device (ADR-0111): they exist, the resolver and the shader selector
 /// mounted as <c>SkinnedMeshRendererComponent.LoadContent</c> mounts them leave the right technique current for a lit-pbr material in
 /// both skinning modes (and the Blinn-Phong one for a lit-diffuse material), and the mesh texture is bound for a lit-pbr material
 /// that carries none. Skipped where no device can be created.
@@ -41,7 +41,7 @@ public class SkinnedPbrShaderGpuTests
             Assert.Null(effect.Parameters["HasIbl"]);
             Assert.Null(effect.Parameters["IrradianceCubeTexture"]);
 
-            // No clear coat either (plan decision P5, ADR-0114): Pbr.fxh compiles its clear-coat code only under PBR_CLEAR_COAT, which
+            // No clear coat either (plan decision P5, ADR-0115): Pbr.fxh compiles its clear-coat code only under PBR_CLEAR_COAT, which
             // skinEffect.fx never defines, so the constants do not exist.
             Assert.Null(effect.Parameters[ShaderParameterNames.ClearCoat]);
             Assert.Null(effect.Parameters[ShaderParameterNames.ClearCoatRoughness]);

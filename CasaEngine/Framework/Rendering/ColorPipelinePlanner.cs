@@ -3,7 +3,7 @@ using CasaEngine.Framework.Rendering.FrozenFrames;
 
 namespace CasaEngine.Framework.Rendering;
 
-/// <summary>Where the tonemapped image of a view is written (ADR-0104): the destination the legacy path draws into.</summary>
+/// <summary>Where the tonemapped image of a view is written (ADR-0105): the destination the legacy path draws into.</summary>
 internal enum ColorPipelineDestination
 {
     /// <summary>No HDR scene target: the view is drawn by the legacy path.</summary>
@@ -41,7 +41,7 @@ internal readonly record struct ColorPipelineInputs(
 internal readonly record struct ColorPipelinePlan(bool UseHdrSceneTarget, ColorPipelineDestination Destination);
 
 /// <summary>
-/// Pure decision of the colour pipeline, provable without a GPU (ADR-0104). In <see cref="ColorPipelineMode.Legacy"/> the
+/// Pure decision of the colour pipeline, provable without a GPU (ADR-0105). In <see cref="ColorPipelineMode.Legacy"/> the
 /// plan is always "no HDR target", so the legacy path is the one that ran before the pipeline existed.
 /// </summary>
 internal static class ColorPipelinePlanner

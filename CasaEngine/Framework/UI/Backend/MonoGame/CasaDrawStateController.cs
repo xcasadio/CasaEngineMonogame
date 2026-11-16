@@ -1,14 +1,18 @@
-using MGUI.Shared.Helpers;
 using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
 
-internal sealed class CasaDrawStateController
+internal sealed class CasaDrawStateController : IDrawStateHandleOwner
 {
     private readonly CasaDesktopRuntime _renderer;
-    private readonly Matrix _primitiveProjectionMatrix;
+    private Matrix _primitiveProjectionMatrix;
+    // The default settings handed out as PreviousSettings at each re-arm: settings hold nothing but their parameters (MGUI ADR-0029), so a
+    // kept object cannot be told from a new one.
+    private readonly DrawSettings _defaultPreviousSettings;
+    // The settings each temporary change in force restores, one slot per change (MGUI ADR-0031).
+    private readonly GenerationSlots<DrawSettings> _temporarySettings = new();
 
     public CasaDrawStateController(CasaDesktopRuntime renderer, DrawSettings initialSettings, Matrix primitiveProjectionMatrix)
     {
@@ -18,6 +22,21 @@ internal sealed class CasaDrawStateController
         _renderer = renderer;
         _primitiveProjectionMatrix = primitiveProjectionMatrix;
         CurrentSettings = initialSettings;
+        _defaultPreviousSettings = PreviousSettings;
+    }
+
+    /// <summary>Puts the controller in the state its constructor gives it, for new initial settings and projection: no batch open, default
+    /// previous settings, no temporary change in force (the handles of the previous use restore nothing). A batch that is still open is not ended: the previous use of the
+    /// transaction ended it.</summary>
+    public void Rearm(DrawSettings initialSettings, Matrix primitiveProjectionMatrix)
+    {
+        ArgumentNullException.ThrowIfNull(initialSettings);
+
+        _primitiveProjectionMatrix = primitiveProjectionMatrix;
+        CurrentContext = DrawContext.None;
+        CurrentSettings = initialSettings;
+        PreviousSettings = _defaultPreviousSettings;
+        _temporarySettings.ReleaseAll();
     }
 
     public DrawContext CurrentContext { get; private set; } = DrawContext.None;
@@ -112,8 +131,20 @@ internal sealed class CasaDrawStateController
         End(CurrentContext);
     }
 
-    public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
-        => new TemporaryChange<DrawSettings>(CurrentSettings, settings, SetDrawSettings);
+    public DrawStateHandle SetDrawSettingsTemporary(DrawSettings settings)
+    {
+        int slot = _temporarySettings.Acquire(CurrentSettings, out int generation);
+        SetDrawSettings(settings);
+        return new DrawStateHandle(this, slot, generation);
+    }
+
+    public void ReleaseDrawState(int slot, int generation)
+    {
+        if (_temporarySettings.TryRelease(slot, generation, out DrawSettings previous))
+        {
+            SetDrawSettings(previous);
+        }
+    }
 
     /// <summary>Pushes the primitive-context device states onto the <see cref="GraphicsDevice"/> without starting a batch.<para/>
     /// Used both by <see cref="Begin"/> and by draw calls that issue their own GPU call outside of the primitive batch.</summary>

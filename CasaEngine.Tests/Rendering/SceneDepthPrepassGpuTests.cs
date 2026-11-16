@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The scene depth pre-pass on a real device (plan T3.2, ADR-0115): the static pass and the skinned draw (both skinning modes) write
+/// The scene depth pre-pass on a real device (plan T3.2, ADR-0116): the static pass and the skinned draw (both skinning modes) write
 /// the view depth of a plane at a known distance within 1 %, a cut-out leaves the background constant in its holes, the pass draws
 /// exactly what the opaque pass draws (not the shadow casters), the device is given back as found, and the pipeline activates the
 /// pre-pass for a view only when its four conditions hold (SSAO on, HDR view, perspective projection, scene and interface separated)

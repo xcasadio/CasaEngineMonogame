@@ -7,7 +7,7 @@ namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
 /// T1.2 of the clear coat, SSAO and FXAA plan: Fxaa.fx is compiled, registered as a built-in and hot reloadable, and the FXAA
-/// pass sits after the tonemapping and before the post-tonemap renderers and the interface (ADR-0113). The checks read the text
+/// pass sits after the tonemapping and before the post-tonemap renderers and the interface (ADR-0114). The checks read the text
 /// of the shader, the content file, the catalog and the pipeline: the compiler itself is exercised by the build.
 /// </summary>
 public class FxaaShaderCoverageTests
@@ -52,7 +52,7 @@ public class FxaaShaderCoverageTests
     {
         string source = ReadShader();
 
-        // The OpenGL chain ignores the requested level (ADR-0109): no tex2Dlod, and the pass reads the display colours as they are.
+        // The OpenGL chain ignores the requested level (ADR-0110): no tex2Dlod, and the pass reads the display colours as they are.
         Assert.DoesNotContain("tex2Dlod", source, StringComparison.Ordinal);
         Assert.DoesNotContain("tex2Dgrad", source, StringComparison.Ordinal);
         Assert.DoesNotContain("pow(", source, StringComparison.Ordinal);

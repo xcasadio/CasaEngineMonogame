@@ -339,7 +339,7 @@ public class PbrShaderCoverageTests
         }
 
         // Fifteen textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are the
-        // prefiltered atlases of the local probes, T7.1; t14 is the detail texture, ADR-0116).
+        // prefiltered atlases of the local probes, T7.1; t14 is the detail texture, ADR-0117).
         string[] textures =
         {
             ShaderParameterNames.BasColorTexture,
@@ -388,7 +388,7 @@ public class PbrShaderCoverageTests
         {
             string name = match.Groups["name"].Value;
 
-            // The detail texture constants (ADR-0116) keep the names of LitForward.fx, so that one material binds both, but not its
+            // The detail texture constants (ADR-0117) keep the names of LitForward.fx, so that one material binds both, but not its
             // slots: c35.w and c36.x of the PBR layout belong to HasEmissiveTexture and the lighting block.
             if (name is "HasDetailTexture" or "DetailTiling")
             {
@@ -456,7 +456,7 @@ public class PbrShaderCoverageTests
         string flat = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrFlatAmbient("));
         string ambient = Normalize(ExtractFunctionBody(source, "PbrAmbient ComputePbrAmbient("));
 
-        // HasIbl = 0: exactly the flat ambient of T3.2 (UseFlatAmbientSource honoured, ADR-0098), no specular part.
+        // HasIbl = 0: exactly the flat ambient of T3.2 (UseFlatAmbientSource honoured, ADR-0099), no specular part.
         Assert.Contains("(HasEnvironmentCubeTexture > 0.5f && UseFlatAmbientSource < 0.5f)", flat);
         Assert.Contains("SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor", flat);
         Assert.Contains(": AmbientColor;", flat);
@@ -583,7 +583,7 @@ public class PbrShaderCoverageTests
         string source = LoadShaderSource("LitPbr.fx");
         string pbr = LoadShaderSource("Pbr.fxh");
 
-        // The OpenGL chain ignores the level of a cube sample (ADR-0109): the IBL never uses it.
+        // The OpenGL chain ignores the level of a cube sample (ADR-0110): the IBL never uses it.
         Assert.DoesNotContain("texCUBElod", source);
         Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", source);
         Assert.DoesNotContain("SAMPLE_CUBEMAP_LEVEL", pbr);
@@ -649,7 +649,7 @@ public class PbrShaderCoverageTests
         Assert.DoesNotContain("float SampleDirectionalShadowPcf(", source);
         Assert.DoesNotContain("float3 ApplyShadowTint(", source);
 
-        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0101): the pixel colour excluding
+        // Default mode: EvaluatePbrLights scales the shadowed light. MultiplyLitColor (ADR-0102): the pixel colour excluding
         // the emissive part is tinted, with the factor the light evaluation computed.
         Assert.Contains("(int)ActiveDirectionalLightCount", shade);
         Assert.Contains("color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);", shade);

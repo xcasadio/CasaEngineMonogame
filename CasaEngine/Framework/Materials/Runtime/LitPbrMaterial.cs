@@ -37,7 +37,7 @@ public class LitPbrMaterial : MaterialBase
     public float OcclusionStrength { get; set; } = 1.0f;
 
     /// <summary>
-    /// Weight of the clear-coat layer (ADR-0114): 0 = none (the rendering is then identical to a material without the layer), 1 = a
+    /// Weight of the clear-coat layer (ADR-0115): 0 = none (the rendering is then identical to a material without the layer), 1 = a
     /// full dielectric varnish (F0 0.04) over the base. The layer follows the geometric normal, not the normal map.
     /// </summary>
     public float ClearCoat { get; set; }
@@ -62,7 +62,7 @@ public class LitPbrMaterial : MaterialBase
     public Guid EmissiveTextureAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
-    /// Optional detail texture (ADR-0116), same formula as <see cref="LitDiffuseMaterial.DetailTexture"/>: the base texture is
+    /// Optional detail texture (ADR-0117), same formula as <see cref="LitDiffuseMaterial.DetailTexture"/>: the base texture is
     /// multiplied by <c>2 * detail(texCoord * DetailTiling)</c> before the colour is decoded, so a mid-grey texel leaves it
     /// unchanged. Read only together with <see cref="BaseColorTexture"/>; ignored by the skinned PBR path.
     /// </summary>

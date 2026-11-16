@@ -21,7 +21,7 @@
 // The material colours reach this file already decoded to linear light (once per pixel, by the including effect): nothing
 // here decodes a colour, in particular nothing inside the light slots (plan open point O10).
 //
-// Clear coat (ADR-0114). This file is also included by skinEffect.fx, which has no clear coat (plan decision P5) and declares no
+// Clear coat (ADR-0115). This file is also included by skinEffect.fx, which has no clear coat (plan decision P5) and declares no
 // ClearCoat constant. The clear-coat code is therefore compiled ONLY when the including effect defines PBR_CLEAR_COAT before the
 // include (LitPbr.fx does); without the define the preprocessed text of this file is the one it had before the clear coat, so
 // skinEffect.fx compiles to the same bytes. The direct lobe is, with every symbol per light (N_g the geometric, interpolated

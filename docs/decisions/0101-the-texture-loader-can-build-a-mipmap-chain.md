@@ -1,4 +1,4 @@
-# ADR-0100: The texture loader can build a mipmap chain
+# ADR-0101: The texture loader can build a mipmap chain
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
@@ -7,7 +7,7 @@
 
 ## Context
 
-`Texture2DLoader.LoadAsset` returned `Texture2D.FromStream(...)`: a texture with a single level. No 2D loader of the engine reads or builds mipmaps. A 3D scene that samples such a texture at a distance shows aliasing noise, and a detail texture tiled many times (ADR-0099) shows moire. The RacingGame original builds every one of its textures with a mipmap chain and filters between the levels; its conversion cannot match that through the engine's loader. Some games also paint a texture at runtime (RacingGame repaints its car body textures) and need to refresh the levels of such a texture after changing level 0.
+`Texture2DLoader.LoadAsset` returned `Texture2D.FromStream(...)`: a texture with a single level. No 2D loader of the engine reads or builds mipmaps. A 3D scene that samples such a texture at a distance shows aliasing noise, and a detail texture tiled many times (ADR-0100) shows moire. The RacingGame original builds every one of its textures with a mipmap chain and filters between the levels; its conversion cannot match that through the engine's loader. Some games also paint a texture at runtime (RacingGame repaints its car body textures) and need to refresh the levels of such a texture after changing level 0.
 
 MonoGame creates a texture with its levels when asked (`new Texture2D(device, w, h, mipMap: true, format)`), with the convention that level `i` measures `max(1, dimension >> i)` on each axis and that the chain holds `floor(log2(max(w, h))) + 1` levels; it does not compute their content.
 

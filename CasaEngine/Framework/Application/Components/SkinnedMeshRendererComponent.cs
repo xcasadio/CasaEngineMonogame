@@ -63,7 +63,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         LitDiffuseMaterial material = null)
         => AddMesh(mesh, world, poseProvider, skinningModeSelection, castShadows, receiveShadows, material, null);
 
-    /// <param name="pbrMaterial">Lit-pbr material of the draw (ADR-0110); when not null it wins over <paramref name="material"/>.</param>
+    /// <param name="pbrMaterial">Lit-pbr material of the draw (ADR-0111); when not null it wins over <paramref name="material"/>.</param>
     public void AddMesh(
         RiggedModel mesh,
         Matrix world,
@@ -279,7 +279,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     }
 
     /// <summary>
-    /// Writes the view depth of every skinned mesh the colour pass will draw into the scene depth pre-pass target (ADR-0115), before
+    /// Writes the view depth of every skinned mesh the colour pass will draw into the scene depth pre-pass target (ADR-0116), before
     /// the colour draws; does nothing when the pre-pass of the view is not active. The meshes are the ones <see cref="DrawRiggedModel"/>
     /// draws: those without a texture are skipped, as the colour pass skips them.
     /// </summary>
@@ -487,7 +487,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             return;
         }
 
-        // A lit-pbr material wins over the lit-diffuse override and the default material (ADR-0110); it takes the mesh
+        // A lit-pbr material wins over the lit-diffuse override and the default material (ADR-0111); it takes the mesh
         // texture around its own Bind (BindPbrMaterial).
         MaterialBase material;
         LitDiffuseMaterial diffuseMaterial = null;
@@ -688,7 +688,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         /// <summary>Per-component material override; null uses the renderer's default material.</summary>
         public LitDiffuseMaterial Material { get; set; }
 
-        /// <summary>Per-component lit-pbr material (ADR-0110); when not null it wins over <see cref="Material"/>.</summary>
+        /// <summary>Per-component lit-pbr material (ADR-0111); when not null it wins over <see cref="Material"/>.</summary>
         public LitPbrMaterial PbrMaterial { get; set; }
     }
 }

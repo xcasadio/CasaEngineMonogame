@@ -1,4 +1,4 @@
-# ADR-0097: The ambient term applies the surface colour once
+# ADR-0098: The ambient term applies the surface colour once
 
 - **Status**: Accepted
 - **Date**: 2026-11-14
@@ -28,4 +28,4 @@ Other composers of the term were checked: `Lighting.fxh` only defines `ComputeAm
 - **Visible impact on existing scenes.** The ambient part of every textured lit material becomes brighter by a factor `1 / texture` (per channel): a mid-grey texture doubles its ambient, a dark texture gains much more. Materials without a base texture and without vertex colour (surface colour 1) are unchanged. Skinned meshes follow the same rule. Direct light, specular, emissive and reflections are unchanged.
 - **Migration note.** Scenes, demos and sample games tuned against the old (too dark) ambient may look flatter or brighter in shadow; lower the world ambient (`AmbientColor`, `AmbientIntensity`) or the material ambient (`LitDiffuseMaterial.AmbientColor`) to restore the previous look. Content built from the shaders (`Content.mgcb`, `Shaders/LitForward.fx`, `Shaders/skinEffect.fx`) must be rebuilt; the build of the `CasaEngine` project does it. A game that ships its own compiled copy of these effects must rebuild it.
 - **Follow-up.** Re-tuning the existing engine scenes (demos, sample games, editor defaults) is not part of this work; it is a separate task per scene.
-- The same fix is the precondition of ADR-0098 (flat ambient source) and of the RacingGame lighting conversion, which maps the original game's `texture * (ambient + diffuse * N.L)` onto the engine's material constants.
+- The same fix is the precondition of ADR-0099 (flat ambient source) and of the RacingGame lighting conversion, which maps the original game's `texture * (ambient + diffuse * N.L)` onto the engine's material constants.

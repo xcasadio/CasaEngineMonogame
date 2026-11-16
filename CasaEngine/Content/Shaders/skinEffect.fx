@@ -8,7 +8,7 @@
 // Uses the same direct-light model as LitForward.fx
 // (directional, point and spot lights via Lighting.fxh),
 // plus resolved environment ambient / reflection bindings.
-// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0110).
+// The two Pbr techniques shade like LitPbr.fx (Pbr.fxh) without image-based lighting (ADR-0111).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -427,7 +427,7 @@ TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaterni
 
 
 //_______________________________________________________________
-// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0110)
+// RiggedModelDrawPbr / RiggedModelDrawPbrDualQuaternion — metallic-roughness PBR (ADR-0111)
 //
 // The skinning is the one of the Blinn-Phong techniques above. The shading is LitPbr.fx's, minus what a skinned mesh
 // does not carry in this version: direct lights and received shadows (Pbr.fxh), a flat ambient (no image-based lighting,
@@ -508,7 +508,7 @@ TECHNIQUE(RiggedModelShadowDepthDualQuaternion, VertexShaderRiggedModelShadowDep
 
 
 //_______________________________________________________________
-// RiggedModelSceneDepth / RiggedModelSceneDepthDualQuaternion — scene depth pre-pass (ADR-0115)
+// RiggedModelSceneDepth / RiggedModelSceneDepthDualQuaternion — scene depth pre-pass (ADR-0116)
 // Writes the view depth, in world units (the clip-space w of a perspective projection), into the red channel of the pre-pass
 // target, as SceneDepth.fx does for the static meshes. The texture alpha is cut at AlphaCutoff like the colour pass does
 // (AlphaCutoff <= 0 disables the test), so a cut-out leaves the background value behind it. WorldViewProj is the world view

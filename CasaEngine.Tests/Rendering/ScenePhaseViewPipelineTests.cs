@@ -5,7 +5,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T1.4 of the PBR plan (ADR-0104): which view pipelines can render their scene without their interface, so the colour
+/// T1.4 of the PBR plan (ADR-0105): which view pipelines can render their scene without their interface, so the colour
 /// pipeline composes the interface after the tonemapping.
 /// </summary>
 public class ScenePhaseViewPipelineTests

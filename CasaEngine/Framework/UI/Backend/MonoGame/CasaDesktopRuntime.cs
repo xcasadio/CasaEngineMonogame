@@ -20,8 +20,6 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
     public IRenderHost Host { get; }
     public IRawInputSource RawInputSource { get; }
     public IUISurface Surface { get; }
-    private List<IUIView> MutableViews { get; } = new();
-    public IReadOnlyList<IUIView> Views => MutableViews;
 
     public GraphicsDevice GraphicsDevice => Host.GraphicsDevice;
     public SpriteBatch SpriteBatch { get; }
@@ -123,36 +121,60 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 
     public Rectangle GetViewport(int margin) => Surface.GetBounds().GetCompressed(margin);
 
-    public IUIDrawTransaction CreateDrawTransaction(DrawSettings settings, bool deferBegin)
-        => new CasaDrawTransaction(this, settings, deferBegin);
+    private CasaDrawTransaction _drawTransaction;
+    private bool _isDrawTransactionOpen;
 
+    /// <summary>Opens the draw transaction of this runtime. A runtime owns one <see cref="CasaDrawTransaction"/> for its whole life: the first
+    /// call creates it, every later call puts the same object back in the state of a new transaction, so a frame allocates no transaction.
+    /// Its <see cref="IDisposable.Dispose"/> ends the batch and closes it.<para/>
+    /// One transaction is open at a time, and a transaction is not to be used after its <c>Dispose</c>: the next call hands the same object
+    /// to the next draw. The shape renderer of <see cref="CasaMonoGameBackendOptions.CreateShapeRenderer"/> is created once per runtime, not
+    /// once per frame.<para/>
+    /// If the re-arm or the begin of the batch throws, the transaction stays closed and the next call succeeds.</summary>
+    /// <exception cref="InvalidOperationException">The transaction of this runtime is already open: dispose it first.</exception>
+    public IUIDrawTransaction BeginDrawTransaction(DrawSettings settings, bool deferBegin)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        if (_isDrawTransactionOpen)
+        {
+            throw new InvalidOperationException(
+                $"The draw transaction of this {nameof(CasaDesktopRuntime)} is already open. A runtime has one transaction and one draw at a time: " +
+                "dispose the transaction returned by the previous BeginDrawTransaction call (or let the draw that holds it finish) before asking for another.");
+        }
+
+        if (_drawTransaction == null)
+        {
+            //  Created with the begin deferred, then begun here: a begin that throws must not lose the object.
+            _drawTransaction = new CasaDrawTransaction(this, settings, true);
+            if (!deferBegin)
+            {
+                _drawTransaction.ForceBeginDraw(DrawContext.Sprites);
+            }
+        }
+        else
+        {
+            _drawTransaction.Rearm(settings, deferBegin);
+        }
+
+        _isDrawTransactionOpen = true;
+        return _drawTransaction;
+    }
+
+    /// <summary>Called by <see cref="CasaDrawTransaction.Dispose"/>, whether the end of its batch succeeded or threw.</summary>
+    internal void CloseDrawTransaction(CasaDrawTransaction transaction)
+    {
+        if (ReferenceEquals(transaction, _drawTransaction))
+        {
+            _isDrawTransactionOpen = false;
+        }
+    }
+
+    /// <summary>Required by <see cref="IUIDesktopRuntime"/>, called by <c>MGDesktop</c> with its view. The runtime keeps no list of views: nothing
+    /// read it, and a list held by the runtime kept every registered view alive.</summary>
     public void RegisterView(IUIView view)
     {
         ArgumentNullException.ThrowIfNull(view);
-
-        if (!MutableViews.Contains(view))
-        {
-            MutableViews.Add(view);
-        }
-    }
-
-    public bool UnregisterView(IUIView view) => view != null && MutableViews.Remove(view);
-
-    public void UpdateViews()
-    {
-        foreach (IUIView view in MutableViews)
-        {
-            view.Update();
-        }
-    }
-
-    public void DrawViews(float opacity = 1.0f, DrawSettings initialDrawSettings = null)
-    {
-        using var drawTransaction = new CasaDrawTransaction(this, initialDrawSettings ?? DrawSettings.Default, false);
-        foreach (IUIView view in MutableViews)
-        {
-            view.Draw(drawTransaction, opacity);
-        }
     }
 
     public SolidColorTexture GetOrCreateSolidColorTexture(Color color)

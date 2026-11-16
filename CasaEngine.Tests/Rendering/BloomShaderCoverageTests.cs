@@ -7,7 +7,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// T2.1 of the PBR plan: Bloom.fx is compiled, registered as a built-in and hot reloadable (ADR-0107). The checks read the
+/// T2.1 of the PBR plan: Bloom.fx is compiled, registered as a built-in and hot reloadable (ADR-0108). The checks read the
 /// text of the shader, the content file and the catalog: the compiler itself is exercised by the build.
 /// </summary>
 public class BloomShaderCoverageTests

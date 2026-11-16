@@ -43,7 +43,7 @@ public static class EffectiveShaderResolver
 
     /// <summary>
     /// The same <c>skinEffect</c> effect as <see cref="LinearBlendSkinnedEffectShaderId"/>, registered under its own id so that the
-    /// variant library can map every canonical technique name of a lit-pbr skinned draw to <c>RiggedModelDrawPbr</c> (ADR-0110).
+    /// variant library can map every canonical technique name of a lit-pbr skinned draw to <c>RiggedModelDrawPbr</c> (ADR-0111).
     /// </summary>
     public static readonly Guid LinearBlendSkinnedPbrEffectShaderId = Guid.Parse("3d4cb6e8-9404-4634-8097-2fef7fd8f963");
 
@@ -86,7 +86,7 @@ public static class EffectiveShaderResolver
         if ((features & ShaderFeature.Skinned) != 0)
         {
             // A lit-pbr material on a skinned mesh takes the PBR techniques of the skinning effect; every other family keeps
-            // the Blinn-Phong ones (ADR-0110).
+            // the Blinn-Phong ones (ADR-0111).
             return capabilities.ShaderFamily == MaterialShaderFamily.LitPbr
                 ? SkinningModeShaderResolver.ResolvePbr(skinningMode)
                 : SkinningModeShaderResolver.Resolve(skinningMode);

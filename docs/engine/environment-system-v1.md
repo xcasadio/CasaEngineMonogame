@@ -91,4 +91,4 @@ Limites techniques assumees:
 Les chantiers V2 correspondants restent dans le plan sous `ENV-022` a `ENV-026`.
 ## Since V1: PBR and the colour pipeline
 
-Several limits above were lifted for `lit-pbr` materials by the PBR work: the world carries a `color_pipeline` key (see [color-pipeline.md](color-pipeline.md)), a convolution pipeline generates the irradiance cube, the prefiltered roughness atlas and the BRDF table once per source cube, and reflection probes are prefiltered and blended (see [pbr-rendering.md](pbr-rendering.md), ADR-0109). `lit-diffuse` keeps the V1 behaviour described here.
+Several limits above were lifted for `lit-pbr` materials by the PBR work: the world carries a `color_pipeline` key (see [color-pipeline.md](color-pipeline.md)), a convolution pipeline generates the irradiance cube, the prefiltered roughness atlas and the BRDF table once per source cube, and reflection probes are prefiltered and blended (see [pbr-rendering.md](pbr-rendering.md), ADR-0110). `lit-diffuse` keeps the V1 behaviour described here.

@@ -1,4 +1,4 @@
-# ADR-0114: lit-pbr carries a clear coat layer evaluated as a second lobe
+# ADR-0115: lit-pbr carries a clear coat layer evaluated as a second lobe
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
@@ -6,7 +6,7 @@
 
 ## Context
 
-The author asked for car paint (D2): a clear varnish over a coloured base. ADR-0112 moved the clear coat into the PBR scope, which ADR-0102 had left out. The `lit-pbr` material (`LitPbr.fx`, `Pbr.fxh`, ADR-0108) has one GGX lobe over a Lambert diffuse; its ambient is the split-sum image-based lighting of ADR-0109. `Pbr.fxh` is also included by `skinEffect.fx` (ADR-0110), which declares none of the material constants and has no clear coat (P5).
+The author asked for car paint (D2): a clear varnish over a coloured base. ADR-0113 moved the clear coat into the PBR scope, which ADR-0103 had left out. The `lit-pbr` material (`LitPbr.fx`, `Pbr.fxh`, ADR-0109) has one GGX lobe over a Lambert diffuse; its ambient is the split-sum image-based lighting of ADR-0110. `Pbr.fxh` is also included by `skinEffect.fx` (ADR-0111), which declares none of the material constants and has no clear coat (P5).
 
 ## Decision
 
@@ -32,4 +32,4 @@ The author asked for car paint (D2): a clear varnish over a coloured base. ADR-0
 - Cost for a coated draw only: a second walk over the active lights (one normalisation, one GGX term and a handful of multiply-adds per active light), one more BRDF table read and one more atlas read (two bands) for the ambient. An uncoated draw pays two uniform tests. `LitPbr.xnb` grows from 888 091 to 1 722 697 bytes (the second walk is written out for the directional, point and spot slots).
 - Limits written: no coat reflection of the local probes; no coat texture; no coat in `skinEffect.fx`; the absorption of the base colour under the coat and the multiple scattering between the layers are not modelled; the coat roughness is not widened by the base roughness.
 - Measured on the OpenGL chain (`ps_3_0` compiled by `mgfxc`, cause not found, same family as plan open point O10): the same coat code written inside `AccumulatePbrLight`, even reduced to one extra dot product per slot, made every direct light of the shader vanish, and a second walk written as the `[unroll]` loop with a `break` of `EvaluatePbrLights` silently did nothing; the explicit slot lists above are the form that works. A future change to these functions must be checked by a render, not only by the compiler.
-- `docs/engine/pbr-rendering.md` and `docs/engine/materials-workflow.md` describe the feature; ADR-0102's "clear coat out of scope" line is superseded by ADR-0112.
+- `docs/engine/pbr-rendering.md` and `docs/engine/materials-workflow.md` describe the feature; ADR-0103's "clear coat out of scope" line is superseded by ADR-0113.

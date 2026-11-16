@@ -30,7 +30,7 @@ public static class EditorAssetImportService
 
     /// <summary>
     /// Imports a file like <see cref="ImportFile(string, string, ILegacyMaterialImportProfile?)"/>, with import options.
-    /// The material template of the options only applies to the materials of static models (ADR-0111).
+    /// The material template of the options only applies to the materials of static models (ADR-0112).
     /// </summary>
     public static bool ImportFile(
         string sourceFilePath,
@@ -792,7 +792,7 @@ public static class EditorAssetImportService
         return material;
     }
 
-    // Every key of the lit-pbr definition that the glTF material carries is written explicitly (ADR-0111); a texture the material
+    // Every key of the lit-pbr definition that the glTF material carries is written explicitly (ADR-0112); a texture the material
     // does not have produces no texture key. The base colour and the emissive colour are encoded to display colours.
     private static MaterialAsset CreateLitPbrMaterial(
         StaticModelImportedMaterial importedMaterial,
@@ -832,7 +832,7 @@ public static class EditorAssetImportService
         material.SetPropertyValue("normal_scale", MaterialValue.FromFloat(importedMaterial.NormalScale));
         material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(importedMaterial.AlphaCutoff));
 
-        // KHR_materials_clearcoat (ADR-0114): the two keys are written only for a material that has a clear coat, so every other
+        // KHR_materials_clearcoat (ADR-0115): the two keys are written only for a material that has a clear coat, so every other
         // imported material keeps the file it had before.
         if (importedMaterial.ClearCoatFactor > 0.0f)
         {

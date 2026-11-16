@@ -1,6 +1,6 @@
 namespace CasaEngine.EditorServices;
 
-/// <summary>The material definition the import writes for the materials of an imported static model (ADR-0111).</summary>
+/// <summary>The material definition the import writes for the materials of an imported static model (ADR-0112).</summary>
 public enum ImportedMaterialTemplate
 {
     /// <summary>The Blinn-Phong <c>lit-diffuse</c> definition. The default, and what the editor imports.</summary>

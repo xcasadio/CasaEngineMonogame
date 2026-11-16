@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Environment;
 
 /// <summary>
-/// Cache of the image-based-lighting textures (ADR-0109): for every specular environment cube it holds the diffuse irradiance
+/// Cache of the image-based-lighting textures (ADR-0110): for every specular environment cube it holds the diffuse irradiance
 /// cube and the prefiltered specular atlas generated from it by <see cref="IblCubeGenerator"/>, plus the BRDF table shared by
 /// all of them.
 /// <para/>
@@ -112,7 +112,7 @@ public sealed class IblCache : IDisposable
     }
 
     /// <summary>
-    /// The prefiltered atlas of a reflection probe cube (T7.1, ADR-0109): same generation and same queue as <see cref="TryGet"/>,
+    /// The prefiltered atlas of a reflection probe cube (T7.1, ADR-0110): same generation and same queue as <see cref="TryGet"/>,
     /// but only the atlas is generated, the irradiance of a probe is never used. When the atlas exists, returns true; otherwise
     /// returns false and, the first time, registers a request that the next <see cref="Flush"/> executes (the shader samples the
     /// unprefiltered cube until then). <paramref name="sourceIsLinear"/> is kept with the request.

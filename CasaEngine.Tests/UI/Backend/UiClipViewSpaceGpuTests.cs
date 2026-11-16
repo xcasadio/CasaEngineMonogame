@@ -70,7 +70,7 @@ public class UiClipViewSpaceGpuTests
             device.Viewport = new Viewport(64, 32, 128, 96);
 
             CasaDesktopRuntime runtime = CreateRuntime(new Rectangle(0, 0, 128, 96));
-            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.CreateDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
+            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.BeginDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
             {
                 using IDisposable clip = transaction.PushRectangleClip(new Rectangle(8, 8, 32, 32), IntersectWithCurrentClipTarget: true);
                 transaction.FillRectangle(Vector2.Zero, new RectangleF(0, 0, 128, 96), Fill);
@@ -107,7 +107,7 @@ public class UiClipViewSpaceGpuTests
             scissorAfterReset = device.ScissorRectangle;
 
             CasaDesktopRuntime runtime = CreateRuntime(new Rectangle(0, 0, 128, 96));
-            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.CreateDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
+            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.BeginDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
             {
                 using IDisposable clip = transaction.PushRectangleClip(new Rectangle(0, 0, 128, 96), IntersectWithCurrentClipTarget: true);
                 transaction.FillRectangle(Vector2.Zero, new RectangleF(0, 0, 128, 96), Fill);
@@ -135,7 +135,7 @@ public class UiClipViewSpaceGpuTests
             device.Viewport = new Viewport(0, 0, 256, 192);
 
             CasaDesktopRuntime runtime = CreateRuntime(new Rectangle(0, 0, 256, 192));
-            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.CreateDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
+            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.BeginDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
             {
                 using IDisposable clip = transaction.PushRectangleClip(new Rectangle(8, 8, 32, 32), IntersectWithCurrentClipTarget: true);
                 transaction.FillRectangle(Vector2.Zero, new RectangleF(0, 0, 256, 192), Fill);
@@ -166,7 +166,7 @@ public class UiClipViewSpaceGpuTests
             device.ScissorRectangle = new Rectangle(0, 0, 2200, 1300);
 
             CasaDesktopRuntime runtime = CreateRuntime(new Rectangle(0, 0, 1600, 1200));
-            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.CreateDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
+            using (CasaDrawTransaction transaction = (CasaDrawTransaction)runtime.BeginDrawTransaction(MGUI.Shared.Rendering.DrawSettings.Default, deferBegin: true))
             {
                 using IDisposable clip = transaction.PushRectangleClip(new Rectangle(40, 80, 840, 240), IntersectWithCurrentClipTarget: true);
                 deviceScissor = device.ScissorRectangle;

@@ -19,7 +19,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// The measurement scene of the colour pipeline (ADR-0103, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
+/// The measurement scene of the colour pipeline (ADR-0104, <c>ai-agent/tasks/pbr-rendering-tasks.md</c>, phase 1). A fixed
 /// camera looks at a ramp of five grey planes (<c>unlit-texture</c>, 0, 64, 128, 191 and 255), three <c>lit-diffuse</c>
 /// spheres under one directional light, a strong emissive plane on a dark background, a solid MGUI panel and a block of
 /// screen text drawn by the 2D renderer. Every measurement pixel is a constant below; the colour pipeline is chosen by the
@@ -46,7 +46,7 @@ namespace CasaEngine.Demos.Demos;
 /// <c>CASAENGINE_COLOR_DEMO_PBR</c>; without it the scene is unchanged. Measurement constants: <see cref="GlassBehindSegment"/>, <see cref="GlassControlSegment"/> and <see cref="GlassHighlightPixel"/>.
 /// </para>
 /// <para>
-/// <c>CASAENGINE_COLOR_DEMO_IBL=1</c> measures the image-based lighting of <c>lit-pbr</c> (plan T6.3, ADR-0109). The world gets a
+/// <c>CASAENGINE_COLOR_DEMO_IBL=1</c> measures the image-based lighting of <c>lit-pbr</c> (plan T6.3, ADR-0110). The world gets a
 /// procedural specular environment cube (64 texels per face, an 8 x 8 checkerboard whose light cells carry a tint of their own per
 /// face and whose dark cells are 10 % of it) and two metal spheres with a white base colour are added on the left of the scene: one
 /// of roughness 0 (a mirror, <see cref="IblSmoothSphereCentre"/>), one of roughness 0.6 (<see cref="IblRoughSphereCentre"/>). The
@@ -58,7 +58,7 @@ namespace CasaEngine.Demos.Demos;
 /// the variable the scene is unchanged.
 /// </para>
 /// <para>
-/// <c>CASAENGINE_COLOR_DEMO_PROBES=1</c> measures the prefiltered local reflection probes of <c>lit-pbr</c> (plan T7.1, ADR-0109).
+/// <c>CASAENGINE_COLOR_DEMO_PROBES=1</c> measures the prefiltered local reflection probes of <c>lit-pbr</c> (plan T7.1, ADR-0110).
 /// The world gets a green checkerboard environment cube, two reflection probes (a red cube and a blue cube, <see cref="ProbeRadius"/>,
 /// <see cref="ProbeBlendDistance"/>) and one metal sphere of roughness 0.6 (<see cref="IblRoughSphereCentre"/>, measured on
 /// <see cref="IblRoughMeasurementLine"/>). <c>CASAENGINE_COLOR_DEMO_PROBE_CASE=A|blend|B</c> places the two probe volumes so that the fixed
@@ -67,12 +67,12 @@ namespace CasaEngine.Demos.Demos;
 /// counter of the IBL cache and a summary at frame 600. Off by default: without the variable the scene is unchanged.
 /// </para>
 /// <para>
-/// <c>CASAENGINE_DEMO_AA=Fxaa</c> (a harness variable of <see cref="DemosGame"/>) turns the FXAA pass on (plan T1.2, ADR-0113). The
+/// <c>CASAENGINE_DEMO_AA=Fxaa</c> (a harness variable of <see cref="DemosGame"/>) turns the FXAA pass on (plan T1.2, ADR-0114). The
 /// measurement constants are <see cref="FxaaTextBorderRect"/>, <see cref="FxaaPanelBorderRect"/> and <see cref="FxaaEdgeSegment"/>; the
 /// demo writes the number of FXAA passes of each view at the moment of the capture.
 /// </para>
 /// <para>
-/// <c>CASAENGINE_COLOR_DEMO_SSAO=1</c> adds the measurement scene of the screen-space ambient occlusion (plan T3.3, ADR-0115): a wide
+/// <c>CASAENGINE_COLOR_DEMO_SSAO=1</c> adds the measurement scene of the screen-space ambient occlusion (plan T3.3, ADR-0116): a wide
 /// wall seen face on along the bottom of the image (the floor), a cube standing against it and a glass sphere in front of the foot of
 /// the cube. It is independent of the other scene variables; <c>CASAENGINE_DEMO_SSAO=1</c> turns the SSAO on. Measurement constants:
 /// <see cref="SsaoFootPixel"/>, <see cref="SsaoTopPixel"/>, <see cref="SsaoFarFloorPixel"/>, <see cref="SsaoSkyPixel"/> and
@@ -141,7 +141,7 @@ public sealed class ColorPipelineDemo : Demo
     /// </summary>
     public static readonly Point ParticleGrey128Pixel = new(852, 457);
 
-    // ---- FXAA measurements (CASAENGINE_DEMO_AA=Fxaa, plan T1.2, ADR-0113; window coordinates, 1024 x 768) ----
+    // ---- FXAA measurements (CASAENGINE_DEMO_AA=Fxaa, plan T1.2, ADR-0114; window coordinates, 1024 x 768) ----
     // Found by capturing the demo in LinearHdr (AcesApprox, exposure 1, light intensity 1, scripts lin-v2.sh) with and without FXAA. In
     // that capture the ramp planes start at y 128 and the lit white-ish sphere is centred on (351, 498), radius about 60.
 
@@ -281,7 +281,7 @@ public sealed class ColorPipelineDemo : Demo
     private const int GlassCheckerRows = 6;
     private const int GlassCheckerCellSize = 8;
 
-    // ---- SSAO scene (CASAENGINE_COLOR_DEMO_SSAO=1, plan T3.3, ADR-0115; window coordinates, 1024 x 768) ----
+    // ---- SSAO scene (CASAENGINE_COLOR_DEMO_SSAO=1, plan T3.3, ADR-0116; window coordinates, 1024 x 768) ----
 
     // The floor is a wide wall seen face on, the cube stands against it, the glass sphere is in front of the foot of the cube.
     private static readonly Vector3 SsaoFloorPosition = new(0.0f, -6.5f, -2.05f);
@@ -310,7 +310,7 @@ public sealed class ColorPipelineDemo : Demo
     /// <summary>
     /// A pixel seen through the glass sphere, over the floor in the hollow beside the cube: 164 without SSAO, 143 with (21 levels
     /// darker, as the floor it covers, 23 at <see cref="SsaoFootPixel"/>). The occlusion is multiplied into the whole scene target, so a
-    /// transparent surface in front of a hollow is darkened with what is behind it (a written limit, ADR-0115).
+    /// transparent surface in front of a hollow is darkened with what is behind it (a written limit, ADR-0116).
     /// </summary>
     public static readonly Point SsaoGlassHollowPixel = new(345, 690);
 
@@ -762,7 +762,7 @@ public sealed class ColorPipelineDemo : Demo
 
 
     /// <summary>
-    /// The SSAO scene (plan T3.3, ADR-0115): a wide wall facing the camera along the bottom of the image (the "floor" of the
+    /// The SSAO scene (plan T3.3, ADR-0116): a wide wall facing the camera along the bottom of the image (the "floor" of the
     /// measurement: a surface seen face on), a cube standing on it and a glass sphere (<see cref="LitPbrMaterial"/> in the transparent
     /// queue) in front of the foot of the cube. The camera is the fixed one of the demo, so every pixel below is the same each run.
     /// </summary>

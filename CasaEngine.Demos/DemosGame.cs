@@ -740,7 +740,7 @@ public class DemosGame : CasaEngineGame
 
     /// <summary>
     /// Writes once, at the moment of the automation capture, how many FXAA passes each view drew in the frame just rendered
-    /// (ADR-0113): a capture measurement of the anti-aliasing is only valid when the count of the views it concerns is at least 1
+    /// (ADR-0114): a capture measurement of the anti-aliasing is only valid when the count of the views it concerns is at least 1
     /// (and 0 without FXAA).
     /// </summary>
     private void LogFxaaPassCounts()
@@ -760,7 +760,7 @@ public class DemosGame : CasaEngineGame
 
     /// <summary>
     /// Writes once, at the moment of the automation capture, how many static and skinned meshes the scene depth pre-pass drew for each
-    /// view in the frame just rendered (ADR-0115): a capture measurement of the SSAO is only valid when the counts of the views it
+    /// view in the frame just rendered (ADR-0116): a capture measurement of the SSAO is only valid when the counts of the views it
     /// concerns show the pre-pass ran (at least 1 for the geometry the demo draws), and are 0 without SSAO.
     /// </summary>
     private void LogSceneDepthCounts()
@@ -783,7 +783,7 @@ public class DemosGame : CasaEngineGame
 
     /// <summary>
     /// Writes once, at the moment of the automation capture, how many SSAO compositions each view drew in the frame just rendered
-    /// (ADR-0115): a capture measurement of the ambient occlusion is only valid when the count of the views it concerns is at least 1
+    /// (ADR-0116): a capture measurement of the ambient occlusion is only valid when the count of the views it concerns is at least 1
     /// (and 0 without SSAO), because a measurement that holds as well when the SSAO never runs proves nothing.
     /// </summary>
     private void LogSsaoPassCounts()
@@ -860,7 +860,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variables that put any demo in another colour pipeline (ADR-0103): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
+    /// Harness variables that put any demo in another colour pipeline (ADR-0104): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
     /// (<c>Legacy</c> or <c>LinearHdr</c>), <c>CASAENGINE_DEMO_TONEMAPPER</c> (<c>AcesApprox</c> or <c>Reinhard</c>) and
     /// <c>CASAENGINE_DEMO_EXPOSURE</c> (a number, invariant culture). Applied to the world of the demo once the demo has
     /// built its scene, lighting and camera, then followed by <c>MarkDirty</c>. Without any variable nothing changes; an
@@ -926,7 +926,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variables of the bloom (ADR-0107): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// Harness variables of the bloom (ADR-0108): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
     /// optional <c>CASAENGINE_DEMO_BLOOM_THRESHOLD</c>, <c>CASAENGINE_DEMO_BLOOM_INTENSITY</c> and <c>CASAENGINE_DEMO_BLOOM_RADIUS</c>
     /// (numbers, invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
     /// </summary>
@@ -981,7 +981,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variable of the anti-aliasing (ADR-0112): <c>CASAENGINE_DEMO_AA</c> = <c>Fxaa</c> or <c>None</c>. Without it nothing
+    /// Harness variable of the anti-aliasing (ADR-0113): <c>CASAENGINE_DEMO_AA</c> = <c>Fxaa</c> or <c>None</c>. Without it nothing
     /// changes; an unreadable value is logged and ignored.
     /// </summary>
     private static void ApplyAntiAliasingHarness(ColorPipelineSettings colorPipeline)
@@ -1004,7 +1004,7 @@ public class DemosGame : CasaEngineGame
     }
 
     /// <summary>
-    /// Harness variables of the SSAO (ADR-0115): <c>CASAENGINE_DEMO_SSAO</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// Harness variables of the SSAO (ADR-0116): <c>CASAENGINE_DEMO_SSAO</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
     /// optional <c>CASAENGINE_DEMO_SSAO_RADIUS</c>, <c>CASAENGINE_DEMO_SSAO_INTENSITY</c> and <c>CASAENGINE_DEMO_SSAO_BIAS</c> (numbers,
     /// invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
     /// </summary>

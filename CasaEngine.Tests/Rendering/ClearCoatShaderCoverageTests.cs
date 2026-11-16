@@ -5,7 +5,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// Text coverage of the clear coat of the PBR shaders (ADR-0114, plan T2.1): the formulas of the header of Pbr.fxh are what the code
+/// Text coverage of the clear coat of the PBR shaders (ADR-0115, plan T2.1): the formulas of the header of Pbr.fxh are what the code
 /// computes, the code is compiled only for the effect that asks for it (skinEffect.fx includes the same Pbr.fxh and has no clear
 /// coat), the point and spot slots restate the attenuation of the base slots, and the ambient reflection of the coat is read with the
 /// roughness of the coat.

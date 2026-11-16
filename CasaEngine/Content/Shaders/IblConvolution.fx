@@ -1,6 +1,6 @@
 #include "Macros.fxh"
 
-// Convolution of an environment cube into the two textures of the image-based lighting (ADR-0109). Every technique draws one
+// Convolution of an environment cube into the two textures of the image-based lighting (ADR-0110). Every technique draws one
 // full-screen quad into the viewport the CPU has set; the quad covers the viewport with TexCoord in [0, 1], (0, 0) at the top
 // left, and the texel of the target at (u, v) is a direction of the sphere:
 //
@@ -18,7 +18,7 @@
 //                   the GPU test that pins the outcome of step 1b of T6.1: on the OpenGL chain the level is ignored.
 //
 // The prefiltered result is a 2D atlas, not a cube with mips, because texCUBElod is translated to a plain textureCube on this
-// chain (the requested level is ignored); see ADR-0109.
+// chain (the requested level is ignored); see ADR-0110.
 //
 // Every sample of a source that is not linear (SourceIsLinear = 0) is decoded with pow(abs(c), 2.2) before it is accumulated, so
 // the generated textures always hold linear light, whatever the colour pipeline of the view. The shader never reads a colour

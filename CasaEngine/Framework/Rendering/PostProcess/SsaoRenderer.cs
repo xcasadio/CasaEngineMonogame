@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.PostProcess;
 
 /// <summary>
-/// Screen-space ambient occlusion of a view (ADR-0115), run after the scene and before the bloom. From the scene depth of the
+/// Screen-space ambient occlusion of a view (ADR-0116), run after the scene and before the bloom. From the scene depth of the
 /// pre-pass (<see cref="SceneDepthPrepass"/>): an occlusion pass into one target, a separable depth-aware blur through a second
 /// target, then a multiplication of the HDR scene target by <c>lerp(1, occlusion, intensity)</c>. Every pass is a
 /// <see cref="SpriteBatch"/> draw of a texture with <c>Ssao.fx</c>.

@@ -37,7 +37,7 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
         _shadowPass.ShadowShader = shadowShader;
     }
 
-    /// <summary>Gives the scene depth pre-pass its effect (ADR-0115); the pass draws nothing until it has one.</summary>
+    /// <summary>Gives the scene depth pre-pass its effect (ADR-0116); the pass draws nothing until it has one.</summary>
     public void SetSceneDepthShader(ShaderWrapper sceneDepthShader)
     {
         _sceneDepthPass.SceneDepthShader = sceneDepthShader;

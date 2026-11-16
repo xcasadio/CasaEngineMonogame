@@ -19,14 +19,14 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame;
 //Anytime the effect is being changed, must call SetDrawSettings/SetDrawSettingsTemporary just like SetTransform/SetTransformTemporary do
 // --> SetEffect/SetEffectTemporary are now implemented via DrawSettings.Effect; see SetEffect() and SetEffectTemporary() below.
 
-public class CasaDrawTransaction : IMonoGameDrawContext
+public class CasaDrawTransaction : IMonoGameDrawContext, IClipSlotRestorer
 {
     public CasaDesktopRuntime Renderer { get; }
     IUIDesktopRuntime IUIRenderContext.Renderer => Renderer;
     Rectangle? IUIRenderContext.CurrentClipBounds => CurrentClipBounds;
-    IDisposable IUIRenderContext.SetDrawSettingsTemporary(DrawSettings Settings)
+    DrawStateHandle IUIRenderContext.SetDrawSettingsTemporary(DrawSettings Settings)
         => SetDrawSettingsTemporary(Settings);
-    IDisposable IUIRenderContext.SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
+    DrawStateHandle IUIRenderContext.SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
         => SetRenderTargetTemporary(New, ClearColor);
     void IUIDrawContext.FillRectangle(Vector2 Origin, RectangleF Destination, Color Color)
         => FillRectangle(Origin, Destination, Color, null);
@@ -60,7 +60,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// (Color can be specified in the 'Color' mask parameter of SpriteBatch.Draw(...))</summary>
     public SolidColorTexture WhitePixel => Renderer.GetOrCreateSolidColorTexture(Color.White);
 
-    private Matrix PrimitiveProjectionMatrix { get; }
+    private Matrix PrimitiveProjectionMatrix { get; set; }
     private CasaDrawStateController DrawState { get; }
     private CasaRenderTargetService RenderTargets { get; }
     private IShapeRenderer2D ShapeRenderer { get; }
@@ -92,21 +92,61 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public DrawSettings PreviousSettings => DrawState.PreviousSettings;
     public ClipDiagnosticsSnapshot ClipDiagnostics => ClipManager.GetDiagnostics();
 
+    /// <summary>Created by <see cref="CasaDesktopRuntime.BeginDrawTransaction"/> only: a runtime has one transaction, opened and closed for each draw.
+    /// The constructor is internal since the runtime owns the transaction (ADR-0097).</summary>
     /// <param name="Settings">See also: <see cref="DrawSettings.Default"/></param>
     /// <param name="DeferBegin">If true, <see cref="SpriteBatch.Begin(SpriteSortMode, BlendState, SamplerState, DepthStencilState, RasterizerState, Effect, Matrix?)"/> or <see cref="PrimitiveBatch.Begin(ref Matrix, ref Matrix, BlendState)"/><para/>
     /// will not be invoked until you call a draw-related function within <see cref="CasaDrawTransaction"/>, such as <see cref="DrawTextureTo(Texture2D, Rectangle?, Rectangle)"/></param>
     /// <param name="DefaultContext">Only relevant if <paramref name="DeferBegin"/>==false. The default drawing context to immediately start.</param>
-    public CasaDrawTransaction(CasaDesktopRuntime Renderer, DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
+    internal CasaDrawTransaction(CasaDesktopRuntime Renderer, DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
     {
         this.Renderer = Renderer ?? throw new ArgumentNullException(nameof(Renderer));
         PrimitiveDrawing = new PrimitiveDrawing(PrimitiveBatch);
 
-        PrimitiveProjectionMatrix = Matrix.CreateOrthographicOffCenter(0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+        PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState = new CasaDrawStateController(Renderer, Settings ?? throw new ArgumentNullException(nameof(Settings)), PrimitiveProjectionMatrix);
         RenderTargets = new CasaRenderTargetService(this);
+        _ClipSlots = new ClipSlots(this);
         ShapeRenderer = Renderer.Options.CreateShapeRenderer?.Invoke(this) ?? new CasaLegacyShapeRenderer2D(this);
         ClipManager = new(this);
 
+        StartUse(DeferBegin, DefaultContext);
+    }
+
+    /// <summary>Puts the transaction in the state a new <see cref="CasaDrawTransaction"/> built with the same arguments would be in at this
+    /// moment: the initial settings, no previous settings, no batch open, the projection of the primitives from the current viewport, the clip
+    /// diagnostics at zero, and the context started unless <paramref name="DeferBegin"/>. What the previous use left on the
+    /// <see cref="GraphicsDevice"/> (render target, scissor, states) stays, as it does for a new transaction.<para/>
+    /// The previous use must have ended its batch (<see cref="Dispose"/>): an open batch is not ended here. Scopes that the previous use did not
+    /// dispose are abandoned; they must not be disposed afterwards. A mask clip left open keeps the render target it rented.<para/>
+    /// What is kept, because a new transaction could not tell it from what it creates: the shape renderer, the free clip slots, the buffers of
+    /// textured triangles, and the rasterizer variants of the settings (settings hold nothing but their parameters, MGUI ADR-0029).</summary>
+    internal void Rearm(DrawSettings Settings, bool DeferBegin, DrawContext DefaultContext = DrawContext.Sprites)
+    {
+        ArgumentNullException.ThrowIfNull(Settings);
+
+        PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
+        DrawState.Rearm(Settings, PrimitiveProjectionMatrix);
+        RenderTargets.Rearm();
+        _ClipSlots.ReleaseAll();
+        ClipManager.Rearm();
+
+        //  The pair is kept only for the settings this use starts with: a pair made from other settings could not be found again, and would keep
+        //  those settings and their effect alive.
+        if (!ReferenceEquals(Settings, _RasterizerVariantA) && !ReferenceEquals(Settings, _RasterizerVariantB))
+        {
+            _RasterizerVariantA = null;
+            _RasterizerVariantB = null;
+        }
+
+        StartUse(DeferBegin, DefaultContext);
+    }
+
+    private Matrix CreatePrimitiveProjectionMatrix()
+        => Matrix.CreateOrthographicOffCenter(0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+
+    private void StartUse(bool DeferBegin, DrawContext DefaultContext)
+    {
         if (!DeferBegin)
         {
             BeginDraw(DefaultContext);
@@ -239,6 +279,27 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         TextRenderer.DrawText(this, Font, Text, Position, Color, Origin, Scale, Rotation, Depth, Flip);
     }
 
+    /// <summary>Draws a span of characters through the active text engine, without building a string (MGUI ADR-0026).</summary>
+    public void DrawTextViaEngine(
+        ResolvedFont Font,
+        ReadOnlySpan<char> Text,
+        Vector2 Position,
+        Color Color,
+        Vector2 Origin,
+        float Scale,
+        float Rotation = 0f,
+        float Depth = 0f,
+        UIDrawFlip Flip = UIDrawFlip.None)
+    {
+        if (Text.IsEmpty || Font?.NativeFont == null)
+        {
+            return;
+        }
+
+        BeginDraw(DrawContext.Sprites);
+        TextRenderer.DrawText(this, Font, Text, Position, Color, Origin, Scale, Rotation, Depth, Flip);
+    }
+
     public void DrawTextViaEngine(
         ResolvedFont Font,
         string Text,
@@ -351,9 +412,28 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     #endregion Draw Text
 
     #region Draw Geometry
-    /// <summary>Returns the first non-null, non-None <see cref="DrawContext"/> from given <paramref name="Values"/></summary>
-    private static DrawContext GetFirstValidDrawContext(params DrawContext?[] Values)
-        => Values == null ? DrawContext.Sprites : Values.First(x => x.HasValue && x != DrawContext.None).Value;
+    /// <summary>Returns the first non-null, non-None <see cref="DrawContext"/> of <paramref name="First"/>, <paramref name="Second"/> and <paramref name="Third"/>,
+    /// in that order, without the array that a variable number of arguments would create on every shape drawn.</summary>
+    /// <exception cref="InvalidOperationException">None of the three is valid.</exception>
+    private static DrawContext GetFirstValidDrawContext(DrawContext? First, DrawContext Second, DrawContext Third)
+    {
+        if (First.HasValue && First.Value != DrawContext.None)
+        {
+            return First.Value;
+        }
+
+        if (Second != DrawContext.None)
+        {
+            return Second;
+        }
+
+        if (Third != DrawContext.None)
+        {
+            return Third;
+        }
+
+        throw new InvalidOperationException("Sequence contains no matching element");
+    }
 
     #region Rectangles
     public void StrokeAndFillRectangle(Vector2 Origin, RectangleF Destination, Color StrokeColor, Color FillColor, int StrokeThickness, DrawContext? PreferredContext = null)
@@ -610,14 +690,14 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// }</code>
     /// </summary>
     /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
-    public IDisposable SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
+    public DrawStateHandle SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
     {
         return SetRenderTargetTemporary(Renderer.AdapterRegistry.GetRenderTarget(New), ClearColor);
     }
 
     /// </summary>
     /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
-    public IDisposable SetRenderTargetTemporary(RenderTarget2D New, Color? ClearColor)
+    public DrawStateHandle SetRenderTargetTemporary(RenderTarget2D New, Color? ClearColor)
         => RenderTargets.SetRenderTargetTemporary(New, ClearColor);
 
     /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
@@ -625,87 +705,134 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         => DrawState.SetDrawSettings(New);
 
     /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
-    public IDisposable SetDrawSettingsTemporary(DrawSettings New)
+    public DrawStateHandle SetDrawSettingsTemporary(DrawSettings New)
         => DrawState.SetDrawSettingsTemporary(New);
 
-    public IDisposable SetTransformTemporary(Matrix Transform)
+    public DrawStateHandle SetTransformTemporary(Matrix Transform)
     {
-        return SetDrawSettingsTemporary(CurrentSettings with { Transform = Transform });
+        return SetDrawSettingsTemporary(_DerivedSettings.WithTransform(CurrentSettings, Transform));
     }
 
     public ClipResolveResult ResolveClip(ClipDefinition Definition)
         => ClipManager.Resolve(Definition);
 
-    public ClipScope PushClipTemporary(ClipDefinition Definition)
+    public ClipHandle PushClipTemporary(ClipDefinition Definition)
         => ClipManager.Push(Definition);
 
     public string GetClipDiagnosticsDebugText()
         => ClipDiagnostics.ToDebugString();
 
-    public ClipScope PushRectangleClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
+    public ClipHandle PushRectangleClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
     {
         if (!Bounds.HasValue)
         {
-            Rectangle previousBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
-            bool previousScissorState = CurrentSettings.UsesScissorTest;
-            SetClipTarget(null, false);
-
-            ClipDefinition requested = ClipDefinition.None(false);
-            ClipResolveResult resolution = new(requested, requested, ClipStrategy.None, false);
-            return new ClipScope(resolution, () =>
-            {
-                EndDraw(CurrentContext);
-                SpriteBatch.GraphicsDevice.ScissorRectangle = previousBounds;
-
-                bool currentScissorState = CurrentSettings.UsesScissorTest;
-                if (previousScissorState && !currentScissorState)
-                {
-                    SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
-                }
-                else if (!previousScissorState && currentScissorState)
-                {
-                    SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
-                }
-            });
+            return PushScissorClip(null, false, NoClipResolution);
         }
 
-        ClipDefinition definition = Bounds.HasValue
-            ? ClipDefinition.Rectangle(Bounds.Value, IntersectWithCurrentClipTarget)
-            : ClipDefinition.None();
-        return PushClipTemporary(definition);
+        return ClipManager.PushRectangle(Bounds.Value, IntersectWithCurrentClipTarget);
     }
 
-    internal ClipScope PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult Resolution)
+    internal ClipHandle PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult Resolution)
+        => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, Resolution);
+
+    /// <summary>A scissor push whose handle reports the rectangle clip it was asked for, without creating the <see cref="ClipDefinition"/> that says so.</summary>
+    internal ClipHandle PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget)
+        => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, null);
+
+    private ClipHandle PushScissorClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult? Resolution)
     {
         Rectangle PreviousBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
         bool PreviousScissorState = CurrentSettings.UsesScissorTest;
 
         SetClipTarget(Bounds, IntersectWithCurrentClipTarget);
 
-        return new ClipScope(Resolution, () =>
-        {
-            EndDraw(CurrentContext);
-            SpriteBatch.GraphicsDevice.ScissorRectangle = PreviousBounds;
-
-            bool CurrentScissorState = CurrentSettings.UsesScissorTest;
-            if (PreviousScissorState && !CurrentScissorState)
-            {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
-            }
-            else if (!PreviousScissorState && CurrentScissorState)
-            {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
-            }
-        });
+        return _ClipSlots.Push(Resolution.HasValue
+            ? ClipSlotState.Scissor(Resolution.Value, PreviousBounds, PreviousScissorState, true)
+            : ClipSlotState.ScissorRectangle(Bounds.Value, IntersectWithCurrentClipTarget, PreviousBounds, PreviousScissorState, true));
     }
+
+    /// <summary>The clips in force of this transaction: scissor, stencil and mask clips each take a slot, which holds what their release restores
+    /// (MGUI ADR-0031).</summary>
+    internal ClipSlots ClipSlots => _ClipSlots;
+
+    void IClipSlotRestorer.RestoreClip(in ClipSlotState State)
+    {
+        if (State.Strategy == ClipStrategy.Scissor)
+        {
+            if (State.ScissorChanged)
+            {
+                RestoreScissor(State.PreviousScissorBounds, State.PreviousScissorState);
+            }
+        }
+        else if (State.Strategy == ClipStrategy.Stencil && State.Restore == null)
+        {
+            ClipManager.RestoreStencil(in State);
+        }
+        else
+        {
+            State.Restore?.Invoke();
+        }
+    }
+
+    private void RestoreScissor(Rectangle PreviousBounds, bool PreviousScissorState)
+    {
+        EndDraw(CurrentContext);
+        SpriteBatch.GraphicsDevice.ScissorRectangle = PreviousBounds;
+
+        bool CurrentScissorState = CurrentSettings.UsesScissorTest;
+        if (PreviousScissorState && !CurrentScissorState)
+        {
+            SetDrawSettings(WithRasterizerType(RasterizerType.SolidScissorTest));
+        }
+        else if (!PreviousScissorState && CurrentScissorState)
+        {
+            SetDrawSettings(WithRasterizerType(RasterizerType.Solid));
+        }
+    }
+
+    /// <summary>The current settings with another rasterizer type. The last pair of settings that differed by that alone is kept, so that a clip that
+    /// turns the scissor test off and a restore that turns it back on find each other's settings instead of creating new ones.</summary>
+    private DrawSettings WithRasterizerType(RasterizerType Type)
+    {
+        DrawSettings Current = CurrentSettings;
+        if (ReferenceEquals(Current, _RasterizerVariantA) && _RasterizerVariantB.RasterizerType == Type)
+        {
+            return _RasterizerVariantB;
+        }
+
+        if (ReferenceEquals(Current, _RasterizerVariantB) && _RasterizerVariantA.RasterizerType == Type)
+        {
+            return _RasterizerVariantA;
+        }
+
+        DrawSettings Changed = Current with { RasterizerType = Type };
+        _RasterizerVariantA = Current;
+        _RasterizerVariantB = Changed;
+        return Changed;
+    }
+
+    /// <summary>What <see cref="PushRectangleClip"/> reports when it is given no bounds.</summary>
+    private static readonly ClipResolveResult NoClipResolution = CreateNoClipResolution();
+
+    private static ClipResolveResult CreateNoClipResolution()
+    {
+        ClipDefinition None = ClipDefinition.None(false);
+        return new ClipResolveResult(None, None, ClipStrategy.None, false);
+    }
+
+    private readonly ClipSlots _ClipSlots;
+    // The settings derived for temporary transforms and effects, kept across the uses of the transaction (MGUI ADR-0031).
+    private readonly DerivedDrawSettingsCache _DerivedSettings = new();
+    private DrawSettings _RasterizerVariantA;
+    private DrawSettings _RasterizerVariantB;
 
     /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering.</summary>
     public void SetEffect(Effect Effect)
         => SetDrawSettings(CurrentSettings with { BackendEffect = Effect });
 
-    /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering, and restores the previous effect when the returned <see cref="IDisposable"/> is disposed.</summary>
-    public IDisposable SetEffectTemporary(Effect Effect)
-        => SetDrawSettingsTemporary(CurrentSettings with { BackendEffect = Effect });
+    /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering, and restores the previous effect when the returned handle is disposed.</summary>
+    public DrawStateHandle SetEffectTemporary(Effect Effect)
+        => SetDrawSettingsTemporary(_DerivedSettings.WithEffect(CurrentSettings, Effect));
 
     internal void ClearStencil(int StencilValue = 0)
     {
@@ -752,11 +879,11 @@ public class CasaDrawTransaction : IMonoGameDrawContext
             SpriteBatch.GraphicsDevice.ScissorRectangle = DeviceBounds ?? ToDeviceSpace(Renderer.GetViewport(0));
             if (ShouldScissorTest && !IsScissorTesting)
             {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.SolidScissorTest });
+                SetDrawSettings(WithRasterizerType(RasterizerType.SolidScissorTest));
             }
             else if (!ShouldScissorTest && IsScissorTesting)
             {
-                SetDrawSettings(CurrentSettings with { RasterizerType = RasterizerType.Solid });
+                SetDrawSettings(WithRasterizerType(RasterizerType.Solid));
             }
         }
     }
@@ -764,7 +891,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// <summary>Compatibility wrapper kept for rectangle-only migration paths.</summary>
     /// <param name="IntersectWithCurrentClipTarget">If true, rather than replacing the clip target with the given <paramref name="Bounds"/>,<br/>
     /// the clip target will be the intersection of the current clip target and the given <paramref name="Bounds"/></param>
-    public IDisposable SetClipTargetTemporary(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
+    public ClipHandle SetClipTargetTemporary(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
     {
         return PushRectangleClip(Bounds, IntersectWithCurrentClipTarget);
     }
@@ -778,8 +905,17 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         }
     }
 
+    /// <summary>Ends the batch and closes the transaction: the runtime hands this same object to its next draw, so it is not to be used after
+    /// this call. The transaction is closed whether ending the batch succeeds or throws.</summary>
     public void Dispose()
     {
-        EndDraw(CurrentContext);
+        try
+        {
+            EndDraw(CurrentContext);
+        }
+        finally
+        {
+            Renderer.CloseDrawTransaction(this);
+        }
     }
 }

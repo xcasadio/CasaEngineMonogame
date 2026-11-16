@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The detail texture of <c>LitPbr.fx</c> on a real device (ADR-0116). Every case renders one pixel (a quad facing the camera at 5
+/// The detail texture of <c>LitPbr.fx</c> on a real device (ADR-0117). Every case renders one pixel (a quad facing the camera at 5
 /// units on +Z) into a floating-point target with the flat ambient 1, no light, no shadow and the linear colour pipeline off, so the
 /// pixel is the diffuse albedo: the base colour factor (mid grey) times a white base texture times <c>2 * detail</c>. Skipped where no
 /// device can be created.

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Draw;
 
 /// <summary>
-/// Writes the view depth of the opaque and alpha-tested static geometry into the scene depth pre-pass target (ADR-0115), when the
+/// Writes the view depth of the opaque and alpha-tested static geometry into the scene depth pre-pass target (ADR-0116), when the
 /// pre-pass of the view is active (<see cref="SceneDepthPrepass.IsActive"/>); does nothing otherwise.
 /// <para>
 /// The list is walked like <see cref="OpaquePass"/> walks it, so that the pre-pass draws exactly what the colour pass draws as

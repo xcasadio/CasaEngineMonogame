@@ -32,8 +32,8 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [lit-detail-texture.md](engine/lit-detail-texture.md) — texture de détail de `LitDiffuseMaterial` (`DetailTexture`, `DetailTiling`, formule `base * 2 * détail`, limites).
 - [shadow-settings.md](engine/shadow-settings.md) — réglages d'ombre directionnelle du monde (`ShadowSettings` : mode `OccludeDirectLight` / `MultiplyLitColor` et teinte, rayon de filtre, fondu, profondeur de carte, biais de profondeur, limites).
 - [texture-mipmaps.md](engine/texture-mipmaps.md) — chaîne de mipmaps du chargeur de textures (`Texture2DLoader.GenerateMipmaps`, `MipmapChain`, rafraîchissement d'une texture peinte à l'exécution).
-- [color-pipeline.md](engine/color-pipeline.md) — pipeline couleur `Legacy` / `LinearHdr` (clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, tonemapping, limites connues ; ADR-0103 à ADR-0107, bloom compris ; FXAA et SSAO, ADR-0112, ADR-0113 et ADR-0115).
-- [pbr-rendering.md](engine/pbr-rendering.md) — rendu PBR metallic-roughness (matériau `lit-pbr`, IBL et sondes de réflexion, bloom, transparent, skinné, import glTF, coût, limites ; ADR-0102 à ADR-0115, clear coat, FXAA et SSAO compris).
+- [color-pipeline.md](engine/color-pipeline.md) — pipeline couleur `Legacy` / `LinearHdr` (clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, tonemapping, limites connues ; ADR-0104 à ADR-0108, bloom compris ; FXAA et SSAO, ADR-0113, ADR-0114 et ADR-0116).
+- [pbr-rendering.md](engine/pbr-rendering.md) — rendu PBR metallic-roughness (matériau `lit-pbr`, IBL et sondes de réflexion, bloom, transparent, skinné, import glTF, coût, limites ; ADR-0103 à ADR-0116, clear coat, FXAA et SSAO compris).
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
 - [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).
 
@@ -86,7 +86,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 
 ### UI runtime (MGUI)
 
-- [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine.
+- [casaengine-mgui-backend.md](engine/casaengine-mgui-backend.md) — backend MGUI CasaEngine ; texte sans allocation par `SetText(ReadOnlySpan<char>)` ; image du bureau sans allocation et ses limites.
 - [data-driven-screens.md](engine/data-driven-screens.md) — écrans pilotés par les données, sans DLL : `FirstScreenName`, champs `is_modal`, `default_focus`, `fonts`, `ui_commands`, `focus_wrap`, `cancel_command`, `move_command`, `on_open_command` et `focus_markers` du `.uiscreen`, actions, fondus et attente (`fade_screen`, `wait_fade`), image soustractive (`BlendType`), navigation (`UIInputMapping`, répétition), écrans en pixels (`ScaleUI`, police bitmap), erreurs au chargement, limites (ADR-0078, ADR-0079, ADR-0080, ADR-0081, ADR-0082).
 - [casaengine-mgui-backend-extensibility.md](engine/casaengine-mgui-backend-extensibility.md) — backend MonoGame extensible (Apos.Shapes, NvgSharp).
 

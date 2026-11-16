@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // SceneDepth.fx
 //
-// Scene depth pre-pass of the static meshes (ADR-0115). Writes the VIEW DEPTH of every opaque and alpha-tested pixel, in world
+// Scene depth pre-pass of the static meshes (ADR-0116). Writes the VIEW DEPTH of every opaque and alpha-tested pixel, in world
 // units, into the red channel of a floating-point target that screen-space effects read later:
 //
 //   depth = clip-space w of the vertex, which for a perspective projection is the distance of the point to the camera plane,

@@ -193,7 +193,7 @@ public class EffectiveShaderResolverTests
     [InlineData(SkinningMode.DualQuaternion)]
     public void Resolve_SendsALitPbrFamilyMaterialOnASkinnedMeshToThePbrIdOfTheSkinningEffect(SkinningMode skinningMode)
     {
-        // ADR-0110: the skinning effect is still the one drawn, under the id of its PBR techniques.
+        // ADR-0111: the skinning effect is still the one drawn, under the id of its PBR techniques.
         var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(MaterialShaderFamily.LitPbr));
 
         var resolved = EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned, skinningMode);

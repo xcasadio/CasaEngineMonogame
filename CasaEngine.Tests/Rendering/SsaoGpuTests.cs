@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The screen-space ambient occlusion on a real device (plan T3.3, ADR-0115): a flat depth is not occluded, a depth step is occluded on
+/// The screen-space ambient occlusion on a real device (plan T3.3, ADR-0116): a flat depth is not occluded, a depth step is occluded on
 /// its hollow side, the sky is left alone, the composition multiplies the scene target and puts the device states back; and the
 /// pipeline composes it only in a view whose scene depth pre-pass is active, counts it per view and evicts its targets after a size
 /// change. Skipped where no device can be created.

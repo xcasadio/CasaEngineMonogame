@@ -6,7 +6,7 @@
 #define DEBUG_PS_SHADERMODEL ps_4_0
 #endif
 
-// Bloom of the high-dynamic-range scene target, applied before the tonemapping (ADR-0107). Like Tonemap.fx it is a
+// Bloom of the high-dynamic-range scene target, applied before the tonemapping (ADR-0108). Like Tonemap.fx it is a
 // pixel-shader-only effect drawn through SpriteBatch.Begin(effect:): SpriteBatch keeps its own vertex shader and binds the
 // source texture as texture 0, so the techniques declare no vertex shader and the pixel input mirrors the SpriteBatch
 // vertex output. Every technique reads linear light and writes linear light (no encoding).

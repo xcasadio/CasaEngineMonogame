@@ -38,7 +38,7 @@ public class SkinnedMeshDemo : Demo
     private const float GroundCentreZ = 0.5f;
 
     /// <summary>
-    /// Floor pixel at the foot of the middle character (plan T3.3, ADR-0115; window coordinates, 1024 x 768) of the frozen frame
+    /// Floor pixel at the foot of the middle character (plan T3.3, ADR-0116; window coordinates, 1024 x 768) of the frozen frame
     /// (<c>CASAENGINE_SKINNED_DEMO_FREEZE=1</c>, LinearHdr): 170, 168, 145 without SSAO, 147, 145, 122 with <c>CASAENGINE_DEMO_SSAO=1</c> (23 levels darker).
     /// </summary>
     public static readonly Point SsaoFootPixel = new(465, 462);
@@ -50,7 +50,7 @@ public class SkinnedMeshDemo : Demo
     private const float FrozenAnimationTimeSeconds = 0.4f;
 
     // With CASAENGINE_SKINNED_DEMO_PBR=1 the demo starts with every character drawn by the PBR techniques of the skinning effect
-    // (SkinnedMeshComponent.PbrMaterial, ADR-0110); the P key switches between Blinn-Phong and PBR at any time.
+    // (SkinnedMeshComponent.PbrMaterial, ADR-0111); the P key switches between Blinn-Phong and PBR at any time.
     private const string PbrVariable = "CASAENGINE_SKINNED_DEMO_PBR";
     private const string PbrAction = "SkinnedMesh.Pbr";
 

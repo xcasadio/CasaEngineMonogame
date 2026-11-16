@@ -7,7 +7,7 @@ using Xunit;
 
 namespace CasaEngine.Tests.EditorServices;
 
-/// <summary>The material template option of the editor import of glTF static models (T9.2, ADR-0111).</summary>
+/// <summary>The material template option of the editor import of glTF static models (T9.2, ADR-0112).</summary>
 [Collection(ProjectEnvironmentCollection.Name)]
 public class EditorAssetImportMaterialTemplateTests
 {

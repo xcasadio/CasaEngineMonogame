@@ -28,7 +28,7 @@ public static class EnvironmentShaderBinder
     }
 
     /// <summary>
-    /// Binds the IBL textures of the environment (ADR-0109) on a shader that declares them, and only on such a shader: one that
+    /// Binds the IBL textures of the environment (ADR-0110) on a shader that declares them, and only on such a shader: one that
     /// does not (<c>LitForward</c>) neither receives them nor registers a generation request. With the textures present
     /// <c>HasIbl</c> is 1; absent, the request is registered with <paramref name="ibl"/> (executed at the start of the next
     /// <see cref="RenderPipeline.Render"/>), <c>HasIbl</c> is 0 and the slots are cleared, so the shader keeps its flat ambient.

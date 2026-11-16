@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Optional capability of an <see cref="IViewRenderPipeline"/>: it can render the scene of a view without the user
-/// interface (ADR-0104). In the linear HDR colour pipeline <see cref="RenderPipeline"/> renders the scene into an HDR
+/// interface (ADR-0105). In the linear HDR colour pipeline <see cref="RenderPipeline"/> renders the scene into an HDR
 /// target, tonemaps it into the destination of the view, then composes the interface itself, so the interface is never
 /// tonemapped. A view pipeline that does not implement this interface is rendered whole, interface included, into the HDR
 /// target (a warning is logged once); in the legacy pipeline this interface is never used.

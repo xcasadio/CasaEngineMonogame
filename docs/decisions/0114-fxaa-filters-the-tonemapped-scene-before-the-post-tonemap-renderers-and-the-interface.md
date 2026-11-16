@@ -1,4 +1,4 @@
-# ADR-0113: FXAA filters the tonemapped scene before the post-tonemap renderers and the interface
+# ADR-0114: FXAA filters the tonemapped scene before the post-tonemap renderers and the interface
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
@@ -6,11 +6,11 @@
 
 ## Context
 
-ADR-0104 tonemaps the HDR scene target of a `LinearHdr` view straight into the destination of the view (`RenderPipeline.RenderHdrView`), then ADR-0106 flushes the screen sprites and text and composes the interface on top. The engine uses no multisampling (`CasaEngineGame.cs`, `PreferMultiSampling = false`; every render target is created with 0 samples), so scene edges are aliased. The author chose FXAA over TAA and MSAA (D1). ADR-0112 extends the PBR scope to it, and the setting `ColorPipelineSettings.AntiAliasing` (`anti_aliasing`, `None` by default) exists since T1.1.
+ADR-0105 tonemaps the HDR scene target of a `LinearHdr` view straight into the destination of the view (`RenderPipeline.RenderHdrView`), then ADR-0107 flushes the screen sprites and text and composes the interface on top. The engine uses no multisampling (`CasaEngineGame.cs`, `PreferMultiSampling = false`; every render target is created with 0 samples), so scene edges are aliased. The author chose FXAA over TAA and MSAA (D1). ADR-0113 extends the PBR scope to it, and the setting `ColorPipelineSettings.AntiAliasing` (`anti_aliasing`, `None` by default) exists since T1.1.
 
 An FXAA filter works on a display-encoded, low-dynamic-range image and must not blur text or interface edges. The destination of the tonemapping can be the back buffer, a view surface, the scene target or the retained frozen frame: none of them can be sampled by the pass that follows (the back buffer cannot, and the others would couple the pass to each destination).
 
-Measured on the code (MonoGame DesktopGL 3.8.5.1, `ps_3_0`): `tex2D` with a linear clamped sampler works through `SpriteBatch` with a pixel-only effect (as `Tonemap.fx` and `Bloom.fx` do); the OpenGL chain ignores a requested texture level (ADR-0109), so the pass reads with `tex2D` only.
+Measured on the code (MonoGame DesktopGL 3.8.5.1, `ps_3_0`): `tex2D` with a linear clamped sampler works through `SpriteBatch` with a pixel-only effect (as `Tonemap.fx` and `Bloom.fx` do); the OpenGL chain ignores a requested texture level (ADR-0110), so the pass reads with `tex2D` only.
 
 ## Decision
 
@@ -28,4 +28,4 @@ Measured on the code (MonoGame DesktopGL 3.8.5.1, `ps_3_0`): `tex2D` with a line
 - One extra full-rectangle `SpriteBatch` draw (the FXAA one, at most 34 texture reads per pixel: 9 for the contrast test and the edge direction, 24 for the search along the edge, 1 for the final blend) and one pooled 4-byte-per-pixel target per view size, only for a view that asks for FXAA. The tonemapping itself is unchanged, drawn into the pooled target instead of the destination.
 - The editor views (`OverlayViewPipeline`) and any custom pipeline without `IScenePhaseViewPipeline` get no FXAA. The retained frozen-frame target and the editor host texture, as destinations, are not exercised by the T1.2 measurements.
 - No TAA and no MSAA: the filter does not recover sub-pixel detail, it blurs luminance edges (thin bright lines on a dark background can still shimmer when the camera moves).
-- The scene depth is not in the pass: FXAA needs none. SSAO (ADR-0115) is independent and acts before the bloom, on the HDR target.
+- The scene depth is not in the pass: FXAA needs none. SSAO (ADR-0116) is independent and acts before the bloom, on the HDR target.

@@ -25,13 +25,13 @@
 //   t6 ShadowMapTexture                  directional shadow map
 //   t7 OcclusionTexture                  R = ambient occlusion (glTF convention)
 //   t8 EmissiveTexture                   emissive colour (display colour)
-//   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0109)
+//   t9 IrradianceCubeTexture             diffuse irradiance cube of the IBL (32 texels, linear light, E / pi; ADR-0110)
 //   t10 PrefilteredSpecularAtlasTexture  prefiltered specular atlas of the IBL (2D, six roughness bands, linear light)
 //   t11 BrdfLookupTexture                split-sum BRDF table (x = NoV, y = roughness, channels A and B)
 //   t12 PrefilteredLocalReflectionProbeAtlasTexture           prefiltered atlas of the primary local probe (same layout as t10)
 //   t13 PrefilteredSecondaryLocalReflectionProbeAtlasTexture   prefiltered atlas of the secondary local probe
-//   t14 DetailTexture                    optional detail texture (display colour, ADR-0116): base texture * 2 * detail(texCoord * DetailTiling)
-// The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0109). The probe atlases
+//   t14 DetailTexture                    optional detail texture (display colour, ADR-0117): base texture * 2 * detail(texCoord * DetailTiling)
+// The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0110). The probe atlases
 // are generated like the global one (IblCache.TryGetPrefilteredAtlas); while one does not exist yet its Has... flag
 // (HasPrefilteredLocalReflectionProbe, HasPrefilteredSecondaryLocalReflectionProbe) is 0 and the probe is sampled unprefiltered
 // from its cube (t4, t5).
@@ -57,7 +57,7 @@
 // HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
 // IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0 (probes included).
 // HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder.
-// ClearCoat and ClearCoatRoughness (ADR-0114) are written by LitPbrMaterial.Bind every bind. HasDetailTexture and DetailTiling (ADR-0116)
+// ClearCoat and ClearCoatRoughness (ADR-0115) are written by LitPbrMaterial.Bind every bind. HasDetailTexture and DetailTiling (ADR-0117)
 // carry the names of LitForward.fx but not its slots (c35.w is HasEmissiveTexture here) and are written by LitPbrMaterial.Bind every
 // bind. None of the constants of this paragraph has a
 // fixed slot: the compiler places them.
@@ -282,7 +282,7 @@ void ApplyAlphaTest(float alpha)
 }
 
 
-// ---- Image-based lighting (ADR-0109, plan T6.3) ----------------------------------------------------------------------------
+// ---- Image-based lighting (ADR-0110, plan T6.3) ----------------------------------------------------------------------------
 // The specular result of the IBL is a 2D atlas, not a cube with mips: the OpenGL chain ignores the level of a cube sample, so a
 // cube is never read at an explicit level for it. The atlas holds six latitude-longitude bands of 256 rows, band n
 // prefiltered for the roughness n / 5.
@@ -297,7 +297,7 @@ static const float IblLegacyEncodeExponent = 1.0f / 2.2f;
 
 
 // Linear light of the IBL in the space of the view: unchanged when the colour pipeline is linear, re-encoded to display colour
-// otherwise (the approximation is written in ADR-0109). It never decodes: nothing of the IBL is a display colour.
+// otherwise (the approximation is written in ADR-0110). It never decodes: nothing of the IBL is a display colour.
 float3 IblToViewSpace(float3 linearLight)
 {
     return ColorPipelineIsLinear > 0.5f ? linearLight : pow(max(linearLight, 0.0f), IblLegacyEncodeExponent);
@@ -450,7 +450,7 @@ PbrAmbient ComputePbrAmbient(PbrSurface surface, float occlusion)
 }
 
 
-// The clear coat of the ambient (ADR-0114, plan P4), applied to the ambient of the base after ComputePbrAmbient. surface.ClearCoat
+// The clear coat of the ambient (ADR-0115, plan P4), applied to the ambient of the base after ComputePbrAmbient. surface.ClearCoat
 // is above 0 here. With the IBL (HasIbl = 1): E = 0.04 * A + B with A and B read from the BRDF table at (CoatNoV,
 // ClearCoatRoughness); the coat reflection is the GLOBAL prefiltered atlas read along the reflection of the geometric normal at
 // ClearCoatRoughness, times E, ClearCoat, EnvironmentSpecularIntensity and the occlusion (the local probes are not read: written
@@ -553,7 +553,7 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float3 g
         + ambient.Specular
         + emissive;
 
-    // The shadow tint (ShadowApplyMode = 1, ADR-0101) applies to the whole pixel except the emissive part.
+    // The shadow tint (ShadowApplyMode = 1, ADR-0102) applies to the whole pixel except the emissive part.
     color = ApplyShadowTint(color, emissive, lightResult.ShadowFactor);
 
     return float4(color, baseColor.a);

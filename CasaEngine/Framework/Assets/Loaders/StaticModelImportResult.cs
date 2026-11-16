@@ -59,7 +59,7 @@ public sealed class StaticModelImportedMaterial
 
     public float SpecularPower { get; set; } = 16.0f;
 
-    // glTF PBR channels (ADR-0111). Additive: the legacy fields above keep their meaning.
+    // glTF PBR channels (ADR-0112). Additive: the legacy fields above keep their meaning.
 
     /// <summary>glTF <c>metallicFactor</c> (1 when the material has no metallic-roughness channel, 0 for an unlit one).</summary>
     public float MetallicFactor { get; set; } = 1.0f;
@@ -82,7 +82,7 @@ public sealed class StaticModelImportedMaterial
     /// <summary>glTF <c>occlusionTexture.strength</c> (default 1).</summary>
     public float OcclusionStrength { get; set; } = 1.0f;
 
-    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatFactor</c> (ADR-0114; 0 when the material has no clear coat).</summary>
+    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatFactor</c> (ADR-0115; 0 when the material has no clear coat).</summary>
     public float ClearCoatFactor { get; set; }
 
     /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatRoughnessFactor</c> (0 when the material has no clear coat).</summary>

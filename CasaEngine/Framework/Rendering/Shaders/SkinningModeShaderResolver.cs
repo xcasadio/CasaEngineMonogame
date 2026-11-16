@@ -19,7 +19,7 @@ public static class SkinningModeShaderResolver
         };
     }
 
-    /// <summary>The skinning effect under the id of its lit-pbr techniques (<c>RiggedModelDrawPbr[DualQuaternion]</c>, ADR-0110).</summary>
+    /// <summary>The skinning effect under the id of its lit-pbr techniques (<c>RiggedModelDrawPbr[DualQuaternion]</c>, ADR-0111).</summary>
     public static EffectiveShaderReference ResolvePbr(SkinningMode skinningMode)
     {
         return skinningMode switch

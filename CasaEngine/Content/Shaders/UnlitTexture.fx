@@ -21,7 +21,7 @@ float4   TintColor = float4(1, 1, 1, 1);
 float    Alpha     = 1.0f;
 float    AlphaCutoff = 0.0f;
 
-// 1 when the view renders in the linear colour pipeline (ADR-0105): the texture and the tint are display colours.
+// 1 when the view renders in the linear colour pipeline (ADR-0106): the texture and the tint are display colours.
 float    ColorPipelineIsLinear = 0.0f;
 
 DECLARE_TEXTURE(Texture, 0);

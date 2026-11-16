@@ -6,7 +6,7 @@
 #define DEBUG_PS_SHADERMODEL ps_4_0
 #endif
 
-// FXAA, a screen-space anti-aliasing filter applied to the tonemapped, display-encoded scene colour (ADR-0113). Like
+// FXAA, a screen-space anti-aliasing filter applied to the tonemapped, display-encoded scene colour (ADR-0114). Like
 // Tonemap.fx and Bloom.fx it is a pixel-shader-only effect drawn through SpriteBatch.Begin(effect:): SpriteBatch keeps its
 // own vertex shader and binds the source texture as texture 0, so the technique declares no vertex shader and the pixel
 // input mirrors the SpriteBatch vertex output. The source is drawn 1:1 (one texel per destination pixel), so the output
@@ -31,7 +31,7 @@
 //      dark pixels that have no edge; the larger of the two offsets is used.
 //   6. The colour is read at the displaced position with the bilinear filter, which does the blend. Alpha is 1.
 //
-// Sampling uses tex2D only (the OpenGL chain ignores a requested texture level, ADR-0109).
+// Sampling uses tex2D only (the OpenGL chain ignores a requested texture level, ADR-0110).
 
 // Size of one source texel: (1 / width, 1 / height).
 float2 FxaaTexelSize = float2(1.0f, 1.0f);

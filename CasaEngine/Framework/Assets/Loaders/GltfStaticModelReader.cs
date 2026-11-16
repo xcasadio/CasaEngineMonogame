@@ -168,7 +168,7 @@ public sealed class GltfStaticModelReader
     }
 
     /// <summary>
-    /// Copies the glTF PBR channels (ADR-0111). A material without a metallic-roughness channel
+    /// Copies the glTF PBR channels (ADR-0112). A material without a metallic-roughness channel
     /// reads the glTF defaults (metallic 1, roughness 1), except an unlit one which is a rough non-metal. Factors are stored as authored, in linear space.
     /// </summary>
     private static void ReadPbrChannels(StaticModelImportedMaterial importedMaterial, GltfMaterial material, string modelFilePath)

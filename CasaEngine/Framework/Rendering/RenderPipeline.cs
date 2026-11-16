@@ -40,24 +40,24 @@ public sealed class RenderPipeline : IDisposable
     // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
     private RenderTarget2D _sceneRt;
 
-    // Tonemapping shader of the linear HDR colour pipeline (ADR-0104). Loaded by the game once its content root is set;
+    // Tonemapping shader of the linear HDR colour pipeline (ADR-0105). Loaded by the game once its content root is set;
     // null until then (the editor, tests), which only matters for a view in LinearHdr.
     private ShaderWrapper _tonemapShader;
 
-    // Bloom shader (ADR-0107), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
+    // Bloom shader (ADR-0108), loaded with the tonemap shader; null until then, which only matters for a view with bloom.
     private ShaderWrapper _bloomShader;
 
-    // FXAA shader (ADR-0113), loaded with the tonemap shader; null until then, which only matters for a view with FXAA.
+    // FXAA shader (ADR-0114), loaded with the tonemap shader; null until then, which only matters for a view with FXAA.
     private ShaderWrapper _fxaaShader;
 
-    // SSAO shader (ADR-0115), loaded with the tonemap shader; null until then, which only matters for a view with SSAO.
+    // SSAO shader (ADR-0116), loaded with the tonemap shader; null until then, which only matters for a view with SSAO.
     private ShaderWrapper _ssaoShader;
 
-    // Generator of the IBL cubes (ADR-0109), created when the game gives the pipeline the IblConvolution effect; null until then
+    // Generator of the IBL cubes (ADR-0110), created when the game gives the pipeline the IblConvolution effect; null until then
     // (the editor, tests), in which case nothing is generated and the PBR ambient stays flat.
     private IblCubeGenerator _iblCubeGenerator;
 
-    // Cache of the generated IBL textures and of the BRDF table (ADR-0109). Its requests run at the start of Render, before any view.
+    // Cache of the generated IBL textures and of the BRDF table (ADR-0110). Its requests run at the start of Render, before any view.
     private readonly IblCache _iblCache;
 
     private const string ReinhardTechniqueName = "Tonemap_Reinhard";
@@ -93,7 +93,7 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>Number of FXAA draws since the start (see <see cref="FxaaRenderer"/>).</summary>
     internal int FxaaDrawCount => _fxaaRenderer.DrawCount;
 
-    /// <summary>Number of scene depth pre-pass targets (view depth, 24-bit depth buffer) created since the start (ADR-0115).</summary>
+    /// <summary>Number of scene depth pre-pass targets (view depth, 24-bit depth buffer) created since the start (ADR-0116).</summary>
     internal int SceneDepthTargetCreationCount { get; private set; }
 
     /// <summary>Number of scene depth pre-pass targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
@@ -102,7 +102,7 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>Number of views rendered with their scene depth pre-pass active since the start.</summary>
     internal int SceneDepthPrepassCount { get; private set; }
 
-    /// <summary>Number of SSAO targets (occlusion and blur, one channel, no depth buffer) created since the start (ADR-0115).</summary>
+    /// <summary>Number of SSAO targets (occlusion and blur, one channel, no depth buffer) created since the start (ADR-0116).</summary>
     internal int SsaoTargetCreationCount { get; private set; }
 
     /// <summary>Number of SSAO targets disposed because their size was no longer in use (see <see cref="HdrTargetEviction"/>).</summary>
@@ -123,14 +123,14 @@ public sealed class RenderPipeline : IDisposable
     private readonly FxaaRenderer _fxaaRenderer;
     private bool _fxaaShaderMissingLogged;
 
-    // Host of the scene depth pre-pass (ADR-0115), handed to the renderers through RenderFrame.SceneDepth. Its target is acquired per
+    // Host of the scene depth pre-pass (ADR-0116), handed to the renderers through RenderFrame.SceneDepth. Its target is acquired per
     // view in RenderHdrView and released there. The format falls back once, logged (Single, HalfSingle, HalfVector4); when none can be
     // created the pre-pass is switched off for good with one warning.
     private readonly SceneDepthPrepass _sceneDepth = new();
     private SurfaceFormat _sceneDepthFormat = SurfaceFormat.Single;
     private bool _sceneDepthUnavailable;
 
-    // Occlusion and blur targets of the SSAO (ADR-0115): Single, then HalfSingle, no depth buffer; never a HDR format. When neither
+    // Occlusion and blur targets of the SSAO (ADR-0116): Single, then HalfSingle, no depth buffer; never a HDR format. When neither
     // can be created SSAO is switched off for good with one warning.
     private readonly SsaoRenderer _ssaoRenderer;
     private SurfaceFormat _ssaoFormat = SurfaceFormat.Single;
@@ -213,7 +213,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>Bloom</c> effect (<see cref="BuiltInShaderCatalog.BloomContentName"/>) used by the
-    /// bloom of a view that asks for it (ADR-0107). Called once by the game after its content root is set.
+    /// bloom of a view that asks for it (ADR-0108). Called once by the game after its content root is set.
     /// </summary>
     public void SetBloomEffect(Effect effect)
     {
@@ -231,7 +231,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>Fxaa</c> effect (<see cref="BuiltInShaderCatalog.FxaaContentName"/>) used by the
-    /// anti-aliasing pass of a view that asks for it (ADR-0113). Called once by the game after its content root is set.
+    /// anti-aliasing pass of a view that asks for it (ADR-0114). Called once by the game after its content root is set.
     /// </summary>
     public void SetFxaaEffect(Effect effect)
     {
@@ -249,7 +249,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>Ssao</c> effect (<see cref="BuiltInShaderCatalog.SsaoContentName"/>) used by the
-    /// ambient occlusion of a view that asks for it (ADR-0115). Called once by the game after its content root is set.
+    /// ambient occlusion of a view that asks for it (ADR-0116). Called once by the game after its content root is set.
     /// </summary>
     public void SetSsaoEffect(Effect effect)
     {
@@ -267,7 +267,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Gives the pipeline the compiled <c>IblConvolution</c> effect (<see cref="BuiltInShaderCatalog.IblConvolutionContentName"/>)
-    /// and builds the generator of the IBL cubes from it (ADR-0109). Called once by the game after its content root is set; a
+    /// and builds the generator of the IBL cubes from it (ADR-0110). Called once by the game after its content root is set; a
     /// hot reload replaces the generator. Without it <see cref="IblCubeGenerator"/> stays null and nothing is generated.
     /// </summary>
     public void SetIblConvolutionEffect(Effect effect)
@@ -281,7 +281,7 @@ public sealed class RenderPipeline : IDisposable
     /// <summary>The generator of the IBL cubes, or null until <see cref="SetIblConvolutionEffect"/> has been called.</summary>
     public IblCubeGenerator IblCubeGenerator => _iblCubeGenerator;
 
-    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0109).</summary>
+    /// <summary>The cache of the IBL textures; the binders request through it and <see cref="Render"/> executes the requests (ADR-0110).</summary>
     public IblCache IblCache => _iblCache;
 
     /// <summary>Releases the IBL textures, the BRDF table and the generator.</summary>
@@ -467,7 +467,7 @@ public sealed class RenderPipeline : IDisposable
             {
                 // The resolved value is cached per view and says only what the world asks for. The view really draws through the
                 // HDR target in this frame only when the planner said so: that is what lets the binders decode display colours
-                // (ADR-0105). Everything built from this copy (lights, frame, binders) sees the same decision.
+                // (ADR-0106). Everything built from this copy (lights, frame, binders) sees the same decision.
                 resolvedEnvironment = resolvedEnvironment with { LinearColorActive = true };
             }
 
@@ -657,7 +657,7 @@ public sealed class RenderPipeline : IDisposable
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }
 
-    // ---- Linear HDR colour pipeline (ADR-0104) ----
+    // ---- Linear HDR colour pipeline (ADR-0105) ----
 
     private bool HasTonemapShader()
     {
@@ -829,7 +829,7 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
-    /// Multiplies the HDR scene target of the view by its ambient occlusion (ADR-0115), between the scene and the bloom. Called only
+    /// Multiplies the HDR scene target of the view by its ambient occlusion (ADR-0116), between the scene and the bloom. Called only
     /// for a view whose scene depth pre-pass is active (its four conditions, see <see cref="RenderHdrView"/>), so a view that renders
     /// scene and interface in one go is never darkened. Skipped, with one warning, when the SSAO shader is not loaded, and when the
     /// intensity is not positive (the multiplication would be by 1).
@@ -1018,7 +1018,7 @@ public sealed class RenderPipeline : IDisposable
             var scenePipeline = pipeline as IScenePhaseViewPipeline;
             bool composeInterfaceAfter = scenePipeline != null && scenePipeline.SupportsScenePhase;
 
-            // The scene depth pre-pass (ADR-0115) is active for the view only when all four conditions hold, evaluated here, before the
+            // The scene depth pre-pass (ADR-0116) is active for the view only when all four conditions hold, evaluated here, before the
             // scene is rendered: SSAO is on, the view renders through the HDR target (this method), its projection is perspective
             // (M44 is exactly 0; the depth written is the clip-space w) and its pipeline separates the scene from the interface
             // (composeInterfaceAfter, the condition of the FXAA pass). A view that renders everything in one go, the editor views
@@ -1046,7 +1046,7 @@ public sealed class RenderPipeline : IDisposable
 
             var viewRectangle = view.Surface.ViewportRect;
 
-            // SSAO (ADR-0115) multiplies the scene target by the occlusion, between the scene and the bloom. It runs only when the
+            // SSAO (ADR-0116) multiplies the scene target by the occlusion, between the scene and the bloom. It runs only when the
             // scene depth pre-pass is active for this view, hence only when composeInterfaceAfter holds: the interface is not in
             // the HDR target yet and is never darkened.
             if (sceneDepthActive)
@@ -1059,7 +1059,7 @@ public sealed class RenderPipeline : IDisposable
                 ApplyBloom(hdrTarget, in frame);
             }
 
-            // FXAA (ADR-0113) filters the scene only when the interface is composed afterwards, so the interface is never
+            // FXAA (ADR-0114) filters the scene only when the interface is composed afterwards, so the interface is never
             // filtered: a view whose pipeline renders everything in one go (composeInterfaceAfter false) is not anti-aliased.
             if (composeInterfaceAfter && frame.Environment.AntiAliasing == AntiAliasingMode.Fxaa && HasFxaaShader())
             {
@@ -1114,7 +1114,7 @@ public sealed class RenderPipeline : IDisposable
     }
 
     /// <summary>
-    /// Adds the bloom of the view to its HDR scene target (ADR-0107), after the scene and before the tonemapping, so the
+    /// Adds the bloom of the view to its HDR scene target (ADR-0108), after the scene and before the tonemapping, so the
     /// interface composed afterwards is never touched. Skipped, with one warning, when the bloom shader is not loaded.
     /// </summary>
     private void ApplyBloom(RenderTarget2D hdrTarget, in RenderFrame frame)
@@ -1142,7 +1142,7 @@ public sealed class RenderPipeline : IDisposable
 
     /// <summary>
     /// Flushes the renderers that draw display-ready colours (<see cref="IPostTonemapRenderer"/>, the screen sprites and text)
-    /// on the tonemapped destination, before the interface (ADR-0106). The depth of the scene lives in the HDR target, so the
+    /// on the tonemapped destination, before the interface (ADR-0107). The depth of the scene lives in the HDR target, so the
     /// depth test is off for these flushes.
     /// </summary>
     private void FlushPostTonemapRenderers(RenderView view, in RenderFrame frame)

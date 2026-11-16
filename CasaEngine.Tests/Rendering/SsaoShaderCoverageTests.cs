@@ -8,7 +8,7 @@ namespace CasaEngine.Tests.Rendering;
 /// <summary>
 /// T3.3 of the clear coat, SSAO and FXAA plan: Ssao.fx is compiled, registered as a built-in and hot reloadable, the composition sits
 /// between the scene and the bloom and only in a view whose scene depth pre-pass is active, and its targets are stamped for eviction
-/// and counted apart from the bloom, FXAA and pre-pass ones (ADR-0115). The checks read the text of the shader, the content file, the
+/// and counted apart from the bloom, FXAA and pre-pass ones (ADR-0116). The checks read the text of the shader, the content file, the
 /// catalog and the pipeline: the compiler itself is exercised by the build.
 /// </summary>
 public class SsaoShaderCoverageTests
@@ -60,7 +60,7 @@ public class SsaoShaderCoverageTests
     {
         string source = ReadShader();
 
-        // The OpenGL chain ignores the requested level (ADR-0109): no tex2Dlod. The depth and the occlusion are read texel by texel.
+        // The OpenGL chain ignores the requested level (ADR-0110): no tex2Dlod. The depth and the occlusion are read texel by texel.
         Assert.DoesNotContain("tex2Dlod", source, StringComparison.Ordinal);
         Assert.DoesNotContain("tex2Dgrad", source, StringComparison.Ordinal);
         Assert.DoesNotContain("ddx(", source, StringComparison.Ordinal);

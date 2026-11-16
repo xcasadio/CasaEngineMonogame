@@ -26,7 +26,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0010](0010-shader-naming-convention.md) | Shader naming convention and applied renames | Accepted | 2026-09-06 (backfill) |
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
-| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted, amended by ADR-0102 | 2026-08-09 |
+| [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted, amended by ADR-0103 | 2026-08-09 |
 | [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted | 2026-06-13 |
 | [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
@@ -110,23 +110,24 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0094](0094-converted-rigged-imports-keep-their-glb.md) | A rigged model imported from a non-glTF source keeps its converted glb | Accepted | 2026-11-15 |
 | [ADR-0095](0095-3d-camera-keeps-its-vertical-field-of-view.md) | The 3d camera keeps its vertical field of view | Accepted | 2026-11-15 |
 | [ADR-0096](0096-keyboard-bindings-are-key-positions.md) | Keyboard bindings are key positions | Accepted | 2026-11-15 |
-| [ADR-0097](0097-the-ambient-term-applies-the-surface-colour-once.md) | The ambient term applies the surface colour once (numbered ADR-0089 until 2026-11-15) | Accepted | 2026-11-14 |
-| [ADR-0098](0098-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md) | A world may use a flat ambient term while keeping a reflection cube (numbered ADR-0090 until 2026-11-15) | Accepted | 2026-11-14 |
-| [ADR-0099](0099-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture (numbered ADR-0091 until 2026-11-15) | Accepted | 2026-11-14 |
-| [ADR-0100](0100-the-texture-loader-can-build-a-mipmap-chain.md) | The texture loader can build a mipmap chain (numbered ADR-0092 until 2026-11-15) | Accepted | 2026-11-14 |
-| [ADR-0101](0101-shadow-settings-mode-colour-filter-fade-and-depth-range.md) | Shadow settings: application mode and colour, filter radius, fade distance and depth range (numbered ADR-0093 until 2026-11-15) | Accepted | 2026-11-14 |
-| [ADR-0102](0102-pbr-scope-extends-to-bloom-transparency-skinning-and-local-probes.md) | PBR scope extends to bloom, transparency, skinning and local probes (numbered ADR-0094 until 2026-11-15) | Accepted, amended by ADR-0112 | 2026-11-14 |
-| [ADR-0103](0103-a-world-selects-its-colour-pipeline-through-color-pipeline-settings.md) | A world selects its colour pipeline through colour pipeline settings (numbered ADR-0095 until 2026-11-15) | Proposed | 2026-11-15 |
-| [ADR-0104](0104-the-linear-hdr-pipeline-renders-the-scene-into-a-pooled-hdr-target-and-tonemaps-before-the-ui.md) | The linear HDR pipeline renders the scene into a pooled HDR target and tonemaps before the interface (numbered ADR-0096 until 2026-11-15) | Proposed | 2026-11-15 |
-| [ADR-0105](0105-display-colours-are-decoded-to-linear-light-for-a-view-that-really-renders-through-the-hdr-target.md) | Display colours are decoded to linear light for a view that really renders through the HDR target (numbered ADR-0097 until 2026-11-15) | Proposed | 2026-11-15 |
-| [ADR-0106](0106-screen-sprites-and-text-are-flushed-after-the-tonemapping-in-the-linear-pipeline.md) | Screen sprites and text are flushed after the tonemapping in the linear pipeline (numbered ADR-0098 until 2026-11-15) | Proposed | 2026-11-15 |
-| [ADR-0107](0107-bloom-is-a-threshold-and-blur-chain-added-to-the-hdr-scene-before-the-tonemapping.md) | Bloom is a threshold and blur chain added to the HDR scene before the tonemapping (numbered ADR-0099 until 2026-11-15) | Proposed | 2026-11-15 |
-| [ADR-0108](0108-lit-pbr-is-a-built-in-material-definition-that-names-its-own-technique.md) | lit-pbr is a built-in material definition that names its own technique | Proposed | 2026-11-15 |
-| [ADR-0109](0109-image-based-lighting-is-generated-on-the-gpu-and-the-specular-part-is-a-roughness-atlas.md) | Image-based lighting is generated on the GPU and its specular part is stored as a roughness atlas | Proposed | 2026-11-15 |
-| [ADR-0110](0110-a-skinned-mesh-may-carry-a-lit-pbr-material.md) | A skinned mesh may carry a lit-pbr material | Proposed | 2026-11-15 |
-| [ADR-0111](0111-the-gltf-static-model-reader-keeps-the-gltf-pbr-material-channels.md) | The glTF static model reader keeps the glTF PBR material channels | Proposed | 2026-11-15 |
-| [ADR-0112](0112-pbr-scope-extends-to-clear-coat-screen-space-ambient-occlusion-and-fxaa.md) | PBR scope extends to clear coat, screen-space ambient occlusion and FXAA | Proposed | 2026-11-15 |
-| [ADR-0113](0113-fxaa-filters-the-tonemapped-scene-before-the-post-tonemap-renderers-and-the-interface.md) | FXAA filters the tonemapped scene before the post-tonemap renderers and the interface | Proposed | 2026-11-15 |
-| [ADR-0114](0114-lit-pbr-carries-a-clear-coat-layer-evaluated-as-a-second-lobe.md) | lit-pbr carries a clear coat layer evaluated as a second lobe | Proposed | 2026-11-15 |
-| [ADR-0115](0115-a-scene-depth-pre-pass-feeds-screen-space-ambient-occlusion.md) | A scene depth pre-pass feeds screen-space ambient occlusion | Proposed | 2026-11-15 |
-| [ADR-0116](0116-lit-pbr-may-carry-a-detail-texture.md) | lit-pbr may carry a detail texture | Proposed | 2026-11-16 |
+| [ADR-0097](0097-desktop-runtime-owns-its-draw-transaction.md) | The desktop runtime owns its draw transaction | Accepted | 2026-11-15 |
+| [ADR-0098](0098-the-ambient-term-applies-the-surface-colour-once.md) | The ambient term applies the surface colour once (numbered ADR-0089 until 2026-11-15) | Accepted | 2026-11-14 |
+| [ADR-0099](0099-a-world-may-use-a-flat-ambient-term-with-a-reflection-cube.md) | A world may use a flat ambient term while keeping a reflection cube (numbered ADR-0090 until 2026-11-15) | Accepted | 2026-11-14 |
+| [ADR-0100](0100-a-lit-diffuse-material-may-carry-a-detail-texture.md) | A lit diffuse material may carry a detail texture (numbered ADR-0091 until 2026-11-15) | Accepted | 2026-11-14 |
+| [ADR-0101](0101-the-texture-loader-can-build-a-mipmap-chain.md) | The texture loader can build a mipmap chain (numbered ADR-0092 until 2026-11-15) | Accepted | 2026-11-14 |
+| [ADR-0102](0102-shadow-settings-mode-colour-filter-fade-and-depth-range.md) | Shadow settings: application mode and colour, filter radius, fade distance and depth range (numbered ADR-0093 until 2026-11-15) | Accepted | 2026-11-14 |
+| [ADR-0103](0103-pbr-scope-extends-to-bloom-transparency-skinning-and-local-probes.md) | PBR scope extends to bloom, transparency, skinning and local probes (numbered ADR-0094 until 2026-11-15) | Accepted, amended by ADR-0113 | 2026-11-14 |
+| [ADR-0104](0104-a-world-selects-its-colour-pipeline-through-color-pipeline-settings.md) | A world selects its colour pipeline through colour pipeline settings (numbered ADR-0095 until 2026-11-15) | Proposed | 2026-11-15 |
+| [ADR-0105](0105-the-linear-hdr-pipeline-renders-the-scene-into-a-pooled-hdr-target-and-tonemaps-before-the-ui.md) | The linear HDR pipeline renders the scene into a pooled HDR target and tonemaps before the interface (numbered ADR-0096 until 2026-11-15) | Proposed | 2026-11-15 |
+| [ADR-0106](0106-display-colours-are-decoded-to-linear-light-for-a-view-that-really-renders-through-the-hdr-target.md) | Display colours are decoded to linear light for a view that really renders through the HDR target (numbered ADR-0097 until 2026-11-15) | Proposed | 2026-11-15 |
+| [ADR-0107](0107-screen-sprites-and-text-are-flushed-after-the-tonemapping-in-the-linear-pipeline.md) | Screen sprites and text are flushed after the tonemapping in the linear pipeline (numbered ADR-0098 until 2026-11-15) | Proposed | 2026-11-15 |
+| [ADR-0108](0108-bloom-is-a-threshold-and-blur-chain-added-to-the-hdr-scene-before-the-tonemapping.md) | Bloom is a threshold and blur chain added to the HDR scene before the tonemapping (numbered ADR-0099 until 2026-11-15) | Proposed | 2026-11-15 |
+| [ADR-0109](0109-lit-pbr-is-a-built-in-material-definition-that-names-its-own-technique.md) | lit-pbr is a built-in material definition that names its own technique | Proposed | 2026-11-15 |
+| [ADR-0110](0110-image-based-lighting-is-generated-on-the-gpu-and-the-specular-part-is-a-roughness-atlas.md) | Image-based lighting is generated on the GPU and its specular part is stored as a roughness atlas | Proposed | 2026-11-15 |
+| [ADR-0111](0111-a-skinned-mesh-may-carry-a-lit-pbr-material.md) | A skinned mesh may carry a lit-pbr material | Proposed | 2026-11-15 |
+| [ADR-0112](0112-the-gltf-static-model-reader-keeps-the-gltf-pbr-material-channels.md) | The glTF static model reader keeps the glTF PBR material channels | Proposed | 2026-11-15 |
+| [ADR-0113](0113-pbr-scope-extends-to-clear-coat-screen-space-ambient-occlusion-and-fxaa.md) | PBR scope extends to clear coat, screen-space ambient occlusion and FXAA | Proposed | 2026-11-15 |
+| [ADR-0114](0114-fxaa-filters-the-tonemapped-scene-before-the-post-tonemap-renderers-and-the-interface.md) | FXAA filters the tonemapped scene before the post-tonemap renderers and the interface | Proposed | 2026-11-15 |
+| [ADR-0115](0115-lit-pbr-carries-a-clear-coat-layer-evaluated-as-a-second-lobe.md) | lit-pbr carries a clear coat layer evaluated as a second lobe | Proposed | 2026-11-15 |
+| [ADR-0116](0116-a-scene-depth-pre-pass-feeds-screen-space-ambient-occlusion.md) | A scene depth pre-pass feeds screen-space ambient occlusion | Proposed | 2026-11-15 |
+| [ADR-0117](0117-lit-pbr-may-carry-a-detail-texture.md) | lit-pbr may carry a detail texture | Proposed | 2026-11-16 |

@@ -67,7 +67,7 @@ public static class EnvironmentResolver
             specularCubemapAssetId = specularCubemapAssetId != Guid.Empty ? specularCubemapAssetId : backgroundCubemapAssetId;
         }
 
-        // Colour origin of the environment cubes (ADR-0105, open point O2): only a cube built from a .hdr panorama holds linear
+        // Colour origin of the environment cubes (ADR-0106, open point O2): only a cube built from a .hdr panorama holds linear
         // light; procedural sky, physical atmosphere (authored Color values), DDS or authored cubes are display-encoded.
         bool panoramaIsLinear = panoramaCubemap is not null && PanoramaEnvironmentGenerator.IsLinearPanorama(view, panoramaAssetId);
         bool backgroundCubemapIsLinear = panoramaIsLinear && ReferenceEquals(backgroundCubemap, panoramaCubemap);

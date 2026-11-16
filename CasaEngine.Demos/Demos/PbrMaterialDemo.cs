@@ -18,7 +18,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Demos.Demos;
 
 /// <summary>
-/// The reference scene of the physically based material (plan T10.1, ADR-0108 to ADR-0111): a 5 x 5 grid of spheres that share ONE
+/// The reference scene of the physically based material (plan T10.1, ADR-0109 to ADR-0112): a 5 x 5 grid of spheres that share ONE
 /// <see cref="LitPbrMaterial"/> and differ only by per-instance property overrides (roughness from 0.1 to 0.9 along a row, metal from 0
 /// to 1 down a column), a coloured smooth metal sphere, an emissive sphere that feeds the bloom, a glass sphere in front of a
 /// checkerboard, a skinned character drawn by the PBR skinning techniques, and a directional light that casts shadows on a ground,
@@ -33,7 +33,7 @@ namespace CasaEngine.Demos.Demos;
 /// <c>CASAENGINE_PBR_DEMO_IBL=0</c> removes the specular environment cube from the lighting (the sky stays);
 /// <c>CASAENGINE_PBR_DEMO_BLOOM=0</c> switches the bloom off; <c>CASAENGINE_PBR_DEMO_GLASS=0</c> and
 /// <c>CASAENGINE_PBR_DEMO_SKINNED=0</c> remove the glass sphere and the skinned character. <c>CASAENGINE_PBR_DEMO_CLEARCOAT=1</c>
-/// (plan T2.2, ADR-0114) adds a row of five red dielectric spheres on the ground between the grid and the probes, with <c>clear_coat</c> 0, 0.25, 0.5, 0.75
+/// (plan T2.2, ADR-0115) adds a row of five red dielectric spheres on the ground between the grid and the probes, with <c>clear_coat</c> 0, 0.25, 0.5, 0.75
 /// and 1; <c>CASAENGINE_PBR_DEMO_CLEARCOAT=flat</c> adds the same row with every <c>clear_coat</c> at 0 (the control of the
 /// measurement). The measurement pixels and segments are the constants of
 /// <see cref="Measurement"/>.

@@ -1,4 +1,4 @@
-# ADR-0110: A skinned mesh may carry a lit-pbr material
+# ADR-0111: A skinned mesh may carry a lit-pbr material
 
 - **Status**: Proposed
 - **Date**: 2026-11-15
@@ -25,7 +25,7 @@ Phase 8 of the PBR plan brings the metallic-roughness shading of `LitPbr.fx` to 
 ## Consequences
 
 - A character can be drawn in PBR in the same scene as static PBR meshes, with the same light model, but it is lit without the image-based ambient: against a static PBR mesh in the same environment it lacks the specular ambient and the irradiance of the cube. Adding them later means declaring `HasIbl` and the textures in `skinEffect.fx`, which fits two more samplers in an effect that has five today (a separate decision).
-- The glTF PBR channels (metallic, roughness, occlusion, emissive) of a rigged model are not read yet (`GltfRiggedModelReader` reads the base colour only); a `PbrMaterial` supplies one set of factors for the whole model. Reading them per mesh is the subject of the import tasks (ADR-0111 for static models).
+- The glTF PBR channels (metallic, roughness, occlusion, emissive) of a rigged model are not read yet (`GltfRiggedModelReader` reads the base colour only); a `PbrMaterial` supplies one set of factors for the whole model. Reading them per mesh is the subject of the import tasks (ADR-0112 for static models).
 - The shader selector and the variant library hold two more ids on the same effect; each draw of a lit-pbr skinned mesh still costs one resolver call and one selector lookup, like the Blinn-Phong draw.
 - `SkinnedMeshRendererComponent.AddMesh` has a second overload; existing callers compile unchanged and keep their binary signature.
 - The existing test that pinned "a lit-pbr material on a skinned mesh keeps the skinning shader until phase 8" is replaced by the new resolution (both modes).

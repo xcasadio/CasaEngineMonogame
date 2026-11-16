@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The clear coat of <c>LitPbr.fx</c> on a real device (ADR-0114, plan T2.1). Every case renders one pixel (a quad facing the camera
+/// The clear coat of <c>LitPbr.fx</c> on a real device (ADR-0115, plan T2.1). Every case renders one pixel (a quad facing the camera
 /// at 5 units on +Z) into a floating-point target with one directional light, no flat ambient unless the case asks for it, no
 /// shadow, and the linear colour pipeline off. The expected values are computed from the closed form of the header of Pbr.fxh.
 /// Skipped where no device can be created.
