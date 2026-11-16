@@ -318,15 +318,68 @@ internal sealed class CasaLegacyShapeRenderer2D : IShapeRenderer2D
         }
     }
 
+    /// <summary>The longest polygon whose buffer is kept by <see cref="FillPolygon"/>: a polygon with more vertices that comes as a list is copied to a new array.</summary>
+    private const int MaxKeptPolygonVertices = 256;
+
+    /// <summary>Indexed by a number of vertices: the array that <see cref="FillPolygon"/> hands to <c>PrimitiveDrawing.DrawSolidPolygon</c> for a list of that
+    /// length. Safe to share between the polygons of a batch because <c>DrawSolidPolygon</c> reads the array during the call, and neither modifies it nor
+    /// keeps it (<c>FillPolygonGpuTests</c> checks it on the GPU).</summary>
+    private Vector2[][] _polygonBuffers;
+
     public void FillPolygon(Vector2 origin, IEnumerable<Vector2> vertices, Color color)
     {
+        Vector2[] polygon = GetPolygonVertices(vertices);
+
+        _owner.EnsureDrawContext(DrawContext.Primitives);
+        _owner.PrimitiveDrawing.DrawSolidPolygon(origin, polygon, color, false);
+    }
+
+    /// <summary>An array is returned as it is, a list is copied to the buffer kept for its length, and only another enumeration is copied to a new array.</summary>
+    private Vector2[] GetPolygonVertices(IEnumerable<Vector2> vertices)
+    {
+        if (vertices is Vector2[] vertexArray)
+        {
+            if (vertexArray.Length == 0)
+            {
+                throw new ArgumentException(null, nameof(vertices));
+            }
+
+            return vertexArray;
+        }
+
+        if (vertices is IReadOnlyList<Vector2> vertexList)
+        {
+            int count = vertexList.Count;
+            if (count == 0)
+            {
+                throw new ArgumentException(null, nameof(vertices));
+            }
+
+            Vector2[] buffer;
+            if (count > MaxKeptPolygonVertices)
+            {
+                buffer = new Vector2[count];
+            }
+            else
+            {
+                _polygonBuffers ??= new Vector2[MaxKeptPolygonVertices + 1][];
+                buffer = _polygonBuffers[count] ??= new Vector2[count];
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                buffer[i] = vertexList[i];
+            }
+
+            return buffer;
+        }
+
         if (vertices == null || !vertices.Any())
         {
             throw new ArgumentException(null, nameof(vertices));
         }
 
-        _owner.EnsureDrawContext(DrawContext.Primitives);
-        _owner.PrimitiveDrawing.DrawSolidPolygon(origin, vertices.ToArray(), color, false);
+        return vertices.ToArray();
     }
 
     public void StrokeAndFillPoint(Vector2 position, Color strokeColor, Color fillColor, float radius = 3.0f, int strokeThickness = 1, CasaDrawTransaction.PointShape shape = CasaDrawTransaction.PointShape.Circle, DrawContext? preferredContext = null)

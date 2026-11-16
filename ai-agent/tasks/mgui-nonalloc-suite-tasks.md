@@ -1331,7 +1331,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
     `ResolvedPilotWriteSitesTests` décalés d'une ligne par un `using` ajouté. `GridColorPickerSwatchClipTests` inchangé.
   - Non fait : aucun lancement de `MGUI.Samples` ni de l'éditeur (prévu en T5.10) ; rien rejoué sur la première machine.
 
-### ⏳ T5.6 — `FillPolygon` des backends sans copie
+### ✅ T5.6 — `FillPolygon` des backends sans copie
 
 - Objectif : dessiner un polygone ou une flèche sur GPU réel n'alloue plus dans les deux backends, selon D17.
 - Fichiers : `MGUI/MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs`,
@@ -1355,6 +1355,47 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   MonoGame.Extended, écrit) ; pixels identiques sur un triangle, un polygone concave et une flèche ; journaux figés
   inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(rendering): fill a polygon without copying its vertices` (MGUI), puis `perf(ui): fill a polygon without copying its vertices` (moteur).
+- Validation (2026-11-16, seconde machine, GPU réel) : les trois solutions 0 erreur ; `MGUI.Tests` 3957 verts (12 tests
+  ajoutés), `CasaEngine.Tests` 6124 verts (5 ajoutés), aucun sauté. Écrit par un `executor`, relu en session
+  principale. **Le zéro n'est pas atteint** : `PrimitiveDrawing.DrawSolidPolygon` (MonoGame.Extended 6.1.1) alloue
+  lui-même à chaque appel ; selon D17 seule la copie autour de lui est retirée.
+
+  Octets par appel, 500 appels après 500 de chauffe, identiques dans les deux backends :
+
+  | Forme | `DrawSolidPolygon` seul | `FillPolygon` avant (tableau ou liste) | `FillPolygon` après |
+  |---|---|---|---|
+  | Triangle (3 sommets) | 376 | 424 | 376 |
+  | Triangle, autre sens | 424 | 472 | 424 |
+  | Concave (8 sommets) | 992 | 1080 | 992 |
+  | Flèche (7 sommets) | 928 | 1008 | 928 |
+  | Flèche, autre sens | 952 | 1032 | 952 |
+
+  - Reste : le triangulateur de MonoGame.Extended crée un tableau d'indices et un nœud par sommet à chaque appel, et
+    une copie inversée pour un polygone en sens horaire (lu dans la DLL décompilée par l'exécutant). Le retirer
+    demande de remplacer ce dessin de polygone : hors de cette phase (D17). Voir O16.
+  - `DrawSolidPolygon` ne modifie pas le tableau reçu et ne le garde pas (test GPU dans les deux dépôts : tableau
+    inchangé après l'appel, mêmes pixels quand il est réécrit avant la fin du lot). Un tampon partagé dans un lot est
+    donc sûr ; pas d'arrêt.
+  - Changement (`DrawTransaction.cs` de MGUI, `CasaLegacyShapeRenderer2D.cs` du moteur) : un tableau est passé tel
+    quel ; une `IReadOnlyList<Vector2>` est copiée dans un tampon gardé par longueur (jusqu'à 256 sommets, tableau
+    neuf au-delà) ; `Any()` et `ToArray()` seulement pour une autre énumération. Signatures publiques inchangées.
+    `IShapeRenderer2D.cs` et `CasaAposShapeRenderer2D.cs` non touchés (Apos délègue au rendu historique ; chemin non
+    exécuté).
+  - Les tests affirment que `FillPolygon` d'un tableau ou d'une liste n'alloue pas plus que `DrawSolidPolygon` seul,
+    sur les cinq formes, dans les deux dépôts.
+  - Pixels : comparés dans le test (tableau, liste, liste en lecture seule et énumération contre `DrawSolidPolygon`
+    sur un tableau neuf, image différente de la cible vide) pour le triangle, le concave, la flèche et sept polygones
+    dans un lot. Empreintes relevées avant et après sur cette machine, égales ; aucune n'est figée dans le code.
+  - Appelants réécrits sans LINQ, tampons gardés par thread : `MGRatingControl` (étoile et losange, minimum et maximum
+    par boucle ; le triangle passe par `FillTriangle` et garde son LINQ, hors tâche), `MGHighlightBorderBrush`
+    (polygone de progression ; le reste de cette branche alloue encore, hors tâche), `MGDockedBorderBrush` (huit
+    triangles de coin). Aucun des 37 journaux figés ne les atteint : un test neuf, `FillPolygonCallerJournalTests`,
+    fige sur l'ancien code les sommets envoyés par ces trois appelants et les affirme sur le nouveau. Leur gain en
+    octets n'est pas mesuré.
+  - Mutations vérifiées puis annulées : un sommet décalé dans le tampon gardé fait échouer deux tests GPU ; deux
+    sommets échangés dans le triangle de `MGDockedBorderBrush` font échouer son journal.
+  - Relecture : le tableau des tampons de `MGRatingControl` est dimensionné par l'énumération des formes et non par le
+    nombre de formes à sommets.
 
 ### ⏳ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
 
@@ -1451,7 +1492,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 faite. Prochaine tâche : **T5.6**.
+  T5.5 et T5.6 faites. Prochaine tâche : **T5.7**.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
@@ -1558,6 +1599,7 @@ Consigne à donner à la session qui reprend :
 | O13 | **Décidé le 2026-11-16 (D19), traité en T5.8.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
 | O14 | **Validé par l'auteur le 2026-11-16 (D20) : comportement livré gardé.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
 | O15 | **Répondu par l'auteur le 2026-11-16 : « corrige les 8 échecs GPU puis enchaîne avec T5.5 ».** Corrigé hors des tâches du plan, dans les tests seulement (commit `fix(tests): make the GPU reference frames and the cube level probe hold on a second GPU`) : les empreintes de l'image de référence du bureau sont dans `CasaEngine.Tests/UI/Backend/ReferenceDesktopFramePixels.cs`, une entrée par machine connue (la première, et l'AMD Radeon RX 9060 XT de la seconde, où le moteur et le `MainRenderer` de MGUI donnent les mêmes empreintes) ; une machine sans entrée échoue avec les empreintes à ajouter. Le test `OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed` fixe les deux comportements mesurés : niveaux gardés et niveau demandé ignoré (première machine), ou niveaux écrits à la main perdus, chaque niveau relu rendant la couleur du niveau 0 (seconde machine) ; le moteur ne crée aucun cube à mips. À rejouer sur la première machine avant la fusion (non vérifiable ici). Question d'origine : Sur la seconde machine, 8 tests GPU de `CasaEngine.Tests` échouent avant tout changement (7 empreintes de pixels prises sur la première machine, 1 couleur d'IBL ; détail sous T5.4). La validation de T5.5 à T5.10 demande « deux suites vertes » et, pour T5.5 et T5.6, « pixels identiques sur les tests GPU existants » : elle ne peut pas être tenue à la lettre ici. Voies : (a) accepter comme référence de cette machine « les mêmes 8 échecs, rien d'autre » et prouver les pixels par comparaison avant et après sur cette machine ; (b) refiger les empreintes pour qu'elles ne dépendent plus de la machine (tâche hors plan) ; (c) faire T5.5 à T5.10 sur la première machine. Recommandation de l'agent : (a), avec les suites rejouées sur la première machine avant la fusion. | T5.5 à T5.10 |
+| O16 | **Ouvert le 2026-11-16, suite possible, hors de cette phase (D17).** `PrimitiveDrawing.DrawSolidPolygon` de MonoGame.Extended 6.1.1 alloue à chaque polygone (376 octets pour un triangle, 928 à 992 pour sept ou huit sommets, mesuré sur GPU réel). Amener le dessin d'un polygone à zéro demande de trianguler sans allocation dans les backends, donc de ne plus passer par MonoGame.Extended pour ce dessin. À décider par l'auteur. | T5.6 |
 
 ## Hors périmètre
 
