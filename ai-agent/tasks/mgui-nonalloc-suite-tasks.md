@@ -1463,7 +1463,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
     octets par image, cause non cherchée par l'exécutant (supposée : réaffichage des indicateurs au changement de
     groupe survolé), notée dans l'ADR-0036. Aucun lancement de `MGUI.Samples` ni de l'éditeur.
 
-### ⏳ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
+### ✅ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
 
 - Objectif : un changement de texte dans un `MGTextBox` dont le bloc a une mise en page interne (texte sans balise ou
   à balises) ne refait plus la mise en lignes par `MGTextLine.ParseLines` (environ 1600 octets par touche estimés),
@@ -1493,8 +1493,43 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   diffère, D19) ; mesure de la frappe écrite ici, le test de frappe affirme le nouveau reste et le nomme (la nouvelle
   chaîne et ce que le curseur garde) ; journaux figés inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(textbox): compute the caret geometry from the text layouts` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3990 verts (8 tests ajoutés),
+  `CasaEngine.Tests` 6124 verts, aucun sauté. Écrit par un `executor`, surface publique relue en session principale ;
+  le fond est l'objet de T5.9. ADR-0037 de MGUI. La condition d'arrêt de D19 ne s'est pas déclenchée.
 
-### ⏳ T5.9 — Vérification indépendante de T5.5 à T5.8
+  | `MGTextBox` avec focus, frappe (A puis retour arrière), octets par image (Update) | Avant | Après |
+  |---|---|---|
+  | Total | 2600 | 356 |
+
+  - Le chiffre d'avant est celui affirmé par le test de frappe après T5.3 ; il n'a pas été remesuré sur l'ancien code.
+  - Reste de 356 octets par image, soit 178 000 octets sur 500 images, affirmé par le test de frappe comme une somme
+    de parts nommées : géométrie que le curseur garde (200 par changement : une `LineRenderInfo`, une liste, un
+    tableau de caractères ; mesurée seule par un test) ; arguments de `TextChanged` (32 par changement) ; arguments du
+    changement de bornes de layout (48 par changement) ; `EscapeMarkdown("a")` (128, à la touche A seulement ; mesuré
+    seul par un test) ; la chaîne « a » (24, à la touche A). Les parts de 32, 48 et 24 sont attribuées par
+    échantillonnage des allocations par type, pas mesurées une à une ; le total exact est le garde-fou.
+  - Différentiel de la table contre `MGTextLine.OriginalCharacterIndices`, sans écart, avec et sans retour à la ligne,
+    avec et sans lignes d'un espace ignorées : mise en page simple, 301 textes du corpus (28 896 mises en page) et 700
+    textes tirés avec la graine 20261116 ; mise en page à balises, 3 780 paires du corpus existant (181 440 mises en
+    page).
+  - Géométrie figée sur le code d'avant : 188 scénarios sur deux moteurs de texte (376 textes), avec position, largeur,
+    index d'origine et index analysé de chaque caractère, grille de points à l'écran et curseur après
+    `MoveToApproximateScreenPosition`, recherches par index, flèches. Rejouée à l'identique. Les 88 scénarios de
+    mise en page simple ont été figés en remettant `TextRenderInfo.cs` et `MGTextCaret.cs` à leur contenu d'avant,
+    puis restaurés à l'octet.
+  - Changement : les morceaux des deux mises en page portent l'index d'origine de leur premier caractère et la marque
+    d'un caractère inséré ; `TextRenderInfo.UpdateLines` lit la mise en page interne quand le bloc en a une,
+    `MGTextBlock.Lines` sinon. `MGTextCaret` ne lit plus `LineRenderInfo.Source` (interne, retiré) mais deux drapeaux
+    de `LineRenderInfo` : ligne sans source, ligne sans caractère de texte. Aucun membre public changé.
+  - Écart avec le texte du plan, constaté dans le code : un `MGRichTextBox` avec une sélection seule n'est pas en runs
+    explicites (la sélection est écrite en balises, comme pour `MGTextBox`) ; seuls les segments stylés et un
+    colorateur le sont. Les deux chemins sont figés.
+  - Mutations vérifiées puis annulées : index d'origine décalé après un tiret (différentiel et géométrie figée
+    échouent, dans chaque mise en page) ; curseur toujours au bord gauche (géométrie figée échoue).
+  - Journaux de dessin figés inchangés. Non fait : réutiliser les `LineRenderInfo` d'un changement à l'autre (le
+    curseur et d'autres lecteurs en gardent des références), écrit dans l'ADR.
+
+### 🚧 T5.9 — Vérification indépendante de T5.5 à T5.8
 
 - Objectif : un `verifier` neuf confirme ou réfute : rendu inchangé pour les clips rectangulaires et les polygones
   (pixels sur GPU réel, journaux normalisés), cible de dépôt aux mêmes valeurs et même résultat de dépôt, géométrie
@@ -1533,7 +1568,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 à T5.7 faites. Prochaine tâche : **T5.8**.
+  T5.5 à T5.8 faites. Prochaine tâche : **T5.9**.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
