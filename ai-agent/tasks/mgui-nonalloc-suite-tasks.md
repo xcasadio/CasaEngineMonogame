@@ -475,7 +475,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   - Sample : `MGUI.Samples.exe` (net9.0-windows) lancé 20 secondes, encore en vie à l'arrêt, aucune sortie d'erreur.
     Le rendu n'a pas été jugé à l'œil.
 
-### ⏳ T1.7 — Vérification indépendante de la phase 1
+### ✅ T1.7 — Vérification indépendante de la phase 1
 
 - Objectif : un `verifier` neuf confirme ou réfute : zéro allocation des quatre opérations dans les deux backends,
   poignée périmée sans effet, rendu inchangé, aucune régression des deux suites.
@@ -483,6 +483,23 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés. Docs mises à jour
   (`MGUI/Docs/drawing-architecture.md`, `docs/decisions/` du moteur si le contrat d'ADR-0097 change).
 - Commit : `docs(ui): record the handles of the draw transaction` (les deux dépôts)
+- Validation (2026-11-16) : verdict **CONFIRMED** d'un `verifier` neuf (opus) sur les cinq points de la revendication,
+  avec ses propres sondes sur GPU réel (retirées ensuite) : 0 octet pour chaque opération dans les deux backends, y
+  compris imbriquées et avec un vrai dessin dans chaque portée ; poignées périmées sans effet (20 niveaux, hors ordre,
+  après réutilisation, après réarmement) ; sémantique du stencil, du scissor et des caches de réglages identique au
+  code d'avant (test de propriété sur 200 000 opérations pour `DerivedDrawSettingsCache`) ; aucun `box` d'une poignée
+  dans 133 assemblies produit (analyse de l'IL) ; trois solutions 0 erreur, 3743 et 5556 tests verts, aucun sauté.
+  Docs : faites en T1.4 et T1.6 (`MGUI/Docs/rendering-architecture.md`, `custom-render-backend-integration.md`,
+  ADR-0031 et ADR-0032 de MGUI, statut de l'ADR-0027) ; le contrat d'ADR-0097 du moteur ne change pas.
+  - Constats non bloquants, reportés sans changement de code (P3 et P4) :
+    - P3, déjà là avant : des clips à stencil libérés hors ordre laissent la profondeur que le dernier libéré avait
+      notée (même comportement que la fermeture d'avant).
+    - P4, introduit : `SetDrawSettingsTemporary` et `SetRenderTargetTemporary` prennent leur emplacement avant de
+      changer l'état ; si ce changement lève, l'emplacement reste pris jusqu'au réarmement suivant.
+    - P4 : une entrée d'un cache de réglages dérivés garde son effet jusqu'à son remplacement (écrit dans l'ADR-0031).
+    - P4 : une copie de la transaction de MGUI libérée une seconde fois après un réarmement ferme le nouvel usage ;
+      c'est l'usage interdit par l'ADR-0032 (« ne plus utiliser après `Dispose` »), aucun code produit ne le fait.
+    - P4 : une génération peut reboucler après 2^32 libérations d'un emplacement (écrit dans l'ADR-0031).
 
 ---
 
