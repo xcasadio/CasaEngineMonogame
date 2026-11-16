@@ -1397,7 +1397,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Relecture : le tableau des tampons de `MGRatingControl` est dimensionné par l'énumération des formes et non par le
     nombre de formes à sommets.
 
-### ⏳ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
+### ✅ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
 
 - Objectif : un glissement d'onglet n'alloue plus de `DockDropTarget` à chaque recalcul (80 octets par image), selon D18.
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/Controls/MGDockHost.cs`, `Docking/DockDropCalculator.cs`,
@@ -1421,6 +1421,47 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   changement de valeur, à l'apparition et à la disparition, pas à un recalcul identique) ; journaux figés
   inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(docking)!: keep one drop target during a drag` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3982 verts (25 tests ajoutés),
+  `CasaEngine.Tests` 6124 verts, aucun sauté. Écrit par un `executor`, diff relu en session principale. ADR-0036 de MGUI.
+
+  Octets par image pendant un glissement d'onglet, souris alternant entre deux positions de la même cible ; le dessin
+  est à 0 avant et après :
+
+  | Cible | Update avant | Update après |
+  |---|---|---|
+  | Centre d'un autre groupe (cas de la phase 2) | 80 | 0 |
+  | Zones de séparation (quatre), bande de proximité, barre de séparation | 576 | 0 |
+  | Bords de l'hôte (quatre) | 408 | 0 |
+  | Centre du groupe de l'onglet glissé (réordonnancement) | 480 | 0 |
+  | Aucune cible | 0 | 0 |
+
+  - Changement : `MGDockHost` garde une instance pour `CurrentDropTarget`, remplie par copie des huit champs ; les
+    cibles de centre et de réordonnancement et les listes de zones du calculateur sont gardées et remplies par
+    `DockDropTarget.Set` (interne), qui écrit les huit champs comme un objet neuf. Nouvelles surcharges internes
+    `CalculateDropZonesInto` et `CalculateHostEdgeZonesInto` ; les méthodes publiques statiques gardent signature et
+    résultat. `ExecuteDrop` lit zone, index d'onglet et bord d'hôte une fois, au début.
+  - Surface publique : `CurrentDropTarget` n'a plus de setter privé ; elle et la valeur rendue par `GetDropTarget`
+    sont une seule instance pour la vie de l'hôte, réécrite à chaque calcul ; `PropertyChanged` est levé à
+    l'apparition, à la disparition et au changement d'une valeur, plus à un recalcul identique. Les membres publics de
+    `DockDropTarget` ne changent pas.
+  - Relevé (deux dépôts, avant le changement) : aucun lecteur hors de `MGDockHost`, du calculateur et des tests de
+    MGUI ; aucun gardien ; aucun abonné à `PropertyChanged` pour cette propriété ; le moteur ne touche pas la cible.
+  - Élargi dans les fichiers de la tâche, pour tenir « 0 sur chaque sorte de cible » : le cas du réordonnancement
+    allouait 400 octets par image par du LINQ dans `CalculateTabIndex` et `CalculateTabReorderPreviewRect`, et non par
+    la cible ; ils reçoivent des surcharges internes qui parcourent les onglets dans une liste gardée par l'hôte,
+    mêmes résultats (couverts par le rejeu).
+  - Comportement : scénario figé sur le code d'avant (12 glissements, 230 lignes, les huit champs copiés en texte à
+    chaque image, disposition après chaque dépôt), rejoué à l'identique. Il contient les deux suites du plan : barre
+    de séparation puis zone du même groupe puis dépôt (quatre variantes), et index d'onglet calculé puis centre sans
+    index. Tests dédiés : champs de barre de séparation jamais hérités, index d'onglet jamais hérité, une seule
+    instance, notification (apparition, changement, disparition, rien à l'identique), 14 cas de zéro.
+  - Mutations vérifiées puis annulées : ne plus remettre `IsSplitterDrop` et `SplitterNode` fait échouer le rejeu et
+    7 tests ; ne plus remettre `TabIndex` fait échouer le rejeu et 2 tests.
+  - Le test de phase 2 du glissement affirme maintenant 0 ; journaux de dessin figés inchangés.
+  - Restes notés : une notification de changement de valeur crée encore ses arguments d'événement (seulement quand
+    une valeur change) ; un glissement dont la souris passe d'un groupe à un autre à chaque image alloue 96 à 128
+    octets par image, cause non cherchée par l'exécutant (supposée : réaffichage des indicateurs au changement de
+    groupe survolé), notée dans l'ADR-0036. Aucun lancement de `MGUI.Samples` ni de l'éditeur.
 
 ### ⏳ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
 
@@ -1492,7 +1533,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 et T5.6 faites. Prochaine tâche : **T5.7**.
+  T5.5 à T5.7 faites. Prochaine tâche : **T5.8**.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
