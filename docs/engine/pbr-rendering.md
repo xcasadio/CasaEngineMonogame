@@ -2,7 +2,7 @@
 
 How CasaEngine renders metallic-roughness (PBR) surfaces next to the historical Blinn-Phong path: the `lit-pbr` material, the colour pipeline it relies on, bloom, transparency, image-based lighting (IBL), local reflection probes, skinned meshes and the glTF import. PBR is chosen per material; `lit-diffuse` is untouched and the default `Legacy` colour pipeline renders every existing image bit for bit as before.
 
-Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0107 (bloom), ADR-0108 (`lit-pbr`), ADR-0109 (IBL), ADR-0110 (skinned PBR), ADR-0111 (glTF PBR import). They live in [docs/decisions](../decisions/README.md).
+Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0107 (bloom), ADR-0108 (`lit-pbr`), ADR-0109 (IBL), ADR-0110 (skinned PBR), ADR-0111 (glTF PBR import), ADR-0112 (scope extended to clear coat, SSAO and FXAA), ADR-0113 (FXAA), ADR-0114 (clear coat), ADR-0115 (scene depth pre-pass and SSAO). They live in [docs/decisions](../decisions/README.md).
 
 ## Workflow
 
@@ -10,9 +10,9 @@ Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-p
 2. **Give the world an environment cube** if surfaces should reflect something (`WorldEnvironmentSettings.EnvironmentAssetId`, or a cube supplied at run time with `SpecularEnvironmentCubemap`). The IBL is generated from it, once, and shared by every `lit-pbr` surface.
 3. **Author a `lit-pbr` material** (a `.material` file whose `definition_id` is `lit-pbr`, see the keys below). The editor opens, edits and previews such a file; creating one from the editor is not offered for any definition today, so write the file by hand, import a glTF (below) or build a `LitPbrMaterial` in code.
 4. **Add a directional light with shadows** as for any lit material; point and spot lights are evaluated by the same BRDF.
-5. **Optional**: turn bloom on, add local reflection probes, put a `PbrMaterial` on a skinned mesh.
+5. **Optional**: turn bloom on, add local reflection probes, put a `PbrMaterial` on a skinned mesh, give a material a `clear_coat`, turn on FXAA and SSAO (below).
 
-`CasaEngine.Demos` has `PBR material demo` (a metal and roughness grid, a glass sphere, an emissive sphere with bloom, a skinned character, IBL, and with `CASAENGINE_PBR_DEMO_CLEARCOAT=1` a row of five clear-coated spheres) and `Skinned mesh demo` (Blinn-Phong or PBR with the `P` key). Their bench variables are listed in [demos-check-notes.md](demos-check-notes.md) and [demos-main-menu.md](demos-main-menu.md).
+`CasaEngine.Demos` has `PBR material demo` (a metal and roughness grid, a glass sphere, an emissive sphere with bloom, a skinned character, IBL, and with `CASAENGINE_PBR_DEMO_CLEARCOAT=1` a row of five clear-coated spheres, shown by default outside the validation configuration; the `F` key toggles FXAA and `O` the SSAO) and `Skinned mesh demo` (Blinn-Phong or PBR with the `P` key). Their bench variables are listed in [demos-check-notes.md](demos-check-notes.md) and [demos-main-menu.md](demos-main-menu.md).
 
 ## The `lit-pbr` material
 
@@ -46,6 +46,15 @@ Colours of the material are display colours, decoded once per pixel to linear li
 `clear_coat` and `clear_coat_roughness` (ADR-0114) add a dielectric varnish over the base: the second specular lobe of a car paint. The varnish follows the **geometric** normal (the interpolated vertex normal): there is no coat normal map, so a normal-mapped base keeps a smooth coat. The full closed form (GGX lobe at `F0 = 0.04`, Kelemen visibility, Schlick Fresnel `F_d` at `VoH`, base multiplied by `1 - clear_coat * F_d`) is the header of `Pbr.fxh`. With image-based lighting the coat reflects the global prefiltered atlas at `clear_coat_roughness`, weighted by `E = 0.04 * A + B` (BRDF table) and `clear_coat`, and the ambient of the base is multiplied by `1 - clear_coat * E`; with the flat ambient there is no coat reflection and the base ambient is multiplied by `1 - clear_coat * Schlick(0.04, NoV)`. A transparent surface keeps the coat lobe whole, as it keeps its other specular parts.
 
 A coat of 0 renders bit-identically to a material without the layer: the coat is a second walk over the light slots that runs only when `clear_coat > 0`, and the base walk has no coat code. The coat is compiled only for `LitPbr.fx` (`#define PBR_CLEAR_COAT`): the skinned effect has none (below).
+
+## FXAA and SSAO
+
+Two post-effects of the `LinearHdr` colour pipeline, both off by default (the settings are the `anti_aliasing`, `ssao_enabled`, `ssao_radius`, `ssao_intensity` and `ssao_bias` keys of `color_pipeline`; the full description, the frame order and the counters are in [color-pipeline.md](color-pipeline.md)).
+
+- **FXAA** (ADR-0113). After the tonemapping and before the post-tonemap renderers and the interface, so the interface is never filtered. It is skipped for a view that renders scene and interface in one block (the editor views, `OverlayViewPipeline`).
+- **SSAO** (ADR-0115). A linear depth pre-pass of the opaque static and skinned meshes, then an occlusion and a depth-aware blur that multiply the HDR target between the scene and the bloom. It needs a perspective projection and the same scene/interface separation as FXAA.
+
+Order in a `LinearHdr` frame: scene depth pre-pass, scene colour, SSAO, bloom, tonemapping (into the pooled FXAA input when FXAA is on), FXAA, post-tonemap renderers, interface. In `Legacy` both settings are ignored; the clear coat is a property of the material and follows `lit-pbr` in both pipelines.
 
 ## Colour pipeline and bloom
 
@@ -88,12 +97,28 @@ The `KHR_materials_clearcoat` extension is read too (ADR-0114): SharpGLTF 1.0.6 
 
 Measured on the development machine in Release, 1024 by 768, no vsync, 600 frames (`CASAENGINE_DEMO_FRAME_STATS=1`, see [demos-main-menu.md](demos-main-menu.md)): on `Legacy` the CPU time of a frame equals the one of the code before the work (Draw 0.645 ms against 0.664 ms) and the wall time is 0.12 ms (5 %) higher, a GPU cost of the decoding (open point O11, accepted). In `PBR material demo`, bloom costs about 1.2 ms of wall time and 0.3 ms of Draw CPU, the IBL about 0.2 ms and no measurable CPU. Details and the table: the validation note of T10.2 in [pbr-rendering-tasks.md](../../ai-agent/tasks/pbr-rendering-tasks.md).
 
+FXAA, SSAO and the clear coat row (plan `pbr-clearcoat-ssao-fxaa-tasks.md`, T4.1): `Release` build made just before the run, 1024 by 768, no vsync, 600 frames (updates 101 to 700), `PBR material demo` in the validation configuration, Intel UHD (the frame time is carried by the GPU: Draw CPU stays under 4 ms). Eight configurations, each run twice; every run was accepted only because the counters of the same log matched its variables (`fxaaDraws` 1 when FXAA is on, `ssaoStaticDraws`, `ssaoSkinnedDraws` and `ssaoPasses` at least 1 when SSAO is on, all 0 when off, and the `[DemoConfig]` line giving the row state). Mean wall time of a frame over the two series:
+
+| FXAA | SSAO | Clear coat row | Wall time (ms) | From the base (ms) |
+|---|---|---|---|---|
+| Off | Off | Off | 10.61 | base |
+| On | Off | Off | 12.74 | +2.13 |
+| Off | On | Off | 16.07 | +5.46 |
+| On | On | Off | 17.74 | +7.13 |
+| Off | Off | On | 11.87 | +1.26 |
+| On | Off | On | 14.11 | +3.50 |
+| Off | On | On | 16.71 | +6.10 |
+| On | On | On | 18.60 | +7.99 |
+
+FXAA costs about 2 ms, SSAO about 5.5 ms and the row (five more spheres, 39 opaque items instead of 34) about 1.3 ms; they add up within about 1 ms. The two series differ by 0.03 to 1.24 ms. These figures are one GPU's; the machine is hybrid Intel and NVIDIA and which GPU ran was not checked.
+
 ## Limitations
 
 - **Skinned PBR has no IBL, no probes, no normal map, no transparency and no clear coat.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0110). Normal maps on skinned meshes are out of scope.
 - **The prefiltered specular is a 2D atlas, not a cube with mips** (ADR-0109). It costs an extra sampler and 12.6 MB per source cube; it is not seamless at the poles of the latitude-longitude mapping; a high-frequency source at high roughness is noisy (64 samples, no filtered importance sampling). If a later MonoGame honours the cube level, a GPU test fails and the choice can be revisited.
 - **Sampler budget.** `LitPbr.fx` uses 14 of the 16 pixel samplers of the target (t0 to t8 material, t9 to t11 IBL, t12 and t13 probe atlases).
 - **Clear coat limits** (ADR-0114). The coat reflection reads the global atlas only, never a local probe; there is no coat texture and no coat normal map; the absorption of the base colour under the coat and the scattering between the layers are not modelled; `skinEffect.fx` has no coat (P5). The shipped `LitPbr.xnb` is 1 722 697 bytes (888 091 before the coat). Writing the coat lobe inside the 24 slots of the base walk broke the shading on the OpenGL chain (cause not found), so it is a separate walk: see the ADR before touching it.
+- **FXAA and SSAO limits** (ADR-0113, ADR-0115). Both act only in `LinearHdr` and only for a view whose pipeline separates the scene from the interface: the editor views and `OverlayViewPipeline` get neither, and `Legacy` ignores the settings. FXAA does not filter the interface or anything drawn after the tonemapping. SSAO needs a perspective projection. SSAO multiplies the whole opaque colour, direct light included (not only the ambient term), and also the transparent geometry and the other 3D draws (particles, lines, sprites, tile maps) that are already in the HDR target, although these are not in the depth.
 - **Deferred P3 defect: IBL generation image and display buffer.** On a frame where an IBL generation runs, the pipeline switches back to the display buffer with `DiscardContents`, which may clear for that one frame the virtual-resolution bars and the phase 1 drawing (inferred from the code, not observed). Not fixed.
 - **Deferred P3 defect: probe referenced by an asset id.** The probe blend is recomputed at every `Resolve`; for a probe referenced by an asset id (not by a run-time cube) that reaches a path that allocates (panorama) or logs (failed asset) every frame. No shipped content defines a probe today. Not fixed; use `ReflectionProbe.SpecularCubemap` meanwhile.
 - **Open P4 findings.**
@@ -104,6 +129,6 @@ Measured on the development machine in Release, 1024 by 768, no vsync, 600 frame
   - A reloaded `color_pipeline` writes all its fields as soon as one differs from the default; a JSON `null` in one of its fields throws at load (like `exposure`); with the threshold at 1 the soft knee makes colours around 0.5 linear contribute to the bloom.
 - **Colour pipeline limits** apply unchanged (view pipelines without `IScenePhaseViewPipeline`, screen sprites losing the scene depth test, mipmaps averaged in encoded space, emissive limited to display white, `Legacy` cost of the select form): see [color-pipeline.md](color-pipeline.md).
 - **`LinearHdr` bloom with `AcesApprox` at a light intensity of 16** does not keep three distinct values on the measured sphere (open point O12); the HDR information is kept (244 to 251) and the engine is unchanged.
-- **glTF import to `lit-pbr` is available through the API only.** The editor and `FileOperationService` still import as `lit-diffuse` (open point O15). Creating a material from the editor is not offered (O13). Specular-glossiness materials get no special treatment; transmission, clearcoat and the other glTF extensions are out of scope.
-- **Not verified by hand.** The keys of the demos (`I`, `B`, `T`, `+`, `-`, and `P` in `Skinned mesh demo`), the editor preview and hot reload of a `lit-pbr` material (T4.4), and the plausibility of the `LinearHdr` captures by the author's eye (T1.7).
+- **glTF import to `lit-pbr` is available through the API only.** The editor and `FileOperationService` still import as `lit-diffuse` (open point O15). Creating a material from the editor is not offered (O13). Specular-glossiness materials get no special treatment; transmission, refraction and the glTF extensions other than clear coat are out of scope.
+- **Not verified by hand.** The keys of the demos (`I`, `B`, `F`, `O`, `T`, `+`, `-`, and `P` in `Skinned mesh demo`), the look of FXAA and SSAO on the clear coat row, the editor preview and hot reload of a `lit-pbr` material (T4.4), and the plausibility of the `LinearHdr` captures by the author's eye (T1.7).
 - **Test host.** The full test suite sometimes aborts or hangs with no failing test, most often in `EntityDetailsScriptRowTests` (open point O14, cause unknown).
