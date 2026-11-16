@@ -24,9 +24,9 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public CasaDesktopRuntime Renderer { get; }
     IUIDesktopRuntime IUIRenderContext.Renderer => Renderer;
     Rectangle? IUIRenderContext.CurrentClipBounds => CurrentClipBounds;
-    IDisposable IUIRenderContext.SetDrawSettingsTemporary(DrawSettings Settings)
+    DrawStateHandle IUIRenderContext.SetDrawSettingsTemporary(DrawSettings Settings)
         => SetDrawSettingsTemporary(Settings);
-    IDisposable IUIRenderContext.SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
+    DrawStateHandle IUIRenderContext.SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
         => SetRenderTargetTemporary(New, ClearColor);
     void IUIDrawContext.FillRectangle(Vector2 Origin, RectangleF Destination, Color Color)
         => FillRectangle(Origin, Destination, Color, null);
@@ -126,6 +126,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
 
         PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState.Rearm(Settings, PrimitiveProjectionMatrix);
+        RenderTargets.Rearm();
         ClipManager.Rearm();
 
         //  The pair is kept only for the settings this use starts with: a pair made from other settings could not be found again, and would keep
@@ -687,14 +688,14 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// }</code>
     /// </summary>
     /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
-    public IDisposable SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
+    public DrawStateHandle SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
     {
         return SetRenderTargetTemporary(Renderer.AdapterRegistry.GetRenderTarget(New), ClearColor);
     }
 
     /// </summary>
     /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
-    public IDisposable SetRenderTargetTemporary(RenderTarget2D New, Color? ClearColor)
+    public DrawStateHandle SetRenderTargetTemporary(RenderTarget2D New, Color? ClearColor)
         => RenderTargets.SetRenderTargetTemporary(New, ClearColor);
 
     /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
@@ -702,10 +703,10 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         => DrawState.SetDrawSettings(New);
 
     /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
-    public IDisposable SetDrawSettingsTemporary(DrawSettings New)
+    public DrawStateHandle SetDrawSettingsTemporary(DrawSettings New)
         => DrawState.SetDrawSettingsTemporary(New);
 
-    public IDisposable SetTransformTemporary(Matrix Transform)
+    public DrawStateHandle SetTransformTemporary(Matrix Transform)
     {
         return SetDrawSettingsTemporary(CurrentSettings with { Transform = Transform });
     }
@@ -835,8 +836,8 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public void SetEffect(Effect Effect)
         => SetDrawSettings(CurrentSettings with { BackendEffect = Effect });
 
-    /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering, and restores the previous effect when the returned <see cref="IDisposable"/> is disposed.</summary>
-    public IDisposable SetEffectTemporary(Effect Effect)
+    /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering, and restores the previous effect when the returned handle is disposed.</summary>
+    public DrawStateHandle SetEffectTemporary(Effect Effect)
         => SetDrawSettingsTemporary(CurrentSettings with { BackendEffect = Effect });
 
     internal void ClearStencil(int StencilValue = 0)

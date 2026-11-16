@@ -325,17 +325,19 @@ public class GridViewVirtualizationTests
             CurrentSettings = settings ?? DrawSettings.Default;
         }
 
-        public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
+        private readonly CallbackDrawStateOwner _DrawStateScopes = new();
+
+        public DrawStateHandle SetDrawSettingsTemporary(DrawSettings settings)
         {
             DrawSettings previous = CurrentSettings;
             SetDrawSettings(settings);
-            return new GridViewDisposableAction(() => CurrentSettings = previous);
+            return _DrawStateScopes.Push(() => CurrentSettings = previous);
         }
 
-        public IDisposable SetRenderTargetTemporary(IUIRenderTarget newRenderTarget, Color? clearColor)
-            => new GridViewDisposableAction(static () => { });
+        public DrawStateHandle SetRenderTargetTemporary(IUIRenderTarget newRenderTarget, Color? clearColor)
+            => default;
 
-        public IDisposable SetTransformTemporary(Matrix transform)
+        public DrawStateHandle SetTransformTemporary(Matrix transform)
             => SetDrawSettingsTemporary(CurrentSettings with { Transform = transform });
 
         public ClipResolveResult ResolveClip(ClipDefinition definition)
@@ -463,28 +465,6 @@ public class GridViewVirtualizationTests
 
         public void InvalidateCache()
         {
-        }
-    }
-
-    private sealed class GridViewDisposableAction : IDisposable
-    {
-        private readonly Action _disposeAction;
-        private bool _disposed;
-
-        public GridViewDisposableAction(Action disposeAction)
-        {
-            _disposeAction = disposeAction;
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            _disposeAction();
         }
     }
 }

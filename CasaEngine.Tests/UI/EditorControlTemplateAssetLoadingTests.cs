@@ -506,17 +506,19 @@ public class EditorControlTemplateAssetLoadingTests
             CurrentSettings = settings ?? DrawSettings.Default;
         }
 
-        public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
+        private readonly CallbackDrawStateOwner _DrawStateScopes = new();
+
+        public DrawStateHandle SetDrawSettingsTemporary(DrawSettings settings)
         {
             DrawSettings previous = CurrentSettings;
             CurrentSettings = settings ?? DrawSettings.Default;
-            return new DisposableAction(() => CurrentSettings = previous);
+            return _DrawStateScopes.Push(() => CurrentSettings = previous);
         }
 
-        public IDisposable SetRenderTargetTemporary(IUIRenderTarget renderTarget, Color? clearColor)
-            => new DisposableAction(() => { });
+        public DrawStateHandle SetRenderTargetTemporary(IUIRenderTarget renderTarget, Color? clearColor)
+            => default;
 
-        public IDisposable SetTransformTemporary(Matrix transform)
+        public DrawStateHandle SetTransformTemporary(Matrix transform)
             => SetDrawSettingsTemporary(CurrentSettings with { Transform = transform });
 
         public ClipResolveResult ResolveClip(ClipDefinition definition)
@@ -644,28 +646,6 @@ public class EditorControlTemplateAssetLoadingTests
 
         public void InvalidateCache()
         {
-        }
-    }
-
-    private sealed class DisposableAction : IDisposable
-    {
-        private readonly Action _disposeAction;
-        private bool _disposed;
-
-        public DisposableAction(Action disposeAction)
-        {
-            _disposeAction = disposeAction;
-        }
-
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            _disposeAction();
         }
     }
 }

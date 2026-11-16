@@ -44,13 +44,13 @@ internal sealed class CasaMaskClipExecutor
             TemporaryRenderTargetReuseCount++;
         }
 
-        IDisposable depthStencilDisableScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
+        DrawStateHandle depthStencilDisableScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
         {
             DepthStencilType = DepthStencilType.None,
         });
-        IDisposable renderTargetScope = _owner.SetRenderTargetTemporary(maskTarget, Color.Transparent);
+        DrawStateHandle renderTargetScope = _owner.SetRenderTargetTemporary(maskTarget, Color.Transparent);
         ClipScope clipDisableScope = _owner.PushRectangleClip(null, false);
-        IDisposable transformScope = _owner.SetTransformTemporary(_owner.CurrentSettings.Transform * Matrix.CreateTranslation(-bounds.Left, -bounds.Top, 0));
+        DrawStateHandle transformScope = _owner.SetTransformTemporary(_owner.CurrentSettings.Transform * Matrix.CreateTranslation(-bounds.Left, -bounds.Top, 0));
 
         using (_owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
         {
@@ -67,7 +67,7 @@ internal sealed class CasaMaskClipExecutor
             }
         }
 
-        IDisposable maskedContentScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
+        DrawStateHandle maskedContentScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
         {
             BlendType = BlendType.DestinationAlphaMask,
             DepthStencilType = DepthStencilType.None,

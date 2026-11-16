@@ -281,7 +281,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   - Relevé de l'étape 1 : aucun lecteur de `ClipScope.Resolution` hors tests dans le code produit ; un seul appelant garde un `IDisposable` dans une variable hors des backends (`MGElement.cs:5395`, `TempTransform`) ; les appelants de `MGUI.Core` écrivent `using (cond ? Push(...) : null)`, remplacé par `default`.
   - O1 tranché : la transaction garde les réglages qu'elle a dérivés, retrouvés par l'identité des réglages de départ et la valeur (matrice ou effet), comme `WithRasterizerType` le fait déjà pour le scissor. Écartés : la pile de matrices (`CurrentSettings` ne serait plus les réglages en vigueur pour ceux qui le lisent ou le dérivent) et les objets réécrits (`DrawSettings` est immuable et des références sont gardées). Limite écrite dans l'ADR : une transformation dont la valeur est nouvelle (animée à chaque image) dérive encore un `DrawSettings` ; une transformation stable n'alloue rien. T1.3 n'est donc pas bloquée, avec cette limite.
 
-### ⏳ T1.2 — Changements temporaires de réglages et de cible sans allocation
+### ✅ T1.2 — Changements temporaires de réglages et de cible sans allocation
 
 - Objectif : cette tâche possède tout le changement de signature des changements temporaires. Dans
   `IUIRenderContext`, `SetDrawSettingsTemporary`, `SetRenderTargetTemporary` et `SetTransformTemporary` rendent une
@@ -307,6 +307,31 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   suites vertes ; mêmes pixels qu'avant sur les tests GPU existants.
 - Commit : `perf(rendering)!: return a handle from temporary draw state changes` (MGUI), puis
   `perf(ui)!: change draw state temporarily without allocating` (moteur)
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3720 verts, `CasaEngine.Tests` 5552 verts, aucun
+  sauté (2 tests GPU ajoutés par dépôt : zéro allocation, poignée d'un changement terminé). Tests de pixels existants
+  inchangés et verts. Plus aucun `IDisposable Set...Temporary` hors `SetClipTargetTemporary` (`rg`).
+
+  Octets par paire appel et `Dispose`, GPU réel, 500 paires :
+
+  | Opération | Moteur avant | Moteur après | MGUI avant | MGUI après |
+  |---|---|---|---|---|
+  | `SetDrawSettingsTemporary` (par `IUIRenderContext`) | 112 | 0 | 112 | 0 |
+  | Deux `SetDrawSettingsTemporary` imbriqués | non mesuré | 0 | non mesuré | 0 |
+  | `SetRenderTargetTemporary` | non mesuré | 0 | non mesuré | 0 |
+  | `SetTransformTemporary` (reste pour T1.3) | 304 | 120 | 304 | 120 |
+  | Clip à stencil (reste pour T1.5) | 1112 | 568 | non noté | 568 |
+
+  - `SetRenderTargetTemporary` lisait 120 octets après le passage aux poignées : trois tableaux de
+    `GraphicsDevice.GetRenderTargets()`. Les deux backends lisent maintenant la cible liée par
+    `RenderTargetCount` et `GetRenderTargets(RenderTargetBinding[])` (MonoGame 3.8.6.1, lus dans le XML du paquet),
+    sans tableau quand une seule cible est liée.
+  - `SetEffectTemporary` rend la poignée ; son coût est celui de `SetTransformTemporary` (un `DrawSettings` dérivé),
+    non mesuré à part ici, traité en T1.3.
+  - Ajouté à `MGUI.Shared` : `CallbackDrawStateOwner`, propriétaire de poignées qui restaure par rappel, pour les
+    doublures de test (17 fichiers migrés par un `mech-executor`). Retiré : `TemporaryChange<TItem, TParameter>`, sans
+    appelant ; `TemporaryChange<TItem>` reste (`MGContentHost.cs:56`).
+  - Écart provisoire : la `DrawTransaction` de MGUI, créée à chaque image jusqu'à T1.6, crée maintenant ses deux tables
+    d'emplacements à chaque création.
 
 ### ⏳ T1.3 — `SetTransformTemporary` et `SetEffectTemporary` sans allocation
 

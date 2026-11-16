@@ -821,4 +821,120 @@ public class DesktopFrameGpuAllocationTests
 
         _output.WriteLine(report);
     }
+
+    /// <summary>A temporary change of settings or of render target allocates nothing: its handle is a value, and what it restores is kept in a
+    /// slot of the transaction (MGUI ADR-0031). Called through <see cref="IUIRenderContext"/> where the interface has the method: a handle
+    /// returned as an <see cref="IDisposable"/> would be boxed.</summary>
+    [GpuFact]
+    public void ATemporaryChangeOfSettingsOrOfRenderTarget_AllocatesNothing()
+    {
+        (long settings, long nested, long renderTarget) = GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            using RenderTarget2D target = CreateTarget(device);
+            using RenderTarget2D other = new(device, 64, 64, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+            try
+            {
+                Harness harness = new();
+                CasaDrawTransaction dt = harness.Transaction;
+                IUIRenderContext context = dt;
+                DrawSettings changed = dt.CurrentSettings with { BlendType = BlendType.Opaque };
+                DrawSettings changedAgain = dt.CurrentSettings with { BlendType = BlendType.Additive };
+
+                long settingsBytes = Measure(() => context.SetDrawSettingsTemporary(changed).Dispose());
+                long nestedBytes = Measure(() =>
+                {
+                    using (context.SetDrawSettingsTemporary(changed))
+                    using (context.SetDrawSettingsTemporary(changedAgain))
+                    {
+                    }
+                });
+                long renderTargetBytes = Measure(() => dt.SetRenderTargetTemporary(other, null).Dispose());
+                return (settingsBytes, nestedBytes, renderTargetBytes);
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+
+        _output.WriteLine($"SetDrawSettingsTemporary+dispose {settings} B, two nested {nested} B, SetRenderTargetTemporary+dispose {renderTarget} B");
+        Assert.Equal(0, settings);
+        Assert.Equal(0, nested);
+        Assert.Equal(0, renderTarget);
+    }
+
+    /// <summary>Only the first dispose of a temporary change restores: a second one, one on a copy kept after the slot was used again, and one
+    /// kept across a re-arm of the transaction change nothing (MGUI ADR-0031).</summary>
+    [GpuFact]
+    public void AHandleOfAChangeThatIsOver_RestoresNothing()
+    {
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            using RenderTarget2D target = CreateTarget(device);
+            using RenderTarget2D other = new(device, 64, 64, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+            try
+            {
+                Harness harness = new();
+                CasaDrawTransaction dt = harness.Transaction;
+                IUIRenderContext context = dt;
+                DrawSettings initial = dt.CurrentSettings;
+                DrawSettings first = initial with { BlendType = BlendType.Opaque };
+                DrawSettings second = initial with { BlendType = BlendType.Additive };
+
+                DrawStateHandle stale = context.SetDrawSettingsTemporary(first);
+                Assert.Same(first, dt.CurrentSettings);
+                stale.Dispose();
+                Assert.Same(initial, dt.CurrentSettings);
+
+                DrawStateHandle live = context.SetDrawSettingsTemporary(second);
+                stale.Dispose();
+                Assert.Same(second, dt.CurrentSettings);
+                live.Dispose();
+                live.Dispose();
+                Assert.Same(initial, dt.CurrentSettings);
+
+                //  Released out of order: each handle restores what was in force when it was made.
+                DrawStateHandle outer = context.SetDrawSettingsTemporary(first);
+                DrawStateHandle inner = context.SetDrawSettingsTemporary(second);
+                outer.Dispose();
+                Assert.Same(initial, dt.CurrentSettings);
+                inner.Dispose();
+                Assert.Same(first, dt.CurrentSettings);
+                dt.SetDrawSettings(initial);
+
+                DrawStateHandle staleTarget = dt.SetRenderTargetTemporary(other, null);
+                Assert.Same(other, device.GetRenderTargets()[0].RenderTarget);
+                staleTarget.Dispose();
+                Assert.Same(target, device.GetRenderTargets()[0].RenderTarget);
+                DrawStateHandle liveTarget = dt.SetRenderTargetTemporary(other, null);
+                staleTarget.Dispose();
+                Assert.Same(other, device.GetRenderTargets()[0].RenderTarget);
+                liveTarget.Dispose();
+                Assert.Same(target, device.GetRenderTargets()[0].RenderTarget);
+
+                //  Handles kept across a re-arm: the next use of the transaction is not restored by them.
+                DrawStateHandle beforeRearm = context.SetDrawSettingsTemporary(first);
+                DrawStateHandle targetBeforeRearm = dt.SetRenderTargetTemporary(other, null);
+                device.SetRenderTarget(target);
+                dt.Dispose();
+                CasaDrawTransaction rearmed = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
+                Assert.Same(dt, rearmed);
+                DrawSettings rearmedSettings = rearmed.CurrentSettings;
+                DrawStateHandle afterRearm = rearmed.SetDrawSettingsTemporary(second);
+                beforeRearm.Dispose();
+                targetBeforeRearm.Dispose();
+                Assert.Same(second, rearmed.CurrentSettings);
+                Assert.Same(target, device.GetRenderTargets()[0].RenderTarget);
+                afterRearm.Dispose();
+                Assert.Same(rearmedSettings, rearmed.CurrentSettings);
+                rearmed.Dispose();
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+    }
 }

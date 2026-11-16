@@ -55,7 +55,7 @@ internal sealed class CasaStencilClipExecutor
             _owner.DrawClipGeometry(geometry);
         }
 
-        IDisposable stencilReadScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
+        DrawStateHandle stencilReadScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
         {
             DepthStencilType = DepthStencilType.StencilReadEqual,
             StencilReference = childDepth,
