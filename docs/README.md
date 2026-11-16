@@ -28,6 +28,12 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [effect-file-inventory.md](engine/effect-file-inventory.md) — inventaire des fichiers `.fx` / `.fxh` et leurs consommateurs.
 - [light-component.md](engine/light-component.md) — `LightComponent`.
 - [environment-system-v1.md](engine/environment-system-v1.md) — système d'environnement V1.
+- [lit-ambient-and-ambient-source.md](engine/lit-ambient-and-ambient-source.md) — terme ambiant des matériaux éclairés (couleur de surface appliquée une fois) et source d'ambiant `AmbientSource` (`Auto` / `Flat`) d'un monde.
+- [lit-detail-texture.md](engine/lit-detail-texture.md) — texture de détail de `LitDiffuseMaterial` (`DetailTexture`, `DetailTiling`, formule `base * 2 * détail`, limites).
+- [shadow-settings.md](engine/shadow-settings.md) — réglages d'ombre directionnelle du monde (`ShadowSettings` : mode `OccludeDirectLight` / `MultiplyLitColor` et teinte, rayon de filtre, fondu, profondeur de carte, biais de profondeur, limites).
+- [texture-mipmaps.md](engine/texture-mipmaps.md) — chaîne de mipmaps du chargeur de textures (`Texture2DLoader.GenerateMipmaps`, `MipmapChain`, rafraîchissement d'une texture peinte à l'exécution).
+- [color-pipeline.md](engine/color-pipeline.md) — pipeline couleur `Legacy` / `LinearHdr` (clé `color_pipeline`, ordre de l'image, décodage shader ou CPU, tonemapping, limites connues ; ADR-0104 à ADR-0108, bloom compris ; FXAA et SSAO, ADR-0113, ADR-0114 et ADR-0116).
+- [pbr-rendering.md](engine/pbr-rendering.md) — rendu PBR metallic-roughness (matériau `lit-pbr`, IBL et sondes de réflexion, bloom, transparent, skinné, import glTF, coût, limites ; ADR-0103 à ADR-0116, clear coat, FXAA et SSAO compris).
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
 - [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).
 

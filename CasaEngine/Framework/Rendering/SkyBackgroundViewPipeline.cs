@@ -1,19 +1,21 @@
 using CasaEngine.Framework.Application.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
 
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Wraps an existing view pipeline with a simple sky background pass driven by <see cref="SkySettings"/>.
 /// </summary>
-public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
+public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline, IScenePhaseViewPipeline
 {
     private readonly IViewRenderPipeline _inner;
 
     private GraphicsDevice _graphicsDevice;
     private SpriteBatch _spriteBatch;
     private Texture2D _gradientTexture;
+    private Texture2D _linearGradientTexture;
     private Texture2D _sunTexture;
     private SkySettings _resourceSkySettings;
 
@@ -36,6 +38,29 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
         _inner.RenderView(graphicsDevice, view, in frame, renderers);
     }
 
+    /// <summary>
+    /// True when the wrapped pipeline can render its scene alone (<see cref="IScenePhaseViewPipeline"/>); otherwise this
+    /// pipeline cannot split its scene from the interface and is treated as one that does not implement the interface.
+    /// </summary>
+    public bool SupportsScenePhase => _inner is IScenePhaseViewPipeline { SupportsScenePhase: true };
+
+    /// <summary>The sky background, then the scene of the wrapped pipeline without its interface.</summary>
+    public void RenderScene(
+        GraphicsDevice graphicsDevice,
+        RenderView view,
+        in RenderFrame frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        if (_inner is not IScenePhaseViewPipeline { SupportsScenePhase: true } innerScene)
+        {
+            throw new InvalidOperationException("The wrapped view pipeline cannot render its scene without its interface.");
+        }
+
+        EnsureResources(graphicsDevice);
+        DrawBackground(in frame);
+        innerScene.RenderScene(graphicsDevice, view, in frame, renderers);
+    }
+
     private void EnsureResources(GraphicsDevice graphicsDevice)
     {
         if (ReferenceEquals(_graphicsDevice, graphicsDevice)
@@ -49,6 +74,8 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
 
         _spriteBatch?.Dispose();
         _gradientTexture?.Dispose();
+        _linearGradientTexture?.Dispose();
+        _linearGradientTexture = null;
         _sunTexture?.Dispose();
 
         _graphicsDevice = graphicsDevice;
@@ -69,14 +96,24 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
         int height = Math.Max(1, frame.ViewportRect.Height);
         var viewportRect = new Rectangle(0, 0, width, height);
 
+        // In the linear colour pipeline (ADR-0106) the gradient is a display image: it is drawn from a copy of its colours decoded
+        // to linear light, kept in a floating-point texture (decoding into 8 bits would crush the dark end of the gradient).
+        bool linearColor = frame.Environment.LinearColorActive;
+        Texture2D gradientTexture = linearColor ? EnsureLinearGradientTexture() : _gradientTexture;
+
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
-        _spriteBatch.Draw(_gradientTexture, viewportRect, Color.White);
+        _spriteBatch.Draw(gradientTexture, viewportRect, Color.White);
         _spriteBatch.End();
 
-        DrawSun(in frame, viewportRect);
+        DrawSun(in frame, viewportRect, linearColor);
     }
 
-    private void DrawSun(in RenderFrame frame, Rectangle viewportRect)
+    private Texture2D EnsureLinearGradientTexture()
+    {
+        return _linearGradientTexture ??= CreateLinearGradientTexture(_graphicsDevice, Sky, 256);
+    }
+
+    private void DrawSun(in RenderFrame frame, Rectangle viewportRect, bool linearColor)
     {
         if (_spriteBatch == null || _sunTexture == null)
         {
@@ -107,7 +144,9 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
         var coreRect = BuildCenteredRectangle(localX, localY, coreSize);
 
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullNone);
-        _spriteBatch.Draw(_sunTexture, glowRect, new Color(new Vector4(Sky.SunColor.ToVector3() * 0.65f, 1.0f)));
+        // The sun colour is decoded before its 0.65 factor; the white core and the alpha-only falloff texture stay as they are.
+        Vector3 sunColor = linearColor ? ColorSpace.Decode(Sky.SunColor.ToVector3()) : Sky.SunColor.ToVector3();
+        _spriteBatch.Draw(_sunTexture, glowRect, new Color(new Vector4(sunColor * 0.65f, 1.0f)));
         _spriteBatch.Draw(_sunTexture, coreRect, new Color(new Vector4(Vector3.One, 1.0f)));
         _spriteBatch.End();
     }
@@ -120,6 +159,14 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
         return new Rectangle(left, top, intSize, intSize);
     }
 
+    private static Color EvaluateGradientColor(SkySettings sky, int y, int height)
+    {
+        float v = height == 1 ? 0.5f : y / (float)(height - 1);
+        float vertical = 1.0f - v * 2.0f;
+        Vector3 direction = Vector3.Normalize(new Vector3(0.0f, vertical, 1.0f));
+        return ProceduralSkyCubeFactory.EvaluateColor(sky, direction, includeSun: false);
+    }
+
     private static Texture2D CreateGradientTexture(GraphicsDevice graphicsDevice, SkySettings sky, int height)
     {
         var texture = new Texture2D(graphicsDevice, 1, height);
@@ -127,10 +174,21 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
 
         for (int y = 0; y < height; y++)
         {
-            float v = height == 1 ? 0.5f : y / (float)(height - 1);
-            float vertical = 1.0f - v * 2.0f;
-            Vector3 direction = Vector3.Normalize(new Vector3(0.0f, vertical, 1.0f));
-            data[y] = ProceduralSkyCubeFactory.EvaluateColor(sky, direction, includeSun: false);
+            data[y] = EvaluateGradientColor(sky, y, height);
+        }
+
+        texture.SetData(data);
+        return texture;
+    }
+
+    private static Texture2D CreateLinearGradientTexture(GraphicsDevice graphicsDevice, SkySettings sky, int height)
+    {
+        var texture = new Texture2D(graphicsDevice, 1, height, false, SurfaceFormat.HalfVector4);
+        var data = new HalfVector4[height];
+
+        for (int y = 0; y < height; y++)
+        {
+            data[y] = new HalfVector4(ColorSpace.Decode(EvaluateGradientColor(sky, y, height)));
         }
 
         texture.SetData(data);

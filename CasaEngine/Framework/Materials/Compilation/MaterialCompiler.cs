@@ -21,6 +21,10 @@ public sealed class MaterialCompiler
         (materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager) =>
             CreateLitDiffuseMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager, textureHolds: null);
 
+    private static readonly RuntimeMaterialFactory LitPbrFactory =
+        (materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager) =>
+            CreateLitPbrMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
+
     private static readonly object RuntimeMaterialFactoryLock = new();
     private static readonly Dictionary<string, RuntimeMaterialFactory> RuntimeMaterialFactories =
         CreateRuntimeMaterialFactories();
@@ -272,6 +276,7 @@ public sealed class MaterialCompiler
             return CreateLitDiffuseMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager, textureHolds);
         }
 
+
         return factory(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
     }
 
@@ -280,6 +285,7 @@ public sealed class MaterialCompiler
         {
             ["lit-diffuse"] = LitDiffuseFactory,
             ["unlit-texture"] = CreateUnlitTextureMaterial,
+            ["lit-pbr"] = LitPbrFactory,
         };
 
     private static MaterialBase CreateLitDiffuseMaterial(
@@ -297,6 +303,9 @@ public sealed class MaterialCompiler
         material.BasColor = resolvedTextures["base_color_texture"];
         material.NormalMapAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
         material.NormalMap = resolvedTextures["normal_texture"];
+        material.DetailTextureAssetId = GetTextureId(effectiveValues["detail_texture"], "detail_texture");
+        material.DetailTexture = resolvedTextures["detail_texture"];
+        material.DetailTiling = GetFloat(effectiveValues["detail_tiling"], "detail_tiling");
         material.ReflectionCubeAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
         material.ReflectionCube = ResolveTextureCubeResource(material.ReflectionCubeAssetId, assetContentManager, textureHolds);
         material.DiffuseColor = GetColor(effectiveValues["diffuse_color"], "diffuse_color");
@@ -305,6 +314,43 @@ public sealed class MaterialCompiler
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
         material.SpecularColor = GetVector3(effectiveValues["specular_color"], "specular_color");
         material.SpecularPower = GetFloat(effectiveValues["specular_power"], "specular_power");
+
+        return material;
+    }
+
+    // Every lit-pbr texture is a plain Texture2D already resolved, and held, by BuildResolvedTextures (ADR-0037): unlike the
+    // lit-diffuse cubemap, nothing is left for the factory to acquire, so it needs neither the content manager nor the holds.
+    private static LitPbrMaterial CreateLitPbrMaterial(
+        MaterialAsset materialAsset,
+        MaterialDefinition definition,
+        IReadOnlyDictionary<string, MaterialValue> effectiveValues,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures)
+    {
+        var material = new LitPbrMaterial();
+        ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
+
+        material.BaseColorTextureAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
+        material.BaseColorTexture = resolvedTextures["base_color_texture"];
+        material.NormalTextureAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
+        material.NormalTexture = resolvedTextures["normal_texture"];
+        material.MetallicRoughnessTextureAssetId = GetTextureId(effectiveValues["metallic_roughness_texture"], "metallic_roughness_texture");
+        material.MetallicRoughnessTexture = resolvedTextures["metallic_roughness_texture"];
+        material.OcclusionTextureAssetId = GetTextureId(effectiveValues["occlusion_texture"], "occlusion_texture");
+        material.OcclusionTexture = resolvedTextures["occlusion_texture"];
+        material.EmissiveTextureAssetId = GetTextureId(effectiveValues["emissive_texture"], "emissive_texture");
+        material.EmissiveTexture = resolvedTextures["emissive_texture"];
+        material.DetailTextureAssetId = GetTextureId(effectiveValues["detail_texture"], "detail_texture");
+        material.DetailTexture = resolvedTextures["detail_texture"];
+        material.DetailTiling = GetFloat(effectiveValues["detail_tiling"], "detail_tiling");
+        material.BaseColor = GetColor(effectiveValues["base_color"], "base_color");
+        material.Metallic = GetFloat(effectiveValues["metallic"], "metallic");
+        material.Roughness = GetFloat(effectiveValues["roughness"], "roughness");
+        material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
+        material.OcclusionStrength = GetFloat(effectiveValues["occlusion_strength"], "occlusion_strength");
+        material.NormalScale = GetFloat(effectiveValues["normal_scale"], "normal_scale");
+        material.ClearCoat = GetFloat(effectiveValues["clear_coat"], "clear_coat");
+        material.ClearCoatRoughness = GetFloat(effectiveValues["clear_coat_roughness"], "clear_coat_roughness");
+        material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
 
         return material;
     }

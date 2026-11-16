@@ -69,8 +69,28 @@ internal static class ReflectionProbeResolver
         };
     }
 
+    private static XnaTextureCube FindSuppliedCubemap(ReflectionProbeCollection probes, Guid probeId)
+    {
+        for (int i = 0; i < probes.Count; i++)
+        {
+            if (probes[i].Id == probeId)
+            {
+                return probes[i].SpecularCubemap;
+            }
+        }
+
+        return null;
+    }
+
     private static XnaTextureCube ResolveCubemap(RenderView view, in ResolvedReflectionProbe probe)
     {
+        // The cube supplied at run time lives on the probe itself (the resolved struct is stackalloc-ed, so it cannot hold a reference).
+        XnaTextureCube suppliedCubemap = FindSuppliedCubemap(view.World.ReflectionProbes, probe.ProbeId);
+        if (suppliedCubemap is not null && !suppliedCubemap.IsDisposed)
+        {
+            return suppliedCubemap;
+        }
+
         if (probe.SpecularCubemapAssetId != Guid.Empty)
         {
             return EnvironmentAssetLookup.TryLoadTextureCube(view, probe.SpecularCubemapAssetId);

@@ -71,9 +71,9 @@ public sealed class RenderTargetPool : IDisposable
             return queue.Dequeue();
         }
 
-        // Create a brand-new RT
-        TotalCount++;
-        return new RenderTarget2D(
+        // Create a brand-new RT. The count grows once the target exists: a format the device refuses throws from the
+        // constructor and must not leave a phantom target in the count (the colour pipeline probes HDR formats).
+        var renderTarget = new RenderTarget2D(
             _graphicsDevice,
             Math.Max(1, width),
             Math.Max(1, height),
@@ -82,6 +82,8 @@ public sealed class RenderTargetPool : IDisposable
             depthFormat,
             0,
             RenderTargetUsage.PreserveContents);
+        TotalCount++;
+        return renderTarget;
     }
 
     /// <summary>
@@ -121,6 +123,30 @@ public sealed class RenderTargetPool : IDisposable
             }
         }
         _pool.Clear();
+    }
+
+    /// <summary>
+    /// Disposes the free (not acquired) render targets of one exact (width, height, format, depth) key and returns how many
+    /// were disposed. Targets of other keys, and targets currently acquired, are left alone.
+    /// </summary>
+    public int TrimFree(int width, int height, SurfaceFormat surfaceFormat, DepthFormat depthFormat)
+    {
+        var key = (width, height, surfaceFormat, depthFormat);
+        if (!_pool.TryGetValue(key, out var queue))
+        {
+            return 0;
+        }
+
+        int disposed = 0;
+        while (queue.TryDequeue(out var rt))
+        {
+            TotalCount--;
+            disposed++;
+            rt.Dispose();
+        }
+
+        _pool.Remove(key);
+        return disposed;
     }
 
     /// <summary>

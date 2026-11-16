@@ -185,6 +185,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
             //  Row-vector convention: world * view * projection, with an identity world.
             _effect.Parameters[ShaderParameterNames.WorldViewProj].SetValue(frame.View * frame.Projection);
+            _effect.Parameters[ShaderParameterNames.ColorPipelineIsLinear]?.SetValue(frame.Environment.LinearColorActive ? 1.0f : 0.0f);
 
             int segmentStartPacketIndex = 0;
             while (segmentStartPacketIndex < _packets.Count)

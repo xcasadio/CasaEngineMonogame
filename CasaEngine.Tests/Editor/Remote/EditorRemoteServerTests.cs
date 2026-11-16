@@ -320,8 +320,19 @@ public sealed class EditorRemoteServerTests : IDisposable
             for (int i = 0; i < EditorRemoteServer.MaxClients; i++)
             {
                 var client = new NamedPipeClientStream("localhost", name, PipeDirection.InOut, PipeOptions.Asynchronous);
+                try
+                {
+                    await client.ConnectAsync(5000);
+                }
+                catch (IOException)
+                {
+                    // The server can drop a redirector client while the connection is still being set up: the connect call
+                    // then reports that nothing is at the other end of the pipe. That client was dropped, which is the claim.
+                    await client.DisposeAsync();
+                    continue;
+                }
+
                 clients.Add(client);
-                await client.ConnectAsync(5000);
                 await Record.ExceptionAsync(() => RemoteMessageCodec.WriteAsync(client, new RemoteRequest { Id = 1, Method = RemoteProtocol.HelloMethod }, CancellationToken.None));
             }
 

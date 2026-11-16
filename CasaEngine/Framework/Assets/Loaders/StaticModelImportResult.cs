@@ -58,4 +58,50 @@ public sealed class StaticModelImportedMaterial
     public Vector3 SpecularColor { get; set; } = new(0.5f);
 
     public float SpecularPower { get; set; } = 16.0f;
+
+    // glTF PBR channels (ADR-0112). Additive: the legacy fields above keep their meaning.
+
+    /// <summary>glTF <c>metallicFactor</c> (1 when the material has no metallic-roughness channel, 0 for an unlit one).</summary>
+    public float MetallicFactor { get; set; } = 1.0f;
+
+    /// <summary>glTF <c>roughnessFactor</c> (1 when the material has no metallic-roughness channel).</summary>
+    public float RoughnessFactor { get; set; } = 1.0f;
+
+    /// <summary>Full path of the external metallic-roughness image (green = roughness, blue = metallic), or null.</summary>
+    public string MetallicRoughnessTextureFilePath { get; set; }
+
+    /// <summary>Full path of the external occlusion image (red channel), or null.</summary>
+    public string OcclusionTextureFilePath { get; set; }
+
+    /// <summary>Full path of the external emissive image, or null.</summary>
+    public string EmissiveTextureFilePath { get; set; }
+
+    /// <summary>glTF <c>normalTexture.scale</c> (default 1).</summary>
+    public float NormalScale { get; set; } = 1.0f;
+
+    /// <summary>glTF <c>occlusionTexture.strength</c> (default 1).</summary>
+    public float OcclusionStrength { get; set; } = 1.0f;
+
+    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatFactor</c> (ADR-0115; 0 when the material has no clear coat).</summary>
+    public float ClearCoatFactor { get; set; }
+
+    /// <summary>glTF <c>KHR_materials_clearcoat</c> <c>clearcoatRoughnessFactor</c> (0 when the material has no clear coat).</summary>
+    public float ClearCoatRoughnessFactor { get; set; }
+
+    /// <summary>glTF <c>alphaMode</c> (default opaque).</summary>
+    public StaticModelAlphaMode AlphaMode { get; set; } = StaticModelAlphaMode.Opaque;
+
+    /// <summary>glTF <c>alphaCutoff</c> (default 0.5); only meaningful when <see cref="AlphaMode"/> is <see cref="StaticModelAlphaMode.Mask"/>.</summary>
+    public float AlphaCutoff { get; set; } = 0.5f;
+
+    /// <summary>glTF <c>doubleSided</c> (default false).</summary>
+    public bool DoubleSided { get; set; }
+}
+
+/// <summary>glTF <c>alphaMode</c> of an imported material.</summary>
+public enum StaticModelAlphaMode
+{
+    Opaque = 0,
+    Mask = 1,
+    Blend = 2,
 }

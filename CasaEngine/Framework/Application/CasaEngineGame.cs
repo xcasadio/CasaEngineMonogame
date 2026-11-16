@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.Backend.MonoGame;
@@ -102,6 +103,12 @@ public class CasaEngineGame : Game, IObservableUpdate
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline _renderPipeline;
+
+    /// <summary>
+    /// The image-based-lighting cache of the render pipeline (ADR-0110), or null before the pipeline exists. Read by the demos and
+    /// the harness for its generation counters.
+    /// </summary>
+    public IblCache IblCache => _renderPipeline?.IblCache;
 
     // ---- Window-level UI (ADR-0070) ----
     private IUIViewRuntime _windowUI;
@@ -503,6 +510,11 @@ public class CasaEngineGame : Game, IObservableUpdate
         AssetContentManager.Initialize(GraphicsDevice);
 
         Content.RootDirectory = ContentPath;
+        _renderPipeline.SetTonemapEffect(Content.Load<Effect>(BuiltInShaderCatalog.TonemapContentName));
+        _renderPipeline.SetBloomEffect(Content.Load<Effect>(BuiltInShaderCatalog.BloomContentName));
+        _renderPipeline.SetFxaaEffect(Content.Load<Effect>(BuiltInShaderCatalog.FxaaContentName));
+        _renderPipeline.SetSsaoEffect(Content.Load<Effect>(BuiltInShaderCatalog.SsaoContentName));
+        _renderPipeline.SetIblConvolutionEffect(Content.Load<Effect>(BuiltInShaderCatalog.IblConvolutionContentName));
         if (!ExecutionPolicy.UseExternalViewManagement)
         {
             Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
@@ -828,6 +840,17 @@ public class CasaEngineGame : Game, IObservableUpdate
     {
     }
 
+    /// <summary>Releases what the render pipeline generated (image-based-lighting textures, BRDF table) before the device goes away.</summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _renderPipeline?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
     // ---- Per-view UI runtime lifecycle ----
 
     /// <summary>
@@ -960,7 +983,9 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             case BuiltInShaderCatalog.LitForwardContentName:
             case BuiltInShaderCatalog.UnlitTextureContentName:
+            case BuiltInShaderCatalog.LitPbrContentName:
             case BuiltInShaderCatalog.ShadowDepthContentName:
+            case BuiltInShaderCatalog.SceneDepthContentName:
             case BuiltInShaderCatalog.SkyCubemapContentName:
                 if (MeshRendererComponent is not null
                     && TryReloadBuiltInShaderClone(baseEffect, effect => MeshRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
@@ -980,6 +1005,18 @@ public class CasaEngineGame : Game, IObservableUpdate
             case BuiltInShaderCatalog.SpriteBatchContentName:
                 if (SpriteRendererComponent is not null
                     && TryReloadBuiltInShaderClone(baseEffect, effect => SpriteRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+
+            case BuiltInShaderCatalog.TonemapContentName:
+            case BuiltInShaderCatalog.BloomContentName:
+            case BuiltInShaderCatalog.FxaaContentName:
+            case BuiltInShaderCatalog.SsaoContentName:
+            case BuiltInShaderCatalog.IblConvolutionContentName:
+                if (_renderPipeline is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => _renderPipeline.TryReloadBuiltInShader(normalizedContentName, effect)))
                 {
                     reloadedConsumerCount++;
                 }

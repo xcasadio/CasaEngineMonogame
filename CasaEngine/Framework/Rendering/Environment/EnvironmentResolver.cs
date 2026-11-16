@@ -17,7 +17,12 @@ public static class EnvironmentResolver
 
         if (view.EnvironmentCache.TryGet(view, out var cachedEnvironment))
         {
-            return cachedEnvironment;
+            // The cached value depends neither on the position of the camera nor on the probes of the world, but the probe blend
+            // does: it is recomputed on every call, without allocation, whenever probes are involved. A world that never had a
+            // probe keeps the cached value as it is.
+            return view.World.ReflectionProbes.Count == 0 && !HasReflectionProbeData(in cachedEnvironment)
+                ? cachedEnvironment
+                : WithReflectionProbes(view, in cachedEnvironment);
         }
 
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
@@ -61,6 +66,12 @@ public static class EnvironmentResolver
             specularEnvironmentCubemap = backgroundCubemap;
             specularCubemapAssetId = specularCubemapAssetId != Guid.Empty ? specularCubemapAssetId : backgroundCubemapAssetId;
         }
+
+        // Colour origin of the environment cubes (ADR-0106, open point O2): only a cube built from a .hdr panorama holds linear
+        // light; procedural sky, physical atmosphere (authored Color values), DDS or authored cubes are display-encoded.
+        bool panoramaIsLinear = panoramaCubemap is not null && PanoramaEnvironmentGenerator.IsLinearPanorama(view, panoramaAssetId);
+        bool backgroundCubemapIsLinear = panoramaIsLinear && ReferenceEquals(backgroundCubemap, panoramaCubemap);
+        bool specularEnvironmentCubemapIsLinear = panoramaIsLinear && ReferenceEquals(specularEnvironmentCubemap, panoramaCubemap);
 
         ResolvedReflectionProbeBlend reflectionProbeBlend = ReflectionProbeResolver.Resolve(view);
 
@@ -112,6 +123,19 @@ public static class EnvironmentResolver
             AmbientColor = usesLegacyLighting ? LegacyAmbientColor : ambientColor,
             AmbientIntensity = usesLegacyLighting ? 1.0f : ambientIntensity,
             SpecularIntensity = usesLegacyLighting ? 1.0f : specularIntensity,
+            AmbientSource = source.AmbientSource,
+            ColorPipelineMode = source.ColorPipeline.Mode,
+            Tonemapper = source.ColorPipeline.Tonemapper,
+            AntiAliasing = source.ColorPipeline.AntiAliasing,
+            Exposure = source.ColorPipeline.Exposure,
+            BloomEnabled = source.ColorPipeline.BloomEnabled,
+            BloomThreshold = source.ColorPipeline.BloomThreshold,
+            BloomIntensity = source.ColorPipeline.BloomIntensity,
+            BloomRadius = source.ColorPipeline.BloomRadius,
+            SsaoEnabled = source.ColorPipeline.SsaoEnabled,
+            SsaoRadius = source.ColorPipeline.SsaoRadius,
+            SsaoIntensity = source.ColorPipeline.SsaoIntensity,
+            SsaoBias = source.ColorPipeline.SsaoBias,
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };
@@ -119,6 +143,27 @@ public static class EnvironmentResolver
         view.EnvironmentCache.Store(view, in resolvedEnvironment);
         source.MarkClean();
         return resolvedEnvironment;
+    }
+
+    private static bool HasReflectionProbeData(in ResolvedEnvironmentSettings environment)
+    {
+        return environment.PrimaryReflectionProbeCubemap is not null || environment.SecondaryReflectionProbeCubemap is not null;
+    }
+
+    /// <summary>The resolved value with the reflection probe blend of the view recomputed (see <see cref="Resolve"/>).</summary>
+    private static ResolvedEnvironmentSettings WithReflectionProbes(RenderView view, in ResolvedEnvironmentSettings environment)
+    {
+        ResolvedReflectionProbeBlend blend = ReflectionProbeResolver.Resolve(view);
+        return environment with
+        {
+            PrimaryReflectionProbeId = blend.PrimaryProbeId,
+            SecondaryReflectionProbeId = blend.SecondaryProbeId,
+            PrimaryReflectionProbeCubemap = blend.PrimaryCubemap,
+            SecondaryReflectionProbeCubemap = blend.SecondaryCubemap,
+            PrimaryReflectionProbeWeight = blend.PrimaryWeight,
+            SecondaryReflectionProbeWeight = blend.SecondaryWeight,
+            LocalReflectionProbeInfluence = blend.Influence,
+        };
     }
 
     internal static Vector3 ResolveAmbientColor(WorldEnvironmentSettings source, EnvironmentAsset environmentAsset)

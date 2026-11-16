@@ -69,6 +69,24 @@ internal static class PanoramaEnvironmentGenerator
         }
     }
 
+    /// <summary>
+    /// True when the panorama file holds linear light: a <c>.hdr</c> file (floating point radiance). Any other panorama
+    /// (an 8-bit image) is a display-encoded image. Decided by the extension, like the loader of the panorama image.
+    /// </summary>
+    internal static bool IsLinearPanorama(RenderView view, Guid panoramaAssetId)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+
+        if (panoramaAssetId == Guid.Empty)
+        {
+            return false;
+        }
+
+        string panoramaPath = ResolvePanoramaPath(view.World.Game.AssetContentManager, panoramaAssetId);
+        return !string.IsNullOrWhiteSpace(panoramaPath)
+            && string.Equals(Path.GetExtension(panoramaPath), ".hdr", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsCubemapDisposed(XnaTextureCube cubemap) => cubemap.IsDisposed;
 
     internal static int NormalizeCubemapSize(int requestedCubemapSize)

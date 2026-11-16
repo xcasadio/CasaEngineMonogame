@@ -11,6 +11,7 @@ using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -735,6 +736,16 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Intensity", ambientIntensityEditor);
 
+        var ambientSourceCombo = CreateStringCombo(Enum.GetNames<AmbientSource>(), settings.AmbientSource.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Environment Ambient Source",
+                static s => s.AmbientSource,
+                static (s, selectedSource) => s.AmbientSource = selectedSource,
+                Enum.Parse<AmbientSource>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Source", ambientSourceCombo);
+
         var specularIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -746,6 +757,142 @@ public sealed class EntityDetailsPanel
             static (s, intensity) => s.SpecularIntensity = intensity,
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Specular Intensity", specularIntensityEditor);
+
+        var colorPipelineModeCombo = CreateStringCombo(Enum.GetNames<ColorPipelineMode>(), settings.ColorPipeline.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Color Pipeline Mode",
+                static s => s.ColorPipeline.Mode,
+                static (s, mode) => s.ColorPipeline.Mode = mode,
+                Enum.Parse<ColorPipelineMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Color Pipeline", colorPipelineModeCombo);
+
+        var tonemapperCombo = CreateStringCombo(Enum.GetNames<TonemapOperator>(), settings.ColorPipeline.Tonemapper.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Tonemapper",
+                static s => s.ColorPipeline.Tonemapper,
+                static (s, tonemapper) => s.ColorPipeline.Tonemapper = tonemapper,
+                Enum.Parse<TonemapOperator>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Tonemapper", tonemapperCombo);
+
+        var exposureEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.Exposure,
+        };
+        exposureEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Exposure",
+            static s => s.ColorPipeline.Exposure,
+            static (s, exposure) => s.ColorPipeline.Exposure = exposure,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Exposure", exposureEditor);
+
+        var bloomEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.BloomEnabled,
+        };
+        bloomEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle Bloom",
+            static s => s.ColorPipeline.BloomEnabled,
+            static (s, enabled) => s.ColorPipeline.BloomEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom", bloomEnabledCheckBox);
+
+        var bloomThresholdEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomThreshold,
+        };
+        bloomThresholdEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Threshold",
+            static s => s.ColorPipeline.BloomThreshold,
+            static (s, threshold) => s.ColorPipeline.BloomThreshold = threshold,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Threshold", bloomThresholdEditor);
+
+        var bloomIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomIntensity,
+        };
+        bloomIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Intensity",
+            static s => s.ColorPipeline.BloomIntensity,
+            static (s, intensity) => s.ColorPipeline.BloomIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Intensity", bloomIntensityEditor);
+
+        var bloomRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.BloomRadius,
+        };
+        bloomRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Bloom Radius",
+            static s => s.ColorPipeline.BloomRadius,
+            static (s, radius) => s.ColorPipeline.BloomRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Bloom Radius", bloomRadiusEditor);
+
+        var antiAliasingCombo = CreateStringCombo(Enum.GetNames<AntiAliasingMode>(), settings.ColorPipeline.AntiAliasing.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Anti-Aliasing",
+                static s => s.ColorPipeline.AntiAliasing,
+                static (s, antiAliasing) => s.ColorPipeline.AntiAliasing = antiAliasing,
+                Enum.Parse<AntiAliasingMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Anti-Aliasing", antiAliasingCombo);
+
+        var ssaoEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.ColorPipeline.SsaoEnabled,
+        };
+        ssaoEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle SSAO",
+            static s => s.ColorPipeline.SsaoEnabled,
+            static (s, enabled) => s.ColorPipeline.SsaoEnabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO", ssaoEnabledCheckBox);
+
+        var ssaoRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoRadius,
+        };
+        ssaoRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Radius",
+            static s => s.ColorPipeline.SsaoRadius,
+            static (s, radius) => s.ColorPipeline.SsaoRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Radius", ssaoRadiusEditor);
+
+        var ssaoIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.1f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoIntensity,
+        };
+        ssaoIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Intensity",
+            static s => s.ColorPipeline.SsaoIntensity,
+            static (s, intensity) => s.ColorPipeline.SsaoIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Intensity", ssaoIntensityEditor);
+
+        var ssaoBiasEditor = new NumericField(_window, min: 0.0f, step: 0.01f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.ColorPipeline.SsaoBias,
+        };
+        ssaoBiasEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change SSAO Bias",
+            static s => s.ColorPipeline.SsaoBias,
+            static (s, bias) => s.ColorPipeline.SsaoBias = bias,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "SSAO Bias", ssaoBiasEditor);
 
         _detailsContent.TryAddChild(grid);
 
@@ -825,6 +972,60 @@ public sealed class EntityDetailsPanel
             static (s, distance) => s.Shadows.MaxDistance = distance,
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Max Distance", shadowMaxDistanceEditor);
+
+        var shadowModeCombo = CreateStringCombo(Enum.GetNames<ShadowMode>(), settings.Shadows.Mode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Mode",
+                static s => s.Shadows.Mode,
+                static (s, mode) => s.Shadows.Mode = mode,
+                Enum.Parse<ShadowMode>(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Mode", shadowModeCombo);
+
+        var shadowColorEditor = new Vector3ColorEditor(_window, settings.Shadows.ShadowColor);
+        shadowColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Color",
+            static s => s.Shadows.ShadowColor,
+            static (s, color) => s.Shadows.ShadowColor = color,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Shadow Color", shadowColorEditor);
+
+        var shadowFilterRadiusEditor = new NumericField(_window, min: 0.0f, step: 0.5f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FilterRadius,
+        };
+        shadowFilterRadiusEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Filter Radius",
+            static s => s.Shadows.FilterRadius,
+            static (s, radius) => s.Shadows.FilterRadius = radius,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Radius", shadowFilterRadiusEditor);
+
+        var shadowFadeDistanceEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.FadeDistance,
+        };
+        shadowFadeDistanceEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Fade Distance",
+            static s => s.Shadows.FadeDistance,
+            static (s, distance) => s.Shadows.FadeDistance = distance,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Fade Distance", shadowFadeDistanceEditor);
+
+        var shadowDepthRangeEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.DepthRange,
+        };
+        shadowDepthRangeEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Depth Range",
+            static s => s.Shadows.DepthRange,
+            static (s, range) => s.Shadows.DepthRange = range,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Depth Range", shadowDepthRangeEditor);
 
         _detailsContent.TryAddChild(shadowGrid);
 

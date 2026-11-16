@@ -8844,6 +8844,13 @@ public partial class GameEditor : Game, IObservableUpdate
                 builder.Append($" alpha={unlitTextureMaterial.Alpha.ToString("0.###", CultureInfo.InvariantCulture)}");
                 builder.Append($" base_color_asset={unlitTextureMaterial.BasColorAssetId}");
                 break;
+
+            case LitPbrMaterial litPbrMaterial:
+                builder.Append($" base_color={FormatColor(litPbrMaterial.BaseColor)}");
+                builder.Append($" metallic={litPbrMaterial.Metallic.ToString("0.###", CultureInfo.InvariantCulture)}");
+                builder.Append($" roughness={litPbrMaterial.Roughness.ToString("0.###", CultureInfo.InvariantCulture)}");
+                builder.Append($" base_color_asset={litPbrMaterial.BaseColorTextureAssetId}");
+                break;
         }
 
         return builder.ToString();

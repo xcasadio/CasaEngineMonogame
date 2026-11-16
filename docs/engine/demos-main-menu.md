@@ -139,6 +139,16 @@ public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
 - `CASAENGINE_CAPTURE_SCREENSHOT_PATH` (and `CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS`) captures the main screen, or the
   demo started by `CASAENGINE_START_DEMO`, then quits. A path ending in `.jpg` or `.jpeg` writes a JPEG, any other a PNG. The in-demo reminder "Esc / Select: back to the menu" is hidden
   while the back buffer is captured or probed (`CASAENGINE_DEMO_PIXELS_PATH`).
+- `CASAENGINE_THEN_DEMO=<title>` switches, once, to that demo after `CASAENGINE_THEN_DEMO_FRAME` updates (default 120) of the demo
+  started by `CASAENGINE_START_DEMO`, through the same path as a request from the menu. With a capture path, the capture is of
+  the demo switched to, which proves what the first demo leaves behind.
+- `CASAENGINE_DEMO_FRAME_STATS=1` measures the cost of the demo started by `CASAENGINE_START_DEMO` (`DemoFrameStats`): vertical
+  synchronisation and the fixed step are off, updates 101 to 700 are added up (CPU time of `Update` and of `Draw`, wall time per
+  image, pipeline CPU time of the first view), one `[FrameStats]` line with the last image's `RenderStats` counters is logged
+  and the game quits. The line ends with the activation counters of the first view (`fxaaDraws`, `ssaoStaticDraws`,
+  `ssaoSkinnedDraws`, `ssaoPasses`), and a `[DemoConfig]` line follows it with the settings in effect at the last measured image
+  (`mode`, `aa`, `ssao`, and for the PBR demo `clearCoatRow`): a cost line whose counters do not match its configuration
+  (at least 1 when the feature is on, 0 when off) does not count. Meant for `Release` builds, built just before the measure.
 - `CASAENGINE_DEMO_CYCLE=<frames>` goes from the main screen to every demo and back, twice, `<frames>` frames per world
   (default 60). It checks every world change and exits with code 0, or 1 when a check failed or an error was logged:
   - the new world is a new instance and the world left holds no entity;

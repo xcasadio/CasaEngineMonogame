@@ -35,13 +35,24 @@ public static class EffectiveShaderResolver
 {
     public static readonly Guid LitForwardShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
+    public static readonly Guid LitPbrShaderId = Guid.Parse("30bbfb09-d48d-4728-9dc0-9d6800643a9d");
     public static readonly Guid ReflectiveLitForwardShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
     public static readonly Guid LinearBlendSkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
     public static readonly Guid DualQuaternionSkinnedEffectShaderId = Guid.Parse("aa34bc72-1b22-4680-aa56-31c7d0aaf1a7");
     public static readonly Guid SkinnedEffectShaderId = LinearBlendSkinnedEffectShaderId;
 
+    /// <summary>
+    /// The same <c>skinEffect</c> effect as <see cref="LinearBlendSkinnedEffectShaderId"/>, registered under its own id so that the
+    /// variant library can map every canonical technique name of a lit-pbr skinned draw to <c>RiggedModelDrawPbr</c> (ADR-0111).
+    /// </summary>
+    public static readonly Guid LinearBlendSkinnedPbrEffectShaderId = Guid.Parse("3d4cb6e8-9404-4634-8097-2fef7fd8f963");
+
+    /// <summary>As <see cref="LinearBlendSkinnedPbrEffectShaderId"/>, for dual quaternion skinning (<c>RiggedModelDrawPbrDualQuaternion</c>).</summary>
+    public static readonly Guid DualQuaternionSkinnedPbrEffectShaderId = Guid.Parse("a60ccce5-5a8d-4bb8-a5cb-f284a6e75e36");
+
     public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
+    public const string LitPbrContentName = "Shaders\\LitPbr";
     public const string ReflectiveLitForwardContentName = LitForwardContentName;
     public const string LinearBlendSkinnedEffectContentName = "Shaders\\skinEffect";
     public const string DualQuaternionSkinnedEffectContentName = LinearBlendSkinnedEffectContentName;
@@ -70,16 +81,21 @@ public static class EffectiveShaderResolver
             return new EffectiveShaderReference(material.ShaderAssetId);
         }
 
+        var capabilities = material.GetShaderCapabilities();
+
         if ((features & ShaderFeature.Skinned) != 0)
         {
-            return SkinningModeShaderResolver.Resolve(skinningMode);
+            // A lit-pbr material on a skinned mesh takes the PBR techniques of the skinning effect; every other family keeps
+            // the Blinn-Phong ones (ADR-0111).
+            return capabilities.ShaderFamily == MaterialShaderFamily.LitPbr
+                ? SkinningModeShaderResolver.ResolvePbr(skinningMode)
+                : SkinningModeShaderResolver.Resolve(skinningMode);
         }
-
-        var capabilities = material.GetShaderCapabilities();
 
         return capabilities.ShaderFamily switch
         {
             MaterialShaderFamily.Unlit => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
+            MaterialShaderFamily.LitPbr => new EffectiveShaderReference(LitPbrShaderId, LitPbrContentName),
             MaterialShaderFamily.Lit when capabilities.HasReflection
                 => new EffectiveShaderReference(ReflectiveLitForwardShaderId, ReflectiveLitForwardContentName),
             MaterialShaderFamily.Lit => new EffectiveShaderReference(LitForwardShaderId, LitForwardContentName),

@@ -24,6 +24,16 @@ public class RenderToTextureDemo : Demo
 {
     private const int RtSize = 256;
 
+    // Measurement pixels of the SSAO check (plan T3.3, ADR-0116; window coordinates, 1024 x 768, LinearHdr), one per view, in a flat
+    // area far from every object: the same with and without CASAENGINE_DEMO_SSAO=1, while the SSAO count of each view
+    // (RenderStats.SsaoPasses, written at the capture) proves the composition ran in that view.
+
+    /// <summary>Uniform ground pixel of the main view (view 0): 175, 168, 141 with and without SSAO.</summary>
+    public static readonly Point SsaoUniformPixelMainView = new(500, 650);
+
+    /// <summary>Uniform pixel of the render-to-texture view (view 1) as shown in the inset: 192, 187, 170 with and without SSAO.</summary>
+    public static readonly Point SsaoUniformPixelTextureView = new(1000, 750);
+
     private ArcBallCameraComponent? _camera2;
     private RenderTargetSurface? _rtSurface;
     private CasaEngineGame? _game;

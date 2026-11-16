@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Logging;
@@ -13,6 +15,7 @@ using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -61,6 +64,21 @@ public class DemosGame : CasaEngineGame
     // Created once: the sheets ask it what each action is bound to.
     private Func<string, DemoBinding> _describeAction;
     private bool _automationScreenshotCaptured;
+    // CASAENGINE_CAPTURE_ON_IBL_GENERATION=1 (plan T6.3): one more capture, suffix "-gen", at the end of the first frame in which the
+    // generation counter of the IBL cache has increased. The usual delayed capture still happens.
+    private readonly bool _captureOnIblGeneration = Environment.GetEnvironmentVariable("CASAENGINE_CAPTURE_ON_IBL_GENERATION") == "1";
+    private bool _generationCaptured;
+
+    // CASAENGINE_THEN_DEMO="<exact title>" (plan T10.1, criterion 9): after CASAENGINE_THEN_DEMO_FRAME updates (default 120) of the first
+    // demo, asks for that demo, as the player would from the menu. It proves what a demo leaves behind when it is left.
+    private readonly string _thenDemoTitle = Environment.GetEnvironmentVariable("CASAENGINE_THEN_DEMO");
+    private readonly int _thenDemoFrame = int.TryParse(Environment.GetEnvironmentVariable("CASAENGINE_THEN_DEMO_FRAME"), out int thenFrame) && thenFrame > 0 ? thenFrame : 120;
+    private int _thenDemoFrames;
+    private bool _thenDemoRequested;
+
+    // CASAENGINE_DEMO_FRAME_STATS=1 (plan T10.2): cost of images 101 to 700, one log line at the end, then the game exits. Without
+    // vertical synchronisation and with a variable step, so the image time is not set by the refresh rate.
+    private readonly DemoFrameStats _frameStats = DemoFrameStats.IsRequested ? new DemoFrameStats() : null;
 
     // ---- Main screen, in a world of its own (plan demos-main-menu, decisions D1, D3, D4) ----
     private const string MainScreenTitle = "CasaEngine demos";
@@ -112,6 +130,11 @@ public class DemosGame : CasaEngineGame
         Logs.AddLogger(new DebugLogger());
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
+
+        if (_frameStats != null)
+        {
+            RuntimeContext.ProjectSettings.VSyncEnabled = false;
+        }
 
         // Push demo UI screens whenever the engine finishes building views for a world.
         // On startup the first demo is prepared before GameManager loads the world, so
@@ -183,6 +206,9 @@ public class DemosGame : CasaEngineGame
         AddDemo(new StaticShadowValidationDemo(), ThemeEngineValidation);
         AddDemo(new ViewManagerSandbox(), ThemeEngineValidation);
         AddDemo(new FrozenFrameDemo(), ThemeEngineValidation);
+        // Registered last on purpose: it moves no index that CASAENGINE_START_DEMO or a script may use.
+        AddDemo(new ColorPipelineDemo(), ThemeEngineValidation);
+        AddDemo(new PbrMaterialDemo(), ThemeEngineValidation);
 
         _mainMenuEntries = new MainMenuScreen.Entry[_demos.Count];
         for (int i = 0; i < _demos.Count; i++)
@@ -277,6 +303,7 @@ public class DemosGame : CasaEngineGame
         _currentDemo.Initialize(this);
         _currentDemo.ConfigureSceneLighting(world);
         _pendingDemoCamera = _currentDemo.CreateCamera(this);
+        ApplyColorPipelineHarness(world);
 
         Window.Title = _currentDemo.Title;
     }
@@ -571,14 +598,49 @@ public class DemosGame : CasaEngineGame
 
     protected override void Draw(GameTime gameTime)
     {
+        long drawStart = 0;
+        if (_frameStats != null)
+        {
+            drawStart = Stopwatch.GetTimestamp();
+            _frameStats.BeginDraw(drawStart);
+        }
+
         base.Draw(gameTime);
+
+        TryCaptureOnIblGeneration();
 
         // Captured once the whole frame is drawn: a demo that switches render targets discards what the back buffer held
         // before AfterRenderPipeline.
         TryCaptureAutomationScreenshot(gameTime);
+
+        if (_frameStats != null)
+        {
+            _frameStats.EndDraw(drawStart, GameManager.ViewManager.Views, _currentDemo?.Title ?? "none",
+                GetDisplaySettings().IsVSyncEnabled, IsFixedTimeStep);
+            if (_frameStats.IsFinished)
+            {
+                LogDemoConfiguration();
+                Exit();
+            }
+        }
     }
 
     protected override void Update(GameTime gameTime)
+    {
+        if (_frameStats == null)
+        {
+            UpdateDemos(gameTime);
+            return;
+        }
+
+        long updateStart = Stopwatch.GetTimestamp();
+        IsFixedTimeStep = false;
+        _frameStats.BeginUpdate();
+        UpdateDemos(gameTime);
+        _frameStats.EndUpdate(updateStart);
+    }
+
+    private void UpdateDemos(GameTime gameTime)
     {
         if (_quitRequested)
         {
@@ -605,12 +667,56 @@ public class DemosGame : CasaEngineGame
             }
         }
 
+        TryRequestThenDemo();
         ReadMenuInput();
         ApplyWorldRequests();
 
         _currentDemo?.Update(gameTime);
 
         base.Update(gameTime);
+    }
+
+    /// <summary>Harness of <c>CASAENGINE_THEN_DEMO</c>: one switch to the named demo once the first one has run its frames.</summary>
+    private void TryRequestThenDemo()
+    {
+        if (string.IsNullOrWhiteSpace(_thenDemoTitle) || _thenDemoRequested || _currentDemo == null || ++_thenDemoFrames < _thenDemoFrame)
+        {
+            return;
+        }
+
+        _thenDemoRequested = true;
+        for (int i = 0; i < _demos.Count; i++)
+        {
+            if (string.Equals(_demos[i].Title, _thenDemoTitle, StringComparison.OrdinalIgnoreCase))
+            {
+                RequestDemo(i);
+                return;
+            }
+        }
+
+        Logs.WriteWarning($"[DemosGame] CASAENGINE_THEN_DEMO '{_thenDemoTitle}' was not found.");
+    }
+
+    /// <summary>
+    /// With <c>CASAENGINE_CAPTURE_ON_IBL_GENERATION=1</c> and a capture path, saves the back buffer of the first frame in which the
+    /// IBL cache has generated something (its counter is above 0 at the end of the frame), next to the usual capture and with
+    /// the suffix <c>-gen</c> before the extension. That frame is the first one drawn with the generated textures.
+    /// </summary>
+    private void TryCaptureOnIblGeneration()
+    {
+        if (!_captureOnIblGeneration
+            || _generationCaptured
+            || string.IsNullOrWhiteSpace(_automationScreenshotPath)
+            || (IblCache?.GenerationCount ?? 0) == 0)
+        {
+            return;
+        }
+
+        _generationCaptured = true;
+        string extension = Path.GetExtension(_automationScreenshotPath);
+        string generationPath = Path.ChangeExtension(_automationScreenshotPath, null) + "-gen" + extension;
+        CaptureScreenshot(generationPath);
+        Logs.WriteInfo($"[DemosGame] Capture on IBL generation (counter {IblCache!.GenerationCount}): {generationPath}");
     }
 
     private void TryCaptureAutomationScreenshot(GameTime gameTime)
@@ -624,9 +730,87 @@ public class DemosGame : CasaEngineGame
         }
 
         _automationScreenshotCaptured = true;
+        LogFxaaPassCounts();
+        LogSceneDepthCounts();
+        LogSsaoPassCounts();
         bool succeeded = CaptureScreenshot(_automationScreenshotPath);
         Environment.ExitCode = succeeded ? 0 : 1;
         Exit();
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many FXAA passes each view drew in the frame just rendered
+    /// (ADR-0114): a capture measurement of the anti-aliasing is only valid when the count of the views it concerns is at least 1
+    /// (and 0 without FXAA).
+    /// </summary>
+    private void LogFxaaPassCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int total = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int passes = views[i].RenderStats.FxaaPasses;
+            total += passes;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": ").Append(passes);
+        }
+
+        Logs.WriteInfo($"[DemosGame] FXAA passes at capture: total {total} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many static and skinned meshes the scene depth pre-pass drew for each
+    /// view in the frame just rendered (ADR-0116): a capture measurement of the SSAO is only valid when the counts of the views it
+    /// concerns show the pre-pass ran (at least 1 for the geometry the demo draws), and are 0 without SSAO.
+    /// </summary>
+    private void LogSceneDepthCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int staticTotal = 0;
+        int skinnedTotal = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int staticDraws = views[i].RenderStats.SceneDepthStaticDraws;
+            int skinnedDraws = views[i].RenderStats.SceneDepthSkinnedDraws;
+            staticTotal += staticDraws;
+            skinnedTotal += skinnedDraws;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": static ").Append(staticDraws).Append(" skinned ").Append(skinnedDraws);
+        }
+
+        Logs.WriteInfo($"[DemosGame] Scene depth draws at capture: static {staticTotal}, skinned {skinnedTotal} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, at the moment of the automation capture, how many SSAO compositions each view drew in the frame just rendered
+    /// (ADR-0116): a capture measurement of the ambient occlusion is only valid when the count of the views it concerns is at least 1
+    /// (and 0 without SSAO), because a measurement that holds as well when the SSAO never runs proves nothing.
+    /// </summary>
+    private void LogSsaoPassCounts()
+    {
+        var views = GameManager.ViewManager.Views;
+        int total = 0;
+        var perView = new System.Text.StringBuilder();
+        for (int i = 0; i < views.Count; i++)
+        {
+            int passes = views[i].RenderStats.SsaoPasses;
+            total += passes;
+            perView.Append(i == 0 ? "" : ", ").Append("view ").Append(i).Append(": ").Append(passes);
+        }
+
+        Logs.WriteInfo($"[DemosGame] SSAO passes at capture: total {total} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, when the cost measurement ends (the line follows the <c>[FrameStats]</c> line of the same run), the settings that
+    /// were in effect at the last measured image: colour pipeline mode, anti-aliasing, SSAO and the state of the clear coat row of the
+    /// PBR demo. A cost line whose counters do not match these values is not valid (plan T4.1).
+    /// </summary>
+    private void LogDemoConfiguration()
+    {
+        var colorPipeline = GameManager.CurrentWorld.EnvironmentSettings.ColorPipeline;
+        string clearCoatRow = _currentDemo is PbrMaterialDemo pbrDemo ? pbrDemo.ClearCoatRowState : "n/a";
+        Logs.WriteInfo($"[DemoConfig] demo='{_currentDemo?.Title ?? "none"}' mode={colorPipeline.Mode} aa={colorPipeline.AntiAliasing} ssao={(colorPipeline.SsaoEnabled ? "On" : "Off")} clearCoatRow={clearCoatRow}");
     }
 
     private bool CaptureScreenshot(string outputPath)
@@ -673,6 +857,223 @@ public class DemosGame : CasaEngineGame
             Logs.WriteException(ex);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Harness variables that put any demo in another colour pipeline (ADR-0104): <c>CASAENGINE_DEMO_COLOR_PIPELINE</c>
+    /// (<c>Legacy</c> or <c>LinearHdr</c>), <c>CASAENGINE_DEMO_TONEMAPPER</c> (<c>AcesApprox</c> or <c>Reinhard</c>) and
+    /// <c>CASAENGINE_DEMO_EXPOSURE</c> (a number, invariant culture). Applied to the world of the demo once the demo has
+    /// built its scene, lighting and camera, then followed by <c>MarkDirty</c>. Without any variable nothing changes; an
+    /// unreadable value is logged and ignored.
+    /// </summary>
+    private static void ApplyColorPipelineHarness(World world)
+    {
+        var modeText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_COLOR_PIPELINE");
+        var tonemapperText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_TONEMAPPER");
+        var exposureText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_EXPOSURE");
+        if (string.IsNullOrWhiteSpace(modeText)
+            && string.IsNullOrWhiteSpace(tonemapperText)
+            && string.IsNullOrWhiteSpace(exposureText)
+            && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_AA"))
+            && !HasSsaoHarnessVariable()
+            && !HasBloomHarnessVariable())
+        {
+            return;
+        }
+
+        var settings = world.EnvironmentSettings;
+        if (!string.IsNullOrWhiteSpace(modeText))
+        {
+            if (Enum.TryParse<ColorPipelineMode>(modeText, true, out var mode))
+            {
+                settings.ColorPipeline.Mode = mode;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_COLOR_PIPELINE '{modeText}' is not Legacy or LinearHdr; ignored.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(tonemapperText))
+        {
+            if (Enum.TryParse<TonemapOperator>(tonemapperText, true, out var tonemapper))
+            {
+                settings.ColorPipeline.Tonemapper = tonemapper;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_TONEMAPPER '{tonemapperText}' is not AcesApprox or Reinhard; ignored.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(exposureText))
+        {
+            if (float.TryParse(exposureText, NumberStyles.Float, CultureInfo.InvariantCulture, out var exposure))
+            {
+                settings.ColorPipeline.Exposure = exposure;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_EXPOSURE '{exposureText}' is not a number; ignored.");
+            }
+        }
+
+        ApplyBloomHarness(settings.ColorPipeline);
+        ApplyAntiAliasingHarness(settings.ColorPipeline);
+        ApplySsaoHarness(settings.ColorPipeline);
+        settings.MarkDirty();
+        Logs.WriteInfo($"[DemosGame] Colour pipeline harness: {settings.ColorPipeline.Mode}, {settings.ColorPipeline.Tonemapper}, exposure {settings.ColorPipeline.Exposure}.");
+    }
+
+    /// <summary>
+    /// Harness variables of the bloom (ADR-0108): <c>CASAENGINE_DEMO_BLOOM</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// optional <c>CASAENGINE_DEMO_BLOOM_THRESHOLD</c>, <c>CASAENGINE_DEMO_BLOOM_INTENSITY</c> and <c>CASAENGINE_DEMO_BLOOM_RADIUS</c>
+    /// (numbers, invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static bool HasBloomHarnessVariable()
+    {
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_THRESHOLD"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_INTENSITY"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM_RADIUS"));
+    }
+
+    private static void ApplyBloomHarness(ColorPipelineSettings colorPipeline)
+    {
+        if (!HasBloomHarnessVariable())
+        {
+            return;
+        }
+
+        var enabledText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_BLOOM");
+        if (!string.IsNullOrWhiteSpace(enabledText))
+        {
+            if (enabledText == "1" || enabledText.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.BloomEnabled = true;
+            }
+            else if (enabledText == "0" || enabledText.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.BloomEnabled = false;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_BLOOM '{enabledText}' is not 1, 0, true or false; ignored.");
+            }
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_THRESHOLD", out var threshold))
+        {
+            colorPipeline.BloomThreshold = threshold;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_INTENSITY", out var intensity))
+        {
+            colorPipeline.BloomIntensity = intensity;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_BLOOM_RADIUS", out var radius))
+        {
+            colorPipeline.BloomRadius = radius;
+        }
+
+        Logs.WriteInfo($"[DemosGame] Bloom harness: enabled {colorPipeline.BloomEnabled}, threshold {colorPipeline.BloomThreshold}, intensity {colorPipeline.BloomIntensity}, radius {colorPipeline.BloomRadius}.");
+    }
+
+    /// <summary>
+    /// Harness variable of the anti-aliasing (ADR-0113): <c>CASAENGINE_DEMO_AA</c> = <c>Fxaa</c> or <c>None</c>. Without it nothing
+    /// changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static void ApplyAntiAliasingHarness(ColorPipelineSettings colorPipeline)
+    {
+        var text = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_AA");
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        if (Enum.TryParse<AntiAliasingMode>(text, true, out var antiAliasing) && Enum.IsDefined(antiAliasing))
+        {
+            colorPipeline.AntiAliasing = antiAliasing;
+            Logs.WriteInfo($"[DemosGame] Anti-aliasing harness: {colorPipeline.AntiAliasing}.");
+        }
+        else
+        {
+            Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_AA '{text}' is not Fxaa or None; ignored.");
+        }
+    }
+
+    /// <summary>
+    /// Harness variables of the SSAO (ADR-0116): <c>CASAENGINE_DEMO_SSAO</c> (<c>1</c>/<c>true</c> or <c>0</c>/<c>false</c>) and the
+    /// optional <c>CASAENGINE_DEMO_SSAO_RADIUS</c>, <c>CASAENGINE_DEMO_SSAO_INTENSITY</c> and <c>CASAENGINE_DEMO_SSAO_BIAS</c> (numbers,
+    /// invariant culture). Without any variable nothing changes; an unreadable value is logged and ignored.
+    /// </summary>
+    private static bool HasSsaoHarnessVariable()
+    {
+        return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_RADIUS"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_INTENSITY"))
+            || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO_BIAS"));
+    }
+
+    private static void ApplySsaoHarness(ColorPipelineSettings colorPipeline)
+    {
+        if (!HasSsaoHarnessVariable())
+        {
+            return;
+        }
+
+        var enabledText = Environment.GetEnvironmentVariable("CASAENGINE_DEMO_SSAO");
+        if (!string.IsNullOrWhiteSpace(enabledText))
+        {
+            if (enabledText == "1" || enabledText.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.SsaoEnabled = true;
+            }
+            else if (enabledText == "0" || enabledText.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                colorPipeline.SsaoEnabled = false;
+            }
+            else
+            {
+                Logs.WriteWarning($"[DemosGame] CASAENGINE_DEMO_SSAO '{enabledText}' is not 1, 0, true or false; ignored.");
+            }
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_RADIUS", out var radius))
+        {
+            colorPipeline.SsaoRadius = radius;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_INTENSITY", out var intensity))
+        {
+            colorPipeline.SsaoIntensity = intensity;
+        }
+
+        if (TryReadFloatVariable("CASAENGINE_DEMO_SSAO_BIAS", out var bias))
+        {
+            colorPipeline.SsaoBias = bias;
+        }
+
+        Logs.WriteInfo($"[DemosGame] SSAO harness: enabled {colorPipeline.SsaoEnabled}, radius {colorPipeline.SsaoRadius}, intensity {colorPipeline.SsaoIntensity}, bias {colorPipeline.SsaoBias}.");
+    }
+
+    private static bool TryReadFloatVariable(string name, out float value)
+    {
+        value = 0.0f;
+        var text = Environment.GetEnvironmentVariable(name);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        {
+            return true;
+        }
+
+        Logs.WriteWarning($"[DemosGame] {name} '{text}' is not a number; ignored.");
+        return false;
     }
 
     private static string? ResolveAutomationScreenshotPath()

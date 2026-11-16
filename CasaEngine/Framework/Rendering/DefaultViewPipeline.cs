@@ -18,7 +18,7 @@ namespace CasaEngine.Framework.Rendering;
 /// Surface clearing and render target management are handled by
 /// <see cref="RenderPipeline"/> before and after this pipeline is invoked.
 /// </summary>
-public sealed class DefaultViewPipeline : IViewRenderPipeline
+public sealed class DefaultViewPipeline : IViewRenderPipeline, IScenePhaseViewPipeline
 {
     /// <summary>Singleton instance for shared usage.</summary>
     public static readonly DefaultViewPipeline Instance = new();
@@ -29,6 +29,39 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
         RenderView                            view,
         in RenderFrame                        frame,
         IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        RenderSceneCore(view, in frame, renderers, skipPostTonemapRenderers: false);
+
+        // 3. Compose the UI phase on top of the 3D scene while the view's
+        //    render target and viewport are still active.
+        long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
+
+        (view.UICompositionService ?? DefaultUICompositionService.Instance)
+            .Compose(graphicsDevice, view, in frame);
+
+        view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
+    }
+
+    /// <summary>
+    /// Steps 1 and 2 of <see cref="RenderView"/>: the world draw and the renderer flushes, without the UI phase
+    /// (<see cref="IScenePhaseViewPipeline"/>). In a view that really draws through the HDR target the renderers that are
+    /// <see cref="IPostTonemapRenderer"/> are not flushed here: <see cref="RenderPipeline"/> flushes them after the tonemapping
+    /// (ADR-0107). Without that colour pipeline every renderer is flushed, in the order of the legacy pipeline.
+    /// </summary>
+    public void RenderScene(
+        GraphicsDevice                        graphicsDevice,
+        RenderView                            view,
+        in RenderFrame                        frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        RenderSceneCore(view, in frame, renderers, skipPostTonemapRenderers: frame.Environment.LinearColorActive);
+    }
+
+    private static void RenderSceneCore(
+        RenderView                            view,
+        in RenderFrame                        frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers,
+        bool                                  skipPostTonemapRenderers)
     {
         long worldDrawStartTimestamp = Stopwatch.GetTimestamp();
 
@@ -42,19 +75,15 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
 
         foreach (var renderer in renderers)
         {
+            if (skipPostTonemapRenderers && renderer is IPostTonemapRenderer)
+            {
+                continue;
+            }
+
             renderer.Flush(in frame, view.RenderStats);
         }
 
         view.RenderStats.RendererFlushCpuMilliseconds += GetElapsedMilliseconds(rendererFlushStartTimestamp);
-
-        // 3. Compose the UI phase on top of the 3D scene while the view's
-        //    render target and viewport are still active.
-        long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
-
-        (view.UICompositionService ?? DefaultUICompositionService.Instance)
-            .Compose(graphicsDevice, view, in frame);
-
-        view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
     }
 
     private static double GetElapsedMilliseconds(long startTimestamp)

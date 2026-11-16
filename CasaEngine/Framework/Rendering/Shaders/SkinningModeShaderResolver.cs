@@ -19,6 +19,21 @@ public static class SkinningModeShaderResolver
         };
     }
 
+    /// <summary>The skinning effect under the id of its lit-pbr techniques (<c>RiggedModelDrawPbr[DualQuaternion]</c>, ADR-0111).</summary>
+    public static EffectiveShaderReference ResolvePbr(SkinningMode skinningMode)
+    {
+        return skinningMode switch
+        {
+            SkinningMode.LinearBlend => new EffectiveShaderReference(
+                EffectiveShaderResolver.LinearBlendSkinnedPbrEffectShaderId,
+                EffectiveShaderResolver.LinearBlendSkinnedEffectContentName),
+            SkinningMode.DualQuaternion => new EffectiveShaderReference(
+                EffectiveShaderResolver.DualQuaternionSkinnedPbrEffectShaderId,
+                EffectiveShaderResolver.DualQuaternionSkinnedEffectContentName),
+            _ => throw new ArgumentOutOfRangeException(nameof(skinningMode), skinningMode, null),
+        };
+    }
+
     public static VertexDeclaration ResolveVertexDeclaration(SkinningMode skinningMode)
     {
         return skinningMode switch

@@ -11,6 +11,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -36,9 +37,58 @@ public class SkinnedMeshDemo : Demo
     private const float GroundDepth = 14.0f;
     private const float GroundCentreZ = 0.5f;
 
+    /// <summary>
+    /// Floor pixel at the foot of the middle character (plan T3.3, ADR-0116; window coordinates, 1024 x 768) of the frozen frame
+    /// (<c>CASAENGINE_SKINNED_DEMO_FREEZE=1</c>, LinearHdr): 170, 168, 145 without SSAO, 147, 145, 122 with <c>CASAENGINE_DEMO_SSAO=1</c> (23 levels darker).
+    /// </summary>
+    public static readonly Point SsaoFootPixel = new(465, 462);
+
+    // Measurement switch (plan T8.2). With CASAENGINE_SKINNED_DEMO_FREEZE=1 every character is paused at the same instant of
+    // its first clip and never changes clip, so two captures of the same configuration are identical. The camera is already
+    // fixed. Without the variable the demo plays as before.
+    private const string FreezeVariable = "CASAENGINE_SKINNED_DEMO_FREEZE";
+    private const float FrozenAnimationTimeSeconds = 0.4f;
+
+    // With CASAENGINE_SKINNED_DEMO_PBR=1 the demo starts with every character drawn by the PBR techniques of the skinning effect
+    // (SkinnedMeshComponent.PbrMaterial, ADR-0111); the P key switches between Blinn-Phong and PBR at any time.
+    private const string PbrVariable = "CASAENGINE_SKINNED_DEMO_PBR";
+    private const string PbrAction = "SkinnedMesh.Pbr";
+
+    // CASAENGINE_SKINNED_DEMO_SHADOWS=0 switches the shadows of the world off, to measure what a shadow changes in a pixel.
+    private const string ShadowsVariable = "CASAENGINE_SKINNED_DEMO_SHADOWS";
+
+    /// <summary>
+    /// Pixel measurements of plan T8.2 on a 1024 x 768 capture of the frozen demo (CASAENGINE_SKINNED_DEMO_FREEZE=1). Rectangles
+    /// are x, y, width, height; points are x, y; thresholds are grey levels (luminance 0.2126 R + 0.7152 G + 0.0722 B). The
+    /// ReceiveShadow column is on the left, NoReceiveShadow in the middle, NoCastShadow on the right.
+    /// </summary>
+    public static class Measurement
+    {
+        // (3) Mean absolute luminance difference between the Blinn-Phong and the PBR capture, over the jacket of the large
+        // character of the NoReceiveShadow column.
+        public static readonly int[] BodyRectangle = { 445, 360, 60, 40 };
+        public const float MinimumBlinnPhongToPbrMeanDifference = 8.0f;
+
+        // (4) Standard deviation of the luminance of the PBR capture over the hair of the same character, whose texture is
+        // strongly patterned: above the threshold with the mesh texture bound, below it with the binding removed.
+        public static readonly int[] TextureRectangle = { 432, 252, 30, 30 };
+        public const float MinimumTexturedLuminanceStandardDeviation = 20.0f;
+
+        // (5) A point of the small character of the ReceiveShadow column (it receives the shadow of the large one) is at
+        // least this much darker in the PBR capture than in the PBR capture taken with CASAENGINE_SKINNED_DEMO_SHADOWS=0;
+        // over a rectangle of the small character of the NoReceiveShadow column (ReceiveShadows off) the two captures are equal.
+        public static readonly int[] ShadowedPoint = { 300, 345 };
+        public const float MinimumShadowDarkening = 20.0f;
+        public static readonly int[] UnshadowedRectangle = { 530, 345, 22, 40 };
+    }
+
     private float _animationSwitchTimer;
     private int _nextAnimationIndex = 1;
     private bool _useInertializeTransition;
+    private bool _frozen;
+    private bool _usePbr;
+    // One entry per component of _skinnedMeshComponents: the PBR material that component takes while the PBR mode is on.
+    private readonly List<LitPbrMaterial> _pbrMaterials = new();
 
     public override string Title => "Skinned mesh demo";
     public override string Description =>
@@ -54,6 +104,11 @@ public class SkinnedMeshDemo : Demo
         "Left: the large character casts a shadow on the ground and on the small one, and the shadow follows the animation.",
         "Centre: ReceiveShadows is off on the ground and on the small character, so no shadow shows on them.",
         "Right: CastShadows is off on the large character, so it has no shadow at all.",
+    };
+
+    public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
+    {
+        DemoControl.ForActions("switch the characters between Blinn-Phong and PBR shading", PbrAction),
     };
 
     public override string DocumentationPath => "docs/engine/light-component.md";
@@ -89,7 +144,7 @@ public class SkinnedMeshDemo : Demo
         // ReceiveShadows flags below have no effect. Resolution is the size of the shadow map; the two biases offset the
         // depth comparison so that a lit surface does not shadow itself; MaxDistance is how far from the camera shadows
         // are drawn (the camera stands about 40 units from the characters).
-        environmentSettings.Shadows.Enabled = true;
+        environmentSettings.Shadows.Enabled = Environment.GetEnvironmentVariable(ShadowsVariable) != "0";
         environmentSettings.Shadows.Resolution = 2048;
         environmentSettings.Shadows.DepthBias = 0.001f;
         environmentSettings.Shadows.NormalBias = 0.002f;
@@ -142,6 +197,9 @@ public class SkinnedMeshDemo : Demo
         _animationSwitchTimer = 0f;
         _nextAnimationIndex = 1;
         _useInertializeTransition = false;
+        _frozen = Environment.GetEnvironmentVariable(FreezeVariable) == "1";
+        _usePbr = Environment.GetEnvironmentVariable(PbrVariable) == "1";
+        _pbrMaterials.Clear();
 
         // The character comes straight from a model file (relative to the project root) rather than from the asset
         // catalogue. Initialize then resolves the rigged model and its animation clips through the content manager; it is
@@ -159,11 +217,50 @@ public class SkinnedMeshDemo : Demo
             SpecularPower = 16.0f,
         };
 
+        // The PBR twins of the default look and of the tinted caster: the same colours, no specular tint (the PBR derives its
+        // specular from the roughness), a dielectric of medium roughness. States as the renderer's default skinned material.
+        var pbrMaterial = CreatePbrMaterial(Color.White);
+        var tintedCasterPbrMaterial = CreatePbrMaterial(new Color(255, 150, 60));
+
         // Three columns 12 units apart on X, far enough for a shadow not to reach the next column, each with a caster and
         // a receiver: left is the reference (both flags on, the caster tinted), centre turns receiving off on the receiver, right turns casting off on the caster.
-        CreateShadowValidationColumn(game, world, skinnedMesh, "ReceiveShadow", -12.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial);
-        CreateShadowValidationColumn(game, world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false);
-        CreateShadowValidationColumn(game, world, skinnedMesh, "NoCastShadow", 12.0f, casterCastShadows: false, receiverReceiveShadows: true);
+        CreateShadowValidationColumn(game, world, skinnedMesh, "ReceiveShadow", -12.0f, casterCastShadows: true, receiverReceiveShadows: true, casterMaterialOverride: tintedCasterMaterial, pbrMaterial: pbrMaterial, casterPbrMaterial: tintedCasterPbrMaterial);
+        CreateShadowValidationColumn(game, world, skinnedMesh, "NoReceiveShadow", 0.0f, casterCastShadows: true, receiverReceiveShadows: false, pbrMaterial: pbrMaterial);
+        CreateShadowValidationColumn(game, world, skinnedMesh, "NoCastShadow", 12.0f, casterCastShadows: false, receiverReceiveShadows: true, pbrMaterial: pbrMaterial);
+
+        ApplyShadingMode();
+
+        if (_frozen)
+        {
+            for (var componentIndex = 0; componentIndex < _skinnedMeshComponents.Count; componentIndex++)
+            {
+                _skinnedMeshComponents[componentIndex].SeekAnimation(FrozenAnimationTimeSeconds);
+                _skinnedMeshComponents[componentIndex].PauseAnimation();
+            }
+        }
+    }
+
+    private static LitPbrMaterial CreatePbrMaterial(Color baseColor)
+    {
+        return new LitPbrMaterial
+        {
+            BaseColor = baseColor,
+            Metallic = 0.0f,
+            Roughness = 0.5f,
+            BlendState = BlendState.NonPremultiplied,
+            DepthStencilState = DepthStencilState.Default,
+            RasterizerState = RasterizerState.CullCounterClockwise,
+            SamplerState = SamplerState.AnisotropicClamp,
+        };
+    }
+
+    // Hands every component its PBR material, or takes it back, according to the current mode.
+    private void ApplyShadingMode()
+    {
+        for (var componentIndex = 0; componentIndex < _skinnedMeshComponents.Count; componentIndex++)
+        {
+            _skinnedMeshComponents[componentIndex].PbrMaterial = _usePbr ? _pbrMaterials[componentIndex] : null;
+        }
     }
 
     // Every 2.5 seconds all the characters cross-fade to the next animation clip of the model, cycling through its
@@ -172,6 +269,17 @@ public class SkinnedMeshDemo : Demo
     public override void Update(GameTime gameTime)
     {
         if (_skinnedMeshComponents.Count == 0)
+        {
+            return;
+        }
+
+        if (DemoInput.WasPressed(_game, PbrAction))
+        {
+            _usePbr = !_usePbr;
+            ApplyShadingMode();
+        }
+
+        if (_frozen)
         {
             return;
         }
@@ -225,6 +333,9 @@ public class SkinnedMeshDemo : Demo
         _animationSwitchTimer = 0f;
         _nextAnimationIndex = 1;
         _useInertializeTransition = false;
+        _frozen = false;
+        _usePbr = false;
+        _pbrMaterials.Clear();
     }
 
     // One column: a caster (larger scale) and a receiver (smaller) placed apart in depth. The two use different skinning
@@ -238,7 +349,9 @@ public class SkinnedMeshDemo : Demo
         float centerX,
         bool casterCastShadows,
         bool receiverReceiveShadows,
-        LitDiffuseMaterial casterMaterialOverride = null)
+        LitPbrMaterial pbrMaterial,
+        LitDiffuseMaterial casterMaterialOverride = null,
+        LitPbrMaterial casterPbrMaterial = null)
     {
         // A ground under the pair: a static mesh that never casts and takes the column's receive flag, like the receiver.
         // It is what the shadow of the caster falls on.
@@ -270,7 +383,8 @@ public class SkinnedMeshDemo : Demo
             castShadows: casterCastShadows,
             receiveShadows: true,
             uniformScale: 0.11f,
-            materialOverride: casterMaterialOverride);
+            materialOverride: casterMaterialOverride,
+            pbrMaterial: casterPbrMaterial ?? pbrMaterial);
 
         CreateSkinnedMeshEntity(
             world,
@@ -280,7 +394,8 @@ public class SkinnedMeshDemo : Demo
             SkinningModeSelection.DualQuaternion,
             castShadows: false,
             receiveShadows: receiverReceiveShadows,
-            uniformScale: 0.085f);
+            uniformScale: 0.085f,
+            pbrMaterial: pbrMaterial);
     }
 
     private void CreateSkinnedMeshEntity(
@@ -292,7 +407,8 @@ public class SkinnedMeshDemo : Demo
         bool castShadows,
         bool receiveShadows,
         float uniformScale = 0.1f,
-        LitDiffuseMaterial materialOverride = null)
+        LitDiffuseMaterial materialOverride = null,
+        LitPbrMaterial pbrMaterial = null)
     {
         // The component is the entity's root and draws the shared mesh. Material, when not null, replaces the renderer's
         // default skinned material for this component only. The uniform scale sets the size on screen; the caster is drawn a little larger than the receiver.
@@ -314,6 +430,7 @@ public class SkinnedMeshDemo : Demo
         // Start on the first clip; Update moves on to the next ones. The list lets Update reach every component.
         skinnedMeshComponent.PlayAnimation(0);
         _skinnedMeshComponents.Add(skinnedMeshComponent);
+        _pbrMaterials.Add(pbrMaterial);
         world.AddEntity(entity);
     }
 

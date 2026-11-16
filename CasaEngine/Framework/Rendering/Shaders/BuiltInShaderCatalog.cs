@@ -8,11 +8,18 @@ public static class BuiltInShaderCatalog
 {
     public const string LitForwardContentName = EffectiveShaderResolver.LitForwardContentName;
     public const string UnlitTextureContentName = EffectiveShaderResolver.UnlitTextureContentName;
+    public const string LitPbrContentName = EffectiveShaderResolver.LitPbrContentName;
     public const string SkinEffectContentName = EffectiveShaderResolver.LinearBlendSkinnedEffectContentName;
     public const string ShadowDepthContentName = "Shaders\\ShadowDepth";
     public const string SkyCubemapContentName = "Shaders\\SkyCubemap";
     public const string SpriteBatchContentName = "Shaders\\SpriteBatch";
     public const string DebugPrimitiveColorContentName = "Shaders\\DebugPrimitiveColor";
+    public const string TonemapContentName = "Shaders\\Tonemap";
+    public const string BloomContentName = "Shaders\\Bloom";
+    public const string FxaaContentName = "Shaders\\Fxaa";
+    public const string SceneDepthContentName = "Shaders\\SceneDepth";
+    public const string SsaoContentName = "Shaders\\Ssao";
+    public const string IblConvolutionContentName = "Shaders\\IblConvolution";
     /// <summary>Content name of the unlit textured vertex-colour effect. Deliberately absent from <see cref="RuntimeShaders"/>:
     /// that list drives the editor shader-source watcher, and no consumer implements a live rebind for this effect yet,
     /// so watching it would only report a reload that never happened (same choice as Shaders\DebugSolidColor).</summary>
@@ -22,11 +29,18 @@ public static class BuiltInShaderCatalog
     [
         new("Shaders/LitForward.fx", LitForwardContentName),
         new("Shaders/UnlitTexture.fx", UnlitTextureContentName),
+        new("Shaders/LitPbr.fx", LitPbrContentName),
         new("Shaders/skinEffect.fx", SkinEffectContentName),
         new("Shaders/ShadowDepth.fx", ShadowDepthContentName),
         new("Shaders/SkyCubemap.fx", SkyCubemapContentName),
         new("Shaders/SpriteBatch.fx", SpriteBatchContentName),
         new("Shaders/DebugPrimitiveColor.fx", DebugPrimitiveColorContentName),
+        new("Shaders/Tonemap.fx", TonemapContentName),
+        new("Shaders/Bloom.fx", BloomContentName),
+        new("Shaders/Fxaa.fx", FxaaContentName),
+        new("Shaders/SceneDepth.fx", SceneDepthContentName),
+        new("Shaders/Ssao.fx", SsaoContentName),
+        new("Shaders/IblConvolution.fx", IblConvolutionContentName),
     ];
 
     private static readonly Dictionary<string, BuiltInShaderDescriptor> DescriptorsByContentName = BuildDescriptorsByContentName();

@@ -135,8 +135,13 @@ Nettoyage optionnel:
 Remove-Item Env:CASAENGINE_START_DEMO
 ```
 
+## lit-pbr material
+
+The `lit-pbr` material (`LitPbrMaterial`, ADR-0109) complements `lit-diffuse` without replacing it: same `MaterialAsset` to `MaterialCompiler` to `CompiledMaterial` chain, but the `LitPbr` family resolves the `LitPbr` shader and the material names its own technique (`LitPbr[_NormalMap][_AlphaTest|_Transparent]`). Sixteen keys (two of them the clear coat, ADR-0115, two the detail texture, ADR-0117), six per-instance overrides (`base_color`, `metallic`, `roughness`, `emissive_color`, `clear_coat`, `clear_coat_roughness`), glTF import as `lit-pbr` on request through the API (ADR-0112). Details, IBL and limits: `docs/engine/pbr-rendering.md`.
+
 ## Documents associes
 
 - `docs/engine/effect-file-inventory.md` pour la cartographie effect -> consumers et la separation material/debug.
 - `docs/engine/shader-naming-convention.md` pour la convention de nommage appliquee aux shaders actifs et aux shaders archives.
 - `ai-agent/tasks/shader-source-hot-reload-tasks.md` pour le backlog du hot reload des sources `.fx` / `.fxh`.
+- `docs/engine/pbr-rendering.md` for PBR rendering (`lit-pbr`, IBL, bloom, limits).

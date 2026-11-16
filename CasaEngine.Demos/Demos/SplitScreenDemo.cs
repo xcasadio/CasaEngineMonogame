@@ -24,11 +24,29 @@ public class SplitScreenDemo : Demo
 {
     private const int ProbeFrames = 20;
 
+    // Measurement pixels of the SSAO check (plan T3.3, ADR-0116; window coordinates, 1024 x 768, LinearHdr), one per view, in a flat
+    // area of the ground far from every object: the grey is the same with and without CASAENGINE_DEMO_SSAO=1 (174, 166, 138), while
+    // the SSAO count of each view (RenderStats.SsaoPasses, written at the capture) proves the composition ran in that view.
+
+    /// <summary>Uniform ground pixel of the left view (view 0).</summary>
+    public static readonly Point SsaoUniformPixelLeftView = new(250, 700);
+
+    /// <summary>Uniform ground pixel of the right view (view 1).</summary>
+    public static readonly Point SsaoUniformPixelRightView = new(700, 700);
+    private const string PbrVariable = "CASAENGINE_SPLIT_DEMO_PBR";
+
+    // CASAENGINE_SPLIT_DEMO_PBR=1 (plan T6.3): a procedural environment cube and one metal lit-pbr sphere in front of each camera, on
+    // the line from the camera to its target, so that the centre of each view shows the sphere. Radius 1.2.
+    private const float PbrSphereRadius = 1.2f;
+    private static readonly Vector3 PbrSphereLeftPosition = new(-10.0f, 4.7f, 9.0f);
+    private static readonly Vector3 PbrSphereRightPosition = new(17.0f, 4.2f, 3.0f);
+
     private ArcBallCameraComponent? _camera2;
     private RenderView? _offsetView;
     private CasaEngineGame? _game;
     private int _frames;
     private bool _probed;
+    private TextureCube? _pbrCube;
 
     public override string Title => "Split-screen demo (2 views)";
     public override string Description =>
@@ -92,6 +110,39 @@ public class SplitScreenDemo : Demo
         AddPrimitive(world, gd, "LightBoxB", new BoxPrimitive(1.4f, 3.8f, 1.4f), new Vector3(13.4f, 1.9f, -1.2f),
             Quaternion.Identity,
             new LitDiffuseMaterial { DiffuseColor = new Color(180, 160, 110), SpecularColor = new Vector3(0.25f), SpecularPower = 12f });
+
+        if (Environment.GetEnvironmentVariable(PbrVariable) == "1")
+        {
+            AddPbrScene(world, gd);
+        }
+    }
+
+    /// <summary>
+    /// The environment cube of the world and one metal sphere in front of each camera (the cameras look at two different clusters,
+    /// so one sphere per view). Both views draw with the same world, hence the same cube and the same generated IBL textures.
+    /// </summary>
+    private void AddPbrScene(CasaEngine.Framework.Scene.World.World world, GraphicsDevice gd)
+    {
+        _pbrCube = ColorPipelineIblScene.CreateCube(gd, ColorPipelineIblScene.BuildFacePixels(0), "SplitScreenPbrCube");
+        world.EnvironmentSettings.SpecularEnvironmentCubemap = _pbrCube;
+        world.EnvironmentSettings.MarkDirty();
+
+        var left = new LitPbrMaterial { Name = "SplitPbrLeft", BaseColor = Color.White, Metallic = 1.0f, Roughness = 0.3f };
+        var right = new LitPbrMaterial { Name = "SplitPbrRight", BaseColor = Color.White, Metallic = 1.0f, Roughness = 0.3f };
+        AddSphere(world, gd, "PbrSphereLeft", PbrSphereLeftPosition, left);
+        AddSphere(world, gd, "PbrSphereRight", PbrSphereRightPosition, right);
+    }
+
+    private static void AddSphere(CasaEngine.Framework.Scene.World.World world, GraphicsDevice gd, string name, Vector3 position, MaterialBase material)
+    {
+        var entity = new Entity { Name = name };
+        var component = new StaticModelComponent();
+        entity.RootComponent = component;
+        component.StaticModel = StaticModel.CreateFromPrimitive(new SpherePrimitive(PbrSphereRadius * 2.0f, 32));
+        component.StaticModel.Meshes[0].Initialize(gd);
+        component.StaticModel.Meshes[0].Material = material;
+        component.LocalPosition = position;
+        world.AddEntity(entity);
     }
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
@@ -221,10 +272,18 @@ public class SplitScreenDemo : Demo
         if (_game != null)
         {
             _game.GameManager.ViewManager.Clear();
+
+            if (_pbrCube != null)
+            {
+                _game.GameManager.CurrentWorld.EnvironmentSettings.ResetToDefaults();
+                _game.GameManager.CurrentWorld.EnvironmentSettings.MarkDirty();
+            }
         }
 
         _camera2 = null;
         _offsetView = null;
+        _pbrCube?.Dispose();
+        _pbrCube = null;
         _game = null;
     }
 

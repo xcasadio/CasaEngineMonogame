@@ -81,6 +81,12 @@ public abstract class MaterialBase : ISerializable
     /// </summary>
     public abstract void Bind(ShaderWrapper shader, in RenderContext context, Matrix world);
 
+    /// <summary>
+    /// The texture whose alpha cuts out the shadow of this material (compared to <see cref="AlphaCutoff"/>), or null when the
+    /// shadow is solid. Only a material in the <see cref="RenderQueue.AlphaTest"/> queue with a base colour texture provides one.
+    /// </summary>
+    public virtual Texture2D ShadowMaskTexture => null;
+
     public virtual MaterialShaderCapabilities GetShaderCapabilities()
         => CreateShaderCapabilities(MaterialShaderFamily.Lit);
 

@@ -9,6 +9,11 @@
 float4x4 WorldViewProj;
 float4 ColorMultiplier = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
+// 1 when the view renders in the linear colour pipeline (ADR-0106): the vertex colour is a display colour.
+float ColorPipelineIsLinear = 0.0f;
+
+#include "ColorPipeline.fxh"
+
 struct VS_INPUT
 {
     float3 position : POSITION;
@@ -31,7 +36,7 @@ VS_OUTPUT VS(VS_INPUT input)
 
 float4 PS(VS_OUTPUT input) : COLOR
 {
-    return input.color;
+    return DecodeColor4(input.color);
 }
 
 technique Simple
