@@ -1380,37 +1380,40 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
 ## Reprise sur une autre machine
 
 Écrit le 2026-11-16 à la demande de l'auteur, pour continuer ce plan depuis une autre machine ou une autre session.
-Tout le travail est commité ; rien d'autre que les deux branches n'est nécessaire.
+Tout le travail est commité et fusionné ; rien d'autre que les branches principales n'est nécessaire.
 
 État au moment de l'arrêt :
 
-- Moteur : branche `chantier/mgui-nonalloc-suite`, dernier commit de code `88324a47`. Elle part du `main` local, qui
-  a 32 commits d'avance sur `origin/main` : pousser la branche du chantier emporte ces commits.
-- MGUI (sous-module) : branche `chantier/mgui-nonalloc-suite`, commit `d0efd9b4`, que le moteur référence. Elle part
-  du `develop` local, qui a 31 commits d'avance sur `origin/develop`.
+- À la demande de l'auteur (2026-11-16), les branches du chantier ont été fusionnées en avance rapide dans les
+  branches principales : `chantier/mgui-nonalloc-suite` du moteur dans `main`, et celle de MGUI dans `develop`. Le
+  moteur référence la tête de `develop` de MGUI. La fusion a été faite avant la vérification indépendante de
+  l'entrée (T5.4) : T5.1 à T5.3 sont donc dans `main` et `develop` sur la foi de leurs propres tests.
+- **La suite du plan se fait sur une nouvelle branche**, créée depuis `main` dans le moteur et depuis `develop` dans
+  MGUI : `chantier/mgui-nonalloc-phase5` dans les deux dépôts. Cela remplace, pour T5.4 à T5.10, le nom de branche
+  écrit dans « Règles d'exécution pour l'agent ». Ne jamais committer sur `main` ni sur `develop`.
 - Faites : phases 0 à 4, puis T5.1, T5.2 et T5.3. Prochaine tâche : **T5.4** (vérification indépendante de l'entrée),
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
-- Référence des suites à ce commit : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
+- Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
 Pour pousser (à faire par l'auteur, MGUI d'abord, sinon le moteur référence un commit absent du dépôt distant) :
 
 ```bash
-git -C MGUI push -u origin chantier/mgui-nonalloc-suite
+git -C MGUI push origin develop
 ```
 
 ```bash
-git push -u origin chantier/mgui-nonalloc-suite
+git push origin main
 ```
 
-Pour récupérer sur l'autre machine, à la racine du dépôt du moteur :
+Pour récupérer sur l'autre machine, à la racine du dépôt du moteur, puis créer les branches de la suite :
 
 ```bash
-git fetch origin
+git checkout main
 ```
 
 ```bash
-git checkout chantier/mgui-nonalloc-suite
+git pull --ff-only origin main
 ```
 
 ```bash
@@ -1418,16 +1421,26 @@ git submodule update --init
 ```
 
 ```bash
-git -C MGUI fetch origin
+git -C MGUI checkout develop
 ```
 
 ```bash
-git -C MGUI checkout chantier/mgui-nonalloc-suite
+git -C MGUI pull --ff-only origin develop
 ```
 
-`git submodule update` laisse MGUI en tête détachée sur le bon commit ; le dernier `checkout` le remet sur sa branche,
-nécessaire pour y commiter. Vérifier ensuite que `git -C MGUI log --oneline -1` rend `d0efd9b4` (ou un commit plus
-récent de cette branche) et que `git status` est propre dans les deux dépôts.
+```bash
+git checkout -b chantier/mgui-nonalloc-phase5
+```
+
+```bash
+git -C MGUI checkout -b chantier/mgui-nonalloc-phase5
+```
+
+`git submodule update` laisse MGUI en tête détachée sur le commit que le moteur référence ; les commandes suivantes
+le remettent sur `develop`, puis sur la branche de la suite, nécessaire pour y commiter. Vérifier que le commit de
+MGUI référencé par le moteur (`git ls-tree HEAD MGUI`) est la tête de `develop` de MGUI et que `git status` est
+propre dans les deux dépôts. Si l'autre machine a des modifications locales non commitées, les signaler à l'auteur
+avant tout `checkout`, sans les écraser.
 
 Ce qui n'est pas dans le dépôt et que l'autre machine doit avoir :
 
@@ -1458,7 +1471,8 @@ Règles de travail apprises pendant ce chantier, que la mémoire locale de l'age
 Consigne à donner à la session qui reprend :
 
 > Reprends le plan `ai-agent/tasks/mgui-nonalloc-suite-tasks.md` à la tâche T5.4, en suivant ses règles d'exécution et
-> sa section « Reprise sur une autre machine ». L'auteur a approuvé la phase 5 le 2026-11-16 et choisi le mode AUTO :
+> sa section « Reprise sur une autre machine » : crée d'abord la branche `chantier/mgui-nonalloc-phase5` depuis `main`
+> dans le moteur et depuis `develop` dans MGUI. L'auteur a approuvé la phase 5 le 2026-11-16 et choisi le mode AUTO :
 > avance tâche par tâche dans le périmètre approuvé, un commit par tâche dans chaque dépôt, sans pousser ni
 > fusionner ; arrête-toi sur tout blocage du plan (⚠️) et à la fin de T5.10.
 
