@@ -769,7 +769,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
 ## Phase 3 — Texte
 
-### ⏳ T3.1 — Bloc sans balise souligné ou à fond
+### ✅ T3.1 — Bloc sans balise souligné ou à fond
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGTextBlock.cs` (`DrawSelf`, `DrawPlainLines`), `Text/PlainTextLayout.cs` si la
   boucle a besoin des bornes d'une ligne.
@@ -778,6 +778,24 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Validation : mêmes appels de dessin que `ForceLegacyTextPath` sur le corpus des tests du texte sans balise, avec
   soulignement et fond ; 0 octet par dessin.
 - Commit (MGUI) : `perf(text): draw an underlined or backed plain block without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3822 verts (10 tests
+  ajoutés), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`. Sample relancé à la fin de la phase 2
+  (20 secondes, en vie, aucune sortie d'erreur) ; cette tâche ne change aucun appel de dessin.
+
+  | Octets par dessin, texte inchangé | Avant | Après |
+  |---|---|---|
+  | Bloc sans balise souligné (`MGDesktop.Draw` et `DrawSelf`) | 120 | 0 |
+
+  - Changement : `DrawPlainLines` dessine le soulignement lui-même par `DrawUnderline`, au même rectangle que la
+    boucle historique ; un bloc sans balise souligné ne retombe plus sur celle-ci. `PlainTextLayout.cs` n'a pas changé.
+  - Périmètre réduit au soulignement (constat de T0.1) : un bloc sans balise ne peut pas avoir de fond de texte ; la
+    garde `HasBackground` reste, un fond irait toujours à la boucle historique.
+  - Mêmes appels de dessin que `ForceLegacyTextPath` : 12 672 cas (96 configurations : retour à la ligne, gras, ombre,
+    soulignement, largeurs, alignements, couleurs, opacités de dessin et d'élément, interligne, progression du texte ;
+    100 textes du corpus), 17 561 rectangles de soulignement comparés. Le test échoue si le soulignement est décalé
+    d'un pixel (vérifié puis annulé).
+  - Non couvert par un test, par construction seulement : brosse, hauteur et décalage du soulignement, qui ne peuvent
+    pas atteindre le chemin sans balise aujourd'hui.
 
 ### ⏳ T3.2 — Révélation par `TextCharactersPerSecond`
 
