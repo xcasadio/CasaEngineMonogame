@@ -11,6 +11,10 @@ namespace CasaEngine.Tests.Scripting;
 internal static class ScriptAssemblyCompiler
 {
     public static string CompileScriptAssembly(string directory, string assemblyName, int version)
+        => CompileScriptAssembly(directory, assemblyName, version, extraSource: null);
+
+    /// <summary>Same assembly, plus the types of <paramref name="extraSource"/> (for example a game component).</summary>
+    public static string CompileScriptAssembly(string directory, string assemblyName, int version, string extraSource)
     {
         string source = $$"""
             using CasaEngine.Framework.Physics;
@@ -34,7 +38,12 @@ internal static class ScriptAssemblyCompiler
             }
             """;
 
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var syntaxTrees = new List<SyntaxTree> { CSharpSyntaxTree.ParseText(source) };
+        if (!string.IsNullOrEmpty(extraSource))
+        {
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText(extraSource));
+        }
+
         string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
 
         var references = new List<MetadataReference>
@@ -43,11 +52,13 @@ internal static class ScriptAssemblyCompiler
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "netstandard.dll")),
             MetadataReference.CreateFromFile(typeof(GameplayProxy).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.Xna.Framework.Vector3).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.Linq.JObject).Assembly.Location),
         };
 
         var compilation = CSharpCompilation.Create(
             assemblyName,
-            new[] { syntaxTree },
+            syntaxTrees,
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 

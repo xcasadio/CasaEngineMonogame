@@ -143,6 +143,21 @@ public class TileMapVisibleTileRangeTests
         Assert.True(visibleSampleCount > 0);
     }
 
+    [Fact]
+    public void FrustumSlabBounds_InfiniteFarPlane_KeepsTheFullTileRange()
+    {
+        // A camera without a far plane (FarPlane +infinity, as the editor cameras) has its far corners at
+        // infinity. The eye sits inside the slab, so the near quad crosses it: clipping only the near quad
+        // edges would shrink the extent to the near quad and cull the map beyond it.
+        var position = MapCenter + new Vector3(0f, -800f, 0.5f);
+        var view = Matrix.CreateLookAt(position, MapCenter, Vector3.UnitZ);
+        var infinite = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 16f / 9f, 1f, float.PositiveInfinity);
+        var finite = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 16f / 9f, 1f, 5000f);
+
+        Assert.False(TileMapComponent.TryGetFrustumSlabBounds(GetFrustumCorners(view * infinite), -5f, 5f, out _, out _, out _, out _));
+        Assert.True(TileMapComponent.TryGetFrustumSlabBounds(GetFrustumCorners(view * finite), -5f, 5f, out _, out _, out _, out _));
+    }
+
     private static (Matrix View, Matrix Projection) CreateCamera(float pitchDegrees, float distance)
     {
         var pitch = MathHelper.ToRadians(pitchDegrees);

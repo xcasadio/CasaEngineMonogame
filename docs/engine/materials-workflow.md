@@ -96,6 +96,10 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 - Normal map:
   - la simple presence d'une normal map dans le material ne suffit pas.
   - le mesh doit fournir un layout tangent-compatible pour que `RenderFeatureResolver` conserve `ShaderFeature.NormalMap`.
+  - cette regle vit dans `RenderFeatureResolver.AdjustToMesh`, utilisee pour un material compile (a partir de `CompiledMaterial.Features`) comme pour un material construit en code ; `RenderItem.Features` porte le resultat.
+- Reflexion (`lit-diffuse`):
+  - `reflection_texture` (cubemap `.dds`) ou `use_scene_reflection_cube` (cubemap speculaire de l'environnement du monde) choisissent les techniques `*_Reflection` de `LitForward.fx`.
+  - `reflection_add_amount` (1), `reflection_multiply_base` (1) et `reflection_multiply_factor` (0) dosent la reflexion ajoutee et multipliee ; ces valeurs par defaut sont celles du runtime, un `.material` qui ne les ecrit pas garde son rendu.
 - Lighting forward:
   - `LightingContext` expose un plafond fixe de 8 directional lights pour rester compatible avec MonoGame/mgfxc.
   - `ActiveDirectionalLightCount` pilote le sous-ensemble actif sans reconfigurer les shaders ni les materials.

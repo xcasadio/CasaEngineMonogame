@@ -6,10 +6,14 @@ namespace CasaEngine.Editor;
 public sealed class EditorAutomationOptions
 {
     private const double DefaultCaptureDelaySeconds = 6.0;
+    private const double DefaultAutomationTimeoutSeconds = 300.0;
 
     public string ProjectPath { get; private set; }
     public string OpenAssetPath { get; private set; }
     public string ActivatePanelId { get; private set; }
+    /// <summary>Filter applied to the Logs panel before the capture (<c>All</c> or a <c>LogVerbosity</c> name), so that the
+    /// entries of one level are on screen even when later entries would scroll them out of view.</summary>
+    public string LogsFilter { get; private set; }
     public string ContentBrowserFolderPath { get; private set; }
     public string ContentBrowserScrollTarget { get; private set; }
     public string DockResizeTarget { get; private set; }
@@ -22,6 +26,12 @@ public sealed class EditorAutomationOptions
     public bool ParticleUndoRedoSmoke { get; private set; }
     public string SetMaterialPropertyKey { get; private set; }
     public string SetMaterialPropertyValue { get; private set; }
+    /// <summary>Sampler field of a <c>.texture</c> asset to change (<c>--set-texture-sampler &lt;key&gt;=&lt;value&gt;</c>), by its JSON key.</summary>
+    public string SetTextureSamplerKey { get; private set; }
+    public string SetTextureSamplerValue { get; private set; }
+    /// <summary>Mesh whose material of a <c>.staticModel</c> asset to change (<c>--set-static-model-material &lt;mesh index&gt;=&lt;material id&gt;</c>), as typed; the editor validates both.</summary>
+    public string SetStaticModelMaterialMeshIndex { get; private set; }
+    public string SetStaticModelMaterialId { get; private set; }
     public string SetScreenPropertyNodeName { get; private set; }
     public string SetScreenPropertyName { get; private set; }
     public string SetScreenPropertyValue { get; private set; }
@@ -33,6 +43,8 @@ public sealed class EditorAutomationOptions
     public bool PlaySmoke { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
+    /// <summary>Longest an automation run may take before it writes its diagnostics and stops with exit code 2.</summary>
+    public double AutomationTimeoutSeconds { get; private set; } = DefaultAutomationTimeoutSeconds;
     public bool ExitAfterCapture { get; private set; } = true;
 
     /// <summary><c>--remote</c>: starts the remote control pipe for the CLI and the MCP server (ADR-0092). Not an automation run.</summary>
@@ -46,6 +58,7 @@ public sealed class EditorAutomationOptions
         || EntityIndexSpecified
         || !string.IsNullOrWhiteSpace(ComponentName)
         || !string.IsNullOrWhiteSpace(ActivatePanelId)
+        || !string.IsNullOrWhiteSpace(LogsFilter)
         || !string.IsNullOrWhiteSpace(ContentBrowserFolderPath)
         || !string.IsNullOrWhiteSpace(ContentBrowserScrollTarget)
         || !string.IsNullOrWhiteSpace(DockResizeTarget)
@@ -56,6 +69,8 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(SetParticlePropertyKey)
         || ParticleUndoRedoSmoke
         || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
+        || !string.IsNullOrWhiteSpace(SetTextureSamplerKey)
+        || !string.IsNullOrWhiteSpace(SetStaticModelMaterialMeshIndex)
         || !string.IsNullOrWhiteSpace(SetScreenPropertyNodeName)
         || SaveProject
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
@@ -91,6 +106,11 @@ public sealed class EditorAutomationOptions
 
                 case "--activate-panel":
                     options.ActivatePanelId = next;
+                    index++;
+                    break;
+
+                case "--logs-filter":
+                    options.LogsFilter = next;
                     index++;
                     break;
 
@@ -146,6 +166,28 @@ public sealed class EditorAutomationOptions
                     {
                         options.SetMaterialPropertyKey = next[..separatorIndex];
                         options.SetMaterialPropertyValue = next[(separatorIndex + 1)..];
+                    }
+
+                    index++;
+                    break;
+
+                case "--set-texture-sampler":
+                    int samplerSeparatorIndex = next.IndexOf('=');
+                    if (samplerSeparatorIndex > 0 && samplerSeparatorIndex < next.Length - 1)
+                    {
+                        options.SetTextureSamplerKey = next[..samplerSeparatorIndex];
+                        options.SetTextureSamplerValue = next[(samplerSeparatorIndex + 1)..];
+                    }
+
+                    index++;
+                    break;
+
+                case "--set-static-model-material":
+                    int materialSeparatorIndex = next.IndexOf('=');
+                    if (materialSeparatorIndex > 0 && materialSeparatorIndex < next.Length - 1)
+                    {
+                        options.SetStaticModelMaterialMeshIndex = next[..materialSeparatorIndex];
+                        options.SetStaticModelMaterialId = next[(materialSeparatorIndex + 1)..];
                     }
 
                     index++;
@@ -211,6 +253,15 @@ public sealed class EditorAutomationOptions
                     {
                         options.CaptureDelaySeconds = Math.Max(0.5, captureDelaySeconds);
                         options.CaptureDelaySpecified = true;
+                    }
+
+                    index++;
+                    break;
+
+                case "--automation-timeout":
+                    if (double.TryParse(next, NumberStyles.Float, CultureInfo.InvariantCulture, out double timeoutSeconds))
+                    {
+                        options.AutomationTimeoutSeconds = Math.Max(1.0, timeoutSeconds);
                     }
 
                     index++;

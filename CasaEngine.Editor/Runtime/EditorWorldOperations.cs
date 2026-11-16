@@ -539,6 +539,8 @@ internal static class EditorWorldOperations
 
     private static bool IsAddableComponentType(Type type)
     {
-        return type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
+        //  An unresolved component only stands for a component of unknown type found in a file (ADR-0119).
+        return type != typeof(UnresolvedComponent)
+               && type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
     }
 }

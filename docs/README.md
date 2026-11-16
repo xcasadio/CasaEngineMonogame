@@ -27,6 +27,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [shader-naming-convention.md](engine/shader-naming-convention.md) — convention de nommage des shaders.
 - [effect-file-inventory.md](engine/effect-file-inventory.md) — inventaire des fichiers `.fx` / `.fxh` et leurs consommateurs.
 - [light-component.md](engine/light-component.md) — `LightComponent`.
+- [component-persistence.md](engine/component-persistence.md) — chargement et sauvegarde des composants, propriétés `[SerializedProperty]` des composants de jeu (ADR-0118).
 - [environment-system-v1.md](engine/environment-system-v1.md) — système d'environnement V1.
 - [lit-ambient-and-ambient-source.md](engine/lit-ambient-and-ambient-source.md) — terme ambiant des matériaux éclairés (couleur de surface appliquée une fois) et source d'ambiant `AmbientSource` (`Auto` / `Flat`) d'un monde.
 - [lit-detail-texture.md](engine/lit-detail-texture.md) — texture de détail de `LitDiffuseMaterial` (`DetailTexture`, `DetailTiling`, formule `base * 2 * détail`, limites).
@@ -102,6 +103,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-remote-control.md](editor/editor-remote-control.md) — pilotage de l'éditeur ouvert par la CLI `casa-editor` et le serveur MCP `casa-editor-mcp` : activation, commandes, règles d'annulation, sécurité (ADR-0092).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
 - [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
+- [asset-documents.md](editor/asset-documents.md) — documents des assets sans éditeur dédié : aperçu en lecture seule (images, cubemaps, audio, polices bitmap, glTF, données), documents `.texture` et `.staticModel`, options d'automatisation (ADR-0120).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).
 - [gameplay-csproj-scaffolding.md](editor/gameplay-csproj-scaffolding.md) — conception du scaffolding du projet C# gameplay à `CreateProject` (csproj/sln générés, Phase 1 DLL éditeur → Phase 2 NuGet).
 - [timeline_control_architecture.md](editor/timeline_control_architecture.md) — architecture du contrôle Timeline V1.

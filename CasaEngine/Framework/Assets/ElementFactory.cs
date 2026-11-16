@@ -3,6 +3,7 @@ using System.Runtime.Loader;
 using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
@@ -23,7 +24,8 @@ public static class ElementFactory
 
     public static T Create<T>(string typeName) where T : class
     {
-        var type = FindTypeByName(typeName);
+        var type = FindTypeByName(typeName)
+                   ?? throw new ArgumentException($"Unknown type '{typeName}': no loaded assembly declares it.", nameof(typeName));
         return Activator.CreateInstance(type) as T;
     }
 
@@ -32,6 +34,8 @@ public static class ElementFactory
         var typeName = element["type"].GetString();
         var component = Create<T>(typeName);
         component.Load(element);
+        //  Properties marked [SerializedProperty] (ADR-0118), read after the type's own keys.
+        SerializedProperties.Load(component, element);
         return component;
     }
 
@@ -303,6 +307,31 @@ public static class ElementFactory
     }
 
     /// <summary>
+    /// Loads a component node like <see cref="Load{T}"/>, except that a <c>type</c> no loaded assembly declares (or one that
+    /// is not a <typeparamref name="T"/>) is reported with the component's name and id, and replaced by an
+    /// <see cref="UnresolvedComponent"/> that keeps the node, so that the entity still loads and saves without loss
+    /// (ADR-0119).
+    /// </summary>
+    public static T LoadComponent<T>(JObject element) where T : EntityComponent
+    {
+        var typeName = element["type"]?.Type == JTokenType.String ? element["type"]!.Value<string>() : null;
+        var type = FindTypeByName(typeName);
+        if (type != null && typeof(T).IsAssignableFrom(type) && !type.IsAbstract)
+        {
+            return Load<T>(element);
+        }
+
+        Logs.WriteError(type == null
+            ? $"Unknown component type '{typeName}' for component '{element["name"]}' ({element["id"]}): no loaded assembly declares it. The component is kept unchanged, as an unresolved component."
+            : $"Component type '{typeName}' of component '{element["name"]}' ({element["id"]}) is not a {typeof(T).Name}. The component is kept unchanged, as an unresolved component.");
+
+        var unresolved = new UnresolvedComponent();
+        unresolved.Load(element);
+        return unresolved as T
+               ?? throw new InvalidOperationException($"An unresolved component cannot stand for a {typeof(T).Name}.");
+    }
+
+    /// <summary>
     /// Makes the types of a reloadable script assembly resolvable by name.
     /// The assembly stays pinned until <see cref="UnregisterScriptAssembly"/>.
     /// </summary>
@@ -392,10 +421,23 @@ public static class ElementFactory
 
     private static IEnumerable<Type> BuildDerivedTypes(Type type) =>
         GetCandidateAssemblies()
-            .SelectMany(x => x.GetTypes())
+            .SelectMany(GetLoadableTypes)
             .Where(x => x is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
                         && x.IsSubclassOf(type))
             .ToList();
+
+    //  An assembly whose dependencies do not all resolve still lists the types that load.
+    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException exception)
+        {
+            return exception.Types.Where(type => type != null)!;
+        }
+    }
 
     public static IEnumerable<Type> GetDerivedTypesFrom<T>() where T : class
     {

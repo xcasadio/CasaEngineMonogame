@@ -12,7 +12,7 @@ public class MaterialDefinitionEditorRegistryTests
 
         var descriptors = registry.GetDescriptors("lit-diffuse");
 
-        Assert.Equal(11, descriptors.Count);
+        Assert.Equal(15, descriptors.Count);
 
         var baseColor = GetDescriptor(descriptors, "base_color_texture");
         Assert.Equal("Surface", baseColor.Category);
@@ -50,6 +50,15 @@ public class MaterialDefinitionEditorRegistryTests
         var specularPower = GetDescriptor(descriptors, "specular_power");
         Assert.Equal("PBR", specularPower.Category);
         Assert.Equal("Slider", specularPower.EditorControlHint);
+
+        var sceneReflection = GetDescriptor(descriptors, "use_scene_reflection_cube");
+        Assert.Equal("PBR", sceneReflection.Category);
+        Assert.Equal("CheckBox", sceneReflection.EditorControlHint);
+
+        foreach (var key in new[] { "reflection_add_amount", "reflection_multiply_base", "reflection_multiply_factor" })
+        {
+            Assert.Equal("PBR", GetDescriptor(descriptors, key).Category);
+        }
     }
 
     [Fact]
@@ -74,7 +83,7 @@ public class MaterialDefinitionEditorRegistryTests
             pbr =>
             {
                 Assert.Equal("PBR", pbr.Key);
-                Assert.Equal(new[] { "reflection_texture", "specular_color", "specular_power" }, GetKeys(pbr));
+                Assert.Equal(new[] { "reflection_texture", "specular_color", "specular_power", "use_scene_reflection_cube", "reflection_add_amount", "reflection_multiply_base", "reflection_multiply_factor" }, GetKeys(pbr));
             },
             emission =>
             {

@@ -126,6 +126,46 @@ internal static class BuiltInMaterialDefinitions
                     defaultValue: 1.0f,
                     description: "Number of times the detail texture repeats over the base texture coordinates. A value that is not finite or not above zero is read as 1.",
                     minValue: 0.0f),
+                //  Reflection blend of legacy reflective materials (glass, car paint), applied by LitForward's reflection
+                //  techniques. The defaults are the runtime defaults of LitDiffuseMaterial, so existing assets keep their look.
+                new MaterialPropertyDefinition(
+                    key: "use_scene_reflection_cube",
+                    displayName: "Scene Reflection Cube",
+                    valueType: MaterialPropertyType.Boolean,
+                    group: MaterialPropertyGroup.Lighting,
+                    flags: MaterialPropertyFlags.AffectsShaderCompilation,
+                    defaultValue: false,
+                    description: "Reflects the world's specular environment cubemap when no reflection cubemap is set."),
+                new MaterialPropertyDefinition(
+                    key: "reflection_add_amount",
+                    displayName: "Reflection Add Amount",
+                    valueType: MaterialPropertyType.Float,
+                    group: MaterialPropertyGroup.Lighting,
+                    defaultValue: 1.0f,
+                    description: "Weight of the reflection added to the lit color.",
+                    minValue: 0.0f,
+                    maxValue: 2.0f,
+                    step: 0.01f),
+                new MaterialPropertyDefinition(
+                    key: "reflection_multiply_base",
+                    displayName: "Reflection Multiply Base",
+                    valueType: MaterialPropertyType.Float,
+                    group: MaterialPropertyGroup.Lighting,
+                    defaultValue: 1.0f,
+                    description: "Base of the factor that multiplies the lit color by the reflection.",
+                    minValue: 0.0f,
+                    maxValue: 2.0f,
+                    step: 0.01f),
+                new MaterialPropertyDefinition(
+                    key: "reflection_multiply_factor",
+                    displayName: "Reflection Multiply Factor",
+                    valueType: MaterialPropertyType.Float,
+                    group: MaterialPropertyGroup.Lighting,
+                    defaultValue: 0.0f,
+                    description: "Weight of the reflection in the factor that multiplies the lit color.",
+                    minValue: 0.0f,
+                    maxValue: 2.0f,
+                    step: 0.01f),
             });
 
     private static MaterialDefinition CreateUnlitTextureDefinition()

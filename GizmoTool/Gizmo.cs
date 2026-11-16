@@ -1272,22 +1272,7 @@ public class Gizmo : IDisposable
     /// </summary>
     private Ray ConvertMouseToRay(Vector2 mousePosition)
     {
-        var nearPoint = new Vector3(mousePosition, 0);
-        var farPoint = new Vector3(mousePosition, 1);
-
-        nearPoint = ActiveViewport.Unproject(nearPoint,
-                                             _projection,
-                                             _view,
-                                             Matrix.Identity);
-        farPoint = ActiveViewport.Unproject(farPoint,
-                                            _projection,
-                                            _view,
-                                            Matrix.Identity);
-
-        var direction = farPoint - nearPoint;
-        direction.Normalize();
-
-        return new Ray(nearPoint, direction);
+        return GizmoRay.FromScreen(mousePosition, ActiveViewport, _view, _projection);
     }
     #endregion
 

@@ -5,29 +5,36 @@ namespace CasaEngine.Core.Math.Geometry;
 
 public static class RayHelper
 {
+    /// <summary>
+    /// The world-space ray through the screen point <paramref name="pos"/> (pixels of <paramref name="viewport"/>),
+    /// starting on the near plane. Only the viewport position and size are read, not its depth range.
+    /// <para>
+    /// The two points that give the direction are unprojected in view space, at clip depths 0 (the near plane) and 0.5,
+    /// then moved to world space: their coordinates stay small whatever the distance of the camera to the origin, so the
+    /// direction keeps its precision far from it, and clip depth 0.5 stays finite for a projection without a far plane
+    /// (FarPlane +infinity), where clip depth 1 is the point at infinity. Valid for perspective and orthographic projections.
+    /// </para>
+    /// </summary>
     public static Ray CalculateRayFromScreenCoordinate(Vector2 pos, Matrix projectionMatrix, Matrix viewMatrix, Viewport viewport)
     {
-        // create 2 positions in screenspace using the cursor position. 0 is as
-        // close as possible to the camera, 1 is as far away as possible.
-        Vector3 nearSource = new Vector3(pos, 0f);
-        Vector3 farSource = new Vector3(pos, 1f);
+        float clipX = (pos.X - viewport.X) / viewport.Width * 2f - 1f;
+        float clipY = -((pos.Y - viewport.Y) / viewport.Height * 2f - 1f);
 
-        // use Viewport.Unproject to tell what those two screen space positions
-        // would be in world space. we'll need the projection matrix and view
-        // matrix, which we have saved as member variables. We also need a world
-        // matrix, which can just be identity.
-        Vector3 nearPoint = viewport.Unproject(nearSource,
-            projectionMatrix, viewMatrix, Matrix.Identity);
+        Matrix inverseProjection = Matrix.Invert(projectionMatrix);
+        Vector3 nearPoint = UnprojectToViewSpace(clipX, clipY, 0f, in inverseProjection);
+        Vector3 farPoint = UnprojectToViewSpace(clipX, clipY, 0.5f, in inverseProjection);
 
-        Vector3 farPoint = viewport.Unproject(farSource,
-            projectionMatrix, viewMatrix, Matrix.Identity);
-
-        // find the direction vector that goes from the nearPoint to the farPoint
-        // and normalize it....
-        Vector3 direction = farPoint - nearPoint;
+        Matrix inverseView = Matrix.Invert(viewMatrix);
+        Vector3 origin = Vector3.Transform(nearPoint, inverseView);
+        Vector3 direction = Vector3.TransformNormal(farPoint - nearPoint, inverseView);
         direction.Normalize();
 
-        // and then create a new ray using nearPoint as the source.
-        return new Ray(nearPoint, direction);
+        return new Ray(origin, direction);
+    }
+
+    private static Vector3 UnprojectToViewSpace(float clipX, float clipY, float clipZ, in Matrix inverseProjection)
+    {
+        Vector4 point = Vector4.Transform(new Vector4(clipX, clipY, clipZ, 1f), inverseProjection);
+        return new Vector3(point.X, point.Y, point.Z) / point.W;
     }
 }

@@ -316,16 +316,8 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
         EnsurePreviewSceneCreated();
 
-        _cameraEntity = new Entity
-        {
-            Name = "MaterialPreviewCamera",
-            IsVisible = false,
-        };
-
         _camera = new CameraLookAtComponent();
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("MaterialPreviewCamera", _camera, _previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 

@@ -165,10 +165,13 @@ public class LitPbrTransparentGpuTests
     {
         var compiler = new MaterialCompiler();
         var contentManager = new AssetContentManager();
+        var compiledMaterial = compiler.Compile(asset, contentManager);
         var item = new RenderItem
         {
             Material = compiler.CompileRuntimeMaterial(asset, contentManager),
-            CompiledMaterial = compiler.Compile(asset, contentManager),
+            CompiledMaterial = compiledMaterial,
+            // The producer sets the features: RenderItem does not read them back from the compiled material.
+            Features = compiledMaterial.Features,
         };
 
         Assert.Equal(expectedQueue, item.Queue);

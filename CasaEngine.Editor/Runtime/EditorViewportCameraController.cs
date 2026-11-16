@@ -35,7 +35,8 @@ internal readonly struct EditorViewportCameraState
 internal sealed class EditorViewportCameraController
 {
     private const float MinDistance = 0.5f;
-    private const float MaxDistance = 1000f;
+    // Far enough to frame a world that fills the octree root (+/-100000), the editor camera having no far plane.
+    private const float MaxDistance = 100000f;
     private const float DefaultDistance = 10f;
 
     private readonly ViewportCameraNavigation _navigation = new()

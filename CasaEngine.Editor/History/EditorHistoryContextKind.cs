@@ -14,4 +14,6 @@ public enum EditorHistoryContextKind
     TileMap,
     ContentBrowser,
     AudioMixer,
+    Texture,
+    StaticModel,
 }

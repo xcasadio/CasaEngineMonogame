@@ -22,4 +22,7 @@ public static class EditorPanelIds
     public const string AudioMixerAssetDocumentPrefix = "panel_audio_mixer_asset_";
     public const string CutsceneAssetDocumentPrefix = "panel_cutscene_asset_";
     public const string TileMapAssetDocumentPrefix = "panel_tile_map_asset_";
+    public const string AssetPreviewDocumentPrefix = "panel_asset_preview_";
+    public const string TextureAssetDocumentPrefix = "panel_texture_asset_";
+    public const string StaticModelAssetDocumentPrefix = "panel_static_model_asset_";
 }

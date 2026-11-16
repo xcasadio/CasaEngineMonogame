@@ -1134,6 +1134,7 @@ public class WorldViewportPanel : IDisposable
             Position = spawnPosition,
         };
 
+        staticModelComponent.Name = EditorComponentNames.CreateUniqueName(entity, staticModelComponent);
         entity.RootComponent = staticModelComponent;
         return entity;
     }
@@ -1318,17 +1319,8 @@ public class WorldViewportPanel : IDisposable
 
         var world = GetRenderWorld();
 
-        _cameraEntity = new Entity
-        {
-            Name = "EditorViewportCamera",
-            IsVisible = false,
-        };
-
         _camera = _cameraController.CreateCameraComponent();
-
-        _cameraEntity.AddComponent(_camera);
-        _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(world);
+        _cameraEntity = EditorCameraFactory.CreateCameraEntity("EditorViewportCamera", _camera, world);
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
         _surface = new RenderTargetSurface(
@@ -1756,7 +1748,11 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView.World = desiredWorld;
-        _cameraEntity?.InitializeWithWorld(desiredWorld);
+        if (_cameraEntity != null)
+        {
+            EditorCameraFactory.InitializeWithWorld(_cameraEntity, _camera, desiredWorld);
+        }
+
         _camera?.OnScreenResized(_rtWidth, _rtHeight);
         _camera2dEntity?.InitializeWithWorld(desiredWorld);
         _camera2d?.OnScreenResized(_rtWidth, _rtHeight);

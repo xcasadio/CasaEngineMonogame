@@ -314,6 +314,10 @@ public sealed class MaterialCompiler
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
         material.SpecularColor = GetVector3(effectiveValues["specular_color"], "specular_color");
         material.SpecularPower = GetFloat(effectiveValues["specular_power"], "specular_power");
+        material.UseSceneReflectionCube = GetBoolean(effectiveValues["use_scene_reflection_cube"], "use_scene_reflection_cube");
+        material.ReflectionAddAmount = GetFloat(effectiveValues["reflection_add_amount"], "reflection_add_amount");
+        material.ReflectionMultiplyBase = GetFloat(effectiveValues["reflection_multiply_base"], "reflection_multiply_base");
+        material.ReflectionMultiplyFactor = GetFloat(effectiveValues["reflection_multiply_factor"], "reflection_multiply_factor");
 
         return material;
     }
@@ -487,6 +491,17 @@ public sealed class MaterialCompiler
 
         throw new InvalidOperationException(
             $"Material value for '{propertyKey}' is not a Vector3.");
+    }
+
+    private static bool GetBoolean(MaterialValue value, string propertyKey)
+    {
+        if (value.TryGetBoolean(out var booleanValue))
+        {
+            return booleanValue;
+        }
+
+        throw new InvalidOperationException(
+            $"Material value for '{propertyKey}' is not a boolean.");
     }
 
     private static float GetFloat(MaterialValue value, string propertyKey)

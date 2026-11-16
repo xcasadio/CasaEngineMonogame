@@ -352,6 +352,32 @@ Le cadrage X/Y est équivalent à `Zoom = 1` ; seule la fenêtre de profondeur c
 
 ---
 
+## Caméra 3D sans plan lointain (éditeur)
+
+Les caméras 3D de l'éditeur (caméra d'édition de la vue du monde, aperçus de modèle, matériau, sprite,
+particules et clip d'animation) n'ont pas de plan lointain : `EditorCameraFactory` leur donne
+`FarPlane = float.PositiveInfinity` (ADR-0121).
+
+- **Projection** : `Matrix.CreatePerspectiveFieldOfView(…, near, +∞)` donne la perspective à lointain infini
+  exacte (`M33 = M34 = -1`, `M43 = -near`). La précision de profondeur dépend du plan proche ; dans les 1 000
+  premières unités, c'est celle d'un lointain de 1 000.
+- **Ce qui lit la profondeur du viewport de la caméra** (`MinDepth`, `MaxDepth`, donc `NearPlane`, `FarPlane`,
+  `ViewDistance`) : la projection et l'enregistrement. `ViewDistance` vaut `+∞`, et l'enregistrement d'une
+  caméra de scène à lointain infini n'est pas pris en charge ; les caméras de l'éditeur ne sont jamais
+  enregistrées.
+- **Culling** : le frustum de `RenderFrame.ViewProjection` a un plan lointain indéfini (NaN), mais ses cinq autres
+  plans cullent comme avant. Ses coins lointains ne sont pas finis : la plage de tuiles d'une tilemap alignée
+  (`TileMapComponent.TryGetFrustumSlabBounds`) garde alors toute la plage.
+- **Rayons de sélection** : `RayHelper.CalculateRayFromScreenCoordinate` (et `GizmoRay.FromScreen` pour le gizmo)
+  déprojette les profondeurs de clip 0 et 0,5 en espace vue, puis passe l'origine et la direction en monde. Le
+  rayon ne lit que la position et la taille du viewport, reste défini sans plan lointain, et garde sa précision
+  quand la caméra est loin de l'origine, en perspective comme en orthographique.
+- **Ciel par cubemap** : `SkyCubemap.fx` calcule `normalize(worldPosition.xyz - EyePosition * worldPosition.w)`,
+  la même direction qu'avant pour une projection finie, et définie à l'infini.
+- Les caméras du mode Play et du runtime gardent leur plan lointain.
+
+---
+
 ## Ce qu'il ne faut pas faire
 
 ```text

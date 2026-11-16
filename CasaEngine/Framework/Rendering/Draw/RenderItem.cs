@@ -69,12 +69,15 @@ public struct RenderItem
     /// <summary>
     /// Active shader features for this draw call (Phase 7).
     /// Used to select the correct shader variant via <see cref="ShaderVariantLibrary"/>.
+    /// The producer sets the value it resolved against the drawn mesh (see
+    /// <see cref="RenderFeatureResolver.AdjustToMesh(ShaderFeature, in RenderFeatureInput)"/>);
+    /// it is not read back from <see cref="CompiledMaterial"/>.
     /// </summary>
     private ShaderFeature _features;
 
     public ShaderFeature Features
     {
-        readonly get => CompiledMaterial?.Features ?? _features;
+        readonly get => _features;
         set => _features = value;
     }
 

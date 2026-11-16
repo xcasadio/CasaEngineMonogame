@@ -1946,6 +1946,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// That intersection is a bounded convex polytope whose vertices are either frustum corners
     /// inside the slab or crossings between a frustum edge and a slab plane, so clipping the twelve
     /// edges to the slab gives the exact bounds.
+    ///
+    /// Returns false when a corner is not finite: a camera without a far plane (FarPlane is
+    /// +infinity, as the editor cameras) has its far corners at infinity, and clipping only the near
+    /// quad edges would shrink the extent to the near quad. The caller then keeps the full tile range.
     /// </summary>
     internal static bool TryGetFrustumSlabBounds(
         Vector3[] frustumCorners,
@@ -1964,6 +1968,15 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         if (frustumCorners == null || frustumCorners.Length < BoundingFrustum.CornerCount)
         {
             return false;
+        }
+
+        for (var index = 0; index < BoundingFrustum.CornerCount; index++)
+        {
+            var corner = frustumCorners[index];
+            if (!float.IsFinite(corner.X) || !float.IsFinite(corner.Y) || !float.IsFinite(corner.Z))
+            {
+                return false;
+            }
         }
 
         if (minPlaneZ > maxPlaneZ)

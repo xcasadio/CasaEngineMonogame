@@ -8,6 +8,7 @@ using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Environment;
@@ -1527,7 +1528,9 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        var componentNames = EditorWorldOperations.ComponentTypes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
+        //  Built at every opening: a script reload replaces the gameplay assembly's component types.
+        var componentTypes = BuildAddableComponentTypes();
+        var componentNames = componentTypes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).ToList();
         if (componentNames.Count == 0)
         {
             return;
@@ -1570,7 +1573,7 @@ public sealed class EntityDetailsPanel
         var addButton = new MGButton(dialog, _ =>
         {
             var selectedName = listBox.SelectedValue;
-            if (selectedName == null || !EditorWorldOperations.ComponentTypes.TryGetValue(selectedName, out var componentType))
+            if (selectedName == null || !componentTypes.TryGetValue(selectedName, out var componentType))
             {
                 return;
             }
@@ -1578,6 +1581,11 @@ public sealed class EntityDetailsPanel
             if (Activator.CreateInstance(componentType) is not EntityComponent component)
             {
                 return;
+            }
+
+            if (_selectedEntity != null)
+            {
+                component.Name = EditorComponentNames.CreateUniqueName(_selectedEntity, component);
             }
 
             AddComponent(component);
@@ -1691,19 +1699,48 @@ public sealed class EntityDetailsPanel
         }
     }
 
+    /// <summary>
+    /// The components the Add Component dialog offers, by display name: the concrete component types of the assemblies
+    /// <see cref="ElementFactory"/> resolves names in (the non-collectible assemblies and the registered gameplay script
+    /// assembly), with a public parameterless constructor and not marked <c>[Browsable(false)]</c>. Built at every call, so
+    /// that a reloaded or unregistered script assembly is never offered.
+    /// </summary>
+    internal static IReadOnlyDictionary<string, Type> BuildAddableComponentTypes()
+    {
+        return ElementFactory.GetDerivedTypesFrom<EntityComponent>()
+            .Where(type => type.GetConstructor(Type.EmptyTypes) != null
+                && IsAddableComponentType(type))
+            .Select(type => new
+            {
+                Type = type,
+                Name = type.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? type.Name,
+            })
+            .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First().Type, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool IsAddableComponentType(Type type)
+    {
+        //  An unresolved component only stands for a component of unknown type found in a file (ADR-0119).
+        return type != typeof(UnresolvedComponent)
+               && type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
+    }
+
     private static string GetDisplayName(EntityComponent component)
     {
         return component.GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName
             ?? component.GetType().Name;
     }
 
-    private static string GetComponentLabel(EntityComponent component)
+    /// <summary>Display name of the component type, followed by the instance name when it says something more.</summary>
+    internal static string GetComponentLabel(EntityComponent component)
     {
         var displayName = GetDisplayName(component);
         var instanceName = component.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(instanceName)
             || string.Equals(instanceName, displayName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(instanceName, component.GetType().Name, StringComparison.OrdinalIgnoreCase)
             || instanceName.StartsWith("Object ", StringComparison.OrdinalIgnoreCase))
         {
             return displayName;

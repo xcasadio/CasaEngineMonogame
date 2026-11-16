@@ -52,6 +52,18 @@ public abstract class EntityComponent : ObjectBase
 
     public abstract EntityComponent Clone();
 
+    /// <summary>
+    /// Clones the component and gives the clone the name of the original. Clone() overrides either go through
+    /// a copy constructor, which names the clone "Object &lt;id&gt;", or build a new object; this keeps the name in both cases.
+    /// The clone keeps the new id it received.
+    /// </summary>
+    internal EntityComponent CloneWithName()
+    {
+        var clone = Clone();
+        clone.Name = Name;
+        return clone;
+    }
+
     public virtual void Attach(Entity actor)
     {
         Owner = actor;

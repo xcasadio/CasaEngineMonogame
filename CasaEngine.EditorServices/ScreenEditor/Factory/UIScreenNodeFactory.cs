@@ -1,4 +1,5 @@
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
+using CasaEngine.EditorServices.ScreenEditor.Naming;
 using CasaEngine.EditorServices.ScreenEditor.Toolbox;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Factory;
@@ -34,7 +35,10 @@ public static class UIScreenNodeFactory
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(entry);
 
-        var newNode = new UIScreenNode(entry.ControlType);
+        var newNode = new UIScreenNode(entry.ControlType)
+        {
+            Name = UIScreenNodeNames.CreateDefaultName(document, entry.ControlType),
+        };
 
         // Apply default properties
         foreach (var (name, value) in entry.DefaultProperties)
@@ -101,9 +105,13 @@ public static class UIScreenNodeFactory
     private static void WrapRootAndInsert(UIScreenDocument document, UIScreenNode newNode)
     {
         var oldRoot = document.Root!;
+
+        // Named before ClearRoot: afterwards the document has no named node left to compare with.
+        var wrapperName = UIScreenNodeNames.CreateDefaultName(
+            document, "StackPanel", new HashSet<string>(StringComparer.Ordinal) { newNode.Name! });
         document.ClearRoot();
 
-        var wrapper = new UIScreenNode("StackPanel");
+        var wrapper = new UIScreenNode("StackPanel") { Name = wrapperName };
         wrapper.SetProperty("Orientation", "Vertical");
         wrapper.AddChild(oldRoot);
         wrapper.AddChild(newNode);

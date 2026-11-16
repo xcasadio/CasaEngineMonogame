@@ -1,8 +1,10 @@
 using CasaEngine.Framework.Assets;
 
 using CasaEngine.Framework.Rendering.Shaders;
+using CasaEngine.Framework.Materials.Runtime;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.Rendering;
@@ -177,5 +179,48 @@ public class MaterialCompilerTests
         var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
 
         Assert.Equal(customShaderId, compiledMaterial.EffectiveShader.ShaderId);
+    }
+
+    [Fact]
+    public void Compile_LitDiffuseMaterial_ReflectionFactors_KeepTheRuntimeDefaults()
+    {
+        var material = (LitDiffuseMaterial)new MaterialCompiler().CompileRuntimeMaterial(new MaterialAsset("lit-diffuse"), new AssetContentManager());
+
+        Assert.False(material.UseSceneReflectionCube);
+        Assert.Equal(1.0f, material.ReflectionAddAmount);
+        Assert.Equal(1.0f, material.ReflectionMultiplyBase);
+        Assert.Equal(0.0f, material.ReflectionMultiplyFactor);
+    }
+
+    [Fact]
+    public void Compile_LitDiffuseMaterial_ReadsTheAuthoredReflectionFactorsFromItsFile()
+    {
+        var node = Newtonsoft.Json.Linq.JObject.Parse("""
+            {
+              "id": "3e2d1c0b-9a8f-4e7d-8c6b-5a4f3e2d1c0b",
+              "name": "Car Paint",
+              "definition_id": "lit-diffuse",
+              "properties": {
+                "use_scene_reflection_cube": true,
+                "reflection_add_amount": 0.0,
+                "reflection_multiply_base": 0.85,
+                "reflection_multiply_factor": 0.75
+              }
+            }
+            """);
+        var materialAsset = new MaterialAsset("lit-diffuse");
+        CasaEngine.Framework.Materials.Serialization.MaterialAssetJsonSerializer.Load(materialAsset, node);
+
+        var material = (LitDiffuseMaterial)new MaterialCompiler().CompileRuntimeMaterial(materialAsset, new AssetContentManager());
+
+        Assert.True(material.UseSceneReflectionCube);
+        Assert.Equal(0.0f, material.ReflectionAddAmount);
+        Assert.Equal(0.85f, material.ReflectionMultiplyBase);
+        Assert.Equal(0.75f, material.ReflectionMultiplyFactor);
+
+        var saved = new Newtonsoft.Json.Linq.JObject();
+        CasaEngine.Framework.Materials.Serialization.MaterialAssetJsonSerializer.Save(materialAsset, saved);
+        Assert.Equal(0.85f, saved["properties"]!["reflection_multiply_base"]!.Value<float>());
+        Assert.True(saved["properties"]!["use_scene_reflection_cube"]!.Value<bool>());
     }
 }

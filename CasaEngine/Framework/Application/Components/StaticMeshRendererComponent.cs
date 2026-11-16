@@ -349,7 +349,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
                         PropertyOverrides     = propertyOverrides,
-                        Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
+                        Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
                     };
                     item.SortKey = SortKeyGenerator.Generate(
                         item.Queue,
@@ -387,7 +387,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
                     PropertyOverrides     = propertyOverrides,
-                    Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
+                    Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
                 };
                 item.SortKey = SortKeyGenerator.Generate(
                     item.Queue,
@@ -509,12 +509,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             : null;
     }
 
-    private static ShaderFeature ResolveRenderFeatures(MaterialBase material, StaticModelMesh mesh)
-        => RenderFeatureResolver.Resolve(new RenderFeatureInput
-        {
-            Material = material,
-            Mesh = mesh,
-        });
+    private static ShaderFeature ResolveRenderFeatures(MaterialBase material, CompiledMaterial compiledMaterial, StaticModelMesh mesh)
+        => RenderFeatureResolver.ResolveForMesh(material, compiledMaterial, mesh);
 
     private CompiledMaterial ResolveCompiledMaterial(MaterialBase material)
     {
