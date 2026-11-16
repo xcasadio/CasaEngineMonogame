@@ -594,11 +594,30 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Une lecture isolée à 13 octets par image (update au survol de `MGListView`) vue une fois par l'agent pendant son
     travail, non reproduite ensuite (3 passes de la classe et 2 suites complètes vertes).
 
-### ⏳ T2.6 — `MGTreeView`
+### ✅ T2.6 — `MGTreeView`
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGTreeView.cs`, `MGTreeViewItem.cs`.
 - Validation : 0 octet au repos et au survol, arbre de trois niveaux dépliés.
 - Commit (MGUI) : `perf(tree): hover and draw a tree view without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3763 verts (5 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale.
+
+  | Octets par image, repos et survol | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGTreeView` 14 nœuds, trois niveaux (après T2.4) | 0 | 0 | 576 | 0 |
+
+  - Cause : `UISymbolDrawing.DrawFilledTriangleArrow` créait un `Point[3]` et un itérateur `Select` par flèche (96
+    octets, 6 flèches par image). Les trois sommets sont maintenant écrits dans un tampon gardé par thread, que le
+    contexte de dessin lit pendant l'appel (vérifié dans les deux backends et les doublures : `ToArray` pendant
+    l'appel). `MGTreeView.cs` et `MGTreeViewItem.cs` n'ont pas changé. `GetTriangleArrowVertices` garde sa signature.
+  - Appels de dessin inchangés : journal figé de 4280 lignes pris sur le code d'avant (sommets des polygones compris).
+  - Autres appelants de la flèche, même sortie : `MGComboBox`, `MGContextMenuItem`, `UISymbolElements`,
+    `MGGraphControls`, `MGDockDropIndicators`. Effet mesuré : dessin de `MGContextMenu` 968 → 392, aperçu de dépôt de
+    `MGDockHost` 848 → 80, menu déroulant de `MGMenuBar` 664 → 280.
+  - Limite constatée, hors tâche : sur un backend réel, `FillPolygon` copie encore les sommets (`Any()` puis `ToArray()`
+    dans `CasaLegacyShapeRenderer2D.cs:323-329` et `DrawTransaction.cs:792-800` de MGUI). Le banc, qui dessine dans
+    une transaction de test, ne le voit pas. Voir O9.
 
 ### ⏳ T2.7 — `MGTabControl`
 
@@ -695,6 +714,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O6 | Résolu en T1.6 : aucun appelant ne garde deux transactions ouvertes. | T1.6 |
 | O7 | **Décision de l'auteur.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
 | O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
+| O9 | **Décision de l'auteur.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
 
 ## Hors périmètre
 
