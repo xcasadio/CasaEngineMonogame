@@ -640,11 +640,43 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Appels de dessin inchangés : journal figé de 1100 lignes pris sur le code d'avant. Test de sens du cache :
     `TabControlWithThreeTabs_VisualTreeChildren_FollowTheSelection`.
 
-### ⏳ T2.8 — Menus (`MGContextMenu`, `MGMenuBar`)
+### ✅ T2.8 — Menus (`MGContextMenu`, `MGMenuBar`)
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGContextMenu.cs`, `MGContextMenuItem.cs`, `MGMenuBar.cs`.
 - Validation : 0 octet menu ouvert au repos et au survol des entrées.
 - Commit (MGUI) : `perf(menus): hover and draw menus without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3784 verts (15 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale.
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGContextMenu` ouvert, souris dehors | 136 | 0 | 392 | 0 |
+  | `MGContextMenu`, survol alterné de deux entrées | 1144 | 0 | 392 | 0 |
+  | `MGMenuBar` fermée, repos | 0 | 0 | 56 | 0 |
+  | `MGMenuBar` fermée, survol alterné | 672 | 0 | 56 | 0 |
+  | `MGMenuBar`, menu ouvert, survol alterné | 1144 | 0 | 280 | 0 |
+
+  - Causes et corrections :
+    - abonnements à `OnEndDraw` (fenêtre hôte, menu racine, flèche de sous-menu d'une entrée) : un
+      `MGElementDrawEventArgs` par élément abonné et par dessin. Remplacés par un crochet `EndDrawInternal` ajouté à
+      `MGElement` (jumeau de `EndingDrawInternal`, appelé juste avant `OnEndDraw`) et par
+      `MGWindow.AddEndDrawSubmenuHost` ;
+    - abonnement à `OnBeginUpdateContents` du menu, remplacé par le crochet `BeginUpdateContentsInternal` ;
+    - liste de l'arbre visuel recréée à chaque changement de sélection : `MGSingleContentHost` garde une liste d'un
+      élément, comparée au contenu courant à chaque appel ;
+    - `EventArgs<VisualState>` : une instance par paire d'états (144), créée au premier usage et partagée ;
+    - `EventArgs<Rectangle>` de `OnLayoutBoundsChanged` : l'élément réutilise les arguments de sa dernière levée quand
+      les deux rectangles sont les mêmes.
+  - Appels de dessin inchangés : trois journaux figés pris sur le code d'avant (1440, 1111 et 1983 lignes).
+  - Changements de contrat à connaître, sans effet trouvé dans les deux dépôts :
+    - les arguments de `VisualStateChanged` et de `OnLayoutBoundsChanged` peuvent être la même instance d'une levée à
+      l'autre (mêmes valeurs, lecture seule) ;
+    - le sous-menu d'un menu hébergé par une autre fenêtre est dessiné par le crochet, donc avant tout abonné à
+      `OnEndDraw` de cette fenêtre, y compris un abonné venu avant la création du menu. Aucun abonné de ce genre dans
+      MGUI ni dans le moteur (`rg "OnEndDraw \+="` : seul `MGOverlay`, sur son contenu).
+  - Le survol alterné change la sélection et refait le layout du menu à chaque image : ce travail reste, il n'alloue plus.
+  - `MGMenuBar.cs` n'a pas changé. Effet de bord : sélection de `MGGrid` par clic 2060 → 1996.
 
 ### ⏳ T2.9 — `MGTextBox`
 
