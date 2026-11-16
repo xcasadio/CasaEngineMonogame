@@ -1078,7 +1078,7 @@ une tâche dont la preuve échoue s'arrête en ⚠️ sans bloquer les autres ; 
 écrits en phase 2 (molette, clic, frappe, cible de dépôt) deviennent des affirmations à 0 dans la tâche qui retire ce
 reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
 
-### ⏳ T5.1 — ADR de l'entrée, molette et modificateurs
+### ✅ T5.1 — ADR de l'entrée, molette et modificateurs
 
 - Objectif : l'ADR de D13 à D15 existe ; l'événement de molette est réutilisé ; `IsShiftDown`, `IsControlDown` et
   `IsAltDown` n'allouent plus.
@@ -1096,6 +1096,23 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   « l'événement de molette est la même instance d'une image à l'autre, avec ses valeurs et un état non traité » ; test
   de zéro des trois modificateurs ; mêmes journaux figés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(input)!: reuse the scroll event and read modifiers without allocating` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3901 verts (5 tests ajoutés), `CasaEngine.Tests`
+  5556 verts, aucun sauté. Écrit par un `executor`. ADR-0034 de MGUI (décisions D13 à D15 entières ; les boutons de
+  souris et les touches sont livrés par T5.2 et T5.3).
+
+  | `MGScrollViewer`, molette | Update avant | Update après | Draw |
+  |---|---|---|---|
+  | Octets par image | 56 | 0 | 0 |
+
+  - Changement : `MouseTracker` garde une instance de `BaseMouseScrolledEventArgs`, remplie à chaque image où la
+    molette bouge, état « traité » remis à zéro ; `CurrentScrollEvent` reste nul sans mouvement. `IsShiftDown`,
+    `IsControlDown` et `IsAltDown` lisent deux `IsPressed` ; `IsAnyPressed` est inchangée. Le contournement de
+    `MGTextBox` est retiré.
+  - Relevé des gardiens (deux dépôts) : aucun champ, propriété ni collection de ce type ; 7 gestionnaires de
+    `CasaEngine.Editor` et 7 de `MGUI.Core` lisent l'événement pendant l'appel ; `MGOverlay` le capture dans un
+    délégué exécuté pendant l'appel. Aucun gardien, aucune correction.
+  - Le test de phase 2 de la molette affirme maintenant 0 ; journaux figés inchangés.
+  - Reste noté : commentaire périmé de `MGDockHost.cs:542` sur les modificateurs, corrigé en T5.2.
 
 ### ⏳ T5.2 — Événements de bouton de souris réutilisés
 
