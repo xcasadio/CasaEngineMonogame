@@ -830,12 +830,32 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
     qui gardait une référence prise dans `Animations.Active` voit l'animation repartir au lieu d'une animation
     terminée.
 
-### ⏳ T3.3 — Valeur de balise refusée gardée en cache (D11)
+### ✅ T3.3 — Valeur de balise refusée gardée en cache (D11)
 
 - Fichiers : `Text/FormattedTextScanner.cs`.
 - Validation : un texte avec `[color=NotAColor]` changé à chaque image alloue 0 octet après la première lecture ;
   mêmes runs que le code historique.
 - Commit (MGUI) : `perf(text): remember a rejected tag value`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3865 verts (33 tests
+  ajoutés, `Text/FormattedTextRejectedValueTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un
+  `executor`.
+
+  | `[color=NotAColor]` changé à chaque image | Avant | Après |
+  |---|---|---|
+  | Setter, octets par image | 2656 | 0 |
+  | Exceptions levées et rattrapées, par 10 images | 27 | 0 |
+
+  - Changement (`FormattedTextScanner.cs` seul) : chaque cache de valeurs (un par sorte : couleur, soulignement, fond,
+    ombre) garde aussi les valeurs refusées, dans le même dictionnaire et sous le même plafond de 128. L'interprétation
+    ne lève qu'une fois par valeur. Images, noms d'infobulle et d'action, opacité : aucun refus possible, rien à garder.
+  - Toutes les valeurs gardées comme refusées ne dépendent que de leur texte ; aucune ne lit le bureau ni une
+    ressource. Garde-fou ajouté : une entrée refusée ne vaut que pour la culture courante où elle a été faite (les
+    brosses passent par un convertisseur qui peut lire la culture). Aucune valeur lue différemment selon la culture
+    n'a pu être produite : ce garde-fou n'est donc pas démontré par un test.
+  - Mêmes runs que le code historique : différentiel existant inchangé et vert (609 textes, 21 cas d'ADR-0030), plus
+    9600 lectures au-delà du plafond avec des valeurs acceptées voisines.
+  - Docs : puce de l'ADR-0030 de MGUI et ligne de `MGUI/Docs/text-architecture.md` réécrites. Trois lignes de ce
+    fichier sont périmées par T3.1, T3.2 et le plafond de 128 : corrigées en T4.1.
 
 ### ⏳ T3.4 — Grammaire des balises en ASCII (D9)
 
