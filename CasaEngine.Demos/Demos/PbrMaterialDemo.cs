@@ -25,7 +25,7 @@ namespace CasaEngine.Demos.Demos;
 /// under a procedural studio environment cube (image-based lighting and sky background). The world runs in the <c>LinearHdr</c>
 /// colour pipeline with the <c>AcesApprox</c> tonemapper.
 /// <para>
-/// Keys: I switches the image-based lighting, B the bloom, T the tonemapping operator, + and - the exposure.
+/// Keys: I switches the image-based lighting, B the bloom, F the FXAA, O the ambient occlusion (SSAO), T the tonemapping operator, + and - the exposure.
 /// </para>
 /// <para>
 /// Harness variables (plan T10.1; all optional, everything is on by default): <c>CASAENGINE_PBR_DEMO_VALIDATION=1</c> fixes the
@@ -35,8 +35,10 @@ namespace CasaEngine.Demos.Demos;
 /// <c>CASAENGINE_PBR_DEMO_SKINNED=0</c> remove the glass sphere and the skinned character. <c>CASAENGINE_PBR_DEMO_CLEARCOAT=1</c>
 /// (plan T2.2, ADR-0114) adds a row of five red dielectric spheres on the ground between the grid and the probes, with <c>clear_coat</c> 0, 0.25, 0.5, 0.75
 /// and 1; <c>CASAENGINE_PBR_DEMO_CLEARCOAT=flat</c> adds the same row with every <c>clear_coat</c> at 0 (the control of the
-/// measurement). Without the variable the scene is unchanged. The measurement pixels and segments are the constants of
+/// measurement). The measurement pixels and segments are the constants of
 /// <see cref="Measurement"/>.
+/// Outside the validation configuration the clear coat row is shown by default (<c>CASAENGINE_PBR_DEMO_CLEARCOAT=0</c> hides it); in the
+/// validation configuration it needs the variable, so that the capture of plan T0.1 stays unchanged.
 /// </para>
 /// </summary>
 public sealed class PbrMaterialDemo : Demo
@@ -48,6 +50,8 @@ public sealed class PbrMaterialDemo : Demo
     private const string SkinnedVariable = "CASAENGINE_PBR_DEMO_SKINNED";
     private const string ClearCoatVariable = "CASAENGINE_PBR_DEMO_CLEARCOAT";
     private const string IblAction = "PbrMaterial.Ibl";
+    private const string FxaaAction = "PbrMaterial.Fxaa";
+    private const string SsaoAction = "PbrMaterial.Ssao";
     private const float ExposureStep = 0.25f;
     private const int IblSummaryFrame = 600;
 
@@ -198,6 +202,9 @@ public sealed class PbrMaterialDemo : Demo
 
     public override string Title => "PBR material demo";
 
+    /// <summary>The state of the clear coat row (<c>Off</c>, <c>Graded</c> or <c>Flat</c>) the demo was started with; written to the log by the cost bench.</summary>
+    public string ClearCoatRowState => _clearCoatRow.ToString();
+
     public override string Description =>
         "The physically based material: a grid of spheres sharing one material (roughness along a row, metal down a column, set by per-instance overrides), a coloured metal sphere, an emissive sphere with bloom, a glass sphere, a skinned character, a shadow-casting sun and a studio environment, in the LinearHdr pipeline with the ACES approximation.";
 
@@ -207,12 +214,15 @@ public sealed class PbrMaterialDemo : Demo
         "The coloured metal sphere reflects the studio in its own colour; the emissive sphere glows (bloom).",
         "The glass sphere keeps the checkerboard readable and its specular highlight bright.",
         "The skinned character is lit by the PBR skinning technique (direct light and shadows, no image-based lighting).",
+        "The row of five red spheres is the clear coat (0 to 1 from left to right); F switches FXAA on the edges, O switches the ambient occlusion in the contact zones (LinearHdr only).",
     };
 
     public override IReadOnlyList<DemoControl> Controls { get; } = new DemoControl[]
     {
         DemoControl.ForActions("turn the image-based lighting on or off", IblAction),
         DemoControl.ForActions("turn the bloom on or off", "ColorPipeline.Bloom"),
+        DemoControl.ForActions("turn FXAA on or off", FxaaAction),
+        DemoControl.ForActions("turn the ambient occlusion (SSAO) on or off", SsaoAction),
         DemoControl.ForActions("switch the tonemapping operator (AcesApprox, Reinhard)", "ColorPipeline.Tonemapper"),
         DemoControl.ForActions("raise the exposure by 0.25", "ColorPipeline.ExposureUp"),
         DemoControl.ForActions("lower the exposure by 0.25", "ColorPipeline.ExposureDown"),
@@ -259,6 +269,7 @@ public sealed class PbrMaterialDemo : Demo
         {
             "1" => ClearCoatRowMode.Graded,
             "flat" => ClearCoatRowMode.Flat,
+            null => _validation ? ClearCoatRowMode.Off : ClearCoatRowMode.Graded,
             _ => ClearCoatRowMode.Off,
         };
         _frame = 0;
@@ -355,6 +366,18 @@ public sealed class PbrMaterialDemo : Demo
                 changed = true;
             }
 
+            if (DemoInput.WasPressed(_game, FxaaAction))
+            {
+                colorPipeline.AntiAliasing = colorPipeline.AntiAliasing == AntiAliasingMode.Fxaa ? AntiAliasingMode.None : AntiAliasingMode.Fxaa;
+                changed = true;
+            }
+
+            if (DemoInput.WasPressed(_game, SsaoAction))
+            {
+                colorPipeline.SsaoEnabled = !colorPipeline.SsaoEnabled;
+                changed = true;
+            }
+
             if (DemoInput.WasPressed(_game, "ColorPipeline.Tonemapper"))
             {
                 colorPipeline.Tonemapper = colorPipeline.Tonemapper == TonemapOperator.AcesApprox ? TonemapOperator.Reinhard : TonemapOperator.AcesApprox;
@@ -377,7 +400,7 @@ public sealed class PbrMaterialDemo : Demo
         if (changed)
         {
             settings.MarkDirty();
-            Logs.WriteInfo($"[PbrMaterialDemo] IBL {_iblOn}, {colorPipeline.Tonemapper}, exposure {colorPipeline.Exposure}, bloom {colorPipeline.BloomEnabled}.");
+            Logs.WriteInfo($"[PbrMaterialDemo] IBL {_iblOn}, {colorPipeline.Tonemapper}, exposure {colorPipeline.Exposure}, bloom {colorPipeline.BloomEnabled}, FXAA {colorPipeline.AntiAliasing}, SSAO {colorPipeline.SsaoEnabled}.");
         }
 
         var cache = _game.IblCache;

@@ -84,17 +84,19 @@ internal sealed class DemoFrameStats
     {
         double toMilliseconds = 1000.0 / Stopwatch.Frequency / MeasuredFrames;
         string counters = "no view";
+        string activation = " fxaaDraws=n/a ssaoStaticDraws=n/a ssaoSkinnedDraws=n/a ssaoPasses=n/a";
         if (views.Count > 0)
         {
             var stats = views[0].RenderStats;
             counters = $"Draws={stats.DrawCalls} FX={stats.EffectBinds} Tex={stats.TextureBinds} State={stats.StateChanges} "
                 + $"Opaque={stats.OpaqueItems} Transparent={stats.TransparentItems} Particles={stats.ParticleCount} Lines={stats.LineCount}";
+            activation = $" fxaaDraws={stats.FxaaPasses} ssaoStaticDraws={stats.SceneDepthStaticDraws} ssaoSkinnedDraws={stats.SceneDepthSkinnedDraws} ssaoPasses={stats.SsaoPasses}";
         }
 
         Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
             $"[FrameStats] demo='{demoTitle}' frames={MeasuredFrames} (updates {FirstFrame + 1}..{LastFrame}) vsync={vSync} fixedStep={fixedStep} "
             + $"updateCpuMs={_updateTicks * toMilliseconds:F3} drawCpuMs={_drawTicks * toMilliseconds:F3} "
             + $"frameWallMs={_wallTicks * toMilliseconds:F3} pipelineCpuMs={_pipelineCpuMilliseconds / MeasuredFrames:F3} "
-            + $"lastFrame[{counters}]"));
+            + $"lastFrame[{counters}]{activation}"));
     }
 }

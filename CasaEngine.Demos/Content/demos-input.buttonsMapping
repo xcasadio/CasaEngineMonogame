@@ -2122,6 +2122,48 @@
         "mouse_button": "LeftButton",
         "input_device": "NoDevice"
       }
+    },
+    {
+      "id": "c1d4e7a2-5b36-4f08-9a1e-7d2b8c3f6a10",
+      "name": "PbrMaterial.Fxaa",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "F",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
+    },
+    {
+      "id": "e8a3b5d1-2c74-4a96-b0f3-1e9d6c7a4b52",
+      "name": "PbrMaterial.Ssao",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "O",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "NoDevice"
+      }
     }
   ]
 }

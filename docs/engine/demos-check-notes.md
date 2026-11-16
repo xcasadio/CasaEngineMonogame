@@ -83,13 +83,13 @@ that casts shadows:
   a glass sphere in front of a checkerboard (transparent `lit-pbr`), and the skinned character of `SkinnedMeshDemo` drawn
   by the PBR skinning techniques (direct light and shadows, no image-based lighting, ADR-0110).
 - Keys: `I` turns the image-based lighting on or off (off: no reflection and a flat ambient colour; the cube still draws
-  the sky), `B` the bloom, `T` the tonemapping operator, `+` and `-` the exposure.
+  the sky), `B` the bloom, `F` FXAA, `O` the ambient occlusion (SSAO), `T` the tonemapping operator, `+` and `-` the exposure.
 
 Start it with `CASAENGINE_START_DEMO=PBR material demo`. Measurement switches (all optional, everything is on by
 default): `CASAENGINE_PBR_DEMO_VALIDATION=1` fixes the camera, freezes the skinned animation and ignores the keys, so a
 capture needs no key press and two captures are identical; `CASAENGINE_PBR_DEMO_IBL=0` switches the image-based
 lighting off; `CASAENGINE_PBR_DEMO_BLOOM=0` the bloom; `CASAENGINE_PBR_DEMO_GLASS=0` and `CASAENGINE_PBR_DEMO_SKINNED=0`
-remove the glass sphere and the skinned character; `CASAENGINE_PBR_DEMO_CLEARCOAT=1` adds a row of five red dielectric spheres with `clear_coat` 0, 0.25, 0.5, 0.75 and 1 (`=flat`: the same row at 0, the control); without it the scene is unchanged (ADR-0114). The measurement pixels, segments and thresholds are the constants of
+remove the glass sphere and the skinned character; `CASAENGINE_PBR_DEMO_CLEARCOAT=1` adds a row of five red dielectric spheres with `clear_coat` 0, 0.25, 0.5, 0.75 and 1 (`=flat`: the same row at 0, the control); without the variable the row is shown outside the validation configuration (`=0` hides it) and absent in it, so the validation capture is unchanged (ADR-0114). The measurement pixels, segments and thresholds are the constants of
 `PbrMaterialDemo.Measurement`; a capture for them runs past frame 600 (`CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS=12000`),
 when the demo logs the generation counter of the IBL cache. `CASAENGINE_THEN_DEMO=<title>` (and
 `CASAENGINE_THEN_DEMO_FRAME`, default 120) makes the game switch to another demo after that many updates of the first

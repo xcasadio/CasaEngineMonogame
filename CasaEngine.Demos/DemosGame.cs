@@ -619,6 +619,7 @@ public class DemosGame : CasaEngineGame
                 GetDisplaySettings().IsVSyncEnabled, IsFixedTimeStep);
             if (_frameStats.IsFinished)
             {
+                LogDemoConfiguration();
                 Exit();
             }
         }
@@ -798,6 +799,18 @@ public class DemosGame : CasaEngineGame
         }
 
         Logs.WriteInfo($"[DemosGame] SSAO passes at capture: total {total} ({perView}).");
+    }
+
+    /// <summary>
+    /// Writes once, when the cost measurement ends (the line follows the <c>[FrameStats]</c> line of the same run), the settings that
+    /// were in effect at the last measured image: colour pipeline mode, anti-aliasing, SSAO and the state of the clear coat row of the
+    /// PBR demo. A cost line whose counters do not match these values is not valid (plan T4.1).
+    /// </summary>
+    private void LogDemoConfiguration()
+    {
+        var colorPipeline = GameManager.CurrentWorld.EnvironmentSettings.ColorPipeline;
+        string clearCoatRow = _currentDemo is PbrMaterialDemo pbrDemo ? pbrDemo.ClearCoatRowState : "n/a";
+        Logs.WriteInfo($"[DemoConfig] demo='{_currentDemo?.Title ?? "none"}' mode={colorPipeline.Mode} aa={colorPipeline.AntiAliasing} ssao={(colorPipeline.SsaoEnabled ? "On" : "Off")} clearCoatRow={clearCoatRow}");
     }
 
     private bool CaptureScreenshot(string outputPath)
