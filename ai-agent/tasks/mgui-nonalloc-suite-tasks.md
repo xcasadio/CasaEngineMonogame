@@ -733,13 +733,37 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   - Le survol alterné change la sélection et refait le layout du menu à chaque image : ce travail reste, il n'alloue plus.
   - `MGMenuBar.cs` n'a pas changé. Effet de bord : sélection de `MGGrid` par clic 2060 → 1996.
 
-### ⏳ T2.9 — `MGTextBox`
+### ✅ T2.9 — `MGTextBox`
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGTextBox.cs`, `Text/MGTextCaret.cs`.
 - Étapes : repos avec focus (curseur) d'abord. La frappe change le texte : la cible est 0 octet hors de la chaîne du
   texte elle-même, que `string` impose ; mesurer et écrire ce que la chaîne coûte.
 - Validation : 0 octet au repos avec focus ; pendant la frappe, le chiffre restant est écrit ici avec sa cause.
 - Commit (MGUI) : `perf(textbox): idle and type in a text box without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3812 verts (8 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`.
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGTextBox` avec focus, repos (curseur clignotant ou fixe) | 0 | 0 | 0 | 0 |
+  | Une touche par image (A puis retour arrière) | 3876 | 3296 | 0 | 0 |
+
+  - Retiré (environ 580 octets par touche) : lectures de `IsControlDown` qui passent par `IsAnyPressed(params Keys[])`
+    (tableau, fermeture, délégué), `StringBuilder` de l'insertion et de l'effacement (`string.Concat` de `Span`),
+    LINQ et énumérateurs boxés de `TextRenderInfo` (boucles indexées, tampon d'avances gardé).
+  - Appels de dessin inchangés : journal figé de 936 lignes pris sur le code d'avant (repos, dix touches, repos).
+  - Reste pendant la frappe, 3296 octets par touche, affirmé exactement par le test (`référence + 1 300 000` sur 500
+    images) :
+    - 696 octets : objets de l'entrée clavier de `MGUI.Shared/Input` créés pour toute touche (appui, relâchement, clic,
+      flux d'entrée et ses métadonnées, tableau et délégué de `KeyboardTracker.IsAnyPressed`). Preuve : une zone de
+      saisie qui ignore les touches (F1, F2) alloue exactement cela. Hors périmètre. Voir O12 ;
+    - environ 2600 octets : à chaque changement de texte, la géométrie du curseur (`TextRenderInfo.UpdateLines`) lit
+      `MGTextBlock.Lines`, qui reconstruit les lignes publiques par le code historique (`MGTextLine.ParseLines`,
+      environ 1600 octets estimés), alors que le bloc a déjà mis le texte en page. `TextRenderInfo` a besoin de la
+      table des index de caractères d'origine, que seul ce code calcule. Le reste est le résultat du changement : la
+      nouvelle chaîne, les informations de ligne et de caractères du curseur, les arguments de `TextChanged` et du
+      changement de bornes. Voir O13.
+  - Non touché, hors du chemin de frappe : lambdas des déplacements verticaux de `MGTextCaret`.
 
 ---
 
@@ -819,6 +843,8 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O9 | **Décision de l'auteur.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
 | O10 | **Décision de l'auteur.** Tout clic crée dans `MGUI.Shared/Input/Mouse` les événements d'appui, de relâchement, de clic, de début et de fin de glissement, une séquence de clics et ses métadonnées (464 octets par clic mesurés). Les réutiliser, comme pour le déplacement (`ba19985d`), change ce qu'un gestionnaire peut garder. Recommandation de l'agent : même contrat que le déplacement et la molette (O7), en une tâche de suite sur l'entrée. | T2.1 |
 | O11 | **Décision de l'auteur.** Pendant un glissement d'onglet, `MGDockHost` crée un `DockDropTarget` à chaque recalcul de la cible (80 octets par image). `CurrentDropTarget` est publique et notifie quand la référence change. Deux voies : réutiliser une instance et ne notifier que quand une valeur change (changement de comportement observable), ou laisser comme limite. Recommandation de l'agent : réutiliser et notifier sur changement de valeur. | T2.2 |
+| O12 | **Décision de l'auteur.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
+| O13 | **Décision de l'auteur.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
 
 ## Hors périmètre
 
