@@ -185,12 +185,12 @@ public class DrawTransactionRearmGpuTests
 
     /// <summary>A mask clip: the resolver of the backend never picks the mask strategy for the capabilities it has, so it is pushed on the manager
     /// directly, the way the stencil and scissor strategies are.</summary>
-    private static ClipScope PushMaskClip(CasaDrawTransaction transaction)
+    private static ClipHandle PushMaskClip(CasaDrawTransaction transaction)
     {
         ClipDefinition definition = GeometryClip();
         object manager = ClipManagerOf(transaction);
         MethodInfo push = manager.GetType().GetMethod("PushMask", BindingFlags.Instance | BindingFlags.NonPublic);
-        return (ClipScope)push.Invoke(manager, new object[] { new ClipResolveResult(definition, definition, ClipStrategy.Mask, true) });
+        return (ClipHandle)push.Invoke(manager, new object[] { new ClipResolveResult(definition, definition, ClipStrategy.Mask, true) });
     }
 
     private static void FillSprites(CasaDrawTransaction transaction, float x, float y, Color color)
@@ -214,12 +214,12 @@ public class DrawTransactionRearmGpuTests
         transaction.DrawTexturedTriangleList(Vector2.Zero, lab.Image, TexturedVertices, TexturedCoordinates, TexturedIndices, Color.White);
         lab.Take("textured triangles", transaction);
 
-        ClipScope rectangle = transaction.PushRectangleClip(ClipRectangle, true);
+        ClipHandle rectangle = transaction.PushRectangleClip(ClipRectangle, true);
         lab.Take("rectangle clip pushed", transaction);
         FillPrimitives(transaction, 10, 60, Color.Orange);
         FillSprites(transaction, 150, 60, Color.Cyan);
         lab.Take("filled in the rectangle clip", transaction);
-        ClipScope none = transaction.PushRectangleClip(null, false);
+        ClipHandle none = transaction.PushRectangleClip(null, false);
         lab.Take("no clip pushed", transaction);
         FillPrimitives(transaction, 250, 60, Color.Magenta);
         lab.Take("filled with no clip", transaction);
@@ -241,7 +241,7 @@ public class DrawTransactionRearmGpuTests
         transaction.SetDrawSettings(transaction.CurrentSettings with { BlendType = BlendType.AlphaBlend });
         lab.Take("settings changed back", transaction);
 
-        ClipScope stencil = transaction.PushClipTemporary(GeometryClip());
+        ClipHandle stencil = transaction.PushClipTemporary(GeometryClip());
         lab.Take("stencil clip pushed", transaction);
         FillPrimitives(transaction, 40, 160, Color.Red);
         FillSprites(transaction, 60, 180, Color.Blue);
@@ -249,7 +249,7 @@ public class DrawTransactionRearmGpuTests
         stencil.Dispose();
         lab.Take("stencil clip disposed", transaction);
 
-        ClipScope mask = PushMaskClip(transaction);
+        ClipHandle mask = PushMaskClip(transaction);
         lab.Take("mask clip pushed", transaction);
         FillPrimitives(transaction, 40, 160, Color.Green);
         lab.Take("filled in the mask clip", transaction);
@@ -398,7 +398,7 @@ public class DrawTransactionRearmGpuTests
         {
             PreviousUse = (transaction, lab) =>
             {
-                ClipScope left = transaction.PushRectangleClip(new Rectangle(50, 50, 40, 40), true);
+                ClipHandle left = transaction.PushRectangleClip(new Rectangle(50, 50, 40, 40), true);
                 FillSprites(transaction, 55, 55, Color.Red);
                 Assert.Equal(new Rectangle(50, 50, 40, 40), transaction.CurrentClipBounds);
                 GC.KeepAlive(left);
@@ -411,7 +411,7 @@ public class DrawTransactionRearmGpuTests
         {
             PreviousUse = (transaction, lab) =>
             {
-                ClipScope left = transaction.PushRectangleClip(null, false);
+                ClipHandle left = transaction.PushRectangleClip(null, false);
                 FillSprites(transaction, 55, 55, Color.Red);
                 Assert.False(transaction.CurrentSettings.UsesScissorTest);
                 GC.KeepAlive(left);
@@ -424,7 +424,7 @@ public class DrawTransactionRearmGpuTests
         {
             PreviousUse = (transaction, lab) =>
             {
-                ClipScope left = transaction.PushClipTemporary(GeometryClip());
+                ClipHandle left = transaction.PushClipTemporary(GeometryClip());
                 FillPrimitives(transaction, 40, 160, Color.Red);
                 Assert.Equal(1, transaction.ClipDiagnostics.MaxStencilDepth);
                 GC.KeepAlive(left);
@@ -437,7 +437,7 @@ public class DrawTransactionRearmGpuTests
         {
             PreviousUse = (transaction, lab) =>
             {
-                ClipScope left = PushMaskClip(transaction);
+                ClipHandle left = PushMaskClip(transaction);
                 FillPrimitives(transaction, 40, 160, Color.Red);
                 Assert.Equal(1, transaction.ClipDiagnostics.MaskClipCount);
                 Assert.Equal(1, transaction.ClipDiagnostics.TemporaryRenderTargetRentCount);

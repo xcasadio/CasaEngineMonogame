@@ -26,14 +26,14 @@ internal sealed class CasaMaskClipExecutor
         TemporaryRenderTargetReuseCount = 0;
     }
 
-    public ClipScope Push(ClipResolveResult resolution)
+    public ClipHandle Push(ClipResolveResult resolution)
     {
         ClipGeometry geometry = resolution.Effective.Shape.Geometry ?? throw new InvalidOperationException(
             $"Clip '{resolution.Effective.DebugName ?? resolution.Effective.Kind.ToString()}' requires clip geometry for mask rendering.");
         Rectangle bounds = resolution.Effective.Shape.Bounds;
         if (bounds.Width <= 0 || bounds.Height <= 0)
         {
-            return new ClipScope(resolution, () => { });
+            return _owner.ClipSlots.Push(ClipSlotState.None(resolution));
         }
 
         CasaRenderTargetLease renderTargetLease = _owner.Renderer.RenderTargetPool.Rent(_owner.GraphicsDevice, bounds.Width, bounds.Height, false);
@@ -49,7 +49,7 @@ internal sealed class CasaMaskClipExecutor
             DepthStencilType = DepthStencilType.None,
         });
         DrawStateHandle renderTargetScope = _owner.SetRenderTargetTemporary(maskTarget, Color.Transparent);
-        ClipScope clipDisableScope = _owner.PushRectangleClip(null, false);
+        ClipHandle clipDisableScope = _owner.PushRectangleClip(null, false);
         DrawStateHandle transformScope = _owner.SetTransformTemporary(_owner.CurrentSettings.Transform * Matrix.CreateTranslation(-bounds.Left, -bounds.Top, 0));
 
         using (_owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
@@ -73,7 +73,7 @@ internal sealed class CasaMaskClipExecutor
             DepthStencilType = DepthStencilType.None,
         });
 
-        return new ClipScope(resolution, () =>
+        return _owner.ClipSlots.Push(ClipSlotState.WithCallback(ClipStrategy.Mask, resolution, () =>
         {
             maskedContentScope.Dispose();
             transformScope.Dispose();
@@ -83,6 +83,6 @@ internal sealed class CasaMaskClipExecutor
 
             _owner.DrawTextureTo(maskTarget, null, bounds);
             _owner.Renderer.RenderTargetPool.Return(maskTarget);
-        });
+        }));
     }
 }

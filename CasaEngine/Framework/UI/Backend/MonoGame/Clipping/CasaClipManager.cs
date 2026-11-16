@@ -10,7 +10,6 @@ internal sealed class CasaClipManager
     private readonly CasaScissorClipExecutor _ScissorExecutor;
     private readonly CasaStencilClipExecutor _StencilExecutor;
     private readonly CasaMaskClipExecutor _MaskExecutor;
-    private readonly Stack<NoClipSlot> _FreeNoClipSlots = new();
     private int _ScissorClipCount;
     private int _StencilClipCount;
     private int _MaskClipCount;
@@ -25,7 +24,7 @@ internal sealed class CasaClipManager
     }
 
     /// <summary>Puts the manager in the state its constructor gives it: the counts and the depths the diagnostics report are back to zero.
-    /// The free slots are kept: a slot is only a place to build a scope, and one that a clip left open never comes back to it.</summary>
+    /// The clips in force are forgotten by the transaction, which owns their slots.</summary>
     public void Rearm()
     {
         _ScissorClipCount = 0;
@@ -42,7 +41,7 @@ internal sealed class CasaClipManager
         => new(_ScissorClipCount, _StencilClipCount, _MaskClipCount, _StencilExecutor.MaxObservedDepth,
             _MaskExecutor.TemporaryRenderTargetRentCount, _MaskExecutor.TemporaryRenderTargetReuseCount);
 
-    public ClipScope Push(ClipDefinition definition)
+    public ClipHandle Push(ClipDefinition definition)
     {
         ClipResolveResult resolution = Resolve(definition);
 
@@ -58,49 +57,32 @@ internal sealed class CasaClipManager
 
     /// <summary>Pushes the clip that <see cref="Push(ClipDefinition)"/> pushes for <see cref="ClipDefinition.Rectangle"/> (default strategy preference, scissor
     /// available), counted the same, without creating the definition.</summary>
-    public ClipScope PushRectangle(Rectangle bounds, bool intersectWithCurrentClip)
+    public ClipHandle PushRectangle(Rectangle bounds, bool intersectWithCurrentClip)
     {
         _ScissorClipCount++;
         return _Owner.PushRectangleClipCore(bounds, intersectWithCurrentClip);
     }
 
-    private ClipScope PushNoClip(ClipResolveResult resolution)
+    private ClipHandle PushNoClip(ClipResolveResult resolution)
     {
-        NoClipSlot slot = _FreeNoClipSlots.Count > 0 ? _FreeNoClipSlots.Pop() : new NoClipSlot(this);
-        slot.Scope.Reset(resolution);
-        return slot.Scope;
+        return _Owner.ClipSlots.Push(ClipSlotState.None(resolution));
     }
 
-    private ClipScope PushScissor(ClipResolveResult resolution)
+    private ClipHandle PushScissor(ClipResolveResult resolution)
     {
         _ScissorClipCount++;
         return _ScissorExecutor.Push(resolution);
     }
 
-    private ClipScope PushStencil(ClipResolveResult resolution)
+    private ClipHandle PushStencil(ClipResolveResult resolution)
     {
         _StencilClipCount++;
         return _StencilExecutor.Push(resolution);
     }
 
-    private ClipScope PushMask(ClipResolveResult resolution)
+    private ClipHandle PushMask(ClipResolveResult resolution)
     {
         _MaskClipCount++;
         return _MaskExecutor.Push(resolution);
-    }
-
-    /// <summary>The scope of a clip that changes nothing, kept for reuse once disposed.</summary>
-    private sealed class NoClipSlot
-    {
-        private readonly CasaClipManager _Owner;
-        public readonly ClipScope Scope;
-
-        public NoClipSlot(CasaClipManager owner)
-        {
-            _Owner = owner;
-            Scope = new ClipScope(Release);
-        }
-
-        private void Release() => _Owner._FreeNoClipSlots.Push(this);
     }
 }

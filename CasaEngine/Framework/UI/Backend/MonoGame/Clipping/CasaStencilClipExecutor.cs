@@ -26,7 +26,7 @@ internal sealed class CasaStencilClipExecutor
         MaxObservedDepth = 0;
     }
 
-    public ClipScope Push(ClipResolveResult resolution)
+    public ClipHandle Push(ClipResolveResult resolution)
     {
         ClipGeometry geometry = resolution.Effective.Shape.Geometry ?? throw new InvalidOperationException(
             $"Clip '{resolution.Effective.DebugName ?? resolution.Effective.Kind.ToString()}' requires clip geometry for stencil rendering.");
@@ -64,7 +64,7 @@ internal sealed class CasaStencilClipExecutor
 
         ClipResolveResult effectiveResolution = resolution with { StencilDepth = childDepth };
 
-        return new ClipScope(effectiveResolution, () =>
+        return _owner.ClipSlots.Push(ClipSlotState.WithCallback(ClipStrategy.Stencil, effectiveResolution, () =>
         {
             stencilReadScope.Dispose();
 
@@ -79,6 +79,6 @@ internal sealed class CasaStencilClipExecutor
             }
 
             _stencilDepth = parentDepth;
-        });
+        }));
     }
 }

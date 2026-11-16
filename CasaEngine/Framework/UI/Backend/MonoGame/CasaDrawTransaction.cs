@@ -19,7 +19,7 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame;
 //Anytime the effect is being changed, must call SetDrawSettings/SetDrawSettingsTemporary just like SetTransform/SetTransformTemporary do
 // --> SetEffect/SetEffectTemporary are now implemented via DrawSettings.Effect; see SetEffect() and SetEffectTemporary() below.
 
-public class CasaDrawTransaction : IMonoGameDrawContext
+public class CasaDrawTransaction : IMonoGameDrawContext, IClipSlotRestorer
 {
     public CasaDesktopRuntime Renderer { get; }
     IUIDesktopRuntime IUIRenderContext.Renderer => Renderer;
@@ -106,6 +106,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState = new CasaDrawStateController(Renderer, Settings ?? throw new ArgumentNullException(nameof(Settings)), PrimitiveProjectionMatrix);
         RenderTargets = new CasaRenderTargetService(this);
+        _ClipSlots = new ClipSlots(this);
         ShapeRenderer = Renderer.Options.CreateShapeRenderer?.Invoke(this) ?? new CasaLegacyShapeRenderer2D(this);
         ClipManager = new(this);
 
@@ -127,6 +128,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         PrimitiveProjectionMatrix = CreatePrimitiveProjectionMatrix();
         DrawState.Rearm(Settings, PrimitiveProjectionMatrix);
         RenderTargets.Rearm();
+        _ClipSlots.ReleaseAll();
         ClipManager.Rearm();
 
         //  The pair is kept only for the settings this use starts with: a pair made from other settings could not be found again, and would keep
@@ -714,13 +716,13 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     public ClipResolveResult ResolveClip(ClipDefinition Definition)
         => ClipManager.Resolve(Definition);
 
-    public ClipScope PushClipTemporary(ClipDefinition Definition)
+    public ClipHandle PushClipTemporary(ClipDefinition Definition)
         => ClipManager.Push(Definition);
 
     public string GetClipDiagnosticsDebugText()
         => ClipDiagnostics.ToDebugString();
 
-    public ClipScope PushRectangleClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
+    public ClipHandle PushRectangleClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
     {
         if (!Bounds.HasValue)
         {
@@ -730,34 +732,42 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         return ClipManager.PushRectangle(Bounds.Value, IntersectWithCurrentClipTarget);
     }
 
-    internal ClipScope PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult Resolution)
+    internal ClipHandle PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult Resolution)
         => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, Resolution);
 
-    /// <summary>A scissor push whose scope reports the rectangle clip it was asked for, without creating the <see cref="ClipDefinition"/> that says so.</summary>
-    internal ClipScope PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget)
+    /// <summary>A scissor push whose handle reports the rectangle clip it was asked for, without creating the <see cref="ClipDefinition"/> that says so.</summary>
+    internal ClipHandle PushRectangleClipCore(Rectangle Bounds, bool IntersectWithCurrentClipTarget)
         => PushScissorClip(Bounds, IntersectWithCurrentClipTarget, null);
 
-    private ClipScope PushScissorClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult? Resolution)
+    private ClipHandle PushScissorClip(Rectangle? Bounds, bool IntersectWithCurrentClipTarget, ClipResolveResult? Resolution)
     {
         Rectangle PreviousBounds = SpriteBatch.GraphicsDevice.ScissorRectangle;
         bool PreviousScissorState = CurrentSettings.UsesScissorTest;
 
         SetClipTarget(Bounds, IntersectWithCurrentClipTarget);
 
-        ScissorClipSlot Slot = _FreeScissorClipSlots.Count > 0 ? _FreeScissorClipSlots.Pop() : new ScissorClipSlot(this);
-        Slot.PreviousBounds = PreviousBounds;
-        Slot.PreviousScissorState = PreviousScissorState;
+        return _ClipSlots.Push(Resolution.HasValue
+            ? ClipSlotState.Scissor(Resolution.Value, PreviousBounds, PreviousScissorState, true)
+            : ClipSlotState.ScissorRectangle(Bounds.Value, IntersectWithCurrentClipTarget, PreviousBounds, PreviousScissorState, true));
+    }
 
-        if (Resolution.HasValue)
+    /// <summary>The clips in force of this transaction: scissor, stencil and mask clips each take a slot, which holds what their release restores
+    /// (MGUI ADR-0031).</summary>
+    internal ClipSlots ClipSlots => _ClipSlots;
+
+    void IClipSlotRestorer.RestoreClip(in ClipSlotState State)
+    {
+        if (State.Strategy == ClipStrategy.Scissor)
         {
-            Slot.Scope.Reset(Resolution.Value);
+            if (State.ScissorChanged)
+            {
+                RestoreScissor(State.PreviousScissorBounds, State.PreviousScissorState);
+            }
         }
         else
         {
-            Slot.Scope.ResetRectangle(Bounds.Value, IntersectWithCurrentClipTarget);
+            State.Restore?.Invoke();
         }
-
-        return Slot.Scope;
     }
 
     private void RestoreScissor(Rectangle PreviousBounds, bool PreviousScissorState)
@@ -806,33 +816,11 @@ public class CasaDrawTransaction : IMonoGameDrawContext
         return new ClipResolveResult(None, None, ClipStrategy.None, false);
     }
 
-    private readonly Stack<ScissorClipSlot> _FreeScissorClipSlots = new();
+    private readonly ClipSlots _ClipSlots;
     // The settings derived for temporary transforms and effects, kept across the uses of the transaction (MGUI ADR-0031).
     private readonly DerivedDrawSettingsCache _DerivedSettings = new();
     private DrawSettings _RasterizerVariantA;
     private DrawSettings _RasterizerVariantB;
-
-    /// <summary>A scissor clip's scope and what it restores, kept in fields so that a push creates no closure. A slot goes back to its transaction's
-    /// free stack when its scope is disposed, so nested clips use one slot per level and any order of disposal stays correct.</summary>
-    private sealed class ScissorClipSlot
-    {
-        private readonly CasaDrawTransaction _Owner;
-        public readonly ClipScope Scope;
-        public Rectangle PreviousBounds;
-        public bool PreviousScissorState;
-
-        public ScissorClipSlot(CasaDrawTransaction Owner)
-        {
-            _Owner = Owner;
-            Scope = new ClipScope(Restore);
-        }
-
-        private void Restore()
-        {
-            _Owner.RestoreScissor(PreviousBounds, PreviousScissorState);
-            _Owner._FreeScissorClipSlots.Push(this);
-        }
-    }
 
     /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering.</summary>
     public void SetEffect(Effect Effect)
@@ -899,7 +887,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     /// <summary>Compatibility wrapper kept for rectangle-only migration paths.</summary>
     /// <param name="IntersectWithCurrentClipTarget">If true, rather than replacing the clip target with the given <paramref name="Bounds"/>,<br/>
     /// the clip target will be the intersection of the current clip target and the given <paramref name="Bounds"/></param>
-    public IDisposable SetClipTargetTemporary(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
+    public ClipHandle SetClipTargetTemporary(Rectangle? Bounds, bool IntersectWithCurrentClipTarget)
     {
         return PushRectangleClip(Bounds, IntersectWithCurrentClipTarget);
     }

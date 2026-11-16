@@ -507,6 +507,7 @@ public class EditorControlTemplateAssetLoadingTests
         }
 
         private readonly CallbackDrawStateOwner _DrawStateScopes = new();
+        private readonly CallbackClipHandleOwner _ClipScopes = new();
 
         public DrawStateHandle SetDrawSettingsTemporary(DrawSettings settings)
         {
@@ -527,15 +528,15 @@ public class EditorControlTemplateAssetLoadingTests
             return new(effective, effective, ClipStrategy.Scissor, false);
         }
 
-        public ClipScope PushClipTemporary(ClipDefinition definition)
+        public ClipHandle PushClipTemporary(ClipDefinition definition)
         {
             ClipResolveResult resolution = ResolveClip(definition);
             Rectangle? previous = _currentClipBounds;
             _currentClipBounds = resolution.Effective.Kind == ClipKind.None ? null : resolution.Effective.Shape.Bounds;
-            return new(resolution, () => _currentClipBounds = previous);
+            return _ClipScopes.Push(resolution, () => _currentClipBounds = previous);
         }
 
-        public ClipScope PushRectangleClip(Rectangle? bounds, bool intersectWithCurrentClipTarget)
+        public ClipHandle PushRectangleClip(Rectangle? bounds, bool intersectWithCurrentClipTarget)
         {
             ClipDefinition definition = bounds.HasValue
                 ? ClipDefinition.Rectangle(bounds.Value, intersectWithCurrentClipTarget)
@@ -543,7 +544,7 @@ public class EditorControlTemplateAssetLoadingTests
             return PushClipTemporary(definition);
         }
 
-        public IDisposable SetClipTargetTemporary(Rectangle? bounds, bool intersectWithCurrentClipTarget)
+        public ClipHandle SetClipTargetTemporary(Rectangle? bounds, bool intersectWithCurrentClipTarget)
             => PushRectangleClip(bounds, intersectWithCurrentClipTarget);
 
         public void Dispose()

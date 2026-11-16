@@ -327,7 +327,7 @@ public class DesktopFrameGpuAllocationTests
                 Assert.Equal(scissorTestAtStart, initial.UsesScissorTest);
                 Assert.Equal(full, device.ScissorRectangle);
 
-                ClipScope first = dt.PushRectangleClip(outer, true);
+                ClipHandle first = dt.PushRectangleClip(outer, true);
                 Assert.True(dt.CurrentSettings.UsesScissorTest);
                 Assert.Equal(outer, device.ScissorRectangle);
                 Assert.Equal(outer, dt.CurrentClipBounds);
@@ -335,15 +335,15 @@ public class DesktopFrameGpuAllocationTests
                 Assert.Equal(outer, first.Resolution.Effective.Shape.Bounds);
                 Assert.True(first.Resolution.Effective.IntersectWithCurrentClip);
 
-                ClipScope none = dt.PushClipTemporary(ClipDefinition.None());
+                ClipHandle none = dt.PushClipTemporary(ClipDefinition.None());
                 Assert.Equal(ClipStrategy.None, none.Resolution.Strategy);
                 Assert.Equal(outer, device.ScissorRectangle);
 
-                ClipScope second = dt.PushRectangleClip(inner, true);
+                ClipHandle second = dt.PushRectangleClip(inner, true);
                 Assert.Equal(intersection, device.ScissorRectangle);
                 Assert.Equal(inner, second.Resolution.Effective.Shape.Bounds);
 
-                ClipScope removed = dt.PushRectangleClip(null, false);
+                ClipHandle removed = dt.PushRectangleClip(null, false);
                 Assert.False(dt.CurrentSettings.UsesScissorTest);
                 Assert.Null(dt.CurrentClipBounds);
                 Assert.Equal(full, device.ScissorRectangle);
@@ -993,7 +993,59 @@ public class DesktopFrameGpuAllocationTests
         Assert.Equal(0, acrossRearm);
     }
 
-    private static readonly DrawSettings[] RearmSettings = { DrawSettings.Default, DrawSettings.Default };
+    /// <summary>A clip handle kept after its dispose releases nothing, even when the next clip uses its slot; one kept across a re-arm of the
+    /// transaction does not release a clip of the next use (MGUI ADR-0031).</summary>
+    [GpuFact]
+    public void AClipHandleOfAClipThatIsOver_ReleasesNothing()
+    {
+        GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            using RenderTarget2D target = CreateTarget(device);
+            try
+            {
+                Harness harness = new();
+                CasaDrawTransaction dt = harness.Transaction;
+                Rectangle first = new(10, 10, 100, 100);
+                Rectangle second = new(20, 30, 40, 50);
+                Rectangle start = device.ScissorRectangle;
+
+                ClipHandle stale = dt.PushRectangleClip(first, true);
+                stale.Dispose();
+                Assert.Equal(start, device.ScissorRectangle);
+
+                ClipHandle next = dt.PushRectangleClip(second, false);
+                Assert.Equal(second, device.ScissorRectangle);
+                stale.Dispose();
+                Assert.Equal(second, device.ScissorRectangle);
+                Assert.True(next.IsActive);
+                Assert.False(stale.IsActive);
+                Assert.Equal(second, next.Resolution.Effective.Shape.Bounds);
+                next.Dispose();
+                next.Dispose();
+                Assert.Equal(start, device.ScissorRectangle);
+
+                ClipHandle beforeRearm = dt.PushRectangleClip(first, false);
+                dt.Dispose();
+                CasaDrawTransaction rearmed = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: true);
+                Assert.Same(dt, rearmed);
+                Assert.False(beforeRearm.IsActive);
+                ClipHandle afterRearm = rearmed.PushRectangleClip(second, false);
+                beforeRearm.Dispose();
+                Assert.Equal(second, device.ScissorRectangle);
+                Assert.True(afterRearm.IsActive);
+                afterRearm.Dispose();
+                rearmed.Dispose();
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+    }
+
+    private static readonly DrawSettings[] RearmSettings
+ = { DrawSettings.Default, DrawSettings.Default };
     private static int RearmIndex;
 
     /// <summary>Squares drawn under nested temporary transforms and a temporary effect land where they land with settings derived at each

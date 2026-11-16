@@ -366,7 +366,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
     32 transformations ou effets temporaires distincts par image allouent de nouveau ; une entrée garde son effet
     jusqu'à son remplacement.
 
-### ⏳ T1.4 — Poignée de clip à génération
+### ✅ T1.4 — Poignée de clip à génération
 
 - Objectif : `PushClipTemporary`, `PushRectangleClip` et `SetClipTargetTemporary` (qui appelle `PushRectangleClip`
   dans les deux backends) rendent une poignée `struct` ; une poignée périmée libérée après la réutilisation de son
@@ -387,6 +387,24 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
 - Validation : comme T1.2 ; les tests de réarmement (clip non libéré, masque non libéré) gardent leur sens.
 - Commit : `fix(rendering)!: make a clip handle that cannot release a later use` (MGUI), puis
   `fix(ui)!: use generation handles for clips` (moteur)
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3732 verts, `CasaEngine.Tests` 5555 verts, aucun
+  sauté. La classe `ClipScope` n'existe plus ; `PushClipTemporary`, `PushRectangleClip` et `SetClipTargetTemporary`
+  rendent `ClipHandle`. Les clips rectangulaires restent à 0 octet (`ClipScopeReuseGpuTests`, images du moteur à 0).
+  - Ajouté à `MGUI.Shared` : `ClipSlots` (emplacements des clips en vigueur d'un backend, un état `ClipSlotState` par
+    clip, restauration par `IClipSlotRestorer`), partagé par les deux backends, et `CallbackClipHandleOwner` pour les
+    doublures de test (19 fichiers migrés par un `mech-executor`).
+  - Poignée périmée : `AHandleKeptAfterItsDispose_DoesNotReleaseTheNextClip` (MGUI, GPU réel),
+    `AClipHandleOfAClipThatIsOver_ReleasesNothing` (moteur, avec réarmement), `ClipSlotsTests` (remplace
+    `ClipScopeTests`, retiré avec la classe). Sur le code d'avant, la référence gardée était l'objet réarmé du clip
+    suivant et sa libération le libérait : ce cas ne peut plus s'écrire, la poignée étant une valeur.
+  - Un réarmement de la transaction oublie les clips restés ouverts (`ClipSlots.ReleaseAll`) : les tests
+    `Rearm_AfterAnUndisposed...` (rectangle, sans clip, stencil, masque) sont verts sans changement de sens.
+  - Constat corrigé en route : `ClipHandle.IsActive` construisait la résolution paresseuse d'un clip rectangulaire
+    (96 octets) ; il lit maintenant `IClipHandleOwner.IsClipInForce`, sans allocation.
+  - `ClipPipelineStrategyTests.RenderContext_KeepsLegacyRectangleClipShim` attend désormais `ClipHandle` (rupture
+    voulue, D2).
+  - Stencil et masque : seulement migrés (fermeture gardée dans `ClipSlotState.Restore`), comme prévu.
+  - Docs : `MGUI/Docs/rendering-architecture.md`, `custom-render-backend-integration.md`, statut de l'ADR-0027.
 
 ### ⏳ T1.5 — Clip à stencil sans allocation
 
