@@ -510,13 +510,33 @@ créé en T0.1), appels de dessin inchangés. Une tâche mesurée à 0 en T0.1 e
 notée « Commit (MGUI) » a aussi son commit du moteur (référence du sous-module et ce plan), comme le disent les
 règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
-### ⏳ T2.1 — `MGGrid` avec sélection
+### ⚠️ T2.1 — `MGGrid` avec sélection
 
 - Fichiers : `MGUI/MGUI.Core/UI/Containers/Grids/MGGrid.cs`.
 - Étapes : énumération de `GridSelection` sans itérateur (énumérateur `struct` ou boucle sur lignes et colonnes) ;
   cellules dont les bornes changent : mesurer le cas, ne garder un dictionnaire que réutilisé.
 - Validation : 0 octet au repos avec une sélection et pendant le déplacement de la sélection à la souris.
 - Commit (MGUI) : `perf(grid): draw and move a selection without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3790 verts (6 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale (équivalence du parcours de focus vérifiée contre `TraverseVisualTree`).
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | `MGGrid` 3x3, une cellule sélectionnée, repos | 0 | 0 | 288 | 0 |
+  | Sélection déplacée par un clic toutes les 2 images | 1996 | 232 | 288 | 0 |
+
+  - Causes retirées : itérateur `yield` de `GridSelection` au dessin (énumérateur `struct` interne
+    `GridSelection.Cells`, l'énumération publique est inchangée) ; recherche de la cible de focus automatique à chaque
+    appui (`UIFocusNavigationService.GetFirstAutoFocusCandidate` : parcours, `Where`, `Distinct`, tris et liste,
+    environ 1760 octets par clic), remplacée par un parcours unique qui garde le premier candidat dans le même ordre
+    (index de tabulation, haut, gauche, premier rencontré). `GetFocusableElements`, utilisé par la navigation au
+    clavier, n'a pas changé.
+  - Appels de dessin inchangés : journal figé de 1500 lignes pris sur le code d'avant (repos et déplacements).
+  - ⚠️ Reste, cause hors des fichiers de la tâche (D8) : 464 octets par clic, les objets que le suivi de la souris de
+    `MGUI.Shared/Input/Mouse` crée pour tout appui et relâchement (événements d'appui, de relâchement, de clic, de début
+    et de fin de glissement, séquence de clics et ses métadonnées). Preuve : la même suite de clics sur la même grille
+    avec `SelectionMode = None` alloue exactement le même total, ce que le test affirme. Voir O10.
 
 ### ⏳ T2.2 — `MGDockHost`
 
@@ -762,6 +782,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O7 | **Décision de l'auteur.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
 | O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
 | O9 | **Décision de l'auteur.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
+| O10 | **Décision de l'auteur.** Tout clic crée dans `MGUI.Shared/Input/Mouse` les événements d'appui, de relâchement, de clic, de début et de fin de glissement, une séquence de clics et ses métadonnées (464 octets par clic mesurés). Les réutiliser, comme pour le déplacement (`ba19985d`), change ce qu'un gestionnaire peut garder. Recommandation de l'agent : même contrat que le déplacement et la molette (O7), en une tâche de suite sur l'entrée. | T2.1 |
 
 ## Hors périmètre
 
