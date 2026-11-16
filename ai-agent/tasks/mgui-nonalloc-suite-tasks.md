@@ -1377,6 +1377,93 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
 
 ---
 
+## Reprise sur une autre machine
+
+Écrit le 2026-11-16 à la demande de l'auteur, pour continuer ce plan depuis une autre machine ou une autre session.
+Tout le travail est commité ; rien d'autre que les deux branches n'est nécessaire.
+
+État au moment de l'arrêt :
+
+- Moteur : branche `chantier/mgui-nonalloc-suite`, dernier commit de code `88324a47`. Elle part du `main` local, qui
+  a 32 commits d'avance sur `origin/main` : pousser la branche du chantier emporte ces commits.
+- MGUI (sous-module) : branche `chantier/mgui-nonalloc-suite`, commit `d0efd9b4`, que le moteur référence. Elle part
+  du `develop` local, qui a 31 commits d'avance sur `origin/develop`.
+- Faites : phases 0 à 4, puis T5.1, T5.2 et T5.3. Prochaine tâche : **T5.4** (vérification indépendante de l'entrée),
+  puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
+- Référence des suites à ce commit : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
+  solutions à 0 erreur.
+
+Pour pousser (à faire par l'auteur, MGUI d'abord, sinon le moteur référence un commit absent du dépôt distant) :
+
+```bash
+git -C MGUI push -u origin chantier/mgui-nonalloc-suite
+```
+
+```bash
+git push -u origin chantier/mgui-nonalloc-suite
+```
+
+Pour récupérer sur l'autre machine, à la racine du dépôt du moteur :
+
+```bash
+git fetch origin
+```
+
+```bash
+git checkout chantier/mgui-nonalloc-suite
+```
+
+```bash
+git submodule update --init
+```
+
+```bash
+git -C MGUI fetch origin
+```
+
+```bash
+git -C MGUI checkout chantier/mgui-nonalloc-suite
+```
+
+`git submodule update` laisse MGUI en tête détachée sur le bon commit ; le dernier `checkout` le remet sur sa branche,
+nécessaire pour y commiter. Vérifier ensuite que `git -C MGUI log --oneline -1` rend `d0efd9b4` (ou un commit plus
+récent de cette branche) et que `git status` est propre dans les deux dépôts.
+
+Ce qui n'est pas dans le dépôt et que l'autre machine doit avoir :
+
+- Le SDK .NET et une carte graphique : les tests `GpuFact` sont sautés sans GPU, et une suite avec des tests sautés
+  ne vaut pas validation (section « Validation globale »).
+- Les rôles génériques de sous-agents (`scout`, `executor`, `mech-executor`, `verifier`, `plan-verifier`) et la
+  politique d'orchestration : ils sont installés par machine dans `~/.claude/` (pilotfish), pas versionnés ici. Sans
+  eux, les vérifications indépendantes de T5.4 et de T5.9 se font avec un sous-agent générique en lecture et
+  exécution seules, modèle opus, sur la revendication écrite dans la tâche.
+- Les index locaux (`.codegraph/`, `.serena/`) se reconstruisent (`codegraph init`) ; ils ne sont pas requis.
+
+Règles de travail apprises pendant ce chantier, que la mémoire locale de l'agent ne transporte pas :
+
+- Préférence de l'auteur (2026-11-15) : un design moderne et performant ; casser l'API et retirer une
+  fonctionnalité obsolète plutôt que garder une compatibilité, sans alias `[Obsolete]`.
+- `git commit` doit être précédé de `cd D:/...` vers le dépôt : le hook de commit ne résout pas les chemins `/d/...`.
+  Ne jamais lancer `dotnet test --no-build` (binaires de test périmés constatés).
+- Dans MGUI, un nouvel ADR s'indexe par le chemin que `git status` affiche (`docs/...` ou `Docs/...` selon le cas) ;
+  vérifier ensuite par `git ls-files` qu'il est bien dans le commit.
+- `sed -i` du shell Bash retire les fins de ligne CRLF : vérifier par `file <chemin>` après toute édition en ligne de
+  commande. Un script contenant des apostrophes ne passe pas en heredoc : l'écrire dans un fichier puis le lancer.
+- Ne jamais indexer les fichiers de l'auteur : `.serena/project.yml`, `.codegraph/`, `.serena/memories/`,
+  `Projects/SampleProject/.casaeditor/viewport.editor.json`.
+- Méthode qui a tenu pour chaque tâche : figer le comportement sur le code d'avant (journal des appels de dessin,
+  scénario image par image, différentiel contre le code historique), changer, rejouer à l'identique, puis mesurer
+  0 octet sur 500 images après 500 de chauffe ; une mutation volontaire vérifie que le test peut échouer.
+
+Consigne à donner à la session qui reprend :
+
+> Reprends le plan `ai-agent/tasks/mgui-nonalloc-suite-tasks.md` à la tâche T5.4, en suivant ses règles d'exécution et
+> sa section « Reprise sur une autre machine ». L'auteur a approuvé la phase 5 le 2026-11-16 et choisi le mode AUTO :
+> avance tâche par tâche dans le périmètre approuvé, un commit par tâche dans chaque dépôt, sans pousser ni
+> fusionner ; arrête-toi sur tout blocage du plan (⚠️) et à la fin de T5.10.
+
+---
+
 ## Points ouverts
 
 À trancher pendant l'exécution, ou à remonter en ⚠️ Blocked si la réponse manque.
