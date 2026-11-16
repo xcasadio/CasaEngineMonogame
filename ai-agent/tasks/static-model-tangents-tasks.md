@@ -57,7 +57,7 @@ Chaque maillage d'un `.staticModel` peut porter un tableau `tangents`, à côté
 
 - Les deux solutions se construisent à 0 erreur.
 - Tests : tous les tests verts, à l'exception des 8 tests GPU qui échouent déjà sur `origin/main` sur ce PC (7 empreintes de pixels de `DesktopFrameGpuAllocationTests` et `DrawTransactionRearmGpuTests`, et `IblCubeGeneratorGpuTests.OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed`) ; total passé de 6378 au nombre de nouveaux tests près.
-- Un `.staticModel` existant du dépôt se recharge et se réécrit à l'identique (aucun champ `tangents` ajouté).
+- Changement additif prouvé sur un asset existant, par un test : `Projects/SampleProject/Entities/Box.staticModel` est chargé puis resérialisé par `EditorAssetJsonSerializer.TrySerialize` ; aucun maillage du résultat ne contient la clé `tangents`, chaque maillage rechargé a `HasTangents` faux, et ses sommets et indices sont ceux du fichier. Le test ne compare pas les octets du fichier : le sérialiseur actuel écrit déjà `slot_name` et `material_slot_index`, que ce fichier n'a pas.
 
 Retour arrière : `git switch main` puis `git branch -D chantier/static-model-tangents`, sur demande de l'auteur seulement.
 
@@ -76,7 +76,7 @@ Retour arrière : `git switch main` puis `git branch -D chantier/static-model-ta
   1. `StaticModelMesh.GetTangentVertices()` : lecture seule, vide quand le maillage n'a pas de tangentes.
   2. `Load` : lit `tangents` selon la section « Format », reconstruit les sommets avec tangentes.
   3. `SaveStaticModelMesh` : écrit `tangents` seulement quand le maillage en a.
-  4. Tests : un maillage avec tangentes fait l'aller-retour (positions, normales, UV, tangentes et `w` égaux, `HasTangents` vrai) ; un maillage sans tangentes n'écrit pas `tangents` et se recharge sans ; un nombre d'entrées différent se charge sans tangentes et signale l'erreur ; les indices et les sous-maillages ne changent pas.
+  4. Tests : un maillage avec tangentes fait l'aller-retour (positions, normales, UV, tangentes et `w` égaux, `HasTangents` vrai) ; un maillage sans tangentes n'écrit pas `tangents` et se recharge sans ; un nombre d'entrées différent se charge sans tangentes et signale l'erreur par `Logs.WriteError`, vérifiée avec un journal de capture enregistré par `Logs.AddLogger` (modèle : `CasaEngine.Tests/Dialogue/DialogueScreenReplacementTests.cs:57-72`) ; les indices et les sous-maillages ne changent pas ; l'asset existant `Projects/SampleProject/Entities/Box.staticModel` selon la validation globale.
 - Validation : validation globale.
 - Commit : `feat(assets): keep the tangents of a static model mesh in its asset`
 
