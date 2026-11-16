@@ -1272,7 +1272,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
     comparaison ancien et nouveau MGUI sur cette machine, empreintes égales) ; aucun lancement de l'éditeur ni des
     samples.
 
-### ⏳ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
+### ✅ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
 
 - Objectif : un élément dont le clip est un rectangle ne crée plus de `ClipDefinition`, quelles que soient ses bornes
   (environ 120 octets par image pour un contenu défilé sur des décalages nouveaux), selon D16.
@@ -1301,6 +1301,35 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   500 décalages tous différents (0 au dessin) ; pixels identiques sur les tests GPU existants ; trois solutions
   0 erreur, deux suites vertes.
 - Commit : `perf(rendering): push the rectangle clips of an element without a definition` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3945 verts (7 tests ajoutés),
+  `CasaEngine.Tests` 6119 verts, aucun sauté. Écrit par un `executor`, relu en session principale. ADR-0035 de MGUI.
+
+  | `MGScrollViewer`, défilement sur 500 décalages tous différents | Draw avant | Draw après |
+  |---|---|---|
+  | Octets par image | 9888 | 0 |
+
+  - Le chiffre d'avant dépasse les 120 octets estimés : chaque descendant du contenu qui pose un clip (les blocs de
+    texte) recevait lui aussi une définition neuve à chaque décalage.
+  - Changement : `ElementClipRequest` (interne, sans appelant jusque-là) devient le type rendu par les deux crochets :
+    rien, un rectangle, ou une définition ; `MGElement.Draw` pousse le rectangle par `PushRectangleClip(bornes, true)`
+    et la définition par `PushClipTemporary`. Les crochets gardent leur nom. Retirés : `CreateRectangleClipDefinition`
+    (`protected`, aucun appelant hors de `MGUI.Core` dans les deux dépôts), le cache et l'anneau de seize définitions
+    rectangulaires de `MGElement`, le cache du viewport de `MGScrollViewer`. Clips arrondis et à géométrie inchangés.
+    `CreateBorderBackedContentsClipDefinition` (`protected`) garde sa signature pour `MGGridColorPicker`, qui pousse
+    toujours lui-même son clip `.Swatches` par `PushClipTemporary` ; son cas rectangulaire garde une définition tant
+    que bornes et nom ne changent pas (ajouté à la relecture : la première version en créait une par appel).
+  - Aucun changement de code dans le moteur : `CasaClipManager` pose déjà le même scissor pour les deux appels.
+  - Journaux : les 37 journaux d'après sont égaux aux journaux normalisés d'avant (nombre de lignes et empreinte) ;
+    9 n'ont aucun clip d'élément et ne changent pas, 28 sont refigés sur l'empreinte normalisée. `FrozenJournal.Assert`
+    échoue désormais si un journal porte encore un clip rectangulaire d'élément en définition. Mutation vérifiée puis
+    annulée : pousser le rectangle décalé d'un pixel fait échouer 32 tests, dont les 28 journaux.
+  - Pixels : les tests GPU du moteur (`DesktopFrameGpuAllocationTests`, `DrawTransactionRearmGpuTests`) passent sans
+    changement des empreintes, sur cette machine seulement.
+  - Tests adaptés : `TransformedClipTests` lit le clip en vigueur quand le contenu commence à se dessiner
+    (`CurrentClipBounds`) au lieu de chercher le clip nommé `ScrollViewer.Viewport`, mêmes bornes vérifiées ;
+    `BorderShapeAdoptionTests` attend le nouveau type des crochets ; deux numéros de ligne de la liste de
+    `ResolvedPilotWriteSitesTests` décalés d'une ligne par un `using` ajouté. `GridColorPickerSwatchClipTests` inchangé.
+  - Non fait : aucun lancement de `MGUI.Samples` ni de l'éditeur (prévu en T5.10) ; rien rejoué sur la première machine.
 
 ### ⏳ T5.6 — `FillPolygon` des backends sans copie
 
@@ -1422,7 +1451,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  Prochaine tâche : **T5.5**.
+  T5.5 faite. Prochaine tâche : **T5.6**.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
