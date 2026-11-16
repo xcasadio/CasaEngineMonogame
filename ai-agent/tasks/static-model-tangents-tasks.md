@@ -65,7 +65,7 @@ Retour arrière : `git switch main` puis `git branch -D chantier/static-model-ta
 
 ## Phase 1 — Format
 
-### ⏳ T1 — Lire et écrire les tangentes d'un `.staticModel`
+### ✅ T1 — Lire et écrire les tangentes d'un `.staticModel`
 
 - Objectif : aller-retour complet. Le runtime lit `tangents`, l'éditeur l'écrit.
 - Fichiers :
@@ -79,6 +79,8 @@ Retour arrière : `git switch main` puis `git branch -D chantier/static-model-ta
   4. Tests : un maillage avec tangentes fait l'aller-retour (positions, normales, UV, tangentes et `w` égaux, `HasTangents` vrai) ; un maillage sans tangentes n'écrit pas `tangents` et se recharge sans ; un nombre d'entrées différent se charge sans tangentes et signale l'erreur par `Logs.WriteError`, vérifiée avec un journal de capture enregistré par `Logs.AddLogger` (modèle : `CasaEngine.Tests/Dialogue/DialogueScreenReplacementTests.cs:57-72`) ; les indices et les sous-maillages ne changent pas ; l'asset existant `Projects/SampleProject/Entities/Box.staticModel` selon la validation globale.
 - Validation : validation globale.
 - Commit : `feat(assets): keep the tangents of a static model mesh in its asset`
+
+> Validation (2026-11-16) : `StaticModelMesh.GetTangentVertices()` ajouté ; `Load` lit `tangents` ; `SaveStaticModelMesh` l'écrit pour un maillage qui en a. Quatre tests dans `CasaEngine.Tests/EditorServices/StaticModelTangentSerializationTests.cs` (aller-retour, sans tangentes, nombre incohérent signalé par `Logs.WriteError`, asset existant `Box.staticModel`). Les deux solutions à 0 erreur. Tests : 6382 lancés, 6374 verts, les 8 échecs GPU connus et eux seuls.
 
 ### ⏳ T2 — Décision et documentation
 

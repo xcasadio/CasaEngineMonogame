@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 
 using Microsoft.Xna.Framework;
@@ -67,6 +68,12 @@ public class StaticModelMesh
     public Vector3 Max { get; set; }
 
     public IReadOnlyList<VertexPositionNormalTexture> GetVertices() => _vertices;
+
+    /// <summary>
+    /// The vertices with their tangents (xyz, and w the sign of the bitangent), in the order of <see cref="GetVertices"/>.
+    /// Empty when the mesh has no tangents (<see cref="HasTangents"/> false).
+    /// </summary>
+    public IReadOnlyList<VertexPositionNormalTextureTangent> GetTangentVertices() => _tangentVertices;
 
     public IReadOnlyList<uint> GetIndices() => _indices;
 
@@ -162,10 +169,38 @@ public class StaticModelMesh
                 SubMeshes.Add(sm);
             }
 }
-        _tangentVertices = Array.Empty<VertexPositionNormalTextureTangent>();
         _vertices = element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()).ToArray();
+        _tangentVertices = LoadTangentVertices(element, _vertices, Name);
         _indices = element.GetElements("indices", o => o.GetUInt32()).ToArray();
         UpdateBounds(_vertices);
+    }
+
+    // The optional "tangents" array (ADR-0123): one entry per vertex, in the order of "vertices". Absent, the mesh has
+    // no tangents. With another number of entries the data is wrong: it is reported and the mesh loads without tangents.
+    private static VertexPositionNormalTextureTangent[] LoadTangentVertices(JObject element, VertexPositionNormalTexture[] vertices, string meshName)
+    {
+        if (element["tangents"] is not JArray tangentArray)
+        {
+            return Array.Empty<VertexPositionNormalTextureTangent>();
+        }
+
+        if (tangentArray.Count != vertices.Length)
+        {
+            Logs.WriteError($"Static model mesh '{meshName}': 'tangents' holds {tangentArray.Count} entries for {vertices.Length} vertices. The mesh is loaded without tangents.");
+            return Array.Empty<VertexPositionNormalTextureTangent>();
+        }
+
+        var tangentVertices = new VertexPositionNormalTextureTangent[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            tangentVertices[i] = new VertexPositionNormalTextureTangent(
+                vertices[i].Position,
+                vertices[i].Normal,
+                vertices[i].TextureCoordinate,
+                tangentArray[i].GetVector4());
+        }
+
+        return tangentVertices;
     }
 
     private static VertexPositionNormalTexture[] ConvertVertices(VertexPositionNormalTextureTangent[] vertices)

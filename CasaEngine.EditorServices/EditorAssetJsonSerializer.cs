@@ -823,6 +823,12 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.AddArray("vertices", staticModelMesh.GetVertices(), (vertex, vertexNode) => vertex.Save(vertexNode));
+        if (staticModelMesh.HasTangents)
+        {
+            //  One tangent per vertex, in the order of "vertices"; written only for a mesh that has tangents (ADR-0123).
+            node.AddArray("tangents", staticModelMesh.GetTangentVertices(), (vertex, tangentNode) => vertex.Tangent.Save(tangentNode));
+        }
+
         node.AddArray("indices", staticModelMesh.GetIndices());
     }
 
