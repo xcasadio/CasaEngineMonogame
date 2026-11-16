@@ -538,7 +538,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
     et de fin de glissement, séquence de clics et ses métadonnées). Preuve : la même suite de clics sur la même grille
     avec `SelectionMode = None` alloue exactement le même total, ce que le test affirme. Voir O10.
 
-### ⏳ T2.2 — `MGDockHost`
+### ⚠️ T2.2 — `MGDockHost`
 
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/` (`MGDockHost.cs`, `MGDockDropIndicators.cs`, `MGDockPreviewOverlay.cs`,
   `DockDropCalculator.cs`, et les classes de séparation que la mesure désigne).
@@ -547,6 +547,41 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Validation : 0 octet au repos avec séparations et panneau masqué, pendant un glissement d'onglet, et après un
   changement de texte.
 - Commit (MGUI) : `perf(docking): update and draw a dock host without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3804 verts (14 tests
+  ajoutés à `ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un `executor`,
+  diff relu par la session principale (12 fichiers produit).
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | Deux groupes et une séparation, repos | 160 | 0 | 40 | 0 |
+  | Un panneau en masquage automatique, repos | 160 | 0 | 208 | 0 |
+  | Un onglet derrière l'onglet actif, repos | 160 | 0 | 40 | 0 |
+  | Glissement d'onglet avec aperçu de dépôt | 3248 | 80 | 80 (848 avant T2.6) | 0 |
+  | Un groupe (`FullInDockHost`), repos et après un changement de texte | 0 | 0 | 0 | 0 |
+
+  - Causes retirées :
+    - `MGDockSplitterBar.SyncVisualParts` créait une brosse à chaque update (160 octets) ; la brosse est gardée avec
+      sa couleur. Effet voulu : la partie d'accent ne notifie plus un changement de fond à chaque image ;
+    - `DrawContents` par itérateur de `GetChildren()` dans `MGDockSplitContainer`, `MGDockAutoHideStrip`,
+      `MGDockAutoHideDrawer` et `MGDockPreviewOverlay` : enfants dessinés directement, dans le même ordre ;
+    - pendant le glissement : parcours de l'arbre par itérateurs (`GetAllVisibleTabGroups`, `GetAllSplitContainers`,
+      `FindTabGroupsRecursive`), remplacés par des listes gardées remplies à chaque appel (`CollectVisibleTabGroups`,
+      `CollectSplitContainers`, nouveau `MGElement.AddChildrenTo` interne) ; ensemble des zones interdites gardé et
+      rempli à chaque appel (les appelants le lisent aussitôt, vérifié) ; `GetDocumentArea` par
+      `DockLayoutModel.FindVisibleDocumentArea` ; fermetures de `FirstOrDefault` remplacées par des boucles. Les
+      énumérations publiques ne changent pas.
+  - Appels de dessin inchangés : quatre journaux figés pris sur le code d'avant (632, 688, 672 et 3100 lignes ; le
+    glissement couvre l'appui, les déplacements, l'aperçu, le dépôt et la suite). Tests d'équivalence :
+    `AddChildrenTo_GivesTheChildrenOfGetChildren_ForTheElementsOfTheDockScenes`,
+    `DockHost_CollectedTreeWalks_AreTheEnumerations`.
+  - Doublure de test modifiée : `GraphTestTextEngine` garde ses `ResolvedFont` par spécification, comme les deux
+    moteurs de texte réels (il en créait un par appel, ce que `MGRotatedTextLabel` demande à chaque dessin).
+  - ⚠️ Reste pendant le glissement : 80 octets par image, un `DockDropTarget` par recalcul de la cible (le test
+    l'affirme exactement). `MGDockHost.CurrentDropTarget` est une propriété publique qui notifie quand la référence
+    change : réutiliser l'instance arrêterait cette notification. Voir O11.
+  - Non atteint par la fixture, laissé : LINQ de `DockDropCalculator` (groupe de plus d'un panneau, zones de
+    séparation, bords de l'hôte), `RefreshActiveGroupHighlight`.
+  - Sample : à relancer en fin de phase 2 (règle d'exécution).
 
 ### ✅ T2.3 — Fenêtre en `SizeToContent`
 
@@ -783,6 +818,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
 | O9 | **Décision de l'auteur.** `FillPolygon` des deux backends réels copie les sommets à chaque appel (`Any()` puis `ToArray()`), donc une flèche ou un polygone dessiné alloue encore sur GPU réel, ce que le banc des contrôles (transaction de test) ne voit pas. Hors des fichiers des tâches de la phase 2. Recommandation de l'agent : une tâche de suite sur les deux backends (tampon gardé, lecture par `IReadOnlyList`). | T2.6 |
 | O10 | **Décision de l'auteur.** Tout clic crée dans `MGUI.Shared/Input/Mouse` les événements d'appui, de relâchement, de clic, de début et de fin de glissement, une séquence de clics et ses métadonnées (464 octets par clic mesurés). Les réutiliser, comme pour le déplacement (`ba19985d`), change ce qu'un gestionnaire peut garder. Recommandation de l'agent : même contrat que le déplacement et la molette (O7), en une tâche de suite sur l'entrée. | T2.1 |
+| O11 | **Décision de l'auteur.** Pendant un glissement d'onglet, `MGDockHost` crée un `DockDropTarget` à chaque recalcul de la cible (80 octets par image). `CurrentDropTarget` est publique et notifie quand la référence change. Deux voies : réutiliser une instance et ne notifier que quand une valeur change (changement de comportement observable), ou laisser comme limite. Recommandation de l'agent : réutiliser et notifier sur changement de valeur. | T2.2 |
 
 ## Hors périmètre
 
