@@ -1,6 +1,6 @@
 # Colour pipeline
 
-How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113, ADR-0115.
+How a world renders in linear light with a high dynamic range target, bloom and tonemapping (`LinearHdr`), and how it differs from the historical pipeline (`Legacy`). Decisions: see ADR-0112, ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0113, ADR-0115.
 
 ## Modes
 
@@ -11,7 +11,7 @@ How a world renders in linear light with a high dynamic range target, bloom and 
 
 ## Settings: the `color_pipeline` key
 
-The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSettings`), are resolved by `EnvironmentResolver` into `ResolvedEnvironmentSettings` (`ColorPipelineMode`, `Tonemapper`, `Exposure`, `IsLinearHdr`) and can be replaced per view by the environment override (the override replaces the settings as a whole).
+The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSettings`), are resolved by `EnvironmentResolver` into `ResolvedEnvironmentSettings` (`ColorPipelineMode`, `Tonemapper`, `Exposure`, `IsLinearHdr`, the bloom fields, `AntiAliasing` and the SSAO fields) and can be replaced per view by the environment override (the override replaces the settings as a whole).
 
 | Field | Key | Default | Effect |
 |---|---|---|---|
@@ -28,7 +28,7 @@ The settings live in `WorldEnvironmentSettings.ColorPipeline` (`ColorPipelineSet
 | `SsaoIntensity` | `ssao_intensity` | 1 | Strength of the occlusion: the scene is multiplied by `lerp(1, occlusion, intensity)` (0 leaves the image untouched). |
 | `SsaoBias` | `ssao_bias` | 0.02 | Depth bias, in world units, that keeps a flat surface from occluding itself. |
 
-The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo and an exposure field.
+The key is an object written only when a field differs from its default, and removed otherwise, so existing worlds keep their format. Keys are read case-insensitively. A world without the key loads as `Legacy`; an older engine reading a world that has it ignores it. The editor's world details panel has a mode combo, a tonemapper combo, an exposure field, the bloom controls, an anti-aliasing combo and the four SSAO controls.
 
 ```csharp
 var colorPipeline = world.EnvironmentSettings.ColorPipeline;
@@ -47,7 +47,7 @@ world.EnvironmentSettings.MarkDirty();
 For a view that really uses the HDR target (`RenderPipeline.RenderHdrView`):
 
 1. The scene is rendered into a target taken from `RenderTargetPool` (`HalfVector4`, `Depth24Stencil8`, the size of the view rectangle after the resolution scale). The clear colour is decoded in floating point.
-1b. With `SsaoEnabled` (and a perspective view whose interface is composed afterwards), the opaque static and skinned geometry is first drawn into the scene depth target (ADR-0115), before the scene is rendered, and `SsaoRenderer` then multiplies the HDR target by the ambient occlusion computed from it (see below).
+1b. With `SsaoEnabled` (and a perspective view whose interface is composed afterwards), the scene depth target is cleared before the scene and each renderer draws its opaque geometry into it during its own flush (static meshes after the shadow pass, skinned meshes after the static transparent pass, ADR-0115); `SsaoRenderer` then multiplies the HDR target by the ambient occlusion computed from it (see below).
 2. If bloom is enabled for the view, `BloomRenderer` adds the glow to the HDR target (see below).
 3. The destination of the legacy path is bound (back buffer, editor host texture, scene target, retained target of the frozen frame, or the render target of the view's own surface) and its depth cleared the way the legacy path clears it.
 4. `Tonemap.fx` (`Tonemap_Reinhard` or `Tonemap_AcesApprox`, parameter `Exposure`) is drawn full-rectangle and opaque through a `SpriteBatch`. It tonemaps then encodes with `pow(c, 1 / 2.2)`.
@@ -95,7 +95,7 @@ A view stays on the legacy path when it keeps the previous content of its colour
 `FxaaRenderer` (ADR-0113) is the anti-aliasing of a `LinearHdr` view, a post-process on the display-encoded colour. It sits **after** the tonemapping and **before** the post-tonemap flush and the interface, so screen text, sprites and the interface are never filtered. `Fxaa.fx` has one technique, `Fxaa` (parameter `FxaaTexelSize`), drawn through `SpriteBatch` with a linear clamped sampler, hot reloadable like `Tonemap.fx`. Per pixel it computes the luminance of the encoded colour, leaves a pixel alone when the local contrast is small, otherwise finds the orientation of the edge, follows it up to twelve texels each way, and reads the colour at a position displaced across the edge (the linear filter does the blend); a sub-pixel term catches isolated bright or dark pixels. No pixel is shifted: the output has the size of the input.
 
 - The tonemapped image goes into a `RenderTargetPool.Shared` target (`Color`, no depth, the size of the view rectangle), then the pass writes the destination. The key of that target is stamped like the bloom ones and released by the same rule (`HdrTargetEviction`); `FxaaTargetCreationCount` and `FxaaTargetDisposalCount` count it apart from the bloom. Without FXAA the path is the unchanged one: no intermediate target, no extra draw.
-- The pass runs only in a view whose pipeline implements `IScenePhaseViewPipeline` (the interface is composed after it). A view that renders everything in one block (the editor views, `OverlayViewPipeline`) is not filtered, so as not to blur its interface.
+- The pass runs only in a view whose pipeline implements `IScenePhaseViewPipeline` and reports `SupportsScenePhase` (the interface is composed after it). A view that renders everything in one block (the editor views, `OverlayViewPipeline`) is not filtered, so as not to blur its interface.
 - `RenderStats.FxaaPasses` is 1 for a view the pass filtered in the frame, 0 otherwise; the demo harness writes it per view at the moment of a capture (`[DemosGame] FXAA passes at capture`).
 - Demo: `CASAENGINE_DEMO_AA=Fxaa` applies it to any demo in `LinearHdr`. In `Colour pipeline demo` the measurement rectangles and segment are `FxaaTextBorderRect`, `FxaaPanelBorderRect` and `FxaaEdgeSegment`.
 - It blurs luminance edges only: it does not add sub-pixel detail (no TAA, no MSAA), and a thin bright line on a dark background can still shimmer when the camera moves.
@@ -145,6 +145,6 @@ Bloom adds, for a view that enables it, ten `SpriteBatch` passes on targets of a
 
 FXAA adds, for a view that enables it, one pooled `Color` target of the view size (4 bytes per pixel, no depth) and one full-rectangle `SpriteBatch` draw reading at most 34 texels per pixel.
 
-The scene depth pre-pass adds, for a view that enables SSAO, one pooled `Single` target of the view size (4 bytes per pixel plus a 24-bit depth buffer) and one more draw of every opaque static and skinned mesh with a minimal shader; the occlusion adds two pooled `Single` targets of the view size (4 bytes per pixel each, no depth buffer) and five full-rectangle `SpriteBatch` draws (13 depth reads per pixel for the occlusion, 18 depth and 9 factor reads for the two blur passes). The cost of the three features together (FXAA about 2 ms, SSAO about 5.5 ms, the clear coat row about 1.3 ms, 8 ms with everything on, against 10.6 ms for the base, on one Intel UHD) is in the Cost section of [pbr-rendering.md](pbr-rendering.md); a cost line counts only when the counters of its own log show the feature on or off as configured.
+The scene depth pre-pass adds, for a view that enables SSAO, one pooled `Single` target of the view size (4 bytes per pixel plus a 24-bit depth buffer) and one more draw of every opaque static and skinned mesh with a minimal shader; the occlusion adds two pooled `Single` targets of the view size (4 bytes per pixel each, no depth buffer) and four full-rectangle `SpriteBatch` draws (17 depth reads per pixel for the occlusion, 10 depth and 9 factor reads for each of the two blur passes, one read for the composite). The cost of the three features together (FXAA about 2 ms, SSAO about 5.5 ms, the clear coat row about 1.3 ms, 8 ms with everything on, against 10.6 ms for the base, on one Intel UHD) is in the Cost section of [pbr-rendering.md](pbr-rendering.md); a cost line counts only when the counters of its own log show the feature on or off as configured.
 
 Decisions: see ADR-0103, ADR-0104, ADR-0105, ADR-0106, ADR-0107, ADR-0112, ADR-0113, ADR-0115.

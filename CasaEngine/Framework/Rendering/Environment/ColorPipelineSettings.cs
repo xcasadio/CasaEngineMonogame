@@ -85,7 +85,7 @@ public sealed class ColorPipelineSettings
     }
 
     /// <summary>
-    /// Screen-space ambient occlusion (ADR-0115): the view draws a scene depth pre-pass that the SSAO of a later task reads. Off by
+    /// Screen-space ambient occlusion (ADR-0115): the view draws a scene depth pre-pass that the SSAO pass reads. Off by
     /// default, and without any effect in <see cref="ColorPipelineMode.Legacy"/>, in a view with a non-perspective projection and in
     /// a view that renders its scene and its interface in one go.
     /// </summary>
