@@ -195,7 +195,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Phase 2 — Sample et documentation
 
-### 🧪 T2.1 — Sample `Projects/VideoSpriteExitSample`
+### ✅ T2.1 — Sample `Projects/VideoSpriteExitSample`
 
 - Objectif : C8.
 - Validation :
@@ -203,7 +203,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - au Launcher, après annonce à l'auteur (C9), une observation ou une capture hors dépôt montre, après une touche pendant le film, le film qui continue sous le voile jusqu'à sa dernière image, puis l'entité cachée. Sinon, c'est noté pour la recette ;
   - deux `.sln` à 0 erreur ; `CasaEngine.Tests` vert.
 - Commit : `feat(samples): add a sample where a world video runs to its end after an exit`
-- Note : faite le 2026-11-12, reste 🧪 jusqu'à la recette.
+- Note : faite le 2026-11-12. Le contrôle à l'écran est fait par la recette de l'auteur, le 2026-11-16 (T3.2).
   - Sample `Projects/VideoSpriteExitSample`. Projet sans DLL, monde `ExitFilmWorld.world` (caméra 2D, fond noir, entité `clip` cachée, `VideoSpriteComponent` à l'échelle 1,5) et monde `EndWorld.world`. Trois cutscenes, comme en C8 : boucle `StartVideoSprite` puis `Wait` de 5 s ; sortie par un voile soustractif de 128 en 1 s, une attente de 5 s, puis `ChangeWorld` ; fin qui attend 2 s, efface le voile et revient. Le mapping est `AnyKey` plus Start de la manette. Le clip est copié de `Projects/VideoSpriteSample`. Les GUID sont neufs. README en anglais.
   - Test de données `CasaEngine.Tests/Cutscenes/VideoSpriteExitSampleDataTests.cs`, 13 tests. Le clip est égal au générateur et à la copie voisine, et les cutscenes se valident. Les attentes dépassent la durée du clip, lue dans son conteneur (4 s). Le test couvre aussi le voile soustractif de 128, le mapping, les mondes, les cibles de `ChangeWorld`, le catalogue et le projet.
   - Launcher, annoncé avant (C9) : lancé 20 s sur le sample. La fenêtre « Video Sprite Exit Sample » s'ouvre, et la sortie de la console ne montre aucune erreur. L'agent ne voit pas l'écran : le contrôle visuel reste à la recette (T3.2). La fermeture de la fenêtre par l'agent a été refusée par le contrôle de sécurité de la session ; la fenêtre est restée ouverte pour l'auteur.
@@ -250,7 +250,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - **DEFER**, P4 : aucun test ne remplace une lecture qui attend dans un `PlayVideoSprite` par une cutscene qui commence par `StartVideoSprite`. Ce cas est celui du `finally` tardif. Il est correct à la lecture dans les deux ordres, grâce à la garde par `PlayGeneration`.
   - **DEFER**, P4 : le sample n'est pas vu à l'écran. C'est la recette T3.2.
 
-### ⏳ T3.2 — Recette de l'auteur
+### ✅ T3.2 — Recette de l'auteur
 
 - Objectif : l'auteur lance `Projects/VideoSpriteExitSample` et vérifie :
   - sans touche, le film rejoue à chaque tour ;
@@ -258,6 +258,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - après le monde de fin, le sample recommence.
 - Validation : accord de l'auteur, noté ici.
 - Commit : `docs(ai-agent): record the accepted check of the world video sample`
+- Note : recette acceptée par l'auteur le 2026-11-16 au Launcher (« recette OK »). La branche était déjà fusionnée en local dans `main` avant la recette, à la demande de l'auteur.
 
 ---
 
