@@ -540,13 +540,35 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Commit (MGUI) : `perf(window): keep a window sized to its content without allocating`
 - Validation (2026-11-16) : mesuré à zéro en T0.1 (Update 0, Draw 0, `WidthAndHeight` et `Height`). Fermée sans code (D8).
 
-### ⏳ T2.4 — `MGScrollViewer`
+### ⚠️ T2.4 — `MGScrollViewer`
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGScrollViewer.cs`.
 - Étapes : nom de clip gardé (`:1233`) ; parcours des enfants sans énumérateur d'interface ; ce que la mesure montre
   d'autre.
 - Validation : 0 octet au repos et pendant un défilement à la molette.
 - Commit (MGUI) : `perf(scroll): scroll and draw a scroll viewer without allocating`
+- Validation (2026-11-16) : `MGUI.sln` et les deux solutions du moteur 0 erreur ; `MGUI.Tests` 3748 verts (5 tests
+  ajoutés, `Architecture/ControlFamilyZeroAllocationTests.cs`), `CasaEngine.Tests` 5556 verts, aucun sauté. Écrit par un
+  `executor`, diff relu par la session principale.
+
+  | Octets par image | Update avant | Update après | Draw avant | Draw après |
+  |---|---|---|---|---|
+  | Repos | 136 | 0 | 210 | 0 |
+  | Molette (le banc repasse par 5 décalages) | 192 | 56 | 331 | 0 |
+
+  - Causes retirées : abonnement à `OnBeginUpdateContents` (un `ElementUpdateEventArgs` par update), remplacé par le
+    crochet `BeginUpdateContentsInternal` que `MGWindow` utilise déjà ; itérateur de `GetChildren()` au dessin ; nom et
+    `ClipDefinition` du viewport construits à chaque dessin, gardés tant que les bornes à l'écran sont les mêmes ;
+    anneau des clips récents d'un élément porté de 8 à 16 (`MGElement.cs`, les deux crochets de clip le partagent).
+  - Appels de dessin inchangés : journal figé de 2912 lignes pris sur le code d'avant
+    (`ScrollViewerWithTallContent_DrawJournal_AtRestAndAfterWheelNotches`), identique après.
+  - ⚠️ Reste, cause hors des fichiers de la tâche (D8) : 56 octets par image où la molette bouge, un
+    `BaseMouseScrolledEventArgs` créé par `MGUI.Shared/Input/Mouse/MouseTracker.cs:409`. Le test l'affirme tel quel
+    (« un événement de molette par image et rien d'autre »). Voir O7.
+  - Limite constatée : un défilement continu sur des décalages tous différents crée encore jusqu'à deux
+    `ClipDefinition` par image (environ 120 octets) pour le contenu défilé. Voir O8.
+  - Effet sur les autres familles : `MGListView` et `MGTreeView` 136/786 → 0/576, `MGListBox` 272/210 → 136/0,
+    `MGContextMenu` 272/1178 → 136/968, menu déroulant de `MGMenuBar` 1280/874 → 1144/664.
 
 ### ⏳ T2.5 — Listes (`MGListBox`, `MGListView`)
 
@@ -653,6 +675,8 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
 | O5 | Le moteur d'animation accepte-t-il de redémarrer une instance d'animation ? Non lu. | T3.2 |
 | O6 | Résolu en T1.6 : aucun appelant ne garde deux transactions ouvertes. | T1.6 |
+| O7 | **Décision de l'auteur.** L'événement de molette (`BaseMouseScrolledEventArgs`) est créé à chaque image où la molette bouge (56 octets, `MouseTracker.cs:409`). Le réutiliser, comme le commit `ba19985d` l'a fait pour l'événement de déplacement, change ce qu'un gestionnaire peut garder : l'instance ne vaut que pendant l'événement. Recommandation de l'agent : oui, même contrat que le déplacement. | T2.4 |
+| O8 | **Décision de l'auteur.** Un contenu défilé pose deux clips rectangulaires par image à des bornes nouvelles ; chaque borne nouvelle crée une `ClipDefinition` (environ 60 octets). Deux voies : passer ces clips par `PushRectangleClip` (pas de définition, mais le journal des appels de dessin change : `PushRectangleClip` au lieu de `PushClipTemporary`), ou laisser comme limite. Recommandation de l'agent : `PushRectangleClip` pour les clips rectangulaires des éléments. | T2.4 |
 
 ## Hors périmètre
 
