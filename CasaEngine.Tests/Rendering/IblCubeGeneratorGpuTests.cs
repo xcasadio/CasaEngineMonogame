@@ -44,9 +44,12 @@ public class IblCubeGeneratorGpuTests
     }
 
     // Step 1b. A cube with a full mip chain whose every level is a distinct solid colour; the shader requests one level and the
-    // pixel it writes is measured. The levels are stored (GetData returns them) but the OpenGL chain reads level 0 whatever the
-    // request: the compiled GLSL is a plain textureCube. This pins the fact that decides the 2D atlas of ADR-0110; a MonoGame
-    // that honours the level would fail it, which is the signal to reconsider the atlas.
+    // pixel it writes is measured. Whatever the level requested, the pixel is the colour of level 0, for one of two reasons that
+    // depend on the GPU and its driver. Where the levels are stored (GetData returns them), the OpenGL chain reads level 0 whatever
+    // the request: the compiled GLSL is a plain textureCube. Where they are not (every level reads back the colour of level 0),
+    // a cube whose levels are written by hand cannot hold a prefiltered chain at all. Both lead to the 2D atlas of ADR-0110, and
+    // this pins them; a MonoGame that honours the level on a GPU that stores the levels would fail it, which is the signal to
+    // reconsider the atlas.
     [GpuFact]
     public void OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed()
     {
@@ -70,16 +73,30 @@ public class IblCubeGeneratorGpuTests
                 }
             }
 
-            // The levels are really stored: reading them back gives the colour written at each one.
-            foreach (int level in new[] { 0, 2, 4 })
+            Vector4 level0 = LevelColor(0);
+            _output.WriteLine($"adapter: {GraphicsAdapter.DefaultAdapter.Description}");
+
+            // What the levels hold after the writes is one of the two behaviours measured so far. Either every level holds the
+            // colour written at it, or every level holds the colour of level 0 (measured on an AMD Radeon RX 9060 XT). A mix of
+            // the two, or any other colour, is a third behaviour and fails here.
+            bool everyLevelIsStored = true;
+            bool everyLevelHoldsLevel0 = true;
+            for (int level = 0; level < cube.LevelCount; level++)
             {
                 int levelSize = Math.Max(1, size >> level);
                 var back = new Vector4[levelSize * levelSize];
                 cube.GetData(CubeMapFace.PositiveX, level, null, back, 0, back.Length);
-                AssertClose(LevelColor(level), back[0], 0.01f);
+                _output.WriteLine($"level {level}: read back {back[0]}, written {LevelColor(level)}");
+                everyLevelIsStored &= IsClose(LevelColor(level), back[0], 0.01f);
+                everyLevelHoldsLevel0 &= IsClose(level0, back[0], 0.01f);
             }
 
-            Vector4 level0 = LevelColor(0);
+            _output.WriteLine(everyLevelIsStored
+                ? "the levels are stored as written"
+                : "the levels written by hand are lost: every level holds the colour of level 0");
+            Assert.True(everyLevelIsStored || everyLevelHoldsLevel0,
+                "the levels of the cube hold neither the colours written nor the colour of level 0: see the test output");
+
             foreach (int level in new[] { 0, 2, 4 })
             {
                 Vector4 measured = SampleLevel(device, effect, cube, new Vector3(0.3f, 0.5f, 0.8f), level);
@@ -458,12 +475,15 @@ public class IblCubeGeneratorGpuTests
         return pixels[5];
     }
 
+    private static bool IsClose(Vector4 expected, Vector4 actual, float tolerance)
+    {
+        return Math.Abs(expected.X - actual.X) <= tolerance
+            && Math.Abs(expected.Y - actual.Y) <= tolerance
+            && Math.Abs(expected.Z - actual.Z) <= tolerance;
+    }
+
     private static void AssertClose(Vector4 expected, Vector4 actual, float tolerance)
     {
-        Assert.True(
-            Math.Abs(expected.X - actual.X) <= tolerance
-            && Math.Abs(expected.Y - actual.Y) <= tolerance
-            && Math.Abs(expected.Z - actual.Z) <= tolerance,
-            $"expected {expected}, got {actual} (tolerance {tolerance})");
+        Assert.True(IsClose(expected, actual, tolerance), $"expected {expected}, got {actual} (tolerance {tolerance})");
     }
 }

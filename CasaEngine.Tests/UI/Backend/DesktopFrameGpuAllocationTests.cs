@@ -33,13 +33,6 @@ public class DesktopFrameGpuAllocationTests
     private const int WarmupIterations = 500;
     private const int MeasuredIterations = 500;
 
-    //  Size in bytes and SHA-256 of the pixels (R, G, B, A of each pixel, row by row) of the 640 x 360 target, cleared to CornflowerBlue,
-    //  after the fixture was drawn at rest (two frames), and after the thumb of the slider was dragged to two positions (the frame drawn at
-    //  the second one). Taken from the code before the clip scopes of the backend were reused, on the same machine; the hash of a frame
-    //  rendered by another GPU or driver could differ.
-    private const string RestPixels = "921600:124E0E0FFD9AB38C0A9FE580081317A93241F77B68177662060220B0438C9F36";
-    private const string DragPixels = "921600:A627D0D33AC2F348C4248983F467DA0000D31EA9DA8EA74A0022D86194D7BFA9";
-
     private readonly ITestOutputHelper _output;
 
     public DesktopFrameGpuAllocationTests(ITestOutputHelper output)
@@ -293,8 +286,7 @@ public class DesktopFrameGpuAllocationTests
             return (restPixels, PixelsOf(dragTarget, device));
         });
 
-        Assert.Equal(RestPixels, rest);
-        Assert.Equal(DragPixels, drag);
+        ReferenceDesktopFramePixels.AssertRestAndDrag(rest, drag);
     }
 
     /// <summary>Four nested clips (rectangle, no clip, intersecting rectangle, clip removed) leave the scissor rectangle and the scissor test
@@ -531,8 +523,7 @@ public class DesktopFrameGpuAllocationTests
             return (restPixels, PixelsOf(dragTarget, device));
         });
 
-        Assert.Equal(RestPixels, rest);
-        Assert.Equal(DragPixels, drag);
+        ReferenceDesktopFramePixels.AssertRestAndDrag(rest, drag);
     }
 
     /// <summary>A second request while the transaction is open is a programming error: it throws, with a message that says what to do, and it
@@ -569,7 +560,7 @@ public class DesktopFrameGpuAllocationTests
         Assert.Contains("dispose", message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("already open", message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(message, deferredMessage);
-        Assert.Equal(RestPixels, pixels);
+        ReferenceDesktopFramePixels.AssertRest(pixels);
     }
 
     /// <summary>After <c>Dispose</c>, the next request returns the same object, in the state of a new transaction.</summary>
@@ -645,7 +636,7 @@ public class DesktopFrameGpuAllocationTests
             }
         });
 
-        Assert.NotEqual(RestPixels, reused);
+        Assert.False(ReferenceDesktopFramePixels.IsRest(reused));
         Assert.Equal(fresh, reused);
     }
 
@@ -684,7 +675,7 @@ public class DesktopFrameGpuAllocationTests
         });
 
         Assert.True(same);
-        Assert.Equal(RestPixels, pixels);
+        ReferenceDesktopFramePixels.AssertRest(pixels);
     }
 
     /// <summary>A <c>Dispose</c> that throws itself (the sprite batch of the runtime was ended by someone else while the transaction held it open,
@@ -731,7 +722,7 @@ public class DesktopFrameGpuAllocationTests
 
         Assert.True(disposeThrew);
         Assert.True(same);
-        Assert.Equal(RestPixels, pixels);
+        ReferenceDesktopFramePixels.AssertRest(pixels);
     }
 
     /// <summary>A request that begins the batch and whose begin throws (the sprite batch of the runtime was left begun) leaves the transaction
@@ -780,7 +771,7 @@ public class DesktopFrameGpuAllocationTests
 
         Assert.True(sameAfterFirst);
         Assert.True(sameAfterLater);
-        Assert.Equal(RestPixels, pixels);
+        ReferenceDesktopFramePixels.AssertRest(pixels);
     }
 
     /// <summary>The stencil clip (alone, nested, under a temporary transform), the temporary changes of settings and of transform, and a frame
