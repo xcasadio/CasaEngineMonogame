@@ -132,10 +132,14 @@ void ApplyPbrClearCoat(inout PbrSurface surface, float clearCoat, float clearCoa
 #endif
 
 
-// GGX (Trowbridge-Reitz) normal distribution.
-float PbrDistributionGgx(float noH, float alpha2, float alphaSquaredOverPi)
+// GGX (Trowbridge-Reitz) normal distribution, alpha2 / (pi * (NoH^2 * (alpha2 - 1) + 1)^2). The denominator is written as
+// (1 - NoH^2) + NoH^2 * alpha2 with 1 - NoH^2 taken from the cross product of the normal and the half vector (Lagrange's
+// identity): computed from NoH, the sum cancels down to the last bits of a float near the highlight of a very smooth surface,
+// and the pixel then depends on how the driver rounds the operations (two runs of the same scene differed by a few levels).
+float PbrDistributionGgx(float3 normal, float3 halfVector, float noH, float alpha2, float alphaSquaredOverPi)
 {
-    float d = noH * noH * (alpha2 - 1.0f) + 1.0f;
+    float3 normalCrossHalf = cross(normal, halfVector);
+    float d = dot(normalCrossHalf, normalCrossHalf) + noH * noH * alpha2;
     return alphaSquaredOverPi / (d * d);
 }
 
@@ -173,7 +177,7 @@ void AccumulatePbrLight(
     float voH = saturate(dot(surface.EyeVector, halfVector));
 
     float3 fresnel = PbrFresnelSchlick(surface.F0, voH);
-    float distribution = PbrDistributionGgx(noH, surface.Alpha2, surface.AlphaSquaredOverPi);
+    float distribution = PbrDistributionGgx(surface.Normal, halfVector, noH, surface.Alpha2, surface.AlphaSquaredOverPi);
     float visibility = PbrVisibilitySmithGgxCorrelated(noL, surface.Alpha2, surface.NoV, surface.SmithViewTerm);
 
     float3 irradiance = lightRadiance * (noL * attenuation);
@@ -200,7 +204,7 @@ void AccumulatePbrClearCoatLight(
     float voH = saturate(dot(surface.EyeVector, halfVector));
 
     float3 fresnel = PbrFresnelSchlick(surface.F0, voH);
-    float distribution = PbrDistributionGgx(noH, surface.Alpha2, surface.AlphaSquaredOverPi);
+    float distribution = PbrDistributionGgx(surface.Normal, halfVector, noH, surface.Alpha2, surface.AlphaSquaredOverPi);
     float visibility = PbrVisibilitySmithGgxCorrelated(noL, surface.Alpha2, surface.NoV, surface.SmithViewTerm);
     float3 irradiance = lightRadiance * (noL * attenuation);
 
@@ -209,7 +213,7 @@ void AccumulatePbrClearCoatLight(
     float squaredOneMinusVoH = oneMinusVoH * oneMinusVoH;
     float coatFresnel = surface.ClearCoat * (PbrDielectricF0 + (1.0f - PbrDielectricF0) * (squaredOneMinusVoH * squaredOneMinusVoH * oneMinusVoH));
     float coatVisibility = 0.25f / max(voH * voH, 0.0001f);
-    float coatDistribution = PbrDistributionGgx(coatNoH, surface.CoatAlpha2, surface.CoatAlphaSquaredOverPi);
+    float coatDistribution = PbrDistributionGgx(surface.CoatNormal, halfVector, coatNoH, surface.CoatAlpha2, surface.CoatAlphaSquaredOverPi);
 
     result.Diffuse -= coatFresnel * ((1.0f - fresnel) * surface.DiffuseAlbedo * (irradiance / PbrPi));
     result.Specular += (coatDistribution * coatVisibility - fresnel * (distribution * visibility)) * coatFresnel * irradiance;

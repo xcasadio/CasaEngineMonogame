@@ -60,7 +60,7 @@ public class ClearCoatShaderCoverageTests
         Assert.Contains("float coatVisibility = 0.25f / max(voH * voH, 0.0001f);", coat);
         // GGX with the coat roughness, on the coat normal.
         Assert.Contains(
-            "float coatDistribution = PbrDistributionGgx(coatNoH, surface.CoatAlpha2, surface.CoatAlphaSquaredOverPi);",
+            "float coatDistribution = PbrDistributionGgx(surface.CoatNormal, halfVector, coatNoH, surface.CoatAlpha2, surface.CoatAlphaSquaredOverPi);",
             coat);
         // The irradiance is the one of the base lobes of the slot (radiance * NoL * attenuation, NoL from the surface normal).
         Assert.Contains("float3 irradiance = lightRadiance * (noL * attenuation);", coat);
