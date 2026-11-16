@@ -23,7 +23,7 @@ namespace CasaEngine.Tests.UI.Backend;
 /// <see cref="CasaDrawTransaction"/> with the FontStashSharp text engine. All GPU work goes through <see cref="GpuDeviceHost"/>.<para/>
 /// What is proven at zero: the update and the draw of that fixture, at rest and during a drag of the slider thumb that leaves the label text
 /// unchanged, on a transaction created once, and on the real path, where <see cref="MGDesktop.Draw(float, DrawSettings)"/> asks the runtime for
-/// the one transaction it owns (ADR-0097). What is not: see <see cref="WhatTheFrameStillAllocates"/>.
+/// the one transaction it owns (ADR-0097). See also <see cref="TheStencilClip_TheTemporaryChanges_AndTheFrame_AllocateNothing"/>.
 /// </summary>
 [Collection(GpuDeviceCollection.Name)]
 public class DesktopFrameGpuAllocationTests
@@ -783,11 +783,10 @@ public class DesktopFrameGpuAllocationTests
         Assert.Equal(RestPixels, pixels);
     }
 
-    /// <summary>Writes what a frame and its parts still allocate and does not assert: the stencil clip, the temporary changes of settings
-    /// and of transform (the <see cref="IDisposable"/> of <c>CasaDrawStateController</c>, outside the clip files), and a frame drawn by
-    /// <see cref="MGDesktop.Draw(float, DrawSettings)"/> with the transaction of the runtime.</summary>
+    /// <summary>The stencil clip (alone, nested, under a temporary transform), the temporary changes of settings and of transform, and a frame
+    /// drawn by <see cref="MGDesktop.Draw(float, DrawSettings)"/> with the transaction of the runtime allocate nothing (MGUI ADR-0031).</summary>
     [GpuFact]
-    public void WhatTheFrameStillAllocates()
+    public void TheStencilClip_TheTemporaryChanges_AndTheFrame_AllocateNothing()
     {
         string report = GpuDeviceHost.Instance.Invoke(() =>
         {
@@ -807,11 +806,34 @@ public class DesktopFrameGpuAllocationTests
                 long stencilBytes = Measure(() => dt.PushClipTemporary(stencil).Dispose());
                 long settingsBytes = Measure(() => dt.SetDrawSettingsTemporary(changed).Dispose());
                 long transformBytes = Measure(() => dt.SetTransformTemporary(transform).Dispose());
+                ClipDefinition innerStencil = ClipDefinition.ArbitraryGeometry(new Rectangle(10, 10, 40, 40),
+                    new ClipGeometry(new List<Vector2> { new(10, 10), new(50, 10), new(10, 50) }, new List<int> { 0, 1, 2 }));
+                long nestedBytes = Measure(() =>
+                {
+                    using (dt.PushClipTemporary(stencil))
+                    using (dt.PushClipTemporary(innerStencil))
+                    {
+                    }
+                });
+                long underTransformBytes = Measure(() =>
+                {
+                    using (dt.SetTransformTemporary(transform))
+                    using (dt.PushClipTemporary(stencil))
+                    {
+                    }
+                });
                 //  The harness keeps the transaction of the runtime open: MGDesktop.Draw() asks for it, and a runtime has one.
                 harness.Transaction.Dispose();
                 long perFrameTransactionBytes = Measure(() => harness.Desktop.Draw());
-                return $"stencil clip push+dispose {stencilBytes} B, SetDrawSettingsTemporary+dispose {settingsBytes} B, " +
-                       $"SetTransformTemporary+dispose {transformBytes} B, MGDesktop.Draw() with the transaction of the runtime {perFrameTransactionBytes} B/frame";
+                Assert.Equal(0, stencilBytes);
+                Assert.Equal(0, settingsBytes);
+                Assert.Equal(0, transformBytes);
+                Assert.Equal(0, nestedBytes);
+                Assert.Equal(0, underTransformBytes);
+                Assert.Equal(0, perFrameTransactionBytes);
+                return $"stencil clip push+dispose {stencilBytes} B, two nested {nestedBytes} B, under a temporary transform {underTransformBytes} B, " +
+                       $"SetDrawSettingsTemporary+dispose {settingsBytes} B, SetTransformTemporary+dispose {transformBytes} B, " +
+                       $"MGDesktop.Draw() with the transaction of the runtime {perFrameTransactionBytes} B/frame";
             }
             finally
             {
@@ -1044,7 +1066,83 @@ public class DesktopFrameGpuAllocationTests
         });
     }
 
+    /// <summary>Two nested stencil clips cut what is drawn inside them to their intersection, the first time (settings derived and kept) and
+    /// the second (settings found again), and leave no clip behind.</summary>
+    [GpuFact]
+    public void TwoNestedStencilClips_CutToTheirIntersection_TheSecondTimeAsTheFirst()
+    {
+        Color background = Color.CornflowerBlue;
+        (Color[] first, Color[] second) = GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            Harness harness = new(holdTheTransaction: false);
+            try
+            {
+                return (DrawNestedStencilClips(harness), DrawNestedStencilClips(harness));
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+
+        foreach (Color[] pixels in new[] { first, second })
+        {
+            Assert.Equal(Color.White, pixels[20 * 128 + 50]);       // inside both clips
+            Assert.Equal(background, pixels[20 * 128 + 20]);        // inside the outer clip only
+            Assert.Equal(background, pixels[100 * 128 + 100]);      // outside both
+            Assert.Equal(Color.White, pixels[61 * 128 + 15]);       // drawn under the outer clip alone, after the inner one
+            Assert.Equal(Color.White, pixels[121 * 128 + 121]);     // drawn after both clips
+        }
+
+        Assert.Equal(first, second);
+    }
+
+    private static Color[] DrawNestedStencilClips(Harness harness)
+    {
+        GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+        using RenderTarget2D target = new(device, 128, 128, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+        device.SetRenderTarget(target);
+        device.Clear(ClearOptions.Target | ClearOptions.Stencil | ClearOptions.DepthBuffer, Color.CornflowerBlue, 1.0f, 0);
+        CasaDrawTransaction dt = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default with { RasterizerType = RasterizerType.Solid },
+            deferBegin: false);
+        try
+        {
+                ClipDefinition outer = ClipDefinition.ArbitraryGeometry(new Rectangle(10, 10, 100, 100),
+                    new ClipGeometry(new List<Vector2> { new(10, 10), new(110, 10), new(10, 110) }, new List<int> { 0, 1, 2 }));
+                ClipDefinition inner = ClipDefinition.ArbitraryGeometry(new Rectangle(40, 10, 70, 100),
+                    new ClipGeometry(new List<Vector2> { new(40, 10), new(110, 10), new(40, 110) }, new List<int> { 0, 1, 2 }));
+    
+                using (ClipHandle outerClip = dt.PushClipTemporary(outer))
+                {
+                    Assert.Equal(ClipStrategy.Stencil, outerClip.Resolution.Strategy);
+                    Assert.Equal(1, outerClip.Resolution.StencilDepth);
+                    using (ClipHandle innerClip = dt.PushClipTemporary(inner))
+                    {
+                        Assert.Equal(2, innerClip.Resolution.StencilDepth);
+                        dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 0, 128, 128));
+                    }
+    
+                    //  Back under the outer clip alone: a square that the inner clip would have cut.
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(14, 60, 4, 4));
+                }
+    
+                //  No clip any more.
+                dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(120, 120, 4, 4));
+        }
+        finally
+        {
+            dt.Dispose();
+        }
+
+        device.SetRenderTarget(null);
+        Color[] pixels = new Color[target.Width * target.Height];
+        target.GetData(pixels);
+        return pixels;
+    }
+
     private static readonly DrawSettings[] RearmSettings
+
  = { DrawSettings.Default, DrawSettings.Default };
     private static int RearmIndex;
 

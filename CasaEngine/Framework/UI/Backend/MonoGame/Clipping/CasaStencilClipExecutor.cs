@@ -7,6 +7,8 @@ internal sealed class CasaStencilClipExecutor
 {
     private readonly CasaDrawTransaction _owner;
     private int _stencilDepth;
+    // The three settings a stencil clip derives at each depth, kept across the uses of the transaction (MGUI ADR-0031).
+    private readonly DerivedDrawSettingsCache _derivedSettings = new();
 
     private const int MaxStencilDepth = 255;
 
@@ -45,40 +47,33 @@ internal sealed class CasaStencilClipExecutor
         int childDepth = _stencilDepth + 1;
         MaxObservedDepth = Math.Max(MaxObservedDepth, childDepth);
 
-        using (_owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
-        {
-            BlendType = BlendType.ColorWriteDisable,
-            DepthStencilType = DepthStencilType.StencilWriteIncrement,
-            StencilReference = parentDepth,
-        }))
+        using (_owner.SetDrawSettingsTemporary(_derivedSettings.WithStencil(_owner.CurrentSettings, BlendType.ColorWriteDisable,
+                   DepthStencilType.StencilWriteIncrement, parentDepth)))
         {
             _owner.DrawClipGeometry(geometry);
         }
 
-        DrawStateHandle stencilReadScope = _owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
-        {
-            DepthStencilType = DepthStencilType.StencilReadEqual,
-            StencilReference = childDepth,
-        });
+        DrawSettings current = _owner.CurrentSettings;
+        DrawStateHandle stencilReadScope = _owner.SetDrawSettingsTemporary(_derivedSettings.WithStencil(current, current.BlendType,
+            DepthStencilType.StencilReadEqual, childDepth));
         _stencilDepth = childDepth;
 
         ClipResolveResult effectiveResolution = resolution with { StencilDepth = childDepth };
 
-        return _owner.ClipSlots.Push(ClipSlotState.WithCallback(ClipStrategy.Stencil, effectiveResolution, () =>
+        return _owner.ClipSlots.Push(ClipSlotState.Stencil(effectiveResolution, stencilReadScope, parentDepth, childDepth));
+    }
+
+    /// <summary>Ends the stencil clip of <paramref name="state"/>: back to the settings before it, its geometry taken off the stencil.</summary>
+    public void Restore(in ClipSlotState state)
+    {
+        state.StencilReadScope.Dispose();
+
+        using (_owner.SetDrawSettingsTemporary(_derivedSettings.WithStencil(_owner.CurrentSettings, BlendType.ColorWriteDisable,
+                   DepthStencilType.StencilRestoreDecrement, state.ChildStencilDepth)))
         {
-            stencilReadScope.Dispose();
+            _owner.DrawClipGeometry(state.Resolution.Effective.Shape.Geometry.Value);
+        }
 
-            using (_owner.SetDrawSettingsTemporary(_owner.CurrentSettings with
-            {
-                BlendType = BlendType.ColorWriteDisable,
-                DepthStencilType = DepthStencilType.StencilRestoreDecrement,
-                StencilReference = childDepth,
-            }))
-            {
-                _owner.DrawClipGeometry(geometry);
-            }
-
-            _stencilDepth = parentDepth;
-        }));
+        _stencilDepth = state.ParentStencilDepth;
     }
 }

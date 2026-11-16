@@ -764,6 +764,10 @@ public class CasaDrawTransaction : IMonoGameDrawContext, IClipSlotRestorer
                 RestoreScissor(State.PreviousScissorBounds, State.PreviousScissorState);
             }
         }
+        else if (State.Strategy == ClipStrategy.Stencil && State.Restore == null)
+        {
+            ClipManager.RestoreStencil(in State);
+        }
         else
         {
             State.Restore?.Invoke();

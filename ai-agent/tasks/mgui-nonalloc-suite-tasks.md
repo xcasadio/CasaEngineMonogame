@@ -406,7 +406,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   - Stencil et masque : seulement migrés (fermeture gardée dans `ClipSlotState.Restore`), comme prévu.
   - Docs : `MGUI/Docs/rendering-architecture.md`, `custom-render-backend-integration.md`, statut de l'ADR-0027.
 
-### ⏳ T1.5 — Clip à stencil sans allocation
+### ✅ T1.5 — Clip à stencil sans allocation
 
 - Objectif : 0 octet par paire pousser et libérer un clip arrondi, dans les deux backends (1112 octets mesurés avant
   dans le moteur).
@@ -422,6 +422,24 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   est ✅, sinon son chiffre est écrit ici comme limite.
 - Commit : `perf(rendering): push a stencil clip without allocating` (MGUI), puis
   `perf(ui): push a stencil clip without allocating` (moteur)
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3733 verts, `CasaEngine.Tests` 5556 verts, aucun
+  sauté. Plus de fermeture : l'état du clip (poignée des réglages de lecture, profondeurs) vit dans son emplacement
+  (`ClipSlotState.Stencil`) ; les trois réglages dérivés par profondeur sont gardés (`DerivedDrawSettingsCache.WithStencil`,
+  un cache par backend, retrouvé par des réglages de départ égaux).
+
+  | Octets par paire, GPU réel | Moteur avant | Moteur après | MGUI avant | MGUI après |
+  |---|---|---|---|---|
+  | Clip à stencil, pousser et libérer | 568 (1112 avant T1.2) | 0 | 568 | 0 |
+  | Deux clips à stencil imbriqués | non mesuré | 0 | non mesuré | 0 |
+  | Clip à stencil sous une transformation temporaire | non mesuré | 0 | non mesuré | 0 |
+
+  - O2 : le dessin de la géométrie de clip (`DrawClipGeometry`) n'alloue pas ; rien n'y est touché.
+  - Les mesures sans affirmation sont devenues des affirmations : `TheStencilClip_TheTemporaryChanges_AndTheFrame_AllocateNothing`
+    (moteur, ex `WhatTheFrameStillAllocates`) et `TheStencilClipAndTheTemporaryChanges_AllocateNothing` (MGUI).
+  - Pixels : `TwoNestedStencilClips_CutToTheirIntersection_TheSecondTimeAsTheFirst` dans les deux dépôts (deux niveaux,
+    premier et second passage identiques, points à l'intérieur et à l'extérieur de l'intersection vérifiés).
+  - Limite : la mesure pousse une définition de clip déjà construite ; la construction d'une `ClipDefinition` et de sa
+    géométrie par un contrôle n'est pas dans cette tâche.
 
 ### ⏳ T1.6 — Le `MainRenderer` de MGUI garde sa transaction
 
@@ -591,7 +609,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Tranché en T1.1 (ADR-0031 de MGUI) : réglages dérivés gardés par la transaction. Limite : une valeur nouvelle à chaque image dérive encore un `DrawSettings`. | T1.3 |
-| O2 | Le renderer de formes alloue-t-il pendant `DrawClipGeometry` ? Non lu. Mesuré en T1.5 avant toute modification. | T1.5 |
+| O2 | Résolu en T1.5 : `DrawClipGeometry` n'alloue pas. | T1.5 |
 | O3 | Résolu en T0.1 : les 32 octets sont pris une seule fois, à la première image après le changement de texte, puis 0. | T0.1 |
 | O4 | Résolu en T0.1 : 0 octet sur le banc ; le chiffre de la clôture précédente ne se reproduit pas. | T0.1 |
 | O5 | Le moteur d'animation accepte-t-il de redémarrer une instance d'animation ? Non lu. | T3.2 |

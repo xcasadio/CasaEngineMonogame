@@ -34,6 +34,9 @@ internal sealed class CasaClipManager
         _MaskExecutor.Rearm();
     }
 
+    /// <summary>Ends a stencil clip whose slot was released.</summary>
+    public void RestoreStencil(in ClipSlotState state) => _StencilExecutor.Restore(in state);
+
     public ClipResolveResult Resolve(ClipDefinition definition)
         => ClipStrategyResolver.Resolve(definition, _Capabilities);
 
