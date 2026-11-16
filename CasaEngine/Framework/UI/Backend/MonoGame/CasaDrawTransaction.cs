@@ -708,7 +708,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
 
     public DrawStateHandle SetTransformTemporary(Matrix Transform)
     {
-        return SetDrawSettingsTemporary(CurrentSettings with { Transform = Transform });
+        return SetDrawSettingsTemporary(_DerivedSettings.WithTransform(CurrentSettings, Transform));
     }
 
     public ClipResolveResult ResolveClip(ClipDefinition Definition)
@@ -807,6 +807,8 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     }
 
     private readonly Stack<ScissorClipSlot> _FreeScissorClipSlots = new();
+    // The settings derived for temporary transforms and effects, kept across the uses of the transaction (MGUI ADR-0031).
+    private readonly DerivedDrawSettingsCache _DerivedSettings = new();
     private DrawSettings _RasterizerVariantA;
     private DrawSettings _RasterizerVariantB;
 
@@ -838,7 +840,7 @@ public class CasaDrawTransaction : IMonoGameDrawContext
 
     /// <summary>Sets the shader <see cref="Effect"/> applied during sprite batch rendering, and restores the previous effect when the returned handle is disposed.</summary>
     public DrawStateHandle SetEffectTemporary(Effect Effect)
-        => SetDrawSettingsTemporary(CurrentSettings with { BackendEffect = Effect });
+        => SetDrawSettingsTemporary(_DerivedSettings.WithEffect(CurrentSettings, Effect));
 
     internal void ClearStencil(int StencilValue = 0)
     {

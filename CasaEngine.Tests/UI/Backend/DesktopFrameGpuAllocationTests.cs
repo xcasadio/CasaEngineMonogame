@@ -937,4 +937,148 @@ public class DesktopFrameGpuAllocationTests
             }
         });
     }
+
+    /// <summary>A temporary transform or effect that keeps its value allocates nothing: the transaction finds the settings it derived for it
+    /// (MGUI ADR-0031), also after a re-arm with equal settings. A transform whose value is new derives one <see cref="DrawSettings"/>: that
+    /// number is written, not asserted.</summary>
+    [GpuFact]
+    public void ATemporaryTransformOrEffectThatKeepsItsValue_AllocatesNothing()
+    {
+        (long transform, long nested, long effect, long acrossRearm, long changing) = GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            using RenderTarget2D target = CreateTarget(device);
+            using BasicEffect basicEffect = new(device);
+            try
+            {
+                Harness harness = new();
+                CasaDrawTransaction dt = harness.Transaction;
+                IUIRenderContext context = dt;
+                Matrix outer = Matrix.CreateTranslation(1, 2, 0);
+                Matrix inner = Matrix.CreateScale(2);
+
+                long transformBytes = Measure(() => context.SetTransformTemporary(outer).Dispose());
+                long nestedBytes = Measure(() =>
+                {
+                    using (context.SetTransformTemporary(outer))
+                    using (context.SetTransformTemporary(inner))
+                    {
+                    }
+                });
+                long effectBytes = Measure(() => dt.SetEffectTemporary(basicEffect).Dispose());
+                int step = 0;
+                long changingBytes = Measure(() => context.SetTransformTemporary(Matrix.CreateTranslation(++step, 0, 0)).Dispose());
+
+                //  Each use of the transaction starts from other settings objects with the same values, as a frame does.
+                dt.Dispose();
+                long acrossRearmBytes = Measure(() =>
+                {
+                    CasaDrawTransaction rearmed = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(RearmSettings[RearmIndex++ & 1], deferBegin: true);
+                    rearmed.SetTransformTemporary(outer).Dispose();
+                    rearmed.Dispose();
+                });
+                return (transformBytes, nestedBytes, effectBytes, acrossRearmBytes, changingBytes);
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+
+        _output.WriteLine($"SetTransformTemporary+dispose {transform} B, two nested {nested} B, SetEffectTemporary+dispose {effect} B, " +
+                          $"a transform in a re-armed transaction {acrossRearm} B, a transform whose value is new each time {changing} B");
+        Assert.Equal(0, transform);
+        Assert.Equal(0, nested);
+        Assert.Equal(0, effect);
+        Assert.Equal(0, acrossRearm);
+    }
+
+    private static readonly DrawSettings[] RearmSettings = { DrawSettings.Default, DrawSettings.Default };
+    private static int RearmIndex;
+
+    /// <summary>Squares drawn under nested temporary transforms and a temporary effect land where they land with settings derived at each
+    /// change, the first time (settings derived and kept) and the second (settings found again); and not where they land without transform.</summary>
+    [GpuFact]
+    public void DrawingUnderTemporaryTransformsAndEffect_DrawsThePixelsOfSettingsDerivedAtEachChange()
+    {
+        (string kept, string keptAgain, string derived, string untransformed) = GpuDeviceHost.Instance.Invoke(() =>
+        {
+            GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+            using SpriteEffect effect = new(device);
+            Harness harness = new(holdTheTransaction: false);
+            try
+            {
+                return (DrawSquares(harness, effect, 1), DrawSquares(harness, effect, 1), DrawSquares(harness, effect, 2), DrawSquares(harness, effect, 3));
+            }
+            finally
+            {
+                device.SetRenderTarget(null);
+            }
+        });
+
+        Assert.Equal(derived, kept);
+        Assert.Equal(derived, keptAgain);
+        Assert.NotEqual(untransformed, kept);
+    }
+
+    /// <summary>Kind 1: temporary changes; kind 2: settings derived at each change; kind 3: no transform and no effect.</summary>
+    private static string DrawSquares(Harness harness, Effect effect, int kind)
+    {
+        GraphicsDevice device = GpuDeviceHost.Instance.GraphicsDevice;
+        using RenderTarget2D target = CreateTarget(device);
+        CasaDrawTransaction dt = (CasaDrawTransaction)harness.Runtime.BeginDrawTransaction(DrawSettings.Default, deferBegin: false);
+        try
+        {
+                Matrix outer = Matrix.CreateTranslation(20, 10, 0);
+                Matrix inner = Matrix.CreateScale(2, 2, 1) * outer;
+                if (kind == 1)
+                {
+                    using (dt.SetTransformTemporary(outer))
+                    {
+                        dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 0, 10, 10));
+                        using (dt.SetTransformTemporary(inner))
+                        {
+                            dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(10, 10, 10, 10));
+                        }
+    
+                        using (dt.SetEffectTemporary(effect))
+                        {
+                            dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(40, 0, 10, 10));
+                        }
+    
+                        dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 30, 10, 10));
+                    }
+    
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 60, 10, 10));
+                }
+                else if (kind == 2)
+                {
+                    DrawSettings initial = dt.CurrentSettings;
+                    dt.SetDrawSettings(initial with { Transform = outer });
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 0, 10, 10));
+                    dt.SetDrawSettings(initial with { Transform = inner });
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(10, 10, 10, 10));
+                    dt.SetDrawSettings(initial with { Transform = outer, BackendEffect = effect });
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(40, 0, 10, 10));
+                    dt.SetDrawSettings(initial with { Transform = outer });
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 30, 10, 10));
+                    dt.SetDrawSettings(initial);
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 60, 10, 10));
+                }
+                else
+                {
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 0, 10, 10));
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(10, 10, 10, 10));
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(40, 0, 10, 10));
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 30, 10, 10));
+                    dt.DrawTextureTo(dt.WhitePixel, null, new Rectangle(0, 60, 10, 10));
+                }
+        }
+        finally
+        {
+            dt.Dispose();
+        }
+
+        return PixelsOf(target, device);
+    }
 }

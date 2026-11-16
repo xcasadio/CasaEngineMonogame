@@ -333,7 +333,7 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   - Écart provisoire : la `DrawTransaction` de MGUI, créée à chaque image jusqu'à T1.6, crée maintenant ses deux tables
     d'emplacements à chaque création.
 
-### ⏳ T1.3 — `SetTransformTemporary` et `SetEffectTemporary` sans allocation
+### ✅ T1.3 — `SetTransformTemporary` et `SetEffectTemporary` sans allocation
 
 - Objectif : 0 octet par paire pour les deux, par le mécanisme choisi en T1.1 (O1). Seul l'intérieur des deux
   backends change : les signatures sont déjà celles de T1.2. Tâche en ⚠️ si T1.1 n'a trouvé aucun mécanisme qui
@@ -346,6 +346,25 @@ Recommandations de l'agent, appliquées à la demande de l'auteur du 2026-11-15.
   temporaire, et compare les pixels.
 - Commit : `perf(rendering): set a temporary transform without allocating` (MGUI), puis
   `perf(ui): set a temporary transform without allocating` (moteur)
+- Validation (2026-11-16) : les trois solutions 0 erreur ; `MGUI.Tests` 3730 verts, `CasaEngine.Tests` 5554 verts, aucun
+  sauté. Mécanisme : `DerivedDrawSettingsCache` (`MGUI.Shared`, 32 entrées, la plus ancienne remplacée), tenu par la
+  transaction du moteur et par le `MainRenderer` de MGUI ; une entrée est retrouvée par des réglages de départ égaux
+  (pas seulement le même objet), donc une image retrouve ce que l'image d'avant a dérivé.
+
+  | Opération (octets par paire, GPU réel) | Moteur avant | Moteur après | MGUI avant | MGUI après |
+  |---|---|---|---|---|
+  | `SetTransformTemporary`, même valeur (par `IUIRenderContext`) | 120 | 0 | 120 | 0 |
+  | Deux `SetTransformTemporary` imbriqués | non mesuré | 0 | non mesuré | 0 |
+  | `SetEffectTemporary`, même effet | non mesuré | 0 | non mesuré | 0 |
+  | `SetTransformTemporary` dans une transaction réarmée | non mesuré | 0 | sans objet | sans objet |
+  | `SetTransformTemporary`, valeur nouvelle à chaque appel (limite) | 120 | 120 | 120 | 120 |
+
+  - Pixels : `DrawingUnderTemporaryTransformsAndEffect_DrawsThePixelsOfSettingsDerivedAtEachChange` dans les deux
+    dépôts (transformations imbriquées et effet temporaire, premier et second passage, comparés à des réglages
+    dérivés à chaque changement).
+  - Limites écrites dans l'ADR-0031 : une valeur nouvelle à chaque appel dérive un `DrawSettings` (120 octets) ; plus de
+    32 transformations ou effets temporaires distincts par image allouent de nouveau ; une entrée garde son effet
+    jusqu'à son remplacement.
 
 ### ⏳ T1.4 — Poignée de clip à génération
 
