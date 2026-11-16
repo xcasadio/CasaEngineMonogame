@@ -1320,8 +1320,9 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
     que bornes et nom ne changent pas (ajouté à la relecture : la première version en créait une par appel).
   - Aucun changement de code dans le moteur : `CasaClipManager` pose déjà le même scissor pour les deux appels.
   - Journaux : les 37 journaux d'après sont égaux aux journaux normalisés d'avant (nombre de lignes et empreinte) ;
-    9 n'ont aucun clip d'élément et ne changent pas, 28 sont refigés sur l'empreinte normalisée. `FrozenJournal.Assert`
-    échoue désormais si un journal porte encore un clip rectangulaire d'élément en définition. Mutation vérifiée puis
+    9 n'ont aucun clip d'élément et ne changent pas, 28 sont refigés sur l'empreinte normalisée. Les empreintes figées sont désormais celles des journaux normalisés : un clip rectangulaire d'élément
+    qui repasserait par une définition change l'empreinte et fait échouer le journal (corrigé après T5.9 : la
+    première note prêtait à `FrozenJournal.Assert` un contrôle dédié qu'il n'a pas). Mutation vérifiée puis
     annulée : pousser le rectangle décalé d'un pixel fait échouer 32 tests, dont les 28 journaux.
   - Pixels : les tests GPU du moteur (`DesktopFrameGpuAllocationTests`, `DrawTransactionRearmGpuTests`) passent sans
     changement des empreintes, sur cette machine seulement.
@@ -1529,7 +1530,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Journaux de dessin figés inchangés. Non fait : réutiliser les `LineRenderInfo` d'un changement à l'autre (le
     curseur et d'autres lecteurs en gardent des références), écrit dans l'ADR.
 
-### 🚧 T5.9 — Vérification indépendante de T5.5 à T5.8
+### ✅ T5.9 — Vérification indépendante de T5.5 à T5.8
 
 - Objectif : un `verifier` neuf confirme ou réfute : rendu inchangé pour les clips rectangulaires et les polygones
   (pixels sur GPU réel, journaux normalisés), cible de dépôt aux mêmes valeurs et même résultat de dépôt, géométrie
@@ -1538,8 +1539,39 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   nommée.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(ui): record the verification of the follow-up of the MGUI zero allocation chantier` (moteur, ce plan).
+- Validation (2026-11-16, seconde machine) : `verifier` neuf (opus), verdict **CONFIRMED** sur T5.5 à T5.8, aucun
+  constat P0 à P2. Aucun changement de code.
+  - Méthode du vérificateur : ancien arbre de MGUI (`d0efd9b4`) et nouvel arbre (`d37712ff`) extraits hors du dépôt,
+    fichiers de test neufs posés sur l'ancien. Sur l'ancien code, 114 tests copiés sur 114 passent : les scénarios
+    figés de T5.6 (sommets des appelants), de T5.7 (230 lignes) et de T5.8 (376 textes) viennent donc bien de
+    l'ancien code, et pour T5.5 les 37 journaux de l'ancien code, une fois normalisés, ont le nombre de lignes et
+    l'empreinte figés aujourd'hui.
+  - T5.5 : même scissor dans les deux backends pour les deux appels (lu dans `ClipStrategyResolver`, `ClipManager`,
+    `CasaClipManager`) ; le normaliseur ne retire que le nom de débogage ; plus aucune référence à
+    `CreateRectangleClipDefinition` ; `TransformedClipTests` réécrit passe aussi sur l'ancien code.
+  - T5.6 : tests GPU des deux dépôts passés sur GPU réel ; tampon gardé propre à chaque transaction ou rendu, rempli
+    avant le début du lot ; tampons par thread des appelants lus pendant l'appel seulement.
+  - T5.7 : sonde du vérificateur sur sept glissements qui changent de cible ou de groupe : mêmes valeurs de cible
+    sur l'ancien et le nouveau code, Update de 80 à 608 octets par image avant et 0 après, sauf un cas (bord haut de
+    l'hôte à cheval sur deux groupes : 608 avant, 32 après). Le reste d'un glissement qui change de groupe existait
+    donc avant et n'est pas introduit ; le cas de 96 à 128 octets de l'exécutant n'a pas été reproduit à
+    l'identique.
+  - T5.8 : différentiel du vérificateur sur 1126 textes de plus (563 scénarios sur les deux moteurs : espaces de
+    tête et de fin, chaînes de tirets, retours chariot, tabulations, balises, 160 textes aléatoires, alignements,
+    avec et sans retour à la ligne) : géométrie du curseur identique à l'octet entre l'ancien et le nouveau code.
+    L'arithmétique du reste de frappe tombe juste : (2 × (200 + 32 + 48) + 128 + 24) / 2 = 356.
+  - Avis P4 reportés : (A1) `CreateBorderBackedContentsClipDefinition` ne garde qu'une définition rectangulaire,
+    l'ancien code en gardait dix-sept : un `MGGridColorPicker` à coins arrondis dont le rayon intérieur est nul et
+    qui alterne entre quelques positions crée une définition à chaque changement de bornes ; rendu identique, non
+    mesuré. (A2) `TransformedClipTests` ne vérifie plus quel élément a posé le clip, seulement ses bornes. (A3) note
+    de T5.5 sur `FrozenJournal.Assert`, corrigée. (A4) chemin Apos de `FillPolygon` lu et non exécuté ; parts de 32
+    et 48 octets du reste de frappe non mesurées une à une.
+  - Suites rejouées par le vérificateur : trois solutions 0 erreur ; `MGUI.Tests` 3990 verts, `CasaEngine.Tests` 6124
+    verts, aucun sauté, tests GPU compris.
+  - Non vérifié : `MGUI.Samples` et l'éditeur lancés à la main ; le chiffre de frappe d'avant (2600) non remesuré sur
+    l'ancien code ; rien rejoué sur la première machine.
 
-### ⏳ T5.10 — Clôture de la phase 5
+### 🚧 T5.10 — Clôture de la phase 5
 
 - Objectif : tableau final mis à jour (restes de la molette, du clic, de la frappe, du glissement, du défilement, des
   polygones), statut de T2.1, T2.2 et T2.4 revu selon ce que T5.2, T5.5 et T5.7 ont retiré, docs de MGUI à jour
@@ -1568,7 +1600,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 à T5.8 faites. Prochaine tâche : **T5.9**.
+  T5.5 à T5.9 faites (T5.9 : CONFIRMED). Prochaine tâche : **T5.10**.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
