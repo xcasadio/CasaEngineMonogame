@@ -915,7 +915,7 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
 ## Phase 4 — Clôture
 
-### ⏳ T4.1 — Documentation, validation globale, rapport
+### ✅ T4.1 — Documentation, validation globale, rapport
 
 - Objectif : docs à jour (`MGUI/Docs/drawing-architecture.md`, `controls-architecture.md`, `text-architecture.md`,
   ADR), tableau final des mesures dans ce plan, limites restantes listées, validation globale, rapport de fin
@@ -923,6 +923,51 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
   par l'auteur.
 - Validation : section « Validation globale ».
 - Commit : `docs(ai-agent): close the MGUI zero allocation follow-up`
+- Validation (2026-11-16), sur le dernier état des deux branches : `dotnet build MGUI/MGUI.sln`,
+  `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `MGUI.Tests` 3896 verts,
+  `CasaEngine.Tests` 5556 verts, aucun sauté (3684 et 5550 au départ). `MGUI.Samples` lancé à la fin de T1.6 et de la
+  phase 2 : démarre et tient 20 secondes sans sortie d'erreur. Le smoke à l'œil (sample, éditeur : coins arrondis,
+  dock, liste défilante) reste à faire par l'auteur. Rien n'est poussé ni fusionné ; le plan reste dans `tasks/`
+  jusqu'à l'acceptation de l'auteur.
+- Docs : `MGUI/Docs/rendering-architecture.md`, `custom-render-backend-integration.md`, `controls-architecture.md`
+  (section « Allocation par image des controles »), `text-architecture.md` ; ADR de MGUI 0031 (poignées), 0032
+  (transaction du `MainRenderer`), 0033 (grammaire ASCII), statut de l'ADR-0027, puces de l'ADR-0030.
+
+  Tableau final, octets par image (Update / Draw) ou par opération :
+
+  | Cas | Avant | Après | Reste |
+  |---|---|---|---|
+  | `SetDrawSettingsTemporary`, `SetRenderTargetTemporary` (paire, deux backends) | 112 / non mesuré | 0 | — |
+  | `SetTransformTemporary`, `SetEffectTemporary`, valeur stable | 304 | 0 | 120 pour une valeur nouvelle à chaque appel |
+  | Clip à stencil (paire, deux backends) | 1112 | 0 | chemin à masque non traité (D6) |
+  | Image du backend de MGUI (`MainRenderer`) | 6624 au dessin, plus la transaction | 0 / 0 | — |
+  | `MGScrollViewer` repos | 136 / 210 | 0 / 0 | — |
+  | `MGScrollViewer` molette | 192 / 331 | 56 / 0 | O7, O8 |
+  | `MGListBox` repos et survol | 272 / 210 | 0 / 0 | — |
+  | `MGListView` repos et survol | 136 / 786 | 0 / 0 | — |
+  | `MGTreeView` repos et survol | 136 / 786 | 0 / 0 | O9 sur GPU réel |
+  | `MGTabControl` survol | 88 / 0 | 0 / 0 | — |
+  | `MGContextMenu` ouvert, repos et survol | 1280 / 1178 | 0 / 0 | — |
+  | `MGMenuBar` fermée et ouverte, survol | 1280 / 874 | 0 / 0 | — |
+  | `MGGrid` avec sélection, repos | 0 / 288 | 0 / 0 | — |
+  | `MGGrid`, sélection par clic | 2060 / 288 | 232 / 0 | O10 |
+  | `MGDockHost` repos (trois dispositions) | 160 / 208 | 0 / 0 | — |
+  | `MGDockHost` glissement d'onglet | 3248 / 848 | 80 / 0 | O11 |
+  | `MGTextBox` repos avec focus | 0 / 0 | 0 / 0 | — |
+  | `MGTextBox` frappe | 3876 / 0 | 3296 / 0 | O12, O13 |
+  | Fenêtre `SizeToContent` | 0 / 0 | 0 / 0 | fermée sans code |
+  | Bloc sans balise souligné (dessin) | 120 | 0 | — |
+  | Changement de texte pendant une révélation | 608 | 0 | — |
+  | `[color=NotAColor]` changé à chaque image | 2656 | 0 | — |
+  | Caractère non ASCII après un `[`, changé à chaque image | 10847 + 10104 + 120 | 0 | — |
+
+- Tâches : 23 ✅, 3 ⚠️ (T2.1, T2.2, T2.4 : tout ce qui était dans leurs fichiers est fait et commité ; leur reste attend
+  une décision de l'auteur, points ouverts O7, O8, O10, O11).
+- Points ouverts pour l'auteur : O7 (événement de molette), O8 (clips d'un contenu défilé), O9 (`FillPolygon` des
+  backends), O10 (événements de clic), O11 (`DockDropTarget`), O12 (entrée clavier), O13 (curseur de `MGTextBox` et
+  lignes historiques), O14 (taille d'image en chiffres non ASCII, à valider).
+- Limites restantes, déjà écrites : D6 (masque), D12 (plafond de 128, tampons qui ne rétrécissent pas, changement de
+  police), 32 réglages dérivés gardés par backend, constats P3 et P4 des deux vérifications (T1.7, T3.4).
 
 ---
 
