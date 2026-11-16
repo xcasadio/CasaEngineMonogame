@@ -278,6 +278,8 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.NormalScale,
             ShaderParameterNames.ClearCoat,
             ShaderParameterNames.ClearCoatRoughness,
+            ShaderParameterNames.HasDetailTexture,
+            ShaderParameterNames.DetailTiling,
             ShaderParameterNames.HasBaseColorTexture,
             ShaderParameterNames.HasMetallicRoughnessTexture,
             ShaderParameterNames.HasOcclusionTexture,
@@ -336,8 +338,8 @@ public class PbrShaderCoverageTests
                 $"LitPbr.fx does not declare the constant '{name}'.");
         }
 
-        // Fourteen textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are the
-        // prefiltered atlases of the local probes, T7.1).
+        // Fifteen textures, in the documented sampler order (16 pixel samplers are available on this backend; t12 and t13 are the
+        // prefiltered atlases of the local probes, T7.1; t14 is the detail texture, ADR-0116).
         string[] textures =
         {
             ShaderParameterNames.BasColorTexture,
@@ -354,6 +356,7 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.BrdfLookupTexture,
             ShaderParameterNames.PrefilteredLocalReflectionProbeAtlasTexture,
             ShaderParameterNames.PrefilteredSecondaryLocalReflectionProbeAtlasTexture,
+            ShaderParameterNames.DetailTexture,
         };
         for (int index = 0; index < textures.Length; index++)
         {
@@ -384,6 +387,15 @@ public class PbrShaderCoverageTests
         foreach (Match match in declaration.Matches(ConstantsBlock(pbr)))
         {
             string name = match.Groups["name"].Value;
+
+            // The detail texture constants (ADR-0116) keep the names of LitForward.fx, so that one material binds both, but not its
+            // slots: c35.w and c36.x of the PBR layout belong to HasEmissiveTexture and the lighting block.
+            if (name is "HasDetailTexture" or "DetailTiling")
+            {
+                Assert.Equal($"float {name};", Normalize(match.Value));
+                continue;
+            }
+
             if (litForwardDeclarations.TryGetValue(name, out string? litForwardLine))
             {
                 Assert.Equal(litForwardLine, Normalize(match.Value));
@@ -452,6 +464,21 @@ public class PbrShaderCoverageTests
         Assert.Contains("result.Specular = 0.0f;", flat);
         Assert.Contains("if (HasIbl < 0.5f) { return ComputePbrFlatAmbient(surface.Normal, surface.DiffuseAlbedo, occlusion); }", ambient);
         Assert.Contains("ComputePbrAmbient(surface, occlusion)", source);
+    }
+
+    [Fact]
+    public void LitPbrEffect_ModulatesTheBaseTextureByTwiceTheDetailBeforeTheDecoding()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string baseColor = Normalize(ExtractFunctionBody(source, "float4 SamplePbrBaseColor("));
+
+        // The formula of LitForward.fx (texture * 2 * detail(texCoord * DetailTiling)), applied to the texture sample only, under the
+        // base texture flag, before the product with BaseColor. The decoding is not in this function: it comes after it, in ShadePbr.
+        Assert.Contains("if (HasBaseColorTexture > 0.5f) {", baseColor);
+        Assert.Contains("if (HasDetailTexture > 0.5f) { texel.rgb *= 2.0f * SAMPLE_TEXTURE(DetailTexture, texCoord * DetailTiling).rgb; }", baseColor);
+        Assert.Contains("baseColor *= texel;", baseColor);
+        Assert.DoesNotContain("DecodeColor", baseColor);
+        Assert.Equal(1, CountOccurrences(source, "SAMPLE_TEXTURE(DetailTexture,"));
     }
 
     [Fact]

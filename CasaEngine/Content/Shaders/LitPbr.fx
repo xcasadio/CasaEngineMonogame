@@ -15,7 +15,7 @@
 // HasDetailTexture in LitForward.fx), not by techniques. The normal map is driven by the technique: the NormalMap techniques
 // always sample NormalTexture.
 //
-// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 14 are used):
+// Textures (sampler registers; this backend is OpenGL, shader model 3.0, 16 pixel samplers: 15 are used):
 //   t0 Texture                           base colour (display colour, alpha = opacity)
 //   t1 NormalTexture                     tangent-space normal
 //   t2 MetallicRoughnessTexture          G = roughness, B = metallic (glTF convention)
@@ -30,6 +30,7 @@
 //   t11 BrdfLookupTexture                split-sum BRDF table (x = NoV, y = roughness, channels A and B)
 //   t12 PrefilteredLocalReflectionProbeAtlasTexture           prefiltered atlas of the primary local probe (same layout as t10)
 //   t13 PrefilteredSecondaryLocalReflectionProbeAtlasTexture   prefiltered atlas of the secondary local probe
+//   t14 DetailTexture                    optional detail texture (display colour, ADR-0116): base texture * 2 * detail(texCoord * DetailTiling)
 // The IBL textures are bound by EnvironmentShaderBinder only because this shader declares HasIbl (ADR-0109). The probe atlases
 // are generated like the global one (IblCache.TryGetPrefilteredAtlas); while one does not exist yet its Has... flag
 // (HasPrefilteredLocalReflectionProbe, HasPrefilteredSecondaryLocalReflectionProbe) is 0 and the probe is sampled unprefiltered
@@ -56,7 +57,9 @@
 // HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
 // IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0 (probes included).
 // HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder.
-// ClearCoat and ClearCoatRoughness (ADR-0114) are written by LitPbrMaterial.Bind every bind. None of the constants of this paragraph has a
+// ClearCoat and ClearCoatRoughness (ADR-0114) are written by LitPbrMaterial.Bind every bind. HasDetailTexture and DetailTiling (ADR-0116)
+// carry the names of LitForward.fx but not its slots (c35.w is HasEmissiveTexture here) and are written by LitPbrMaterial.Bind every
+// bind. None of the constants of this paragraph has a
 // fixed slot: the compiler places them.
 //
 // Colours: BaseColor, EmissiveColor and the colour textures are display colours. They are decoded to linear light ONCE per
@@ -81,6 +84,7 @@ DECLARE_TEXTURE(PrefilteredSpecularAtlasTexture, 10);
 DECLARE_TEXTURE(BrdfLookupTexture, 11);
 DECLARE_TEXTURE(PrefilteredLocalReflectionProbeAtlasTexture, 12);
 DECLARE_TEXTURE(PrefilteredSecondaryLocalReflectionProbeAtlasTexture, 13);
+DECLARE_TEXTURE(DetailTexture, 14);
 
 
 BEGIN_CONSTANTS
@@ -212,6 +216,8 @@ BEGIN_CONSTANTS
     float HasPrefilteredSecondaryLocalReflectionProbe;
     float ClearCoat;
     float ClearCoatRoughness;
+    float HasDetailTexture;
+    float DetailTiling;
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
     float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
     float ShadowDepthBias _ps(c100) _cb(c90.z);
@@ -245,13 +251,22 @@ END_CONSTANTS
 #include "Pbr.fxh"
 
 
-// The base colour modulated by its texture, as a display colour (not decoded): the decoding is done once in ShadePbr.
+// The base colour modulated by its texture, as a display colour (not decoded): the decoding is done once in ShadePbr. The optional
+// detail texture modulates the base texture first, as SampleBaseTexture of LitForward.fx does: texture * 2 * detail(texCoord *
+// DetailTiling) on the colour channels, alpha untouched, so a mid-grey detail texel leaves the colour unchanged. It is read only
+// together with a base texture, and the product stays a display colour (the decoding comes after it, never on the detail alone).
 float4 SamplePbrBaseColor(float2 texCoord)
 {
     float4 baseColor = BaseColor;
     if (HasBaseColorTexture > 0.5f)
     {
-        baseColor *= SAMPLE_TEXTURE(Texture, texCoord);
+        float4 texel = SAMPLE_TEXTURE(Texture, texCoord);
+        if (HasDetailTexture > 0.5f)
+        {
+            texel.rgb *= 2.0f * SAMPLE_TEXTURE(DetailTexture, texCoord * DetailTiling).rgb;
+        }
+
+        baseColor *= texel;
     }
 
     return baseColor;

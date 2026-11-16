@@ -129,3 +129,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0113](0113-fxaa-filters-the-tonemapped-scene-before-the-post-tonemap-renderers-and-the-interface.md) | FXAA filters the tonemapped scene before the post-tonemap renderers and the interface | Proposed | 2026-11-15 |
 | [ADR-0114](0114-lit-pbr-carries-a-clear-coat-layer-evaluated-as-a-second-lobe.md) | lit-pbr carries a clear coat layer evaluated as a second lobe | Proposed | 2026-11-15 |
 | [ADR-0115](0115-a-scene-depth-pre-pass-feeds-screen-space-ambient-occlusion.md) | A scene depth pre-pass feeds screen-space ambient occlusion | Proposed | 2026-11-15 |
+| [ADR-0116](0116-lit-pbr-may-carry-a-detail-texture.md) | lit-pbr may carry a detail texture | Proposed | 2026-11-16 |

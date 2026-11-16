@@ -339,6 +339,9 @@ public sealed class MaterialCompiler
         material.OcclusionTexture = resolvedTextures["occlusion_texture"];
         material.EmissiveTextureAssetId = GetTextureId(effectiveValues["emissive_texture"], "emissive_texture");
         material.EmissiveTexture = resolvedTextures["emissive_texture"];
+        material.DetailTextureAssetId = GetTextureId(effectiveValues["detail_texture"], "detail_texture");
+        material.DetailTexture = resolvedTextures["detail_texture"];
+        material.DetailTiling = GetFloat(effectiveValues["detail_tiling"], "detail_tiling");
         material.BaseColor = GetColor(effectiveValues["base_color"], "base_color");
         material.Metallic = GetFloat(effectiveValues["metallic"], "metallic");
         material.Roughness = GetFloat(effectiveValues["roughness"], "roughness");

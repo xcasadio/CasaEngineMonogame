@@ -62,6 +62,26 @@ public class LitPbrMaterial : MaterialBase
     public Guid EmissiveTextureAssetId { get; set; } = Guid.Empty;
 
     /// <summary>
+    /// Optional detail texture (ADR-0116), same formula as <see cref="LitDiffuseMaterial.DetailTexture"/>: the base texture is
+    /// multiplied by <c>2 * detail(texCoord * DetailTiling)</c> before the colour is decoded, so a mid-grey texel leaves it
+    /// unchanged. Read only together with <see cref="BaseColorTexture"/>; ignored by the skinned PBR path.
+    /// </summary>
+    public Texture2D DetailTexture { get; set; }
+    public Guid DetailTextureAssetId { get; set; } = Guid.Empty;
+
+    private float _detailTiling = 1.0f;
+
+    /// <summary>
+    /// Number of times the detail texture repeats per unit of the base texture coordinates. A value that is not finite or not
+    /// above zero is read as 1.
+    /// </summary>
+    public float DetailTiling
+    {
+        get => _detailTiling;
+        set => _detailTiling = float.IsFinite(value) && value > 0.0f ? value : 1.0f;
+    }
+
+    /// <summary>
     /// Technique of <c>LitPbr.fx</c> for the resolved features: <c>LitPbr[_NormalMap][_AlphaTest|_Transparent]</c>. The presence of the
     /// other textures is carried by the Has... constants, not by the technique.
     /// </summary>
@@ -121,6 +141,15 @@ public class LitPbrMaterial : MaterialBase
         BindOptionalTexture(shader, ShaderParameterNames.MetallicRoughnessTexture, ShaderParameterNames.HasMetallicRoughnessTexture, MetallicRoughnessTexture, in context);
         BindOptionalTexture(shader, ShaderParameterNames.OcclusionTexture, ShaderParameterNames.HasOcclusionTexture, OcclusionTexture, in context);
         BindOptionalTexture(shader, ShaderParameterNames.EmissiveTexture, ShaderParameterNames.HasEmissiveTexture, EmissiveTexture, in context);
+
+        // The detail texture modulates the base texture only: without a base texture the shader never reads it.
+        var hasDetailTexture = DetailTexture is not null && BaseColorTexture is not null;
+        shader.SetParameter(ShaderParameterNames.HasDetailTexture, hasDetailTexture ? 1.0f : 0.0f);
+        shader.SetParameter(ShaderParameterNames.DetailTiling, DetailTiling);
+        if (hasDetailTexture)
+        {
+            shader.SetTextureParameter(ShaderParameterNames.DetailTexture, DetailTexture, context.Stats);
+        }
 
         // The NormalMap techniques always sample NormalTexture; the others never read it.
         if (NormalTexture is not null)

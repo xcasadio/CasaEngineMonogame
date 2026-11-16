@@ -19,6 +19,8 @@ public class LitPbrMaterialDefinitionTests
         "metallic_roughness_texture",
         "occlusion_texture",
         "emissive_texture",
+        "detail_texture",
+        "detail_tiling",
         "base_color",
         "metallic",
         "roughness",
@@ -94,7 +96,16 @@ public class LitPbrMaterialDefinitionTests
         Assert.Equal(0.0f, defaults.ClearCoat);
         Assert.Equal(0.1f, defaults.ClearCoatRoughness);
 
-        foreach (var key in new[] { "base_color_texture", "normal_texture", "metallic_roughness_texture", "occlusion_texture", "emissive_texture" })
+        var detailTiling = definition.GetRequiredProperty("detail_tiling");
+        Assert.Equal(MaterialPropertyType.Float, detailTiling.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Textures, detailTiling.Group);
+        Assert.Equal(defaults.DetailTiling, detailTiling.GetDefaultValue<float>());
+        Assert.Equal(1.0f, defaults.DetailTiling);
+        Assert.Equal(0.0f, detailTiling.MinValue);
+        Assert.Equal(Guid.Empty, defaults.DetailTextureAssetId);
+        Assert.Null(defaults.DetailTexture);
+
+        foreach (var key in new[] { "base_color_texture", "normal_texture", "metallic_roughness_texture", "occlusion_texture", "emissive_texture", "detail_texture" })
         {
             var texture = definition.GetRequiredProperty(key);
             Assert.Equal(MaterialPropertyType.Texture, texture.ValueType);
@@ -356,6 +367,85 @@ public class LitPbrMaterialDefinitionTests
         var material = Assert.IsType<LitPbrMaterial>(runtime);
         Assert.Equal(0.0f, material.ClearCoat);
         Assert.Equal(0.1f, material.ClearCoatRoughness);
+    }
+
+    [Fact]
+    public void MaterialFile_WithTheDetailKeys_RoundTrips_AndWithoutThemReadsTheDefaults()
+    {
+        var detailTextureId = Guid.NewGuid();
+        var withDetail = new MaterialAsset("lit-pbr") { Name = "Terrain" };
+        withDetail.SetPropertyValue("detail_texture", MaterialValue.FromTextureId(detailTextureId));
+        withDetail.SetPropertyValue("detail_tiling", MaterialValue.FromFloat(24.0f));
+
+        var document = new JObject();
+        MaterialAssetJsonSerializer.Save(withDetail, document);
+
+        var propertiesNode = Assert.IsType<JObject>(document["properties"]);
+        Assert.Equal(2, propertiesNode.Count);
+        Assert.NotNull(propertiesNode["detail_texture"]);
+        Assert.NotNull(propertiesNode["detail_tiling"]);
+
+        var loaded = new MaterialAsset();
+        loaded.Load(document);
+        Assert.True(loaded.GetPropertyValueOrDefault("detail_texture")!.TryGetTextureId(out var loadedTexture));
+        Assert.Equal(detailTextureId, loadedTexture);
+        Assert.True(loaded.GetPropertyValueOrDefault("detail_tiling")!.TryGetFloat(out var loadedTiling));
+        Assert.Equal(24.0f, loadedTiling);
+
+        // A material that never set them writes neither key and reads the defaults, so a file written before the detail texture
+        // existed loads and compiles as it did.
+        var defaultDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(new MaterialAsset("lit-pbr") { Name = "Old file" }, defaultDocument);
+        var defaultProperties = Assert.IsType<JObject>(defaultDocument["properties"]);
+        Assert.Null(defaultProperties["detail_texture"]);
+        Assert.Null(defaultProperties["detail_tiling"]);
+
+        var legacy = new MaterialAsset();
+        legacy.Load(defaultDocument);
+        Assert.True(legacy.GetPropertyValueOrDefault("detail_texture")!.TryGetTextureId(out var defaultTexture));
+        Assert.Equal(Guid.Empty, defaultTexture);
+        Assert.True(legacy.GetPropertyValueOrDefault("detail_tiling")!.TryGetFloat(out var defaultTiling));
+        Assert.Equal(1.0f, defaultTiling);
+
+        var (compiled, runtime) = Compile(legacy);
+        var material = Assert.IsType<LitPbrMaterial>(runtime);
+        Assert.Equal(Guid.Empty, material.DetailTextureAssetId);
+        Assert.Null(material.DetailTexture);
+        Assert.Equal(1.0f, material.DetailTiling);
+        Assert.Equal(ShaderFeature.None, compiled.Features);
+    }
+
+    [Fact]
+    public void Compile_DetailValues_ReachTheRuntimeMaterial_WithoutChangingTheFeaturesOrTheTechnique()
+    {
+        var detailTextureId = Guid.NewGuid();
+        var materialAsset = new MaterialAsset("lit-pbr");
+        materialAsset.SetPropertyValue("detail_texture", MaterialValue.FromTextureId(detailTextureId));
+        materialAsset.SetPropertyValue("detail_tiling", MaterialValue.FromFloat(24.0f));
+
+        var (compiled, runtime) = Compile(materialAsset);
+
+        var material = Assert.IsType<LitPbrMaterial>(runtime);
+        Assert.Equal(detailTextureId, material.DetailTextureAssetId);
+        Assert.Equal(24.0f, material.DetailTiling);
+        Assert.Equal(ShaderFeature.None, compiled.Features);
+        Assert.Equal("LitPbr", LitPbrMaterial.GetTechniqueName(compiled.Features));
+        Assert.True(compiled.TryGetPropertyValue("detail_tiling", out var tiling));
+        Assert.True(tiling.TryGetFloat(out var compiledTiling));
+        Assert.Equal(24.0f, compiledTiling);
+    }
+
+    [Theory]
+    [InlineData(4.0f, 4.0f)]
+    [InlineData(0.0f, 1.0f)]
+    [InlineData(-3.0f, 1.0f)]
+    [InlineData(float.NaN, 1.0f)]
+    [InlineData(float.PositiveInfinity, 1.0f)]
+    public void DetailTiling_ReplacesAValueThatIsNotFiniteOrNotPositiveByOne(float assigned, float expected)
+    {
+        var material = new LitPbrMaterial { DetailTiling = assigned };
+
+        Assert.Equal(expected, material.DetailTiling);
     }
 
     [Fact]

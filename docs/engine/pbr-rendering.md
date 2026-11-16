@@ -2,7 +2,7 @@
 
 How CasaEngine renders metallic-roughness (PBR) surfaces next to the historical Blinn-Phong path: the `lit-pbr` material, the colour pipeline it relies on, bloom, transparency, image-based lighting (IBL), local reflection probes, skinned meshes and the glTF import. PBR is chosen per material; `lit-diffuse` is untouched and the default `Legacy` colour pipeline renders every existing image bit for bit as before.
 
-Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0107 (bloom), ADR-0108 (`lit-pbr`), ADR-0109 (IBL), ADR-0110 (skinned PBR), ADR-0111 (glTF PBR import), ADR-0112 (scope extended to clear coat, SSAO and FXAA), ADR-0113 (FXAA), ADR-0114 (clear coat), ADR-0115 (scene depth pre-pass and SSAO). They live in [docs/decisions](../decisions/README.md).
+Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-pipeline.md](color-pipeline.md)), ADR-0107 (bloom), ADR-0108 (`lit-pbr`), ADR-0109 (IBL), ADR-0110 (skinned PBR), ADR-0111 (glTF PBR import), ADR-0112 (scope extended to clear coat, SSAO and FXAA), ADR-0113 (FXAA), ADR-0114 (clear coat), ADR-0115 (scene depth pre-pass and SSAO), ADR-0116 (detail texture). They live in [docs/decisions](../decisions/README.md).
 
 ## Workflow
 
@@ -25,6 +25,8 @@ Decisions: ADR-0102 (scope), ADR-0103 to ADR-0106 (colour pipeline, see [color-p
 | `metallic_roughness_texture` | texture | none | Roughness in G, metallic in B (glTF layout), multiplied by the two factors. |
 | `occlusion_texture` | texture | none | Ambient occlusion in R, scaled by `occlusion_strength`; applies to the ambient and IBL terms only. |
 | `emissive_texture` | texture | none | Emitted colour. |
+| `detail_texture` | texture | none | Detail texture (ADR-0116): the base texture is multiplied by `2 * detail(texCoord * detail_tiling)` before the colour is decoded, as in `lit-diffuse` (ADR-0099); mid grey (128/255) leaves it unchanged. Read only together with `base_color_texture`; ignored by the skinned path. |
+| `detail_tiling` | at least 0 | 1 | Repeats of the detail texture over the base texture coordinates. A value that is not finite or not above 0 is read as 1. |
 | `base_color` | colour | white | Display colour; its alpha is the opacity. An alpha below 255 makes the material transparent. |
 | `metallic` | 0 to 1 | 0 | Dielectric by default (not the 1 of glTF). |
 | `roughness` | 0 to 1 | 0.5 | Perceptual roughness; `alpha = roughness^2`, floored at 0.045 in the shader. |
@@ -116,7 +118,8 @@ FXAA costs about 2 ms, SSAO about 5.5 ms and the row (five more spheres, 39 opaq
 
 - **Skinned PBR has no IBL, no probes, no normal map, no transparency and no clear coat.** `skinEffect.fx` declares no IBL parameter, so a skinned mesh never triggers a generation and gets the flat ambient (ADR-0110). Normal maps on skinned meshes are out of scope.
 - **The prefiltered specular is a 2D atlas, not a cube with mips** (ADR-0109). It costs an extra sampler and 12.6 MB per source cube; it is not seamless at the poles of the latitude-longitude mapping; a high-frequency source at high roughness is noisy (64 samples, no filtered importance sampling). If a later MonoGame honours the cube level, a GPU test fails and the choice can be revisited.
-- **Sampler budget.** `LitPbr.fx` uses 14 of the 16 pixel samplers of the target (t0 to t8 material, t9 to t11 IBL, t12 and t13 probe atlases).
+- **Sampler budget.** `LitPbr.fx` uses 15 of the 16 pixel samplers of the target (t0 to t8 material, t9 to t11 IBL, t12 and t13 probe atlases, t14 detail texture).
+- **Detail texture limits** (ADR-0116). One more texture fetch per pixel when bound, one uniform branch otherwise; no per-instance override of the two keys; the sampler state is the device default (linear, mip filtering, wrap under DesktopGL), so a strongly tiled texture should have mipmaps; `skinEffect.fx` has no detail texture.
 - **Clear coat limits** (ADR-0114). The coat reflection reads the global atlas only, never a local probe; there is no coat texture and no coat normal map; the absorption of the base colour under the coat and the scattering between the layers are not modelled; `skinEffect.fx` has no coat (P5). The shipped `LitPbr.xnb` is 1 722 697 bytes (888 091 before the coat). Writing the coat lobe inside the 24 slots of the base walk broke the shading on the OpenGL chain (cause not found), so it is a separate walk: see the ADR before touching it.
 - **FXAA and SSAO limits** (ADR-0113, ADR-0115). Both act only in `LinearHdr` and only for a view whose pipeline separates the scene from the interface: the editor views and `OverlayViewPipeline` get neither, and `Legacy` ignores the settings. FXAA does not filter the interface or anything drawn after the tonemapping. SSAO needs a perspective projection. SSAO multiplies the whole opaque colour, direct light included (not only the ambient term), and also the transparent geometry and the other 3D draws (particles, lines, sprites, tile maps) that are already in the HDR target, although these are not in the depth.
 - **Deferred P3 defect: IBL generation image and display buffer.** On a frame where an IBL generation runs, the pipeline switches back to the display buffer with `DiscardContents`, which may clear for that one frame the virtual-resolution bars and the phase 1 drawing (inferred from the code, not observed). Not fixed.
