@@ -35,9 +35,6 @@ public class DrawTransactionRearmGpuTests
     private const int WarmupIterations = 500;
     private const int MeasuredIterations = 500;
 
-    //  The pixels of the desktop frame at rest, as DesktopFrameGpuAllocationTests froze them (same machine, same target).
-    private const string RestPixels = "921600:124E0E0FFD9AB38C0A9FE580081317A93241F77B68177662060220B0438C9F36";
-
     private readonly ITestOutputHelper _output;
 
     public DrawTransactionRearmGpuTests(ITestOutputHelper output)
@@ -866,6 +863,6 @@ public class DrawTransactionRearmGpuTests
         //  The diagnostics are those of the last frame only: it pushed clips, so the draw did something.
         Assert.True(clips > 0);
         Assert.Equal(0, bytes);
-        Assert.Equal(RestPixels, pixels);
+        ReferenceDesktopFramePixels.AssertRest(pixels);
     }
 }

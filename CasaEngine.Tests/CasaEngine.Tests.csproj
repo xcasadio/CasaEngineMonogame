@@ -44,6 +44,13 @@
     <None Include="..\CasaEngine.Demos\Content\Screens\demo-help.xaml" Link="Content\Screens\demo-help.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The polygons and the read-back of the primitive batch of the proof of FillPolygon (ai-agent/tasks/mgui-polygon-triangulation-tasks.md, T1.2):
+       the same sources as the tests of MGUI, linked so that the corpus of T1.1 exists once. -->
+  <ItemGroup>
+    <Compile Include="..\MGUI\MGUI.Tests\Rendering\PolygonCorpus.cs" Link="UI\Backend\PolygonCorpus.cs" />
+    <Compile Include="..\MGUI\MGUI.Tests\Rendering\PrimitiveBatchProbe.cs" Link="UI\Backend\PrimitiveBatchProbe.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />

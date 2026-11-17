@@ -162,3 +162,11 @@ Risks:
 Next useful step:
 - ...
 ```
+
+## CodeGraph et Serena
+
+- Dans un projet déjà indexé (`.codegraph/` présent), utiliser CodeGraph pour explorer l'architecture, les graphes d'appels, les dépendances et l'impact d'un changement. Préférer une requête ciblée `codegraph_explore`, ou `codegraph explore` en CLI, avec le chemin explicite du projet si nécessaire.
+- Utiliser Serena pour la navigation sémantique précise, les références C#, les modifications de symboles et le refactoring. Pour une cible déjà connue, commencer directement avec Serena sans détour par CodeGraph.
+- Ne pas répéter la même recherche dans les deux outils. Réutiliser les symboles, chemins et extraits déjà obtenus ; ne lire que les corps nécessaires, sans multiplier les lectures complètes de fichiers. Limiter la portée et le nombre de résultats.
+- Le graphe fournit une vue structurelle ; pour une référence C# ambiguë ou un refactoring, utiliser la résolution sémantique de Serena. Respecter les avertissements de fraîcheur et signaler les limites du graphe ; ne pas conclure à l'absence d'une dépendance sur sa seule absence du graphe.
+- Si un outil est indisponible, utiliser l'autre dans ses capacités puis une recherche textuelle ciblée. Ne pas initialiser d'autres dépôts sans demande. Préserver les serveurs MCP, permissions et règles existants, notamment les préconditions Serena C/C++.
