@@ -7,6 +7,11 @@ L'auteur a demandé le 2026-11-15 : « Oui, planifie-les et suis les choix que t
 ci-dessous sont donc les recommandations de l'agent, appliquées sur cette demande : **ce plan les applique, il ne les
 rediscute pas**. L'auteur peut en refuser une à l'approbation du plan.
 
+**[ARCHIVE] Terminé le 2026-11-17.** Phases 0 à 5 faites. Branches `chantier/mgui-nonalloc-phase5` fusionnées en
+avance rapide le 2026-11-17 à la demande de l'auteur dans `develop` (MGUI) et `main` (moteur), non poussées. Le smoke
+à l'œil est fait par l'auteur ; la relance des suites sur la première machine est abandonnée par l'auteur. O16 reste
+une question de l'auteur (« Est-ce un gros chantier de retirer `DrawSolidPolygon` ? »), hors de ce plan.
+
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
 ## Objectif
@@ -1593,7 +1598,8 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   l'œil (sample, éditeur : coins arrondis, dock, liste défilante, saisie dans une zone de texte, glissement d'onglet)
   reste à faire par l'auteur. Rien n'est poussé ni fusionné.
 - À faire par l'auteur avant la fusion : rejouer les deux suites sur la première machine (les empreintes de pixels y
-  ont une autre entrée, O15) ; trancher O16.
+  ont une autre entrée, O15) ; trancher O16. Réponse du 2026-11-17 : smoke fait par l'auteur, relance sur la
+  première machine abandonnée (« non on oublie l'autre PC »), fusion demandée ; O16 en évaluation, hors de ce plan.
 - Docs de MGUI : `input-architecture.md` (T5.1 à T5.3), `rendering-architecture.md` (T5.5, et `FillPolygon` ajouté
   ici aux limites connues), `controls-architecture.md` (T5.7), `text-architecture.md` (T5.8) ; ADR de MGUI 0034
   (entrée), 0035 (clips rectangulaires), 0036 (cible de dépôt), 0037 (géométrie du curseur). T5.6 n'a pas d'ADR :
@@ -1645,7 +1651,7 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
 - Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
   T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
-  T5.5 à T5.10 faites (T5.9 : CONFIRMED). Phase 5 terminée ; restent le smoke à l'œil de l'auteur, la relance des suites sur la première machine, la fusion et l'archivage du plan.
+  T5.5 à T5.10 faites (T5.9 : CONFIRMED). Phase 5 terminée, fusionnée le 2026-11-17, plan archivé.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
