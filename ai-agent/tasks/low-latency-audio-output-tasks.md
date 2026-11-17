@@ -161,12 +161,18 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Commit : `docs(audio): describe the low-latency OpenAL output`
 - Note de validation (2026-11-17) : `docs/engine/audio-system.md` §1 bis (texte, schéma, sortie) et limites (latence, sous-alimentations estimées, perte du périphérique, attente possible jusqu'au réveil du thread après une perte). La doc de `IAudioOutput` a été mise à jour en T1.2. D2 : aucune occurrence d'un nom de jeu (`rg`).
 
-### ⏳ T1.4 — Vérification
+### ✅ T1.4 — Vérification
 
 - Objectif : relecture neuve de tout le chantier.
 - Étapes : un vérificateur neuf reçoit le plan, l'ADR-0094 et le diff de la branche depuis `00b24bca`. Il relance builds, tests et harnais (si l'auteur l'accepte), et cherche : rappel qui alloue ou appelle AL, exception qui sort, rappel après l'arrêt, délégué libéré trop tôt, deux rendus à la fois, appel du jeu qui attend après une perte du périphérique, seuil lu avant la fin de la fenêtre, repli sur la file cassé, `alsoft.ini` absent d'une sortie, `unsafe` dans le diff.
 - Validation : CONFIRMED, ou écarts traités selon leur gravité.
 - Commit : `docs(ai-agent): record the verification of the low-latency audio output`
+- Note de validation (2026-11-17) : un vérificateur neuf rend **CONFIRMED** sur `00b24bca..d056718d`, sans écart P0 à P2. Il a relancé les builds (0 erreur sur les deux solutions) et les tests (5674 sur 5674), vérifié `alsoft.ini` dans les quatre sorties (`GetCopyToOutputDirectoryItems`, copies identiques à la source), relu le rappel, le seuil, la vidange, l'ordre d'arrêt et les constantes contre `alext.h`. Il n'a rien joué : les passages du harnais et l'essai de perte du périphérique viennent du relevé. Constats reportés, aucun bloquant :
+  - **P3.** Le test de perte du périphérique passe par une copie de la boucle (`CallbackModeAudioOutput`), qui ne lit pas `ALC_CONNECTED` et vidange par `Thread.Yield` : la branche réelle de `RunCallbackLoop` n'est vérifiée qu'à la lecture, et l'attente réelle peut aller jusqu'au réveil du thread (environ 15,6 ms, écrit dans la doc). L'essai manuel de T1.2 la couvre.
+  - **P4.** La plus grande demande retenue pour le seuil peut venir des quelques ms qui suivent la fin de la fenêtre. Effet négligeable.
+  - **P4.** `ALC_CONNECTED` est lu sans tester `ALC_EXT_disconnect` : une bibliothèque qui n'écrirait pas la valeur ferait croire à une perte. OpenAL Soft 1.24.3 l'écrit toujours.
+  - **P4.** Hors du code du rappel : le premier appel inverse attache le thread natif au runtime (une allocation), et un rappel qui tombe pendant une collection l'attend. L'ADR-0094 le dit déjà.
+  - **P4.** La ligne d'index de `ai-agent/README.md` était restée à T0.1 : mise à jour avec ce commit.
 
 ---
 
