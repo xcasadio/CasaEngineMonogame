@@ -67,11 +67,12 @@ Retour arrière : `git switch chantier/static-model-tangents` puis `git branch -
 - Commit : `feat(assets): let a texture asset ask for its mipmap chain`
 - Validation (2026-11-17) : les deux solutions à 0 erreur ; 6391 tests, 6383 réussis, 8 échecs, exactement les 8 tests GPU connus (6 de `DesktopFrameGpuAllocationTests`, `DrawTransactionRearmGpuTests.RearmThenDrawingTheDesktopFrame_AllocatesNothing_AndDrawsTheReferencePixels`, `IblCubeGeneratorGpuTests.OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed`). 9 tests ajoutés : 2 de sérialisation (`TextureAssetDocumentTests`) et 7 GPU (`Assets/TextureAssetMipmapsGpuTests.cs`, dont la perte du périphérique avec et sans l'image partagée libérée, et le format non `Color` signalé avec le nom de l'asset).
 
-### ⏳ T2 — Décision et documentation
+### ✅ T2 — Décision et documentation
 
 - Fichiers : `docs/decisions/0124-…md` (skill `adr`, numéro suivant de l'index), `docs/decisions/README.md`, `docs/engine/texture-mipmaps.md` (section sur le champ de l'asset), `docs/editor/asset-documents.md` si sa section `.texture` décrit les champs, ce plan, `ai-agent/README.md`.
 - Validation : liens vérifiés par `rg` ; docs seulement.
 - Commit : `docs(adr): record the mipmap setting of the texture asset`
+- Validation (2026-11-17) : ADR-0124 (Proposed) créé et ajouté à l'index ; section « Asking for the chain from a `.texture` asset » dans `docs/engine/texture-mipmaps.md` ; ligne sur les champs conservés dans la section `.texture` de `docs/editor/asset-documents.md` ; état du plan mis à jour dans `ai-agent/README.md` ; liens vérifiés par `rg` ; documentation seulement, aucun build ni test.
 
 ---
 

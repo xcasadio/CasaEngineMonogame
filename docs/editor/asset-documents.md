@@ -28,6 +28,7 @@ Any file whose extension has no document and is not an engine asset format (`Con
 
 - the linked image (`texture_asset_id`) is previewed;
 - the sampler is edited: `texture_filter`, `address_u`, `address_v`, `address_w`, `max_anisotropy` (1 to 16). Every change builds a new `SamplerState`; the other sampler fields are kept;
+- the fields the panel does not edit are kept on save, including the optional `generate_mipmaps` (ADR-0124, `docs/engine/texture-mipmaps.md`), which is set in the file;
 - Save writes the file through `EditorAssetWriterService`; File > Save saves every modified texture document; Reload reads the file again. A modified document shows `*` in its tab title.
 
 The logic without UI is `CasaEngine.EditorServices/Textures/TextureAssetDocument.cs`.
