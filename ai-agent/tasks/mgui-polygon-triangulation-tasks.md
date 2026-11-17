@@ -309,13 +309,35 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
   - Non vérifié : pixels des polygones du vérificateur (sommets seulement) ; NaN au-delà du nombre de triangles ;
     aucun contrôle à l'œil.
 
-### ⏳ T1.4 — Clôture
+### ✅ T1.4 — Clôture
 
 - Objectif : tableau final des mesures, docs de MGUI à jour, ligne de `ai-agent/README.md`, `MGUI.Samples` lancé une
   fois, validation globale, rapport de fin (`AGENTS.md` §12). Le plan passe dans `tasks/archive/` après acceptation
   par l'auteur.
 - Validation : section « Validation globale ».
 - Commit : `docs(ai-agent): close the polygon triangulation chantier`
+- Validation (2026-11-17), sur moteur `baabd183` et MGUI `98bf9edf` : trois solutions 0 erreur ; `MGUI.Tests` 4006
+  verts, `CasaEngine.Tests` 6129 verts, aucun sauté, tests GPU compris (suites rejouées par le vérificateur de T1.3 sur
+  ce même code ; depuis, seul ce plan a changé). `MGUI.Samples` lancé une fois : démarre et tient 20 secondes sans
+  sortie d'erreur. Le smoke à l'œil (flèches des listes déroulantes, arbres, menus, cases à cocher, ellipses,
+  polygones, indicateurs de dépôt du dock) reste à faire par l'auteur. Rien n'est poussé ni fusionné.
+- Docs : ADR-0038 de MGUI (triangulateur), `MGUI/Docs/rendering-architecture.md` (section « Triangulation d'un
+  polygone rempli », limite connue de `FillPolygon` réécrite).
+
+  Tableau final, octets par appel sur GPU réel, identiques dans les deux backends :
+
+  | Cas | Avant ce chantier | Après |
+  |---|---|---|
+  | `FillPolygon`, triangle (deux sens) | 376 / 424 | 0 |
+  | `FillPolygon`, flèche de 7 sommets (deux sens) | 928 / 952 | 0 |
+  | `FillPolygon`, concave de 8 sommets | 992 | 0 |
+  | `FillPolygon`, ellipse de 32 segments (deux sens) | 3968 / 4248 | 0 |
+  | `FillRectangle` en primitives | 552 | 0 |
+
+- Tâches : 4 ✅. O1 tranché par D2, O2 et O3 ne se sont pas produits.
+- Restes, hors de ce plan (P6) : le contour d'un polygone (`StrokePolygon`) et la géométrie de clip triangulée à
+  chaque dessin d'une forme à remplissage par pinceau (`CreateTriangulatedClipGeometry`) allouent encore ; le
+  triangle de `MGRatingControl` et une partie de `MGHighlightBorderBrush` gardent du LINQ. Avis P4 reportés de T1.3.
 
 ---
 
