@@ -133,13 +133,15 @@ void ApplyPbrClearCoat(inout PbrSurface surface, float clearCoat, float clearCoa
 
 
 // GGX (Trowbridge-Reitz) normal distribution, alpha2 / (pi * (NoH^2 * (alpha2 - 1) + 1)^2). The denominator is written as
-// (1 - NoH^2) + NoH^2 * alpha2 with 1 - NoH^2 taken from the cross product of the normal and the half vector (Lagrange's
-// identity): computed from NoH, the sum cancels down to the last bits of a float near the highlight of a very smooth surface,
-// and the pixel then depends on how the driver rounds the operations (two runs of the same scene differed by a few levels).
+// (1 - NoH) * (1 + NoH) + NoH^2 * alpha2, from the NoH the caller clamped to [0, 1]:
+// - where the normal faces away from the half vector (a normal-mapped texel on a steep slope), NoH is 0 and the denominator is 1;
+//   1 - NoH^2 taken from the cross product of N and H (the former form) tends to 0 there and the distribution exploded;
+// - near the highlight, 1 - NoH is exact in floating point, but NoH keeps the rounding of dot(N, H), so a very smooth surface
+//   stays sensitive to it. No form here guarantees identical captures on every driver (plan pbr-ggx-back-facing-tasks.md).
+// normal and halfVector are kept for the callers; the formula only needs NoH.
 float PbrDistributionGgx(float3 normal, float3 halfVector, float noH, float alpha2, float alphaSquaredOverPi)
 {
-    float3 normalCrossHalf = cross(normal, halfVector);
-    float d = dot(normalCrossHalf, normalCrossHalf) + noH * noH * alpha2;
+    float d = (1.0f - noH) * (1.0f + noH) + noH * noH * alpha2;
     return alphaSquaredOverPi / (d * d);
 }
 

@@ -71,6 +71,7 @@ Arrêts (tâche en ⚠️ Blocked, question notée) :
 ## Points ouverts
 
 - O1 : remontée dans `main` et push, avec les deux branches sur lesquelles celle-ci repose : décision de l'auteur.
+- O2 : le déterminisme des captures d'une surface très lisse, raison de `6ead47308`, n'est pas reproductible sur ce PC (l'ancienne forme y est déjà déterministe). À contrôler sur l'autre PC avec le protocole de six captures de `6ead47308`, avant toute remontée dans `main` ou tout push.
 
 ---
 
@@ -78,7 +79,7 @@ Arrêts (tâche en ⚠️ Blocked, question notée) :
 
 Réponse à O12 du plan du jeu : « Reprendre la correction ». Nouvelle passe, hors du budget de T1.
 
-### ⏳ T2 — Dénominateur sans produit vectoriel
+### ✅ T2 — Dénominateur sans produit vectoriel
 
 - Décision D3 : `d = (1 - noH) * (1 + noH) + noH * noH * alpha2`, avec `noH = saturate(dot(N, H))` déjà calculé par l'appelant. Côté dos, `noH` vaut 0 et `d` vaut 1, comme avant `6ead47308`. Près du reflet, `1 - noH` est exact en flottant (lemme de Sterbenz pour `noH` entre 0,5 et 1), mais `noH` lui-même garde l'erreur d'arrondi de `dot(N, H)` (au moins un ulp près de 1) : `d` vaut environ `2 (1 - noH)` près du reflet, comme dans la forme d'avant `6ead47308`, et reste sensible à cette erreur sur une surface très lisse (de l'ordre de 6 % de D au plancher de rugosité 0,045). D3 supprime l'explosion côté dos ; son effet sur le déterminisme visé par `6ead47308` n'est pas établi par le calcul et se mesure (contrôle ci-dessous). La forme coûte moins d'instructions que celle d'aujourd'hui (plus de produit vectoriel ni de `dot` en plus), ce qui teste aussi l'hypothèse de la limite d'instructions de T1.
 - Fichiers : ceux de T1 ; `PbrDistributionGgx` garde sa signature (les arguments `normal` et `halfVector` restent, inutilisés ou retirés avec leurs trois appels si le compilateur l'exige ; tout retrait est noté).
@@ -92,3 +93,10 @@ Réponse à O12 du plan du jeu : « Reprendre la correction ». Nouvelle passe, 
 - Budget : une passe d'implémentation et une de correction.
 - Arrêts : ceux de T1 (lire D3 à la place de D1) ; et des empreintes de la démo qui diffèrent d'un lancement à l'autre.
 - Commit : `fix(shaders): keep GGX finite when the normal faces away from the half vector`
+
+> Validation (2026-11-17), sorties dans `artifacts/pbr-handover/s1f/ggx2/` du dépôt du jeu :
+> - Contrôle, forme d'avant `6ead47308` dans l'arbre de travail, non committée : `pbrdemo.sh` trois fois, trois fois `cda9167f853c3f3e`. Elle est déterministe sur ce PC. Selon la règle de décision, l'affirmation de déterminisme se limite à « non reproductible sur ce PC » ; le contrôle sur l'autre PC passe en O2.
+> - D3 : les deux solutions à 0 erreur ; tests 6391 lancés, 6383 verts, les 8 échecs connus et eux seuls ; les 6 tests GPU de `lit-pbr` qui passaient au noir en T1 passent.
+> - D3, `pbrdemo.sh` trois fois par variante : par défaut, trois fois `54e406a1dde8c171` (T4.1 : `2d029da5659f2a7e`) ; `Legacy`, trois fois `580dca11e3f9c87e` (inchangée) ; vernis, trois fois `4ac58625144dafa6` (T4.1 : `5d5850be6d2181e4`). Les empreintes qui changent sont celles des scènes où le dénominateur change de valeur côté dos ou de quelques bits près du reflet ; aucune n'a été regardée à l'œil.
+> - Jeu, sur l'arbre de travail : dans la zone de la traînée de `Beginner-start` (x 940 à 1260, y 60 à 320), 0 pixel blanc (2354 avant la correction, 0 avant le PBR) ; la crête est sombre et texturée (`crop-beginner-start-d3.png`).
+> - Écart à la validation écrite : sur l'image entière, `Beginner-start` compte 791 pixels blancs et `Expert-start` 760, au-dessus de la cible (50 et 246, mesurés avant le PBR). Ces nombres sont ceux que le vérificateur avait obtenus en retirant la normal map du terrain (792 et 760) : les pixels blancs restants ne viennent pas de la traînée mais d'autres surfaces sous la lumière d'avant S1g. La cible sur l'image entière était mal choisie ; la preuve retenue est la zone de la traînée et l'égalité avec le cas sans normal map. Remis au `verifier` de la tranche S1f.

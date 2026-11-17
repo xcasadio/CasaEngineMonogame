@@ -36,9 +36,10 @@ public class PbrShaderCoverageTests
         Assert.Contains("float alpha = clampedRoughness * clampedRoughness;", source);
 
         // GGX, height-correlated Smith visibility (the 4 NoL NoV of the BRDF is folded in), Schlick Fresnel.
-        // The denominator of the GGX takes 1 - NoH^2 from the cross product (numerically stable near the highlight of a smooth surface).
-        Assert.Contains("float3 normalCrossHalf = cross(normal, halfVector);", source);
-        Assert.Contains("float d = dot(normalCrossHalf, normalCrossHalf) + noH * noH * alpha2;", source);
+        // The denominator of the GGX takes 1 - NoH^2 as (1 - NoH) * (1 + NoH) from the clamped NoH: 1 where the normal faces away
+        // from the half vector (the cross product form tended to 0 there), and no cancelling subtraction near the highlight.
+        Assert.Contains("float d = (1.0f - noH) * (1.0f + noH) + noH * noH * alpha2;", source);
+        Assert.DoesNotContain("cross(normal, halfVector)", source);
         Assert.Contains("return alphaSquaredOverPi / (d * d);", source);
         Assert.Contains("return 0.5f / (noL * smithViewTerm + noV * smithLightTerm);", source);
         Assert.Contains("return f0 + (1.0f - f0) * (squared * squared * oneMinusVoH);", source);
