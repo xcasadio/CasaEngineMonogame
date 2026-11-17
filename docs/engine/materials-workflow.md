@@ -57,6 +57,10 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
    - `MaterialBase.Bind(...)` pousse les parametres,
    - le `MaterialPropertyBlock` est applique en dernier pour les overrides par instance.
 
+## Draw order
+
+`StaticMeshRendererComponent.Flush` sorts its items by a 64-bit `SortKey` (queue, then shader, material and mesh for the opaque and alpha-test queues; queue, then reversed distance, shader, material and mesh for the transparent ones), then by `RenderItem.SubmissionIndex`, the rank in which the item was added (ADR-0125). The order is therefore fully determined by what is submitted and in which order: the sort is not stable, but equal keys cannot tie. The material and mesh parts of the key are ids given by order of first appearance in the frame (`RenderItemOrder`), not identity hashes or the random `MaterialBase.Id` of a generated material, so two runs that submit the same things in the same order draw in the same order.
+
 ## Overrides par objet
 
 - `StaticModelComponent` persiste les `MaterialSlotOverride` par slot.

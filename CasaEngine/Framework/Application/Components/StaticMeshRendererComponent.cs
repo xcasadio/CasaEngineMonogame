@@ -28,6 +28,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly RenderStateCache _stateCache   = new();
     private readonly ShaderBindCache  _shaderCache  = new();
     private readonly List<RenderItem> _renderItems  = new();
+    private readonly RenderItemOrder _order = new();
 
     // Phase 7 — shader variant system
     private ShaderManager         _shaderManager;
@@ -302,6 +303,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         // --- Phase 4: build a sorted RenderItem list ---
         _renderItems.Clear();
+        _order.Reset();
 
         foreach (var meshInfo in _meshInfos)
         {
@@ -350,13 +352,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         DistanceToCamera      = dist,
                         PropertyOverrides     = propertyOverrides,
                         Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
+                        SubmissionIndex       = _renderItems.Count,
                     };
-                    item.SortKey = SortKeyGenerator.Generate(
-                        item.Queue,
-                        item.EffectiveShaderId.GetHashCode(),
-                        mat.Id.GetHashCode(),
-                        vb.GetHashCode(),
-                        dist);
+                    item.SortKey = _order.GenerateKey(item.Queue, item.EffectiveShaderId, mat.Id, vb, dist);
                     _renderItems.Add(item);
                 }
             }
@@ -388,20 +386,17 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     DistanceToCamera      = dist,
                     PropertyOverrides     = propertyOverrides,
                     Features              = ResolveRenderFeatures(mat, compiledMaterial, mesh),
+                    SubmissionIndex       = _renderItems.Count,
                 };
-                item.SortKey = SortKeyGenerator.Generate(
-                    item.Queue,
-                    item.EffectiveShaderId.GetHashCode(),
-                    mat.Id.GetHashCode(),
-                    vb.GetHashCode(),
-                    dist);
+                item.SortKey = _order.GenerateKey(item.Queue, item.EffectiveShaderId, mat.Id, vb, dist);
                 _renderItems.Add(item);
             }
         }
 
         // Sort by state (queue/shader/material/mesh); for transparent items the SortKey
         // also encodes reversed distance so they end up back-to-front within a state group.
-        _renderItems.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
+        // Items of equal key keep their submission order: the sort is not stable, so the comparison breaks the tie itself.
+        _renderItems.Sort(RenderItemOrder.Comparison);
 
         // --- Phase 9: hardware-instanced draw for groups with ShaderFeature.Instanced ---
         // Items that go through instancing are removed from the regular draw list.

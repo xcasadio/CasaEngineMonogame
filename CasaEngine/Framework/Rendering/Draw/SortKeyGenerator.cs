@@ -30,13 +30,16 @@ namespace CasaEngine.Framework.Rendering.Draw;
 /// [31..16]  materialHash (16 bits) — groups items by material instance
 /// [15..0]   meshHash     (16 bits) — groups items by mesh (vertex buffer)
 /// </code>
+///
+/// The key only orders by state; ties (equal keys) are broken by <see cref="RenderItem.SubmissionIndex"/> in
+/// <see cref="RenderItemOrder"/>, and the material and mesh parts are first-appearance ids there (ADR-0125).
 /// </summary>
 public static class SortKeyGenerator
 {
     /// <param name="queue">Render queue (opaque, alpha-test, transparent, overlay).</param>
     /// <param name="shaderHash">Hash derived from the shader asset id.</param>
-    /// <param name="materialHash">Hash derived from the material instance id.</param>
-    /// <param name="meshHash">Hash derived from the mesh / vertex-buffer id.</param>
+    /// <param name="materialHash">Id of the material in the frame (the static mesh renderer passes its first-appearance id).</param>
+    /// <param name="meshHash">Id of the mesh / vertex buffer in the frame (the static mesh renderer passes its first-appearance id).</param>
     /// <param name="distance">Camera-space depth for transparent back-to-front sorting.</param>
     public static ulong Generate(
         RenderQueue queue,

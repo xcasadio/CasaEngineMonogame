@@ -169,10 +169,11 @@ public class SceneDepthPrepassGpuTests
             {
                 var item = items[i];
                 item.SortKey = SortKeyGenerator.Generate(item.Queue, 0, item.Material.Id.GetHashCode(), i, 0.0f);
+                item.SubmissionIndex = i;
                 items[i] = item;
             }
 
-            items.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
+            items.Sort(RenderItemOrder.Comparison);
 
             // The shadow pass would keep only what casts a shadow and is below the transparent queue.
             int shadowCasters = 0;

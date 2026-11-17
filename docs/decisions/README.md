@@ -138,3 +138,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0122](0122-the-editor-names-the-elements-and-components-it-creates.md) | The editor names the screen elements and components it creates (numbered ADR-0075 until 2026-11-16) | Accepted | 2026-10-09 |
 | [ADR-0123](0123-a-static-model-asset-keeps-the-tangents-of-its-meshes.md) | A static model asset keeps the tangents of its meshes | Proposed | 2026-11-16 |
 | [ADR-0124](0124-a-texture-asset-can-ask-for-its-mipmap-chain.md) | A texture asset can ask for its mipmap chain | Proposed | 2026-11-17 |
+| [ADR-0125](0125-the-static-mesh-draw-order-is-fully-deterministic.md) | The static mesh draw order is fully deterministic | Proposed | 2026-11-17 |
