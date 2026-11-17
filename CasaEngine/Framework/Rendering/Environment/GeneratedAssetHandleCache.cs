@@ -15,10 +15,20 @@ namespace CasaEngine.Framework.Rendering.Environment;
 /// Scoping by <see cref="ConditionalWeakTable{TKey,TValue}"/> gives each <see cref="AssetContentManager"/>
 /// — one per game, several coexist in tests and in the editor — its own generated ids, collected together
 /// with it instead of leaking across instances.
+/// An id whose build failed is remembered too, per manager, next to the handles, so that a generator called every frame does not
+/// retry and log it again; the failure lasts as long as the manager (a source fixed on disk is taken up when the manager is
+/// recreated, for example when the project is reloaded).
 /// </summary>
 internal static class GeneratedAssetHandleCache<T> where T : class
 {
     private static readonly ConditionalWeakTable<AssetContentManager, Dictionary<Guid, AssetHandle<T>>> HandlesByManager = new();
+    private static readonly ConditionalWeakTable<AssetContentManager, HashSet<Guid>> FailedIdsByManager = new();
+
+    public static bool HasFailed(AssetContentManager assetContentManager, Guid id)
+        => FailedIdsByManager.TryGetValue(assetContentManager, out var failedIds) && failedIds.Contains(id);
+
+    public static void RememberFailure(AssetContentManager assetContentManager, Guid id)
+        => FailedIdsByManager.GetOrCreateValue(assetContentManager).Add(id);
 
     /// <summary>Returns the cached instance for <paramref name="id"/> without rebuilding it, skipping any
     /// work the caller would otherwise do to decide whether a rebuild is needed.</summary>

@@ -766,7 +766,7 @@ public static class EditorAssetImportService
                 : MaterialAsset.DefaultRasterizerStateName,
             SamplerStateName = "AnisotropicWrap",
         };
-        material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
+        material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(ResolveImportedBaseColor(importedMaterial)));
         material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(presentation.AmbientColor));
         material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(presentation.EmissiveColor));
         material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
@@ -816,7 +816,7 @@ public static class EditorAssetImportService
             SamplerStateName = "AnisotropicWrap",
         };
 
-        Color linearBaseColor = importedMaterial.DiffuseColor;
+        Color linearBaseColor = ResolveImportedBaseColor(importedMaterial);
         material.SetPropertyValue("base_color", MaterialValue.FromColor(new Color(
             EncodeToDisplay(linearBaseColor.R / 255.0f),
             EncodeToDisplay(linearBaseColor.G / 255.0f),
@@ -847,6 +847,18 @@ public static class EditorAssetImportService
         SetTextureIfImported(material, "occlusion_texture", importedTextureAssets.OcclusionTextureAssetIdsByMaterialIndex, materialIndex);
         SetTextureIfImported(material, "emissive_texture", importedTextureAssets.EmissiveTextureAssetIdsByMaterialIndex, materialIndex);
         return material;
+    }
+
+    // glTF 2.0, "Alpha Coverage" (alphaMode): in the OPAQUE mode the alpha value of the base colour is ignored and the rendered output
+    // is fully opaque. The material runtime treats a colour alpha below 255 as transparent, so an OPAQUE material is written with an
+    // alpha of 255; MASK and BLEND keep the alpha of the factor. The decision reads the alpha mode, never the render queue: the queue
+    // of the lit-diffuse path comes from legacy hints.
+    private static Color ResolveImportedBaseColor(StaticModelImportedMaterial importedMaterial)
+    {
+        Color baseColor = importedMaterial.DiffuseColor;
+        return importedMaterial.AlphaMode == StaticModelAlphaMode.Opaque
+            ? new Color(baseColor.R, baseColor.G, baseColor.B, byte.MaxValue)
+            : baseColor;
     }
 
     private static void SetTextureIfImported(

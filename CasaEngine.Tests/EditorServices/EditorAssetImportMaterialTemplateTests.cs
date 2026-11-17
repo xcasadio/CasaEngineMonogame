@@ -2,6 +2,8 @@ using CasaEngine.EditorServices;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Materials.Compilation;
+using CasaEngine.Framework.Materials.Runtime;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -226,6 +228,63 @@ public class EditorAssetImportMaterialTemplateTests
                 Assert.DoesNotContain("clear_coat", text);
                 Assert.Equal("lit-diffuse", (string?)ReadMaterial(directory, "Opaque")["definition_id"]);
             });
+    }
+
+    // glTF 2.0, "Alpha Coverage": in the OPAQUE alpha mode the alpha value of the base colour is ignored and the rendered output is
+    // fully opaque. The importer therefore writes an alpha of 1 for such a material, on both templates, and keeps the factor
+    // alpha for MASK and BLEND.
+    [Theory]
+    [InlineData(ImportedMaterialTemplate.LitPbr, "base_color")]
+    [InlineData(ImportedMaterialTemplate.LitDiffuse, "diffuse_color")]
+    public void ImportFile_AnOpaqueMaterialIsImportedOpaqueWhateverTheAlphaOfItsBaseColorFactor(ImportedMaterialTemplate template, string colorKey)
+    {
+        WithProbe(
+            path =>
+            {
+                SetBaseColorFactorAlpha(path, "OpaqueDoubleSided", 0.5f);
+                return EditorAssetImportService.ImportFile(path, path, null, new EditorAssetImportOptions { MaterialTemplate = template });
+            },
+            directory =>
+            {
+                JObject document = ReadMaterial(directory, "OpaqueDoubleSided");
+                Assert.Equal("Opaque", (string?)document["queue"]);
+                Assert.Equal(255, (int)document["properties"]![colorKey]!["a"]!);
+
+                var material = new MaterialAsset();
+                material.Load(document);
+                var compiled = new MaterialCompiler().Compile(material, new CasaEngine.Framework.Assets.AssetContentManager());
+                Assert.False(compiled.IsTransparent);
+                Assert.Equal(RenderQueue.Opaque, compiled.Queue);
+            });
+    }
+
+    [Theory]
+    [InlineData(ImportedMaterialTemplate.LitPbr, "base_color")]
+    [InlineData(ImportedMaterialTemplate.LitDiffuse, "diffuse_color")]
+    public void ImportFile_AMaskedAndABlendedMaterialKeepTheAlphaOfTheirBaseColorFactor(ImportedMaterialTemplate template, string colorKey)
+    {
+        WithProbe(
+            path =>
+            {
+                SetBaseColorFactorAlpha(path, "Masked", 0.5f);
+                return EditorAssetImportService.ImportFile(path, path, null, new EditorAssetImportOptions { MaterialTemplate = template });
+            },
+            directory =>
+            {
+                Assert.InRange((int)ReadMaterial(directory, "Masked")["properties"]![colorKey]!["a"]!, 127, 128);
+                Assert.InRange((int)ReadMaterial(directory, "Blended")["properties"]![colorKey]!["a"]!, 127, 128);
+            });
+    }
+
+    private static void SetBaseColorFactorAlpha(string gltfPath, string materialName, float alpha)
+    {
+        var model = SharpGLTF.Schema2.ModelRoot.Load(gltfPath);
+        var material = model.LogicalMaterials.Single(candidate => candidate.Name == materialName);
+        // A material without a pbrMetallicRoughness block has no base colour channel until it is initialised.
+        material.InitializePBRMetallicRoughness();
+        var channel = material.FindChannel("BaseColor")!.Value;
+        channel.Color = new System.Numerics.Vector4(1.0f, 1.0f, 1.0f, alpha);
+        model.SaveGLTF(gltfPath);
     }
 
     private static void AddClearCoatToTheOpaqueMaterial(string gltfPath, float clearCoatFactor, float clearCoatRoughnessFactor)
