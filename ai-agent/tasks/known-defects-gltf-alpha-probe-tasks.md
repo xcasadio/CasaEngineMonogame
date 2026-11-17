@@ -54,7 +54,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 > Validation (2026-11-17) : branche `chantier/known-defects-gltf-alpha-probe` créée depuis `8a3933b36` ; ligne ajoutée en tête du tableau de `ai-agent/README.md`. Documentation seule, pas de build.
 
-### ⏳ T1 — Matériau glTF opaque importé opaque
+### ✅ T1 — Matériau glTF opaque importé opaque
 
 - Fichiers : `CasaEngine.EditorServices/EditorAssetImportService.cs` ; un test dans `CasaEngine.Tests` à côté des tests existants de l'import de matériaux (l'exécutant les trouve par `rg`) ; la doc de l'import glTF ou du PBR qui décrit l'alpha, si elle existe (`rg -n "alpha" docs/engine docs/editor`).
 - Validation :
@@ -63,6 +63,13 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   - les deux solutions à 0 erreur ; tests : les 8 échecs connus et eux seuls.
 - Arrêts : le défaut ne se reproduit pas par le test ; le test doré `ImportFile_DefaultOptionsMatchTheReferenceCapturedBeforeTheMaterialTemplateExisted` change ; la correction change un fichier d'asset déjà importé dans le dépôt (elle ne doit toucher que les imports futurs).
 - Commit : `fix(import): import an opaque glTF material as opaque whatever its base colour alpha`
+
+> Validation (2026-11-17) : tests écrits d'abord, dans `CasaEngine.Tests/EditorServices/EditorAssetImportMaterialTemplateTests.cs`. Le glTF est modifié dans le test (`SetBaseColorFactorAlpha`, sur le matériau `OpaqueDoubleSided` ou `Masked` de la sonde, le fichier partagé et la référence dorée ne changent pas).
+> - Sur le code d'avant, `ImportFile_AnOpaqueMaterialIsImportedOpaqueWhateverTheAlphaOfItsBaseColorFactor` échoue pour les deux gabarits : `(template: LitPbr, colorKey: "base_color")` et `(template: LitDiffuse, colorKey: "diffuse_color")` donnent `Assert.Equal() Failure: Values differ / Expected: 255 / Actual: 127` (alpha du facteur 0,5 écrit tel quel ; la file, elle, est bien `Opaque`). Échoué : 2, réussite : 10, total : 12 (classe `EditorAssetImportMaterialTemplateTests`).
+> - Après la correction (`ResolveImportedBaseColor`, condition `importedMaterial.AlphaMode == StaticModelAlphaMode.Opaque`, utilisée par `CreateLitPbrMaterial` et `CreateLitDiffuseMaterial`) : la classe passe, 12/12, golden `ImportFile_DefaultOptionsMatchTheReferenceCapturedBeforeTheMaterialTemplateExisted` inchangé. Le même test compile le `MaterialAsset` relu par `MaterialCompiler` et vérifie `IsTransparent == false` et la file `Opaque`.
+> - `ImportFile_AMaskedAndABlendedMaterialKeepTheAlphaOfTheirBaseColorFactor` (deux gabarits) : `Masked` et `Blended` gardent un alpha de 127 ou 128 ; il passe déjà sur le code d'avant, comme attendu (non-régression, pas preuve du défaut).
+> - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m` : échec 8, réussite 6387, total 6395 ; les 8 échecs sont les 8 connus (`IblCubeGeneratorGpuTests` × 1, `DrawTransactionRearmGpuTests` × 1, `DesktopFrameGpuAllocationTests` × 6).
+> - Doc : `docs/engine/pbr-rendering.md`, section « glTF import ». Aucun fichier d'asset du dépôt n'est touché : la correction ne s'exécute qu'à l'import.
 
 ### ⏳ T2 — Sonde de réflexion : pas d'allocation par image, échec tenté une seule fois
 
