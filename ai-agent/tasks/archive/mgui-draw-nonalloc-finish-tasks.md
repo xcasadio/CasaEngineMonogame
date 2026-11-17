@@ -1,8 +1,8 @@
 # Plan agent IA — Fin du zéro allocation du dessin MGUI (contours, géométries de clip, appelants)
 
 Plan d'exécution des restes notés à la clôture des chantiers archivés
-[mgui-nonalloc-suite-tasks.md](archive/mgui-nonalloc-suite-tasks.md) et
-[mgui-polygon-triangulation-tasks.md](archive/mgui-polygon-triangulation-tasks.md) (point P6, « Restes »).
+[mgui-nonalloc-suite-tasks.md](mgui-nonalloc-suite-tasks.md) et
+[mgui-polygon-triangulation-tasks.md](mgui-polygon-triangulation-tasks.md) (point P6, « Restes »).
 L'auteur a demandé le 2026-11-17, après la liste des restes proposée par l'agent : « oui » à un plan « fin du zéro
 allocation du dessin ». Les arbitrages de l'agent sont les points P1 → P7, à valider à l'approbation du plan.
 
@@ -545,7 +545,7 @@ chantier ne fait pas est dans « Hors périmètre ».
 - Validation (2026-11-17), sur moteur `c23f9bcd` et MGUI `a498bd81` : trois solutions 0 erreur ; `MGUI.Tests` 5284 verts,
   `CasaEngine.Tests` 6135 verts, aucun sauté, tests GPU compris (suites rejouées par le vérificateur de T2.1 sur ce même
   code ; depuis, seuls ce plan, l'index et un fichier de doc de MGUI ont changé). `MGUI.Samples` lancé une fois : démarre
-  et tient 20 secondes sans sortie d'erreur. Le smoke à l'œil reste à faire par l'auteur. Rien n'est poussé ni fusionné.
+  et tient 20 secondes sans sortie d'erreur. Smoke à l'œil validé par l'auteur le 2026-11-17 ; fusion en avance rapide dans `develop` (MGUI) et `main` (moteur) à sa demande, plan archivé. Rien n'est poussé.
 - Docs de MGUI : `rendering-architecture.md` (contour d'un polygone, géométrie de clip des formes), 
   `controls-architecture.md` (formes, notation, bordure en surbrillance, onglets de dock, et les deux règles qui en
   découlent). Pas d'ADR : aucune API publique ni décision d'architecture ne change.
