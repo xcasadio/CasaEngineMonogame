@@ -130,7 +130,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 - Commit : `feat(audio): stop the voices of an exclusion group on play`
 - Note : `dotnet build CasaEngine.MonoGame.sln` à 0 erreur, `dotnet test` 4781/4781, dont 32 tests de groupe. Tests dans `AudioServiceExclusionGroupTests.cs`, nouveau fichier, et `AudioServiceRampFadeTests.cs`. Une voix en pause s'arrête net même avec un fondu : elle est muette.
 
-### 🧪 T1.4 — Inspecteur
+### ✅ T1.4 — Inspecteur
 
 - Objectif : éditer les deux champs.
 - Fichiers : `CasaEngine.Editor/Controls/SoundAssetInspectorPanel.cs`, `CasaEngine.Tests/Editor/SoundAssetInspectorPanelTests.cs`.
@@ -142,12 +142,13 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 - Validation : `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur, `dotnet test` vert. Clic dans l'éditeur à la charge de l'auteur : 🧪 si non fait.
 - Commit : `feat(editor): edit sound exclusion groups in the inspector`
 - Note : `dotnet build CasaEngine.Editor.MonoGame.sln` à 0 erreur, `dotnet test` 4784/4784. Reste : clic dans l'éditeur par l'auteur.
+- Recette : acceptée par l'auteur le 2026-11-17 sur `PixelUiSample`. Les deux champs montrent les valeurs du fichier, Play joue le son, et une valeur de `Exclusion fade` enregistrée par Save se relit à la réouverture.
 
 ---
 
 ## Phase 2 — Sample et documentation
 
-### 🧪 T2.1 — Sample et documents
+### ✅ T2.1 — Sample et documents
 
 - Objectif : montrer la feature et la documenter.
 - Fichiers : `Projects/PixelUiSample/Audio/cursor_move.sound`, `Projects/PixelUiSample/README.md`, `docs/engine/audio-system.md` (table `.sound`, liste de l'inspecteur, section preview), `docs/engine/data-driven-screens.md`, `ai-agent/README.md`.
@@ -158,6 +159,7 @@ Un `.sound` peut déclarer un groupe d'exclusion. Lancer un son de ce groupe arr
 - Validation : le sample charge sans avertissement audio au journal. L'écoute revient à l'auteur : tâche en 🧪 jusqu'à sa recette.
 - Commit : `docs(audio): document sound exclusion groups`
 - Note : `PixelUiSample` lancé 8 s au Launcher, sans entrée : le son se charge, aucun avertissement au journal. `dotnet test` 4784/4784. Reste : écoute par l'auteur, direction tenue dans le menu.
+- Recette : écoute acceptée par l'auteur le 2026-11-17 au Launcher, direction tenue sur l'écran titre. Le son attendu : chaque déplacement coupe le son précédent, sans superposition.
 
 ---
 
@@ -178,7 +180,7 @@ Faite le 2026-11-01 sur le code, par mutation et sur les règles : aucun P0 ni P
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | L'arrêt net crée-t-il un clic ? La discontinuité se mesure au rendu hors ligne, le jugement à l'oreille revient à l'auteur. | T1.3, T2.1 |
+| O1 | L'arrêt net crée-t-il un clic ? La discontinuité se mesure au rendu hors ligne, le jugement à l'oreille revient à l'auteur. Le 2026-11-17, l'auteur a accepté l'écoute sans remarque. La question du clic ne lui a pas été posée à part. | T1.3, T2.1 |
 
 ## Hors périmètre
 
