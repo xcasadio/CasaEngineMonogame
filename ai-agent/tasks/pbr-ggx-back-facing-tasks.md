@@ -39,7 +39,17 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - Empreintes de la démo PBR sur ce PC (`pbrdemo.sh`, tâche T4.1 du plan du jeu : `2d029da5659f2a7e`, `580dca11e3f9c87e` en `Legacy`, `5d5850be6d2181e4` avec vernis) : relancées et notées ; un changement est noté avec l'image avant et après, sans être un échec en soi.
 - Dans le jeu (dépôt parent), après avancée du pointeur : rejeu des vues de l'original ; les pixels blancs (trois canaux ≥ 250) de `Beginner-start` et `Expert-start` reviennent au niveau d'avant le passage au PBR (`artifacts/pbr-handover/s1m/cand-a` : 50 et 246), à 10 % près ou en dessous.
 
-Retour arrière : `git switch chantier/texture-asset-mipmaps` puis `git branch -D chantier/pbr-ggx-back-facing`, sur demande de l'auteur.
+Pointeur du jeu : la session principale l'avance dans le dépôt du jeu par un commit de la tranche S1f du plan du jeu (correction de la vérification T10.3), après le commit de T1 et seulement si la validation du jeu ci-dessus tient. Avant cela, le rejeu du jeu se fait sur l'arbre de travail, sans commit dans le jeu.
+
+Retour arrière, sur demande de l'auteur : d'abord, dans le jeu, remettre le pointeur `CasaEngine` sur `2b64b0591` (commit de retour ou `git checkout` du sous-module puis commit) ; ensuite, dans le moteur, `git switch chantier/texture-asset-mipmaps` puis `git branch -D chantier/pbr-ggx-back-facing`.
+
+Budget : une passe d'implémentation et au plus une passe de correction.
+
+Arrêts (tâche en ⚠️ Blocked, question notée) :
+- après D1, les pixels blancs du jeu restent au-dessus de la cible : aucun autre terme du BRDF (visibilité de Smith, Fresnel, vernis) n'est modifié ;
+- le shader ne compile plus ;
+- le nombre total de tests change, ou un test autre que les 8 connus échoue ;
+- une modification hors des fichiers de T1 serait nécessaire.
 
 ---
 
