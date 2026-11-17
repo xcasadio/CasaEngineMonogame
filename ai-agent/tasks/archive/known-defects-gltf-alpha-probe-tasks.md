@@ -1,4 +1,4 @@
-# Plan agent IA — Deux défauts connus : alpha d'un matériau glTF opaque, sonde de réflexion qui échoue à chaque image
+# [ARCHIVE] Plan agent IA — Deux défauts connus : alpha d'un matériau glTF opaque, sonde de réflexion qui échoue à chaque image
 
 Plan de deux corrections du moteur listées comme « défauts connus, non corrigés » dans la note de passation du chantier RacingGame (`ai-agent/HANDOVER.md` du dépôt du jeu, §4), tranche S5 de `ai-agent/tasks/rgce-pbr-handover-tasks.md` (Phase 17). Mode autonome accordé par l'auteur le 2026-11-17 (« enchaîne les autres tâches »).
 
@@ -118,10 +118,17 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m` : échec 8, réussite 6398, total 6406 ; les 8 échecs sont les 8 connus (`IblCubeGeneratorGpuTests` × 1, `DrawTransactionRearmGpuTests` × 1, `DesktopFrameGpuAllocationTests` × 6).
 > - `pbrdemo.sh` par défaut : deux lancements, `54e406a1dde8c171` les deux fois, `exceptions=0`, inchangée.
 
-### ⏳ T3 — Clôture
+### ✅ T3 — Clôture
 
 - Par la session principale, après la vérification indépendante faite sur la branche de ce plan (T17.3 du plan du jeu) : ce plan passe en ✅ et est archivé selon la règle du dépôt, dans un dernier commit de la branche (`docs(ai-agent): close the known defects plan`) ; puis `git checkout chantier/pbr-ggx-back-facing` dans `CasaEngine` (pas dans ses sous-modules) ; `git -C CasaEngine rev-parse HEAD` commence par `8a3933b36` ; `git status` du dépôt du jeu ne montre pas le sous-module modifié ; build du jeu à 0 erreur.
+
+> Clôture (2026-11-17).
+> - Vérification indépendante de `931cd8326` : T1 confirmée ; T2 réfutée sur trois points (allocation d'une fermeture sur le chemin du panorama en cache, panorama absent du catalogue retenu à tort, formulation de la doc), corrigés par T2b.
+> - Recontrôle par un vérificateur frais de `48509a819` : **CONFIRMED** sur les trois points, par ses propres mesures (0 octet pour 1000 appels sur le chemin du cube en cache, sur celui de l'échec retenu et sur celui de l'asset déjà résolu ; 40000 sur le code d'avant) ; tests de la classe 14 sur 14 ; suite complète 6406 lancés, 6398 verts, les 8 échecs connus et eux seuls ; les deux solutions à 0 erreur ; `pbrdemo.sh` deux fois `54e406a1dde8c171`.
+> - Le dépôt du moteur est remis sur `chantier/pbr-ggx-back-facing` après ce commit ; le pointeur du dépôt du jeu n'est pas avancé.
 
 ## Points ouverts
 
 - O1 : remontée de cette branche dans `main` et push : décision de l'auteur, avec les trois autres branches empilées.
+- O2 (P3, noté par le recontrôle, non corrigé pour ne pas changer le code vérifié) : le commentaire XML de `CasaEngine/Framework/Rendering/Environment/GeneratedAssetHandleCache.cs` (lignes 18 à 20) dit encore qu'un échec retenu est repris « when the manager is recreated, for example when the project is reloaded » ; c'est faux dans l'éditeur, comme la doc et D3b le disent maintenant (repris au redémarrage du jeu ou de l'éditeur). À corriger avec le prochain changement de ce fichier.
+- O3 : aucune scène réelle avec une sonde référencée par identifiant d'asset n'a été lancée (le contenu livré n'en a pas) ; la preuve est faite par des tests unitaires.
