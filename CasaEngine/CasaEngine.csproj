@@ -38,6 +38,11 @@
 		     CasaEngine.Framework.Dialogue.UI.DialogueScreen.xaml -->
 		<EmbeddedResource Include="Framework\Dialogue\UI\DialogueScreen.xaml" />
 	</ItemGroup>
+	<ItemGroup>
+		<!-- OpenAL Soft reads alsoft.ini from the folder of the executable (ADR-0094). A None item with
+		     CopyToOutputDirectory flows to the output of every project that references CasaEngine. -->
+		<None Update="Framework\Audio\Output\OpenAl\alsoft.ini" Link="alsoft.ini" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />

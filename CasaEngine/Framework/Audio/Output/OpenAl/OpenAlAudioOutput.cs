@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Globalization;
 using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Framework.Audio.Output.OpenAl;
@@ -32,6 +34,8 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     private readonly int _bufferCount;
     private int _underrunCount;
     private bool _disposed;
+    // Bound on the audio thread (null without ALC_SOFT_device_clock) and kept in a field for the life of the output.
+    private OpenAlNative.AlcGetInteger64vSoftDelegate _getDeviceLatency;
 
     /// <param name="bufferCount">Number of queued buffers (default 4).</param>
     /// <param name="bufferFrames">Frames per buffer; 0 selects 10 ms at the device rate.</param>
@@ -149,7 +153,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
                 return;
             }
 
-            RunLoop(source, buffers!, callback);
+            RunLoop(device, source, buffers!, callback);
         }
         catch (Exception exception)
         {
@@ -214,6 +218,8 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
             return false;
         }
 
+        _getDeviceLatency = OpenAlNative.BindAlcGetInteger64vSoft(device);
+
         OpenAlNative.AlGetError();
         OpenAlNative.AlGenSources(1, out source);
         sourceCreated = true;
@@ -233,7 +239,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         return true;
     }
 
-    private void RunLoop(uint source, uint[] buffers, AudioRenderCallback callback)
+    private void RunLoop(IntPtr device, uint source, uint[] buffers, AudioRenderCallback callback)
     {
         var sampleRate = Volatile.Read(ref _sampleRate);
         var bufferFrames = Volatile.Read(ref _bufferFrames);
@@ -242,10 +248,17 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         var sleepMilliseconds = Math.Max(1, (int)(bufferFrames * 1000L / sampleRate / 4));
 
         loop.Prime();
+        var latencyWindow = new OpenAlLatencyWindow(Stopwatch.Frequency);
+        latencyWindow.Start(Stopwatch.GetTimestamp());
         var reportedUnderruns = 0;
         while (!_stopRequested)
         {
             loop.Pump();
+            if (!latencyWindow.IsOver)
+            {
+                ObserveDeviceLatency(device, latencyWindow, sampleRate, bufferFrames);
+            }
+
             var underruns = loop.UnderrunCount;
             if (underruns != reportedUnderruns)
             {
@@ -257,6 +270,28 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         }
 
         loop.Stop();
+    }
+
+    /// <summary>
+    /// One pass of the settling window: reads the device latency (no allocation) and feeds the window. When the
+    /// window ends, writes the single log line of the output (ADR-0094).
+    /// </summary>
+    private void ObserveDeviceLatency(IntPtr device, OpenAlLatencyWindow window, int sampleRate, int bufferFrames)
+    {
+        var latency = OpenAlLatencyWindow.Unavailable;
+        _getDeviceLatency?.Invoke(device, OpenAlNative.AlcDeviceLatencySoft, 1, ref latency);
+
+        if (!window.Observe(Stopwatch.GetTimestamp(), latency))
+        {
+            return;
+        }
+
+        var latencyText = window.HasLatency
+            ? window.MaxLatencyMilliseconds.ToString("F1", CultureInfo.InvariantCulture) + " ms"
+            : "unknown";
+        var leadMilliseconds = (double)_bufferCount * bufferFrames * 1000.0 / sampleRate;
+        Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
+            $"OpenAL audio output: mode=queue, sample rate={sampleRate} Hz, device latency={latencyText}, lead={leadMilliseconds:F1} ms."));
     }
 
     private static void Cleanup(IntPtr device, IntPtr context, bool contextIsCurrent, uint source, bool sourceCreated,

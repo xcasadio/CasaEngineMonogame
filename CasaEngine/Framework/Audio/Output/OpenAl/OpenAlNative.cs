@@ -8,10 +8,18 @@ namespace CasaEngine.Framework.Audio.Output.OpenAl;
 /// All values below are taken from the 1.24.3 headers:
 /// https://raw.githubusercontent.com/kcat/openal-soft/1.24.3/include/AL/al.h ,
 /// .../alc.h and .../alext.h (line numbers refer to those files at that tag).
-/// Only blittable parameter types are used, so no call allocates.
+/// Only blittable parameter types are used, so no call allocates. Entry points
+/// that are not exported by name are bound with alcGetProcAddress and Marshal.GetDelegateForFunctionPointer.
 /// </summary>
 internal static class OpenAlNative
 {
+    /// <summary>
+    /// alext.h:498 <c>alcGetInteger64vSOFT(ALCdevice*, ALCenum, ALsizei, ALCint64SOFT*)</c> (ALCint64SOFT is a
+    /// 64-bit integer, alext.h:493). <paramref name="value"/> is passed by reference as a pointer to one value.
+    /// </summary>
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public delegate void AlcGetInteger64vSoftDelegate(IntPtr device, int parameter, int size, ref long value);
+
     // A single place to change the library name (for example "__Internal" on iOS later).
     public const string Library = "openal";
 
@@ -41,9 +49,14 @@ internal static class OpenAlNative
     public const int AlcNoError = 0;
     public const int AlcFrequency = 0x1007;
 
-    // Extension names: alext.h:164 (ALC_EXT_thread_local_context), alext.h:54 (AL_EXT_float32),
-    // alext.h:282 (AL_SOFT_direct_channels).
+    // alext.h:494 ALC_DEVICE_LATENCY_SOFT (extension ALC_SOFT_device_clock, alext.h:491): the device latency in
+    // nanoseconds, read with alcGetInteger64vSOFT (alext.h:498).
+    public const int AlcDeviceLatencySoft = 0x1601;
+
+    // Extension names: alext.h:164 (ALC_EXT_thread_local_context), alext.h:491 (ALC_SOFT_device_clock),
+    // alext.h:54 (AL_EXT_float32), alext.h:282 (AL_SOFT_direct_channels).
     public const string AlcExtThreadLocalContext = "ALC_EXT_thread_local_context";
+    public const string AlcSoftDeviceClock = "ALC_SOFT_device_clock";
     public const string AlExtFloat32 = "AL_EXT_float32";
     public const string AlSoftDirectChannels = "AL_SOFT_direct_channels";
 
@@ -78,6 +91,28 @@ internal static class OpenAlNative
     // alc.h:234
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl, EntryPoint = "alcGetError")]
     public static extern int AlcGetError(IntPtr device);
+
+    // alc.h:247
+    [DllImport(Library, CallingConvention = CallingConvention.Cdecl, EntryPoint = "alcGetProcAddress")]
+    private static extern IntPtr AlcGetProcAddress(IntPtr device, [MarshalAs(UnmanagedType.LPStr)] string functionName);
+
+    /// <summary>
+    /// Binds alcGetInteger64vSOFT for <paramref name="device"/> when the device has ALC_SOFT_device_clock
+    /// (alcIsExtensionPresent, alc.h:242); null otherwise. Call once and keep the delegate: the call itself does
+    /// not allocate.
+    /// </summary>
+    public static AlcGetInteger64vSoftDelegate BindAlcGetInteger64vSoft(IntPtr device)
+    {
+        if (AlcIsExtensionPresent(device, AlcSoftDeviceClock) == 0)
+        {
+            return null;
+        }
+
+        var address = AlcGetProcAddress(device, "alcGetInteger64vSOFT");
+        return address == IntPtr.Zero
+            ? null
+            : Marshal.GetDelegateForFunctionPointer<AlcGetInteger64vSoftDelegate>(address);
+    }
 
     // al.h:518
     [DllImport(Library, CallingConvention = CallingConvention.Cdecl, EntryPoint = "alIsExtensionPresent")]

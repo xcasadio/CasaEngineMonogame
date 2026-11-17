@@ -120,7 +120,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 
 ## Phase 1 — Sortie
 
-### ⏳ T1.1 — Tampon du périphérique réduit et latence au journal
+### ✅ T1.1 — Tampon du périphérique réduit et latence au journal
 
 - Objectif : le tampon du périphérique passe de 60 ms au plancher accordé par Windows, et la sortie dit ce qu'elle obtient.
 - Fichiers : `CasaEngine/Framework/Audio/Output/OpenAl/alsoft.ini` (nouveau), `CasaEngine/CasaEngine.csproj`, `CasaEngine/Framework/Audio/Output/OpenAl/OpenAlNative.cs`, `CasaEngine/Framework/Audio/Output/OpenAl/OpenAlAudioOutput.cs`, un test dans `CasaEngine.Tests/Audio/Output/`.
@@ -133,6 +133,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Validation : builds et tests de la « Validation globale ». `alsoft.ini` est à la racine de `CasaEngine.Launcher/bin/Debug/net9.0-windows/`, de `CasaEngine.Editor/bin/Debug/net9.0-windows/` et de `CasaEngine.Demos/bin/Debug/net9.0-windows/`. Le harnais de stress (60 s) écrit la ligne de P5, avec une latence du périphérique de 22 ms sur le PC de l'auteur, et `underruns=0`.
 - Stop : `alsoft.ini` absent d'une des trois sorties après l'étape 2 et son repli → ⚠️ Blocked. Latence de la ligne de P5 qui ne descend pas sous 60 ms → ⚠️ Blocked, question à l'auteur.
 - Commit : `feat(audio): ask OpenAL Soft for a small device buffer and log the output latency`
+- Note de validation (2026-11-17) : exécuté par un sous-agent `executor`, diff relu en session principale. `alsoft.ini` déclaré par `<None Update=… Link="alsoft.ini" CopyToOutputDirectory="PreserveNewest" />` dans `CasaEngine.csproj` (le SDK le prend déjà comme `None`) : il arrive à la racine des sorties du Launcher, de l'éditeur, des démos et des tests sans toucher à leurs projets. `OpenAlLatencyWindow` (sans code natif) garde la plus grande lecture des 500 ms ; `alcGetInteger64vSOFT` est lié par `alcGetProcAddress` et un délégué gardé en champ, sans `unsafe`. Builds : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`, 0 erreur. Tests : 5656 sur 5656 (9 nouveaux). Harnais de stress, 60 s, PC de l'auteur : `OpenAL audio output: mode=queue, sample rate=48000 Hz, device latency=22.0 ms, lead=40.0 ms.`, puis `Audio stress done: backend=SoftwareAudioBackend seconds=60 underruns=0 gc=119`.
 
 ### ⏳ T1.2 — Mix lu par le rappel d'OpenAL Soft
 
