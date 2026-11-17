@@ -278,7 +278,7 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
   - Doc : limite connue de `FillPolygon` réécrite dans `MGUI/Docs/rendering-architecture.md` ; `StrokePolygon` et
     `CreateTriangulatedClipGeometry` allouent encore (P6).
 
-### 🚧 T1.3 — Vérification indépendante
+### ✅ T1.3 — Vérification indépendante
 
 - Objectif : un `verifier` neuf (opus) confirme ou réfute : triangulation identique à `Triangulator.Triangulate` (y
   compris sur des polygones qu'il choisit lui-même), sommets et pixels identiques dans les deux backends, zéros
@@ -286,6 +286,28 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
 - Sources : diff de T1.1 et T1.2, tests, ADR 0038.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(ui): record the verification of the polygon triangulation` (moteur, ce plan).
+- Validation (2026-11-17) : `verifier` neuf (opus), verdict **CONFIRMED**, aucun constat P0 à P3. Aucun changement
+  de code.
+  - Triangulateur : différentiel du vérificateur contre `Triangulator.Triangulate` sur ses propres polygones (étoiles
+    de 3 à 270 sommets, échelles de 1e-38 à 3e38, polygones non simples de 1 à 90 sommets, grilles entières, presque
+    alignés, sommets répétés, convexes avec sommets à 180°, alternance de grands et petits polygones sur une même
+    instance, -0, infinis, dénormaux, polygones de 800 à 2900 sommets) : 716 478 comparaisons par graine, quatre
+    graines, Release et Debug, 0 écart ; chemin convexe toujours égal au chemin général ; 0 octet sur 20 000 appels ;
+    huit fils sur des instances distinctes sans écart. Lecture d'un `IReadOnlyList` par l'indexeur seul vérifiée.
+  - Backends : code identique en substance dans les deux ; test GPU du vérificateur sur 6 801 polygones à lui par
+    `DrawTransaction.FillPolygon` (tableau, liste, liste lue par l'indexeur, énumération, origine (7.1, -2.9)) contre
+    `DrawSolidPolygon`, par la sonde de lecture du lot : passé.
+  - Sonde des sommets : une mutation du chemin convexe qui garde les pixels mais change l'ordre des sommets fait
+    échouer la sonde ; la remise du compteur à un décalage ne peut pas masquer un écart (sommets attendus copiés
+    avant l'appel neuf, compteurs vérifiés, place vérifiée) ; chaque test a son propre lot.
+  - Avis P4 reportés : (A1) `PrimitiveBatchProbe.Compare` ne remet pas le compteur dans un `finally` : un appel qui
+    lève laisse des sommets périmés dans le lot de ce seul test, déjà en échec ; (A2) la sonde dépend des noms de
+    champs privés de MonoGame.Extended 6.1.1, et échoue bruyamment à une montée de version ; (A3) polygones du
+    vérificateur non passés par le backend du moteur (couvert par le corpus des auteurs et le code identique).
+  - Suites rejouées : trois solutions 0 erreur ; `MGUI.Tests` 4006 verts, `CasaEngine.Tests` 6129 verts, aucun
+    sauté, tests GPU compris.
+  - Non vérifié : pixels des polygones du vérificateur (sommets seulement) ; NaN au-delà du nombre de triangles ;
+    aucun contrôle à l'œil.
 
 ### ⏳ T1.4 — Clôture
 
