@@ -16,8 +16,8 @@ namespace CasaEngine.Framework.Rendering.Environment;
 /// — one per game, several coexist in tests and in the editor — its own generated ids, collected together
 /// with it instead of leaking across instances.
 /// An id whose build failed is remembered too, per manager, next to the handles, so that a generator called every frame does not
-/// retry and log it again; the failure lasts as long as the manager (a source fixed on disk is taken up when the manager is
-/// recreated, for example when the project is reloaded).
+/// retry and log it again; the failure lasts as long as the manager. A source fixed on disk is therefore taken up only when the
+/// game or the editor restarts: each creates its manager once, and loading another project empties the catalog, not the manager.
 /// </summary>
 internal static class GeneratedAssetHandleCache<T> where T : class
 {
