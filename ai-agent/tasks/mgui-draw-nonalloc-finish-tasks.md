@@ -391,7 +391,7 @@ chantier ne fait pas est dans « Hors périmètre ».
     `RATING_TRIANGLE_CAPTURE`, sous laquelle il n'affirme rien), comme `TextBoxCaretGeometryTests` ; seul le journal
     figé couvre le rectangle de clip du remplissage partiel.
 
-### 🚧 T1.4 — Animations de `MGHighlightBorderBrush`
+### ✅ T1.4 — Animations de `MGHighlightBorderBrush`
 
 - Objectif : les quatre animations de `MGHighlightBorderBrush` n'allouent plus à chaque dessin (P4).
 - Fichiers : `MGUI/MGUI.Core/UI/Brushes/BorderBrushes/MGHighlightBorderBrush.cs` ; tests de `MGUI.Tests`
@@ -407,8 +407,54 @@ chantier ne fait pas est dans « Hors périmètre ».
 - Validation : 0 sur chaque animation, et pour `Progress` et `Scan` sur les deux chemins (coins droits, anneau à
   coins arrondis) ; journaux identiques ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(brushes): animate the highlight border without allocating` (MGUI), puis le commit du moteur.
+- Validation (2026-11-17) : les trois solutions 0 erreur ; `MGUI.Tests` 5284 verts, `CasaEngine.Tests` 6135 verts, aucun
+  sauté. Écrit par un `executor`, contesté par trois relecteurs en lecture seule : trois CONFIRMED, aucun constat P0 à
+  P2. Seul `MGHighlightBorderBrush.cs` change dans le code produit.
 
-### ⏳ T1.5 — Glissement d'onglet qui change de groupe
+  | Octets par dessin, à six instants | Avant | Après |
+  |---|---|---|
+  | `Pulse`, `Flash` (toute géométrie) | 0 | 0 (aucun code) |
+  | `Progress`, coins droits (surcharge directe ou par le contrat) | 2232 à 2472 | 0 |
+  | `Scan`, coins droits | 240 | 0 |
+  | `Progress`, anneau à coins arrondis | 488 | 0 |
+  | `Scan`, anneau à coins arrondis | 448 | 0 |
+
+  - 96 lignes de mesure à 0 (quatre boîtes, trois géométries, huit réglages d'animation).
+  - Relevé de l'étape 1 : la surcharge du contrat envoie `Pulse` et `Flash` au dessin commun ; pour `Progress` et `Scan`
+    elle prend la surcharge rectangle quand la boîte est à coins droits ou sans maillage d'anneau, sinon
+    `DrawProgressOnRing` ou `DrawScanOnRing`. Comportement existant gardé : par le contrat sur coins droits, le
+    pinceau de fond est dessiné deux fois (une fois par surcharge).
+  - Changement : même algorithme et même ordre. `Distinct().ToList()` devient une compaction en place qui garde la
+    première occurrence ; le dictionnaire des coins est gardé, vidé et rempli par quatre `Add` dans l'ancien ordre
+    (même exception au même message pour deux coins égaux) ; le dictionnaire des coins extérieurs, aux clés 0 à 3,
+    devient un aiguillage ; parcours inverse par index ; tableaux de l'anneau gardés, qui grandissent sans rétrécir ;
+    une liste construite et jamais lue est retirée.
+  - **Écart avec P4, accepté et signalé à l'auteur** : les tampons sont gardés par thread (`[ThreadStatic]`), pas par
+    instance comme P4 l'écrivait. Raisons : c'est la convention du fichier et de `MGUI.Core` (`PolygonVerticesBuffer`,
+    `MGDockedBorderBrush`, `MGRatingControl`, `UISymbolDrawing`) ; un pinceau figé partagé entre éléments et dessiné
+    par deux threads ne peut pas se marcher dessus ; une copie ne reçoit aucun tampon par référence. Les relecteurs
+    n'y trouvent aucune conséquence fonctionnelle : le pinceau de fond se dessine avant tout usage des tampons, et
+    rien d'appelé pendant le dessin ne redessine avec ce pinceau.
+  - Preuves : journal de dessin figé sur l'ancien code pour 154 scènes, chacune à quelques centaines d'instants (tête
+    et queue sur chaque position entière du périmètre, donc exactement sur un coin et juste avant et après ; valeurs
+    juste au-dessus de 0 et juste sous 1), deux sens, deux orientations, épaisseurs différentes, nulles, négatives,
+    boîtes jusqu'à 2 × 2 et de périmètre nul, anneaux de rayons 2 à 30, avec et sans pinceau de fond ; copie littérale
+    de l'ancien code dans le test, comparée appel par appel, exceptions comprises, sur ces scènes et sur des tirages
+    aléatoires (6 000 dessins sur la surcharge rectangle, 500 boîtes par le contrat). Exceptions de l'ancien code
+    reproduites : clé en double du dictionnaire des coins, division par zéro sur un périmètre nul, valeurs
+    d'énumération inconnues. Un pinceau qui dessine deux boîtes en alternance, une copie et son original, et un
+    pinceau figé dessiné par deux threads donnent à chaque boîte son journal.
+  - Mutations vérifiées puis annulées : garder le dernier doublon (106 échecs), coins dans un autre ordre (21),
+    parcours des sommets extérieurs à l'endroit (95), index de l'anneau décalé (21 et 31), dictionnaire non vidé (151).
+  - Corrigé en session principale après la relecture (avis P3) : le test à deux threads attendait sans délai et
+    pouvait bloquer la suite ou faire tomber l'hôte de test ; il échoue maintenant proprement (délais, exceptions
+    recueillies, threads d'arrière-plan). Suites rejouées en entier après ce changement.
+  - Avis P4 reportés : les tampons par thread supposent qu'aucun dessin de pinceau de surbrillance ne se réentre
+    pendant un `Progress` ou un `Scan` (vrai aujourd'hui : le remplissage interne est un pinceau plein scellé) ; ils
+    restent à leur taille maximale pour la vie du thread ; le test de zéro ne couvre ni le chemin résiduel (coins
+    arrondis sans maillage) ni un pinceau avec fond, que seuls les journaux couvrent.
+
+### 🚧 T1.5 — Glissement d'onglet qui change de groupe
 
 - Objectif : la cause des octets d'un glissement qui change de groupe est trouvée, et corrigée si P5 le permet.
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/` (selon la cause) ; tests `MGUI/MGUI.Tests/Docking/`.
