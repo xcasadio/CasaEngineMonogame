@@ -81,6 +81,7 @@ chantier ne fait pas est dans « Hors périmètre ».
 | Réf | Décision |
 |---|---|
 | D1 | Demande de l'auteur du 2026-11-17 : un plan « fin du zéro allocation du dessin » sur la liste des restes proposée par l'agent (contour d'un polygone, géométrie de clip triangulée, triangle de `MGRatingControl`, `MGHighlightBorderBrush`, glissement d'onglet qui change de groupe, frappe dans `MGTextBox`). |
+| D2 | Plan approuvé par l'auteur le 2026-11-17 (« Approuvé, lance-le »), P1 à P7 compris, après une relecture READY. La frappe dans `MGTextBox` reste hors de ce plan (P6). |
 
 ## Points à valider à l'approbation (arbitrages de l'agent)
 
@@ -140,7 +141,7 @@ chantier ne fait pas est dans « Hors périmètre ».
 
 ## Phase 0 — Mesure
 
-### ⏳ T0.1 — Mesure de chaque reste
+### ✅ T0.1 — Mesure de chaque reste
 
 - Objectif : les octets par image (Update et Draw) de chaque cas du plan, sur le code d'avant, avec des fixtures qui
   restent dans la suite ; chaque tâche suivante part de ces chiffres (P1).
@@ -161,10 +162,66 @@ chantier ne fait pas est dans « Hors périmètre ».
      les resserre ; un cas à 0 est noté et sa tâche fermée sans code.
 - Validation : chiffres écrits sous la tâche ; trois solutions 0 erreur, deux suites vertes, aucun test sauté.
 - Commit : `test(ui): measure what the drawing of MGUI still allocates` (MGUI), puis le commit du moteur.
+- Validation (2026-11-17) : les trois solutions 0 erreur ; `MGUI.Tests` 4068 verts (62 tests ajoutés),
+  `CasaEngine.Tests` 6130 verts (1 ajouté), aucun sauté. Écrit par un `executor` ; aucun code produit touché. Chaque
+  chiffre est stable sur trois exécutions et affirmé par égalité ; chaque fixture affirme, sur un journal de dessin,
+  que le chemin visé a tourné.
+  - Obstacle d'environnement levé en session principale : le serveur MCP `casa-editor` de la session tourne depuis
+    `Tools/CasaEngine.Editor.Mcp/bin/` et verrouillait trois fichiers que le build recopie (MSB3021). Ils ont été
+    renommés en `*.locked-by-running-mcp` (dossier `bin/`, hors git), sans arrêter le serveur ; le build de
+    l'éditeur et la suite du moteur ont ensuite été rejoués en entier.
+
+  **T1.1, contour, GPU réel, octets par appel, identiques dans les deux backends sauf mention :**
+
+  | Appel | Arêtes centrées | Arêtes intérieures, sens donné | Arêtes intérieures, sens calculé |
+  |---|---|---|---|
+  | `StrokePolygon`, primitives | 280 | 280 | 400 / 432 / 632 (triangle, flèche, ellipse) |
+  | `StrokePolygon`, sprites | 280 | 48 / 80 / 280 | 168 / 232 / 632 |
+  | `StrokeAndFillPolygon` | 280 | MGUI 400 / 432 / 632 ; moteur 280 | 400 / 432 / 632 |
+  | `SpriteBatch.DrawPolygon` seul | — | 0 | — |
+
+  Les 280 octets sont la chaîne de `SelectConsecutivePairs(true)`, quel que soit le nombre de sommets.
+  `SpriteBatch.DrawPolygon` n'alloue pas : rien à noter pour P2. Écart entre backends à garder : le
+  `StrokeAndFillPolygon` de MGUI passe toujours un sens nul à `StrokePolygon`, celui du moteur transmet le sens reçu.
+
+  **T1.2, géométrie de clip, octets par image au dessin (Update à 0) :**
+
+  | Cas | `MGEllipse` | `MGPolygon` | `MGPathLite` |
+  |---|---|---|---|
+  | Remplissage plein, contour, ou les deux | 0 | 0 | 0 |
+  | Remplissage par pinceau | 4392 | 1152 | 1152 |
+  | Clip propre | 4392 | 1152 | 1152 |
+  | Remplissage par pinceau et clip propre | 8784 | 2304 | 2304 |
+  | Deux figures fermées remplies par pinceau | — | — | 1136 |
+
+  Une opacité animée à chaque image ne change pas ces chiffres. Constat à traiter en T1.2 : le nom du clip
+  (`$"{ElementType}.Fill"`, `.Self`) est formaté à chaque image (48 octets), et la première image mesurée porte
+  4872 octets de plus (cache des noms d'énumération vidé par la collecte qui ouvre la fenêtre de mesure) ; les
+  totaux affirmés valent le coût par image fois 500, plus 4872.
+
+  **T1.3, triangle de `MGRatingControl` (quatre éléments), octets par image au dessin :** plein sans contour 1792,
+  plein avec contour 4096, partiel sans contour 1712, partiel avec contour 3728 ; horizontal et vertical identiques.
+
+  **T1.4, `MGHighlightBorderBrush`, octets par image au dessin, à six instants :**
+
+  | Géométrie | `Pulse` | `Flash` | `Progress` | `Scan` |
+  |---|---|---|---|---|
+  | Coins droits (surcharge `:579`, directe ou par le contrat) | 0 | 0 | 2248 à 2472 | 240 |
+  | Anneau à coins arrondis | 0 | 0 | 488 | 448 |
+
+  `Pulse` et `Flash` sont déjà à 0 : fermés sans code (P1).
+
+  **T1.5, glissement qui change de groupe à chaque image, octets par image (Update / Draw) :** 0 / 0 sur six
+  montages (centres de deux groupes, réordonnancement puis centre, zones gauche et haute de deux groupes, bande de
+  proximité, bord bas de l'hôte à cheval sur deux groupes) ; **32 / 0 sur le bord haut de l'hôte à cheval sur deux
+  groupes**. Les 96 à 128 octets vus en T5.7 du plan archivé ne sont reproduits par aucun montage.
+
+  Non mesuré : une forme qui se déplace ou change de taille (hors cible) ; le contour dans les fixtures de
+  `MGUI.Core` (la transaction du banc ne dessine pas les polygones : seuls les tests GPU le couvrent).
 
 ## Phase 1 — Restes
 
-### ⏳ T1.1 — Contour d'un polygone sans itérateur ni tableau temporaire
+### 🚧 T1.1 — Contour d'un polygone sans itérateur ni tableau temporaire
 
 - Objectif : `StrokePolygon` et `StrokeAndFillPolygon` n'allouent plus dans les deux backends (P2), mêmes sommets
   envoyés au lot et mêmes pixels.
@@ -285,7 +342,7 @@ chantier ne fait pas est dans « Hors périmètre ».
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | P1 à P7 à valider par l'auteur à l'approbation du plan. | toutes |
+| O1 | Tranché le 2026-11-17 : P1 à P7 approuvés (D2). | toutes |
 
 ## Hors périmètre
 
