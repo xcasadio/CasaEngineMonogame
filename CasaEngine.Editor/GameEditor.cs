@@ -5066,13 +5066,14 @@ public class GameEditor : Game, IObservableUpdate
 
     private bool TryOpenCutsceneAsset(string fullPath)
     {
-        if (!CutsceneAssetInspectorPanel.TryLoadAsset(fullPath, out var cutsceneAsset))
+        if (!CutsceneAssetInspectorPanel.TryLoadAsset(fullPath, out var cutsceneSession) || cutsceneSession == null)
         {
             return false;
         }
 
         EnsureDockHostInitialized();
 
+        var cutsceneAsset = cutsceneSession.Asset;
         Guid documentId = cutsceneAsset.AssetId != Guid.Empty ? cutsceneAsset.AssetId : cutsceneAsset.Id;
         string panelId = $"{EditorPanelIds.CutsceneAssetDocumentPrefix}{documentId:N}";
         bool createdPanel = false;
@@ -5085,7 +5086,7 @@ public class GameEditor : Game, IObservableUpdate
 
         if (createdPanel)
         {
-            inspectorPanel.LoadAsset(cutsceneAsset, fullPath);
+            inspectorPanel.LoadAsset(cutsceneSession, fullPath);
         }
 
         var panelTitle = string.IsNullOrWhiteSpace(cutsceneAsset.Name)

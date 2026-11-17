@@ -29,6 +29,7 @@ public readonly record struct EditorHistoryContext(EditorHistoryContextKind Kind
             EditorDocumentKind.Particle => new EditorHistoryContext(EditorHistoryContextKind.Particle, document.Id),
             EditorDocumentKind.TileMap => new EditorHistoryContext(EditorHistoryContextKind.TileMap, document.Id),
             EditorDocumentKind.AudioMixer => new EditorHistoryContext(EditorHistoryContextKind.AudioMixer, document.Id),
+            EditorDocumentKind.Cutscene => new EditorHistoryContext(EditorHistoryContextKind.Cutscene, document.Id),
             _ => Empty,
         };
     }
