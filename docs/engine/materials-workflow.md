@@ -145,7 +145,7 @@ Remove-Item Env:CASAENGINE_START_DEMO
 
 ## lit-pbr material
 
-The `lit-pbr` material (`LitPbrMaterial`, ADR-0109) complements `lit-diffuse` without replacing it: same `MaterialAsset` to `MaterialCompiler` to `CompiledMaterial` chain, but the `LitPbr` family resolves the `LitPbr` shader and the material names its own technique (`LitPbr[_NormalMap][_AlphaTest|_Transparent]`). Sixteen keys (two of them the clear coat, ADR-0115, two the detail texture, ADR-0117), six per-instance overrides (`base_color`, `metallic`, `roughness`, `emissive_color`, `clear_coat`, `clear_coat_roughness`), glTF import as `lit-pbr` on request through the API (ADR-0112). Details, IBL and limits: `docs/engine/pbr-rendering.md`.
+The `lit-pbr` material (`LitPbrMaterial`, ADR-0109) complements `lit-diffuse` without replacing it: same `MaterialAsset` to `MaterialCompiler` to `CompiledMaterial` chain, but the `LitPbr` family resolves the `LitPbr` shader and the material names its own technique (`LitPbr[_NormalMap][_AlphaTest|_Transparent]`). Seventeen keys (two of them the clear coat, ADR-0115, two the detail texture, ADR-0117, one the shadowed emissive, ADR-0126), six per-instance overrides (`base_color`, `metallic`, `roughness`, `emissive_color`, `clear_coat`, `clear_coat_roughness`), glTF import as `lit-pbr` on request through the API (ADR-0112). Details, IBL and limits: `docs/engine/pbr-rendering.md`.
 
 ## Documents associes
 

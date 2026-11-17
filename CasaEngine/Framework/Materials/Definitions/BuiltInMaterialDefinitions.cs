@@ -330,6 +330,16 @@ internal static class BuiltInMaterialDefinitions
                     description: "Self-illuminated color (display color) added on top of the lighting.",
                     editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
+                    key: "emissive_shadow_factor",
+                    displayName: "Emissive Shadow Factor",
+                    valueType: MaterialPropertyType.Float,
+                    group: MaterialPropertyGroup.Lighting,
+                    defaultValue: 0.0f,
+                    description: "How much the emissive color receives the shadow: 0 leaves it unshadowed, 1 shadows it like the rest of the pixel. Only a surface that receives shadows is affected.",
+                    minValue: 0.0f,
+                    maxValue: 1.0f,
+                    step: 0.01f),
+                new MaterialPropertyDefinition(
                     key: "occlusion_strength",
                     displayName: "Occlusion Strength",
                     valueType: MaterialPropertyType.Float,

@@ -57,7 +57,8 @@
 // HasIbl (1 when the generated IBL textures are bound, 0 for the flat ambient) is written by EnvironmentShaderBinder every bind;
 // IblForceBaseLevel (debug, 0 by default) is written by LitPbrMaterial.Bind and forces the prefiltered band 0 (probes included).
 // HasPrefilteredLocalReflectionProbe and HasPrefilteredSecondaryLocalReflectionProbe are written by EnvironmentShaderBinder.
-// ClearCoat and ClearCoatRoughness (ADR-0115) are written by LitPbrMaterial.Bind every bind. HasDetailTexture and DetailTiling (ADR-0117)
+// ClearCoat and ClearCoatRoughness (ADR-0115) are written by LitPbrMaterial.Bind every bind. EmissiveShadowFactor (ADR-0126, 0 =
+// the emissive is not shadowed) is written by LitPbrMaterial.Bind every bind. HasDetailTexture and DetailTiling (ADR-0117)
 // carry the names of LitForward.fx but not its slots (c35.w is HasEmissiveTexture here) and are written by LitPbrMaterial.Bind every
 // bind. None of the constants of this paragraph has a
 // fixed slot: the compiler places them.
@@ -216,6 +217,7 @@ BEGIN_CONSTANTS
     float HasPrefilteredSecondaryLocalReflectionProbe;
     float ClearCoat;
     float ClearCoatRoughness;
+    float EmissiveShadowFactor;
     float HasDetailTexture;
     float DetailTiling;
     float ActiveShadowLightCount _ps(c100) _cb(c90.x);
@@ -530,6 +532,17 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float3 g
     ApplyPbrClearCoat(surface, saturate(ClearCoat), saturate(ClearCoatRoughness), geometricNormal);
 
     ColorPair lightResult = EvaluatePbrLights(surface, positionWS, (int)ActiveDirectionalLightCount);
+
+    // EmissiveShadowFactor (ADR-0126): the emissive receives the shadow of the pixel, by that fraction. The shadow factor is the one
+    // the rest of the pixel gets in the active mode: the visibility of the shadow-casting light by default, the shadow tint in
+    // MultiplyLitColor (ShadowApplyMode = 1). The emissive is scaled here, before the sum, so ApplyShadowTint below, which leaves the
+    // emissive term out, leaves out the scaled one. At 0 nothing runs and the emissive is exactly the one of a material without it.
+    if (EmissiveShadowFactor > 0.0f)
+    {
+        float3 emissiveShadow = ShadowApplyMode > 0.5f ? ComputeShadowTint(lightResult.ShadowFactor) : float3(lightResult.ShadowFactor, lightResult.ShadowFactor, lightResult.ShadowFactor);
+        emissive *= lerp(float3(1.0f, 1.0f, 1.0f), emissiveShadow, saturate(EmissiveShadowFactor));
+    }
+
     if (surface.ClearCoat > 0.0f)
     {
         float directionalOcclusion = ShadowApplyMode > 0.5f ? 1.0f : lightResult.ShadowFactor;

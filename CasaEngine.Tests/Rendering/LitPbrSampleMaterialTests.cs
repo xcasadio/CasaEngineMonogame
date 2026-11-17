@@ -58,6 +58,7 @@ public class LitPbrSampleMaterialTests
     [InlineData("occlusion_strength", "PBR", "Slider")]
     [InlineData("emissive_texture", "Emission", "AssetPicker")]
     [InlineData("emissive_color", "Emission", "ColorPicker")]
+    [InlineData("emissive_shadow_factor", "Emission", "Slider")]
     [InlineData("detail_texture", "Surface", "AssetPicker")]
     [InlineData("detail_tiling", "Surface", "NumberBox")]
     [InlineData("clear_coat", "PBR", "Slider")]
@@ -66,7 +67,7 @@ public class LitPbrSampleMaterialTests
     {
         var descriptors = MaterialDefinitionEditorRegistry.Default.GetDescriptors("lit-pbr");
 
-        Assert.Equal(16, descriptors.Count);
+        Assert.Equal(17, descriptors.Count);
         var descriptor = descriptors.Single(d => d.Key == key);
         Assert.Equal(category, descriptor.Category);
         Assert.Equal(hint, descriptor.EditorControlHint);

@@ -52,6 +52,7 @@ public class LitPbrMaterialTests
         Assert.Equal(1.0f, material.NormalScale);
         Assert.Equal(0.0f, material.ClearCoat);
         Assert.Equal(0.1f, material.ClearCoatRoughness);
+        Assert.Equal(0.0f, material.EmissiveShadowFactor);
         Assert.Equal(RenderQueue.Opaque, material.Queue);
     }
 
@@ -289,6 +290,7 @@ public class LitPbrMaterialTests
                 NormalScale = 2.0f,
                 ClearCoat = 0.6f,
                 ClearCoatRoughness = 0.35f,
+                EmissiveShadowFactor = 0.75f,
                 Queue = RenderQueue.AlphaTest,
                 AlphaCutoff = 0.4f,
                 BaseColorTexture = baseTexture,
@@ -308,6 +310,7 @@ public class LitPbrMaterialTests
             Assert.Equal(2.0f, effect.Parameters[ShaderParameterNames.NormalScale]!.GetValueSingle());
             Assert.Equal(0.6f, effect.Parameters[ShaderParameterNames.ClearCoat]!.GetValueSingle());
             Assert.Equal(0.35f, effect.Parameters[ShaderParameterNames.ClearCoatRoughness]!.GetValueSingle());
+            Assert.Equal(0.75f, effect.Parameters[ShaderParameterNames.EmissiveShadowFactor]!.GetValueSingle());
             Assert.Equal(0.4f, effect.Parameters[ShaderParameterNames.AlphaCutoff]!.GetValueSingle());
             Assert.Equal(1.0f, effect.Parameters[ShaderParameterNames.HasBaseColorTexture]!.GetValueSingle());
             Assert.Equal(1.0f, effect.Parameters[ShaderParameterNames.HasMetallicRoughnessTexture]!.GetValueSingle());
@@ -322,6 +325,7 @@ public class LitPbrMaterialTests
             Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.AlphaCutoff]!.GetValueSingle());
             Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.ClearCoat]!.GetValueSingle());
             Assert.Equal(0.1f, effect.Parameters[ShaderParameterNames.ClearCoatRoughness]!.GetValueSingle());
+            Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.EmissiveShadowFactor]!.GetValueSingle());
             Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.HasBaseColorTexture]!.GetValueSingle());
             Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.HasMetallicRoughnessTexture]!.GetValueSingle());
             Assert.Equal(0.0f, effect.Parameters[ShaderParameterNames.HasOcclusionTexture]!.GetValueSingle());

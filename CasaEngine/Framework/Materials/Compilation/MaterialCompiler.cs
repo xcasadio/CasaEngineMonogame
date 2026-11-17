@@ -350,6 +350,7 @@ public sealed class MaterialCompiler
         material.Metallic = GetFloat(effectiveValues["metallic"], "metallic");
         material.Roughness = GetFloat(effectiveValues["roughness"], "roughness");
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
+        material.EmissiveShadowFactor = GetFloat(effectiveValues["emissive_shadow_factor"], "emissive_shadow_factor");
         material.OcclusionStrength = GetFloat(effectiveValues["occlusion_strength"], "occlusion_strength");
         material.NormalScale = GetFloat(effectiveValues["normal_scale"], "normal_scale");
         material.ClearCoat = GetFloat(effectiveValues["clear_coat"], "clear_coat");

@@ -139,3 +139,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0123](0123-a-static-model-asset-keeps-the-tangents-of-its-meshes.md) | A static model asset keeps the tangents of its meshes | Proposed | 2026-11-16 |
 | [ADR-0124](0124-a-texture-asset-can-ask-for-its-mipmap-chain.md) | A texture asset can ask for its mipmap chain | Proposed | 2026-11-17 |
 | [ADR-0125](0125-the-static-mesh-draw-order-is-fully-deterministic.md) | The static mesh draw order is fully deterministic | Proposed | 2026-11-17 |
+| [ADR-0126](0126-a-lit-pbr-material-can-ask-for-its-emissive-to-receive-the-shadow.md) | A lit-pbr material can ask for its emissive to receive the shadow | Proposed | 2026-11-17 |

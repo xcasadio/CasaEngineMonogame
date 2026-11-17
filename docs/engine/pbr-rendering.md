@@ -31,6 +31,7 @@ Decisions: ADR-0103 (scope), ADR-0104 to ADR-0107 (colour pipeline, see [color-p
 | `metallic` | 0 to 1 | 0 | Dielectric by default (not the 1 of glTF). |
 | `roughness` | 0 to 1 | 0.5 | Perceptual roughness; `alpha = roughness^2`, floored at 0.045 in the shader. |
 | `emissive_color` | RGB | 0 | Emitted colour; also turns the emissive feature on. |
+| `emissive_shadow_factor` | 0 to 1 | 0 | How much the emissive receives the shadow, ADR-0126. 0 leaves the emissive unshadowed, as before. No per-instance override. |
 | `occlusion_strength` | 0 to 1 | 1 | |
 | `normal_scale` | at least 0 | 1 | |
 | `clear_coat` | 0 to 1 | 0 | Weight of a clear varnish layer (car paint), ADR-0115. 0 renders exactly like a material without the layer. |
@@ -42,6 +43,10 @@ Per-instance overrides (`MaterialPropertyBlock`, same mechanism as `lit-diffuse`
 Units: the BRDF is Lambert divided by pi plus GGX (height-correlated Smith visibility, Schlick Fresnel, `F0 = lerp(0.04, base, metallic)`), summed over the same 24 light slots as `LitForward`. Both lobes use the diffuse colour of the light (its specular colour is ignored). At equal light intensity a `lit-pbr` surface is therefore pi times darker in its diffuse part than a `lit-diffuse` one; pick the light intensity accordingly (`PBR material demo` uses 1.4). The GGX denominator is written `(1 - NoH) (1 + NoH) + NoH^2 alpha^2` from the clamped `NoH`: it is 1 where a normal-mapped normal faces away from the half vector (taking `1 - NoH^2` from the cross product of the normal and the half vector, as before, made it tend to 0 there and drew saturated highlights on a rough terrain), and `1 - NoH` is exact near the highlight. `NoH` itself keeps the rounding of `dot(N, H)`, so a very smooth surface stays sensitive to how the driver rounds: no form guarantees identical captures on every driver (plan `ai-agent/tasks/pbr-ggx-back-facing-tasks.md`).
 
 Colours of the material are display colours, decoded once per pixel to linear light in `LinearHdr` (ADR-0106). An emissive colour is a display colour too, at most 1 per channel.
+
+## Shadowed emissive
+
+By default the emissive is never shadowed: in the default shadow mode the shadow only scales the light that casts it, and in the `MultiplyLitColor` mode (ADR-0102) the tint leaves the emissive out. `emissive_shadow_factor` (ADR-0126) lets a material ask for the opposite. The emissive added to the pixel becomes `emissive * lerp(1, s, emissive_shadow_factor)`, where `s` is the shadow factor the rest of the pixel receives in the active mode: the visibility of the shadow-casting directional light (1 lit, 0 fully shadowed) by default, the shadow tint colour (`lerp(1, ShadowTintColor, 1 - visibility)`) in `MultiplyLitColor`. A pixel that is not in shadow, a material that does not receive shadows and a scene without a shadow-casting directional light keep the whole emissive, whatever the value. At 0 (the default) the shader branch does not run and the image is the one of a material without the key. `lit-diffuse` and the skinned path have no such key.
 
 ## Clear coat
 

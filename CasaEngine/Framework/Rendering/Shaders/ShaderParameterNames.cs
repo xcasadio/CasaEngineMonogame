@@ -55,6 +55,7 @@ public static class ShaderParameterNames
     public const string HasEmissiveTexture = "HasEmissiveTexture";
     public const string ClearCoat = "ClearCoat";
     public const string ClearCoatRoughness = "ClearCoatRoughness";
+    public const string EmissiveShadowFactor = "EmissiveShadowFactor";
 
     // --- Colour pipeline ---
     public const string Exposure = "Exposure";

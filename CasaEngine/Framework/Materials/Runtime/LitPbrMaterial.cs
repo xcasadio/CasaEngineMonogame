@@ -45,6 +45,13 @@ public class LitPbrMaterial : MaterialBase
     /// <summary>Perceptual roughness of the clear-coat layer. Values under 0.045 render as 0.045.</summary>
     public float ClearCoatRoughness { get; set; } = 0.1f;
 
+    /// <summary>
+    /// How much the emissive colour receives the shadow (ADR-0126): the emissive is multiplied by <c>lerp(1, s, EmissiveShadowFactor)</c>
+    /// where <c>s</c> is the shadow factor the rest of the pixel receives (the visibility of the shadow-casting light in the
+    /// default shadow mode, the shadow tint in the MultiplyLitColor mode). 0 (default) leaves the emissive unshadowed, as before.
+    /// </summary>
+    public float EmissiveShadowFactor { get; set; }
+
     /// <summary>Scale of the x and y components of the tangent-space normal.</summary>
     public float NormalScale { get; set; } = 1.0f;
 
@@ -134,6 +141,7 @@ public class LitPbrMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.NormalScale, NormalScale);
         shader.SetParameter(ShaderParameterNames.ClearCoat, ClearCoat);
         shader.SetParameter(ShaderParameterNames.ClearCoatRoughness, ClearCoatRoughness);
+        shader.SetParameter(ShaderParameterNames.EmissiveShadowFactor, EmissiveShadowFactor);
         shader.SetParameter(ShaderParameterNames.IblForceBaseLevel, DebugForceIblBaseLevel ? 1.0f : 0.0f);
         shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
 

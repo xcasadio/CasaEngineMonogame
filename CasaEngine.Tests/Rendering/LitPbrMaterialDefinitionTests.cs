@@ -25,6 +25,7 @@ public class LitPbrMaterialDefinitionTests
         "metallic",
         "roughness",
         "emissive_color",
+        "emissive_shadow_factor",
         "occlusion_strength",
         "normal_scale",
         "clear_coat",
@@ -95,6 +96,15 @@ public class LitPbrMaterialDefinitionTests
         Assert.Equal(defaults.ClearCoatRoughness, definition.GetRequiredProperty("clear_coat_roughness").GetDefaultValue<float>());
         Assert.Equal(0.0f, defaults.ClearCoat);
         Assert.Equal(0.1f, defaults.ClearCoatRoughness);
+
+        var emissiveShadowFactor = definition.GetRequiredProperty("emissive_shadow_factor");
+        Assert.Equal(MaterialPropertyType.Float, emissiveShadowFactor.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Lighting, emissiveShadowFactor.Group);
+        Assert.Equal(0.0f, emissiveShadowFactor.GetDefaultValue<float>());
+        Assert.Equal(defaults.EmissiveShadowFactor, emissiveShadowFactor.GetDefaultValue<float>());
+        Assert.Equal(0.0f, emissiveShadowFactor.MinValue);
+        Assert.Equal(1.0f, emissiveShadowFactor.MaxValue);
+        Assert.Equal(MaterialPropertyFlags.None, emissiveShadowFactor.Flags & MaterialPropertyFlags.SupportsOverrides);
 
         var detailTiling = definition.GetRequiredProperty("detail_tiling");
         Assert.Equal(MaterialPropertyType.Float, detailTiling.ValueType);
@@ -321,6 +331,7 @@ public class LitPbrMaterialDefinitionTests
         overrides.SetPropertyOverride("roughness", MaterialValue.FromFloat(0.1f));
         overrides.SetPropertyOverride("normal_scale", MaterialValue.FromFloat(3.0f));
         overrides.SetPropertyOverride("occlusion_strength", MaterialValue.FromFloat(0.2f));
+        overrides.SetPropertyOverride("emissive_shadow_factor", MaterialValue.FromFloat(1.0f));
 
         var block = MaterialInstancePropertyBlockMapper.Create(materialAsset, overrides);
 
@@ -367,6 +378,44 @@ public class LitPbrMaterialDefinitionTests
         var material = Assert.IsType<LitPbrMaterial>(runtime);
         Assert.Equal(0.0f, material.ClearCoat);
         Assert.Equal(0.1f, material.ClearCoatRoughness);
+    }
+
+    [Fact]
+    public void MaterialFile_WithTheEmissiveShadowKey_RoundTrips_AndWithoutItReadsZero()
+    {
+        var withKey = new MaterialAsset("lit-pbr") { Name = "Lamp" };
+        withKey.SetPropertyValue("emissive_shadow_factor", MaterialValue.FromFloat(0.7f));
+
+        var document = new JObject();
+        MaterialAssetJsonSerializer.Save(withKey, document);
+
+        var propertiesNode = Assert.IsType<JObject>(document["properties"]);
+        Assert.Equal(1, propertiesNode.Count);
+        Assert.NotNull(propertiesNode["emissive_shadow_factor"]);
+
+        var loaded = new MaterialAsset();
+        loaded.Load(document);
+        Assert.True(loaded.GetPropertyValueOrDefault("emissive_shadow_factor")!.TryGetFloat(out var factor));
+        Assert.Equal(0.7f, factor);
+
+        var (_, loadedRuntime) = Compile(loaded);
+        Assert.Equal(0.7f, Assert.IsType<LitPbrMaterial>(loadedRuntime).EmissiveShadowFactor);
+
+        // A file written before the key existed carries nothing for it: it reads 0 and compiles to an unshadowed emissive.
+        var legacyDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(new MaterialAsset("lit-pbr") { Name = "Old file" }, legacyDocument);
+        Assert.Null(((JObject)legacyDocument["properties"]!)["emissive_shadow_factor"]);
+
+        var legacy = new MaterialAsset();
+        legacy.Load(legacyDocument);
+        Assert.True(legacy.GetPropertyValueOrDefault("emissive_shadow_factor")!.TryGetFloat(out var defaultFactor));
+        Assert.Equal(0.0f, defaultFactor);
+
+        var (compiled, runtime) = Compile(legacy);
+        Assert.Equal(0.0f, Assert.IsType<LitPbrMaterial>(runtime).EmissiveShadowFactor);
+
+        // A scalar like the clear coat: it changes neither the shader features nor the technique.
+        Assert.Equal(ShaderFeature.None, compiled.Features);
     }
 
     [Fact]

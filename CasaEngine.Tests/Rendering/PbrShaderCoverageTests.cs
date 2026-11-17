@@ -279,6 +279,7 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.NormalScale,
             ShaderParameterNames.ClearCoat,
             ShaderParameterNames.ClearCoatRoughness,
+            ShaderParameterNames.EmissiveShadowFactor,
             ShaderParameterNames.HasDetailTexture,
             ShaderParameterNames.DetailTiling,
             ShaderParameterNames.HasBaseColorTexture,
@@ -637,6 +638,30 @@ public class PbrShaderCoverageTests
     public void LitPbrMaterial_OffersTheDebugForceBaseLevelSwitch_OffByDefault()
     {
         Assert.False(CasaEngine.Framework.Materials.Runtime.LitPbrMaterial.DebugForceIblBaseLevel);
+    }
+
+    [Fact]
+    public void LitPbrEffect_ShadowsTheEmissiveByEmissiveShadowFactor_WithoutAReservedSlot()
+    {
+        string source = LoadShaderSource("LitPbr.fx");
+        string shade = Normalize(ExtractFunctionBody(source, "float4 ShadePbr("));
+
+        // ADR-0126: the emissive is scaled by lerp(1, s, EmissiveShadowFactor), s being the shadow factor the pixel receives in the
+        // active mode (the visibility by default, the shadow tint in MultiplyLitColor). Nothing happens at 0.
+        Assert.Contains("if (EmissiveShadowFactor > 0.0f)", shade);
+        Assert.Contains("float3 emissiveShadow = ShadowApplyMode > 0.5f ? ComputeShadowTint(lightResult.ShadowFactor) : float3(lightResult.ShadowFactor, lightResult.ShadowFactor, lightResult.ShadowFactor);", shade);
+        Assert.Contains("emissive *= lerp(float3(1.0f, 1.0f, 1.0f), emissiveShadow, saturate(EmissiveShadowFactor));", shade);
+
+        // It follows the light evaluation (it needs the factor) and precedes the sum and the tint, which both read the shadowed emissive.
+        int lights = shade.IndexOf("EvaluatePbrLights(", StringComparison.Ordinal);
+        int modulation = shade.IndexOf("emissive *= lerp(", StringComparison.Ordinal);
+        int sum = shade.IndexOf("+ ambient.Specular + emissive;", StringComparison.Ordinal);
+        Assert.True(lights >= 0 && modulation >= 0 && lights < modulation && modulation < sum, "The emissive is shadowed after EvaluatePbrLights and before the sum.");
+
+        // A plain constant like HasIbl: no _cb slot.
+        Assert.Matches(@"float EmissiveShadowFactor;", source);
+        Assert.DoesNotContain("EmissiveShadowFactor _cb", source);
+        Assert.Equal("EmissiveShadowFactor", ShaderParameterNames.EmissiveShadowFactor);
     }
 
     [Fact]
