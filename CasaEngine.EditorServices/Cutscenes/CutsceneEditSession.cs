@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Cutscenes;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.EditorServices.Cutscenes;
 
@@ -17,6 +18,27 @@ public sealed class CutsceneEditSession
     }
 
     public CutsceneAsset Asset { get; }
+
+    /// <summary>
+    /// Loads the asset from the JSON of a file and records what the loader dropped or rewrote without a format error
+    /// (<see cref="CutsceneLoadFidelity.FindLosses"/>).
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The file is of a newer version than the loader supports.</exception>
+    public static CutsceneEditSession Load(JObject source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        var asset = new CutsceneAsset();
+        asset.Load(source);
+
+        var session = new CutsceneEditSession(asset);
+        foreach (var loss in CutsceneLoadFidelity.FindLosses(source, asset))
+        {
+            session.AddLoadLoss(loss);
+        }
+
+        return session;
+    }
 
     /// <summary>What the loader dropped or rewrote silently and that no edit has replaced yet.</summary>
     public IReadOnlyList<CutsceneLoadLoss> LoadLosses => _loadLosses;
