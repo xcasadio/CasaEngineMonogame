@@ -208,7 +208,9 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
+
+> Validation (2026-11-17) : `docs/editor/cutscene-editor.md` écrit et indexé dans `docs/README.md`, sans nom de jeu ni de projet tiers. Vérification indépendante de T1.1 à T2.2 sur `c1d38559` : CONFIRMED, les deux solutions à 0 erreur, 5891 tests sur 5891, quatre avis P3 et P4 reportés en O3 à O6.
 
 - Objectif : décrire l'édition des cutscenes dans l'éditeur.
 - Fichiers : `docs/editor/cutscene-editor.md` (créé), `docs/README.md` (index), `ai-agent/README.md` (ligne de ce plan mise à jour).
@@ -216,7 +218,9 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 - Validation : relecture ; liens valides ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document cutscene property editing`
 
-### ⏳ T3.2 — Recette de l'auteur dans l'éditeur
+### 🧪 T3.2 — Recette de l'auteur dans l'éditeur
+
+> En attente (2026-11-17) : l'éditeur n'a pas été lancé par l'agent. Reste la recette visuelle de l'auteur ci-dessous, et sa réponse sur O1 à O6.
 
 - Objectif : validation visuelle, que l'agent ne peut pas faire seul.
 - Sources : `Projects/SpriteCutsceneSample/Cutscenes/loop.cutscene`.
@@ -238,6 +242,11 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | P1 à P11 sont des arbitrages de l'agent : à confirmer ou corriger par l'auteur à la recette. | T3.2 |
+| O3 | Avis P3 du vérificateur, reporté. Une chaîne de plus de 256 caractères, ou qui contient un saut de ligne, s'affiche dans un champ vide (`MGTextBox.SetText` la refuse) ; donner puis retirer le focus à ce champ remplace alors la valeur par une chaîne vide. La modification est visible (astérisque) et annulable. Aucun fichier du dépôt n'est concerné : la plus longue valeur fait 47 caractères. À corriger en tranche 2 : champ en lecture seule ou limite levée. | T2.1 |
+| O4 | Avis P4, reporté. Une perte de chargement remise par une annulation revient en fin de liste, pas à sa place d'origine. Seul l'ordre d'affichage change. | T1.2 |
+| O5 | Avis P4, reporté. La relecture de la garde porte sur le JSON en mémoire, pas sur le texte écrit. Un fichier existant avec un nombre hors limites (`1e40`) pourrait se réécrire en `"Infinity"`. La saisie dans l'éditeur refuse ces nombres. | T1.3 |
+| O6 | Avis P4, reporté. Le test `AClosedPanel_NoLongerFollowsTheHistory` passerait aussi sans le désabonnement, que le code fait bien. | T2.1 |
+| O7 | Constat de T2.1, hors périmètre. `MGTextBox` marque toute touche comme traitée : le test `if (args.IsHandled) return` du champ d'Animation2D pourrait ignorer Entrée. Non vérifié dans l'éditeur, non modifié. | — |
 | O2 | La sauvegarde écrit le nom du catalogue dans `name` (D2). Pour `loop.cutscene` de `SpriteCutsceneSample`, le fichier dit « Sprite Loop » et le catalogue « SpriteLoop » : le fichier changera à la première sauvegarde. Constat d'une relecture, à vérifier en T1.3. | T1.3, T3.2 |
 
 ## Hors périmètre
