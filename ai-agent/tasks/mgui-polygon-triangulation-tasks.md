@@ -205,7 +205,7 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
     pas d'inversion d'un polygone en sens horaire (113 020), éventail depuis un autre sommet (55 100) : chacune fait
     échouer le différentiel.
 
-### 🚧 T1.2 — Les deux backends remplissent sans `DrawSolidPolygon`
+### ✅ T1.2 — Les deux backends remplissent sans `DrawSolidPolygon`
 
 - Objectif : `FillPolygon` et `FillRectangle` en contexte primitives n'allouent plus rien dans les deux backends, avec
   les mêmes pixels et les mêmes sommets envoyés au lot que `DrawSolidPolygon`.
@@ -244,8 +244,41 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
   aucun test sauté.
 - Commit : `perf(rendering): fill a polygon without DrawSolidPolygon` (MGUI), puis
   `perf(ui): fill a polygon without DrawSolidPolygon` (moteur).
+- Validation (2026-11-17, GPU réel) : les trois solutions 0 erreur ; `MGUI.Tests` 4006 verts, `CasaEngine.Tests` 6129
+  verts (5 tests ajoutés de chaque côté), aucun sauté ; journaux figés inchangés. Écrit par un `executor`, diff du
+  moteur relu en session principale. O3 ne s'est pas produit.
 
-### ⏳ T1.3 — Vérification indépendante
+  | Octets par appel, deux backends identiques | Avant | Après |
+  |---|---|---|
+  | `FillPolygon`, triangle (deux sens) | 376 / 424 | 0 |
+  | `FillPolygon`, flèche de 7 sommets (deux sens) | 928 / 952 | 0 |
+  | `FillPolygon`, concave de 8 sommets | 992 | 0 |
+  | `FillPolygon`, ellipse de 32 segments (deux sens) | 3968 / 4248 | 0 |
+  | `FillRectangle` en primitives | 552 | 0 |
+
+  - Tableau et liste donnent le même chiffre ; une autre énumération est encore copiée par `ToArray()`, comme avant.
+  - Preuve des sommets : le test lit par réflexion `_triangleVertices` et `_triangleVertsCount` du lot du backend et
+    compare, pour l'ancien chemin (`DrawSolidPolygon`) et le nouveau, position (X, Y, Z au bit près), couleur et
+    ordre, avec une origine fractionnaire (5.3, 3.7) ; il affirme pour chaque appel que le compteur a avancé de trois
+    fois le nombre de triangles de l'original (aucun vidage). 72 921 polygones du corpus de T1.1, en tableau et en
+    liste, et 9 rectangles en primitives, par backend : 0 écart. Écart avec le texte de l'étape 3 : au lieu d'un lot
+    neuf par mesure, le test remet le compteur du lot du backend à un décalage de 0, 3, 6 ou 9 sommets avant chaque
+    appel (même mécanisme ; un lot neuf par polygone demandait 72 000 rendus). Le corpus est partagé entre les deux
+    dépôts (`PolygonCorpus.cs` et `PrimitiveBatchProbe.cs` de `MGUI.Tests`, liés dans `CasaEngine.Tests.csproj`).
+  - Pixels comparés dans le test : triangle, concave, flèche et ellipse dans les deux sens (tableau, liste, liste en
+    lecture seule, énumération), six rectangles en primitives, sept polygones dans un lot, polygones de deux et d'un
+    sommet : identiques dans les deux backends.
+  - Exceptions inchangées : `ArgumentException` pour nul ou vide ; `InvalidOperationException` au message de
+    `DrawSolidPolygon` quand le lot n'est pas prêt (test neuf, passé aussi sur l'ancien code). Polygone de deux
+    sommets délégué à `DrawSolidPolygon` (P4), par un `Vector2[2]` gardé quand il n'arrive pas en tableau.
+  - Tampons par longueur de T5.6 retirés : le triangulateur lit la liste directement.
+  - Mutations vérifiées puis annulées : trois sommets d'un triangle dans un autre ordre (la preuve des sommets
+    échoue, aucun test de pixels n'échoue : c'est ce que les pixels ne voient pas) ; décalage d'origine oublié sur
+    un sommet sur trois (preuve des sommets et pixels échouent), dans chaque backend.
+  - Doc : limite connue de `FillPolygon` réécrite dans `MGUI/Docs/rendering-architecture.md` ; `StrokePolygon` et
+    `CreateTriangulatedClipGeometry` allouent encore (P6).
+
+### 🚧 T1.3 — Vérification indépendante
 
 - Objectif : un `verifier` neuf (opus) confirme ou réfute : triangulation identique à `Triangulator.Triangulate` (y
   compris sur des polygones qu'il choisit lui-même), sommets et pixels identiques dans les deux backends, zéros

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.Triangulation;
+using MonoGame.Extended.VectorDraw;
 using WindingOrder = MonoGame.Extended.Triangulation.WindingOrder;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Primitives;
@@ -83,14 +84,11 @@ internal sealed class CasaLegacyShapeRenderer2D : IShapeRenderer2D
                 break;
 
             case DrawContext.Primitives:
-                Vector2[] rectangleVertices =
-                [
-                    new Vector2(0, 0),
-                    new Vector2(destination.Width, 0),
-                    new Vector2(destination.Width, destination.Height),
-                    new Vector2(0, destination.Height)
-                ];
-                _owner.PrimitiveDrawing.DrawSolidPolygon(destination.Position + origin, rectangleVertices, color, false);
+                _rectangleVertices[0] = new Vector2(0, 0);
+                _rectangleVertices[1] = new Vector2(destination.Width, 0);
+                _rectangleVertices[2] = new Vector2(destination.Width, destination.Height);
+                _rectangleVertices[3] = new Vector2(0, destination.Height);
+                FillPolygonPrimitive(destination.Position + origin, _rectangleVertices, color);
                 break;
 
             default:
@@ -318,60 +316,35 @@ internal sealed class CasaLegacyShapeRenderer2D : IShapeRenderer2D
         }
     }
 
-    /// <summary>The longest polygon whose buffer is kept by <see cref="FillPolygon"/>: a polygon with more vertices that comes as a list is copied to a new array.</summary>
-    private const int MaxKeptPolygonVertices = 256;
+    /// <summary>Triangulates the polygons that <see cref="FillPolygon"/> and <see cref="FillRectangle"/> (primitives context) fill: it keeps its buffers, so a fill allocates nothing
+    /// once they have grown to the biggest polygon seen (MGUI ADR-0038). It gives the triangles that <c>PrimitiveDrawing.DrawSolidPolygon</c> would give.</summary>
+    private readonly PolygonTriangulator _fillTriangulator = new();
 
-    /// <summary>Indexed by a number of vertices: the array that <see cref="FillPolygon"/> hands to <c>PrimitiveDrawing.DrawSolidPolygon</c> for a list of that
-    /// length. Safe to share between the polygons of a batch because <c>DrawSolidPolygon</c> reads the array during the call, and neither modifies it nor
-    /// keeps it (<c>FillPolygonGpuTests</c> checks it on the GPU).</summary>
-    private Vector2[][] _polygonBuffers;
+    /// <summary>The four vertices of the rectangle that <see cref="FillRectangle"/> fills in the primitives context. Rewritten at each call, read during it.</summary>
+    private readonly Vector2[] _rectangleVertices = new Vector2[4];
+
+    /// <summary>The array of <see cref="FillPolygonPrimitive"/> for a polygon of two vertices that does not come as an array (<c>DrawSolidPolygon</c> takes an array).</summary>
+    private readonly Vector2[] _twoVertices = new Vector2[2];
 
     public void FillPolygon(Vector2 origin, IEnumerable<Vector2> vertices, Color color)
     {
-        Vector2[] polygon = GetPolygonVertices(vertices);
+        IReadOnlyList<Vector2> polygon = GetPolygonVertices(vertices);
 
         _owner.EnsureDrawContext(DrawContext.Primitives);
-        _owner.PrimitiveDrawing.DrawSolidPolygon(origin, polygon, color, false);
+        FillPolygonPrimitive(origin, polygon, color);
     }
 
-    /// <summary>An array is returned as it is, a list is copied to the buffer kept for its length, and only another enumeration is copied to a new array.</summary>
-    private Vector2[] GetPolygonVertices(IEnumerable<Vector2> vertices)
+    /// <summary>An array or a list is returned as it is, and only another enumeration is copied to a new array.</summary>
+    private static IReadOnlyList<Vector2> GetPolygonVertices(IEnumerable<Vector2> vertices)
     {
-        if (vertices is Vector2[] vertexArray)
-        {
-            if (vertexArray.Length == 0)
-            {
-                throw new ArgumentException(null, nameof(vertices));
-            }
-
-            return vertexArray;
-        }
-
         if (vertices is IReadOnlyList<Vector2> vertexList)
         {
-            int count = vertexList.Count;
-            if (count == 0)
+            if (vertexList.Count == 0)
             {
                 throw new ArgumentException(null, nameof(vertices));
             }
 
-            Vector2[] buffer;
-            if (count > MaxKeptPolygonVertices)
-            {
-                buffer = new Vector2[count];
-            }
-            else
-            {
-                _polygonBuffers ??= new Vector2[MaxKeptPolygonVertices + 1][];
-                buffer = _polygonBuffers[count] ??= new Vector2[count];
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                buffer[i] = vertexList[i];
-            }
-
-            return buffer;
+            return vertexList;
         }
 
         if (vertices == null || !vertices.Any())
@@ -380,6 +353,49 @@ internal sealed class CasaLegacyShapeRenderer2D : IShapeRenderer2D
         }
 
         return vertices.ToArray();
+    }
+
+    /// <summary>What <c>PrimitiveDrawing.DrawSolidPolygon(origin, polygon, color, false)</c> of MonoGame.Extended does, without its allocations (it triangulates with a
+    /// <c>Triangulator</c> that allocates at each call): the same guard when the batch is not ready, the same outline for a polygon of two vertices (it is still delegated to
+    /// <c>DrawSolidPolygon</c>), otherwise the same triangles, each vertex added to the batch as <c>DrawSolidPolygon</c> adds it (<c>FillPolygonGpuTests</c> reads the batch to prove it).</summary>
+    private void FillPolygonPrimitive(Vector2 origin, IReadOnlyList<Vector2> polygon, Color color)
+    {
+        PrimitiveBatch batch = _owner.PrimitiveBatchInternal;
+        if (!batch.IsReady())
+        {
+            throw new InvalidOperationException("BeginCustomDraw must be called before drawing anything.");
+        }
+
+        if (polygon is Vector2[] polygonArray)
+        {
+            if (polygonArray.Length == 2)
+            {
+                _owner.PrimitiveDrawing.DrawSolidPolygon(origin, polygonArray, color, false);
+                return;
+            }
+
+            _fillTriangulator.Triangulate(polygonArray);
+        }
+        else
+        {
+            if (polygon.Count == 2)
+            {
+                _twoVertices[0] = polygon[0];
+                _twoVertices[1] = polygon[1];
+                _owner.PrimitiveDrawing.DrawSolidPolygon(origin, _twoVertices, color, false);
+                return;
+            }
+
+            _fillTriangulator.Triangulate(polygon);
+        }
+
+        ReadOnlySpan<Vector2> orderedVertices = _fillTriangulator.Vertices;
+        ReadOnlySpan<int> indices = _fillTriangulator.Indices;
+        for (int i = 0; i < indices.Length; i++)
+        {
+            Vector2 vertex = orderedVertices[indices[i]];
+            batch.AddVertex(new Vector2(vertex.X + origin.X, vertex.Y + origin.Y), color, PrimitiveType.TriangleList);
+        }
     }
 
     public void StrokeAndFillPoint(Vector2 position, Color strokeColor, Color fillColor, float radius = 3.0f, int strokeThickness = 1, CasaDrawTransaction.PointShape shape = CasaDrawTransaction.PointShape.Circle, DrawContext? preferredContext = null)
