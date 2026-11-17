@@ -535,13 +535,42 @@ chantier ne fait pas est dans « Hors périmètre ».
     structure que celui de MGUI, tests des auteurs verts) ; les états de survol et de thème de T1.5 n'ont pas été
     pilotés (égalité des couleurs lue dans le code) ; aucun contrôle à l'œil.
 
-### 🚧 T2.2 — Clôture
+### ✅ T2.2 — Clôture
 
 - Objectif : tableau final des mesures, docs de MGUI à jour (`rendering-architecture.md`, `controls-architecture.md`),
   ligne de `ai-agent/README.md`, `MGUI.Samples` lancé une fois, validation globale, rapport de fin (`AGENTS.md` §12).
   Le plan passe dans `tasks/archive/` après acceptation par l'auteur.
 - Validation : section « Validation globale ».
 - Commit : `docs(ai-agent): close the end of the MGUI drawing zero allocation`
+- Validation (2026-11-17), sur moteur `c23f9bcd` et MGUI `a498bd81` : trois solutions 0 erreur ; `MGUI.Tests` 5284 verts,
+  `CasaEngine.Tests` 6135 verts, aucun sauté, tests GPU compris (suites rejouées par le vérificateur de T2.1 sur ce même
+  code ; depuis, seuls ce plan, l'index et un fichier de doc de MGUI ont changé). `MGUI.Samples` lancé une fois : démarre
+  et tient 20 secondes sans sortie d'erreur. Le smoke à l'œil reste à faire par l'auteur. Rien n'est poussé ni fusionné.
+- Docs de MGUI : `rendering-architecture.md` (contour d'un polygone, géométrie de clip des formes), 
+  `controls-architecture.md` (formes, notation, bordure en surbrillance, onglets de dock, et les deux règles qui en
+  découlent). Pas d'ADR : aucune API publique ni décision d'architecture ne change.
+
+  Tableau final :
+
+  | Cas | Avant | Après |
+  |---|---|---|
+  | Contour d'un polygone, par appel (deux backends) | 48 à 632 | 0 |
+  | `MGEllipse`, géométrie de clip, par image | 4392 à 8784 | 0 |
+  | `MGPolygon` et `MGPathLite`, géométrie de clip, par image | 1136 à 2304 | 0 |
+  | Triangle de `MGRatingControl`, par image | 1712 à 4096 | 0 |
+  | `MGHighlightBorderBrush`, `Progress`, par dessin | 488 à 2472 | 0 |
+  | `MGHighlightBorderBrush`, `Scan`, par dessin | 240 à 448 | 0 |
+  | Glissement d'onglet sur le bord haut de l'hôte, par image | 32 | 0 |
+
+- Tâches : 8 ✅. Chaque tâche de code a été contestée par trois relecteurs indépendants en lecture seule ; T1.2 a été
+  réfutée une fois (sens d'enroulement testé une fois au lieu de deux), corrigée et recontrôlée. O1 tranché par D2.
+- Écart avec une proposition approuvée, à connaître de l'auteur : P4 disait « collections gardées par l'instance » ; les
+  tampons de `MGHighlightBorderBrush` sont gardés par thread (raisons et jugement du vérificateur sous T1.4 et T2.1).
+- Restes, hors de ce plan : la frappe dans `MGTextBox` (P6) ; `CasaAposShapeRenderer2D.StrokePolygon`, non mesuré ; une
+  forme déplacée ou redimensionnée à chaque image reconstruit sa géométrie de clip (264 à 760 octets par image) ;
+  `MGEllipse` ne recalcule pas ses sommets quand `StrokeThickness` change (préexistant) ;
+  `MGDockTabGroup.SyncHeaderVisuals` crée un pinceau à chaque appel (aucun montage ne le montre par image) ; les 96 à
+  128 octets vus en T5.7 du plan archivé, jamais reproduits ; avis P4 des relectures.
 
 ---
 
