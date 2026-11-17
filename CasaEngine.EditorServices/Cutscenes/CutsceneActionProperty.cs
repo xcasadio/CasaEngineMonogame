@@ -97,7 +97,14 @@ public sealed class CutsceneActionProperty
     public void SetValue(CutsceneActionData action, object? value)
     {
         ArgumentNullException.ThrowIfNull(action);
+        ValidateValue(value);
+        _set(action, value);
+    }
 
+    /// <summary>Checks that a value can be written to the property.</summary>
+    /// <exception cref="ArgumentException">The value does not have the type of the property.</exception>
+    public void ValidateValue(object? value)
+    {
         if (value == null)
         {
             if (!IsNullable && Kind != CutsceneActionPropertyKind.String)
@@ -116,8 +123,6 @@ public sealed class CutsceneActionProperty
         {
             throw new ArgumentException($"The property '{Key}' expects a {ValueType.Name}, not {value.GetType().Name}.", nameof(value));
         }
-
-        _set(action, value);
     }
 
     /// <summary>The text of the current value.</summary>

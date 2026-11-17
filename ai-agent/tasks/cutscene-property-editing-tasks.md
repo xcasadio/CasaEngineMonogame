@@ -134,7 +134,9 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 - Validation : tests unitaires. Le test énumère toutes les constantes de `CutsceneActionTypes` par réflexion et échoue si un type n'a ni propriété ni exemption nommée. Pour chaque propriété de chaque type, `FadeScreen` et les quatre actions audio comprises : écriture d'une valeur valide, relue égale ; texte de la valeur relu par `TryParse` égal à la valeur (aller-retour sans perte, avec un nombre comme `0.1` et `1234.5678`) ; refus sans changement d'un texte invalide pour toute propriété qui n'est pas une chaîne. Refus de `NaN`, `Infinity` et `1e40` pour un nombre, de `5` pour une énumération, de `a,,b` pour une liste. La valeur lue d'une liste ne change pas quand on écrit ensuite la propriété.
 - Commit : `feat(editor-services): expose editable properties of cutscene actions`
 
-### ⏳ T1.2 — Commande d'historique d'une modification
+### ✅ T1.2 — Commande d'historique d'une modification
+
+> Validation (2026-11-17) : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` 5821 réussis sur 5821 (5809 avant, 12 ajoutés par `SetCutsceneActionPropertyCommandTests`). Les cas listés (erreur de format, `MoveTo` sans `entity`, `target` vide, `ShowSprite` sans `color`, `inputs` par `EditorHistoryStack`) rendent le même JSON de `Save` et les mêmes messages de `Validate()` après annulation. Écrit en plus : `CutsceneLoadLoss` (record d'une perte de chargement) et `CutsceneActionProperty.ValidateValue`. Les mutateurs de pertes de la session sont `internal`.
 
 - Objectif : une session d'édition qui porte l'asset et ses pertes de chargement, et une commande `IEditorCommand` qui applique une modification de propriété et sait l'annuler exactement.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneEditSession.cs` (créé), `CasaEngine.EditorServices/Cutscenes/SetCutsceneActionPropertyCommand.cs` (créé), `CasaEngine.Tests/EditorServices/Cutscenes/SetCutsceneActionPropertyCommandTests.cs` (créé).
