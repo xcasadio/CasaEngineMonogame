@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Framework.Audio.Output.OpenAl;
@@ -10,10 +11,13 @@ namespace CasaEngine.Framework.Audio.Output.OpenAl;
 /// thread only (ALC_EXT_thread_local_context), so it never touches MonoGame's process-global context.
 /// </summary>
 /// <remarks>
-/// The thread opens the device, plays through one source with direct channels (no spatialization) and keeps
-/// <see cref="BufferCount"/> buffers of <see cref="BufferFrames"/> frames queued. The loop is a hot path: it
-/// allocates nothing and takes no lock. No exception leaves the thread: it is logged once and the output
-/// becomes unavailable.
+/// The thread opens the device and plays through one source with direct channels (no spatialization). Two modes
+/// (ADR-0094). With AL_SOFT_callback_buffer, the source plays one callback buffer: OpenAL Soft pulls the mix from
+/// <see cref="OpenAlCallbackFeeder"/> when it needs it, nothing is queued (<see cref="BufferCount"/> is 0) and the
+/// thread only watches the latency window, the device connection and the render failure. Without the extension
+/// (or when binding it fails, with a warning), the thread keeps <see cref="BufferCount"/> buffers of
+/// <see cref="BufferFrames"/> frames queued (ADR-0055). The loops are hot paths: they allocate nothing and take
+/// no lock. No exception leaves the thread: it is logged once and the output becomes unavailable.
 /// </remarks>
 internal sealed class OpenAlAudioOutput : IAudioOutput
 {
@@ -36,6 +40,11 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     private bool _disposed;
     // Bound on the audio thread (null without ALC_SOFT_device_clock) and kept in a field for the life of the output.
     private OpenAlNative.AlcGetInteger64vSoftDelegate _getDeviceLatency;
+    // The native callback of the callback buffer: created once and kept in a field until after alcCloseDevice
+    // (OpenAL Soft's mixing thread holds its function pointer).
+    private readonly OpenAlNative.AlBufferCallbackDelegate _nativeCallback;
+    private volatile OpenAlCallbackFeeder _feeder;
+    private volatile bool _useCallback;
 
     /// <param name="bufferCount">Number of queued buffers (default 4).</param>
     /// <param name="bufferFrames">Frames per buffer; 0 selects 10 ms at the device rate.</param>
@@ -45,6 +54,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         ArgumentOutOfRangeException.ThrowIfNegative(bufferFrames);
         _bufferCount = bufferCount;
         _requestedBufferFrames = bufferFrames;
+        _nativeCallback = OnNativeCallback;
     }
 
     public bool IsAvailable => _available;
@@ -53,9 +63,10 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
 
     public int BufferFrames => Volatile.Read(ref _bufferFrames);
 
-    public int BufferCount => _bufferCount;
+    // 0 in callback mode (nothing is queued), the queue size otherwise.
+    public int BufferCount => _useCallback ? 0 : _bufferCount;
 
-    public int UnderrunCount => Volatile.Read(ref _underrunCount);
+    public int UnderrunCount => _feeder?.UnderrunCount ?? Volatile.Read(ref _underrunCount);
 
     public bool TryOpen()
     {
@@ -153,7 +164,14 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
                 return;
             }
 
-            RunLoop(device, source, buffers!, callback);
+            if (_useCallback)
+            {
+                RunCallbackLoop(device, source, callback);
+            }
+            else
+            {
+                RunLoop(device, source, buffers!, callback);
+            }
         }
         catch (Exception exception)
         {
@@ -163,6 +181,8 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         {
             _available = false;
             Cleanup(device, context, contextIsCurrent, source, sourceCreated, buffers);
+            // alcCloseDevice stopped OpenAL Soft's mixing thread: the native callback can be released now.
+            GC.KeepAlive(_nativeCallback);
             _opened.Set();
         }
     }
@@ -224,19 +244,181 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
         OpenAlNative.AlGenSources(1, out source);
         sourceCreated = true;
         OpenAlNative.AlSourcei(source, OpenAlNative.AlDirectChannelsSoft, OpenAlNative.AlTrue);
-        buffers = new uint[_bufferCount];
-        OpenAlNative.AlGenBuffers(buffers.Length, buffers);
         var alError = OpenAlNative.AlGetError();
         if (alError != OpenAlNative.AlNoError)
         {
-            failure = $"OpenAL error 0x{alError:X} while creating the source and buffers.";
+            failure = $"OpenAL error 0x{alError:X} while creating the source.";
             return false;
+        }
+
+        if (TryAttachCallbackBuffer(source, sampleRate, out var callbackBuffer, out var callbackFailure))
+        {
+            buffers = new[] { callbackBuffer };
+            _useCallback = true;
+        }
+        else
+        {
+            Logs.WriteWarning($"OpenAL audio output: the callback buffer is not used ({callbackFailure}); the output falls back to the buffer queue.");
+            buffers = new uint[_bufferCount];
+            OpenAlNative.AlGenBuffers(buffers.Length, buffers);
+            alError = OpenAlNative.AlGetError();
+            if (alError != OpenAlNative.AlNoError)
+            {
+                failure = $"OpenAL error 0x{alError:X} while creating the buffers.";
+                return false;
+            }
         }
 
         Volatile.Write(ref _bufferFrames, _requestedBufferFrames > 0 ? _requestedBufferFrames : Math.Max(1, sampleRate / 100));
         Volatile.Write(ref _sampleRate, sampleRate);
         failure = string.Empty;
         return true;
+    }
+
+    /// <summary>
+    /// Creates the callback buffer and attaches it to <paramref name="source"/> (AL_BUFFER). On any failure it
+    /// removes what it made and returns false with the reason, so the caller can use the queue.
+    /// </summary>
+    private bool TryAttachCallbackBuffer(uint source, int sampleRate, out uint buffer, out string failure)
+    {
+        buffer = 0;
+        if (OpenAlNative.AlIsExtensionPresent(OpenAlNative.AlSoftCallbackBuffer) == 0)
+        {
+            failure = $"missing OpenAL extension {OpenAlNative.AlSoftCallbackBuffer}";
+            return false;
+        }
+
+        var bindCallback = OpenAlNative.BindAlBufferCallbackSoft();
+        if (bindCallback == null)
+        {
+            failure = "alGetProcAddress returned no alBufferCallbackSOFT";
+            return false;
+        }
+
+        var created = new uint[1];
+        OpenAlNative.AlGetError();
+        OpenAlNative.AlGenBuffers(1, created);
+        var alError = OpenAlNative.AlGetError();
+        if (alError != OpenAlNative.AlNoError)
+        {
+            failure = $"OpenAL error 0x{alError:X} while creating the buffer";
+            return false;
+        }
+
+        var nativeCallback = Marshal.GetFunctionPointerForDelegate(_nativeCallback);
+        bindCallback(created[0], OpenAlNative.AlFormatStereoFloat32, sampleRate, nativeCallback, IntPtr.Zero);
+        alError = OpenAlNative.AlGetError();
+        if (alError == OpenAlNative.AlNoError)
+        {
+            OpenAlNative.AlSourcei(source, OpenAlNative.AlBuffer, (int)created[0]);
+            alError = OpenAlNative.AlGetError();
+        }
+
+        if (alError != OpenAlNative.AlNoError)
+        {
+            failure = $"OpenAL error 0x{alError:X} while setting the callback buffer";
+            OpenAlNative.AlSourcei(source, OpenAlNative.AlBuffer, 0);
+            OpenAlNative.AlDeleteBuffers(1, created);
+            OpenAlNative.AlGetError();
+            return false;
+        }
+
+        buffer = created[0];
+        failure = string.Empty;
+        return true;
+    }
+
+    // Called by OpenAL Soft's mixing thread through _nativeCallback. Nothing may leave it: the feeder catches
+    // everything. The feeder is set before the source plays, so a missing one cannot happen; it would end the voice.
+    private int OnNativeCallback(IntPtr userPtr, IntPtr sampleData, int numBytes)
+    {
+        var feeder = _feeder;
+        return feeder == null ? 0 : feeder.Fill(sampleData, numBytes);
+    }
+
+    private void RunCallbackLoop(IntPtr device, uint source, AudioRenderCallback callback)
+    {
+        var sampleRate = Volatile.Read(ref _sampleRate);
+        var bufferFrames = Volatile.Read(ref _bufferFrames);
+        var feeder = new OpenAlCallbackFeeder(callback, sampleRate, bufferFrames, Stopwatch.Frequency, Stopwatch.GetTimestamp);
+        var sleepMilliseconds = Math.Max(1, (int)(bufferFrames * 1000L / sampleRate / 4));
+        var latencyWindow = new OpenAlLatencyWindow(Stopwatch.Frequency);
+        var windowReported = false;
+        var deviceLost = false;
+
+        _feeder = feeder;
+        latencyWindow.Start(Stopwatch.GetTimestamp());
+        OpenAlNative.AlSourcePlay(source);
+
+        while (!_stopRequested)
+        {
+            var failure = feeder.Failure;
+            if (failure != null)
+            {
+                // Same end as any other failure of this thread: logged by ThreadMain, the output becomes unavailable.
+                throw new InvalidOperationException("The audio render callback threw.", failure);
+            }
+
+            if (!windowReported)
+            {
+                windowReported = ObserveCallbackWindow(device, latencyWindow, feeder, sampleRate);
+            }
+
+            if (!deviceLost)
+            {
+                OpenAlNative.AlcGetIntegerv(device, OpenAlNative.AlcConnected, 1, out var connected);
+                if (connected == 0)
+                {
+                    deviceLost = true;
+                    Logs.WriteWarning("OpenAL audio output: the audio device was lost; the mixer is now rendered at the device rate without output.");
+                    feeder.StartDrain(Stopwatch.GetTimestamp());
+                }
+            }
+
+            if (deviceLost)
+            {
+                feeder.Drain();
+            }
+
+            Thread.Sleep(sleepMilliseconds);
+        }
+    }
+
+    /// <summary>
+    /// One pass of the settling window in callback mode: reads the device latency (no allocation) and feeds the
+    /// window; once it is over, sets the underrun threshold and writes the single log line of the output.
+    /// </summary>
+    /// <returns>True once the line was written.</returns>
+    private bool ObserveCallbackWindow(IntPtr device, OpenAlLatencyWindow window, OpenAlCallbackFeeder feeder, int sampleRate)
+    {
+        if (!window.IsOver)
+        {
+            window.Observe(Stopwatch.GetTimestamp(), ReadDeviceLatency(device));
+        }
+
+        if (!window.IsOver
+            || !feeder.CompleteWindow(window.HasLatency ? window.MaxLatencyNanoseconds : OpenAlLatencyWindow.Unavailable))
+        {
+            return false;
+        }
+
+        Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
+            $"OpenAL audio output: mode=callback, sample rate={sampleRate} Hz, device latency={FormatLatency(window)}, lead=0.0 ms, underrun threshold={feeder.ThresholdMilliseconds:F1} ms."));
+        return true;
+    }
+
+    private long ReadDeviceLatency(IntPtr device)
+    {
+        var latency = OpenAlLatencyWindow.Unavailable;
+        _getDeviceLatency?.Invoke(device, OpenAlNative.AlcDeviceLatencySoft, 1, ref latency);
+        return latency;
+    }
+
+    private static string FormatLatency(OpenAlLatencyWindow window)
+    {
+        return window.HasLatency
+            ? window.MaxLatencyMilliseconds.ToString("F1", CultureInfo.InvariantCulture) + " ms"
+            : "unknown";
     }
 
     private void RunLoop(IntPtr device, uint source, uint[] buffers, AudioRenderCallback callback)
@@ -278,17 +460,12 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
     /// </summary>
     private void ObserveDeviceLatency(IntPtr device, OpenAlLatencyWindow window, int sampleRate, int bufferFrames)
     {
-        var latency = OpenAlLatencyWindow.Unavailable;
-        _getDeviceLatency?.Invoke(device, OpenAlNative.AlcDeviceLatencySoft, 1, ref latency);
-
-        if (!window.Observe(Stopwatch.GetTimestamp(), latency))
+        if (!window.Observe(Stopwatch.GetTimestamp(), ReadDeviceLatency(device)))
         {
             return;
         }
 
-        var latencyText = window.HasLatency
-            ? window.MaxLatencyMilliseconds.ToString("F1", CultureInfo.InvariantCulture) + " ms"
-            : "unknown";
+        var latencyText = FormatLatency(window);
         var leadMilliseconds = (double)_bufferCount * bufferFrames * 1000.0 / sampleRate;
         Logs.WriteInfo(string.Create(CultureInfo.InvariantCulture,
             $"OpenAL audio output: mode=queue, sample rate={sampleRate} Hz, device latency={latencyText}, lead={leadMilliseconds:F1} ms."));

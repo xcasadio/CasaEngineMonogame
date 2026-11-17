@@ -135,7 +135,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Commit : `feat(audio): ask OpenAL Soft for a small device buffer and log the output latency`
 - Note de validation (2026-11-17) : exécuté par un sous-agent `executor`, diff relu en session principale. `alsoft.ini` déclaré par `<None Update=… Link="alsoft.ini" CopyToOutputDirectory="PreserveNewest" />` dans `CasaEngine.csproj` (le SDK le prend déjà comme `None`) : il arrive à la racine des sorties du Launcher, de l'éditeur, des démos et des tests sans toucher à leurs projets. `OpenAlLatencyWindow` (sans code natif) garde la plus grande lecture des 500 ms ; `alcGetInteger64vSOFT` est lié par `alcGetProcAddress` et un délégué gardé en champ, sans `unsafe`. Builds : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`, 0 erreur. Tests : 5656 sur 5656 (9 nouveaux). Harnais de stress, 60 s, PC de l'auteur : `OpenAL audio output: mode=queue, sample rate=48000 Hz, device latency=22.0 ms, lead=40.0 ms.`, puis `Audio stress done: backend=SoftwareAudioBackend seconds=60 underruns=0 gc=119`.
 
-### ⏳ T1.2 — Mix lu par le rappel d'OpenAL Soft
+### ⚠️ T1.2 — Mix lu par le rappel d'OpenAL Soft
 
 - Objectif : plus aucune avance entre le mixeur et OpenAL Soft (P2 à P6).
 - Fichiers : `CasaEngine/Framework/Audio/Output/OpenAl/OpenAlNative.cs`, `OpenAlAudioOutput.cs`, une nouvelle classe testable pour le rappel et la vidange (nom au choix, dans le même dossier), `CasaEngine/Framework/Audio/Output/IAudioOutput.cs` (doc de `BufferCount` et `UnderrunCount`), `CasaEngine/Framework/Audio/Backends/SoftwareAudioBackend.cs` si `LeadMilliseconds` doit changer, tests dans `CasaEngine.Tests/Audio/Output/` et `CasaEngine.Tests/Audio/`. `CasaEngine.csproj` ne change pas.
@@ -150,6 +150,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Validation : builds et tests. `git diff` de la tâche sans `unsafe` ni `AllowUnsafeBlocks`. Harnais de stress, 60 s : ligne de P5 « rappel », avance 0 ms, seuil écrit, `underruns=0`. Le son du harnais s'entend sans coupure (l'auteur, s'il est là). Essai manuel avec l'auteur : couper ou désactiver le périphérique de sortie pendant le harnais ; le jeu continue et le journal a une ligne sur la perte. Sans l'auteur, la tâche reste 🧪 pour cet essai.
 - Stop : des appels en retard sous le harnais → ⚠️ Blocked, O1. Un appel du jeu qui dépasse 5 ms au test de coupure → ⚠️ Blocked. Extension absente sur le PC de l'auteur (repli en file) → ⚠️ Blocked, question à l'auteur.
 - Commit : `feat(audio): let OpenAL Soft pull the mix through a callback buffer`
+- Note de validation (2026-11-17) : exécuté par un sous-agent `executor`, diff relu en session principale. `OpenAlCallbackFeeder` (sans code natif, horloge injectée) porte le rappel, le seuil et la vidange ; `OpenAlAudioOutput` le relie à OpenAL Soft par des délégués gardés en champ, sans `unsafe`. Builds : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`, 0 erreur. Tests : 5674 sur 5674 (18 nouveaux, dont la perte du périphérique : 3 × 4096 commandes après la coupure, chacune sous 5 ms ; sans la vidange, le test reste bloqué). Harnais de stress, 60 s, PC de l'auteur, ligne `OpenAL audio output: mode=callback, sample rate=48000 Hz, device latency=22.0 ms, lead=0.0 ms, underrun threshold=22.0 ms.` : passage 1 `underruns=1 gc=119`, la coupure estimée tombant dans la première seconde (`elapsed=1 underruns=1`, puis plus rien) ; passage 2 `underruns=0 gc=119`. Budget des passages épuisé pour ce build. **⚠️ par la condition d'arrêt : O1 posé à l'auteur.** Restent aussi l'essai manuel de la perte du périphérique avec l'auteur, et une limite à écrire en T1.3 : après une perte du périphérique, la vidange passe au rythme du thread audio (environ 15,6 ms, minuterie Windows), donc un appel du jeu qui trouverait l'anneau plein attendrait jusqu'à ce délai.
 
 ### ⏳ T1.3 — Documentation
 
@@ -183,7 +184,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | Si le harnais compte des appels en retard en mode rappel : agrandir le tampon de Windows (`period_size` plus grand), ou revenir à une file courte relue par une minuterie de 1 ms ? Choix de l'auteur, sur mesures. | T1.2 |
+| O1 | Si le harnais compte des appels en retard en mode rappel : agrandir le tampon de Windows (`period_size` plus grand), ou revenir à une file courte relue par une minuterie de 1 ms ? Choix de l'auteur, sur mesures. **Posé le 2026-11-17** : une seule coupure estimée sur deux passages de 60 s (238 collections forcées), dans la première seconde du premier passage ; aucune en régime établi. | T1.2 |
 | O2 | La latence de Windows et du matériel après le tampon d'OpenAL Soft n'est pas mesurable ici. Elle reste écrite comme inconnue. | T1.3 |
 
 ## Hors périmètre

@@ -22,10 +22,16 @@ internal interface IAudioOutput : IDisposable
     /// <summary>Frames per buffer; valid after a successful <see cref="TryOpen"/>.</summary>
     int BufferFrames { get; }
 
-    /// <summary>Number of buffers kept queued (the lead is BufferCount * BufferFrames frames).</summary>
+    /// <summary>
+    /// Number of buffers kept queued (the lead is BufferCount * BufferFrames frames). 0 when the device pulls the mix
+    /// itself (callback mode of the OpenAL output, ADR-0094): there is no lead.
+    /// </summary>
     int BufferCount { get; }
 
-    /// <summary>Number of times the device ran out of queued audio. Safe to read from any thread.</summary>
+    /// <summary>
+    /// Number of times the device ran out of queued audio. In callback mode it is an estimate: the calls of the device
+    /// further apart than a threshold set after a 500 ms window (ADR-0094). Safe to read from any thread.
+    /// </summary>
     int UnderrunCount { get; }
 
     /// <summary>
