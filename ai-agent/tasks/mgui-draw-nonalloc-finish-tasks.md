@@ -501,14 +501,41 @@ chantier ne fait pas est dans « Hors périmètre ».
 
 ## Phase 2 — Vérification et clôture
 
-### 🚧 T2.1 — Vérification indépendante
+### ✅ T2.1 — Vérification indépendante
 
 - Objectif : un `verifier` neuf (opus) confirme ou réfute T1.1 à T1.5 : rendu identique (sommets du lot, journaux,
   pixels), zéros annoncés, aucune régression des deux suites. Une tâche restée en ⚠️ est exclue et nommée.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(ui): record the verification of the end of the MGUI drawing zero allocation` (moteur, ce plan).
+- Validation (2026-11-17) : `verifier` neuf (opus), verdict **CONFIRMED** sur T1.1 à T1.5, aucun constat P0 à P3. Aucun
+  changement de code.
+  - Preuves figées rejouées sur l'ancien code (ancien arbre de MGUI `98bf9edf` extrait hors du dépôt, fichiers de test
+    neufs posés dessus) : 1128 tests sur 1135 passent ; les 7 échecs sont exactement les tests de réutilisation de
+    T1.2, attendus. Les journaux et empreintes figés de T1.2, T1.3 et T1.4 viennent donc bien de l'ancien code. Le
+    test du dock de T1.5 n'échoue sur l'ancien arbre que pour le bord haut (16 000 octets sur 500 images).
+  - Sondes différentielles du vérificateur, sur ses propres entrées, ancien arbre contre nouvel arbre, fichiers
+    comparés à l'octet : T1.1, 121 056 appels (2 522 polygones dont 1 et 2 sommets, aires presque nulles, doublons,
+    coordonnées jusqu'à ±3e38, NaN et infini ; sommets du lot de primitives et éléments du lot de sprites ; exceptions
+    comprises), identiques, et 0 octet sur 612 configurations ; T1.2, 4 000 dessins et 5 242 clips à géométrie sur 400
+    pas aléatoires par scène, identiques, aucune définition périmée ; T1.3, 60 bureaux, identiques ; T1.4, 20 000
+    dessins aléatoires, dont 4 018 avec un pinceau de fond qui est lui-même un pinceau de surbrillance, un pinceau
+    figé et sa copie en alternance, identiques, exceptions comprises.
+  - Tampons par thread de T1.4 : jugés sûrs pour toutes les suites examinées (un pinceau pour deux éléments, copie et
+    original, pinceau figé partagé, pinceau de fond de même type, réentrance) : le pinceau de fond est dessiné avant
+    tout usage des tampons, et rien d'appelé pendant leur usage ne redessine avec ce type de pinceau.
+  - T1.2 : aucun code des deux dépôts n'écrit en place dans un tableau de sommets source. T1.5 : personne ne dépend de
+    la notification `Fill` du liseré.
+  - Suites rejouées : trois solutions 0 erreur ; `MGUI.Tests` 5284 verts, `CasaEngine.Tests` 6135 verts, aucun sauté,
+    tests GPU compris.
+  - Avis P4 reportés : le pinceau gardé du liseré d'onglet est modifiable (son `Color` est public ; aucun code ne
+    l'écrit) ; un `IUIDrawTransaction` tiers qui redessinerait un pinceau de surbrillance depuis `FillPolygon` ou
+    `FillRectangle` lirait des tampons en cours d'usage (impossible avec les backends livrés) ; plus les avis déjà
+    notés sous T1.1 et T1.2.
+  - Non vérifié : le backend du moteur n'a pas été sondé avec les entrées du vérificateur pour T1.1 (code de même
+    structure que celui de MGUI, tests des auteurs verts) ; les états de survol et de thème de T1.5 n'ont pas été
+    pilotés (égalité des couleurs lue dans le code) ; aucun contrôle à l'œil.
 
-### ⏳ T2.2 — Clôture
+### 🚧 T2.2 — Clôture
 
 - Objectif : tableau final des mesures, docs de MGUI à jour (`rendering-architecture.md`, `controls-architecture.md`),
   ligne de `ai-agent/README.md`, `MGUI.Samples` lancé une fois, validation globale, rapport de fin (`AGENTS.md` §12).
