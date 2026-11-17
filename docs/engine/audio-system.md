@@ -46,18 +46,20 @@ les fades et le streaming testables, un périphérique OpenAL ne pouvant pas êt
 
 ## 1 bis. Mixeur logiciel du moteur (ADR-0055)
 
-Le moteur mixe lui-même son audio, en C#, sur un thread audio dédié qui calcule de l'avance ; une
-sortie native minimale envoie le flux à la carte. C'est la première tranche (S1) du programme
+Le moteur mixe lui-même son audio, en C# ; une sortie native minimale envoie le flux à la carte.
+Depuis l'ADR-0094, c'est OpenAL Soft qui demande le mix, au moment où il en a besoin : le moteur ne
+garde plus d'avance. C'est la première tranche (S1) du programme
 « audio moderne » ([plan](../../ai-agent/tasks/audio-modern-tasks.md)) : même contrat
 `IAudioBackend`, même API d'`AudioService`, aucun changement côté jeu.
 
 ```text
-thread de jeu                               thread audio « CasaEngine Audio »
-AudioService ─▶ SoftwareAudioBackend         OpenAlAudioOutput (contexte OpenAL propre au thread)
-                 table des voix, états          │ toutes les ~10 ms : buffers consommés
+thread de jeu                               thread de mix d'OpenAL Soft (WASAPI)
+AudioService ─▶ SoftwareAudioBackend         rappel du tampon à rappel, environ toutes les 10 ms
+                 table des voix, états          │ OpenAlCallbackFeeder.Fill
                  │ commandes (file sans verrou)  ▼
-                 └──────────────▶ SoftwareMixer.Render ─▶ 4 buffers float stéréo en file
+                 └──────────────▶ SoftwareMixer.Render ─▶ écrit dans la mémoire d'OpenAL Soft
                  ◀────────────── fins de voix, buffers de streaming consommés
+thread « CasaEngine Audio » : ouverture, fermeture, latence, perte du périphérique
 ```
 
 - **Choix du backend**, une fois au démarrage, dans cet ordre :
@@ -77,8 +79,15 @@ AudioService ─▶ SoftwareAudioBackend         OpenAlAudioOutput (contexte Ope
   propre** périphérique et contexte, rendu courant sur le seul thread audio
   (`ALC_EXT_thread_local_context`), et ne touche jamais le contexte global de MonoGame. Le flux
   est stéréo, en flottant 32 bits, joué sans spatialisation (`AL_SOFT_direct_channels`) au débit
-  du périphérique. Avance par défaut : 4 buffers de 10 ms (40 ms). Avec ce backend, l'audio de
-  MonoGame n'est jamais initialisé.
+  du périphérique. **Mode rappel** (ADR-0094) : avec l'extension `AL_SOFT_callback_buffer`, la
+  source joue un seul tampon à rappel ; OpenAL Soft appelle le mixeur quand il lui faut des
+  échantillons, et rien n'est mis en file (avance de 0 ms). La liaison passe par des délégués
+  gardés en champ, sans code `unsafe`. Sans l'extension, la sortie revient à la file de l'ADR-0055
+  (4 buffers de 10 ms, 40 ms d'avance) et consigne un avertissement. **Tampon du périphérique** :
+  le moteur livre un `alsoft.ini` à côté de chaque exécutable (`period_size = 480`, `periods = 2`),
+  qu'OpenAL Soft lit après `%AppData%\alsoft.ini` et avant le fichier nommé par `ALSOFT_CONF` ;
+  pour un autre réglage, nommer son propre fichier par `ALSOFT_CONF`. Windows accorde la taille
+  finale en mode partagé. Avec ce backend, l'audio de MonoGame n'est jamais initialisé.
 - **Sémantique** : volume linéaire [0, 1] ; pitch en octaves (±1), appliqué comme 2^pitch ; boucle
   du clip entier. Un clip mono est panoramiqué à **puissance constante** (−3 dB au centre), un clip
   stéréo par **balance** ; une voix stéréo (musique, `PlayClipStereo`) est restituée exactement,
@@ -701,9 +710,26 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   après un changement de projet dans l'éditeur, les bus du projet précédent restent vivants (remis à
   leur volume d'origine, sans effet ni départ) jusqu'au redémarrage. Les muets ne sont pas dans
   l'asset. Le dessin d'un gros Ogg décode tout le fichier (comme sa lecture, l'Ogg étant résident).
-- **Latence du backend logiciel** : environ 40 ms d'avance plus la mise en tampon du périphérique.
-  Le thread audio se réveille au rythme de la minuterie Windows (environ 15,6 ms). Mesure du
-  2026-10-05 : 0 sous-alimentation sur 60 s de stress (ramasse-miettes forcé toutes les 500 ms).
+- **Latence du backend logiciel** (ADR-0094) : en mode rappel, le tampon du périphérique que
+  Windows accorde, plus l'attente du prochain appel d'OpenAL Soft (environ 10 ms). Mesure du
+  2026-11-17 sur le PC de l'auteur, à 48 kHz : 22 ms de tampon (60 ms sans le `alsoft.ini` du
+  moteur), donc environ 22 à 32 ms entre la demande d'un son et sa sortie d'OpenAL Soft. La
+  latence de Windows et du matériel après OpenAL Soft n'est pas mesurée. À la fin d'une fenêtre de
+  500 ms après le départ, la sortie consigne une ligne `OpenAL audio output: mode=…, sample rate=…,
+  device latency=…, lead=…` (et le seuil des sous-alimentations en mode rappel).
+- **Sous-alimentations en mode rappel** : une estimation, pas un compte du périphérique. Un appel
+  d'OpenAL Soft qui arrive plus tard que le seuil après le précédent est compté ; le seuil est la
+  plus grande des valeurs entre la plus grande latence du périphérique lue pendant la fenêtre et
+  deux fois la durée de la plus grande demande. Une pause du ramasse-miettes doit tenir dans le
+  tampon du périphérique. Mesure du 2026-11-17, deux passages de 60 s de stress (ramasse-miettes
+  forcé toutes les 500 ms) : 1 coupure estimée dans la première seconde du premier, 0 ensuite ;
+  l'auteur garde le tampon de 22 ms.
+- **Perte du périphérique en mode rappel** : OpenAL Soft n'appelle plus le rappel. Le thread
+  « CasaEngine Audio » lit `ALC_CONNECTED` à chaque passage ; une fois le périphérique perdu, il
+  consigne une ligne et rend lui-même le mixeur au rythme du périphérique, dans un tampon jeté :
+  les commandes du jeu sont vidées, les voix avancent et finissent, la sortie reste disponible.
+  Pas de réouverture. Ce thread se réveille au rythme de la minuterie Windows (environ 15,6 ms) :
+  un appel du jeu qui trouverait l'anneau de commandes plein attendrait jusqu'à ce délai.
 - **Pas de persistance des volumes utilisateur.** Les réglages de bus ne sont pas sauvegardés.
 - **La sortie vers la carte son n'est pas couverte par les tests automatiques.** Le mixeur logiciel
   l'est, à l'échantillon près, hors ligne ; la sortie OpenAL passe par le mode stress de la démo.

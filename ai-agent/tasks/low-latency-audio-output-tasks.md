@@ -152,13 +152,14 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Commit : `feat(audio): let OpenAL Soft pull the mix through a callback buffer`
 - Note de validation (2026-11-17) : exécuté par un sous-agent `executor`, diff relu en session principale. `OpenAlCallbackFeeder` (sans code natif, horloge injectée) porte le rappel, le seuil et la vidange ; `OpenAlAudioOutput` le relie à OpenAL Soft par des délégués gardés en champ, sans `unsafe`. Builds : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln`, 0 erreur. Tests : 5674 sur 5674 (18 nouveaux, dont la perte du périphérique : 3 × 4096 commandes après la coupure, chacune sous 5 ms ; sans la vidange, le test reste bloqué). Harnais de stress, 60 s, PC de l'auteur, ligne `OpenAL audio output: mode=callback, sample rate=48000 Hz, device latency=22.0 ms, lead=0.0 ms, underrun threshold=22.0 ms.` : passage 1 `underruns=1 gc=119`, la coupure estimée tombant dans la première seconde (`elapsed=1 underruns=1`, puis plus rien) ; passage 2 `underruns=0 gc=119`. Budget des passages épuisé pour ce build. **⚠️ par la condition d'arrêt : O1 posé à l'auteur.** Réponse de l'auteur le 2026-11-17 : « Garder 22 ms ». La tâche passe en 🧪 : seul manque l'essai manuel de la perte du périphérique. Restent aussi l'essai manuel de la perte du périphérique avec l'auteur, et une limite à écrire en T1.3 : après une perte du périphérique, la vidange passe au rythme du thread audio (environ 15,6 ms, minuterie Windows), donc un appel du jeu qui trouverait l'anneau plein attendrait jusqu'à ce délai.
 
-### ⏳ T1.3 — Documentation
+### ✅ T1.3 — Documentation
 
 - Objectif : la doc dit la nouvelle latence et ses limites.
 - Fichiers : `docs/engine/audio-system.md` (section « Latence du backend logiciel », `:704-709`), et la doc de `IAudioOutput`.
 - Étapes : remplacer les 40 ms et le réveil de 15,6 ms par le mode rappel, le tampon accordé par Windows, le fichier `alsoft.ini` (comment le changer : `ALSOFT_CONF`), l'estimation des sous-alimentations (P4) et la mesure du harnais.
 - Validation : relecture ; D2.
 - Commit : `docs(audio): describe the low-latency OpenAL output`
+- Note de validation (2026-11-17) : `docs/engine/audio-system.md` §1 bis (texte, schéma, sortie) et limites (latence, sous-alimentations estimées, perte du périphérique, attente possible jusqu'au réveil du thread après une perte). La doc de `IAudioOutput` a été mise à jour en T1.2. D2 : aucune occurrence d'un nom de jeu (`rg`).
 
 ### ⏳ T1.4 — Vérification
 
