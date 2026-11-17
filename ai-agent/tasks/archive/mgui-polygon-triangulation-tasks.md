@@ -7,6 +7,10 @@ L'auteur a demandé le 2026-11-17 : « Est-ce un gros chantier de retirer `DrawS
 l'estimation de l'agent (trois tâches : triangulation propre, branchement des deux backends, vérification) :
 « Oui, écris le plan ». Les arbitrages de l'agent sont les points P1 → P6, à valider à l'approbation du plan.
 
+**[ARCHIVE] Terminé le 2026-11-17.** Smoke à l'œil validé par l'auteur (« smoke OK »). Branches
+`chantier/mgui-polygon-triangulation` fusionnées en avance rapide le 2026-11-17 à la demande de l'auteur dans `develop`
+(MGUI) et `main` (moteur), non poussées.
+
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
 > **Quand écrire un plan** : dès que le travail demande plus d'un commit. En dessous, exécution directe avec le rapport de fin de tâche d'`AGENTS.md`.
