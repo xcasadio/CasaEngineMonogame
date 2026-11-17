@@ -71,3 +71,21 @@ Arrêts (tâche en ⚠️ Blocked, question notée) :
 ## Points ouverts
 
 - O1 : remontée dans `main` et push, avec les deux branches sur lesquelles celle-ci repose : décision de l'auteur.
+
+---
+
+## Reprise demandée par l'auteur (2026-11-17)
+
+Réponse à O12 du plan du jeu : « Reprendre la correction ». Nouvelle passe, hors du budget de T1.
+
+### ⏳ T2 — Dénominateur sans produit vectoriel
+
+- Décision D3 : `d = (1 - noH) * (1 + noH) + noH * noH * alpha2`, avec `noH = saturate(dot(N, H))` déjà calculé par l'appelant. Côté dos, `noH` vaut 0 et `d` vaut 1, comme avant `6ead47308`. Près du reflet, `1 - noH` est exact en flottant (lemme de Sterbenz pour `noH` entre 0,5 et 1) : la soustraction qui annulait les chiffres dans `noH^2 * (alpha2 - 1) + 1` disparaît. La forme coûte moins d'instructions que celle d'aujourd'hui (plus de produit vectoriel ni de `dot` en plus), ce qui teste aussi l'hypothèse de la limite d'instructions de T1.
+- Fichiers : ceux de T1 ; `PbrDistributionGgx` garde sa signature (les arguments `normal` et `halfVector` restent, inutilisés ou retirés avec leurs trois appels si le compilateur l'exige ; tout retrait est noté).
+- Validation :
+  - les deux solutions à 0 erreur ; tests 6391, seuls les 8 échecs connus ;
+  - déterminisme, la raison de `6ead47308` : `pbrdemo.sh` lancé trois fois dans chacune des trois variantes de T4.1 du plan du jeu (par défaut, `CASAENGINE_DEMO_COLOR_PIPELINE=Legacy`, `CASAENGINE_PBR_DEMO_CLEARCOAT=1`) donne trois empreintes égales par variante ; les nouvelles empreintes sont notées, et comparées à celles de T4.1 (`2d029da5659f2a7e`, `580dca11e3f9c87e`, `5d5850be6d2181e4`) ;
+  - jeu : validation globale de ce plan (pixels blancs de `Beginner-start` et `Expert-start` au niveau d'avant le PBR, à 10 % près ou en dessous), sur l'arbre de travail, puis pointeur avancé par un commit du jeu.
+- Budget : une passe d'implémentation et une de correction.
+- Arrêts : ceux de T1 ; et des empreintes de la démo qui diffèrent d'un lancement à l'autre.
+- Commit : `fix(shaders): keep GGX finite when the normal faces away from the half vector`
