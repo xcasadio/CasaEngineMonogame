@@ -226,4 +226,62 @@ public class ReflectionProbeFailedAssetTests : IDisposable
 
         Assert.Empty(logger.Entries);
     }
+
+    [Fact]
+    public void GetOrCreateCubemap_ACubeAlreadyInTheGeneratedCache_AllocatesNothing()
+    {
+        var manager = new AssetContentManager();
+        var view = CreateView(manager);
+        int cubemapSize = PanoramaEnvironmentGenerator.NormalizeCubemapSize(256);
+        Guid generatedId = PanoramaEnvironmentGenerator.CreateGeneratedCubemapAssetId(AssetId, cubemapSize);
+
+        // A cube without a GraphicsDevice: the cache only reads its IsDisposed flag.
+        var cube = (Microsoft.Xna.Framework.Graphics.TextureCube)RuntimeHelpers.GetUninitializedObject(typeof(Microsoft.Xna.Framework.Graphics.TextureCube));
+        GeneratedAssetHandleCache<Microsoft.Xna.Framework.Graphics.TextureCube>.Acquire(manager, generatedId, () => cube, static candidate => candidate.IsDisposed);
+
+        Assert.Same(cube, PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, AssetId, 256));
+
+        // Warm-up, so that the measure does not include the compilation of the method.
+        for (int i = 0; i < 10; i++)
+        {
+            PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, AssetId, 256);
+        }
+
+        object? last = null;
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (int i = 0; i < 1000; i++)
+        {
+            last = PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, AssetId, 256);
+        }
+
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.Same(cube, last);
+        Assert.Equal(0, allocated);
+    }
+
+    [Fact]
+    public void GetOrCreateCubemap_APanoramaAbsentFromTheCatalog_IsNotRetained()
+    {
+        var view = CreateView(new AssetContentManager());
+
+        var logger = StartCapturing();
+        try
+        {
+            Assert.Null(PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, AssetId, 256));
+            Assert.Empty(logger.Entries);
+
+            // Catalogued afterwards, with a file that does not decode: the first miss was not remembered, so it is tried now (and
+            // logged, since it does not decode).
+            AssetCatalog.AddInternal(new AssetInfo(AssetId) { Name = "pano", FileName = "pano.png" });
+            File.WriteAllBytes(Path.Combine(_projectDirectory, "pano.png"), [1, 2, 3, 4, 5, 6, 7, 8]);
+            Assert.Null(PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, AssetId, 256));
+        }
+        finally
+        {
+            Logs.Close();
+        }
+
+        Assert.Single(logger.Entries);
+    }
 }

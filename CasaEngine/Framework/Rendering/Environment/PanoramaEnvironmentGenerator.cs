@@ -48,8 +48,22 @@ internal static class PanoramaEnvironmentGenerator
             return null;
         }
 
+        return BuildCubemap(assetContentManager, panoramaAssetId, generatedAssetId, cubemapSize);
+    }
+
+    // Apart from GetOrCreateCubemap so that the closure of the creation (it captures the manager, the size and the path) is allocated
+    // only when a cube is built, never on the path that returns a cached cube.
+    private static XnaTextureCube BuildCubemap(AssetContentManager assetContentManager, Guid panoramaAssetId, Guid generatedAssetId, int cubemapSize)
+    {
         string panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
-        if (string.IsNullOrWhiteSpace(panoramaPath) || !File.Exists(panoramaPath))
+
+        // No path: the panorama is not in the catalog. Not remembered, it can be catalogued later.
+        if (string.IsNullOrWhiteSpace(panoramaPath))
+        {
+            return null;
+        }
+
+        if (!File.Exists(panoramaPath))
         {
             GeneratedAssetHandleCache<XnaTextureCube>.RememberFailure(assetContentManager, generatedAssetId);
             return null;
