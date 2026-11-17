@@ -2435,12 +2435,14 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         SaveSelectedAnimation2dInspector();
+        SaveSelectedCutsceneInspector();
         SaveDirtyScreenDocuments();
         SaveDirtyMaterialInspectors();
         SaveDirtySpriteInspectors();
         SaveDirtyParticleInspectors();
         SaveDirtyAudioMixers();
         SaveDirtyAnimation2dInspectors();
+        SaveDirtyCutsceneInspectors();
         SaveDirtyEntityAssetEditors();
 
         // The game modes edited from the world inspector are written first: a failed write keeps the world modified.
@@ -2474,6 +2476,27 @@ public class GameEditor : Game, IObservableUpdate
             _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, activeDocumentPanelId));
             UpdateDockPanelTitle(activeDocumentPanelId, GetAnimation2dDocumentTitle(activeDocumentPanelId));
             Logs.WriteInfo($"Animation2D asset saved: {animation2dInspectorPanel.LoadedRelativePath}");
+        }
+        else if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
+    }
+
+    private void SaveSelectedCutsceneInspector()
+    {
+        string activeDocumentPanelId = GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutsceneInspectorPanel)
+            || !cutsceneInspectorPanel.IsDirty)
+        {
+            return;
+        }
+
+        // The panel marks its history context saved, which refreshes the title.
+        if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
         }
         else if (!string.IsNullOrWhiteSpace(errorMessage))
         {
@@ -3004,8 +3027,12 @@ public class GameEditor : Game, IObservableUpdate
 
         if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
         {
+            cutsceneInspectorPanel.DirtyStateChanged -= OnCutsceneInspectorDirtyStateChanged;
+            cutsceneInspectorPanel.Dispose();
             _cutsceneInspectorPanels.Remove(panel.Id);
             _cutsceneInspectorPanelTitles.Remove(panel.Id);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panel.Id));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panel.Id));
             if (ReferenceEquals(_activeCutsceneInspectorPanel, cutsceneInspectorPanel))
             {
                 _activeCutsceneInspectorPanel = null;
@@ -5080,10 +5107,12 @@ public class GameEditor : Game, IObservableUpdate
         if (!_cutsceneInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
             inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow);
+            inspectorPanel.DirtyStateChanged += OnCutsceneInspectorDirtyStateChanged;
             _cutsceneInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
         }
 
+        inspectorPanel.SetHistoryContextId(panelId);
         if (createdPanel)
         {
             inspectorPanel.LoadAsset(cutsceneSession, fullPath);
@@ -5374,6 +5403,18 @@ public class GameEditor : Game, IObservableUpdate
         UpdateDockPanelTitleForAnimation2dInspector(inspectorPanel);
     }
 
+    private void OnCutsceneInspectorDirtyStateChanged(CutsceneAssetInspectorPanel inspectorPanel)
+    {
+        foreach (var pair in _cutsceneInspectorPanels)
+        {
+            if (ReferenceEquals(pair.Value, inspectorPanel))
+            {
+                UpdateDockPanelTitle(pair.Key, GetCutsceneDocumentTitle(pair.Key));
+                return;
+            }
+        }
+    }
+
     private bool TryGetMaterialInspectorPanelId(MaterialAssetInspectorPanel inspectorPanel, out string panelId)
     {
         foreach (var pair in _materialInspectorPanels)
@@ -5589,6 +5630,28 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void SaveDirtyCutsceneInspectors()
+    {
+        foreach (var pair in _cutsceneInspectorPanels)
+        {
+            var cutsceneInspectorPanel = pair.Value;
+            if (!cutsceneInspectorPanel.IsDirty)
+            {
+                continue;
+            }
+
+            // The panel marks its history context saved, which refreshes the title.
+            if (cutsceneInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                Logs.WriteInfo($"Cutscene asset saved: {cutsceneInspectorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
     private void SaveDirtyEntityAssetEditors()
     {
         foreach (var pair in _entityAssetEditorPanels)
@@ -5708,6 +5771,14 @@ public class GameEditor : Game, IObservableUpdate
 
                 break;
 
+            case EditorHistoryContextKind.Cutscene:
+                if (_cutsceneInspectorPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetCutsceneDocumentTitle(context.Id));
+                }
+
+                break;
+
             case EditorHistoryContextKind.TileMap:
                 if (_tileMapEditorPanelTitles.ContainsKey(context.Id))
                 {
@@ -5797,7 +5868,16 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     private string GetCutsceneDocumentTitle(string panelId)
-        => _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Cutscene";
+    {
+        var title = _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Cutscene";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, panelId));
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out var inspectorPanel))
+        {
+            isDirty |= inspectorPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
 
     private string GetAnimation2dDocumentTitle(string panelId)
     {
