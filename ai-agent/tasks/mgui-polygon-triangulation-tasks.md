@@ -76,6 +76,7 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
 | Réf | Décision |
 |---|---|
 | D1 | Demande de l'auteur du 2026-11-17 : écrire le plan qui retire `DrawSolidPolygon` des remplissages, sur l'estimation de l'agent (triangulation propre, deux backends, vérification). |
+| D2 | Plan approuvé par l'auteur le 2026-11-17 (« plan approuvé »), P1 à P6 compris. Réponse donnée juste après la question de l'agent sur P1 (« On part sur P1 avec le chemin convexe sous preuve d'identité ? ») : un chemin rapide pour un polygone convexe (éventail) est ajouté à T1.1, **seulement s'il rend exactement les mêmes sommets ordonnés et indices** que `Triangulator.Triangulate` ; sinon il est abandonné et noté, sans rien changer d'autre. Interprétation de l'agent, signalée à l'auteur. |
 
 ## Points à valider à l'approbation (arbitrages de l'agent)
 
@@ -134,7 +135,7 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
 
 ## Phase 1 — Triangulation et remplissages
 
-### ⏳ T1.1 — Triangulateur sans allocation, identique à celui de MonoGame.Extended
+### ✅ T1.1 — Triangulateur sans allocation, identique à celui de MonoGame.Extended
 
 - Objectif : `PolygonTriangulator` (P2) rend, pour un tableau ou une liste de sommets, les sommets ordonnés et les
   indices que `Triangulator.Triangulate(..., WindingOrder.CounterClockwise, ...)` rendrait, sans allocation après
@@ -159,17 +160,52 @@ le faisait `DrawSolidPolygon`. MonoGame.Extended reste une dépendance des deux 
      `MGUI/MGUI.Tests/Architecture/Phase4RenderingArchitectureTests.cs:28`, `:53-57`. Tampons gardés par instance (sommets ordonnés, liste circulaire par indices précédent
      et suivant, listes d'oreilles, de convexes et de réflexes reproduisant l'ordre d'origine, indices), qui
      grandissent sans rétrécir (P5) ; mêmes calculs en `float` que l'original.
-  4. Test de zéro : triangulation d'un triangle, d'une flèche, d'un concave, d'une ellipse de 32 segments, dans les
+  4. Chemin rapide convexe (D2) : si le polygone est convexe, rendre directement l'éventail que la découpe
+     d'oreilles d'origine produit sur un convexe. Le différentiel de l'étape 2 doit passer à l'identique avec et sans
+     ce chemin (convexes des deux sens, sommets alignés, sommets confondus compris) ; à la moindre différence, le chemin
+     est retiré et le fait est écrit sous la tâche.
+  5. Test de zéro : triangulation d'un triangle, d'une flèche, d'un concave, d'une ellipse de 32 segments, dans les
      deux sens, 0 octet sur 500 appels après 500 de chauffe. Mutations vérifiées puis annulées : prendre la dernière
      oreille au lieu de la première ; ne pas inverser un polygone en sens horaire. Chacune fait échouer le
      différentiel.
-  5. ADR 0038 de MGUI (P1, P2, P5, durée de validité de ce que rend le triangulateur : jusqu'à son appel suivant).
+  6. ADR 0038 de MGUI (P1, P2, P5, D2, durée de validité de ce que rend le triangulateur : jusqu'à son appel suivant).
 - Validation : différentiel sans écart sur tout le corpus ; zéro tenu ; mutations qui échouent ; trois solutions
   0 erreur, deux suites vertes, aucun test sauté.
 - Commit : `feat(rendering): triangulate a polygon without allocating` (MGUI), puis
   `chore(ui): take the polygon triangulator of MGUI (MGUI ADR-0038)` (moteur, référence et ce plan).
+- Validation (2026-11-17) : les trois solutions 0 erreur ; `MGUI.Tests` 4001 verts (11 tests ajoutés),
+  `CasaEngine.Tests` 6124 verts, aucun sauté. Écrit par un `executor`, relu en session principale. ADR-0038 de MGUI.
+  O2 ne s'est pas produit.
+  - Différentiel contre `Triangulator.Triangulate`, sommets au bit près et indices entrée par entrée : 72 921
+    polygones, 291 684 comparaisons (tableau et liste, instance gardée et instance neuve), 0 écart, avec et sans le
+    chemin convexe. Corpus : triangles et rectangles, flèches de `UISymbolDrawing`, formes de `MGRatingControl`,
+    400 ellipses, concaves, sommets alignés, sommets confondus, polygones qui se croisent, tous les polygones de 3, 4
+    et 5 sommets sur une grille de 3 × 3, et 5 900 polygones tirés avec la graine 20261117. 12 180 polygones y sont
+    remplis en partie par l'original, dont 2 626 sans aucun triangle.
+  - Chemin convexe (D2) gardé : sans sommet réflexe, l'original rend l'éventail (k, k + 1, n - 1) ; le chemin est
+    pris par 13 775 polygones du corpus, avec le même résultat. Des sommets confondus donnent une direction NaN,
+    donc un sommet réflexe : ce cas passe par le chemin général.
 
-### ⏳ T1.2 — Les deux backends remplissent sans `DrawSolidPolygon`
+  | Octets par appel (500 après 500 de chauffe) | `Triangulator.Triangulate` | `PolygonTriangulator` |
+  |---|---|---|
+  | Triangle (deux sens) | 376 / 424 | 0 |
+  | Flèche de 7 sommets (deux sens) | 928 / 952 | 0 |
+  | Concave de 8 sommets (deux sens) | 992 / 1080 | 0 |
+  | Ellipse de 32 segments (deux sens) | 3968 / 4248 | 0 |
+
+  - API : `PolygonTriangulator` (public, scellé, `MGUI.Shared.Rendering`), `Triangulate(Vector2[])` et
+    `Triangulate(IReadOnlyList<Vector2>)` rendent le nombre de triangles ; `Vertices` et `Indices` en
+    `ReadOnlySpan`, valides jusqu'à l'appel suivant sur la même instance ; aucun état statique. Deux membres
+    internes servent aux tests (désactiver le chemin convexe, savoir s'il a été pris). Un tableau nul lève
+    `ArgumentNullException`, un tableau vide `ArgumentException` (l'original lève autre chose : T1.2 garde le
+    comportement des backends) ; moins de trois sommets rend 0 triangle. Coordonnées NaN non prises en charge,
+    écrit dans l'ADR.
+  - Les tests qui appellent `Triangulator` sont dans la collection non parallèle `GpuDeviceCollection`.
+  - Mutations vérifiées puis annulées : dernière oreille au lieu de la première (197 292 comparaisons en écart),
+    pas d'inversion d'un polygone en sens horaire (113 020), éventail depuis un autre sommet (55 100) : chacune fait
+    échouer le différentiel.
+
+### 🚧 T1.2 — Les deux backends remplissent sans `DrawSolidPolygon`
 
 - Objectif : `FillPolygon` et `FillRectangle` en contexte primitives n'allouent plus rien dans les deux backends, avec
   les mêmes pixels et les mêmes sommets envoyés au lot que `DrawSolidPolygon`.
