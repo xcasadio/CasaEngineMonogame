@@ -53,7 +53,16 @@ Arrêts (tâche en ⚠️ Blocked, question notée) :
 
 ---
 
-### ⏳ T1 — Dénominateur de GGX côté dos
+### ⚠️ T1 — Dénominateur de GGX côté dos
+
+> Bloquée le 2026-11-17, budget épuisé (une implémentation, une correction), aucun commit de code ; `Pbr.fxh` et le test remis dans leur état.
+> - Passe 1, forme conditionnelle (`dot(N, H) > 0 ? terme croisé : 1`) : builds à 0 erreur ; tests 6391 lancés, 6377 verts, 14 en échec : les 8 connus et 6 nouveaux, tous des tests GPU de `lit-pbr` (`LitPbrTransparentGpuTests` : `SpecularSurface_KeepsItsSpecular_ItIsNotAttenuatedByTheAlpha`, `DiffuseSurface_IsAttenuatedByTheAlpha_OverTheBackground` ; `LitPbrDetailTextureGpuTests` : `ADarkDetailTexture_DarkensTheBaseColorByTwiceItsValue`, `WithoutADetailTexture_TheImageIsTheSameWhetherOrNotOneWasSetAndCleared` ; `LitPbrClearCoatGpuTests` : `ClearCoatZero_RendersLikeAMaterialWithoutACoat_WhateverTheCoatRoughness`, `FullClearCoat_OnAWhiteDiffuseSeenHeadOn_LowersTheDiffuseByAboutFourPercent`). Sorties : `artifacts/pbr-handover/s1f/ggx/` du dépôt du jeu.
+> - Passe 2, forme sans conditionnelle (`step`) : les mêmes 6 échecs.
+> - Sur le shader d'origine, les mêmes tests passent (151 sur 151 du groupe `lit-pbr`), avant comme après les deux passes.
+> - Mesure qui contredit la logique attendue : dans `ClearCoatZero_…`, cas de face (N = H, `dot(N, H)` = 1), le spéculaire de base vaut 0 au lieu de 0,003183 ; les deux formes devraient y redonner exactement la valeur d'avant. Le défaut n'est donc pas dans le calcul lui-même.
+> - Hypothèse non vérifiée : la fonction est appelée trois fois dans les techniques les plus chargées (base, transparente, vernis, détail) ; quelques instructions de plus pourraient dépasser une limite de la chaîne OpenGL (MojoShader) pour ces techniques, qui dessineraient alors du noir. Les 6 tests en échec sont justement ceux de ces techniques.
+> - Piste pour la reprise, à faire valider : une forme qui coûte moins d'instructions que l'actuelle, `d = (1 - noH) * (1 + noH) + noH * noH * alpha2`, exacte côté dos (`noH` vaut 0) et sans la soustraction qui annulait les chiffres (`1 - noH` est exact près de 1) ; à mettre en regard de la raison de `6ead47308` (deux lancements différaient de quelques niveaux sur une surface très lisse). Vérifier d'abord l'hypothèse de la limite d'instructions.
+> - Question à l'auteur : reprendre avec cette piste (nouvelle passe hors du budget de ce plan), ou laisser le défaut du terrain en l'état jusqu'à une décision ?
 
 - Fichiers : `CasaEngine/Content/Shaders/Pbr.fxh` (fonction et commentaire), `CasaEngine.Tests/Rendering/PbrShaderCoverageTests.cs` (ligne attendue, et une assertion sur le test de signe), `ClearCoatShaderCoverageTests.cs` si la ligne de la couche de vernis change, `docs/engine/pbr-rendering.md` si elle décrit le dénominateur, ce plan.
 - Validation : validation globale.
