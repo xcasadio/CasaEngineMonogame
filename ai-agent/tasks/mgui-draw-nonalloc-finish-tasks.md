@@ -352,7 +352,7 @@ chantier ne fait pas est dans « Hors périmètre ».
   - Constat préexistant, non traité : `MGEllipse` ne recalcule pas ses sommets quand `StrokeThickness` change
     (`_geometryDirty` n'est levé que par `Width`, `Height` et `SegmentCount`) ; rendu inchangé par cette tâche.
 
-### 🚧 T1.3 — Triangle de `MGRatingControl`
+### ✅ T1.3 — Triangle de `MGRatingControl`
 
 - Objectif : le triangle de `MGRatingControl` (plein et partiel, contour compris) n'alloue plus.
 - Fichiers : `MGUI/MGUI.Core/UI/MGRatingControl.cs` ; `MGUI/MGUI.Tests/Architecture/FillPolygonCallerJournalTests.cs`
@@ -363,8 +363,35 @@ chantier ne fait pas est dans « Hors périmètre ».
 - Validation : 0 ; journal identique ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(controls): draw the triangle of the rating control without allocating` (MGUI), puis le commit du
   moteur.
+- Validation (2026-11-17) : les trois solutions 0 erreur ; `MGUI.Tests` 4855 verts (748 cas de journal ajoutés),
+  `CasaEngine.Tests` 6135 verts, aucun sauté. Écrit par un `executor`, contesté par trois relecteurs en lecture seule :
+  trois CONFIRMED, aucun constat P0 à P3. Seul `MGRatingControl.cs` change dans le code produit.
 
-### ⏳ T1.4 — Animations de `MGHighlightBorderBrush`
+  | Octets par image au dessin (horizontal et vertical identiques) | Avant | Après |
+  |---|---|---|
+  | Plein, sans contour | 1792 | 0 |
+  | Plein, avec contour | 4096 | 0 |
+  | Partiel, sans contour | 1712 | 0 |
+  | Partiel, avec contour | 3728 | 0 |
+
+  - Changement : la branche du triangle passe par `GetScaledVertices` (mêmes flottants, même ordre que l'ancien
+    `Select`), trace les trois arêtes par index dans l'ordre de `SelectConsecutivePairs(true)` (arête de fermeture en
+    dernier), et calcule minimum et maximum en une boucle à comparaisons strictes, qui rend le résultat de
+    `Enumerable.Min` et `Max` sur ces entrées.
+  - Journal de dessin figé sur l'ancien code pour 374 scènes (horizontal et vertical ; valeurs 0, partielles dont une
+    à clip de 0 pixel et une presque pleine, pleines ; épaisseurs de contour 0 à 3 et négatives, l'épaisseur étant un
+    entier ; tailles 0, 1, impaires, 256, 257, négative ; 1 à 7 éléments ; échelles de fenêtre ; valeur de prévisualisation),
+    rejoué à l'identique. Un second test compare les sommets et les arêtes aux anciennes expressions, sans passer par
+    la table figée.
+  - Mutations vérifiées puis annulées : arêtes dans un autre ordre (496 échecs), sommets échangés après la mise à
+    l'échelle (716), boucle du minimum partant du mauvais index (119, dans le journal figé seulement).
+  - Mesuré sans changement de code, non affirmé par un test : cercle, rectangle, étoile et losange du même contrôle sont
+    à 0 octet par image sur le banc.
+  - Avis P4 reportés : le test de journal garde son mode de capture (variable d'environnement
+    `RATING_TRIANGLE_CAPTURE`, sous laquelle il n'affirme rien), comme `TextBoxCaretGeometryTests` ; seul le journal
+    figé couvre le rectangle de clip du remplissage partiel.
+
+### 🚧 T1.4 — Animations de `MGHighlightBorderBrush`
 
 - Objectif : les quatre animations de `MGHighlightBorderBrush` n'allouent plus à chaque dessin (P4).
 - Fichiers : `MGUI/MGUI.Core/UI/Brushes/BorderBrushes/MGHighlightBorderBrush.cs` ; tests de `MGUI.Tests`
