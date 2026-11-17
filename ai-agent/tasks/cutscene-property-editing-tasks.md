@@ -117,7 +117,9 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 
 ## Phase 1 — Services d'édition (`CasaEngine.EditorServices`)
 
-### ⏳ T1.1 — Propriétés éditables d'une action
+### ✅ T1.1 — Propriétés éditables d'une action
+
+> Validation (2026-11-17) : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` 5809 réussis sur 5809 (5674 avant, 135 ajoutés par `CutsceneActionPropertyEditorTests`). Les tests comparent les propriétés aux clés réellement écrites par `Save` pour chaque type d'action. Écrit en plus : `CutsceneActionProperty` (type d'une propriété), `FindProperty` et `GetFormatErrors` (lecture des `FormatErrors` des dix classes, utilisée par T1.2). Un texte de couleur à trois composantes est accepté en entrée (opaque), comme le chargeur ; le texte rendu a toujours quatre composantes.
 
 - Objectif : un service pur qui, pour une action, donne la liste de ses propriétés éditables et sait lire et écrire chacune depuis un texte.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneActionPropertyEditor.cs` (créé, plus les petits types qu'il expose), `CasaEngine.Tests/EditorServices/Cutscenes/CutsceneActionPropertyEditorTests.cs` (créé).
