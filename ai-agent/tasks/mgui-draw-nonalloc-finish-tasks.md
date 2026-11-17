@@ -221,7 +221,7 @@ chantier ne fait pas est dans « Hors périmètre ».
 
 ## Phase 1 — Restes
 
-### 🚧 T1.1 — Contour d'un polygone sans itérateur ni tableau temporaire
+### ✅ T1.1 — Contour d'un polygone sans itérateur ni tableau temporaire
 
 - Objectif : `StrokePolygon` et `StrokeAndFillPolygon` n'allouent plus dans les deux backends (P2), mêmes sommets
   envoyés au lot et mêmes pixels.
@@ -241,8 +241,45 @@ chantier ne fait pas est dans « Hors périmètre ».
   identiques ; journaux figés inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(rendering): stroke a polygon without allocating` (MGUI), puis
   `perf(ui): stroke a polygon without allocating` (moteur).
+- Validation (2026-11-17, GPU réel) : les trois solutions 0 erreur ; `MGUI.Tests` 4073 verts, `CasaEngine.Tests` 6135
+  verts (5 tests ajoutés de chaque côté), aucun sauté. Écrit par un `executor`, puis contesté par trois relecteurs
+  indépendants en lecture seule (identité du comportement, solidité des preuves, chemin chaud et périmètre) : trois
+  verdicts CONFIRMED, aucun constat P0 à P3.
 
-### ⏳ T1.2 — Géométrie de clip triangulée gardée par la forme
+  | Octets par appel | Avant | Après |
+  |---|---|---|
+  | `StrokePolygon`, arêtes centrées (deux contextes) | 280 | 0 |
+  | `StrokePolygon`, arêtes intérieures, primitives, sens donné / calculé | 280 / 400 à 632 | 0 |
+  | `StrokePolygon`, arêtes intérieures, sprites, sens donné / calculé | 48 à 280 / 168 à 632 | 0 |
+  | `StrokeAndFillPolygon` | 280 à 632 | 0 |
+
+  - 144 lignes de mesure par backend (six formes dans les deux sens, tableau et liste, arêtes centrées et
+    intérieures, sens donné et calculé, primitives et sprites), toutes à 0. Une énumération qui n'est pas une liste
+    garde sa copie.
+  - Changement : arêtes parcourues par index (0 arête pour un sommet, 1 pour deux, autant que de sommets à partir de
+    trois, arête de fermeture comprise, comme `SelectConsecutivePairs(true)`) ; sens d'enroulement calculé par la même
+    somme dans le même ordre que `Triangulator.DetermineWindingOrder`, en deux variantes gardées pour rester au bit
+    près : tableau fermé pour les arêtes intérieures en primitives, tableau ouvert pour le test que faisait
+    `EnsureWindingOrder` en sprites. Le `StrokeAndFillPolygon` de MGUI passe toujours un sens nul, celui du moteur
+    transmet le sens reçu, comme avant.
+  - Écart avec le texte de la tâche, accepté : en contexte sprites, un polygone en sens horaire n'est pas copié dans
+    un tampon mais lu par une vue en ordre inverse gardée par la transaction (`ReversedPolygonView`), parce que
+    `SpriteBatch.DrawPolygon` lit `Count` et qu'un tampon de taille exacte se recréerait à chaque changement de
+    taille. La vue rend les mêmes valeurs que `ReverseWindingOrder`, index par index ; un test GPU montre que
+    `DrawPolygon` ne garde ni ne modifie sa liste.
+  - Preuve des sommets : copies littérales des anciennes lignes dans les tests (`OldStrokePolygon`,
+    `OldStrokeAndFillPolygon`), confrontées à l'ancien code produit sur 1 166 800 appels par backend (72 925
+    polygones, huit variantes, tableau et liste, trois épaisseurs, origine fractionnaire) avant tout changement ; une
+    empreinte du flux de sommets par variante figée sur l'ancien code ; rejeu sur le nouveau code égal au bit près.
+  - Pixels comparés dans le test, primitives et sprites. Exceptions inchangées, testées.
+  - Mutations vérifiées puis annulées dans les deux backends : oublier l'arête de fermeture, inverser le sens
+    calculé ; chacune fait échouer la preuve des sommets et les pixels.
+  - Avis P4 reportés : la source de la vue inversée n'est pas remise à zéro dans un `finally` (une exception de
+    `SpriteBatch.Draw` garderait une référence jusqu'à l'appel suivant) ; le plancher du test de pixels est lâche ;
+    le chemin sprites n'a qu'une preuve par pixels, et aucune mutation ne vise ses choix propres.
+  - Reste noté, hors des fichiers de la tâche : `CasaAposShapeRenderer2D` a son propre `StrokePolygon`, non mesuré.
+
+### 🚧 T1.2 — Géométrie de clip triangulée gardée par la forme
 
 - Objectif : `MGEllipse`, `MGPolygon` et `MGPathLite` ne recréent plus leur géométrie de clip ni leur définition à
   chaque dessin (P3).
