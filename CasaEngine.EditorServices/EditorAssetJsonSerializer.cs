@@ -1066,6 +1066,11 @@ internal static class EditorAssetJsonSerializer
         SaveObjectBase(texture, node);
         node.Add("texture_asset_id", TextureAssetIdField?.GetValue(texture) as Guid? ?? Guid.Empty);
 
+        if (texture.GenerateMipmaps)
+        {
+            node.Add("generate_mipmaps", true);
+        }
+
         var samplerStateNode = new JObject();
         texture.PreferredSamplerState.Save(samplerStateNode);
         node.Add("sampler_state", samplerStateNode);

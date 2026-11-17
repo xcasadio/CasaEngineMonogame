@@ -52,7 +52,7 @@ Retour arrière : `git switch chantier/static-model-tangents` puis `git branch -
 
 ## Phase 1 — Asset
 
-### ⏳ T1 — Champ `generate_mipmaps` et texture à chaîne complète
+### ✅ T1 — Champ `generate_mipmaps` et texture à chaîne complète
 
 - Objectif : D1 à D3.
 - Fichiers : `CasaEngine/Framework/Assets/Textures/Texture.cs` (propriété publique `GenerateMipmaps`, lecture du champ, construction de la chaîne dans `Load(AssetContentManager)`, reconstruction dans `OnDeviceReset`, libération dans `Dispose`) ; `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs` (`SaveTexture` écrit `generate_mipmaps` seulement quand il vaut vrai) ; tests dans `CasaEngine.Tests` (sérialisation à côté de `EditorServices/TextureAssetDocumentTests.cs` ; GPU à côté des tests GPU de `MipmapChain` s'il en existe, avec `GpuDeviceHost`).
@@ -65,6 +65,7 @@ Retour arrière : `git switch chantier/static-model-tangents` puis `git branch -
   - GPU : un asset sans le champ donne la texture partagée à un niveau, la même instance que `Acquire<Texture2D>` ; un asset avec le champ donne une texture à `MipmapChain.GetLevelCount(w, h)` niveaux, dont le niveau 0 a les pixels de l'image et le niveau 1 ceux de `MipmapChain.ComputeNextLevel` ; l'image partagée reste à un niveau ; deux appels de `Load` sur le même `Texture` laissent `Resource` à la même instance, non libérée, et l'image partagée n'est plus tenue après le premier (elle est libérée par `CollectUnreferenced`) ; après `Dispose`, la texture possédée est libérée ; perte du périphérique simulée (texture possédée libérée, puis `OnDeviceReset(device, manager)`) : `Resource` est une nouvelle texture non libérée, à `MipmapChain.GetLevelCount(w, h)` niveaux, dont le niveau 0 a les pixels de l'image, et l'image partagée n'est plus tenue ensuite (`CollectUnreferenced` la libère). La branche actuelle de `OnDeviceReset` qui reprend l'image partagée à un niveau ne s'applique plus à un `Texture` à mipmaps.
 - Validation : validation globale.
 - Commit : `feat(assets): let a texture asset ask for its mipmap chain`
+- Validation (2026-11-17) : les deux solutions à 0 erreur ; 6391 tests, 6383 réussis, 8 échecs, exactement les 8 tests GPU connus (6 de `DesktopFrameGpuAllocationTests`, `DrawTransactionRearmGpuTests.RearmThenDrawingTheDesktopFrame_AllocatesNothing_AndDrawsTheReferencePixels`, `IblCubeGeneratorGpuTests.OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed`). 9 tests ajoutés : 2 de sérialisation (`TextureAssetDocumentTests`) et 7 GPU (`Assets/TextureAssetMipmapsGpuTests.cs`, dont la perte du périphérique avec et sans l'image partagée libérée, et le format non `Color` signalé avec le nom de l'asset).
 
 ### ⏳ T2 — Décision et documentation
 

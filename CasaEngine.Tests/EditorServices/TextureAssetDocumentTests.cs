@@ -151,6 +151,39 @@ public sealed class TextureAssetDocumentTests : IDisposable
     }
 
     [Fact]
+    public void GenerateMipmaps_IsFalseWhenTheFileHasNoSuchField_AndIsNotWrittenBack()
+    {
+        TextureAssetDocument document = Load();
+
+        Assert.False(document.Texture.GenerateMipmaps);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(document.Texture, out JObject root));
+        Assert.Null(root["generate_mipmaps"]);
+    }
+
+    [Fact]
+    public void GenerateMipmaps_RoundTripsWhenTheFileAsksForIt()
+    {
+        string json = TextureJson.Replace(
+            "\"texture_asset_id\"", "\"generate_mipmaps\": true,\n  \"texture_asset_id\"", StringComparison.Ordinal);
+        Assert.Contains("generate_mipmaps", json);
+        string path = WriteFile(json);
+
+        Assert.True(TextureAssetDocument.TryLoad(path, out TextureAssetDocument document, out string error), error);
+        Assert.True(document.Texture.GenerateMipmaps);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(document.Texture, out JObject root));
+        Assert.True(root["generate_mipmaps"].GetBoolean());
+
+        // The other fields are unchanged, and a texture read back from the written file still asks for the chain.
+        Assert.Equal("a4f6260f-45cc-58b4-9d69-de59ac8e43ef", root["texture_asset_id"].GetGuid().ToString());
+        Assert.Equal(TextureAddressMode.Clamp, root["sampler_state"].GetSamplerState().AddressU);
+        var reread = new CasaEngine.Framework.Assets.Textures.Texture();
+        reread.Load(root);
+        Assert.True(reread.GenerateMipmaps);
+    }
+
+    [Fact]
     public void TryReadSamplerValue_ReadsTheValueFromTheFileOnDisk()
     {
         string path = WriteFile(TextureJson);
