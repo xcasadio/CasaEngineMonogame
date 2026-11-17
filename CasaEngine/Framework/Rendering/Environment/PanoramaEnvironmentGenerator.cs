@@ -42,9 +42,16 @@ internal static class PanoramaEnvironmentGenerator
             return cachedCubemap;
         }
 
+        // A failed build is not tried again, and not logged again: this runs on every frame for a reflection probe.
+        if (GeneratedAssetHandleCache<XnaTextureCube>.HasFailed(assetContentManager, generatedAssetId))
+        {
+            return null;
+        }
+
         string panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
         if (string.IsNullOrWhiteSpace(panoramaPath) || !File.Exists(panoramaPath))
         {
+            GeneratedAssetHandleCache<XnaTextureCube>.RememberFailure(assetContentManager, generatedAssetId);
             return null;
         }
 
@@ -64,6 +71,7 @@ internal static class PanoramaEnvironmentGenerator
         }
         catch (Exception exception)
         {
+            GeneratedAssetHandleCache<XnaTextureCube>.RememberFailure(assetContentManager, generatedAssetId);
             Logs.WriteException(new Exception($"[PanoramaEnvironmentGenerator] Cannot create cubemap from panorama '{panoramaPath}'", exception));
             return null;
         }
@@ -101,10 +109,12 @@ internal static class PanoramaEnvironmentGenerator
 
     internal static Guid CreateGeneratedCubemapAssetId(Guid panoramaAssetId, int cubemapSize)
     {
-        byte[] bytes = panoramaAssetId.ToByteArray();
-        int prefix = BitConverter.ToInt32(bytes, 0) ^ cubemapSize ^ unchecked((int)0x5A17C0DE);
-        byte[] prefixBytes = BitConverter.GetBytes(prefix);
-        Array.Copy(prefixBytes, bytes, prefixBytes.Length);
+        // Same bytes as the arrays this used to allocate (ToByteArray, BitConverter.GetBytes), written on the stack: the id is computed
+        // on every frame of a reflection probe.
+        Span<byte> bytes = stackalloc byte[16];
+        panoramaAssetId.TryWriteBytes(bytes);
+        int prefix = BitConverter.ToInt32(bytes) ^ cubemapSize ^ unchecked((int)0x5A17C0DE);
+        BitConverter.TryWriteBytes(bytes, prefix);
         bytes[15] ^= 0x22;
         return new Guid(bytes);
     }

@@ -71,7 +71,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 > - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m` : échec 8, réussite 6387, total 6395 ; les 8 échecs sont les 8 connus (`IblCubeGeneratorGpuTests` × 1, `DrawTransactionRearmGpuTests` × 1, `DesktopFrameGpuAllocationTests` × 6).
 > - Doc : `docs/engine/pbr-rendering.md`, section « glTF import ». Aucun fichier d'asset du dépôt n'est touché : la correction ne s'exécute qu'à l'import.
 
-### ⏳ T2 — Sonde de réflexion : pas d'allocation par image, échec tenté une seule fois
+### ✅ T2 — Sonde de réflexion : pas d'allocation par image, échec tenté une seule fois
 
 - Fichiers : `CasaEngine/Framework/Rendering/Environment/EnvironmentAssetLookup.cs`, `AcquiredAssetHandleCache.cs`, `PanoramaEnvironmentGenerator.cs`, `GeneratedAssetHandleCache.cs` ; `CasaEngine.Tests/Rendering/EnvironmentAssetLookupHandleTests.cs` ou un fichier voisin ; `docs/engine/` là où les sondes de réflexion par identifiant sont décrites, si un tel passage existe.
 - Validation :
@@ -86,6 +86,21 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
   - `pbrdemo.sh` par défaut : empreinte `54e406a1dde8c171`, inchangée.
 - Arrêts : un des tests nouveaux passe déjà sur le code d'avant (le défaut n'est pas où le plan le dit : noter ce qui a été observé, ne rien corriger sur ce chemin) ; un identifiant généré change de valeur ; un troisième chemin par image est trouvé à la lecture de `ReflectionProbeResolver.Resolve` (le noter en point ouvert, ne pas l'ajouter à la tâche).
 - Commit : `fix(rendering): try a failing reflection probe asset once instead of every frame`
+
+> Validation (2026-11-17) : tests écrits d'abord, dans le fichier voisin `CasaEngine.Tests/Rendering/ReflectionProbeFailedAssetTests.cs` (collection `ProjectEnvironmentCollection` ; journal observé par `Logs.AddLogger` et `Logs.Close`) ; ils n'utilisent que des membres déjà présents au commit parent (`EnvironmentAssetLookup`, `PanoramaEnvironmentGenerator`), donc compilent sur les sources d'avant.
+> - Sur le code d'avant, 4 des 9 cas échouent, exactement ceux qui prouvent le défaut (échec : 4, réussite : 5, total : 9) :
+>   - `TryLoadEnvironmentAsset_AnAcquisitionThatThrows_IsTriedOnceAndLoggedOnce` : `Assert.Equal() Failure: Values differ / Expected: 1 / Actual: 2` (deux tentatives d'acquisition) ;
+>   - `CreateGeneratedCubemapAssetId_AllocatesNothing` : `Expected: 0 / Actual: 72000` octets pour mille appels (72 octets par appel) ;
+>   - `GetOrCreateCubemap_APanoramaThatDoesNotDecode_IsTriedOnceAndLoggedOnce` : `Assert.Single() Failure: The collection contained 2 items` (une entrée de journal par résolution) ;
+>   - `GetOrCreateCubemap_AMissingPanoramaFile_IsRememberedWithoutALogEntry` : `Assert.Empty() Failure: Collection was not empty` (la seconde résolution charge le fichier indécodable, lève et journalise).
+> - Les 5 autres cas passent déjà sur le code d'avant, comme attendu : `CreateGeneratedCubemapAssetId_KeepsTheIdentifiersOfTheEarlierImplementation` (4 couples (identifiant, taille), valeurs en dur calculées avec l'algorithme d'avant puis confirmées par l'exécution sur le code d'avant : l'identifiant généré ne change pas, octet pour octet) et `TryLoadEnvironmentAsset_AnIdAbsentFromTheCatalog_IsNotRetained`.
+> - Après la correction : les 9 cas du fichier et les 3 de `EnvironmentAssetLookupHandleTests` passent (12/12).
+> - Correction : `AcquiredAssetHandleCache<T>` et `GeneratedAssetHandleCache<T>` gagnent un second `ConditionalWeakTable` par gestionnaire d'assets (`FailedIdsByManager`, un `HashSet<Guid>`) avec `HasFailed` et `RememberFailure` ; `EnvironmentAssetLookup.TryLoadAsset` consulte `HasFailed` après le cache des poignées et avant le catalogue, et retient l'id dans le `catch` avant de journaliser ; `PanoramaEnvironmentGenerator.GetOrCreateCubemap` consulte `HasFailed` après le cache du cube généré et retient l'id pour le fichier absent et pour l'exception ; `CreateGeneratedCubemapAssetId` écrit ses octets sur la pile (`stackalloc`, `TryWriteBytes`).
+> - Chemin d'une résolution réussie, par lecture du code : inchangé (le cache des poignées répond avant toute nouvelle recherche, aucune allocation ajoutée) ; l'identifiant du cube généré n'alloue plus rien. Le chemin d'échec ajoute, une fois retenu, deux recherches dans des tables existantes (table des gestionnaires, ensemble des identifiants en échec), sans allocation. Le chemin de premier chargement ajoute une recherche (`HasFailed`) de plus.
+> - `dotnet build CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m` : échec 8, réussite 6396, total 6404 ; les 8 échecs sont les 8 connus (`IblCubeGeneratorGpuTests` × 1, `DrawTransactionRearmGpuTests` × 1, `DesktopFrameGpuAllocationTests` × 6).
+> - `pbrdemo.sh` par défaut, deux lancements : `54e406a1dde8c171` les deux fois, `exceptions=0`, inchangée.
+> - Doc : `docs/engine/pbr-rendering.md` (paragraphe des sondes locales et ligne « Probe referenced by an asset id », qui n'est plus un défaut différé ; limite écrite : un fichier corrigé sur disque n'est repris qu'à la recréation du gestionnaire d'assets).
+> - Remarque, sans changement : `ReflectionProbeResolver.Resolve` ne montre pas de troisième chemin par image. `EnvironmentResolver.Resolve` appelle `PanoramaEnvironmentGenerator.GetOrCreateCubemap` et `IsLinearPanorama` (qui construit un chemin de fichier) à chaque échec du cache d'environnement de la vue, pas à chaque image ; non modifié.
 
 ### ⏳ T3 — Clôture
 
