@@ -454,7 +454,7 @@ chantier ne fait pas est dans « Hors périmètre ».
     restent à leur taille maximale pour la vie du thread ; le test de zéro ne couvre ni le chemin résiduel (coins
     arrondis sans maillage) ni un pinceau avec fond, que seuls les journaux couvrent.
 
-### 🚧 T1.5 — Glissement d'onglet qui change de groupe
+### ✅ T1.5 — Glissement d'onglet qui change de groupe
 
 - Objectif : la cause des octets d'un glissement qui change de groupe est trouvée, et corrigée si P5 le permet.
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/` (selon la cause) ; tests `MGUI/MGUI.Tests/Docking/`.
@@ -473,10 +473,35 @@ chantier ne fait pas est dans « Hors périmètre ».
   trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(docking): drag a tab across groups without allocating` (MGUI), puis le commit du moteur ; ou
   `docs(ai-agent): record what a drag across dock groups allocates` (moteur seul) si ⚠️.
+- Validation (2026-11-17) : issue 2 du plan (cause dans les fichiers du dock, corrigée). Les trois solutions 0 erreur ;
+  `MGUI.Tests` 5284 verts, `CasaEngine.Tests` 6135 verts, aucun sauté. Enquête et correctif faits en session principale
+  (un seul défaut, une seule piste).
+
+  | Glissement sur le bord haut de l'hôte, à cheval sur deux groupes, octets par image (Update / Draw) | Avant | Après |
+  |---|---|---|
+  | | 32 / 0 | 0 / 0 |
+
+  - Attribution : une sonde temporaire (échantillonnage des allocations par type sur 600 000 images, non commitée)
+    donne 182 échantillons sur 183 pour `MGSolidFillBrush`, et 32,00 octets par image.
+  - Cause : sur le bord haut, la souris alterne entre les en-têtes d'onglets de deux groupes, donc le survol d'un
+    onglet change à chaque image ; `MGDockTabItem.UpdateVisuals` recréait alors le pinceau du liseré d'accent
+    (`accentColor.AsFillBrush()`, `MGDockTabItem.cs`). Ce n'est pas propre au glissement : tout changement de survol
+    d'un onglet créait un pinceau. Le bord bas n'a pas d'en-tête sous la souris, d'où son 0.
+  - Correctif : le pinceau est gardé avec la couleur pour laquelle il a été fait (`GetAccentBrush`), comme
+    `MGDockSplitterBar` le fait déjà ; une autre couleur (onglet devenu actif, thème changé) le remplace. Conséquence
+    observable, la même que pour la barre de séparation : le `MGRectangle` du liseré, élément interne de l'onglet, ne
+    notifie plus `Fill` quand la couleur n'a pas changé.
+  - Preuves : la sonde relit 0,00 octet par image ; le test de T0.1 affirme maintenant 0 sur ce montage (il affirmait
+    16 000 octets sur 500 images, et échoue donc sur l'ancien code) ; les 442 tests du dock passent, dont le rejeu du
+    scénario figé de T5.7 (`DockDropTargetReplayTests`) et les journaux figés.
+  - Les 96 à 128 octets vus par l'exécutant de T5.7 du plan archivé ne sont reproduits par aucun des sept montages :
+    non expliqués, non poursuivis.
+  - Vu en passant, non traité : `MGDockTabGroup.SyncHeaderVisuals` fait le même `AsFillBrush()` pour le liseré du
+    groupe ; aucun montage mesuré ne le montre allouer par image.
 
 ## Phase 2 — Vérification et clôture
 
-### ⏳ T2.1 — Vérification indépendante
+### 🚧 T2.1 — Vérification indépendante
 
 - Objectif : un `verifier` neuf (opus) confirme ou réfute T1.1 à T1.5 : rendu identique (sommets du lot, journaux,
   pixels), zéros annoncés, aucune régression des deux suites. Une tâche restée en ⚠️ est exclue et nommée.
