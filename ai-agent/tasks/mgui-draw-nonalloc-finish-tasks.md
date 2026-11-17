@@ -279,7 +279,7 @@ chantier ne fait pas est dans « Hors périmètre ».
     le chemin sprites n'a qu'une preuve par pixels, et aucune mutation ne vise ses choix propres.
   - Reste noté, hors des fichiers de la tâche : `CasaAposShapeRenderer2D` a son propre `StrokePolygon`, non mesuré.
 
-### 🚧 T1.2 — Géométrie de clip triangulée gardée par la forme
+### ✅ T1.2 — Géométrie de clip triangulée gardée par la forme
 
 - Objectif : `MGEllipse`, `MGPolygon` et `MGPathLite` ne recréent plus leur géométrie de clip ni leur définition à
   chaque dessin (P3).
@@ -304,8 +304,55 @@ chantier ne fait pas est dans « Hors périmètre ».
   pinceau et clip propre et sur le chemin à plusieurs figures remplies ; journaux identiques ; tests d'invalidation
   verts ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(shapes): keep the triangulated clip geometry of a shape` (MGUI), puis le commit du moteur.
+- Validation (2026-11-17) : les trois solutions 0 erreur ; `MGUI.Tests` 4107 verts (34 tests ajoutés), `CasaEngine.Tests`
+  6135 verts, aucun sauté. Écrit par un `executor`, contesté par trois relecteurs en lecture seule (deux CONFIRMED, un
+  REFUTED), corrigé, puis recontrôlé par un `verifier` neuf : **CONFIRMED**, aucun constat P0 à P3. Aucun changement
+  dans le moteur.
 
-### ⏳ T1.3 — Triangle de `MGRatingControl`
+  | Octets par image au dessin (Update à 0) | Avant | Après |
+  |---|---|---|
+  | `MGEllipse`, remplissage par pinceau ou clip propre | 4392 | 0 |
+  | `MGEllipse`, les deux (aussi avec opacité animée) | 8784 | 0 |
+  | `MGPolygon` et `MGPathLite`, remplissage par pinceau ou clip propre | 1152 | 0 |
+  | `MGPolygon` et `MGPathLite`, les deux (aussi avec opacité animée) | 2304 | 0 |
+  | `MGPathLite`, deux figures remplies | 1136 | 0 |
+
+  - Totaux exactement à 0 : les 4872 octets de la première image et les 48 octets du nom formaté ont disparu (noms
+    construits une fois). Hors cible, mesuré : une forme déplacée à chaque image reconstruit ses deux définitions pour
+    760 octets par image (ellipse de 32 segments, 8794 avant) ou 264 (7 sommets, 2314 avant).
+  - Relevé de l'étape 1 : aucun cache ni comparaison d'un `ClipDefinition` par nom ou par référence ; les gestionnaires
+    de clips des deux backends ne gardent la résolution que du `Push` au `Pop` (un clip à stencil redessine la
+    géométrie à sa libération) ; `ElementClipRequest` est une valeur par dessin. Une définition se réutilise donc
+    d'une image à l'autre tant qu'on en crée une neuve au moindre changement.
+  - Changement : `MGTriangulatedClipEntry` (interne, `MGVectorShapeHelper.cs`) garde la référence du tableau source,
+    la translation, les bornes cibles et la définition, et refait une définition neuve quand l'une change. Une entrée
+    par usage : remplissage et clip propre pour `MGEllipse` et `MGPolygon` ; une par figure remplie plus le clip propre
+    pour `MGPathLite`. `CreateTriangulatedClipGeometry` et `MGElement.CreateGeometryClipDefinition` restent, inchangés,
+    sans appelant produit.
+  - **Constat P2 du relecteur « identité du comportement », corrigé** : l'ancien code teste le sens d'enroulement deux
+    fois (`EnsureWindingOrder`, puis `Triangulate` qui le reteste) ; la première version ne le testait qu'une fois.
+    Pour un polygone dont la somme flottante est positive dans les deux sens (aire signée presque nulle), l'ancien
+    code triangule l'ordre d'origine et la première version triangulait l'ordre inversé : autre géométrie, autre zone
+    de clip. Reproduit sur le polygone du relecteur, puis corrigé : la reconstruction refait la séquence d'origine
+    (`EnsureWindingOrder` sur une copie, puis triangulation). Test neuf sur 150 polygones de ce type (tous croisés),
+    en échec sur les 150 avant le correctif. Le vérificateur de recontrôle a comparé 68 010 entrées à lui, dont 5 000
+    de ce type : 0 écart ; sa sonde rejouée sur la première version donne exactement 5 000 écarts.
+  - **Constat P3 du relecteur « solidité des preuves », corrigé** : le test d'invalidation tirait son attendu de la
+    définition contrôlée ; il le calcule maintenant depuis l'état de la forme. Sous la mutation « garder la définition
+    après un déplacement », il échoue sur 10 cas sur 10 (2 sur 10 avant).
+  - Journaux de dessin et géométries figés sur l'ancien code (10 cas, suite d'états : déplacement, largeur, hauteur,
+    segments, points, commandes, épaisseur de contour), rejoués à l'identique. Égalité avec
+    `CreateTriangulatedClipGeometry` sur tout le corpus de polygones.
+  - Mutations vérifiées puis annulées : garder l'entrée après un déplacement ; ignorer le changement du tableau de
+    sommets ; une seule entrée pour le remplissage et le clip propre ; retirer le premier test de sens.
+  - Avis P4 reportés : le cache suppose que le tableau de sommets est remplacé et jamais écrit en place (vrai de tout
+    le code des deux dépôts ; une sous-classe externe de `MGPolygon` qui écrirait dans `NormalizedPoints` garderait un
+    clip périmé) ; chaque entrée a son propre triangulateur, dont les tampons restent à leur taille maximale ; une
+    forme dessinée deux fois par image à des décalages différents reconstruirait à chaque dessin.
+  - Constat préexistant, non traité : `MGEllipse` ne recalcule pas ses sommets quand `StrokeThickness` change
+    (`_geometryDirty` n'est levé que par `Width`, `Height` et `SegmentCount`) ; rendu inchangé par cette tâche.
+
+### 🚧 T1.3 — Triangle de `MGRatingControl`
 
 - Objectif : le triangle de `MGRatingControl` (plein et partiel, contour compris) n'alloue plus.
 - Fichiers : `MGUI/MGUI.Core/UI/MGRatingControl.cs` ; `MGUI/MGUI.Tests/Architecture/FillPolygonCallerJournalTests.cs`
