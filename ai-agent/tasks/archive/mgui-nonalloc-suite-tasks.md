@@ -7,6 +7,11 @@ L'auteur a demandé le 2026-11-15 : « Oui, planifie-les et suis les choix que t
 ci-dessous sont donc les recommandations de l'agent, appliquées sur cette demande : **ce plan les applique, il ne les
 rediscute pas**. L'auteur peut en refuser une à l'approbation du plan.
 
+**[ARCHIVE] Terminé le 2026-11-17.** Phases 0 à 5 faites. Branches `chantier/mgui-nonalloc-phase5` fusionnées en
+avance rapide le 2026-11-17 à la demande de l'auteur dans `develop` (MGUI) et `main` (moteur), non poussées. Le smoke
+à l'œil est fait par l'auteur ; la relance des suites sur la première machine est abandonnée par l'auteur. O16 reste
+une question de l'auteur (« Est-ce un gros chantier de retirer `DrawSolidPolygon` ? »), hors de ce plan.
+
 Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
 
 ## Objectif
@@ -510,7 +515,9 @@ créé en T0.1), appels de dessin inchangés. Une tâche mesurée à 0 en T0.1 e
 notée « Commit (MGUI) » a aussi son commit du moteur (référence du sous-module et ce plan), comme le disent les
 règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 
-### ⚠️ T2.1 — `MGGrid` avec sélection
+### ✅ T2.1 — `MGGrid` avec sélection
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : le reste de 464 octets par clic est retiré par T5.2 (0 mesuré). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/Containers/Grids/MGGrid.cs`.
 - Étapes : énumération de `GridSelection` sans itérateur (énumérateur `struct` ou boucle sur lignes et colonnes) ;
@@ -538,7 +545,9 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
     et de fin de glissement, séquence de clics et ses métadonnées). Preuve : la même suite de clics sur la même grille
     avec `SelectionMode = None` alloue exactement le même total, ce que le test affirme. Voir O10.
 
-### ⚠️ T2.2 — `MGDockHost`
+### ✅ T2.2 — `MGDockHost`
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : le reste de 80 octets par image du glissement est retiré par T5.7 (0 mesuré sur chaque sorte de cible). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/` (`MGDockHost.cs`, `MGDockDropIndicators.cs`, `MGDockPreviewOverlay.cs`,
   `DockDropCalculator.cs`, et les classes de séparation que la mesure désigne).
@@ -595,7 +604,9 @@ règles d'exécution ; il en va de même en phase 3 et pour T1.1 et T1.6.
 - Commit (MGUI) : `perf(window): keep a window sized to its content without allocating`
 - Validation (2026-11-16) : mesuré à zéro en T0.1 (Update 0, Draw 0, `WidthAndHeight` et `Height`). Fermée sans code (D8).
 
-### ⚠️ T2.4 — `MGScrollViewer`
+### ✅ T2.4 — `MGScrollViewer`
+
+- Statut revu à la clôture de la phase 5 (T5.10, 2026-11-16) : les restes de la molette (56 octets) et des clips d'un contenu défilé sont retirés par T5.1 et T5.5 (0 mesuré). La note ⚠️ ci-dessous est l'état d'avant la phase 5.
 
 - Fichiers : `MGUI/MGUI.Core/UI/MGScrollViewer.cs`.
 - Étapes : nom de clip gardé (`:1233`) ; parcours des enfants sans énumérateur d'interface ; ce que la mesure montre
@@ -1235,7 +1246,7 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   - Reste : une saisie de texte native d'un caractère de code 256 ou plus (IME) crée encore sa chaîne, valeur que
     l'événement porte ; non mesuré.
 
-### ⏳ T5.4 — Vérification indépendante de l'entrée
+### ✅ T5.4 — Vérification indépendante de l'entrée
 
 - Objectif : un `verifier` neuf confirme ou réfute T5.1 à T5.3 : mêmes événements avec les mêmes valeurs qu'avant,
   durées de validité de D13 tenues (y compris pour un gestionnaire qui garde un appui jusqu'au relâchement), état
@@ -1244,8 +1255,35 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
 - Sources : diff de T5.1 à T5.3, ADR, scénarios figés.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(input): record the verification of the reused input events` (moteur, ce plan).
+- Validation (2026-11-16, seconde machine, branche `chantier/mgui-nonalloc-phase5`) : `verifier` neuf (opus), verdict
+  **CONFIRMED**, aucun constat P0 à P2. Aucun changement de code.
+  - Preuves du vérificateur : les deux scénarios figés, posés sur le code d'avant (`9881ff93`, extrait hors du dépôt),
+    y passent, donc ils viennent bien de l'ancien code ; leurs valeurs sont copiées au moment de chaque événement ;
+    ils contiennent les cas en gras de T5.2 et de T5.3. Une sonde différentielle écrite par le vérificateur (ancien et
+    nouveau code, mêmes séquences : clic puis appui long puis clic, doubles clics gauche et droit entrelacés,
+    glissement puis clic, deux appuis de saisie de texte seule puis un vrai appui, touche tenue avec focus déplacé,
+    modificateurs) rend les mêmes événements, valeurs, états « traité » et identifiants, aux deux avis ci-dessous
+    près. Chaque remplissage remet l'état « traité » à zéro ; séquence de clics et flux de touche repartent avec une
+    identité neuve. Les tests de zéro (molette, sélection de `MGGrid`, touches ignorées, modificateurs) passent à 0.
+    Aucun gardien hors durée de D13 dans les deux dépôts ; `InputTracker.Update` n'a qu'un appelant.
+  - Avis P4 reportés, tous deux déjà écrits dans l'ADR-0034 de MGUI : (A1) l'appui gardé d'un `MGButton` dont le
+    relâchement n'est jamais remis désigne l'appui suivant du même bouton ; seule la répétition le lit, et seulement
+    quand ce nouvel appui est dans le bouton ; jugé correct et sans effet visible atteignable. (A2) Les liens lus par
+    `MouseTracker.RecentButtonClickedEvents[bouton].ReleasedArgs` ou `.PressedArgs` après un relâchement ultérieur qui
+    n'est pas un clic désignent ce relâchement plus récent ; aucun lecteur de cette forme dans les deux dépôts.
+  - Suites sur cette machine : trois solutions 0 erreur ; `MGUI.Tests` 3938 verts, aucun sauté ; `CasaEngine.Tests`
+    6119 tests (la référence de 5556 date d'avant les fusions d'`origin/main`), 6111 verts, 0 sauté, **8 échecs
+    d'environnement** : six tests de `DesktopFrameGpuAllocationTests` et un de `DrawTransactionRearmGpuTests`
+    comparent l'image au repos à une empreinte de pixels prise sur la première machine (`124E0E0F…` attendu,
+    `D297B949…` obtenu ; le commentaire du test dit qu'un autre GPU ou pilote peut différer), et
+    `IblCubeGeneratorGpuTests.OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed` lit une autre couleur. Le
+    vérificateur a rejoué ces trois classes avec les binaires de MGUI d'avant T5.1 : mêmes 8 échecs, mêmes valeurs.
+    Ils ne viennent donc pas de T5.1 à T5.3. Voir O15.
+  - Non vérifié : l'empreinte absolue de l'image de glissement sur le GPU de la première machine (remplacée par une
+    comparaison ancien et nouveau MGUI sur cette machine, empreintes égales) ; aucun lancement de l'éditeur ni des
+    samples.
 
-### ⏳ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
+### ✅ T5.5 — Clips rectangulaires d'élément par `PushRectangleClip`
 
 - Objectif : un élément dont le clip est un rectangle ne crée plus de `ClipDefinition`, quelles que soient ses bornes
   (environ 120 octets par image pour un contenu défilé sur des décalages nouveaux), selon D16.
@@ -1274,8 +1312,38 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   500 décalages tous différents (0 au dessin) ; pixels identiques sur les tests GPU existants ; trois solutions
   0 erreur, deux suites vertes.
 - Commit : `perf(rendering): push the rectangle clips of an element without a definition` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3945 verts (7 tests ajoutés),
+  `CasaEngine.Tests` 6119 verts, aucun sauté. Écrit par un `executor`, relu en session principale. ADR-0035 de MGUI.
 
-### ⏳ T5.6 — `FillPolygon` des backends sans copie
+  | `MGScrollViewer`, défilement sur 500 décalages tous différents | Draw avant | Draw après |
+  |---|---|---|
+  | Octets par image | 9888 | 0 |
+
+  - Le chiffre d'avant dépasse les 120 octets estimés : chaque descendant du contenu qui pose un clip (les blocs de
+    texte) recevait lui aussi une définition neuve à chaque décalage.
+  - Changement : `ElementClipRequest` (interne, sans appelant jusque-là) devient le type rendu par les deux crochets :
+    rien, un rectangle, ou une définition ; `MGElement.Draw` pousse le rectangle par `PushRectangleClip(bornes, true)`
+    et la définition par `PushClipTemporary`. Les crochets gardent leur nom. Retirés : `CreateRectangleClipDefinition`
+    (`protected`, aucun appelant hors de `MGUI.Core` dans les deux dépôts), le cache et l'anneau de seize définitions
+    rectangulaires de `MGElement`, le cache du viewport de `MGScrollViewer`. Clips arrondis et à géométrie inchangés.
+    `CreateBorderBackedContentsClipDefinition` (`protected`) garde sa signature pour `MGGridColorPicker`, qui pousse
+    toujours lui-même son clip `.Swatches` par `PushClipTemporary` ; son cas rectangulaire garde une définition tant
+    que bornes et nom ne changent pas (ajouté à la relecture : la première version en créait une par appel).
+  - Aucun changement de code dans le moteur : `CasaClipManager` pose déjà le même scissor pour les deux appels.
+  - Journaux : les 37 journaux d'après sont égaux aux journaux normalisés d'avant (nombre de lignes et empreinte) ;
+    9 n'ont aucun clip d'élément et ne changent pas, 28 sont refigés sur l'empreinte normalisée. Les empreintes figées sont désormais celles des journaux normalisés : un clip rectangulaire d'élément
+    qui repasserait par une définition change l'empreinte et fait échouer le journal (corrigé après T5.9 : la
+    première note prêtait à `FrozenJournal.Assert` un contrôle dédié qu'il n'a pas). Mutation vérifiée puis
+    annulée : pousser le rectangle décalé d'un pixel fait échouer 32 tests, dont les 28 journaux.
+  - Pixels : les tests GPU du moteur (`DesktopFrameGpuAllocationTests`, `DrawTransactionRearmGpuTests`) passent sans
+    changement des empreintes, sur cette machine seulement.
+  - Tests adaptés : `TransformedClipTests` lit le clip en vigueur quand le contenu commence à se dessiner
+    (`CurrentClipBounds`) au lieu de chercher le clip nommé `ScrollViewer.Viewport`, mêmes bornes vérifiées ;
+    `BorderShapeAdoptionTests` attend le nouveau type des crochets ; deux numéros de ligne de la liste de
+    `ResolvedPilotWriteSitesTests` décalés d'une ligne par un `using` ajouté. `GridColorPickerSwatchClipTests` inchangé.
+  - Non fait : aucun lancement de `MGUI.Samples` ni de l'éditeur (prévu en T5.10) ; rien rejoué sur la première machine.
+
+### ✅ T5.6 — `FillPolygon` des backends sans copie
 
 - Objectif : dessiner un polygone ou une flèche sur GPU réel n'alloue plus dans les deux backends, selon D17.
 - Fichiers : `MGUI/MGUI.MonoGame.Integration/Rendering/DrawTransaction.cs`,
@@ -1299,8 +1367,49 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   MonoGame.Extended, écrit) ; pixels identiques sur un triangle, un polygone concave et une flèche ; journaux figés
   inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(rendering): fill a polygon without copying its vertices` (MGUI), puis `perf(ui): fill a polygon without copying its vertices` (moteur).
+- Validation (2026-11-16, seconde machine, GPU réel) : les trois solutions 0 erreur ; `MGUI.Tests` 3957 verts (12 tests
+  ajoutés), `CasaEngine.Tests` 6124 verts (5 ajoutés), aucun sauté. Écrit par un `executor`, relu en session
+  principale. **Le zéro n'est pas atteint** : `PrimitiveDrawing.DrawSolidPolygon` (MonoGame.Extended 6.1.1) alloue
+  lui-même à chaque appel ; selon D17 seule la copie autour de lui est retirée.
 
-### ⏳ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
+  Octets par appel, 500 appels après 500 de chauffe, identiques dans les deux backends :
+
+  | Forme | `DrawSolidPolygon` seul | `FillPolygon` avant (tableau ou liste) | `FillPolygon` après |
+  |---|---|---|---|
+  | Triangle (3 sommets) | 376 | 424 | 376 |
+  | Triangle, autre sens | 424 | 472 | 424 |
+  | Concave (8 sommets) | 992 | 1080 | 992 |
+  | Flèche (7 sommets) | 928 | 1008 | 928 |
+  | Flèche, autre sens | 952 | 1032 | 952 |
+
+  - Reste : le triangulateur de MonoGame.Extended crée un tableau d'indices et un nœud par sommet à chaque appel, et
+    une copie inversée pour un polygone en sens horaire (lu dans la DLL décompilée par l'exécutant). Le retirer
+    demande de remplacer ce dessin de polygone : hors de cette phase (D17). Voir O16.
+  - `DrawSolidPolygon` ne modifie pas le tableau reçu et ne le garde pas (test GPU dans les deux dépôts : tableau
+    inchangé après l'appel, mêmes pixels quand il est réécrit avant la fin du lot). Un tampon partagé dans un lot est
+    donc sûr ; pas d'arrêt.
+  - Changement (`DrawTransaction.cs` de MGUI, `CasaLegacyShapeRenderer2D.cs` du moteur) : un tableau est passé tel
+    quel ; une `IReadOnlyList<Vector2>` est copiée dans un tampon gardé par longueur (jusqu'à 256 sommets, tableau
+    neuf au-delà) ; `Any()` et `ToArray()` seulement pour une autre énumération. Signatures publiques inchangées.
+    `IShapeRenderer2D.cs` et `CasaAposShapeRenderer2D.cs` non touchés (Apos délègue au rendu historique ; chemin non
+    exécuté).
+  - Les tests affirment que `FillPolygon` d'un tableau ou d'une liste n'alloue pas plus que `DrawSolidPolygon` seul,
+    sur les cinq formes, dans les deux dépôts.
+  - Pixels : comparés dans le test (tableau, liste, liste en lecture seule et énumération contre `DrawSolidPolygon`
+    sur un tableau neuf, image différente de la cible vide) pour le triangle, le concave, la flèche et sept polygones
+    dans un lot. Empreintes relevées avant et après sur cette machine, égales ; aucune n'est figée dans le code.
+  - Appelants réécrits sans LINQ, tampons gardés par thread : `MGRatingControl` (étoile et losange, minimum et maximum
+    par boucle ; le triangle passe par `FillTriangle` et garde son LINQ, hors tâche), `MGHighlightBorderBrush`
+    (polygone de progression ; le reste de cette branche alloue encore, hors tâche), `MGDockedBorderBrush` (huit
+    triangles de coin). Aucun des 37 journaux figés ne les atteint : un test neuf, `FillPolygonCallerJournalTests`,
+    fige sur l'ancien code les sommets envoyés par ces trois appelants et les affirme sur le nouveau. Leur gain en
+    octets n'est pas mesuré.
+  - Mutations vérifiées puis annulées : un sommet décalé dans le tampon gardé fait échouer deux tests GPU ; deux
+    sommets échangés dans le triangle de `MGDockedBorderBrush` font échouer son journal.
+  - Relecture : le tableau des tampons de `MGRatingControl` est dimensionné par l'énumération des formes et non par le
+    nombre de formes à sommets.
+
+### ✅ T5.7 — Cible de dépôt de `MGDockHost` réutilisée
 
 - Objectif : un glissement d'onglet n'alloue plus de `DockDropTarget` à chaque recalcul (80 octets par image), selon D18.
 - Fichiers : `MGUI/MGUI.Core/UI/Docking/Controls/MGDockHost.cs`, `Docking/DockDropCalculator.cs`,
@@ -1324,8 +1433,49 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   changement de valeur, à l'apparition et à la disparition, pas à un recalcul identique) ; journaux figés
   inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(docking)!: keep one drop target during a drag` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3982 verts (25 tests ajoutés),
+  `CasaEngine.Tests` 6124 verts, aucun sauté. Écrit par un `executor`, diff relu en session principale. ADR-0036 de MGUI.
 
-### ⏳ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
+  Octets par image pendant un glissement d'onglet, souris alternant entre deux positions de la même cible ; le dessin
+  est à 0 avant et après :
+
+  | Cible | Update avant | Update après |
+  |---|---|---|
+  | Centre d'un autre groupe (cas de la phase 2) | 80 | 0 |
+  | Zones de séparation (quatre), bande de proximité, barre de séparation | 576 | 0 |
+  | Bords de l'hôte (quatre) | 408 | 0 |
+  | Centre du groupe de l'onglet glissé (réordonnancement) | 480 | 0 |
+  | Aucune cible | 0 | 0 |
+
+  - Changement : `MGDockHost` garde une instance pour `CurrentDropTarget`, remplie par copie des huit champs ; les
+    cibles de centre et de réordonnancement et les listes de zones du calculateur sont gardées et remplies par
+    `DockDropTarget.Set` (interne), qui écrit les huit champs comme un objet neuf. Nouvelles surcharges internes
+    `CalculateDropZonesInto` et `CalculateHostEdgeZonesInto` ; les méthodes publiques statiques gardent signature et
+    résultat. `ExecuteDrop` lit zone, index d'onglet et bord d'hôte une fois, au début.
+  - Surface publique : `CurrentDropTarget` n'a plus de setter privé ; elle et la valeur rendue par `GetDropTarget`
+    sont une seule instance pour la vie de l'hôte, réécrite à chaque calcul ; `PropertyChanged` est levé à
+    l'apparition, à la disparition et au changement d'une valeur, plus à un recalcul identique. Les membres publics de
+    `DockDropTarget` ne changent pas.
+  - Relevé (deux dépôts, avant le changement) : aucun lecteur hors de `MGDockHost`, du calculateur et des tests de
+    MGUI ; aucun gardien ; aucun abonné à `PropertyChanged` pour cette propriété ; le moteur ne touche pas la cible.
+  - Élargi dans les fichiers de la tâche, pour tenir « 0 sur chaque sorte de cible » : le cas du réordonnancement
+    allouait 400 octets par image par du LINQ dans `CalculateTabIndex` et `CalculateTabReorderPreviewRect`, et non par
+    la cible ; ils reçoivent des surcharges internes qui parcourent les onglets dans une liste gardée par l'hôte,
+    mêmes résultats (couverts par le rejeu).
+  - Comportement : scénario figé sur le code d'avant (12 glissements, 230 lignes, les huit champs copiés en texte à
+    chaque image, disposition après chaque dépôt), rejoué à l'identique. Il contient les deux suites du plan : barre
+    de séparation puis zone du même groupe puis dépôt (quatre variantes), et index d'onglet calculé puis centre sans
+    index. Tests dédiés : champs de barre de séparation jamais hérités, index d'onglet jamais hérité, une seule
+    instance, notification (apparition, changement, disparition, rien à l'identique), 14 cas de zéro.
+  - Mutations vérifiées puis annulées : ne plus remettre `IsSplitterDrop` et `SplitterNode` fait échouer le rejeu et
+    7 tests ; ne plus remettre `TabIndex` fait échouer le rejeu et 2 tests.
+  - Le test de phase 2 du glissement affirme maintenant 0 ; journaux de dessin figés inchangés.
+  - Restes notés : une notification de changement de valeur crée encore ses arguments d'événement (seulement quand
+    une valeur change) ; un glissement dont la souris passe d'un groupe à un autre à chaque image alloue 96 à 128
+    octets par image, cause non cherchée par l'exécutant (supposée : réaffichage des indicateurs au changement de
+    groupe survolé), notée dans l'ADR-0036. Aucun lancement de `MGUI.Samples` ni de l'éditeur.
+
+### ✅ T5.8 — Géométrie du curseur de `MGTextBox` sans les lignes historiques
 
 - Objectif : un changement de texte dans un `MGTextBox` dont le bloc a une mise en page interne (texte sans balise ou
   à balises) ne refait plus la mise en lignes par `MGTextLine.ParseLines` (environ 1600 octets par touche estimés),
@@ -1355,8 +1505,43 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   diffère, D19) ; mesure de la frappe écrite ici, le test de frappe affirme le nouveau reste et le nomme (la nouvelle
   chaîne et ce que le curseur garde) ; journaux figés inchangés ; trois solutions 0 erreur, deux suites vertes.
 - Commit : `perf(textbox): compute the caret geometry from the text layouts` (MGUI), puis le commit du moteur.
+- Validation (2026-11-16, seconde machine) : les trois solutions 0 erreur ; `MGUI.Tests` 3990 verts (8 tests ajoutés),
+  `CasaEngine.Tests` 6124 verts, aucun sauté. Écrit par un `executor`, surface publique relue en session principale ;
+  le fond est l'objet de T5.9. ADR-0037 de MGUI. La condition d'arrêt de D19 ne s'est pas déclenchée.
 
-### ⏳ T5.9 — Vérification indépendante de T5.5 à T5.8
+  | `MGTextBox` avec focus, frappe (A puis retour arrière), octets par image (Update) | Avant | Après |
+  |---|---|---|
+  | Total | 2600 | 356 |
+
+  - Le chiffre d'avant est celui affirmé par le test de frappe après T5.3 ; il n'a pas été remesuré sur l'ancien code.
+  - Reste de 356 octets par image, soit 178 000 octets sur 500 images, affirmé par le test de frappe comme une somme
+    de parts nommées : géométrie que le curseur garde (200 par changement : une `LineRenderInfo`, une liste, un
+    tableau de caractères ; mesurée seule par un test) ; arguments de `TextChanged` (32 par changement) ; arguments du
+    changement de bornes de layout (48 par changement) ; `EscapeMarkdown("a")` (128, à la touche A seulement ; mesuré
+    seul par un test) ; la chaîne « a » (24, à la touche A). Les parts de 32, 48 et 24 sont attribuées par
+    échantillonnage des allocations par type, pas mesurées une à une ; le total exact est le garde-fou.
+  - Différentiel de la table contre `MGTextLine.OriginalCharacterIndices`, sans écart, avec et sans retour à la ligne,
+    avec et sans lignes d'un espace ignorées : mise en page simple, 301 textes du corpus (28 896 mises en page) et 700
+    textes tirés avec la graine 20261116 ; mise en page à balises, 3 780 paires du corpus existant (181 440 mises en
+    page).
+  - Géométrie figée sur le code d'avant : 188 scénarios sur deux moteurs de texte (376 textes), avec position, largeur,
+    index d'origine et index analysé de chaque caractère, grille de points à l'écran et curseur après
+    `MoveToApproximateScreenPosition`, recherches par index, flèches. Rejouée à l'identique. Les 88 scénarios de
+    mise en page simple ont été figés en remettant `TextRenderInfo.cs` et `MGTextCaret.cs` à leur contenu d'avant,
+    puis restaurés à l'octet.
+  - Changement : les morceaux des deux mises en page portent l'index d'origine de leur premier caractère et la marque
+    d'un caractère inséré ; `TextRenderInfo.UpdateLines` lit la mise en page interne quand le bloc en a une,
+    `MGTextBlock.Lines` sinon. `MGTextCaret` ne lit plus `LineRenderInfo.Source` (interne, retiré) mais deux drapeaux
+    de `LineRenderInfo` : ligne sans source, ligne sans caractère de texte. Aucun membre public changé.
+  - Écart avec le texte du plan, constaté dans le code : un `MGRichTextBox` avec une sélection seule n'est pas en runs
+    explicites (la sélection est écrite en balises, comme pour `MGTextBox`) ; seuls les segments stylés et un
+    colorateur le sont. Les deux chemins sont figés.
+  - Mutations vérifiées puis annulées : index d'origine décalé après un tiret (différentiel et géométrie figée
+    échouent, dans chaque mise en page) ; curseur toujours au bord gauche (géométrie figée échoue).
+  - Journaux de dessin figés inchangés. Non fait : réutiliser les `LineRenderInfo` d'un changement à l'autre (le
+    curseur et d'autres lecteurs en gardent des références), écrit dans l'ADR.
+
+### ✅ T5.9 — Vérification indépendante de T5.5 à T5.8
 
 - Objectif : un `verifier` neuf confirme ou réfute : rendu inchangé pour les clips rectangulaires et les polygones
   (pixels sur GPU réel, journaux normalisés), cible de dépôt aux mêmes valeurs et même résultat de dépôt, géométrie
@@ -1365,8 +1550,39 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   nommée.
 - Validation : verdict CONFIRMED, ou constats traités selon leur priorité et revérifiés une fois.
 - Commit : `docs(ui): record the verification of the follow-up of the MGUI zero allocation chantier` (moteur, ce plan).
+- Validation (2026-11-16, seconde machine) : `verifier` neuf (opus), verdict **CONFIRMED** sur T5.5 à T5.8, aucun
+  constat P0 à P2. Aucun changement de code.
+  - Méthode du vérificateur : ancien arbre de MGUI (`d0efd9b4`) et nouvel arbre (`d37712ff`) extraits hors du dépôt,
+    fichiers de test neufs posés sur l'ancien. Sur l'ancien code, 114 tests copiés sur 114 passent : les scénarios
+    figés de T5.6 (sommets des appelants), de T5.7 (230 lignes) et de T5.8 (376 textes) viennent donc bien de
+    l'ancien code, et pour T5.5 les 37 journaux de l'ancien code, une fois normalisés, ont le nombre de lignes et
+    l'empreinte figés aujourd'hui.
+  - T5.5 : même scissor dans les deux backends pour les deux appels (lu dans `ClipStrategyResolver`, `ClipManager`,
+    `CasaClipManager`) ; le normaliseur ne retire que le nom de débogage ; plus aucune référence à
+    `CreateRectangleClipDefinition` ; `TransformedClipTests` réécrit passe aussi sur l'ancien code.
+  - T5.6 : tests GPU des deux dépôts passés sur GPU réel ; tampon gardé propre à chaque transaction ou rendu, rempli
+    avant le début du lot ; tampons par thread des appelants lus pendant l'appel seulement.
+  - T5.7 : sonde du vérificateur sur sept glissements qui changent de cible ou de groupe : mêmes valeurs de cible
+    sur l'ancien et le nouveau code, Update de 80 à 608 octets par image avant et 0 après, sauf un cas (bord haut de
+    l'hôte à cheval sur deux groupes : 608 avant, 32 après). Le reste d'un glissement qui change de groupe existait
+    donc avant et n'est pas introduit ; le cas de 96 à 128 octets de l'exécutant n'a pas été reproduit à
+    l'identique.
+  - T5.8 : différentiel du vérificateur sur 1126 textes de plus (563 scénarios sur les deux moteurs : espaces de
+    tête et de fin, chaînes de tirets, retours chariot, tabulations, balises, 160 textes aléatoires, alignements,
+    avec et sans retour à la ligne) : géométrie du curseur identique à l'octet entre l'ancien et le nouveau code.
+    L'arithmétique du reste de frappe tombe juste : (2 × (200 + 32 + 48) + 128 + 24) / 2 = 356.
+  - Avis P4 reportés : (A1) `CreateBorderBackedContentsClipDefinition` ne garde qu'une définition rectangulaire,
+    l'ancien code en gardait dix-sept : un `MGGridColorPicker` à coins arrondis dont le rayon intérieur est nul et
+    qui alterne entre quelques positions crée une définition à chaque changement de bornes ; rendu identique, non
+    mesuré. (A2) `TransformedClipTests` ne vérifie plus quel élément a posé le clip, seulement ses bornes. (A3) note
+    de T5.5 sur `FrozenJournal.Assert`, corrigée. (A4) chemin Apos de `FillPolygon` lu et non exécuté ; parts de 32
+    et 48 octets du reste de frappe non mesurées une à une.
+  - Suites rejouées par le vérificateur : trois solutions 0 erreur ; `MGUI.Tests` 3990 verts, `CasaEngine.Tests` 6124
+    verts, aucun sauté, tests GPU compris.
+  - Non vérifié : `MGUI.Samples` et l'éditeur lancés à la main ; le chiffre de frappe d'avant (2600) non remesuré sur
+    l'ancien code ; rien rejoué sur la première machine.
 
-### ⏳ T5.10 — Clôture de la phase 5
+### ✅ T5.10 — Clôture de la phase 5
 
 - Objectif : tableau final mis à jour (restes de la molette, du clic, de la frappe, du glissement, du défilement, des
   polygones), statut de T2.1, T2.2 et T2.4 revu selon ce que T5.2, T5.5 et T5.7 ont retiré, docs de MGUI à jour
@@ -1374,6 +1590,46 @@ reste ; vérification indépendante (`verifier`, opus) en T5.4 et en T5.9.
   de `ai-agent/README.md`, `MGUI.Samples` lancé une fois, validation globale, rapport de fin (`AGENTS.md` §12).
 - Validation : section « Validation globale ».
 - Commit : `docs(ai-agent): close the follow-up decisions of the MGUI zero allocation chantier`
+- Validation (2026-11-16, seconde machine), sur le dernier état des deux branches (moteur `54494832` plus ce commit,
+  MGUI tête de `chantier/mgui-nonalloc-phase5`) : `dotnet build MGUI/MGUI.sln`, `CasaEngine.MonoGame.sln` et
+  `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `MGUI.Tests` 3990 verts, `CasaEngine.Tests` 6124 verts, aucun sauté,
+  tests GPU compris (suites rejouées par le vérificateur de T5.9 sur le code de T5.8 ; seul un fichier de doc de MGUI
+  a changé depuis). `MGUI.Samples` lancé une fois : démarre et tient 20 secondes sans sortie d'erreur. Le smoke à
+  l'œil (sample, éditeur : coins arrondis, dock, liste défilante, saisie dans une zone de texte, glissement d'onglet)
+  reste à faire par l'auteur. Rien n'est poussé ni fusionné.
+- À faire par l'auteur avant la fusion : rejouer les deux suites sur la première machine (les empreintes de pixels y
+  ont une autre entrée, O15) ; trancher O16. Réponse du 2026-11-17 : smoke fait par l'auteur, relance sur la
+  première machine abandonnée (« non on oublie l'autre PC »), fusion demandée ; O16 en évaluation, hors de ce plan.
+- Docs de MGUI : `input-architecture.md` (T5.1 à T5.3), `rendering-architecture.md` (T5.5, et `FillPolygon` ajouté
+  ici aux limites connues), `controls-architecture.md` (T5.7), `text-architecture.md` (T5.8) ; ADR de MGUI 0034
+  (entrée), 0035 (clips rectangulaires), 0036 (cible de dépôt), 0037 (géométrie du curseur). T5.6 n'a pas d'ADR :
+  aucune API ni comportement ne change.
+
+  Tableau final de la phase 5, octets par image à l'Update sauf mention (le dessin est à 0 partout sauf mention) :
+
+  | Cas | Avant la phase 5 | Après | Reste |
+  |---|---|---|---|
+  | `MGScrollViewer`, molette | 56 | 0 | — |
+  | Lecture d'un modificateur clavier | tableau et délégué par lecture | 0 | — |
+  | `MGGrid`, sélection par clic | 232 | 0 | — |
+  | `MGTextBox`, touches ignorées | 312 à 320 | 0 | — |
+  | `MGTextBox`, frappe | 3296 | 356 | géométrie gardée par le curseur (200 par changement), arguments de deux événements, `EscapeMarkdown`, chaîne de la touche |
+  | `MGScrollViewer`, défilement sur des décalages tous différents (dessin) | 9888 | 0 | — |
+  | `FillPolygon` d'un triangle, par appel (GPU réel, deux backends) | 424 | 376 | `DrawSolidPolygon` de MonoGame.Extended, O16 |
+  | `MGDockHost`, glissement d'onglet, cible stable | 80 à 576 | 0 | — |
+  | `MGDockHost`, glissement qui change de groupe à chaque image | 80 à 608 | 0 à 32 | cause non cherchée (bord de l'hôte à cheval sur deux groupes) |
+
+- Tâches de la phase 5 : 10 ✅. T2.1, T2.2 et T2.4 passent de ⚠️ à ✅ : leurs restes sont retirés par T5.1, T5.2, T5.5
+  et T5.7.
+- Points ouverts restants pour l'auteur : O16 (triangulation de MonoGame.Extended). O15 est répondu ; il en reste
+  la relance des suites sur la première machine.
+- Avis reportés des deux vérifications de la phase (T5.4 : appui gardé d'un `MGButton` sans relâchement, liens de
+  `RecentButtonClickedEvents` ; T5.9 : définition rectangulaire unique de `CreateBorderBackedContentsClipDefinition`,
+  `TransformedClipTests` sans l'élément qui pose le clip, chemin Apos de `FillPolygon` non exécuté, parts de 32 et 48
+  octets de la frappe non mesurées une à une).
+- Suites possibles, non planifiées : réutiliser les `LineRenderInfo` du curseur ; saisie de texte d'un caractère de
+  code 256 ou plus ; le triangle de `MGRatingControl` et le reste de la branche de progression de
+  `MGHighlightBorderBrush`, qui gardent du LINQ.
 
 ---
 
@@ -1393,6 +1649,9 @@ Tout le travail est commité et fusionné ; rien d'autre que les branches princi
   écrit dans « Règles d'exécution pour l'agent ». Ne jamais committer sur `main` ni sur `develop`.
 - Faites : phases 0 à 4, puis T5.1, T5.2 et T5.3. Prochaine tâche : **T5.4** (vérification indépendante de l'entrée),
   puis T5.5 à T5.10 dans l'ordre du plan. Aucune tâche n'est en 🚧.
+- Mise à jour du 2026-11-16, seconde machine : branches `chantier/mgui-nonalloc-phase5` créées dans les deux dépôts,
+  T5.4 faite (CONFIRMED). Les 8 tests GPU en échec sur cette machine avant tout changement sont corrigés (O15).
+  T5.5 à T5.10 faites (T5.9 : CONFIRMED). Phase 5 terminée, fusionnée le 2026-11-17, plan archivé.
 - Référence des suites à la fusion : `MGUI.Tests` 3938 tests verts, `CasaEngine.Tests` 5556, aucun sauté ; les trois
   solutions à 0 erreur.
 
@@ -1498,6 +1757,8 @@ Consigne à donner à la session qui reprend :
 | O12 | **Décidé le 2026-11-16 (D13 et D15), traité en T5.1 et T5.3.** Toute touche crée dans `MGUI.Shared/Input` les événements d'appui, de relâchement et de clic, un flux d'entrée et ses métadonnées, et `KeyboardTracker.IsAnyPressed(params Keys[])` crée un tableau et un délégué à chaque lecture d'un modificateur (696 octets par touche mesurés). Même question que O7 et O10 pour le clavier. Recommandation de l'agent : une tâche de suite sur l'entrée (souris et clavier). | T2.9 |
 | O13 | **Décidé le 2026-11-16 (D19), traité en T5.8.** La géométrie du curseur de `MGTextBox` relit `MGTextBlock.Lines` à chaque changement de texte, donc refait la mise en lignes par le code historique (environ 1600 octets par touche). Le remplacer demande que les mises en page internes du bloc donnent la table des index de caractères d'origine : décision d'architecture du texte. Recommandation de l'agent : une tâche de suite, après la phase 3. | T2.9 |
 | O14 | **Validé par l'auteur le 2026-11-16 (D20) : comportement livré gardé.** Conséquence de D9 allant au-delà de « devient du texte » : une balise d'image dont la taille est en chiffres non ASCII (`[img=Icon ١٦x١٦]`) était du texte littéral et devient une image nommée par toute la valeur, sans taille (ADR-0033 de MGUI). Autre voie : refuser une telle balise pour qu'elle reste du texte, ce qui demande une règle de plus dans les deux chaînes. Recommandation de l'agent : garder le comportement livré, cohérent avec la règle des noms. | T3.4 |
+| O15 | **Répondu par l'auteur le 2026-11-16 : « corrige les 8 échecs GPU puis enchaîne avec T5.5 ».** Corrigé hors des tâches du plan, dans les tests seulement (commit `fix(tests): make the GPU reference frames and the cube level probe hold on a second GPU`) : les empreintes de l'image de référence du bureau sont dans `CasaEngine.Tests/UI/Backend/ReferenceDesktopFramePixels.cs`, une entrée par machine connue (la première, et l'AMD Radeon RX 9060 XT de la seconde, où le moteur et le `MainRenderer` de MGUI donnent les mêmes empreintes) ; une machine sans entrée échoue avec les empreintes à ajouter. Le test `OpenGlChain_IgnoresTheRequestedCubeLevel_SoTheAtlasIsUsed` fixe les deux comportements mesurés : niveaux gardés et niveau demandé ignoré (première machine), ou niveaux écrits à la main perdus, chaque niveau relu rendant la couleur du niveau 0 (seconde machine) ; le moteur ne crée aucun cube à mips. À rejouer sur la première machine avant la fusion (non vérifiable ici). Question d'origine : Sur la seconde machine, 8 tests GPU de `CasaEngine.Tests` échouent avant tout changement (7 empreintes de pixels prises sur la première machine, 1 couleur d'IBL ; détail sous T5.4). La validation de T5.5 à T5.10 demande « deux suites vertes » et, pour T5.5 et T5.6, « pixels identiques sur les tests GPU existants » : elle ne peut pas être tenue à la lettre ici. Voies : (a) accepter comme référence de cette machine « les mêmes 8 échecs, rien d'autre » et prouver les pixels par comparaison avant et après sur cette machine ; (b) refiger les empreintes pour qu'elles ne dépendent plus de la machine (tâche hors plan) ; (c) faire T5.5 à T5.10 sur la première machine. Recommandation de l'agent : (a), avec les suites rejouées sur la première machine avant la fusion. | T5.5 à T5.10 |
+| O16 | **Ouvert le 2026-11-16, suite possible, hors de cette phase (D17).** `PrimitiveDrawing.DrawSolidPolygon` de MonoGame.Extended 6.1.1 alloue à chaque polygone (376 octets pour un triangle, 928 à 992 pour sept ou huit sommets, mesuré sur GPU réel). Amener le dessin d'un polygone à zéro demande de trianguler sans allocation dans les backends, donc de ne plus passer par MonoGame.Extended pour ce dessin. À décider par l'auteur. | T5.6 |
 
 ## Hors périmètre
 
