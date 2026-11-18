@@ -331,6 +331,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             }
         }
 
+        _preview?.ClearTimings();
         if (_preview != null && _preview.IsPlaying)
         {
             PlayPreview();

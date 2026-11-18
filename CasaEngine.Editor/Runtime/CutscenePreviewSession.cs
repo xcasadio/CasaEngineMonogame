@@ -8,6 +8,7 @@ using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Cutscenes.Serialization;
 using CasaEngine.Framework.Rendering.ScreenEffects;
 using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -28,6 +29,9 @@ internal sealed class CutscenePreviewSession : IDisposable
     private readonly PreviewWorldDriver _driver;
     private readonly CutscenePreviewEffectHost _host = new();
     private readonly List<string> _entityNames = [];
+    private readonly CutscenePlayTimings _timings = new();
+    private readonly List<MoveTrack> _moveTracks = [];
+    private IReadOnlyDictionary<CutsceneActionData, CutsceneActionData> _copyToOriginal = new Dictionary<CutsceneActionData, CutsceneActionData>();
     private CutsceneDirector? _director;
     private Guid _worldId = Guid.Empty;
     private bool _clampNextStep;
@@ -72,6 +76,25 @@ internal sealed class CutscenePreviewSession : IDisposable
     public ScreenEffectService ScreenEffects => _host.ScreenEffects;
 
     public bool IsPlaying => _director?.IsPlaying ?? false;
+
+    /// <summary>Seconds of the play clock of the last play (ADR-0098); 0 before the first play.</summary>
+    public double ElapsedSeconds => _director?.PlayElapsedSeconds ?? 0d;
+
+    /// <summary>Updates of the last play that advanced the clock.</summary>
+    public long ElapsedFrames => _director?.PlayElapsedFrames ?? 0;
+
+    /// <summary>The durations measured during the last play, by edited action.</summary>
+    public CutscenePlayTimings Timings => _timings;
+
+    /// <summary>Changes each time a measure arrives or the measures are cleared.</summary>
+    public int TimingsVersion => _timings.Version;
+
+    /// <summary>Forgets the measured durations: the edited cutscene no longer is the one that was played.</summary>
+    public void ClearTimings()
+    {
+        _timings.Clear();
+        _moveTracks.Clear();
+    }
 
     /// <summary>
     /// The names of the entities of the preview world, children included, in the order of the world; empty when no world is
@@ -156,7 +179,13 @@ internal sealed class CutscenePreviewSession : IDisposable
             return false;
         }
 
-        _director!.Play(CopyAsset(asset));
+        var copy = CopyAsset(asset);
+        _moveTracks.Clear();
+        _copyToOriginal = copy.RootAction != null && asset.RootAction != null
+            ? CutsceneActionTree.MapByShape(copy.RootAction, asset.RootAction) ?? _copyToOriginal
+            : _copyToOriginal;
+        _timings.Begin(_copyToOriginal);
+        _director!.Play(copy);
         if (!_director.IsPlaying && State == CutsceneRuntimeState.Idle)
         {
             // An invalid asset starts nothing and raises no Ended.
@@ -194,6 +223,7 @@ internal sealed class CutscenePreviewSession : IDisposable
         _clampNextStep = false;
         _driver.Tick(gameTime);
         _host.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        UpdateMoveTracks();
 
         if (_host.EndRequested && _director != null && _director.IsPlaying)
         {
@@ -233,6 +263,8 @@ internal sealed class CutscenePreviewSession : IDisposable
         _director = _driver.World!.CutsceneDirector;
         _director.EffectHost = _host;
         _director.Ended += OnEnded;
+        _director.ActionStarted += OnActionStarted;
+        _director.ActionEnded += OnActionEnded;
         _clampNextStep = true;
         Error = string.Empty;
         return true;
@@ -243,7 +275,10 @@ internal sealed class CutscenePreviewSession : IDisposable
         if (_director != null)
         {
             _director.Ended -= OnEnded;
+            _director.ActionStarted -= OnActionStarted;
+            _director.ActionEnded -= OnActionEnded;
             _director = null;
+            _moveTracks.Clear();
         }
     }
 
@@ -254,6 +289,83 @@ internal sealed class CutscenePreviewSession : IDisposable
             ? _director?.GetDebugSnapshot().ActiveActionStopReason ?? string.Empty
             : string.Empty;
     }
+
+    private void OnActionStarted(in CutsceneActionNotification notification)
+    {
+        _timings.OnStarted(in notification);
+
+        if (notification.Action is not MoveSpriteCutsceneActionData move
+            || !_copyToOriginal.TryGetValue(move, out var original)
+            || _timings.TryGetDuration(original, out _)
+            || IsTracked(original))
+        {
+            return;
+        }
+
+        var world = _driver.World;
+        if (world == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < world.Entities.Count; index++)
+        {
+            var entity = world.Entities[index];
+            if (string.Equals(entity.Name, move.EntityName, StringComparison.Ordinal))
+            {
+                if (entity.RootComponent is StaticSpriteComponent sprite)
+                {
+                    _moveTracks.Add(new MoveTrack(sprite, original, notification.ElapsedSeconds));
+                }
+
+                return;
+            }
+        }
+    }
+
+    private void OnActionEnded(in CutsceneActionNotification notification)
+    {
+        _timings.OnEnded(in notification);
+    }
+
+    private bool IsTracked(CutsceneActionData original)
+    {
+        for (int index = 0; index < _moveTracks.Count; index++)
+        {
+            if (ReferenceEquals(_moveTracks[index].Action, original))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// A move effect ends when its sprite stops moving. The check runs after the world update that started the move, in
+    /// which StartMove was already called, so a sprite that is not moving has finished.
+    /// </summary>
+    private void UpdateMoveTracks()
+    {
+        if (_director == null)
+        {
+            return;
+        }
+
+        for (int index = _moveTracks.Count - 1; index >= 0; index--)
+        {
+            var track = _moveTracks[index];
+            if (track.Sprite.IsMoving)
+            {
+                continue;
+            }
+
+            _timings.SetEffectDuration(track.Action, Math.Max(0d, _director.PlayElapsedSeconds - track.StartSeconds));
+            _moveTracks.RemoveAt(index);
+        }
+    }
+
+    private readonly record struct MoveTrack(StaticSpriteComponent Sprite, CutsceneActionData Action, double StartSeconds);
 
     private static CutsceneAsset CopyAsset(CutsceneAsset asset)
     {
