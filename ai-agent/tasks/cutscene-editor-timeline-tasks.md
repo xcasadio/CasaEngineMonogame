@@ -158,7 +158,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 - Commit : `feat(cutscenes): expose the play clock and per-action notifications of the director`
 - Note de validation : les deux solutions buildent à 0 erreur ; `CasaEngine.Tests` 6082/6082 (6070 + 12 nouveaux dans `CutsceneActionNotificationTests`), aucun test existant modifié. Horloge avancée par `frameTime.DeltaTime` (le même delta que les coroutines) ; notifications gardées par `IsPlayAborted` et l'état `Playing`.
 
-### ⏳ T1.2 — Projection de l'arbre sur le temps (`CasaEngine.EditorServices`)
+### ✅ T1.2 — Projection de l'arbre sur le temps (`CasaEngine.EditorServices`)
 
 - Objectif : une fonction pure qui transforme un arbre d'actions en rangées et en éléments datés, selon P5 → P11.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneTimelineProjection.cs`, `CutsceneTimelineLayout.cs` (créés), tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
@@ -168,6 +168,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
   3. `MapPlayTime(secondes)` : rend la position de la tête de lecture, rebouclée sur le tour dessiné pour une boucle sans fin dont le tour a une durée non nulle (P9).
 - Validation : tests : `loop.cutscene` et `exit.cutscene` du sample, avec rangées, débuts et durées attendus écrits en clair (pour `loop.cutscene` : rangées Loops, Flow, quatre entités, World and input ; un tour de 5,6 s ; attentes à 0, 1,3, 3,8 et 5,0 s ; `TintSprite` de 0,8 s à 1,3 s et de 1 s à 3,8 s ; `HideSprite` à 5,0 s ; pour `exit.cutscene` : `FadeScreen` de 0 à 1 s, `ChangeWorld` à 1 s) ; chaque type d'action de `CutsceneActionTypes` a une rangée ou la mention explicite « sans élément » ; `Parallel` imbriqué dans un `Repeat` ; `Repeat` de trois tours suivi d'une action ; deux barres qui se chevauchent sur la même entité ; action de durée inconnue avec et sans mesure ; images converties et marquées estimées ; `MapPlayTime` avant, dans et après le premier tour, avec un `ExitOnInput` placé avant la boucle (8 s donne 2,4 s sur `loop.cutscene`) ; arbre vide et racine qui n'est pas un conteneur. La projection ne modifie pas l'arbre.
 - Commit : `feat(editor-services): project a cutscene action tree onto timeline rows and times`
+- Note de validation : `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6097/6097 (6082 + 15 nouveaux dans `CutsceneTimelineProjectionTests`), aucun test existant modifié. `Build(root, timings)` prend un `IReadOnlyDictionary<CutsceneActionData, double>` facultatif. Choix de détail : un marqueur reste sur la sous-rangée 0 ; une plage `Repeat` dont le compte est absent est dessinée « Repeat ×? » comme un tour ; seule une boucle sans fin atteinte par une chaîne de `Sequence` depuis la racine fixe les bornes du tour (`LoopStartSeconds`, `LoopEndSeconds`) ; les actions placées après elle sont dessinées à la fin du tour. Le test de `loop.cutscene` donne 8 s → 2,4 s.
 
 ### ⏳ T1.3 — Relevé des durées d'une lecture (`CasaEngine.EditorServices`)
 
