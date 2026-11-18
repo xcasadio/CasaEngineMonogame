@@ -7978,6 +7978,7 @@ public class GameEditor : Game, IObservableUpdate
             builder.AppendLine($"  - {state[index]}");
         }
 
+        _cutsceneTimelinePanel?.AppendAutomationState(builder);
         builder.AppendLine($"Editor current world: {_editorRuntime?.GameManager.CurrentWorld?.Name ?? "<none>"}");
     }
 

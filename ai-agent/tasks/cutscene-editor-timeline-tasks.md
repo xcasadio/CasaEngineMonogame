@@ -225,7 +225,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 - Commit : `feat(editor): show the cutscene on a read-only timeline panel`
 - Note de validation : `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6126/6126 (6118 + 8 nouveaux dans `CutsceneTimelinePanelTests`), aucun test existant modifié. Un clic est simulé par `TimelineControl.SetSelectedItemId(id, true)`, l'appel exact de la zone des pistes ; le test de clic précis est vérifié pour chacun des éléments de `loop.cutscene`. Une sous-rangée de la projection devient une piste du contrôle (libellé seulement sur la première). La tête de lecture vaut `MapPlayTime(temps)` pendant une lecture et 0 sinon (elle revient donc à 0 à la fin d'une lecture). Le panneau est créé avec `CutsceneTimelineItemRenderer` ; libellé complet, puis type seul, puis type tronqué (barres) ; un marqueur n'a pas de libellé s'il est posé sur une barre ou si l'élément suivant de sa piste est trop proche ; un libellé de barre laisse la place d'un marqueur posé sur son début. Capture `60-timeline-idle` (loop.cutscene, délai 3 s, sans `--activate-panel` : l'onglet est au premier plan à l'ouverture) regardée : rangée Loops avec la plage « Repeat forever » de 0 à 5,6 s, rangée Flow avec les attentes, rangées d'entités avec marqueurs en losange, barres `MoveSprite` estimées au contour pointillé et barres `TintSprite` pleines ; texte de transport « Stopped 0.00 s · 0 frames » ; tête de lecture à 0. Constat O1 : dans le groupe du bas, seules quatre rangées sont visibles sur neuf ou plus ; la barre verticale est affichée et les autres rangées défilent.
 
-### ⏳ T2.4 — Diagnostics d'automatisation
+### ✅ T2.4 — Diagnostics d'automatisation
 
 - Objectif : pouvoir prouver par un fichier ce que la timeline affiche.
 - Fichiers : `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs` ou le panneau de timeline, tests si une option est ajoutée.
@@ -234,6 +234,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
   2. `--activate-panel cutscenetimeline` est appliqué après l'ouverture de la cutscene.
 - Validation : build ; tests verts ; un lancement sur `loop.cutscene` produit ces lignes.
 - Commit : `feat(editor): write the cutscene timeline state in the automation diagnostics`
+- Note de validation : `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6126/6126, aucun test existant modifié. `CutsceneTimelinePanel.AppendAutomationState` écrit temps de lecture (s, images), tête de lecture, durée totale, texte de transport, nombre de pistes et d'éléments, une ligne par élément (piste, libellé, début, durée, forme, exact/estimé/mesuré), élément sélectionné, hauteurs visible et du contenu, débordement et barre verticale ; appelé par `AppendCutscenePreviewDiagnostics`. Le point 2 (`--activate-panel cutscenetimeline` après ouverture) était déjà livré par T2.3 (alias et `EnsureContextualToolPanelPresent`). Lancement sur `loop.cutscene` : 7 pistes, 26 éléments, zone des pistes 150 px visibles pour 250 px de contenu, barre verticale affichée (O1).
 
 ### ⏳ T2.5 — Captures de validation
 

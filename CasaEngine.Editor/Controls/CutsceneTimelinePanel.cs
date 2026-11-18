@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Controls.Timeline;
 using CasaEngine.Editor.Styling;
@@ -166,6 +167,62 @@ internal sealed class CutsceneTimelinePanel
                     $"{(playing ? "Playing" : "Stopped")}   {elapsed:0.00} s  ·  {frames} frames");
             }
         }
+    }
+
+    /// <summary>Appends the state shown by the timeline, one line per fact, for the automation diagnostics.</summary>
+    public void AppendAutomationState(StringBuilder builder)
+    {
+        var preview = _document?.Preview;
+        bool playing = preview != null && preview.IsPlaying;
+        double elapsed = preview?.ElapsedSeconds ?? 0d;
+        long frames = preview?.ElapsedFrames ?? 0;
+        builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+            $"Cutscene timeline (attached: {_document != null}, playing: {playing}):"));
+        builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+            $"  - Play time: {elapsed:0.000} s, {frames} frames; playhead: {_playhead:0.000} s; total duration: {_layout.DurationSeconds:0.###} s"));
+        builder.AppendLine($"  - Transport text: {TransportText}");
+
+        var model = _timeline?.Model;
+        int trackCount = model?.Tracks.Count ?? 0;
+        int itemCount = model?.Items.Count ?? 0;
+        builder.AppendLine($"  - Tracks: {trackCount}, items: {itemCount}");
+        if (model != null)
+        {
+            var trackIndexes = new Dictionary<Guid, int>();
+            for (int index = 0; index < model.Tracks.Count; index++)
+            {
+                trackIndexes[model.Tracks[index].Id] = index;
+            }
+
+            for (int index = 0; index < model.Items.Count; index++)
+            {
+                var item = model.Items[index];
+                trackIndexes.TryGetValue(item.TrackId, out int trackIndex);
+                var info = item.Source as CutsceneTimelineItemInfo;
+                string state = info == null ? "?" : info.Item.IsMeasured ? "measured" : info.Item.IsEstimated ? "estimated" : "exact";
+                string shape = info == null ? item.Kind.ToString() : info.Item.Shape.ToString();
+                builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+                    $"  - Item track {trackIndex} '{model.Tracks[trackIndex].Label}' | {item.DisplayName} | start {item.StartTime:0.###} s | duration {item.Duration:0.###} s | {shape} | {state}"));
+            }
+        }
+
+        string selected = "<none>";
+        var selectedId = _timeline?.ViewState.SelectedItemId;
+        if (selectedId.HasValue && model != null)
+        {
+            for (int index = 0; index < model.Items.Count; index++)
+            {
+                if (model.Items[index].Id == selectedId.Value)
+                {
+                    selected = model.Items[index].DisplayName;
+                    break;
+                }
+            }
+        }
+
+        builder.AppendLine($"  - Selected item: {selected}");
+        builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+            $"  - Track area: viewport {_timeline?.TrackAreaViewportHeight ?? 0} px, content {_timeline?.TrackAreaContentHeight ?? 0} px, overflow: {(_timeline?.TrackAreaContentHeight ?? 0) > (_timeline?.TrackAreaViewportHeight ?? 0)}, vertical bar shown: {_timeline?.IsVerticalScrollBarVisible ?? false}, scroll {_timeline?.ScrollY ?? 0f:0.#}"));
     }
 
     private void OnDocumentChanged(CutsceneAssetInspectorPanel document)
