@@ -1,6 +1,9 @@
 using System.Drawing;
+using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Rendering.Depth;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -269,6 +272,99 @@ public class SpriteCutsceneSampleDataTests
         Assert.Equal("SpriteWorld.world", (string?)project["FirstWorldLoaded"]);
     }
 
+    [Fact]
+    public void TheStaggerCutscene_ValidatesWithNoErrorAndNoWarning()
+    {
+        var result = CutsceneValidator.Validate(LoadCutscene("stagger.cutscene"));
+
+        Assert.Empty(result.Messages);
+    }
+
+    [Fact]
+    public void TheStaggerCutscene_ShowsTheFourSpritesThenStartsTheirMovesWithFourAtActionsOfAParallel()
+    {
+        var root = Assert.IsType<SequenceCutsceneActionData>(LoadCutscene("stagger.cutscene").RootAction);
+
+        Assert.Equal(6, root.Actions.Count);
+        Assert.Equal(SpriteEntities, root.Actions.Take(4).Select(action => Assert.IsType<ShowSpriteCutsceneActionData>(action).EntityName));
+        var parallel = Assert.IsType<ParallelCutsceneActionData>(root.Actions[4]);
+        var wait = Assert.IsType<WaitCutsceneActionData>(root.Actions[5]);
+        Assert.Equal(1f, wait.Seconds);
+
+        float[] seconds = [0f, 0.4f, 0.8f, 1.2f];
+        Assert.Equal(4, parallel.Actions.Count);
+        var loopMoves = Flatten(LoadCutscene("loop.cutscene").RootAction).OfType<MoveSpriteCutsceneActionData>().ToList();
+        for (var index = 0; index < 4; index++)
+        {
+            var at = Assert.IsType<AtCutsceneActionData>(parallel.Actions[index]);
+            var move = Assert.IsType<MoveSpriteCutsceneActionData>(Assert.Single(at.Actions));
+            var loopMove = Assert.Single(loopMoves, candidate => candidate.EntityName == SpriteEntities[index]);
+
+            Assert.Equal(seconds[index], at.Seconds);
+            Assert.Equal(SpriteEntities[index], move.EntityName);
+            Assert.Equal((loopMove.X, loopMove.Y, loopMove.Speed), (move.X, move.Y, move.Speed));
+        }
+    }
+
+    [Fact]
+    public void EveryEntityTheStaggerCutsceneNames_IsAStaticSpriteOfTheSpriteWorld()
+    {
+        var entities = EntitiesOf("SpriteWorld.world");
+        var names = new List<string>();
+
+        foreach (var action in FlattenWithAt(LoadCutscene("stagger.cutscene").RootAction))
+        {
+            switch (action)
+            {
+                case ShowSpriteCutsceneActionData show:
+                    names.Add(show.EntityName!);
+                    break;
+                case MoveSpriteCutsceneActionData move:
+                    names.Add(move.EntityName);
+                    break;
+            }
+        }
+
+        Assert.Equal(8, names.Count);
+        foreach (var name in names)
+        {
+            Assert.True(entities.ContainsKey(name), name);
+            Assert.Equal("StaticSpriteComponent", (string?)entities[name]["root_component"]!["type"]);
+        }
+    }
+
+    [Fact]
+    public void TheStaggerCutscene_IsCataloguedAsACutsceneWithItsOwnId()
+    {
+        var catalog = Catalog();
+        var source = JObject.Parse(File.ReadAllText(Path.Combine(ProjectPath(), "Cutscenes", "stagger.cutscene")));
+
+        var info = Assert.Single(catalog, entry => (string?)entry["file_name"] == "Cutscenes\\stagger.cutscene");
+
+        Assert.Equal("cutscene", (string?)info["asset_type"]);
+        Assert.Equal((string?)source["id"], (string?)info["id"]);
+    }
+
+    [Fact]
+    public void TheStaggerCutscene_HasNoLoadLossAndSavesTheSameTextAfterAReload()
+    {
+        var source = JObject.Parse(File.ReadAllText(Path.Combine(ProjectPath(), "Cutscenes", "stagger.cutscene")));
+
+        var first = CutsceneEditSession.Load(source);
+        Assert.Empty(first.LoadLosses);
+        Assert.False(CutsceneSaveGuard.TryGetBlockingReason(first, out var reason), reason);
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(first.Asset, out var saved));
+        var savedText = saved.ToString(Formatting.Indented);
+
+        var second = CutsceneEditSession.Load(JObject.Parse(savedText));
+        Assert.Empty(second.LoadLosses);
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(second.Asset, out var savedAgain));
+
+        Assert.Equal(savedText, savedAgain.ToString(Formatting.Indented));
+        var parallel = Assert.IsType<ParallelCutsceneActionData>(Assert.IsType<SequenceCutsceneActionData>(second.Asset.RootAction).Actions[4]);
+        Assert.Equal([0f, 0.4f, 0.8f, 1.2f], parallel.Actions.Select(action => Assert.IsType<AtCutsceneActionData>(action).Seconds));
+    }
+
     private static void AssertPixels(string file, int width, int height, Func<int, int, Microsoft.Xna.Framework.Color> expected)
     {
         using var bitmap = new Bitmap(Path.Combine(ProjectPath(), "Images", file));
@@ -307,6 +403,32 @@ public class SpriteCutsceneSampleDataTests
         foreach (var child in children)
         {
             foreach (var nested in Flatten(child))
+            {
+                yield return nested;
+            }
+        }
+    }
+
+    private static IEnumerable<CutsceneActionData> FlattenWithAt(CutsceneActionData action)
+    {
+        yield return action;
+
+        var children = action switch
+        {
+            SequenceCutsceneActionData sequence => sequence.Actions,
+            ParallelCutsceneActionData parallel => parallel.Actions,
+            AtCutsceneActionData at => at.Actions,
+            _ => null,
+        };
+
+        if (children == null)
+        {
+            yield break;
+        }
+
+        foreach (var child in children)
+        {
+            foreach (var nested in FlattenWithAt(child))
             {
                 yield return nested;
             }

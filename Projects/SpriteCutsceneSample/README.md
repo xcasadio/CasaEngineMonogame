@@ -11,6 +11,7 @@ Show the sprite actions, `Repeat` and `ExitOnInput` with no code of the game:
 3. `Cutscenes/exit.cutscene` (the next cutscene of the exit) runs a `FadeScreen` to black, then a `ChangeWorld` to `EndWorld.world`.
 4. `EndWorld.world` is a black world whose startup cutscene (`Cutscenes/end.cutscene`) waits 2 seconds, clears the exit overlay (a subtractive fade to black changes nothing), then changes back to `SpriteWorld.world`, so the sample runs for ever.
 5. `Images/shapes.png` (an orb and a ring, 48x48 each) is generated, no external image is involved. The generator is `CasaEngine.Tests/Cutscenes/SpriteCutsceneSampleImages.cs`, and `SpriteCutsceneSampleDataTests` checks that the committed pixels equal its output. Two of the four entities name their sprite in the world, the other two get it from the `sprite` field of `ShowSprite`, so both ways are used.
+6. `Cutscenes/stagger.cutscene` is not started by any world: open it in the editor. It shows the four sprites, then runs a `Parallel` of four `At` actions (0, 0.4, 0.8 and 1.2 seconds), each holding the `MoveSprite` of one sprite, so the sprites leave one after the other. In the cutscene timeline each `At` places its move at its own time; the `Seconds` field of the `At` in the Inspector sets that time.
 
 ## Controls
 

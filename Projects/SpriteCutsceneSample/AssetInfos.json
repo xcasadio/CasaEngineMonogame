@@ -31,6 +31,12 @@
       "asset_type": "cutscene"
     },
     {
+      "id": "7d2f4b1e-6a93-5c08-8e51-3b9d0f27a4c6",
+      "name": "SpriteStagger",
+      "file_name": "Cutscenes\\stagger.cutscene",
+      "asset_type": "cutscene"
+    },
+    {
       "id": "da5c7155-40bc-561e-a347-da1478123b06",
       "name": "shapes-sheet",
       "file_name": "Images\\shapes.png",
