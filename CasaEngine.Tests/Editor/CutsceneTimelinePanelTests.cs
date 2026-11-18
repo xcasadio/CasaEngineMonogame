@@ -899,4 +899,125 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
         Assert.True(timeline.Model!.DurationSeconds > (float)rig.Panel.Layout.DurationSeconds);
     }
+
+    // ---- Adding at the cursor time (ADR-0102, P9) ---------------------------------------------------------------------
+
+    private static MGContextMenu? EmptySpaceMenu(DragRig rig, float cursorSeconds)
+    {
+        var track = rig.Timeline.Model!.Tracks[0];
+        return rig.Timeline.CreateContextMenu(track, null, cursorSeconds);
+    }
+
+    private static MGContextMenuButton FindAddHereEntry(MGContextMenu menu, string category, string type)
+    {
+        var categoryButton = CutsceneMenuProbe.Button(CutsceneMenuProbe.Button(menu, "Add here").Submenu!, category);
+        return CutsceneMenuProbe.Button(categoryButton.Submenu!, type);
+    }
+
+    [Fact]
+    public void TheEmptySpaceWithAParallelSelected_OffersAddHere_AndAnEntryAddsAnAtAtTheCursorTime()
+    {
+        var rig = OpenDragTree();
+        rig.Document.SelectAction(rig.Parallel);
+        int count = rig.Parallel.Actions.Count;
+
+        var menu = EmptySpaceMenu(rig, 2.5f);
+
+        Assert.NotNull(menu);
+        Assert.Equal(["Add here"], CutsceneMenuProbe.Labels(menu!));
+        var categories = CutsceneMenuProbe.Labels(CutsceneMenuProbe.Button(menu!, "Add here").Submenu!);
+        Assert.Contains(CutsceneActionCatalog.FlowCategory, categories);
+        Assert.Contains(CutsceneActionCatalog.TimingCategory, categories);
+
+        CutsceneMenuProbe.Trigger(FindAddHereEntry(menu!, CutsceneActionCatalog.TimingCategory, CutsceneActionTypes.Wait));
+
+        // The Parallel starts at 1 s: the At waits 1.5 s, at the end of the Parallel, and holds a new Wait; the action is selected.
+        Assert.Equal(count + 1, rig.Parallel.Actions.Count);
+        var added = Assert.IsType<AtCutsceneActionData>(rig.Parallel.Actions[^1]);
+        Assert.Equal(1.5f, added.Seconds, 3);
+        var wait = Assert.IsType<WaitCutsceneActionData>(Assert.Single(added.Actions));
+        Assert.Same(wait, rig.Document.SelectedAction);
+
+        // One entry of the history: a single undo removes it.
+        Undo();
+        Assert.Equal(count, rig.Parallel.Actions.Count);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+    }
+
+    [Fact]
+    public void TheEmptySpaceBeforeTheParallel_AddsAnAtWithNoDelay()
+    {
+        var rig = OpenDragTree();
+        rig.Document.SelectAction(rig.Parallel);
+
+        var menu = EmptySpaceMenu(rig, 0.25f);
+
+        Assert.NotNull(menu);
+        CutsceneMenuProbe.Trigger(FindAddHereEntry(menu!, CutsceneActionCatalog.TimingCategory, CutsceneActionTypes.Wait));
+        Assert.Equal(0f, Assert.IsType<AtCutsceneActionData>(rig.Parallel.Actions[^1]).Seconds);
+    }
+
+    [Fact]
+    public void TheEmptySpaceWithAnActionInsideAnAtInAParallelSelected_AddsToThatParallel()
+    {
+        var rig = OpenDragTree();
+        rig.Document.SelectAction(rig.A);
+        int count = rig.Parallel.Actions.Count;
+
+        var menu = EmptySpaceMenu(rig, 3f);
+
+        Assert.NotNull(menu);
+        CutsceneMenuProbe.Trigger(FindAddHereEntry(menu!, CutsceneActionCatalog.TimingCategory, CutsceneActionTypes.Wait));
+        Assert.Equal(count + 1, rig.Parallel.Actions.Count);
+        Assert.Equal(2f, Assert.IsType<AtCutsceneActionData>(rig.Parallel.Actions[^1]).Seconds, 3);
+    }
+
+    [Fact]
+    public void TheEmptySpaceWithNoParallelToReceiveTheAction_HasNoMenu_AndChangesNothing()
+    {
+        var rig = OpenDragTree();
+        var track = rig.Timeline.Model!.Tracks[0];
+        int actions = CutsceneActionTree.CountActions(rig.Root);
+
+        // The root Sequence, an action of the root, and no selection: none is in a Parallel.
+        foreach (CutsceneActionData? selection in new CutsceneActionData?[] { rig.Root, rig.Root.Actions[0], null })
+        {
+            rig.Document.SelectAction(selection);
+            Assert.Null(rig.Timeline.CreateContextMenu(track, null, 2f));
+        }
+
+        Assert.Equal(actions, CutsceneActionTree.CountActions(rig.Root));
+        Assert.False(EditorHistoryService.Current.CanUndo);
+    }
+
+    [Fact]
+    public void TheEmptySpaceWithoutDocumentOrHistoryContext_HasNoMenu()
+    {
+        var rig = OpenDragTree(historyContext: false);
+        var track = rig.Timeline.Model!.Tracks[0];
+        rig.Document.SelectAction(rig.Parallel);
+        Assert.Null(rig.Timeline.CreateContextMenu(track, null, 2f));
+
+        rig.Panel.SetEditorPanel(null);
+        Assert.Null(rig.Timeline.CreateContextMenu(track, null, 2f));
+    }
+
+    [Fact]
+    public void TheMenuOfAnItem_IsStillTheStructureMenu_WithoutAddHere()
+    {
+        var rig = OpenDragTree();
+        rig.Document.SelectAction(rig.Parallel);
+        var item = FindItem(rig.Panel, rig.B);
+        var track = rig.Timeline.Model!.Tracks.Single(candidate => candidate.Id == item.TrackId);
+
+        var menu = rig.Timeline.CreateContextMenu(track, item, 2f);
+
+        Assert.NotNull(menu);
+        Assert.Same(rig.B, rig.Document.SelectedAction);
+        var labels = CutsceneMenuProbe.Labels(menu!);
+        Assert.Contains("Add", labels);
+        Assert.Contains("Wrap in", labels);
+        Assert.Contains("Delete", labels);
+        Assert.DoesNotContain("Add here", labels);
+    }
 }

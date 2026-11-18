@@ -115,7 +115,35 @@ internal static class CutsceneActionMenu
     private static void AddAddSubmenu(MGContextMenu menu, CutsceneAssetInspectorPanel document, Action<string?>? onResult)
     {
         var addButton = menu.AddButton("Add", _ => { });
-        var addMenu = new MGContextMenu(menu);
+        addButton.Submenu = CreateCatalogueMenu(menu, type => Report(onResult, document.AddAction(type)));
+    }
+
+    /// <summary>
+    /// Builds the menu of the empty space of the timeline: <c>Add here</c>, by category then type, which adds the action at
+    /// <paramref name="timelineSeconds"/> (ADR-0102). Returns null when the document would refuse the addition (no Parallel
+    /// to receive it, no history, a play session), so that the empty space then has no menu.
+    /// </summary>
+    /// <param name="onResult">Told the refusal message of the addition after it ran, or null when it was done.</param>
+    internal static MGContextMenu? CreateAddHere(MGWindow window, CutsceneAssetInspectorPanel document, double timelineSeconds, Action<string?>? onResult)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+        ArgumentNullException.ThrowIfNull(document);
+
+        if (document.GetAddActionAtRefusal(timelineSeconds) != null)
+        {
+            return null;
+        }
+
+        var menu = new MGContextMenu(window, null);
+        var addButton = menu.AddButton("Add here", _ => { });
+        addButton.Submenu = CreateCatalogueMenu(menu, type => Report(onResult, document.AddActionAt(type, timelineSeconds)));
+        return menu;
+    }
+
+    // The catalogue by category, then by type; choosing a type calls onType with it.
+    private static MGContextMenu CreateCatalogueMenu(MGContextMenu parent, Action<string> onType)
+    {
+        var catalogueMenu = new MGContextMenu(parent);
 
         string? category = null;
         MGContextMenu? categoryMenu = null;
@@ -126,16 +154,16 @@ internal static class CutsceneActionMenu
             if (categoryMenu == null || !string.Equals(category, kind.Category, StringComparison.Ordinal))
             {
                 category = kind.Category;
-                var categoryButton = addMenu.AddButton(category, _ => { });
-                categoryMenu = new MGContextMenu(addMenu);
+                var categoryButton = catalogueMenu.AddButton(category, _ => { });
+                categoryMenu = new MGContextMenu(catalogueMenu);
                 categoryButton.Submenu = categoryMenu;
             }
 
             string type = kind.Type;
-            categoryMenu.AddButton(type, _ => Report(onResult, document.AddAction(type)));
+            categoryMenu.AddButton(type, _ => onType(type));
         }
 
-        addButton.Submenu = addMenu;
+        return catalogueMenu;
     }
 
     private static void AddWrapSubmenu(MGContextMenu menu, CutsceneAssetInspectorPanel document, Action<string?>? onResult)

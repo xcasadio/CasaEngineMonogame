@@ -378,8 +378,20 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 
     MGContextMenu? ITimelineContextMenuProvider.CreateContextMenu(TimelineControl timeline, TimelineTrack? track, TimelineItem? item, float cursorTime)
     {
-        // The empty space has no menu; the structure operations act on an action, which an item stands for.
-        if (_document == null || item?.Source is not CutsceneTimelineItemInfo info)
+        if (_document == null)
+        {
+            return null;
+        }
+
+        // The empty space offers "Add here" at the time of the cursor (ADR-0102), when the selection gives a Parallel to receive
+        // the action; otherwise it has no menu.
+        if (item == null)
+        {
+            return CutsceneActionMenu.CreateAddHere(_window, _document, cursorTime, null);
+        }
+
+        // The structure operations act on an action, which an item stands for.
+        if (item.Source is not CutsceneTimelineItemInfo info)
         {
             return null;
         }
