@@ -33,6 +33,9 @@ internal static class CutsceneActionCoroutineFactory
 
     private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
+        // Observation only (ADR-0098): a failing action leaves through yield break below and raises no end, and the
+        // code after a yield never runs for a stopped play, so no end is raised for it either. Nothing is raised from a finally block.
+        owner.RaiseActionStarted(action, playToken);
         switch (action)
         {
             case WaitCutsceneActionData waitAction:
@@ -419,7 +422,7 @@ internal static class CutsceneActionCoroutineFactory
             case ParallelCutsceneActionData parallelAction:
                 if (parallelAction.Actions.Count == 0)
                 {
-                    yield break;
+                    break;
                 }
 
                 var handles = new List<CoroutineHandle>(parallelAction.Actions.Count);
@@ -446,6 +449,8 @@ internal static class CutsceneActionCoroutineFactory
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
         }
+
+        owner.RaiseActionEnded(action, playToken);
     }
 
     /// <summary>

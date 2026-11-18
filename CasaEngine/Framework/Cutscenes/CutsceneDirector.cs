@@ -57,6 +57,32 @@ public sealed class CutsceneDirector
     /// </summary>
     public ICutsceneEffectHost EffectHost { get; set; }
 
+    /// <summary>
+    /// Raised when the code of an action starts, containers included, with the play clock at that moment. Only while the
+    /// play is neither failed, superseded nor stopped. Without a subscriber nothing is done. An exception thrown by a
+    /// handler is logged and does not interrupt the play (rethrown only when
+    /// <see cref="CoroutineManager.ThrowCoroutineExceptionsInDebug"/> is set).
+    /// </summary>
+    public event CutsceneActionNotificationHandler ActionStarted;
+
+    /// <summary>
+    /// Raised when the code of an action ends without failure: normal end, an action that never returns, a request
+    /// refused by the host, an empty Parallel. Not raised for a failing action, nor for the running actions of a stopped,
+    /// failed or replaced play. For MoveSprite and TintSprite it follows ActionStarted at once: the duration of their
+    /// effect is not the duration of the action.
+    /// </summary>
+    public event CutsceneActionNotificationHandler ActionEnded;
+
+    /// <summary>
+    /// Seconds of the play in progress, counted by the scaled frame delta that the coroutines use. Zero at each
+    /// <see cref="Play"/>, advanced after the coroutine update of every update that leaves the same play running, so that
+    /// the first step of a play sees 0.
+    /// </summary>
+    public double PlayElapsedSeconds { get; private set; }
+
+    /// <summary>Updates of the play in progress that advanced <see cref="PlayElapsedSeconds"/>.</summary>
+    public long PlayElapsedFrames { get; private set; }
+
     public bool IsPlaying => _activeHandle.IsValid && _world.RuntimeSystems.CoroutineManager.IsRunning(_activeHandle);
 
     public void Play(CutsceneAsset asset)
@@ -76,6 +102,8 @@ public sealed class CutsceneDirector
 
         _currentAsset = asset;
         _playToken++;
+        PlayElapsedSeconds = 0d;
+        PlayElapsedFrames = 0;
         _endRaised = true;
         ResetActiveActionDebug();
         _lastValidation = asset.Validate();
@@ -224,6 +252,52 @@ public sealed class CutsceneDirector
     }
 
     private bool IsFailureAwaitingEnd => _state == CutsceneRuntimeState.Failed && !_endRaised;
+
+    /// <summary>The identifier of the current play, read by the world before its coroutine update.</summary>
+    internal int PlayToken => _playToken;
+
+    /// <summary>
+    /// Advances the play clock after a coroutine update, only when the play running now is the one that was running
+    /// before the update (a play started during it, by an Ended handler or ExitOnInput, starts at 0) and is still playing.
+    /// </summary>
+    internal void AdvancePlayClock(int playTokenBeforeUpdate, float deltaTime)
+    {
+        if (playTokenBeforeUpdate != _playToken || _state != CutsceneRuntimeState.Playing || _endRaised)
+        {
+            return;
+        }
+
+        PlayElapsedSeconds += deltaTime;
+        PlayElapsedFrames++;
+    }
+
+    internal void RaiseActionStarted(CutsceneActionData action, int playToken)
+        => RaiseActionNotification(ActionStarted, action, playToken);
+
+    internal void RaiseActionEnded(CutsceneActionData action, int playToken)
+        => RaiseActionNotification(ActionEnded, action, playToken);
+
+    private void RaiseActionNotification(CutsceneActionNotificationHandler handler, CutsceneActionData action, int playToken)
+    {
+        if (handler == null || IsPlayAborted(playToken) || _state != CutsceneRuntimeState.Playing)
+        {
+            return;
+        }
+
+        var notification = new CutsceneActionNotification(action, PlayElapsedSeconds, PlayElapsedFrames);
+        try
+        {
+            handler(in notification);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(new Exception($"A handler of a CutsceneDirector action notification threw for cutscene '{_currentAsset?.Name}'.", exception));
+            if (_world.RuntimeSystems.CoroutineManager.ThrowCoroutineExceptionsInDebug)
+            {
+                throw;
+            }
+        }
+    }
 
     /// <summary>True once the play identified by <paramref name="playToken"/> failed or was superseded by a newer play.</summary>
     internal bool IsPlayAborted(int playToken) => playToken != _playToken || _state == CutsceneRuntimeState.Failed;

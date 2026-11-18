@@ -145,7 +145,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 
 ## Phase 1 — Runtime et services
 
-### ⏳ T1.1 — Horloge de lecture et notifications par action (`CasaEngine`)
+### ✅ T1.1 — Horloge de lecture et notifications par action (`CasaEngine`)
 
 - Objectif : un observateur peut suivre une lecture dans le temps sans toucher aux coroutines (P2 → P4).
 - Fichiers : `CasaEngine/Framework/Cutscenes/CutsceneDirector.cs`, `CutsceneActionCoroutineFactory.cs`, `CutsceneActionNotification.cs` (créé), `CasaEngine/Framework/Scene/World/WorldRuntimeSystems.cs`, tests dans `CasaEngine.Tests/Cutscenes/`.
@@ -156,6 +156,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
   4. Une exception levée par un abonné est traitée comme celle d'un abonné d'`Ended` : journalisée, sans interrompre la lecture.
 - Validation : build des deux solutions ; tests ajoutés, avec un pas fixe de 0,1 s : une lecture `Wait 1.0` lève `ActionStarted` au temps 0 et `ActionEnded` à 1,0 s à un pas près ; ordre des notifications pour `Sequence`, `Parallel` et `Repeat` de deux tours ; `MoveSprite` lève début puis fin dans la même mise à jour ; une lecture arrêtée ne lève pas `ActionEnded` pour l'action en cours ; une action refusée par l'hôte lève début et fin ; un échec dans une branche de `Parallel` ne lève plus rien pour les autres branches ; un `Parallel` vide lève début et fin ; une lecture lancée depuis un abonné d'`Ended` voit son premier pas au temps 0 ; l'horloge repart de zéro à un second `Play` et ne bouge pas hors lecture ; sans abonné, le comportement est celui d'avant. Tous les tests existants de `CasaEngine.Tests/Cutscenes` passent sans modification.
 - Commit : `feat(cutscenes): expose the play clock and per-action notifications of the director`
+- Note de validation : les deux solutions buildent à 0 erreur ; `CasaEngine.Tests` 6082/6082 (6070 + 12 nouveaux dans `CutsceneActionNotificationTests`), aucun test existant modifié. Horloge avancée par `frameTime.DeltaTime` (le même delta que les coroutines) ; notifications gardées par `IsPlayAborted` et l'état `Playing`.
 
 ### ⏳ T1.2 — Projection de l'arbre sur le temps (`CasaEngine.EditorServices`)
 
