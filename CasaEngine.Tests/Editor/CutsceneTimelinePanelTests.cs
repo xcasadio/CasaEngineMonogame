@@ -1020,4 +1020,28 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         Assert.Contains("Delete", labels);
         Assert.DoesNotContain("Add here", labels);
     }
+
+    [Fact]
+    public void TheDiagnostics_SayForEachItemWhatDraggingItDoes_TheLowestInstant_AndWhereEachParallelStarts()
+    {
+        var rig = OpenDragTree();
+        var builder = new System.Text.StringBuilder();
+
+        rig.Panel.AppendAutomationState(builder);
+        string text = builder.ToString();
+        var lines = text.Split((char)10);
+
+        var itemLines = lines.Where(line => line.StartsWith("  - Item track", StringComparison.Ordinal)).ToArray();
+
+        // a: first child of the At at actions[0] of the Parallel (actions[1] of the root), delay 0.5 s, lowest instant 1 s.
+        var changeLine = Assert.Single(itemLines, line => line.Contains("drag: changes the At root_action.actions[1].actions[0] (seconds 0.5); lowest 1 s"));
+        Assert.Contains("start 1.5 s", changeLine);
+        // b: direct child of the Parallel; c1: first of a Sequence in the Parallel, so the Sequence is wrapped.
+        Assert.Single(itemLines, line => line.Contains("drag: wraps root_action.actions[1].actions[1] in an At (in the Parallel root_action.actions[1]); lowest 1 s"));
+        Assert.Single(itemLines, line => line.Contains("drag: wraps root_action.actions[1].actions[2] in an At (in the Parallel root_action.actions[1]); lowest 1 s"));
+        // The first Wait of the root and c2 (second of a Sequence): nothing.
+        Assert.Equal(2, itemLines.Count(line => line.Contains("drag: none")));
+        Assert.Contains("  - Parallel root_action.actions[1] starts at 1 s", text);
+        Assert.Contains("  - Last drop: <none>; refusal: <none>", text);
+    }
 }

@@ -286,6 +286,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
             $"  - Last seek request from the ruler: {(_lastSeekRequestSeconds.HasValue ? _lastSeekRequestSeconds.Value.ToString("0.000", CultureInfo.InvariantCulture) + " s" : "<none>")} (accepted: {_lastSeekRequestAccepted})"));
 
+        var root = _document?.LoadedCutsceneAsset?.RootAction;
         var model = _timeline?.Model;
         int trackCount = model?.Tracks.Count ?? 0;
         int itemCount = model?.Items.Count ?? 0;
@@ -306,8 +307,15 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
                 string state = info == null ? "?" : info.Item.IsMeasured ? "measured" : info.Item.IsEstimated ? "estimated" : "exact";
                 string shape = info == null ? item.Kind.ToString() : info.Item.Shape.ToString();
                 builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
-                    $"  - Item track {trackIndex} '{model.Tracks[trackIndex].Label}' | {item.DisplayName} | start {item.StartTime:0.###} s | duration {item.Duration:0.###} s | {shape} | {state}"));
+                    $"  - Item track {trackIndex} '{model.Tracks[trackIndex].Label}' | {item.DisplayName} | start {item.StartTime:0.###} s | duration {item.Duration:0.###} s | {shape} | {state} | {DescribeDragRule(root, info)}"));
             }
+        }
+
+        builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+            $"  - Last drop: {(_lastPlaceRequestSeconds.HasValue ? _lastPlaceRequestSeconds.Value.ToString("0.000", CultureInfo.InvariantCulture) + " s" : "<none>")}; refusal: {_lastPlaceRefusal ?? "<none>"}"));
+        if (root != null)
+        {
+            AppendParallelStarts(builder, root, "root_action");
         }
 
         string selected = "<none>";
@@ -327,6 +335,46 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         builder.AppendLine($"  - Selected item: {selected}");
         builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
             $"  - Track area: viewport {_timeline?.TrackAreaViewportHeight ?? 0} px, content {_timeline?.TrackAreaContentHeight ?? 0} px, overflow: {(_timeline?.TrackAreaContentHeight ?? 0) > (_timeline?.TrackAreaViewportHeight ?? 0)}, vertical bar shown: {_timeline?.IsVerticalScrollBarVisible ?? false}, scroll {_timeline?.ScrollY ?? 0f:0.#}"));
+    }
+
+    // The diagnostics of an item: what dragging it does (P5) and the lowest time it can be dragged to.
+    private static string DescribeDragRule(CutsceneActionData? root, CutsceneTimelineItemInfo? info)
+    {
+        if (root == null || info == null)
+        {
+            return "drag: unknown";
+        }
+
+        var rule = CutscenePlacement.Resolve(root, info.Item);
+        switch (rule.Kind)
+        {
+            case CutscenePlacementKind.ChangeAt:
+                return string.Create(CultureInfo.InvariantCulture,
+                    $"drag: changes the At {CutsceneActionTree.GetPath(root, rule.At!)} (seconds {rule.At!.Seconds:0.###}); lowest {info.LowestInstantSeconds:0.###} s");
+            case CutscenePlacementKind.WrapInAt:
+                return string.Create(CultureInfo.InvariantCulture,
+                    $"drag: wraps {CutsceneActionTree.GetPath(root, rule.Node!)} in an At (in the Parallel {CutsceneActionTree.GetPath(root, rule.Parallel!)}); lowest {info.LowestInstantSeconds:0.###} s");
+            default:
+                return "drag: none";
+        }
+    }
+
+    // One line per Parallel of the tree: the time at which it starts in the timeline.
+    private void AppendParallelStarts(StringBuilder builder, CutsceneActionData action, string path)
+    {
+        if (action is ParallelCutsceneActionData)
+        {
+            string start = _layout.TryGetContainerStart(action, out double startSeconds)
+                ? startSeconds.ToString("0.###", CultureInfo.InvariantCulture) + " s"
+                : "<not in the timeline>";
+            builder.AppendLine($"  - Parallel {path} starts at {start}");
+        }
+
+        var children = CutsceneActionCatalog.GetChildren(action);
+        for (int index = 0; index < children.Count; index++)
+        {
+            AppendParallelStarts(builder, children[index], $"{path}.actions[{index}]");
+        }
     }
 
     private void OnDocumentChanged(CutsceneAssetInspectorPanel document)

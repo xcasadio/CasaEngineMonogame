@@ -8190,6 +8190,29 @@ public class GameEditor : Game, IObservableUpdate
             case "draghover":
                 return ExecuteAutomationCutsceneDragHover(document, root, selected, operation);
 
+            case "place":
+            {
+                if (!CutsceneEditOperation.TryParseSeconds(operation.Argument, out double placeSeconds))
+                {
+                    return "refused: place needs a time in seconds, as place:<seconds>";
+                }
+
+                return selected == null
+                    ? "refused: no action is selected to place"
+                    : DescribeAutomationRefusal(document.PlaceActionAt(selected, placeSeconds));
+            }
+
+            case "addat":
+            {
+                if (string.IsNullOrWhiteSpace(operation.Argument)
+                    || !CutsceneEditOperation.TryParseSeconds(operation.Detail, out double addSeconds))
+                {
+                    return "refused: addat needs a type and a time in seconds, as addat:<Type>:<seconds>";
+                }
+
+                return DescribeAutomationRefusal(document.AddActionAt(operation.Argument, addSeconds));
+            }
+
             default:
                 return "refused: unknown or malformed operation";
         }

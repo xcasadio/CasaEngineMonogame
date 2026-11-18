@@ -362,4 +362,56 @@ public class EditorAutomationOptionsTests
         Assert.Equal("draghover", options.CutsceneEditOperations[1].Name);
         Assert.Equal("Into", options.CutsceneEditOperations[1].Detail);
     }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_PlaceKeepsItsSecondsAsTheArgument_AndAddAtSplitsItsTypeAndSecondsAtTheLastColon()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-edit-ops", "select:root_action.actions[1];place:1.6;addat:Wait:2;ADDAT:MoveSprite:0.5;addat:Wait",
+        });
+
+        var operations = options.CutsceneEditOperations;
+        Assert.Equal(("place", "1.6", (string?)null), (operations[1].Name, operations[1].Argument, operations[1].Detail));
+        Assert.Equal(("addat", "Wait", "2"), (operations[2].Name, operations[2].Argument, operations[2].Detail));
+        Assert.Equal(("addat", "MoveSprite", "0.5"), (operations[3].Name, operations[3].Argument, operations[3].Detail));
+        // Without a second colon there is no time: the operation is kept and refused when it is applied.
+        Assert.Equal(("addat", "Wait", (string?)null), (operations[4].Name, operations[4].Argument, operations[4].Detail));
+    }
+
+    [Theory]
+    [InlineData("1.6", 1.6)]
+    [InlineData("0", 0)]
+    [InlineData(" 2 ", 2)]
+    [InlineData("-0.5", -0.5)]
+    [InlineData("1e1", 10)]
+    public void TryParseSeconds_ReadsAFiniteNumber_WithADotWhateverTheCulture(string text, double expected)
+    {
+        var previous = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("fr-FR");
+            Assert.True(CutsceneEditOperation.TryParseSeconds(text, out double seconds));
+            Assert.Equal(expected, seconds, 6);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = previous;
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("x")]
+    [InlineData("1,6")]
+    [InlineData("1.6 s")]
+    [InlineData("NaN")]
+    [InlineData("Infinity")]
+    [InlineData("1:2")]
+    public void TryParseSeconds_RefusesWhatIsNotAFiniteNumber(string? text)
+    {
+        Assert.False(CutsceneEditOperation.TryParseSeconds(text, out _));
+    }
 }
