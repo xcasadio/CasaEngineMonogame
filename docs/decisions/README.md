@@ -110,3 +110,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0094](0094-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md) | The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer | Accepted | 2026-11-17 |
 | [ADR-0095](0095-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md) | Cutscene assets are edited in the editor, on their action tree | Accepted | 2026-11-17 |
 | [ADR-0096](0096-the-cutscene-editor-previews-in-an-isolated-world-and-projects-the-tree-on-a-timeline.md) | The cutscene editor previews in an isolated world and projects its action tree on a timeline | Accepted | 2026-11-18 |
+| [ADR-0097](0097-the-cutscene-editor-shows-an-outliner-and-typed-details-and-edits-the-structure.md) | The cutscene editor shows an action outliner and typed details, and edits the tree structure | Accepted | 2026-11-18 |
