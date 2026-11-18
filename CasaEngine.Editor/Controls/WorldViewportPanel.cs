@@ -734,6 +734,30 @@ public class WorldViewportPanel : IDisposable
         _renderView?.Invalidate();
     }
 
+    /// <summary>
+    /// Replaces the preview world by another one and keeps the camera as the user left it: a world that is rebuilt from its
+    /// asset (a seek or a stop of the cutscene preview) must not reset the view. When no preview world was shown yet there
+    /// is no camera to keep, and this behaves like <see cref="SetWorldOverride"/>.
+    /// </summary>
+    internal void SetWorldOverrideKeepingCamera(World world)
+    {
+        if (!HasWorldOverride || world == null || ReferenceEquals(_renderWorldOverride, world))
+        {
+            SetWorldOverride(world);
+            return;
+        }
+
+        var cameraState = _cameraController.CaptureState();
+        SetWorldOverride(world);
+        _cameraController.RestoreState(cameraState);
+        if (_camera != null)
+        {
+            _cameraController.ApplyTo(_camera);
+        }
+
+        _renderView?.Invalidate();
+    }
+
     public void FocusEntity(Entity entity)
     {
         if (entity?.RootComponent == null || _camera == null)

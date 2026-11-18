@@ -449,6 +449,31 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
         Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
     }
 
+    [Fact]
+    public void TheTransportOperations_WithoutAPreview_ReturnFalseAndDoNothing()
+    {
+        var rig = Open();
+
+        Assert.False(rig.Panel.SeekPreview(1.0));
+        Assert.False(rig.Panel.SeekPreview(-1.0));
+        Assert.False(rig.Panel.TogglePreviewPlayback());
+        Assert.False(rig.Panel.StepPreviewFrames(1));
+        Assert.False(rig.Panel.StepPreviewBack());
+        Assert.False(rig.Panel.StopPreview());
+        Assert.Null(rig.Panel.Preview);
+    }
+
+    [Fact]
+    public void TheTransportText_WithoutAPreview_IsEmpty()
+    {
+        var rig = Open();
+
+        rig.Harness.AdvanceFrame(0);
+        rig.Harness.AdvanceFrame(16);
+
+        Assert.Equal(string.Empty, rig.Panel.TransportText);
+    }
+
     private static CutsceneDebugSnapshot RunningSnapshot() => new(
         CutsceneRuntimeState.Playing,
         Guid.Empty,

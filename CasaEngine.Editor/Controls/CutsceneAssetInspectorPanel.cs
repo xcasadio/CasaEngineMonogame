@@ -51,8 +51,10 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGComboBox<string>? _worldCombo;
     private MGTextBlock? _previewStatusText;
     private MGTextBlock? _timeText;
+    private MGTextBlock? _playPauseText;
     private int _lastTimeTenths = -1;
-    private bool _lastTimePlaying;
+    private long _lastTimeFrames = -1;
+    private CutscenePreviewStatus? _lastTimeStatus;
     private MGTextBlock? _noPreviewWorldText;
     private MGElement? _previewViewportContent;
     private CutscenePreviewSettings? _previewSettings;
@@ -335,12 +337,34 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         _preview?.ClearTimings();
-        if (_preview != null && _preview.IsPlaying)
-        {
-            PlayPreview();
-        }
+        RestartPreviewAfterChange();
 
         DocumentChanged?.Invoke(this);
+    }
+
+    /// <summary>
+    /// A change of the document replays the preview (ADR-0099): a running play restarts from the beginning, a paused play or
+    /// a seek in progress goes to the same time again and stays paused, and nothing is replayed when no play is running.
+    /// </summary>
+    private void RestartPreviewAfterChange()
+    {
+        if (_preview == null || _session == null)
+        {
+            return;
+        }
+
+        switch (_preview.Status)
+        {
+            case CutscenePreviewStatus.Playing:
+                PlayPreview();
+                break;
+            case CutscenePreviewStatus.Seeking:
+                SeekPreview(_preview.SeekTargetSeconds);
+                break;
+            case CutscenePreviewStatus.Paused:
+                SeekPreview(_preview.ElapsedSeconds);
+                break;
+        }
     }
 
     public MGElement CreateContent()
@@ -529,10 +553,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         RefreshTimeText();
     }
 
-    /// <summary>The play time shown at the end of the transport row, or empty without a preview.</summary>
+    /// <summary>The status word and play time shown under the transport row, or empty without a preview.</summary>
     public string TransportText => _timeText?.Text ?? string.Empty;
 
-    /// <summary>Rewrites the play time text when its tenth of a second or the play state changed: at most ten times a second.</summary>
+    /// <summary>
+    /// Rewrites the status word, the play time and the label of the Play / Pause button. It writes only when what they show
+    /// changes: the status, the tenth of a second, or while paused the number of frames.
+    /// </summary>
     private void RefreshTimeText()
     {
         if (_timeText == null || _preview == null)
@@ -540,20 +567,47 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             return;
         }
 
-        bool playing = _preview.IsPlaying;
-        double elapsed = playing ? _preview.ElapsedSeconds : 0d;
+        var status = _preview.Status;
+        double elapsed = _preview.ElapsedSeconds;
+        long frames = _preview.ElapsedFrames;
         int tenths = (int)(elapsed * 10d);
-        if (tenths == _lastTimeTenths && playing == _lastTimePlaying)
+        bool statusChanged = _lastTimeStatus != status;
+        if (!statusChanged
+            && tenths == _lastTimeTenths
+            && (status != CutscenePreviewStatus.Paused || frames == _lastTimeFrames))
         {
             return;
         }
 
+        _lastTimeStatus = status;
         _lastTimeTenths = tenths;
-        _lastTimePlaying = playing;
-        long frames = playing ? _preview.ElapsedFrames : 0;
+        _lastTimeFrames = frames;
         _timeText.Text = string.Create(
             CultureInfo.InvariantCulture,
-            $"{(playing ? "Playing" : "Stopped")}   {elapsed:0.00} s  ·  {frames} frames");
+            $"{GetStatusWord(status)}   {elapsed:0.00} s  ·  {frames} frames");
+
+        if (statusChanged && _playPauseText != null)
+        {
+            _playPauseText.Text = GetPlayPauseLabel(status);
+        }
+    }
+
+    private static string GetStatusWord(CutscenePreviewStatus status)
+    {
+        return status switch
+        {
+            CutscenePreviewStatus.Seeking => "Seeking",
+            CutscenePreviewStatus.Paused => "Paused",
+            CutscenePreviewStatus.Playing => "Playing",
+            CutscenePreviewStatus.Ended => "Ended",
+            _ => "Stopped",
+        };
+    }
+
+    /// <summary>The button pauses while the play advances or seeks, and plays or resumes otherwise.</summary>
+    private static string GetPlayPauseLabel(CutscenePreviewStatus status)
+    {
+        return status is CutscenePreviewStatus.Playing or CutscenePreviewStatus.Seeking ? "Pause" : "Play";
     }
 
     public void DrawViewport(GameTime gameTime)
@@ -578,6 +632,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         };
 
         documentRoot.TryAddChild(CreateTransportRow(), Dock.Top);
+        documentRoot.TryAddChild(_timeText!, Dock.Top);
         documentRoot.TryAddChild(_statusText!, Dock.Top);
 
         _previewStatusText = new MGTextBlock(_window, string.Empty)
@@ -642,18 +697,23 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         combo.SelectedItemChanged += (_, args) => OnWorldComboChanged(args.NewValue);
         row.TryAddChild(combo);
 
-        row.TryAddChild(CreateTransportButton("Play", PlayPreview));
-        row.TryAddChild(CreateTransportButton("Stop", StopPreview));
+        var playPauseButton = CreateTransportButton("Play", () => TogglePreviewPlayback());
+        playPauseButton.MinWidth = 66;
+        _playPauseText = playPauseButton.Content as MGTextBlock;
+        row.TryAddChild(playPauseButton);
+        row.TryAddChild(CreateTransportButton("Stop", () => StopPreview()));
         row.TryAddChild(CreateTransportButton("Restart", PlayPreview));
+        row.TryAddChild(CreateTransportButton("-1 frame", () => StepPreviewBack()));
+        row.TryAddChild(CreateTransportButton("+1 frame", () => StepPreviewFrames(1)));
 
+        // The status word and the play time sit under the buttons: the row has no room left for them at a usual panel width.
         _timeText = new MGTextBlock(_window, string.Empty)
         {
-            Margin = new Thickness(8, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0, 8, 2),
             Opacity = EditorThemePalette.SecondaryTextOpacity,
         };
-        row.TryAddChild(_timeText);
         _lastTimeTenths = -1;
+        _lastTimeStatus = null;
         RefreshTimeText();
         return row;
     }
@@ -861,16 +921,113 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _preview.Play(_session.Asset);
         ApplyPreviewWorldToViewport();
         RefreshPreviewStatus();
+        RefreshTimeText();
     }
 
-    private void StopPreview()
+    /// <summary>
+    /// Moves the preview to a play time, in seconds, and leaves it paused there; a negative time counts as 0. The upper
+    /// bound, the duration of the timeline, is applied by the caller. The camera is kept when the world is rebuilt.
+    /// False, and no change, when the document has no preview or no asset, or when the preview world cannot be rebuilt.
+    /// </summary>
+    public bool SeekPreview(double seconds)
     {
-        _preview?.Stop();
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        bool done = _preview.Seek(_session.Asset, Math.Max(0d, seconds));
+        ApplyPreviewWorldToViewport(keepCamera: true);
         RefreshPreviewStatus();
+        RefreshTimeText();
+        return done;
     }
 
-    /// <summary>Shows the preview world in the viewport and frames its entities.</summary>
-    private void ApplyPreviewWorldToViewport()
+    /// <summary>
+    /// What the Play / Pause button does: pauses a play that advances or seeks, resumes a paused play, and plays from the
+    /// beginning when no play runs (never played, ended or stopped). False when the document has no preview or no asset.
+    /// </summary>
+    public bool TogglePreviewPlayback()
+    {
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        switch (_preview.Status)
+        {
+            case CutscenePreviewStatus.Playing:
+            case CutscenePreviewStatus.Seeking:
+                _preview.Pause();
+                break;
+            case CutscenePreviewStatus.Paused:
+                _preview.Resume();
+                break;
+            default:
+                PlayPreview();
+                break;
+        }
+
+        RefreshPreviewStatus();
+        RefreshTimeText();
+        return true;
+    }
+
+    /// <summary>
+    /// Advances the paused preview by <paramref name="count"/> frames of 1/60 s; a running preview is paused first. False
+    /// when the document has no preview or no asset, when <paramref name="count"/> is not positive, or when no play runs
+    /// (nothing is done then).
+    /// </summary>
+    public bool StepPreviewFrames(int count)
+    {
+        if (_preview == null || _session == null || count <= 0 || !_preview.IsPlaying)
+        {
+            return false;
+        }
+
+        _preview.StepFrames(count);
+        RefreshTimeText();
+        return true;
+    }
+
+    /// <summary>
+    /// Moves the preview one frame back: to the current play time minus 1/60 s, not below 0, even after the play ended.
+    /// False when the document has no preview or no asset.
+    /// </summary>
+    public bool StepPreviewBack()
+    {
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        long frame = (long)Math.Round(_preview.ElapsedSeconds / CutscenePreviewTransport.StepSeconds);
+        return SeekPreview(Math.Max(0L, frame - 1) * (double)CutscenePreviewTransport.StepSeconds);
+    }
+
+    /// <summary>
+    /// Puts the preview back to its state before any play, with the play time at 0; the camera is kept. False when the
+    /// document has no preview or no asset, or when the preview world cannot be rebuilt.
+    /// </summary>
+    public bool StopPreview()
+    {
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        bool done = _preview.Rewind();
+        ApplyPreviewWorldToViewport(keepCamera: true);
+        RefreshPreviewStatus();
+        RefreshTimeText();
+        return done;
+    }
+
+    /// <summary>
+    /// Shows the preview world in the viewport and frames its entities, or keeps the camera as it is when
+    /// <paramref name="keepCamera"/> is true and the viewport already showed a preview world.
+    /// </summary>
+    private void ApplyPreviewWorldToViewport(bool keepCamera = false)
     {
         if (_previewViewport == null || _preview == null)
         {
@@ -878,7 +1035,15 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         var world = _preview.World;
-        _previewViewport.SetWorldOverride(world);
+        keepCamera &= _previewViewport.HasWorldOverride;
+        if (keepCamera)
+        {
+            _previewViewport.SetWorldOverrideKeepingCamera(world);
+        }
+        else
+        {
+            _previewViewport.SetWorldOverride(world);
+        }
 
         // Without a preview world the viewport would show the world of the editor, which is not what the play runs in.
         if (_previewViewportContent != null)
@@ -891,7 +1056,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             _noPreviewWorldText.Visibility = world == null ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        if (world == null)
+        if (world == null || keepCamera)
         {
             return;
         }
