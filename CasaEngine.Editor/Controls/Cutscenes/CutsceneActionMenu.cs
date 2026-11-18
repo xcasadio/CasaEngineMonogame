@@ -145,6 +145,7 @@ internal static class CutsceneActionMenu
         AddWrapButton(wrapMenu, document, onResult, CutsceneActionTypes.Sequence);
         AddWrapButton(wrapMenu, document, onResult, CutsceneActionTypes.Parallel);
         AddWrapButton(wrapMenu, document, onResult, CutsceneActionTypes.Repeat);
+        AddWrapButton(wrapMenu, document, onResult, CutsceneActionTypes.At);
         wrapButton.Submenu = wrapMenu;
     }
 

@@ -327,12 +327,29 @@ public sealed class CutsceneActionMenuTests : IDisposable
         rig.Panel.SelectAction(leaf);
 
         var wrap = CutsceneMenuProbe.Button(rig.Menu()!, "Wrap in");
-        Assert.Equal(["Sequence", "Parallel", "Repeat"], CutsceneMenuProbe.Labels(wrap.Submenu!));
+        Assert.Equal(["Sequence", "Parallel", "Repeat", "At"], CutsceneMenuProbe.Labels(wrap.Submenu!));
         CutsceneMenuProbe.Trigger(CutsceneMenuProbe.Button(wrap.Submenu!, "Repeat"));
 
         var wrapper = Assert.IsType<RepeatCutsceneActionData>(rig.Root.Actions[2]);
         Assert.Same(leaf, Assert.Single(wrapper.Actions));
         Assert.Same(wrapper, rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void TheWrapEntry_OffersAt_AndWrapsTheSelectionInAnAtOfZeroSeconds()
+    {
+        var rig = Open();
+        var leaf = rig.Root.Actions[2];
+        rig.Panel.SelectAction(leaf);
+
+        var wrap = CutsceneMenuProbe.Button(rig.Menu()!, "Wrap in");
+        CutsceneMenuProbe.Trigger(CutsceneMenuProbe.Button(wrap.Submenu!, "At"));
+
+        var wrapper = Assert.IsType<AtCutsceneActionData>(rig.Root.Actions[2]);
+        Assert.Equal(0f, wrapper.Seconds);
+        Assert.Same(leaf, Assert.Single(wrapper.Actions));
+        Assert.Same(wrapper, rig.Panel.SelectedAction);
+        Assert.Equal([(string?)null], rig.Results);
     }
 
     [Fact]
