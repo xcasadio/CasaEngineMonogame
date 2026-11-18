@@ -98,7 +98,7 @@ public sealed class InsertCutsceneActionCommand : IEditorCommand
 
     public void Undo() => _children.RemoveAt(_index);
 
-    private static bool HasUnknownOrFormatError(CutsceneActionData action)
+    internal static bool HasUnknownOrFormatError(CutsceneActionData action)
     {
         if (action is UnknownCutsceneActionData)
         {
