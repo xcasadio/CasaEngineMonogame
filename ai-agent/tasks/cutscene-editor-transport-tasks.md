@@ -409,6 +409,8 @@ Règles propres à cette phase : celles du plan, plus : les tests ajoutés par l
 | O7 | Corrigé par P17 (T4.3, vérifié par `e1` de T4.6) : aller à 0 montre le premier instant (mise à jour de durée nulle, 0 image). Reste : les actions du temps 0 placées dans un `Parallel` ne sont pas montrées, leurs branches ne démarrant qu'à la mise à jour suivante (limite acceptée, documentée). | T2.1, T4.3 |
 | O8 | Couvert par T4.5 et T4.6 : la reprise (`e6`, `e6b`), l'image précédente (`e5`) et la relecture après une modification en pause (`e7`, comparée au contrôle `e7c`) sont prouvées par des lancements. Reste hors automatisation : les clics de l'auteur, validés par sa recette (O2 à O4). | T2.2, T2.5, T4.5 |
 | O9 | Reporté : pendant une lecture, le nombre d'images affiché n'est réécrit qu'à chaque dixième de seconde ; un glisser relâché hors de la règle peut faire ignorer un relâchement suivant dans la règle, dans un cas rare. | T2.2, T2.4 |
+| O10 | Vérification indépendante de la phase 4, le 2026-11-18 : CONFIRMED. Reporté : une recherche vers 0 demandée avant la première mise à jour qui suit un `Play` (lecture en cours, temps 0, état de départ non marqué) ne montre pas le premier instant, parce que `Seek` repart de l'état courant. Atteint seulement par l'automatisation (`--cutscene-preview-play --cutscene-preview-seek 0`) : un clic réel arrive toujours au moins une mise à jour après `Play`. | T4.3 |
+| O11 | Limite à documenter avec celle du `Parallel` : une action dont l'effet démarre dans son instruction d'attente (`FadeScreen`) ne l'a pas encore démarré au premier instant, ni après une image ; une lecture réelle se comporte de même. | T4.3, T4.7 |
 
 ## Hors périmètre
 
