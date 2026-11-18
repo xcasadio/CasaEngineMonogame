@@ -26,6 +26,7 @@ public sealed class CutsceneDocumentOperationsTests : IDisposable
     private readonly string _projectDirectory;
     private readonly string _previousProjectPath;
     private readonly List<CutsceneAssetInspectorPanel> _panels = [];
+    private readonly List<EditorHistoryContext> _extraContexts = [];
 
     public CutsceneDocumentOperationsTests()
     {
@@ -48,6 +49,11 @@ public sealed class CutsceneDocumentOperationsTests : IDisposable
         EditorHistoryService.Current.Remove(Context);
         EditorHistoryService.Current.Deactivate();
         EditorDirtyStateService.Current.Remove(Context);
+        foreach (var extraContext in _extraContexts)
+        {
+            EditorHistoryService.Current.Remove(extraContext);
+            EditorDirtyStateService.Current.Remove(extraContext);
+        }
 
         EngineEnvironment.ProjectPath = _previousProjectPath;
         AssetCatalog.ClearInternal();
@@ -127,6 +133,56 @@ public sealed class CutsceneDocumentOperationsTests : IDisposable
         panel.DocumentChanged += _ => rig.DocumentChanges++;
         panel.SelectionChanged += _ => rig.SelectionChanges++;
         return rig;
+    }
+
+    // A document on a root action given by the test, with its own history context so that two documents can coexist.
+    private Rig OpenRoot(JObject rootAction, string name, string? contextId = null)
+    {
+        var document = new JObject
+        {
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = name,
+            ["type"] = "CutsceneAsset",
+            ["version"] = 1,
+            ["schema_version"] = 1,
+            ["root_action"] = rootAction,
+        };
+        string fullPath = Path.Combine(_projectDirectory, name + ".cutscene");
+        File.WriteAllText(fullPath, document.ToString());
+
+        Assert.True(CutsceneAssetInspectorPanel.TryLoadAsset(fullPath, out var session));
+        Assert.NotNull(session);
+
+        var harness = ContentBrowserViewTestHarness.Create(900, 900);
+        var panel = new CutsceneAssetInspectorPanel(harness.Window);
+        _panels.Add(panel);
+        if (contextId != null)
+        {
+            _extraContexts.Add(new EditorHistoryContext(EditorHistoryContextKind.Cutscene, contextId));
+        }
+
+        panel.SetHistoryContextId(contextId ?? ContextId);
+        panel.LoadAsset(session, fullPath);
+        harness.Window.SetContent(panel.CreateContent());
+
+        var rig = new Rig { Panel = panel, Session = session };
+        panel.DocumentChanged += _ => rig.DocumentChanges++;
+        panel.SelectionChanged += _ => rig.SelectionChanges++;
+        return rig;
+    }
+
+    private static JObject Container(string type, params JObject[] children)
+        => new() { ["type"] = type, ["actions"] = new JArray(children) };
+
+    private static JObject WaitJson(object seconds) => new() { ["type"] = "Wait", ["seconds"] = JToken.FromObject(seconds) };
+
+    private static void AssertOrder(SequenceCutsceneActionData root, params CutsceneActionData[] expected)
+    {
+        Assert.Equal(expected.Length, root.Actions.Count);
+        for (int index = 0; index < expected.Length; index++)
+        {
+            Assert.Same(expected[index], root.Actions[index]);
+        }
     }
 
     private static CutsceneActionProperty Property(CutsceneActionData action, string key)
@@ -384,6 +440,522 @@ public sealed class CutsceneDocumentOperationsTests : IDisposable
         Assert.NotNull(rig.Panel.RemoveSelectedAction());
         Assert.Equal(1.5f, rig.Wait.Seconds);
         Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void MoveAction_OfAnActionThatIsNotSelected_MovesItSelectsIt_AndUndoesAndRedoes()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        var inner = rig.Inner;
+        var fade = rig.Fade;
+        rig.Panel.SelectAction(wait);
+        int selectionChanges = rig.SelectionChanges;
+
+        Assert.Null(rig.Panel.MoveAction(fade, rig.Root, 0));
+
+        AssertOrder(rig.Root, fade, wait, inner);
+        Assert.Same(fade, rig.Panel.SelectedAction);
+        Assert.Equal(selectionChanges + 1, rig.SelectionChanges);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        AssertOrder(rig.Root, wait, inner, fade);
+        Assert.Same(fade, rig.Panel.SelectedAction);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.Equal(2, rig.DocumentChanges);
+
+        Redo();
+        AssertOrder(rig.Root, fade, wait, inner);
+        Assert.Equal(3, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void MoveAction_IntoAnotherContainer_PutsItAtTheIndex_AndKeepsTheInstance()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        var inner = rig.Inner;
+        var innerChild = inner.Actions[0];
+
+        Assert.Null(rig.Panel.MoveAction(wait, inner, 1));
+
+        Assert.Equal(2, rig.Root.Actions.Count);
+        Assert.Equal(2, inner.Actions.Count);
+        Assert.Same(innerChild, inner.Actions[0]);
+        Assert.Same(wait, inner.Actions[1]);
+        Assert.Same(wait, rig.Panel.SelectedAction);
+
+        Undo();
+        Assert.Same(wait, rig.Root.Actions[0]);
+        Assert.Single(inner.Actions);
+    }
+
+    [Fact]
+    public void MoveAction_Refusals_ChangeNothing()
+    {
+        var rig = Open();
+        var innerChild = rig.Inner.Actions[0];
+
+        Assert.NotNull(rig.Panel.MoveAction(rig.Root, rig.Inner, 0));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Inner, rig.Inner, 0));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Inner, innerChild, 0));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Wait, rig.Fade, 0));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Wait, rig.Root, 0));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Wait, rig.Root, 1));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Wait, rig.Root, 9));
+        Assert.NotNull(rig.Panel.MoveAction(rig.Wait, new SequenceCutsceneActionData(), 0));
+        Assert.NotNull(rig.Panel.MoveAction(new WaitCutsceneActionData(), rig.Root, 0));
+
+        Assert.NotNull(rig.Panel.GetMoveRefusal(rig.Wait, rig.Root, 0));
+        Assert.Null(rig.Panel.GetMoveRefusal(rig.Wait, rig.Root, 2));
+        AssertOrder(rig.Root, rig.Wait, rig.Inner, rig.Fade);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+        Assert.Null(rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void MoveUpAndDown_SwapWithTheNeighbour_AndAreRefusedAtBothEnds()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        var inner = rig.Inner;
+        var fade = rig.Fade;
+        rig.Panel.SelectAction(wait);
+
+        Assert.NotNull(rig.Panel.GetMoveUpRefusal());
+        Assert.NotNull(rig.Panel.MoveSelectedActionUp());
+        Assert.Null(rig.Panel.GetMoveDownRefusal());
+
+        Assert.Null(rig.Panel.MoveSelectedActionDown());
+        AssertOrder(rig.Root, inner, wait, fade);
+        Assert.Null(rig.Panel.MoveSelectedActionDown());
+        AssertOrder(rig.Root, inner, fade, wait);
+        Assert.NotNull(rig.Panel.GetMoveDownRefusal());
+        Assert.NotNull(rig.Panel.MoveSelectedActionDown());
+        AssertOrder(rig.Root, inner, fade, wait);
+
+        Assert.Null(rig.Panel.MoveSelectedActionUp());
+        AssertOrder(rig.Root, inner, wait, fade);
+        Assert.Same(wait, rig.Panel.SelectedAction);
+        Assert.Equal(3, rig.DocumentChanges);
+
+        Undo();
+        AssertOrder(rig.Root, inner, fade, wait);
+        Undo();
+        Undo();
+        AssertOrder(rig.Root, wait, inner, fade);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+    }
+
+    [Fact]
+    public void MoveUpAndDown_AreRefusedForTheRootAndWithoutASelection()
+    {
+        var rig = Open();
+
+        Assert.NotNull(rig.Panel.GetMoveUpRefusal());
+        Assert.NotNull(rig.Panel.GetMoveDownRefusal());
+
+        rig.Panel.SelectAction(rig.Root);
+        Assert.NotNull(rig.Panel.MoveSelectedActionUp());
+        Assert.NotNull(rig.Panel.MoveSelectedActionDown());
+        Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void MoveUpAndDown_NeverLeaveTheContainer_ForTheOnlyChildOfAnInnerContainer()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Inner.Actions[0]);
+
+        Assert.NotNull(rig.Panel.MoveSelectedActionDown());
+        Assert.NotNull(rig.Panel.MoveSelectedActionUp());
+        Assert.Single(rig.Inner.Actions);
+    }
+
+    [Fact]
+    public void WrapSelectedAction_PutsTheActionInANewContainer_SelectsTheContainer_AndUndoesAndRedoes()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        rig.Panel.SelectAction(wait);
+
+        Assert.Null(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Parallel));
+
+        var container = Assert.IsType<ParallelCutsceneActionData>(rig.Root.Actions[0]);
+        Assert.Same(wait, Assert.Single(container.Actions));
+        Assert.Same(container, rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        Assert.Same(wait, rig.Root.Actions[0]);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Null(rig.Panel.SelectedAction);
+
+        Redo();
+        Assert.Same(container, rig.Root.Actions[0]);
+    }
+
+    [Fact]
+    public void WrapSelectedAction_OfTheRoot_MakesTheContainerTheNewRoot()
+    {
+        var rig = Open();
+        var oldRoot = rig.Root;
+        rig.Panel.SelectAction(oldRoot);
+
+        Assert.Null(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Repeat));
+
+        var newRoot = Assert.IsType<RepeatCutsceneActionData>(rig.Session.Asset.RootAction);
+        Assert.Same(oldRoot, Assert.Single(newRoot.Actions));
+        Assert.Same(newRoot, rig.Panel.SelectedAction);
+
+        Undo();
+        Assert.Same(oldRoot, rig.Session.Asset.RootAction);
+    }
+
+    [Fact]
+    public void WrapSelectedAction_IsRefusedForANonContainerTypeAndWithoutASelection()
+    {
+        var rig = Open();
+
+        Assert.NotNull(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Sequence));
+        Assert.NotNull(rig.Panel.GetWrapRefusal(CutsceneActionTypes.Sequence));
+
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.NotNull(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Wait));
+        Assert.Null(rig.Panel.GetWrapRefusal(CutsceneActionTypes.Sequence));
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void UngroupSelectedAction_PutsTheChildrenInPlace_SelectsTheFirst_AndUndoes()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        var inner = rig.Inner;
+        var innerChild = inner.Actions[0];
+        var fade = rig.Fade;
+        rig.Panel.SelectAction(inner);
+
+        Assert.Null(rig.Panel.UngroupSelectedAction());
+
+        AssertOrder(rig.Root, wait, innerChild, fade);
+        Assert.Same(innerChild, rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        AssertOrder(rig.Root, wait, inner, fade);
+        Assert.Same(innerChild, Assert.Single(inner.Actions));
+        Assert.Same(innerChild, rig.Panel.SelectedAction);
+        Assert.False(rig.Panel.IsDirty);
+
+        Redo();
+        AssertOrder(rig.Root, wait, innerChild, fade);
+        Assert.Same(innerChild, rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void UngroupSelectedAction_OfAnEmptyContainer_RemovesItAndSelectsNothing()
+    {
+        var rig = OpenRoot(Container("Sequence", WaitJson(1), Container("Parallel")), "Empty");
+        var empty = rig.Root.Actions[1];
+        rig.Panel.SelectAction(empty);
+
+        Assert.Null(rig.Panel.UngroupSelectedAction());
+
+        Assert.Single(rig.Root.Actions);
+        Assert.Null(rig.Panel.SelectedAction);
+
+        Undo();
+        Assert.Same(empty, rig.Root.Actions[1]);
+    }
+
+    [Fact]
+    public void UngroupSelectedAction_IsRefusedForALeaf_TheRootAndWithoutASelection()
+    {
+        var rig = Open();
+
+        Assert.NotNull(rig.Panel.UngroupSelectedAction());
+
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.NotNull(rig.Panel.UngroupSelectedAction());
+        rig.Panel.SelectAction(rig.Root);
+        Assert.NotNull(rig.Panel.GetUngroupRefusal());
+        Assert.NotNull(rig.Panel.UngroupSelectedAction());
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void CopySelectedAction_FillsTheClipboard_WithoutChangingTheDocument()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Inner);
+
+        Assert.False(rig.Panel.Clipboard.HasContent);
+        Assert.Null(rig.Panel.CopySelectedAction());
+
+        Assert.Equal(CutsceneActionTypes.Sequence, rig.Panel.Clipboard.ContentType);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.CopySelectedAction());
+        Assert.Equal(CutsceneActionTypes.Wait, rig.Panel.Clipboard.ContentType);
+
+        rig.Panel.SelectAction(rig.Root);
+        Assert.Null(rig.Panel.CopySelectedAction());
+        Assert.Equal(CutsceneActionTypes.Sequence, rig.Panel.Clipboard.ContentType);
+    }
+
+    [Fact]
+    public void CopySelectedAction_WithoutASelection_IsRefused()
+    {
+        var rig = Open();
+
+        Assert.NotNull(rig.Panel.GetCopyRefusal());
+        Assert.NotNull(rig.Panel.CopySelectedAction());
+        Assert.False(rig.Panel.Clipboard.HasContent);
+    }
+
+    [Fact]
+    public void PasteAction_InsertsANewCopyEachTime_SelectsIt_AndUndoes()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.CopySelectedAction());
+
+        rig.Panel.SelectAction(rig.Fade);
+        Assert.Null(rig.Panel.PasteAction());
+
+        Assert.Equal(4, rig.Root.Actions.Count);
+        var first = Assert.IsType<WaitCutsceneActionData>(rig.Root.Actions[3]);
+        Assert.NotSame(rig.Wait, first);
+        Assert.Equal(rig.Wait.Seconds, first.Seconds);
+        Assert.Same(first, rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Assert.Null(rig.Panel.PasteAction());
+        var second = Assert.IsType<WaitCutsceneActionData>(rig.Root.Actions[4]);
+        Assert.NotSame(first, second);
+        Assert.Same(second, rig.Panel.SelectedAction);
+
+        Undo();
+        Assert.Equal(4, rig.Root.Actions.Count);
+        Undo();
+        Assert.Equal(3, rig.Root.Actions.Count);
+        Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void PasteAction_FollowsTheInsertionRule_ForAContainerAndWithoutASelection()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.CopySelectedAction());
+
+        rig.Panel.SelectAction(rig.Inner);
+        Assert.Null(rig.Panel.PasteAction());
+        Assert.Equal(2, rig.Inner.Actions.Count);
+        Assert.Same(rig.Inner.Actions[1], rig.Panel.SelectedAction);
+
+        rig.Panel.SelectAction(null);
+        Assert.Null(rig.Panel.PasteAction());
+        Assert.Equal(4, rig.Root.Actions.Count);
+        Assert.Same(rig.Root.Actions[3], rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void PasteAction_WithAnEmptyClipboard_IsRefused()
+    {
+        var rig = Open();
+
+        Assert.NotNull(rig.Panel.GetPasteRefusal());
+        Assert.NotNull(rig.Panel.PasteAction());
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void CutSelectedAction_CopiesThenRemoves_InOneEntry_AndUndoesToTheSameInstance()
+    {
+        var rig = Open();
+        var wait = rig.Wait;
+        var inner = rig.Inner;
+        var fade = rig.Fade;
+        rig.Panel.SelectAction(inner);
+
+        Assert.Null(rig.Panel.CutSelectedAction());
+
+        AssertOrder(rig.Root, wait, fade);
+        Assert.Equal(CutsceneActionTypes.Sequence, rig.Panel.Clipboard.ContentType);
+        Assert.Null(rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        Assert.Same(inner, rig.Root.Actions[1]);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.True(rig.Panel.Clipboard.HasContent);
+
+        Redo();
+        AssertOrder(rig.Root, wait, fade);
+    }
+
+    [Fact]
+    public void CutThenPaste_PutsTheSubtreeBackAsACopy()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Inner);
+        Assert.Null(rig.Panel.CutSelectedAction());
+
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.PasteAction());
+
+        var pasted = Assert.IsType<SequenceCutsceneActionData>(rig.Root.Actions[1]);
+        Assert.IsType<WaitCutsceneActionData>(Assert.Single(pasted.Actions));
+        Assert.Same(pasted, rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void CutSelectedAction_IsRefusedForTheRoot_AndTheClipboardKeepsItsContent()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.CopySelectedAction());
+
+        rig.Panel.SelectAction(rig.Root);
+        Assert.NotNull(rig.Panel.GetCutRefusal());
+        Assert.NotNull(rig.Panel.CutSelectedAction());
+
+        Assert.Equal(CutsceneActionTypes.Wait, rig.Panel.Clipboard.ContentType);
+        Assert.Equal(3, rig.Root.Actions.Count);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void CopyAndCut_OfAnActionThatHoldsALoadLoss_AreRefused_AndChangeNeitherTheClipboardNorTheTree()
+    {
+        // The string "2" is read as a number and rewritten as a number: the loader notes the loss on that Wait.
+        var rig = OpenRoot(Container("Sequence", WaitJson(1), Container("Parallel", WaitJson("2"))), "Lossy");
+        var kept = rig.Root.Actions[0];
+        var lossy = rig.Root.Actions[1];
+        rig.Panel.SelectAction(kept);
+        Assert.Null(rig.Panel.CopySelectedAction());
+        Assert.NotEmpty(rig.Session.LoadLosses);
+
+        rig.Panel.SelectAction(lossy);
+        Assert.NotNull(rig.Panel.GetCopyRefusal());
+        Assert.NotNull(rig.Panel.CopySelectedAction());
+        Assert.NotNull(rig.Panel.GetCutRefusal());
+        Assert.NotNull(rig.Panel.CutSelectedAction());
+
+        Assert.Equal(CutsceneActionTypes.Wait, rig.Panel.Clipboard.ContentType);
+        Assert.Equal(2, rig.Root.Actions.Count);
+        Assert.Same(lossy, rig.Root.Actions[1]);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void CopyAndCut_OfAnUnknownType_AreRefused_AndChangeNeitherTheClipboardNorTheTree()
+    {
+        var rig = Open();
+        var unknown = new UnknownCutsceneActionData("Dance");
+        rig.Root.Actions.Add(unknown);
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Null(rig.Panel.CopySelectedAction());
+
+        rig.Panel.SelectAction(unknown);
+        Assert.NotNull(rig.Panel.CopySelectedAction());
+        Assert.NotNull(rig.Panel.CutSelectedAction());
+
+        Assert.Equal(CutsceneActionTypes.Wait, rig.Panel.Clipboard.ContentType);
+        Assert.Equal(4, rig.Root.Actions.Count);
+        Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void ACopyInOneDocument_IsPastedInAnotherThatSharesTheClipboard()
+    {
+        var first = Open();
+        var second = OpenRoot(Container("Sequence", WaitJson(7)), "Second", ContextId + "-second");
+        var shared = new CutsceneClipboard();
+        first.Panel.Clipboard = shared;
+        second.Panel.Clipboard = shared;
+
+        first.Panel.SelectAction(first.Inner);
+        Assert.Null(first.Panel.CopySelectedAction());
+
+        Assert.Null(second.Panel.PasteAction());
+
+        Assert.Equal(2, second.Root.Actions.Count);
+        var pasted = Assert.IsType<SequenceCutsceneActionData>(second.Root.Actions[1]);
+        Assert.NotSame(first.Inner, pasted);
+        Assert.Same(pasted, second.Panel.SelectedAction);
+        Assert.Equal(3, first.Root.Actions.Count);
+        Assert.False(first.Panel.IsDirty);
+        Assert.Equal(0, first.DocumentChanges);
+        Assert.Equal(1, second.DocumentChanges);
+    }
+
+    [Fact]
+    public void ADocumentWithoutASharedClipboard_HasItsOwn()
+    {
+        var first = Open();
+        var second = OpenRoot(Container("Sequence", WaitJson(7)), "Own", ContextId + "-own");
+
+        Assert.NotSame(first.Panel.Clipboard, second.Panel.Clipboard);
+        Assert.Throws<ArgumentNullException>(() => first.Panel.Clipboard = null!);
+    }
+
+    [Fact]
+    public void WithoutAHistoryContext_TheStructureOperationsAreRefused_ButCopyStillWorks()
+    {
+        var rig = Open(setHistoryContext: false);
+        rig.Panel.SelectAction(rig.Inner);
+
+        Assert.NotNull(rig.Panel.MoveAction(rig.Fade, rig.Root, 0));
+        Assert.NotNull(rig.Panel.MoveSelectedActionUp());
+        Assert.NotNull(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Parallel));
+        Assert.NotNull(rig.Panel.UngroupSelectedAction());
+        Assert.NotNull(rig.Panel.CutSelectedAction());
+        Assert.Null(rig.Panel.CopySelectedAction());
+        Assert.NotNull(rig.Panel.PasteAction());
+
+        AssertOrder(rig.Root, rig.Wait, rig.Inner, rig.Fade);
+        Assert.Equal(0, rig.DocumentChanges);
+    }
+
+    [Fact]
+    public void DuringAPlaySession_TheStructureOperationsAreRefused()
+    {
+        var rig = Open();
+        rig.Panel.SelectAction(rig.Inner);
+        Assert.Null(rig.Panel.CopySelectedAction());
+        EditorHistoryService.Current.IsSuspended = true;
+
+        Assert.NotNull(rig.Panel.MoveAction(rig.Fade, rig.Root, 0));
+        Assert.NotNull(rig.Panel.MoveSelectedActionDown());
+        Assert.NotNull(rig.Panel.WrapSelectedAction(CutsceneActionTypes.Parallel));
+        Assert.NotNull(rig.Panel.UngroupSelectedAction());
+        Assert.NotNull(rig.Panel.CutSelectedAction());
+        Assert.NotNull(rig.Panel.PasteAction());
+
+        AssertOrder(rig.Root, rig.Wait, rig.Inner, rig.Fade);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
     }
 
     [Fact]

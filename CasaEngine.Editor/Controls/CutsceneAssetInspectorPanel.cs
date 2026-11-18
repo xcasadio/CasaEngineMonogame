@@ -62,6 +62,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private readonly List<string> _previewWorldLabels = [];
     private PreviewStatusKey _lastPreviewStatusKey;
 
+    private CutsceneClipboard _clipboard = new();
     private CutsceneEditSession? _session;
     private CutsceneReadOnlyDocument? _document;
     private CutsceneActionData? _selectedAction;
@@ -288,6 +289,275 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         ExecuteCommand(historyContext, new RemoveCutsceneActionCommand(_session!, selected));
         return null;
+    }
+
+    /// <summary>
+    /// The clipboard of the actions, shared by every cutscene document of the editor when the editor sets it (P3). A document
+    /// that was given none has a clipboard of its own.
+    /// </summary>
+    internal CutsceneClipboard Clipboard
+    {
+        get => _clipboard;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _clipboard = value;
+        }
+    }
+
+    /// <summary>
+    /// Moves an action, selected or not, to a container and an index among its children before the move (P1), and selects
+    /// it. Returns a message when the move is refused, and null when it is done.
+    /// </summary>
+    public string? MoveAction(CutsceneActionData action, CutsceneActionData destination, int index)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(destination);
+
+        string? refusal = GetMoveRefusal(action, destination, index);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        TryGetHistoryContext(out var historyContext);
+        ExecuteCommand(historyContext, new MoveCutsceneActionCommand(_session!, action, destination, index));
+        SetSelection(action);
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="MoveAction"/>, or null when the move is allowed. Changes nothing.</summary>
+    public string? GetMoveRefusal(CutsceneActionData action, CutsceneActionData destination, int index)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(destination);
+
+        return GetEditRefusal(action, out _) ?? MoveCutsceneActionCommand.GetRefusal(_session!, action, destination, index);
+    }
+
+    /// <summary>Swaps the selected action with the one before it, in the same container (P9).</summary>
+    public string? MoveSelectedActionUp()
+    {
+        string? refusal = GetMoveUpRefusal(out var action, out var parent, out int index);
+        return refusal ?? MoveAction(action!, parent!, index - 1);
+    }
+
+    /// <summary>Swaps the selected action with the one after it, in the same container (P9).</summary>
+    public string? MoveSelectedActionDown()
+    {
+        string? refusal = GetMoveDownRefusal(out var action, out var parent, out int index);
+        return refusal ?? MoveAction(action!, parent!, index + 2);
+    }
+
+    /// <summary>The message that refuses <see cref="MoveSelectedActionUp"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetMoveUpRefusal() => GetMoveUpRefusal(out _, out _, out _);
+
+    /// <summary>The message that refuses <see cref="MoveSelectedActionDown"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetMoveDownRefusal() => GetMoveDownRefusal(out _, out _, out _);
+
+    private string? GetMoveUpRefusal(out CutsceneActionData? action, out CutsceneActionData? parent, out int index)
+    {
+        string? refusal = GetSiblingMoveRefusal(out action, out parent, out index);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        return index == 0
+            ? "The action is already the first of its container."
+            : GetMoveRefusal(action!, parent!, index - 1);
+    }
+
+    private string? GetMoveDownRefusal(out CutsceneActionData? action, out CutsceneActionData? parent, out int index)
+    {
+        string? refusal = GetSiblingMoveRefusal(out action, out parent, out index);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        return index == CutsceneActionCatalog.GetChildren(parent!).Count - 1
+            ? "The action is already the last of its container."
+            : GetMoveRefusal(action!, parent!, index + 2);
+    }
+
+    // The checks that up and down share: a selected action that has a container.
+    private string? GetSiblingMoveRefusal(out CutsceneActionData? action, out CutsceneActionData? parent, out int index)
+    {
+        action = _selectedAction;
+        parent = null;
+        index = -1;
+        if (action == null)
+        {
+            return "No action is selected.";
+        }
+
+        string? refusal = GetEditRefusal(action, out _);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        if (!CutsceneActionTree.TryFindParent(_session!.Asset.RootAction!, action, out var found, out index))
+        {
+            return "The root action cannot be moved.";
+        }
+
+        parent = found;
+        return null;
+    }
+
+    /// <summary>Wraps the selected action in a new container of a type (P2) and selects the container.</summary>
+    public string? WrapSelectedAction(string containerType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(containerType);
+
+        string? refusal = GetWrapRefusal(containerType);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        TryGetHistoryContext(out var historyContext);
+        var command = new WrapCutsceneActionCommand(_session!, _selectedAction!, containerType);
+        ExecuteCommand(historyContext, command);
+        SetSelection(command.Container);
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="WrapSelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetWrapRefusal(string containerType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(containerType);
+
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return GetEditRefusal(selected, out _) ?? WrapCutsceneActionCommand.GetRefusal(_session!, selected, containerType);
+    }
+
+    /// <summary>Replaces the selected container by its actions (P2); selects the first of them, or nothing for an empty container.</summary>
+    public string? UngroupSelectedAction()
+    {
+        string? refusal = GetUngroupRefusal();
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        var container = _selectedAction!;
+        var children = CutsceneActionCatalog.GetChildren(container);
+        var first = children.Count > 0 ? children[0] : null;
+
+        TryGetHistoryContext(out var historyContext);
+        ExecuteCommand(historyContext, new UngroupCutsceneActionCommand(_session!, container));
+        SetSelection(first);
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="UngroupSelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetUngroupRefusal()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return GetEditRefusal(selected, out _) ?? UngroupCutsceneActionCommand.GetRefusal(_session!, selected);
+    }
+
+    /// <summary>Keeps a copy of the selected action and its children in the clipboard (P3). The document does not change.</summary>
+    public string? CopySelectedAction()
+    {
+        string? refusal = GetCopyRefusal();
+        return refusal ?? _clipboard.TryCopy(_session!, _selectedAction!);
+    }
+
+    /// <summary>The message that refuses <see cref="CopySelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetCopyRefusal()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return _session == null ? "No cutscene asset is loaded." : CutsceneClipboard.GetCopyRefusal(_session, selected);
+    }
+
+    /// <summary>
+    /// Copies the selected action, then removes it (P3): one entry of the history. Nothing is copied or removed when either
+    /// part is refused. The selection is empty afterwards.
+    /// </summary>
+    public string? CutSelectedAction()
+    {
+        string? refusal = GetCutRefusal();
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        var selected = _selectedAction!;
+        _clipboard.TryCopy(_session!, selected);
+
+        TryGetHistoryContext(out var historyContext);
+        ExecuteCommand(historyContext, new EditorCompositeCommand($"Cut {selected.Type}", new RemoveCutsceneActionCommand(_session!, selected)));
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="CutSelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetCutRefusal()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return GetEditRefusal(selected, out _)
+               ?? RemoveCutsceneActionCommand.GetRefusal(_session!, selected)
+               ?? CutsceneClipboard.GetCopyRefusal(_session!, selected);
+    }
+
+    /// <summary>Inserts a new copy of the clipboard where the insertion rule says (ADR-0097), and selects the copy.</summary>
+    public string? PasteAction()
+    {
+        string? refusal = GetPasteRefusal();
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        CutsceneActionTree.TryGetInsertionTarget(_session!.Asset.RootAction, _selectedAction, out var parent, out int index, out _);
+        var copy = _clipboard.CreatePaste()!;
+
+        TryGetHistoryContext(out var historyContext);
+        ExecuteCommand(historyContext, new InsertCutsceneActionCommand(_session, parent, index, copy));
+        SetSelection(copy);
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="PasteAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetPasteRefusal()
+    {
+        string? refusal = GetEditRefusal(null, out _);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        if (!_clipboard.HasContent)
+        {
+            return "The clipboard is empty.";
+        }
+
+        return CutsceneActionTree.TryGetInsertionTarget(_session!.Asset.RootAction, _selectedAction, out _, out _, out string error)
+            ? null
+            : error;
     }
 
     /// <summary>The message that refuses an edit of <paramref name="action"/> (null: no action to check), or null.</summary>

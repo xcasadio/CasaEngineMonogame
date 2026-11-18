@@ -221,6 +221,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, AudioMixerPanel> _audioMixerPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _audioMixerPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CutsceneAssetInspectorPanel> _cutsceneInspectorPanels = new(StringComparer.Ordinal);
+    private readonly CutsceneClipboard _cutsceneClipboard = new();
     private readonly Dictionary<string, Animation2dAssetInspectorPanel> _animation2dInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AnimationClipPreviewPanel> _animationClipPreviewPanels = new(StringComparer.Ordinal);
@@ -5232,7 +5233,10 @@ public class GameEditor : Game, IObservableUpdate
         bool createdPanel = false;
         if (!_cutsceneInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
-            inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+            inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource)
+            {
+                Clipboard = _cutsceneClipboard,
+            };
             inspectorPanel.DirtyStateChanged += OnCutsceneInspectorDirtyStateChanged;
             _cutsceneInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
