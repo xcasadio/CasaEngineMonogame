@@ -34,6 +34,7 @@ internal sealed class CutsceneOutlinerPanel
     private MGTextBlock? _statusText;
     private CutsceneAssetInspectorPanel? _document;
     private bool _suppressSelectionChanged;
+    private bool _scrollToSelectionAfterLayout;
     private bool _expandAllOnNextBuild;
     private int _actionCount;
 
@@ -96,6 +97,7 @@ internal sealed class CutsceneOutlinerPanel
         _treeView.ItemExpanded += OnTreeItemExpanded;
         _treeView.ItemCollapsed += OnTreeItemCollapsed;
         _treeView.ItemRightClicked += OnTreeItemRightClicked;
+        _treeView.OnLayoutUpdated += OnTreeLayoutUpdated;
         _treeView.MouseHandler.RMBReleasedInside += OnTreeRightClick;
 
         _statusText = new MGTextBlock(_window, string.Empty)
@@ -270,6 +272,22 @@ internal sealed class CutsceneOutlinerPanel
         _document.SelectAction(item != null && _itemToAction.TryGetValue(item, out var action) ? action : null);
     }
 
+    // A tree that was just rebuilt has no bounds yet: the selected item scrolls into view once it is laid out.
+    private void OnTreeLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (!_scrollToSelectionAfterLayout || _treeView == null)
+        {
+            return;
+        }
+
+        _scrollToSelectionAfterLayout = false;
+        var selected = _treeView.SelectedItem;
+        if (selected != null)
+        {
+            _treeView.ScrollIntoView(selected);
+        }
+    }
+
     private void OnTreeItemExpanded(object? sender, MGTreeViewItem item)
     {
         if (_itemToAction.TryGetValue(item, out var action))
@@ -417,6 +435,7 @@ internal sealed class CutsceneOutlinerPanel
 
                 _treeView.SelectItem(item);
                 _treeView.ScrollIntoView(item);
+                _scrollToSelectionAfterLayout = true;
             }
             else
             {

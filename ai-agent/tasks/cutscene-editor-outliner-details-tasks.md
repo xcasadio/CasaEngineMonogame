@@ -259,7 +259,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 - Commit : `feat(editor): add automation switches that select, add and reactivate in a cutscene document`
 - Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 6068/6068 (6055 avant, 13 ajoutés : 3 dans `EditorAutomationOptionsTests`, 10 dans `CutsceneActionTreePathTests`). Options `--cutscene-select-action`, `--cutscene-add-action`, `--cutscene-reactivate` (comptent dans `HasAutomation`) ; elles s'enchaînent dans cet ordre, une étape par image : réactivation (viewport du monde puis onglet cutscene par `ActivateDockPanel`, donc par `ActivePanelChanged`), sélection, ajout ; rien n'est enregistré. Ajouts à `CutsceneActionTree` : `TryResolvePath` (réciproque de `GetPath`) et `CountActions`. Lancement avec `--cutscene-reactivate` (loop.cutscene) : diagnostics `Active document kind: Cutscene`, id `panel_cutscene_asset_18086f73c97d5066a58f34a8253ead66`, contexte d'historique `Cutscene/panel_cutscene_asset_18086f73c97d5066a58f34a8253ead66`, arbre de 27 actions, `Outliner linked to the active document: True`, `Details linked to the active document: True`. Le journal montre le viewport du monde actif puis la réactivation de l'onglet cutscene.
 
-### ⏳ T2.6 — Captures de validation
+### ✅ T2.6 — Captures de validation
 
 - Objectif : produire les captures de la tranche et vérifier qu'elles montrent une interface utilisable.
 - Étapes, sur `Projects/SpriteCutsceneSample`, avec `--diagnostics-out` hors dépôt :
@@ -269,7 +269,15 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
   4. `exit.cutscene`, action `ChangeWorld` sélectionnée : monde en liste déroulante.
   5. `loop.cutscene` avec `--cutscene-add-action Wait` : la nouvelle action apparaît dans l'arbre, sélectionnée, et le titre de l'onglet porte l'astérisque.
 - Validation : chaque capture est regardée et décrite honnêtement dans la note ; texte coupé, champ illisible ou zone vide est un défaut à corriger avant ✅, ou à noter en 🧪. `git status` ne montre aucun nouveau fichier sous `Projects/`, et `git diff -- Projects/` est vide.
-- Commit : `docs(plan): record the validation screenshots of the cutscene outliner and details` (mise à jour du plan seule)
+- Commit : `fix(editor): scroll the new selection into view in the outliner and give typed fields more room` (correctifs relevés sur les captures, avec la mise à jour du plan)
+- Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 6068/6068 ; `git status` ne montre aucun nouveau fichier sous `Projects/` (seuls les deux dossiers `.casaeditor` préexistants), `git diff -- Projects/` vide. Captures dans le dossier scratchpad de la session (`40-movesprite`, `41-tintsprite`, `42-fadescreen`, `43-changeworld`, `44-add-wait`, suffixe `-final.png`), regardées après correction :
+  - `40-movesprite` (loop, `actions[1].actions[4]`, lecture, délai 0,5 s) : Hierarchy montre l'arbre avec la ligne `MoveSprite orb-left -> (-60, 35)` sélectionnée et visible ; Inspector montre le titre, le chemin, puis Entity (liste `orb-left`), X `-60`, Y `35`, Speed `120` en champs avec boutons - + x, libellés alignés dans une colonne fixe, champs alignés à droite, message de validation lisible ; l'aperçu en lecture occupe toute la zone du document (deux orbes et deux anneaux).
+  - `41-tintsprite` : Color (pastille et `255, 200, 70`, entièrement lisible) et Duration `0.8`, boutons x alignés.
+  - `42-fadescreen` (exit) : Color unique `255, 255, 255`, Duration seconds, Blend mode en liste (`Subtractive`).
+  - `43-changeworld` (exit) : Target en liste déroulante (`EndWorld`).
+  - `44-add-wait` : arbre à 28 actions, la nouvelle `Wait 0 s` est sélectionnée et visible en bas de l'arbre, le titre de l'onglet porte l'astérisque, la ligne d'état dit `Modified. | Add Wait`, l'Inspector montre `Wait`, `root_action.actions[2]`, Seconds `0`.
+  - Défauts trouvés sur la première série et corrigés : (1) le texte de la couleur de TintSprite était coupé (`255, 200,`) : `LabelWidth` 140 -> 124 et boutons x plus étroits ; (2) après un ajout, la nouvelle ligne sélectionnée n'était pas visible (l'arbre reconstruit n'a pas encore de géométrie) : `CutsceneOutlinerPanel` fait défiler la sélection dans la vue au premier layout suivant (`OnLayoutUpdated`).
+  - Défauts restants, non corrigés : les résumés longs de l'arbre (MoveSprite de `ring-left`, TintSprite) sont coupés à droite dans la largeur du panneau, une barre de défilement horizontale permet de les lire (O3) ; le libellé `Duration seconds` passe sur deux lignes ; les boutons x des propriétés annulables n'ont pas d'infobulle (leur sens est à confirmer à la recette).
 
 ---
 

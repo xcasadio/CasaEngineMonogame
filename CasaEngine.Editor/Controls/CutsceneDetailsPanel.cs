@@ -31,7 +31,7 @@ namespace CasaEngine.Editor.Controls;
 /// </remarks>
 internal sealed class CutsceneDetailsPanel
 {
-    private const int LabelWidth = 140;
+    private const int LabelWidth = 124;
     private const int ColumnSpacing = 8;
     private const string NoneItem = "(none)";
 
@@ -700,8 +700,8 @@ internal sealed class CutsceneDetailsPanel
         {
             var button = new MGButton(Owner._window, _ => onClick())
             {
-                Padding = new Thickness(8, 2, 8, 2),
-                Margin = new Thickness(3, 0, 0, 0),
+                Padding = new Thickness(6, 2, 6, 2),
+                Margin = new Thickness(2, 0, 0, 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
             button.SetContent(new MGTextBlock(Owner._window, "x", null, null, false)
