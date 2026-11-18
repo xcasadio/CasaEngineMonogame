@@ -15,6 +15,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MGUI.Core.UI;
@@ -513,6 +514,61 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         ApplyPreviewWorldToViewport();
         RefreshPreviewStatus();
+    }
+
+    /// <summary>Starts the preview play as the Play button does. False when the panel has no preview or no asset.</summary>
+    public bool TryStartPreviewPlay()
+    {
+        if (_preview == null || _session == null)
+        {
+            return false;
+        }
+
+        PlayPreview();
+        return true;
+    }
+
+    /// <summary>
+    /// Lines describing the preview for the automation diagnostics: state, status text, skipped actions, and the
+    /// name and position of every entity of the preview world.
+    /// </summary>
+    public List<string> GetAutomationStateSnapshot()
+    {
+        var lines = new List<string>();
+        if (_preview == null)
+        {
+            lines.Add("Preview: <none>");
+            return lines;
+        }
+
+        lines.Add($"Preview state: {_preview.State}, failure='{_preview.FailureReason}', error='{_preview.Error}', endedByWorldChange={_preview.EndedByWorldChange}");
+        lines.Add($"Preview status line: {_previewStatusText?.Text}");
+        for (int index = 0; index < _preview.Requests.Count; index++)
+        {
+            var request = _preview.Requests[index];
+            lines.Add($"Preview skipped action: {request.Type} -> {request.Target}");
+        }
+
+        var world = _preview.World;
+        lines.Add($"Preview world: {world?.Name ?? "<none>"}");
+        if (world != null)
+        {
+            AppendEntityPositions(lines, world.Entities);
+        }
+
+        return lines;
+    }
+
+    private static void AppendEntityPositions(List<string> lines, IEnumerable<Entity> entities)
+    {
+        foreach (var entity in entities)
+        {
+            var position = entity.RootComponent?.Position;
+            lines.Add(position.HasValue
+                ? string.Create(CultureInfo.InvariantCulture, $"Preview entity '{entity.Name}': x={position.Value.X:0.###} y={position.Value.Y:0.###} z={position.Value.Z:0.###}")
+                : $"Preview entity '{entity.Name}': <no root component>");
+            AppendEntityPositions(lines, entity.Children);
+        }
     }
 
     private void PlayPreview()

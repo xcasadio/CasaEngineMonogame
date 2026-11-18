@@ -234,7 +234,9 @@ Décisions antérieures concernées :
 - Validation : build éditeur ; `dotnet test` vert, les 16 tests existants du panneau inchangés ; tests ajoutés sur ce qui est testable sans carte graphique. Capture d'écran automatisée du document ouvert (sans lecture), envoyée à l'auteur.
 - Commit : `feat(editor): show a world preview and transport controls in the cutscene document`
 
-### ⏳ T2.5 — Lecture automatisée pour la validation à distance
+### ✅ T2.5 — Lecture automatisée pour la validation à distance
+
+> Validation (2026-11-18) : build `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test` 5925 verts (5924 + 1), aucun test existant modifié. Option `--cutscene-preview-play` ; `--capture-delay` se compte depuis le début de la lecture ; diagnostics : état, ligne d'état, actions signalées, nom et position des entités du monde d'aperçu, monde courant de l'éditeur. Mesures (captures `20-loop-0.5s`, `21-loop-2s`, `22-exit`, vérifiées à l'œil) : `loop.cutscene` à 0,5 s, `orb-left` x = -130 (strictement entre -190 et -60), les orbes sont à mi-course sur la capture ; à 2 s, x = -60, orbes arrivés ; `exit.cutscene` à 3 s, état `Completed`, ligne d'état « Skipped: ChangeWorld -> EndWorld.world », monde courant de l'éditeur `SpriteWorld`. Écarts : la ligne d'état n'affiche pas « Would change the world » (le `ChangeWorld` étant la dernière action, la lecture est déjà `Completed` avant que l'aperçu lève l'arrêt) ; le fondu blanc n'est pas dessiné (affiché en texte seulement, P8), donc la capture de `exit` montre le fond sans voile. Aucun fichier créé sous `Projects/`.
 
 - Objectif : lancer l'éditeur, ouvrir une cutscene, démarrer l'aperçu et capturer l'écran sans entrée utilisateur (D7).
 - Fichiers : `CasaEngine.Editor/EditorAutomationOptions.cs`, `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Tests/Editor/EditorAutomationOptionsTests.cs`.

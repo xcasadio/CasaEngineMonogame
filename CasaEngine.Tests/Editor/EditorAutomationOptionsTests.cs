@@ -94,6 +94,20 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_CutscenePreviewPlay_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Cutscenes/loop.cutscene",
+            "--cutscene-preview-play",
+        });
+
+        Assert.True(options.CutscenePreviewPlay);
+        Assert.True(options.HasAutomation);
+        Assert.False(EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" }).CutscenePreviewPlay);
+    }
+
+    [Fact]
     public void Parse_SaveProject_EnablesAutomation()
     {
         var options = EditorAutomationOptions.Parse(new[] { "--save-project" });

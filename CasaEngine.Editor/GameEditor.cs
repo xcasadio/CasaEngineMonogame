@@ -277,6 +277,8 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationContentScrollAppliedAt;
     private bool _automationAssetOpenAttempted;
     private bool _automationAssetOpened;
+    private bool _automationCutscenePlayStarted;
+    private TimeSpan _automationCutscenePlayStartedAt;
     private TimeSpan _automationAssetOpenedAt;
     private bool _automationDockResizeCompleted;
     private TimeSpan _automationDockResizeCompletedAt;
@@ -614,6 +616,7 @@ public class GameEditor : Game, IObservableUpdate
         _automationSelectionReappliedAfterAssetOpen = false;
         _automationAssetOpenAttempted = false;
         _automationAssetOpened = false;
+        _automationCutscenePlayStarted = false;
         _automationParticleCreateAttempted = false;
         _automationParticleAssetCreated = false;
         _automationCreatedParticleAssetFullPath = null;
@@ -6958,6 +6961,7 @@ public class GameEditor : Game, IObservableUpdate
 
         TryApplyAutomationParticleAssetCreate(totalGameTime);
         TryApplyAutomationAssetOpen(totalGameTime);
+        TryApplyAutomationCutscenePreviewPlay(totalGameTime);
 
         if (!_automationSelectionApplied || !IsAutomationSelectionActive())
         {
@@ -7136,6 +7140,19 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationPlaySmokeCompleted && _automationPlaySmokeCompletedAt > readyAt)
         {
             readyAt = _automationPlaySmokeCompletedAt;
+        }
+
+        if (_automationOptions.CutscenePreviewPlay)
+        {
+            if (!_automationCutscenePlayStarted)
+            {
+                return;
+            }
+
+            if (_automationCutscenePlayStartedAt > readyAt)
+            {
+                readyAt = _automationCutscenePlayStartedAt;
+            }
         }
 
         if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
@@ -7689,6 +7706,44 @@ public class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
+    }
+
+    private void TryApplyAutomationCutscenePreviewPlay(TimeSpan totalGameTime)
+    {
+        if (!_automationOptions.CutscenePreviewPlay || _automationCutscenePlayStarted || !_automationAssetOpened)
+        {
+            return;
+        }
+
+        string activeDocumentPanelId = GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutscenePanel)
+            || !cutscenePanel.TryStartPreviewPlay())
+        {
+            return;
+        }
+
+        _automationCutscenePlayStarted = true;
+        _automationCutscenePlayStartedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info, "[Automation] Started the cutscene preview play");
+    }
+
+    private void AppendCutscenePreviewDiagnostics(StringBuilder builder, string activeDocumentPanelId)
+    {
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutscenePanel))
+        {
+            return;
+        }
+
+        builder.AppendLine($"Cutscene preview (play started: {_automationCutscenePlayStarted}):");
+        var state = cutscenePanel.GetAutomationStateSnapshot();
+        for (int index = 0; index < state.Count; index++)
+        {
+            builder.AppendLine($"  - {state[index]}");
+        }
+
+        builder.AppendLine($"Editor current world: {_editorRuntime?.GameManager.CurrentWorld?.Name ?? "<none>"}");
     }
 
     private void TryOpenStartupAssetIfRequested()
@@ -8472,6 +8527,7 @@ public class GameEditor : Game, IObservableUpdate
         AppendContentBrowserDiagnostics(builder);
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendSpriteInspectorDiagnostics(builder, activeDocumentPanelId);
+        AppendCutscenePreviewDiagnostics(builder, activeDocumentPanelId);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendTileMapDiagnostics(builder, activeDocumentPanelId);
