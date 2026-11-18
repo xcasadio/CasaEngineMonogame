@@ -334,6 +334,10 @@ Faits vérifiés pour cette phase :
 | O2 | Coller dans une autre cutscene une action qui nomme une entité absente de son monde d'aperçu : l'action est collée telle quelle et le validateur le signale. À confirmer à la recette. | T1.3, T2.1 |
 | O3 | Le chemin enregistré dans une perte de chargement (`CutsceneLoadLoss.Path`) n'est pas remis à jour quand l'action change de place ; c'était déjà vrai après une insertion ou une suppression. Limite connue, à écrire dans la documentation. | T1.1, T1.2, T3.1 |
 | O4 | Confirmation de P1 → P16 par l'auteur. | Toutes |
+| O5 | Vérifications indépendantes du 2026-11-18 : tranche CONFIRMED, puis correction T4.1 CONFIRMED, sans point bloquant. Reporté : un refus rendu par une entrée du menu ouvert depuis la timeline n'est affiché nulle part (les entrées refusées sont déjà filtrées, le cas est presque inatteignable). | T2.5 |
+| O6 | Reporté, non reproduit : un clic droit appuyé sur une ligne et relâché hors de l'arbre pourrait faire ouvrir, au clic droit suivant dans le vide, le menu de l'action précédente. | T2.2 |
+| O7 | Reporté, cosmétique : les messages de refus écrivent « A ExitOnInput action… » ; le carré au bout du trait de dépôt déborde d'environ 2 px sur le texte des lignes voisines ; dans l'Inspector, un chemin long est coupé au milieu d'un indice. | T1.1, T1.2, T4.1 |
+| O8 | Jamais essayés dans l'éditeur lancé : le glisser réel, le clic droit réel et les touches réelles (Ctrl+C, X, V, D, Suppr, Échap). Ils sont couverts par les tests avec le harnais et par les opérations d'automatisation ; le repère « dans » n'a été vu qu'avec un arbre non défilé. | T2.3, T2.4, T2.7 |
 
 ## Hors périmètre
 
