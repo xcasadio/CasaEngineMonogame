@@ -198,6 +198,8 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _spriteToolboxContent;
     private MGElement _particleToolboxContent;
     private TileMapHierarchyPanel _tileMapHierarchyPanel;
+    private CutsceneOutlinerPanel _cutsceneOutlinerPanel;
+    private MGElement _cutsceneOutlinerContent;
     private MGElement _tileMapHierarchyContent;
     private TileMapInspectorPanel _tileMapInspectorPanel;
     private MGElement _tileMapInspectorContent;
@@ -1512,6 +1514,15 @@ public class GameEditor : Game, IObservableUpdate
                 ContentFactory = GetOrCreateTileMapHierarchyContent,
                 Refresh = _ => RefreshTileMapViews(),
             });
+
+            _hierarchyPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Hierarchy,
+                DocumentKind = EditorDocumentKind.Cutscene,
+                Title = "Hierarchy",
+                ContentFactory = GetOrCreateCutsceneOutlinerContent,
+                Refresh = _ => RefreshCutsceneViews(),
+            });
         }
 
         _hierarchyContent ??= _hierarchyPanelHost.CreateContent();
@@ -1578,6 +1589,14 @@ public class GameEditor : Game, IObservableUpdate
         _tileMapHierarchyContent ??= _tileMapHierarchyPanel.CreateContent();
         _tileMapHierarchyPanel.SetEditorPanel(_activeTileMapEditorPanel);
         return _tileMapHierarchyContent;
+    }
+
+    private MGElement GetOrCreateCutsceneOutlinerContent()
+    {
+        _cutsceneOutlinerPanel ??= new CutsceneOutlinerPanel(_mainWindow);
+        _cutsceneOutlinerContent ??= _cutsceneOutlinerPanel.CreateContent();
+        _cutsceneOutlinerPanel.SetEditorPanel(_activeCutsceneInspectorPanel);
+        return _cutsceneOutlinerContent;
     }
 
     private MGElement GetOrCreateInspectorContent()
@@ -2333,6 +2352,10 @@ public class GameEditor : Game, IObservableUpdate
         {
             ActivateTileMapDocument(panel.Id, tileMapEditorPanel);
         }
+        else if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
+        {
+            ActivateCutsceneDocument(panel.Id, cutsceneInspectorPanel);
+        }
 
         RefreshActiveHistoryContext(panel.Id);
     }
@@ -3039,6 +3062,11 @@ public class GameEditor : Game, IObservableUpdate
             if (ReferenceEquals(_activeCutsceneInspectorPanel, cutsceneInspectorPanel))
             {
                 _activeCutsceneInspectorPanel = null;
+            }
+
+            if (ReferenceEquals(_cutsceneOutlinerPanel?.Document, cutsceneInspectorPanel))
+            {
+                _cutsceneOutlinerPanel.SetEditorPanel(null);
             }
         }
 
@@ -3917,6 +3945,11 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _particleInspectorView.TryAddChild(_activeParticleInspectorPanel.CreateContent());
+    }
+
+    private void RefreshCutsceneViews()
+    {
+        _cutsceneOutlinerPanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
     }
 
     private void RefreshTileMapViews()
