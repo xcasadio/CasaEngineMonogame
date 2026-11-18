@@ -18,7 +18,7 @@ namespace CasaEngine.Editor.Controls;
 /// adds, duplicates and deletes actions. It never edits the asset itself: every change goes through the operations of the
 /// document, and the tree is rebuilt when the document raises <c>DocumentChanged</c>, never per frame.
 /// </summary>
-internal sealed class CutsceneOutlinerPanel
+internal sealed partial class CutsceneOutlinerPanel
 {
     private readonly MGWindow _window;
     private readonly Dictionary<MGTreeViewItem, CutsceneActionData> _itemToAction = new();
@@ -104,6 +104,7 @@ internal sealed class CutsceneOutlinerPanel
         _treeView.ItemRightClicked += OnTreeItemRightClicked;
         _treeView.OnLayoutUpdated += OnTreeLayoutUpdated;
         _treeView.MouseHandler.RMBReleasedInside += OnTreeRightClick;
+        AttachDrag(_treeView);
 
         _statusText = new MGTextBlock(_window, string.Empty)
         {
@@ -395,6 +396,9 @@ internal sealed class CutsceneOutlinerPanel
             return;
         }
 
+        // A rebuilt tree has new rows: a drag in progress would aim at rows that no longer exist.
+        CancelDrag();
+        _visibleRowsDirty = true;
         _itemToAction.Clear();
         _actionToItem.Clear();
         _treeView.ClearItems();
