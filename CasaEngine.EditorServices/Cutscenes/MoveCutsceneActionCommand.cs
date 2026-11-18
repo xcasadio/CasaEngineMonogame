@@ -58,10 +58,16 @@ public sealed class MoveCutsceneActionCommand : IEditorCommand
     public static string? GetRefusal(CutsceneEditSession session, CutsceneActionData action, CutsceneActionData destination, int index)
     {
         ArgumentNullException.ThrowIfNull(session);
+
+        return GetRefusal(session.Asset.RootAction, action, destination, index);
+    }
+
+    /// <summary>The same refusal for a tree given by its root, with no session. A null root holds no action.</summary>
+    public static string? GetRefusal(CutsceneActionData? root, CutsceneActionData action, CutsceneActionData destination, int index)
+    {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(destination);
 
-        var root = session.Asset.RootAction;
         if (root == null || !CutsceneActionTree.Contains(root, action))
         {
             return "The action is not in the cutscene.";
