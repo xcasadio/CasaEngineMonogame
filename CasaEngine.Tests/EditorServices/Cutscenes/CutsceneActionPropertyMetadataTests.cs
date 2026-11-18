@@ -29,6 +29,7 @@ public sealed class CutsceneActionPropertyMetadataTests
         ["NavigateTo.stopping_distance"] = new(Minimum: 0),
         ["NavigateTo.timeout_seconds"] = new(Minimum: 0),
         ["Repeat.count"] = new(Minimum: 0),
+        ["At.seconds"] = new(Minimum: 0),
         ["PlaySound.sound_asset_id"] = new(CutsceneActionPropertySemantic.Sound),
         ["PlaySound.volume"] = new(Minimum: 0, Maximum: 1),
         ["PlayMusic.sound_asset_id"] = new(CutsceneActionPropertySemantic.Sound),

@@ -356,6 +356,27 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case AtCutsceneActionData atAction:
+                if (atAction.Seconds > 0f)
+                {
+                    yield return new WaitForSeconds(atAction.Seconds);
+                    if (owner.IsPlayAborted(playToken))
+                    {
+                        yield break;
+                    }
+                }
+
+                for (int index = 0; index < atAction.Actions.Count; index++)
+                {
+                    yield return ExecuteAction(atAction.Actions[index], world, owner, playToken);
+                    if (owner.IsPlayAborted(playToken))
+                    {
+                        yield break;
+                    }
+                }
+
+                break;
+
             case RepeatCutsceneActionData repeatAction:
                 {
                     int repeatCount = repeatAction.Count.Value;

@@ -39,13 +39,14 @@ public static class CutsceneLoadFidelity
         return losses;
     }
 
-    /// <summary>The children of a Sequence, a Parallel or a Repeat; null for the other actions.</summary>
+    /// <summary>The children of a Sequence, a Parallel, a Repeat or an At; null for the other actions.</summary>
     internal static List<CutsceneActionData>? GetChildren(CutsceneActionData action)
         => action switch
         {
             SequenceCutsceneActionData sequence => sequence.Actions,
             ParallelCutsceneActionData parallel => parallel.Actions,
             RepeatCutsceneActionData repeat => repeat.Actions,
+            AtCutsceneActionData at => at.Actions,
             _ => null,
         };
 

@@ -31,11 +31,11 @@ public static class CutsceneTimelineProjection
             or MoveSpriteCutsceneActionData;
     }
 
-    /// <summary>True when an action of this type gets an item; false for Sequence and Parallel, which have none.</summary>
+    /// <summary>True when an action of this type gets an item; false for Sequence, Parallel and At, which have none.</summary>
     public static bool HasElement(string type)
     {
         ArgumentNullException.ThrowIfNull(type);
-        return type is not (CutsceneActionTypes.Sequence or CutsceneActionTypes.Parallel);
+        return type is not (CutsceneActionTypes.Sequence or CutsceneActionTypes.Parallel or CutsceneActionTypes.At);
     }
 
     /// <param name="root">The root action of the cutscene; null gives an empty layout.</param>
@@ -86,6 +86,12 @@ public static class CutsceneTimelineProjection
 
                 case RepeatCutsceneActionData repeat:
                     return PlaceRepeat(repeat, start, topLevel);
+
+                case AtCutsceneActionData at:
+                {
+                    double delay = Clamp(at.Seconds);
+                    return delay + PlaceSequence(at.Actions, start + delay, topLevel);
+                }
 
                 case WaitCutsceneActionData wait:
                 {

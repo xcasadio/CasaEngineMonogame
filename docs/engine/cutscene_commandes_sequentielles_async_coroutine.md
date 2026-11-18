@@ -155,6 +155,15 @@ Example, the sprite actions of one lap:
 - A finite `Repeat` has no such guard: a huge `count` with only instant children plays every lap inside one update.
 - A child that fails, or a play that is replaced, ends the `Repeat`. Stopping the cutscene during a lap runs nothing more.
 
+### At
+
+- `{ "type": "At", "seconds": 1.5, "actions": [ ... ] }` waits `seconds` from the moment it starts, then plays its children in sequence. It is the same as `Sequence[Wait(seconds), ...]`, with the delay kept as one explicit number.
+- **Placement in a `Parallel`.** All the branches of a `Parallel` start together, so the `At` actions of a `Parallel` are clips placed at their own times: `seconds` is the time of the clip in that block. The branches of a `Parallel` start one update after the `Parallel` itself, as before.
+- `seconds` is a JSON number, integer or decimal, and must be finite; a missing key reads as 0. A negative value, or a value that is not a number, is a validation error naming `At.seconds`. An empty `actions` list is a validation warning, as for `Sequence`. A 0 or absent delay does not wait and loses no frame compared with a `Sequence`.
+- The saver writes `seconds`, then `actions`. The schema version does not change: an engine without `At` loads it as an unknown type and refuses the cutscene with an error, instead of playing it wrongly.
+- Observation: `ActionStarted` is raised for the `At` when it starts, then for each child as it starts, and `ActionEnded` for the `At` after its last child ended. Stopping the cutscene during the wait, or during a child, runs nothing more. A child that fails ends the `At`.
+- The editor edits `seconds` in the Inspector and the timeline shows the children of an `At` at `start + seconds` ([ADR-0102](../decisions/0102-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md)).
+
 ### ExitOnInput
 
 - The action is instantaneous. It arms a watch (a coroutine owned by the director) for the rest of the play; a new `ExitOnInput` replaces the watch in progress.

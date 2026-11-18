@@ -127,6 +127,7 @@ public sealed class CutsceneActionCatalogTests
             ["Sequence"] = "Sequence  0 actions",
             ["Parallel"] = "Parallel  0 actions",
             ["Repeat"] = "Repeat  ×1",
+            ["At"] = "At  0 s",
             ["PlaySound"] = "PlaySound  (none)  vol 1",
             ["PlayMusic"] = "PlayMusic  (none)  fade in 0 s",
             ["StopMusic"] = "StopMusic  fade out 0 s",

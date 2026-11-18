@@ -59,7 +59,7 @@ public static class CutsceneActionPropertyEditor
     }
 
     /// <summary>
-    /// The <c>FormatErrors</c> dictionary of the ten action classes that carry one, keyed by JSON key; null for the others.
+    /// The <c>FormatErrors</c> dictionary of the eleven action classes that carry one, keyed by JSON key; null for the others.
     /// </summary>
     public static Dictionary<string, string>? GetFormatErrors(CutsceneActionData action)
     {
@@ -75,6 +75,7 @@ public static class CutsceneActionPropertyEditor
             MoveSpriteCutsceneActionData moveSprite => moveSprite.FormatErrors,
             TintSpriteCutsceneActionData tintSprite => tintSprite.FormatErrors,
             RepeatCutsceneActionData repeat => repeat.FormatErrors,
+            AtCutsceneActionData at => at.FormatErrors,
             ExitOnInputCutsceneActionData exitOnInput => exitOnInput.FormatErrors,
             _ => null,
         };
@@ -87,6 +88,10 @@ public static class CutsceneActionPropertyEditor
             [CutsceneActionTypes.Wait] =
             [
                 Number<WaitCutsceneActionData>("seconds", a => a.Seconds, (a, v) => a.Seconds = v).Within(0),
+            ],
+            [CutsceneActionTypes.At] =
+            [
+                Number<AtCutsceneActionData>("seconds", a => a.Seconds, (a, v) => a.Seconds = v).Within(0),
             ],
             [CutsceneActionTypes.MoveTo] =
             [

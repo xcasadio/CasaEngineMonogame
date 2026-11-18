@@ -29,6 +29,7 @@ public static class CutsceneActionCatalog
         new(CutsceneActionTypes.Sequence, FlowCategory),
         new(CutsceneActionTypes.Parallel, FlowCategory),
         new(CutsceneActionTypes.Repeat, FlowCategory),
+        new(CutsceneActionTypes.At, FlowCategory),
         new(CutsceneActionTypes.Wait, TimingCategory),
         new(CutsceneActionTypes.WaitFrames, TimingCategory),
         new(CutsceneActionTypes.MoveTo, MovementCategory),
@@ -86,12 +87,13 @@ public static class CutsceneActionCatalog
             CutsceneActionTypes.MoveSprite => new MoveSpriteCutsceneActionData(),
             CutsceneActionTypes.TintSprite => new TintSpriteCutsceneActionData(),
             CutsceneActionTypes.Repeat => new RepeatCutsceneActionData { Count = 1 },
+            CutsceneActionTypes.At => new AtCutsceneActionData(),
             CutsceneActionTypes.ExitOnInput => new ExitOnInputCutsceneActionData(),
             _ => throw new ArgumentException($"'{type}' is not an action type of the catalogue.", nameof(type)),
         };
     }
 
-    /// <summary>True for Sequence, Parallel and Repeat, which hold a list of children.</summary>
+    /// <summary>True for Sequence, Parallel, Repeat and At, which hold a list of children.</summary>
     public static bool CanHaveChildren(CutsceneActionData action)
     {
         ArgumentNullException.ThrowIfNull(action);

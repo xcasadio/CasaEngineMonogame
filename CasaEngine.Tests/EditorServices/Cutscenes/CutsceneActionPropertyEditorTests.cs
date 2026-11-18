@@ -361,14 +361,14 @@ public sealed class CutsceneActionPropertyEditorTests
     }
 
     [Fact]
-    public void GetFormatErrors_ExistsForTheTenActionClassesThatCarryOne()
+    public void GetFormatErrors_ExistsForTheElevenActionClassesThatCarryOne()
     {
         string[] withErrors =
         [
             CutsceneActionTypes.WaitFrames, CutsceneActionTypes.FadeScreenFrames, CutsceneActionTypes.ShowSprite,
             CutsceneActionTypes.HideSprite, CutsceneActionTypes.PlayVideoSprite, CutsceneActionTypes.StartVideoSprite,
             CutsceneActionTypes.MoveSprite, CutsceneActionTypes.TintSprite, CutsceneActionTypes.Repeat,
-            CutsceneActionTypes.ExitOnInput,
+            CutsceneActionTypes.At, CutsceneActionTypes.ExitOnInput,
         ];
 
         foreach (string type in ActionTypes)

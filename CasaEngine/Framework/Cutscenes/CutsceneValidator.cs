@@ -223,6 +223,16 @@ public static class CutsceneValidator
                 ValidateActionList(repeatAction.Actions, path, "Repeat", result);
                 break;
 
+            case AtCutsceneActionData atAction:
+                ReportFormatError("seconds", atAction.FormatErrors, path, "At", result);
+                if (atAction.Seconds < 0f)
+                {
+                    result.AddError(path, "At.seconds must be greater than or equal to zero.");
+                }
+
+                ValidateActionList(atAction.Actions, path, "At", result);
+                break;
+
             case ExitOnInputCutsceneActionData exitOnInputAction:
                 ValidateRequiredString(exitOnInputAction.Mapping, "mapping", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);
                 ValidateRequiredString(exitOnInputAction.NextCutscene, "next_cutscene", exitOnInputAction.FormatErrors, path, "ExitOnInput", result);

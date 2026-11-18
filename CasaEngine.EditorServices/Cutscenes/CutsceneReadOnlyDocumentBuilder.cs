@@ -59,6 +59,12 @@ public static class CutsceneReadOnlyDocumentBuilder
                 AddChildren(node, parallelAction.Actions, path);
                 break;
 
+            case AtCutsceneActionData atAction:
+                node.AddProperty("seconds", atAction.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
+                node.AddProperty("children", atAction.Actions.Count.ToString(CultureInfo.InvariantCulture));
+                AddChildren(node, atAction.Actions, path);
+                break;
+
             case RepeatCutsceneActionData repeatAction:
                 node.AddProperty("count", repeatAction.Count?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
                 node.AddProperty("children", repeatAction.Actions.Count.ToString(CultureInfo.InvariantCulture));

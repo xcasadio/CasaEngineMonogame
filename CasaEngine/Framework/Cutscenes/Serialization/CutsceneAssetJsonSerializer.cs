@@ -80,6 +80,11 @@ public static class CutsceneAssetJsonSerializer
                 node["actions"] = SaveActions(parallelAction.Actions);
                 break;
 
+            case AtCutsceneActionData atAction:
+                node["seconds"] = atAction.Seconds;
+                node["actions"] = SaveActions(atAction.Actions);
+                break;
+
             case RepeatCutsceneActionData repeatAction:
                 if (repeatAction.Count is { } repeatCount)
                 {
@@ -377,6 +382,7 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
             CutsceneActionTypes.Repeat => LoadRepeat(node),
+            CutsceneActionTypes.At => LoadAt(node),
             CutsceneActionTypes.ExitOnInput => LoadExitOnInput(node),
             _ => new UnknownCutsceneActionData(actionType)
         };
@@ -613,6 +619,14 @@ public static class CutsceneAssetJsonSerializer
     {
         var action = new RepeatCutsceneActionData();
         action.Count = ReadInteger(node, "count", action.FormatErrors);
+        LoadActions(node, action.Actions);
+        return action;
+    }
+
+    private static AtCutsceneActionData LoadAt(JObject node)
+    {
+        var action = new AtCutsceneActionData();
+        action.Seconds = ReadNumber(node, "seconds", action.FormatErrors) ?? 0f;
         LoadActions(node, action.Actions);
         return action;
     }

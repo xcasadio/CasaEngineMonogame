@@ -134,7 +134,7 @@ public sealed class CutsceneTimelineProjectionTests
             else
             {
                 Assert.Empty(layout.Items);
-                Assert.Contains(kind.Type, new[] { CutsceneActionTypes.Sequence, CutsceneActionTypes.Parallel });
+                Assert.Contains(kind.Type, new[] { CutsceneActionTypes.Sequence, CutsceneActionTypes.Parallel, CutsceneActionTypes.At });
             }
         }
     }

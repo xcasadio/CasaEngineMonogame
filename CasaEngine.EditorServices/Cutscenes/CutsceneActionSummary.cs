@@ -22,6 +22,7 @@ public static class CutsceneActionSummary
             NavigateToCutsceneActionData navigateTo => $"{action.Type}  {Text(navigateTo.EntityName)} → {Vector(navigateTo.Destination)}",
             SequenceCutsceneActionData sequence => $"{action.Type}  {Count(sequence.Actions.Count)}",
             ParallelCutsceneActionData parallel => $"{action.Type}  {Count(parallel.Actions.Count)}",
+            AtCutsceneActionData at => $"{action.Type}  {Number(at.Seconds)} s",
             RepeatCutsceneActionData repeat => repeat.Count is 0 ? $"{action.Type}  forever" : $"{action.Type}  ×{Number(repeat.Count)}",
             PlaySoundCutsceneActionData playSound => $"{action.Type}  {ShortId(playSound.SoundAssetId)}  vol {Number(playSound.Volume)}",
             PlayMusicCutsceneActionData playMusic => $"{action.Type}  {ShortId(playMusic.SoundAssetId)}  fade in {Number(playMusic.FadeInSeconds)} s",
