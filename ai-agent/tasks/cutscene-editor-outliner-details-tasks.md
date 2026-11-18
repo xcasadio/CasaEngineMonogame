@@ -283,16 +283,18 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit l'arbre, les détails typés, l'ajout, la duplication et la suppression, les formes de référence et les limites ; la section sur les formats de texte est mise à jour.
 - Fichiers : `docs/editor/cutscene-editor.md`, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré.
 - Commit : `docs(editor): document the cutscene outliner and typed details`
+- Validation faite : `docs/editor/cutscene-editor.md` réécrit d'après le code livré (panneaux Hierarchy et Inspector, champs typés, formes de référence, règles d'ajout, de duplication et de suppression, options d'automatisation, limites, section des formats de texte) ; pas de build nécessaire, aucun fichier de code touché. Aucun nom de jeu ni de projet tiers.
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D4). Reste 🧪 d'ici là.
+- Note : l'auteur valide sur les captures de T2.6 et fera la recette réelle à la fin ; la tâche reste 🧪 jusque-là.
 
 ---
 

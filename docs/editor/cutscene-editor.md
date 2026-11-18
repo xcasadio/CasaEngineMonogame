@@ -1,24 +1,68 @@
 # Cutscene editor
 
-Decisions: see ADR-0095 and ADR-0096.
+Decisions: see ADR-0095, ADR-0096 and ADR-0097.
 
 ## Summary
 
-Opening a `.cutscene` asset from the Content Browser shows its action tree as a document tab. The properties of the existing actions can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
+Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
 
-The document also shows a preview of an isolated copy of a world, with transport controls, to play the cutscene being edited (see "Preview"). Adding, removing and moving actions, pickers and a timeline are not done yet (see "Next").
+The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). Moving actions, drag and drop and a timeline are not done yet (see "Next").
 
 ## Usage
 
-1. Open a `.cutscene` file from the Content Browser.
-2. Each action is listed with its path (`root_action.actions[2]`) and one text field per property.
-3. Type a value and press Enter, or leave the field, to commit it. An invalid text is refused: the field takes its old value back and the status line says why.
-4. Undo and redo with the editor's global commands while the cutscene tab is active. Each committed field is one history entry.
-5. A modified document shows `*` in its tab title. Save it with the editor's save command, or with "save all".
+1. Open a `.cutscene` file from the Content Browser. Clicking its tab again makes it the active document, so undo and redo target its history.
+2. **Hierarchy** shows one row per action: its type, then a short summary (`MoveSprite  orb-left -> (-60, 35) @ 120`, `Wait  1.5 s`, `Repeat  forever`). Select a row to edit that action.
+3. **Inspector** shows the type and path of the selected action (`root_action.actions[2]`), then one row per property: a fixed-width label and a field of the right kind (see "Typed fields"). Without a selection it shows the cutscene view: title, file path, validation, load losses and the "Editor play mode" runtime state.
+4. Commit a value with Enter, or by leaving the field. A numeric field also has `-` and `+` buttons that commit at once. Each commit is one history entry. A refused value puts the old value back and the reason is shown under the field.
+5. Text typed in a field and not yet committed is committed when another action is selected, to the action it was typed for.
+6. Undo and redo with the editor's global commands while the cutscene tab is active.
+7. A modified document shows `*` in its tab title. Save it with the editor's save command, or with "save all".
+
+## Action tree
+
+- **Hierarchy bar.** A flat drop-down lists the creatable action types, each prefixed by its category (`Sprites / MoveSprite`); the categories are Flow, Timing, Movement, Sprites, Audio, Screen and World and input. Buttons: `Add`, `Duplicate`, `Delete`. A right click on a row opens a menu with Duplicate and Delete. The footer shows the number of actions.
+- **Add.** If the selected action is a `Sequence`, `Parallel` or `Repeat`, the new action becomes its last child. Otherwise it is inserted right after the selection, in the same parent. With no selection it is appended to the root when the root is a container. The new action is selected.
+- **Defaults.** A created action has the default values of its class, except `Repeat.count` = 1 and `WaitFrames.frames` = 1. It can therefore be invalid until its required fields are filled: the Inspector lists the validator messages. A save is still allowed, as for any cutscene the validator criticises.
+- **Duplicate.** Inserts a deep copy right after the source and selects it. The copy goes through the serializer, so it is refused, with a message, for a subtree that holds a format error, a load loss or an unknown action type: the copy would lose those marks.
+- **Delete.** Removes the action and its children. A load loss that belongs to the removed subtree is removed with it and comes back at its original place on undo. The root action can be neither deleted nor duplicated.
+- **Selection and expansion.** The tree is rebuilt only when the document changes. The selection and the expanded nodes are kept by action; everything is expanded on first opening. A selection that is no longer in the tree after an undo, a redo or a reload is cleared.
+- Add, duplicate and delete are history entries that mark the document modified. If the preview was playing, it restarts on the edited asset.
+
+## Typed fields
+
+| Property | Field |
+|---|---|
+| Number, integer, byte | Numeric field with `-` and `+`, limited by the bounds of the validator (`>= 0` for durations, distances and counters, `[0, 1]` for volumes, `> 0` for `MoveSprite.speed`). The step is 1, or 0.1 when the upper bound is 1. An empty field means "no value" for a nullable property and is refused otherwise. |
+| Boolean | Check box |
+| Enumeration | Drop-down list of the names, with `(none)` when the property can be empty |
+| Colour | Colour editor |
+| `FadeScreen.r`, `g`, `b` | One colour editor: one validation writes the three bytes in one history entry |
+| Vector | Three numeric fields; the whole vector is validated together |
+| Entity name | Drop-down list of the entity names of the preview world, plus the current value marked `(missing)` if it is not there. Text box when no preview world is loaded or it has no named entity |
+| Sound, sprite, screen, world, cutscene, button mapping | Drop-down list of the assets of that type in the catalog, with `(none)` and the current value marked `(missing)` when absent. Text box when the catalog holds no asset of that type |
+| `PlaySound.bus_name`, `ExitOnInput.inputs` | Text box |
+| Other strings | Text box |
+
+A nullable property has a small `x` button that sets it back to "no value".
+
+### Written form of references
+
+The value written is the one the runtime reads:
+
+| Property | Written value |
+|---|---|
+| `sound_asset_id` | the GUID of the sound asset |
+| `sprite` | the name of the sprite in the catalog |
+| `OpenScreen.target`, `PlayVideo.target` | the name of the screen asset |
+| `ChangeWorld.target` | the **file name** of the world |
+| `mapping`, `next_cutscene` | the name of the asset |
+| `entity` | the name of an entity of the world (compared by ordinal) |
+
+A stored value that is not in the catalog is kept as it is, shown as `(missing)`, and never rewritten unless the user picks another one. Where the runtime accepts a name or a GUID, a stored GUID is found in the list.
 
 ## Preview
 
-The document shows a world preview on the left and the property fields in a column on the right. A transport bar sits above the preview: a world choice, `Play`, `Stop`, `Restart` and a status line.
+The document shows a transport bar (a world choice, `Play`, `Stop`, `Restart`), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
 
 - **Isolated copy.** The preview loads a copy of a world of the project. The world open in the editor is never touched.
 - **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.
@@ -42,14 +86,17 @@ Effects that would leave the preview world are neutralised and reported in the s
 - Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
 - The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
 - Editing the cutscene is disabled while a play session of the editor is running.
+- The state of the editor's own world in play mode is shown in the Inspector cutscene view under "Editor play mode"; it is not the state of the preview.
 
 ### Automation
 
 For remote validation the editor can play the preview without any input: `--project <project.json> --open-asset <Cutscenes/name.cutscene> --cutscene-preview-play --screenshot-out <file.png> --capture-delay <seconds>`. With this switch the capture delay counts from the start of the playback, and the diagnostics file gets the preview state, the skipped actions, the name and position of each preview entity and the name of the editor's current world.
 
-## Field formats
+Three more switches act on the document after it opens, one step per frame, and save nothing: `--cutscene-reactivate` activates the world viewport panel then the cutscene tab, as a click on the tab does; `--cutscene-select-action <path>` selects the action at a path such as `root_action.actions[1].actions[2]`; `--cutscene-add-action <Type>` then adds an action of that type. The diagnostics also give the selected action, the number of actions, the modified state, the active document and history context, and the document the tree and the Inspector are linked to.
 
-All texts use the invariant culture.
+## Text formats
+
+Text boxes, and the text of a numeric field, use the invariant culture.
 
 | Kind | Text | Example |
 |---|---|---|
@@ -77,29 +124,35 @@ An empty text sets a nullable property that is not a string back to "no value".
   - a *load loss* remains: a value of the file that the loader dropped or rewrote without an error (a `target` that is not a string, an invalid `blend_mode` of `FadeScreen`, an entry of `actions` that is not an object, an `actions` value that is not an array);
   - the file about to be written would not load back cleanly (for example a required `entity` left empty).
 - Editing the faulty field clears its error; undoing brings the error back. A faulty `actions` entry has no field: fix such a file outside the editor.
-- Format errors and load losses are listed in the Validation section of the document.
+- Format errors and load losses are listed in the Validation section of the Inspector cutscene view, and under the fields of the selected action.
 
 ## Code
 
-- `CasaEngine.EditorServices/Cutscenes/`: `CutsceneActionPropertyEditor` and `CutsceneActionProperty` (editable properties, typed access, text), `CutsceneEditSession` (asset and load losses), `SetCutsceneActionPropertyCommand` (undoable change), `CutsceneLoadFidelity` (load losses), `CutsceneSaveGuard` (save refusal).
+- `CasaEngine.EditorServices/Cutscenes/`: `CutsceneActionPropertyEditor` and `CutsceneActionProperty` (editable properties, typed access, text, meaning and bounds), `CutsceneEditSession` (asset and load losses), `SetCutsceneActionPropertyCommand` (undoable change), `CutsceneLoadFidelity` (load losses), `CutsceneSaveGuard` (save refusal).
+- `CasaEngine.EditorServices/Cutscenes/`: also `CutsceneActionCatalog` (creatable types, categories, defaults), `CutsceneActionSummary` (one-line text), `CutsceneActionTree` (parent, index, path, insertion target), `CutsceneReferenceOptions` (choices and written value of a reference), `InsertCutsceneActionCommand` and `RemoveCutsceneActionCommand` (undoable structure edits).
 - `CasaEngine.EditorServices/Cutscenes/`: also `CutscenePreviewWorldResolver`, `CutscenePreviewSettings` and `CutscenePreviewEffectHost` (preview world choice, remembered choice, reported effects).
 - `CasaEngine/Framework/Cutscenes/ICutsceneEffectHost.cs`: the runtime injection point, set through `CutsceneDirector.EffectHost`.
 - `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`: loads the world copy and plays the cutscene in it.
-- `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: the document panel.
+- `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: the document panel. It owns the selection, the edit operations (`SetProperty`, `SetProperties`, `AddAction`, `DuplicateSelectedAction`, `RemoveSelectedAction`) and the `SelectionChanged` and `DocumentChanged` events.
+- `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs`: the action tree in the Hierarchy panel. `CasaEngine.Editor/Controls/CutsceneDetailsPanel.cs`, with `Controls/Cutscenes/CutsceneNumberField.cs` and `CutsceneTextCommitBinding.cs`: the typed fields in the Inspector panel. Both are registered as contextual panels for the cutscene document kind in `GameEditor`.
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
 ## Limits
 
 - **Closing a modified cutscene tab loses its changes without a prompt.** Save first.
 - A string longer than 256 characters, or one that holds a line break, is shown as an empty field. Do not give the focus to such a field: leaving it replaces the value with an empty string (the change can be undone).
-- The structure of the tree cannot be edited: no add, remove, duplicate, move or wrap.
-- Entities, sprites, sounds, screens and worlds are typed as text; the editor does not check that a named entity exists in a world.
+- The structure can be edited only by add, duplicate and delete. Actions cannot be moved, reordered by mouse, wrapped, copied and pasted, or selected several at a time.
+- A container emptied of its children, or a new action with empty required fields, is invalid but can still be saved: the Inspector shows the validator messages.
+- The editor checks that a named entity exists only in the preview world list, not in every world. Clicking an entity in the preview to fill a field is not done.
+- `ExitOnInput.inputs` and `PlaySound.bus_name` stay text boxes.
+- The categories of the add list are a prefix, not a menu: the drop-down list cannot group.
+- Long summaries in the Hierarchy panel are cut at the right edge; a horizontal scroll bar reads them.
 - An action of an unknown type cannot be edited, and blocks the save.
 - No timeline, and no pause or seeking in the preview (see "Preview").
 
 ## Next
 
-- Editing the structure of the tree.
-- Pickers and world-aware validation.
+- Moving, wrapping, copying and pasting actions; drag and drop.
+- Picking an entity by clicking it in the preview.
 - A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
 - A read-only timeline projected from the tree, after its own decision record.

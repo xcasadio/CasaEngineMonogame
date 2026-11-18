@@ -94,7 +94,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
 - [audio-profiler-panel.md](editor/audio-profiler-panel.md) — panneau « Audio » (Windows > Audio) : statistiques du backend audio et vu-mètres par bus, en lecture seule (ADR-0060).
 - [audio-mixer-panel.md](editor/audio-mixer-panel.md) — panneau de mixage d'un asset `.audioMixer` : faders, muet, solo, vu-mètres, niveau de la sortie dans le temps, effets, départs et ducking, annuler et enregistrer (ADR-0067).
-- [cutscene-editor.md](editor/cutscene-editor.md) — document d'un asset `.cutscene` : champs éditables des actions, annuler et rétablir, enregistrement refusé plutôt que perte de données (ADR-0095).
+- [cutscene-editor.md](editor/cutscene-editor.md) — document d'un asset `.cutscene` : arbre des actions dans Hierarchy, champs typés dans Inspector, ajout, duplication et suppression, annuler et rétablir, enregistrement refusé plutôt que perte de données (ADR-0095, ADR-0097).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).
 - [gameplay-csproj-scaffolding.md](editor/gameplay-csproj-scaffolding.md) — conception du scaffolding du projet C# gameplay à `CreateProject` (csproj/sln générés, Phase 1 DLL éditeur → Phase 2 NuGet).
 - [timeline_control_architecture.md](editor/timeline_control_architecture.md) — architecture du contrôle Timeline V1.
