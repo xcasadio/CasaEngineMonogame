@@ -1,12 +1,12 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096 and ADR-0097.
+Decisions: see ADR-0095, ADR-0096, ADR-0097 and ADR-0098.
 
 ## Summary
 
 Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
 
-The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). Moving actions, drag and drop and a timeline are not done yet (see "Next").
+The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A read-only **Cutscene Timeline** panel shows the tree in time (see "Timeline"). Moving actions and drag and drop are not done yet (see "Next").
 
 ## Usage
 
@@ -60,6 +60,71 @@ The value written is the one the runtime reads:
 
 A stored value that is not in the catalog is kept as it is, shown as `(missing)`, and never rewritten unless the user picks another one. Where the runtime accepts a name or a GUID, a stored GUID is found in the list.
 
+## Timeline
+
+The **Cutscene Timeline** panel is a contextual tool panel: it appears in the bottom tab group only while a cutscene document is active, like the Animation2D timeline, and it comes to the front when a cutscene is opened. It is a **read-only projection of the action tree**: the tree stays the only model, nothing is edited on the timeline and the file format does not change. It can be docked, resized and maximised like any panel.
+
+The panel is attached to the active cutscene document and detached when that document closes. The model is rebuilt when the document changes or when a new duration is measured, never per frame; per frame only the playhead moves.
+
+### Rows
+
+Rows are created only when something uses them, in this order:
+
+| Row | Content |
+|---|---|
+| Loops | The ranges of `Repeat` |
+| Flow | `Wait`, `WaitFrames` |
+| One row per entity | `ShowSprite`, `HideSprite`, `MoveSprite`, `TintSprite`, `MoveTo`, `NavigateTo`, `PlayVideoSprite`, `StartVideoSprite`, in order of first appearance; `(no entity)` when the name is empty |
+| Screen | `FadeScreen`, `FadeScreenFrames`, `OpenScreen`, `PlayVideo` |
+| Audio | `PlaySound`, `PlayMusic`, `StopMusic`, `FadeMusic` |
+| World and input | `ChangeWorld`, `ExitOnInput` |
+| Other | Actions of an unknown type, as markers |
+
+`Sequence` and `Parallel` have no item of their own. Two bars or ranges of a row that overlap are spread over sub-rows (only the first sub-row carries the row label); a marker stays on the first sub-row.
+
+### Reading the shapes
+
+| Shape | Meaning |
+|---|---|
+| Solid bar | A known duration: `Wait`, `WaitFrames`, `FadeScreen`, `FadeScreenFrames`, `FadeMusic`, `TintSprite`, the fade of `PlayMusic` and `StopMusic` |
+| Dashed outline, lighter fill | An **estimated** duration: one that only a play can measure (`MoveSprite` effect, `MoveTo`, `NavigateTo`, `PlayVideo`, `PlayVideoSprite`, shown as 1 s), or a duration given in frames and converted at 60 frames per second |
+| Bar open on the right | `ExitOnInput`: it lasts until the end of the cutscene |
+| Range | The span of a `Repeat`, on the Loops row |
+| Diamond with its label | An instant: an action with no duration |
+
+After a play, the measured durations replace the estimates (the bar becomes solid). Any change of the document clears them, and a play in progress restarts and measures again.
+
+Time on the ruler is in seconds. The bar above the timeline reads `Playing` or `Stopped`, the play time in seconds and the number of frames, for example `Playing   2.00 s  ·  120 frames`; it is refreshed at most ten times per second.
+
+### How time is laid out
+
+- A `Parallel` starts all its children at the same instant and lasts as long as its longest branch. The one-update shift the runtime adds to each branch is not drawn.
+- A `Repeat` is drawn as **one lap** under a range `Repeat ×N` or `Repeat forever`. For a count above 1, a second range `×(N-1) more` covers the other laps and what follows is placed after them. A `Repeat` with no count is drawn as `Repeat ×?`, one lap.
+- The durations that move the sequence on are those of `Wait`, `WaitFrames`, `FadeScreen`, `FadeScreenFrames` and `FadeMusic` (their value), and `MoveTo`, `NavigateTo`, `PlayVideo` and `PlayVideoSprite` (measured, else 1 s estimated). Every other action takes no time in the sequence; a `MoveSprite` or a `TintSprite` does not block it.
+
+### Playhead
+
+- During a play the playhead follows the real time of the cutscene, read from the director clock of the preview of the attached document (`CutsceneDirector.PlayElapsedSeconds` and `PlayElapsedFrames`, advanced after the coroutines are updated, so the first step of a play always sees time 0). The view scrolls to keep it visible.
+- When the cutscene ends with an endless `Repeat`, the playhead loops back on the drawn lap: it shows the play time minus the length of the laps already played. With an `ExitOnInput` before the loop, the time before the loop is not folded.
+- At rest the playhead is at 0, and it goes back to 0 when a play ends.
+- A click in the ruler moves nothing: the playhead goes back to the play time. Moving the playhead, pause and step are for a later slice.
+
+### Selection
+
+A click on an item selects its action in the tree and in the Inspector; selecting an action in the tree highlights its item and scrolls its row into view. A click in empty space does not change the document selection. A `Repeat` is selected through its drawn lap. When items overlap under the cursor, the most precise one is picked: a marker before a bar, and the shorter of two bars or ranges.
+
+### Scrolling
+
+The ruler stays fixed while the row headers and the rows scroll together vertically; a vertical bar appears only when the rows do not fit. The mouse wheel over the time area zooms, and over the row headers it scrolls. The bottom tab group is about 250 px high in the default layout, which shows only the first rows of a long cutscene: scroll, resize the group or maximise the tab to see the others. Labels never overlap: when a label does not fit, the type of the action is shown, then a truncated type; a marker has no label when it sits on a bar or too close to the next item of its row.
+
+### Timeline limits
+
+- Read-only: no move, resize, add or delete on the timeline.
+- Measured durations are those of the **first occurrence** of each action during the last play. The duration of a `MoveSprite` effect is wrong when another move, `ShowSprite` or `HideSprite` interrupts it.
+- In the preview a `FadeMusic` does not wait (sound is muted): its bar shows the declared duration while the play goes faster.
+- For an endless loop whose lap holds an action of unknown duration that is not yet measured, the loop-back of the playhead becomes exact only after a first lap.
+- A `MoveSprite` or a `TintSprite` notifies its end right after its start: the length of its bar is not the length of its action in the director.
+
 ## Preview
 
 The document shows a transport bar (a world choice, `Play`, `Stop`, `Restart`), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
@@ -82,7 +147,7 @@ Effects that would leave the preview world are neutralised and reported in the s
 ### Limits
 
 - Sprite animations, physics and gameplay scripts are frozen in the preview. The status line says so.
-- No pause, no current time and no seeking: only play, stop and restart.
+- No pause and no seeking: only play, stop and restart. The play time is shown on the timeline (see "Timeline").
 - Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
 - The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
 - Editing the cutscene is disabled while a play session of the editor is running.
@@ -91,6 +156,8 @@ Effects that would leave the preview world are neutralised and reported in the s
 ### Automation
 
 For remote validation the editor can play the preview without any input: `--project <project.json> --open-asset <Cutscenes/name.cutscene> --cutscene-preview-play --screenshot-out <file.png> --capture-delay <seconds>`. With this switch the capture delay counts from the start of the playback, and the diagnostics file gets the preview state, the skipped actions, the name and position of each preview entity and the name of the editor's current world.
+
+`--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured), the selected item, and the visible and content heights of the track area with the state of the vertical bar.
 
 Three more switches act on the document after it opens, one step per frame, and save nothing: `--cutscene-reactivate` activates the world viewport panel then the cutscene tab, as a click on the tab does; `--cutscene-select-action <path>` selects the action at a path such as `root_action.actions[1].actions[2]`; `--cutscene-add-action <Type>` then adds an action of that type. The diagnostics also give the selected action, the number of actions, the modified state, the active document and history context, and the document the tree and the Inspector are linked to.
 
@@ -134,6 +201,9 @@ An empty text sets a nullable property that is not a string back to "no value".
 - `CasaEngine/Framework/Cutscenes/ICutsceneEffectHost.cs`: the runtime injection point, set through `CutsceneDirector.EffectHost`.
 - `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`: loads the world copy and plays the cutscene in it.
 - `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: the document panel. It owns the selection, the edit operations (`SetProperty`, `SetProperties`, `AddAction`, `DuplicateSelectedAction`, `RemoveSelectedAction`) and the `SelectionChanged` and `DocumentChanged` events.
+- `CasaEngine.EditorServices/Cutscenes/`: also `CutsceneTimelineProjection` and `CutsceneTimelineLayout` (the pure projection of the tree on rows and times, and the playhead mapping `MapPlayTime`), `CutscenePlayTimings` (measured durations, mapped from the played copy back to the edited actions by `CutsceneActionTree.MapByShape`).
+- `CasaEngine/Framework/Cutscenes/CutsceneDirector.cs`: `PlayElapsedSeconds`, `PlayElapsedFrames`, and the events `ActionStarted` and `ActionEnded` (`CutsceneActionNotification`). Additions only; without a subscriber the behaviour is unchanged.
+- `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs` and `Controls/Cutscenes/CutsceneTimelineItemRenderer.cs`: the Cutscene Timeline panel (`EditorPanelIds.CutsceneTimeline`) and the drawing of its items. The preview session exposes `ElapsedSeconds`, `ElapsedFrames`, `Timings` and `TimingsVersion`.
 - `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs`: the action tree in the Hierarchy panel. `CasaEngine.Editor/Controls/CutsceneDetailsPanel.cs`, with `Controls/Cutscenes/CutsceneNumberField.cs` and `CutsceneTextCommitBinding.cs`: the typed fields in the Inspector panel. Both are registered as contextual panels for the cutscene document kind in `GameEditor`.
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
@@ -148,11 +218,12 @@ An empty text sets a nullable property that is not a string back to "no value".
 - The categories of the add list are a prefix, not a menu: the drop-down list cannot group.
 - Long summaries in the Hierarchy panel are cut at the right edge; a horizontal scroll bar reads them.
 - An action of an unknown type cannot be edited, and blocks the save.
-- No timeline, and no pause or seeking in the preview (see "Preview").
+- The timeline is read-only and the preview has no pause or seeking (see "Timeline" and "Preview").
 
 ## Next
 
 - Moving, wrapping, copying and pasting actions; drag and drop.
 - Picking an entity by clicking it in the preview.
 - A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
-- A read-only timeline projected from the tree, after its own decision record.
+- Moving the playhead, pause and step.
+- Editing on the timeline: reorder, then free placement.

@@ -48,7 +48,18 @@
 >   recommandés » de la section 10 **renomment** les événements existants au lieu d'en
 >   ajouter.
 
-## Contexte
+### Mise à jour — défilement vertical et clic précis (2026-11-18)
+
+`TimelineControl` reçoit deux options à la construction, `TimelineControl(window, verticalScroll, preciseHitTest)`. Le constructeur `TimelineControl(window)` les met à faux : la timeline Animation2D est inchangée.
+
+- **Défilement vertical** (`verticalScroll`) : la règle et le coin restent fixes ; les en-têtes de pistes et la zone des pistes défilent ensemble dans un `MGScrollViewer` vertical, qui n'affiche sa barre que si les pistes dépassent. Le contrôle occupe alors la hauteur que son parent lui donne, au lieu d'exiger celle de son contenu : le parent doit la borner (un `MGDockPanel` dont le contrôle est le dernier enfant, pas un `MGStackPanel` vertical). La molette au-dessus de la zone du temps zoome, au-dessus des en-têtes elle fait défiler. API : `EnsureTrackVisible(trackId)`, `ScrollY`, `TrackAreaViewportHeight`, `TrackAreaContentHeight`, `IsVerticalScrollBarVisible`.
+- **Clic précis** (`preciseHitTest`) : sous le curseur, un élément instantané à portée gagne sur une barre ; parmi les barres et les plages, la plus courte gagne. Sans l'option, le premier élément `Duration` ou `Range` est rendu, comme avant.
+
+Premier consommateur de ces options : le panneau Cutscene Timeline, en lecture seule et sans `Adapter` (voir [cutscene-editor.md](cutscene-editor.md), ADR-0098). Il remplace `ItemRenderer` par `CutsceneTimelineItemRenderer`.
+
+---
+
+# Contexte
 
 Le moteur possède déjà un contrôle de timeline utilisé pour les animations :
 

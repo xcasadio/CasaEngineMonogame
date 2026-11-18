@@ -254,16 +254,18 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit la timeline, ses rangées, la lecture des formes (barre, estimée, ouverte, plage, marqueur), la tête de lecture et ses limites ; `docs/editor/timeline-generic.md` mentionne le défilement vertical.
 - Fichiers : ces deux documents, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré.
 - Commit : `docs(editor): document the cutscene timeline`
+- Note de validation : relu contre le code livré (`CutsceneTimelinePanel`, `CutsceneTimelineItemRenderer`, `TimelineControl`, `CutsceneTimelineLayout`, registre de `GameEditor`). `cutscene-editor.md` gagne la section Timeline (rangées, formes, mise en page du temps, tête de lecture, sélection, défilement, limites), les diagnostics et la section Code, et ses limites et suites sont mises à jour ; `timeline-generic.md` gagne une note sur les deux options du contrôle. Ligne de `ai-agent/README.md` mise à jour. Aucun nom de jeu ni de projet tiers.
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.5, puis recette réelle à la fin (D5). Reste 🧪 d'ici là.
+- Note de validation : l'auteur valide sur les captures de T2.5 et fera la recette réelle à la fin ; rien d'autre à faire côté agent.
 
 ---
 
