@@ -61,7 +61,7 @@ internal sealed class TimelineViewport : MGElement
     public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
     {
         sharedSize = new Thickness(0);
-        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
+        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetTrackCount() * _owner.TrackRowHeight);
         return new Thickness(availableSize.Width, desiredHeight, 0, 0);
     }
 

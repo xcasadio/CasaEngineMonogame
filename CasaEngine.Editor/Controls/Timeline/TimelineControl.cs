@@ -40,6 +40,9 @@ internal class TimelineControl : MGGrid
     /// <summary>True when a click picks the most specific item under the cursor instead of the first one found.</summary>
     public bool PreciseHitTestEnabled { get; }
 
+    /// <summary>Height of one track row in pixels; <see cref="TimelineControlMetrics.TrackRowHeight"/> unless a compact height was requested.</summary>
+    public int TrackRowHeight { get; }
+
     public TimelineViewState ViewState { get; } = new();
 
     public TimelineViewTransform ViewTransform { get; } = new();
@@ -116,11 +119,18 @@ internal class TimelineControl : MGGrid
     /// <param name="verticalScroll">Scrolls the track headers and the track area vertically under a fixed ruler, and takes the height
     /// given by the parent instead of the height of the content.</param>
     /// <param name="preciseHitTest">Makes a click pick a marker before a bar and the shortest bar first.</param>
-    public TimelineControl(MGWindow window, bool verticalScroll, bool preciseHitTest)
+    /// <param name="trackRowHeight">Height of a track row in pixels; the default keeps the height of every existing timeline.</param>
+    public TimelineControl(MGWindow window, bool verticalScroll, bool preciseHitTest, int trackRowHeight = TimelineControlMetrics.TrackRowHeight)
         : base(window)
     {
+        if (trackRowHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(trackRowHeight), "The track row height must be positive.");
+        }
+
         VerticalScrollEnabled = verticalScroll;
         PreciseHitTestEnabled = preciseHitTest;
+        TrackRowHeight = trackRowHeight;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         ColumnSpacing = 0;
@@ -269,6 +279,45 @@ internal class TimelineControl : MGGrid
         InvalidateViewPresentation();
     }
 
+    /// <summary>Width of the time area in pixels, 0 before the first layout.</summary>
+    public float VisibleTimeAreaWidth => _viewport.GetVisibleTimeAreaWidth();
+
+    /// <summary>
+    /// Sets the horizontal zoom so that <paramref name="seconds"/> plus a margin fill the time area, within the zoom limits, and
+    /// scrolls to the start. Does nothing, and returns false, before the first layout or for a duration that is not positive.
+    /// </summary>
+    /// <param name="seconds">The time to fit.</param>
+    /// <param name="marginFraction">The room kept free after it, as a fraction of <paramref name="seconds"/>.</param>
+    public bool FitTimeToWidth(float seconds, float marginFraction)
+    {
+        float width = _viewport.GetVisibleTimeAreaWidth();
+        if (width <= 0f || seconds <= 0f)
+        {
+            return false;
+        }
+
+        ViewState.ScrollX = 0f;
+        SyncTransformFromViewState();
+        SetPixelsPerSecond(width / (seconds * (1f + Math.Max(0f, marginFraction))));
+        ClampScrollToViewport();
+        UpdateHorizontalScrollBarState();
+        InvalidateViewPresentation();
+        return true;
+    }
+
+    /// <summary>Clears the selected track, so that no track looks selected; a click on a track or an item selects one again.</summary>
+    public void ClearSelectedTrack()
+    {
+        if (!ViewState.SelectedTrackId.HasValue)
+        {
+            return;
+        }
+
+        ViewState.SelectedTrackId = null;
+        _trackHeaderPanel.RefreshSelection();
+        InvalidateViewPresentation();
+    }
+
     /// <summary>Vertical scroll offset of the track area in pixels; 0 without the vertical scroll option.</summary>
     public float ScrollY => _scrollViewer?.VerticalOffset ?? 0f;
 
@@ -298,7 +347,8 @@ internal class TimelineControl : MGGrid
         float offset = TimelineVerticalScroll.GetOffsetToReveal(
             trackIndex,
             _scrollViewer.VerticalOffset,
-            _scrollViewer.ContentViewport.Height);
+            _scrollViewer.ContentViewport.Height,
+            TrackRowHeight);
         if (Math.Abs(offset - _scrollViewer.VerticalOffset) >= TimelineControlMetrics.Epsilon)
         {
             _scrollViewer.VerticalOffset = offset;
@@ -517,8 +567,8 @@ internal class TimelineControl : MGGrid
     {
         Rectangle contentBounds = GetTrackContentBounds(layoutBounds);
         int actualLaneIndex = Math.Clamp(laneIndex, 0, GetTrackCount() - 1);
-        int top = contentBounds.Top + (actualLaneIndex * TimelineControlMetrics.TrackRowHeight);
-        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TimelineControlMetrics.TrackRowHeight);
+        int top = contentBounds.Top + (actualLaneIndex * TrackRowHeight);
+        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TrackRowHeight);
     }
 
     internal TimelineTrack? GetTrackAtY(Rectangle layoutBounds, int y)
@@ -534,7 +584,7 @@ internal class TimelineControl : MGGrid
             return null;
         }
 
-        int laneIndex = Math.Clamp((y - contentBounds.Top) / TimelineControlMetrics.TrackRowHeight, 0, _model.Tracks.Count - 1);
+        int laneIndex = Math.Clamp((y - contentBounds.Top) / TrackRowHeight, 0, _model.Tracks.Count - 1);
         return _model.Tracks[laneIndex];
     }
 
@@ -976,7 +1026,7 @@ internal class TimelineControl : MGGrid
     private Rectangle GetTrackContentBounds(Rectangle layoutBounds)
     {
         int top = layoutBounds.Top + TimelineControlMetrics.ViewportVerticalPadding;
-        int height = Math.Max(1, GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
+        int height = Math.Max(1, GetTrackCount() * TrackRowHeight);
         return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), height);
     }
 

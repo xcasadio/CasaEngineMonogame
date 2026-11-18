@@ -23,13 +23,17 @@ namespace CasaEngine.Editor.Controls;
 internal sealed class CutsceneTimelinePanel
 {
     private const float EmptyOpenBarSeconds = 0.25f;
+    private const int CompactTrackRowHeight = 23;
+    private const float FitMarginFraction = 0.04f;
+
+    // Frames to wait after a selection before bringing its track into view: the layout of the new model must have run.
+    private const int RevealDelayFrames = 2;
 
     private readonly MGWindow _window;
     private readonly Dictionary<CutsceneActionData, Guid[]> _itemIds = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<Guid, CutsceneActionData> _actionsByItemId = [];
 
     private MGDockPanel? _root;
-    private MGTextBlock? _transportText;
     private MGTextBlock? _emptyText;
     private TimelineControl? _timeline;
     private CutsceneAssetInspectorPanel? _document;
@@ -37,9 +41,12 @@ internal sealed class CutsceneTimelinePanel
     private int _lastTimingsVersion;
     private float _playhead;
     private bool _syncingSelection;
-    private int _lastTransportTenths = -1;
-    private bool _lastTransportPlaying;
-    private bool _transportShown;
+    private bool _fitPending;
+    private bool _fitApplied;
+    private float _fitPixelsPerSecond;
+    private float _fitWidth;
+    private Guid _revealTrackId;
+    private int _revealDelay;
 
     public CutsceneTimelinePanel(MGWindow window)
     {
@@ -54,9 +61,6 @@ internal sealed class CutsceneTimelinePanel
 
     /// <summary>The generic timeline control, or null before <see cref="CreateContent"/>.</summary>
     internal TimelineControl? Timeline => _timeline;
-
-    /// <summary>The text of the transport bar.</summary>
-    public string TransportText => _transportText?.Text ?? string.Empty;
 
     /// <summary>The playhead position last pushed to the control, in seconds.</summary>
     public float PlayheadSeconds => _playhead;
@@ -74,13 +78,6 @@ internal sealed class CutsceneTimelinePanel
             VerticalAlignment = VerticalAlignment.Stretch,
         };
 
-        _transportText = new MGTextBlock(_window, string.Empty)
-        {
-            Margin = new Thickness(8, 4, 8, 4),
-            Opacity = EditorThemePalette.SecondaryTextOpacity,
-        };
-        _root.TryAddChild(_transportText, Dock.Top);
-
         _emptyText = new MGTextBlock(_window, string.Empty)
         {
             Margin = new Thickness(8, 6, 8, 6),
@@ -89,7 +86,7 @@ internal sealed class CutsceneTimelinePanel
         };
         _root.TryAddChild(_emptyText, Dock.Top);
 
-        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true)
+        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true, trackRowHeight: CompactTrackRowHeight)
         {
             ItemRenderer = new CutsceneTimelineItemRenderer(),
             CornerHeaderText = "Rows",
@@ -127,10 +124,12 @@ internal sealed class CutsceneTimelinePanel
 
         _itemIds.Clear();
         _actionsByItemId.Clear();
+        _fitPending = _document != null;
+        _fitApplied = false;
         Rebuild();
     }
 
-    /// <summary>Called once per frame: moves the playhead and refreshes the transport text; rebuilds only when a new measure arrived.</summary>
+    /// <summary>Called once per frame: moves the playhead, fits the zoom and reveals the selection once the layout is there; rebuilds only when a new measure arrived.</summary>
     public void Update()
     {
         if (_timeline == null || _document == null)
@@ -153,20 +152,79 @@ internal sealed class CutsceneTimelinePanel
             _timeline.EnsureTimeVisible(_playhead);
         }
 
-        int tenths = (int)(elapsed * 10d);
-        if (!_transportShown || tenths != _lastTransportTenths || playing != _lastTransportPlaying)
+        UpdateFit();
+        UpdateReveal();
+    }
+
+    /// <summary>
+    /// Fits the zoom to the projection once the control has a width: when the panel is bound to a document, and again while the
+    /// width changes and the user has not zoomed since. A rebuild for the same document keeps the zoom.
+    /// </summary>
+    private void UpdateFit()
+    {
+        var timeline = _timeline!;
+        if (timeline.Model == null || timeline.Visibility != Visibility.Visible)
         {
-            _transportShown = true;
-            _lastTransportTenths = tenths;
-            _lastTransportPlaying = playing;
-            long frames = playing ? preview!.ElapsedFrames : 0;
-            if (_transportText != null)
+            return;
+        }
+
+        float width = timeline.VisibleTimeAreaWidth;
+        if (width <= 0f)
+        {
+            return;
+        }
+
+        if (!_fitPending)
+        {
+            bool userZoomed = Math.Abs(timeline.PixelsPerSecond - _fitPixelsPerSecond) > 0.01f;
+            if (!_fitApplied || userZoomed || Math.Abs(width - _fitWidth) < 0.5f)
             {
-                _transportText.Text = string.Create(
-                    CultureInfo.InvariantCulture,
-                    $"{(playing ? "Playing" : "Stopped")}   {elapsed:0.00} s  ·  {frames} frames");
+                return;
             }
         }
+
+        if (timeline.FitTimeToWidth(GetContentSeconds(timeline.Model), FitMarginFraction))
+        {
+            _fitPending = false;
+            _fitApplied = true;
+            _fitWidth = width;
+            _fitPixelsPerSecond = timeline.PixelsPerSecond;
+        }
+    }
+
+    private static float GetContentSeconds(TimelineModel model)
+    {
+        float seconds = model.DurationSeconds;
+        for (int index = 0; index < model.Items.Count; index++)
+        {
+            var item = model.Items[index];
+            seconds = Math.Max(seconds, item.StartTime + item.Duration);
+        }
+
+        return seconds;
+    }
+
+    private void UpdateReveal()
+    {
+        if (_revealTrackId == Guid.Empty)
+        {
+            return;
+        }
+
+        if (_revealDelay > 0)
+        {
+            _revealDelay--;
+            return;
+        }
+
+        var timeline = _timeline!;
+        if (timeline.TrackAreaViewportHeight <= 0)
+        {
+            return;
+        }
+
+        timeline.EnsureTrackVisible(_revealTrackId);
+        _revealTrackId = Guid.Empty;
     }
 
     /// <summary>Appends the state shown by the timeline, one line per fact, for the automation diagnostics.</summary>
@@ -180,7 +238,7 @@ internal sealed class CutsceneTimelinePanel
             $"Cutscene timeline (attached: {_document != null}, playing: {playing}):"));
         builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
             $"  - Play time: {elapsed:0.000} s, {frames} frames; playhead: {_playhead:0.000} s; total duration: {_layout.DurationSeconds:0.###} s"));
-        builder.AppendLine($"  - Transport text: {TransportText}");
+        builder.AppendLine($"  - Transport text: {_document?.TransportText}");
 
         var model = _timeline?.Model;
         int trackCount = model?.Tracks.Count ?? 0;
@@ -296,14 +354,24 @@ internal sealed class CutsceneTimelinePanel
             _syncingSelection = false;
         }
 
-        if (itemId.HasValue && _timeline.Model != null)
+        if (!itemId.HasValue)
+        {
+            // The control selects the first track by default: with nothing selected no row should look selected.
+            _timeline.ClearSelectedTrack();
+            _revealTrackId = Guid.Empty;
+            return;
+        }
+
+        if (_timeline.Model != null)
         {
             var items = _timeline.Model.Items;
             for (int index = 0; index < items.Count; index++)
             {
                 if (items[index].Id == itemId.Value)
                 {
-                    _timeline.EnsureTrackVisible(items[index].TrackId);
+                    // Revealed by Update once the layout is available: before it the viewport has no height.
+                    _revealTrackId = items[index].TrackId;
+                    _revealDelay = RevealDelayFrames;
                     break;
                 }
             }
@@ -319,8 +387,6 @@ internal sealed class CutsceneTimelinePanel
 
         var preview = _document?.Preview;
         _lastTimingsVersion = preview?.TimingsVersion ?? 0;
-        _lastTransportTenths = -1;
-        _transportShown = false;
 
         var root = _document?.LoadedCutsceneAsset?.RootAction;
         if (_document == null || root == null)

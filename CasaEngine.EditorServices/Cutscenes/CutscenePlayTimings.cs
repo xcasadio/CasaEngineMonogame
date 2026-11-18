@@ -16,7 +16,10 @@ public sealed class CutscenePlayTimings
     /// <summary>The measured durations by edited action, in seconds.</summary>
     public IReadOnlyDictionary<CutsceneActionData, double> Durations => _durations;
 
-    /// <summary>Changes each time a new duration is recorded.</summary>
+    /// <summary>
+    /// Changes when the measures are forgotten or when a duration that the timeline projection uses is recorded
+    /// (<see cref="CutsceneTimelineProjection.UsesMeasuredDuration"/>); an action that merely ends does not change it.
+    /// </summary>
     public int Version { get; private set; }
 
     /// <summary>
@@ -72,7 +75,10 @@ public sealed class CutscenePlayTimings
         }
 
         _durations[original] = Math.Max(0, notification.ElapsedSeconds - start);
-        Version++;
+        if (CutsceneTimelineProjection.UsesMeasuredDuration(original))
+        {
+            Version++;
+        }
     }
 
     /// <summary>

@@ -87,7 +87,30 @@ public sealed class CutscenePlayTimingsTests
         Assert.True(timings.TryGetDuration(original, out double seconds));
         Assert.Equal(1.1, seconds, 1e-9);
         Assert.Equal(1.1, timings.Durations[original], 1e-9);
+
+        // A Wait shows its own length, not a measured one: the projection does not change.
+        Assert.Equal(version, timings.Version);
+    }
+
+    [Fact]
+    public void TheVersionChanges_OnlyWhenAMeasureUsedByTheProjectionIsRecorded()
+    {
+        var wait = new WaitCutsceneActionData { Seconds = 1 };
+        var waitCopy = new WaitCutsceneActionData { Seconds = 1 };
+        var moveTo = new MoveToCutsceneActionData { EntityName = "a" };
+        var moveToCopy = new MoveToCutsceneActionData { EntityName = "a" };
+        var timings = new CutscenePlayTimings();
+        timings.Begin(new Dictionary<CutsceneActionData, CutsceneActionData> { [waitCopy] = wait, [moveToCopy] = moveTo });
+        int version = timings.Version;
+
+        timings.OnStarted(At(waitCopy, 0));
+        timings.OnEnded(At(waitCopy, 1));
+        Assert.Equal(version, timings.Version);
+
+        timings.OnStarted(At(moveToCopy, 1));
+        timings.OnEnded(At(moveToCopy, 2.5));
         Assert.NotEqual(version, timings.Version);
+        Assert.Equal(1.5, timings.Durations[moveTo], 1e-9);
     }
 
     [Fact]

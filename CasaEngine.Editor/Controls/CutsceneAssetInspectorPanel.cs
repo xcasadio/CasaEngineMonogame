@@ -50,6 +50,9 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private WorldViewportPanel? _previewViewport;
     private MGComboBox<string>? _worldCombo;
     private MGTextBlock? _previewStatusText;
+    private MGTextBlock? _timeText;
+    private int _lastTimeTenths = -1;
+    private bool _lastTimePlaying;
     private MGTextBlock? _noPreviewWorldText;
     private MGElement? _previewViewportContent;
     private CutscenePreviewSettings? _previewSettings;
@@ -523,6 +526,34 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         _preview.Tick(gameTime);
         RefreshPreviewStatus();
+        RefreshTimeText();
+    }
+
+    /// <summary>The play time shown at the end of the transport row, or empty without a preview.</summary>
+    public string TransportText => _timeText?.Text ?? string.Empty;
+
+    /// <summary>Rewrites the play time text when its tenth of a second or the play state changed: at most ten times a second.</summary>
+    private void RefreshTimeText()
+    {
+        if (_timeText == null || _preview == null)
+        {
+            return;
+        }
+
+        bool playing = _preview.IsPlaying;
+        double elapsed = playing ? _preview.ElapsedSeconds : 0d;
+        int tenths = (int)(elapsed * 10d);
+        if (tenths == _lastTimeTenths && playing == _lastTimePlaying)
+        {
+            return;
+        }
+
+        _lastTimeTenths = tenths;
+        _lastTimePlaying = playing;
+        long frames = playing ? _preview.ElapsedFrames : 0;
+        _timeText.Text = string.Create(
+            CultureInfo.InvariantCulture,
+            $"{(playing ? "Playing" : "Stopped")}   {elapsed:0.00} s  ·  {frames} frames");
     }
 
     public void DrawViewport(GameTime gameTime)
@@ -614,6 +645,16 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         row.TryAddChild(CreateTransportButton("Play", PlayPreview));
         row.TryAddChild(CreateTransportButton("Stop", StopPreview));
         row.TryAddChild(CreateTransportButton("Restart", PlayPreview));
+
+        _timeText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+        };
+        row.TryAddChild(_timeText);
+        _lastTimeTenths = -1;
+        RefreshTimeText();
         return row;
     }
 

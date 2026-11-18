@@ -17,6 +17,20 @@ public static class CutsceneTimelineProjection
     private const double Epsilon = 1e-6;
     private const string NoEntityLabel = "(no entity)";
 
+    /// <summary>
+    /// True when the projection shows a measured duration for this action, so that a new measure changes what it draws: the
+    /// actions placed by the measured path of the builder. Other actions end without changing the layout.
+    /// </summary>
+    public static bool UsesMeasuredDuration(CutsceneActionData action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return action is MoveToCutsceneActionData
+            or NavigateToCutsceneActionData
+            or PlayVideoSpriteCutsceneActionData
+            or PlayVideoCutsceneActionData
+            or MoveSpriteCutsceneActionData;
+    }
+
     /// <summary>True when an action of this type gets an item; false for Sequence and Parallel, which have none.</summary>
     public static bool HasElement(string type)
     {

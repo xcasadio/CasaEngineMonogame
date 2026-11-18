@@ -272,6 +272,131 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         panel.Timeline.NotifyTimeScrubbed(2f);
 
         Assert.Equal(0f, panel.Timeline.CurrentTimeSeconds);
-        Assert.Equal("Stopped   0.00 s  ·  0 frames", panel.TransportText);
+    }
+
+    private static void Settle(ContentBrowserViewTestHarness harness, CutsceneTimelinePanel panel, int frames = 6)
+    {
+        for (int index = 0; index < frames; index++)
+        {
+            panel.Update();
+            harness.AdvanceFrame(16);
+        }
+    }
+
+    [Fact]
+    public void WhenBoundToADocument_TheZoomFitsTheProjectionInTheWidth()
+    {
+        var (harness, panel, _, _) = OpenSample();
+        Settle(harness, panel);
+        var timeline = panel.Timeline!;
+
+        float width = timeline.VisibleTimeAreaWidth;
+        Assert.True(width > 0f);
+        float expected = Math.Clamp(width / ((float)panel.Layout.DurationSeconds * 1.04f), timeline.MinimumPixelsPerSecond, timeline.MaximumPixelsPerSecond);
+        Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
+        Assert.True(panel.Layout.DurationSeconds * timeline.PixelsPerSecond <= width + 0.5f);
+        Assert.True(panel.Layout.DurationSeconds * timeline.PixelsPerSecond >= width * 0.9f);
+        Assert.Equal(0f, timeline.ViewState.ScrollX);
+    }
+
+    [Fact]
+    public void ARebuildOfTheSameDocument_KeepsTheZoomOfTheUser_AndAnotherBindingFitsAgain()
+    {
+        var (harness, panel, document, session) = OpenSample();
+        Settle(harness, panel);
+        var timeline = panel.Timeline!;
+        float fitted = timeline.PixelsPerSecond;
+
+        timeline.PixelsPerSecond = fitted * 1.5f;
+        Assert.NotEqual(fitted, timeline.PixelsPerSecond);
+        float zoomed = timeline.PixelsPerSecond;
+
+        var wait = First<WaitCutsceneActionData>(session);
+        var property = CutsceneActionPropertyEditor.FindProperty(wait, "seconds")!;
+        EditorHistoryService.Current.Execute(Context, new SetCutsceneActionPropertyCommand(session, wait, property, wait.Seconds + 0.5f));
+        Settle(harness, panel);
+        Assert.Equal(zoomed, timeline.PixelsPerSecond);
+
+        panel.SetEditorPanel(null);
+        panel.SetEditorPanel(document);
+        Settle(harness, panel);
+        float expected = Math.Clamp(timeline.VisibleTimeAreaWidth / ((float)panel.Layout.DurationSeconds * 1.04f), timeline.MinimumPixelsPerSecond, timeline.MaximumPixelsPerSecond);
+        Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
+    }
+
+    [Fact]
+    public void TheSelectedTrack_IsBroughtIntoView_WhenThePanelIsAttachedAfterTheSelection()
+    {
+        // A window too low for all rows: the last row is out of view until the panel reveals it.
+        var harness = ContentBrowserViewTestHarness.Create(900, 130);
+        var panel = new CutsceneTimelinePanel(harness.Window);
+        harness.Window.SetContent(panel.CreateContent());
+        string path = FindSampleCutscene();
+        Assert.True(CutsceneAssetInspectorPanel.TryLoadAsset(path, out var session));
+        var document = new CutsceneAssetInspectorPanel(harness.Window);
+        _panels.Add(document);
+        document.SetHistoryContextId(ContextId);
+        document.LoadAsset(session!, path);
+        var tint = Flatten(session!.Asset.RootAction!).OfType<TintSpriteCutsceneActionData>().Last();
+        document.SelectAction(tint);
+
+        panel.SetEditorPanel(document);
+        Settle(harness, panel, 10);
+
+        var timeline = panel.Timeline!;
+        Assert.True(timeline.TrackAreaContentHeight > timeline.TrackAreaViewportHeight, "The window must be too low for every row.");
+        var item = FindItem(panel, tint);
+        Assert.Equal(item.Id, timeline.ViewState.SelectedItemId);
+        int trackIndex = timeline.GetTrackIndex(item.TrackId);
+        float rowTop = TimelineControlMetrics.ViewportVerticalPadding + (trackIndex * timeline.TrackRowHeight);
+        Assert.True(timeline.ScrollY > 0f);
+        Assert.True(rowTop >= timeline.ScrollY - 0.5f);
+        Assert.True(rowTop + timeline.TrackRowHeight <= timeline.ScrollY + timeline.TrackAreaViewportHeight + 0.5f);
+    }
+
+    [Fact]
+    public void WithNoSelection_NoTrackIsSelected()
+    {
+        var (harness, panel, document, session) = OpenSample();
+        Settle(harness, panel);
+        Assert.Null(panel.Timeline!.ViewState.SelectedItemId);
+        Assert.Null(panel.Timeline.ViewState.SelectedTrackId);
+
+        document.SelectAction(First<TintSpriteCutsceneActionData>(session));
+        Assert.NotNull(panel.Timeline.ViewState.SelectedTrackId);
+
+        document.SelectAction(null);
+        Assert.Null(panel.Timeline.ViewState.SelectedTrackId);
+    }
+
+    [Fact]
+    public void TheCutsceneTimeline_UsesCompactRows_WhileTheDefaultControlKeepsTheStandardHeight()
+    {
+        var (harness, panel, _, _) = OpenSample();
+        var bounds = new Rectangle(0, 0, 400, 400);
+
+        Assert.Equal(23, panel.Timeline!.TrackRowHeight);
+        Assert.Equal(23, panel.Timeline.GetTrackBounds(bounds, 1).Top - panel.Timeline.GetTrackBounds(bounds, 0).Top);
+
+        var standard = new TimelineControl(harness.Window);
+        var twoTracks = new TimelineModel();
+        twoTracks.Tracks.Add(new TimelineTrack { Label = "a" });
+        twoTracks.Tracks.Add(new TimelineTrack { Label = "b" });
+        standard.SetModel(twoTracks);
+        Assert.Equal(TimelineControlMetrics.TrackRowHeight, standard.TrackRowHeight);
+        Assert.Equal(34, standard.GetTrackBounds(bounds, 1).Top - standard.GetTrackBounds(bounds, 0).Top);
+        Assert.Equal(TimelineControlMetrics.TrackRowHeight, new TimelineControl(harness.Window, true, true).TrackRowHeight);
+    }
+
+    [Fact]
+    public void AllRowsOfTheSample_FitWithoutScrolling_InAWindowOfModestHeight()
+    {
+        var (harness, panel, _, _) = OpenSample();
+        Settle(harness, panel);
+        var timeline = panel.Timeline!;
+
+        int rowsHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (timeline.Model!.Tracks.Count * timeline.TrackRowHeight);
+        Assert.True(timeline.TrackAreaViewportHeight >= rowsHeight, $"viewport {timeline.TrackAreaViewportHeight}, rows {rowsHeight}");
+        Assert.False(timeline.IsVerticalScrollBarVisible);
     }
 }

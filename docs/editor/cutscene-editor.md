@@ -127,7 +127,7 @@ The ruler stays fixed while the row headers and the rows scroll together vertica
 
 ## Preview
 
-The document shows a transport bar (a world choice, `Play`, `Stop`, `Restart`), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
+The document shows a transport bar (a world choice, `Play`, `Stop`, `Restart`, then the play time in seconds and frames), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
 
 - **Isolated copy.** The preview loads a copy of a world of the project. The world open in the editor is never touched.
 - **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.

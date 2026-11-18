@@ -75,6 +75,17 @@ public class TimelineVerticalScrollTests
     }
 
     [Fact]
+    public void GetOffsetToReveal_UsesTheGivenRowHeight()
+    {
+        const int compact = 24;
+        float viewport = 100f;
+
+        Assert.Equal(Padding + (6 * compact) + compact - viewport, TimelineVerticalScroll.GetOffsetToReveal(6, 0f, viewport, compact));
+        Assert.Equal(Padding + (2 * compact), TimelineVerticalScroll.GetOffsetToReveal(2, 200f, viewport, compact));
+        Assert.Equal(0f, TimelineVerticalScroll.GetOffsetToReveal(1, 0f, viewport, compact));
+    }
+
+    [Fact]
     public void GetOffsetToReveal_MovesOnlyWhenTrackIsOutOfView()
     {
         float viewport = 100f;

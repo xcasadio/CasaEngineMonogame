@@ -195,8 +195,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
-            MinHeight = TimelineControlMetrics.TrackRowHeight,
-            PreferredHeight = TimelineControlMetrics.TrackRowHeight,
+            MinHeight = _owner.TrackRowHeight,
+            PreferredHeight = _owner.TrackRowHeight,
             Padding = new Thickness(TimelineControlMetrics.HeaderPadding, 0, TimelineControlMetrics.HeaderPadding, 0),
         };
 
