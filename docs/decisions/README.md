@@ -27,7 +27,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
 | [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted | 2026-08-09 |
-| [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted | 2026-06-13 |
+| [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted (decision 2 superseded by ADR-0096) | 2026-06-13 |
 | [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0017](0017-mgui-backend-extensibility.md) | MGUI backend extensibility, Apos.Shapes and NvgSharp behind CasaEngine contracts | Accepted | 2026-09-06 (backfill) |
@@ -109,3 +109,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0093](0093-a-world-video-can-run-to-its-end-after-its-cutscene.md) | A world video can run to its end after the cutscene that started it | Accepted | 2026-11-12 |
 | [ADR-0094](0094-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md) | The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer | Accepted | 2026-11-17 |
 | [ADR-0095](0095-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md) | Cutscene assets are edited in the editor, on their action tree | Accepted | 2026-11-17 |
+| [ADR-0096](0096-the-cutscene-editor-previews-in-an-isolated-world-and-projects-the-tree-on-a-timeline.md) | The cutscene editor previews in an isolated world and projects its action tree on a timeline | Accepted | 2026-11-18 |

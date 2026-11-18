@@ -222,6 +222,8 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 
 > En attente (2026-11-17) : l'éditeur n'a pas été lancé par l'agent. Reste la recette visuelle de l'auteur ci-dessous, et sa réponse sur O1 à O6.
 
+> Recette de l'auteur du 2026-11-18 : refusée sur l'ergonomie (pas de monde affiché, champs en texte). Suite dans `cutscene-editor-preview-tasks.md`. Le statut reste 🧪.
+
 - Objectif : validation visuelle, que l'agent ne peut pas faire seul.
 - Sources : `Projects/SpriteCutsceneSample/Cutscenes/loop.cutscene`.
 - Étapes (auteur) :
