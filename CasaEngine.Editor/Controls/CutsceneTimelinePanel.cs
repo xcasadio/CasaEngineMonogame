@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Controls.Timeline.Menu;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
@@ -18,9 +19,10 @@ namespace CasaEngine.Editor.Controls;
 /// <summary>
 /// The read-only timeline of the active cutscene document (ADR-0098): a projection of its action tree on rows and times,
 /// a playhead that follows the preview, and a selection shared with the outliner. The model is rebuilt when the document
-/// changes or a new duration is measured, never per frame; per frame only the playhead moves.
+/// changes or a new duration is measured, never per frame; per frame only the playhead moves. A right click on an item opens
+/// the structure menu shared with the outliner (P8, P12); the empty space and the track headers have no menu.
 /// </summary>
-internal sealed class CutsceneTimelinePanel
+internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 {
     private const float EmptyOpenBarSeconds = 0.25f;
     private const int CompactTrackRowHeight = 23;
@@ -99,6 +101,7 @@ internal sealed class CutsceneTimelinePanel
             ItemRenderer = new CutsceneTimelineItemRenderer(),
             CornerHeaderText = "Rows",
         };
+        _timeline.ContextMenuProvider = this;
         _timeline.SelectedItemChanged += OnTimelineSelectedItemChanged;
         _timeline.TimeScrubbed += OnTimelineTimeScrubbed;
 
@@ -325,6 +328,34 @@ internal sealed class CutsceneTimelinePanel
         {
             _syncingSelection = false;
         }
+    }
+
+    MGContextMenu? ITimelineContextMenuProvider.CreateContextMenu(TimelineControl timeline, TimelineTrack? track, TimelineItem? item, float cursorTime)
+    {
+        // The empty space has no menu; the structure operations act on an action, which an item stands for.
+        if (_document == null || item?.Source is not CutsceneTimelineItemInfo info)
+        {
+            return null;
+        }
+
+        // The right click has already selected the item; doing it again is without effect, and it keeps the menu right
+        // when the provider is asked without that click.
+        _syncingSelection = true;
+        try
+        {
+            _document.SelectAction(info.Item.Action);
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+
+        return CutsceneActionMenu.Create(_window, _document, null);
+    }
+
+    MGContextMenu? ITimelineContextMenuProvider.CreateTrackHeaderContextMenu(TimelineControl timeline, TimelineTrack track)
+    {
+        return null;
     }
 
     private void OnTimelineTimeScrubbed(float seconds)

@@ -2,6 +2,7 @@ using CasaEngine.Editor;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Controls.Timeline.Menu;
 using CasaEngine.Editor.History;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Engine.Environment;
@@ -301,6 +302,76 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
 
         panel.Timeline.NotifyTimeScrubbed(-3f);
         Assert.Equal(0f, panel.LastSeekRequestSeconds);
+    }
+
+    [Fact]
+    public void TheProvider_GivesTheStructureMenuForAnItem_AndSelectsItsAction()
+    {
+        var (_, panel, document, session) = OpenSample();
+        var wait = First<WaitCutsceneActionData>(session);
+        var tint = First<TintSpriteCutsceneActionData>(session);
+        document.SelectAction(tint);
+        var item = FindItem(panel, wait);
+        var track = panel.Timeline!.Model!.Tracks.Single(candidate => candidate.Id == item.TrackId);
+
+        var provider = Assert.IsAssignableFrom<ITimelineContextMenuProvider>(panel.Timeline.ContextMenuProvider);
+        var menu = provider.CreateContextMenu(panel.Timeline, track, item, 0f);
+
+        Assert.NotNull(menu);
+        Assert.Same(wait, document.SelectedAction);
+        var labels = CutsceneMenuProbe.Labels(menu!);
+        Assert.Contains("Copy", labels);
+        Assert.Contains("Delete", labels);
+        Assert.Contains("Wrap in", labels);
+    }
+
+    [Fact]
+    public void TheMenuOfTheControl_ComesFromTheProvider_AndAnEntryDoesItsOperation()
+    {
+        var (_, panel, document, session) = OpenSample();
+        var wait = First<WaitCutsceneActionData>(session);
+        int before = CutsceneActionTree.CountActions(session.Asset.RootAction!);
+        var item = FindItem(panel, wait);
+        var track = panel.Timeline!.Model!.Tracks.Single(candidate => candidate.Id == item.TrackId);
+
+        var menu = panel.Timeline.CreateContextMenu(track, item, 0f);
+
+        Assert.NotNull(menu);
+        CutsceneMenuProbe.Trigger(CutsceneMenuProbe.Button(menu!, "Delete"));
+        Assert.Equal(before - 1, CutsceneActionTree.CountActions(session.Asset.RootAction!));
+        Assert.False(CutsceneActionTree.Contains(session.Asset.RootAction!, wait));
+    }
+
+    [Fact]
+    public void TheProvider_GivesNoMenuForTheEmptySpace_ForATrackHeader_OrWithoutDocument()
+    {
+        var (_, panel, document, session) = OpenSample();
+        var wait = First<WaitCutsceneActionData>(session);
+        var item = FindItem(panel, wait);
+        var track = panel.Timeline!.Model!.Tracks.Single(candidate => candidate.Id == item.TrackId);
+        var provider = (ITimelineContextMenuProvider)panel.Timeline.ContextMenuProvider!;
+        document.SelectAction(null);
+
+        Assert.Null(provider.CreateContextMenu(panel.Timeline, track, null, 0f));
+        Assert.Null(provider.CreateContextMenu(panel.Timeline, null, null, 0f));
+        Assert.Null(provider.CreateTrackHeaderContextMenu(panel.Timeline, track));
+        Assert.Null(panel.Timeline.CreateTrackHeaderContextMenu(track));
+        Assert.Null(document.SelectedAction);
+
+        panel.SetEditorPanel(null);
+        Assert.Null(provider.CreateContextMenu(panel.Timeline, track, item, 0f));
+    }
+
+    [Fact]
+    public void TheAnimationTimeline_KeepsItsOwnMenu_AndTheDefaultControlHasNoProvider()
+    {
+        var (harness, panel, _, _) = OpenSample();
+        var animation = new Animation2dTimelineControl(harness.Window);
+        var plain = new TimelineControl(harness.Window);
+
+        Assert.Same(animation, animation.ContextMenuProvider);
+        Assert.Null(plain.ContextMenuProvider);
+        Assert.Same(panel, panel.Timeline!.ContextMenuProvider);
     }
 
     private static void Settle(ContentBrowserViewTestHarness harness, CutsceneTimelinePanel panel, int frames = 6)
