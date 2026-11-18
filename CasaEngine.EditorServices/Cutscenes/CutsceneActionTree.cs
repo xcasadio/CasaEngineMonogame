@@ -134,6 +134,50 @@ public static class CutsceneActionTree
         return true;
     }
 
+    /// <summary>
+    /// Maps each action of <paramref name="copy"/> to the action at the same place in <paramref name="original"/>, by
+    /// walking both trees together. Null when the trees do not have the same shape (same types, same child counts).
+    /// Both trees are compared by reference afterwards, so the map uses reference equality.
+    /// </summary>
+    public static Dictionary<CutsceneActionData, CutsceneActionData>? MapByShape(CutsceneActionData copy, CutsceneActionData original)
+    {
+        ArgumentNullException.ThrowIfNull(copy);
+        ArgumentNullException.ThrowIfNull(original);
+
+        var map = new Dictionary<CutsceneActionData, CutsceneActionData>(CountActions(original), ReferenceEqualityComparer.Instance);
+        return TryMapByShape(copy, original, map) ? map : null;
+    }
+
+    private static bool TryMapByShape(CutsceneActionData copy, CutsceneActionData original, Dictionary<CutsceneActionData, CutsceneActionData> map)
+    {
+        if (copy.Type != original.Type)
+        {
+            return false;
+        }
+
+        var copyChildren = CutsceneLoadFidelity.GetChildren(copy);
+        var originalChildren = CutsceneLoadFidelity.GetChildren(original);
+        if ((copyChildren == null) != (originalChildren == null)
+            || (copyChildren != null && copyChildren.Count != originalChildren!.Count))
+        {
+            return false;
+        }
+
+        map[copy] = original;
+        if (copyChildren != null)
+        {
+            for (int index = 0; index < copyChildren.Count; index++)
+            {
+                if (!TryMapByShape(copyChildren[index], originalChildren![index], map))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>The number of actions of the tree, root included.</summary>
     public static int CountActions(CutsceneActionData root)
     {

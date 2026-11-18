@@ -170,7 +170,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 - Commit : `feat(editor-services): project a cutscene action tree onto timeline rows and times`
 - Note de validation : `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6097/6097 (6082 + 15 nouveaux dans `CutsceneTimelineProjectionTests`), aucun test existant modifié. `Build(root, timings)` prend un `IReadOnlyDictionary<CutsceneActionData, double>` facultatif. Choix de détail : un marqueur reste sur la sous-rangée 0 ; une plage `Repeat` dont le compte est absent est dessinée « Repeat ×? » comme un tour ; seule une boucle sans fin atteinte par une chaîne de `Sequence` depuis la racine fixe les bornes du tour (`LoopStartSeconds`, `LoopEndSeconds`) ; les actions placées après elle sont dessinées à la fin du tour. Le test de `loop.cutscene` donne 8 s → 2,4 s.
 
-### ⏳ T1.3 — Relevé des durées d'une lecture (`CasaEngine.EditorServices`)
+### ✅ T1.3 — Relevé des durées d'une lecture (`CasaEngine.EditorServices`)
 
 - Objectif : transformer les notifications d'une lecture, qui portent des actions copiées, en durées rattachées aux actions éditées.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePlayTimings.cs` (créé), `CutsceneActionTree.cs` (ajout), tests.
@@ -179,6 +179,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
   2. `CutscenePlayTimings` : `Begin(carte)`, `OnStarted`, `OnEnded`, `SetEffectDuration(action, secondes)` ; ne retient que la première occurrence de chaque action (P11) ; `Clear()`, qui n'efface pas la carte d'une lecture en cours. Aucune allocation dans `OnStarted` et `OnEnded` une fois la lecture commencée.
 - Validation : tests : correspondance sur `loop.cutscene` copié par sérialisation ; formes différentes refusées ; première occurrence retenue sur deux tours ; durée d'effet posée à part ; effacement.
 - Commit : `feat(editor-services): record the measured timings of a cutscene play`
+- Note de validation : `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6106/6106 (6097 + 9 nouveaux dans `CutscenePlayTimingsTests`), aucun test existant modifié. `MapByShape` rend `null` quand les formes diffèrent (pas de variante `Try`). `OnEnded` ignore `MoveSprite` et `TintSprite` (leur fin suit leur début, P4) : leur durée vient de `SetEffectDuration`. `Begin` dimensionne les tables sur la carte ; un test mesure zéro octet alloué dans `OnStarted` et `OnEnded`. Une propriété `Version` change à chaque mesure ou effacement.
 
 ---
 
