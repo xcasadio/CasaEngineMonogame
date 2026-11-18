@@ -256,14 +256,18 @@ Décisions antérieures concernées :
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
+
+> Validation (2026-11-18) : `docs/editor/cutscene-editor.md` décrit l'aperçu, la barre de transport, le choix du monde, les effets signalés, les limites et l'automatisation ; le contenu valide sur l'édition des propriétés et la sauvegarde est conservé. `rg -n -i "ff7|decomp"` sur le diff : aucun résultat.
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit l'aperçu, ses commandes, le choix du monde, les effets signalés et les limites.
 - Fichiers : `docs/editor/cutscene-editor.md`, ce plan, `ai-agent/README.md`.
 - Validation : relecture ; `rg -n -i "ff7|decomp"` sur le diff de la branche ne renvoie rien.
 - Commit : `docs(editor): document the cutscene preview`
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
+
+> Note (2026-11-18) : l'auteur valide sur captures d'écran (T2.4, T2.5) et fera la recette réelle dans l'éditeur à la fin ; reste 🧪 jusque-là.
 
 - Objectif : validation à distance sur les captures de T2.4 et T2.5, puis recette réelle dans l'éditeur à la fin (D7).
 - Cette tâche reste 🧪 tant que l'auteur n'a pas fait sa recette réelle.

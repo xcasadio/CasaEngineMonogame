@@ -1,12 +1,12 @@
 # Cutscene editor
 
-Decisions: see ADR-0095.
+Decisions: see ADR-0095 and ADR-0096.
 
 ## Summary
 
 Opening a `.cutscene` asset from the Content Browser shows its action tree as a document tab. The properties of the existing actions can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
 
-This is the first slice of the cutscene editor. Adding, removing and moving actions, pickers, preview and a timeline are not done yet (see "Next").
+The document also shows a preview of an isolated copy of a world, with transport controls, to play the cutscene being edited (see "Preview"). Adding, removing and moving actions, pickers and a timeline are not done yet (see "Next").
 
 ## Usage
 
@@ -15,6 +15,37 @@ This is the first slice of the cutscene editor. Adding, removing and moving acti
 3. Type a value and press Enter, or leave the field, to commit it. An invalid text is refused: the field takes its old value back and the status line says why.
 4. Undo and redo with the editor's global commands while the cutscene tab is active. Each committed field is one history entry.
 5. A modified document shows `*` in its tab title. Save it with the editor's save command, or with "save all".
+
+## Preview
+
+The document shows a world preview on the left and the property fields in a column on the right. A transport bar sits above the preview: a world choice, `Play`, `Stop`, `Restart` and a status line.
+
+- **Isolated copy.** The preview loads a copy of a world of the project. The world open in the editor is never touched.
+- **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.
+- **Rebuilt on every play.** `Stop` does not restore the world, so `Play` and `Restart` always rebuild the preview world from its asset before playing.
+- **Preview world choice.** The first world offered is found automatically, in this order: the world remembered for this cutscene, the world whose startup cutscene it is, the project's first loaded world, then the first world by file name. The choice made in the list is remembered per cutscene in `<project>/.casaeditor/cutscene-preview.editor.json`; it is an editor setting and never part of the `.cutscene` file. A project without any world shows a message instead of a preview.
+- **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself.
+
+### Reported effects
+
+Effects that would leave the preview world are neutralised and reported in the status line:
+
+- A world change (`ChangeWorld`), a screen (`OpenScreen`), a video (`PlayVideo`) and the chaining of `ExitOnInput` are skipped and listed as skipped actions (type and target); the playback continues. When a `ChangeWorld` is skipped, the playback ends on the next step, as the game would replace the world.
+- Sound is muted: sound and music actions do nothing, and a music fade does not wait for its duration.
+- Screen fades run for their duration, but are shown as text in the status line; they are not drawn over the preview.
+- A `MoveTo` that cannot run (missing entity, entity without a character controller, timeout) ends the play as `Failed` with a reason, in the preview as in the game.
+
+### Limits
+
+- Sprite animations, physics and gameplay scripts are frozen in the preview. The status line says so.
+- No pause, no current time and no seeking: only play, stop and restart.
+- Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
+- The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
+- Editing the cutscene is disabled while a play session of the editor is running.
+
+### Automation
+
+For remote validation the editor can play the preview without any input: `--project <project.json> --open-asset <Cutscenes/name.cutscene> --cutscene-preview-play --screenshot-out <file.png> --capture-delay <seconds>`. With this switch the capture delay counts from the start of the playback, and the diagnostics file gets the preview state, the skipped actions, the name and position of each preview entity and the name of the editor's current world.
 
 ## Field formats
 
@@ -51,6 +82,9 @@ An empty text sets a nullable property that is not a string back to "no value".
 ## Code
 
 - `CasaEngine.EditorServices/Cutscenes/`: `CutsceneActionPropertyEditor` and `CutsceneActionProperty` (editable properties, typed access, text), `CutsceneEditSession` (asset and load losses), `SetCutsceneActionPropertyCommand` (undoable change), `CutsceneLoadFidelity` (load losses), `CutsceneSaveGuard` (save refusal).
+- `CasaEngine.EditorServices/Cutscenes/`: also `CutscenePreviewWorldResolver`, `CutscenePreviewSettings` and `CutscenePreviewEffectHost` (preview world choice, remembered choice, reported effects).
+- `CasaEngine/Framework/Cutscenes/ICutsceneEffectHost.cs`: the runtime injection point, set through `CutsceneDirector.EffectHost`.
+- `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`: loads the world copy and plays the cutscene in it.
 - `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: the document panel.
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
@@ -61,11 +95,11 @@ An empty text sets a nullable property that is not a string back to "no value".
 - The structure of the tree cannot be edited: no add, remove, duplicate, move or wrap.
 - Entities, sprites, sounds, screens and worlds are typed as text; the editor does not check that a named entity exists in a world.
 - An action of an unknown type cannot be edited, and blocks the save.
-- No preview, no playback, no timeline.
+- No timeline, and no pause or seeking in the preview (see "Preview").
 
 ## Next
 
 - Editing the structure of the tree.
 - Pickers and world-aware validation.
-- Preview in an isolated world, with global effects neutralised.
+- A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
 - A read-only timeline projected from the tree, after its own decision record.
