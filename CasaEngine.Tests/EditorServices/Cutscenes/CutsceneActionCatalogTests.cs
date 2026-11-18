@@ -171,6 +171,9 @@ public sealed class CutsceneActionCatalogTests
         Assert.Equal(
             "TintSprite  orb → #FF000080 over 1 s",
             CutsceneActionSummary.Describe(new TintSpriteCutsceneActionData { EntityName = "orb", Color = new Color(255, 0, 0, 128), Duration = 1 }));
+        Assert.Equal(
+            "TintSprite  orb → #FF0000 over 1 s",
+            CutsceneActionSummary.Describe(new TintSpriteCutsceneActionData { EntityName = "orb", Color = new Color(255, 0, 0, 255), Duration = 1 }));
         Assert.Equal("ShowSprite  orb (spark)", CutsceneActionSummary.Describe(new ShowSpriteCutsceneActionData { EntityName = "orb", Sprite = "spark" }));
 
         var exit = new ExitOnInputCutsceneActionData { Mapping = "pad", NextCutscene = "loop" };

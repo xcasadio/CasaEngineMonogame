@@ -386,4 +386,74 @@ public sealed class CutsceneOutlinerPanelTests : IDisposable
         Assert.Null(second.AddAction(CutsceneActionTypes.Wait));
         Assert.Empty(outliner.TreeView.Items);
     }
+
+    private static JObject LongDocument()
+    {
+        var document = SmallDocument("Long");
+        var inner = new JArray();
+        for (int index = 0; index < 40; index++)
+        {
+            inner.Add(new JObject { ["type"] = "Wait", ["seconds"] = index });
+        }
+
+        var actions = (JArray)document["root_action"]!["actions"]!;
+        actions.Clear();
+        actions.Add(new JObject { ["type"] = "Wait", ["seconds"] = 1 });
+        actions.Add(new JObject { ["type"] = "Sequence", ["actions"] = inner });
+        return document;
+    }
+
+    private static void Settle(ContentBrowserViewTestHarness harness, CutsceneOutlinerPanel outliner)
+    {
+        for (int frame = 1; frame <= 40; frame++)
+        {
+            harness.AdvanceFrame(frame * 50);
+        }
+    }
+
+    [Fact]
+    public void Selecting_KeepsTheRowVisible_AndDoesNotScrollWhenTheRowIsAlreadyVisible()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(400, 300);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, LongDocument(), "Long.cutscene");
+        outliner.SetEditorPanel(document);
+        Settle(harness, outliner);
+
+        var scrollViewer = outliner.TreeView!.ScrollViewer;
+        Assert.True(scrollViewer.MaxVerticalOffset > 0, "The test needs a tree taller than its window.");
+        Assert.Equal(0f, scrollViewer.VerticalOffset);
+
+        var root = (SequenceCutsceneActionData)session.Asset.RootAction!;
+        var inner = (SequenceCutsceneActionData)root.Actions[1];
+
+        // A row at the top that is already visible: the tree does not move.
+        document.SelectAction(root.Actions[0]);
+        Settle(harness, outliner);
+        Assert.Equal(0f, scrollViewer.VerticalOffset);
+
+        document.SelectAction(inner.Actions[1]);
+        Settle(harness, outliner);
+        Assert.Equal(0f, scrollViewer.VerticalOffset);
+
+        // A row below the window: the tree scrolls just enough to show it, not to the bottom. (The harness does not run the
+        // draw pass, so the bounds of the rows are not refreshed and only the offset can be observed.)
+        document.SelectAction(inner.Actions[30]);
+        Settle(harness, outliner);
+        Assert.True(scrollViewer.VerticalOffset > 0);
+        Assert.True(scrollViewer.VerticalOffset < scrollViewer.MaxVerticalOffset);
+    }
+
+    [Fact]
+    public void WithoutSelection_TheTreeStaysAtTheTop()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(400, 300);
+        var outliner = CreateOutliner(harness);
+        var (document, _) = OpenDocument(harness, FirstContextId, LongDocument(), "Long.cutscene");
+        outliner.SetEditorPanel(document);
+        Settle(harness, outliner);
+
+        Assert.Null(outliner.TreeView!.SelectedItem);
+        Assert.Equal(0f, outliner.TreeView.ScrollViewer.VerticalOffset);
+    }
 }

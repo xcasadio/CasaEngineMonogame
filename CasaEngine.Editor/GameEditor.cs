@@ -3085,6 +3085,12 @@ public class GameEditor : Game, IObservableUpdate
         if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
         {
             cutsceneInspectorPanel.DirtyStateChanged -= OnCutsceneInspectorDirtyStateChanged;
+            if (ReferenceEquals(_cutsceneDetailsPanel?.Document, cutsceneInspectorPanel))
+            {
+                // Text typed and not yet validated is written before the document is disposed, never after.
+                _cutsceneDetailsPanel.FlushPendingText();
+            }
+
             cutsceneInspectorPanel.Dispose();
             _cutsceneInspectorPanels.Remove(panel.Id);
             _cutsceneInspectorPanelTitles.Remove(panel.Id);

@@ -31,7 +31,8 @@ namespace CasaEngine.Editor.Controls;
 /// </remarks>
 internal sealed class CutsceneDetailsPanel
 {
-    private const int LabelWidth = 124;
+    private const int LabelWidth = 132;
+    private const int ClearSlotWidth = 28;
     private const int ColumnSpacing = 8;
     private const string NoneItem = "(none)";
 
@@ -213,7 +214,7 @@ internal sealed class CutsceneDetailsPanel
         var readOnly = document.ReadOnlyDocument;
         AddTitle(readOnly?.AssetName ?? "Cutscene");
         AddSecondary(string.IsNullOrWhiteSpace(document.LoadedRelativePath) ? "No source path." : document.LoadedRelativePath!);
-        AddNote("Select an action in the Hierarchy to edit its properties.");
+        AddNote("Select an action in the Hierarchy\nto edit its properties.");
 
         AddSection("Validation");
         var validationStack = NewStack();
@@ -250,7 +251,7 @@ internal sealed class CutsceneDetailsPanel
         var grid = NewFormGrid();
         int row = 0;
         row = AddInfoRow(grid, row, "Runtime state", readOnly.RuntimeState.ToString());
-        row = AddInfoRow(grid, row, "Active coroutines", readOnly.ActiveCoroutines.Count.ToString(CultureInfo.InvariantCulture));
+        row = AddInfoRow(grid, row, "Coroutines", readOnly.ActiveCoroutines.Count.ToString(CultureInfo.InvariantCulture));
         if (!string.IsNullOrWhiteSpace(readOnly.ActiveActionType))
         {
             row = AddInfoRow(grid, row, "Active action", readOnly.ActiveActionType!);
@@ -566,7 +567,6 @@ internal sealed class CutsceneDetailsPanel
         {
             Opacity = EditorThemePalette.SectionLabelOpacity,
             VerticalAlignment = VerticalAlignment.Top,
-            WrapText = true,
         });
         grid.TryAddChild(rowIndex, 1, new MGTextBlock(_window, value, null, null, false)
         {
@@ -578,7 +578,10 @@ internal sealed class CutsceneDetailsPanel
 
     private static string Escape(string value) => value.Replace("[", "[[").Replace("]", "]]");
 
-    /// <summary>The label of a property: its key with spaces and a capital, such as "Duration seconds".</summary>
+    /// <summary>
+    /// The label of a property: its key with spaces and a capital, such as "Duration (s)". A trailing "_seconds" becomes
+    /// "(s)" and "stopping_distance" becomes "Stop distance", so that no label is wider than the label column.
+    /// </summary>
     internal static string GetLabel(string key)
     {
         if (key.Length == 0)
@@ -586,7 +589,15 @@ internal sealed class CutsceneDetailsPanel
             return key;
         }
 
-        string spaced = key.Replace('_', ' ');
+        if (key == "stopping_distance")
+        {
+            key = "stop_distance";
+        }
+
+        const string SecondsSuffix = "_seconds";
+        string spaced = key.EndsWith(SecondsSuffix, StringComparison.Ordinal) && key.Length > SecondsSuffix.Length
+            ? key.Substring(0, key.Length - SecondsSuffix.Length).Replace('_', ' ') + " (s)"
+            : key.Replace('_', ' ');
         return char.ToUpperInvariant(spaced[0]) + spaced.Substring(1);
     }
 
@@ -616,7 +627,6 @@ internal sealed class CutsceneDetailsPanel
             {
                 Opacity = EditorThemePalette.SectionLabelOpacity,
                 VerticalAlignment = VerticalAlignment.Center,
-                WrapText = true,
             });
 
             _error = new MGTextBlock(owner._window, string.Empty, Color.Orange, null, false)
@@ -702,8 +712,18 @@ internal sealed class CutsceneDetailsPanel
             {
                 Padding = new Thickness(6, 2, 6, 2),
                 Margin = new Thickness(2, 0, 0, 0),
+                PreferredWidth = ClearSlotWidth,
                 VerticalAlignment = VerticalAlignment.Center,
             };
+            var toolTip = new MGToolTip(Owner._window, button, 110, 30)
+            {
+                ShowDelayOverride = TimeSpan.FromMilliseconds(300),
+            };
+            toolTip.SetContent(new MGTextBlock(Owner._window, "Clear value", null, null, false)
+            {
+                Margin = new Thickness(6, 4, 6, 4),
+            });
+            button.ToolTip = toolTip;
             button.SetContent(new MGTextBlock(Owner._window, "x", null, null, false)
             {
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -712,20 +732,32 @@ internal sealed class CutsceneDetailsPanel
             return button;
         }
 
-        /// <summary>The field with the clear button of a nullable property, when it has one.</summary>
+        /// <summary>The field with the clear button of a nullable property, or a blank of the same width when it has none.</summary>
         protected MGElement WithClearButton(CutsceneActionProperty property, MGElement field, Action onClear)
         {
-            if (!property.IsNullable || property.Kind is CutsceneActionPropertyKind.String or CutsceneActionPropertyKind.StringList)
+            if (property.Kind is CutsceneActionPropertyKind.String or CutsceneActionPropertyKind.StringList)
             {
                 return field;
             }
 
-            ClearButton = CreateClearButton(onClear);
             var dock = new MGDockPanel(Owner._window)
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
             };
-            dock.TryAddChild(ClearButton, Dock.Right);
+            if (property.IsNullable)
+            {
+                ClearButton = CreateClearButton(onClear);
+                dock.TryAddChild(ClearButton, Dock.Right);
+            }
+            else
+            {
+                // A hidden clear button keeps its width, so that the fields and the buttons of all the rows share their columns.
+                var blank = CreateClearButton(() => { });
+                blank.ToolTip = null;
+                blank.Visibility = Visibility.Hidden;
+                dock.TryAddChild(blank, Dock.Right);
+            }
+
             dock.TryAddChild(field, Dock.Left);
             return dock;
         }

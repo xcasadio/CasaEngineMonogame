@@ -61,5 +61,9 @@ public static class CutsceneActionSummary
     private static string ShortId(Guid id) => id == Guid.Empty ? None : id.ToString("N")[..8];
 
     private static string Hex(Color? color)
-        => color is { } value ? $"#{value.R:X2}{value.G:X2}{value.B:X2}{value.A:X2}" : Unknown;
+        => color is { } value
+            ? value.A == 255
+                ? $"#{value.R:X2}{value.G:X2}{value.B:X2}"
+                : $"#{value.R:X2}{value.G:X2}{value.B:X2}{value.A:X2}"
+            : Unknown;
 }

@@ -272,7 +272,7 @@ internal sealed class CutsceneOutlinerPanel
         _document.SelectAction(item != null && _itemToAction.TryGetValue(item, out var action) ? action : null);
     }
 
-    // A tree that was just rebuilt has no bounds yet: the selected item scrolls into view once it is laid out.
+    // A tree that was just rebuilt has no bounds yet: the selected item is brought into view once it is laid out.
     private void OnTreeLayoutUpdated(object? sender, EventArgs e)
     {
         if (!_scrollToSelectionAfterLayout || _treeView == null)
@@ -280,12 +280,58 @@ internal sealed class CutsceneOutlinerPanel
             return;
         }
 
-        _scrollToSelectionAfterLayout = false;
         var selected = _treeView.SelectedItem;
-        if (selected != null)
+        if (selected == null)
         {
-            _treeView.ScrollIntoView(selected);
+            _scrollToSelectionAfterLayout = false;
+            return;
         }
+
+        if (EnsureItemVisible(selected))
+        {
+            _scrollToSelectionAfterLayout = false;
+        }
+    }
+
+    // MGTreeView.ScrollIntoView (called by SelectItem) and MGScrollViewer.EnsureElementVisible both fail on this tree: LayoutBounds are already in
+    // window space (they include the scroll), and the first compares them with a viewport that adds the offset again, the
+    // second adds the bounds of every parent again, so the nested rows end up scrolled to the bottom. The row is compared
+    // here with the viewport in the same space, and the offset moves only when the row is not fully visible. Returns
+    // false while the row has no layout yet.
+    private bool EnsureItemVisible(MGTreeViewItem item)
+    {
+        var scrollViewer = _treeView?.ScrollViewer;
+        var header = item.HeaderContent;
+        if (scrollViewer == null || header == null || header.LayoutBounds.Height <= 0
+            || scrollViewer.ContentViewport.Height <= 0)
+        {
+            return false;
+        }
+
+        var row = header.LayoutBounds;
+        var viewport = scrollViewer.ContentViewport;
+        float pending = scrollViewer.PendingVerticalOffset;
+        // The bounds show the offset applied so far; a running scroll animation will still move the row.
+        float rowTop = row.Top - (pending - scrollViewer.VerticalOffset);
+        float rowBottom = row.Bottom - (pending - scrollViewer.VerticalOffset);
+
+        float target = pending;
+        if (rowTop < viewport.Top)
+        {
+            target = pending - (viewport.Top - rowTop);
+        }
+        else if (rowBottom > viewport.Bottom)
+        {
+            target = pending + (rowBottom - viewport.Bottom);
+        }
+
+        target = Math.Clamp(target, 0f, scrollViewer.MaxVerticalOffset);
+        if (Math.Abs(target - pending) > 0.5f)
+        {
+            scrollViewer.ScrollTo(null, target, scrollViewer.ScrollAnimationDuration, scrollViewer.ScrollAnimationEasing);
+        }
+
+        return true;
     }
 
     private void OnTreeItemExpanded(object? sender, MGTreeViewItem item)
@@ -424,8 +470,10 @@ internal sealed class CutsceneOutlinerPanel
         {
             if (action != null && _actionToItem.TryGetValue(action, out var item))
             {
+                bool expanded = false;
                 for (var parent = item.ParentItem; parent != null; parent = parent.ParentItem)
                 {
+                    expanded |= !parent.IsExpanded;
                     parent.IsExpanded = true;
                     if (_itemToAction.TryGetValue(parent, out var parentAction))
                     {
@@ -433,9 +481,17 @@ internal sealed class CutsceneOutlinerPanel
                     }
                 }
 
+                // SelectItem scrolls with the faulty MGTreeView.ScrollIntoView: the offset it sets is undone below.
+                var scrollViewer = _treeView.ScrollViewer;
+                float offsetBefore = scrollViewer.PendingVerticalOffset;
                 _treeView.SelectItem(item);
-                _treeView.ScrollIntoView(item);
-                _scrollToSelectionAfterLayout = true;
+                if (Math.Abs(scrollViewer.PendingVerticalOffset - offsetBefore) > 0.5f)
+                {
+                    scrollViewer.ScrollTo(null, offsetBefore, TimeSpan.Zero, null);
+                }
+
+                // A parent that was just expanded changes the layout: the bounds read now would be stale.
+                _scrollToSelectionAfterLayout = expanded || !EnsureItemVisible(item);
             }
             else
             {
