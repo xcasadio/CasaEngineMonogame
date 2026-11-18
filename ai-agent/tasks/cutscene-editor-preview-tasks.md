@@ -180,7 +180,9 @@ Décisions antérieures concernées :
 
 ## Phase 2 — Éditeur
 
-### ⏳ T2.1 — Choix du monde d'aperçu (`CasaEngine.EditorServices`)
+### ✅ T2.1 — Choix du monde d'aperçu (`CasaEngine.EditorServices`)
+
+> Validation (2026-11-18) : build `CasaEngine.Editor.MonoGame.sln` 0 erreur ; 14 tests ajoutés (`CutscenePreviewWorldResolverTests` : les quatre rangs de P5, choix mémorisé orphelin, projet sans monde, lecture de la seule clé `startup_cutscene_asset_id`, aller-retour, fichier absent ou illisible) ; `dotnet test` 5918 verts (5904 + 14), aucun test existant modifié. Les mondes sont identifiés par `Guid` ; `FirstWorldLoaded` est comparé au nom de fichier sans tenir compte de la casse.
 
 - Objectif : logique pure qui donne la liste des mondes candidats et le monde par défaut d'une cutscene (P5), et qui lit et écrit le choix mémorisé (P6).
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePreviewWorldResolver.cs`, `CutscenePreviewSettings.cs` (créés), tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
