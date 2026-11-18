@@ -119,6 +119,12 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     /// <summary>The edit session of the document, or null before <see cref="LoadAsset"/>.</summary>
     internal CutsceneEditSession? Session => _session;
 
+    /// <summary>The validation messages and the runtime state of the document as last built, or null before <see cref="LoadAsset"/>.</summary>
+    internal CutsceneReadOnlyDocument? ReadOnlyDocument => _document;
+
+    /// <summary>Raised when the runtime state shown by the document changed (the editor world started, stopped or moved to another action).</summary>
+    internal event Action<CutsceneAssetInspectorPanel>? RuntimeDisplayChanged;
+
     /// <summary>
     /// The names of the entities of the preview world; empty without a preview. The list is reused by every call:
     /// see <see cref="CutscenePreviewSession.GetEntityNames"/>.
@@ -453,6 +459,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         RefreshInspector();
+        RuntimeDisplayChanged?.Invoke(this);
     }
 
     /// <summary>

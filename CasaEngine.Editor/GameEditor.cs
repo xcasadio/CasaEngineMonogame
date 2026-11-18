@@ -200,6 +200,8 @@ public class GameEditor : Game, IObservableUpdate
     private TileMapHierarchyPanel _tileMapHierarchyPanel;
     private CutsceneOutlinerPanel _cutsceneOutlinerPanel;
     private MGElement _cutsceneOutlinerContent;
+    private CutsceneDetailsPanel _cutsceneDetailsPanel;
+    private MGElement _cutsceneDetailsContent;
     private MGElement _tileMapHierarchyContent;
     private TileMapInspectorPanel _tileMapInspectorPanel;
     private MGElement _tileMapInspectorContent;
@@ -1599,6 +1601,14 @@ public class GameEditor : Game, IObservableUpdate
         return _cutsceneOutlinerContent;
     }
 
+    private MGElement GetOrCreateCutsceneDetailsContent()
+    {
+        _cutsceneDetailsPanel ??= new CutsceneDetailsPanel(_mainWindow);
+        _cutsceneDetailsContent ??= _cutsceneDetailsPanel.CreateContent();
+        _cutsceneDetailsPanel.SetEditorPanel(_activeCutsceneInspectorPanel);
+        return _cutsceneDetailsContent;
+    }
+
     private MGElement GetOrCreateInspectorContent()
     {
         if (_inspectorPanelHost == null)
@@ -1680,6 +1690,15 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Inspector",
                 ContentFactory = GetOrCreateAnimation2dInspectorContent,
                 Refresh = _ => RefreshAnimation2dViews(),
+            });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.Cutscene,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateCutsceneDetailsContent,
+                Refresh = _ => RefreshCutsceneViews(),
             });
         }
 
@@ -3068,6 +3087,11 @@ public class GameEditor : Game, IObservableUpdate
             {
                 _cutsceneOutlinerPanel.SetEditorPanel(null);
             }
+
+            if (ReferenceEquals(_cutsceneDetailsPanel?.Document, cutsceneInspectorPanel))
+            {
+                _cutsceneDetailsPanel.SetEditorPanel(null);
+            }
         }
 
         if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
@@ -3950,6 +3974,7 @@ public class GameEditor : Game, IObservableUpdate
     private void RefreshCutsceneViews()
     {
         _cutsceneOutlinerPanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
+        _cutsceneDetailsPanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
     }
 
     private void RefreshTileMapViews()
