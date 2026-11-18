@@ -38,6 +38,21 @@ public sealed class CutscenePlayTimings
         Version++;
     }
 
+    /// <summary>
+    /// Starts the record of a replay of the same document: sets the map from the played copy to the edited actions and
+    /// forgets the starts in progress, but keeps the measured durations and leaves <see cref="Version"/> unchanged. An
+    /// action that has not been measured yet is measured by the new play; a measured one keeps its first measure.
+    /// </summary>
+    public void Continue(IReadOnlyDictionary<CutsceneActionData, CutsceneActionData> copyToOriginal)
+    {
+        ArgumentNullException.ThrowIfNull(copyToOriginal);
+
+        _map = copyToOriginal;
+        _starts.Clear();
+        _starts.EnsureCapacity(copyToOriginal.Count);
+        _durations.EnsureCapacity(copyToOriginal.Count);
+    }
+
     /// <summary>Forgets the measures. The map of a play in progress is kept, so that the play can go on recording.</summary>
     public void Clear()
     {

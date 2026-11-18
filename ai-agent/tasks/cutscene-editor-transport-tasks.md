@@ -167,13 +167,14 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 - Commit : `feat(editor-services): add the transport of the cutscene preview`
 - Note de validation (2026-11-18) : créés `ICutscenePreviewStepper.cs`, `CutscenePreviewTransportMode.cs`, `CutscenePreviewStatus.cs` et `CutscenePreviewTransport.cs` (`Start`, `Pause`, `Resume`, `Seek(cible, temps courant)`, `StepFrames`, `Advance`, et la fonction pure `GetStatus`). Le pas fixe vaut `(float)(1/FramesPerSecond)`, la tolérance d'arrivée est d'un demi-pas, le budget par défaut est de 8 ms avec horloge injectable. `Advance` en pause abandonne les pas d'image demandés quand aucune lecture ne court. Tests : `CutscenePreviewTransportTests.cs`, 36 cas, dont une recherche de 2 s qui fait 120 pas, un budget épuisé qui fait exactement un pas, une recherche à 1,5 s sur un vrai `World` (`PlayElapsedSeconds` dans un pas de 1,5 s, lecture toujours en cours) et un cas par ligne de la table d'état. Les deux solutions buildent à 0 erreur ; `dotnet test` : 6170 tests verts (6134 + 36). Aucun test existant modifié.
 
-### ⏳ T1.2 — Garder les mesures d'une relecture à l'autre
+### ✅ T1.2 — Garder les mesures d'une relecture à l'autre
 
 - Objectif : une relecture du même document ne perd pas les durées déjà mesurées (P12).
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePlayTimings.cs`, `CasaEngine.Tests/EditorServices/Cutscenes/CutscenePlayTimingsTests.cs` (tests ajoutés).
 - Étapes : une opération, à côté de `Begin`, qui installe la table copie → arbre édité d'une nouvelle lecture et oublie les débuts en cours, **sans** effacer les durées mesurées ni changer `Version`.
 - Validation : build ; tests ajoutés : après cette opération une durée mesurée est toujours lue, `Version` n'a pas changé, une action non encore mesurée l'est par la nouvelle lecture, une action déjà mesurée garde sa première mesure ; `Begin` et `Clear` se comportent comme avant.
 - Commit : `feat(editor-services): keep the measured durations across replays of a cutscene`
+- Note de validation (2026-11-18) : ajout de `CutscenePlayTimings.Continue(copyToOriginal)` : il installe la table copie → arbre édité, oublie les débuts en cours et dimensionne les tables, sans toucher aux durées mesurées ni à `Version`. `Begin` et `Clear` sont inchangés. Six tests ajoutés dans `CutscenePlayTimingsTests.cs` : durée et `Version` conservées, action non mesurée mesurée par la nouvelle lecture (un début de l'ancienne lecture est oublié), première mesure conservée, copies de l'ancienne lecture ignorées, table nulle refusée, `Begin` et `Clear` efficaces après un `Continue`. Les deux solutions buildent à 0 erreur ; `dotnet test` : 6176 tests verts (6170 + 6). Aucun test existant modifié.
 
 ---
 

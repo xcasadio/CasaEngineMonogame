@@ -191,6 +191,106 @@ public sealed class CutscenePlayTimingsTests
     }
 
     [Fact]
+    public void Continue_KeepsTheMeasuredDurations_AndTheVersion()
+    {
+        var (timings, original, copy) = StartedWait();
+        timings.OnStarted(At(copy, 0));
+        timings.OnEnded(At(copy, 1));
+        int version = timings.Version;
+
+        var secondCopy = new WaitCutsceneActionData { Seconds = 1 };
+        timings.Continue(new Dictionary<CutsceneActionData, CutsceneActionData> { [secondCopy] = original });
+
+        Assert.True(timings.TryGetDuration(original, out double seconds));
+        Assert.Equal(1, seconds, 1e-9);
+        Assert.Equal(version, timings.Version);
+    }
+
+    [Fact]
+    public void Continue_LetsTheNewPlayMeasureAnActionNotMeasuredYet()
+    {
+        var first = new WaitCutsceneActionData { Seconds = 1 };
+        var firstCopy = new WaitCutsceneActionData { Seconds = 1 };
+        var second = new MoveToCutsceneActionData { EntityName = "a" };
+        var secondCopy = new MoveToCutsceneActionData { EntityName = "a" };
+        var timings = new CutscenePlayTimings();
+        timings.Begin(new Dictionary<CutsceneActionData, CutsceneActionData> { [firstCopy] = first, [secondCopy] = second });
+        timings.OnStarted(At(firstCopy, 0));
+        timings.OnEnded(At(firstCopy, 1));
+        timings.OnStarted(At(secondCopy, 1));
+
+        var newFirstCopy = new WaitCutsceneActionData { Seconds = 1 };
+        var newSecondCopy = new MoveToCutsceneActionData { EntityName = "a" };
+        timings.Continue(new Dictionary<CutsceneActionData, CutsceneActionData> { [newFirstCopy] = first, [newSecondCopy] = second });
+
+        // The start in progress of the previous play is forgotten: its end alone measures nothing.
+        timings.OnEnded(At(newSecondCopy, 3));
+        Assert.False(timings.TryGetDuration(second, out _));
+
+        timings.OnStarted(At(newSecondCopy, 1));
+        timings.OnEnded(At(newSecondCopy, 2.5));
+        Assert.Equal(1.5, timings.Durations[second], 1e-9);
+        Assert.Equal(1, timings.Durations[first], 1e-9);
+    }
+
+    [Fact]
+    public void Continue_KeepsTheFirstMeasureOfAnAction()
+    {
+        var (timings, original, copy) = StartedWait();
+        timings.OnStarted(At(copy, 0));
+        timings.OnEnded(At(copy, 1));
+
+        var newCopy = new WaitCutsceneActionData { Seconds = 1 };
+        timings.Continue(new Dictionary<CutsceneActionData, CutsceneActionData> { [newCopy] = original });
+        timings.OnStarted(At(newCopy, 0));
+        timings.OnEnded(At(newCopy, 7));
+
+        Assert.Equal(1, timings.Durations[original], 1e-9);
+    }
+
+    [Fact]
+    public void Continue_IgnoresTheCopiesOfThePreviousPlay()
+    {
+        var (timings, original, copy) = StartedWait();
+        var newCopy = new WaitCutsceneActionData { Seconds = 1 };
+        timings.Continue(new Dictionary<CutsceneActionData, CutsceneActionData> { [newCopy] = original });
+
+        timings.OnStarted(At(copy, 0));
+        timings.OnEnded(At(copy, 1));
+
+        Assert.Empty(timings.Durations);
+    }
+
+    [Fact]
+    public void Continue_RefusesANullMap()
+    {
+        Assert.Throws<ArgumentNullException>(() => new CutscenePlayTimings().Continue(null!));
+    }
+
+    [Fact]
+    public void BeginAndClear_StillForgetTheMeasures_AfterAContinue()
+    {
+        var (timings, original, copy) = StartedWait();
+        timings.OnStarted(At(copy, 0));
+        timings.OnEnded(At(copy, 1));
+        var map = new Dictionary<CutsceneActionData, CutsceneActionData> { [copy] = original };
+
+        timings.Continue(map);
+        int version = timings.Version;
+        timings.Begin(map);
+        Assert.Empty(timings.Durations);
+        Assert.NotEqual(version, timings.Version);
+
+        timings.OnStarted(At(copy, 0));
+        timings.OnEnded(At(copy, 1));
+        timings.Continue(map);
+        version = timings.Version;
+        timings.Clear();
+        Assert.Empty(timings.Durations);
+        Assert.NotEqual(version, timings.Version);
+    }
+
+    [Fact]
     public void RecordingDoesNotAllocate_OnceThePlayHasBegun()
     {
         var original = LoadLoop();
