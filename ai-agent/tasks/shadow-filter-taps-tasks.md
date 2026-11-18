@@ -1,0 +1,99 @@
+# Plan agent IA — Nombre de lectures du filtre d'ombre
+
+Évolution du moteur autorisée par l'auteur le 2026-11-18 pour le chantier RacingGame (réponse « Pénombre de l'ombre » à la question de cadrage, qui vaut autorisation pour celle-ci ; mode autonome : « Corriges et continue en mode AUTO »). Plan du jeu : `ai-agent/tasks/rgce-shadow-colour-decor-tasks.md` (tranche G1). Constat d'origine : point O4 de `ai-agent/tasks/rgce-road-tunnel-shadow-tasks.md` du jeu.
+
+Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
+
+## Objectif
+
+Le filtre du bord des ombres directionnelles peut faire plus de 12 lectures : un réglage `FilterTaps` de `ShadowSettings` vaut 12 (défaut : aucune image existante ne change), 32 ou 64. À 64, la pénombre d'un bord d'ombre vu en incidence rasante est un dégradé continu et non plus un éventail de paliers.
+
+## État vérifié du dépôt (2026-11-18, `main` = `chantier/shadow-normal-offset` = `8ddcb31b0`)
+
+Relevé en lecture seule (enquêteur, relu), à revérifier par l'exécutant avant de modifier :
+
+- `CasaEngine/Content/Shaders/Lighting.fxh:170-216` : `ShadowPoissonTapCount = 12`, table fixe `ShadowPoissonDisc[12]` (disque unité), `SampleDirectionalShadowPcf(shadowUv, shadowDepth)`. Si `ShadowFilterRadius > 0` : 12 comparaisons binaires (`step`) aux positions `shadowUv + ShadowPoissonDisc[tap] * ShadowMapTexelSize * ShadowFilterRadius`, moyenne ; sinon 4 lectures à ± 0,5 texel. Le disque n'est ni tourné ni décalé par pixel ; aucun bruit dans le chemin de l'ombre.
+- Réglages : `CasaEngine/Framework/Rendering/Shadows/ShadowSettings.cs` (`FilterRadius` : défaut 0, négatif ou non fini ramené à 0, pas de borne haute). Uniformes de l'ombre posés par `CasaEngine/Framework/Rendering/Shaders/ForwardLightBinder.cs` (`ShadowFilterRadius` vers `:77`, données préparées vers `:217-242`). Noms dans `ShaderParameterNames`.
+- Tests : `CasaEngine.Tests/Rendering/ShadowSettingsTests.cs` épingle le défaut, la plage et la sérialisation de `FilterRadius` ; aucun test n'épingle les 12 positions du disque. Tests GPU avec carte d'ombre fournie : `ShadowNormalOffsetGpuTests.cs`, `LitPbrEmissiveShadowGpuTests.cs`.
+- Docs : `docs/engine/shadow-settings.md` (table des réglages, section du bord doux : « The disc is not rotated per pixel: a large radius can show its 12… », largeurs mesurées 0,8 / 2,5 / 4,5 pixels aux rayons 0 / 3 / 6, coût 12 lectures contre 4) ; ADR-0102 (réglages d'ombre, `Accepted`).
+- Essai du jeu (2026-11-18, shader du moteur modifié le temps de l'essai puis remis à l'identique, `artifacts/pbr-handover/s23/taps/` et `s23/look/taps-expert-wall.png` du dépôt du jeu) : un disque de Vogel (angle d'or 2,39996323 rad, rayon `sqrt((i + 0,5) / N)`) calculé dans la boucle, à N = 32 puis 64, compile et tourne dans le jeu ; sur la paroi du tunnel d'Expert, 12 lectures donnent un éventail de bandes, 32 des bandes plus fines encore visibles, 64 un dégradé lisse.
+- Références relevées sur `8ddcb31b0` : 6445 tests, 0 échec ; `pbrdemo.sh` par défaut `54e406a1dde8c171` ; `lin-v2.sh` `39f8355d905a14a8` ; `capture-v2.sh` : `material` `40e2df3c20090e1f`, `static-model` `efae412c45225453`, `static-shadow` `536a8183f8100d2e`, `render-to-texture` `e62b6b73a06f0939`, `frozen-frame` `eb25f3917cfa6a0c`, `tile-map` `625f42300bcbd4ff`. Les démos `skinned`, `particles`, `split-screen`, `ui-overlay` et `environment` ne sont pas déterministes (O3 de `shadow-normal-offset-tasks.md`) : leur empreinte ne prouve rien.
+- Dernier ADR : 0126.
+
+## Décisions verrouillées
+
+| Réf | Décision |
+|---|---|
+| D1 | Nouveau réglage `ShadowSettings.FilterTaps` (entier). Valeurs admises : 12 (défaut), 32, 64. Toute autre valeur est ramenée à la plus proche des trois (12 pour moins de 22 ; 32 de 22 à 47 ; 64 à partir de 48). Il n'agit que si `FilterRadius > 0`. |
+| D2 | À 12, et pour toute valeur d'uniforme autre que 32 ou 64 (0 compris, quand rien ne l'a posé), le shader exécute le code d'aujourd'hui, avec la même table de Poisson : les images sont identiques bit pour bit, à rayon nul comme à rayon positif. À 32 et à 64, les positions sont celles d'un disque de Vogel (angle d'or 2,39996323 rad, rayon `sqrt((i + 0,5) / N)`), multipliées comme aujourd'hui par `ShadowMapTexelSize * ShadowFilterRadius` ; comparaison binaire et moyenne inchangées. |
+| D3 | Le nombre de lectures arrive au shader par un uniforme (`ShadowFilterTaps`), posé par `ForwardLightBinder` avec les autres uniformes de l'ombre ; pas de permutation de shader. Si une cible de compilation refuse les trois branches dans un même shader, l'exécutant s'arrête (⚠️) : le choix d'une permutation revient à la session principale. |
+| D4 | Le réglage suit en tout point le modèle de `FilterRadius` : sérialisation additive (clé `filter_taps`, absente = 12), remise aux valeurs par défaut, exposition dans l'éditeur là où `FilterRadius` l'est, tests. Aucun format existant ne change. |
+| D5 | ADR-0127 `Proposed` (le nombre de lectures du filtre d'ombre est réglable) ; ligne d'état sur l'ADR-0102 ; `docs/engine/shadow-settings.md` : ligne de table, section du bord doux (12, 32 ou 64 lectures, coût). |
+| D6 | Branche `chantier/shadow-filter-taps` depuis `main` (`8ddcb31b0`). `main` n'est pas avancé et rien n'est poussé par ce plan. |
+
+## Règles d'exécution pour l'agent
+
+- Branche dédiée, jamais de commit sur `main`, jamais de push ; `git add` fichier par fichier ; aucune commande git dans `MGUI` ni `NvgSharp` ; jamais de `git submodule update`, `checkout`, `switch` ou `reset`.
+- Builds `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` (0 erreur) ; tests `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --blame-hang-timeout 5m`, toujours avec build, 0 échec.
+- Un commit par tâche, ce plan mis à jour dans le même commit ; message en anglais `type(area): summary` ; code, commentaires, docs et ADR en anglais ; ce plan en français. Fins de ligne des fichiers existants conservées.
+- Le comportement nouveau commence par un test qui échoue tant qu'il n'existe pas, puis passe ; la sortie du test en échec est gardée dans la note de la tâche.
+- Pas d'allocation ajoutée dans les chemins chauds ; l'uniforme est posé comme les autres, sans chaîne ni délégué créés par image.
+- Une démo ou un test GPU à la fois, jamais pendant un build. Le jeu n'est ni construit ni lancé par ce plan.
+- Arrêt (tâche en ⚠️, question dans « Points ouverts ») : un test en échec qui n'est pas celui que la tâche vise ; une empreinte déterministe qui change (le défaut est 12 : aucune ne doit changer) ou qui diffère entre deux lancements du même code ; le cas de D3 ; le budget de reprises de T1 épuisé.
+
+## Légende des statuts
+
+⏳ Todo · 🚧 In progress · 🧪 Needs testing · ✅ Done · ⚠️ Blocked
+
+## Tâches
+
+### ✅ T0 — Branche et inscription du plan
+
+- Créer `chantier/shadow-filter-taps` depuis `8ddcb31b0` ; ajouter la ligne de ce plan en tête du tableau de `ai-agent/README.md` ; y mettre à jour les lignes des plans `draw-order-emissive-shadow-tasks.md` et `shadow-normal-offset-tasks.md` (remontés dans `main` le 2026-11-18 à la demande de l'auteur ; restent le push et la validation des ADR).
+- Validation : `git status` ne montre que ce plan et `ai-agent/README.md` ; aucun code touché.
+- Commit : `docs(ai-agent): plan the tap count of the shadow filter`
+
+> Validation (2026-11-18) : plan relu (deux révisions, puis relecture de clôture **READY**) ; branche `chantier/shadow-filter-taps` créée sur `8ddcb31b0` ; `git status` ne montre que ce plan et `ai-agent/README.md` ; aucun code touché.
+
+### ⏳ T1 — `FilterTaps` : 12, 32 ou 64 lectures (D1 à D5, ADR-0127)
+
+- Fichiers : `CasaEngine/Framework/Rendering/Shadows/ShadowSettings.cs` et les fichiers qui portent `FilterRadius` jusqu'au shader et jusqu'au disque (`ShadowLight.cs`, `ForwardLightBinder.cs`, `ShaderParameterNames`, la sérialisation des réglages d'ombre, l'éditeur là où `FilterRadius` apparaît : liste à établir par `rg -n "FilterRadius|filter_radius|ShadowFilterRadius"` et à citer dans la note) ; `CasaEngine/Content/Shaders/Lighting.fxh` et les déclarations d'uniformes des shaders qui l'incluent (`LitPbr.fx`, `LitForward.fx`, `skinEffect.fx`) ; `CasaEngine.Tests/Rendering/ShadowSettingsTests.cs` ; nouveau `CasaEngine.Tests/Rendering/ShadowFilterTapsGpuTests.cs` ; les tests de texte de shader que le changement casse forcément, mis à jour sans les affaiblir et nommés dans la note ; `docs/engine/shadow-settings.md` ; `docs/decisions/0127-…md`, son index, la ligne d'état de l'ADR-0102 ; ce plan.
+- Étapes :
+  1. Relever avant toute modification le nombre de tests et les huit empreintes déterministes de « État vérifié », chacune lancée deux fois. Ces huit captures tournent à rayon de filtre nul (aucune démo ne règle `FilterRadius` sans variable d'environnement) : elles ne passent pas par la branche à 12 lectures. Relever donc aussi, deux fois, une référence déterministe à rayon positif : la capture de la démo `static-shadow` dans sa configuration de mesure avec `CASAENGINE_SHADOW_DEMO_FILTER_RADIUS=3` (`StaticShadowValidationDemo.cs:403-412` ; l'exécutant lit la démo et `capture-v2.sh` pour la lancer ainsi et note la commande). Si cette capture n'est pas identique entre ses deux lancements, la remplacer par l'image du test GPU ci-dessous rendue à rayon positif et 12 lectures sur le code d'avant le shader, dont l'empreinte est notée.
+  2. Tests d'abord.
+     - `ShadowSettingsTests` : défaut 12 ; valeurs ramenées à 12, 32 ou 64 selon D1 (cas 0, 11, 12, 21, 22, 32, 47, 48, 64, 1000, négatif) ; remise aux valeurs par défaut ; aller-retour de sérialisation à 32 et à 64 ; une donnée sans la clé donne 12.
+     - Liaison, deux tests, parce que `CreateSnapshot` n'exécute que `PopulateBindingData` et jamais le `shader.SetParameter` de `Bind` (`ForwardLightBinder.cs:32-79` contre `:115-163`), et que `ShaderWrapper.SetParameter` ne dit rien quand le paramètre manque (`ShaderWrapper.cs:71`) :
+       - un test d'instantané, sur le modèle de `ForwardLightBinderTests.cs:44-58`, pour la valeur préparée par `PopulateBindingData` là où il peut l'atteindre sans périphérique ;
+       - un test GPU qui passe par `ForwardLightBinder.Bind` : un vrai effet `LitPbr` dans un `ShaderWrapper`, des `ForwardShadowResources` avec un vrai atlas (`RenderTarget2D`) et une lumière directionnelle visible qui projette une ombre (les valeurs d'ombre ne sont liées que si l'atlas existe et qu'une lumière est visible, `:221-238`), `ShadowSettings.FilterTaps` à 64 puis au défaut ; après `Bind`, `effect.Parameters["ShadowFilterTaps"]` vaut 64, puis 12. C'est ce test qui porte la propriété « échoue si la ligne `shader.SetParameter(ShaderParameterNames.ShadowFilterTaps, …)` de `Bind` est retirée » ; l'exécutant le constate une fois (ligne retirée, test en échec, ligne remise) et garde la sortie.
+     - Test GPU, `ShadowFilterTapsGpuTests`, sur le modèle de `ShadowNormalOffsetGpuTests` (carte d'ombre fournie par le test avec un bord droit, échantillonnée en point, quad face à la caméra, `ShadowFadeWidth` 0, pas de normal map). Géométrie fixée par le test et écrite en commentaire : image de 512 colonnes ; rayon du filtre et échelle de la projection choisis pour que le diamètre de la pénombre couvre au moins 400 colonnes, soit un pas de colonne d'au plus 0,005 du disque unité. Le test calcule sur le processeur, avec les mêmes formules de disque (table de Poisson à 12 ; Vogel à 32 et 64) et cette géométrie, la visibilité attendue de chaque colonne (le modèle). Assertions :
+       - sur le modèle, pour prouver que la géométrie tient ce que le plan annonce : à 12, au plus 13 niveaux distincts et un plus grand saut entre colonnes voisines d'au moins 1/12 − 0,005 ; à 32, au moins 20 niveaux et un plus grand saut d'au plus 3/32 ; à 64, au moins 40 niveaux et un plus grand saut d'au plus 3/64 ;
+       - sur l'image rendue, normalisée entre ses deux paliers : chaque colonne est au niveau du modèle à une lecture près (1/N), et au moins 95 % des colonnes sont exactement au niveau du modèle (à 0,5/N près) ;
+       - l'image rendue avec l'uniforme posé à 12 est identique pixel pour pixel à celle rendue avec l'uniforme posé à 0 (D2) ;
+       - les trois nombres de lectures pour `LitPbr.fx` ; 64 aussi pour `LitForward.fx`.
+     - Ordre : l'exécutant écrit d'abord le réglage, sa liaison et les tests, sans toucher au shader ; les cas GPU à 32 et 64 échouent alors (l'image suit le modèle à 12) ; il garde cette sortie, puis écrit le shader.
+     - Budget : si un cas GPU échoue encore une fois le shader écrit, au plus deux reprises (du shader ou de la géométrie du test) ; les seuils ci-dessus ne changent pas, et la géométrie ne change qu'avec le calcul du modèle à l'appui, noté. Au-delà : tâche en ⚠️.
+  3. Shader et liaison (D2, D3) : uniforme `ShadowFilterTaps`, trois branches dans `SampleDirectionalShadowPcf` (la branche à 12 est le code d'aujourd'hui, inchangé), commentaires mis à jour.
+  4. Docs et ADR (D5), avec le skill `adr` du dépôt.
+- Validation :
+  - les deux solutions à 0 erreur ; tests à 0 échec ; les cas à 32 et 64 échouent avant le shader et passent après ;
+  - les huit empreintes déterministes et la référence à rayon positif de l'étape 1 relancées deux fois : identiques entre les deux lancements et identiques à celles de l'étape 1 (le défaut est 12) ; tout changement : arrêt. Les empreintes d'avant et d'après de la référence à rayon positif sont notées côte à côte ;
+  - `rg -n "FilterRadius|filter_radius|ShadowFilterRadius"` et `rg -n "FilterTaps|filter_taps|ShadowFilterTaps"` cités côte à côte dans la note : chaque endroit qui porte le rayon porte aussi le nombre de lectures, ou la note dit pourquoi non.
+- Retour arrière : `git revert` du commit.
+- Commit : `feat(rendering): make the tap count of the shadow filter a setting`
+
+### ⏳ T2 — Vérification indépendante et clôture
+
+- Un `verifier` frais reçoit l'affirmation exacte (« `FilterTaps` vaut 12 par défaut et les images existantes sont inchangées, à rayon de filtre nul comme à rayon positif (référence à rayon positif de T1 comparée avant et après) ; la valeur du réglage est celle que le `ForwardLightBinder` envoie au shader ; à 32 et 64 la pénombre a les niveaux et les sauts annoncés dans `LitPbr.fx` et `LitForward.fx` ; le réglage se sérialise de façon additive ; builds à 0 erreur et tests à 0 échec »), le diff `8ddcb31b0..HEAD` et les commandes de la validation de T1. Il refait builds, tests et empreintes, vérifie par ses moyens (arbre de travail jetable hors dépôt) que les cas à 32 et 64 échouent sans le shader et que le test GPU de liaison échoue quand la ligne `SetParameter` de `Bind` est retirée, et rend CONFIRMED, REFUTED ou INCONCLUSIVE.
+- Constats traités selon leur priorité (P0 et P1 : correction dans le périmètre ou arrêt ; P2 introduit : bloquant ; le reste noté).
+- Mettre à jour la ligne de ce plan dans `ai-agent/README.md`.
+- Commit : `docs(ai-agent): record the verification of the shadow filter tap count`
+
+## Hors périmètre
+
+- Une rotation ou un bruit par pixel du disque, un flou d'écran de l'ombre comme celui du jeu original, une comparaison bilinéaire ou matérielle.
+- Les réglages d'ombre des démos et du jeu ; la mesure du coût en temps d'image (le coût est documenté en nombre de lectures).
+- L'avance de `main` et le push.
+
+## Points ouverts
+
+- O1 (auteur, après T2) : validation de l'ADR-0127 ; avance de `main` et push.
