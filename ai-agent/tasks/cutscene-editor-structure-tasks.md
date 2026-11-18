@@ -287,16 +287,18 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit le glisser-déposer et ses zones, le menu contextuel, le presse-papiers, les raccourcis, l'option `--cutscene-edit-ops` et les limites (une action à la fois, pas de glisser dans la timeline, pas de défilement ni de dépliage automatiques pendant un glisser).
 - Fichiers : ce document, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the structure editing of cutscenes by mouse`
+- Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` a une nouvelle section « Structure editing » : le glisser-déposer (qui peut glisser, table des zones d'une bande selon la ligne visée avec le repère de chacune, refus, annulations), le menu contextuel (entrées, règle de visibilité, sélection qui suit, conteneur affiché déplié), le presse-papiers, le clavier (Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+D globaux ; Suppr seulement avec le focus de l'arbre) et ses limites (une action à la fois, pas de glisser dans la timeline, pas de défilement ni de dépliage automatiques, pas de glisser depuis une palette ni entre documents, chemin d'une perte de chargement non mis à jour : O3, touches vérifiées seulement à la main). La section Automation décrit `--cutscene-edit-ops` (tableau des opérations, règle de découpe des arguments, refus, diagnostics). Les sections Summary, Action tree, Code, Limits et Next sont mises à jour, et l'ADR-0100 et l'ADR-0101 sont citées. Relecture contre le code livré : zones et refus (`CutsceneDropTargetResolver`), conditions de départ du glisser, Échap et Suppr (`CutsceneOutlinerPanel.Drag.cs`), entrées et ordre du menu (`CutsceneActionMenu`), clic droit de l'arbre (`OnTreeRightClick`), opérations et diagnostics (`CutsceneEditOperation`, `ExecuteAutomationCutsceneOperation`, `AppendCutsceneEditorDiagnostics`), aiguillage des raccourcis (`ExecuteDuplicate`, `ExecuteCopy`, `ExecuteCut`, `ExecutePaste`). Aucun nom de jeu, de décompilation ni de projet tiers (recherche `rg` vide). Aucun code touché : pas de build ; `dotnet test` relancé par précaution : 6390/6390. `ai-agent/README.md` : ligne du plan mise à jour.
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.7, puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
+- Note (2026-11-18) : 🧪, les captures de T2.7 sont envoyées pour validation à distance ; la recette réelle (glisser et clic droit à la souris, touches) reste à faire par l'auteur.
 
 ---
 

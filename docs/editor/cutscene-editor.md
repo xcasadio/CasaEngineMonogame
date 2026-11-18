@@ -1,12 +1,12 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098 and ADR-0099.
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100 and ADR-0101.
 
 ## Summary
 
-Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
+Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete, move, wrap, ungroup, cut, copy, paste) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
 
-The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A read-only **Cutscene Timeline** panel shows the tree in time (see "Timeline"). Moving actions and drag and drop are not done yet (see "Next").
+The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A read-only **Cutscene Timeline** panel shows the tree in time (see "Timeline"). The structure is edited by mouse in the Hierarchy tree and from a context menu shared with the timeline (see "Structure editing").
 
 ## Usage
 
@@ -20,13 +20,80 @@ The document itself keeps the transport bar, a status line and a preview of an i
 
 ## Action tree
 
-- **Hierarchy bar.** A flat drop-down lists the creatable action types, each prefixed by its category (`Sprites / MoveSprite`); the categories are Flow, Timing, Movement, Sprites, Audio, Screen and World and input. Buttons: `Add`, `Duplicate`, `Delete`. A right click on a row opens a menu with Duplicate and Delete. The footer shows the number of actions.
+- **Hierarchy bar.** A flat drop-down lists the creatable action types, each prefixed by its category (`Sprites / MoveSprite`); the categories are Flow, Timing, Movement, Sprites, Audio, Screen and World and input. Buttons: `Add`, `Duplicate`, `Delete`. A right click on a row opens the structure menu (see "Structure editing"). The footer shows the number of actions.
 - **Add.** If the selected action is a `Sequence`, `Parallel` or `Repeat`, the new action becomes its last child. Otherwise it is inserted right after the selection, in the same parent. With no selection it is appended to the root when the root is a container. The new action is selected.
 - **Defaults.** A created action has the default values of its class, except `Repeat.count` = 1 and `WaitFrames.frames` = 1. It can therefore be invalid until its required fields are filled: the Inspector lists the validator messages. A save is still allowed, as for any cutscene the validator criticises.
 - **Duplicate.** Inserts a deep copy right after the source and selects it. The copy goes through the serializer, so it is refused, with a message, for a subtree that holds a format error, a load loss or an unknown action type: the copy would lose those marks.
 - **Delete.** Removes the action and its children. A load loss that belongs to the removed subtree is removed with it and comes back at its original place on undo. The root action can be neither deleted nor duplicated.
 - **Selection and expansion.** The tree is rebuilt only when the document changes. The selection and the expanded nodes are kept by action; everything is expanded on first opening. A selection that is no longer in the tree after an undo, a redo or a reload is cleared.
 - Add, duplicate and delete are history entries that mark the document modified. If the preview was playing, it restarts on the edited asset.
+
+## Structure editing
+
+The structure of the tree is edited one action at a time: there is no multiple selection. To group several actions, wrap one, then drag the others into the container. The file format does not change, and every operation below is one history entry that can be undone and redone, marks the document modified and replays the preview like any other edit. An operation that is refused (rules below) shows its reason on the status line under the tree and changes nothing.
+
+### Drag and drop in the tree
+
+Press the left button on a row and drag it; the selection does not change when the drag starts. The root and the expander arrow of a row cannot be dragged, and neither can a drag started with the right button. Releasing the button moves the action to the marked destination. The action keeps its identity (it is moved, not copied), and after a move it is the selected action, whether it was selected before or not.
+
+The pointer position gives the destination. The band of a row runs from its top to the top of the next visible row, so the gap between two rows belongs to the row above, and the band of the last row ends at its bottom.
+
+| Row under the pointer | Zone of its band | Destination | Marker |
+|---|---|---|---|
+| Leaf | Top half | Before the row, in its container | A line at the indentation of the row |
+| Leaf | Bottom half | After the row, in its container | A line at the indentation of the row |
+| Container (`Sequence`, `Parallel`, `Repeat`) | Top quarter | Before the row | A line at the indentation of the row |
+| Container | Middle half | Inside it, as its last child (also when it is collapsed or empty) | A frame around the row |
+| Container | Bottom quarter | After the row; for an expanded container that has children, as its first child | A line at the indentation of the destination |
+| Root | Middle half | Inside it, as its last child | A frame around the row |
+| Root | Top and bottom quarters | Refused: the root has no side | None |
+| Under the last row, inside the visible area of the tree | | The end of the root | A line at the indentation of the children of the root |
+| Above the first row, or outside the visible area of the tree (right of it, below it, over the status line) | | None | None |
+
+A refused destination shows no marker, and releasing there does nothing. The refusals are: the root as the dragged action, a container dropped into itself or into one of its own descendants, a destination that is not a container, and a move that would change nothing (the action would stay where it is).
+
+Escape cancels the drag. A rebuild of the tree, which any change of the document causes (an undo in the middle of a drag, for example), or a change of the document shown, also cancels it: releasing the button afterwards does nothing. The marker is drawn by the tree itself and bounded to its visible area.
+
+### Context menu
+
+A right click on a row of the Hierarchy tree selects it and opens the menu; a right click on an item of the Cutscene Timeline selects its action and opens the same menu. A right click on a track header or on empty space of the timeline opens nothing. A right click on the empty part of the tree clears the selection, and the menu then only offers `Add` and `Paste`, which insert at the end of the root.
+
+| Entry | Effect |
+|---|---|
+| `Add` | Sub-menu per category, then per type; inserts with the rule of the `Add` button |
+| `Wrap in` | `Sequence`, `Parallel` or `Repeat`: the action is replaced by a new container that holds it. The root can be wrapped: the container becomes the root. A new `Repeat` runs once |
+| `Ungroup` | Replaces a container that is not the root by its children, in order, at its place; an empty container is simply removed. The count of a `Repeat` is lost, and comes back on undo |
+| `Move up`, `Move down` | Swap the action with its neighbour in the same container; an action never leaves its container this way. Absent for the first child (up) and the last child (down) |
+| `Cut`, `Copy`, `Paste` | See "Clipboard" |
+| `Duplicate` | Inserts a deep copy right after the action |
+| `Delete` | Removes the action and its children |
+
+The menu is built when it opens, and an entry whose operation would be refused is not shown: no `Ungroup` on a leaf, no `Paste` with an empty clipboard, no `Cut` or `Delete` on the root, no `Cut`, `Copy` or `Duplicate` on an action that holds a load loss, a format error or an unknown type. Separators never follow each other and never end the menu.
+
+After an operation the selection follows: the moved action stays selected; a wrap selects the new container; an ungroup selects the first freed child (nothing when the container was empty); a paste selects the copy; a cut selects nothing. A container that appears in the tree, by a wrap, a paste or an undo, is shown expanded; selecting a container that is already there and collapsed does not expand it.
+
+### Clipboard
+
+The clipboard is an object of the editor, shared by every cutscene document: copy in one document, paste in another. It holds one deep copy of one action, with its whole subtree. It is not the clipboard of the system.
+
+- Every paste inserts a new copy, at the place the `Add` rule gives for the selection: the end of the selected container, otherwise right after the selected action, otherwise the end of the root.
+- Cut is a copy followed by a delete, in one history entry. The root can be copied but not cut.
+- Copy and cut are refused for a subtree that holds an unknown type, a format error or a load loss: the copy would lose them silently.
+- An action that names an entity absent from the world of the preview is pasted as it is, and the validator reports it.
+
+### Keyboard
+
+- Ctrl+C, Ctrl+X, Ctrl+V and Ctrl+D go through the global shortcuts of the editor. When the active document is a cutscene they act on that document and nothing else; otherwise they keep their behaviour for screen documents. A text field that has the focus still receives these keys itself, as before.
+- Delete removes the selected action only while the tree has the keyboard focus. It is not a global shortcut. The arrow keys, Home, End, Space and Enter belong to the tree. There is no keyboard move.
+
+### Limits of the structure editing
+
+- One action at a time; no multiple selection.
+- No drag in the timeline: its items cannot be moved or resized with the mouse (free placement is a later step).
+- No automatic scroll near the edges and no automatic expansion of a collapsed container during a drag: dropping on a collapsed container adds to its end, and a row out of view cannot be reached until the tree is scrolled by hand (scroll before the drag, or use the menu).
+- No drag of a type from a palette, and no drag from one document to another.
+- A load loss records the path of its action as read from the file. That path is not updated when an action changes place, as it was already not updated by an insertion or a deletion: the path shown in a save refusal can be out of date.
+- The keys themselves are checked only by hand; the automation reaches the same methods without the keyboard (see `shortcut:` below).
 
 ## Typed fields
 
@@ -198,6 +265,24 @@ Two more switches change the order or add a step:
 
 The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button, the last seek requested from the timeline ruler and the number of play launches since the document opened (each successful world rebuild followed by a launch of the cutscene; `Stop` and a world that fails to load are not counted).
 
+`--cutscene-edit-ops "<operation>;<operation>;..."` applies the structure operations, one per frame, after `--cutscene-select-action` and `--cutscene-add-action` (or after the transport steps with `--cutscene-edit-after-transport`), with the same wait. Operations are separated by `;`. A name runs to the first `:`; a path never contains `:` or `;`. Nothing is saved.
+
+| Operation | Effect |
+|---|---|
+| `select:<path>` | Selects the action at the path |
+| `add:<Type>` | Adds an action, as the `Add` button does |
+| `move:<container path>:<index>` | Moves the selected action to the container; the index counts among the children **before** the move |
+| `up`, `down` | Moves the selected action up or down |
+| `wrap:<Type>` | Wraps the selected action in `Sequence`, `Parallel` or `Repeat` |
+| `ungroup`, `duplicate`, `delete` | As the menu entries |
+| `copy`, `cut`, `paste` | Clipboard operations on the selection |
+| `undo`, `redo` | The global undo and redo |
+| `shortcut:<copy\|cut\|paste\|duplicate>` | Calls the method of the global shortcut; refused when the active document is not a cutscene |
+| `menu` | Opens the context menu of the selection, at its row; the menu is not closed when the real mouse is far away, so a capture can show it |
+| `draghover:<target path>:<before\|after\|into>` | Puts the tree in the state of a drag of the selected action over that zone of the target row, without the mouse; the marker stays for the capture |
+
+An unknown, malformed or refused operation is written in the diagnostics, and the following operations still run. The diagnostics give the result of each operation (`done` or `refused: <reason>`), the type held by the clipboard, the tree plan (one line per action: path, type, summary), the drag marker (dragged action, zone, reference row, container, index, marker depth, accepted or refusal) and the status line of the tree.
+
 `--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured), the selected item, and the visible and content heights of the track area with the state of the vertical bar.
 
 Three more switches act on the document after it opens, one step per frame, and save nothing: `--cutscene-reactivate` activates the world viewport panel then the cutscene tab, as a click on the tab does; `--cutscene-select-action <path>` selects the action at a path such as `root_action.actions[1].actions[2]`; `--cutscene-add-action <Type>` then adds an action of that type. The diagnostics also give the selected action, the number of actions, the modified state, the active document and history context, and the document the tree and the Inspector are linked to.
@@ -247,24 +332,27 @@ An empty text sets a nullable property that is not a string back to "no value".
 - `CasaEngine/Framework/Cutscenes/CutsceneDirector.cs`: `PlayElapsedSeconds`, `PlayElapsedFrames`, and the events `ActionStarted` and `ActionEnded` (`CutsceneActionNotification`). Additions only; without a subscriber the behaviour is unchanged.
 - `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs` and `Controls/Cutscenes/CutsceneTimelineItemRenderer.cs`: the Cutscene Timeline panel (`EditorPanelIds.CutsceneTimeline`) and the drawing of its items. The preview session exposes `ElapsedSeconds`, `ElapsedFrames`, `Timings` and `TimingsVersion`.
 - `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs`: the action tree in the Hierarchy panel. `CasaEngine.Editor/Controls/CutsceneDetailsPanel.cs`, with `Controls/Cutscenes/CutsceneNumberField.cs` and `CutsceneTextCommitBinding.cs`: the typed fields in the Inspector panel. Both are registered as contextual panels for the cutscene document kind in `GameEditor`.
+- `CasaEngine.EditorServices/Cutscenes/`: also `MoveCutsceneActionCommand`, `WrapCutsceneActionCommand` and `UngroupCutsceneActionCommand` (undoable structure edits, each with a static `GetRefusal`), `CutsceneClipboard` (the clipboard) and `CutsceneDropTargetResolver` (the pure calculation of the destination of a drop from the visible rows and the pointer).
+- `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: also `MoveAction`, `MoveSelectedActionUp`, `MoveSelectedActionDown`, `WrapSelectedAction`, `UngroupSelectedAction`, `CopySelectedAction`, `CutSelectedAction` and `PasteAction`, each with a `Get...Refusal` query that changes nothing, and the `Clipboard` property that `GameEditor` shares between documents.
+- `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.Drag.cs` (drag and drop, Delete and Escape keys) and `CutsceneOutlinerPanel.Automation.cs` (`menu` and `draghover`); `Controls/Cutscenes/CutsceneActionMenu.cs` (the context menu, used by the tree and by `CutsceneTimelinePanel`); `CasaEngine.Editor/CutsceneEditOperation.cs` (the parsing of `--cutscene-edit-ops`).
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
 ## Limits
 
 - **Closing a modified cutscene tab loses its changes without a prompt.** Save first.
 - A string longer than 256 characters, or one that holds a line break, is shown as an empty field. Do not give the focus to such a field: leaving it replaces the value with an empty string (the change can be undone).
-- The structure can be edited only by add, duplicate and delete. Actions cannot be moved, reordered by mouse, wrapped, copied and pasted, or selected several at a time.
+- The structure is edited one action at a time, with no multiple selection, no drag in the timeline and no automatic scroll or expansion during a drag (see "Limits of the structure editing").
 - A container emptied of its children, or a new action with empty required fields, is invalid but can still be saved: the Inspector shows the validator messages.
 - The editor checks that a named entity exists only in the preview world list, not in every world. Clicking an entity in the preview to fill a field is not done.
 - `ExitOnInput.inputs` and `PlaySound.bus_name` stay text boxes.
 - The categories of the add list are a prefix, not a menu: the drop-down list cannot group.
 - Long summaries in the Hierarchy panel are cut at the right edge; a horizontal scroll bar reads them.
 - An action of an unknown type cannot be edited, and blocks the save.
-- The timeline is read-only, and the transport has no keyboard shortcut and no speed control (see "Timeline" and "Preview").
+- The timeline is read-only, apart from its context menu, and the transport has no keyboard shortcut and no speed control (see "Timeline" and "Preview").
 
 ## Next
 
-- Moving, wrapping, copying and pasting actions; drag and drop.
+- Multiple selection; automatic scroll and expansion during a drag; keyboard moves; dragging a type from a palette.
 - Picking an entity by clicking it in the preview.
 - A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
 - Keyboard shortcuts for the transport, a playback speed, and going back in time without a replay.
