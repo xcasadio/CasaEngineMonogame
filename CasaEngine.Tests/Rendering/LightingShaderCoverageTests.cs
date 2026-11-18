@@ -29,13 +29,18 @@ public class LightingShaderCoverageTests
         string litForwardSource = LoadShaderSource("LitForward.fx");
         string skinnedSource = LoadShaderSource("skinEffect.fx");
 
-        Assert.Contains("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount)", litForwardSource);
+        // The second normal is the one the shadow lookup is offset along: the vertex normal N in the two normal-map techniques (the
+        // normal map lights the pixel), the lighting normal itself everywhere else.
+        Assert.Equal(2, CountOccurrences(litForwardSource, "ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, N, (int)ActiveDirectionalLightCount)"));
+        Assert.Equal(2, CountOccurrences(litForwardSource, "ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, (int)ActiveDirectionalLightCount)"));
         Assert.DoesNotContain("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, 3)", litForwardSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, 3)", litForwardSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, N, 3)", litForwardSource);
 
-        Assert.Contains("ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount)", skinnedSource);
-        Assert.Contains("ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount)", skinnedSource);
-        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, worldNormal, 3)", skinnedSource);
-        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, N, 3)", skinnedSource);
+        Assert.Contains("ComputeLights(eyeVector, input.Position3D, worldNormal, worldNormal, (int)ActiveDirectionalLightCount)", skinnedSource);
+        Assert.Contains("ComputeLights(eyeVector, input.Position3D, N, N, (int)ActiveDirectionalLightCount)", skinnedSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, worldNormal, worldNormal, 3)", skinnedSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, N, N, 3)", skinnedSource);
     }
 
     [Fact]
@@ -259,7 +264,8 @@ public class LightingShaderCoverageTests
         Assert.Contains("litColor += (ComputeShadowTint(shadowFactor) - 1.0f) * (litColor - emissiveColor);", lightingIncludeSource);
 
         // The shadow factor is computed once per pixel, outside the light loop, and handed to the pixel shader.
-        Assert.Equal(1, CountOccurrences(lightingIncludeSource, "ComputeDirectionalShadowFactor(worldPosition, worldNormal);"));
+        // It is offset along the shadow normal the caller hands over (the vertex normal), not along the lighting normal.
+        Assert.Equal(1, CountOccurrences(lightingIncludeSource, "ComputeDirectionalShadowFactor(worldPosition, shadowNormal);"));
         Assert.Contains("result.ShadowFactor = ", lightingIncludeSource);
 
         // Pixel-lighting pixel shaders of LitForward: the plain ones tint after the specular, the reflection ones tint inside

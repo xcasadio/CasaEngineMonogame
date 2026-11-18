@@ -524,7 +524,7 @@ float4 ShadePixelLighting(VSOutputPixelLighting pin, out float shadowFactor)
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
     
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, (int)ActiveDirectionalLightCount);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
@@ -560,7 +560,7 @@ float4 ShadePixelLightingTx(VSOutputPixelLightingTx pin, out float shadowFactor)
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
     
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, (int)ActiveDirectionalLightCount);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
@@ -596,7 +596,7 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
 
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, 1);
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, 1);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
@@ -621,7 +621,7 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
 
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, 1);
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, worldNormal, 1);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
@@ -673,7 +673,8 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
     float3 worldNormal = normalize(mul(normalMap, TBN));
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount);
+    // The normal map lights the pixel; the shadow lookup is offset along the vertex normal N, which the normal map does not move.
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, N, (int)ActiveDirectionalLightCount);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
@@ -727,7 +728,8 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
     float3 worldNormal = normalize(mul(normalMap, TBN));
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
-    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount);
+    // The normal map lights the pixel; the shadow lookup is offset along the vertex normal N, which the normal map does not move.
+    ColorPair lightResult = ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, N, (int)ActiveDirectionalLightCount);
 
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,

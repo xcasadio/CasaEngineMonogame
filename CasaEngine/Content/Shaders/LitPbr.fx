@@ -499,7 +499,8 @@ float3 ComputePerturbedNormal(float2 texCoord, float3 normalWS, float3 tangentWS
 
 
 // The shading shared by every technique. geometricNormal is the normalized interpolated vertex normal, the only normal of the
-// clear coat (worldNormal is the normal-mapped one in the NormalMap techniques). baseColor is the display colour with its alpha
+// clear coat and the one the shadow lookup is offset along (worldNormal is the normal-mapped one in the NormalMap techniques, and
+// lights the pixel). baseColor is the display colour with its alpha
 // (see SamplePbrBaseColor); the material colours are decoded here, once per pixel.
 float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float3 geometricNormal, float4 baseColor, float diffuseOpacity)
 {
@@ -531,7 +532,7 @@ float4 ShadePbr(float2 texCoord, float3 positionWS, float3 worldNormal, float3 g
     PbrSurface surface = ComputePbrSurface(linearBaseColor, saturate(metallic), saturate(roughness), worldNormal, eyeVector);
     ApplyPbrClearCoat(surface, saturate(ClearCoat), saturate(ClearCoatRoughness), geometricNormal);
 
-    ColorPair lightResult = EvaluatePbrLights(surface, positionWS, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = EvaluatePbrLights(surface, positionWS, geometricNormal, (int)ActiveDirectionalLightCount);
 
     // EmissiveShadowFactor (ADR-0126): the emissive receives the shadow of the pixel, by that fraction. The shadow factor is the one
     // the rest of the pixel gets in the active mode: the visibility of the shadow-casting light by default, the shadow tint in

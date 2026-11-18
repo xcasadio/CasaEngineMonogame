@@ -391,7 +391,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
     float3 directDiffuse = max(lightResult.Diffuse - MaterialEmissiveColor(), 0.0f);
@@ -452,7 +452,7 @@ float4 PixelShaderRiggedModelDrawPbr(VsOutputSkinnedQuad input) : COLOR0
     float3 eyeVector = normalize(EyePosition - input.Position3D);
     PbrSurface surface = ComputePbrSurface(linearBaseColor, saturate(Metallic), saturate(Roughness), worldNormal, eyeVector);
 
-    ColorPair lightResult = EvaluatePbrLights(surface, input.Position3D, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = EvaluatePbrLights(surface, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
 
     // The flat ambient of LitPbr.fx (ComputePbrFlatAmbient): the ambient colour, or the diffuse sample of the environment cube
     // when one is bound and the world does not ask for the flat source, times the diffuse albedo.
@@ -571,7 +571,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 N = normalize(input.Normal3D);
     float3 eyeVector = normalize(EyePosition - input.Position3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, N, (int)ActiveDirectionalLightCount);
 
     float4 texelColor = DecodeColor4(SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color);
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);

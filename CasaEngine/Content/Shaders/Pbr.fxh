@@ -319,14 +319,16 @@ void AccumulatePbrSpotLightSlots(inout ColorPair result, in PbrSurface surface, 
 // emissive or ambient part; result.ShadowFactor is the visibility of the shadow-casting directional light (1 when there is none),
 // for the MultiplyLitColor shadow mode (ShadowApplyMode = 1) where the light is left alone and the pixel is tinted afterwards.
 // The shadow factor scales the light at ShadowedDirectionalLightIndex only, and only in the default shadow mode.
-ColorPair EvaluatePbrLights(in PbrSurface surface, float3 worldPosition, uniform int numDirectionalLights)
+// shadowNormal is the normal the shadow lookup is offset along (ShadowNormalBias): the interpolated vertex normal, normalised,
+// never the normal-mapped surface.Normal, whose per-pixel variation would roughen the edge of the shadow.
+ColorPair EvaluatePbrLights(in PbrSurface surface, float3 worldPosition, float3 shadowNormal, uniform int numDirectionalLights)
 {
     ColorPair result;
     result.Diffuse = 0;
     result.Specular = 0;
 
 #ifdef HAS_FORWARD_SHADOW_BINDINGS
-    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, surface.Normal);
+    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, shadowNormal);
     float lightOcclusionFactor = ShadowApplyMode > 0.5f ? 1.0f : shadowFactor;
 #else
     float shadowFactor = 1.0f;

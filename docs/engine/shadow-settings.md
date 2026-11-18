@@ -9,7 +9,7 @@ How a world configures the forward directional shadow map and how the lit shader
 | `Enabled` | `enabled` | `false` | Renders the shadow map of the first shadow-casting directional light. |
 | `Resolution` | `resolution` | 1024 | Side of the square shadow map, in texels. |
 | `DepthBias` | `depth_bias` | 0.001 | Bias on the compared depth, a fraction of the map depth (see "Depth range"). |
-| `NormalBias` | `normal_bias` | 0 | Offset of the receiver position along its normal, in world units. |
+| `NormalBias` | `normal_bias` | 0 | Offset of the receiver position along its interpolated vertex normal (never the normal-mapped normal), in world units. |
 | `MaxDistance` | `max_distance` | 100 | Half-side, in world units, of the square the map covers around the camera (the lateral extent). |
 | `Mode` | `mode` | `OccludeDirectLight` | How the shadow is applied (see below). |
 | `ShadowColor` | `shadow_color` | black | Colour of a fully shadowed pixel in `MultiplyLitColor` mode. |
@@ -38,6 +38,10 @@ world.EnvironmentSettings.MarkDirty();
 - `MultiplyLitColor`: the shadowed light is not occluded. The final colour of the pixel, excluding the emissive colour (lit colour, specular and reflection contribution), is multiplied by `lerp(1, ShadowColor, 1 - shadowFactor)`. Alpha and emissive are untouched. This reproduces a game that multiplies the whole image by a shadow tint: a shadow of `(0.25, 0.26, 0.27)` leaves a pixel at a quarter of its lit colour, specular highlights and reflections included.
 
 The shadow factor is computed once per pixel. With several lights, `MultiplyLitColor` tints the contributions of every light, and the ambient term, by the factor of the single shadowed light: a shadowed pixel is darkened even for the unshadowed lights. Use it for one dominant shadow-casting light (the sun). `ReceiveShadows = false` on a component, or no shadowed light, leave the colour unchanged. Vertex-lighting techniques (`LitForward_VertexLighting*`, `LitForward_OneLight*`) have no shadows in either mode.
+
+## Normal bias (`NormalBias`)
+
+The shadow lookup reads the shadow map at the receiver position moved by `NormalBias` along the interpolated vertex normal (normalised), in every lit shader (`LitForward.fx`, `LitPbr.fx`, `skinEffect.fx`). A normal map does not move it: it changes how the pixel is lit, not where its shadow edge is, so a normal-mapped wall keeps a clean shadow edge whatever its relief. Back faces use the same normal as before (no flip).
 
 ## Soft edges (`FilterRadius`)
 

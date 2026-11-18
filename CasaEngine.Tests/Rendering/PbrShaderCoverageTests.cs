@@ -180,7 +180,11 @@ public class PbrShaderCoverageTests
         Assert.Contains("result.ShadowFactor = (int)ShadowedDirectionalLightIndex < numDirectionalLights ? shadowFactor : 1.0f;", lighting);
         Assert.Contains("result.ShadowFactor = (int)ShadowedDirectionalLightIndex < numDirectionalLights ? shadowFactor : 1.0f;", pbr);
         Assert.Equal(1, CountOccurrences(pbr, "ComputeDirectionalShadowFactor("));
-        Assert.Contains("ComputeDirectionalShadowFactor(worldPosition, surface.Normal);", pbr);
+        // The lookup is offset along the geometric (interpolated vertex) normal ShadePbr hands over, not along surface.Normal, which a
+        // normal map perturbs.
+        Assert.Contains("ComputeDirectionalShadowFactor(worldPosition, shadowNormal);", pbr);
+        Assert.Contains("ColorPair EvaluatePbrLights(in PbrSurface surface, float3 worldPosition, float3 shadowNormal, uniform int numDirectionalLights)", LoadShaderSource("Pbr.fxh"));
+        Assert.Contains("EvaluatePbrLights(surface, positionWS, geometricNormal, (int)ActiveDirectionalLightCount)", Normalize(ExtractFunctionBody(LoadShaderSource("LitPbr.fx"), "float4 ShadePbr(")));
 
         // The point and spot lights are never shadowed.
         Assert.DoesNotContain("ShadowFactor", Normalize(ExtractFunctionBody(LoadShaderSource("Pbr.fxh"), "void AccumulatePbrPointLightSlot(")));

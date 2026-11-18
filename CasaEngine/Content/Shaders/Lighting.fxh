@@ -216,6 +216,8 @@ float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
 }
 
 
+// worldNormal is the normal the lookup position is offset along (ShadowNormalBias): the callers pass the interpolated vertex
+// normal, never a normal-mapped one, so that a normal map does not move the edge of the shadow.
 float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
 {
     if (ActiveShadowLightCount <= 0.0f || ReceiveShadows <= 0.5f)
@@ -488,7 +490,8 @@ ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 
 }
 
 
-ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNormal, uniform int numDirectionalLights)
+// worldNormal lights the pixel (it may be normal-mapped); shadowNormal, the interpolated vertex normal, offsets the shadow lookup.
+ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNormal, float3 shadowNormal, uniform int numDirectionalLights)
 {
     ColorPair result;
     DecodedMaterialDiffuse = MaterialDiffuseColor();
@@ -499,7 +502,7 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
     // The shadow factor is computed once, outside the light loop. In the default mode it scales the shadowed light; in
     // MultiplyLitColor mode the light is left alone and the pixel shader tints the final colour with ShadowFactor.
 #ifdef HAS_FORWARD_SHADOW_BINDINGS
-    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, worldNormal);
+    float shadowFactor = ComputeDirectionalShadowFactor(worldPosition, shadowNormal);
     float lightOcclusionFactor = ShadowApplyMode > 0.5f ? 1.0f : shadowFactor;
 #else
     float shadowFactor = 1.0f;
