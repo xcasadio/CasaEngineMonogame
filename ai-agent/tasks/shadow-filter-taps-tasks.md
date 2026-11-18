@@ -99,12 +99,21 @@ Relevé en lecture seule (enquêteur, relu), à revérifier par l'exécutant ava
 >
 > **Fichiers touchés** (chemin du rayon) : `CasaEngine/Framework/Rendering/Shadows/ShadowSettings.cs`, `CasaEngine/Framework/Rendering/Shaders/ForwardLightBinder.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderParameterNames.cs`, `CasaEngine/Content/Shaders/Lighting.fxh`, `LitPbr.fx`, `LitForward.fx`, `skinEffect.fx`, `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ; tests : `ShadowSettingsTests.cs`, `ForwardLightBinderTests.cs`, `LightingShaderCoverageTests.cs`, `PbrShaderCoverageTests.cs`, nouveau `ShadowFilterTapsGpuTests.cs` ; docs : `docs/engine/shadow-settings.md`, `docs/decisions/0127-the-tap-count-of-the-shadow-filter-is-a-setting.md`, son index, ligne d'état de l'ADR-0102 ; ce plan et `ai-agent/README.md`. `ShadowLight.cs` ne porte pas le rayon (rien à ajouter). Non fait : coût en temps d'image (hors périmètre) ; cible DirectX non compilée (build DesktopGL seulement).
 
-### ⏳ T2 — Vérification indépendante et clôture
+### ✅ T2 — Vérification indépendante et clôture
 
 - Un `verifier` frais reçoit l'affirmation exacte (« `FilterTaps` vaut 12 par défaut et les images existantes sont inchangées, à rayon de filtre nul comme à rayon positif (référence à rayon positif de T1 comparée avant et après) ; la valeur du réglage est celle que le `ForwardLightBinder` envoie au shader ; à 32 et 64 la pénombre a les niveaux et les sauts annoncés dans `LitPbr.fx` et `LitForward.fx` ; le réglage se sérialise de façon additive ; builds à 0 erreur et tests à 0 échec »), le diff `8ddcb31b0..HEAD` et les commandes de la validation de T1. Il refait builds, tests et empreintes, vérifie par ses moyens (arbre de travail jetable hors dépôt) que les cas à 32 et 64 échouent sans le shader et que le test GPU de liaison échoue quand la ligne `SetParameter` de `Bind` est retirée, et rend CONFIRMED, REFUTED ou INCONCLUSIVE.
 - Constats traités selon leur priorité (P0 et P1 : correction dans le périmètre ou arrêt ; P2 introduit : bloquant ; le reste noté).
 - Mettre à jour la ligne de ce plan dans `ai-agent/README.md`.
 - Commit : `docs(ai-agent): record the verification of the shadow filter tap count`
+
+> Validation (2026-11-18), `verifier` frais sur `1eacf5764`, sorties dans `artifacts/pbr-handover/s24/engine/verify` du dépôt du jeu : **CONFIRMED**, aucun constat P0 à P2.
+> - Les deux solutions à 0 erreur ; 6469 tests, 0 échec, 0 ignoré. `LitPbr.xnb` et `LitForward.xnb` identiques entre un build neuf de `HEAD` et l'arbre principal.
+> - Diff `8ddcb31b0..1eacf5764` relu : D1 à D4 tenus (bornes 22 et 48, défaut 12 ; branche à 12 = l'ancien code mot pour mot, prise pour toute valeur autre que 32 ou 64 ; un seul uniforme, pas de permutation ; le réglage suit `FilterRadius` dans la remise à zéro, la lecture, l'écriture, la copie et l'éditeur ; la clé `filter_taps` n'est écrite que hors du défaut). Aucune allocation ajoutée dans un chemin chaud ; aucune assertion existante retirée ni affaiblie.
+> - Échecs reproduits par le vérificateur dans un arbre de travail jetable : avec `Lighting.fxh` de `8ddcb31b0`, les cas GPU à 32 et 64 échouent et le test de liaison échoue ; avec la ligne `SetParameter` de `Bind` retirée, le test de liaison échoue (`64 -> 0`).
+> - Images inchangées par défaut : les huit empreintes déterministes égales aux valeurs d'avant, deux fois ; la référence à rayon 3 (`5e4775fbf3618c71`) reproduite par le vérificateur lui-même sur `8ddcb31b0` et sur `1eacf5764`, deux fois chacune (elle couvre `LitForward` : les récepteurs de la démo sont des `LitDiffuseMaterial`) ; pour `LitPbr`, comparaison bit à bit de l'ancien et du nouveau code à rayon 120 et 12 lectures, identique.
+> - La reprise de l'exécutant sur le modèle du test (`GlVertexShift`) examinée : la constante est juste et le test rejette tout disque faux essayé (loi de rayon, sinus et cosinus échangés, 63 lectures, mauvais disque, Poisson à la place de Vogel), mais **l'explication écrite est fausse** (P3, introduit, laissé tel quel : la règle est de ne pas retoucher un état confirmé pour un constat de ce rang ; O2). Le décalage ne vient pas d'un décalage de sommets (`UseHalfPixelOffset` est faux) : sous OpenGL de bureau, `DECLARE_TEXTURE` ignore l'indice, la carte d'ombre n'est pas sur l'unité 6 et elle est lue en bilinéaire ; avec tous les échantillonneurs en point, le rendu à 64 lectures suit le modèle sans aucun décalage.
+> - P4, introduits : le commentaire de classe cite les niveaux du modèle sans décalage (32 et 63) alors que le modèle vérifié donne 33 et 62 ; une valeur d'uniforme à moins de 0,5 de 32 ou 64 prend aussi la branche de Vogel (inatteignable par le `ForwardLightBinder`, qui n'envoie que 12, 32 ou 64).
+> - Limites : seule la cible OpenGL de bureau est compilée ici (la compilation DirectX de 64 lectures déroulées n'est pas vérifiée) ; `skinEffect.fx` n'est couvert que par la compilation et le test de texte ; le coût en temps d'image n'est pas mesuré ; la liste de l'éditeur n'a été que relue.
 
 ## Hors périmètre
 
@@ -115,3 +124,6 @@ Relevé en lecture seule (enquêteur, relu), à revérifier par l'exécutant ava
 ## Points ouverts
 
 - O1 (auteur, après T2) : validation de l'ADR-0127 ; avance de `main` et push.
+- O2 (constats de T2, à décider par l'auteur) : corriger le commentaire de `GlVertexShift` et le commentaire de classe de `ShadowFilterTapsGpuTests` (mécanisme faux, niveaux du modèle), ou poser l'échantillonneur en point sur la vraie unité et retirer le décalage.
+- O3 (moteur, hors périmètre, trouvé par T2) : sous OpenGL de bureau la carte d'ombre est lue en bilinéaire et aucun code du moteur ne règle son échantillonneur ; `ShadowNormalOffsetGpuTests` suppose à tort que l'unité 6 est la sienne. À examiner : l'effet sur le bord des ombres en production et sur les tests.
+- O4 (hors périmètre) : compiler et essayer la cible DirectX avec 64 lectures.
