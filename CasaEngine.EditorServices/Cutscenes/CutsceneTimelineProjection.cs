@@ -57,6 +57,7 @@ public static class CutsceneTimelineProjection
         private readonly IReadOnlyDictionary<CutsceneActionData, double>? _timings;
         private readonly List<CutsceneTimelineItem> _items = [];
         private readonly List<string> _entities = [];
+        private readonly Dictionary<CutsceneActionData, double> _containerStarts = new(ReferenceEqualityComparer.Instance);
         private double? _loopStart;
         private double? _loopEnd;
 
@@ -71,10 +72,12 @@ public static class CutsceneTimelineProjection
             switch (action)
             {
                 case SequenceCutsceneActionData sequence:
+                    _containerStarts.TryAdd(action, start);
                     return PlaceSequence(sequence.Actions, start, topLevel);
 
                 case ParallelCutsceneActionData parallel:
                 {
+                    _containerStarts.TryAdd(action, start);
                     double longest = 0;
                     for (int index = 0; index < parallel.Actions.Count; index++)
                     {
@@ -85,10 +88,12 @@ public static class CutsceneTimelineProjection
                 }
 
                 case RepeatCutsceneActionData repeat:
+                    _containerStarts.TryAdd(action, start);
                     return PlaceRepeat(repeat, start, topLevel);
 
                 case AtCutsceneActionData at:
                 {
+                    _containerStarts.TryAdd(action, start);
                     double delay = Clamp(at.Seconds);
                     return delay + PlaceSequence(at.Actions, start + delay, topLevel);
                 }
@@ -215,7 +220,7 @@ public static class CutsceneTimelineProjection
             AddShapes(ordered, CutsceneTimelineItemShape.Bar, CutsceneTimelineItemShape.OpenBar);
             AddShapes(ordered, CutsceneTimelineItemShape.Marker);
 
-            return new CutsceneTimelineLayout(rows, ordered, total, _loopStart, _loopEnd);
+            return new CutsceneTimelineLayout(rows, ordered, total, _loopStart, _loopEnd, _containerStarts);
         }
 
         private double PlaceSequence(List<CutsceneActionData> actions, double start, bool topLevel)

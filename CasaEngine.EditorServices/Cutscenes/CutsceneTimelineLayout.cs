@@ -124,6 +124,12 @@ public sealed class CutsceneTimelineItem
 
     public double EndSeconds => StartSeconds + DurationSeconds;
 
+    /// <summary>
+    /// True for the item that stands for the action itself: every item except the "more laps" range of a Repeat. Only a
+    /// primary item can be dragged in time (P5).
+    /// </summary>
+    public bool IsPrimary => Role != CutsceneTimelineItemRole.RepeatMoreLaps;
+
     internal CutsceneTimelineRowKind RowKind { get; init; }
 
     internal string? EntityKey { get; init; }
@@ -132,6 +138,8 @@ public sealed class CutsceneTimelineItem
 /// <summary>The rows and dated items of a cutscene, built by <see cref="CutsceneTimelineProjection"/>.</summary>
 public sealed class CutsceneTimelineLayout
 {
+    private readonly IReadOnlyDictionary<CutsceneActionData, double>? _containerStarts;
+
     public static CutsceneTimelineLayout Empty { get; } = new([], [], 0, null, null);
 
     internal CutsceneTimelineLayout(
@@ -139,8 +147,10 @@ public sealed class CutsceneTimelineLayout
         IReadOnlyList<CutsceneTimelineItem> items,
         double durationSeconds,
         double? loopStartSeconds,
-        double? loopEndSeconds)
+        double? loopEndSeconds,
+        IReadOnlyDictionary<CutsceneActionData, double>? containerStarts = null)
     {
+        _containerStarts = containerStarts;
         Rows = rows;
         Items = items;
         DurationSeconds = durationSeconds;
@@ -160,6 +170,24 @@ public sealed class CutsceneTimelineLayout
 
     /// <summary>When the cutscene ends with an endless loop: where the drawn lap ends.</summary>
     public double? LoopEndSeconds { get; }
+
+    /// <summary>
+    /// The time at which a container (Sequence, Parallel, Repeat or At), empty or not, starts in this layout. For a
+    /// container inside a Repeat this is its start in the drawn lap. False for any other action, and for an action that is
+    /// not in the layout.
+    /// </summary>
+    public bool TryGetContainerStart(CutsceneActionData container, out double startSeconds)
+    {
+        ArgumentNullException.ThrowIfNull(container);
+
+        if (_containerStarts != null && _containerStarts.TryGetValue(container, out startSeconds))
+        {
+            return true;
+        }
+
+        startSeconds = 0;
+        return false;
+    }
 
     /// <summary>
     /// The playhead position for a play time. For an endless loop whose lap lasts, the time wraps onto the drawn lap
