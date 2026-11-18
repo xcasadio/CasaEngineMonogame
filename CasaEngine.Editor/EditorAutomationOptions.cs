@@ -35,6 +35,18 @@ public sealed class EditorAutomationOptions
     public string CutsceneSelectActionPath { get; private set; }
     public string CutsceneAddActionType { get; private set; }
     public bool CutsceneReactivate { get; private set; }
+
+    /// <summary>
+    /// Play times, in seconds, the cutscene preview goes to one after the other (<c>--cutscene-preview-seek</c>). Empty when
+    /// the option is absent or malformed: a list with an unreadable or negative value is ignored as a whole.
+    /// </summary>
+    public double[] CutscenePreviewSeekSeconds { get; private set; } = Array.Empty<double>();
+
+    /// <summary>Frames the cutscene preview advances once its seeks are done (<c>--cutscene-preview-step</c>); 0 when absent or not positive.</summary>
+    public int CutscenePreviewStepFrames { get; private set; }
+
+    /// <summary>True when the cutscene preview is stopped after the seeks and steps (<c>--cutscene-preview-stop</c>).</summary>
+    public bool CutscenePreviewStop { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
@@ -64,6 +76,9 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(CutsceneSelectActionPath)
         || !string.IsNullOrWhiteSpace(CutsceneAddActionType)
         || CutsceneReactivate
+        || CutscenePreviewSeekSeconds.Length > 0
+        || CutscenePreviewStepFrames > 0
+        || CutscenePreviewStop
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
@@ -223,6 +238,24 @@ public sealed class EditorAutomationOptions
                     options.CutsceneReactivate = true;
                     break;
 
+                case "--cutscene-preview-seek":
+                    options.CutscenePreviewSeekSeconds = ParseSeekSeconds(next);
+                    index++;
+                    break;
+
+                case "--cutscene-preview-step":
+                    if (int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stepFrames) && stepFrames > 0)
+                    {
+                        options.CutscenePreviewStepFrames = stepFrames;
+                    }
+
+                    index++;
+                    break;
+
+                case "--cutscene-preview-stop":
+                    options.CutscenePreviewStop = true;
+                    break;
+
                 case "--screenshot-out":
                     options.ScreenshotOutputPath = next;
                     index++;
@@ -245,5 +278,30 @@ public sealed class EditorAutomationOptions
         }
 
         return options;
+    }
+
+    private static double[] ParseSeekSeconds(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Array.Empty<double>();
+        }
+
+        string[] parts = value.Split(',');
+        var seconds = new double[parts.Length];
+        for (int index = 0; index < parts.Length; index++)
+        {
+            if (!double.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed)
+                || double.IsNaN(parsed)
+                || double.IsInfinity(parsed)
+                || parsed < 0d)
+            {
+                return Array.Empty<double>();
+            }
+
+            seconds[index] = parsed;
+        }
+
+        return seconds;
     }
 }

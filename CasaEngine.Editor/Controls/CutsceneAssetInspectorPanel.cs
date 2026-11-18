@@ -868,6 +868,15 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         return true;
     }
 
+    /// <summary>True when the document has a preview and an asset to play, as the transport buttons need.</summary>
+    public bool HasPreview => _preview != null && _session != null;
+
+    /// <summary>What the status word under the transport row shows; <see cref="CutscenePreviewStatus.Stopped"/> without a preview.</summary>
+    public CutscenePreviewStatus PreviewStatus => _preview?.Status ?? CutscenePreviewStatus.Stopped;
+
+    /// <summary>Frame steps requested by <see cref="StepPreviewFrames"/> that the preview has not done yet.</summary>
+    public int PreviewPendingFrameSteps => _preview?.PendingFrameSteps ?? 0;
+
     /// <summary>
     /// Lines describing the preview for the automation diagnostics: state, status text, skipped actions, and the
     /// name and position of every entity of the preview world.
@@ -883,6 +892,12 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         lines.Add($"Preview state: {_preview.State}, failure='{_preview.FailureReason}', error='{_preview.Error}', endedByWorldChange={_preview.EndedByWorldChange}");
         lines.Add($"Preview status line: {_previewStatusText?.Text}");
+        lines.Add(string.Create(
+            CultureInfo.InvariantCulture,
+            $"Preview transport: status={_preview.Status}, mode={_preview.TransportMode}, playing={_preview.IsPlaying}, seek target={_preview.SeekTargetSeconds:0.000} s, pending frame steps={_preview.PendingFrameSteps}"));
+        lines.Add(string.Create(
+            CultureInfo.InvariantCulture,
+            $"Preview time: {_preview.ElapsedSeconds:0.000} s, {_preview.ElapsedFrames} frames; play/pause button label='{_playPauseText?.Text}'"));
         for (int index = 0; index < _preview.Requests.Count; index++)
         {
             var request = _preview.Requests[index];

@@ -92,6 +92,9 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     /// <summary>The play time that the last <see cref="Seek"/> aimed at, in seconds.</summary>
     public double SeekTargetSeconds => _transport.TargetSeconds;
 
+    /// <summary>Frame steps requested by <see cref="StepFrames"/> that the next <see cref="Tick"/> has still to do.</summary>
+    public int PendingFrameSteps => _transport.PendingFrameSteps;
+
     /// <summary>What the transport row shows (ADR-0099): the play comes first, then the end state of the last play.</summary>
     public CutscenePreviewStatus Status => CutscenePreviewTransport.GetStatus(IsPlaying, _transport.Mode, State, EndedByWorldChange);
 

@@ -292,6 +292,12 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationCutsceneAddDone;
     private TimeSpan _automationCutsceneEditedAt;
     private string _automationCutsceneEditResult;
+    private int _automationCutsceneSeekIndex;
+    private bool _automationCutsceneSeekActive;
+    private int _automationCutsceneStepState;
+    private bool _automationCutsceneStopDone;
+    private TimeSpan _automationCutsceneTransportAt;
+    private string _automationCutsceneTransportResult;
     private TimeSpan _automationAssetOpenedAt;
     private bool _automationDockResizeCompleted;
     private TimeSpan _automationDockResizeCompletedAt;
@@ -635,6 +641,12 @@ public class GameEditor : Game, IObservableUpdate
         _automationCutsceneSelectDone = false;
         _automationCutsceneAddDone = false;
         _automationCutsceneEditResult = null;
+        _automationCutsceneSeekIndex = 0;
+        _automationCutsceneSeekActive = false;
+        _automationCutsceneStepState = 0;
+        _automationCutsceneStopDone = false;
+        _automationCutsceneTransportAt = TimeSpan.Zero;
+        _automationCutsceneTransportResult = null;
         _automationParticleCreateAttempted = false;
         _automationParticleAssetCreated = false;
         _automationCreatedParticleAssetFullPath = null;
@@ -7072,6 +7084,7 @@ public class GameEditor : Game, IObservableUpdate
         TryApplyAutomationAssetOpen(totalGameTime);
         TryApplyAutomationCutscenePreviewPlay(totalGameTime);
         TryApplyAutomationCutsceneEdits(totalGameTime);
+        TryApplyAutomationCutscenePreviewTransport(totalGameTime);
 
         if (!_automationSelectionApplied || !IsAutomationSelectionActive())
         {
@@ -7275,6 +7288,19 @@ public class GameEditor : Game, IObservableUpdate
             if (_automationCutsceneEditedAt > readyAt)
             {
                 readyAt = _automationCutsceneEditedAt;
+            }
+        }
+
+        if (IsAutomationCutscenePreviewTransportRequested())
+        {
+            if (!IsAutomationCutscenePreviewTransportCompleted())
+            {
+                return;
+            }
+
+            if (_automationCutsceneTransportAt > readyAt)
+            {
+                readyAt = _automationCutsceneTransportAt;
             }
         }
 
@@ -7936,6 +7962,112 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private bool IsAutomationCutscenePreviewTransportRequested()
+        => _automationOptions.CutscenePreviewSeekSeconds.Length > 0
+           || _automationOptions.CutscenePreviewStepFrames > 0
+           || _automationOptions.CutscenePreviewStop;
+
+    private bool IsAutomationCutscenePreviewTransportCompleted()
+        => _automationCutsceneSeekIndex >= _automationOptions.CutscenePreviewSeekSeconds.Length
+           && (_automationOptions.CutscenePreviewStepFrames <= 0 || _automationCutsceneStepState >= 2)
+           && (!_automationOptions.CutscenePreviewStop || _automationCutsceneStopDone);
+
+    /// <summary>
+    /// Applies the cutscene preview transport options after the play and the edits: each seek (the next one starts when the
+    /// previous one is over), then the frame steps, then the stop. One step per frame. The capture delay counts from the
+    /// end of the last step.
+    /// </summary>
+    private void TryApplyAutomationCutscenePreviewTransport(TimeSpan totalGameTime)
+    {
+        if (!_automationAssetOpened
+            || !IsAutomationCutscenePreviewTransportRequested()
+            || IsAutomationCutscenePreviewTransportCompleted()
+            || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted)
+            || (IsAutomationCutsceneEditRequested() && !IsAutomationCutsceneEditCompleted()))
+        {
+            return;
+        }
+
+        string documentPanelId = _automationCutscenePanelId ?? GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(documentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(documentPanelId, out var cutscenePanel)
+            || !cutscenePanel.HasPreview)
+        {
+            return;
+        }
+
+        double[] seeks = _automationOptions.CutscenePreviewSeekSeconds;
+        if (_automationCutsceneSeekIndex < seeks.Length)
+        {
+            if (!_automationCutsceneSeekActive)
+            {
+                double target = seeks[_automationCutsceneSeekIndex];
+                bool accepted = cutscenePanel.SeekPreview(target);
+                _automationCutsceneTransportResult = string.Create(
+                    CultureInfo.InvariantCulture, $"seek {target:0.###} s: {(accepted ? "requested" : "refused")}");
+                EditorDiagnosticsBuffer.Append(accepted ? LogVerbosity.Info : LogVerbosity.Warning,
+                    $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+                if (accepted)
+                {
+                    _automationCutsceneSeekActive = true;
+                }
+                else
+                {
+                    _automationCutsceneSeekIndex++;
+                    _automationCutsceneTransportAt = totalGameTime;
+                }
+
+                return;
+            }
+
+            // The seek is over when the play reached the time, or ended before: the preview is then paused or ended.
+            if (cutscenePanel.PreviewStatus == CutscenePreviewStatus.Seeking)
+            {
+                return;
+            }
+
+            _automationCutsceneSeekActive = false;
+            _automationCutsceneSeekIndex++;
+            _automationCutsceneTransportAt = totalGameTime;
+            return;
+        }
+
+        int stepFrames = _automationOptions.CutscenePreviewStepFrames;
+        if (stepFrames > 0 && _automationCutsceneStepState < 2)
+        {
+            if (_automationCutsceneStepState == 0)
+            {
+                bool accepted = cutscenePanel.StepPreviewFrames(stepFrames);
+                _automationCutsceneTransportResult = $"step {stepFrames} frames: {(accepted ? "requested" : "refused (no play runs)")}";
+                EditorDiagnosticsBuffer.Append(accepted ? LogVerbosity.Info : LogVerbosity.Warning,
+                    $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+                _automationCutsceneStepState = accepted ? 1 : 2;
+                _automationCutsceneTransportAt = totalGameTime;
+                return;
+            }
+
+            // The steps are done by the next ticks of the preview.
+            if (cutscenePanel.PreviewPendingFrameSteps > 0)
+            {
+                return;
+            }
+
+            _automationCutsceneStepState = 2;
+            _automationCutsceneTransportAt = totalGameTime;
+            return;
+        }
+
+        if (_automationOptions.CutscenePreviewStop && !_automationCutsceneStopDone)
+        {
+            bool done = cutscenePanel.StopPreview();
+            _automationCutsceneStopDone = true;
+            _automationCutsceneTransportAt = totalGameTime;
+            _automationCutsceneTransportResult = $"stop: {(done ? "done" : "failed")}";
+            EditorDiagnosticsBuffer.Append(done ? LogVerbosity.Info : LogVerbosity.Warning,
+                $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+        }
+    }
+
     private void AppendCutsceneEditorDiagnostics(StringBuilder builder)
     {
         var activeDocument = _editorContext.ActiveDocument;
@@ -7972,6 +8104,9 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         builder.AppendLine($"Cutscene preview (play started: {_automationCutscenePlayStarted}):");
+        builder.AppendLine(string.Create(
+            CultureInfo.InvariantCulture,
+            $"  - Transport options: seek [{string.Join(", ", Array.ConvertAll(_automationOptions.CutscenePreviewSeekSeconds, value => value.ToString(CultureInfo.InvariantCulture)))}]; step {_automationOptions.CutscenePreviewStepFrames}; stop {_automationOptions.CutscenePreviewStop}; last: {_automationCutsceneTransportResult ?? "<none>"}"));
         var state = cutscenePanel.GetAutomationStateSnapshot();
         for (int index = 0; index < state.Count; index++)
         {

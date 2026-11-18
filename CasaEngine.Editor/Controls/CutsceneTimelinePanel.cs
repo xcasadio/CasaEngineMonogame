@@ -247,6 +247,8 @@ internal sealed class CutsceneTimelinePanel
         builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
             $"  - Play time: {elapsed:0.000} s, {frames} frames; playhead: {_playhead:0.000} s; total duration: {_layout.DurationSeconds:0.###} s"));
         builder.AppendLine($"  - Transport text: {_document?.TransportText}");
+        builder.AppendLine(string.Create(CultureInfo.InvariantCulture,
+            $"  - Last seek request from the ruler: {(_lastSeekRequestSeconds.HasValue ? _lastSeekRequestSeconds.Value.ToString("0.000", CultureInfo.InvariantCulture) + " s" : "<none>")} (accepted: {_lastSeekRequestAccepted})"));
 
         var model = _timeline?.Model;
         int trackCount = model?.Tracks.Count ?? 0;

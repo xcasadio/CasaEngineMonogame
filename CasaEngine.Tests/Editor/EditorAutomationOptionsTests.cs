@@ -152,4 +152,74 @@ public class EditorAutomationOptionsTests
         Assert.True(options.HasAutomation);
         Assert.True(options.CutsceneReactivate);
     }
+
+    [Fact]
+    public void Parse_CutscenePreviewSeek_ReadsTheListInInvariantCulture()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Cutscenes/loop.cutscene",
+            "--cutscene-preview-seek", "4.5,0.5, 2",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal(new[] { 4.5, 0.5, 2.0 }, options.CutscenePreviewSeekSeconds);
+    }
+
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("1,abc")]
+    [InlineData("-1")]
+    [InlineData("0.5,-0.1")]
+    [InlineData("1,,2")]
+    [InlineData("NaN")]
+    [InlineData("")]
+    public void Parse_CutscenePreviewSeek_UnreadableOrNegativeValue_IgnoresTheWholeOption(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-seek", value });
+
+        Assert.Empty(options.CutscenePreviewSeekSeconds);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewStep_ReadsAPositiveInteger()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-step", "30" });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal(30, options.CutscenePreviewStepFrames);
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-3")]
+    [InlineData("1.5")]
+    [InlineData("many")]
+    public void Parse_CutscenePreviewStep_NotAPositiveInteger_IsIgnored(string value)
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-step", value });
+
+        Assert.Equal(0, options.CutscenePreviewStepFrames);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewStop_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-stop" });
+
+        Assert.True(options.CutscenePreviewStop);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutscenePreviewTransportOptions_AreAbsentByDefault()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" });
+
+        Assert.Empty(options.CutscenePreviewSeekSeconds);
+        Assert.Equal(0, options.CutscenePreviewStepFrames);
+        Assert.False(options.CutscenePreviewStop);
+    }
 }
