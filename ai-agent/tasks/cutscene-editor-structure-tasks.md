@@ -141,7 +141,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 - Commit : `feat(editor-services): move a cutscene action inside its tree`
 - Note de validation (2026-11-18) : `MoveCutsceneActionCommand` (`GetRefusal` statique + commande) créée dans `CasaEngine.EditorServices/Cutscenes/`, sans toucher à `CutsceneActionTree.cs` (ses fonctions `Contains` et `TryFindParent` suffisent). Les faits (`GetChildren`, `Contains`, `TryFindParent`, `RemoveCutsceneActionCommand`, `LoadLosses`) ont été relus dans le code. 17 tests ajoutés dans `MoveCutsceneActionCommandTests` (déplacement avant, arrière, début, fin, autre conteneur, conteneur avec son sous-arbre, équivalents de monter et descendre de P9, refus de la racine, de soi-même, d'un descendant, d'une destination non conteneur ou absente de l'arbre, d'un indice hors bornes et des deux indices sans effet, pertes de chargement inchangées avec `LoadWithLosses`, instance identique, sauvegarde et rechargement identiques, annuler et rétablir à l'ordre exact). Builds `CasaEngine.Editor.MonoGame.sln` et `CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet test` : 6223/6223 (6206 + 17).
 
-### ⏳ T1.2 — Regrouper et dégrouper
+### ✅ T1.2 — Regrouper et dégrouper
 
 - Objectif : P2.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/WrapCutsceneActionCommand.cs`, `UngroupCutsceneActionCommand.cs` (créés), tests.
@@ -151,6 +151,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
   3. Fonctions de refus utilisables sans créer les commandes.
 - Validation : build ; tests : regroupement d'une feuille, d'un conteneur et de la racine, pour les trois types ; dégroupement d'un conteneur à plusieurs enfants, vide, et d'un `Repeat` dont le nombre de tours revient à l'annulation ; refus ; annuler et rétablir ; un type non conteneur est refusé.
 - Commit : `feat(editor-services): wrap a cutscene action in a container and ungroup a container`
+- Note de validation (2026-11-18) : `WrapCutsceneActionCommand` (`GetRefusal`, `IsContainerType`, commande) et `UngroupCutsceneActionCommand` (`GetRefusal`, commande) créés dans `CasaEngine.EditorServices/Cutscenes/`. Les faits (`GetChildren`, `Contains`, `TryFindParent`, `RemoveCutsceneActionCommand` pour le retrait et la remise des pertes, `CutsceneActionCatalog.Create`) ont été relus dans le code. Le conteneur du regroupement est créé une fois, à la construction : annuler puis rétablir remet la même instance. Le dégroupement ne touche pas à la liste `Actions` du conteneur retiré, qui garde donc ses enfants pour l'annulation. 21 tests ajoutés dans `WrapAndUngroupCutsceneActionCommandTests` (regroupement d'une feuille, d'un conteneur et de la racine pour les trois types, `Repeat` créé à un tour, enregistrement et rechargement identiques, refus d'un type non conteneur, inconnu ou vide et d'une action hors de l'arbre, pertes de chargement inchangées au regroupement, dégroupement à plusieurs enfants, vide, imbriqué, `Repeat` dont le nombre de tours revient à l'annulation, refus de la racine et d'une feuille, regrouper puis dégrouper, pertes du conteneur retirées et remises à leur indice, celles des enfants inchangées, annuler et rétablir). Builds `CasaEngine.Editor.MonoGame.sln` et `CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet test` : 6244/6244 (6223 + 21).
 
 ### ⏳ T1.3 — Presse-papiers des actions
 
