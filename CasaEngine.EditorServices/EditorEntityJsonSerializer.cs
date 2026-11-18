@@ -20,10 +20,17 @@ internal static class EditorEntityJsonSerializer
 
     public static void SaveWorld(World world, JObject node)
     {
+        SaveWorld(world, GetEntityReferences(world), node);
+    }
+
+    /// <summary>Writes the world with the given references instead of the ones the world holds, so a caller can write entities
+    /// that were never added to the world. The format is the one <see cref="SaveWorld(World, JObject)"/> writes.</summary>
+    public static void SaveWorld(World world, IReadOnlyList<EntityReference> entityReferences, JObject node)
+    {
         EditorJsonSaveHelper.SaveObjectBase(world, node);
 
         var entityReferencesArray = new JArray();
-        foreach (var entityReference in GetEntityReferences(world))
+        foreach (var entityReference in entityReferences)
         {
             if (entityReference.Entity.RootComponent != null)
             {
@@ -176,7 +183,7 @@ internal static class EditorEntityJsonSerializer
         }
     }
 
-    private static IReadOnlyList<EntityReference> GetEntityReferences(World world)
+    public static IReadOnlyList<EntityReference> GetEntityReferences(World world)
     {
         return WorldEntityReferencesField?.GetValue(world) as IReadOnlyList<EntityReference> ?? Array.Empty<EntityReference>();
     }

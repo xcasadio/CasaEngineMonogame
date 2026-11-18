@@ -63,7 +63,7 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 > Validation (2026-11-18) : plan relu par un `plan-verifier` ; première relecture **REVISE** (un blocage : isolation des tests qui changent `EngineEnvironment.ProjectPath`, corrigé dans T1), relecture de la version corrigée par un relecteur neuf : **READY**. Soumis à l'auteur ; T1 ne commence qu'après son approbation.
 
-### ⏳ T1 — La surcharge, ses tests, sa documentation
+### 🧪 T1 — La surcharge, ses tests, sa documentation
 
 - **Objectif** : P1 à P4.
 - **Fichiers** :
@@ -83,6 +83,8 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 - **Arrêts** : un test existant qui change de résultat ; un fichier `.world` existant réécrit différemment par la voie existante (contrôle : `Tools/automation-smokes.sh` n'est pas lancé ici ; le contrôle est le test 2 et l'aller-retour éditeur du plan du jeu).
 - **Retour arrière** : `git revert` du commit.
 - **Commit** : `feat(editor-services): write a world from entities that are not initialized`
+
+> Validation (2026-11-18) : `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` (sans `--no-build`) : 6475 tests, 0 échec, deux exécutions de suite sans échec intermittent (6469 + 6 nouveaux). `rg` : la classe `EditorWorldWriterTests` porte `[Collection(ProjectEnvironmentCollection.Name)]` et sa seule affectation de `ProjectPath` est dans le `try` / `finally` de `WithProject`. Cas d'id du test 2 : repli (`LightComponent` n'a pas de constructeur à id) : seules les valeurs `id` sont retirées des deux documents, les noms étant fixés explicitement. Écarts : (a) le test 3 compare les nœuds par texte (`ToString`) et non par `JToken.DeepEquals`, qui répond faux sur deux documents au texte identique ; (b) `EditorEntityJsonSerializer.GetEntityReferences` passe de `private` à `public` (interne à l'assembly) pour que la garde P2 et le test P3 lisent les références du monde. Réalisation de P4 : `SaveWorld(world, node)` délègue à une nouvelle surcharge `SaveWorld(world, entityReferences, node)` qui porte le corps inchangé. Statut 🧪 : la vérification indépendante suit (T2).
 
 ### ⏳ T2 — ADR, vérification indépendante, clôture
 

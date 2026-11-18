@@ -45,6 +45,15 @@ The logic without UI is `CasaEngine.EditorServices/StaticModels/StaticModelAsset
 
 A mesh may carry a `tangents` array next to `vertices`: one `{ "x", "y", "z", "w" }` entry per vertex, in the same order, written only for a mesh that has tangents. A mesh without it has no tangents and is drawn without its normal map. Decisions: see ADR-0123.
 
+## Writing a world from code
+
+A tool that builds entities in code, without a running game, writes a `.world` file with `EditorWorldWriter.SaveWorld(World world, IReadOnlyList<Entity> entities)` (`CasaEngine.EditorServices`). It writes `world.FileName` under `EngineEnvironment.ProjectPath` in the format `SaveWorld(World)` writes: the same world-level keys in the same order, and one inline entity reference (empty `asset_id`) per entity, in list order. The file loads with `World.Load` and the editor saves it back unchanged.
+
+- The entities are neither initialized nor added to the world, so entities whose components need the game to initialize (for example a `StaticModelComponent`) can be written offline. The world and the entities are left untouched.
+- The world must hold no entity references yet: otherwise `InvalidOperationException`. A null world, list or entity throws `ArgumentNullException`.
+- The caller sets the ids and names of the world, entities and components; a component without an id constructor gets a random id.
+- Only inline entities are written; a reference to an `.entity` asset is not supported by this overload.
+
 ## Automation
 
 | Option | Effect |
