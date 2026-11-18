@@ -970,4 +970,227 @@ public sealed class CutsceneDocumentOperationsTests : IDisposable
         Assert.Equal(before + 1, rig.DocumentChanges);
         Assert.False(rig.Panel.IsDirty);
     }
+
+    private static JObject AtJson(object seconds, params JObject[] children)
+    {
+        var at = Container("At", children);
+        at["seconds"] = JToken.FromObject(seconds);
+        return at;
+    }
+
+    [Fact]
+    public void PlaceActionAt_OnTheFirstChildOfAnAt_WritesTheSecondsOfTheAt_InOneEntry_AndSelectsTheAction()
+    {
+        var rig = OpenRoot(Container("Parallel", AtJson(0.5, WaitJson(1), WaitJson(1))), "PlaceAt");
+        var at = (AtCutsceneActionData)((ParallelCutsceneActionData)rig.Session.Asset.RootAction!).Actions[0];
+        var first = at.Actions[0];
+
+        Assert.Null(rig.Panel.GetPlaceActionRefusal(first, 1.2));
+        Assert.Null(rig.Panel.PlaceActionAt(first, 1.2));
+
+        Assert.Equal(1.2f, at.Seconds);
+        Assert.Same(first, rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        Assert.Equal(0.5f, at.Seconds);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.False(rig.Panel.IsDirty);
+
+        Redo();
+        Assert.Equal(1.2f, at.Seconds);
+    }
+
+    [Fact]
+    public void PlaceActionAt_AlignsOnFramesAndStopsAtZero()
+    {
+        var rig = OpenRoot(Container("Parallel", AtJson(0.5, WaitJson(1))), "PlaceAlign");
+        var at = (AtCutsceneActionData)((ParallelCutsceneActionData)rig.Session.Asset.RootAction!).Actions[0];
+        var wait = at.Actions[0];
+
+        Assert.Null(rig.Panel.PlaceActionAt(wait, 0.5 + 0.7 + 0.004));
+        Assert.Equal(1.2f, at.Seconds);
+
+        Assert.Null(rig.Panel.PlaceActionAt(wait, -3));
+        Assert.Equal(0f, at.Seconds);
+    }
+
+    [Fact]
+    public void PlaceActionAt_OnADirectChildOfAParallel_WrapsItInAnAt_KeepsTheInstanceAndItsPlace_InOneEntry()
+    {
+        var rig = OpenRoot(Container("Parallel", WaitJson(1), WaitJson(2)), "PlaceWrap");
+        var parallel = (ParallelCutsceneActionData)rig.Session.Asset.RootAction!;
+        var first = parallel.Actions[0];
+        var second = parallel.Actions[1];
+
+        Assert.Null(rig.Panel.PlaceActionAt(second, 0.5));
+
+        Assert.Equal(2, parallel.Actions.Count);
+        Assert.Same(first, parallel.Actions[0]);
+        var at = Assert.IsType<AtCutsceneActionData>(parallel.Actions[1]);
+        Assert.Equal(0.5f, at.Seconds);
+        Assert.Same(second, Assert.Single(at.Actions));
+        Assert.Same(second, rig.Panel.SelectedAction);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        Assert.Same(second, parallel.Actions[1]);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Same(second, rig.Panel.SelectedAction);
+
+        Redo();
+        Assert.Same(at, parallel.Actions[1]);
+        Assert.Same(second, Assert.Single(at.Actions));
+    }
+
+    [Fact]
+    public void PlaceActionAt_Refusals_ChangeNothing()
+    {
+        var rig = OpenRoot(
+            Container("Sequence", WaitJson(1), Container("Parallel", AtJson(0.5, WaitJson(1), WaitJson(2)))),
+            "PlaceRefusals");
+        var root = (SequenceCutsceneActionData)rig.Session.Asset.RootAction!;
+        var parallel = (ParallelCutsceneActionData)root.Actions[1];
+        var at = (AtCutsceneActionData)parallel.Actions[0];
+
+        // A later child of a Sequence, a later child of an At, and containers (no bar): refused.
+        Assert.NotNull(rig.Panel.PlaceActionAt(root.Actions[0], 2));
+        Assert.NotNull(rig.Panel.PlaceActionAt(at.Actions[1], 2));
+        Assert.NotNull(rig.Panel.PlaceActionAt(parallel, 2));
+        Assert.NotNull(rig.Panel.PlaceActionAt(at, 2));
+        Assert.NotNull(rig.Panel.PlaceActionAt(root, 2));
+
+        // The same time as now (the first child of the At starts at 1.5 s), a time that is not a number, an action of another cutscene.
+        Assert.NotNull(rig.Panel.PlaceActionAt(at.Actions[0], 1.5));
+        Assert.NotNull(rig.Panel.PlaceActionAt(at.Actions[0], double.NaN));
+        Assert.NotNull(rig.Panel.PlaceActionAt(new WaitCutsceneActionData(), 2));
+
+        Assert.Equal(0.5f, at.Seconds);
+        Assert.Equal(2, root.Actions.Count);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.Equal(0, rig.DocumentChanges);
+        Assert.Null(rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void PlaceActionAt_IsRefusedWithoutAHistoryContext_AndDuringAPlaySession()
+    {
+        var rig = OpenRoot(Container("Parallel", WaitJson(1)), "PlaceSession");
+        var wait = ((ParallelCutsceneActionData)rig.Session.Asset.RootAction!).Actions[0];
+        EditorHistoryService.Current.IsSuspended = true;
+
+        Assert.NotNull(rig.Panel.PlaceActionAt(wait, 1));
+        Assert.NotNull(rig.Panel.GetPlaceActionRefusal(wait, 1));
+        Assert.NotNull(rig.Panel.AddActionAt(CutsceneActionTypes.Wait, 1));
+
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+
+        EditorHistoryService.Current.IsSuspended = false;
+        var withoutContext = Open(setHistoryContext: false);
+        Assert.NotNull(withoutContext.Panel.PlaceActionAt(withoutContext.Wait, 1));
+        Assert.NotNull(withoutContext.Panel.GetAddActionAtRefusal(1));
+    }
+
+    [Fact]
+    public void PlaceActionAt_UsesTheCurrentStartOfTheItem_ForABlockThatDoesNotStartAtZero()
+    {
+        // The Parallel starts at 1 s: dragging by difference moves the At by the same amount whatever the start of the block.
+        var rig = OpenRoot(
+            Container("Sequence", WaitJson(1), Container("Parallel", AtJson(0.5, WaitJson(1)))),
+            "PlaceDiff");
+        var root = (SequenceCutsceneActionData)rig.Session.Asset.RootAction!;
+        var at = (AtCutsceneActionData)((ParallelCutsceneActionData)root.Actions[1]).Actions[0];
+
+        // The child starts at 1.5 s; dropping it at 2 s adds 0.5 s.
+        Assert.Null(rig.Panel.PlaceActionAt(at.Actions[0], 2));
+
+        Assert.Equal(1f, at.Seconds);
+    }
+
+    [Fact]
+    public void AddActionAt_PutsAnAtAtTheEndOfTheSelectedParallel_CountedFromItsStart_AndSelectsTheAction()
+    {
+        var rig = OpenRoot(Container("Sequence", WaitJson(1), Container("Parallel", WaitJson(1))), "AddAt");
+        var root = (SequenceCutsceneActionData)rig.Session.Asset.RootAction!;
+        var parallel = (ParallelCutsceneActionData)root.Actions[1];
+        rig.Panel.SelectAction(parallel);
+
+        Assert.Null(rig.Panel.GetAddActionAtRefusal(2.5));
+        Assert.Null(rig.Panel.GetAddActionAtRefusal(CutsceneActionTypes.Wait, 2.5));
+        Assert.Null(rig.Panel.AddActionAt(CutsceneActionTypes.Wait, 2.5));
+
+        Assert.Equal(2, parallel.Actions.Count);
+        var at = Assert.IsType<AtCutsceneActionData>(parallel.Actions[1]);
+        Assert.Equal(1.5f, at.Seconds);
+        var created = Assert.IsType<WaitCutsceneActionData>(Assert.Single(at.Actions));
+        Assert.Same(created, rig.Panel.SelectedAction);
+        Assert.True(rig.Panel.IsDirty);
+        Assert.Equal(1, rig.DocumentChanges);
+
+        Undo();
+        Assert.Single(parallel.Actions);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Null(rig.Panel.SelectedAction);
+
+        Redo();
+        Assert.Same(at, parallel.Actions[1]);
+    }
+
+    [Fact]
+    public void AddActionAt_FromAnActionInsideAnAt_TargetsTheNearestParallel_AndStopsAtZero()
+    {
+        var rig = OpenRoot(Container("Sequence", WaitJson(1), Container("Parallel", AtJson(0.5, WaitJson(1)))), "AddAtNested");
+        var root = (SequenceCutsceneActionData)rig.Session.Asset.RootAction!;
+        var parallel = (ParallelCutsceneActionData)root.Actions[1];
+        var inner = ((AtCutsceneActionData)parallel.Actions[0]).Actions[0];
+        rig.Panel.SelectAction(inner);
+
+        // The Parallel starts at 1 s: a time before it gives 0.
+        Assert.Null(rig.Panel.AddActionAt(CutsceneActionTypes.FadeScreen, 0.2));
+
+        Assert.Equal(2, parallel.Actions.Count);
+        var at = Assert.IsType<AtCutsceneActionData>(parallel.Actions[1]);
+        Assert.Equal(0f, at.Seconds);
+        Assert.IsType<FadeScreenCutsceneActionData>(Assert.Single(at.Actions));
+    }
+
+    [Fact]
+    public void AddActionAt_WithoutATargetParallel_IsRefused_AndChangesNothing()
+    {
+        var rig = OpenRoot(Container("Sequence", WaitJson(1), Container("Parallel", WaitJson(1))), "AddAtNoTarget");
+        var root = (SequenceCutsceneActionData)rig.Session.Asset.RootAction!;
+
+        // No selection, then an action of the root Sequence.
+        Assert.NotNull(rig.Panel.GetAddActionAtRefusal(1));
+        Assert.NotNull(rig.Panel.AddActionAt(CutsceneActionTypes.Wait, 1));
+        rig.Panel.SelectAction(root.Actions[0]);
+        Assert.NotNull(rig.Panel.GetAddActionAtRefusal(1));
+        Assert.NotNull(rig.Panel.AddActionAt(CutsceneActionTypes.Wait, 1));
+
+        Assert.Equal(2, root.Actions.Count);
+        Assert.Single(((ParallelCutsceneActionData)root.Actions[1]).Actions);
+        Assert.False(rig.Panel.IsDirty);
+        Assert.Equal(0, rig.DocumentChanges);
+        Assert.Same(root.Actions[0], rig.Panel.SelectedAction);
+    }
+
+    [Fact]
+    public void AddActionAt_RefusesAnUnknownTypeAndATimeThatIsNotANumber()
+    {
+        var rig = OpenRoot(Container("Parallel", WaitJson(1)), "AddAtBad");
+        rig.Panel.SelectAction(rig.Session.Asset.RootAction);
+
+        Assert.NotNull(rig.Panel.AddActionAt("NoSuchType", 1));
+        Assert.NotNull(rig.Panel.AddActionAt(CutsceneActionTypes.Wait, double.NaN));
+        Assert.NotNull(rig.Panel.GetAddActionAtRefusal(double.PositiveInfinity));
+        Assert.NotNull(rig.Panel.GetAddActionAtRefusal("NoSuchType", 1));
+
+        Assert.Single(((ParallelCutsceneActionData)rig.Session.Asset.RootAction!).Actions);
+        Assert.False(rig.Panel.IsDirty);
+    }
 }

@@ -204,7 +204,7 @@ Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequent
 
 ## Phase 2 — Éditeur (`CasaEngine.Editor`)
 
-### ⏳ T2.1 — Opérations du document
+### ✅ T2.1 — Opérations du document
 
 - Objectif : le document sait poser une action à un instant de la timeline et en ajouter une à un instant.
 - Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, `CasaEngine.Tests/Editor/CutsceneDocumentOperationsTests.cs` (tests ajoutés).
@@ -214,6 +214,7 @@ Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequent
   3. Les requêtes de refus correspondantes, pour le menu.
 - Validation : build ; tests ajoutés : poser le premier enfant d'un `At` change son `seconds` ; poser un enfant direct d'un `Parallel` l'enveloppe ; poser une action d'un `Sequence` est refusé ; une entrée d'historique par opération, annulation et rétablissement ; `DocumentChanged` levé une fois ; ajout à un instant avec et sans `Parallel` cible ; sélection après chaque opération.
 - Commit : `feat(editor): place and add cutscene actions at a time of the timeline`
+- Note de validation (2026-11-18) : `CutsceneAssetInspectorPanel` gagne `PlaceActionAt(action, instant)` et `AddActionAt(type, instant)`, avec leurs requêtes de refus `GetPlaceActionRefusal(action, instant)`, `GetAddActionAtRefusal(type, instant)` et `GetAddActionAtRefusal(instant)` (sans type, pour le menu). `PlaceActionAt` calcule la projection de l'arbre courant avec les durées mesurées de l'aperçu, comme le panneau de la timeline (`CutsceneTimelineProjection.Build(racine, aperçu.Timings.Durations)`), lit le début de l'élément principal de l'action, convertit par `CutscenePlacement.ConvertDrop` (`seconds` actuel de l'`At`, 0 pour un enveloppement) puis exécute la commande de `CutscenePlacement.TryCreatePlace` en une entrée d'historique ; l'action est sélectionnée ensuite. Une action sans élément principal (un conteneur) est refusée, ainsi qu'un instant qui n'est pas un nombre. `AddActionAt` prend la cible de `CutscenePlacement.FindTargetParallel` (sélection), lit le début de ce `Parallel` dans la mise en page (`TryGetContainerStart`), aligne et borne à 0 par `ConvertDrop(0, début, instant)`, exécute `TryCreateAdd` et sélectionne l'action créée. Une seule entrée d'historique et un seul `DocumentChanged` par opération ; refus pendant une session de jeu et sans contexte d'historique. Build des deux solutions : 0 erreur. `dotnet test` entier : 6516 réussis, 0 échec (6506 avant cette tâche, +10 tests ajoutés dans `CutsceneDocumentOperationsTests` : pose du premier enfant d'un `At`, alignement et borne à 0, enveloppement avec instance et place conservées, refus sans effet, refus sans contexte et pendant une session de jeu, début d'un bloc qui ne commence pas à 0, ajout avec annulation et rétablissement, ajout depuis une action dans un `At`, ajout sans `Parallel` cible, type inconnu et temps non numérique). Aucun test existant modifié. Écart au plan : aucun ; aucun lancement de l'éditeur dans cette tâche.
 
 ### ⏳ T2.2 — Glisser dans la timeline
 

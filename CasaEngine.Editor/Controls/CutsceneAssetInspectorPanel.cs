@@ -598,6 +598,166 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             : error;
     }
 
+    /// <summary>
+    /// Places an action, selected or not, at a time of the timeline (ADR-0102): the projection of the current tree, with the
+    /// measured durations like the timeline panel, gives the current start of the action; the dropped time is converted by
+    /// difference into the <c>seconds</c> of an At, which is either written or created around the action, as one entry of the
+    /// history. The action is selected afterwards. Returns a message when the placement is refused (see
+    /// <see cref="GetPlaceActionRefusal"/>), and null when it is done.
+    /// </summary>
+    public string? PlaceActionAt(CutsceneActionData action, double timelineSeconds)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        string? refusal = PreparePlace(action, timelineSeconds, out var historyContext, out var command);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        ExecuteCommand(historyContext, command!);
+        SetSelection(action);
+        return null;
+    }
+
+    /// <summary>
+    /// The message that refuses <see cref="PlaceActionAt"/>, or null when it is allowed. Refused: an action that has no
+    /// main bar in the timeline (a container) or that no drag moves, a time that is not a number, and the other refusals of
+    /// <see cref="CutscenePlacement.GetPlaceRefusal"/>. Changes nothing.
+    /// </summary>
+    public string? GetPlaceActionRefusal(CutsceneActionData action, double timelineSeconds)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return PreparePlace(action, timelineSeconds, out _, out _);
+    }
+
+    private string? PreparePlace(CutsceneActionData action, double timelineSeconds, out EditorHistoryContext historyContext, out IEditorCommand? command)
+    {
+        command = null;
+        string? refusal = GetEditRefusal(action, out historyContext);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        if (!double.IsFinite(timelineSeconds))
+        {
+            return "The time must be a number of seconds.";
+        }
+
+        var root = _session!.Asset.RootAction!;
+        var layout = CutsceneTimelineProjection.Build(root, _preview?.Timings.Durations);
+        var item = FindPrimaryItem(layout, action);
+        if (item == null)
+        {
+            return "This action has no bar in the timeline: it cannot be placed in time.";
+        }
+
+        var rule = CutscenePlacement.Resolve(root, action);
+        double currentSeconds = rule.Kind == CutscenePlacementKind.ChangeAt ? rule.At!.Seconds : 0;
+        double seconds = CutscenePlacement.ConvertDrop(currentSeconds, item.StartSeconds, timelineSeconds);
+
+        command = CutscenePlacement.TryCreatePlace(_session, action, seconds, out string error);
+        return command == null ? error : null;
+    }
+
+    private static CutsceneTimelineItem? FindPrimaryItem(CutsceneTimelineLayout layout, CutsceneActionData action)
+    {
+        var items = layout.Items;
+        for (int index = 0; index < items.Count; index++)
+        {
+            var item = items[index];
+            if (item.IsPrimary && ReferenceEquals(item.Action, action))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Adds an action of a catalogue type at a time of the timeline (ADR-0102), and selects it. The target is the selected
+    /// Parallel, otherwise the nearest Parallel that holds the selection; the action goes in a new At at the end of it, whose
+    /// <c>seconds</c> is the time minus the start of the Parallel in the timeline, aligned on 1/60 s and not below 0. One
+    /// entry of the history. Returns a message when the addition is refused (see <see cref="GetAddActionAtRefusal(string, double)"/>),
+    /// and null when it is done.
+    /// </summary>
+    public string? AddActionAt(string type, double timelineSeconds)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+
+        string? refusal = PrepareAddAt(type, timelineSeconds, out var historyContext, out var command, out var created);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        ExecuteCommand(historyContext, command!);
+        SetSelection(created);
+        return null;
+    }
+
+    /// <summary>The message that refuses <see cref="AddActionAt"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetAddActionAtRefusal(string type, double timelineSeconds)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+        return PrepareAddAt(type, timelineSeconds, out _, out _, out _);
+    }
+
+    /// <summary>
+    /// The message that refuses adding an action at a time whatever its type, or null when a type could be added: the edit
+    /// refusals, a time that is not a number, and a selection with no Parallel to receive the action. Changes nothing.
+    /// </summary>
+    public string? GetAddActionAtRefusal(double timelineSeconds)
+    {
+        string? refusal = GetEditRefusal(null, out _);
+        return refusal ?? GetAddAtTarget(timelineSeconds, out _, out _);
+    }
+
+    private string? PrepareAddAt(string type, double timelineSeconds, out EditorHistoryContext historyContext, out IEditorCommand? command, out CutsceneActionData? created)
+    {
+        command = null;
+        created = null;
+        ParallelCutsceneActionData? target = null;
+        double seconds = 0;
+        string? refusal = GetEditRefusal(null, out historyContext) ?? GetAddAtTarget(timelineSeconds, out target, out seconds);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        command = CutscenePlacement.TryCreateAdd(_session!, target!, type, seconds, out created, out string error);
+        return command == null ? error : null;
+    }
+
+    // The Parallel that receives an action added at a time, and the seconds of the At: the time minus the start of the Parallel.
+    private string? GetAddAtTarget(double timelineSeconds, out ParallelCutsceneActionData? target, out double seconds)
+    {
+        target = null;
+        seconds = 0;
+        if (!double.IsFinite(timelineSeconds))
+        {
+            return "The time must be a number of seconds.";
+        }
+
+        var root = _session!.Asset.RootAction;
+        target = root == null ? null : CutscenePlacement.FindTargetParallel(root, _selectedAction);
+        if (target == null)
+        {
+            return "Select a Parallel, or an action inside one, to add an action at a time.";
+        }
+
+        var layout = CutsceneTimelineProjection.Build(root, _preview?.Timings.Durations);
+        if (!layout.TryGetContainerStart(target, out double start))
+        {
+            return "The Parallel is not shown in the timeline.";
+        }
+
+        seconds = CutscenePlacement.ConvertDrop(0, start, timelineSeconds);
+        return null;
+    }
+
     /// <summary>The message that refuses an edit of <paramref name="action"/> (null: no action to check), or null.</summary>
     private string? GetEditRefusal(CutsceneActionData? action, out EditorHistoryContext historyContext)
     {
