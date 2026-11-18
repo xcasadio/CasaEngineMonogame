@@ -18,9 +18,11 @@ namespace CasaEngine.Editor.Runtime;
 /// <summary>
 /// Plays a cutscene in an isolated copy of a world of the project (ADR-0096). The world is rebuilt from its asset at each
 /// play, because stopping a play does not restore the entities. The play runs a copy of the edited asset, so unsaved
-/// changes are played and the edited asset is never touched.
+/// changes are played and the edited asset is never touched. The play can be paused, advanced by frames and moved to a
+/// time by replaying it from the start (ADR-0099); the decisions come from <see cref="CutscenePreviewTransport"/>, the
+/// session only runs the steps that it asks for.
 /// </summary>
-internal sealed class CutscenePreviewSession : IDisposable
+internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStepper
 {
     // The first step after a world was rebuilt carries its loading time: it is bounded so that the play does not skip ahead.
     private const float MaxFirstStepSeconds = 1f / 30f;
@@ -30,12 +32,19 @@ internal sealed class CutscenePreviewSession : IDisposable
     private readonly CutscenePreviewEffectHost _host = new();
     private readonly List<string> _entityNames = [];
     private readonly CutscenePlayTimings _timings = new();
+    private readonly CutscenePreviewTransport _transport = new();
     private readonly List<MoveTrack> _moveTracks = [];
     private IReadOnlyDictionary<CutsceneActionData, CutsceneActionData> _copyToOriginal = new Dictionary<CutsceneActionData, CutsceneActionData>();
     private CutsceneDirector? _director;
     private Guid _worldId = Guid.Empty;
     private bool _clampNextStep;
     private bool _disposed;
+
+    // True once the document changed after the play was launched: the play no longer is the one of the document.
+    private bool _documentChanged;
+
+    // False until a play was launched in the current world: the measured durations belong to another world before.
+    private bool _timingsValid;
 
     public CutscenePreviewSession(HostedEditorGameAdapter editorRuntime)
     {
@@ -77,6 +86,17 @@ internal sealed class CutscenePreviewSession : IDisposable
 
     public bool IsPlaying => _director?.IsPlaying ?? false;
 
+    /// <summary>How the preview world advances. It only counts while <see cref="IsPlaying"/> is true.</summary>
+    public CutscenePreviewTransportMode TransportMode => _transport.Mode;
+
+    /// <summary>The play time that the last <see cref="Seek"/> aimed at, in seconds.</summary>
+    public double SeekTargetSeconds => _transport.TargetSeconds;
+
+    /// <summary>What the transport row shows (ADR-0099): the play comes first, then the end state of the last play.</summary>
+    public CutscenePreviewStatus Status => CutscenePreviewTransport.GetStatus(IsPlaying, _transport.Mode, State, EndedByWorldChange);
+
+    double ICutscenePreviewStepper.PlayElapsedSeconds => ElapsedSeconds;
+
     /// <summary>Seconds of the play clock of the last play (ADR-0098); 0 before the first play.</summary>
     public double ElapsedSeconds => _director?.PlayElapsedSeconds ?? 0d;
 
@@ -94,6 +114,7 @@ internal sealed class CutscenePreviewSession : IDisposable
     {
         _timings.Clear();
         _moveTracks.Clear();
+        _documentChanged = true;
     }
 
     /// <summary>
@@ -138,6 +159,7 @@ internal sealed class CutscenePreviewSession : IDisposable
         FailureReason = string.Empty;
         EndedByWorldChange = false;
         _host.Reset();
+        _timingsValid = false;
 
         if (worldAssetId == Guid.Empty)
         {
@@ -155,14 +177,105 @@ internal sealed class CutscenePreviewSession : IDisposable
     }
 
     /// <summary>
-    /// Rebuilds the world from its asset and plays a copy of <paramref name="asset"/> in it. False, with <see cref="Error"/>,
-    /// when no world is set or it cannot be rebuilt.
+    /// Rebuilds the world from its asset and plays a copy of <paramref name="asset"/> in it, from the start, with the
+    /// measured durations forgotten. False, with <see cref="Error"/>, when no world is set or it cannot be rebuilt.
     /// </summary>
     public bool Play(CutsceneAsset asset)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(asset);
 
+        return Launch(asset, keepTimings: false);
+    }
+
+    /// <summary>Freezes the play. Does nothing when no play runs. A seek in progress is abandoned at the time it reached.</summary>
+    public void Pause()
+    {
+        if (IsPlaying)
+        {
+            _transport.Pause();
+        }
+    }
+
+    /// <summary>Lets a paused play advance again. Does nothing when no play runs or the play is not paused.</summary>
+    public void Resume()
+    {
+        if (IsPlaying && _transport.Mode == CutscenePreviewTransportMode.Paused)
+        {
+            _transport.Resume();
+        }
+    }
+
+    /// <summary>Pauses the play and advances it by <paramref name="count"/> frames. Does nothing when no play runs.</summary>
+    public void StepFrames(int count)
+    {
+        if (IsPlaying)
+        {
+            _transport.StepFrames(count);
+        }
+    }
+
+    /// <summary>
+    /// Moves the preview to a play time and pauses it there (ADR-0099). When the time is ahead of the play, the play runs
+    /// and the document did not change since it was launched, the play goes on from its current state. Otherwise the world
+    /// is rebuilt and a copy of <paramref name="asset"/> is played again from the start, keeping the measured durations.
+    /// The steps are done by <see cref="Tick"/>, within a time budget per frame. False, with <see cref="Error"/>, when no
+    /// world is set or it cannot be rebuilt.
+    /// </summary>
+    public bool Seek(CutsceneAsset asset, double seconds)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(asset);
+
+        double target = Math.Max(0d, seconds);
+        if (IsPlaying && !_documentChanged && target >= ElapsedSeconds - CutscenePreviewTransport.StepSeconds / 2.0)
+        {
+            _transport.Seek(target, ElapsedSeconds);
+            return true;
+        }
+
+        if (!Launch(asset, keepTimings: true))
+        {
+            return false;
+        }
+
+        _transport.Seek(target, ElapsedSeconds);
+        return true;
+    }
+
+    /// <summary>
+    /// Puts the preview back in its state before any play: stops the play, forgets what it requested, rebuilds the world
+    /// from its asset and sets the state to Stopped, with the play time at 0. The measured durations are kept. False, with
+    /// <see cref="Error"/>, when no world is set or it cannot be rebuilt.
+    /// </summary>
+    public bool Rewind()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        Stop();
+        if (_worldId == Guid.Empty)
+        {
+            Error = "No preview world is selected.";
+            return false;
+        }
+
+        _host.Reset();
+        EndedByWorldChange = false;
+        FailureReason = string.Empty;
+        State = CutsceneRuntimeState.Idle;
+        if (!TryLoadWorld(_worldId))
+        {
+            return false;
+        }
+
+        // A play that was already over raised no Ended when it was stopped: the state is set here.
+        State = CutsceneRuntimeState.Stopped;
+        _transport.Start();
+        return true;
+    }
+
+    private bool Launch(CutsceneAsset asset, bool keepTimings)
+    {
         Stop();
         if (_worldId == Guid.Empty)
         {
@@ -184,7 +297,18 @@ internal sealed class CutscenePreviewSession : IDisposable
         _copyToOriginal = copy.RootAction != null && asset.RootAction != null
             ? CutsceneActionTree.MapByShape(copy.RootAction, asset.RootAction) ?? _copyToOriginal
             : _copyToOriginal;
-        _timings.Begin(_copyToOriginal);
+        if (keepTimings && _timingsValid)
+        {
+            _timings.Continue(_copyToOriginal);
+        }
+        else
+        {
+            _timings.Begin(_copyToOriginal);
+        }
+
+        _timingsValid = true;
+        _documentChanged = false;
+        _transport.Start();
         _director!.Play(copy);
         if (!_director.IsPlaying && State == CutsceneRuntimeState.Idle)
         {
@@ -205,7 +329,10 @@ internal sealed class CutscenePreviewSession : IDisposable
         _director?.Stop();
     }
 
-    /// <summary>Advances the world, so the play, and the fades of the play.</summary>
+    /// <summary>
+    /// Advances the world, so the play, and the fades of the play, as the transport decides: with the frame when it runs,
+    /// by fixed steps within a time budget when it seeks, not at all when it is paused.
+    /// </summary>
     public void Tick(GameTime gameTime)
     {
         ArgumentNullException.ThrowIfNull(gameTime);
@@ -215,14 +342,20 @@ internal sealed class CutscenePreviewSession : IDisposable
             return;
         }
 
-        if (_clampNextStep && gameTime.ElapsedGameTime.TotalSeconds > MaxFirstStepSeconds)
+        float frameSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        if (_clampNextStep && frameSeconds > MaxFirstStepSeconds)
         {
-            gameTime = new GameTime(gameTime.TotalGameTime, TimeSpan.FromSeconds(MaxFirstStepSeconds));
+            frameSeconds = MaxFirstStepSeconds;
         }
 
         _clampNextStep = false;
-        _driver.Tick(gameTime);
-        _host.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        _transport.Advance(this, frameSeconds);
+    }
+
+    void ICutscenePreviewStepper.Step(float seconds)
+    {
+        _driver.Tick(seconds);
+        _host.Update(seconds);
         UpdateMoveTracks();
 
         if (_host.EndRequested && _director != null && _director.IsPlaying)

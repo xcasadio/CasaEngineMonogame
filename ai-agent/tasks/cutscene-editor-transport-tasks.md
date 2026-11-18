@@ -180,7 +180,7 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 
 ## Phase 2 — Éditeur (`CasaEngine.Editor`)
 
-### ⏳ T2.1 — La session d'aperçu met en pause, avance d'une image et va à un instant
+### ✅ T2.1 — La session d'aperçu met en pause, avance d'une image et va à un instant
 
 - Objectif : la session expose la pause, le pas à pas, la recherche et le retour au départ, en s'appuyant sur T1.1.
 - Fichiers : `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`, `CasaEngine.Editor/Runtime/PreviewWorldDriver.cs`.
@@ -193,6 +193,7 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
   6. `Play` remet le transport en mode `Running`. Quand aucune lecture ne court, le mode du transport ne compte plus : tout ce qui s'affiche part d'abord de « la lecture court-elle » (table de T2.2).
 - Validation : build ; tests verts (aucun test ne construit la session : sa validation est celle de T2.5 et T2.6).
 - Commit : `feat(editor): pause, step and seek the cutscene preview session`
+- Note de validation (2026-11-18) : `PreviewWorldDriver.Tick(float)` ajouté (`Tick(GameTime)` l'appelle). `CutscenePreviewSession` implémente `ICutscenePreviewStepper` (pas = avance du monde, `_host.Update`, `UpdateMoveTracks`, arrêt sur demande de changement de monde) ; `Tick(GameTime)` borne le premier pas puis délègue à `CutscenePreviewTransport.Advance`, sans créer de `GameTime`. Ajoutés : `Pause`, `Resume` (seulement depuis `Paused`), `StepFrames`, `Seek(asset, secondes)` (reprise depuis l'état courant si l'instant est devant, que la lecture court et que le document n'a pas changé depuis le lancement, sinon reconstruction avec `CutscenePlayTimings.Continue`), `Rewind` (état fixé à `Stopped`, mesures gardées), et les lectures `TransportMode`, `SeekTargetSeconds` et `Status` (fonction `GetStatus`). `Play` et `Seek` partagent `Launch` ; `SetWorld` invalide les mesures gardées (le premier `Seek` suivant repart d'un relevé vide). Les deux solutions buildent à 0 erreur ; `dotnet test` : 6176 tests verts, inchangé (aucun test ne construit la session : validation par T2.5 et T2.6). Aucun test existant modifié.
 
 ### ⏳ T2.2 — Barre de transport du document
 

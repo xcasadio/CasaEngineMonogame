@@ -91,12 +91,18 @@ internal sealed class PreviewWorldDriver : IDisposable
     {
         ArgumentNullException.ThrowIfNull(gameTime);
 
+        Tick((float)gameTime.ElapsedGameTime.TotalSeconds);
+    }
+
+    /// <summary>Advances the world by <paramref name="seconds"/>. Creates no <see cref="GameTime"/>, so a loop of steps allocates nothing.</summary>
+    public void Tick(float seconds)
+    {
         if (_options.UpdateMode != PreviewWorldUpdateMode.Continuous || World == null)
         {
             return;
         }
 
-        World.Update((float)gameTime.ElapsedGameTime.TotalSeconds);
+        World.Update(seconds);
     }
 
     public void Clear()
