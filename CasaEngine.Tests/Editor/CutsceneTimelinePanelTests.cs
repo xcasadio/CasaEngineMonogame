@@ -2,6 +2,7 @@ using CasaEngine.Editor;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Editor.Controls.Timeline.Menu;
 using CasaEngine.Editor.History;
 using CasaEngine.EditorServices.Cutscenes;
@@ -10,6 +11,8 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Tests.ContentBrowser;
 using Microsoft.Xna.Framework;
+using MGUI.Core.UI;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.Editor;
@@ -141,7 +144,7 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
 
         Assert.Equal(expectedTracks, model.Tracks.Count);
         Assert.Equal(layout.Items.Count, model.Items.Count);
-        Assert.Equal((float)layout.DurationSeconds, model.DurationSeconds);
+        Assert.Equal((float)(layout.DurationSeconds + Math.Max(layout.DurationSeconds / 4d, 2d)), model.DurationSeconds);
         Assert.All(model.Tracks, track => Assert.False(track.IsEditable));
         Assert.All(model.Items, item =>
         {
@@ -498,5 +501,402 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         int rowsHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (timeline.Model!.Tracks.Count * timeline.TrackRowHeight);
         Assert.True(timeline.TrackAreaViewportHeight >= rowsHeight, $"viewport {timeline.TrackAreaViewportHeight}, rows {rowsHeight}");
         Assert.False(timeline.IsVerticalScrollBarVisible);
+    }
+
+    // ---- Dragging in time (ADR-0102, P5 to P8, P12) -------------------------------------------------------------------
+
+    private static JObject Node(string type, params JObject[] children)
+    {
+        var node = new JObject { ["type"] = type };
+        if (children.Length > 0 || type is "Sequence" or "Parallel" or "At" or "Repeat")
+        {
+            node["actions"] = new JArray(children);
+        }
+
+        return node;
+    }
+
+    private static JObject WaitNode(double seconds) => new() { ["type"] = "Wait", ["seconds"] = seconds };
+
+    private static JObject AtNode(double seconds, params JObject[] children)
+    {
+        var at = Node("At", children);
+        at["seconds"] = seconds;
+        return at;
+    }
+
+    // The tree of the drag tests:
+    // Sequence[ Wait 1, Parallel[ At 0.5 [ a: Wait 1 ], b: Wait 2, Sequence[ c1: Wait 1, c2: Wait 1 ] ] ]: the Parallel starts at
+    /// 1 s and the cutscene lasts 3 s.
+    /// </summary>
+    private sealed class DragRig
+    {
+        public required ContentBrowserViewTestHarness Harness { get; init; }
+
+        public required CutsceneTimelinePanel Panel { get; init; }
+
+        public required CutsceneAssetInspectorPanel Document { get; init; }
+
+        public required CutsceneEditSession Session { get; init; }
+
+        public TimelineControl Timeline => Panel.Timeline!;
+
+        public SequenceCutsceneActionData Root => (SequenceCutsceneActionData)Session.Asset.RootAction!;
+
+        public ParallelCutsceneActionData Parallel => (ParallelCutsceneActionData)Root.Actions[1];
+
+        public AtCutsceneActionData At => (AtCutsceneActionData)Parallel.Actions[0];
+
+        public CutsceneActionData A => At.Actions[0];
+
+        public CutsceneActionData B => Parallel.Actions[1];
+
+        public SequenceCutsceneActionData C => (SequenceCutsceneActionData)Parallel.Actions[2];
+
+        public CutsceneActionData C1 => C.Actions[0];
+
+        public CutsceneActionData C2 => C.Actions[1];
+
+        public int Time { get; set; } = 100;
+    }
+
+    private DragRig OpenDragTree(bool historyContext = true)
+    {
+        var root = Node("Sequence",
+            WaitNode(1),
+            Node("Parallel",
+                AtNode(0.5, WaitNode(1)),
+                WaitNode(2),
+                Node("Sequence", WaitNode(1), WaitNode(1))));
+        var document = new JObject
+        {
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "Drag",
+            ["type"] = "CutsceneAsset",
+            ["version"] = 1,
+            ["schema_version"] = 1,
+            ["root_action"] = root,
+        };
+        string path = Path.Combine(_projectDirectory, "Drag-" + Guid.NewGuid().ToString("N") + ".cutscene");
+        File.WriteAllText(path, document.ToString());
+        Assert.True(CutsceneAssetInspectorPanel.TryLoadAsset(path, out var session));
+
+        var harness = ContentBrowserViewTestHarness.Create(900, 400);
+        var panel = new CutsceneTimelinePanel(harness.Window);
+        harness.Window.SetContent(panel.CreateContent());
+        var inspector = new CutsceneAssetInspectorPanel(harness.Window);
+        _panels.Add(inspector);
+        if (historyContext)
+        {
+            inspector.SetHistoryContextId(ContextId);
+            EditorHistoryService.Current.SetActiveContext(Context);
+        }
+
+        inspector.LoadAsset(session!, path);
+        panel.SetEditorPanel(inspector);
+        harness.AdvanceFrame(0);
+        harness.AdvanceFrame(16);
+        panel.Update();
+        harness.AdvanceFrame(32);
+        return new DragRig { Harness = harness, Panel = panel, Document = inspector, Session = session! };
+    }
+
+    private static MGElement ViewportOf(TimelineControl timeline)
+    {
+        var field = typeof(TimelineControl).GetField("_viewport", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        return (MGElement)field!.GetValue(timeline)!;
+    }
+
+    /// <summary>The screen position of a time on the row of an item, the way the track area reads it.</summary>
+    private static Point ScreenPoint(DragRig rig, TimelineItem item, float timeSeconds)
+    {
+        var viewport = ViewportOf(rig.Timeline);
+        Rectangle layoutBounds = viewport.LayoutBounds;
+        Rectangle row = rig.Timeline.GetTrackBounds(layoutBounds, rig.Timeline.GetTrackIndex(item.TrackId));
+        int x = layoutBounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft + (int)MathF.Round(rig.Timeline.ViewTransform.TimeToViewportX(timeSeconds));
+        return viewport.ConvertCoordinateSpace(CoordinateSpace.Layout, CoordinateSpace.Screen, new Point(x, row.Center.Y));
+    }
+
+    /// <summary>Presses the item at <paramref name="grabSeconds"/>, moves to <paramref name="dropSeconds"/> in steps and releases there.</summary>
+    private static void Drag(DragRig rig, TimelineItem item, float grabSeconds, float dropSeconds, Microsoft.Xna.Framework.Input.Keys[]? keys = null)
+    {
+        Point from = ScreenPoint(rig, item, grabSeconds);
+        Point to = ScreenPoint(rig, item, dropSeconds);
+        var harness = rig.Harness;
+
+        harness.AdvanceFrame(rig.Time += 16, from, MGUI.Shared.Input.Mouse.MouseButton.Left, keys);
+        const int steps = 8;
+        for (int step = 1; step <= steps; step++)
+        {
+            var position = new Point(from.X + ((to.X - from.X) * step / steps), from.Y);
+            harness.AdvanceFrame(rig.Time += 16, position, MGUI.Shared.Input.Mouse.MouseButton.Left, keys);
+        }
+
+        harness.AdvanceFrame(rig.Time += 16, to, MGUI.Shared.Input.Mouse.MouseButton.Left, keys);
+        harness.AdvanceFrame(rig.Time += 16, to, null, keys);
+        harness.AdvanceFrame(rig.Time += 16, to);
+    }
+
+    private static CutsceneTimelineItemInfo InfoOf(TimelineItem item) => (CutsceneTimelineItemInfo)item.Source!;
+
+    private static void Undo()
+    {
+        EditorHistoryService.Current.SetActiveContext(Context);
+        Assert.True(EditorHistoryService.Current.Undo());
+    }
+
+    [Fact]
+    public void OnlyTheItemsThePlacementRuleAllows_AreEditableAndMovable_WithNoResize_AndTheTracksStayReadOnly()
+    {
+        var rig = OpenDragTree();
+        var model = rig.Timeline.Model!;
+
+        // a: first child of an At; b: direct child of a Parallel; c1: first of a Sequence that is a child of a Parallel.
+        foreach (var draggable in new[] { rig.A, rig.B, rig.C1 })
+        {
+            var item = FindItem(rig.Panel, draggable);
+            Assert.True(item.IsEditable);
+            Assert.True(item.CanMove);
+            Assert.True(InfoOf(item).CanDrag);
+        }
+
+        // c2: second child of a Sequence; the first Wait of the root: child of the root.
+        foreach (var fixedAction in new[] { rig.C2, rig.Root.Actions[0] })
+        {
+            var item = FindItem(rig.Panel, fixedAction);
+            Assert.False(item.IsEditable);
+            Assert.False(item.CanMove);
+            Assert.False(InfoOf(item).CanDrag);
+        }
+
+        Assert.All(model.Items, item =>
+        {
+            Assert.False(item.CanResizeStart);
+            Assert.False(item.CanResizeEnd);
+        });
+        Assert.All(model.Tracks, track => Assert.False(track.IsEditable));
+        Assert.IsType<CutsceneTimelineEditPolicy>(rig.Timeline.EditPolicy);
+    }
+
+    [Fact]
+    public void TheLowestInstantOfAnItem_IsWhereTheDelayOfItsAtWouldBeZero()
+    {
+        var rig = OpenDragTree();
+
+        // The Parallel starts at 1 s: a is at 1.5 s through an At of 0.5 s; b and c1 are at 1 s and would be wrapped (delay 0).
+        Assert.Equal(1f, InfoOf(FindItem(rig.Panel, rig.A)).LowestInstantSeconds, 4);
+        Assert.Equal(1f, InfoOf(FindItem(rig.Panel, rig.B)).LowestInstantSeconds, 4);
+        Assert.Equal(1f, InfoOf(FindItem(rig.Panel, rig.C1)).LowestInstantSeconds, 4);
+        Assert.Equal(1.5f, FindItem(rig.Panel, rig.A).StartTime, 4);
+    }
+
+    [Fact]
+    public void TheToolTipOfAnItemThatCanBeDragged_SaysSo_AndTheOthersAreUnchanged()
+    {
+        var rig = OpenDragTree();
+
+        Assert.Contains("Drag in time: changes the delay of its At (now 0.5 s).", FindItem(rig.Panel, rig.A).ToolTipText);
+        Assert.Contains("Drag in time: wraps it in an At.", FindItem(rig.Panel, rig.B).ToolTipText);
+        Assert.DoesNotContain("Drag in time", FindItem(rig.Panel, rig.C2).ToolTipText);
+        Assert.StartsWith("Wait", FindItem(rig.Panel, rig.C2).ToolTipText);
+    }
+
+    [Fact]
+    public void ThePolicy_AlignsOnFrames_StopsAtTheLowestInstant_AndLeavesOtherItemsAlone()
+    {
+        var rig = OpenDragTree();
+        var policy = new CutsceneTimelineEditPolicy();
+        var model = rig.Timeline.Model!;
+        TimelineSnapContext Snap(TimelineItem? item) => new() { Model = model, Item = item, SnapSettings = rig.Timeline.SnapSettings };
+        var a = FindItem(rig.Panel, rig.A);
+        var c2 = FindItem(rig.Panel, rig.C2);
+
+        Assert.Equal(2f + (1f / 60f), policy.SnapTime(2.0f + (1f / 60f) + 0.004f, Snap(a)), 4);
+        Assert.Equal(1f, policy.SnapTime(0.2f, Snap(a)), 4);
+        Assert.Equal(1f, policy.SnapTime(1f - 0.001f, Snap(a)), 4);
+
+        // An item that is not dragged, or no item: the time is returned as it is.
+        Assert.Equal(0.1234f, policy.SnapTime(0.1234f, Snap(c2)));
+        Assert.Equal(0.1234f, policy.SnapTime(0.1234f, Snap(null)));
+
+        Assert.True(policy.CanMoveItem(a, model.Tracks[0], 2f));
+        Assert.False(policy.CanMoveItem(c2, model.Tracks[0], 2f));
+        Assert.False(policy.CanResizeItem(a, 1f, 2f));
+        Assert.False(policy.CanInsertItem(model.Tracks[0], 1f));
+        Assert.True(policy.ValidateMove(model, a, model.Tracks[0], 2f, 1f).IsValid);
+
+        // The control only calls the policy while the snapping is enabled.
+        Assert.True(rig.Timeline.SnapSettings.IsEnabled);
+        Assert.Equal(1f, rig.Timeline.SnapTime(0.3f, a), 4);
+    }
+
+    [Fact]
+    public void DraggingTheFirstChildOfAnAt_WritesTheDelayOfTheAt_ToAFrame_InOneEntry_AndUndoes()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+        Assert.Equal(0.5f, rig.At.Seconds);
+
+        Drag(rig, a, 1.8f, 2.2f);
+
+        Assert.Equal(1.2f, rig.At.Seconds, 1f / 60f);
+        Assert.Equal(2.2f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
+        Assert.Same(rig.A, rig.Document.SelectedAction);
+        Assert.True(rig.Document.IsDirty);
+        Assert.Null(rig.Panel.LastPlaceRefusal);
+        Assert.NotNull(rig.Panel.LastPlaceRequestSeconds);
+
+        Undo();
+        Assert.Equal(0.5f, rig.At.Seconds);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.False(rig.Document.IsDirty);
+    }
+
+    [Fact]
+    public void DraggingADirectChildOfAParallel_WrapsItInAnAt_InOneEntry_AndKeepsTheInstance()
+    {
+        var rig = OpenDragTree();
+        var b = FindItem(rig.Panel, rig.B);
+        var b0 = rig.B;
+        int count = rig.Parallel.Actions.Count;
+        Assert.Equal(1f, b.StartTime, 4);
+
+        Drag(rig, b, 1.3f, 1.6f);
+
+        Assert.Equal(count, rig.Parallel.Actions.Count);
+        var wrapper = Assert.IsType<AtCutsceneActionData>(rig.Parallel.Actions[1]);
+        Assert.Equal(0.6f, wrapper.Seconds, 1f / 60f);
+        Assert.Same(b0, Assert.Single(wrapper.Actions));
+        Assert.Equal(1.6f, FindItem(rig.Panel, b0).StartTime, 1f / 60f);
+
+        Undo();
+        Assert.Same(b0, rig.Parallel.Actions[1]);
+        Assert.False(EditorHistoryService.Current.CanUndo);
+    }
+
+    [Fact]
+    public void DraggingTheSecondChildOfASequence_ChangesNothing()
+    {
+        var rig = OpenDragTree();
+        var c2 = FindItem(rig.Panel, rig.C2);
+        float start = c2.StartTime;
+
+        Drag(rig, c2, start + 0.3f, start + 1.0f);
+
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.False(rig.Document.IsDirty);
+        Assert.Null(rig.Panel.LastPlaceRequestSeconds);
+        Assert.Equal(start, FindItem(rig.Panel, rig.C2).StartTime, 4);
+    }
+
+    [Fact]
+    public void DraggingBeforeTheStartOfTheBlock_StopsAtTheLowestInstant()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+
+        Drag(rig, a, 1.8f, 0.1f);
+
+        Assert.Equal(0f, rig.At.Seconds);
+        Assert.Equal(1f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
+    }
+
+    [Fact]
+    public void DraggingBeyondTheRealEnd_IsPossible_ThanksToTheRoomAfterIt()
+    {
+        var rig = OpenDragTree();
+        double real = rig.Panel.Layout.DurationSeconds;
+        Assert.Equal(3d, real, 4);
+        Assert.Equal(real + 2d, rig.Timeline.Model!.DurationSeconds, 4);
+
+        // Zoom out so that the displayed duration is in the window.
+        rig.Timeline.PixelsPerSecond = rig.Timeline.VisibleTimeAreaWidth / 6f;
+        rig.Harness.AdvanceFrame(rig.Time += 16);
+        var a = FindItem(rig.Panel, rig.A);
+
+        Drag(rig, a, 1.8f, 4.4f);
+
+        Assert.Equal(0.5f + (4.4f - 1.5f), rig.At.Seconds, 1f / 60f);
+        Assert.True(FindItem(rig.Panel, rig.A).StartTime > (float)real);
+    }
+
+    [Fact]
+    public void ControlDragging_DoesNothing()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+        int actions = CutsceneActionTree.CountActions(rig.Session.Asset.RootAction!);
+
+        Drag(rig, a, 1.8f, 2.4f, [Microsoft.Xna.Framework.Input.Keys.LeftControl]);
+
+        Assert.Equal(0.5f, rig.At.Seconds);
+        Assert.Equal(actions, CutsceneActionTree.CountActions(rig.Session.Asset.RootAction!));
+        Assert.False(EditorHistoryService.Current.CanUndo);
+        Assert.Null(rig.Panel.LastPlaceRequestSeconds);
+    }
+
+    [Fact]
+    public void TheGenericShortcutsOnADraggableItem_AreTakenWithoutDoingAnything()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+        rig.Timeline.SetSelectedItemId(a.Id, true);
+        int actions = CutsceneActionTree.CountActions(rig.Session.Asset.RootAction!);
+
+        // The control marks these as handled while a draggable item is selected, but no one listens to its requests.
+        Assert.True(rig.Timeline.TryDuplicateSelectedItem(1f));
+        Assert.True(rig.Timeline.TryDeleteSelectedItem());
+        Assert.True(rig.Timeline.TryCopySelectedItem());
+        Assert.False(rig.Timeline.TryPasteToSelectedTrack(1f));
+        Assert.False(rig.Timeline.TryInsertAtSelectedTrack(1f));
+
+        Assert.Equal(actions, CutsceneActionTree.CountActions(rig.Session.Asset.RootAction!));
+        Assert.False(EditorHistoryService.Current.CanUndo);
+    }
+
+    [Fact]
+    public void ARefusedDrop_ChangesNothing_AndRecordsTheMessage()
+    {
+        var rig = OpenDragTree(historyContext: false);
+        var a = FindItem(rig.Panel, rig.A);
+
+        // The same call the release of a drag makes.
+        rig.Timeline.CommitDraggedItemTime(a.Id, 2.2f);
+
+        Assert.Equal(0.5f, rig.At.Seconds);
+        Assert.NotNull(rig.Panel.LastPlaceRefusal);
+        Assert.Equal(2.2f, rig.Panel.LastPlaceRequestSeconds);
+        Assert.False(rig.Document.IsDirty);
+    }
+
+    [Fact]
+    public void TheModelShowsTheRealDurationPlusRoom_ButThePlayheadAndTheSeeksKeepTheRealDuration()
+    {
+        var rig = OpenDragTree();
+        double real = rig.Panel.Layout.DurationSeconds;
+
+        Assert.Equal(real + Math.Max(real / 4d, 2d), CutsceneTimelinePanel.GetDisplayedDuration(real), 6);
+        Assert.Equal(2d + 2d, CutsceneTimelinePanel.GetDisplayedDuration(2d), 6);
+        Assert.Equal(20d + 5d, CutsceneTimelinePanel.GetDisplayedDuration(20d), 6);
+        Assert.Equal((float)CutsceneTimelinePanel.GetDisplayedDuration(real), rig.Timeline.Model!.DurationSeconds);
+
+        // A request in the room after the end is bounded to the real duration, and the playhead stays there.
+        rig.Timeline.NotifyTimeScrubbed((float)real + 1.5f);
+        Assert.Equal((float)real, rig.Panel.LastSeekRequestSeconds);
+        rig.Panel.Update();
+        Assert.True(rig.Panel.PlayheadSeconds <= (float)real);
+    }
+
+    [Fact]
+    public void TheZoomFit_ReadsTheDurationOfTheProjection_NotTheOneOfTheModel()
+    {
+        var rig = OpenDragTree();
+        Settle(rig.Harness, rig.Panel);
+        var timeline = rig.Timeline;
+
+        float width = timeline.VisibleTimeAreaWidth;
+        float expected = Math.Clamp(width / ((float)rig.Panel.Layout.DurationSeconds * 1.04f), timeline.MinimumPixelsPerSecond, timeline.MaximumPixelsPerSecond);
+        Assert.Equal(expected, timeline.PixelsPerSecond, 0.5f);
+        Assert.True(timeline.Model!.DurationSeconds > (float)rig.Panel.Layout.DurationSeconds);
     }
 }

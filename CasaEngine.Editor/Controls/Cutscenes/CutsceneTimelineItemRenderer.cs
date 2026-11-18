@@ -25,7 +25,9 @@ internal sealed class CutsceneTimelineItemInfo
         string shortLabel,
         double nextStartSeconds,
         float labelInset,
-        double labelEndSeconds)
+        double labelEndSeconds,
+        bool canDrag = false,
+        float lowestInstantSeconds = 0f)
     {
         Item = item;
         RowKind = rowKind;
@@ -33,6 +35,8 @@ internal sealed class CutsceneTimelineItemInfo
         NextStartSeconds = nextStartSeconds;
         LabelInset = labelInset;
         LabelEndSeconds = labelEndSeconds;
+        CanDrag = canDrag;
+        LowestInstantSeconds = lowestInstantSeconds;
     }
 
     public CutsceneTimelineItem Item { get; }
@@ -50,6 +54,12 @@ internal sealed class CutsceneTimelineItemInfo
 
     /// <summary>Where the label of a bar must end: the end of the bar, or the first marker drawn over it.</summary>
     public double LabelEndSeconds { get; }
+
+    /// <summary>Whether the item can be dragged in time (P5): its left edge is drawn lighter (P8).</summary>
+    public bool CanDrag { get; }
+
+    /// <summary>For an item that can be dragged: the lowest time it can be dragged to, where the delay of its At would be 0 (P6).</summary>
+    public float LowestInstantSeconds { get; }
 
     public float LabelWidth { get; set; } = -1f;
 
@@ -73,6 +83,7 @@ internal sealed class CutsceneTimelineItemRenderer : ITimelineItemRenderer
     private const float DashGap = 3f;
     private const float MarkerHalfSize = 6f;
     private const float LabelPadding = 5f;
+    private const float GripWidth = 3f;
 
     public void DrawItem(
         ElementDrawArgs drawArgs,
@@ -188,6 +199,11 @@ internal sealed class CutsceneTimelineItemRenderer : ITimelineItemRenderer
             }
         }
 
+        if (info.CanDrag)
+        {
+            DrawGrip(drawArgs, origin, left, top, height, baseColor, opacity);
+        }
+
         float textRight = right;
         if (open)
         {
@@ -232,6 +248,11 @@ internal sealed class CutsceneTimelineItemRenderer : ITimelineItemRenderer
         drawArgs.Context.StrokeLineSegment(origin, new Vector2(left, top), new Vector2(left, bottom), border, thickness);
         drawArgs.Context.StrokeLineSegment(origin, new Vector2(right, top), new Vector2(right, bottom), border, thickness);
 
+        if (info.CanDrag)
+        {
+            DrawGrip(drawArgs, origin, left, top, bottom - top, baseColor, opacity);
+        }
+
         DrawLabelInside(drawArgs, context, origin, info, item, left + LabelPadding, right - LabelPadding, top, bottom - top, opacity);
     }
 
@@ -265,6 +286,14 @@ internal sealed class CutsceneTimelineItemRenderer : ITimelineItemRenderer
         drawArgs.Context.StrokeLineSegment(origin, rightPoint, bottomPoint, border, thickness);
         drawArgs.Context.StrokeLineSegment(origin, bottomPoint, leftPoint, border, thickness);
         drawArgs.Context.StrokeLineSegment(origin, leftPoint, topPoint, border, thickness);
+
+        if (info.CanDrag)
+        {
+            // The left half of the outline, lighter than the rest: the same sign as the left edge of a bar.
+            Color grip = GetGripColor(baseColor) * opacity;
+            drawArgs.Context.StrokeLineSegment(origin, bottomPoint, leftPoint, grip, GripWidth);
+            drawArgs.Context.StrokeLineSegment(origin, leftPoint, topPoint, grip, GripWidth);
+        }
 
         float room = float.MaxValue;
         if (!double.IsPositiveInfinity(info.NextStartSeconds))
@@ -359,6 +388,17 @@ internal sealed class CutsceneTimelineItemRenderer : ITimelineItemRenderer
         Vector2 position = new Vector2(left, y) + (font.DrawOrigin * context.FontScale) + origin;
         Color color = onBackground ? Color.White * (0.9f * opacity) : Color.White * opacity;
         drawArgs.DT.DrawTextViaEngine(font, text, position, color, font.DrawOrigin, context.FontScale);
+    }
+
+    /// <summary>The left edge of an item that can be dragged in time (P8): a lighter strip inside the bar, so that it shows when the item is selected too.</summary>
+    private static void DrawGrip(ElementDrawArgs drawArgs, Vector2 origin, float left, float top, float height, Color baseColor, float opacity)
+    {
+        drawArgs.Context.FillRectangle(origin, new RectangleF(left, top, GripWidth, height), GetGripColor(baseColor) * opacity);
+    }
+
+    private static Color GetGripColor(Color baseColor)
+    {
+        return Color.Lerp(baseColor, Color.White, 0.65f);
     }
 
     private static void DrawDashedLine(ElementDrawArgs drawArgs, Vector2 origin, float left, float right, float y, Color color, float thickness)

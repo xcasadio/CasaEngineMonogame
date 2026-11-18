@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Editor.Controls.Timeline.Menu;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Cutscenes;
@@ -17,16 +18,22 @@ using MonoGame.Extended;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The read-only timeline of the active cutscene document (ADR-0098): a projection of its action tree on rows and times,
-/// a playhead that follows the preview, and a selection shared with the outliner. The model is rebuilt when the document
-/// changes or a new duration is measured, never per frame; per frame only the playhead moves. A right click on an item opens
-/// the structure menu shared with the outliner (P8, P12); the empty space and the track headers have no menu.
+/// The timeline of the active cutscene document (ADR-0098): a projection of its action tree on rows and times,
+/// a playhead that follows the preview, and a selection shared with the outliner. The tree stays the model: the projection is
+/// read-only, except that an item the placement rule allows (ADR-0102, P5) can be dragged in time, which writes the tree through
+/// the document. The model is rebuilt when the document changes or a new duration is measured, never per frame; per frame only
+/// the playhead moves. A right click on an item opens the structure menu shared with the outliner (P8, P12); the empty space
+/// and the track headers have no menu.
 /// </summary>
 internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 {
     private const float EmptyOpenBarSeconds = 0.25f;
     private const int CompactTrackRowHeight = 23;
     private const float FitMarginFraction = 0.04f;
+
+    // P7: the model is longer than the cutscene by a quarter of it, and by 2 s at least, so that an item can be dragged later than the end.
+    private const double DisplayMarginFraction = 0.25;
+    private const double DisplayMarginMinimumSeconds = 2d;
 
     // Frames to wait after a selection before bringing its track into view: the layout of the new model must have run.
     private const int RevealDelayFrames = 2;
@@ -51,6 +58,8 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
     private float _fitWidth;
     private Guid _revealTrackId;
     private int _revealDelay;
+    private float? _lastPlaceRequestSeconds;
+    private string? _lastPlaceRefusal;
 
     public CutsceneTimelinePanel(MGWindow window)
     {
@@ -74,6 +83,22 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 
     /// <summary>Whether the document accepted the last request; false when it has no preview to move.</summary>
     public bool LastSeekRequestAccepted => _lastSeekRequestAccepted;
+
+    /// <summary>The time an item was last dropped at after a drag, or null when none was dropped.</summary>
+    public float? LastPlaceRequestSeconds => _lastPlaceRequestSeconds;
+
+    /// <summary>The message that refused the last drop of an item, or null when it was done or none was dropped.</summary>
+    public string? LastPlaceRefusal => _lastPlaceRefusal;
+
+    /// <summary>
+    /// The duration the timeline model shows for a cutscene that lasts <paramref name="realSeconds"/> (P7): the real duration plus
+    /// the larger of a quarter of it and 2 s. The playhead, the seeks and the open bars keep the real duration.
+    /// </summary>
+    public static double GetDisplayedDuration(double realSeconds)
+    {
+        double real = double.IsFinite(realSeconds) && realSeconds > 0 ? realSeconds : 0;
+        return real + Math.Max(real * DisplayMarginFraction, DisplayMarginMinimumSeconds);
+    }
 
     public MGElement CreateContent()
     {
@@ -100,8 +125,15 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         {
             ItemRenderer = new CutsceneTimelineItemRenderer(),
             CornerHeaderText = "Rows",
+            EditPolicy = new CutsceneTimelineEditPolicy(),
         };
+
+        // The control calls the policy to align a drag only while the snapping is enabled: the policy aligns on the frames of the preview.
+        _timeline.SnapSettings.IsEnabled = true;
+        _timeline.SnapSettings.Mode = TimelineSnapMode.Frame;
+        _timeline.SnapSettings.FrameRate = (float)CutsceneTimelineProjection.FramesPerSecond;
         _timeline.ContextMenuProvider = this;
+        _timeline.ItemTimeEditCommitted += OnTimelineItemTimeEditCommitted;
         _timeline.SelectedItemChanged += OnTimelineSelectedItemChanged;
         _timeline.TimeScrubbed += OnTimelineTimeScrubbed;
 
@@ -203,9 +235,10 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         }
     }
 
-    private static float GetContentSeconds(TimelineModel model)
+    // The fit reads the duration of the projection, not the one of the model: the room of P7 must not shrink the view.
+    private float GetContentSeconds(TimelineModel model)
     {
-        float seconds = model.DurationSeconds;
+        float seconds = (float)_layout.DurationSeconds;
         for (int index = 0; index < model.Items.Count; index++)
         {
             var item = model.Items[index];
@@ -330,6 +363,19 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         }
     }
 
+    private void OnTimelineItemTimeEditCommitted(TimelineItem item, float seconds)
+    {
+        // The control has bounded and aligned the time; the document converts it by difference into the delay of an At (P6) and
+        // refuses what the rule does not allow, in which case nothing changes and the item is drawn at its place by the next model.
+        if (_document == null || item.Source is not CutsceneTimelineItemInfo info)
+        {
+            return;
+        }
+
+        _lastPlaceRequestSeconds = seconds;
+        _lastPlaceRefusal = _document.PlaceActionAt(info.Item.Action, seconds);
+    }
+
     MGContextMenu? ITimelineContextMenuProvider.CreateContextMenu(TimelineControl timeline, TimelineTrack? track, TimelineItem? item, float cursorTime)
     {
         // The empty space has no menu; the structure operations act on an action, which an item stands for.
@@ -447,7 +493,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         }
 
         _layout = CutsceneTimelineProjection.Build(root, preview?.Timings.Durations);
-        _timeline.SetModel(BuildModel(_layout));
+        _timeline.SetModel(BuildModel(_layout, root));
         ShowEmpty(_layout.Items.Count == 0 ? "This cutscene has no action to show." : null);
         SelectDocumentActionInTimeline();
     }
@@ -466,11 +512,11 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         }
     }
 
-    private TimelineModel BuildModel(CutsceneTimelineLayout layout)
+    private TimelineModel BuildModel(CutsceneTimelineLayout layout, CutsceneActionData root)
     {
         var model = new TimelineModel
         {
-            DurationSeconds = (float)layout.DurationSeconds,
+            DurationSeconds = (float)GetDisplayedDuration(layout.DurationSeconds),
             TimeUnit = TimelineTimeUnit.Seconds,
             FrameRate = (float)CutsceneTimelineProjection.FramesPerSecond,
         };
@@ -522,6 +568,13 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
                     break;
             }
 
+            // P5: only the item the placement rule allows is dragged, in time only: it has no resize and does not change track.
+            var rule = CutscenePlacement.Resolve(root, source);
+            bool canDrag = rule.CanDrag;
+            float lowestInstant = canDrag
+                ? (float)CutscenePlacement.LowestInstant(rule.Kind == CutscenePlacementKind.ChangeAt ? rule.At!.Seconds : 0d, source.StartSeconds)
+                : 0f;
+
             var timelineItem = new TimelineItem
             {
                 Id = GetItemId(previousIds, source),
@@ -531,10 +584,10 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
                 Kind = kind,
                 ItemType = source.Action.Type,
                 DisplayName = source.Label,
-                ToolTipText = string.Create(CultureInfo.InvariantCulture, $"{source.Label}\nStart {source.StartSeconds:0.###} s, duration {source.DurationSeconds:0.###} s{(source.IsEstimated && !source.IsMeasured ? " (estimated)" : string.Empty)}"),
-                IsEditable = false,
-                CanMove = false,
-                Source = new CutsceneTimelineItemInfo(source, row.Kind, source.Action.Type, double.PositiveInfinity, 0f, source.EndSeconds),
+                ToolTipText = string.Create(CultureInfo.InvariantCulture, $"{source.Label}\nStart {source.StartSeconds:0.###} s, duration {source.DurationSeconds:0.###} s{(source.IsEstimated && !source.IsMeasured ? " (estimated)" : string.Empty)}{GetDragToolTip(rule)}"),
+                IsEditable = canDrag,
+                CanMove = canDrag,
+                Source = new CutsceneTimelineItemInfo(source, row.Kind, source.Action.Type, double.PositiveInfinity, 0f, source.EndSeconds, canDrag, lowestInstant),
             };
             model.Items.Add(timelineItem);
         }
@@ -582,10 +635,20 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
                 }
             }
 
-            current.Source = new CutsceneTimelineItemInfo(info.Item, info.RowKind, info.ShortLabel, next, inset, labelEnd);
+            current.Source = new CutsceneTimelineItemInfo(info.Item, info.RowKind, info.ShortLabel, next, inset, labelEnd, info.CanDrag, info.LowestInstantSeconds);
         }
 
         return model;
+    }
+
+    private static string GetDragToolTip(CutscenePlacementRule rule)
+    {
+        return rule.Kind switch
+        {
+            CutscenePlacementKind.ChangeAt => string.Create(CultureInfo.InvariantCulture, $"\nDrag in time: changes the delay of its At (now {rule.At!.Seconds:0.###} s)."),
+            CutscenePlacementKind.WrapInAt => "\nDrag in time: wraps it in an At.",
+            _ => string.Empty,
+        };
     }
 
     private Guid GetItemId(Dictionary<CutsceneActionData, Guid[]> previousIds, CutsceneTimelineItem source)
