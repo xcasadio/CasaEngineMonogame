@@ -90,19 +90,19 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case PlaySoundCutsceneActionData playSoundAction:
-                PlaySound(playSoundAction, world);
+                PlaySound(playSoundAction, world, GetAudioService(world, owner));
                 break;
 
             case PlayMusicCutsceneActionData playMusicAction:
-                PlayMusic(playMusicAction, world);
+                PlayMusic(playMusicAction, world, owner);
                 break;
 
             case StopMusicCutsceneActionData stopMusicAction:
-                GetAudioService(world)?.Music.StopAll(stopMusicAction.FadeOutSeconds);
+                GetAudioService(world, owner)?.Music.StopAll(stopMusicAction.FadeOutSeconds);
                 break;
 
             case FadeMusicCutsceneActionData fadeMusicAction:
-                AudioService fadeMusicService = GetAudioService(world);
+                AudioService fadeMusicService = GetAudioService(world, owner);
                 if (fadeMusicService != null)
                 {
                     yield return new FadeMusicBusInstruction(
@@ -114,7 +114,7 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case FadeScreenCutsceneActionData fadeScreenAction:
-                ScreenEffectService fadeScreenService = GetScreenEffectService(world);
+                ScreenEffectService fadeScreenService = GetScreenEffectService(world, owner);
                 if (fadeScreenService != null)
                 {
                     yield return new FadeScreenInstruction(fadeScreenService, fadeScreenAction);
@@ -131,7 +131,7 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case FadeScreenFramesCutsceneActionData fadeFramesAction:
-                ScreenEffectService fadeFramesService = GetScreenEffectService(world);
+                ScreenEffectService fadeFramesService = GetScreenEffectService(world, owner);
                 if (fadeFramesService != null)
                 {
                     // Unlike FadeScreen, the layer is set and the ramp started during this very update, so the
@@ -156,6 +156,11 @@ internal static class CutsceneActionCoroutineFactory
 
             case OpenScreenCutsceneActionData openScreenAction:
                 {
+                    if (IsGameRequestRefused(owner, openScreenAction))
+                    {
+                        break;
+                    }
+
                     GameManager openScreenManager = world.Game?.GameManager;
                     string openScreenFailure = openScreenManager == null
                         ? "OpenScreen needs a running game, and this world has none."
@@ -171,6 +176,11 @@ internal static class CutsceneActionCoroutineFactory
 
             case PlayVideoCutsceneActionData playVideoAction:
                 {
+                    if (IsGameRequestRefused(owner, playVideoAction))
+                    {
+                        break;
+                    }
+
                     GameManager playVideoManager = world.Game?.GameManager;
                     if (playVideoManager == null)
                     {
@@ -192,6 +202,11 @@ internal static class CutsceneActionCoroutineFactory
 
             case ChangeWorldCutsceneActionData changeWorldAction:
                 {
+                    if (IsGameRequestRefused(owner, changeWorldAction))
+                    {
+                        break;
+                    }
+
                     GameManager changeWorldManager = world.Game?.GameManager;
                     string changeWorldFailure = changeWorldManager == null
                         ? "ChangeWorld needs a running game, and this world has none."
@@ -308,6 +323,11 @@ internal static class CutsceneActionCoroutineFactory
 
             case ExitOnInputCutsceneActionData exitOnInputAction:
                 {
+                    if (IsGameRequestRefused(owner, exitOnInputAction))
+                    {
+                        break;
+                    }
+
                     (CutsceneInputWatch watch, string exitOnInputFailure) = owner.ExitOnInputResolver != null
                         ? owner.ExitOnInputResolver(exitOnInputAction)
                         : ResolveExitOnInput(exitOnInputAction, world, owner);
@@ -469,7 +489,12 @@ internal static class CutsceneActionCoroutineFactory
         }
     }
 
-    private static AudioService GetAudioService(World world) => world.Game?.AudioSystemComponent?.Service;
+    private static AudioService GetAudioService(World world, CutsceneDirector owner)
+        => owner?.EffectHost != null ? owner.EffectHost.Audio : world.Game?.AudioSystemComponent?.Service;
+
+    /// <summary>True when the host of the play refuses a request to the running game: the action is then skipped.</summary>
+    private static bool IsGameRequestRefused(CutsceneDirector owner, CutsceneActionData action)
+        => owner.EffectHost != null && !owner.EffectHost.AllowGameRequest(action);
 
     /// <summary>Fails the play and logs the reason once: the action ends here, so this runs once per play.</summary>
     private static void FailPlay(CutsceneDirector owner, string reason, int playToken)
@@ -478,7 +503,8 @@ internal static class CutsceneActionCoroutineFactory
         owner.MarkRuntimeFailure(reason, playToken);
     }
 
-    private static ScreenEffectService GetScreenEffectService(World world) => world.Game?.ScreenEffectComponent?.Service;
+    private static ScreenEffectService GetScreenEffectService(World world, CutsceneDirector owner)
+        => owner?.EffectHost != null ? owner.EffectHost.ScreenEffects : world.Game?.ScreenEffectComponent?.Service;
 
     /// <summary>
     /// Acquires the <see cref="SoundAsset"/> for the duration of the action alone (ADR-0037): the handle
@@ -504,9 +530,12 @@ internal static class CutsceneActionCoroutineFactory
         }
     }
 
+    /// <summary>Plays the sound on the service of the game, with no host involved (kept for the tests that reach it by reflection).</summary>
     private static void PlaySound(PlaySoundCutsceneActionData action, World world)
+        => PlaySound(action, world, GetAudioService(world, null));
+
+    private static void PlaySound(PlaySoundCutsceneActionData action, World world, AudioService audioService)
     {
-        AudioService audioService = GetAudioService(world);
         if (audioService == null)
         {
             return;
@@ -522,9 +551,9 @@ internal static class CutsceneActionCoroutineFactory
         });
     }
 
-    private static void PlayMusic(PlayMusicCutsceneActionData action, World world)
+    private static void PlayMusic(PlayMusicCutsceneActionData action, World world, CutsceneDirector owner)
     {
-        AudioService audioService = GetAudioService(world);
+        AudioService audioService = GetAudioService(world, owner);
         if (audioService == null)
         {
             return;

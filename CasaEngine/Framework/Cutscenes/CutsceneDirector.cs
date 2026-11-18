@@ -51,6 +51,12 @@ public sealed class CutsceneDirector
     /// </summary>
     internal Func<ExitOnInputCutsceneActionData, (CutsceneInputWatch Watch, string Failure)> ExitOnInputResolver { get; set; }
 
+    /// <summary>
+    /// Supplies the sound and the screen fades of the plays and can refuse their requests to the game. Null, the default,
+    /// uses the services of the world's game and lets every request through.
+    /// </summary>
+    public ICutsceneEffectHost EffectHost { get; set; }
+
     public bool IsPlaying => _activeHandle.IsValid && _world.RuntimeSystems.CoroutineManager.IsRunning(_activeHandle);
 
     public void Play(CutsceneAsset asset)

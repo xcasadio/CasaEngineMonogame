@@ -162,7 +162,9 @@ Décisions antérieures concernées :
 - Validation : build `CasaEngine.MonoGame.sln` ; `dotnet test` vert ; aucun test existant modifié. Si un test existant échoue parce qu'il attendait l'exception : ⚠️ Blocked.
 - Commit : `fix(cutscenes): fail the play instead of throwing when MoveTo cannot run`
 
-### ⏳ T1.2 — Point d'injection des effets globaux
+### ✅ T1.2 — Point d'injection des effets globaux
+
+> Validation (2026-11-18) : builds `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` 0 erreur ; 10 tests ajoutés (`CutsceneEffectHostTests`) ; `dotnet test` 5904 verts (5894 + 10), aucun test existant modifié. Écart : la surcharge privée `PlaySound(action, world)` est conservée (elle délègue sans hôte), car `AudioServiceVariationTests` l'appelle par réflexion.
 
 - Objectif : permettre à un hôte de fournir le son et les fondus et de refuser les demandes adressées au jeu, sans changer le comportement par défaut (P1, P2).
 - Fichiers : `CasaEngine/Framework/Cutscenes/ICutsceneEffectHost.cs` (créé), `CutsceneDirector.cs`, `CutsceneActionCoroutineFactory.cs`, `CasaEngine.Tests/Cutscenes/` (tests ajoutés).
