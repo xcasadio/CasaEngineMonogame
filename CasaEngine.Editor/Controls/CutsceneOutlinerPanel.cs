@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
@@ -23,6 +24,9 @@ internal sealed class CutsceneOutlinerPanel
     private readonly Dictionary<MGTreeViewItem, CutsceneActionData> _itemToAction = new();
     private readonly Dictionary<CutsceneActionData, MGTreeViewItem> _actionToItem = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<CutsceneActionData> _expandedActions = new(ReferenceEqualityComparer.Instance);
+    // The containers of the tree as last built, and of the tree being built: a container absent from the first one appears.
+    private HashSet<CutsceneActionData> _previousContainers = new(ReferenceEqualityComparer.Instance);
+    private HashSet<CutsceneActionData> _currentContainers = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<string, string> _displayNameToType = new(StringComparer.Ordinal);
 
     private MGDockPanel? _root;
@@ -36,6 +40,7 @@ internal sealed class CutsceneOutlinerPanel
     private bool _suppressSelectionChanged;
     private bool _scrollToSelectionAfterLayout;
     private bool _expandAllOnNextBuild;
+    private bool _itemRightClicked;
     private int _actionCount;
 
     public CutsceneOutlinerPanel(MGWindow window)
@@ -136,6 +141,7 @@ internal sealed class CutsceneOutlinerPanel
 
         _document = document;
         _expandedActions.Clear();
+        _previousContainers.Clear();
         _expandAllOnNextBuild = true;
 
         if (_document != null)
@@ -356,23 +362,30 @@ internal sealed class CutsceneOutlinerPanel
         if (_document != null && _itemToAction.TryGetValue(item, out var action))
         {
             _document.SelectAction(action);
+            _itemRightClicked = true;
         }
     }
 
     private void OnTreeRightClick(object? sender, BaseMouseReleasedEventArgs e)
     {
-        var selected = _document?.SelectedAction;
-        var root = _document?.Session?.Asset.RootAction;
-        if (_treeView == null || selected == null || ReferenceEquals(selected, root))
+        bool onItem = _itemRightClicked;
+        _itemRightClicked = false;
+        if (_treeView == null || _document?.Session?.Asset.RootAction == null)
         {
             return;
         }
 
-        var menu = new MGContextMenu(_window, null);
-        menu.AddButton("Duplicate", _ => DuplicateSelected());
-        menu.AddSeparator();
-        menu.AddButton("Delete", _ => DeleteSelected());
-        _treeView.GetDesktop().TryOpenContextMenu(menu, e.Position);
+        // A click in the empty part of the tree aims at no action: the menu then only adds and pastes at the end of the root.
+        if (!onItem)
+        {
+            _document.SelectAction(null);
+        }
+
+        var menu = CutsceneActionMenu.Create(_window, _document, ShowRefusal);
+        if (menu != null)
+        {
+            _treeView.GetDesktop().TryOpenContextMenu(menu, e.Position);
+        }
     }
 
     private void Rebuild()
@@ -386,6 +399,7 @@ internal sealed class CutsceneOutlinerPanel
         _actionToItem.Clear();
         _treeView.ClearItems();
         _actionCount = 0;
+        _currentContainers.Clear();
 
         var root = _document?.Session?.Asset.RootAction;
         if (root != null)
@@ -396,6 +410,8 @@ internal sealed class CutsceneOutlinerPanel
             _treeView.AddItem(rootItem);
         }
 
+        // The containers of this build are the reference of the next one.
+        (_previousContainers, _currentContainers) = (_currentContainers, _previousContainers);
         _expandAllOnNextBuild = false;
         ApplySelection(_document?.SelectedAction);
         UpdateStatus();
@@ -405,9 +421,16 @@ internal sealed class CutsceneOutlinerPanel
     private MGTreeViewItem BuildItem(CutsceneActionData action)
     {
         var children = CutsceneActionCatalog.GetChildren(action);
-        if (_expandAllOnNextBuild && children.Count > 0)
+        if (CutsceneActionCatalog.CanHaveChildren(action))
         {
-            _expandedActions.Add(action);
+            // The first build of a document expands the containers that hold something; after that, a container that was not in
+            // the previous tree (a wrap, a paste, an undo that brings it back) is shown expanded.
+            if (_expandAllOnNextBuild ? children.Count > 0 : !_previousContainers.Contains(action))
+            {
+                _expandedActions.Add(action);
+            }
+
+            _currentContainers.Add(action);
         }
 
         var item = new MGTreeViewItem(_window)

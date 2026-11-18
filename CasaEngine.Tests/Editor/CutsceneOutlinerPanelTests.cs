@@ -456,4 +456,122 @@ public sealed class CutsceneOutlinerPanelTests : IDisposable
         Assert.Null(outliner.TreeView!.SelectedItem);
         Assert.Equal(0f, outliner.TreeView.ScrollViewer.VerticalOffset);
     }
+
+    [Fact]
+    public void AContainerThatAppears_IsShownExpanded_ByAWrap_APasteAndAnUndo()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(600, 600);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, SmallDocument("Appear"), "Appear.cutscene");
+        outliner.SetEditorPanel(document);
+        var root = (SequenceCutsceneActionData)session.Asset.RootAction!;
+        var leaf = root.Actions[0];
+
+        // A wrap: the new container is expanded, so its child is shown.
+        document.SelectAction(leaf);
+        Assert.Null(document.WrapSelectedAction(CutsceneActionTypes.Parallel));
+        var wrapper = (ParallelCutsceneActionData)root.Actions[0];
+        Assert.Same(wrapper, document.SelectedAction);
+        Assert.True(outliner.GetItem(wrapper)!.IsExpanded);
+        Assert.Same(outliner.GetItem(wrapper), outliner.TreeView!.SelectedItem);
+        Assert.Same(outliner.GetItem(wrapper), outliner.GetItem(leaf)!.ParentItem);
+
+        // A paste of a container copied while it was collapsed.
+        var inner = (SequenceCutsceneActionData)root.Actions[1];
+        outliner.GetItem(inner)!.Collapse();
+        document.SelectAction(inner);
+        Assert.Null(document.CopySelectedAction());
+        document.SelectAction(root.Actions[2]);
+        Assert.Null(document.PasteAction());
+        var pasted = root.Actions[3];
+        Assert.NotSame(inner, pasted);
+        Assert.True(outliner.GetItem(pasted)!.IsExpanded);
+        Assert.False(outliner.GetItem(inner)!.IsExpanded);
+
+        // A container that comes back by an undo is expanded, even though the user had collapsed it before the removal.
+        document.SelectAction(inner);
+        Assert.Null(document.RemoveSelectedAction());
+        Assert.Null(outliner.GetItem(inner));
+        Undo(FirstContext);
+        Assert.True(outliner.GetItem(inner)!.IsExpanded);
+    }
+
+    [Fact]
+    public void SelectingAContainerThatIsAlreadyThereAndCollapsed_LeavesItCollapsed()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(600, 600);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, SmallDocument("Collapsed"), "Collapsed.cutscene");
+        outliner.SetEditorPanel(document);
+        var root = (SequenceCutsceneActionData)session.Asset.RootAction!;
+        var inner = (SequenceCutsceneActionData)root.Actions[1];
+
+        outliner.GetItem(inner)!.Collapse();
+        document.SelectAction(inner);
+        Assert.False(outliner.GetItem(inner)!.IsExpanded);
+
+        // A rebuild of the tree does not expand it either.
+        document.SelectAction(root.Actions[0]);
+        Assert.Null(document.AddAction(CutsceneActionTypes.Wait));
+        Assert.False(outliner.GetItem(inner)!.IsExpanded);
+    }
+
+    [Fact]
+    public void AnEmptyContainerThatAppears_IsExpandedOnceItReceivesAChild()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(600, 600);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, SmallDocument("Empty"), "Empty.cutscene");
+        outliner.SetEditorPanel(document);
+        var root = (SequenceCutsceneActionData)session.Asset.RootAction!;
+
+        document.SelectAction(null);
+        Assert.Null(document.AddAction(CutsceneActionTypes.Parallel));
+        var parallel = (ParallelCutsceneActionData)root.Actions[^1];
+        Assert.True(outliner.GetItem(parallel)!.IsExpanded);
+
+        Assert.Null(document.AddAction(CutsceneActionTypes.Wait));
+        Assert.Single(parallel.Actions);
+        Assert.True(outliner.GetItem(parallel)!.IsExpanded);
+        Assert.NotNull(outliner.GetItem(parallel.Actions[0]));
+    }
+
+    private static MGUI.Core.UI.MGContextMenu? RightClick(ContentBrowserViewTestHarness harness, Microsoft.Xna.Framework.Point position, ref int time)
+    {
+        harness.AdvanceFrame(time += 16, position);
+        harness.AdvanceFrame(time += 16, position, MGUI.Shared.Input.Mouse.MouseButton.Right);
+        harness.AdvanceFrame(time += 16, position);
+        return harness.Desktop.ActiveContextMenu;
+    }
+
+    [Fact]
+    public void ARightClickOnARow_OpensTheMenuOfThatAction_AndOneInTheEmptyPartTheMenuOfNoAction()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(600, 600);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, SmallDocument("Menu"), "Menu.cutscene");
+        outliner.SetEditorPanel(document);
+        Settle(harness, outliner);
+        var root = (SequenceCutsceneActionData)session.Asset.RootAction!;
+        var fade = root.Actions[2];
+        int time = 5000;
+
+        var onRow = outliner.GetItem(fade)!.HeaderContent!.LayoutBounds.Center;
+        var rowMenu = RightClick(harness, onRow, ref time);
+
+        Assert.NotNull(rowMenu);
+        Assert.Same(fade, document.SelectedAction);
+        var labels = CutsceneMenuProbe.Labels(rowMenu!);
+        Assert.Contains("Move up", labels);
+        Assert.Contains("Delete", labels);
+        Assert.DoesNotContain("Move down", labels);
+
+        harness.Desktop.TryCloseActiveContextMenu();
+        var empty = new Microsoft.Xna.Framework.Point(300, 450);
+        var emptyMenu = RightClick(harness, empty, ref time);
+
+        Assert.NotNull(emptyMenu);
+        Assert.Null(document.SelectedAction);
+        Assert.Equal(["Add"], CutsceneMenuProbe.Labels(emptyMenu!));
+    }
 }

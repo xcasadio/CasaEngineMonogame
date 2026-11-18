@@ -245,6 +245,44 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         return null;
     }
 
+    /// <summary>The message that refuses <see cref="AddAction"/>, or null when an action can be added. Changes nothing.</summary>
+    public string? GetAddRefusal()
+    {
+        string? refusal = GetEditRefusal(null, out _);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        return CutsceneActionTree.TryGetInsertionTarget(_session!.Asset.RootAction, _selectedAction, out _, out _, out string error)
+            ? null
+            : error;
+    }
+
+    /// <summary>The message that refuses <see cref="DuplicateSelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetDuplicateRefusal()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return GetEditRefusal(selected, out _) ?? InsertCutsceneActionCommand.GetDuplicateRefusal(_session!, selected);
+    }
+
+    /// <summary>The message that refuses <see cref="RemoveSelectedAction"/>, or null when it is allowed. Changes nothing.</summary>
+    public string? GetRemoveRefusal()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        return GetEditRefusal(selected, out _) ?? RemoveCutsceneActionCommand.GetRefusal(_session!, selected);
+    }
+
     /// <summary>Inserts a copy of the selected action just after it and selects the copy.</summary>
     public string? DuplicateSelectedAction()
     {
