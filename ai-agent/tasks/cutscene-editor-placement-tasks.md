@@ -1,0 +1,291 @@
+# Plan agent IA — Éditeur de cutscenes : placement libre dans le temps (tranche F)
+
+Sixième tranche du programme « éditeur de cutscenes visuel » (ADR-0096 ; plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md), [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md), [cutscene-editor-timeline-tasks.md](cutscene-editor-timeline-tasks.md), [cutscene-editor-transport-tasks.md](cutscene-editor-transport-tasks.md), [cutscene-editor-structure-tasks.md](cutscene-editor-structure-tasks.md)).
+Elle permet de **poser une action à un instant précis** et de la **déplacer dans le temps à la souris sur la timeline**. Pour cela le format `.cutscene` gagne **un type d'action**, `At`, et rien d'autre.
+
+Les décisions D1 → D6 ci-dessous ont été arbitrées avec l'auteur : **ce plan les applique, il ne les rediscute pas**.
+L'auteur a demandé le 2026-11-18 « Tranche f en auto », après avoir été prévenu que cette tranche ajoute une action au format : ce plan est approuvé d'avance. Les points P1 → P17 sont des arbitrages de l'agent, à confirmer par l'auteur à la recette ; l'ADR du format reste à l'état `Proposed` jusqu'à sa confirmation.
+
+Ce fichier doit être mis à jour pendant le travail : l'icône au début de chaque tâche indique son statut courant.
+
+## Objectif
+
+- Une action **`At`** : elle attend un nombre de secondes, puis joue ses enfants à la suite. Dans un `Parallel`, chaque `At` est un clip posé à son instant, indépendant des autres.
+- Dans la timeline, on **glisse une barre ou un marqueur** vers la gauche ou la droite pour changer son instant ; le déplacement s'aligne sur les images (1/60 s) et s'annule comme toute opération.
+- Un **clic droit dans le vide de la timeline** propose d'ajouter une action à l'instant du curseur.
+- L'arbre reste le modèle enregistré : tout placement se lit et se règle aussi dans l'arbre et dans l'Inspector (le champ `Seconds` de l'`At`).
+
+## État vérifié du dépôt (2026-11-18)
+
+Branche `chantier/cutscene-property-editing`, tête `4dc53f84`, 73 commits depuis `main` `c365b514`, non fusionnée.
+Fichiers non suivis préexistants, à ne jamais indexer : `Projects/PixelUiSample/.casaeditor/`, `Projects/SpriteCutsceneSample/.casaeditor/`.
+Référence des tests avant ce plan : 6393 tests verts.
+
+Précédent d'ajout d'un conteneur au runtime : le commit `4896d91c` (« repeat a list of cutscene actions ») a ajouté `Repeat` en touchant `RepeatCutsceneActionData.cs` (créé), `CutsceneActionTypes.cs`, `CutsceneValidator.cs`, `Serialization/CutsceneAssetJsonSerializer.cs` (écriture, table des types, lecture), `CutsceneActionCoroutineFactory.cs`, `CutsceneReadOnlyDocumentBuilder.cs` et un fichier de tests. **La version de schéma n'a pas été changée** : le sérialiseur écrit `schema_version = CutsceneAsset.CurrentVersion` (`CutsceneAssetJsonSerializer.cs:20`). Un type inconnu est chargé en `UnknownCutsceneActionData`, que le validateur refuse par une erreur (`CutsceneValidator.cs`, cas `UnknownCutsceneActionData`).
+
+Endroits qui connaissent aujourd'hui le conteneur `Repeat` (`rg "RepeatCutsceneActionData|CutsceneActionTypes\.Repeat"`, hors tests) :
+
+- runtime `CasaEngine/Framework/Cutscenes/` : `RepeatCutsceneActionData.cs`, `CutsceneValidator.cs:216`, `Serialization/CutsceneAssetJsonSerializer.cs:83`, `:379`, `:612`, `CutsceneActionCoroutineFactory.cs:359` ;
+- services `CasaEngine.EditorServices/Cutscenes/` : `CutsceneActionPropertyEditor.cs:77` (erreurs de format) et `:105-107` (propriétés), `CutsceneActionCatalog.cs:31` (liste) et `:88` (création), `CutsceneActionSummary.cs:25`, `CutsceneLoadFidelity.cs:48` (enfants), `CutsceneTimelineProjection.cs:87`, `:226`, `:261`, `CutsceneReadOnlyDocumentBuilder.cs:62` ;
+- éditeur : `CasaEngine.Editor/Controls/Cutscenes/CutsceneActionMenu.cs:147` (entrée `Wrap in`).
+
+`Wait` au runtime : `WaitCutsceneActionData.Seconds` vaut 0 par défaut ; la fabrique n'attend rien pour 0 s et rend sinon un `WaitForSeconds` (`CutsceneActionCoroutineFactory.cs:38-45`) ; le validateur refuse une valeur négative. Sa propriété d'édition : `Number<WaitCutsceneActionData>("seconds", …).Within(0)` (`CutsceneActionPropertyEditor.cs:87-90`). **Le chargement de `Wait` lit `seconds` par `node["seconds"]?.GetSingle()`, sans erreur de format** (`CutsceneAssetJsonSerializer.cs:319-322`) : un texte lève une exception. Les lectures qui remplissent `FormatErrors` passent par `ReadNumber(node, clé, erreurs)` (`:473-494`), et le validateur les rapporte par `ReportFormatError`.
+
+Tests qui énumèrent tous les types d'action, et qui échouent donc dès qu'une constante est ajoutée à `CutsceneActionTypes` sans que les services la connaissent : `CutsceneActionCatalogTests.cs:12-16`, `:34` (le catalogue doit égaler toutes les constantes), `CutsceneActionPropertyEditorTests.cs:14-18`, `:40-50` (chaque type a des propriétés ou une exemption nommée), `CutsceneActionPropertyMetadataTests.cs:10-57`, et `CutsceneTimelineProjectionTests.cs:121-140` (`EveryActionTypeHasAnItemOrIsExplicitlyWithoutOne` : tout type sans élément doit être `Sequence` ou `Parallel`, `:137`). `CutsceneTimelineProjection.HasElement` (`CutsceneTimelineProjection.cs:34-39`) dit quels types n'ont pas d'élément.
+
+Tests d'enregistrement existants (`CasaEngine.Tests/EditorServices/Cutscenes/CutsceneSaveTests.cs`) : `TheRepositoryHoldsTheFourteenCutsceneFiles` exige exactement 14 fichiers `.cutscene` sous `Projects/*/Cutscenes` (`RepositoryCutsceneCount`, `:13`, `:29-36`, `:423-445`) ; `ARepositoryFile_SavesAndReloadsWithoutLoss_AndSavesTheSameTextTwice`, `ARepositoryFile_HasNoLoadLoss_AndTheGuardAcceptsIt` et `TheRepositoryFilesAreNotWritten` (`:38-85`) comparent un premier enregistrement à un second et vérifient l'absence de perte. **Aucun ne compare au fichier sur le disque**, et une telle comparaison échouerait déjà : un enregistrement écrit les couleurs à quatre canaux là où les fichiers en ont trois (`CutsceneAssetJsonSerializer.cs:593-596` ; `loop.cutscene:27-31`). Une clé absente dont la valeur par défaut est réécrite n'est pas une perte de chargement (`CutsceneLoadFidelity.cs:58-61`).
+
+Projection (`CasaEngine.EditorServices/Cutscenes/CutsceneTimelineProjection.cs`) : `Place(action, start, topLevel)` rend la durée pendant laquelle l'action retient la séquence ; `Sequence` enchaîne (`PlaceSequence`, `:214-223`), `Parallel` place tous ses enfants au même `start` et rend la plus longue (`:76-85`), `Repeat` place un tour (`:226-259`) et produit deux éléments pour une même action quand il a plusieurs tours : la plage du tour et la plage « more » ; le panneau de la timeline crée un élément par rôle (`CutsceneTimelinePanel.cs:591-606`). La mise en page n'expose que des éléments : **elle ne donne le début d'aucun conteneur** (`CutsceneTimelineLayout.cs:99-162`).
+
+Contrôle Timeline générique (`CasaEngine.Editor/Controls/Timeline/`) :
+
+- Un élément se glisse quand il est `IsEditable` et `CanMove` (`TimelineViewport.cs:380-389`) ; le glisser est horizontal seulement et ne change pas de piste (`:410-446`) ; pendant le glisser l'instant passe par `SnapTime`, qui n'agit que si une `EditPolicy` est posée et que le magnétisme est actif (`TimelineControl.cs:653-668`).
+- Pendant un glisser, le début de l'élément est posé **sur le curseur**, sans garder l'endroit où il a été saisi (`TimelineViewport.cs:440`).
+- Dès qu'un élément est `IsEditable`, le contrôle marque comme traitées Suppr, Retour arrière, Ctrl+D, Ctrl+C et Ctrl+V quand il a le focus, même sans abonné (`TimelineControl.cs:1131-1185`).
+- `TimelineEditingTests` ne simule pas de glisser à la souris : il teste `SnapTime` et le test de clic.
+- Au relâchement : `CommitDraggedItemTime` borne l'instant à `[0, fin de la timeline]`, ignore un déplacement nul, consulte `EditPolicy.CanMoveItem` et `ValidateMove`, puis lève `ItemTimeEditCommitted(item, instant)` quand aucun `Adapter` n'est posé (`:670-697`, `:730-757`). Avec Ctrl enfoncé, le relâchement demande une duplication au lieu d'un déplacement (`TimelineViewport.cs:455-466`).
+- `ITimelineEditPolicy` : `SnapTime`, `CanMoveItem`, `CanResizeItem`, `CanInsertItem`, `ValidateMove` (`Editing/ITimelineEditPolicy.cs`). Exemple existant : `Animation2dTimelineEditPolicy`.
+- La fin de la timeline est le plus grand de la durée du modèle, du début des éléments, de la tête de lecture et de la fin de la zone visible (`TimelineControl.cs:499-516`) : la marge de P7 ne compte donc que lorsque la vue est zoomée. Coller au clavier dans le contrôle demande une piste `IsEditable` (`:851-856`), ce que les pistes des cutscenes ne sont pas.
+- Le fournisseur de menu reçoit l'instant du curseur : `CreateContextMenu(timeline, track, item, cursorTime)` (`Menu/ITimelineContextMenuProvider.cs:9`).
+
+Panneau de la timeline des cutscenes (`CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs`) : chaque élément est créé avec `IsEditable = false` et `CanMove = false`, chaque piste avec `IsEditable = false` ; le modèle prend `DurationSeconds = durée de la projection` ; le panneau est déjà le fournisseur du menu contextuel et ne rend rien pour le vide (tranche E). L'ajustement du zoom lit la durée du modèle (`:206-216`). Le test existant `TheModel_ReflectsTheProjectionOfTheSample_AndIsReadOnly` affirme que la durée du modèle égale celle de la projection (`CasaEngine.Tests/Editor/CutsceneTimelinePanelTests.cs:144`).
+
+Sample : `Projects/SpriteCutsceneSample/Cutscenes/` contient `loop.cutscene`, `exit.cutscene` et `end.cutscene`, déclarés dans `Projects/SpriteCutsceneSample/AssetInfos.json` (`:18-31`, `asset_type` `cutscene`) et couverts par `CasaEngine.Tests/Cutscenes/SpriteCutsceneSampleDataTests.cs`.
+
+Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md`.
+
+## Décisions verrouillées
+
+| Réf | Décision |
+|---|---|
+| D1 | L'arbre d'actions reste le modèle enregistré ; la timeline en est une projection. Pas d'asset de pistes séparé. |
+| D2 | Le placement libre passe par une action du format, comme annoncé à l'auteur avant cette tranche. |
+| D3 | Le temps s'affiche en secondes et en images. |
+| D4 | Mode autonome : plan approuvé d'avance, exécution enchaînée, aucun push ni fusion. |
+| D5 | L'auteur valide à distance sur captures d'écran ; sa recette réelle a lieu à la fin. |
+| D6 | Une seule action à la fois (pas de sélection multiple), comme à la tranche E. |
+
+## Arbitrages de l'agent, à confirmer
+
+| Réf | Arbitrage |
+|---|---|
+| P1 | **Le format gagne un seul type d'action, `At`** : `{"type": "At", "seconds": 1.5, "actions": [ … ]}`. Il attend `seconds`, compté depuis l'instant où il commence, puis joue ses enfants à la suite, comme un `Sequence`. Il équivaut exactement à `Sequence[Wait(seconds), …]`. Dans un `Parallel`, tous les `At` commencent ensemble : `seconds` est alors l'instant du clip dans ce bloc. |
+| P2 | Pourquoi une action plutôt que le motif `Sequence[Wait, X]` déjà possible : l'instant devient une donnée explicite, que la timeline peut lire et changer sans deviner une forme d'arbre ; l'arbre montre un nœud « At 1.5 s » au lieu de deux. Pourquoi pas un instant de départ sur chaque action : cela changerait le sens de `Sequence` et toucherait tous les types. Pourquoi pas un asset de pistes : D1. |
+| P3 | `seconds` manquant vaut 0 ; une valeur négative ou qui n'est pas un nombre est une erreur de validation ; une liste d'enfants vide donne l'avertissement existant des conteneurs. La version de schéma ne change pas, comme pour `Repeat` : un moteur plus ancien charge `At` comme un type inconnu et refuse la cutscene par une erreur, sans la jouer de travers. |
+| P4 | Dans la projection, les enfants d'un `At` sont placés à `début de l'At + seconds`, à la suite ; l'`At` retient la séquence pendant `seconds` plus la durée de ses enfants. L'`At` lui-même n'a pas d'élément dans la timeline. |
+| P5 | **Ce qui se glisse dans la timeline**, par une règle unique. Seul l'élément principal d'une action se glisse (pas la plage « more » d'un `Repeat`). On part de l'action de l'élément et on remonte : (1) si le parent est un `At` et que le nœud est son premier enfant, le glisser **change `seconds` de cet `At`** ; s'il n'est pas le premier enfant, rien ne se glisse ; (2) si le parent est un `Parallel`, le glisser **enveloppe ce nœud dans un `At`**, en une seule entrée d'historique ; (3) si le parent est un `Sequence` ou un `Repeat` et que le nœud est son premier enfant, on recommence avec ce parent comme nœud ; s'il n'est pas le premier enfant, rien ne se glisse ; (4) à la racine, rien ne se glisse. Les quatre cas s'appliquent dans cet ordre, au premier parent rencontré. Exemples : dans `Parallel > Sequence > [X, Y]`, glisser X enveloppe le `Sequence` ; juste après, dans `Parallel > At > Sequence > [X, Y]`, glisser X change cet `At` ; Y ne se glisse jamais. |
+| P6 | Le glisser se convertit **par différence** : nouveau `seconds` = `seconds` actuel (0 pour un enveloppement) + (instant de dépôt − début actuel de l'élément), aligné sur 1/60 s, borné à 0. Il ne dépend donc pas d'un début de bloc estimé. Pendant le glisser, l'élément ne descend pas sous l'instant où `seconds` vaudrait 0. Pas de magnétisme sur les autres éléments dans cette tranche. Le contrôle pose le début de l'élément sur le curseur dès le premier mouvement : c'est son comportement, gardé tel quel. |
+| P7 | La timeline garde de la place après la fin : durée affichée = durée réelle + la plus grande des deux valeurs « un quart de la durée réelle » et « 2 s », pour qu'on puisse glisser un clip plus tard que la fin actuelle. La tête de lecture et les recherches continuent de se borner à la durée réelle. |
+| P8 | Un élément qui se glisse se reconnaît : son bord gauche est dessiné plus clair, et son infobulle le dit. Les autres gardent leur dessin actuel. |
+| P9 | **Ajouter à un instant** : un clic droit dans le vide de la zone des pistes propose `Add here` (par catégorie, puis type). L'action est créée dans un `At` à l'instant du curseur, ajouté à la fin du `Parallel` cible : le `Parallel` sélectionné, sinon le plus proche `Parallel` parent de la sélection. Sans `Parallel` cible, l'entrée n'est pas proposée. L'instant est compté depuis le début de ce `Parallel` dans la projection (le début de son premier tour s'il est dans un `Repeat`), aligné sur 1/60 s et borné à 0. La projection enregistre pour cela le début de chaque conteneur. L'action créée est sélectionnée. |
+| P10 | `At` rejoint les conteneurs de l'éditeur : catalogue (catégorie Flow), `Wrap in`, `Ungroup`, glisser-déposer « dans », copier-coller. Créé par le catalogue, il vaut 0 seconde. Son résumé dans l'arbre suit la forme de celui de `Wait` (type, deux espaces, valeur) : « At  1.5 s ». Dégrouper un `At` laisse ses enfants à sa place et abandonne son délai ; l'annulation le rend. |
+| P11 | Le champ `Seconds` d'un `At` s'édite dans l'Inspector comme celui d'un `Wait` : c'est le moyen de saisir un instant exact. |
+| P12 | Ctrl + glisser, que le contrôle générique traduit en duplication, ne fait rien dans la timeline des cutscenes : la duplication passe par le menu et par Ctrl+D. Quand la timeline a le focus et qu'un élément qui se glisse est sélectionné, le contrôle marque Suppr, Retour arrière, Ctrl+D et Ctrl+C comme traitées sans rien faire (Ctrl+V ne l'est pas, les pistes n'étant pas modifiables) ; les raccourcis globaux de la tranche E, qui lisent l'état brut du clavier, continuent d'agir. |
+| P13 | Les durées mesurées par l'aperçu restent attachées aux actions : déplacer un clip change le document, donc efface les mesures et rejoue l'aperçu selon les règles existantes. Tant que l'aperçu n'a pas rejoué, les éléments dont la durée se mesure reprennent leur durée estimée et peuvent changer de place d'autant. |
+| P14 | Automatisation : deux opérations de plus dans `--cutscene-edit-ops` : `place:<secondes>` (pose l'action sélectionnée à cet instant de la timeline, comme un glisser relâché là ; refusé pour une action qui n'a pas d'élément principal dans la timeline, comme un conteneur) et `addat:<Type>:<secondes>` (comme `Add here` à cet instant). Les diagnostics disent, pour chaque élément de la timeline, s'il se glisse et par quelle règle. |
+| P15 | Un sample : `Projects/SpriteCutsceneSample/Cutscenes/stagger.cutscene`, un `Parallel` de quatre `At` qui font partir les quatre sprites en cascade, déclaré dans `AssetInfos.json` comme les trois autres. C'est la seule modification de `Projects/` de ce plan. |
+| P16 | Pas d'étirement des barres : une durée reste une propriété de l'action, réglée dans l'Inspector. Pas de déplacement d'un clip d'une rangée à l'autre : la rangée vient de l'entité de l'action. |
+| P17 | L'ADR du format est écrite à l'état `Proposed` : l'auteur n'a pas encore vu la forme exacte de `At`. Elle passera à `Accepted` à sa confirmation. Le nom `At` et la clé `seconds` peuvent encore changer sans coût tant que rien n'est fusionné. |
+
+## Règles d'exécution pour l'agent
+
+- **Branche `chantier/cutscene-property-editing`**. Ne jamais committer sur `main`.
+- **Une seule tâche à la fois.** Avant de commencer une tâche, remplacer son icône `⏳` par `🚧`. À la fin, lancer la validation indiquée, remplacer l'icône par `✅`, `🧪` ou `⚠️`, ajouter une courte note de validation sous la tâche, puis **créer un commit dédié** qui inclut la mise à jour de ce fichier.
+- **Un commit par tâche**, atomique et compilable, message en anglais au format `type(area): summary`.
+- **Ne jamais pousser.** Le merge sur `main` reste une décision humaine.
+- **Ne rien inventer** : toute API utilisée existe dans le dépôt et a été lue. Sinon : ⚠️ Blocked, question dans « Points ouverts », arrêt.
+- **Build obligatoire** avant ✅ : `dotnet build CasaEngine.MonoGame.sln` et `dotnet build CasaEngine.Editor.MonoGame.sln` ; **tests** `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj`.
+- **Ne jamais indexer** les fichiers préexistants non suivis : `git add` fichier par fichier.
+- **Aucune entrée clavier ou souris envoyée à l'éditeur.** Les captures passent par les options d'automatisation, avec `--diagnostics-out` hors dépôt. Aucun lancement automatisé n'enregistre un asset.
+- **Suite de tests verte à chaque commit.** Une tâche ne se termine que si `dotnet test` entier est vert : c'est pourquoi T1.1 fait connaître `At` au runtime, aux services et à la projection dans le même commit.
+- **Périmètre des dossiers.** Le runtime `CasaEngine/` n'est touché que par T1.1, et seulement dans `CasaEngine/Framework/Cutscenes/`. `Projects/` n'est touché que par T1.5, et seulement pour le sample de P15. `MGUI/` n'est pas modifié.
+- **Format.** Aucune clé existante n'est renommée ni retirée ; aucun fichier `.cutscene` existant n'est réécrit. La preuve que l'enregistrement des fichiers existants ne change pas est double : les trois théories existantes de `CutsceneSaveTests` restent vertes sans modification, et un test ajouté par T1.1 compare l'empreinte SHA-256 du texte enregistré de chacun des 14 fichiers du dépôt à une empreinte relevée **avant** toute modification du code (première étape de T1.1). Ce test ne parcourt aucun dossier : il part de sa propre table fixe de 14 chemins.
+- **Tests existants.** Aucun n'est modifié, à trois exceptions, chacune nommée dans la note de validation de la tâche qui la fait : les tests qui énumèrent tous les types d'action ou leur nombre (catalogue, propriétés, métadonnées, menu) sont mis à jour pour `At` ; `EveryActionTypeHasAnItemOrIsExplicitlyWithoutOne` reçoit `At` dans sa liste des types sans élément ; `RepositoryCutsceneCount` passe de 14 à 15 dans T1.5 ; dans T2.2, l'affirmation de `TheModel_ReflectsTheProjectionOfTheSample_AndIsReadOnly` sur la durée du modèle (`CutsceneTimelinePanelTests.cs:144`) attend la durée de P7 au lieu de la durée réelle, et rien d'autre ne change dans ce test.
+- **Langue** : ce plan en français ; code, commits, `docs/` et ADR en anglais.
+- Rappel moteur : pas d'allocation, de LINQ, de closure ni de formatage de chaîne dans `Update`, `Draw` et le layout. L'action `At` n'ajoute aucune allocation par frame au runtime au-delà de ce que font `Wait` et `Sequence`.
+
+## Légende des statuts
+
+- ⏳ Todo : pas encore commencé.
+- 🚧 In progress : en cours de modification locale.
+- 🧪 Needs testing : code écrit, validation incomplète ou en attente.
+- ✅ Done : code validé, build/tests OK, commit effectué.
+- ⚠️ Blocked : bloqué par une erreur non résolue ou une décision manquante.
+
+## Validation globale
+
+- Les deux solutions buildent à 0 erreur.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` : tous verts ; référence avant ce plan : 6393 tests.
+- `git diff 4dc53f84 -- MGUI/` : vide. `git diff 4dc53f84 --stat -- CasaEngine/` ne liste que des fichiers de `CasaEngine/Framework/Cutscenes/`. `git diff 4dc53f84 --stat -- Projects/` ne liste que `stagger.cutscene` et `AssetInfos.json` du sample.
+- Les trois samples existants se rechargent et se réenregistrent à l'identique.
+- Captures automatisées (T2.5) : le sample en cascade dans la timeline et dans l'aperçu, un clip déplacé, un clip créé par enveloppement, un ajout à un instant, les annulations, les refus.
+- Retour arrière : un commit par tâche ; annuler une tâche revient à annuler son commit.
+
+---
+
+## Phase 0 — Décisions
+
+### ✅ T0.1 — ADR-0102
+
+- Objectif : enregistrer P1 → P17, dont la décision de format.
+- Fichiers : `docs/decisions/0102-<short-title>.md` (créé), `docs/decisions/README.md`, `ai-agent/README.md` (ligne de ce plan), ce plan.
+- Étapes :
+  1. Écrire l'ADR en anglais avec le skill `adr`, statut **`Proposed`**, date 2026-11-18, source : ce plan, ADR-0096 et ADR-0098. Contenu : le type `At`, sa forme JSON exacte, sa sémantique et son équivalence avec `Sequence[Wait, …]` (P1) ; les solutions écartées et pourquoi (P2) ; validation, valeur par défaut, version de schéma inchangée et comportement d'un moteur plus ancien (P3) ; projection (P4) ; ce qui se glisse dans la timeline et comment (P5 → P8, P12) ; l'ajout à un instant (P9) ; `At` comme conteneur de l'éditeur (P10, P11) ; ce qui est reporté (étirement, magnétisme entre éléments, changement de rangée, sélection multiple). L'ADR dit qu'elle amende la règle « lecture seule » d'ADR-0098, sans la réécrire.
+  2. Ligne d'index, avec le statut `Proposed` ; ligne de ce plan dans `ai-agent/README.md`.
+- Validation : les liens de l'index pointent sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
+- Commit : `docs(decisions): propose the At action and the free placement of cutscene actions in time`
+- Note de validation (2026-11-18) : ADR-0102 écrite à l'état `Proposed` (`docs/decisions/0102-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md`), avec P1 → P17 et l'amendement de la règle « lecture seule » d'ADR-0098 sans réécriture de celle-ci. Tous les liens du tableau de l'index pointent sur un fichier existant (vérifié par script) ; le lien de la ligne de ce plan dans `ai-agent/README.md` aussi. Aucun nom de jeu ni de projet tiers dans l'ADR, la ligne d'index ni la ligne du README des tâches. Tâche de documentation seulement : ni build ni test lancé, aucun code touché ; aucun test existant modifié. La suite de tests n'est pas relancée dans ce commit (elle l'est à T1.1).
+
+---
+
+## Phase 1 — Runtime et services
+
+### ⏳ T1.1 — L'action `At` : runtime, services d'édition et projection
+
+- Objectif : P1, P3, P4, et la part de P10 sans laquelle la suite de tests ne peut pas être verte. Une seule tâche, parce que des tests existants énumèrent tous les types.
+- Fichiers : runtime `CasaEngine/Framework/Cutscenes/` : `AtCutsceneActionData.cs` (créé), `CutsceneActionTypes.cs`, `CutsceneValidator.cs`, `Serialization/CutsceneAssetJsonSerializer.cs`, `CutsceneActionCoroutineFactory.cs` ; services `CasaEngine.EditorServices/Cutscenes/` : `CutsceneActionCatalog.cs`, `CutsceneActionPropertyEditor.cs`, `CutsceneActionSummary.cs`, `CutsceneLoadFidelity.cs`, `CutsceneReadOnlyDocumentBuilder.cs`, `CutsceneTimelineProjection.cs` ; `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` ; tests dans `CasaEngine.Tests/Cutscenes/` et `CasaEngine.Tests/EditorServices/Cutscenes/`.
+- Étapes :
+  1. **Avant toute modification du code** : écrire le test des empreintes. Il est piloté par sa **propre table fixe** : 14 chemins relatifs à la racine du dépôt, chacun avec son empreinte. Il ne reprend de `CutsceneSaveTests` que la recherche de la racine du dépôt et n'énumère aucun dossier, pour rester vert sans modification quand T1.5 ajoute un quinzième fichier. Pour chaque ligne : le fichier existe ; il est chargé, enregistré, et le texte obtenu, **fins de ligne normalisées en `\n`**, donne l'empreinte SHA-256 attendue. Relever les 14 empreintes sur le code de `4dc53f84`, les écrire dans la table, vérifier que le test passe. Ce test ne change plus ensuite.
+  2. Runtime, sur le modèle exact du commit `4896d91c` : la classe de données (`Seconds`, flottant, 0 par défaut ; `Actions` ; `FormatErrors`) ; la constante de type ; le sérialiseur (écriture de `seconds` puis `actions` ; lecture par `ReadNumber(node, "seconds", action.FormatErrors) ?? 0f` et par la fonction de liste des autres conteneurs ; entrée dans la table des types) ; le validateur (`ReportFormatError` pour `seconds`, valeur négative refusée, `ValidateActionList`) ; la fabrique (pour `seconds` > 0, la même attente que `Wait` ; puis les enfants comme le fait `Sequence`, avec les mêmes contrôles d'abandon ; aucune allocation de plus que ces deux cas réunis).
+  3. Services : catalogue (catégorie Flow, création à 0 s) ; propriété `seconds` déclarée comme celle de `Wait`, et erreurs de format ; résumé « At 1.5 s » ; enfants dans `CutsceneLoadFidelity.GetChildren` ; `CutsceneReadOnlyDocumentBuilder`. Confirmer par `rg` qu'aucun endroit de la liste de l'« État vérifié » n'est oublié.
+  4. Projection : placer un `At` selon P4 ; `HasElement` rend faux pour `At`.
+  5. Le document du runtime reçoit le paragraphe de `At`, dans le style de ce document.
+- Validation : build des deux solutions ; `dotnet test` entier vert. Tests ajoutés, avec un pas fixe : un `At` de 1 s suivi d'un `Wait` se termine au même instant, à un pas près, que `Sequence[Wait 1, Wait …]` joué dans un autre monde ; `At` de 0 s ne perd aucune frame par rapport à `Sequence` ; deux `At` dans un `Parallel` démarrent leurs enfants à leurs instants respectifs ; notifications `ActionStarted` / `ActionEnded` de l'`At` et de ses enfants dans l'ordre ; arrêt pendant l'attente ; un `At` en dernière action ; enregistrement puis rechargement à l'identique ; `seconds` absent → 0, sans perte de chargement ; négatif → erreur ; `{"type":"At","seconds":"x","actions":[]}` se charge sans lever et le validateur rend une erreur de format sur `seconds` ; liste vide → avertissement. Services : le catalogue crée un `At` et le clone avec ses enfants ; ses propriétés se lisent et s'écrivent. Projection : un `Parallel` de trois `At` à 0, 0,5 et 1,5 s place leurs enfants à ces instants et dure le plus long ; un `At` dans un `Sequence` décale la suite de `seconds` plus la durée de ses enfants ; `At` imbriqués ; `At` dans un `Repeat` ; `HasElement("At")` est faux. Tests existants mis à jour, et nommés dans la note : ceux du catalogue, des propriétés et des métadonnées qui énumèrent les types, et `EveryActionTypeHasAnItemOrIsExplicitlyWithoutOne`. D'après la relecture de ce plan, cela comprend au moins : `Describe_GivesAShortLineForEveryType` (ligne attendue pour `At`), `GetFormatErrors_ExistsForTheTenActionClassesThatCarryOne` (`At` rejoint la liste), `ExpectedByProperty` (`["At.seconds"]` avec un minimum de 0) et `TheDeclaredLimits_MatchTheValidator` (le message de la valeur négative commence par `At.seconds `). Les trois théories de `CutsceneSaveTests` et le test des empreintes passent sans modification.
+- Commit : `feat(cutscenes): add an At action that plays its children after a delay`
+
+### ⏳ T1.2 — `At` comme conteneur de l'éditeur
+
+- Objectif : le reste de P10.
+- Fichiers : `CasaEngine.EditorServices/Cutscenes/WrapCutsceneActionCommand.cs` si sa liste de conteneurs est écrite en dur ; `CasaEngine.Editor/Controls/Cutscenes/CutsceneActionMenu.cs` (entrée `Wrap in`) ; tests.
+- Étapes : `Wrap in ▸ At` ; vérifier par des tests que les opérations de la tranche E acceptent `At` sans autre changement.
+- Validation : build ; tests ajoutés : déplacer une action dans un `At`, regrouper dans un `At`, dégrouper un `At` (les enfants prennent sa place, l'annulation rend le même `At` avec son `seconds`), copier et coller un `At` avec ses enfants, glisser-déposer « dans » un `At` par le calcul de destination ; le menu propose `Wrap in ▸ At`. Un test existant du menu qui énumère les conteneurs est mis à jour et nommé.
+- Commit : `feat(editor): make the At action a container of the cutscene editor`
+
+### ⏳ T1.3 — Ce qui se glisse, et le début des conteneurs
+
+- Objectif : P5, P6, et l'information dont P9 a besoin.
+- Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneTimelineProjection.cs`, `CutsceneTimelineLayout.cs`, `CutscenePlacement.cs` (créé), `CasaEngine.Tests/EditorServices/Cutscenes/` (tests ajoutés).
+- Étapes :
+  1. La mise en page enregistre le début de chaque conteneur placé (`Sequence`, `Parallel`, `Repeat`, `At`), vide ou non, et le rend sur demande ; pour un conteneur dans un `Repeat`, c'est le début dans le tour dessiné.
+  2. Une fonction pure, totale, qui applique la règle de P5 à une racine et à une action : elle rend « rien », ou « change cet `At` », ou « enveloppe ce nœud, enfant de ce `Parallel` ». Elle ne dépend que de l'arbre.
+  3. Chaque élément de la mise en page dit s'il est l'élément principal de son action ; seul celui-là peut se glisser.
+  4. Une fonction pure de conversion selon P6 : `seconds` actuel, début actuel de l'élément et instant de dépôt donnent le nouveau `seconds`, aligné et borné ; et l'instant le plus bas où l'élément peut descendre.
+- Validation : build ; tests ajoutés. Règle : premier et second enfant d'un `At` ; enfant direct d'un `Parallel` ; enfant d'un `Sequence` à la racine ; `Parallel > Sequence > [X, Y]` (X enveloppe le `Sequence`, Y rien) puis, sur l'arbre obtenu après cet enveloppement, X change l'`At` (les deux glissers réussissent) ; `Parallel > Repeat > At > X` (change cet `At`) ; `Parallel > At > Sequence > X` (change l'`At`) ; `At` imbriqués (le plus proche) ; un `Repeat` de 3 tours premier enfant d'un `At` : sa plage de tour se glisse et change l'`At`, sa plage « more » ne se glisse pas. Conversion : dépôt 0,7 s plus tard, dépôt plus tôt que le zéro (borné), dépôt entre deux images (aligné), avec le `seconds` exact attendu dans chaque cas. Début des conteneurs : un `Parallel` placé après un `Wait` d'une seconde commence à 1,0 ; un `Parallel` vide a un début ; un `Parallel` dans un `Repeat`. Les tests existants de la projection passent sans autre modification que celle de T1.1.
+- Commit : `feat(editor-services): tell which cutscene timeline items can be dragged and where containers start`
+
+### ⏳ T1.4 — Commandes de placement
+
+- Objectif : les deux gestes de P5 et l'ajout de P9, comme commandes annulables.
+- Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePlacement.cs`, tests.
+- Étapes :
+  1. Poser : pour une action et un nouveau `seconds`, d'après la règle de T1.3 : soit la commande qui écrit `seconds` sur l'`At` (par la commande de propriété existante), soit une `EditorCompositeCommand` (elle existe dans `CasaEngine.EditorServices/History/`) qui enveloppe le nœud dans un `At` puis y écrit `seconds`, soit un refus. Une seule entrée d'historique dans les deux cas ; un `seconds` égal à l'actuel est refusé comme sans effet ; un enveloppement à 0 s est permis.
+  2. Ajouter à un instant : pour un `Parallel`, un type et un `seconds`, la commande qui insère à la fin du `Parallel` un `At(seconds)` contenant une action créée par le catalogue. Refus si la cible n'est pas un `Parallel` de l'arbre ou si le type est inconnu.
+  3. Trouver le `Parallel` cible d'une sélection selon P9.
+- Validation : build ; tests ajoutés : chaque commande, son annulation et son rétablissement redonnent l'arbre exact ; l'enveloppement garde la même instance et sa place dans le `Parallel` ; les refus ; la cible d'une sélection (un `Parallel`, une action dans un `At` dans un `Parallel`, une action sans `Parallel` parent) ; un arbre posé puis enregistré et rechargé est identique.
+- Commit : `feat(editor-services): place a cutscene action at a time and add one at a time`
+
+### ⏳ T1.5 — Sample en cascade
+
+- Objectif : P15, et la règle du dépôt qui demande un sample pour une fonction visible.
+- Fichiers : `Projects/SpriteCutsceneSample/Cutscenes/stagger.cutscene` (créé), `Projects/SpriteCutsceneSample/AssetInfos.json`, `Projects/SpriteCutsceneSample/README.md` si les cutscenes y sont listées, `CasaEngine.Tests/Cutscenes/SpriteCutsceneSampleDataTests.cs` (tests ajoutés), `CasaEngine.Tests/EditorServices/Cutscenes/CutsceneSaveTests.cs` (`RepositoryCutsceneCount` de 14 à 15, exception nommée).
+- Étapes :
+  1. Lire `loop.cutscene` et les entrées des trois cutscenes dans `AssetInfos.json` ; écrire `stagger.cutscene` avec la même forme de fichier et un nouvel identifiant : une séquence qui montre les quatre sprites, puis un `Parallel` de quatre `At` (0, 0,4, 0,8 et 1,2 s) contenant chacun le `MoveSprite` d'un sprite vers la même cible que dans `loop.cutscene`, puis un `Wait` d'une seconde.
+  2. Déclarer l'asset dans `AssetInfos.json` exactement comme les autres cutscenes. Vérifier que le nouvel identifiant ne contient aucune suite de lettres qui évoque un nom de jeu ou de projet.
+  3. Ne toucher à aucun autre fichier du sample : aucun monde ne lance cette cutscene.
+- Validation : build ; tests ajoutés : le fichier se charge, se valide sans erreur ni avertissement, contient quatre `At` dans un `Parallel`, ses entités existent dans `SpriteWorld.world`, et il est déclaré dans `AssetInfos.json` ; les théories d'enregistrement de `CutsceneSaveTests` couvrent le nouveau fichier et passent ; le test des empreintes de T1.1, qui porte sur les 14 fichiers d'avant, reste vert sans modification. Un lancement de l'éditeur sur `Cutscenes/stagger.cutscene` avec `--cutscene-preview-seek 1` ouvre le document, et les diagnostics montrent les quatre `orb` / `ring` à des avancements différents. `git status` ne montre sous `Projects/` que ces fichiers.
+- Commit : `feat(samples): add a cutscene that staggers four sprites with At actions`
+
+---
+
+## Phase 2 — Éditeur (`CasaEngine.Editor`)
+
+### ⏳ T2.1 — Opérations du document
+
+- Objectif : le document sait poser une action à un instant de la timeline et en ajouter une à un instant.
+- Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, `CasaEngine.Tests/Editor/CutsceneDocumentOperationsTests.cs` (tests ajoutés).
+- Étapes :
+  1. `PlaceActionAt(action, instant de la timeline)` : calcule la projection de l'arbre courant (avec les durées mesurées, comme le panneau de la timeline), y lit le début actuel de l'élément principal de l'action, convertit par la fonction de T1.3, puis exécute la commande de T1.4. Rend un refus ou `null` ; une action sans élément principal dans la timeline (un conteneur) est refusée. L'action reste ou devient la sélection.
+  2. `AddActionAt(type, instant de la timeline)` : cible selon P9, `seconds` = instant moins début du `Parallel` cible, lu dans la mise en page (T1.3), aligné et borné ; sélectionne l'action créée.
+  3. Les requêtes de refus correspondantes, pour le menu.
+- Validation : build ; tests ajoutés : poser le premier enfant d'un `At` change son `seconds` ; poser un enfant direct d'un `Parallel` l'enveloppe ; poser une action d'un `Sequence` est refusé ; une entrée d'historique par opération, annulation et rétablissement ; `DocumentChanged` levé une fois ; ajout à un instant avec et sans `Parallel` cible ; sélection après chaque opération.
+- Commit : `feat(editor): place and add cutscene actions at a time of the timeline`
+
+### ⏳ T2.2 — Glisser dans la timeline
+
+- Objectif : P5 → P8, P12.
+- Fichiers : `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs`, `CasaEngine.Editor/Controls/Cutscenes/CutsceneTimelineItemRenderer.cs`, un fichier pour la politique d'édition dans `CasaEngine.Editor/Controls/Cutscenes/`, `CasaEngine.Tests/Editor/CutsceneTimelinePanelTests.cs` (tests ajoutés).
+- Étapes :
+  1. Les éléments qui se glissent (T1.3) sont créés `IsEditable` et `CanMove`, sans étirement ; les autres restent comme aujourd'hui. Vérifier dans `TimelineControl` et `TimelineViewport` ce que `IsEditable` active d'autre (raccourcis clavier du contrôle, menu par défaut) et s'assurer que rien d'autre ne devient possible : le menu vient du fournisseur, les événements de suppression, de duplication, de copie et de collage du contrôle ne sont pas abonnés. Le noter.
+  2. Une `ITimelineEditPolicy` propre aux cutscenes : `SnapTime` aligne sur 1/60 s **et borne** l'instant au plus bas permis pour l'élément (T1.3), de sorte que le glisser s'arrête là ; `CanMoveItem` ne sert que de garde ; pas d'étirement, pas d'insertion. Le magnétisme du contrôle est activé, parce que `SnapTime` n'est appelé qu'à cette condition.
+  3. `ItemTimeEditCommitted` appelle `PlaceActionAt` du document ; un refus est sans effet et l'élément revient à sa place au modèle suivant.
+  4. Durée affichée selon P7 ; la tête de lecture et les recherches gardent la durée réelle ; l'ajustement du zoom lit la durée de la projection et non celle du modèle, pour que la marge de P7 ne rétrécisse pas la vue.
+  5. Dessin selon P8 ; infobulle complétée.
+  6. P12 : vérifier que la duplication demandée par Ctrl + glisser ne fait rien.
+- Validation : build ; tests ajoutés. Le glisser est simulé avec le harnais de souris sur la zone des pistes si c'est possible (comme `TimelineRulerDragTests` le fait pour la règle) ; sinon par les méthodes internes du contrôle `SnapTime` et `CommitDraggedItemTime`, qui sont celles que le glisser appelle ; la note de validation dit laquelle des deux voies a servi, et les deux permettent ✅. Test existant mis à jour, et nommé : l'affirmation `:144` de `TheModel_ReflectsTheProjectionOfTheSample_AndIsReadOnly`, selon la règle des tests existants. Cas : glisser le premier enfant d'un `At` de 0,5 s à 1,2 s écrit 1,2 dans `seconds`, à une image près, en une entrée d'historique ; glisser un enfant direct d'un `Parallel` crée un `At` autour de lui ; glisser un élément qui ne se glisse pas ne change rien ; glisser avant le début du bloc s'arrête au début ; glisser au-delà de la fin réelle est possible grâce à P7 ; Ctrl + glisser ne change rien ; la tête de lecture reste bornée à la durée réelle ; la timeline d'Animation2D n'est pas modifiée (ses tests passent). Si aucune des deux voies ne permet de tester le glisser, la tâche reste 🧪 avec la raison : `place:` et le champ `Seconds` restent les moyens livrés.
+- Commit : `feat(editor): drag a cutscene action in time on the timeline`
+
+### ⏳ T2.3 — Ajouter à l'instant du curseur
+
+- Objectif : P9.
+- Fichiers : `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs`, `CasaEngine.Editor/Controls/Cutscenes/CutsceneActionMenu.cs`, tests.
+- Étapes : le fournisseur de menu du panneau rend, pour le vide de la zone des pistes, un menu `Add here` (catégorie, puis type) quand `AddActionAt` ne serait pas refusé, et rien sinon ; chaque entrée appelle `AddActionAt` avec l'instant du curseur reçu du contrôle. Le menu d'un élément ne change pas.
+- Validation : build ; tests ajoutés : avec un `Parallel` sélectionné, le vide donne un menu dont une entrée ajoute un `At` à l'instant demandé ; sans `Parallel` cible, pas de menu ; le menu d'un élément est celui de la tranche E.
+- Commit : `feat(editor): add a cutscene action at the cursor time of the timeline`
+
+### ⏳ T2.4 — Automatisation et diagnostics
+
+- Objectif : P14.
+- Fichiers : `CasaEngine.Editor/CutsceneEditOperation.cs`, `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs`, `CasaEngine.Tests/Editor/EditorAutomationOptionsTests.cs` (tests ajoutés).
+- Étapes : opérations `place:<secondes>` et `addat:<Type>:<secondes>` (`addat` rejoint la règle de coupe au dernier `:` de `CutsceneEditOperation`), nombres en culture invariante, refusées si mal formées ; diagnostics de la timeline : pour chaque élément, la règle de glisser (rien, change tel `At`, enveloppe tel nœud) et l'instant le plus bas où il peut descendre ; et le début de chaque `Parallel`.
+- Validation : build ; tests d'analyse des deux opérations ; un lancement sur `stagger.cutscene` avec `select:<chemin du MoveSprite du deuxième At>;place:1.6` écrit un plan d'arbre où cet `At` vaut 1,6 s.
+- Commit : `feat(editor): script the placement of cutscene actions in time from the automation`
+
+### ⏳ T2.5 — Captures de validation
+
+- Objectif : produire les captures de la tranche et vérifier, par les diagnostics, l'arbre et les instants obtenus.
+- Étapes, sur `Projects/SpriteCutsceneSample`, timeline au premier plan, `--diagnostics-out` hors dépôt, fichiers préfixés `p`. Les chemins exacts se lisent dans le plan de l'arbre d'un premier lancement (`p0`).
+  1. `stagger.cutscene` au repos : la timeline montre les quatre `MoveSprite` en cascade (0, 0,4, 0,8, 1,2 s), chacun avec son bord gauche clair ; l'arbre montre quatre nœuds « At … s » dans le `Parallel` ; les diagnostics donnent la règle « change l'`At` » pour les quatre.
+  2. `stagger.cutscene`, `--cutscene-preview-seek 1` : l'aperçu est en pause à 1,000 s ; les positions des quatre sprites sont à des avancements décroissants dans l'ordre de leurs `At`, le dernier n'ayant pas encore bougé ; les valeurs sont rapportées telles que mesurées.
+  3. Déplacement : `select:<MoveSprite du deuxième At>;place:1.6` : l'`At` vaut 1,6 s dans le plan de l'arbre, sa barre est à 1,6 s dans la timeline, le document est modifié ; avec `--cutscene-preview-seek 1`, ce sprite n'a plus bougé à 1 s.
+  4. Enveloppement, sur `loop.cutscene` : regrouper le premier `MoveSprite` dans un `Parallel`, y déplacer le deuxième, puis `place:<début actuel du deuxième + 0,5>` sur le deuxième : le plan montre un `At 0.5 s` autour de lui dans le `Parallel`, en une entrée d'historique (un seul `undo` le retire).
+  5. Ajout à un instant : sur `stagger.cutscene`, `select:<le Parallel>;addat:Wait:2` : un `At 2 s` contenant un `Wait` est ajouté à la fin du `Parallel`, sélectionné, et la timeline s'allonge.
+  6. Annulation : après les opérations du lancement 4, autant de `undo` que d'entrées d'historique : le plan est identique à celui de `loop.cutscene` intact, document non modifié.
+  7. Refus : `place:1` sur une action d'un `Sequence` (un `TintSprite` de `loop.cutscene`), et `addat:Wait:1` sans `Parallel` cible : les diagnostics écrivent le refus, le plan ne change pas.
+  8. Non-régression : relancer `f1` et `f2` de la tranche E et `e3` de la tranche D ; les valeurs sont celles notées dans leurs plans.
+- Validation : chaque capture est regardée et décrite honnêtement ; valeurs comparées aux attentes ; barre mal placée, bord clair invisible ou libellé coupé : défaut à corriger avant ✅, ou à noter en 🧪. `git status` ne montre sous `Projects/` que les fichiers de T1.5 ; aucun asset n'est enregistré par un lancement.
+- Limite d'essais : deux séries de corrections au plus dans cette tâche ; au-delà, 🧪 avec la liste exacte de ce qui reste.
+- Commit : `docs(plan): record the validation screenshots of the cutscene placement in time`, ou `fix(editor): …` si une correction est nécessaire.
+
+---
+
+## Phase 3 — Documentation et recette
+
+### ⏳ T3.1 — Documentation
+
+- Objectif : `docs/editor/cutscene-editor.md` décrit l'action `At`, ce qui se glisse dans la timeline et pourquoi le reste ne se glisse pas, l'alignement sur les images, `Add here`, les opérations `place` et `addat`, le sample, et les limites (P16, pas de magnétisme entre éléments, une action à la fois).
+- Fichiers : ce document, ce plan, `ai-agent/README.md`.
+- Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
+- Commit : `docs(editor): document the placement of cutscene actions in time`
+
+### ⏳ T3.2 — Recette de l'auteur
+
+- Validation à distance sur les captures de T2.5, confirmation de la forme de `At` (ADR-0102 passe alors à `Accepted`), puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
+
+---
+
+## Points ouverts
+
+| Réf | Sujet | Tâche concernée |
+|---|---|---|
+| O1 | La forme de `At` (nom, clé `seconds`, sémantique) est une proposition de l'agent : l'ADR reste `Proposed` jusqu'à la confirmation de l'auteur. | T0.1, T1.1 |
+| O2 | Le glisser réel dans la timeline ne peut pas être essayé dans l'éditeur lancé : il est validé par les tests avec le harnais et par l'opération `place`, puis par la recette de l'auteur. | T2.2, T2.5 |
+| O3 | Les branches d'un `Parallel` démarrent une mise à jour après lui : un clip posé à 0,5 s part une image plus tard dans l'aperçu que sa barre ne l'indique. C'est le comportement existant du `Parallel`, non changé ici. | T1.1, T1.3 |
+| O4 | Confirmation de P1 → P17 par l'auteur. | Toutes |
+
+## Hors périmètre
+
+- Étirer une barre ; changer un clip de rangée ; magnétisme sur les autres éléments ; sélection multiple.
+- Convertir automatiquement une cutscene existante en clips placés librement.
+- Courbes et images clés par propriété.
+- Aperçu du son, fondus dessinés, entrées simulées : tranche G.
+- Tout changement de MGUI, et tout changement du format autre que l'ajout du type `At`.
