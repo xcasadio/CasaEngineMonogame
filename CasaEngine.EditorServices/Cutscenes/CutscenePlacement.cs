@@ -1,3 +1,5 @@
+using System.Globalization;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Cutscenes;
 
 namespace CasaEngine.EditorServices.Cutscenes;
@@ -52,8 +54,9 @@ public readonly struct CutscenePlacementRule
 }
 
 /// <summary>
-/// Pure computations for placing the actions of a cutscene in time on the timeline (ADR-0102): which items can be
-/// dragged and what a drag changes, and the conversion of a dropped time into the <c>seconds</c> of an At.
+/// Placing the actions of a cutscene in time on the timeline (ADR-0102): pure computations (which items can be dragged
+/// and what a drag changes, the conversion of a dropped time into the <c>seconds</c> of an At) and the undoable commands
+/// that place an action at a time and add an action at a time.
 /// </summary>
 public static class CutscenePlacement
 {
@@ -141,6 +144,169 @@ public static class CutscenePlacement
         double start = double.IsFinite(itemStartSeconds) ? itemStartSeconds : 0;
         return Math.Max(0, start - current);
     }
+
+    /// <summary>
+    /// The reason an action cannot be placed at a time, or null when it can. Refused: a time that is not a finite number
+    /// or is below 0, an action that is not in the cutscene, an action that no drag moves (<see cref="Resolve(CutsceneActionData, CutsceneActionData)"/>
+    /// gives nothing), and a time that is already the <c>seconds</c> of the At the placement would change.
+    /// </summary>
+    public static string? GetPlaceRefusal(CutsceneEditSession session, CutsceneActionData action, double seconds)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(action);
+
+        if (!double.IsFinite(seconds) || seconds < 0)
+        {
+            return "The time must be a number of seconds, not below 0.";
+        }
+
+        var root = session.Asset.RootAction;
+        if (root == null || !CutsceneActionTree.Contains(root, action))
+        {
+            return "The action is not in the cutscene.";
+        }
+
+        var rule = Resolve(root, action);
+        switch (rule.Kind)
+        {
+            case CutscenePlacementKind.ChangeAt:
+                return (float)seconds == rule.At!.Seconds ? "The action is already at this time." : null;
+
+            case CutscenePlacementKind.WrapInAt:
+                return null;
+
+            default:
+                return "This action cannot be placed in time: only the first action of a group can be moved.";
+        }
+    }
+
+    /// <summary>
+    /// Creates the command that places an action at a time (P5), as one history entry. Depending on the rule it writes the
+    /// <c>seconds</c> of the At that holds the action, or wraps the node in a new At of that many seconds; a wrap at 0
+    /// seconds is allowed. Returns null, with the reason, when the placement is refused (<see cref="GetPlaceRefusal"/>).
+    /// </summary>
+    /// <param name="seconds">The new <c>seconds</c> of the At, already aligned (see <see cref="ConvertDrop"/>).</param>
+    public static IEditorCommand? TryCreatePlace(CutsceneEditSession session, CutsceneActionData action, double seconds, out string error)
+    {
+        error = GetPlaceRefusal(session, action, seconds) ?? string.Empty;
+        if (error.Length > 0)
+        {
+            return null;
+        }
+
+        var rule = Resolve(session.Asset.RootAction!, action);
+        string description = $"Place {action.Type} at {FormatSeconds(seconds)}";
+        float value = (float)seconds;
+
+        if (rule.Kind == CutscenePlacementKind.ChangeAt)
+        {
+            var at = rule.At!;
+            var property = CutsceneActionPropertyEditor.FindProperty(at, SecondsKey)!;
+            return new EditorCompositeCommand(description, new SetCutsceneActionPropertyCommand(session, at, property, value));
+        }
+
+        var wrap = new WrapCutsceneActionCommand(session, rule.Node!, CutsceneActionTypes.At);
+        if (!(value > 0))
+        {
+            return new EditorCompositeCommand(description, wrap);
+        }
+
+        var secondsProperty = CutsceneActionPropertyEditor.FindProperty(wrap.Container, SecondsKey)!;
+        return new EditorCompositeCommand(description, wrap, new SetCutsceneActionPropertyCommand(session, wrap.Container, secondsProperty, value));
+    }
+
+    /// <summary>
+    /// The Parallel that receives an action added at a time (P9): the selected action when it is a Parallel, otherwise the
+    /// nearest Parallel that holds it. Null when there is none, when nothing is selected, or when the selection is not in
+    /// the tree.
+    /// </summary>
+    public static ParallelCutsceneActionData? FindTargetParallel(CutsceneActionData root, CutsceneActionData? selected)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        if (selected == null || !CutsceneActionTree.Contains(root, selected))
+        {
+            return null;
+        }
+
+        var node = selected;
+        while (true)
+        {
+            if (node is ParallelCutsceneActionData parallel)
+            {
+                return parallel;
+            }
+
+            if (!CutsceneActionTree.TryFindParent(root, node, out var parent, out _))
+            {
+                return null;
+            }
+
+            node = parent;
+        }
+    }
+
+    /// <summary>
+    /// The reason an action cannot be added at a time, or null when it can. Refused: a time that is not a finite number or
+    /// is below 0, a target that is not a Parallel of the cutscene, and a type that is not in the catalogue.
+    /// </summary>
+    public static string? GetAddRefusal(CutsceneEditSession session, CutsceneActionData target, string type, double seconds)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (!double.IsFinite(seconds) || seconds < 0)
+        {
+            return "The time must be a number of seconds, not below 0.";
+        }
+
+        var root = session.Asset.RootAction;
+        if (target is not ParallelCutsceneActionData || root == null || !CutsceneActionTree.Contains(root, target))
+        {
+            return "The target is not a Parallel of the cutscene.";
+        }
+
+        var kinds = CutsceneActionCatalog.Kinds;
+        for (int index = 0; index < kinds.Count; index++)
+        {
+            if (kinds[index].Type == type)
+            {
+                return null;
+            }
+        }
+
+        return $"'{type}' is not an action type of the catalogue.";
+    }
+
+    /// <summary>
+    /// Creates the command that adds an action at a time (P9), as one history entry: at the end of the Parallel, an At of
+    /// that many seconds that holds a new action of the type, created by the catalogue. Returns null, with the reason, when
+    /// the addition is refused (<see cref="GetAddRefusal"/>).
+    /// </summary>
+    /// <param name="seconds">The <c>seconds</c> of the At, already aligned and counted from the start of the Parallel.</param>
+    /// <param name="created">The new action, inside the At; null when refused.</param>
+    public static IEditorCommand? TryCreateAdd(CutsceneEditSession session, CutsceneActionData target, string type, double seconds, out CutsceneActionData? created, out string error)
+    {
+        created = null;
+        error = GetAddRefusal(session, target, type, seconds) ?? string.Empty;
+        if (error.Length > 0)
+        {
+            return null;
+        }
+
+        var at = (AtCutsceneActionData)CutsceneActionCatalog.Create(CutsceneActionTypes.At);
+        at.Seconds = (float)seconds;
+        created = CutsceneActionCatalog.Create(type);
+        at.Actions.Add(created);
+
+        var insert = new InsertCutsceneActionCommand(session, target, CutsceneActionCatalog.GetChildren(target).Count, at);
+        return new EditorCompositeCommand($"Add {type} at {FormatSeconds(seconds)}", insert);
+    }
+
+    private const string SecondsKey = "seconds";
+
+    private static string FormatSeconds(double seconds) => seconds.ToString("0.###", CultureInfo.InvariantCulture) + " s";
 
     private static double Align(double seconds)
     {
