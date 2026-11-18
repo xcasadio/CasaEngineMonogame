@@ -23,7 +23,8 @@ namespace CasaEngine.Editor.Controls;
 /// read-only, except that an item the placement rule allows (ADR-0102, P5) can be dragged in time, which writes the tree through
 /// the document. The model is rebuilt when the document changes or a new duration is measured, never per frame; per frame only
 /// the playhead moves. A right click on an item opens the structure menu shared with the outliner (P8, P12); the empty space
-/// and the track headers have no menu.
+/// of a row offers "Add here" at the time of the cursor when the selection gives a Parallel to receive the action (ADR-0102),
+/// and the track headers have no menu. A dragged bar keeps the place where it was grabbed while it follows the cursor.
 /// </summary>
 internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 {
@@ -121,7 +122,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
         };
         _root.TryAddChild(_emptyText, Dock.Top);
 
-        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true, trackRowHeight: CompactTrackRowHeight, rulerDragScrub: true)
+        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true, trackRowHeight: CompactTrackRowHeight, rulerDragScrub: true, keepGrabOffset: true)
         {
             ItemRenderer = new CutsceneTimelineItemRenderer(),
             CornerHeaderText = "Rows",

@@ -24,6 +24,7 @@ internal sealed class TimelineViewport : MGElement
     private DragMode _dragMode = DragMode.None;
     private float _dragStartTime;
     private float _dragDuration;
+    private float _dragGrabOffset;
     private bool _ignoreNextRelease;
 
     private enum DragMode
@@ -399,6 +400,17 @@ internal sealed class TimelineViewport : MGElement
         _dragMode = mode;
         _dragStartTime = _pressedItem.StartTime;
         _dragDuration = _pressedItem.Duration;
+        _dragGrabOffset = 0f;
+        if (mode == DragMode.Move && _owner.KeepGrabOffsetEnabled)
+        {
+            // The event carries the position of the press, not the one the drag started to move at.
+            Rectangle layoutBounds = GetInputBounds();
+            Point pressLayoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
+            Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+            float pressTime = GetTimeAtPosition(Math.Max(pressLayoutPosition.X, timeAreaBounds.Left), timeAreaBounds.Left);
+            _dragGrabOffset = Math.Clamp(pressTime - _pressedItem.StartTime, 0f, Math.Max(0f, _pressedItem.Duration));
+        }
+
         _owner.Focus(KeyboardFocusSource.Pointer);
         e.SetHandledBy(this, false);
     }
@@ -414,7 +426,14 @@ internal sealed class TimelineViewport : MGElement
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
-        float cursorTime = _owner.SnapTime(GetTimeAtPosition(x, timeAreaBounds.Left), _draggedItem);
+        float rawTime = GetTimeAtPosition(x, timeAreaBounds.Left);
+        if (_dragGrabOffset > 0f)
+        {
+            // Only a move can have a grab offset: the item follows the cursor from where it was grabbed.
+            rawTime = Math.Max(0f, rawTime - _dragGrabOffset);
+        }
+
+        float cursorTime = _owner.SnapTime(rawTime, _draggedItem);
 
         switch (_dragMode)
         {
@@ -470,6 +489,7 @@ internal sealed class TimelineViewport : MGElement
         _draggedItem = null;
         _pressedItem = null;
         _dragMode = DragMode.None;
+        _dragGrabOffset = 0f;
         _ignoreNextRelease = true;
         _owner.InvalidateViewPresentation();
     }

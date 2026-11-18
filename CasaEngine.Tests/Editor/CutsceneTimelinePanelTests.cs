@@ -737,10 +737,11 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         var a = FindItem(rig.Panel, rig.A);
         Assert.Equal(0.5f, rig.At.Seconds);
 
+        // The bar starts at 1.5 s and is grabbed 0.3 s after its start: it keeps that gap, so its start goes to 1.9 s.
         Drag(rig, a, 1.8f, 2.2f);
 
-        Assert.Equal(1.2f, rig.At.Seconds, 1f / 60f);
-        Assert.Equal(2.2f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
+        Assert.Equal(0.9f, rig.At.Seconds, 1f / 60f);
+        Assert.Equal(1.9f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
         Assert.Same(rig.A, rig.Document.SelectedAction);
         Assert.True(rig.Document.IsDirty);
         Assert.Null(rig.Panel.LastPlaceRefusal);
@@ -761,13 +762,14 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         int count = rig.Parallel.Actions.Count;
         Assert.Equal(1f, b.StartTime, 4);
 
+        // The bar starts at 1 s and is grabbed 0.3 s after its start: it keeps that gap, so its start goes to 1.3 s.
         Drag(rig, b, 1.3f, 1.6f);
 
         Assert.Equal(count, rig.Parallel.Actions.Count);
         var wrapper = Assert.IsType<AtCutsceneActionData>(rig.Parallel.Actions[1]);
-        Assert.Equal(0.6f, wrapper.Seconds, 1f / 60f);
+        Assert.Equal(0.3f, wrapper.Seconds, 1f / 60f);
         Assert.Same(b0, Assert.Single(wrapper.Actions));
-        Assert.Equal(1.6f, FindItem(rig.Panel, b0).StartTime, 1f / 60f);
+        Assert.Equal(1.3f, FindItem(rig.Panel, b0).StartTime, 1f / 60f);
 
         Undo();
         Assert.Same(b0, rig.Parallel.Actions[1]);
@@ -814,10 +816,79 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         rig.Harness.AdvanceFrame(rig.Time += 16);
         var a = FindItem(rig.Panel, rig.A);
 
+        // The bar starts at 1.5 s and is grabbed 0.3 s after its start: its start goes to 4.1 s.
         Drag(rig, a, 1.8f, 4.4f);
 
-        Assert.Equal(0.5f + (4.4f - 1.5f), rig.At.Seconds, 1f / 60f);
+        Assert.Equal(0.5f + (4.1f - 1.5f), rig.At.Seconds, 1f / 60f);
         Assert.True(FindItem(rig.Panel, rig.A).StartTime > (float)real);
+    }
+
+    [Fact]
+    public void ThePanel_KeepsTheGrabOffsetOfTheBarsItDrags()
+    {
+        var rig = OpenDragTree();
+
+        Assert.True(rig.Timeline.KeepGrabOffsetEnabled);
+    }
+
+    [Fact]
+    public void GrabbingABarInTheMiddle_AndDraggingItByHalfASecond_MovesItByHalfASecond_NotByItsLength()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+        Assert.Equal(1f, a.Duration, 4);
+
+        // The bar of a is 1 s long, starts at 1.5 s and is grabbed in its middle (2 s): the delay grows by 0.5 s, not by 1 s.
+        Drag(rig, a, 2.0f, 2.5f);
+
+        Assert.Equal(1.0f, rig.At.Seconds, 1f / 60f);
+        Assert.Equal(2.0f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
+    }
+
+    [Fact]
+    public void GrabbingABarAtItsStart_PutsItsStartUnderTheCursor_AsBefore()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+
+        Drag(rig, a, 1.5f, 2.2f);
+
+        Assert.Equal(1.2f, rig.At.Seconds, 1f / 60f);
+        Assert.Equal(2.2f, FindItem(rig.Panel, rig.A).StartTime, 1f / 60f);
+    }
+
+    [Fact]
+    public void AShakyClickInTheMiddleOfABar_DoesNotJumpByHalfItsLength()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+        Point from = ScreenPoint(rig, a, 2.0f);
+        var harness = rig.Harness;
+
+        // Press in the middle of the bar, move by 4 px (the drag starts after 3 px), then by one more pixel, and release.
+        harness.AdvanceFrame(rig.Time += 16, from, MGUI.Shared.Input.Mouse.MouseButton.Left);
+        harness.AdvanceFrame(rig.Time += 16, new Point(from.X + 4, from.Y), MGUI.Shared.Input.Mouse.MouseButton.Left);
+        var moved = new Point(from.X + 5, from.Y);
+        harness.AdvanceFrame(rig.Time += 16, moved, MGUI.Shared.Input.Mouse.MouseButton.Left);
+        harness.AdvanceFrame(rig.Time += 16, moved);
+        harness.AdvanceFrame(rig.Time += 16, moved);
+
+        // Without the grab offset the delay would be 0.5 s further (half of the bar); now it moves by the 5 px at most, to a frame.
+        Assert.NotNull(rig.Panel.LastPlaceRequestSeconds);
+        float movedSeconds = 5f / rig.Timeline.PixelsPerSecond;
+        Assert.InRange(rig.At.Seconds, 0.5f, 0.5f + movedSeconds + (1f / 60f));
+    }
+
+    [Fact]
+    public void ADragThatEndsWhereItStarted_ChangesNothing()
+    {
+        var rig = OpenDragTree();
+        var a = FindItem(rig.Panel, rig.A);
+
+        Drag(rig, a, 2.0f, 2.0f);
+
+        Assert.Equal(0.5f, rig.At.Seconds);
+        Assert.False(EditorHistoryService.Current.CanUndo);
     }
 
     [Fact]
