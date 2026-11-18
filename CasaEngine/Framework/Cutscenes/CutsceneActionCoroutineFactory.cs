@@ -44,7 +44,11 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case MoveToCutsceneActionData moveToAction:
-                ICharacterMotionHandle moveToHandle = StartMoveTo(moveToAction, world, owner);
+                if (!TryStartMoveTo(moveToAction, world, owner, out ICharacterMotionHandle moveToHandle, out string moveToFailure))
+                {
+                    FailPlay(owner, moveToFailure, playToken);
+                    yield break;
+                }
 
                 while (moveToHandle.IsActive)
                 {
@@ -53,7 +57,8 @@ internal static class CutsceneActionCoroutineFactory
 
                 if (moveToHandle.HasTimedOut)
                 {
-                    throw new TimeoutException($"MoveTo action timed out for entity '{moveToAction.EntityName}'.");
+                    FailPlay(owner, $"MoveTo action timed out for entity '{moveToAction.EntityName}'.", playToken);
+                    yield break;
                 }
 
                 break;
@@ -586,17 +591,25 @@ internal static class CutsceneActionCoroutineFactory
         return true;
     }
 
-    private static ICharacterMotionHandle StartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
+    private static bool TryStartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner, out ICharacterMotionHandle handle, out string failureReason)
     {
-        Entity entity = FindEntityByName(world, action.EntityName)
-            ?? throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' was not found.");
+        handle = null;
+        failureReason = null;
+
+        Entity entity = FindEntityByName(world, action.EntityName);
+        if (entity == null)
+        {
+            failureReason = $"MoveTo action target entity '{action.EntityName}' was not found.";
+            return false;
+        }
 
         if (entity.GetComponent<CharacterControllerComponent>() == null)
         {
-            throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.");
+            failureReason = $"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.";
+            return false;
         }
 
-        return world.RuntimeSystems.CharacterMotion.MoveTo(
+        handle = world.RuntimeSystems.CharacterMotion.MoveTo(
             entity,
             action.Destination,
             new CharacterMoveToOptions
@@ -606,6 +619,7 @@ internal static class CutsceneActionCoroutineFactory
                 ControlMode = CharacterControlMode.Cutscene,
             },
             owner);
+        return true;
     }
 
     /// <summary>Finds the entity and its root sprite component, or says why it cannot.</summary>

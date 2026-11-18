@@ -150,7 +150,9 @@ Décisions antérieures concernées :
 
 ## Phase 1 — Runtime (`CasaEngine`)
 
-### ⏳ T1.1 — `MoveTo` échoue proprement
+### ✅ T1.1 — `MoveTo` échoue proprement
+
+> Validation (2026-11-18) : build `CasaEngine.MonoGame.sln` 0 erreur ; 3 tests ajoutés (`MoveToFailureCutsceneActionTests` : entité absente, sans `CharacterControllerComponent`, délai dépassé) ; `dotnet test` 5894 verts (5891 + 3), aucun test existant modifié.
 
 - Objectif : une lecture dont un `MoveTo` dépasse son délai, vise une entité absente ou une entité sans `CharacterControllerComponent` se termine par `Ended` avec l'état `Failed`, comme `NavigateTo` (P4).
 - Fichiers : `CasaEngine/Framework/Cutscenes/CutsceneActionCoroutineFactory.cs`, `CasaEngine.Tests/Cutscenes/` (tests ajoutés).
