@@ -291,6 +291,9 @@ public class GameEditor : Game, IObservableUpdate
     private string _automationCutscenePanelId;
     private bool _automationCutsceneSelectDone;
     private bool _automationCutsceneAddDone;
+    private int _automationCutsceneOpIndex;
+    private int _automationCutsceneOpWaitFrames;
+    private readonly List<string> _automationCutsceneOpResults = new();
     private TimeSpan _automationCutsceneEditedAt;
     private string _automationCutsceneEditResult;
     private int _automationCutsceneSeekIndex;
@@ -644,6 +647,9 @@ public class GameEditor : Game, IObservableUpdate
         _automationCutscenePanelId = null;
         _automationCutsceneSelectDone = false;
         _automationCutsceneAddDone = false;
+        _automationCutsceneOpIndex = 0;
+        _automationCutsceneOpWaitFrames = 0;
+        _automationCutsceneOpResults.Clear();
         _automationCutsceneEditResult = null;
         _automationCutsceneSeekIndex = 0;
         _automationCutsceneSeekActive = false;
@@ -2054,24 +2060,36 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ExecuteUndo()
     {
-        var historyContext = _editorHistory.ActiveContext;
-        if (!_editorHistory.Undo())
-        {
-            return;
-        }
-
-        RefreshViewsAfterHistoryCommand(historyContext);
+        TryUndo();
     }
 
     private void ExecuteRedo()
     {
+        TryRedo();
+    }
+
+    private bool TryUndo()
+    {
         var historyContext = _editorHistory.ActiveContext;
-        if (!_editorHistory.Redo())
+        if (!_editorHistory.Undo())
         {
-            return;
+            return false;
         }
 
         RefreshViewsAfterHistoryCommand(historyContext);
+        return true;
+    }
+
+    private bool TryRedo()
+    {
+        var historyContext = _editorHistory.ActiveContext;
+        if (!_editorHistory.Redo())
+        {
+            return false;
+        }
+
+        RefreshViewsAfterHistoryCommand(historyContext);
+        return true;
     }
 
     // ADR-0101, P10: with a cutscene document active, the clipboard shortcuts act on that document and on nothing else.
@@ -7927,12 +7945,14 @@ public class GameEditor : Game, IObservableUpdate
     private bool IsAutomationCutsceneEditRequested()
         => _automationOptions.CutsceneReactivate
            || !string.IsNullOrWhiteSpace(_automationOptions.CutsceneSelectActionPath)
-           || !string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType);
+           || !string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType)
+           || _automationOptions.CutsceneEditOperations.Length > 0;
 
     private bool IsAutomationCutsceneEditCompleted()
         => (!_automationOptions.CutsceneReactivate || _automationCutsceneReactivateStep >= 2)
            && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneSelectActionPath) || _automationCutsceneSelectDone)
-           && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType) || _automationCutsceneAddDone);
+           && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType) || _automationCutsceneAddDone)
+           && _automationCutsceneOpIndex >= _automationOptions.CutsceneEditOperations.Length;
 
     /// <summary>
     /// True when the edits are over and, for edits applied after the transport, the replay that an edit asks for is finished.
@@ -7948,7 +7968,8 @@ public class GameEditor : Game, IObservableUpdate
            && (!_automationOptions.CutscenePreviewStop || _automationCutsceneStopDone);
 
     /// <summary>
-    /// Reactivates the cutscene tab, selects an action and adds one, in this order, one step per frame. Nothing is saved.
+    /// Reactivates the cutscene tab, selects an action, adds one and applies the structure operations of
+    /// <c>--cutscene-edit-ops</c>, in this order, one step per frame. Nothing is saved.
     /// With <c>--cutscene-edit-after-transport</c> it waits for the seeks, the steps and the stop, then waits for the replay
     /// that the edit asked for to be over.
     /// </summary>
@@ -8038,7 +8059,236 @@ public class GameEditor : Game, IObservableUpdate
             _automationCutsceneEditResult = error == null ? "added" : $"add failed: {error}";
             EditorDiagnosticsBuffer.Append(error == null ? LogVerbosity.Info : LogVerbosity.Warning,
                 $"[Automation] Cutscene add-action '{type}': {_automationCutsceneEditResult}");
+            return;
         }
+
+        if (_automationCutsceneOpIndex < _automationOptions.CutsceneEditOperations.Length)
+        {
+            ApplyNextAutomationCutsceneOperation(cutscenePanel, totalGameTime);
+        }
+    }
+
+    // How many frames an operation waits for the tree to have a layout before it is refused.
+    private const int AutomationCutsceneOperationMaxWaitFrames = 300;
+
+    /// <summary>
+    /// Applies the next operation of <c>--cutscene-edit-ops</c> (ADR-0101, P14) and records its result for the diagnostics. A
+    /// refused or unknown operation is written down and the next one follows. An operation that needs the layout of the tree
+    /// waits for it, up to <see cref="AutomationCutsceneOperationMaxWaitFrames"/> frames.
+    /// </summary>
+    private void ApplyNextAutomationCutsceneOperation(CutsceneAssetInspectorPanel document, TimeSpan totalGameTime)
+    {
+        var operation = _automationOptions.CutsceneEditOperations[_automationCutsceneOpIndex];
+        string result = ExecuteAutomationCutsceneOperation(document, operation);
+        if (result == null)
+        {
+            _automationCutsceneOpWaitFrames++;
+            if (_automationCutsceneOpWaitFrames <= AutomationCutsceneOperationMaxWaitFrames)
+            {
+                return;
+            }
+
+            result = "refused: the tree has no layout to work from";
+        }
+
+        _automationCutsceneOpWaitFrames = 0;
+        _automationCutsceneOpIndex++;
+        _automationCutsceneEditedAt = totalGameTime;
+        _automationCutsceneEditResult = result;
+        string line = $"{_automationCutsceneOpIndex}. {operation.Text}: {result}";
+        _automationCutsceneOpResults.Add(line);
+        EditorDiagnosticsBuffer.Append(result.StartsWith("refused", StringComparison.Ordinal) ? LogVerbosity.Warning : LogVerbosity.Info,
+            $"[Automation] Cutscene edit operation {line}");
+    }
+
+    // The result of an operation: "done", or "refused: why". Null when the tree has no layout yet and the operation must be asked again.
+    private string ExecuteAutomationCutsceneOperation(CutsceneAssetInspectorPanel document, CutsceneEditOperation operation)
+    {
+        var root = document.LoadedCutsceneAsset?.RootAction;
+        if (root == null)
+        {
+            return "refused: no cutscene is loaded";
+        }
+
+        var selected = document.SelectedAction;
+        switch (operation.Name)
+        {
+            case "select":
+                if (string.IsNullOrWhiteSpace(operation.Argument))
+                {
+                    return "refused: select needs a path";
+                }
+
+                return CutsceneActionTree.TryResolvePath(root, operation.Argument, out var toSelect) && document.SelectAction(toSelect)
+                    ? "done"
+                    : "refused: no action at that path";
+
+            case "add":
+                return string.IsNullOrWhiteSpace(operation.Argument)
+                    ? "refused: add needs a type"
+                    : DescribeAutomationRefusal(document.AddAction(operation.Argument));
+
+            case "move":
+            {
+                if (string.IsNullOrWhiteSpace(operation.Argument)
+                    || !int.TryParse(operation.Detail, NumberStyles.Integer, CultureInfo.InvariantCulture, out int index))
+                {
+                    return "refused: move needs a container path and an index, as move:<path>:<index>";
+                }
+
+                if (selected == null)
+                {
+                    return "refused: no action is selected";
+                }
+
+                return CutsceneActionTree.TryResolvePath(root, operation.Argument, out var container)
+                    ? DescribeAutomationRefusal(document.MoveAction(selected, container, index))
+                    : "refused: no container at that path";
+            }
+
+            case "up" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.MoveSelectedActionUp());
+
+            case "down" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.MoveSelectedActionDown());
+
+            case "wrap":
+                return string.IsNullOrWhiteSpace(operation.Argument)
+                    ? "refused: wrap needs a container type"
+                    : DescribeAutomationRefusal(document.WrapSelectedAction(operation.Argument));
+
+            case "ungroup" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.UngroupSelectedAction());
+
+            case "copy" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.CopySelectedAction());
+
+            case "cut" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.CutSelectedAction());
+
+            case "paste" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.PasteAction());
+
+            case "duplicate" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.DuplicateSelectedAction());
+
+            case "delete" when operation.Argument == null:
+                return DescribeAutomationRefusal(document.RemoveSelectedAction());
+
+            case "undo" when operation.Argument == null:
+                return TryUndo() ? "done" : "refused: nothing to undo";
+
+            case "redo" when operation.Argument == null:
+                return TryRedo() ? "done" : "refused: nothing to redo";
+
+            case "shortcut":
+                return ExecuteAutomationCutsceneShortcut(operation.Argument);
+
+            case "menu" when operation.Argument == null:
+                return ExecuteAutomationCutsceneMenu(document);
+
+            case "draghover":
+                return ExecuteAutomationCutsceneDragHover(document, root, selected, operation);
+
+            default:
+                return "refused: unknown or malformed operation";
+        }
+    }
+
+    private static string DescribeAutomationRefusal(string refusal)
+        => refusal == null ? "done" : $"refused: {refusal}";
+
+    // The same methods the global shortcuts call. They act on the active cutscene document, and a refusal shows on the status line of the tree.
+    private string ExecuteAutomationCutsceneShortcut(string name)
+    {
+        if (!IsCutsceneDocumentActive())
+        {
+            return "refused: the active document is not a cutscene";
+        }
+
+        switch (name)
+        {
+            case "copy":
+                ExecuteCopy();
+                break;
+            case "cut":
+                ExecuteCut();
+                break;
+            case "paste":
+                ExecutePaste();
+                break;
+            case "duplicate":
+                ExecuteDuplicate();
+                break;
+            default:
+                return "refused: the shortcut is none of copy, cut, paste and duplicate";
+        }
+
+        return $"done (outliner status: '{_cutsceneOutlinerPanel?.StatusText}')";
+    }
+
+    private string ExecuteAutomationCutsceneMenu(CutsceneAssetInspectorPanel document)
+    {
+        if (_cutsceneOutlinerPanel == null || !ReferenceEquals(_cutsceneOutlinerPanel.Document, document))
+        {
+            return "refused: the outliner is not linked to the document";
+        }
+
+        var outcome = _cutsceneOutlinerPanel.TryOpenMenuForAutomation(out string message);
+        return outcome switch
+        {
+            CutsceneOutlinerPanel.AutomationOutcome.NotReady => null,
+            CutsceneOutlinerPanel.AutomationOutcome.Done => $"done ({message})",
+            _ => $"refused: {message}",
+        };
+    }
+
+    private string ExecuteAutomationCutsceneDragHover(CutsceneAssetInspectorPanel document, CasaEngine.Framework.Cutscenes.CutsceneActionData root,
+        CasaEngine.Framework.Cutscenes.CutsceneActionData selected, CutsceneEditOperation operation)
+    {
+        if (string.IsNullOrWhiteSpace(operation.Argument) || string.IsNullOrWhiteSpace(operation.Detail))
+        {
+            return "refused: draghover needs a target path and a zone, as draghover:<path>:<before|after|into>";
+        }
+
+        CutsceneDropKind kind;
+        switch (operation.Detail.ToLowerInvariant())
+        {
+            case "before":
+                kind = CutsceneDropKind.Before;
+                break;
+            case "after":
+                kind = CutsceneDropKind.After;
+                break;
+            case "into":
+                kind = CutsceneDropKind.Into;
+                break;
+            default:
+                return "refused: the zone is none of before, after and into";
+        }
+
+        if (selected == null)
+        {
+            return "refused: no action is selected to drag";
+        }
+
+        if (!CutsceneActionTree.TryResolvePath(root, operation.Argument, out var target))
+        {
+            return "refused: no action at the target path";
+        }
+
+        if (_cutsceneOutlinerPanel == null || !ReferenceEquals(_cutsceneOutlinerPanel.Document, document))
+        {
+            return "refused: the outliner is not linked to the document";
+        }
+
+        var outcome = _cutsceneOutlinerPanel.TrySetDragHoverForAutomation(selected, target, kind, out string message);
+        return outcome switch
+        {
+            CutsceneOutlinerPanel.AutomationOutcome.NotReady => null,
+            CutsceneOutlinerPanel.AutomationOutcome.Done => $"done ({message})",
+            _ => $"refused: {message}",
+        };
     }
 
     // The resume is dropped when a stop is requested: a stopped preview has no paused play to resume.
@@ -8199,6 +8449,12 @@ public class GameEditor : Game, IObservableUpdate
         var activeDocument = _editorContext.ActiveDocument;
         builder.AppendLine("Cutscene editor:");
         builder.AppendLine($"  - Select action: {_automationOptions.CutsceneSelectActionPath ?? "<none>"}; add action: {_automationOptions.CutsceneAddActionType ?? "<none>"}; reactivate: {_automationOptions.CutsceneReactivate}; result: {_automationCutsceneEditResult ?? "<none>"}");
+        builder.AppendLine($"  - Edit operations: {_automationOptions.CutsceneEditOperations.Length}; applied: {_automationCutsceneOpIndex}");
+        for (int index = 0; index < _automationCutsceneOpResults.Count; index++)
+        {
+            builder.AppendLine($"    - {_automationCutsceneOpResults[index]}");
+        }
+
         builder.AppendLine($"  - Active document kind: {activeDocument?.Kind}, id: '{activeDocument?.Id}'");
         builder.AppendLine($"  - Active history context: {_editorHistory.ActiveContext.Kind}/{_editorHistory.ActiveContext.Id}");
 
@@ -8215,10 +8471,46 @@ public class GameEditor : Game, IObservableUpdate
             builder.AppendLine($"  - Selected action: {selectedPath ?? "<none>"} ({selected?.Type ?? "<none>"})");
             builder.AppendLine($"  - Actions in the tree: {(root == null ? 0 : CutsceneActionTree.CountActions(root))}");
             builder.AppendLine($"  - Modified: {document.IsDirty}");
+            builder.AppendLine($"  - Clipboard: {document.Clipboard.ContentType ?? "<empty>"}");
+            builder.AppendLine("  - Tree plan (path | type | summary):");
+            if (root != null)
+            {
+                AppendCutsceneTreePlan(builder, root, "root_action");
+            }
+        }
+
+        var outliner = _cutsceneOutlinerPanel;
+        if (outliner != null && document != null && ReferenceEquals(outliner.Document, document))
+        {
+            var dragged = outliner.DragAction;
+            var dragRoot = document.LoadedCutsceneAsset?.RootAction;
+            if (dragged == null || dragRoot == null)
+            {
+                builder.AppendLine("  - Drag marker: none");
+            }
+            else
+            {
+                var target = outliner.DragTarget;
+                string draggedPath = CutsceneActionTree.GetPath(dragRoot, dragged);
+                string containerPath = target.Container != null ? CutsceneActionTree.GetPath(dragRoot, target.Container) : null;
+                builder.AppendLine($"  - Drag marker: dragging {draggedPath ?? "<unknown>"}; zone {target.Kind}; reference row {target.ReferenceRow}; container {containerPath ?? "<none>"}; index {target.Index}; marker depth {target.MarkerDepth}; accepted: {target.Accepted}; refusal: {target.Refusal ?? "<none>"}");
+            }
+
+            builder.AppendLine($"  - Outliner status: {outliner.StatusText}");
         }
 
         builder.AppendLine($"  - Outliner linked to the active document: {document != null && ReferenceEquals(_cutsceneOutlinerPanel?.Document, document)} (linked: {_cutsceneOutlinerPanel?.Document != null})");
         builder.AppendLine($"  - Details linked to the active document: {document != null && ReferenceEquals(_cutsceneDetailsPanel?.Document, document)} (linked: {_cutsceneDetailsPanel?.Document != null})");
+    }
+
+    private static void AppendCutsceneTreePlan(StringBuilder builder, CasaEngine.Framework.Cutscenes.CutsceneActionData action, string path)
+    {
+        builder.AppendLine($"    {path} | {action.Type} | {CutsceneActionSummary.Describe(action)}");
+        var children = CutsceneActionCatalog.GetChildren(action);
+        for (int index = 0; index < children.Count; index++)
+        {
+            AppendCutsceneTreePlan(builder, children[index], $"{path}.actions[{index}]");
+        }
     }
 
     private void AppendCutscenePreviewDiagnostics(StringBuilder builder, string activeDocumentPanelId)

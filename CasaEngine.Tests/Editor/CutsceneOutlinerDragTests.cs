@@ -638,4 +638,110 @@ public sealed class CutsceneOutlinerDragTests : IDisposable
         AssertOrder(scene.Root.Actions, wait, container, fade);
         Assert.Equal(RemoveCutsceneActionCommand.GetRefusal(scene.Document.Session!, scene.Root), scene.Outliner.StatusText);
     }
+
+    [Fact]
+    public void TheAutomationDragHover_PutsTheTreeInTheStateOfADrag_AndKeepsIt()
+    {
+        var scene = Open(SmallDocument("Hover"));
+        var wait = scene.Root.Actions[0];
+        var container = (SequenceCutsceneActionData)scene.Root.Actions[1];
+        var fade = scene.Root.Actions[2];
+
+        var outcome = scene.Outliner.TrySetDragHoverForAutomation(wait, fade, CutsceneDropKind.After, out string message);
+
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done, outcome);
+        Assert.Contains("accepted", message);
+        Assert.Same(wait, scene.Outliner.DragAction);
+        var target = scene.Outliner.DragTarget;
+        Assert.Equal((CutsceneDropKind.After, 3, true), (target.Kind, target.Index, target.Accepted));
+        Assert.Same(scene.Root, target.Container);
+
+        // Nothing moved, and the state stays while frames go by.
+        scene.Settle();
+        Assert.Same(wait, scene.Outliner.DragAction);
+        Assert.Equal(CutsceneDropKind.After, scene.Outliner.DragTarget.Kind);
+        AssertOrder(scene.Root.Actions, wait, container, fade);
+
+        outcome = scene.Outliner.TrySetDragHoverForAutomation(wait, container, CutsceneDropKind.Into, out message);
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done, outcome);
+        Assert.Equal((CutsceneDropKind.Into, true), (scene.Outliner.DragTarget.Kind, scene.Outliner.DragTarget.Accepted));
+        Assert.Same(container, scene.Outliner.DragTarget.Container);
+
+        outcome = scene.Outliner.TrySetDragHoverForAutomation(wait, fade, CutsceneDropKind.Before, out message);
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done, outcome);
+        Assert.Equal((CutsceneDropKind.Before, 2), (scene.Outliner.DragTarget.Kind, scene.Outliner.DragTarget.Index));
+    }
+
+    [Fact]
+    public void TheAutomationDragHover_OntoARefusedDestination_IsDoneButNotAccepted_AndOntoALeafIntoIsRefused()
+    {
+        var scene = Open(SmallDocument("HoverRefused"));
+        var wait = scene.Root.Actions[0];
+        var container = scene.Root.Actions[1];
+        var fade = scene.Root.Actions[2];
+
+        // Just before the container, next to which the action already is: a move that changes nothing.
+        var outcome = scene.Outliner.TrySetDragHoverForAutomation(wait, container, CutsceneDropKind.Before, out string message);
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done, outcome);
+        Assert.Contains("refused", message);
+        Assert.False(scene.Outliner.DragTarget.Accepted);
+
+        outcome = scene.Outliner.TrySetDragHoverForAutomation(wait, fade, CutsceneDropKind.Into, out message);
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Refused, outcome);
+        Assert.Contains("not a container", message);
+    }
+
+    [Fact]
+    public void TheAutomationDragHover_IsClearedWhenTheTreeIsRebuilt()
+    {
+        var scene = Open(SmallDocument("HoverRebuild"));
+        var wait = scene.Root.Actions[0];
+        var fade = scene.Root.Actions[2];
+
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done,
+            scene.Outliner.TrySetDragHoverForAutomation(wait, fade, CutsceneDropKind.After, out _));
+        Assert.True(scene.Outliner.IsDragging);
+
+        // The tree changes: the rows the state aimed at are gone.
+        scene.Document.SelectAction(fade);
+        Assert.Null(scene.Document.AddAction("Wait"));
+        Assert.False(scene.Outliner.IsDragging);
+    }
+
+    [Fact]
+    public void TheAutomationMenu_OpensAtTheRowOfTheSelection_AndStaysOpenWhenTheMouseIsFarAway()
+    {
+        var scene = Open(SmallDocument("Menu"));
+        var fade = scene.Root.Actions[2];
+        scene.Document.SelectAction(fade);
+        scene.Settle();
+
+        var outcome = scene.Outliner.TryOpenMenuForAutomation(out string message);
+
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Done, outcome);
+        var menu = scene.Harness.Desktop.ActiveContextMenu;
+        Assert.NotNull(menu);
+        Assert.Null(menu!.AutoCloseThreshold);
+        Assert.Contains("opened at", message);
+
+        for (int frame = 0; frame < 20; frame++)
+        {
+            scene.Frame(new Point(599, 0));
+        }
+
+        Assert.Same(menu, scene.Harness.Desktop.ActiveContextMenu);
+    }
+
+    [Fact]
+    public void TheAutomationMenu_WithoutADocument_IsRefused()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(600, 600);
+        var outliner = new CutsceneOutlinerPanel(harness.Window);
+        harness.Window.SetContent(outliner.CreateContent());
+
+        var outcome = outliner.TryOpenMenuForAutomation(out string message);
+
+        Assert.Equal(CutsceneOutlinerPanel.AutomationOutcome.Refused, outcome);
+        Assert.NotEmpty(message);
+    }
 }

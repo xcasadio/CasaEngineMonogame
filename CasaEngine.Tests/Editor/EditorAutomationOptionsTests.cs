@@ -273,4 +273,93 @@ public class EditorAutomationOptionsTests
         Assert.False(options.CutscenePreviewResume);
         Assert.False(options.CutsceneEditAfterTransport);
     }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_ReadsTheListInOrder_AndEnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Cutscenes/loop.cutscene",
+            "--cutscene-edit-ops", "select:root_action.actions[1].actions[4]; up ;wrap:Parallel;copy;paste",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal(
+            new[] { "select", "up", "wrap", "copy", "paste" },
+            Array.ConvertAll(options.CutsceneEditOperations, operation => operation.Name));
+        Assert.Equal("root_action.actions[1].actions[4]", options.CutsceneEditOperations[0].Argument);
+        Assert.Null(options.CutsceneEditOperations[1].Argument);
+        Assert.Equal("up", options.CutsceneEditOperations[1].Text);
+        Assert.Equal("Parallel", options.CutsceneEditOperations[2].Argument);
+        Assert.Null(options.CutsceneEditOperations[2].Detail);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_AloneEnablesAutomation()
+    {
+        Assert.True(EditorAutomationOptions.Parse(new[] { "--cutscene-edit-ops", "undo" }).HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_MoveAndDragHoverSplitTheirArgumentAtTheLastColon()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-edit-ops", "move:root_action.actions[1]:0;draghover:root_action.actions[2]:after;shortcut:paste;select:a:b",
+        });
+
+        var operations = options.CutsceneEditOperations;
+        Assert.Equal(("move", "root_action.actions[1]", "0"), (operations[0].Name, operations[0].Argument, operations[0].Detail));
+        Assert.Equal(("draghover", "root_action.actions[2]", "after"), (operations[1].Name, operations[1].Argument, operations[1].Detail));
+        // The other operations keep everything after the first colon as their argument.
+        Assert.Equal(("shortcut", "paste", (string?)null), (operations[2].Name, operations[2].Argument, operations[2].Detail));
+        Assert.Equal(("select", "a:b", (string?)null), (operations[3].Name, operations[3].Argument, operations[3].Detail));
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_KeepsAnUnknownOrMalformedOperation_WithoutDroppingTheOthers()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-edit-ops", "up;frobnicate:3;move:root_action;;paste;",
+        });
+
+        var operations = options.CutsceneEditOperations;
+        Assert.Equal(4, operations.Length);
+        Assert.Equal("frobnicate", operations[1].Name);
+        Assert.Equal("3", operations[1].Argument);
+        // A move without a second colon has no index: it is kept and refused when it is applied.
+        Assert.Equal("move", operations[2].Name);
+        Assert.Equal("root_action", operations[2].Argument);
+        Assert.Null(operations[2].Detail);
+        Assert.Equal("paste", operations[3].Name);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(";;")]
+    public void Parse_CutsceneEditOps_BlankList_GivesNoOperation(string value)
+    {
+        Assert.Empty(EditorAutomationOptions.Parse(new[] { "--cutscene-edit-ops", value }).CutsceneEditOperations);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_IsAbsentByDefault()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" });
+
+        Assert.Empty(options.CutsceneEditOperations);
+        Assert.False(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditOps_NamesAreCaseInsensitive()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-edit-ops", "SELECT:root_action;DragHover:root_action:Into" });
+
+        Assert.Equal("select", options.CutsceneEditOperations[0].Name);
+        Assert.Equal("draghover", options.CutsceneEditOperations[1].Name);
+        Assert.Equal("Into", options.CutsceneEditOperations[1].Detail);
+    }
 }

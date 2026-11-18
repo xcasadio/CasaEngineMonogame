@@ -55,6 +55,12 @@ public sealed class EditorAutomationOptions
     public bool CutsceneEditAfterTransport { get; private set; }
 
     /// <summary>
+    /// The structure operations of the cutscene (<c>--cutscene-edit-ops "select:path;up;paste"</c>, ADR-0101 P14), applied one
+    /// per frame after the select and add edits. Empty when the option is absent.
+    /// </summary>
+    public CutsceneEditOperation[] CutsceneEditOperations { get; private set; } = Array.Empty<CutsceneEditOperation>();
+
+    /// <summary>
     /// True when the cutscene preview play is resumed, as the Play button does during a pause, after the seeks, the steps and
     /// the edits (<c>--cutscene-preview-resume</c>). Ignored when <see cref="CutscenePreviewStop"/> is set.
     /// </summary>
@@ -95,6 +101,7 @@ public sealed class EditorAutomationOptions
         || CutscenePreviewStepFrames != 0
         || CutscenePreviewStop
         || CutsceneEditAfterTransport
+        || CutsceneEditOperations.Length > 0
         || CutscenePreviewResume
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
@@ -275,6 +282,11 @@ public sealed class EditorAutomationOptions
 
                 case "--cutscene-edit-after-transport":
                     options.CutsceneEditAfterTransport = true;
+                    break;
+
+                case "--cutscene-edit-ops":
+                    options.CutsceneEditOperations = CutsceneEditOperation.ParseList(next);
+                    index++;
                     break;
 
                 case "--cutscene-preview-resume":
