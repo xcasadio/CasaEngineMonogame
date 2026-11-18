@@ -82,6 +82,77 @@ public static class CutsceneActionTree
     }
 
     /// <summary>
+    /// Finds the action at a path of the format of <see cref="GetPath"/> (<c>root_action</c>, <c>root_action.actions[1].actions[2]</c>).
+    /// False when the path is malformed or leads out of the tree.
+    /// </summary>
+    public static bool TryResolvePath(CutsceneActionData root, string path, out CutsceneActionData action)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        action = root;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        const string rootToken = "root_action";
+        string trimmed = path.Trim();
+        if (!trimmed.StartsWith(rootToken, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        const string segmentPrefix = ".actions[";
+        int position = rootToken.Length;
+        var current = root;
+        while (position < trimmed.Length)
+        {
+            if (string.CompareOrdinal(trimmed, position, segmentPrefix, 0, segmentPrefix.Length) != 0)
+            {
+                return false;
+            }
+
+            int numberStart = position + segmentPrefix.Length;
+            int close = trimmed.IndexOf(']', numberStart);
+            if (close < 0
+                || !int.TryParse(trimmed.AsSpan(numberStart, close - numberStart), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int childIndex))
+            {
+                return false;
+            }
+
+            var children = CutsceneLoadFidelity.GetChildren(current);
+            if (children == null || childIndex >= children.Count)
+            {
+                return false;
+            }
+
+            current = children[childIndex];
+            position = close + 1;
+        }
+
+        action = current;
+        return true;
+    }
+
+    /// <summary>The number of actions of the tree, root included.</summary>
+    public static int CountActions(CutsceneActionData root)
+    {
+        ArgumentNullException.ThrowIfNull(root);
+
+        int count = 1;
+        var children = CutsceneLoadFidelity.GetChildren(root);
+        if (children != null)
+        {
+            for (int index = 0; index < children.Count; index++)
+            {
+                count += CountActions(children[index]);
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>
     /// Where a new action goes (P2). A selected container receives it as its last child; any other selected action
     /// receives it just after itself, in its own parent; without a selection it goes at the end of the root, when the
     /// root is a container.

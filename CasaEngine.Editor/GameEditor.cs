@@ -7,6 +7,7 @@ using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
@@ -283,6 +284,12 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationAssetOpened;
     private bool _automationCutscenePlayStarted;
     private TimeSpan _automationCutscenePlayStartedAt;
+    private int _automationCutsceneReactivateStep;
+    private string _automationCutscenePanelId;
+    private bool _automationCutsceneSelectDone;
+    private bool _automationCutsceneAddDone;
+    private TimeSpan _automationCutsceneEditedAt;
+    private string _automationCutsceneEditResult;
     private TimeSpan _automationAssetOpenedAt;
     private bool _automationDockResizeCompleted;
     private TimeSpan _automationDockResizeCompletedAt;
@@ -621,6 +628,11 @@ public class GameEditor : Game, IObservableUpdate
         _automationAssetOpenAttempted = false;
         _automationAssetOpened = false;
         _automationCutscenePlayStarted = false;
+        _automationCutsceneReactivateStep = 0;
+        _automationCutscenePanelId = null;
+        _automationCutsceneSelectDone = false;
+        _automationCutsceneAddDone = false;
+        _automationCutsceneEditResult = null;
         _automationParticleCreateAttempted = false;
         _automationParticleAssetCreated = false;
         _automationCreatedParticleAssetFullPath = null;
@@ -7020,6 +7032,7 @@ public class GameEditor : Game, IObservableUpdate
         TryApplyAutomationParticleAssetCreate(totalGameTime);
         TryApplyAutomationAssetOpen(totalGameTime);
         TryApplyAutomationCutscenePreviewPlay(totalGameTime);
+        TryApplyAutomationCutsceneEdits(totalGameTime);
 
         if (!_automationSelectionApplied || !IsAutomationSelectionActive())
         {
@@ -7210,6 +7223,19 @@ public class GameEditor : Game, IObservableUpdate
             if (_automationCutscenePlayStartedAt > readyAt)
             {
                 readyAt = _automationCutscenePlayStartedAt;
+            }
+        }
+
+        if (IsAutomationCutsceneEditRequested())
+        {
+            if (!IsAutomationCutsceneEditCompleted())
+            {
+                return;
+            }
+
+            if (_automationCutsceneEditedAt > readyAt)
+            {
+                readyAt = _automationCutsceneEditedAt;
             }
         }
 
@@ -7784,6 +7810,116 @@ public class GameEditor : Game, IObservableUpdate
         _automationCutscenePlayStarted = true;
         _automationCutscenePlayStartedAt = totalGameTime;
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info, "[Automation] Started the cutscene preview play");
+    }
+
+    private bool IsAutomationCutsceneEditRequested()
+        => _automationOptions.CutsceneReactivate
+           || !string.IsNullOrWhiteSpace(_automationOptions.CutsceneSelectActionPath)
+           || !string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType);
+
+    private bool IsAutomationCutsceneEditCompleted()
+        => (!_automationOptions.CutsceneReactivate || _automationCutsceneReactivateStep >= 2)
+           && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneSelectActionPath) || _automationCutsceneSelectDone)
+           && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType) || _automationCutsceneAddDone);
+
+    /// <summary>
+    /// Reactivates the cutscene tab, selects an action and adds one, in this order, one step per frame. Nothing is saved.
+    /// </summary>
+    private void TryApplyAutomationCutsceneEdits(TimeSpan totalGameTime)
+    {
+        if (!_automationAssetOpened
+            || !IsAutomationCutsceneEditRequested()
+            || IsAutomationCutsceneEditCompleted()
+            || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted))
+        {
+            return;
+        }
+
+        if (_automationOptions.CutsceneReactivate && _automationCutsceneReactivateStep < 2)
+        {
+            if (_automationCutsceneReactivateStep == 0)
+            {
+                string activePanelId = GetActiveDocumentPanelId();
+                if (string.IsNullOrWhiteSpace(activePanelId) || !TryGetCutsceneAssetInspectorPanel(activePanelId, out _))
+                {
+                    return;
+                }
+
+                _automationCutscenePanelId = activePanelId;
+                ActivateDockPanel(EditorPanelIds.WorldViewport);
+                _automationCutsceneReactivateStep = 1;
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                    $"[Automation] Activated the world viewport; active document is now '{GetActiveDocumentPanelId()}'");
+                return;
+            }
+
+            // The same call a click on the tab ends in: the dock raises ActivePanelChanged.
+            ActivateDockPanel(_automationCutscenePanelId);
+            _automationCutsceneReactivateStep = 2;
+            _automationCutsceneEditedAt = totalGameTime;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Reactivated the cutscene tab '{_automationCutscenePanelId}'");
+            return;
+        }
+
+        string documentPanelId = _automationCutscenePanelId ?? GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(documentPanelId)
+            || !TryGetCutsceneAssetInspectorPanel(documentPanelId, out var cutscenePanel)
+            || cutscenePanel.LoadedCutsceneAsset?.RootAction == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.CutsceneSelectActionPath) && !_automationCutsceneSelectDone)
+        {
+            string path = _automationOptions.CutsceneSelectActionPath;
+            bool selected = CutsceneActionTree.TryResolvePath(cutscenePanel.LoadedCutsceneAsset.RootAction, path, out var action)
+                            && cutscenePanel.SelectAction(action);
+            _automationCutsceneSelectDone = true;
+            _automationCutsceneEditedAt = totalGameTime;
+            _automationCutsceneEditResult = selected ? "selected" : "select failed";
+            EditorDiagnosticsBuffer.Append(selected ? LogVerbosity.Info : LogVerbosity.Warning,
+                $"[Automation] Cutscene select-action '{path}': {_automationCutsceneEditResult}");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType) && !_automationCutsceneAddDone)
+        {
+            string type = _automationOptions.CutsceneAddActionType;
+            string error = cutscenePanel.AddAction(type);
+            _automationCutsceneAddDone = true;
+            _automationCutsceneEditedAt = totalGameTime;
+            _automationCutsceneEditResult = error == null ? "added" : $"add failed: {error}";
+            EditorDiagnosticsBuffer.Append(error == null ? LogVerbosity.Info : LogVerbosity.Warning,
+                $"[Automation] Cutscene add-action '{type}': {_automationCutsceneEditResult}");
+        }
+    }
+
+    private void AppendCutsceneEditorDiagnostics(StringBuilder builder)
+    {
+        var activeDocument = _editorContext.ActiveDocument;
+        builder.AppendLine("Cutscene editor:");
+        builder.AppendLine($"  - Select action: {_automationOptions.CutsceneSelectActionPath ?? "<none>"}; add action: {_automationOptions.CutsceneAddActionType ?? "<none>"}; reactivate: {_automationOptions.CutsceneReactivate}; result: {_automationCutsceneEditResult ?? "<none>"}");
+        builder.AppendLine($"  - Active document kind: {activeDocument?.Kind}, id: '{activeDocument?.Id}'");
+        builder.AppendLine($"  - Active history context: {_editorHistory.ActiveContext.Kind}/{_editorHistory.ActiveContext.Id}");
+
+        var document = activeDocument?.Payload as CutsceneAssetInspectorPanel;
+        if (document == null)
+        {
+            builder.AppendLine("  - Active document is not a cutscene");
+        }
+        else
+        {
+            var root = document.LoadedCutsceneAsset?.RootAction;
+            var selected = document.SelectedAction;
+            string selectedPath = root != null && selected != null ? CutsceneActionTree.GetPath(root, selected) : null;
+            builder.AppendLine($"  - Selected action: {selectedPath ?? "<none>"} ({selected?.Type ?? "<none>"})");
+            builder.AppendLine($"  - Actions in the tree: {(root == null ? 0 : CutsceneActionTree.CountActions(root))}");
+            builder.AppendLine($"  - Modified: {document.IsDirty}");
+        }
+
+        builder.AppendLine($"  - Outliner linked to the active document: {document != null && ReferenceEquals(_cutsceneOutlinerPanel?.Document, document)} (linked: {_cutsceneOutlinerPanel?.Document != null})");
+        builder.AppendLine($"  - Details linked to the active document: {document != null && ReferenceEquals(_cutsceneDetailsPanel?.Document, document)} (linked: {_cutsceneDetailsPanel?.Document != null})");
     }
 
     private void AppendCutscenePreviewDiagnostics(StringBuilder builder, string activeDocumentPanelId)
@@ -8586,6 +8722,11 @@ public class GameEditor : Game, IObservableUpdate
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendSpriteInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendCutscenePreviewDiagnostics(builder, activeDocumentPanelId);
+        if (IsAutomationCutsceneEditRequested() || _activeCutsceneInspectorPanel != null)
+        {
+            AppendCutsceneEditorDiagnostics(builder);
+        }
+
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendTileMapDiagnostics(builder, activeDocumentPanelId);

@@ -115,4 +115,41 @@ public class EditorAutomationOptionsTests
         Assert.True(options.SaveProject);
         Assert.True(options.HasAutomation);
     }
+
+    [Fact]
+    public void Parse_CutsceneSelectActionPath_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--open-asset", "Cutscenes/loop.cutscene",
+            "--cutscene-select-action", "root_action.actions[1].actions[2]",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal("root_action.actions[1].actions[2]", options.CutsceneSelectActionPath);
+    }
+
+    [Fact]
+    public void Parse_CutsceneAddActionType_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-add-action", "Wait",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal("Wait", options.CutsceneAddActionType);
+    }
+
+    [Fact]
+    public void Parse_CutsceneReactivate_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-reactivate",
+        });
+
+        Assert.True(options.HasAutomation);
+        Assert.True(options.CutsceneReactivate);
+    }
 }

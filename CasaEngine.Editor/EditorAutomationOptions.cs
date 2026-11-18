@@ -32,6 +32,9 @@ public sealed class EditorAutomationOptions
     public string DiagnosticsOutputPath { get; private set; }
     public bool PlaySmoke { get; private set; }
     public bool CutscenePreviewPlay { get; private set; }
+    public string CutsceneSelectActionPath { get; private set; }
+    public string CutsceneAddActionType { get; private set; }
+    public bool CutsceneReactivate { get; private set; }
     public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
@@ -58,6 +61,9 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
         || PlaySmoke
         || CutscenePreviewPlay
+        || !string.IsNullOrWhiteSpace(CutsceneSelectActionPath)
+        || !string.IsNullOrWhiteSpace(CutsceneAddActionType)
+        || CutsceneReactivate
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
@@ -201,6 +207,20 @@ public sealed class EditorAutomationOptions
 
                 case "--cutscene-preview-play":
                     options.CutscenePreviewPlay = true;
+                    break;
+
+                case "--cutscene-select-action":
+                    options.CutsceneSelectActionPath = next;
+                    index++;
+                    break;
+
+                case "--cutscene-add-action":
+                    options.CutsceneAddActionType = next;
+                    index++;
+                    break;
+
+                case "--cutscene-reactivate":
+                    options.CutsceneReactivate = true;
                     break;
 
                 case "--screenshot-out":
