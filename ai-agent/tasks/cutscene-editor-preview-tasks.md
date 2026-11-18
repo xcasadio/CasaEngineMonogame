@@ -193,7 +193,9 @@ Décisions antérieures concernées :
 - Validation : tests des quatre rangs de P5, d'un choix mémorisé qui ne correspond plus à aucun monde, d'un projet sans monde, de l'aller-retour du fichier de réglages.
 - Commit : `feat(editor-services): resolve and remember the preview world of a cutscene`
 
-### ⏳ T2.2 — Hôte d'aperçu (`CasaEngine.EditorServices`)
+### ✅ T2.2 — Hôte d'aperçu (`CasaEngine.EditorServices`)
+
+> Validation (2026-11-18) : build `CasaEngine.Editor.MonoGame.sln` 0 erreur ; 6 tests ajoutés (`CutscenePreviewEffectHostTests`, avec un vrai `CutsceneDirector` : `exit.cutscene` du sample, `ExitOnInput` puis `Wait`, `Repeat` qui ne liste l'action qu'une fois, `FadeScreen` de 0,5 s, remise à zéro) ; `dotnet test` 5924 verts (5918 + 6), aucun test existant modifié. L'unicité des entrées se fait par instance d'action.
 
 - Objectif : l'implémentation d'`ICutsceneEffectHost` pour l'aperçu, conforme à D3 et P8.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePreviewEffectHost.cs` (créé), tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
