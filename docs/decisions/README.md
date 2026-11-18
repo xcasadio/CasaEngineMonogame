@@ -112,3 +112,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0096](0096-the-cutscene-editor-previews-in-an-isolated-world-and-projects-the-tree-on-a-timeline.md) | The cutscene editor previews in an isolated world and projects its action tree on a timeline | Accepted | 2026-11-18 |
 | [ADR-0097](0097-the-cutscene-editor-shows-an-outliner-and-typed-details-and-edits-the-structure.md) | The cutscene editor shows an action outliner and typed details, and edits the tree structure | Accepted | 2026-11-18 |
 | [ADR-0098](0098-the-cutscene-timeline-is-a-read-only-projection-with-a-play-clock.md) | The cutscene timeline is a read-only projection of the action tree, fed by a play clock | Accepted | 2026-11-18 |
+| [ADR-0099](0099-the-cutscene-preview-pauses-steps-and-seeks-by-replay.md) | The cutscene preview pauses, steps and seeks by replay, driven by a transport of the editing services | Accepted | 2026-11-18 |
