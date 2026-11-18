@@ -1,6 +1,6 @@
 # ADR-0125: The static mesh draw order is fully deterministic
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-17
 - **Source**: this chantier: `ai-agent/tasks/draw-order-emissive-shadow-tasks.md`, decisions D1 to D3 (point O16 of `ai-agent/tasks/rgce-pbr-handover-tasks.md` of the RacingGame plan, authorised by the author on 2026-11-17)
 

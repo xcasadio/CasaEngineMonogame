@@ -1,6 +1,6 @@
 # ADR-0127: The tap count of the shadow filter is a setting
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-18
 - **Source**: this chantier: `ai-agent/tasks/shadow-filter-taps-tasks.md`, decisions D1 to D5 (authorised by the author on 2026-11-18 for the RacingGame plan `ai-agent/tasks/rgce-shadow-colour-decor-tasks.md` of the game repository, slice G1; origin: point O4 of `ai-agent/tasks/rgce-road-tunnel-shadow-tasks.md` of that plan)
 

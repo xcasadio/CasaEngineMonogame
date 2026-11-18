@@ -1,6 +1,6 @@
 # ADR-0124: A texture asset can ask for its mipmap chain
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-17
 - **Source**: this chantier: `ai-agent/tasks/texture-asset-mipmaps-tasks.md`, decisions D1 to D4 (slice S1m of the RacingGame plan `ai-agent/tasks/rgce-pbr-handover-tasks.md`, envelope approved by the author on 2026-11-17)
 

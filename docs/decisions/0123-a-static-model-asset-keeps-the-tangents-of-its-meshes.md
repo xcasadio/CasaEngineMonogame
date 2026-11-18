@@ -1,6 +1,6 @@
 # ADR-0123: A static model asset keeps the tangents of its meshes
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-16
 - **Source**: this chantier: `ai-agent/tasks/static-model-tangents-tasks.md`, decisions D1 to D3 (slice S1d of the RacingGame plan `ai-agent/tasks/rgce-pbr-handover-tasks.md`, envelope approved by the author on 2026-11-16)
 
