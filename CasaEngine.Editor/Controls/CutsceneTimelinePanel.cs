@@ -1,0 +1,438 @@
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using CasaEngine.Editor.Controls.Cutscenes;
+using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Styling;
+using CasaEngine.EditorServices.Cutscenes;
+using CasaEngine.Framework.Cutscenes;
+using MGUI.Core.UI;
+using MGUI.Core.UI.Containers;
+using MonoGame.Extended;
+
+namespace CasaEngine.Editor.Controls;
+
+/// <summary>
+/// The read-only timeline of the active cutscene document (ADR-0098): a projection of its action tree on rows and times,
+/// a playhead that follows the preview, and a selection shared with the outliner. The model is rebuilt when the document
+/// changes or a new duration is measured, never per frame; per frame only the playhead moves.
+/// </summary>
+internal sealed class CutsceneTimelinePanel
+{
+    private const float EmptyOpenBarSeconds = 0.25f;
+
+    private readonly MGWindow _window;
+    private readonly Dictionary<CutsceneActionData, Guid[]> _itemIds = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Guid, CutsceneActionData> _actionsByItemId = [];
+
+    private MGDockPanel? _root;
+    private MGTextBlock? _transportText;
+    private MGTextBlock? _emptyText;
+    private TimelineControl? _timeline;
+    private CutsceneAssetInspectorPanel? _document;
+    private CutsceneTimelineLayout _layout = CutsceneTimelineLayout.Empty;
+    private int _lastTimingsVersion;
+    private float _playhead;
+    private bool _syncingSelection;
+    private int _lastTransportTenths = -1;
+    private bool _lastTransportPlaying;
+    private bool _transportShown;
+
+    public CutsceneTimelinePanel(MGWindow window)
+    {
+        _window = window;
+    }
+
+    /// <summary>The document the panel is attached to, or null.</summary>
+    public CutsceneAssetInspectorPanel? Document => _document;
+
+    /// <summary>The projection currently shown.</summary>
+    public CutsceneTimelineLayout Layout => _layout;
+
+    /// <summary>The generic timeline control, or null before <see cref="CreateContent"/>.</summary>
+    internal TimelineControl? Timeline => _timeline;
+
+    /// <summary>The text of the transport bar.</summary>
+    public string TransportText => _transportText?.Text ?? string.Empty;
+
+    /// <summary>The playhead position last pushed to the control, in seconds.</summary>
+    public float PlayheadSeconds => _playhead;
+
+    public MGElement CreateContent()
+    {
+        if (_root != null)
+        {
+            return _root;
+        }
+
+        _root = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        _transportText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 4, 8, 4),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+        };
+        _root.TryAddChild(_transportText, Dock.Top);
+
+        _emptyText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 6, 8, 6),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            WrapText = true,
+        };
+        _root.TryAddChild(_emptyText, Dock.Top);
+
+        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true)
+        {
+            ItemRenderer = new CutsceneTimelineItemRenderer(),
+            CornerHeaderText = "Rows",
+        };
+        _timeline.SelectedItemChanged += OnTimelineSelectedItemChanged;
+        _timeline.TimeScrubbed += OnTimelineTimeScrubbed;
+
+        // The last child of the dock panel fills what is left of the tab, so the control has a bounded height.
+        _root.TryAddChild(_timeline, Dock.Left);
+
+        Rebuild();
+        return _root;
+    }
+
+    /// <summary>Attaches the panel to a cutscene document, or detaches it with null.</summary>
+    public void SetEditorPanel(CutsceneAssetInspectorPanel? document)
+    {
+        if (ReferenceEquals(_document, document))
+        {
+            return;
+        }
+
+        if (_document != null)
+        {
+            _document.DocumentChanged -= OnDocumentChanged;
+            _document.SelectionChanged -= OnDocumentSelectionChanged;
+        }
+
+        _document = document;
+        if (_document != null)
+        {
+            _document.DocumentChanged += OnDocumentChanged;
+            _document.SelectionChanged += OnDocumentSelectionChanged;
+        }
+
+        _itemIds.Clear();
+        _actionsByItemId.Clear();
+        Rebuild();
+    }
+
+    /// <summary>Called once per frame: moves the playhead and refreshes the transport text; rebuilds only when a new measure arrived.</summary>
+    public void Update()
+    {
+        if (_timeline == null || _document == null)
+        {
+            return;
+        }
+
+        var preview = _document.Preview;
+        if (preview != null && preview.TimingsVersion != _lastTimingsVersion)
+        {
+            Rebuild();
+        }
+
+        bool playing = preview != null && preview.IsPlaying;
+        double elapsed = playing ? preview!.ElapsedSeconds : 0d;
+        _playhead = (float)_layout.MapPlayTime(elapsed);
+        _timeline.SetCurrentTimeSeconds(_playhead);
+        if (playing)
+        {
+            _timeline.EnsureTimeVisible(_playhead);
+        }
+
+        int tenths = (int)(elapsed * 10d);
+        if (!_transportShown || tenths != _lastTransportTenths || playing != _lastTransportPlaying)
+        {
+            _transportShown = true;
+            _lastTransportTenths = tenths;
+            _lastTransportPlaying = playing;
+            long frames = playing ? preview!.ElapsedFrames : 0;
+            if (_transportText != null)
+            {
+                _transportText.Text = string.Create(
+                    CultureInfo.InvariantCulture,
+                    $"{(playing ? "Playing" : "Stopped")}   {elapsed:0.00} s  ·  {frames} frames");
+            }
+        }
+    }
+
+    private void OnDocumentChanged(CutsceneAssetInspectorPanel document)
+    {
+        Rebuild();
+    }
+
+    private void OnDocumentSelectionChanged(CutsceneAssetInspectorPanel document)
+    {
+        if (_syncingSelection)
+        {
+            return;
+        }
+
+        SelectDocumentActionInTimeline();
+    }
+
+    private void OnTimelineSelectedItemChanged(TimelineItem? item)
+    {
+        // A click in the empty space clears the control's selection but not the document's (ADR-0098).
+        if (_syncingSelection || item == null || _document == null || item.Source is not CutsceneTimelineItemInfo info)
+        {
+            return;
+        }
+
+        _syncingSelection = true;
+        try
+        {
+            _document.SelectAction(info.Item.Action);
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+    }
+
+    private void OnTimelineTimeScrubbed(float seconds)
+    {
+        // The playhead only follows the play in this slice: a click in the ruler puts it back.
+        _timeline?.SetCurrentTimeSeconds(_playhead);
+    }
+
+    private void SelectDocumentActionInTimeline()
+    {
+        if (_timeline == null)
+        {
+            return;
+        }
+
+        Guid? itemId = null;
+        var action = _document?.SelectedAction;
+        if (action != null && _itemIds.TryGetValue(action, out var ids))
+        {
+            // The action's own item first; a Repeat is shown by its lap.
+            for (int index = 0; index < ids.Length && itemId == null; index++)
+            {
+                if (ids[index] != Guid.Empty && _actionsByItemId.ContainsKey(ids[index]))
+                {
+                    itemId = ids[index];
+                }
+            }
+        }
+
+        _syncingSelection = true;
+        try
+        {
+            _timeline.SetSelectedItemId(itemId, notify: false);
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+
+        if (itemId.HasValue && _timeline.Model != null)
+        {
+            var items = _timeline.Model.Items;
+            for (int index = 0; index < items.Count; index++)
+            {
+                if (items[index].Id == itemId.Value)
+                {
+                    _timeline.EnsureTrackVisible(items[index].TrackId);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void Rebuild()
+    {
+        if (_timeline == null)
+        {
+            return;
+        }
+
+        var preview = _document?.Preview;
+        _lastTimingsVersion = preview?.TimingsVersion ?? 0;
+        _lastTransportTenths = -1;
+        _transportShown = false;
+
+        var root = _document?.LoadedCutsceneAsset?.RootAction;
+        if (_document == null || root == null)
+        {
+            _layout = CutsceneTimelineLayout.Empty;
+            _itemIds.Clear();
+            _actionsByItemId.Clear();
+            _timeline.SetModel(null);
+            ShowEmpty(_document == null ? "No cutscene is open." : "This cutscene has no action to show.");
+            return;
+        }
+
+        _layout = CutsceneTimelineProjection.Build(root, preview?.Timings.Durations);
+        _timeline.SetModel(BuildModel(_layout));
+        ShowEmpty(_layout.Items.Count == 0 ? "This cutscene has no action to show." : null);
+        SelectDocumentActionInTimeline();
+    }
+
+    private void ShowEmpty(string? message)
+    {
+        if (_emptyText != null)
+        {
+            _emptyText.Text = message ?? string.Empty;
+            _emptyText.Visibility = message == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        if (_timeline != null)
+        {
+            _timeline.Visibility = message == null ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private TimelineModel BuildModel(CutsceneTimelineLayout layout)
+    {
+        var model = new TimelineModel
+        {
+            DurationSeconds = (float)layout.DurationSeconds,
+            TimeUnit = TimelineTimeUnit.Seconds,
+            FrameRate = (float)CutsceneTimelineProjection.FramesPerSecond,
+        };
+
+        // One track per sub-row: the control draws one row per track.
+        var trackIds = new List<Guid[]>(layout.Rows.Count);
+        for (int rowIndex = 0; rowIndex < layout.Rows.Count; rowIndex++)
+        {
+            var row = layout.Rows[rowIndex];
+            var ids = new Guid[row.SubRowCount];
+            for (int sub = 0; sub < ids.Length; sub++)
+            {
+                var track = new TimelineTrack
+                {
+                    Label = sub == 0 ? row.Label : string.Empty,
+                    IsEditable = false,
+                };
+                ids[sub] = track.Id;
+                model.Tracks.Add(track);
+            }
+
+            trackIds.Add(ids);
+        }
+
+        var previousIds = new Dictionary<CutsceneActionData, Guid[]>(_itemIds, ReferenceEqualityComparer.Instance);
+        _itemIds.Clear();
+        _actionsByItemId.Clear();
+
+        var items = layout.Items;
+        for (int index = 0; index < items.Count; index++)
+        {
+            var source = items[index];
+            var row = layout.Rows[source.RowIndex];
+            int subRow = Math.Min(source.SubRow, trackIds[source.RowIndex].Length - 1);
+
+            float duration = (float)source.DurationSeconds;
+            TimelineItemKind kind = TimelineItemKind.Duration;
+            switch (source.Shape)
+            {
+                case CutsceneTimelineItemShape.Marker:
+                    kind = TimelineItemKind.Instant;
+                    duration = 0f;
+                    break;
+                case CutsceneTimelineItemShape.Range:
+                    kind = TimelineItemKind.Range;
+                    break;
+                case CutsceneTimelineItemShape.OpenBar:
+                    duration = Math.Max((float)(layout.DurationSeconds - source.StartSeconds), EmptyOpenBarSeconds);
+                    break;
+            }
+
+            var timelineItem = new TimelineItem
+            {
+                Id = GetItemId(previousIds, source),
+                TrackId = trackIds[source.RowIndex][subRow],
+                StartTime = (float)source.StartSeconds,
+                Duration = duration,
+                Kind = kind,
+                ItemType = source.Action.Type,
+                DisplayName = source.Label,
+                ToolTipText = string.Create(CultureInfo.InvariantCulture, $"{source.Label}\nStart {source.StartSeconds:0.###} s, duration {source.DurationSeconds:0.###} s{(source.IsEstimated && !source.IsMeasured ? " (estimated)" : string.Empty)}"),
+                IsEditable = false,
+                CanMove = false,
+                Source = new CutsceneTimelineItemInfo(source, row.Kind, source.Action.Type, double.PositiveInfinity, 0f, source.EndSeconds),
+            };
+            model.Items.Add(timelineItem);
+        }
+
+        // Labels never meet: a marker has room up to the next item of its track and none on a bar; a bar label starts
+        // after a marker drawn on its start and ends before a marker drawn over it.
+        for (int index = 0; index < model.Items.Count; index++)
+        {
+            var current = model.Items[index];
+            var info = (CutsceneTimelineItemInfo)current.Source!;
+            bool isMarker = current.Kind == TimelineItemKind.Instant;
+            double next = double.PositiveInfinity;
+            double labelEnd = current.StartTime + current.Duration;
+            float inset = 0f;
+            for (int other = 0; other < model.Items.Count; other++)
+            {
+                var candidate = model.Items[other];
+                if (other == index || candidate.TrackId != current.TrackId)
+                {
+                    continue;
+                }
+
+                if (candidate.StartTime > current.StartTime && candidate.StartTime < next)
+                {
+                    next = candidate.StartTime;
+                }
+
+                if (isMarker && candidate.Kind == TimelineItemKind.Duration
+                    && candidate.StartTime <= current.StartTime && candidate.StartTime + candidate.Duration > current.StartTime)
+                {
+                    // Over a bar: no room for the label.
+                    next = current.StartTime;
+                }
+
+                if (!isMarker && candidate.Kind == TimelineItemKind.Instant)
+                {
+                    if (Math.Abs(candidate.StartTime - current.StartTime) < 0.05f)
+                    {
+                        inset = 14f;
+                    }
+                    else if (candidate.StartTime > current.StartTime && candidate.StartTime < labelEnd)
+                    {
+                        labelEnd = candidate.StartTime;
+                    }
+                }
+            }
+
+            current.Source = new CutsceneTimelineItemInfo(info.Item, info.RowKind, info.ShortLabel, next, inset, labelEnd);
+        }
+
+        return model;
+    }
+
+    private Guid GetItemId(Dictionary<CutsceneActionData, Guid[]> previousIds, CutsceneTimelineItem source)
+    {
+        if (!_itemIds.TryGetValue(source.Action, out var ids))
+        {
+            ids = previousIds.TryGetValue(source.Action, out var previous) ? previous : new Guid[3];
+            _itemIds[source.Action] = ids;
+        }
+
+        int slot = (int)source.Role;
+        if (ids[slot] == Guid.Empty)
+        {
+            ids[slot] = Guid.NewGuid();
+        }
+
+        _actionsByItemId[ids[slot]] = source.Action;
+        return ids[slot];
+    }
+}

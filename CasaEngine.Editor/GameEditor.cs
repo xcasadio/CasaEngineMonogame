@@ -203,6 +203,8 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _cutsceneOutlinerContent;
     private CutsceneDetailsPanel _cutsceneDetailsPanel;
     private MGElement _cutsceneDetailsContent;
+    private CutsceneTimelinePanel _cutsceneTimelinePanel;
+    private MGElement _cutsceneTimelineContent;
     private MGElement _tileMapHierarchyContent;
     private TileMapInspectorPanel _tileMapInspectorPanel;
     private MGElement _tileMapInspectorContent;
@@ -1068,6 +1070,7 @@ public class GameEditor : Game, IObservableUpdate
         _ = GetOrCreateToolboxContent();
         _ = GetOrCreateContentBrowserContent();
         _ = GetOrCreateAnimation2dTimelineContent();
+        _ = GetOrCreateCutsceneTimelineContent();
 
         _contentBrowserPanel?.Refresh();
         ActivateWorldDocument();
@@ -1611,6 +1614,14 @@ public class GameEditor : Game, IObservableUpdate
         _cutsceneOutlinerContent ??= _cutsceneOutlinerPanel.CreateContent();
         _cutsceneOutlinerPanel.SetEditorPanel(_activeCutsceneInspectorPanel);
         return _cutsceneOutlinerContent;
+    }
+
+    private MGElement GetOrCreateCutsceneTimelineContent()
+    {
+        _cutsceneTimelinePanel ??= new CutsceneTimelinePanel(_mainWindow);
+        _cutsceneTimelineContent ??= _cutsceneTimelinePanel.CreateContent();
+        _cutsceneTimelinePanel.SetEditorPanel(_activeCutsceneInspectorPanel);
+        return _cutsceneTimelineContent;
     }
 
     private MGElement GetOrCreateCutsceneDetailsContent()
@@ -2332,6 +2343,13 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Animation2D Timeline",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateAnimation2dTimelineContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.CutsceneTimeline,
+                Title = "Cutscene Timeline",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = GetOrCreateCutsceneTimelineContent,
             },
         });
     }
@@ -3110,6 +3128,11 @@ public class GameEditor : Game, IObservableUpdate
             {
                 _cutsceneDetailsPanel.SetEditorPanel(null);
             }
+
+            if (ReferenceEquals(_cutsceneTimelinePanel?.Document, cutsceneInspectorPanel))
+            {
+                _cutsceneTimelinePanel.SetEditorPanel(null);
+            }
         }
 
         if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
@@ -3392,6 +3415,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             _contextualToolPanelRegistry = new ContextualToolPanelRegistry();
             _contextualToolPanelRegistry.Register(EditorDocumentKind.Animation2d, EditorPanelIds.Animation2dTimeline);
+            _contextualToolPanelRegistry.Register(EditorDocumentKind.Cutscene, EditorPanelIds.CutsceneTimeline);
         }
 
         return _contextualToolPanelRegistry;
@@ -3497,6 +3521,10 @@ public class GameEditor : Game, IObservableUpdate
         if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal))
         {
             _animation2dTimelinePanel?.SetInspectorPanel(null);
+        }
+        else if (string.Equals(panelId, EditorPanelIds.CutsceneTimeline, StringComparison.Ordinal))
+        {
+            _cutsceneTimelinePanel?.SetEditorPanel(null);
         }
     }
 
@@ -3993,6 +4021,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         _cutsceneOutlinerPanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
         _cutsceneDetailsPanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
+        _cutsceneTimelinePanel?.SetEditorPanel(_activeCutsceneInspectorPanel);
     }
 
     private void RefreshTileMapViews()
@@ -5222,6 +5251,8 @@ public class GameEditor : Game, IObservableUpdate
 
         ActivateCutsceneDocument(panelId, inspectorPanel);
         ActivateDockPanel(panelId);
+        // The timeline tab, added by the document change above, comes to the front of the bottom group (ADR-0098).
+        ActivateDockPanel(EditorPanelIds.CutsceneTimeline);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened cutscene asset='{cutsceneAsset.Name}', panel='{panelId}'");
         return true;
@@ -6507,6 +6538,8 @@ public class GameEditor : Game, IObservableUpdate
             cutsceneInspectorPanel.Update(gameTime);
         }
 
+        _cutsceneTimelinePanel?.Update();
+
         foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
         {
             spriteInspectorPanel.Update(gameTime);
@@ -7301,7 +7334,8 @@ public class GameEditor : Game, IObservableUpdate
             return false;
         }
 
-        if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal))
+        if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal)
+            || string.Equals(panelId, EditorPanelIds.CutsceneTimeline, StringComparison.Ordinal))
         {
             EnsureContextualToolPanelPresent(panelId);
         }
@@ -7561,6 +7595,7 @@ public class GameEditor : Game, IObservableUpdate
             "output" => EditorPanelIds.Output,
             "animation2dtimeline" => EditorPanelIds.Animation2dTimeline,
             "timeline" => EditorPanelIds.Animation2dTimeline,
+            "cutscenetimeline" => EditorPanelIds.CutsceneTimeline,
             _ => rawPanelId,
         };
     }
