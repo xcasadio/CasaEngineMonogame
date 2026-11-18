@@ -6,12 +6,17 @@ using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.EditorServices.History;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Cutscenes;
+using CasaEngine.Framework.Input;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Input.Keyboard;
@@ -29,6 +34,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 {
     private const int FieldLabelWidth = 150;
     private const int FieldIndentPerDepth = 12;
+    private const int PropertiesColumnWidth = 420;
+    private const string PreviewLimitText = "Sprite animations, physics and scripts are frozen in the preview.";
 
     private readonly MGWindow _window;
     private readonly EditorDirtyStateService _dirtyState = EditorDirtyStateService.Current;
@@ -38,6 +45,19 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGStackPanel? _contentStack;
+
+    private readonly GraphicsDevice? _graphicsDevice;
+    private readonly HostedEditorGameAdapter? _editorRuntime;
+    private readonly IWindowInputSource? _windowInputSource;
+    private readonly CutscenePreviewSession? _preview;
+    private WorldViewportPanel? _previewViewport;
+    private MGDockPanel? _documentRoot;
+    private MGComboBox<string>? _worldCombo;
+    private MGTextBlock? _previewStatusText;
+    private CutscenePreviewSettings? _previewSettings;
+    private readonly List<CutscenePreviewWorldCandidate> _previewWorlds = [];
+    private readonly List<string> _previewWorldLabels = [];
+    private PreviewStatusKey _lastPreviewStatusKey;
 
     private CutsceneEditSession? _session;
     private CutsceneReadOnlyDocument? _document;
@@ -53,6 +73,23 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     {
         _window = window;
     }
+
+    /// <summary>Creates a panel with a world preview and its transport controls (ADR-0096).</summary>
+    public CutsceneAssetInspectorPanel(
+        MGWindow window,
+        GraphicsDevice graphicsDevice,
+        HostedEditorGameAdapter editorRuntime,
+        IWindowInputSource windowInputSource)
+        : this(window)
+    {
+        _graphicsDevice = graphicsDevice;
+        _editorRuntime = editorRuntime;
+        _windowInputSource = windowInputSource;
+        _preview = new CutscenePreviewSession(editorRuntime);
+    }
+
+    /// <summary>The preview session, or null when the panel has no runtime.</summary>
+    internal CutscenePreviewSession? Preview => _preview;
 
     public CutsceneAsset? LoadedCutsceneAsset => _session?.Asset;
 
@@ -107,7 +144,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
-        return _root;
+        if (_preview == null)
+        {
+            return _root;
+        }
+
+        _documentRoot = CreateDocumentWithPreview(_root);
+        return _documentRoot;
     }
 
     /// <summary>
@@ -147,6 +190,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         RefreshInspector();
         NotifyDirtyStateIfChanged();
+        InitializePreviewWorlds();
     }
 
     /// <summary>
@@ -229,10 +273,383 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         _disposed = true;
         EditorHistoryService.Current.HistoryChanged -= OnHistoryChanged;
+        _previewViewport?.Dispose();
+        _preview?.Dispose();
 
         // Removing the fields detaches their keyboard and focus handlers.
         _contentStack?.TryRemoveAll();
     }
+
+    /// <summary>Advances the preview. Called every frame by the editor.</summary>
+    public void Update(GameTime gameTime)
+    {
+        if (_disposed || _preview == null)
+        {
+            return;
+        }
+
+        _preview.Tick(gameTime);
+        RefreshPreviewStatus();
+    }
+
+    public void DrawViewport(GameTime gameTime)
+    {
+        _previewViewport?.DrawViewport(gameTime);
+    }
+
+    private MGDockPanel CreateDocumentWithPreview(MGDockPanel propertiesRoot)
+    {
+        _previewViewport = new WorldViewportPanel(_window, _graphicsDevice!, _editorRuntime!, _windowInputSource!)
+        {
+            EnablePreviewSelection = false,
+            EnablePreviewGizmo = false,
+            ShowEditorOverlays = false,
+            UseFront2dCamera = true,
+        };
+
+        var documentRoot = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        documentRoot.TryAddChild(CreateTransportRow(), Dock.Top);
+
+        _previewStatusText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 0, 8, 4),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            WrapText = true,
+        };
+        documentRoot.TryAddChild(_previewStatusText, Dock.Top);
+
+        propertiesRoot.PreferredWidth = PropertiesColumnWidth;
+        propertiesRoot.VerticalAlignment = VerticalAlignment.Stretch;
+        documentRoot.TryAddChild(propertiesRoot, Dock.Right);
+
+        // The last child of the dock panel fills what is left: the viewport gets most of the document.
+        documentRoot.TryAddChild(_previewViewport.CreateContent(), Dock.Left);
+
+        ApplyPreviewWorldToViewport();
+        _lastPreviewStatusKey = default;
+        RefreshPreviewStatus();
+        return documentRoot;
+    }
+
+    private MGElement CreateTransportRow()
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            Margin = new Thickness(8, 6, 8, 4),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, "Preview world")
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = EditorThemePalette.SectionLabelOpacity,
+        });
+
+        var combo = new MGComboBox<string>(_window)
+        {
+            MinWidth = 180,
+        };
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(item);
+            return button;
+        };
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        _worldCombo = combo;
+        FillWorldCombo();
+        combo.SelectedItemChanged += (_, args) => OnWorldComboChanged(args.NewValue);
+        row.TryAddChild(combo);
+
+        row.TryAddChild(CreateTransportButton("Play", PlayPreview));
+        row.TryAddChild(CreateTransportButton("Stop", StopPreview));
+        row.TryAddChild(CreateTransportButton("Restart", PlayPreview));
+        return row;
+    }
+
+    private MGButton CreateTransportButton(string label, Action onClick)
+    {
+        var button = new MGButton(_window, _ => onClick())
+        {
+            Padding = new Thickness(10, 2, 10, 2),
+        };
+        button.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        return button;
+    }
+
+    private void FillWorldCombo()
+    {
+        if (_worldCombo == null)
+        {
+            return;
+        }
+
+        _suppressControlCallbacks = true;
+        _worldCombo.SetItemsSource(_previewWorldLabels.ToArray());
+        int selected = IndexOfPreviewWorld(_preview?.WorldId ?? Guid.Empty);
+        if (selected >= 0)
+        {
+            _worldCombo.SelectedItem = _previewWorldLabels[selected];
+        }
+
+        _suppressControlCallbacks = false;
+    }
+
+    private int IndexOfPreviewWorld(Guid worldId)
+    {
+        for (int index = 0; index < _previewWorlds.Count; index++)
+        {
+            if (_previewWorlds[index].WorldId == worldId)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>Lists the worlds of the project and loads the one chosen by default (or remembered) for this cutscene.</summary>
+    private void InitializePreviewWorlds()
+    {
+        if (_preview == null || _session == null)
+        {
+            return;
+        }
+
+        _previewWorlds.Clear();
+        _previewWorldLabels.Clear();
+        string projectDirectory = EngineEnvironment.ProjectPath;
+        _previewSettings = CutscenePreviewSettings.Load(projectDirectory);
+
+        var candidates = new List<CutscenePreviewWorldCandidate>();
+        foreach (AssetInfo info in AssetCatalog.AssetInfos)
+        {
+            if (!string.Equals(info.AssetType, "world", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            candidates.Add(new CutscenePreviewWorldCandidate(info.Id, info.FileName, ReadStartupCutsceneId(projectDirectory, info.FileName)));
+        }
+
+        Guid cutsceneId = _session.Asset.AssetId;
+        var choice = CutscenePreviewWorldResolver.Resolve(
+            candidates,
+            cutsceneId,
+            GameSettings.ProjectSettings.FirstWorldLoaded,
+            _previewSettings.GetWorldId(cutsceneId));
+        foreach (CutscenePreviewWorldCandidate world in choice.Worlds)
+        {
+            _previewWorlds.Add(world);
+            _previewWorldLabels.Add(world.FileName);
+        }
+
+        if (choice.HasWorld)
+        {
+            _preview.SetWorld(choice.Default.WorldId);
+        }
+
+        FillWorldCombo();
+        ApplyPreviewWorldToViewport();
+        _lastPreviewStatusKey = default;
+        RefreshPreviewStatus();
+    }
+
+    private static Guid ReadStartupCutsceneId(string projectDirectory, string worldFileName)
+    {
+        try
+        {
+            using var reader = new StreamReader(Path.Combine(projectDirectory, worldFileName));
+            return CutscenePreviewWorldResolver.ReadStartupCutsceneAssetId(reader);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            return Guid.Empty;
+        }
+    }
+
+    private void OnWorldComboChanged(string? label)
+    {
+        if (_suppressControlCallbacks || _preview == null || _session == null || label == null)
+        {
+            return;
+        }
+
+        int index = _previewWorldLabels.IndexOf(label);
+        if (index < 0)
+        {
+            return;
+        }
+
+        Guid worldId = _previewWorlds[index].WorldId;
+        _preview.SetWorld(worldId);
+        if (_previewSettings != null)
+        {
+            _previewSettings.SetWorldId(_session.Asset.AssetId, worldId);
+            try
+            {
+                _previewSettings.Save(EngineEnvironment.ProjectPath);
+            }
+            catch (Exception exception)
+            {
+                Logs.WriteException(exception);
+            }
+        }
+
+        ApplyPreviewWorldToViewport();
+        RefreshPreviewStatus();
+    }
+
+    private void PlayPreview()
+    {
+        if (_preview == null || _session == null)
+        {
+            return;
+        }
+
+        _preview.Play(_session.Asset);
+        ApplyPreviewWorldToViewport();
+        RefreshPreviewStatus();
+    }
+
+    private void StopPreview()
+    {
+        _preview?.Stop();
+        RefreshPreviewStatus();
+    }
+
+    /// <summary>Shows the preview world in the viewport and frames its entities.</summary>
+    private void ApplyPreviewWorldToViewport()
+    {
+        if (_previewViewport == null || _preview == null)
+        {
+            return;
+        }
+
+        var world = _preview.World;
+        _previewViewport.SetWorldOverride(world);
+        if (world == null)
+        {
+            return;
+        }
+
+        bool hasBounds = false;
+        BoundingBox bounds = default;
+        for (int index = 0; index < world.Entities.Count; index++)
+        {
+            var entity = world.Entities[index];
+            if (entity.RootComponent == null)
+            {
+                continue;
+            }
+
+            BoundingBox entityBounds = entity.GetBoundingBox();
+            bounds = hasBounds ? BoundingBox.CreateMerged(bounds, entityBounds) : entityBounds;
+            hasBounds = true;
+        }
+
+        if (hasBounds)
+        {
+            _previewViewport.FocusBounds(bounds);
+        }
+    }
+
+    private readonly record struct PreviewStatusKey(
+        CutsceneRuntimeState State,
+        bool EndedByWorldChange,
+        int RequestCount,
+        string Error,
+        string FailureReason,
+        bool FadeActive,
+        bool Fading,
+        uint FadeColor,
+        int WorldCount);
+
+    /// <summary>Rebuilds the status text only when what it shows changes, never every frame.</summary>
+    private void RefreshPreviewStatus()
+    {
+        if (_previewStatusText == null || _preview == null)
+        {
+            return;
+        }
+
+        var fade = _preview.ScreenEffects;
+        var key = new PreviewStatusKey(
+            _preview.State,
+            _preview.EndedByWorldChange,
+            _preview.Requests.Count,
+            _preview.Error,
+            _preview.FailureReason,
+            fade.Active,
+            fade.IsFading,
+            fade.IsFading ? 0u : ((uint)fade.R << 24) | ((uint)fade.G << 16) | ((uint)fade.B << 8) | fade.A,
+            _previewWorlds.Count);
+        if (key.Equals(_lastPreviewStatusKey))
+        {
+            return;
+        }
+
+        _lastPreviewStatusKey = key;
+        var text = new System.Text.StringBuilder();
+        if (_previewWorlds.Count == 0)
+        {
+            text.Append("The project has no world to preview the cutscene in. ");
+        }
+        else
+        {
+            text.Append("Preview: ").Append(_preview.State).Append('.');
+            if (_preview.FailureReason.Length > 0)
+            {
+                text.Append(" Failed: ").Append(_preview.FailureReason).Append('.');
+            }
+        }
+
+        if (_preview.Error.Length > 0)
+        {
+            text.Append(' ').Append(_preview.Error);
+        }
+
+        for (int index = 0; index < _preview.Requests.Count; index++)
+        {
+            var request = _preview.Requests[index];
+            text.Append(index == 0 ? " Skipped: " : ", ").Append(request.Type);
+            if (request.Target.Length > 0)
+            {
+                text.Append(" -> ").Append(request.Target);
+            }
+        }
+
+        if (_preview.EndedByWorldChange)
+        {
+            text.Append(". Would change the world: the play ends here.");
+        }
+
+        if (fade.Active)
+        {
+            text.Append(fade.IsFading
+                ? " Screen fade in progress."
+                : $" Screen overlay rgba({fade.R},{fade.G},{fade.B},{fade.A}).");
+        }
+
+        text.Append(' ').Append(PreviewLimitText);
+        _previewStatusText.Text = EscapeMarkup(text.ToString());
+    }
+
 
     public static bool TryLoadAsset(string fullPath, out CutsceneEditSession? session)
     {

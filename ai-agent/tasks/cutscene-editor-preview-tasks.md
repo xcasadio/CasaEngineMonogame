@@ -220,7 +220,9 @@ Décisions antérieures concernées :
 - Validation : build `CasaEngine.Editor.MonoGame.sln` ; `dotnet test` vert. La validation visuelle est celle de T2.5.
 - Commit : `feat(editor): play a cutscene in an isolated copy of a world`
 
-### ⏳ T2.4 — Document cutscene avec aperçu et barre de transport
+### ✅ T2.4 — Document cutscene avec aperçu et barre de transport
+
+> Validation (2026-11-18) : build `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test` 5924 verts, les 16 tests existants du panneau inchangés. Aucun test ajouté : tout ce que le panneau ajoute (session, viewport, combo) demande un `GraphicsDevice` et un runtime hébergé ; la logique pure (choix du monde, réglages, hôte) est déjà testée par T2.1 et T2.2. Capture `10-document` (loop.cutscene, sans lecture, `--capture-delay 3`) : barre de transport sur une seule ligne (monde, Play, Stop, Restart), ligne d'état, viewport à gauche (environ 55 % de la largeur du document), propriétés existantes dans une colonne de 420 px à droite avec défilement. Le viewport n'affiche que le fond du monde : les entités de `SpriteWorld` sont `is_visible: false` jusqu'à leur `ShowSprite`, donc l'absence de sprite avant lecture est attendue ; le cadrage sur les entités n'est pas vérifiable avant T2.5.
 
 - Objectif : le document `.cutscene` montre l'aperçu et ses commandes, à côté des propriétés existantes.
 - Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Tests/Editor/CutsceneAssetInspectorPanelTests.cs` (tests ajoutés).

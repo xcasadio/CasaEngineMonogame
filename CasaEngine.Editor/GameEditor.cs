@@ -5106,7 +5106,7 @@ public class GameEditor : Game, IObservableUpdate
         bool createdPanel = false;
         if (!_cutsceneInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
-            inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow);
+            inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
             inspectorPanel.DirtyStateChanged += OnCutsceneInspectorDirtyStateChanged;
             _cutsceneInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
@@ -6421,6 +6421,11 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
         {
             animation2dInspectorPanel.Update(gameTime);
+        }
+
+        foreach (var cutsceneInspectorPanel in _cutsceneInspectorPanels.Values)
+        {
+            cutsceneInspectorPanel.Update(gameTime);
         }
 
         foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
@@ -8938,6 +8943,10 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
             {
                 animation2dInspectorPanel.DrawViewport(gameTime);
+            }
+            foreach (var cutsceneInspectorPanel in _cutsceneInspectorPanels.Values)
+            {
+                cutsceneInspectorPanel.DrawViewport(gameTime);
             }
             foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
             {
