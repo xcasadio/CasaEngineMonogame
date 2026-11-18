@@ -101,6 +101,10 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 | P13 | Automatisation : `--cutscene-preview-seek <secondes[,secondes…]>` (va à chaque instant dans l'ordre, chacun après la fin du précédent), `--cutscene-preview-step <n>` (n images en avant, après les recherches), `--cutscene-preview-stop` (Stop, après le reste). Le délai de capture se compte depuis la fin de la dernière étape. |
 | P14 | Aucun raccourci clavier dans cette tranche (espace, flèches) : ils demandent de toucher au routage global des entrées de l'éditeur. |
 | P15 | Les pas d'une recherche sont fixes (1/60 s) alors que ceux d'une lecture suivent les frames de l'éditeur. Une action comptée en images (`WaitFrames`, `FadeScreenFrames`) peut donc tomber à un instant légèrement différent entre une lecture et une recherche. C'est accepté et documenté. |
+| P16 | (Phase 4) Tant qu'une lecture court, la ligne d'état de l'aperçu écrit le mot de la barre de transport (« Playing », « Paused », « Seeking ») ; sinon elle écrit l'état de fin comme avant. |
+| P17 | (Phase 4) Aller au temps 0, c'est montrer le premier instant de la cutscene : après la relance, le monde reçoit **une mise à jour de durée nulle**, qui fait jouer les actions du temps 0 sans avancer le temps. Cette mise à jour n'est pas comptée dans les images affichées. Cet état de départ est marqué, et il ne sert **qu'à l'affichage** : une lecture poursuivie depuis lui serait en avance d'une image sur l'horloge pour tout ce qui suit (une attente créée pendant la mise à jour de durée nulle compte un pas de plus). Toute action qui en repart — recherche vers un autre instant, reprise, `Play` pendant la pause, image suivante — **relance donc la lecture sans mise à jour de durée nulle** (reconstruction du monde), puis lit ou avance comme d'habitude. L'état montré à un instant ne dépend ainsi jamais du chemin suivi. `Stop` garde son sens : l'état d'avant la cutscene. Limite : les actions du temps 0 placées dans un `Parallel` ne sont pas montrées, parce que ses branches ne démarrent qu'à la mise à jour suivante. |
+| P18 | (Phase 4) La pause et la recherche n'existent que pendant une lecture. Dès qu'aucune lecture ne court, le transport revient en mode `Running` : le monde d'aperçu avance avec les frames de l'éditeur, comme le monde du jeu après la cutscene, quelle que soit la façon dont la fin a été atteinte. |
+| P19 | (Phase 4) Automatisation : `--cutscene-edit-after-transport` applique les éditions demandées après les étapes du transport et non avant ; `--cutscene-preview-step` accepte un nombre négatif (images en arrière) ; `--cutscene-preview-resume` reprend la lecture après les autres étapes. Les diagnostics écrivent le nombre de relances de la lecture : chaque reconstruction réussie du monde suivie d'un lancement de la cutscene, asset invalide compris ; un `Stop` et un chargement de monde qui échoue ne comptent pas. |
 
 ## Règles d'exécution pour l'agent
 
@@ -286,6 +290,103 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
 - Note (2026-11-18) : les captures de T2.6 ont été envoyées pour validation à distance ; la recette réelle de l'auteur reste à faire (O2, O3, O4).
+
+---
+
+## Phase 4 — Corrections après la vérification (2026-11-18)
+
+L'auteur a demandé le 2026-11-18 (« Carriges ») de corriger les points O5, O6 et O7, et d'ajouter l'option d'automatisation qui prouve la relecture après une modification en pause (O8). Arbitrages P16 → P19.
+
+Faits vérifiés pour cette phase :
+
+- `WorldRuntimeSystems.Update` appelle `CutsceneDirector.AdvancePlayClock` à chaque mise à jour, après les coroutines (`CasaEngine/Framework/Scene/World/WorldRuntimeSystems.cs:19-27`). Une mise à jour de durée nulle pendant une lecture ajoute donc 0 seconde et **une** image à l'horloge (`CutsceneDirector.cs:262-272`).
+- La première étape d'une lecture s'exécute à la première mise à jour du monde qui suit `Play` ; les actions du temps 0 n'ont donc pas joué tant qu'aucune mise à jour n'a eu lieu.
+- Une action prévue à l'instant t s'exécute pendant la mise à jour qui **quitte** t : l'horloge est avancée après les coroutines. Une instruction d'attente rendue pendant une mise à jour n'est contrôlée qu'à la mise à jour suivante (`CasaEngine/Framework/Scripting/Coroutines/CoroutineManager.cs:188-197`, `:245-248`) ; `WaitForSeconds` retire tout le delta à chaque contrôle (`WaitForSeconds.cs:18-21`) et `WaitForFrames` décompte à chaque contrôle (`WaitForFrames.cs:16-20`). Dans une lecture normale, le `Wait 1.3` du temps 0 de `loop.cutscene` est créé au pas 1 et se termine au pas 79 ; créé pendant une mise à jour de durée nulle, il se terminerait au pas 78. Une lecture poursuivie après une mise à jour de durée nulle est donc en avance d'une image, pour toute sa durée.
+- Les branches d'un `Parallel` sont mises en file par `StartCoroutine` et ne démarrent qu'à la mise à jour suivante (`CoroutineManager.cs:46`, `:133`).
+- `AdvancePlayClock` ne compte pas d'image quand la lecture se termine ou s'arrête pendant la mise à jour (`CutsceneDirector.cs:262-272`).
+- Un `Wait` créé par le catalogue vaut 0 seconde et ne change rien à une lecture ; un `WaitFrames` créé par le catalogue vaut 1 image (`CasaEngine.EditorServices/Cutscenes/CutsceneActionCatalog.cs:67`, `:77`). Aucune option d'automatisation ne règle une propriété.
+- `PreviewWorldDriver.Rebuild` fait déjà une mise à jour de durée nulle après la reconstruction, avant que la lecture soit lancée (`PreviewWorldDriver.cs:77-80`, `:85-88`).
+- La ligne d'état de l'aperçu écrit `_preview.State` (`CutsceneAssetInspectorPanel.cs:1143`), qui vaut `Playing` pendant une pause.
+- `CutscenePreviewTransport.AdvanceSeek` passe en `Paused` quand la lecture ne court plus (`CutscenePreviewTransport.cs:176-182`) ; en `Running`, `Advance` fait un pas sans regarder si une lecture court (`:112-114`).
+- Trois tests écrits par T1.1 décrivent le comportement que P18 remplace : `Advance_WhenThePlayEndsDuringASeek_StopsStepping`, `Advance_WhenSeekingAndNoPlayRuns_PausesWithoutAStep`, `StepFrames_WhenNoPlayRuns_DoesNoStep` (`CasaEngine.Tests/EditorServices/Cutscenes/CutscenePreviewTransportTests.cs`). Ils appartiennent à cette tranche : ils sont réécrits par T4.2.
+
+Règles propres à cette phase : celles du plan, plus : les tests ajoutés par les tâches T1.1 à T2.5 de ce plan peuvent être réécrits quand P17, P18 ou P19 change ce qu'ils décrivent ; les tests d'avant ce plan restent intouchables. Référence des tests avant cette phase : 6200.
+
+### ✅ T4.1 — ADR-0100
+
+- Objectif : enregistrer P16 → P18, qui précisent ADR-0099 sans la réécrire.
+- Fichiers : `docs/decisions/0100-<short-title>.md` (créé), `docs/decisions/README.md`, ce plan.
+- Étapes : ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan et ADR-0099. Contenu : le temps 0 montre le premier instant grâce à une mise à jour de durée nulle, pourquoi cet état ne sert qu'à l'affichage (une lecture poursuivie depuis lui serait en avance d'une image), la règle de relance qui garde l'état indépendant du chemin, et la limite du `Parallel` (P17) ; le transport revient en `Running` quand aucune lecture ne court (P18), ce qui précise le point d'ADR-0099 sur la fin d'une lecture pendant une recherche ; le mot de la ligne d'état (P16).
+- Validation : liens de l'index ; aucun nom de jeu ni de projet tiers.
+- Commit : `docs(decisions): record the first instant and the live world after the end of the cutscene preview`
+- Note de validation (2026-11-18) : `docs/decisions/0100-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md` créé (statut `Accepted`, source : ce plan et ADR-0099), ligne ajoutée à `docs/decisions/README.md`. Il couvre P17 (premier instant par une mise à jour de durée nulle non comptée, état de départ marqué réservé à l'affichage, relance sans mise à jour de durée nulle pour toute action qui en repart, limite du `Parallel`), P18 (retour en `Running` quand aucune lecture ne court, ce qui précise le point d'ADR-0099 sur la fin d'une lecture pendant une recherche) et P16 (mot de la ligne d'état). ADR-0099 n'est pas modifiée. Le lien de l'index pointe sur un fichier existant (vérifié) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests lancés (référence : 6200 tests).
+
+### ⏳ T4.2 — Le transport revient en lecture quand aucune lecture ne court
+
+- Objectif : P18.
+- Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePreviewTransport.cs`, `CasaEngine.Tests/EditorServices/Cutscenes/CutscenePreviewTransportTests.cs`.
+- Étapes :
+  1. Au début de `Advance` : si le mode n'est pas `Running` et qu'aucune lecture ne court, le mode passe à `Running` et les pas d'image en attente sont oubliés ; l'appel fait alors le pas de la frame, comme en `Running`.
+  2. Une recherche dont la lecture se termine en cours de route s'arrête de faire des pas fixes ; l'appel suivant applique la règle 1.
+  3. `GetStatus` ne change pas.
+- Validation : build des deux solutions ; tests : les trois tests cités plus haut sont réécrits pour P18 (après la fin d'une lecture pendant une recherche, l'appel suivant fait un pas de la durée de la frame et le mode est `Running` ; une recherche ou des pas d'image demandés sans lecture ne font aucun pas de 1/60 s : l'appel fait un seul pas, de la durée de la frame, et laisse en `Running`) ; un test avec un vrai `World` : une séquence courte se termine pendant une recherche qui vise au-delà de sa fin, puis le monde continue d'être mis à jour par `Advance` (son compteur de mises à jour avance).
+- Commit : `fix(editor-services): keep the preview world live once no cutscene play runs`
+
+### ⏳ T4.3 — Le temps 0 montre le premier instant
+
+- Objectif : P17.
+- Fichiers : `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`, `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs` (monde du viewport après une reprise ou une image suivante qui a relancé).
+- Étapes :
+  1. `Seek` vers un instant à moins d'un demi-pas de 0 : si l'état de départ marqué est déjà en place (lecture en cours, document inchangé, temps 0), ne rien refaire ; sinon relancer (reconstruction), puis faire **un** pas de durée nulle par le même chemin qu'un pas normal, marquer l'état de départ, et laisser le transport en pause.
+  2. Tant que l'état de départ marqué est en place, toute action qui en repart relance la lecture **sans** mise à jour de durée nulle, en gardant les durées mesurées, puis fait ce qu'elle fait d'habitude : `Seek` vers un autre instant vise cet instant ; `Resume` (donc `Play` pendant la pause) laisse le transport en `Running` ; `StepFrames(n)` demande ses `n` pas. La session garde pour cela l'asset de la dernière relance. La marque est effacée à chaque relance : une lecture issue d'une relance n'est jamais en avance d'une image.
+  3. Le nombre d'images exposé par la session ne compte pas la mise à jour de durée nulle : la session retire ce que cette mise à jour a réellement ajouté au compteur du directeur (différence avant et après), ce qui vaut 0 si la lecture s'est terminée pendant elle. Ce retrait est remis à zéro à chaque reconstruction du monde (`Launch`, `Rewind`, `SetWorld`) : le nouveau directeur repart de 0.
+  4. `Play` depuis le début, `Restart` et `Rewind` ne changent pas. Le document remplace le monde du viewport en gardant la caméra quand une reprise ou une image suivante a reconstruit le monde, comme il le fait déjà pour une recherche.
+- Validation : build ; tests verts (aucun test ne construit la session : la validation est celle de T4.6).
+- Commit : `fix(editor): show the first instant of the cutscene when the preview goes to time 0`
+
+### ⏳ T4.4 — La ligne d'état suit le transport
+
+- Objectif : P16.
+- Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`.
+- Étapes : dans `RefreshPreviewStatus`, écrire le mot du transport tant qu'une lecture court, l'état de fin sinon ; ajouter ce mot à la clé qui décide de réécrire la ligne, pour qu'elle ne soit réécrite que sur un changement.
+- Validation : build ; tests verts ; validée par T4.6 (la ligne des diagnostics « Preview status line »).
+- Commit : `fix(editor): show the transport state in the status line of the cutscene preview`
+
+### ⏳ T4.5 — Automatisation : édition après le transport, image précédente, reprise
+
+- Objectif : P19, pour prouver ce qui ne l'était que par relecture (O8).
+- Fichiers : `CasaEngine.Editor/EditorAutomationOptions.cs`, `CasaEngine.Editor/GameEditor.cs`, `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs` (compteur de relances, lecture seule), `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, `CasaEngine.Tests/Editor/EditorAutomationOptionsTests.cs`.
+- Étapes :
+  1. `--cutscene-edit-after-transport` : avec cette option, les éditions (`--cutscene-select-action`, `--cutscene-add-action`) sont appliquées après les recherches et les pas, et non avant ; après elles, l'automatisation attend que la recherche de relecture soit finie avant de compter le délai de capture.
+  2. `--cutscene-preview-step <n>` accepte un entier négatif : `|n|` fois l'image précédente, chacune attendant la fin de la recherche de la précédente. Zéro reste ignoré.
+  3. `--cutscene-preview-resume` : après les recherches, les pas et les éditions, reprend la lecture comme le bouton `Play` pendant une pause. Il n'agit que si l'état est « Paused » à ce moment ; sinon il est noté comme refusé dans les diagnostics et rien n'est fait. Incompatible avec `--cutscene-preview-stop` : si les deux sont donnés, seul le Stop est appliqué, et les diagnostics le disent. Les tests qui décident si une automatisation est demandée (`HasAutomation`, `IsAutomationCutscenePreviewTransportRequested`) comparent aujourd'hui le nombre de pas à `> 0` : ils passent à `!= 0` et tiennent compte du nouveau drapeau.
+  4. Diagnostics : nombre de relances de la lecture depuis l'ouverture du document (chaque reconstruction du monde suivie d'un lancement).
+- Validation : build ; tests ajoutés pour l'analyse des options (nombre négatif, les deux nouveaux drapeaux, absence) ; un test de cette tranche qui refusait un nombre négatif est réécrit.
+- Commit : `feat(editor): prove the edit while paused, the previous frame and the resume from the automation`
+
+### ⏳ T4.6 — Captures de validation des corrections
+
+- Objectif : prouver P16 → P19 et l'absence de régression.
+- Étapes, sur `Projects/SpriteCutsceneSample`, timeline au premier plan, `--diagnostics-out` hors dépôt, fichiers préfixés `e` :
+  1. `loop.cutscene`, `--cutscene-preview-seek 0` : « Paused », 0,00 s, **0 image** ; la capture montre les quatre sprites à leur position de départ (ils étaient invisibles avant cette correction) ; la ligne d'état commence par « Preview: Paused. ».
+  2. `--cutscene-preview-seek 0,0.5` : même état que le lancement 3 (mêmes positions, 30 images) : l'état à 0,5 s ne dépend pas d'un passage par 0 ; le nombre de relances vaut 2.
+  3. `--cutscene-preview-seek 0.5 --capture-delay 2` : identique à la capture `d1` de T2.6 (0,500 s, 30 images, `orb-left` x = -130), la ligne d'état commence par « Preview: Paused. ».
+  4. `--cutscene-preview-seek 0 --cutscene-preview-step 360`, comparé à `--cutscene-preview-seek 6` : même nombre d'images (360) et mêmes positions des entités dans les deux lancements, avec `orb-left` à un x **strictement entre -190 et -60** dans les deux. À 6 s la boucle est dans le déplacement de son second tour, que ce tour ait commencé au pas 337 ou au pas 338 (l'arrondi des attentes en virgule flottante peut coûter un pas) : une lecture en avance d'une image y montrerait `orb-left` décalé de 2 unités. Les deux chemins doivent être une relance suivie de 360 pas de 1/60 s. Le lancement par 0 compte 2 relances.
+  5. `--cutscene-preview-seek 2 --cutscene-preview-step -1` : 119 images, 1,983 s à moins d'un pas, en pause.
+  6. `--cutscene-preview-seek 2 --cutscene-preview-resume --capture-delay 1` : « Playing », temps d'au moins 2,98 s, bouton `Pause`, la ligne d'état commence par « Preview: Playing. », une seule relance (la reprise ne reconstruit pas le monde).
+  6 bis. `--cutscene-preview-seek 0 --cutscene-preview-resume --capture-delay 1` : « Playing », temps d'au moins 0,98 s, 2 relances (la reprise depuis l'état de départ marqué relance).
+  7. Modification en pause : `--cutscene-preview-seek 0.5 --cutscene-select-action "<chemin du quatrième ShowSprite, ring-right>" --cutscene-add-action WaitFrames --cutscene-edit-after-transport`, le chemin étant écrit dans la syntaxe que l'option accepte déjà (`root_action.actions[1].actions[3]` d'après la relecture du plan ; à confirmer dans le code). Le `WaitFrames` d'une image s'insère après ce `ShowSprite`, avant les quatre `MoveSprite`, qui démarrent donc un pas plus tard. Attendu : en pause à 0,500 s, 30 images, 2 relances, document modifié, `orb-left` à x = -132 ; positions **égales** à celles d'un lancement de contrôle où la même édition est faite avant la recherche (sans `--cutscene-edit-after-transport`) et **différentes** de celles du lancement 3 (x = -130). Aucun asset n'est enregistré.
+  8. `exit.cutscene`, `--cutscene-preview-seek 1.5 --capture-delay 1` : « Ended », mode du transport `Running`.
+  9. Non-régression : relancer `d2`, `d3`, `d6` et `d7` de T2.6 et comparer aux valeurs notées sous T2.6.
+- Validation : chaque capture est regardée et décrite honnêtement ; valeurs comparées aux attentes ; `git status` sans nouveau fichier sous `Projects/`.
+- Limite d'essais : deux séries de corrections au plus ; au-delà, 🧪 avec la liste exacte de ce qui reste.
+- Commit : `docs(plan): record the validation screenshots of the cutscene transport fixes`, ou `fix(editor): …` si une correction est nécessaire.
+
+### ⏳ T4.7 — Documentation et points ouverts
+
+- Objectif : `docs/editor/cutscene-editor.md` décrit le temps 0, le monde vivant après la fin, la ligne d'état et les nouvelles options ; les points O5 à O8 de ce plan sont mis à jour (corrigé, ou ce qui reste) ; la note de T2.6 sur le lancement 5 bis reçoit une ligne disant que le mode du transport y est désormais `Running` (P18) ; ligne de `ai-agent/README.md`.
+- Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
+- Commit : `docs(editor): document the first instant, the live world after the end and the new automation switches`
 
 ---
 
