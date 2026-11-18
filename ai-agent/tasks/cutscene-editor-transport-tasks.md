@@ -297,6 +297,11 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 | O2 | Coût d'un retour en arrière : chaque retour reconstruit le monde depuis son asset. Sur le sample c'est immédiat ; sur un grand monde, un glisser vers l'arrière reconstruira le monde à chaque déplacement de la souris. À mesurer à la recette. | T2.1, T2.4 |
 | O3 | P11 (caméra gardée) ne peut pas être prouvé par une capture : l'automatisation ne déplace pas la caméra. Il est validé par relecture du code et par la recette de l'auteur. | T2.2 |
 | O4 | Confirmation de P1 → P15 par l'auteur. | Toutes |
+| O5 | Vérification indépendante du 2026-11-18 : CONFIRMED, sans point bloquant. Reporté : après une fin de lecture, le monde continue d'être mis à jour si la fin est arrivée en lecture, et ne l'est plus si elle est arrivée pendant une recherche ; un effet qui survit à la dernière action (un déplacement de sprite encore en cours) peut donc finir dans un état visible différent pour un même temps de fin. Non reproduit sur les samples. | T2.1 |
+| O6 | Reporté : la ligne d'état de l'aperçu écrit encore « Preview: Playing » pendant une pause ou une recherche, à côté du mot « Paused » de la barre de transport. | T2.2 |
+| O7 | Reporté : aller à 0, ou reculer depuis la première image, met en pause avant la première mise à jour du monde ; les actions du temps 0 (`ShowSprite`) n'ont pas encore joué et le viewport est vide. | T2.1 |
+| O8 | Non couvert par un lancement ni par un test, validé par relecture du code seulement : la reprise après une pause, l'image précédente, et la relecture après une modification en pause. L'automatisation applique toujours les éditions avant les recherches. | T2.2, T2.5 |
+| O9 | Reporté : pendant une lecture, le nombre d'images affiché n'est réécrit qu'à chaque dixième de seconde ; un glisser relâché hors de la règle peut faire ignorer un relâchement suivant dans la règle, dans un cas rare. | T2.2, T2.4 |
 
 ## Hors périmètre
 
