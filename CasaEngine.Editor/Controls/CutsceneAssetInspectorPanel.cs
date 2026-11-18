@@ -1107,6 +1107,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
     private readonly record struct PreviewStatusKey(
         CutsceneRuntimeState State,
+        CutscenePreviewStatus Transport,
         bool EndedByWorldChange,
         int RequestCount,
         string Error,
@@ -1127,6 +1128,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         var fade = _preview.ScreenEffects;
         var key = new PreviewStatusKey(
             _preview.State,
+            _preview.Status,
             _preview.EndedByWorldChange,
             _preview.Requests.Count,
             _preview.Error,
@@ -1148,7 +1150,16 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
         else
         {
-            text.Append("Preview: ").Append(_preview.State).Append('.');
+            // While a play runs the word of the transport row is shown; otherwise the state the play ended in.
+            var transport = key.Transport;
+            if (transport is CutscenePreviewStatus.Playing or CutscenePreviewStatus.Paused or CutscenePreviewStatus.Seeking)
+            {
+                text.Append("Preview: ").Append(GetStatusWord(transport)).Append('.');
+            }
+            else
+            {
+                text.Append("Preview: ").Append(_preview.State).Append('.');
+            }
             if (_preview.FailureReason.Length > 0)
             {
                 text.Append(" Failed: ").Append(_preview.FailureReason).Append('.');
