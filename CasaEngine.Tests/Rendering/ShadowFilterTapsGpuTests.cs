@@ -15,17 +15,18 @@ namespace CasaEngine.Tests.Rendering;
 /// <summary>
 /// <c>ShadowFilterTaps</c> (12, 32 or 64 shadow-map reads of the soft-edge filter, ADR-0127) on a real device. Every case
 /// renders a 512x4 image of a quad facing the camera (identity view and projection: the quad covers the image, pixel column c
-/// is at x = -1 + 2 (c + 0.5 - 63/128) / 512 on DesktopGL, see <see cref="GlVertexShift"/>) and compares it with a model computed on the processor.
+/// is modelled at x = -1 + 2 (c + 0.5 - 63/128) / 512, see <see cref="GlVertexShift"/>) and compares it with a model computed on the processor.
 /// <para>Geometry. The shadow map is a 512x512 single-channel texture whose left half holds 0 (occluded) and whose right half
-/// holds 1 (lit), read in point mode (<see cref="SamplerState.PointClamp"/> set by the test), so a read is lit exactly when its
-/// u is 0.5 or more. The shadow light matrix maps x to x / 2, y to y / 2 and z to z + 0.5, hence u = 0.5 + x / 4 at the quad.
+/// holds 1 (lit). The test sets <see cref="SamplerState.PointClamp"/> on slot 6, but on DesktopGL the shadow map is not on that
+/// sampler unit and is read bilinearly (see <see cref="GlVertexShift"/>); the model reads it as a step at u = 0.5 and carries the
+/// difference as a shift of the column. The shadow light matrix maps x to x / 2, y to y / 2 and z to z + 0.5, hence u = 0.5 + x / 4 at the quad.
 /// The filter radius is 120 texels, the fade width and the normal bias are 0. A tap at offset (dx, dy) in the unit disc reads
 /// u + dx * 120 / 512, so it is lit when dx >= -1.0667 x: the visibility of column c is the share of taps whose dx is at least
 /// t = -1.0667 x. One column moves t by 0.00417 of the unit disc (at most 0.005, so the penumbra, which spans t from -1 to 1,
 /// covers about 480 columns, at least 400) and the edge is vertical, so only dx matters.</para>
 /// <para>Model. The visibility of each column for the 12 points of the fixed Poisson disc, and for the Vogel disc of 32 and 64
 /// points (angle i * 2.39996323 rad, radius sqrt((i + 0.5) / N)). Measured on the model: 12 taps give 13 levels and a largest
-/// step between neighbouring columns of 1/12; 32 give 32 levels and 2/32; 64 give 63 levels and 2/64. The test asserts the
+/// step between neighbouring columns of 1/12; 32 give 33 levels and 1/32; 64 give 62 levels and 2/64. The test asserts the
 /// thresholds the plan announces (12: at most 13 levels, step of at least 1/12 - 0.005; 32: at least 20 levels, step of at
 /// most 3/32; 64: at least 40 levels, step of at most 3/64).</para>
 /// <para>Observable: the red channel of the render, normalised between its own two plateaus (the quad is lit by an emissive,
@@ -46,9 +47,13 @@ public class ShadowFilterTapsGpuTests
     private const double GoldenAngle = 2.39996323;
     private const double HalfFloatTolerance = 0.002;
 
-    // MonoGame DesktopGL (the backend of the test device) moves every vertex by 63/64 of Direct3D 9's half pixel (posFixup in
-    // the generated vertex shaders), i.e. by 63/128 pixel to the right: the pixel of column c sees the quad at
-    // x = -1 + 2 (c + 0.5 - 63/128) / 512.
+    // An empirical shift of the column, about half a pixel, that makes the model match the render on MonoGame DesktopGL. Its
+    // cause is not a vertex shift (GraphicsDevice.UseHalfPixelOffset is false here): under OpenGL DECLARE_TEXTURE ignores the
+    // register index, so the PointClamp this test sets on slot 6 does not reach the shadow map, which is read bilinearly. A
+    // bilinear read compared at the receiver depth moves the lit/occluded threshold by about a quarter of a texel, the same for
+    // every tap, which is about half a pixel in this geometry. With point sampling on every unit the render matches the model
+    // without any shift (verification of 2026-11-18, plan ai-agent/tasks/shadow-filter-taps-tasks.md, T2). The shift does not
+    // weaken the test: no shift makes a wrong disc (radius law, tap count, Poisson instead of Vogel) match.
     private const double GlVertexShift = 63.0 / 128.0;
 
     private static readonly (double X, double Y)[] PoissonDisc =

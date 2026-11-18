@@ -124,6 +124,6 @@ Relevé en lecture seule (enquêteur, relu), à revérifier par l'exécutant ava
 ## Points ouverts
 
 - O1 (auteur, après T2) : validation de l'ADR-0127 ; avance de `main` et push.
-- O2 (constats de T2, à décider par l'auteur) : corriger le commentaire de `GlVertexShift` et le commentaire de classe de `ShadowFilterTapsGpuTests` (mécanisme faux, niveaux du modèle), ou poser l'échantillonneur en point sur la vraie unité et retirer le décalage.
+- O2 (constats de T2, à décider par l'auteur) : corriger le commentaire de `GlVertexShift` et le commentaire de classe de `ShadowFilterTapsGpuTests` (mécanisme faux, niveaux du modèle), ou poser l'échantillonneur en point sur la vraie unité et retirer le décalage. **Fait le 2026-11-18 (demande de l'auteur de continuer) : les commentaires de `ShadowFilterTapsGpuTests` disent maintenant la vraie cause du décalage et les niveaux du modèle vérifié ; le code du test n'a pas changé. Point clos.**
 - O3 (moteur, hors périmètre, trouvé par T2) : sous OpenGL de bureau la carte d'ombre est lue en bilinéaire et aucun code du moteur ne règle son échantillonneur ; `ShadowNormalOffsetGpuTests` suppose à tort que l'unité 6 est la sienne. À examiner : l'effet sur le bord des ombres en production et sur les tests.
 - O4 (hors périmètre) : compiler et essayer la cible DirectX avec 64 lectures.
