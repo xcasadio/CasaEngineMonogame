@@ -296,6 +296,9 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationCutsceneSeekActive;
     private int _automationCutsceneStepState;
     private bool _automationCutsceneStopDone;
+    private int _automationCutsceneBackSteps;
+    private bool _automationCutsceneEditSettled;
+    private bool _automationCutsceneResumeDone;
     private TimeSpan _automationCutsceneTransportAt;
     private string _automationCutsceneTransportResult;
     private TimeSpan _automationAssetOpenedAt;
@@ -645,6 +648,9 @@ public class GameEditor : Game, IObservableUpdate
         _automationCutsceneSeekActive = false;
         _automationCutsceneStepState = 0;
         _automationCutsceneStopDone = false;
+        _automationCutsceneBackSteps = 0;
+        _automationCutsceneEditSettled = false;
+        _automationCutsceneResumeDone = false;
         _automationCutsceneTransportAt = TimeSpan.Zero;
         _automationCutsceneTransportResult = null;
         _automationParticleCreateAttempted = false;
@@ -7280,7 +7286,7 @@ public class GameEditor : Game, IObservableUpdate
 
         if (IsAutomationCutsceneEditRequested())
         {
-            if (!IsAutomationCutsceneEditCompleted())
+            if (!IsAutomationCutsceneEditCompleted() || !IsAutomationCutsceneEditSettled())
             {
                 return;
             }
@@ -7890,15 +7896,49 @@ public class GameEditor : Game, IObservableUpdate
            && (string.IsNullOrWhiteSpace(_automationOptions.CutsceneAddActionType) || _automationCutsceneAddDone);
 
     /// <summary>
+    /// True when the edits are over and, for edits applied after the transport, the replay that an edit asks for is finished.
+    /// Edits applied before the transport need no wait: the transport comes after them.
+    /// </summary>
+    private bool IsAutomationCutsceneEditSettled()
+        => !_automationOptions.CutsceneEditAfterTransport || _automationCutsceneEditSettled;
+
+    /// <summary>True when the seeks, the steps and the stop are done; the resume comes after them and is not part of it.</summary>
+    private bool IsAutomationCutsceneMainTransportCompleted()
+        => _automationCutsceneSeekIndex >= _automationOptions.CutscenePreviewSeekSeconds.Length
+           && (_automationOptions.CutscenePreviewStepFrames == 0 || _automationCutsceneStepState >= 2)
+           && (!_automationOptions.CutscenePreviewStop || _automationCutsceneStopDone);
+
+    /// <summary>
     /// Reactivates the cutscene tab, selects an action and adds one, in this order, one step per frame. Nothing is saved.
+    /// With <c>--cutscene-edit-after-transport</c> it waits for the seeks, the steps and the stop, then waits for the replay
+    /// that the edit asked for to be over.
     /// </summary>
     private void TryApplyAutomationCutsceneEdits(TimeSpan totalGameTime)
     {
         if (!_automationAssetOpened
             || !IsAutomationCutsceneEditRequested()
-            || IsAutomationCutsceneEditCompleted()
-            || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted))
+            || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted)
+            || (_automationOptions.CutsceneEditAfterTransport && !IsAutomationCutsceneMainTransportCompleted()))
         {
+            return;
+        }
+
+        if (IsAutomationCutsceneEditCompleted())
+        {
+            if (_automationOptions.CutsceneEditAfterTransport && !_automationCutsceneEditSettled)
+            {
+                string settledPanelId = _automationCutscenePanelId ?? GetActiveDocumentPanelId();
+                if (!string.IsNullOrWhiteSpace(settledPanelId)
+                    && TryGetCutsceneAssetInspectorPanel(settledPanelId, out var settledPanel)
+                    && settledPanel.PreviewStatus == CutscenePreviewStatus.Seeking)
+                {
+                    return;
+                }
+
+                _automationCutsceneEditSettled = true;
+                _automationCutsceneEditedAt = totalGameTime;
+            }
+
             return;
         }
 
@@ -7962,20 +8002,25 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    // The resume is dropped when a stop is requested: a stopped preview has no paused play to resume.
+    private bool IsAutomationCutscenePreviewResumeRequested()
+        => _automationOptions.CutscenePreviewResume && !_automationOptions.CutscenePreviewStop;
+
     private bool IsAutomationCutscenePreviewTransportRequested()
         => _automationOptions.CutscenePreviewSeekSeconds.Length > 0
-           || _automationOptions.CutscenePreviewStepFrames > 0
-           || _automationOptions.CutscenePreviewStop;
+           || _automationOptions.CutscenePreviewStepFrames != 0
+           || _automationOptions.CutscenePreviewStop
+           || IsAutomationCutscenePreviewResumeRequested();
 
     private bool IsAutomationCutscenePreviewTransportCompleted()
-        => _automationCutsceneSeekIndex >= _automationOptions.CutscenePreviewSeekSeconds.Length
-           && (_automationOptions.CutscenePreviewStepFrames <= 0 || _automationCutsceneStepState >= 2)
-           && (!_automationOptions.CutscenePreviewStop || _automationCutsceneStopDone);
+        => IsAutomationCutsceneMainTransportCompleted()
+           && (!IsAutomationCutscenePreviewResumeRequested() || _automationCutsceneResumeDone);
 
     /// <summary>
-    /// Applies the cutscene preview transport options after the play and the edits: each seek (the next one starts when the
-    /// previous one is over), then the frame steps, then the stop. One step per frame. The capture delay counts from the
-    /// end of the last step.
+    /// Applies the cutscene preview transport options after the play and the edits (before them with
+    /// <c>--cutscene-edit-after-transport</c>): each seek (the next one starts when the previous one is over), then the
+    /// frame steps (previous-frame moves when negative, each one starting when the previous seek is over), then the stop,
+    /// then the resume. One step per frame. The capture delay counts from the end of the last step.
     /// </summary>
     private void TryApplyAutomationCutscenePreviewTransport(TimeSpan totalGameTime)
     {
@@ -7983,7 +8028,9 @@ public class GameEditor : Game, IObservableUpdate
             || !IsAutomationCutscenePreviewTransportRequested()
             || IsAutomationCutscenePreviewTransportCompleted()
             || (_automationOptions.CutscenePreviewPlay && !_automationCutscenePlayStarted)
-            || (IsAutomationCutsceneEditRequested() && !IsAutomationCutsceneEditCompleted()))
+            || (!_automationOptions.CutsceneEditAfterTransport
+                && IsAutomationCutsceneEditRequested()
+                && !IsAutomationCutsceneEditCompleted()))
         {
             return;
         }
@@ -8057,6 +8104,31 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        if (stepFrames < 0 && _automationCutsceneStepState < 2)
+        {
+            // Each previous-frame move is a seek: the next one starts when the previous one is over.
+            if (_automationCutsceneStepState == 1 && cutscenePanel.PreviewStatus == CutscenePreviewStatus.Seeking)
+            {
+                return;
+            }
+
+            if (_automationCutsceneBackSteps >= -stepFrames)
+            {
+                _automationCutsceneStepState = 2;
+                _automationCutsceneTransportAt = totalGameTime;
+                return;
+            }
+
+            bool accepted = cutscenePanel.StepPreviewBack();
+            _automationCutsceneBackSteps++;
+            _automationCutsceneTransportResult = $"step back {_automationCutsceneBackSteps} of {-stepFrames}: {(accepted ? "requested" : "refused")}";
+            EditorDiagnosticsBuffer.Append(accepted ? LogVerbosity.Info : LogVerbosity.Warning,
+                $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+            _automationCutsceneStepState = accepted ? 1 : 2;
+            _automationCutsceneTransportAt = totalGameTime;
+            return;
+        }
+
         if (_automationOptions.CutscenePreviewStop && !_automationCutsceneStopDone)
         {
             bool done = cutscenePanel.StopPreview();
@@ -8064,6 +8136,21 @@ public class GameEditor : Game, IObservableUpdate
             _automationCutsceneTransportAt = totalGameTime;
             _automationCutsceneTransportResult = $"stop: {(done ? "done" : "failed")}";
             EditorDiagnosticsBuffer.Append(done ? LogVerbosity.Info : LogVerbosity.Warning,
+                $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
+            return;
+        }
+
+        // The resume comes last: after the edits too, once the replay that an edit asked for is over.
+        if (IsAutomationCutscenePreviewResumeRequested()
+            && !_automationCutsceneResumeDone
+            && (!IsAutomationCutsceneEditRequested() || (IsAutomationCutsceneEditCompleted() && IsAutomationCutsceneEditSettled())))
+        {
+            var status = cutscenePanel.PreviewStatus;
+            bool resumed = status == CutscenePreviewStatus.Paused && cutscenePanel.TogglePreviewPlayback();
+            _automationCutsceneResumeDone = true;
+            _automationCutsceneTransportAt = totalGameTime;
+            _automationCutsceneTransportResult = resumed ? "resume: done" : $"resume: refused (status is {status}, not Paused)";
+            EditorDiagnosticsBuffer.Append(resumed ? LogVerbosity.Info : LogVerbosity.Warning,
                 $"[Automation] Cutscene preview {_automationCutsceneTransportResult}");
         }
     }
@@ -8106,7 +8193,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Cutscene preview (play started: {_automationCutscenePlayStarted}):");
         builder.AppendLine(string.Create(
             CultureInfo.InvariantCulture,
-            $"  - Transport options: seek [{string.Join(", ", Array.ConvertAll(_automationOptions.CutscenePreviewSeekSeconds, value => value.ToString(CultureInfo.InvariantCulture)))}]; step {_automationOptions.CutscenePreviewStepFrames}; stop {_automationOptions.CutscenePreviewStop}; last: {_automationCutsceneTransportResult ?? "<none>"}"));
+            $"  - Transport options: seek [{string.Join(", ", Array.ConvertAll(_automationOptions.CutscenePreviewSeekSeconds, value => value.ToString(CultureInfo.InvariantCulture)))}]; step {_automationOptions.CutscenePreviewStepFrames}; stop {_automationOptions.CutscenePreviewStop}; resume {_automationOptions.CutscenePreviewResume}{(_automationOptions.CutscenePreviewResume && _automationOptions.CutscenePreviewStop ? " (ignored: stop is requested)" : string.Empty)}; edit after transport {_automationOptions.CutsceneEditAfterTransport}; last: {_automationCutsceneTransportResult ?? "<none>"}"));
         var state = cutscenePanel.GetAutomationStateSnapshot();
         for (int index = 0; index < state.Count; index++)
         {

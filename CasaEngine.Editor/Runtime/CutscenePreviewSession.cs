@@ -70,6 +70,12 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
             });
     }
 
+    /// <summary>
+    /// How many times a play was launched in this session: each successful rebuild of the world followed by the launch of the
+    /// cutscene, an invalid asset included. A stop and a world that fails to load are not counted. Read by the automation.
+    /// </summary>
+    public int LaunchCount { get; private set; }
+
     /// <summary>The preview world, or null when none is loaded.</summary>
     public World? World => _driver.World;
 
@@ -384,6 +390,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         _launchedAsset = asset;
         _transport.Start();
         _director!.Play(copy);
+        LaunchCount++;
         if (!_director.IsPlaying && State == CutsceneRuntimeState.Idle)
         {
             // An invalid asset starts nothing and raises no Ended.

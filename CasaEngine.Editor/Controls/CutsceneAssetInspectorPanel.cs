@@ -898,6 +898,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         lines.Add(string.Create(
             CultureInfo.InvariantCulture,
             $"Preview time: {_preview.ElapsedSeconds:0.000} s, {_preview.ElapsedFrames} frames; play/pause button label='{_playPauseText?.Text}'"));
+        lines.Add($"Preview play launches: {_preview.LaunchCount}");
         for (int index = 0; index < _preview.Requests.Count; index++)
         {
             var request = _preview.Requests[index];

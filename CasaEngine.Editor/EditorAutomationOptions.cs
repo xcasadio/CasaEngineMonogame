@@ -42,8 +42,23 @@ public sealed class EditorAutomationOptions
     /// </summary>
     public double[] CutscenePreviewSeekSeconds { get; private set; } = Array.Empty<double>();
 
-    /// <summary>Frames the cutscene preview advances once its seeks are done (<c>--cutscene-preview-step</c>); 0 when absent or not positive.</summary>
+    /// <summary>
+    /// Frames the cutscene preview moves once its seeks are done (<c>--cutscene-preview-step</c>): forward when positive, back
+    /// (one previous-frame move each) when negative; 0 when absent or not an integer, which is ignored.
+    /// </summary>
     public int CutscenePreviewStepFrames { get; private set; }
+
+    /// <summary>
+    /// True when the cutscene edits (<c>--cutscene-select-action</c>, <c>--cutscene-add-action</c>) are applied after the seeks
+    /// and steps of the preview instead of before (<c>--cutscene-edit-after-transport</c>).
+    /// </summary>
+    public bool CutsceneEditAfterTransport { get; private set; }
+
+    /// <summary>
+    /// True when the cutscene preview play is resumed, as the Play button does during a pause, after the seeks, the steps and
+    /// the edits (<c>--cutscene-preview-resume</c>). Ignored when <see cref="CutscenePreviewStop"/> is set.
+    /// </summary>
+    public bool CutscenePreviewResume { get; private set; }
 
     /// <summary>True when the cutscene preview is stopped after the seeks and steps (<c>--cutscene-preview-stop</c>).</summary>
     public bool CutscenePreviewStop { get; private set; }
@@ -77,8 +92,10 @@ public sealed class EditorAutomationOptions
         || !string.IsNullOrWhiteSpace(CutsceneAddActionType)
         || CutsceneReactivate
         || CutscenePreviewSeekSeconds.Length > 0
-        || CutscenePreviewStepFrames > 0
+        || CutscenePreviewStepFrames != 0
         || CutscenePreviewStop
+        || CutsceneEditAfterTransport
+        || CutscenePreviewResume
         || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
@@ -244,7 +261,7 @@ public sealed class EditorAutomationOptions
                     break;
 
                 case "--cutscene-preview-step":
-                    if (int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stepFrames) && stepFrames > 0)
+                    if (int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stepFrames) && stepFrames != 0)
                     {
                         options.CutscenePreviewStepFrames = stepFrames;
                     }
@@ -254,6 +271,14 @@ public sealed class EditorAutomationOptions
 
                 case "--cutscene-preview-stop":
                     options.CutscenePreviewStop = true;
+                    break;
+
+                case "--cutscene-edit-after-transport":
+                    options.CutsceneEditAfterTransport = true;
+                    break;
+
+                case "--cutscene-preview-resume":
+                    options.CutscenePreviewResume = true;
                     break;
 
                 case "--screenshot-out":

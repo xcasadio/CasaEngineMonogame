@@ -191,12 +191,21 @@ public class EditorAutomationOptionsTests
         Assert.Equal(30, options.CutscenePreviewStepFrames);
     }
 
+    [Fact]
+    public void Parse_CutscenePreviewStep_ReadsANegativeInteger_AsFramesBack()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-step", "-3" });
+
+        Assert.True(options.HasAutomation);
+        Assert.Equal(-3, options.CutscenePreviewStepFrames);
+    }
+
     [Theory]
     [InlineData("0")]
-    [InlineData("-3")]
     [InlineData("1.5")]
+    [InlineData("-1.5")]
     [InlineData("many")]
-    public void Parse_CutscenePreviewStep_NotAPositiveInteger_IsIgnored(string value)
+    public void Parse_CutscenePreviewStep_NotANonZeroInteger_IsIgnored(string value)
     {
         var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-step", value });
 
@@ -214,6 +223,46 @@ public class EditorAutomationOptionsTests
     }
 
     [Fact]
+    public void Parse_CutscenePreviewResume_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-preview-resume" });
+
+        Assert.True(options.CutscenePreviewResume);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditAfterTransport_EnablesAutomation()
+    {
+        var options = EditorAutomationOptions.Parse(new[] { "--cutscene-edit-after-transport" });
+
+        Assert.True(options.CutsceneEditAfterTransport);
+        Assert.True(options.HasAutomation);
+    }
+
+    [Fact]
+    public void Parse_CutsceneEditAfterTransport_KeepsTheEditsAndTheTransportOptions()
+    {
+        var options = EditorAutomationOptions.Parse(new[]
+        {
+            "--cutscene-preview-seek", "0.5",
+            "--cutscene-select-action", "root_action.actions[1].actions[3]",
+            "--cutscene-add-action", "WaitFrames",
+            "--cutscene-edit-after-transport",
+            "--cutscene-preview-step", "-2",
+            "--cutscene-preview-resume",
+        });
+
+        Assert.True(options.CutsceneEditAfterTransport);
+        Assert.Equal(new[] { 0.5 }, options.CutscenePreviewSeekSeconds);
+        Assert.Equal("root_action.actions[1].actions[3]", options.CutsceneSelectActionPath);
+        Assert.Equal("WaitFrames", options.CutsceneAddActionType);
+        Assert.Equal(-2, options.CutscenePreviewStepFrames);
+        Assert.True(options.CutscenePreviewResume);
+        Assert.False(options.CutscenePreviewStop);
+    }
+
+    [Fact]
     public void Parse_CutscenePreviewTransportOptions_AreAbsentByDefault()
     {
         var options = EditorAutomationOptions.Parse(new[] { "--open-asset", "Cutscenes/loop.cutscene" });
@@ -221,5 +270,7 @@ public class EditorAutomationOptionsTests
         Assert.Empty(options.CutscenePreviewSeekSeconds);
         Assert.Equal(0, options.CutscenePreviewStepFrames);
         Assert.False(options.CutscenePreviewStop);
+        Assert.False(options.CutscenePreviewResume);
+        Assert.False(options.CutsceneEditAfterTransport);
     }
 }
