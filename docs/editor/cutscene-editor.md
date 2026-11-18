@@ -56,7 +56,7 @@ Escape cancels the drag. A rebuild of the tree, which any change of the document
 
 ### Context menu
 
-A right click on a row of the Hierarchy tree selects it and opens the menu; a right click on an item of the Cutscene Timeline selects its action and opens the same menu. A right click on a track header or on empty space of the timeline opens nothing. A right click on the empty part of the tree clears the selection, and the menu then only offers `Add` and `Paste`, which insert at the end of the root.
+A right click on a row of the Hierarchy tree selects it and opens the menu; a right click on an item of the Cutscene Timeline selects its action and opens the same menu. A right click on a track header opens nothing; a right click on the empty part of a track opens `Add here` when a `Parallel` can receive the action (see the placement in time), and nothing otherwise. A right click on the empty part of the tree clears the selection, and the menu then only offers `Add` and `Paste`, which insert at the end of the root.
 
 | Entry | Effect |
 |---|---|

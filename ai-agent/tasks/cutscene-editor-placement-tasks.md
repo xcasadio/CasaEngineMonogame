@@ -332,6 +332,11 @@ Règle propre à cette phase : un fichier de `CasaEngine.Editor/Controls/Timelin
 | O3 | Les branches d'un `Parallel` démarrent une mise à jour après lui : un clip posé à 0,5 s part une image plus tard dans l'aperçu que sa barre ne l'indique. C'est le comportement existant du `Parallel`, non changé ici. | T1.1, T1.3 |
 | O4 | Confirmation de P1 → P17 par l'auteur. | Toutes |
 | O5 | Levé le 2026-11-18 par l'agent principal : les trois tests que T4.1 fait changer ont été ajoutés par T2.2 de ce plan, pas avant lui. La règle « aucun test existant n'est modifié » protège les tests d'avant le plan ; la règle de la phase 4 autorise la mise à jour de ces trois-là. | T4.1 |
+| O6 | Vérifications indépendantes du 2026-11-18 : tranche CONFIRMED (format compris : code d'avant et code livré compilés, texte enregistré des 14 fichiers identique), puis correction T4.1 CONFIRMED. Sans point bloquant. | Toutes |
+| O7 | Reporté : un mouvement de quelques pixels après le seuil de glisser déplace encore la barre de la distance du curseur, alignée sur l'image ; à un zoom très fort cela peut dépasser une image. La barre ne saute plus de son point de saisie. | T4.1 |
+| O8 | Reporté : `place:-1` et `addat:<Type>:-1` sont ramenés à 0 au lieu d'être refusés ; le menu `Add here` n'est proposé que sur une rangée, pas sous la dernière (limite du contrôle générique) ; les tests de `Add here` appellent la création du menu, pas le chemin du clic droit. | T2.3, T2.4 |
+| O9 | À noter : le test `GetFormatErrors_ExistsForTheTenActionClassesThatCarryOne` a été renommé en `…Eleven…` par T1.1, en plus de recevoir `At` dans sa liste. | T1.1 |
+| O10 | Environnement : pendant l'exécution, l'éditeur de l'auteur tournait et verrouillait `CasaEngine.Editor/bin`. Les agents ont compilé l'éditeur dans un dossier hors dépôt et lancé les tests avec un dossier de sortie à part ; le build de la solution de l'éditeur vers son dossier habituel n'a donc pas pu être refait à 0 erreur (erreurs de copie seulement, aucune erreur de compilation). À refaire éditeur fermé. | Toutes |
 
 ## Hors périmètre
 
