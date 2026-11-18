@@ -1,12 +1,12 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100 and ADR-0101.
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100, ADR-0101 and ADR-0102 (proposed).
 
 ## Summary
 
-Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete, move, wrap, ungroup, cut, copy, paste) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model and no change in the file format.
+Opening a `.cutscene` asset from the Content Browser shows a document tab and fills two dock panels: the **Hierarchy** panel shows the action tree, and the **Inspector** panel edits the properties of the selected action in typed fields. Values and structure (add, duplicate, delete, move, wrap, ungroup, cut, copy, paste) can be edited, undone, redone and saved. The action tree (`CutsceneAsset.RootAction`) is the only source of truth: there is no separate editing model. The file format gained one action type, `At`, which places a group of actions in time (see "Placing actions in time"); nothing else in it changed.
 
-The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A read-only **Cutscene Timeline** panel shows the tree in time (see "Timeline"). The structure is edited by mouse in the Hierarchy tree and from a context menu shared with the timeline (see "Structure editing").
+The document itself keeps the transport bar, a status line and a preview of an isolated copy of a world to play the cutscene being edited (see "Preview"). A **Cutscene Timeline** panel shows the tree in time, and lets an action be dragged to another instant (see "Timeline" and "Placing actions in time"). The structure is edited by mouse in the Hierarchy tree and from a context menu shared with the timeline (see "Structure editing").
 
 ## Usage
 
@@ -21,7 +21,7 @@ The document itself keeps the transport bar, a status line and a preview of an i
 ## Action tree
 
 - **Hierarchy bar.** A flat drop-down lists the creatable action types, each prefixed by its category (`Sprites / MoveSprite`); the categories are Flow, Timing, Movement, Sprites, Audio, Screen and World and input. Buttons: `Add`, `Duplicate`, `Delete`. A right click on a row opens the structure menu (see "Structure editing"). The footer shows the number of actions.
-- **Add.** If the selected action is a `Sequence`, `Parallel` or `Repeat`, the new action becomes its last child. Otherwise it is inserted right after the selection, in the same parent. With no selection it is appended to the root when the root is a container. The new action is selected.
+- **Add.** If the selected action is a `Sequence`, `Parallel`, `Repeat` or `At`, the new action becomes its last child. Otherwise it is inserted right after the selection, in the same parent. With no selection it is appended to the root when the root is a container. The new action is selected.
 - **Defaults.** A created action has the default values of its class, except `Repeat.count` = 1 and `WaitFrames.frames` = 1. It can therefore be invalid until its required fields are filled: the Inspector lists the validator messages. A save is still allowed, as for any cutscene the validator criticises.
 - **Duplicate.** Inserts a deep copy right after the source and selects it. The copy goes through the serializer, so it is refused, with a message, for a subtree that holds a format error, a load loss or an unknown action type: the copy would lose those marks.
 - **Delete.** Removes the action and its children. A load loss that belongs to the removed subtree is removed with it and comes back at its original place on undo. The root action can be neither deleted nor duplicated.
@@ -61,8 +61,8 @@ A right click on a row of the Hierarchy tree selects it and opens the menu; a ri
 | Entry | Effect |
 |---|---|
 | `Add` | Sub-menu per category, then per type; inserts with the rule of the `Add` button |
-| `Wrap in` | `Sequence`, `Parallel` or `Repeat`: the action is replaced by a new container that holds it. The root can be wrapped: the container becomes the root. A new `Repeat` runs once |
-| `Ungroup` | Replaces a container that is not the root by its children, in order, at its place; an empty container is simply removed. The count of a `Repeat` is lost, and comes back on undo |
+| `Wrap in` | `Sequence`, `Parallel`, `Repeat` or `At`: the action is replaced by a new container that holds it. The root can be wrapped: the container becomes the root. A new `Repeat` runs once; a new `At` waits 0 s |
+| `Ungroup` | Replaces a container that is not the root by its children, in order, at its place; an empty container is simply removed. The count of a `Repeat` and the delay of an `At` are lost, and come back on undo |
 | `Move up`, `Move down` | Swap the action with its neighbour in the same container; an action never leaves its container this way. Absent for the first child (up) and the last child (down) |
 | `Cut`, `Copy`, `Paste` | See "Clipboard" |
 | `Duplicate` | Inserts a deep copy right after the action |
@@ -89,7 +89,7 @@ The clipboard is an object of the editor, shared by every cutscene document: cop
 ### Limits of the structure editing
 
 - One action at a time; no multiple selection.
-- No drag in the timeline: its items cannot be moved or resized with the mouse (free placement is a later step).
+- The timeline items cannot be resized, and only some of them can be moved: see "Placing actions in time".
 - No automatic scroll near the edges and no automatic expansion of a collapsed container during a drag: dropping on a collapsed container adds to its end, and a row out of view cannot be reached until the tree is scrolled by hand (scroll before the drag, or use the menu).
 - No drag of a type from a palette, and no drag from one document to another.
 - A load loss records the path of its action as read from the file. That path is not updated when an action changes place, as it was already not updated by an insertion or a deletion: the path shown in a save refusal can be out of date.
@@ -129,7 +129,7 @@ A stored value that is not in the catalog is kept as it is, shown as `(missing)`
 
 ## Timeline
 
-The **Cutscene Timeline** panel is a contextual tool panel: it appears in the bottom tab group only while a cutscene document is active, like the Animation2D timeline, and it comes to the front when a cutscene is opened. It is a **read-only projection of the action tree**: the tree stays the only model, nothing is edited on the timeline and the file format does not change. It can be docked, resized and maximised like any panel.
+The **Cutscene Timeline** panel is a contextual tool panel: it appears in the bottom tab group only while a cutscene document is active, like the Animation2D timeline, and it comes to the front when a cutscene is opened. It is a **projection of the action tree**: the tree stays the only model and the timeline has no data of its own. The only edit it offers is to place an action at another instant (see "Placing actions in time"); items cannot be resized, and tracks cannot be edited. It can be docked, resized and maximised like any panel.
 
 The panel is attached to the active cutscene document and detached when that document closes. The model is rebuilt when the document changes or when a new duration is measured, never per frame; per frame only the playhead moves.
 
@@ -147,7 +147,7 @@ Rows are created only when something uses them, in this order:
 | World and input | `ChangeWorld`, `ExitOnInput` |
 | Other | Actions of an unknown type, as markers |
 
-`Sequence` and `Parallel` have no item of their own. Two bars or ranges of a row that overlap are spread over sub-rows (only the first sub-row carries the row label); a marker stays on the first sub-row.
+`Sequence`, `Parallel` and `At` have no item of their own. Two bars or ranges of a row that overlap are spread over sub-rows (only the first sub-row carries the row label); a marker stays on the first sub-row.
 
 ### Reading the shapes
 
@@ -166,6 +166,7 @@ Time on the ruler is in seconds. The text under the transport buttons reads a st
 ### How time is laid out
 
 - A `Parallel` starts all its children at the same instant and lasts as long as its longest branch. The one-update shift the runtime adds to each branch is not drawn.
+- An `At` holds its sequence for `seconds`, then its children follow one after the other from that instant: the children are drawn at the start of the `At` plus `seconds`, and what follows the `At` is placed after the children.
 - A `Repeat` is drawn as **one lap** under a range `Repeat ×N` or `Repeat forever`. For a count above 1, a second range `×(N-1) more` covers the other laps and what follows is placed after them. A `Repeat` with no count is drawn as `Repeat ×?`, one lap.
 - The durations that move the sequence on are those of `Wait`, `WaitFrames`, `FadeScreen`, `FadeScreenFrames` and `FadeMusic` (their value), and `MoveTo`, `NavigateTo`, `PlayVideo` and `PlayVideoSprite` (measured, else 1 s estimated). Every other action takes no time in the sequence; a `MoveSprite` or a `TintSprite` does not block it.
 
@@ -186,11 +187,48 @@ The ruler stays fixed while the row headers and the rows scroll together vertica
 
 ### Timeline limits
 
-- Read-only: no move, resize, add or delete on the timeline. Only the playhead moves.
+- Items cannot be resized, deleted or moved from a row to another; the keyboard shortcuts of the generic control (Delete, Backspace, Ctrl+D, Ctrl+C) do nothing here. The structure is edited in the tree and from the context menu.
 - Measured durations are those of the **first occurrence** of each action during the last play. The duration of a `MoveSprite` effect is wrong when another move, `ShowSprite` or `HideSprite` interrupts it.
 - In the preview a `FadeMusic` does not wait (sound is muted): its bar shows the declared duration while the play goes faster.
 - For an endless loop whose lap holds an action of unknown duration that is not yet measured, the loop-back of the playhead becomes exact only after a first lap.
 - A `MoveSprite` or a `TintSprite` notifies its end right after its start: the length of its bar is not the length of its action in the director.
+
+### Placing actions in time
+
+Free placement is carried by one action of the format, **`At`**, and by nothing else: the tree stays the saved model, and the timeline reads and changes it.
+
+```json
+{ "type": "At", "seconds": 1.5, "actions": [ { "type": "MoveSprite", "...": "..." } ] }
+```
+
+- **Meaning.** An `At` waits `seconds`, counted from the instant it starts, then plays its children one after the other, as a `Sequence` does. It is exactly `Sequence[Wait(seconds), ...]`, with the delay as an explicit value that the timeline can read and change. In a `Parallel`, all the `At` start together, so `seconds` is the instant of each clip inside that block.
+- **Values.** A missing `seconds` is 0. A negative value, or one that is not a number, is a validation error; an `At` without children gives the warning that every empty container gives. The schema version did not change: an older engine loads `At` as an unknown action type and refuses the cutscene with an error, instead of playing it wrongly.
+- **In the editor.** `At` is a container: it is in the `Flow` category of the add list (created at 0 s), in `Wrap in`, `Ungroup`, drag and drop in the tree, copy and paste. The tree shows `At  1.5 s`, and the `Seconds` field of the Inspector sets an exact instant. An `At` has no item of its own on the timeline.
+- **What can be dragged.** Only the main item of an action can be dragged: not the "more" range of a `Repeat`. The rule starts from the action of the item and goes up, and the first parent met decides:
+  1. the parent is an `At` and the node is its first child: the drag changes the `seconds` of that `At`; if the node is not the first child, nothing can be dragged;
+  2. the parent is a `Parallel`: the drag wraps the node in a new `At`, in one history entry;
+  3. the parent is a `Sequence` or a `Repeat` and the node is its first child: the rule starts again with that parent as the node; if it is not the first child, nothing can be dragged;
+  4. at the root, nothing can be dragged.
+
+  Why only these: in a `Sequence` the start of an action is the end of the previous one, so moving it alone would mean changing the previous action; the delay in front of a first child, on the other hand, belongs to its group. For example, in `Parallel > Sequence > [X, Y]`, dragging X wraps the `Sequence` in an `At`; after that, dragging X changes that `At`; Y can never be dragged.
+- **How a drop is converted.** By difference: the new `seconds` is the current one (0 for a wrap) plus the drop instant minus the current start of the item. The result is aligned on frames (1/60 s) and cannot go below 0: during the drag, the item stops at the instant where `seconds` would be 0. The control puts the start of the item under the cursor from the first movement. A drop that leaves the value unchanged does nothing.
+- **Recognising a draggable item.** Its left edge is drawn lighter and its tooltip says what the drag does (`Drag in time: changes the delay of its At (now 0.4 s).` or `Drag in time: wraps it in an At.`). Other items keep their usual drawing.
+- **Room after the end.** The timeline is longer than the cutscene by the larger of a quarter of its duration and 2 s, so that a clip can be dragged later than the current end. The playhead, the seeks and the open bars keep the real duration.
+- **Ctrl and the keyboard.** Ctrl + drag, which the generic control turns into a duplication, does nothing; duplicate from the menu or with Ctrl+D. The generic control reserves Delete, Backspace, Ctrl+D and Ctrl+C while an item that can be dragged has the focus, and does nothing with them; the global shortcuts of the editor still act.
+- **Add here.** A right click on the empty space of a track row, with a `Parallel` selected (or an action inside one), offers `Add here`, then a category, then a type. The action is created inside a new `At` placed at the end of that `Parallel`, at the instant of the cursor counted from the start of the `Parallel` (aligned on frames, not below 0). It is selected. With no target `Parallel`, the entry is not offered. The menu of an item is the one of the structure editing, unchanged.
+- **Preview.** Placing an action is a change of the document: the measured durations are cleared and the preview replays under the usual rules. Until the next play, items whose duration is measured use their estimated duration again and can move by as much. A branch of a `Parallel` starts one update after it, as before, so a clip at 0.5 s starts one frame later in the preview than its bar says.
+- **Refusals.** A drag that cannot be applied changes nothing and the item returns to its place; the reason is kept for the diagnostics and is not shown on the status line.
+- **Sample.** `Projects/SpriteCutsceneSample/Cutscenes/stagger.cutscene`: four sprites are shown, then a `Parallel` of four `At` (0, 0.4, 0.8 and 1.2 s) each move one sprite, then a `Wait` of 1 s. No world starts it: open it in the editor.
+
+#### Limits of the placement
+
+- A bar cannot be stretched: a duration stays a property of the action, set in the Inspector.
+- No snapping to other items; the drag only snaps to frames.
+- An action cannot be moved from one row to another: the row comes from the entity of the action.
+- One action at a time; no multiple selection.
+- An existing cutscene is not converted to placed clips: only the `At` actions it holds can be dragged, plus the first child of a `Parallel`, which a drag wraps.
+- `Add here` is offered only on a track row: the control does not ask for a menu below the last row.
+- The real drag with the mouse can only be checked by hand: the automation reaches the same operation without the mouse (`place` and `addat` below), and the unit tests simulate the drag.
 
 ## Preview
 
@@ -265,7 +303,7 @@ Two more switches change the order or add a step:
 
 The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button, the last seek requested from the timeline ruler and the number of play launches since the document opened (each successful world rebuild followed by a launch of the cutscene; `Stop` and a world that fails to load are not counted).
 
-`--cutscene-edit-ops "<operation>;<operation>;..."` applies the structure operations, one per frame, after `--cutscene-select-action` and `--cutscene-add-action` (or after the transport steps with `--cutscene-edit-after-transport`), with the same wait. Operations are separated by `;`. A name runs to the first `:`; a path never contains `:` or `;`. Nothing is saved.
+`--cutscene-edit-ops "<operation>;<operation>;..."` applies the structure operations, one per frame, after `--cutscene-select-action` and `--cutscene-add-action` (or after the transport steps with `--cutscene-edit-after-transport`), with the same wait. Operations are separated by `;`. A name runs to the first `:`, except for `move`, `draghover` and `addat`, whose last `:` separates the final argument; a path never contains `:` or `;`. Seconds are a finite number in the invariant culture with a decimal point (`1.6`, not `1,6` or `1.6 s`). Nothing is saved.
 
 | Operation | Effect |
 |---|---|
@@ -280,10 +318,12 @@ The diagnostics add the transport options and the last transport step, the state
 | `shortcut:<copy\|cut\|paste\|duplicate>` | Calls the method of the global shortcut; refused when the active document is not a cutscene |
 | `menu` | Opens the context menu of the selection, at its row; the menu is not closed when the real mouse is far away, so a capture can show it |
 | `draghover:<target path>:<before\|after\|into>` | Puts the tree in the state of a drag of the selected action over that zone of the target row, without the mouse; the marker stays for the capture |
+| `place:<seconds>` | Places the selected action at that instant of the timeline, as a drag released there would; refused for an action with no main item on the timeline, such as a container, and when the value does not change |
+| `addat:<Type>:<seconds>` | As `Add here` at that instant: adds a new action of that type, in an `At`, at the end of the target `Parallel` of the selection |
 
 An unknown, malformed or refused operation is written in the diagnostics, and the following operations still run. The diagnostics give the result of each operation (`done` or `refused: <reason>`), the type held by the clipboard, the tree plan (one line per action: path, type, summary), the drag marker (dragged action, zone, reference row, container, index, marker depth, accepted or refusal) and the status line of the tree.
 
-`--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured), the selected item, and the visible and content heights of the track area with the state of the vertical bar.
+`--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured, then its drag rule: `drag: none`, `drag: changes the At <path> (seconds ...); lowest ... s` or `drag: wraps <path> in an At (in the Parallel <path>); lowest ... s`), one line per `Parallel` with its start, the last drop and its refusal, the selected item, and the visible and content heights of the track area with the state of the vertical bar.
 
 Three more switches act on the document after it opens, one step per frame, and save nothing: `--cutscene-reactivate` activates the world viewport panel then the cutscene tab, as a click on the tab does; `--cutscene-select-action <path>` selects the action at a path such as `root_action.actions[1].actions[2]`; `--cutscene-add-action <Type>` then adds an action of that type. The diagnostics also give the selected action, the number of actions, the modified state, the active document and history context, and the document the tree and the Inspector are linked to.
 
@@ -334,6 +374,9 @@ An empty text sets a nullable property that is not a string back to "no value".
 - `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs`: the action tree in the Hierarchy panel. `CasaEngine.Editor/Controls/CutsceneDetailsPanel.cs`, with `Controls/Cutscenes/CutsceneNumberField.cs` and `CutsceneTextCommitBinding.cs`: the typed fields in the Inspector panel. Both are registered as contextual panels for the cutscene document kind in `GameEditor`.
 - `CasaEngine.EditorServices/Cutscenes/`: also `MoveCutsceneActionCommand`, `WrapCutsceneActionCommand` and `UngroupCutsceneActionCommand` (undoable structure edits, each with a static `GetRefusal`), `CutsceneClipboard` (the clipboard) and `CutsceneDropTargetResolver` (the pure calculation of the destination of a drop from the visible rows and the pointer).
 - `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: also `MoveAction`, `MoveSelectedActionUp`, `MoveSelectedActionDown`, `WrapSelectedAction`, `UngroupSelectedAction`, `CopySelectedAction`, `CutSelectedAction` and `PasteAction`, each with a `Get...Refusal` query that changes nothing, and the `Clipboard` property that `GameEditor` shares between documents.
+- `CasaEngine/Framework/Cutscenes/AtCutsceneActionData.cs`: the `At` action (`Seconds`, `Actions`); its serialization, validation and playing are with those of the other containers in the same folder.
+- `CasaEngine.EditorServices/Cutscenes/CutscenePlacement.cs`: the pure rule of what can be dragged (`Resolve`), the conversion of a drop (`ConvertDrop`, `LowestInstant`), the undoable placement and add commands (`TryCreatePlace`, `TryCreateAdd`) and the target `Parallel` of a selection (`FindTargetParallel`). `CutsceneTimelineLayout.TryGetContainerStart` gives the start of a container.
+- `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: also `PlaceActionAt` and `AddActionAt`, with their `GetPlaceActionRefusal` and `GetAddActionAtRefusal` queries. `CasaEngine.Editor/Controls/Cutscenes/CutsceneTimelineEditPolicy.cs`: the edit policy of the timeline (frame snapping and lowest instant, no resize, no insertion).
 - `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.Drag.cs` (drag and drop, Delete and Escape keys) and `CutsceneOutlinerPanel.Automation.cs` (`menu` and `draghover`); `Controls/Cutscenes/CutsceneActionMenu.cs` (the context menu, used by the tree and by `CutsceneTimelinePanel`); `CasaEngine.Editor/CutsceneEditOperation.cs` (the parsing of `--cutscene-edit-ops`).
 - History context: `EditorHistoryContextKind.Cutscene`. Save source: `EditorAssetSaveSource.CutsceneEditorPanel`.
 
@@ -341,14 +384,14 @@ An empty text sets a nullable property that is not a string back to "no value".
 
 - **Closing a modified cutscene tab loses its changes without a prompt.** Save first.
 - A string longer than 256 characters, or one that holds a line break, is shown as an empty field. Do not give the focus to such a field: leaving it replaces the value with an empty string (the change can be undone).
-- The structure is edited one action at a time, with no multiple selection, no drag in the timeline and no automatic scroll or expansion during a drag (see "Limits of the structure editing").
+- The structure is edited one action at a time, with no multiple selection and no automatic scroll or expansion during a drag (see "Limits of the structure editing").
 - A container emptied of its children, or a new action with empty required fields, is invalid but can still be saved: the Inspector shows the validator messages.
 - The editor checks that a named entity exists only in the preview world list, not in every world. Clicking an entity in the preview to fill a field is not done.
 - `ExitOnInput.inputs` and `PlaySound.bus_name` stay text boxes.
 - The categories of the add list are a prefix, not a menu: the drop-down list cannot group.
 - Long summaries in the Hierarchy panel are cut at the right edge; a horizontal scroll bar reads them.
 - An action of an unknown type cannot be edited, and blocks the save.
-- The timeline is read-only, apart from its context menu, and the transport has no keyboard shortcut and no speed control (see "Timeline" and "Preview").
+- The timeline cannot resize a bar, snap to other items or move an action to another row (see "Limits of the placement"), and the transport has no keyboard shortcut and no speed control (see "Timeline" and "Preview").
 
 ## Next
 
@@ -356,4 +399,4 @@ An empty text sets a nullable property that is not a string back to "no value".
 - Picking an entity by clicking it in the preview.
 - A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
 - Keyboard shortcuts for the transport, a playback speed, and going back in time without a replay.
-- Editing on the timeline: reorder, then free placement.
+- Editing on the timeline: resizing a bar, snapping to other items, moving a clip from a row to another, multiple selection.

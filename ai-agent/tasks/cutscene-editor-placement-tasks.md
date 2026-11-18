@@ -280,16 +280,18 @@ Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequent
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit l'action `At`, ce qui se glisse dans la timeline et pourquoi le reste ne se glisse pas, l'alignement sur les images, `Add here`, les opérations `place` et `addat`, le sample, et les limites (P16, pas de magnétisme entre éléments, une action à la fois).
 - Fichiers : ce document, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the placement of cutscene actions in time`
+- Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` mis à jour contre le code livré (relu fichier par fichier : `CutscenePlacement`, `CutsceneTimelinePanel`, `CutsceneActionMenu`, `CutsceneEditOperation`, diagnostics). Nouvelle section « Placing actions in time » : forme JSON et sémantique de `At` (équivalence avec `Sequence[Wait, …]`, valeurs, schéma inchangé, moteur plus ancien), `At` comme conteneur de l'éditeur, la règle de ce qui se glisse (4 cas) et pourquoi le reste ne se glisse pas, la conversion par différence et l'alignement sur 1/60 s, le bord clair et l'infobulle, la marge après la fin, Ctrl + glisser et les raccourcis du contrôle, `Add here`, l'aperçu, les refus, le sample `stagger.cutscene`, et la liste des limites (pas d'étirement, pas de magnétisme entre éléments, pas de changement de rangée, une action à la fois). Les phrases de l'ancien document qui disaient la timeline en lecture seule et le format inchangé sont corrigées (résumé, `Add`, `Wrap in`, `Ungroup`, limites de l'édition de structure, rangées, mise en page du temps, limites de la timeline, limites générales, suite) ; table et diagnostics de l'automatisation (`place`, `addat`, règle de glisser par élément, début des `Parallel`) ; liste du code ; référence à ADR-0102 (proposée). Aucun nom de jeu ni de projet tiers (vérifié par `rg`). Le paragraphe de `At` du document du runtime avait déjà été écrit à T1.1 ; la ligne de ce plan dans `ai-agent/README.md` est mise à jour. Tests : `dotnet build CasaEngine.MonoGame.sln` : 0 erreur. `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur de code, mais 16 erreurs MSB3027 de copie vers `CasaEngine.Editor/bin/Debug/net9.0-windows`, verrouillé par l'éditeur de l'auteur (`CasaEngine.Editor.exe`, PID 59708, projet final-fantasy-7, non arrêté par moi) : la règle « 0 erreur » n'est pas tenue à la lettre, comme à T2.4 et T2.5. `dotnet test` entier, lancé avec `-p:OutDir=…/CasaEngine.Tests/bin/Alt/net9.0-windows/` pour la même raison : 6552 réussis, 0 échec (inchangé : aucun code touché). Aucun test existant modifié. Écart au plan : aucun.
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.5, confirmation de la forme de `At` (ADR-0102 passe alors à `Accepted`), puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
+- Note (2026-11-18) : 🧪, les captures de T2.5 sont envoyées pour validation à distance ; ADR-0102 reste `Proposed` tant que l'auteur n'a pas confirmé la forme de `At`, puis recette réelle à la fin.
 
 ---
 
