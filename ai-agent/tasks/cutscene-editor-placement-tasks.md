@@ -327,7 +327,7 @@ Règle propre à cette phase : un fichier de `CasaEngine.Editor/Controls/Timelin
 
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
-| O1 | La forme de `At` (nom, clé `seconds`, sémantique) est une proposition de l'agent : l'ADR reste `Proposed` jusqu'à la confirmation de l'auteur. | T0.1, T1.1 |
+| O1 | Levé le 2026-11-18 : l'auteur a confirmé la forme de `At` (nom, clé `seconds`, sémantique) au vu des captures (« Oui, tranche G ») ; l'ADR-0102 passe à `Accepted`. | T0.1, T1.1 |
 | O2 | Le glisser réel dans la timeline ne peut pas être essayé dans l'éditeur lancé : il est validé par les tests avec le harnais et par l'opération `place`, puis par la recette de l'auteur. | T2.2, T2.5 |
 | O3 | Les branches d'un `Parallel` démarrent une mise à jour après lui : un clip posé à 0,5 s part une image plus tard dans l'aperçu que sa barre ne l'indique. C'est le comportement existant du `Parallel`, non changé ici. | T1.1, T1.3 |
 | O4 | Confirmation de P1 → P17 par l'auteur. | Toutes |

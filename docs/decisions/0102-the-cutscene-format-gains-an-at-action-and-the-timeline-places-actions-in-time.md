@@ -1,6 +1,6 @@
 # ADR-0102: The cutscene format gains an At action, and the timeline places actions in time
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-18
 - **Source**: this chantier: `ai-agent/tasks/cutscene-editor-placement-tasks.md` (decisions D1 to D6, settled with the author, and choices P1 to P17, taken by the agent and to be confirmed by the author at the acceptance), branch `chantier/cutscene-property-editing`. Builds on ADR-0096 and ADR-0098, and amends the read-only rule of ADR-0098 without rewriting it.
 
@@ -29,7 +29,7 @@
 - **Automation (P14).** The automation switch `--cutscene-edit-ops` gains two operations: `place:<seconds>` (places the selected action at that time of the timeline, as a drag released there; refused for an action with no main item, such as a container) and `addat:<Type>:<seconds>` (as `Add here` at that time). The diagnostics tell, for each item of the timeline, whether it can be dragged and by which rule.
 - **Sample (P15).** `Projects/SpriteCutsceneSample/Cutscenes/stagger.cutscene`: a `Parallel` of four `At` that start four sprites in a cascade, declared in `AssetInfos.json` like the three others.
 - **Not done (P16).** No resize of bars: a duration stays a property of the action, set in the Inspector. No move of a clip from one row to another: the row comes from the entity of the action.
-- **Status (P17).** This record is `Proposed`: the author has not yet seen the exact form of `At`. It becomes `Accepted` on confirmation. The name `At` and the key `seconds` can still change at no cost while nothing is merged.
+- **Status (P17).** This record was written as `Proposed`, because the author had not yet seen the exact form of `At`. The author confirmed the form (the name `At`, the key `seconds` and the semantics) on 2026-11-18, after the implementation and its screenshots: the record is `Accepted`.
 
 ## Consequences
 
