@@ -146,7 +146,7 @@ public sealed class CutscenePreviewTransportTests
     }
 
     [Fact]
-    public void StepFrames_WhenNoPlayRuns_DoesNoStep()
+    public void StepFrames_WhenNoPlayRuns_DoesOneStepOfTheFrameDurationAndGoesBackToRunning()
     {
         var transport = NewTransport();
         var stepper = new FakeStepper { IsPlaying = false };
@@ -154,7 +154,9 @@ public sealed class CutscenePreviewTransportTests
         transport.StepFrames(2);
         int steps = transport.Advance(stepper, 0.05f);
 
-        Assert.Equal(0, steps);
+        Assert.Equal(1, steps);
+        Assert.Equal(new[] { 0.05f }, stepper.Steps);
+        Assert.Equal(CutscenePreviewTransportMode.Running, transport.Mode);
         Assert.Equal(0, transport.PendingFrameSteps);
     }
 
@@ -251,7 +253,7 @@ public sealed class CutscenePreviewTransportTests
     }
 
     [Fact]
-    public void Advance_WhenThePlayEndsDuringASeek_StopsStepping()
+    public void Advance_WhenThePlayEndsDuringASeek_StopsFixedSteppingThenGoesBackToRunning()
     {
         var transport = NewTransport();
         var stepper = new FakeStepper { EndsAtSeconds = 1.0 };
@@ -261,13 +263,17 @@ public sealed class CutscenePreviewTransportTests
 
         Assert.Equal(60, steps);
         Assert.False(stepper.IsPlaying);
-        Assert.Equal(CutscenePreviewTransportMode.Paused, transport.Mode);
-        Assert.Equal(0, transport.Advance(stepper, 0.05f));
-        Assert.Equal(60, stepper.StepCount);
+
+        int next = transport.Advance(stepper, 0.05f);
+
+        Assert.Equal(1, next);
+        Assert.Equal(0.05f, stepper.Steps[^1]);
+        Assert.Equal(61, stepper.StepCount);
+        Assert.Equal(CutscenePreviewTransportMode.Running, transport.Mode);
     }
 
     [Fact]
-    public void Advance_WhenSeekingAndNoPlayRuns_PausesWithoutAStep()
+    public void Advance_WhenSeekingAndNoPlayRuns_DoesOneStepOfTheFrameDurationAndGoesBackToRunning()
     {
         var transport = NewTransport();
         var stepper = new FakeStepper { IsPlaying = false };
@@ -275,8 +281,22 @@ public sealed class CutscenePreviewTransportTests
 
         int steps = transport.Advance(stepper, 0.05f);
 
-        Assert.Equal(0, steps);
-        Assert.Equal(CutscenePreviewTransportMode.Paused, transport.Mode);
+        Assert.Equal(1, steps);
+        Assert.Equal(new[] { 0.05f }, stepper.Steps);
+        Assert.Equal(CutscenePreviewTransportMode.Running, transport.Mode);
+    }
+
+    [Fact]
+    public void Advance_WhenPausedAndNoPlayRuns_GoesBackToRunningWithAStepOfTheFrameDuration()
+    {
+        var transport = NewTransport();
+        var stepper = new FakeStepper { IsPlaying = false };
+        transport.Pause();
+
+        int steps = transport.Advance(stepper, 0.05f);
+
+        Assert.Equal(1, steps);
+        Assert.Equal(CutscenePreviewTransportMode.Running, transport.Mode);
     }
 
     [Fact]
@@ -387,6 +407,38 @@ public sealed class CutscenePreviewTransportTests
 
         Assert.Equal(before + 2 * OneStep, world.CutsceneDirector.PlayElapsedSeconds, 5);
         Assert.Equal(2, world.CutsceneDirector.PlayElapsedFrames - 1);
+    }
+
+    [Fact]
+    public void Advance_WithARealWorld_WhenThePlayEndsDuringASeek_TheWorldKeepsBeingUpdated()
+    {
+        var world = new World();
+        world.CutsceneDirector.Play(new CutsceneAsset
+        {
+            Name = "Short",
+            RootAction = new WaitCutsceneActionData { Seconds = 0.5f }
+        });
+        var stepper = new WorldStepper(world);
+        var transport = new CutscenePreviewTransport();
+        transport.Seek(5.0, stepper.PlayElapsedSeconds);
+
+        int calls = 0;
+        while (world.CutsceneDirector.IsPlaying && calls < 1000)
+        {
+            transport.Advance(stepper, 0.016f);
+            calls++;
+        }
+
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
+
+        int sequenceAtTheEnd = world.UpdateSequence;
+        int steps = transport.Advance(stepper, 0.016f);
+        transport.Advance(stepper, 0.016f);
+
+        Assert.Equal(1, steps);
+        Assert.Equal(CutscenePreviewTransportMode.Running, transport.Mode);
+        Assert.Equal(sequenceAtTheEnd + 2, world.UpdateSequence);
     }
 
     public static TheoryData<bool, CutscenePreviewTransportMode, CutsceneRuntimeState, bool, CutscenePreviewStatus> StatusRows => new()

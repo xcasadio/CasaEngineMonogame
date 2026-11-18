@@ -99,13 +99,21 @@ public sealed class CutscenePreviewTransport
     }
 
     /// <summary>
-    /// Advances the preview world for one editor frame and returns the number of steps done. Running: one step of
-    /// <paramref name="frameSeconds"/>. Paused: the requested frame steps, then nothing. Seeking: fixed steps while the play
-    /// runs, is before the target and the budget allows, with at least one step; then Paused.
+    /// Advances the preview world for one editor frame and returns the number of steps done. Pause and seek exist only
+    /// while a play runs: when no play runs, the transport goes back to Running and forgets the pending frame steps
+    /// (ADR-0100). Running: one step of <paramref name="frameSeconds"/>. Paused: the requested frame steps, then nothing.
+    /// Seeking: fixed steps while the play runs, is before the target and the budget allows, with at least one step; then
+    /// Paused.
     /// </summary>
     public int Advance(ICutscenePreviewStepper stepper, float frameSeconds)
     {
         ArgumentNullException.ThrowIfNull(stepper);
+
+        if (Mode != CutscenePreviewTransportMode.Running && !stepper.IsPlaying)
+        {
+            Mode = CutscenePreviewTransportMode.Running;
+            _pendingFrameSteps = 0;
+        }
 
         switch (Mode)
         {
@@ -175,7 +183,13 @@ public sealed class CutscenePreviewTransport
 
         while (true)
         {
-            if (!stepper.IsPlaying || IsReached(stepper.PlayElapsedSeconds))
+            if (!stepper.IsPlaying)
+            {
+                // The play ended during the seek: the next call goes back to Running.
+                break;
+            }
+
+            if (IsReached(stepper.PlayElapsedSeconds))
             {
                 Mode = CutscenePreviewTransportMode.Paused;
                 break;
