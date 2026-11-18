@@ -63,7 +63,7 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 > Validation (2026-11-18) : plan relu par un `plan-verifier` ; première relecture **REVISE** (un blocage : isolation des tests qui changent `EngineEnvironment.ProjectPath`, corrigé dans T1), relecture de la version corrigée par un relecteur neuf : **READY**. Soumis à l'auteur ; T1 ne commence qu'après son approbation.
 
-### 🧪 T1 — La surcharge, ses tests, sa documentation
+### ✅ T1 — La surcharge, ses tests, sa documentation
 
 - **Objectif** : P1 à P4.
 - **Fichiers** :
@@ -86,11 +86,20 @@ Arbitrages proposés par l'agent : l'approbation du plan les valide.
 
 > Validation (2026-11-18) : `dotnet build CasaEngine.Editor.MonoGame.sln` : 0 erreur. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` (sans `--no-build`) : 6475 tests, 0 échec, deux exécutions de suite sans échec intermittent (6469 + 6 nouveaux). `rg` : la classe `EditorWorldWriterTests` porte `[Collection(ProjectEnvironmentCollection.Name)]` et sa seule affectation de `ProjectPath` est dans le `try` / `finally` de `WithProject`. Cas d'id du test 2 : repli (`LightComponent` n'a pas de constructeur à id) : seules les valeurs `id` sont retirées des deux documents, les noms étant fixés explicitement. Écarts : (a) le test 3 compare les nœuds par texte (`ToString`) et non par `JToken.DeepEquals`, qui répond faux sur deux documents au texte identique ; (b) `EditorEntityJsonSerializer.GetEntityReferences` passe de `private` à `public` (interne à l'assembly) pour que la garde P2 et le test P3 lisent les références du monde. Réalisation de P4 : `SaveWorld(world, node)` délègue à une nouvelle surcharge `SaveWorld(world, entityReferences, node)` qui porte le corps inchangé. Statut 🧪 : la vérification indépendante suit (T2).
 
-### ⏳ T2 — ADR, vérification indépendante, clôture
+### ✅ T2 — ADR, vérification indépendante, clôture
 
 - **Fichiers** : `docs/decisions/0128-…md` (skill `CasaEngine:adr`, `Proposed`), son index, ce plan, `ai-agent/README.md`.
 - **Vérification** : un `verifier` frais sur T1 (build, tests relancés, P1 à P4 éprouvés, un monde écrit puis chargé par `World.Load`, la voie existante inchangée). Ses constats sont tranchés avant la clôture.
 - **Commit** : `docs(adr): record the offline world writer`
+
+> Validation (2026-11-18). ADR-0128 `Proposed`, index mis à jour.
+> Vérification indépendante de T1 (`verifier` frais sur `de9770f10`) : **CONFIRMED** sur les six affirmations ; arbre propre à la fin.
+> - Périmètre : six fichiers depuis `da32906e2`, tous sous `CasaEngine.EditorServices/`, `CasaEngine.Tests/`, `docs/`, `ai-agent/` ; aucun `.world` modifié.
+> - Voie existante inchangée, **mesurée** : l'ancien sérialiseur (copie de `da32906e2` compilée à part) et le nouveau écrivent un texte identique pour un monde riche construit en code, un monde de lumières initialisé, un monde vide et les 14 `.world` des projets du dépôt.
+> - P1 à P4 et cas limites : liste vide ; même entité deux fois ; entité à composant enfant ; `StaticModelComponent` avec un id de modèle et sans jeu, écrit sans être initialisé puis relu ; exception avant toute écriture (un fichier existant reste intact).
+> - Build à 0 erreur ; 6475 tests, 0 échec ; la classe de test est dans `ProjectEnvironmentCollection`, `ProjectPath` restauré dans un `finally`.
+> - Écart (b) de T1 expliqué : `SaveEntity` ajoute `script_class_name` par la conversion implicite d'une chaîne nulle, qui donne en mémoire un `JValue` de type `String` portant `null` ; après lecture du fichier le même champ est de type `Null`. `JToken.DeepEquals` compare ce type, d'où le faux écart ; les deux s'écrivent `null`. La comparaison par texte est donc un substitut sûr.
+> - Constats P4, reportés : un `FileName` dont le dossier n'existe pas lève `DirectoryNotFoundException`, comme la voie existante (l'outil appelant crée le dossier ; noté dans l'ADR) ; une entité dont l'état enregistré change à l'initialisation est écrite dans son état d'avant (noté dans l'ADR) ; le test 4 ne contrôle après `World.Load` que le nom et `FilterTaps` (les tests 2 et 3 couvrent le reste).
 
 ## Validation globale
 
