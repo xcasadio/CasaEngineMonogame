@@ -295,6 +295,33 @@ Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequent
 
 ---
 
+## Phase 4 — Finition après la vérification (2026-11-18)
+
+Vérification indépendante du 2026-11-18 : CONFIRMED, sans point bloquant. Pour le format, elle a compilé le code de `4dc53f84` et le code livré, et comparé le texte enregistré des 14 fichiers `.cutscene` d'avant : identique. Un défaut d'ergonomie est corrigé ici parce qu'il touche le geste principal de la tranche ; les autres remarques sont dans les points ouverts.
+
+Faits vérifiés pour cette phase :
+
+- Pendant le glisser d'un élément, le contrôle générique pose son début sur l'instant du curseur (`CasaEngine.Editor/Controls/Timeline/TimelineViewport.cs:441-445`) : une barre saisie par son milieu saute de la moitié de sa longueur. Un glisser commence après 3 px de mouvement (`MGUI/MGUI.Shared/Input/Mouse/MouseTracker.cs:92`) : un clic un peu tremblé sur une barre qui se glisse valide donc un placement.
+- P6 avait accepté ce comportement ; l'usage montre qu'il ne convient pas à des barres. Les éléments d'Animation2D sont des instants : ce défaut ne s'y voit pas.
+- Le commentaire de classe de `CutsceneTimelinePanel` dit encore que le vide n'a pas de menu (`CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs:21-26`).
+
+Règle propre à cette phase : un fichier de `CasaEngine.Editor/Controls/Timeline/` peut être modifié, par une option désactivée par défaut ; le comportement du contrôle sans cette option reste identique, et les tests existants de la timeline et d'Animation2D passent sans modification.
+
+### ⚠️ T4.1 — Garder l'endroit où une barre est saisie
+
+- Objectif : pendant un glisser, la barre suit le curseur sans sauter : l'écart entre le curseur et le début de la barre reste celui du moment où elle a été saisie.
+- Fichiers : `CasaEngine.Editor/Controls/Timeline/TimelineControl.cs`, `TimelineViewport.cs`, `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs`, `docs/editor/timeline-generic.md`, `docs/editor/cutscene-editor.md`, tests dans `CasaEngine.Tests/Editor/`, ce plan.
+- Étapes :
+  1. Une option de construction du contrôle générique, désactivée par défaut, à côté des autres. Activée : au début d'un glisser de déplacement, le contrôle retient l'écart entre l'instant du point d'appui et le début de l'élément, borné entre 0 et la durée de l'élément ; pendant le glisser, l'instant donné au magnétisme est l'instant du curseur moins cet écart. Les étirements ne changent pas.
+  2. Le panneau de la timeline des cutscenes active l'option.
+  3. Corriger le commentaire de classe de `CutsceneTimelinePanel` (le vide d'une piste propose `Add here`).
+  4. La documentation du contrôle générique mentionne l'option ; celle de l'éditeur de cutscenes dit qu'une barre garde l'endroit où elle est saisie.
+- Validation : build ; `dotnet test` entier vert. Tests ajoutés avec le harnais de souris : avec l'option, saisir une barre d'une seconde en son milieu et la glisser de 0,5 s écrit un `seconds` augmenté de 0,5 s, à une image près, et non de 1 s ; un appui au milieu d'une barre suivi d'un mouvement de 3 à 4 px puis d'un relâchement ne change pas le document, ou le change d'au plus une image ; saisir un marqueur garde son comportement ; sans l'option (contrôle par défaut), le début de l'élément va sous le curseur comme avant. Les tests existants de la timeline, de la timeline des cutscenes et d'Animation2D passent sans modification.
+- Commit : `fix(editor): keep where a timeline item is grabbed while it is dragged in time`
+- Note (2026-11-18) : ⚠️ bloquée avant tout code, sur une contradiction du plan (question O5). Les exigences « le panneau de la timeline des cutscenes active l'option » et « les tests existants de la timeline des cutscenes passent sans modification » ne tiennent pas ensemble : trois tests de `CutsceneTimelinePanelTests.cs` saisissent une barre ailleurs que sur son début et attendent que le début de la barre aille sous le curseur, ce qui est le comportement que T4.1 supprime. Par le calcul sur la structure du test (la barre de `a` commence à 1,5 s, durée 1 s) : `DraggingTheFirstChildOfAnAt_WritesTheDelayOfTheAt_ToAFrame_InOneEntry_AndUndoes` (saisie à 1,8 s, relâchement à 2,2 s, attend `At.Seconds` 1,2 et début 2,2 ; avec l'option : 0,9 et 1,9), `DraggingADirectChildOfAParallel_WrapsItInAnAt_InOneEntry_AndKeepsTheInstance` (saisie à 1,3 s sur une barre qui commence à 1 s, relâchement à 1,6 s, attend 0,6 ; avec l'option : 0,3) et `DraggingBeyondTheRealEnd_IsPossible_ThanksToTheRoomAfterIt` (attend `0,5 + (4,4 - 1,5)`, début 4,4 ; avec l'option : 4,1). Aucun code ni test n'a été modifié.
+
+---
+
 ## Points ouverts
 
 | Réf | Sujet | Tâche concernée |
@@ -303,6 +330,7 @@ Documentation du runtime des cutscenes : `docs/engine/cutscene_commandes_sequent
 | O2 | Le glisser réel dans la timeline ne peut pas être essayé dans l'éditeur lancé : il est validé par les tests avec le harnais et par l'opération `place`, puis par la recette de l'auteur. | T2.2, T2.5 |
 | O3 | Les branches d'un `Parallel` démarrent une mise à jour après lui : un clip posé à 0,5 s part une image plus tard dans l'aperçu que sa barre ne l'indique. C'est le comportement existant du `Parallel`, non changé ici. | T1.1, T1.3 |
 | O4 | Confirmation de P1 → P17 par l'auteur. | Toutes |
+| O5 | T4.1 contredit la règle « aucun test existant n'est modifié » : activer l'option dans le panneau des cutscenes change le résultat de trois tests existants de `CutsceneTimelinePanelTests.cs` (cités dans la note de T4.1), qui saisissent une barre hors de son début et attendent le début sous le curseur. Question : autoriser T4.1 à mettre à jour les attentes de ces trois tests (une exception de plus, nommée dans la note de validation, et rien d'autre ne change dans ces tests) ? Recommandation : oui, car c'est exactement le comportement que cette tâche corrige ; l'autre voie (ne pas activer l'option dans le panneau) laisserait le défaut en place. | T4.1 |
 
 ## Hors périmètre
 
