@@ -31,7 +31,10 @@ internal sealed partial class CutsceneOutlinerPanel
     private static readonly Color MarkerColor = EditorThemePalette.InlineRenameBorder;
     private static readonly Color MarkerFill = EditorThemePalette.DropHighlight;
 
+    // The frame around a container (a drop "into"), and the line between two rows (a drop "before" or "after") with the square at its left end.
     private const float MarkerThickness = 2f;
+    private const float LineThickness = 3f;
+    private const float LineEndSize = 7f;
 
     /// <summary>A row of the tree that is shown: its element, its action, how deep it is and whether it was expanded when listed.</summary>
     private readonly record struct VisibleRow(MGTreeViewItem Item, CutsceneActionData Action, int Depth, bool IsExpanded);
@@ -306,7 +309,8 @@ internal sealed partial class CutsceneOutlinerPanel
         // A line between two rows, at the indentation of the destination.
         float lineY = target.Kind == CutsceneDropKind.Before ? row.Top : row.Top + row.Height;
         float lineLeft = _rowLefts[target.ReferenceRow] + ((target.MarkerDepth - row.Depth) * _treeView.IndentSize);
-        FillClipped(da, origin, viewport, lineLeft, lineY - (MarkerThickness / 2f), viewport.Right - lineLeft, MarkerThickness, MarkerColor);
+        FillClipped(da, origin, viewport, lineLeft, lineY - (LineThickness / 2f), viewport.Right - lineLeft, LineThickness, MarkerColor);
+        FillClipped(da, origin, viewport, lineLeft, lineY - (LineEndSize / 2f), LineEndSize, LineEndSize, MarkerColor);
     }
 
     // Fills a rectangle given on the screen, cut to the visible area of the tree (also on the screen).

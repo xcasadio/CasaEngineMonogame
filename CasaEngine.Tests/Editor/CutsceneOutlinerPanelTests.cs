@@ -457,6 +457,107 @@ public sealed class CutsceneOutlinerPanelTests : IDisposable
         Assert.Equal(0f, outliner.TreeView.ScrollViewer.VerticalOffset);
     }
 
+    // Frames that go by until the scroll animation of the tree is over. The time never goes back, whatever the call before.
+    private static void SettleScroll(ContentBrowserViewTestHarness harness, MGUI.Core.UI.MGScrollViewer scrollViewer, ref int time)
+    {
+        for (int frame = 0; frame < 60; frame++)
+        {
+            harness.AdvanceFrame(time += 50);
+        }
+
+        Assert.Equal(scrollViewer.PendingVerticalOffset, scrollViewer.VerticalOffset);
+    }
+
+    // The row of an action against the visible area of the tree, in the space the drag code works in: the layout bounds of a
+    // header do not move when the tree scrolls, the offset of the scroll viewer is taken off to get where the row is shown.
+    private static void AssertRowFullyInView(CutsceneOutlinerPanel outliner, CutsceneActionData action)
+    {
+        var scrollViewer = outliner.TreeView!.ScrollViewer;
+        var layout = outliner.GetItem(action)!.HeaderContent!.LayoutBounds;
+        var viewport = scrollViewer.ContentViewport;
+        float top = layout.Top - scrollViewer.VerticalOffset;
+        float bottom = layout.Bottom - scrollViewer.VerticalOffset;
+
+        Assert.True(top >= viewport.Top && bottom <= viewport.Bottom,
+            $"The row spans {top}..{bottom} but the visible area spans {viewport.Top}..{viewport.Bottom} (offset {scrollViewer.VerticalOffset}).");
+    }
+
+    [Fact]
+    public void Selecting_ARowNearTheTop_AfterARowFarDown_BringsItBackIntoView()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(400, 300);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, LongDocument(), "Long.cutscene");
+        outliner.SetEditorPanel(document);
+        var scrollViewer = outliner.TreeView!.ScrollViewer;
+        int time = 5000;
+        SettleScroll(harness, scrollViewer, ref time);
+        Assert.True(scrollViewer.MaxVerticalOffset > 0, "The test needs a tree taller than its window.");
+
+        var inner = (SequenceCutsceneActionData)((SequenceCutsceneActionData)session.Asset.RootAction!).Actions[1];
+
+        document.SelectAction(inner.Actions[35]);
+        SettleScroll(harness, scrollViewer, ref time);
+        Assert.True(scrollViewer.VerticalOffset > 100f, "The tree has to be scrolled far down for the test to mean something.");
+        AssertRowFullyInView(outliner, inner.Actions[35]);
+
+        document.SelectAction(inner.Actions[0]);
+        SettleScroll(harness, scrollViewer, ref time);
+        AssertRowFullyInView(outliner, inner.Actions[0]);
+    }
+
+    [Fact]
+    public void Selecting_ARowFarDown_AfterARowNearTheTop_BringsItIntoView_AndAnotherOneAfterAScrollThatEnded()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(400, 300);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, LongDocument(), "Long.cutscene");
+        outliner.SetEditorPanel(document);
+        var scrollViewer = outliner.TreeView!.ScrollViewer;
+        int time = 5000;
+        SettleScroll(harness, scrollViewer, ref time);
+
+        var inner = (SequenceCutsceneActionData)((SequenceCutsceneActionData)session.Asset.RootAction!).Actions[1];
+
+        document.SelectAction(inner.Actions[2]);
+        SettleScroll(harness, scrollViewer, ref time);
+        AssertRowFullyInView(outliner, inner.Actions[2]);
+
+        document.SelectAction(inner.Actions[35]);
+        SettleScroll(harness, scrollViewer, ref time);
+        AssertRowFullyInView(outliner, inner.Actions[35]);
+
+        // From a middle offset, towards a row above the visible area.
+        document.SelectAction(inner.Actions[20]);
+        SettleScroll(harness, scrollViewer, ref time);
+        AssertRowFullyInView(outliner, inner.Actions[20]);
+    }
+
+    [Fact]
+    public void Selecting_ARowThatIsAlreadyInView_FromAScrolledTree_DoesNotScroll()
+    {
+        var harness = ContentBrowserViewTestHarness.Create(400, 300);
+        var outliner = CreateOutliner(harness);
+        var (document, session) = OpenDocument(harness, FirstContextId, LongDocument(), "Long.cutscene");
+        outliner.SetEditorPanel(document);
+        var scrollViewer = outliner.TreeView!.ScrollViewer;
+        int time = 5000;
+        SettleScroll(harness, scrollViewer, ref time);
+
+        var inner = (SequenceCutsceneActionData)((SequenceCutsceneActionData)session.Asset.RootAction!).Actions[1];
+
+        document.SelectAction(inner.Actions[30]);
+        SettleScroll(harness, scrollViewer, ref time);
+        float offset = scrollViewer.VerticalOffset;
+        Assert.True(offset > 0f);
+
+        document.SelectAction(inner.Actions[29]);
+        SettleScroll(harness, scrollViewer, ref time);
+
+        Assert.Equal(offset, scrollViewer.VerticalOffset);
+        AssertRowFullyInView(outliner, inner.Actions[29]);
+    }
+
     [Fact]
     public void AContainerThatAppears_IsShownExpanded_ByAWrap_APasteAndAnUndo()
     {

@@ -300,11 +300,12 @@ internal sealed partial class CutsceneOutlinerPanel
         }
     }
 
-    // MGTreeView.ScrollIntoView (called by SelectItem) and MGScrollViewer.EnsureElementVisible both fail on this tree: LayoutBounds are already in
-    // window space (they include the scroll), and the first compares them with a viewport that adds the offset again, the
-    // second adds the bounds of every parent again, so the nested rows end up scrolled to the bottom. The row is compared
-    // here with the viewport in the same space, and the offset moves only when the row is not fully visible. Returns
-    // false while the row has no layout yet.
+    // MGTreeView.ScrollIntoView (called by SelectItem) and MGScrollViewer.EnsureElementVisible both fail on this tree: the
+    // first compares the layout bounds with a viewport that adds the offset, the second adds the bounds of every parent
+    // again, so the nested rows end up scrolled to the bottom. The layout bounds of a header do not move when the tree
+    // scrolls (the drag code measures them the same way), so the row is shown where its bounds minus the offset the scroll is
+    // heading to put it, and that is compared with the visible area. The offset moves only when the row is not fully
+    // visible. Returns false while the row has no layout yet.
     private bool EnsureItemVisible(MGTreeViewItem item)
     {
         var scrollViewer = _treeView?.ScrollViewer;
@@ -318,9 +319,9 @@ internal sealed partial class CutsceneOutlinerPanel
         var row = header.LayoutBounds;
         var viewport = scrollViewer.ContentViewport;
         float pending = scrollViewer.PendingVerticalOffset;
-        // The bounds show the offset applied so far; a running scroll animation will still move the row.
-        float rowTop = row.Top - (pending - scrollViewer.VerticalOffset);
-        float rowBottom = row.Bottom - (pending - scrollViewer.VerticalOffset);
+        // Where the row will be shown once a running scroll animation has reached its target.
+        float rowTop = row.Top - pending;
+        float rowBottom = row.Bottom - pending;
 
         float target = pending;
         if (rowTop < viewport.Top)

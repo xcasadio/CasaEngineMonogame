@@ -302,6 +302,30 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 ---
 
+## Phase 4 — Finition après la vérification (2026-11-18)
+
+Vérification indépendante du 2026-11-18 : CONFIRMED, sans point bloquant. Deux défauts sont corrigés ici parce qu'ils gênent directement l'édition à la souris ; les autres remarques sont reportées dans les points ouverts.
+
+Faits vérifiés pour cette phase :
+
+- `EnsureItemVisible` (`CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs:307-341`, écrit à la tranche B) calcule le haut de la ligne par `row.Top - (pending - VerticalOffset)` : il suppose que les limites d'un en-tête tiennent déjà compte du défilement. T2.3 a mesuré le contraire avec le harnais (les limites ne bougent pas quand l'arbre défile), et le code du glisser retire lui-même le décalage (`CutsceneOutlinerPanel.Drag.cs:247-261`). Depuis un décalage nul les deux calculs coïncident, ce qui explique que la tranche B ait été validée.
+- Reproduit par le vérificateur : sélectionner `root_action.actions[1].actions[23]` puis `root_action.actions[1].actions[0]` laisse la seconde ligne hors de vue (lancement `g12`).
+- Le trait du repère « avant / après » fait 2 px (`MarkerThickness`, `CutsceneOutlinerPanel.Drag.cs:34`, `:309`) ; il se distingue mal sur la capture `f7a`.
+
+### ✅ T4.1 — Garder l'action sélectionnée en vue depuis n'importe quel défilement, et épaissir le trait de dépôt
+
+- Objectif : la ligne sélectionnée est amenée dans la zone visible quelle que soit la position de défilement de départ ; le trait de dépôt se voit.
+- Fichiers : `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.cs`, `CasaEngine.Editor/Controls/CutsceneOutlinerPanel.Drag.cs`, `CasaEngine.Tests/Editor/CutsceneOutlinerPanelTests.cs` (tests ajoutés), ce plan.
+- Étapes :
+  1. `EnsureItemVisible` : la position de la ligne dans la zone visible, pour le défilement visé, est sa limite de mise en page moins ce défilement visé (`PendingVerticalOffset`), comparée à `ContentViewport` dans le même espace que le fait le code du glisser. Le commentaire au-dessus de la méthode est corrigé : il affirme que les limites incluent le défilement.
+  2. Vérifier si l'ouverture du menu par l'automatisation et l'état `draghover` (`CutsceneOutlinerPanel.Automation.cs`) attendent que la ligne visée soit en vue ; ne rien changer s'ils la trouvent déjà correctement.
+  3. Trait « avant / après » : 3 px, avec un petit carré plein de 7 px à son extrémité gauche ; le cadre « dans » garde 2 px.
+- Validation : build ; tests ajoutés avec le harnais, sur le sample ou un arbre assez long pour défiler : sélectionner une action du bas puis une action du haut laisse la seconde entièrement dans la zone visible une fois le défilement terminé ; de même du haut vers le bas ; une action déjà visible ne fait pas défiler. Vérifier qu'au moins un de ces tests échoue sans la correction. Lancement de contrôle : `--cutscene-edit-ops "select:root_action.actions[1].actions[23];select:root_action.actions[1].actions[0]"`, la capture montre la ligne sélectionnée ; relancer `f7a` et `f7b`, le trait se voit nettement. Tests existants verts, aucun modifié.
+- Commit : `fix(editor): keep the selected cutscene action in view from any scroll offset and thicken the drop line`
+- Note de validation (2026-11-18) : `EnsureItemVisible` place la ligne à `limite - PendingVerticalOffset` (les limites d'un en-tête ne bougent pas au défilement), comme le fait le code du glisser ; le commentaire est corrigé. Étape 2 : `CutsceneOutlinerPanel.Automation.cs` retire déjà `VerticalOffset` des limites (l. 174) et ne dépend pas de `EnsureItemVisible` : rien changé. Étape 3 : trait « avant / après » de 3 px (`LineThickness`) avec un carré plein de 7 px (`LineEndSize`) à gauche, découpé comme avant dans la zone visible, sans allocation ; le cadre « dans » garde 2 px (`MarkerThickness`). Trois tests ajoutés dans `CutsceneOutlinerPanelTests` (du bas vers le haut, du haut vers le bas puis depuis un décalage intermédiaire, ligne déjà visible sans défilement), qui attendent la fin de l'animation et mesurent la ligne dans la zone visible comme le code du glisser : les trois échouaient avant la correction (par exemple ligne en -192..-179 pour une zone 62..276), les trois passent après. Build `CasaEngine.Editor.MonoGame.sln` : 0 erreur, 0 avertissement. `dotnet test` : 6393/6393 (6390 avant, +3), aucun test existant modifié. Lancements de contrôle : `select:...actions[23];select:...actions[0]` (h1) montre la ligne `ShowSprite orb-left` sélectionnée tout en haut de l'arbre ; l'ordre inverse (h2) montre `Wait 0.6 s` sélectionnée en bas, visible ; `draghover ... :after` (h3) montre un trait bleu de 3 px avec son carré à gauche sous `TintSprite orb-right` ; `draghover ... :into` (h4) montre le cadre de `Repeat forever`. Aucun fichier de `Projects/` modifié (seuls les dossiers `.casaeditor/` non suivis, préexistants).
+
+---
+
 ## Points ouverts
 
 | Réf | Sujet | Tâche concernée |
