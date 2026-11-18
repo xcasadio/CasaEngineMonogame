@@ -143,7 +143,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 
 ## Phase 1 — Services d'édition (`CasaEngine.EditorServices`)
 
-### ⏳ T1.1 — Sens et bornes des propriétés
+### ✅ T1.1 — Sens et bornes des propriétés
 
 - Objectif : chaque propriété dit ce qu'elle désigne et ses limites, pour que l'interface choisisse le bon champ.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneActionProperty.cs`, `CutsceneActionPropertyEditor.cs`, `CutsceneReferenceOptions.cs` (créé), tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
@@ -153,6 +153,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
   3. `CutsceneReferenceOptions` : fonction pure qui, pour un sens et une liste d'`AssetInfo`, rend les options triées (libellé affiché, valeur écrite selon P5), et qui sait retrouver l'option d'une valeur lue, y compris un GUID là où le runtime accepte nom ou GUID.
 - Validation : test en table sur **toutes** les propriétés de tous les types d'action (sens et bornes attendus) ; un test vérifie que chaque borne déclarée est cohérente avec `CutsceneValidator`, en ne regardant que les messages qui portent sur la clé testée : une valeur juste hors borne produit un message, une valeur à la borne n'en produit pas, sauf pour la borne exclusive de `MoveSprite.speed` où la valeur à la borne en produit un ; tests de `CutsceneReferenceOptions` pour chaque sens, dont un asset absent et un GUID.
 - Commit : `feat(editor-services): describe the meaning and limits of cutscene action properties`
+- Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 5961/5961 (5925 avant, 36 ajoutés dans `CutsceneActionPropertyMetadataTests` et `CutsceneReferenceOptionsTests`). Les bornes déclarées sont vérifiées contre `CutsceneValidator` en ne regardant que les messages préfixés `Type.clé ` ; les propriétés d'octet (`FadeScreen.r/g/b`) ne portent pas de borne déclarée, leur nature `Byte` fixe 0 à 255. Le runtime n'est pas touché.
 
 ### ⏳ T1.2 — Catalogue des actions et résumé
 

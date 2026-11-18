@@ -86,83 +86,83 @@ public static class CutsceneActionPropertyEditor
         {
             [CutsceneActionTypes.Wait] =
             [
-                Number<WaitCutsceneActionData>("seconds", a => a.Seconds, (a, v) => a.Seconds = v),
+                Number<WaitCutsceneActionData>("seconds", a => a.Seconds, (a, v) => a.Seconds = v).Within(0),
             ],
             [CutsceneActionTypes.MoveTo] =
             [
-                Text<MoveToCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<MoveToCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
                 Vector<MoveToCutsceneActionData>("destination", a => a.Destination, (a, v) => a.Destination = v),
-                Number<MoveToCutsceneActionData>("stopping_distance", a => a.StoppingDistance, (a, v) => a.StoppingDistance = v),
-                Number<MoveToCutsceneActionData>("timeout_seconds", a => a.TimeoutSeconds, (a, v) => a.TimeoutSeconds = v),
+                Number<MoveToCutsceneActionData>("stopping_distance", a => a.StoppingDistance, (a, v) => a.StoppingDistance = v).Within(0),
+                Number<MoveToCutsceneActionData>("timeout_seconds", a => a.TimeoutSeconds, (a, v) => a.TimeoutSeconds = v).Within(0),
             ],
             [CutsceneActionTypes.NavigateTo] =
             [
-                Text<NavigateToCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<NavigateToCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
                 Vector<NavigateToCutsceneActionData>("destination", a => a.Destination, (a, v) => a.Destination = v),
-                Number<NavigateToCutsceneActionData>("stopping_distance", a => a.StoppingDistance, (a, v) => a.StoppingDistance = v),
-                Number<NavigateToCutsceneActionData>("timeout_seconds", a => a.TimeoutSeconds, (a, v) => a.TimeoutSeconds = v),
+                Number<NavigateToCutsceneActionData>("stopping_distance", a => a.StoppingDistance, (a, v) => a.StoppingDistance = v).Within(0),
+                Number<NavigateToCutsceneActionData>("timeout_seconds", a => a.TimeoutSeconds, (a, v) => a.TimeoutSeconds = v).Within(0),
             ],
             [CutsceneActionTypes.Repeat] =
             [
-                NullableInteger<RepeatCutsceneActionData>("count", a => a.Count, (a, v) => a.Count = v),
+                NullableInteger<RepeatCutsceneActionData>("count", a => a.Count, (a, v) => a.Count = v).Within(0),
             ],
             [CutsceneActionTypes.PlaySound] =
             [
-                Identifier<PlaySoundCutsceneActionData>("sound_asset_id", a => a.SoundAssetId, (a, v) => a.SoundAssetId = v),
-                Number<PlaySoundCutsceneActionData>("volume", a => a.Volume, (a, v) => a.Volume = v),
+                Identifier<PlaySoundCutsceneActionData>("sound_asset_id", a => a.SoundAssetId, (a, v) => a.SoundAssetId = v).Means(CutsceneActionPropertySemantic.Sound),
+                Number<PlaySoundCutsceneActionData>("volume", a => a.Volume, (a, v) => a.Volume = v).Within(0, 1),
                 Text<PlaySoundCutsceneActionData>("bus_name", a => a.BusName, (a, v) => a.BusName = v),
             ],
             [CutsceneActionTypes.PlayMusic] =
             [
-                Identifier<PlayMusicCutsceneActionData>("sound_asset_id", a => a.SoundAssetId, (a, v) => a.SoundAssetId = v),
-                Number<PlayMusicCutsceneActionData>("fade_in_seconds", a => a.FadeInSeconds, (a, v) => a.FadeInSeconds = v),
+                Identifier<PlayMusicCutsceneActionData>("sound_asset_id", a => a.SoundAssetId, (a, v) => a.SoundAssetId = v).Means(CutsceneActionPropertySemantic.Sound),
+                Number<PlayMusicCutsceneActionData>("fade_in_seconds", a => a.FadeInSeconds, (a, v) => a.FadeInSeconds = v).Within(0),
                 Flag<PlayMusicCutsceneActionData>("crossfade", a => a.Crossfade, (a, v) => a.Crossfade = v),
             ],
             [CutsceneActionTypes.StopMusic] =
             [
-                Number<StopMusicCutsceneActionData>("fade_out_seconds", a => a.FadeOutSeconds, (a, v) => a.FadeOutSeconds = v),
+                Number<StopMusicCutsceneActionData>("fade_out_seconds", a => a.FadeOutSeconds, (a, v) => a.FadeOutSeconds = v).Within(0),
             ],
             [CutsceneActionTypes.FadeMusic] =
             [
-                Number<FadeMusicCutsceneActionData>("target_volume", a => a.TargetVolume, (a, v) => a.TargetVolume = v),
-                Number<FadeMusicCutsceneActionData>("duration_seconds", a => a.DurationSeconds, (a, v) => a.DurationSeconds = v),
+                Number<FadeMusicCutsceneActionData>("target_volume", a => a.TargetVolume, (a, v) => a.TargetVolume = v).Within(0, 1),
+                Number<FadeMusicCutsceneActionData>("duration_seconds", a => a.DurationSeconds, (a, v) => a.DurationSeconds = v).Within(0),
             ],
             [CutsceneActionTypes.FadeScreen] =
             [
                 Channel<FadeScreenCutsceneActionData>("r", a => a.R, (a, v) => a.R = v),
                 Channel<FadeScreenCutsceneActionData>("g", a => a.G, (a, v) => a.G = v),
                 Channel<FadeScreenCutsceneActionData>("b", a => a.B, (a, v) => a.B = v),
-                Number<FadeScreenCutsceneActionData>("duration_seconds", a => a.DurationSeconds, (a, v) => a.DurationSeconds = v),
+                Number<FadeScreenCutsceneActionData>("duration_seconds", a => a.DurationSeconds, (a, v) => a.DurationSeconds = v).Within(0),
                 Choice<FadeScreenCutsceneActionData, SpriteBlendMode>("blend_mode", a => a.BlendMode, (a, v) => a.BlendMode = v),
             ],
             [CutsceneActionTypes.WaitFrames] =
             [
-                NullableInteger<WaitFramesCutsceneActionData>("frames", a => a.Frames, (a, v) => a.Frames = v),
+                NullableInteger<WaitFramesCutsceneActionData>("frames", a => a.Frames, (a, v) => a.Frames = v).Within(0),
             ],
             [CutsceneActionTypes.FadeScreenFrames] =
             [
                 NullableColor<FadeScreenFramesCutsceneActionData>("from", a => a.From, (a, v) => a.From = v),
                 NullableColor<FadeScreenFramesCutsceneActionData>("to", a => a.To, (a, v) => a.To = v),
-                NullableInteger<FadeScreenFramesCutsceneActionData>("frames", a => a.Frames, (a, v) => a.Frames = v),
+                NullableInteger<FadeScreenFramesCutsceneActionData>("frames", a => a.Frames, (a, v) => a.Frames = v).Within(0),
                 NullableChoice<FadeScreenFramesCutsceneActionData, ScreenEffectLayer>("layer", a => a.Layer, (a, v) => a.Layer = v),
                 NullableChoice<FadeScreenFramesCutsceneActionData, SpriteBlendMode>("blend_mode", a => a.BlendMode, (a, v) => a.BlendMode = v),
             ],
             [CutsceneActionTypes.OpenScreen] =
             [
-                Text<OpenScreenCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v),
+                Text<OpenScreenCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v).Means(CutsceneActionPropertySemantic.Screen),
             ],
             [CutsceneActionTypes.PlayVideo] =
             [
-                Text<PlayVideoCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v),
+                Text<PlayVideoCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v).Means(CutsceneActionPropertySemantic.Screen),
             ],
             [CutsceneActionTypes.ChangeWorld] =
             [
-                Text<ChangeWorldCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v),
+                Text<ChangeWorldCutsceneActionData>("target", a => a.Target, (a, v) => a.Target = v).Means(CutsceneActionPropertySemantic.World),
             ],
             [CutsceneActionTypes.ShowSprite] =
             [
-                Text<ShowSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
-                Text<ShowSpriteCutsceneActionData>("sprite", a => a.Sprite, (a, v) => a.Sprite = v),
+                Text<ShowSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
+                Text<ShowSpriteCutsceneActionData>("sprite", a => a.Sprite, (a, v) => a.Sprite = v).Means(CutsceneActionPropertySemantic.Sprite),
                 NullableNumber<ShowSpriteCutsceneActionData>("x", a => a.X, (a, v) => a.X = v),
                 NullableNumber<ShowSpriteCutsceneActionData>("y", a => a.Y, (a, v) => a.Y = v),
                 NullableColor<ShowSpriteCutsceneActionData>("color", a => a.Color, (a, v) => a.Color = v),
@@ -170,34 +170,34 @@ public static class CutsceneActionPropertyEditor
             ],
             [CutsceneActionTypes.HideSprite] =
             [
-                Text<HideSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<HideSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
             ],
             [CutsceneActionTypes.PlayVideoSprite] =
             [
-                Text<PlayVideoSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<PlayVideoSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
             ],
             [CutsceneActionTypes.StartVideoSprite] =
             [
-                Text<StartVideoSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<StartVideoSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
             ],
             [CutsceneActionTypes.MoveSprite] =
             [
-                Text<MoveSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<MoveSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
                 NullableNumber<MoveSpriteCutsceneActionData>("x", a => a.X, (a, v) => a.X = v),
                 NullableNumber<MoveSpriteCutsceneActionData>("y", a => a.Y, (a, v) => a.Y = v),
-                NullableNumber<MoveSpriteCutsceneActionData>("speed", a => a.Speed, (a, v) => a.Speed = v),
+                NullableNumber<MoveSpriteCutsceneActionData>("speed", a => a.Speed, (a, v) => a.Speed = v).Within(0, null, true),
             ],
             [CutsceneActionTypes.TintSprite] =
             [
-                Text<TintSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v),
+                Text<TintSpriteCutsceneActionData>("entity", a => a.EntityName, (a, v) => a.EntityName = v).Means(CutsceneActionPropertySemantic.Entity),
                 NullableColor<TintSpriteCutsceneActionData>("color", a => a.Color, (a, v) => a.Color = v),
-                NullableNumber<TintSpriteCutsceneActionData>("duration", a => a.Duration, (a, v) => a.Duration = v),
+                NullableNumber<TintSpriteCutsceneActionData>("duration", a => a.Duration, (a, v) => a.Duration = v).Within(0),
             ],
             [CutsceneActionTypes.ExitOnInput] =
             [
-                Text<ExitOnInputCutsceneActionData>("mapping", a => a.Mapping, (a, v) => a.Mapping = v),
-                TextList<ExitOnInputCutsceneActionData>("inputs", a => a.Inputs),
-                Text<ExitOnInputCutsceneActionData>("next_cutscene", a => a.NextCutscene, (a, v) => a.NextCutscene = v),
+                Text<ExitOnInputCutsceneActionData>("mapping", a => a.Mapping, (a, v) => a.Mapping = v).Means(CutsceneActionPropertySemantic.ButtonsMapping),
+                TextList<ExitOnInputCutsceneActionData>("inputs", a => a.Inputs).Means(CutsceneActionPropertySemantic.InputList),
+                Text<ExitOnInputCutsceneActionData>("next_cutscene", a => a.NextCutscene, (a, v) => a.NextCutscene = v).Means(CutsceneActionPropertySemantic.Cutscene),
             ],
         };
     }

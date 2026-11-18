@@ -38,6 +38,37 @@ public enum CutsceneActionPropertyKind
     StringList,
 }
 
+/// <summary>What the value of a cutscene action property designates, which tells an editor which field to offer.</summary>
+public enum CutsceneActionPropertySemantic
+{
+    /// <summary>A plain value: a number, a flag, a colour, free text.</summary>
+    Plain,
+
+    /// <summary>The name of an entity of the world, compared in ordinal order by the runtime.</summary>
+    Entity,
+
+    /// <summary>A sound asset, written as its GUID.</summary>
+    Sound,
+
+    /// <summary>A sprite asset, written as its catalogue name.</summary>
+    Sprite,
+
+    /// <summary>A screen asset, written as its catalogue name or its GUID.</summary>
+    Screen,
+
+    /// <summary>A world asset, written as its file name.</summary>
+    World,
+
+    /// <summary>A cutscene asset, written as its catalogue name or its GUID.</summary>
+    Cutscene,
+
+    /// <summary>A buttons mapping asset, written as its catalogue name or its GUID.</summary>
+    ButtonsMapping,
+
+    /// <summary>A comma-separated list of input names of a buttons mapping.</summary>
+    InputList,
+}
+
 /// <summary>
 /// One editable field of a cutscene action, under its JSON key. It reads and writes the typed value on an action and
 /// converts that value to and from text, in the invariant culture.
@@ -73,6 +104,32 @@ public sealed class CutsceneActionProperty
 
     /// <summary>The JSON key the serializer writes the field under.</summary>
     public string Key { get; }
+
+    /// <summary>What the value designates; <see cref="CutsceneActionPropertySemantic.Plain"/> unless stated.</summary>
+    public CutsceneActionPropertySemantic Semantic { get; private set; }
+
+    /// <summary>The lowest value <c>CutsceneValidator</c> accepts, or null when it sets no lower limit.</summary>
+    public double? Minimum { get; private set; }
+
+    /// <summary>The highest value <c>CutsceneValidator</c> accepts, or null when it sets no upper limit.</summary>
+    public double? Maximum { get; private set; }
+
+    /// <summary>True when <see cref="Minimum"/> itself is refused (the value must be greater than it).</summary>
+    public bool IsMinimumExclusive { get; private set; }
+
+    internal CutsceneActionProperty Means(CutsceneActionPropertySemantic semantic)
+    {
+        Semantic = semantic;
+        return this;
+    }
+
+    internal CutsceneActionProperty Within(double? minimum, double? maximum = null, bool isMinimumExclusive = false)
+    {
+        Minimum = minimum;
+        Maximum = maximum;
+        IsMinimumExclusive = isMinimumExclusive;
+        return this;
+    }
 
     public CutsceneActionPropertyKind Kind { get; }
 
