@@ -206,7 +206,9 @@ Décisions antérieures concernées :
 - Validation : tests avec un vrai `CutsceneDirector` : `exit.cutscene` du sample ne demande aucun monde et lève l'indicateur ; une cutscene avec `ExitOnInput` puis `Wait` se termine en `Completed` et l'action est enregistrée ; un `FadeScreen` de 0,5 s avance le service de l'hôte.
 - Commit : `feat(editor-services): add the effect host of the cutscene preview`
 
-### ⏳ T2.3 — Session d'aperçu (`CasaEngine.Editor`)
+### ✅ T2.3 — Session d'aperçu (`CasaEngine.Editor`)
+
+> Validation (2026-11-18) : build `CasaEngine.Editor.MonoGame.sln` 0 erreur, 0 avertissement ; `dotnet test` 5924 verts, aucun test existant modifié. Aucun test ajouté : la session charge un monde par `AssetContentManager` du runtime hébergé, ce qui demande une carte graphique ; elle est exercée visuellement par T2.4 et T2.5. `PreviewWorldDriver.Rebuild(Func<World>)` est une surcharge additive.
 
 - Objectif : charger une copie d'un monde, y jouer la cutscene éditée, l'arrêter, la redémarrer.
 - Fichiers : `CasaEngine.Editor/Runtime/PreviewWorldDriver.cs` (surcharge additive), `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs` (créé).
