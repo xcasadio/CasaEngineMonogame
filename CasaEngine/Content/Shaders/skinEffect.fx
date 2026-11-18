@@ -152,6 +152,7 @@ BEGIN_CONSTANTS
     float3 ShadowTintColor _ps(c106) _cb(c96);
     float ShadowFilterRadius _ps(c106) _cb(c96.w);
     float ShadowFadeWidth _ps(c107) _cb(c97.x);
+    float ShadowFilterTaps _ps(c107) _cb(c97.y);
 
     // Material constants of the PBR techniques (RiggedModelDrawPbr*), written by LitPbrMaterial.Bind. The Blinn-Phong
     // techniques never read them. No slot is pinned: the compiler places them. The base colour is a display colour.

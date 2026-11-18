@@ -1004,6 +1004,16 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Radius", shadowFilterRadiusEditor);
 
+        var shadowFilterTapsCombo = CreateStringCombo(new[] { "12", "32", "64" }, settings.Shadows.FilterTaps.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Filter Taps",
+                static s => s.Shadows.FilterTaps,
+                static (s, taps) => s.Shadows.FilterTaps = taps,
+                int.Parse(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Filter Taps", shadowFilterTapsCombo);
+
         var shadowFadeDistanceEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,

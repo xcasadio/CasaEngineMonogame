@@ -140,3 +140,4 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0124](0124-a-texture-asset-can-ask-for-its-mipmap-chain.md) | A texture asset can ask for its mipmap chain | Proposed | 2026-11-17 |
 | [ADR-0125](0125-the-static-mesh-draw-order-is-fully-deterministic.md) | The static mesh draw order is fully deterministic | Proposed | 2026-11-17 |
 | [ADR-0126](0126-a-lit-pbr-material-can-ask-for-its-emissive-to-receive-the-shadow.md) | A lit-pbr material can ask for its emissive to receive the shadow | Proposed | 2026-11-17 |
+| [ADR-0127](0127-the-tap-count-of-the-shadow-filter-is-a-setting.md) | The tap count of the shadow filter is a setting | Proposed | 2026-11-18 |

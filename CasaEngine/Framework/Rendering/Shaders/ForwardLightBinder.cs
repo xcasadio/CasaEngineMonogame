@@ -60,6 +60,7 @@ public sealed class ForwardLightBinder
             out float shadowApplyMode,
             out Vector3 shadowTintColor,
             out float shadowFilterRadius,
+            out float shadowFilterTaps,
             out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
@@ -75,6 +76,7 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.ShadowApplyMode, shadowApplyMode);
         shader.SetParameter(ShaderParameterNames.ShadowTintColor, shadowTintColor);
         shader.SetParameter(ShaderParameterNames.ShadowFilterRadius, shadowFilterRadius);
+        shader.SetParameter(ShaderParameterNames.ShadowFilterTaps, shadowFilterTaps);
         shader.SetParameter(ShaderParameterNames.ShadowFadeWidth, shadowFadeWidth);
         shader.SetTextureParameter(ShaderParameterNames.ShadowMapTexture, shadowMapTexture, stats);
 
@@ -142,6 +144,7 @@ public sealed class ForwardLightBinder
             out float shadowApplyMode,
             out Vector3 shadowTintColor,
             out float shadowFilterRadius,
+            out float shadowFilterTaps,
             out float shadowFadeWidth,
             out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
@@ -158,6 +161,7 @@ public sealed class ForwardLightBinder
         snapshot.ShadowApplyMode = shadowApplyMode;
         snapshot.ShadowTintColor = shadowTintColor;
         snapshot.ShadowFilterRadius = shadowFilterRadius;
+        snapshot.ShadowFilterTaps = shadowFilterTaps;
         snapshot.ShadowFadeWidth = shadowFadeWidth;
         return snapshot;
     }
@@ -193,6 +197,7 @@ public sealed class ForwardLightBinder
         out float shadowApplyMode,
         out Vector3 shadowTintColor,
         out float shadowFilterRadius,
+        out float shadowFilterTaps,
         out float shadowFadeWidth,
         out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture)
     {
@@ -215,6 +220,7 @@ public sealed class ForwardLightBinder
         shadowApplyMode = 0.0f;
         shadowTintColor = Vector3.Zero;
         shadowFilterRadius = 0.0f;
+        shadowFilterTaps = 12.0f;
         shadowFadeWidth = 0.0f;
         shadowMapTexture = null;
 
@@ -236,6 +242,7 @@ public sealed class ForwardLightBinder
                 shadowApplyMode = shadows.Settings.Mode == ShadowMode.MultiplyLitColor ? 1.0f : 0.0f;
                 shadowTintColor = PrepareColor(shadows.Settings.ShadowColor, decodeColors);
                 shadowFilterRadius = shadows.Settings.FilterRadius;
+                shadowFilterTaps = shadows.Settings.FilterTaps;
 
                 // Fade band as a fraction of the half-extent of the map (the map covers +-extent around the camera).
                 float lateralExtent = ShadowPass.ResolveLateralExtent(shadows.Settings.MaxDistance);
@@ -316,6 +323,7 @@ internal sealed class ForwardLightBindingSnapshot
     public float ShadowApplyMode { get; set; }
     public Vector3 ShadowTintColor { get; set; }
     public float ShadowFilterRadius { get; set; }
+    public float ShadowFilterTaps { get; set; }
     public float ShadowFadeWidth { get; set; }
 
     public Vector3[] DirectionalLightDirections { get; } = new Vector3[LightingContext.MaxDirectionalLights];

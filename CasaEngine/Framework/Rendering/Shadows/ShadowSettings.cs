@@ -16,6 +16,7 @@ public sealed class ShadowSettings
     private float _maxDistance = 100.0f;
     private Vector3 _shadowColor = Vector3.Zero;
     private float _filterRadius;
+    private int _filterTaps = 12;
     private float _fadeDistance;
     private float _depthRange;
 
@@ -72,6 +73,18 @@ public sealed class ShadowSettings
     }
 
     /// <summary>
+    /// Number of shadow-map reads of the soft-edge filter when <see cref="FilterRadius"/> is above 0: 12 (default, the fixed
+    /// Poisson disc of earlier versions), 32 or 64 (a Vogel disc, which turns the banded penumbra of a shadow seen at a grazing
+    /// angle into a smooth gradient, at a proportional cost). Any other value becomes the nearest of the three: 12 below 22, 32
+    /// from 22 to 47, 64 from 48.
+    /// </summary>
+    public int FilterTaps
+    {
+        get => _filterTaps;
+        set => _filterTaps = NormalizeFilterTaps(value);
+    }
+
+    /// <summary>
     /// Width, in world units, of the band before <see cref="MaxDistance"/> over which the shadow fades linearly to "lit",
     /// measured from the centre of the shadow map as a square. 0 (default) keeps the sharp cut at the edge of the map. A
     /// negative or non-finite value becomes 0 and a value above <see cref="MaxDistance"/> reads back as <see cref="MaxDistance"/>.
@@ -103,6 +116,7 @@ public sealed class ShadowSettings
         Mode = ShadowMode.OccludeDirectLight;
         ShadowColor = Vector3.Zero;
         FilterRadius = 0.0f;
+        FilterTaps = 12;
         FadeDistance = 0.0f;
         DepthRange = 0.0f;
     }
@@ -154,6 +168,11 @@ public sealed class ShadowSettings
         if (element.TryGetValue("filter_radius", StringComparison.OrdinalIgnoreCase, out var filterRadiusNode))
         {
             FilterRadius = filterRadiusNode.Value<float>();
+        }
+
+        if (element.TryGetValue("filter_taps", StringComparison.OrdinalIgnoreCase, out var filterTapsNode))
+        {
+            FilterTaps = filterTapsNode.Value<int>();
         }
 
         if (element.TryGetValue("fade_distance", StringComparison.OrdinalIgnoreCase, out var fadeDistanceNode))
@@ -211,6 +230,15 @@ public sealed class ShadowSettings
             element.Remove("filter_radius");
         }
 
+        if (FilterTaps != 12)
+        {
+            element["filter_taps"] = FilterTaps;
+        }
+        else
+        {
+            element.Remove("filter_taps");
+        }
+
         if (FadeDistance > 0.0f)
         {
             element["fade_distance"] = FadeDistance;
@@ -242,6 +270,7 @@ public sealed class ShadowSettings
         Mode = other.Mode;
         ShadowColor = other.ShadowColor;
         FilterRadius = other.FilterRadius;
+        FilterTaps = other.FilterTaps;
         FadeDistance = other.FadeDistance;
         DepthRange = other.DepthRange;
     }
@@ -251,6 +280,9 @@ public sealed class ShadowSettings
 
     private static Vector3 NormalizeColor(Vector3 value)
         => new(NormalizeUnit(value.X), NormalizeUnit(value.Y), NormalizeUnit(value.Z));
+
+    private static int NormalizeFilterTaps(int value)
+        => value < 22 ? 12 : value < 48 ? 32 : 64;
 
     private static float NormalizeUnit(float value)
     {

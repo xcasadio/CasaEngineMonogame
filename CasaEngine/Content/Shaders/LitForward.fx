@@ -149,6 +149,7 @@ BEGIN_CONSTANTS
     float3 ShadowTintColor _ps(c106) _cb(c96);
     float ShadowFilterRadius _ps(c106) _cb(c96.w);
     float ShadowFadeWidth _ps(c107) _cb(c97.x);
+    float ShadowFilterTaps _ps(c107) _cb(c97.y);
 
     float4x4 World _vs(c34) _cb(c33);
     float3x3 WorldInverseTranspose _vs(c38) _cb(c37);

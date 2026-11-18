@@ -319,6 +319,7 @@ public class PbrShaderCoverageTests
             ShaderParameterNames.ShadowApplyMode,
             ShaderParameterNames.ShadowTintColor,
             ShaderParameterNames.ShadowFilterRadius,
+            ShaderParameterNames.ShadowFilterTaps,
             ShaderParameterNames.ShadowFadeWidth,
             ShaderParameterNames.ShadowLightViewProjection,
             ShaderParameterNames.World,

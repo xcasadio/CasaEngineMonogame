@@ -4,6 +4,7 @@
 - **Date**: 2026-11-14
 - **Source**: this chantier: `ai-agent/tasks/lighting-ambient-shadow-tasks.md` (decisions D1, D2, D3; tasks E3, E4, E5, E5b), executed on the author's request of 2026-11-14 to run the tasks following the material plan while away; the RacingGame plan `ai-agent/tasks/rgce-3d-lighting-shadows-tasks.md` (amendments B2, B3, C4, C6 to C9, D3, F6, F7, F8)
 - Renumbered from ADR-0093 on 2026-11-15 when origin/main was merged (its ADR-0093 is another decision)
+- Status note (2026-11-18): ADR-0127 adds `ShadowSettings.FilterTaps`, the number of reads of the soft-edge filter (12 by default, which is the 12-point Poisson disc described below, 32 or 64)
 
 ## Context
 

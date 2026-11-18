@@ -167,7 +167,9 @@ float3 SampleEnvironmentDiffuse(float3 worldNormal)
 
 
 #ifdef HAS_FORWARD_SHADOW_BINDINGS
-// Fixed Poisson disc (unit disc, 12 points) used when ShadowFilterRadius > 0: the taps are scaled by the radius in texels.
+// Soft-edge filter used when ShadowFilterRadius > 0: the taps are scaled by the radius in texels. ShadowFilterTaps selects the
+// disc: 64 or 32 (within half a unit) a Vogel disc of that many taps, any other value, 0 included, the fixed Poisson disc of
+// 12 points (unit disc) below, which is the filter of earlier versions.
 static const int ShadowPoissonTapCount = 12;
 static const float2 ShadowPoissonDisc[12] =
 {
@@ -186,6 +188,25 @@ static const float2 ShadowPoissonDisc[12] =
 };
 
 
+// Vogel disc: tap i of tapCount is at radius sqrt((i + 0.5) / tapCount) and at angle i * golden angle (2.39996323 rad) on the
+// unit disc, scaled by radiusUv. It is not rotated per pixel. tapCount is a literal at every call, so the loop unrolls.
+float SampleShadowVogelDisc(float2 shadowUv, float shadowDepth, float2 radiusUv, int tapCount)
+{
+    float visibility = 0.0f;
+
+    [unroll]
+    for (int tap = 0; tap < tapCount; tap++)
+    {
+        float vogelRadius = sqrt((tap + 0.5f) / tapCount);
+        float vogelAngle = tap * 2.39996323f;
+        float2 vogelOffset = float2(cos(vogelAngle), sin(vogelAngle)) * vogelRadius;
+        visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + vogelOffset * radiusUv, 0.0f).r);
+    }
+
+    return visibility * (1.0f / tapCount);
+}
+
+
 float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
 {
     float visibility = 0.0f;
@@ -194,13 +215,24 @@ float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
     {
         float2 radiusUv = ShadowMapTexelSize * ShadowFilterRadius;
 
-        [unroll]
-        for (int tap = 0; tap < ShadowPoissonTapCount; tap++)
+        if (abs(ShadowFilterTaps - 64.0f) < 0.5f)
         {
-            visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowPoissonDisc[tap] * radiusUv, 0.0f).r);
+            visibility = SampleShadowVogelDisc(shadowUv, shadowDepth, radiusUv, 64);
         }
+        else if (abs(ShadowFilterTaps - 32.0f) < 0.5f)
+        {
+            visibility = SampleShadowVogelDisc(shadowUv, shadowDepth, radiusUv, 32);
+        }
+        else
+        {
+            [unroll]
+            for (int tap = 0; tap < ShadowPoissonTapCount; tap++)
+            {
+                visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowPoissonDisc[tap] * radiusUv, 0.0f).r);
+            }
 
-        visibility *= 1.0f / ShadowPoissonTapCount;
+            visibility *= 1.0f / ShadowPoissonTapCount;
+        }
     }
     else
     {

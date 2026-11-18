@@ -237,6 +237,7 @@ public static class ShaderParameterNames
     public const string ShadowApplyMode = "ShadowApplyMode";
     public const string ShadowTintColor = "ShadowTintColor";
     public const string ShadowFilterRadius = "ShadowFilterRadius";
+    public const string ShadowFilterTaps = "ShadowFilterTaps";
     public const string ShadowFadeWidth = "ShadowFadeWidth";
 
     // --- Skinning ---

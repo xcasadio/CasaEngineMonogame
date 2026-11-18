@@ -16,6 +16,7 @@ public class ShadowSettingsTests
         Assert.Equal(ShadowMode.OccludeDirectLight, settings.Mode);
         Assert.Equal(Vector3.Zero, settings.ShadowColor);
         Assert.Equal(0.0f, settings.FilterRadius);
+        Assert.Equal(12, settings.FilterTaps);
         Assert.Equal(0.0f, settings.FadeDistance);
         Assert.Equal(0.0f, settings.DepthRange);
     }
@@ -196,6 +197,65 @@ public class ShadowSettingsTests
         world.Shadows.FilterRadius = 1.5f;
         Assert.Equal(1.5f, world.Clone().Shadows.FilterRadius);
     }
+
+    [Theory]
+    [InlineData(0, 12)]
+    [InlineData(11, 12)]
+    [InlineData(12, 12)]
+    [InlineData(21, 12)]
+    [InlineData(22, 32)]
+    [InlineData(32, 32)]
+    [InlineData(47, 32)]
+    [InlineData(48, 64)]
+    [InlineData(64, 64)]
+    [InlineData(1000, 64)]
+    [InlineData(-5, 12)]
+    public void FilterTaps_BecomesTheNearestOf12_32_Or64(int value, int expected)
+    {
+        var settings = new ShadowSettings { FilterTaps = value };
+
+        Assert.Equal(expected, settings.FilterTaps);
+    }
+
+    [Theory]
+    [InlineData(32)]
+    [InlineData(64)]
+    public void FilterTaps_IsOptionalInTheFileAndRoundTrips(int taps)
+    {
+        var saved = new JObject();
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("filter_taps"));
+
+        new ShadowSettings { FilterTaps = taps }.Save(saved);
+        Assert.Equal(taps, (int?)saved["filter_taps"]);
+
+        var loaded = new ShadowSettings();
+        loaded.Load(saved);
+        Assert.Equal(taps, loaded.FilterTaps);
+
+        // A file written before the setting existed has no key: the default of 12 applies, even over a previous value.
+        loaded.Load(new JObject { ["enabled"] = true });
+        Assert.Equal(12, loaded.FilterTaps);
+
+        new ShadowSettings().Save(saved);
+        Assert.False(saved.ContainsKey("filter_taps"));
+    }
+
+    [Fact]
+    public void FilterTaps_IsCopiedAndReset()
+    {
+        var target = new ShadowSettings();
+        target.CopyFrom(new ShadowSettings { FilterTaps = 64 });
+        Assert.Equal(64, target.FilterTaps);
+
+        target.ResetToDefaults();
+        Assert.Equal(12, target.FilterTaps);
+
+        var world = new WorldEnvironmentSettings();
+        world.Shadows.FilterTaps = 32;
+        Assert.Equal(32, world.Clone().Shadows.FilterTaps);
+    }
+
     [Theory]
     [InlineData(-3.0f, 0.0f)]
     [InlineData(float.NaN, 0.0f)]

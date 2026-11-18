@@ -320,6 +320,39 @@ public class LightingShaderCoverageTests
 
     [Theory]
     [InlineData("LitForward.fx")]
+    [InlineData("LitPbr.fx")]
+    [InlineData("skinEffect.fx")]
+    public void ShadowFilterTaps_IsDeclaredInTheShadersAndSelectsAVogelDiscOf32Or64TapsOverThePoissonDisc(string shaderFileName)
+    {
+        string source = LoadShaderSource(shaderFileName);
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.Equal("ShadowFilterTaps", ShaderParameterNames.ShadowFilterTaps);
+        Assert.Contains($"float {ShaderParameterNames.ShadowFilterTaps} _ps(c107) _cb(c97.y);", source);
+        Assert.Equal(1, CountOccurrences(source, "_cb(c97.y)"));
+
+        int definitionStart = lightingIncludeSource.IndexOf("float SampleDirectionalShadowPcf(", StringComparison.Ordinal);
+        string definition = lightingIncludeSource[definitionStart..lightingIncludeSource.IndexOf("\n}", definitionStart, StringComparison.Ordinal)];
+        Assert.Contains("abs(ShadowFilterTaps - 64.0f) < 0.5f", definition);
+        Assert.Contains("SampleShadowVogelDisc(shadowUv, shadowDepth, radiusUv, 64)", definition);
+        Assert.Contains("abs(ShadowFilterTaps - 32.0f) < 0.5f", definition);
+        Assert.Contains("SampleShadowVogelDisc(shadowUv, shadowDepth, radiusUv, 32)", definition);
+
+        // Any other value, 0 included, runs the 12 taps of the Poisson disc, as before the setting existed: it is the last branch.
+        Assert.True(
+            definition.IndexOf("ShadowPoissonDisc[tap] * radiusUv", StringComparison.Ordinal) > definition.IndexOf("radiusUv, 32)", StringComparison.Ordinal),
+            "The Poisson disc is not the fallback branch of SampleDirectionalShadowPcf.");
+
+        int vogelStart = lightingIncludeSource.IndexOf("float SampleShadowVogelDisc(", StringComparison.Ordinal);
+        Assert.True(vogelStart >= 0, "SampleShadowVogelDisc is not defined in Lighting.fxh.");
+        string vogel = lightingIncludeSource[vogelStart..lightingIncludeSource.IndexOf("\n}", vogelStart, StringComparison.Ordinal)];
+        Assert.Contains("sqrt((tap + 0.5f) / tapCount)", vogel);
+        Assert.Contains("tap * 2.39996323f", vogel);
+        Assert.Contains("[unroll]", vogel);
+    }
+
+    [Theory]
+    [InlineData("LitForward.fx")]
     [InlineData("skinEffect.fx")]
     public void ShadowFadeWidth_IsDeclaredInBothShadersAndFadesTheFactorToLitOnASquareBand(string shaderFileName)
     {
