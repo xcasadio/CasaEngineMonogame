@@ -155,7 +155,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 - Commit : `feat(editor-services): describe the meaning and limits of cutscene action properties`
 - Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 5961/5961 (5925 avant, 36 ajoutés dans `CutsceneActionPropertyMetadataTests` et `CutsceneReferenceOptionsTests`). Les bornes déclarées sont vérifiées contre `CutsceneValidator` en ne regardant que les messages préfixés `Type.clé ` ; les propriétés d'octet (`FadeScreen.r/g/b`) ne portent pas de borne déclarée, leur nature `Byte` fixe 0 à 255. Le runtime n'est pas touché.
 
-### ⏳ T1.2 — Catalogue des actions et résumé
+### ✅ T1.2 — Catalogue des actions et résumé
 
 - Objectif : savoir quelles actions créer, avec quelles valeurs, et résumer une action en une ligne.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutsceneActionCatalog.cs`, `CutsceneActionSummary.cs` (créés), tests.
@@ -165,8 +165,9 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
   3. Clonage d'une action et de son sous-arbre par un aller-retour de sérialisation d'un asset temporaire (`Save` puis `Load`), puisque `SaveAction` est privée.
 - Validation : tests : tous les types de `CutsceneActionTypes` sont dans le catalogue ; chaque action créée se sérialise et se recharge avec le même type et sans erreur de format ; le clone est égal à la source par sa forme sérialisée et n'en partage aucune liste ; un résumé par type.
 - Commit : `feat(editor-services): add the cutscene action catalogue, summaries and cloning`
+- Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 5996/5996 (5961 avant, 35 ajoutés dans `CutsceneActionCatalogTests`). Les 23 types de `CutsceneActionTypes` sont dans le catalogue, chacun créé se sérialise et se recharge sans erreur de format ; le clone passe par `Save` puis `Load` de `CutsceneAssetJsonSerializer` (un type inconnu ou une erreur de format n'est donc pas copié, la duplication de T1.3 les refuse).
 
-### ⏳ T1.3 — Commandes de structure
+### 🚧 T1.3 — Commandes de structure
 
 - Objectif : ajouter, supprimer et dupliquer une action, de façon annulable.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/InsertCutsceneActionCommand.cs`, `RemoveCutsceneActionCommand.cs`, `CutsceneActionTree.cs` (créés), tests.
