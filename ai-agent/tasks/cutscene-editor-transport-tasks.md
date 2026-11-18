@@ -152,7 +152,7 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 
 ## Phase 1 — Services d'édition (`CasaEngine.EditorServices`)
 
-### ⏳ T1.1 — Transport de l'aperçu
+### ✅ T1.1 — Transport de l'aperçu
 
 - Objectif : une classe qui décide, à chaque frame de l'éditeur, de combien de pas le monde d'aperçu avance (P1 → P5), testable sans l'éditeur.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/CutscenePreviewTransport.cs` (créé, avec l'interface de pas et l'énumération des modes, ou dans des fichiers voisins), tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
@@ -165,6 +165,7 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
   6. Une fonction pure, à côté du transport, qui rend l'état à afficher (`Seeking`, `Paused`, `Playing`, `Ended`, `Stopped`) à partir de quatre entrées : la lecture court-elle, le mode du transport, l'état de fin de la lecture (`CutsceneRuntimeState`) et l'indicateur de fin par changement de monde. C'est la table de T2.2 ; le document et les diagnostics passent par elle.
 - Validation : build des deux solutions ; tests ajoutés. Avec un faux exécutant de pas : nombre et durée des pas dans chaque mode ; une recherche de 2 s depuis 0 fait 120 pas et finit en pause à 2 s à moins d'un pas ; avec une horloge qui épuise le budget, un appel fait exactement un pas et le mode reste `Seeking` ; une lecture qui se termine pendant la recherche arrête les pas ; `n` pas d'image font `n` pas de 1/60 s et laissent en pause ; en pause sans demande, aucun pas. Avec un vrai `World` et son `CutsceneDirector` (comme `CutsceneDirectorTests`, sans `Game`) sur une séquence `Wait` : après une recherche à 1,5 s, `PlayElapsedSeconds` vaut 1,5 s à moins d'un pas et la lecture court encore. Pour la fonction d'état : un test par ligne de la table de T2.2, dont `Stopped` avec fin par changement de monde → `Ended`, `Stopped` sans cet indicateur → `Stopped`, `Completed` et `Failed` → `Ended`, `Idle` et `Invalid` → `Stopped`, et une lecture terminée avec un transport resté en `Paused` ou `Seeking` → `Ended`.
 - Commit : `feat(editor-services): add the transport of the cutscene preview`
+- Note de validation (2026-11-18) : créés `ICutscenePreviewStepper.cs`, `CutscenePreviewTransportMode.cs`, `CutscenePreviewStatus.cs` et `CutscenePreviewTransport.cs` (`Start`, `Pause`, `Resume`, `Seek(cible, temps courant)`, `StepFrames`, `Advance`, et la fonction pure `GetStatus`). Le pas fixe vaut `(float)(1/FramesPerSecond)`, la tolérance d'arrivée est d'un demi-pas, le budget par défaut est de 8 ms avec horloge injectable. `Advance` en pause abandonne les pas d'image demandés quand aucune lecture ne court. Tests : `CutscenePreviewTransportTests.cs`, 36 cas, dont une recherche de 2 s qui fait 120 pas, un budget épuisé qui fait exactement un pas, une recherche à 1,5 s sur un vrai `World` (`PlayElapsedSeconds` dans un pas de 1,5 s, lecture toujours en cours) et un cas par ligne de la table d'état. Les deux solutions buildent à 0 erreur ; `dotnet test` : 6170 tests verts (6134 + 36). Aucun test existant modifié.
 
 ### ⏳ T1.2 — Garder les mesures d'une relecture à l'autre
 
