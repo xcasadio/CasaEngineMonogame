@@ -274,6 +274,35 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         Assert.Equal(0f, panel.Timeline.CurrentTimeSeconds);
     }
 
+    [Fact]
+    public void ScrubbingTheRuler_WithoutPreview_RecordsTheRequestAndRefusesIt()
+    {
+        var (_, panel, _, _) = OpenSample();
+        panel.Update();
+        Assert.Null(panel.LastSeekRequestSeconds);
+
+        panel.Timeline!.NotifyTimeScrubbed(1.25f);
+
+        Assert.Equal(1.25f, panel.LastSeekRequestSeconds);
+        Assert.False(panel.LastSeekRequestAccepted);
+        Assert.Equal(0f, panel.Timeline.CurrentTimeSeconds);
+    }
+
+    [Fact]
+    public void ScrubbingTheRuler_BoundsTheRequestToTheProjection()
+    {
+        var (_, panel, _, _) = OpenSample();
+        panel.Update();
+        float duration = (float)panel.Layout.DurationSeconds;
+        Assert.True(duration > 0f);
+
+        panel.Timeline!.NotifyTimeScrubbed(duration + 50f);
+        Assert.Equal(duration, panel.LastSeekRequestSeconds);
+
+        panel.Timeline.NotifyTimeScrubbed(-3f);
+        Assert.Equal(0f, panel.LastSeekRequestSeconds);
+    }
+
     private static void Settle(ContentBrowserViewTestHarness harness, CutsceneTimelinePanel panel, int frames = 6)
     {
         for (int index = 0; index < frames; index++)

@@ -40,6 +40,8 @@ internal sealed class CutsceneTimelinePanel
     private CutsceneTimelineLayout _layout = CutsceneTimelineLayout.Empty;
     private int _lastTimingsVersion;
     private float _playhead;
+    private float? _lastSeekRequestSeconds;
+    private bool _lastSeekRequestAccepted;
     private bool _syncingSelection;
     private bool _fitPending;
     private bool _fitApplied;
@@ -64,6 +66,12 @@ internal sealed class CutsceneTimelinePanel
 
     /// <summary>The playhead position last pushed to the control, in seconds.</summary>
     public float PlayheadSeconds => _playhead;
+
+    /// <summary>The play time of the last move requested from the ruler or the track area, bounded to the projection, or null when none was requested.</summary>
+    public float? LastSeekRequestSeconds => _lastSeekRequestSeconds;
+
+    /// <summary>Whether the document accepted the last request; false when it has no preview to move.</summary>
+    public bool LastSeekRequestAccepted => _lastSeekRequestAccepted;
 
     public MGElement CreateContent()
     {
@@ -143,11 +151,11 @@ internal sealed class CutsceneTimelinePanel
             Rebuild();
         }
 
-        bool playing = preview != null && preview.IsPlaying;
-        double elapsed = playing ? preview!.ElapsedSeconds : 0d;
+        // The playhead stays where the play stopped, ended or was moved; the view only follows an advancing play.
+        double elapsed = preview?.ElapsedSeconds ?? 0d;
         _playhead = (float)_layout.MapPlayTime(elapsed);
         _timeline.SetCurrentTimeSeconds(_playhead);
-        if (playing)
+        if (preview != null && preview.Status is CutscenePreviewStatus.Playing or CutscenePreviewStatus.Seeking)
         {
             _timeline.EnsureTimeVisible(_playhead);
         }
@@ -319,8 +327,14 @@ internal sealed class CutsceneTimelinePanel
 
     private void OnTimelineTimeScrubbed(float seconds)
     {
-        // The playhead only follows the play in this slice: a click in the ruler puts it back.
-        _timeline?.SetCurrentTimeSeconds(_playhead);
+        // A click moves the preview to that time and leaves it paused there; without a preview the playhead goes back.
+        float target = Math.Clamp(seconds, 0f, (float)_layout.DurationSeconds);
+        _lastSeekRequestSeconds = target;
+        _lastSeekRequestAccepted = _document != null && _document.SeekPreview(target);
+        if (!_lastSeekRequestAccepted)
+        {
+            _timeline?.SetCurrentTimeSeconds(_playhead);
+        }
     }
 
     private void SelectDocumentActionInTimeline()
