@@ -976,7 +976,11 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
                 _preview.Pause();
                 break;
             case CutscenePreviewStatus.Paused:
-                _preview.Resume();
+                if (_preview.Resume())
+                {
+                    ApplyPreviewWorldToViewport(keepCamera: true);
+                }
+
                 break;
             default:
                 PlayPreview();
@@ -1000,7 +1004,11 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             return false;
         }
 
-        _preview.StepFrames(count);
+        if (_preview.StepFrames(count))
+        {
+            ApplyPreviewWorldToViewport(keepCamera: true);
+        }
+
         RefreshTimeText();
         return true;
     }

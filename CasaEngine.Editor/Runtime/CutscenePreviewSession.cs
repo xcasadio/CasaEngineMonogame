@@ -46,6 +46,16 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     // False until a play was launched in the current world: the measured durations belong to another world before.
     private bool _timingsValid;
 
+    // The asset of the last launch: an action that leaves the marked start state launches it again.
+    private CutsceneAsset? _launchedAsset;
+
+    // True while the world shows the first instant of the play (ADR-0100): a zero-duration update was done after the launch.
+    // That state is display-only, a play continued from it would be one frame ahead of the play clock.
+    private bool _startStateMarked;
+
+    // What the zero-duration update added to the frame count of the director: it is not a frame of the play.
+    private long _zeroUpdateFrames;
+
     public CutscenePreviewSession(HostedEditorGameAdapter editorRuntime)
     {
         ArgumentNullException.ThrowIfNull(editorRuntime);
@@ -104,7 +114,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     public double ElapsedSeconds => _director?.PlayElapsedSeconds ?? 0d;
 
     /// <summary>Updates of the last play that advanced the clock.</summary>
-    public long ElapsedFrames => _director?.PlayElapsedFrames ?? 0;
+    public long ElapsedFrames => _director == null ? 0 : Math.Max(0, _director.PlayElapsedFrames - _zeroUpdateFrames);
 
     /// <summary>The durations measured during the last play, by edited action.</summary>
     public CutscenePlayTimings Timings => _timings;
@@ -200,29 +210,60 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         }
     }
 
-    /// <summary>Lets a paused play advance again. Does nothing when no play runs or the play is not paused.</summary>
-    public void Resume()
+    /// <summary>
+    /// Lets a paused play advance again. Does nothing when no play runs or the play is not paused. From the marked start
+    /// state the play is launched again, without the zero-duration update (ADR-0100). True when the world was rebuilt.
+    /// </summary>
+    public bool Resume()
     {
-        if (IsPlaying && _transport.Mode == CutscenePreviewTransportMode.Paused)
+        if (!IsPlaying || _transport.Mode != CutscenePreviewTransportMode.Paused)
+        {
+            return false;
+        }
+
+        bool rebuilt = LeaveStartState();
+        if (!rebuilt || IsPlaying)
         {
             _transport.Resume();
         }
+
+        return rebuilt;
     }
 
-    /// <summary>Pauses the play and advances it by <paramref name="count"/> frames. Does nothing when no play runs.</summary>
-    public void StepFrames(int count)
+    /// <summary>
+    /// Pauses the play and advances it by <paramref name="count"/> frames. Does nothing when no play runs. From the marked
+    /// start state the play is launched again first, without the zero-duration update (ADR-0100). True when the world was rebuilt.
+    /// </summary>
+    public bool StepFrames(int count)
     {
-        if (IsPlaying)
+        if (!IsPlaying)
+        {
+            return false;
+        }
+
+        bool rebuilt = LeaveStartState();
+        if (!rebuilt || IsPlaying)
         {
             _transport.StepFrames(count);
         }
+
+        return rebuilt;
+    }
+
+    /// <summary>When the marked start state is in place, launches the last asset again, keeping the measured durations.</summary>
+    private bool LeaveStartState()
+    {
+        return _startStateMarked && _launchedAsset != null && Launch(_launchedAsset, keepTimings: true);
     }
 
     /// <summary>
     /// Moves the preview to a play time and pauses it there (ADR-0099). When the time is ahead of the play, the play runs
     /// and the document did not change since it was launched, the play goes on from its current state. Otherwise the world
     /// is rebuilt and a copy of <paramref name="asset"/> is played again from the start, keeping the measured durations.
-    /// The steps are done by <see cref="Tick"/>, within a time budget per frame. False, with <see cref="Error"/>, when no
+    /// The first instant (a time less than half a step) is shown by one zero-duration update after the launch, which is not
+    /// counted in <see cref="ElapsedFrames"/>; that start state is marked and no play goes on from it (ADR-0100): the next
+    /// action that leaves it launches the play again, without the zero-duration update. The steps are done by
+    /// <see cref="Tick"/>, within a time budget per frame. False, with <see cref="Error"/>, when no
     /// world is set or it cannot be rebuilt.
     /// </summary>
     public bool Seek(CutsceneAsset asset, double seconds)
@@ -231,15 +272,27 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         ArgumentNullException.ThrowIfNull(asset);
 
         double target = Math.Max(0d, seconds);
-        if (IsPlaying && !_documentChanged && target >= ElapsedSeconds - CutscenePreviewTransport.StepSeconds / 2.0)
+        bool showsFirstInstant = target < CutscenePreviewTransport.StepSeconds / 2.0;
+        if (IsPlaying && !_documentChanged)
         {
-            _transport.Seek(target, ElapsedSeconds);
-            return true;
+            bool inPlace = _startStateMarked
+                ? showsFirstInstant
+                : target >= ElapsedSeconds - CutscenePreviewTransport.StepSeconds / 2.0;
+            if (inPlace)
+            {
+                _transport.Seek(target, ElapsedSeconds);
+                return true;
+            }
         }
 
         if (!Launch(asset, keepTimings: true))
         {
             return false;
+        }
+
+        if (showsFirstInstant)
+        {
+            ShowFirstInstant();
         }
 
         _transport.Seek(target, ElapsedSeconds);
@@ -277,6 +330,23 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
         return true;
     }
 
+    /// <summary>
+    /// Does one zero-duration update, by the path of a normal step, so that the actions of time 0 play, and marks the start
+    /// state. What the update added to the frame count of the director is taken off <see cref="ElapsedFrames"/>.
+    /// </summary>
+    private void ShowFirstInstant()
+    {
+        if (_director == null || !_director.IsPlaying)
+        {
+            return;
+        }
+
+        long before = _director.PlayElapsedFrames;
+        ((ICutscenePreviewStepper)this).Step(0f);
+        _zeroUpdateFrames = _director.PlayElapsedFrames - before;
+        _startStateMarked = _director.IsPlaying;
+    }
+
     private bool Launch(CutsceneAsset asset, bool keepTimings)
     {
         Stop();
@@ -311,6 +381,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
         _timingsValid = true;
         _documentChanged = false;
+        _launchedAsset = asset;
         _transport.Start();
         _director!.Play(copy);
         if (!_director.IsPlaying && State == CutsceneRuntimeState.Idle)
@@ -383,6 +454,10 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     private bool TryLoadWorld(Guid worldAssetId)
     {
         DetachDirector();
+
+        // The new director counts its frames from 0.
+        _startStateMarked = false;
+        _zeroUpdateFrames = 0;
 
         try
         {
