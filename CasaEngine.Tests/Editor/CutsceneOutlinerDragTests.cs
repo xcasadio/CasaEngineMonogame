@@ -578,4 +578,64 @@ public sealed class CutsceneOutlinerDragTests : IDisposable
 
         scene.Release(new Point(100, 590));
     }
+
+    [Fact]
+    public void Delete_OnTheFocusedTree_RemovesTheSelectedAction_AndUndoPutsItBack()
+    {
+        var scene = Open(SmallDocument("Delete"));
+        var wait = scene.Root.Actions[0];
+        var container = scene.Root.Actions[1];
+        var fade = scene.Root.Actions[2];
+
+        // A click selects the row and gives the tree the keyboard focus.
+        scene.Harness.Click(scene.Time += 100, scene.PointOn(fade, 0.5f));
+        Assert.Same(fade, scene.Document.SelectedAction);
+        Assert.Same(scene.Tree, scene.Harness.Desktop.FocusedKeyboardHandler);
+
+        scene.Frame(scene.PointOn(fade, 0.5f), keys: [Keys.Delete]);
+        scene.Settle();
+
+        AssertOrder(scene.Root.Actions, wait, container);
+        Assert.Null(scene.Document.SelectedAction);
+
+        Undo(FirstContext);
+        AssertOrder(scene.Root.Actions, wait, container, fade);
+    }
+
+    [Fact]
+    public void Delete_WhenTheTreeDoesNotHaveTheFocus_RemovesNothing()
+    {
+        var scene = Open(SmallDocument("DeleteUnfocused"));
+        var wait = scene.Root.Actions[0];
+        var container = scene.Root.Actions[1];
+        var fade = scene.Root.Actions[2];
+
+        scene.Harness.Click(scene.Time += 100, scene.PointOn(fade, 0.5f));
+        Assert.Same(fade, scene.Document.SelectedAction);
+
+        // The focus is somewhere else, as when the user works in another panel.
+        scene.Harness.Desktop.ClearFocusedKeyboardHandler();
+        scene.Frame(new Point(300, 590), keys: [Keys.Delete]);
+        scene.Settle();
+
+        AssertOrder(scene.Root.Actions, wait, container, fade);
+        Assert.Same(fade, scene.Document.SelectedAction);
+    }
+
+    [Fact]
+    public void Delete_OnTheRoot_ShowsTheRefusal_AndChangesNothing()
+    {
+        var scene = Open(SmallDocument("DeleteRoot"));
+        var wait = scene.Root.Actions[0];
+        var container = scene.Root.Actions[1];
+        var fade = scene.Root.Actions[2];
+
+        scene.Harness.Click(scene.Time += 100, scene.PointOn(scene.Root, 0.5f));
+        Assert.Same(scene.Root, scene.Document.SelectedAction);
+
+        scene.Frame(scene.PointOn(scene.Root, 0.5f), keys: [Keys.Delete]);
+
+        AssertOrder(scene.Root.Actions, wait, container, fade);
+        Assert.Equal(RemoveCutsceneActionCommand.GetRefusal(scene.Document.Session!, scene.Root), scene.Outliner.StatusText);
+    }
 }

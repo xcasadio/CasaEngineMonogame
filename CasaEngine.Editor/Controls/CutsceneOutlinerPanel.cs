@@ -560,7 +560,7 @@ internal sealed partial class CutsceneOutlinerPanel
             : _actionCount == 1 ? "1 action" : $"{_actionCount} actions");
     }
 
-    private void ShowRefusal(string? message)
+    internal void ShowRefusal(string? message)
     {
         if (message != null)
         {

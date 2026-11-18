@@ -2074,8 +2074,25 @@ public class GameEditor : Game, IObservableUpdate
         RefreshViewsAfterHistoryCommand(historyContext);
     }
 
+    // ADR-0101, P10: with a cutscene document active, the clipboard shortcuts act on that document and on nothing else.
+    private bool IsCutsceneDocumentActive()
+    {
+        return _editorContext.ActiveDocument?.Kind == EditorDocumentKind.Cutscene;
+    }
+
+    private void ReportCutsceneRefusal(string refusal)
+    {
+        _cutsceneOutlinerPanel?.ShowRefusal(refusal);
+    }
+
     private void ExecuteDuplicate()
     {
+        if (IsCutsceneDocumentActive())
+        {
+            ReportCutsceneRefusal(_activeCutsceneInspectorPanel?.DuplicateSelectedAction());
+            return;
+        }
+
         if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
         var document = _activeScreenPreviewPanel.CurrentDocument;
         if (document == null) return;
@@ -2097,6 +2114,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ExecuteCopy()
     {
+        if (IsCutsceneDocumentActive())
+        {
+            ReportCutsceneRefusal(_activeCutsceneInspectorPanel?.CopySelectedAction());
+            return;
+        }
+
         if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
         var document = _activeScreenPreviewPanel.CurrentDocument;
         if (document == null) return;
@@ -2111,6 +2134,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ExecuteCut()
     {
+        if (IsCutsceneDocumentActive())
+        {
+            ReportCutsceneRefusal(_activeCutsceneInspectorPanel?.CutSelectedAction());
+            return;
+        }
+
         ExecuteCopy();
         if (_nodeClipboard == null || !_screenSelection.SelectedNodeId.HasValue) return;
         var document = _activeScreenPreviewPanel?.CurrentDocument;
@@ -2130,6 +2159,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void ExecutePaste()
     {
+        if (IsCutsceneDocumentActive())
+        {
+            ReportCutsceneRefusal(_activeCutsceneInspectorPanel?.PasteAction());
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_nodeClipboard) || _activeScreenPreviewPanel == null) return;
         var document = _activeScreenPreviewPanel.CurrentDocument;
         if (document == null) return;

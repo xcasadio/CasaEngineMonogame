@@ -147,9 +147,16 @@ internal sealed partial class CutsceneOutlinerPanel
             return;
         }
 
+        // The two keys the panel takes (ADR-0101, P6 and P11); the arrows and the rest belong to the tree. The event comes only
+        // while the tree has the keyboard focus, so Delete never removes an action while the user works elsewhere.
         if (e.Key == Keys.Escape && _dragAction != null)
         {
             CancelDrag();
+            e.SetHandledBy(_treeView, true);
+        }
+        else if (e.Key == Keys.Delete && _document != null && _dragAction == null)
+        {
+            DeleteSelected();
             e.SetHandledBy(_treeView, true);
         }
     }
