@@ -16,10 +16,12 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The cutscene document panel (ADR-0095), built on the headless MGUI desktop without a GPU: one text field per property of
-/// each action, the commit of a field into the history of the document, the dirty state, a global undo or redo, the save and
-/// the refusal of a save. The asset catalog, the editor history and <see cref="EngineEnvironment.ProjectPath"/> are global
-/// state, hence the serialized collection and the restore in <see cref="Dispose"/>.
+/// The cutscene document (ADR-0095, ADR-0097), built on the headless MGUI desktop without a GPU. The document keeps its header,
+/// its path and its status line; the properties of the selected action are edited in the typed fields of the Inspector view
+/// (<see cref="CutsceneDetailsPanel"/>), which write through the document. These tests cover the commit of a field into the
+/// history of the document, the dirty state, a global undo or redo, the save and the refusal of a save. The asset catalog, the
+/// editor history and <see cref="EngineEnvironment.ProjectPath"/> are global state, hence the serialized collection and the
+/// restore in <see cref="Dispose"/>.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]
 public sealed class CutsceneAssetInspectorPanelTests : IDisposable
@@ -74,8 +76,11 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
 
         public required CutsceneAssetInspectorPanel Panel { get; init; }
 
+        public required CutsceneDetailsPanel Details { get; init; }
+
         public required CutsceneEditSession Session { get; init; }
 
+        /// <summary>The content of the document: header, path and status line.</summary>
         public required MGElement Content { get; init; }
 
         public required string FullPath { get; init; }
@@ -85,6 +90,18 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
         public WaitCutsceneActionData Wait => (WaitCutsceneActionData)((SequenceCutsceneActionData)Session.Asset.RootAction!).Actions[0];
 
         public OpenScreenCutsceneActionData OpenScreen => (OpenScreenCutsceneActionData)((SequenceCutsceneActionData)Session.Asset.RootAction!).Actions[1];
+
+        /// <summary>The text box of the field of a property of the selected action, whatever the kind of the field.</summary>
+        public MGTextBox TextBoxOf(string key)
+        {
+            var row = Details.Rows.Single(candidate => candidate.Key == key);
+            return row switch
+            {
+                CutsceneDetailsPanel.NumberRow number => number.NumberField.TextBox,
+                CutsceneDetailsPanel.TextRow text => text.TextBox,
+                _ => throw new InvalidOperationException($"The field of '{key}' has no text box."),
+            };
+        }
     }
 
     private static JObject DefaultActions() => new()
@@ -97,7 +114,10 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
         },
     };
 
-    /// <summary>A project with one cutscene file on disk, and a panel on a headless window that opens it, as the editor does.</summary>
+    /// <summary>
+    /// A project with one cutscene file on disk, a document that opens it as the editor does, and the details panel of that
+    /// document on the headless window. Nothing is selected.
+    /// </summary>
     private Rig Open(JObject? rootAction = null, bool setHistoryContext = true)
     {
         var document = new JObject
@@ -125,25 +145,22 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
 
         panel.LoadAsset(session, fullPath);
         var content = panel.CreateContent();
-        harness.Window.SetContent(content);
+
+        var details = new CutsceneDetailsPanel(harness.Window);
+        harness.Window.SetContent(details.CreateContent());
+        details.SetEditorPanel(panel);
 
         var rig = new Rig
         {
             Harness = harness,
             Panel = panel,
+            Details = details,
             Session = session,
             Content = content,
             FullPath = fullPath,
         };
         panel.DirtyStateChanged += _ => rig.DirtyEvents++;
         return rig;
-    }
-
-    private static MGTextBox TextBoxOfRow(MGElement content, string rowLabel, int occurrence = 0)
-    {
-        var label = content.TraverseVisualTree().OfType<MGTextBlock>().Where(text => text.Text == rowLabel).ElementAt(occurrence);
-        var row = Assert.IsAssignableFrom<MGStackPanel>(label.Parent);
-        return Assert.Single(row.TraverseVisualTree().OfType<MGTextBox>());
     }
 
     private static string StatusText(MGElement content)
@@ -163,32 +180,45 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     }
 
     [Fact]
-    public void ThePanel_ShowsOneFieldPerPropertyOfEveryAction_WithTheTextOfTheValue()
+    public void TheDetailsPanel_ShowsOneTypedFieldPerPropertyOfTheSelectedAction_WithTheTextOfTheValue()
     {
         var rig = Open();
 
-        var textBoxes = rig.Content.TraverseVisualTree().OfType<MGTextBox>().ToList();
-        int expected = CutsceneActionPropertyEditor.GetProperties(rig.Wait).Count
-                       + CutsceneActionPropertyEditor.GetProperties(rig.OpenScreen).Count;
-        Assert.Equal(expected, textBoxes.Count);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
-        Assert.Equal("title", TextBoxOfRow(rig.Content, "target").Text);
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Equal("1.5", Assert.IsType<CutsceneDetailsPanel.NumberRow>(Assert.Single(rig.Details.Rows)).NumberField.Text);
+
+        rig.Panel.SelectAction(rig.OpenScreen);
+        Assert.Equal(CutsceneActionPropertyEditor.GetProperties(rig.OpenScreen).Count, rig.Details.Rows.Count);
+        Assert.Equal("title", rig.TextBoxOf("target").Text);
         Assert.False(rig.Panel.IsDirty);
+    }
+
+    [Fact]
+    public void TheDocument_HoldsNoTextField_AndShowsItsHeaderItsPathAndItsStatus()
+    {
+        var rig = Open();
+
+        Assert.Empty(rig.Content.TraverseVisualTree().OfType<MGTextBox>());
+        var texts = rig.Content.TraverseVisualTree().OfType<MGTextBlock>().Select(text => text.Text).ToList();
+        Assert.Contains("[b]Intro[/b]", texts);
+        Assert.Contains(RelativeFile, texts);
+        Assert.Contains("Validation OK. Not modified.", texts);
     }
 
     [Fact]
     public void ACommittedField_WritesTheAssetThroughTheHistory_AndMakesThePanelDirty()
     {
         var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
 
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
 
         Assert.Equal(2.5f, rig.Wait.Seconds);
         Assert.True(rig.Panel.IsDirty);
         Assert.Equal(1, rig.DirtyEvents);
         Assert.True(EditorHistoryService.Current.TryGet(Context, out var stack));
         Assert.Equal("Set Wait.seconds", stack.UndoDescription);
-        Assert.Equal("2.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("2.5", rig.TextBoxOf("seconds").Text);
         Assert.Contains("Modified.", StatusText(rig.Content));
     }
 
@@ -196,7 +226,8 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     public void AnUndo_RestoresTheValueTheFieldAndTheCleanState()
     {
         var rig = Open();
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        rig.Panel.SelectAction(rig.Wait);
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
         Assert.True(rig.Panel.IsDirty);
 
         EditorHistoryService.Current.SetActiveContext(Context);
@@ -205,28 +236,29 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
         Assert.Equal(1.5f, rig.Wait.Seconds);
         Assert.False(rig.Panel.IsDirty);
         Assert.Equal(2, rig.DirtyEvents);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
         Assert.Contains("Not modified.", StatusText(rig.Content));
 
         Assert.True(EditorHistoryService.Current.Redo());
 
         Assert.Equal(2.5f, rig.Wait.Seconds);
         Assert.True(rig.Panel.IsDirty);
-        Assert.Equal("2.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("2.5", rig.TextBoxOf("seconds").Text);
     }
 
     [Fact]
-    public void AnInvalidText_RestoresTheField_ShowsTheMessage_AndCreatesNoCommand()
+    public void AnInvalidText_RestoresTheField_ShowsTheReasonUnderIt_AndCreatesNoCommand()
     {
         var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
 
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "abc");
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "abc");
 
         Assert.Equal(1.5f, rig.Wait.Seconds);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
         Assert.False(rig.Panel.IsDirty);
         Assert.False(EditorHistoryService.Current.TryGet(Context, out var stack) && stack.CanUndo);
-        Assert.Contains("seconds must be a finite number", StatusText(rig.Content));
+        Assert.Contains("seconds must be a finite number", rig.Details.Rows.Single(row => row.Key == "seconds").ErrorText);
     }
 
     [Fact]
@@ -234,12 +266,15 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     {
         var rig = Open();
 
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "1.50");
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "target"), "title");
+        rig.Panel.SelectAction(rig.Wait);
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "1.50");
+        rig.Panel.SelectAction(rig.OpenScreen);
+        TypeAndPressEnter(rig, rig.TextBoxOf("target"), "title");
 
         Assert.False(rig.Panel.IsDirty);
         Assert.False(EditorHistoryService.Current.TryGet(Context, out var stack) && stack.CanUndo);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
     }
 
     [Fact]
@@ -249,9 +284,10 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
         var action = Assert.IsType<ShowSpriteCutsceneActionData>(rig.Session.Asset.RootAction);
         Assert.True(action.FormatErrors.ContainsKey("x"));
         Assert.True(CutsceneSaveGuard.TryGetBlockingReason(rig.Session, out _));
+        rig.Panel.SelectAction(action);
 
         // The field shows the value the loader kept (empty): committing it as it is clears the error.
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "x"), string.Empty);
+        TypeAndPressEnter(rig, rig.TextBoxOf("x"), string.Empty);
 
         Assert.False(action.FormatErrors.ContainsKey("x"));
         Assert.True(rig.Panel.IsDirty);
@@ -262,32 +298,37 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     public void WithoutAHistoryContext_AChangeIsRefused()
     {
         var rig = Open(setHistoryContext: false);
+        rig.Panel.SelectAction(rig.Wait);
 
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
 
         Assert.Equal(1.5f, rig.Wait.Seconds);
         Assert.False(rig.Panel.IsDirty);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
+        Assert.Contains("no history context", rig.Details.Rows.Single(row => row.Key == "seconds").ErrorText);
     }
 
     [Fact]
     public void DuringAPlaySession_AChangeIsRefused()
     {
         var rig = Open();
+        rig.Panel.SelectAction(rig.Wait);
         EditorHistoryService.Current.IsSuspended = true;
 
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
 
         Assert.Equal(1.5f, rig.Wait.Seconds);
         Assert.False(rig.Panel.IsDirty);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
+        Assert.Contains("play session", rig.Details.Rows.Single(row => row.Key == "seconds").ErrorText);
     }
 
     [Fact]
     public void TheSave_WritesAFileThatReloadsWithTheModifiedValue_AndMarksThePanelSaved()
     {
         var rig = Open();
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        rig.Panel.SelectAction(rig.Wait);
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
         Assert.True(rig.Panel.IsDirty);
 
         Assert.True(rig.Panel.TrySaveLoadedAsset(out string? error), error);
@@ -324,7 +365,8 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
             },
         });
         string before = File.ReadAllText(rig.FullPath);
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        rig.Panel.SelectAction(rig.Wait);
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
         Assert.True(rig.Panel.IsDirty);
 
         Assert.False(rig.Panel.TrySaveLoadedAsset(out string? error));
@@ -350,38 +392,29 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     public void TheRuntimeSnapshotOfAnIdleCutscene_KeepsTheFieldsAndTheTextBeingTyped()
     {
         var rig = Open();
-        var textBox = TextBoxOfRow(rig.Content, "seconds");
+        rig.Panel.SelectAction(rig.Wait);
+        var textBox = rig.TextBoxOf("seconds");
         textBox.SetText("9");
 
         rig.Panel.RefreshRuntimeSnapshot(IdleSnapshot());
 
-        Assert.Same(textBox, TextBoxOfRow(rig.Content, "seconds"));
+        Assert.Same(textBox, rig.TextBoxOf("seconds"));
         Assert.Equal("9", textBox.Text);
     }
 
     [Fact]
-    public void TheRuntimeSnapshotOfARunningCutscene_ShowsItsState()
+    public void TheRuntimeSnapshotOfARunningCutscene_ShowsItsStateInTheCutsceneViewOfTheDetails_AndKeepsTheFields()
     {
         var rig = Open();
 
-        rig.Panel.RefreshRuntimeSnapshot(new CutsceneDebugSnapshot(
-            CutsceneRuntimeState.Playing,
-            Guid.Empty,
-            "Intro",
-            RelativeFile,
-            CoroutineHandle.Invalid,
-            [],
-            [],
-            "Wait",
-            null,
-            null,
-            "Running",
-            null));
+        rig.Panel.RefreshRuntimeSnapshot(RunningSnapshot());
 
         Assert.Contains(
-            rig.Content.TraverseVisualTree().OfType<MGTextBlock>(),
+            rig.Details.Content!.TraverseVisualTree().OfType<MGTextBlock>(),
             text => text.Text == "Playing");
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+
+        rig.Panel.SelectAction(rig.Wait);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
     }
 
     [Fact]
@@ -401,7 +434,8 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
     public void ReloadingTheDocument_StartsAgainACleanHistory()
     {
         var rig = Open();
-        TypeAndPressEnter(rig, TextBoxOfRow(rig.Content, "seconds"), "2.5");
+        rig.Panel.SelectAction(rig.Wait);
+        TypeAndPressEnter(rig, rig.TextBoxOf("seconds"), "2.5");
         Assert.True(rig.Panel.IsDirty);
 
         Assert.True(CutsceneAssetInspectorPanel.TryLoadAsset(rig.FullPath, out var session));
@@ -409,8 +443,25 @@ public sealed class CutsceneAssetInspectorPanelTests : IDisposable
 
         Assert.False(rig.Panel.IsDirty);
         Assert.False(EditorHistoryService.Current.TryGet(Context, out var stack) && stack.CanUndo);
-        Assert.Equal("1.5", TextBoxOfRow(rig.Content, "seconds").Text);
+        Assert.Null(rig.Panel.SelectedAction);
+        var reloadedWait = (WaitCutsceneActionData)((SequenceCutsceneActionData)session!.Asset.RootAction!).Actions[0];
+        rig.Panel.SelectAction(reloadedWait);
+        Assert.Equal("1.5", rig.TextBoxOf("seconds").Text);
     }
+
+    private static CutsceneDebugSnapshot RunningSnapshot() => new(
+        CutsceneRuntimeState.Playing,
+        Guid.Empty,
+        "Intro",
+        RelativeFile,
+        CoroutineHandle.Invalid,
+        [],
+        [],
+        "Wait",
+        null,
+        null,
+        "Running",
+        null);
 
     private static CutsceneDebugSnapshot IdleSnapshot() => new(
         CutsceneRuntimeState.Idle,

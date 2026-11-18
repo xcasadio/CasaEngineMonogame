@@ -33,9 +33,6 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 internal sealed class CutsceneAssetInspectorPanel : IDisposable
 {
-    private const int FieldLabelWidth = 150;
-    private const int FieldIndentPerDepth = 12;
-    private const int PropertiesColumnWidth = 420;
     private const string PreviewLimitText = "Sprite animations, physics and scripts are frozen in the preview.";
 
     private readonly MGWindow _window;
@@ -45,14 +42,12 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
-    private MGStackPanel? _contentStack;
 
     private readonly GraphicsDevice? _graphicsDevice;
     private readonly HostedEditorGameAdapter? _editorRuntime;
     private readonly IWindowInputSource? _windowInputSource;
     private readonly CutscenePreviewSession? _preview;
     private WorldViewportPanel? _previewViewport;
-    private MGDockPanel? _documentRoot;
     private MGComboBox<string>? _worldCombo;
     private MGTextBlock? _previewStatusText;
     private MGTextBlock? _noPreviewWorldText;
@@ -371,30 +366,23 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             WrapText = true,
         };
 
-        _contentStack = new MGStackPanel(_window, Orientation.Vertical)
+        RefreshHeader();
+        if (_preview != null)
         {
-            Spacing = 6,
-            Margin = new Thickness(8, 0, 8, 8),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-
-        var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
-        scrollViewer.SetContent(_contentStack);
-
-        _root = new MGDockPanel(_window);
-        _root.TryAddChild(_headerText, Dock.Top);
-        _root.TryAddChild(_sourceText, Dock.Top);
-        _root.TryAddChild(_statusText, Dock.Top);
-        _root.TryAddChild(scrollViewer, Dock.Top);
-
-        RefreshInspector();
-        if (_preview == null)
-        {
+            _root = CreateDocumentWithPreview();
             return _root;
         }
 
-        _documentRoot = CreateDocumentWithPreview(_root);
-        return _documentRoot;
+        // Without a preview the document is its header, its path and its status line: the properties are in the Inspector panel.
+        _root = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _root.TryAddChild(_headerText, Dock.Top);
+        _root.TryAddChild(_sourceText, Dock.Top);
+        _root.TryAddChild(_statusText, Dock.Top);
+        return _root;
     }
 
     /// <summary>
@@ -432,7 +420,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             _dirtyState.MarkSaved(historyContext);
         }
 
-        RefreshInspector();
+        RefreshHeader();
         NotifyDirtyStateIfChanged();
         InitializePreviewWorlds();
         SetSelection(null);
@@ -440,8 +428,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     /// <summary>
-    /// Updates the runtime part of the display. The fields are rebuilt only when that part shows something other than an idle
-    /// cutscene: rebuilding them drops the text being typed, and an edit already rebuilds them.
+    /// Updates the runtime state shown by the Inspector panel. Listeners are told only when that state shows something other
+    /// than an idle cutscene, so that an idle world does not rebuild the details every frame.
     /// </summary>
     public void RefreshRuntimeSnapshot(CutsceneDebugSnapshot? runtimeSnapshot)
     {
@@ -458,7 +446,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             return;
         }
 
-        RefreshInspector();
         RuntimeDisplayChanged?.Invoke(this);
     }
 
@@ -506,7 +493,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         _message = $"Saved {_loadedRelativePath}";
-        RefreshInspector();
+        RefreshHeader();
         NotifyDirtyStateIfChanged();
         RaiseDocumentChanged();
         return true;
@@ -523,9 +510,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         EditorHistoryService.Current.HistoryChanged -= OnHistoryChanged;
         _previewViewport?.Dispose();
         _preview?.Dispose();
-
-        // Removing the fields detaches their keyboard and focus handlers.
-        _contentStack?.TryRemoveAll();
     }
 
     /// <summary>Advances the preview. Called every frame by the editor.</summary>
@@ -545,7 +529,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _previewViewport?.DrawViewport(gameTime);
     }
 
-    private MGDockPanel CreateDocumentWithPreview(MGDockPanel propertiesRoot)
+    private MGDockPanel CreateDocumentWithPreview()
     {
         _previewViewport = new WorldViewportPanel(_window, _graphicsDevice!, _editorRuntime!, _windowInputSource!)
         {
@@ -562,6 +546,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         };
 
         documentRoot.TryAddChild(CreateTransportRow(), Dock.Top);
+        documentRoot.TryAddChild(_statusText!, Dock.Top);
 
         _previewStatusText = new MGTextBlock(_window, string.Empty)
         {
@@ -580,11 +565,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         };
         documentRoot.TryAddChild(_noPreviewWorldText, Dock.Top);
 
-        propertiesRoot.PreferredWidth = PropertiesColumnWidth;
-        propertiesRoot.VerticalAlignment = VerticalAlignment.Stretch;
-        documentRoot.TryAddChild(propertiesRoot, Dock.Right);
-
-        // The last child of the dock panel fills what is left: the viewport gets most of the document.
+        // The last child of the dock panel fills what is left: the viewport gets the whole area under the status lines.
         _previewViewportContent = _previewViewport.CreateContent();
         documentRoot.TryAddChild(_previewViewportContent, Dock.Left);
 
@@ -1051,7 +1032,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         _document = CutsceneReadOnlyDocumentBuilder.Build(_session.Asset, _runtimeSnapshot);
-        RefreshInspector();
+        RefreshHeader();
         NotifyDirtyStateIfChanged();
         RaiseDocumentChanged();
     }
@@ -1080,14 +1061,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
                && string.Equals(left.ActiveActionStopReason, right.ActiveActionStopReason, StringComparison.Ordinal);
     }
 
-    private void RefreshInspector()
+    private void RefreshHeader()
     {
-        if (_headerText == null || _sourceText == null || _statusText == null || _contentStack == null)
+        if (_headerText == null || _sourceText == null || _statusText == null)
         {
             return;
         }
 
-        _contentStack.TryRemoveAll();
         if (_document == null || _session == null)
         {
             _headerText.Text = "[b]Cutscene Inspector[/b]";
@@ -1101,62 +1081,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             ? "No source path."
             : EscapeMarkup(_loadedRelativePath);
         UpdateStatusText();
-
-        AddProperty("Runtime state", _document.RuntimeState.ToString());
-        AddProperty("Active coroutines", _document.ActiveCoroutines.Count.ToString(CultureInfo.InvariantCulture));
-        if (!string.IsNullOrWhiteSpace(_document.ActiveActionType))
-        {
-            AddProperty("Active action", _document.ActiveActionType);
-            AddProperty("Action entity", string.IsNullOrWhiteSpace(_document.ActiveActionEntityName) ? "<none>" : _document.ActiveActionEntityName);
-            AddProperty("Action destination", _document.ActiveActionDestination.HasValue ? FormatVector3(_document.ActiveActionDestination.Value) : "<none>");
-            AddProperty("Action state", string.IsNullOrWhiteSpace(_document.ActiveActionState) ? "<none>" : _document.ActiveActionState);
-            AddProperty("Action stop reason", string.IsNullOrWhiteSpace(_document.ActiveActionStopReason) ? "<none>" : _document.ActiveActionStopReason);
-        }
-
-        AddSection("Actions");
-        if (_session.Asset.RootAction == null)
-        {
-            AddText("No root action.", EditorThemePalette.SecondaryTextOpacity);
-        }
-        else
-        {
-            AddActionNode(_session.Asset.RootAction, "root_action", 0);
-        }
-
-        AddSection("Validation");
-        if (_document.ValidationMessages.Count == 0 && _session.LoadLosses.Count == 0)
-        {
-            AddText("No validation warnings or errors.", EditorThemePalette.SecondaryTextOpacity);
-        }
-
-        for (int index = 0; index < _document.ValidationMessages.Count; index++)
-        {
-            var message = _document.ValidationMessages[index];
-            AddText($"{message.Severity}: {EscapeMarkup(message.Path)} - {EscapeMarkup(message.Message)}", EditorThemePalette.PrimaryHeaderOpacity);
-        }
-
-        for (int index = 0; index < _session.LoadLosses.Count; index++)
-        {
-            var loss = _session.LoadLosses[index];
-            AddText($"Load loss: {EscapeMarkup(loss.Path)} ({EscapeMarkup(loss.Key)}) - {EscapeMarkup(loss.Message)}", EditorThemePalette.PrimaryHeaderOpacity);
-        }
-
-        AddSection("Runtime Coroutines");
-        if (_document.ActiveCoroutines.Count == 0)
-        {
-            AddText("No active cutscene coroutine in the current world snapshot.", EditorThemePalette.SecondaryTextOpacity);
-        }
-        else
-        {
-            for (int index = 0; index < _document.ActiveCoroutines.Count; index++)
-            {
-                var coroutine = _document.ActiveCoroutines[index];
-                string remainingTime = coroutine.RemainingTime.HasValue
-                    ? coroutine.RemainingTime.Value.ToString("0.###", CultureInfo.InvariantCulture)
-                    : "<none>";
-                AddText($"#{coroutine.Id.ToString(CultureInfo.InvariantCulture)} {EscapeMarkup(coroutine.Name ?? "<unnamed>")} state={EscapeMarkup(coroutine.State)} paused={coroutine.IsPaused} instruction={EscapeMarkup(coroutine.CurrentInstruction ?? "<none>")} remaining={remainingTime}", EditorThemePalette.PrimaryHeaderOpacity);
-            }
-        }
     }
 
     private void UpdateStatusText()
@@ -1180,201 +1104,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         UpdateStatusText();
     }
 
-    private void AddActionNode(CutsceneActionData action, string path, int depth)
-    {
-        string indent = new(' ', depth * 2);
-        AddText($"{indent}- {EscapeMarkup(action.Type)}  {EscapeMarkup(path)}", EditorThemePalette.PrimaryHeaderOpacity);
-
-        if (action is UnknownCutsceneActionData)
-        {
-            AddText($"{indent}  Unknown action type: it cannot be edited and a save is refused.", EditorThemePalette.SecondaryTextOpacity);
-        }
-
-        var properties = CutsceneActionPropertyEditor.GetProperties(action);
-        for (int index = 0; index < properties.Count; index++)
-        {
-            _contentStack?.TryAddChild(CreateFieldRow(action, properties[index], depth));
-        }
-
-        var children = GetChildren(action);
-        if (children == null)
-        {
-            return;
-        }
-
-        for (int index = 0; index < children.Count; index++)
-        {
-            AddActionNode(children[index], $"{path}.actions[{index.ToString(CultureInfo.InvariantCulture)}]", depth + 1);
-        }
-    }
-
-    private static List<CutsceneActionData>? GetChildren(CutsceneActionData action)
-        => action switch
-        {
-            SequenceCutsceneActionData sequence => sequence.Actions,
-            ParallelCutsceneActionData parallel => parallel.Actions,
-            RepeatCutsceneActionData repeat => repeat.Actions,
-            _ => null,
-        };
-
-    /// <summary>
-    /// A label and a text field for one property. The field commits on Enter, or when it loses the focus, through
-    /// <see cref="CommitField"/>, and shows again the text of the value when the commit does not rebuild the fields.
-    /// </summary>
-    private MGElement CreateFieldRow(CutsceneActionData action, CutsceneActionProperty property, int depth)
-    {
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 6,
-            Margin = new Thickness(depth * FieldIndentPerDepth, 0, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-
-        row.TryAddChild(new MGTextBlock(_window, property.Key)
-        {
-            PreferredWidth = FieldLabelWidth,
-            Opacity = EditorThemePalette.SectionLabelOpacity,
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
-        var textBox = new MGTextBox(_window, CharacterLimit: 256)
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            HasStableTextFootprint = true,
-            AcceptsReturn = false,
-            AcceptsTab = false,
-            MinWidth = 160,
-        };
-
-        string lastCommittedValue = property.GetText(action);
-
-        // Enter commits a field with a problem even when its text is unchanged: that is how the problem is cleared.
-        void Commit(bool isEnter)
-        {
-            if (_suppressControlCallbacks)
-            {
-                return;
-            }
-
-            string currentValue = textBox.Text ?? string.Empty;
-            bool force = isEnter && HasFieldProblem(action, property.Key);
-            if (!force && string.Equals(currentValue, lastCommittedValue, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            string? shownValue = CommitField(action, property, currentValue);
-            if (shownValue == null)
-            {
-                lastCommittedValue = currentValue;
-                return;
-            }
-
-            lastCommittedValue = shownValue;
-            if (!string.Equals(textBox.Text, shownValue, StringComparison.Ordinal))
-            {
-                _suppressControlCallbacks = true;
-                textBox.SetText(shownValue);
-                _suppressControlCallbacks = false;
-            }
-        }
-
-        EventHandler<BaseKeyPressedEventArgs>? keyPressedHandler = null;
-        EventHandler<MGUI.Shared.Helpers.EventArgs<MGElement>>? focusChangedHandler = null;
-        EventHandler<MGUI.Shared.Helpers.EventArgs<MGElement>>? parentChangedHandler = null;
-
-        keyPressedHandler = (_, args) =>
-        {
-            // The text box handles every key of its own handler, which runs first: only a key handled by another element is skipped.
-            if ((args.IsHandled && !ReferenceEquals(args.HandledBy, textBox)) || args.Key != Microsoft.Xna.Framework.Input.Keys.Enter)
-            {
-                return;
-            }
-
-            Commit(isEnter: true);
-            args.SetHandledBy(textBox, false);
-        };
-
-        focusChangedHandler = (_, args) =>
-        {
-            if (ReferenceEquals(args.PreviousValue, textBox) && !ReferenceEquals(args.NewValue, textBox))
-            {
-                Commit(isEnter: false);
-            }
-        };
-
-        parentChangedHandler = (_, args) =>
-        {
-            if (args.NewValue != null)
-            {
-                return;
-            }
-
-            textBox.KeyboardHandler.Pressed -= keyPressedHandler;
-            if (_window.Desktop != null)
-            {
-                _window.Desktop.FocusedKeyboardHandlerChanged -= focusChangedHandler;
-            }
-
-            row.OnParentChanged -= parentChangedHandler;
-        };
-
-        textBox.KeyboardHandler.Pressed += keyPressedHandler;
-        if (_window.Desktop != null)
-        {
-            _window.Desktop.FocusedKeyboardHandlerChanged += focusChangedHandler;
-        }
-
-        row.OnParentChanged += parentChangedHandler;
-
-        _suppressControlCallbacks = true;
-        textBox.SetText(lastCommittedValue);
-        _suppressControlCallbacks = false;
-
-        row.TryAddChild(textBox);
-        return row;
-    }
-
-    /// <summary>
-    /// Commits the text of a field. Returns null when the command was executed (the history event rebuilds the fields), and
-    /// otherwise the text the field must show: the current text of the value, with the reason in the status line.
-    /// </summary>
-    private string? CommitField(CutsceneActionData action, CutsceneActionProperty property, string text)
-    {
-        string currentText = property.GetText(action);
-        if (_session == null)
-        {
-            return currentText;
-        }
-
-        bool hasProblem = HasFieldProblem(action, property.Key);
-        if (!hasProblem && string.Equals(text, currentText, StringComparison.Ordinal))
-        {
-            return currentText;
-        }
-
-        if (!property.TryParse(text, out object? value, out string error))
-        {
-            SetMessage(error);
-            return currentText;
-        }
-
-        // The same value written another way, or a field with a problem that is set to the value it shows, is no change.
-        if (!hasProblem && property.AreEqual(property.GetValue(action), value))
-        {
-            return currentText;
-        }
-
-        string? refusal = SetProperty(action, property, value);
-        if (refusal != null)
-        {
-            SetMessage(refusal);
-            return currentText;
-        }
-
-        return null;
-    }
-
     private bool HasFieldProblem(CutsceneActionData action, string key)
     {
         var formatErrors = CutsceneActionPropertyEditor.GetFormatErrors(action);
@@ -1396,51 +1125,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         }
 
         return false;
-    }
-
-    private void AddSection(string title)
-    {
-        AddText($"[b]{EscapeMarkup(title)}[/b]", EditorThemePalette.SectionHeaderOpacity);
-    }
-
-    private void AddProperty(string label, string value)
-    {
-        if (_contentStack == null)
-        {
-            return;
-        }
-
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 6,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        row.TryAddChild(new MGTextBlock(_window, label)
-        {
-            PreferredWidth = 130,
-            Opacity = EditorThemePalette.SectionLabelOpacity,
-            WrapText = true,
-        });
-        row.TryAddChild(new MGTextBlock(_window, EscapeMarkup(value))
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            WrapText = true,
-        });
-        _contentStack.TryAddChild(row);
-    }
-
-    private void AddText(string text, float opacity)
-    {
-        _contentStack?.TryAddChild(new MGTextBlock(_window, text)
-        {
-            Opacity = opacity,
-            WrapText = true,
-        });
-    }
-
-    private static string FormatVector3(Microsoft.Xna.Framework.Vector3 value)
-    {
-        return string.Create(CultureInfo.InvariantCulture, $"{value.X:0.###}, {value.Y:0.###}, {value.Z:0.###}");
     }
 
     private static string EscapeMarkup(string value)

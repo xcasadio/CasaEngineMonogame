@@ -6,6 +6,7 @@ using System.Globalization;
 using CasaEngine.Editor.Controls.Cutscenes;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Cutscenes;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Cutscenes;
 using Microsoft.Xna.Framework;
 using MGUI.Core.UI;
@@ -313,6 +314,27 @@ internal sealed class CutsceneDetailsPanel
 
     private DetailRow CreateRow(CutsceneActionData action, CutsceneActionProperty property)
     {
+        if (property.Kind is CutsceneActionPropertyKind.String or CutsceneActionPropertyKind.Guid)
+        {
+            // A list with nothing to choose from is of no use: the reference then stays a text field (ADR-0097).
+            if (CutsceneReferenceOptions.IsAssetReference(property.Semantic))
+            {
+                var options = CutsceneReferenceOptions.Build(property.Semantic, AssetCatalog.AssetInfos);
+                if (options.Count > 0)
+                {
+                    return new ChoiceRow(this, action, property, options, null);
+                }
+            }
+            else if (property.Semantic == CutsceneActionPropertySemantic.Entity && _document?.Preview?.World != null)
+            {
+                var names = new List<string>(_document.GetPreviewEntityNames());
+                if (names.Count > 0)
+                {
+                    return new ChoiceRow(this, action, property, null, names);
+                }
+            }
+        }
+
         switch (property.Kind)
         {
             case CutsceneActionPropertyKind.Number:
@@ -1114,6 +1136,198 @@ internal sealed class CutsceneDetailsPanel
 
             string text = string.Concat(_fields[0].Text, ", ", _fields[1].Text, ", ", _fields[2].Text);
             Complete(Owner.WriteText(Action, _property, text));
+        }
+    }
+
+    /// <summary>
+    /// A reference chosen in a drop-down list: an entity of the preview world, or an asset of the catalogue. The list holds
+    /// "(none)", the choices, and the stored value marked "(missing)" when it is not among them: it is kept, never dropped.
+    /// </summary>
+    internal sealed class ChoiceRow : DetailRow
+    {
+        private readonly CutsceneActionProperty _property;
+        private readonly IReadOnlyList<CutsceneReferenceOption>? _options;
+        private readonly List<string>? _entityNames;
+        private readonly MGComboBox<string> _combo;
+        private readonly List<string> _labels = new();
+        private readonly List<string> _values = new();
+        private string? _missingValue;
+
+        public ChoiceRow(
+            CutsceneDetailsPanel owner,
+            CutsceneActionData action,
+            CutsceneActionProperty property,
+            IReadOnlyList<CutsceneReferenceOption>? options,
+            List<string>? entityNames)
+            : base(owner, action, GetLabel(property.Key))
+        {
+            _property = property;
+            _options = options;
+            _entityNames = entityNames;
+
+            _combo = new MGComboBox<string>(owner._window)
+            {
+                MinWidth = 100,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            _combo.DropdownItemTemplate = item =>
+            {
+                var button = _combo.CreateDefaultDropdownButton();
+                button.SetContent(item);
+                return button;
+            };
+            _combo.SelectedItemTemplate = item => new MGTextBlock(owner._window, item, null, null, false)
+            {
+                Padding = new Thickness(4, 1, 4, 1),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+
+            BuildItems();
+            _combo.SelectedItemChanged += OnSelectedItemChanged;
+            SetField(_combo);
+        }
+
+        public override string Key => _property.Key;
+
+        public override MGElement Field => _combo;
+
+        public MGComboBox<string> Combo => _combo;
+
+        /// <summary>The labels of the list, in order: "(none)", the choices, then the missing value if any.</summary>
+        public IReadOnlyList<string> Labels => _labels;
+
+        /// <summary>The text each label writes, in the order of <see cref="Labels"/>.</summary>
+        public IReadOnlyList<string> Values => _values;
+
+        public override void Detach() => _combo.SelectedItemChanged -= OnSelectedItemChanged;
+
+        protected override void RefreshField()
+        {
+            if (!string.Equals(GetMissingValue(), _missingValue, StringComparison.Ordinal))
+            {
+                BuildItems();
+                return;
+            }
+
+            _combo.SelectedItem = _labels[GetCurrentIndex()];
+        }
+
+        private string NoneValue => _property.Kind == CutsceneActionPropertyKind.Guid ? Guid.Empty.ToString() : string.Empty;
+
+        private string GetCurrentText()
+        {
+            string text = _property.GetText(Action);
+            return _property.Kind == CutsceneActionPropertyKind.Guid && Guid.TryParse(text, out Guid id) && id == Guid.Empty
+                ? string.Empty
+                : text;
+        }
+
+        /// <summary>The stored value when it designates nothing of the list, otherwise null.</summary>
+        private string? GetMissingValue()
+        {
+            string text = GetCurrentText();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
+            if (_options != null)
+            {
+                return CutsceneReferenceOptions.Find(_property.Semantic, _options, text) == null ? text : null;
+            }
+
+            return _entityNames!.Contains(text) ? null : text;
+        }
+
+        private void BuildItems()
+        {
+            _labels.Clear();
+            _values.Clear();
+            _labels.Add(NoneItem);
+            _values.Add(NoneValue);
+
+            if (_options != null)
+            {
+                for (int index = 0; index < _options.Count; index++)
+                {
+                    _labels.Add(_options[index].Label);
+                    _values.Add(_options[index].Value);
+                }
+            }
+            else
+            {
+                for (int index = 0; index < _entityNames!.Count; index++)
+                {
+                    _labels.Add(_entityNames[index]);
+                    _values.Add(_entityNames[index]);
+                }
+            }
+
+            _missingValue = GetMissingValue();
+            if (_missingValue != null)
+            {
+                _labels.Add(_missingValue + " (missing)");
+                _values.Add(_missingValue);
+            }
+
+            bool wasUpdating = Owner._isUpdating;
+            Owner._isUpdating = true;
+            try
+            {
+                _combo.SetItemsSource(_labels.ToArray());
+                _combo.SelectedItem = _labels[GetCurrentIndex()];
+            }
+            finally
+            {
+                Owner._isUpdating = wasUpdating;
+            }
+        }
+
+        private int GetCurrentIndex()
+        {
+            if (_missingValue != null)
+            {
+                return _labels.Count - 1;
+            }
+
+            string text = GetCurrentText();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return 0;
+            }
+
+            if (_options != null)
+            {
+                var found = CutsceneReferenceOptions.Find(_property.Semantic, _options, text);
+                for (int index = 0; found != null && index < _options.Count; index++)
+                {
+                    if (ReferenceEquals(_options[index], found))
+                    {
+                        return index + 1;
+                    }
+                }
+
+                return 0;
+            }
+
+            int position = _entityNames!.IndexOf(text);
+            return position < 0 ? 0 : position + 1;
+        }
+
+        private void OnSelectedItemChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> args)
+        {
+            if (Owner._isUpdating || args.NewValue == null)
+            {
+                return;
+            }
+
+            int index = _labels.IndexOf(args.NewValue);
+            if (index < 0)
+            {
+                return;
+            }
+
+            Complete(Owner.WriteText(Action, _property, _values[index]));
         }
     }
 
