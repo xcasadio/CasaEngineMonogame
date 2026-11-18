@@ -274,16 +274,18 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 
 ## Phase 3 — Documentation et recette
 
-### ⏳ T3.1 — Documentation
+### ✅ T3.1 — Documentation
 
 - Objectif : `docs/editor/cutscene-editor.md` décrit la barre de transport, la pause, le pas à pas, le déplacement de la tête de lecture, ce que fait `Stop`, la relecture après une modification en pause, les nouvelles options d'automatisation et les limites (P14, P15, coût d'un retour en arrière) ; `docs/editor/timeline-generic.md` mentionne l'option de glisser dans la règle si T2.4 est livrée.
 - Fichiers : ces deux documents, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the pause, step and seek of the cutscene preview`
+- Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` mis à jour (en anglais) : renvoi à ADR-0099 ; nouvelle section « Transport » (table des états et du bouton `Play` / `Pause`, pause, `+1 frame` / `-1 frame`, aller à un instant et son avance par pas fixes avec budget, `Stop` qui reconstruit le monde, fin de lecture, relecture après une modification en pause, mesures gardées) ; section Playhead réécrite (clic et glisser dans la règle, tête de lecture qui reste à la fin) ; caméra gardée (P11) ; trois nouvelles options d'automatisation et leurs diagnostics ; limites (pas de raccourci clavier P14, pas pour les actions comptées en images P15, coût d'un retour en arrière non mesuré sur un grand monde) ; liste du code et sections Limits et Next à jour. `docs/editor/timeline-generic.md` décrivait déjà l'option `rulerDragScrub` (livrée par T2.4) : aucun changement. Relu contre le code livré (libellés des boutons, mots d'état, comportement de `Stop`, options et diagnostics) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests relancés (6200 tests verts à T2.6).
 
-### ⏳ T3.2 — Recette de l'auteur
+### 🧪 T3.2 — Recette de l'auteur
 
 - Validation à distance sur les captures de T2.6, puis recette réelle à la fin (D5). Passe en 🧪 quand les captures sont envoyées.
+- Note (2026-11-18) : les captures de T2.6 ont été envoyées pour validation à distance ; la recette réelle de l'auteur reste à faire (O2, O3, O4).
 
 ---
 

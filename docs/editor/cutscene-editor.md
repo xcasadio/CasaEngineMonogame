@@ -1,6 +1,6 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097 and ADR-0098.
+Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098 and ADR-0099.
 
 ## Summary
 
@@ -94,7 +94,7 @@ Rows are created only when something uses them, in this order:
 
 After a play, the measured durations replace the estimates (the bar becomes solid). Any change of the document clears them, and a play in progress restarts and measures again.
 
-Time on the ruler is in seconds. The bar above the timeline reads `Playing` or `Stopped`, the play time in seconds and the number of frames, for example `Playing   2.00 s  ·  120 frames`; it is refreshed at most ten times per second.
+Time on the ruler is in seconds. The text under the transport buttons reads a state word (`Seeking`, `Paused`, `Playing`, `Ended` or `Stopped`), the play time in seconds and the number of frames, for example `Playing   2.00 s  ·  120 frames` (see "Transport"). It is rewritten only when the word, the tenth of a second or, while paused, the number of frames changes.
 
 ### How time is laid out
 
@@ -104,10 +104,10 @@ Time on the ruler is in seconds. The bar above the timeline reads `Playing` or `
 
 ### Playhead
 
-- During a play the playhead follows the real time of the cutscene, read from the director clock of the preview of the attached document (`CutsceneDirector.PlayElapsedSeconds` and `PlayElapsedFrames`, advanced after the coroutines are updated, so the first step of a play always sees time 0). The view scrolls to keep it visible.
+- The playhead always shows the play time of the preview session, whether a play runs or not (`CutsceneDirector.PlayElapsedSeconds` and `PlayElapsedFrames`, advanced after the coroutines are updated, so the first step of a play always sees time 0). The view scrolls to keep it visible while the preview plays or seeks, not while it is paused.
 - When the cutscene ends with an endless `Repeat`, the playhead loops back on the drawn lap: it shows the play time minus the length of the laps already played. With an `ExitOnInput` before the loop, the time before the loop is not folded.
-- At rest the playhead is at 0, and it goes back to 0 when a play ends.
-- A click in the ruler moves nothing: the playhead goes back to the play time. Moving the playhead, pause and step are for a later slice.
+- At rest, before any play and after `Stop`, the playhead is at 0. When a play ends by itself, the playhead stays at the end time.
+- A click in the ruler, or in the empty space of the track area, moves the preview to that time and leaves it paused (see "Transport"). The time is limited to `[0, duration of the projection]`. Holding the left button down in the ruler and moving the mouse moves the playhead continuously (the `rulerDragScrub` option of the generic timeline, enabled for this panel only; see [timeline-generic.md](timeline-generic.md)). If the document has no preview, the click moves nothing and the playhead goes back to the play time.
 
 ### Selection
 
@@ -119,7 +119,7 @@ The ruler stays fixed while the row headers and the rows scroll together vertica
 
 ### Timeline limits
 
-- Read-only: no move, resize, add or delete on the timeline.
+- Read-only: no move, resize, add or delete on the timeline. Only the playhead moves.
 - Measured durations are those of the **first occurrence** of each action during the last play. The duration of a `MoveSprite` effect is wrong when another move, `ShowSprite` or `HideSprite` interrupts it.
 - In the preview a `FadeMusic` does not wait (sound is muted): its bar shows the declared duration while the play goes faster.
 - For an endless loop whose lap holds an action of unknown duration that is not yet measured, the loop-back of the playhead becomes exact only after a first lap.
@@ -127,13 +127,34 @@ The ruler stays fixed while the row headers and the rows scroll together vertica
 
 ## Preview
 
-The document shows a transport bar (a world choice, `Play`, `Stop`, `Restart`, then the play time in seconds and frames), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
+The document shows a transport bar (a world choice, `Play` / `Pause`, `Stop`, `Restart`, `-1 frame` and `+1 frame`, with the state word and the play time under them), a status line and the preview status line, then the world preview on the whole remaining area. When no preview world can be loaded, a message replaces the preview.
 
 - **Isolated copy.** The preview loads a copy of a world of the project. The world open in the editor is never touched.
 - **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.
-- **Rebuilt on every play.** `Stop` does not restore the world, so `Play` and `Restart` always rebuild the preview world from its asset before playing.
+- **Rebuilt when needed.** `Play` from the start, `Restart`, `Stop` and every move backwards rebuild the preview world from its asset (see "Transport"). The world a play leaves behind is kept until one of these.
 - **Preview world choice.** The first world offered is found automatically, in this order: the world remembered for this cutscene, the world whose startup cutscene it is, the project's first loaded world, then the first world by file name. The choice made in the list is remembered per cutscene in `<project>/.casaeditor/cutscene-preview.editor.json`; it is an editor setting and never part of the `.cutscene` file. A project without any world shows a message instead of a preview.
-- **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself.
+- **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself. `Play` from the start and `Restart` frame the entities again; going to a time, `-1 frame` and `Stop` rebuild the world but keep the camera as you left it.
+
+### Transport
+
+The state word and the label of the `Play` / `Pause` button follow this table, read from top to bottom, first true line:
+
+| Condition | Word | Button | What the button does |
+|---|---|---|---|
+| A play runs and the preview is seeking | `Seeking` | `Pause` | Abandons the seek and stays paused |
+| A play runs and the preview is paused | `Paused` | `Play` | Resumes |
+| A play runs | `Playing` | `Pause` | Pauses |
+| No play runs, and the state is `Completed` or `Failed`, or `Stopped` after a world change | `Ended` | `Play` | Plays again from the start |
+| Otherwise (before any play, after `Stop`, invalid asset, no world) | `Stopped` | `Play` | Plays from the start |
+
+- **Pause.** A pause freezes the preview world: it stops advancing and nothing else changes. It is done in the editor; the runtime has no pause.
+- **`+1 frame`.** Pauses, then advances the world by one step of 1/60 s. It does nothing when no play runs. `-1 frame` goes to the current time minus 1/60 s (not below 0), even after a play has ended.
+- **Going to a time.** A click or a drag in the timeline ruler, or the `--cutscene-preview-seek` switch, replays the cutscene to that time and leaves the preview paused. The play time and the target agree to within one step. If the play ends before the target (a `ChangeWorld` skipped, a failure, a shorter cutscene), the seek stops there and the state is `Ended`.
+- **How a seek runs.** The preview world advances by fixed steps of 1/60 s until the play time reaches the target. When the target is after the current time, the play still runs and the document has not changed since it started, the world goes on from its current state. Otherwise the world is rebuilt from its asset and the cutscene starts again from the beginning. A seek spends about 8 ms of steps per editor frame at most (and always at least one step), so the editor stays responsive; the state is `Seeking` meanwhile and the viewport shows the advance.
+- **`Stop`.** Rebuilds the preview world from its asset and puts the playhead back at 0: the state is `Stopped`, and the screen veil and the skipped actions of the previous play are forgotten. This replaces the earlier behaviour, where the world kept the state the play had left.
+- **End of a play.** When a play ends by itself, the world keeps its final state, the playhead stays at the end time and the state is `Ended`.
+- **Editing while paused.** Any change of the document replays up to the same time and stays paused (the target time during a seek, the play time during a pause). During a play, a change restarts the play from the beginning. When no play runs, nothing is replayed. Saving counts as a change, so a save during a pause replays to the same time.
+- **Measured durations.** Seeking and `Stop` keep the durations measured so far, as long as the document does not change, so the bars of the timeline do not go back to "estimated" when you go back in time. `Play` from the start and `Restart` measure again from an empty record.
 
 ### Reported effects
 
@@ -147,7 +168,9 @@ Effects that would leave the preview world are neutralised and reported in the s
 ### Limits
 
 - Sprite animations, physics and gameplay scripts are frozen in the preview. The status line says so.
-- No pause and no seeking: only play, stop and restart. The play time is shown on the timeline (see "Timeline").
+- No keyboard shortcut for the transport (space, arrows): the buttons and the timeline are the only way.
+- Going back in time replays from the start, so each move backwards rebuilds the world from its asset. On a large world a drag backwards in the ruler rebuilds it at every mouse move; this cost has not been measured on a large world.
+- A seek advances by fixed steps of 1/60 s, a play by the editor frames. An action counted in frames (`WaitFrames`, `FadeScreenFrames`) can therefore fall at a slightly different time in a play and in a seek: the same cutscene can end one step later when reached by a seek (for example 61 frames instead of 60 for a one-second fade).
 - Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
 - The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
 - Editing the cutscene is disabled while a play session of the editor is running.
@@ -156,6 +179,14 @@ Effects that would leave the preview world are neutralised and reported in the s
 ### Automation
 
 For remote validation the editor can play the preview without any input: `--project <project.json> --open-asset <Cutscenes/name.cutscene> --cutscene-preview-play --screenshot-out <file.png> --capture-delay <seconds>`. With this switch the capture delay counts from the start of the playback, and the diagnostics file gets the preview state, the skipped actions, the name and position of each preview entity and the name of the editor's current world.
+
+Three more switches drive the transport, after the play and the edits above, one step per frame; the capture delay counts from the end of the last step:
+
+- `--cutscene-preview-seek <seconds[,seconds...]>` goes to each time in turn, the next one starting when the previous seek has finished. Numbers use the invariant culture. A list holding an unreadable or negative value is ignored as a whole.
+- `--cutscene-preview-step <n>` then advances by `n` frames (a positive integer; any other value is ignored).
+- `--cutscene-preview-stop` then stops the preview, as the `Stop` button does.
+
+The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button and the last seek requested from the timeline ruler.
 
 `--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured), the selected item, and the visible and content heights of the track area with the state of the vertical bar.
 
@@ -199,8 +230,9 @@ An empty text sets a nullable property that is not a string back to "no value".
 - `CasaEngine.EditorServices/Cutscenes/`: also `CutsceneActionCatalog` (creatable types, categories, defaults), `CutsceneActionSummary` (one-line text), `CutsceneActionTree` (parent, index, path, insertion target), `CutsceneReferenceOptions` (choices and written value of a reference), `InsertCutsceneActionCommand` and `RemoveCutsceneActionCommand` (undoable structure edits).
 - `CasaEngine.EditorServices/Cutscenes/`: also `CutscenePreviewWorldResolver`, `CutscenePreviewSettings` and `CutscenePreviewEffectHost` (preview world choice, remembered choice, reported effects).
 - `CasaEngine/Framework/Cutscenes/ICutsceneEffectHost.cs`: the runtime injection point, set through `CutsceneDirector.EffectHost`.
-- `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`: loads the world copy and plays the cutscene in it.
+- `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`: loads the world copy and plays the cutscene in it; it implements `ICutscenePreviewStepper` and exposes `Pause`, `Resume`, `StepFrames`, `Seek` and `Rewind`.
 - `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`: the document panel. It owns the selection, the edit operations (`SetProperty`, `SetProperties`, `AddAction`, `DuplicateSelectedAction`, `RemoveSelectedAction`) and the `SelectionChanged` and `DocumentChanged` events.
+- `CasaEngine.EditorServices/Cutscenes/`: also `CutscenePreviewTransport`, with `ICutscenePreviewStepper`, `CutscenePreviewTransportMode` and `CutscenePreviewStatus` (the pause, step and seek logic, testable without the editor, and `GetStatus`, which gives the state word), and `CutscenePlayTimings.Continue` (keeps the measured durations across replays).
 - `CasaEngine.EditorServices/Cutscenes/`: also `CutsceneTimelineProjection` and `CutsceneTimelineLayout` (the pure projection of the tree on rows and times, and the playhead mapping `MapPlayTime`), `CutscenePlayTimings` (measured durations, mapped from the played copy back to the edited actions by `CutsceneActionTree.MapByShape`).
 - `CasaEngine/Framework/Cutscenes/CutsceneDirector.cs`: `PlayElapsedSeconds`, `PlayElapsedFrames`, and the events `ActionStarted` and `ActionEnded` (`CutsceneActionNotification`). Additions only; without a subscriber the behaviour is unchanged.
 - `CasaEngine.Editor/Controls/CutsceneTimelinePanel.cs` and `Controls/Cutscenes/CutsceneTimelineItemRenderer.cs`: the Cutscene Timeline panel (`EditorPanelIds.CutsceneTimeline`) and the drawing of its items. The preview session exposes `ElapsedSeconds`, `ElapsedFrames`, `Timings` and `TimingsVersion`.
@@ -218,12 +250,12 @@ An empty text sets a nullable property that is not a string back to "no value".
 - The categories of the add list are a prefix, not a menu: the drop-down list cannot group.
 - Long summaries in the Hierarchy panel are cut at the right edge; a horizontal scroll bar reads them.
 - An action of an unknown type cannot be edited, and blocks the save.
-- The timeline is read-only and the preview has no pause or seeking (see "Timeline" and "Preview").
+- The timeline is read-only, and the transport has no keyboard shortcut and no speed control (see "Timeline" and "Preview").
 
 ## Next
 
 - Moving, wrapping, copying and pasting actions; drag and drop.
 - Picking an entity by clicking it in the preview.
 - A sandbox for the preview: drawn fades, sound toggle, simulated input, per-world execution policy.
-- Moving the playhead, pause and step.
+- Keyboard shortcuts for the transport, a playback speed, and going back in time without a replay.
 - Editing on the timeline: reorder, then free placement.
