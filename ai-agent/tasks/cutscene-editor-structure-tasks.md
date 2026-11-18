@@ -130,7 +130,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 ## Phase 1 — Services d'édition (`CasaEngine.EditorServices`)
 
-### ⏳ T1.1 — Déplacer une action
+### ✅ T1.1 — Déplacer une action
 
 - Objectif : P1.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/MoveCutsceneActionCommand.cs` (créé), `CutsceneActionTree.cs`, tests dans `CasaEngine.Tests/EditorServices/Cutscenes/`.
@@ -139,6 +139,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
   2. La commande : retire l'action de son conteneur et l'insère dans la destination ; quand le conteneur est le même et que l'indice de départ est avant l'indice de destination, l'indice effectif est diminué de un. `Undo` remet l'action à son indice de départ dans son conteneur de départ. Description `Move {type}`.
 - Validation : build des deux solutions ; tests : déplacement vers l'avant et vers l'arrière dans le même conteneur, avec l'ordre exact des enfants attendu ; vers un autre conteneur ; vers la fin ; refus de la racine, d'un descendant de soi, de soi-même, d'une destination non conteneur, d'une destination absente de l'arbre, d'un indice hors bornes et des deux indices qui ne changent rien ; annuler puis rétablir redonne chaque fois l'ordre exact ; les pertes de chargement d'une action déplacée sont inchangées (avec `LoadWithLosses`) ; l'instance déplacée est la même.
 - Commit : `feat(editor-services): move a cutscene action inside its tree`
+- Note de validation (2026-11-18) : `MoveCutsceneActionCommand` (`GetRefusal` statique + commande) créée dans `CasaEngine.EditorServices/Cutscenes/`, sans toucher à `CutsceneActionTree.cs` (ses fonctions `Contains` et `TryFindParent` suffisent). Les faits (`GetChildren`, `Contains`, `TryFindParent`, `RemoveCutsceneActionCommand`, `LoadLosses`) ont été relus dans le code. 17 tests ajoutés dans `MoveCutsceneActionCommandTests` (déplacement avant, arrière, début, fin, autre conteneur, conteneur avec son sous-arbre, équivalents de monter et descendre de P9, refus de la racine, de soi-même, d'un descendant, d'une destination non conteneur ou absente de l'arbre, d'un indice hors bornes et des deux indices sans effet, pertes de chargement inchangées avec `LoadWithLosses`, instance identique, sauvegarde et rechargement identiques, annuler et rétablir à l'ordre exact). Builds `CasaEngine.Editor.MonoGame.sln` et `CasaEngine.MonoGame.sln` : 0 erreur ; `dotnet test` : 6223/6223 (6206 + 17).
 
 ### ⏳ T1.2 — Regrouper et dégrouper
 
