@@ -7,6 +7,7 @@ using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Cutscenes.Serialization;
 using CasaEngine.Framework.Rendering.ScreenEffects;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -26,6 +27,7 @@ internal sealed class CutscenePreviewSession : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly PreviewWorldDriver _driver;
     private readonly CutscenePreviewEffectHost _host = new();
+    private readonly List<string> _entityNames = [];
     private CutsceneDirector? _director;
     private Guid _worldId = Guid.Empty;
     private bool _clampNextStep;
@@ -70,6 +72,35 @@ internal sealed class CutscenePreviewSession : IDisposable
     public ScreenEffectService ScreenEffects => _host.ScreenEffects;
 
     public bool IsPlaying => _director?.IsPlaying ?? false;
+
+    /// <summary>
+    /// The names of the entities of the preview world, children included, in the order of the world; empty when no world is
+    /// loaded. The returned list is reused by every call: read it before calling again. Call it when a list is built, not every frame.
+    /// </summary>
+    public IReadOnlyList<string> GetEntityNames()
+    {
+        _entityNames.Clear();
+        var world = _driver.World;
+        if (world != null)
+        {
+            AppendEntityNames(world.Entities);
+        }
+
+        return _entityNames;
+    }
+
+    private void AppendEntityNames(IEnumerable<Entity> entities)
+    {
+        foreach (var entity in entities)
+        {
+            if (!string.IsNullOrEmpty(entity.Name))
+            {
+                _entityNames.Add(entity.Name);
+            }
+
+            AppendEntityNames(entity.Children);
+        }
+    }
 
     /// <summary>Loads a copy of a world asset as the preview world. False, with <see cref="Error"/>, when it cannot be loaded.</summary>
     public bool SetWorld(Guid worldAssetId)

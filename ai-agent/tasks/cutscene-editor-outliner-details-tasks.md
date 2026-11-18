@@ -183,7 +183,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 
 ## Phase 2 — Éditeur (`CasaEngine.Editor`)
 
-### ⏳ T2.1 — Sélection et opérations du document
+### ✅ T2.1 — Sélection et opérations du document
 
 - Objectif : le document devient le point d'entrée unique des modifications ; l'arbre et les détails ne feront que l'appeler.
 - Fichiers : `CasaEngine.Editor/Controls/CutsceneAssetInspectorPanel.cs`, `CasaEngine.Editor/Runtime/CutscenePreviewSession.cs`, tests.
@@ -196,6 +196,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
   6. La colonne de propriétés actuelle reste en place dans cette tâche.
 - Validation : build ; tests ajoutés sur le panneau sans aperçu : chaque opération crée une entrée d'historique, marque le document modifié, lève `DocumentChanged` une fois, et s'annule ; sélection après ajout, duplication et suppression ; annuler un ajout vide la sélection ; supprimer, annuler puis rétablir laisse la sélection vide ; `SetProperties` crée une seule entrée. Les 16 tests existants restent verts sans modification.
 - Commit : `feat(editor): give the cutscene document a selection and edit operations`
+- Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 6026/6026 (6011 avant, 15 ajoutés dans `CutsceneDocumentOperationsTests`, les 16 tests de `CutsceneAssetInspectorPanelTests` inchangés et verts). `SetProperties` prend des `CutscenePropertyChange` (propriété, valeur), interne au panneau. `CommitField` passe maintenant par `SetProperty`. `DocumentChanged` est levé depuis `OnHistoryChanged` (une fois par commande, annulation, rétablissement), `LoadAsset` et la sauvegarde. Correction de la ligne d'état : séparateur `  |  ` devant le message, point manquant après la liste des requêtes ignorées de l'aperçu. Sans monde d'aperçu, le viewport est replié au profit d'un message. Non vérifié ici : le redémarrage de la lecture sur `DocumentChanged` et le message sans monde ne sont pas couverts par un test (le banc n'a pas de session d'aperçu), à voir sur les captures de T2.6.
 
 ### ⏳ T2.2 — Arbre des actions dans Hierarchy
 

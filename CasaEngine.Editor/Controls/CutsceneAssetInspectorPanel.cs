@@ -55,6 +55,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private MGDockPanel? _documentRoot;
     private MGComboBox<string>? _worldCombo;
     private MGTextBlock? _previewStatusText;
+    private MGTextBlock? _noPreviewWorldText;
+    private MGElement? _previewViewportContent;
     private CutscenePreviewSettings? _previewSettings;
     private readonly List<CutscenePreviewWorldCandidate> _previewWorlds = [];
     private readonly List<string> _previewWorldLabels = [];
@@ -62,6 +64,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
     private CutsceneEditSession? _session;
     private CutsceneReadOnlyDocument? _document;
+    private CutsceneActionData? _selectedAction;
     private CutsceneDebugSnapshot? _runtimeSnapshot;
     private string? _loadedRelativePath;
     private string? _historyContextId;
@@ -100,6 +103,240 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     public bool IsDirty => TryGetHistoryContext(out var historyContext) && _dirtyState.IsDirty(historyContext);
 
     public event Action<CutsceneAssetInspectorPanel>? DirtyStateChanged;
+
+    /// <summary>The action the editing operations aim at, or null. It is always an action of the tree of the document.</summary>
+    public CutsceneActionData? SelectedAction => _selectedAction;
+
+    /// <summary>Raised when <see cref="SelectedAction"/> changes, including when a change of the document empties it.</summary>
+    public event Action<CutsceneAssetInspectorPanel>? SelectionChanged;
+
+    /// <summary>
+    /// Raised once after every command, undo, redo, reload and save of the document. When it is raised the selection is
+    /// valid again and a running preview has been restarted on the edited asset.
+    /// </summary>
+    public event Action<CutsceneAssetInspectorPanel>? DocumentChanged;
+
+    /// <summary>The edit session of the document, or null before <see cref="LoadAsset"/>.</summary>
+    internal CutsceneEditSession? Session => _session;
+
+    /// <summary>
+    /// The names of the entities of the preview world; empty without a preview. The list is reused by every call:
+    /// see <see cref="CutscenePreviewSession.GetEntityNames"/>.
+    /// </summary>
+    internal IReadOnlyList<string> GetPreviewEntityNames()
+        => _preview?.GetEntityNames() ?? (IReadOnlyList<string>)Array.Empty<string>();
+
+    /// <summary>
+    /// Selects an action of the tree, or clears the selection with null. False, and no change, when the action is not in the
+    /// tree of the document.
+    /// </summary>
+    public bool SelectAction(CutsceneActionData? action)
+    {
+        if (action != null)
+        {
+            var root = _session?.Asset.RootAction;
+            if (root == null || !CutsceneActionTree.Contains(root, action))
+            {
+                return false;
+            }
+        }
+
+        SetSelection(action);
+        return true;
+    }
+
+    private void SetSelection(CutsceneActionData? action)
+    {
+        if (ReferenceEquals(_selectedAction, action))
+        {
+            return;
+        }
+
+        _selectedAction = action;
+        SelectionChanged?.Invoke(this);
+    }
+
+    /// <summary>
+    /// Writes one property of an action as one entry of the history of the document. Returns a message when the change is
+    /// refused, and null when it is done or when the value is already the one of the action (no entry then).
+    /// </summary>
+    public string? SetProperty(CutsceneActionData action, CutsceneActionProperty property, object? value)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullException.ThrowIfNull(property);
+
+        string? refusal = GetEditRefusal(action, out var historyContext);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        if (!HasFieldProblem(action, property.Key) && property.AreEqual(property.GetValue(action), value))
+        {
+            return null;
+        }
+
+        ExecuteCommand(historyContext, new SetCutsceneActionPropertyCommand(_session!, action, property, value));
+        return null;
+    }
+
+    /// <summary>
+    /// Writes several properties of an action as a single entry of the history. Properties that already hold their value
+    /// are skipped; no entry is made when none changes. Returns a message when the change is refused.
+    /// </summary>
+    internal string? SetProperties(CutsceneActionData action, string description, IReadOnlyList<CutscenePropertyChange> changes)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+        ArgumentNullException.ThrowIfNull(changes);
+
+        string? refusal = GetEditRefusal(action, out var historyContext);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        var commands = new List<IEditorCommand>(changes.Count);
+        for (int index = 0; index < changes.Count; index++)
+        {
+            var change = changes[index];
+            if (!HasFieldProblem(action, change.Property.Key) && change.Property.AreEqual(change.Property.GetValue(action), change.Value))
+            {
+                continue;
+            }
+
+            commands.Add(new SetCutsceneActionPropertyCommand(_session!, action, change.Property, change.Value));
+        }
+
+        if (commands.Count > 0)
+        {
+            ExecuteCommand(historyContext, new EditorCompositeCommand(description, commands));
+        }
+
+        return null;
+    }
+
+    /// <summary>Adds an action of a catalogue type where the insertion rule says (ADR-0097), and selects it.</summary>
+    public string? AddAction(string type)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+
+        string? refusal = GetEditRefusal(null, out var historyContext);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        if (!CutsceneActionTree.TryGetInsertionTarget(_session!.Asset.RootAction, _selectedAction, out var parent, out int index, out string error))
+        {
+            return error;
+        }
+
+        var action = CutsceneActionCatalog.Create(type);
+        ExecuteCommand(historyContext, new InsertCutsceneActionCommand(_session, parent, index, action));
+        SetSelection(action);
+        return null;
+    }
+
+    /// <summary>Inserts a copy of the selected action just after it and selects the copy.</summary>
+    public string? DuplicateSelectedAction()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        string? refusal = GetEditRefusal(selected, out var historyContext);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        var command = InsertCutsceneActionCommand.TryCreateDuplicate(_session!, selected, out string error);
+        if (command == null)
+        {
+            return error;
+        }
+
+        ExecuteCommand(historyContext, command);
+        SetSelection(command.Action);
+        return null;
+    }
+
+    /// <summary>Removes the selected action and its children; the selection is empty afterwards.</summary>
+    public string? RemoveSelectedAction()
+    {
+        var selected = _selectedAction;
+        if (selected == null)
+        {
+            return "No action is selected.";
+        }
+
+        string? refusal = GetEditRefusal(selected, out var historyContext)
+                          ?? RemoveCutsceneActionCommand.GetRefusal(_session!, selected);
+        if (refusal != null)
+        {
+            return refusal;
+        }
+
+        ExecuteCommand(historyContext, new RemoveCutsceneActionCommand(_session!, selected));
+        return null;
+    }
+
+    /// <summary>The message that refuses an edit of <paramref name="action"/> (null: no action to check), or null.</summary>
+    private string? GetEditRefusal(CutsceneActionData? action, out EditorHistoryContext historyContext)
+    {
+        historyContext = EditorHistoryContext.Empty;
+        if (_session == null)
+        {
+            return "No cutscene asset is loaded.";
+        }
+
+        if (!TryGetHistoryContext(out historyContext))
+        {
+            return "This cutscene has no history context: the change is refused.";
+        }
+
+        if (EditorHistoryService.Current.IsSuspended)
+        {
+            return "Cutscene edits are disabled during a play session.";
+        }
+
+        if (action == null)
+        {
+            return null;
+        }
+
+        var root = _session.Asset.RootAction;
+        return root != null && CutsceneActionTree.Contains(root, action) ? null : "The action is not in the cutscene.";
+    }
+
+    private void ExecuteCommand(EditorHistoryContext historyContext, IEditorCommand command)
+    {
+        _message = command.Description;
+        EditorHistoryService.Current.Execute(historyContext, command);
+    }
+
+    /// <summary>Keeps the selection inside the tree, restarts a running preview, then tells the listeners.</summary>
+    private void RaiseDocumentChanged()
+    {
+        if (_selectedAction != null)
+        {
+            var root = _session?.Asset.RootAction;
+            if (root == null || !CutsceneActionTree.Contains(root, _selectedAction))
+            {
+                SetSelection(null);
+            }
+        }
+
+        if (_preview != null && _preview.IsPlaying)
+        {
+            PlayPreview();
+        }
+
+        DocumentChanged?.Invoke(this);
+    }
 
     public MGElement CreateContent()
     {
@@ -192,6 +429,8 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         RefreshInspector();
         NotifyDirtyStateIfChanged();
         InitializePreviewWorlds();
+        SetSelection(null);
+        RaiseDocumentChanged();
     }
 
     /// <summary>
@@ -262,6 +501,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _message = $"Saved {_loadedRelativePath}";
         RefreshInspector();
         NotifyDirtyStateIfChanged();
+        RaiseDocumentChanged();
         return true;
     }
 
@@ -324,12 +564,22 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         };
         documentRoot.TryAddChild(_previewStatusText, Dock.Top);
 
+        _noPreviewWorldText = new MGTextBlock(_window, "No preview world is loaded: choose a world above to see the cutscene play.")
+        {
+            Margin = new Thickness(8, 8, 8, 8),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            WrapText = true,
+            Visibility = Visibility.Collapsed,
+        };
+        documentRoot.TryAddChild(_noPreviewWorldText, Dock.Top);
+
         propertiesRoot.PreferredWidth = PropertiesColumnWidth;
         propertiesRoot.VerticalAlignment = VerticalAlignment.Stretch;
         documentRoot.TryAddChild(propertiesRoot, Dock.Right);
 
         // The last child of the dock panel fills what is left: the viewport gets most of the document.
-        documentRoot.TryAddChild(_previewViewport.CreateContent(), Dock.Left);
+        _previewViewportContent = _previewViewport.CreateContent();
+        documentRoot.TryAddChild(_previewViewportContent, Dock.Left);
 
         ApplyPreviewWorldToViewport();
         _lastPreviewStatusKey = default;
@@ -599,6 +849,18 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         var world = _preview.World;
         _previewViewport.SetWorldOverride(world);
+
+        // Without a preview world the viewport would show the world of the editor, which is not what the play runs in.
+        if (_previewViewportContent != null)
+        {
+            _previewViewportContent.Visibility = world == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        if (_noPreviewWorldText != null)
+        {
+            _noPreviewWorldText.Visibility = world == null ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         if (world == null)
         {
             return;
@@ -664,7 +926,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         var text = new System.Text.StringBuilder();
         if (_previewWorlds.Count == 0)
         {
-            text.Append("The project has no world to preview the cutscene in. ");
+            text.Append("The project has no world to preview the cutscene in.");
         }
         else
         {
@@ -690,9 +952,14 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             }
         }
 
+        if (_preview.Requests.Count > 0)
+        {
+            text.Append('.');
+        }
+
         if (_preview.EndedByWorldChange)
         {
-            text.Append(". Would change the world: the play ends here.");
+            text.Append(" Would change the world: the play ends here.");
         }
 
         if (fade.Active)
@@ -779,6 +1046,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _document = CutsceneReadOnlyDocumentBuilder.Build(_session.Asset, _runtimeSnapshot);
         RefreshInspector();
         NotifyDirtyStateIfChanged();
+        RaiseDocumentChanged();
     }
 
     private void NotifyDirtyStateIfChanged()
@@ -896,7 +1164,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             ? "Validation OK."
             : $"{issueCount.ToString(CultureInfo.InvariantCulture)} validation issue(s).";
         string text = $"{validity} {(IsDirty ? "Modified." : "Not modified.")}";
-        _statusText.Text = _message.Length == 0 ? text : $"{text} {EscapeMarkup(_message)}";
+        _statusText.Text = _message.Length == 0 ? text : $"{text}  |  {EscapeMarkup(_message)}";
     }
 
     private void SetMessage(string message)
@@ -1090,21 +1358,13 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             return currentText;
         }
 
-        if (!TryGetHistoryContext(out var historyContext))
+        string? refusal = SetProperty(action, property, value);
+        if (refusal != null)
         {
-            SetMessage("This cutscene has no history context: the change is refused.");
+            SetMessage(refusal);
             return currentText;
         }
 
-        if (EditorHistoryService.Current.IsSuspended)
-        {
-            SetMessage("Cutscene edits are disabled during a play session.");
-            return currentText;
-        }
-
-        var command = new SetCutsceneActionPropertyCommand(_session, action, property, value);
-        _message = command.Description;
-        EditorHistoryService.Current.Execute(historyContext, command);
         return null;
     }
 
@@ -1183,3 +1443,6 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
             .Replace("]", "]]");
     }
 }
+
+/// <summary>One property and the value to write in it, for <see cref="CutsceneAssetInspectorPanel.SetProperties"/>.</summary>
+internal readonly record struct CutscenePropertyChange(CutsceneActionProperty Property, object? Value);
