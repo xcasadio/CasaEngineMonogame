@@ -133,7 +133,8 @@ The document shows a transport bar (a world choice, `Play` / `Pause`, `Stop`, `R
 - **What is played.** `Play` runs the real cutscene director on a copy of the asset as it currently is in the editor, unsaved edits included. Nothing is written to disk.
 - **Rebuilt when needed.** `Play` from the start, `Restart`, `Stop` and every move backwards rebuild the preview world from its asset (see "Transport"). The world a play leaves behind is kept until one of these.
 - **Preview world choice.** The first world offered is found automatically, in this order: the world remembered for this cutscene, the world whose startup cutscene it is, the project's first loaded world, then the first world by file name. The choice made in the list is remembered per cutscene in `<project>/.casaeditor/cutscene-preview.editor.json`; it is an editor setting and never part of the `.cutscene` file. A project without any world shows a message instead of a preview.
-- **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself. `Play` from the start and `Restart` frame the entities again; going to a time, `-1 frame` and `Stop` rebuild the world but keep the camera as you left it.
+- **Camera.** The preview uses the editor's front 2D camera, framed on all entities of the world. It does not use the camera of the world itself. `Play` from the start and `Restart` frame the entities again; going to a time, `-1 frame`, `Stop`, and a `Play` or `+1 frame` that leaves the first instant (see "Time 0") rebuild the world but keep the camera as you left it.
+- **Status line.** While a play runs, the preview status line starts with the word of the transport bar (`Preview: Playing.`, `Preview: Paused.` or `Preview: Seeking.`); when no play runs it starts with the state of the last play (`Completed`, `Failed`, `Stopped`...). It is rewritten only when what it shows changes.
 
 ### Transport
 
@@ -149,7 +150,9 @@ The state word and the label of the `Play` / `Pause` button follow this table, r
 
 - **Pause.** A pause freezes the preview world: it stops advancing and nothing else changes. It is done in the editor; the runtime has no pause.
 - **`+1 frame`.** Pauses, then advances the world by one step of 1/60 s. It does nothing when no play runs. `-1 frame` goes to the current time minus 1/60 s (not below 0), even after a play has ended.
-- **Going to a time.** A click or a drag in the timeline ruler, or the `--cutscene-preview-seek` switch, replays the cutscene to that time and leaves the preview paused. The play time and the target agree to within one step. If the play ends before the target (a `ChangeWorld` skipped, a failure, a shorter cutscene), the seek stops there and the state is `Ended`.
+- **Time 0.** Going to time 0 (or back from the first frame) shows the first instant of the cutscene: after the rebuild the world receives one update of zero duration, so the actions placed at time 0 (a `ShowSprite`, for example) have played and their sprites are visible. That update is not counted in the frames shown (`0 frames`). This start state is only for display: a play continued from it would be one frame ahead of the clock for everything that follows. So any action that leaves it (a seek to another time, `Play` during the pause, `+1 frame`) launches the play again, without the zero-duration update, and then does what it usually does. The state shown at a time therefore never depends on the path followed. `Stop` is unchanged: it shows the state before the cutscene. Limit: actions at time 0 inside a `Parallel` are not shown, because its branches only start at the next update.
+- **After the end.** The pause and the seek exist only while a play runs. As soon as no play runs, however its end was reached (by itself, or during a seek), the transport goes back to `Running`: the preview world advances with the editor frames, like the game world after a cutscene.
+- **Going to a time.** A click or a drag in the timeline ruler, or the `--cutscene-preview-seek` switch, replays the cutscene to that time and leaves the preview paused. The play time and the target agree to within one step. If the play ends before the target (a `ChangeWorld` skipped, a failure, a shorter cutscene), the seek stops there, the state is `Ended` and the transport goes back to `Running`.
 - **How a seek runs.** The preview world advances by fixed steps of 1/60 s until the play time reaches the target. When the target is after the current time, the play still runs and the document has not changed since it started, the world goes on from its current state. Otherwise the world is rebuilt from its asset and the cutscene starts again from the beginning. A seek spends about 8 ms of steps per editor frame at most (and always at least one step), so the editor stays responsive; the state is `Seeking` meanwhile and the viewport shows the advance.
 - **`Stop`.** Rebuilds the preview world from its asset and puts the playhead back at 0: the state is `Stopped`, and the screen veil and the skipped actions of the previous play are forgotten. This replaces the earlier behaviour, where the world kept the state the play had left.
 - **End of a play.** When a play ends by itself, the world keeps its final state, the playhead stays at the end time and the state is `Ended`.
@@ -171,6 +174,8 @@ Effects that would leave the preview world are neutralised and reported in the s
 - No keyboard shortcut for the transport (space, arrows): the buttons and the timeline are the only way.
 - Going back in time replays from the start, so each move backwards rebuilds the world from its asset. On a large world a drag backwards in the ruler rebuilds it at every mouse move; this cost has not been measured on a large world.
 - A seek advances by fixed steps of 1/60 s, a play by the editor frames. An action counted in frames (`WaitFrames`, `FadeScreenFrames`) can therefore fall at a slightly different time in a play and in a seek: the same cutscene can end one step later when reached by a seek (for example 61 frames instead of 60 for a one-second fade).
+- The first instant (time 0) does not show the actions placed at time 0 inside a `Parallel`.
+- An effect that outlives the last action (a sprite move still running) goes on after the end in the preview whatever the way the end was reached, since the world is live again.
 - Sound cannot be enabled, fades are not drawn and the input of `ExitOnInput` cannot be simulated.
 - The preview applies the editor's execution policy, not the world's virtual resolution, so the framing can differ from the game.
 - Editing the cutscene is disabled while a play session of the editor is running.
@@ -183,10 +188,15 @@ For remote validation the editor can play the preview without any input: `--proj
 Three more switches drive the transport, after the play and the edits above, one step per frame; the capture delay counts from the end of the last step:
 
 - `--cutscene-preview-seek <seconds[,seconds...]>` goes to each time in turn, the next one starting when the previous seek has finished. Numbers use the invariant culture. A list holding an unreadable or negative value is ignored as a whole.
-- `--cutscene-preview-step <n>` then advances by `n` frames (a positive integer; any other value is ignored).
+- `--cutscene-preview-step <n>` then advances by `n` frames, or goes back `|n|` times by one frame when `n` is negative, each step waiting for the end of the previous seek (a non-zero integer; zero, a decimal or text is ignored).
 - `--cutscene-preview-stop` then stops the preview, as the `Stop` button does.
 
-The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button and the last seek requested from the timeline ruler.
+Two more switches change the order or add a step:
+
+- `--cutscene-edit-after-transport` applies the edits (`--cutscene-select-action`, `--cutscene-add-action`, see below) after the seeks, steps and stop instead of before. The automation then waits for the replay that the edit triggers to finish before the capture delay starts counting.
+- `--cutscene-preview-resume` resumes the play after all other steps, as `Play` does during a pause. It acts only when the state is `Paused` at that moment; otherwise the diagnostics note it as refused. When `--cutscene-preview-stop` is also given, only the stop is applied and the diagnostics say so.
+
+The diagnostics add the transport options and the last transport step, the state, the transport mode, the seek target, the pending frame steps, the play time, the label of the `Play` / `Pause` button, the last seek requested from the timeline ruler and the number of play launches since the document opened (each successful world rebuild followed by a launch of the cutscene; `Stop` and a world that fails to load are not counted).
 
 `--activate-panel cutscenetimeline` brings the timeline to the front. The diagnostics also give the timeline: play time in seconds and frames, playhead, total duration, transport text, number of tracks and items, one line per item (track, label, start, duration, shape, exact, estimated or measured), the selected item, and the visible and content heights of the track area with the state of the vertical bar.
 
