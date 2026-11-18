@@ -185,7 +185,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 
 ## Phase 2 — Éditeur (`CasaEngine.Editor`)
 
-### ⏳ T2.1 — Options du contrôle Timeline : défilement vertical et clic précis
+### ✅ T2.1 — Options du contrôle Timeline : défilement vertical et clic précis
 
 - Objectif : le contrôle générique reste utilisable quand les pistes dépassent sa hauteur, et tout élément visible peut être cliqué (P13).
 - Fichiers : `CasaEngine.Editor/Controls/Timeline/` (contrôle, zone des pistes, en-têtes, test de clic, état de vue), tests dans `CasaEngine.Tests/Editor/`.
@@ -196,6 +196,7 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
   4. Test de clic précis : sous le curseur, un élément instantané à portée gagne sur une barre, et parmi les barres et plages la plus courte gagne. Fonction pure à côté du test actuel, qui reste inchangé.
 - Validation : build ; tests ajoutés : choix de l'élément dans les quatre cas (marqueur sur barre, barre sur plage, deux barres imbriquées, barre seule) ; `EnsureTrackVisible` ; avec l'option de défilement et un parent de 200 px pour 12 pistes, la hauteur du contrôle est celle du parent et le contenu défile ; sans option, la hauteur voulue d'un contrôle à 3 pistes vaut toujours règle + `12 + 34 × 3`, sans barre verticale. Les quatre fichiers de tests existants du contrôle passent sans modification.
 - Commit : `feat(editor): add vertical scrolling and precise hit testing options to the timeline control`
+- Note de validation : `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` 0 erreur ; `CasaEngine.Tests` 6118/6118 (6106 + 12 nouveaux dans `TimelineVerticalScrollTests` et `TimelinePreciseHitTestTests`), aucun test existant modifié. Options données par le constructeur `TimelineControl(window, verticalScroll, preciseHitTest)` ; `TimelineControl(window)` les met à faux et `Animation2dTimelineControl` n'est pas touché (hauteur d'un contrôle à 3 pistes mesurée à 156 px avant et après). Avec le défilement : règle et coin fixes dans la rangée du haut, en-têtes et zone des pistes dans un `MGScrollViewer` vertical (barre automatique) ; la règle reçoit une marge droite égale à la largeur de la barre pour rester alignée sur le temps. Le routage de la molette de MGUI suffit : sur la zone du temps elle zoome sans défiler, sur les en-têtes elle défile (testé). Le test d'entrée de la zone des pistes lit alors `LayoutBounds` (espace de mise en page non défilé) au lieu de `ActualLayoutBounds` (coordonnées écran, rognées), sinon les rangées sont décalées après un défilement ; sans l'option, le code est inchangé. Ajouts publics du contrôle : `EnsureTrackVisible`, `ScrollY`, `TrackAreaViewportHeight`, `TrackAreaContentHeight`, `IsVerticalScrollBarVisible` (pour les diagnostics de T2.4). Écart : le banc `ContentBrowserViewTestHarness.AdvanceFrame` reçoit un paramètre facultatif `scrollWheelValue` (valeur par défaut 0, comportement inchangé) pour simuler la molette. Limite : le test de clic « le plus précis gagne » prend le marqueur dont le centre est à moins de 14 px, même au-dessus d'une barre ; à égalité de durée, une barre `Duration` passe avant une plage `Range`, puis l'élément le plus tard dans la liste.
 
 ### ⏳ T2.2 — La session d'aperçu suit la lecture
 

@@ -268,7 +268,7 @@ internal sealed class TimelineViewport : MGElement
         }
 
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
         {
@@ -302,7 +302,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
@@ -342,7 +342,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
@@ -410,7 +410,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
@@ -482,7 +482,7 @@ internal sealed class TimelineViewport : MGElement
         }
 
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.CurrentPosition);
-        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle layoutBounds = GetInputBounds();
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         TimelineTrack? lane = timeAreaBounds.Contains(layoutPosition)
             ? _owner.GetTrackAtY(layoutBounds, layoutPosition.Y)
@@ -520,23 +520,38 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
-        if (!bounds.Contains(e.Position))
+        Rectangle bounds = GetInputBounds();
+        Point position = _owner.VerticalScrollEnabled
+            ? ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position)
+            : e.Position;
+        if (!bounds.Contains(position))
         {
             return;
         }
 
         int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
         int timeAreaRight = bounds.Right - TimelineControlMetrics.TimeAreaPaddingRight;
-        if (e.Position.X < timeAreaLeft || e.Position.X > timeAreaRight)
+        if (position.X < timeAreaLeft || position.X > timeAreaRight)
         {
             return;
         }
 
         float wheelSteps = e.ScrollWheelDelta / 120.0f;
-        float anchorViewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, GetVisibleTimeAreaWidth());
+        float anchorViewportX = Math.Clamp(position.X - timeAreaLeft, 0f, GetVisibleTimeAreaWidth());
         _owner.ApplyMouseWheelZoom(wheelSteps, anchorViewportX);
         e.SetHandledBy(this);
+    }
+
+    /// <summary>Bounds in layout space used by input. With vertical scrolling the unclipped layout bounds are the only ones that
+    /// stay consistent with the track rows once the content is scrolled.</summary>
+    private Rectangle GetInputBounds()
+    {
+        if (_owner.VerticalScrollEnabled)
+        {
+            return LayoutBounds;
+        }
+
+        return !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
     }
 
     private TimelineHitTestResult HitTestAt(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack track)
@@ -547,12 +562,26 @@ internal sealed class TimelineViewport : MGElement
             return new TimelineHitTestResult { Track = track, Area = TimelineHitTestArea.TrackBody };
         }
 
+        Rectangle trackBounds = _owner.GetTrackBounds(layoutBounds, trackIndex);
+        if (_owner.PreciseHitTestEnabled)
+        {
+            return TimelineHitTest.HitTestTrackPrecise(
+                _owner.Model!.Items,
+                _owner.ViewTransform,
+                timeAreaBounds.Left,
+                track,
+                trackBounds,
+                TimelineControlMetrics.ItemHitRadius,
+                TimelineControlMetrics.ResizeHandleWidth,
+                layoutPosition);
+        }
+
         return TimelineHitTest.HitTestTrack(
             _owner.Model!.Items,
             _owner.ViewTransform,
             timeAreaBounds.Left,
             track,
-            _owner.GetTrackBounds(layoutBounds, trackIndex),
+            trackBounds,
             TimelineControlMetrics.ItemHitRadius,
             TimelineControlMetrics.ResizeHandleWidth,
             layoutPosition);

@@ -42,7 +42,7 @@ internal sealed class ContentBrowserViewTestHarness
         return new ContentBrowserViewTestHarness(runtime, desktop, window);
     }
 
-    public void AdvanceFrame(int totalElapsedMs, Point? position = null, MouseButton? pressedButton = null, Keys[]? pressedKeys = null)
+    public void AdvanceFrame(int totalElapsedMs, Point? position = null, MouseButton? pressedButton = null, Keys[]? pressedKeys = null, int scrollWheelValue = 0)
     {
         Point mousePosition = position ?? Point.Zero;
         _runtime.ApplyFrame(new UpdateBaseArgs(
@@ -51,7 +51,7 @@ internal sealed class ContentBrowserViewTestHarness
             new MouseState(
                 mousePosition.X,
                 mousePosition.Y,
-                0,
+                scrollWheelValue,
                 pressedButton == MouseButton.Left ? ButtonState.Pressed : ButtonState.Released,
                 pressedButton == MouseButton.Middle ? ButtonState.Pressed : ButtonState.Released,
                 pressedButton == MouseButton.Right ? ButtonState.Pressed : ButtonState.Released,
