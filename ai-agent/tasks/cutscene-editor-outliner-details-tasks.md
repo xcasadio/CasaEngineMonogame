@@ -167,7 +167,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 - Commit : `feat(editor-services): add the cutscene action catalogue, summaries and cloning`
 - Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 5996/5996 (5961 avant, 35 ajoutés dans `CutsceneActionCatalogTests`). Les 23 types de `CutsceneActionTypes` sont dans le catalogue, chacun créé se sérialise et se recharge sans erreur de format ; le clone passe par `Save` puis `Load` de `CutsceneAssetJsonSerializer` (un type inconnu ou une erreur de format n'est donc pas copié, la duplication de T1.3 les refuse).
 
-### 🚧 T1.3 — Commandes de structure
+### ✅ T1.3 — Commandes de structure
 
 - Objectif : ajouter, supprimer et dupliquer une action, de façon annulable.
 - Fichiers : `CasaEngine.EditorServices/Cutscenes/InsertCutsceneActionCommand.cs`, `RemoveCutsceneActionCommand.cs`, `CutsceneActionTree.cs` (créés), tests.
@@ -177,6 +177,7 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
   3. La duplication est une insertion du clone juste après la source, refusée dans le cas décrit par P3.
 - Validation : tests : exécuter, annuler, rétablir pour chaque commande, à la racine et dans des conteneurs imbriqués ; l'instance réinsérée à l'annulation est la même ; cibles d'insertion des trois cas de P2 ; refus sur la racine ; refus de dupliquer un sous-arbre marqué ; pertes de chargement retirées puis remises au même indice, de sorte que le message de `CutsceneSaveGuard` est le même avant la suppression et après son annulation ; après une suite de commandes, l'asset se sérialise et se recharge à l'identique.
 - Commit : `feat(editor-services): add undoable commands that insert and remove cutscene actions`
+- Validation faite : `dotnet build CasaEngine.Editor.MonoGame.sln` 0 erreur ; `dotnet test CasaEngine.Tests` 6011/6011 (5996 avant, 15 ajoutés dans `CutsceneActionStructureTests`, sur un `EditorHistoryStack`). Les pertes de chargement sont retirées avec le sous-arbre puis remises à leur indice d'origine (le message de `CutsceneSaveGuard` est identique avant et après l'annulation). Ajout interne : `CutsceneEditSession.IndexOfLoadLoss` et `InsertLoadLoss`. `InsertCutsceneActionCommand.TryCreateDuplicate` et `GetDuplicateRefusal` portent la règle de duplication, `RemoveCutsceneActionCommand.GetRefusal` celle de la racine.
 
 ---
 

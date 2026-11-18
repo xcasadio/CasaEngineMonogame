@@ -64,4 +64,10 @@ public sealed class CutsceneEditSession
     }
 
     internal void RemoveLoadLoss(CutsceneLoadLoss loss) => _loadLosses.Remove(loss);
+
+    internal int IndexOfLoadLoss(CutsceneLoadLoss loss) => _loadLosses.IndexOf(loss);
+
+    /// <summary>Puts a loss back at an index of the list, or at its end when the list is shorter.</summary>
+    internal void InsertLoadLoss(int index, CutsceneLoadLoss loss)
+        => _loadLosses.Insert(Math.Min(index, _loadLosses.Count), loss);
 }
