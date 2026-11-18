@@ -94,7 +94,7 @@ internal sealed class CutsceneTimelinePanel
         };
         _root.TryAddChild(_emptyText, Dock.Top);
 
-        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true, trackRowHeight: CompactTrackRowHeight)
+        _timeline = new TimelineControl(_window, verticalScroll: true, preciseHitTest: true, trackRowHeight: CompactTrackRowHeight, rulerDragScrub: true)
         {
             ItemRenderer = new CutsceneTimelineItemRenderer(),
             CornerHeaderText = "Rows",

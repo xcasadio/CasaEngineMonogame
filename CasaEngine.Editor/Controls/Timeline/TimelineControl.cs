@@ -40,6 +40,11 @@ internal class TimelineControl : MGGrid
     /// <summary>True when a click picks the most specific item under the cursor instead of the first one found.</summary>
     public bool PreciseHitTestEnabled { get; }
 
+    internal TimelineRuler Ruler => _ruler;
+
+    /// <summary>True when holding the left button down in the ruler and moving the mouse scrubs the playhead continuously; otherwise only a click does.</summary>
+    public bool RulerDragScrubEnabled { get; }
+
     /// <summary>Height of one track row in pixels; <see cref="TimelineControlMetrics.TrackRowHeight"/> unless a compact height was requested.</summary>
     public int TrackRowHeight { get; }
 
@@ -120,7 +125,8 @@ internal class TimelineControl : MGGrid
     /// given by the parent instead of the height of the content.</param>
     /// <param name="preciseHitTest">Makes a click pick a marker before a bar and the shortest bar first.</param>
     /// <param name="trackRowHeight">Height of a track row in pixels; the default keeps the height of every existing timeline.</param>
-    public TimelineControl(MGWindow window, bool verticalScroll, bool preciseHitTest, int trackRowHeight = TimelineControlMetrics.TrackRowHeight)
+    /// <param name="rulerDragScrub">Makes dragging in the ruler scrub the playhead continuously instead of only a click; off by default.</param>
+    public TimelineControl(MGWindow window, bool verticalScroll, bool preciseHitTest, int trackRowHeight = TimelineControlMetrics.TrackRowHeight, bool rulerDragScrub = false)
         : base(window)
     {
         if (trackRowHeight <= 0)
@@ -130,6 +136,7 @@ internal class TimelineControl : MGGrid
 
         VerticalScrollEnabled = verticalScroll;
         PreciseHitTestEnabled = preciseHitTest;
+        RulerDragScrubEnabled = rulerDragScrub;
         TrackRowHeight = trackRowHeight;
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;

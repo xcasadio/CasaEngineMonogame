@@ -6,6 +6,7 @@ using CasaEngine.Editor.Styling;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using MGUI.Core.UI;
+using MGUI.Shared.Input.Mouse;
 using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
 
@@ -14,6 +15,9 @@ namespace CasaEngine.Editor.Controls.Timeline;
 internal sealed class TimelineRuler : MGElement
 {
     private readonly TimelineControl _owner;
+    private bool _dragScrubbing;
+    private bool _ignoreNextRelease;
+    private float _lastDragTimeSeconds;
 
     public TimelineRuler(MGWindow window, TimelineControl owner)
         : base(window, MGElementType.Misc)
@@ -24,6 +28,14 @@ internal sealed class TimelineRuler : MGElement
         IsHitTestVisible = true;
         MouseHandler.LMBReleasedInside += OnLeftMouseReleasedInside;
         MouseHandler.Scrolled += OnScrolled;
+        if (_owner.RulerDragScrubEnabled)
+        {
+            MouseHandler.DragStartCondition = DragStartCondition.MouseMovedAfterPress;
+            MouseHandler.LMBPressedInside += OnLeftMousePressedInside;
+            MouseHandler.DragStart += OnDragStart;
+            MouseHandler.Dragged += OnDragged;
+            MouseHandler.DragEnd += OnDragEnd;
+        }
     }
 
     public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
@@ -170,8 +182,87 @@ internal sealed class TimelineRuler : MGElement
         e.SetHandledBy(this);
     }
 
+    private void OnLeftMousePressedInside(object? sender, MGUI.Shared.Input.Mouse.BaseMousePressedEventArgs e)
+    {
+        // A drag that ended outside the ruler leaves no release to consume: a new press starts clean.
+        _ignoreNextRelease = false;
+    }
+
+    private void OnDragStart(object? sender, MGUI.Shared.Input.Mouse.BaseMouseDragStartEventArgs e)
+    {
+        if (_owner.Model == null || !e.IsLMB || e.Condition != DragStartCondition.MouseMovedAfterPress)
+        {
+            return;
+        }
+
+        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
+        int timeAreaRight = bounds.Right - TimelineControlMetrics.TimeAreaPaddingRight;
+        if (e.Position.X < timeAreaLeft || e.Position.X > timeAreaRight)
+        {
+            return;
+        }
+
+        _dragScrubbing = true;
+        _lastDragTimeSeconds = float.NaN;
+        _owner.Focus(KeyboardFocusSource.Pointer);
+        ScrubTo(bounds, e.Position.X);
+        e.SetHandledBy(this, false);
+    }
+
+    private void OnDragged(object? sender, MGUI.Shared.Input.Mouse.BaseMouseDraggedEventArgs e)
+    {
+        if (!_dragScrubbing || !e.IsLMB || _owner.Model == null)
+        {
+            return;
+        }
+
+        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        ScrubTo(bounds, e.Position.X);
+    }
+
+    private void OnDragEnd(object? sender, MGUI.Shared.Input.Mouse.BaseMouseDragEndEventArgs e)
+    {
+        if (!_dragScrubbing || !e.IsLMB)
+        {
+            return;
+        }
+
+        _dragScrubbing = false;
+        // The release that follows the drag must not scrub a second time.
+        _ignoreNextRelease = true;
+    }
+
+    /// <summary>Moves the playhead to the time under <paramref name="x"/> (clamped to the time area) and notifies, unless the time did not change since the last move of this drag.</summary>
+    private void ScrubTo(Rectangle bounds, int x)
+    {
+        float timeSeconds = GetTimeAtX(bounds, x);
+        if (Math.Abs(timeSeconds - _lastDragTimeSeconds) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        _lastDragTimeSeconds = timeSeconds;
+        _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
+        _owner.NotifyTimeScrubbed(timeSeconds);
+    }
+
+    private float GetTimeAtX(Rectangle bounds, int x)
+    {
+        int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
+        float viewportX = Math.Clamp(x - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
+        return _owner.ViewTransform.ViewportXToTime(viewportX);
+    }
+
     private void OnLeftMouseReleasedInside(object? sender, MGUI.Shared.Input.Mouse.BaseMouseReleasedEventArgs e)
     {
+        if (_ignoreNextRelease)
+        {
+            _ignoreNextRelease = false;
+            e.SetHandledBy(this, false);
+            return;
+        }
+
         if (_owner.Model == null)
         {
             return;
@@ -192,8 +283,7 @@ internal sealed class TimelineRuler : MGElement
 
         _owner.Focus(KeyboardFocusSource.Pointer);
 
-        float viewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
-        float timeSeconds = _owner.ViewTransform.ViewportXToTime(viewportX);
+        float timeSeconds = GetTimeAtX(bounds, e.Position.X);
         _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
         _owner.NotifyTimeScrubbed(timeSeconds);
         e.SetHandledBy(this, false);
