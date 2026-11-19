@@ -635,6 +635,39 @@ public partial class GameEditor
             return true;
         }
 
+        public Entity GetEntityAsset(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel) ? panel.LoadedEntity : null;
+
+        public string GetEntityAssetLoadedFile(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel) ? panel.LoadedRelativePath : null;
+
+        public bool IsEntityAssetModified(Guid assetId)
+            => TryGetOpenEntityAssetPanel(assetId, out var panel) && panel.IsDirty;
+
+        public void SelectEntityAssetComponent(Guid assetId, EntityComponent component)
+        {
+            if (TryGetOpenEntityAssetPanel(assetId, out var panel))
+            {
+                panel.SetSelectedComponent(component);
+            }
+        }
+
+        /// <summary>
+        /// The entity asset panel of <paramref name="assetId"/> when it is open: registered and with its dock tab. A panel
+        /// registered without its tab is not open (security review S3-6), as in <see cref="GetAssetPanelKind"/>.
+        /// </summary>
+        private bool TryGetOpenEntityAssetPanel(Guid assetId, out Controls.EntityAssetEditorPanel panel)
+        {
+            string panelId = EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N");
+            if (_editor._entityAssetEditorPanels.TryGetValue(panelId, out panel) && FindPanel(panelId) != null)
+            {
+                return true;
+            }
+
+            panel = null;
+            return false;
+        }
+
         /// <summary>Saves one asset from its open panel, as File &gt; Save does for that kind, then marks its history saved.</summary>
         public bool TrySaveAsset(Guid assetId, out string error)
         {

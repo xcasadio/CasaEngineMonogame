@@ -135,14 +135,40 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         return RemotePanelCloseResult.Closed;
     }
 
+    /// <summary>
+    /// For an entity asset registered in <see cref="EntityAssets"/> (found by the catalog entry of the file), its panel id;
+    /// null when <see cref="EntityAssetOpenFails"/>; otherwise the test panel id of the type, as before.
+    /// </summary>
     public string OpenAsset(string fullPath, string type)
     {
         OpenedAssets.Add((fullPath, type));
+        if (type == EditorRemoteAssetTypes.Entity)
+        {
+            if (EntityAssetOpenFails)
+            {
+                return null;
+            }
+
+            if (FindEntityAsset(fullPath) is { } panel)
+            {
+                return panel.PanelId;
+            }
+        }
+
         return "panel_" + type + "_test";
     }
 
+    /// <summary>The registered entity asset's context first, then <see cref="AssetContexts"/>.</summary>
     public bool TryGetAssetHistoryContext(Guid assetId, out CasaEngine.Editor.History.EditorHistoryContext context)
-        => AssetContexts.TryGetValue(assetId, out context);
+    {
+        if (EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel))
+        {
+            context = panel.Context;
+            return true;
+        }
+
+        return AssetContexts.TryGetValue(assetId, out context);
+    }
 
     public void RefreshAfterHistory(CasaEngine.Editor.History.EditorHistoryContext context) => RefreshedContexts.Add(context);
 
@@ -171,9 +197,24 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         return error == null;
     }
 
+    /// <summary>When set, <see cref="TrySaveAsset"/> fails with this error.</summary>
+    public string SaveAssetError { get; set; }
+
+    /// <summary>Records the call; for a registered entity asset, marks its context saved in the real dirty state, as the editor does.</summary>
     public bool TrySaveAsset(Guid assetId, out string error)
     {
         SavedAssets.Add(assetId);
+        if (SaveAssetError != null)
+        {
+            error = SaveAssetError;
+            return false;
+        }
+
+        if (EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel))
+        {
+            CasaEngine.Editor.History.EditorDirtyStateService.Current.MarkSaved(panel.Context);
+        }
+
         error = null;
         return true;
     }
@@ -247,5 +288,81 @@ internal sealed class RemoteTestHost : IEditorRemoteHost
         SoundModified = true;
         error = null;
         return true;
+    }
+
+    /// <summary>An entity asset "open in its panel": a real entity, the file the panel loaded and the panel's history context.</summary>
+    public sealed class EntityAssetPanel
+    {
+        public Entity Entity { get; init; }
+
+        public string LoadedFile { get; set; }
+
+        public string PanelId { get; init; }
+
+        public CasaEngine.Editor.History.EditorHistoryContext Context { get; init; }
+    }
+
+    /// <summary>The open entity asset panels, by asset id.</summary>
+    public Dictionary<Guid, EntityAssetPanel> EntityAssets { get; } = new();
+
+    public bool EntityAssetOpenFails { get; set; }
+
+    /// <summary>Calls of the entity asset members below (the open, the save and the history context are recorded elsewhere).</summary>
+    public int EntityAssetCalls { get; private set; }
+
+    public List<(Guid AssetId, EntityComponent Component)> SelectedEntityAssetComponents { get; } = new();
+
+    /// <summary>Registers an open entity asset panel with the editor's panel id and an <c>Entity</c> history context.</summary>
+    public EntityAssetPanel AddEntityAsset(Guid assetId, Entity entity, string loadedFile)
+    {
+        string panelId = CasaEngine.Editor.Workspaces.EditorPanelIds.EntityAssetDocumentPrefix + assetId.ToString("N");
+        var panel = new EntityAssetPanel
+        {
+            Entity = entity,
+            LoadedFile = loadedFile,
+            PanelId = panelId,
+            Context = new CasaEngine.Editor.History.EditorHistoryContext(CasaEngine.Editor.History.EditorHistoryContextKind.Entity, panelId),
+        };
+        EntityAssets[assetId] = panel;
+        return panel;
+    }
+
+    public Entity GetEntityAsset(Guid assetId)
+    {
+        EntityAssetCalls++;
+        return EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel) ? panel.Entity : null;
+    }
+
+    public string GetEntityAssetLoadedFile(Guid assetId)
+    {
+        EntityAssetCalls++;
+        return EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel) ? panel.LoadedFile : null;
+    }
+
+    /// <summary>The real dirty state of the panel's context, as the panel's <c>IsDirty</c> reads it.</summary>
+    public bool IsEntityAssetModified(Guid assetId)
+    {
+        EntityAssetCalls++;
+        return EntityAssets.TryGetValue(assetId, out EntityAssetPanel panel)
+            && CasaEngine.Editor.History.EditorDirtyStateService.Current.IsDirty(panel.Context);
+    }
+
+    public void SelectEntityAssetComponent(Guid assetId, EntityComponent component)
+    {
+        EntityAssetCalls++;
+        SelectedEntityAssetComponents.Add((assetId, component));
+    }
+
+    private EntityAssetPanel FindEntityAsset(string fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectDirectory))
+        {
+            return null;
+        }
+
+        string relative = Path.GetRelativePath(ProjectDirectory, fullPath);
+        CasaEngine.Framework.Assets.AssetInfo info = CasaEngine.Framework.Assets.AssetCatalog.GetByFileName(relative)
+            ?? CasaEngine.Framework.Assets.AssetCatalog.GetByFileName(relative.Replace('\\', '/'));
+        return info != null && EntityAssets.TryGetValue(info.Id, out EntityAssetPanel panel) ? panel : null;
     }
 }
