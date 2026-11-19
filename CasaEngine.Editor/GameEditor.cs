@@ -135,13 +135,13 @@ public class GameEditor : Game, IObservableUpdate
     /// <summary>Every question and message of the editor, as MGUI message boxes shown one at a time (ADR-0041).</summary>
     private EditorMessageBoxes _messageBoxes;
 
-    /// <summary>The asynchronous "save before closing?" question of every modifiable document (ADR-0041, ADR-0104).</summary>
+    /// <summary>The asynchronous "save before closing?" question of every modifiable document (ADR-0041, ADR-0143).</summary>
     private ModifiedScreenCloseCoordinator _modifiedScreenCloseCoordinator;
 
-    /// <summary>The asynchronous "save before quitting?" question of every modified document and the world (ADR-0041, ADR-0104).</summary>
+    /// <summary>The asynchronous "save before quitting?" question of every modified document and the world (ADR-0041, ADR-0143).</summary>
     private ModifiedScreensExitCoordinator _modifiedScreensExitCoordinator;
 
-    /// <summary>The asynchronous "save before opening another project?" question of every modified document and the world (ADR-0104).</summary>
+    /// <summary>The asynchronous "save before opening another project?" question of every modified document and the world (ADR-0143).</summary>
     private ModifiedDocumentsGate _projectSwitchGate;
 
     /// <summary>True while the "save before opening another world?" question waits for its answer (ADR-0041).</summary>
@@ -2110,7 +2110,7 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    // ADR-0101, P10: with a cutscene document active, the clipboard shortcuts act on that document and on nothing else.
+    // ADR-0140, P10: with a cutscene document active, the clipboard shortcuts act on that document and on nothing else.
     private bool IsCutsceneDocumentActive()
     {
         return _editorContext.ActiveDocument?.Kind == EditorDocumentKind.Cutscene;
@@ -2920,7 +2920,7 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0041 and generalised to every modifiable document by ADR-0104: asks whether to save a modified document before a USER close
+    /// T4.5 (D17), made asynchronous by ADR-0041 and generalised to every modifiable document by ADR-0143: asks whether to save a modified document before a USER close
     /// removes its panel (<see cref="MGDockHost.PanelClosing"/> - raised before the removal, for a tab's close button,
     /// "Close Others"/"Close All", a floating window's tab close, the auto-hide drawer's close, and closing a whole
     /// floating window; never for <c>RemovePanel</c>, <c>ClosePanel</c> or <c>CloseFloatingWindow</c> called by
@@ -3002,7 +3002,7 @@ public class GameEditor : Game, IObservableUpdate
 
 
     /// <summary>
-    /// T4.5 (D17), made asynchronous by ADR-0041 and widened by ADR-0104: asks whether to save every still-modified
+    /// T4.5 (D17), made asynchronous by ADR-0041 and widened by ADR-0143: asks whether to save every still-modified
     /// document, and the world, before the game exits. The MGUI question answers later, so <see cref="_modifiedScreensExitCoordinator"/> cancels this exit,
     /// asks, and requests the exit again (<see cref="Game.Exit"/>) once the answer lets it go. Under automation, nothing is
     /// asked - the abandoned documents are logged instead, exactly as the author decided for every other unattended path.
@@ -3578,7 +3578,7 @@ public class GameEditor : Game, IObservableUpdate
 
     /// <summary>
     /// A cutscene preview that is no longer the tab in front stops its sound and its sound button goes back to off
-    /// (ADR-0103). The documents are still updated while they are in the background, so only this call silences them.
+    /// (ADR-0142). The documents are still updated while they are in the background, so only this call silences them.
     /// </summary>
     private void SilenceInactiveCutscenePreviews(EditorDocumentContext document)
     {
@@ -5455,7 +5455,7 @@ public class GameEditor : Game, IObservableUpdate
 
         ActivateCutsceneDocument(panelId, inspectorPanel);
         ActivateDockPanel(panelId);
-        // The timeline tab, added by the document change above, comes to the front of the bottom group (ADR-0098).
+        // The timeline tab, added by the document change above, comes to the front of the bottom group (ADR-0137).
         ActivateDockPanel(EditorPanelIds.CutsceneTimeline);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened cutscene asset='{cutsceneAsset.Name}', panel='{panelId}'");
@@ -8523,7 +8523,7 @@ public class GameEditor : Game, IObservableUpdate
     private const int AutomationCutsceneOperationMaxWaitFrames = 300;
 
     /// <summary>
-    /// Applies the next operation of <c>--cutscene-edit-ops</c> (ADR-0101, P14) and records its result for the diagnostics. A
+    /// Applies the next operation of <c>--cutscene-edit-ops</c> (ADR-0140, P14) and records its result for the diagnostics. A
     /// refused or unknown operation is written down and the next one follows. An operation that needs the layout of the tree
     /// waits for it, up to <see cref="AutomationCutsceneOperationMaxWaitFrames"/> frames.
     /// </summary>

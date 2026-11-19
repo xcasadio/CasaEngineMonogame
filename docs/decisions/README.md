@@ -27,7 +27,7 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0011](0011-tilemap-render-spaces.md) | Tilemap render spaces | Accepted | 2026-09-06 (backfill) |
 | [ADR-0012](0012-materials-shaders-sources-of-truth.md) | Materials and shaders sources of truth matrix | Accepted | 2026-09-06 (backfill) |
 | [ADR-0013](0013-pbr-rendering-decisions.md) | PBR rendering decisions | Accepted | 2026-08-09 |
-| [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted (decision 2 superseded by ADR-0096) | 2026-06-13 |
+| [ADR-0014](0014-generic-timeline-base-for-the-editor.md) | Generic timeline base for the editor | Accepted (decision 2 superseded by ADR-0135) | 2026-06-13 |
 | [ADR-0015](0015-animation2d-editor-v1.md) | Animation2D editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0016](0016-ui-screen-editor-v1.md) | UI screen editor V1 | Accepted | 2026-09-06 (backfill) |
 | [ADR-0017](0017-mgui-backend-extensibility.md) | MGUI backend extensibility, Apos.Shapes and NvgSharp behind CasaEngine contracts | Accepted | 2026-09-06 (backfill) |
@@ -102,19 +102,19 @@ This folder records the architecture decisions of CasaEngine: engine and editor 
 | [ADR-0086](0086-the-engine-keeps-the-last-frame-and-shows-it-frozen.md) | The engine keeps the last frame of the active view and shows it frozen (numbered ADR-0085 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0087](0087-a-world-declares-its-design-resolution-and-may-render-into-a-buffer.md) | A world declares its design resolution and may render into a buffer (numbered ADR-0086 until 2026-11-08) | Accepted | 2026-11-08 |
 | [ADR-0088](0088-a-world-starts-a-cutscene-and-cutscenes-count-frames.md) | A world starts a cutscene, and cutscenes count frames, open screens and change worlds (numbered ADR-0087 until 2026-11-08) | Accepted | 2026-11-08 |
-| [ADR-0089](0089-the-engine-plays-mdec-videos-through-a-video-element.md) | The engine plays MDEC videos through a Video element | Accepted | 2026-11-08 |
-| [ADR-0090](0090-cutscene-actions-drive-named-sprite-entities-over-time.md) | Cutscene actions drive named sprite entities over time | Accepted | 2026-11-09 |
-| [ADR-0091](0091-a-world-video-component-and-an-any-key-input.md) | A world video component plays under sprites, and an input entry can react to any key | Accepted | 2026-11-09 |
-| [ADR-0092](0092-sprites-of-equal-depth-follow-a-draw-order.md) | Sprites of equal depth follow a draw order, then their submission | Accepted | 2026-11-10 |
-| [ADR-0093](0093-a-world-video-can-run-to-its-end-after-its-cutscene.md) | A world video can run to its end after the cutscene that started it | Accepted | 2026-11-12 |
-| [ADR-0094](0094-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md) | The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer | Accepted | 2026-11-17 |
-| [ADR-0095](0095-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md) | Cutscene assets are edited in the editor, on their action tree | Accepted | 2026-11-17 |
-| [ADR-0096](0096-the-cutscene-editor-previews-in-an-isolated-world-and-projects-the-tree-on-a-timeline.md) | The cutscene editor previews in an isolated world and projects its action tree on a timeline | Accepted | 2026-11-18 |
-| [ADR-0097](0097-the-cutscene-editor-shows-an-outliner-and-typed-details-and-edits-the-structure.md) | The cutscene editor shows an action outliner and typed details, and edits the tree structure | Accepted | 2026-11-18 |
-| [ADR-0098](0098-the-cutscene-timeline-is-a-read-only-projection-with-a-play-clock.md) | The cutscene timeline is a read-only projection of the action tree, fed by a play clock | Accepted | 2026-11-18 |
-| [ADR-0099](0099-the-cutscene-preview-pauses-steps-and-seeks-by-replay.md) | The cutscene preview pauses, steps and seeks by replay, driven by a transport of the editing services | Accepted | 2026-11-18 |
-| [ADR-0100](0100-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md) | The cutscene preview shows the first instant at time 0 and keeps its world live once no play runs | Accepted | 2026-11-18 |
-| [ADR-0101](0101-the-cutscene-editor-edits-the-action-tree-structure-by-mouse.md) | The cutscene editor edits the structure of the action tree by mouse | Accepted | 2026-11-18 |
-| [ADR-0102](0102-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md) | The cutscene format gains an At action, and the timeline places actions in time | Accepted | 2026-11-18 |
-| [ADR-0103](0103-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md) | The cutscene preview draws screen fades, simulates an input and plays sound on demand | Accepted | 2026-11-19 |
-| [ADR-0104](0104-every-modified-document-asks-before-its-changes-are-lost.md) | Every modified document asks before its changes are lost | Accepted | 2026-11-19 |
+| [ADR-0128](0128-the-engine-plays-mdec-videos-through-a-video-element.md) | The engine plays MDEC videos through a Video element (numbered ADR-0089 until 2026-11-19) | Accepted | 2026-11-08 |
+| [ADR-0129](0129-cutscene-actions-drive-named-sprite-entities-over-time.md) | Cutscene actions drive named sprite entities over time (numbered ADR-0090 until 2026-11-19) | Accepted | 2026-11-09 |
+| [ADR-0130](0130-a-world-video-component-and-an-any-key-input.md) | A world video component plays under sprites, and an input entry can react to any key (numbered ADR-0091 until 2026-11-19) | Accepted | 2026-11-09 |
+| [ADR-0131](0131-sprites-of-equal-depth-follow-a-draw-order.md) | Sprites of equal depth follow a draw order, then their submission (numbered ADR-0092 until 2026-11-19) | Accepted | 2026-11-10 |
+| [ADR-0132](0132-a-world-video-can-run-to-its-end-after-its-cutscene.md) | A world video can run to its end after the cutscene that started it (numbered ADR-0093 until 2026-11-19) | Accepted | 2026-11-12 |
+| [ADR-0133](0133-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md) | The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer (numbered ADR-0094 until 2026-11-19) | Accepted | 2026-11-17 |
+| [ADR-0134](0134-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md) | Cutscene assets are edited in the editor, on their action tree (numbered ADR-0095 until 2026-11-19) | Accepted | 2026-11-17 |
+| [ADR-0135](0135-the-cutscene-editor-previews-in-an-isolated-world-and-projects-the-tree-on-a-timeline.md) | The cutscene editor previews in an isolated world and projects its action tree on a timeline (numbered ADR-0096 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0136](0136-the-cutscene-editor-shows-an-outliner-and-typed-details-and-edits-the-structure.md) | The cutscene editor shows an action outliner and typed details, and edits the tree structure (numbered ADR-0097 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0137](0137-the-cutscene-timeline-is-a-read-only-projection-with-a-play-clock.md) | The cutscene timeline is a read-only projection of the action tree, fed by a play clock (numbered ADR-0098 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0138](0138-the-cutscene-preview-pauses-steps-and-seeks-by-replay.md) | The cutscene preview pauses, steps and seeks by replay, driven by a transport of the editing services (numbered ADR-0099 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0139](0139-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md) | The cutscene preview shows the first instant at time 0 and keeps its world live once no play runs (numbered ADR-0100 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0140](0140-the-cutscene-editor-edits-the-action-tree-structure-by-mouse.md) | The cutscene editor edits the structure of the action tree by mouse (numbered ADR-0101 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0141](0141-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md) | The cutscene format gains an At action, and the timeline places actions in time (numbered ADR-0102 until 2026-11-19) | Accepted | 2026-11-18 |
+| [ADR-0142](0142-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md) | The cutscene preview draws screen fades, simulates an input and plays sound on demand (numbered ADR-0103 until 2026-11-19) | Accepted | 2026-11-19 |
+| [ADR-0143](0143-every-modified-document-asks-before-its-changes-are-lost.md) | Every modified document asks before its changes are lost (numbered ADR-0104 until 2026-11-19) | Accepted | 2026-11-19 |

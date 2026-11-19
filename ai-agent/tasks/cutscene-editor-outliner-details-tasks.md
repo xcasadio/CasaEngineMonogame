@@ -1,6 +1,6 @@
 # Plan agent IA — Éditeur de cutscenes : arbre des actions et détails typés (tranche B)
 
-Deuxième tranche du programme « éditeur de cutscenes visuel » décrit dans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md) et ADR-0096.
+Deuxième tranche du programme « éditeur de cutscenes visuel » décrit dans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md) et ADR-0135.
 Elle remplace la colonne de champs texte par un arbre des actions et un panneau de détails à champs typés, et permet d'ajouter, de supprimer et de dupliquer des actions.
 
 Les décisions D1 → D4 ci-dessous ont été arbitrées avec l'auteur le 2026-11-18 : **ce plan les applique, il ne les rediscute pas**.
@@ -128,16 +128,16 @@ Automatisation : `--open-asset`, `--cutscene-preview-play`, `--screenshot-out`, 
 
 ## Phase 0 — Décisions
 
-### ✅ T0.1 — ADR-0097
+### ✅ T0.1 — ADR-0136
 
 - Objectif : enregistrer D2 et P1 → P10.
 - Fichiers : `docs/decisions/0097-<short-title>.md` (créé), `docs/decisions/README.md`, `ai-agent/README.md` (ligne de ce plan), ce plan.
 - Étapes :
-  1. Écrire l'ADR en anglais avec le skill `adr` (il reprend P3 et P4 tels qu'écrits ici, dont le fait que la sauvegarde d'une action incomplète reste permise), statut `Accepted`, date 2026-11-18, source : ce plan et les décisions de l'auteur. Contenu : arbre dans Hierarchy et détails dans Inspector (P1) ; métadonnées de sens et de bornes des propriétés ; forme écrite des références (P5, P6) ; édition de structure limitée à ajouter, supprimer, dupliquer, avec la règle d'insertion (D2, P2, P3) ; valeurs par défaut d'une action créée (P4) ; sémantique de validation des champs (P7, P8). L'ADR dit qu'il réalise le point « adding, removing actions » reporté par ADR-0095, et que le déplacement reste reporté.
+  1. Écrire l'ADR en anglais avec le skill `adr` (il reprend P3 et P4 tels qu'écrits ici, dont le fait que la sauvegarde d'une action incomplète reste permise), statut `Accepted`, date 2026-11-18, source : ce plan et les décisions de l'auteur. Contenu : arbre dans Hierarchy et détails dans Inspector (P1) ; métadonnées de sens et de bornes des propriétés ; forme écrite des références (P5, P6) ; édition de structure limitée à ajouter, supprimer, dupliquer, avec la règle d'insertion (D2, P2, P3) ; valeurs par défaut d'une action créée (P4) ; sémantique de validation des champs (P7, P8). L'ADR dit qu'il réalise le point « adding, removing actions » reporté par ADR-0134, et que le déplacement reste reporté.
   2. Ligne d'index ; ligne de ce plan dans `ai-agent/README.md`.
 - Validation : les liens de l'index pointent sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
 - Commit : `docs(decisions): record the cutscene outliner, typed details and structure editing`
-- Validation faite : ADR-0097 créée (statut Accepted, 2026-11-18), ligne d'index et ligne de ce plan dans `ai-agent/README.md` ; le lien de l'index pointe sur le fichier créé ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
+- Validation faite : ADR-0136 créée (statut Accepted, 2026-11-18), ligne d'index et ligne de ce plan dans `ai-agent/README.md` ; le lien de l'index pointe sur le fichier créé ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
 
 ---
 

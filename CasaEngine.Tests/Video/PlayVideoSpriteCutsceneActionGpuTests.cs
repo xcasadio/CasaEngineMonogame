@@ -10,7 +10,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// The PlayVideoSprite cutscene action (ADR-0091) over the real player: it shows the entity, starts the film, waits for
+/// The PlayVideoSprite cutscene action (ADR-0130) over the real player: it shows the entity, starts the film, waits for
 /// its end and hides the entity; a stopped or replaced play takes the film down too. The frames the film starts and the
 /// wait ends on are measured with a loop that runs the coroutines, then the entity, as a frame of the game does.
 /// </summary>

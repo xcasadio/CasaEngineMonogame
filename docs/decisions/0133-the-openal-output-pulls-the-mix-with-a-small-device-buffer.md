@@ -1,8 +1,9 @@
-# ADR-0094: The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer
+# ADR-0133: The OpenAL output lets OpenAL Soft pull the mix, with a small device buffer
 
 - **Status**: Accepted
 - **Date**: 2026-11-17
 - **Source**: this chantier: `ai-agent/tasks/low-latency-audio-output-tasks.md` (decision D1 given by the author on 2026-11-17, points P1 to P9 approved with the plan on 2026-11-17), branch `chantier/low-latency-audio-output`. Replaces, for the OpenAL output, the 40 ms lead of ADR-0055.
+- Renumbered from ADR-0094 on 2026-11-19 when origin/main was merged (its ADR-0094 is another decision)
 
 ## Context
 

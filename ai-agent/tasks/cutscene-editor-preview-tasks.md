@@ -70,7 +70,7 @@ Automatisation existante :
 Décisions antérieures concernées :
 
 - ADR-0014, décision 2 : pas de `CutsceneTimelineAdapter`, l'éditeur de cutscenes reste un contrôle d'arbre, une timeline n'est qu'une projection en lecture seule (`docs/decisions/0014-generic-timeline-base-for-the-editor.md`).
-- ADR-0095 : l'arbre d'actions est la seule source de vérité ; l'aperçu dans un monde isolé et la timeline y sont reportés (`docs/decisions/0095-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md`).
+- ADR-0134 : l'arbre d'actions est la seule source de vérité ; l'aperçu dans un monde isolé et la timeline y sont reportés (`docs/decisions/0134-cutscene-assets-are-edited-in-the-editor-on-their-action-tree.md`).
 
 ## Décisions verrouillées
 
@@ -81,7 +81,7 @@ Décisions antérieures concernées :
 | D3 | En aperçu : `ChangeWorld` et l'enchaînement d'`ExitOnInput` sont seulement signalés ; le son est coupé par défaut, avec un bouton pour l'activer ; les fondus sont dessinés sur l'aperçu. |
 | D4 | Le monde affiché est trouvé automatiquement, avec une liste de choix mémorisée dans les réglages de l'éditeur. Le format `.cutscene` ne change pas. |
 | D5 | Le temps s'affichera en secondes et en images. |
-| D6 | Le travail continue sur la branche `chantier/cutscene-property-editing`. ADR-0095 est conservé et complété. |
+| D6 | Le travail continue sur la branche `chantier/cutscene-property-editing`. ADR-0134 est conservé et complété. |
 | D7 | L'auteur valide à distance sur captures d'écran de l'éditeur ; sa recette réelle a lieu à la fin. |
 
 ## Arbitrages de l'agent, à confirmer
@@ -96,7 +96,7 @@ Décisions antérieures concernées :
 | P6 | Le choix est mémorisé dans `<projet>/.casaeditor/cutscene-preview.editor.json`, par identifiant de cutscene. |
 | P7 | Lecture et redémarrage reconstruisent toujours le monde d'aperçu depuis l'asset, puisque `Stop` ne restaure rien. |
 | P8 | Tranche A livre D3 en partie : son coupé sans bouton, et fondus exécutés avec leur durée mais affichés en texte dans la ligne d'état. Le bouton du son et le dessin des fondus sont en tranche G. |
-| P9 | ADR-0014 n'est pas réécrit : sa ligne `Status` reçoit la mention « decision 2 superseded by ADR-0096 ». |
+| P9 | ADR-0014 n'est pas réécrit : sa ligne `Status` reçoit la mention « decision 2 superseded by ADR-0135 ». |
 
 ## Règles d'exécution pour l'agent
 
@@ -132,14 +132,14 @@ Décisions antérieures concernées :
 
 ## Phase 0 — Décisions
 
-### ✅ T0.1 — ADR-0096 et clôture de la recette précédente
+### ✅ T0.1 — ADR-0135 et clôture de la recette précédente
 
-> Validation (2026-11-18) : ADR-0096 écrit selon le modèle et ajouté à l'index ; mention de P9 sur ADR-0014 (fichier et index) ; note de recette sous T3.2 de `cutscene-property-editing-tasks.md` ; ligne ajoutée à `ai-agent/README.md`. la recherche des noms de projets extérieurs sur les fichiers de l'ADR, de l'index et des deux plans hors lignes qui citent la commande elle-même : aucun résultat ; le lien de l'index pointe sur un fichier existant.
+> Validation (2026-11-18) : ADR-0135 écrit selon le modèle et ajouté à l'index ; mention de P9 sur ADR-0014 (fichier et index) ; note de recette sous T3.2 de `cutscene-property-editing-tasks.md` ; ligne ajoutée à `ai-agent/README.md`. la recherche des noms de projets extérieurs sur les fichiers de l'ADR, de l'index et des deux plans hors lignes qui citent la commande elle-même : aucun résultat ; le lien de l'index pointe sur un fichier existant.
 
 - Objectif : enregistrer D1 → D5 et P1 → P4, et noter le résultat de la recette de la tranche « propriétés ».
 - Fichiers : `docs/decisions/0096-<short-title>.md` (créé), `docs/decisions/README.md`, `docs/decisions/0014-generic-timeline-base-for-the-editor.md` (ligne `Status` seule, P9), `ai-agent/tasks/cutscene-property-editing-tasks.md` (note sous T3.2), `ai-agent/README.md` (ligne de ce plan), ce plan.
 - Étapes :
-  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`. Contenu : document à quatre zones ; arbre conservé, timeline projetée, section temporelle plus tard (D1) ; aperçu dans une copie isolée du monde ; point d'injection `ICutsceneEffectHost` (P1, P2) ; comportement des effets globaux en aperçu (D3) ; choix du monde (D4) ; limite des animations figées (D2) ; `MoveTo` qui échoue au lieu de lever une exception (P4). L'ADR dit explicitement qu'il remplace la décision 2 d'ADR-0014 et lève l'exclusion du plan archivé `timeline-generic-agent-plan.md`, parce que l'adaptateur de timeline projettera les nœuds de l'arbre et non un modèle plat. Il complète les points reportés d'ADR-0095.
+  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`. Contenu : document à quatre zones ; arbre conservé, timeline projetée, section temporelle plus tard (D1) ; aperçu dans une copie isolée du monde ; point d'injection `ICutsceneEffectHost` (P1, P2) ; comportement des effets globaux en aperçu (D3) ; choix du monde (D4) ; limite des animations figées (D2) ; `MoveTo` qui échoue au lieu de lever une exception (P4). L'ADR dit explicitement qu'il remplace la décision 2 d'ADR-0014 et lève l'exclusion du plan archivé `timeline-generic-agent-plan.md`, parce que l'adaptateur de timeline projettera les nœuds de l'arbre et non un modèle plat. Il complète les points reportés d'ADR-0134.
   2. Ajouter la ligne d'index, et la mention de P9 sur ADR-0014.
   3. Sous T3.2 du plan `cutscene-property-editing-tasks.md`, noter : recette de l'auteur du 2026-11-18, refusée sur l'ergonomie (pas de monde, champs texte), suite dans ce plan. Le statut reste 🧪.
   4. Ajouter ce plan au tableau de `ai-agent/README.md`.

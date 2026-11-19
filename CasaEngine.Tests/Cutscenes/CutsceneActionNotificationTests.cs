@@ -9,7 +9,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 
 namespace CasaEngine.Tests.Cutscenes;
 
-/// <summary>The play clock and the per-action notifications of the cutscene director (ADR-0098).</summary>
+/// <summary>The play clock and the per-action notifications of the cutscene director (ADR-0137).</summary>
 public sealed class CutsceneActionNotificationTests
 {
     private const float Step = 0.1f;

@@ -11,7 +11,7 @@ using Xunit;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The world video component (ADR-0091) without a graphics device: its JSON in both directions, the malformed fields, the
+/// The world video component (ADR-0130) without a graphics device: its JSON in both directions, the malformed fields, the
 /// creation failures that happen before a player exists, the release of what was acquired, the hidden start and the
 /// world loading path. The asset catalogue is global state, so this class runs in <see cref="ProjectEnvironmentCollection"/>.
 /// </summary>

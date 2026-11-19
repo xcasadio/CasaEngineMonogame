@@ -12,7 +12,7 @@ public sealed record CutsceneActionKind(string Type, string Category)
 }
 
 /// <summary>
-/// The action types the editor can create, how a new action is initialised (ADR-0097) and which actions hold children.
+/// The action types the editor can create, how a new action is initialised (ADR-0136) and which actions hold children.
 /// </summary>
 public static class CutsceneActionCatalog
 {

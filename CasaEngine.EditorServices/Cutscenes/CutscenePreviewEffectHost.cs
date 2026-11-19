@@ -13,7 +13,7 @@ namespace CasaEngine.EditorServices.Cutscenes;
 public readonly record struct CutscenePreviewRequest(string Type, string Target);
 
 /// <summary>
-/// The <see cref="ICutsceneEffectHost"/> of the cutscene preview (ADR-0096, ADR-0103): a screen effect service of its
+/// The <see cref="ICutsceneEffectHost"/> of the cutscene preview (ADR-0135, ADR-0142): a screen effect service of its
 /// own that the preview advances, a refusal of every request addressed to the game, the input watch the play armed, and
 /// the sound. The refused requests are listed so the interface can report them, and a refused <c>ChangeWorld</c> asks
 /// the preview to end the play.

@@ -11,7 +11,7 @@ namespace CasaEngine.Tests.Cutscenes;
 
 /// <summary>
 /// Guards the data of Projects/VideoSpriteSample, a project with no gameplay DLL whose startup cutscene plays a video
-/// as a sprite of the world, fades another sprite in over it, and leaves on any key (ADR-0091). Running it in the
+/// as a sprite of the world, fades another sprite in over it, and leaves on any key (ADR-0130). Running it in the
 /// Launcher proves the drawing; this proves the data hangs together: the committed clip and sheet are what the
 /// generators produce, every cutscene validates, and every reference resolves in the catalogue of the sample.
 /// </summary>

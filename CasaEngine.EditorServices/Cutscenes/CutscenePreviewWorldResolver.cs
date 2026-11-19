@@ -20,7 +20,7 @@ public sealed record CutscenePreviewWorldChoice(IReadOnlyList<CutscenePreviewWor
 }
 
 /// <summary>
-/// Chooses the world a cutscene is previewed in (ADR-0096). The order is: the world remembered for this cutscene, then the
+/// Chooses the world a cutscene is previewed in (ADR-0135). The order is: the world remembered for this cutscene, then the
 /// worlds whose startup cutscene it is, then the project's first world, then every other world by file name. It reads no
 /// file: the caller supplies the data.
 /// </summary>

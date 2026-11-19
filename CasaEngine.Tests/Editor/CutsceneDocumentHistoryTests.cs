@@ -9,7 +9,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The history context of a cutscene document (ADR-0095): the document kind maps to it, so that the global undo and redo
+/// The history context of a cutscene document (ADR-0134): the document kind maps to it, so that the global undo and redo
 /// reach the active cutscene tab. The editor history and dirty state are global, hence the serialized collection.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]

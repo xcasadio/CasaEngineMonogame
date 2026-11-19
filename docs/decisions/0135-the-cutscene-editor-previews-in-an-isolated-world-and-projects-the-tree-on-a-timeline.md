@@ -1,12 +1,13 @@
-# ADR-0096: The cutscene editor previews in an isolated world and projects its action tree on a timeline
+# ADR-0135: The cutscene editor previews in an isolated world and projects its action tree on a timeline
 
 - **Status**: Accepted
 - **Date**: 2026-11-18
-- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-preview-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-18, and choices P1 to P4 and P9, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0095 and supersedes decision 2 of ADR-0014.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-preview-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-18, and choices P1 to P4 and P9, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0134 and supersedes decision 2 of ADR-0014.
+- Renumbered from ADR-0096 on 2026-11-19 when origin/main was merged (its ADR-0096 is another decision)
 
 ## Context
 
-- ADR-0095 made the action tree of a `.cutscene` editable, and deferred the preview in an isolated world and a read-only timeline projection.
+- ADR-0134 made the action tree of a `.cutscene` editable, and deferred the preview in an isolated world and a read-only timeline projection.
 - The editor opens a `.cutscene` as a panel of text fields: there is no world and no way to play the cutscene. The author's acceptance on 2026-11-18 rejected it on ergonomics.
 - `CutsceneDirector` exposes `Play`, `Stop`, `IsPlaying`, `GetDebugSnapshot` and the `Ended` event. Its coroutines run in `World.Update`. `Stop` does not restore the entities of the world.
 - Some actions reach outside the world: sound (`world.Game.AudioSystemComponent`), screen fades (`world.Game.ScreenEffectComponent`), `ChangeWorld` (asks the game manager to replace the current world), `OpenScreen` and `PlayVideo` (game manager), and `ExitOnInput` (game input devices, then starts the next cutscene).
@@ -27,7 +28,7 @@
 - **`MoveTo` fails instead of throwing** on a timeout, a missing entity or an entity without a character controller: the play ends with `Ended` and the `Failed` state, as `NavigateTo` does (P4).
 - **Time is shown in seconds and in frames** (D5).
 - **Supersession.** This ADR supersedes decision 2 of ADR-0014 and lifts the exclusion in the archived plan `timeline-generic-agent-plan.md`, because the timeline adapter projects the nodes of the action tree and not a flat model. ADR-0014 is not rewritten: its status line only mentions the supersession (P9).
-- This ADR completes the points that ADR-0095 deferred: the preview in an isolated world and the read-only timeline projection.
+- This ADR completes the points that ADR-0134 deferred: the preview in an isolated world and the read-only timeline projection.
 
 ## Consequences
 

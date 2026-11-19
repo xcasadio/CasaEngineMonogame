@@ -50,7 +50,7 @@ public readonly record struct CutsceneDropTarget(CutsceneDropKind Kind, int Refe
 }
 
 /// <summary>
-/// Finds where a dragged action would drop in the tree of a cutscene (ADR-0101). A pure calculation on the visible rows: it
+/// Finds where a dragged action would drop in the tree of a cutscene (ADR-0140). A pure calculation on the visible rows: it
 /// reads the list it is given and allocates nothing.
 /// </summary>
 /// <remarks>

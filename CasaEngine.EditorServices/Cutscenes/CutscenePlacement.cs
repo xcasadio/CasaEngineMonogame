@@ -54,7 +54,7 @@ public readonly struct CutscenePlacementRule
 }
 
 /// <summary>
-/// Placing the actions of a cutscene in time on the timeline (ADR-0102): pure computations (which items can be dragged
+/// Placing the actions of a cutscene in time on the timeline (ADR-0141): pure computations (which items can be dragged
 /// and what a drag changes, the conversion of a dropped time into the <c>seconds</c> of an At) and the undoable commands
 /// that place an action at a time and add an action at a time.
 /// </summary>

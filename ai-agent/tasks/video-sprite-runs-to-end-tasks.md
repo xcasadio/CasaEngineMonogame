@@ -16,11 +16,11 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 - **Une action `StartVideoSprite`.** Elle montre l'entité, lance son film depuis la première image et rend la main aussitôt. Aucune fin de la cutscene ne touche le film : il va à sa fin, puis son composant cache l'entité.
 - **Trois cas couverts :**
-  1. la cutscene qui a lancé le film s'arrête, par `ExitOnInput` (ADR-0090), par `Stop` ou par un échec : le film va à sa fin, puis son entité est cachée ;
+  1. la cutscene qui a lancé le film s'arrête, par `ExitOnInput` (ADR-0129), par `Stop` ou par un échec : le film va à sa fin, puis son entité est cachée ;
   2. le film finit pendant la cutscene : son entité est cachée à l'update où il finit ;
   3. un tour suivant d'un `Repeat` relance l'action : le film repart de sa première image et se montre de nouveau.
-- **Livrables associés** : ADR-0093 et un sample `Projects/VideoSpriteExitSample`.
-- `PlayVideoSprite` (ADR-0091) ne change pas.
+- **Livrables associés** : ADR-0132 et un sample `Projects/VideoSpriteExitSample`.
+- `PlayVideoSprite` (ADR-0130) ne change pas.
 
 ## État vérifié du dépôt (2026-11-12)
 
@@ -51,7 +51,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
   - `CasaEngine.Tests/Video/PlayVideoSpriteCutsceneActionGpuTests.cs` simule une image du jeu : les coroutines, puis l'entité. Il utilise `WorldVideoHarness` et `WorldVideoTestFiles`.
   - `CasaEngine.Tests/Cutscenes/ExitOnInputCutsceneActionTests.cs` déclenche une vraie veille par un `KeyboardManager` de test, à travers `ExitOnInputResolver` (`:438-490`).
 - **Sample voisin.** `Projects/VideoSpriteSample`, accepté en recette, avec un clip synthétique de 4 s généré par `CasaEngine.Tests/Video/VideoSampleClip.cs`.
-- **ADR.** Prochain numéro libre : 0093.
+- **ADR.** Prochain numéro libre : 0132.
 
 ## Décisions verrouillées
 
@@ -60,10 +60,10 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 | Réf | Décision |
 |---|---|
 | D1 | **Contenu.** Un film du monde lancé par une cutscene va à sa fin quand cette cutscene s'arrête, puis son entité est cachée. Les trois cas de l'objectif sont couverts |
-| D2 | **Forme : une nouvelle action `StartVideoSprite`.** Elle montre l'entité, lance le film et rend la main aussitôt. Le composant cache l'entité à la fin du film. Aucune fin de la cutscene (arrêt, remplacement, échec, fin normale) ne touche le film, comme pour `MoveSprite` et `TintSprite` (ADR-0090). Seul l'effacement du monde l'arrête. `PlayVideoSprite` ne change pas |
+| D2 | **Forme : une nouvelle action `StartVideoSprite`.** Elle montre l'entité, lance le film et rend la main aussitôt. Le composant cache l'entité à la fin du film. Aucune fin de la cutscene (arrêt, remplacement, échec, fin normale) ne touche le film, comme pour `MoveSprite` et `TintSprite` (ADR-0129). Seul l'effacement du monde l'arrête. `PlayVideoSprite` ne change pas |
 | D3 | **Fin du film.** Le composant cache l'entité à l'update même où le film finit. La dernière image reste donc affichée exactement sa durée, sans l'image de plus que montre `PlayVideoSprite` |
 | D4 | **Sample.** Un nouveau projet, `Projects/VideoSpriteExitSample`. `Projects/VideoSpriteSample` ne change pas |
-| D5 | **Format et API additifs.** Les projets, mondes et cutscenes existants se chargent et se comportent comme avant. ADR-0093 enregistre la décision |
+| D5 | **Format et API additifs.** Les projets, mondes et cutscenes existants se chargent et se comportent comme avant. ADR-0132 enregistre la décision |
 | D6 | Rien dans ce plan, l'ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur, un jeu ou une décompilation. Les données sont synthétiques |
 
 **Proposés par ce plan, verrouillés par son approbation.**
@@ -76,9 +76,9 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 | C4 | **Cohabitation avec `PlayVideoSprite`, par `PlayGeneration`.** <ul><li>Un `StartVideoSprite` sur un film qu'attend un `PlayVideoSprite` prend le film. L'ancienne action sort de son attente sans le toucher, comme pour deux `PlayVideoSprite` aujourd'hui.</li><li>Un `PlayVideoSprite` sur un film lancé par `StartVideoSprite` appelle `Play()`, ce qui remet le drapeau à faux. L'action possède alors le film comme aujourd'hui, et son nettoyage s'applique.</li></ul> |
 | C5 | **`Repeat`.** Un tour qui ne contient qu'un `StartVideoSprite` ne laisse passer aucune image. Dans un `Repeat` sans fin, il fait donc échouer la lecture par la règle existante. Un tour met un `Wait` ou une autre action qui prend du temps, et la doc le dit |
 | C6 | **Tests.** Les tests GPU utilisent le harnais existant : une image du jeu exécute les coroutines, puis l'entité. Détail en T1.1 et T1.2 |
-| C7 | **Docs.** <ul><li>ADR-0093.</li><li>`docs/engine/video.md` : un nouveau §9.5 « The `StartVideoSprite` cut-scene action ». Le §9.3 gagne la surcharge `Play(bool)` et la fin cachée, et sa note sur la première image vaut pour les deux actions.</li><li>`docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` gagne une section `StartVideoSprite`.</li><li>`docs/README.md` mentionne la nouvelle action.</li></ul> |
+| C7 | **Docs.** <ul><li>ADR-0132.</li><li>`docs/engine/video.md` : un nouveau §9.5 « The `StartVideoSprite` cut-scene action ». Le §9.3 gagne la surcharge `Play(bool)` et la fin cachée, et sa note sur la première image vaut pour les deux actions.</li><li>`docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` gagne une section `StartVideoSprite`.</li><li>`docs/README.md` mentionne la nouvelle action.</li></ul> |
 | C8 | **Sample `Projects/VideoSpriteExitSample`.** <ul><li>Un projet sans DLL. Le monde a une caméra 2D, un fond noir et une entité `clip` cachée au chargement, dont la racine est un `VideoSpriteComponent`. Le clip est une copie de `Projects/VideoSpriteSample/Videos/clip.mdecvideo`.</li><li>Un mapping `sample-input` a une entrée `exit` : `AnyKey`, et Start de la manette.</li><li>La cutscene de boucle arme `ExitOnInput` vers la cutscene de sortie, puis lance un `Repeat` sans fin. Chaque tour est `StartVideoSprite` sur `clip`, suivi d'un `Wait` de 5 s : le film dure 4 s, puis l'écran reste noir 1 s.</li><li>La cutscene de sortie assombrit l'écran sans le noircir, par un `FadeScreen` soustractif vers un gris de 128 en 1 s. Elle attend 5 s, plus que le reste du film, puis passe à un monde de fin par `ChangeWorld`.</li><li>Le monde de fin attend 2 s, efface le voile, puis revient au monde du film.</li><li>Un test de données vérifie le clip, les références, le catalogue et la validation des cutscenes, comme `VideoSpriteSampleDataTests`.</li><li>Un README en anglais dit ce qu'il faut regarder : après une touche, le film continue sous le voile jusqu'à sa dernière image, puis disparaît ; sans touche, il rejoue à chaque tour.</li></ul> |
-| C9 | **Launcher.** Toute exécution du Launcher par l'agent est annoncée à l'auteur avant de commencer (C9 d'ADR-0091) |
+| C9 | **Launcher.** Toute exécution du Launcher par l'agent est annoncée à l'auteur avant de commencer (C9 d'ADR-0130) |
 
 ## Règles d'exécution pour l'agent
 
@@ -119,13 +119,13 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Phase 0 — Plan et ADR
 
-### ✅ T0.1 — Plan et ADR-0093
+### ✅ T0.1 — Plan et ADR-0132
 
-- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0093, qui reprend D1 à D6 et C1 à C9.
-- Fichiers : ce plan, `ai-agent/README.md`, `docs/decisions/0093-a-world-video-can-run-to-its-end-after-its-cutscene.md`, `docs/decisions/README.md`.
+- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0132, qui reprend D1 à D6 et C1 à C9.
+- Fichiers : ce plan, `ai-agent/README.md`, `docs/decisions/0132-a-world-video-can-run-to-its-end-after-its-cutscene.md`, `docs/decisions/README.md`.
 - Validation : l'ADR est relue contre D1 à D6 et C1 à C9. Contrôle D6 par `rg` sur le plan, l'index et l'ADR.
-- Commit : `docs(video): plan a world video that runs to its end, and record ADR-0093`
-- Note : fait le 2026-11-12, en mode AUTO choisi par l'auteur. ADR-0093 relue contre D1 à D6 et C1 à C9. Contrôle D6 par `rg` sur le plan, l'index et l'ADR : aucun nom. Aucun code touché.
+- Commit : `docs(video): plan a world video that runs to its end, and record ADR-0132`
+- Note : fait le 2026-11-12, en mode AUTO choisi par l'auteur. ADR-0132 relue contre D1 à D6 et C1 à C9. Contrôle D6 par `rg` sur le plan, l'index et l'ADR : aucun nom. Aucun code touché.
 
 ---
 
@@ -217,8 +217,8 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 - Note : faite le 2026-11-12.
   - `docs/engine/video.md` : le §9.3 gagne `Play(bool hideWhenEnded)` et la fin cachée, et sa note sur la première image vaut pour les deux actions. Nouveau §9.5 « The `StartVideoSprite` cut-scene action ».
   - `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` : section `StartVideoSprite` (champ, absence d'attente et de nettoyage, fin, relance, cohabitation, échecs, images mesurées par les tests de T1.2, limites).
-  - `docs/README.md` : la ligne de `video.md` cite l'action et ADR-0093.
-  - ADR-0093 relue contre le code livré : aucune correction.
+  - `docs/README.md` : la ligne de `video.md` cite l'action et ADR-0132.
+  - ADR-0132 relue contre le code livré : aucune correction.
   - Validation : relecture contre le code et les mesures des tests ; aucun code touché depuis T2.1, dont les deux `.sln` étaient à 0 erreur.
 
 ---
@@ -272,7 +272,7 @@ Lu sur `main` à `fd831709`, égal au pointeur du projet consommateur. Arbre de 
 
 ## Hors périmètre
 
-- Changer `PlayVideoSprite` : son attente, son nettoyage et l'image de plus à la fin restent ceux d'ADR-0091.
+- Changer `PlayVideoSprite` : son attente, son nettoyage et l'image de plus à la fin restent ceux d'ADR-0130.
 - Une action qui arrête ou cache un film lancé par `StartVideoSprite` depuis une autre cutscene.
 - La première image dessinée, qui est celle atteinte après la première avance du composant, dans l'update même du lancement (`docs/engine/video.md` §9.3). La règle vaut pour les deux actions et n'est pas changée.
 - Le son des films, l'édition des nouvelles données dans l'éditeur (le constructeur en lecture seule et la sauvegarde sont faits).

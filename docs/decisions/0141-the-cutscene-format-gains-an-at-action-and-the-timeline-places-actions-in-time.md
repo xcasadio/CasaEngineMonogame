@@ -1,12 +1,13 @@
-# ADR-0102: The cutscene format gains an At action, and the timeline places actions in time
+# ADR-0141: The cutscene format gains an At action, and the timeline places actions in time
 
 - **Status**: Accepted
 - **Date**: 2026-11-18
-- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-placement-tasks.md` (decisions D1 to D6, settled with the author, and choices P1 to P17, taken by the agent and to be confirmed by the author at the acceptance), branch `chantier/cutscene-property-editing`. Builds on ADR-0096 and ADR-0098, and amends the read-only rule of ADR-0098 without rewriting it.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-placement-tasks.md` (decisions D1 to D6, settled with the author, and choices P1 to P17, taken by the agent and to be confirmed by the author at the acceptance), branch `chantier/cutscene-property-editing`. Builds on ADR-0135 and ADR-0137, and amends the read-only rule of ADR-0137 without rewriting it.
+- Renumbered from ADR-0102 on 2026-11-19 when origin/main was merged (its ADR-0102 is another decision)
 
 ## Context
 
-- ADR-0096 decided that the action tree is the saved model of a cutscene and that the timeline is a projection of it. ADR-0098 made that projection read-only: dragging, resizing and free placement were deferred, and the `.cutscene` format was left unchanged.
+- ADR-0135 decided that the action tree is the saved model of a cutscene and that the timeline is a projection of it. ADR-0137 made that projection read-only: dragging, resizing and free placement were deferred, and the `.cutscene` format was left unchanged.
 - The tree has no way to say "this action starts at 1.5 s": time only comes from the order of a `Sequence` and from `Wait` actions. Inside a `Parallel`, every branch starts together. The pattern `Sequence[Wait, X]` already gives a delay, but as a shape of the tree, which a timeline would have to guess before changing it.
 - The author was told before this slice that it adds one action to the format, and asked for it to be run in autonomous mode (decisions D2 and D4).
 - Precedent for adding a container to the runtime: the `Repeat` action added its data class, its type constant, its validation, its serialization (writing, type table, reading), its coroutine factory case and its read-only document case, without changing the schema version. The serializer writes `schema_version = CutsceneAsset.CurrentVersion`. A type unknown to a loader is read as `UnknownCutsceneActionData`, which the validator refuses with an error.
@@ -35,7 +36,7 @@
 
 - An action can be placed at an exact instant, read and set in the tree and in the Inspector, and moved on the timeline by mouse with one undo step. The tree stays the saved model: no second source of truth.
 - The format grows by one action type and nothing else. No existing key is renamed or removed, and no existing `.cutscene` file is rewritten. An engine without `At` refuses a cutscene that uses it instead of playing it wrongly.
-- ADR-0098 stated that the timeline edits nothing. This record amends that rule for the items described by P5 only; ADR-0098 is not rewritten, and its other decisions (rows, durations, `Repeat`, measured durations, scrubbing) stand.
+- ADR-0137 stated that the timeline edits nothing. This record amends that rule for the items described by P5 only; ADR-0137 is not rewritten, and its other decisions (rows, durations, `Repeat`, measured durations, scrubbing) stand.
 - Placement is by difference, so it stays correct whatever the estimated start of the block; but the displayed start of an item with an estimated duration may shift once the preview has measured it (P13).
 - The branches of a `Parallel` start one update after it, so a clip placed at 0.5 s starts one frame later in the preview than its bar says: this is the existing behaviour of `Parallel`, not changed here.
 - Deferred: resizing bars, snapping on other items, moving a clip to another row, multiple selection (one action at a time, D6), automatic conversion of existing cutscenes into placed clips, curves and keyframes per property.

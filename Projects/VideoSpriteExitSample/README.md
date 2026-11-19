@@ -1,6 +1,6 @@
 # VideoSpriteExitSample
 
-A project with no gameplay DLL where a world video keeps playing to its end after the cutscene that started it has been left, from data alone (ADR-0093). `ExitFilmWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
+A project with no gameplay DLL where a world video keeps playing to its end after the cutscene that started it has been left, from data alone (ADR-0132). `ExitFilmWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
 
 ## Objective
 

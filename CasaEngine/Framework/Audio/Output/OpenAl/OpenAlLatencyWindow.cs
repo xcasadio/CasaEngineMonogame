@@ -1,7 +1,7 @@
 namespace CasaEngine.Framework.Audio.Output.OpenAl;
 
 /// <summary>
-/// Settling window of the device latency (ADR-0094): keeps the largest latency read during the first
+/// Settling window of the device latency (ADR-0133): keeps the largest latency read during the first
 /// <see cref="WindowMilliseconds"/> after a start timestamp, because the value OpenAL Soft reports is the fill of
 /// the device buffer at the instant of the read (0 before the first mix, then it drops between two refills).
 /// No native code, and it allocates nothing after construction.

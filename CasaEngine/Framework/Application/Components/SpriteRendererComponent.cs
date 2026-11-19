@@ -42,7 +42,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public bool NoCull;
         public bool PsxQuad;
 
-        // ADR-0092: the data-chosen order of an entry without a sort key at equal z (the smaller is drawn first), given by the
+        // ADR-0131: the data-chosen order of an entry without a sort key at equal z (the smaller is drawn first), given by the
         // call (0 when it carries none), and the rank of the entry in the queue of the frame. Both are assigned on every entry:
         // the pool hands entries back without resetting them.
         public int DrawOrder;
@@ -571,7 +571,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             return xZ > yZ ? -1 : 1;
         }
 
-        // ADR-0092: at equal z, the smaller draw order first, then the earlier submission, so the order never depends on the
+        // ADR-0131: at equal z, the smaller draw order first, then the earlier submission, so the order never depends on the
         // (unstable) sort.
         if (x.DrawOrder != y.DrawOrder)
         {
@@ -617,7 +617,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <summary>
-    /// The overload with an explicit blend mode and no sort key, with a <paramref name="drawOrder"/> (ADR-0092): at equal z the
+    /// The overload with an explicit blend mode and no sort key, with a <paramref name="drawOrder"/> (ADR-0131): at equal z the
     /// smaller draw order is drawn first. Without a sort key only; a keyed entry ignores it.
     /// </summary>
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, int drawOrder)
@@ -658,7 +658,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <summary>
-    /// The default path of a sprite without a sort key, with a <paramref name="drawOrder"/> (ADR-0092): at equal z the smaller
+    /// The default path of a sprite without a sort key, with a <paramref name="drawOrder"/> (ADR-0131): at equal z the smaller
     /// draw order is drawn first. Without a sort key only; a keyed entry ignores it.
     /// </summary>
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, int drawOrder)
@@ -960,7 +960,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     /// <summary>
     /// Draws a raw texture sprite with no sort key, by the opaque path, ordered by <paramref name="z"/> like any sprite
     /// without a key (the larger z is drawn first). With <paramref name="ignoresDepth"/> the entry neither tests nor
-    /// writes the depth buffer, so a sprite of a smaller z drawn after it is not rejected by the depth test (ADR-0091).
+    /// writes the depth buffer, so a sprite of a smaller z drawn after it is not rejected by the depth test (ADR-0130).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
@@ -972,7 +972,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <summary>
-    /// The overload of <paramref name="ignoresDepth"/> with a <paramref name="drawOrder"/> (ADR-0092): at equal z the smaller
+    /// The overload of <paramref name="ignoresDepth"/> with a <paramref name="drawOrder"/> (ADR-0131): at equal z the smaller
     /// draw order is drawn first.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

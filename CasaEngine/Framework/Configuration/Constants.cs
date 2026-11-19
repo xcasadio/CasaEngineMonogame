@@ -37,7 +37,7 @@ public static class Constants
         public const string Dialogue = ".dialogue";
         public const string Sound = ".sound";
         public const string AudioMixer = ".audioMixer";
-        /// <summary>A video container of MDEC frames. See ADR-0089.</summary>
+        /// <summary>A video container of MDEC frames. See ADR-0128.</summary>
         public const string MdecVideo = ".mdecvideo";
 
         //project

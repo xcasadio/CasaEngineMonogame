@@ -12,7 +12,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The selection and the editing operations of the cutscene document (ADR-0097), on the panel without a preview: every
+/// The selection and the editing operations of the cutscene document (ADR-0136), on the panel without a preview: every
 /// operation is one entry of the history, marks the document modified, raises <c>DocumentChanged</c> once and undoes, and
 /// the selection never aims at an action that left the tree.
 /// </summary>

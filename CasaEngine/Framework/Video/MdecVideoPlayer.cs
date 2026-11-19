@@ -8,7 +8,7 @@ using MGUI.Shared.Assets;
 namespace CasaEngine.Framework.Video;
 
 /// <summary>
-/// Plays a <see cref="MdecVideoAsset"/> into one <see cref="Texture2D"/> of the displayed size (ADR-0089). It is the
+/// Plays a <see cref="MdecVideoAsset"/> into one <see cref="Texture2D"/> of the displayed size (ADR-0128). It is the
 /// host side of MGUI's <see cref="IUIVideo"/>: the element advances it with the elapsed time, draws
 /// <see cref="CurrentImage"/>, and reads <see cref="IsEnded"/>.
 /// <para/>
@@ -85,7 +85,7 @@ public sealed class MdecVideoPlayer : IUIVideo
     public IUIImageResource CurrentImage => _isDisposed ? null : _image;
 
     /// <summary>
-    /// The texture itself, for a host that draws it as a world sprite (ADR-0091): the same instance for the whole life
+    /// The texture itself, for a host that draws it as a world sprite (ADR-0130): the same instance for the whole life
     /// of the player, updated in place. Null once disposed.
     /// </summary>
     internal Texture2D Texture => _isDisposed ? null : _texture;

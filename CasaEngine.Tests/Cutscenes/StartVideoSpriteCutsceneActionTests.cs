@@ -11,7 +11,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Cutscenes;
 
 /// <summary>
-/// The StartVideoSprite cutscene action (ADR-0093) without a graphics device: JSON, validation, editor builder and
+/// The StartVideoSprite cutscene action (ADR-0132) without a graphics device: JSON, validation, editor builder and
 /// failures; and the failure messages of PlayVideoSprite, which keep their exact text.
 /// </summary>
 public sealed class StartVideoSpriteCutsceneActionTests

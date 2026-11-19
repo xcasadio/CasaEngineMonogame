@@ -3,7 +3,7 @@ using CasaEngine.Framework.Cutscenes;
 namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
-/// Records the duration of the actions of a play (ADR-0098). A play runs a copy of the edited asset: the map given to
+/// Records the duration of the actions of a play (ADR-0137). A play runs a copy of the edited asset: the map given to
 /// <see cref="Begin"/> turns the copied actions of the notifications into the edited ones. Only the first occurrence of
 /// each action is kept. Once a play has begun, <see cref="OnStarted"/> and <see cref="OnEnded"/> allocate nothing.
 /// </summary>
@@ -78,7 +78,7 @@ public sealed class CutscenePlayTimings
             return;
         }
 
-        // For these two the notification ends right after the start, whatever the length of the effect (ADR-0098).
+        // For these two the notification ends right after the start, whatever the length of the effect (ADR-0137).
         if (original is MoveSpriteCutsceneActionData or TintSpriteCutsceneActionData)
         {
             return;

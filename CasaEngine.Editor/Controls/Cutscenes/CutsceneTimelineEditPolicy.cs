@@ -8,7 +8,7 @@ using CasaEngine.EditorServices.Cutscenes;
 namespace CasaEngine.Editor.Controls.Cutscenes;
 
 /// <summary>
-/// The edit policy of the cutscene timeline (ADR-0102): an item that can be dragged in time moves along the frames of the
+/// The edit policy of the cutscene timeline (ADR-0141): an item that can be dragged in time moves along the frames of the
 /// preview (1/60 s) and never below the time where the delay of its At would be 0; nothing else can be edited, so there is no
 /// resize and no insertion. The generic control only calls <see cref="SnapTime"/> while a drag goes on, and
 /// <see cref="CanMoveItem"/> when it is released.

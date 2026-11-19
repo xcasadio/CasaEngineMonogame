@@ -72,7 +72,7 @@ internal sealed class CutsceneTimelineItemInfo
 }
 
 /// <summary>
-/// Draws the items of the cutscene timeline (ADR-0098): a solid bar for a known duration, a pale bar with a dashed outline for
+/// Draws the items of the cutscene timeline (ADR-0137): a solid bar for a known duration, a pale bar with a dashed outline for
 /// an estimated one, a bar open on the right for an action that waits for an input, a translucent range for a loop and a
 /// diamond with its label for an instant. Labels are drawn only where they fit, so they never overlap.
 /// </summary>

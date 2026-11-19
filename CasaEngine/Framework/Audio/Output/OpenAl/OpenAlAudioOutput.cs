@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Audio.Output.OpenAl;
 /// </summary>
 /// <remarks>
 /// The thread opens the device and plays through one source with direct channels (no spatialization). Two modes
-/// (ADR-0094). With AL_SOFT_callback_buffer, the source plays one callback buffer: OpenAL Soft pulls the mix from
+/// (ADR-0133). With AL_SOFT_callback_buffer, the source plays one callback buffer: OpenAL Soft pulls the mix from
 /// <see cref="OpenAlCallbackFeeder"/> when it needs it, nothing is queued (<see cref="BufferCount"/> is 0) and the
 /// thread only watches the latency window, the device connection and the render failure. Without the extension
 /// (or when binding it fails, with a warning), the thread keeps <see cref="BufferCount"/> buffers of
@@ -456,7 +456,7 @@ internal sealed class OpenAlAudioOutput : IAudioOutput
 
     /// <summary>
     /// One pass of the settling window: reads the device latency (no allocation) and feeds the window. When the
-    /// window ends, writes the single log line of the output (ADR-0094).
+    /// window ends, writes the single log line of the output (ADR-0133).
     /// </summary>
     private void ObserveDeviceLatency(IntPtr device, OpenAlLatencyWindow window, int sampleRate, int bufferFrames)
     {

@@ -5,7 +5,7 @@ namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
 /// A cutscene being edited: the asset, whose action tree stays the only source of truth, and the load losses found when
-/// it was opened (ADR-0095).
+/// it was opened (ADR-0134).
 /// </summary>
 public sealed class CutsceneEditSession
 {

@@ -17,10 +17,10 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Editor.Runtime;
 
 /// <summary>
-/// Plays a cutscene in an isolated copy of a world of the project (ADR-0096). The world is rebuilt from its asset at each
+/// Plays a cutscene in an isolated copy of a world of the project (ADR-0135). The world is rebuilt from its asset at each
 /// play, because stopping a play does not restore the entities. The play runs a copy of the edited asset, so unsaved
 /// changes are played and the edited asset is never touched. The play can be paused, advanced by frames and moved to a
-/// time by replaying it from the start (ADR-0099); the decisions come from <see cref="CutscenePreviewTransport"/>, the
+/// time by replaying it from the start (ADR-0138); the decisions come from <see cref="CutscenePreviewTransport"/>, the
 /// session only runs the steps that it asks for.
 /// </summary>
 internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStepper
@@ -50,7 +50,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     // The asset of the last launch: an action that leaves the marked start state launches it again.
     private CutsceneAsset? _launchedAsset;
 
-    // True while the world shows the first instant of the play (ADR-0100): a zero-duration update was done after the launch.
+    // True while the world shows the first instant of the play (ADR-0139): a zero-duration update was done after the launch.
     // That state is display-only, a play continued from it would be one frame ahead of the play clock.
     private bool _startStateMarked;
 
@@ -114,7 +114,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     /// <summary>The cutscene the armed watch plays on a press, or an empty string.</summary>
     public string ArmedNextCutscene => _host.ArmedNextCutscene;
 
-    /// <summary>True when the user turned the sound of the preview on (ADR-0103). It is off for a new session.</summary>
+    /// <summary>True when the user turned the sound of the preview on (ADR-0142). It is off for a new session.</summary>
     public bool IsSoundOn => _host.IsSoundOn;
 
     /// <summary>True when the editor has an audio service the preview can lend. Read by the automation.</summary>
@@ -158,12 +158,12 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     /// <summary>Frame steps requested by <see cref="StepFrames"/> that the next <see cref="Tick"/> has still to do.</summary>
     public int PendingFrameSteps => _transport.PendingFrameSteps;
 
-    /// <summary>What the transport row shows (ADR-0099): the play comes first, then the end state of the last play.</summary>
+    /// <summary>What the transport row shows (ADR-0138): the play comes first, then the end state of the last play.</summary>
     public CutscenePreviewStatus Status => CutscenePreviewTransport.GetStatus(IsPlaying, _transport.Mode, State, EndedByWorldChange || EndedByInput);
 
     double ICutscenePreviewStepper.PlayElapsedSeconds => ElapsedSeconds;
 
-    /// <summary>Seconds of the play clock of the last play (ADR-0098); 0 before the first play.</summary>
+    /// <summary>Seconds of the play clock of the last play (ADR-0137); 0 before the first play.</summary>
     public double ElapsedSeconds => _director?.PlayElapsedSeconds ?? 0d;
 
     /// <summary>Updates of the last play that advanced the clock.</summary>
@@ -267,7 +267,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     }
 
     /// <summary>
-    /// Turns the sound of the preview on or off (ADR-0103). Turning it off stops what the preview made heard and puts the
+    /// Turns the sound of the preview on or off (ADR-0142). Turning it off stops what the preview made heard and puts the
     /// editor mixer back. The mixer is never captured here, only once per launch. Does nothing when the state is the same.
     /// </summary>
     public void SetSound(bool on)
@@ -287,7 +287,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     }
 
     /// <summary>
-    /// Simulates the press of an input of the armed watch (ADR-0103): the play ends, and <see cref="SimulatedInput"/> and
+    /// Simulates the press of an input of the armed watch (ADR-0142): the play ends, and <see cref="SimulatedInput"/> and
     /// <see cref="SimulatedNextCutscene"/> say what the game would have done. The next cutscene is not played. Acts only
     /// while a play runs or is paused, not while it seeks. False when it did nothing.
     /// </summary>
@@ -315,7 +315,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
     /// <summary>
     /// Lets a paused play advance again. Does nothing when no play runs or the play is not paused. From the marked start
-    /// state the play is launched again, without the zero-duration update (ADR-0100). True when the world was rebuilt.
+    /// state the play is launched again, without the zero-duration update (ADR-0139). True when the world was rebuilt.
     /// </summary>
     public bool Resume()
     {
@@ -335,7 +335,7 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
 
     /// <summary>
     /// Pauses the play and advances it by <paramref name="count"/> frames. Does nothing when no play runs. From the marked
-    /// start state the play is launched again first, without the zero-duration update (ADR-0100). True when the world was rebuilt.
+    /// start state the play is launched again first, without the zero-duration update (ADR-0139). True when the world was rebuilt.
     /// </summary>
     public bool StepFrames(int count)
     {
@@ -361,11 +361,11 @@ internal sealed class CutscenePreviewSession : IDisposable, ICutscenePreviewStep
     }
 
     /// <summary>
-    /// Moves the preview to a play time and pauses it there (ADR-0099). When the time is ahead of the play, the play runs
+    /// Moves the preview to a play time and pauses it there (ADR-0138). When the time is ahead of the play, the play runs
     /// and the document did not change since it was launched, the play goes on from its current state. Otherwise the world
     /// is rebuilt and a copy of <paramref name="asset"/> is played again from the start, keeping the measured durations.
     /// The first instant (a time less than half a step) is shown by one zero-duration update after the launch, which is not
-    /// counted in <see cref="ElapsedFrames"/>; that start state is marked and no play goes on from it (ADR-0100): the next
+    /// counted in <see cref="ElapsedFrames"/>; that start state is marked and no play goes on from it (ADR-0139): the next
     /// action that leaves it launches the play again, without the zero-duration update. The steps are done by
     /// <see cref="Tick"/>, within a time budget per frame. False, with <see cref="Error"/>, when no
     /// world is set or it cannot be rebuilt.

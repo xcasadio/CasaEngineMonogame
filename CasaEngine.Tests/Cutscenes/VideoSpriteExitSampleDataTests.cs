@@ -11,7 +11,7 @@ namespace CasaEngine.Tests.Cutscenes;
 
 /// <summary>
 /// Guards the data of Projects/VideoSpriteExitSample, a project with no gameplay DLL whose startup cutscene starts a
-/// world video with StartVideoSprite at each lap and leaves on any key (ADR-0093): after the key, the exit cutscene dims
+/// world video with StartVideoSprite at each lap and leaves on any key (ADR-0132): after the key, the exit cutscene dims
 /// the screen while the film runs to its end. Running it in the Launcher proves the drawing; this proves the data hangs
 /// together: the committed clip is what the generator produces, every cutscene validates, the waits outlast the film,
 /// and every reference resolves in the catalogue of the sample.

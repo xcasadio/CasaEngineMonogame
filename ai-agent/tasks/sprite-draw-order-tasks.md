@@ -21,7 +21,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 
 - **Un champ `draw_order`**, entier facultatif à 0 par défaut, sur `StaticSpriteComponent` et `VideoSpriteComponent`. À Z égal et sans clé de tri, le sprite de plus petit `draw_order` est dessiné d'abord, et celui dessiné après passe par-dessus.
 - **Un ordre déterministe.** À Z et `draw_order` égaux, le départage se fait par l'ordre de soumission de l'image, au lieu d'être laissé à un tri instable.
-- **Livrables associés** : ADR-0092 et un sample `Projects/SpriteDrawOrderSample`.
+- **Livrables associés** : ADR-0131 et un sample `Projects/SpriteDrawOrderSample`.
 
 ## État vérifié du dépôt (2026-11-10)
 
@@ -31,13 +31,13 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
   - Le comparateur `CompareSpriteDisplayData` compare les clés quand l'une des deux entrées en a une. Sinon, le plus grand Z passe d'abord, et deux Z égaux rendent 0 (`:553-569`).
   - Une entrée est une structure `SpriteDisplayData` (`:16`) mise en file par deux chemins (`:817`, `:1097`).
 - **Ordre de soumission.** `World.Draw` interroge l'octree du monde sur le frustum (`SpatialServices.WorldIndex.Query`, `CasaEngine/Framework/Scene/World/World.cs:925-950`, `OctreeWorldSpatialIndex`), puis dessine les entités visibles dans l'ordre de la requête. Cet ordre dépend des cellules et change quand un sprite bouge.
-- **Profondeur.** Les sprites triés testent et écrivent la profondeur en `LessEqual` (`:137-141`). Deux sprites de même Z se mélangent donc l'un sur l'autre, dans l'ordre du tri (O3 d'ADR-0091).
+- **Profondeur.** Les sprites triés testent et écrivent la profondeur en `LessEqual` (`:137-141`). Deux sprites de même Z se mélangent donc l'un sur l'autre, dans l'ordre du tri (O3 d'ADR-0130).
 - **Appels des composants.**
-  - `StaticSpriteComponent.Submit` passe par les surcharges à clé, s'il a un `DepthSortable2DComponent`. Sinon, il passe par les surcharges sans clé : le chemin par défaut, ou la surcharge sans clé avec mélange d'ADR-0090 (`Scene/Entities/Components/StaticSpriteComponent.cs:322-341`).
-  - `VideoSpriteComponent` passe par la surcharge sans clé avec `ignoresDepth` d'ADR-0091 (`Scene/Entities/Components/VideoSpriteComponent.cs:212`).
+  - `StaticSpriteComponent.Submit` passe par les surcharges à clé, s'il a un `DepthSortable2DComponent`. Sinon, il passe par les surcharges sans clé : le chemin par défaut, ou la surcharge sans clé avec mélange d'ADR-0129 (`Scene/Entities/Components/StaticSpriteComponent.cs:322-341`).
+  - `VideoSpriteComponent` passe par la surcharge sans clé avec `ignoresDepth` d'ADR-0130 (`Scene/Entities/Components/VideoSpriteComponent.cs:212`).
 - **JSON des composants.** Les champs `color`, `blend_mode` et `video` sont lus dans `Load`. Un champ malformé lève une `InvalidDataException`, qui nomme le composant, le champ et la valeur. La sauvegarde de l'éditeur n'écrit un champ que s'il n'a pas sa valeur par défaut (`CasaEngine.EditorServices/EditorEntityJsonSerializer.cs`).
 - **Tests.** Les tests de la file sans GPU passent par `FillVertices` (par exemple `CasaEngine.Tests/Scene/StaticSpriteComponentColorBlendTests.cs`).
-- **ADR.** Prochain numéro libre : 0092.
+- **ADR.** Prochain numéro libre : 0131.
 - **Arbre de travail.** Branche `chantier/sprite-draw-order` créée depuis `main` `e93a4049`. Aucun changement préexistant.
 
 ## Décisions verrouillées
@@ -48,7 +48,7 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 |---|---|
 | D1 | **Contenu.** Un ordre de dessin choisi par les données pour des sprites de même Z |
 | D2 | **Champ d'ordre** : un entier facultatif `draw_order` sur les composants sprite et vidéo, 0 par défaut. À Z égal, le plus petit est dessiné d'abord, comme l'« ordre dans le calque » des moteurs modernes. L'ordre d'ajout seul ne suffit pas, car le monde soumet ses entités dans l'ordre de son octree |
-| D3 | **Format et API additifs.** Un projet ou un monde existant se charge et se dessine comme avant, à l'ordre près entre sprites de même Z, qui n'était pas défini. ADR-0092 enregistre la décision |
+| D3 | **Format et API additifs.** Un projet ou un monde existant se charge et se dessine comme avant, à l'ordre près entre sprites de même Z, qui n'était pas défini. ADR-0131 enregistre la décision |
 | D4 | Rien dans ce plan, l'ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur, un jeu ou une décompilation. Les données sont synthétiques |
 | D5 | Pas d'allocation ni de coût notable ajoutés au tri ou à la mise en file |
 | D6 | Un sample montre l'ordre à Z égal |
@@ -58,12 +58,12 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 | Réf | Choix |
 |---|---|
 | C1 | **File du renderer.** <ul><li>`SpriteDisplayData` gagne deux entiers : `DrawOrder`, donné par l'appel, et `Submission`, le rang de l'entrée dans la file de l'image.</li><li>Les deux chemins de mise en file, le `DrawSprite` privé du cœur (`:1069-1097`) et `QueuePsxQuad` (`:789-817`), affectent explicitement **les deux champs à chaque entrée**. `DrawOrder` vaut 0 quand l'appel n'en porte pas. Les entrées viennent d'un pool réutilisé sans remise à zéro (`:1106-1119`) : une valeur d'une image précédente ne doit jamais survivre.</li><li>Le comparateur, pour deux entrées sans clé, garde le plus grand Z d'abord. À Z égal, il passe le plus petit `DrawOrder` d'abord, puis le plus petit `Submission`.</li><li>Les entrées à clé gardent leur comparaison actuelle. Le `DrawOrder` d'un sprite à clé est sans effet, et la doc le dit.</li></ul> |
-| C2 | **Surcharges.** Aucune signature existante ne change. Le `DrawSprite` privé du cœur gagne un paramètre facultatif `int drawOrder = 0`, qui n'est pas une API publique. Ajouts exacts : <ol><li>public `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, int drawOrder)`, le chemin par défaut d'un sprite sans clé, jumeau de la surcharge publique existante sans `drawOrder` (`:627`) ;</li><li>public `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, int drawOrder)`, jumeau de la surcharge publique existante avec mélange (`:601`) ;</li><li>**internal** `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, Rectangle scissorRectangle, int drawOrder)`, jumeau de la surcharge interne avec découpe (`:606`), qui reste interne ;</li><li>public `DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation, Vector2 scale, Color color, float z, SpriteEffects effects, bool ignoresDepth, int drawOrder)`, jumeau de la surcharge du film d'ADR-0091 (`:926-927`).</li></ol>Les autres appels mettent `DrawOrder = 0` (C1). Après T1.1, la liste des membres publics de `SpriteRendererComponent` ne gagne que les ajouts 1, 2 et 4 |
+| C2 | **Surcharges.** Aucune signature existante ne change. Le `DrawSprite` privé du cœur gagne un paramètre facultatif `int drawOrder = 0`, qui n'est pas une API publique. Ajouts exacts : <ol><li>public `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, int drawOrder)`, le chemin par défaut d'un sprite sans clé, jumeau de la surcharge publique existante sans `drawOrder` (`:627`) ;</li><li>public `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, int drawOrder)`, jumeau de la surcharge publique existante avec mélange (`:601`) ;</li><li>**internal** `DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteBlendMode blendMode, Rectangle scissorRectangle, int drawOrder)`, jumeau de la surcharge interne avec découpe (`:606`), qui reste interne ;</li><li>public `DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation, Vector2 scale, Color color, float z, SpriteEffects effects, bool ignoresDepth, int drawOrder)`, jumeau de la surcharge du film d'ADR-0130 (`:926-927`).</li></ol>Les autres appels mettent `DrawOrder = 0` (C1). Après T1.1, la liste des membres publics de `SpriteRendererComponent` ne gagne que les ajouts 1, 2 et 4 |
 | C3 | **Composants.** <ul><li>`StaticSpriteComponent` et `VideoSpriteComponent` gagnent une propriété `DrawOrder` (entier, 0 par défaut), copiée par le constructeur de copie.</li><li>JSON : `draw_order`, facultatif, un entier JSON. Il est absent ou à 0 par défaut. Toute autre forme (décimal, chaîne, booléen) fait échouer le chargement avec une `InvalidDataException` qui nomme le composant, le champ et la valeur.</li><li>La sauvegarde de l'éditeur l'écrit seulement s'il n'est pas 0.</li><li>Avec `DrawOrder = 0`, un composant fait les mêmes appels qu'aujourd'hui. Avec un autre ordre, il passe par les surcharges de C2.</li></ul> |
 | C4 | **Tests sans GPU**, par `FillVertices`. <ul><li>À Z égal, des `draw_order` différents donnent l'ordre croissant, quel que soit l'ordre de soumission.</li><li>À `draw_order` égal, l'ordre de soumission est gardé sur **64 entrées** de même Z et de même `draw_order`. `List<T>.Sort` trie par insertion, de façon stable, sous 16 entrées : un test plus petit passerait sans le départage.<ul><li>Le test tourne **sur les deux chemins** : 64 entrées par un appel de sprite (le `DrawSprite` du cœur), puis 64 entrées par `DrawPsxQuad` (`QueuePsxQuad`).</li><li>La note de T1.1 consigne trois exécutions : sans la comparaison de `Submission`, les deux variantes échouent ; sans l'affectation de `Submission` dans `QueuePsxQuad`, la variante PSX échoue ; avec tout en place, les deux passent.</li></ul></li><li>**Réutilisation du pool.** Le pool est une pile (`Stack<SpriteDisplayData>`, `:1106-1119`), et chaque chemin prend la première entrée libre.<ul><li>Le test met en file **deux** entrées à `draw_order` non nul, puis vide la file. Les deux entrées périmées sont ainsi dans le pool.</li><li>Il met ensuite en file une entrée par `QueuePsxQuad` et une par un appel sans `draw_order` : chacune reprend une entrée périmée. Les deux ont `DrawOrder == 0`.</li><li>La note de T1.1 consigne trois exécutions : l'une échoue quand l'affectation de `DrawOrder` est retirée de `QueuePsxQuad`, une autre quand elle est retirée du `DrawSprite` du cœur, et la dernière passe avec les deux affectations.</li></ul></li><li>À Z différents, l'ordre est inchangé.</li><li>Les entrées à clé ne changent pas.</li><li>Côté JSON : chargement, sauvegarde et refus d'un `draw_order` malformé, pour les deux composants.</li><li>Aucune allocation ajoutée par la mise en file.</li></ul> |
-| C5 | **Docs.** ADR-0092. `docs/engine/static-sprite-component.md` (ordre de dessin) et `docs/engine/video.md` §9 gagnent le champ et la règle de départage |
+| C5 | **Docs.** ADR-0131. `docs/engine/static-sprite-component.md` (ordre de dessin) et `docs/engine/video.md` §9 gagnent le champ et la règle de départage |
 | C6 | **Sample `Projects/SpriteDrawOrderSample`.** <ul><li>Un projet sans DLL, avec un monde à caméra 2D et trois sprites en mélange `AlphaBlend` qui se recouvrent, au même Z.</li><li>Leurs `draw_order` sont donnés dans l'ordre inverse de leur ordre dans le `.world`. L'empilement visible suit donc `draw_order`, et non l'ordre des données.</li><li>Les images sont synthétiques, générées par un code de test. Un test de données vérifie les pixels, les références et le champ.</li></ul> |
-| C7 | **Launcher.** Toute exécution du Launcher par l'agent est annoncée à l'auteur avant de commencer (C9 d'ADR-0091) |
+| C7 | **Launcher.** Toute exécution du Launcher par l'agent est annoncée à l'auteur avant de commencer (C9 d'ADR-0130) |
 
 ## Règles d'exécution pour l'agent
 
@@ -104,12 +104,12 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 
 ## Phase 0 — Plan et ADR
 
-### ✅ T0.1 — Plan et ADR-0092
+### ✅ T0.1 — Plan et ADR-0131
 
-- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0092, qui reprend D1 à D6 et C1 à C7.
+- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0131, qui reprend D1 à D6 et C1 à C7.
 - Validation : ADR relue contre D1 à D6 et C1 à C7 ; contrôle D4.
-- Commit : `docs(sprites): plan a draw order for sprites of equal depth, and record ADR-0092`
-- Note : plan approuvé par l'auteur le 2026-11-10 (« J'approuve le plan »), lancé le même jour (« Oui, lance-le »). ADR-0092 (`docs/decisions/0092-sprites-of-equal-depth-follow-a-draw-order.md`) relue contre D1 à D6 et C1 à C7. Contrôle D4 fait par `rg` sur le plan, l'index et l'ADR : aucun nom.
+- Commit : `docs(sprites): plan a draw order for sprites of equal depth, and record ADR-0131`
+- Note : plan approuvé par l'auteur le 2026-11-10 (« J'approuve le plan »), lancé le même jour (« Oui, lance-le »). ADR-0131 (`docs/decisions/0131-sprites-of-equal-depth-follow-a-draw-order.md`) relue contre D1 à D6 et C1 à C7. Contrôle D4 fait par `rg` sur le plan, l'index et l'ADR : aucun nom.
 
 ---
 
@@ -166,7 +166,7 @@ Lu sur `main` à `e93a4049`, égal au pointeur du projet consommateur.
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(sprites): describe the draw order of sprites of equal depth`
 - Note : fait le 2026-11-10.
-  - ADR-0092 relue contre le code livré (comparateur, affectations de `DrawOrder` et `Submission`, surcharges publiques et interne, JSON, sauvegarde de l'éditeur, appels des deux composants) : aucune correction nécessaire, aucun changement de l'ADR.
+  - ADR-0131 relue contre le code livré (comparateur, affectations de `DrawOrder` et `Submission`, surcharges publiques et interne, JSON, sauvegarde de l'éditeur, appels des deux composants) : aucune correction nécessaire, aucun changement de l'ADR.
   - `docs/engine/static-sprite-component.md` : clé `draw_order` dans le tableau JSON et dans les champs malformés ; nouvelle section « Draw order of sprites of equal depth » (champ, règle du comparateur, sprites à clé sans effet, O1, profondeur) ; renvoi vers la vidéo.
   - `docs/engine/video.md` §9 : clé `draw_order` (§9.1, sauvegarde et copie comprises), surcharge à `drawOrder` (§9.3), règle de départage, limite O3 mise à jour (l'ordre à Z égal suit `draw_order` et non plus le tri).
   - Validation : relecture contre le code ; `CasaEngine.MonoGame.sln` et `CasaEngine.Editor.MonoGame.sln` à 0 erreur ; `CasaEngine.Tests` 5602 réussis sur 5602. Aucun code touché, aucune exécution en échec demandée.

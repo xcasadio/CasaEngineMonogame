@@ -2,7 +2,7 @@ using CasaEngine.Framework.Cutscenes;
 
 namespace CasaEngine.EditorServices.Cutscenes;
 
-/// <summary>The kind of a row of the cutscene timeline (ADR-0098).</summary>
+/// <summary>The kind of a row of the cutscene timeline (ADR-0137).</summary>
 public enum CutsceneTimelineRowKind
 {
     /// <summary>The ranges of the Repeat actions.</summary>
@@ -191,7 +191,7 @@ public sealed class CutsceneTimelineLayout
 
     /// <summary>
     /// The playhead position for a play time. For an endless loop whose lap lasts, the time wraps onto the drawn lap
-    /// (ADR-0098); otherwise it is the time itself.
+    /// (ADR-0137); otherwise it is the time itself.
     /// </summary>
     public double MapPlayTime(double seconds)
     {

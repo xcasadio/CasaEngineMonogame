@@ -13,7 +13,7 @@ using MonoGame.Extended;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// Drag and drop of an action inside the Hierarchy tree (ADR-0101, P5 to P7). MGUI is not changed: the tree listens to the
+/// Drag and drop of an action inside the Hierarchy tree (ADR-0140, P5 to P7). MGUI is not changed: the tree listens to the
 /// drag of the left button, finds the row under the pointer from the bounds of the row headers, asks
 /// <see cref="CutsceneDropTargetResolver"/> where the action would land and draws the marker itself.
 /// </summary>
@@ -150,7 +150,7 @@ internal sealed partial class CutsceneOutlinerPanel
             return;
         }
 
-        // The two keys the panel takes (ADR-0101, P6 and P11); the arrows and the rest belong to the tree. The event comes only
+        // The two keys the panel takes (ADR-0140, P6 and P11); the arrows and the rest belong to the tree. The event comes only
         // while the tree has the keyboard focus, so Delete never removes an action while the user works elsewhere.
         if (e.Key == Keys.Escape && _dragAction != null)
         {

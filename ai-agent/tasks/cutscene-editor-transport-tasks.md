@@ -1,6 +1,6 @@
 # Plan agent IA — Éditeur de cutscenes : pause, pas à pas et déplacement de la tête de lecture (tranche D)
 
-Quatrième tranche du programme « éditeur de cutscenes visuel » (ADR-0096, plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md), [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md) et [cutscene-editor-timeline-tasks.md](cutscene-editor-timeline-tasks.md)).
+Quatrième tranche du programme « éditeur de cutscenes visuel » (ADR-0135, plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md), [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md) et [cutscene-editor-timeline-tasks.md](cutscene-editor-timeline-tasks.md)).
 Elle rend la tête de lecture utilisable : on met l'aperçu en pause, on avance ou recule d'une image, et on clique dans la timeline pour voir la cutscene à cet instant. La timeline reste une **vue calculée depuis l'arbre** : on n'y déplace encore aucune action.
 
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur : **ce plan les applique, il ne les rediscute pas**.
@@ -141,16 +141,16 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 
 ## Phase 0 — Décisions
 
-### ✅ T0.1 — ADR-0099
+### ✅ T0.1 — ADR-0138
 
 - Objectif : enregistrer P1 → P15.
 - Fichiers : `docs/decisions/0099-<short-title>.md` (créé), `docs/decisions/README.md`, `ai-agent/README.md` (ligne de ce plan), ce plan.
 - Étapes :
-  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan, ADR-0096 et ADR-0098. Contenu : la pause est un gel du monde d'aperçu côté éditeur, sans API runtime (P1) ; aller à un instant se fait par relecture à pas fixes, avec reprise depuis l'état courant quand c'est possible, et un budget par frame (P2 → P4) ; la logique du transport est dans les services d'édition (P5) ; sémantique des boutons, de `Stop` et de la fin de lecture, en disant que P7 remplace le point d'ADR-0096 sur l'état laissé par une lecture et que P10 remplace le point « Scrubbing » d'ADR-0098 (P6 → P10) ; caméra, mesures gardées, automatisation (P11 → P13) ; limites acceptées (P14, P15).
+  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan, ADR-0135 et ADR-0137. Contenu : la pause est un gel du monde d'aperçu côté éditeur, sans API runtime (P1) ; aller à un instant se fait par relecture à pas fixes, avec reprise depuis l'état courant quand c'est possible, et un budget par frame (P2 → P4) ; la logique du transport est dans les services d'édition (P5) ; sémantique des boutons, de `Stop` et de la fin de lecture, en disant que P7 remplace le point d'ADR-0135 sur l'état laissé par une lecture et que P10 remplace le point « Scrubbing » d'ADR-0137 (P6 → P10) ; caméra, mesures gardées, automatisation (P11 → P13) ; limites acceptées (P14, P15).
   2. Ligne d'index ; ligne de ce plan dans `ai-agent/README.md`.
 - Validation : les liens de l'index pointent sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
 - Commit : `docs(decisions): record the pause, step and seek of the cutscene preview`
-- Note de validation (2026-11-18) : `docs/decisions/0099-the-cutscene-preview-pauses-steps-and-seeks-by-replay.md` créé (statut `Accepted`), ligne ajoutée à `docs/decisions/README.md` et à `ai-agent/README.md`. P1 → P15 sont tous couverts ; l'ADR dit que P7 remplace le point d'ADR-0096 sur l'état laissé par une lecture et que P10 remplace le point « Scrubbing » d'ADR-0098. Les liens de l'index pointent sur des fichiers existants (vérifié) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests lancés (référence : 6134 tests).
+- Note de validation (2026-11-18) : `docs/decisions/0138-the-cutscene-preview-pauses-steps-and-seeks-by-replay.md` créé (statut `Accepted`), ligne ajoutée à `docs/decisions/README.md` et à `ai-agent/README.md`. P1 → P15 sont tous couverts ; l'ADR dit que P7 remplace le point d'ADR-0135 sur l'état laissé par une lecture et que P10 remplace le point « Scrubbing » d'ADR-0137. Les liens de l'index pointent sur des fichiers existants (vérifié) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests lancés (référence : 6134 tests).
 
 ---
 
@@ -284,7 +284,7 @@ Automatisation : options `--cutscene-preview-play`, `--cutscene-select-action`, 
 - Fichiers : ces deux documents, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the pause, step and seek of the cutscene preview`
-- Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` mis à jour (en anglais) : renvoi à ADR-0099 ; nouvelle section « Transport » (table des états et du bouton `Play` / `Pause`, pause, `+1 frame` / `-1 frame`, aller à un instant et son avance par pas fixes avec budget, `Stop` qui reconstruit le monde, fin de lecture, relecture après une modification en pause, mesures gardées) ; section Playhead réécrite (clic et glisser dans la règle, tête de lecture qui reste à la fin) ; caméra gardée (P11) ; trois nouvelles options d'automatisation et leurs diagnostics ; limites (pas de raccourci clavier P14, pas pour les actions comptées en images P15, coût d'un retour en arrière non mesuré sur un grand monde) ; liste du code et sections Limits et Next à jour. `docs/editor/timeline-generic.md` décrivait déjà l'option `rulerDragScrub` (livrée par T2.4) : aucun changement. Relu contre le code livré (libellés des boutons, mots d'état, comportement de `Stop`, options et diagnostics) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests relancés (6200 tests verts à T2.6).
+- Note de validation (2026-11-18) : `docs/editor/cutscene-editor.md` mis à jour (en anglais) : renvoi à ADR-0138 ; nouvelle section « Transport » (table des états et du bouton `Play` / `Pause`, pause, `+1 frame` / `-1 frame`, aller à un instant et son avance par pas fixes avec budget, `Stop` qui reconstruit le monde, fin de lecture, relecture après une modification en pause, mesures gardées) ; section Playhead réécrite (clic et glisser dans la règle, tête de lecture qui reste à la fin) ; caméra gardée (P11) ; trois nouvelles options d'automatisation et leurs diagnostics ; limites (pas de raccourci clavier P14, pas pour les actions comptées en images P15, coût d'un retour en arrière non mesuré sur un grand monde) ; liste du code et sections Limits et Next à jour. `docs/editor/timeline-generic.md` décrivait déjà l'option `rulerDragScrub` (livrée par T2.4) : aucun changement. Relu contre le code livré (libellés des boutons, mots d'état, comportement de `Stop`, options et diagnostics) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests relancés (6200 tests verts à T2.6).
 
 ### 🧪 T3.2 — Recette de l'auteur
 
@@ -312,14 +312,14 @@ Faits vérifiés pour cette phase :
 
 Règles propres à cette phase : celles du plan, plus : les tests ajoutés par les tâches T1.1 à T2.5 de ce plan peuvent être réécrits quand P17, P18 ou P19 change ce qu'ils décrivent ; les tests d'avant ce plan restent intouchables. Référence des tests avant cette phase : 6200.
 
-### ✅ T4.1 — ADR-0100
+### ✅ T4.1 — ADR-0139
 
-- Objectif : enregistrer P16 → P18, qui précisent ADR-0099 sans la réécrire.
+- Objectif : enregistrer P16 → P18, qui précisent ADR-0138 sans la réécrire.
 - Fichiers : `docs/decisions/0100-<short-title>.md` (créé), `docs/decisions/README.md`, ce plan.
-- Étapes : ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan et ADR-0099. Contenu : le temps 0 montre le premier instant grâce à une mise à jour de durée nulle, pourquoi cet état ne sert qu'à l'affichage (une lecture poursuivie depuis lui serait en avance d'une image), la règle de relance qui garde l'état indépendant du chemin, et la limite du `Parallel` (P17) ; le transport revient en `Running` quand aucune lecture ne court (P18), ce qui précise le point d'ADR-0099 sur la fin d'une lecture pendant une recherche ; le mot de la ligne d'état (P16).
+- Étapes : ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan et ADR-0138. Contenu : le temps 0 montre le premier instant grâce à une mise à jour de durée nulle, pourquoi cet état ne sert qu'à l'affichage (une lecture poursuivie depuis lui serait en avance d'une image), la règle de relance qui garde l'état indépendant du chemin, et la limite du `Parallel` (P17) ; le transport revient en `Running` quand aucune lecture ne court (P18), ce qui précise le point d'ADR-0138 sur la fin d'une lecture pendant une recherche ; le mot de la ligne d'état (P16).
 - Validation : liens de l'index ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(decisions): record the first instant and the live world after the end of the cutscene preview`
-- Note de validation (2026-11-18) : `docs/decisions/0100-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md` créé (statut `Accepted`, source : ce plan et ADR-0099), ligne ajoutée à `docs/decisions/README.md`. Il couvre P17 (premier instant par une mise à jour de durée nulle non comptée, état de départ marqué réservé à l'affichage, relance sans mise à jour de durée nulle pour toute action qui en repart, limite du `Parallel`), P18 (retour en `Running` quand aucune lecture ne court, ce qui précise le point d'ADR-0099 sur la fin d'une lecture pendant une recherche) et P16 (mot de la ligne d'état). ADR-0099 n'est pas modifiée. Le lien de l'index pointe sur un fichier existant (vérifié) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests lancés (référence : 6200 tests).
+- Note de validation (2026-11-18) : `docs/decisions/0139-the-cutscene-preview-shows-the-first-instant-and-keeps-the-world-live-after-the-end.md` créé (statut `Accepted`, source : ce plan et ADR-0138), ligne ajoutée à `docs/decisions/README.md`. Il couvre P17 (premier instant par une mise à jour de durée nulle non comptée, état de départ marqué réservé à l'affichage, relance sans mise à jour de durée nulle pour toute action qui en repart, limite du `Parallel`), P18 (retour en `Running` quand aucune lecture ne court, ce qui précise le point d'ADR-0138 sur la fin d'une lecture pendant une recherche) et P16 (mot de la ligne d'état). ADR-0138 n'est pas modifiée. Le lien de l'index pointe sur un fichier existant (vérifié) ; aucun nom de jeu ni de projet tiers dans les fichiers touchés (vérifié par recherche). Aucun code touché : ni build ni tests lancés (référence : 6200 tests).
 
 ### ✅ T4.2 — Le transport revient en lecture quand aucune lecture ne court
 

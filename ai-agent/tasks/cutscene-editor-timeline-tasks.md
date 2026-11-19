@@ -1,6 +1,6 @@
 # Plan agent IA — Éditeur de cutscenes : timeline en lecture seule (tranche C)
 
-Troisième tranche du programme « éditeur de cutscenes visuel » (ADR-0096, plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md) et [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md)).
+Troisième tranche du programme « éditeur de cutscenes visuel » (ADR-0135, plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md) et [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md)).
 Elle ajoute une timeline qui montre la cutscene dans le temps, avec une tête de lecture qui suit l'aperçu et une sélection partagée avec l'arbre. La timeline est une **vue calculée depuis l'arbre** : on n'y édite encore rien.
 
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur : **ce plan les applique, il ne les rediscute pas**.
@@ -130,16 +130,16 @@ Sample `Projects/SpriteCutsceneSample` : `loop.cutscene` est un `ExitOnInput` su
 
 ## Phase 0 — Décisions
 
-### ✅ T0.1 — ADR-0098
+### ✅ T0.1 — ADR-0137
 
 - Objectif : enregistrer P1 → P14.
 - Fichiers : `docs/decisions/0098-<short-title>.md` (créé), `docs/decisions/README.md`, `ai-agent/README.md` (ligne de ce plan), ce plan.
 - Étapes :
-  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan et ADR-0096. Contenu : la timeline est une projection en lecture seule de l'arbre ; horloge de lecture et notifications par action ajoutées au directeur, avec leur sémantique exacte (P2 → P4) ; règles de projection (P5 → P11) ; panneau d'outil contextuel (P1, P14), en disant que cela précise ADR-0096, qui plaçait la timeline parmi les zones du document ; options du contrôle générique (P13) ; ce qui est reporté (déplacement de la tête de lecture, édition sur la timeline).
+  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-18, source : ce plan et ADR-0135. Contenu : la timeline est une projection en lecture seule de l'arbre ; horloge de lecture et notifications par action ajoutées au directeur, avec leur sémantique exacte (P2 → P4) ; règles de projection (P5 → P11) ; panneau d'outil contextuel (P1, P14), en disant que cela précise ADR-0135, qui plaçait la timeline parmi les zones du document ; options du contrôle générique (P13) ; ce qui est reporté (déplacement de la tête de lecture, édition sur la timeline).
   2. Ligne d'index ; ligne de ce plan dans `ai-agent/README.md`.
 - Validation : les liens de l'index pointent sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
 - Commit : `docs(decisions): record the read-only cutscene timeline and the play clock`
-- Note de validation : ADR-0098 écrite, index et `ai-agent/README.md` mis à jour ; liens vérifiés ; aucun nom de jeu ni de projet tiers.
+- Note de validation : ADR-0137 écrite, index et `ai-agent/README.md` mis à jour ; liens vérifiés ; aucun nom de jeu ni de projet tiers.
 
 ---
 

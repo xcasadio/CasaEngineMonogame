@@ -100,13 +100,13 @@ Conséquence importante : une cutscene peut déjà être chargée, validée, jou
 
 Ajout de l’ADR-0088 : un monde lance une cutscene au chargement (clé `.world` `startup_cutscene_asset_id`), quatre actions `WaitFrames`, `FadeScreenFrames`, `OpenScreen` et `ChangeWorld` (une image y est une mise à jour du jeu), et l’événement `CutsceneDirector.Ended`, levé au plus une fois par lecture démarrée (exceptions : voir la section) avec l’état final `Completed`, `Stopped` ou `Failed`. Le détail est dans la section « Timed screens from a cutscene » de [data-driven-screens.md](data-driven-screens.md#timed-screens-from-a-cutscene).
 
-Ajout de l’ADR-0090 : six actions de sprite, de boucle et de sortie sur une touche, décrites dans la section suivante (en anglais).
+Ajout de l’ADR-0129 : six actions de sprite, de boucle et de sortie sur une touche, décrites dans la section suivante (en anglais).
 
 ---
 
-## Sprite, repeat and exit-on-input actions (ADR-0090)
+## Sprite, repeat and exit-on-input actions (ADR-0129)
 
-Six actions let a `.cutscene` play a 2D sprite sequence from data alone: `ShowSprite`, `HideSprite`, `MoveSprite`, `TintSprite`, `Repeat` and `ExitOnInput`. The decision is [ADR-0090](../decisions/0090-cutscene-actions-drive-named-sprite-entities-over-time.md), the working example is `Projects/SpriteCutsceneSample` (its README lists the controls and the files), and the sprite component they drive is described in [static-sprite-component.md](static-sprite-component.md). Fields are snake_case, like the other actions.
+Six actions let a `.cutscene` play a 2D sprite sequence from data alone: `ShowSprite`, `HideSprite`, `MoveSprite`, `TintSprite`, `Repeat` and `ExitOnInput`. The decision is [ADR-0129](../decisions/0129-cutscene-actions-drive-named-sprite-entities-over-time.md), the working example is `Projects/SpriteCutsceneSample` (its README lists the controls and the files), and the sprite component they drive is described in [static-sprite-component.md](static-sprite-component.md). Fields are snake_case, like the other actions.
 
 ### Fields
 
@@ -162,7 +162,7 @@ Example, the sprite actions of one lap:
 - `seconds` is a JSON number, integer or decimal, and must be finite; a missing key reads as 0. A negative value, or a value that is not a number, is a validation error naming `At.seconds`. An empty `actions` list is a validation warning, as for `Sequence`. A 0 or absent delay does not wait and loses no frame compared with a `Sequence`.
 - The saver writes `seconds`, then `actions`. The schema version does not change: an engine without `At` loads it as an unknown type and refuses the cutscene with an error, instead of playing it wrongly.
 - Observation: `ActionStarted` is raised for the `At` when it starts, then for each child as it starts, and `ActionEnded` for the `At` after its last child ended. Stopping the cutscene during the wait, or during a child, runs nothing more. A child that fails ends the `At`.
-- The editor edits `seconds` in the Inspector and the timeline shows the children of an `At` at `start + seconds` ([ADR-0102](../decisions/0102-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md)).
+- The editor edits `seconds` in the Inspector and the timeline shows the children of an `At` at `start + seconds` ([ADR-0141](../decisions/0141-the-cutscene-format-gains-an-at-action-and-the-timeline-places-actions-in-time.md)).
 
 ### ExitOnInput
 
@@ -188,9 +188,9 @@ Example, the sprite actions of one lap:
 - **The blend applies to the whole sprite (O1),** not per texel: the per-texel semi-transparency of `SpriteData.PsxSemiTransparency` ([sprite-psx-semi-transparency.md](sprite-psx-semi-transparency.md)) is not tied to the `blend_mode` of an action.
 - Editing these actions in the editor is not done: the read-only inspector shows them.
 
-## PlayVideoSprite (ADR-0091)
+## PlayVideoSprite (ADR-0130)
 
-`PlayVideoSprite` plays a film that is drawn as a sprite of the world, so other sprites can be shown over it (for example a `ShowSprite` that fades in above the film, in a `Parallel`). The decision is [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md), the component, its JSON, its creation failures and the depth rule are in [video.md](video.md#9-the-world-video-component), and the working example is `Projects/VideoSpriteSample`.
+`PlayVideoSprite` plays a film that is drawn as a sprite of the world, so other sprites can be shown over it (for example a `ShowSprite` that fades in above the film, in a `Parallel`). The decision is [ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md), the component, its JSON, its creation failures and the depth rule are in [video.md](video.md#9-the-world-video-component), and the working example is `Projects/VideoSpriteSample`.
 
 | Action | Field | Required | Meaning |
 |---|---|---|---|
@@ -206,9 +206,9 @@ Example, the sprite actions of one lap:
 - **Measured frames** (`CasaEngine.Tests`, a film of 3 pictures at 10 pictures per second, so a step of 0.1 s; one game frame is the coroutines, then the `Update` of the entities). The film starts on picture 0 in the coroutine update of game frame 1, then the component `Update` of the same game frame advances it: it is on picture 1 at the end of game frame 1. The wait ends, and the entity is hidden, in game frame 4, the turn after the last picture of the film: the entity is visible during 3 game frames.
 - **Limits.** The only way out of the film is leaving the cut-scene, with `ExitOnInput`. Editing the action in the editor is not done: the read-only inspector shows it.
 
-## StartVideoSprite (ADR-0093)
+## StartVideoSprite (ADR-0132)
 
-`StartVideoSprite` starts the film of a world video entity and returns at once. The film then belongs to its component, like a sprite movement or tint (ADR-0090): it runs to its end whatever happens to the cut-scene, and the component hides the entity in the update where it ends. Use it when leaving the cut-scene (for example with `ExitOnInput`) must let the film run on under the exit fade. The decision is [ADR-0093](../decisions/0093-a-world-video-can-run-to-its-end-after-its-cutscene.md), the component side is in [video.md](video.md#95-the-startvideosprite-cut-scene-action), and the working example is `Projects/VideoSpriteExitSample`.
+`StartVideoSprite` starts the film of a world video entity and returns at once. The film then belongs to its component, like a sprite movement or tint (ADR-0129): it runs to its end whatever happens to the cut-scene, and the component hides the entity in the update where it ends. Use it when leaving the cut-scene (for example with `ExitOnInput`) must let the film run on under the exit fade. The decision is [ADR-0132](../decisions/0132-a-world-video-can-run-to-its-end-after-its-cutscene.md), the component side is in [video.md](video.md#95-the-startvideosprite-cut-scene-action), and the working example is `Projects/VideoSpriteExitSample`.
 
 | Action | Field | Required | Meaning |
 |---|---|---|---|

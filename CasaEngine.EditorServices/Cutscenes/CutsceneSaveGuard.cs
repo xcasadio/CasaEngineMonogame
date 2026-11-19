@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
-/// Decides whether a cutscene can be saved without destroying data silently (ADR-0095). A save is refused when the tree
+/// Decides whether a cutscene can be saved without destroying data silently (ADR-0134). A save is refused when the tree
 /// holds an action of an unknown type, a format error or a load loss, and when the JSON about to be written would be
 /// read back by the loader with one of these: the editor never writes a file that its own loader would reject.
 /// </summary>

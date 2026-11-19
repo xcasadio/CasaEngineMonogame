@@ -18,12 +18,12 @@ using MonoGame.Extended;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The timeline of the active cutscene document (ADR-0098): a projection of its action tree on rows and times,
+/// The timeline of the active cutscene document (ADR-0137): a projection of its action tree on rows and times,
 /// a playhead that follows the preview, and a selection shared with the outliner. The tree stays the model: the projection is
-/// read-only, except that an item the placement rule allows (ADR-0102, P5) can be dragged in time, which writes the tree through
+/// read-only, except that an item the placement rule allows (ADR-0141, P5) can be dragged in time, which writes the tree through
 /// the document. The model is rebuilt when the document changes or a new duration is measured, never per frame; per frame only
 /// the playhead moves. A right click on an item opens the structure menu shared with the outliner (P8, P12); the empty space
-/// of a row offers "Add here" at the time of the cursor when the selection gives a Parallel to receive the action (ADR-0102),
+/// of a row offers "Add here" at the time of the cursor when the selection gives a Parallel to receive the action (ADR-0141),
 /// and the track headers have no menu. A dragged bar keeps the place where it was grabbed while it follows the cursor.
 /// </summary>
 internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
@@ -398,7 +398,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
 
     private void OnTimelineSelectedItemChanged(TimelineItem? item)
     {
-        // A click in the empty space clears the control's selection but not the document's (ADR-0098).
+        // A click in the empty space clears the control's selection but not the document's (ADR-0137).
         if (_syncingSelection || item == null || _document == null || item.Source is not CutsceneTimelineItemInfo info)
         {
             return;
@@ -435,7 +435,7 @@ internal sealed class CutsceneTimelinePanel : ITimelineContextMenuProvider
             return null;
         }
 
-        // The empty space offers "Add here" at the time of the cursor (ADR-0102), when the selection gives a Parallel to receive
+        // The empty space offers "Add here" at the time of the cursor (ADR-0141), when the selection gives a Parallel to receive
         // the action; otherwise it has no menu.
         if (item == null)
         {

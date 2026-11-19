@@ -9,7 +9,7 @@ namespace CasaEngine.Editor.Runtime.Overlays;
 
 /// <summary>
 /// Draws the screen fade or tint of a cutscene preview on top of the preview image, with the blend of the engine
-/// (ADR-0103). It is registered on the render view of the preview viewport as a post-UI overlay and reads a
+/// (ADR-0142). It is registered on the render view of the preview viewport as a post-UI overlay and reads a
 /// <see cref="ScreenEffectService"/>; it never changes it.
 /// </summary>
 /// <remarks>

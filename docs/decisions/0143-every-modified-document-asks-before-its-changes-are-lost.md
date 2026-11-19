@@ -1,13 +1,14 @@
-# ADR-0104: Every modified document asks before its changes are lost
+# ADR-0143: Every modified document asks before its changes are lost
 
 - **Status**: Accepted
 - **Date**: 2026-11-19
 - **Source**: this chantier: `ai-agent/tasks/editor-unsaved-documents-tasks.md` (decisions D1 to D5, settled with the author on 2026-11-19, and choices P1 to P14, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. The author, after testing the cutscene editor on 2026-11-19: the question must be asked for every opened and edited document, as a general behaviour of every open view.
+- Renumbered from ADR-0104 on 2026-11-19 when origin/main was merged (its ADR-0104 is another decision)
 
 ## Context
 
 - ADR-0041 turned the three save prompts of the editor into asynchronous MGUI message boxes: closing a modified screen, quitting with modified screens, and opening a world while the current one is modified. Two of the three cover UI screen documents only.
-- ADR-0095 states that the "unsaved changes" prompt on closing exists only for UI screen documents, and defers the prompt for cutscenes and the other asset documents.
+- ADR-0134 states that the "unsaved changes" prompt on closing exists only for UI screen documents, and defers the prompt for cutscenes and the other asset documents.
 - Commit `b5b4ae05` added the question on closing a modified cutscene tab. Other modified documents (material, sprite, particle, Animation2D, entity, audio mixer, sound) are still lost without a question on closing, on quitting, and when another project is opened. The world is asked only when another world is opened.
 - The sound document does not show ` *` in its tab when modified and is not saved by "Save project"; reopening an already opened sound reloads it and drops its unsaved changes.
 - Opening another project calls `_editorDirtyState.ClearAll()` and `_editorHistory.ClearAll()` without asking; the document tables are emptied only when a panel is removed, and replacing the dock layout raises no removal, so documents of the left project stay in the tables.
@@ -15,7 +16,7 @@
 
 ## Decision
 
-This record completes ADR-0041 and replaces the deferral written in ADR-0095. Neither file is modified.
+This record completes ADR-0041 and replaces the deferral written in ADR-0134. Neither file is modified.
 
 - D1: the save question is asked for every open and modified document, not only UI screens and cutscenes.
 - D2: when quitting the editor, the question covers the documents and the world.

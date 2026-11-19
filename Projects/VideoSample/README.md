@@ -1,6 +1,6 @@
 # VideoSample
 
-A project with no gameplay DLL that plays a synthetic MDEC clip from data alone (ADR-0089). `VideoWorld.world` starts a cutscene through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: the only screen comes from the cutscene.
+A project with no gameplay DLL that plays a synthetic MDEC clip from data alone (ADR-0128). `VideoWorld.world` starts a cutscene through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: the only screen comes from the cutscene.
 
 ## Objective
 

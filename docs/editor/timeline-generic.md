@@ -61,7 +61,7 @@
 
 Une cinquième option de construction, `keepGrabOffset` (propriété `KeepGrabOffsetEnabled`, fausse par défaut), change le glisser de déplacement d'un élément. Par défaut, le début de l'élément va sous le curseur dès le premier mouvement : une barre saisie par son milieu saute de la moitié de sa longueur. Avec l'option, le contrôle retient, au début du glisser, l'écart entre l'instant du point d'appui et le début de l'élément, borné entre 0 et la durée de l'élément, et donne au magnétisme l'instant du curseur moins cet écart (pas moins de 0). Un élément instantané a une durée nulle : son comportement ne change pas. Les étirements ne changent pas non plus. Le panneau Cutscene Timeline active l'option ; la timeline Animation2D ne l'active pas.
 
-Premier consommateur de ces options : le panneau Cutscene Timeline, en lecture seule et sans `Adapter` (voir [cutscene-editor.md](cutscene-editor.md), ADR-0098). Il remplace `ItemRenderer` par `CutsceneTimelineItemRenderer`.
+Premier consommateur de ces options : le panneau Cutscene Timeline, en lecture seule et sans `Adapter` (voir [cutscene-editor.md](cutscene-editor.md), ADR-0137). Il remplace `ItemRenderer` par `CutsceneTimelineItemRenderer`.
 
 ---
 

@@ -13,7 +13,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The veil that the cutscene preview draws for a screen fade (ADR-0103): the blend states are the ones of the engine, a veil
+/// The veil that the cutscene preview draws for a screen fade (ADR-0142): the blend states are the ones of the engine, a veil
 /// that cannot be seen is not drawn, and what is drawn darkens the image and leaves the device as it was found.
 /// </summary>
 public class CutsceneScreenFadeOverlayTests

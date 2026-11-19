@@ -23,7 +23,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - **Quatre actions de sprite, comptées en temps.** `ShowSprite`, `HideSprite`, `MoveSprite` et `TintSprite` visent une entité par son nom. Déplacement et teinte démarrent puis laissent la séquence continuer, et avancent avec le temps écoulé.
 - **Une action `Repeat`** qui rejoue ses enfants sans fin ou N fois.
 - **Une action `ExitOnInput`** qui arme une veille pour le reste de la cutscene. À l'appui d'une des entrées nommées d'un mapping, elle arrête la cutscene et lance une cutscene de suite.
-- **Livrables associés** : ADR-0090 et un sample `Projects/SpriteCutsceneSample` avec des images synthétiques.
+- **Livrables associés** : ADR-0129 et un sample `Projects/SpriteCutsceneSample` avec des images synthétiques.
 
 Le chantier ne touche pas aux actions existantes et n'ajoute ni animation d'images, ni rotation, ni échelle (voir « Hors périmètre »).
 
@@ -75,7 +75,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 - **Tests.**
   - `CasaEngine.Tests/Cutscenes/` (`FrameCutsceneActionsTests`, `ScreenAndWorldCutsceneActionsTests`, `PlayVideoCutsceneActionTests`, `CutsceneAssetJsonSerializerTests`, `CutsceneDirectorTests`), `Rendering/SpriteRendererComponentBlendModeTests.cs`, `Input/InputMappingManagerContainsTests.cs` et `UI/VideoSampleDataTests.cs`.
   - `AllocationWindow.Start()` mesure les allocations.
-- **ADR.** Prochain numéro libre : 0090.
+- **ADR.** Prochain numéro libre : 0129.
 - **Arbre de travail.** Branche `chantier/sprite-cutscene-actions` créée depuis `main` `da5c75af`. Aucun changement préexistant.
 
 ## Décisions verrouillées
@@ -89,7 +89,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 | D3 | **Temps, comme dans un moteur moderne.** Les actions de sprite se comptent en secondes et en pixels par seconde, et avancent avec le temps écoulé, sans pas par image. Le consommateur convertit ses durées comptées en images. Mots de l'auteur : « il faut convertir le temps mesuré par nombre de frames de la PSX (avec un temps fixe) par un calcul avec le temps (comme dans les moteurs modernes) » |
 | D4 | **Sortie par une veille sur des entrées nommées.** Une action arme une veille pour le reste de la cutscene. À l'appui d'une des entrées nommées d'un mapping d'entrée du projet, donc clavier et manette en données, la cutscene s'arrête et une cutscene de suite démarre |
 | D5 | **Boucle par une action `Repeat`.** Elle rejoue ses enfants sans fin ou N fois, dans la même cutscene, sans recharger le monde |
-| D6 | **Format et API additifs.** Un projet, un monde ou une cutscene existants se chargent et se comportent à l'identique. ADR-0090 enregistre les décisions |
+| D6 | **Format et API additifs.** Un projet, un monde ou une cutscene existants se chargent et se comportent à l'identique. ADR-0129 enregistre les décisions |
 | D7 | Rien dans ce plan, l'ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur, un jeu ou une décompilation. Les données sont synthétiques |
 | D8 | Simple et optimisé : pas d'allocation par image dans les mises à jour de sprite ni dans la veille |
 
@@ -106,7 +106,7 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 | C7 | **Éditeur.** Le builder en lecture seule montre les nouveaux types et leurs champs. L'édition de ces actions dans l'éditeur n'est pas faite |
 | C8 | **Sample `Projects/SpriteCutsceneSample`.** <ul><li>Un projet sans DLL : un monde à caméra 2D, quatre entités sprite cachées au chargement, sans `DepthSortable2DComponent` (ordre par Z, C1), un mapping `sample-input` avec une entrée `exit` (touche du clavier et bouton de manette), une cutscene de démarrage et une cutscene de suite.</li><li>La cutscene de démarrage arme `ExitOnInput`, puis lance un `Repeat` sans fin : des sprites additifs et soustractifs entrent par un bord avec `MoveSprite`, s'allument puis s'éteignent avec `TintSprite`, et se cachent, avec des `Wait` entre les deux.</li><li>La suite fait un `FadeScreen` vers le noir, puis un `ChangeWorld` vers un monde de fin qui revient au premier après une attente.</li><li>Les images sont synthétiques, générées par un code de test. Un test de données vérifie leurs pixels décodés, les références des mondes et des cutscenes, et la validation des cutscenes.</li></ul> |
 | C9 | **Tests sans GPU** pour la logique : <ul><li>la sérialisation aller-retour et la validation de chaque action ;</li><li>les calculs de mouvement et de teinte avec des pas de temps choisis (arrivée exacte, remplacement, durée 0, `TimeScale`) ;</li><li>`Repeat` (N tours, tour vide sans fin en échec, arrêt pendant un tour) ;</li><li>`ExitOnInput` : appui, maintien sans effet, remplacement de la veille, suite jouée et `Ended` ;</li><li>`ExitOnInput` avec une touche tenue avant et pendant l'armement, sans arrêt ni suite. Après un relâchement puis un nouvel appui, la lecture s'arrête et la suite fait son premier pas à l'image mesurée ;</li><li>`ExitOnInput` dans une cutscene qui se termine (`Completed`) : un appui à une image suivante ne lance aucune suite, et `GetDebugSnapshot` ne montre plus aucune coroutine du directeur ;</li><li>l'absence d'allocation dans `Update` et dans la veille.</li></ul> Le rendu est testé sans GPU sur le modèle de `SpriteRendererComponentBlendModeTests`. Couleur et mode doivent arriver au renderer. Pour un sprite mélangé sans `DepthSortable2DComponent`, l'entrée en file porte le mode, n'a pas de clé, et se range par Z face à un sprite opaque |
-| C10 | **Docs.** ADR-0090. La doc des cutscenes (`docs/engine/cutscene_commandes_sequentielles_async_coroutine.md`) gagne les cinq actions, leurs champs, la règle du temps et les échecs. La doc du composant sprite reçoit les nouveaux champs |
+| C10 | **Docs.** ADR-0129. La doc des cutscenes (`docs/engine/cutscene_commandes_sequentielles_async_coroutine.md`) gagne les cinq actions, leurs champs, la règle du temps et les échecs. La doc du composant sprite reçoit les nouveaux champs |
 
 ## Règles d'exécution pour l'agent
 
@@ -151,13 +151,13 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 
 ## Phase 0 — Plan et ADR
 
-### ✅ T0.1 — Plan et ADR-0090
+### ✅ T0.1 — Plan et ADR-0129
 
-- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0090, qui reprend D1 à D8 et C1 à C10.
-- Fichiers : `ai-agent/tasks/sprite-cutscene-actions-tasks.md`, `ai-agent/README.md`, `docs/decisions/0090-cutscene-actions-drive-named-sprite-entities-over-time.md`, `docs/decisions/README.md`.
+- Objectif : committer ce plan et sa ligne d'index, et écrire ADR-0129, qui reprend D1 à D8 et C1 à C10.
+- Fichiers : `ai-agent/tasks/sprite-cutscene-actions-tasks.md`, `ai-agent/README.md`, `docs/decisions/0129-cutscene-actions-drive-named-sprite-entities-over-time.md`, `docs/decisions/README.md`.
 - Validation : ADR relue contre D1 à D8 et C1 à C10 ; contrôle D7 (aucun nom de projet consommateur, de jeu ou de décompilation).
-- Commit : `docs(cutscenes): plan sprite cutscene actions and record ADR-0090`
-- Note : plan approuvé par l'auteur le 2026-11-09 (« J'approuve le plan »), lancé le même jour (« Oui, lance-le »). ADR-0090 relue contre D1 à D8 et C1 à C10. Contrôle D7 fait par `rg` sur le plan, l'index et l'ADR : aucun nom.
+- Commit : `docs(cutscenes): plan sprite cutscene actions and record ADR-0129`
+- Note : plan approuvé par l'auteur le 2026-11-09 (« J'approuve le plan »), lancé le même jour (« Oui, lance-le »). ADR-0129 relue contre D1 à D8 et C1 à C10. Contrôle D7 fait par `rg` sur le plan, l'index et l'ADR : aucun nom.
 
 ---
 
@@ -323,9 +323,9 @@ Lu sur `main` à `da5c75af`, égal au pointeur du projet consommateur. Lecture s
 - Validation : relecture contre le code livré ; deux `.sln` à 0 erreur.
 - Commit : `docs(cutscenes): describe the sprite, repeat and exit-on-input actions`
 - Note :
-  - **Documenté.** `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` gagne la section « Sprite, repeat and exit-on-input actions (ADR-0090) » (en anglais, dans un document par ailleurs en français) : champs, types et défauts des six actions, `color` en tableau, règle du temps, `Repeat` et sa garde, `ExitOnInput` (armement, durée de vie, ordre d'image mesuré en T2.4), échecs (validation, `Failed`, règles de T2.5) et limites O1, O2, O4, O5 et le `Repeat` fini à grand `count`. Aucune doc ne décrivait `StaticSpriteComponent` : nouveau `docs/engine/static-sprite-component.md` (champs JSON, résolution du nom, ordre de dessin, convention 2D mesurée en T3.1, mouvement et teinte), lié depuis `docs/README.md`. Un nouveau fichier plutôt qu'une section, car les docs de rendu 2D existantes sont en français.
-  - **Relecture contre le code** (`git diff e7a26748..HEAD`) : fabrique, directeur, veille, sérialiseur, validateur, composant, `Entity`, `World.Update`. Les liens vers le sample et ADR-0090 sont posés.
-  - **ADR-0090** relue contre le code livré : aucune erreur factuelle, aucune correction.
+  - **Documenté.** `docs/engine/cutscene_commandes_sequentielles_async_coroutine.md` gagne la section « Sprite, repeat and exit-on-input actions (ADR-0129) » (en anglais, dans un document par ailleurs en français) : champs, types et défauts des six actions, `color` en tableau, règle du temps, `Repeat` et sa garde, `ExitOnInput` (armement, durée de vie, ordre d'image mesuré en T2.4), échecs (validation, `Failed`, règles de T2.5) et limites O1, O2, O4, O5 et le `Repeat` fini à grand `count`. Aucune doc ne décrivait `StaticSpriteComponent` : nouveau `docs/engine/static-sprite-component.md` (champs JSON, résolution du nom, ordre de dessin, convention 2D mesurée en T3.1, mouvement et teinte), lié depuis `docs/README.md`. Un nouveau fichier plutôt qu'une section, car les docs de rendu 2D existantes sont en français.
+  - **Relecture contre le code** (`git diff e7a26748..HEAD`) : fabrique, directeur, veille, sérialiseur, validateur, composant, `Entity`, `World.Update`. Les liens vers le sample et ADR-0129 sont posés.
+  - **ADR-0129** relue contre le code livré : aucune erreur factuelle, aucune correction.
   - **Validation** : `dotnet build` des deux `.sln` à 0 erreur.
 
 ---

@@ -2,7 +2,7 @@ namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
 /// What the transport of the cutscene preview needs from the preview session: whether a play is running, the time of that
-/// play, and a way to advance the preview world by one step (ADR-0099).
+/// play, and a way to advance the preview world by one step (ADR-0138).
 /// </summary>
 public interface ICutscenePreviewStepper
 {

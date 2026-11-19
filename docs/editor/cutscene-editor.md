@@ -1,6 +1,6 @@
 # Cutscene editor
 
-Decisions: see ADR-0095, ADR-0096, ADR-0097, ADR-0098, ADR-0099, ADR-0100, ADR-0101, ADR-0102 and ADR-0103.
+Decisions: see ADR-0134, ADR-0135, ADR-0136, ADR-0137, ADR-0138, ADR-0139, ADR-0140, ADR-0141 and ADR-0142.
 
 ## Summary
 

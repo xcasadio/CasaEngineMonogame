@@ -1,6 +1,6 @@
 # Plan agent IA — Éditeur de cutscenes : un aperçu plus fidèle (tranche G)
 
-Septième tranche du programme « éditeur de cutscenes visuel » (ADR-0096 ; plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md), [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md), [cutscene-editor-timeline-tasks.md](cutscene-editor-timeline-tasks.md), [cutscene-editor-transport-tasks.md](cutscene-editor-transport-tasks.md), [cutscene-editor-structure-tasks.md](cutscene-editor-structure-tasks.md), [cutscene-editor-placement-tasks.md](cutscene-editor-placement-tasks.md)).
+Septième tranche du programme « éditeur de cutscenes visuel » (ADR-0135 ; plans [cutscene-editor-preview-tasks.md](cutscene-editor-preview-tasks.md), [cutscene-editor-outliner-details-tasks.md](cutscene-editor-outliner-details-tasks.md), [cutscene-editor-timeline-tasks.md](cutscene-editor-timeline-tasks.md), [cutscene-editor-transport-tasks.md](cutscene-editor-transport-tasks.md), [cutscene-editor-structure-tasks.md](cutscene-editor-structure-tasks.md), [cutscene-editor-placement-tasks.md](cutscene-editor-placement-tasks.md)).
 Elle rapproche l'aperçu de ce que montre le jeu sur trois points laissés ouverts par la tranche A : les **fondus d'écran sont dessinés**, une **entrée du joueur peut être simulée**, et le **son peut être écouté**.
 
 Les décisions D1 → D5 ci-dessous ont été arbitrées avec l'auteur : **ce plan les applique, il ne les rediscute pas**.
@@ -52,7 +52,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 | Réf | Décision |
 |---|---|
-| D1 | L'aperçu joue dans une copie isolée d'un monde, jamais dans le monde de l'éditeur ni dans le jeu (ADR-0096). |
+| D1 | L'aperçu joue dans une copie isolée d'un monde, jamais dans le monde de l'éditeur ni dans le jeu (ADR-0135). |
 | D2 | Dans l'aperçu, un changement de monde et l'enchaînement vers une autre cutscene sont **signalés**, pas exécutés ; le son est **coupé par défaut**, avec un bouton ; les fondus sont **dessinés sur l'aperçu** (réponses de l'auteur avant la tranche A). |
 | D3 | Le temps s'affiche en secondes et en images. |
 | D4 | Mode autonome : plan approuvé d'avance, exécution enchaînée, aucun push ni fusion. |
@@ -113,16 +113,16 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 
 ## Phase 0 — Décisions
 
-### ✅ T0.1 — ADR-0103
+### ✅ T0.1 — ADR-0142
 
 - Objectif : enregistrer P1 → P15.
 - Fichiers : `docs/decisions/0103-<short-title>.md` (créé), `docs/decisions/README.md`, `ai-agent/README.md` (ligne de ce plan), ce plan.
 - Étapes :
-  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-19, source : ce plan et ADR-0096 (dont elle complète les points laissés à plus tard : dessin des fondus, bouton du son, entrée simulée). Contenu : le voile dessiné par une surcouche de la vue du viewport, en coordonnées d'écran, avec les états de mélange du moteur recopiés et testés (P1 → P4) ; l'entrée simulée qui signale et arrête (P5 → P7) ; le son à la demande, le service muet qui garde les durées du jeu, l'état du mélangeur de l'éditeur relevé et rendu, l'arrêt et non la pause (P8 → P11) ; ce qui reste figé et pourquoi (P12) ; l'automatisation (P13) ; l'absence de sample sonore (P14) ; runtime inchangé (P15).
+  1. Écrire l'ADR en anglais avec le skill `adr`, statut `Accepted`, date 2026-11-19, source : ce plan et ADR-0135 (dont elle complète les points laissés à plus tard : dessin des fondus, bouton du son, entrée simulée). Contenu : le voile dessiné par une surcouche de la vue du viewport, en coordonnées d'écran, avec les états de mélange du moteur recopiés et testés (P1 → P4) ; l'entrée simulée qui signale et arrête (P5 → P7) ; le son à la demande, le service muet qui garde les durées du jeu, l'état du mélangeur de l'éditeur relevé et rendu, l'arrêt et non la pause (P8 → P11) ; ce qui reste figé et pourquoi (P12) ; l'automatisation (P13) ; l'absence de sample sonore (P14) ; runtime inchangé (P15).
   2. Ligne d'index ; ligne de ce plan dans `ai-agent/README.md`.
 - Validation : les liens de l'index pointent sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés.
 - Commit : `docs(decisions): record the drawn fades, the simulated input and the sound of the cutscene preview`
-- Note de validation : ADR-0103 écrit (`docs/decisions/0103-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md`), statut `Accepted`, date 2026-11-19, P1 à P15 enregistrés ; ligne ajoutée à l'index `docs/decisions/README.md` et à `ai-agent/README.md`. Documentation seule : aucun build ni test lancé. Liens de l'index vérifiés sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés. Aucun test existant modifié.
+- Note de validation : ADR-0142 écrit (`docs/decisions/0142-the-cutscene-preview-draws-fades-simulates-an-input-and-plays-sound-on-demand.md`), statut `Accepted`, date 2026-11-19, P1 à P15 enregistrés ; ligne ajoutée à l'index `docs/decisions/README.md` et à `ai-agent/README.md`. Documentation seule : aucun build ni test lancé. Liens de l'index vérifiés sur des fichiers existants ; aucun nom de jeu ni de projet tiers dans les fichiers touchés. Aucun test existant modifié.
 
 ---
 
@@ -245,7 +245,7 @@ Faits relevés par exploration (lecture seule, 2026-11-18), **à relire par l'ex
 - Fichiers : ce document, ce plan, `ai-agent/README.md`.
 - Validation : relecture contre le code livré ; aucun nom de jeu ni de projet tiers.
 - Commit : `docs(editor): document the drawn fades, the simulated input and the sound of the cutscene preview`
-- Note de validation : documentation seule, aucun code touché : ni build ni test lancés. `docs/editor/cutscene-editor.md` : trois sections ajoutées sous « Preview » (« Drawn fades », « Simulated input », « Sound »), avec les trois limites du son demandées (fondu de musique qui agit encore sur le volume de l'éditeur jusqu'au point d'arrêt suivant ; rendre l'état du mélangeur annule un réglage fait par ailleurs ; avertissement du service muet), le service muet et les durées du jeu, la règle « muet en recherche », « arrêt et non pause », le service partagé avec le panneau des sons, le prêt et le relevé du mélangeur, le bus principal coupé, et ce qui reste figé ; les phrases qui disaient les fondus non dessinés, le son coupé sans bouton et `FadeMusic` qui n'attend pas sont corrigées (Reported effects, Limits, Timeline limits, Next) ; la liste des ADR cite ADR-0103. Relu contre le code livré : libellés des boutons et de la ligne d'état, rangée d'entrées, remise à zéro de l'effet d'écran et désarmement (`Launch`, `Rewind`, `SetWorld`, `OnEnded`), extinction du son à la désactivation de l'onglet. Les deux options d'automatisation et les lignes de diagnostics sont décrites dans la section « Automation » du même fichier. `docs/README.md` (ligne de l'index) et `ai-agent/README.md` (ligne du plan) mis à jour. Aucun nom de jeu ni de projet tiers. Aucun test existant modifié.
+- Note de validation : documentation seule, aucun code touché : ni build ni test lancés. `docs/editor/cutscene-editor.md` : trois sections ajoutées sous « Preview » (« Drawn fades », « Simulated input », « Sound »), avec les trois limites du son demandées (fondu de musique qui agit encore sur le volume de l'éditeur jusqu'au point d'arrêt suivant ; rendre l'état du mélangeur annule un réglage fait par ailleurs ; avertissement du service muet), le service muet et les durées du jeu, la règle « muet en recherche », « arrêt et non pause », le service partagé avec le panneau des sons, le prêt et le relevé du mélangeur, le bus principal coupé, et ce qui reste figé ; les phrases qui disaient les fondus non dessinés, le son coupé sans bouton et `FadeMusic` qui n'attend pas sont corrigées (Reported effects, Limits, Timeline limits, Next) ; la liste des ADR cite ADR-0142. Relu contre le code livré : libellés des boutons et de la ligne d'état, rangée d'entrées, remise à zéro de l'effet d'écran et désarmement (`Launch`, `Rewind`, `SetWorld`, `OnEnded`), extinction du son à la désactivation de l'onglet. Les deux options d'automatisation et les lignes de diagnostics sont décrites dans la section « Automation » du même fichier. `docs/README.md` (ligne de l'index) et `ai-agent/README.md` (ligne du plan) mis à jour. Aucun nom de jeu ni de projet tiers. Aucun test existant modifié.
 
 ### 🧪 T3.2 — Recette de l'auteur
 

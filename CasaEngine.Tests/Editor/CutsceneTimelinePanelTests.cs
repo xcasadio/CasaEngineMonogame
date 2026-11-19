@@ -18,7 +18,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The read-only timeline panel of the cutscene document (ADR-0098), on panels without a preview and without a graphics
+/// The read-only timeline panel of the cutscene document (ADR-0137), on panels without a preview and without a graphics
 /// device: its model mirrors the projection, every item can be picked, and the selection is shared with the document.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]
@@ -503,7 +503,7 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         Assert.False(timeline.IsVerticalScrollBarVisible);
     }
 
-    // ---- Dragging in time (ADR-0102, P5 to P8, P12) -------------------------------------------------------------------
+    // ---- Dragging in time (ADR-0141, P5 to P8, P12) -------------------------------------------------------------------
 
     private static JObject Node(string type, params JObject[] children)
     {
@@ -1034,7 +1034,7 @@ public sealed class CutsceneTimelinePanelTests : IDisposable
         Assert.True(FindItem(rig.Panel, rig.A).StartTime > (float)real);
     }
 
-    // ---- Adding at the cursor time (ADR-0102, P9) ---------------------------------------------------------------------
+    // ---- Adding at the cursor time (ADR-0141, P9) ---------------------------------------------------------------------
 
     private static MGContextMenu? EmptySpaceMenu(DragRig rig, float cursorSeconds)
     {

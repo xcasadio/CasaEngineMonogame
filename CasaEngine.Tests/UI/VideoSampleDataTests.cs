@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.UI;
 
 /// <summary>
 /// Guards the data of Projects/VideoSample, a project with no gameplay DLL whose startup cutscene plays a synthetic MDEC
-/// clip on a screen and then loops (ADR-0089). Running it in the Launcher proves the playback; this proves the data
+/// clip on a screen and then loops (ADR-0128). Running it in the Launcher proves the playback; this proves the data
 /// hangs together: the committed clip is byte for byte what the test encoder produces, the cutscene validates, and every
 /// id, target and source name resolves in the sample's own catalogue.
 /// </summary>

@@ -33,7 +33,7 @@ internal static class CutsceneActionCoroutineFactory
 
     private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner, int playToken)
     {
-        // Observation only (ADR-0098): a failing action leaves through yield break below and raises no end, and the
+        // Observation only (ADR-0137): a failing action leaves through yield break below and raises no end, and the
         // code after a yield never runs for a stopped play, so no end is raised for it either. Nothing is raised from a finally block.
         owner.RaiseActionStarted(action, playToken);
         switch (action)
@@ -293,7 +293,7 @@ internal static class CutsceneActionCoroutineFactory
                         yield break;
                     }
 
-                    // ADR-0093: nothing of the cutscene stays with the film. The component hides the entity when the film
+                    // ADR-0132: nothing of the cutscene stays with the film. The component hides the entity when the film
                     // ends; a stop, a replacement or a failure of the play leaves the film running.
                     startEntity.IsVisible = true;
                     startVideo.Play(hideWhenEnded: true);

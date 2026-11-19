@@ -16,7 +16,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The drag and drop of an action in the Hierarchy tree (ADR-0101, P5 to P7), with the mouse of the headless harness: the
+/// The drag and drop of an action in the Hierarchy tree (ADR-0140, P5 to P7), with the mouse of the headless harness: the
 /// tree is never drawn, so the marker is covered by the drop calculation tests and by the state the tree exposes.
 /// </summary>
 [Collection(ProjectEnvironmentCollection.Name)]

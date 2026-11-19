@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
-/// Finds what the loader dropped or rewrote without a format error (ADR-0095): the JSON of the file is compared with the
+/// Finds what the loader dropped or rewrote without a format error (ADR-0134): the JSON of the file is compared with the
 /// JSON a save would write at once. For each known key of an action present in the file, the save must write the same
 /// key, of the same kind and of the same value, and each <c>actions</c> array must keep its number of entries. Unknown
 /// keys and the default values a save adds are accepted, as they are part of the canonical form.

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace CasaEngine.Framework.Audio.Output.OpenAl;
 
 /// <summary>
-/// The body of the callback of an OpenAL Soft callback buffer (AL_SOFT_callback_buffer, ADR-0094): renders the
+/// The body of the callback of an OpenAL Soft callback buffer (AL_SOFT_callback_buffer, ADR-0133): renders the
 /// mixer into the memory OpenAL Soft hands over, estimates underruns from the spacing of the calls, and, once the
 /// device is lost, renders the mixer at the device rate into a discarded buffer. No native code: the memory to
 /// fill is an <see cref="IntPtr"/> and the clock is injected, so a test drives it without a device.

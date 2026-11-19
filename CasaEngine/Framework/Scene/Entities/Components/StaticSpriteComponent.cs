@@ -64,7 +64,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     public SpriteBlendMode BlendMode { get; set; } = SpriteBlendMode.Opaque;
 
     /// <summary>
-    /// Order among sprites of the same z (ADR-0092): at equal z the smaller value is drawn first, so the larger one is drawn
+    /// Order among sprites of the same z (ADR-0131): at equal z the smaller value is drawn first, so the larger one is drawn
     /// over it. 0 by default, which keeps the plain draw calls. No effect on a sprite sorted by a sort key.
     /// </summary>
     public int DrawOrder { get; set; }

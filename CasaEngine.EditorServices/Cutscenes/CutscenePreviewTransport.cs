@@ -4,7 +4,7 @@ using CasaEngine.Framework.Cutscenes;
 namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
-/// Decides, on each editor frame, by how many steps the preview world advances (ADR-0099). A pause is a freeze of the
+/// Decides, on each editor frame, by how many steps the preview world advances (ADR-0138). A pause is a freeze of the
 /// preview world; going to a time is a replay by fixed steps, spread over the editor frames by a time budget. The class
 /// does not touch the world: it asks an <see cref="ICutscenePreviewStepper"/> to step. <see cref="Advance"/> allocates
 /// nothing.
@@ -101,7 +101,7 @@ public sealed class CutscenePreviewTransport
     /// <summary>
     /// Advances the preview world for one editor frame and returns the number of steps done. Pause and seek exist only
     /// while a play runs: when no play runs, the transport goes back to Running and forgets the pending frame steps
-    /// (ADR-0100). Running: one step of <paramref name="frameSeconds"/>. Paused: the requested frame steps, then nothing.
+    /// (ADR-0139). Running: one step of <paramref name="frameSeconds"/>. Paused: the requested frame steps, then nothing.
     /// Seeking: fixed steps while the play runs, is before the target and the budget allows, with at least one step; then
     /// Paused.
     /// </summary>

@@ -1,8 +1,9 @@
-# ADR-0089: The engine plays MDEC videos through a Video element
+# ADR-0128: The engine plays MDEC videos through a Video element
 
 - **Status**: Accepted
 - **Date**: 2026-11-08
 - **Source**: this chantier: `ai-agent/tasks/video-playback-tasks.md` (decisions D1 to D8, settled with the author on 2026-11-08, and choices C1 to C10, locked by the approval of the plan on 2026-11-08), branch `chantier/video-playback`. Follows ADR-0016 of MGUI (host image sources), ADR-0037, ADR-0058, ADR-0078, ADR-0080 and ADR-0088; MGUI's ADR-0026 records the element side.
+- Renumbered from ADR-0089 on 2026-11-19 when origin/main was merged (its ADR-0089 is another decision)
 
 ## Context
 

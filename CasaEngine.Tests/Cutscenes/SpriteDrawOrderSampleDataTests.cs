@@ -6,7 +6,7 @@ namespace CasaEngine.Tests.Cutscenes;
 
 /// <summary>
 /// Guards the data of Projects/SpriteDrawOrderSample, a project with no gameplay DLL whose world holds three overlapping
-/// sprites of the same Z, whose stacking is chosen by their draw_order (ADR-0092). Running it in the Launcher proves the
+/// sprites of the same Z, whose stacking is chosen by their draw_order (ADR-0131). Running it in the Launcher proves the
 /// drawing; this proves the data hangs together: the committed image holds the pixels the generator produces, the draw orders
 /// are the reverse of the order of the entities in the world, and every reference resolves in the sample's own catalogue.
 /// </summary>

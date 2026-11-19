@@ -1,8 +1,9 @@
-# ADR-0092: Sprites of equal depth follow a draw order, then their submission
+# ADR-0131: Sprites of equal depth follow a draw order, then their submission
 
 - **Status**: Accepted
 - **Date**: 2026-11-10
-- **Source**: this chantier: `ai-agent/tasks/sprite-draw-order-tasks.md` (decisions D1 to D6, settled with the author on 2026-11-10, and choices C1 to C7, locked by the approval of the plan on 2026-11-10), branch `chantier/sprite-draw-order`. Follows ADR-0051, ADR-0090 and ADR-0091.
+- **Source**: this chantier: `ai-agent/tasks/sprite-draw-order-tasks.md` (decisions D1 to D6, settled with the author on 2026-11-10, and choices C1 to C7, locked by the approval of the plan on 2026-11-10), branch `chantier/sprite-draw-order`. Follows ADR-0051, ADR-0129 and ADR-0130.
+- Renumbered from ADR-0092 on 2026-11-19 when origin/main was merged (its ADR-0092 is another decision)
 
 ## Context
 

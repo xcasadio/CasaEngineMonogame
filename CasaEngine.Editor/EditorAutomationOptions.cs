@@ -55,7 +55,7 @@ public sealed class EditorAutomationOptions
     public bool CutsceneEditAfterTransport { get; private set; }
 
     /// <summary>
-    /// The structure operations of the cutscene (<c>--cutscene-edit-ops "select:path;up;paste"</c>, ADR-0101 P14), applied one
+    /// The structure operations of the cutscene (<c>--cutscene-edit-ops "select:path;up;paste"</c>, ADR-0140 P14), applied one
     /// per frame after the select and add edits. Empty when the option is absent.
     /// </summary>
     public CutsceneEditOperation[] CutsceneEditOperations { get; private set; } = Array.Empty<CutsceneEditOperation>();

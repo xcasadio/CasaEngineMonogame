@@ -1,6 +1,6 @@
 # Video playback
 
-The engine plays videos stored in the `.mdecvideo` container: a header, an offset table and one MDEC-compressed picture per frame (see [ADR-0089](../decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md)). Section 1 is the written specification the decoder follows, written before any code; the other sections describe what the engine delivers around it.
+The engine plays videos stored in the `.mdecvideo` container: a header, an offset table and one MDEC-compressed picture per frame (see [ADR-0128](../decisions/0128-the-engine-plays-mdec-videos-through-a-video-element.md)). Section 1 is the written specification the decoder follows, written before any code; the other sections describe what the engine delivers around it.
 
 Sections:
 
@@ -318,7 +318,7 @@ In a data-driven screen's XAML, `<Video SourceName="clip" />` creates an `MGVide
 
 ## 5. Skipping
 
-A video with `IsSkippable="True"` is skipped by a Submit or a Cancel press of the project's UI input mapping ([ADR-0080](../decisions/0080-data-driven-navigation-through-a-ui-input-mapping.md) path, changed by ADR-0089).
+A video with `IsSkippable="True"` is skipped by a Submit or a Cancel press of the project's UI input mapping ([ADR-0080](../decisions/0080-data-driven-navigation-through-a-ui-input-mapping.md) path, changed by ADR-0128).
 
 * `UINavigationInput` calls its `SubmitOrCancelPressed` hook for each Submit or Cancel press (phase Pressed, never a repeat), before the MGUI desktop sees the action.
 * `UIRoot` answers by asking the screen at the top of the stack, when it is a `DataDrivenScreen`, to skip its playing skippable videos.
@@ -374,7 +374,7 @@ The slowest case measured, 816 frames per second, is 6.8 times the 120 frames pe
 
 ## 9. The world video component
 
-[ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md). `PlayVideo` (section 6) shows a film in an MGUI screen, which is drawn after the scene and so covers every sprite of the world. `VideoSpriteComponent` draws a film as a sprite of the world instead, so sprites can be drawn over it. The working example is `Projects/VideoSpriteSample`.
+[ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md). `PlayVideo` (section 6) shows a film in an MGUI screen, which is drawn after the scene and so covers every sprite of the world. `VideoSpriteComponent` draws a film as a sprite of the world instead, so sprites can be drawn over it. The working example is `Projects/VideoSpriteSample`.
 
 ### 9.1 Component and JSON
 
@@ -428,13 +428,13 @@ What happens next depends on the path that initialised the entity:
 ### 9.3 Playback, draw and depth rule
 
 * `Play()` puts the film back on picture 0 and starts it; `Stop()` stops it where it is; `IsPlaying` and `IsEnded` report the state. `Play()` on a component without a player throws `InvalidOperationException`.
-* `Play(bool hideWhenEnded)` ([ADR-0093](../decisions/0093-a-world-video-can-run-to-its-end-after-its-cutscene.md)) does the same, and with `true` the component hides its entity in the update where the film ends. `Play()` is `Play(false)`. Each play sets the flag again, and `Stop()` clears it.
-* `Update` advances the player by the received time (the scaled game time, as for the sprite actions of ADR-0090), only while the film plays. At the end, the playback stops and the last picture stays drawn as long as the entity is visible; after `Play(true)` the entity is hidden in that same update, a picture that cannot be decoded included. `Update` and the draw do not allocate.
+* `Play(bool hideWhenEnded)` ([ADR-0132](../decisions/0132-a-world-video-can-run-to-its-end-after-its-cutscene.md)) does the same, and with `true` the component hides its entity in the update where the film ends. `Play()` is `Play(false)`. Each play sets the flag again, and `Stop()` clears it.
+* `Update` advances the player by the received time (the scaled game time, as for the sprite actions of ADR-0129), only while the film plays. At the end, the playback stops and the last picture stays drawn as long as the entity is visible; after `Play(true)` the entity is hidden in that same update, a picture that cannot be decoded included. `Update` and the draw do not allocate.
 * **First picture shown.** `PlayVideoSprite` and `StartVideoSprite` start the film in the coroutine update, and the component's `Update` advances it in the same game frame, before the draw. The first picture drawn is therefore the one reached after the first game step: picture 0 is skipped when a game step is at least one film frame long (for example a 15 fps film under a game step of 1/15 s or more). At 60 updates per second, a 15 fps film shows picture 0.
 * **Draw.** The whole texture of the player is the source and its centre is the origin, so the position is the centre of the film. The Z is `Position.Z`. The call is a key-less `SpriteRendererComponent.DrawSprite(Texture2D, Rectangle, Point, Vector2, float, Vector2, Color, float z, SpriteEffects, bool ignoresDepth)` (an additive overload) with `ignoresDepth: true`. With a `draw_order` other than 0 it calls the overload that takes a final `int drawOrder`. Nothing is drawn while there is no player.
 * **Depth rule.** Sprites without a sort key are ordered by Z and the larger Z is drawn first; the 2D camera sits at a larger Z than its target, so a larger Z is nearer but is drawn earlier. The film neither tests nor writes the depth buffer: a sprite of a smaller Z, drawn after it, blends over it instead of being rejected by the depth test. A film of a smaller Z than a sprite is drawn after that sprite and covers it.
 * **Limit (O3).** Only the film leaves the depth test. Blended sprites of different Z still write depth in larger-Z-first order, so a sprite of a smaller Z drawn after a blended sprite of a larger Z fails under it. Sprites that must blend over each other keep one Z; their order at an equal Z follows `draw_order` (see below). See [static-sprite-component.md](static-sprite-component.md#draw-order-of-a-blended-sprite).
-* **Draw order ([ADR-0092](../decisions/0092-sprites-of-equal-depth-follow-a-draw-order.md)).** At an equal Z, the entry with the smaller `draw_order` is drawn first, so the film (`draw_order` 0 by default) is covered by a sprite of the same Z with a larger `draw_order` and covers one with a smaller value. At an equal `draw_order`, the submission rank of the frame decides; it comes from the world's octree query and can change when an entity moves, so overlapping entities of the same Z should be given different `draw_order` values. Entries with a sort key are not affected. See [static-sprite-component.md](static-sprite-component.md#draw-order-of-sprites-of-equal-depth).
+* **Draw order ([ADR-0131](../decisions/0131-sprites-of-equal-depth-follow-a-draw-order.md)).** At an equal Z, the entry with the smaller `draw_order` is drawn first, so the film (`draw_order` 0 by default) is covered by a sprite of the same Z with a larger `draw_order` and covers one with a smaller value. At an equal `draw_order`, the submission rank of the frame decides; it comes from the world's octree query and can change when an entity moves, so overlapping entities of the same Z should be given different `draw_order` values. Entries with a sort key are not affected. See [static-sprite-component.md](static-sprite-component.md#draw-order-of-sprites-of-equal-depth).
 * The film has no skip of its own (O1). A cut-scene leaves it with `ExitOnInput`.
 
 ### 9.4 The `PlayVideoSprite` cut-scene action
@@ -454,7 +454,7 @@ A runnable project: `Projects/VideoSpriteSample`.
 
 ### 9.5 The `StartVideoSprite` cut-scene action
 
-[ADR-0093](../decisions/0093-a-world-video-can-run-to-its-end-after-its-cutscene.md). `{"type": "StartVideoSprite", "entity": "<name>"}`. The action:
+[ADR-0132](../decisions/0132-a-world-video-can-run-to-its-end-after-its-cutscene.md). `{"type": "StartVideoSprite", "entity": "<name>"}`. The action:
 
 1. checks the entity like `PlayVideoSprite` (section 9.4), with failure messages that begin with `StartVideoSprite:`;
 2. makes the entity visible and calls `Play(hideWhenEnded: true)`;

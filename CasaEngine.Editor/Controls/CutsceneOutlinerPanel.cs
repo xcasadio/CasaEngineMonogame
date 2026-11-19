@@ -14,7 +14,7 @@ using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The Hierarchy view of a cutscene document (ADR-0097): the action tree with one summary line per action, and a bar that
+/// The Hierarchy view of a cutscene document (ADR-0136): the action tree with one summary line per action, and a bar that
 /// adds, duplicates and deletes actions. It never edits the asset itself: every change goes through the operations of the
 /// document, and the tree is rebuilt when the document raises <c>DocumentChanged</c>, never per frame.
 /// </summary>
@@ -154,7 +154,7 @@ internal sealed partial class CutsceneOutlinerPanel
         Rebuild();
     }
 
-    /// <summary>Adds the action of the type chosen in the list, by the rule of the insertion of ADR-0097.</summary>
+    /// <summary>Adds the action of the type chosen in the list, by the rule of the insertion of ADR-0136.</summary>
     internal void AddSelectedType()
     {
         if (_document == null || _typeCombo?.SelectedItem == null

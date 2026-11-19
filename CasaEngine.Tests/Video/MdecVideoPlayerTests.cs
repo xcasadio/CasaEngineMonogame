@@ -13,7 +13,7 @@ using Xunit;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// Tests of <see cref="MdecVideoPlayer"/> and of <see cref="CasaUIAssetProvider.TryCreateVideo"/> (ADR-0089, plan choices
+/// Tests of <see cref="MdecVideoPlayer"/> and of <see cref="CasaUIAssetProvider.TryCreateVideo"/> (ADR-0128, plan choices
 /// C3 and C5). They run on the real device: the player owns a texture. The pictures are one macroblock (16 x 16) whose
 /// six blocks carry constant DC values that change with the frame index, so every frame is a flat colour that the
 /// decoder gives and that differs from its neighbours.

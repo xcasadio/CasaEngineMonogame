@@ -12,7 +12,7 @@ using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 namespace CasaEngine.Editor.Controls.Cutscenes;
 
 /// <summary>
-/// A text box with minus and plus buttons for a number of a cutscene action (ADR-0097). It never writes to the asset: it
+/// A text box with minus and plus buttons for a number of a cutscene action (ADR-0136). It never writes to the asset: it
 /// raises <see cref="CommitRequested"/> and the owner parses, checks and writes the text. The typed text is committed by
 /// Enter or when the focus leaves the box; a button changes the text by one step, within the limits, and commits at once.
 /// </summary>

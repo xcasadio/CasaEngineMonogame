@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// What the automation (<c>--cutscene-edit-ops</c>, ADR-0101 P14) needs from the tree: the menu of the selection opened at its
+/// What the automation (<c>--cutscene-edit-ops</c>, ADR-0140 P14) needs from the tree: the menu of the selection opened at its
 /// row and a drag in progress put in a given state without a mouse. Not used by the editor itself.
 /// </summary>
 internal sealed partial class CutsceneOutlinerPanel

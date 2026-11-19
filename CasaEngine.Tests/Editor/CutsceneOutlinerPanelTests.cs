@@ -12,7 +12,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The action tree of the cutscene document (ADR-0097), on panels without a preview and without a graphics device: it
+/// The action tree of the cutscene document (ADR-0136), on panels without a preview and without a graphics device: it
 /// mirrors the asset, goes through the operations of the document, keeps its selection and its expanded nodes across a
 /// rebuild, and releases the document it was bound to.
 /// </summary>

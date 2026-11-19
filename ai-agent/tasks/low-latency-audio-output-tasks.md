@@ -45,7 +45,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - **Tests.** `OpenAlRefillLoopTests.cs` (5 tests, faux flux `IOpenAlStream`), `OfflineAudioOutput.cs` (sortie factice, 4 × 480 trames), `SoftwareAudioBackendTests.cs:41-43` (arithmétique de `LeadMilliseconds`). Aucun test ne pilote `OpenAlAudioOutput` ni `OpenAlNative` (`docs/engine/audio-system.md:708-709`).
 - **Harnais de stress.** `CasaEngine.Demos/Demos/AudioDemo.cs` : `CASAENGINE_AUDIO_STRESS_SECONDS=<n>` joue un son en boucle et la musique, alloue 8 × 512 Ko par image et force `GC.Collect(2, Forced, true)` toutes les 500 ms, puis consigne `Audio stress done: backend=… seconds=<n> underruns=<n> gc=<n>` et ferme le jeu (`audio-modern-tasks.md:499-535`). Il fait du son pendant tout le passage.
 - **Sample.** `Projects/PixelUiSample` joue `cursor_move.sound` à chaque déplacement du focus (`Screens/title.uiscreen:56`).
-- Dernier ADR : 0093. Ce plan prend 0094.
+- Dernier ADR : 0132. Ce plan prend 0133.
 
 ## Décisions verrouillées
 
@@ -104,17 +104,17 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 
 ## Phase 0 — Plan et décision
 
-### ✅ T0.1 — Plan, index et ADR-0094
+### ✅ T0.1 — Plan, index et ADR-0133
 
 - Objectif : enregistrer le plan approuvé et la décision.
-- Fichiers : `ai-agent/tasks/low-latency-audio-output-tasks.md`, `ai-agent/README.md`, `docs/decisions/0094-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md`, `docs/decisions/README.md`.
+- Fichiers : `ai-agent/tasks/low-latency-audio-output-tasks.md`, `ai-agent/README.md`, `docs/decisions/0133-the-openal-output-pulls-the-mix-with-a-small-device-buffer.md`, `docs/decisions/README.md`.
 - Étapes :
   1. Écrire ce plan, avec les P1 à P7 approuvés et la date de l'approbation.
   2. Ajouter sa ligne au tableau de `ai-agent/README.md`.
-  3. Écrire l'ADR-0094 depuis `docs/decisions/template.md` : contexte (100 ms mesurées, sources d'OpenAL Soft citées), décision (P1, P2, P4, P8), conséquences. Il remplace, pour la sortie OpenAL, la phrase de l'ADR-0055 sur l'avance de 40 ms, et le dit.
+  3. Écrire l'ADR-0133 depuis `docs/decisions/template.md` : contexte (100 ms mesurées, sources d'OpenAL Soft citées), décision (P1, P2, P4, P8), conséquences. Il remplace, pour la sortie OpenAL, la phrase de l'ADR-0055 sur l'avance de 40 ms, et le dit.
 - Validation : relecture du texte ; `rg -i` des noms de jeux et de projets connus de l'auteur : 0 occurrence (D2).
-- Commit : `docs(audio): plan a low-latency OpenAL output and record ADR-0094`
-- Note de validation (2026-11-17) : plan, ligne d'index, ADR-0094 et sa ligne d'index écrits. D2 : aucune occurrence d'un nom de jeu ni de projet (`rg`).
+- Commit : `docs(audio): plan a low-latency OpenAL output and record ADR-0133`
+- Note de validation (2026-11-17) : plan, ligne d'index, ADR-0133 et sa ligne d'index écrits. D2 : aucune occurrence d'un nom de jeu ni de projet (`rg`).
 
 ---
 
@@ -125,7 +125,7 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 - Objectif : le tampon du périphérique passe de 60 ms au plancher accordé par Windows, et la sortie dit ce qu'elle obtient.
 - Fichiers : `CasaEngine/Framework/Audio/Output/OpenAl/alsoft.ini` (nouveau), `CasaEngine/CasaEngine.csproj`, `CasaEngine/Framework/Audio/Output/OpenAl/OpenAlNative.cs`, `CasaEngine/Framework/Audio/Output/OpenAl/OpenAlAudioOutput.cs`, un test dans `CasaEngine.Tests/Audio/Output/`.
 - Étapes :
-  1. Écrire `alsoft.ini` (P1), avec un commentaire qui renvoie à l'ADR-0094.
+  1. Écrire `alsoft.ini` (P1), avec un commentaire qui renvoie à l'ADR-0133.
   2. Le déclarer dans `CasaEngine.csproj` pour qu'il soit copié à la racine de la sortie de tout projet qui référence `CasaEngine`. Si la copie n'atteint pas un exécutable du moteur, ajouter l'élément au projet de cet exécutable.
   3. Ajouter à `OpenAlNative` `alcGetInteger64vSOFT` (par `alcGetProcAddress` et un délégué, sans `unsafe`) et `ALC_DEVICE_LATENCY_SOFT` (`alext.h:494-501`), avec le test de `ALC_SOFT_device_clock`.
   4. Dans la boucle de la file, pendant les 500 ms qui suivent le départ, lire la latence à chaque passage et garder la plus grande, puis écrire la ligne de P5 (mode file, avance 40 ms). Sans l'extension, la latence est notée inconnue. La mesure de fenêtre est une petite classe sans code natif, testée : une première lecture à 0 ou basse ne change pas le maximum retenu.
@@ -164,14 +164,14 @@ Il ne livre pas de sortie WASAPI propre, ni de mode exclusif (« Hors périmètr
 ### ✅ T1.4 — Vérification
 
 - Objectif : relecture neuve de tout le chantier.
-- Étapes : un vérificateur neuf reçoit le plan, l'ADR-0094 et le diff de la branche depuis `00b24bca`. Il relance builds, tests et harnais (si l'auteur l'accepte), et cherche : rappel qui alloue ou appelle AL, exception qui sort, rappel après l'arrêt, délégué libéré trop tôt, deux rendus à la fois, appel du jeu qui attend après une perte du périphérique, seuil lu avant la fin de la fenêtre, repli sur la file cassé, `alsoft.ini` absent d'une sortie, `unsafe` dans le diff.
+- Étapes : un vérificateur neuf reçoit le plan, l'ADR-0133 et le diff de la branche depuis `00b24bca`. Il relance builds, tests et harnais (si l'auteur l'accepte), et cherche : rappel qui alloue ou appelle AL, exception qui sort, rappel après l'arrêt, délégué libéré trop tôt, deux rendus à la fois, appel du jeu qui attend après une perte du périphérique, seuil lu avant la fin de la fenêtre, repli sur la file cassé, `alsoft.ini` absent d'une sortie, `unsafe` dans le diff.
 - Validation : CONFIRMED, ou écarts traités selon leur gravité.
 - Commit : `docs(ai-agent): record the verification of the low-latency audio output`
 - Note de validation (2026-11-17) : un vérificateur neuf rend **CONFIRMED** sur `00b24bca..d056718d`, sans écart P0 à P2. Il a relancé les builds (0 erreur sur les deux solutions) et les tests (5674 sur 5674), vérifié `alsoft.ini` dans les quatre sorties (`GetCopyToOutputDirectoryItems`, copies identiques à la source), relu le rappel, le seuil, la vidange, l'ordre d'arrêt et les constantes contre `alext.h`. Il n'a rien joué : les passages du harnais et l'essai de perte du périphérique viennent du relevé. Constats reportés, aucun bloquant :
   - **P3.** Le test de perte du périphérique passe par une copie de la boucle (`CallbackModeAudioOutput`), qui ne lit pas `ALC_CONNECTED` et vidange par `Thread.Yield` : la branche réelle de `RunCallbackLoop` n'est vérifiée qu'à la lecture, et l'attente réelle peut aller jusqu'au réveil du thread (environ 15,6 ms, écrit dans la doc). L'essai manuel de T1.2 la couvre.
   - **P4.** La plus grande demande retenue pour le seuil peut venir des quelques ms qui suivent la fin de la fenêtre. Effet négligeable.
   - **P4.** `ALC_CONNECTED` est lu sans tester `ALC_EXT_disconnect` : une bibliothèque qui n'écrirait pas la valeur ferait croire à une perte. OpenAL Soft 1.24.3 l'écrit toujours.
-  - **P4.** Hors du code du rappel : le premier appel inverse attache le thread natif au runtime (une allocation), et un rappel qui tombe pendant une collection l'attend. L'ADR-0094 le dit déjà.
+  - **P4.** Hors du code du rappel : le premier appel inverse attache le thread natif au runtime (une allocation), et un rappel qui tombe pendant une collection l'attend. L'ADR-0133 le dit déjà.
   - **P4.** La ligne d'index de `ai-agent/README.md` était restée à T0.1 : mise à jour avec ce commit.
 
 ---

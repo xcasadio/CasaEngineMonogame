@@ -4,7 +4,7 @@ namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
 /// Navigation in the action tree of a cutscene: parent and index of an action, path of an action, and where a new action
-/// goes (ADR-0097). Actions are compared by reference.
+/// goes (ADR-0136). Actions are compared by reference.
 /// </summary>
 public static class CutsceneActionTree
 {

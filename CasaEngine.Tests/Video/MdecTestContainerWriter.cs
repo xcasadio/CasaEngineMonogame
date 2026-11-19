@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// Writes <c>.mdecvideo</c> containers for tests, from the layout of ADR-0089 (plan choice C1): a 32-byte header, a table of
+/// Writes <c>.mdecvideo</c> containers for tests, from the layout of ADR-0128 (plan choice C1): a 32-byte header, a table of
 /// frame count + 1 offsets, the frames, then the optional audio section. Frames are the byte arrays given, normally built
 /// by <see cref="MdecTestEncoder"/>.
 /// </summary>

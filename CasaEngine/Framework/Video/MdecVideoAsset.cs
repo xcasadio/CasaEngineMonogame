@@ -4,7 +4,7 @@ using CasaEngine.Framework.Configuration;
 namespace CasaEngine.Framework.Video;
 
 /// <summary>
-/// A <c>.mdecvideo</c> container (ADR-0089), loaded by its header and its offset table only. The frames are not read
+/// A <c>.mdecvideo</c> container (ADR-0128), loaded by its header and its offset table only. The frames are not read
 /// here: a player opens <see cref="FileName"/> and reads frame <c>i</c> between <see cref="GetFrameOffset"/> of
 /// <c>i</c> and of <c>i + 1</c>. The optional audio section is validated as a byte range and nothing else.
 /// <para/>

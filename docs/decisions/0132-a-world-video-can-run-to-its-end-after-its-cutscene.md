@@ -1,14 +1,15 @@
-# ADR-0093: A world video can run to its end after the cutscene that started it
+# ADR-0132: A world video can run to its end after the cutscene that started it
 
 - **Status**: Accepted
 - **Date**: 2026-11-12
-- **Source**: this chantier: `ai-agent/tasks/video-sprite-runs-to-end-tasks.md` (decisions D1 to D6, settled with the author on 2026-11-12, and choices C1 to C9, locked by the approval of the plan on 2026-11-12), branch `chantier/video-sprite-runs-to-end`. Follows ADR-0090 and ADR-0091.
+- **Source**: this chantier: `ai-agent/tasks/video-sprite-runs-to-end-tasks.md` (decisions D1 to D6, settled with the author on 2026-11-12, and choices C1 to C9, locked by the approval of the plan on 2026-11-12), branch `chantier/video-sprite-runs-to-end`. Follows ADR-0129 and ADR-0130.
+- Renumbered from ADR-0093 on 2026-11-19 when origin/main was merged (its ADR-0093 is another decision)
 
 ## Context
 
-- `PlayVideoSprite` (ADR-0091) shows a world video entity, plays its film, waits for its end and hides the entity. Its cleanup runs in a `finally`: when the play stops first (stop, replacement by `ExitOnInput`, failure), it stops the film and hides the entity.
+- `PlayVideoSprite` (ADR-0130) shows a world video entity, plays its film, waits for its end and hides the entity. Its cleanup runs in a `finally`: when the play stops first (stop, replacement by `ExitOnInput`, failure), it stops the film and hides the entity.
 - A data-only project needs the opposite on an exit: the film keeps playing under the exit fade until its last picture, then its entity is hidden. It also needs the film to be restarted by the next lap of a `Repeat`.
-- The movement and the tint of a sprite (ADR-0090) are carried by the component and already outlive the cutscene that started them.
+- The movement and the tint of a sprite (ADR-0129) are carried by the component and already outlive the cutscene that started them.
 - In a frame of the game, `World.Update` runs the coroutines, then the entities. The film ends in the component's `Update`, so `PlayVideoSprite` sees the end one update later and the last picture stays drawn one more frame.
 - A stopped coroutine runs its `finally` only at a later update of the coroutine manager.
 

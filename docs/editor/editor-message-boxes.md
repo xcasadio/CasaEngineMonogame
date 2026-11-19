@@ -42,7 +42,7 @@ question asked from an answer's callback comes after the questions already waiti
 
 ## The "save before losing changes?" questions
 
-Every open document that can be modified asks before its changes are lost. Decisions: [ADR-0104](../decisions/0104-every-modified-document-asks-before-its-changes-are-lost.md).
+Every open document that can be modified asks before its changes are lost. Decisions: [ADR-0143](../decisions/0143-every-modified-document-asks-before-its-changes-are-lost.md).
 
 A native box answered on the next line; an MGUI box answers later. Each flow therefore refuses or stops at once, asks,
 and redoes the action by code once the answer lets it go. The decision itself is `ModifiedScreenCloseDecision.ApplyAnswer`:

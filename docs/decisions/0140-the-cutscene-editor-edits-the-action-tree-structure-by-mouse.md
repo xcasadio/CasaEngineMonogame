@@ -1,12 +1,13 @@
-# ADR-0101: The cutscene editor edits the structure of the action tree by mouse
+# ADR-0140: The cutscene editor edits the structure of the action tree by mouse
 
 - **Status**: Accepted
 - **Date**: 2026-11-18
-- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-structure-tasks.md` (decisions D1 to D5 settled with the author, choices P1 to P16 taken by the agent, approved with the plan on 2026-11-18 and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0096 and ADR-0097, which deferred the moving, wrapping, copy and paste of actions.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-structure-tasks.md` (decisions D1 to D5 settled with the author, choices P1 to P16 taken by the agent, approved with the plan on 2026-11-18 and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0135 and ADR-0136, which deferred the moving, wrapping, copy and paste of actions.
+- Renumbered from ADR-0101 on 2026-11-19 when origin/main was merged (its ADR-0101 is another decision)
 
 ## Context
 
-- ADR-0097 let the outliner add, remove and duplicate actions, and deferred moving actions, wrapping them, copy and paste, and multiple selection. ADR-0096 made the timeline a projection of the action tree.
+- ADR-0136 let the outliner add, remove and duplicate actions, and deferred moving actions, wrapping them, copy and paste, and multiple selection. ADR-0135 made the timeline a projection of the action tree.
 - The three containers (`Sequence`, `Parallel`, `Repeat`) keep their children in a list named `Actions`; `CutsceneLoadFidelity.GetChildren` returns it for them and `null` for the other actions (`CasaEngine.EditorServices/Cutscenes/CutsceneLoadFidelity.cs`).
 - The loading losses of an edit session are attached to the instance of an action, not to its path. Removing an action drops those of its subtree and the undo restores them. `CutsceneLoadLoss.Path` is a string recorded at load time, and is already out of date after an insertion or a removal.
 - `CutsceneActionCatalog.Clone` copies neither format errors nor unknown types. `InsertCutsceneActionCommand.GetDuplicateRefusal` refuses a duplicate for a subtree that carries an unknown type, a format error or a loading loss.

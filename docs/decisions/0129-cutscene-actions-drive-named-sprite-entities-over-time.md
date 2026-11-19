@@ -1,8 +1,9 @@
-# ADR-0090: Cutscene actions drive named sprite entities over time
+# ADR-0129: Cutscene actions drive named sprite entities over time
 
 - **Status**: Accepted
 - **Date**: 2026-11-09
 - **Source**: this chantier: `ai-agent/tasks/sprite-cutscene-actions-tasks.md` (decisions D1 to D8, settled with the author on 2026-11-09, and choices C1 to C10, locked by the approval of the plan on 2026-11-09), branch `chantier/sprite-cutscene-actions`. Follows ADR-0020, ADR-0051, ADR-0080 and ADR-0088.
+- Renumbered from ADR-0090 on 2026-11-19 when origin/main was merged (its ADR-0090 is another decision)
 
 ## Context
 

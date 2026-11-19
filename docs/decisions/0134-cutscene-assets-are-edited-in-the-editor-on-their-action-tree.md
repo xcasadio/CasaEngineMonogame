@@ -1,8 +1,9 @@
-# ADR-0095: Cutscene assets are edited in the editor, on their action tree
+# ADR-0134: Cutscene assets are edited in the editor, on their action tree
 
 - **Status**: Accepted
 - **Date**: 2026-11-17
-- **Source**: this chantier: `ai-agent/tasks/cutscene-property-editing-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-17, and choices P1 to P11, approved with the plan on 2026-11-17 and open to correction at its acceptance, point O1), branch `chantier/cutscene-property-editing`. Follows ADR-0020, ADR-0088, ADR-0090 and ADR-0093.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-property-editing-tasks.md` (decisions D1 to D7, settled with the author on 2026-11-17, and choices P1 to P11, approved with the plan on 2026-11-17 and open to correction at its acceptance, point O1), branch `chantier/cutscene-property-editing`. Follows ADR-0020, ADR-0088, ADR-0129 and ADR-0132.
+- Renumbered from ADR-0095 on 2026-11-19 when origin/main was merged (its ADR-0095 is another decision)
 
 ## Context
 

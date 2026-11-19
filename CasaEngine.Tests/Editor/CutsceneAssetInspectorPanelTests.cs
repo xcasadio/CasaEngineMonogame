@@ -16,7 +16,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The cutscene document (ADR-0095, ADR-0097), built on the headless MGUI desktop without a GPU. The document keeps its header,
+/// The cutscene document (ADR-0134, ADR-0136), built on the headless MGUI desktop without a GPU. The document keeps its header,
 /// its path and its status line; the properties of the selected action are edited in the typed fields of the Inspector view
 /// (<see cref="CutsceneDetailsPanel"/>), which write through the document. These tests cover the commit of a field into the
 /// history of the document, the dirty state, a global undo or redo, the save and the refusal of a save. The asset catalog, the

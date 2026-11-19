@@ -8,7 +8,7 @@ using Xunit;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// What the world video component queues for its draw order (ADR-0092): the entry carries the order, and an order of 0
+/// What the world video component queues for its draw order (ADR-0131): the entry carries the order, and an order of 0
 /// leaves the entry as before. The asset catalogue is global state: these tests share the single-threaded GPU collection.
 /// </summary>
 [Collection(GpuDeviceCollection.Name)]

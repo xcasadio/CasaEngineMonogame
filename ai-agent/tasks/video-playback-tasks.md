@@ -17,7 +17,7 @@ Ce fichier doit être mis à jour pendant le travail : l'icône au début de cha
 - Un **lecteur** qui avance à la cadence du conteneur et met à jour une texture de taille fixe, une copie par image affichée, sans allocation par image.
 - Une **balise `<Video>`** dans MGUI, alimentée par le moteur comme les images animées, qui lève des événements de fin et de saut.
 - Une **action de cutscene `PlayVideo`**.
-- ADR-0089 du moteur, ADR-0026 de MGUI, et un sample `Projects/VideoSample` avec un clip synthétique.
+- ADR-0128 du moteur, ADR-0026 de MGUI, et un sample `Projects/VideoSample` avec un clip synthétique.
 
 Le chantier ne lit pas le son du conteneur et ne lit pas de flux STR entrelacés (voir « Hors périmètre »).
 
@@ -78,7 +78,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
   - psx-spx décrit le décodeur matériel (https://psx-spx.consoledev.net/macroblockdecodermdec/) et le format BS des versions 1 à 3 (https://psx-spx.consoledev.net/cdromfileformats/, sections « BS Compression »).
   - Selon cette page, le calcul matériel n'est pas reproduit au bit près.
   - La découverte n'a pas lu toutes les règles de la version 1 : ses échappements diffèrent. T1.1 les lit.
-- **ADR.** Prochains numéros libres : 0089 pour le moteur, 0026 pour MGUI. Une fusion avec `origin/main` peut décaler celui du moteur (ADR-0087 et ADR-0088 l'ont été).
+- **ADR.** Prochains numéros libres : 0128 pour le moteur, 0026 pour MGUI. Une fusion avec `origin/main` peut décaler celui du moteur (ADR-0087 et ADR-0088 l'ont été).
 - **Arbre de travail.** Branche `chantier/video-playback` créée depuis `main` `778f6aa8`, égal au pointeur. Aucun changement préexistant.
 
 ## Décisions verrouillées
@@ -92,7 +92,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 | D3 | **Sortie toujours en 24 bits** : RGBA 8 bits par composante, alpha 255 |
 | D4 | **La balise lit la vidéo, par le moteur.** Comme une image animée, `<Video SourceName="…"/>` demande au moteur une source vidéo, qui décode dans une texture de taille fixe. La balise fait avancer la vidéo, l'affiche, et lève la fin et le saut. MGUI ignore tout du MDEC. `PlayVideo` ouvre un écran qui contient la vidéo, attend sa fin ou son saut, puis ferme l'écran |
 | D5 | **Saut.** Une vidéo déclarée « skippable » se saute par l'action Submit ou Cancel du mapping UI du projet (ADR-0080), et lève alors son événement de saut |
-| D6 | **Format et API additifs.** Un projet ou un écran existant se charge et se comporte à l'identique. ADR-0089 du moteur et ADR-0026 de MGUI enregistrent les décisions |
+| D6 | **Format et API additifs.** Un projet ou un écran existant se charge et se comporte à l'identique. ADR-0128 du moteur et ADR-0026 de MGUI enregistrent les décisions |
 | D7 | Rien dans ce plan, les ADR, le code, les tests, le sample ni les commits ne nomme un projet consommateur, un jeu ou une décompilation. Les données sont synthétiques. Les noms du matériel (PSX, MDEC) ont un précédent dans le moteur (ADR-0058) |
 | D8 | Les changements restent simples et optimisés, comme dans un moteur moderne : pas d'allocation par image, et le décodage se fait sur le thread du jeu tant que la mesure le permet |
 
@@ -105,7 +105,7 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 | C3 | **Lecteur `MdecVideoPlayer`, du moteur, qui implémente l'`IUIVideo` de MGUI (C4).** <ul><li>Il possède une `Texture2D` de la taille affichée (`SurfaceFormat.Color`) et la libère avec lui.</li><li>Il lit les images par un flux de fichier, dans un tampon réutilisé à la taille de la plus grande image.</li><li>Il décode sur le thread du jeu, dans un tampon RGBA réutilisé, puis fait un seul `SetData` par nouvelle image.</li><li>Horloge en ticks entiers du temps passé à `Advance` : l'image k s'affiche tant que le temps écoulé est dans [k, k+1) périodes. Une image en retard n'est pas décodée, seule la dernière due l'est. L'image 0 est décodée au démarrage.</li><li>La fin est atteinte quand le temps couvre toutes les images ; la dernière reste affichée.</li><li>Une erreur de flux termine la vidéo, avec une erreur loguée une fois.</li><li>Aucune allocation après le démarrage.</li></ul> |
 | C4 | **MGUI.** <ul><li>`IUIVideo : IDisposable` dans `MGUI.Shared.Assets` : `Advance(TimeSpan)`, `Restart()`, `CurrentImage`, `CurrentSourceRect` et `IsEnded`.</li><li>`IUIAssetProvider.TryCreateVideo(string, out IUIVideo)`, à implémentation par défaut qui ne crée rien.</li><li>Un élément `MGVideo` et une balise XAML `Video` : `SourceName`, `Stretch`, `IsSkippable`, `EndedCommandName`, `SkippedCommandName`, plus une valeur `MGElementType.Video`.</li><li>`MGVideo` réutilise le dessin de `MGImage` (étirement, filtrage) par héritage ou par une méthode protégée ajoutée à `MGImage`, sans dupliquer le dessin.</li><li>À chaque `UpdateSelf`, il fait avancer la vidéo. À la première fin, il lève l'événement C# `Ended` et lance la commande `EndedCommandName` par `GetResources().TryGetCommand`, comme `Button.CommandName`. `Skip()` lève `Skipped` et lance `SkippedCommandName`.</li><li>Une vidéo repliée n'avance pas, comme une image animée.</li><li>Aucune allocation par image, et pas de relayout tant que la taille ne change pas.</li></ul> |
 | C5 | **Fournisseur du moteur.** `CasaUIAssetProvider.TryCreateVideo` trouve par nom ou par id un asset catalogué de type `mdecvideo`, et crée un lecteur neuf pour chaque élément. Un nom inconnu logue un avertissement une fois, comme pour les images |
-| C6 | **Écrans de données et saut.** <ul><li>Une `Video` qui nomme une commande non déclarée est refusée au chargement, comme un bouton.</li><li>Le saut se fait dans le moteur, et MGUI ne lit aucune entrée pour une `Video`. `UINavigationInput` gagne un crochet appelé pour chaque appui de Submit ou de Cancel (phase `Pressed`, pas les répétitions), avant que le bureau ne voie l'action.</li><li>`UIRoot` répond au crochet en demandant à l'écran du sommet, s'il est un `DataDrivenScreen`, de sauter ses vidéos « skippable » en cours. L'écran connaît ses `MGVideo` depuis le chargement.</li><li>Si au moins une vidéo est sautée, l'action est consommée : le bouton qui a le focus n'est pas cliqué, et la `cancel_command` n'est pas lancée. Sinon, rien ne change : Submit va au bouton, et un Cancel non traité va à la `cancel_command`.</li><li>Seul l'écran du sommet est concerné. Sans mapping, aucune vidéo ne se saute par une touche.</li><li>ADR-0089 enregistre ce changement du chemin d'ADR-0080.</li></ul> |
+| C6 | **Écrans de données et saut.** <ul><li>Une `Video` qui nomme une commande non déclarée est refusée au chargement, comme un bouton.</li><li>Le saut se fait dans le moteur, et MGUI ne lit aucune entrée pour une `Video`. `UINavigationInput` gagne un crochet appelé pour chaque appui de Submit ou de Cancel (phase `Pressed`, pas les répétitions), avant que le bureau ne voie l'action.</li><li>`UIRoot` répond au crochet en demandant à l'écran du sommet, s'il est un `DataDrivenScreen`, de sauter ses vidéos « skippable » en cours. L'écran connaît ses `MGVideo` depuis le chargement.</li><li>Si au moins une vidéo est sautée, l'action est consommée : le bouton qui a le focus n'est pas cliqué, et la `cancel_command` n'est pas lancée. Sinon, rien ne change : Submit va au bouton, et un Cancel non traité va à la `cancel_command`.</li><li>Seul l'écran du sommet est concerné. Sans mapping, aucune vidéo ne se saute par une touche.</li><li>ADR-0128 enregistre ce changement du chemin d'ADR-0080.</li></ul> |
 | C7 | **`PlayVideo`** : `{"type": "PlayVideo", "target": "<id ou nom d'écran>"}`. <ul><li>L'action ouvre l'écran comme `OpenScreen`, avec les mêmes échecs et la même règle sous gestion externe des vues.</li><li>Elle attend que chaque `MGVideo` de l'écran soit finie ou sautée, puis retire l'écran. Un écran sans `Video` fait échouer la lecture.</li><li>Si la cutscene est arrêtée avant, l'écran est retiré par le nettoyage de l'instruction, sauf quand le monde est effacé, puisque ses vues partent avec lui.</li></ul> |
 | C8 | **Clip synthétique.** Un encodeur minimal de test, écrit à neuf, produit des images BS de motifs connus, DC et quelques coefficients AC. Il génère le clip du sample, et un test vérifie que le fichier commité est identique à la sortie de l'encodeur |
 | C9 | **Mesures.** <ul><li>Le décodage d'une image synthétique de 320x224 est mesuré en images par seconde, en Release, et la valeur est écrite dans la doc.</li><li>Si elle tombe sous 4 fois la cadence d'une vidéo à 30 images par seconde, la tâche s'arrête en ⚠️ et la question du thread de décodage remonte à l'auteur.</li></ul> |
@@ -160,17 +160,17 @@ Lu sur `main` à `778f6aa8`, égal au pointeur du projet consommateur, et sur MG
 
 ## Phase 0 — Plan et ADR
 
-### ✅ T0.1 — Plan et ADR-0089
+### ✅ T0.1 — Plan et ADR-0128
 
-- Objectif : committer ce plan et sa ligne d'index. Écrire ADR-0089, qui reprend D1 à D8 et C1 à C10, sauf ce que T1.1 fixe (renvoi vers la spécification).
+- Objectif : committer ce plan et sa ligne d'index. Écrire ADR-0128, qui reprend D1 à D8 et C1 à C10, sauf ce que T1.1 fixe (renvoi vers la spécification).
 - Fichiers :
   - `ai-agent/tasks/video-playback-tasks.md` ;
   - `ai-agent/README.md` ;
-  - `docs/decisions/0089-the-engine-plays-mdec-videos-through-a-video-element.md` ;
+  - `docs/decisions/0128-the-engine-plays-mdec-videos-through-a-video-element.md` ;
   - `docs/decisions/README.md`.
 - Validation : relecture de l'ADR contre ce plan. Contrôle D7 par une recherche des noms interdits, liste tenue hors du dépôt.
-- Commit : `docs(video): plan MDEC video playback and record ADR-0089`
-- Note : plan relu par un plan-verifier neuf (REVISE sur le chemin du saut, corrigé ; READY à la relecture de clôture), approuvé par l'auteur le 2026-11-08 (« Oui, lance-le »). ADR-0089 relue contre D1 à D8 et C1 à C10. Contrôle D7 fait.
+- Commit : `docs(video): plan MDEC video playback and record ADR-0128`
+- Note : plan relu par un plan-verifier neuf (REVISE sur le chemin du saut, corrigé ; READY à la relecture de clôture), approuvé par l'auteur le 2026-11-08 (« Oui, lance-le »). ADR-0128 relue contre D1 à D8 et C1 à C10. Contrôle D7 fait.
 
 ---
 

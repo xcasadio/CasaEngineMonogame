@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 /// <summary>
-/// Draws a catalogued MDEC video (ADR-0089) as a sprite of the world (ADR-0091): its position is the centre of the
+/// Draws a catalogued MDEC video (ADR-0128) as a sprite of the world (ADR-0130): its position is the centre of the
 /// picture and its Z orders it against the other sprites, the sprites of a smaller Z being drawn over it.
 /// <para/>
 /// The film does not test nor write the depth buffer (<c>ignoresDepth</c>), so a sprite of a smaller Z, drawn after it,
@@ -43,7 +43,7 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     public Color Color { get; set; } = Color.White;
 
     /// <summary>
-    /// Order among sprites of the same z (ADR-0092): at equal z the smaller value is drawn first, so the larger one is drawn
+    /// Order among sprites of the same z (ADR-0131): at equal z the smaller value is drawn first, so the larger one is drawn
     /// over it. 0 by default, which keeps the plain draw calls. No effect on a sprite sorted by a sort key.
     /// </summary>
     public int DrawOrder { get; set; }
@@ -177,7 +177,7 @@ public class VideoSpriteComponent : SceneComponent, IDisposable
     }
 
     /// <summary>
-    /// Puts the film back to its first picture and starts it (ADR-0093). With <paramref name="hideWhenEnded"/>, the
+    /// Puts the film back to its first picture and starts it (ADR-0132). With <paramref name="hideWhenEnded"/>, the
     /// component hides its entity in the update where the film ends, a decode failure included, so the last picture is
     /// drawn exactly its duration. Each play sets the flag again; <see cref="Stop"/> clears it.
     /// </summary>

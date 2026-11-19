@@ -28,7 +28,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The cutscene document: every property of every action of the tree is a text field (ADR-0095). A field commits on Enter
+/// The cutscene document: every property of every action of the tree is a text field (ADR-0134). A field commits on Enter
 /// or when it loses the focus, as a <see cref="SetCutsceneActionPropertyCommand"/> in the history of the document; undo and
 /// redo, global or not, rebuild the fields from the asset, which stays the only source of truth.
 /// </summary>
@@ -84,7 +84,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         _window = window;
     }
 
-    /// <summary>Creates a panel with a world preview and its transport controls (ADR-0096).</summary>
+    /// <summary>Creates a panel with a world preview and its transport controls (ADR-0135).</summary>
     public CutsceneAssetInspectorPanel(
         MGWindow window,
         GraphicsDevice graphicsDevice,
@@ -228,7 +228,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         return null;
     }
 
-    /// <summary>Adds an action of a catalogue type where the insertion rule says (ADR-0097), and selects it.</summary>
+    /// <summary>Adds an action of a catalogue type where the insertion rule says (ADR-0136), and selects it.</summary>
     public string? AddAction(string type)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(type);
@@ -566,7 +566,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
                ?? CutsceneClipboard.GetCopyRefusal(_session!, selected);
     }
 
-    /// <summary>Inserts a new copy of the clipboard where the insertion rule says (ADR-0097), and selects the copy.</summary>
+    /// <summary>Inserts a new copy of the clipboard where the insertion rule says (ADR-0136), and selects the copy.</summary>
     public string? PasteAction()
     {
         string? refusal = GetPasteRefusal();
@@ -604,7 +604,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     /// <summary>
-    /// Places an action, selected or not, at a time of the timeline (ADR-0102): the projection of the current tree, with the
+    /// Places an action, selected or not, at a time of the timeline (ADR-0141): the projection of the current tree, with the
     /// measured durations like the timeline panel, gives the current start of the action; the dropped time is converted by
     /// difference into the <c>seconds</c> of an At, which is either written or created around the action, as one entry of the
     /// history. The action is selected afterwards. Returns a message when the placement is refused (see
@@ -682,7 +682,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     /// <summary>
-    /// Adds an action of a catalogue type at a time of the timeline (ADR-0102), and selects it. The target is the selected
+    /// Adds an action of a catalogue type at a time of the timeline (ADR-0141), and selects it. The target is the selected
     /// Parallel, otherwise the nearest Parallel that holds the selection; the action goes in a new At at the end of it, whose
     /// <c>seconds</c> is the time minus the start of the Parallel in the timeline, aligned on 1/60 s and not below 0. One
     /// entry of the history. Returns a message when the addition is refused (see <see cref="GetAddActionAtRefusal(string, double)"/>),
@@ -816,7 +816,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     /// <summary>
-    /// A change of the document replays the preview (ADR-0099): a running play restarts from the beginning, a paused play or
+    /// A change of the document replays the preview (ADR-0138): a running play restarts from the beginning, a paused play or
     /// a seek in progress goes to the same time again and stays paused, and nothing is replayed when no play is running.
     /// </summary>
     private void RestartPreviewAfterChange()
@@ -1103,7 +1103,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
 
         if (_preview != null)
         {
-            // The veil of a fade is drawn over the image of the preview, from the screen effect of the play (ADR-0103).
+            // The veil of a fade is drawn over the image of the preview, from the screen effect of the play (ADR-0142).
             _screenFadeOverlay = new CutsceneScreenFadeOverlay(_preview.ScreenEffects);
             _previewViewport.SetPostUiOverlay(_screenFadeOverlay);
         }
@@ -1200,7 +1200,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
         row.TryAddChild(CreateTransportButton("-1 frame", () => StepPreviewBack()));
         row.TryAddChild(CreateTransportButton("+1 frame", () => StepPreviewFrames(1)));
 
-        // The sound is off whenever a document is created (ADR-0103); the label changes only when the state changes.
+        // The sound is off whenever a document is created (ADR-0142); the label changes only when the state changes.
         var soundButton = CreateTransportButton(SoundOffLabel, () => SetPreviewSound(!(_preview?.IsSoundOn ?? false)));
         soundButton.MinWidth = 84;
         _soundText = soundButton.Content as MGTextBlock;
@@ -1251,7 +1251,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     }
 
     /// <summary>
-    /// Simulates the press of an armed input of the play (ADR-0103): the play ends and the status line says which cutscene
+    /// Simulates the press of an armed input of the play (ADR-0142): the play ends and the status line says which cutscene
     /// the game would play. False, and no change, when the document has no preview or no asset, when no play runs or is
     /// paused, or when <paramref name="inputName"/> is not armed.
     /// </summary>
@@ -1272,7 +1272,7 @@ internal sealed class CutsceneAssetInspectorPanel : IDisposable
     private const string SoundOnLabel = "Sound: on";
 
     /// <summary>
-    /// Turns the sound of the preview on or off (ADR-0103). Turning it off stops the voices and the music that the preview
+    /// Turns the sound of the preview on or off (ADR-0142). Turning it off stops the voices and the music that the preview
     /// started and gives the editor mixer back. False, and no change, when the document has no preview or no asset.
     /// </summary>
     public bool SetPreviewSound(bool on)

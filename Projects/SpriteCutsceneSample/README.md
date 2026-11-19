@@ -1,6 +1,6 @@
 # SpriteCutsceneSample
 
-A project with no gameplay DLL that drives sprites from a cutscene, from data alone (ADR-0090). `SpriteWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
+A project with no gameplay DLL that drives sprites from a cutscene, from data alone (ADR-0129). `SpriteWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
 
 ## Objective
 

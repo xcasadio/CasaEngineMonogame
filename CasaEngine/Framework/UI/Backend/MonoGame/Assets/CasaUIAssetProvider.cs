@@ -241,7 +241,7 @@ public sealed class CasaUIAssetProvider : IUIAssetProvider, IUIVideoCreationScop
         return true;
     }
 
-    /// <summary>Resolves <paramref name="name"/> as a catalogued MDEC video asset (by id or by name, ADR-0089) and
+    /// <summary>Resolves <paramref name="name"/> as a catalogued MDEC video asset (by id or by name, ADR-0128) and
     /// returns a new, independent <see cref="MdecVideoPlayer"/> for it, which the caller disposes. The container
     /// header is loaded and held once per name, in this provider. Never throws: an unknown name, a non-video asset,
     /// a missing asset manager or graphics device, or a load failure all return false, logging one warning per

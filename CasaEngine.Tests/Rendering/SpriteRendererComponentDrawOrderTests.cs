@@ -11,7 +11,7 @@ using Xunit;
 namespace CasaEngine.Tests.Rendering;
 
 /// <summary>
-/// The order of the entries without a sort key at equal z (ADR-0092): the smaller draw order first, then the earlier
+/// The order of the entries without a sort key at equal z (ADR-0131): the smaller draw order first, then the earlier
 /// submission. No GPU: the queue is inspected after <c>FillVertices</c> has sorted it. Every entry carries its identity in
 /// the red channel of its colour.
 /// </summary>

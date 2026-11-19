@@ -1,13 +1,14 @@
-# ADR-0091: A world video component plays under sprites, and an input entry can react to any key
+# ADR-0130: A world video component plays under sprites, and an input entry can react to any key
 
 - **Status**: Accepted
 - **Date**: 2026-11-09
-- **Source**: this chantier: `ai-agent/tasks/world-video-and-any-key-tasks.md` (decisions D1 to D8, settled with the author on 2026-11-09, and choices C1 to C9, locked by the approval of the plan on 2026-11-09), branch `chantier/world-video-and-any-key`. Follows ADR-0034, ADR-0080, ADR-0089 and ADR-0090.
+- **Source**: this chantier: `ai-agent/tasks/world-video-and-any-key-tasks.md` (decisions D1 to D8, settled with the author on 2026-11-09, and choices C1 to C9, locked by the approval of the plan on 2026-11-09), branch `chantier/world-video-and-any-key`. Follows ADR-0034, ADR-0080, ADR-0128 and ADR-0129.
+- Renumbered from ADR-0091 on 2026-11-19 when origin/main was merged (its ADR-0091 is another decision)
 
 ## Context
 
 - A data-only project needs a cutscene to play a film with a sprite fading in above it, and to leave the cutscene when the player presses any key of the keyboard.
-- `PlayVideo` (ADR-0089) shows a film in an MGUI screen. A view's UI is drawn after its scene, so the screen covers every sprite of the world.
+- `PlayVideo` (ADR-0128) shows a film in an MGUI screen. A view's UI is drawn after its scene, so the screen covers every sprite of the world.
 - `MdecVideoPlayer` owns a `Texture2D` of the displayed size and updates it with one `SetData` per new frame. A frame-0 decode error does not throw: the player ends at once and logs once.
 - Sorted 2D sprites test and write depth with `LessEqual`, and the larger Z is drawn first; the 2D camera looks at its target from a larger Z, so a larger Z is nearer. A film that wrote depth would hide a sprite of smaller Z drawn after it. An entry flagged `IgnoresDepth` (ADR-0034) runs with no depth state, but the only overload that sets it also forces a sort key.
 - A `.buttonsMapping` entry binds a keyboard key, a gamepad button or a mouse button. There is no "any key". `KeyButton.Load` reads its four fields unconditionally; `UINavigationInput` binds only keyboard and gamepad devices.
@@ -34,9 +35,9 @@
 ## Consequences
 
 - A data-only project can play a film under blended sprites and leave on any key, with no game code.
-- The film is paced by the scaled game time, like the sprite actions of ADR-0090.
+- The film is paced by the scaled game time, like the sprite actions of ADR-0129.
 - Blended sprites of different Z still write depth in larger-Z-first order: sprites that must blend over each other keep one Z. Only the film is taken out of that case.
 - The world film has no skip of its own; leaving goes through `ExitOnInput`.
-- The gamepad is still read while the window has no focus (O5 of ADR-0090).
+- The gamepad is still read while the window has no focus (O5 of ADR-0129).
 - Deferred: an "any button" of the gamepad or the mouse, sound, editing the new data in the editor (the read-only builder and the save path are done).
 - The ADR number may change if `origin/main` gains ADRs before this branch is merged.

@@ -18,7 +18,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Scene;
 
 /// <summary>
-/// The <c>draw_order</c> of the sprite and of the video components (ADR-0092): JSON in both directions, malformed values, the
+/// The <c>draw_order</c> of the sprite and of the video components (ADR-0131): JSON in both directions, malformed values, the
 /// copy, and what the static sprite queues on the renderer. No GPU: the renderer queue is inspected. The queue entry of the
 /// video component is checked in the GPU tests, which have a player. The asset catalogue is global state, so this class runs
 /// in <see cref="ProjectEnvironmentCollection"/>.

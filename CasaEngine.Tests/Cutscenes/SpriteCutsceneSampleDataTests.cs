@@ -11,7 +11,7 @@ namespace CasaEngine.Tests.Cutscenes;
 
 /// <summary>
 /// Guards the data of Projects/SpriteCutsceneSample, a project with no gameplay DLL whose startup cutscene drives four
-/// sprite entities and leaves on a named input (ADR-0090). Running it in the Launcher proves the drawing; this proves the
+/// sprite entities and leaves on a named input (ADR-0129). Running it in the Launcher proves the drawing; this proves the
 /// data hangs together: the committed images hold the pixels the generator produces, every cutscene validates, and every
 /// world, cutscene, mapping, entity and sprite reference resolves in the sample's own catalogue.
 /// </summary>

@@ -120,7 +120,7 @@ internal static class CutsceneActionMenu
 
     /// <summary>
     /// Builds the menu of the empty space of the timeline: <c>Add here</c>, by category then type, which adds the action at
-    /// <paramref name="timelineSeconds"/> (ADR-0102). Returns null when the document would refuse the addition (no Parallel
+    /// <paramref name="timelineSeconds"/> (ADR-0141). Returns null when the document would refuse the addition (no Parallel
     /// to receive it, no history, a play session), so that the empty space then has no menu.
     /// </summary>
     /// <param name="onResult">Told the refusal message of the addition after it ran, or null when it was done.</param>

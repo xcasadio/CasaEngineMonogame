@@ -47,7 +47,7 @@ les fades et le streaming testables, un périphérique OpenAL ne pouvant pas êt
 ## 1 bis. Mixeur logiciel du moteur (ADR-0055)
 
 Le moteur mixe lui-même son audio, en C# ; une sortie native minimale envoie le flux à la carte.
-Depuis l'ADR-0094, c'est OpenAL Soft qui demande le mix, au moment où il en a besoin : le moteur ne
+Depuis l'ADR-0133, c'est OpenAL Soft qui demande le mix, au moment où il en a besoin : le moteur ne
 garde plus d'avance. C'est la première tranche (S1) du programme
 « audio moderne » ([plan](../../ai-agent/tasks/audio-modern-tasks.md)) : même contrat
 `IAudioBackend`, même API d'`AudioService`, aucun changement côté jeu.
@@ -79,7 +79,7 @@ thread « CasaEngine Audio » : ouverture, fermeture, latence, perte du périph�
   propre** périphérique et contexte, rendu courant sur le seul thread audio
   (`ALC_EXT_thread_local_context`), et ne touche jamais le contexte global de MonoGame. Le flux
   est stéréo, en flottant 32 bits, joué sans spatialisation (`AL_SOFT_direct_channels`) au débit
-  du périphérique. **Mode rappel** (ADR-0094) : avec l'extension `AL_SOFT_callback_buffer`, la
+  du périphérique. **Mode rappel** (ADR-0133) : avec l'extension `AL_SOFT_callback_buffer`, la
   source joue un seul tampon à rappel ; OpenAL Soft appelle le mixeur quand il lui faut des
   échantillons, et rien n'est mis en file (avance de 0 ms). La liaison passe par des délégués
   gardés en champ, sans code `unsafe`. Sans l'extension, la sortie revient à la file de l'ADR-0055
@@ -710,7 +710,7 @@ L'éditeur et le jeu partagent le même processus et le même périphérique. La
   après un changement de projet dans l'éditeur, les bus du projet précédent restent vivants (remis à
   leur volume d'origine, sans effet ni départ) jusqu'au redémarrage. Les muets ne sont pas dans
   l'asset. Le dessin d'un gros Ogg décode tout le fichier (comme sa lecture, l'Ogg étant résident).
-- **Latence du backend logiciel** (ADR-0094) : en mode rappel, le tampon du périphérique que
+- **Latence du backend logiciel** (ADR-0133) : en mode rappel, le tampon du périphérique que
   Windows accorde, plus l'attente du prochain appel d'OpenAL Soft (environ 10 ms). Mesure du
   2026-11-17 sur le PC de l'auteur, à 48 kHz : 22 ms de tampon (60 ms sans le `alsoft.ini` du
   moteur), donc environ 22 à 32 ms entre la demande d'un son et sa sortie d'OpenAL Soft. La

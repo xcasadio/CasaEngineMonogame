@@ -19,7 +19,7 @@ using Xunit;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// The world video component (ADR-0091) with the real player: it plays, advances, ends and keeps its last picture; what it
+/// The world video component (ADR-0130) with the real player: it plays, advances, ends and keeps its last picture; what it
 /// queues on the renderer; the release of the player and of the asset hold; the creation failures that need a device; the
 /// world loading path; the absence of allocation in <c>Update</c>; and the pixels of a sprite of a smaller Z blended over the
 /// film. The asset catalogue is global state: these tests share the single-threaded GPU collection.

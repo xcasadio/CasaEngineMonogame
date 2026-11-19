@@ -13,7 +13,7 @@ using World = CasaEngine.Framework.Scene.World.World;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// The StartVideoSprite cutscene action (ADR-0093) over the real player. It shows the entity, starts the film and yields
+/// The StartVideoSprite cutscene action (ADR-0132) over the real player. It shows the entity, starts the film and yields
 /// no frame; the component hides the entity in the update where the film ends; no end of the play (ExitOnInput, a
 /// replacing play, Stop, a failure) touches the film; a Repeat restarts it; it lives with PlayVideoSprite through the
 /// play generation. A frame of the game runs the coroutines, then the entity, then the keyboard, as the game does.
@@ -91,7 +91,7 @@ public sealed class StartVideoSpriteCutsceneActionGpuTests : IDisposable
             Assert.False(started.Video.IsPlaying);
             Assert.Equal(CutsceneRuntimeState.Playing, started.World.CutsceneDirector.GetDebugSnapshot().State);
 
-            // PlayVideoSprite sees the end at the next update (ADR-0091): the extra frame of D3.
+            // PlayVideoSprite sees the end at the next update (ADR-0130): the extra frame of D3.
             Assert.Equal(4, playedHidden);
             Assert.Equal(3, playedVisibleFrames);
         });

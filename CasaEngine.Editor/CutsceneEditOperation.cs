@@ -5,7 +5,7 @@ using System.Globalization;
 namespace CasaEngine.Editor;
 
 /// <summary>
-/// One operation of the <c>--cutscene-edit-ops</c> automation option (ADR-0101, P14). The list is read as written: an operation
+/// One operation of the <c>--cutscene-edit-ops</c> automation option (ADR-0140, P14). The list is read as written: an operation
 /// that is unknown or lacks an argument is kept as it is and refused when it is applied, without dropping the others.
 /// </summary>
 /// <param name="Text">The operation as written, without the surrounding blanks.</param>

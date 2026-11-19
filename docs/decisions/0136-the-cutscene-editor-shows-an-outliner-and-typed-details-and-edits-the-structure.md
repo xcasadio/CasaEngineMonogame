@@ -1,12 +1,13 @@
-# ADR-0097: The cutscene editor shows an action outliner and typed details, and edits the tree structure
+# ADR-0136: The cutscene editor shows an action outliner and typed details, and edits the tree structure
 
 - **Status**: Accepted
 - **Date**: 2026-11-18
-- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-outliner-details-tasks.md` (decision D2 settled with the author on 2026-11-18, and choices P1 to P10, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0095 and ADR-0096.
+- **Source**: this chantier: `ai-agent/tasks/cutscene-editor-outliner-details-tasks.md` (decision D2 settled with the author on 2026-11-18, and choices P1 to P10, approved with the plan and open to correction at its acceptance), branch `chantier/cutscene-property-editing`. Completes ADR-0134 and ADR-0135.
+- Renumbered from ADR-0097 on 2026-11-19 when origin/main was merged (its ADR-0097 is another decision)
 
 ## Context
 
-- ADR-0095 made the properties of existing actions editable and deferred adding, removing and moving actions, and pickers for entities and assets. ADR-0096 added the world preview.
+- ADR-0134 made the properties of existing actions editable and deferred adding, removing and moving actions, and pickers for entities and assets. ADR-0135 added the world preview.
 - The cutscene document shows the properties as a column of text boxes beside the preview. The author rejected it as text with a few controls, not usable.
 - The Hierarchy and Inspector panels are contextual dock hosts: a document kind registers its content with a `ContextualPanelDefinition`. None is registered for cutscenes, so both panels report that nothing is available.
 - Validation bounds live in `CutsceneValidator` (`>= 0` for durations, distances and counters, `[0, 1]` for volumes, `> 0` for the `MoveSprite` speed). Nothing in `CutsceneActionProperty` says that a string names an entity or an asset.
@@ -22,7 +23,7 @@
 - **Defaults of a created action (P4).** A created action takes the defaults of its class, except `Repeat.count` = 1 and `WaitFrames.frames` = 1. It may therefore be invalid while its required fields are empty: the Inspector shows the validator messages. Saving an incomplete action stays permitted, as it is today for any cutscene the validator criticises, because the save guard does not consult the validator. The same holds for a container emptied of its children.
 - **Field semantics (P7, P8, P9).** A numeric field is an input with minus and plus buttons, bounded by the validator limits; typing commits on Enter or focus loss as one history entry, the buttons commit at once, and an empty field means "no value" for a nullable property and is refused otherwise. `FadeScreen.r`, `g` and `b` are one colour field whose validation writes the three properties in one history entry. `PlaySound.bus_name` and `ExitOnInput.inputs` stay text boxes.
 - **Play mode lines (P10).** The runtime-state lines describe the editor world in Play mode. They move to the Inspector, under the title "Editor play mode", shown when no action is selected, with the file path, the validation and the loading losses.
-- The `.cutscene` format does not change. This ADR realises the "adding, removing actions" point deferred by ADR-0095; moving actions stays deferred.
+- The `.cutscene` format does not change. This ADR realises the "adding, removing actions" point deferred by ADR-0134; moving actions stays deferred.
 
 ## Consequences
 

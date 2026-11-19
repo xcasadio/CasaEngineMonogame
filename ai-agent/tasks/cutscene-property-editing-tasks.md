@@ -35,7 +35,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 - `GameEditor` relie un panneau d'asset à l'éditeur en cinq endroits, visibles pour Animation2D : sauvegarde du document actif (`GameEditor.cs:2467-2474`), fermeture (`:3017-3021`), ouverture (`:5136-5141`), « tout sauvegarder » (`:5573-5580`), titre à l'astérisque (`:5702-5708`, `:5804-5807`, `:5845`).
 - Le dépôt contient 14 fichiers `.cutscene` : 12 dans `Projects/` et 2 dans `CasaEngine.Demos/Content/Cutscenes/` (`fd -e cutscene .`).
 - Des tests de panneaux d'éditeur existent (`CasaEngine.Tests/Editor/AudioMixerPanelTests.cs`, `SoundAssetInspectorPanelTests.cs`), ainsi que des tests du builder (`CasaEngine.Tests/EditorServices/Cutscenes/CutsceneReadOnlyDocumentBuilderTests.cs`) et du sérialiseur (`CasaEngine.Tests/Cutscenes/CutsceneAssetJsonSerializerTests.cs`).
-- Le dernier ADR est le 0094 (`ls docs/decisions`). Le prochain numéro libre est 0095.
+- Le dernier ADR est le 0133 (`ls docs/decisions`). Le prochain numéro libre est 0134.
 - Le plan archivé de la timeline exclut un modèle cutscene plat et un `CutsceneTimelineAdapter` (`ai-agent/tasks/archive/timeline-generic-agent-plan.md:23-27`). Ce plan-ci ne touche pas à la timeline.
 
 ## Décisions verrouillées
@@ -102,7 +102,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
 
 ## Phase 0 — Décision
 
-### ✅ T0.1 — ADR-0095 : les cutscenes s'éditent dans l'éditeur, l'arbre reste la source de vérité
+### ✅ T0.1 — ADR-0134 : les cutscenes s'éditent dans l'éditeur, l'arbre reste la source de vérité
 
 > Validation (2026-11-17) : plan relu par trois relecteurs neufs (deux REVISE corrigés, puis READY). ADR écrit selon le modèle, ajouté à l'index, sans nom de jeu ni de projet tiers.
 
@@ -113,7 +113,7 @@ L'arbre `RootAction` reste la seule source de vérité. Le format `.cutscene` et
   2. Écrire l'ADR avec le skill `adr` : contexte (document en lecture seule, sauvegarde absente), décision (D1 à D3, P1 à P4), conséquences (réécriture canonique, refus de sauvegarde), limites (pas d'édition de structure, pas d'aperçu, pas de timeline).
   3. Ajouter la ligne à l'index.
 - Validation : l'ADR suit le modèle ; aucun nom de jeu ni de projet tiers n'y figure.
-- Commit : `docs(decisions): record ADR-0095 on editing cutscene assets in the editor`
+- Commit : `docs(decisions): record ADR-0134 on editing cutscene assets in the editor`
 
 ## Phase 1 — Services d'édition (`CasaEngine.EditorServices`)
 

@@ -1,6 +1,6 @@
 # Static sprite component
 
-`StaticSpriteComponent` draws one sprite (a `.sprite` asset, `SpriteData`) as the root component of an entity. This page covers the fields added by [ADR-0090](../decisions/0090-cutscene-actions-drive-named-sprite-entities-over-time.md) so that a cutscene can drive it ([cutscene actions](cutscene_commandes_sequentielles_async_coroutine.md#sprite-repeat-and-exit-on-input-actions-adr-0090)). `Projects/SpriteCutsceneSample` is the working example.
+`StaticSpriteComponent` draws one sprite (a `.sprite` asset, `SpriteData`) as the root component of an entity. This page covers the fields added by [ADR-0129](../decisions/0129-cutscene-actions-drive-named-sprite-entities-over-time.md) so that a cutscene can drive it ([cutscene actions](cutscene_commandes_sequentielles_async_coroutine.md#sprite-repeat-and-exit-on-input-actions-adr-0090)). `Projects/SpriteCutsceneSample` is the working example.
 
 ## JSON
 
@@ -52,11 +52,11 @@ A `color` without one of the four keys, with a non-integer or a value outside 0.
 
 ## Draw order of sprites of equal depth
 
-[ADR-0092](../decisions/0092-sprites-of-equal-depth-follow-a-draw-order.md). `SpriteRendererComponent` sorts its queue with `List<T>.Sort`, which is not stable, so the order of sprites of the same Z used to be left to the sort. The `draw_order` field lets data choose it. The working example is `Projects/SpriteDrawOrderSample`.
+[ADR-0131](../decisions/0131-sprites-of-equal-depth-follow-a-draw-order.md). `SpriteRendererComponent` sorts its queue with `List<T>.Sort`, which is not stable, so the order of sprites of the same Z used to be left to the sort. The `draw_order` field lets data choose it. The working example is `Projects/SpriteDrawOrderSample`.
 
 * **Field.** `draw_order` is an optional JSON integer on the component node, 0 when absent. `StaticSpriteComponent.DrawOrder` holds it and the copy constructor carries it. The editor save path writes it only when it is not 0. With `DrawOrder` 0 the component makes the same renderer calls as before; with another value it uses the overloads that take a final `int drawOrder`.
 * **Comparator rule** for two entries without a sort key: the larger Z is drawn first (as above); at an equal Z, the smaller `draw_order` is drawn first, so the sprite drawn later is on top; at an equal `draw_order`, the smaller submission rank is drawn first. The submission rank is the position of the entry in the queue of the frame, which makes each frame deterministic instead of left to the sort.
-* **Sprites with a sort key are unaffected.** With a `DepthSortable2DComponent`, the entries are compared by their keys and the `draw_order` has no effect, whatever its value. An order for keyed sprites is outside the scope of ADR-0092.
+* **Sprites with a sort key are unaffected.** With a `DepthSortable2DComponent`, the entries are compared by their keys and the `draw_order` has no effect, whatever its value. An order for keyed sprites is outside the scope of ADR-0131.
 * **Limit (O1).** At an equal Z and an equal `draw_order`, the submission rank comes from the world, which submits its visible entities in the order of a query on its octree. That order depends on the cells and can change when a sprite moves, so such sprites are ordered the same way within a frame but not necessarily from one frame to the next. Data that needs a fixed order gives the overlapping sprites different `draw_order` values.
 * **Depth.** Sorted sprites still test and write depth with `LessEqual`, so the order only matters for sprites of the same Z, which blend over each other in the order above.
 
@@ -75,4 +75,4 @@ Measured on a capture of `Projects/SpriteCutsceneSample` at the Launcher (320x18
 
 ## Video as a sprite
 
-`VideoSpriteComponent` draws a film in the world the way this component draws a sprite: see [video.md](video.md#9-the-world-video-component). The film neither tests nor writes depth, so a sprite of a smaller Z blends over it. Among the blended sprites of this page the depth test still applies: a smaller Z drawn after a larger Z fails under it (O3 of [ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md)), so sprites that must blend over each other keep one Z and take different `draw_order` values (`VideoSpriteComponent` carries the same field: see [video.md](video.md#93-playback-draw-and-depth-rule)).
+`VideoSpriteComponent` draws a film in the world the way this component draws a sprite: see [video.md](video.md#9-the-world-video-component). The film neither tests nor writes depth, so a sprite of a smaller Z blends over it. Among the blended sprites of this page the depth test still applies: a smaller Z drawn after a larger Z fails under it (O3 of [ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md)), so sprites that must blend over each other keep one Z and take different `draw_order` values (`VideoSpriteComponent` carries the same field: see [video.md](video.md#93-playback-draw-and-depth-rule)).

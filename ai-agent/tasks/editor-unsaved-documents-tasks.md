@@ -108,16 +108,16 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 ### ✅ T0.1 — ADR : tout document modifié demande avant d'être perdu
 
 - Objectif : enregistrer la décision D1 à D4 et les arbitrages qui la précisent.
-- Fichiers : `docs/decisions/0104-every-modified-document-asks-before-its-changes-are-lost.md`, `docs/decisions/README.md`.
+- Fichiers : `docs/decisions/0143-every-modified-document-asks-before-its-changes-are-lost.md`, `docs/decisions/README.md`.
 - Étapes :
   1. Suivre le skill `adr` et `docs/decisions/template.md`. Statut `Accepted`, date 2026-11-19, source : ce plan et les réponses de l'auteur.
-  2. Contexte (faits seulement) : ADR-0041 décrit trois questions, dont deux ne couvrent que les écrans d'UI ; ADR-0095 reportait la question pour les cutscenes et les autres documents d'asset ; le commit `b5b4ae05` l'a ajoutée pour les cutscenes à la fermeture.
-  3. Décision : D1 à D4, P3 à P9, P11, P12 et P14, en puces. Dire que cette ADR complète ADR-0041 et remplace le report écrit dans ADR-0095 (sans modifier ces deux fichiers).
+  2. Contexte (faits seulement) : ADR-0041 décrit trois questions, dont deux ne couvrent que les écrans d'UI ; ADR-0134 reportait la question pour les cutscenes et les autres documents d'asset ; le commit `b5b4ae05` l'a ajoutée pour les cutscenes à la fermeture.
+  3. Décision : D1 à D4, P3 à P9, P11, P12 et P14, en puces. Dire que cette ADR complète ADR-0041 et remplace le report écrit dans ADR-0134 (sans modifier ces deux fichiers).
   4. Conséquences : les trois chemins, ce qui reste hors périmètre (section « Hors périmètre » de ce plan).
   5. Ajouter la ligne à l'index.
 - Validation : le fichier suit le modèle ; l'index a la ligne ; aucun autre fichier touché.
 - Commit : `docs(adr): record that every modified document asks before its changes are lost`
-- Validation faite (2026-11-19) : ADR-0104 écrite selon le modèle (statut Accepted, D1 à D5, P3 à P9, P11, P12, P14), ligne ajoutée à l'index ; ADR-0041 et ADR-0095 non modifiées ; aucun code touché, donc ni build ni tests.
+- Validation faite (2026-11-19) : ADR-0143 écrite selon le modèle (statut Accepted, D1 à D5, P3 à P9, P11, P12, P14), ligne ajoutée à l'index ; ADR-0041 et ADR-0134 non modifiées ; aucun code touché, donc ni build ni tests.
 
 ---
 
@@ -238,12 +238,12 @@ Les numéros de ligne valent pour la tête de branche `b5b4ae05`.
 - Objectif : que la documentation dise le comportement général.
 - Fichiers : `docs/editor/editor-message-boxes.md`, `docs/editor/cutscene-editor.md`, et tout autre document de `docs/editor/` qui dit qu'un document se perd sans question (`rg -n -i "without a prompt|before closing|unsaved" docs/editor`).
 - Étapes :
-  1. `editor-message-boxes.md` : la section des questions de sauvegarde décrit les quatre flux (fermeture de tout document modifiable, sortie avec documents et monde, autre projet, autre monde), la liste des sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6). Ajouter « Decisions: see ADR-0104 ».
+  1. `editor-message-boxes.md` : la section des questions de sauvegarde décrit les quatre flux (fermeture de tout document modifiable, sortie avec documents et monde, autre projet, autre monde), la liste des sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6). Ajouter « Decisions: see ADR-0143 ».
   2. `cutscene-editor.md` : retirer la limite « Quitting the editor with a modified cutscene loses its changes » et renvoyer à `editor-message-boxes.md`.
   3. Ajouter une section « Limits » ou la compléter : les points P10 et P11, et les sortes non concernées (P3).
 - Validation : relecture ; aucun fichier de code touché.
 - Commit : `docs(editor): describe the save question for every modified document`
-- Validation faite (2026-11-19) : `docs/editor/editor-message-boxes.md` décrit les quatre flux (fermeture, sortie avec documents et monde, autre projet, autre monde), la liste des neuf sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6) et renvoie à ADR-0104 ; la section « Limits » reprend P10, P11, les sortes non concernées (P3) et O5. `docs/editor/cutscene-editor.md` : la limite « Quitting the editor with a modified cutscene loses its changes » est remplacée par un renvoi. `screen-authoring-conventions.md` et `audio-mixer-panel.md` relus : exacts, non modifiés. Aucun code touché, donc ni build ni tests.
+- Validation faite (2026-11-19) : `docs/editor/editor-message-boxes.md` décrit les quatre flux (fermeture, sortie avec documents et monde, autre projet, autre monde), la liste des neuf sortes, les textes de P4, l'automatisation (P7), l'arrêt de la session de jeu (P6) et renvoie à ADR-0143 ; la section « Limits » reprend P10, P11, les sortes non concernées (P3) et O5. `docs/editor/cutscene-editor.md` : la limite « Quitting the editor with a modified cutscene loses its changes » est remplacée par un renvoi. `screen-authoring-conventions.md` et `audio-mixer-panel.md` relus : exacts, non modifiés. Aucun code touché, donc ni build ni tests.
 
 ### 🧪 T3.2 — Lancement de contrôle et clôture
 

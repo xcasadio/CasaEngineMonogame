@@ -210,7 +210,7 @@ The UI then reads that file instead of MGUI's tables. An entry whose name is tha
 
 ### The `AnyKey` device
 
-[ADR-0091](../decisions/0091-a-world-video-component-and-an-any-key-input.md) adds the value `AnyKey` to `input_device`. An entry that carries it reacts to a new press of any key of the keyboard. It is meant for `ExitOnInput` ([cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#exitoninput)) and other readers of a mapping that go through `InputMapping`. `Projects/VideoSpriteSample` has an example mapping.
+[ADR-0130](../decisions/0130-a-world-video-component-and-an-any-key-input.md) adds the value `AnyKey` to `input_device`. An entry that carries it reacts to a new press of any key of the keyboard. It is meant for `ExitOnInput` ([cut-scene doc](cutscene_commandes_sequentielles_async_coroutine.md#exitoninput)) and other readers of a mapping that go through `InputMapping`. `Projects/VideoSpriteSample` has an example mapping.
 
 The JSON format of `key_button` does not change: its four fields stay required, and a missing one fails the load as before. For `AnyKey`, `key`, `game_pad_button` and `mouse_button` are read and ignored; write them like this:
 
@@ -342,7 +342,7 @@ Tests: `CasaEngine.Tests/Cutscenes/FrameCutsceneActionsTests.cs` proves the timi
 
 ## Video element and PlayVideo
 
-A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvideo`), and a cutscene can open such a screen and wait for the video to finish. The decision is ADR-0089, the container, the player and the measures are in [video.md](video.md), and `Projects/VideoSample` is the working example (a 160x112 synthetic clip, no sound).
+A screen can play a video stored in a `.mdecvideo` container (asset type `mdecvideo`), and a cutscene can open such a screen and wait for the video to finish. The decision is ADR-0128, the container, the player and the measures are in [video.md](video.md), and `Projects/VideoSample` is the working example (a 160x112 synthetic clip, no sound).
 
 ### The `Video` tag
 

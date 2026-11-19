@@ -10,7 +10,7 @@ namespace CasaEngine.Tests.Audio;
 
 /// <summary>
 /// <see cref="IAudioOutput"/> with no device that plays what <see cref="OpenAlAudioOutput"/> does in callback mode
-/// (ADR-0094) through <see cref="OpenAlCallbackFeeder"/>: a thread stands for OpenAL Soft's mixing thread and calls the
+/// (ADR-0133) through <see cref="OpenAlCallbackFeeder"/>: a thread stands for OpenAL Soft's mixing thread and calls the
 /// feeder. <see cref="Disconnect"/> stops these calls, as a device loss does, and the same thread then drains the mixer
 /// as the audio thread of the real output does.
 /// </summary>

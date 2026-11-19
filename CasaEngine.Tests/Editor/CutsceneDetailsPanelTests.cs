@@ -15,7 +15,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The typed fields of the Inspector view of a cutscene document (ADR-0097), on panels without a preview and without a
+/// The typed fields of the Inspector view of a cutscene document (ADR-0136), on panels without a preview and without a
 /// graphics device: the field of each kind of property, the writes through the document as single history entries, the
 /// refusals with their reason, and the text typed and not validated that is written before another action is shown.
 /// </summary>

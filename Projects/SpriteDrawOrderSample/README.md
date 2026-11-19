@@ -1,6 +1,6 @@
 # SpriteDrawOrderSample
 
-A project with no gameplay DLL that stacks sprites of equal depth in an order chosen by the data (ADR-0092). The project's `FirstScreenName` is empty: there is no screen, and no cutscene.
+A project with no gameplay DLL that stacks sprites of equal depth in an order chosen by the data (ADR-0131). The project's `FirstScreenName` is empty: there is no screen, and no cutscene.
 
 ## Objective
 

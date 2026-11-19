@@ -1,6 +1,6 @@
 # VideoSpriteSample
 
-A project with no gameplay DLL that plays a synthetic MDEC clip as a sprite of the world, with another sprite fading in over it, from data alone (ADR-0091). `VideoSpriteWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
+A project with no gameplay DLL that plays a synthetic MDEC clip as a sprite of the world, with another sprite fading in over it, from data alone (ADR-0130). `VideoSpriteWorld.world` starts `Cutscenes/loop.cutscene` through its `startup_cutscene_asset_id` key. The project's `FirstScreenName` is empty: there is no screen.
 
 ## Objective
 

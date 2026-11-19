@@ -12,7 +12,7 @@ using Xunit;
 namespace CasaEngine.Tests.Editor;
 
 /// <summary>
-/// The reference fields of the Inspector view of a cutscene document (ADR-0097): an entity of the preview world or an asset of
+/// The reference fields of the Inspector view of a cutscene document (ADR-0136): an entity of the preview world or an asset of
 /// the catalogue chosen in a list, the value written in the form the runtime reads, and the stored value kept and marked
 /// "(missing)" when it is not in the list.
 /// </summary>

@@ -2,7 +2,7 @@ namespace CasaEngine.Framework.Cutscenes;
 
 /// <summary>
 /// Shows a named entity, starts the video of its VideoSpriteComponent from the first picture, waits until the video has
-/// ended, then hides the entity (ADR-0091). The entity's root component must be a VideoSpriteComponent. When the
+/// ended, then hides the entity (ADR-0130). The entity's root component must be a VideoSpriteComponent. When the
 /// sequence stops before the end, the video is stopped and the entity hidden too.
 /// </summary>
 public sealed class PlayVideoSpriteCutsceneActionData : CutsceneActionData

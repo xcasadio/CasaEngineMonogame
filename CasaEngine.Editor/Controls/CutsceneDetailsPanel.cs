@@ -19,7 +19,7 @@ using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 namespace CasaEngine.Editor.Controls;
 
 /// <summary>
-/// The Inspector view of a cutscene document (ADR-0097): the properties of the selected action in typed fields, laid out in
+/// The Inspector view of a cutscene document (ADR-0136): the properties of the selected action in typed fields, laid out in
 /// a two-column form, with the messages that concern the action under them. Without a selection it shows the cutscene: its
 /// file, its validation and the state of the editor play mode. It never edits the asset itself: every write goes through
 /// <see cref="CutsceneAssetInspectorPanel.SetProperty"/> or <see cref="CutsceneAssetInspectorPanel.SetProperties"/>.
@@ -323,7 +323,7 @@ internal sealed class CutsceneDetailsPanel
     {
         if (property.Kind is CutsceneActionPropertyKind.String or CutsceneActionPropertyKind.Guid)
         {
-            // A list with nothing to choose from is of no use: the reference then stays a text field (ADR-0097).
+            // A list with nothing to choose from is of no use: the reference then stays a text field (ADR-0136).
             if (CutsceneReferenceOptions.IsAssetReference(property.Semantic))
             {
                 var options = CutsceneReferenceOptions.Build(property.Semantic, AssetCatalog.AssetInfos);
@@ -1004,7 +1004,7 @@ internal sealed class CutsceneDetailsPanel
         public void Clear() => Complete(Owner.WriteValue(Action, _property, null));
     }
 
-    /// <summary>The three channels of a screen fade as one colour (ADR-0097): a validation writes the three bytes as one entry.</summary>
+    /// <summary>The three channels of a screen fade as one colour (ADR-0136): a validation writes the three bytes as one entry.</summary>
     internal sealed class RgbColorRow : DetailRow
     {
         private readonly CutsceneActionProperty _red;

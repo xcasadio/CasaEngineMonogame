@@ -8,7 +8,7 @@ using Xunit;
 namespace CasaEngine.Tests.Video;
 
 /// <summary>
-/// <c>VideoSpriteComponent.Play(bool hideWhenEnded)</c> (ADR-0093) with the real player: the entity is hidden in the very
+/// <c>VideoSpriteComponent.Play(bool hideWhenEnded)</c> (ADR-0132) with the real player: the entity is hidden in the very
 /// update where the film ends, a decode failure included; <c>Play()</c>, <c>Play(false)</c>, a later <c>Play()</c> and
 /// <c>Stop()</c> leave it visible; and <c>Update</c> still does not allocate, the update of the end included.
 /// </summary>

@@ -6,7 +6,7 @@ namespace CasaEngine.EditorServices.Cutscenes;
 
 /// <summary>
 /// The editor-side memory of the cutscene preview: the world chosen for each cutscene, kept per project in
-/// <c>.casaeditor/cutscene-preview.editor.json</c> (ADR-0096). It is never part of an asset.
+/// <c>.casaeditor/cutscene-preview.editor.json</c> (ADR-0135). It is never part of an asset.
 /// </summary>
 public sealed class CutscenePreviewSettings
 {
