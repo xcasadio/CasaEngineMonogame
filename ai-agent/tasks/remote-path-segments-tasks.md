@@ -109,13 +109,22 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
 
 ## Phase 0 — Les faits avant la correction
 
-### ⏳ T0.1 — Essai de la sortie du projet par une référence et par l'automatisation
+### ✅ T0.1 — Essai de la sortie du projet par une référence et par l'automatisation
 
 - Objectif : savoir si le défaut est atteignable ailleurs que par les créations (P7), sur le code d'aujourd'hui.
 - Sources : éditeur Debug construit sur la tête de la branche (aucun code changé) ; copie de `Projects/SampleProject` sous `<scratchpad>/remote-path-segments/before/`.
 - Étapes : `git check-ignore` du dossier de sortie ; empreintes de `%LOCALAPPDATA%/CasaEngine/` (hors `editor-remote/`) ; build de l'éditeur ; préparation de la copie et de la cible selon P7 et P10 ; les essais de P7, chaque réponse gardée hors dépôt ; fermeture de l'éditeur ; retrait de la jonction seule et contrôle par énumération (P10) ; empreintes de la cible avant et après.
 - Validation : les réponses sont notées par voie (sortie prouvée ou non), avec les marques de P10 à la place des chemins ; la cible et les réglages de l'utilisateur sont intacts. Aucune **réponse** de l'éditeur ne bloque la suite (D1 demande le refus partout) ; si l'ancien code a modifié un fichier de la cible, c'est un constat noté avec ses empreintes, pas un blocage ; une différence des réglages de l'utilisateur, elle, arrête (P10).
 - Commit : `docs(ai-agent): record the reach of the path segment weakness before the fix`
+- Note de validation (2026-11-19), éditeur Debug construit sur `361b39c86` (aucun code changé depuis `f82f213fc`), script `artifacts/remote-path-segments/scripts/p7_trial.py before`, sorties dans `artifacts/remote-path-segments/before/` du dépôt du jeu (`results.json`, `run.txt`) ; plan approuvé par l'auteur le 2026-11-19 (« Approuvé »), exécution en mode `AUTO`.
+  - Montage : `<copie>` = copie neuve de `Projects/SampleProject` sous `<scratchpad>/remote-path-segments/before/` ; `<cible>` = dossier voisin, hors de la copie, avec trois fichiers qui n'existent que là (`probe-outside.material`, `probe-outside.world`, `probe-outside.entity`, clonés de fichiers du projet sous de nouveaux identifiants et les noms `ProbeOutside…`) ; jonction `Entities ` (espace finale) à côté du vrai `Entities`, vers `<cible>` ; deux entrées ajoutées au catalogue de la copie (`Entities \probe-outside.material`, `Entities \probe-outside.world`) ; le `.entity` n'est pas catalogué.
+  - **O2 répondu : oui, la sortie du projet est atteignable par toutes les voies de lecture essayées.**
+    - Référence d'asset, par le chemin `Entities /probe-outside.material` et par l'identifiant : `material.get` rend les propriétés du matériau de `<cible>`, `asset.open` ouvre son panneau (`panel.list` : titre `ProbeOutside`).
+    - `world.open` de `Entities /probe-outside.world` : le monde de `<cible>` est chargé (`editor.status` : `ProbeOutsideWorld` ; journal : `Load asset <copie>\Entities \probe-outside.world`).
+    - Démarrage avec `--open-asset <copie>\Entities \probe-outside.material` : le panneau `ProbeOutside` est ouvert.
+    - Démarrage avec `--open-asset` sur le `.entity` **non catalogué** : le panneau d'entité `ProbeOutsideEntity` est ouvert (aucun catalogue requis).
+    - `--content-folder "<copie>\Entities \"` : le chemin **n'est pas refusé** par le contrôle (pas de ligne « refused », le dossier est trouvé), mais l'explorateur ne s'y place pas (`[Automation] Unable to select content folder`) : sortie non prouvée par cette voie.
+  - Rien n'a été enregistré. Empreintes : aucun fichier de `<cible>` ni de la copie n'a changé (hors `.casaeditor/`) ; `%LOCALAPPDATA%/CasaEngine/` (hors `editor-remote/`) identique avant et après. Les quatre lancements se sont suivis un à un ; les trois éditeurs pilotés se sont fermés seuls sur `taskkill /PID`. La jonction a été retirée seule par son chemin `\\?\` ; l'énumération du dossier d'essai ne rend plus aucun lien.
 
 ## Phase 1 — La règle
 
@@ -171,7 +180,7 @@ Relecture du 2026-11-19 par le `security-reviewer`, en lecture seule, sur le com
 | Réf | Sujet | Tâche concernée |
 |---|---|---|
 | O1 | Valider ou modifier P1 à P12 ; en particulier P2 (le prédicat de T1.4, blancs compris, appliqué à tout segment, existant ou non), P6 (une phrase dans l'ADR-0093, pas de nouvelle ADR), P8 (pas de rejeu de la parité si aucun fichier du runtime ne change), P9 (l'approbation vaut demande de push) et P12 (T4.2 marquée ✅ dans le commit poussé). | Approbation |
-| O2 | La sortie du projet est-elle atteignable par une référence d'asset, `world.open` ou `--open-asset` ? Inconnu avant T0.1. | T0.1 |
+| O2 | **Répondu en T0.1 : oui**, par une référence d'asset (chemin et identifiant), `world.open` et `--open-asset` (asset catalogué ou `.entity` non catalogué) ; `--content-folder` passe le contrôle sans que la sortie soit prouvée. Texte d'origine : La sortie du projet est-elle atteignable par une référence d'asset, `world.open` ou `--open-asset` ? Inconnu avant T0.1. | T0.1 |
 | O3 | **Pour l'auteur, à dire avec l'approbation s'il le veut** (S5-1) : étendre le refus de texte aux segments dont le radical est un nom réservé de Windows (`NUL`, `CON`, `COM1`…, la liste de `EditorRemoteValidation.cs:19-24`) ? Proposé : **non** dans ce plan (D1 porte sur les points et les espaces ; sous Windows 11 `NUL` est déjà refusé par l'échec fermé, épinglé par un test) ; sans réponse, le plan s'exécute sans cette extension. | Approbation |
 
 ## Hors périmètre
